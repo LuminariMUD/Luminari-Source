@@ -693,7 +693,7 @@ void regen_update(struct char_data *ch)
       move_regen += 2;
 
     if (!FIGHTING(ch))
-      move_regen += GET_MV_REGEN(ch);
+      move_regen += get_psp_regen_amount(ch);
 
     move_regen *= 10; /* conversion to gicker's new system */
 
@@ -738,7 +738,7 @@ void regen_psp(void)
       GET_PSP(d->character)++;
 
     if (!FIGHTING(d->character))
-      GET_PSP(d->character) += GET_PSP_REGEN(d->character);
+      GET_PSP(d->character) += get_psp_regen_amount(d->character);
 
     if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
       if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY))
@@ -760,8 +760,10 @@ void regen_psp(void)
 
     /* we also have a de-regen if over max in another function */
     if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
-      GET_PSP(d->character)
-    --;
+      GET_PSP(d->character)--;
+
+    if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
+      GET_PSP(d->character) = GET_MAX_PSP(d->character);
   }
 }
 
@@ -1430,7 +1432,9 @@ void update_player_misc(void)
     {
       GET_MARK_ROUNDS(ch) += 1;
       if (GET_MARK_ROUNDS(ch) == 3)
+      {
         send_to_char(ch, "You have finished marking your target.\r\n");
+      }
       else
         send_to_char(ch, "You continue to mark your target.\r\n");
     }

@@ -8703,4 +8703,26 @@ int get_hp_regen_amount(struct char_data *ch)
   return hp;
 }
 
+int get_psp_regen_amount(struct char_data *ch)
+{
+  int psp = 0;
+
+  psp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_PSP_REGEN);
+  psp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_PSP_REGEN);
+  psp += get_apply_type_gear_mod(ch, APPLY_PSP_REGEN);
+
+  return psp;
+}
+
+int get_mv_regen_amount(struct char_data *ch)
+{
+  int mv = 0;
+
+  mv += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_MV_REGEN);
+  mv += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_MV_REGEN);
+  mv += get_apply_type_gear_mod(ch, APPLY_MV_REGEN);
+
+  return mv;
+}
+
 /* EoF */

@@ -699,6 +699,9 @@ EVENTFUNC(event_acid_arrow)
     return 0;
   }
 
+  send_to_char(ch, "You send out an arrow of acid towards your opponent!\r\n");
+  act("$n sends out an arrow of acid!", FALSE, ch, 0, 0, TO_ROOM);
+
   if (mag_resistance(ch, victim, 0))
     return 0;
 
@@ -709,11 +712,9 @@ EVENTFUNC(event_acid_arrow)
     level = 15; /* so lame */
 
   if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
-    damage(ch, victim, (dice(3, 6) / 2), SPELL_ACID_ARROW, DAM_ENERGY,
-           FALSE);
+    damage(ch, victim, (dice(3, 6) / 2), SPELL_ACID_ARROW, DAM_ACID, FALSE);
   else
-    damage(ch, victim, dice(3, 6), SPELL_ACID_ARROW, DAM_ENERGY,
-           FALSE);
+    damage(ch, victim, dice(3, 6), SPELL_ACID_ARROW, DAM_ACID, FALSE);
 
   update_pos(victim);
 
@@ -912,9 +913,6 @@ ASPELL(spell_acid_arrow)
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
-
-  send_to_char(ch, "You send out an arrow of acid towards your opponent!\r\n");
-  act("$n sends out an arrow of acid!", FALSE, ch, 0, 0, TO_ROOM);
 
   num_arrows += CASTER_LEVEL(ch) / 3;
 

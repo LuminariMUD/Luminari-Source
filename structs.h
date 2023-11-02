@@ -4390,6 +4390,8 @@ struct char_special_data
 
     bool has_borrow_been_attempted; // if true, the mob can no longer be 'borrowed' from (kender ability)
     int which_treasure_message;           // when we want to use a custom message for random treasure
+
+    int acid_arrow_level;
 };
 
 /* old memorization struct */

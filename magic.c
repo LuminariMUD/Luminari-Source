@@ -3295,7 +3295,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[3].duration = 10 + level;
     af[3].modifier = 2 + (GET_AUGMENT_PSP(ch) / 3);
 
-    accum_duration = FALSE;
+    accum_affect = accum_duration = FALSE;
     to_vict = "You gain the ability to sense attacks moments before they occur.";
     break;
 
@@ -3314,7 +3314,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = 10 + level;
     af[0].modifier = 2 + (GET_AUGMENT_PSP(ch) / 3);
 
-    accum_duration = FALSE;
+    accum_affect = accum_duration = FALSE;
     to_vict = "You gain the ability to sense openings in your opponents defenses moments before they occur.";
     break;
 
@@ -3328,7 +3328,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = 10 + level;
     af[0].modifier = 2 + (GET_AUGMENT_PSP(ch) / 3);
 
-    accum_duration = FALSE;
+    accum_affect = accum_duration = FALSE;
     to_vict = "You gain the ability to sense your opponent's weak spots.";
     break;
 
@@ -3385,7 +3385,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     af[0].location = APPLY_HIT;
-    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
     af[0].duration = 12 * level;
     af[0].modifier = 5 + ((GET_AUGMENT_PSP(ch) / 3) * 5);
 
@@ -9329,6 +9329,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     msg = 19;
     fmsg = rand_number(2, 6); /* Random fail message. */
     mob_num = MOB_GHOST_WOLF;
+    mob_level = MIN(15, MAX(5, level));
     pfail = 0;
     break;
 
@@ -9415,20 +9416,19 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
     mob_level = rand_number(MIN(CASTER_LEVEL(ch) - 1, 14),
                             MIN(CASTER_LEVEL(ch), 20));
-
     break;
 
   case SPELL_SUMMON_NATURES_ALLY_9:
   case SPELL_SUMMON_CREATURE_9: // conjuration
-    mob_level = MAX(18, CASTER_LEVEL(ch) - rand_number(0, 5));
+    mob_level = 18;
   case SPELL_SUMMON_NATURES_ALLY_8:
   case SPELL_SUMMON_CREATURE_8: // conjuration
     if (!mob_level)
-      mob_level = MAX(16, CASTER_LEVEL(ch) - rand_number(3, 8));
+      mob_level = 16;
   case SPELL_SUMMON_NATURES_ALLY_7:
   case SPELL_SUMMON_CREATURE_7: // conjuration
     if (!mob_level)
-      mob_level = MAX(14, CASTER_LEVEL(ch) - rand_number(5, 10));
+      mob_level = 14;
 
     handle_corpse = FALSE;
 
@@ -9707,16 +9707,25 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
     case ABILITY_CREATE_VAMPIRE_SPAWN:
       if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), NECROMANCY))
+      {
         spell_focus_bonus++;
+        send_to_char(ch, "*spell focus* ");
+      }
       if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), NECROMANCY))
+      {
         spell_focus_bonus++;
+        send_to_char(ch, "*greater spell focus* ");
+      }
       if (HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), NECROMANCY))
+      {
         spell_focus_bonus++;
+        send_to_char(ch, "*epic spell focus* ");
+      }
       GET_REAL_STR(mob) = (mob)->aff_abils.str += spell_focus_bonus * 2;
       GET_REAL_CON(mob) = (mob)->aff_abils.con += spell_focus_bonus * 2;
       GET_REAL_DEX(mob) = (mob)->aff_abils.dex += spell_focus_bonus * 2;
       GET_REAL_AC(mob) = (mob)->points.armor += (spell_focus_bonus * 2) * 10;
-      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (spell_focus_bonus)*GET_LEVEL(mob); /* con bonus */
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (spell_focus_bonus) * GET_LEVEL(mob); /* con bonus */
       GET_HIT(mob) = GET_MAX_HIT(mob);
       break;
     case SPELL_DRAGON_KNIGHT:
@@ -9738,16 +9747,25 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     case SPELL_MARID_KIND:
     case SPELL_SHAITAN_KIND:
       if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), CONJURATION))
+      {
         spell_focus_bonus++;
+        send_to_char(ch, "*spell focus* ");
+      }
       if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), CONJURATION))
+      {
         spell_focus_bonus++;
+        send_to_char(ch, "*greater spell focus* ");
+      }
       if (HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), CONJURATION))
+      {
         spell_focus_bonus++;
+        send_to_char(ch, "*epic spell focus* ");
+      }
       GET_REAL_STR(mob) = (mob)->aff_abils.str += (spell_focus_bonus * 2);
       GET_REAL_CON(mob) = (mob)->aff_abils.con += (spell_focus_bonus * 2);
       GET_REAL_DEX(mob) = (mob)->aff_abils.dex += (spell_focus_bonus * 2);
       GET_REAL_AC(mob) = (mob)->points.armor += (spell_focus_bonus * 2) * 10;
-      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += ((spell_focus_bonus)*GET_LEVEL(mob)); /* con bonus */
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += ((spell_focus_bonus) * GET_LEVEL(mob));
       GET_HIT(mob) = GET_MAX_HIT(mob);
       break;
     }
@@ -10609,10 +10627,17 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     to_char = "You create $p.";
     to_room = "$n creates $p.";
     send_to_char(ch, "Drop <item name> to start grenade, it will explode in 3 seconds.\r\n");
+#if defined(CAMPAIGN_DL)
+  if (rand_number(0, 1))
+      object_vnum = 20868;
+    else
+      object_vnum = 20869;
+#else
     if (rand_number(0, 1))
       object_vnum = 9404;
     else
       object_vnum = 9405;
+#endif
     break;
 #if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   case SPELL_GATE:
@@ -10736,7 +10761,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_GOODBERRY:
     to_char = "You create $p.";
     to_room = "$n creates $p.";
+#if defined(CAMPAIGN_DL)
+    object_vnum = 20870;
+#else
     object_vnum = 9400;
+#endif
     break;
   case SPELL_HOLY_SWORD:
     to_char = "You summon $p.";
@@ -10751,7 +10780,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_MAGIC_STONE:
     to_char = "You create $p.";
     to_room = "$n creates $p.";
+#if defined(CAMPAIGN_DL)
+    object_vnum = 20871;
+#else
     object_vnum = 9401;
+#endif
     break;
   case SPELL_PORTAL:
 
@@ -10819,7 +10852,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
     to_room = "$n \tnfolds \tMtime\tn and \tDspace\tn, and creates $p\tn.";
     obj_to_floor = TRUE;
+#if defined(CAMPAIGN_DL)
+    object_vnum = 20801;
+#else
     object_vnum = 801;
+#endif
     /* a little more work with portals */
     portal_process = TRUE;
     break;
@@ -10827,7 +10864,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     to_char = "You create $p.";
     to_room = "$n creates $p.";
     obj_to_floor = TRUE;
+#if defined(CAMPAIGN_DL)
+    object_vnum = 20805;
+#else
     object_vnum = 805;
+#endif
     break;
     /* these have been made manual spells */
     /*

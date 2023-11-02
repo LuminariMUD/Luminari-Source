@@ -1907,8 +1907,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
       }
     }
 
-    GET_OBJ_COST(mold) = 100 + GET_OBJ_LEVEL(mold) * 50 * MAX(1, GET_OBJ_LEVEL(mold) - 1) +
-                         GET_OBJ_COST(mold);
+    GET_OBJ_COST(mold) = 100 + GET_OBJ_LEVEL(mold) * 50 * MAX(1, GET_OBJ_LEVEL(mold) - 1) + GET_OBJ_COST(mold);
     GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(mold));
 
     send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n",

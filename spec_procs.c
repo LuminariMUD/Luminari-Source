@@ -513,7 +513,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
   int domain_1 = GET_1ST_DOMAIN(ch);
   int domain_2 = GET_2ND_DOMAIN(ch);
   bool is_psionic = (class == CLASS_PSIONICIST);
-  bool is_warlock = class == CLASS_WARLOCK;
+  bool is_warlock = (class == CLASS_WARLOCK);
 
   // default class case
   if (class == -1)
@@ -10435,7 +10435,11 @@ SPECIAL(buyweapons)
 #define MOLD_CRAFT_NECKLACE 5
 #define MOLD_CRAFT_CLOAK 6
 
-#define MOLD_OBJ_VNUM 208
+#if defined(CAMPAIGN_DL)
+  #define MOLD_OBJ_VNUM 16603
+#else
+  #define MOLD_OBJ_VNUM 208
+#endif
 #define MOLD_OBJ_COST 100
 
 void create_crafting_mold(struct char_data *ch, int selection, int type)
