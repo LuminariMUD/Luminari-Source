@@ -291,7 +291,9 @@ int save_quests(zone_rnum zone_num)
                "%s%c\n"
                "%s%c\n"
                "%s%c\n"
+#if (defined(CAMPAIGN_DL))
                "%s%c\n"
+#endif               
                "%s%c\n"
                "%d %d %s %d %d %d %d\n"
                "%d %d %d %d %d %d %d\n"
@@ -303,7 +305,9 @@ int save_quests(zone_rnum zone_num)
                quest_info, STRING_TERMINATOR,
                quest_done, STRING_TERMINATOR,
                quest_quit, STRING_TERMINATOR,
+#if (defined(CAMPAIGN_DL))
                quest_kill_list, STRING_TERMINATOR,
+#endif
                QST_TYPE(rnum),
                QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum),
                quest_flags,

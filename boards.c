@@ -47,6 +47,7 @@
 
 /* Format: vnum, read lvl, write lvl, remove lvl, filename, 0 at end. Be sure
  * to also change NUM_OF_BOARDS in board.h*/
+#if defined(CAMPAIGN_DL)
 struct board_info_type board_info[NUM_OF_BOARDS] = {
     {1367, 0, 1, LVL_IMPL, LIB_ETC "board.ooc"},
     {1369, 0, 1, LVL_IMPL, LIB_ETC "board.bug"},
@@ -57,6 +58,11 @@ struct board_info_type board_info[NUM_OF_BOARDS] = {
     {2403, 0, 1, LVL_IMPL, LIB_ETC "board.palanthas.thief"},
 
 };
+#else
+struct board_info_type board_info[NUM_OF_BOARDS] = {
+    {2201, 0, 1, LVL_IMPL, LIB_ETC "board.general"},
+};
+#endif
 
 /* local (file scope) global variables */
 static char *msg_storage[INDEX_SIZE];

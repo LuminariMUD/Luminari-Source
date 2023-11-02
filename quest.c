@@ -219,7 +219,9 @@ void parse_quest(FILE *quest_f, int nr)
   aquest_table[i].info = fread_string(quest_f, buf2);
   aquest_table[i].done = fread_string(quest_f, buf2);
   aquest_table[i].quit = fread_string(quest_f, buf2);
+#if defined(CAMPAIGN_DL)  
   aquest_table[i].kill_list = fread_string(quest_f, buf2);
+#endif
 
   /* parse the first line of ints */
   if (!get_line(quest_f, line) ||
