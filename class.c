@@ -3747,35 +3747,35 @@ int level_exp(struct char_data *ch, int level)
 #elif defined(CAMPAIGN_DL)
 
   case RACE_LICH:
-    exp *= 10;
+    exp *= 4;
     break;
 
   case RACE_VAMPIRE:
-    exp *= 10;
+    exp *= 4;
     break;
 
   case DL_RACE_KAPAK_DRACONIAN:
-    exp *= 3;
+    exp *= 1.5;
     break;
 
   case DL_RACE_BOZAK_DRACONIAN:
-    exp *= 3;
+    exp *= 1.5;
     break;
 
   case DL_RACE_IRDA:
-    exp *= 3;
+    exp *= 2;
     break;
 
   case DL_RACE_OGRE:
-    exp *= 3;
+    exp *= 2;
     break;
 
   case DL_RACE_SIVAK_DRACONIAN:
-    exp *= 5;
+    exp *= 2;
     break;
 
   case DL_RACE_AURAK_DRACONIAN:
-    exp *= 10;
+    exp *= 3;
     break;
 
 #else

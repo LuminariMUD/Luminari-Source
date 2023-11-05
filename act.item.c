@@ -6420,8 +6420,13 @@ void perform_outfit_show(struct char_data *ch)
   );
 }
 
-#define OUTFIT_WEAPON_PROTO 211
-#define OUTFIT_ARMOR_PROTO 212
+#if defined(CAMPAIGN_DL)
+  #define OUTFIT_WEAPON_PROTO 16856
+  #define OUTFIT_ARMOR_PROTO 16855
+#else
+  #define OUTFIT_WEAPON_PROTO 211
+  #define OUTFIT_ARMOR_PROTO 212
+#endif
 
 int outfit_type_to_armor_type(int type, int wear)
 {
