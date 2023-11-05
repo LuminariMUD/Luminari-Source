@@ -261,13 +261,13 @@ void load_regions()
 
   if (mysql_query(conn, buf))
   {
-    log("SYSERR: Unable to SELECT from region_data: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT from region_data 1: %s", mysql_error(conn));
     exit(1);
   }
 
   if (!(result = mysql_store_result(conn)))
   {
-    log("SYSERR: Unable to SELECT from region_data: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT from region_data 2: %s", mysql_error(conn));
     exit(1);
   }
 
@@ -844,13 +844,13 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
 
   if (mysql_query(conn, buf))
   {
-    log("SYSERR: Unable to SELECT from region_data: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT from region_data 3: %s", mysql_error(conn));
     return false;
   }
 
   if (!(result = mysql_store_result(conn)))
   {
-    log("SYSERR: Unable to SELECT from region_data: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT from region_data 4: %s", mysql_error(conn));
     return false;
   }
 

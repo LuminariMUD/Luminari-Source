@@ -227,7 +227,7 @@ ACMD(do_accexp)
     }
 #ifdef CAMPAIGN_FR
     if (i >= NUM_EXTENDED_PC_RACES)
-#elif defined(CAMPAING_DL)
+#elif defined(CAMPAIGN_DL)
     if (i >= DL_RACE_END)
 #else
     if (i >= NUM_RACES)

@@ -606,7 +606,7 @@ void boot_world(void)
   log("Loading regions. (MySQL)");
   load_regions();
 
-  log("Loading regions. (MySQL)");
+  log("Loading paths. (MySQL)");
   load_paths();
 
   log("Renumbering rooms.");
@@ -5442,6 +5442,8 @@ void init_char(struct char_data *ch)
 #if defined(CAMPAIGN_FR)   || defined(CAMPAIGN_DL)
   // autoprep toggled on -gicker
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTO_PREP);
+  // autoconsider on
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOCON);
 #endif
 
   // fresh start on casting data
