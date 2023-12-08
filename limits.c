@@ -1431,7 +1431,7 @@ void update_player_misc(void)
     if (GET_MARK(ch) && GET_MARK_ROUNDS(ch) < 3)
     {
       GET_MARK_ROUNDS(ch) += 1;
-      if (GET_MARK_ROUNDS(ch) == 3)
+      if (GET_MARK_ROUNDS(ch) == 3 || HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
       {
         send_to_char(ch, "You have finished marking your target.\r\n");
       }
@@ -1486,6 +1486,11 @@ void proc_d20_round(void)
         }
       }
     }
+
+    if (i->char_specials.recently_slammed > 0)
+      i->char_specials.recently_slammed--;
+    if (i->char_specials.recently_kicked > 0)
+      i->char_specials.recently_kicked--;
 
     if (AFF_FLAGGED(i, AFF_WIND_WALL))
     {

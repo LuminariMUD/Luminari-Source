@@ -639,7 +639,8 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
   /* follower check for pet object system */
   if (GET_OBJ_TYPE(obj) == ITEM_PET)
   {
-    if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+    // if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+    if (!can_add_follower(ch, GET_OBJ_VNUM(obj)))
     {
       send_to_char(ch, "Sorry, you already have enough followers.\r\n");
       return;

@@ -703,7 +703,8 @@ ACMD(do_animatedead)
     return;
   }
 
-  if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD))
+  // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD))
+  if (!can_add_follower_by_flag(ch, MOB_ANIMATED_DEAD))
   {
     send_to_char(ch, "You can't control more undead!\r\n");
     return;
@@ -6354,8 +6355,7 @@ ACMD(do_use)
       break;
     case SCMD_USE:
     case SCMD_INVOKE:
-      send_to_char(ch, "You don't seem to be holding %s %s.\r\n",
-                   AN(arg), arg);
+      send_to_char(ch, "You don't seem to be holding %s %s.\r\n", AN(arg), arg);
       return;
     default:
       log("SYSERR: Unknown subcmd %d passed to do_use.", subcmd);

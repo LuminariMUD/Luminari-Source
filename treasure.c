@@ -111,6 +111,10 @@ int cp_convert_grade_enchantment(int grade)
     break;
   }
 
+#if defined(CAMPAIGN_DL)
+  enchantment++;
+#endif
+
   return enchantment;
 }
 

@@ -163,8 +163,8 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
     send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
   if (IS_NPC(tch))
     send_to_char(ch, "Class: %s.\r\n", class_list[GET_CLASS(tch)].name);
-  send_to_char(ch, "Level: %d, Hits: %d, PSP: %d\r\n", GET_LEVEL(tch),
-               GET_HIT(tch), GET_PSP(tch));
+  send_to_char(ch, "Level: %d, Hits: %d/%d, PSP: %d\r\n", GET_LEVEL(tch),
+               GET_HIT(tch), GET_MAX_HIT(tch), GET_PSP(tch));
   send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n",
                compute_armor_class(NULL, tch, FALSE, MODE_ARMOR_CLASS_NORMAL),
                GET_HITROLL(tch), GET_DAMROLL(tch));

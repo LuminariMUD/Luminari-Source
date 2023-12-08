@@ -5563,17 +5563,6 @@ SPECIAL(pet_shops)
   else if (CMD_IS("buy"))
   {
 
-    struct follow_type *f = NULL;
-
-    for (f = ch->followers; f; f = f->next)
-    {
-      if (IS_NPC(f->follower) && MOB_FLAGGED(f->follower, MOB_MERCENARY) && AFF_FLAGGED(f->follower, AFF_CHARM))
-      {
-        send_to_char(ch, "You may only have one purchased follower.\r\n");
-        return 1;
-      }
-    }
-
     two_arguments(argument, buf, sizeof(buf), pet_name, sizeof(pet_name));
 
     /* disqualifiers */
@@ -5587,7 +5576,8 @@ SPECIAL(pet_shops)
       send_to_char(ch, "You don't have enough gold!\r\n");
       return (TRUE);
     }
-    if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+    // if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+    if (!can_add_follower(ch, GET_MOB_VNUM(pet)))
     {
       send_to_char(ch, "You can't have any more pets!\r\n");
       return (TRUE);
@@ -9646,12 +9636,6 @@ SPECIAL(bought_pet)
     return TRUE;
   }
 
-  if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
-  {
-    send_to_char(ch, "Sorry, you already have enough followers.\r\n");
-    return FALSE;
-  }
-
   struct obj_data *obj = (struct obj_data *)me;
 
   if (obj->carried_by == 0)
@@ -9661,6 +9645,13 @@ SPECIAL(bought_pet)
     return FALSE;
 
   struct char_data *pet = NULL;
+
+  // if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+  if (!can_add_follower(ch, GET_OBJ_VNUM(obj)))
+  {
+    send_to_char(ch, "Sorry, you already have enough followers.\r\n");
+    return FALSE;
+  }
 
   pet = read_mobile(GET_OBJ_VNUM(obj), VIRTUAL);
 

@@ -6639,12 +6639,9 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
 
   if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
   {
-    act("$n sprawls completely through $N as $e tries to attack $M.",
-        FALSE, ch, NULL, vict, TO_NOTVICT);
-    act("You sprawl completely through $N as you try to attack!",
-        FALSE, ch, NULL, vict, TO_CHAR);
-    act("$n sprawls completely through you as $e tries to attack!",
-        FALSE, ch, NULL, vict, TO_VICT);
+    act("$n sprawls completely through $N as $e tries to attack $M.", FALSE, ch, NULL, vict, TO_NOTVICT);
+    act("You sprawl completely through $N as you try to attack!", FALSE, ch, NULL, vict, TO_CHAR);
+    act("$n sprawls completely through you as $e tries to attack!", FALSE, ch, NULL, vict, TO_VICT);
     change_position(ch, POS_SITTING);
     return;
   }
@@ -6670,10 +6667,14 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
     damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_KICK, DAM_FORCE, FALSE);
     if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc) && rand_number(0, 2))
     {
-      USE_MOVE_ACTION(vict);
-      act("You are thrown off-balance by a kick from $N!", FALSE, vict, 0, ch, TO_CHAR);
-      act("$e is thrown off-blance by your kick at $m!", FALSE, vict, 0, ch, TO_VICT);
-      act("$n is thrown off-balance by a kick from $N!", FALSE, vict, 0, ch, TO_NOTVICT);
+      if (vict->char_specials.recently_kicked == 0)
+      {
+        USE_MOVE_ACTION(vict);
+        act("You are thrown off-balance by a kick from $N!", FALSE, vict, 0, ch, TO_CHAR);
+        act("$e is thrown off-blance by your kick at $m!", FALSE, vict, 0, ch, TO_VICT);
+        act("$n is thrown off-balance by a kick from $N!", FALSE, vict, 0, ch, TO_NOTVICT);
+        vict->char_specials.recently_kicked = 5;
+      }
     }
 
     /* fire-shield, etc check */
@@ -8695,7 +8696,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   {
   case BLACKGUARD_CRUELTY_SHAKEN:
     to_vict = "You are -shaken- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -shaken- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_room = "$n is -shaken- from the cruelty inflicted upon $M by the corrupting touch!";
     if (is_immune_fear(ch, vict, true))
       return;
     if (is_immune_mind_affecting(ch, vict, true))
@@ -8705,7 +8706,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     break;
   case BLACKGUARD_CRUELTY_FRIGHTENED:
     to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_room = "$n is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (is_immune_fear(ch, vict, true))
       return;
     if (is_immune_mind_affecting(ch, vict, true))
@@ -8715,7 +8716,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     break;
   case BLACKGUARD_CRUELTY_SICKENED:
     to_vict = "You are -sickened- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -sickened- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_room = "$n is -sickened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_disease(vict))
     {
       act("$E is immune to disease!", FALSE, ch, 0, vict, TO_CHAR);
@@ -8724,7 +8725,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     break;
   case BLACKGUARD_CRUELTY_DISEASED:
     to_vict = "You are -diseased- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -diseased- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_room = "$n is -diseased- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_disease(vict))
     {
       act("$E is immune to disease!", FALSE, ch, 0, vict, TO_CHAR);
@@ -8733,7 +8734,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     break;
   case BLACKGUARD_CRUELTY_POISONED:
     to_vict = "You are -poisoned- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -poisoned- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_room = "$n is -poisoned- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_poison(vict))
     {
       act("$E is immune to poison!", FALSE, ch, 0, vict, TO_CHAR);
@@ -8742,7 +8743,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     break;
   case BLACKGUARD_CRUELTY_BLINDED:
     to_vict = "You are -blinded- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -blinded- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_room = "$n is -blinded- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_blind(vict))
     {
       act("$E cannot be blinded!", FALSE, ch, 0, vict, TO_CHAR);
@@ -8751,7 +8752,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     break;
   case BLACKGUARD_CRUELTY_DEAFENED:
     to_vict = "You are -deafened- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -deafened- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_room = "$n is -deafened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_deafen(vict))
     {
       act("$E cannot be deafened!", FALSE, ch, 0, vict, TO_CHAR);
@@ -8760,7 +8761,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     break;
   case BLACKGUARD_CRUELTY_PARALYZED:
     to_vict = "You are -paralyzed- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -paralyzed- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_room = "$n is -paralyzed- from the cruelty inflicted upon $M by the corrupting touch!";
     if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
     {
       act("$E cannot be paralyzed!", FALSE, ch, 0, vict, TO_CHAR);
@@ -8769,7 +8770,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     break;
   case BLACKGUARD_CRUELTY_STUNNED:
     to_vict = "You are -stunned- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -stunned- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_room = "$n is -stunned- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_stun(vict))
     {
       act("$E cannot be stunned!", FALSE, ch, 0, vict, TO_CHAR);
@@ -9099,7 +9100,7 @@ ACMDU(do_bane)
 
   if (!*argument)
   {
-    send_to_char(ch, "Please speficy one of the following racial types:\r\n");
+    send_to_char(ch, "Please specify one of the following racial types:\r\n");
     for (i = 1; i < NUM_RACE_TYPES; i++)
     {
       send_to_char(ch, "%s\r\n", race_family_types[i]);
@@ -9208,7 +9209,8 @@ ACMDCHECK(can_children_of_the_night)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, "You have no idea how.\r\n");
   ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT), "You have already called your children of the night!\r\n");
-  if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_C_O_T_N))
+  // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_C_O_T_N))
+  if (!can_add_follower_by_flag(ch, MOB_C_O_T_N))
   {
     send_to_char(ch, "Wha?!  You have already called your children of the night!\r\n");
     return 0;
@@ -9246,7 +9248,8 @@ ACMDCHECK(can_create_vampire_spawn)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_CREATE_SPAWN, "You have no idea how.\r\n");
 
-  if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_VAMP_SPWN))
+  // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_VAMP_SPWN))
+  if (!can_add_follower_by_flag(ch, MOB_VAMP_SPWN))
   {
     send_to_char(ch, "You have already created vampiric spawn.\r\n");
     return 0;
@@ -9451,39 +9454,48 @@ void perform_slam(struct char_data *ch, struct char_data *vict)
   if (diceTwo < 2)
     diceTwo = 2;
 
-  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_SLAM, 0) > 0)
+
+  if (vict->char_specials.recently_slammed == 0)
   {
-    damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_SLAM, DAM_FORCE, FALSE);
-
-    if (HAS_FEAT(ch, FEAT_VAMPIRE_ENERGY_DRAIN) && IS_LIVING(vict) && CAN_USE_VAMPIRE_ABILITY(ch))
+    if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_SLAM, 0) > 0)
     {
-      if (daily_uses_remaining(ch, FEAT_VAMPIRE_ENERGY_DRAIN) > 0)
+      damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_SLAM, DAM_FORCE, FALSE);
+
+      if (HAS_FEAT(ch, FEAT_VAMPIRE_ENERGY_DRAIN) && IS_LIVING(vict) && CAN_USE_VAMPIRE_ABILITY(ch))
       {
-        if (!mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
+        if (daily_uses_remaining(ch, FEAT_VAMPIRE_ENERGY_DRAIN) > 0)
         {
-          new_affect(&af);
-          af.spell = AFFECT_LEVEL_DRAIN;
-          af.location = APPLY_SPECIAL;
-          af.modifier = 1;
-          af.duration = 10;
-          affect_join(vict, &af, TRUE, FALSE, TRUE, FALSE);
-          act("You drain some of $N's life force away.", FALSE, ch, 0, vict, TO_CHAR);
-          act("$n drains some of your life force away.", FALSE, ch, 0, vict, TO_VICT);
-          act("$n drains some of $N's life force away.", FALSE, ch, 0, vict, TO_NOTVICT);
+          if (!mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
+          {
+            new_affect(&af);
+            af.spell = AFFECT_LEVEL_DRAIN;
+            af.location = APPLY_SPECIAL;
+            af.modifier = 1;
+            af.duration = 10;
+            affect_join(vict, &af, TRUE, FALSE, TRUE, FALSE);
+            act("You drain some of $N's life force away.", FALSE, ch, 0, vict, TO_CHAR);
+            act("$n drains some of your life force away.", FALSE, ch, 0, vict, TO_VICT);
+            act("$n drains some of $N's life force away.", FALSE, ch, 0, vict, TO_NOTVICT);
 
-          // set the enemy as drainkilled so they can be turned into a vampire spawn if they do end up being killed.
-          vict->char_specials.drainKilled = true;
+            // set the enemy as drainkilled so they can be turned into a vampire spawn if they do end up being killed.
+            vict->char_specials.drainKilled = true;
+          }
+          if (!IS_NPC(ch))
+            start_daily_use_cooldown(ch, FEAT_VAMPIRE_ENERGY_DRAIN);
         }
-        if (!IS_NPC(ch))
-          start_daily_use_cooldown(ch, FEAT_VAMPIRE_ENERGY_DRAIN);
       }
-    }
 
-    /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
+      /* fire-shield, etc check */
+      damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
+    }
+    else
+      damage(ch, vict, 0, SKILL_SLAM, DAM_FORCE, FALSE);
+    vict->char_specials.recently_slammed = 3;
   }
   else
-    damage(ch, vict, 0, SKILL_SLAM, DAM_FORCE, FALSE);
+  {
+    send_to_char(ch, "They predicted your slam attempt and bypassed easily.\r\n");
+  }
 }
 
 ACMD(do_slam)

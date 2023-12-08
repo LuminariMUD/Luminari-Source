@@ -3389,6 +3389,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = 12 * level;
     af[0].modifier = 5 + ((GET_AUGMENT_PSP(ch) / 3) * 5);
 
+    GET_HIT(victim) += af[0].modifier;
+
     accum_duration = FALSE;
     accum_affect = FALSE;
     to_vict = "You feel enhanced vigor and durability.";
@@ -3633,6 +3635,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[4].modifier = (2 + (GET_AUGMENT_PSP(ch) >= 6 ? 2 : 0)) * 2;
     af[4].bonus_type = BONUS_TYPE_MORALE;
     af[4].duration = 10 + GET_CON_BONUS(ch);
+
+    GET_HIT(victim) += af[4].modifier;
+
     to_vict = "You go into a \tRR\trA\tRG\trE\tn!";
     to_room = "$n goes into a \tRR\trA\tRG\trE\tn!";
 
@@ -4356,6 +4361,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[2].location = APPLY_HIT;
       af[2].modifier = -10;
       af[2].duration = 360;
+
+      GET_HIT(victim) += af[2].modifier;
+
       to_room = "$n is weakened by the utterdark blast.";
       to_vict = "You are weakened by an utterdark blast.";
 
@@ -4638,6 +4646,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = level * 6;
     af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
+    GET_HIT(victim) += af[0].modifier;
+
     to_vict = "You devour energy and are filled with life.";
     to_room = "$n devours magical energy and is filled with false life.";
 
@@ -4656,18 +4666,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_DJINNI_KIND:
-    af[0].duration = 10 * level;
+    af[0].duration = 16000;
     af[0].modifier = 20;
     af[0].location = APPLY_RES_AIR;
     af[0].bonus_type = BONUS_TYPE_INHERENT;
     SET_BIT_AR(af[0].bitvector, AFF_FLYING);
 
-    af[1].duration = 10 * level;
+    af[1].duration = 16000;
     af[1].modifier = 20;
     af[1].bonus_type = BONUS_TYPE_INHERENT;
     af[1].location = APPLY_RES_ELECTRIC;
 
-    af[2].duration = 10 * level;
+    af[2].duration = 16000;
     af[2].modifier = 2;
     af[2].bonus_type = BONUS_TYPE_INHERENT;
     af[2].location = APPLY_DEX;
@@ -4677,13 +4687,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_EFREETI_KIND:
-    af[0].duration = 10 * level;
+    af[0].duration = 16000;
     af[0].modifier = 20;
     af[0].location = APPLY_RES_FIRE;
     af[0].bonus_type = BONUS_TYPE_INHERENT;
     SET_BIT_AR(af[0].bitvector, AFF_FLAME_BLADE);
 
-    af[1].duration = 10 * level;
+    af[1].duration = 16000;
     af[1].modifier = 2;
     af[1].bonus_type = BONUS_TYPE_INHERENT;
     af[1].location = APPLY_INT;
@@ -4693,19 +4703,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_MARID_KIND:
-    af[0].duration = 10 * level;
+    af[0].duration = 16000;
     af[0].modifier = 20;
     af[0].location = APPLY_RES_WATER;
     af[0].bonus_type = BONUS_TYPE_INHERENT;
     SET_BIT_AR(af[0].bitvector, AFF_WATER_BREATH);
 
-    af[1].duration = 10 * level;
+    af[1].duration = 16000;
     af[1].modifier = 20;
     af[1].bonus_type = BONUS_TYPE_INHERENT;
     af[1].location = APPLY_RES_COLD;
     SET_BIT_AR(af[1].bitvector, AFF_WATERWALK);
 
-    af[2].duration = 10 * level;
+    af[2].duration = 16000;
     af[2].modifier = 2;
     af[2].bonus_type = BONUS_TYPE_INHERENT;
     af[2].location = APPLY_CON;
@@ -4716,17 +4726,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_SHAITAN_KIND:
 
-    af[0].duration = 10 * level;
+    af[0].duration = 16000;
     af[0].modifier = 20;
     af[0].location = APPLY_RES_EARTH;
     af[0].bonus_type = BONUS_TYPE_INHERENT;
 
-    af[1].duration = 10 * level;
+    af[1].duration = 16000;
     af[1].modifier = 20;
     af[1].bonus_type = BONUS_TYPE_INHERENT;
     af[1].location = APPLY_RES_ACID;
 
-    af[2].duration = 10 * level;
+    af[2].duration = 16000;
     af[2].modifier = 2;
     af[2].bonus_type = BONUS_TYPE_INHERENT;
     af[2].location = APPLY_STR;
@@ -4791,6 +4801,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[2].modifier = dice(2, 6) + MAX(level, 15);
     af[2].duration = 300;
     af[2].bonus_type = BONUS_TYPE_MORALE;
+
+    GET_HIT(victim) += af[2].modifier;
 
     to_room = "$n is now divinely aided!";
     to_vict = "You feel divinely aided.";
@@ -5380,6 +5392,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[3].modifier = level;
     af[3].bonus_type = BONUS_TYPE_LUCK;
 
+    GET_HIT(victim) += af[3].modifier;
+
     to_vict = "You feel divine power fill you!";
     to_room = "$n is filled with divine power!";
     break;
@@ -5826,7 +5840,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     }
 
-    af[0].duration = 600;
+    af[0].duration = 75;
     SET_BIT_AR(af[0].bitvector, AFF_DISEASE);
     to_vict = "You feel a powerful necromantic disease overcome you.";
     to_room = "$n suffers visibly as a powerful necromantic disease strikes $m!";
@@ -5852,6 +5866,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].modifier = 30;
     af[0].duration = 300;
     af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    GET_HIT(victim) += af[0].modifier;
 
     to_room = "$n grows strong with \tDdark\tn life!";
     to_vict = "You grow strong with \tDdark\tn life!";
@@ -5912,6 +5928,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_resistance(ch, victim, 0))
       return;
     if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, TRANSMUTATION))
+      return;
+    if (AFF_FLAGGED(victim, AFF_FREE_MOVEMENT))
       return;
 
     SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
@@ -6052,6 +6070,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[4].modifier = MIN(20, level);
     af[4].duration = 12 * level;
     af[4].bonus_type = BONUS_TYPE_MORALE;
+
+    GET_HIT(victim) += af[4].modifier;
 
     to_room = "$n is now very heroic!";
     to_vict = "You feel very heroic.";
@@ -6345,10 +6365,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case ABILITY_BAAZ_DRACONIAN_DEATH_THROES:
-    if (paralysis_immunity(victim))
-    {
-      return;
-    }
     if (paralysis_immunity(victim))
     {
       return;
@@ -6946,6 +6962,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[5].modifier = dice(4, 12) + level;
     af[5].duration = 300;
     af[5].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    GET_HIT(victim) += af[5].modifier;
 
     to_room = "$n is now divinely blessed and aided!";
     to_vict = "You feel divinely blessed and aided.";
@@ -8100,11 +8118,11 @@ static void perform_mag_groups(int level, struct char_data *ch,
     break;
   case ABILITY_CHANNEL_POSITIVE_ENERGY:
     if (!IS_UNDEAD(tch))
-      mag_points(level, ch, tch, obj, ABILITY_CHANNEL_POSITIVE_ENERGY, savetype, casttype);
+      mag_points(compute_channel_energy_level(ch), ch, tch, obj, ABILITY_CHANNEL_POSITIVE_ENERGY, savetype, casttype);
     break;
   case ABILITY_CHANNEL_NEGATIVE_ENERGY:
     if (IS_UNDEAD(tch))
-      mag_points(level, ch, tch, obj, ABILITY_CHANNEL_NEGATIVE_ENERGY, savetype, casttype);
+      mag_points(compute_channel_energy_level(ch), ch, tch, obj, ABILITY_CHANNEL_NEGATIVE_ENERGY, savetype, casttype);
     break;
   case SPELL_GROUP_SHIELD_OF_FAITH:
     mag_affects(level, ch, tch, obj, SPELL_SHIELD_OF_FAITH, savetype, casttype, 0);
@@ -9073,7 +9091,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   struct char_data *mob = NULL;
   struct obj_data *tobj, *next_obj;
   int pfail = 0, msg = 0, fmsg = 0, num = 1, handle_corpse = FALSE, i;
-  int mob_level = 0, temp_level = 0;
+  int mob_level = 0; 
+  //int temp_level = 0;
   mob_vnum mob_num = 0;
   char desc[200];
 
@@ -9121,7 +9140,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     break;
   
   case WARLOCK_THE_DEAD_WALK:
-    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD))
+    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD))
+    if (!can_add_follower_by_flag(ch, MOB_ANIMATED_DEAD))
     {
       send_to_char(ch, "You can't control more undead!\r\n");
       return;
@@ -9518,7 +9538,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_SUMMON_CREATURE_8: // conjuration
   case SPELL_SUMMON_CREATURE_7: // conjuration
   case SPELL_ELEMENTAL_SWARM:
-    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ELEMENTAL))
+    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ELEMENTAL))
+    if (!can_add_follower_by_flag(ch, MOB_ELEMENTAL))
     {
       send_to_char(ch, "You can't control more elementals!\r\n");
       return;
@@ -9526,42 +9547,51 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     break;
   case SPELL_ANIMATE_DEAD:
   case SPELL_GREATER_ANIMATION:
-    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD))
+    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD))
+    if (!can_add_follower_by_flag(ch, MOB_ANIMATED_DEAD))
     {
       send_to_char(ch, "You can't control more undead!\r\n");
       return;
     }
     break;
   case SPELL_MUMMY_DUST:
-    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_MUMMY_DUST))
+    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_MUMMY_DUST))
+    if (!can_add_follower_by_flag(ch, MOB_MUMMY_DUST))
     {
       send_to_char(ch, "You can't control more mummies via the mummy dust spell!\r\n");
       return;
     }
     break;
   case SPELL_DRAGON_KNIGHT:
-    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_DRAGON_KNIGHT))
+    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_DRAGON_KNIGHT))
+    if (!can_add_follower_by_flag(ch, MOB_DRAGON_KNIGHT))
     {
       send_to_char(ch, "You can't control more dragons via the dragon knight spell!\r\n");
       return;
     }
     break;
   case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
-    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_C_O_T_N))
+    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_C_O_T_N))
+    if (!can_add_follower_by_flag(ch, MOB_C_O_T_N))
     {
       send_to_char(ch, "You can't control more vampiric minions!\r\n");
       return;
     }
     break;
   case ABILITY_CREATE_VAMPIRE_SPAWN:
-    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_VAMP_SPWN))
+    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_VAMP_SPWN))
+    if (!can_add_follower_by_flag(ch, MOB_VAMP_SPWN))
     {
       send_to_char(ch, "You can't control more vampiric spawn!\r\n");
       return;
     }
     break;
+  case SPELL_GENIEKIND: 
+    // this is handled in spells.c ASPELL(spell_geniekind)
+    break;
   default:
     if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+    // if (!can_add_follower(ch, mob_num));
     {
       send_to_char(ch, "You can't control more followers!\r\n");
       return;
@@ -9592,18 +9622,28 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     switch (spellnum)
     {
     case SPELL_SUMMON_NATURES_ALLY_9:
-    case SPELL_SUMMON_NATURES_ALLY_8:
-    case SPELL_SUMMON_NATURES_ALLY_7:
-    case SPELL_BLADE_OF_DISASTER:
     case SPELL_SUMMON_CREATURE_9: // conjuration
-    case SPELL_SUMMON_CREATURE_8: // conjuration
-    case SPELL_SUMMON_CREATURE_7: // conjuration
-    case SPELL_GREATER_ANIMATION: // necromancy
-      /* (Zusuk) Temporary variable for capping elementals, etc */
-      temp_level = MIN(CASTER_LEVEL(ch), mob_level);
-      GET_LEVEL(mob) = MIN(LVL_IMMORT - 1, temp_level);
+    case SPELL_BLADE_OF_DISASTER:
+      GET_LEVEL(mob) = 20;
       autoroll_mob(mob, TRUE, TRUE);
-      GET_LEVEL(mob) = temp_level;
+      break;
+    
+    case SPELL_SUMMON_NATURES_ALLY_8:
+    case SPELL_SUMMON_CREATURE_8: // conjuration
+    case SPELL_GREATER_ANIMATION: // necromancy
+      GET_LEVEL(mob) = 18;
+      autoroll_mob(mob, TRUE, TRUE);
+      break;
+    
+    case SPELL_SUMMON_NATURES_ALLY_7:
+    case SPELL_SUMMON_CREATURE_7: // conjuration
+      /* (Zusuk) Temporary variable for capping elementals, etc */
+      // temp_level = MIN(CASTER_LEVEL(ch), mob_level);
+      // GET_LEVEL(mob) = MIN(LVL_IMMORT - 1, temp_level);
+      // autoroll_mob(mob, TRUE, TRUE);
+      // GET_LEVEL(mob) = temp_level;
+      GET_LEVEL(mob) = 16;
+      autoroll_mob(mob, TRUE, TRUE);
       break;
 
     case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
@@ -9742,6 +9782,15 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     case SPELL_SUMMON_CREATURE_7:
     case SPELL_SUMMON_CREATURE_8:
     case SPELL_SUMMON_CREATURE_9:
+    case SPELL_SUMMON_NATURES_ALLY_1:
+    case SPELL_SUMMON_NATURES_ALLY_2:
+    case SPELL_SUMMON_NATURES_ALLY_3:
+    case SPELL_SUMMON_NATURES_ALLY_4:
+    case SPELL_SUMMON_NATURES_ALLY_5:
+    case SPELL_SUMMON_NATURES_ALLY_6:
+    case SPELL_SUMMON_NATURES_ALLY_7:
+    case SPELL_SUMMON_NATURES_ALLY_8:
+    case SPELL_SUMMON_NATURES_ALLY_9:
     case SPELL_DJINNI_KIND:
     case SPELL_EFREETI_KIND:
     case SPELL_MARID_KIND:
@@ -9831,7 +9880,7 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
 
   /* black mantle reduces effectiveness of healing by 20% */
   if (AFF_FLAGGED(victim, AFF_BLACKMANTLE) || AFF_FLAGGED(ch, AFF_BLACKMANTLE))
-    healing = healing - (healing / 5);
+    healing = (float)healing * 0.8;
 
   /* healing domain */
   if (HAS_FEAT(ch, FEAT_EMPOWERED_HEALING))
@@ -10188,7 +10237,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   struct obj_data *eq = NULL;
   char message[200];
 
-  struct affected_type *af = NULL, *next = NULL;
+  struct affected_type *af = NULL;
 
   if (victim == NULL)
     return;
@@ -10444,10 +10493,8 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   }
 
   /* this is to try and clean up bits related to the spell */
-  for (af = victim->affected; af; af = next)
+  for (af = victim->affected; af; af = af->next)
   {
-    next = af->next;
-
     if (af && affect && af->bitvector && IS_SET_AR(af->bitvector, affect))
     {
       if (victim && af->spell)

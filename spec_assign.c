@@ -121,6 +121,17 @@ void assign_mobiles(void)
   ASSIGNMOB(15321, crafting_quest);
   ASSIGNMOB(15322, buymolds);
   ASSIGNMOB(7021, identify_mob);
+
+  // sanction
+  ASSIGNMOB(13800, buyweapons);
+  ASSIGNMOB(13801, buyarmor);
+  ASSIGNMOB(13802, buyweapons);
+  ASSIGNMOB(13803, buyarmor);
+
+  ASSIGNMOB(13808, crafting_quest);
+  ASSIGNMOB(13809, buymolds);
+  ASSIGNMOB(13822, identify_mob);
+
 #else
 
   /* vampire mobs (spec to do vampire-like abilities) */
@@ -1046,6 +1057,9 @@ void assign_rooms(void)
 
   // sanction
   ASSIGNROOM(6525, bank); // sw of fountain
+  ASSIGNROOM(13814, wizard_library); // academy
+  ASSIGNROOM(13815, bazaar); // market st
+  ASSIGNROOM(13819, pet_shops); // pets
 
 #else
 

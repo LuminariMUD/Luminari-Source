@@ -1017,6 +1017,125 @@ bool not_npc_limit(struct char_data *pet)
   return counts;
 }
 
+bool isGenieKind(int vnum)
+{
+  switch (vnum)
+  {
+    case MOB_DJINNI_KIND:
+    case MOB_EFREETI_KIND:
+    case MOB_MARID_KIND:
+    case MOB_SHAITAN_KIND:
+      return true;
+  }
+  return false;
+}
+
+bool can_add_follower_by_flag(struct char_data *ch, int flag)
+{
+  struct char_data *pet;
+  struct follow_type *k, *next;
+
+  /* loop through followers */
+  for (k = ch->followers; k; k = next)
+  {
+    next = k->next;
+
+    pet = k->follower;
+    if (IS_PET(pet))
+    {
+      if (MOB_FLAGGED(pet, flag))
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool can_add_follower(struct char_data *ch, int mob_vnum)
+{
+  struct char_data *pet;
+  struct follow_type *k, *next;
+  
+  int summons_allowed = 1,
+      pets_allowed = 1,
+      mercs_allowed = 1,
+      genie_allowed = 1;
+
+  if (IS_SUMMONER(ch))
+    summons_allowed++;
+
+  /* loop through followers */
+  for (k = ch->followers; k; k = next)
+  {
+    next = k->next;
+
+    pet = k->follower;
+    if (IS_PET(pet))
+    {
+      if (isGenieKind(mob_vnum))
+      {
+        genie_allowed--;
+      }
+      else if (isSummonMob(mob_vnum))
+      {
+        summons_allowed--;
+      }
+      else if (MOB_FLAGGED(pet, MOB_MERCENARY))
+      {
+        mercs_allowed--;
+      }
+      else
+      {
+        pets_allowed--;
+      }
+    }
+  }
+
+  struct char_data *mob = read_mobile(mob_vnum, VIRTUAL);
+
+  if (!mob)
+  {
+    send_to_char(ch, "Mob vnum %d not found.\r\n", mob_vnum);
+    return false;
+  }
+
+  char_to_room(mob, 0);
+
+  // there's probably a better way of doing this, but this will ensure they can only have 1 of each
+  // except in special circumstances. Eg. summoner can have 2 summons instead of 1.
+  if (isGenieKind(mob_vnum))
+  {
+    extract_char(mob);
+    if (genie_allowed > 0)
+      return true;
+    return false;
+  }
+  else if (isSummonMob(mob_vnum))
+  {
+    extract_char(mob);
+    if (summons_allowed > 0)
+      return true;
+    return false;
+  }
+  else if (MOB_FLAGGED(mob, MOB_MERCENARY))
+  {
+    extract_char(mob);
+    if (mercs_allowed > 0)
+      return true;
+    return false;
+  }
+  else
+  {
+    extract_char(mob);
+    if (pets_allowed > 0)
+      return true;
+    return false;
+  }
+  extract_char(mob);
+  return false;
+}
+
 /*
 this function is to deal with our follower army! -zusuk
    in - ch: pc we're dealing with
@@ -1035,8 +1154,8 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
 {
   struct follow_type *k = NULL, *next = NULL;
   struct char_data *pet = NULL;
-  int total_count = 0, flag_count = 0, vnum_count = 0,
-      paid_slot = 0, free_slot = 0, spare = 0;
+  int total_count = 0, flag_count = 0, vnum_count = 0, merc_slot = 0,
+      paid_slot = 0, free_slot = 0, summon_slot = 0, spare = 0;
 
   if (mode == NPC_MODE_DISPLAY)
   {
@@ -1060,6 +1179,10 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
       /* we differentiate between npc's that don't take up slots vs every other form of charmee here */
       if (not_npc_limit(pet))
         free_slot++;
+      else if (MOB_FLAGGED(pet, MOB_MERCENARY))
+        merc_slot++;
+      else if (isSummonMob(GET_MOB_VNUM(pet)))
+        summon_slot++;
       else
         paid_slot++;
 
@@ -1102,7 +1225,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
 
   spare++; /* base 1 */
 
-  spare = spare - paid_slot;
+  spare = spare - paid_slot - (MAX(0, summon_slot - 1));
 
   /* out we go! */
   switch (mode)
@@ -4620,6 +4743,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
       daily_uses = 1;
       break;
     case FEAT_PSYCHOKINETIC:
+      daily_uses = 1;
+      break;
+    case FEAT_METAMAGIC_ADEPT:
       daily_uses = 1;
       break;
     case FEAT_CURING_TOUCH:
@@ -8723,6 +8849,30 @@ int get_mv_regen_amount(struct char_data *ch)
   mv += get_apply_type_gear_mod(ch, APPLY_MV_REGEN);
 
   return mv;
+}
+
+int  get_bonus_from_liquid_type(int liquid)
+{
+  switch (liquid)
+  {
+    case LIQ_BEER: return APPLY_DEX;
+    case LIQ_WINE: return APPLY_INT;
+    case LIQ_ALE: return APPLY_STR;
+    case LIQ_DARKALE: return APPLY_CON;
+    case LIQ_WHISKY: return APPLY_HITROLL;
+    case LIQ_LEMONADE: return APPLY_MV_REGEN;
+    case LIQ_FIREBRT: return APPLY_DAMROLL;
+    case LIQ_LOCALSPC: return APPLY_PSP_REGEN;
+    case LIQ_SLIME: return APPLY_NONE;
+    case LIQ_MILK: return APPLY_CHA;
+    case LIQ_TEA: return APPLY_WIS;
+    case LIQ_COFFE: return APPLY_INT;
+    case LIQ_BLOOD: return APPLY_NONE;
+    case LIQ_SALTWATER: return APPLY_NONE;
+    case LIQ_CLEARWATER: return APPLY_HIT;
+    default: return APPLY_HP_REGEN;
+  }
+  return APPLY_HP_REGEN;
 }
 
 /* EoF */

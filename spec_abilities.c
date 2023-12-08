@@ -694,7 +694,8 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
 
     mob_num = specab->value[0]; /* Val 0 is mob VNUM */
 
-    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, mob_num))
+    // if (check_npc_followers(ch, NPC_MODE_SPECIFIC, mob_num))
+    if (!can_add_follower(ch, mob_num))
     {
       send_to_char(ch, "You can't control more followers!\r\n");
       break;
@@ -822,7 +823,8 @@ ITEM_SPECIAL_ABILITY(item_specab_item_summon)
      */
     mob_num = specab->value[0]; /* Val 0 is mob VNUM */
 
-    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, mob_num))
+    // if (check_npc_followers(ch, NPC_MODE_SPECIFIC, mob_num))
+    if (!can_add_follower(ch, mob_num))
     {
       send_to_char(ch, "You can't control more followers!\r\n");
       break;

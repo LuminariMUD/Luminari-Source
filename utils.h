@@ -153,6 +153,8 @@ bool affected_by_aura_of_faith(struct char_data *ch);
 bool affected_by_aura_of_depravity(struct char_data *ch);
 bool affected_by_aura_of_righteousness(struct char_data *ch);
 bool is_fear_spell(int spellnum);
+bool can_add_follower(struct char_data *ch, int mob_vnum);
+bool can_add_follower_by_flag(struct char_data *ch, int flag);
 char *apply_types_lowercase(int apply_type);
 bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy);
 bool can_speak_language(struct char_data *ch, int language);
@@ -191,6 +193,7 @@ sbyte has_paladin_mercies_unchosen_study(struct char_data *ch);
 void calculate_max_hp(struct char_data *ch, bool display);
 int compute_level_domain_spell_is_granted(int domain, int spell);
 int compute_current_size(struct char_data *ch);
+int  get_bonus_from_liquid_type(int liquid);
 room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction);
 int convert_alignment(int align);
 void set_alignment(struct char_data *ch, int alignment);
@@ -844,7 +847,8 @@ void char_from_furniture(struct char_data *ch);
 #define IS_EPIC_LEVEL(ch) (GET_LEVEL(ch) > 20)
 #define IS_EPIC(ch) (IS_EPIC_LEVEL(ch))
 
-#define TOTAL_STAT_POINTS(ch) ((GET_REAL_RACE(ch) == RACE_HUMAN || GET_REAL_RACE(ch) == DL_RACE_HUMAN) ? 34 : 30)
+#define TOTAL_STAT_POINTS(ch) ((GET_REAL_RACE(ch) == RACE_HUMAN || GET_REAL_RACE(ch) == DL_RACE_HUMAN) ? 34 : \
+                              (GET_REAL_RACE(ch) == RACE_HALF_ELF || GET_REAL_RACE(ch) == DL_RACE_HALF_ELF) ? 32 :30)
 #define MAX_POINTS_IN_A_STAT 10
 #define BASE_STAT 8
 

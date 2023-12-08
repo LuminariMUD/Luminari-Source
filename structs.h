@@ -1049,8 +1049,9 @@
 #define MOB_BLOCK_EVIL 90
 #define MOB_BLOCK_NEUTRAL 91
 #define MOB_BLOCK_GOOD 92
+#define MOB_GENIEKIND 93
 /**********************/
-#define NUM_MOB_FLAGS 93
+#define NUM_MOB_FLAGS 94
 /**********************/
 /**********************/
 
@@ -4230,14 +4231,14 @@ struct char_special_data_saved
     struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
 
     /* disguise system port d20mud */
-    byte disguise_race;
-    ubyte disguise_sex;
-    ubyte disguise_dsc1;
-    ubyte disguise_dsc2;
-    ubyte disguise_adj1;
-    ubyte disguise_adj2;
-    ubyte disguise_roll;
-    ubyte disguise_seen;
+    sh_int disguise_race;
+    sh_int disguise_sex;
+    sh_int disguise_dsc1;
+    sh_int disguise_dsc2;
+    sh_int disguise_adj1;
+    sh_int disguise_adj2;
+    sh_int disguise_roll;
+    sh_int disguise_seen;
 
     /* Feat data */
     int feats[NUM_FEATS];                       /* Feats (value is the number of times each feat is taken) */
@@ -4392,6 +4393,9 @@ struct char_special_data
     int which_treasure_message;           // when we want to use a custom message for random treasure
 
     int acid_arrow_level;
+
+    byte recently_kicked;
+    byte recently_slammed;
 };
 
 /* old memorization struct */

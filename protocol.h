@@ -58,7 +58,9 @@ typedef struct descriptor_data descriptor_t;
  If your offer a Mudlet GUI for autoinstallation, put the path/filename here.
  ******************************************************************************/
 
+#if !defined(CAMPAIGN_DL)
 #define MUDLET_PACKAGE "4\nhttp://luminarimud.com/download/LuminariGUI.mpackage"
+#endif
 
 /******************************************************************************
  Symbolic constants.
@@ -89,7 +91,7 @@ typedef struct descriptor_data descriptor_t;
 #define MSDP_TABLE_CLOSE 4
 #define MSDP_ARRAY_OPEN 5
 #define MSDP_ARRAY_CLOSE 6
-#define MAX_MSDP_SIZE 100
+#define MAX_MSDP_SIZE 200
 
 #define MSSP_VAR 1
 #define MSSP_VAL 2

@@ -9727,7 +9727,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
       else
       {
-        act("$n's stunning barrier stuns you!", FALSE, ch, wielded, victim, TO_CHAR);
+        act("$N's stunning barrier stuns you!", FALSE, ch, wielded, victim, TO_CHAR);
       }
 
       if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
@@ -9735,10 +9735,10 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
       else
       {
-        act("Your stunning barrier stuns $N!", FALSE, ch, wielded, victim, TO_VICT);
+        act("Your stunning barrier stuns $n!", FALSE, ch, wielded, victim, TO_VICT);
       }
 
-      act("$n's stunning barrier stuns $N!", ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
+      act("$N's stunning barrier stuns $n!", ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
 
       affect_from_char(victim, SPELL_STUNNING_BARRIER);
     }
