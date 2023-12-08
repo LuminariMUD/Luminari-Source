@@ -180,7 +180,8 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
     GET_MAX_PSP(ch) += mod;
     break;
   case APPLY_HIT:
-    // GET_MAX_HIT(ch) += mod;
+    if (IS_NPC(ch))
+      GET_MAX_HIT(ch) += mod;
     break;
   case APPLY_MOVE:
     GET_MAX_MOVE(ch) += mod;
@@ -1090,8 +1091,7 @@ void affect_to_char(struct char_data *ch, struct affected_type *af)
   {
     affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   }
-  else if (af->modifier >
-           calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
+  else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
   {
     aff_apply_modify(ch, af->location, -calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), "affect_to_char");
     /*affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location,
@@ -1191,6 +1191,11 @@ void affect_from_char(struct char_data *ch, int spell)
     next = hjp->next;
     if (hjp->spell == spell)
     {
+      if (hjp->location == APPLY_HIT)
+      {
+        if (GET_HIT(ch) > 0)
+          GET_HIT(ch) = MAX(1, GET_HIT(ch) - hjp->modifier);
+      }
       affect_remove(ch, hjp);
       if (spell == PSIONIC_ENERGY_CONVERSION)
       {

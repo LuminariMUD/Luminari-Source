@@ -655,8 +655,8 @@ void assign_races(void)
                     "to interracial marriages and, although they may "
                     "offer sanctuary to half-elves, the half-elves are "
                     "never fully accepted by the Qualinesti. ",
-                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Moon Elven.",
-                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Moon Elven.");
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Qualinesti Elf.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Qualinesti Elf.");
   set_race_genders(DL_RACE_QUALINESTI_ELF, N, Y, Y);                      /* n m f */
   set_race_abilities(DL_RACE_QUALINESTI_ELF, 0, 0, 0, 1, 2, 0);           /* str con int wis dex cha */
   set_race_alignments(DL_RACE_QUALINESTI_ELF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */

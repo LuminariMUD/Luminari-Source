@@ -2384,7 +2384,7 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
         send_to_char(ch, "That item cannot be picked.\r\n");
         return;
       }
-      if (GET_SKILL(ch, ABILITY_DISABLE_DEVICE) <= 0)
+      if (GET_ABILITY(ch, ABILITY_DISABLE_DEVICE) <= 0)
       {
         send_to_char(ch, "You do not know how to pick locks.\r\n");
         return;
@@ -2449,7 +2449,13 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
   if (scmd != SCMD_PICK)
     return (1);
 
-  skill_lvl = compute_ability(ch, ABILITY_SLEIGHT_OF_HAND);
+  if (GET_ABILITY(ch, ABILITY_DISABLE_DEVICE) <= 0)
+  {
+    send_to_char(ch, "You do not know how to pick locks.\r\n");
+    return 0;
+  }
+
+  skill_lvl = compute_ability(ch, ABILITY_DISABLE_DEVICE);
   if (affected_by_spell(ch, PSIONIC_BREACH))
   {
     affect_from_char(ch, PSIONIC_BREACH);
@@ -2480,7 +2486,7 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
 
   if (skill_lvl <= 0)
   { /* not an untrained skill */
-    send_to_char(ch, "You have no idea how (train sleight of hand)!\r\n");
+    send_to_char(ch, "You have no idea how (train disable device)!\r\n");
     return (0);
   }
 
@@ -4038,10 +4044,8 @@ ACMD(do_transposition)
   USE_STANDARD_ACTION(ch);
 }
 
-ACMD(do_unstuck)
+ACMDU(do_unstuck)
 {
-  char arg1[200];
-  char *confirm;
   int exp = 0, gold = 0;
 
   exp = GET_LEVEL(ch) * GET_LEVEL(ch) * 500;
@@ -4056,28 +4060,25 @@ ACMD(do_unstuck)
 
   if (ch->player_specials->unstuck == NULL)
   {
-    ch->player_specials->unstuck = confirm = randstring(6);
-  }
-  else
-  {
-    confirm = ch->player_specials->unstuck;
+    ch->player_specials->unstuck = randstring(6);
   }
 
-  one_argument(argument, arg1, sizeof(arg1));
+  skip_spaces(&argument);
 
-  if (!*arg1)
+  if (!*argument)
   {
-    send_to_char(ch, "Please enter 'unstuck %s' to confirm your desire to become unstuck.\r\n"
-                     "You will be transported to the MUD start room", confirm);
+    send_to_char(ch, "You didn't supply a confirmation code.\r\n"
+                     "Please enter 'unstuck %s' to confirm your desire to become unstuck.\r\n"
+                     "You will be transported to the MUD start room", ch->player_specials->unstuck);
     if (exp > 0)
       send_to_char(ch, ", and it will cost you %d experience points and %d coins", exp, gold);
     send_to_char(ch, ".\r\n");
     return;
   }
-  if (strcmp(arg1, ch->player_specials->unstuck))
+  if (strcmp(argument, ch->player_specials->unstuck))
   {
-    send_to_char(ch, "Please enter 'unstuck %s' to confirm your desire to become unstuck.\r\n"
-                     "You will be transported to the MUD start room", confirm);
+    send_to_char(ch, "Please enter 'unstuck %s' to confirm your desire to become unstuck. You typed: %s\r\n"
+                     "You will be transported to the MUD start room", ch->player_specials->unstuck, argument);
     if (exp > 0)
       send_to_char(ch, ", and it will cost you %d experience points and %d coins", exp, gold);
     send_to_char(ch, ".\r\n");
@@ -4112,12 +4113,13 @@ ACMD(do_unstuck)
   }
   act("$n disappears.", TRUE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
-  char_to_room(ch, real_room(16500));
+  char_to_room(ch, real_room(CONFIG_MORTAL_START));
   act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
   look_at_room(ch, 0);
   entry_memory_mtrigger(ch);
   greet_mtrigger(ch, -1);
   greet_memory_mtrigger(ch);
+  ch->player_specials->unstuck = NULL;
 }
 
 /* undefines */

@@ -1523,6 +1523,7 @@ const char *action_bits[] = {
     "Mob-Block-Evil",
     "Mob-Block-Neutral",
     "Mob-Block-Good",
+    "Mob-Geniekind",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);

@@ -2896,6 +2896,73 @@ void name_to_drinkcon(struct obj_data *obj, int type)
   obj->name = new_name;
 }
 
+void perform_drink_from_drinkcon(struct char_data *ch, struct obj_data *obj)
+{
+  if (!ch || !obj) return;
+
+  int liquid = GET_OBJ_VAL(obj, 2);
+  int bonus_location = get_bonus_from_liquid_type(liquid);
+  char affect_text[100];
+  int i = 0;
+  int modifier = 2;
+
+  if (affected_by_spell(ch, AFFECT_DRINK))
+  {
+    send_to_char(ch, "You are already benefitting from a drink. Use the revoke command to remove it if you desire a new drink effect.\r\n");
+    return;
+  }
+
+  if (GET_OBJ_VAL(obj, 1) <= 0)
+  {
+    send_to_char(ch, "There's nothing left to drink in there.\r\n");
+    return;
+  }
+
+  GET_OBJ_VAL(obj, 1) -= 5;
+
+  act("You take a drink from $p.", TRUE, ch, obj, 0, TO_CHAR);
+  act("$n takes a drink from $p.", TRUE, ch, obj, 0, TO_ROOM);
+
+  if (bonus_location == APPLY_NONE)
+  {
+    if (liquid == LIQ_BLOOD && IS_VAMPIRE(ch))
+      bonus_location = APPLY_DAMROLL;
+    else if (liquid == LIQ_SALTWATER && AFF_FLAGGED(ch, AFF_WATER_BREATH))
+      bonus_location = APPLY_DAMROLL;
+    else
+    {
+      send_to_char(ch, "Ugh. That did not taste good!");
+      return;
+    }
+  }
+
+  if (bonus_location == APPLY_HIT || bonus_location == APPLY_MV_REGEN)
+    modifier *= 10;
+
+  snprintf(affect_text, sizeof(affect_text), "%s", apply_types[bonus_location]);
+  for (i = 0; i < NUM_APPLIES; i++)
+  {
+    affect_text[i] = tolower(affect_text[i]);
+    if (affect_text[i] == '-')
+      affect_text[i] = ' ';
+  }
+
+  send_to_char(ch, "The %s has improved your %s by %d!\r\n", drinks[liquid], affect_text, modifier);
+
+  struct affected_type af;
+
+  new_affect(&af);
+
+  af.location = bonus_location;
+  af.duration = 100;
+  af.modifier = modifier;
+  af.bonus_type = BONUS_TYPE_DRINK;
+  af.spell = AFFECT_DRINK;
+
+  affect_to_char(ch, &af);
+
+}
+
 ACMDU(do_drink)
 {
   struct obj_data *obj;
@@ -2910,13 +2977,16 @@ ACMDU(do_drink)
 
   if (!(obj = get_obj_in_list_vis(ch, argument, NULL, ch->carrying)))
   {
-    send_to_char(ch, "You don't have a drink of that description in your inventory.\r\n");
-    return;
+    if (!(obj = get_obj_in_list_vis(ch, argument, NULL, world[IN_ROOM(ch)].contents)))
+    {
+      send_to_char(ch, "You don't have a drink of that description in your inventory or in the room you're in.\r\n");
+      return;
+    }
   }
 
-  if (GET_OBJ_TYPE(obj) == ITEM_DRINKCON)
+  if (GET_OBJ_TYPE(obj) == ITEM_DRINKCON || GET_OBJ_TYPE(obj) == ITEM_FOUNTAIN)
   {
-    send_to_char(ch, "Drink containers are now deprecated. Please look for drinks of the 'Drink' type and not 'Liquid-Cont'.\r\n");
+    perform_drink_from_drinkcon(ch, obj);
     return;
   }
   else if (GET_OBJ_TYPE(obj) != ITEM_DRINK)
@@ -6318,8 +6388,7 @@ void invoke_staff(struct char_data *ch, char *argument)
   }
   else
   {
-    STORED_STAVES(ch, spellnum)
-    --;
+    STORED_STAVES(ch, spellnum)--;
   }
 
   snprintf(buf, sizeof(buf), "You invoke a staff of '%s'.", spell_info[spellnum].name);

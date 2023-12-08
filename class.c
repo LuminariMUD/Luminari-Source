@@ -2712,6 +2712,9 @@ void init_start_char(struct char_data *ch)
   cleanup_disguise(ch);
   GET_SPECIALTY_SCHOOL(ch) = 0;
 
+  // clear certain racial benefits
+  ch->player_specials->saved.high_elf_cantrip = 0;
+
   for (i = 0; i < NUM_PALADIN_MERCIES; i++)
     KNOWS_MERCY(ch, i) = 0;
   for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
@@ -3469,7 +3472,9 @@ void advance_level(struct char_data *ch, int class)
   // Racial Bonuses
   switch (GET_RACE(ch))
   {
-  case RACE_HUMAN:trains++;
+  case RACE_HUMAN:
+  case DL_RACE_HUMAN:
+    trains++;
     break;
   case RACE_CRYSTAL_DWARF:
     add_hp += 4;
@@ -4445,7 +4450,9 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_ENERGY_DRAIN, 17);
   spell_assignment(CLASS_CLERIC, SPELL_GROUP_HEAL, 17);
   spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_9, 17);
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   spell_assignment(CLASS_CLERIC, SPELL_PLANE_SHIFT, 17);
+#endif
   spell_assignment(CLASS_CLERIC, SPELL_STORM_OF_VENGEANCE, 17);
   spell_assignment(CLASS_CLERIC, SPELL_IMPLODE, 17);
   spell_assignment(CLASS_CLERIC, SPELL_REFUGE, 17);

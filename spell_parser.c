@@ -902,9 +902,11 @@ SAVING_WILL here...  */
     case SPELL_MASS_DOMINATION:
       MANUAL_SPELL(spell_mass_domination);
       break;
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     case SPELL_PLANE_SHIFT:
       MANUAL_SPELL(spell_plane_shift);
       break;
+#endif
     case SPELL_POLYMORPH:
       MANUAL_SPELL(spell_polymorph);
       break;
@@ -1074,8 +1076,7 @@ similar method added -zusuk */
  * potion - [0] level	[1] spell num   [2] spell num   [3] spell num
  * Staves and wands will default to level 14 if the level is not specified; the
  * DikuMUD format did not specify staff and wand levels in the world files */
-void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
-                     char *argument)
+void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int i, k;
@@ -1110,8 +1111,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       }
       else
       {
-        GET_OBJ_VAL(obj, 2)
-        --;
+        GET_OBJ_VAL(obj, 2)--;
       }
       USE_STANDARD_ACTION(ch);
 
@@ -1132,8 +1132,16 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
         {
           next_tch = tch->next_in_room;
-          if (ch != tch)
-            call_magic(ch, tch, NULL, GET_OBJ_VAL(obj, 3), 0, k, CAST_STAFF);
+          if (spell_info[GET_OBJ_VAL(obj, 3)].violent)
+          {
+            if (!is_player_grouped(ch, tch))
+              call_magic(ch, tch, NULL, GET_OBJ_VAL(obj, 3), 0, k, CAST_STAFF);
+          }
+          else
+          {
+            if (is_player_grouped(ch, tch))
+              call_magic(ch, tch, NULL, GET_OBJ_VAL(obj, 3), 0, k, CAST_STAFF);
+          }
         }
       }
     }
@@ -1343,6 +1351,13 @@ int castingCheckOk(struct char_data *ch)
 /* moment of completion of spell casting */
 void finishCasting(struct char_data *ch)
 {
+
+  if (AFF_FLAGGED(ch, AFF_SILENCED) && !is_spellnum_psionic(CASTING_SPELLNUM(ch)))
+  {
+    send_to_char(ch, "You are unable to make a sound.\r\n");
+    act("$n tries to speak, but cannot seem to make a sound.", TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
 
   if (CASTING_SPELLNUM(ch) > 0 && CASTING_SPELLNUM(ch) < NUM_SPELLS)
   {
@@ -4171,8 +4186,10 @@ void mag_assign_spells(void)
   spello(SPELL_EARTHQUAKE, "earthquake", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 10, 25, NOSCHOOL, FALSE);
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   spello(SPELL_PLANE_SHIFT, "plane shift", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_MANUAL, NULL, 2, 25, NOSCHOOL, FALSE);
+#endif
   spello(SPELL_GROUP_HEAL, "group heal", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_GROUPS,
          NULL, 5, 25, NOSCHOOL, FALSE);

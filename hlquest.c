@@ -432,7 +432,8 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "Sorry, I am already following someone else.\r\n");
         return;
       }
-      if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+      // if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+      if (!can_add_follower(ch, victim))
       {
         send_to_char(ch, "Sorry, you already have enough followers.\r\n");
         return;

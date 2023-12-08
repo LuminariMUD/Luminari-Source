@@ -414,7 +414,8 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
   else if (spellnum == SPELL_CHARM && (CASTER_LEVEL(ch) < GET_LEVEL(victim) || GET_LEVEL(victim) >= 8))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
-  else if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+  // else if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+  else if (IS_NPC(victim) && !can_add_follower(ch, GET_MOB_VNUM(victim)))
     send_to_char(ch, "You can not manage more followers!\r\n");
 
   else if ((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION || spellnum == WARLOCK_CHARM) &&
@@ -2160,18 +2161,14 @@ ASPELL(spell_plane_shift)
 ASPELL(spell_geniekind)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-  int geniekind = 0;
+  int geniekind = 0, mob_vnum = 0;
 
   if (IS_NPC(ch) || !ch->desc)
     return;
 
-  if (check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_DJINNI_KIND) || affected_by_spell(ch, SPELL_DJINNI_KIND) ||
-      check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_EFREETI_KIND) || affected_by_spell(ch, SPELL_EFREETI_KIND) ||
-      check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_MARID_KIND) || affected_by_spell(ch, SPELL_MARID_KIND) ||
-      check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_SHAITAN_KIND) || affected_by_spell(ch, SPELL_SHAITAN_KIND))
+  if (!can_add_follower_by_flag(ch, MOB_GENIEKIND))
   {
-    send_to_char(ch, "You are already benefitting from genie-kind.  You may only benefit from one type of genie-kind at a time.\r\n"
-                     "Please revoke your genie-kind affect and dismiss your genie follower to cancel the benefit.\r\n");
+    send_to_char(ch, "You already have a geniekind follower.\r\n");
     return;
   }
 

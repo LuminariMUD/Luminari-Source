@@ -1165,7 +1165,7 @@ void npc_spellup(struct char_data *ch)
   /* try animate undead first */
   /* UPDATE: plans to add a mob flag for this, for now restrict to mobs
    over level 30 -zusuk */
-  if (GET_LEVEL(ch) > 30 && !check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD) && !rand_number(0, 1) && !ch->master)
+  if (GET_LEVEL(ch) > 30 && !can_add_follower_by_flag(ch, MOB_ANIMATED_DEAD) && !rand_number(0, 1) && !ch->master)
   {
     for (obj = world[ch->in_room].contents; obj; obj = obj->next_content)
     {
@@ -1187,7 +1187,7 @@ void npc_spellup(struct char_data *ch)
   /* try for an elemental */
   /* UPDATE: plans to add a mob flag for this, for now restrict to mobs
    over level 30 -zusuk */
-  if (GET_LEVEL(ch) > 30 && !check_npc_followers(ch, NPC_MODE_FLAG, MOB_ELEMENTAL) && !rand_number(0, 6) && !ch->master)
+  if (GET_LEVEL(ch) > 30 && !can_add_follower_by_flag(ch, MOB_ELEMENTAL) && !rand_number(0, 6) && !ch->master)
   {
     if (level >= spell_info[SPELL_SUMMON_CREATURE_9].min_level[GET_CLASS(ch)])
     {
