@@ -865,6 +865,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
 #define GET_WARLOCK_LEVEL(ch) (GET_LEVEL(ch) > LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_WARLOCK))
 #define GET_SUMMONER_LEVEL(ch) ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_SUMMONER))
+#define GET_CALL_EIDOLON_LEVEL(ch) ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : (CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_NECROMANCER)))
 #define GET_PSIONIC_LEVEL(ch) (GET_LEVEL(ch) >= LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))
 #define IS_PSIONIC(ch) (GET_PSIONIC_LEVEL(ch) > 0)
 #define PSIONIC_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST), LVL_IMMORT - 1))
@@ -1942,7 +1943,8 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_INQUISITOR(ch) (CLASS_LEVEL(ch, CLASS_INQUISITOR))
 #define IS_DRUID(ch) (CLASS_LEVEL(ch, CLASS_DRUID))
 #define IS_ROGUE(ch) (CLASS_LEVEL(ch, CLASS_ROGUE))
-#define IS_ROGUE_TYPE(ch) (CLASS_LEVEL(ch, CLASS_ROGUE) + CLASS_LEVEL(ch, CLASS_DUELIST) + CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + CLASS_LEVEL(ch, CLASS_ASSASSIN) + CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_RANGER) + CLASS_LEVEL(ch, CLASS_BARD))
+#define IS_ROGUE_TYPE(ch) (CLASS_LEVEL(ch, CLASS_ROGUE) + CLASS_LEVEL(ch, CLASS_DUELIST) + CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + CLASS_LEVEL(ch, CLASS_ASSASSIN) + \
+                           CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_RANGER) + CLASS_LEVEL(ch, CLASS_BARD))
 #define IS_PSI_TYPE(ch) (CLASS_LEVEL(ch, CLASS_PSIONICIST)) /* for expansion! */
 #define IS_WARRIOR(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR))
 #define IS_WEAPONMASTER(ch) (CLASS_LEVEL(ch, CLASS_WEAPON_MASTER))
@@ -1953,6 +1955,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_MYSTICTHEURGE(ch) (CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE))
 #define IS_ARCANE_ARCHER(ch) (CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER))
 #define IS_ARCANE_SHADOW(ch) (CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW))
+#define IS_NECROMANCER(ch) (CLASS_LEVEL(ch, CLASS_NECROMANCER))
 #define IS_ELDRITCH_KNIGHT(ch) (CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT))
 #define IS_SACRED_FIST(ch) (CLASS_LEVEL(ch, CLASS_SACRED_FIST))
 #define IS_SHIFTER(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER))
@@ -1969,7 +1972,8 @@ int ACTUAL_BAB(struct char_data *ch);
                        IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
                        IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||             \
                        IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch) || \
-                       IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch) || IS_INQUISITOR(ch)|| IS_SUMMONER(ch))
+                       IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch) || IS_INQUISITOR(ch) || IS_SUMMONER(ch) || \
+                       IS_NECROMANCER(ch))
 
 #define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
                         CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
@@ -1986,6 +1990,7 @@ int ACTUAL_BAB(struct char_data *ch);
                            GET_CLASS(ch) == CLASS_MYSTIC_THEURGE ||  \
                            GET_CLASS(ch) == CLASS_ARCANE_ARCHER ||   \
                            GET_CLASS(ch) == CLASS_ARCANE_SHADOW ||   \
+                           GET_CLASS(ch) == CLASS_NECROMANCER ||   \
                            GET_CLASS(ch) == CLASS_ELDRITCH_KNIGHT || \
                            GET_CLASS(ch) == CLASS_SACRED_FIST ||     \
                            GET_CLASS(ch) == CLASS_SHIFTER ||         \
@@ -1993,6 +1998,8 @@ int ACTUAL_BAB(struct char_data *ch);
                            GET_CLASS(ch) == CLASS_BARD)
 
 #define GET_CASTING_CLASS(ch) (ch->player_specials->casting_class)
+
+#define NECROMANCER_CAST_TYPE(ch) (CHECK_PLAYER_SPECIAL(ch, (ch->player_specials->saved.necromancer_bonus_levels)))
 
 /* 1 if ch is race, 0 if not */
 #define IS_HUMAN(ch) (!IS_NPC(ch) && \

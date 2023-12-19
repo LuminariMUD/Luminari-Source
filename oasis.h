@@ -672,6 +672,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define STUDY_SELECT_EVOLUTION_CONFIRM 70
 #define STUDY_SELECT_ASPECT 71
 #define STUDY_SELECT_ASPECT_CONFIRM 72
+#define STUDY_SET_NECROMANCER_CAST_TYPE 73
 
 int save_config(IDXTYPE nowhere);
 
@@ -791,6 +792,8 @@ void study_disp_evolution_confirm(struct descriptor_data *d);
 void study_show_evolution_select_bottom_text(struct descriptor_data *d);
 void study_summoner_aspect_select(struct descriptor_data *d);
 void study_disp_aspect_confirm(struct descriptor_data *d);
+char *levelup_show_necromancer_cast_type(struct char_data *ch);
+bool has_necromancer_cast_type_unchosen(struct char_data *ch);
 
     /* public functions from msgedit.c */
     ACMD_DECL(do_msgedit);
@@ -809,5 +812,14 @@ void print_zone(struct char_data *ch, zone_rnum rnum);
 /** @deprecated is do_oasis_links intentionally dead code? */
 ACMD_DECL(do_oasis_links);
 ACMD_DECL(do_oasis_list);
+
+extern struct moving_room_data * movingRoomList;
+int prepMovingRoom(struct moving_room_data * theRoom, struct oldNextMove * ONMdata, int * cibIdx, int * nextIdx);
+int linkMovingRoom(struct moving_room_data * theRoom, struct oldNextMove * ONMdata, int cibIdx);
+int unlinkMovingRoom(struct moving_room_data * theRoom, struct oldNextMove * ONMdata, int cibIdx);
+void setup_moving_room(FILE * fl, int rroom, int vroom, char * line);
+void moving_rooms_update(void);
+void dump_moving(struct moving_room_data * mr, struct char_data * ch);
+
 
 #endif /* _OASIS_H_ */

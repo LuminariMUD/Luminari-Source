@@ -68,6 +68,7 @@ extern const char * const luminari_version;
 extern const char * const luminari_build;
 extern const char *damtype_display[];
 extern const char *dirs[];
+extern const char *dirs_short[];
 extern const char *autoexits[];
 extern const char *room_bits[];
 extern const char *zone_bits[];

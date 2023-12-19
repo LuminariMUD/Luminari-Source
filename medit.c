@@ -2378,6 +2378,13 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
     GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
     armor_class -= 60;
     break;
+  case CLASS_NECROMANCER:
+    GET_CHA(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    mobs_hps = mobs_hps * 2 / 5;
+    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    armor_class -= 60;
+    break;
   case CLASS_ROGUE:
     //    case CLASS_ASSASSIN:
     //    case CLASS_SHADOW_DANCER:

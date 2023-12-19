@@ -240,6 +240,7 @@
 #define ZONE_GRID 3         /**< Zone is 'on the grid', connected, show on 'areas' */
 #define ZONE_NOBUILD 4      /**< Building is not allowed in the zone */
 #define ZONE_NOASTRAL 5     /**< No teleportation magic will work to or from this zone */
+#define ZONE_NOTELEPORT ZONE_NOASTRAL
 #define ZONE_WORLDMAP 6     /**< Whole zone uses the WORLDMAP by default */
 #define ZONE_NOCLAIM 7      /**< Zone can't be claimed, or popularity changed */
 #define ZONE_ASTRAL_PLANE 8 /* astral plane */
@@ -248,8 +249,9 @@
 #define ZONE_WILDERNESS 11
 #define ZONE_RANDOM_CHESTS 12 // random treasure chests will load in this zone
 #define ZONE_RANDOM_TRAPS 13 // random traps will load in this zone
+#define ZONE_NOMAP 14
 /** The total number of Zone Flags */
-#define NUM_ZONE_FLAGS 14
+#define NUM_ZONE_FLAGS 15
 
 /* Goto Zones: Used by the goto command to quickly go to specific zones on the worldmap */
 #define NUM_GOTO_ZONES 10
@@ -420,6 +422,8 @@
 #define CLASS_INQUISITOR 26
 #define CLASS_SUMMONER 27
 #define CLASS_WARLOCK 28
+#define CLASS_NECROMANCER 29
+#define CLASS_PALE_MASTER CLASS_NECROMANCER
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -428,12 +432,12 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 29
+#define NUM_CLASSES 30
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
-#define MAX_CLASSES 30 // total number of maximum pc classes
+#define MAX_CLASSES 31 // total number of maximum pc classes
 #define NUM_CASTERS 9  // direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2
@@ -2577,12 +2581,24 @@
 #define FEAT_BAAZ_DISEASE_IMMUNITY 1031
 #define FEAT_BAAZ_DRACONIAN_SCALES 1032
 #define FEAT_DRACONIAN_BITE 1033
+#define FEAT_DEATHLESS_VIGOR 1034
+#define FEAT_UNDEAD_GRAFT 1035
+#define FEAT_PARALYZING_TOUCH 1036
+#define FEAT_WEAKENING_TOUCH 1037
+#define FEAT_DEGENERATIVE_TOUCH 1038
+#define FEAT_DESTRUCTIVE_TOUCH 1039
+#define FEAT_DEATHLESS_TOUCH 1040
+#define FEAT_TOUGH_AS_BONE 1041
+#define FEAT_DEATHLESS_MASTERY 1042
+#define FEAT_PALE_MASTER_WEAPONS 1043
+#define FEAT_UNDEAD_COHORT 1044
+
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1034
+#define FEAT_LAST_FEAT 1045
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1035
+#define NUM_FEATS 1046
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3836,6 +3852,10 @@ typedef IDXTYPE clan_rnum;   /**< references an instance of a clan */
 typedef IDXTYPE region_rnum; /**< references an instance of a region */
 typedef IDXTYPE path_rnum;   /**< references an instance of a path */
 
+typedef IDXTYPE	room_num;
+typedef IDXTYPE	room_num;
+typedef IDXTYPE	obj_num;
+
 /** Bitvector type for 32 bit unsigned long bitvectors. 'unsigned long long'
  * will give you at least 64 bits if you have GCC. You'll have to search
  * throughout the code for "bitvector_t" and change them yourself if you'd
@@ -4097,6 +4117,7 @@ struct room_data
     // struct trail_data_list *trail_scent;
     // struct trail_data_list *trail_blood;
     //// struct trail_data_list *trail_magic;
+    struct moving_room_data  *mover;  /*  if it's a moving room       */
 };
 
 /* char-related structures */
@@ -4396,6 +4417,8 @@ struct char_special_data
 
     byte recently_kicked;
     byte recently_slammed;
+
+    bool deathless_touch;           // when killing a victim with deathless touch, the necromancer will give bonus stats on his next animate dead or greater animation spell
 };
 
 /* old memorization struct */
@@ -4631,6 +4654,7 @@ struct player_special_data_saved
     char *bag_names[MAX_BAGS+1];  // nicknames for the characters' bags
     int fixed_bab;  // This is the character's final bab which is set upon reaching lvl 20 and determines # of attacks per round
     bool vital_strike;                              /* if we're using vital strike */
+    int necromancer_bonus_levels; // 1 for arcane, 2 for divine
 
 };
 
@@ -4883,6 +4907,7 @@ struct level_data
     int eidolon_evolutions[NUM_EVOLUTIONS];
     int summoner_aspects[NUM_EVOLUTIONS];
     int temp_evolution;
+    int necromancer_bonus_levels; // 1 for arcane, 2 for divine
 };
 
 /** The list element that makes up a list of characters following this
@@ -4905,6 +4930,70 @@ struct bag_data
     struct obj_data *bag8;
     struct obj_data *bag9;
     struct obj_data *bag10;
+};
+
+
+/*
+ *  PDH 11/17/97
+ *  structs for moving room (zone) connections
+ *
+ *  structure of the *.wld file where:
+ *  <dirD>      direction to enter the moving room (constant)
+ *  <reset>     number of zone pulses between resets (constant)
+ *  <random>    0=move in sequence   1=random selection
+ *  <exitInfo>  0=no door  1=door  2=close  3=locked  4=pickproof
+ *  <keyInfo>   key number (virtual obj number) (-1 for no key)
+ *  <keywords>  keywords for the door
+ *
+ *  <room>      virtual room number of a connecting room
+ *  <dir>       direction to leave the connecting room
+ *  <count>     times (1-50) this room:dir sequence occurs (mostly with random)
+
+M <dirD> <reset> <random> <exit> <key>
+message to room when in transit~
+message to room when docking~
+message to dest room when docking~
+<room> <dir> <count>
+<room> <dir> <count>
+...
+~
+*/
+
+#define  MAX_MOVING_ROOMS    150   /* # of connectiong rooms             */
+#define  ENDMOVING            -2   /* end of moving room list in from[]  */
+
+struct moving_room_data {     /*  all room num are VNUM  */
+  /*  current state  */
+  int        resetZonePulse;       /* zone pulses per reset         */
+  int        remainingZonePulses;  /* zone pulses left until reset  */
+  int        currentInbound;       /* current conn room (array idx) */
+
+  /*  constants  */
+  room_num   destination;          /* the target room               */
+  int        inbound_dir;          /* the in/out dir of target room */
+  int        randomMove;           /* whether room moves randomly   */
+  sh_int     exitInfo;             /* door type                     */
+  obj_num    keyInfo;              /* virtual key number            */
+  char     * keywords;             /* keywords                      */
+
+  room_num * from;                 /* array of from rooms           */
+  int      * fromDir;              /* array of from dirs            */
+
+  char     * msg_transit;
+  char     * msg_docking;
+  char     * msg_dest_docking;
+
+  struct room_direction_data *dir_option[NUM_OF_DIRS];    /* Directions */
+
+  struct moving_room_data * next;  /* the next in the list          */
+};
+
+struct oldNextMove {
+  int       nextDir;
+  int       oldDir;
+  room_num  nextRoom;
+  room_num  oldRoom;
+  room_num  moveRoom;
 };
 
 /** Master structure for PCs and NPCs. */

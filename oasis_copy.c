@@ -185,6 +185,8 @@ ACMD(do_dig)
     return;
   }
 
+  
+
   /* set up some variables */
   rawvnum = atoi(sroom);
   if (rawvnum == -1)
@@ -211,8 +213,12 @@ ACMD(do_dig)
 
   if (dir < 0)
   {
-    send_to_char(ch, "You cannot create an exit to the '%s'.\r\n", sdir);
-    return;
+    dir = search_block(sdir, dirs_short, FALSE);
+    if (dir < 0)
+    {
+      send_to_char(ch, "You cannot create an exit to the '%s'.\r\n", sdir);
+      return;
+    }
   }
   /* Make sure that the builder has access to the zone he's in. */
   if ((zone == NOWHERE) || !can_edit_zone(ch, zone))

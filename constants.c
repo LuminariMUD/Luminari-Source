@@ -662,6 +662,7 @@ const char *class_names[] = {
     "Inquisitor",
     "Summoner",
     "Warlock",
+    "Necromancer",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -968,6 +969,7 @@ const char *craft_type[] = {
     "restring",
     "wand-craft",
     "staff-craft",
+    "bonearmor",
     "\n"};
 CHECK_TABLE_SIZE(craft_type, NUM_CRAFT + 1);
 
@@ -1118,6 +1120,24 @@ const char *dirs[] = {
     "\n"};
 CHECK_TABLE_SIZE(dirs, NUM_OF_DIRS + 1);
 
+const char *dirs_short[] = {
+    "north",
+    "east",
+    "south",
+    "west",
+    "up",
+    "down",
+    "nwest", /* Diagonals only used if CONFIG_DIAGONAL_DIRS is set */
+    "neast",
+    "seast",
+    "swest",
+#ifdef CAMPAIGN_FR    
+    "inside",
+    "outside",
+#endif
+    "\n"};
+CHECK_TABLE_SIZE(dirs, NUM_OF_DIRS + 1);
+
 const char *autoexits[] = {
     "N",
     "E",
@@ -1219,6 +1239,7 @@ const char *zone_bits[] = {
     "Wilderness",
     "Random-Chests",
     "Random-Traps",
+    "No-Automap",
     "\n"};
 CHECK_TABLE_SIZE(zone_bits, NUM_ZONE_FLAGS + 1);
 
@@ -4552,6 +4573,7 @@ const char *spell_prep_dict[][4] = {
     {"compel", "compelling", "compelled", "compellings"},    /* inquisitor */
     {"conjure", "conjuring", "conjured", "conjurings"},      // summoner
     {"", "", "", ""},                                        /* warlock 28 */
+    {"", "", "", ""},                                        /* necromancer 29 */
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -4592,6 +4614,7 @@ const char *spell_consign_dict[][4] = {
     {"exempt", "exempted", "exempting", "exempt"},               /* inquisitor 26 */
     {"unconjure", "unconjured", "unconjuring", "unconjure"},     // summoner
     {"", "", "", ""},                                            /* warlock 28 */
+    {"", "", "", ""},                                            /* necromancer 29 */
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -5151,6 +5174,7 @@ const char *class_short_descriptions[] = {
     "An agent of the divine who tracks down his deity's enemies and judges them with weapons and spells.",         // inquisitor
     "An arcane spellcaster who has mastered the art of conjuring and who controls a powerful eidolon follower.",   // summoner
     "A savvy invoker who has dominated the arcane through sheer force of will and dark pacts.",                    // warlock
+    "A master of the arcane and necromantic arts, able to take upon them the powers of undeath.",                  // necromancer
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 

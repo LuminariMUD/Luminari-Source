@@ -245,7 +245,7 @@ genshp.o: genshp.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 genwld.o: genwld.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h handler.h comm.h genolc.h \
  genwld.h genzon.h shop.h dg_olc.h dg_scripts.h mud_event.h dg_event.h \
- wilderness.h
+ wilderness.h oasis.h help.h
 genzon.o: genzon.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h genolc.h genzon.h \
  dg_scripts.h
@@ -460,7 +460,8 @@ spec_procs.o: spec_procs.c conf.h sysdep.h structs.h bool.h protocol.h \
  handler.h spells.h constants.h act.h spec_procs.h class.h fight.h \
  modify.h house.h clan.h mudlim.h graph.h dg_scripts.h mud_event.h \
  dg_event.h actions.h assign_wpn_armor.h domains_schools.h feats.h \
- spell_prep.h item.h alchemy.h treasure.h mobact.h evolutions.h
+ spell_prep.h item.h alchemy.h treasure.h mobact.h evolutions.h oasis.h \
+ help.h
 specs.artifacts.o: specs.artifacts.c
 spellbook_scroll.o: spellbook_scroll.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h utils.h db.h helpers.h perfmon.h \

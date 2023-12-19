@@ -291,7 +291,7 @@ int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool dim_lock)
   if (ch && !House_can_enter(ch, GET_ROOM_VNUM(dest)))
     return FALSE;
 
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_NOASTRAL))
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(dest), ZONE_NOTELEPORT))
     return FALSE;
 
   if (ROOM_FLAGGED(dest, ROOM_PRIVATE))
@@ -1546,7 +1546,7 @@ ASPELL(spell_creeping_doom)
   send_to_char(ch, "You summon forth a mass of centipede swarms!\r\n");
   act("$n summons forth a mass of centipede swarms!", FALSE, ch, 0, 0, TO_ROOM);
 
-  DOOM(ch) = MAX(1, (DIVINE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_SUMMONER)) / 4);
+  DOOM(ch) = MAX(1, (DIVINE_LEVEL(ch) + GET_CALL_EIDOLON_LEVEL(ch)) / 4);
 }
 
 ASPELL(spell_detect_poison)
@@ -2161,7 +2161,7 @@ ASPELL(spell_plane_shift)
 ASPELL(spell_geniekind)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-  int geniekind = 0, mob_vnum = 0;
+  int geniekind = 0;
 
   if (IS_NPC(ch) || !ch->desc)
     return;

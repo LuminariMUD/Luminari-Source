@@ -38,6 +38,9 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_KENDER) && weapon == WEAPON_TYPE_HOOPAK);
     return TRUE;
 
+  if (HAS_REAL_FEAT(ch, FEAT_PALE_MASTER_WEAPONS) && weapon == WEAPON_TYPE_SCYTHE)
+    return TRUE;
+
   /* :) */
   if (weapon == WEAPON_TYPE_UNARMED && MONK_TYPE((ch)))
     return TRUE;
@@ -1446,6 +1449,7 @@ int compute_gear_spell_failure(struct char_data *ch)
 {
   int spell_failure = 0, i, count = 0;
   struct obj_data *obj = NULL;
+  bool bonearmor = false;
 
   for (i = 0; i < NUM_WEARS; i++)
   {
@@ -1454,6 +1458,11 @@ int compute_gear_spell_failure(struct char_data *ch)
         (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS ||
          i == WEAR_SHIELD))
     {
+      // all armor pieces must be bone to benefit from bone armor necromancer ability
+      bonearmor = false;
+      if (GET_OBJ_MATERIAL(obj) == MATERIAL_BONE)
+        bonearmor = true;
+      
       if (i != WEAR_SHIELD) /* shield and armor combined increase spell failure chance */
         count++;
       /* ok we have an armor piece... */
@@ -1470,6 +1479,8 @@ int compute_gear_spell_failure(struct char_data *ch)
     spell_failure -= 20;
   else if (HAS_FEAT(ch, FEAT_ARCANE_ARMOR_TRAINING))
     spell_failure -= 10;
+  if (bonearmor && HAS_REAL_FEAT(ch, FEAT_BONE_ARMOR))
+    spell_failure -= (10 * HAS_REAL_FEAT(ch, FEAT_BONE_ARMOR));
 
   if (affected_by_spell(ch, PSIONIC_OAK_BODY))
     spell_failure += 25;

@@ -205,6 +205,7 @@ struct mud_event_list mud_event_index[] = {
     {"Aqueous Orb", event_aqueous_orb, EVENT_CHAR},           // eAQUEOUSORB
     {"Vampiric Blood Drain", event_daily_use_cooldown, EVENT_CHAR},               // eVAMPIREBLOODDRAIN
     {"Eidolon Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACBREATH
+    {"Call Eidolon", event_countdown, EVENT_CHAR}, // eC_EIDOLON
 
 };
 
@@ -273,6 +274,9 @@ EVENTFUNC(event_countdown)
   {
   case eC_ANIMAL:
     send_to_char(ch, "You are now able to 'call companion' again.\r\n");
+    break;
+  case eC_EIDOLON:
+    send_to_char(ch, "You are now able to 'call eidolon' again.\r\n");
     break;
   case eC_FAMILIAR:
     send_to_char(ch, "You are now able to 'call familiar' again.\r\n");

@@ -185,6 +185,7 @@ static bitvector_t asciiflag_conv_aff(char *flag);
 static int help_sort(const void *a, const void *b);
 void assign_deities(void);
 void set_armor_object(struct obj_data *obj, int type);
+SPECIAL_DECL(moving_rooms);
 
 /* Ils: Global result_q needed for init_result_q, push_result & test_result */
 struct
@@ -1655,6 +1656,7 @@ void parse_room(FILE *fl, int virtual_nr)
 
   for (;;)
   {
+
     if (!get_line(fl, line))
     {
       log("%s", buf);
@@ -1668,6 +1670,10 @@ void parse_room(FILE *fl, int virtual_nr)
       break;
     case 'D':
       setup_dir(fl, room_nr, atoi(line + 1));
+      break;
+    case 'M':
+      setup_moving_room(fl, room_nr, virtual_nr, (line + 1));
+      world[room_nr].func = &moving_rooms;
       break;
     case 'E':
       CREATE(new_descr, struct extra_descr_data, 1);
@@ -1705,6 +1711,226 @@ void parse_room(FILE *fl, int virtual_nr)
       exit(1);
     }
   }
+}
+
+/*
+ *  PDH 11/17/97
+ *  moving_rooms_update - each zone pulse, we check if any "movement
+ *  rooms" need to be relocated (ie. their pulse timer ran out)
+ */
+
+struct moving_room_data * movingRoomList = NULL;
+
+void moving_rooms_update(void)
+{
+    struct moving_room_data* nextRoom = movingRoomList;
+    room_num mover;
+    char errStr[100];
+
+    while (nextRoom != NULL) {
+        nextRoom->remainingZonePulses--;
+        if (nextRoom->remainingZonePulses <= 0) {
+            mover = nextRoom->destination;
+
+            if (real_room(mover) > 0) {
+                if (world[real_room(mover)].func != NULL) {
+                    world[real_room(mover)].func(NULL, nextRoom, 0, NULL);
+                }
+            } else {
+                sprintf(errStr, "moving_rooms_update: real_room(%d) < 0", mover);
+                log(errStr);
+            }
+
+            nextRoom->remainingZonePulses = nextRoom->resetZonePulse;
+        }
+
+        nextRoom = nextRoom->next;
+    }
+}
+
+/*  read moving room data  */
+void setup_moving_room(FILE* fl, int rroom, int vroom, char* line) {
+    int roomInfo[5];
+    int connInfo[3];
+    char buf[MAX_STRING_LENGTH];
+
+    int connCnt = 0, j, connLine = 0;
+    room_num fR[MAX_MOVING_ROOMS];
+    int fD[MAX_MOVING_ROOMS];
+
+    char errStr[100];
+    char lineIn[256];
+    char msg1[200], msg2[200], msg3[200];
+
+    struct moving_room_data* newRoom;
+
+    if (world[rroom].mover) {
+        log("SYSERR: setup_moving_room - this room already has a mover assigned");
+        return;
+    }
+
+    strcpy(errStr, "");
+    strcpy(lineIn, "");
+    strcpy(msg1, "");
+    strcpy(msg2, "");
+    strcpy(msg3, "");
+
+    for (j = 0; j < MAX_MOVING_ROOMS; j++) {
+        fR[j] = NOWHERE;
+        fD[j] = -1;
+    }
+
+    if (sscanf(line, " %d %d %d %d %d ", roomInfo, roomInfo + 1, roomInfo + 2, roomInfo + 3, roomInfo + 4) != 5) {
+        fprintf(stderr, "Format error, room #%d, M line\n", world[rroom].number);
+        exit(1);
+    }
+
+    /*  now get the 3 room messages (if they exist)  */
+    if (!get_line(fl, lineIn)) {
+        fprintf(stderr, " missing transit message when processing M...\n");
+        exit(1);
+    }
+    if (lineIn[0] != '~') {
+        strcpy(msg1, lineIn);
+    }
+
+    if (!get_line(fl, lineIn)) {
+        fprintf(stderr, " missing docking message when processing M...\n");
+        exit(1);
+    }
+    if (lineIn[0] != '~') {
+        strcpy(msg2, lineIn);
+    }
+
+    if (!get_line(fl, lineIn)) {
+        fprintf(stderr, " missing dest dock message when processing M...\n");
+        exit(1);
+    }
+    if (lineIn[0] != '~') {
+        strcpy(msg3, lineIn);
+    }
+
+    if (!get_line(fl, lineIn)) {
+        fprintf(stderr, " - get_line() returned 0 in world 'M' processing...\n");
+        fprintf(stderr, "%s\n", lineIn);
+        exit(1);
+    }
+
+    while (lineIn[0] != '~') {
+        if (sscanf(lineIn, " %d %d %d ", connInfo, connInfo + 1, connInfo + 2) != 3) {
+            fprintf(stderr, "Format error, room #%d, %d after M line\n", (connLine + 1), world[rroom].number);
+            exit(1);
+        }
+
+        connLine++;
+
+        if (connInfo[2] < 1) {
+            connInfo[2] = 1;
+        } else if (connInfo[2] > 50) {
+            connInfo[2] = 50;
+        }
+
+        for (j = 0; j < connInfo[2]; j++) {
+            connCnt++;
+
+            if (connCnt < MAX_MOVING_ROOMS) {
+                /*  store the conn room info  */
+                fR[connCnt - 1] = (room_num)connInfo[0];
+                fD[connCnt - 1] = connInfo[1];
+            } else {
+                log("setup_moving_room(): # of conneting rooms exceeded limit...");
+            }
+        }
+
+        if (!get_line(fl, lineIn)) {
+            fprintf(stderr, " - get_line() returned 0 in world 'M' processing...\n");
+            fprintf(stderr, "%s\n", buf);
+            exit(1);
+        }
+    }
+
+/*
+ *  PDH 11/17/97
+ *  lots of work for each new "moving room"
+ *  must set up struct moving_room_data and add to
+ *  movingRoomList
+ */
+#ifdef DEBUGMEM
+    CREATE(newRoom, struct moving_room_data, 1, M1);
+#else
+    CREATE(newRoom, struct moving_room_data, 1);
+#endif
+
+    newRoom->resetZonePulse = roomInfo[1];
+    newRoom->remainingZonePulses = newRoom->resetZonePulse;
+    newRoom->currentInbound = -1;
+    newRoom->destination = vroom;
+    newRoom->inbound_dir = roomInfo[0];
+    newRoom->randomMove = roomInfo[2];
+    newRoom->exitInfo = roomInfo[3];
+    newRoom->keyInfo = roomInfo[4];
+#ifdef DEBUGMEM
+    newRoom->keywords = str_dup("door", S19);
+#else
+    newRoom->keywords = strdup("door");
+#endif
+
+    if (strlen(msg1) > 5)
+    {
+#ifdef DEBUGMEM
+        newRoom->msg_transit = str_dup(msg1, T19);
+#else
+        newRoom->msg_transit = strdup(msg1);
+#endif
+
+    } else {
+        newRoom->msg_transit = NULL;
+    }
+    if (strlen(msg2) > 5) {
+#ifdef DEBUGMEM
+        newRoom->msg_docking = str_dup(msg2, U19);
+#else
+        newRoom->msg_docking = strdup(msg2);
+#endif
+    } else {
+        newRoom->msg_docking = NULL;
+    }
+    if (strlen(msg3) > 5) {
+#ifdef DEBUGMEM
+        newRoom->msg_dest_docking = str_dup(msg3, V19);
+#else
+        newRoom->msg_dest_docking = strdup(msg3);
+#endif
+    } else {
+        newRoom->msg_dest_docking = NULL;
+    }
+#ifdef DEBUGMEM
+    CREATE(newRoom->from, room_num, connCnt + 1, N1);
+    CREATE(newRoom->fromDir, int, connCnt + 1, O1);
+#else
+    CREATE(newRoom->from, room_num, connCnt + 1);
+    CREATE(newRoom->fromDir, int, connCnt + 1);
+#endif
+
+    for (j = 0; j < connCnt; j++) {
+        newRoom->from[j] = fR[j];
+        newRoom->fromDir[j] = fD[j];
+    }
+    newRoom->from[j] = ENDMOVING;
+    newRoom->fromDir[j] = -1;
+
+    newRoom->next = NULL;
+
+    if (movingRoomList == NULL) {
+        movingRoomList = newRoom;
+    } else {
+        newRoom->next = movingRoomList;
+        movingRoomList = newRoom;
+    }
+
+    world[rroom].mover = newRoom;
+
+    return;
 }
 
 /* read direction data */

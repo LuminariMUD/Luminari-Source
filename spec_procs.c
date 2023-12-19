@@ -41,6 +41,7 @@
 #include "spell_prep.h" /* for star circlet proc */
 #include "handler.h"    /* for is_name() */
 #include "evolutions.h"
+#include "oasis.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -909,11 +910,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value -= 2;
   if (HAS_EVOLUTION(ch, EVOLUTION_SKILLED))
   {
-    if (GET_SUMMONER_LEVEL(ch) >= 30)
+    if (GET_CALL_EIDOLON_LEVEL(ch) >= 30)
       value += 5;
-    else if (GET_SUMMONER_LEVEL(ch) >= 20)
+    else if (GET_CALL_EIDOLON_LEVEL(ch) >= 20)
       value += 4;
-    else if (GET_SUMMONER_LEVEL(ch) >= 10)
+    else if (GET_CALL_EIDOLON_LEVEL(ch) >= 10)
       value += 3;
     else
       value += 2;
@@ -1206,7 +1207,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     if ((mobfol = get_mob_follower(ch, MOB_EIDOLON)))
     {
       if (IN_ROOM(ch) == IN_ROOM(mobfol) && HAS_EVOLUTION(mobfol, EVOLUTION_RIDER_BOND))
-        value += MAX(1, GET_SUMMONER_LEVEL(ch) / 2);
+        value += MAX(1, GET_CALL_EIDOLON_LEVEL(ch) / 2);
     }
     return value;
   case ABILITY_CLIMB:
@@ -3069,6 +3070,282 @@ SPECIAL(guild)
   // should not be able to get here
   log("Reached the unreachable in SPECIAL(guild) in spec_procs.c");
   return (FALSE);
+}
+
+
+int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx) {
+    char errStr[100];
+
+    if ((ONMdata->oldRoom != NOWHERE) && (ONMdata->oldRoom != ENDMOVING)) {
+        /*  unlink old room - both sides  */
+
+        /*  check if rooms sync up  */
+        if (theRoom->from[cibIdx] != ONMdata->oldRoom) {
+            sprintf(errStr, "SPEC(move_room): [%d] from[cibIdx] != oldRoom (or <= 0) (%d/%d %d)",
+                    (int)ONMdata->moveRoom, theRoom->from[cibIdx], ONMdata->oldRoom, cibIdx);
+            log(errStr);
+            return 0;
+        }
+
+        /*  check if dest room dir is clean...  */
+        if (world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir] == NULL) {
+            log("SPEC(move_room): moving room has not set a connecting room...");
+            return 0;
+        }
+
+        /*  check if old conn room dir is clean...  */
+        if (world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir] == NULL) {
+            sprintf(errStr, "SPEC(move_room): [%d] old conn room %d dir %d not set...", (int)ONMdata->moveRoom,
+                    ONMdata->oldRoom, ONMdata->oldDir);
+            log(errStr);
+            return 0;
+        }
+
+        /* log("SPEC(move): all is Ok to unlink the old room..."); */
+
+#ifdef DEBUGMEM
+        freeusg(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir], P9);
+#else
+        free(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]);
+#endif
+
+        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir] = NULL;
+
+#ifdef DEBUGMEM
+        freeusg(world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir], O9);
+#else
+        free(world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir]);
+#endif
+        world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir] = NULL;
+
+        /* log("SPEC(move): all is Ok after unlinking the old room..."); */
+        sprintf(errStr, "SPEC(moving_rooms): [%d] unlinked %d  FROM  %d", (int)ONMdata->moveRoom, ONMdata->oldRoom,
+                theRoom->destination);
+        /* mudlog(errStr, CMP, LVL_QUEST, TRUE); */
+    }
+
+    return 1;
+}
+
+int linkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx) {
+    struct room_direction_data *rdd;
+    char errStr[100];
+
+    if (ONMdata->nextRoom != NOWHERE) {
+        /*  link up new room - both sides  */
+
+        /*  check if dest room dir is clean...  */
+        if (world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir] != NULL) {
+            log("SPEC(move_room): moving room hasn't unset last connecting room...");
+
+            rdd = world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir];
+            sprintf(errStr, "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%d:  to:%d:", (int)ONMdata->moveRoom,
+                    (rdd->general_description == NULL) ? "" : rdd->general_description,
+                    (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
+            log(errStr);
+
+            return 0;
+        }
+
+        /*  check if conn room dir is clean...  */
+        if (world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir] != NULL) {
+            sprintf(errStr, "SPEC(move_room): [%d] conn room has dir %d set...", (int)ONMdata->moveRoom,
+                    ONMdata->nextDir);
+            log(errStr);
+
+            rdd = world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir];
+            sprintf(errStr, "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%d:  to:%d:", (int)ONMdata->moveRoom,
+                    (rdd->general_description == NULL) ? "" : rdd->general_description,
+                    (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
+            log(errStr);
+
+/*  pdh 5/3/01 - don't return - instead remove the offending exit
+return 0;
+*/
+#ifdef DEBUGMEM
+            freeusg(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir], N9);
+#else
+            free(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]);
+#endif
+            world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir] = NULL;
+        }
+
+        if (theRoom->from[cibIdx] != ENDMOVING) {
+            log("SPEC(move_room): theRoom->from[cibIdx] != ENDMOVING");
+            return 0;
+        }
+
+        /* log("SPEC(move): all is Ok to link the new room..."); */
+
+#ifdef DEBUGMEM
+        CREATE(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir], struct room_direction_data, 1, M9);
+#else
+        CREATE(world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir], struct room_direction_data, 1);
+#endif
+        world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->general_description = NULL;
+        world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->keyword = NULL;
+        world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->exit_info = 0;
+        world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->key = -1;
+        world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir]->to_room = real_room(theRoom->destination);
+
+        /*  play 'docking' message  */
+        if (theRoom->msg_docking) {
+            struct char_data *cc;
+
+            for (cc = world[real_room(ONMdata->moveRoom)].people; cc; cc = cc->next_in_room) {
+                if (cc->desc) {
+                    send_to_char(cc, "%s\r\n", theRoom->msg_docking);
+                }
+            }
+        }
+
+#ifdef DEBUGMEM
+        CREATE(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir], struct room_direction_data, 1, L9);
+#else
+        CREATE(world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir], struct room_direction_data, 1);
+#endif
+        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->general_description = NULL;
+        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->keyword = NULL;
+        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->exit_info = 0;
+        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->key = -1;
+        world[real_room(ONMdata->moveRoom)].dir_option[theRoom->inbound_dir]->to_room = real_room(ONMdata->nextRoom);
+
+        /*  play 'dest_docking' message  */
+        if (theRoom->msg_dest_docking) {
+            struct char_data *cc;
+
+            for (cc = world[real_room(ONMdata->nextRoom)].people; cc; cc = cc->next_in_room) {
+                if (cc->desc) {
+                    send_to_char(cc, "%s\r\n", theRoom->msg_dest_docking);
+                }
+            }
+        }
+
+        /* log("SPEC(move): all complete: linked the new room"); */
+        sprintf(errStr, "SPEC(moving_rooms): [%d] unlinked %d and linked %d  TO  %d", (int)ONMdata->moveRoom,
+                ONMdata->oldRoom, ONMdata->nextRoom, theRoom->destination);
+        /* mudlog(errStr, CMP, LVL_QUEST, TRUE); */
+
+    } else {
+        /*  play 'transit' message  */
+        if (theRoom->msg_transit) {
+            struct char_data *cc;
+
+            for (cc = world[real_room(ONMdata->moveRoom)].people; cc; cc = cc->next_in_room) {
+                if (cc->desc) {
+                    send_to_char(cc, "%s\r\n", theRoom->msg_transit);
+                }
+            }
+        }
+    }
+
+    return 1;
+}
+
+int prepMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int *cibIdx, int *nextIdx) {
+    int fromRoomCnt = 0;
+
+    /*  get count of rooms in array  */
+    for (fromRoomCnt = 0; theRoom->from[fromRoomCnt] != ENDMOVING; fromRoomCnt++) {
+        ;
+    }
+
+    if (fromRoomCnt <= 1) {
+        log("SPECIAL(moving_rooms): 1 or smaller length room array");
+        return 0;
+    }
+
+    if ((theRoom->currentInbound < 0) || (theRoom->currentInbound >= fromRoomCnt)) {
+        *cibIdx = fromRoomCnt;
+    } else {
+        *cibIdx = theRoom->currentInbound;
+    }
+
+    ONMdata->oldRoom = theRoom->from[*cibIdx];
+    ONMdata->oldDir = theRoom->fromDir[*cibIdx];
+    ONMdata->moveRoom = theRoom->destination;
+
+    if (theRoom->randomMove) {
+        /*  randomly select  */
+        *nextIdx = dice(1, fromRoomCnt) - 1;
+    } else {
+        /*  next in line  */
+        *nextIdx = *cibIdx + 1;
+
+        if ((*nextIdx <= 0) || (*nextIdx >= fromRoomCnt) || (theRoom->from[*nextIdx] == ENDMOVING)) {
+            /*  start over  */
+            *nextIdx = 0;
+        }
+    }
+
+    ONMdata->nextRoom = theRoom->from[*nextIdx];
+    ONMdata->nextDir = theRoom->fromDir[*nextIdx];
+
+    /*
+      sprintf(errStr, "SPECIAL(moving_rooms): [%d] old: %d (%d) next: %d (%d)",
+      (int)moveRoom, oldRoom, oldDir, nextRoom, nextDir);
+      log(errStr);
+      */
+
+    /*  PDH  5/1/98 - OLD
+     *  if ( (ONMdata->nextRoom == NOWHERE) || (ONMdata->nextDir == -1) ) {
+     *
+     *  now, the next room info CAN be to nowhere
+     *  (ie. disconnect the room)
+     */
+    if ((ONMdata->nextRoom == ENDMOVING) || ((ONMdata->nextRoom != NOWHERE) && (ONMdata->nextDir == -1))) {
+        /*  it's a bust  */
+        log("SPEC(move): nextRoom or nextDir was bogus!");
+        return 0;
+    }
+
+    return fromRoomCnt;
+}
+
+SPECIAL(moving_rooms) {
+    int fromRoomCnt = 0;
+    struct oldNextMove ONM;
+    int cibIdx = -1, nextIdx = -1;
+
+    struct moving_room_data *theRoom;
+
+    ONM.nextDir = -1;
+    ONM.oldDir = -1;
+    ONM.nextRoom = NOWHERE;
+    ONM.oldRoom = NOWHERE;
+    ONM.moveRoom = NOWHERE;
+
+    if ((ch == NULL) && (me != NULL) && (cmd == 0) && (argument == NULL)) {
+        /* log("SPECIAL(moving_rooms)"); */
+    } else {
+        return 0;
+    }
+
+    /*  PDH 11/17/97  ugly cast... but needed  */
+    theRoom = (struct moving_room_data *)me;
+
+    if ((fromRoomCnt = prepMovingRoom(theRoom, &ONM, &cibIdx, &nextIdx)) < 1) {
+        return 0;
+    }
+
+    /*  everything is set now, so make the changes  */
+
+    if (!unlinkMovingRoom(theRoom, &ONM, cibIdx)) {
+        return 0;
+    }
+
+    cibIdx = fromRoomCnt; /* NOWHERE */
+    theRoom->currentInbound = cibIdx;
+
+    if (!linkMovingRoom(theRoom, &ONM, cibIdx)) {
+        return 0;
+    }
+
+    /*  set state of struct moving_room_data  */
+    cibIdx = nextIdx;
+    theRoom->currentInbound = cibIdx;
+
+    return 1;
 }
 
 SPECIAL(mayor)

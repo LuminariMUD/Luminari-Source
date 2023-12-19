@@ -86,10 +86,10 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 
   if (HAS_EVOLUTION(vict, EVOLUTION_CELESTIAL_APPEARANCE) || HAS_EVOLUTION(vict, EVOLUTION_FIENDISH_APPEARANCE))
   {
-    if (GET_SUMMONER_LEVEL(vict) >= 12)
-      resist = MAX(resist, 10 + GET_SUMMONER_LEVEL(vict));
+    if (GET_CALL_EIDOLON_LEVEL(vict) >= 12)
+      resist = MAX(resist, 10 + GET_CALL_EIDOLON_LEVEL(vict));
     else
-      resist = MAX(resist, 5 + GET_SUMMONER_LEVEL(vict));
+      resist = MAX(resist, 5 + GET_CALL_EIDOLON_LEVEL(vict));
   }
 
   if (IS_LICH(vict))
@@ -181,6 +181,8 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
       saves += 2;
     if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_FORTITUDE))
       saves += 3;
+    if (HAS_REAL_FEAT(vict, FEAT_DEATHLESS_VIGOR))
+      saves += 4;
     break;
   case SAVING_REFL:
     saves += GET_DEX_BONUS(vict);
@@ -1512,6 +1514,18 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = level * 10;
     break;
 
+  case ABILITY_DEATHLESS_TOUCH: // necromancy
+    if (is_immune_death_magic(ch, victim, TRUE))
+      return (0);
+    // saving throw is handled special below
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_UNHOLY;
+    num_dice = 1;
+    size_dice = 1;
+    bonus = MIN(600, GET_HIT(victim) + 40);
+    break;
+
   case SPELL_FIREBALL: // evocation
     // Nashak: make this dissipate obscuring mist when finished
     save = SAVING_REFL;
@@ -2640,6 +2654,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   bool is_mind_affect = FALSE;
   struct damage_reduction_type *new_dr = NULL, *dr = NULL, *temp = NULL;
   bool is_immune_sleep = FALSE;
+  bool is_immune_to_ability_drain = FALSE;
 
   if (victim == NULL || ch == NULL)
     return;
@@ -2652,6 +2667,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   if (HAS_FEAT(victim, FEAT_SLEEP_ENCHANTMENT_IMMUNITY))
   {
     is_immune_sleep = TRUE;
+  }
+  if (HAS_REAL_FEAT(victim, FEAT_ESSENCE_OF_UNDEATH))
+  {
+    is_immune_sleep = TRUE;
+    is_immune_to_ability_drain = TRUE;
   }
 
   for (i = 0; i < MAX_SPELL_AFFECTS; i++)
@@ -6264,6 +6284,62 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are overcome by a fit of hideous luaghter!";
     break;
 
+  case ABILITY_PARALYZING_TOUCH:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        paralysis_bonus += get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_FORT,
+                        enchantment_bonus + paralysis_bonus,
+                        casttype, level, NECROMANCY))
+    {
+      return;
+    }
+
+    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+    af[0].duration = dice(1, 4 + 1);
+    to_room = "$n freezes in place!";
+    to_vict = "You freeze in place!";
+    break;
+
+  case ABILITY_WEAKENING_TOUCH:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    af[0].duration = level;
+    af[0].location = APPLY_STR;
+    af[0].modifier = -dice(1, 6);
+    af[0].bonus_type = BONUS_TYPE_PROFANE;
+    to_vict = "You feel your body and strength wither!";
+    to_room = "$n begins to wither before your eyes!";
+    break;
+  
+  case ABILITY_DEGENERATIVE_TOUCH:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    af[0].duration = level;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = -2;
+    af[0].bonus_type = BONUS_TYPE_PROFANE;
+    af[1].duration = level;
+    af[1].location = APPLY_DAMROLL;
+    af[1].modifier = -2;
+    af[1].bonus_type = BONUS_TYPE_PROFANE;
+    to_vict = "You feel your abilities wither!";
+    to_room = "$n begins to wither before your eyes!";
+    break;
+
+  case ABILITY_DESTRUCTIVE_TOUCH:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    af[0].duration = level;
+    af[0].location = APPLY_CON;
+    af[0].modifier = -dice(1, 6);
+    af[0].bonus_type = BONUS_TYPE_PROFANE;
+    to_vict = "You feel your body and hardiness wither!";
+    to_room = "$n begins to wither before your eyes!";
+    break;
+
+
   case SPELL_HOLD_ANIMAL: // enchantment
 
     if (!IS_ANIMAL(victim))
@@ -8064,6 +8140,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   if (to_room != NULL)
     act(to_room, ACT_CONDENSE_VALUE, victim, 0, ch, TO_ROOM);
 
+  if (is_immune_to_ability_drain)
+  {
+    for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+    {
+      if (af[i].modifier < 0 &&
+          (af[i].location == APPLY_STR || af[i].location == APPLY_DEX || af[i].location == APPLY_CON))
+      {
+        af[i].modifier = 0;
+      }
+    }
+  }
+
   for (i = 0; i < MAX_SPELL_AFFECTS; i++)
   {
     if (af[i].bitvector[0] || af[i].bitvector[1] ||
@@ -9760,6 +9848,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       {
         spell_focus_bonus++;
         send_to_char(ch, "*epic spell focus* ");
+      }
+      if (ch->char_specials.deathless_touch)
+      {
+        spell_focus_bonus++;
+        send_to_char(ch, "*deathless touch* ");
       }
       GET_REAL_STR(mob) = (mob)->aff_abils.str += spell_focus_bonus * 2;
       GET_REAL_CON(mob) = (mob)->aff_abils.con += spell_focus_bonus * 2;
