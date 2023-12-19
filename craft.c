@@ -2322,8 +2322,9 @@ SPECIAL(crafting_quest)
                      "experience points.\r\n",
                  desc, GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_QP(ch),
                  GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
-  
+#if defined(CAMPAIGN_DL)
     put_mysql_supply_orders_available(ch, --avail);
+#endif
 
   }
   else if (!strcmp(arg, "complete"))

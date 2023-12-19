@@ -7442,17 +7442,18 @@ ACMD(do_happyhour)
   else if (is_abbrev(arg, "default"))
   {
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-    HAPPY_EXP = 25;
+    HAPPY_EXP = 33;
     HAPPY_GOLD = 50;
     HAPPY_QP = 50;
     HAPPY_TREASURE = 25;
+    HAPPY_TIME = 1000;
 #else
     HAPPY_EXP = 100;
     HAPPY_GOLD = 50;
     HAPPY_QP = 50;
     HAPPY_TREASURE = 20;
-#endif
     HAPPY_TIME = 48;
+#endif
     game_info("A Happyhour has started!");
     set_db_happy_hour(1);
   }
