@@ -1924,6 +1924,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Purify Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_ANIMAL)))
     send_to_char(ch, "Call Companion Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eC_EIDOLON)))
+    send_to_char(ch, "Call Eidolon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_FAMILIAR)))
     send_to_char(ch, "Call Familiar Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_MOUNT)))
@@ -2605,7 +2607,7 @@ ACMD(do_look)
     else if (is_abbrev(arg, "in"))
       look_in_obj(ch, arg2);
     /* did the char type 'look <direction>?' */
-    else if ((look_type = search_block(arg, dirs, FALSE)) >= 0)
+    else if ((look_type = search_block(arg, dirs_short, FALSE)) >= 0)
       look_in_direction(ch, look_type);
     else if (is_abbrev(arg, "at"))
       look_at_target(ch, arg2);
@@ -5568,7 +5570,7 @@ bool get_zone_levels(zone_rnum znum, char *buf)
 
 ACMD(do_areas)
 {
-  int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, tmp_len = 0, count = 0;
+  int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, tmp_len = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'}, *second, lev_str[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
   //  char zvn[MAX_INPUT_LENGTH] = {'\0'};
   bool show_zone = FALSE, overlap = FALSE, overlap_shown = FALSE, show_popularity = FALSE;
@@ -5695,22 +5697,11 @@ ACMD(do_areas)
       if (overlap)
         overlap_shown = TRUE;
       lev_set = get_zone_levels(i, lev_str);
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "\tn(%3d) %s%-*s\tn %s%s\tn    ", ++zcount, overlap ? QRED : QCYN,
-                         count_color_chars(zone_table[i].name) + 30, zone_table[i].name,
+      tmp_len = snprintf(buf + len, sizeof(buf) - len, "\tn(%3d) %s%-*s\tn %s%s\tn\r\n", ++zcount, overlap ? QRED : QCYN,
+                         count_color_chars(zone_table[i].name) + 40, zone_table[i].name,
                          lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
       len += tmp_len;
-      if ((count % 2) == 1)
-      {
-        tmp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n");
-        len += tmp_len;
-      }
-      count++;
     }
-  }
-  if ((count % 2) != 1)
-  {
-    tmp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n");
-    len += tmp_len;
   }
   
   tmp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n\r\n");
@@ -5753,6 +5744,12 @@ ACMD(do_scan)
     scanned_room = IN_ROOM(ch);
   else
     return;
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_NOMAP) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    send_to_char(ch, "A magical force prevents you from seeing beyond this room.\r\n");
+    return;
+  }
 
   if (IS_AFFECTED(ch, AFF_BLIND) && !has_blindsense(ch))
   {

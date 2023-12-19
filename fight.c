@@ -3494,6 +3494,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 25;
     if (HAS_FEAT(ch, FEAT_STOUT_RESILIENCE))
       damtype_reduction += 50;
+    if (HAS_REAL_FEAT(ch, FEAT_ESSENCE_OF_UNDEATH))
+      damtype_reduction += 100;
     if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
       damtype_reduction += get_evolution_appearance_save_bonus(ch);
     if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE))
@@ -5244,6 +5246,13 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       act("You fully assimilate the form of $N gaining some of $S power.", false, ch, 0, victim, TO_CHAR);
       act("$n fully assimilates your form, gaining some of your power.", false, ch, 0, victim, TO_VICT);
       act("$n fully assimilates the form of $N gaining some of $S power.", false, ch, 0, victim, TO_NOTVICT);
+    }
+
+    if (w_type == ABILITY_DEATHLESS_TOUCH)
+    {
+      ch->char_specials.deathless_touch = true;
+      send_to_char(ch, "Your deathless touch awakens necromatic energy in your undead arm.\r\n"
+                       "The next time you cast animate dead or greater animation, your undead follower will have increased stats.\r\n");
     }
 
     return (dam_killed_vict(ch, victim));
@@ -8964,6 +8973,9 @@ int can_sneak_attack(struct char_data *ch, struct char_data *victim)
   if (!HAS_FEAT(ch, FEAT_SNEAK_ATTACK))
     return FALSE;
 
+  if (HAS_REAL_FEAT(victim, FEAT_ESSENCE_OF_UNDEATH))
+    return FALSE;
+
   /* preserve organs defended from this sneak attack */
   if (FIGHTING(ch) && KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1 && !FIGHTING(ch)->preserve_organs_procced)
     return FALSE;
@@ -11773,7 +11785,7 @@ void perform_violence(struct char_data *ch, int phase)
       if (!is_immune_mind_affecting(tch, ch, FALSE) &&
           !is_immune_fear(tch, ch, FALSE))
       {
-        if (!mag_savingthrow(tch, ch, SAVING_WILL, 0, CAST_INNATE, GET_SUMMONER_LEVEL(tch), ENCHANTMENT))
+        if (!mag_savingthrow(tch, ch, SAVING_WILL, 0, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(tch), ENCHANTMENT))
         {
           struct affected_type af;
           new_affect(&af);

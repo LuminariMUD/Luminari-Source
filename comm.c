@@ -191,6 +191,7 @@ void check_auto_happy_hour(void);
 void regen_psp(void);
 void process_walkto_actions(void);
 void self_buffing(void);
+void moving_rooms_update(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -1153,6 +1154,12 @@ void heartbeat(int heart_pulse)
     PERF_PROF_ENTER(pr_script_trigger_, "script_trigger_check");
     script_trigger_check();
     PERF_PROF_EXIT(pr_script_trigger_);
+  }
+
+  // Every 10 Seconds
+  if (!(heart_pulse % (PASSES_PER_SEC * 10)))
+  {
+    moving_rooms_update();
   }
 
   if (!(heart_pulse % PASSES_PER_SEC))

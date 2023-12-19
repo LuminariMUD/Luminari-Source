@@ -1318,6 +1318,17 @@ int valid_align_by_class(int alignment, int class)
     default:
       return FALSE;
     }
+  // any non-good alignment
+  case CLASS_NECROMANCER:
+    switch (alignment)
+    {
+    case LAWFUL_GOOD:
+    case NEUTRAL_GOOD:
+    case CHAOTIC_GOOD:
+      return FALSE;
+    default:
+      return TRUE;
+    }
     /* any 'neutral' alignment */
   case CLASS_DRUID:
     switch (alignment)
@@ -1480,6 +1491,8 @@ int parse_class(char arg)
     return CLASS_INQUISITOR;
   case '2':
     return CLASS_WARLOCK;
+  case '3':
+    return CLASS_NECROMANCER;
     /* empty letters */
     /* empty letters */
     /* empty letters */
@@ -1548,6 +1561,8 @@ int parse_class_long(const char *arg_in)
     return CLASS_ELDRITCH_KNIGHT;
   if (is_abbrev(arg, "eldritch-knight"))
     return CLASS_ELDRITCH_KNIGHT;
+  if (is_abbrev(arg, "necromancer"))
+    return CLASS_NECROMANCER;
   if (is_abbrev(arg, "spellsword"))
     return CLASS_SPELLSWORD;
   if (is_abbrev(arg, "spell-sword"))
@@ -3492,6 +3507,11 @@ void advance_level(struct char_data *ch, int class)
     break;
   }
 
+  if (class == CLASS_NECROMANCER && CLASS_LEVEL(ch, CLASS_NECROMANCER) == 6)
+  {
+    GET_REAL_STR(ch)+= 4;
+  }
+
   // base practice / boost improvement
   if (!(GET_LEVEL(ch) % 3) && !IS_EPIC(ch))
   {
@@ -3582,6 +3602,24 @@ void advance_level(struct char_data *ch, int class)
   GET_TRAINS(ch) += trains;
   if (GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
     send_to_char(ch, "%d \tMSkill points gained.\tn\r\n", trains);
+
+  if (class == CLASS_NECROMANCER && (CLASS_LEVEL(ch, CLASS_NECROMANCER) == 5))
+  {
+    SET_FEAT(ch, FEAT_WEAPON_FOCUS, HAS_REAL_FEAT(ch, FEAT_WEAPON_FOCUS) + 1);
+    SET_COMBAT_FEAT(ch, CFEAT_WEAPON_FOCUS, WEAPON_FAMILY_POLEARM);
+    send_to_char(ch, "%d \tMGained Weapon Focus: Polearms (Scythe).\tn\r\n", trains);
+  }
+  if (class == CLASS_NECROMANCER && (CLASS_LEVEL(ch, CLASS_NECROMANCER) == 7))
+  {
+    SET_FEAT(ch, FEAT_WEAPON_SPECIALIZATION, HAS_REAL_FEAT(ch, FEAT_WEAPON_SPECIALIZATION) + 1);
+    SET_COMBAT_FEAT(ch, CFEAT_WEAPON_SPECIALIZATION, WEAPON_FAMILY_POLEARM);
+    send_to_char(ch, "%d \tMGained Weapon Specialization: Polearms (Scythe).\tn\r\n", trains);
+  }
+  if (class == CLASS_NECROMANCER && (CLASS_LEVEL(ch, CLASS_NECROMANCER) == 1))
+  {
+    KNOWS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE);
+  }
+
   /*******/
   /* end advancement block */
   /*******/
@@ -3714,6 +3752,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_INQUISITOR:
   case CLASS_WARLOCK:
   case CLASS_SUMMONER:
+  case CLASS_NECROMANCER:
     level--;
     if (level < 0)
       level = 0;
@@ -7974,6 +8013,81 @@ void load_class_list(void)
   class_prereq_ability(CLASS_ASSASSIN, ABILITY_STEALTH, 5);
   class_prereq_ability(CLASS_ASSASSIN, ABILITY_SENSE_MOTIVE, 2);
   class_prereq_feat(CLASS_ASSASSIN, FEAT_TWO_WEAPON_FIGHTING, 1);
+  /****************************************************************************/
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number  name     abrv   clr-abrv     menu-name*/
+  classo(CLASS_NECROMANCER, "necromancer", "Nec", "\tDNec\tn", "t) \tDNecromancer\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
+         10, Y, Y, L, 6, 0, 2, 4, Y, 5000, 0,
+         /*prestige spell progression*/ "choose between arcane or divine, +1 spellcasting level per necromancer level.",
+         /*primary attributes*/ "Necromancers do not have preferred ability scores. Instead it depends on their spellcasting classes.",
+        "While others use magic to do paltry things like conjure fire or fly, the "
+        "Necromancer is a master over death itself. They study the deep and forbidden "
+        "secrets that raise the dead, controlling minions toward a variety of goals. "
+        "Perhaps they seek the power that mastery over death provides. Perhaps they are "
+        "serious and unashamed scholars, who reject the small-minded boundaries held to "
+        "by others. Each enemy they fell becomes an eager and disposable ally, they "
+        "become immune to the energies of death and decay, and ultimately harness the "
+        "immortality and power of undeath for themselves. ");
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_NECROMANCER, B, B, G, B, G);
+  assign_class_abils(CLASS_NECROMANCER, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CA, CA, CA, CC, CA, CA,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CC, CA, CC, CC, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CA, CC, CC, CC, CC, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CC, CA, CC);
+  assign_class_titles(CLASS_NECROMANCER, /* class number */
+                      "",             /* <= 4  */
+                      "the Necromancer", /* <= 9  */
+                      "the Necromancer", /* <= 14 */
+                      "the Necromancer", /* <= 19 */
+                      "the Necromancer", /* <= 24 */
+                      "the Necromancer", /* <= 29 */
+                      "the Necromancer", /* <= 30 */
+                      "the Necromancer", /* <= LVL_IMMORT */
+                      "the Necromancer", /* <= LVL_STAFF */
+                      "the Necromancer", /* <= LVL_GRSTAFF */
+                      "the Necromancer"  /* default */
+  );
+  /* feat assignment */
+  /*              class num     feat                           cfeat lvl stack */
+
+  feat_assignment(CLASS_NECROMANCER, FEAT_PALE_MASTER_WEAPONS, Y, 1, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_UNDEAD_COHORT, Y, 1, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_SUMMON_UNDEAD, Y, 2, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_ULTRAVISION, Y, 3, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 4, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_BONE_ARMOR, Y, 4, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_DEATHLESS_VIGOR, Y, 5, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_UNDEAD_GRAFT, Y, 6, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_TOUCH_OF_UNDEATH, Y, 6, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_PARALYZING_TOUCH, Y, 6, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_TOUGH_AS_BONE, Y, 7, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_WEAKENING_TOUCH, Y, 7, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 8, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_BONE_ARMOR, Y, 8, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_DEGENERATIVE_TOUCH, Y, 8, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_SUMMON_GREATER_UNDEAD, Y, 9, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_DESTRUCTIVE_TOUCH, Y, 9, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_ESSENCE_OF_UNDEATH, Y, 10, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_DEATHLESS_TOUCH, Y, 10, Y);
+
+  /* pre reqs to take assassin class */
+  class_prereq_ability(CLASS_NECROMANCER, ABILITY_LORE, 8);
+  class_prereq_spellcasting(CLASS_NECROMANCER, CASTING_TYPE_ANY, PREP_TYPE_ANY, 4 /*circle*/);
+  class_prereq_align(CLASS_NECROMANCER, LAWFUL_EVIL);
+  class_prereq_align(CLASS_NECROMANCER, NEUTRAL_EVIL);
+  class_prereq_align(CLASS_NECROMANCER, CHAOTIC_EVIL);
+  class_prereq_align(CLASS_NECROMANCER, LAWFUL_NEUTRAL);
+  class_prereq_align(CLASS_NECROMANCER, TRUE_NEUTRAL);
+  class_prereq_align(CLASS_NECROMANCER, CHAOTIC_NEUTRAL);
+
   /****************************************************************************/
   /****************************************************************************/
 

@@ -1540,7 +1540,7 @@ void proc_d20_round(void)
       {
         if (AFF_FLAGGED(tch, AFF_SICKENING_AURA) && aoeOK(tch, i, EVOLUTION_SICKENING_EFFECT))
         {
-          if (mag_savingthrow(tch, i, SAVING_FORT, 0, CAST_INNATE, GET_SUMMONER_LEVEL(tch), NOSCHOOL))
+          if (mag_savingthrow(tch, i, SAVING_FORT, 0, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(tch), NOSCHOOL))
           {
             act("$N is unaffected by your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
             act("You are unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);

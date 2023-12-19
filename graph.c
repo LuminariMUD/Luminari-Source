@@ -184,8 +184,11 @@ ACMD(do_track)
   if (!*arg)
   {
     send_to_char(ch, "Whom are you trying to track?\r\n");
-    snprintf(buf, sizeof(buf), " %s Who do you want me to track?\r\n", GET_NAME(ch->master));
-    do_tell(ch, buf, 0, 0);
+    if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+    {
+      snprintf(buf, sizeof(buf), " %s Who do you want me to track?\r\n", GET_NAME(ch->master));
+      do_tell(ch, buf, 0, 0);
+    }
     return;
   }
 
@@ -193,8 +196,11 @@ ACMD(do_track)
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
   {
     send_to_char(ch, "No one is around by that name.\r\n");
-    snprintf(buf, sizeof(buf), " %s I can't find tracks for anyone named %s\r\n", GET_NAME(ch->master), GET_NAME(vict));
-    do_tell(ch, buf, 0, 0);
+    if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+    {
+      snprintf(buf, sizeof(buf), " %s I can't find tracks for anyone named %s\r\n", GET_NAME(ch->master), GET_NAME(vict));
+      do_tell(ch, buf, 0, 0);
+    }
     return;
   }
 
@@ -202,16 +208,22 @@ ACMD(do_track)
   if (AFF_FLAGGED(vict, AFF_NOTRACK) && GET_LEVEL(ch) < LVL_IMPL)
   {
     send_to_char(ch, "You sense they left no trail...\r\n");
-    snprintf(buf, sizeof(buf), " %s I sense no trail to %s.\r\n", GET_NAME(ch->master), GET_NAME(vict));
-    do_tell(ch, buf, 0, 0);
+    if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+    {
+      snprintf(buf, sizeof(buf), " %s I sense no trail to %s.\r\n", GET_NAME(ch->master), GET_NAME(vict));
+      do_tell(ch, buf, 0, 0);
+    }
     return;
   }
 
   if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "The fog makes it impossible to attempt to track anything from here.");
-    snprintf(buf, sizeof(buf), " %s The fog makes it impossible to attempt to track anything from here.\r\n", GET_NAME(ch->master));
-    do_tell(ch, buf, 0, 0);
+    if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+    {
+      snprintf(buf, sizeof(buf), " %s The fog makes it impossible to attempt to track anything from here.\r\n", GET_NAME(ch->master));
+      do_tell(ch, buf, 0, 0);
+    }
     return;
   }
 
@@ -222,8 +234,11 @@ ACMD(do_track)
   if (GET_MOVE(ch) < moves)
   {
     send_to_char(ch, "You are too exhausted!");
-    snprintf(buf, sizeof(buf), " %s I am too exhausted.\r\n", GET_NAME(ch->master));
-    do_tell(ch, buf, 0, 0);
+    if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+    {
+      snprintf(buf, sizeof(buf), " %s I am too exhausted.\r\n", GET_NAME(ch->master));
+      do_tell(ch, buf, 0, 0);
+    }
     return;
   }
 

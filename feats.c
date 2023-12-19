@@ -1198,6 +1198,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feat_prereq_weapon_proficiency(FEAT_WEAPON_SPECIALIZATION);
   feat_prereq_cfeat(FEAT_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
   feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 4);
+  feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_NECROMANCER, 7);
   feato(FEAT_GREATER_WEAPON_SPECIALIZATION, "greater weapon specialization", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "+4 damage with weapon",
         "Choose one type of weapon, such as halberd, for which you have already "
@@ -4464,6 +4465,12 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*1*/
 
+  /* necromancer */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  /*1*/
+
+
+
   /* Shadow Dancer (ShadowDancer) */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*1*/
@@ -4740,12 +4747,53 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   /* Pale/Death Master */
-  feato(FEAT_BONE_ARMOR, "bone armor", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows creation of bone armor and 10 percent arcane spell failure reduction in bone armor per rank.", "allows creation of bone armor and 10 percent arcane spell failure reduction in bone armor per rank.");
-  feato(FEAT_ESSENCE_OF_UNDEATH, "essence of undeath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "gives immunity to poison, disease, sneak attack and critical hits", "gives immunity to poison, disease, sneak attack and critical hits");
-  feato(FEAT_SUMMON_GREATER_UNDEAD, "summon greater undead", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows innate use of summon greater undead spell 3x per day", "allows innate use of summon greater undead spell 3x per day");
-  feato(FEAT_SUMMON_UNDEAD, "summon undead", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows innate use of summon undead spell 3x per day", "allows innate use of summon undead spell 3x per day");
-  feato(FEAT_TOUCH_OF_UNDEATH, "touch of undeath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for paralytic or instant death touch", "allows for paralytic or instant death touch");
-  feato(FEAT_UNDEAD_FAMILIAR, "undead familiar", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for undead familiars", "allows for undead familiars");
+  feato(FEAT_BONE_ARMOR, "bone armor", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+    "allows creation of bone armor with the bonearmor command, and 10 percent arcane spell failure reduction in per rank, if and only if all armor slots are made of bone (body, arms, legs and head).", 
+    "allows creation of bone armor with the bonearmor command,  and 10 percent arcane spell failure reduction in per rank, if and only if all armor slots are made of bone (body, arms, legs and head).");
+  feato(FEAT_ESSENCE_OF_UNDEATH, "essence of undeath", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+    "Gives immunity to poison, sleep and death affects, paralysis, sneak attack and critical hits.",
+    "Gives immunity to poison, sleep and death affects, paralysis, sneak attack and critical hits.");
+  feato(FEAT_SUMMON_GREATER_UNDEAD, "summon greater undead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+    "allows innate use of greater animation spell at-will.", 
+    "allows innate use of greater animation spell at-will.");
+  feato(FEAT_SUMMON_UNDEAD, "summon undead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+    "allows innate use of animate dead spell at-will.", 
+    "allows innate use of animate dead spell at-will.");
+  feato(FEAT_TOUCH_OF_UNDEATH, "touch of undeath", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+    "Allows the necromancer to make various touch attacks as they gain necromancer levels.", 
+    "Allows the necromancer to make various touch attacks as they gain necromancer levels.");
+  feato(FEAT_UNDEAD_COHORT, "undead cohort", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+    "Allows the necromancer to call an eidolon, similar to summoners. The eidolon starts off with the undead appearance evolution.", 
+    "Allows the necromancer to call an eidolon, similar to summoners. The eidolon starts off with the undead appearance evolution.");
+  feato(FEAT_PALE_MASTER_WEAPONS, "necromancer weapons", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+    "Necromancers are proficient with Scythes, and get weapon focus: polearms at necromancer level 5 and weapon specialization: polearms at necromancer level 7.", 
+    "Necromancers are proficient with Scythes, and get weapon focus: polearms at necromancer level 5 and weapon specialization: polearms at necromancer level 7.");
+  feato(FEAT_DEATHLESS_VIGOR, "deathless vigor", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "gain +4 to fortitude save.",
+    "The necromancer's affinity to undeath gives them a +4 bonus, to fortitude save.");
+  feato(FEAT_UNDEAD_GRAFT, "undead graft", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "One arm is replaced by an undead arm of bone, adding +4 to strength.",
+    "One of the necromancer's arms is replaced by an undead arm of bone, giving a permanent +4 bonus to strength.");
+  feato(FEAT_PARALYZING_TOUCH, "paralyzing touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Target must succeed on a fortitude save or be paralyzed for 1d4+1 rounds. Uses undeath command.",
+    "Target must succeed on a fortitude save or be paralyzed for 1d4+1 rounds. Uses undeath command.");
+  feato(FEAT_WEAKENING_TOUCH, "weakening touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Target loses 1d6 points of strength, no save. Uses undeath command.",
+    "Target loses 1d6 points of strength, no save. Uses undeath command.");
+  feato(FEAT_DEGENERATIVE_TOUCH, "degenerative touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Target suffers -2 penalty on hitroll and damroll, no save. Uses undeath command.",
+    "Target suffers -2 penalty on hitroll and damroll, no save. Uses undeath command.");
+  feato(FEAT_DESTRUCTIVE_TOUCH, "destructive touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Target loses 1d6 points of constitution, no save. Uses undeath command.",
+    "Target loses 1d6 points of constitution, no save. Uses undeath command.");
+  feato(FEAT_DEATHLESS_TOUCH, "deathless touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Target loses all hit points, or takes 600 damage, whichever is less. Fortitude save will half the damage. Uses undeath command.",
+    "Target loses all hit points, or takes 600 damage, whichever is less. Fortitude save will half the damage. Uses undeath command. "
+    "If the creature is killed by this touch, the stats on the next animate dead or greater conjuration follower will be increased.");
+  feato(FEAT_TOUGH_AS_BONE, "tough as bone", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Necromancer becomes immunse to disease and stunning.",
+    "Necromancer becomes immunse to disease and stunning.");
+    
 
   /* Assassin */
   feato(FEAT_DEATH_ATTACK, "death attack", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,

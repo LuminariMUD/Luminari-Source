@@ -143,7 +143,7 @@ bool can_study_known_spells(struct char_data *ch)
   if (LEVELUP(ch)->class == CLASS_SORCERER ||
       ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
         LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
-        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
        GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER))
     return TRUE;
 
@@ -151,7 +151,7 @@ bool can_study_known_spells(struct char_data *ch)
   if (LEVELUP(ch)->class == CLASS_BARD ||
       ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
         LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
-        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
        GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
     return TRUE;
 
@@ -159,13 +159,14 @@ bool can_study_known_spells(struct char_data *ch)
   if (LEVELUP(ch)->class == CLASS_SUMMONER ||
       ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
         LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
-        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
        GET_PREFERRED_ARCANE(ch) == CLASS_SUMMONER))
     return TRUE;
 
   /* inquisitor */
   if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
-      ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) && GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
+      ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 2)) && 
+      GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
     return TRUE;
 
   /* warlock */
@@ -201,14 +202,21 @@ int compute_bonus_caster_level(struct char_data *ch, int class)
   case CLASS_BARD:
   case CLASS_SUMMONER:
     if (class == GET_PREFERRED_ARCANE(ch))
+    {
       bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4 + CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + 
-                      ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+                      ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) + CLASS_LEVEL(ch, CLASS_NECROMANCER);
+      if (CLASS_LEVEL(ch, CLASS_NECROMANCER) && NECROMANCER_CAST_TYPE(ch) == 1)
+        bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
+    }
+    
     break;
   case CLASS_CLERIC:
   case CLASS_DRUID:
   case CLASS_RANGER:
   case CLASS_PALADIN:
   case CLASS_INQUISITOR:
+    if (CLASS_LEVEL(ch, CLASS_NECROMANCER) && NECROMANCER_CAST_TYPE(ch) == 2)
+        bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
     bonus_levels += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
     bonus_levels += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
     break;
@@ -231,6 +239,8 @@ int compute_arcane_level(struct char_data *ch)
   arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
   arcane_level += CLASS_LEVEL(ch, CLASS_SUMMONER);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW);
+  if (NECROMANCER_CAST_TYPE(ch) == 1)
+    arcane_level += CLASS_LEVEL(ch, CLASS_NECROMANCER);
   arcane_level += CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4;
   arcane_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) / 2;
@@ -251,6 +261,8 @@ int compute_divine_level(struct char_data *ch)
   divine_level += CLASS_LEVEL(ch, CLASS_DRUID);
   divine_level += CLASS_LEVEL(ch, CLASS_INQUISITOR);
   divine_level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
+  if (NECROMANCER_CAST_TYPE(ch) == 2)
+    divine_level += CLASS_LEVEL(ch, CLASS_NECROMANCER);
   divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_PALADIN) - 3);
   divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_BLACKGUARD) - 3);
   divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_RANGER) - 3);
@@ -936,12 +948,20 @@ int is_immune_to_crits(struct char_data *attacker, struct char_data *target)
   /* undead immune to crits, not vital organs */
   if (IS_UNDEAD(target))
     return TRUE;
+  
+  if (HAS_FEAT(target, FEAT_ESSENCE_OF_UNDEATH))
+    return true;
 
   /* preserve organs as 25% of stopping crits */
   if (!IS_NPC(target) && (KNOWS_DISCOVERY(target, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1))
     return TRUE; /* avoided this crit! */
 
   if (affected_by_spell(target, SPELL_SHIELD_OF_FORTIFICATION) && dice(1, 4) == 1)
+    return TRUE; /* avoided this crit! */
+
+  if (affected_by_spell(target, PSIONIC_BODY_OF_IRON))
+    return TRUE; /* avoided this crit! */
+  if (affected_by_spell(target, PSIONIC_SHADOW_BODY))
     return TRUE; /* avoided this crit! */
 
   /* not immune to crits! */
@@ -1034,6 +1054,9 @@ bool can_add_follower_by_flag(struct char_data *ch, int flag)
 {
   struct char_data *pet;
   struct follow_type *k, *next;
+  int undead = 0;
+  int undead_allowed = CLASS_LEVEL(ch, CLASS_NECROMANCER) ? 2 : 1;
+
 
   /* loop through followers */
   for (k = ch->followers; k; k = next)
@@ -1045,7 +1068,9 @@ bool can_add_follower_by_flag(struct char_data *ch, int flag)
     {
       if (MOB_FLAGGED(pet, flag))
       {
-        return false;
+        undead++;
+        if (undead <= undead_allowed)
+          return false;
       }
     }
   }
@@ -4592,6 +4617,14 @@ int get_daily_uses(struct char_data *ch, int featnum)
     case FEAT_QUICK_MIND:
       daily_uses = 2;
       break;
+    case FEAT_TOUCH_OF_UNDEATH:
+      if (CLASS_LEVEL(ch, CLASS_NECROMANCER) >= 10)
+        daily_uses = 3;
+      else if (CLASS_LEVEL(ch, CLASS_NECROMANCER) >= 8)
+        daily_uses = 2;
+      else
+        daily_uses = 1;
+      break;
     case FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT:
       daily_uses = 1;
       break;
@@ -5084,10 +5117,13 @@ bool paralysis_immunity(struct char_data *ch)
     return TRUE;
   if (HAS_FEAT(ch, FEAT_ONE_OF_US))
     return TRUE;
+  if (HAS_FEAT(ch, FEAT_ESSENCE_OF_UNDEATH))
+    return TRUE;
   if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
     return TRUE;
   if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE) && get_evolution_appearance_save_bonus(ch) == 100)
     return TRUE;
+  
 
   return FALSE;
 }
@@ -5116,6 +5152,15 @@ sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyt
     {
       send_to_char(ch, "%s appears to be immune to death magic!\r\n", GET_NAME(victim));
       send_to_char(victim, "You are protected from death magic by your death ward!\r\n");
+    }
+    return TRUE;
+  }
+  if (HAS_REAL_FEAT(victim, FEAT_ESSENCE_OF_UNDEATH))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be immune to death magic!\r\n", GET_NAME(victim));
+      send_to_char(victim, "You are protected from death magic by your undead essence!\r\n");
     }
     return TRUE;
   }
@@ -6310,6 +6355,8 @@ bool can_disease(struct char_data *ch)
     return false;
   if (affected_by_spell(ch, PSIONIC_SHADOW_BODY))
     return false;
+  if (HAS_REAL_FEAT(ch, FEAT_TOUGH_AS_BONE))
+      return false;
   if (HAS_FEAT(ch, FEAT_DIVINE_HEALTH))
     return false;
   if (HAS_FEAT(ch, FEAT_DIAMOND_BODY))
@@ -6462,6 +6509,8 @@ bool can_poison(struct char_data *ch)
     return false;
   if (HAS_FEAT(ch, FEAT_DIVINE_HEALTH))
     return false;
+  if (HAS_REAL_FEAT(ch, FEAT_ESSENCE_OF_UNDEATH))
+    return false;
   if (HAS_FEAT(ch, FEAT_DIAMOND_BODY))
     return false;
   if (IS_CONSTRUCT(ch))
@@ -6480,6 +6529,8 @@ bool can_stun(struct char_data *ch)
   if (affected_by_spell(ch, PSIONIC_OAK_BODY))
     return false;
   if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+  if (HAS_REAL_FEAT(ch, FEAT_TOUGH_AS_BONE))
     return false;
   if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE) && get_evolution_appearance_save_bonus(ch) == 100)
     return false;
@@ -7137,9 +7188,9 @@ int get_evolution_appearance_save_bonus(struct char_data *ch)
     return 0;
   
   // at level 12, they're immune
-  if (GET_SUMMONER_LEVEL(ch) >= 12)
+  if (GET_CALL_EIDOLON_LEVEL(ch) >= 12)
     return 100;
-  if (GET_SUMMONER_LEVEL(ch) >= 7)
+  if (GET_CALL_EIDOLON_LEVEL(ch) >= 7)
     return +4;
 
   return +2;

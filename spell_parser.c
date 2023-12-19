@@ -4822,6 +4822,17 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   spello(POISON_TYPE_COCKATRICE, "cockatrice poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
          "The cockatrice poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
 
+  spello(ABILITY_PARALYZING_TOUCH, "paralyzing touch", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "Your paralysis subsides.", 0, 1, NECROMANCY, FALSE);
+  spello(ABILITY_WEAKENING_TOUCH, "weakening touch", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "You feel the drain on your strength subside.", 0, 1, NECROMANCY, FALSE);
+  spello(ABILITY_DEGENERATIVE_TOUCH, "degenerative touch", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "You feel the drain on your abilities subside.", 0, 1, NECROMANCY, FALSE);
+  spello(ABILITY_DESTRUCTIVE_TOUCH, "destructive touch", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "You feel the drain on your hardiness subside.", 0, 1, NECROMANCY, FALSE);
+  spello(ABILITY_DEATHLESS_TOUCH, "deathless touch", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE, "Your withering pain subsides.", 0, 1, NECROMANCY, FALSE);
+
   /* Declaration of skills - this assigns categories and also will set it up
    * so that immortals can use these skills by default.  The min level to use
    * the skill for other classes is set up in class.c
@@ -5114,6 +5125,21 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
     return true;
   if (isSummonerMagic(ch, spellnum))
     return true;
+  if (isPaleMasterMagic(ch, spellnum))
+    return true;
+
+  return false;
+}
+
+bool isPaleMasterMagic(struct char_data *ch, int spellnum)
+{
+  if (!ch) return false;
+
+  switch (spellnum)
+  {
+    case SPELL_ANIMATE_DEAD: if (HAS_REAL_FEAT(ch, FEAT_SUMMON_UNDEAD)) return true; break;
+    case SPELL_GREATER_ANIMATION: if (HAS_REAL_FEAT(ch, FEAT_SUMMON_GREATER_UNDEAD)) return true; break;
+  }
 
   return false;
 }
@@ -5125,18 +5151,18 @@ bool isSummonerMagic(struct char_data *ch, int spellnum)
 
   switch (spellnum)
   {
-    case SPELL_SUMMON_CREATURE_1: if (GET_SUMMONER_LEVEL(ch) >= 1) return true; break;
-    case SPELL_SUMMON_CREATURE_2: if (GET_SUMMONER_LEVEL(ch) >= 3) return true; break;
-    case SPELL_SUMMON_CREATURE_3: if (GET_SUMMONER_LEVEL(ch) >= 5) return true; break;
-    case SPELL_SUMMON_CREATURE_4: if (GET_SUMMONER_LEVEL(ch) >= 7) return true; break;
-    case SPELL_SUMMON_CREATURE_5: if (GET_SUMMONER_LEVEL(ch) >= 9) return true; break;
-    case SPELL_SUMMON_CREATURE_6: if (GET_SUMMONER_LEVEL(ch) >= 11) return true; break;
-    case SPELL_SUMMON_CREATURE_7: if (GET_SUMMONER_LEVEL(ch) >= 13) return true; break;
-    case SPELL_SUMMON_CREATURE_8: if (GET_SUMMONER_LEVEL(ch) >= 15) return true; break;
-    case SPELL_SUMMON_CREATURE_9: if (GET_SUMMONER_LEVEL(ch) >= 17) return true; break;
+    case SPELL_SUMMON_CREATURE_1: if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 1) return true; break;
+    case SPELL_SUMMON_CREATURE_2: if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 3) return true; break;
+    case SPELL_SUMMON_CREATURE_3: if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 5) return true; break;
+    case SPELL_SUMMON_CREATURE_4: if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 7) return true; break;
+    case SPELL_SUMMON_CREATURE_5: if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 9) return true; break;
+    case SPELL_SUMMON_CREATURE_6: if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 11) return true; break;
+    case SPELL_SUMMON_CREATURE_7: if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 13) return true; break;
+    case SPELL_SUMMON_CREATURE_8: if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 15) return true; break;
+    case SPELL_SUMMON_CREATURE_9: if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 17) return true; break;
 // No gate spell in FR because there aren't multiple planes of existence yet
 #if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
-    case SPELL_GATE: if (GET_SUMMONER_LEVEL(ch) >= 19) return true; break;
+    case SPELL_GATE: if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 19) return true; break;
 #endif
   }
 

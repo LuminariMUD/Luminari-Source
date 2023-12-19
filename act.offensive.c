@@ -8655,6 +8655,159 @@ ACMD(do_touch_of_corruption)
   USE_STANDARD_ACTION(ch);
 }
 
+
+// Necromancer's ability to cause status affects to enemies
+ACMD(do_touch_of_undeath)
+{
+  int uses_remaining = 0;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+  int spellnum;
+
+  if (!HAS_REAL_FEAT(ch, FEAT_TOUCH_OF_UNDEATH))
+  {
+    send_to_char(ch, "You do not have that ability!\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_TOUCH_OF_UNDEATH)) == 0)
+  {
+    send_to_char(ch, "You must recover the profane energy required to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    {
+      vict = FIGHTING(ch);
+    }
+    else
+    {
+      send_to_char(ch, "Target who?\r\n");
+      return;
+    }
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "You cannot use this ability on yourself\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "You must specify the type of undeath touch you want to use:\r\n"
+                     "paralyze | weaken | degenerate | destroy | death\r\n");
+    return;
+  }
+  else
+  {
+    if (is_abbrev(arg2, "paralyze"))
+    {
+      if (!HAS_REAL_FEAT(ch, FEAT_PARALYZING_TOUCH))
+      {
+        send_to_char(ch, "You don't have the paralyzing touch ability.\r\n");
+        return;
+      }
+      spellnum = ABILITY_PARALYZING_TOUCH;
+    }
+    else if (is_abbrev(arg2, "weaken"))
+    {
+      if (!HAS_REAL_FEAT(ch, FEAT_WEAKENING_TOUCH))
+      {
+        send_to_char(ch, "You don't have the weakening touch ability.\r\n");
+        return;
+      }
+      spellnum = ABILITY_WEAKENING_TOUCH;
+    }
+    else if (is_abbrev(arg2, "degenerate"))
+    {
+      if (!HAS_REAL_FEAT(ch, FEAT_DEGENERATIVE_TOUCH))
+      {
+        send_to_char(ch, "You don't have the degenerative touch ability.\r\n");
+        return;
+      }
+      spellnum = ABILITY_DEGENERATIVE_TOUCH;
+    }
+    else if (is_abbrev(arg2, "destroy"))
+    {
+      if (!HAS_REAL_FEAT(ch, FEAT_DESTRUCTIVE_TOUCH))
+      {
+        send_to_char(ch, "You don't have the destructive touch ability.\r\n");
+        return;
+      }
+      spellnum = ABILITY_DESTRUCTIVE_TOUCH;
+    }
+    else if (is_abbrev(arg2, "death"))
+    {
+      if (!HAS_REAL_FEAT(ch, FEAT_DEATHLESS_TOUCH))
+      {
+        send_to_char(ch, "You don't have the deathless touch ability.\r\n");
+        return;
+      }
+      spellnum = ABILITY_DEATHLESS_TOUCH;
+    }
+    else
+    { 
+      send_to_char(ch, "You must specify a valid type of undeath touch that you want to use:\r\n"
+                      "paralyze | weaken | degenerate | destroy | death\r\n");
+      return; 
+    }
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+
+  if (IS_UNDEAD(vict))
+  {
+    act("Your touch of undeath has no effect on $N", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n's touch of undeath has no effect on You", FALSE, ch, 0, vict, TO_VICT);
+    act("$n's touch of undeath has no effect on $N", FALSE, ch, 0, vict, TO_NOTVICT);
+    return;
+  }
+
+  if (!pvp_ok(ch, vict, true))
+    return;
+
+  if (!attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, TRUE, 0))
+  {
+    act("You reach out to touch $N with your undead arm, but $E avoids you.", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n reaches out to touch you with $s undead arm, but you avoid $m.", FALSE, ch, 0, vict, TO_VICT);
+    act("$n reaches out to touch $N with $s undead arm, but $E avoids it.", FALSE, ch, 0, vict, TO_NOTVICT);
+    return;
+  }
+
+  act("You reach out and touch $N with your undead arm, and $E suffers visibly.", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n reaches out and touches you with $s undead arm, causing $M to suffer visibly.", FALSE, ch, 0, vict, TO_VICT);
+  act("$n reaches out and touches $N with $s undead arm, causing $M to syffer visibly.", FALSE, ch, 0, vict, TO_NOTVICT);
+  call_magic(ch, vict, 0, spellnum, 0, compute_arcane_level(ch), CASTING_TYPE_ARCANE);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_TOUCH_OF_CORRUPTION);
+
+  USE_STANDARD_ACTION(ch);
+}
+
 void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char *cruelty)
 {
   if (!ch || !vict)
@@ -9858,7 +10011,7 @@ ACMD(do_evoweb)
   act("$n raises $s spinneret at You, spitting forth a stream of webbing.", TRUE, ch, 0, vict, TO_VICT);
   act("$n raises $s spinneret at $N, spitting forth a stream of webbing.", TRUE, ch, 0, vict, TO_NOTVICT);
 
-  call_magic(ch, vict, 0, SPELL_WEB, 0, GET_SUMMONER_LEVEL(ch), CAST_INNATE);
+  call_magic(ch, vict, 0, SPELL_WEB, 0, GET_CALL_EIDOLON_LEVEL(ch), CAST_INNATE);
 
   USE_SWIFT_ACTION(ch);
 

@@ -259,6 +259,7 @@ ACMD_DECL(do_fiendishboon);
 ACMD_DECL(do_mercies);
 ACMD_DECL(do_cruelties);
 ACMD_DECL(do_touch_of_corruption);
+ACMD_DECL(do_touch_of_undeath);
 ACMD_DECL(do_lichtouch);
 ACMD_DECL(do_lichfear);
 ACMD_DECL(do_maxhp);

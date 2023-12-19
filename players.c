@@ -583,6 +583,8 @@ int load_char(const char *name, struct char_data *ch)
     SPEAKING(ch) = LANG_COMMON;
     GET_REGION(ch) = REGION_NONE;
 
+    NECROMANCER_CAST_TYPE(ch) = 0;
+
     GET_PC_DESCRIPTOR_1(ch) = 0;
     GET_PC_ADJECTIVE_1(ch) = 0;
     GET_PC_DESCRIPTOR_2(ch) = 0;
@@ -1018,6 +1020,8 @@ int load_char(const char *name, struct char_data *ch)
           NEW_ARCANA_SLOT(ch, 2) = atoi(line);
         else if (!strcmp(tag, "NAr3"))
           NEW_ARCANA_SLOT(ch, 3) = atoi(line);
+        else if (!strcmp(tag, "NecC"))
+          NECROMANCER_CAST_TYPE(ch) = atoi(line);
         break;
 
       case 'O':
@@ -1507,6 +1511,8 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "NAr2: %d\n", NEW_ARCANA_SLOT(ch, 2));
   if (NEW_ARCANA_SLOT(ch, 3))
     fprintf(fl, "NAr3: %d\n", NEW_ARCANA_SLOT(ch, 3));
+  if (NECROMANCER_CAST_TYPE(ch))
+    fprintf(fl, "NecC: %d\n", NECROMANCER_CAST_TYPE(ch));
   fprintf(fl, "Id  : %ld\n", GET_IDNUM(ch));
   fprintf(fl, "Brth: %ld\n", (long)ch->player.time.birth);
   fprintf(fl, "Plyd: %d\n", ch->player.time.played);
@@ -2289,6 +2295,8 @@ void save_char(struct char_data *ch, int mode)
     if ((pMudEvent = char_has_mud_event(ch, ePURIFY)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eC_ANIMAL)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eC_EIDOLON)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eC_FAMILIAR)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));

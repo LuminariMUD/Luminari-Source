@@ -1394,6 +1394,102 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
   return 1;
 }
 
+
+/* resize an object, also will change weapon damage */
+int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
+{
+  int num_objs = 0, cost;
+  struct obj_data *obj = NULL;
+  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
+  char buf[MAX_STRING_LENGTH];
+
+  if (!HAS_REAL_FEAT(ch, FEAT_BONE_ARMOR))
+  {
+    send_to_char(ch, "You must have the bone armor feat to convert armor into bone.\r\n");
+    return 1;
+  }
+
+  /* Cycle through contents */
+  /* resize requires just one item be inside the kit */
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
+  {
+    num_objs++;
+    break;
+  }
+
+  if (num_objs > 1)
+  {
+    send_to_char(ch, "Only one item should be inside the kit.\r\n");
+    return 1;
+  }
+
+    if (GET_OBJ_TYPE(obj) != ITEM_ARMOR)
+  {
+    send_to_char(ch, "You can only convert armor and shields to bone.\r\n");
+    return 1;
+  }
+ 
+
+  if (GET_OBJ_MATERIAL(obj) == MATERIAL_BONE)
+  {
+    send_to_char(ch, "The object is already made of bone.\r\n");
+    return 1;
+  }
+
+  if (!strstr(argument, material_name[MATERIAL_BONE]))
+  {
+    send_to_char(ch, "You must include the material name, '%s', in the object description somewhere.\r\n", material_name[MATERIAL_BONE]);
+    return 1;
+  }
+
+  /* "cost" of resizing */
+  cost = GET_OBJ_COST(obj) / 3;
+
+  if (GET_GOLD(ch) < cost)
+  {
+    send_to_char(ch, "You need %d coins on hand for supplies to resize this item.\r\n", cost);
+    return 1;
+  }
+
+  if (cost > 0)
+  {
+    send_to_char(ch, "It cost you %d coins to convert this item into bone.\r\n", cost);
+    GET_GOLD(ch) -= cost;
+  }
+
+  /* you need to parse the @ sign */
+  parse_at(argument);
+
+  /* success!! */
+  obj->name = strdup(argument);
+  strip_colors(obj->name);
+  obj->short_description = strdup(argument);
+  snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
+  obj->description = strdup(buf);
+
+  send_to_char(ch, "You begin to convert %s into bone.\r\n", obj->short_description);
+  act("$n begins convetring $p to bone.", FALSE, ch, obj, 0, TO_ROOM);
+  obj_from_obj(obj);
+
+  GET_OBJ_MATERIAL(obj) = MATERIAL_BONE;
+  if (GET_OBJ_WEIGHT(obj) <= 0)
+    GET_OBJ_WEIGHT(obj) = 1;
+
+  GET_CRAFTING_OBJ(ch) = obj;
+  GET_CRAFTING_TYPE(ch) = SCMD_BONEARMOR;
+  if (cost == 0)
+    GET_CRAFTING_TICKS(ch) = 1;
+  else
+    GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+
+  obj_to_char(obj, ch);
+  save_char(ch, 0);
+  Crash_crashsave(ch);
+  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
+
+  return 1;
+}
+
 /* convert magic objects to essence */
 int disenchant(struct obj_data *kit, struct char_data *ch)
 {
@@ -1957,7 +2053,7 @@ SPECIAL(crafting_kit)
 {
   if (!CMD_IS("resize") && !CMD_IS("create") && !CMD_IS("checkcraft") &&
       !CMD_IS("restring") && !CMD_IS("augment") && !CMD_IS("convert") &&
-      !CMD_IS("autocraft") && !CMD_IS("disenchant"))
+      !CMD_IS("autocraft") && !CMD_IS("disenchant") && !CMD_IS("bonearmor"))
     return 0;
 
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
@@ -1981,9 +2077,8 @@ SPECIAL(crafting_kit)
   if (!*argument && !CMD_IS("checkcraft") && !CMD_IS("augment") &&
       !CMD_IS("autocraft") && !CMD_IS("convert") && !CMD_IS("disenchant"))
   {
-    if (CMD_IS("create") || CMD_IS("restring"))
-      send_to_char(ch, "Please provide an item description containing the "
-                       "material and item name in the string.\r\n");
+    if (CMD_IS("create") || CMD_IS("restring") || CMD_IS("bonearmor"))
+      send_to_char(ch, "Please provide an item description containing the item name in the string.\r\n");
     else if (CMD_IS("resize"))
       send_to_char(ch, "What would you like the new size to be?"
                        " (fine|diminutive|tiny|small|"
@@ -2017,6 +2112,8 @@ SPECIAL(crafting_kit)
                        "crafting kit.\r\n");
     else if (CMD_IS("resize"))
       send_to_char(ch, "You must place the item in the kit to resize it.\r\n");
+    else if (CMD_IS("bonearmor"))
+      send_to_char(ch, "You must place the item in the kit to convert it to bone armor.\r\n");
     else if (CMD_IS("checkcraft"))
       send_to_char(ch, "You must place an item to use as the mold pattern, a "
                        "crystal and your crafting resource materials in the kit and "
@@ -2040,6 +2137,8 @@ SPECIAL(crafting_kit)
 
   if (CMD_IS("resize"))
     return resize(argument, kit, ch);
+  if (CMD_IS("bonearmor"))
+    return bonearmor(argument, kit, ch);
   else if (CMD_IS("restring"))
     return restring(argument, kit, ch);
   else if (CMD_IS("augment"))
@@ -2068,7 +2167,9 @@ SPECIAL(crafting_quest)
   char desc[MAX_INPUT_LENGTH] = {'\0'};
   char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int roll = 0;
+#if defined(CAMPAIGN_DL)
   int avail = 0;
+#endif
 
   if (!CMD_IS("supplyorder"))
   {
@@ -2093,7 +2194,7 @@ SPECIAL(crafting_quest)
                        "handed in the one you've completed (supplyorder complete).\r\n");
       return 1;
     }
-
+#if defined(CAMPAIGN_DL)
     avail = get_mysql_supply_orders_available(ch);
 
     if (avail <= 0)
@@ -2101,6 +2202,7 @@ SPECIAL(crafting_quest)
       send_to_char(ch, "You must wait until tomorrow to perform more supply orders.\r\n");
       return 1;
     }
+#endif
 
     /* initialize values */
     reset_acraft(ch);
@@ -2360,6 +2462,18 @@ EVENTFUNC(event_crafting)
       snprintf(buf, sizeof(buf), "You resize $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n resizes $p.");
+      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+
+      /* resize system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESIZE);
+
+      break;
+
+    case SCMD_BONEARMOR:
+      // no skill association
+      snprintf(buf, sizeof(buf), "You finish converting $p into bone.");
+      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+      snprintf(buf, sizeof(buf), "$n finishes converting $p into bone.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* resize system check point -Zusuk */

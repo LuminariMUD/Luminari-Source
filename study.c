@@ -496,6 +496,8 @@ void finalize_study(struct descriptor_data *d)
     }
   }
 
+  NECROMANCER_CAST_TYPE(ch) = LEVELUP(ch)->necromancer_bonus_levels;
+
   // Summoner stuff
   GET_EIDOLON_BASE_FORM(ch) = LEVELUP(ch)->eidolon_base_form;
   for (i = 1; i < NUM_EVOLUTIONS; i++)
@@ -1720,6 +1722,23 @@ static void set_preferred_caster(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_SET_P_CASTER;
 }
 
+bool has_necromancer_cast_type_unchosen(struct char_data *ch)
+{
+  if (!CLASS_LEVEL(ch, CLASS_NECROMANCER))
+    return FALSE;
+  return (LEVELUP(ch)->necromancer_bonus_levels == 0);
+}
+
+char *levelup_show_necromancer_cast_type(struct char_data *ch)
+{
+  switch (LEVELUP(ch)->necromancer_bonus_levels)
+  {
+    case 1: return "Arcane";
+    case 2: return "Divine";
+  }
+  return "Not Chosen";
+}
+
 static void set_sorcerer_bloodline(struct descriptor_data *d)
 {
   get_char_colors(d->character);
@@ -1850,6 +1869,32 @@ static void select_paladin_mercies(struct descriptor_data *d)
                   grn, nrm, mercies_known);
 
   OLC_MODE(d) = STUDY_SELECT_PAL_MERCY;
+}
+
+static void choose_necromancer_cast_type(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+                  "\r\n-- %sSet Preferred Necromancer Casting Type%s\r\n"
+                  "\r\n"
+                  "%s 1%s) Arcane:%s\r\n"
+                  "%s 2%s) Divine:%s\r\n"
+                  "\r\n"
+                  "%s-1%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
+                  mgn, nrm,
+                  /* empty line */
+                  grn, nrm, nrm,
+                  grn, nrm, nrm,
+                  /* empty line */
+                  grn, nrm
+                  /* empty line */
+  );
+
+  OLC_MODE(d) = STUDY_SET_NECROMANCER_CAST_TYPE;
 }
 
 static void choose_languages(struct descriptor_data *d)
@@ -2455,7 +2500,8 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   "%s E%s) Blackguard Cruelties%s\r\n"
                   "%s F%s) Summoner Eidolons%s\r\n"
                   "%s G%s) Racial Abilities Selection%s\r\n"
-                  "%s H%s) Languages%s\r\n"
+                  "%s H%s) Necromancer Casting Type%s\r\n"
+                  "%s I%s) Languages%s\r\n"
                   "\r\n"
                   "%s R%s) Reset Character%s\r\n"
                   "%s Q%s) Quit\r\n"
@@ -2481,7 +2527,8 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   MENU_OPT(has_blackguard_cruelties_unchosen(ch)), has_blackguard_cruelties_unchosen(ch) ? "" : "*",   // E
                   MENU_OPT(has_eidolon_choices_unchosen(ch)), has_eidolon_choices_unchosen(ch) ? "" : "*",             // F
                   MENU_OPT(has_racial_abils_unchosen(ch)), has_racial_abils_unchosen(ch) ? "" : "*",                   // G
-                  MENU_OPT(has_unchosen_languages(ch)), has_unchosen_languages(ch) ? "" : "*",                         // H
+                  MENU_OPT(has_necromancer_cast_type_unchosen(ch)), has_necromancer_cast_type_unchosen(ch) ? "" : "*",  // H
+                  MENU_OPT(has_unchosen_languages(ch)), has_unchosen_languages(ch) ? "" : "*",                         // I
                   MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         // R
                   grn, nrm,
                   (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) ? "(You are using premade build, options are limited!)" : "");
@@ -2718,23 +2765,24 @@ void study_parse(struct descriptor_data *d, char *arg)
         if (LEVELUP(ch)->class == CLASS_SORCERER ||
             ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
               LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
-              LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+              LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
              GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER))
           sorc_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_BARD ||
                  ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
                    LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
-                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
                   GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
           bard_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_SUMMONER ||
                  ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
                    LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
-                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
                   GET_PREFERRED_ARCANE(ch) == CLASS_SUMMONER))
           summoner_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
-                 ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) && GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
+                 ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 2)) && 
+                 GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
           inquisitor_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_WARLOCK)
           warlock_known_spells_disp_menu(d);
@@ -2913,6 +2961,20 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     case 'h':
     case 'H':
+      if (has_necromancer_cast_type_unchosen(ch))
+      {
+        choose_necromancer_cast_type(d);
+      }
+      else
+      {
+        write_to_output(d, "That is an invalid choice!\r\n");
+        generic_main_disp_menu(d);
+      }
+      break;
+
+
+    case 'i':
+    case 'I':
       if (has_unchosen_languages(ch))
       {
         choose_languages(d);
@@ -3209,6 +3271,23 @@ void study_parse(struct descriptor_data *d, char *arg)
                     nrm, paladin_mercies[number], nrm, paladin_mercy_descriptions[number]);
 
     OLC_MODE(d) = STUDY_CONFIRM_ADD_MERCY;
+    break;
+
+  case STUDY_SET_NECROMANCER_CAST_TYPE:
+    number = atoi(arg);
+    if (number == -1)
+    {
+      display_main_menu(d);
+      break;
+    }
+    if (number <=0 || number > 2)
+    {
+      write_to_output(d, "Please select either 1 for arcane spell progression or 2 for divine spell progression.\r\n");
+      break;
+    }
+    LEVELUP(ch)->necromancer_bonus_levels = number;
+    write_to_output(d, "Your necromancer levels will now count towards your %s spell progression.\r\n", (number == 1) ? "arcane" : "divine");
+    display_main_menu(d);
     break;
 
   case STUDY_CHOOSE_LANGUAGES:
@@ -5443,7 +5522,7 @@ void study_eidolon_main_menu_select(struct descriptor_data *d)
 
 int study_num_free_evolution_points(struct char_data *ch)
 {
-  int num_points = evolution_points[GET_SUMMONER_LEVEL(ch)];
+  int num_points = evolution_points[CLASS_LEVEL(ch, CLASS_SUMMONER)] + CLASS_LEVEL(ch, CLASS_NECROMANCER);
   int num_spent = 0, form_evo = 0;
   int i = 0;
 

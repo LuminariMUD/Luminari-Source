@@ -550,6 +550,7 @@ void compute_char_cap(struct char_data *ch, int mode)
       {
       case CLASS_PSIONICIST:
       case CLASS_WIZARD:
+      case CLASS_NECROMANCER:
         int_cap += class_level / 4 + 1;
         dex_cap += class_level / 4 + 1;
         con_cap += class_level / 4 + 1;

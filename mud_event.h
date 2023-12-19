@@ -183,6 +183,7 @@ typedef enum
   eAQUEOUSORB,                      // aqueous orb spell
   eVAMPIREBLOODDRAIN,               // vampire blood drain ability
   eEVOBREATH,                       // eidolon evolution breath weapon
+  eC_EIDOLON,                       //  call eidolon cooldown
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

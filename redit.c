@@ -803,7 +803,13 @@ void redit_parse(struct descriptor_data *d, char *arg)
 
   case REDIT_FLAGS:
     number = atoi(arg);
-    if (number < 0 || number > NUM_ROOM_FLAGS)
+    if (number == -1)
+    {
+      OLC_ROOM(d)->room_flags[0] = OLC_ROOM(d)->room_flags[1] = OLC_ROOM(d)->room_flags[2] = OLC_ROOM(d)->room_flags[3] = 0;
+      redit_disp_flag_menu(d);
+      write_to_output(d, "You've removed all room flags from this room.\r\n");
+    }
+    else if (number < 0 || number > NUM_ROOM_FLAGS)
     {
       write_to_output(d, "That is not a valid choice!\r\n");
       redit_disp_flag_menu(d);

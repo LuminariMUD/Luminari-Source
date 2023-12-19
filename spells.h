@@ -654,6 +654,11 @@
 #define EVOLUTION_FRIGHTFUL_EFFECT 1257
 #define EIDOLON_MERGE_FORMS_EFFECT 1258
 #define ABILITY_BAAZ_DRACONIAN_DEATH_THROES 1259
+#define ABILITY_PARALYZING_TOUCH 1260
+#define ABILITY_WEAKENING_TOUCH 1261
+#define ABILITY_DEGENERATIVE_TOUCH 1262
+#define ABILITY_DESTRUCTIVE_TOUCH 1263
+#define ABILITY_DEATHLESS_TOUCH 1264
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -1722,6 +1727,7 @@ sbyte isPrimordialMagic(struct char_data *ch, int spellnum);
 sbyte isFaeMagic(struct char_data *ch, int spellnum);
 sbyte isEidolonMagic(struct char_data *ch, int spellnum);
 bool isSummonerMagic(struct char_data *ch, int spellnum);
+bool isPaleMasterMagic(struct char_data *ch, int spellnum);
 
 /**/
 

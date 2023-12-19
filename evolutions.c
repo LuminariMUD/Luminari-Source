@@ -237,7 +237,9 @@ void assign_evolutions(void)
                "The eidolon gains 20 percent concealment when not in bright light.  If the eidolon also has the "
                "shadow form evolution, this benefit increases to 50 percent.");
     evolutiono(EVOLUTION_SHADOW_FORM, "shadow form", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidilon can become incorporeal at will. This effect can be toggled on and off with the shadowform command. Your eidolon will need to do this themselves. Eg. order eidolon shadowform.");
+               "The eidilon can become incorporeal at will. This effect can be toggled on and off with the shadowform command. "
+               "Your eidolon will need to do this themselves. Eg. order eidolon shadowform. "
+               "This effect will only work indoors or outside at night, dusk or dawn.");
     evolutiono(EVOLUTION_SICKENING, "sickening aura", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
                "The eidolon emits a foul odour that affects everyone except the summoner and their party. "
                "Any creature in the same room as the eidolon must save vs. fortitude each round or be "
@@ -331,7 +333,7 @@ void assign_evolutions(void)
 bool qualifies_for_evolution(struct char_data *ch, int evolution)
 {
   int i = 0;
-  int level = IS_NPC(ch) ? GET_LEVEL(ch) : GET_SUMMONER_LEVEL(ch);
+  int level = IS_NPC(ch) ? GET_LEVEL(ch) : GET_CALL_EIDOLON_LEVEL(ch);
 
   // if it's not available to PCs and 'ch' is a pc, they can't take it
   if (!IS_NPC(ch) && evolution_list[evolution].pc_avail != true)
@@ -394,7 +396,7 @@ bool study_evolution_already_taken_or_maxxed(struct char_data *ch, int evolution
   if (!LEVELUP(ch))
     return true;
 
-  int level = GET_SUMMONER_LEVEL(ch);
+  int level = GET_CALL_EIDOLON_LEVEL(ch);
 
   // if the evolution can stack and the current ranks are greater than the stack level interval, they can't take it
   if (evolution_list[evolution].stacks && LEVELUP(ch)->eidolon_evolutions[evolution] > (level / evolution_list[evolution].stack_level))
@@ -410,7 +412,7 @@ bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_
   if (IS_NPC(ch)) return false;
 
   int i = 0;
-  int level = GET_SUMMONER_LEVEL(ch);
+  int level = GET_CALL_EIDOLON_LEVEL(ch);
 
   if (!LEVELUP(ch))
     return false;
@@ -630,7 +632,7 @@ void apply_evolution_poison(struct char_data *ch, struct char_data *vict)
   if (!can_poison(vict))
     return;
 
-  if (check_poison_resist(ch, vict, CAST_INNATE, GET_SUMMONER_LEVEL(ch)))
+  if (check_poison_resist(ch, vict, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(ch)))
     return;
 
   new_affect(&af);
@@ -680,7 +682,7 @@ void process_evolution_breath_damage(struct char_data *ch)
   if (!ch)
     return;
 
-  int level = GET_SUMMONER_LEVEL(ch);
+  int level = GET_CALL_EIDOLON_LEVEL(ch);
 
   if (HAS_EVOLUTION(ch, EVOLUTION_FIRE_BREATH))
     AoEDamageRoom(ch, dice(level, 6), SPELL_FIRE_BREATHE, DAM_FIRE);
@@ -1377,7 +1379,7 @@ ACMD(do_eidolon)
     act("$n draws Your form into $s own.", FALSE, ch, 0, eidolon, TO_VICT);
     act("$n draws $N's form into $s own.", FALSE, ch, 0, eidolon, TO_NOTVICT);
 
-    MERGE_FORMS_TIMER(ch) = GET_SUMMONER_LEVEL(ch);
+    MERGE_FORMS_TIMER(ch) = GET_CALL_EIDOLON_LEVEL(ch);
 
     extract_char(eidolon);
     return;

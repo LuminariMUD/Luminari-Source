@@ -1770,6 +1770,13 @@ void perform_call(struct char_data *ch, int call_type, int level)
         return;
       }
 
+      /* is the ability on cooldown? */
+      if (char_has_mud_event(ch, eC_EIDOLON))
+      {
+        send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+        return;
+      }
+
       mob_num = MOB_NUM_EIDOLON;
       break;
   }
@@ -1887,6 +1894,10 @@ void perform_call(struct char_data *ch, int call_type, int level)
   {
     attach_mud_event(new_mud_event(eSUMMONSHADOW, ch, NULL), 4 * SECS_PER_MUD_DAY);
   }
+  else if (call_type == MOB_EIDOLON)
+  {
+    attach_mud_event(new_mud_event(eC_EIDOLON, ch, NULL), 4 * SECS_PER_MUD_DAY);
+  }
 
   send_to_char(ch, "You can 'call' your companion even if you get separated.  "
                    "You can also 'dismiss' your companion to reduce your cooldown drastically.\r\n");
@@ -1989,9 +2000,9 @@ ACMD(do_call)
   }
   else if (is_abbrev(argument, "eidolon"))
   {
-    level = MIN(GET_LEVEL(ch), CLASS_LEVEL(ch, CLASS_SUMMONER));
+    level = MIN(GET_LEVEL(ch), CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_NECROMANCER));
 
-    if (IS_NPC(ch) || !HAS_REAL_FEAT(ch, FEAT_EIDOLON))
+    if (IS_NPC(ch) || (!HAS_REAL_FEAT(ch, FEAT_EIDOLON) && !HAS_REAL_FEAT(ch, FEAT_UNDEAD_COHORT)))
     {
       send_to_char(ch, "You do not have an eidolon that you can call.\r\n");
       return;
@@ -2001,7 +2012,7 @@ ACMD(do_call)
   }
   else
   {
-    send_to_char(ch, "Usage:  call <companion/familiar/mount/shadow>\r\n  Lost followers can be retrieved via 'summon' command.\r\n");
+    send_to_char(ch, "Usage:  call <companion/familiar/mount/shadow/eidolon>\r\n  Lost followers can be retrieved via 'summon' command.\r\n");
     return;
   }
 
@@ -2136,6 +2147,14 @@ ACMD(do_dismiss)
             event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eSUMMONSHADOW, (59 * PASSES_PER_SEC));
+        }
+      }
+      else if (MOB_FLAGGED(vict, MOB_EIDOLON))
+      {
+        if ((pMudEvent = char_has_mud_event(ch, eC_EIDOLON)) &&
+            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+        {
+          change_event_duration(ch, eC_EIDOLON, (59 * PASSES_PER_SEC));
         }
       }
 
@@ -7422,10 +7441,17 @@ ACMD(do_happyhour)
   }
   else if (is_abbrev(arg, "default"))
   {
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
+    HAPPY_EXP = 25;
+    HAPPY_GOLD = 50;
+    HAPPY_QP = 50;
+    HAPPY_TREASURE = 25;
+#else
     HAPPY_EXP = 100;
     HAPPY_GOLD = 50;
     HAPPY_QP = 50;
     HAPPY_TREASURE = 20;
+#endif
     HAPPY_TIME = 48;
     game_info("A Happyhour has started!");
     set_db_happy_hour(1);

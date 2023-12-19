@@ -684,7 +684,7 @@ void str_and_map(char *str, struct char_data *ch, room_vnum target_room)
 
   worldmap = show_worldmap(ch);
 
-  if (!PRF_FLAGGED(ch, PRF_AUTOMAP))
+  if (!PRF_FLAGGED(ch, PRF_AUTOMAP) || (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_NOMAP) && GET_LEVEL(ch) < LVL_IMMORT))
   {
     send_to_char(ch, "%s", strfrmt(str, GET_SCREEN_WIDTH(ch), 1, FALSE, FALSE, FALSE));
     return;
@@ -739,6 +739,11 @@ ACMD(do_map)
   if (!can_see_map(ch))
   {
     send_to_char(ch, "Sorry, the map is disabled!\r\n");
+    return;
+  }
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_NOMAP) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    send_to_char(ch, "A magical force prevents you from seeing beyond this room.\r\n");
     return;
   }
   if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch))

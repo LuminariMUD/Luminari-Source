@@ -402,6 +402,7 @@ ACMD(do_goto)
     if ((location = find_target_room(ch, argument)) == NOWHERE)
       return;
   }
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   else
   {
     /* Have two args, that means coordinates (potentially) */
@@ -418,6 +419,7 @@ ACMD(do_goto)
       }
     }
   }
+#endif
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_NOIMMORT) && (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRSTAFF))
   {
@@ -746,6 +748,8 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm)
       send_to_char(ch, " [%s]", desc->keyword);
     send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM));
   }
+
+  dump_moving(rm->mover, ch);
 
   send_to_char(ch, "Chars present:%s", CCYEL(ch, C_NRM));
   column = 14; /* ^^^ strlen ^^^ */
@@ -3809,9 +3813,10 @@ const struct set_struct
     {"blackguard", LVL_IMPL, PC, NUMBER},       /* 99 */
     {"assassin", LVL_IMPL, PC, NUMBER},         /* 100 */
     {"inquisitor", LVL_IMPL, PC, NUMBER},       /* 101 */
-    {"homeland", LVL_STAFF, PC, NUMBER},         /* 102 */
-    {"region", LVL_STAFF, PC, NUMBER},           /* 103 */
-    {"shortdesc", LVL_STAFF, PC, MISC},          /* 104 */
+    {"homeland", LVL_STAFF, PC, NUMBER},        /* 102 */
+    {"region", LVL_STAFF, PC, NUMBER},          /* 103 */
+    {"shortdesc", LVL_STAFF, PC, MISC},         /* 104 */
+    {"necromancer", LVL_IMPL, PC, NUMBER},       /* 105 */
 
     {"\n", 0, BOTH, MISC},
 };
@@ -4597,6 +4602,12 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       return (0);
     }
     break;
+
+    case 105: // necromancer
+    CLASS_LEVEL(vict, CLASS_NECROMANCER) = RANGE(0, LVL_IMMORT - 1);
+    affect_total(vict);
+    break;
+
 
   default:
     send_to_char(ch, "Can't set that!\r\n");
@@ -5903,6 +5914,10 @@ break;
       if (char_has_mud_event(och, eSUMMONSHADOW))
       {
         event_cancel_specific(och, eSUMMONSHADOW);
+      }
+      if (char_has_mud_event(och, eC_EIDOLON))
+      {
+        event_cancel_specific(och, eC_EIDOLON);
       }
 
       /* end special handling */

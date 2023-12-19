@@ -172,8 +172,9 @@
 #define SCMD_RESTRING 15
 #define SCMD_WAND_MAKING 16
 #define SCMD_STAFF_MAKING 17
+#define SCMD_BONEARMOR 18
 /**craft_type in constants.c**/
-#define NUM_CRAFT 18
+#define NUM_CRAFT 19
 /***/
 
 /* autocraft */

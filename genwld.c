@@ -19,6 +19,7 @@
 #include "dg_olc.h"
 #include "mud_event.h"
 #include "wilderness.h"
+#include "oasis.h"
 
 /* This function will copy the strings so be sure you free your own copies of
  * the description, title, and such. */
@@ -336,8 +337,34 @@ int save_rooms(zone_rnum rzone)
     if ((rnum = real_room(i)) != NOWHERE)
     {
       int j;
+      /*  PDH  7/ 7/99
+      *  unlink moving rooms before saving
+      */
+      int       fromRoomCnt = 0;
+      struct    oldNextMove  ONM;
+      int       cibIdx = -1, nextIdx = -1;
 
       room = (world + rnum);
+
+      if (room->mover) {
+        /*  clean up, part I  */
+        ONM.nextDir = -1;
+        ONM.oldDir = -1;
+        ONM.nextRoom = NOWHERE;
+        ONM.oldRoom = NOWHERE;
+        ONM.moveRoom = NOWHERE;
+
+        if ((fromRoomCnt = prepMovingRoom(room->mover, &ONM, &cibIdx, &nextIdx)) < 1) {
+            log("SYSERR: unable to prep the Moving Room during redit save");
+        }
+
+        if (!unlinkMovingRoom(room->mover, &ONM, cibIdx)) {
+            log("SYSERR: unable to unlink the Moving Room during redit save");
+        }
+
+        cibIdx = fromRoomCnt; /* NOWHERE */
+        room->mover->currentInbound = cibIdx;
+    }
 
       /* Copy the description and strip off trailing newlines. */
       strncpy(buf, room->description ? room->description : "Empty room.", sizeof(buf) - 1);
@@ -433,6 +460,57 @@ int save_rooms(zone_rnum rzone)
       fprintf(sf, "C\n"
                   "%d %d\n",
               room->coords[0], room->coords[1]);
+
+      if (room->mover) {
+        /*  clean up, part II  */
+        if (!linkMovingRoom(room->mover, &ONM, cibIdx)) {
+            return 0;
+        }
+
+        cibIdx = nextIdx;
+        room->mover->currentInbound = cibIdx;
+      }
+
+      /*  PDH  5/22/98
+      *  moving room info
+      */
+      if (world[rnum].mover && world[rnum].mover->from && world[rnum].mover->fromDir)
+      {
+          room_num curR = ENDMOVING;
+          int curD = -1, curCnt = -1, mm;
+
+          fprintf(sf, "M %d %d %d %d %d\n", world[rnum].mover->inbound_dir, world[rnum].mover->resetZonePulse,
+                  world[rnum].mover->randomMove, world[rnum].mover->exitInfo, world[rnum].mover->keyInfo);
+
+          fprintf(sf, "%s\n%s\n%s\n", world[rnum].mover->msg_transit ? world[rnum].mover->msg_transit : "~",
+                  world[rnum].mover->msg_docking ? world[rnum].mover->msg_docking : "~",
+                  world[rnum].mover->msg_dest_docking ? world[rnum].mover->msg_dest_docking : "~");
+
+          for (mm = 0; mm < MAX_MOVING_ROOMS && world[rnum].mover->from[mm] != ENDMOVING; mm++) {
+              if ((world[rnum].mover->from[mm] != curR) || (world[rnum].mover->fromDir[mm] != curD)) {
+                  /*  new grouping  */
+                  if (curCnt > 0) {
+                      fprintf(sf, "%d %d %d\n", curR, curD, curCnt);
+                      curR = ENDMOVING;
+                      curD = -1;
+                      curCnt = -1;
+                  }
+
+                  curR = world[rnum].mover->from[mm];
+                  curD = world[rnum].mover->fromDir[mm];
+                  curCnt = 1;
+
+              } else {
+                  curCnt++;
+              }
+          }
+          /*  last grouping  */
+          if (curCnt > 0) {
+              fprintf(sf, "%d %d %d\n", curR, curD, curCnt);
+          }
+
+          fprintf(sf, "~\n");
+      }
 
       fprintf(sf, "S\n"); /* Always the last. */
       script_save_to_disk(sf, room, WLD_TRIGGER);
@@ -541,4 +619,51 @@ int free_room_strings(struct room_data *room)
   }
 
   return TRUE;
+}
+
+void dump_moving(struct moving_room_data * mr, struct char_data * ch)
+{
+  char pdh[100];
+  int  ridx;
+  char buf[MAX_STRING_LENGTH];
+
+  send_to_char(ch, "\r\nMoving Room Data:\r\n");
+
+  if ( mr ) {
+    sprintf(pdh, "Reset: %d (%d left)\r\n",
+	    mr->resetZonePulse, mr->remainingZonePulses);
+    send_to_char(ch, pdh);
+    sprintf(pdh, "Current Inbound Idx: %d\r\n", mr->currentInbound);
+    send_to_char(ch, pdh);
+    sprintf(pdh, "Destination: %d        Inbound Dir: %d\r\n",
+	    mr->destination, mr->inbound_dir);
+    send_to_char(ch, pdh);
+    sprintf(pdh, "Random: %s\r\n", (mr->randomMove) ? "yes" : "no");
+    send_to_char(ch, pdh);
+
+    sprintf(buf, "Transit Msg: %s\r\n",
+	    mr->msg_transit ? mr->msg_transit : "<none>");
+    send_to_char(ch, buf);
+    sprintf(buf, "Docking Msg: %s\r\n",
+	    mr->msg_docking ? mr->msg_docking : "<none>");
+    send_to_char(ch, buf);
+    sprintf(buf, "Dest Docking Msg: %s\r\n",
+	    mr->msg_dest_docking ? mr->msg_dest_docking : "<none>");
+    send_to_char(ch, buf);
+
+
+    send_to_char(ch, "TARGET DIR\r\n");
+    if ( mr->from && mr->fromDir ) {
+      for(ridx=0; ridx<MAX_MOVING_ROOMS && mr->from[ridx] != ENDMOVING;
+	  ridx++) {
+	sprintf(pdh, "%6d  %d\r\n", mr->from[ridx], mr->fromDir[ridx]);
+	send_to_char(ch, pdh);
+      }
+    } else {
+      send_to_char(ch, " none  ---\r\n");
+    }
+
+  } else {
+    send_to_char(ch, "No 'moving' info found.\r\n");
+  }
 }
