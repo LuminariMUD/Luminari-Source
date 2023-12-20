@@ -1625,7 +1625,7 @@ void assign_races(void)
   feat_race_assignment(RACE_SHIELD_DWARF, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1, N);
   feat_race_assignment(RACE_SHIELD_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
   feat_race_assignment(RACE_SHIELD_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
-  race_list[RACE_SHIELD_DWARF].racial_language = SKILL_LANG_DWARVISH;
+  race_list[RACE_SHIELD_DWARF].racial_language = SKILL_LANG_DWARVEN;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1681,7 +1681,7 @@ void assign_races(void)
   feat_race_assignment(RACE_GOLD_DWARF, FEAT_GOLD_DWARF_TOUGHNESS, 1, N);
   feat_race_assignment(RACE_GOLD_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
   feat_race_assignment(RACE_GOLD_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
-  race_list[RACE_GOLD_DWARF].racial_language = SKILL_LANG_DWARVISH;
+  race_list[RACE_GOLD_DWARF].racial_language = SKILL_LANG_DWARVEN;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1947,7 +1947,7 @@ void assign_races(void)
   feat_race_assignment(RACE_HALF_ORC, FEAT_RELENTLESS_ENDURANCE, 1, N);
   feat_race_assignment(RACE_HALF_ORC, FEAT_SAVAGE_ATTACKS, 1, N);
   feat_race_assignment(RACE_HALF_ORC, FEAT_HALF_ORC_RACIAL_ADJUSTMENT, 1, N);
-  race_list[RACE_HALF_ORC].racial_language = SKILL_LANG_ORC;
+  race_list[RACE_HALF_ORC].racial_language = SKILL_LANG_ORCISH;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 

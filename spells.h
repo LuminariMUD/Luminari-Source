@@ -1140,7 +1140,7 @@
 // Vampire cloak
 #ifdef CAMPAIGN_FR
   #define VAMPIRE_CLOAK_OBJ_VNUM 299
-elif defined(CAMPAIGN_DL)
+#elif defined(CAMPAIGN_DL)
   #define VAMPIRE_CLOAK_OBJ_VNUM 16604
 #else
   #define VAMPIRE_CLOAK_OBJ_VNUM 34700
