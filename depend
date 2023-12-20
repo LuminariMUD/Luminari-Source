@@ -128,7 +128,8 @@ constants.o: constants.c conf.h sysdep.h structs.h bool.h protocol.h \
 craft.o: craft.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mysql.h utils.h db.h helpers.h perfmon.h comm.h spells.h \
  interpreter.h constants.h handler.h craft.h mud_event.h dg_event.h \
- modify.h treasure.h mudlim.h spec_procs.h item.h quest.h
+ modify.h treasure.h mudlim.h spec_procs.h item.h quest.h \
+ assign_wpn_armor.h
 crafts.o: crafts.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h act.h handler.h \
  interpreter.h screen.h constants.h oasis.h help.h genolc.h spells.h \
