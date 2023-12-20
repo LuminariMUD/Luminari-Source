@@ -36,6 +36,7 @@
 #include "spec_procs.h" /* For compute_ability() */
 #include "item.h"
 #include "quest.h"
+#include "assign_wpn_armor.h"
 
 extern MYSQL *conn;
 
@@ -1395,7 +1396,7 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
 }
 
 
-/* resize an object, also will change weapon damage */
+/* change armor from original material to bone material */
 int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
@@ -1447,7 +1448,7 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
 
   if (GET_GOLD(ch) < cost)
   {
-    send_to_char(ch, "You need %d coins on hand for supplies to resize this item.\r\n", cost);
+    send_to_char(ch, "You need %d coins on hand for supplies to convert this item into bone.\r\n", cost);
     return 1;
   }
 
@@ -1481,6 +1482,209 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
     GET_CRAFTING_TICKS(ch) = 1;
   else
     GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+
+  obj_to_char(obj, ch);
+  save_char(ch, 0);
+  Crash_crashsave(ch);
+  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
+
+  return 1;
+}
+
+/* change armor or weapon from one type to another */
+int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
+{
+  int num_objs = 0, cost;
+  struct obj_data *obj = NULL;
+  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
+  char buf[MAX_STRING_LENGTH];
+  int i = 0;
+  char bonus[30];
+  int orig_cost = 0, enhancement = 0, material = 0;
+
+  /* Cycle through contents */
+  /* resize requires just one item be inside the kit */
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
+  {
+    num_objs++;
+    break;
+  }
+
+  if (num_objs > 1)
+  {
+    send_to_char(ch, "Only one item should be inside the kit.\r\n");
+    return 1;
+  }
+
+    if (GET_OBJ_TYPE(obj) != ITEM_ARMOR && GET_OBJ_TYPE(obj) != ITEM_WEAPON)
+  {
+    send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
+    return 1;
+  }
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Please specify the type of weapon, armor or shield you'd like to reforge this item into. Type weaponlist or armorlistfull to see options.\r\n");
+    return 1;
+  }
+
+  orig_cost = GET_OBJ_COST(obj);
+  enhancement = GET_OBJ_VAL(obj, 4);
+  material = GET_OBJ_MATERIAL(obj);
+
+  switch (GET_OBJ_TYPE(obj))
+  {
+    case ITEM_WEAPON:
+      for (i = 0; i < NUM_WEAPON_TYPES; i++)
+      {
+        if (is_abbrev(weapon_list[i].name, argument))
+          break;
+      }
+      if (i >= NUM_WEAPON_TYPES)
+      {
+        send_to_char(ch, "That is not a valid weapon type. Type weaponlist for options.\r\n");
+        return 1;
+      }
+      if (i == GET_OBJ_VAL(obj, 0))
+      {
+        send_to_char(ch, "The item is already %s %s.\r\n", AN(weapon_list[i].name), weapon_list[i].name);
+        return 1;
+      }
+      set_weapon_object(obj, i);
+      break;
+    case ITEM_ARMOR:
+      if (IS_SHIELD(GET_OBJ_VAL(obj, 1)))
+      {
+        for (i = 0; i < NUM_SPEC_ARMOR_TYPES; i++)
+        {
+          if (!IS_SHIELD(i)) continue;
+          if (is_abbrev(armor_list[i].name, argument))
+            break;
+        }
+        if (i >= NUM_SPEC_ARMOR_TYPES)
+        {
+          send_to_char(ch, "That is not a valid shield type. Type armorlistfull for options.\r\n");
+          return 1;
+        }
+        if (i == GET_OBJ_VAL(obj, 1))
+        {
+          send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[i].name), armor_list[i].name);
+          return 1;
+        }
+        GET_OBJ_VAL(obj, 1) = i;
+      }
+      else
+      {
+        for (i = 0; i < NUM_SPEC_ARMOR_TYPES; i++)
+        {
+          if (IS_SHIELD(i)) continue;
+          if (CAN_WEAR(obj, ITEM_WEAR_HEAD) && armor_list[i].wear != ITEM_WEAR_HEAD)
+          {
+            continue;
+          }
+          else if (CAN_WEAR(obj, ITEM_WEAR_BODY) && armor_list[i].wear != ITEM_WEAR_BODY)
+          {
+            continue;
+          }
+          else if (CAN_WEAR(obj, ITEM_WEAR_ARMS) && armor_list[i].wear != ITEM_WEAR_ARMS)
+          {
+            continue;
+          }
+          else if (CAN_WEAR(obj, ITEM_WEAR_LEGS) && armor_list[i].wear != ITEM_WEAR_LEGS)
+          {
+            continue;
+          }
+          if (is_abbrev(armor_list[i].name, argument))
+            break;
+        }
+        if (i >= NUM_SPEC_ARMOR_TYPES)
+        {
+          send_to_char(ch, "That is not a valid armor type. Type armorlistfull for options. Please ensure wear types match. Ie. You can only reforge a body wear slot to another body wear slot.\r\n");
+          return 1;
+        }
+        if (i == GET_OBJ_VAL(obj, 1))
+        {
+          send_to_char(ch, "The item is already %s %s.\r\n", AN(armor_list[i].name), armor_list[i].name);
+          return 1;
+        }
+        GET_OBJ_VAL(obj, 1) = i;
+      }
+      set_armor_object(obj, i);
+      break;
+    default:
+      send_to_char(ch, "You can only reforge armor, shields and weapons.\r\n");
+      return 1;
+  }
+
+  GET_OBJ_COST(obj) = orig_cost;
+  GET_OBJ_VAL(obj, 4) = enhancement;
+  // restore the original material if new item type is of the same material type as orig.
+  if (IS_HARD_METAL(GET_OBJ_MATERIAL(obj)) && IS_HARD_METAL(material))
+    GET_OBJ_MATERIAL(obj) = material;
+  else if (IS_LEATHER(GET_OBJ_MATERIAL(obj)) && IS_LEATHER(material))
+    GET_OBJ_MATERIAL(obj) = material;
+  else if (IS_CLOTH(GET_OBJ_MATERIAL(obj)) && IS_CLOTH(material))
+    GET_OBJ_MATERIAL(obj) = material;
+  else if (IS_WOOD(GET_OBJ_MATERIAL(obj)) && IS_WOOD(material))
+    GET_OBJ_MATERIAL(obj) = material;  
+
+  /* "cost" of reforge */
+  cost = GET_OBJ_COST(obj) / 2;
+
+  if (GET_GOLD(ch) < cost)
+  {
+    send_to_char(ch, "You need %d coins on hand for supplies to reforge this item.\r\n", cost);
+    return 1;
+  }
+
+  if (cost > 0)
+  {
+    send_to_char(ch, "It cost you %d coins to reforge this item.\r\n", cost);
+    GET_GOLD(ch) -= cost;
+  }
+
+  send_to_char(ch, "You begin to reforge %s into %s %s.\r\n", obj->short_description, 
+                    (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name) : AN(armor_list[GET_OBJ_VAL(obj, 1)].name), 
+                    (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name : armor_list[GET_OBJ_VAL(obj, 1)].name);
+  snprintf(buf, sizeof(buf), "$n begins to reforge %s into %s %s.", obj->short_description, 
+                    (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? AN(weapon_list[GET_OBJ_VAL(obj, 0)].name) : AN(armor_list[GET_OBJ_VAL(obj, 1)].name), 
+                    (GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? weapon_list[GET_OBJ_VAL(obj, 0)].name : armor_list[GET_OBJ_VAL(obj, 1)].name);
+  act(buf, FALSE, ch, obj, 0, TO_ROOM);
+
+  // new descriptions
+  if (GET_OBJ_VAL(obj, 4) > 0)
+    snprintf(bonus, sizeof(bonus), "(+%d)", GET_OBJ_VAL(obj, 4));
+  else
+    snprintf(bonus, sizeof(bonus), "(no enchantment bonus)");
+
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+  {   
+    snprintf(buf, sizeof(buf), "a reforged %s %s", weapon_list[GET_OBJ_VAL(obj, 0)].name, bonus);
+  }
+  else
+  {  
+    snprintf(buf, sizeof(buf), "a reforged %s %s", armor_list[GET_OBJ_VAL(obj, 1)].name, bonus);
+  }
+
+  obj->name = strdup(buf);
+  strip_colors(obj->name);
+  obj->short_description = strdup(buf);
+  snprintf(buf, sizeof(buf), "%s lies here.", CAP(strdup(obj->short_description)));
+  obj->description = strdup(buf);
+
+  obj_from_obj(obj);
+
+  if (GET_OBJ_WEIGHT(obj) <= 0)
+    GET_OBJ_WEIGHT(obj) = 1;
+
+  GET_CRAFTING_OBJ(ch) = obj;
+  GET_CRAFTING_TYPE(ch) = SCMD_REFORGE;
+  if (cost == 0)
+    GET_CRAFTING_TICKS(ch) = 1;
+  else
+    GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
 
   obj_to_char(obj, ch);
   save_char(ch, 0);
@@ -2053,7 +2257,8 @@ SPECIAL(crafting_kit)
 {
   if (!CMD_IS("resize") && !CMD_IS("create") && !CMD_IS("checkcraft") &&
       !CMD_IS("restring") && !CMD_IS("augment") && !CMD_IS("convert") &&
-      !CMD_IS("autocraft") && !CMD_IS("disenchant") && !CMD_IS("bonearmor"))
+      !CMD_IS("autocraft") && !CMD_IS("disenchant") && !CMD_IS("bonearmor") &&
+      !CMD_IS("reforge"))
     return 0;
 
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
@@ -2083,6 +2288,10 @@ SPECIAL(crafting_kit)
       send_to_char(ch, "What would you like the new size to be?"
                        " (fine|diminutive|tiny|small|"
                        "medium|large|huge|gargantuan|colossal)\r\n");
+    else if (CMD_IS("reforge"))
+    {
+      send_to_char(ch, "Please specify the type of weapon, armor of shield you'd like to reforge this item into. See weaponlist and armorlistfull for options.\r\n");
+    }
     return 1;
   }
 
@@ -2114,6 +2323,8 @@ SPECIAL(crafting_kit)
       send_to_char(ch, "You must place the item in the kit to resize it.\r\n");
     else if (CMD_IS("bonearmor"))
       send_to_char(ch, "You must place the item in the kit to convert it to bone armor.\r\n");
+    else if (CMD_IS("reforge"))
+      send_to_char(ch, "You must place the item in the kit to reforge it.\r\n");
     else if (CMD_IS("checkcraft"))
       send_to_char(ch, "You must place an item to use as the mold pattern, a "
                        "crystal and your crafting resource materials in the kit and "
@@ -2139,6 +2350,8 @@ SPECIAL(crafting_kit)
     return resize(argument, kit, ch);
   if (CMD_IS("bonearmor"))
     return bonearmor(argument, kit, ch);
+  if (CMD_IS("reforge"))
+    return reforge(argument, kit, ch);
   else if (CMD_IS("restring"))
     return restring(argument, kit, ch);
   else if (CMD_IS("augment"))
@@ -2440,8 +2653,7 @@ EVENTFUNC(event_crafting)
                      "left to go.\r\n",
                  GET_CRAFTING_TICKS(ch) * 6);
 
-    GET_CRAFTING_TICKS(ch)
-    --;
+    GET_CRAFTING_TICKS(ch)--;
 
     /* skill notch */
     if (GET_SKILL(ch, SKILL_FAST_CRAFTER) < 99)
@@ -2471,10 +2683,26 @@ EVENTFUNC(event_crafting)
       break;
 
     case SCMD_BONEARMOR:
-      // no skill association
+      skill = SKILL_ARMOR_SMITHING;
       snprintf(buf, sizeof(buf), "You finish converting $p into bone.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n finishes converting $p into bone.");
+      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+
+      /* resize system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESIZE);
+
+      break;
+
+      case SCMD_REFORGE:
+      if (GET_OBJ_TYPE(GET_CRAFTING_OBJ(ch)) == ITEM_WEAPON)
+        skill = SKILL_WEAPON_SMITHING;
+      else
+        skill = SKILL_ARMOR_SMITHING;
+
+      snprintf(buf, sizeof(buf), "You finish reforging $p. It is recommended you use the restring command on this object.");
+      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+      snprintf(buf, sizeof(buf), "$n finishes reforging $p. It is recommended you use the restring command on this object.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* resize system check point -Zusuk */
