@@ -394,11 +394,25 @@ ACMD(do_goto)
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum location = NOWHERE;
+  int i = 0;
+  bool has_space = false;
 
   two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   if (!*arg2)
   {
+    for (i = 1; i < strlen(argument); i++)
+    {
+      if (isspace(argument[i])) has_space = true;
+    }
+    if (has_space)
+    {
+      send_to_char(ch, "That is an invalid goto location. Please use:\r\n"
+                      "goto (room vnum)          eg. goto 200\r\n"
+                      "goto (mob or player name) eg. goto gicker or goto cave-troll\r\n"
+                      "goto (zone name)          eg. goto lusken\r\n");
+      return;
+    }
     if ((location = find_target_room(ch, argument)) == NOWHERE)
       return;
   }
@@ -420,6 +434,19 @@ ACMD(do_goto)
     }
   }
 #endif
+
+    for (i = 1; i < strlen(argument); i++)
+    {
+      if (isspace(argument[i])) has_space = true;
+    }
+    if (has_space)
+    {
+      send_to_char(ch, "That is an invalid goto location. Please use:\r\n"
+                      "goto (room vnum)          eg. goto 200\r\n"
+                      "goto (mob or player name) eg. goto gicker or goto cave-troll\r\n"
+                      "goto (zone name)          eg. goto lusken\r\n");
+      return;
+    }
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_NOIMMORT) && (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRSTAFF))
   {
