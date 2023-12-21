@@ -1192,18 +1192,12 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   // send_to_char(" \tw(\tBWater\tw)\tn", ch);
 
   send_to_char(ch, "\r\n");
-#if defined(CAMPAIGN_FR)
-  send_to_char(ch, "\r\n");
-#endif
   if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG))
     send_to_char(ch, "\tLA hazy \tWfog\tL enshrouds the area.\tn\r\n");
 
   if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF)) || ignore_brief ||
       ROOM_FLAGGED(room_number, ROOM_DEATH))
     send_to_char(ch, "%s", world[room_number].description);
-#if defined(CAMPAIGN_FR)
-  send_to_char(ch, "\r\n");
-#endif
 
   /* autoexits */
   // if (!IS_NPC(ch) && !IS_SET(ROOM_FLAGS(room_number), ROOM_FOG))
