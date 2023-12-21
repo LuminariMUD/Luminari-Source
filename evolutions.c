@@ -318,7 +318,7 @@ void assign_evolutions(void)
   evolutiono(EVOLUTION_SPELL_RESISTANCE, "spell resistance", 4, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
                "The eidolon gains spell resistance equal to 10 + their level. If the eidolon also has the celestial or fiendish "
                "appearance evolutions, the spell resistance increases to 15 + level.");
-  evolutiono(EVOLUTION_ULTIMATE_MAGIC, "major magic", 8, false, 1, true, EVOLUTION_BASIC_MAGIC, EVOLUTION_MINOR_MAGIC, EVOLUTION_MAJOR_MAGIC, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
+  evolutiono(EVOLUTION_ULTIMATE_MAGIC, "ultimate magic", 8, false, 1, true, EVOLUTION_BASIC_MAGIC, EVOLUTION_MINOR_MAGIC, EVOLUTION_MAJOR_MAGIC, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
                "The eidolon can cast the following spells at-will: daylight, fireball, gaseous form, lightning bolt, "
                "fly, stinking cloud, tongues and water breathing.");
   evolutiono(EVOLUTION_KEEN_SCENT, "keen scent", 4, false, 1, true, EVOLUTION_SCENT, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
