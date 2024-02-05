@@ -703,8 +703,7 @@ void regen_update(struct char_data *ch)
   /* this is an extra over-stack drain for PSP, another one exists in the regen_psp() function */
   if (GET_PSP(ch) > GET_MAX_PSP(ch))
   {
-    GET_PSP(ch)
-    --;
+    GET_PSP(ch)--;
   }
 
   update_pos(ch);
@@ -742,7 +741,7 @@ void regen_psp(void)
 
     if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
       if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY))
-        GET_PSP(d->character) += HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY);
+        GET_PSP(d->character) += (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY) * 2);
 
     switch (GET_POS(d->character))
     {
@@ -855,8 +854,7 @@ int hit_gain(struct char_data *ch)
       break;
     }
 
-    if (IS_WIZARD(ch) || IS_CLERIC(ch) || IS_DRUID(ch) ||
-        IS_SORCERER(ch))
+    if (IS_WIZARD(ch) || IS_CLERIC(ch) || IS_DRUID(ch) || IS_SORCERER(ch))
       gain /= 2; /* Ouch. */
 
     if ((GET_COND(ch, HUNGER) == 0) || (GET_COND(ch, THIRST) == 0))
@@ -2191,8 +2189,7 @@ void update_damage_and_effects_over_time(void)
     if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_HEALING) && !ch->player.exploit_weaknesses && GET_HIT(ch) < GET_MAX_HIT(ch))
       GET_HIT(ch) += get_judgement_bonus(ch, INQ_JUDGEMENT_HEALING);
     if (GET_HIT(ch) > GET_MAX_HIT(ch))
-      GET_HIT(ch)
-    --;
+      GET_HIT(ch)--;
 
     // paladin fast healing mercy effect
     if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING) && GET_HIT(ch) < GET_MAX_HIT(ch))
@@ -2284,6 +2281,9 @@ void self_buffing(void)
       GET_CURRENT_BUFF_SLOT(ch) = 0;
       GET_BUFF_TIMER(ch) = 0;
       IS_BUFFING(ch) = false;
+      affect_from_char(ch, SPELL_MINOR_RAPID_BUFF);
+      affect_from_char(ch, SPELL_RAPID_BUFF);
+      affect_from_char(ch, SPELL_GREATER_RAPID_BUFF);
     }
 
     if (GET_BUFF_TIMER(ch) > 0)
@@ -2295,6 +2295,8 @@ void self_buffing(void)
         send_to_char(ch, "You continue buffing... (buff cancel to stop)\r\n");
 
         if (IS_AFFECTED(ch, AFF_TIME_STOPPED))
+          GET_BUFF_TIMER(ch) = 1;
+        else if (IS_AFFECTED(ch, AFF_RAPID_BUFF))
           GET_BUFF_TIMER(ch) = 1;
         else
         {
@@ -2327,12 +2329,14 @@ void self_buffing(void)
         }
         else
         {
-          snprintf(spellname, sizeof(spellname), " %d '%s'", GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 1), spell_info[spellnum].name);
+          int augment = 0;
+          if (PRF_FLAGGED(ch, PRF_AUGMENT_BUFFS))
+            augment = max_augment_psp_allowed(ch, spellnum);
+          snprintf(spellname, sizeof(spellname), " %d '%s'", augment, spell_info[spellnum].name);
           do_manifest(ch, (const char *)spellname, 0, SCMD_CAST_PSIONIC);
         }
 
-        GET_CURRENT_BUFF_SLOT(ch)
-        ++;
+        GET_CURRENT_BUFF_SLOT(ch)++;
       }
     }
     else

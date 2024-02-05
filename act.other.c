@@ -1854,13 +1854,18 @@ void perform_call(struct char_data *ch, int call_type, int level)
     autoroll_mob(mob, true, true);
     GET_REAL_MAX_HIT(mob) += 20;
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
+    set_eidolon_descs(ch);
     assign_eidolon_evolutions(ch, mob, false);
-    if (GET_EIDOLON_SHORT_DESCRIPTION(ch) && GET_EIDOLON_LONG_DESCRIPTION(ch) && GET_EIDOLON_DETAIL_DESCRIPTION(ch))
+    if (GET_EIDOLON_SHORT_DESCRIPTION(ch) && GET_EIDOLON_LONG_DESCRIPTION(ch))
     {
+      char buf[MAX_EXTRA_DESC];
+      
       mob->player.name = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
       mob->player.short_descr = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
       mob->player.long_descr = strdup(GET_EIDOLON_LONG_DESCRIPTION(ch));
-      mob->player.description = strdup(GET_EIDOLON_DETAIL_DESCRIPTION(ch));
+      
+      snprintf(buf, sizeof(buf), "%s\n", GET_EIDOLON_LONG_DESCRIPTION(ch));
+      mob->player.description = strdup(buf);
     }
     break;
   }
@@ -4313,6 +4318,7 @@ ACMD(do_quit)
   {
     act("$n has left the game.", TRUE, ch, 0, 0, TO_ROOM);
     mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s has quit the game.", GET_NAME(ch));
+    save_eidolon_descs(ch);
     save_char_pets(ch);
     dismiss_all_followers(ch);
 
@@ -4324,9 +4330,9 @@ ACMD(do_quit)
 
     send_to_char(ch, "Goodbye, friend.. Come back soon!\r\n");
 
-    /* We used to check here for duping attempts, but we may as well do it right
-     * in extract_char(), since there is no check if a player rents out and it
-     * can leave them in an equally screwy situation. */
+    // /* We used to check here for duping attempts, but we may as well do it right
+    //  * in extract_char(), since there is no check if a player rents out and it
+    //  * can leave them in an equally screwy situation. */
 
     if (CONFIG_FREE_RENT)
       Crash_rentsave(ch, 0);
@@ -4347,6 +4353,7 @@ ACMD(do_quit)
 
 void perform_save(struct char_data *ch, int mode)
 {
+  save_eidolon_descs(ch);
   save_char_pets(ch);
   save_char(ch, mode);
   Crash_crashsave(ch);
@@ -5744,7 +5751,7 @@ static void print_group(struct char_data *ch)
 
     send_to_char(ch, "%s%-*s: %s [%s%4d\tn/%-4d]H [%s%4d\tn/%-4d]P [%s%4d\tn/%-4d]V [%d TNL]%s\r\n",
                  GROUP_LEADER(GROUP(ch)) == k ? "\tG*\tn" : " ",
-                 count_color_chars(GET_NAME(k)) + 12, GET_NAME(k),
+                 count_color_chars(GET_NAME(k)) + 30, GET_NAME(k),
                  IN_ROOM(ch) == IN_ROOM(k) ? "\tYIR\tn" : "\tRAB\tn",
                  hp_clr, GET_HIT(k), GET_MAX_HIT(k),
                  psp_clr, (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_PSP(k), (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_MAX_PSP(k),
@@ -7035,6 +7042,9 @@ ACMD(do_gen_tog)
       // 56
       {"Autoprep disabled.\r\n",
        "Autoprep enabled.\r\n"},
+      // 57
+      {"Psionic powers will no longer be augmented when buffing.\r\n",
+       "Psionic powers will now be augmented as much as possible when buffing.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7137,6 +7147,9 @@ ACMD(do_gen_tog)
     break;
   case SCMD_NOCHARMIERESCUES:
     result = PRF_TOG_CHK(ch, PRF_NO_CHARMIE_RESCUE);
+    break;
+case SCMD_AUTO_AUGMENT:
+    result = PRF_TOG_CHK(ch, PRF_AUGMENT_BUFFS);
     break;
   case SCMD_SMASH_DEFENSE:
     result = PRF_TOG_CHK(ch, PRF_SMASH_DEFENSE);
@@ -7442,11 +7455,11 @@ ACMD(do_happyhour)
   else if (is_abbrev(arg, "default"))
   {
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-    HAPPY_EXP = 33;
+    HAPPY_EXP = 50;
     HAPPY_GOLD = 50;
     HAPPY_QP = 50;
     HAPPY_TREASURE = 25;
-    HAPPY_TIME = 1000;
+    HAPPY_TIME = 48;
 #else
     HAPPY_EXP = 100;
     HAPPY_GOLD = 50;
@@ -8433,11 +8446,11 @@ ACMD(do_buff)
     spellnum = find_skill_num(arg2);
     is_spell = is_spell_or_power(spellnum);
 
-    if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
-    {
-      send_to_char(ch, "Buffing with psionics is not possible right now due to a serious, yet unresolved bug.\r\n");
-      return;
-    }
+    // if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+    // {
+    //   send_to_char(ch, "Buffing with psionics is not possible right now due to a serious, yet unresolved bug.\r\n");
+    //   return;
+    // }
 
     if (!is_spell)
     {
@@ -8615,6 +8628,9 @@ ACMD(do_buff)
     GET_BUFF_TIMER(ch) = 0;
     GET_CURRENT_BUFF_SLOT(ch) = 0;
     send_to_char(ch, "You cease casting your buffing spells.\r\n");
+    affect_from_char(ch, SPELL_MINOR_RAPID_BUFF);
+    affect_from_char(ch, SPELL_RAPID_BUFF);
+    affect_from_char(ch, SPELL_GREATER_RAPID_BUFF);
   }
   else
   {

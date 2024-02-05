@@ -577,9 +577,13 @@
 #define SPELL_PALANTHAS_RECALL 501
 #define SPELL_SANCTION_RECALL 502
 #define SPELL_SOLACE_RECALL 503
+#define SPELL_MINOR_RAPID_BUFF 504
+#define SPELL_RAPID_BUFF 505
+#define SPELL_GREATER_RAPID_BUFF 506
+#define SPELL_POWER_WORD_SILENCE 507
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 504
+#define NUM_SPELLS 508
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1359,6 +1363,10 @@
 /*-------------------------------------------------------------------------*/
 
 // ******** DAM_ *********
+
+#define DAMAGE_CAP 1499
+#define NPC_DAMAGE_CAP 250
+
 #define DAM_RESERVED_DBC 0 // reserve
 #define DAM_FIRE 1
 #define DAM_COLD 2
@@ -1496,6 +1504,7 @@ struct spell_info_type
         int resistance;   /* spell resistance, assigned in code currently */
         bool ritual_spell; // If this is a ritual spell, it will have a cast time, otherwise it won't
         int effective_level; /* the effective spell level. this is relevant for spell-like abilities */
+        bool cant_cast;  // is this spell castable?
 };
 
 /* wall struct for wall spells, like wall of fire, force, thorns, etc */

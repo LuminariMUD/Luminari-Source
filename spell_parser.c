@@ -1511,8 +1511,7 @@ EVENTFUNC(event_casting)
         {
           if (rand_number(0, 1))
           {
-            CASTING_TIME(ch)
-            --;
+            CASTING_TIME(ch)--;
           }
         }
         if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
@@ -1585,7 +1584,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) && !is_spellnum_psionic(spellnum))
   {
-    send_to_char(ch, "You can not even speak a single word!\r\n");
+    send_to_char(ch, "A mysterious force prevents you form even speaking a single word!\r\n");
     return 0;
   }
 
@@ -1817,6 +1816,14 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
         return 0;
       }
       USE_SWIFT_ACTION(ch);
+    }
+    else if (AFF_FLAGGED(ch, AFF_TIME_STOPPED))
+    {
+      // buffing doesn't use actions when time stopped
+    }
+    else if (AFF_FLAGGED(ch, AFF_RAPID_BUFF) && IS_BUFFING(ch))
+    {
+      // buffing doesn't use actions when affected by rapid buff
     }
     else
     {
@@ -2121,6 +2128,12 @@ ACMDU(do_gen_cast)
   if ((spellnum < 1) || (spellnum > MAX_SPELLS) || !*spell_arg)
   {
     send_to_char(ch, "%s what?!?\r\n", do_cast_types[subcmd][0]);
+    return;
+  }
+
+  if (spell_info[spellnum].cant_cast)
+  {
+    send_to_char(ch, "You cannot %s this through normal means.\r\n", do_cast_types[subcmd][0]);
     return;
   }
 
@@ -2785,6 +2798,12 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
   spell_info[spl].memtime = memtime;
   spell_info[spl].schoolOfMagic = school;
   spell_info[spl].quest = quest;
+  spell_info[spl].cant_cast = false;
+}
+
+void CantCast(int spl)
+{
+  spell_info[spl].cant_cast = true;
 }
 
 // static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
@@ -3681,6 +3700,9 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "You feel a cloak of blindness dissolve.", 0, 19,
          NECROMANCY, FALSE);
+  spello(SPELL_POWER_WORD_SILENCE, "power word silence", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+         "You feel able to speak again.", 0, 19, NECROMANCY, FALSE);
   spello(SPELL_WAVES_OF_EXHAUSTION, "waves of exhaustion", 65, 50, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical exhaustion fade away.", 8,
          19, NECROMANCY, FALSE); // like waves of fatigue, but no save?
@@ -4110,26 +4132,47 @@ void mag_assign_spells(void)
   spello(SPELL_LUSKAN_RECALL, "recall to luskan", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
+  CantCast(SPELL_LUSKAN_RECALL);
   spello(SPELL_TRIBOAR_RECALL, "recall to triboar", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
+  CantCast(SPELL_TRIBOAR_RECALL);
   spello(SPELL_SILVERYMOON_RECALL, "recall to silverymoon", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
+  CantCast(SPELL_SILVERYMOON_RECALL);
   spello(SPELL_MIRABAR_RECALL, "recall to mirabar", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
+  CantCast(SPELL_MIRABAR_RECALL);
 #elif defined(CAMPAIGN_DL)
   spello(SPELL_PALANTHAS_RECALL, "recall to palanthas", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
+  CantCast(SPELL_PALANTHAS_RECALL);
   spello(SPELL_SANCTION_RECALL, "recall to sanction", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
+  CantCast(SPELL_SANCTION_RECALL);
   spello(SPELL_SOLACE_RECALL, "recall to solace", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
+  CantCast(SPELL_SOLACE_RECALL);
 #endif
+
+  spello(SPELL_MINOR_RAPID_BUFF, "minor rapid buff", 72, 57, 1, POS_STANDING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         NULL, 0, 20, NOSCHOOL, FALSE);
+  CantCast(SPELL_MINOR_RAPID_BUFF);
+  spello(SPELL_RAPID_BUFF, "rapid buff", 72, 57, 1, POS_STANDING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         NULL, 0, 20, NOSCHOOL, FALSE);
+  CantCast(SPELL_RAPID_BUFF);
+  spello(SPELL_GREATER_RAPID_BUFF, "greater rapid buff", 72, 57, 1, POS_STANDING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         NULL, 0, 20, NOSCHOOL, FALSE);
+  CantCast(SPELL_GREATER_RAPID_BUFF);
+
   spello(SPELL_MASS_CURE_CRIT, "mass cure critic", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_GROUPS,
          NULL, 7, 20, NOSCHOOL, FALSE);

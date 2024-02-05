@@ -1114,7 +1114,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   if ((GET_LEVEL(ch) < QST_MINLEVEL(rnum)) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     snprintf(buf, sizeof(buf),
-             "\r\n%s, you are not experienced enough for that quest!\r\n", GET_NAME(ch));
+             "\r\n%s, you are not high enough level for that quest!\r\n", GET_NAME(ch));
     send_to_char(ch, "%s", buf);
     return;
   }

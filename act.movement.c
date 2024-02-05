@@ -2159,17 +2159,35 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
     }
 
     if ((!IS_NPC(ch)) && (!PRF_FLAGGED(ch, PRF_AUTODOOR)))
+    {
       send_to_char(ch, "There doesn't seem to be %s %s here.\r\n", AN(type), type);
+      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+    }
     else if (is_abbrev(cmdname, "open"))
+    {
       send_to_char(ch, "There doesn't seem to be %s %s that can be opened.\r\n", AN(type), type);
+      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+    }
     else if (is_abbrev(cmdname, "close"))
+    {
       send_to_char(ch, "There doesn't seem to be %s %s that can be closed.\r\n", AN(type), type);
+      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+    }
     else if (is_abbrev(cmdname, "lock"))
+    {
       send_to_char(ch, "There doesn't seem to be %s %s that can be locked.\r\n", AN(type), type);
+      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+    }
     else if (is_abbrev(cmdname, "unlock"))
+    {
       send_to_char(ch, "There doesn't seem to be %s %s that can be unlocked.\r\n", AN(type), type);
+      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+    }
     else
+    {
       send_to_char(ch, "There doesn't seem to be %s %s that can be picked.\r\n", AN(type), type);
+      send_to_char(ch, "Try turning on the autokey toggle in prefedit, or supply a direction name as well. Eg. %s %s north.", cmdname, type);
+    }
 
     return (-1);
   }

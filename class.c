@@ -2869,7 +2869,6 @@ void init_start_char(struct char_data *ch)
   GET_EIDOLON_BASE_FORM(ch) = 0;
   GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
   GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
-  GET_EIDOLON_DETAIL_DESCRIPTION(ch) = NULL;
 
   /* initialize spell prep data, allow adjustment of spells known */
   destroy_spell_prep_queue(ch);
@@ -3439,13 +3438,12 @@ void advance_level(struct char_data *ch, int class)
     class_feats++; // Eldritch Knights get a bonus feat on levels 1, 5, and 9
   }
 
-  if (class == CLASS_SORCERER && ((CLASS_LEVEL(ch, CLASS_SORCERER) - 1) % 6 == 0) &&
-      CLASS_LEVEL(ch, CLASS_SORCERER) > 1)
+  if (class == CLASS_SORCERER && ((CLASS_LEVEL(ch, CLASS_SORCERER) - 1) % 6 == 0) && CLASS_LEVEL(ch, CLASS_SORCERER) > 1)
   {
     class_feats++;
   }
 
-  if (class == CLASS_SPELLSWORD && CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 2)
+  if (class == CLASS_SPELLSWORD && (CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 2 || CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 6 || CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 10))
   {
     class_feats++;
   }
@@ -3862,21 +3860,25 @@ int level_exp(struct char_data *ch, int level)
     break;
   }
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_FR)
   // This is the final multiplier.  This will change all exp requirements across the board.
   // To keep it at the original -LuminariMUD based levels, comment out this line entirely
   exp *= 2;
 #endif
 
 #if defined(CAMPAIGN_DL)
+    // we are a flat 1.75 x the default luminarimud exp tables.
+    exp *= 1.75;
+
+    // We also increment exp requirements more as you level up.
     if (level >= 25)
-      exp *= 3;
+      exp *= 1.8;
     else if (level >= 20)
-      exp *= 2.5;
+      exp *= 1.6;
     else if (level >= 15)
-      exp *= 2;
+      exp *= 1.4;
     else if (level >= 10)
-      exp *= 1.5;
+      exp *= 1.2;
 #endif
 
   return exp;
@@ -4184,6 +4186,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_7, 13);
   spell_assignment(CLASS_WIZARD, SPELL_CONTROL_WEATHER, 13);
   spell_assignment(CLASS_WIZARD, SPELL_POWER_WORD_BLIND, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_POWER_WORD_SILENCE, 13);
   spell_assignment(CLASS_WIZARD, SPELL_WAVES_OF_EXHAUSTION, 13);
   spell_assignment(CLASS_WIZARD, SPELL_MASS_HOLD_PERSON, 13);
   spell_assignment(CLASS_WIZARD, SPELL_MASS_FLY, 13);
@@ -5490,6 +5493,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_7, 14);
   spell_assignment(CLASS_SORCERER, SPELL_CONTROL_WEATHER, 14);
   spell_assignment(CLASS_SORCERER, SPELL_POWER_WORD_BLIND, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_POWER_WORD_SILENCE, 14);
   spell_assignment(CLASS_SORCERER, SPELL_WAVES_OF_EXHAUSTION, 14);
   spell_assignment(CLASS_SORCERER, SPELL_MASS_HOLD_PERSON, 14);
   spell_assignment(CLASS_SORCERER, SPELL_MASS_FLY, 14);
@@ -6795,11 +6799,13 @@ void load_class_list(void)
   /* feat assignment */
   /*              class num     feat                             cfeat lvl stack */
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 1, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_CHANNELLING, Y, 2, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 3, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_CHANNEL_SPELL, Y, 4, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 5, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_CHANNEL_SPELL, Y, 6, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 6, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_ADVANCED_CHANNELLING, Y, 6, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 7, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_CHANNEL_SPELL, Y, 8, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 8, Y);
@@ -6808,6 +6814,7 @@ void load_class_list(void)
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 10, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 10, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 10, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_GREATER_CHANNELLING, Y, 10, Y);
   /* list of class feats */
   feat_assignment(CLASS_SPELLSWORD, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SPELLSWORD, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);

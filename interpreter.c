@@ -79,6 +79,7 @@ static int sort_commands_helper(const void *a, const void *b);
 
 // external functions
 void load_char_pets(struct char_data *ch);
+void update_player_last_on(void);
 
 /* globals defined here, used here and elsewhere */
 int *cmd_sort_info = NULL;
@@ -154,6 +155,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"augment", "augment", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"autoexits", "autoex", POS_DEAD, do_gen_tog, 0, SCMD_AUTOEXIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autoassist", "autoass", POS_DEAD, do_gen_tog, 0, SCMD_AUTOASSIST, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"autoaugment", "autoaug", POS_DEAD, do_gen_tog, 0, SCMD_AUTO_AUGMENT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autocollect", "autocollect", POS_DEAD, do_gen_tog, 0, SCMD_AUTOCOLLECT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autoconsider", "autoconsider", POS_DEAD, do_gen_tog, 0, SCMD_AUTOCONSIDER, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autodoor", "autodoor", POS_DEAD, do_gen_tog, 0, SCMD_AUTODOOR, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -3501,6 +3503,8 @@ switch (load_result)
       greet_memory_mtrigger(d->character);
 
       act("$n has entered the game.", TRUE, d->character, 0, 0, TO_ROOM);
+
+      update_player_last_on();
 
       STATE(d) = CON_PLAYING;
       // MXPSendTag( d, "<VERSION>" ); this is already called in perform_dupe_check() before we get here, shouldn't be needed here.. -Nashak

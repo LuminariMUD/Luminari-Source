@@ -1422,7 +1422,7 @@ void char_from_furniture(struct char_data *ch);
 // Eldritch knight spell critical ability
 #define HAS_ELDRITCH_SPELL_CRIT(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->has_eldritch_knight_spell_critical))
 // Eldritch knight levels are added to warrior levels when determining qualification for certain warrior-only feats
-#define WARRIOR_LEVELS(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT))
+#define WARRIOR_LEVELS(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + (CLASS_LEVEL(ch, CLASS_SPELLSWORD) / 2))
 
 /* Attacks of Opportunity (AOO) */
 #define GET_TOTAL_AOO(ch) (ch->char_specials.attacks_of_opportunity)
@@ -2533,14 +2533,15 @@ int count_teamwork_feats_available(struct char_data *ch);
 
 // summoners
 int char_has_evolution(struct char_data *ch, int evo);
+void save_eidolon_descs(struct char_data *ch);
+void set_eidolon_descs(struct char_data *ch);
 #define HAS_EVOLUTION(ch, i)      (char_has_evolution(ch, i))
 #define HAS_REAL_EVOLUTION(ch, i) ((ch)->char_specials.saved.eidolon_evolutions[i])
 #define HAS_TEMP_EVOLUTION(ch, i) ((ch)->char_specials.temporary_eidolon_evolutions[i])
 #define KNOWS_EVOLUTION(ch, i) ((ch)->char_specials.saved.known_evolutions[i])
 #define GET_EIDOLON_BASE_FORM(ch) ((ch)->char_specials.saved.eidolon_base_form)
-#define GET_EIDOLON_SHORT_DESCRIPTION(ch) ((ch)->char_specials.saved.eidolon_shortdescription)
-#define GET_EIDOLON_LONG_DESCRIPTION(ch) ((ch)->char_specials.saved.eidolon_longdescription)
-#define GET_EIDOLON_DETAIL_DESCRIPTION(ch) ((ch)->char_specials.saved.eidolon_detaildescription)
+#define GET_EIDOLON_SHORT_DESCRIPTION(ch) (ch->player.eidolon_shortdescription)
+#define GET_EIDOLON_LONG_DESCRIPTION(ch) (ch->player.eidolon_longdescription)
 #define CALL_EIDOLON_COOLDOWN(ch) (ch->player_specials->saved.call_eidolon_cooldown)
 #define MERGE_FORMS_TIMER(ch)  (ch->player_specials->saved.merge_forms_timer)
 
@@ -2550,6 +2551,8 @@ int char_has_evolution(struct char_data *ch, int evo);
 #define GET_SICKENING_AURA_TIMER(ch)  ((ch)->char_specials.sickening_aura_timer)
 #define GET_FRIGHTFUL_PRESENCE_TIMER(ch)  ((ch)->char_specials.frightful_presence_timer)
 bool has_reach(struct char_data *ch);
+
+#define WEAPON_SPELL_PROC(ch) (ch->player.weaponSpellProc)
 
 #endif /* _UTILS_H_ */
 

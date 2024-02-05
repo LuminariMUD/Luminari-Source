@@ -970,6 +970,12 @@ switch (spellnum)
   case SPELL_SANCTION_RECALL:
   case SPELL_SOLACE_RECALL:
     return 5;
+  case SPELL_MINOR_RAPID_BUFF:
+    return 3;
+  case SPELL_RAPID_BUFF:
+    return 5;
+  case SPELL_GREATER_RAPID_BUFF:
+    return 7;
   }
 #endif
 

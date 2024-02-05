@@ -20,6 +20,7 @@ int remove_from_save_list(zone_vnum, int type);
 int add_to_save_list(zone_vnum, int type);
 int in_save_list(zone_vnum, int type);
 void strip_cr(char *);
+void strip_nl(char *buffer);
 int save_all(void);
 char *str_udup(const char *);
 char *str_udupnl(const char *);

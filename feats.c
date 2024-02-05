@@ -3001,6 +3001,15 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_MULTIPLE_CHANNEL_SPELL, "multiple channel spell", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "You can channel two spells into your weapon.",
         "As per channel spell, except allows you to channel two spells into a single weapon.");
+  feato(FEAT_IMPROVED_CHANNELLING, "improved channelling", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2.",
+        "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2.");
+  feato(FEAT_ADVANCED_CHANNELLING, "advanced channelling", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2.",
+        "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2. Stacks with improved channelling.");
+  feato(FEAT_GREATER_CHANNELLING, "greater channelling", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2.",
+        "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2. Stacks with improved and advanced channelling.");
 
   // Inquisitors
   feato(FEAT_JUDGEMENT, "judgement", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -5131,6 +5140,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   dailyfeat(FEAT_DRAGONBORN_BREATH, eDRAGBREATH);
   dailyfeat(FEAT_TABAXI_CATS_CLAWS, eCATSCLAWS);
   dailyfeat(FEAT_STONES_ENDURANCE, eSTONESENDURANCE);
+  dailyfeat(FEAT_TOUCH_OF_UNDEATH, eTOUCHOFUNDEATH);
   /** END **/
 }
 

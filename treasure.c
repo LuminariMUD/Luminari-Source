@@ -806,6 +806,10 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
 
   gold = dice(1, GET_LEVEL(mob)) * 10;
 
+#if defined(CAMPAIGN_DL)
+  gold *= 5;
+#endif
+
   level = GET_LEVEL(mob);
 
   /* okay now determine grade */
