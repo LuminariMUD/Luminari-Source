@@ -3047,6 +3047,11 @@ const char *parse_object(FILE *obj_f, int nr)
   GET_OBJ_LEVEL(obj_proto + i) = t[3];
   GET_OBJ_TIMER(obj_proto + i) = t[4];
 
+  if (GET_OBJ_LEVEL(obj_proto + i) < 1)
+    GET_OBJ_LEVEL(obj_proto + i) = 1;
+  if (GET_OBJ_LEVEL(obj_proto + i) > 30)
+    GET_OBJ_LEVEL(obj_proto + i) = 30;
+
   obj_proto[i].sitting_here = NULL;
 
   /* check to make sure that weight of containers exceeds curr. quantity */
@@ -4006,6 +4011,12 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
     {
       GET_OBJ_VAL(obj, 4) = 0;
     }
+
+    if (GET_OBJ_LEVEL(obj) < 1)
+      GET_OBJ_LEVEL(obj) = 1;
+    if (GET_OBJ_LEVEL(obj) > 30)
+      GET_OBJ_LEVEL(obj) = 30;
+
     // REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_SET_STATS_AT_LOAD);
   }
 

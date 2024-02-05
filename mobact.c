@@ -39,7 +39,7 @@ bool mob_knows_assigned_spells(struct char_data *ch);
 
 /* local file scope only function prototypes, defines, externs, etc */
 #define SINFO spell_info[spellnum]
-#define OFFENSIVE_SPELLS 59
+#define OFFENSIVE_SPELLS 60
 #define OFFENSIVE_AOE_SPELLS 16
 
 
@@ -243,7 +243,8 @@ int valid_offensive_spell[OFFENSIVE_SPELLS] = {
     SPELL_BLIGHT, // 55
     SPELL_FINGER_OF_DEATH,
     SPELL_WHIRLWIND,
-    SPELL_HOLD_MONSTER
+    SPELL_HOLD_MONSTER,
+    SPELL_POWER_WORD_SILENCE
     };
 
 /* end local */

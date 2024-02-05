@@ -217,11 +217,11 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
 
   /* The top section of the actual menu */
   send_to_char(d->character,
-               "%s1%s) Use Stored Consumables  %s[%s%3s%s]        %s9%s) Charmie Combat Roll      %s[%s%3s%s]\r\n"
+               "%s1%s) Use Stored Consumables  %s[%s%3s%s]        %s9%s) Charmie Combat Roll              %s[%s%3s%s]\r\n"
                /* Line 1 (1) - use stored consumables */
-               "%s2%s) Auto Stand / Springleap %s[%s%3s%s]        %sA%s) Auto-Prep Spells on Rest %s[%s%3s%s]\r\n"
+               "%s2%s) Auto Stand / Springleap %s[%s%3s%s]        %sA%s) Auto-Prep Spells on Rest         %s[%s%3s%s]\r\n"
                /* Line 2 (2) - Auto Stand */
-               "%s3%s) Auto Hit                %s[%s%3s%s]\r\n"
+               "%s3%s) Auto Hit                %s[%s%3s%s]        %sB%s) Augment Psi Powers While Buffing %s[%s%3s%s]\r\n"
                /* Line 3 (3) - Auto Hit */
                "%s4%s) Vampiric Blood Drain    %s[%s%3s%s]\r\n"
                /* Line 4 (4) - Vampiric Blood Drain */
@@ -255,6 +255,10 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_AUTOHIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
                ONOFF(PREFEDIT_FLAGGED(PRF_AUTOHIT)), CCCYN(d->character, C_NRM),
+               /**/
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AUGMENT_BUFFS) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUGMENT_BUFFS)), CCCYN(d->character, C_NRM),
                /*******4*********/
                CBYEL(d->character, C_NRM),
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
@@ -982,6 +986,11 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case 'a':
     case 'A':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTO_PREP);
+      break;
+
+    case 'b':
+    case 'B':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUGMENT_BUFFS);
       break;
 
     default:

@@ -201,14 +201,10 @@ int compute_bonus_caster_level(struct char_data *ch, int class)
   case CLASS_SORCERER:
   case CLASS_BARD:
   case CLASS_SUMMONER:
-    if (class == GET_PREFERRED_ARCANE(ch))
-    {
-      bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4 + CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + 
-                      ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) + CLASS_LEVEL(ch, CLASS_NECROMANCER);
-      if (CLASS_LEVEL(ch, CLASS_NECROMANCER) && NECROMANCER_CAST_TYPE(ch) == 1)
-        bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
-    }
-    
+    bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4 + CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + 
+                    ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+    if (CLASS_LEVEL(ch, CLASS_NECROMANCER) && NECROMANCER_CAST_TYPE(ch) == 1)
+      bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);  
     break;
   case CLASS_CLERIC:
   case CLASS_DRUID:
@@ -4612,7 +4608,8 @@ int get_daily_uses(struct char_data *ch, int featnum)
 {
   int daily_uses = 0;
 
-  switch (featnum) {
+  switch (featnum)
+  {
     case FEAT_QUICK_CHANT:
     case FEAT_QUICK_MIND:
       daily_uses = 2;
@@ -7730,6 +7727,7 @@ bool is_spell_restoreable(int spell)
   case SPELL_SHRINK_PERSON:
   case SPELL_POWER_WORD_BLIND:
   case SPELL_POWER_WORD_STUN:
+  case SPELL_POWER_WORD_SILENCE:
   case SPELL_CONTAGION:
   case SPELL_BALEFUL_POLYMORPH:
   case SPELL_CONFUSION:
@@ -8887,6 +8885,7 @@ int get_psp_regen_amount(struct char_data *ch)
   psp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_PSP_REGEN);
   psp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_PSP_REGEN);
   psp += get_apply_type_gear_mod(ch, APPLY_PSP_REGEN);
+  psp += MAX(0, GET_INT_BONUS(ch));
 
   return psp;
 }

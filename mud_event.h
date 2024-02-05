@@ -184,6 +184,7 @@ typedef enum
   eVAMPIREBLOODDRAIN,               // vampire blood drain ability
   eEVOBREATH,                       // eidolon evolution breath weapon
   eC_EIDOLON,                       //  call eidolon cooldown
+  eTOUCHOFUNDEATH,                  // necromancer touch of undeath ability
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

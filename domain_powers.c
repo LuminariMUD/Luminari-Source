@@ -312,11 +312,13 @@ ACMD(do_healingtouch)
     }
   }
 
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   if (GET_HIT(vict) > GET_MAX_HIT(vict) / 2)
   {
     send_to_char(ch, "Your target is not injured enough to use this feat!\r\n");
     return;
   }
+#endif
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
       ch->next_in_room != vict && vict->next_in_room != ch)

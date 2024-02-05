@@ -1151,7 +1151,6 @@ ACMD(do_eidolon)
                      "-- aspects - shows the aspects you have learned.\r\n"
                      "-- shortdesc  - change the eidolon's short description.\r\n"
                      "-- longdesc   - change the eidolon's long description.\r\n"
-                     "-- detaildesc - change the eidolon's detailed description.\r\n"
                      "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your character.\r\n"
                      "-- mergeforms - merge your eidolon with your own form and gain all of their evolutions.\r\n"
                      "-- mergedevos - shows the evolutions you have gained through the mergeforms ability.\r\n"
@@ -1304,43 +1303,9 @@ ACMD(do_eidolon)
 
     GET_EIDOLON_LONG_DESCRIPTION(ch) = desc;
     eidolon->player.long_descr = desc;
-    send_to_char(ch, "You change your eidilon's long description to: %s\r\n", arg2);
-    return;
-  }
-  else if (is_abbrev(arg, "detaildesc"))
-  {
-    if (!*arg2)
-    {
-      send_to_char(ch, "Please specify what you would like the deatiled desc to be as well.\r\n"
-                       "Eg. eidolon detaildesc A massive black panther with deep purple eyes is before you. It looks as large as a small horse and has deep yellow eyes betraying more than an animal intelligence.\r\n"
-                       "Type 'eidolon detaildesc reset' to reset the eidolon detailed description to the default.\r\n");
-      return;
-    }
-    if (strlen(arg2) > MAX_INPUT_LENGTH)
-    {
-      send_to_char(ch, "You cannot provide a detailed description length greater than %d.\r\n", MAX_INPUT_LENGTH);
-      return;
-    }
-    if (!strcmp(arg2, "reset"))
-    {
-      GET_EIDOLON_DETAIL_DESCRIPTION(ch) = NULL;
-      send_to_char(ch, "You've reset your eidolon detail description.  This will be reflected next time you summon your eidolon.\r\n");
-      return;
-    }
-
-    if(!valid_pet_name(arg2))
-    {
-      send_to_char(ch, "Pet descriptions cannot contain the \" or ; characters.\r\n");
-      return;
-    }
-
-    desc = strdup(arg2);
-
-    GET_EIDOLON_DETAIL_DESCRIPTION(ch) = desc;
-    send_to_char(ch, "You change your eidilon's detailed description to: %s\r\n", desc);
-    snprintf(buf, sizeof(buf), "%s\r\n", arg2);
+    snprintf(buf, sizeof(buf), "%s\n", GET_EIDOLON_LONG_DESCRIPTION(ch));
     eidolon->player.description = strdup(buf);
-
+    send_to_char(ch, "You change your eidilon's long description to: %s\r\n", arg2);
     return;
   }
   else if (is_abbrev(arg, "bondsenses"))
@@ -1391,7 +1356,6 @@ ACMD(do_eidolon)
                      "-- aspects    - shows the aspects you have learned.\r\n"
                      "-- shortdesc  - change the eidolon's short description.\r\n"
                      "-- longdesc   - change the eidolon's long description.\r\n"
-                     "-- detaildesc - change the eidolon's detailed description.\r\n"
                      "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your character.\r\n"
                      "-- mergeforms - merge your eidolon with your own form and gain all of their evolutions.\r\n"
                      "-- mergedevos - shows the evolutions you have gained through the mergeforms ability.\r\n"

@@ -2195,6 +2195,12 @@ ASPELL(spell_geniekind)
     geniekind = dice(1, 4);
   }
 
+  // clear all geniekind affects so we aren't stacking multiple kinds.
+  affect_from_char(ch, SPELL_DJINNI_KIND);
+  affect_from_char(ch, SPELL_EFREETI_KIND);
+  affect_from_char(ch, SPELL_MARID_KIND);
+  affect_from_char(ch, SPELL_SHAITAN_KIND);
+
   switch (geniekind)
   {
     case GENIE_DJINNI:

@@ -1355,9 +1355,10 @@
 #define AFF_ON_FIRE 118             // person is on fire
 #define AFF_FLAME_BLADE 119        // melee hits deal 1d6 fire damage extra
 #define AFF_SICKENING_AURA 120
+#define AFF_RAPID_BUFF 121          // increases buff speed
 
 /*---*/
-#define NUM_AFF_FLAGS 121
+#define NUM_AFF_FLAGS 122
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -2592,13 +2593,16 @@
 #define FEAT_DEATHLESS_MASTERY 1042
 #define FEAT_PALE_MASTER_WEAPONS 1043
 #define FEAT_UNDEAD_COHORT 1044
+#define FEAT_IMPROVED_CHANNELLING 1045
+#define FEAT_ADVANCED_CHANNELLING 1046
+#define FEAT_GREATER_CHANNELLING 1047
 
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1045
+#define FEAT_LAST_FEAT 1048
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1046
+#define NUM_FEATS 1049
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4189,6 +4193,10 @@ struct char_player_data
     char *walkout;                   // NPC (for now) walkout message
     char *background;                // Character Backgrounds
     byte exploit_weaknesses;         // has exploit weaknesses taken effect?
+    char *eidolon_shortdescription;
+    char *eidolon_longdescription;
+    char *eidolon_detaildescription;
+    bool weaponSpellProc;
 };
 
 /** Character abilities. Different instances of this structure are used for
@@ -4281,9 +4289,6 @@ struct char_special_data_saved
     int eidolon_evolutions[NUM_EVOLUTIONS]; //active eidolon evolutions 
     int known_evolutions[NUM_EVOLUTIONS]; // known eidolon evolutions
     int eidolon_base_form;  // Eidolon base form determines their starting stats and evolutions
-    char *eidolon_shortdescription;
-    char *eidolon_longdescription;
-    char *eidolon_detaildescription;
 };
 
 /* not saved player data used for condensed combat */

@@ -139,6 +139,22 @@ void strip_cr(char *buffer)
   buffer[wpos] = '\0';
 }
 
+/* NOTE: This changes the buffer passed in. */
+void strip_nl(char *buffer)
+{
+  int rpos, wpos;
+
+  if (buffer == NULL)
+    return;
+
+  for (rpos = 0, wpos = 0; buffer[rpos]; rpos++)
+  {
+    buffer[wpos] = buffer[rpos];
+    wpos += (buffer[rpos] != '\n');
+  }
+  buffer[wpos] = '\0';
+}
+
 void copy_ex_descriptions(struct extra_descr_data **to, struct extra_descr_data *from)
 {
   struct extra_descr_data *wpos;

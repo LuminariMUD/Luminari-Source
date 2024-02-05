@@ -150,6 +150,13 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
     challenge += 4;
 
+  if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_SPELLSWORD) > 0 && WEAPON_SPELL_PROC(ch) == TRUE)
+  {
+    challenge += HAS_REAL_FEAT(ch, FEAT_IMPROVED_CHANNELLING) * 2;
+    challenge += HAS_REAL_FEAT(ch, FEAT_ADVANCED_CHANNELLING) * 2;
+    challenge += HAS_REAL_FEAT(ch, FEAT_GREATER_CHANNELLING) * 2;
+  }
+
   // success?
   if (resist > challenge)
   {
@@ -335,6 +342,13 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     break;
   }
 
+  if (casttype == CAST_WEAPON_SPELL && CLASS_LEVEL(ch, CLASS_SPELLSWORD) > 0)
+  {
+    challenge += HAS_REAL_FEAT(ch, FEAT_IMPROVED_CHANNELLING);
+    challenge += HAS_REAL_FEAT(ch, FEAT_ADVANCED_CHANNELLING);
+    challenge += HAS_REAL_FEAT(ch, FEAT_GREATER_CHANNELLING);
+  }
+
   if (is_spellnum_psionic(spellnum))
   {
     if (ch && HAS_FEAT(ch, FEAT_EPIC_PSIONICS))
@@ -471,7 +485,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     }
   }
 
-  if (diceroll != 1 && (savethrow > challenge || diceroll == 20))
+  if (diceroll != 1 && (savethrow >= challenge || diceroll == 20))
   {
     if (diceroll == 20)
     {
@@ -483,7 +497,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     }
     else
     {
-      send_combat_roll_info(vict, "\tW*(%s:%d>Challenge:%d) Saved!*\tn ", save_names[type],
+      send_combat_roll_info(vict, "\tW*(%s:%d>=Challenge:%d) Saved!*\tn ", save_names[type],
                      savethrow, challenge);
       if (ch && vict && vict != ch)
       {
@@ -1225,7 +1239,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_DEADLY_FEAR: /* 4th circle */
     if (is_immune_death_magic(ch, victim, TRUE))
       return (0);
-    if (is_immune_mind_affecting(ch, victim, 0))
+    if (is_immune_mind_affecting(ch, victim, TRUE))
       return (0);
     if (is_immune_fear(ch, victim, 0))
       return (0);
@@ -1243,7 +1257,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_PSYCHIC_CRUSH: /* 5th circle Psi */
     if (is_immune_death_magic(ch, victim, TRUE))
       return (0);
-    if (is_immune_mind_affecting(ch, victim, 0))
+    if (is_immune_mind_affecting(ch, victim, TRUE))
       return (0);
     // saving throw is handled special below
 
@@ -1305,7 +1319,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_ULTRABLAST: /* 7th circle Psi */
-    if (is_immune_mind_affecting(ch, victim, 0))
+    if (is_immune_mind_affecting(ch, victim, TRUE))
       return (0);
     bonus = 14;
     save = SAVING_WILL;
@@ -1316,7 +1330,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_PSYCHOSIS: /* 7th circle Psi */ /* AoE */
-    if (is_immune_mind_affecting(ch, victim, 0))
+    if (is_immune_mind_affecting(ch, victim, TRUE))
       return (0);
     bonus = GET_AUGMENT_PSP(ch) / 2;
     save = SAVING_WILL;
@@ -1329,7 +1343,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_RECALL_DEATH: /* 8th circle Psi */
     if (is_immune_death_magic(ch, victim, TRUE))
       return (0);
-    if (is_immune_mind_affecting(ch, victim, 0))
+    if (is_immune_mind_affecting(ch, victim, TRUE))
       return (0);
     save = SAVING_WILL;
     mag_resist = FALSE;
@@ -1746,7 +1760,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = TRUE;
     element = DAM_MENTAL;
     num_dice = 10;
-    size_dice = 2;
+    size_dice = 8;
     if (GET_HIT(victim) <= 121)
       bonus = GET_HIT(victim) + 10;
     else
@@ -3125,6 +3139,39 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       accum_duration = TRUE;
       break;
 
+    // misc
+
+    case SPELL_MINOR_RAPID_BUFF:
+      if (GET_LEVEL(ch) > 10)
+      {
+        send_to_char(ch, "This has no effect on those higher than level 10.\r\n");
+        return;
+      }
+      af[0].location = APPLY_SPECIAL;
+      af[0].duration = 30;
+      af[0].modifier = 0;
+      SET_BIT_AR(af[0].bitvector, AFF_RAPID_BUFF);
+      break;
+
+    case SPELL_RAPID_BUFF:
+      if (GET_LEVEL(ch) > 20)
+      {
+        send_to_char(ch, "This has no effect on those higher than level 20.\r\n");
+        return;
+      }
+      af[0].location = APPLY_SPECIAL;
+      af[0].duration = 30;
+      af[0].modifier = 0;
+      SET_BIT_AR(af[0].bitvector, AFF_RAPID_BUFF);
+      break;
+
+    case SPELL_GREATER_RAPID_BUFF:
+      af[0].location = APPLY_SPECIAL;
+      af[0].duration = 30;
+      af[0].modifier = 0;
+      SET_BIT_AR(af[0].bitvector, AFF_RAPID_BUFF);
+      break;
+
     // psionic powers 1st
 
   case PSIONIC_BROKER:
@@ -3735,7 +3782,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_DEATH_URGE:
     if (power_resistance(ch, victim, 0))
       return;
-    if (is_immune_mind_affecting(ch, victim, 0))
+    if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
@@ -3757,7 +3804,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_INCITE_PASSION:
-    if (is_immune_mind_affecting(ch, victim, 0))
+    if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
     if (power_resistance(ch, victim, 0))
       return;
@@ -3795,7 +3842,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   case PSIONIC_MOMENT_OF_TERROR:
 
-    if (is_immune_mind_affecting(ch, victim, 0))
+    if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
     if (is_immune_fear(ch, victim, 0))
       return;
@@ -3866,7 +3913,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_ASSIMILATE:
-    if (is_immune_mind_affecting(ch, victim, 0))
+    if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
     if (power_resistance(ch, victim, 0))
       return;
@@ -3879,7 +3926,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_BRUTALIZE_WOUNDS:
-    if (is_immune_mind_affecting(ch, victim, 0))
+    if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
     if (power_resistance(ch, victim, 0))
       return;
@@ -5187,6 +5234,23 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].bonus_type = BONUS_TYPE_SACRED;
     to_room = "$n's weapons glow bright yellow!";
     to_vict = "Your weapons begin to glow bright yellow!";
+    break;
+
+    case SPELL_POWER_WORD_SILENCE: // necromancy
+    if (!can_silence(victim))
+    {
+      send_to_char(ch, "Your opponent doesn't seem to be able to be silenced.\r\n");
+      return;
+    }
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (is_immune_mind_affecting(ch, victim, true))
+      return;
+
+    af[0].duration = dice(1, 4) + 1;
+    SET_BIT_AR(af[0].bitvector, AFF_SILENCED);
+    to_room = "$n seems unable to speak.";
+    to_vict = "You become unable to speak!";
     break;
 
   case SPELL_SILENCE: // illusion
@@ -6963,20 +7027,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_REFL, -4, casttype, level, NECROMANCY))
-    {
-      send_to_char(ch, "You fail.\r\n");
+    if (is_immune_mind_affecting(ch, victim, true))
       return;
-    }
 
     af[0].location = APPLY_HITROLL;
     af[0].modifier = -4;
-    af[0].duration = 200;
+    af[0].duration = dice(1, 4) + 1;
     SET_BIT_AR(af[0].bitvector, AFF_BLIND);
 
     af[1].location = APPLY_AC_NEW;
     af[1].modifier = -4;
-    af[1].duration = 200;
+    af[1].duration = dice(1, 4) + 1;
     SET_BIT_AR(af[1].bitvector, AFF_BLIND);
 
     to_room = "$n seems to be blinded!";
@@ -6990,6 +7051,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     }
     if (mag_resistance(ch, victim, 0))
+      return;
+    if (is_immune_mind_affecting(ch, victim, true))
       return;
     // no save
 

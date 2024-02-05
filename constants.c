@@ -1622,7 +1622,7 @@ const char *preference_bits[] = {
     "Life-Bond",
     "Charmie-Combat-Roll",
     "Auto-Prep",
-    "Augmewnt-BUffs",
+    "Augment-Buffs",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -1780,6 +1780,7 @@ const char *affected_bits[] = {
     "On-Fire",
     "Flame-Blade",
     "Sickening-Aura",
+    "Rapid-Buff",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1912,6 +1913,7 @@ const char *affected_bit_descs[] = {
     "You have been caught on fire!",
     "Your weapons are sheathed in fire!",
     "You are surrounded by a sickening aura.",
+    "You are able to buff yourself with spells faster than usual.",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 

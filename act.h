@@ -729,6 +729,7 @@ ACMD_DECL(do_racefix);
 #define SCMD_LIFE_BOND 54
 #define SCMD_CHARMIE_COMBATROLL 55
 #define SCMD_AUTO_PREP 56
+#define SCMD_AUTO_AUGMENT 57
 
 /* do_quit */
 ACMD_DECL(do_quit);

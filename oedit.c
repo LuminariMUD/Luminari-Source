@@ -573,7 +573,7 @@ static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d)
                   "\r\n"
                   "%sN%s) Assign a new ability\r\n"
                   "%sE%s) Edit an assigned ability\r\n"
-                  "%sD%s) Delete an assigned ability\r\n"
+                  "%sC%s) Clear all abilities.\r\n"
                   "%sQ%s) Quit\r\n"
                   "Enter choice : ",
 
@@ -1532,37 +1532,56 @@ static void oedit_disp_wear_menu(struct descriptor_data *d)
 
 bool remove_special_ability(struct obj_data *obj, int number)
 {
-  bool deleted = FALSE;
-  int i;
-  struct obj_special_ability *specab, *prev_specab;
 
-  specab = obj->special_abilities;
-  prev_specab = NULL;
+  // struct obj_special_ability *current = obj->special_abilities;
+  // struct obj_special_ability *next;
 
-  for (i = 1; (i < number) && (specab != NULL); i++)
-  {
-    prev_specab = specab;
-    specab = specab->next;
-  }
-  /* Check to see if we found the ability. */
-  if ((i == number) && (specab != NULL))
-  {
+  //   while (current != NULL)
+  //   {
+  //       next = current->next; // Save the next pointer before freeing the current node
+  //       free(current);        // Free the memory allocated for the current node
+  //       current = next;       // Move to the next node
+  //   }
 
-    deleted = TRUE;
+  //   current = NULL;
 
-    /* Remove it from the list. */
-    if (prev_specab == NULL)
-      obj->special_abilities = specab->next;
-    else
-      prev_specab->next = specab->next;
+    obj->special_abilities = NULL;
 
-    /* Free up the memory. */
-    if (specab->command_word != NULL)
-      free(specab->command_word);
-    free(specab);
-  }
+    return true;
 
-  return deleted;
+  // This code doesn't work, so we instead clear all special abilities
+
+  // bool deleted = FALSE;
+  // int i;
+  // struct obj_special_ability *specab, *prev_specab;
+
+  // specab = obj->special_abilities;
+  // prev_specab = NULL;
+
+  // for (i = 1; (i < number) && (specab != NULL); i++)
+  // {
+  //   prev_specab = specab;
+  //   specab = specab->next;
+  // }
+  // /* Check to see if we found the ability. */
+  // if ((i == number) && (specab != NULL))
+  // {
+
+  //   deleted = TRUE;
+
+  //   /* Remove it from the list. */
+  //   if (prev_specab == NULL)
+  //     obj->special_abilities = specab->next;
+  //   else
+  //     prev_specab->next = specab->next;
+
+  //   /* Free up the memory. */
+  //   if (specab->command_word != NULL)
+  //     free(specab->command_word);
+  //   free(specab);
+  // }
+
+  // return deleted;
 }
 
 struct obj_special_ability *get_specab_by_position(struct obj_data *obj, int position)
@@ -2098,7 +2117,14 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
   case OEDIT_EXTRAS:
     number = atoi(arg);
-    if ((number < 0) || (number > NUM_ITEM_FLAGS))
+    if (number == -1)
+    {
+      OLC_OBJ(d)->obj_flags.extra_flags[0] = OLC_OBJ(d)->obj_flags.extra_flags[1] = OLC_OBJ(d)->obj_flags.extra_flags[2] = OLC_OBJ(d)->obj_flags.extra_flags[3] = 0;
+      oedit_disp_extra_menu(d);
+      write_to_output(d, "You've removed all object flags from this object.\r\n");
+      return;
+    }
+    else if ((number < 0) || (number > NUM_ITEM_FLAGS))
     {
       oedit_disp_extra_menu(d);
       return;
@@ -2982,11 +3008,16 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = OEDIT_EDIT_WEAPON_SPECAB;
       OLC_VAL(d) = 1;
       break;
-    case 'D':
-    case 'd':
-      write_to_output(d, "Delete which ability? (-1 to cancel) : ");
-      OLC_MODE(d) = OEDIT_DELETE_WEAPON_SPECAB;
-      break;
+    case 'C':
+    case 'c':
+      // write_to_output(d, "Delete which ability? (-1 to cancel) : ");
+      // OLC_MODE(d) = OEDIT_DELETE_WEAPON_SPECAB;
+      OLC_SPECAB(d) = NULL;
+      OLC_OBJ(d)->special_abilities = NULL;
+      OLC_VAL(d) = 1;
+      write_to_output(d, "Special Abilities Cleared.\r\n");
+      oedit_disp_weapon_special_abilities_menu(d);
+      return;
     case 'Q':
     case 'q':
       OLC_MODE(d) = OEDIT_MAIN_MENU;
@@ -3070,7 +3101,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     OLC_SPECAB(d) = NULL;
 
     if (remove_special_ability(OLC_OBJ(d), number))
-      write_to_output(d, "Ability deleted.\r\n");
+    {
+        OLC_SPECAB(d) = NULL;
+        write_to_output(d, "Ability deleted.\r\n");
+        OLC_VAL(d) = 1;
+    }
     else
       write_to_output(d, "That ability does not exist!\r\n");
 

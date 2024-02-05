@@ -423,9 +423,9 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
         damage(ch, victim, dice(2, 6), TYPE_SPECAB_ANARCHIC, DAM_NEGATIVE, FALSE);
       }
       // unholy
-      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_UNHOLY) && IS_GOOD(victim))
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_UNHOLY))
       {
-        damage(ch, victim, dice(2, 6), TYPE_SPECAB_UNHOLY, DAM_NEGATIVE, FALSE);
+        damage(ch, victim, dice(1, 6), TYPE_SPECAB_UNHOLY, DAM_NEGATIVE, FALSE);
       }
       // wounding
       if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_WOUNDING) && !((GET_NPC_RACE(victim) == RACE_TYPE_CONSTRUCT) ||
@@ -479,7 +479,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
         damage(ch, victim, dice(2, 6), TYPE_SPECAB_ANARCHIC, DAM_NEGATIVE, FALSE);
       }
       // unholy
-      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_UNHOLY) && IS_GOOD(victim))
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_UNHOLY))
       {
         damage(ch, victim, dice(2, 6), TYPE_SPECAB_UNHOLY, DAM_NEGATIVE, FALSE);
       }

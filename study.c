@@ -287,6 +287,7 @@ void init_study(struct descriptor_data *d, int class)
     LEVELUP(ch)->eidolon_evolutions[i] = KNOWS_EVOLUTION(ch, i);
     LEVELUP(ch)->summoner_aspects[i] = HAS_REAL_EVOLUTION(ch, i);
   }
+  LEVELUP(ch)->necromancer_bonus_levels = NECROMANCER_CAST_TYPE(ch);
 }
 
 void finalize_study(struct descriptor_data *d)
@@ -3280,7 +3281,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       display_main_menu(d);
       break;
     }
-    if (number <=0 || number > 2)
+    if (number <= 0 || number > 2)
     {
       write_to_output(d, "Please select either 1 for arcane spell progression or 2 for divine spell progression.\r\n");
       break;

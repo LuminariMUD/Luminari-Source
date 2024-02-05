@@ -628,9 +628,9 @@ void assign_domains(void)
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
                     SPELL_MAGIC_VESTMENT, SPELL_DIVINE_POWER, SPELL_RESERVED_DBC,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
-                    SPELL_RESERVED_DBC, SPELL_HASTE, SPELL_CLENCHED_FIST,
+                    SPELL_RESERVED_DBC, SPELL_POWER_WORD_BLIND, SPELL_POWER_WORD_STUN,
                     /* 9th circle */
-                    SPELL_TRANSFORMATION);
+                    SPELL_POWER_WORD_KILL);
 
   /* end */
   /* this has to be at the end */

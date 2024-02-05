@@ -1534,6 +1534,15 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
   enhancement = GET_OBJ_VAL(obj, 4);
   material = GET_OBJ_MATERIAL(obj);
 
+  /* "cost" of reforge */
+  cost = GET_OBJ_COST(obj) / 2;
+
+  if (GET_GOLD(ch) < cost)
+  {
+    send_to_char(ch, "You need %d coins on hand for supplies to reforge this item.\r\n", cost);
+    return 1;
+  }
+
   switch (GET_OBJ_TYPE(obj))
   {
     case ITEM_WEAPON:
@@ -1628,16 +1637,7 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
   else if (IS_CLOTH(GET_OBJ_MATERIAL(obj)) && IS_CLOTH(material))
     GET_OBJ_MATERIAL(obj) = material;
   else if (IS_WOOD(GET_OBJ_MATERIAL(obj)) && IS_WOOD(material))
-    GET_OBJ_MATERIAL(obj) = material;  
-
-  /* "cost" of reforge */
-  cost = GET_OBJ_COST(obj) / 2;
-
-  if (GET_GOLD(ch) < cost)
-  {
-    send_to_char(ch, "You need %d coins on hand for supplies to reforge this item.\r\n", cost);
-    return 1;
-  }
+    GET_OBJ_MATERIAL(obj) = material;
 
   if (cost > 0)
   {

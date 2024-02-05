@@ -2442,7 +2442,8 @@ void extract_char_final(struct char_data *ch)
       extract_script_mem(SCRIPT_MEM(ch));
   }
   else
-  { // !IS_NPC
+  {
+    // !IS_NPC
     /* do NOT save events here, the value of 1 for the 2nd parameter of
        save_char was setup for this express goal */
     /* note - this is deprecated, switched value back to 0 */

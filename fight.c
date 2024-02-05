@@ -5003,7 +5003,19 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     return 0;
   }
 
+
+#if defined(CAMPAIGN_DL)
+  if (IS_NPC(ch))
+  {
+    dam = MAX(MIN(dam, NPC_DAMAGE_CAP), 0); // damage cap  
+  }
+  else
+  {
+    dam = MAX(MIN(dam, DAMAGE_CAP), 0); // damage cap  
+  }
+#else
   dam = MAX(MIN(dam, 1499), 0); // damage cap
+#endif
   GET_HIT(victim) -= dam;
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
   {
@@ -5237,7 +5249,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       af.spell = PSIONIC_ASSIMILATE;
       af.location = APPLY_HIT;
       af.modifier = 4 * GET_LEVEL(victim);
-      af.duration = 600;
+      af.duration = 900;
       af.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
       GET_HIT(ch) += af.modifier + GET_LEVEL(victim);
       affect_to_char(ch, &af); /* apply affection! */
@@ -7476,12 +7488,16 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
         random = rand_number(1, 100);
         if (GET_WEAPON_CHANNEL_SPELL_PCT(wpn, i) >= random)
         {
-          GET_WEAPON_CHANNEL_SPELL_USES(wpn, i)
-          --;
+          GET_WEAPON_CHANNEL_SPELL_USES(wpn, i)--;
           act("Your channelled spell erupts from $p.", TRUE, ch, wpn, 0, TO_CHAR);
           act("A channelled spell erupts from $p.", TRUE, ch, wpn, 0, TO_ROOM);
+          WEAPON_SPELL_PROC(ch) = TRUE;
           if (call_magic(ch, vict, wpn, GET_WEAPON_CHANNEL_SPELL(wpn, i), 0, GET_WEAPON_CHANNEL_SPELL_LVL(wpn, i), CAST_WEAPON_SPELL) < 0)
+          {
+            WEAPON_SPELL_PROC(ch) = FALSE;
             return;
+          }
+          WEAPON_SPELL_PROC(ch) = FALSE;
         }
         if (GET_WEAPON_CHANNEL_SPELL_USES(wpn, i) <= 0)
         {

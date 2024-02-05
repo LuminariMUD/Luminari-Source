@@ -590,7 +590,6 @@ int load_char(const char *name, struct char_data *ch)
     GET_PC_DESCRIPTOR_2(ch) = 0;
     GET_PC_ADJECTIVE_2(ch) = 0;
 
-    GET_EIDOLON_DETAIL_DESCRIPTION(ch) = NULL;
     GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
     GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
 
@@ -851,12 +850,6 @@ int load_char(const char *name, struct char_data *ch)
           GET_ELDRITCH_SHAPE(ch) = atoi(line);
         else if (!strcmp(tag, "EncM"))
           GET_ENCUMBRANCE_MOD(ch) = atoi(line);
-        else if (!strcmp(tag, "EDDc"))
-          GET_EIDOLON_DETAIL_DESCRIPTION(ch) = strdup(line);
-        else if (!strcmp(tag, "ELDc"))
-          GET_EIDOLON_LONG_DESCRIPTION(ch) = strdup(line);
-        else if (!strcmp(tag, "ESDc"))
-          GET_EIDOLON_SHORT_DESCRIPTION(ch) = strdup(line);
         break;
 
       case 'F':
@@ -1633,13 +1626,6 @@ void save_char(struct char_data *ch, int mode)
   if (GET_RESISTANCES(ch, 20) != PFDEF_RESISTANCES)
     fprintf(fl, "ResK: %d\n", GET_RESISTANCES(ch, 20));
 
-  if (GET_EIDOLON_DETAIL_DESCRIPTION(ch))
-    fprintf(fl, "EDDc: %s\n", GET_EIDOLON_DETAIL_DESCRIPTION(ch));
-  if (GET_EIDOLON_LONG_DESCRIPTION(ch))
-    fprintf(fl, "ELDc: %s\n", GET_EIDOLON_LONG_DESCRIPTION(ch));
-  if (GET_EIDOLON_SHORT_DESCRIPTION(ch))
-    fprintf(fl, "ESDc: %s\n", GET_EIDOLON_SHORT_DESCRIPTION(ch));
-
   if (GET_WIMP_LEV(ch) != PFDEF_WIMPLEV)
     fprintf(fl, "Wimp: %d\n", GET_WIMP_LEV(ch));
   if (GET_FREEZE_LEV(ch) != PFDEF_FREEZELEV)
@@ -2336,6 +2322,8 @@ void save_char(struct char_data *ch, int mode)
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eEVOBREATH)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eTOUCHOFUNDEATH)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
 
     fprintf(fl, "-1 -1\n");
   }
@@ -2714,6 +2702,12 @@ static void load_affects(FILE *fl, struct char_data *ch)
         af.bitvector[1] = num6;
         af.bitvector[2] = num7;
         af.bitvector[3] = num8;
+      }
+      else if (n_vars == 7)
+      { /* New 128-bit version */
+        af.bitvector[0] = num5;
+        af.bitvector[1] = num6;
+        af.bitvector[2] = num7;
       }
       else if (n_vars == 5)
       {                                        /* Old 32-bit conversion version */
@@ -3689,21 +3683,7 @@ void load_char_pets(struct char_data *ch)
 #endif
     if (MOB_FLAGGED(mob, MOB_EIDOLON))
     {
-      // if (GET_EIDOLON_SHORT_DESCRIPTION(ch))
-      // {
-      //   mob->player.name = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
-      //   mob->player.short_descr = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
-      // }
-      // if (GET_EIDOLON_LONG_DESCRIPTION(ch))
-      // {
-      //   mob->player.long_descr = strdup(GET_EIDOLON_LONG_DESCRIPTION(ch));
-      // }
-      // if (GET_EIDOLON_DETAIL_DESCRIPTION(ch))
-      // {
-      //   snprintf(buf, sizeof(buf), "%s\r\n", GET_EIDOLON_DETAIL_DESCRIPTION(ch));
-      //   mob->player.description = strdup(buf);
-      // }
-
+      set_eidolon_descs(ch);
       assign_eidolon_evolutions(ch, mob, true);
     }
     GET_REAL_STR(mob) = MIN(100, atoi(row[4]));
@@ -3722,6 +3702,92 @@ void load_char_pets(struct char_data *ch)
       join_group(mob, GROUP(ch));
     act("$N appears beside you.", true, ch, 0, mob, TO_CHAR);
     act("$N appears beside $n.", true, ch, 0, mob, TO_ROOM);
+  }
+
+  mysql_free_result(result);
+}
+
+void save_eidolon_descs(struct char_data *ch)
+{
+  char query[1000];
+  char *end2 = NULL;
+
+  if (!GET_EIDOLON_SHORT_DESCRIPTION(ch) || !GET_EIDOLON_LONG_DESCRIPTION(ch))
+    return;
+
+  snprintf(query, sizeof(query), "DELETE FROM player_eidolons WHERE owner='%s'", GET_NAME(ch));
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: 1 Unable to DELETE from player_eidolons: %s", mysql_error(conn));
+  }
+
+  snprintf(query, sizeof(query), "INSERT INTO player_eidolons (idnum,owner,short_desc,long_desc) VALUES(NULL,");
+  end2 = stpcpy(query, "INSERT INTO player_eidolons (idnum,owner,short_desc,long_desc) VALUES(NULL,");
+
+  *end2++ = '\'';
+  end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
+  *end2++ = '\'';
+  *end2++ = ',';
+
+  if (valid_pet_name(strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch))))
+  {
+    *end2++ = '\'';
+    end2 += mysql_real_escape_string(conn, end2, GET_EIDOLON_SHORT_DESCRIPTION(ch), strlen(GET_EIDOLON_SHORT_DESCRIPTION(ch)));
+    *end2++ = '\'';
+  }
+  else
+  {
+    *end2++ = '\'';
+    *end2++ = '\'';
+  }
+  *end2++ = ',';
+  if (valid_pet_name(strdup(GET_EIDOLON_LONG_DESCRIPTION(ch))))
+  {
+    *end2++ = '\'';
+    end2 += mysql_real_escape_string(conn, end2, GET_EIDOLON_LONG_DESCRIPTION(ch), strlen(GET_EIDOLON_LONG_DESCRIPTION(ch)));
+    *end2++ = '\'';
+  }
+  else
+  {
+    *end2++ = '\'';
+    *end2++ = '\'';
+  }
+  *end2++ = ')';
+  *end2++ = '\0';
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: 1 Unable to INSERT into player_eidolons: %s", mysql_error(conn));
+  }
+
+}
+
+void set_eidolon_descs(struct char_data *ch)
+{
+  if (!ch) return;
+
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char query[200];
+
+  snprintf(query, sizeof(query), "SELECT * FROM player_eidolons WHERE owner='%s'", GET_NAME(ch));
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: 1 Unable to SELECT from player_eidolons: %s", mysql_error(conn));
+  }
+
+  if (!(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: 2 Unable to SELECT from player_eidolons: %s", mysql_error(conn));
+    return;
+  }
+
+  if ((row = mysql_fetch_row(result)))
+  {
+    GET_EIDOLON_SHORT_DESCRIPTION(ch) = strdup(row[2]);
+    GET_EIDOLON_LONG_DESCRIPTION(ch) = strdup(row[3]);
   }
 
   mysql_free_result(result);

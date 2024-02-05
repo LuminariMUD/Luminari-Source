@@ -206,6 +206,7 @@ struct mud_event_list mud_event_index[] = {
     {"Vampiric Blood Drain", event_daily_use_cooldown, EVENT_CHAR},               // eVAMPIREBLOODDRAIN
     {"Eidolon Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACBREATH
     {"Call Eidolon", event_countdown, EVENT_CHAR}, // eC_EIDOLON
+    {"Touch of Undeath", event_daily_use_cooldown, EVENT_CHAR}, // eTOUCHOFUndeath
 
 };
 
@@ -344,6 +345,9 @@ EVENTFUNC(event_countdown)
     break;
   case eTOUCHOFCORRUPTION:
     send_to_char(ch, "You are now able to use your touch of corruption again.\r\n");
+    break;
+  case eTOUCHOFUNDEATH:
+    send_to_char(ch, "You are now able to use your touch of undeath again.\r\n");
     break;
   case eCHANNELENERGY:
     send_to_char(ch, "You are now able to channel energy again.\r\n");
@@ -735,6 +739,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eTOUCHOFCORRUPTION:
     featnum = FEAT_TOUCH_OF_CORRUPTION;
     send_to_char(ch, "One of your touch of corruption uses has recovered.\r\n");
+    break;
+  case eTOUCHOFUNDEATH:
+    featnum = FEAT_TOUCH_OF_UNDEATH;
+    send_to_char(ch, "One of your touch of undeath uses has recovered.\r\n");
     break;
   case eJUDGEMENT:
     featnum = FEAT_JUDGEMENT;
