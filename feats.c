@@ -3173,7 +3173,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feat_prereq_ability(FEAT_GREATER_RUIN, ABILITY_SPELLCRAFT, 27);
   feat_prereq_spellcasting(FEAT_GREATER_RUIN, CASTING_TYPE_ARCANE, 3, 9);
   feato(FEAT_HELLBALL, "hellball", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-        "gain access to epic spell - greater ruin",
+        "gain access to epic spell - hellball",
         "Once per game day, you can cast a spell that will cause serious damage to "
         "all the targets in a room.");
   feat_prereq_ability(FEAT_HELLBALL, ABILITY_SPELLCRAFT, 29);
