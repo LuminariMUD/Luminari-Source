@@ -253,20 +253,27 @@ SPECIAL(faction_mission)
     GET_MISSION_EXP(ch) = get_mission_reward(ch, MISSION_EXP);
     GET_MISSION_NPC_NAME_NUM(ch) = dice(1, NUM_RANDOM_NPC_NAMES) - 1;
 
+    create_mission_mobs(ch);
+
     char buf[MAX_STRING_LENGTH] = {'\0'};
 
     snprintf(
         buf, sizeof(buf),
-        "\tM$N tells you, 'I've got something for you from the %s.  We're having some trouble with %s %s named %s, located somewhere in "
-        "%s, or in the surrounding wilderness.  We need you to terminate them with extreme predjudice. They "
-        "will likely not be alone, so be prepared to fight multiple enemies.  When the deed is done, "
-        "return to me for your pay.  Take note: this mission is of %s difficulty. Your target will be "
-        "%s and the guards will be %s.'\r\n",
+        "\tM$N tells you, 'I've got something for you from the %s.\r\n"
+        "We're having some trouble with %s %s named %s.\r\n"
+        "They were last seen somewhere near %s.\r\n"
+        "We need you to terminate them with extreme predjudice. They will likely not be \r\n"
+        "alone, so be prepared to fight multiple enemies.\r\n"
+        "Take note: this mission is of %s difficulty. Your target will be %s and the guards will be %s.'\r\n",
         faction_names_lwr[faction],
         AN(mission_targets[mission_details_to_faction(faction)]),
         mission_targets[mission_details_to_faction(faction)],
         random_npc_names[GET_MISSION_NPC_NAME_NUM(ch)],
+#if defined(CAMPAIGN_DL)
+        get_mission_zone_name(ch),
+#else
         mission_details[mDet][MISSION_ZONE_NAME],
+#endif
         //        mission_details[mDet][MISSION_PLANET],
         mission_difficulty[difficulty],
         target_difficulty[difficulty], guard_difficulty[difficulty]);
@@ -278,11 +285,31 @@ SPECIAL(faction_mission)
         GET_MISSION_CREDITS(ch), GET_MISSION_STANDING(ch),
         faction_names_lwr[GET_MISSION_FACTION(ch)], GET_MISSION_REP(ch),
         GET_MISSION_EXP(ch));
-
-    create_mission_mobs(ch);
+        
     GET_MISSION_COOLDOWN(ch) = 100; // ten minutes
 
     return 1;
+}
+
+char * get_mission_zone_name(struct char_data *ch)
+{
+#if defined(CAMPAIGN_DL)
+    if (GET_CURRENT_MISSION_ROOM(ch) == NOWHERE)
+        return "Unknown";
+    char name[400];
+    snprintf(name, sizeof(name), "%s", zone_table[world[GET_CURRENT_MISSION_ROOM(ch)].zone].name);
+    if (is_abbrev(name, "the") || is_abbrev(name, "The"))
+    {
+        return zone_table[world[GET_CURRENT_MISSION_ROOM(ch)].zone].name;
+    }
+    else
+    {
+        snprintf(name, sizeof(name), "the %s", zone_table[world[GET_CURRENT_MISSION_ROOM(ch)].zone].name);
+        return strdup(name);
+    }
+#else
+    return mission_details[GET_CURRENT_MISSION(ch)][MISSION_ZONE_NAME];
+#endif
 }
 
 ACMD(do_missions)
@@ -292,26 +319,22 @@ ACMD(do_missions)
     if (GET_CURRENT_MISSION(ch) <= 0)
     {
         send_to_char(ch, "You are not currently on a mission.");
-        send_to_char(
-            ch,
-            "You may start a new mission by specifying a difficulty level (you must be in the same room as the Adventurers Guild Rep).  "
-            "Select among the following difficulty levels:\r\n");
+        send_to_char(ch,
+            "You may start a new mission by specifying a difficulty level (you must be in a "
+            "bounty/mission office). Select among the following difficulty levels:");
         for (i = 0; i < NUM_MISSION_DIFFICULTIES; i++)
-            send_to_char(
-                ch,
-                "-- %11s      - challenge level %d: %s target and %s guards\r\n",
-                mission_difficulty[i], i + 1, target_difficulty[i],
-                guard_difficulty[i]);
+            send_to_char(ch, "-- %11s      - challenge level %d: %s target and %s guards\r\n",
+                mission_difficulty[i], i + 1, target_difficulty[i], guard_difficulty[i]);
         return;
     }
-    send_to_char(
-        ch,
-        "Your mission is to terminate %s %s named %s, located somewhere in %s or the surrounding wilderness.  Your reward will be %ld gold coins, %ld %s standing, %ld quest points and %ld experience points.\r\n",
-        AN(mission_targets[mission_details_to_faction(
-            GET_MISSION_FACTION(ch))]),
+    send_to_char(ch,
+        "Your mission is to terminate %s %s named %s.\r\n"
+        "They were last seen somewhere near %s.\r\n"
+        "Your reward will be %ld gold coins, %ld %s standing, %ld quest points and %ld experience points.\r\n",
+        AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
         mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
         random_npc_names[GET_MISSION_NPC_NAME_NUM(ch)],
-        mission_details[GET_CURRENT_MISSION(ch)][MISSION_ZONE_NAME],
+        get_mission_zone_name(ch),
         //        mission_details[GET_CURRENT_MISSION(ch)][MISSION_PLANET],
         GET_MISSION_CREDITS(ch), GET_MISSION_STANDING(ch),
         faction_names_lwr[GET_MISSION_FACTION(ch)], GET_MISSION_REP(ch),
@@ -558,7 +581,115 @@ void create_mission_mobs(char_data *ch)
 #elif defined(CAMPAIGN_DL)
 void create_mission_mobs(char_data *ch)
 {
+    struct char_data *mob = NULL;
+    struct char_data *leader = NULL;
+    int i = 0, randName = 0;
+    room_rnum to_room = 0;
 
+    if (GET_CURRENT_MISSION(ch) > 0)
+    {
+        to_room = get_random_road_room(1);
+        GET_CURRENT_MISSION_ROOM(ch) = to_room;
+    }
+
+    if (to_room == NOWHERE)
+    {
+        log("Cannot create mission mobs for %s. Random road room was NOWHERE.", GET_NAME(ch));
+        return;
+    }
+
+    char buf[MAX_STRING_LENGTH];
+
+    for (i = 0; i < 4; i++)
+    {
+        mob = read_mobile(MISSION_MOB_DFLT_VNUM, VIRTUAL);
+        if (!mob)
+            return;
+        GET_SEX(mob) = dice(1, 2);
+        if (i > 0)
+        {
+            GET_LEVEL(mob) = GET_LEVEL(ch) - 2;
+            SET_BIT_AR(MOB_FLAGS(mob), MOB_GUARD);
+            SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
+            add_follower(mob, leader);
+        }
+        else
+        {
+            GET_LEVEL(mob) = GET_LEVEL(ch);
+            SET_BIT_AR(MOB_FLAGS(mob), MOB_CITIZEN);
+            leader = mob;
+        }
+        autoroll_mob(mob, TRUE, FALSE);
+        mob->points.armor -= 40;
+        GET_REAL_MAX_HIT(mob) = GET_HIT(mob);
+        GET_NDD(mob) = GET_SDD(mob) = MAX(2, GET_LEVEL(mob) / 6) + GET_MISSION_DIFFICULTY(ch);
+        GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 75);
+        GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
+        switch (GET_MISSION_DIFFICULTY(ch))
+        {
+        case MISSION_DIFF_EASY:
+            increase_mob_difficulty(mob, MISSION_DIFF_EASY);
+            break;
+        case MISSION_DIFF_TOUGH:
+            if (i == 0)
+            {
+                increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
+            }
+            break;
+        case MISSION_DIFF_CHALLENGING:
+            if (i == 0)
+                increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
+            else
+                increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
+            break;
+        case MISSION_DIFF_ARDUOUS:
+            if (i == 0)
+                increase_mob_difficulty(mob, MISSION_DIFF_ARDUOUS);
+            else
+                increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
+        case MISSION_DIFF_SEVERE:
+            if (i == 0)
+                increase_mob_difficulty(mob, MISSION_DIFF_SEVERE);
+            else
+                increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
+        }
+        GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);
+        GET_HIT(mob) = GET_MAX_HIT(mob);
+        GET_FACTION(mob) = GET_MISSION_FACTION(ch);
+        randName = GET_MISSION_NPC_NAME_NUM(ch);
+        mob->mission_owner = GET_IDNUM(ch);
+        sprintf(buf, "%s %s %s %ld -%s",
+                AN(mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))]),
+                mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))],
+                (i > 0) ? " guard" : random_npc_names[randName],
+                (i == 0) ? GET_IDNUM(ch) : 0, GET_NAME(ch));
+        mob->player.name = strdup(buf);
+        sprintf(buf, "%s %s%s%s",
+                AN(mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))]),
+                mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))],
+                (i > 0) ? "" : " named ",
+                (i > 0) ? " guard" : random_npc_names[randName]);
+        mob->player.short_descr = strdup(buf);
+        sprintf(buf, "%s %s%s%s (%s) is here.\r\n",
+                AN(mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))]),
+                mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))],
+                (i > 0) ? "" : " named ",
+                (i > 0) ? " guard" : random_npc_names[randName],
+                GET_NAME(ch));
+        mob->player.long_descr = strdup(buf);
+        char_to_room(mob, to_room);
+        if (i > 0)
+        {
+            sprintf(buf, "%ld", GET_IDNUM(ch));
+            do_follow(mob, strdup(buf), 0, 0);
+        }
+    }
 }
 #else
 void create_mission_mobs(char_data *ch)
@@ -698,7 +829,9 @@ bool are_mission_mobs_loaded(char_data *ch)
     // and this function is used in limits.c on a 6 second
     // pulse to see if mission awards should be applied
     if (GET_CURRENT_MISSION(ch) <= 0)
+    {
         return true;
+    }
 
     for (mob = character_list; mob; mob = mob->next)
     {
@@ -779,8 +912,8 @@ void apply_mission_rewards(char_data *ch)
     send_to_char(ch, "You have earned %d experience points for completing your mission.\r\n",
                  gain_exp(ch, GET_MISSION_EXP(ch), GAIN_EXP_MODE_QUEST));
 
-    award_magic_item(1, ch, quick_grade_check(level));
     send_to_char(ch, "You've received a random loot drop!\r\n");
+    award_magic_item(1, ch, quick_grade_check(level));
 
     send_to_char(ch, "\r\n");
 
@@ -839,4 +972,55 @@ void create_mission_on_entry(char_data *ch)
 
     if (!are_mission_mobs_loaded(ch))
         create_mission_mobs(ch);
+}
+
+// This will return a random road room. A road room is one with the sector
+// type being road north/south, east/west or intersection. It will also
+// include rooms where the zone is flagged for missions when type is 1 and
+// rooms where the zone is flagged for hunts when the type is 2.
+room_rnum get_random_road_room(int type)
+{
+
+    room_rnum cnt = NOWHERE;
+    room_rnum selected_room = NOWHERE;
+    int tot_rooms = 0;
+    int rand_room = 0;
+    int rand_count = 0;
+
+    for (cnt = 0; cnt <= top_of_world; cnt++)
+    {
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(cnt), ZONE_MISSIONS) && type == 1)
+            tot_rooms++;
+        else if (ZONE_FLAGGED(GET_ROOM_ZONE(cnt), ZONE_HUNTS) && type == 2)
+            tot_rooms++;
+        else if (world[cnt].sector_type == SECT_ROAD_EW)
+            tot_rooms++;
+        else if (world[cnt].sector_type == SECT_ROAD_INT)
+            tot_rooms++;
+        else if (world[cnt].sector_type == SECT_ROAD_NS)
+            tot_rooms++;
+    }
+
+    rand_room = dice(1, tot_rooms);
+
+    for (cnt = 0; cnt <= top_of_world; cnt++)
+    {
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(cnt), ZONE_MISSIONS) && type == 1)
+            rand_count++;
+        else if (ZONE_FLAGGED(GET_ROOM_ZONE(cnt), ZONE_HUNTS) && type == 2)
+            rand_count++;
+        else if (world[cnt].sector_type == SECT_ROAD_EW)
+            rand_count++;
+        else if (world[cnt].sector_type == SECT_ROAD_INT)
+            rand_count++;
+        else if (world[cnt].sector_type == SECT_ROAD_NS)
+            rand_count++;
+        if (rand_room == rand_count)
+        {
+            selected_room = cnt;
+            break;
+        }
+    }
+
+    return selected_room;
 }

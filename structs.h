@@ -250,8 +250,10 @@
 #define ZONE_RANDOM_CHESTS 12 // random treasure chests will load in this zone
 #define ZONE_RANDOM_TRAPS 13 // random traps will load in this zone
 #define ZONE_NOMAP 14
+#define ZONE_HUNTS 15   // zone can allow hunts to load within
+#define ZONE_MISSIONS 16 // zone can allow missions to load within
 /** The total number of Zone Flags */
-#define NUM_ZONE_FLAGS 15
+#define NUM_ZONE_FLAGS 17
 
 /* Goto Zones: Used by the goto command to quickly go to specific zones on the worldmap */
 #define NUM_GOTO_ZONES 10
@@ -4592,6 +4594,7 @@ struct player_special_data_saved
     int mission_rand_name;
     bool mission_complete;
     int mission_cooldown;
+    room_rnum current_mission_room;
     int faction;
 
     /* staff event variables */

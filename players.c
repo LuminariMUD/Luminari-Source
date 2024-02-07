@@ -473,6 +473,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_AUTOCQUEST_DESC(ch) = NULL;
     GET_AUTOCQUEST_MATERIAL(ch) = PFDEF_AUTOCQUEST_MATERIAL;
     GET_CURRENT_MISSION(ch) = 0;
+    GET_CURRENT_MISSION_ROOM(ch) = 0;
     GET_MISSION_CREDITS(ch) = 0;
     GET_MISSION_STANDING(ch) = 0;
     GET_MISSION_FACTION(ch) = 0;
@@ -998,6 +999,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_MISSION_DIFFICULTY(ch) = atoi(line);
         else if (!strcmp(tag, "MiRN"))
           GET_MISSION_NPC_NAME_NUM(ch) = atoi(line);
+        else if (!strcmp(tag, "MiRm"))
+          GET_CURRENT_MISSION_ROOM(ch) = atoi(line);
         else if (!strcmp(tag, "MVRg"))
           GET_MV_REGEN(ch) = atoi(line);
         break;
@@ -1552,6 +1555,7 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "MiXp: %ld\n", GET_MISSION_EXP(ch));
   fprintf(fl, "MiDf: %d\n", GET_MISSION_DIFFICULTY(ch));
   fprintf(fl, "MiRN: %d\n", GET_MISSION_NPC_NAME_NUM(ch));
+  fprintf(fl, "MiRm: %d\n", GET_CURRENT_MISSION_ROOM(ch));
 
   if (VITAL_STRIKING(ch))
     fprintf(fl, "VitS: %d\n", VITAL_STRIKING(ch));

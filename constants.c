@@ -1241,6 +1241,8 @@ const char *zone_bits[] = {
     "Random-Chests",
     "Random-Traps",
     "No-Automap",
+    "Hunts-Can-Load",
+    "Missions-Can-Load",
     "\n"};
 CHECK_TABLE_SIZE(zone_bits, NUM_ZONE_FLAGS + 1);
 
