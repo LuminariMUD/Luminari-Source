@@ -117,7 +117,7 @@ void assign_mobiles(void)
   ASSIGNMOB(2428, buyarmor);
   ASSIGNMOB(2430, buyweapons);
   ASSIGNMOB(2429, buyarmor);
-
+  ASSIGNMOB(15325, faction_mission);
   ASSIGNMOB(15321, crafting_quest);
   ASSIGNMOB(15322, buymolds);
   ASSIGNMOB(7021, identify_mob);
@@ -127,7 +127,7 @@ void assign_mobiles(void)
   ASSIGNMOB(13801, buyarmor);
   ASSIGNMOB(13802, buyweapons);
   ASSIGNMOB(13803, buyarmor);
-
+  ASSIGNMOB(13810, faction_mission);
   ASSIGNMOB(13808, crafting_quest);
   ASSIGNMOB(13809, buymolds);
   ASSIGNMOB(13822, identify_mob);

@@ -41,6 +41,7 @@
 #define GET_MISSION_DECLINE(ch) (ch->player_specials->saved.mission_decline)
 #define GET_MISSION_COOLDOWN(ch) (ch->player_specials->saved.mission_cooldown)
 #define GET_MISSION_COMPLETE(ch) (ch->player_specials->saved.mission_complete)
+#define GET_CURRENT_MISSION_ROOM(ch) (ch->player_specials->saved.current_mission_room)
 #define GET_FACTION_STANDING(ch, i) (ch->player_specials->saved.faction_standing[i])
 
 #define MISSION_MOB_DFLT_VNUM 60000
@@ -62,5 +63,7 @@ void clear_mission(struct char_data *ch);
 bool is_mission_mob(struct char_data *ch, struct char_data *mob);
 void create_mission_on_entry(struct char_data *ch);
 int select_mission_coords(int start);
+room_rnum get_random_road_room(int type);
+char * get_mission_zone_name(struct char_data *ch);
 
 #endif
