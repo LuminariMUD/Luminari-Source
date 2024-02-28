@@ -2969,6 +2969,8 @@ ASPELL(eldritch_blast)
 
 ASPELL(spell_summon)
 {
+  bool is_mission_mob(struct char_data *ch, struct char_data *mob);
+  
   if (ch == NULL || victim == NULL)
     return;
 
@@ -3037,6 +3039,12 @@ ASPELL(spell_summon)
   if (IS_POWERFUL_BEING(victim))
   {
     send_to_char(ch, "Summon failed!  The target is a powerful being and easily dismisses your annoying magic!\r\n");
+    return;
+  }
+
+  if (IS_NPC(victim) && !is_mission_mob(ch, victim))
+  {
+    send_to_char(ch, "That target belongs to another player.\r\n");
     return;
   }
 

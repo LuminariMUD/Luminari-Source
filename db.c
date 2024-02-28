@@ -1027,12 +1027,10 @@ void boot_db(void)
   log("Loading random encounter tables.");
   populate_encounter_table();
 
-#ifndef CAMPAIGN_DL
   log("Loading hunts table.");
   load_hunts();
   log("Spawning hunts for the first time this boot.");
   create_hunts();
-#endif
 
   if (!no_rent_check)
   {

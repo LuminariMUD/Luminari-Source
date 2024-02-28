@@ -8172,6 +8172,7 @@ void load_class_list(void)
   feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 28, Y);
   feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 30, Y);
   feat_assignment(CLASS_WARLOCK, FEAT_ENERGY_RESISTANCE, Y, 30, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_MASTER, Y, 30, Y);
 
   /* epic class */
   feat_assignment(CLASS_WARLOCK, FEAT_EPIC_ELDRITCH_MASTER, Y, NOASSIGN_FEAT, N);
@@ -8715,7 +8716,7 @@ bool has_evolutions_unchosen(struct char_data *ch)
   // Needs to set this first
   if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(ch)->eidolon_base_form == 0) return false;
 
-  int num_evos =   evolution_points[CLASS_LEVEL(ch, CLASS_SUMMONER)];
+  int num_evos =  evolution_points[CLASS_LEVEL(ch, CLASS_SUMMONER)] + CLASS_LEVEL(ch, CLASS_NECROMANCER);
   int num_chosen = num_eidolon_evolutions_known(ch);
 
   if ((num_evos - num_chosen) > 0)

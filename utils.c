@@ -8925,4 +8925,48 @@ int  get_bonus_from_liquid_type(int liquid)
   return APPLY_HP_REGEN;
 }
 
+bool is_road_room(room_rnum room, int type)
+{
+  if (room == NOWHERE)
+    return false;
+    
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_MISSIONS) && type == 1)
+    return true;
+  else if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_HUNTS) && type == 2)
+    return true;
+  else if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_RANDOM_ENCOUNTERS) && type == 3)
+    return true;
+  else if (world[room].sector_type == SECT_ROAD_EW)
+    return true;
+  else if (world[room].sector_type == SECT_ROAD_INT)
+    return true;
+  else if (world[room].sector_type == SECT_ROAD_NS)
+    return true;
+  return false;
+}
+
+// This function is the same as the dice() function except any rolls below min will be rerolled
+int min_dice(int num, int size, int min)
+{
+  if (num <= 0 || size <= 0)
+   return 0;
+  
+  if (min <= 0)
+    return dice(num, size);
+
+  int i = 0;
+  int amount = 0;
+  int temp = 0;
+
+  for (i = 0; i < num; i++)
+  {
+    temp = dice(1, size);
+    while (temp < min)
+      temp = dice(1, size);
+    amount += temp;
+  }
+  
+  return amount;
+}
+
 /* EoF */

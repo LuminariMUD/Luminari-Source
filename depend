@@ -291,7 +291,7 @@ hsedit.o: hsedit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 hunts.o: hunts.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h oasis.h help.h \
  screen.h handler.h constants.h interpreter.h race.h wilderness.h hunts.h \
- act.h spec_abilities.h assign_wpn_armor.h
+ act.h spec_abilities.h assign_wpn_armor.h missions.h
 ibt.o: ibt.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h handler.h \
  interpreter.h constants.h screen.h act.h ibt.h oasis.h help.h \

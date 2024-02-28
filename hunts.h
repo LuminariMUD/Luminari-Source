@@ -70,8 +70,13 @@
 #define HUNT_REWARD_TYPE_TRINKET    1
 #define HUNT_REWARD_TYPE_WEAPON_OIL 2
 
-#define HUNTS_REWARD_ITEM_VNUM      60100
+#if defined(CAMPAIGN_DL)
+#define HUNTS_MOB_VNUM              60001
+#define HUNTS_REWARD_ITEM_VNUM      60090
+#else
 #define HUNTS_MOB_VNUM              8101
+#define HUNTS_REWARD_ITEM_VNUM      60100
+#endif
 
 struct hunt_type {
 

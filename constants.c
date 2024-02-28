@@ -1243,6 +1243,7 @@ const char *zone_bits[] = {
     "No-Automap",
     "Hunts-Can-Load",
     "Missions-Can-Load",
+    "Random-Encounters",
     "\n"};
 CHECK_TABLE_SIZE(zone_bits, NUM_ZONE_FLAGS + 1);
 

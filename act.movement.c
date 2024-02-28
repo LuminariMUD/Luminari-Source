@@ -1963,12 +1963,19 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     {
       set_expire_cooldown(was_in);
     }
+#if defined(CAMPAIGN_DL)
+    if (is_road_room(ch->in_room, 2))
+      check_hunt_room(ch->in_room);
+    if (is_road_room(ch->in_room, 3))
+       check_random_encounter(ch);
+#else
     if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
     {
       check_random_encounter(ch);
       reset_expire_cooldown(ch->in_room);
       check_hunt_room(ch->in_room);
     }
+#endif
   }
 
   if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT &&

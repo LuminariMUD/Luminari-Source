@@ -7710,7 +7710,11 @@ ACMD(do_oconvert)
   send_to_char(ch, "Total of %d objects converted.\r\n", total);
 }
 
+#if defined(CAMPAIGN_DL)
+#define DEBUG_EQ_SCORE FALSE
+#else
 #define DEBUG_EQ_SCORE TRUE
+#endif
 /* a function to "score" the value of equipment -zusuk
    what to take into consideration?
   type [object values], weapon spells, procs [have to be manually determined], spec abilities, affections, restrictions, weight,
