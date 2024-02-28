@@ -589,6 +589,7 @@ void create_mission_mobs(char_data *ch)
     struct char_data *leader = NULL;
     int i = 0, randName = 0;
     room_rnum to_room = 0;
+    char player_name[MAX_NAME_LENGTH];
 
     if (GET_CURRENT_MISSION(ch) > 0)
     {
@@ -601,6 +602,10 @@ void create_mission_mobs(char_data *ch)
         log("Cannot create mission mobs for %s. Random road room was NOWHERE.", GET_NAME(ch));
         return;
     }
+
+    snprintf(player_name, sizeof(player_name), "%s", GET_NAME(ch));
+    for (i = 0; i < strlen(player_name); i++)
+        player_name[i] = tolower(player_name[i]);
 
     char buf[MAX_STRING_LENGTH];
 
@@ -662,27 +667,20 @@ void create_mission_mobs(char_data *ch)
         GET_FACTION(mob) = GET_MISSION_FACTION(ch);
         randName = GET_MISSION_NPC_NAME_NUM(ch);
         mob->mission_owner = GET_IDNUM(ch);
-        sprintf(buf, "%s %s %s %ld -%s",
-                AN(mission_targets[mission_details_to_faction(
-                    GET_MISSION_FACTION(ch))]),
-                mission_targets[mission_details_to_faction(
-                    GET_MISSION_FACTION(ch))],
+        sprintf(buf, "%s %s %s %ld %s", AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
+                mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
                 (i > 0) ? " guard" : random_npc_names[randName],
-                (i == 0) ? GET_IDNUM(ch) : 0, GET_NAME(ch));
+                (i == 0) ? GET_IDNUM(ch) : 0, player_name);
         mob->player.name = strdup(buf);
         sprintf(buf, "%s %s%s%s",
-                AN(mission_targets[mission_details_to_faction(
-                    GET_MISSION_FACTION(ch))]),
-                mission_targets[mission_details_to_faction(
-                    GET_MISSION_FACTION(ch))],
+                AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
+                mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
                 (i > 0) ? "" : " named ",
                 (i > 0) ? " guard" : random_npc_names[randName]);
         mob->player.short_descr = strdup(buf);
         sprintf(buf, "%s %s%s%s (%s) is here.\r\n",
-                AN(mission_targets[mission_details_to_faction(
-                    GET_MISSION_FACTION(ch))]),
-                mission_targets[mission_details_to_faction(
-                    GET_MISSION_FACTION(ch))],
+                AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
+                mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
                 (i > 0) ? "" : " named ",
                 (i > 0) ? " guard" : random_npc_names[randName],
                 GET_NAME(ch));
@@ -981,7 +979,8 @@ void create_mission_on_entry(char_data *ch)
 // This will return a random road room. A road room is one with the sector
 // type being road north/south, east/west or intersection. It will also
 // include rooms where the zone is flagged for missions when type is 1 and
-// rooms where the zone is flagged for hunts when the type is 2.
+// rooms where the zone is flagged for hunts when the type is 2. Random
+// Encounters is type 3.
 room_rnum get_random_road_room(int type)
 {
 
@@ -993,15 +992,7 @@ room_rnum get_random_road_room(int type)
 
     for (cnt = 0; cnt <= top_of_world; cnt++)
     {
-        if (ZONE_FLAGGED(GET_ROOM_ZONE(cnt), ZONE_MISSIONS) && type == 1)
-            tot_rooms++;
-        else if (ZONE_FLAGGED(GET_ROOM_ZONE(cnt), ZONE_HUNTS) && type == 2)
-            tot_rooms++;
-        else if (world[cnt].sector_type == SECT_ROAD_EW)
-            tot_rooms++;
-        else if (world[cnt].sector_type == SECT_ROAD_INT)
-            tot_rooms++;
-        else if (world[cnt].sector_type == SECT_ROAD_NS)
+        if (is_road_room(cnt, type))
             tot_rooms++;
     }
 
@@ -1009,15 +1000,7 @@ room_rnum get_random_road_room(int type)
 
     for (cnt = 0; cnt <= top_of_world; cnt++)
     {
-        if (ZONE_FLAGGED(GET_ROOM_ZONE(cnt), ZONE_MISSIONS) && type == 1)
-            rand_count++;
-        else if (ZONE_FLAGGED(GET_ROOM_ZONE(cnt), ZONE_HUNTS) && type == 2)
-            rand_count++;
-        else if (world[cnt].sector_type == SECT_ROAD_EW)
-            rand_count++;
-        else if (world[cnt].sector_type == SECT_ROAD_INT)
-            rand_count++;
-        else if (world[cnt].sector_type == SECT_ROAD_NS)
+        if (is_road_room(cnt, type))
             rand_count++;
         if (rand_room == rand_count)
         {

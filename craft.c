@@ -945,9 +945,7 @@ int convert(struct obj_data *kit, struct char_data *ch)
       {
         if (GET_OBJ_VAL(obj, 0) >= 2)
         {
-          send_to_char(ch, "%s is a bundled item, which must first be "
-                           "unbundled before you can use it to craft.\r\n",
-                       obj->short_description);
+          send_to_char(ch, "%s is a bundled item, which must first be unbundled before you can use it to craft.\r\n", obj->short_description);
           return 1;
         }
         if (material == -1)
@@ -1214,9 +1212,7 @@ int autocraft(struct obj_data *kit, struct char_data *ch)
       {
         if (GET_OBJ_VAL(obj, 0) >= 2)
         {
-          send_to_char(ch, "%s is a bundled item, which must first be "
-                           "unbundled before you can use it to craft.\r\n",
-                       obj->short_description);
+          send_to_char(ch, "%s is a bundled item, which must first be unbundled before you can use it to craft.\r\n", obj->short_description);
           return 1;
         }
         if (GET_OBJ_MATERIAL(obj) != material)
@@ -1888,9 +1884,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
       {
         if (GET_OBJ_VAL(obj, 0) >= 2)
         {
-          send_to_char(ch, "%s is a bundled item, which must first be"
-                           " unbundled before you can use it to craft.\r\n",
-                       obj->short_description);
+          send_to_char(ch, "%s is a bundled item, which must first be unbundled before you can use it to craft.\r\n", obj->short_description);
           return 1;
         }
         if (!material)

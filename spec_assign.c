@@ -121,6 +121,7 @@ void assign_mobiles(void)
   ASSIGNMOB(15321, crafting_quest);
   ASSIGNMOB(15322, buymolds);
   ASSIGNMOB(7021, identify_mob);
+  ASSIGNMOB(15326, huntsmaster);
 
   // sanction
   ASSIGNMOB(13800, buyweapons);
@@ -131,6 +132,7 @@ void assign_mobiles(void)
   ASSIGNMOB(13808, crafting_quest);
   ASSIGNMOB(13809, buymolds);
   ASSIGNMOB(13822, identify_mob);
+  ASSIGNMOB(13811, huntsmaster);
 
 #else
 

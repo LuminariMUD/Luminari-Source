@@ -252,8 +252,9 @@
 #define ZONE_NOMAP 14
 #define ZONE_HUNTS 15   // zone can allow hunts to load within
 #define ZONE_MISSIONS 16 // zone can allow missions to load within
+#define ZONE_RANDOM_ENCOUNTERS 17 // zone can allow random encounters to load within
 /** The total number of Zone Flags */
-#define NUM_ZONE_FLAGS 17
+#define NUM_ZONE_FLAGS 18
 
 /* Goto Zones: Used by the goto command to quickly go to specific zones on the worldmap */
 #define NUM_GOTO_ZONES 10
@@ -2598,13 +2599,23 @@
 #define FEAT_IMPROVED_CHANNELLING 1045
 #define FEAT_ADVANCED_CHANNELLING 1046
 #define FEAT_GREATER_CHANNELLING 1047
+#define FEAT_IMPROVED_ELDRITCH_DAMAGE 1048
+#define FEAT_ADVANCED_ELDRITCH_DAMAGE 1049
+#define FEAT_GREATER_ELDRITCH_DAMAGE 1050
+#define FEAT_EPIC_ELDRITCH_DAMAGE 1051
+#define FEAT_IMPROVED_ELDRITCH_POWER 1052
+#define FEAT_ADVANCED_ELDRITCH_POWER 1053
+#define FEAT_GREATER_ELDRITCH_POWER 1054
+#define FEAT_EPIC_ELDRITCH_POWER 1055
+#define FEAT_ELDRITCH_MASTER 1056
+
 
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1048
+#define FEAT_LAST_FEAT 1057
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1049
+#define NUM_FEATS 1058
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/

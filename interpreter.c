@@ -750,7 +750,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"stat", "stat", POS_DEAD, do_stat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"steal", "ste", POS_STANDING, do_steal, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"stonesendurance", "stonese", POS_FIGHTING, do_stones_endurance, 0, 0, TRUE, ACTION_NONE, {0, 0}, can_stones_endurance},
-    {"store", "store", POS_FIGHTING, do_store, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
+    {"store", "store", POS_RECLINING, do_store, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"stunningfist", "stunningfist", POS_FIGHTING, do_stunningfist, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_stunningfist},
     {"study", "study", POS_RECLINING, do_study, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"strength", "strength", POS_FIGHTING, do_strength, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},

@@ -401,6 +401,20 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     challenge += 20;
   }
 
+  if (ch && spellnum >= WARLOCK_POWER_START && spellnum <= WARLOCK_POWER_END)
+  {
+    if (HAS_FEAT(ch, FEAT_IMPROVED_ELDRITCH_POWER))
+      challenge++;
+    if (HAS_FEAT(ch, FEAT_ADVANCED_ELDRITCH_POWER))
+      challenge++;
+    if (HAS_FEAT(ch, FEAT_GREATER_ELDRITCH_POWER))
+      challenge++;
+    if (HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_POWER))
+      challenge++;
+    if (HAS_FEAT(ch, FEAT_ELDRITCH_MASTER))
+      challenge++;
+  }
+
   if (ch)
     challenge += GET_DC_BONUS(ch);
 
@@ -906,7 +920,7 @@ void mag_loops(int level, struct char_data *ch, struct char_data *victim,
 int mag_damage(int level, struct char_data *ch, struct char_data *victim,
                struct obj_data *wpn, int spellnum, int metamagic, int savetype, int casttype)
 {
-  int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0,
+  int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0, min_dice_roll = 0,
       bonus = 0, mag_resist = TRUE, spell_school = NOSCHOOL, save_negates = FALSE, mag_resist_bonus = 0;
   char desc[200];
 
@@ -914,6 +928,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     return (0);
 
   spell_school = spell_info[spellnum].schoolOfMagic;
+
+  if (spellnum >= WARLOCK_POWER_START && spellnum <= WARLOCK_POWER_END && HAS_REAL_FEAT(ch, FEAT_ELDRITCH_MASTER))
+    min_dice_roll = 3;
 
   /* level should be determined in call_magic() */
 
@@ -1024,7 +1041,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BRIMSTONE_BLAST)
       element = DAM_FIRE;
     if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CONE)
-      size_dice = 8;    
+      size_dice = 8;
     break;
 
   case WARLOCK_TENACIOUS_PLAGUE:
@@ -1038,6 +1055,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case WARLOCK_RETRIBUTIVE_INVISIBILITY:
+    mag_resist = TRUE;
+    element = DAM_SOUND;
+    size_dice = 6;
+    num_dice = 4;
     if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
     {
       change_position(victim, POS_SITTING);
@@ -1047,13 +1068,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       {
         act("You have been slammed hard against the wall!", FALSE, victim, 0, ch, TO_CHAR);
         act("$n is slammed hard against the wall!", TRUE, victim, 0, ch, TO_ROOM);
-        damage(ch, victim, dice(num_dice, size_dice) + bonus, spellnum, DAM_FORCE, FALSE);
+        damage(ch, victim, min_dice(num_dice, size_dice, min_dice_roll) + bonus, spellnum, DAM_FORCE, FALSE);
       }
     }
-    mag_resist = TRUE;
-    element = DAM_SOUND;
-    size_dice = 6;
-    num_dice = 4;
     break;
 
     /*******************************************\
@@ -2378,7 +2395,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
   else
   {
-    dam = dice(num_dice, size_dice) + bonus;
+    dam = min_dice(num_dice, size_dice, min_dice_roll) + bonus;
   }
 
   if (spellnum >= WARLOCK_POWER_START && spellnum <= WARLOCK_POWER_END)
@@ -2394,6 +2411,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     if (HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE))
       dam += num_dice * HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE);
+  }
+  else if (spellnum >= WARLOCK_POWER_START && spellnum <= WARLOCK_POWER_END)
+  {
+    if (HAS_FEAT(ch, FEAT_IMPROVED_ELDRITCH_DAMAGE))
+      dam += num_dice;
+    if (HAS_FEAT(ch, FEAT_ADVANCED_ELDRITCH_DAMAGE))
+      dam += num_dice;
+    if (HAS_FEAT(ch, FEAT_GREATER_ELDRITCH_DAMAGE))
+      dam += num_dice;
+    if (HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_DAMAGE))
+      dam += num_dice;
+    if (HAS_FEAT(ch, FEAT_ELDRITCH_MASTER))
+      dam += num_dice;
   }
   else if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
   {
@@ -2457,32 +2487,27 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     case DAM_FIRE:
       if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_ELEMENTAL_FOCUS_FIRE))
         bonus += num_dice;
-      GET_DC_BONUS(ch)
-      ++;
+      GET_DC_BONUS(ch)++;
       break;
     case DAM_ACID:
       if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_ELEMENTAL_FOCUS_ACID))
         bonus += num_dice;
-      GET_DC_BONUS(ch)
-      ++;
+      GET_DC_BONUS(ch)++;
       break;
     case DAM_COLD:
       if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_ELEMENTAL_FOCUS_COLD))
         bonus += num_dice;
-      GET_DC_BONUS(ch)
-      ++;
+      GET_DC_BONUS(ch)++;
       break;
     case DAM_SOUND:
       if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_ELEMENTAL_FOCUS_SOUND))
         bonus += num_dice;
-      GET_DC_BONUS(ch)
-      ++;
+      GET_DC_BONUS(ch)++;
       break;
     case DAM_ELECTRIC:
       if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_ELEMENTAL_FOCUS_ELECTRICITY))
         bonus += num_dice;
-      GET_DC_BONUS(ch)
-      ++;
+      GET_DC_BONUS(ch)++;
       break;
     }
 

@@ -1130,7 +1130,9 @@ void check_random_encounter(struct char_data *ch)
 
   int i = 0, j = 0, count = 0, roll = 0, group_type = ENCOUNTER_GROUP_TYPE_NONE;
   int groups[NUM_ENCOUNTER_GROUP_TYPES];
+#if !defined(CAMPAIGN_DL)
   int room_sect = world[IN_ROOM(ch)].sector_type;
+#endif
   int highest_level = get_max_party_level_same_room(ch);
   // int avg_level = get_avg_party_level_same_room(ch);
   int party_size = get_party_size_same_room(ch);
@@ -1164,7 +1166,10 @@ void check_random_encounter(struct char_data *ch)
   {
     for (j = 0; j < NUM_ENCOUNTER_TYPES; j++)
       if (encounter_table[j].encounter_group == i)
+      // Dragonlance encounters will load in any terrain, so we'll just skip this 'if statement' if campaign is DL
+#if !defined(CAMPAIGN_DL)
         if (encounter_table[j].sector_types[room_sect] == true)
+#endif
           if (highest_level <= encounter_table[j].max_level)
             groups[i] = true;
   }
@@ -1205,7 +1210,7 @@ void check_random_encounter(struct char_data *ch)
       {
         if (dice(1, 100) > encounter_table[j].load_chance)
           continue;
-        mob = read_mobile(8100, VIRTUAL);
+        mob = read_mobile(ENCOUNTER_MOB_VNUM, VIRTUAL);
         if (!mob)
         {
           // send_to_char(ch, "Mob load error.\r\n");

@@ -3094,14 +3094,20 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
 
   feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "wizard only, +2 to all spell dcs for all spells in school/domain",
-        "+2 to all spell dcs for all spells in school/domain.  Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
+        "+2 to all spell dcs for all spells in school/domain.  Transmutation improves polymorph stats.  "
+        "Conjuration increases summon creature spell stats. Necromancy increases undead follower stats."
+        " This will not work on psionic powers or warlock abilities/spells.");
   feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "wizard only, +2 to all spell dcs for all spells in school/domain",
-        "+2 to all spell dcs for all spells in school/domain. Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
+        "+2 to all spell dcs for all spells in school/domain. Transmutation improves polymorph stats.  "
+        "Conjuration increases summon creature spell stats. Necromancy increases undead follower stats."
+        " This will not work on psionic powers or warlock abilities/spells.");
   feat_prereq_feat(FEAT_GREATER_SPELL_FOCUS, FEAT_SPELL_FOCUS, 1);
   feato(FEAT_EPIC_SPELL_FOCUS, "epic spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "wizard only, +3 to all spell dcs for all spells in school/domain",
-        "+3 to all spell dcs for all spells in school/domain. Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
+        "+3 to all spell dcs for all spells in school/domain. Transmutation improves polymorph stats.  "
+        "Conjuration increases summon creature spell stats. Necromancy increases undead follower stats."
+        " This will not work on psionic powers or warlock abilities/spells.");
   feat_prereq_feat(FEAT_EPIC_SPELL_FOCUS, FEAT_GREATER_SPELL_FOCUS, 1);
 
   feato(FEAT_IMPROVED_FAMILIAR, "improved familiar", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
@@ -3143,11 +3149,63 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feat_prereq_attribute(FEAT_EPIC_AUGMENT_SUMMONING, AB_CHA, 21);
   feat_prereq_feat(FEAT_EPIC_AUGMENT_SUMMONING, FEAT_IMPROVED_AUGMENT_SUMMONING, 1);
 
+  feato(FEAT_IMPROVED_ELDRITCH_DAMAGE, "improved eldritch damage", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+      "This feat will improve the damage done by a warlock's eldirtch blast and other damaging warlock abilities.",
+      "This feat will improve the damage done by a warlock's eldirtch blast and other damaging warlock abilities.");
+  feat_prereq_class_level(FEAT_IMPROVED_ELDRITCH_DAMAGE, CLASS_WARLOCK, 1);
+
+  feato(FEAT_ADVANCED_ELDRITCH_DAMAGE, "advanced eldritch damage", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+      "This feat will further improve the damage done by a warlock's eldirtch blast and other damaging warlock abilities.",
+      "This feat will further improve the damage done by a warlock's eldirtch blast and other damaging warlock abilities.");
+  feat_prereq_class_level(FEAT_ADVANCED_ELDRITCH_DAMAGE, CLASS_WARLOCK, 7);
+  feat_prereq_feat(FEAT_ADVANCED_ELDRITCH_DAMAGE, FEAT_IMPROVED_ELDRITCH_DAMAGE, 1);
+
+  feato(FEAT_GREATER_ELDRITCH_DAMAGE, "greater eldritch damage", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+      "This feat will further improve the damage done by a warlock's eldirtch blast and other damaging warlock abilities.",
+      "This feat will further improve the damage done by a warlock's eldirtch blast and other damaging warlock abilities.");
+  feat_prereq_class_level(FEAT_GREATER_ELDRITCH_DAMAGE, CLASS_WARLOCK, 15);
+  feat_prereq_feat(FEAT_GREATER_ELDRITCH_DAMAGE, FEAT_ADVANCED_ELDRITCH_DAMAGE, 1);
+
+  feato(FEAT_EPIC_ELDRITCH_DAMAGE, "epic eldritch damage", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+      "This feat will further improve the damage done by a warlock's eldirtch blast and other damaging warlock abilities.",
+      "This feat will further improve the damage done by a warlock's eldirtch blast and other damaging warlock abilities.");
+  feat_prereq_class_level(FEAT_EPIC_ELDRITCH_DAMAGE, CLASS_WARLOCK, 21);
+  feat_prereq_feat(FEAT_EPIC_ELDRITCH_DAMAGE, FEAT_GREATER_ELDRITCH_DAMAGE, 1);
+
+  feato(FEAT_IMPROVED_ELDRITCH_POWER, "improved eldritch power", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+      "This feat will increase the saving throw DCs for all warlock abilities.",
+      "This feat will increase the saving throw DCs for all warlock abilities.");
+  feat_prereq_class_level(FEAT_IMPROVED_ELDRITCH_POWER, CLASS_WARLOCK, 1);
+
+  feato(FEAT_ADVANCED_ELDRITCH_POWER, "advanced eldritch power", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+      "This feat will further increase the saving throw DCs for all warlock abilities.",
+      "This feat will further increase the saving throw DCs for all warlock abilities.");
+  feat_prereq_class_level(FEAT_ADVANCED_ELDRITCH_POWER, CLASS_WARLOCK, 7);
+  feat_prereq_feat(FEAT_ADVANCED_ELDRITCH_POWER, FEAT_IMPROVED_ELDRITCH_POWER, 1);
+
+  feato(FEAT_GREATER_ELDRITCH_POWER, "greater eldritch power", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+      "This feat will further increase the saving throw DCs for all warlock abilities.",
+      "This feat will further increase the saving throw DCs for all warlock abilities.");
+  feat_prereq_class_level(FEAT_GREATER_ELDRITCH_POWER, CLASS_WARLOCK, 15);
+  feat_prereq_feat(FEAT_GREATER_ELDRITCH_POWER, FEAT_ADVANCED_ELDRITCH_POWER, 1);
+
+  feato(FEAT_EPIC_ELDRITCH_POWER, "epic eldritch power", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+      "This feat will further increase the saving throw DCs for all warlock abilities.",
+      "This feat will further increase the saving throw DCs for all warlock abilities.");
+  feat_prereq_class_level(FEAT_EPIC_ELDRITCH_POWER, CLASS_WARLOCK, 21);
+  feat_prereq_feat(FEAT_EPIC_ELDRITCH_POWER, FEAT_GREATER_ELDRITCH_POWER, 1);
+
+  feato(FEAT_ELDRITCH_MASTER, "epic eldritch power", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+      "This ability will increase the damage and saving throw DC of all warlock abilities, as well as reroll any 1s or 2s when rolling damage for eldritch blast.",
+      "This ability will increase the damage and saving throw DC of all warlock abilities, as well as reroll any 1s or 2s when rolling damage for eldritch blast.");
+  feat_prereq_class_level(FEAT_EPIC_ELDRITCH_POWER, CLASS_WARLOCK, 30);
+
   feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "+1 spell damage per die rolled",
         "You gain +1 spell damage per die rolled, example:  if you are level 10 and "
         "normally create a 10d6 damage fireball, with this feat your fireball would "
-        "do 10d6+10. Maximum of 3 ranks, rank 1-any spellcaster level, rank 2, spellcaster level 5+, rank 3, spellcaster level 10+");
+        "do 10d6+10. Maximum of 3 ranks, rank 1-any spellcaster level, rank 2, spellcaster level 5+, rank 3, spellcaster level 10+."
+        " This will not work on psionic powers or warlock abilities/spells.");
 
   feato(FEAT_COMBAT_CASTING, "combat casting", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "+4 to spell concentration checks made in combat or when grappled ",
@@ -3992,7 +4050,8 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "* It is a ranged touch attack that affects a single target.\r\n"
         "* It is a weapon-like spell (Critical hit on a roll of 20, double damage on a critical hit)\r\n"
         "* One each of an Eldritch Essence and Blast Shape invocations may be applied to an Eldritch Blast.\r\n"
-        "* Applied invocations may cause additional effects and thus allow for a saving throw.");
+        "* Applied invocations may cause additional effects and thus allow for a saving throw."
+        " Note that only feats specific to warlocks will affect the damage and power of eldritch blasts.");
 
   feato(FEAT_ELDRITCH_LORE, "eldritch lore", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "+2 to lore, spellcraft",

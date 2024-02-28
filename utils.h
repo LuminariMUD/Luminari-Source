@@ -182,6 +182,7 @@ bool is_spell_or_spell_like(int type);
 bool can_act(struct char_data *ch);
 int vampire_last_feeding_adjustment(struct char_data *ch);
 bool can_dam_be_resisted(int type);
+bool is_road_room(room_rnum room, int type);
 void AoEDamageRoom(struct char_data *ch, int dam, int spellnum, int dam_type);
 void dismiss_all_followers(struct char_data *ch);
 bool push_attempt(struct char_data *ch, struct char_data *vict, bool display);
@@ -2553,6 +2554,11 @@ void set_eidolon_descs(struct char_data *ch);
 bool has_reach(struct char_data *ch);
 
 #define WEAPON_SPELL_PROC(ch) (ch->player.weaponSpellProc)
+
+#define IS_DRAGONHIDE(material) (material == MATERIAL_DRAGONHIDE)
+#define IS_DRAGONSCALE(material) (material == MATERIAL_DRAGONSCALE)
+#define IS_DRAGONBONE(material) (material == MATERIAL_DRAGONBONE)
+#define IS_DRAGON_CRAFT_MATERIAL(material) (IS_DRAGONHIDE(material) || IS_DRAGONSCALE(material) || IS_DRAGONBONE(material))
 
 #endif /* _UTILS_H_ */
 

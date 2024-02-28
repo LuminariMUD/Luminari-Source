@@ -947,7 +947,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   // End of new armor piece code
   // replaces bonuses[BONUS_TYPE_ENHANCEMENT] += compute_gear_enhancement_bonus(ch); above
 
-  bonuses[BONUS_TYPE_ENHANCEMENT] += get_defending_weapon_bonus(ch, false);
+  bonuses[BONUS_TYPE_UNIVERSAL] += get_defending_weapon_bonus(ch, false);
   /**/
 
   /* bonus type dodge */

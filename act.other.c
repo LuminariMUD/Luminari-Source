@@ -1764,9 +1764,9 @@ void perform_call(struct char_data *ch, int call_type, int level)
 
     case MOB_EIDOLON:
 
-      if (IS_NPC(ch) || !HAS_REAL_FEAT(ch, FEAT_EIDOLON))
+      if (IS_NPC(ch) || (!HAS_REAL_FEAT(ch, FEAT_EIDOLON) && !HAS_REAL_FEAT(ch, FEAT_UNDEAD_COHORT)))
       {
-        send_to_char(ch, "You cannot summon an eidolon");
+        send_to_char(ch, "You cannot summon %s.", CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0 ? "an undead cohort" : "an eidolon");
         return;
       }
 
@@ -2015,9 +2015,21 @@ ACMD(do_call)
 
     call_type = MOB_EIDOLON;
   }
+  else if (is_abbrev(argument, "cohort"))
+  {
+    level = MIN(GET_LEVEL(ch), CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_NECROMANCER));
+
+    if (IS_NPC(ch) || (!HAS_REAL_FEAT(ch, FEAT_EIDOLON) && !HAS_REAL_FEAT(ch, FEAT_UNDEAD_COHORT)))
+    {
+      send_to_char(ch, "You do not have an %s that you can call.\r\n", HAS_REAL_FEAT(ch, FEAT_UNDEAD_COHORT) ? "undead cohort" : "eidolon");
+      return;
+    }
+
+    call_type = MOB_EIDOLON;
+  }
   else
   {
-    send_to_char(ch, "Usage:  call <companion/familiar/mount/shadow/eidolon>\r\n  Lost followers can be retrieved via 'summon' command.\r\n");
+    send_to_char(ch, "Usage:  call <companion/familiar/mount/shadow/eidolon/cohort>\r\n  Lost followers can be retrieved via 'summon' command.\r\n");
     return;
   }
 
@@ -5424,6 +5436,7 @@ ACMD(do_spells)
     if (class < 0 || class >= NUM_CLASSES)
     {
       send_to_char(ch, "That is not a valid class!\r\n");
+      send_to_char(ch, "You have more than one spellcasting class, thus you must specify the class for whose spell list you wish to see. Eg. spells cleric\r\n");
       return;
     }
     if (*arg1)
