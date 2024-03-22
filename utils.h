@@ -153,6 +153,8 @@ bool affected_by_aura_of_faith(struct char_data *ch);
 bool affected_by_aura_of_depravity(struct char_data *ch);
 bool affected_by_aura_of_righteousness(struct char_data *ch);
 bool is_fear_spell(int spellnum);
+bool has_fortune_of_many_bonus(struct char_data *ch);
+bool has_authoritative_bonus(struct char_data *ch);
 bool can_add_follower(struct char_data *ch, int mob_vnum);
 bool can_add_follower_by_flag(struct char_data *ch, int flag);
 char *apply_types_lowercase(int apply_type);
@@ -225,6 +227,7 @@ bool is_paladin_mount(struct char_data *ch, struct char_data *victim);
 char *randstring(int length);
 int combat_skill_roll(struct char_data *ch, int skillnum);
 int dice(int number, int size);
+int min_dice(int num, int size, int min);
 bool has_epic_power(struct char_data *ch, int powernum);
 size_t sprintbit(bitvector_t vektor, const char *names[], char *result, size_t reslen);
 size_t sprinttype(int type, const char *names[], char *result, size_t reslen);
@@ -2041,6 +2044,13 @@ int ACTUAL_BAB(struct char_data *ch);
                            (GET_RACE(ch) == RACE_DUERGAR))
 #define IS_DARK_DWARF(ch) (!IS_NPC(ch) && \
                            (GET_RACE(ch) == RACE_DUERGAR))
+#if defined(CAMPAIGN_DL)
+#define IS_GOBLINOID(ch) ((IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_GOBLINOID || GET_SUBRACE(ch, 1) == SUBRACE_GOBLINOID || \
+                          GET_SUBRACE(ch, 2) == SUBRACE_GOBLINOID)) || (!IS_NPC(ch) && (GET_RACE(ch) == DL_RACE_GOBLIN || GET_RACE(ch) == DL_RACE_HOBGOBLIN)))
+#else
+#define IS_GOBLINOID(ch) ((IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_GOBLINOID || GET_SUBRACE(ch, 1) == SUBRACE_GOBLINOID || \
+                          GET_SUBRACE(ch, 2) == SUBRACE_GOBLINOID)) || (!IS_NPC(ch) && (GET_RACE(ch) == RACE_GOBLIN || GET_RACE(ch) == RACE_HOBGOBLIN)))
+#endif
 
 // backwards compatibility for old circlemud code snippets
 #define SEND_TO_Q(buf, desc) (write_to_output(desc, "%s", buf))

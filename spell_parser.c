@@ -503,9 +503,15 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     return (0);
   }
 
-  if (cvict && (MOB_FLAGGED(cvict, MOB_NOKILL) || !is_mission_mob(caster, cvict)))
+  if (cvict && MOB_FLAGGED(cvict, MOB_NOKILL))
   {
     send_to_char(caster, "This mob is protected.\r\n");
+    return (0);
+  }
+
+  if (cvict && !is_mission_mob(caster, cvict))
+  {
+    send_to_char(caster, "This mob is a mission mob for another player, and can only be summoned by that player or a member if his/her group.\r\n");
     return (0);
   }
 

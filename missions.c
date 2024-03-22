@@ -321,7 +321,7 @@ ACMD(do_missions)
         send_to_char(ch, "You are not currently on a mission.");
         send_to_char(ch,
             "You may start a new mission by specifying a difficulty level (you must be in a "
-            "bounty/mission office). Select among the following difficulty levels:");
+            "bounty/mission office). Select among the following difficulty levels:\r\n");
         for (i = 0; i < NUM_MISSION_DIFFICULTIES; i++)
             send_to_char(ch, "-- %11s      - challenge level %d: %s target and %s guards\r\n",
                 mission_difficulty[i], i + 1, target_difficulty[i], guard_difficulty[i]);

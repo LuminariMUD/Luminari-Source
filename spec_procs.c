@@ -42,6 +42,7 @@
 #include "handler.h"    /* for is_name() */
 #include "evolutions.h"
 #include "oasis.h"
+#include "quest.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -1100,6 +1101,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_FEAT(ch, FEAT_AUTHORITATIVE))
+    {
+      /* Unnamed bonus */
+      value += 2;
+    }
     if (HAS_FEAT(ch, FEAT_STERN_GAZE))
     {
       /* Unnamed bonus */
@@ -1253,6 +1259,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   case ABILITY_DIPLOMACY:
     value += GET_CHA_BONUS(ch);
     if (HAS_FEAT(ch, FEAT_NEGOTIATOR))
+    {
+      /* Unnamed bonus */
+      value += 2;
+    }
+    if (HAS_FEAT(ch, FEAT_AUTHORITATIVE))
     {
       /* Unnamed bonus */
       value += 2;
@@ -11174,6 +11185,76 @@ SPECIAL(identify_mob)
 
   return 1;
 
+}
+
+SPECIAL(replace_quest_item)
+{
+  if (!CMD_IS("replace"))
+    return 0;
+
+  char arg1[200];
+  struct obj_data *obj = NULL;
+  int i = 0, counter = 0;
+  qst_rnum rnum = NOTHING;
+
+  one_argument(argument, arg1, sizeof(arg1));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Quests that you have completed with replaceable rewards:\r\n"
+                    "VNum  Description                                          Item Reward\r\n"
+                    "----- ---------------------------------------------------- -----------\r\n");
+    for (i = 0; i < GET_NUM_QUESTS(ch); i++)
+    {
+      if ((rnum = real_quest(ch->player_specials->saved.completed_quests[i])) != NOTHING)
+      {
+        if (IS_SET(QST_FLAGS(rnum), AQ_REPLACE_OBJ_REWARD) && QST_OBJ(rnum) > 0 && QST_OBJ(rnum) < 65535)
+        {
+          obj = read_object(QST_OBJ(rnum), VIRTUAL);
+          if (obj)
+          {
+            send_to_char(ch, "\tg%5d\tn) \tc%-52.52s\tn \ty%s\tn\r\n", QST_NUM(rnum), QST_DESC(rnum), obj->short_description);
+          }
+        }
+      }
+    }
+    if (!counter)
+    {
+      send_to_char(ch, "You don't have any replaceable quest rewards.\r\n");
+    }
+    else
+    {
+      send_to_char(ch, "Type 'replace (quest vnum) to replace the quest item for the specified quest.\r\n");
+    }
+  }
+  else
+  {
+    for (i = 0; i < GET_NUM_QUESTS(ch); i++)
+    {
+      if ((rnum = real_quest(ch->player_specials->saved.completed_quests[i])) != NOTHING)
+      {
+        if (IS_SET(QST_FLAGS(rnum), AQ_REPLACE_OBJ_REWARD) && QST_OBJ(rnum) > 0 && QST_OBJ(rnum) < 65535 )
+        {
+          obj = read_object(QST_OBJ(rnum), VIRTUAL);
+          if (obj)
+          {
+            if (atoi(arg1) == QST_NUM(rnum))
+            {
+              counter++;
+              obj_to_char(obj, ch);
+              send_to_char(ch, "You have had your quest item '%s' replaced.\r\n", obj->short_description);
+              return 1;
+            }
+          }
+        }
+      }
+    }
+    if (!counter)
+    {
+      send_to_char(ch, "There either is no replaceable quest object for that quest vnum, or you haven't completed that quest yet.\r\n");
+    }
+  }
+  return 1;
 }
 
 #undef DEBUGMODE

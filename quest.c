@@ -71,6 +71,7 @@ const char *quest_types[NUM_AQ_TYPES + 1] = {
 
 const char *aq_flags[] = {
     "REPEATABLE",
+    "REPLACE-OBJ-REWARD",
     "\n"};
 
 /*--------------------------------------------------------------------------
