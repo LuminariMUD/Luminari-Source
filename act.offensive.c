@@ -3233,7 +3233,7 @@ ACMD(do_flee)
   {
     perform_flee(ch);
   }
-  else if (*arg && !IS_NPC(ch) && !HAS_FEAT(ch, FEAT_SPRING_ATTACK))
+  else if (*arg && !IS_NPC(ch) && !HAS_FEAT(ch, FEAT_SPRING_ATTACK) && !HAS_FEAT(ch, FEAT_NIMBLE_ESCAPE))
   {
     send_to_char(ch, "You don't have the option to choose which way to flee, and flee randomly!\r\n");
     perform_flee(ch);

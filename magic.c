@@ -921,7 +921,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
                struct obj_data *wpn, int spellnum, int metamagic, int savetype, int casttype)
 {
   int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0, min_dice_roll = 0,
-      bonus = 0, mag_resist = TRUE, spell_school = NOSCHOOL, save_negates = FALSE, mag_resist_bonus = 0;
+      bonus = 0, mag_resist = TRUE, spell_school = NOSCHOOL, save_negates = FALSE, mag_resist_bonus = 0,
+      dc_mod = 0;
   char desc[200];
 
   if (victim == NULL || ch == NULL)
@@ -2533,6 +2534,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (element == DAM_POISON)
     race_bonus += get_poison_save_mod(ch, victim);
 
+  if (is_spell_mind_affecting(spellnum))
+  {
+    if (victim && HAS_REAL_FEAT(victim, FEAT_STUBBORN_MIND))
+      dc_mod -= 2;
+  }
+
   if (element == DAM_POISON && KNOWS_DISCOVERY(ch, ALC_DISC_CELESTIAL_POISONS))
     element = DAM_CELESTIAL_POISON;
 
@@ -2554,10 +2561,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   else if (spellnum == PSIONIC_DEADLY_FEAR)
   {
     GET_DC_BONUS(ch) += bonus;
-    if (!mag_savingthrow(ch, victim, save, race_bonus, SAVING_WILL, level, NOSCHOOL))
+    if (!mag_savingthrow(ch, victim, save, race_bonus + dc_mod, SAVING_WILL, level, NOSCHOOL))
     {
       GET_DC_BONUS(ch) += bonus;
-      if (mag_savingthrow(ch, victim, save, race_bonus, SAVING_FORT, level, NOSCHOOL))
+      if (mag_savingthrow(ch, victim, save, race_bonus + dc_mod, SAVING_FORT, level, NOSCHOOL))
         dam = dice(3, 6);
       else
         dam = GET_HIT(victim) + 100;
@@ -2566,7 +2573,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   else if (spellnum == PSIONIC_PSYCHIC_CRUSH)
   {
     GET_DC_BONUS(ch) += bonus - 4;
-    if (mag_savingthrow(ch, victim, save, race_bonus, SAVING_WILL, level, NOSCHOOL))
+    if (mag_savingthrow(ch, victim, save, race_bonus + dc_mod, SAVING_WILL, level, NOSCHOOL))
       dam = dice(3 + bonus, 6);
     else
       dam = GET_HIT(victim) + 100;
@@ -2580,7 +2587,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
   else if (spellnum == PSIONIC_RECALL_DEATH)
   {
-    if (mag_savingthrow(ch, victim, save, race_bonus, savetype, level, NOSCHOOL))
+    if (mag_savingthrow(ch, victim, save, race_bonus + dc_mod, savetype, level, NOSCHOOL))
       dam = dice(5, 6);
     else
       dam = GET_HIT(victim) + 100;
@@ -2592,7 +2599,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   else if (dam && (save != -1))
   {
     // saving throw for half damage if applies
-    if (mag_savingthrow(ch, victim, save, race_bonus, casttype, level, spell_school))
+    if (mag_savingthrow(ch, victim, save, race_bonus + dc_mod, casttype, level, spell_school))
     {
       if (save_negates)
       {
@@ -2688,7 +2695,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   struct affected_type af[MAX_SPELL_AFFECTS];
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
-  int i, j, x, spell_school = NOSCHOOL;
+  int i, j, x, spell_school = NOSCHOOL, dc_mod = 0;
   int enchantment_bonus = 0, illusion_bonus = 0, paralysis_bonus = 0, success = 0, misc_bonus = 0;
   bool is_mind_affect = FALSE;
   struct damage_reduction_type *new_dr = NULL, *dr = NULL, *temp = NULL;
@@ -2701,6 +2708,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   if (spell_info[spellnum].violent)
     if (HAS_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA) && metamagic > 0)
       GET_DC_BONUS(ch) += 1;
+
+  if (is_spell_mind_affecting(spellnum))
+  {
+    if (victim && HAS_REAL_FEAT(victim, FEAT_STUBBORN_MIND))
+      dc_mod -= 2;
+  }
 
   /* elven drow resistance to certain enchantments such as sleep */
   if (HAS_FEAT(victim, FEAT_SLEEP_ENCHANTMENT_IMMUNITY))
@@ -3275,7 +3288,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (power_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, NOSCHOOL))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NOSCHOOL))
       return;
     af[0].location = APPLY_WIS;
     af[0].duration = level * 12;
@@ -3812,7 +3825,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
 
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL))
       return;
     af[0].duration = 2 + (GET_AUGMENT_PSP(ch) / 4);
     af[0].location = APPLY_SPECIAL;
@@ -3833,7 +3846,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (power_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL))
       return;
 
     af[0].duration = level;
@@ -3873,7 +3886,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (power_resistance(ch, victim, 0))
       return;
-    if (GET_AUGMENT_PSP(ch) < 4 && mag_savingthrow(ch, victim, SAVING_WILL, affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, NOSCHOOL))
+    if (GET_AUGMENT_PSP(ch) < 4 && mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NOSCHOOL))
       return;
     change_position(victim, POS_SITTING);
     af[0].duration = 600;
@@ -3956,7 +3969,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (power_resistance(ch, victim, 0))
       return;
     af[0].duration = level;
-    af[0].modifier = mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL) ? BRUTALIZE_WOUNDS_SAVE_SUCCESS : BRUTALIZE_WOUNDS_SAVE_FAIL;
+    af[0].modifier = mag_savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL) ? BRUTALIZE_WOUNDS_SAVE_SUCCESS : BRUTALIZE_WOUNDS_SAVE_FAIL;
     af[0].location = APPLY_SPECIAL;
     accum_duration = FALSE;
     to_vict = "Your body has become more vulnerable to physical attacks.";
@@ -4338,7 +4351,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, ILLUSION))
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, ILLUSION))
       {
         return;
       }
@@ -4391,7 +4404,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
+      if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, NOSCHOOL))
         return;
       if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
@@ -4406,7 +4419,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     {
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, enchantment_bonus, casttype, level, NOSCHOOL))
+      if (mag_savingthrow(ch, victim, SAVING_FORT, dc_mod + enchantment_bonus, casttype, level, NOSCHOOL))
         return;
       if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
@@ -4425,7 +4438,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + misc_bonus, casttype, level, NOSCHOOL))
+      if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus + misc_bonus, casttype, level, NOSCHOOL))
         return;
       if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
@@ -4473,7 +4486,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
     if (is_immune_mind_affecting(ch, victim, 1))
       break;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NECROMANCY))
       break;
 
     af[0].location = APPLY_NONE;
@@ -5432,7 +5445,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NECROMANCY))
     {
       send_to_char(ch, "The sense of doom is resisted!\r\n");
       return;
@@ -5687,7 +5700,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + misc_bonus, casttype, level, ENCHANTMENT))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus + misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -5985,7 +5998,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_FEEBLEMIND: // enchantment
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -6019,7 +6032,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -6356,7 +6369,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         paralysis_bonus += get_evolution_appearance_save_bonus(victim);
     if (mag_savingthrow(ch, victim, SAVING_WILL,
-                        enchantment_bonus + paralysis_bonus,
+                        dc_mod + enchantment_bonus + paralysis_bonus,
                         casttype, level, ENCHANTMENT))
     {
       return;
@@ -6897,7 +6910,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_MIND_FOG: // illusion
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + illusion_bonus, casttype, level, ILLUSION))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -7000,7 +7013,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
     
-    if (mag_savingthrow(ch, victim, SAVING_FORT, illusion_bonus + misc_bonus, casttype, level, ILLUSION))
+    if (mag_savingthrow(ch, victim, SAVING_FORT, dc_mod + illusion_bonus + misc_bonus, casttype, level, ILLUSION))
       return;
     
     if (is_immune_mind_affecting(ch, victim, TRUE))
@@ -7233,7 +7246,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + misc_bonus, casttype, level, ILLUSION))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + illusion_bonus + misc_bonus, casttype, level, ILLUSION))
     {
       return;
     }
@@ -7298,7 +7311,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, ILLUSION))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, ILLUSION))
     {
       return;
     }
@@ -7323,7 +7336,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, ILLUSION))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, ILLUSION))
     {
       return;
     }
@@ -7973,7 +7986,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_TOUCH_OF_IDIOCY: // enchantment
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, ENCHANTMENT))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -8036,7 +8049,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, NECROMANCY))
+    if (mag_savingthrow(ch, victim, SAVING_FORT, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NECROMANCY))
     {
       return;
     }
@@ -8657,6 +8670,9 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
       PRF_FLAGGED(tch, PRF_NOHASSLE))
     return 0;
 
+  if (!tch)
+    return 0;
+
   // rare reverse where we want to always AOE.
   if ((spellnum == WARLOCK_ELDRITCH_BLAST || spellnum == WARLOCK_CRITICAL_ELDRITCH_BLAST) &&
     GET_ELDRITCH_ESSENCE(ch) == WARLOCK_UTTERDARK_BLAST &&
@@ -8728,6 +8744,9 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
     // if pc cast, !pk mud, skip pc
     if (!IS_NPC(ch) && !IS_NPC(tch))
       return 0;
+
+    if (!IS_NPC(ch) && AFF_FLAGGED(tch, AFF_CHARM) && !tch->master)
+      return 1;
 
     // do not hit pc charmee
     if (!IS_NPC(ch) && AFF_FLAGGED(tch, AFF_CHARM) && !IS_NPC(tch->master))
@@ -11494,6 +11513,41 @@ bool is_spell_mind_affecting(int snum)
 {
   switch (snum)
   {
+    case PSIONIC_MIND_THRUST:
+    case PSIONIC_IMPALE_MIND:
+    case PSIONIC_DEADLY_FEAR:
+    case PSIONIC_PSYCHIC_CRUSH:
+    case PSIONIC_ULTRABLAST:
+    case PSIONIC_PSYCHOSIS:
+    case PSIONIC_RECALL_DEATH:
+    case PSIONIC_DEMORALIZE:
+    case PSIONIC_DEATH_URGE:
+    case PSIONIC_INCITE_PASSION:
+    case PSIONIC_MOMENT_OF_TERROR:
+    case PSIONIC_ASSIMILATE:
+    case PSIONIC_BRUTALIZE_WOUNDS:
+    case WARLOCK_FRIGHTFUL_BLAST:
+    case WARLOCK_BEWITCHING_BLAST:
+    case WARLOCK_NOXIOUS_BLAST:
+    case WARLOCK_BINDING_BLAST:
+    case WARLOCK_TENACIOUS_PLAGUE:
+    case SPELL_POWER_WORD_SILENCE:
+    case SPELL_DOOM:
+    case SPELL_DAZE_MONSTER:
+    case SPELL_FEEBLEMIND:
+    case SPELL_CONFUSION:
+    case SPELL_HIDEOUS_LAUGHTER:
+    case SPELL_MIND_FOG:
+    case SPELL_NIGHTMARE:
+    case SPELL_POWER_WORD_BLIND:
+    case SPELL_POWER_WORD_STUN:
+    case SPELL_RAINBOW_PATTERN:
+    case SPELL_SCARE:
+    case SPELL_FEAR:
+    case SPELL_TOUCH_OF_IDIOCY:
+    case SPELL_TRUE_STRIKE:
+    case SPELL_WAIL_OF_THE_BANSHEE:
+      return true;
   }
   return false;
 }

@@ -462,7 +462,7 @@ spec_procs.o: spec_procs.c conf.h sysdep.h structs.h bool.h protocol.h \
  modify.h house.h clan.h mudlim.h graph.h dg_scripts.h mud_event.h \
  dg_event.h actions.h assign_wpn_armor.h domains_schools.h feats.h \
  spell_prep.h item.h alchemy.h treasure.h mobact.h evolutions.h oasis.h \
- help.h
+ help.h quest.h
 specs.artifacts.o: specs.artifacts.c
 spellbook_scroll.o: spellbook_scroll.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h utils.h db.h helpers.h perfmon.h \

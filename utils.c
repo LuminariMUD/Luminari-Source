@@ -5349,6 +5349,68 @@ bool has_aura_of_courage(struct char_data *ch)
   return has_aura;
 }
 
+bool has_fortune_of_many_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  struct char_data *tch = NULL;
+  int num_members = 0;
+  bool has_fortune = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      num_members++;
+      if (HAS_FEAT(tch, FEAT_FORTUNE_OF_THE_MANY))
+      {
+        has_fortune = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return (has_fortune && (num_members > 1));
+}
+
+bool has_authoritative_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  struct char_data *tch = NULL;
+  int num_members = 0;
+  bool has_authority = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      num_members++;
+      if (HAS_FEAT(tch, FEAT_AUTHORITATIVE))
+      {
+        has_authority = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return (has_authority && (num_members > 1));
+}
+
 bool has_bite_attack(struct char_data *ch)
 {
   
@@ -6138,6 +6200,9 @@ bool can_flee_speed(struct char_data *ch)
   int ch_speed = get_speed(ch, false);
   int mob_speed = 0;
 
+  if (HAS_REAL_FEAT(ch, FEAT_NIMBLE_ESCAPE))
+    return true;
+
   struct char_data *tch = NULL;
 
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
@@ -6160,6 +6225,22 @@ int d20(struct char_data *ch)
     return dice(1, 20);
 
   int roll = dice(1, 20);
+  int roll2 = 0;
+  int low = 0, high = 0;
+
+  if (roll <= 5 && HAS_REAL_FEAT(ch, FEAT_FORTUNE_OF_THE_MANY))
+  {
+    if (dice(1, 10) == 1)
+    {
+      roll2 = dice(1, 20);
+      if (roll != roll2)
+      {
+        low = MIN(roll, roll2);
+        roll = high = MAX(roll, roll2);
+        // send_to_char(ch, "\tY[Fortune of the Many Reroll! %d to %d]\tn\r\n", low, high);
+      }
+    }
+  }
 
   if (dice(1, 100) <= 10 && get_lucky_weapon_bonus(ch))
   {

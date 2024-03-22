@@ -629,6 +629,35 @@ void assign_feats(void)
         "critical hits add an extra 1d6 damage.",
         "Critical hits add an extra 1d6 damage.");
 
+  // Goblins
+  // feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip
+    feato(FEAT_GOBLIN_RACIAL_ADJUSTMENT, "goblin racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "-2 Str -2 Cha +2 Con +4 Dex",
+        "Goblins have a racial adjustmnent of -2 to strength, -2 to charisma, +2 to constitution and +4 to dexterity.");
+  feato(FEAT_FURY_OF_THE_SMALL, "fury of the small", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Gains a +1 to hit and +2 to damage against targets that are larger than you.",
+        "Gains a +1 to hit and +2 to damage against targets that are larger than you.");
+  feato(FEAT_NIMBLE_ESCAPE, "nimble escape", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Can specify the direction you wish to flee when using the flee command, and can always flee regardless of movement speed.",
+        "Can specify the direction you wish to flee when using the flee command, and can always flee regardless of movement speed.");
+  feato(FEAT_STUBBORN_MIND, "stubborn mind", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Gets a +2 to saving throws against mind affecting effects.",
+        "Gets a +2 to saving throws against mind affecting effects.");
+
+  // Hobgoblins
+  // feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip
+    feato(FEAT_HOBGOBLIN_RACIAL_ADJUSTMENT, "hobgoblin racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 Con, +1 Dex",
+        "Hobgoblins have a racial adjustmnent of +2 to constitution and +1 to dexterity.");
+    feato(FEAT_FORTUNE_OF_THE_MANY, "fortune of the many", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "When in a party with at least 2 members (npcs included) the hobgoblin will have a 10% chance "
+        "to reroll almost any d20 roll that comes up less than 5 and take the better result.",
+        "When in a party with at least 2 members (npcs included) the hobgoblin will have a 10% chance "
+        "to reroll almost any d20 roll that comes up less than 5 and take the better result.");
+    feato(FEAT_AUTHORITATIVE, "authoritative", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "When in a party with at least 2 members (npcs included) all members gain a +1 to attack rolls. Goblinoids get +2.",
+        "When in a party with at least 2 members (npcs included) all members gain a +1 to attack rolls. Goblinoids get +2.");
+
   /* Gnome */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_RESISTANCE_TO_ILLUSIONS, "resistance to illusions", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
@@ -4537,7 +4566,16 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*1*/
 
-
+  /* Knight of the Crown */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  /*1*/
+  feato(FEAT_STRENGTH_OF_HONOR, "strength of honor", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "+4 to strength for several rounds", "+4 to strength for several rounds");
+  feato(FEAT_KNIGHTLY_COURAGE, "knightly courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "bonus to fear checks", "bonus to fear checks");
+  feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "none", "bonus to initiative checks");
+  feato(FEAT_HONORABLE_WILL, "honorable will", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_MIGHT_OF_HONOR, "might of honor", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_ARMORED_MOBILITY, "armored mobility", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "none", "heavy armor is treated as medium armor");
+  feato(FEAT_CROWN_OF_KNIGHTHOOD, "crown of knighthood", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
 
   /* Shadow Dancer (ShadowDancer) */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */

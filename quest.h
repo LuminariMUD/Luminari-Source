@@ -55,8 +55,9 @@
 #define SCMD_QUEST_ASSIGN 6   /* Staff complete quest for target      */
 
 /* AQ Flags (much room for expansion) ********************************* */
-#define AQ_REPEATABLE (1 << 0) /* Quest can be repeated                */
-#define NUM_AQ_FLAGS 1
+#define AQ_REPEATABLE (1 << 0)          /* Quest can be repeated                */
+#define AQ_REPLACE_OBJ_REWARD (1 << 1)  /* Quest obj reward can be reacquired if lost */
+#define NUM_AQ_FLAGS 2
 
 /* Main quest struct ************************************************** */
 struct aq_data

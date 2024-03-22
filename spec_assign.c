@@ -31,6 +31,7 @@ SPECIAL_DECL(faction_mission);
 SPECIAL_DECL(eqstats);
 SPECIAL_DECL(vampire_cloak);
 SPECIAL_DECL(identify_mob);
+SPECIAL_DECL(replace_quest_item);
 
 /* local (file scope only) functions */
 static void ASSIGNROOM(room_vnum room, SPECIAL_DECL(fname));
@@ -122,6 +123,7 @@ void assign_mobiles(void)
   ASSIGNMOB(15322, buymolds);
   ASSIGNMOB(7021, identify_mob);
   ASSIGNMOB(15326, huntsmaster);
+  ASSIGNMOB(15327, replace_quest_item);
 
   // sanction
   ASSIGNMOB(13800, buyweapons);
@@ -133,6 +135,7 @@ void assign_mobiles(void)
   ASSIGNMOB(13809, buymolds);
   ASSIGNMOB(13822, identify_mob);
   ASSIGNMOB(13811, huntsmaster);
+  ASSIGNMOB(13821, replace_quest_item);
 
 #else
 

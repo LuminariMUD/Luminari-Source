@@ -661,6 +661,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"recent", "recent", POS_DEAD, do_recent, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"remove", "rem", POS_RESTING, do_remove, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rent", "rent", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"replace", "repl", POS_RECLINING, do_not_here, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"report", "repo", POS_RECLINING, do_report, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"reroll", "rero", POS_DEAD, do_wizutil, LVL_GRSTAFF, SCMD_REROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rescue", "resc", POS_FIGHTING, do_rescue, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_rescue},
@@ -2887,6 +2888,12 @@ void nanny(struct descriptor_data *d, char *arg)
       break;
     case RACE_SHADE:
       perform_help(d, "race-shade");
+      break;
+    case RACE_GOBLIN:
+      perform_help(d, "race-goblin");
+      break;
+    case RACE_HOBGOBLIN:
+      perform_help(d, "race-hobgoblin");
       break;
     default:
       write_to_output(d, "\r\nCommand not understood.\r\n");

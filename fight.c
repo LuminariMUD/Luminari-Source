@@ -5355,6 +5355,12 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     if (display_mode)
       send_to_char(ch, "Aura of Faith: \tR1\tn\r\n");
   }
+  if (HAS_REAL_FEAT(ch, FEAT_FURY_OF_THE_SMALL) && vict && GET_SIZE(ch) < GET_SIZE(vict))
+  {
+    dambonus += 2;
+    if (display_mode)
+      send_to_char(ch, "Fury of the Small: \tR2\tn\r\n");
+  } 
 
   if (is_evolution_attack(attack_type) && HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_DAMAGE))
   {
@@ -7871,6 +7877,16 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (affected_by_spell(ch, SPELL_EFFECT_GRAND_DESTINY))
   {
      bonuses[BONUS_TYPE_CIRCUMSTANCE] += 4;
+  }
+
+  if (HAS_REAL_FEAT(ch, FEAT_FURY_OF_THE_SMALL) && victim && GET_SIZE(ch) < GET_SIZE(victim))
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+
+  if (has_authoritative_bonus(ch))
+  {
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+    if (IS_GOBLINOID(ch))
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
   }
 
   /* Enhancement bonus */
