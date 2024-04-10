@@ -4569,13 +4569,75 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   /* Knight of the Crown */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*1*/
-  feato(FEAT_STRENGTH_OF_HONOR, "strength of honor", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, "+4 to strength for several rounds", "+4 to strength for several rounds");
-  feato(FEAT_KNIGHTLY_COURAGE, "knightly courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "bonus to fear checks", "bonus to fear checks");
-  feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "none", "bonus to initiative checks");
-  feato(FEAT_HONORABLE_WILL, "honorable will", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_MIGHT_OF_HONOR, "might of honor", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_ARMORED_MOBILITY, "armored mobility", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "none", "heavy armor is treated as medium armor");
-  feato(FEAT_CROWN_OF_KNIGHTHOOD, "crown of knighthood", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
+    feato(FEAT_STRENGTH_OF_HONOR, "strength of honor", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, 
+      "+4 morale bonus to strength for several rounds. Uses strengthofhonor command.", 
+      "+4 morale bonus to strength for several rounds. Uses strengthofhonor command.");
+    feato(FEAT_KNIGHTLY_COURAGE, "knightly courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Immune to fear affects.",
+      "Immune to fear affects.");
+    feato(FEAT_HEROIC_INITIATIVE, "heroic initiative", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "+4 bonus to initiative checks.", 
+      "+4 bonus to initiative checks.");
+    feato(FEAT_HONORABLE_WILL, "honorable will", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Improves all saving throws by the number of knight of the crown class levels possessed.", 
+      "Improves all saving throws by the number of knight of the crown class levels possessed.");
+    feato(FEAT_MIGHT_OF_HONOR, "might of honor", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Increases the strength bonus and duration of the strength of honor ability.",
+      "Increases the strength bonus and duration of the strength of honor ability.");
+    feato(FEAT_ARMORED_MOBILITY, "armored mobility", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Heavy armor is treated as medium armor, armor check penalty is reduced by 2 and armor dexterity "
+      "cap increased by 2. Heavy armor proficiency still required to wear heavy armor without penalties.",
+      "Heavy armor is treated as medium armor, armor check penalty is reduced by 2 and armor dexterity "
+      "cap increased by 2. Heavy armor proficiency still required to wear heavy armor without penalties.");
+    feato(FEAT_CROWN_OF_KNIGHTHOOD, "crown of knighthood", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Once per day can use the crownofknighthood command to give yourself a +4 morale bonus to attack "
+      "rolls, weapon damage rolls, saving throws plus 20 bonus hitpoints for 5 minutes.", 
+      "Once per day can use the crownofknighthood command to give yourself a +4 morale bonus to attack "
+      "rolls, weapon damage rolls, saving throws plus 20 bonus hitpoints for 5 minutes.");
+
+    feato(FEAT_HONORBOUND, "honorbound", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT, 
+      "+3 to saving throws against fear and other mind-affecting abilities. +4 to discipline and sense motive skills.", 
+      "+3 to saving throws against fear and other mind-affecting abilities. +4 to discipline and sense motive skills.");
+
+    feato(FEAT_DEMORALIZING_STRIKE, "demoralizing strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Once per combat round, on a successful melee strike, the target must save vs. will or be shaken for 1 round.", 
+      "Once per combat round, on a successful melee strike, the target must save vs. will or be shaken for 1 round.");
+
+    feato(FEAT_SOUL_OF_KNIGHTHOOD, "soul of knighthood", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Allows the use of soulofknighthood command which will cast the holy aura spell on all group members. "
+      "Also bestows a permanent +1d6 holy damage on all melee attacks, and +2d10 holy damage on critical hits.", 
+      "Allows the use of soulofknighthood command which will cast the holy aura spell on all group members. "
+      "Also bestows a permanent +1d6 holy damage on all melee attacks, and +2d10 holy damage on critical hits.");
+
+    feato(FEAT_LEADERSHIP, "leadership", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+      "This feat will give all party members +10% experience with the first rank, and +5% for each additional rank, for a maximum of 5 ranks.", 
+      "This feat will give all party members +10% experience with the first rank, and +5% for each additional rank, for a maximum of 5 ranks.");
+    feat_prereq_attribute(FEAT_LEADERSHIP, AB_CHA, 12);
+    
+
+    feato(FEAT_RALLYING_CRY, "rallying cry", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Gives party members a +1 morale bonus to attack rolls and a +5 bonus to speed. Uses the rallyingcry command.", 
+      "Gives party members a +1 morale bonus to attack rolls and a +5 bonus to speed. Uses the rallyingcry command.");
+
+    feato(FEAT_INSPIRE_COURAGE, "inspire courage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Gives party members a +2 morale bonus to attack rolls, melee damage and willpower saving throws. Additional ranks improve bonus.", 
+      "Gives party members a +2 morale bonus to attack rolls, melee damage and willpower saving throws. Additional ranks improve bonus.");
+
+    feato(FEAT_INSPIRE_GREATNESS, "inspire greatness", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Inspire courage now gives an additional +2 to attack rolls, +1 to fortitude saving throws and increases max hit points by 20.", 
+      "Inspire courage now gives an additional +2 to attack rolls, +1 to fortitude saving throws and increases max hit points by 20.");
+
+    feato(FEAT_WISDOM_OF_THE_MEASURE, "wisdom of the measure", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Can use the wisdomofthemeasure command to cast the augury spell.", 
+      "Can use the wisdomofthemeasure command to cast the augury spell.");
+
+    feato(FEAT_FINAL_STAND, "final stand", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Maximum and current hit points of all party members increases by 30.", 
+      "Maximum and current hit points of all party members increases by 30.");
+
+    feato(FEAT_KNIGHTHOODS_FLOWER, "knighthood's flower", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+      "Gain immunity to compulsion effects, and can use the knighthoodsflower command to gain a +2 insight bonus to armor class and reflex saving throws.", 
+      "Gain immunity to compulsion effects, and can use the knighthoodsflower command to gain a +2 insight bonus to armor class and reflex saving throws.");    
 
   /* Shadow Dancer (ShadowDancer) */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -4830,25 +4892,6 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_POWERFUL_SNEAK, "powerful sneak", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2", "opt to take -2 to attacks and treat all sneak attack dice rolls of 1 as a 2");
   /* epic */
   feato(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY, "sneak attack of opportunity", FALSE, TRUE, FALSE, FEAT_TYPE_COMBAT, "makes all opportunity attacks sneak attacks", "makes all opportunity attacks sneak attacks");
-
-  /* knight of the rose (dragonlance) */
-  feato(FEAT_RALLYING_CRY, "rallying cry", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-
-  /* knight of the sword */
-
-  /* knight of the crown (dragonlance) */
-  feato(FEAT_HONORABLE_WILL, "honorable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-
-  /* knight of the crown / knight of the lily [SHARED] (dragonlance) */
-  feato(FEAT_ARMORED_MOBILITY, "armored mobility", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "heavy armor is treated as medium armor", "heavy armor is treated as medium armor");
-
-  /* knight of the lily (dragonlance) */
-  feato(FEAT_UNBREAKABLE_WILL, "unbreakable will", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-
-  /* knight of the thorn (dragonlance) */
-
-  /* knight of the skull (dragonlance) */
-  feato(FEAT_DARK_BLESSING, "dark blessing", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
@@ -5238,6 +5281,14 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   dailyfeat(FEAT_TABAXI_CATS_CLAWS, eCATSCLAWS);
   dailyfeat(FEAT_STONES_ENDURANCE, eSTONESENDURANCE);
   dailyfeat(FEAT_TOUCH_OF_UNDEATH, eTOUCHOFUNDEATH);
+  dailyfeat(FEAT_STRENGTH_OF_HONOR, eSTRENGTHOFHONOR);
+  dailyfeat(FEAT_CROWN_OF_KNIGHTHOOD, eCROWNOFKNIGHTHOOD);
+  dailyfeat(FEAT_SOUL_OF_KNIGHTHOOD, eSOULOFKNIGHTHOOD);
+  dailyfeat(FEAT_INSPIRE_COURAGE, eINSPIRECOURAGE);
+  dailyfeat(FEAT_WISDOM_OF_THE_MEASURE, eWISDOMOFTHEMEASURE);
+  dailyfeat(FEAT_FINAL_STAND, eFINALSTAND);
+  dailyfeat(FEAT_KNIGHTHOODS_FLOWER, eKNIGHTHOODSFLOWER);
+  dailyfeat(FEAT_RALLYING_CRY, eRALLYINGCRY);
   /** END **/
 }
 
@@ -5636,6 +5687,11 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
 
     case FEAT_EPIC_PROWESS:
       if (has_feat_requirement_check(ch, FEAT_EPIC_PROWESS) >= 5)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_LEADERSHIP:
+      if (has_feat_requirement_check(ch, FEAT_LEADERSHIP) >= 5)
         return FALSE;
       return TRUE;
 
@@ -7435,6 +7491,36 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (+%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_LEADERSHIP)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d%% exp)", feat_list[i].name, (HAS_FEAT(ch, FEAT_LEADERSHIP) + 1) * 5);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d%% exp)", feat_list[i].name, (HAS_FEAT(ch, FEAT_LEADERSHIP) + 1) * 5);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_INSPIRE_COURAGE)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_INSPIRE_COURAGE) + 1);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_INSPIRE_COURAGE) + 1);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

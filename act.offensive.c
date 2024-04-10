@@ -40,6 +40,8 @@
 /* externs */
 extern char cast_arg2[MAX_INPUT_LENGTH];
 
+int roll_initiative(struct char_data *ch);
+
 /* defines */
 #define RAGE_AFFECTS 7
 #define SACRED_FLAMES_AFFECTS 1
@@ -2843,14 +2845,8 @@ ACMD(do_hit)
   {
 
     /* INITIATIVE */
-    chInitiative = d20(ch);
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE))
-      chInitiative += 4;
-    chInitiative += GET_DEX(ch);
-    victInitiative = d20(vict);
-    if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE))
-      victInitiative += 4;
-    victInitiative += GET_DEX(vict);
+    chInitiative = roll_initiative(ch);
+    victInitiative = roll_initiative(vict);
 
     if (chInitiative >= victInitiative || GET_POS(vict) < POS_FIGHTING || !CAN_SEE(vict, ch))
     {
@@ -10129,6 +10125,407 @@ ACMD(do_vital_strike)
     act("You concentrate your attacks into a single vital strike!", TRUE, ch, 0, 0, TO_CHAR);
   }
 
+}
+
+ACMD(do_strength_of_honor)
+{
+
+  struct affected_type af;
+  int abil_mod = 0;
+  int uses_remaining = 0;
+  
+  if (!HAS_REAL_FEAT(ch, FEAT_STRENGTH_OF_HONOR)) {
+    send_to_char(ch, "You do not have the strength of honor ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, ABILITY_STRENGTH_OF_HONOR))
+  {
+    send_to_char(ch, "You are already benefitting from strength of honor.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_STRENGTH_OF_HONOR)) == 0)
+  {
+    send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You have no uses in this ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "Strength of Honor requires a swift action available to use.\r\n");
+    return;
+  }
+  
+  if (HAS_FEAT(ch, FEAT_STRENGTH_OF_HONOR))
+  {
+  	abil_mod = 4;
+  }
+  
+  if (HAS_FEAT(ch, FEAT_MIGHT_OF_HONOR))
+  {
+  	abil_mod = 6;
+  }
+  
+  new_affect(&af);
+  af.location = APPLY_STR;
+  af.bonus_type = BONUS_TYPE_MORALE;
+  af.spell = ABILITY_STRENGTH_OF_HONOR;
+  af.duration = 10 * (1 + HAS_REAL_FEAT(ch, FEAT_MIGHT_OF_HONOR));
+  af.modifier = abil_mod;
+
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+  
+  send_to_char(ch, "You lift your weapon in a knightly salute and recite your oath of honor.\r\n");
+  act("$n lifts $s weapon in a knightly salute and powerfully recites $s oath of honor.", false, ch, 0, 0, TO_NOTVICT);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STRENGTH_OF_HONOR);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+ACMD(do_crown_of_knighthood)
+{
+
+  struct affected_type af[6];
+  int uses_remaining = 0, i = 0;
+  
+  if (!HAS_REAL_FEAT(ch, FEAT_CROWN_OF_KNIGHTHOOD)) {
+    send_to_char(ch, "You do not have the crown of knighthood ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, ABILITY_CROWN_OF_KNIGHTHOOD))
+  {
+    send_to_char(ch, "You are already benefitting from crown of knighthood.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_CROWN_OF_KNIGHTHOOD)) == 0)
+  {
+    send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You have no uses in this ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "Crown of knighthood requires a swift action available to use.\r\n");
+    return;
+  }
+  
+  /* init affect array */
+  for (i = 0; i < 6; i++)
+  {
+    new_affect(&(af[i]));
+    af[i].spell = ABILITY_CROWN_OF_KNIGHTHOOD;
+    af[i].duration = 75;
+    af[i].modifier = 4;
+    af[i].bonus_type = BONUS_TYPE_MORALE;
+  }
+
+  af[0].location = APPLY_HITROLL;
+  af[1].location = APPLY_DAMROLL;
+  af[2].location = APPLY_SAVING_FORT;
+  af[3].location = APPLY_SAVING_WILL;
+  af[4].location = APPLY_SAVING_REFL;
+  af[5].location = APPLY_HIT;
+  af[5].modifier = 20;
+
+  for (i = 0; i < 6; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+  
+  send_to_char(ch, "You close your eyes and allow the oath and measure to fill your soul.\r\n");
+  act("$n closes $s eyes and seems to grow in confidence.", false, ch, 0, 0, TO_NOTVICT);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_CROWN_OF_KNIGHTHOOD);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+ACMD(do_soul_of_knighthood)
+{
+
+  int uses_remaining = 0;
+  
+  if (!HAS_REAL_FEAT(ch, FEAT_SOUL_OF_KNIGHTHOOD)) {
+    send_to_char(ch, "You do not have the soul of knighthood ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SPELL_HOLY_AURA))
+  {
+    send_to_char(ch, "You are already benefitting from soul of knighthood/holy aura.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_SOUL_OF_KNIGHTHOOD)) == 0)
+  {
+    send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You have no uses in this ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "Soul of knighthood requires a swift action available to use.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "You close your eyes and connect with the triumvirate's power.\r\n");
+  act("$n closes $s eyes and seems to grow in confidence.", false, ch, 0, 0, TO_NOTVICT);
+
+  call_magic(ch, ch, 0, SPELL_HOLY_AURA, 0, CASTER_LEVEL(ch), CAST_INNATE);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SOUL_OF_KNIGHTHOOD);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+ACMD(do_rallying_cry)
+{
+
+  int uses_remaining = 0;
+  
+  if (!HAS_REAL_FEAT(ch, FEAT_RALLYING_CRY))
+  {
+    send_to_char(ch, "You do not have the rallying cry ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, AFFECT_RALLYING_CRY))
+  {
+    send_to_char(ch, "You are already benefitting from rallying cry.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_RALLYING_CRY)) == 0)
+  {
+    send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You have no uses in this ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "Rallying cry requires a swift action available to use.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "You raise your arm and rally your allies!\r\n");
+  act("$n raises $s arm and rallies $s allies.", false, ch, 0, 0, TO_ROOM);
+
+  call_magic(ch, ch, 0, AFFECT_RALLYING_CRY, 0, CASTER_LEVEL(ch), CAST_INNATE);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_RALLYING_CRY);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+ACMD(do_inspire_courage)
+{
+
+  int uses_remaining = 0;
+  
+  if (!HAS_REAL_FEAT(ch, FEAT_INSPIRE_COURAGE))
+  {
+    send_to_char(ch, "You do not have the inspire courage ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, AFFECT_INSPIRE_COURAGE) || affected_by_spell(ch, AFFECT_INSPIRE_GREATNESS))
+  {
+    send_to_char(ch, "You are already benefitting from inspire courage.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_INSPIRE_COURAGE)) == 0)
+  {
+    send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You have no uses in this ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "Inspire courage requires a swift action available to use.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "You shout words of encouragement, bolstering the courage of your allies.\r\n");
+  act("$n shouts words of encouragement to $s allies.", false, ch, 0, 0, TO_ROOM);
+
+  if (HAS_FEAT(ch, FEAT_INSPIRE_GREATNESS))
+    call_magic(ch, ch, 0, AFFECT_INSPIRE_GREATNESS, 0, CASTER_LEVEL(ch), CAST_INNATE);
+  else
+    call_magic(ch, ch, 0, AFFECT_INSPIRE_COURAGE, 0, CASTER_LEVEL(ch), CAST_INNATE);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_INSPIRE_COURAGE);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+
+ACMD(do_wisdom_of_the_measure)
+{
+
+  int uses_remaining = 0;
+  
+  if (!HAS_REAL_FEAT(ch, FEAT_WISDOM_OF_THE_MEASURE))
+  {
+    send_to_char(ch, "You do not have the wisdom of the measure ability.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_WISDOM_OF_THE_MEASURE)) == 0)
+  {
+    send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You have no uses in this ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "Wisdom of the measure requires a swift action available to use.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "You tap into your knowledge of the measure, and the power of Paladine offers you special insight.\r\n");
+  
+  spell_augury(CASTER_LEVEL(ch), ch, ch, 0, CAST_INNATE);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_WISDOM_OF_THE_MEASURE);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+ACMD(do_final_stand)
+{
+
+  int uses_remaining = 0;
+  
+  if (!HAS_REAL_FEAT(ch, FEAT_FINAL_STAND))
+  {
+    send_to_char(ch, "You do not have the final stand ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, AFFECT_FINAL_STAND))
+  {
+    send_to_char(ch, "You are already benefitting from final stand.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_FINAL_STAND)) == 0)
+  {
+    send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You have no uses in this ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "Final stand requires a swift action available to use.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "You guide your allies into a defensive formation.\r\n");
+  act("$n guides $s allies into a defensive formation.", false, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, 0, AFFECT_FINAL_STAND, 0, CASTER_LEVEL(ch), CAST_INNATE);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_FINAL_STAND);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+ACMD(do_knighthoods_flower)
+{
+
+  int uses_remaining = 0;
+  
+  if (!HAS_REAL_FEAT(ch, FEAT_KNIGHTHOODS_FLOWER))
+  {
+    send_to_char(ch, "You do not have the knighthood's flower ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, AFFECT_KNIGHTHOODS_FLOWER))
+  {
+    send_to_char(ch, "You are already benefitting from knighthood's flower.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_KNIGHTHOODS_FLOWER)) == 0)
+  {
+    send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You have no uses in this ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "Knighthood's flower requires a swift action available to use.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "Recalling the Oath and the Measure fills you with courage and purpose!\r\n");
+  act("$n looks filled with courage and purpose!", false, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, 0, AFFECT_KNIGHTHOODS_FLOWER, 0, CASTER_LEVEL(ch), CAST_INNATE);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_KNIGHTHOODS_FLOWER);
+
+  USE_SWIFT_ACTION(ch);
 }
 
 /* cleanup! */

@@ -2022,6 +2022,12 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Channel Energy Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEVOBREATH)))
     send_to_char(ch, "Eidolon Breath Weapon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSTRENGTHOFHONOR)))
+    send_to_char(ch, "Strength of Honor Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eCROWNOFKNIGHTHOOD)))
+    send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSOULOFKNIGHTHOOD)))
+    send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
   if (GET_SETCLOAK_TIMER(ch) > 0)
     send_to_char(ch, "Vampire 'Setcloak' Cooldown - Duration: %d seconds\r\n", GET_SETCLOAK_TIMER(ch) * 6);

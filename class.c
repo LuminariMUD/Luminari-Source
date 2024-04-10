@@ -1205,6 +1205,10 @@ bool view_class_feats(struct char_data *ch, const char *classname)
     send_to_char(ch, "The warrior class gets a bonus class feat every two "
                      "levels.\r\n");
   }
+  if (class == CLASS_KNIGHT_OF_THE_CROWN)
+  {
+    send_to_char(ch, "The knight of the crown class gets a bonus class feat every odd knight of the crown level.\r\n");
+  }
   if (class == CLASS_WIZARD)
   {
     send_to_char(ch, "The wizard class gets a bonus class feat every five "
@@ -1374,6 +1378,14 @@ int valid_align_by_class(int alignment, int class)
       return TRUE;
     else
       return FALSE;
+  // lawful good or lawful neutral only
+  case CLASS_KNIGHT_OF_THE_CROWN:
+  case CLASS_KNIGHT_OF_THE_SWORD:
+  case CLASS_KNIGHT_OF_THE_ROSE:
+    if (alignment == LAWFUL_GOOD || alignment == LAWFUL_NEUTRAL)
+      return TRUE;
+    else
+      return FALSE;
   case CLASS_BLACKGUARD:
     if (alignment == LAWFUL_EVIL)
       return TRUE;
@@ -1512,8 +1524,13 @@ int parse_class_long(const char *arg_in)
 
   int l = 0; /* string length */
 
-  for (l = 0; *(arg + l); l++) /* convert to lower case */
+  for (l = 0; *(arg + l); l++)
+  {
+    /* convert to lower case */
     *(arg + l) = LOWER(*(arg + l));
+    if (*(arg + l) == ' ')
+      *(arg + l) = '-';
+  }
 
   if (is_abbrev(arg, "wizard"))
     return CLASS_WIZARD;
@@ -1571,6 +1588,18 @@ int parse_class_long(const char *arg_in)
     return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "stalwart-defender"))
     return CLASS_STALWART_DEFENDER;
+  if (is_abbrev(arg, "knightofthecrown"))
+    return CLASS_KNIGHT_OF_THE_CROWN;
+  if (is_abbrev(arg, "knight-of-the-crown"))
+    return CLASS_KNIGHT_OF_THE_CROWN;
+  if (is_abbrev(arg, "knightofthesword"))
+    return CLASS_KNIGHT_OF_THE_SWORD;
+  if (is_abbrev(arg, "knight-of-the-sword"))
+    return CLASS_KNIGHT_OF_THE_SWORD;
+  if (is_abbrev(arg, "knightoftherose"))
+    return CLASS_KNIGHT_OF_THE_ROSE;
+  if (is_abbrev(arg, "knight-of-the-rose"))
+    return CLASS_KNIGHT_OF_THE_ROSE;
   if (is_abbrev(arg, "shifter"))
     return CLASS_SHIFTER;
   if (is_abbrev(arg, "sacred-fist"))
@@ -2741,6 +2770,9 @@ void init_start_char(struct char_data *ch)
   // this is here so that new characters can't get extra stat points from racefix command.
   ch->player_specials->saved.new_race_stats = true;
 
+  GET_1ST_DOMAIN(ch) = DOMAIN_UNDEFINED;
+  GET_2ND_DOMAIN(ch) = DOMAIN_UNDEFINED;
+
   /* clear immortal flags */
   if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
     i = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
@@ -3423,6 +3455,10 @@ void advance_level(struct char_data *ch, int class)
     // else if (IS_EPIC(ch))
     // epic_class_feats++;
   }
+  if (class == CLASS_KNIGHT_OF_THE_CROWN && (CLASS_LEVEL(ch, CLASS_WARRIOR) % 2) )
+  {
+    class_feats++;
+  }
 
   if (class == CLASS_BARD)
   {
@@ -3751,6 +3787,9 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_WARLOCK:
   case CLASS_SUMMONER:
   case CLASS_NECROMANCER:
+  case CLASS_KNIGHT_OF_THE_CROWN:
+  case CLASS_KNIGHT_OF_THE_SWORD:
+  case CLASS_KNIGHT_OF_THE_ROSE:
     level--;
     if (level < 0)
       level = 0;
@@ -4485,6 +4524,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_SALVATION, 15);
   spell_assignment(CLASS_CLERIC, SPELL_SPRING_OF_LIFE, 15);
   spell_assignment(CLASS_CLERIC, SPELL_RESURRECT, 15);
+  spell_assignment(CLASS_CLERIC, SPELL_HOLY_AURA, 15);
 
   /*              class num      spell                   level acquired */
   /* 9th circle */
@@ -7045,6 +7085,312 @@ void load_class_list(void)
   class_prereq_feat(CLASS_STALWART_DEFENDER, FEAT_TOUGHNESS, 1);
   class_prereq_feat(CLASS_STALWART_DEFENDER, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
   class_prereq_feat(CLASS_STALWART_DEFENDER, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_KNIGHT_OF_THE_CROWN, "knightofthecrown", "KCr", "\tWKCr\tn", "g) \tWKnight of the Crown\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         5, N, Y, H, 12, 0, 1, 2, Y, 0, 0,
+         /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Strength, Con/Dex for survivability",
+         /*descrip*/ 
+          "The Order of the Crown forms the basis of the Knights of Solamnia, providing the " 
+          "backbone of their armed forces and the training group for young Knights. The " 
+          "Crowns are led by the High Warrior. They are the opposite of the Knights of the " 
+          "Thorn" 
+          "\r\n" 
+          "The Measure of the Crown establishes Loyalty and Obedience as the foundation of " 
+          "honor and of the Knighthood. Knights of this Order believe fealty to the " 
+          "Knighthood and to the ideals of the Gods of Good is of great importance. The " 
+          "Measure teaches that true loyalty is fealty given freely to those worthy of it, " 
+          "and that such loyalty forms the backbone of virtue and the bonds that are the " 
+          "true strength of the Knighthood. Obedience is considered the brother virtue of " 
+          "loyalty, teaching a Knight to accept the rightful authority of his superiors. " 
+          "Both virtues are believed to reflect discipline of the soul and temperance. " 
+          "\r\n"
+          "The Order of the Crown had Habbakuk as its patron and is generally revered by " 
+          "them." 
+         );
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_KNIGHT_OF_THE_CROWN, G, B, G, B, B);
+  assign_class_abils(CLASS_KNIGHT_OF_THE_CROWN, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CA, CA, CA, CC, CC,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CA, CA, CA, CA, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CA, CC, CC, CC, CA, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CC, CC);
+
+  assign_class_titles(CLASS_KNIGHT_OF_THE_CROWN,   /* class number */
+                      "Knight of the Crown",      /* <= 4  */
+                      "Knight of the Crown",      /* <= 9  */
+                      "Knight of the Crown",      /* <= 14  */
+                      "Knight of the Crown",      /* <= 19  */
+                      "Knight of the Crown",      /* <= 24  */
+                      "Knight of the Crown",      /* <= 29  */
+                      "Knight of the Crown",      /* <= 30  */
+                      "Knight of the Crown",      /* <= LVL_IMMMORT  */
+                      "Knight of the Crown",      /* <= LVL_STAFF  */
+                      "Knight of the Crown",      /* <= LVL_GRSTAFF  */
+                      "Knight of the Crown"      /* default  */
+  );
+  /* feat assignment */
+  /*              class num     feat                                   cfeat lvl stack */
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_STRENGTH_OF_HONOR, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_KNIGHTLY_COURAGE, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_HEROIC_INITIATIVE, Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DIEHARD, Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_HONORABLE_WILL, Y, 3, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MIGHT_OF_HONOR, Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMORED_MOBILITY, Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_CROWN_OF_KNIGHTHOOD, Y, 5, Y);
+
+  // CLASS FEATS
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_SPECIALIZATION_MEDIUM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_SPECIALIZATION_HEAVY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_BLIND_FIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_COMBAT_EXPERTISE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_COMBAT_REFLEXES, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DEFLECT_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DAMAGE_REDUCTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DODGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_EXOTIC_WEAPON_PROFICIENCY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_FAR_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DAZZLING_DISPLAY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREATER_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREATER_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREATER_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_BULL_RUSH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_DISARM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_FEINT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_GRAPPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_INITIATIVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_OVERRUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_SHIELD_PUNCH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_KNOCKDOWN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SHIELD_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SHIELD_SLAM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_SUNDER, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_TRIP, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_UNARMED_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MANYSHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MOBILITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MOUNTED_ARCHERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MOUNTED_COMBAT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_POINT_BLANK_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_POWER_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DEADLY_AIM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_QUICK_DRAW, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_RAPID_RELOAD, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_RAPID_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_RIDE_BY_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ROBILARS_GAMBIT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SHOT_ON_THE_RUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SNATCH_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SPIRITED_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SPRING_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_STUNNING_FIST, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SWARM_OF_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_TRAMPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_TWO_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_OVERSIZED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_FINESSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WHIRLWIND_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_FAST_HEALING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_MASTERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_FLURRY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_SUPREMACY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DOUBLE_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DOUBLE_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DOUBLE_WEAPON_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DOUBLE_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
+  /* epic class */
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_EPIC_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_bab(CLASS_KNIGHT_OF_THE_CROWN, 3);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_CROWN, ABILITY_DIPLOMACY, 3);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_CROWN, ABILITY_RIDE, 2);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_PROFICIENCY_HEAVY, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_KNIGHT_OF_THE_SWORD, "knightofthesword", "KSw", "\tWKSw\tn", "g) \tWKnight of the Sword\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         5, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
+         /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Strength, Con/Dex for survivability, Cha for class abilities",
+         /*descrip*/ 
+          "The Knights of the Sword serve the people of Ansalon as warrior-clerics,  "
+          "crusaders, and knights errant, combining the purest ideals of heroism and  "
+          "courage with the power of the Gods of Good and of the heart. They are the  "
+          "opposite of the Knights of the Skull "
+          "\r\n"
+          "The Measure of the Sword teaches the value of Courage, Heroism, and Faith as key "
+          "components of the honorable life. To the Sword Knight, life is a continual  "
+          "struggle against Evil, both in the world and within the Knight's own heart.  "
+          "Courage is necessary to resist the terrors and temptations of darkness, while  "
+          "heroism involves self-sacrifice and daring effort to force back Evil and aid the "
+          "innocent and virtuous. It is from Faith, meanwhile, that the Knight's commitment "
+          "to what is right springs, as well as the strength that can sustain him when all  "
+          "else seems lost. "
+          "\r\n"
+          "Kiri-Jolith serves as patron to the Knights of the Sword. " 
+         );
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_KNIGHT_OF_THE_SWORD, G, B, G, B, B);
+  assign_class_abils(CLASS_KNIGHT_OF_THE_SWORD, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CA, CA, CA, CA, CC,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CA, CA, CA, CA, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CA, CC, CC, CC, CA, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CC, CC);
+
+  assign_class_titles(CLASS_KNIGHT_OF_THE_SWORD,   /* class number */
+                      "Knight of the Sword",      /* <= 4  */
+                      "Knight of the Sword",      /* <= 9  */
+                      "Knight of the Sword",      /* <= 14  */
+                      "Knight of the Sword",      /* <= 19  */
+                      "Knight of the Sword",      /* <= 24  */
+                      "Knight of the Sword",      /* <= 29  */
+                      "Knight of the Sword",      /* <= 30  */
+                      "Knight of the Sword",      /* <= LVL_IMMMORT  */
+                      "Knight of the Sword",      /* <= LVL_STAFF  */
+                      "Knight of the Sword",      /* <= LVL_GRSTAFF  */
+                      "Knight of the Sword"      /* default  */
+  );
+  /* feat assignment */
+  /*              class num     feat                                   cfeat lvl stack */
+  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SMITE_EVIL, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_CHANNEL_ENERGY, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SMITE_EVIL, Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_AURA_OF_COURAGE, Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SMITE_EVIL, Y, 3, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_DEMORALIZING_STRIKE, Y, 3, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SMITE_EVIL, Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SMITE_EVIL, Y, 5, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SOUL_OF_KNIGHTHOOD, Y, 5, Y);
+
+  // No class feats
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_bab(CLASS_KNIGHT_OF_THE_SWORD, 6);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_SWORD, ABILITY_LORE, 4);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_SWORD, ABILITY_RIDE, 4);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_SWORD, FEAT_DIEHARD, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_SWORD, FEAT_ENDURANCE, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_SWORD, FEAT_HONORBOUND, 1);
+  class_prereq_spellcasting(CLASS_KNIGHT_OF_THE_SWORD, CASTING_TYPE_DIVINE, PREP_TYPE_ANY, 1);
+  class_prereq_class_level(CLASS_KNIGHT_OF_THE_SWORD, CLASS_KNIGHT_OF_THE_CROWN, 1);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_KNIGHT_OF_THE_ROSE, "knightoftherose", "KRs", "\tWKRs\tn", "g) \tWKnight of the Rose\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         10, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
+         /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Strength, Con/Dex for survivability, Cha for class abilities",
+         /*descrip*/ 
+          "The Order of the Rose has always been the most prestigious branch of the Knights "
+          "of Solamnia. The Rose Knights provide leaders, lawgivers, and exemplars to the  "
+          "Solamnic Knights and the world, guiding others on the path of honor by word and  "
+          "deed alike. They are the opposite of the Knights of the Lily. "
+          "The Measure of the Rose focuses on Wisdom and Justice. Wisdom helps the Rose  "
+          "Knight and those following him determine what honor truly demands, neither  "
+          "failing in their devotion to the Oath and the Measure nor throwing lives away in "
+          "a misguided pursuit of honor. Justice, meanwhile, involves not only protecting  "
+          "the innocent and punishment the guilty, but treating all people--noble and poor, "
+          "Good and Evil--honorably and courteously, in conformity with the Measure. This  "
+          "is the ideal that the Order of the Rose strives to bring to Ansalon and to  "
+          "uphold in their own lives, bringing their behavior and that of others into  "
+          "conformity with the teachings of Goodness and the Order of Creation--not through "
+          "force or fear, but through teaching and example. "
+          "Paladine is the patron deity of the Knights of the Rose. ");
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_KNIGHT_OF_THE_ROSE, G, B, G, B, B);
+  assign_class_abils(CLASS_KNIGHT_OF_THE_ROSE, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CA, CA, CA, CA, CC,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CA, CA, CA, CA, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CA, CC, CC, CC, CA, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CC, CC);
+
+  assign_class_titles(CLASS_KNIGHT_OF_THE_ROSE,   /* class number */
+                      "Knight of the Rose",      /* <= 4  */
+                      "Knight of the Rose",      /* <= 9  */
+                      "Knight of the Rose",      /* <= 14  */
+                      "Knight of the Rose",      /* <= 19  */
+                      "Knight of the Rose",      /* <= 24  */
+                      "Knight of the Rose",      /* <= 29  */
+                      "Knight of the Rose",      /* <= 30  */
+                      "Knight of the Rose",      /* <= LVL_IMMMORT  */
+                      "Knight of the Rose",      /* <= LVL_STAFF  */
+                      "Knight of the Rose",      /* <= LVL_GRSTAFF  */
+                      "Knight of the Rose"      /* default  */
+  );
+  /* feat assignment */
+  /*              class num     feat                                   cfeat lvl stack */
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_DETECT_EVIL, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_AURA_OF_GOOD, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_RALLYING_CRY, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_INSPIRE_COURAGE, Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_LEADERSHIP, Y, 3, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_DIVINE_GRACE, Y, 3, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_INSPIRE_GREATNESS, Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_CHANNEL_ENERGY, Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_INSPIRE_COURAGE, Y, 5, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_WISDOM_OF_THE_MEASURE, Y, 6, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_LEADERSHIP, Y,7, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_INSPIRE_COURAGE, Y, 8, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_FINAL_STAND, Y, 9, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_KNIGHTHOODS_FLOWER, Y, 10, Y);
+
+  // No class feats
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_bab(CLASS_KNIGHT_OF_THE_ROSE, 8); 
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_ROSE, ABILITY_LORE, 8);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_ROSE, ABILITY_RIDE, 8);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_MOUNTED_COMBAT, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_ENDURANCE, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_HONORBOUND, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_LEADERSHIP, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_AURA_OF_COURAGE, 1);
+  class_prereq_spellcasting(CLASS_KNIGHT_OF_THE_ROSE, CASTING_TYPE_DIVINE, PREP_TYPE_ANY, 2);
+  class_prereq_class_level(CLASS_KNIGHT_OF_THE_ROSE, CLASS_KNIGHT_OF_THE_SWORD, 3);
   /****************************************************************************/
 
   /****************************************************************************/

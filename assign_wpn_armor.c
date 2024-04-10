@@ -1293,6 +1293,8 @@ int compute_gear_armor_type(struct char_data *ch)
     {
       /* ok we have an armor piece... */
       armor_compare = armor_list[GET_OBJ_VAL(obj, 1)].armorType;
+      if (armor_compare == ARMOR_TYPE_HEAVY && HAS_FEAT(ch, FEAT_ARMORED_MOBILITY))
+        armor_compare = ARMOR_TYPE_MEDIUM;
       if (armor_compare < ARMOR_TYPE_SHIELD && armor_compare > armor_type)
       {
         armor_type = armor_compare;
@@ -1546,6 +1548,9 @@ int compute_gear_armor_penalty(struct char_data *ch)
   if ((masterwork_bonus / 4) >= 1)
     armor_penalty++;
 
+  if (HAS_FEAT(ch, FEAT_ARMORED_MOBILITY))
+    armor_penalty += 2;
+
   if (count)
   {
     armor_penalty = armor_penalty / count;
@@ -1594,7 +1599,11 @@ int compute_gear_max_dex(struct char_data *ch)
   if (count > 0)
   {
     dexterity_cap = dexterity_cap / count;
+    
     dexterity_cap += HAS_FEAT(ch, FEAT_ARMOR_TRAINING);
+    
+    if (HAS_FEAT(ch, FEAT_ARMORED_MOBILITY))
+      dexterity_cap += 2;
   }
   else /* not wearing armor */
     dexterity_cap = 99;

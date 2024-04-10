@@ -3916,11 +3916,16 @@ ACMD(do_pullswitch)
 int get_speed(struct char_data *ch, sbyte to_display)
 {
 
+  if (!ch) return 30;
+
+  int speed = 30;
+
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_MOUNTABLE))
+    speed = 50;
+
   // if mounted, we'll use the mount's speed instead.
   if (RIDING(ch))
     return get_speed(RIDING(ch), to_display);
-
-  int speed = 30;
 
   if (!IS_NPC(ch))
   {
@@ -3935,9 +3940,6 @@ int get_speed(struct char_data *ch, sbyte to_display)
       break;
     }
   }
-
-  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_MOUNTABLE))
-    speed = 50;
 
   if (is_flying(ch))
   {
@@ -3966,6 +3968,9 @@ int get_speed(struct char_data *ch, sbyte to_display)
 
   if (affected_by_spell(ch, SPELL_GREASE))
     speed -= 10;
+
+  if (affected_by_spell(ch, AFFECT_RALLYING_CRY))
+    speed += 5;
 
   // if they're slowed, it's half regardless.  Same with entangled.
   // if they're blind, they can make an acrobatics check against dc 10

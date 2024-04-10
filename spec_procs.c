@@ -1179,6 +1179,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     if (GET_RACE(ch) == RACE_H_ELF)
       value += 2;
     value += GET_STR_BONUS(ch);
+    if (HAS_REAL_FEAT(ch, FEAT_HONORBOUND))
+      value += 4;
     value += compute_gear_armor_penalty(ch);
     return value;
   case ABILITY_TOTAL_DEFENSE: /* not srd */
@@ -1311,6 +1313,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_REAL_FEAT(ch, FEAT_HONORBOUND))
+      value += 4;
     if (HAS_FEAT(ch, FEAT_KEEN_SENSES))
     {
       /* Unnamed bonu, elves */

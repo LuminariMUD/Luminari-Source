@@ -1001,6 +1001,8 @@ int gain_exp(struct char_data *ch, int gain, int mode)
       return 0;
     }
 
+    gain *= leadership_exp_multiplier(ch);
+
     /* newbie bonus */
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
       gain += (int)((float)gain * ((float)NEWBIE_EXP / (float)(100)));

@@ -663,6 +663,9 @@ const char *class_names[] = {
     "Summoner",
     "Warlock",
     "Necromancer",
+    "Knight of the Crown",
+    "Knight of the Sword",
+    "Knight of the Rose",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -4580,6 +4583,9 @@ const char *spell_prep_dict[][4] = {
     {"conjure", "conjuring", "conjured", "conjurings"},      // summoner
     {"", "", "", ""},                                        /* warlock 28 */
     {"", "", "", ""},                                        /* necromancer 29 */
+    {"", "", "", ""},                                        // knight of the crown 30
+    {"", "", "", ""},                                        // knight of the sword 31
+    {"", "", "", ""},                                        // knight of the rose 32
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -4621,6 +4627,9 @@ const char *spell_consign_dict[][4] = {
     {"unconjure", "unconjured", "unconjuring", "unconjure"},     // summoner
     {"", "", "", ""},                                            /* warlock 28 */
     {"", "", "", ""},                                            /* necromancer 29 */
+    {"", "", "", ""},                                            // knight of the crown 30
+    {"", "", "", ""},                                            // knight of the sword 31
+    {"", "", "", ""},                                        // knight of the rose 32
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -5181,6 +5190,9 @@ const char *class_short_descriptions[] = {
     "An arcane spellcaster who has mastered the art of conjuring and who controls a powerful eidolon follower.",   // summoner
     "A savvy invoker who has dominated the arcane through sheer force of will and dark pacts.",                    // warlock
     "A master of the arcane and necromantic arts, able to take upon them the powers of undeath.",                  // necromancer
+    "The first order of the Knights of Solamnia, bound by the tenets of obedience and honor.",                    // knight of the crown
+    "The second order of the Knights of Solamnia, bound by the tenets of courage and heroism.",                   // knight of the Sword
+    "The third order of the Knights of Solamnia, bound by the tenets of nobility, bravery and leadership.",       // knight of the Rose
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 

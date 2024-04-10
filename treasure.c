@@ -1494,7 +1494,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     GET_OBJ_VAL(obj, 2) -= MIN(29, (dice(5, bonus_value) + bonus_value));
 
   /* object level (min level to use) */
-  GET_OBJ_LEVEL(obj) = bonus_value * 5;
+  GET_OBJ_LEVEL(obj) = MIN(30, bonus_value * 5);
   /** we're dropping the min level a bit here, because
    *  we recently increased bonuses on random treasure
    *  bonuses by +1 across the board in an effort to make
