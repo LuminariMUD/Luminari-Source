@@ -57,7 +57,13 @@
 /* some defines for gain/respec */
 #define MODE_CLASSLIST_NORMAL 0
 #define MODE_CLASSLIST_RESPEC 1
+#if defined(CAMPAIGN_DL)
+
+#define MULTICAP 5
+#else
 #define MULTICAP 3
+#endif
+
 #define WILDSHAPE_AFFECTS 4
 #define TOG_OFF 0
 #define TOG_ON 1
@@ -929,6 +935,12 @@ ACMD(do_abundantstep)
  * shifting of self and group members to the ethereal plane and back */
 ACMDU(do_ethshift)
 {
+
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
+  send_to_char(ch, "This power is disabled as there is no planar travel on this game. This ability will be recoded to reflect that soon.\r\n");
+  return;
+#endif
+
   struct char_data *shiftee = NULL;
   room_rnum shift_dest = NOWHERE;
   // int counter = 0;
@@ -2606,6 +2618,45 @@ ACMD(do_gain)
     return;
   }
 
+  for (class = 0; class < NUM_CLASSES; class++)
+  {
+    /* need to spend their points before advancing */
+    if ((GET_PRACTICES(ch) != 0) ||
+        (GET_TRAINS(ch) > 1) ||
+        (GET_BOOSTS(ch) != 0) ||
+        (GET_CLASS_FEATS(ch, class) != 0) ||
+        (GET_EPIC_CLASS_FEATS(ch, class) != 0) ||
+        (GET_FEAT_POINTS(ch) != 0) ||
+        (GET_EPIC_FEAT_POINTS(ch) != 0))
+    {
+      if (GET_TRAINS(ch) > 1)
+        send_to_char(ch, "You must use all but one of your skill points before gaining "
+                         "another level.  You have %d skill point%s remaining.\r\n",
+                     GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
+      if (GET_BOOSTS(ch) != 0)
+        send_to_char(ch, "You must use all ability score boosts before gaining another level.  "
+                         "You have %d boost%s remaining.\r\n",
+                     GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
+      if (GET_FEAT_POINTS(ch) != 0)
+        send_to_char(ch, "You must use all feat points before gaining another level.  "
+                         "You have %d feat point%s remaining.\r\n",
+                     GET_FEAT_POINTS(ch), (GET_FEAT_POINTS(ch) > 1 ? "s" : ""));
+      if (GET_CLASS_FEATS(ch, class) != 0)
+        send_to_char(ch, "You must use all class feat points before gaining another level.  "
+                         "You have %d '%s' class feat%s remaining.\r\n",
+                     GET_CLASS_FEATS(ch, class), class_list[class].name, (GET_CLASS_FEATS(ch, class) > 1 ? "s" : ""));
+      if (GET_EPIC_CLASS_FEATS(ch, class) != 0)
+        send_to_char(ch, "You must use all epic class feat points before gaining another level.  "
+                         "You have %d epic class feat%s remaining.\r\n",
+                     GET_EPIC_CLASS_FEATS(ch, class), (GET_EPIC_CLASS_FEATS(ch, class) > 1 ? "s" : ""));
+      if (GET_EPIC_FEAT_POINTS(ch) != 0)
+        send_to_char(ch, "You must use all epic feat points before gaining another level.  "
+                         "You have %d epic feat point%s remaining.\r\n",
+                     GET_EPIC_FEAT_POINTS(ch), (GET_EPIC_FEAT_POINTS(ch) > 1 ? "s" : ""));
+      return;
+    }
+  }
+
   if (GET_PREMADE_BUILD_CLASS(ch) < 0)
     one_argument(argument, arg, sizeof(arg));
   else
@@ -2672,53 +2723,8 @@ ACMD(do_gain)
       return;
     }
 
-    /* need to spend their points before advancing */
-    if ((GET_PRACTICES(ch) != 0) ||
-        (GET_TRAINS(ch) > 1) ||
-        (GET_BOOSTS(ch) != 0) ||
-        (GET_CLASS_FEATS(ch, class) != 0) ||
-        (GET_EPIC_CLASS_FEATS(ch, class) != 0) ||
-        (GET_FEAT_POINTS(ch) != 0) ||
-        (GET_EPIC_FEAT_POINTS(ch) != 0))
-    { //    ||
-      /*         ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
-               (CLASS_LEVEL(ch, CLASS_WIZARD)   && !IS_WIZ_LEARNED(ch))  ||
-               (CLASS_LEVEL(ch, CLASS_BARD)     && !IS_BARD_LEARNED(ch)) ||
-               (CLASS_LEVEL(ch, CLASS_DRUID)    && !IS_DRUID_LEARNED(ch))||
-               (CLASS_LEVEL(ch, CLASS_RANGER)   && !IS_RANG_LEARNED(ch)))) {
-       */
-      /* The last level has not been completely gained yet - The player must
-       * use all trains, pracs, boosts and choose spells and other benefits
-       * vis 'study' before they can gain a level. */
-      //      if (GET_PRACTICES(ch) != 0)
-      //        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
-      if (GET_TRAINS(ch) > 1)
-        send_to_char(ch, "You must use all but one of your skill points before gaining "
-                         "another level.  You have %d skill point%s remaining.\r\n",
-                     GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
-      if (GET_BOOSTS(ch) != 0)
-        send_to_char(ch, "You must use all ability score boosts before gaining another level.  "
-                         "You have %d boost%s remaining.\r\n",
-                     GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
-      if (GET_FEAT_POINTS(ch) != 0)
-        send_to_char(ch, "You must use all feat points before gaining another level.  "
-                         "You have %d feat point%s remaining.\r\n",
-                     GET_FEAT_POINTS(ch), (GET_FEAT_POINTS(ch) > 1 ? "s" : ""));
-      if (GET_CLASS_FEATS(ch, class) != 0)
-        send_to_char(ch, "You must use all class feat points before gaining another level.  "
-                         "You have %d class feat%s remaining.\r\n",
-                     GET_CLASS_FEATS(ch, class), (GET_CLASS_FEATS(ch, class) > 1 ? "s" : ""));
-      if (GET_EPIC_CLASS_FEATS(ch, class) != 0)
-        send_to_char(ch, "You must use all epic class feat points before gaining another level.  "
-                         "You have %d epic class feat%s remaining.\r\n",
-                     GET_EPIC_CLASS_FEATS(ch, class), (GET_EPIC_CLASS_FEATS(ch, class) > 1 ? "s" : ""));
-      if (GET_EPIC_FEAT_POINTS(ch) != 0)
-        send_to_char(ch, "You must use all epic feat points before gaining another level.  "
-                         "You have %d epic feat point%s remaining.\r\n",
-                     GET_EPIC_FEAT_POINTS(ch), (GET_EPIC_FEAT_POINTS(ch) > 1 ? "s" : ""));
-      return;
-    }
-    else if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
+    
+    if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
              GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     {
       GET_LEVEL(ch) += 1;

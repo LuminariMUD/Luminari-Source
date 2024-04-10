@@ -165,7 +165,8 @@ bool can_study_known_spells(struct char_data *ch)
 
   /* inquisitor */
   if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
-      ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 2)) && 
+      ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE || LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SWORD || LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_ROSE || 
+      (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 2)) && 
       GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
     return TRUE;
 
@@ -215,6 +216,8 @@ int compute_bonus_caster_level(struct char_data *ch, int class)
         bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
     bonus_levels += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
     bonus_levels += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
+    bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD);
+    bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE);
     break;
   default:
     break;
@@ -257,6 +260,8 @@ int compute_divine_level(struct char_data *ch)
   divine_level += CLASS_LEVEL(ch, CLASS_DRUID);
   divine_level += CLASS_LEVEL(ch, CLASS_INQUISITOR);
   divine_level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
+  divine_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD);
+  divine_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE);
   if (NECROMANCER_CAST_TYPE(ch) == 2)
     divine_level += CLASS_LEVEL(ch, CLASS_NECROMANCER);
   divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_PALADIN) - 3);
@@ -278,6 +283,8 @@ int compute_channel_energy_level(struct char_data *ch)
   level += CLASS_LEVEL(ch, CLASS_CLERIC);
   level += CLASS_LEVEL(ch, CLASS_INQUISITOR);
   level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
+  level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD);
+  level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE);
   level += MAX(0, CLASS_LEVEL(ch, CLASS_PALADIN) - 4);
   level += MAX(0, CLASS_LEVEL(ch, CLASS_BLACKGUARD) - 4);
   level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) / 2;
@@ -4622,6 +4629,30 @@ int get_daily_uses(struct char_data *ch, int featnum)
       else
         daily_uses = 1;
       break;
+    case FEAT_STRENGTH_OF_HONOR:
+      daily_uses = CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN);
+      break;
+    case FEAT_CROWN_OF_KNIGHTHOOD:
+      daily_uses = 1;
+      break;
+    case FEAT_SOUL_OF_KNIGHTHOOD:
+      daily_uses = 1;
+      break;
+    case FEAT_RALLYING_CRY:
+      daily_uses = 3;
+      break;
+    case FEAT_INSPIRE_COURAGE:
+      daily_uses = 1 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
+      break;
+    case FEAT_WISDOM_OF_THE_MEASURE:
+      daily_uses = 2;
+      break;
+    case FEAT_FINAL_STAND:
+      daily_uses = 1;
+      break;
+    case FEAT_KNIGHTHOODS_FLOWER:
+      daily_uses = 1;
+      break;
     case FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT:
       daily_uses = 1;
       break;
@@ -4800,7 +4831,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum)
 {
   struct mud_event_data *pMudEvent = NULL;
   int uses = 0, daily_uses = 0;
-  char buf[128];
+  char buf[MAX_STRING_LENGTH];
   event_id iId = 0;
 
   /* Transform the feat number to the event id for that ability. */
@@ -4825,7 +4856,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 2 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
     }
     else
     {
@@ -4849,7 +4880,9 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum)
   {
     /* No event - so attach one. */
     uses = 1;
-    attach_mud_event(new_mud_event(iId, ch, "uses:1"), (SECS_PER_MUD_DAY / daily_uses) RL_SEC);
+    attach_mud_event(
+      new_mud_event(iId, ch, "uses:1"), 
+      (SECS_PER_MUD_DAY / daily_uses) RL_SEC);
   }
 
   return uses;
@@ -4873,7 +4906,7 @@ int daily_uses_remaining(struct char_data *ch, int featnum)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 3 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
     }
     else
     {
@@ -4924,7 +4957,7 @@ int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 4 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
     }
     else
     {
@@ -4972,7 +5005,7 @@ int daily_item_specab_uses_remaining(struct obj_data *obj, int specab)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 5 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
     }
     else
     {
@@ -5170,6 +5203,9 @@ sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte displ
 
   if (HAS_FEAT(ch, FEAT_KENDER_FEARLESSNESS))
     return true;
+  
+  if (HAS_FEAT(ch, FEAT_KNIGHTLY_COURAGE))
+    return true;
 
   if (affected_by_aura_of_cowardice(victim))
   {
@@ -5311,6 +5347,27 @@ sbyte is_immune_charm(struct char_data *ch, struct char_data *victim, sbyte disp
     }
     return TRUE;
   }
+
+  if (affected_by_spell(victim, SPELL_HOLY_AURA))
+  {
+    if (display)
+    {
+      send_to_char(ch, "Holy Aura protects %s!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Holy Aura protects you from %s!\r\n", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  if (affected_by_spell(victim, AFFECT_KNIGHTHOODS_FLOWER))
+  {
+    if (display)
+    {
+      send_to_char(ch, "Knighthood's Flower protects %s!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Knighthood's Flower protects you from %s!\r\n", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
   if (HAS_FEAT(victim, FEAT_SLEEP_ENCHANTMENT_IMMUNITY))
     return TRUE;
   return FALSE;
@@ -5347,6 +5404,34 @@ bool has_aura_of_courage(struct char_data *ch)
   }
 
   return has_aura;
+}
+
+float leadership_exp_multiplier(struct char_data *ch)
+{
+  float exp_mult = 100.00;
+  if (!ch)
+    return exp_mult;
+
+  struct char_data *tch = NULL;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (HAS_FEAT(tch, FEAT_LEADERSHIP))
+      {
+        exp_mult = (float) MAX((int) exp_mult, 100 + ((HAS_FEAT(tch, FEAT_LEADERSHIP) + 1) * 5));
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return exp_mult;
 }
 
 bool has_fortune_of_many_bonus(struct char_data *ch)
@@ -6788,6 +6873,7 @@ bool can_spell_be_revoked(int spellnum)
   case SPELL_SPIDER_CLIMB:
   case SPELL_RAGE:
   case SPELL_CAUSTIC_BLOOD:
+  case SPELL_HOLY_AURA:
 
   // psionic powers
   case PSIONIC_BROKER:
@@ -6847,6 +6933,14 @@ bool can_spell_be_revoked(int spellnum)
   case RACIAL_ABILITY_INSECTBEING:
   case AFFECT_FOOD:
   case AFFECT_DRINK:
+  case ABILITY_STRENGTH_OF_HONOR:
+  case ABILITY_CROWN_OF_KNIGHTHOOD:
+  case AFFECT_HOLY_AURA_RETRIBUTION:
+  case AFFECT_RALLYING_CRY:
+  case AFFECT_INSPIRE_COURAGE:
+  case AFFECT_FINAL_STAND:
+  case AFFECT_KNIGHTHOODS_FLOWER:
+  case AFFECT_INSPIRE_GREATNESS:
 
     return true;
   }

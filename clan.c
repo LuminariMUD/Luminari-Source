@@ -1695,8 +1695,13 @@ ACMD(do_claninfo) /* Information about clans */
     }
     else
     {
-      send_to_char(ch, "There %s %d clan%s in realm of Luminari.\r\n",
-                   (count == 1) ? "is" : "are", count, (count == 1) ? "" : "s");
+#if defined(CAMPAIGN_DL)
+      send_to_char(ch, "There %s %d clan%s in realm of Krynn.\r\n", (count == 1) ? "is" : "are", count, (count == 1) ? "" : "s");
+#elif defined (CAMPAIGN_FR)
+      send_to_char(ch, "There %s %d clan%s in realm of Faerun.\r\n", (count == 1) ? "is" : "are", count, (count == 1) ? "" : "s");
+#else
+      send_to_char(ch, "There %s %d clan%s in realm of Luminari.\r\n", (count == 1) ? "is" : "are", count, (count == 1) ? "" : "s");
+#endif
     }
     return;
   }

@@ -402,6 +402,19 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
     }
   }
 
+  // Knight of the Sword Soul of Knighthood
+  if (victim && HAS_FEAT(ch, FEAT_SOUL_OF_KNIGHTHOOD))
+  {
+    if (actmtd == ACTMTD_ON_HIT)
+    {
+      damage(ch, victim, dice(1, 6), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
+    }
+    if (actmtd == ACTMTD_ON_CRIT)
+    {
+      damage(ch, victim, dice(2, 10), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
+    }
+  }
+
   if (victim)
   {
     if (actmtd == ACTMTD_ON_HIT)

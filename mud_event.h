@@ -185,6 +185,14 @@ typedef enum
   eEVOBREATH,                       // eidolon evolution breath weapon
   eC_EIDOLON,                       //  call eidolon cooldown
   eTOUCHOFUNDEATH,                  // necromancer touch of undeath ability
+  eSTRENGTHOFHONOR,                 // strength of honor knight of the crown ability
+  eCROWNOFKNIGHTHOOD,               // crown of knighthood knight of the crown ability
+  eSOULOFKNIGHTHOOD,                // soul of knighthood knight of the sword ability
+  eINSPIRECOURAGE,                  // inspire courage ability
+  eWISDOMOFTHEMEASURE,              // wisdom of the measure ability
+  eFINALSTAND,                      // final stand ability
+  eKNIGHTHOODSFLOWER,               // knighthood's flower ability
+  eRALLYINGCRY,                     // rallying cry ability
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

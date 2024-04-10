@@ -285,6 +285,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"cmdlev", "cmdlev", POS_DEAD, do_cmdlev, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"cexchange", "cexchange", POS_RECLINING, do_cexchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"createspawn", "createspawn", POS_STANDING, do_create_vampire_spawn, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_create_vampire_spawn},
+    {"crownofknighthood", "crownofknighthood", POS_FIGHTING, do_crown_of_knighthood, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"cruelties", "cruelties", POS_RECLINING, do_cruelties, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"condensed", "condensed", POS_DEAD, do_gen_tog, 0, SCMD_CONDENSED, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"carefulpet", "carefulpet", POS_DEAD, do_gen_tog, 0, SCMD_CAREFUL_PET, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -395,6 +396,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"faeriefire", "faeriefire", POS_FIGHTING, do_process_attack, 1, AA_FAERIE_FIRE, FALSE, ACTION_NONE, {0, 0}, can_faeriefire},
     {"favoredenemies", "favoredenemies", POS_DEAD, do_favoredenemies, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"feymagic", "feymagic", POS_FIGHTING, do_fey_magic, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_fey_magic},
+    {"finalstand", "finalstand", POS_DEAD, do_final_stand, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"findmagic", "findmagic", POS_DEAD, do_findmagic, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"finddoor", "finddoor", POS_DEAD, do_finddoor, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"featset", "featset", POS_SLEEPING, do_featset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -483,6 +485,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"innerfire", "innerfire", POS_FIGHTING, do_innerfire, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"invoke", "invoke", POS_FIGHTING, do_use_consumable, 0, SCMD_INVOKE, FALSE, ACTION_SWIFT, {0, 6}, NULL},
     {"insectbeing", "insectbeing", POS_FIGHTING, do_insectbeing, 0, 0, FALSE, ACTION_NONE, {0, 0}, can_insectbeing},
+    {"inspirecourage", "inspirecourage", POS_FIGHTING, do_inspire_courage, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -496,6 +499,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"kill", "k", POS_FIGHTING, do_kill, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"kick", "ki", POS_FIGHTING, do_process_attack, 1, AA_KICK, FALSE, ACTION_NONE, {6, 0}, can_kick},
     {"keycheck", "keycheck", POS_STANDING, do_keycheck, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"knighthoodsflower", "knighthoodsflower", POS_STANDING, do_knighthoods_flower, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -651,6 +655,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     {"rest", "re", POS_RECLINING, do_rest, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reply", "r", POS_SLEEPING, do_reply, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rallyingcry", "rallyingcry", POS_FIGHTING, do_rallying_cry, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rapidshot", "rapidshot", POS_FIGHTING, do_mode, 1, MODE_RAPID_SHOT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reforge", "reforge", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -742,6 +747,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"socials", "socials", POS_DEAD, do_commands, 0, SCMD_SOCIALS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sortfrom", "sortfrom", POS_RECLINING, do_sort, 0, SCMD_SORTFROM, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sortto", "sortto", POS_RECLINING, do_sort, 0, SCMD_SORTTO, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"soulofknighthood", "soulofknighthood", POS_FIGHTING, do_soul_of_knighthood, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"speak", "speak", POS_RECLINING, do_speak, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"spelllist", "spelllist", POS_RECLINING, do_spelllist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spells", "spells", POS_RECLINING, do_spells, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -755,6 +761,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"stunningfist", "stunningfist", POS_FIGHTING, do_stunningfist, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_stunningfist},
     {"study", "study", POS_RECLINING, do_study, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"strength", "strength", POS_FIGHTING, do_strength, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
+    {"strengthofhonor", "strengthofhonor", POS_FIGHTING, do_strength_of_honor, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"swallow", "swallow", POS_RECLINING, do_swallow, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"switch", "switch", POS_DEAD, do_switch, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shapechange", "shapechange", POS_FIGHTING, do_wildshape, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -863,6 +870,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"whisper", "whisper", POS_RECLINING, do_spec_comm, 0, SCMD_WHISPER, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"wield", "wie", POS_RESTING, do_wield, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"withdraw", "withdraw", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"wisdomofthemeasure", "wisdomofthemeasure", POS_STANDING, do_wisdom_of_the_measure, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wiznet", "wiz", POS_DEAD, do_wiznet, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {";", ";", POS_DEAD, do_wiznet, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"wizhelp", "wizhelp", POS_SLEEPING, do_commands, LVL_IMMORT, SCMD_WIZHELP, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -3138,6 +3146,15 @@ switch (load_result)
       //          break;
     case CLASS_MYSTIC_THEURGE:
       perform_help(d, "class-mystictheurge");
+      break;
+    case CLASS_KNIGHT_OF_THE_CROWN:
+      perform_help(d, "class-knightofthecrown");
+      break;
+    case CLASS_KNIGHT_OF_THE_SWORD:
+      perform_help(d, "class-knightofthesword");
+      break;
+    case CLASS_KNIGHT_OF_THE_ROSE:
+      perform_help(d, "class-knightoftherose");
       break;
     case CLASS_WARRIOR:
       perform_help(d, "class-warrior");

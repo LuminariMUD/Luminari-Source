@@ -517,7 +517,7 @@ void assign_domains(void)
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
                     SPELL_HEROISM, SPELL_RESERVED_DBC, SPELL_CIRCLE_A_EVIL,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
-                    SPELL_RESERVED_DBC, SPELL_INTERPOSING_HAND, SPELL_MASS_HASTE,
+                    SPELL_RESERVED_DBC, SPELL_INTERPOSING_HAND, SPELL_HOLY_AURA,
                     /* 9th circle */
                     SPELL_PROTECT_FROM_SPELLS);
 
@@ -532,7 +532,7 @@ void assign_domains(void)
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
                     SPELL_FALSE_LIFE, SPELL_RESERVED_DBC, SPELL_VAMPIRIC_TOUCH,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
-                    SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+                    SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_HOLY_AURA,
                     /* 9th circle */
                     SPELL_RESERVED_DBC);
 

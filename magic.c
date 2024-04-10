@@ -55,16 +55,13 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 {
   int resist = GET_SPELL_RES(vict);
 
-  // adjustments passed to mag_resistance
-  resist += modifier;
-
   // additional adjustmenets
 
   if (HAS_FEAT(vict, FEAT_DIAMOND_SOUL))
-    resist += 10 + MONK_TYPE(vict);
+    resist = MAX(resist, 10 + MONK_TYPE(vict));
 
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_DROW_SPELL_RESISTANCE))
-    resist += 10 + GET_LEVEL(vict);
+    resist = MAX(resist, 10 + GET_LEVEL(vict));
 
   if (HAS_FEAT(vict, FEAT_HALF_DROW_SPELL_RESISTANCE))
   {
@@ -79,9 +76,9 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   if (HAS_EVOLUTION(vict, EVOLUTION_SPELL_RESISTANCE))
   {
     if (HAS_EVOLUTION(vict, EVOLUTION_FIENDISH_APPEARANCE) || HAS_EVOLUTION(vict, EVOLUTION_CELESTIAL_APPEARANCE))
-      resist = 15 + GET_LEVEL(vict);
+      resist = MAX(resist, 15 + GET_LEVEL(vict));
     else
-      resist = 10 + GET_LEVEL(vict);
+      resist = MAX(resist, 10 + GET_LEVEL(vict));
   }
 
   if (HAS_EVOLUTION(vict, EVOLUTION_CELESTIAL_APPEARANCE) || HAS_EVOLUTION(vict, EVOLUTION_FIENDISH_APPEARANCE))
@@ -93,31 +90,36 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   }
 
   if (IS_LICH(vict))
-    resist += 15 + GET_LEVEL(vict);
+    resist = MAX(resist, 15 + GET_LEVEL(vict));
 
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE))
-    resist += 2 * HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE);
+    resist = MAX(resist, 2 * HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE));
 
   if (affected_by_spell(vict, SPELL_PROTECT_FROM_SPELLS))
     resist += 10;
 
   if (affected_by_spell(vict, SKILL_INNER_FIRE))
-    resist += 25;
+    resist = MAX(resist, 25);
+
+  if (affected_by_spell(vict, SPELL_HOLY_AURA) && IS_EVIL(ch))
+    resist = MAX(resist, 25);
 
   if (IS_AFFECTED(vict, AFF_SPELL_RESISTANT))
-    resist += 12 + GET_LEVEL(vict);
+    resist = MAX(resist, 12 + GET_LEVEL(vict));
 
-  if (!IS_NPC(vict) && GET_EQ(vict, WEAR_SHIELD) &&
-      HAS_FEAT(vict, FEAT_ARMOR_MASTERY_2))
-    resist += 25;
+  if (!IS_NPC(vict) && GET_EQ(vict, WEAR_SHIELD) && HAS_FEAT(vict, FEAT_ARMOR_MASTERY_2))
+    resist = MAX(resist, 25);
 
   if (HAS_FEAT(vict, FEAT_FAE_RESISTANCE))
-    resist += 15 + GET_LEVEL(vict);
+    resist = MAX(resist, 15 + GET_LEVEL(vict));
   else if (IS_PIXIE(vict))
-    resist += 15;
+    resist = MAX(resist, 15);
 
   if (IS_DRAGON(vict))
-    resist += 25;
+    resist = MAX(resist, 25);
+
+  // adjustments passed to mag_resistance
+  resist += modifier;
 
   return MIN(99, MAX(0, resist));
 }
@@ -200,6 +202,7 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
     if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_REFLEXES))
       saves += 3;
     break;
+
   case SAVING_WILL:
     saves += GET_WIS_BONUS(vict);
     if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IRON_WILL))
@@ -282,6 +285,11 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   if (has_teamwork_feat(vict, FEAT_DUCK_AND_COVER) && type == SAVING_REFL)
     diceroll = MAX(diceroll, d20(vict));
   savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
+
+  if (type == SAVING_REFL && (get_speed(vict, false) - 10) > get_speed(ch, false))
+  {
+    savethrow += 1;
+  }
 
   if (GET_POS(vict) == POS_DEAD)
     return (FALSE); /* Guess you failed, since you are DEAD. */
@@ -2538,6 +2546,11 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     if (victim && HAS_REAL_FEAT(victim, FEAT_STUBBORN_MIND))
       dc_mod -= 2;
+    if (victim && HAS_REAL_FEAT(victim, FEAT_HONORBOUND))
+      dc_mod -= 2;
+  if (victim && HAS_REAL_FEAT(victim, FEAT_HONORABLE_WILL))
+      dc_mod -= CLASS_LEVEL(victim, CLASS_KNIGHT_OF_THE_CROWN);
+    
   }
 
   if (element == DAM_POISON && KNOWS_DISCOVERY(ch, ALC_DISC_CELESTIAL_POISONS))
@@ -2713,6 +2726,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   {
     if (victim && HAS_REAL_FEAT(victim, FEAT_STUBBORN_MIND))
       dc_mod -= 2;
+    if (victim && HAS_REAL_FEAT(victim, FEAT_HONORBOUND))
+      dc_mod -= 2;
+    if (victim && HAS_REAL_FEAT(victim, FEAT_HONORABLE_WILL))
+      dc_mod -= CLASS_LEVEL(victim, CLASS_KNIGHT_OF_THE_CROWN);
   }
 
   /* elven drow resistance to certain enchantments such as sleep */
@@ -4770,6 +4787,29 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "A brief aura of brilliant blue surrounds $n.";
     break;
 
+    case SPELL_HOLY_AURA:
+    af[0].duration = 10 + level;
+    af[0].modifier = 4;
+    af[0].location = APPLY_AC_NEW;
+    af[0].bonus_type = BONUS_TYPE_DEFLECTION;
+
+    af[1].duration = 10 + level;
+    af[1].modifier = 4;
+    af[1].location = APPLY_SAVING_FORT;
+    af[1].bonus_type = BONUS_TYPE_SACRED;
+
+    af[2].duration = 10 + level;
+    af[2].modifier = 4;
+    af[2].location = APPLY_SAVING_REFL;
+    af[2].bonus_type = BONUS_TYPE_SACRED;
+
+    af[3].duration = 10 + level;
+    af[3].modifier = 4;
+    af[3].location = APPLY_SAVING_WILL;
+    af[3].bonus_type = BONUS_TYPE_SACRED;
+
+    break;
+
   case SPELL_DJINNI_KIND:
     af[0].duration = 16000;
     af[0].modifier = 20;
@@ -5289,6 +5329,100 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     SET_BIT_AR(af[0].bitvector, AFF_SILENCED);
     to_room = "$n seems unable to speak.";
     to_vict = "You become unable to speak!";
+    break;
+
+  case AFFECT_RALLYING_CRY:
+
+    af[0].duration = level + 10;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    to_room = "$n looks more eager to fight!";
+    to_vict = "You feel more confident and able in your abilities!";
+    break;
+
+  case AFFECT_FINAL_STAND:
+
+    af[0].duration = level * 12;
+    af[0].location = APPLY_HIT;
+    af[0].modifier = 30;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    af[1].duration = level * 12;
+    af[1].location = APPLY_AC_NEW;
+    af[1].modifier = 1;
+    af[1].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_room = "$n has taken a defensive stance.";
+    to_vict = "You take a defensive stance.";
+    break;
+
+  case AFFECT_KNIGHTHOODS_FLOWER:
+
+    af[0].duration = 600;
+    af[0].location = APPLY_AC_NEW;
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+
+    af[1].duration = 600;
+    af[1].location = APPLY_SAVING_REFL;
+    af[1].modifier = 2;
+    af[1].bonus_type = BONUS_TYPE_INSIGHT;
+
+    to_room = "$n recites the Oath, 'Est Solarus Oth Mithas' and is bolstered in ability.";
+    to_vict = "You recite the Oath, 'Est Solarus Oth Mithas' and are bolstered in ability.";
+    break;
+
+  case AFFECT_INSPIRE_GREATNESS:
+
+    af[0].duration = level + 10;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE) + (2 * HAS_FEAT(ch, FEAT_INSPIRE_GREATNESS));
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    
+    af[1].duration = level + 10;
+    af[1].location = APPLY_DAMROLL;
+    af[1].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE) + (2 * HAS_FEAT(ch, FEAT_INSPIRE_GREATNESS));
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+
+    af[2].duration = level + 10;
+    af[2].location = APPLY_SAVING_WILL;
+    af[2].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE) + (2 * HAS_FEAT(ch, FEAT_INSPIRE_GREATNESS));
+    af[2].bonus_type = BONUS_TYPE_MORALE;
+
+    af[3].duration = level + 10;
+    af[3].location = APPLY_HIT;
+    af[3].modifier = 20;
+    af[3].bonus_type = BONUS_TYPE_MORALE;
+
+    af[4].duration = level + 10;
+    af[4].location = APPLY_SAVING_FORT;
+    af[4].modifier = 1;
+    af[4].bonus_type = BONUS_TYPE_MORALE;
+
+    to_room = "$n looks more confident!";
+    to_vict = "Your courage surges and with it your fighting prowess!";
+    break;
+
+  case AFFECT_INSPIRE_COURAGE:
+
+    af[0].duration = level + 10;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    
+    af[1].duration = level + 10;
+    af[1].location = APPLY_DAMROLL;
+    af[1].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+
+    af[2].duration = level + 10;
+    af[2].location = APPLY_SAVING_WILL;
+    af[2].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
+    af[2].bonus_type = BONUS_TYPE_MORALE;
+
+    to_room = "$n looks more confident!";
+    to_vict = "Your courage surges and with it your fighting prowess!";
     break;
 
   case SPELL_SILENCE: // illusion
@@ -8281,6 +8415,18 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case WARLOCK_FLEE_THE_SCENE:
     mag_affects(level, ch, tch, obj, WARLOCK_FLEE_THE_SCENE, savetype, casttype, 0);
     break;
+  case AFFECT_RALLYING_CRY:
+    mag_affects(level, ch, tch, obj, AFFECT_RALLYING_CRY, savetype, casttype, 0);
+    break;
+  case AFFECT_INSPIRE_COURAGE:
+    mag_affects(level, ch, tch, obj, AFFECT_INSPIRE_COURAGE, savetype, casttype, 0);
+    break;
+  case AFFECT_INSPIRE_GREATNESS:
+    mag_affects(level, ch, tch, obj, AFFECT_INSPIRE_GREATNESS, savetype, casttype, 0);
+    break;
+  case AFFECT_FINAL_STAND:
+    mag_affects(level, ch, tch, obj, AFFECT_FINAL_STAND, savetype, casttype, 0);
+    break;
   case SPELL_GROUP_HEAL:
     mag_points(level, ch, tch, obj, SPELL_HEAL, savetype, casttype);
     break;
@@ -8410,6 +8556,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case PSIONIC_TOWER_OF_IRON_WILL:
     mag_affects(level, ch, tch, obj, PSIONIC_TOWER_OF_IRON_WILL, savetype, casttype, 0);
     break;
+  case SPELL_HOLY_AURA:
+    mag_affects(level, ch, tch, obj, SPELL_HOLY_AURA, savetype, casttype, 0);
+    break;
   default:
     if (can_mastermind_power(ch, spellnum))
     {
@@ -8441,6 +8590,10 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   switch (spellnum)
   {
 
+  case SPELL_HOLY_AURA:
+    to_char = "You speak words of divine power and is surrounded by a holy aura!\tn";
+    to_room = "$n speaks words of divine power and is surrounded by a holy aura!\tn";
+    break;
   case SPELL_TACTICAL_ACUMEN:
     to_char = "You speak words of combat tactics and courage!\tn";
     to_room = "$n speaks words of combat tactics and courage!\tn";

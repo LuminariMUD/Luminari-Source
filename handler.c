@@ -591,6 +591,7 @@ void compute_char_cap(struct char_data *ch, int mode)
         dam_cap += class_level / 3;
         break;
       case CLASS_WARRIOR:
+      case CLASS_KNIGHT_OF_THE_CROWN:
       case CLASS_WEAPON_MASTER:
         str_cap += class_level / 4 + 1;
         con_cap += class_level / 4 + 1;
@@ -1520,7 +1521,7 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
       // log("T10: %s", object->short_description);
       MSDPFlush(ch->desc, eMSDP_INVENTORY);
     }
-    log("T11: %s", object->short_description);
+    // log("T11: %s", object->short_description);
   }
   else
     log("SYSERR: NULL obj (%p) or char (%p) passed to obj_to_char.", object, ch);

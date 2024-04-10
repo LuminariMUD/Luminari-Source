@@ -266,6 +266,7 @@ int file_head(FILE *file, char *buf, size_t bufsize, int lines_to_read);
 int file_tail(FILE *file, char *buf, size_t bufsize, int lines_to_read);
 size_t file_sizeof(FILE *file);
 int file_numlines(FILE *file);
+float leadership_exp_multiplier(struct char_data *ch);
 void clear_misc_cooldowns(struct char_data *ch);
 IDXTYPE atoidx(const char *str_to_conv);
 char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad);
@@ -1426,7 +1427,8 @@ void char_from_furniture(struct char_data *ch);
 // Eldritch knight spell critical ability
 #define HAS_ELDRITCH_SPELL_CRIT(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->has_eldritch_knight_spell_critical))
 // Eldritch knight levels are added to warrior levels when determining qualification for certain warrior-only feats
-#define WARRIOR_LEVELS(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + (CLASS_LEVEL(ch, CLASS_SPELLSWORD) / 2))
+#define WARRIOR_LEVELS(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + (CLASS_LEVEL(ch, CLASS_SPELLSWORD) / 2) + \
+                            CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN))
 
 /* Attacks of Opportunity (AOO) */
 #define GET_TOTAL_AOO(ch) (ch->char_specials.attacks_of_opportunity)
@@ -1971,13 +1973,16 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_ALCHEMIST(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
 #define IS_BLACKGUARD(ch) (CLASS_LEVEL(ch, CLASS_BLACKGUARD))
 #define IS_SUMMONER(ch) (CLASS_LEVEL(ch, CLASS_SUMMONER))
+#define IS_KNIGHT_OF_THE_CROWN(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN))
+#define IS_KNIGHT_OF_THE_SWORD(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD))
+#define IS_KNIGHT_OF_THE_ROSE(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE))
 
 #define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT ||                                                          \
                        IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
                        IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||             \
                        IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch) || \
                        IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch) || IS_INQUISITOR(ch) || IS_SUMMONER(ch) || \
-                       IS_NECROMANCER(ch))
+                       IS_NECROMANCER(ch) || IS_KNIGHT_OF_THE_SWORD(ch) || IS_KNIGHT_OF_THE_ROSE(ch))
 
 #define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
                         CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
@@ -1999,6 +2004,8 @@ int ACTUAL_BAB(struct char_data *ch);
                            GET_CLASS(ch) == CLASS_SACRED_FIST ||     \
                            GET_CLASS(ch) == CLASS_SHIFTER ||         \
                            GET_CLASS(ch) == CLASS_INQUISITOR ||      \
+                           GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_SWORD || \
+                           GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_ROSE || \
                            GET_CLASS(ch) == CLASS_BARD)
 
 #define GET_CASTING_CLASS(ch) (ch->player_specials->casting_class)
@@ -2157,6 +2164,8 @@ int ACTUAL_BAB(struct char_data *ch);
 #define INCORPOREAL_FORM_USES(ch) (ch->player_specials->saved.incorporeal_form_uses)
 #define INCORPOREAL_FORM_TIMER(ch) (ch->player_specials->saved.incorporeal_form_timer)
 #define INCORPOREAL_FORM_USES_PER_DAY(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) / 3)
+
+#define HAS_PERFORMED_DEMORALIZING_STRIKE(ch) (ch->char_specials.has_performed_demoralizing_strike)
 
 /* IS_ for other special situations */
 #define IS_INCORPOREAL(ch) (is_incorporeal(ch))

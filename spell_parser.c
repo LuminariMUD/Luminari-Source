@@ -4652,6 +4652,27 @@ void mag_assign_spells(void)
 
   spello(ABILITY_BLOOD_DRAIN, "vampiric blood drain", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, FALSE);
+  
+  spello(ABILITY_STRENGTH_OF_HONOR, "strength of honor", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AFFECTS, "Your strength of honor fades.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(ABILITY_CROWN_OF_KNIGHTHOOD, "crown of knighthood", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AFFECTS, "Your crown of knighthood fades.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(AFFECT_RALLYING_CRY, "rallying cry", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_GROUPS, "The rallying cry fades.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(AFFECT_INSPIRE_COURAGE, "inspire courage", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_GROUPS, "Your inspired courage fades.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(AFFECT_INSPIRE_GREATNESS, "inspire greatness", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_GROUPS, "Your inspired greatness fades.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(AFFECT_FINAL_STAND, "final stand", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_GROUPS, "Your final stand ends.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(AFFECT_KNIGHTHOODS_FLOWER, "knighthood's flower", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AFFECTS, "Your knighthood's flower fades.", 1, 1, NOSCHOOL, FALSE);
 
   spello(RACIAL_ABILITY_CRYSTAL_BODY, "crystal body", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
@@ -4729,6 +4750,11 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_AFFECTS, "You no longer feel shaken.", 1, 1, NOSCHOOL, 0);
   spello(EIDOLON_MERGE_FORMS_EFFECT, "merge forms", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, 0);
+
+  spello(SPELL_HOLY_AURA, "holy aura", 0, 0, 0, POS_FIGHTING,
+        TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_GROUPS, "You are no longer bolstered by a holy aura.", 9, 21, ABJURATION, 0);
+  spello(AFFECT_HOLY_AURA_RETRIBUTION, "holy aura retribution", 0, 0, 0, POS_FIGHTING,
+        TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_GROUPS, "Your vision returns.", 9, 21, ABJURATION, 0);
 
   spello(ABILITY_BAAZ_DRACONIAN_DEATH_THROES, "baaz draconian death throes", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,

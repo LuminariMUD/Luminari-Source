@@ -624,7 +624,7 @@ int roll_initiative(struct char_data *ch)
   initiative += 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION);
   initiative += GET_WIS_BONUS(ch) * HAS_FEAT(ch, FEAT_CUNNING_INITIATIVE);
   initiative += GET_INITIATIVE_MOD(ch);
-  // initiative += HAS_FEAT(ch, FEAT_HEROIC_INITIATIVE);
+  initiative += HAS_FEAT(ch, FEAT_HEROIC_INITIATIVE) ? 4 : 0;
 
   return initiative;
 }
@@ -957,6 +957,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
 
     /* this will include a dex-cap bonus on equipment as well */
     bonuses[BONUS_TYPE_DODGE] += GET_DEX_BONUS(ch);
+
+    if ((get_speed(ch, false) - 10) > get_speed(attacker, false))
+    {
+      bonuses[BONUS_TYPE_DODGE] += 1;
+    }
 
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_LUCK_OF_HEROES))
     {
@@ -1432,6 +1437,8 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   /* start the combat loop, making sure we begin with phase "1" */
   attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, strdup("1")), delay);
 
+  HAS_PERFORMED_DEMORALIZING_STRIKE(ch) = FALSE;
+
   return TRUE;
 }
 
@@ -1471,6 +1478,8 @@ void stop_fighting(struct char_data *ch)
     affect_from_char(ch, SKILL_SMITE_GOOD);
   }
   ch->player_specials->has_banishment_been_attempted = false;
+
+  HAS_PERFORMED_DEMORALIZING_STRIKE(ch) = FALSE;
 }
 
 /* threw together this function to make corpses on the whim, originally made for
@@ -6665,6 +6674,61 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       break;
     }
 
+    if (victim && affected_by_spell(victim, SPELL_HOLY_AURA) && ((IS_OUTSIDER(ch) && IS_EVIL(ch)) || IS_UNDEAD(ch)))
+    {
+      if (GET_LEVEL(ch) <= 20 || (GET_LEVEL(ch) < 30 && dice(1, 5) == 1) || (GET_LEVEL(ch) >= 30 && dice(1, 10) == 1))
+      {
+        if (!AFF_FLAGGED(ch, AFF_BLIND) && can_blind(ch) && !mag_savingthrow(victim, ch, SAVING_FORT, 0, AFFECT_HOLY_AURA_RETRIBUTION, compute_divine_level(victim), ABJURATION))
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = AFFECT_HOLY_AURA_RETRIBUTION;
+          af.duration = 5;
+          SET_BIT_AR(af.bitvector, AFF_BLIND);
+          affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+          act("$N's holy aura flashes with holy brilliance, blinding you!", FALSE, ch, 0, victim, TO_CHAR);
+          act("Your holy aura flashes with holy brilliance, blinding $n!", FALSE, ch, 0, victim, TO_VICT);
+          act("$N's holy aura flashes with holy brilliance, blinding $n!", FALSE, ch, 0, victim, TO_NOTVICT);
+        }
+      }
+    }
+
+    if (victim && HAS_FEAT(ch, FEAT_DEMORALIZING_STRIKE) && !HAS_PERFORMED_DEMORALIZING_STRIKE(ch))
+    {
+      HAS_PERFORMED_DEMORALIZING_STRIKE(ch) = TRUE;
+      if (!is_immune_mind_affecting(ch, victim, FALSE) &&
+          !is_immune_fear(ch, victim, FALSE))
+      {
+        struct affected_type af;
+        new_affect(&af);
+        af.spell = SPELL_AFFECT_WEAPON_OF_AWE;
+        af.duration = 1;
+        SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+        affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+        act("Your attack demoralized $N!", FALSE, ch, 0, victim, TO_CHAR);
+        act("$n's attack has demoralized YOU!", FALSE, ch, 0, victim, TO_VICT);
+        act("$n's attack demoralized $N!", FALSE, ch, 0, victim, TO_NOTVICT);
+      }
+    }
+
+    if (HAS_FEAT(ch, FEAT_DEMORALIZING_STRIKE) && !HAS_PERFORMED_DEMORALIZING_STRIKE(ch))
+    {
+      HAS_PERFORMED_DEMORALIZING_STRIKE(ch) = TRUE;
+      if (!is_immune_mind_affecting(ch, victim, FALSE) &&
+          !is_immune_fear(ch, victim, FALSE))
+      {
+        struct affected_type af;
+        new_affect(&af);
+        af.spell = SPELL_AFFECT_WEAPON_OF_AWE;
+        af.duration = 1;
+        SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+        affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+        act("Your attack demoralized $N!", FALSE, ch, 0, victim, TO_CHAR);
+        act("$n's attack has demoralized YOU!", FALSE, ch, 0, victim, TO_VICT);
+        act("$n's attack demoralized $N!", FALSE, ch, 0, victim, TO_NOTVICT);
+      }
+    }
+
     damage_holder = dam; /* store so we don't multiply a multiply */
 
     /* handle critical hit damage here */
@@ -6706,7 +6770,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       if (has_teamwork_feat(ch, FEAT_PRECISE_FLANKING) && is_flanked(ch, victim))
         dam += dice(1, 6);
 
-      if (affected_by_spell(ch, SPELL_WEAPON_OF_AWE) && !affected_by_spell(victim, SPELL_AFFECT_WEAPON_OF_AWE))
+      if (victim && affected_by_spell(ch, SPELL_WEAPON_OF_AWE) && !affected_by_spell(victim, SPELL_AFFECT_WEAPON_OF_AWE))
       {
         if (!is_immune_mind_affecting(ch, victim, FALSE) &&
             !is_immune_fear(ch, victim, FALSE))
@@ -7858,6 +7922,11 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_CIRCUMSTANCE] += 2;
   }
 
+  if ((get_speed(ch, false) - 10) > get_speed(victim, false))
+  {
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+  }
+
   if (IN_ROOM(ch) != NOWHERE && ROOM_AFFECTED(IN_ROOM(ch), RAFF_SACRED_SPACE) && IS_EVIL(ch))
     bonuses[BONUS_TYPE_SACRED] -= 1;
 
@@ -7939,6 +8008,11 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     bonuses[BONUS_TYPE_MORALE] += get_char_affect_modifier(ch, SPELL_TACTICAL_ACUMEN, APPLY_SPECIAL);
 
   if (affected_by_aura_of_sin(ch) || affected_by_aura_of_faith(ch))
+  {
+    bonuses[BONUS_TYPE_MORALE] += 1;
+  }
+
+  if (affected_by_spell(ch, AFFECT_RALLYING_CRY))
   {
     bonuses[BONUS_TYPE_MORALE] += 1;
   }
@@ -11753,6 +11827,7 @@ void perform_violence(struct char_data *ch, int phase)
 
   /* Reset combat data */
   GET_TOTAL_AOO(ch) = 0;
+  HAS_PERFORMED_DEMORALIZING_STRIKE(ch) = FALSE;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
 
   ch->char_specials.energy_retort_used = false;

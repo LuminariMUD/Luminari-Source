@@ -207,7 +207,14 @@ struct mud_event_list mud_event_index[] = {
     {"Eidolon Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACBREATH
     {"Call Eidolon", event_countdown, EVENT_CHAR}, // eC_EIDOLON
     {"Touch of Undeath", event_daily_use_cooldown, EVENT_CHAR}, // eTOUCHOFUndeath
-
+    {"Strength of Honor", event_daily_use_cooldown, EVENT_CHAR}, // eSTRENGTHOFHONOR
+    {"Crown of Knighthood", event_daily_use_cooldown, EVENT_CHAR}, // eCROWNOFKNIGHTHOOD
+    {"Soul of Knighthood", event_daily_use_cooldown, EVENT_CHAR}, // eSOULOFKNIGHTHOOD
+    {"Inspire Courage", event_daily_use_cooldown, EVENT_CHAR}, // eINSPIRECOURAGE
+    {"Wisdom of the Measure", event_daily_use_cooldown, EVENT_CHAR}, // eWISDOMOFTHEMEASURE
+    {"Final Stand", event_daily_use_cooldown, EVENT_CHAR}, // eFINALSTAND
+    {"Knighthood's Flower", event_daily_use_cooldown, EVENT_CHAR}, // eKNIGHTHOODSFLOWER
+    {"Rallying Cry", event_daily_use_cooldown, EVENT_CHAR}, // eRALLYINGCRY
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -348,6 +355,15 @@ EVENTFUNC(event_countdown)
     break;
   case eTOUCHOFUNDEATH:
     send_to_char(ch, "You are now able to use your touch of undeath again.\r\n");
+    break;
+  case eSTRENGTHOFHONOR:
+    send_to_char(ch, "You are now able to use your strength of honor again.\r\n");
+    break;
+  case eCROWNOFKNIGHTHOOD:
+    send_to_char(ch, "You are now able to use your crown of knighthood again.\r\n");
+    break;
+  case eSOULOFKNIGHTHOOD:
+    send_to_char(ch, "You are now able to use your soul of knighthood again.\r\n");
     break;
   case eCHANNELENERGY:
     send_to_char(ch, "You are now able to channel energy again.\r\n");
@@ -651,7 +667,7 @@ EVENTFUNC(event_daily_use_cooldown)
   {
     /* This is odd - This field should always be populated for daily-use abilities,
      * maybe some legacy code or bad id. */
-    log("SYSERR: sVariables field is NULL for daily-use-cooldown-event: %d", pMudEvent->iId);
+    log("SYSERR: 1 sVariables field is NULL for daily-use-cooldown-event: %d", pMudEvent->iId);
   }
   else
   {
@@ -743,6 +759,38 @@ EVENTFUNC(event_daily_use_cooldown)
   case eTOUCHOFUNDEATH:
     featnum = FEAT_TOUCH_OF_UNDEATH;
     send_to_char(ch, "One of your touch of undeath uses has recovered.\r\n");
+    break;
+  case eCROWNOFKNIGHTHOOD:
+    featnum = FEAT_CROWN_OF_KNIGHTHOOD;
+    send_to_char(ch, "One of your crown of knighthood uses has recovered.\r\n");
+    break;
+  case eSOULOFKNIGHTHOOD:
+    featnum = FEAT_SOUL_OF_KNIGHTHOOD;
+    send_to_char(ch, "One of your soul of knighthood uses has recovered.\r\n");
+    break;
+  case eINSPIRECOURAGE:
+    featnum = FEAT_INSPIRE_COURAGE;
+    send_to_char(ch, "One of your inspire courage uses has recovered.\r\n");
+    break;
+  case eWISDOMOFTHEMEASURE:
+    featnum = FEAT_WISDOM_OF_THE_MEASURE;
+    send_to_char(ch, "One of your wisdom of the measure uses has recovered.\r\n");
+    break;
+  case eFINALSTAND:
+    featnum = FEAT_FINAL_STAND;
+    send_to_char(ch, "One of your final stand uses has recovered.\r\n");
+    break;
+  case eKNIGHTHOODSFLOWER:
+    featnum = FEAT_KNIGHTHOODS_FLOWER;
+    send_to_char(ch, "One of your knighthood's flower uses has recovered.\r\n");
+    break;
+  case eRALLYINGCRY:
+    featnum = FEAT_RALLYING_CRY;
+    send_to_char(ch, "One of your rallying cry uses has recovered.\r\n");
+    break;
+  case eSTRENGTHOFHONOR:
+    featnum = FEAT_STRENGTH_OF_HONOR;
+    send_to_char(ch, "One of your strength of honor uses has recovered.\r\n");
     break;
   case eJUDGEMENT:
     featnum = FEAT_JUDGEMENT;

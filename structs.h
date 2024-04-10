@@ -427,9 +427,9 @@
 #define CLASS_WARLOCK 28
 #define CLASS_NECROMANCER 29
 #define CLASS_PALE_MASTER CLASS_NECROMANCER
-// #define CLASS_KNIGHT_OF_THE_CROWN 30
-// #define CLASS_KNIGHT_OF_THE_SWORD 31
-// #define CLASS_KNIGHT_OF_THE_ROSE 32
+#define CLASS_KNIGHT_OF_THE_CROWN 30
+#define CLASS_KNIGHT_OF_THE_SWORD 31
+#define CLASS_KNIGHT_OF_THE_ROSE 32
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -438,12 +438,12 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 30
+#define NUM_CLASSES 33
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
-#define MAX_CLASSES 31 // total number of maximum pc classes
+#define MAX_CLASSES 33 // total number of maximum pc classes
 #define NUM_CASTERS 9  // direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2
@@ -2626,12 +2626,23 @@
 #define FEAT_HEROIC_INITIATIVE 1066
 #define FEAT_MIGHT_OF_HONOR 1067
 #define FEAT_CROWN_OF_KNIGHTHOOD 1068
+#define FEAT_HONORBOUND 1069
+// Knight of the Sword
+#define FEAT_DEMORALIZING_STRIKE 1070
+#define FEAT_SOUL_OF_KNIGHTHOOD 1071
+// Knight of The Rose
+#define FEAT_LEADERSHIP 1072
+#define FEAT_INSPIRE_COURAGE 1073
+#define FEAT_INSPIRE_GREATNESS 1074
+#define FEAT_WISDOM_OF_THE_MEASURE 1075
+#define FEAT_FINAL_STAND 1076
+#define FEAT_KNIGHTHOODS_FLOWER 1077
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1069
+#define FEAT_LAST_FEAT 1078
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1070
+#define NUM_FEATS 1079
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4453,6 +4464,8 @@ struct char_special_data
     byte recently_slammed;
 
     bool deathless_touch;           // when killing a victim with deathless touch, the necromancer will give bonus stats on his next animate dead or greater animation spell
+
+    bool has_performed_demoralizing_strike; // this ensures the combatant can only do a demoralizing strike once per round.
 };
 
 /* old memorization struct */

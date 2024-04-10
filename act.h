@@ -642,6 +642,14 @@ ACMD_DECL(do_grand_destiny);
 ACMD_DECL(do_evoweb);
 ACMD_DECL(do_evobreath);
 ACMD_DECL(do_vital_strike);
+ACMD_DECL(do_strength_of_honor);
+ACMD_DECL(do_crown_of_knighthood);
+ACMD_DECL(do_soul_of_knighthood);
+ACMD_DECL(do_rallying_cry);
+ACMD_DECL(do_inspire_courage);
+ACMD_DECL(do_wisdom_of_the_measure);
+ACMD_DECL(do_final_stand);
+ACMD_DECL(do_knighthoods_flower);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c
