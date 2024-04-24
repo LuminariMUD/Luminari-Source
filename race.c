@@ -1097,11 +1097,67 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_ULTRAVISION, 1, N);
   feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_BAAZ_DEATH_THROES, 1, N);
   feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_DRACONIAN_CONTROLLED_FALL, 1, N);
-  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_BAAZ_DRACONIC_DEVOTION, 1, N);
+  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_DRACONIC_DEVOTION, 1, N);
   feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_DRACONIAN_GALLOP, 1, N);
-  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_BAAZ_DISEASE_IMMUNITY, 1, N);
+  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_DRACONIAN_DISEASE_IMMUNITY, 1, N);
   feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_BAAZ_DRACONIAN_SCALES, 1, N);
   feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_DRACONIAN_BITE, 1, N);
+  race_list[DL_RACE_BAAZ_DRACONIAN].racial_language = SKILL_LANG_DRACONIC;
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_KAPAK_DRACONIAN, "kapak draconian", "Kapak Draconian", "\tWKapak Draconian\tn", "Kapk", "\tWKapk\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 2, 5000, IS_ADVANCE);
+  set_race_details(DL_RACE_KAPAK_DRACONIAN,
+                   // desc
+                   "Kapak draconians are known for stealth, vicious"
+                  "cunning, and for licking their blades with their"
+                  "venom-soaked tongues before battle. While not"
+                  "known for original thinking, kapaks exhibit cruel"
+                  "creativity in carrying out assigned missions of"
+                  "espionage and murder. Kapaks like structure in their"
+                  "lives, and the military lifestyle suits them. Their"
+                  "natural talents for stealth and butchery belie their"
+                  "need for order. Many become assassins, because"
+                  "they are adept at handling dangerous and constantly"
+                  "changing situations. Female kapaks also"
+                  "like structure, but they tend to be more nurturing,"
+                  "using their inborn healing abilities to aid"
+                  "other draconians. Kapaks are larger"
+                  "and more draconic than baaz, with elongated"
+                  "reptilian snouts, sharp-toothed maws, and"
+                  "horned heads. They possess two large glands in"
+                  "their mouths that produce either poison (males)"
+                  "or a magical healing saliva (females). They have"
+                  "scaly, green-tinged coppery hide, and sport a"
+                  "pair of wings that extend 6 feet to each side"
+                  "when outstretched.",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Kapak Draconian.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Kapak Draconian.");
+  set_race_abilities(DL_RACE_KAPAK_DRACONIAN, 0, 2, 0, 0, 4, 0);         /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_KAPAK_DRACONIAN, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_KAPAK_DRACONIAN,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_KAPAK_DEATH_THROES, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_DRACONIAN_CONTROLLED_FALL, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_DRACONIC_DEVOTION, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_DRACONIAN_GALLOP, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_DRACONIAN_DISEASE_IMMUNITY, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_KAPAK_DRACONIAN_SCALES, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_DRACONIAN_BITE, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_KAPAK_SALIVA, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_SNEAK_ATTACK, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_APPLY_POISON, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_KAPAK_SPELL_RESISTANCE, 1, N);
+
   race_list[DL_RACE_BAAZ_DRACONIAN].racial_language = SKILL_LANG_DRACONIC;
 
   /****************************************************************************/
@@ -4413,9 +4469,9 @@ int parse_race_long(const char *arg_in)
   if (is_abbrev(arg, "baazdraconian")) return  DL_RACE_BAAZ_DRACONIAN;
   if (is_abbrev(arg, "goblin")) return  DL_RACE_GOBLIN;
   if (is_abbrev(arg, "hobgoblin")) return  DL_RACE_HOBGOBLIN;
-  // if (is_abbrev(arg, "kapak draconian")) return  DL_RACE_KAPAK_DRACONIAN;
-  // if (is_abbrev(arg, "kapak-draconian")) return  DL_RACE_KAPAK_DRACONIAN;
-  // if (is_abbrev(arg, "kapakdraconian")) return  DL_RACE_KAPAK_DRACONIAN;
+  if (is_abbrev(arg, "kapak draconian")) return  DL_RACE_KAPAK_DRACONIAN;
+  if (is_abbrev(arg, "kapak-draconian")) return  DL_RACE_KAPAK_DRACONIAN;
+  if (is_abbrev(arg, "kapakdraconian")) return  DL_RACE_KAPAK_DRACONIAN;
   // if (is_abbrev(arg, "bozak draconian")) return  DL_RACE_BOZAK_DRACONIAN;
   // if (is_abbrev(arg, "bozak-draconian")) return  DL_RACE_BOZAK_DRACONIAN;
   // if (is_abbrev(arg, "bozakdraconian")) return  DL_RACE_BOZAK_DRACONIAN;

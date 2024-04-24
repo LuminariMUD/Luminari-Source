@@ -76,11 +76,7 @@ bool is_locked_race(int race);
 
 /** Check if character is not a NPC. */
 #define PREREQ_NOT_NPC()                             \
-  if (IS_NPC(ch))                                    \
-  {                                                  \
-    send_to_char(ch, "But you don't know how!\r\n"); \
-    return;                                          \
-  }
+  if (!can_npc_command(ch)) return;
 
 /** Check if character is in a peaceful room. */
 #define PREREQ_NOT_PEACEFUL_ROOM()                                               \
@@ -268,6 +264,7 @@ ACMD_DECL(do_bane);
 ACMD_DECL(do_slayer);
 ACMD_DECL(do_true_judgement);
 ACMD_DECL(do_flightlist);
+ACMD_DECL(do_kapak_saliva);
 
 int max_judgements_active(struct char_data *ch);
 int num_judgements_active(struct char_data *ch);
@@ -321,6 +318,7 @@ void list_consumables(struct char_data *ch, int type);
 void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum);
 /* do_look, do_inventory utility functions */
 void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type);
+void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type, bool can_see_always);
 
 /* functions with subcommands */
 /* do_drop */
@@ -861,6 +859,7 @@ void snoop_check(struct char_data *ch);
 bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_name);
 bool AddRecentPlayer(char *chname, char *chhost, bool newplr, bool cpyplr);
 int get_eq_score(obj_rnum a);
+void save_objects_to_database(struct char_data *ch);
 /* Functions with subcommands */
 /* do_date */
 ACMD_DECL(do_date);
@@ -982,6 +981,7 @@ ACMD_DECL(do_resetpassword);
 ACMD_DECL(do_holyweapon);
 ACMD_DECL(do_award);
 ACMD_DECL(do_show_blockers);
+ACMD_DECL(do_save_objects_to_database);
 
 // encounters.c
 ACMD_DECL(do_encounterinfo);

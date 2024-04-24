@@ -2645,10 +2645,22 @@ struct char_data *get_char_world_vis(struct char_data *ch, char *name, int *numb
 
 struct char_data *get_char_vis(struct char_data *ch, char *name, int *number, int where)
 {
+
   if (where == FIND_CHAR_ROOM)
-    return get_char_room_vis(ch, name, number);
+  {
+    if (get_player_vis(ch, name, number, FIND_CHAR_ROOM) == NULL)
+      return get_char_room_vis(ch, name, number);
+    else
+      return get_player_vis(ch, name, number, FIND_CHAR_ROOM);
+
+  }
   else if (where == FIND_CHAR_WORLD)
-    return get_char_world_vis(ch, name, number);
+  {
+    if (get_player_vis(ch, name, number, FIND_CHAR_WORLD) == NULL)
+      return get_char_world_vis(ch, name, number);
+    else
+      return get_player_vis(ch, name, number, FIND_CHAR_WORLD);
+  }
   else
     return (NULL);
 }
@@ -2657,6 +2669,10 @@ struct obj_data *get_obj_in_list_vis(struct char_data *ch, char *name, int *numb
 {
   struct obj_data *i;
   int num;
+  int can_see_inv = false;
+
+  if (ch->carrying == list)
+    can_see_inv = true;
 
   if (!number)
   {
@@ -2669,7 +2685,7 @@ struct obj_data *get_obj_in_list_vis(struct char_data *ch, char *name, int *numb
 
   for (i = list; i && *number; i = i->next_content)
     if (isname(name, i->name))
-      if (CAN_SEE_OBJ(ch, i))
+      if (CAN_SEE_OBJ(ch, i) || can_see_inv)
         if (--(*number) == 0)
           return (i);
 

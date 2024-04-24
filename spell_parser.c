@@ -4760,6 +4760,13 @@ void mag_assign_spells(void)
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 5, 9, TRANSMUTATION, FALSE);
 
+  spello(ABILITY_KAPAK_DRACONIAN_DEATH_THROES, "kapak draconian death throes", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_ROOM,
+         "The pool of acid in the room dissolves to nothingness.", 5, 9, TRANSMUTATION, FALSE);
+  spello(ABILITY_KAPAK_ACID, "!UNUSED!", 79, 64, 1, POS_DEAD,
+         TAR_IGNORE, TRUE, MAG_MASSES,
+         NULL, 8, 12, EVOCATION, FALSE);
+
   /*
 spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
     TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
@@ -4896,6 +4903,8 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
          "The purple worm poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
   spello(POISON_TYPE_COCKATRICE, "cockatrice poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
          "The cockatrice poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_KAPAK, "kapak draconian poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The kapak draconian poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
 
   spello(ABILITY_PARALYZING_TOUCH, "paralyzing touch", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "Your paralysis subsides.", 0, 1, NECROMANCY, FALSE);

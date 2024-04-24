@@ -118,6 +118,9 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   if (IS_DRAGON(vict))
     resist = MAX(resist, 25);
 
+  if (HAS_FEAT(vict, FEAT_KAPAK_SPELL_RESISTANCE))
+    resist = MAX(resist, 10 + GET_LEVEL(vict));
+
   // adjustments passed to mag_resistance
   resist += modifier;
 
@@ -986,6 +989,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case POISON_TYPE_WASP_WEAK:
   case POISON_TYPE_FUNGAL_WEAK:
   case POISON_TYPE_COCKATRICE:
+  case POISON_TYPE_KAPAK:
     if (!can_poison(victim))
       return 0;
     save = SAVING_FORT;
@@ -2127,13 +2131,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_ACID: // acid fog (conjuration)
+    if (is_flying(victim) || AFF_FLAGGED(victim, AFF_LEVITATE))
+    {
+      act("You avoid being burned by the pool of acid as you are not touching the ground.", TRUE, victim, 0, 0, TO_CHAR);
+      act("$n avoids being burned by the pool of acid as $e is not touching the ground.", TRUE, victim, 0, 0, TO_ROOM);
+      return (0);
+    }
     // AoE
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = DAM_ACID;
-    num_dice = MAX(6, level);
-    size_dice = 2;
-    bonus = 10;
+    num_dice = 2;
+    size_dice = 10;
+    bonus = 5;
     break;
 
   case SPELL_CHAIN_LIGHTNING: // evocation
@@ -3191,6 +3201,21 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       }
       to_vict = "The poison stuns you.";
       to_room = "$n looks stunned.";
+      accum_duration = TRUE;
+      break;
+
+      case POISON_TYPE_KAPAK:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_DEX;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 6));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
       accum_duration = TRUE;
       break;
 
@@ -7560,8 +7585,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].modifier = 2;
     af[0].duration = 300;
     af[0].bonus_type = BONUS_TYPE_SHIELD;
-    to_vict = "You feel someone protecting you.";
-    to_room = "$n is surrounded by magical armor!";
+    to_vict = "A magical shield of force appears in front of you.";
+    to_room = "A magical shield of force appears in front of $n.";
     break;
 
   case SPELL_SHRINK_PERSON: // transmutation
@@ -8718,6 +8743,9 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     break;
   case SPELL_ACID:
+    isDamage = true;
+    break;
+    case ABILITY_KAPAK_ACID:
     isDamage = true;
     break;
   case SPELL_BLADES:
@@ -11475,6 +11503,13 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "$n creates a thick bank of acid fog!";
     aff = RAFF_ACID_FOG;
     rounds = MAX(4, MAGIC_LEVEL(ch));
+    break;
+  
+  case ABILITY_KAPAK_DRACONIAN_DEATH_THROES: // conjuration
+    to_char = "You dissolve into a pool of acid!";
+    to_room = "$n dissolves into a pool of acid!";
+    aff = RAFF_KAPAK_ACID;
+    rounds = dice(2, 4);
     break;
 
   case SPELL_ANTI_MAGIC_FIELD: // illusion

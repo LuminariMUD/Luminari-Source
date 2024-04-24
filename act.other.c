@@ -1342,6 +1342,9 @@ ACMD(do_applypoison)
     return;
   }
 
+  if (is_abbrev(arg1, "kapak") && HAS_FEAT(ch, FEAT_KAPAK_SALIVA))
+    poison = read_object(OBJ_VNUM_KAPAK_POISON, VIRTUAL);
+
   poison = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying);
 
   if (!poison)
@@ -9088,6 +9091,92 @@ ACMDU(do_borrow)
   }
 }
 
+
+ACMD(do_kapak_saliva)
+{
+
+  char arg[200];
+  struct char_data *vict = NULL;
+  int healing = 0;
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "You need a swift action to use this ability.\r\n");
+    return;
+  }
+
+  if (!HAS_FEAT(ch, FEAT_KAPAK_SALIVA))
+  {
+    send_to_char(ch, "Only Kapak Draconians can use this ability");
+    return;
+  }
+
+  if (GET_SEX(ch) == SEX_MALE)
+  {
+    send_to_char(ch, "Male Kapaks can apply poison to their weapons using the command: applypoison kapak (weapon name)\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+    vict = ch;
+  else
+  {
+    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+    {
+      send_to_char(ch, "There's no one here by that description.\r\n");
+      return;
+    }
+  }
+
+  if (GET_HIT(vict) >= GET_MAX_HIT(vict))
+  {
+    send_to_char(ch, "They are already fully healed.\r\n");
+    return;
+  }
+
+  if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(vict) > 0)
+  {
+    if (vict == ch)
+    {
+      act("You lick your wounds, but feel only numbness as residues of your saliva still remain.", TRUE, ch, 0, vict, TO_CHAR);
+      act("$n licks $s wounds with healing saliva.", TRUE, ch, 0, vict, TO_ROOM);
+    }
+    else
+    {
+      act("You lick $N's wounds, but see no effect as residues of kapak saliva still remain.", TRUE, ch, 0, vict, TO_CHAR);
+      act("$n licks Your wounds, but there is no effect as residues of kapak saliva still remain.", TRUE, ch, 0, vict, TO_VICT);
+      act("$n licks $N's wounds with healing saliva.", TRUE, ch, 0, vict, TO_NOTVICT);
+    }
+    return;
+  }
+
+  GET_KAPAK_SALIVA_HEALING_COOLDOWN(vict) = 60;
+  healing = dice(GET_LEVEL(ch), 4) + 20;
+  if ((GET_HIT(vict) + healing) > GET_MAX_HIT(vict))
+  {
+    healing = GET_MAX_HIT(vict) - GET_HIT(vict);
+  }
+
+  if (vict == ch)
+  {
+    act("You lick your wounds and feel healing relief from your kapak saliva.", TRUE, ch, 0, vict, TO_CHAR);
+    act("$n licks $s wounds with healing saliva.", TRUE, ch, 0, vict, TO_ROOM);
+    send_to_char(ch, "You are healed for %d hp.\r\n", healing);
+  }
+  else
+  {
+    act("You lick $N's wounds and they feel healing relief from your kapak saliva.", TRUE, ch, 0, vict, TO_CHAR);
+    act("$n licks Your wounds and you feel healing relief from the kapak saliva.", TRUE, ch, 0, vict, TO_VICT);
+    act("$n licks $N's wounds with healing saliva.", TRUE, ch, 0, vict, TO_NOTVICT);
+    send_to_char(vict, "You are healed for %d hp.\r\n", healing);
+    send_to_char(ch, "They are healed for %d hp.\r\n", healing);
+  }
+
+  USE_SWIFT_ACTION(ch);
+
+}
 /* undefines */
 #undef DEBUG_MODE
 

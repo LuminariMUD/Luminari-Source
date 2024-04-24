@@ -497,8 +497,12 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch)
     send_to_char(ch, " \tD(burned out)\tn");
 }
 
-void list_obj_to_char(struct obj_data *list, struct char_data *ch,
-                             int mode, int show, int mxp_type)
+void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type)
+{
+  list_obj_to_char_full(list, ch, mode, show, mxp_type, false);
+}
+
+void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type, bool can_see_always)
 {
   struct obj_data *i = NULL, *j = NULL, *display = NULL;
   bool found = FALSE;
@@ -525,7 +529,7 @@ void list_obj_to_char(struct obj_data *list, struct char_data *ch,
         /* This if-clause should be exactly the same as the one in the loop above */
         if ((j->short_description == i->short_description && j->name == i->name) ||
             (!strcmp(j->short_description, i->short_description) && !strcmp(j->name, i->name)))
-          if (CAN_SEE_OBJ(ch, j) /*|| (!AFF_FLAGGED(ch, AFF_BLIND) && OBJ_FLAGGED(j, ITEM_GLOW))*/)
+          if (CAN_SEE_OBJ(ch, j) || can_see_always /*|| (!AFF_FLAGGED(ch, AFF_BLIND) && OBJ_FLAGGED(j, ITEM_GLOW))*/)
           {
             /* added the ability for players to see glowing items in their inventory in the dark
              * as long as they are not blind! maybe add this to CAN_SEE_OBJ macro? */
@@ -1460,6 +1464,12 @@ void look_at_room(struct char_data *ch, int ignore_brief)
       (!IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG) || GET_LEVEL(ch) >= LVL_IMMORT))
     do_auto_exits(ch);
 
+  if (ROOM_AFFECTED(ch->in_room, RAFF_KAPAK_ACID))
+  {
+    send_to_char(ch, "\tMA pool of acid covers the area.\tn\r\n");
+    return;
+  }
+
   /* now list characters & objects */
   list_obj_to_char(world[IN_ROOM(ch)].contents, ch, SHOW_OBJ_LONG, FALSE, 0);
   list_char_to_char(world[IN_ROOM(ch)].people, ch);
@@ -2051,6 +2061,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Incorporeal Form (Undead Bloodline) Cooldown - Duration: %d seconds\r\n", INCORPOREAL_FORM_TIMER(ch) * 6);
   if (GET_MISSION_COOLDOWN(k) > 0)
     send_to_char(ch, "Mission Ready Cooldown - Duration: %d seconds\r\n", GET_MISSION_COOLDOWN(k) * 6);
+  if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(k) > 0)
+    send_to_char(ch, "Kapak Saliva Healing - Duration: %d seconds\r\n", GET_KAPAK_SALIVA_HEALING_COOLDOWN(k) * 6);
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
@@ -3476,7 +3488,7 @@ ACMD(do_score)
 ACMD(do_inventory)
 {
   send_to_char(ch, "You are carrying:\r\n");
-  list_obj_to_char(ch->carrying, ch, SHOW_OBJ_SHORT, TRUE, 1);
+  list_obj_to_char_full(ch->carrying, ch, SHOW_OBJ_SHORT, TRUE, 1, true);
 
   if (!IS_NPC(ch))
     if (ch->desc)
@@ -3669,7 +3681,12 @@ ACMD(do_equipment)
     if (GET_EQ(ch, eq_ordering_1[i]))
     {
       found = TRUE;
+#if defined(CAMPAIGN_DL)
+       // In Dragonlance, we always want to be able to see our equipment unless it's invis and we can't see invis
+      if (!OBJ_FLAGGED(GET_EQ(ch, eq_ordering_1[i]), ITEM_INVISIBLE) || AFF_FLAGGED(ch, AFF_DETECT_INVIS) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
+#else
       if (CAN_SEE_OBJ(ch, GET_EQ(ch, eq_ordering_1[i])))
+#endif
       {
         send_to_char(ch, "%s", wear_where[eq_ordering_1[i]]);
         /* added this as a clue to players */

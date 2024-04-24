@@ -105,6 +105,24 @@ void room_aff_tick(struct raff_node *raff)
       }
     }
     break;
+  case ABILITY_KAPAK_DRACONIAN_DEATH_THROES:
+    caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+    caster_room = &world[raff->room];
+    if (!caster)
+    {
+      script_log("comm.c: Cannot load the caster mob (kapak acid)!");
+      return;
+    }
+
+    /* set the caster's name */
+    caster->player.short_descr = strdup("The room");
+    caster->next_in_room = caster_room->people;
+    caster_room->people = caster;
+    caster->in_room = real_room(caster_room->number);
+    call_magic(caster, NULL, NULL, ABILITY_KAPAK_DRACONIAN_DEATH_THROES, 0, DG_SPELL_LEVEL, CAST_SPELL);
+    extract_char(caster);
+    break;
+
   case SPELL_BLADE_BARRIER:
     caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
     caster_room = &world[raff->room];
@@ -1002,6 +1020,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     }
 
     gain *= leadership_exp_multiplier(ch);
+    gain /= 100;
 
     /* newbie bonus */
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
@@ -1453,6 +1472,15 @@ void proc_d20_round(void)
   for (i = character_list; i; i = i->next)
   {
 
+    if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(i) > 0)
+    {
+      GET_KAPAK_SALIVA_HEALING_COOLDOWN(i)--;
+      if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(i) == 0)
+      {
+        send_to_char(i, "You can now be healed with kapak saliva again.\r\n");
+      }
+    }
+
     if (GET_PUSHED_TIMER(i) > 0)
     {
       GET_PUSHED_TIMER(i)--;
@@ -1826,7 +1854,8 @@ void point_update(void)
           else
             core_dump();
         }
-        extract_obj(j);
+        if (j)
+          extract_obj(j);
         continue;
       }
     }

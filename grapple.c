@@ -212,11 +212,7 @@ ACMD(do_grapple)
   struct char_data *vict = NULL;
   int grapple_mod = 0;
 
-  if (IS_NPC(ch))
-  {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+  if (!can_npc_command(ch)) return;
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
   {
@@ -250,6 +246,13 @@ ACMD(do_grapple)
   else if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE))
     grapple_mod = -4;
   else if (HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
+   grapple_mod = 4;
+
+    if (HAS_EVOLUTION(vict, EVOLUTION_PINCERS) && HAS_EVOLUTION(ch, EVOLUTION_PINCERS))
+    grapple_mod = 0;
+  else if (HAS_EVOLUTION(vict, EVOLUTION_PINCERS))
+    grapple_mod = -4;
+  else if (HAS_EVOLUTION(ch, EVOLUTION_PINCERS))
    grapple_mod = 4;
 
   /* try for reversale? */
@@ -424,11 +427,8 @@ ACMD(do_free_grapple)
 /* as a standard action, try to pin grappled opponent */
 ACMD(do_pin)
 {
-  if (IS_NPC(ch))
-  {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+
+  if (!can_npc_command(ch)) return;
 
   if (GRAPPLE_ATTACKER(ch))
   {
@@ -501,11 +501,7 @@ ACMD(do_pin)
 /* as a standard action, try to bind pinned opponent */
 ACMD(do_bind)
 {
-  if (IS_NPC(ch))
-  {
-    send_to_char(ch, "You have no idea how.\r\n");
-    return;
-  }
+  if (!can_npc_command(ch)) return;
   send_to_char(ch, "Under construction.\r\n");
   return;
 }

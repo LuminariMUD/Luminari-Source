@@ -133,6 +133,7 @@ bool can_study_known_spells(struct char_data *ch);
 bool can_study_known_psionics(struct char_data *ch);
 int compute_bonus_caster_level(struct char_data *ch, int class);
 int compute_arcane_level(struct char_data *ch);
+bool can_npc_command(struct char_data *ch);
 int compute_divine_level(struct char_data *ch);
 bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon);
 int compute_dexterity_bonus(struct char_data *ch);
@@ -266,7 +267,7 @@ int file_head(FILE *file, char *buf, size_t bufsize, int lines_to_read);
 int file_tail(FILE *file, char *buf, size_t bufsize, int lines_to_read);
 size_t file_sizeof(FILE *file);
 int file_numlines(FILE *file);
-float leadership_exp_multiplier(struct char_data *ch);
+int leadership_exp_multiplier(struct char_data *ch);
 void clear_misc_cooldowns(struct char_data *ch);
 IDXTYPE atoidx(const char *str_to_conv);
 char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad);
@@ -2578,6 +2579,8 @@ bool has_reach(struct char_data *ch);
 #define IS_DRAGONSCALE(material) (material == MATERIAL_DRAGONSCALE)
 #define IS_DRAGONBONE(material) (material == MATERIAL_DRAGONBONE)
 #define IS_DRAGON_CRAFT_MATERIAL(material) (IS_DRAGONHIDE(material) || IS_DRAGONSCALE(material) || IS_DRAGONBONE(material))
+
+#define GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) (ch->char_specials.saved.kapak_healing_cooldown)
 
 #endif /* _UTILS_H_ */
 

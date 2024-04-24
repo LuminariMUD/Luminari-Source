@@ -63,6 +63,7 @@
 #include "hunts.h"
 #include "evolutions.h"
 #include "treasure.h"
+#include "assign_wpn_armor.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -6536,6 +6537,217 @@ void set_db_happy_hour(int status)
   if (mysql_query(conn, query))
   {
     log("SYSERR: Unable to INSERT INTO happy_hour_info: %s", mysql_error(conn));
+  }
+}
+
+void save_objects_to_database(struct char_data *ch)
+{
+  int j, i;
+  int zone_num = 0;
+  int obj_idnum = 0;
+  struct obj_data *obj = NULL;
+  struct obj_special_ability *specab;
+
+  char query[MAX_STRING_LENGTH] = {'\0'};
+  char temp[255] = {'\0'};
+  char bonus[255] = {'\0'};
+  char object_name[255] = {'\0'};
+  char specific_type[255] = {'\0'};
+  char weapon_spell_1[255] = {'\0'};
+  char weapon_spell_2[255] = {'\0'};
+  char weapon_spell_3[255] = {'\0'};
+  char weapon_special_ability[255] = {'\0'};
+  char notes[LONG_STRING] = {'\0'};
+  char zone_name[255] =  {'\0'};
+
+  mysql_ping(conn);
+
+  snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_items");
+  if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_items: %s", mysql_error(conn));
+  snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_bonuses");
+  if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_bonuses: %s", mysql_error(conn));
+  snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_wear_slots");
+  if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_wear_slots: %s", mysql_error(conn));
+  snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_obj_flags");
+  if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_obj_flags: %s", mysql_error(conn));
+  snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_perm_affects");
+  if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_perm_affects: %s", mysql_error(conn));
+
+  // We have to do this loop in multiple stages to prevent the MUD from crashing
+
+  for (j = 0; j < top_of_objt; j++)
+  {
+    // we have issues with obj vnums above this number.
+    // all zones that are made should be below these vnums anyway.
+    if (obj_index[j].vnum >= 60000) continue;
+
+    obj = read_object(obj_index[j].vnum, VIRTUAL);
+
+    if (!obj) continue;
+
+    specific_type[0] = '\0';
+    switch (GET_OBJ_TYPE(obj))
+    {
+      case ITEM_WEAPON: snprintf(specific_type, sizeof(specific_type), "%s", weapon_list[GET_OBJ_VAL(obj, 0)].name); break;
+      case ITEM_ARMOR: snprintf(specific_type, sizeof(specific_type), "%s", armor_list[GET_OBJ_VAL(obj, 1)].name); break;
+    }
+
+    weapon_spell_1[0] = '\0';
+    if (GET_WEAPON_SPELL(obj, 0))
+    {
+      snprintf(weapon_spell_1, sizeof(weapon_spell_1), "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
+                       spell_info[GET_WEAPON_SPELL(obj, 0)].name, GET_WEAPON_SPELL_LVL(obj, 0),
+                       GET_WEAPON_SPELL_PCT(obj, 0), GET_WEAPON_SPELL_AGG(obj, 0) ? "Yes" : "No");
+    }
+    weapon_spell_2[0] = '\0';
+    if (GET_WEAPON_SPELL(obj, 1))
+    {
+      snprintf(weapon_spell_2, sizeof(weapon_spell_2), "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
+                       spell_info[GET_WEAPON_SPELL(obj, 1)].name, GET_WEAPON_SPELL_LVL(obj, 1),
+                       GET_WEAPON_SPELL_PCT(obj, 1), GET_WEAPON_SPELL_AGG(obj, 1) ? "Yes" : "No");
+    }
+    weapon_spell_3[0] = '\0';
+    if (GET_WEAPON_SPELL(obj, 2))
+    {
+      snprintf(weapon_spell_3, sizeof(weapon_spell_3), "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
+                       spell_info[GET_WEAPON_SPELL(obj, 2)].name, GET_WEAPON_SPELL_LVL(obj, 2),
+                       GET_WEAPON_SPELL_PCT(obj, 2), GET_WEAPON_SPELL_AGG(obj, 2) ? "Yes" : "No");
+    }
+    weapon_special_ability[0] = '\0';
+    if ((specab = obj->special_abilities) != NULL)
+    {
+      if (specab->ability == WEAPON_SPECAB_BANE)
+      {
+        if (specab->value[1])
+        {
+          snprintf(weapon_special_ability, sizeof(weapon_special_ability), "Ability: %s Bane Race: %s Bane Subrace: %s ", 
+                  special_ability_info[specab->ability].name, race_family_types[specab->value[0]], npc_subrace_types[specab->value[1]]);
+        }
+        else
+        {
+          snprintf(weapon_special_ability, sizeof(weapon_special_ability), "Ability: %s Bane Race: %s", 
+                  special_ability_info[specab->ability].name, race_family_types[specab->value[0]]);
+        }
+      }
+      else
+      {
+        snprintf(weapon_special_ability, sizeof(weapon_special_ability), "Ability: %s ", special_ability_info[specab->ability].name);
+      }
+    }
+    snprintf(notes, sizeof(notes), " ");
+    snprintf(temp, sizeof(temp), "%s", obj_proto[j].short_description);
+    snprintf(zone_name, sizeof(zone_name), "%s", zone_table[real_zone_by_thing(obj_index[j].vnum)].name);
+    mysql_real_escape_string(conn, object_name, temp, strlen(temp));
+    strip_colors(object_name);
+    zone_num = zone_table[real_zone_by_thing(obj_index[j].vnum)].number;
+
+    snprintf(query, sizeof(query), "INSERT INTO object_database_items (`idnum`, `object_vnum`, `object_name`, `object_type`, "
+                                    "`material`, `weight`, `object_size`, `cost`, `specific_type`, `weapon_spell_1`, `weapon_spell_2`, `weapon_spell_3`, "
+                                    "`weapon_special_ability`, `minimum_level`, `zone_num`, `zone_name`, `notes`, `enhancement_bonus`) VALUES (NULL,"
+                                   "%d,"              // A object_vnum
+                                   "\"%s\","          // B object_name
+                                   "\"%s\","          // C object_type
+                                   "\"%s\","          // D material
+                                   "%d,"              // E weight
+                                   "\"%s\","          // F object_size
+                                   "%d,"              // G cost
+                                   "\"%s\","          // H specific_type
+                                   "\"%s\","          // I weapon_spell_1
+                                   "\"%s\","          // J weapon_spell_2
+                                   "\"%s\","          // K weapon_spell_3
+                                   "\"%s\","          // L weapon_special_ability
+                                   "%d,"              // M minimum_level
+                                   "%d,"              // N zone_num
+                                   "\"%s\","          // O zone_name
+                                   "\"%s\","           // P notes
+                                   "%d"              // Q enhancement
+                                   ")",
+                                   obj_index[j].vnum,                             // A
+                                   object_name,                                   // B
+                                   item_types[obj_proto[j].obj_flags.type_flag],  // C
+                                   material_name[obj_proto[j].obj_flags.material],// D
+                                   obj_proto[j].obj_flags.weight,                 // E
+                                   sizes[obj_proto[j].obj_flags.size],            // F
+                                   obj_proto[j].obj_flags.cost,                   // G
+                                   specific_type,                                 // H
+                                   weapon_spell_1,                                // I
+                                   weapon_spell_2,                                // J
+                                   weapon_spell_3,                                // K
+                                   weapon_special_ability,                        // L
+                                   obj_proto[j].obj_flags.level,                  // M
+                                   zone_num,                                      // N
+                                   zone_name,                                     // O
+                                   notes,                                         // P
+                                   GET_ENHANCEMENT_BONUS(obj)                     // Q
+    );
+    if (mysql_query(conn, query))
+    {
+      log("SYSERR: Unable to INSERT into object_database_items: %s\nQUERY: %s", mysql_error(conn), query);
+    }
+    else
+    {
+      obj_idnum = mysql_insert_id(conn);
+
+      for (i = 0; i < NUM_ITEM_WEARS; i++)
+      {
+          if (i == ITEM_WEAR_TAKE) continue;
+          if (CAN_WEAR(obj, i)) {
+              snprintf(query, sizeof(query), "INSERT INTO object_database_wear_slots (idnum,object_idnum,worn_slot) VALUES(NULL,%d,\"%s\")",
+                        obj_idnum, wear_bits[i]);
+              if (mysql_query(conn, query))
+              {
+                log("SYSERR: Unable to INSERT into object_database_wear_slots: %s\nQUERY: %s", mysql_error(conn), query);
+              }
+          }
+      }
+      for (i = 0; i < NUM_ITEM_FLAGS; i++)
+      {
+          if (OBJ_FLAGGED(obj, i)) {
+              snprintf(query, sizeof(query), "INSERT INTO object_database_obj_flags (idnum,object_idnum,obj_flag) VALUES(NULL,%d,\"%s\")",
+                        obj_idnum, extra_bits[i]);
+              if (mysql_query(conn, query))
+              {
+                log("SYSERR: Unable to INSERT into object_database_obj_flags: %s\nQUERY: %s", mysql_error(conn), query);
+              }
+          }
+      }
+      for (i = 0; i < NUM_ITEM_FLAGS; i++)
+      {
+          if (OBJAFF_FLAGGED(obj, i)) {
+              snprintf(query, sizeof(query), "INSERT INTO object_database_perm_affects (idnum,object_idnum,perm_affect) VALUES(NULL,%d,\"%s\")",
+                        obj_idnum, affected_bits[i]);
+              if (mysql_query(conn, query))
+              {
+                log("SYSERR: Unable to INSERT into object_database_perm_affects: %s\nQUERY: %s", mysql_error(conn), query);
+              }
+          }
+      }
+      for (i = 0; i < 6; i++)
+      {
+          if (obj->affected[i].location != APPLY_NONE && obj->affected[i].modifier != 0)
+          {
+            switch (obj->affected[i].location)
+            {
+              case APPLY_FEAT:
+                snprintf(bonus, sizeof(bonus), "%s", feat_list[obj->affected[i].modifier].name);
+                break;
+              case APPLY_SKILL:
+                snprintf(bonus, sizeof(bonus), "%s", ability_names[obj->affected[i].specific]);
+                break;
+              default:
+                bonus[0] = '\0';
+                break;
+            }
+            snprintf(query, sizeof(query), "INSERT INTO object_database_bonuses (idnum,object_idnum,bonus_location,bonus_type,bonus_modifier,bonus_specific) "
+                                            "VALUES(NULL,%d,\"%s\",\"%s\",%d,\"%s\")",
+                                          obj_idnum, apply_types[obj->affected[i].location], bonus_types[obj->affected[i].bonus_type], obj->affected[i].modifier, bonus);
+              if (mysql_query(conn, query))
+              {
+                log("SYSERR: Unable to INSERT into object_database_bonuses: %s\nQUERY: %s", mysql_error(conn), query);
+              }
+          }
+      }
+    }
   }
 }
 

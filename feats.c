@@ -1118,24 +1118,38 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_BAAZ_DEATH_THROES, "baaz death throes", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Upon death, all enemies will be paralyzed.",
         "When a Baaz Draconian dies, it turns to stone and let's out a puff of gas that will paralyze all enemies in the room.");
-  feato(FEAT_DRACONIAN_CONTROLLED_FALL, "baaz controlled fall", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+  feato(FEAT_DRACONIAN_CONTROLLED_FALL, "draconian controlled fall", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Divide fall damge in half.",
         "When falling, a Baaz Draconian can spread his wings to halve any fall damage they might take.");
-  feato(FEAT_BAAZ_DRACONIC_DEVOTION, "", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+  feato(FEAT_DRACONIC_DEVOTION, "draconic devotion", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 to attack rolls when grouped with another draconian or dragon.",
-        "Baaz Draconians receive a +2 to attack rolls whenever they are groluped with another draconian or a dragon of any type.");
-  feato(FEAT_DRACONIAN_GALLOP, "", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "",
-        "");
-  feato(FEAT_BAAZ_DISEASE_IMMUNITY, "", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "",
-        "");
-  feato(FEAT_BAAZ_DRACONIAN_SCALES, "", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "",
-        "");
-  feato(FEAT_DRACONIAN_BITE, "", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "",
-        "");
+        "Draconians receive a +2 to attack rolls whenever they are groluped with another draconian or a dragon of any type.");
+  feato(FEAT_DRACONIAN_GALLOP, "draconian gallop", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Gains additional move points when advancing in level.",
+        "Gains additional move points when advancing in level.");
+  feato(FEAT_DRACONIAN_DISEASE_IMMUNITY, "draconian disease immunity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Immune to all disease.",
+        "Immune to all disease.");
+  feato(FEAT_BAAZ_DRACONIAN_SCALES, "baaz draconian scales", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Gains +1 to Natural Armor Class bonus.",
+        "Gains +1 to Natural Armor Class bonus.");
+  feato(FEAT_DRACONIAN_BITE, "draconian bite", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Able to make a bite attack in combat with a swift action. Uses bite command.",
+        "Able to make a bite attack in combat with a swift action. Uses bite command.");
+
+  // kapak draconian
+  feato(FEAT_KAPAK_DRACONIAN_SCALES, "kapak draconian scales", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Gains +2 to Natural Armor Class bonus.",
+        "Gains +2 to Natural Armor Class bonus.");
+  feato(FEAT_KAPAK_DEATH_THROES, "kapak death throes", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Upon death, a pool of acid will appear in the room, damaging anyone who is not flying or levitating.",
+        "When a Kapak Draconian dies, it dissolves into a pool of acid that will damage anyone in the room who is not flying or levitating.");
+  feato(FEAT_KAPAK_SALIVA, "kapak saliva", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Male kapaks can poison their weapons with their saliva. Females can heal wounds with their saliva.",
+        "Male kapaks can poison their weapons with their saliva. Females can heal wounds with their saliva. Uses the kapaksaliva command.");
+  feato(FEAT_KAPAK_SPELL_RESISTANCE, "kapak spell resistance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Gains spell resistance equal to 10 + character level.",
+        "Gains spell resistance equal to 10 + character level.");
 
   /* End Racial ability feats */
 

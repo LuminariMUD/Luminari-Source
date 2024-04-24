@@ -142,7 +142,7 @@ db.o: db.c conf.h sysdep.h structs.h bool.h protocol.h lists.h campaign.h \
  msgedit.h craft.h hlquest.h mudlim.h spec_abilities.h perlin.h \
  wilderness.h mysql.h feats.h actionqueues.h domains_schools.h grapple.h \
  race.h spell_prep.h crafts.h trails.h premadebuilds.h encounters.h \
- hunts.h evolutions.h
+ hunts.h evolutions.h assign_wpn_armor.h
 deities.o: deities.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h spells.h interpreter.h \
  deities.h

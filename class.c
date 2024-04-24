@@ -6587,10 +6587,12 @@ void load_class_list(void)
   /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_ARCANE_ARCHER, 5);
+  #if !defined(CAMPAIGN_DL)
   /* elf, half-elf, drow only */
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_DROW);
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_ELF);
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_HALF_ELF);
+  #endif
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_POINT_BLANK_SHOT, 1);
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_PRECISE_SHOT, 1);
   class_prereq_spellcasting(CLASS_ARCANE_ARCHER, CASTING_TYPE_ARCANE,
@@ -7091,7 +7093,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_KNIGHT_OF_THE_CROWN, "knightofthecrown", "KCr", "\tWKCr\tn", "g) \tWKnight of the Crown\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         5, N, Y, H, 12, 0, 1, 2, Y, 0, 0,
+         5, Y, Y, H, 12, 0, 1, 2, Y, 2500, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Strength, Con/Dex for survivability",
          /*descrip*/ 
@@ -7243,7 +7245,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_KNIGHT_OF_THE_SWORD, "knightofthesword", "KSw", "\tWKSw\tn", "g) \tWKnight of the Sword\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         5, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
+         5, Y, Y, H, 10, 0, 1, 2, Y, 2500, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Strength, Con/Dex for survivability, Cha for class abilities",
          /*descrip*/ 

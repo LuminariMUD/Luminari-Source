@@ -9602,4 +9602,11 @@ ACMD(do_show_blockers)
 
 }
 
+ACMD(do_save_objects_to_database)
+{
+  send_to_char(ch, "Saving objects to database...\r\n");
+  save_objects_to_database(ch);
+  send_to_char(ch, "Objects successfully exported to database.\r\n");
+}
+
 /* EOF */
