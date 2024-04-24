@@ -672,6 +672,9 @@
 #define AFFECT_FINAL_STAND 1270
 #define AFFECT_KNIGHTHOODS_FLOWER 1271
 #define AFFECT_INSPIRE_GREATNESS 1272
+#define ABILITY_KAPAK_DRACONIAN_DEATH_THROES 1273
+#define ABILITY_KAPAK_ACID 1274
+
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -700,7 +703,8 @@
 #define POISON_TYPE_WYVERN 1491
 #define POISON_TYPE_PURPLE_WORM 1492
 #define POISON_TYPE_COCKATRICE 1493
-#define POISON_TYPE_END 1493
+#define POISON_TYPE_KAPAK 1494
+#define POISON_TYPE_END 1494
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c

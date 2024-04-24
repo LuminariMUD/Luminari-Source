@@ -5406,9 +5406,9 @@ bool has_aura_of_courage(struct char_data *ch)
   return has_aura;
 }
 
-float leadership_exp_multiplier(struct char_data *ch)
+int leadership_exp_multiplier(struct char_data *ch)
 {
-  float exp_mult = 100.00;
+  int exp_mult = 100;
   if (!ch)
     return exp_mult;
 
@@ -5425,7 +5425,7 @@ float leadership_exp_multiplier(struct char_data *ch)
         continue;
       if (HAS_FEAT(tch, FEAT_LEADERSHIP))
       {
-        exp_mult = (float) MAX((int) exp_mult, 100 + ((HAS_FEAT(tch, FEAT_LEADERSHIP) + 1) * 5));
+        exp_mult = MAX(exp_mult, 100 + ((HAS_FEAT(tch, FEAT_LEADERSHIP) + 1) * 5));
       }
     }
     remove_iterator(&Iterator);
@@ -5514,6 +5514,9 @@ void perform_draconian_death_throes(struct char_data *ch)
   {
     case DL_RACE_BAAZ_DRACONIAN:
       call_magic(ch, 0, 0, ABILITY_BAAZ_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    case DL_RACE_KAPAK_DRACONIAN:
+      call_magic(ch, 0, 0, ABILITY_KAPAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
       return;
   }
 }
@@ -6526,13 +6529,13 @@ bool can_disease(struct char_data *ch)
     return false;
   if (HAS_FEAT(ch, FEAT_PLAGUE_BRINGER))
     return false;
+  if (HAS_FEAT(ch, FEAT_DRACONIAN_DISEASE_IMMUNITY))
+    return false;
   if (IS_CONSTRUCT(ch))
     return false;
   if (IS_UNDEAD(ch))
     return false;
   if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE) && get_evolution_appearance_save_bonus(ch) == 100)
-    return false;
-  if (HAS_FEAT(ch, FEAT_BAAZ_DISEASE_IMMUNITY))
     return false;
 
   return true;
@@ -7882,6 +7885,7 @@ bool is_poison_spell(int spell)
     case POISON_TYPE_WYVERN:
     case POISON_TYPE_PURPLE_WORM:
     case POISON_TYPE_COCKATRICE:
+    case POISON_TYPE_KAPAK:
     case SPELL_POISON:
     case WEAPON_POISON_BLACK_ADDER_VENOM:
     case SPELL_POISON_BREATHE:
@@ -9142,6 +9146,20 @@ int min_dice(int num, int size, int min)
   }
   
   return amount;
+}
+
+bool can_npc_command(struct char_data *ch)
+{
+
+#if !defined(CAMPAIGN_DL)
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "You have no idea how.\r\n");
+    return FALSE;
+  }
+#endif
+
+  return TRUE;
 }
 
 /* EoF */

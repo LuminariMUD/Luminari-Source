@@ -497,6 +497,7 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"kill", "k", POS_FIGHTING, do_kill, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"kapaksaliva", "kapaksaliva", POS_FIGHTING, do_kapak_saliva, 0, 0, FALSE, ACTION_SWIFT, {6, 0}, NULL},
     {"kick", "ki", POS_FIGHTING, do_process_attack, 1, AA_KICK, FALSE, ACTION_NONE, {6, 0}, can_kick},
     {"keycheck", "keycheck", POS_STANDING, do_keycheck, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"knighthoodsflower", "knighthoodsflower", POS_STANDING, do_knighthoods_flower, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -714,6 +715,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"'", "'", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"save", "sav", POS_SLEEPING, do_save, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"saveall", "saveall", POS_DEAD, do_saveall, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"saveobjstodb", "saveobjstodb", POS_DEAD, do_save_objects_to_database, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     //  { "savemobs"  , "savemobs" , POS_DEAD    , do_savemobs  , LVL_IMPL, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"search", "sea", POS_STANDING, do_search, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sell", "sell", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

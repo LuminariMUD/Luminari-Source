@@ -230,8 +230,9 @@
 #define RAFF_OBSCURING_MIST (1 << 12)
 #define RAFF_DIFFICULT_TERRAIN (1 << 13)
 #define RAFF_SACRED_SPACE (1 << 14)
+#define RAFF_KAPAK_ACID (1 << 15)
 /** The total number of Room Affections */
-#define NUM_RAFF 15
+#define NUM_RAFF 16
 
 /* Zone info: Used in zone_data.zone_flags */
 #define ZONE_CLOSED 0       /**< Zone is closed - players cannot enter */
@@ -1141,6 +1142,8 @@
 #define MOB_NUM_EIDOLON 802
 
 #endif
+
+#define OBJ_VNUM_KAPAK_POISON 20872
 
 /**********************/
 /* misc defines */
@@ -2585,9 +2588,9 @@
 #define FEAT_MINOTAUR_GORE 1026
 #define FEAT_BAAZ_DEATH_THROES 1027 // not coded yet
 #define FEAT_DRACONIAN_CONTROLLED_FALL 1028
-#define FEAT_BAAZ_DRACONIC_DEVOTION 1029
+#define FEAT_DRACONIC_DEVOTION 1029
 #define FEAT_DRACONIAN_GALLOP 1030
-#define FEAT_BAAZ_DISEASE_IMMUNITY 1031
+#define FEAT_DRACONIAN_DISEASE_IMMUNITY 1031
 #define FEAT_BAAZ_DRACONIAN_SCALES 1032
 #define FEAT_DRACONIAN_BITE 1033
 #define FEAT_DEATHLESS_VIGOR 1034
@@ -2637,12 +2640,17 @@
 #define FEAT_WISDOM_OF_THE_MEASURE 1075
 #define FEAT_FINAL_STAND 1076
 #define FEAT_KNIGHTHOODS_FLOWER 1077
+// Kapak Draconians
+#define FEAT_KAPAK_DEATH_THROES 1078
+#define FEAT_KAPAK_DRACONIAN_SCALES 1079
+#define FEAT_KAPAK_SALIVA 1080
+#define FEAT_KAPAK_SPELL_RESISTANCE 1081
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1078
+#define FEAT_LAST_FEAT 1082
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1079
+#define NUM_FEATS 1083
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4329,6 +4337,8 @@ struct char_special_data_saved
     int eidolon_evolutions[NUM_EVOLUTIONS]; //active eidolon evolutions 
     int known_evolutions[NUM_EVOLUTIONS]; // known eidolon evolutions
     int eidolon_base_form;  // Eidolon base form determines their starting stats and evolutions
+
+    int kapak_healing_cooldown; // number of ticks before able to benefit from kapak healing saliva
 };
 
 /* not saved player data used for condensed combat */

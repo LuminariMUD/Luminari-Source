@@ -752,6 +752,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += 1;
   }
+  else if (HAS_FEAT(ch, FEAT_KAPAK_DRACONIAN_SCALES))
+  {
+    bonuses[BONUS_TYPE_NATURALARMOR] += 2;
+  }
   if (HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR))
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR) * 2;
@@ -8197,7 +8201,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     }
   }
 
-  if (HAS_FEAT(ch, FEAT_BAAZ_DRACONIC_DEVOTION) && is_grouped_with_dragon(ch))
+  if (HAS_FEAT(ch, FEAT_DRACONIC_DEVOTION) && is_grouped_with_dragon(ch))
     bonuses[BONUS_TYPE_MORALE] += 2;
 
   /* if the victim is using 'come and get me' then they will be vulnerable */

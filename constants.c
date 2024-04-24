@@ -1222,6 +1222,7 @@ const char *room_affections[] = {
     "Obscuring-Mist",
     "Difficult-Terrain",
     "Sacred-Space",
+    "Kapak-Acid",
     "\n"};
 CHECK_TABLE_SIZE(room_affections, NUM_RAFF + 1);
 
@@ -2253,7 +2254,7 @@ const char *item_types[] = {
     "Armor/Shield",
     "Potion", // 10
     "Wearable",
-    "OTHER",
+    "Other",
     "Trash",
     "Ammo",
     "Container", // 15
@@ -3811,7 +3812,7 @@ const char *languages[] =
     "gnome",
     "goblin",
     "gullytalk",
-    "halfling",
+    "kenderspeak",
     "minotaur",
     "nerakese",
     "ogre",

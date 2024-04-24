@@ -524,6 +524,7 @@ int load_char(const char *name, struct char_data *ch)
     CASTING_SPELLNUM(ch) = 0;
     CASTING_METAMAGIC(ch) = 0;
     CASTING_CLASS(ch) = 0;
+    GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) = 0;
     for (i = 0; i < MAX_BUFFS; i++)
     {
       GET_BUFF(ch, i, 0) = 0;
@@ -948,6 +949,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'K':
         if (!strcmp(tag, "KnSp"))
           load_known_spells(fl, ch);
+        else if (!strcmp(tag, "KpkS"))
+          GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "KEvo"))
           load_known_evolutions(fl, ch);
         break;
@@ -1864,6 +1867,8 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Slyr: %d\n", GET_SLAYER_JUDGEMENT(ch));
   if (GET_BANE_TARGET_TYPE(ch) != 0)
     fprintf(fl, "Bane: %d\n", GET_BANE_TARGET_TYPE(ch));
+  if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) != 0)
+    fprintf(fl, "KpkS: %d\n", GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch));
   if (SCRIPT(ch))
   {
     for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next)
