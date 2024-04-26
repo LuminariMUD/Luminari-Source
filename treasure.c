@@ -1386,6 +1386,11 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
 
   /* inform ch and surrounding that they received this item */
   say_treasure(ch, obj);
+
+  if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
+    auto_store_obj(ch, obj);
+  else if (PRF_FLAGGED(ch, PRF_AUTO_SORT))
+    auto_sort_obj(ch, obj);
 }
 
 /* this is a very simplified version of this function, the original version was
@@ -1522,6 +1527,11 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     say_treasure(ch, obj);
   else
     say_bazaar(ch, obj);
+
+  if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
+    auto_store_obj(ch, obj);
+  else if (PRF_FLAGGED(ch, PRF_AUTO_SORT))
+    auto_sort_obj(ch, obj);
 
   /* staff will get a free ID here -zusuk */
   if (GET_LEVEL(ch) >= LVL_IMMORT)
@@ -2788,19 +2798,19 @@ void award_magic_weapon(struct char_data *ch, int grade)
   // special, head color, hilt color
   if (roll >= 91)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], special,
              hilt_color,
              handle_types[roll3]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s with %s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s with %s %s %s", a_or_an(special), special,
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
              a_or_an(hilt_color), hilt_color,
              handle_types[roll3]);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s with %s %s %s lies here.", a_or_an(special),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s with %s %s %s lies here.", a_or_an(special),
              special, head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
              a_or_an(hilt_color), hilt_color,
@@ -2812,15 +2822,15 @@ void award_magic_weapon(struct char_data *ch, int grade)
   }
   else if (roll >= 81)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], special);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s", a_or_an(special), special,
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s lies here.", a_or_an(special),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s lies here.", a_or_an(special),
              special, head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
@@ -2850,19 +2860,19 @@ void award_magic_weapon(struct char_data *ch, int grade)
   }
   else if (roll >= 41)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s %s",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s %s",
              weapon_list[GET_WEAPON_TYPE(obj)].name, head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)],
              hilt_color,
              handle_types[roll3]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s with %s %s %s", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s with %s %s %s", a_or_an(head_color),
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
              a_or_an(hilt_color), hilt_color,
              handle_types[roll3]);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s with %s %s %s lies here.", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s with %s %s %s lies here.", a_or_an(head_color),
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
              a_or_an(hilt_color), hilt_color,
@@ -2874,15 +2884,15 @@ void award_magic_weapon(struct char_data *ch, int grade)
   }
   else if (roll >= 31)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", a_or_an(head_color),
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s lies here.", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s lies here.", a_or_an(head_color),
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
@@ -3028,19 +3038,19 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   // special, head color, hilt color
   if (roll >= 91)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], special,
              hilt_color,
              handle_types[roll3]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s with %s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s with %s %s %s", a_or_an(special), special,
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
              a_or_an(hilt_color), hilt_color,
              handle_types[roll3]);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s with %s %s %s lies here.", a_or_an(special),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s with %s %s %s lies here.", a_or_an(special),
              special, head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
              a_or_an(hilt_color), hilt_color,
@@ -3052,15 +3062,15 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   }
   else if (roll >= 81)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], special);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s", a_or_an(special), special,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s", a_or_an(special), special,
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s-%s %s %s lies here.", a_or_an(special),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s, %s %s %s %s lies here.", a_or_an(special),
              special, head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
@@ -3090,19 +3100,19 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   }
   else if (roll >= 41)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s %s",
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s %s",
              weapon_list[GET_WEAPON_TYPE(obj)].name, head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)],
              hilt_color,
              handle_types[roll3]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s with %s %s %s", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s with %s %s %s", a_or_an(head_color),
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
              a_or_an(hilt_color), hilt_color,
              handle_types[roll3]);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s with %s %s %s lies here.", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s with %s %s %s lies here.", a_or_an(head_color),
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
              a_or_an(hilt_color), hilt_color,
@@ -3114,15 +3124,15 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   }
   else if (roll >= 31)
   {
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s", a_or_an(head_color),
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s-%s %s %s lies here.", a_or_an(head_color),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s %s %s lies here.", a_or_an(head_color),
              head_color, head_types[roll2],
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);

@@ -155,7 +155,7 @@ const char *boot_descs[NUM_A_BOOT_DESCS + 1] = {
     "sandals", //5
     "moccasins",
     "shoes",
-    "knee-high boots",
+    "knee high boots",
     "riding boots",
     "slippers", //10
     "\n"};
@@ -165,15 +165,15 @@ const char *blade_descs[NUM_A_BLADE_DESCS + 1] = {
     "serrated", //0
     "barbed",
     "sharp",
-    "razor-sharp",
-    "gem-encrusted",
-    "jewel-encrusted", //5
-    "fine-edged",
-    "finely-forged",
+    "razor sharp",
+    "gem encrusted",
+    "jewel encrusted", //5
+    "fine edged",
+    "finely forged",
     "grooved",
     "ancient",
-    "elven-crafted", //10
-    "dwarven-crafted",
+    "elven crafted", //10
+    "dwarven crafted",
     "magnificent",
     "fancy",
     "ceremonial",
@@ -183,15 +183,15 @@ const char *blade_descs[NUM_A_BLADE_DESCS + 1] = {
     "scorched",
     "exquisite",
     "anointed", //20
-    "thick-bladed",
-    "crescent-bladed",
-    "rune-etched",
+    "thick bladed",
+    "crescent bladed",
+    "rune etched",
     "blackened",
     "slim", //25
     "curved",
     "glittering",
-    "wavy-bladed",
-    "dual-edged",
+    "wavy bladed",
+    "dual edged",
     "ornate", //30
     "brutal",
     "\n"};
@@ -200,15 +200,15 @@ const char *blade_descs[NUM_A_BLADE_DESCS + 1] = {
 const char *piercing_descs[NUM_A_PIERCING_DESCS + 1] = {
     "barbed", //0
     "sharp",
-    "needle-sharp",
-    "gem-encrusted",
-    "jewel-encrusted",
-    "fine-pointed", //5
-    "finely-forged",
+    "needle sharp",
+    "gem encrusted",
+    "jewel encrusted",
+    "fine pointed", //5
+    "finely forged",
     "grooved",
     "ancient",
-    "elven-crafted",
-    "dwarven-crafted", //10
+    "elven crafted",
+    "dwarven crafted", //10
     "magnificent",
     "fancy",
     "ceremonial",
@@ -217,27 +217,27 @@ const char *piercing_descs[NUM_A_PIERCING_DESCS + 1] = {
     "gleaming",
     "scorched",
     "exquisite",
-    "thick-pointed",
-    "tri-pointed", //20
-    "rune-etched",
+    "thick pointed",
+    "tri pointed", //20
+    "rune etched",
     "blackened",
     "slim",
     "glittering",
     "anointed", //25
-    "dual-pointed",
+    "dual pointed",
     "ornate",
     "brutal",
     "\n"};
 //29
 
 const char *blunt_descs[NUM_A_BLUNT_DESCS + 1] = {
-    "gem-encrusted", //0
-    "jewel-encrusted",
-    "finely-forged",
+    "gem encrusted", //0
+    "jewel encrusted",
+    "finely forged",
     "grooved",
     "ancient",
-    "elven-crafted", //5
-    "dwarven-crafted",
+    "elven crafted", //5
+    "dwarven crafted",
     "magnificent",
     "fancy",
     "ceremonial",
@@ -246,20 +246,20 @@ const char *blunt_descs[NUM_A_BLUNT_DESCS + 1] = {
     "gleaming",
     "scorched",
     "exquisite",
-    "thick-headed", //15
-    "crescent-headed",
-    "rune-etched",
+    "thick headed", //15
+    "crescent headed",
+    "rune etched",
     "blackened",
     "massive",
     "glittering", //20
-    "dual-headed",
+    "dual headed",
     "brutal",
     "sturdy",
     "ornate",
     "notched", //25
     "spiked",
-    "wickedly-spiked",
-    "cruel-looking",
+    "wickedly spiked",
+    "cruel looking",
     "anointed",
     "\n"};
 //30
@@ -277,7 +277,7 @@ const char *colors[NUM_A_COLORS + 1] = {
     "crimson",
     "cyan", //10
     "emerald",
-    "forest-green",
+    "forest green",
     "gold",
     "grey",
     "green", //15
@@ -288,22 +288,22 @@ const char *colors[NUM_A_COLORS + 1] = {
     "magenta", //20
     "malachite",
     "maroon",
-    "midnight-blue",
-    "navy-blue",
+    "midnight blue",
+    "navy blue",
     "ochre", //25
     "olive",
     "orange",
     "pink",
-    "powder-blue",
+    "powder blue",
     "purple", //30
     "red",
-    "royal-blue",
+    "royal blue",
     "sapphire",
     "scarlet",
     "sepia", //35
     "silver",
-    "slate-grey",
-    "steel-blue",
+    "slate grey",
+    "steel blue",
     "tan",
     "turquoise", //40
     "ultramarine",
@@ -388,14 +388,14 @@ const char *armor_special_descs[NUM_A_ARMOR_SPECIAL_DESCS + 1] = {
     "glittering", //15
     "exquisite",
     "magnificent",
-    "dwarven-made",
-    "elven-made",
-    "gnomish-made", //20
-    "finely-made",
-    "gem-encrusted",
-    "gold-laced",
-    "silver-laced",
-    "platinum-laced", //25
+    "dwarven made",
+    "elven made",
+    "gnomish made", //20
+    "finely made",
+    "gem encrusted",
+    "gold laced",
+    "silver laced",
+    "platinum laced", //25
     "\n"};
 //26
 
@@ -418,14 +418,14 @@ const char *ammo_descs[NUM_A_AMMO_DESCS + 1] = {
     "glittering", //15
     "exquisite",
     "magnificent",
-    "dwarven-made",
-    "elven-made",
-    "gnomish-made", //20
-    "finely-made",
-    "gem-encrusted",
-    "gold-laced",
-    "silver-laced",
-    "platinum-laced", //25
+    "dwarven made",
+    "elven made",
+    "gnomish made", //20
+    "finely made",
+    "gem encrusted",
+    "gold laced",
+    "silver laced",
+    "platinum laced", //25
     "\n"};
 //26
 
@@ -437,10 +437,10 @@ const char *ammo_head_descs[NUM_A_AMMO_HEAD_DESCS + 1] = {
     "jagged",
     "serrated", //5
     "barbed",
-    "jewel-encrusted",
+    "jewel encrusted",
     "grooved",
-    "thick-pointed",
-    "tri-pointed", //10
+    "thick pointed",
+    "tri pointed", //10
     "\n"};
 //11
 
@@ -455,7 +455,7 @@ const char *armor_crests[NUM_A_ARMOR_CRESTS + 1] = {
     "skull",
     "shield",
     "mantis",
-    "infinity-loop", //10
+    "infinity loop", //10
     "broken merchant scale",
     "bison",
     "phoenix",
@@ -466,10 +466,10 @@ const char *armor_crests[NUM_A_ARMOR_CRESTS + 1] = {
     "griffon wing",
     "multicolored flame",
     "green and gold tree", //20
-    "red-eyed hood",
+    "red eyed hood",
     "red circle",
     "black circle",
-    "five-headed dragon",
+    "five headed dragon",
     "condor", //25
     "turtle shell",
     "cross",

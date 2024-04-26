@@ -1630,8 +1630,25 @@ const char *preference_bits[] = {
     "Charmie-Combat-Roll",
     "Auto-Prep",
     "Augment-Buffs",
+    "Auto-Sort",
+    "Auto-Store",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
+
+const char *bagnames[] = {
+    "weapons",
+    "armor",
+    "worn items",
+    "food, drink, poisons",
+    "treasure",
+    "crafting",
+    "potions, scrolls, wands, staves",
+    "misc one",
+    "misc two",
+    "misc three",
+    "\n"
+};
+CHECK_TABLE_SIZE(bagnames, MAX_BAGS + 1);
 
 /** Bonus types */
 const char *bonus_types[] = {
@@ -1989,6 +2006,7 @@ const char *connected_types[] = {
     "Select Descriptions Menu",
     "Select Descriptions Menu Parse",
     "Enter Background Story",
+    "Set Recommended Preferences",
     "\n" /* make sure this matches NUM_CON_STATES */
 };
 CHECK_TABLE_SIZE(connected_types, NUM_CON_STATES + 1);

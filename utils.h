@@ -205,6 +205,9 @@ bool is_spellcasting_class(int class_name);
 int get_spellcasting_class(struct char_data *ch);
 bool valid_pet_name(char *name);
 int count_spellcasting_classes(struct char_data *ch);
+void auto_sort_obj(struct char_data *ch, struct obj_data *obj);
+void auto_store_obj(struct char_data *ch, struct obj_data *obj);
+int get_bag_number_by_obj_type(struct obj_data *obj);
 const char *get_align_by_num_cnd(int align);
 bool char_pets_to_char_loc(struct char_data *ch);
 const char *get_align_by_num(int align);
@@ -311,6 +314,7 @@ void do_study_spell_help(struct char_data *ch, int spellnum);
 int get_daily_uses(struct char_data *ch, int featnum);
 int start_daily_use_cooldown(struct char_data *ch, int featnum);
 int daily_uses_remaining(struct char_data *ch, int featnum);
+void bubbleSort(char arr[][MAX_STRING_LENGTH], int n);
 int daily_item_specab_uses_remaining(struct obj_data *obj, int specab);
 int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab);
 bool pvp_ok(struct char_data *ch, struct char_data *target, bool display);
@@ -2581,6 +2585,9 @@ bool has_reach(struct char_data *ch);
 #define IS_DRAGON_CRAFT_MATERIAL(material) (IS_DRAGONHIDE(material) || IS_DRAGONSCALE(material) || IS_DRAGONBONE(material))
 
 #define GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) (ch->char_specials.saved.kapak_healing_cooldown)
+
+#define IS_OBJ_CONSUMABLE(obj)  (GET_OBJ_TYPE(obj) == ITEM_POTION || GET_OBJ_TYPE(obj) == ITEM_SCROLL || \
+                                 GET_OBJ_TYPE(obj) == ITEM_WAND || GET_OBJ_TYPE(obj) == ITEM_STAFF)
 
 #endif /* _UTILS_H_ */
 

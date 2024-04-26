@@ -223,9 +223,9 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                /* Line 2 (2) - Auto Stand */
                "%s3%s) Auto Hit                %s[%s%3s%s]        %sB%s) Augment Psi Powers While Buffing %s[%s%3s%s]\r\n"
                /* Line 3 (3) - Auto Hit */
-               "%s4%s) Vampiric Blood Drain    %s[%s%3s%s]\r\n"
+               "%s4%s) Vampiric Blood Drain    %s[%s%3s%s]        %sC%s) Automatically Sort Treasure      %s[%s%3s%s]\r\n"
                /* Line 4 (4) - Vampiric Blood Drain */
-               "%s5%s) No Follow (PC)          %s[%s%3s%s]\r\n"
+               "%s5%s) No Follow (PC)          %s[%s%3s%s]        %sD%s) Automatically Store Consumables  %s[%s%3s%s]\r\n"
                /* Line 5 (5) - No Follow (PC) */
                "%s6%s) Condensed Combat Mode   %s[%s%3s%s]\r\n"
                /* Line 6 (6) - Condensed Combat Mode */
@@ -264,11 +264,19 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_BLOOD_DRAIN) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
                ONOFF(PREFEDIT_FLAGGED(PRF_BLOOD_DRAIN)), CCCYN(d->character, C_NRM),
+               /**/
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AUTO_SORT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_SORT)), CCCYN(d->character, C_NRM),
                /*******5*********/
                CBYEL(d->character, C_NRM),
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_NO_FOLLOW) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
                ONOFF(PREFEDIT_FLAGGED(PRF_NO_FOLLOW)), CCCYN(d->character, C_NRM),
+               /**/
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AUTO_STORE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_STORE)), CCCYN(d->character, C_NRM),
                /*******6*********/
                CBYEL(d->character, C_NRM),
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
@@ -991,6 +999,16 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case 'b':
     case 'B':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUGMENT_BUFFS);
+      break;
+
+    case 'c':
+    case 'C':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTO_SORT);
+      break;
+    
+    case 'd':
+    case 'D':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTO_STORE);
       break;
 
     default:
