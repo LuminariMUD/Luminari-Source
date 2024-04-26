@@ -1232,9 +1232,11 @@
 #define PRF_CHARMIE_COMBATROLL 66     // Will display combat roll info for any of your charmies in battle.
 #define PRF_AUTO_PREP 67
 #define PRF_AUGMENT_BUFFS 68          // Will attempt to use max psp to augment buffs
+#define PRF_AUTO_SORT 69              // will automatically sort items into the proper bag upon acquisition
+#define PRF_AUTO_STORE 70             // will automatically store consumables upon acquisition
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 69
+#define NUM_PRF_FLAGS 71
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -1477,7 +1479,9 @@
 #define FIRST_OLC_STATE CON_OEDIT    /**< The first CON_ state that is an OLC */
 #define LAST_OLC_STATE CON_CRAFTEDIT /**< The last CON_ state that is an OLC  */
 
-#define NUM_CON_STATES 61
+#define CON_SETPREFS 61
+
+#define NUM_CON_STATES 62
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors

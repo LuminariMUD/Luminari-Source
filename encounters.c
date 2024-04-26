@@ -860,8 +860,8 @@ void populate_encounter_table(void)
   add_encounter_record(ENCOUNTER_TYPE_GIANT_STAG_BEETLE, ENCOUNTER_CLASS_COMBAT, 12, 22, ENCOUNTER_GROUP_TYPE_GIANT_STAG_BEETLE, "giant stag beetle", 100, 1, 5,
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, TRUE_NEUTRAL, RACE_TYPE_VERMIN,
                        SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, NON_HOSTILE, NON_SENTIENT, SIZE_LARGE);
-  set_encounter_description(ENCOUNTER_TYPE_GIANT_STAG_BEETLE, "");
-  set_encounter_long_description(ENCOUNTER_TYPE_GIANT_STAG_BEETLE, "");
+  set_encounter_description(ENCOUNTER_TYPE_GIANT_STAG_BEETLE, "Nearly 10 feet long, this giant stag beetle is so called due to its antler-like mandibles.");
+  set_encounter_long_description(ENCOUNTER_TYPE_GIANT_STAG_BEETLE, "A giant stag beetle chitters nearby.");
   add_encounter_sector(ENCOUNTER_TYPE_GIANT_STAG_BEETLE, SECT_FIELD);
   add_encounter_sector(ENCOUNTER_TYPE_GIANT_STAG_BEETLE, SECT_FOREST);
   add_encounter_sector(ENCOUNTER_TYPE_GIANT_STAG_BEETLE, SECT_HILLS);
@@ -870,7 +870,7 @@ void populate_encounter_table(void)
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, TRUE_NEUTRAL, RACE_TYPE_ANIMAL,
                        SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, NON_HOSTILE, NON_SENTIENT, SIZE_LARGE);
   set_encounter_description(ENCOUNTER_TYPE_BISON, "This creature has small, upward-pointing horns, a shaggy coat of fur, and a large hump on its shoulders.");
-  set_encounter_long_description(ENCOUNTER_TYPE_BISON, "");
+  set_encounter_long_description(ENCOUNTER_TYPE_BISON, "A large bison snorts and stamps its hooves nearby.");
   add_encounter_sector(ENCOUNTER_TYPE_BISON, SECT_FIELD);
   add_encounter_sector(ENCOUNTER_TYPE_BISON, SECT_TUNDRA);
 
@@ -878,7 +878,7 @@ void populate_encounter_table(void)
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, TRUE_NEUTRAL, RACE_TYPE_ANIMAL,
                        SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, HOSTILE, NON_SENTIENT, SIZE_LARGE);
   set_encounter_description(ENCOUNTER_TYPE_DIRE_BOAR, "The back of this horse-sized boar rises in a steep slope. Its tiny red eyes are crusted with filth and its bristly flank crawls with flies.");
-  set_encounter_long_description(ENCOUNTER_TYPE_DIRE_BOAR, "");
+  set_encounter_long_description(ENCOUNTER_TYPE_DIRE_BOAR, "A dire boar is nearby snorting and pacing in circles.");
   add_encounter_sector(ENCOUNTER_TYPE_DIRE_BOAR, SECT_FIELD);
   add_encounter_sector(ENCOUNTER_TYPE_DIRE_BOAR, SECT_FOREST);
   add_encounter_sector(ENCOUNTER_TYPE_DIRE_BOAR, SECT_HILLS);
@@ -887,7 +887,7 @@ void populate_encounter_table(void)
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, TRUE_NEUTRAL, RACE_TYPE_VERMIN,
                        SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, HOSTILE, NON_SENTIENT, SIZE_FINE);
   set_encounter_description(ENCOUNTER_TYPE_BOTFLY_SWARM, "Like a cloud of black dust, a swirling swarm of insects hovers in the air. From within comes the low, droning buzz of thousands of tiny flies.");
-  set_encounter_long_description(ENCOUNTER_TYPE_BOTFLY_SWARM, "");
+  set_encounter_long_description(ENCOUNTER_TYPE_BOTFLY_SWARM, "A swarm of botflies buzzes nearby.");
   add_encounter_sector(ENCOUNTER_TYPE_BOTFLY_SWARM, SECT_MARSHLAND);
   add_encounter_sector(ENCOUNTER_TYPE_BOTFLY_SWARM, SECT_JUNGLE);
 
@@ -895,7 +895,7 @@ void populate_encounter_table(void)
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, TRUE_NEUTRAL, RACE_TYPE_VERMIN,
                        SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, NON_HOSTILE, NON_SENTIENT, SIZE_MEDIUM);
   set_encounter_description(ENCOUNTER_TYPE_GIANT_DRAGONFLY, "This glittering blue dragonfly is about the size of a horse and is large enough to carry off small farm animals or people.");
-  set_encounter_long_description(ENCOUNTER_TYPE_GIANT_DRAGONFLY, "");
+  set_encounter_long_description(ENCOUNTER_TYPE_GIANT_DRAGONFLY, "A giant dragonfly hovvers in the air nearby.");
   add_encounter_sector(ENCOUNTER_TYPE_GIANT_DRAGONFLY, SECT_FIELD);
   add_encounter_sector(ENCOUNTER_TYPE_GIANT_DRAGONFLY, SECT_FOREST);
   add_encounter_sector(ENCOUNTER_TYPE_GIANT_DRAGONFLY, SECT_HILLS);
@@ -909,7 +909,7 @@ void populate_encounter_table(void)
                        TREASURE_TABLE_NONE, CLASS_SORCERER, ENCOUNTER_STRENGTH_NORMAL, LAWFUL_EVIL, RACE_TYPE_DRAGON,
                        SUBRACE_EARTH, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, HOSTILE, SENTIENT, SIZE_LARGE);
   set_encounter_description(ENCOUNTER_TYPE_FOREST_DRAKE, "This green-scaled dragon has two powerful legs and a pair of long, leathery wings. A long spike adorns its thrashing tail.");
-  set_encounter_long_description(ENCOUNTER_TYPE_FOREST_DRAKE, "");
+  set_encounter_long_description(ENCOUNTER_TYPE_FOREST_DRAKE, "A green-scaled forest drake is nearby.");
   add_encounter_sector(ENCOUNTER_TYPE_FOREST_DRAKE, SECT_FOREST);
   add_encounter_sector(ENCOUNTER_TYPE_FOREST_DRAKE, SECT_TAIGA);
 
@@ -917,7 +917,7 @@ void populate_encounter_table(void)
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, TRUE_NEUTRAL, RACE_TYPE_ABERRATION,
                        SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, HOSTILE, NON_SENTIENT, SIZE_LARGE);
   set_encounter_description(ENCOUNTER_TYPE_DUST_DIGGER, "A tremendous starfish-like creature emerges from the sand, its five long arms surrounding a circular toothy maw.");
-  set_encounter_long_description(ENCOUNTER_TYPE_DUST_DIGGER, "");
+  set_encounter_long_description(ENCOUNTER_TYPE_DUST_DIGGER, "A starfish-like dust-digger emerges from the sand.");
   add_encounter_sector(ENCOUNTER_TYPE_DUST_DIGGER, SECT_DESERT);
 
   add_encounter_record(ENCOUNTER_TYPE_HYDRA, ENCOUNTER_CLASS_COMBAT, 20, 30, ENCOUNTER_GROUP_TYPE_HYDRA, "hydra", 100, 1, 5,

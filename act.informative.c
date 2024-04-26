@@ -3564,14 +3564,7 @@ void show_bags_summary(struct char_data *ch)
   send_to_char(ch, "Your bags summary:\r\n\r\n");
   for (i = 1; i <= MAX_BAGS; i++)
   {
-    if (GET_BAG_NAME(ch, i) != NULL)
-    {
-      snprintf(out, sizeof(out), "Bag %s#%d: %3d Items, Bag is Named: '%s'\r\n", i < 10 ? " " : "", i, count_bag_contents(ch, i), GET_BAG_NAME(ch, i));
-    }
-    else
-    {
-      snprintf(out, sizeof(out), "Bag %s#%d: %3d Items\r\n", i < 10 ? " " : "", i, count_bag_contents(ch, i));
-    }
+    snprintf(out, sizeof(out), "Bag %s#%d: %3d Items (%s)\r\n", i < 10 ? " " : "", i, count_bag_contents(ch, i), bagnames[i-1]);
     send_to_char(ch, "%s", out);
   }
 
@@ -3621,7 +3614,7 @@ ACMD(do_bags)
   //   snprintf(bagname, sizeof(bagname), " 'bag%d'", bagnum);
 
   // send_to_char(ch, "Your bag #%d%s contains:\r\n", bagnum, GET_BAG_NAME(ch, i)  != NULL ? bagname : "");
-  send_to_char(ch, "Your bag #%d contains:\r\n", bagnum);
+  send_to_char(ch, "Your bag #%d (%s) contains:\r\n", bagnum, bagnames[bagnum-1]);
 
   switch (bagnum)
   {
@@ -5601,6 +5594,9 @@ ACMD(do_areas)
   bool show_zone = FALSE, overlap = FALSE, overlap_shown = FALSE, show_popularity = FALSE;
   //  float pop;
   //  clan_rnum ocr;
+  int num_areas = 0;
+
+  char areas[300][LONG_STRING];
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -5666,7 +5662,8 @@ ACMD(do_areas)
     overlap = FALSE;
 
     if (ZONE_FLAGGED(i, ZONE_GRID))
-    { /* Is this zone 'on the grid' ?    */
+    { 
+      /* Is this zone 'on the grid' ?    */
       if (lolev == -1)
       {
         /* No range supplied, show all zones */
@@ -5725,6 +5722,10 @@ ACMD(do_areas)
       tmp_len = snprintf(buf + len, sizeof(buf) - len, "\tn(%3d) %s%-*s\tn %s%s\tn\r\n", ++zcount, overlap ? QRED : QCYN,
                          count_color_chars(zone_table[i].name) + 40, zone_table[i].name,
                          lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
+      snprintf(areas[num_areas], sizeof(areas[num_areas]), "\tn %-*s\tn %s%s\tn\r\n",
+                         count_color_chars(zone_table[i].name) + 40, zone_table[i].name,
+                         lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
+      num_areas++;
       len += tmp_len;
     }
   }
@@ -5751,10 +5752,28 @@ ACMD(do_areas)
   len += tmp_len;
 #endif
 
-  if (zcount == 0)
+  // if (zcount == 0)
+  if (num_areas == 0)
     send_to_char(ch, "No areas found.\r\n");
   else
-    page_string(ch->desc, buf, TRUE);
+  {
+    int n, j;
+    char temp[LONG_STRING];
+    n = num_areas;
+
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - i - 1; j++) {
+            if (strcmp(areas[j], areas[j + 1]) > 0)
+            {
+                strcpy(temp, areas[j]);
+                strcpy(areas[j], areas[j + 1]);
+                strcpy(areas[j + 1], temp);
+            }
+        }
+    }
+    for (i = 0; i < num_areas; i++)
+      send_to_char(ch, "(%3d) %s", i, areas[i]);
+  }
 }
 
 ACMD(do_scan)

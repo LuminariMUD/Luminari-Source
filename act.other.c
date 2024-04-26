@@ -7029,8 +7029,8 @@ ACMD(do_gen_tog)
       {"You will now allow charmies to rescue you and other group members.\r\n",
        "You will no longer allow charmies to rescue you and other group members\r\n"},
       /* 45 */
-      {"You will now use the stored consumables system (HELP CONSUMABLES).\r\n",
-       "You will no use the stock consumables system (HELP USE).\r\n"},
+      {"You will no longer use the stock consumables system (HELP USE).\r\n",
+        "You will now use the stored consumables system (HELP CONSUMABLES).\r\n"},
       /* 46 */
       {"You will no longer automatically stand if knocked down in combat.\r\n",
        "You will now automatically stand if knocked down in combat.\r\n"},
@@ -7067,6 +7067,12 @@ ACMD(do_gen_tog)
       // 57
       {"Psionic powers will no longer be augmented when buffing.\r\n",
        "Psionic powers will now be augmented as much as possible when buffing.\r\n"},
+      // 58
+      {"Autosort disabled.\r\n",
+       "Autosort enabled.\r\n"},
+      // 59
+      {"Autostore disabled.\r\n",
+       "Autostore enabled.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7133,6 +7139,12 @@ ACMD(do_gen_tog)
     break;
   case SCMD_AUTO_STAND:
     result = PRF_TOG_CHK(ch, PRF_AUTO_STAND);
+    break;
+  case SCMD_AUTOSORT:
+    result = PRF_TOG_CHK(ch, PRF_AUTO_SORT);
+    break;
+  case SCMD_AUTOSTORE:
+    result = PRF_TOG_CHK(ch, PRF_AUTO_STORE);
     break;
   case SCMD_NORAGE:
     result = PRF_TOG_CHK(ch, PRF_NO_RAGE);

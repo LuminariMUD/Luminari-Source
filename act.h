@@ -736,6 +736,8 @@ ACMD_DECL(do_racefix);
 #define SCMD_CHARMIE_COMBATROLL 55
 #define SCMD_AUTO_PREP 56
 #define SCMD_AUTO_AUGMENT 57
+#define SCMD_AUTOSORT 58
+#define SCMD_AUTOSTORE 59
 
 /* do_quit */
 ACMD_DECL(do_quit);

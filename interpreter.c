@@ -168,6 +168,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"autosac", "autosac", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSAC, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autoscan", "autoscan", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSCAN, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autosplit", "autospl", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSPLIT, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"autosort", "autosort", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSORT, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"autostore", "autostore", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSTORE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"abilityset", "abilityset", POS_SLEEPING, do_abilityset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autocraft", "autocraft", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"adjure", "adjure", POS_RESTING, do_gen_preparation, 0, SCMD_ADJURE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -747,8 +749,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"sneak", "sneak", POS_STANDING, do_sneak, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"snoop", "snoop", POS_DEAD, do_snoop, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"socials", "socials", POS_DEAD, do_commands, 0, SCMD_SOCIALS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    // We want sortto before sortfrom intentionally
+    {"sortto", "sort", POS_RECLINING, do_sort, 0, SCMD_SORTTO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sortfrom", "sortfrom", POS_RECLINING, do_sort, 0, SCMD_SORTFROM, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"sortto", "sortto", POS_RECLINING, do_sort, 0, SCMD_SORTTO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"soulofknighthood", "soulofknighthood", POS_FIGHTING, do_soul_of_knighthood, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"speak", "speak", POS_RECLINING, do_speak, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"spelllist", "spelllist", POS_RECLINING, do_spelllist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -3435,9 +3438,8 @@ switch (load_result)
     save_account(d->account);
     save_player_index();
 
-    /* print message of the day to player */
-    write_to_output(d, "%s\r\n*** PRESS RETURN: ", motd);
-    STATE(d) = CON_RMOTD;
+    write_to_output(d, "\r\nDo you wish to have the recommend preferences flags enabled? Ie. Autoloot, Show Dice Rolls, Etc.) ");
+    STATE(d) = CON_SETPREFS;
 
     /* make sure the last log is updated correctly. */
     GET_PREF(d->character) = rand_number(1, 128000);
@@ -3452,6 +3454,49 @@ switch (load_result)
              "Failure to AddRecentPlayer (returned FALSE).");
     }
 
+    break;
+
+  case CON_SETPREFS:
+
+    if (!strcmp(arg, "yes") || !strcmp(arg, "YES"))
+    {
+      write_to_output(d, "Confirmed, adding all recommended preference flags.\r\n");
+      
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTOLOOT);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTOGOLD);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTOSAC);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTOASSIST);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTOKEY);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTOSPLIT);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTODOOR);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTORELOAD);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_COMBATROLL);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_CHARMIE_COMBATROLL);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_USE_STORED_CONSUMABLES);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTO_STAND);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTOHIT);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUGMENT_BUFFS);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPACTIONS);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPEXP);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPGOLD);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPMEMTIME);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPTIME);
+      GET_WIMP_LEV(d->character) = 10;
+    }
+    else if (!strcmp(arg, "no") || !strcmp(arg, "NO"))
+    {
+      write_to_output(d, "Confirmed. Only standard preference flags applied.\r\n");
+    }
+    else
+    {
+      write_to_output(d, "Please enter yes or no.\r\n");
+      return;
+    }
+    
+    /* print message of the day to player */
+    write_to_output(d, "\r\n");
+    write_to_output(d, "%s\r\n*** PRESS RETURN: ", motd);
+    STATE(d) = CON_RMOTD;
     break;
 
   case CON_RMOTD: /* read CR after printing motd   */

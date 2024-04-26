@@ -364,7 +364,9 @@ ACMDU(do_sail)
     if (found)
     {
       send_to_char(ch, "\r\nTo sail somewhere, type sail <name of destination>\r\n");
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
       send_to_char(ch, "\r\nYou can view our world map online at https://luminarimud.com/new-revised-worldmap-eat-your-heart-out/\r\n");
+#endif
       return;
     }
     else

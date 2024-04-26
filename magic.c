@@ -5623,7 +5623,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_NONE; /* this is just a tag */
     af[0].modifier = 0;
     af[0].duration = 300;
-    to_room = "$n's images becomes blurry!.";
+    to_room = "$n's image becomes blurry!.";
     to_vict = "You observe as your image becomes blurry.";
     SET_BIT_AR(af[0].bitvector, AFF_BLUR);
     accum_duration = FALSE;

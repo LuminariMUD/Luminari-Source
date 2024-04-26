@@ -2146,6 +2146,13 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
       act("You get $p from $P.", FALSE, ch, obj, cont, TO_CHAR);
       act("$n gets $p from $P.", TRUE, ch, obj, cont, TO_ROOM);
       get_check_money(ch, obj);
+      if (cont->carried_by != ch)
+      {
+        if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
+          auto_store_obj(ch, obj);
+        else if (PRF_FLAGGED(ch, PRF_AUTO_SORT))
+          auto_sort_obj(ch, obj);
+      }
       if (ct > 0)
         do_clan_tax_losses(ch, ct);
       // delay for taking items out in combat (and fail tumble check)
@@ -2229,6 +2236,10 @@ static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
     obj_to_char(obj, ch);
     act("You get $p.", FALSE, ch, obj, 0, TO_CHAR);
     act("$n gets $p.", TRUE, ch, obj, 0, TO_ROOM);
+    if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
+      auto_store_obj(ch, obj);
+    else if (PRF_FLAGGED(ch, PRF_AUTO_SORT))
+      auto_sort_obj(ch, obj);
     get_check_money(ch, obj);
 
     /* this is necessary because of disarm */
@@ -5685,7 +5696,7 @@ void list_consumables(struct char_data *ch, int type)
 
 ACMD(do_store)
 {
-  struct obj_data *obj = NULL;
+  struct obj_data *obj = NULL, *next_obj = NULL;
   int i = 0;
   bool found = false;
   char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
@@ -5699,7 +5710,23 @@ ACMD(do_store)
     return;
   }
 
-  if (!is_abbrev(arg1, "list"))
+  if (is_abbrev(arg1, "all"))
+  {
+    if (!PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
+    {
+      send_to_char(ch, "You need to turn on the stored consumables system in order to sort all your items.\r\n");
+      return;
+    }
+    send_to_char(ch, "Storing all consumable items...\r\n");
+    for (obj = ch->carrying; obj; obj = next_obj)
+    {
+      next_obj = obj->next_content;
+      if (IS_OBJ_CONSUMABLE(obj))
+        auto_store_obj(ch, obj);
+    }
+    return;
+  }
+  else if (!is_abbrev(arg1, "list"))
   {
     if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
     {
@@ -7211,7 +7238,7 @@ void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum
     obj_from_char(obj);
     GET_OBJ_SORT(obj) = bagnum;
     obj_to_bag(ch, obj, bagnum);
-    send_to_char(ch, "You move '%s' to bag %d %s.\r\n", obj->short_description, bagnum, bagname);
+    send_to_char(ch, "You move '%s' to bag %d (%s).\r\n", obj->short_description, bagnum, bagnames[bagnum-1]);
   }
   else
   {
@@ -7229,8 +7256,21 @@ ACMD(do_sort)
   char arg2[MEDIUM_STRING] = {'\0'};
   char bagname[MEDIUM_STRING] = {'\0'};
   int i = 0;
+  struct obj_data *obj, *next_obj;
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (*arg1 && is_abbrev(arg1, "all") && subcmd == SCMD_SORTTO)
+  {
+    send_to_char(ch, "Sorting all inventory items into the assigned bag...\r\n");
+    for (obj = ch->carrying; obj; obj = next_obj)
+    {
+      next_obj = obj->next_content;
+      if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES)) continue;
+      auto_sort_obj(ch, obj);
+    }
+    return;
+  }
 
   if (!*arg1 || !*arg2)
   {
@@ -7304,40 +7344,135 @@ ACMD(do_sort)
   }
 }
 
-#define BAGNAME_SYNTAX "Syntax is: bagname (bag number) (bag name)\r\nExample: bagname 1 materials\r\nThis will give bag1 the 'materials' nickname.\r\n"
+void auto_store_obj(struct char_data *ch, struct obj_data *obj)
+{
+  char commandstring[LONG_STRING];
+  char objname[SMALL_STRING];
+  int i = 0;
+
+  if (!ch || !obj) return;
+
+  snprintf(objname, sizeof(objname), "%s", obj->name);
+
+  for (i = 0; i < strlen(objname); i++)
+    if (objname[i] == ' ')
+      objname[i] = '-';
+
+  snprintf(commandstring, sizeof(commandstring), " %s", objname);
+
+  send_to_char(ch, "\tC[AUTOSTORE] \tn");
+  do_store(ch, commandstring, 0, 0);
+}
+
+void auto_sort_obj(struct char_data *ch, struct obj_data *obj)
+{
+
+  char bagstring[SMALL_STRING];
+  char objname[SMALL_STRING];
+  char commandstring[LONG_STRING];
+  int i = 0, bagnum = 0;
+
+  if (!ch || !obj) return;
+
+  if ((bagnum = get_bag_number_by_obj_type(obj)) == -1)
+    return;
+
+  snprintf(bagstring, sizeof(bagstring), "%d", bagnum);
+
+  snprintf(objname, sizeof(objname), "%s", obj->name);
+
+  for (i = 0; i < strlen(objname); i++)
+    if (objname[i] == ' ')
+      objname[i] = '-';
+
+  snprintf(commandstring, sizeof(commandstring), " %s bag%s", objname, bagstring);
+
+  send_to_char(ch, "\tC[AUTOSORT] \tn");
+  do_sort(ch, commandstring, 0, SCMD_SORTTO);  
+
+}
+
+int get_bag_number_by_obj_type(struct obj_data *obj)
+{
+  switch(GET_OBJ_TYPE(obj))
+  {
+    case ITEM_WEAPON:
+    case ITEM_MISSILE:
+    case ITEM_FIREWEAPON:
+      return 1;
+        case ITEM_ARMOR:
+      return 2;
+    case ITEM_WORN: 
+      return 3;
+    case ITEM_LIGHT:
+    case ITEM_FOOD:
+    case ITEM_POISON:
+    case ITEM_DRINK:
+      return 4;
+    case ITEM_TREASURE:
+      return 5;
+    case ITEM_CRYSTAL:
+    case ITEM_ESSENCE:
+    case ITEM_MATERIAL:
+    case ITEM_INGREDIENT:
+    case ITEM_RESOURCE:
+      return 6;
+    case ITEM_HUNT_TROPHY:
+    case ITEM_WEAPON_OIL:
+      return 7;
+    case ITEM_SCROLL:
+    case ITEM_WAND:
+    case ITEM_STAFF:
+    case ITEM_POTION:
+      return 8;
+
+    case ITEM_FURNITURE:    
+    case ITEM_OTHER:
+    case ITEM_TRASH:
+    case ITEM_CONTAINER:
+    case ITEM_NOTE:
+    case ITEM_DRINKCON:
+    case ITEM_KEY:    
+    case ITEM_MONEY:
+    case ITEM_PEN:
+    case ITEM_BOAT:
+    case ITEM_FOUNTAIN:
+    case ITEM_CLANARMOR:    
+    case ITEM_SPELLBOOK:
+    case ITEM_PORTAL:
+    case ITEM_PLANT:
+    case ITEM_TRAP:
+    case ITEM_TELEPORT:    
+    case ITEM_SUMMON:
+    case ITEM_SWITCH:
+    case ITEM_AMMO_POUCH:
+    case ITEM_PICK:
+    case ITEM_INSTRUMENT:
+    case ITEM_DISGUISE:
+    case ITEM_WALL:
+    case ITEM_BOWL:    
+    case ITEM_BLOCKER:
+    case ITEM_WAGON:
+    case ITEM_PET:
+    case ITEM_BLUEPRINT:
+    case ITEM_TREASURE_CHEST:
+    case ITEM_GEAR_OUTFIT:
+      return -1;    
+  }
+  return -1;
+}
 
 ACMD(do_bagnames)
 {
-  int bagnum = 0;
+  int i = 0;
 
-  char arg1[MEDIUM_STRING] = {'\0'};
-  char arg2[MEDIUM_STRING] = {'\0'};
-
-  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
-
-  if (!*arg1 || !*arg2)
+  send_to_char(ch, "Your bags are named as follows:\r\n");
+  
+  for (i = 0; i < MAX_BAGS; i++)
   {
-    send_to_char(ch, "%s", BAGNAME_SYNTAX);
-    return;
+    send_to_char(ch, "%2d) %s\r\n", i+1, bagnames[i]);
   }
-
-  if (strlen(arg2) > 50)
-  {
-    send_to_char(ch, "That name is too long. (50 characters maximum)\r\n");
-    return;
-  }
-
-  bagnum = atoi(arg1);
-
-  if (bagnum < 1 || bagnum > MAX_BAGS)
-  {
-    send_to_char(ch, "You must specify a bag number between 1 and %d.\r\n", MAX_BAGS);
-    return;
-  }
-
-  GET_BAG_NAME(ch, bagnum) = strdup(arg2);
-  send_to_char(ch, "You have renamed bag%d to '%s'.\r\n", bagnum, arg2);
-  save_char(ch, 0);
+  send_to_char(ch, "\r\n");
 }
 
 /* EOF */
