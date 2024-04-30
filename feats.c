@@ -4653,6 +4653,28 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
       "Gain immunity to compulsion effects, and can use the knighthoodsflower command to gain a +2 insight bonus to armor class and reflex saving throws.", 
       "Gain immunity to compulsion effects, and can use the knighthoodsflower command to gain a +2 insight bonus to armor class and reflex saving throws.");    
 
+  // Knight of the Thorn
+    feato(FEAT_DIVINER, "diviner", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "All spells of the divination school are cast as if 5 levels higher.",
+    "All spells of the divination school are cast as if 5 levels higher.");
+    feato(FEAT_READ_OMENS, "read omens", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Can cast augury spell at-will.",
+    "Can cast augury spell at-will.");
+    feato(FEAT_AURA_OF_TERROR, "aura of terror", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Enemies must save at the start of battle or be shaken.",
+    "Enemies must save at the start of battle or be shaken.");
+    feato(FEAT_READ_PORTENTS, "read portents", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Can cast locate object and locate person at will.",
+    "Can cast locate object and locate person at will.");
+    feato(FEAT_COSMIC_UNDERSTANDING, "cosmic understanding", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Allows the use of foretell and prescience abilities.",
+    "Allows the use of foretell and prescience abilities. Foretell will add you intelligence modifier to the next d20 roll. Prescience will give your party a "
+      "+2 luck bonus on attack rolls, caster level checks, saving throws, and skill checks. Enemies get a -2 penalty to the same. These "
+      "abilities can be used 3 times per in-game day each, and share uses/cooldowns.");
+    feato(FEAT_WEAPON_TOUCH, "weapon touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Can trigger touch spells on a weapon attack using the weapontouch or wt commands.",
+    "Can trigger touch spells on a weapon attack using the weapontouch or wt commands.");
+
   /* Shadow Dancer (ShadowDancer) */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*1*/
@@ -5303,6 +5325,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   dailyfeat(FEAT_FINAL_STAND, eFINALSTAND);
   dailyfeat(FEAT_KNIGHTHOODS_FLOWER, eKNIGHTHOODSFLOWER);
   dailyfeat(FEAT_RALLYING_CRY, eRALLYINGCRY);
+  dailyfeat(FEAT_COSMIC_UNDERSTANDING, eCOSMICUNDERSTANDING);
   /** END **/
 }
 

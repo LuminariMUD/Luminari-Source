@@ -883,6 +883,15 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     }
   }
 
+  if (affected_by_spell(ch, AFFECT_PRESCIENCE))
+  {
+    value += 2;
+  }
+  if (affected_by_spell(ch, AFFECT_PRESCIENCE_DEBUFF))
+  {
+    value -= 2;
+  }
+
   if (affected_by_spell(ch, PSIONIC_INFLICT_PAIN))
     value += get_char_affect_modifier(ch, PSIONIC_INFLICT_PAIN, APPLY_HITROLL); // this should return a negative number, so + a - is -
   if (affected_by_spell(ch, SPELL_HEROISM))

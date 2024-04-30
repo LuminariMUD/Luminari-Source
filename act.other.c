@@ -5698,10 +5698,33 @@ ACMDU(do_title)
     send_to_char(ch, "Titles can't contain the ( or ) characters.\r\n");
   else if (strlen(argument) > MAX_TITLE_LENGTH)
     send_to_char(ch, "Sorry, titles can't be longer than %d characters.\r\n", MAX_TITLE_LENGTH);
+  else if (!strstr(argument, GET_NAME(ch)))
+    send_to_char(ch, "Your title must contain your name in it.\r\n");
+  else if (strlen(argument) < 10 && strcmp(argument, GET_NAME(ch)))
+    send_to_char(ch, "Your title must be at least 10 characters long.\r\n");
   else
   {
     set_title(ch, argument);
-    send_to_char(ch, "Okay, you're now %s%s%s.\r\n", GET_NAME(ch), *GET_TITLE(ch) ? " " : "", GET_TITLE(ch));
+    send_to_char(ch, "Okay, you're now %s.\r\n", GET_TITLE(ch));
+  }
+}
+
+ACMDU(do_immtitle)
+{
+  skip_spaces(&argument);
+  delete_doubledollar(argument);
+  parse_at(argument);
+
+  if (IS_NPC(ch))
+    send_to_char(ch, "Your title is fine... go away.\r\n");
+  else if (strstr(argument, "(") || strstr(argument, ")"))
+    send_to_char(ch, "Titles can't contain the ( or ) characters.\r\n");
+  else if (strlen(argument) > MAX_IMM_TITLE_LENGTH)
+    send_to_char(ch, "Sorry, staff titles can't be longer than %d characters.\r\n", MAX_TITLE_LENGTH);
+  else
+  {
+    set_imm_title(ch, argument);
+    send_to_char(ch, "Okay, your staff title is now %s.\r\n", GET_IMM_TITLE(ch));
   }
 }
 
@@ -9189,6 +9212,32 @@ ACMD(do_kapak_saliva)
   USE_SWIFT_ACTION(ch);
 
 }
+
+ACMDU(do_weapon_touch)
+{
+
+
+  if (!HAS_FEAT(ch, FEAT_WEAPON_TOUCH))
+  {
+    send_to_char(ch, "You do not have this ability.\r\n");
+    return;
+  }
+
+  if (GET_WEAPON_TOUCH_SPELL(ch) != 0)
+  {
+    send_to_char(ch, "You already have the '%s' spell queued for your next weapon attack.\r\n", spell_info[GET_WEAPON_TOUCH_SPELL(ch)].name);
+    return;
+  }
+
+  if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2H))
+  {
+    send_to_char(ch, "You cannot queued a spell for weapon touch if you are not wielding a weapon in your primary hand.\r\n");
+    return;
+  }
+
+  do_gen_cast(ch, argument, cmd, SCMD_WEAPON_TOUCH);
+}
+
 /* undefines */
 #undef DEBUG_MODE
 

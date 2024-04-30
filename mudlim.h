@@ -35,6 +35,7 @@ extern "C"
     int hit_gain(struct char_data *ch);
     int move_gain(struct char_data *ch);
     void set_title(struct char_data *ch, char *title);
+    void set_imm_title(struct char_data *ch, char *title);
     void run_autowiz(void);
     int gain_exp(struct char_data *ch, int gain, int mode);
     int gain_exp_regardless(struct char_data *ch, int gain, bool is_ress);

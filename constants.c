@@ -666,6 +666,7 @@ const char *class_names[] = {
     "Knight of the Crown",
     "Knight of the Sword",
     "Knight of the Rose",
+    "Knight of the Thorn",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -4605,6 +4606,7 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                        // knight of the crown 30
     {"", "", "", ""},                                        // knight of the sword 31
     {"", "", "", ""},                                        // knight of the rose 32
+    {"", "", "", ""},                                        // knight of the thorn 33
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -4649,6 +4651,7 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                            // knight of the crown 30
     {"", "", "", ""},                                            // knight of the sword 31
     {"", "", "", ""},                                        // knight of the rose 32
+    {"", "", "", ""},                                        // knight of the thorn 33
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -4669,6 +4672,7 @@ const char *do_cast_types[][6] = {
     {"Manifest", "manfest", "Manifestation", "Psionic", "psionics", "psionicist"},
     {"Imbibe", "imbibe", "Extract", "Alchemy", "extracts", "alchemist"},
     {"Shadowcast", "shadowcast", "Shadow Spell", "Shadow Magic", "shadow magic", "caster"},
+    {"Cast", "cast", "Spell", "Magic", "magic", "caster"},
     /* end with this */
     {"\n", "\n", "\n", "\n", "\n", "\n"}};
 
@@ -5212,6 +5216,7 @@ const char *class_short_descriptions[] = {
     "The first order of the Knights of Solamnia, bound by the tenets of obedience and honor.",                    // knight of the crown
     "The second order of the Knights of Solamnia, bound by the tenets of courage and heroism.",                   // knight of the Sword
     "The third order of the Knights of Solamnia, bound by the tenets of nobility, bravery and leadership.",       // knight of the Rose
+    "The arcane order of the Knights of Takhisis, clad in armor and adhering to a strict code of honor.",         // knight of the thorn
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 

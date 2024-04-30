@@ -754,6 +754,29 @@ SAVING_WILL here...  */
     break;
   }
 
+  if (GET_WEAPON_TOUCH_SPELL(caster) != 0)
+  {
+    // This spell will be triggered on the next melee attack
+    send_to_char(caster, "You prepare to cast '%s' on your next weapon attack.\r\n", spell_info[spellnum].name);
+    return (1);
+  }
+  if (spell_info[spellnum].touch_spell && casttype != CAST_WEAPON_SPELL && cvict)
+  {
+    GET_TOUCH_SPELL_QUEUED(caster) = spellnum;
+    if (!attack_roll(caster, cvict, ATTACK_TYPE_PRIMARY, true, 1))
+    {
+      GET_TOUCH_SPELL_QUEUED(caster) = 0;
+      act("You fail to touch $N with your spell.", FALSE, caster, 0, cvict, TO_CHAR);
+      act("$n fails to touch You with $s spell.", FALSE, caster, 0, cvict, TO_VICT);
+      act("$n fails to touch $N with $s spell.", FALSE, caster, 0, cvict, TO_NOTVICT);
+      return (0);
+    }
+    GET_TOUCH_SPELL_QUEUED(caster) = 0;
+  }
+
+  if (HAS_FEAT(caster, FEAT_DIVINER) && SINFO.schoolOfMagic == DIVINATION)
+    spell_level += 5;
+
   /* the rest of the routine handling follows: */
 
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
@@ -1764,6 +1787,11 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     }
   }
 
+  if (GET_WEAPON_TOUCH_SPELL(ch) != 0)
+  {
+    quickened = TRUE;
+  }
+
   if (!IS_NPC(ch) && HAS_ELDRITCH_SPELL_CRIT(ch))
   {
     HAS_ELDRITCH_SPELL_CRIT(ch) = false;
@@ -2028,6 +2056,8 @@ ACMDU(do_gen_cast)
   {
   case SCMD_CAST_SPELL:
     break;
+  case SCMD_WEAPON_TOUCH:
+    break;
   case SCMD_CAST_PSIONIC:
     break;
   case SCMD_CAST_EXTRACT:
@@ -2141,6 +2171,15 @@ ACMDU(do_gen_cast)
   {
     send_to_char(ch, "You cannot %s this through normal means.\r\n", do_cast_types[subcmd][0]);
     return;
+  }
+
+  if (subcmd == SCMD_WEAPON_TOUCH)
+  {
+    if (!spell_info[spellnum].touch_spell)
+    {
+      send_to_char(ch, "This spell is not a touch spell. Type 'touchspells' to get a list of currently implemented touch spells.\r\n");
+      return;
+    }
   }
 
   /* we have our spellnum now */
@@ -2637,6 +2676,12 @@ return;
       tch = ch;
       target = TRUE;
     }
+    if (subcmd == SCMD_WEAPON_TOUCH)
+    {
+      tch = ch;
+      target = TRUE;
+    }
+
     if (!target)
     {
       send_to_char(ch, "Upon %s should the %s be %s?\r\n",
@@ -2646,7 +2691,7 @@ return;
     }
   }
 
-  if (target && (tch == ch) && SINFO.violent && (spellnum != SPELL_DISPEL_MAGIC))
+  if (target && (tch == ch) && SINFO.violent && (spellnum != SPELL_DISPEL_MAGIC) && subcmd != SCMD_WEAPON_TOUCH)
   {
     send_to_char(ch, "You shouldn't %s that on yourself -- could be bad for your health!\r\n",
                  do_cast_types[subcmd][1]);
@@ -2727,6 +2772,12 @@ return;
         }
       }
     }
+  }
+
+  if (subcmd == SCMD_WEAPON_TOUCH && GET_WEAPON_TOUCH_SPELL(ch) == 0)
+  {
+    
+    GET_WEAPON_TOUCH_SPELL(ch) = spellnum;
   }
 
   cast_spell(ch, tch, tobj, spellnum, metamagic);
@@ -3061,8 +3112,10 @@ void mag_assign_spells(void)
   spello(SPELL_CIRCLE_A_GOOD, "circle against good", 58, 43, 1,
          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
          NULL, 7, 13, ABJURATION, FALSE); // wiz3 cle4
-  spello(SPELL_CURSE, "curse", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_CURSE, "bestow curse", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_OBJ_INV, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS, "You feel more optimistic.", 7, 13, NECROMANCY, FALSE); // wiz4 cle4
+  spell_info[SPELL_CURSE].touch_spell = TRUE;
+
   spello(SPELL_DAYLIGHT, "daylight", 50, 25, 5, POS_STANDING,
          TAR_IGNORE, FALSE, MAG_ROOM,
          "The artificial daylight fades away.", 6, 13, ILLUSION, FALSE); // wiz3, cle4
@@ -3184,6 +3237,8 @@ void mag_assign_spells(void)
   spello(SPELL_CHILL_TOUCH, "chill touch", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
          "You feel your strength return.", 1, 7, NECROMANCY, FALSE);
+  spell_info[SPELL_CHILL_TOUCH].touch_spell = TRUE;
+  
   spello(SPELL_RAY_OF_ENFEEBLEMENT, "ray of enfeeblement", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "You feel your strength return.", 1, 7, NECROMANCY, FALSE);
@@ -3275,6 +3330,8 @@ void mag_assign_spells(void)
   spello(SPELL_SHOCKING_GRASP, "shocking grasp", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 2, 9, EVOCATION, FALSE);
+  spell_info[SPELL_SHOCKING_GRASP].touch_spell = TRUE;
+
   spello(SPELL_SCORCHING_RAY, "scorching ray", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 2, 9, EVOCATION, FALSE);
@@ -3331,6 +3388,8 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "You begin to feel less incompetent.", 2, 9,
          ENCHANTMENT, FALSE);
+  spell_info[SPELL_TOUCH_OF_IDIOCY].touch_spell = TRUE;
+
   spello(SPELL_CONFUSION, "confusion", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "The confusion fogging your mind has passed.", 2, 9,
@@ -3407,6 +3466,8 @@ void mag_assign_spells(void)
   spello(SPELL_VAMPIRIC_TOUCH, "vampiric touch", 44, 29, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_POINTS,
          NULL, 3, 11, NECROMANCY, FALSE);
+  spell_info[SPELL_VAMPIRIC_TOUCH].touch_spell = TRUE;
+
   spello(SPELL_HEROISM, "deathly heroism", 30, 15, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "Your deathly heroism fades away.", 4, 11,
@@ -3636,6 +3697,7 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_AREAS, NULL, 5, 17, NECROMANCY, FALSE);
   spello(SPELL_GRAVE_TOUCH, "grave touch", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_AFFECTS, NULL, 5, 17, NECROMANCY, FALSE);
+
   spello(SPELL_INCORPOREAL_FORM, "incorporeal form (undead bloodline)", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AREAS, NULL, 5, 17, NECROMANCY, FALSE);
   // eyebite - shared
@@ -4751,6 +4813,16 @@ void mag_assign_spells(void)
   spello(EIDOLON_MERGE_FORMS_EFFECT, "merge forms", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, 0);
 
+  spello(AFFECT_AURA_OF_TERROR, "aura of terror", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS, "You no longer feel afraid.", 1, 1, ENCHANTMENT, 0);
+  
+  spello(AFFECT_FORETELL, "foretell", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS, "You no longer sense the future.", 1, 1, DIVINATION, 0);
+  spello(AFFECT_PRESCIENCE, "prescience", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_GROUPS | MAG_AREAS, "You no longer sense the future.", 1, 1, DIVINATION, 0);
+  spello(AFFECT_PRESCIENCE_DEBUFF, "prescience debuff", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AREAS, "You are no longer affected by your enemy's prescience.", 1, 1, DIVINATION, 0);
+
   spello(SPELL_HOLY_AURA, "holy aura", 0, 0, 0, POS_FIGHTING,
         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_GROUPS, "You are no longer bolstered by a holy aura.", 9, 21, ABJURATION, 0);
   spello(AFFECT_HOLY_AURA_RETRIBUTION, "holy aura retribution", 0, 0, 0, POS_FIGHTING,
@@ -5211,7 +5283,22 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
     return true;
   if (isPaleMasterMagic(ch, spellnum))
     return true;
+  if (isThornMagic(ch, spellnum))
+    return true;
 
+  return false;
+}
+
+bool isThornMagic(struct char_data *ch, int spellnum)
+{
+  if (!ch) return false;
+
+  switch (spellnum)
+  {
+    case SPELL_AUGURY: if (HAS_REAL_FEAT(ch, FEAT_READ_OMENS)) return true; break;
+    case SPELL_LOCATE_OBJECT: if (HAS_REAL_FEAT(ch, FEAT_READ_PORTENTS)) return true; break;
+    case SPELL_LOCATE_CREATURE: if (HAS_REAL_FEAT(ch, FEAT_READ_PORTENTS)) return true; break;
+  }
   return false;
 }
 

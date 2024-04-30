@@ -932,8 +932,10 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   else
   {
     if (!GET_DISGUISE_RACE(i))
-      send_to_char(ch, "\tn[%s] %s%s%s", RACE_ABBR(i), i->player.name,
-                   *GET_TITLE(i) ? " " : "", GET_TITLE(i));
+      send_to_char(ch, "\tn[%s] %s", RACE_ABBR(i),
+                  // i->player.name, // This is before we switched to a title system containing the character's name
+                  //  *GET_TITLE(i) ? " " : "", 
+                   GET_TITLE(i));
     else if (AFF_FLAGGED(i, AFF_WILD_SHAPE))
     {
       char *an_a, *race_name;
@@ -2063,6 +2065,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Mission Ready Cooldown - Duration: %d seconds\r\n", GET_MISSION_COOLDOWN(k) * 6);
   if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(k) > 0)
     send_to_char(ch, "Kapak Saliva Healing - Duration: %d seconds\r\n", GET_KAPAK_SALIVA_HEALING_COOLDOWN(k) * 6);
+  if (ch->char_specials.terror_cooldown > 0)
+    send_to_char(ch, "Aura of Terror Immunity - Duration: %d seconds\r\n",  ch->char_specials.terror_cooldown * 6);
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
@@ -3812,7 +3816,10 @@ ACMD(do_who)
 {
   struct descriptor_data *d;
   struct char_data *tch;
-  int i, num_can_see = 0, class_len = 0;
+  int i, num_can_see = 0;
+#if !defined(CAMPAIGN_DL)  
+  int class_len = 0;
+#endif
   char name_search[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, classes_list[MAX_INPUT_LENGTH] = {'\0'};
   char mode;
   int low = 0, high = LVL_IMPL, localwho = 0, questwho = 0;
@@ -3822,6 +3829,9 @@ ACMD(do_who)
   int mortals = 0, staff = 0;
   clan_rnum c_n;
   size_t len = 0;
+  char clan_name[50];
+  int length = 0;
+  int padding = 0;
 
   char *account_names[CONFIG_MAX_PLAYING];
   int num_accounts = 0, x = 0, y = 0;
@@ -4045,7 +4055,35 @@ ACMD(do_who)
         continue;
       if (showleader && (!GROUP(tch) || GROUP_LEADER(GROUP(tch)) != tch))
         continue;
-
+#if defined(CAMPAIGN_DL)
+      if (TRUE)
+      {
+        if (GET_LEVEL(tch) >= LVL_IMMORT)
+          snprintf(clan_name, sizeof(clan_name), "%s", GET_IMM_TITLE(tch));
+        else
+          snprintf(clan_name, sizeof(clan_name), "%s", ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0) ? CLAN_NAME(c_n) : "Adventurer");
+      length = strlen(clan_name);
+      padding = 20 - length;
+      
+      // Move characters to make room for padding at the front
+      for (x = length; x >= 0; x--)
+      {
+          clan_name[x + padding / 2] = clan_name[x];
+      }
+      // Append spaces at the front
+      for (x = 0; x < padding / 2; x++) {
+          clan_name[x] = ' ';
+      }
+      // Append spaces at the end
+      for (x = length + padding / 2; x < 20; x++) {
+          clan_name[x] = ' ';
+      }
+      if (padding % 2 != 0) {
+          // If padding is odd, add one more space at the end
+          clan_name[20] = ' ';
+      }
+      send_to_char(ch, "\tC[ %20.20s ]\tn %s", clan_name, GET_TITLE(tch));
+#else
       if (short_list)
       {
         /* changed this to force showing char real race */
@@ -4105,6 +4143,7 @@ ACMD(do_who)
               send_to_char(ch, " %s[%s%s%s]%s", QBRED, QBYEL, clan_list[c_n].abrev ? CLAN_ABREV(c_n) : "Unknown", QBRED, QNRM);
           }
         }
+#endif
         if (GET_INVIS_LEV(tch))
           send_to_char(ch, " (i%d)", GET_INVIS_LEV(tch));
         else if (AFF_FLAGGED(tch, AFF_INVISIBLE))
@@ -5595,6 +5634,7 @@ ACMD(do_areas)
   //  float pop;
   //  clan_rnum ocr;
   int num_areas = 0;
+  char zone_num[15];
 
   char areas[300][LONG_STRING];
 
@@ -5722,9 +5762,10 @@ ACMD(do_areas)
       tmp_len = snprintf(buf + len, sizeof(buf) - len, "\tn(%3d) %s%-*s\tn %s%s\tn\r\n", ++zcount, overlap ? QRED : QCYN,
                          count_color_chars(zone_table[i].name) + 40, zone_table[i].name,
                          lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
-      snprintf(areas[num_areas], sizeof(areas[num_areas]), "\tn %-*s\tn %s%s\tn\r\n",
+      snprintf(zone_num, sizeof(zone_num), " \tc[%3d]\tn  ", zone_table[i].number);
+      snprintf(areas[num_areas], sizeof(areas[num_areas]), "\tn %-*s\tn %s%s%s\tn\r\n",
                          count_color_chars(zone_table[i].name) + 40, zone_table[i].name,
-                         lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
+                         zone_num, lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
       num_areas++;
       len += tmp_len;
     }
@@ -5757,6 +5798,8 @@ ACMD(do_areas)
     send_to_char(ch, "No areas found.\r\n");
   else
   {
+    send_to_char(ch, "        %-40s %6s %s\r\n", "Area Name", "Number", "Level Range");
+    send_to_char(ch, "        %-40s %5s %s\r\n", "---------", "------", "-----------");
     int n, j;
     char temp[LONG_STRING];
     n = num_areas;
@@ -7065,6 +7108,21 @@ ACMD(do_flightlist)
       send_to_char(ch, "\r\n");
     #endif
   #endif
+}
+
+ACMD(do_touch_spells)
+{
+  int i;
+
+  send_to_char(ch, "List of touch spells:\r\n");
+
+  for (i = 0; i < NUM_SPELLS; i++)
+  {
+    if (spell_info[i].touch_spell)
+    {
+      send_to_char(ch, "-- %-25s (%s)\r\n", spell_info[i].name, spell_schools[spell_info[i].schoolOfMagic]);
+    }
+  }
 }
 
 #undef WPT_SIMPLE

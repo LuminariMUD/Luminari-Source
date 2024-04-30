@@ -1438,6 +1438,29 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   if (can_fire_ammo(ch, TRUE))
     FIRING(ch) = TRUE;
 
+  if (has_aura_of_terror(vict) && ch->char_specials.terror_cooldown == 0)
+  {
+    send_to_char(vict, "TEST1\r\n");
+    if (!is_immune_fear(vict, ch, false) && !is_immune_mind_affecting(vict, ch, false))
+    {
+      send_to_char(vict, "TEST2\r\n");
+      ch->char_specials.terror_cooldown = 200;
+      if (!mag_savingthrow_full(vict, ch, AFFECT_AURA_OF_TERROR, 0, CAST_INNATE, GET_LEVEL(vict), ENCHANTMENT, AFFECT_AURA_OF_TERROR))
+      {
+        send_to_char(vict, "TEST3\r\n");
+        struct affected_type af;
+        new_affect(&af);
+        af.spell = AFFECT_AURA_OF_TERROR;
+        af.duration = 3;
+        SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+        affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
+        act("\tW[\tDAURA OF TERROR\tW]\tn You feel tremendous fear from $n!", FALSE, vict, 0, ch, TO_VICT);
+        act("\tW[\tDAURA OF TERROR\tW]\tn $N feels tremendous fear from YOU!", FALSE, vict, 0, ch, TO_CHAR);
+        act("\tW[\tDAURA OF TERROR\tW]\tn $N feels tremendous fear from $n!", FALSE, vict, 0, ch, TO_NOTVICT);
+      }
+    }
+  }
+
   /* start the combat loop, making sure we begin with phase "1" */
   attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, strdup("1")), delay);
 
@@ -7485,6 +7508,7 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
 void weapon_spells(struct char_data *ch, struct char_data *vict,
                    struct obj_data *wpn)
 {
+  int weapon_touch_spell = 0;
 
   /* if this is a no-magic room, we aren't going to continue */
   if (ch->in_room && ch->in_room != NOWHERE && ch->in_room < top_of_world &&
@@ -7549,6 +7573,15 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
 
   if (wpn)
   {
+
+    if (GET_WEAPON_TOUCH_SPELL(ch) != 0 && FIGHTING(ch))
+    {
+      weapon_touch_spell = GET_WEAPON_TOUCH_SPELL(ch);
+      GET_WEAPON_TOUCH_SPELL(ch) = 0;
+      send_to_char(ch, "\tW[\tDWEAPON TOUCH\tW]\tn ");
+      call_magic(ch, FIGHTING(ch), 0, weapon_touch_spell, 0, CASTER_LEVEL(ch), CAST_WEAPON_SPELL);
+    }
+
     for (i = 0; i < MAX_WEAPON_CHANNEL_SPELLS; i++)
     { /* increment this weapons spells */
       if (GET_WEAPON_CHANNEL_SPELL(wpn, i) && GET_WEAPON_CHANNEL_SPELL_AGG(wpn, i))
@@ -7960,6 +7993,17 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
     if (IS_GOBLINOID(ch))
       bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+  }
+
+  // Luck bonus
+
+  if (affected_by_spell(ch, AFFECT_PRESCIENCE))
+  {
+    bonuses[BONUS_TYPE_LUCK] += 2;
+  }
+  if (affected_by_spell(ch, AFFECT_PRESCIENCE_DEBUFF))
+  {
+    bonuses[BONUS_TYPE_LUCK] -= 2;
   }
 
   /* Enhancement bonus */
@@ -8553,6 +8597,10 @@ int attack_roll(struct char_data *ch,     /* Attacker */
 
   int attack_bonus = compute_attack_bonus(ch, victim, attack_type);
   int victim_ac = compute_armor_class(ch, victim, is_touch, MODE_ARMOR_CLASS_NORMAL);
+
+  if (GET_TOUCH_SPELL_QUEUED(ch) == SPELL_SHOCKING_GRASP && is_touch && is_wearing_metal(victim))
+    attack_bonus += 3;
+    
 
   int diceroll = d20(ch);
   int result = ((attack_bonus + diceroll) - victim_ac);

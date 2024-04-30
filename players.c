@@ -452,6 +452,8 @@ int load_char(const char *name, struct char_data *ch)
       GET_QUEST(ch, i) = PFDEF_CURRQUEST;
     }
 
+    GET_IMM_TITLE(ch) = NULL;
+
     GET_HP_REGEN(ch) = 0;
     GET_MV_REGEN(ch) = 0;
     GET_PSP_REGEN(ch) = 0;
@@ -939,6 +941,8 @@ int load_char(const char *name, struct char_data *ch)
           INCORPOREAL_FORM_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "InFU"))
           INCORPOREAL_FORM_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "ITtl"))
+          GET_IMM_TITLE(ch) = strdup(line);
         break;
 
       case 'J':
@@ -1447,6 +1451,8 @@ void save_char(struct char_data *ch, int mode)
 
   if (GET_TITLE(ch))
     fprintf(fl, "Titl: %s\n", GET_TITLE(ch));
+  if (GET_IMM_TITLE(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
+    fprintf(fl, "ITtl: %s\n", GET_IMM_TITLE(ch));
 
   /*save todo lists*/
   struct txt_block *tmp;

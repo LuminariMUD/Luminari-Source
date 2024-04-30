@@ -123,6 +123,8 @@ bool can_daze(struct char_data *ch);
 bool is_random_chest_in_room(room_rnum rrnum);
 int get_random_chest_item_level(int level);
 int get_chest_contents_type(void);
+bool is_wearing_metal(struct char_data *ch);
+bool has_aura_of_terror(struct char_data *ch);
 int get_random_chest_dc(int level);
 bool has_blindsense(struct char_data *ch);
 int number_of_chests_per_zone(int num_zone_rooms);
@@ -849,6 +851,7 @@ void char_from_furniture(struct char_data *ch);
 
 /** Title of PC */
 #define GET_TITLE(ch) ((ch)->player.title)
+#define GET_IMM_TITLE(ch) ((ch)->player.imm_title)
 
 // level
 #define GET_LEVEL(ch) ((ch)->player.level)
@@ -1981,13 +1984,15 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_KNIGHT_OF_THE_CROWN(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN))
 #define IS_KNIGHT_OF_THE_SWORD(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD))
 #define IS_KNIGHT_OF_THE_ROSE(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE))
+#define IS_KNIGHT_OF_THE_THORN(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN))
 
 #define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT ||                                                          \
                        IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
                        IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||             \
                        IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch) || \
                        IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch) || IS_INQUISITOR(ch) || IS_SUMMONER(ch) || \
-                       IS_NECROMANCER(ch) || IS_KNIGHT_OF_THE_SWORD(ch) || IS_KNIGHT_OF_THE_ROSE(ch))
+                       IS_NECROMANCER(ch) || IS_KNIGHT_OF_THE_SWORD(ch) || IS_KNIGHT_OF_THE_ROSE(ch) || \
+                       IS_KNIGHT_OF_THE_THORN(ch))
 
 #define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
                         CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
@@ -2011,6 +2016,7 @@ int ACTUAL_BAB(struct char_data *ch);
                            GET_CLASS(ch) == CLASS_INQUISITOR ||      \
                            GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_SWORD || \
                            GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_ROSE || \
+                           GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_THORN || \
                            GET_CLASS(ch) == CLASS_BARD)
 
 #define GET_CASTING_CLASS(ch) (ch->player_specials->casting_class)
@@ -2588,6 +2594,11 @@ bool has_reach(struct char_data *ch);
 
 #define IS_OBJ_CONSUMABLE(obj)  (GET_OBJ_TYPE(obj) == ITEM_POTION || GET_OBJ_TYPE(obj) == ITEM_SCROLL || \
                                  GET_OBJ_TYPE(obj) == ITEM_WAND || GET_OBJ_TYPE(obj) == ITEM_STAFF)
+
+#define GET_WEAPON_TOUCH_SPELL(ch)  (ch->player_specials->weapon_touch_spell)
+#define GET_TOUCH_SPELL_QUEUED(ch)  (ch->player_specials->touch_spell_queued)
+
+#define GET_FORETELL_USES(ch)       (ch->char_specials.foretell_uses)
 
 #endif /* _UTILS_H_ */
 

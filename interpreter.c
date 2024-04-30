@@ -67,6 +67,7 @@
 #include "char_descs.h"
 #include "evolutions.h"
 #include "deities.h"
+#include "mudlim.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -239,7 +240,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"checkload", "checkl", POS_DEAD, do_checkloadstatus, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"childrenofthenight", "children", POS_DEAD, do_children_of_the_night, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_children_of_the_night},
     {"close", "clo", POS_SITTING, do_gen_door, 0, SCMD_CLOSE, FALSE, ACTION_MOVE, {0, 6}, NULL},
-    {"clan", "cla", POS_DEAD, do_clan, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"clans", "cla", POS_DEAD, do_clan, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"clanset", "clans", POS_DEAD, do_clanset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"clantalk", "cl", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"clear", "cle", POS_DEAD, do_gen_ps, 0, SCMD_CLEAR, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -387,6 +388,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"flightlist", "flightlist", POS_RESTING, do_flightlist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"follow", "fol", POS_RECLINING, do_follow, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"forget", "forget", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_FORGET, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"foretell", "foretell", POS_RECLINING, do_foretell, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"freeze", "freeze", POS_DEAD, do_wizutil, LVL_GRSTAFF, SCMD_FREEZE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"frightful", "frightful", POS_FIGHTING, do_dragonfear, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"fly", "fly", POS_FIGHTING, do_fly, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -475,6 +477,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"imbibe", "imb", POS_SITTING, do_gen_cast, 1, SCMD_CAST_EXTRACT, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"imotd", "imo", POS_DEAD, do_gen_ps, LVL_IMMORT, SCMD_IMOTD, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"immlist", "imm", POS_DEAD, do_gen_ps, 0, SCMD_IMMLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"immtitle", "immtitle", POS_DEAD, do_immtitle, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"info", "info", POS_SLEEPING, do_gen_ps, 0, SCMD_INFO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"invis", "invi", POS_DEAD, do_invis, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"invisduergar", "invisduergar", POS_FIGHTING, do_invisduergar, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
@@ -614,6 +617,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"powerattack", "powerattack", POS_FIGHTING, do_mode, 1, MODE_POWER_ATTACK, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"prompt", "pro", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"prefedit", "pre", POS_DEAD, do_oasis_prefedit, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"prescience", "prescience", POS_RECLINING, do_prescience, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"purify", "purify", POS_FIGHTING, do_purify, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"purge", "purge", POS_DEAD, do_purge, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"prayer", "prayer", POS_RECLINING, do_gen_preparation, 0, SCMD_PRAY, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -807,6 +811,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"time", "time", POS_DEAD, do_time, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"tinker", "tinker", POS_STANDING, do_tinker, 0, 0, TRUE, ACTION_NONE, {0, 0}, can_tinker},
     {"toggle", "toggle", POS_DEAD, do_toggle, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"touchspells", "touchspells", POS_DEAD, do_touch_spells, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"track", "track", POS_STANDING, do_track, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"train", "tr", POS_RECLINING, do_train, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"transfer", "transfer", POS_SLEEPING, do_trans, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -889,6 +894,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"weaponlist", "weaponlist", POS_DEAD, do_weaponlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"weaponlist2", "weaponlist2", POS_DEAD, do_weaponlist_old, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"weaponproficiencies", "weaponprof", POS_DEAD, do_weaponproficiencies, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"weapontouch", "weapontouch", POS_FIGHTING, do_weapon_touch, 1, SCMD_WEAPON_TOUCH, FALSE, ACTION_SWIFT, {0, 0}, NULL},
+    {"wt", "wt", POS_FIGHTING, do_weapon_touch, 1, SCMD_WEAPON_TOUCH, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"weapontypes", "weapontypes", POS_DEAD, do_weapontypes, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
@@ -1955,6 +1962,7 @@ int enter_player_game(struct descriptor_data *d)
   int load_result = -1;
   room_vnum load_room = NOWHERE;
   int i = 0;
+  char char_title[MAX_TITLE_LENGTH];
 
   reset_char(d->character);
 
@@ -2046,7 +2054,24 @@ int enter_player_game(struct descriptor_data *d)
     GET_REAL_RACE(d->character) = DL_RACE_HUMAN;
   if (GET_DEITY(d->character) >= NUM_DEITIES)
     GET_DEITY(d->character) = 0;
-#endif 
+#endif
+
+  // We want to make sure their title follows the 'new' format.
+  // It must contain the character's name
+  if (GET_TITLE(d->character) == NULL)
+  {
+    set_title(d->character, strdup(GET_NAME(d->character)));
+  }
+  else
+  {
+    if (!strstr(GET_TITLE(d->character), GET_NAME(d->character)))
+    {
+      snprintf(char_title, sizeof(char_title), "%s %s", GET_NAME(d->character), GET_TITLE(d->character));
+      GET_TITLE(d->character) = strdup(char_title);
+    }
+  }
+  if (GET_IMM_TITLE(d->character) == NULL && GET_LEVEL(d->character) >= LVL_IMMORT)
+    GET_IMM_TITLE(d->character) = strdup(admin_level_names[GET_LEVEL(d->character)-LVL_IMMORT]);
 
 
   if (GET_REGION(d->character) < REGION_NONE || GET_REGION(d->character) >= NUM_REGIONS)
@@ -3160,6 +3185,9 @@ switch (load_result)
       break;
     case CLASS_KNIGHT_OF_THE_ROSE:
       perform_help(d, "class-knightoftherose");
+      break;
+    case CLASS_KNIGHT_OF_THE_THORN:
+      perform_help(d, "class-knightofthethorn");
       break;
     case CLASS_WARRIOR:
       perform_help(d, "class-warrior");

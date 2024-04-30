@@ -90,9 +90,9 @@ const struct clan_cmds clan_commands[] = {
     {"info", CP_ALL, LVL_IMMORT, do_claninfo,
      "%sclan info [clan]          %s- %sInfo about all clans, or a "
      "single clan%s\r\n"},
-    {"list", CP_ALL, LVL_IMMORT, do_clanlist,
-     "%sclan list                 %s- %sList all members of your clan "
-     "(same as clan who)%s\r\n"},
+    {"list", CP_ALL, LVL_IMMORT, do_claninfo,
+     "%sclan list                 %s- %sList all clans or a single specified clan "
+     "(same as clan info)%s\r\n"},
     {"owner", CP_OWNER, LVL_GRSTAFF, do_clanowner,
      "%sclan owner <player>       %s- %sChange ownership of the "
      "clan%s\r\n"},
@@ -751,7 +751,9 @@ ACMD(do_clanapply)
   set_clan(ch, clan_list[c_n].vnum);
   GET_CLANRANK(ch) = NO_CLANRANK;
 
-  send_to_char(ch, "You've applied to clan '%s%s'\r\n",
+  send_to_char(ch, "You've applied to clan '%s%s'\r\n"
+                   "In order to be admitted into the clan you will need your application to be approved with a clan member of a certain rank.\r\n"
+                   "If there are no active clan leaders playing, please request a staff member to admit you into the clan.\r\n",
                clan_list[c_n].clan_name, QNRM);
   return;
 }
@@ -3464,7 +3466,7 @@ ACMD(do_clantalk)
 
     /* Again, removed the +1 from argument. */
     snprintf(buf, sizeof(buf), "[Clantalk] %s$n \"%s\"%s",
-             CCMAG(i->character, C_NRM),
+             CBMAG(i->character, C_NRM),
              (argument), CCNRM(i->character, C_NRM));
 
     if (imm)
