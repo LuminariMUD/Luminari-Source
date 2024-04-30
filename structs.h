@@ -432,6 +432,7 @@
 #define CLASS_KNIGHT_OF_THE_SWORD 31
 #define CLASS_KNIGHT_OF_THE_ROSE 32
 #define CLASS_KNIGHT_OF_THE_THORN 33
+#define CLASS_KNIGHT_OF_THE_SKULL 34
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -440,12 +441,12 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 34 
+#define NUM_CLASSES 35
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
-#define MAX_CLASSES 34 // total number of maximum pc classes
+#define MAX_CLASSES 35 // total number of maximum pc classes
 #define NUM_CASTERS 9  // direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2
@@ -2657,12 +2658,16 @@
 #define FEAT_READ_PORTENTS 1085
 #define FEAT_COSMIC_UNDERSTANDING 1086
 #define FEAT_WEAPON_TOUCH 1087
+// Knight of the Skull
+#define FEAT_HEART_OF_TRUTH 1088
+#define FEAT_FAVOR_OF_DARKNESS 1089
+#define FEAT_AURA_OF_THE_VISION 1090
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1088
+#define FEAT_LAST_FEAT 1091
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1089
+#define NUM_FEATS 1092
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/

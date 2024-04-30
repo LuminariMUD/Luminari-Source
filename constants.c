@@ -667,6 +667,7 @@ const char *class_names[] = {
     "Knight of the Sword",
     "Knight of the Rose",
     "Knight of the Thorn",
+    "Knight of the Skull",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -4607,6 +4608,7 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                        // knight of the sword 31
     {"", "", "", ""},                                        // knight of the rose 32
     {"", "", "", ""},                                        // knight of the thorn 33
+    {"", "", "", ""},                                        // knight of the skull 34
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -4652,6 +4654,7 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                            // knight of the sword 31
     {"", "", "", ""},                                        // knight of the rose 32
     {"", "", "", ""},                                        // knight of the thorn 33
+    {"", "", "", ""},                                        // knight of the skull 34
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -5217,6 +5220,7 @@ const char *class_short_descriptions[] = {
     "The second order of the Knights of Solamnia, bound by the tenets of courage and heroism.",                   // knight of the Sword
     "The third order of the Knights of Solamnia, bound by the tenets of nobility, bravery and leadership.",       // knight of the Rose
     "The arcane order of the Knights of Takhisis, clad in armor and adhering to a strict code of honor.",         // knight of the thorn
+    "The clerical order of the Knights of Takhisis, they serve as diplomats and internal enforcers.",             // knight of the skull
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 

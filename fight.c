@@ -5396,7 +5396,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += 2;
     if (display_mode)
       send_to_char(ch, "Fury of the Small: \tR2\tn\r\n");
-  } 
+  }
+
+  if (wielded && HAS_FEAT(ch, FEAT_FAVOR_OF_DARKNESS))
+  {
+    dambonus += 1;
+    if (display_mode)
+      send_to_char(ch, "Favor of Darkness: \tR+1\tn\r\n");
+  }
 
   if (is_evolution_attack(attack_type) && HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_DAMAGE))
   {
@@ -8037,6 +8044,9 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   }
   /**/
 
+  if (HAS_FEAT(ch, FEAT_FAVOR_OF_DARKNESS))
+    bonuses[BONUS_TYPE_ENHANCEMENT] += 1;
+
   /* Insight bonus  */
   if (HAS_FEAT(ch, FEAT_MASTER_OF_THE_MIND))
   {
@@ -8594,6 +8604,34 @@ int attack_roll(struct char_data *ch,     /* Attacker */
 {
 
   //  struct obj_data *wielded = get_wielded(ch, attack_type);
+
+  // protection from evil prevents evil summons from being able to attack you
+  if (IS_NPC(ch) && IS_EVIL(ch) && victim && AFF_FLAGGED(victim, AFF_PROTECT_EVIL) && isSummonMob(GET_MOB_VNUM(ch)))
+  {
+    // if the summoned mob has spell resistance, they can potentially bypass the protection from evil
+    if (!mag_resistance(victim, ch, 0))
+    {
+      send_to_char(ch, "\tW[\tDPROTECT-EVIL\tW]\tn ");
+      act("You are unable to attack $N!", FALSE, ch, 0, victim, TO_CHAR);
+      send_to_char(victim, "\tW[\tDPROTECT-EVIL\tW]\tn ");
+      act("$n is unable to attack You!", FALSE, ch, 0, victim, TO_VICT);
+      act("$n is unable to attack $N!", FALSE, ch, 0, victim, TO_NOTVICT);
+      return -1;
+    }
+  }
+  if (IS_NPC(ch) && IS_GOOD(ch) && victim && AFF_FLAGGED(victim, AFF_PROTECT_GOOD) && isSummonMob(GET_MOB_VNUM(ch)))
+  {
+    // if the summoned mob has spell resistance, they can potentially bypass the protection from good
+    if (!mag_resistance(victim, ch, 0))
+    {
+      send_to_char(ch, "\tW[\tDPROTECT-GOOD\tW]\tn ");
+      act("You are unable to attack $N!", FALSE, ch, 0, victim, TO_CHAR);
+      send_to_char(victim, "\tW[\tDPROTECT-GOOD\tW]\tn ");
+      act("$n is unable to attack You!", FALSE, ch, 0, victim, TO_VICT);
+      act("$n is unable to attack $N!", FALSE, ch, 0, victim, TO_NOTVICT);
+      return -1;
+    }
+  }
 
   int attack_bonus = compute_attack_bonus(ch, victim, attack_type);
   int victim_ac = compute_armor_class(ch, victim, is_touch, MODE_ARMOR_CLASS_NORMAL);

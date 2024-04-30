@@ -5285,6 +5285,8 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
     return true;
   if (isThornMagic(ch, spellnum))
     return true;
+  if (isSkullMagic(ch, spellnum))
+    return true;
 
   return false;
 }
@@ -5298,6 +5300,26 @@ bool isThornMagic(struct char_data *ch, int spellnum)
     case SPELL_AUGURY: if (HAS_REAL_FEAT(ch, FEAT_READ_OMENS)) return true; break;
     case SPELL_LOCATE_OBJECT: if (HAS_REAL_FEAT(ch, FEAT_READ_PORTENTS)) return true; break;
     case SPELL_LOCATE_CREATURE: if (HAS_REAL_FEAT(ch, FEAT_READ_PORTENTS)) return true; break;
+  }
+  return false;
+}
+
+bool isSkullMagic(struct char_data *ch, int spellnum)
+{
+  if (!ch) return false;
+
+  switch (spellnum)
+  {
+    case SPELL_DETECT_INVIS: if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 1) return true; break;
+    case SPELL_DETECT_ALIGN: if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 1) return true; break;
+    case SPELL_DETECT_MAGIC: if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 1) return true; break;
+    case SPELL_DETECT_POISON: if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 1) return true; break;
+    case SPELL_SENSE_LIFE: if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 2) return true; break;
+    case SPELL_IDENTIFY: if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 2) return true; break;
+    case SPELL_DISPEL_INVIS: if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 2) return true; break;
+    case SPELL_TRUE_SEEING: if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 3) return true; break;
+    case SPELL_CLAIRVOYANCE: if (HAS_REAL_FEAT(ch, FEAT_HEART_OF_TRUTH) >= 3) return true; break;
+    case SPELL_CIRCLE_A_GOOD: if (HAS_REAL_FEAT(ch, FEAT_AURA_OF_THE_VISION)) return true; break;
   }
   return false;
 }

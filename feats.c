@@ -4675,6 +4675,19 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
     "Can trigger touch spells on a weapon attack using the weapontouch or wt commands.",
     "Can trigger touch spells on a weapon attack using the weapontouch or wt commands.");
 
+  // Knight of the Skull
+  feato(FEAT_HEART_OF_TRUTH, "heart of truth", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Allows the casting of several spells at-will.",
+    "Allows the casting of several spells at-will. With 1 rank, can cast the following at-will: detect invisibility, detect poison, detect alignment "
+    "and detect magic. With 2 ranks can cast the following: sense life, identify and dispel invisibility. With 3 ranks, can cast "
+    "true seeing and clairvoyance.");
+  feato(FEAT_AURA_OF_THE_VISION, "aura of the vision", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Allows casting of the magic circle against good spell at-will.",
+    "Allows casting of the magic circle against good spell at-will.");
+  feato(FEAT_FAVOR_OF_DARKNESS, "favor of darkness", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "All weapon attacks gain +1 to hit and damage, and also deal 3d6 unholy damage per hit, and 3d10 unholy damage on a critical hit.",
+    "All weapon attacks gain +1 to hit and damage, and also deal 3d6 unholy damage per hit, and 3d10 unholy damage on a critical hit.");
+
   /* Shadow Dancer (ShadowDancer) */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*1*/
@@ -7528,6 +7541,21 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (+%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_HEART_OF_TRUTH)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (rank %d)", feat_list[i].name, HAS_FEAT(ch, FEAT_HEART_OF_TRUTH));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (rank %d)", feat_list[i].name, HAS_FEAT(ch, FEAT_HEART_OF_TRUTH));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
