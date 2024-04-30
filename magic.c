@@ -141,6 +141,15 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   // should be modified - zusuk
   challenge += CASTER_LEVEL(ch);
 
+  if (affected_by_spell(ch, AFFECT_PRESCIENCE))
+  {
+    challenge += 2;
+  }
+  if (affected_by_spell(ch, AFFECT_PRESCIENCE_DEBUFF))
+  {
+    challenge -= 2;
+  }
+
   if (affected_by_spell(ch, SPELL_EFFECT_GRAND_DESTINY))
     challenge += 4;
 
@@ -425,6 +434,16 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     if (HAS_FEAT(ch, FEAT_ELDRITCH_MASTER))
       challenge++;
   }
+
+  if (affected_by_spell(ch, AFFECT_PRESCIENCE))
+  {
+    savethrow += 2;
+  }
+  if (affected_by_spell(vict, AFFECT_PRESCIENCE_DEBUFF))
+  {
+    savethrow -= 2;
+  }
+  
 
   if (ch)
     challenge += GET_DC_BONUS(ch);
@@ -1499,8 +1518,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = -1;
     mag_resist = TRUE;
     element = DAM_COLD;
-    num_dice = 1;
-    size_dice = 10;
+    num_dice = MIN(level, 5);
+    size_dice = 4;
     bonus = 0;
     break;
 
@@ -5329,6 +5348,25 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "An intensely bright ray of light has blinded you!";
     break;
 
+  case AFFECT_PRESCIENCE:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_LUCK;
+    af[0].duration = 10;
+    if (victim == ch)
+      to_vict = "You are bolstered by your prescience";
+    else
+      to_vict = "You are bolstered by $N's prescience";
+    break;
+
+  case AFFECT_PRESCIENCE_DEBUFF:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = -2;
+    af[0].bonus_type = BONUS_TYPE_LUCK;
+    af[0].duration = 10;
+    to_vict = "You are hindered by $N's prescience";
+    break;
+
   case SPELL_WEAPON_OF_AWE: // transmutation
 
     af[0].duration = level * 10;
@@ -5692,6 +5730,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n's strength is withered!";
     to_vict = "You feel your strength wither!";
     break;
+
+  case AFFECT_FORETELL:
+    af[0].location = APPLY_SPECIAL;
+    af[0].duration = 20;
+    af[0].modifier = 5;
+    GET_FORETELL_USES(ch) = 5;
+    break;
+
 
   case SPELL_COLD_SHIELD: // evocation
     if (affected_by_spell(victim, SPELL_ACID_SHEATH) ||
@@ -8440,6 +8486,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case WARLOCK_FLEE_THE_SCENE:
     mag_affects(level, ch, tch, obj, WARLOCK_FLEE_THE_SCENE, savetype, casttype, 0);
     break;
+  case AFFECT_PRESCIENCE:
+    mag_affects(level, ch, tch, obj, AFFECT_PRESCIENCE, savetype, casttype, 0);
+    break;
   case AFFECT_RALLYING_CRY:
     mag_affects(level, ch, tch, obj, AFFECT_RALLYING_CRY, savetype, casttype, 0);
     break;
@@ -8973,6 +9022,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_BLACK_TENTACLES:
     to_char = "You call forth many large, black tentacles from the ground!";
     to_room = "$n calls forth many large, black tentacles from the ground!";
+    isEffect = TRUE;
+    break;
+  case AFFECT_PRESCIENCE:
+    spellnum = AFFECT_PRESCIENCE_DEBUFF;
     isEffect = TRUE;
     break;
   case SPELL_GREATER_BLACK_TENTACLES:
@@ -11735,6 +11788,7 @@ bool is_spell_mind_affecting(int snum)
     case SPELL_TOUCH_OF_IDIOCY:
     case SPELL_TRUE_STRIKE:
     case SPELL_WAIL_OF_THE_BANSHEE:
+    case AFFECT_AURA_OF_TERROR:
       return true;
   }
   return false;

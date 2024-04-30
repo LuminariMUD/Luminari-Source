@@ -792,6 +792,7 @@ ACMD_DECL(do_spells);
 ACMD_DECL(do_split);
 ACMD_DECL(do_steal);
 ACMD_DECL(do_title);
+ACMD_DECL(do_immtitle);
 ACMD_DECL(do_train);
 ACMD_DECL(do_visible);
 ACMD_DECL(do_wildshape);
@@ -984,6 +985,11 @@ ACMD_DECL(do_holyweapon);
 ACMD_DECL(do_award);
 ACMD_DECL(do_show_blockers);
 ACMD_DECL(do_save_objects_to_database);
+
+ACMD_DECL(do_touch_spells);
+ACMD_DECL(do_weapon_touch);
+ACMD_DECL(do_foretell);
+ACMD_DECL(do_prescience);
 
 // encounters.c
 ACMD_DECL(do_encounterinfo);

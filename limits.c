@@ -950,6 +950,28 @@ void set_title(struct char_data *ch, char *title)
   }
 }
 
+void set_imm_title(struct char_data *ch, char *title)
+{
+  if (GET_LEVEL(ch) < LVL_IMMORT) return;
+
+  if (GET_IMM_TITLE(ch) != NULL)
+    free(GET_IMM_TITLE(ch));
+
+  // why are we checking sex?  old title system -zusuk
+  // OK to remove sex check!
+  if (title == NULL)
+  {
+    GET_IMM_TITLE(ch) = strdup(admin_level_names[GET_LEVEL(ch)-LVL_IMMORT]);
+  }
+  else
+  {
+    if (strlen(title) > MAX_IMM_TITLE_LENGTH)
+      title[MAX_IMM_TITLE_LENGTH] = '\0';
+
+    GET_IMM_TITLE(ch) = strdup(title);
+  }
+}
+
 void run_autowiz(void)
 {
 #if defined(CIRCLE_UNIX) || defined(CIRCLE_WINDOWS)
@@ -1478,6 +1500,15 @@ void proc_d20_round(void)
       if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(i) == 0)
       {
         send_to_char(i, "You can now be healed with kapak saliva again.\r\n");
+      }
+    }
+
+    if (i->char_specials.terror_cooldown > 0)
+    {
+      i->char_specials.terror_cooldown--;
+      if (i->char_specials.terror_cooldown == 0)
+      {
+        send_to_char(i, "You are no longer immune to auras of terror.\r\n");
       }
     }
 

@@ -431,6 +431,7 @@
 #define CLASS_KNIGHT_OF_THE_CROWN 30
 #define CLASS_KNIGHT_OF_THE_SWORD 31
 #define CLASS_KNIGHT_OF_THE_ROSE 32
+#define CLASS_KNIGHT_OF_THE_THORN 33
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -439,12 +440,12 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 33
+#define NUM_CLASSES 34 
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
-#define MAX_CLASSES 33 // total number of maximum pc classes
+#define MAX_CLASSES 34 // total number of maximum pc classes
 #define NUM_CASTERS 9  // direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2
@@ -2649,12 +2650,19 @@
 #define FEAT_KAPAK_DRACONIAN_SCALES 1079
 #define FEAT_KAPAK_SALIVA 1080
 #define FEAT_KAPAK_SPELL_RESISTANCE 1081
+// Knight of the Thorn
+#define FEAT_DIVINER 1082
+#define FEAT_READ_OMENS 1083
+#define FEAT_AURA_OF_TERROR 1084
+#define FEAT_READ_PORTENTS 1085
+#define FEAT_COSMIC_UNDERSTANDING 1086
+#define FEAT_WEAPON_TOUCH 1087
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1082
+#define FEAT_LAST_FEAT 1088
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1083
+#define NUM_FEATS 1089
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3827,6 +3835,7 @@
 #define MAX_NAME_LENGTH 20    /**< Max PC/NPC name length */
 #define MAX_PWD_LENGTH 30     /**< Max PC password length */
 #define MAX_TITLE_LENGTH 80   /**< Max PC title length */
+#define MAX_IMM_TITLE_LENGTH 20   /**< Max Imm Title Length */
 #define HOST_LENGTH 40        /**< Max hostname resolution length */
 #define MAX_NOTE_LENGTH 4000  /**< Max length of text on a note obj */
 #define MAX_LAST_ENTRIES 6000 /**< Max log entries?? */
@@ -4249,6 +4258,7 @@ struct char_player_data
     char *eidolon_longdescription;
     char *eidolon_detaildescription;
     bool weaponSpellProc;
+    char *imm_title;                 // custom title for staff members
 };
 
 /** Character abilities. Different instances of this structure are used for
@@ -4480,6 +4490,10 @@ struct char_special_data
     bool deathless_touch;           // when killing a victim with deathless touch, the necromancer will give bonus stats on his next animate dead or greater animation spell
 
     bool has_performed_demoralizing_strike; // this ensures the combatant can only do a demoralizing strike once per round.
+
+    int terror_cooldown;
+
+    byte foretell_uses;
 };
 
 /* old memorization struct */
@@ -4543,7 +4557,7 @@ struct player_special_data_saved
     bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
 
     ubyte morphed;                    // polymorphed and form
-    byte class_level[MAX_CLASSES];    // multi class
+    int class_level[MAX_CLASSES];    // multi class
     int spells_to_learn;              // prac sessions left
     int abilities_to_learn;           // training sessiosn left
     ubyte boosts;                     // stat boosts left
@@ -4794,6 +4808,8 @@ struct player_special_data
     bool is_buffing;
     struct char_data *buff_target;
     char *unstuck;
+    int weapon_touch_spell;
+    int touch_spell_queued;
 };
 
 /** Special data used by NPCs, not PCs */

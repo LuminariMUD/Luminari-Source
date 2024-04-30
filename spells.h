@@ -674,7 +674,10 @@
 #define AFFECT_INSPIRE_GREATNESS 1272
 #define ABILITY_KAPAK_DRACONIAN_DEATH_THROES 1273
 #define ABILITY_KAPAK_ACID 1274
-
+#define AFFECT_AURA_OF_TERROR 1275
+#define AFFECT_FORETELL 1276
+#define AFFECT_PRESCIENCE 1277
+#define AFFECT_PRESCIENCE_DEBUFF 1278
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -1518,6 +1521,7 @@ struct spell_info_type
         bool ritual_spell; // If this is a ritual spell, it will have a cast time, otherwise it won't
         int effective_level; /* the effective spell level. this is relevant for spell-like abilities */
         bool cant_cast;  // is this spell castable?
+        bool touch_spell; // Is the spell a touch spell?
 };
 
 /* wall struct for wall spells, like wall of fire, force, thorns, etc */
@@ -1722,6 +1726,7 @@ ACMD_DECL(do_gen_cast);
 #define SCMD_CAST_PSIONIC 1
 #define SCMD_CAST_EXTRACT 2
 #define SCMD_CAST_SHADOW 3
+#define SCMD_WEAPON_TOUCH 4
 ACMD_DECL(do_manifest);
 void display_shadowcast_spells(struct char_data *ch);
 
@@ -1750,6 +1755,7 @@ sbyte isFaeMagic(struct char_data *ch, int spellnum);
 sbyte isEidolonMagic(struct char_data *ch, int spellnum);
 bool isSummonerMagic(struct char_data *ch, int spellnum);
 bool isPaleMasterMagic(struct char_data *ch, int spellnum);
+bool isThornMagic(struct char_data *ch, int spellnum);
 
 /**/
 

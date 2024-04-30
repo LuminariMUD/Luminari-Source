@@ -1386,6 +1386,11 @@ int valid_align_by_class(int alignment, int class)
       return TRUE;
     else
       return FALSE;
+  case CLASS_KNIGHT_OF_THE_THORN:
+    if (alignment == LAWFUL_EVIL || alignment == LAWFUL_NEUTRAL)
+      return TRUE;
+    else
+      return FALSE;
   case CLASS_BLACKGUARD:
     if (alignment == LAWFUL_EVIL)
       return TRUE;
@@ -1600,6 +1605,10 @@ int parse_class_long(const char *arg_in)
     return CLASS_KNIGHT_OF_THE_ROSE;
   if (is_abbrev(arg, "knight-of-the-rose"))
     return CLASS_KNIGHT_OF_THE_ROSE;
+  if (is_abbrev(arg, "knightofthethorn"))
+    return CLASS_KNIGHT_OF_THE_THORN;
+  if (is_abbrev(arg, "knight-of-the-thorn"))
+    return CLASS_KNIGHT_OF_THE_THORN;
   if (is_abbrev(arg, "shifter"))
     return CLASS_SHIFTER;
   if (is_abbrev(arg, "sacred-fist"))
@@ -2828,7 +2837,8 @@ void init_start_char(struct char_data *ch)
   GET_EXP(ch) = 1;
 
   /* reset title */
-  set_title(ch, NULL);
+  set_title(ch, strdup(GET_NAME(ch)));
+  set_imm_title(ch, "Staff");
 
 
   /* reset stats */
@@ -3790,6 +3800,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_KNIGHT_OF_THE_CROWN:
   case CLASS_KNIGHT_OF_THE_SWORD:
   case CLASS_KNIGHT_OF_THE_ROSE:
+  case CLASS_KNIGHT_OF_THE_THORN:
     level--;
     if (level < 0)
       level = 0;
@@ -7393,6 +7404,74 @@ void load_class_list(void)
   class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_AURA_OF_COURAGE, 1);
   class_prereq_spellcasting(CLASS_KNIGHT_OF_THE_ROSE, CASTING_TYPE_DIVINE, PREP_TYPE_ANY, 2);
   class_prereq_class_level(CLASS_KNIGHT_OF_THE_ROSE, CLASS_KNIGHT_OF_THE_SWORD, 3);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_KNIGHT_OF_THE_THORN, "knightofthethorn", "KTh", "\tDKTh\tn", "g) \tDKnight of the Thorn\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         10, Y, Y, M, 6, 0, 1, 2, Y, 5000, 0,
+         /*prestige spell progression*/ "+1 arcane caster level per knight of the thorn level.",
+         /*primary attributes*/ "Con/Dex for survivability, INT/CHA depending on base spellcasting class.",
+         /*descrip*/ 
+          "The Knights of the Thorn are also known as the \"gray robes\" for the ash-colored "
+          "robes they wear to indicate that they do not serve the Orders of High Sorcery. "
+          "In addition to wielding devastating arcane magic, Thorn Knights are seers and "
+          "diviners, working to understand how every person and event fits into their "
+          "order's design. Thorn Knights are able to see and understand seemingly random "
+          "events as part of a grand design. While the Order of the Skull seeks to "
+          "manipulate people and events, the Thorn Knights try to profit from a greater "
+          "understanding of fate. Their pursuit of forbidden magic outside the laws of the "
+          "Conclave allows them access to magical secrets to enhance their spellcasting. "
+          );
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_KNIGHT_OF_THE_THORN, B, B, G, G, G);
+  assign_class_abils(CLASS_KNIGHT_OF_THE_THORN, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CA, CA, CA, CA, CA,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CC, CA, CA, CC, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CA, CC, CC, CC, CA, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CC, CC);
+
+  assign_class_titles(CLASS_KNIGHT_OF_THE_THORN,   /* class number */
+                      "Knight of the Thorn",      /* <= 4  */
+                      "Knight of the Thorn",      /* <= 9  */
+                      "Knight of the Thorn",      /* <= 14  */
+                      "Knight of the Thorn",      /* <= 19  */
+                      "Knight of the Thorn",      /* <= 24  */
+                      "Knight of the Thorn",      /* <= 29  */
+                      "Knight of the Thorn",      /* <= 30  */
+                      "Knight of the Thorn",      /* <= LVL_IMMMORT  */
+                      "Knight of the Thorn",      /* <= LVL_STAFF  */
+                      "Knight of the Thorn",      /* <= LVL_GRSTAFF  */
+                      "Knight of the Thorn"      /* default  */
+  );
+  /* feat assignment */
+  /*              class num     feat                                   cfeat lvl stack */
+  
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_DIVINER,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_READ_OMENS,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING,  Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_AURA_OF_TERROR,  Y, 3, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_WEAPON_TOUCH,  Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING,  Y, 5, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_READ_PORTENTS,  Y, 6, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING,  Y, 8, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMORED_SPELLCASTING,  Y, 10, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_THORN, FEAT_COSMIC_UNDERSTANDING,  Y, 10, Y);
+
+  // No class feats
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_bab(CLASS_KNIGHT_OF_THE_THORN, 3); 
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_LORE, 8);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_SPELLCRAFT, 8);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMOR_PROFICIENCY_HEAVY, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_THORN, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
+  class_prereq_spellcasting(CLASS_KNIGHT_OF_THE_THORN, CASTING_TYPE_ARCANE, PREP_TYPE_ANY, 2);
   /****************************************************************************/
 
   /****************************************************************************/

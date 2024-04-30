@@ -143,6 +143,7 @@ bool can_study_known_spells(struct char_data *ch)
   if (LEVELUP(ch)->class == CLASS_SORCERER ||
       ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
         LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+        LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
         LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
        GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER))
     return TRUE;
@@ -151,6 +152,7 @@ bool can_study_known_spells(struct char_data *ch)
   if (LEVELUP(ch)->class == CLASS_BARD ||
       ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
         LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+        LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
         LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
        GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
     return TRUE;
@@ -159,6 +161,7 @@ bool can_study_known_spells(struct char_data *ch)
   if (LEVELUP(ch)->class == CLASS_SUMMONER ||
       ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
         LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+        LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
         LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT || (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
        GET_PREFERRED_ARCANE(ch) == CLASS_SUMMONER))
     return TRUE;
@@ -203,7 +206,7 @@ int compute_bonus_caster_level(struct char_data *ch, int class)
   case CLASS_BARD:
   case CLASS_SUMMONER:
     bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4 + CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + 
-                    ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+                    ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN);
     if (CLASS_LEVEL(ch, CLASS_NECROMANCER) && NECROMANCER_CAST_TYPE(ch) == 1)
       bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);  
     break;
@@ -238,6 +241,7 @@ int compute_arcane_level(struct char_data *ch)
   arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
   arcane_level += CLASS_LEVEL(ch, CLASS_SUMMONER);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW);
+  arcane_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN);
   if (NECROMANCER_CAST_TYPE(ch) == 1)
     arcane_level += CLASS_LEVEL(ch, CLASS_NECROMANCER);
   arcane_level += CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT);
@@ -4632,6 +4636,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
     case FEAT_STRENGTH_OF_HONOR:
       daily_uses = CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN);
       break;
+    case FEAT_COSMIC_UNDERSTANDING:
+      daily_uses = 3;
+      break;
     case FEAT_CROWN_OF_KNIGHTHOOD:
       daily_uses = 1;
       break;
@@ -5201,10 +5208,10 @@ sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyt
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display)
 {
 
-  if (HAS_FEAT(ch, FEAT_KENDER_FEARLESSNESS))
+  if (HAS_FEAT(victim, FEAT_KENDER_FEARLESSNESS))
     return true;
   
-  if (HAS_FEAT(ch, FEAT_KNIGHTLY_COURAGE))
+  if (HAS_FEAT(victim, FEAT_KNIGHTLY_COURAGE))
     return true;
 
   if (affected_by_aura_of_cowardice(victim))
@@ -5395,6 +5402,39 @@ bool has_aura_of_courage(struct char_data *ch)
       if (IN_ROOM(tch) != IN_ROOM(ch))
         continue;
       if (HAS_FEAT(tch, FEAT_AURA_OF_COURAGE))
+      {
+        has_aura = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_aura;
+}
+
+bool has_aura_of_terror(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (HAS_FEAT(ch, FEAT_AURA_OF_TERROR))
+    return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_aura = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (HAS_FEAT(tch, FEAT_AURA_OF_TERROR))
       {
         has_aura = TRUE;
         break;
@@ -6344,11 +6384,24 @@ int d20(struct char_data *ch)
   }
 
   if (ch && affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_PERPETUAL_FORESIGHT))
-    if (dice(1, 10) == 1)
+  if (dice(1, 10) == 1)
+  {
+    roll += GET_INT_BONUS(ch);
+    send_to_char(ch, "\tY[Perpetual Foresight Bonus! +%d]\tn\r\n", GET_INT_BONUS(ch));
+  }
+
+  if (affected_by_spell(ch, AFFECT_FORETELL))
+  {
+    if (GET_FORETELL_USES(ch) > 0)
     {
-      roll += GET_INT_BONUS(ch);
-      send_to_char(ch, "\tY[Perpetual Foresight Bonus! +%d]\tn\r\n", GET_INT_BONUS(ch));
+      GET_FORETELL_USES(ch)--;
+      roll += 5;
+      if (GET_FORETELL_USES(ch) == 0)
+      {
+        affect_from_char(ch, AFFECT_FORETELL);
+      }
     }
+  }
 
   return roll;
 }
@@ -9146,6 +9199,24 @@ int min_dice(int num, int size, int min)
   }
   
   return amount;
+}
+
+bool is_wearing_metal(struct char_data *ch)
+{
+
+  struct obj_data *obj;
+  int i;
+
+  if (!ch) return false;
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    obj = GET_EQ(ch, i);
+    if (!obj) continue;
+    if (IS_CONDUCTIVE_METAL(GET_OBJ_MATERIAL(obj)))
+      return true;
+  }
+  return false;
 }
 
 bool can_npc_command(struct char_data *ch)

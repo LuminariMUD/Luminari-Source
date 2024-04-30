@@ -551,6 +551,7 @@ void compute_char_cap(struct char_data *ch, int mode)
       case CLASS_PSIONICIST:
       case CLASS_WIZARD:
       case CLASS_NECROMANCER:
+      case CLASS_KNIGHT_OF_THE_THORN:
         int_cap += class_level / 4 + 1;
         dex_cap += class_level / 4 + 1;
         con_cap += class_level / 4 + 1;
@@ -2648,18 +2649,22 @@ struct char_data *get_char_vis(struct char_data *ch, char *name, int *number, in
 
   if (where == FIND_CHAR_ROOM)
   {
-    if (get_player_vis(ch, name, number, FIND_CHAR_ROOM) == NULL)
+    if (get_player_vis(ch, name, NULL, FIND_CHAR_ROOM) == NULL)
       return get_char_room_vis(ch, name, number);
     else
-      return get_player_vis(ch, name, number, FIND_CHAR_ROOM);
+      return get_player_vis(ch, name, NULL, FIND_CHAR_ROOM);
 
   }
   else if (where == FIND_CHAR_WORLD)
   {
-    if (get_player_vis(ch, name, number, FIND_CHAR_WORLD) == NULL)
+    if (get_player_vis(ch, name, NULL, FIND_CHAR_WORLD) == NULL)
+    {
       return get_char_world_vis(ch, name, number);
+    }
     else
-      return get_player_vis(ch, name, number, FIND_CHAR_WORLD);
+    {
+      return get_player_vis(ch, name, NULL, FIND_CHAR_WORLD);
+    }
   }
   else
     return (NULL);

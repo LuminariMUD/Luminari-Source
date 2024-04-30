@@ -193,6 +193,7 @@ typedef enum
   eFINALSTAND,                      // final stand ability
   eKNIGHTHOODSFLOWER,               // knighthood's flower ability
   eRALLYINGCRY,                     // rallying cry ability
+  eCOSMICUNDERSTANDING,             // foretell and prescience abilites
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

@@ -10528,6 +10528,98 @@ ACMD(do_knighthoods_flower)
   USE_SWIFT_ACTION(ch);
 }
 
+ACMD(do_foretell)
+{
+
+  int uses_remaining = 0;
+  
+  if (!HAS_REAL_FEAT(ch, FEAT_COSMIC_UNDERSTANDING))
+  {
+    send_to_char(ch, "You do not have the cosmic understanding feat, which bestows this ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, AFFECT_FORETELL))
+  {
+    send_to_char(ch, "You are already benefitting from foretell.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_COSMIC_UNDERSTANDING)) == 0)
+  {
+    send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You have no uses in this ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "Foretell requires a swift action available to use.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "Tapping into the power of the Vision, you peek into the immediate future!\r\n"
+                   "You will get a +5 bonus on your next 5 attack rolls, saving throws, or skill checks.\r\n");
+  
+  call_magic(ch, ch, 0, AFFECT_FORETELL, 0, CASTER_LEVEL(ch), CAST_INNATE);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_COSMIC_UNDERSTANDING);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+ACMD(do_prescience)
+{
+
+  int uses_remaining = 0;
+  
+  if (!HAS_REAL_FEAT(ch, FEAT_COSMIC_UNDERSTANDING))
+  {
+    send_to_char(ch, "You do not have the cosmic understanding feat, which bestows this ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, AFFECT_PRESCIENCE))
+  {
+    send_to_char(ch, "You are already benefitting from foretell.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_COSMIC_UNDERSTANDING)) == 0)
+  {
+    send_to_char(ch, "You need to recover your strength in order to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You have no uses in this ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "Foretell requires a swift action available to use.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "Tapping into the power of the Vision, you peek into the immediate future!\r\n"
+                   "You and your allies gain a +2 luck bonus to attacks rolls saves, skill checks and caster level checks. Enemies gain -2 to the same.\r\n");
+  
+  call_magic(ch, ch, 0, AFFECT_PRESCIENCE, 0, CASTER_LEVEL(ch), CAST_INNATE);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_COSMIC_UNDERSTANDING);
+
+  USE_SWIFT_ACTION(ch);
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS

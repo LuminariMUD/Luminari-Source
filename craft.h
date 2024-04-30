@@ -154,6 +154,19 @@
                                 mat == MATERIAL_GOLD ||   \
                                 mat == MATERIAL_COPPER || \
                                 mat == MATERIAL_PLATINUM)
+#define IS_CONDUCTIVE_METAL(mat) (mat == MATERIAL_STEEL ||           \
+                                    mat == MATERIAL_BRONZE ||          \
+                                    mat == MATERIAL_IRON ||            \
+                                    mat == MATERIAL_ALCHEMAL_SILVER || \
+                                    mat == MATERIAL_COLD_IRON ||       \
+                                    mat == MATERIAL_MITHRIL ||         \
+                                    mat == MATERIAL_ADAMANTINE || \
+                                    mat == MATERIAL_SILVER || \
+                                    mat == MATERIAL_GOLD ||   \
+                                    mat == MATERIAL_COPPER || \
+                                    mat == MATERIAL_PLATINUM)
+
+                                    
 #define SCMD_CRAFT_UNDF 0
 #define SCMD_BREW 1
 #define SCMD_CRAFT 2 // SCMD_CREATE

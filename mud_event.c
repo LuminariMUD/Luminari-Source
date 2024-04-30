@@ -215,6 +215,7 @@ struct mud_event_list mud_event_index[] = {
     {"Final Stand", event_daily_use_cooldown, EVENT_CHAR}, // eFINALSTAND
     {"Knighthood's Flower", event_daily_use_cooldown, EVENT_CHAR}, // eKNIGHTHOODSFLOWER
     {"Rallying Cry", event_daily_use_cooldown, EVENT_CHAR}, // eRALLYINGCRY
+    {"Cosmic Understanding", event_daily_use_cooldown, EVENT_CHAR}, // eCOSMICUNDERSTANDING
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -523,6 +524,9 @@ EVENTFUNC(event_countdown)
     break;
   case eTREATINJURY:
     send_to_char(ch, "You are now able to treat injuries again.\r\n");
+    break;
+  case eCOSMICUNDERSTANDING:
+    send_to_char(ch, "You are now able to foretell and prescience again.\r\n");
     break;
   case eSTRUGGLE:
     if (AFF_FLAGGED(ch, AFF_GRAPPLED)) /*no need for message if not grappling*/
@@ -894,6 +898,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eVANISHED:
     featnum = FEAT_VANISH;
     send_to_char(ch, "One of your vanish uses has recovered.\r\n");
+    break;
+  case eCOSMICUNDERSTANDING:
+    featnum = FEAT_COSMIC_UNDERSTANDING;
+    send_to_char(ch, "One of your foretell/prescience uses has recovered.\r\n");
     break;
   case eINVISIBLE_ROGUE:
     featnum = FEAT_INVISIBLE_ROGUE;
