@@ -3189,6 +3189,9 @@ switch (load_result)
     case CLASS_KNIGHT_OF_THE_THORN:
       perform_help(d, "class-knightofthethorn");
       break;
+    case CLASS_KNIGHT_OF_THE_SKULL:
+      perform_help(d, "class-knightoftheskull");
+      break;
     case CLASS_WARRIOR:
       perform_help(d, "class-warrior");
       break;

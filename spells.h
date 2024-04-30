@@ -1756,6 +1756,7 @@ sbyte isEidolonMagic(struct char_data *ch, int spellnum);
 bool isSummonerMagic(struct char_data *ch, int spellnum);
 bool isPaleMasterMagic(struct char_data *ch, int spellnum);
 bool isThornMagic(struct char_data *ch, int spellnum);
+bool isSkullMagic(struct char_data *ch, int spellnum);
 
 /**/
 

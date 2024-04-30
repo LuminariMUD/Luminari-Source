@@ -169,6 +169,7 @@ bool can_study_known_spells(struct char_data *ch)
   /* inquisitor */
   if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
       ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE || LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SWORD || LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_ROSE || 
+      LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SKULL || 
       (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 2)) && 
       GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
     return TRUE;
@@ -221,6 +222,7 @@ int compute_bonus_caster_level(struct char_data *ch, int class)
     bonus_levels += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
     bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD);
     bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE);
+    bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL);
     break;
   default:
     break;
@@ -272,6 +274,7 @@ int compute_divine_level(struct char_data *ch)
   divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_BLACKGUARD) - 3);
   divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_RANGER) - 3);
   divine_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) / 2;
+  divine_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL);
   divine_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
 
   return divine_level;

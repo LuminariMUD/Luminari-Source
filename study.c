@@ -2786,6 +2786,7 @@ void study_parse(struct descriptor_data *d, char *arg)
           summoner_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
                  ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE || LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SWORD || LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_ROSE || 
+                 LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SKULL || 
                  (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 2)) && 
                  GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
           inquisitor_known_spells_disp_menu(d);

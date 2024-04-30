@@ -1387,6 +1387,7 @@ int valid_align_by_class(int alignment, int class)
     else
       return FALSE;
   case CLASS_KNIGHT_OF_THE_THORN:
+  case CLASS_KNIGHT_OF_THE_SKULL:
     if (alignment == LAWFUL_EVIL || alignment == LAWFUL_NEUTRAL)
       return TRUE;
     else
@@ -1609,6 +1610,10 @@ int parse_class_long(const char *arg_in)
     return CLASS_KNIGHT_OF_THE_THORN;
   if (is_abbrev(arg, "knight-of-the-thorn"))
     return CLASS_KNIGHT_OF_THE_THORN;
+  if (is_abbrev(arg, "knightoftheskull"))
+    return CLASS_KNIGHT_OF_THE_SKULL;
+  if (is_abbrev(arg, "knight-of-the-skull"))
+    return CLASS_KNIGHT_OF_THE_SKULL;
   if (is_abbrev(arg, "shifter"))
     return CLASS_SHIFTER;
   if (is_abbrev(arg, "sacred-fist"))
@@ -3801,6 +3806,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_KNIGHT_OF_THE_SWORD:
   case CLASS_KNIGHT_OF_THE_ROSE:
   case CLASS_KNIGHT_OF_THE_THORN:
+  case CLASS_KNIGHT_OF_THE_SKULL:
     level--;
     if (level < 0)
       level = 0;
@@ -7472,6 +7478,78 @@ void load_class_list(void)
   class_prereq_feat(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMOR_PROFICIENCY_HEAVY, 1);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_THORN, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
   class_prereq_spellcasting(CLASS_KNIGHT_OF_THE_THORN, CASTING_TYPE_ARCANE, PREP_TYPE_ANY, 2);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_KNIGHT_OF_THE_SKULL, "knightoftheskull", "KSk", "\tDKSk\tn", "g) \tDKnight of the Skull\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         10, Y, Y, M, 10, 0, 1, 2, Y, 5000, 0,
+         /*prestige spell progression*/ "+1 divine caster level per knight of the skull level.",
+         /*primary attributes*/ "Str for melee combat, Con/Dex for survivability, Wis for spellcasting.",
+         /*descrip*/ 
+          "The Order of the Skull is the clerical branch of the Knights of Takhisis, who  "
+          "wield both weapons and divine magic when they wade into battle. Skull Knights  "
+          "utilize their magic for healing, gathering intelligence and also managing  "
+          "internal affairs within the knighthood. The Knights of the Skull often serve as  "
+          "diplomats and advisors in the courts of many rulers, or sometimes as the  "
+          "internal police within the knighthood, reporting the infractions of their fellow "
+          "knights, back to their superiors. They were originally powerful clerics who drew "
+          "divine magic from their goddess Takhisis. They are wholly dedicated to their  "
+          "goddess, but at the same time revered Zeboim. Skull Knights will be more  "
+          "inclined to take Black Dragons as their mounts, rather than Blue Dragons. "
+          );
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_KNIGHT_OF_THE_SKULL, G, B, G, G, G);
+  assign_class_abils(CLASS_KNIGHT_OF_THE_SKULL, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CA, CA, CA, CA, CA,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CC, CA, CA, CC, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CA, CC, CC, CC, CA, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CC, CC);
+
+  assign_class_titles(CLASS_KNIGHT_OF_THE_SKULL,   /* class number */
+                      "Knight of the Skull",      /* <= 4  */
+                      "Knight of the Skull",      /* <= 9  */
+                      "Knight of the Skull",      /* <= 14  */
+                      "Knight of the Skull",      /* <= 19  */
+                      "Knight of the Skull",      /* <= 24  */
+                      "Knight of the Skull",      /* <= 29  */
+                      "Knight of the Skull",      /* <= 30  */
+                      "Knight of the Skull",      /* <= LVL_IMMMORT  */
+                      "Knight of the Skull",      /* <= LVL_STAFF  */
+                      "Knight of the Skull",      /* <= LVL_GRSTAFF  */
+                      "Knight of the Skull"      /* default  */
+  );
+  /* feat assignment */
+  /*              class num     feat                                   cfeat lvl stack */
+  
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_AURA_OF_EVIL,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_DETECT_GOOD,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_UNHOLY_RESILIENCE,  Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_HEART_OF_TRUTH,  Y, 3, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD,  Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_CHANNEL_ENERGY,  Y, 5, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD,  Y, 6, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_HEART_OF_TRUTH,  Y, 6, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_AURA_OF_THE_VISION,  Y, 8, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD,  Y, 8, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_HEART_OF_TRUTH,  Y, 9, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_FAVOR_OF_DARKNESS,  Y, 10, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_SKULL, FEAT_SMITE_GOOD,  Y, 10, Y);
+
+  // No class feats
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_bab(CLASS_KNIGHT_OF_THE_SKULL, 3); 
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_SKULL, ABILITY_LORE, 4);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_SKULL, FEAT_ALERTNESS, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_SKULL, FEAT_IRON_WILL, 1);
+  class_prereq_spellcasting(CLASS_KNIGHT_OF_THE_SKULL, CASTING_TYPE_DIVINE, PREP_TYPE_ANY, 3);
   /****************************************************************************/
 
   /****************************************************************************/

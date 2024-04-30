@@ -415,6 +415,19 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
     }
   }
 
+  // Knight of the SSkull Favor of Darkness
+  if (victim && HAS_FEAT(ch, FEAT_FAVOR_OF_DARKNESS))
+  {
+    if (actmtd == ACTMTD_ON_HIT)
+    {
+      damage(ch, victim, dice(3, 6), TYPE_SPECAB_UNHOLY, DAM_UNHOLY, FALSE);
+    }
+    if (actmtd == ACTMTD_ON_CRIT)
+    {
+      damage(ch, victim, dice(3, 10), TYPE_SPECAB_UNHOLY, DAM_UNHOLY, FALSE);
+    }
+  }
+
   if (victim)
   {
     if (actmtd == ACTMTD_ON_HIT)

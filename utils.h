@@ -1985,6 +1985,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_KNIGHT_OF_THE_SWORD(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD))
 #define IS_KNIGHT_OF_THE_ROSE(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE))
 #define IS_KNIGHT_OF_THE_THORN(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN))
+#define IS_KNIGHT_OF_THE_SKULL(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL))
 
 #define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT ||                                                          \
                        IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
@@ -1992,7 +1993,7 @@ int ACTUAL_BAB(struct char_data *ch);
                        IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch) || \
                        IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch) || IS_INQUISITOR(ch) || IS_SUMMONER(ch) || \
                        IS_NECROMANCER(ch) || IS_KNIGHT_OF_THE_SWORD(ch) || IS_KNIGHT_OF_THE_ROSE(ch) || \
-                       IS_KNIGHT_OF_THE_THORN(ch))
+                       IS_KNIGHT_OF_THE_THORN(ch) || IS_KNIGHT_OF_THE_SKULL(ch))
 
 #define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
                         CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
@@ -2017,6 +2018,7 @@ int ACTUAL_BAB(struct char_data *ch);
                            GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_SWORD || \
                            GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_ROSE || \
                            GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_THORN || \
+                           GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_SKULL || \
                            GET_CLASS(ch) == CLASS_BARD)
 
 #define GET_CASTING_CLASS(ch) (ch->player_specials->casting_class)
