@@ -586,6 +586,9 @@ bool is_flanked(struct char_data *attacker, struct char_data *ch)
   if (!ch)
     return FALSE;
 
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ONE_THOUGHT) && is_grouped_in_room(ch))
+    return FALSE;
+
   if (affected_by_spell(ch, PSIONIC_UBIQUITUS_VISION))
     return FALSE;
 
@@ -1147,6 +1150,9 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   if (attacker && has_teamwork_feat(ch, FEAT_DUCK_AND_COVER) && teamwork_using_shield(ch, FEAT_DUCK_AND_COVER) &&
       is_using_ranged_weapon(attacker, TRUE))
     bonuses[BONUS_TYPE_INSIGHT] += 2;
+  
+  if (has_one_thought(ch))
+    bonuses[BONUS_TYPE_INSIGHT] += 1;
 
   if (has_teamwork_feat(ch, FEAT_PHALANX_FIGHTER) && attacker)
   {
@@ -1245,6 +1251,12 @@ void update_pos_dam(struct char_data *victim)
       act("\tYYou push through with your relentless endurance.\tn", FALSE, victim, 0, 0, TO_CHAR);
       act("$n pushes through with $s relentless endurance.", FALSE, victim, 0, 0, TO_ROOM);
       GET_HIT(victim) = 1;
+    }
+    if (HAS_REAL_FEAT(victim, FEAT_FIGHT_TO_THE_DEATH) && GET_FIGHT_TO_THE_DEATH_COOLDOWN(victim) == 0)
+    {
+      act("\tYYou reach deep within and renew your resolve to fight!\tn", FALSE, victim, 0, 0, TO_CHAR);
+      act("$n reaches deep within and renews $s resolve to fight!", FALSE, victim, 0, 0, TO_ROOM);
+      GET_HIT(victim) = MAX(1, GET_MAX_HIT(victim) / 10);
     }
     else if (HAS_REAL_FEAT(victim, FEAT_DIEHARD) && dice(1, 3) == 1)
     {
@@ -1423,7 +1435,13 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   /*  The char is flat footed until they take an action,
    *  but only if they are not currently fighting.  */
   if (!FIGHTING(ch))
-    SET_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
+  {
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ONE_THOUGHT) && is_grouped_in_room(ch))
+      ; // cannot be flat footed
+    else
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
+  }
+    
   FIGHTING(ch) = vict;
 
   if (!CONFIG_PK_ALLOWED)
@@ -8052,6 +8070,9 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   {
     bonuses[BONUS_TYPE_INSIGHT] = MIN((affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 10 : 5), GET_INT_BONUS(ch));
   }
+  
+  if (has_one_thought(ch))
+    bonuses[BONUS_TYPE_INSIGHT] += 1;
 
   /* Luck bonus */
 

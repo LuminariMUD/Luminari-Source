@@ -5213,6 +5213,9 @@ sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte displ
 
   if (HAS_FEAT(victim, FEAT_KENDER_FEARLESSNESS))
     return true;
+
+  if (HAS_FEAT(victim, FEAT_UNBREAKABLE_WILL))
+    return true;
   
   if (HAS_FEAT(victim, FEAT_KNIGHTLY_COURAGE))
     return true;
@@ -5628,6 +5631,70 @@ bool has_aura_of_good(struct char_data *ch)
   }
 
   return has_aura;
+}
+
+bool has_one_thought(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  if (HAS_FEAT(ch, FEAT_ONE_THOUGHT))
+    return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_one_thought = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (HAS_FEAT(tch, FEAT_ONE_THOUGHT))
+      {
+        has_one_thought = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_one_thought;
+}
+
+bool is_grouped_in_room(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  struct char_data *tch = NULL;
+  bool grouped = false;
+  bool num = 0;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      
+      num++;
+      grouped = true;
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return (num >= 2 && grouped);
 }
 
 bool has_aura_of_evil(struct char_data *ch)

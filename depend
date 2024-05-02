@@ -309,7 +309,7 @@ interpreter.o: interpreter.c conf.h sysdep.h structs.h bool.h protocol.h \
  domains_schools.h grapple.h assign_wpn_armor.h bardic_performance.h \
  spell_prep.h crafts.h new_mail.h alchemy.h staff_events.h \
  premadebuilds.h missions.h transport.h hunts.h fight.h char_descs.h \
- evolutions.h deities.h
+ evolutions.h deities.h mudlim.h
 kdtree.o: kdtree.c kdtree.h
 limits.o: limits.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h spells.h comm.h handler.h \

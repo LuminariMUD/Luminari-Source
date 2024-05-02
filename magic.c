@@ -251,6 +251,8 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
   if (AFF_FLAGGED(vict, AFF_SHAKEN))
     saves -= 2;
   saves += get_shield_ally_bonus(vict);
+  if (has_one_thought(vict))
+    saves += 1;
 
     /* determine base, add/minus bonus/penalty and return */
     if (IS_NPC(vict))
@@ -2575,6 +2577,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     if (victim && HAS_REAL_FEAT(victim, FEAT_STUBBORN_MIND))
       dc_mod -= 2;
+    if (victim && HAS_REAL_FEAT(victim, FEAT_UNBREAKABLE_WILL))
+      dc_mod -= 2 * HAS_REAL_FEAT(victim, FEAT_UNBREAKABLE_WILL);
     if (victim && HAS_REAL_FEAT(victim, FEAT_HONORBOUND))
       dc_mod -= 2;
   if (victim && HAS_REAL_FEAT(victim, FEAT_HONORABLE_WILL))

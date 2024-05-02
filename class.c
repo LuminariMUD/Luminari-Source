@@ -1202,12 +1202,15 @@ bool view_class_feats(struct char_data *ch, const char *classname)
 
   if (class == CLASS_WARRIOR)
   {
-    send_to_char(ch, "The warrior class gets a bonus class feat every two "
-                     "levels.\r\n");
+    send_to_char(ch, "The warrior class gets a bonus class feat atb level one and every even levels\r\n");
   }
   if (class == CLASS_KNIGHT_OF_THE_CROWN)
   {
     send_to_char(ch, "The knight of the crown class gets a bonus class feat every odd knight of the crown level.\r\n");
+  }
+  if (class == CLASS_KNIGHT_OF_THE_LILY)
+  {
+    send_to_char(ch, "The knight of the lily class gets a bonus class feat on knight of the lily levels 2, 5 and 8.\r\n");
   }
   if (class == CLASS_WIZARD)
   {
@@ -1388,6 +1391,7 @@ int valid_align_by_class(int alignment, int class)
       return FALSE;
   case CLASS_KNIGHT_OF_THE_THORN:
   case CLASS_KNIGHT_OF_THE_SKULL:
+  case CLASS_KNIGHT_OF_THE_LILY:
     if (alignment == LAWFUL_EVIL || alignment == LAWFUL_NEUTRAL)
       return TRUE;
     else
@@ -1614,6 +1618,10 @@ int parse_class_long(const char *arg_in)
     return CLASS_KNIGHT_OF_THE_SKULL;
   if (is_abbrev(arg, "knight-of-the-skull"))
     return CLASS_KNIGHT_OF_THE_SKULL;
+  if (is_abbrev(arg, "knightofthelily"))
+    return CLASS_KNIGHT_OF_THE_LILY;
+  if (is_abbrev(arg, "knight-of-the-lily"))
+    return CLASS_KNIGHT_OF_THE_LILY;
   if (is_abbrev(arg, "shifter"))
     return CLASS_SHIFTER;
   if (is_abbrev(arg, "sacred-fist"))
@@ -3465,12 +3473,18 @@ void advance_level(struct char_data *ch, int class)
 
   if (class == CLASS_WARRIOR)
   {
-    if (CLASS_LEVEL(ch, CLASS_WARRIOR) <= 20 && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2))
-      class_feats++; // warriors get a bonus class feat every 2 levels
+    if (CLASS_LEVEL(ch, CLASS_WARRIOR) <= 20 && (!(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2) || CLASS_LEVEL(ch, CLASS_WARRIOR) == 1))
+      class_feats++; // warriors get a bonus class feat every 2 levels and at level 1
     // else if (IS_EPIC(ch))
     // epic_class_feats++;
   }
-  if (class == CLASS_KNIGHT_OF_THE_CROWN && (CLASS_LEVEL(ch, CLASS_WARRIOR) % 2) )
+  if (class == CLASS_KNIGHT_OF_THE_CROWN && (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN) % 2) )
+  {
+    class_feats++;
+  }
+
+  if (class == CLASS_KNIGHT_OF_THE_LILY && (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY) == 2 ||
+      CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY) == 5 || CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY) == 8) )
   {
     class_feats++;
   }
@@ -3807,6 +3821,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_KNIGHT_OF_THE_ROSE:
   case CLASS_KNIGHT_OF_THE_THORN:
   case CLASS_KNIGHT_OF_THE_SKULL:
+  case CLASS_KNIGHT_OF_THE_LILY:
     level--;
     if (level < 0)
       level = 0;
@@ -6553,7 +6568,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_ARCANE_ARCHER, "arcanearcher", "ArA", "\tGArA\tn", "f) \tGArcaneArcher\tn",
+  classo(CLASS_ARCANE_ARCHER, "arcane archer", "ArA", "\tGArA\tn", "f) \tGArcaneArcher\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 1, 4, Y, 5000, 0,
          /*prestige spell progression*/ "arcane: 3/4 of arcane archer level",
@@ -6619,7 +6634,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_ARCANE_SHADOW, "arcaneshadow", "ArS", "\tGAr\tDS\tn", "n) \tGArcane\tDShadow\tn",
+  classo(CLASS_ARCANE_SHADOW, "arcane shadow", "ArS", "\tGAr\tDS\tn", "n) \tGArcane\tDShadow\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 8, 0, 2, 5, Y, 5000, 0,
          /*prestige spell progression*/ "Arcane advancement every level",
@@ -6686,7 +6701,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_ELDRITCH_KNIGHT, "eldritchknight", "EKn", "\tWE\tCKn\tn", "n) \tWEldritch\tCKnight\tn",
+  classo(CLASS_ELDRITCH_KNIGHT, "eldritch knight", "EKn", "\tWE\tCKn\tn", "n) \tWEldritch\tCKnight\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 2, 2, Y, 5000, 0,
          /*prestige spell progression*/ "Arcane advancement every level",
@@ -6969,7 +6984,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_SACRED_FIST, "sacredfist", "SaF", "\tGSa\tgF\tn", "n) \tGSacred\tgFist\tn",
+  classo(CLASS_SACRED_FIST, "sacred fist", "SaF", "\tGSa\tgF\tn", "n) \tGSacred\tgFist\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 8, 0, 4, 4, Y, 5000, 0,
          /*prestige spell progression*/ "Divine advancement every level",
@@ -7035,7 +7050,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_STALWART_DEFENDER, "stalwartdefender", "SDe", "\tWS\tcDe\tn", "g) \tWStalwart \tcDefender\tn",
+  classo(CLASS_STALWART_DEFENDER, "stalwart defender", "SDe", "\tWS\tcDe\tn", "g) \tWStalwart \tcDefender\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 12, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "none",
@@ -7108,7 +7123,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_THE_CROWN, "knightofthecrown", "KCr", "\tWKCr\tn", "g) \tWKnight of the Crown\tn",
+  classo(CLASS_KNIGHT_OF_THE_CROWN, "knight of the crown", "KCr", "\tWKCr\tn", "g) \tWKnight of the Crown\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          5, Y, Y, H, 12, 0, 1, 2, Y, 2500, 0,
          /*prestige spell progression*/ "none",
@@ -7260,7 +7275,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_THE_SWORD, "knightofthesword", "KSw", "\tWKSw\tn", "g) \tWKnight of the Sword\tn",
+  classo(CLASS_KNIGHT_OF_THE_SWORD, "knight of the sword", "KSw", "\tWKSw\tn", "g) \tWKnight of the Sword\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          5, Y, Y, H, 10, 0, 1, 2, Y, 2500, 0,
          /*prestige spell progression*/ "none",
@@ -7334,7 +7349,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_THE_ROSE, "knightoftherose", "KRs", "\tWKRs\tn", "g) \tWKnight of the Rose\tn",
+  classo(CLASS_KNIGHT_OF_THE_ROSE, "knight of the rose", "KRs", "\tWKRs\tn", "g) \tWKnight of the Rose\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "none",
@@ -7412,9 +7427,161 @@ void load_class_list(void)
   class_prereq_class_level(CLASS_KNIGHT_OF_THE_ROSE, CLASS_KNIGHT_OF_THE_SWORD, 3);
   /****************************************************************************/
 
+  
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_THE_THORN, "knightofthethorn", "KTh", "\tDKTh\tn", "g) \tDKnight of the Thorn\tn",
+  classo(CLASS_KNIGHT_OF_THE_LILY, "knight of the lily", "KLy", "\tDLyk\tn", "g) \tDKnight of the Lily\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         10, Y, Y, M, 10, 0, 1, 2, Y, 5000, 0,
+         /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Str for melee combat, Con/Dex for survivability",
+         /*descrip*/ 
+           "The Order of the Lily is the backbone of the Knights of Takhisis, and the order  "
+              "in which every applicant for the knighthood must first enter. The Lily Knights  "
+              "are most likened to their Solamnic counterparts in the Order of the Crown, and  "
+              "are the order in which most training occurs for the younger members of the  "
+              "knighthood. The Knights of the Lily are taught that strength is achieved through conformity  "
+              "and uniformity. To be an individualist or to be a freethinker is to submit to  "
+              "chaos, and ultimately leads down the path of evil turning on itself. The Lily  "
+              "Knights are the military might of the knighthood that live by the code of  "
+              "'Independence breeds chaos, submit and be strong.' "
+          );
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_KNIGHT_OF_THE_LILY, G, B, G, G, G);
+  assign_class_abils(CLASS_KNIGHT_OF_THE_LILY, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CA, CA, CA, CC, CC,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CA, CA, CA, CA, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CA, CC, CC, CC, CA, CC,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CC, CC);
+
+  assign_class_titles(CLASS_KNIGHT_OF_THE_LILY,   /* class number */
+                      "Knight of the Lily",      /* <= 4  */
+                      "Knight of the Lily",      /* <= 9  */
+                      "Knight of the Lily",      /* <= 14  */
+                      "Knight of the Lily",      /* <= 19  */
+                      "Knight of the Lily",      /* <= 24  */
+                      "Knight of the Lily",      /* <= 29  */
+                      "Knight of the Lily",      /* <= 30  */
+                      "Knight of the Lily",      /* <= LVL_IMMMORT  */
+                      "Knight of the Lily",      /* <= LVL_STAFF  */
+                      "Knight of the Lily",      /* <= LVL_GRSTAFF  */
+                      "Knight of the Lily"      /* default  */
+  );
+  /* feat assignment */
+  /*              class num     feat                                   cfeat lvl stack */
+  
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SIMPLE_WEAPON_PROFICIENCY,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_MARTIAL_WEAPON_PROFICIENCY,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_LIGHT,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_MEDIUM,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_HEAVY,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_PROFICIENCY_SHIELD,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK,  Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DEMORALIZE,  Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_FIGHT_TO_THE_DEATH,  Y, 3, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_UNBREAKABLE_WILL,  Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK,  Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMORED_MOBILITY,  Y, 6, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK,  Y, 7, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_UNBREAKABLE_WILL,  Y, 8, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNEAK_ATTACK,  Y, 10, Y);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ONE_THOUGHT,  Y, 10, Y);
+
+  // CLASS FEATS
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_SPECIALIZATION_MEDIUM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ARMOR_SPECIALIZATION_HEAVY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_BLIND_FIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_COMBAT_EXPERTISE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_COMBAT_REFLEXES, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DEFLECT_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DAMAGE_REDUCTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DODGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_EXOTIC_WEAPON_PROFICIENCY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_FAR_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DAZZLING_DISPLAY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREATER_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREATER_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREATER_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_BULL_RUSH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_DISARM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_FEINT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_GRAPPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_INITIATIVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_OVERRUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_SHIELD_PUNCH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_KNOCKDOWN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SHIELD_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SHIELD_SLAM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_SUNDER, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_TRIP, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_IMPROVED_UNARMED_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_MANYSHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_MOBILITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_MOUNTED_ARCHERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_MOUNTED_COMBAT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_POINT_BLANK_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_POWER_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DEADLY_AIM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_QUICK_DRAW, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_RAPID_RELOAD, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_RAPID_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_RIDE_BY_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_ROBILARS_GAMBIT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SHOT_ON_THE_RUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SNATCH_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SPIRITED_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SPRING_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_STUNNING_FIST, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_SWARM_OF_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_TRAMPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_TWO_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_OVERSIZED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_WEAPON_FINESSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_WHIRLWIND_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_FAST_HEALING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_WEAPON_MASTERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_WEAPON_FLURRY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_WEAPON_SUPREMACY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DOUBLE_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DOUBLE_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DOUBLE_WEAPON_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_DOUBLE_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
+  /* epic class */
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_THE_LILY, FEAT_EPIC_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_bab(CLASS_KNIGHT_OF_THE_LILY, 2);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_LILY, ABILITY_LORE, 2);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_LILY, ABILITY_INTIMIDATE, 3);
+  class_prereq_feat(CLASS_KNIGHT_OF_THE_LILY, FEAT_HONORBOUND, 1);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_KNIGHT_OF_THE_THORN, "knight of the thorn", "KTh", "\tDKTh\tn", "g) \tDKnight of the Thorn\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 6, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "+1 arcane caster level per knight of the thorn level.",
@@ -7472,6 +7639,7 @@ void load_class_list(void)
   // No class feats
   /* no spell assignment */
   /* class prereqs */
+  class_prereq_class_level(CLASS_KNIGHT_OF_THE_THORN, CLASS_KNIGHT_OF_THE_LILY, 1);
   class_prereq_bab(CLASS_KNIGHT_OF_THE_THORN, 3); 
   class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_LORE, 8);
   class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_SPELLCRAFT, 8);
@@ -7482,7 +7650,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_THE_SKULL, "knightoftheskull", "KSk", "\tDKSk\tn", "g) \tDKnight of the Skull\tn",
+  classo(CLASS_KNIGHT_OF_THE_SKULL, "knight of the skull", "KSk", "\tDKSk\tn", "g) \tDKnight of the Skull\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 10, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "+1 divine caster level per knight of the skull level.",
@@ -7545,7 +7713,8 @@ void load_class_list(void)
   // No class feats
   /* no spell assignment */
   /* class prereqs */
-  class_prereq_bab(CLASS_KNIGHT_OF_THE_SKULL, 3); 
+  class_prereq_bab(CLASS_KNIGHT_OF_THE_SKULL, 3);
+  class_prereq_class_level(CLASS_KNIGHT_OF_THE_SKULL, CLASS_KNIGHT_OF_THE_LILY, 1);
   class_prereq_ability(CLASS_KNIGHT_OF_THE_SKULL, ABILITY_LORE, 4);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_SKULL, FEAT_ALERTNESS, 1);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_SKULL, FEAT_IRON_WILL, 1);
@@ -7742,7 +7911,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_MYSTIC_THEURGE, "mystictheurge", "MTh", "\tmM\tBTh\tn", "f) \tmMystic\tBTheurge\tn",
+  classo(CLASS_MYSTIC_THEURGE, "mystic theurge", "MTh", "\tmM\tBTh\tn", "f) \tmMystic\tBTheurge\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, L, 4, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "each level in -both- divine/arcane choice",

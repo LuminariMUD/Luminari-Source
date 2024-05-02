@@ -104,6 +104,7 @@ sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyt
 void remove_fear_affects(struct char_data *ch, sbyte display);
 bool has_aura_of_good(struct char_data *ch);
 bool has_aura_of_evil(struct char_data *ch);
+bool has_one_thought(struct char_data *ch);
 bool group_member_affected_by_spell(struct char_data *ch, int spellnum);
 void gui_combat_wrap_open(struct char_data *ch);
 void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_obj);
@@ -411,6 +412,7 @@ void add_follower(struct char_data *ch, struct char_data *leader);
 void stop_follower(struct char_data *ch);
 void stop_follower_engine(struct char_data *ch);
 bool circle_follow(struct char_data *ch, struct char_data *victim);
+bool is_grouped_in_room(struct char_data *ch);
 
 /* in act.informative.c */
 void look_at_room(struct char_data *ch, int mode);
@@ -1436,7 +1438,7 @@ void char_from_furniture(struct char_data *ch);
 #define HAS_ELDRITCH_SPELL_CRIT(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->has_eldritch_knight_spell_critical))
 // Eldritch knight levels are added to warrior levels when determining qualification for certain warrior-only feats
 #define WARRIOR_LEVELS(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + (CLASS_LEVEL(ch, CLASS_SPELLSWORD) / 2) + \
-                            CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN))
+                            CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY))
 
 /* Attacks of Opportunity (AOO) */
 #define GET_TOTAL_AOO(ch) (ch->char_specials.attacks_of_opportunity)
@@ -1986,6 +1988,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_KNIGHT_OF_THE_ROSE(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE))
 #define IS_KNIGHT_OF_THE_THORN(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN))
 #define IS_KNIGHT_OF_THE_SKULL(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL))
+#define IS_KNIGHT_OF_THE_LILY(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY))
 
 #define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT ||                                                          \
                        IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
@@ -2601,6 +2604,8 @@ bool has_reach(struct char_data *ch);
 #define GET_TOUCH_SPELL_QUEUED(ch)  (ch->player_specials->touch_spell_queued)
 
 #define GET_FORETELL_USES(ch)       (ch->char_specials.foretell_uses)
+
+#define GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) (ch->player_specials->saved.fight_to_the_death_cooldown)
 
 #endif /* _UTILS_H_ */
 

@@ -594,6 +594,7 @@ void compute_char_cap(struct char_data *ch, int mode)
         break;
       case CLASS_WARRIOR:
       case CLASS_KNIGHT_OF_THE_CROWN:
+      case CLASS_KNIGHT_OF_THE_LILY:
       case CLASS_WEAPON_MASTER:
         str_cap += class_level / 4 + 1;
         con_cap += class_level / 4 + 1;
