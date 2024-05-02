@@ -1110,6 +1110,9 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_FEAT(ch, FEAT_DEMORALIZE))
+      value += 2;
+      
     if (HAS_FEAT(ch, FEAT_AUTHORITATIVE))
     {
       /* Unnamed bonus */

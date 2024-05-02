@@ -433,6 +433,7 @@
 #define CLASS_KNIGHT_OF_THE_ROSE 32
 #define CLASS_KNIGHT_OF_THE_THORN 33
 #define CLASS_KNIGHT_OF_THE_SKULL 34
+#define CLASS_KNIGHT_OF_THE_LILY 35
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -441,12 +442,12 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 35
+#define NUM_CLASSES 36
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
-#define MAX_CLASSES 35 // total number of maximum pc classes
+#define MAX_CLASSES 36 // total number of maximum pc classes
 #define NUM_CASTERS 9  // direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2
@@ -2662,12 +2663,16 @@
 #define FEAT_HEART_OF_TRUTH 1088
 #define FEAT_FAVOR_OF_DARKNESS 1089
 #define FEAT_AURA_OF_THE_VISION 1090
+// Knight of the Lily
+#define FEAT_DEMORALIZE 1091
+#define FEAT_FIGHT_TO_THE_DEATH 1092
+#define FEAT_ONE_THOUGHT 1093
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1091
+#define FEAT_LAST_FEAT 1094
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1092
+#define NUM_FEATS 1095
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4736,6 +4741,7 @@ struct player_special_data_saved
     int fixed_bab;  // This is the character's final bab which is set upon reaching lvl 20 and determines # of attacks per round
     bool vital_strike;                              /* if we're using vital strike */
     int necromancer_bonus_levels; // 1 for arcane, 2 for divine
+    int fight_to_the_death_cooldown;
 
 };
 

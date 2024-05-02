@@ -445,6 +445,7 @@ int load_char(const char *name, struct char_data *ch)
     SITTING(ch) = NULL;
     NEXT_SITTING(ch) = NULL;
     GET_QUESTPOINTS(ch) = PFDEF_QUESTPOINTS;
+    GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) = 0;
 
     for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     { /* loop through all the character's quest slots */
@@ -881,6 +882,8 @@ int load_char(const char *name, struct char_data *ch)
           FEY_SHADOW_WALK_USES(ch) = atoi(line);
         else if (!strcmp(tag, "FstH"))
           GET_FAST_HEALING_MOD(ch) = atoi(line);
+        else if (!strcmp(tag, "FttD"))
+          GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) = atoi(line);
 
         break;
 
@@ -1820,6 +1823,8 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "GTCU: %d\n", GRAVE_TOUCH_USES(ch));
   if (GRAVE_TOUCH_TIMER(ch) != PFDEF_GRAVE_TOUCH_TIMER)
     fprintf(fl, "GTCT: %d\n", GRAVE_TOUCH_TIMER(ch));
+  if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) != 0)
+    fprintf(fl, "FttD: %d\n", GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch));
 
   if (GRASP_OF_THE_DEAD_USES(ch) != PFDEF_GRASP_OF_THE_DEAD_USES)
     fprintf(fl, "GODU: %d\n", GRASP_OF_THE_DEAD_USES(ch));
@@ -2356,6 +2361,8 @@ void save_char(struct char_data *ch, int mode)
     if ((pMudEvent = char_has_mud_event(ch, eKNIGHTHOODSFLOWER)))
         fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eRALLYINGCRY)))
+        fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eCOSMICUNDERSTANDING)))
         fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
 
     fprintf(fl, "-1 -1\n");

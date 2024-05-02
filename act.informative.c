@@ -2040,6 +2040,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSOULOFKNIGHTHOOD)))
     send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eCOSMICUNDERSTANDING)))
+    send_to_char(ch, "Cosmic Understanding Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
   if (GET_SETCLOAK_TIMER(ch) > 0)
     send_to_char(ch, "Vampire 'Setcloak' Cooldown - Duration: %d seconds\r\n", GET_SETCLOAK_TIMER(ch) * 6);
@@ -2065,6 +2067,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Mission Ready Cooldown - Duration: %d seconds\r\n", GET_MISSION_COOLDOWN(k) * 6);
   if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(k) > 0)
     send_to_char(ch, "Kapak Saliva Healing - Duration: %d seconds\r\n", GET_KAPAK_SALIVA_HEALING_COOLDOWN(k) * 6);
+  if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(k) > 0)
+    send_to_char(ch, "Fight to the Death - Duration: %d seconds\r\n", GET_FIGHT_TO_THE_DEATH_COOLDOWN(k) * 6);
   if (ch->char_specials.terror_cooldown > 0)
     send_to_char(ch, "Aura of Terror Immunity - Duration: %d seconds\r\n",  ch->char_specials.terror_cooldown * 6);
 
@@ -4083,6 +4087,16 @@ ACMD(do_who)
           clan_name[20] = ' ';
       }
       send_to_char(ch, "\tC[ %20.20s ]\tn %s", clan_name, GET_TITLE(tch));
+
+        // num_can_see++;
+        if (GET_LEVEL(tch) >= LVL_IMMORT)
+        {
+          staff++;
+        }
+        else
+        {
+          mortals++;
+        }
 #else
       if (short_list)
       {

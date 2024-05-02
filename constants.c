@@ -653,21 +653,22 @@ const char *class_names[] = {
     "Alchemist",
     "Arcane Shadow",
     "Sacred Fist",
-    "Eldritch Knight",
+    "Eldritch Knight", // 20
     "Psionicist",
     "Spellsword",
     "Shadow Dancer",
     "Blackguard",
-    "Assassin",
+    "Assassin", // 25
     "Inquisitor",
     "Summoner",
     "Warlock",
     "Necromancer",
-    "Knight of the Crown",
+    "Knight of the Crown", // 30
     "Knight of the Sword",
     "Knight of the Rose",
     "Knight of the Thorn",
     "Knight of the Skull",
+    "Knight of the Lily", // 35
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -4609,6 +4610,7 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                        // knight of the rose 32
     {"", "", "", ""},                                        // knight of the thorn 33
     {"", "", "", ""},                                        // knight of the skull 34
+    {"", "", "", ""},                                        // knight of the lily 35
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -4655,6 +4657,7 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                        // knight of the rose 32
     {"", "", "", ""},                                        // knight of the thorn 33
     {"", "", "", ""},                                        // knight of the skull 34
+    {"", "", "", ""},                                        // knight of the lily 35
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -5221,6 +5224,7 @@ const char *class_short_descriptions[] = {
     "The third order of the Knights of Solamnia, bound by the tenets of nobility, bravery and leadership.",       // knight of the Rose
     "The arcane order of the Knights of Takhisis, clad in armor and adhering to a strict code of honor.",         // knight of the thorn
     "The clerical order of the Knights of Takhisis, they serve as diplomats and internal enforcers.",             // knight of the skull
+    "The rank and file of the Knights of Takhisis and main force of their military.",                             // knight of the lily
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 

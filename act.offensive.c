@@ -3437,6 +3437,9 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict)
   else
     resist += (GET_LEVEL(vict) / 2);
 
+  if (HAS_FEAT(vict, FEAT_DEMORALIZE))
+    resist += 2;
+
   /* Should last one round, plus one second for every point over the resist */
   if (attempt >= resist)
   {
@@ -3455,7 +3458,11 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict)
   if (!FIGHTING(vict))
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
-  if (HAS_FEAT(ch, FEAT_IMPROVED_INTIMIDATION))
+  if (HAS_FEAT(ch, FEAT_IMPROVED_INTIMIDATION) && HAS_FEAT(ch, FEAT_DEMORALIZE))
+  {
+    USE_SWIFT_ACTION(ch);
+  }
+  if (HAS_FEAT(ch, FEAT_IMPROVED_INTIMIDATION) || HAS_FEAT(ch, FEAT_DEMORALIZE))
   {
     USE_MOVE_ACTION(ch);
   }

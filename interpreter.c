@@ -286,7 +286,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"combatroll", "combatroll", POS_DEAD, do_gen_tog, 0, SCMD_COMBATROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"coordconvert", "coordconvert", POS_SLEEPING, do_coordconvert, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"cmdlev", "cmdlev", POS_DEAD, do_cmdlev, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#if !defined(CAMPAIGN_DL)
     {"cexchange", "cexchange", POS_RECLINING, do_cexchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"createspawn", "createspawn", POS_STANDING, do_create_vampire_spawn, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_create_vampire_spawn},
     {"crownofknighthood", "crownofknighthood", POS_FIGHTING, do_crown_of_knighthood, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"cruelties", "cruelties", POS_RECLINING, do_cruelties, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -3191,6 +3193,9 @@ switch (load_result)
       break;
     case CLASS_KNIGHT_OF_THE_SKULL:
       perform_help(d, "class-knightoftheskull");
+      break;
+    case CLASS_KNIGHT_OF_THE_LILY:
+      perform_help(d, "class-knightofthelily");
       break;
     case CLASS_WARRIOR:
       perform_help(d, "class-warrior");

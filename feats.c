@@ -4687,6 +4687,22 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_FAVOR_OF_DARKNESS, "favor of darkness", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
     "All weapon attacks gain +1 to hit and damage, and also deal 3d6 unholy damage per hit, and 3d10 unholy damage on a critical hit.",
     "All weapon attacks gain +1 to hit and damage, and also deal 3d6 unholy damage per hit, and 3d10 unholy damage on a critical hit.");
+  
+  // Knight of the Lily
+  feato(FEAT_UNBREAKABLE_WILL, "unbreakable will", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Makes you immune to fear and gain +2 bonus to saves against mind affecting spells. +4 with a second rank in this feat.",
+    "Makes you immune to fear and gain +2 bonus to saves against mind affecting spells. +4 with a second rank in this feat.");
+  feato(FEAT_DEMORALIZE, "demoralize", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Gain a +2 on intimidate checks, or on concentration checks to avoid being intimidated. Using the indimidate command uses a move "
+    "action instead of a standard action. If also has improved intimidate feat, uses a swift action.",
+    "Gain a +2 on intimidate checks, or on concentration checks to avoid being intimidated. Using the indimidate command uses a move "
+    "action instead of a standard action. If also has improved intimidate feat, uses a swift action.");
+  feato(FEAT_FIGHT_TO_THE_DEATH, "fight to the death", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "When receiving sufficient damage to be killed, the knight is instead restored to 10% of their maximum hit points. This affect has a several minute cooldown.",
+    "When receiving sufficient damage to be killed, the knight is instead restored to 10% of their maximum hit points. This affect has a several minute cooldown.");
+  feato(FEAT_ONE_THOUGHT, "one thought", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "When grouped, cannot be flanked, flat footed or surprised. All group members also receive a +1 insight bonus to AC, attack rolls and saving throws.",
+    "When grouped, cannot be flanked, flat footed or surprised. All group members also receive a +1 insight bonus to AC, attack rolls and saving throws.");
 
   /* Shadow Dancer (ShadowDancer) */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -7556,6 +7572,21 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (rank %d)", feat_list[i].name, HAS_FEAT(ch, FEAT_HEART_OF_TRUTH));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_UNBREAKABLE_WILL)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_UNBREAKABLE_WILL)*2);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_UNBREAKABLE_WILL)*2);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

@@ -2588,7 +2588,7 @@ ACMD(do_respec)
 }
 
 /* level advancement, with multi-class support */
-ACMD(do_gain)
+ACMDU(do_gain)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int is_altered = FALSE, num_levels = 0;
@@ -2661,7 +2661,14 @@ ACMD(do_gain)
   }
 
   if (GET_PREMADE_BUILD_CLASS(ch) < 0)
+  {
+    skip_spaces(&argument);
+    for (i = 0; i < strlen(argument); i++)
+      if (argument[i] == ' ') argument[i] = '-';
     one_argument(argument, arg, sizeof(arg));
+    for (i = 0; i < strlen(arg); i++)
+      if (arg[i] == '-') arg[i] = ' ';
+  }
   else
     snprintf(arg, MAX_INPUT_LENGTH, "%s", class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
 

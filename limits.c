@@ -1051,6 +1051,17 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     if (HAS_FEAT(ch, FEAT_ADAPTABILITY))
       gain += (int)((float)gain * .05);
 
+#if defined(CAMPAIGN_DL)
+/* flat rate for now! (halfed the rate for testing purposes) */
+    if (rand_number(0, 1) && ch && ch->desc && ch->desc->account)
+    {
+      if (gain >= 1000 && GET_ACCEXP_DESC(ch) <= 99999999)
+      {
+        send_to_char(ch, "You gain %d account experience points!\r\n", (gain / 1000));
+        change_account_xp(ch, (gain / 1000));
+      }
+    }
+#else
     /* flat rate for now! (halfed the rate for testing purposes) */
     if (rand_number(0, 1) && ch && ch->desc && ch->desc->account)
     {
@@ -1061,6 +1072,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
         change_account_xp(ch, (gain / 3000));
       }
     }
+#endif
 
     /* some limited xp cap conditions */
     switch (mode)
@@ -2332,6 +2344,15 @@ void self_buffing(void)
 
     if (!IS_BUFFING(ch))
       continue;
+
+    if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) > 0)
+    {
+      GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch)--;
+      if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) == 0)
+      {
+        send_to_char(ch, "You can now fight to the death again.\r\n");
+      }
+    }
 
     while (GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 0) == 0 && GET_CURRENT_BUFF_SLOT(ch) < (MAX_BUFFS + 1))
     {
