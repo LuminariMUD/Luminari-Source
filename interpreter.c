@@ -161,6 +161,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"autoconsider", "autoconsider", POS_DEAD, do_gen_tog, 0, SCMD_AUTOCONSIDER, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autodoor", "autodoor", POS_DEAD, do_gen_tog, 0, SCMD_AUTODOOR, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autogold", "autogold", POS_DEAD, do_gen_tog, 0, SCMD_AUTOGOLD, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"autogroup", "autogroup", POS_DEAD, do_gen_tog, 0, SCMD_AUTOGROUP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autohit", "autohit", POS_DEAD, do_gen_tog, 0, SCMD_AUTOHIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autokey", "autokey", POS_DEAD, do_gen_tog, 0, SCMD_AUTOKEY, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autoloot", "autoloot", POS_DEAD, do_gen_tog, 0, SCMD_AUTOLOOT, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -333,6 +334,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"destructiveaura", "destructiveaura", POS_FIGHTING, do_destructiveaura, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"destructivesmite", "destructivesmite", POS_FIGHTING, do_destructivesmite, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"deadlyaim", "deadlyaim", POS_FIGHTING, do_mode, 1, MODE_DEADLY_AIM, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"deadlypower", "deadlypower", POS_FIGHTING, do_deadly_power, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"deatharrow", "deatharrow", POS_FIGHTING, do_deatharrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_deatharrow},
     {"defenses", "defenses", POS_DEAD, do_defenses, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"defensivestance", "defensivestance", POS_FIGHTING, do_defensive_stance, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_defensive_stance},
@@ -436,6 +438,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"goodlance", "goodlance", POS_STANDING, do_goodlance, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"goodtouch", "goodtouch", POS_STANDING, do_goodtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"guimode", "guimode", POS_DEAD, do_gen_tog, 1, SCMD_GUI_MODE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"gloryscall", "gloryscall", POS_FIGHTING, do_gloryscall, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"glore", "glore", POS_RESTING, do_glore, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
@@ -3266,6 +3269,9 @@ switch (load_result)
     case CLASS_NECROMANCER:
       perform_help(d, "class-necromancer");
       break;
+    case CLASS_DRAGONRIDER:
+      perform_help(d, "class-dragonrider");
+      break;
 
     default:
       write_to_output(d, "\r\nCommand not understood.\r\n");
@@ -3511,6 +3517,7 @@ switch (load_result)
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_USE_STORED_CONSUMABLES);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTO_STAND);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTOHIT);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTO_GROUP);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUGMENT_BUFFS);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPACTIONS);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPEXP);

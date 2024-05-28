@@ -738,6 +738,7 @@ ACMD_DECL(do_racefix);
 #define SCMD_AUTO_AUGMENT 57
 #define SCMD_AUTOSORT 58
 #define SCMD_AUTOSTORE 59
+#define SCMD_AUTOGROUP 60
 
 /* do_quit */
 ACMD_DECL(do_quit);
@@ -1001,6 +1002,10 @@ ACMD_DECL(do_psionic_focus);
 ACMDCHECK(can_psionic_focus);
 ACMD_DECL(do_double_manifest);
 ACMDCHECK(can_double_manifest);
+
+// dragon riders
+ACMD_DECL(do_deadly_power);
+ACMD_DECL(do_gloryscall);
 
 // deities.c
 ACMD_DECL(do_devote);

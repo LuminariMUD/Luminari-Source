@@ -159,7 +159,7 @@ void assign_evolutions(void)
                "The eidolon gains a sting attack, which deals 1d4 + 1/2 strength mod piercing damage. "
                "1d6 if large, 1d8 if huge.");
     evolutiono(EVOLUTION_SWIM, "swimmer", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidolon can swim with ease, gaining a +20 to swim skill checks. They also bestow their owners"
+               "The eidolon can swim with ease, gaining a +20 to swim skill checks. They also bestow their owners "
                "with a +10 bonus to their swim checks.");
     evolutiono(EVOLUTION_TAIL_SLAP, "tail slap", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
                "The eidolon gains a tail slap attack that deals 1d6 + 1/2 strength mod bludgeoning damage. "

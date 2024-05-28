@@ -398,7 +398,7 @@ players.o: players.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h handler.h pfdefaults.h \
  dg_scripts.h comm.h interpreter.h mysql.h genolc.h config.h quest.h \
  spells.h clan.h mud_event.h dg_event.h craft.h spell_prep.h alchemy.h \
- templates.h premadebuilds.h missions.h evolutions.h
+ templates.h premadebuilds.h missions.h evolutions.h class.h
 prefedit.o: prefedit.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h comm.h utils.h db.h helpers.h perfmon.h handler.h \
  interpreter.h oasis.h help.h prefedit.h screen.h encounters.h

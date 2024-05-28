@@ -1702,6 +1702,26 @@ void perform_call(struct char_data *ch, int call_type, int level)
       mob_num = 63; // meant for npc's
 
     break;
+  case MOB_C_DRAGON:
+    /* do they even have a valid selection yet? */
+    if (!IS_NPC(ch) && GET_DRAGON_RIDER_DRAGON_TYPE(ch) <= 0)
+    {
+      send_to_char(ch, "You have to select your dragon mount type via the 'study' command.\r\n");
+      return;
+    }
+
+    /* is the ability on cooldown? */
+    if (char_has_mud_event(ch, eC_DRAGONMOUNT))
+    {
+      send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+      return;
+    }
+
+    /* todo:  seriously, fix this */
+    if (!(mob_num = (GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 40400)))
+      mob_num = 39; // meant for npc's
+
+    break;
   case MOB_C_FAMILIAR:
     /* do they even have a valid selection yet? */
     if (!IS_NPC(ch) && GET_FAMILIAR(ch) <= 0)
@@ -1833,6 +1853,10 @@ void perform_call(struct char_data *ch, int call_type, int level)
     GET_REAL_MAX_HIT(mob) += 20;
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
     break;
+  case MOB_C_DRAGON:
+    GET_LEVEL(mob) = MIN(25, level);
+    autoroll_mob(mob, true, true);
+    break;
   case MOB_SHADOW:
     GET_LEVEL(mob) = MIN(25, level);
     autoroll_mob(mob, true, true);
@@ -1902,6 +1926,10 @@ void perform_call(struct char_data *ch, int call_type, int level)
   {
     attach_mud_event(new_mud_event(eC_ANIMAL, ch, NULL), 4 * SECS_PER_MUD_DAY);
   }
+  if (call_type == MOB_C_DRAGON)
+  {
+    attach_mud_event(new_mud_event(eC_DRAGONMOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
+  }
   else if (call_type == MOB_C_FAMILIAR)
   {
     attach_mud_event(new_mud_event(eC_FAMILIAR, ch, NULL), 4 * SECS_PER_MUD_DAY);
@@ -1958,6 +1986,23 @@ ACMD(do_call)
       return;
     }
     call_type = MOB_C_ANIMAL;
+  }
+  else if (is_abbrev(argument, "dragon"))
+  {
+    level = MIN(256, GET_LEVEL(ch));
+
+    if (!HAS_FEAT(ch, FEAT_DRAGON_BOND))
+    {
+      send_to_char(ch, "You do not have an dragon mount.\r\n");
+      return;
+    }
+
+    if (level <= 0)
+    {
+      send_to_char(ch, "You are too inexperienced to use this ability!\r\n");
+      return;
+    }
+    call_type = MOB_C_DRAGON;
   }
   else if (is_abbrev(argument, "familiar"))
   {
@@ -2044,7 +2089,7 @@ ACMD(do_call)
   }
   else
   {
-    send_to_char(ch, "Usage:  call <companion/familiar/mount/shadow/eidolon/cohort>\r\n  Lost followers can be retrieved via 'summon' command.\r\n");
+    send_to_char(ch, "Usage:  call <companion/familiar/mount/shadow/eidolon/cohort/dragon>\r\n  Lost followers can be retrieved via 'summon' command.\r\n");
     return;
   }
 
@@ -2155,6 +2200,14 @@ ACMD(do_dismiss)
             event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_ANIMAL, (59 * PASSES_PER_SEC));
+        }
+      }
+      if (MOB_FLAGGED(vict, MOB_C_DRAGON))
+      {
+        if ((pMudEvent = char_has_mud_event(ch, eC_DRAGONMOUNT)) &&
+            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+        {
+          change_event_duration(ch, eC_DRAGONMOUNT, (59 * PASSES_PER_SEC));
         }
       }
       else if (MOB_FLAGGED(vict, MOB_C_FAMILIAR))
@@ -7103,6 +7156,9 @@ ACMD(do_gen_tog)
       // 59
       {"Autostore disabled.\r\n",
        "Autostore enabled.\r\n"},
+      // 60
+      {"Autogroup disabled.\r\n",
+       "Autogroup enabled.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7172,6 +7228,9 @@ ACMD(do_gen_tog)
     break;
   case SCMD_AUTOSORT:
     result = PRF_TOG_CHK(ch, PRF_AUTO_SORT);
+    break;
+  case SCMD_AUTOGROUP:
+    result = PRF_TOG_CHK(ch, PRF_AUTO_GROUP);
     break;
   case SCMD_AUTOSTORE:
     result = PRF_TOG_CHK(ch, PRF_AUTO_STORE);
@@ -9243,6 +9302,40 @@ ACMDU(do_weapon_touch)
   }
 
   do_gen_cast(ch, argument, cmd, SCMD_WEAPON_TOUCH);
+}
+
+ACMD(do_deadly_power)
+{
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "This can be done by player characters only.\r\n");
+    return;
+  }
+
+  if (!HAS_DRAGON_BOND_ABIL(ch, 10, DRAGON_BOND_MAGE))
+  {
+    send_to_char(ch, "You don't have access to the deadly power ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "You need a swift action to use this ability.\r\n");
+    return;
+  }
+
+  int hp_cost = GET_MAX_HIT(ch) / 3;
+
+  if (GET_HIT(ch) < hp_cost)
+  {
+    send_to_char(ch, "You don't have enough hit points to do this right now. You need %d and have %d.\r\n", hp_cost, GET_HIT(ch));
+    return;
+  }
+
+  send_to_char(ch, "You spend %d hit points to regain a random spell slot or prepared spell.\r\n", hp_cost);
+  GET_HIT(ch) -= hp_cost;
+  star_circlet_proc(ch, 1);
+  USE_SWIFT_ACTION(ch);
 }
 
 /* undefines */

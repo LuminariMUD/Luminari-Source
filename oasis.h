@@ -673,6 +673,12 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define STUDY_SELECT_ASPECT 71
 #define STUDY_SELECT_ASPECT_CONFIRM 72
 #define STUDY_SET_NECROMANCER_CAST_TYPE 73
+#define STUDY_DRAGON_RIDER_MENU 74
+#define STUDY_DRAGON_RIDER_DRAGON_TYPE 75
+#define STUDY_DRAGON_RIDER_BOND_TYPE 76
+#define STUDY_DRAGON_RIDER_DRAGON_TYPE_CONFIRM 77
+#define STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM 78
+
 
 int save_config(IDXTYPE nowhere);
 
@@ -821,5 +827,10 @@ void setup_moving_room(FILE * fl, int rroom, int vroom, char * line);
 void moving_rooms_update(void);
 void dump_moving(struct moving_room_data * mr, struct char_data * ch);
 
+// dragon riders
+void show_dragon_rider_menu(struct descriptor_data *d);
+void show_dragon_rider_bond_menu(struct descriptor_data *d);
+void show_dragonrider_bond_type(struct descriptor_data *d);
+void show_dragonrider_mount_type(struct descriptor_data *d);
 
 #endif /* _OASIS_H_ */

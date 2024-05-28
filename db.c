@@ -2739,12 +2739,14 @@ void parse_mobile(FILE *mob_f, int nr)
     REMOVE_BIT_AR(AFF_FLAGS(mob_proto + i), AFF_POISON);
     REMOVE_BIT_AR(AFF_FLAGS(mob_proto + i), AFF_ACID_COAT);
     REMOVE_BIT_AR(AFF_FLAGS(mob_proto + i), AFF_SLEEP);
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     if (MOB_FLAGGED(mob_proto + i, MOB_AGGRESSIVE) && MOB_FLAGGED(mob_proto + i, MOB_AGGR_GOOD))
       REMOVE_BIT_AR(MOB_FLAGS(mob_proto + i), MOB_AGGR_GOOD);
     if (MOB_FLAGGED(mob_proto + i, MOB_AGGRESSIVE) && MOB_FLAGGED(mob_proto + i, MOB_AGGR_NEUTRAL))
       REMOVE_BIT_AR(MOB_FLAGS(mob_proto + i), MOB_AGGR_NEUTRAL);
     if (MOB_FLAGGED(mob_proto + i, MOB_AGGRESSIVE) && MOB_FLAGGED(mob_proto + i, MOB_AGGR_EVIL))
       REMOVE_BIT_AR(MOB_FLAGS(mob_proto + i), MOB_AGGR_EVIL);
+#endif
 
     check_bitvector_names(AFF_FLAGS(mob_proto + i)[0], affected_bits_count, buf2, "mobile affect");
 
@@ -4136,9 +4138,8 @@ int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
 
 static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
 {
-  mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: zone file: %s", message);
-  mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: ...offending cmd: '%c' cmd in zone #%d, line %d",
-         ZCMD.command, zone_table[zone].number, ZCMD.line);
+  mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: zone file: %s", message);
+  mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: ...offending cmd: '%c' cmd in zone #%d, line %d", ZCMD.command, zone_table[zone].number, ZCMD.line);
 }
 
 /*

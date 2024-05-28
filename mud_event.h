@@ -194,6 +194,8 @@ typedef enum
   eKNIGHTHOODSFLOWER,               // knighthood's flower ability
   eRALLYINGCRY,                     // rallying cry ability
   eCOSMICUNDERSTANDING,             // foretell and prescience abilites
+  eDRAGOONPOINTS,                   // dragoon points
+  eC_DRAGONMOUNT,                   // call dragon mount
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

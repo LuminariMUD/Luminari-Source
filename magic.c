@@ -92,6 +92,9 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   if (IS_LICH(vict))
     resist = MAX(resist, 15 + GET_LEVEL(vict));
 
+  if (HAS_FEAT(vict, FEAT_DRACONIC_RESISTANCE))
+    resist = MAX(resist, 5 + GET_LEVEL(vict));
+
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE))
     resist = MAX(resist, 2 * HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE));
 
@@ -5352,7 +5355,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "An intensely bright ray of light has blinded you!";
     break;
 
-  case AFFECT_PRESCIENCE:
+    case AFFECT_PRESCIENCE:
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = 2;
     af[0].bonus_type = BONUS_TYPE_LUCK;
@@ -5361,6 +5364,24 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are bolstered by your prescience";
     else
       to_vict = "You are bolstered by $N's prescience";
+    break;
+
+  case AFFECT_GLORYS_CALL:
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    af[0].duration = 10;
+    af[1].location = APPLY_HIT;
+    af[1].modifier = dice(5, 6);
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+    af[1].duration = 10;
+
+    GET_HIT(victim) += af[1].modifier;
+    
+    if (victim == ch)
+      to_vict = "You are bolstered by your call to glory!";
+    else
+      to_vict = "You are bolstered by $N's call to glory!";
     break;
 
   case AFFECT_PRESCIENCE_DEBUFF:
@@ -8474,6 +8495,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       affect_join(victim, af + i, accum_duration, FALSE, accum_affect, FALSE);
     }
   }
+  if (HAS_FEAT(ch, FEAT_DRAGON_LINK) && is_riding_dragon_mount(ch) && casttype == CAST_SPELL)
+    mag_affects(level, ch, RIDING(ch), wpn, spellnum, savetype, casttype, metamagic);
 }
 
 #undef WARD_THRESHOLD
@@ -8495,6 +8518,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
     break;
   case AFFECT_RALLYING_CRY:
     mag_affects(level, ch, tch, obj, AFFECT_RALLYING_CRY, savetype, casttype, 0);
+    break;
+  case AFFECT_GLORYS_CALL:
+    mag_affects(level, ch, tch, obj, AFFECT_GLORYS_CALL, savetype, casttype, 0);
     break;
   case AFFECT_INSPIRE_COURAGE:
     mag_affects(level, ch, tch, obj, AFFECT_INSPIRE_COURAGE, savetype, casttype, 0);

@@ -28,6 +28,7 @@
 #include "premadebuilds.h"
 #include "psionics.h"
 #include "evolutions.h"
+#include "constants.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
@@ -288,6 +289,9 @@ void init_study(struct descriptor_data *d, int class)
     LEVELUP(ch)->summoner_aspects[i] = HAS_REAL_EVOLUTION(ch, i);
   }
   LEVELUP(ch)->necromancer_bonus_levels = NECROMANCER_CAST_TYPE(ch);
+
+  LEVELUP(ch)->dragon_rider_dragon_type = GET_DRAGON_RIDER_DRAGON_TYPE(ch);
+  LEVELUP(ch)->dragon_rider_bond_type = GET_DRAGON_BOND_TYPE(ch);
 }
 
 void finalize_study(struct descriptor_data *d)
@@ -506,6 +510,10 @@ void finalize_study(struct descriptor_data *d)
     KNOWS_EVOLUTION(ch, i) = LEVELUP(ch)->eidolon_evolutions[i];
     HAS_REAL_EVOLUTION(ch, i) = LEVELUP(ch)->summoner_aspects[i];
   }
+
+  // Dragon Rider
+  GET_DRAGON_RIDER_DRAGON_TYPE(ch) = LEVELUP(ch)->dragon_rider_dragon_type;
+  GET_DRAGON_BOND_TYPE(ch) = LEVELUP(ch)->dragon_rider_bond_type;
 
   /* set spells learned for domain */
   assign_domain_spells(ch);
@@ -1515,6 +1523,7 @@ static void set_stats_menu(struct descriptor_data *d)
                   "%s 5%s) Charisma:      %2d%s | %6s%s%d | %d\r\n"
                   "%sPoints Left:         %d%s\r\n"
                   "\r\n"
+                  "%s H%s) Help - Info on What Each Ability Score Does.\r\n"
                   "%s Q%s) Quit\r\n"
                   "\r\n"
                   "To set up your base ability scores type the number to the left of the ability score \r\n"
@@ -1541,6 +1550,8 @@ static void set_stats_menu(struct descriptor_data *d)
                   grn, nrm, LEVELUP(d->character)->cha, nrm, "", get_race_stat(GET_RACE(d->character), R_CHA_MOD) >= 0 ? "+" : "",
                   get_race_stat(GET_RACE(d->character), R_CHA_MOD), get_race_stat(GET_RACE(d->character), R_CHA_MOD) + LEVELUP(d->character)->cha,
                   grn, stat_points_left(d->character), nrm,
+                  /* empty line */
+                  grn, nrm,
                   /* empty line */
                   grn, nrm
                   /* empty line */
@@ -2457,7 +2468,7 @@ static void display_study_feats(struct descriptor_data *d)
                   (LEVELUP(ch)->epic_class_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_class_feat_points, nrm,
                   (LEVELUP(ch)->teamwork_feat_points > 0 ? grn : red), LEVELUP(ch)->teamwork_feat_points, nrm);
 
-  write_to_output(d, "Your choice? (type -1 to exit) : ");
+  write_to_output(d, "Your choice? (type -1 or Q to exit) : ");
 }
 
 static void gen_feat_disp_menu(struct descriptor_data *d)
@@ -2473,6 +2484,38 @@ static void gen_feat_disp_menu(struct descriptor_data *d)
   display_study_feats(d);
 
   OLC_MODE(d) = STUDY_GEN_FEAT_MENU;
+}
+
+void show_dragon_rider_menu(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+  write_to_output(d, "\r\n-- %sDragon Rider%s\r\n"
+                     "\r\n",
+                     mgn, nrm);
+  write_to_output(d, "1) Dragon Mount Type: %s (%s)\r\n", 
+    LEVELUP(d->character)->dragon_rider_dragon_type ? draconic_heritage_names[LEVELUP(d->character)->dragon_rider_dragon_type] : "unchosen", 
+    LEVELUP(d->character)->dragon_rider_dragon_type ? damtypes[draconic_heritage_energy_types[LEVELUP(d->character)->dragon_rider_dragon_type]] : "unchosen");
+  write_to_output(d, "2) Dragon Bond Type:  %s\r\n", 
+    LEVELUP(d->character)->dragon_rider_bond_type ? dragon_bond_types[LEVELUP(d->character)->dragon_rider_bond_type] : "unchosen");
+  write_to_output(d, "Q) Exit this menu.\r\n");
+  write_to_output(d, "\r\n");
+  OLC_MODE(d) = STUDY_DRAGON_RIDER_MENU;
+}
+
+void show_dragon_rider_bond_menu(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+  write_to_output(d, "\r\n");
+  write_to_output(d, "-- Select Dragon Rider Bond Type:\r\n");
+  write_to_output(d, "\r\n");
+  write_to_output(d, "1) Dragon Champion\r\n");
+  write_to_output(d, "2) Dragon Scion\r\n");
+  write_to_output(d, "3) Dragon Kin\r\n");
+  write_to_output(d, "Q) Return to Main Dragon Rider Menu\r\n");
+  write_to_output(d, "\r\n");
+  OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE;
 }
 
 static void generic_main_disp_menu(struct descriptor_data *d)
@@ -2503,6 +2546,7 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   "%s G%s) Racial Abilities Selection%s\r\n"
                   "%s H%s) Necromancer Casting Type%s\r\n"
                   "%s I%s) Languages%s\r\n"
+                  "%s J%s) Dragon Riders%s\r\n"
                   "\r\n"
                   "%s R%s) Reset Character%s\r\n"
                   "%s Q%s) Quit\r\n"
@@ -2530,6 +2574,7 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   MENU_OPT(has_racial_abils_unchosen(ch)), has_racial_abils_unchosen(ch) ? "" : "*",                   // G
                   MENU_OPT(has_necromancer_cast_type_unchosen(ch)), has_necromancer_cast_type_unchosen(ch) ? "" : "*",  // H
                   MENU_OPT(has_unchosen_languages(ch)), has_unchosen_languages(ch) ? "" : "*",                         // I
+                  MENU_OPT(has_unchosen_dragon_rider(ch)), has_unchosen_dragon_rider(ch) ? "" : "*",                   // J
                   MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         // R
                   grn, nrm,
                   (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) ? "(You are using premade build, options are limited!)" : "");
@@ -2992,6 +3037,19 @@ void study_parse(struct descriptor_data *d, char *arg)
       }
       break;
 
+    case 'j':
+    case 'J':
+      if (has_unchosen_dragon_rider(ch))
+      {
+        show_dragon_rider_menu(d);
+      }
+      else
+      {
+        write_to_output(d, "That is an invalid choice!\r\n");
+        generic_main_disp_menu(d);
+      }
+      break;
+
     // reset levelup, level 1 only.
     case 'R':
     case 'r':
@@ -3207,7 +3265,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   case STUDY_SELECT_ALC_DISCOVERY:
     number = atoi(arg);
-    if (number == -1)
+    if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       display_main_menu(d);
       break;
@@ -3243,7 +3301,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   case STUDY_SELECT_PAL_MERCY:
     number = atoi(arg);
-    if (number == -1)
+    if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       display_main_menu(d);
       break;
@@ -3281,7 +3339,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   case STUDY_SET_NECROMANCER_CAST_TYPE:
     number = atoi(arg);
-    if (number == -1)
+    if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       display_main_menu(d);
       break;
@@ -3298,7 +3356,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   case STUDY_CHOOSE_LANGUAGES:
     number = atoi(arg);
-    if (number == -1)
+    if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       display_main_menu(d);
       break;
@@ -3344,7 +3402,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   case STUDY_SELECT_BG_CRUELTY:
     number = atoi(arg);
-    if (number == -1)
+    if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       display_main_menu(d);
       break;
@@ -3433,7 +3491,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
   case STUDY_GEN_FEAT_MENU:
     number = atoi(arg);
-    if (number == -1)
+    if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       main_feat_disp_menu(d);
       break;
@@ -3503,7 +3561,7 @@ void study_parse(struct descriptor_data *d, char *arg)
   /* Combat feats require the selection of a weapon type. */
   case STUDY_CFEAT_MENU:
     number = atoi(arg);
-    if (number == -1)
+    if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       LEVELUP(d->character)->tempFeat = -1;
       gen_feat_disp_menu(d);
@@ -3543,7 +3601,7 @@ void study_parse(struct descriptor_data *d, char *arg)
   /* School feats require the selection of a spell school. */
   case STUDY_SFEAT_MENU:
     number = atoi(arg);
-    if (number == -1)
+    if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       LEVELUP(d->character)->tempFeat = -1;
       gen_feat_disp_menu(d);
@@ -3580,7 +3638,7 @@ void study_parse(struct descriptor_data *d, char *arg)
   /* Skill feats require the selection of a skill. */
   case STUDY_SKFEAT_MENU:
     number = atoi(arg);
-    if (number == -1)
+    if (number == -1 || *arg == 'q' || *arg == 'Q')
     {
       LEVELUP(d->character)->tempFeat = -1;
       gen_feat_disp_menu(d);
@@ -4730,6 +4788,140 @@ void study_parse(struct descriptor_data *d, char *arg)
     OLC_MODE(d) = STUDY_CONFIRM_BLOODLINE;
     break;
 
+  case STUDY_DRAGON_RIDER_MENU:
+    switch(*arg)
+    {
+      case '1':
+        if (GET_DRAGON_RIDER_DRAGON_TYPE(ch))
+        {
+          write_to_output(d, "You've already chosen your dragon mount type. To choose a different one you will need to respec.\r\n");
+          break;
+        }
+        show_dragonrider_mount_type(d);
+        break;
+      case '2':
+        if (GET_DRAGON_BOND_TYPE(ch))
+        {
+          write_to_output(d, "You've already chosen your dragon bond type. To choose a different one you will need to respec.\r\n");
+          break;
+        }
+        show_dragonrider_bond_type(d);
+        break;
+      case 'q':
+      case 'Q':
+        display_main_menu(d);
+        break;
+      default:
+        write_to_output(d, "Invalid Choice.\r\n");
+        break;
+    }
+    break;
+
+    case STUDY_DRAGON_RIDER_DRAGON_TYPE:
+      number = atoi(arg);
+
+      if (number < 1 || number >= NUM_DRAGON_TYPES)
+      {
+        send_to_char(ch, "That is not a valid selection.\r\n");
+        break;
+      }
+      if (*arg == 'q' || *arg == 'Q')
+      {
+        show_dragon_rider_menu(d);
+        break;
+      }
+
+      LEVELUP(d->character)->dragon_rider_dragon_type = number;
+      send_to_char(ch, "Choose the '%s' dragon type with '%s' elemental damage? (Y/N): ",
+        DRCHRTLIST_NAME(LEVELUP(ch)->dragon_rider_dragon_type),
+        DRCHRT_ENERGY_TYPE(LEVELUP(ch)->dragon_rider_dragon_type));
+      OLC_MODE(d) = STUDY_DRAGON_RIDER_DRAGON_TYPE_CONFIRM;
+      break;
+    
+    case STUDY_DRAGON_RIDER_DRAGON_TYPE_CONFIRM:
+      switch(*arg)
+      {
+        case 'y':
+        case 'Y':
+          write_to_output(d, "You've selected the '%s' dragon mount type with '%s' elemental damage.\r\n",
+              DRCHRTLIST_NAME(LEVELUP(ch)->dragon_rider_dragon_type),
+              DRCHRT_ENERGY_TYPE(LEVELUP(ch)->dragon_rider_dragon_type));
+          show_dragon_rider_menu(d);
+          break;
+        case 'n':
+        case 'N':
+          LEVELUP(d->character)->dragon_rider_dragon_type = 0;
+          show_dragonrider_mount_type(d);
+          break;
+        default:
+          write_to_output(d, "Invalid Choice.\r\n");
+          break;
+      }
+    break;
+  
+
+  case STUDY_DRAGON_RIDER_BOND_TYPE:
+    switch (*arg)
+    {
+      case '1':
+        write_to_output(d, "Dragon Champion:\r\n");
+        write_to_output(d, "Level 3: (Draconic Strength) +1 hitroll and +2 damroll when riding dragon mount.\r\n");
+        write_to_output(d, "Level 7: (Draconic Guardian) 10%% reisist to piercing, slashing and bludgeoning damage when riding dragon mount.\r\n");
+        write_to_output(d, "Level 10: (Master of War) Weapon base damage (XdY) doubled when riding dragon mount.\r\n");
+        write_to_output(d, "\r\n");
+        write_to_output(d, "Enter Y to accept or N to choose another dragon bond: ");
+        LEVELUP(d->character)->dragon_rider_bond_type = DRAGON_BOND_CHAMPION;
+        OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM;
+        break;
+      case '2':
+        write_to_output(d, "Dragon Scion:\r\n");
+        write_to_output(d, "Level 3: (Magic Blade) Melee attacks gain elemental damage based on dragon mount type, when riding dragon mount.\r\n");
+        write_to_output(d, "Level 7: (Awakened Mind) Number of Dragoon points are doubled.\r\n");
+        write_to_output(d, "Level 10: (Deadly Power) Can sacrifice hit points to restore spell slots.\r\n");
+        write_to_output(d, "\r\n");
+        write_to_output(d, "Enter Y to accept or N to choose another dragon bond: ");
+        LEVELUP(d->character)->dragon_rider_bond_type = DRAGON_BOND_MAGE;
+        OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM;
+        break;
+      case '3':
+        write_to_output(d, "Dragon Kin:\r\n");
+        write_to_output(d, "Level 3: (Lesser Scales) Armor class increases by 2 when riding dragon mount.\r\n");
+        write_to_output(d, "Level 7: (Glory's Call) Can spend a dragoon point to give allies +2 to hitroll and 5d6 to maximum hit points.\r\n");
+        write_to_output(d, "Level 10: (Great Charge) Charging while riding dragon mount has a chance to knock enemy prone and charge damage increases by 10.\r\n");
+        write_to_output(d, "\r\n");
+        write_to_output(d, "Enter Y to accept or N to choose another dragon bond: ");
+        LEVELUP(d->character)->dragon_rider_bond_type = DRAGON_BOND_KIN;
+        OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM;
+        break;
+      case 'q':
+      case 'Q':
+        show_dragon_rider_menu(d);
+        break;
+      default:
+        write_to_output(d, "Invalid Choice.\r\n");
+        break;      
+    }
+    break;
+
+  case STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM:
+      switch(*arg)
+      {
+        case 'y':
+        case 'Y':
+          write_to_output(d, "You've selected the '%s' dragon bond.\r\n", dragon_bond_types[LEVELUP(d->character)->dragon_rider_bond_type]);
+          show_dragon_rider_menu(d);
+          break;
+        case 'n':
+        case 'N':
+          LEVELUP(d->character)->dragon_rider_bond_type = 0;
+          show_dragon_rider_bond_menu(d);
+          break;
+        default:
+          write_to_output(d, "Invalid Choice.\r\n");
+          break;
+      }
+    break;
+
   case SET_BLOODLINE_ARCANE:
     number = atoi(arg);
     if (number <= 0 || number >= NUM_SCHOOLS)
@@ -4932,6 +5124,9 @@ void study_parse(struct descriptor_data *d, char *arg)
   case STUDY_SET_STATS:
     switch (*arg)
     {
+    case 'h':
+    case 'H':
+      break;
     case 'q':
     case 'Q':
       if (stat_points_left(ch))
@@ -5685,6 +5880,44 @@ void study_disp_aspect_confirm(struct descriptor_data *d)
 
   write_to_output(d, "\r\nDo you wish to select this aspect? ");
   OLC_MODE(d) = STUDY_SELECT_ASPECT_CONFIRM;
+}
+
+void show_dragonrider_bond_type(struct descriptor_data *d)
+{
+  if (!d || !d->character || !LEVELUP(d->character))
+    return;
+
+  write_to_output(d, "Please select a bond type:\r\n");
+  write_to_output(d, "1) Dragon Champion\r\n");
+  write_to_output(d, "2) Dragon Scion\r\n");
+  write_to_output(d, "3) Dragon Kin\r\n");
+  write_to_output(d, "Q) Quit\r\n");
+  write_to_output(d, "\r\n");
+  write_to_output(d, "Enter Choice: ");
+
+  OLC_MODE(d) = STUDY_DRAGON_RIDER_BOND_TYPE;
+
+}
+void show_dragonrider_mount_type(struct descriptor_data *d)
+{
+  if (!d || !d->character || !LEVELUP(d->character))
+    return;
+
+  int i = 0;
+
+  write_to_output(d, "Please select a dragon mount type:\r\n");
+
+  for (i = 1; i < NUM_DRACONIC_HERITAGE_TYPES; i++)
+  {
+    write_to_output(d, "%2d) %-12s (%s damage type)\r\n", i, draconic_heritage_names[i], damtypes[draconic_heritage_energy_types[i]]);
+  }
+
+  write_to_output(d, "Q) Quit\r\n");
+  write_to_output(d, "\r\n");
+  write_to_output(d, "Enter Choice: ");
+
+  OLC_MODE(d) = STUDY_DRAGON_RIDER_DRAGON_TYPE;
+
 }
 
 /* some undefines from top of file */

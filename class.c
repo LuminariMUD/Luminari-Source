@@ -1212,6 +1212,10 @@ bool view_class_feats(struct char_data *ch, const char *classname)
   {
     send_to_char(ch, "The knight of the lily class gets a bonus class feat on knight of the lily levels 2, 5 and 8.\r\n");
   }
+  if (class == CLASS_DRAGONRIDER)
+  {
+    send_to_char(ch, "The dragonrider class gets a bonus class feat on dragonrider levels 4 and 8\r\n");
+  }
   if (class == CLASS_WIZARD)
   {
     send_to_char(ch, "The wizard class gets a bonus class feat every five "
@@ -1622,6 +1626,10 @@ int parse_class_long(const char *arg_in)
     return CLASS_KNIGHT_OF_THE_LILY;
   if (is_abbrev(arg, "knight-of-the-lily"))
     return CLASS_KNIGHT_OF_THE_LILY;
+  if (is_abbrev(arg, "dragonrider"))
+    return CLASS_DRAGONRIDER;
+  if (is_abbrev(arg, "dragon-rider"))
+    return CLASS_DRAGONRIDER;
   if (is_abbrev(arg, "shifter"))
     return CLASS_SHIFTER;
   if (is_abbrev(arg, "sacred-fist"))
@@ -2832,6 +2840,10 @@ void init_start_char(struct char_data *ch)
   /* for sorcerer bloodlines subtypes */
   GET_BLOODLINE_SUBTYPE(ch) = 0;
 
+  // dragon riders
+  GET_DRAGON_BOND_TYPE(ch) = 0;
+  GET_DRAGON_RIDER_DRAGON_TYPE(ch) = 0;
+
   // alchemist discoveries
   for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
     KNOWS_DISCOVERY(ch, i) = 0;
@@ -3489,6 +3501,11 @@ void advance_level(struct char_data *ch, int class)
     class_feats++;
   }
 
+  if (class == CLASS_DRAGONRIDER && (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) == 4 || CLASS_LEVEL(ch, CLASS_DRAGONRIDER) == 8))
+  {
+    class_feats++;
+  }
+
   if (class == CLASS_BARD)
   {
     if (CLASS_LEVEL(ch, CLASS_BARD) <= 20 && !(CLASS_LEVEL(ch, CLASS_BARD) % 3))
@@ -3822,6 +3839,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_KNIGHT_OF_THE_THORN:
   case CLASS_KNIGHT_OF_THE_SKULL:
   case CLASS_KNIGHT_OF_THE_LILY:
+  case CLASS_DRAGONRIDER:
     level--;
     if (level < 0)
       level = 0;
@@ -7723,6 +7741,83 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_DRAGONRIDER, "dragonrider", "DRr", "\tGDRr\tn", "i) \tGDragon Rider\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         10, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
+         /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Strength, Dexterity and Constitution",
+         /*descrip*/ "");
+  /* class-number then saves:  fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_DRAGONRIDER, G, G, G, G, G);
+  assign_class_abils(CLASS_DRAGONRIDER, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CA, CA, CA, CA, CC,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CA, CA, CA, CA, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CA, CC, CC, CC, CA, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CA, CA, CC, CC);
+  assign_class_titles(CLASS_DRAGONRIDER,             /* class number */
+                      "",                       /* <= 4  */
+                      "the Dragon Rider",       /* <= 9  */
+                      "the Dragon Rider",       /* <= 14 */
+                      "the Dragon Rider",       /* <= 19 */
+                      "the Dragon Rider",       /* <= 24 */
+                      "the Dragon Rider",       /* <= 29 */
+                      "the Dragon Rider",       /* <= 30 */
+                      "the Dragon Rider",       /* <= LVL_IMMORT */
+                      "the Dragon Rider",       /* <= LVL_STAFF */
+                      "the Dragon Rider",       /* <= LVL_GRSTAFF */
+                      "the Dragon Rider"        /* default */
+  );
+
+  // clas feats
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_ALERTNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_BLIND_FIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_COMBAT_EXPERTISE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_DAZZLING_DISPLAY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_DIEHARD, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_ENDURANCE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_GREAT_FORTITUDE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_IRON_WILL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_LIGHTNING_REFLEXES, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_IMPROVED_INTIMIDATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_LEADERSHIP, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_MOUNTED_ARCHERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_PERSUASIVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_RIDE_BY_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_SPIRITED_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  
+  /* feat assignment */
+  /*              class num      feat                      cfeat lvl stack */
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_DRAGON_BOND, Y, 1, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_DRAGOON_POINTS, Y, 1, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_DRAGON_LINK, Y, 2, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_ULTRAVISION, Y, 2, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_DRACONIC_PROTECTION, Y, 3, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_RIDERS_BOND, Y, 3, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_ADEPT_RIDER, Y, 5, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_DRACONIC_RESISTANCE, Y, 6, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_SKILLED_RIDER, Y, 7, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_BLINDSENSE, Y, 8, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_MASTER_RIDER, Y, 9, N);
+  feat_assignment(CLASS_DRAGONRIDER, FEAT_UNITED_WE_STAND, Y, 10, N);
+  
+  /* no spell assignment */
+
+  /* class prereqs */
+  class_prereq_bab(CLASS_DRAGONRIDER, 8);
+  class_prereq_ability(CLASS_DRAGONRIDER, ABILITY_RIDE, 10);
+  class_prereq_feat(CLASS_DRAGONRIDER, FEAT_MOUNTED_COMBAT, 1);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SHIFTER, "shifter", "Shf", "\twS\tWh\twf\tn", "f) \twSh\tWift\twer\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 8, 0, 1, 4, Y, 5000, 0,
@@ -9311,6 +9406,23 @@ bool has_unchosen_languages(struct char_data *ch)
     return TRUE;
 
   return FALSE;
+}
+
+bool has_unchosen_dragon_rider(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  if (!CLASS_LEVEL(ch, CLASS_DRAGONRIDER))
+    return false;
+
+  if (!LEVELUP(ch)->dragon_rider_bond_type || !LEVELUP(ch)->dragon_rider_dragon_type)
+    return true;
+
+  return false;
 }
 
 int num_blackguard_cruelties_known(struct char_data *ch)

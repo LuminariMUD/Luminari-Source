@@ -33,6 +33,7 @@
 #include "premadebuilds.h"
 #include "missions.h"
 #include "evolutions.h"
+#include "class.h"
 
 #define LOAD_HIT 0
 #define LOAD_PSP 1
@@ -446,6 +447,8 @@ int load_char(const char *name, struct char_data *ch)
     NEXT_SITTING(ch) = NULL;
     GET_QUESTPOINTS(ch) = PFDEF_QUESTPOINTS;
     GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) = 0;
+    GET_DRAGON_BOND_TYPE(ch) = 0;
+    GET_DRAGON_RIDER_DRAGON_TYPE(ch) = 0;
 
     for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     { /* loop through all the character's quest slots */
@@ -828,6 +831,10 @@ int load_char(const char *name, struct char_data *ch)
           DRAGON_MAGIC_USES(ch) = atoi(line);
         else if (!strcmp(tag, "DrMT"))
           DRAGON_MAGIC_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "DrBT"))
+          GET_DRAGON_BOND_TYPE(ch) = atoi(line);
+        else if (!strcmp(tag, "DrDT"))
+          GET_DRAGON_RIDER_DRAGON_TYPE(ch) = atoi(line);
         break;
 
       case 'E':
@@ -1825,6 +1832,10 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "GTCT: %d\n", GRAVE_TOUCH_TIMER(ch));
   if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) != 0)
     fprintf(fl, "FttD: %d\n", GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch));
+  if (GET_DRAGON_BOND_TYPE(ch) != 0)
+    fprintf(fl, "DrBT: %d\n", GET_DRAGON_BOND_TYPE(ch));
+  if (GET_DRAGON_RIDER_DRAGON_TYPE(ch) != 0)
+    fprintf(fl, "DrDT: %d\n", GET_DRAGON_RIDER_DRAGON_TYPE(ch));
 
   if (GRASP_OF_THE_DEAD_USES(ch) != PFDEF_GRASP_OF_THE_DEAD_USES)
     fprintf(fl, "GODU: %d\n", GRASP_OF_THE_DEAD_USES(ch));
@@ -2191,11 +2202,11 @@ void save_char(struct char_data *ch, int mode)
     /* Order:  Event-ID   Duration */
     /* eSTRUGGLE - don't need to save this */
     if ((pMudEvent = char_has_mud_event(ch, eINVISIBLE_ROGUE)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INVISIBLE_ROGUE) - daily_uses_remaining(ch, FEAT_INVISIBLE_ROGUE));
     if ((pMudEvent = char_has_mud_event(ch, eVANISHED)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VANISH) - daily_uses_remaining(ch, FEAT_VANISH));
     if ((pMudEvent = char_has_mud_event(ch, eVANISH)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VANISH) - daily_uses_remaining(ch, FEAT_VANISH));
     if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eTAUNTED)))
@@ -2205,67 +2216,67 @@ void save_char(struct char_data *ch, int mode)
     if ((pMudEvent = char_has_mud_event(ch, eINTIMIDATE_COOLDOWN)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RAGE) - daily_uses_remaining(ch, FEAT_RAGE));
     if ((pMudEvent = char_has_mud_event(ch, eSACRED_FLAMES)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SACRED_FLAMES) - daily_uses_remaining(ch, FEAT_SACRED_FLAMES));
     if ((pMudEvent = char_has_mud_event(ch, eINNER_FIRE)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INNER_FIRE) - daily_uses_remaining(ch, FEAT_INNER_FIRE));
     if ((pMudEvent = char_has_mud_event(ch, eMUTAGEN)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_MUTAGEN) - daily_uses_remaining(ch, FEAT_MUTAGEN));
     if ((pMudEvent = char_has_mud_event(ch, eCRIPPLING_CRITICAL)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CRIPPLING_CRITICAL) - daily_uses_remaining(ch, FEAT_CRIPPLING_CRITICAL));
     if ((pMudEvent = char_has_mud_event(ch, eDEFENSIVE_STANCE)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DEFENSIVE_STANCE) - daily_uses_remaining(ch, FEAT_DEFENSIVE_STANCE));
     if ((pMudEvent = char_has_mud_event(ch, eINSECTBEING)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INSECTBEING) - daily_uses_remaining(ch, FEAT_INSECTBEING));
     if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CRYSTAL_FIST) - daily_uses_remaining(ch, FEAT_CRYSTAL_FIST));
     if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CRYSTAL_BODY) - daily_uses_remaining(ch, FEAT_CRYSTAL_BODY));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_STRENGTH)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_STRENGTH) - daily_uses_remaining(ch, FEAT_SLA_STRENGTH));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_ENLARGE)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_ENLARGE) - daily_uses_remaining(ch, FEAT_SLA_ENLARGE));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_INVIS)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_INVIS) - daily_uses_remaining(ch, FEAT_SLA_INVIS));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_LEVITATE)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_LEVITATE) - daily_uses_remaining(ch, FEAT_SLA_LEVITATE));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_DARKNESS)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_DARKNESS) - daily_uses_remaining(ch, FEAT_SLA_DARKNESS));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_FAERIE_FIRE)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_FAERIE_FIRE) - daily_uses_remaining(ch, FEAT_SLA_FAERIE_FIRE));
     if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_LAYHANDS) - daily_uses_remaining(ch, FEAT_LAYHANDS));
     if ((pMudEvent = char_has_mud_event(ch, eTOUCHOFCORRUPTION)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TOUCH_OF_CORRUPTION) - daily_uses_remaining(ch, FEAT_TOUCH_OF_CORRUPTION));
     if ((pMudEvent = char_has_mud_event(ch, eJUDGEMENT)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_JUDGEMENT) - daily_uses_remaining(ch, FEAT_JUDGEMENT));
     if ((pMudEvent = char_has_mud_event(ch, eTRUEJUDGEMENT)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TRUE_JUDGEMENT) - daily_uses_remaining(ch, FEAT_TRUE_JUDGEMENT));
     if ((pMudEvent = char_has_mud_event(ch, eCHILDRENOFTHENIGHT)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT) - daily_uses_remaining(ch, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT));
     if ((pMudEvent = char_has_mud_event(ch, eVAMPIREENERGYDRAIN)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VAMPIRE_ENERGY_DRAIN) - daily_uses_remaining(ch, FEAT_VAMPIRE_ENERGY_DRAIN));
     if ((pMudEvent = char_has_mud_event(ch, eVAMPIREBLOODDRAIN)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VAMPIRE_BLOOD_DRAIN) - daily_uses_remaining(ch, FEAT_VAMPIRE_BLOOD_DRAIN));
     if ((pMudEvent = char_has_mud_event(ch, eBANE)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_BANE) - daily_uses_remaining(ch, FEAT_BANE));
     if ((pMudEvent = char_has_mud_event(ch, eMASTERMIND)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_MASTER_OF_THE_MIND) - daily_uses_remaining(ch, FEAT_MASTER_OF_THE_MIND));
     if ((pMudEvent = char_has_mud_event(ch, eDANCINGWEAPON)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eSPIRITUALWEAPON)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eCHANNELENERGY)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CHANNEL_ENERGY) - daily_uses_remaining(ch, FEAT_CHANNEL_ENERGY));
     if ((pMudEvent = char_has_mud_event(ch, eEMPTYBODY)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_EMPTY_BODY) - daily_uses_remaining(ch, FEAT_EMPTY_BODY));
     if ((pMudEvent = char_has_mud_event(ch, eWHOLENESSOFBODY)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_WHOLENESS_OF_BODY) - daily_uses_remaining(ch, FEAT_WHOLENESS_OF_BODY));
     if ((pMudEvent = char_has_mud_event(ch, eRENEWEDDEFENSE)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RENEWED_DEFENSE) - daily_uses_remaining(ch, FEAT_RENEWED_DEFENSE));
     if ((pMudEvent = char_has_mud_event(ch, eRENEWEDVIGOR)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_RENEWED_VIGOR) - daily_uses_remaining(ch, FEAT_RP_RENEWED_VIGOR));
     if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eMUMMYDUST)))
@@ -2285,85 +2296,95 @@ void save_char(struct char_data *ch, int mode)
     if ((pMudEvent = char_has_mud_event(ch, eQUIVERINGPALM)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eANIMATEDEAD)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_ANIMATE_DEAD) - daily_uses_remaining(ch, FEAT_ANIMATE_DEAD));
     if ((pMudEvent = char_has_mud_event(ch, eSTUNNINGFIST)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_STUNNING_FIST) - daily_uses_remaining(ch, FEAT_STUNNING_FIST));
     if ((pMudEvent = char_has_mud_event(ch, eSURPRISE_ACCURACY)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_SURPRISE_ACCURACY) - daily_uses_remaining(ch, FEAT_RP_SURPRISE_ACCURACY));
     if ((pMudEvent = char_has_mud_event(ch, eCOME_AND_GET_ME)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_COME_AND_GET_ME) - daily_uses_remaining(ch, FEAT_RP_COME_AND_GET_ME));
     if ((pMudEvent = char_has_mud_event(ch, ePOWERFUL_BLOW)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_POWERFUL_BLOW) - daily_uses_remaining(ch, FEAT_RP_POWERFUL_BLOW));
     if ((pMudEvent = char_has_mud_event(ch, eD_ROLL)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DEFENSIVE_ROLL) - daily_uses_remaining(ch, FEAT_DEFENSIVE_ROLL));
     if ((pMudEvent = char_has_mud_event(ch, eLAST_WORD)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_LAST_WORD) - daily_uses_remaining(ch, FEAT_LAST_WORD));
     if ((pMudEvent = char_has_mud_event(ch, ePURIFY)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_REMOVE_DISEASE) - daily_uses_remaining(ch, FEAT_REMOVE_DISEASE));
     if ((pMudEvent = char_has_mud_event(ch, eC_ANIMAL)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_ANIMAL_COMPANION) - daily_uses_remaining(ch, FEAT_ANIMAL_COMPANION));
+    if ((pMudEvent = char_has_mud_event(ch, eC_DRAGONMOUNT)))
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGON_BOND) - daily_uses_remaining(ch, FEAT_DRAGON_BOND));
     if ((pMudEvent = char_has_mud_event(ch, eC_EIDOLON)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_EIDOLON) - daily_uses_remaining(ch, FEAT_EIDOLON));
     if ((pMudEvent = char_has_mud_event(ch, eC_FAMILIAR)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SUMMON_FAMILIAR) - daily_uses_remaining(ch, FEAT_SUMMON_FAMILIAR));
     if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CALL_MOUNT) - daily_uses_remaining(ch, FEAT_CALL_MOUNT));
     if ((pMudEvent = char_has_mud_event(ch, eSUMMONSHADOW)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SUMMON_SHADOW) - daily_uses_remaining(ch, FEAT_SUMMON_SHADOW));
     if ((pMudEvent = char_has_mud_event(ch, eTURN_UNDEAD)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TURN_UNDEAD) - daily_uses_remaining(ch, FEAT_TURN_UNDEAD));
     if ((pMudEvent = char_has_mud_event(ch, eSPELLBATTLE)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eQUEST_COMPLETE)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eDRACBREATH)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON) - daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON));
     if ((pMudEvent = char_has_mud_event(ch, eDRACCLAWS)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRACONIC_HERITAGE_CLAWS) - daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_CLAWS));
     if ((pMudEvent = char_has_mud_event(ch, eDRAGBREATH)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGONBORN_BREATH) - daily_uses_remaining(ch, FEAT_DRAGONBORN_BREATH));
     if ((pMudEvent = char_has_mud_event(ch, eCATSCLAWS)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TABAXI_CATS_CLAWS) - daily_uses_remaining(ch, FEAT_TABAXI_CATS_CLAWS));
     if ((pMudEvent = char_has_mud_event(ch, eARCANEADEPT)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_METAMAGIC_ADEPT) - daily_uses_remaining(ch, FEAT_METAMAGIC_ADEPT));
     if ((pMudEvent = char_has_mud_event(ch, eCHANNELSPELL)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CHANNEL_SPELL) - daily_uses_remaining(ch, FEAT_CHANNEL_SPELL));
     if ((pMudEvent = char_has_mud_event(ch, ePSIONICFOCUS)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_PSIONIC_FOCUS) - daily_uses_remaining(ch, FEAT_PSIONIC_FOCUS));
     if ((pMudEvent = char_has_mud_event(ch, eDOUBLEMANIFEST)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DOUBLE_MANIFEST) - daily_uses_remaining(ch, FEAT_DOUBLE_MANIFEST));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWCALL)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_CALL) - daily_uses_remaining(ch, FEAT_SHADOW_CALL));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWJUMP)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_JUMP) - daily_uses_remaining(ch, FEAT_SHADOW_JUMP));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWILLUSION)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_ILLUSION) - daily_uses_remaining(ch, FEAT_SHADOW_ILLUSION));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWPOWER)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_POWER) - daily_uses_remaining(ch, FEAT_SHADOW_POWER));
     if ((pMudEvent = char_has_mud_event(ch, eEVOBREATH)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eTOUCHOFUNDEATH)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TOUCH_OF_UNDEATH) - daily_uses_remaining(ch, FEAT_TOUCH_OF_UNDEATH));
     if ((pMudEvent = char_has_mud_event(ch, eSTRENGTHOFHONOR)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_STRENGTH_OF_HONOR) - daily_uses_remaining(ch, FEAT_STRENGTH_OF_HONOR));
     if ((pMudEvent = char_has_mud_event(ch, eCROWNOFKNIGHTHOOD)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CROWN_OF_KNIGHTHOOD) - daily_uses_remaining(ch, FEAT_CROWN_OF_KNIGHTHOOD));
     if ((pMudEvent = char_has_mud_event(ch, eSOULOFKNIGHTHOOD)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-    if ((pMudEvent = char_has_mud_event(ch, eSOULOFKNIGHTHOOD)))
-        fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SOUL_OF_KNIGHTHOOD) - daily_uses_remaining(ch, FEAT_SOUL_OF_KNIGHTHOOD));
     if ((pMudEvent = char_has_mud_event(ch, eINSPIRECOURAGE)))
-        fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INSPIRE_COURAGE) - daily_uses_remaining(ch, FEAT_INSPIRE_COURAGE));
     if ((pMudEvent = char_has_mud_event(ch, eWISDOMOFTHEMEASURE)))
-        fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_WISDOM_OF_THE_MEASURE) - daily_uses_remaining(ch, FEAT_WISDOM_OF_THE_MEASURE));
     if ((pMudEvent = char_has_mud_event(ch, eFINALSTAND)))
-        fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_FINAL_STAND) - daily_uses_remaining(ch, FEAT_FINAL_STAND));
     if ((pMudEvent = char_has_mud_event(ch, eKNIGHTHOODSFLOWER)))
-        fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_KNIGHTHOODS_FLOWER) - daily_uses_remaining(ch, FEAT_KNIGHTHOODS_FLOWER));
     if ((pMudEvent = char_has_mud_event(ch, eRALLYINGCRY)))
-        fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RALLYING_CRY) - daily_uses_remaining(ch, FEAT_RALLYING_CRY));
     if ((pMudEvent = char_has_mud_event(ch, eCOSMICUNDERSTANDING)))
-        fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_COSMIC_UNDERSTANDING) - daily_uses_remaining(ch, FEAT_COSMIC_UNDERSTANDING));
+    if ((pMudEvent = char_has_mud_event(ch, eDRAGOONPOINTS)))
+        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGOON_POINTS) - daily_uses_remaining(ch, FEAT_DRAGOON_POINTS));
+    if ((pMudEvent = char_has_mud_event(ch, eC_DRAGONMOUNT)))
+        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGON_BOND) - daily_uses_remaining(ch, FEAT_DRAGON_BOND));
+    if ((pMudEvent = char_has_mud_event(ch, eSMITE_EVIL)))
+        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SMITE_EVIL) - daily_uses_remaining(ch, FEAT_SMITE_EVIL));
+    if ((pMudEvent = char_has_mud_event(ch, eSMITE_GOOD)))
+        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SMITE_GOOD) - daily_uses_remaining(ch, FEAT_SMITE_GOOD));
+    if ((pMudEvent = char_has_mud_event(ch, eSMITE_DESTRUCTION)))
+        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DESTRUCTIVE_SMITE) - daily_uses_remaining(ch, FEAT_DESTRUCTIVE_SMITE));
 
     fprintf(fl, "-1 -1\n");
   }
@@ -3343,14 +3364,26 @@ static void load_events(FILE *fl, struct char_data *ch)
 {
   int num = 0;
   long num2 = 0;
+  int num3 = 0;
   char line[MAX_INPUT_LENGTH + 1];
+  char uses[SMALL_STRING];
 
   do
   {
     get_line(fl, line);
-    sscanf(line, "%d %ld", &num, &num2);
-    if (num != -1)
-      attach_mud_event(new_mud_event(num, ch, NULL), num2);
+    if (sscanf(line, "%d %ld %d", &num, &num2, &num3) == 2)
+    {
+      if (num != -1)
+        attach_mud_event(new_mud_event(num, ch, NULL), num2);
+    }
+    else
+    {
+      if (num != -1)
+      {
+        snprintf(uses, sizeof(uses), "uses:%d", num3);
+        attach_mud_event(new_mud_event(num, ch, uses), num2);
+      }
+    }
   } while (num != -1);
 }
 
@@ -3466,7 +3499,12 @@ void update_player_last_on(void)
 {
 
   struct descriptor_data *d = NULL;
+  struct char_data *ch = NULL;
   char buf[2048]; /* For MySQL insert. */
+  char char_info[1000];
+  char classes_list[MAX_INPUT_LENGTH] = {'\0'};
+  size_t len = 0;
+  int class_len = 0;
 
   for (d = descriptor_list; d; d = d->next)
   {
@@ -3474,12 +3512,42 @@ void update_player_last_on(void)
     if (!d || !d->character)
       continue;
 
-    snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW() "
-                               "WHERE name = '%s';",
-             GET_NAME(d->character));
+    ch = d->character;
+    classes_list[0] = '\0';
+    char_info[0] = '\0';
+
+
+    if (GET_LEVEL(ch) < LVL_IMMORT)
+    {
+      int inc, classCount = 0;
+      len += snprintf(classes_list + len, sizeof(classes_list) - len, "[%d %4s ", GET_LEVEL(ch), RACE_ABBR_REAL(ch));
+      for (inc = 0; inc < MAX_CLASSES; inc++)
+      {
+        if (CLASS_LEVEL(ch, inc))
+        {
+          if (classCount)
+            len += snprintf(classes_list + len, sizeof(classes_list) - len, "|");
+          len += snprintf(classes_list + len, sizeof(classes_list) - len, "%s", CLSLIST_ABBRV(inc));
+          classCount++;
+        }
+      }
+      class_len = strlen(classes_list) - count_color_chars(classes_list);
+      while (class_len < 11)
+      {
+        len += snprintf(classes_list + len, sizeof(classes_list) - len, " ");
+        class_len++;
+      }
+      snprintf(char_info, sizeof(char_info), "%s]", classes_list);
+    }
+    else
+    {
+      snprintf(char_info, sizeof(char_info), "[%2d %s] ", GET_LEVEL(ch), GET_IMM_TITLE(ch));
+    }
+
+    snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW(), character_info='%s' WHERE name = '%s';", char_info, GET_NAME(d->character));
     if (mysql_query(conn, buf))
     {
-      log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));
+      log("SYSERR: Unable to UPDATE last_online and character_info for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));
     }
   }
 }

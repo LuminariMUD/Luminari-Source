@@ -1219,6 +1219,12 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += GET_DEX_BONUS(ch);
     else
       value += GET_CHA_BONUS(ch);
+    if (HAS_FEAT(ch, FEAT_ADEPT_RIDER))
+      value += 2;
+    if (HAS_FEAT(ch, FEAT_SKILLED_RIDER))
+      value += 2;
+    if (HAS_FEAT(ch, FEAT_MASTER_RIDER))
+      value += 2;
     if (HAS_FEAT(ch, FEAT_ANIMAL_AFFINITY))
     {
       /* Unnamed bonus */
@@ -7409,7 +7415,7 @@ SPECIAL(star_circlet)
   if (DEBUGMODE)
     send_to_char(ch, "DEBUG MARK 5\r\n");
 
-  if (star_circlet_proc(ch))
+  if (star_circlet_proc(ch, 0))
   {
     act("\twIn an instant \tYflare of power\tw, the \tBdisplaced stars\tw encircling $p draw in "
         "\tYarcane and divine energy\tw from the planes directly into your head!\tn",

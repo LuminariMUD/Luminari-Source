@@ -1936,6 +1936,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Purify Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_ANIMAL)))
     send_to_char(ch, "Call Companion Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eC_DRAGONMOUNT)))
+    send_to_char(ch, "Call Dragon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_EIDOLON)))
     send_to_char(ch, "Call Eidolon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_FAMILIAR)))
@@ -2042,6 +2044,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCOSMICUNDERSTANDING)))
     send_to_char(ch, "Cosmic Understanding Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eDRAGOONPOINTS)))
+    send_to_char(ch, "Dragoon Points Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
   if (GET_SETCLOAK_TIMER(ch) > 0)
     send_to_char(ch, "Vampire 'Setcloak' Cooldown - Duration: %d seconds\r\n", GET_SETCLOAK_TIMER(ch) * 6);
@@ -3456,6 +3460,20 @@ ACMD(do_score)
 
     send_to_char(ch, "\tC");
     draw_line(ch, line_length, '-', '-');
+    if (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) && GET_DRAGON_RIDER_DRAGON_TYPE(ch))
+    {
+      send_to_char(ch, "\tc");
+      send_to_char(ch, "Dragon Mount Type: %s (%s damage) ",
+        DRCHRTLIST_NAME(GET_DRAGON_RIDER_DRAGON_TYPE(ch)),
+        DRCHRT_ENERGY_TYPE(GET_DRAGON_RIDER_DRAGON_TYPE(ch)));
+      if (GET_DRAGON_BOND_TYPE(ch))
+      {
+        send_to_char(ch, "Dragon Bond Type: %s", dragon_bond_types[GET_DRAGON_BOND_TYPE(ch)]);
+      }
+      send_to_char(ch, "\r\n");
+      send_to_char(ch, "\tC");
+      draw_line(ch, line_length, '-', '-');
+    }
   }
 
   send_to_char(ch, "\tDType 'attacks' or 'defenses' to see your melee offense and defense\tn\r\n");

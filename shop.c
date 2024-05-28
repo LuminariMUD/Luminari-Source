@@ -939,8 +939,10 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
 
     goldamt += charged;
 
-    /*if (!IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH))*/
-    decrease_gold(keeper, charged);
+#if defined(CAMPAIGN_DL)
+    if (!IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH))
+#endif
+      decrease_gold(keeper, charged);
 
     sold++;
     obj_from_char(obj);

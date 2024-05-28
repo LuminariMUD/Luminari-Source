@@ -777,6 +777,12 @@ SAVING_WILL here...  */
   if (HAS_FEAT(caster, FEAT_DIVINER) && SINFO.schoolOfMagic == DIVINATION)
     spell_level += 5;
 
+  if (isDragonRiderMagic(caster, spellnum))
+  {
+    if (!IS_NPC(caster))
+      start_daily_use_cooldown(caster, FEAT_DRAGOON_POINTS);
+  }
+
   /* the rest of the routine handling follows: */
 
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
@@ -4822,6 +4828,8 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_GROUPS | MAG_AREAS, "You no longer sense the future.", 1, 1, DIVINATION, 0);
   spello(AFFECT_PRESCIENCE_DEBUFF, "prescience debuff", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_AREAS, "You are no longer affected by your enemy's prescience.", 1, 1, DIVINATION, 0);
+  spello(AFFECT_GLORYS_CALL, "glory's call", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_GROUPS, "You no longer feel the call of glory.", 1, 1, ENCHANTMENT, 0);
 
   spello(SPELL_HOLY_AURA, "holy aura", 0, 0, 0, POS_FIGHTING,
         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_GROUPS, "You are no longer bolstered by a holy aura.", 9, 21, ABJURATION, 0);
@@ -5287,6 +5295,8 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
     return true;
   if (isSkullMagic(ch, spellnum))
     return true;
+  if (isDragonRiderMagic(ch, spellnum))
+    return true;
 
   return false;
 }
@@ -5302,6 +5312,46 @@ bool isThornMagic(struct char_data *ch, int spellnum)
     case SPELL_LOCATE_CREATURE: if (HAS_REAL_FEAT(ch, FEAT_READ_PORTENTS)) return true; break;
   }
   return false;
+}
+
+bool isDragonRiderMagic(struct char_data *ch, int spellnum)
+{
+  if (!ch) return false;
+
+  int uses_remaining = 0;
+  bool is_valid_spell = false;
+  
+  switch (spellnum)
+  {
+    case SPELL_DARKNESS: if (HAS_REAL_FEAT(ch, FEAT_ADEPT_RIDER)) is_valid_spell = true; break;
+    case SPELL_DAYLIGHT: if (HAS_REAL_FEAT(ch, FEAT_ADEPT_RIDER)) is_valid_spell = true; break;
+    case SPELL_OBSCURING_MIST: if (HAS_REAL_FEAT(ch, FEAT_ADEPT_RIDER)) is_valid_spell = true; break;
+    case SPELL_HEAL_MOUNT: if (HAS_REAL_FEAT(ch, FEAT_SKILLED_RIDER)) is_valid_spell = true; break;
+    case SPELL_ACID_ARROW: if (HAS_REAL_FEAT(ch, FEAT_SKILLED_RIDER)) is_valid_spell = true; break;
+    case SPELL_LIGHTNING_BOLT: if (HAS_REAL_FEAT(ch, FEAT_MASTER_RIDER)) is_valid_spell = true; break;
+    case SPELL_SLOW: if (HAS_REAL_FEAT(ch, FEAT_MASTER_RIDER)) is_valid_spell = true; break;
+  }
+
+  if (is_valid_spell)
+  {
+    if (!HAS_REAL_FEAT(ch, FEAT_DRAGOON_POINTS))
+    {
+      return false;
+    }
+
+    if ((uses_remaining = daily_uses_remaining(ch, FEAT_DRAGOON_POINTS)) == 0)
+    {
+      return false;
+    }
+
+    if (uses_remaining < 0)
+    {
+      return false;
+    }
+  }
+
+  return is_valid_spell;
+
 }
 
 bool isSkullMagic(struct char_data *ch, int spellnum)

@@ -1108,6 +1108,17 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_MORALE] += (CLASS_LEVEL(ch, CLASS_RANGER) / 5) + 2;
     }
   }
+
+  // dragon rider united we stand: dragon portion
+  if (IS_NPC(ch) && is_dragon_rider_mount(ch) && RIDDEN_BY(ch) && is_riding_dragon_mount(RIDDEN_BY(ch)) && HAS_FEAT(RIDDEN_BY(ch), FEAT_UNITED_WE_STAND))
+    bonuses[BONUS_TYPE_MORALE] += 2;
+  // dragon rider united we stand: player portion
+  if (!IS_NPC(ch) && is_riding_dragon_mount(ch) && HAS_FEAT(ch, FEAT_UNITED_WE_STAND))
+    bonuses[BONUS_TYPE_MORALE] += 2;
+
+  if (!IS_NPC(ch) && HAS_DRAGON_BOND_ABIL(ch, 3, DRAGON_BOND_KIN))
+    bonuses[BONUS_TYPE_MORALE] += 2;
+
   /* These bonuses to AC apply even against touch attacks or when the monk is
    * flat-footed. She loses these bonuses when she is immobilized or helpless,
    * when she wears any armor, when she carries a shield, or when she carries
@@ -3258,6 +3269,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += -50;
     if (!IS_NPC(ch) && (GET_RACE(ch) == RACE_WHITE_DRAGON || GET_DISGUISE_RACE(ch) == RACE_WHITE_DRAGON))
       damtype_reduction += -50;
+    if (HAS_FEAT(ch, FEAT_DRACONIC_PROTECTION) && draconic_heritage_energy_types[GET_DRAGON_RIDER_DRAGON_TYPE(ch)] == DAM_FIRE)
+      damtype_reduction += -50;
     if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
       damtype_reduction += 10;
     if (affected_by_spell(ch, SPELL_COLD_SHIELD))
@@ -3299,6 +3312,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
       damtype_reduction += -20;
     if (!IS_NPC(ch) && (GET_RACE(ch) == RACE_RED_DRAGON || GET_DISGUISE_RACE(ch) == RACE_RED_DRAGON))
+      damtype_reduction += -50;
+    if (HAS_FEAT(ch, FEAT_DRACONIC_PROTECTION) && draconic_heritage_energy_types[GET_DRAGON_RIDER_DRAGON_TYPE(ch)] == DAM_COLD)
       damtype_reduction += -50;
     if (IS_EFREETI(ch))
       damtype_reduction -= 50;
@@ -3390,6 +3405,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 10;
     if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
       damtype_reduction += 10;
+    if (HAS_FEAT(ch, FEAT_DRACONIC_PROTECTION) && draconic_heritage_energy_types[GET_DRAGON_RIDER_DRAGON_TYPE(ch)] == DAM_ACID)
+      damtype_reduction += -50;
 
     if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
       damtype_reduction += 50;
@@ -3441,7 +3458,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 20;
     if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
       damtype_reduction += 10;
-
+    if (HAS_FEAT(ch, FEAT_DRACONIC_PROTECTION) && draconic_heritage_energy_types[GET_DRAGON_RIDER_DRAGON_TYPE(ch)] == DAM_ELECTRIC)
+      damtype_reduction += -50;
     if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
       damtype_reduction += 50;
     else if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 12)
@@ -3488,21 +3506,10 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
 
     break;
 
-  case DAM_SLICE:
+  case DAM_SLASHING:
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
       damtype_reduction += 20;
-
-    /* npc vulnerabilities/strengths */
-    if (IS_NPC(ch))
-    {
-    }
-
-    break;
-
-  case DAM_PUNCTURE:
-    if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
-      damtype_reduction += 20;
-    if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+    if (HAS_DRAGON_BOND_ABIL(ch, 7, DRAGON_BOND_CHAMPION))
       damtype_reduction += 10;
 
     /* npc vulnerabilities/strengths */
@@ -3512,9 +3519,26 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
 
     break;
 
-  case DAM_FORCE:
+  case DAM_PIERCING:
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
       damtype_reduction += 20;
+    if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
+      damtype_reduction += 10;
+    if (HAS_DRAGON_BOND_ABIL(ch, 7, DRAGON_BOND_CHAMPION))
+      damtype_reduction += 10;
+
+    /* npc vulnerabilities/strengths */
+    if (IS_NPC(ch))
+    {
+    }
+
+    break;
+
+  case DAM_BLUDGEON:
+    if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
+      damtype_reduction += 20;
+    if (HAS_DRAGON_BOND_ABIL(ch, 7, DRAGON_BOND_CHAMPION))
+      damtype_reduction += 10;
 
     /* npc vulnerabilities/strengths */
     if (IS_NPC(ch))
@@ -3556,6 +3580,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += get_evolution_appearance_save_bonus(ch);
     if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
       damtype_reduction += get_evolution_appearance_save_bonus(ch);
+    if (HAS_FEAT(ch, FEAT_DRACONIC_PROTECTION) && draconic_heritage_energy_types[GET_DRAGON_RIDER_DRAGON_TYPE(ch)] == DAM_POISON)
+      damtype_reduction += -50;
 
     /* npc vulnerabilities/strengths */
     if (IS_NPC(ch))
@@ -5433,7 +5459,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   {
     dambonus += 4;
     if (display_mode)
-      send_to_char(ch, "Evolution (Constrict): \tR4\tn\r\n");
+      send_to_char(ch, "Evolution (Constrict): \tR+4\tn\r\n");
   }
 
   if (AFF_FLAGGED(ch, AFF_SICKENED))
@@ -5449,6 +5475,30 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     if (display_mode)
       send_to_char(ch, "Judgement of Destruction: \tR%d\tn\r\n", get_judgement_bonus(ch, INQ_JUDGEMENT_DESTRUCTION));
   }
+
+  // Dragon champion level 3 abil: +1 hitroll +2 damage
+  if (HAS_DRAGON_BOND_ABIL(ch, 3, DRAGON_BOND_CHAMPION) && is_riding_dragon_mount(ch))
+  {
+    dambonus += 2;
+    if (display_mode)
+      send_to_char(ch, "Dragon Champion Bonus: \tR+2\tn\r\n");
+  }
+
+  // dragon rider united we stand: dragon portion
+  if (IS_NPC(ch) && is_dragon_rider_mount(ch) && RIDDEN_BY(ch) && is_riding_dragon_mount(RIDDEN_BY(ch)) && HAS_FEAT(RIDDEN_BY(ch), FEAT_UNITED_WE_STAND))
+  {
+    dambonus += 4;
+    if (display_mode)
+      send_to_char(ch, "United We Stand Bonus: \tR+4\tn\r\n");
+  }
+  // dragon rider united we stand: player portion
+  if (!IS_NPC(ch) && is_riding_dragon_mount(ch) && HAS_FEAT(ch, FEAT_UNITED_WE_STAND))
+  {
+    dambonus += 4;
+    if (display_mode)
+      send_to_char(ch, "United We Stand Bonus: \tR+4\tn\r\n");
+  }
+
 
   /* strength bonus */
   switch (attack_type)
@@ -6692,7 +6742,11 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     else
     {
       /* determine weapon dice damage (or lack of weaopn) */
-      dam = compute_dam_dice(ch, victim, wielded, mode); 
+      dam = compute_dam_dice(ch, victim, wielded, mode);
+      if (HAS_DRAGON_BOND_ABIL(ch, 10, DRAGON_BOND_CHAMPION))
+      {
+        dam += compute_dam_dice(ch, victim, wielded, mode);
+      }
     }
 
     /* add any modifers to melee damage: strength, circumstance penalty, fatigue, size, etc etc */
@@ -7030,6 +7084,19 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
              HAS_FEAT(ch, FEAT_ACROBATIC_CHARGE))
     {
       dam += 4;
+    }
+
+    if (AFF_FLAGGED(ch, AFF_CHARGING) && HAS_DRAGON_BOND_ABIL(ch, 10, DRAGON_BOND_KIN))
+    {
+      dam += 10;
+      if (victim && ((d20(ch) + compute_cmb(ch, COMBAT_MANEUVER_TYPE_KNOCKDOWN)) >
+          (d20(victim) + compute_cmd(victim, COMBAT_MANEUVER_TYPE_KNOCKDOWN))))
+      {
+        change_position(victim, POS_SITTING);
+        act("You knock $N to the ground!", FALSE, ch, 0, victim, TO_CHAR);
+        act("$n knocks You to the ground!", FALSE, ch, 0, victim, TO_VICT);
+        act("$n knocks $N to the ground!", FALSE, ch, 0, victim, TO_NOTVICT);
+      }
     }
 
     /* Add additional damage dice from weapon special abilities. - Ornir */
@@ -8101,6 +8168,16 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
 
   if (ch && victim && HAS_REAL_FEAT(ch, FEAT_BLOODHUNT) && (GET_HIT(victim) * 2) < GET_MAX_HIT(victim))
     bonuses[BONUS_TYPE_MORALE] += 1;
+
+  // Dragon champion level 3 abil: +1 hitroll +2 damage
+  if (HAS_DRAGON_BOND_ABIL(ch, 3, DRAGON_BOND_CHAMPION) && is_riding_dragon_mount(ch))
+    bonuses[BONUS_TYPE_MORALE] += 1;
+  // dragon rider united we stand: dragon portion
+  if (IS_NPC(ch) && is_dragon_rider_mount(ch) && RIDDEN_BY(ch) && is_riding_dragon_mount(RIDDEN_BY(ch)) && HAS_FEAT(RIDDEN_BY(ch), FEAT_UNITED_WE_STAND))
+    bonuses[BONUS_TYPE_MORALE] += 2;
+  // dragon rider united we stand: player portion
+  if (!IS_NPC(ch) && is_riding_dragon_mount(ch) && HAS_FEAT(ch, FEAT_UNITED_WE_STAND))
+    bonuses[BONUS_TYPE_MORALE] += 2;
 
   if (AFF_FLAGGED(ch, AFF_SICKENED))
     bonuses[BONUS_TYPE_UNDEFINED] -= 2;
