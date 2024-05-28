@@ -3150,6 +3150,9 @@ void add_follower(struct char_data *ch, struct char_data *leader)
   if (CAN_SEE(leader, ch))
     act("$n starts following you.", TRUE, ch, 0, leader, TO_VICT);
   act("$n starts to follow $N.", TRUE, ch, 0, leader, TO_NOTVICT);
+
+  if (!IS_NPC(leader) && PRF_FLAGGED(leader, PRF_AUTO_GROUP) && GROUP(leader) && !GROUP(ch))
+    join_group(ch, GROUP(leader));
 }
 
 /** Reads the next non-blank line off of the input stream. Empty lines are
@@ -4641,6 +4644,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
       break;
     case FEAT_COSMIC_UNDERSTANDING:
       daily_uses = 3;
+      break;
+    case FEAT_DRAGOON_POINTS:
+      daily_uses = CLASS_LEVEL(ch, CLASS_DRAGONRIDER) * ((GET_DRAGON_BOND_TYPE(ch) == DRAGON_BOND_MAGE) + 1);
       break;
     case FEAT_CROWN_OF_KNIGHTHOOD:
       daily_uses = 1;
@@ -9301,6 +9307,35 @@ bool can_npc_command(struct char_data *ch)
 #endif
 
   return TRUE;
+}
+
+bool is_riding_dragon_mount(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  if (IS_NPC(ch)) return false;
+
+  if (!RIDING(ch)) return false;
+
+  if (!is_dragon_rider_mount(RIDING(ch))) return false;
+
+  if (IN_ROOM(ch) != IN_ROOM(RIDING(ch))) return false;
+
+  return true;
+
+}
+
+bool is_dragon_rider_mount(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  if (!IS_NPC(ch)) return false;
+
+  if (GET_MOB_VNUM(ch) >= 40401 && GET_MOB_VNUM(ch) <= 40410)
+    return true;
+
+  return false;
+
 }
 
 /* EoF */

@@ -23,6 +23,8 @@ extern const char *shape_to_room[MAX_PC_SUBRACES + 1];
 extern const char *shape_to_char[MAX_PC_SUBRACES + 1];
 extern const char *npc_race_menu;
 extern const char *bagnames[];
+extern const char * dragon_bond_types[];
+extern const int dragon_type_specab_types[];
 extern const char *npc_subrace_types[NUM_SUB_RACES + 1];
 extern const char *npc_subrace_abbrevs[NUM_SUB_RACES + 1];
 extern const char *race_family_abbrevs[NUM_RACE_TYPES + 1];

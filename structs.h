@@ -434,6 +434,7 @@
 #define CLASS_KNIGHT_OF_THE_THORN 33
 #define CLASS_KNIGHT_OF_THE_SKULL 34
 #define CLASS_KNIGHT_OF_THE_LILY 35
+#define CLASS_DRAGONRIDER 36
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -442,12 +443,12 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 36
+#define NUM_CLASSES 37
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
-#define MAX_CLASSES 36 // total number of maximum pc classes
+#define MAX_CLASSES 37 // total number of maximum pc classes
 #define NUM_CASTERS 9  // direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2
@@ -459,6 +460,14 @@
  * ****  load_prayX has to be changed in players.c manually for this ****
  */
 /**************************/
+
+// DRAGON BOND TYPES
+#define DRAGON_BOND_NONE 0
+#define DRAGON_BOND_CHAMPION 1
+#define DRAGON_BOND_MAGE 2
+#define DRAGON_BOND_SCION DRAGON_BOND_MAGE
+#define DRAGON_BOND_KIN 3
+#define NUM_DRAGON_BOND_TYPES 4
 
 /* cleric domains */
 #define DOMAIN_UNDEFINED 0
@@ -616,6 +625,7 @@
 #define DRACONIC_HERITAGE_SILVER 9
 #define DRACONIC_HERITAGE_GOLD 10
 #define NUM_DRACONIC_HERITAGE_TYPES 11 // 1 more than the last above
+#define NUM_DRAGON_TYPES NUM_DRACONIC_HERITAGE_TYPES
 
 // Races - specific, race type defines are below
 #define RACE_UNDEFINED (-1) /*Race Undefined*/
@@ -1066,8 +1076,9 @@
 #define MOB_BLOCK_NEUTRAL 91
 #define MOB_BLOCK_GOOD 92
 #define MOB_GENIEKIND 93
+#define MOB_C_DRAGON 94
 /**********************/
-#define NUM_MOB_FLAGS 94
+#define NUM_MOB_FLAGS 95
 /**********************/
 /**********************/
 
@@ -1237,9 +1248,10 @@
 #define PRF_AUGMENT_BUFFS 68          // Will attempt to use max psp to augment buffs
 #define PRF_AUTO_SORT 69              // will automatically sort items into the proper bag upon acquisition
 #define PRF_AUTO_STORE 70             // will automatically store consumables upon acquisition
+#define PRF_AUTO_GROUP 71
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 71
+#define NUM_PRF_FLAGS 72
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -2667,12 +2679,23 @@
 #define FEAT_DEMORALIZE 1091
 #define FEAT_FIGHT_TO_THE_DEATH 1092
 #define FEAT_ONE_THOUGHT 1093
+// Dragon Rider
+#define FEAT_DRAGON_BOND 1094
+#define FEAT_DRAGON_LINK 1095
+#define FEAT_RIDERS_BOND 1096
+#define FEAT_DRACONIC_PROTECTION 1097
+#define FEAT_ADEPT_RIDER 1098
+#define FEAT_DRACONIC_RESISTANCE 1099
+#define FEAT_SKILLED_RIDER 1100
+#define FEAT_MASTER_RIDER 1101
+#define FEAT_UNITED_WE_STAND 1102
+#define FEAT_DRAGOON_POINTS 1103
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1094
+#define FEAT_LAST_FEAT 1104
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1095
+#define NUM_FEATS 1105
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4742,6 +4765,8 @@ struct player_special_data_saved
     bool vital_strike;                              /* if we're using vital strike */
     int necromancer_bonus_levels; // 1 for arcane, 2 for divine
     int fight_to_the_death_cooldown;
+    int dragon_bond_type;
+    int dragon_rider_dragon_type;
 
 };
 
@@ -4997,6 +5022,8 @@ struct level_data
     int summoner_aspects[NUM_EVOLUTIONS];
     int temp_evolution;
     int necromancer_bonus_levels; // 1 for arcane, 2 for divine
+    int dragon_rider_dragon_type;
+    int dragon_rider_bond_type;
 };
 
 /** The list element that makes up a list of characters following this

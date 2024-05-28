@@ -113,6 +113,8 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
 void gui_room_desc_wrap_open(struct char_data *ch);
 void gui_room_desc_wrap_close(struct char_data *ch);
 int BAB(struct char_data *ch);
+bool is_dragon_rider_mount(struct char_data *ch);
+bool is_riding_dragon_mount(struct char_data *ch);
 bool is_poison_spell(int spell);
 bool valid_vampire_cloak_apply(int type);
 bool is_valid_ability_number(int num);
@@ -1989,6 +1991,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_KNIGHT_OF_THE_THORN(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN))
 #define IS_KNIGHT_OF_THE_SKULL(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL))
 #define IS_KNIGHT_OF_THE_LILY(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY))
+#define IS_DRAGONRIDER(ch) (CLASS_LEVEL(ch, CLASS_DRAGONRIDER))
 
 #define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT ||                                                          \
                        IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
@@ -2606,6 +2609,12 @@ bool has_reach(struct char_data *ch);
 #define GET_FORETELL_USES(ch)       (ch->char_specials.foretell_uses)
 
 #define GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) (ch->player_specials->saved.fight_to_the_death_cooldown)
+
+#define GET_DRAGON_BOND_TYPE(ch)  (ch->player_specials->saved.dragon_bond_type)
+#define GET_DRAGON_RIDER_DRAGON_TYPE(ch)  (ch->player_specials->saved.dragon_rider_dragon_type)
+
+#define HAS_DRAGON_BOND_ABIL(ch, level, type)  (is_riding_dragon_mount(ch) && GET_DRAGON_BOND_TYPE(ch) == type && \
+                                                HAS_FEAT(ch, FEAT_RIDERS_BOND) && (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) >= level))
 
 #endif /* _UTILS_H_ */
 

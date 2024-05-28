@@ -216,6 +216,8 @@ struct mud_event_list mud_event_index[] = {
     {"Knighthood's Flower", event_daily_use_cooldown, EVENT_CHAR}, // eKNIGHTHOODSFLOWER
     {"Rallying Cry", event_daily_use_cooldown, EVENT_CHAR}, // eRALLYINGCRY
     {"Cosmic Understanding", event_daily_use_cooldown, EVENT_CHAR}, // eCOSMICUNDERSTANDING
+    {"Dragoon Points", event_daily_use_cooldown, EVENT_CHAR}, // eDRAGOONPOINTS
+    {"Call Dragon Mount", event_countdown, EVENT_CHAR}, // eC_DRAGONMOUNT
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -283,6 +285,9 @@ EVENTFUNC(event_countdown)
   {
   case eC_ANIMAL:
     send_to_char(ch, "You are now able to 'call companion' again.\r\n");
+    break;
+  case eC_DRAGONMOUNT:
+    send_to_char(ch, "You are now able to 'call dragon' again.\r\n");
     break;
   case eC_EIDOLON:
     send_to_char(ch, "You are now able to 'call eidolon' again.\r\n");
@@ -527,6 +532,9 @@ EVENTFUNC(event_countdown)
     break;
   case eCOSMICUNDERSTANDING:
     send_to_char(ch, "You are now able to foretell and prescience again.\r\n");
+    break;
+  case eDRAGOONPOINTS:
+    send_to_char(ch, "You have regained a dragoon point.\r\n");
     break;
   case eSTRUGGLE:
     if (AFF_FLAGGED(ch, AFF_GRAPPLED)) /*no need for message if not grappling*/
@@ -902,6 +910,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eCOSMICUNDERSTANDING:
     featnum = FEAT_COSMIC_UNDERSTANDING;
     send_to_char(ch, "One of your foretell/prescience uses has recovered.\r\n");
+    break;
+  case eDRAGOONPOINTS:
+    featnum = FEAT_DRAGOON_POINTS;
+    send_to_char(ch, "One of your dragoon points has recovered.\r\n");
     break;
   case eINVISIBLE_ROGUE:
     featnum = FEAT_INVISIBLE_ROGUE;

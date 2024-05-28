@@ -428,6 +428,21 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
     }
   }
 
+  // Dragon Scion Elemental attacks
+  if (victim && HAS_DRAGON_BOND_ABIL(ch, 3, DRAGON_BOND_MAGE))
+  {
+    if (actmtd == ACTMTD_ON_HIT)
+    {
+      damage(ch, victim, dice(1, 8), dragon_type_specab_types[GET_DRAGON_RIDER_DRAGON_TYPE(ch)], 
+              draconic_heritage_energy_types[GET_DRAGON_RIDER_DRAGON_TYPE(ch)], FALSE);
+    }
+    if (actmtd == ACTMTD_ON_CRIT)
+    {
+      damage(ch, victim, dice(3, 8), dragon_type_specab_types[GET_DRAGON_RIDER_DRAGON_TYPE(ch)], 
+              draconic_heritage_energy_types[GET_DRAGON_RIDER_DRAGON_TYPE(ch)], FALSE);
+    }
+  }
+
   if (victim)
   {
     if (actmtd == ACTMTD_ON_HIT)

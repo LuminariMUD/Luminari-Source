@@ -10627,6 +10627,51 @@ ACMD(do_prescience)
   USE_SWIFT_ACTION(ch);
 }
 
+ACMD(do_gloryscall)
+{
+
+  int uses_remaining = 0;
+  
+  if (!HAS_DRAGON_BOND_ABIL(ch, 7, DRAGON_BOND_KIN))
+  {
+    send_to_char(ch, "You do not have the glory's call ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, AFFECT_GLORYS_CALL))
+  {
+    send_to_char(ch, "You are already benefitting from glory's call.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_DRAGOON_POINTS)) == 0)
+  {
+    send_to_char(ch, "You need to recover dragoon points in order to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You have no uses in this ability.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    send_to_char(ch, "Glory's call requires a swift action available to use.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "You raise your voice and call your allies to glory!\r\n");
+  
+  call_magic(ch, ch, 0, AFFECT_GLORYS_CALL, 0, GET_LEVEL(ch), CAST_INNATE);
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_DRAGOON_POINTS);
+
+  USE_SWIFT_ACTION(ch);
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS

@@ -669,6 +669,7 @@ const char *class_names[] = {
     "Knight of the Thorn",
     "Knight of the Skull",
     "Knight of the Lily", // 35
+    "Dragon Rider",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -1052,9 +1053,9 @@ const char *damtypes[] = {
     "holy",
     "electric",
     "unholy",
-    "slice",
-    "puncture",
-    "force",
+    "slashing",
+    "piercing",
+    "bludgeon",
     "sonic",
     "poison",
     "disease",
@@ -1556,6 +1557,7 @@ const char *action_bits[] = {
     "Mob-Block-Neutral",
     "Mob-Block-Good",
     "Mob-Geniekind",
+    "Mob-Dragon-Mount",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
@@ -1635,6 +1637,7 @@ const char *preference_bits[] = {
     "Augment-Buffs",
     "Auto-Sort",
     "Auto-Store",
+    "Auto-Group",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -3951,6 +3954,22 @@ const int draconic_heritage_energy_types[] = {
 };
 CHECK_TABLE_SIZE(draconic_heritage_energy_types, NUM_DRACONIC_HERITAGE_TYPES + 1);
 
+const int dragon_type_specab_types[] = {
+    0,            // none
+    TYPE_SPECAB_CORROSIVE, // black
+    TYPE_SPECAB_SHOCK,     // blue
+    TYPE_SPECAB_POISON,    // green
+    TYPE_SPECAB_FLAMING,   // red
+    TYPE_SPECAB_FROST,     // white
+    TYPE_SPECAB_FLAMING,   // brass
+    TYPE_SPECAB_SHOCK,     // bronze
+    TYPE_SPECAB_CORROSIVE, // copper
+    TYPE_SPECAB_FROST,     // silver
+    TYPE_SPECAB_FLAMING,   // gold
+    0                      // always last
+};
+CHECK_TABLE_SIZE(dragon_type_specab_types, NUM_DRACONIC_HERITAGE_TYPES + 1);
+
 // the number of spells received per level for caster types
 const int wizard_slots[][NUM_CIRCLES + 1] = {
     //   1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
@@ -4611,6 +4630,7 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                        // knight of the thorn 33
     {"", "", "", ""},                                        // knight of the skull 34
     {"", "", "", ""},                                        // knight of the lily 35
+    {"", "", "", ""},                                        // dragonrider 36
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -4658,6 +4678,7 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                        // knight of the thorn 33
     {"", "", "", ""},                                        // knight of the skull 34
     {"", "", "", ""},                                        // knight of the lily 35
+    {"", "", "", ""},                                        // dragonrider 36
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -5225,6 +5246,7 @@ const char *class_short_descriptions[] = {
     "The arcane order of the Knights of Takhisis, clad in armor and adhering to a strict code of honor.",         // knight of the thorn
     "The clerical order of the Knights of Takhisis, they serve as diplomats and internal enforcers.",             // knight of the skull
     "The rank and file of the Knights of Takhisis and main force of their military.",                             // knight of the lily
+    "A skilled warrior whose bond with their dragon mount offers numerous special abilities.",                    // dragonrider
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 
@@ -5510,6 +5532,14 @@ const char *eidolon_base_form_descs[] = {
     "+2 Natural AC, Great Fortitude, Lightning Reflexes, Bite, +6 Str, +6 Dex, +4 Con",
     "+2 Natural AC, Lightning Reflexes, Iron Will, Bite, Tail Slap, +4 Str, +6 Dex, +4 Con",
     "+2 Natural AC, Great Fortitude, Iron Will, Hooves, +4 Str, +2 Dex, +6 Con"
+};
+
+const char * dragon_bond_types[] = {
+    "",
+    "Dragon Champion",
+    "Dragon Scion",
+    "Dragon Kin",
+    ""
 };
 
 /* --- End of constants arrays. --- */

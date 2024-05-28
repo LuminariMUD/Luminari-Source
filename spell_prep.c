@@ -2347,9 +2347,17 @@ int free_arcana_slots(struct char_data *ch)
 #define LOOP_MAX 1000
 #define PROC_NUM 5
 /* this is a custom function we wrote that will, on firing, randomly restore spells from the queue -zusuk */
-int star_circlet_proc(struct char_data *ch)
+// if num_times is 0, there is no limit to how many spells can be restored. Otherwise it will limit it to
+// the num_times spell slots
+int star_circlet_proc(struct char_data *ch, int num_times)
 {
-  int class = 0, proc_count = 0, loop_count = 0, proc_max = rand_number(1, PROC_NUM);
+  int class = 0, proc_count = 0, loop_count = 0, proc_max = 0;
+  int which_class = 0, num_classes = 0, cur_class = 0;
+
+  if (num_times == 0)
+    proc_max = rand_number(1, PROC_NUM);
+  else
+    proc_max = 1;
 
   if (!ch)
     return 0;
@@ -2358,9 +2366,40 @@ int star_circlet_proc(struct char_data *ch)
   do
   {
 
-    /* class loop */
-    for (class = 0; class < NUM_CLASSES; class ++)
+    for (class = CLASS_WIZARD; class < NUM_CLASSES; class++)
     {
+      if (CLASS_LEVEL(ch, class) > 0)
+        num_classes++;
+    }
+
+    if (class < NUM_CLASSES)
+      which_class = dice(1, num_classes);
+
+    num_classes = 0;
+
+    for (class = CLASS_WIZARD; class < NUM_CLASSES; class++)
+    {
+      if (CLASS_LEVEL(ch, class) > 0)
+      {
+        num_classes++;
+        if (num_classes == which_class)
+        {
+          which_class = class;
+          break;
+        }
+      }
+    }
+
+    if (which_class < 0 || which_class >= NUM_CLASSES)
+      which_class = -1;
+
+    /* class loop */
+    for (cur_class = 0; cur_class < NUM_CLASSES; cur_class++)
+    {
+      if (which_class == -1)
+        class = cur_class;
+      else
+        class = which_class;
 
       switch (class)
       {
@@ -2375,8 +2414,7 @@ int star_circlet_proc(struct char_data *ch)
                        (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
                        (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
                        INNATE_MAGIC(ch, class)->circle);
-          innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->circle,
-                                       INNATE_MAGIC(ch, class)->metamagic);
+          innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->circle, INNATE_MAGIC(ch, class)->metamagic);
           proc_count++;
         }
         break;

@@ -540,6 +540,7 @@ static void zedit_disp_menu(struct descriptor_data *d)
     if ((counter - abs(MYCMD.if_flag)) < 0)
       snprintf(buf1, sizeof(buf1), "IF line <Warn: %d> %s,\r\n  ", MYCMD.if_flag,
                (MYCMD.if_flag < 0) ? "fails" : "executes");
+
     else if (abs(MYCMD.if_flag) > 1)
       snprintf(buf1, sizeof(buf1), "IF line #%d %s,\r\n  ", counter - abs(MYCMD.if_flag),
                (MYCMD.if_flag < 0) ? "fails" : "executes");

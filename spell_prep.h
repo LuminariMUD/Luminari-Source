@@ -25,7 +25,7 @@ extern "C"
     /** START functions **/
 
     /* this is the star circlets proc */
-    int star_circlet_proc(struct char_data *ch);
+    int star_circlet_proc(struct char_data *ch, int num_times);
 
     /* clear a ch's spell prep queue, example ch loadup */
     void init_spell_prep_queue(struct char_data *ch);

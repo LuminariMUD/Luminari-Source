@@ -285,7 +285,11 @@ ACMD(do_accexp)
       {
         if (has_unlocked_class(ch, i) || !CLSLIST_LOCK(i))
           continue;
+#if defined(CAMPAIGN_DL)
+        cost = CLSLIST_COST(i) / 10;
+#else
         cost = CLSLIST_COST(i);
+#endif
         send_to_char(ch, "%s (%d account experience)\r\n", CLSLIST_NAME(i), cost);
       }
       return;
@@ -295,7 +299,11 @@ ACMD(do_accexp)
       if (is_abbrev(arg2, CLSLIST_NAME(i)) && !has_unlocked_class(ch, i) &&
           CLSLIST_LOCK(i))
       {
+#if defined(CAMPAIGN_DL)
+        cost = CLSLIST_COST(i) / 10;
+#else
         cost = CLSLIST_COST(i);
+#endif
         break;
       }
     }

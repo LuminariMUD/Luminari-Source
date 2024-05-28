@@ -678,6 +678,7 @@
 #define AFFECT_FORETELL 1276
 #define AFFECT_PRESCIENCE 1277
 #define AFFECT_PRESCIENCE_DEBUFF 1278
+#define AFFECT_GLORYS_CALL 1279
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -1109,6 +1110,7 @@
 #define TYPE_SPECAB_SHOCKING_BURST 2210
 #define TYPE_SPECAB_ANARCHIC 2211
 #define TYPE_SPECAB_UNHOLY 2212
+#define TYPE_SPECAB_POISON 2213
 
 /* alchemist bombs with effects */
 #define BOMB_AFFECT_ACID 2234
@@ -1393,8 +1395,11 @@
 #define DAM_ELECTRIC 7
 #define DAM_UNHOLY 8
 #define DAM_SLICE 9
+#define DAM_SLASHING DAM_SLICE
 #define DAM_PUNCTURE 10
+#define DAM_PIERCING DAM_PUNCTURE
 #define DAM_FORCE 11
+#define DAM_BLUDGEON DAM_FORCE
 #define DAM_SOUND 12
 #define DAM_POISON 13
 #define DAM_DISEASE 14
@@ -1757,6 +1762,7 @@ bool isSummonerMagic(struct char_data *ch, int spellnum);
 bool isPaleMasterMagic(struct char_data *ch, int spellnum);
 bool isThornMagic(struct char_data *ch, int spellnum);
 bool isSkullMagic(struct char_data *ch, int spellnum);
+bool isDragonRiderMagic(struct char_data *ch, int spellnum);
 
 /**/
 

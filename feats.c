@@ -252,8 +252,8 @@ void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int 
   prereq = create_prerequisite(FEAT_PREREQ_SPELLCASTING, casting_type, prep_type,
                                circle);
 
-  snprintf(buf, sizeof(buf), "Ability to cast %s %s spells", casting_types[casting_type],
-           spell_preparation_types[prep_type]);
+  snprintf(buf, sizeof(buf), "Ability to cast %s %s (%d circle) spells", casting_types[casting_type],
+           spell_preparation_types[prep_type], circle);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -1120,10 +1120,10 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "When a Baaz Draconian dies, it turns to stone and let's out a puff of gas that will paralyze all enemies in the room.");
   feato(FEAT_DRACONIAN_CONTROLLED_FALL, "draconian controlled fall", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Divide fall damge in half.",
-        "When falling, a Baaz Draconian can spread his wings to halve any fall damage they might take.");
+        "When falling, the draconian can spread their wings to halve any fall damage they might take.");
   feato(FEAT_DRACONIC_DEVOTION, "draconic devotion", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 to attack rolls when grouped with another draconian or dragon.",
-        "Draconians receive a +2 to attack rolls whenever they are groluped with another draconian or a dragon of any type.");
+        "Draconians receive a +2 to attack rolls whenever they are grouped with another draconian or a dragon of any type.");
   feato(FEAT_DRACONIAN_GALLOP, "draconian gallop", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Gains additional move points when advancing in level.",
         "Gains additional move points when advancing in level.");
@@ -4704,6 +4704,40 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
     "When grouped, cannot be flanked, flat footed or surprised. All group members also receive a +1 insight bonus to AC, attack rolls and saving throws.",
     "When grouped, cannot be flanked, flat footed or surprised. All group members also receive a +1 insight bonus to AC, attack rolls and saving throws.");
 
+  // dragon rider
+  feato(FEAT_DRAGON_BOND, "dragon mount", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Allows the summoning of a dragon mount.",
+    "Allows the summoning of a dragon mount, through the use of the 'call' command. The type of dragon is selected in the study menu.");
+  feato(FEAT_DRAGON_LINK, "dragon link", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Allows the rider to share any buff spells cast upon them to affect their dragon mount as well.",
+    "Allows the rider to share any buff spells cast upon them to affect their dragon mount as well.");
+  feato(FEAT_RIDERS_BOND, "riders bond", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Allows the rider to select a type of bond: dragon champion, dragon scion, and dragon kin.",
+    "Allows the rider to select a type of bond: dragon champion, dragon scion, and dragon kin. See associated help files for more details (Eg. HELP DRAGON SCION).");
+  feato(FEAT_DRACONIC_PROTECTION, "draconic protection", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Gives 50% elemental resistance against the energy type associated with their dragon mount type.",
+    "Gives 50% elemental resistance against the energy type associated with their dragon mount type.");
+  feato(FEAT_ADEPT_RIDER, "adept rider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Offers a +2 bonus to ride skill, and allows casting of darkness, daylight and obscuring mist spells.",
+    "Offers a +2 bonus to ride skill, and allows casting of darkness, daylight and obscuring mist spells. See HELP DRAGOON POINTS for more info.");
+  feato(FEAT_DRACONIC_RESISTANCE, "draconic resistance", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Dragon and rider gain spell resistance equal to 5 + their overall level.",
+    "Dragon and rider gain spell resistance equal to 5 + their overall level.");
+  feato(FEAT_SKILLED_RIDER, "skilled rider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Offers a +2 bonus to ride skill, and allows casting of heal mount and acid arrow spells.",
+    "Offers a +2 bonus to ride skill, and allows casting of heal mount and acid arrow spells. Uses dragoon points. See HELP DRAGOON POINTS for more info.");
+  feato(FEAT_MASTER_RIDER, "master rider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Offers a +2 bonus to ride skill, and allows casting of lightning bolt and slow spells.",
+    "Offers a +2 bonus to ride skill, and allows casting of lightning bolt and slow spells. Uses dragoon points. See HELP DRAGOON POINTS for more info.");
+  feato(FEAT_UNITED_WE_STAND, "united we stand", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "When riding their dragon, both parties gain morale bonus of +2 to hitroll, +4 to damage rolls, and +2 to armor class.",
+    "When riding their dragon, both parties gain morale bonus of +2 to hitroll, +4 to damage rolls, and +2 to armor class.");
+  feato(FEAT_DRAGOON_POINTS, "dragoon points", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Rider gains dragoon points equal to dragon rider.",
+    "Rider gains dragoon points equal to dragon rider. These points can be used to cast various spells gained by the "
+    "adept rider, skilled rider and master rider feats. Each of the granted spells will use one dragoon point when casting. Dragoon points can be "
+    "viewed with the 'abilities' command.");
+
   /* Shadow Dancer (ShadowDancer) */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /*1*/
@@ -5355,6 +5389,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   dailyfeat(FEAT_KNIGHTHOODS_FLOWER, eKNIGHTHOODSFLOWER);
   dailyfeat(FEAT_RALLYING_CRY, eRALLYINGCRY);
   dailyfeat(FEAT_COSMIC_UNDERSTANDING, eCOSMICUNDERSTANDING);
+  dailyfeat(FEAT_DRAGOON_POINTS, eDRAGOONPOINTS);
   /** END **/
 }
 

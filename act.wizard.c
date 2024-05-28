@@ -2654,15 +2654,16 @@ void show_full_last_command(struct char_data *ch)
   MYSQL_RES *res;
   MYSQL_ROW row;
 
-  send_to_char(ch, "%-20s %-20s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)");
-  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, b.name AS account_name FROM player_data a LEFT JOIN account_data b ON a.account_id=b.id ORDER BY a.last_online DESC LIMIT 40;");
+  send_to_char(ch, "%-20s %-20s %-25s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)", "CHARACTER INFO");
+  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, a.character_info, b.name AS account_name FROM player_data a "
+                                 "LEFT JOIN account_data b ON a.account_id=b.id ORDER BY a.last_online DESC LIMIT 40;");
   mysql_query(conn, query);
   res = mysql_use_result(conn);
   if (res != NULL)
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      send_to_char(ch, "%-20s %-20s %-15s\r\n", row[2], row[0], row[1]);
+      send_to_char(ch, "%-20s %-20s %-25s %s\r\n", row[3], row[0], row[1], row[2]);
     }
   }
   mysql_free_result(res);
@@ -2675,15 +2676,16 @@ void show_full_last_command_unique(struct char_data *ch)
   MYSQL_RES *res;
   MYSQL_ROW row;
 
-  send_to_char(ch, "%-20s %-20s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)");
-  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, b.name AS account_name FROM player_data a LEFT JOIN account_data b ON a.account_id=b.id GROUP BY b.name ORDER BY a.last_online DESC LIMIT 40;");
+  send_to_char(ch, "%-20s %-20s %-25s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)", "CHARACTER INFO");
+  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, b.name AS account_name, a.character_info FROM player_data a "
+                                 "LEFT JOIN account_data b ON a.account_id=b.id GROUP BY b.name ORDER BY a.last_online DESC LIMIT 40;");
   mysql_query(conn, query);
   res = mysql_use_result(conn);
   if (res != NULL)
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      send_to_char(ch, "%-20s %-20s %-15s\r\n", row[2], row[0], row[1]);
+      send_to_char(ch, "%-20s %-20s %-25s %s\r\n", row[2], row[0], row[1], row[3]);
     }
   }
   mysql_free_result(res);
@@ -5929,6 +5931,10 @@ break;
       if (char_has_mud_event(och, eC_ANIMAL))
       {
         event_cancel_specific(och, eC_ANIMAL);
+      }
+      if (char_has_mud_event(och, eC_DRAGONMOUNT))
+      {
+        event_cancel_specific(och, eC_DRAGONMOUNT);
       }
       if (char_has_mud_event(och, eC_FAMILIAR))
       {
