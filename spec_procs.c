@@ -936,10 +936,10 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   /* Note on this:  More and more it seems necessary to have some
    * sort of NPC skill system in place, either an actual set
    * of SKILLS or some way to translate level, race and class into
-   * an appropriate set of skills, mostly for intellignet, humanoid
+   * an appropriate set of skills, mostly for intelligent, humanoid
    * NPCs. For now, just use the level, although that will be difficult. */
   if (IS_NPC(ch))
-    value += GET_LEVEL(ch) - 1;
+    value += GET_LEVEL(ch) * 0.75;
   else
     value += GET_ABILITY(ch, abilityNum);
 

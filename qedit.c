@@ -237,6 +237,11 @@ static void qedit_setup_new(struct descriptor_data *d)
   quest->coord_x = 0;
   quest->coord_y = 0;
 
+  quest->diplomacy_dc = -1;
+  quest->intimidate_dc = -1;
+  quest->bluff_dc = -1;
+  quest->dialogue_alternative_quest = NOTHING;
+
   quest->name = strdup("Undefined Quest");
   quest->desc = strdup("Quest definition is incomplete.");
   quest->info = strdup("There is no information on this quest.\r\n");
@@ -372,6 +377,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
   case AQ_MOB_FIND:
   case AQ_MOB_SAVE:
   case AQ_MOB_KILL:
+  case AQ_DIALOGUE:
     snprintf(targetname, sizeof(targetname), "%s",
              real_mobile(quest->target) == NOBODY ? "An unknown mobile" : GET_NAME(&mob_proto[real_mobile(quest->target)]));
     break;
@@ -440,6 +446,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   "\tg L\tn) Time Limit     : [\tc%6d\tn]\r\n"
                   "\tg N\tn) Next Quest     : [\tc%6d\tn] \ty%s\r\n"
                   "\tg P\tn) Previous Quest : [\tc%6d\tn] \ty%s\r\n"
+                  "\tg S\tn) Quest Dialogue Options\tn\r\n"
                   "\tg X\tn) Delete Quest\r\n"
                   "\tg Q\tn) Quit\r\n"
                   "Enter Choice : ",
@@ -485,6 +492,27 @@ static void qedit_disp_menu(struct descriptor_data *d)
   OLC_MODE(d) = QEDIT_MAIN_MENU;
 }
 
+void show_quest_dialogue_menu(struct descriptor_data *d)
+{
+  write_to_output(d,     "\r\n"
+                         "Quest Dialogue Menu\r\n"
+                         "If the quest has one of these DCs set above zero, then the quest will considered a dialogue quest.\r\n"
+                         "A dialogue quest must be attempted by using one of the social skills below. Only one attempt may be made\r\n"
+                         "even if multiple DCs are set. If any DC is set above zero, that skill may be used to attempt to complete\r\n"
+                         "the quest. If the skill check fails, then the Dialogue Fail Quest will trigger, allowing the character to complete\r\n"
+                         "the principal quest through another method.\r\n"
+                         "\r\n"
+                         "\tg 1\tn) Diplomacy DC                : \ty%d\r\n"
+                         "\tg 2\tn) Intimidate DC               : \ty%d\r\n"
+                         "\tg 3\tn) Bluff DC                    : \ty%d\r\n"
+                         "\tg 4\tn) Quest VNum on Dialogue Fail : \ty%s\r\n"
+                         "\tg Q\tn) Exit to Main Quest Menu    : \tn\r\n"
+                         "\r\n",
+                         OLC_QUEST(d)->diplomacy_dc, OLC_QUEST(d)->intimidate_dc, OLC_QUEST(d)->bluff_dc, 
+                         real_quest(OLC_QUEST(d)->dialogue_alternative_quest) == NOTHING ? "" : QST_DESC(real_quest(OLC_QUEST(d)->dialogue_alternative_quest))
+                         );
+}
+
 /* For quest type.  */
 void qedit_disp_type_menu(struct descriptor_data *d)
 {
@@ -504,8 +532,7 @@ void qedit_disp_flag_menu(struct descriptor_data *d)
   column_list(d->character, 0, aq_flags, NUM_AQ_FLAGS, TRUE);
   sprintbit(OLC_QUEST(d)->flags, aq_flags, bits, sizeof(bits));
   write_to_output(d, "\r\nQuest flags: \tc%s\tn\r\n"
-                     "Enter quest flags, 0 to quit : ",
-                  bits);
+                     "Enter quest flags, 0 to quit : ", bits);
   OLC_MODE(d) = QEDIT_FLAGS;
 }
 
@@ -746,6 +773,11 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = QEDIT_PREVQUEST;
       write_to_output(d, "Enter vnum of previous quest (-1 for none) : ");
       break;
+    case 's':
+    case 'S':
+      OLC_MODE(d) = QEDIT_DIALOGUE_MENU;
+      show_quest_dialogue_menu(d);
+      break;
     default:
       write_to_output(d, "Invalid choice!\r\n");
       qedit_disp_menu(d);
@@ -753,6 +785,64 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     }
     return;
     /*-------------------------------------------------------------------*/
+  case QEDIT_DIALOGUE_MENU:
+    switch (*arg)
+    {
+      case '1':
+        write_to_output(d, "Enter dc for diplomacy check (-1 for none) : ");
+        OLC_MODE(d) = QEDIT_DIPLOMACY;
+        break;
+      case '2':
+        write_to_output(d, "Enter dc for intimidate check (-1 for none) : ");
+        OLC_MODE(d) = QEDIT_INTIMIDATE;
+        break;
+      case '3':
+        write_to_output(d, "Enter dc for bluff check (-1 for none) : ");
+        OLC_MODE(d) = QEDIT_BLUFF;
+        break;
+      case '4':
+        write_to_output(d, "Enter the quest vnum for the quest to trigger if dialogue checks fail (-1 for none) : ");
+        OLC_MODE(d) = QEDIT_DIALOGUE_NEXT;
+        break;
+      case 'q':
+      case 'Q':
+        OLC_VAL(d) = 1;
+        qedit_disp_menu(d);
+        break;
+      default:
+        write_to_output(d, "That is an invalid choice.\r\n");
+        break;
+    }
+    return;
+  case QEDIT_DIPLOMACY:
+    OLC_QUEST(d)->diplomacy_dc = LIMIT(number, -1, 100);
+    show_quest_dialogue_menu(d);
+    OLC_MODE(d) = QEDIT_DIALOGUE_MENU;
+    return;
+  case QEDIT_INTIMIDATE:
+    OLC_QUEST(d)->intimidate_dc = LIMIT(number, -1, 100);
+    show_quest_dialogue_menu(d);
+    OLC_MODE(d) = QEDIT_DIALOGUE_MENU;
+    return;
+  case QEDIT_BLUFF:
+    OLC_QUEST(d)->bluff_dc = LIMIT(number, -1, 100);
+    show_quest_dialogue_menu(d);
+    OLC_MODE(d) = QEDIT_DIALOGUE_MENU;
+    return;
+  case QEDIT_DIALOGUE_NEXT:
+    if ((number = atoi(arg)) != -1)
+    {
+      if (real_quest(number) == NOTHING)
+      {
+        write_to_output(d, "That is not a valid quest, try again (-1 for none) : ");
+        return;
+      }
+    }
+    OLC_QUEST(d)->dialogue_alternative_quest = (number == -1 ? NOTHING : atoi(arg));
+    show_quest_dialogue_menu(d);
+    OLC_MODE(d) = QEDIT_DIALOGUE_MENU;
+    return;
+
   case QEDIT_NAME:
     if (!genolc_checkstring(d, arg))
       break;

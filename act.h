@@ -1011,4 +1011,6 @@ ACMD_DECL(do_gloryscall);
 ACMD_DECL(do_devote);
 
 ACMD_DECL(do_temote);
+
+ACMD_DECL(do_dialogue_quest);
 #endif /* _ACT_H_ */

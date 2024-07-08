@@ -58,6 +58,7 @@ const char *carriage_locales[][CARRIAGE_LOCALES_FIELDS] = {
   {"qualinost",                      "15213", "25",  "Abanasinia", "level 20 npcs", "2855", "2485"},
   {"pax tharkas",                    "15214", "25",  "Abanasinia", "halfway between solace and tarsis", "2915", "2520"},
   {"tarsis",                         "15215", "25",  "Abanasinia", "levels 18-25", "3595", "2630"},
+  {"darken wood",                    "15219", "25",  "Abanasinia", "levels 13-19", "2770", "2510"},
   {"sanction gate",                  "15205", "25",   "Taman Busuk",  "evil alignment starting city", "2020", "3765"},
   {"neraka",                         "15216", "25",   "Taman Busuk", "levels 14-25", "1805", "3950"},
   {"city of morning dew",            "15217", "25",  "Taman Busuk", "level 40 npcs", "3055", "3645"},

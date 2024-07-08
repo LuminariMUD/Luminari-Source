@@ -3784,7 +3784,7 @@ const struct set_struct
     {"poofin", LVL_IMMORT, PC, MISC},
     {"poofout", LVL_IMMORT, PC, MISC}, /* 42 */
     {"practices", LVL_IMPL, PC, NUMBER},
-    {"quest", LVL_STAFF, PC, BINARY},
+    {"quest", LVL_STAFF, PC, NUMBER},
     {"room", LVL_BUILDER, BOTH, NUMBER},
     {"screenwidth", LVL_STAFF, PC, NUMBER},
     {"sex", LVL_STAFF, BOTH, MISC}, /* 47 */
@@ -3887,6 +3887,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   int i, on = 0, off = 0, value = 0, qvnum;
   room_rnum rnum;
   room_vnum rvnum;
+  qst_rnum qnum;
   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int class = CLASS_UNDEFINED;
   char buf1[LONG_STRING];
@@ -4256,7 +4257,53 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     GET_PRACTICES(vict) = RANGE(0, 100);
     break;
   case 44: /* quest */
-    SET_OR_REMOVE(PRF_FLAGS(vict), PRF_QUEST);
+    value = atoi(val_arg);
+    if (IS_NPC(vict))
+    {
+      send_to_char(ch, "%s is an NPC and this command cannot be used on NPCs.\r\n", GET_NAME(vict));
+      return (0);
+    }
+    if (value <= 0 || value >= NOTHING)
+    {
+      send_to_char(ch, "That quest vnum is out of bounds. Must be greater than 1 and less than 65555.\r\n");
+      return (0);
+    }
+
+    for (i = 0; i < GET_NUM_QUESTS(vict); i++)
+    {
+      if ((qnum = real_quest(vict->player_specials->saved.completed_quests[i])) != NOTHING)
+      {
+        if (QST_NUM(qnum) == value)
+        {
+          send_to_char(ch, "Quest %d (%s) has been removed from %s's completed quest history.\r\n", value, QST_NAME(qnum), GET_NAME(vict));
+          remove_completed_quest(vict, value);
+          set_dialogue_quest_succeeded(vict, value);
+          return (1);
+        }
+      }
+    }
+
+    if (((qnum = real_quest(GET_QUEST(vict, 0))) != NOTHING) && QST_NUM(qnum) == value) { 
+      send_to_char(ch, "Quest #%d (%s) has been removed from %s's active quests.\r\n", value, QST_NAME(qnum), GET_NAME(vict));
+      GET_QUEST(vict, 0) = NOTHING;
+    }
+    else if (((qnum = real_quest(GET_QUEST(vict, 1))) != NOTHING) && QST_NUM(qnum) == value) { 
+      send_to_char(ch, "Quest #%d (%s) has been removed from %s's active quests.\r\n", value, QST_NAME(qnum), GET_NAME(vict));
+      GET_QUEST(vict, 1) = NOTHING;
+    }
+    else if (((qnum = real_quest(GET_QUEST(vict, 2))) != NOTHING) && QST_NUM(qnum) == value) { 
+      send_to_char(ch, "Quest #%d (%s) has been removed from %s's active quests.\r\n", value, QST_NAME(qnum), GET_NAME(vict));
+      GET_QUEST(vict, 2) = NOTHING;
+    }
+    else if ((qnum = real_quest(value)) != NOTHING) {
+      send_to_char(ch, "Quest #%d (%s) has been added to %s's completed quest history.\r\n", value, QST_NAME(qnum), GET_NAME(vict));
+      add_completed_quest(vict, value);
+    }
+    else
+    {
+      send_to_char(ch, "That quest vnum doesn't exist.\r\n");
+      return (0);
+    }
     break;
   case 45: /* room */
     if ((rnum = real_room(value)) == NOWHERE)

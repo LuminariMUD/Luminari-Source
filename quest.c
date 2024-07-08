@@ -67,6 +67,7 @@ const char *quest_types[NUM_AQ_TYPES + 1] = {
     "Get to Wilderness Coordinates", /* 21 */
     "Give Gold",                     /* 22 */
     "Kill Multi Mob (comma-separated vnums)",
+    "Dialogue Quest",
     "\n"};
 
 const char *aq_flags[] = {
@@ -212,6 +213,11 @@ void parse_quest(FILE *quest_f, int nr)
   aquest_table[i].coord_x = -1;
   aquest_table[i].coord_y = -1;
 
+  aquest_table[i].diplomacy_dc = -1;
+  aquest_table[i].intimidate_dc = -1;
+  aquest_table[i].bluff_dc = -1;
+  aquest_table[i].dialogue_alternative_quest = NOTHING;
+
   /* end init */
 
   /* begin to parse the data */
@@ -296,6 +302,25 @@ void parse_quest(FILE *quest_f, int nr)
       total_quests = ++i;
       return;
       break;
+    case 'D':
+      if (!get_line(quest_f, line))
+      {
+        log("SYSERR: Format error in 'D' field, %s\n"
+            "...expecting numeric constant but file ended!", buf2);
+        exit(1);
+      }
+      if (sscanf(line, "%d %d %d %d", t, t + 1, t + 2, t + 3) != 4)
+      {
+        log("SYSERR: Format error in 'D' field, %s\n"
+            "...expecting numeric argument\n"
+            "...offending line: '%s'", buf2, line);
+        exit(1);
+      }
+      aquest_table[i].diplomacy_dc = t[0];
+      aquest_table[i].intimidate_dc = t[1];
+      aquest_table[i].bluff_dc = t[2];
+      aquest_table[i].dialogue_alternative_quest = t[3];
+      break;
     }
   }
 } /* end parse_quest */
@@ -368,8 +393,7 @@ void add_completed_quest(struct char_data *ch, qst_vnum vnum)
     temp[i] = ch->player_specials->saved.completed_quests[i];
 
   temp[GET_NUM_QUESTS(ch)] = vnum;
-  GET_NUM_QUESTS(ch)
-  ++;
+  GET_NUM_QUESTS(ch)++;
 
   if (ch->player_specials->saved.completed_quests)
     free(ch->player_specials->saved.completed_quests);
@@ -387,8 +411,7 @@ void remove_completed_quest(struct char_data *ch, qst_vnum vnum)
     if (ch->player_specials->saved.completed_quests[i] != vnum)
       temp[j++] = ch->player_specials->saved.completed_quests[i];
 
-  GET_NUM_QUESTS(ch)
-  --;
+  GET_NUM_QUESTS(ch)--;
 
   if (ch->player_specials->saved.completed_quests)
     free(ch->player_specials->saved.completed_quests);
@@ -1159,6 +1182,42 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     return;
   }
 
+  // for a dialogue quest, if there are future quests that depend on the dialogue quest being done we
+  // need to check for either:
+  // A: The dialogue quest was finished and was not failed
+  // B: The dialogue quest was finished, but it failed, and the alternative dialogue quest was complete
+  // do this here... >>>
+  if ((QST_PREV(rnum) != NOTHING) && is_complete(ch, QST_PREV(rnum)))
+  {
+    if (is_dialogue_quest_failed(ch, QST_PREV(rnum)))
+    {
+      qst_rnum prev_quest = real_quest(QST_PREV(rnum));
+      qst_vnum alt_quest = aquest_table[prev_quest].dialogue_alternative_quest;
+      if (!is_complete(ch, alt_quest))
+      {
+        send_to_char(ch, "The previous quest was a dialogue quest which failed. You will need to complete its alternative quest in order to take this quest.\r\n");
+        return;
+      }
+    }
+  }
+
+
+  // if this is a dialogue quest's alternative quest we need to check if the dialogue quest was finished
+  // and failed. If not, we cannot take this quest
+  if (is_dialogue_alternative_quest(QST_NUM(rnum)))
+  {
+    if (!is_complete(ch, QST_PREV(rnum)) || !is_dialogue_quest_failed(ch, QST_PREV(rnum)))
+    {
+      qst_rnum d_rnum = get_dialogue_alternative_quest_rnum(QST_PREV(rnum));
+      if (d_rnum != NOTHING)
+        send_to_char(ch, "You must complete %s in order to take this quest.\r\n", QST_NAME(d_rnum));
+      else 
+        send_to_char(ch, "Error getting dialogue alternative quest rnum. Please report to staff.\r\n");
+      return;
+    }
+  }
+
+
   /* does this quest require an object? */
   if ((QST_PREREQ(rnum) != NOTHING) && ((objrnum = real_object(QST_PREREQ(rnum))) != NOTHING))
   {
@@ -1194,6 +1253,20 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   send_to_char(ch, "%s", buf);
   set_quest(ch, rnum, index);
   send_to_char(ch, "%s", QST_INFO(rnum));
+  if (QST_TYPE(rnum) == AQ_DIALOGUE)
+  {
+    send_to_char(ch, "\ty");
+    draw_line(ch, 80, '-', '-');
+    send_to_char(ch, "This is a dialogue quest. You must attempt to complete it using one of the\r\nfollowing dialogue commands:\r\n");
+    if (aquest_table[rnum].diplomacy_dc > 0)
+      send_to_char(ch, "Diplomacy Skill  - 'convince' command.\r\n");
+    if (aquest_table[rnum].intimidate_dc > 0)
+      send_to_char(ch, "Intimidate Skill - 'threaten' command.\r\n");
+    if (aquest_table[rnum].diplomacy_dc > 0)
+      send_to_char(ch, "Bluff Skill      - 'beguile' command.\r\n");
+    draw_line(ch, 80, '-', '-');
+    send_to_char(ch, "\tn");
+  }
   if (QST_TIME(rnum) != -1)
   {
     snprintf(buf, sizeof(buf),
@@ -1271,6 +1344,10 @@ void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     send_to_char(ch, "You are now no longer part of the quest.\r\n");
     save_char(ch, 0);
   }
+  else if (QST_TYPE(QST_PREV(rnum)) == AQ_DIALOGUE)
+  {
+    send_to_char(ch, "You cannot leave this quest. It must be completed.\r\n");
+  }
   else
   {
     clear_quest(ch, index);
@@ -1306,7 +1383,7 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
         send_to_char(ch, " (Index: %d) This quest slot is available.\r\n", index);
       }
       else
-        send_to_char(ch, "(Index: %d) - %s\r\n", index, QST_NAME(rnum));
+        send_to_char(ch, "(Index: %d) - %s [vnum %d]\r\n", index, QST_NAME(rnum), QST_NUM(rnum));
     }
     send_to_char(ch, "You can provide the quest index from your queue to check specific progress details (ex. quest progress <index # above>).\r\n");
     return;
@@ -1338,6 +1415,20 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
       send_to_char(ch,
                    "You still have to achieve %d out of %d goals for the quest.\r\n",
                    GET_QUEST_COUNTER(ch, index), QST_QUANTITY(rnum));
+    if (QST_TYPE(rnum) == AQ_DIALOGUE)
+  {
+    send_to_char(ch, "\ty");
+    draw_line(ch, 80, '-', '-');
+    send_to_char(ch, "This is a dialogue quest. You must find the mob attempt to persuade it using\r\none of the following dialogue commands:\r\n");
+    if (aquest_table[rnum].diplomacy_dc > 0)
+      send_to_char(ch, "Diplomacy Skill  - 'convince' command.\r\n");
+    if (aquest_table[rnum].intimidate_dc > 0)
+      send_to_char(ch, "Intimidate Skill - 'threaten' command.\r\n");
+    if (aquest_table[rnum].diplomacy_dc > 0)
+      send_to_char(ch, "Bluff Skill      - 'beguile' command.\r\n");
+    draw_line(ch, 80, '-', '-');
+    send_to_char(ch, "\tn");
+  }
     if (GET_QUEST_TIME(ch, index) > 0)
       send_to_char(ch,
                    "You have %d turn%s remaining to complete the quest.\r\n",
@@ -1767,6 +1858,137 @@ SPECIAL(questmaster)
   {
     return FALSE; /* not a questmaster command */
   }
+}
+
+bool is_dialogue_quest_failed(struct char_data *ch, qst_vnum q_vnum)
+{
+  if (!ch)
+  {
+    return false;
+  }
+  
+  if (q_vnum <= 0)
+  {
+    return false;
+  }
+
+  qst_rnum q_rnum;
+  int i = 0;
+  bool failed = false;
+
+  if ((q_rnum = real_quest(q_vnum)) == NOTHING)
+  {
+    return false;
+  }
+
+  if (QST_TYPE(q_rnum) != AQ_DIALOGUE)
+  {
+
+     return false;
+  }
+
+  for (i = 0; i < 100; i++)
+  {
+    if (ch->player_specials->saved.failed_dialogue_quests[i] == q_vnum)
+    {
+
+      failed = true;
+      break;
+    }
+  }
+
+  return failed;
+}
+
+void set_dialogue_quest_failed(struct char_data *ch, qst_vnum q_vnum)
+{
+  if (!ch)
+  {
+    return;
+  }
+  if (q_vnum <= 0)
+  {
+    return;
+  }
+
+  qst_rnum q_rnum;
+  int i = 0;
+
+  if ((q_rnum = real_quest(q_vnum)) == NOTHING)
+  {
+    return;
+  }
+
+  if (QST_TYPE(q_rnum) != AQ_DIALOGUE)
+  {
+    return;
+  }
+
+  for (i = 0; i < 100; i++)
+  {
+    if (ch->player_specials->saved.failed_dialogue_quests[i] == 0)
+    {
+      ch->player_specials->saved.failed_dialogue_quests[i] = q_vnum;
+      break;
+    }
+  }
+}
+
+void set_dialogue_quest_succeeded(struct char_data *ch, qst_vnum q_vnum)
+{
+  if (!ch) return;
+  if (q_vnum <= 0) return;
+
+  qst_rnum q_rnum;
+  int i = 0;
+
+  if ((q_rnum = real_quest(q_vnum)) == NOTHING)
+    return;
+
+  if (QST_TYPE(q_rnum) != AQ_DIALOGUE)
+    return;
+
+  for (i = 0; i < 100; i++)
+  {
+    if (ch->player_specials->saved.failed_dialogue_quests[i] == q_vnum)
+    {
+      ch->player_specials->saved.failed_dialogue_quests[i] = 0;
+      break;
+    }
+  }
+}
+
+bool is_dialogue_alternative_quest(qst_vnum vnum)
+{
+  qst_rnum rnum = 0;
+
+  if (!aquest_table)
+    return false;
+
+  for (rnum = 0; rnum < total_quests; rnum++)
+  {
+    if (aquest_table[rnum].dialogue_alternative_quest == vnum)
+      return true;
+  }
+  return false;
+}
+
+qst_rnum get_dialogue_alternative_quest_rnum(qst_vnum dialogue_quest)
+{
+
+  qst_rnum rnum = 0;
+
+  if (!aquest_table)
+    return NOTHING;
+
+  for (rnum = 0; rnum < total_quests; rnum++)
+  {
+    if (aquest_table[rnum].dialogue_alternative_quest == dialogue_quest)
+    {
+      return rnum;
+    }
+  }
+  return NOTHING;
 }
 
 /* EOF */

@@ -28,6 +28,7 @@
 #include "constants.h"
 #include "spells.h"
 #include "spec_procs.h"
+#include "quest.h"
 
 ACMDU(do_rsay)
 {
@@ -1218,6 +1219,146 @@ ACMDU(do_skillcheck)
     
 
 }
+
+ACMD(do_dialogue_quest)
+{
+
+  // see if quest target is in the room
+  // function to check if quest is a dialogue quest
+  // do skill check
+  // if skill check succeeds, complete the quest then complete the dialogue fail quest w/o rewards
+  // if skill check fails complete the quest w/o rewards and then assign the dialogue fail quest
+  // future quests that require original quest to be completed, need to check first if it's orig is a dialogue
+  // quest, anbd if so, requires both dialogue and dialogue fail quests to be completed
+  // use find_quest_by_qmnum 
+
+  int roll_for = 0, skill_for = 0;
+  int skill_dc = -1;
+  int index = -1, quest_slot = -1, next_quest = 0;
+  qst_rnum rnum = NOTHING, quest = NOTHING;
+  struct char_data *target = NULL, *i = NULL;
+  char buf[LONG_STRING];
+
+  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+  {
+
+    if (GET_QUEST(ch, index) == NOTHING) /* No current quest, skip this */
+      continue;
+
+    if (GET_QUEST_TYPE(ch, index) != AQ_DIALOGUE)
+      continue;
+
+    /* grab the rnum */
+    if ((rnum = real_quest(GET_QUEST(ch, index))) == NOTHING)
+      continue;
+
+    for (i = world[IN_ROOM(ch)].people; i; i = i->next_in_room)
+    {
+      if (IS_NPC(i))
+      {
+        if (QST_TARGET(rnum) == GET_MOB_VNUM(i) && CAN_SEE(ch, i))
+        {
+          target = i;
+          quest = rnum;
+          quest_slot = index;
+          break;
+        }
+      }
+    }  
+  }
+
+  if (!target || rnum == NOTHING || quest_slot < 0 || quest_slot >= MAX_CURRENT_QUESTS)
+  {
+    send_to_char(ch, "Your quest target does not seem to be here.\r\n");
+    return;
+  }
+
+  roll_for = d20(ch);
+
+  switch (subcmd)
+  {
+    case SCMD_DIALOGUE_DIPLOMACY:
+      if ((skill_dc = aquest_table[quest].diplomacy_dc) <= 0)
+      {
+        send_to_char(ch, "You cannot use diplomacy to complete this quest.\r\n");
+        return;
+      }
+      skill_for = compute_ability(ch, ABILITY_DIPLOMACY);
+      snprintf(buf, sizeof(buf), "You attempt to convince $N to do your will.\r\n"
+                                 "You roll %d + %d for a total diplomacy skill of %d vs. DC %d.", roll_for, skill_for, roll_for + skill_for, skill_dc);
+      act(buf, FALSE, ch, 0, target, TO_CHAR);
+      break;
+    case SCMD_DIALOGUE_INTIMIDATE:
+      if ((skill_dc = aquest_table[quest].intimidate_dc) <= 0)
+      {
+        send_to_char(ch, "You cannot use intimidate to complete this quest.\r\n");
+        return;
+      }
+      skill_for = compute_ability(ch, ABILITY_INTIMIDATE);
+      snprintf(buf, sizeof(buf), "You attempt to threaten $N into doing your will.\r\n"
+                                 "You roll %d + %d for a total intimidate skill of %d vs. DC %d.", roll_for, skill_for, roll_for + skill_for, skill_dc);
+      act(buf, FALSE, ch, 0, target, TO_CHAR);
+      break;
+    case SCMD_DIALOGUE_BLUFF:
+      if ((skill_dc = aquest_table[quest].bluff_dc) <= 0)
+      {
+        send_to_char(ch, "You cannot use bluff to complete this quest.\r\n");
+        return;
+      }
+      skill_for = compute_ability(ch, ABILITY_BLUFF);
+      snprintf(buf, sizeof(buf), "You attempt to beguile $N into doing your will.\r\n"
+                                 "You roll %d + %d for a total bluff skill of %d vs. DC %d.", roll_for, skill_for, roll_for + skill_for, skill_dc);
+      act(buf, FALSE, ch, 0, target, TO_CHAR);
+      break;
+  }
+
+  next_quest = aquest_table[quest].dialogue_alternative_quest;
+
+  // success
+  if ((roll_for + skill_for) >= skill_dc)
+  {
+    switch (subcmd)
+    {
+      case SCMD_DIALOGUE_DIPLOMACY:
+        act("You succeed in convincing $N!", FALSE, ch, 0, target, TO_CHAR);
+        break;
+      case SCMD_DIALOGUE_INTIMIDATE:
+        act("You succeed in threatening $N!", FALSE, ch, 0, target, TO_CHAR);
+        break;
+      case SCMD_DIALOGUE_BLUFF:
+        act("You succeed in beguiling $N!", FALSE, ch, 0, target, TO_CHAR);
+        break;
+    }
+    generic_complete_quest(ch, quest_slot);
+    add_completed_quest(ch, next_quest);
+  }
+  // failure
+  else
+  {
+    switch (subcmd)
+    {
+        case SCMD_DIALOGUE_DIPLOMACY:
+        act("You fail to convince $N!", FALSE, ch, 0, target, TO_CHAR);
+        break;
+      case SCMD_DIALOGUE_INTIMIDATE:
+        act("You fail to threaten $N!", FALSE, ch, 0, target, TO_CHAR);
+        break;
+      case SCMD_DIALOGUE_BLUFF:
+        act("You fail to beguile $N!", FALSE, ch, 0, target, TO_CHAR);
+        break;
+    }
+    set_dialogue_quest_failed(ch, aquest_table[quest].vnum);
+    add_completed_quest(ch, aquest_table[quest].vnum);
+    clear_quest(ch, quest_slot);
+    quest = real_quest(next_quest);
+    set_quest(ch, quest, quest_slot);
+    send_to_char(ch, "\tC%s\r\n\tn", QST_INFO(quest));
+  }
+
+}
+
+
+
 
 #undef CHECK_TAR_EVERYONE
 #undef CHECK_TAR_SELF
