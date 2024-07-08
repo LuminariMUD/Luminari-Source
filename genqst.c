@@ -59,6 +59,11 @@ int copy_quest(struct aq_data *to, struct aq_data *from, int free_old_strings, i
 
   to->func = from->func;
 
+  to->diplomacy_dc = from->diplomacy_dc;
+  to->intimidate_dc = from->intimidate_dc;
+  to->bluff_dc = from->bluff_dc;
+  to->dialogue_alternative_quest = from->dialogue_alternative_quest;
+
   return copy_quest_strings(to, from);
 }
 
@@ -298,6 +303,8 @@ int save_quests(zone_rnum zone_num)
                "%d %d %s %d %d %d %d\n"
                "%d %d %d %d %d %d %d\n"
                "%d %d %d %d %d %d %d\n"
+               "D\n"
+               "%d %d %d %d\n"
                "S\n",
                QST_NUM(rnum),
                QST_NAME(rnum) ? QST_NAME(rnum) : "Untitled", STRING_TERMINATOR,
@@ -321,7 +328,9 @@ int save_quests(zone_rnum zone_num)
                QST_QUANTITY(rnum), QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum),
                QST_RACE(rnum),
                QST_COORD_X(rnum), QST_COORD_Y(rnum),
-               QST_FOLLOWER(rnum));
+               QST_FOLLOWER(rnum),
+               QST_DIPLM(rnum), QST_INTIM(rnum), QST_BLUFF(rnum), QST_DIAGN(rnum)
+               );
 
       fprintf(sf, convert_from_tabs(buf), 0);
 

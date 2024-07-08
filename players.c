@@ -81,6 +81,7 @@ static void load_prayed(FILE *fl, struct char_data *ch);
 static void load_prayed_metamagic(FILE *fl, struct char_data *ch);
 static void load_praytimes(FILE *fl, struct char_data *ch);
 static void load_quests(FILE *fl, struct char_data *ch);
+static void load_failed_dialogue_quests(FILE *fl, struct char_data *ch);
 static void load_HMVS(struct char_data *ch, const char *line, int mode);
 static void write_aliases_ascii(FILE *file, struct char_data *ch);
 static void read_aliases_ascii(FILE *file, struct char_data *ch, int count);
@@ -608,6 +609,11 @@ int load_char(const char *name, struct char_data *ch)
       GET_BAG_NAME(ch, i) = NULL;
     }
 
+    for (i = 0; i < 100; i++)
+    {
+      ch->player_specials->saved.failed_dialogue_quests[i] = 0;
+    }
+
     ch->sticky_bomb[0] = 0;
     ch->sticky_bomb[1] = 0;
     ch->sticky_bomb[2] = 0;
@@ -891,7 +897,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_FAST_HEALING_MOD(ch) = atoi(line);
         else if (!strcmp(tag, "FttD"))
           GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) = atoi(line);
-
+        else if (!strcmp(tag, "FDQs"))
+          load_failed_dialogue_quests(fl, ch);
         break;
 
       case 'G':
@@ -1120,7 +1127,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Qcn2"))
           GET_QUEST_COUNTER(ch, 2) = atoi(line);
         else if (!strcmp(tag, "Qest"))
-          load_quests(fl, ch);
+          load_quests(fl, ch);      
         break;
 
       case 'R':
@@ -2000,6 +2007,12 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "Mrcy:\n");
   for (i = 0; i < NUM_PALADIN_MERCIES; i++)
     fprintf(fl, "%d\n", KNOWS_MERCY(ch, i));
+  fprintf(fl, "-1\n");
+
+  fprintf(fl, "FDQs:\n");
+  for (i = 0; i < 100; i++)
+    if (ch->player_specials->saved.failed_dialogue_quests[i] > 0)
+      fprintf(fl, "%d\n", ch->player_specials->saved.failed_dialogue_quests[i]);
   fprintf(fl, "-1\n");
 
   fprintf(fl, "Clty:\n");
@@ -3042,6 +3055,23 @@ static void load_mercies(FILE *fl, struct char_data *ch)
   } while (num != -1);
 }
 
+static void load_failed_dialogue_quests(FILE *fl, struct char_data *ch)
+{
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+    {
+      ch->player_specials->saved.failed_dialogue_quests[i] = num;
+      i++;
+    }
+  } while (num != -1);
+}
+
 static void load_cruelties(FILE *fl, struct char_data *ch)
 {
   int num = 0, i = 0;
@@ -3513,14 +3543,13 @@ void update_player_last_on(void)
       continue;
 
     ch = d->character;
-    classes_list[0] = '\0';
-    char_info[0] = '\0';
 
+    len = 0;
 
     if (GET_LEVEL(ch) < LVL_IMMORT)
     {
       int inc, classCount = 0;
-      len += snprintf(classes_list + len, sizeof(classes_list) - len, "[%d %4s ", GET_LEVEL(ch), RACE_ABBR_REAL(ch));
+      len += snprintf(classes_list + len, sizeof(classes_list) - len, "[%2d %4s ", GET_LEVEL(ch), RACE_ABBR_REAL(ch));
       for (inc = 0; inc < MAX_CLASSES; inc++)
       {
         if (CLASS_LEVEL(ch, inc))

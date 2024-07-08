@@ -5,7 +5,7 @@ account.o: account.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 act.comm.o: act.comm.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h interpreter.h \
  handler.h screen.h improved-edit.h dg_scripts.h act.h modify.h hlquest.h \
- constants.h spells.h spec_procs.h
+ constants.h spells.h spec_procs.h quest.h
 act.comm.do_spec_comm.o: act.comm.do_spec_comm.c act.h utils.h db.h \
  conf.h bool.h structs.h protocol.h sysdep.h lists.h campaign.h helpers.h \
  perfmon.h comm.h handler.h hlquest.h

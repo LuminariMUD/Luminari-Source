@@ -153,6 +153,10 @@ struct alias_data
 #define SCMD_QUICK_CHANT 1
 #define SCMD_QUICK_MIND  2
 
+#define SCMD_DIALOGUE_DIPLOMACY  1
+#define SCMD_DIALOGUE_INTIMIDATE 2
+#define SCMD_DIALOGUE_BLUFF      3
+
 /* Necessary for CMD_IS macro.  Borland needs the structure defined first
  * so it has been moved down here. */
 /* Global buffering system */

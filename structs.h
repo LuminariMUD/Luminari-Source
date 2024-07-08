@@ -4645,6 +4645,7 @@ struct player_special_data_saved
     int current_quest[MAX_CURRENT_QUESTS]; /**< vnums of current quests         */
     int quest_time[MAX_CURRENT_QUESTS];    /**< time left on current quest    */
     int quest_counter[MAX_CURRENT_QUESTS]; /**< Count of targets left to get  */
+    int failed_dialogue_quests[100];
 
     /* auto crafting quest */
     unsigned int autocquest_vnum; // vnum of crafting quest item

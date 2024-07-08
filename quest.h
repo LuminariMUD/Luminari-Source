@@ -37,8 +37,9 @@
 #define AQ_WILD_FIND 21        /* Player must find specific wilderness room */
 #define AQ_GIVE_GOLD 22        /* Player must give at least X gold */
 #define AQ_MOB_MULTI_KILL 23   /* Player must kill a number of mobs from a given, comma-separated list of vnums */
+#define AQ_DIALOGUE 24         // Dialogue Quest player must succeed on a diplomacy, intimidate and/or bluff check
 /************************/
-#define NUM_AQ_TYPES 24 /* Used in qedit functions                 */
+#define NUM_AQ_TYPES 25 /* Used in qedit functions                 */
 /************************/
 /************************/
 
@@ -89,6 +90,10 @@ struct aq_data
   qst_vnum prev_quest; /* Link to prev quest, NOTHING is open  */
   qst_vnum next_quest; /* Link to next quest, NOTHING is end   */
   SPECIAL_DECL(*func); /* secondary spec_proc for the QM       */
+  qst_vnum dialogue_alternative_quest; // If the quest is set as a dialogue quest, and the dialogue skill check fails, we'll give them this quest instead
+  int diplomacy_dc;
+  int intimidate_dc;
+  int bluff_dc;
 };
 
 #define QST_NUM(i) (aquest_table[i].vnum)
@@ -125,6 +130,11 @@ struct aq_data
 #define QST_PREV(i) (aquest_table[i].prev_quest)
 #define QST_NEXT(i) (aquest_table[i].next_quest)
 
+#define QST_DIPLM(i) (aquest_table[i].diplomacy_dc)
+#define QST_INTIM(i) (aquest_table[i].intimidate_dc)
+#define QST_BLUFF(i) (aquest_table[i].bluff_dc)
+#define QST_DIAGN(i) (aquest_table[i].dialogue_alternative_quest)
+
 /* Quest Functions **************************************************** */
 
 /* Implemented in quest.c */
@@ -148,6 +158,11 @@ void check_timed_quests(void);
 SPECIAL_DECL(questmaster);
 ACMD_DECL(do_quest);
 ACMD_DECL(do_aqref);
+bool is_dialogue_quest_failed(struct char_data *ch, qst_vnum q_vnum);
+void set_dialogue_quest_failed(struct char_data *ch, qst_vnum q_vnum);
+void set_dialogue_quest_succeeded(struct char_data *ch, qst_vnum q_vnum);
+bool is_dialogue_alternative_quest(qst_vnum vnum);
+qst_rnum get_dialogue_alternative_quest_rnum(qst_vnum dialogue_quest);
 
 /* Implemented in qedit.c  */
 void qedit_parse(struct descriptor_data *d, char *arg);
@@ -161,6 +176,8 @@ void free_quest(struct aq_data *quest);
 int add_quest(struct aq_data *nqst);
 int delete_quest(qst_rnum rnum);
 int save_quests(zone_rnum zone_num);
+
+void show_quest_dialogue_menu(struct descriptor_data *d);
 
 /* Qedit Connectedness ************************************************ */
 #define QEDIT_MAIN_MENU 0
@@ -192,6 +209,11 @@ int save_quests(zone_rnum zone_num);
 #define QEDIT_COORD_X 26
 #define QEDIT_COORD_Y 27
 #define QEDIT_FOLLOWER 28
+#define QEDIT_DIALOGUE_MENU 29
+#define QEDIT_DIPLOMACY 30
+#define QEDIT_INTIMIDATE 31
+#define QEDIT_BLUFF 32
+#define QEDIT_DIALOGUE_NEXT 33
 /* ******************************************************************** */
 
 /* AQ Global Variables ************************************************ */

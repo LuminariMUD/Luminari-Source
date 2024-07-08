@@ -205,6 +205,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"bandage", "bandage", POS_FIGHTING, do_bandage, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, 0},
     {"balance", "bal", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bash", "bash", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, can_bash},
+    {"beguile", "beguile", POS_STANDING, do_dialogue_quest, 1, SCMD_DIALOGUE_BLUFF, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"bid", "bid", POS_SLEEPING, do_bid, 0, SCMD_AUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bite", "bite", POS_FIGHTING, do_bite_attack, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"brief", "br", POS_DEAD, do_gen_tog, 0, SCMD_BRIEF, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -266,6 +267,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"compose", "compose", POS_RESTING, do_gen_preparation, 0, SCMD_COMPOSE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"cosmicawareness", "cosmicawareness", POS_RESTING, do_cosmic_awareness, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     //{ "convert", "covert", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    { "convince", "convince", POS_STANDING, do_dialogue_quest, 1, SCMD_DIALOGUE_DIPLOMACY, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"crystalfist", "crystalf", POS_FIGHTING, do_crystalfist, 0, 0, FALSE, ACTION_NONE, {0, 0}, can_crystalfist},
     {"crystalbody", "crystalb", POS_FIGHTING, do_crystalbody, 0, 0, FALSE, ACTION_NONE, {0, 0}, can_crystalbody},
     {"call", "call", POS_FIGHTING, do_call, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -285,7 +287,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"class", "class", POS_DEAD, do_class, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"charmiecombatroll", "charmiecombatroll", POS_DEAD, do_gen_tog, 0, SCMD_CHARMIE_COMBATROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"combatroll", "combatroll", POS_DEAD, do_gen_tog, 0, SCMD_COMBATROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"coordconvert", "coordconvert", POS_SLEEPING, do_coordconvert, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"coordconvince", "coordconvert", POS_SLEEPING, do_coordconvert, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"cmdlev", "cmdlev", POS_DEAD, do_cmdlev, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #if !defined(CAMPAIGN_DL)
     {"cexchange", "cexchange", POS_RECLINING, do_cexchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -812,6 +814,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"temote", "tem", POS_RECLINING, do_temote, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"tedit", "tedit", POS_DEAD, do_tedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL}, /* XXX: Oasisify */
     {"thaw", "thaw", POS_DEAD, do_wizutil, LVL_GRSTAFF, SCMD_THAW, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"threaten", "threaten", POS_STANDING, do_dialogue_quest, 1, SCMD_DIALOGUE_INTIMIDATE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"title", "title", POS_DEAD, do_title, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"time", "time", POS_DEAD, do_time, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"tinker", "tinker", POS_STANDING, do_tinker, 0, 0, TRUE, ACTION_NONE, {0, 0}, can_tinker},
