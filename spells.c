@@ -383,7 +383,6 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
 
   if (victim == ch)
     send_to_char(ch, "You like yourself even better!\r\n");
-
   else if (MOB_FLAGGED(victim, MOB_NOCHARM))
   {
     send_to_char(ch, "Your victim doesn't seem vulnerable to this "
@@ -478,6 +477,8 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
       af.spell = SPELL_CHARM_MONSTER;
     else if (spellnum == WARLOCK_CHARM)
       af.spell = WARLOCK_CHARM;
+    else if (spellnum == SPELL_CONTROL_PLANTS)
+      af.spell = SPELL_CONTROL_PLANTS;
     af.duration = 100;
     if (GET_CHA_BONUS(ch))
       af.duration += GET_CHA_BONUS(ch) * 4;
@@ -1188,7 +1189,7 @@ ASPELL(spell_human_potential)
 
   af.spell = SPELL_HUMAN_POTENTIAL;
   af.modifier = 2;
-  af.duration = 10 * level;
+  af.duration = 10 * CASTER_LEVEL(ch);
   af.bonus_type = BONUS_TYPE_RACIAL;
 
   affect_to_char(vict, &af);

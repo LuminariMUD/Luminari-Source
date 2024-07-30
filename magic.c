@@ -451,7 +451,10 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   
 
   if (ch)
+  {
     challenge += GET_DC_BONUS(ch);
+    GET_DC_BONUS(ch) = 0;
+  }
 
   if (ch && AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch))
     savethrow += 2;
@@ -1381,17 +1384,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_MENTAL;
     num_dice = 14 + GET_AUGMENT_PSP(ch);
     size_dice = 10;
-    break;
-
-  case PSIONIC_PSYCHOSIS: /* 7th circle Psi */ /* AoE */
-    if (is_immune_mind_affecting(ch, victim, TRUE))
-      return (0);
-    bonus = GET_AUGMENT_PSP(ch) / 2;
-    save = SAVING_WILL;
-    mag_resist = TRUE;
-    element = DAM_MENTAL;
-    num_dice = 1;
-    size_dice = 1;
     break;
 
   case PSIONIC_RECALL_DEATH: /* 8th circle Psi */
@@ -4314,6 +4306,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_PSYCHOSIS: /* AoE */
+    GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     if (!can_confuse(victim))
     {
       send_to_char(ch, "Your opponent seems to be immune to confusion effects.\r\n");
@@ -4327,7 +4320,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
-    GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     af[0].duration = 50;
     SET_BIT_AR(af[0].bitvector, AFF_CONFUSED);
     accum_duration = FALSE;
@@ -6909,8 +6901,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_JUMP: // transmutation
 
-    af[0].duration = CLASS_LEVEL(ch, CLASS_DRUID) +
-                     CLASS_LEVEL(ch, CLASS_RANGER);
+    af[0].duration = (CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_RANGER)) * 10;
     SET_BIT_AR(af[0].bitvector, AFF_ACROBATIC);
 
     accum_affect = FALSE;

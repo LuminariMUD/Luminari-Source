@@ -3061,6 +3061,8 @@ void stop_follower(struct char_data *ch)
       affect_from_char(ch, SPELL_DOMINATE_PERSON);
     if (affected_by_spell(ch, SPELL_MASS_DOMINATION))
       affect_from_char(ch, SPELL_MASS_DOMINATION);
+    if (affected_by_spell(ch, SPELL_CONTROL_PLANTS))
+      affect_from_char(ch, SPELL_CONTROL_PLANTS);
 
     if (GROUP(ch))
     {
@@ -9369,6 +9371,60 @@ bool is_dragon_rider_mount(struct char_data *ch)
     return true;
 
   return false;
+
+}
+
+int get_encumbrance_mod(struct char_data *ch)
+{
+  int mod[NUM_BONUS_TYPES];
+  int penalty[NUM_BONUS_TYPES];
+  int i = 0, j = 0, final = 0;
+  struct affected_type *aff = NULL;
+  struct obj_data *obj = NULL;
+
+  // initialize array
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    mod[i] = 0;
+    penalty[i] = 0;
+  }
+
+  // get from affects
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_ENCUMBRANCE)
+    {
+      if (aff->modifier > 0)
+        mod[aff->bonus_type] = MAX(mod[aff->bonus_type], aff->modifier);
+      else
+        penalty[aff->bonus_type] = MIN(penalty[aff->bonus_type], aff->modifier);
+    }
+  }
+
+  // get from gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if ((obj = GET_EQ(ch, i)) != NULL)
+    {
+      for (j = 0; j < NUM_APPLIES; j++)
+      {
+        if (obj->affected[j].location == APPLY_ENCUMBRANCE)
+        {
+          if (obj->affected[j].modifier > 0)
+            mod[obj->affected[j].bonus_type] = MAX(mod[obj->affected[j].bonus_type], obj->affected[j].modifier);
+          else
+            penalty[obj->affected[j].bonus_type] = MIN(penalty[obj->affected[j].bonus_type], obj->affected[j].modifier);
+        }
+      }
+    }
+  }
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    final += mod[i] + penalty[i];
+  }
+
+  return final;
 
 }
 
