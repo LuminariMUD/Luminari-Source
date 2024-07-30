@@ -467,7 +467,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   if (!cast_mtrigger(caster, cvict, spellnum))
     return 0;
 
-  if (IS_UNDEAD(cvict))
+  if (cvict && IS_UNDEAD(cvict))
   {
     switch (spellnum)
     {
@@ -3273,16 +3273,16 @@ void mag_assign_spells(void)
          "You feel less protected.", 4, 7, ABJURATION, FALSE);
 
   spello(SPELL_CHARM_ANIMAL, "charm animal", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_MANUAL,
          "You feel more self-confident.", 4, 7, ENCHANTMENT, FALSE);
   spello(SPELL_CHARM, "charm person", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_MANUAL,
          "You feel more self-confident.", 4, 7, ENCHANTMENT, FALSE);
   spello(SPELL_CHARM_MONSTER, "charm monster", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_MANUAL,
          "You feel more self-confident.", 10, 13, ENCHANTMENT, FALSE);
   spello(SPELL_MASS_CHARM_MONSTER, "mass charm monster", 0, 0, 0, POS_FIGHTING,
-         TAR_IGNORE, TRUE, MAG_AREAS,
+         TAR_IGNORE, FALSE, MAG_AREAS,
          "You feel more self-confident.", 10, 13, ENCHANTMENT, FALSE);
   spello(SPELL_ENCHANT_ITEM, "enchant item", 0, 0, 0, POS_FIGHTING,
          TAR_OBJ_INV, FALSE, MAG_MANUAL,
@@ -3873,7 +3873,7 @@ void mag_assign_spells(void)
          "You no longer feel the urge to moonwalk.", 5, 21,
          ENCHANTMENT, FALSE);
   spello(SPELL_MASS_DOMINATION, "mass domination", 0, 0, 0, POS_FIGHTING,
-         TAR_IGNORE, TRUE, MAG_MANUAL, "You no longer feel dominated.", 6, 21, ENCHANTMENT, FALSE);
+         TAR_IGNORE, FALSE, MAG_MANUAL, "You no longer feel dominated.", 6, 21, ENCHANTMENT, FALSE);
   /* illusion */
   spello(SPELL_SCINT_PATTERN, "scint pattern", 65, 50, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
@@ -3899,7 +3899,7 @@ void mag_assign_spells(void)
   //        "Your bubble of repulsion fades away.", 8, 21, ABJURATION, FALSE);
   /* transmutation */
   spello(SPELL_CONTROL_PLANTS, "control plants", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_MANUAL,
          "You are able to control yourself again.", 7, 21, TRANSMUTATION, FALSE);
   spello(SPELL_IRONSKIN, "iron skin", 51, 36, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -4781,7 +4781,7 @@ void mag_assign_spells(void)
          TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
 
   spello(ABILITY_VAMPIRIC_DOMINATION, "vampiric domination", 51, 36, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_MANUAL,
          "You feel the domination effects wear off.", 10, 15, ENCHANTMENT, FALSE);
 
   spello(PSIONIC_ABILITY_PSIONIC_FOCUS, "psionic focus", 0, 0, 0, POS_FIGHTING,

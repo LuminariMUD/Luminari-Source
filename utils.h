@@ -286,6 +286,7 @@ struct char_data *is_playing(char *vict_name);
 char *add_commas(long X);
 bool can_mastermind_power(struct char_data *ch, int spellnum);
 bool is_room_in_sunlight(room_rnum room);
+int get_encumbrance_mod(struct char_data *ch);
 bool is_covered(struct char_data *ch);
 void new_affect(struct affected_type *af);
 void free_affect(struct affected_type *af);
@@ -1543,7 +1544,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
                                                                                    : ((GET_ADD(ch) <= 75) ? 27 : ((GET_ADD(ch) <= 90) ? 28 : ((GET_ADD(ch) <= 99) ? 29 : 30))))
 
 // returns effectve strength score for determining max carry weight
-#define GET_CARRY_STRENGTH(ch)  (GET_STR(ch) + GET_ENCUMBRANCE_MOD(ch) + (HAS_FEAT(ch, FEAT_ENCUMBERED_RESILIENCE) ? 2 : 0))
+#define GET_CARRY_STRENGTH(ch)  (GET_STR(ch) + get_encumbrance_mod(ch) + (HAS_FEAT(ch, FEAT_ENCUMBERED_RESILIENCE) ? 2 : 0))
 
 /** Return how much weight ch can carry. */
 #define CAN_CARRY_W(ch) (can_carry_weight_limit(ch))
@@ -1797,7 +1798,7 @@ int ACTUAL_BAB(struct char_data *ch);
   ((!AFF_FLAGGED((obj), AFF_INVISIBLE) || (AFF_FLAGGED(sub, AFF_DETECT_INVIS) || \
                                            AFF_FLAGGED(sub, AFF_TRUE_SIGHT) ||   \
                                            HAS_FEAT(sub, FEAT_TRUE_SIGHT))) &&   \
-   (can_see_hidden(sub, obj)))
+                                           (can_see_hidden(sub, obj)))
 
 /** Defines if sub character can see obj character, assuming mortal only
  * settings. */

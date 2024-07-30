@@ -4374,6 +4374,14 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       damage_reduction = compute_energy_absorb(victim, dam_type);
       dam -= compute_energy_absorb(victim, dam_type);
     }
+    
+    if (!IS_WEAPON(attacktype))
+    {
+      /* once Damage Reduction is ready to launch, this should be removed */
+      dam = handle_warding(ch, victim, dam);
+      /* Apply Damage Reduction */
+      dam = apply_damage_reduction(ch, victim, NULL, dam, FALSE);
+    }
 
     if (dam <= 0 && (ch != victim))
     {
