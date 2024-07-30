@@ -994,7 +994,7 @@ ASPELL(spell_control_summoned_creature)
   save_char_pets(master);
 
   add_follower(vict, ch);
-  if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+  if (!GROUP(vict) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
     join_group(vict, GROUP(ch));
 
   save_char_pets(ch);

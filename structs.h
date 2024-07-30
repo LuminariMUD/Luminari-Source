@@ -2690,12 +2690,13 @@
 #define FEAT_MASTER_RIDER 1101
 #define FEAT_UNITED_WE_STAND 1102
 #define FEAT_DRAGOON_POINTS 1103
+#define FEAT_AURA_OF_LIGHT 1104
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1104
+#define FEAT_LAST_FEAT 1105
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1105
+#define NUM_FEATS 1106
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -5620,8 +5621,8 @@ typedef enum
 
 #define MAX_CHARS_PER_ACCOUNT 100
 
-#define MAX_UNLOCKED_CLASSES 20
-#define MAX_UNLOCKED_RACES 20
+#define MAX_UNLOCKED_CLASSES 50
+#define MAX_UNLOCKED_RACES 50
 
 /* Account data structure.  Account data is kept in the database,
  * but loaded into this structure while the player is in-game. */

@@ -1073,7 +1073,8 @@ SPECIAL(cf_alathar)
     {
       char_to_room(mob, ch->in_room);
       add_follower(mob, ch);
-      join_group(mob, GROUP(ch));
+      if (!GROUP(mob))
+        join_group(mob, GROUP(ch));
     }
   }
 
@@ -2174,7 +2175,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob))
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2193,7 +2195,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob))
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2212,7 +2215,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob))
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2254,7 +2258,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob))
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2273,7 +2278,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob)) 
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2292,7 +2298,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob))
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2334,7 +2341,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob))
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2353,7 +2361,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob))
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2372,7 +2381,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob))
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2414,7 +2424,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob))
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2433,7 +2444,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob))
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2452,7 +2464,8 @@ SPECIAL(fg_invasion_loader)
           if (leader)
           {
             add_follower(mob, leader);
-            join_group(mob, GROUP(leader));
+            if (!GROUP(mob))
+              join_group(mob, GROUP(leader));
           }
         }
       }
@@ -2787,7 +2800,8 @@ SPECIAL(jot_invasion_loader)
         if (glammad)
         {
           add_follower(mob, glammad);
-          join_group(mob, GROUP(glammad));
+          if (!GROUP(mob))
+            join_group(mob, GROUP(glammad));
         }
       }
     }
@@ -2868,7 +2882,8 @@ SPECIAL(jot_invasion_loader)
         if (leader)
         {
           add_follower(mob, leader);
-          join_group(mob, GROUP(leader));
+          if (!GROUP(mob))
+            join_group(mob, GROUP(leader));
         }
       }
     }
@@ -2895,7 +2910,8 @@ SPECIAL(jot_invasion_loader)
       if (leader)
       {
         add_follower(mob, leader);
-        join_group(mob, GROUP(leader));
+        if (!GROUP(mob))
+          join_group(mob, GROUP(leader));
       }
     }
   }
@@ -2924,7 +2940,8 @@ SPECIAL(jot_invasion_loader)
         if (leader)
         {
           add_follower(mob, leader);
-          join_group(mob, GROUP(leader));
+          if (!GROUP(mob))
+            join_group(mob, GROUP(leader));
         }
       }
     }
@@ -2951,7 +2968,8 @@ SPECIAL(jot_invasion_loader)
       if (leader)
       {
         add_follower(mob, leader);
-        join_group(mob, GROUP(leader));
+        if (!GROUP(mob))
+          join_group(mob, GROUP(leader));
       }
     }
   }

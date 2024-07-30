@@ -2931,7 +2931,8 @@ const char *parse_object(FILE *obj_f, int nr)
     [2] = 0;
     GET_OBJ_PERM(obj_proto + i)
     [3] = 0;
-
+    
+    
     if (bitsavetodisk)
     {
       add_to_save_list(zone_table[real_zone_by_thing(nr)].number, 1);
@@ -2980,6 +2981,13 @@ const char *parse_object(FILE *obj_f, int nr)
 
   /* Object flags checked in check_object(). */
   GET_OBJ_TYPE(obj_proto + i) = t[0];
+
+  // Weapons must be wielded. Cannot use the hold command on them.
+  // We'll remove any hold wear flags to ensure this isn't possible
+  if (GET_OBJ_TYPE(obj_proto + i) == ITEM_WEAPON)
+  {
+    REMOVE_BIT_AR(GET_OBJ_WEAR(obj_proto + i), ITEM_WEAR_HOLD);
+  }
 
   if (!get_line(obj_f, line))
   {

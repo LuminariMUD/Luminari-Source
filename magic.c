@@ -3367,7 +3367,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_FORCE_SCREEN:
-    if (affected_by_spell(ch, PSIONIC_FORCE_SCREEN))
+    if (affected_by_spell(ch, PSIONIC_FORCE_SCREEN) && ch == victim)
     {
       send_to_char(ch, "This power can't stack.  Use the revoke command if you wish to replace it.\r\n");
       return;
@@ -3409,7 +3409,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_INERTIAL_ARMOR:
-    if (affected_by_spell(ch, PSIONIC_INERTIAL_ARMOR))
+    if (affected_by_spell(ch, PSIONIC_INERTIAL_ARMOR) && ch == victim)
     {
       send_to_char(ch, "This power can't stack.  Use the revoke command if you wish to replace it.\r\n");
       return;
@@ -3551,7 +3551,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_VIGOR:
-    if (affected_by_spell(ch, PSIONIC_VIGOR))
+    if (affected_by_spell(ch, PSIONIC_VIGOR) && ch == victim)
     {
       send_to_char(ch, "This power can't stack.  Use the revoke command if you wish to replace it.\r\n");
       return;
@@ -3571,7 +3571,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   case PSIONIC_BIOFEEDBACK:
 
-    if (affected_by_spell(ch, PSIONIC_BIOFEEDBACK))
+    if (affected_by_spell(ch, PSIONIC_BIOFEEDBACK) && ch == victim)
     {
       send_to_char(ch, "This power can't stack.  Use the revoke command if you wish to replace it.\r\n");
       return;
@@ -10306,7 +10306,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     act(mag_summon_to_msgs[msg], FALSE, ch, 0, mob, TO_CHAR);
     load_mtrigger(mob);
     add_follower(mob, ch);
-    if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
   }
 
@@ -10644,10 +10644,20 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     // we need to correct the psp cost below, because the power only benefits from 2 augment points at a time.
 
     healing = dice(1 + (GET_AUGMENT_PSP(ch) / 2), 12);
-    to_notvict = "$n concentrates and some of $s wounds close.";
-    to_char = "You concentrate and some of your wounds close.";
+    if (ch == victim)
+    {
+      to_char = "You concentrate and some of your wounds close.";
+      to_notvict = "$n concentrates and some of $s wounds close.";
+    }
+    else
+    {
+      to_char = "You concentrate and some of $N's wounds close.";
+      to_vict = "$n concentrates and some of Your wounds close.";
+      to_notvict = "$n concentrates and some of $N's wounds close.";
+    }
 
     break;
+
   case PSIONIC_BESTOW_POWER:
     if (IS_NPC(victim) || !IS_PSIONIC(victim))
     {

@@ -3835,7 +3835,7 @@ void load_char_pets(struct char_data *ch)
     affect_total(mob);
     load_mtrigger(mob);
     add_follower(mob, ch);
-    if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
     act("$N appears beside you.", true, ch, 0, mob, TO_CHAR);
     act("$N appears beside $n.", true, ch, 0, mob, TO_ROOM);

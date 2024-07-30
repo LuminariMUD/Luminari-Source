@@ -802,7 +802,7 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
     load_mtrigger(mob);
     add_follower(mob, ch);
 
-    if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
 
     start_item_specab_daily_use_cooldown(obj, ITEM_SPECAB_HORN_OF_SUMMONING);
@@ -931,7 +931,7 @@ ITEM_SPECIAL_ABILITY(item_specab_item_summon)
     load_mtrigger(mob);
     add_follower(mob, ch);
 
-    if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
 
     start_item_specab_daily_use_cooldown(obj, ITEM_SPECAB_ITEM_SUMMON);

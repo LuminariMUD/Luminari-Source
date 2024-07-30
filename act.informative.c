@@ -3344,7 +3344,7 @@ ACMD(do_score)
                  GET_PSP(ch), GET_MAX_PSP(ch),
                  GET_PSIONIC_LEVEL(ch),
                  damtypes[GET_PSIONIC_ENERGY_TYPE(ch)],
-                 GET_PSIONIC_LEVEL(ch));
+                 base_augment_psp_allowed(ch));
   }
 
   text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');

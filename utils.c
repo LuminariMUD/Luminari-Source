@@ -801,7 +801,8 @@ void set_mob_grouping(struct char_data *ch)
       if (!GROUP(tch))
         create_group(tch);
       add_follower(ch, tch);
-      join_group(ch, GROUP(tch));
+      if (!GROUP(ch))
+        join_group(ch, GROUP(tch));
       return;
     }
   }
@@ -957,6 +958,9 @@ int is_immune_to_crits(struct char_data *attacker, struct char_data *target)
 
   /* undead immune to crits, not vital organs */
   if (IS_UNDEAD(target))
+    return TRUE;
+
+  if (affected_by_spell(target, PSIONIC_SHADOW_BODY))
     return TRUE;
   
   if (HAS_FEAT(target, FEAT_ESSENCE_OF_UNDEATH))
@@ -3533,6 +3537,8 @@ bool room_is_dark(room_rnum room)
     // persons blinded by blinding ray emit light like a sunrod
     if (affected_by_spell(tch, SPELL_BLINDING_RAY))
       return (FALSE);
+    if (HAS_FEAT(tch, FEAT_AURA_OF_LIGHT))
+      return FALSE;
   }
 
   /* magic-dark flag will over-ride lights */
@@ -8321,9 +8327,9 @@ bool can_mastermind_power(struct char_data *ch, int spellnum)
       (IS_SET(spell_info[spellnum].routines, MAG_ROOM)))
     return false;
 
-  // Self only spells we will also skip
-  if (IS_SET(spell_info[spellnum].targets, TAR_SELF_ONLY))
-    return false;
+  // // Self only spells we will also skip
+  // if (IS_SET(spell_info[spellnum].targets, TAR_SELF_ONLY))
+  //   return false;
 
   // There are some powers we may want to exclude
   // empty right now -- remove this comment if we add any --
@@ -8377,6 +8383,7 @@ bool has_epic_power(struct char_data *ch, int powernum)
 void manifest_mastermind_power(struct char_data *ch)
 {
   struct char_data *tch = NULL;
+  char buf[200];
 
   if (IN_ROOM(ch) == NOWHERE)
     return;
@@ -8391,7 +8398,22 @@ void manifest_mastermind_power(struct char_data *ch)
         {
           continue;
         }
-
+        if (ch == tch)
+        {
+          snprintf(buf, sizeof(buf), "Your mastermind ability manifests '%s' on You.", spell_info[CASTING_SPELLNUM(ch)].name);
+          act(buf, FALSE, ch, 0, tch, TO_CHAR);
+          snprintf(buf, sizeof(buf), "$n's mastermind ability manifests '%s' on $N.", spell_info[CASTING_SPELLNUM(ch)].name);
+          act(buf, FALSE, ch, 0, tch, TO_ROOM);
+        }
+        else
+        {
+          snprintf(buf, sizeof(buf), "Your mastermind ability manifests '%s' on $N.", spell_info[CASTING_SPELLNUM(ch)].name);
+          act(buf, FALSE, ch, 0, tch, TO_CHAR);
+          snprintf(buf, sizeof(buf), "$n's mastermind ability manifests '%s' on You.", spell_info[CASTING_SPELLNUM(ch)].name);
+          act(buf, FALSE, ch, 0, tch, TO_VICT);
+          snprintf(buf, sizeof(buf), "$n's mastermind ability manifests '%s' on $N.", spell_info[CASTING_SPELLNUM(ch)].name);
+          act(buf, FALSE, ch, 0, tch, TO_NOTVICT);
+        }
         call_magic(ch, tch, 0, CASTING_SPELLNUM(ch), 0, GET_PSIONIC_LEVEL(ch), CAST_SPELL);
       }
       else
@@ -8519,6 +8541,18 @@ int get_number_of_spellcasting_classes(struct char_data *ch)
         num_classes++;
 
   return num_classes;
+}
+
+int get_first_spellcasting_classes(struct char_data *ch)
+{
+  int i = 0;
+
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (CLASS_LEVEL(ch, i) > 0)
+      if (IS_SPELLCASTER_CLASS(i))
+        return i;
+
+  return i;
 }
 
 int warlock_spell_type(int spellnum)
