@@ -661,7 +661,7 @@ void complete_quest(struct char_data *ch, int index)
 
     load_mtrigger(mob);
     add_follower(mob, ch);
-    if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
   }
 

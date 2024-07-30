@@ -362,10 +362,14 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
     else
       return FALSE;
   case SKILL_BODYSLAM:
+  #if defined(CAMPAIGN_DL)
+    return TRUE;
+  #else
     if (GET_RACE(ch) == RACE_HALF_TROLL)
       return TRUE;
     else
       return FALSE;
+#endif
 
     /* ranger */
   case SKILL_NATURE_STEP: // shared with druid

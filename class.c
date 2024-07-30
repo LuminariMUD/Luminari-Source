@@ -3506,6 +3506,11 @@ void advance_level(struct char_data *ch, int class)
     class_feats++;
   }
 
+  if (class == CLASS_NECROMANCER && CLASS_LEVEL(ch, CLASS_NECROMANCER) == 7)
+  {
+    class_feats++;
+  }
+
   if (class == CLASS_BARD)
   {
     if (CLASS_LEVEL(ch, CLASS_BARD) <= 20 && !(CLASS_LEVEL(ch, CLASS_BARD) % 3))
@@ -8853,6 +8858,8 @@ void load_class_list(void)
   feat_assignment(CLASS_NECROMANCER, FEAT_DESTRUCTIVE_TOUCH, Y, 9, Y);
   feat_assignment(CLASS_NECROMANCER, FEAT_ESSENCE_OF_UNDEATH, Y, 10, Y);
   feat_assignment(CLASS_NECROMANCER, FEAT_DEATHLESS_TOUCH, Y, 10, Y);
+
+  feat_assignment(CLASS_NECROMANCER, FEAT_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
 
   /* pre reqs to take assassin class */
   class_prereq_ability(CLASS_NECROMANCER, ABILITY_LORE, 8);

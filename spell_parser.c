@@ -467,6 +467,23 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
   if (!cast_mtrigger(caster, cvict, spellnum))
     return 0;
 
+  if (IS_UNDEAD(cvict))
+  {
+    switch (spellnum)
+    {
+      case SPELL_CURE_LIGHT: spellnum = SPELL_CAUSE_LIGHT_WOUNDS; break;
+      case SPELL_CURE_MODERATE: spellnum = SPELL_CAUSE_MODERATE_WOUNDS; break;
+      case SPELL_CURE_SERIOUS: spellnum = SPELL_CAUSE_SERIOUS_WOUNDS; break;
+      case SPELL_CURE_CRITIC: spellnum = SPELL_CAUSE_CRITICAL_WOUNDS; break;
+      case SPELL_HEAL: spellnum = SPELL_HARM; break;
+      case SPELL_CAUSE_LIGHT_WOUNDS: spellnum = SPELL_CURE_LIGHT; break;
+      case SPELL_CAUSE_MODERATE_WOUNDS: spellnum = SPELL_CURE_MODERATE; break;
+      case SPELL_CAUSE_SERIOUS_WOUNDS: spellnum = SPELL_CURE_SERIOUS; break;
+      case SPELL_CAUSE_CRITICAL_WOUNDS: spellnum = SPELL_CURE_CRITIC; break;
+      case SPELL_HARM: spellnum = SPELL_HEAL; break;
+    }
+  }
+
   if ((casttype != CAST_WEAPON_POISON) && caster && caster->in_room && caster->in_room != NOWHERE && caster->in_room < top_of_world && ROOM_AFFECTED(caster->in_room, RAFF_ANTI_MAGIC))
   {
     send_to_char(caster, "Your magic fizzles out and dies!\r\n");
@@ -1698,7 +1715,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     return (0);
   }
 
-  if ((tch != ch) && IS_SET(SINFO.targets, TAR_SELF_ONLY))
+  if ((tch != ch) && IS_SET(SINFO.targets, TAR_SELF_ONLY) && !can_mastermind_power(ch, spellnum))
   {
     send_to_char(ch, "You can only cast this spell upon yourself!\r\n");
     return (0);

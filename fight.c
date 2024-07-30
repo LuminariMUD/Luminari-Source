@@ -133,7 +133,9 @@ static void perform_group_gain(struct char_data *ch, int base,
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
                         int w_type, int offhand);
 static void make_corpse(struct char_data *ch);
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
 static void change_alignment(struct char_data *ch, struct char_data *victim);
+#endif
 static void group_gain(struct char_data *ch, struct char_data *victim);
 static void solo_gain(struct char_data *ch, struct char_data *victim);
 /** @todo refactor this function name */
@@ -1780,26 +1782,26 @@ static void make_corpse(struct char_data *ch)
   obj_to_room(corpse, IN_ROOM(ch));
 }
 
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
 /* When ch kills victim */
 static void change_alignment(struct char_data *ch, struct char_data *victim)
 {
   if (GET_ALIGNMENT(victim) < GET_ALIGNMENT(ch) && !rand_number(0, 19))
   {
     if (GET_ALIGNMENT(ch) < 1000)
-      GET_ALIGNMENT(ch)
-    ++;
+      GET_ALIGNMENT(ch)++;
   }
   else if (GET_ALIGNMENT(victim) > GET_ALIGNMENT(ch) && !rand_number(0, 19))
   {
     if (GET_ALIGNMENT(ch) > -1000)
-      GET_ALIGNMENT(ch)
-    --;
+      GET_ALIGNMENT(ch)--;
   }
 
   /* new alignment change algorithm: if you kill a monster with alignment A,
    * you move 1/16th of the way to having alignment -A.  Simple and fast. */
   //  GET_ALIGNMENT(ch) += (-GET_ALIGNMENT(victim) - GET_ALIGNMENT(ch)) / 16;
 }
+#endif
 
 /* a function for 'audio' effect of killing, notifies neighboring
  room of a nearby death */
@@ -2322,7 +2324,7 @@ static void perform_group_gain(struct char_data *ch, int base,
     gain_exp(ch, share, GAIN_EXP_MODE_GROUP);
   }
 
-#if !defined(CAMPAIGN_FR) && !defined(CAMAPIGN_DL)
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   change_alignment(ch, victim);
 #endif
 }
@@ -2456,7 +2458,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
     gain_exp(ch, exp, GAIN_EXP_MODE_SOLO);
   }
 
-#if !defined(CAMPAIGN_FR) && !defined(CAMAPIGN_DL)
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   change_alignment(ch, victim);
 #endif
 }

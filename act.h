@@ -545,6 +545,7 @@ ACMD_DECL(do_faeriefire);
 ACMDCHECK(can_faeriefire);
 ACMD_DECL(do_kick);
 ACMDCHECK(can_kick);
+ACMDCHECK(can_grapple);
 ACMD_DECL(do_slam);
 ACMDCHECK(can_slam);
 ACMD_DECL(do_blood_drain);

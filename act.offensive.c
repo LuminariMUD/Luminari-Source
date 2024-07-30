@@ -6018,6 +6018,11 @@ ACMDCHECK(can_kick)
   return CAN_CMD;
 }
 
+ACMDCHECK(can_grapple)
+{
+  return CAN_CMD;
+}
+
 ACMDCHECK(can_slam)
 {
   return CAN_CMD;
@@ -7061,6 +7066,14 @@ ACMD(do_bodyslam)
     send_to_char(ch, "Aren't we funny today...\r\n");
     return;
   }
+
+#if defined(CAMPAIGN_DL)
+  if (GET_SIZE(vict) >= GET_SIZE(ch))
+  {
+    send_to_char(ch, "You can only bodyslam targets smaller than yourself.\r\n");
+    return;
+  }
+#endif
 
   perform_knockdown(ch, vict, SKILL_BODYSLAM, true, true);
 }

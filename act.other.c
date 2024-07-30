@@ -766,7 +766,7 @@ ACMD(do_animatedead)
   act("You animate a corpse!", FALSE, ch, 0, mob, TO_CHAR);
   load_mtrigger(mob);
   add_follower(mob, ch);
-  if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+  if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
     join_group(mob, GROUP(ch));
 
   if (!IS_NPC(ch))
@@ -1909,6 +1909,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
     break;
   }
   GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
+  MOB_SET_FEAT(mob, FEAT_ULTRAVISION, 1);
 
   affect_total(mob);
 
@@ -1917,7 +1918,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
   act("You call forth $N!", FALSE, ch, 0, mob, TO_CHAR);
   load_mtrigger(mob);
   add_follower(mob, ch);
-  if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+  if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
     join_group(mob, GROUP(ch));
   save_char_pets(ch);
 
@@ -2791,8 +2792,7 @@ ACMDU(do_gain)
              GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     {
       GET_LEVEL(ch) += 1;
-      CLASS_LEVEL(ch, class)
-      ++;
+      CLASS_LEVEL(ch, class)++;
       GET_CLASS(ch) = class;
       num_levels++;
       /* our function for leveling up, takes in class that is being advanced */
@@ -3793,6 +3793,7 @@ void assign_wildshape_feats(struct char_data *ch)
   case RACE_LARGE_FIRE_ELEMENTAL:
   case RACE_HUGE_FIRE_ELEMENTAL:
     SET_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
+    MOB_SET_FEAT(ch, FEAT_AURA_OF_LIGHT, 1);
     break;
   case RACE_SMALL_EARTH_ELEMENTAL:
   case RACE_MEDIUM_EARTH_ELEMENTAL:
@@ -5494,8 +5495,9 @@ ACMD(do_spells)
   }
   else
   {
-    if (get_number_of_spellcasting_classes(ch) == 1 && GET_LEVEL(ch) < LVL_IMMORT && IS_SPELLCASTER_CLASS(GET_CLASS(ch)))
-      class = GET_CLASS(ch);
+    if (get_number_of_spellcasting_classes(ch) == 1 && GET_LEVEL(ch) < LVL_IMMORT && 
+        IS_SPELLCASTER_CLASS(get_first_spellcasting_classes(ch)) < NUM_CLASSES && IS_SPELLCASTER_CLASS(get_first_spellcasting_classes(ch)))
+      class = get_first_spellcasting_classes(ch);
     else if (subcmd == SCMD_CONCOCT)
       class = CLASS_ALCHEMIST;
     else if (subcmd == SCMD_POWERS)
@@ -7629,7 +7631,8 @@ static const char *const hints[] = {
            "Different spell casting classes use different commands "
            "to cast their spells.  Typing score will show you the appropriate "
            "commands.  For helpful information see: HELP CAST and HELP MEMORIZE.  "
-           "You will also need to PREPARE spells either after or before using them."
+           "You will also need to PREPARE spells either after or before using them. "
+           "You can also use the command 'class info (your class)' for more casting info."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 2*/ "\tR[HINT]:\tn \ty"
            "You will gain more experience from grouping.  Monster "
@@ -7644,12 +7647,13 @@ static const char *const hints[] = {
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 4*/ "\tR[HINT]:\tn \ty"
            "Once you have enough experience to advance, you can type GAIN "
-           "<class choice> to level up, you can gain in any class you qualify for, up "
-           "to 3 total classes.  Leveling up will result in an increase in "
+           "<class choice> to level up, you can gain in any class you qualify for. "
+           "Leveling up will result in an increase in "
            "training points for skills, more hit points, and possibly more feat points, "
            "movement points, boosts, PSP points.  To spend your feat points, you will "
            "use the STUDY menu.  To spend boosts and skill points, you will use a trainer.  "
-           "If you make a mistake in choices when you advance, you can always RESPEC."
+           "If you make a mistake in choices when you advance, you can always RESPEC. If you "
+           "used a premade build, you will not need to use STUDY for most or all of your class options."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 5*/ "\tR[HINT]:\tn \ty"
            "The combination of races, classes (MULTICLASS), stat boosts "
@@ -7672,12 +7676,13 @@ static const char *const hints[] = {
            "initiated with the ASK command, commonly ASK HI will initiate conversation."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 8*/ "\tR[HINT]:\tn \ty"
-           "If you have an idea for a hint, please let us know on the Discord Server: "
+           "If you have an idea for a hint, please let us know on the Discord Server. Type MOTD "
+           "to see the Discord invite link. "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 9*/ "\tR[HINT]:\tn \ty"
 #ifdef CAMPAIGN_FR
            "Faerun is considered a 'younger' MUD and is under heavy "
-#elif defined (CAMPGIN_DL)
+#elif defined (CAMPAIGN_DL)
            "Chronicles of Krynn is considered a 'younger' MUD and is under heavy "
 #else
            "LuminariMUD is considered a 'younger' MUD and is under heavy "
@@ -7710,7 +7715,7 @@ static const char *const hints[] = {
 #ifdef CAMPAIGN_FR
            "this bonus loot.  Also, there is a special BAZAAR in Triboar where "
 #elif defined(CAMPAIGN_DL)
-           "this bonus loot.  Also, there is a special BAZAAR in Palanthas where "
+           "this bonus loot.  Also, there are special BAZAARs in Palanthas and Sanction where "
 #else
            "this bonus loot.  Also, there is a special BAZAAR in Ashenport where "
 #endif
@@ -7754,10 +7759,10 @@ static const char *const hints[] = {
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #elif defined(CAMPAIGN_DL)
     /*14*/ "\tR[HINT]:\tn \tyChronicles of Krynn has several quests across the various zones. Currently we  "
-           "are working on a cohesive 'main quest line' for Palanthas, and then when done, Sanction. "
+           "are working on expanding cohesive 'main quest lines' for Palanthas and Sanction. "
            "We also recommend that role players create their own personal storylines as"
-           "we build up the main story line and lore, which builds upon existing Forgotten Realms lore. "
-           "Forgotten Realms lore considered canon on the MUD are all events preceding the year 1496 DR. "
+           "we build up the main story line and lore, which builds upon existing Dragonlance lore. "
+           "Dragonlance lore considered canon on the MUD are all events Up to and including the War of the Lance. "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #else
     /*14*/ "\tR[HINT]:\tn \tyLuminariMUD has a 'main' quest line for the Ashenport Region "
@@ -7859,11 +7864,9 @@ static const char *const hints[] = {
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #endif
     /*21*/ "\tR[HINT]:\tn \ty"
-           "Reached the end-game?  Forming a CLAN can help you co-ordinate "
-           "team efforts for some serious carnage.  Having a well co-ordinated "
-           "team will allow you to take on the epic foes that require large teams "
-           "to defeat.  In addition, clans can capture 'zones' to charge taxes on "
-           "people that hunt in the zone.  The dynamic can result in clan-wars!  "
+           "We have a CLAN system that offers the ability to coordinate communcation and resources. There "
+           "are several premade Dragonlance themed clans, and you can start your own if you have the gold (500k) "
+           "and enough people to join (two or more other players). See HELP CLAN and CLAN LIST for more info. "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*22*/ "\tR[HINT]:\tn \ty"
 #ifdef CAMPAIGN_FR
@@ -7915,7 +7918,7 @@ static const char *const hints[] = {
            "Feel welcome to join in! The channel invite is https://discord.gg/dxZAEd9gAq "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #elif defined(CAMPAIGN_DL)
-           "LuminariMUD has a Discord channel where most out-of-game communication takes place. "
+           "Chronicles of Krynn has a Discord channel where most out-of-game communication takes place. "
            "Feel welcome to join in! The channel invite is  https://discord.gg/5m5EtQ5XQu "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #else
@@ -7926,23 +7929,42 @@ static const char *const hints[] = {
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #endif
     /*25*/ "\tR[HINT]:\tn \ty"
-           "Voting keeps new players coming! (may require creating an account):\r\n"
+#if defined(CAMPAIGN_DL)
+           "Are you enjoying the game? The MUD community on Reddit is a great way to promote us and bring in more people to play with (and against!):\r\n"
+           "https://www.reddit.com/r/MUD/ \r\n"
+#else
+          "Voting keeps new players coming! (may require creating an account):\r\n"
            "http://www.topmudsites.com/vote-luminarimud.html \r\n"
            "http://www.mudconnect.com/cgi-bin/vote_rank.cgi?mud=LuminariMUD \r\n"
-           "Also the MUD community on Reddit is a great way to promot us:\r\n"
+           "Also the MUD community on Reddit is a great way to promote us:\r\n"
            "https://www.reddit.com/r/MUD/ \r\n"
+#endif
            " [use nohint or prefedit to deactivate this]\tn\r\n",
     /*26*/ "\tR[HINT]:\tn \ty"
+#if defined(CAMPAIGN_DL)
+          "Lore, story-telling, immersion...  Critical elements of a text based "
+           "world.  Get your fill of Dragonlance lore at https://dragonlance.fandom.com/wiki/Main_Page"
+#else
            "Lore, story-telling, immersion...  Critical elements of a text based "
            "world.  View our background story here including an audio version!: "
            "https://www.luminarimud.com/lumina-voiced-stu-cook/"
+#endif
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*27*/ "\tR[HINT]:\tn \ty"
+#if defined(CAMPAIGN_DL)
+          "Come visit the Chronicles of Krynn website: https://krynn.d20mud.com/ for "
+           "our news, game info and related links."
+#else
            "Come visit the LuminariMUD website: https://www.luminarimud.com/ for "
            "our forums, lore entries, related links, articles, updates.. the works!"
+#endif
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*28*/ "\tR[HINT]:\tn \ty"
+#if defined(CAMPAIGN_DL)
+          "Our Facebook page: https://www.facebook.com/groups/330194806186907 \r\n"
+#else
            "Our Facebook page: https://www.facebook.com/LuminariMud/ \r\n"
+#endif
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*29*/ "\tR[HINT]:\tn \ty"
            "Archery is a great way to rain death from afar!  Archery automatically "
@@ -7953,7 +7975,12 @@ static const char *const hints[] = {
            "to make sure you automatically collect your ammo after each battle."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*30*/ "\tR[HINT]:\tn \ty"
-           "Are you using our Mudlet GUI (http://www.luminarimud.com/forums/topic/official-luminari-gui/)?  "
+#if defined(CAMPAIGN_DL)
+           "Are you using our Mudlet GUI (https://krynn.d20mud.com/official-mudlet-gui/)?  "
+#else
+          "Are you using our Mudlet GUI (http://www.luminarimud.com/forums/topic/official-luminari-gui/)?  "
+           
+#endif
            "If so, you may want to view our help file: HELP GUI-MAP to get an idea how to use "
            "the mapper properly!"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
@@ -7965,7 +7992,11 @@ static const char *const hints[] = {
     /*32*/ "\tR[HINT]:\tn \ty"
            "Crafting is a critical and important part of the game, we have help files "
            "such as HELP CRAFTING - but we also have a great guide you can "
+#if defined(CAMPAIGN_DL)
+           " see on our web site at https://krynn.d20mud.com/crafting-101-unofficial-crafting-guide/"
+#else
            "view on our forums: http://www.luminarimud.com/forums/topic/crafting-101-2018/"
+#endif
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*33*/ "\tR[HINT]:\tn \ty"
            "You may notice MOBILEs with an (!) exclamation point in front of them.  If the "
@@ -7988,10 +8019,14 @@ static const char *const hints[] = {
            "to the rest of the players!  HELP PLAYER-SHOP"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*36*/ "\tR[HINT]:\tn \ty"
+#if defined(CAMPAIGN_DL)
            "Starting cities have convenient locations to buy supplies, equipment and even house "
+           "donation rooms. Most of these shops are situated near the centre fountain in said cities. "
+#else
            "donation rooms.  In Mosswood, from the elder: north, east to the armor shop; directly "
            "east for the general shop; south, west for the donation pit.  There are plenty more shops "
            "to be found throughout the realms."
+#endif
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*37*/ "\tR[HINT]:\tn \ty"
            "Helpful commands for finding secrets/hidden aspects of a zone include: 'look around' - "
@@ -8002,16 +8037,26 @@ static const char *const hints[] = {
            "out onto a 2-dimensional map."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*38*/ "\tR[HINT]:\tn \ty"
-           "Want to know your Actions from your Maneuvers ? Don 't worry combat in Luminari can be deep "
+#if defined(CAMPAIGN_DL)
+          "Want to know your Actions from your Maneuvers ? Don't worry combat in Krynn can be deep "
+#else
+           "Want to know your Actions from your Maneuvers ? Don't worry combat in Luminari can be deep "
+#endif
            "and complex, but that' s part of what makes it so much fun.Make sure you check out HELP ACTIONS, "
            "COMBAT and QUEUE to become a combat pro!"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*39*/ "\tR[HINT]:\tn \ty"
+#if defined(CAMPAIGN_DL)
+          "To help navigate the massively expansiave surface wilderness, there is a CARRIAGE system "
+           "that can quickly and safely get you between major locations in the world (help carriage).  "
+           "There is also a seaport system allowing you to travel by sea to different, far-reching locales. "
+#else
            "To help navigate the massively expansiave surface wilderness, there is a CARRIAGE system "
            "that can quickly and safely get you between major locations in the wilderness (help carriage).  "
            "There are also plenty of zone connections in the wilderness that you can not reach via carriages, "
            "but a strategy is to use the SURVEY (help survey) command to identify the locations and use the "
            "carriage system to try to get near to your destination then hike the rest."
+#endif
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*40*/ "\tR[HINT]:\tn \ty"
            "'ENCOUNTERS' is a system whereby parties and individuals exploring or roaming the wilderness "
@@ -8024,7 +8069,11 @@ static const char *const hints[] = {
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*41*/ "\tR[HINT]:\tn \ty"
            "'HUNTS' is a system that allows for individuals or parties to search out special boss "
+#if defined(CAMPAIGN_DL)
+          "mobs along the roads and wilderness of Krynn.  These hunt targets, when defeated, award the entire party "
+#else
            "mobs in the wilderness of Lumia.  These hunt targets, when defeated, award the entire party "
+#endif
            "quest points, gold and some nice experience.  In addition to the party-wide rewards, each "
            "hunt mob also drops hunt trophies of various types: some are enhanced crafting materials, "
            "others can be exchanged for rings, pendants or bracers that give special affects when worn "
@@ -8032,12 +8081,15 @@ static const char *const hints[] = {
            "a weapon to give it a permanent special affect (eg. flaming, defending, vorpal, vampiric, "
            "etc.).  (help hunts)"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#if defined(CAMPAIGN_DL)
+#else
     /*42*/ "\tR[HINT]:\tn \ty"
            "Insidious rumors have begun that Caltursar the Dead Walker, a necrophant that resides in the "
            "Skull Gorge has discovered the dark art of becoming a LICH.  Perhaps one could ASK him about "
            "'undeath' to reveal what sort of necormantic madness he has tapped into.  (note: the quest "
            "line to become a lich is extremely difficult and designed for elite groups to conquer)"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
     /*43*/ "\tR[HINT]:\tn \ty"
            "We have a MISSION system that allows players to take on bounties on targets througout the "
            "realm based on your level and specified difficulty.  Missions produce general rewards "
@@ -8060,16 +8112,19 @@ static const char *const hints[] = {
            "We only ask that you please take the time and effort to report bugs/issues you find to us in return!"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #else
-           "A reminder that we do not permit multi playing on this MUD. You are restricted to having one character "
-          "online at a time. You CAN share loot/gear/money between characters as long as they aren't connected "
-          "at the same time, and you can offer a justifiable role-played reason for your characters being connected "
-          "in such a way if requested by a staff member. "
+          "We are currently allowing multi-playing with a maximum of 2 characters online at once. You can share gear and "
+          "other resources between your characters as long as there is a legitimate role-play reason for them to do so. "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #endif
     /*46*/ "\tR[HINT]:\tn \ty"
+#if defined(CAMPAIGN_DL)
+          "Henchmen can be hired at shops in the starting cities for a cost in gold. These henchmen behave as other "
+          "pets and charmees do, but have their separate slot, and do not count toward other charmee limits. "
+#else
            "The henchmen, mercenaries, mounts and PETs that are spread throughout the realms not only can be "
            "hired with gold, but some of them can be acquired through mini quest lines.  A henchment guild has "
            "been opened in Ashenport's Jade Jug Inn to help adventurers."
+#endif
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*47*/ "\tR[HINT]:\tn \ty"
            "Per our POLICY entry, we do not normally allow BOTS.  The exception is automating tasks but being present "
@@ -8086,6 +8141,8 @@ static const char *const hints[] = {
            "You can use the ARMORLIST command to view all the armor types in the realms and then ARMORINFO <name of armor type> "
            "to view details of each armor type.  The same goes for weapons via the WEAPONLIST and WEAPONINFO commands."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#if defined(CAMPAIGN_DL)
+#else
     /*50*/ "\tR[HINT]:\tn \ty"
            "More than a dozen zones form the outter planes of existence!  Visit our website to view the connections between the "
            "planes...  https://luminarimud.com/planes-of-existence/"
@@ -8094,6 +8151,7 @@ static const char *const hints[] = {
            "Approximately 20 zones form the Underworld or Underdark!  Visit our website to view a rough map..."
            "  https://luminarimud.com/the-underdark/"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
     /*52*/ "\tR[HINT]:\tn \ty"
            "There are 'dot' 'dash' and 'all' commands to help you manipulate targets.  Examples include:  "
            "To get all the 'bread' items from all the bags in your inventory you'd type 'take all.bread all.bag' | "
@@ -8103,6 +8161,12 @@ static const char *const hints[] = {
     /*53*/ "\tR[HINT]:\tn \ty"
            "Want to see a full list of all implement spells and skills in the game?  Type respectively 'masterlist spells' or 'masterlist skills'"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#if defined(CAMPAIGN_DL)
+    /*  */ "\tR[HINT]:\tn \ty"
+           "Not sure what and where to uypgrade your gear? We have a searchable object database that will help you see what is out there and what zone it loads in. "
+           "https://krynn.d20mud.com/objectdb/"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#else
     /*54*/ "\tR[HINT]:\tn \ty"
            "There is a shop that offers a service that will enlighten your mind as to the basic "
            "enchantments found on all of your worn equipment.  It is one west of 'recall.'  The "
@@ -8134,6 +8198,7 @@ static const char *const hints[] = {
            "Whispers of a horrific vampire attack southwest of Beregost have attracted the eyes of "
            "powerful entities...  (Level 30 Group Content)\r\n"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
 
 };
 

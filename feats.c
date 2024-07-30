@@ -1240,8 +1240,6 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "using the selected weapon.");
   feat_prereq_weapon_proficiency(FEAT_WEAPON_SPECIALIZATION);
   feat_prereq_cfeat(FEAT_WEAPON_SPECIALIZATION, FEAT_WEAPON_FOCUS);
-  feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 4);
-  feat_prereq_class_level(FEAT_WEAPON_SPECIALIZATION, CLASS_NECROMANCER, 7);
   feato(FEAT_GREATER_WEAPON_SPECIALIZATION, "greater weapon specialization", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "+4 damage with weapon",
         "Choose one type of weapon, such as halberd, for which you have already "
@@ -5222,6 +5220,10 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "All trip attempts will roll d20 twice and take the best result. "
         "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
   teamworkfeat(FEAT_TANDEM_TRIP);
+
+  feato(FEAT_AURA_OF_LIGHT, "aura of light", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "You emit an aura of light, illuminating your location.",
+        "You emit an aura of light, illuminating your location.");
 
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");

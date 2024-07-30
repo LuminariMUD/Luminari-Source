@@ -265,10 +265,10 @@ ACMD(do_manifest)
 
 #undef MANIFEST_NO_ARG
 
-int max_augment_psp_allowed(struct char_data *ch, int spellnum)
+int base_augment_psp_allowed(struct char_data *ch)
 {
+    
     int limit = GET_PSIONIC_LEVEL(ch);
-    limit -= psionic_powers[spellnum].psp_cost;
     if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
     {
         if (HAS_REAL_FEAT(ch, FEAT_PROFICIENT_AUGMENTING))
@@ -281,6 +281,14 @@ int max_augment_psp_allowed(struct char_data *ch, int spellnum)
 
     limit += HAS_FEAT(ch, FEAT_EPIC_AUGMENTING) * 5;
 
+    limit = MAX(limit, 0);
+    return limit;
+}
+
+int max_augment_psp_allowed(struct char_data *ch, int spellnum)
+{
+    int limit = base_augment_psp_allowed(ch);
+    limit -= psionic_powers[spellnum].psp_cost;
     limit = MIN(limit, psionic_powers[spellnum].max_augment);
     limit = MAX(limit, 0);
     return limit;
@@ -447,6 +455,8 @@ ACMD(do_psionic_focus)
 
     start_daily_use_cooldown(ch, FEAT_PSIONIC_FOCUS);
 
+    af.spell = PSIONIC_ABILITY_PSIONIC_FOCUS;
+    af.location = APPLY_SPECIAL;
     af.duration = 12;
 
     affect_to_char(ch, &af);
