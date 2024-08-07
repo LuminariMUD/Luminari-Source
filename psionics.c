@@ -135,7 +135,7 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_INTELLECT_FORTRESS, "intellect fortress", 7, false, 0, 0, PSYCHOKINESIS, TAR_CHAR_ROOM, false, MAG_GROUPS, "The intellect fortress guarding your mind expires.", 4);
     psiono(PSIONIC_MOMENT_OF_TERROR, "moment of terror", 7, true, 4, 100, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "Your terrors finally fade away.", 4);
     psiono(PSIONIC_POWER_LEECH, "power leech", 7, false, 0, 0, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "You finally expel the power leech from your psyche.", 4);
-    psiono(PSIONIC_SLIP_THE_BONDS, "slip the bonds", 7, false, 0, 0, PSYCHOPORTATION, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your psychic ability to slip bonds has expired.", 4);
+    psiono(PSIONIC_SLIP_THE_BONDS, "slip the bonds", 7, false, 0, 0, PSYCHOPORTATION, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS | MAG_UNAFFECTS, "Your psychic ability to slip bonds has expired.", 4);
     psiono(PSIONIC_WITHER, "wither", 7, true, 4, 4, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "Your withered limbs and body finally return to normal.", 4);
     psiono(PSIONIC_WALL_OF_ECTOPLASM, "wall of ectoplasm", 7, false, 0, 0, METACREATIVITY, TAR_IGNORE, false, MAG_MANUAL, "The wall of ectoplasm hardens and falls to dust.", 4);
 

@@ -582,9 +582,10 @@
 #define SPELL_GREATER_RAPID_BUFF 506
 #define SPELL_POWER_WORD_SILENCE 507
 #define SPELL_HOLY_AURA 508
+#define SPELL_FLAME_ARROW 509
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 509
+#define NUM_SPELLS 510
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -679,6 +680,7 @@
 #define AFFECT_PRESCIENCE 1277
 #define AFFECT_PRESCIENCE_DEBUFF 1278
 #define AFFECT_GLORYS_CALL 1279
+#define SPELL_AFFECT_CREEPING_DOOM_BITE 1280
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -1551,7 +1553,11 @@ struct wall_information
 /******/
 #define NUM_WALL_TYPES 7
 /****/
+#if defined(CAMPAIGN_DL)
+#define WALL_ITEM 13818
+#else
 #define WALL_ITEM 101220
+#endif
 /* object values for walls */
 #define WALL_TYPE 0  /* type, effect */
 #define WALL_DIR 1   /* direction blocking */
@@ -1734,6 +1740,8 @@ ACMD_DECL(do_gen_cast);
 #define SCMD_WEAPON_TOUCH 4
 ACMD_DECL(do_manifest);
 void display_shadowcast_spells(struct char_data *ch);
+void handle_npc_cast(struct char_data *ch, char *argument, int subcmd);
+bool npc_can_cast(struct char_data *ch, int spellnum);
 
 ACMD_DECL(do_abort);
 void unused_spell(int spl);

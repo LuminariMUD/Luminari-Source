@@ -897,6 +897,7 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
   char tempstr[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'}, tempbuf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
   int sellnum, sold = 0, goldamt = 0;
+  char objname[200];
 
   if (!(is_ok(keeper, ch, shop_nr)))
     return;
@@ -920,6 +921,8 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
   one_argument(arg, name, sizeof(name));
   if (!(obj = get_selling_obj(ch, name, keeper, shop_nr, TRUE)))
     return;
+
+  snprintf(objname, sizeof(objname), "%s", obj->short_description);
 
   if (/*!IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH) &&*/ GET_GOLD(keeper) +
           SHOP_BANK(shop_nr) <
@@ -966,7 +969,7 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
   increase_gold(ch, goldamt);
 
   strlcpy(tempstr, times_message(0, name, sold), sizeof(tempstr));
-  snprintf(tempbuf, sizeof(tempbuf), "$n sells %s.", tempstr);
+  snprintf(tempbuf, sizeof(tempbuf), "$n sells %s.", objname);
   act(tempbuf, FALSE, ch, obj, 0, TO_ROOM);
 
   if (shop_index[shop_nr].message_sell != NULL)
@@ -975,7 +978,7 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
     snprintf(tempbuf, sizeof(tempbuf), "%s I will give you %d coins for that.", GET_NAME(ch), goldamt);
   do_tell(keeper, tempbuf, cmd_tell, 0);
 
-  send_to_char(ch, "The shopkeeper now has %s.\r\n", tempstr);
+  send_to_char(ch, "The shopkeeper now has %s.\r\n", objname);
 
   if (GET_GOLD(keeper) < MIN_OUTSIDE_BANK)
   {

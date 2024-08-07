@@ -2072,7 +2072,10 @@ ACMDU(do_gen_cast)
   int circle = 99, school = 0;
 
   if (IS_NPC(ch))
+  {
+    handle_npc_cast(ch, argument, subcmd);
     return;
+  }
 
   /* different cast types are divided here */
   switch (subcmd)
@@ -3356,7 +3359,7 @@ void mag_assign_spells(void)
   spell_info[SPELL_SHOCKING_GRASP].touch_spell = TRUE;
 
   spello(SPELL_SCORCHING_RAY, "scorching ray", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_LOOPS,
          NULL, 2, 9, EVOCATION, FALSE);
   spello(SPELL_CONTINUAL_FLAME, "continual flame", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_CREATIONS,
@@ -3455,7 +3458,10 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 3, 11, EVOCATION, FALSE);
   spello(SPELL_FIREBALL, "fireball", 44, 29, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AREAS,
+         NULL, 3, 11, EVOCATION, FALSE);
+  spello(SPELL_FLAME_ARROW, "flame arrow", 44, 29, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_LOOPS,
          NULL, 3, 11, EVOCATION, FALSE);
   spello(SPELL_WATER_BREATHE, "water breathe", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -3550,7 +3556,7 @@ void mag_assign_spells(void)
   // 4th circle
   /* evocation */
   spello(SPELL_LESSER_MISSILE_STORM, "lesser missile storm", 72, 57, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_LOOPS,
          NULL, 4, 13, EVOCATION, FALSE);
   spello(SPELL_ICE_STORM, "ice storm", 58, 43, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
@@ -3772,7 +3778,7 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
          NULL, 6, 19, EVOCATION, FALSE); // grapples opponent
   spello(SPELL_MISSILE_STORM, "missile storm", 72, 57, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_LOOPS,
          NULL, 6, 19, EVOCATION, FALSE);
   spello(SPELL_SUNBEAM, "sunbeam", 0, 0, 0,
          POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS | MAG_ROOM,
@@ -4944,6 +4950,9 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
          TAR_IGNORE, TRUE, 0,
          NULL, 0, 0, NOSCHOOL, FALSE);
 
+  spello(SPELL_AFFECT_CREEPING_DOOM_BITE, "creeping doom bite", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE, 
+         NULL, 1, 1, CONJURATION, FALSE);
+
   // poisons
   spello(POISON_TYPE_SCORPION_WEAK, "weak scorpion poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
          "The weak scorpion poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
@@ -5797,6 +5806,190 @@ sbyte isPrimordialMagic(struct char_data *ch, int spellnum)
     //               if (GET_PRIMORDIAL_COOLDOWN(ch, 2) <= 0 && GET_PRIMORDIAL_MAGIC(ch, 2) == 0) GET_PRIMORDIAL_MAGIC(ch, 2) = 3;
     //   if (GET_PRIMORDIAL_MAGIC(ch, 2) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
     //   return true;
+  }
+  return false;
+}
+
+void handle_npc_cast(struct char_data *ch, char *argument, int subcmd)
+{
+  struct char_data *out_to = ch;
+  struct char_data *victim = NULL;
+  char *spell_arg = NULL;
+  char *target_arg = NULL;
+  int spellnum = 0;
+
+  if (!IS_NPC(ch))
+    return;
+
+  if (MOB_FLAGGED(ch, MOB_EIDOLON))
+  {
+    if (ch->master && IN_ROOM(ch) == IN_ROOM(ch->master))
+      out_to = ch->master;
+  }
+
+  if (MOB_FLAGGED(ch, MOB_EIDOLON))
+  {
+    if (HAS_EVOLUTION(ch, EVOLUTION_WEB) && spellnum == SPELL_WEB)
+    {
+      if (!is_action_available(ch, atSWIFT, true))
+        return;
+    }
+  }
+
+  if (!is_action_available(ch, atSTANDARD, true))
+    return;
+
+  spell_arg = strtok(argument, "'");
+
+  if (spell_arg == NULL)
+  {
+    send_to_char(out_to, "Cast what where?\r\n");
+    return;
+  }
+
+  spell_arg = strtok(NULL, "'");
+
+  if (spell_arg == NULL)
+  {
+    send_to_char(out_to, "Spell names must be enclosed in the Powerful ' Symbols: '\r\n");
+    return;
+  }
+
+  target_arg = strtok(NULL, "\0");
+
+  spellnum = find_skill_num(spell_arg);
+
+  if ((spellnum < 1) || (spellnum > MAX_SPELLS) || !*spell_arg)
+  {
+    send_to_char(out_to, "No spell exists by that name.\r\n");
+    return;
+  }
+  
+  if (!npc_can_cast(ch, spellnum))
+  {
+    send_to_char(out_to, "Your pet cannot cast that spell.\r\n");
+    return;
+  }
+
+  // We will need to add more checks if we expand the list of spells that mobs can cast found in the
+  // npc_can_cast function
+  if (IS_SET(SINFO.targets, TAR_IGNORE))
+  {
+    call_magic(ch, ch, 0, spellnum, 0, GET_LEVEL(ch), CAST_SPELL);
+    return;
+  }
+  
+  if (IS_SET(SINFO.targets, TAR_SELF_ONLY))
+  {
+    call_magic(ch, ch, 0, spellnum, 0, GET_LEVEL(ch), CAST_SPELL);
+    return;
+  }
+
+  if (target_arg != NULL)
+  {
+    skip_spaces(&target_arg);
+  }
+  if (target_arg == NULL)
+  {
+    victim = ch;
+  }
+  else if (IS_SET(SINFO.targets, TAR_CHAR_ROOM))
+  {
+    victim = get_char_vis(ch, target_arg, NULL, FIND_CHAR_ROOM);
+  }
+  else if (IS_SET(SINFO.targets, TAR_CHAR_WORLD))
+  {
+    victim = get_char_vis(ch, target_arg, NULL, FIND_CHAR_WORLD);
+  }
+  else
+  {
+    send_to_char(out_to, "That is not an eligible NPC-castable spell.\r\n");
+    return;
+  }
+
+  if (victim == NULL)
+  {
+    send_to_char(out_to, "You can't seem to find the target of your spell.\r\n");
+    return;
+  }
+
+  if (SINFO.violent == TRUE && !aoeOK(ch, victim, spellnum))
+  {
+    send_to_char(out_to, "That spell cannot be cast on a friendly target.\r\n");
+    return;
+  }
+
+  if (IS_SET(SINFO.targets, TAR_NOT_SELF))
+  {
+    if (ch == victim)
+    {
+      send_to_char(out_to, "Your pet cannot cast that spell on themselves.\r\n");
+      return;
+    }
+  }
+
+  call_magic(ch, victim, 0, spellnum, 0, GET_LEVEL(ch), CAST_SPELL);
+
+  if (MOB_FLAGGED(ch, MOB_EIDOLON))
+  {
+    if (HAS_EVOLUTION(ch, EVOLUTION_WEB) && spellnum == SPELL_WEB)
+    {
+      USE_SWIFT_ACTION(ch);
+      return;
+    }
+  }
+
+  USE_STANDARD_ACTION(ch);
+}
+
+bool npc_can_cast(struct char_data *ch, int spellnum)
+{
+  if (MOB_FLAGGED(ch, MOB_EIDOLON))
+  {
+    if (HAS_EVOLUTION(ch, EVOLUTION_WEB) && spellnum == SPELL_WEB)
+    {
+      return true;
+    }
+    if (HAS_EVOLUTION(ch, EVOLUTION_BASIC_MAGIC))
+    {
+      switch (spellnum)
+      {
+        case SPELL_DAZE_MONSTER:
+        case SPELL_DETECT_MAGIC:
+        case SPELL_BALL_OF_LIGHT:
+        case SPELL_ACID_SPLASH:
+        case SPELL_RAY_OF_FROST:
+        case SPELL_TOUCH_OF_FATIGUE:
+          return true;
+      }
+    }
+    if (HAS_EVOLUTION(ch, EVOLUTION_MINOR_MAGIC))
+    {
+      switch (spellnum)
+      {
+        case SPELL_BURNING_HANDS:
+        case SPELL_DETECT_ALIGN:
+        case SPELL_MAGIC_MISSILE:
+        case SPELL_OBSCURING_MIST:
+        case SPELL_MINOR_ILLUSION:
+          return true;
+      }
+    }
+    if (HAS_EVOLUTION(ch, EVOLUTION_MAJOR_MAGIC))
+    {
+      switch (spellnum)
+      {
+        case SPELL_ACID_ARROW:
+        case SPELL_DARKNESS:
+        case SPELL_INVISIBLE:
+        case SPELL_LESSER_RESTORATION:
+        case SPELL_LEVITATE:
+        case SPELL_SCORCHING_RAY:
+        case SPELL_DETECT_INVIS:
+        case SPELL_SPIDER_CLIMB:
+          return true;
+      }
+    }
   }
   return false;
 }
