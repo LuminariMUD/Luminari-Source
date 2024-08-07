@@ -962,6 +962,8 @@ int is_immune_to_crits(struct char_data *attacker, struct char_data *target)
 
   if (affected_by_spell(target, PSIONIC_SHADOW_BODY))
     return TRUE;
+  if (affected_by_spell(target, PSIONIC_BODY_OF_IRON))
+    return TRUE;
   
   if (HAS_FEAT(target, FEAT_ESSENCE_OF_UNDEATH))
     return true;
@@ -9406,7 +9408,7 @@ int get_encumbrance_mod(struct char_data *ch)
   {
     if ((obj = GET_EQ(ch, i)) != NULL)
     {
-      for (j = 0; j < NUM_APPLIES; j++)
+      for (j = 0; j < 6; j++)
       {
         if (obj->affected[j].location == APPLY_ENCUMBRANCE)
         {

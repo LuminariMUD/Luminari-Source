@@ -179,7 +179,8 @@ void affliction_tick(struct char_data *ch)
   /* creeping doom */
   else if (DOOM(ch))
   {
-    call_magic(ch, NULL, NULL, SPELL_DOOM, 0, DIVINE_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, NULL, NULL, SPELL_AFFECT_CREEPING_DOOM_BITE, 0, DIVINE_LEVEL(ch) + GET_CALL_EIDOLON_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, NULL, NULL, POISON_TYPE_CENTIPEDE_STRONG, 0, DIVINE_LEVEL(ch) + GET_CALL_EIDOLON_LEVEL(ch), CAST_SPELL);
     DOOM(ch)--;
     if (DOOM(ch) <= 0)
     {

@@ -1547,7 +1547,7 @@ ASPELL(spell_creeping_doom)
   send_to_char(ch, "You summon forth a mass of centipede swarms!\r\n");
   act("$n summons forth a mass of centipede swarms!", FALSE, ch, 0, 0, TO_ROOM);
 
-  DOOM(ch) = MAX(1, (DIVINE_LEVEL(ch) + GET_CALL_EIDOLON_LEVEL(ch)) / 4);
+  DOOM(ch) = MAX(1, (DIVINE_LEVEL(ch) + GET_CALL_EIDOLON_LEVEL(ch)));
 }
 
 ASPELL(spell_detect_poison)

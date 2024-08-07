@@ -931,6 +931,22 @@ void mag_loops(int level, struct char_data *ch, struct char_data *victim,
     num_times = MIN(5, (level + 1) / 2);
     dam = true;
     break;
+  case SPELL_LESSER_MISSILE_STORM:
+    num_times = MIN(10, level);
+    dam = true;
+    break;
+  case SPELL_MISSILE_STORM:
+    num_times = MIN(20, level);
+    dam = true;
+    break;
+  case SPELL_SCORCHING_RAY:
+    num_times = MIN(3, 1 + ((level - 3) / 4));
+    dam = true;
+    break;
+  case SPELL_FLAME_ARROW:
+    num_times = (level - 2) / 3;
+    dam = true;
+    break;
     /*   case SPELL_MAGIC_STONE:
         num_times = MIN(5, (level + 1) / 2);
         dam = true;
@@ -1591,8 +1607,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_FIRE;
-    num_dice = MIN(15, level);
-    size_dice = 10;
+    num_dice = MIN(10, level);
+    size_dice = 6;
     bonus = 0;
     break;
 
@@ -1673,6 +1689,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = TRUE;
     element = DAM_FIRE;
     num_dice = MIN(22, level);
+    size_dice = 6;
+    bonus = 0;
+    break;
+
+  case SPELL_AFFECT_CREEPING_DOOM_BITE: // conjuration
+    save = SAVING_FORT;
+    mag_resist = FALSE;
+    element = DAM_PIERCING;
+    num_dice = 8;
     size_dice = 6;
     bonus = 0;
     break;
@@ -1759,25 +1784,25 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       size_dice = 4;
       bonus = 1;
     }
-    element = DAM_FORCE;
+    element = DAM_ENERGY;
+    break;
+  
+  case SPELL_LESSER_MISSILE_STORM: // evocation
+    mag_resist = TRUE;
+    save = -1;
+    num_dice = 1;
+    size_dice = 6;
+    bonus = 0;
+    element = DAM_ENERGY;
     break;
 
   case SPELL_MISSILE_STORM: // evocation
-    save = SAVING_REFL;
+    save = -1;
     mag_resist = TRUE;
-    element = DAM_FORCE;
-    num_dice = MIN(26, level);
-    size_dice = 10;
-    bonus = level;
-    break;
-
-  case SPELL_LESSER_MISSILE_STORM: // evocation
-    save = SAVING_REFL;
-    mag_resist = TRUE;
-    element = DAM_FORCE;
-    num_dice = MIN(20, level);
-    size_dice = 10;
-    bonus = level;
+    element = DAM_ENERGY;
+    num_dice = 2;
+    size_dice = 6;
+    bonus = 0;
     break;
 
   case SPELL_NEGATIVE_ENERGY_RAY: // necromancy
@@ -1838,8 +1863,17 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = -1;
     mag_resist = TRUE;
     element = DAM_FIRE;
-    num_dice = MIN(12, level * 2);
-    size_dice = 4;
+    num_dice = 4;
+    size_dice = 6;
+    bonus = 0;
+    break;
+  
+  case SPELL_FLAME_ARROW: // evocation
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;
+    num_dice = 4;
+    size_dice = 6;
     bonus = 0;
     break;
 
@@ -4789,6 +4823,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       act("$n evades the tentacles.", FALSE, ch, 0, victim, TO_ROOM);
       return;
     }
+    if (affected_by_spell(victim, PSIONIC_SLIP_THE_BONDS))
+    {
+      send_to_char(ch, "Your spell is resisted!\r\n");
+      send_to_char(victim, "You avoid the effect due to your slip the bonds manifestation!\r\n");
+      return;
+    }
     if (affected_by_spell(victim, SPELL_BLACK_TENTACLES))
     {
       affect_from_char(victim, SPELL_BLACK_TENTACLES);
@@ -5575,6 +5615,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       act("$n evades the tentacles.", FALSE, ch, 0, victim, TO_ROOM);
       return;
     }
+    if (affected_by_spell(victim, PSIONIC_SLIP_THE_BONDS))
+    {
+      send_to_char(ch, "Your spell is resisted!\r\n");
+      send_to_char(victim, "You avoid the effect due to your slip the bonds manifestation!\r\n");
+      return;
+    }
     if (affected_by_spell(victim, SPELL_GREATER_BLACK_TENTACLES))
     {
       act("$N is already affected by greater black tentacles.", FALSE, ch, 0, victim, TO_CHAR);
@@ -5598,6 +5644,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     {
       act("You evade the tentacles.", FALSE, ch, 0, victim, TO_VICT);
       act("$n evades the tentacles.", FALSE, ch, 0, victim, TO_ROOM);
+      return;
+    }
+    if (affected_by_spell(victim, PSIONIC_SLIP_THE_BONDS))
+    {
+      send_to_char(ch, "Your spell is resisted!\r\n");
+      send_to_char(victim, "You avoid the effect due to your slip the bonds manifestation!\r\n");
       return;
     }
     if (affected_by_spell(victim, SPELL_BLACK_TENTACLES))
@@ -6113,8 +6165,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = (level * 12) + 100;
     af[0].modifier = 1;
     af[0].bonus_type = BONUS_TYPE_SIZE;
+    af[1].location = APPLY_STR;
+    af[1].duration = (level * 12) + 100;
+    af[1].modifier = +2;
+    af[1].bonus_type = BONUS_TYPE_SIZE;
+    af[2].location = APPLY_DEX;
+    af[2].duration = (level * 12) + 100;
+    af[2].modifier = -2;
+    af[2].bonus_type = BONUS_TYPE_SIZE;
     to_vict = "You feel yourself growing!";
-    to_room = "$n's begins to grow much larger!";
+    to_room = "$n begins to grow much larger!";
     break;
 
   case SPELL_ANT_HAUL: // transmutation
@@ -6275,6 +6335,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (AFF_FLAGGED(victim, AFF_FREE_MOVEMENT))
       return;
+    if (affected_by_spell(victim, PSIONIC_SLIP_THE_BONDS))
+    {
+      send_to_char(ch, "Your spell is resisted!\r\n");
+      send_to_char(victim, "You avoid the effect due to your slip the bonds manifestation!\r\n");
+      return;
+    }
 
     SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
     af[0].duration = 10 + level;
@@ -6360,6 +6426,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
       return;
+    if (affected_by_spell(victim, PSIONIC_SLIP_THE_BONDS))
+    {
+      send_to_char(ch, "Your spell is resisted!\r\n");
+      send_to_char(victim, "You avoid the effect due to your slip the bonds manifestation!\r\n");
+      return;
+    }
 
     SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
     af[0].duration = dice(2, 4) - 1;
@@ -6985,7 +7057,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = (level * 12) + 100;
     af[0].modifier = 2 + (level / 5);
     to_vict = "You feel more hardy!";
-    to_room = "$n's begins to feel more hardy!";
+    to_room = "$n begins to feel more hardy!";
     break;
 
   case SPELL_MASS_GRACE: // transmutation
@@ -7656,7 +7728,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = (level * 12) + 100;
     af[0].modifier = -1;
     to_vict = "You feel yourself shrinking!";
-    to_room = "$n's begins to shrink to being much smaller!";
+    to_room = "$n begins to shrink to being much smaller!";
     break;
 
   case SPELL_PLANAR_HEALING: // conjuration
@@ -9105,6 +9177,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "You conjure a storm of ice that blankets the area!";
     to_room = "$n conjures a storm of ice, blanketing the area!";
     break;
+  case SPELL_FIREBALL:
+    to_char = "You hurl a bead of flame which explodes into a conflagration!";
+    to_room = "$n hurls a bead of flame which explodes into a conflagration!";
+    break;
   case SPELL_INCENDIARY: // incendiary cloud
     break;
   case SPELL_INSECT_PLAGUE:
@@ -9394,7 +9470,7 @@ static const char *mag_summon_msgs[] = {
     "$N charges into the area, looks left, then right... "                                      /* 17 */
     "then quickly moves next to $n.",                                                           // 18 dire boar
     "$N moves into the area, sniffing cautiously.",                                             // 19 dire wolf
-    "$N neighs and walks up to $n.",                                                            // 20 phantom steed
+    "$N walks up to $n.",                                                            // 20 phantom steed
     "$N skitters into the area and moves next to $n.",                                          // 21 dire spider
     "$N lumbers into the area and moves next to $n.",                                           // 22 dire bear
     "$N manifests with an ancient howl, then moves towards $n.",                                // 23 hound
@@ -9439,7 +9515,7 @@ static const char *mag_summon_to_msgs[] = {
     "$N charges into the area, looks left, then right... "                     // 17
     "then quickly moves next to you.",                                         // 18 dire boar
     "$N moves into the area, sniffing cautiously.",                            // 19 dire wolf
-    "$N neighs and walks up to you.",                                          // 20 phantom steed
+    "$N walks up to you.",                                          // 20 phantom steed
     "$N skitters into the area and moves next to you.",                        // 21 dire spider
     "$N lumbers into the area and moves next to you.",                         // 22 dire bear
     "$N manifests with an ancient howl, then moves towards you.",              // 23 hound
@@ -10846,6 +10922,14 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     affect = AFF_ENTANGLED;
     to_char = "You remove the web from $N.";
     to_vict = "$n removes the web from you.";
+    to_notvict = "$N looks like $E can move again.";
+    break;
+
+  case PSIONIC_SLIP_THE_BONDS:
+    spell = SPELL_WEB;
+    affect = AFF_ENTANGLED;
+    to_char = "You remove the entanglements from $N.";
+    to_vict = "$n removes the entanglements from you.";
     to_notvict = "$N looks like $E can move again.";
     break;
 

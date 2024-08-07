@@ -232,7 +232,7 @@ void assign_evolutions(void)
                "claw attacks. 1d6 if large, 1d8 if huge.");
     evolutiono(EVOLUTION_RIDER_BOND, "rider bond", 2, false, 1, false, EVOLUTION_MOUNT, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
                "The eidolon offers a bonus to ride skill equal to 1/2 summoner level, and also provides the mounted "
-               "combat feat to the summoner whenm ridden by them.");
+               "combat feat to the summoner when ridden by them.");
     evolutiono(EVOLUTION_SHADOW_BLEND, "shadow blend", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
                "The eidolon gains 20 percent concealment when not in bright light.  If the eidolon also has the "
                "shadow form evolution, this benefit increases to 50 percent.");

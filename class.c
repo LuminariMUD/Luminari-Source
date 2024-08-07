@@ -4154,6 +4154,7 @@ void load_class_list(void)
   /* 3rd circle */
   spell_assignment(CLASS_WIZARD, SPELL_LIGHTNING_BOLT, 5);
   spell_assignment(CLASS_WIZARD, SPELL_FIREBALL, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_FLAME_ARROW, 5);
   spell_assignment(CLASS_WIZARD, SPELL_WATER_BREATHE, 5);
   spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_3, 5);
   spell_assignment(CLASS_WIZARD, SPELL_PHANTOM_STEED, 5);
@@ -5462,6 +5463,7 @@ void load_class_list(void)
   /* 3rd circle */
   spell_assignment(CLASS_SORCERER, SPELL_LIGHTNING_BOLT, 6);
   spell_assignment(CLASS_SORCERER, SPELL_FIREBALL, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_FLAME_ARROW, 6);
   spell_assignment(CLASS_SORCERER, SPELL_WATER_BREATHE, 6);
   spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_3, 6);
   spell_assignment(CLASS_SORCERER, SPELL_PHANTOM_STEED, 6);
