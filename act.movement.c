@@ -2295,6 +2295,49 @@ int has_key(struct char_data *ch, obj_vnum key)
   return (0);
 }
 
+// This will attempt to remove the key from the character
+// if the key is found and the key is flagged EXTRACT_ON_USE
+void extract_key(struct char_data *ch, obj_vnum key)
+{
+
+  /* players were using corpses to open doors */
+  if (key == NOTHING || key <= 0)
+    return;
+
+  struct obj_data *o = NULL;
+
+  for (o = ch->carrying; o; o = o->next_content)
+  {
+    if (GET_OBJ_VNUM(o) == key && OBJ_FLAGGED(o, ITEM_EXTRACT_AFTER_USE))
+    {
+      act("After using $p, it crumbles to dust.", false, ch, o, 0, TO_CHAR);
+      act("After $n uses $p, it crumbles to dust.", false, ch, o, 0, TO_ROOM);
+      obj_from_char(o);
+      extract_obj(o);
+      return;
+    }
+  }
+
+  if (GET_EQ(ch, WEAR_HOLD_1))
+    if (GET_OBJ_VNUM(GET_EQ(ch, WEAR_HOLD_1)) == key && OBJ_FLAGGED(GET_EQ(ch, WEAR_HOLD_1), ITEM_EXTRACT_AFTER_USE))
+    {
+      act("After using $p, it crumbles to dust.", false, ch, GET_EQ(ch, WEAR_HOLD_1), 0, TO_CHAR);
+      act("After $n uses $p, it crumbles to dust.", false, ch, GET_EQ(ch, WEAR_HOLD_1), 0, TO_ROOM);
+      extract_obj(unequip_char(ch, WEAR_HOLD_1));
+      return;
+    }
+
+  if (GET_EQ(ch, WEAR_HOLD_2))
+    if (GET_OBJ_VNUM(GET_EQ(ch, WEAR_HOLD_2)) == key && OBJ_FLAGGED(GET_EQ(ch, WEAR_HOLD_2), ITEM_EXTRACT_AFTER_USE))
+    {
+      act("After using $p, it crumbles to dust.", false, ch, GET_EQ(ch, WEAR_HOLD_2), 0, TO_CHAR);
+      act("After $n uses $p, it crumbles to dust.", false, ch, GET_EQ(ch, WEAR_HOLD_2), 0, TO_ROOM);
+      extract_obj(unequip_char(ch, WEAR_HOLD_2));
+      return;
+    }
+
+}
+
 #define NEED_OPEN (1 << 0)
 #define NEED_CLOSED (1 << 1)
 #define NEED_UNLOCKED (1 << 2)
@@ -2631,6 +2674,8 @@ ACMD(do_gen_door)
       send_to_char(ch, "*Click*\r\n");
       do_doorcmd(ch, obj, door, subcmd);
       ch->char_specials.autodoor_message = true;
+      extract_key(ch, keynum);
+
     }
     else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) &&
              ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (!has_key(ch, keynum)))
@@ -2648,6 +2693,7 @@ ACMD(do_gen_door)
     {
       do_doorcmd(ch, obj, door, subcmd);
       ch->char_specials.autodoor_message = true;
+      extract_key(ch, keynum);
     }
   }
   return;

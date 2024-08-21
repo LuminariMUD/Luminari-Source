@@ -210,7 +210,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"bite", "bite", POS_FIGHTING, do_bite_attack, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"brief", "br", POS_DEAD, do_gen_tog, 0, SCMD_BRIEF, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"buff", "buff", POS_DEAD, do_buff, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"buildwalk", "buildwalk", POS_STANDING, do_gen_tog, LVL_BUILDER, SCMD_BUILDWALK, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"buildwalk", "buildwalk", POS_STANDING, do_buildwalk, LVL_BUILDER, SCMD_BUILDWALK, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"buy", "bu", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"bug", "bug", POS_DEAD, do_ibt, 0, SCMD_BUG, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"breathe", "breathe", POS_FIGHTING, do_breathe, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_breathe},
@@ -299,6 +299,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"carefulpet", "carefulpet", POS_DEAD, do_gen_tog, 0, SCMD_CAREFUL_PET, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+    {"damage", "damage", POS_DEAD, do_damage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"damagereduction", "damager", POS_DEAD, do_affects, 0, SCMD_DAMAGE_REDUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -347,7 +348,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"dragbreath", "dragbreath", POS_FIGHTING, do_dragonborn_breath_weapon, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_dragonborn_breath_weapon},
     {"dragonfear", "dragonfear", POS_FIGHTING, do_dragonfear, 1, 0, FALSE, ACTION_SWIFT, {6, 0}, can_dragonfear},
     {"dragonmagic", "dragonmagic", POS_FIGHTING, do_dragonmagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_dragonmagic},
-    {"damage", "damage", POS_DEAD, do_damage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dice", "dice", POS_RECLINING, do_dice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/

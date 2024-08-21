@@ -5756,7 +5756,7 @@ bool can_speak_language(struct char_data *ch, int language)
 
   if (GET_LEVEL(ch) >= LVL_IMMORT) return true;
   if (language == LANG_COMMON) return true;
-  if (language == race_list[GET_REAL_RACE(ch)].racial_language) return true;
+  if (language == (race_list[GET_REAL_RACE(ch)].racial_language - SKILL_LANG_LOW)) return true;
   if (ch->player_specials->saved.languages_known[language]) return true;
   if (language == LANG_DRUIDIC && CLASS_LEVEL(ch, CLASS_DRUID)) return true;
   if (language == LANG_THIEVES_CANT && CLASS_LEVEL(ch, CLASS_ROGUE)) return true;
@@ -6298,6 +6298,7 @@ int get_max_party_level_same_room(struct char_data *ch)
     tch = f->follower;
     if (!tch)
       continue;
+    if (IS_NPC(tch)) continue;
     if (IN_ROOM(tch) != IN_ROOM(master))
       continue;
     if (GET_LEVEL(tch) > level)
@@ -9427,6 +9428,21 @@ int get_encumbrance_mod(struct char_data *ch)
   }
 
   return final;
+
+}
+
+bool ok_call_mob_vnum(int mob_num)
+{
+
+  if (mob_num >= 1 && mob_num <= 99) return true;
+  
+  if (mob_num == 60289) return true;
+
+  if (mob_num == MOB_NUM_EIDOLON) return true;
+
+  if (mob_num > 40400 && mob_num <= 40410) return true;
+
+  return false;
 
 }
 

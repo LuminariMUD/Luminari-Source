@@ -7970,6 +7970,13 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
   return wielded;
 }
 
+int compute_attack_bonus(struct char_data *ch,     /* Attacker */
+                         struct char_data *victim, /* Defender */
+                         int attack_type)
+{
+  return compute_attack_bonus_full(ch, victim, attack_type, false);
+}
+
 /* Calculate ch's attack bonus when attacking victim, for the type of attack given.
  * Valid attack_type(s) are:
  *   ATTACK_TYPE_PRIMARY : Primary hand attack.
@@ -7980,9 +7987,10 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
  *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
  *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand
  *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand  */
-int compute_attack_bonus(struct char_data *ch,     /* Attacker */
+int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
                          struct char_data *victim, /* Defender */
-                         int attack_type)          /* Type of attack  */
+                         int attack_type,          /* Type of attack  */
+                         bool display)            // whether to show info on the attack bonus breakdown
 {
   int i = 0;
   int bonuses[NUM_BONUS_TYPES];
@@ -8001,13 +8009,40 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
     bonuses[i] = 0;
 
+  if (display)
+  {
+    send_to_char(ch, "\tC");
+    draw_line(ch, 80, '-', '-');
+    send_to_char(ch, "Attack Roll Breakdown\r\n");
+    draw_line(ch, 80, '-', '-');
+    send_to_char(ch, "\tn");
+  }
+
+  if (display)
+  {
+    send_to_char(ch, "%2d: %-50s\r\n", BAB(ch), "Base Attack Bonus");
+  }
+
+  if (is_dual_wielding(ch))
+  {
+    calc_bab += dual_wielding_penalty(ch, (attack_type == ATTACK_TYPE_OFFHAND || attack_type == ATTACK_TYPE_OFFHAND_SNEAK));
+    if (display)
+    {
+      send_to_char(ch, "%2d: %-50s\r\n", dual_wielding_penalty(ch, (attack_type == ATTACK_TYPE_OFFHAND || attack_type == ATTACK_TYPE_OFFHAND_SNEAK)), "Two Weapon Fighting");
+    }
+  }
+
   /* start with our base bonus of strength (or dex with feat/ranged)
                should this have a type?  for now it doesn't... */
   switch (attack_type)
   {
   case ATTACK_TYPE_PSIONICS: /* psionic attacks */
     calc_bab += GET_INT_BONUS(ch);
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", GET_INT_BONUS(ch), "Psionic Intelligence");
     calc_bab += IS_PSI_TYPE(ch) / 5;
+    if (display)
+      send_to_char(ch, "%2d: %-50s\r\n", IS_PSI_TYPE(ch) / 5, "Psionic Level");
     /* FALLTHROUGH, no break please */
   case ATTACK_TYPE_OFFHAND:
   case ATTACK_TYPE_PRIMARY:
@@ -8018,29 +8053,43 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
         GET_DEX_BONUS(ch) > GET_STR_BONUS(ch))
     {
       calc_bab += GET_DEX_BONUS(ch); /* superior bonus is used */
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", GET_DEX_BONUS(ch), "Weapon Finesse Dex");
     }
     else if (!wielded && HAS_FEAT(ch, FEAT_UNARMED_STRIKE) &&
              HAS_FEAT(ch, FEAT_WEAPON_FINESSE) && GET_DEX_BONUS(ch) > GET_STR_BONUS(ch))
     {
       calc_bab += GET_DEX_BONUS(ch); /* superior bonus is used */
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", GET_DEX_BONUS(ch), "Weapon Finesse Dex");
     }
     else
     {
       calc_bab += GET_STR_BONUS(ch);
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", GET_STR_BONUS(ch), "Str");
     }
     break;
   case ATTACK_TYPE_ELDRITCH_BLAST:
     /* This is a just a ranged touch attack */
     calc_bab += HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER) * 2;
+    if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER) * 2, "Eldritch Master");
     /* fall through is intentional here */
   case ATTACK_TYPE_RANGED:
     calc_bab += GET_DEX_BONUS(ch);
+    if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", GET_DEX_BONUS(ch), "Ranged Dex");
     break;
   case ATTACK_TYPE_BOMB_TOSS:
     calc_bab += GET_DEX_BONUS(ch);
+    if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", GET_DEX_BONUS(ch), "Bomb Toss Dex");
     if (KNOWS_DISCOVERY(ch, ALC_DISC_PRECISE_BOMBS))
     {
       calc_bab += 2;
+      if (display)
+        send_to_char(ch, " 2: %-50s\r\n", "Precise Bombs");
     }
     break;
   case ATTACK_TYPE_UNARMED:
@@ -8048,16 +8097,22 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
         HAS_FEAT(ch, FEAT_WEAPON_FINESSE) && GET_DEX_BONUS(ch) > GET_STR_BONUS(ch))
     {
       calc_bab += GET_DEX_BONUS(ch); /* superior bonus is used */
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", GET_DEX_BONUS(ch), "Weapon Finesse Dex");
     }
     else
     {
       calc_bab += GET_STR_BONUS(ch);
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", GET_STR_BONUS(ch), "Str");
     }
 
     break;
   case ATTACK_TYPE_TWOHAND:
   case ATTACK_TYPE_PRIMARY_EVO_BITE:
     calc_bab += GET_STR_BONUS(ch);
+    if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", GET_STR_BONUS(ch), "Str");
     break;
   default:
     break;
@@ -8067,11 +8122,15 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
    function of the game to date, it is still necessary
    10/14/2014 Zusuk */
   calc_bab += GET_HITROLL(ch);
+  if (display && GET_HITROLL(ch))
+        send_to_char(ch, "%2d: %-50s\r\n", GET_HITROLL(ch), "Hitroll");
   /******/
 
   if (!IS_NPC(ch))
   {
     calc_bab += GET_TEMP_ATTACK_ROLL_BONUS(ch);
+    if (display && GET_TEMP_ATTACK_ROLL_BONUS(ch))
+        send_to_char(ch, "%2d: %-50s\r\n", GET_TEMP_ATTACK_ROLL_BONUS(ch), "Temp Attack Roll");
     GET_TEMP_ATTACK_ROLL_BONUS(ch) = 0;
   }
 
@@ -8086,6 +8145,8 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   case POS_MORTALLYW:
   case POS_DEAD:
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+    if (display)
+        send_to_char(ch, "-2: %-50s\r\n", "Positional");
     break;
   case POS_FIGHTING:
   case POS_STANDING:
@@ -8094,15 +8155,23 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   }
 
   if (is_judgement_possible(ch, victim, INQ_JUDGEMENT_JUSTICE))
-    bonuses[judgement_bonus_type(ch)] = MAX(bonuses[judgement_bonus_type(ch)], get_judgement_bonus(ch, INQ_JUDGEMENT_JUSTICE));
+  {
+     bonuses[judgement_bonus_type(ch)] = MAX(bonuses[judgement_bonus_type(ch)], get_judgement_bonus(ch, INQ_JUDGEMENT_JUSTICE));
+     if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", get_judgement_bonus(ch, INQ_JUDGEMENT_JUSTICE), "Judgement");
+  }
 
   if (has_teamwork_feat(ch, FEAT_COORDINATED_SHOT) && attack_type == ATTACK_TYPE_RANGED)
   {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+    if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Coordinated Shot");
     while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
       if (is_flanked(k, victim))
       {
         bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+        if (display)
+          send_to_char(ch, " 1: %-50s\r\n", "Coordinated Shot Additional");
         break;
       }
   }
@@ -8111,44 +8180,88 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (is_flanked(ch, victim))
   {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] += 2;
+    if (display)
+      send_to_char(ch, " 2: %-50s\r\n", "Flanking");
     if (has_teamwork_feat(ch, FEAT_OUTFLANK))
+    {
       bonuses[BONUS_TYPE_CIRCUMSTANCE] += 2;
+      if (display)
+        send_to_char(ch, " 2: %-50s\r\n", "Outflank");
+    }
   }
 
   if ((get_speed(ch, false) - 10) > get_speed(victim, false))
   {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+    if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Speed");
   }
 
   if (IN_ROOM(ch) != NOWHERE && ROOM_AFFECTED(IN_ROOM(ch), RAFF_SACRED_SPACE) && IS_EVIL(ch))
+  {
+    if (display)
+        send_to_char(ch, "-1: %-50s\r\n", "Sacred Space");
     bonuses[BONUS_TYPE_SACRED] -= 1;
+  }
 
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
+  {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+    if (display)
+        send_to_char(ch, "-2: %-50s\r\n", "Fatigue"); 
+  }
   if (AFF_FLAGGED(ch, AFF_SHAKEN))
+  {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+    if (display)
+        send_to_char(ch, "-2: %-50s\r\n", "Shaken"); 
+  }
   if (AFF_FLAGGED(ch, AFF_DAZZLED))
+  {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 1;
+    if (display)
+        send_to_char(ch, "-1: %-50s\r\n", "Dazzled"); 
+  }
   if (IS_FRIGHTENED(ch))
+  {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+    if (display)
+        send_to_char(ch, "-2: %-50s\r\n", "Frightened"); 
+  }
   if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_DIFFICULT_TERRAIN))
-    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+  {
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2; 
+    if (display)
+        send_to_char(ch, "-2: %-50s\r\n", "Difficult Terrain"); 
+  }
 
   /* Competence bonus */
 
   if (affected_by_spell(ch, SPELL_EFFECT_GRAND_DESTINY))
   {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] += 4;
+    if (display)
+        send_to_char(ch, " 4: %-50s\r\n", "Grand Destiny"); 
   }
 
   if (HAS_REAL_FEAT(ch, FEAT_FURY_OF_THE_SMALL) && victim && GET_SIZE(ch) < GET_SIZE(victim))
+  {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+    if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Fury of the Small");
+  }
 
   if (has_authoritative_bonus(ch))
   {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+    if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Authoritative");
     if (IS_GOBLINOID(ch))
+    {
       bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+      if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Authoritative Goblinoid");
+    }
   }
 
   // Luck bonus
@@ -8156,10 +8269,14 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (affected_by_spell(ch, AFFECT_PRESCIENCE))
   {
     bonuses[BONUS_TYPE_LUCK] += 2;
+    if (display)
+        send_to_char(ch, " 2: %-50s\r\n", "Prescience");
   }
   if (affected_by_spell(ch, AFFECT_PRESCIENCE_DEBUFF))
   {
     bonuses[BONUS_TYPE_LUCK] -= 2;
+    if (display)
+        send_to_char(ch, "-2: %-50s\r\n", "Prescience Debuff");
   }
 
   /* Enhancement bonus */
@@ -8171,39 +8288,63 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     {
       bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL));
     }
+    if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", bonuses[BONUS_TYPE_ENHANCEMENT], "Weapon Enhancement");
     bonuses[BONUS_TYPE_ENHANCEMENT] -= get_defending_weapon_bonus(ch, true);
+    if (get_defending_weapon_bonus(ch, true) > 0)
+      if (display)
+          send_to_char(ch, "%2d: %-50s\r\n", get_defending_weapon_bonus(ch, true), "Dancing Weapon Enhancement");
   }
-  else if (affected_by_spell(ch, SPELL_GREATER_MAGIC_WEAPON)) // greater magic weapon works on unarmed strikes
+  else if (affected_by_spell(ch, SPELL_GREATER_MAGIC_WEAPON))  { // greater magic weapon works on unarmed strikes
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL));
+    if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", bonuses[BONUS_TYPE_ENHANCEMENT], "Unarmed Enhancement");
+  }
 
   /* ranged includes arrow, what a hack */ /* why is that a hack again? */
   if (can_fire_ammo(ch, TRUE))
   {
     bonuses[BONUS_TYPE_ENHANCEMENT] += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
+    if (display && GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains) > 0)
+        send_to_char(ch, "%2d: %-50s\r\n", GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains), "Ammo Enhancement");
   }
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
   {
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], HAS_FEAT(ch, FEAT_NATURAL_ATTACK) / 2);
+    if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", bonuses[BONUS_TYPE_ENHANCEMENT], "Natural Attack Enhancement Mod (Overrides Other Enhancement Mod)");
   }
   /* monk glove */
   if (MONK_TYPE(ch) && is_bare_handed(ch) && monk_gear_ok(ch) &&
       GET_EQ(ch, WEAR_HANDS) && GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0))
   {
     bonuses[BONUS_TYPE_ENHANCEMENT] = GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0);
+    if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", bonuses[BONUS_TYPE_ENHANCEMENT], "Monk Glove Enhancement Mod (Overrides Other Enhancement Mod)");
   }
   /**/
 
   if (HAS_FEAT(ch, FEAT_FAVOR_OF_DARKNESS))
-    bonuses[BONUS_TYPE_ENHANCEMENT] += 1;
+  {
+     bonuses[BONUS_TYPE_ENHANCEMENT] += 1;
+     if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Favor of Darkness");
+  }
 
   /* Insight bonus  */
   if (HAS_FEAT(ch, FEAT_MASTER_OF_THE_MIND))
   {
     bonuses[BONUS_TYPE_INSIGHT] = MIN((affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 10 : 5), GET_INT_BONUS(ch));
+    if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", MIN((affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 10 : 5), GET_INT_BONUS(ch)), "Master of the Mind");
   }
 
   if (has_one_thought(ch))
+  {
     bonuses[BONUS_TYPE_INSIGHT] += 1;
+    if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "One Thought");
+  }
 
   /* Luck bonus */
 
@@ -8211,77 +8352,141 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (affected_by_spell(ch, SKILL_SURPRISE_ACCURACY))
   {
     bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
+    if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1, "Surprise Accuracy");
   }
 
   if (affected_by_spell(ch, SPELL_TACTICAL_ACUMEN) && FIGHTING(ch) &&
       (is_flanked(ch, victim) || !CAN_SEE(FIGHTING(ch), ch)))
+  {
     bonuses[BONUS_TYPE_MORALE] += get_char_affect_modifier(ch, SPELL_TACTICAL_ACUMEN, APPLY_SPECIAL);
+    if (display)
+      send_to_char(ch, "%2d: %-50s\r\n", get_char_affect_modifier(ch, SPELL_TACTICAL_ACUMEN, APPLY_SPECIAL), "Tactical Acumen"); 
+  }
 
   if (affected_by_aura_of_sin(ch) || affected_by_aura_of_faith(ch))
   {
     bonuses[BONUS_TYPE_MORALE] += 1;
+    if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Aura of Sin/Faith");
   }
 
   if (affected_by_spell(ch, AFFECT_RALLYING_CRY))
   {
     bonuses[BONUS_TYPE_MORALE] += 1;
+    if (display)
+      send_to_char(ch, " 1: %-50s\r\n", "Rallying Cry");
   }
 
   if (HAS_REAL_FEAT(ch, FEAT_DRAGONBORN_FURY) && (GET_HIT(ch) * 2) < GET_MAX_HIT(ch))
+  {
     bonuses[BONUS_TYPE_MORALE] += 1;
+    if (display)
+      send_to_char(ch, " 1: %-50s\r\n", "Dragonborn Fury");
+  }
 
   if (ch && victim && HAS_REAL_FEAT(ch, FEAT_BLOODHUNT) && (GET_HIT(victim) * 2) < GET_MAX_HIT(victim))
+  {
     bonuses[BONUS_TYPE_MORALE] += 1;
+    if (display)
+      send_to_char(ch, " 1: %-50s\r\n", "Bloodhunt");
+  }
 
   // Dragon champion level 3 abil: +1 hitroll +2 damage
   if (HAS_DRAGON_BOND_ABIL(ch, 3, DRAGON_BOND_CHAMPION) && is_riding_dragon_mount(ch))
+  {
     bonuses[BONUS_TYPE_MORALE] += 1;
+    if (display)
+      send_to_char(ch, " 1: %-50s\r\n", "Dragon Champion");
+  }
   // dragon rider united we stand: dragon portion
   if (IS_NPC(ch) && is_dragon_rider_mount(ch) && RIDDEN_BY(ch) && is_riding_dragon_mount(RIDDEN_BY(ch)) && HAS_FEAT(RIDDEN_BY(ch), FEAT_UNITED_WE_STAND))
+  {
     bonuses[BONUS_TYPE_MORALE] += 2;
+    if (display)
+      send_to_char(ch, " 2: %-50s\r\n", "United We Stand");
+  }
   // dragon rider united we stand: player portion
   if (!IS_NPC(ch) && is_riding_dragon_mount(ch) && HAS_FEAT(ch, FEAT_UNITED_WE_STAND))
+  {
     bonuses[BONUS_TYPE_MORALE] += 2;
+    if (display)
+      send_to_char(ch, " 2: %-50s\r\n", "United We Stand");
+  }
 
   if (AFF_FLAGGED(ch, AFF_SICKENED))
+  {
     bonuses[BONUS_TYPE_UNDEFINED] -= 2;
+    if (display)
+      send_to_char(ch, "-2: %-50s\r\n", "Sickened");
+  }
 
   /* masterwork bonus */
   // only if the weapon doesn't already have a magical enhancement
   if (wielded && OBJ_FLAGGED(wielded, ITEM_MASTERWORK) && (bonuses[BONUS_TYPE_ENHANCEMENT] <= 0))
+  {
     bonuses[BONUS_TYPE_ENHANCEMENT] += 1;
+    if (display)
+      send_to_char(ch, " 1: %-50s\r\n", "Masterwork Weapon");
+  }
 
   /* Profane bonus */
 
   /* Racial bonus */
+#if !defined(CAMAPIGN_DL) && !defined(CAMPAIGN_FR)
   if (GET_RACE(ch) == RACE_TRELUX)
   {
     bonuses[BONUS_TYPE_RACIAL] += 4;
+    if (display)
+      send_to_char(ch, " 4: %-50s\r\n", "Trelux");
   }
+#endif
   /* light blindness - dayblind, underdark/underworld penalties */
   if (!IS_NPC(ch) && IS_DAYLIT(IN_ROOM(ch)) && HAS_FEAT(ch, FEAT_LIGHT_BLINDNESS))
+  {
     bonuses[BONUS_TYPE_RACIAL] -= 1;
+    if (display)
+      send_to_char(ch, "-1: %-50s\r\n", "Light Blindness");
+  }
 
   /* Size bonus */
   bonuses[BONUS_TYPE_SIZE] = MAX(bonuses[BONUS_TYPE_SIZE], size_modifiers_inverse[GET_SIZE(ch)]);
+  if (display && MAX(bonuses[BONUS_TYPE_SIZE], size_modifiers_inverse[GET_SIZE(ch)]))
+      send_to_char(ch, "%2d: %-50s\r\n", MAX(bonuses[BONUS_TYPE_SIZE], size_modifiers_inverse[GET_SIZE(ch)]), "Size");
 
   /* Unnamed / Undefined (stacks) */
 
   /*unnamed penalties*/
   if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
+  {
     bonuses[BONUS_TYPE_UNDEFINED] -= 2;
+    if (display)
+      send_to_char(ch, "-2: %-50s\r\n", "Entangled/Grappled");
+  }
   /* Modify this to store a player-chosen number for power attack and expertise */
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE) || AFF_FLAGGED(ch, AFF_DEADLY_AIM))
+  {
     bonuses[BONUS_TYPE_UNDEFINED] -= COMBAT_MODE_VALUE(ch);
+    if (display)
+      send_to_char(ch, "-%2d: %-50s\r\n", COMBAT_MODE_VALUE(ch), "Power Attack/Expertise/Deadly Aim");
+  }
   /* spellbattle */
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
+  {
     bonuses[BONUS_TYPE_UNDEFINED] -= SPELLBATTLE(ch);
+    if (display)
+      send_to_char(ch, "-%2d: %-50s\r\n", SPELLBATTLE(ch), "SpellBattle");
+  }
   /*****/
 
   /*unnamed bonuses*/
 
   if (HAS_FEAT(ch, FEAT_WEAPON_EXPERT) && wielded)
+  {
     bonuses[BONUS_TYPE_UNDEFINED]++;
+    if (display)
+      send_to_char(ch, " 1: %-50s\r\n", "Weapon Expert");
+  }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_FOCUS))
   {
@@ -8291,20 +8496,32 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
       if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
       {
         bonuses[BONUS_TYPE_UNDEFINED] += 1;
+        if (display)
+          send_to_char(ch, " 1: %-50s\r\n", "Weapon Focus");
         /* superior weapon focus - wielded */
         if (HAS_FEAT(ch, FEAT_WEAPON_OF_CHOICE) &&
             HAS_FEAT(ch, FEAT_SUPERIOR_WEAPON_FOCUS))
-          bonuses[BONUS_TYPE_UNDEFINED] += 1;
+            {
+              bonuses[BONUS_TYPE_UNDEFINED] += 1;
+              if (display)
+                send_to_char(ch, " 1: %-50s\r\n", "Superior Weapon Focus");
+            }
       }
       /* weapon focus - unarmed */
     }
     else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily))
     {
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
+      if (display)
+          send_to_char(ch, " 1: %-50s\r\n", "Weapon Focus");
       /* superior weapon focus - unarmed */
       if (HAS_FEAT(ch, FEAT_WEAPON_OF_CHOICE) &&
           HAS_FEAT(ch, FEAT_SUPERIOR_WEAPON_FOCUS))
-        bonuses[BONUS_TYPE_UNDEFINED] += 1;
+          {
+            bonuses[BONUS_TYPE_UNDEFINED] += 1;
+            if (display)
+                send_to_char(ch, " 1: %-50s\r\n", "Superior Weapon Focus");
+          }
     }
   }
 
@@ -8314,10 +8531,18 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     if (wielded)
     {
       if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
+      {
+        if (display)
+          send_to_char(ch, " 1: %-50s\r\n", "Greater Weapon Focus");
         bonuses[BONUS_TYPE_UNDEFINED] += 1;
+      }
     }
     else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_FOCUS), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily))
+    {
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
+      if (display)
+          send_to_char(ch, " 1: %-50s\r\n", "Greater Weapon Focus");
+    }
   }
 
   /* epic weapon specialization */
@@ -8326,74 +8551,137 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     if (wielded)
     {
       if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
+      {
         bonuses[BONUS_TYPE_UNDEFINED] += 3;
+        if (display)
+          send_to_char(ch, " 3: %-50s\r\n", "Epic Weapon Specialization");
+      }
+        
     }
     else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily))
-      bonuses[BONUS_TYPE_UNDEFINED] += 3;
+    {
+        bonuses[BONUS_TYPE_UNDEFINED] += 3;
+        if (display)
+          send_to_char(ch, " 3: %-50s\r\n", "Epic Weapon Specialization");
+      }
   }
 
   // double weapon focus
   if (HAS_FEAT(ch, FEAT_DOUBLE_WEAPON_FOCUS) && is_using_double_weapon(ch))
   {
     bonuses[BONUS_TYPE_UNDEFINED] += 1;
+    if (display)
+          send_to_char(ch, " 1: %-50s\r\n", "Double Weapon Focus");
   }
 
   if (victim)
   {
     /* blind fighting */
     if (!CAN_SEE(victim, ch) && !HAS_FEAT(victim, FEAT_BLIND_FIGHT))
+    {
       bonuses[BONUS_TYPE_UNDEFINED] += 4;
+      if (display)
+          send_to_char(ch, " 4: %-50s\r\n", "Blind Fight");
+    }
 
     /* point blank shot will give +1 bonus to hitroll if you are using a ranged
      * attack in the same room as victim */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT) && IN_ROOM(ch) == IN_ROOM(victim))
+    {
       bonuses[BONUS_TYPE_UNDEFINED]++;
+      if (display)
+          send_to_char(ch, " 1: %-50s\r\n", "Point Blank Shot");
+    }
   }
 
   if (ch && victim)
   {
     // add charisma bonus for a valid smite situation
     if (affected_by_spell(ch, SKILL_SMITE_EVIL) && smite_evil_target_type(victim))
+    {
       bonuses[BONUS_TYPE_UNDEFINED] += GET_CHA_BONUS(victim);
+      if (display)
+          send_to_char(ch, "%2d: %-50s\r\n", GET_CHA_BONUS(victim), "Smite Evil");
+    }
     if (affected_by_spell(ch, SKILL_SMITE_GOOD) && smite_good_target_type(victim))
+    {
       bonuses[BONUS_TYPE_UNDEFINED] += GET_CHA_BONUS(victim);
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", GET_CHA_BONUS(victim), "Smite Good");
+    }
 
     // smite gives a +4 bonus to ac against their current target.  We'll just translate into a -4 to hit for the opponent
     if (affected_by_spell(victim, SKILL_SMITE_EVIL) && smite_evil_target_type(ch))
+    {
       bonuses[BONUS_TYPE_UNDEFINED] -= 4;
+      if (display)
+        send_to_char(ch, "-4: %-50s\r\n", "Smite Evil Target");
+    }
     if (affected_by_spell(victim, SKILL_SMITE_GOOD) && smite_good_target_type(ch))
+    {
       bonuses[BONUS_TYPE_UNDEFINED] -= 4;
+      if (display)
+        send_to_char(ch, "-4: %-50s\r\n", "Smite Good Target");
+    }
   }
 
   // Assassin stuff
   bonuses[BONUS_TYPE_UNDEFINED] += GET_MARK_HIT_BONUS(ch);
+  if (display && GET_MARK_HIT_BONUS(ch))
+    send_to_char(ch, "%2d: %-50s\r\n", GET_MARK_HIT_BONUS(ch), "Assassin's Mark");
   GET_MARK_HIT_BONUS(ch) = 0;
 
   /* EPIC PROWESS feat stacks, +1 for each time the feat is taken. */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_PROWESS))
+  {
     bonuses[BONUS_TYPE_UNDEFINED] += HAS_FEAT(ch, FEAT_EPIC_PROWESS);
+    if (display)
+      send_to_char(ch, "%2d: %-50s\r\n", HAS_FEAT(ch, FEAT_EPIC_PROWESS), "Epic Prowess");
+  }
 
   if (victim)
   {
     if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_GOOD) && IS_GOOD(victim))
+    {
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
+      if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Aligned Attack (Good)");
+    }
     else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_EVIL) && IS_EVIL(victim))
+    {
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
+      if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Aligned Attack (Evil)");
+    }
     else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_CHAOS) && IS_CHAOTIC(victim))
+    {
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
+      if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Aligned Attack (Chaos)");
+    }
     else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_LAW) && IS_LAWFUL(victim))
+    {
       bonuses[BONUS_TYPE_UNDEFINED] += 1;
+      if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Aligned Attack (Law)");
+    }
   }
 
   /* paladin's divine bond, maximum of 6 hitroll: 1 + level / 3 (past level 5) */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DIVINE_BOND))
   {
     bonuses[BONUS_TYPE_UNDEFINED] += MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3));
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3)), "Divine Bond");
   }
 
   /* temporary filler for ki-strike until we get it working right */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_KI_STRIKE))
+  {
     bonuses[BONUS_TYPE_UNDEFINED] += HAS_FEAT(ch, FEAT_KI_STRIKE);
+    if (display)
+        send_to_char(ch, " 1: %-50s\r\n", "Ki Strike");
+  }
 
   /* favored enemy - Needs work */
   if (victim && victim != ch && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY))
@@ -8402,34 +8690,52 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
     {
       bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2, "Favored Enemy");
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
         bonuses[BONUS_TYPE_MORALE] += 6;
+        if (display)
+          send_to_char(ch, " 6: %-50s\r\n", "Epic Favored Enemy");
       }
     }
     else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)))
     {
       bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2, "Favored Enemy");
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
         bonuses[BONUS_TYPE_MORALE] += 6;
+        if (display)
+          send_to_char(ch, " 6: %-50s\r\n", "Epic Favored Enemy");
       }
     }
   }
 
   if (HAS_FEAT(ch, FEAT_DRACONIC_DEVOTION) && is_grouped_with_dragon(ch))
+  {
     bonuses[BONUS_TYPE_MORALE] += 2;
+    if (display)
+          send_to_char(ch, " 2: %-50s\r\n", "Draconic Devotion Mod");
+  }
 
   /* if the victim is using 'come and get me' then they will be vulnerable */
   if (victim && affected_by_spell(victim, SKILL_COME_AND_GET_ME))
   {
     bonuses[BONUS_TYPE_UNDEFINED] += 4;
+    if (display)
+          send_to_char(ch, " 4: %-50s\r\n", "Come and Get me");
   }
 
   /* end bonuses */
 
   if (char_has_mud_event(ch, eHOLYJAVELIN))
+  {
     calc_bab -= 2;
+    if (display)
+      send_to_char(ch, "-2: %-50s\r\n", "Holy Javelin Mod");
+  }
 
   /*  Check armor/weapon proficiency
    *  If not proficient with weapon, -4 penalty applies. */
@@ -8442,6 +8748,8 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
         send_to_char(ch, "NOT PROFICIENT\r\n");
       }
       calc_bab -= 4;
+      if (display)
+        send_to_char(ch, "-4: %-50s\r\n", "Not Proficient with Weapon");
     }
   }
 
@@ -8454,20 +8762,35 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
       send_to_char(ch, "NOT PROFICIENT\r\n");
     }
     calc_bab -= 2;
+    if (display)
+        send_to_char(ch, "-2: %-50s\r\n", "Not Proficient with Armor");
   }
 
   // -2 penalty if wielding a large weapon in one hand
   // through the monkey grip and powerful build feats
-  if (wielded && wielded != GET_EQ(ch, WEAR_WIELD_2H) && hands_needed_full(ch, wielded, FALSE) != 0)
+  if (wielded && wielded != GET_EQ(ch, WEAR_WIELD_2H) && GET_OBJ_SIZE(wielded) > GET_SIZE(ch) && hands_needed_full(ch, wielded, FALSE) != 0)
+  {
     calc_bab -= 2;
+    if (display)
+        send_to_char(ch, "-2: %-50s\r\n", "Oversized Weapon");
+  }
 
   if (wielded)
   {
     calc_bab += wielded->tinker_bonus;
+    if (display && wielded->tinker_bonus > 0)
+        send_to_char(ch, "%2d: %-50s\r\n", wielded->tinker_bonus, "Tinkered Weapon");
   }
 
   // vampire bonuses / penalties for feeding
   calc_bab += vampire_last_feeding_adjustment(ch);
+  if (display && vampire_last_feeding_adjustment(ch))
+  {
+    if (vampire_last_feeding_adjustment(ch) > 0)
+      send_to_char(ch, "%2d: %-50s\r\n", vampire_last_feeding_adjustment(ch), "Vampire Recent Feeding");
+    else
+      send_to_char(ch, "%2d: %-50s\r\n", vampire_last_feeding_adjustment(ch), "Vampire Blood Starved");
+  }
   if (DEBUGMODE)
   {
     if (vampire_last_feeding_adjustment(ch) > 0)
@@ -8477,6 +8800,8 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   }
 
   calc_bab -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+  if (display && get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL))
+    send_to_char(ch, "-%2d: %-50s\r\n", get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL), "Level Drain");
 
   /* Add up all the bonuses */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
@@ -8513,6 +8838,18 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
         maximum_bab += 2;
         calc_bab += 2;
       }
+    }
+  }
+
+  if (display)
+  {
+    send_to_char(ch, "\tC");
+    draw_line(ch, 80, '-', '-');
+    send_to_char(ch, "\tn");
+    send_to_char(ch, "%2d: %-50s\r\n", MIN(maximum_bab, calc_bab), "Total Mod");
+    if (calc_bab >= maximum_bab)
+    {
+      send_to_char(ch, "%2d: %-50s\r\n", maximum_bab, "Capped At");
     }
   }
 
@@ -10883,7 +11220,11 @@ int is_dual_wielding(struct char_data *ch)
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     return FALSE;
 
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   if (GET_EQ(ch, WEAR_WIELD_OFFHAND) || GET_RACE(ch) == RACE_TRELUX)
+#else
+  if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
+#endif
     return TRUE;
 
   if (is_using_double_weapon(ch))
@@ -11398,15 +11739,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   if (dual)
   {                  /*default of one offhand attack for everyone*/
     numAttacks += 2; /* mainhand + offhand */
-    if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
-    { /* determine if offhand is smaller than ch */
-      if (!is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_OFFHAND)))
-        penalty -= 4; /* offhand weapon is not light! */
-    }
-    if (is_skilled_dualer(ch, MODE_2_WPN)) /* two weapon fighting feat? */
-      penalty -= 2;                        /* yep! */
-    else                                   /* nope! */
-      penalty -= 4;
+    // dual wielding penalty now applied in compute_attack_bonus
     if (mode == NORMAL_ATTACK_ROUTINE)
     { // normal attack routine
       if (valid_fight_cond(ch, FALSE))
@@ -11423,12 +11756,12 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     {
       /* display hitroll bonus */
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
-                   compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
+                   compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY));
       /* display damage bonus */
       compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY);
       /* display hitroll bonus */
       send_to_char(ch, "Offhand, Attack Bonus:  %d; ",
-                   compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + penalty * 2);
+                   compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND));
       /* display damage bonus */
       compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND);
     }
@@ -11980,55 +12313,36 @@ EVENTFUNC(event_combat_round)
 
 void handle_cleave(struct char_data *ch)
 {
-  struct list_data *target_list = NULL;
   struct char_data *tch = NULL;
+  bool found = false;
 
   /* find target */
   if (!ch || IN_ROOM(ch) == NOWHERE || !FIGHTING(ch))
     return;
 
-  /* dynamic memory allocation required */
-  target_list = create_list();
-  /* loop through chars in room to find possible targets to build list */
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
-    if (tch == ch)
-      continue;
-    if (!CAN_SEE(ch, tch))
-      continue;
-    if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_NOHASSLE))
-      continue;
-    /* me fighting? */
-    if (FIGHTING(ch) == tch)
-      continue;
-    /* fighting me? */
-    if (FIGHTING(tch) == ch)
-      add_to_list(tch, target_list);
+    if (is_player_grouped(tch, ch)) continue;
+    if (tch == ch) continue;
+    if (FIGHTING(ch) == tch) continue;
+    if (!FIGHTING(tch) || !is_player_grouped(FIGHTING(tch), ch)) continue;
+    found = true;
+    break;
   }
-  /* did we snag anything? */
-  if (target_list->iSize == 0)
-  {
-    free_list(target_list);
-    return;
-  }
-  /* ok should be golden, go ahead snag a random and free list */
-  tch = random_from_list(target_list);
-  if (target_list) /*cleanup*/
-    free_list(target_list);
-  if (!tch)
-    return;
+
+  if (!found)
+    return;  
 
   send_to_char(ch, "You cleave to %s!\r\n", (CAN_SEE(ch, tch)) ? GET_NAME(tch) : "someone");
   act("$n cleaves to $N!", TRUE, ch, 0, tch, TO_ROOM);
 
-  hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
-      -4, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
+  hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, -4, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
 
   if (HAS_FEAT(ch, FEAT_GREAT_CLEAVE) && !is_using_ranged_weapon(ch, TRUE))
   {
-
-    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC,
-        0, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
+    send_to_char(ch, "You great cleave to %s!\r\n", (CAN_SEE(ch, tch)) ? GET_NAME(tch) : "someone");
+    act("$n great cleaves to $N!", TRUE, ch, 0, tch, TO_ROOM);
+    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
   }
 }
 
@@ -12513,6 +12827,46 @@ void perform_violence(struct char_data *ch, int phase)
         TRUE, ch, 0, 0, TO_ROOM);
     perform_flee(ch);
   }
+}
+
+int dual_wielding_penalty(struct char_data *ch, bool offhand)
+{
+  int penalty = 0;
+  struct obj_data *wielded = NULL;
+
+  if (offhand)
+  {
+    penalty = -10;
+    wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+    if (!wielded) return 0;
+  }
+  else
+  {
+    penalty = -6;
+    wielded = GET_EQ(ch, WEAR_WIELD_1);
+    if (!wielded) return 0;
+  }
+
+  if (is_using_light_weapon(ch, wielded) || HAS_FEAT(ch, FEAT_OVERSIZED_TWO_WEAPON_FIGHTING))
+  {
+    if (is_skilled_dualer(ch, 1))
+    {
+      penalty = -2;
+    
+    }
+    else
+    {
+      if (offhand)
+        penalty = -8;
+      else
+        penalty = -4;
+    }
+  }
+  else if (is_skilled_dualer(ch, 1))
+  {
+    penalty = -4;
+  }
+  return penalty;
 }
 
 #undef HIT_MISS

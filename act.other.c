@@ -1344,8 +1344,8 @@ ACMD(do_applypoison)
 
   if (is_abbrev(arg1, "kapak") && HAS_FEAT(ch, FEAT_KAPAK_SALIVA))
     poison = read_object(OBJ_VNUM_KAPAK_POISON, VIRTUAL);
-
-  poison = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying);
+  else
+    poison = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying);
 
   if (!poison)
   {
@@ -1448,6 +1448,14 @@ ACMD(do_applypoison)
                poison->short_description);
       snprintf(buf2, sizeof(buf2), "$n \tncarefully applies the contents of %s \tnonto $s claws\tn...",
                poison->short_description);
+    }
+    else if (is_abbrev(arg1, "kapak") && HAS_FEAT(ch, FEAT_KAPAK_SALIVA))
+    {
+      weapon->weapon_poison.poison_hits = (int)(GET_OBJ_VAL(poison, 3) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
+      weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
+      weapon->weapon_poison.poison_level = (int)MIN(30, GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
+      snprintf(buf1, sizeof(buf1), "\tnYou apply your innate poison \tnonto $p\tn by covering it with your venomous saliva...");
+      snprintf(buf2, sizeof(buf2), "\tn$n applies $s innate poison \tnonto $p\tn by covering it with $s venomous saliva...");
     }
     else
     {
@@ -1817,8 +1825,11 @@ void perform_call(struct char_data *ch, int call_type, int level)
   }
 
   /* couple of dummy checks */
-  if ((mob_num <= 0 || mob_num > 99) && mob_num != 60289 && mob_num != MOB_NUM_EIDOLON) // zone 0 for mobiles, except for the shadow and eidolon
+  if (!ok_call_mob_vnum(mob_num))
+  {
+    send_to_char(ch, "This call type is not completely set up. Please inform a staff member.\r\n");
     return;
+  }
   if (level >= LVL_IMMORT)
     level = LVL_IMMORT - 1;
 
@@ -5859,7 +5870,7 @@ static void print_group(struct char_data *ch)
     send_to_char(ch, "%s%-*s: %s [%s%4d\tn/%-4d]H [%s%4d\tn/%-4d]P [%s%4d\tn/%-4d]V [%d TNL]%s\r\n",
                  GROUP_LEADER(GROUP(ch)) == k ? "\tG*\tn" : " ",
                  count_color_chars(GET_NAME(k)) + 30, GET_NAME(k),
-                 IN_ROOM(ch) == IN_ROOM(k) ? "\tYIR\tn" : "\tRAB\tn",
+                 IN_ROOM(ch) == IN_ROOM(k) ? "\tYInRoom\tn" : "\tRAbsent\tn",
                  hp_clr, GET_HIT(k), GET_MAX_HIT(k),
                  psp_clr, (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_PSP(k), (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_MAX_PSP(k),
                  mv_clr, GET_MOVE(k), GET_MAX_MOVE(k),

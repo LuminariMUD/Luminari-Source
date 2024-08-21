@@ -1344,7 +1344,7 @@ void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     send_to_char(ch, "You are now no longer part of the quest.\r\n");
     save_char(ch, 0);
   }
-  else if (QST_TYPE(QST_PREV(rnum)) == AQ_DIALOGUE)
+  else if (QST_PREV(rnum) != NOTHING && QST_TYPE(QST_PREV(rnum)) == AQ_DIALOGUE)
   {
     send_to_char(ch, "You cannot leave this quest. It must be completed.\r\n");
   }

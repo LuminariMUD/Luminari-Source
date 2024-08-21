@@ -90,6 +90,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
                        int w_type, int diceroll, int mode, bool is_critical, int attack_type);
 struct obj_data *make_a_corpse_4_npcs(struct char_data *ch);
 int handle_warding(struct char_data *ch, struct char_data *victim, int dam);
+int compute_attack_bonus_full(struct char_data *ch, struct char_data *victim, int attack_type, bool display);
+int dual_wielding_penalty(struct char_data *ch, bool offhand);
+int is_dual_wielding(struct char_data *ch);
 
 /* Global variables */
 #ifndef __FIGHT_C__

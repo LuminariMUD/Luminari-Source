@@ -3076,7 +3076,7 @@ ACMD(do_affects)
     mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: Invalid subcmd sent to do_affects: %d", subcmd);
 }
 
-ACMD(do_attacks)
+ACMD(do_damage)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int mode = -1, attack_type = -1;
@@ -3093,7 +3093,10 @@ ACMD(do_attacks)
     perform_attacks(ch, DISPLAY_ROUTINE_POTENTIAL, 0);
 #undef DISPLAY_ROUTINE_POTENTIAL
     send_to_char(ch, "\tC");
-    text_line(ch, "\tYTo view damage bonus breakdown: attacks hit|primary|offhand|ranged\tC", line_length, '-', '-');
+    text_line(ch, "\tYTo view bonus breakdown: \tC", line_length, '-', '-');
+    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|bomb|psionic\tC", line_length, '-', '-');
+    text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC", line_length, '-', '-');
+    text_line(ch, "\tYdamage hit|primary|offhand|ranged\tC", line_length, '-', '-');
     send_to_char(ch, "\tn");
 
     return;
@@ -3138,8 +3141,89 @@ ACMD(do_attacks)
   send_to_char(ch, "\tn\r\n");
 }
 
-ACMD(do_damage)
+ACMD(do_attacks)
 {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int attack_type = -1;
+  int line_length = 80;
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    /* show cmb/d info */
+    send_to_char(ch, "Combat Maneuver Bonus: %d, Combat Maneuver Defense: %d.\r\n\r\n",
+                 compute_cmb(ch, 0), compute_cmd(ch, 0));
+#define DISPLAY_ROUTINE_POTENTIAL 2
+    perform_attacks(ch, DISPLAY_ROUTINE_POTENTIAL, 0);
+#undef DISPLAY_ROUTINE_POTENTIAL
+    send_to_char(ch, "\tC");
+    text_line(ch, "\tYTo view bonus breakdown: \tC", line_length, '-', '-');
+    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|bomb|psionic\tC", line_length, '-', '-');
+    text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC", line_length, '-', '-');
+    text_line(ch, "\tYdamage hit|primary|offhand|ranged\tC", line_length, '-', '-');
+    send_to_char(ch, "\tn");
+
+    return;
+  }
+  else if (is_abbrev(arg, "unarmed"))
+  {
+    attack_type = ATTACK_TYPE_UNARMED;
+  }
+  else if (is_abbrev(arg, "primary"))
+  {
+    attack_type = ATTACK_TYPE_PRIMARY;
+  }
+  else if (is_abbrev(arg, "offhand"))
+  {
+    attack_type = ATTACK_TYPE_OFFHAND;
+  }
+  else if (is_abbrev(arg, "primary-sneak"))
+  {
+    attack_type = ATTACK_TYPE_PRIMARY_SNEAK;
+  }
+  else if (is_abbrev(arg, "offhand-sneak"))
+  {
+    attack_type = ATTACK_TYPE_OFFHAND_SNEAK;
+  }
+  else if (is_abbrev(arg, "ranged"))
+  {
+    attack_type = ATTACK_TYPE_RANGED;
+  }
+  else if (is_abbrev(arg, "bomb"))
+  {
+    attack_type = ATTACK_TYPE_BOMB_TOSS;
+  }
+  else if (is_abbrev(arg, "psionic"))
+  {
+    attack_type = ATTACK_TYPE_PSIONICS;
+  }
+  else if (is_abbrev(arg, "eldritch"))
+  {
+    attack_type = ATTACK_TYPE_ELDRITCH_BLAST;
+  }
+  else if (is_abbrev(arg, "twohand"))
+  {
+    attack_type = ATTACK_TYPE_TWOHAND;
+  }
+  else if (is_abbrev(arg, "evolution"))
+  {
+    attack_type = ATTACK_TYPE_PRIMARY_EVO_BITE;
+  }
+  else
+  {
+    send_to_char(ch, "Valid arguments: unarmed/primary/offhand/ranged/bomb/psionic/primary-sneak/offhand-sneak/eldritch/twohand/evolution.\r\n");
+    return;
+  }
+
+  struct char_data *attacker = FIGHTING(ch);
+
+  /* sending -1 for w_type will signal display mode */
+  compute_attack_bonus_full(ch, attacker, attack_type, true);
+
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn\r\n");
 }
 
 ACMD(do_defenses)

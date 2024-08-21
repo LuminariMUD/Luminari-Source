@@ -25,6 +25,7 @@
 #include "dg_scripts.h"
 #include "wilderness.h"
 #include "quest.h"
+#include "act.h"
 
 /* Local, filescope function prototypes */
 /* Utility function for buildwalk */
@@ -437,13 +438,23 @@ int buildwalk(struct char_data *ch, int dir)
       OLC_NUM(d) = vnum;
       CREATE(OLC_ROOM(d), struct room_data, 1);
 
-      OLC_ROOM(d)->name = strdup("New BuildWalk Room");
+      if (GET_BUILDWALK_NAME(ch) == NULL)
+        OLC_ROOM(d)->name = strdup("New BuildWalk Room");
+      else
+        OLC_ROOM(d)->name = strdup(GET_BUILDWALK_NAME(ch));
 
-      snprintf(buf, sizeof(buf), "This unfinished room was created by %s.\r\n", GET_NAME(ch));
+      if (GET_BUILDWALK_DESC(ch) == NULL)
+        snprintf(buf, sizeof(buf), "This unfinished room was created by %s.\r\n", GET_NAME(ch));
+      else
+        snprintf(buf, sizeof(buf), "%s\r\n", GET_BUILDWALK_DESC(ch));
       OLC_ROOM(d)->description = strdup(buf);
       OLC_ROOM(d)->zone = OLC_ZNUM(d);
       OLC_ROOM(d)->number = NOWHERE;
       OLC_ROOM(d)->sector_type = GET_BUILDWALK_SECTOR(ch);
+      OLC_ROOM(d)->room_flags[0] = ch->player_specials->buildwalk_flags[0];
+      OLC_ROOM(d)->room_flags[1] = ch->player_specials->buildwalk_flags[1];
+      OLC_ROOM(d)->room_flags[2] = ch->player_specials->buildwalk_flags[2];
+      OLC_ROOM(d)->room_flags[3] = ch->player_specials->buildwalk_flags[3];
 
       /* If this is a wilderness zone, set the coordinates */
       if (ZONE_FLAGGED(OLC_ZNUM(d), ZONE_WILDERNESS))
@@ -494,4 +505,170 @@ int buildwalk(struct char_data *ch, int dir)
   }
 
   return (0);
+}
+
+ACMDU(do_buildwalk)
+{
+
+  char arg1[200], arg2[800], temp[200];
+  int i = 0, j = 0, cnt = 0;
+
+  half_chop(argument, arg1, arg2);
+
+  if (!*arg1)
+  {
+    do_gen_tog(ch, argument, cmd, SCMD_BUILDWALK);
+    return;
+  }
+
+  if (is_abbrev(arg1, "reset"))
+  {
+    GET_BUILDWALK_SECTOR(ch) = SECT_INSIDE;
+    ch->player_specials->buildwalk_flags[0] = 0;
+    ch->player_specials->buildwalk_flags[1] = 0;
+    ch->player_specials->buildwalk_flags[2] = 0;
+    ch->player_specials->buildwalk_flags[3] = 0;
+    GET_BUILDWALK_NAME(ch) = NULL;
+    GET_BUILDWALK_DESC(ch) = NULL;
+    send_to_char(ch, "All buildwalk extra settings removed.\r\n");
+    if (PRF_FLAGGED((ch), PRF_BUILDWALK))
+      send_to_char(ch, "Buildwalk still on.\r\n");
+    else
+      send_to_char(ch, "Buildwalk still turned off.\r\n");
+  }
+  else if (is_abbrev(arg1, "sector"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Valid room sectors:\r\n");
+      for (i = 0; i < NUM_ROOM_SECTORS; i++)
+      {
+        send_to_char(ch, "-- %s\r\n", sector_types[i]);
+      }
+      return;
+    }
+    for (i = 0; i < NUM_ROOM_SECTORS; i++)
+    {
+      if (is_abbrev(arg2, sector_types[i]))
+      {
+        send_to_char(ch, "You've set your buildwalk room sector to '%s'.\r\n", sector_types[i]);
+        GET_BUILDWALK_SECTOR(ch) = i;
+        return;
+      }
+    }
+    send_to_char(ch, "That is not a valid sector type.\r\n");
+  }
+  else if (is_abbrev(arg1, "flags"))
+  {
+    if (!*(arg2))
+    {
+      send_to_char(ch, "Valid room flags:\r\n");
+      for (i = 0; i < NUM_ROOM_FLAGS; i++)
+      {
+        snprintf(temp, sizeof(temp), "%s", room_bits[i]);
+        for (j = 0; j < strlen(room_bits[i]); j++)
+        {
+          temp[j] = LOWER(temp[j]);
+          if (temp[j] == '-')
+            temp[j] = ' ';
+        }
+        send_to_char(ch, "-- %s\r\n", temp);
+      }
+    }
+    for (i = 0; i < NUM_ROOM_FLAGS; i++)
+    {
+      snprintf(temp, sizeof(temp), "%s", room_bits[i]);
+      for (j = 0; j < strlen(room_bits[i]); j++)
+      {
+        temp[j] = LOWER(temp[j]);
+        if (temp[j] == '-')
+          temp[j] = ' ';
+      }
+      if (is_abbrev(arg2, temp))
+      {
+        if (IS_SET_AR(GET_BUILDWALK_FLAGS(ch), i))
+        {
+          send_to_char(ch, "You've removed buildwalk room flag '%s'.\r\n", room_bits[i]);
+        }
+        else
+        {
+          send_to_char(ch, "You've added buildwalk room flag '%s'.\r\n", room_bits[i]);
+        }
+        TOGGLE_BIT_AR(GET_BUILDWALK_FLAGS(ch), i);
+        return;
+      }
+    }
+    send_to_char(ch, "That is not a valid room flag.\r\n");
+  }
+  else if (is_abbrev(arg1, "name"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify the room name to use on new buildwalk rooms.\r\n");
+      return;
+    }
+    if (strlen(arg2) > MAX_ROOM_NAME)
+    {
+      send_to_char(ch, "That room name is too long.\r\n");
+      return;
+    }
+    GET_BUILDWALK_NAME(ch) = strdup(arg2);
+    send_to_char(ch, "Your buildwalk room name is now '%s'\r\n", arg2);
+  }
+  else if (is_abbrev(arg1, "desc"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify the room description to use on new buildwalk rooms.\r\n");
+      return;
+    }
+    if (strlen(arg2) > 800)
+    {
+      send_to_char(ch, "That room description is too long.\r\n");
+      return;
+    }
+    GET_BUILDWALK_DESC(ch) = strdup(arg2);
+    send_to_char(ch, "Your buildwalk room description is now '%s'\r\n", arg2);
+  }
+  else if (is_abbrev(arg1, "settings"))
+  {
+    send_to_char(ch, "Here are your current buildwalk settings:\r\n");
+    send_to_char(ch, "Buildwalk: %s\r\n", IS_SET_AR(PRF_FLAGS(ch), PRF_BUILDWALK) ? "ON" : "OFF");
+    send_to_char(ch, "Sector: %s\r\n", sector_types[GET_BUILDWALK_SECTOR(ch)]);
+    send_to_char(ch, "Room Flags: ");
+    for (i = 0; i < NUM_ROOM_FLAGS; i++)
+    {
+      if (IS_SET_AR(GET_BUILDWALK_FLAGS(ch), i))
+      {
+        snprintf(temp, sizeof(temp), "%s", room_bits[i]);
+        for (j = 0; j < strlen(room_bits[i]); j++)
+        {
+          temp[j] = LOWER(temp[j]);
+          if (temp[j] == '-')
+            temp[j] = ' ';
+        }
+        if (cnt > 0)
+        {
+          send_to_char(ch, ", ");
+        }
+        send_to_char(ch, "%s", temp);
+        cnt++;
+      }
+    }
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "Room Name: %s\r\n", GET_BUILDWALK_NAME(ch));
+    send_to_char(ch, "Room Desc: %s\r\n", GET_BUILDWALK_DESC(ch));
+    send_to_char(ch, "\r\n\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "Choose one of the following:\r\n"
+                     "buildwalk               : toggle buildwalk on or off\r\n"
+                     "buildwalk settings      : show all current buildwalk settings\r\n"
+                     "buildwalk reset         : reset/remove all extra buildwalk settings (will not toggle on/off though)\r\n"
+                     "buildwalk sector (type) : set the default buildwalk sector type\r\n"
+                     "buildwalk flag (flag)   : add/remove a specific room flag for new buildwalk rooms\r\n"
+                     "buildwalk name (name)   : set a default room name for new buildwalk rooms\r\n"
+                     "buildwalk desc (desc)   : set a default room description for new buildwalk rooms\r\n");
+  }
 }

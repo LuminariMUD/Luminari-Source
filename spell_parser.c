@@ -2471,25 +2471,29 @@ return;
     // then adjust it to the specifications of the level and power used
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
 
-    // we mainly separate the next two checks for the different messages to characters
-    if (GET_PSP(ch) < psionic_powers[spellnum].psp_cost)
+    if (!IS_NPC(ch))
     {
-      send_to_char(ch, "You don't have enough psp to manifest that power.\r\n");
-      return;
-    }
-    if (GET_PSP(ch) < (psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch)))
-    {
-      send_to_char(ch, "You don't have enough psp to manifest that power at that augmented amount.\r\n");
-      return;
-    }
-    // All is well, deduct the psp and augment psp
-    GET_PSP(ch) -= (psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch));
+      // we mainly separate the next two checks for the different messages to characters
+      if (GET_PSP(ch) < psionic_powers[spellnum].psp_cost)
+      {
+        send_to_char(ch, "You don't have enough psp to manifest that power.\r\n");
+        return;
+      }
+      if (GET_PSP(ch) < (psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch)))
+      {
+        send_to_char(ch, "You don't have enough psp to manifest that power at that augmented amount.\r\n");
+        return;
+      }
 
-    // many powers only benefit from certain intervals of augment psp such
-    // as damage bonus = augment psp / 2.  So if their augment psp has a remainder
-    // after that calculation, we'll just refund the remainder psp
-    if (psionic_powers[spellnum].augment_amount > 1)
-      GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % psionic_powers[spellnum].augment_amount);
+      // All is well, deduct the psp and augment psp
+      GET_PSP(ch) -= (psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch));
+
+      // many powers only benefit from certain intervals of augment psp such
+      // as damage bonus = augment psp / 2.  So if their augment psp has a remainder
+      // after that calculation, we'll just refund the remainder psp
+      if (psionic_powers[spellnum].augment_amount > 1)
+        GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % psionic_powers[spellnum].augment_amount);
+    }
   }
 
   /* we have reached the spell prep system hook */
@@ -5944,6 +5948,13 @@ void handle_npc_cast(struct char_data *ch, char *argument, int subcmd)
 
 bool npc_can_cast(struct char_data *ch, int spellnum)
 {
+
+  if (spellnum > PSIONIC_POWER_START && spellnum < PSIONIC_POWER_END)
+  {
+    if (IS_PSIONIC(ch) && ch->char_specials.not_commanded_to_cast)
+      return true;
+  }
+
   if (MOB_FLAGGED(ch, MOB_EIDOLON))
   {
     if (HAS_EVOLUTION(ch, EVOLUTION_WEB) && spellnum == SPELL_WEB)

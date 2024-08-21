@@ -805,6 +805,9 @@ bool is_a_known_spell(struct char_data *ch, int class, int spellnum)
   }
   */
   /*DEBUG*/
+  if (class == CLASS_PSIONICIST && IS_NPC(ch) && GET_CLASS(ch) == CLASS_PSIONICIST)
+    return TRUE;
+
 
   switch (class)
   {

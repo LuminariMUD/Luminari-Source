@@ -2379,6 +2379,14 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
     GET_INT(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
     break;
+  case CLASS_PSIONICIST:
+    mobs_hps = mobs_hps * 2 / 5;
+    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    armor_class -= 60;
+    GET_INT(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    GET_PSP(mob) = GET_LEVEL(mob) * 5;
+    break;
   case CLASS_SORCERER:
     GET_CHA(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
@@ -2420,7 +2428,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
     GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
     mobs_hps = mobs_hps * 4 / 5;
     armor_class -= 10;
-    break;
+    break; 
   case CLASS_DRUID:
   case CLASS_SHIFTER:
     GET_WIS(mob) += bonus;

@@ -34,6 +34,7 @@
 #include "missions.h"
 #include "evolutions.h"
 #include "class.h"
+#include "oasis.h"
 
 #define LOAD_HIT 0
 #define LOAD_PSP 1
@@ -3719,6 +3720,7 @@ void load_char_pets(struct char_data *ch)
   MYSQL_RES *result;
   MYSQL_ROW row;
   char query[200];
+  char buf[MAX_EXTRA_DESC];
 #if defined (CAMPAIGN_DL)
   char desc1[MAX_STRING_LENGTH] = {'\0'}; char desc2[MAX_STRING_LENGTH] = {'\0'};
   char desc3[MAX_STRING_LENGTH] = {'\0'}; char desc4[MAX_STRING_LENGTH] = {'\0'};
@@ -3821,7 +3823,16 @@ void load_char_pets(struct char_data *ch)
     if (MOB_FLAGGED(mob, MOB_EIDOLON))
     {
       set_eidolon_descs(ch);
-      assign_eidolon_evolutions(ch, mob, true);
+      assign_eidolon_evolutions(ch, mob, false);
+      if (GET_EIDOLON_SHORT_DESCRIPTION(ch) && GET_EIDOLON_LONG_DESCRIPTION(ch))
+      {snprintf(buf, sizeof(buf), "%s eidolon", GET_EIDOLON_SHORT_DESCRIPTION(ch));
+        mob->player.name = strdup(buf);
+        mob->player.short_descr = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+        mob->player.long_descr = strdup(GET_EIDOLON_LONG_DESCRIPTION(ch));
+        
+        snprintf(buf, sizeof(buf), "%s\n", GET_EIDOLON_LONG_DESCRIPTION(ch));
+        mob->player.description = strdup(buf);
+      }
     }
     GET_REAL_STR(mob) = MIN(100, atoi(row[4]));
     GET_REAL_CON(mob) = MIN(100, atoi(row[5]));

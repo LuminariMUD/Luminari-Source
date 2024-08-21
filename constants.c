@@ -2456,6 +2456,7 @@ const char *extra_bits[] = {
     "Warlock-Only",
     "Anti-Warlock",
     "Set-Stats-At-Load",
+    "Extract-After-Use",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 
@@ -3844,6 +3845,18 @@ const char *languages[] =
     "solamnic",
     "sylvan",
     "thieves cant",
+    "abanasinian",
+    "camptalk",
+    "dargoi",
+    "dargonesti",
+    "dimernesti",
+    "kalinese",
+    "kender",
+    "kothian",
+    "nordmaarian",
+    "saifhum",
+    "khur",
+    "kharolian",
     "\n"
 };
 CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);

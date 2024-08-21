@@ -553,7 +553,7 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
     char_pets_to_char_loc(tch);
     tch->player_specials->destination = to_room;
     // need to take care of this part still for overland flight spell
-    tch->player_specials->travel_timer = get_travel_time(tch, speed, locale, here, type);
+    tch->player_specials->travel_timer = get_travel_time(tch, 10, locale, here, type);
     tch->player_specials->travel_type = type;
     tch->player_specials->travel_locale = locale;
     look_at_room(tch, 0);
