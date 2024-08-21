@@ -345,7 +345,7 @@ mobact.o: mobact.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h interpreter.h \
  handler.h spells.h constants.h act.h graph.h fight.h spec_procs.h \
  mud_event.h dg_event.h modify.h mobact.h shop.h quest.h dg_scripts.h \
- evolutions.h
+ evolutions.h psionics.h
 modify.o: modify.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h interpreter.h handler.h \
  comm.h spells.h mail.h boards.h improved-edit.h oasis.h help.h class.h \
@@ -374,7 +374,7 @@ oasis.o: oasis.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 oasis_copy.o: oasis_copy.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h interpreter.h \
  handler.h shop.h genshp.h genolc.h genzon.h genwld.h oasis.h help.h \
- improved-edit.h constants.h dg_scripts.h wilderness.h quest.h
+ improved-edit.h constants.h dg_scripts.h wilderness.h quest.h act.h
 oasis_delete.o: oasis_delete.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h \
  interpreter.h handler.h genolc.h oasis.h help.h improved-edit.h
@@ -398,7 +398,8 @@ players.o: players.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h handler.h pfdefaults.h \
  dg_scripts.h comm.h interpreter.h mysql.h genolc.h config.h quest.h \
  spells.h clan.h mud_event.h dg_event.h craft.h spell_prep.h alchemy.h \
- templates.h premadebuilds.h missions.h evolutions.h class.h
+ templates.h premadebuilds.h missions.h evolutions.h class.h oasis.h \
+ help.h
 prefedit.o: prefedit.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h comm.h utils.h db.h helpers.h perfmon.h handler.h \
  interpreter.h oasis.h help.h prefedit.h screen.h encounters.h

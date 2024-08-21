@@ -223,6 +223,7 @@ bool can_see_hidden(struct char_data *ch, struct char_data *vict);
 int skill_check(struct char_data *ch, int skill, int dc);
 int skill_roll(struct char_data *ch, int skillnum);
 void increase_skill(struct char_data *ch, int skillnum);
+bool ok_call_mob_vnum(int mob_num);
 int convert_material_vnum(int obj_vnum);
 void basic_mud_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
 void basic_mud_vlog(const char *format, va_list args);
@@ -886,8 +887,8 @@ void char_from_furniture(struct char_data *ch);
 #define GET_WARLOCK_LEVEL(ch) (GET_LEVEL(ch) > LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_WARLOCK))
 #define GET_SUMMONER_LEVEL(ch) ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_SUMMONER))
 #define GET_CALL_EIDOLON_LEVEL(ch) ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : (CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_NECROMANCER)))
-#define GET_PSIONIC_LEVEL(ch) (GET_LEVEL(ch) >= LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))
-#define IS_PSIONIC(ch) (GET_PSIONIC_LEVEL(ch) > 0)
+#define GET_PSIONIC_LEVEL(ch) (((IS_NPC(ch) && GET_CLASS(ch) == CLASS_PSIONICIST) || GET_LEVEL(ch) >= LVL_IMMORT) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))
+#define IS_PSIONIC(ch) (GET_PSIONIC_LEVEL(ch) > 0 || (IS_NPC(ch) && GET_CLASS(ch) == CLASS_PSIONICIST))
 #define PSIONIC_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST), LVL_IMMORT - 1))
 #define IS_SPELLCASTER_CLASS(c) (c == CLASS_WIZARD || c == CLASS_CLERIC || c == CLASS_SORCERER || c == CLASS_DRUID || c == CLASS_WARLOCK || \
                                  c == CLASS_PALADIN || c == CLASS_ALCHEMIST || c == CLASS_RANGER || c == CLASS_BARD || c == CLASS_INQUISITOR || \
@@ -1450,6 +1451,9 @@ void char_from_furniture(struct char_data *ch);
 
 /** The player's default sector type when buildwalking */
 #define GET_BUILDWALK_SECTOR(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_sector))
+#define GET_BUILDWALK_FLAGS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_flags))
+#define GET_BUILDWALK_NAME(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_name))
+#define GET_BUILDWALK_DESC(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->buildwalk_desc))
 
 /** Get obj worn in position i on ch. */
 #define GET_EQ(ch, i) ((ch)->equipment[i])

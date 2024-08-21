@@ -3135,8 +3135,9 @@
 #define ITEM_REQ_WARLOCK 96  // Must be warlock
 #define ITEM_ANTI_WARLOCK 97 // no fancy warlocks
 #define ITEM_SET_STATS_AT_LOAD 98
+#define ITEM_EXTRACT_AFTER_USE 99
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 99
+#define NUM_ITEM_FLAGS 100
 
 /* homeland-port */
 /*
@@ -3217,7 +3218,7 @@
 #define NUM_APPLIES 61
 
 // maximum number of spells/powers to buff
-#define MAX_BUFFS 20
+#define MAX_BUFFS 40
 
 // number of award types.  do_award in act.wizard.c
 #define NUM_AWARD_TYPES 11
@@ -3720,27 +3721,39 @@
 #define NUM_FACTIONS 3
 
 // Spoken Languages
-#define LANG_COMMON 0
-#define LANG_DRACONIC 1
-#define LANG_DRUIDIC 2
-#define LANG_DWARVEN 3
-#define LANG_ELVEN 4
-#define LANG_ELVISH LANG_ELVEN
-#define LANG_ERGOT 5
-#define LANG_GIANT 6
-#define LANG_GNOME 7
-#define LANG_GOBLIN 8
-#define LANG_GULLYTALK 9
-#define LANG_HALFLING 10
-#define LANG_MINOTAUR 11
-#define LANG_NERAKESE 12
-#define LANG_OGRE 13
-#define LANG_PLAINSFOLK 14
-#define LANG_SOLAMNIC 15
-#define LANG_SYLVAN 16
-#define LANG_THIEVES_CANT 17
+#define LANG_COMMON SKILL_LANG_COMMON - SKILL_LANG_LOW
+#define LANG_DRACONIC SKILL_LANG_DRACONIC - SKILL_LANG_LOW
+#define LANG_DRUIDIC SKILL_LANG_DRUIDIC - SKILL_LANG_LOW
+#define LANG_DWARVEN SKILL_LANG_DWARVEN - SKILL_LANG_LOW
+#define LANG_ELVEN SKILL_LANG_ELVEN - SKILL_LANG_LOW
+#define LANG_ELVISH LANG_ELVEN - SKILL_LANG_LOW
+#define LANG_ERGOT SKILL_LANG_ERGOT - SKILL_LANG_LOW
+#define LANG_GIANT SKILL_LANG_GIANT - SKILL_LANG_LOW
+#define LANG_GNOME SKILL_LANG_GNOME - SKILL_LANG_LOW
+#define LANG_GOBLIN SKILL_LANG_GOBLIN - SKILL_LANG_LOW
+#define LANG_GULLYTALK SKILL_LANG_GULLYTALK - SKILL_LANG_LOW
+#define LANG_HALFLING SKILL_LANG_KENDER - SKILL_LANG_LOW
+#define LANG_KENDER SKILL_LANG_KENDER - SKILL_LANG_LOW
+#define LANG_MINOTAUR SKILL_LANG_MINOTAUR - SKILL_LANG_LOW
+#define LANG_NERAKESE SKILL_LANG_NERAKESE - SKILL_LANG_LOW
+#define LANG_OGRE SKILL_LANG_OGRE - SKILL_LANG_LOW
+#define LANG_PLAINSFOLK SKILL_LANG_PLAINSFOLK - SKILL_LANG_LOW
+#define LANG_SOLAMNIC SKILL_LANG_SOLAMNIC - SKILL_LANG_LOW
+#define LANG_SYLVAN SKILL_LANG_SYLVAN - SKILL_LANG_LOW
+#define LANG_THIEVES_CANT SKILL_LANG_THIEVES_CANT - SKILL_LANG_LOW
+#define LANG_ABANASINIAN SKILL_LANG_ABANASINIAN - SKILL_LANG_LOW
+#define LANG_CAMPTALK SKILL_LANG_CAMPTALK - SKILL_LANG_LOW
+#define LANG_DARGOI SKILL_LANG_DARGOI - SKILL_LANG_LOW
+#define LANG_DARGONESTI SKILL_LANG_DARGONESTI - SKILL_LANG_LOW
+#define LANG_DIMERNESTI SKILL_LANG_DIMERNESTI - SKILL_LANG_LOW
+#define LANG_KALINESE SKILL_LANG_KALINESE - SKILL_LANG_LOW
+#define LANG_KOTHIAN SKILL_LANG_KOTHIAN - SKILL_LANG_LOW
+#define LANG_NORDMAARIAN SKILL_LANG_NORDMAARIAN - SKILL_LANG_LOW
+#define LANG_SAIFHUM SKILL_LANG_SAIFHUM - SKILL_LANG_LOW
+#define LANG_KHUR SKILL_LANG_KHUR - SKILL_LANG_LOW
+#define LANG_KHAROLIAN SKILL_LANG_KHAROLIAN - SKILL_LANG_LOW
 
-#define NUM_LANGUAGES 18
+#define NUM_LANGUAGES 30
 
 #define NUM_KENDER_BAUBLES 314
 
@@ -4528,6 +4541,7 @@ struct char_special_data
     int terror_cooldown;
 
     byte foretell_uses;
+    bool not_commanded_to_cast;     // This is set in the mobact.c file to prevent players from using the order command on charmees to use psionic powers
 };
 
 /* old memorization struct */
@@ -4848,6 +4862,11 @@ struct player_special_data
     char *unstuck;
     int weapon_touch_spell;
     int touch_spell_queued;
+
+    int buildwalk_flags[RF_ARRAY_MAX];
+    char *buildwalk_name;
+    char *buildwalk_desc;
+
 };
 
 /** Special data used by NPCs, not PCs */

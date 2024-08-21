@@ -482,6 +482,8 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     af.duration = 100;
     if (GET_CHA_BONUS(ch))
       af.duration += GET_CHA_BONUS(ch) * 4;
+    if (IS_NPC(victim))
+      af.duration *= 10;
     SET_BIT_AR(af.bitvector, AFF_CHARM);
     affect_to_char(victim, &af);
 

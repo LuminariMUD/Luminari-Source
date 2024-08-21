@@ -30,6 +30,7 @@
 #include "quest.h"      /* so you can identify questmaster mobiles */
 #include "dg_scripts.h" /* so you can identify script mobiles */
 #include "evolutions.h"
+#include "psionics.h"
 
 /***********/
 
@@ -41,6 +42,7 @@ bool mob_knows_assigned_spells(struct char_data *ch);
 #define SINFO spell_info[spellnum]
 #define OFFENSIVE_SPELLS 60
 #define OFFENSIVE_AOE_SPELLS 16
+#define OFFENSIVE_AOE_POWERS 6
 
 
 #if defined(CAMPAIGN_DL)
@@ -180,6 +182,17 @@ int valid_aoe_spell[OFFENSIVE_AOE_SPELLS] = {
     SPELL_CREEPING_DOOM,
     SPELL_FIRE_STORM,
     SPELL_SUNBEAM // 15
+};
+
+/* list of spells mobiles will use for offense (aoe) */
+int valid_aoe_power[OFFENSIVE_AOE_POWERS] = {
+    /* aoe */
+    PSIONIC_CONCUSSION_BLAST,
+    PSIONIC_ENERGY_RETORT,
+    PSIONIC_SHRAPNEL_BURST,
+    PSIONIC_UPHEAVAL,
+    PSIONIC_BREATH_OF_THE_BLACK_DRAGON,
+    PSIONIC_ULTRABLAST
 };
 
 /* list of spells mobiles will use for offense */
@@ -701,7 +714,12 @@ void npc_ability_behave(struct char_data *ch)
   if (dice(1, 2) == 1)
     npc_racial_behave(ch);
   else
-    npc_offensive_spells(ch);
+  {
+    if (GET_CLASS(ch) == CLASS_PSIONICIST)
+      npc_offensive_powers(ch);
+    else
+      npc_offensive_spells(ch);
+  }
   return;
 
   // we need to code the abilities before we go ahead with this
@@ -1251,8 +1269,7 @@ void npc_spellup(struct char_data *ch)
     loop_counter++;
     if (loop_counter >= (MAX_LOOPS))
       break;
-  } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
-           affected_by_spell(victim, spellnum));
+  } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] || affected_by_spell(victim, spellnum));
 
   /* we're putting some special restrictions here */
 
@@ -1306,7 +1323,137 @@ void npc_spellup(struct char_data *ch)
   return;
 }
 
+
+char * create_npc_manifest_command(struct char_data *ch, struct char_data *tch, int powernum)
+{
+    char buf[200];
+    char name[200];
+    int i = 0;
+
+    if (!ch || !tch)
+      return NULL;
+
+    snprintf(name, sizeof(name), "%s", GET_NAME(tch));
+    
+    for (i = 0; i < strlen(name); i++)
+    {
+      if (name[i] == ' ')
+        name[i] = '-';
+      name[i] = tolower(name[i]);
+    }
+
+    snprintf(buf, sizeof(buf), " '%s' %s", spell_info[powernum].name, name);
+    return strdup(buf);
+}
+
 /* note MAX_LOOPS used here too */
+
+void npc_psionic_powerup(struct char_data *ch)
+{
+
+  int level = 0, powernum = 0, i = 0;
+  bool found = false;
+
+
+  if (!ch)
+    return;
+
+  if (MOB_FLAGGED(ch, MOB_NOCLASS))
+    return;
+
+  /* capping */
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    level = LVL_IMMORT - 1;
+  else
+    level = GET_LEVEL(ch);
+
+  // we'll max out at 20 tries just to avoid any potential infinite loops
+  while (!found && i < 20)
+  {
+    powernum = rand_number(PSIONIC_POWER_START, PSIONIC_POWER_END);
+    i++;
+    if (valid_psionic_spellup_power(powernum))
+    {
+      if (spell_info[powernum].min_level[CLASS_PSIONICIST] <= GET_LEVEL(ch))
+        found = true;
+    }
+  }
+
+  GET_AUGMENT_PSP(ch) = GET_LEVEL(ch) / 2;
+  ch->char_specials.not_commanded_to_cast = true;
+  do_gen_cast(ch, create_npc_manifest_command(ch, ch, powernum), 0, SCMD_CAST_PSIONIC);
+  ch->char_specials.not_commanded_to_cast = false;
+}
+
+void npc_offensive_powers(struct char_data *ch)
+{
+  bool found = false;
+  int powernum = 0;
+  struct char_data *tch = NULL;
+  int level, use_aoe = 0, loop_counter = 0, i = 0;
+
+  if (!ch)
+    return;
+
+  if (MOB_FLAGGED(ch, MOB_NOCLASS))
+    return;
+
+  /* capping */
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    level = LVL_IMMORT - 1;
+  else
+    level = GET_LEVEL(ch);
+
+  /* 25% of spellup instead of offensive spell */
+  if (!rand_number(0, 3))
+  {
+    npc_psionic_powerup(ch);
+    return;
+  }
+
+  if (!(tch = npc_find_target(ch, &use_aoe)))
+    return;
+  
+  /* random offensive power */
+  if (use_aoe >= 2)
+  {
+    do
+    {
+      powernum = valid_aoe_spell[rand_number(0, OFFENSIVE_AOE_SPELLS - 1)];
+      loop_counter++;
+      if (loop_counter >= (MAX_LOOPS / 2))
+        break;
+    } while (level < spell_info[powernum].min_level[GET_CLASS(ch)]);
+
+    if (loop_counter < (MAX_LOOPS / 2) && powernum != -1)
+    {
+      // found a power, cast it
+      GET_AUGMENT_PSP(ch) = GET_LEVEL(ch) / 2;
+      ch->char_specials.not_commanded_to_cast = true;
+      do_gen_cast(ch, create_npc_manifest_command(ch, tch, powernum), 0, SCMD_CAST_PSIONIC);
+      ch->char_specials.not_commanded_to_cast = false;
+      return;
+    }
+  }
+
+  // we'll max out at 20 tries just to avoid any potential infinite loops
+  while (!found && i < 20)
+  {
+    powernum = rand_number(PSIONIC_POWER_START, PSIONIC_POWER_END);
+    i++;
+    if (valid_psionic_combat_power(powernum))
+    {
+      if (spell_info[powernum].min_level[CLASS_PSIONICIST] <= GET_LEVEL(ch))
+        found = true;
+    }
+  }
+
+  GET_AUGMENT_PSP(ch) = GET_LEVEL(ch) / 2;
+  ch->char_specials.not_commanded_to_cast = true;
+  do_gen_cast(ch, create_npc_manifest_command(ch, tch, powernum), 0, SCMD_CAST_PSIONIC);
+  ch->char_specials.not_commanded_to_cast = false;
+
+}
 
 /* generic function for spelling up as a caster */
 void npc_offensive_spells(struct char_data *ch)
@@ -1500,6 +1647,11 @@ void mobile_activity(void)
       {
         /* not in combat */
         npc_spellup(ch);
+      }
+      else if (!rand_number(0, 8) && IS_PSIONIC(ch))
+      {
+        /* not in combat */
+        npc_psionic_powerup(ch);
       }
       else if (!rand_number(0, 8) && !IS_NPC_CASTER(ch))
       {
@@ -1750,6 +1902,100 @@ void mobile_activity(void)
     /* Add new mobile actions here */
 
   } /* end for() */
+}
+
+bool valid_psionic_spellup_power(int powernum)
+{
+  switch (powernum)
+  {
+    case PSIONIC_FORCE_SCREEN:
+    case PSIONIC_FORTIFY:
+    case PSIONIC_INERTIAL_ARMOR:
+    case PSIONIC_INEVITABLE_STRIKE:
+    case PSIONIC_DEFENSIVE_PRECOGNITION:
+    case PSIONIC_OFFENSIVE_PRECOGNITION:
+    case PSIONIC_OFFENSIVE_PRESCIENCE:
+    case PSIONIC_VIGOR:
+    case PSIONIC_BIOFEEDBACK:
+    case PSIONIC_BODY_EQUILIBRIUM:
+    case PSIONIC_CONCEALING_AMORPHA:
+    case PSIONIC_ELFSIGHT:
+    case PSIONIC_THOUGHT_SHIELD:
+    case PSIONIC_BODY_ADJUSTMENT:
+    case PSIONIC_ENDORPHIN_SURGE:
+    case PSIONIC_ERADICATE_INVISIBILITY:
+    case PSIONIC_HEIGHTENED_VISION:
+    case PSIONIC_MENTAL_BARRIER:
+    case PSIONIC_SHARPENED_EDGE:
+    case PSIONIC_UBIQUITUS_VISION:
+    case PSIONIC_EMPATHIC_FEEDBACK:
+    case PSIONIC_ENERGY_ADAPTATION:
+    case PSIONIC_INTELLECT_FORTRESS:
+    case PSIONIC_SLIP_THE_BONDS:
+    case PSIONIC_POWER_RESISTANCE:
+    case PSIONIC_TOWER_OF_IRON_WILL:
+    case PSIONIC_SUSTAINED_FLIGHT:
+    case PSIONIC_OAK_BODY:
+    case PSIONIC_BODY_OF_IRON:
+    case PSIONIC_SHADOW_BODY:
+      return true;
+  }
+  return false;
+}
+
+bool valid_psionic_combat_power(int powernum)
+{
+  switch (powernum)
+  {
+    case PSIONIC_CRYSTAL_SHARD:
+    case PSIONIC_DECELERATION:
+    case PSIONIC_DEMORALIZE:
+    case PSIONIC_ENERGY_RAY:
+    case PSIONIC_MIND_THRUST:
+    case PSIONIC_CONCUSSION_BLAST:
+    case PSIONIC_ENERGY_PUSH:
+    case PSIONIC_ENERGY_STUN:
+    case PSIONIC_INFLICT_PAIN:
+    case PSIONIC_MENTAL_DISRUPTION:
+    case PSIONIC_RECALL_AGONY:
+    case PSIONIC_SWARM_OF_CRYSTALS:
+    case PSIONIC_BODY_ADJUSTMENT:
+    case PSIONIC_CONCUSSIVE_ONSLAUGHT:
+    case PSIONIC_DISPEL_PSIONICS:
+    case PSIONIC_ENERGY_BURST:
+    case PSIONIC_ENERGY_RETORT:    
+    case PSIONIC_MIND_TRAP:
+    case PSIONIC_PSIONIC_BLAST:
+    case PSIONIC_DEADLY_FEAR:
+    case PSIONIC_DEATH_URGE:        
+    case PSIONIC_INCITE_PASSION:    
+    case PSIONIC_MOMENT_OF_TERROR:
+    case PSIONIC_POWER_LEECH:    
+    case PSIONIC_WITHER:
+    case PSIONIC_ADAPT_BODY:
+    case PSIONIC_PIERCE_VEIL:    
+    case PSIONIC_PSYCHIC_CRUSH:
+    case PSIONIC_SHATTER_MIND_BLANK:
+    case PSIONIC_SHRAPNEL_BURST:    
+    case PSIONIC_UPHEAVAL:
+    case PSIONIC_BREATH_OF_THE_BLACK_DRAGON:
+    case PSIONIC_BRUTALIZE_WOUNDS:
+    case PSIONIC_DISINTEGRATION:
+    case PSIONIC_BARRED_MIND:
+    case PSIONIC_COSMIC_AWARENESS:
+    case PSIONIC_ENERGY_CONVERSION:
+    case PSIONIC_ENERGY_WAVE:
+    case PSIONIC_EVADE_BURST:
+    case PSIONIC_ULTRABLAST:
+    case PSIONIC_RECALL_DEATH:
+    case PSIONIC_APOPSI:
+    case PSIONIC_ASSIMILATE:
+    case PSIONIC_TIMELESS_BODY:
+    case PSIONIC_BARRED_MIND_PERSONAL:
+    case PSIONIC_TRUE_METABOLISM:
+      return true;
+  }
+  return false;
 }
 
 /* must be at end of file */

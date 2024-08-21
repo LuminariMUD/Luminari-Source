@@ -4911,7 +4911,36 @@ const char *get_region_info(int region)
 
 int get_region_language(int region)
 {
-  return SKILL_LANG_COMMON;
+  switch (region)
+  {
+    case REGION_NONE: return LANG_COMMON;
+    case REGION_ABANASINIA: return LANG_ABANASINIAN;
+    case REGION_BALIFOR: return LANG_KHUR;
+    case REGION_BLODE: return LANG_OGRE;
+    case REGION_BLOOD_SEA_ISLES: return LANG_KALINESE;
+    case REGION_ENSTAR: return LANG_ERGOT;
+    case REGION_ESTWILDE: return LANG_SOLAMNIC;
+    case REGION_GOODLUND: return LANG_KENDER;
+    case REGION_HYLO: return LANG_KENDER;
+    case REGION_KAYOLIN: return LANG_DWARVEN;
+    case REGION_KHUR : return LANG_KHUR;
+    case REGION_LEMISH : return LANG_SOLAMNIC;
+    case REGION_NIGHTLUND : return LANG_SOLAMNIC;
+    case REGION_NORDMAAR : return LANG_NORDMAARIAN;
+    case REGION_NORTHERN_ERGOTH : return LANG_ERGOT;
+    case REGION_NOSTAR : return LANG_ERGOT;
+    case REGION_QUALINESTI : return LANG_ELVEN;
+    case REGION_SANCRIST_ISLE : return LANG_SOLAMNIC;
+    case REGION_SCHALLSEA : return LANG_ABANASINIAN;
+    case REGION_SILVANESTI : return LANG_ELVEN;
+    case REGION_SOLAMNIA : return LANG_SOLAMNIC;
+    case REGION_SOUTHERN_ERGOTH : return LANG_ERGOT;
+    case REGION_TAMAN_BUSUK : return LANG_NERAKESE;
+    case REGION_TARSIS : return LANG_KHAROLIAN;
+    case REGION_TEYR : return LANG_DRACONIC;
+    case REGION_THORBARDIN: return LANG_DWARVEN;
+  }
+  return LANG_COMMON;
 }
 #else
 
