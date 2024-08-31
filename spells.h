@@ -25,6 +25,10 @@
 #define METAMAGIC_MAXIMIZE (1 << 1)
 #define METAMAGIC_HEIGHTEN (1 << 2)
 #define METAMAGIC_ARCANE_ADEPT (1 << 3)
+#define METAMAGIC_EMPOWER (1 << 4)
+#define METAMAGIC_SILENT (1 << 5)
+#define METAMAGIC_STILL (1 << 6)
+#define METAMAGIC_EXTEND (1 << 7)
 
 /* this variable is used for the system for 'spamming' ironskin -zusuk */
 #define WARD_THRESHOLD 171
@@ -583,9 +587,10 @@
 #define SPELL_POWER_WORD_SILENCE 507
 #define SPELL_HOLY_AURA 508
 #define SPELL_FLAME_ARROW 509
+#define SPELL_MASS_IDENTIFY 510
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 510
+#define NUM_SPELLS 511
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1604,6 +1609,7 @@ ASPELL(spell_enchant_item);
 ASPELL(spell_greater_dispelling);
 ASPELL(spell_group_summon);
 ASPELL(spell_identify);
+ASPELL(spell_mass_identify);
 ASPELL(spell_implode);
 ASPELL(spell_incendiary_cloud);
 ASPELL(spell_information);
@@ -1743,6 +1749,8 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
 /* spellbook commands */
 ACMD_DECL(do_scribe);
 
+bool can_spell_be_empowered(int spellnum);
+
 /* from spell_parser.c */
 ACMD_DECL(do_gen_cast);
 #define SCMD_CAST_SPELL 0 /* don't forget to add to constants.c */
@@ -1761,6 +1769,7 @@ void mag_assign_spells(void);
 void resetCastingData(struct char_data *ch);
 int lowest_spell_level(int spellnum);
 bool is_spell_mind_affecting(int snum);
+bool can_spell_be_extended(int spellnum);
 
 /* magic.c */
 bool isSummonMob(int vnum);
@@ -1784,7 +1793,18 @@ bool isThornMagic(struct char_data *ch, int spellnum);
 bool isSkullMagic(struct char_data *ch, int spellnum);
 bool isDragonRiderMagic(struct char_data *ch, int spellnum);
 
+void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
+                 struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic, bool recursive_call);
+
 /**/
+
+#define ACT_SPELL_LEVEL         0
+#define ACT_SPELL_SPELLNUM      1
+#define ACT_SPELL_CURRENT_USES  2
+#define ACT_SPELL_MAX_USES      3
+#define ACT_SPELL_COOLDOWN      4
+#define MAX_NUMBER_OF_ACTIVATED_SPELL_USES 5 // Prevents builders from giving more than this number of uses
+#define ACT_SPELL_COOLDOWN_TIME 5 // # of minutes for a single use to recharge
 
 /* Global variables exported */
 #ifndef __SPELL_PARSER_C__

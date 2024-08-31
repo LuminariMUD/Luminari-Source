@@ -1249,9 +1249,10 @@
 #define PRF_AUTO_SORT 69              // will automatically sort items into the proper bag upon acquisition
 #define PRF_AUTO_STORE 70             // will automatically store consumables upon acquisition
 #define PRF_AUTO_GROUP 71
+#define PRF_CONTAIN_AOE 72
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 72
+#define NUM_PRF_FLAGS 73
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -2691,12 +2692,14 @@
 #define FEAT_UNITED_WE_STAND 1102
 #define FEAT_DRAGOON_POINTS 1103
 #define FEAT_AURA_OF_LIGHT 1104
+#define FEAT_AUTOMATIC_SILENT_SPELL 1105
+#define FEAT_AUTOMATIC_STILL_SPELL 1106
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1105
+#define FEAT_LAST_FEAT 1107
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1106
+#define NUM_FEATS 1108
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3136,8 +3139,9 @@
 #define ITEM_ANTI_WARLOCK 97 // no fancy warlocks
 #define ITEM_SET_STATS_AT_LOAD 98
 #define ITEM_EXTRACT_AFTER_USE 99
+#define ITEM_NOSAC 100
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 100
+#define NUM_ITEM_FLAGS 101
 
 /* homeland-port */
 /*
@@ -3585,8 +3589,9 @@
 #define WEAPON_TYPE_KHOPESH 75
 #define WEAPON_TYPE_KNIFE 76
 #define WEAPON_TYPE_HOOPAK 77
+#define WEAPON_TYPE_FOOTMANS_LANCE 78
 // One higher than last above
-#define NUM_WEAPON_TYPES 78
+#define NUM_WEAPON_TYPES 79
 
 /* different ammo types */
 #define AMMO_TYPE_UNDEFINED 0
@@ -4124,6 +4129,8 @@ struct obj_data
 
     int tinker_bonus;
     int temp_bag_num;
+
+    int activate_spell[5]; // used for spells that the item allows you to use.
 };
 
 /** Instance info for an object that gets saved to disk.

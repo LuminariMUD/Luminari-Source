@@ -231,7 +231,7 @@ genmob.o: genmob.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 genobj.o: genobj.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h shop.h constants.h genolc.h \
  genobj.h genzon.h dg_olc.h dg_scripts.h handler.h interpreter.h boards.h \
- craft.h
+ craft.h spells.h
 genolc.o: genolc.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h handler.h comm.h shop.h \
  oasis.h help.h genolc.h genwld.h genmob.h genshp.h genzon.h genobj.h \
@@ -484,7 +484,7 @@ spells.o: spells.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  constants.h interpreter.h dg_scripts.h act.h fight.h mud_event.h \
  dg_event.h house.h screen.h craft.h mudlim.h item.h domains_schools.h \
  oasis.h help.h genzon.h psionics.h assign_wpn_armor.h actions.h \
- transport.h evolutions.h
+ transport.h evolutions.h feats.h
 staff_events.o: staff_events.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h \
  interpreter.h handler.h screen.h wilderness.h dg_scripts.h \

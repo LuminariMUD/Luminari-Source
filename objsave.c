@@ -424,6 +424,21 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 #endif
   }
 
+  if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+  {
+    fprintf(fp, "Actv: %d %d %d %d %d\n",
+        obj->activate_spell[ACT_SPELL_LEVEL], obj->activate_spell[ACT_SPELL_SPELLNUM], 
+        obj->activate_spell[ACT_SPELL_CURRENT_USES], obj->activate_spell[ACT_SPELL_MAX_USES], 
+        obj->activate_spell[ACT_SPELL_COOLDOWN]);
+#ifdef OBJSAVE_DB
+    snprintf(line_buf, sizeof(line_buf), "Actv: %d %d %d %d %d\n",
+        obj->activate_spell[ACT_SPELL_LEVEL], obj->activate_spell[ACT_SPELL_SPELLNUM], 
+        obj->activate_spell[ACT_SPELL_CURRENT_USES], obj->activate_spell[ACT_SPELL_MAX_USES], 
+        obj->activate_spell[ACT_SPELL_COOLDOWN]);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+#endif
+  }
+
   /*** end checks for object modifications ****/
 
   fprintf(fp, "\n");
@@ -1714,6 +1729,15 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           temp->affected[t[0]].bonus_type = t[3];
         }
       }
+      else if (!strcmp(tag, "Actv"))
+      {
+        sscanf(line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
+        temp->activate_spell[ACT_SPELL_LEVEL]         = t[0];
+        temp->activate_spell[ACT_SPELL_SPELLNUM]      = t[1];
+        temp->activate_spell[ACT_SPELL_CURRENT_USES]  = t[2];
+        temp->activate_spell[ACT_SPELL_MAX_USES]      = t[3];
+        temp->activate_spell[ACT_SPELL_COOLDOWN]      = t[4];
+      }
       break;
     case 'C':
       if (!strcmp(tag, "Cost"))
@@ -2046,6 +2070,15 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
             temp->affected[t[0]].modifier = t[2];
             temp->affected[t[0]].bonus_type = t[3];
           }
+        }
+        else if (!strcmp(tag, "Actv"))
+        {
+          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
+          temp->activate_spell[ACT_SPELL_LEVEL]         = t[0];
+          temp->activate_spell[ACT_SPELL_SPELLNUM]      = t[1];
+          temp->activate_spell[ACT_SPELL_CURRENT_USES]  = t[2];
+          temp->activate_spell[ACT_SPELL_MAX_USES]      = t[3];
+          temp->activate_spell[ACT_SPELL_COOLDOWN]      = t[4];
         }
         break;
       case 'C':

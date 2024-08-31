@@ -1638,6 +1638,7 @@ const char *preference_bits[] = {
     "Auto-Sort",
     "Auto-Store",
     "Auto-Group",
+    "Contain-AOE",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -2457,6 +2458,7 @@ const char *extra_bits[] = {
     "Anti-Warlock",
     "Set-Stats-At-Load",
     "Extract-After-Use",
+    "No-Sacrifice",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 

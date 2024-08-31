@@ -460,7 +460,7 @@ void collection_add(struct char_data *ch, int ch_class, int spellnum, int metama
 /* add a spell to a character's known spells linked list */
 bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loading)
 {
-  int circle = compute_spells_circle(ch_class, spellnum, METAMAGIC_NONE, DOMAIN_UNDEFINED);
+  int circle = compute_spells_circle(ch, ch_class, spellnum, METAMAGIC_NONE, DOMAIN_UNDEFINED);
   int caster_level = CLASS_LEVEL(ch, ch_class) + BONUS_CASTER_LEVEL(ch, ch_class);
 
   if (!loading)
@@ -609,7 +609,7 @@ int count_circle_prep_queue(struct char_data *ch, int class, int circle)
   for (; current; current = next)
   {
     next = current->next;
-    this_circle = compute_spells_circle(class,
+    this_circle = compute_spells_circle(ch, class,
                                         current->spell,
                                         current->metamagic,
                                         current->domain);
@@ -645,7 +645,7 @@ int count_circle_collection(struct char_data *ch, int class, int circle)
   for (; current; current = next)
   {
     next = current->next;
-    this_circle = compute_spells_circle(class,
+    this_circle = compute_spells_circle(ch, class,
                                         current->spell,
                                         current->metamagic,
                                         current->domain);
@@ -673,7 +673,7 @@ int count_known_spells_by_circle(struct char_data *ch, int class, int circle)
     switch (class)
     {
     case CLASS_SORCERER:
-      if (compute_spells_circle(class, current->spell, 0, 0) == circle &&
+      if (compute_spells_circle(ch, class, current->spell, 0, 0) == circle &&
           !is_sorc_bloodline_spell(get_sorc_bloodline(ch), current->spell))
         counter++;
       break;
@@ -681,7 +681,7 @@ int count_known_spells_by_circle(struct char_data *ch, int class, int circle)
     case CLASS_BARD:
     case CLASS_INQUISITOR:
     case CLASS_SUMMONER:
-      if (compute_spells_circle(class, current->spell, 0, 0) == circle)
+      if (compute_spells_circle(ch, class, current->spell, 0, 0) == circle)
         counter++;
       break;
     } /*end switch*/
@@ -944,17 +944,17 @@ int get_sorc_bloodline(struct char_data *ch)
  * out: the circle this spell (now) belongs, above num-circles if failed
  * given above info, compute which circle this spell belongs to
  * in addition we have metamagic that can modify the spell-circle as well */
-int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
+int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, int metamagic, int domain)
 {
   int metamagic_mod = 0;
   int spell_circle = 0;
   int min_level = 0;
 
-  if (class != CLASS_WARLOCK && class != CLASS_PSIONICIST && (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS))
+  if (char_class != CLASS_WARLOCK && char_class != CLASS_PSIONICIST && (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS))
     return (NUM_CIRCLES + 1);
-  else if (class == CLASS_PSIONICIST && (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END))
+  else if (char_class == CLASS_PSIONICIST && (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END))
     return (NUM_CIRCLES + 1);
-  else if (class == CLASS_WARLOCK && (spellnum < WARLOCK_POWER_START || spellnum > WARLOCK_POWER_END))
+  else if (char_class == CLASS_WARLOCK && (spellnum < WARLOCK_POWER_START || spellnum > WARLOCK_POWER_END))
     return (NUM_CIRCLES + 1);
 
 #ifdef CAMPAIGN_FR
@@ -987,23 +987,49 @@ switch (spellnum)
     metamagic_mod += 4;
   if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
     metamagic_mod += 3;
+  if (IS_SET(metamagic, METAMAGIC_EMPOWER))
+    metamagic_mod += 2;
+  if (IS_SET(metamagic, METAMAGIC_EXTEND))
+    metamagic_mod += 1;
+  if (IS_SET(metamagic, METAMAGIC_STILL))
+    metamagic_mod += 1;
+  if (IS_SET(metamagic, METAMAGIC_SILENT))
+    metamagic_mod += 1;
 
-  switch (class)
+  switch (char_class)
   {
   case CLASS_ALCHEMIST:
-    switch (spell_info[spellnum].min_level[class])
+    switch (spell_info[spellnum].min_level[char_class])
     {
     case 1:
     case 2:
     case 3:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 1 + metamagic_mod;
     case 4:
     case 5:
     case 6:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 2 + metamagic_mod;
     case 7:
     case 8:
     case 9:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 3 + metamagic_mod;
     case 10:
     case 11:
@@ -1025,19 +1051,37 @@ switch (spellnum)
     }
     break;
   case CLASS_BARD:
-    switch (spell_info[spellnum].min_level[class])
+    switch (spell_info[spellnum].min_level[char_class])
     {
     case 1:
     case 2:
     case 3:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 1 + metamagic_mod;
     case 4:
     case 5:
     case 6:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 2 + metamagic_mod;
     case 7:
     case 8:
     case 9:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 3 + metamagic_mod;
     case 10:
     case 11:
@@ -1058,20 +1102,38 @@ switch (spellnum)
     }
     break;
   case CLASS_INQUISITOR:
-    min_level = MIN_SPELL_LVL(spellnum, class, domain);
+    min_level = MIN_SPELL_LVL(spellnum, char_class, domain);
     switch (min_level)
     {
     case 1:
     case 2:
     case 3:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 1 + metamagic_mod;
     case 4:
     case 5:
     case 6:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 2 + metamagic_mod;
     case 7:
     case 8:
     case 9:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 3 + metamagic_mod;
     case 10:
     case 11:
@@ -1092,20 +1154,38 @@ switch (spellnum)
     }
     break;
   case CLASS_SUMMONER:
-    min_level = MIN_SPELL_LVL(spellnum, class, domain);
+    min_level = MIN_SPELL_LVL(spellnum, char_class, domain);
     switch (min_level)
     {
     case 1:
     case 2:
     case 3:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 1 + metamagic_mod;
     case 4:
     case 5:
     case 6:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 2 + metamagic_mod;
     case 7:
     case 8:
     case 9:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 3 + metamagic_mod;
     case 10:
     case 11:
@@ -1127,19 +1207,37 @@ switch (spellnum)
     break;
   case CLASS_PALADIN:
   case CLASS_BLACKGUARD:
-    switch (spell_info[spellnum].min_level[class])
+    switch (spell_info[spellnum].min_level[char_class])
     {
     case 6:
     case 7:
     case 8:
     case 9:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 1 + metamagic_mod;
     case 10:
     case 11:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 2 + metamagic_mod;
     case 12:
     case 13:
     case 14:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 3 + metamagic_mod;
     case 15:
     case 16:
@@ -1153,19 +1251,37 @@ switch (spellnum)
     }
     break;
   case CLASS_RANGER:
-    switch (spell_info[spellnum].min_level[class])
+    switch (spell_info[spellnum].min_level[char_class])
     {
     case 6:
     case 7:
     case 8:
     case 9:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 1 + metamagic_mod;
     case 10:
     case 11:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 2 + metamagic_mod;
     case 12:
     case 13:
     case 14:
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 3 + metamagic_mod;
     case 15:
     case 16:
@@ -1179,16 +1295,49 @@ switch (spellnum)
     }
     break;
   case CLASS_WARLOCK:
-    spell_circle = spell_info[spellnum].min_level[class];
+    spell_circle = spell_info[spellnum].min_level[char_class];
     if (spell_circle <= 5)
+    {
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 1;
+    }
+      
     else if (spell_circle <= 10)
+    {
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 2;
+    }
     else if (spell_circle <= 15)
+    {
+      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+        metamagic_mod -= 4;
+      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+        metamagic_mod -= 1;
+      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+        metamagic_mod -= 1;
       return 3;
+    }
     return 4;
   case CLASS_SORCERER:
-    spell_circle = spell_info[spellnum].min_level[class] / 2;
+    spell_circle = spell_info[spellnum].min_level[char_class] / 2;
+    if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
+    {
+        metamagic -= 4;
+    }
+    if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
+      metamagic_mod -= 1;
+    if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) && spell_circle <= 3)
+      metamagic_mod -= 1;
     spell_circle += metamagic_mod;
     if (spell_circle > TOP_CIRCLE)
     {
@@ -1198,7 +1347,15 @@ switch (spellnum)
   case CLASS_CLERIC:
     /* MIN_SPELL_LVL will determine whether domain has a lower level version
            of the spell */
-    spell_circle = (MIN_SPELL_LVL(spellnum, class, domain) + 1) / 2;
+    spell_circle = (MIN_SPELL_LVL(spellnum, char_class, domain) + 1) / 2;
+    if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
+    {
+        metamagic -= 3;
+    }
+    if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
+      metamagic_mod -= 1;
+    if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) && spell_circle <= 3)
+      metamagic_mod -= 1;
     spell_circle += metamagic_mod;
     if (spell_circle > TOP_CIRCLE)
     {
@@ -1206,7 +1363,15 @@ switch (spellnum)
     }
     return (MAX(1, spell_circle));
   case CLASS_WIZARD:
-    spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
+    spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
+    if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
+    {
+        metamagic -= 3;
+    }
+    if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
+      metamagic_mod -= 1;
+    if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) && spell_circle <= 3)
+      metamagic_mod -= 1;
     spell_circle += metamagic_mod;
     if (spell_circle > TOP_CIRCLE)
     {
@@ -1214,7 +1379,15 @@ switch (spellnum)
     }
     return (MAX(1, spell_circle));
   case CLASS_DRUID:
-    spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
+    spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
+    if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
+    {
+        metamagic -= 3;
+    }
+    if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
+      metamagic_mod -= 1;
+    if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) && spell_circle <= 3)
+      metamagic_mod -= 1;
     spell_circle += metamagic_mod;
     if (spell_circle > TOP_CIRCLE)
     {
@@ -1222,7 +1395,7 @@ switch (spellnum)
     }
     return (MAX(1, spell_circle));
   case CLASS_PSIONICIST:
-    spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
+    spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
     spell_circle += metamagic_mod;
     if (spell_circle > TOP_CIRCLE)
     {
@@ -1787,7 +1960,7 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
 
       /*place in queue*/
       is_domain = is_domain_spell_of_ch(ch, spellnum);
-      circle = compute_spells_circle(ch_class, spellnum, metamagic, is_domain);
+      circle = compute_spells_circle(ch, ch_class, spellnum, metamagic, is_domain);
       prep_time = compute_spells_prep_time(ch, ch_class, circle, is_domain);
       prep_queue_add(ch, ch_class, spellnum, metamagic, prep_time, is_domain);
 
@@ -1800,7 +1973,7 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
   {
     is_domain = is_domain_spell_of_ch(ch, spellnum);
     circle = /* computes adjustment to circle via metamagic */
-        compute_spells_circle(ch_class, spellnum, metamagic, is_domain);
+        compute_spells_circle(ch, ch_class, spellnum, metamagic, is_domain);
     if (is_a_known_spell(ch, ch_class, spellnum) &&
         (compute_slots_by_circle(ch, ch_class, circle) -
              count_total_slots(ch, ch_class, circle) >
@@ -1845,9 +2018,9 @@ int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
   {
     /* computes adjustment to circle via metamagic */
     if (CLASS_LEVEL(ch, CLASS_INQUISITOR) && class == CLASS_INQUISITOR)
-      circle_of_this_spell = compute_spells_circle(class, spellnum, metamagic, GET_1ST_DOMAIN(ch));
+      circle_of_this_spell = compute_spells_circle(ch, class, spellnum, metamagic, GET_1ST_DOMAIN(ch));
     else
-      circle_of_this_spell = compute_spells_circle(class, spellnum, metamagic, DOMAIN_UNDEFINED);
+      circle_of_this_spell = compute_spells_circle(ch, class, spellnum, metamagic, DOMAIN_UNDEFINED);
     if (is_a_known_spell(ch, class, spellnum) &&
         (compute_slots_by_circle(ch, class, circle_of_this_spell) - count_total_slots(ch, class, circle_of_this_spell) > 0))
     {
@@ -1895,13 +2068,13 @@ void print_prep_queue(struct char_data *ch, int ch_class)
   for (; current; current = next)
   {
     next = current->next;
-    int spell_circle = compute_spells_circle(ch_class,
+    int spell_circle = compute_spells_circle(ch, ch_class,
                                              current->spell,
                                              current->metamagic,
                                              current->domain);
     int prep_time = current->prep_time;
     total_time += prep_time;
-    send_to_char(ch, " \tW%20s\tn \tc[\tn%d%s circle\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
+    send_to_char(ch, " \tW%20s\tn \tc[\tn%d%s circle\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s%s%s%s%s %s\r\n",
                  spell_info[current->spell].name,
                  spell_circle,
                  (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd"
@@ -1909,7 +2082,11 @@ void print_prep_queue(struct char_data *ch, int ch_class)
                                                                   : "th",
                  prep_time,
                  (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+                 (IS_SET(current->metamagic, METAMAGIC_EMPOWER) ? "\tc[\tnempowered\tc]\tn" : ""),
                  (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                 (IS_SET(current->metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextendeded\tc]\tn" : ""),
+                 (IS_SET(current->metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
+                 (IS_SET(current->metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
                  (current->domain ? domain_list[current->domain].name : ""));
   } /* end transverse */
 
@@ -1961,14 +2138,18 @@ void print_innate_magic_queue(struct char_data *ch, int ch_class)
     next = current->next;
     int prep_time = current->prep_time;
     total_time += prep_time;
-    send_to_char(ch, " \tc[\tWcircle-slot: \tn%d%s\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
+    send_to_char(ch, " \tc[\tWcircle-slot: \tn%d%s\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s%s%s%s%s %s\r\n",
                  current->circle,
                  (current->circle == 1) ? "st" : (current->circle == 2) ? "nd"
                                              : (current->circle == 3)   ? "rd"
                                                                         : "th",
                  prep_time,
                  (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+                 (IS_SET(current->metamagic, METAMAGIC_EMPOWER) ? "\tc[\tnempowered\tc]\tn" : ""),
                  (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                 (IS_SET(current->metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextended\tc]\tn" : ""),
+                 (IS_SET(current->metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
+                 (IS_SET(current->metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
                  (current->domain ? domain_list[current->domain].name : ""));
 
   } /* end transverse */
@@ -2020,7 +2201,7 @@ void print_collection(struct char_data *ch, int ch_class)
       {
         next = current->next;
         /* check if our circle matches this entry */
-        this_circle = compute_spells_circle(
+        this_circle = compute_spells_circle(ch, 
             ch_class,
             current->spell,
             current->metamagic,
@@ -2030,25 +2211,33 @@ void print_collection(struct char_data *ch, int ch_class)
           counter++;
           if (counter == 1)
           {
-            send_to_char(ch, "\tY%d%s:\tn \tW%20s\tn %12s%12s%s%13s%s\r\n",
+            send_to_char(ch, "\tY%d%s:\tn \tW%20s\tn %12s%12s%12s%12s%12s%12s%s%13s%s\r\n",
                          high_circle,
                          (high_circle == 1) ? "st" : (high_circle == 2) ? "nd"
                                                  : (high_circle == 3)   ? "rd"
                                                                         : "th",
                          spell_info[current->spell].name,
                          (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+                         (IS_SET(current->metamagic, METAMAGIC_EMPOWER) ? "\tc[\tnempowered\tc]\tn" : ""),
                          (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                         (IS_SET(current->metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextended\tc]\tn" : ""),
+                         (IS_SET(current->metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
+                         (IS_SET(current->metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
                          current->domain ? "\tc[\tn" : "",
                          current->domain ? domain_list[current->domain].name : "",
                          current->domain ? "\tc]\tn" : "");
           }
           else
           {
-            send_to_char(ch, "%4s \tW%20s\tn %12s%12s%s%13s%s\r\n",
+            send_to_char(ch, "%4s \tW%20s\tn %12s%12s%12s%12s%12s%12s%s%13s%s\r\n",
                          "    ",
                          spell_info[current->spell].name,
                          (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+                         (IS_SET(current->metamagic, METAMAGIC_EMPOWER) ? "\tc[\tnempowered\tc]\tn" : ""),
                          (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                         (IS_SET(current->metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextended\tc]\tn" : ""),
+                         (IS_SET(current->metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
+                         (IS_SET(current->metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
                          current->domain ? "\tc[\tn" : "",
                          current->domain ? domain_list[current->domain].name : "",
                          current->domain ? "\tc]\tn" : "");
@@ -2326,7 +2515,7 @@ void reset_preparation_time(struct char_data *ch, int class)
   default:
     if (!SPELL_PREP_QUEUE(ch, class))
       return;
-    preparation_time = compute_spells_prep_time(ch, class, compute_spells_circle(class, SPELL_PREP_QUEUE(ch, class)->spell,
+    preparation_time = compute_spells_prep_time(ch, class, compute_spells_circle(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
                                   SPELL_PREP_QUEUE(ch, class)->metamagic, SPELL_PREP_QUEUE(ch, class)->domain), SPELL_PREP_QUEUE(ch, class)->domain);
     SPELL_PREP_QUEUE(ch, class)->prep_time = preparation_time;
     break;
@@ -2412,10 +2601,14 @@ int star_circlet_proc(struct char_data *ch, int num_times)
       case CLASS_SUMMONER:
         if (INNATE_MAGIC(ch, class))
         {
-          send_to_char(ch, "You finish %s for %s%s%d circle slot.\r\n",
+          send_to_char(ch, "You finish %s for %s%s%s%s%s%s%d circle slot.\r\n",
                        spell_prep_dict[class][1],
                        (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+                       (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_EMPOWER) ? "empowered " : ""),
                        (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                       (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_EXTEND) ? "extended " : ""),
+                       (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_SILENT) ? "silent " : ""),
+                       (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_STILL) ? "still " : ""),
                        INNATE_MAGIC(ch, class)->circle);
           innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->circle, INNATE_MAGIC(ch, class)->metamagic);
           proc_count++;
@@ -2424,10 +2617,14 @@ int star_circlet_proc(struct char_data *ch, int num_times)
       default:
         if (SPELL_PREP_QUEUE(ch, class))
         {
-          send_to_char(ch, "You finish %s for %s%s%s.\r\n",
+          send_to_char(ch, "You finish %s for %s%s%s%s%s%s%s.\r\n",
                        spell_prep_dict[class][1],
                        (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+                       (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_EMPOWER) ? "empowered " : ""),
                        (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                       (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_EXTEND) ? "extended " : ""),
+                       (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_SILENT) ? "silent " : ""),
+                       (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_STILL) ? "still " : ""),
                        spell_info[SPELL_PREP_QUEUE(ch, class)->spell].name);
           collection_add(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
                          SPELL_PREP_QUEUE(ch, class)->metamagic,
@@ -2518,10 +2715,14 @@ EVENTFUNC(event_preparation)
     INNATE_MAGIC(ch, class)->prep_time--;
     if ((INNATE_MAGIC(ch, class)->prep_time) <= 0)
     {
-      send_to_char(ch, "You finish %s for %s%s%d circle slot.\r\n",
+      send_to_char(ch, "You finish %s for %s%s%s%s%s%s%d circle slot.\r\n",
                    spell_prep_dict[class][1],
                    (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+                   (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_EMPOWER) ? "empowered " : ""),
                    (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                   (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_EXTEND) ? "extended " : ""),
+                   (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_SILENT) ? "silent " : ""),
+                   (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_STILL) ? "still " : ""),
                    INNATE_MAGIC(ch, class)->circle);
       innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->circle,
                                    INNATE_MAGIC(ch, class)->metamagic);
@@ -2542,10 +2743,14 @@ EVENTFUNC(event_preparation)
     SPELL_PREP_QUEUE(ch, class)->prep_time--;
     if ((SPELL_PREP_QUEUE(ch, class)->prep_time) <= 0)
     {
-      send_to_char(ch, "You finish %s for %s%s%s.\r\n",
+      send_to_char(ch, "You finish %s for %s%s%s%s%s%s%s.\r\n",
                    spell_prep_dict[class][1],
                    (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+                   (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_EMPOWER) ? "empowered " : ""),
                    (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                   (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_EXTEND) ? "extended " : ""),
+                   (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_SILENT) ? "silent " : ""),
+                   (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_STILL) ? "still " : ""),
                    spell_info[SPELL_PREP_QUEUE(ch, class)->spell].name);
       collection_add(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
                      SPELL_PREP_QUEUE(ch, class)->metamagic,
@@ -2671,6 +2876,22 @@ ACMDU(do_consign_to_oblivion)
     {
       SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
     }
+    else if (is_abbrev(metamagic_arg, "empowered"))
+    {
+      SET_BIT(metamagic, METAMAGIC_EMPOWER);
+    }
+    else if (is_abbrev(metamagic_arg, "extended"))
+    {
+      SET_BIT(metamagic, METAMAGIC_EXTEND);
+    }
+    else if (is_abbrev(metamagic_arg, "silent"))
+    {
+      SET_BIT(metamagic, METAMAGIC_SILENT);
+    }
+    else if (is_abbrev(metamagic_arg, "still"))
+    {
+      SET_BIT(metamagic, METAMAGIC_STILL);
+    }
     else
     {
       send_to_char(ch, "With what metamagic? (if you have an argument before the "
@@ -2769,11 +2990,15 @@ ACMDU(do_consign_to_oblivion)
 
     if (prep_queue_remove_by_class(ch, class, spellnum, metamagic))
     {
-      send_to_char(ch, "You %s \tW%s\tn %s%s from your %s preparation queue!\r\n",
+      send_to_char(ch, "You %s \tW%s\tn %s%s%s%s%s%s from your %s preparation queue!\r\n",
                    spell_consign_dict[class][0],
                    spell_name(spellnum),
                    (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_EMPOWER) ? "\tc[\tnempowered\tc]\tn" : ""),
                    (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextended\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
                    class == CLASS_ALCHEMIST ? "extract" : "spell");
       return;
     }
@@ -2784,11 +3009,15 @@ ACMDU(do_consign_to_oblivion)
   {
     if (collection_remove_by_class(ch, class, spellnum, metamagic))
     {
-      send_to_char(ch, "You %s \tW%s\tn %s%s from your %s collection!\r\n",
+      send_to_char(ch, "You %s \tW%s\tn %s%s%s%s%s%s from your %s collection!\r\n",
                    spell_consign_dict[class][0],
                    spell_name(spellnum),
                    (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_EMPOWER) ? "\tc[\tnempowered\tc]\tn" : ""),
                    (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextended\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
                    (class == CLASS_ALCHEMIST ? "extract" : "spell"));
       return;
     }
@@ -2959,6 +3188,62 @@ ACMDU(do_gen_preparation)
         return;
       }
     }
+    else if (is_abbrev(metamagic_arg, "empowered"))
+    {
+      if (!can_spell_be_empowered(spellnum))
+      {
+        send_to_char(ch, "This spell cannot be empowered.\r\n");
+      }
+      if (HAS_FEAT(ch, FEAT_EMPOWER_SPELL))
+      {
+        SET_BIT(metamagic, METAMAGIC_EMPOWER);
+      }
+      else
+      {
+        send_to_char(ch, "You don't know how to empower your magic!\r\n");
+        return;
+      }
+    }
+    else if (is_abbrev(metamagic_arg, "extended"))
+    {
+      if (!can_spell_be_extended(spellnum))
+      {
+        send_to_char(ch, "This spell cannot be extended.\r\n");
+      }
+      if (HAS_FEAT(ch, FEAT_EXTEND_SPELL))
+      {
+        SET_BIT(metamagic, METAMAGIC_EXTEND);
+      }
+      else
+      {
+        send_to_char(ch, "You don't know how to extend your magic!\r\n");
+        return;
+      }
+    }
+    else if (is_abbrev(metamagic_arg, "silent"))
+    {
+      if (HAS_FEAT(ch, FEAT_SILENT_SPELL))
+      {
+        SET_BIT(metamagic, METAMAGIC_SILENT);
+      }
+      else
+      {
+        send_to_char(ch, "You don't know how to perform your magic silently.\r\n");
+        return;
+      }
+    }
+    else if (is_abbrev(metamagic_arg, "still"))
+    {
+      if (HAS_FEAT(ch, FEAT_STILL_SPELL))
+      {
+        SET_BIT(metamagic, METAMAGIC_STILL);
+      }
+      else
+      {
+        send_to_char(ch, "You don't know how to prform your magic while physically bound!\r\n");
+        return;
+      }
+    }
     else
     {
       send_to_char(ch, "Use what metamagic?\r\n");
@@ -2973,8 +3258,8 @@ ACMDU(do_gen_preparation)
   }
 
   circle_for_spell = /* checks domain spells */
-      MIN(compute_spells_circle(class, spellnum, metamagic, domain_1st),
-          compute_spells_circle(class, spellnum, metamagic, domain_2nd));
+      MIN(compute_spells_circle(ch, class, spellnum, metamagic, domain_1st),
+          compute_spells_circle(ch, class, spellnum, metamagic, domain_2nd));
 
   num_slots_by_circle = compute_slots_by_circle(ch, class, circle_for_spell);
 
@@ -2999,10 +3284,14 @@ ACMDU(do_gen_preparation)
   }
 
   /* success, let's throw the spell into our prep queue */
-  send_to_char(ch, "You start to %s for %s%s%s.\r\n",
+  send_to_char(ch, "You start to %s for %s%s%s%s%s%s%s.\r\n",
                spell_prep_dict[class][0],
                (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+               (IS_SET(metamagic, METAMAGIC_EMPOWER) ? "empowered " : ""),
                (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+               (IS_SET(metamagic, METAMAGIC_EXTEND) ? "extended " : ""),
+               (IS_SET(metamagic, METAMAGIC_SILENT) ? "silent " : ""),
+               (IS_SET(metamagic, METAMAGIC_STILL) ? "still " : ""),
                spell_info[spellnum].name);
 
   prep_queue_add(ch,

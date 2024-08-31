@@ -2623,6 +2623,8 @@ bool has_reach(struct char_data *ch);
 #define HAS_DRAGON_BOND_ABIL(ch, level, type)  (is_riding_dragon_mount(ch) && GET_DRAGON_BOND_TYPE(ch) == type && \
                                                 HAS_FEAT(ch, FEAT_RIDERS_BOND) && (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) >= level))
 
+#define HAS_ACTIVATED_SPELLS(obj) (obj->activate_spell[0] <= 0 ? FALSE : TRUE)
+
 #endif /* _UTILS_H_ */
 
 /*EOF*/

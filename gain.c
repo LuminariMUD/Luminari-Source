@@ -392,7 +392,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK (spellCircle) */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (compute_spells_circle(CLASS_SORCERER, counter) == circle)
+    if (compute_spells_circle(ch, CLASS_SORCERER, counter) == circle)
     {
       if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
@@ -469,7 +469,7 @@ void bard_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK (spellCircle) */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (compute_spells_circle(CLASS_BARD, counter) == circle)
+    if (compute_spells_circle(ch, CLASS_BARD, counter) == circle)
     {
       if (is_a_known_spell(d->character, CLASS_BARD, counter))
         write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, mgn,
@@ -847,7 +847,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number)
         {
-          if (compute_spells_circle(CLASS_SORCERER, counter) == global_circle)
+          if (compute_spells_circle(ch, CLASS_SORCERER, counter) == global_circle)
           {
             if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
               known_spells_remove_by_class(d->character, CLASS_SORCERER, counter);
@@ -909,7 +909,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number)
         {
-          if (compute_spells_circle(CLASS_BARD, counter) == global_circle)
+          if (compute_spells_circle(ch, CLASS_BARD, counter) == global_circle)
           {
             if (is_a_known_spell(d->character, CLASS_BARD, counter))
               known_spells_remove_by_class(d->character, CLASS_BARD, counter);

@@ -2762,6 +2762,8 @@ void perform_abilities(struct char_data *ch, struct char_data *k)
     buf[0] = '\0';
   }
 
+  list_item_activate_abilities(ch);
+
   /* Close the output, reset the colors to prevent bleed. */
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -7237,6 +7239,57 @@ ACMD(do_touch_spells)
     if (spell_info[i].touch_spell)
     {
       send_to_char(ch, "-- %-25s (%s)\r\n", spell_info[i].name, spell_schools[spell_info[i].schoolOfMagic]);
+    }
+  }
+}
+
+bool char_has_any_item_activation_abilities(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  struct obj_data *obj = NULL;
+  int i = 0;
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if ((obj = GET_EQ(ch, i)))
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+        return true;
+    }
+  }
+  return false;
+}
+
+void list_item_activate_abilities(struct char_data *ch)
+{
+
+  int i = 0, total = 0, remaining = 0;
+  struct obj_data *obj = NULL;
+
+  if (!char_has_any_item_activation_abilities(ch))
+  {
+    return;
+  }
+
+  text_line(ch, "\tYItem Activations\tC", 90, '-', '-');
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if ((obj = GET_EQ(ch, i)))
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        remaining = obj->activate_spell[ACT_SPELL_CURRENT_USES];
+        total = obj->activate_spell[ACT_SPELL_MAX_USES];
+        send_to_char(ch,
+                    "%-30.30s \tc%-20s\tn %s%2d\tn/%-2d uses remaining\r\n",
+                    obj->short_description,
+                    spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name,
+                    (remaining > (total / 2) ? "\tn" : (remaining <= 1 ? "\tR" : "\tY")),
+                    remaining,
+                    total);
+      }
     }
   }
 }

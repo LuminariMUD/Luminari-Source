@@ -4000,7 +4000,7 @@ void load_class_list(void)
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCost efeatp*/
-         -1, N, N, L, 6, 0, 1, 2, Y, 0, 5,
+         -1, N, N, L, 6, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Intelligence, Con/Dex for survivability",
          /*Descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
@@ -4071,7 +4071,11 @@ void load_class_list(void)
   feat_assignment(CLASS_WIZARD, FEAT_AUGMENT_SUMMONING, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_ENHANCED_SPELL_DAMAGE, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_MAXIMIZE_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_EMPOWER_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_EXTEND_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_STILL_SPELL, Y, NOASSIGN_FEAT, N);
   /* epic class */
   feat_assignment(CLASS_WIZARD, FEAT_GREATER_RUIN, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_DRAGON_KNIGHT, Y, NOASSIGN_FEAT, N);
@@ -4079,6 +4083,9 @@ void load_class_list(void)
   feat_assignment(CLASS_WIZARD, FEAT_EPIC_MAGE_ARMOR, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_EPIC_WARDING, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_GREAT_INTELLIGENCE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_AUTOMATIC_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_AUTOMATIC_STILL_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WIZARD, FEAT_AUTOMATIC_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -4191,6 +4198,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 5);
   spell_assignment(CLASS_WIZARD, SPELL_COMMUNAL_RESIST_ENERGY, 5);
   spell_assignment(CLASS_WIZARD, SPELL_COMMUNAL_SPIDER_CLIMB, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_IDENTIFY, 5);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_WIZARD, SPELL_FIRE_SHIELD, 7);
@@ -4357,7 +4365,7 @@ void load_class_list(void)
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_CLERIC, "cleric", "Cle", "\tBCle\tn", "c) \tBCleric\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
-         -1, N, N, M, 8, 0, 1, 2, Y, 0, 0,
+         -1, N, N, M, 8, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Wisdom, Cha affects some of their abilities..  Con for survivability, Str for combat",
          /*descrip*/ "In faith and the miracles of the divine, many find a greater "
@@ -4417,6 +4425,8 @@ void load_class_list(void)
   /*epic*/
   feat_assignment(CLASS_CLERIC, FEAT_CLERIC_EPIC_SPELL, Y, 21, N);
   feat_assignment(CLASS_CLERIC, FEAT_MUMMY_DUST, Y, NOASSIGN_FEAT, N);
+    feat_assignment(CLASS_CLERIC, FEAT_GREAT_WISDOM, Y, NOASSIGN_FEAT, N);
+    feat_assignment(CLASS_CLERIC, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -4612,7 +4622,7 @@ void load_class_list(void)
   /*     class-number  name     abrv   clr-abrv     menu-name*/
   classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \twRogue\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
-         -1, N, N, H, 8, 0, 2, 8, Y, 0, 0,
+         -1, N, N, H, 8, 0, 2, 8, Y, 0, 4,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Dexterity, Con for survivability, Int for skills, Str for combat",
          /*descrip*/ "Life is an endless adventure for those who live by their wits. "
@@ -4711,6 +4721,8 @@ void load_class_list(void)
   /* talent lvl 30, improved vanish */
   feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_VANISH, Y, 30, N);
   /* rogues don't currently have any class feats */
+  // epic class feats
+  feat_assignment(CLASS_ROGUE, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
   /* no prereqs! */
   /****************************************************************************/
 
@@ -4869,7 +4881,7 @@ void load_class_list(void)
   /*     class-number  name    abrv   clr-abrv     menu-name*/
   classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
-         -1, N, N, H, 8, 0, 2, 4, Y, 0, 0,
+         -1, N, N, H, 8, 0, 2, 4, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Wisdom, Con/Dex for survivability, Str for combat",
          /*descrip*/ "For the truly exemplary, martial skill transcends the "
@@ -4957,6 +4969,11 @@ void load_class_list(void)
   feat_assignment(CLASS_MONK, FEAT_OUTSIDER, Y, 29, N);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 30, Y);
   /* monks get no class feats */
+  // epic class feats
+  feat_assignment(CLASS_MONK, FEAT_GREAT_WISDOM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_MONK, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_MONK, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_MONK, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
   /* prereqs */
   class_prereq_align(CLASS_MONK, LAWFUL_GOOD);
   class_prereq_align(CLASS_MONK, LAWFUL_NEUTRAL);
@@ -4967,7 +4984,7 @@ void load_class_list(void)
   /*     class-number  name      abrv   clr-abrv          menu-name*/
   classo(CLASS_DRUID, "druid", "Dru", "\tGD\tgr\tGu\tn", "d) \tGD\tgr\tGu\tgi\tGd\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, N, N, M, 8, 0, 3, 4, Y, 0, 0,
+         -1, N, N, M, 8, 0, 3, 4, Y, 0, 4,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Wisdom, Con/Dex for survivability, Str for combat",
          /*descrip*/ "Within the purity of the elements and the order of the wilds "
@@ -5190,6 +5207,11 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_DRAGON_KNIGHT, 21);
   spell_assignment(CLASS_DRUID, SPELL_GREATER_RUIN, 21);
   spell_assignment(CLASS_DRUID, SPELL_HELLBALL, 21);
+  feat_assignment(CLASS_DRUID, FEAT_GREAT_WISDOM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRUID, FEAT_AUTOMATIC_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRUID, FEAT_AUTOMATIC_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRUID, FEAT_AUTOMATIC_STILL_SPELL, Y, NOASSIGN_FEAT, N);
+
   /* class prerequisites */
   class_prereq_align(CLASS_DRUID, NEUTRAL_GOOD);
   class_prereq_align(CLASS_DRUID, LAWFUL_NEUTRAL);
@@ -5205,7 +5227,7 @@ void load_class_list(void)
   /*     class-number        name      abrv   clr-abrv           menu-name*/
   classo(CLASS_BERSERKER, "berserker", "Bes", "\trB\tRe\trs\tn", "b) \trBer\tRser\trker\tn",
          /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
-         -1, N, N, H, 12, 0, 2, 4, Y, 0, 0,
+         -1, N, N, H, 12, 0, 2, 4, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Strength, Con/Dex for survivability - Con helps some of their skills",
          /*descrip*/ "For some, there is only rage. In the ways of their people, in "
@@ -5304,6 +5326,12 @@ void load_class_list(void)
   feat_assignment(CLASS_BERSERKER, FEAT_DEATHLESS_FRENZY, Y, 30, N);
   feat_assignment(CLASS_BERSERKER, FEAT_RAGING_CRITICAL, Y, 30, N);
   /* no spell assignment */
+  // epic class feats
+  feat_assignment(CLASS_BERSERKER, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
   /* class prerequisites */
   class_prereq_align(CLASS_BERSERKER, NEUTRAL_GOOD);
   class_prereq_align(CLASS_BERSERKER, TRUE_NEUTRAL);
@@ -5317,7 +5345,7 @@ void load_class_list(void)
   /*     class-number     name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, N, N, L, 6, 0, 1, 2, Y, 0, 0,
+         -1, N, N, L, 6, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Con/Dex for survivability",
          /*descrip*/ "Scions of innately magical bloodlines, the chosen of deities, "
@@ -5388,6 +5416,10 @@ void load_class_list(void)
   feat_assignment(CLASS_SORCERER, FEAT_ENHANCED_SPELL_DAMAGE, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SORCERER, FEAT_MAXIMIZE_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SORCERER, FEAT_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_EMPOWER_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_EXTEND_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_STILL_SPELL, Y, NOASSIGN_FEAT, N);
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -5500,6 +5532,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 6);
   spell_assignment(CLASS_SORCERER, SPELL_COMMUNAL_RESIST_ENERGY, 6);
   spell_assignment(CLASS_SORCERER, SPELL_COMMUNAL_SPIDER_CLIMB, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_IDENTIFY, 6);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_SORCERER, SPELL_LESSER_MISSILE_STORM, 8);
@@ -5655,6 +5688,16 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_HELLBALL, 21);
   spell_assignment(CLASS_SORCERER, SPELL_EPIC_MAGE_ARMOR, 21);
   spell_assignment(CLASS_SORCERER, SPELL_EPIC_WARDING, 21);
+  // epic class feats
+  feat_assignment(CLASS_SORCERER, FEAT_GREATER_RUIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_DRAGON_KNIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_HELLBALL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_EPIC_MAGE_ARMOR, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_EPIC_WARDING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_GREAT_INTELLIGENCE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_AUTOMATIC_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_AUTOMATIC_STILL_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_AUTOMATIC_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
   /* PREREQS here */
   /*****/
   /* INIT spell slots, assignement of spell slots based on
@@ -5666,7 +5709,7 @@ void load_class_list(void)
   /*     class-number   name      abrv   clr-abrv     menu-name*/
   classo(CLASS_PALADIN, "paladin", "Pal", "\tWPal\tn", "p) \tWPaladin\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, N, N, H, 10, 0, 1, 2, Y, 0, 0,
+         -1, N, N, H, 10, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Con for survivability, Str for combat",
          /*descrip*/ "Through a select, worthy few shines the power of the divine. "
@@ -5763,6 +5806,12 @@ void load_class_list(void)
   feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 30, Y);
   feat_assignment(CLASS_PALADIN, FEAT_HOLY_CHAMPION, Y, 30, Y);
   /* paladin has no class feats */
+  // epic class feats
+  feat_assignment(CLASS_PALADIN, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PALADIN, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PALADIN, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PALADIN, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PALADIN, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -5835,7 +5884,7 @@ void load_class_list(void)
   /*     class-number   name      abrv   clr-abrv     menu-name*/
   classo(CLASS_BLACKGUARD, "blackguard", "BkG", "\tDBkG\tn", "z) \tDBlackguard\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, N, N, H, 10, 0, 1, 2, Y, 0, 0,
+         -1, N, N, H, 10, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Con for survivability, Str for combat",
          /*descrip*/ "Blackguards, also referred to as antipaladins, are the quintessential "
@@ -6006,6 +6055,13 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_PLANAR_SOUL, 15);  
   spell_assignment(CLASS_BLACKGUARD, SPELL_BANISHING_BLADE, 15);
 
+  // epic class feats
+  feat_assignment(CLASS_BLACKGUARD, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
+
   /* class prerequisites */
   class_prereq_align(CLASS_BLACKGUARD, LAWFUL_EVIL);
   class_prereq_align(CLASS_BLACKGUARD, NEUTRAL_EVIL);
@@ -6020,7 +6076,7 @@ void load_class_list(void)
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
-         -1, N, N, H, 10, 0, 3, 4, Y, 0, 0,
+         -1, N, N, H, 10, 0, 3, 4, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Dexterity or Str, Con for survivability, they need a little Wis for spellcasting",
          /*descrip*/ "For those who relish the thrill of the hunt, there are only "
@@ -6153,6 +6209,13 @@ void load_class_list(void)
   spell_assignment(CLASS_RANGER, SPELL_DISPEL_MAGIC, 15);
   spell_assignment(CLASS_RANGER, SPELL_CURE_SERIOUS, 15);
   spell_assignment(CLASS_RANGER, SPELL_GROUP_VIGORIZE, 15);
+
+  // epic class feats
+  feat_assignment(CLASS_RANGER, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_RANGER, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_RANGER, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_RANGER, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_RANGER, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
   /* no prereqs! */
   /*****/
   /* INIT spell slots, assignement of spell slots based on
@@ -6164,7 +6227,7 @@ void load_class_list(void)
   /*     class-number  name   abrv   clr-abrv     menu-name*/
   classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
-         -1, N, N, M, 8, 0, 2, 6, Y, 0, 0,
+         -1, N, N, M, 8, 0, 2, 6, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Int for skills, Con/Dex for survivability",
          /*descrip*/ "Untold wonders and secrets exist for those skillful enough to "
@@ -6250,6 +6313,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_CURE_LIGHT, 1);
   spell_assignment(CLASS_BARD, SPELL_RESISTANCE, 1);
   spell_assignment(CLASS_BARD, SPELL_UNDETECTABLE_ALIGNMENT, 1);
+  spell_assignment(CLASS_BARD, SPELL_IDENTIFY, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_2, 4);
@@ -6269,6 +6333,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_GLITTERDUST, 4);
   spell_assignment(CLASS_BARD, SPELL_HUMAN_POTENTIAL, 4);
   spell_assignment(CLASS_BARD, SPELL_RAGE, 4);
+  spell_assignment(CLASS_BARD, SPELL_MASS_IDENTIFY, 4);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_3, 7);
@@ -6328,6 +6393,9 @@ void load_class_list(void)
   class_prereq_align(CLASS_BARD, CHAOTIC_EVIL);
   class_prereq_align(CLASS_BARD, CHAOTIC_GOOD);
   class_prereq_align(CLASS_BARD, CHAOTIC_NEUTRAL);
+  // epic class feats
+  feat_assignment(CLASS_BARD, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BARD, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
@@ -6338,7 +6406,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_PSIONICIST, "psionicist", "Psn", "\tCPsn\tn", "f) \tCPsionicist\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         30, N, N, L, 6, 0, 1, 2, Y, 0, 0,
+         30, N, N, L, 6, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Intelligence, Dex/Con for survivability",
          /*descrip*/ "The powers of the mind are varied and limitless, and the psion "
@@ -6525,6 +6593,10 @@ void load_class_list(void)
   /* 9th circle Psi */
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_APOPSI, 17);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ASSIMILATE, 17);
+
+  // epic class feats
+  feat_assignment(CLASS_BARD, FEAT_GREAT_INTELLIGENCE, Y, NOASSIGN_FEAT, N);
+
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_TIMELESS_BODY, 17);
   /**** end psi power assignment *****/
 
@@ -6989,6 +7061,11 @@ void load_class_list(void)
   feat_assignment(CLASS_SPELLSWORD, FEAT_EXTEND_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SPELLSWORD, FEAT_ENHANCE_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SPELLSWORD, FEAT_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_EMPOWER_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_EXTEND_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_STILL_SPELL, Y, NOASSIGN_FEAT, N);
+  
   /* epic class */
   feat_assignment(CLASS_SPELLSWORD, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SPELLSWORD, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
@@ -8084,7 +8161,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_ALCHEMIST, "alchemist", "Alc", "\tWA\tClc\tn", "f) \tWAlchemist\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, N, N, M, 8, 0, 1, 4, Y, 0, 0,
+         -1, N, N, M, 8, 0, 1, 4, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Intelligence, Con/Dex for survivability, Str for combat",
          /*descrip*/
@@ -8171,6 +8248,7 @@ void load_class_list(void)
   spell_assignment(CLASS_ALCHEMIST, SPELL_COMMUNAL_RESIST_ENERGY, 7);
   spell_assignment(CLASS_ALCHEMIST, SPELL_COMMUNAL_SPIDER_CLIMB, 7);
   spell_assignment(CLASS_ALCHEMIST, SPELL_RAGE, 7);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_MASS_IDENTIFY, 7);
 
   /* concoction circle 4 */
   spell_assignment(CLASS_ALCHEMIST, SPELL_CURE_CRITIC, 10);
@@ -8282,11 +8360,15 @@ void load_class_list(void)
   spell_assignment(CLASS_ALCHEMIST, SPELL_GREATER_RUIN, 21);
   spell_assignment(CLASS_ALCHEMIST, SPELL_MUMMY_DUST, 21);
 
+  // epic class feats
+  feat_assignment(CLASS_ALCHEMIST, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ALCHEMIST, FEAT_GREAT_INTELLIGENCE, Y, NOASSIGN_FEAT, N);
+
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_INQUISITOR, "inquisitor", "Inq", "\tDI\tWnq\tn", "f) \tDInquisitor\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, N, N, M, 8, 0, 1, 6, Y, 0, 0,
+         -1, N, N, M, 8, 0, 1, 6, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Wisdom, Con/Dex for survivability, Str for combat",
          /*descrip*/
@@ -8506,6 +8588,10 @@ void load_class_list(void)
 
   feat_assignment(CLASS_INQUISITOR, FEAT_PERFECT_JUDGEMENT, Y, 30, N);
 
+  // epic class feats
+  feat_assignment(CLASS_INQUISITOR, FEAT_GREAT_WISDOM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_INQUISITOR, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
+
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SUMMONER, "summoner", "Sum", "\tCS\tcum\tn", "f) \tCSummoner\tn",
@@ -8626,6 +8712,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_STONESKIN, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_WALL_OF_FIRE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_WATER_BREATHE, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_MASS_IDENTIFY, 7);
 
   // spell circle 4
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_ENDURANCE, 10);
@@ -8712,6 +8799,9 @@ void load_class_list(void)
   feat_assignment(CLASS_SUMMONER, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, Y);
   feat_assignment(CLASS_SUMMONER, FEAT_EPIC_AUGMENT_SUMMONING, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SUMMONER, FEAT_EPIC_SPELL_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_AUTOMATIC_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_AUTOMATIC_STILL_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_AUTOMATIC_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
   
 
   /* no spell assignment */
@@ -8880,7 +8970,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WARLOCK, "warlock", "Wlk", "\tDW\tWlk\tn", "u) \tDWarlock\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, N, N, M, 6, 0, 1, 2, Y, 0, 5,
+         -1, N, N, M, 6, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Con/Dex for survivability, Str for combat",
          /*descrip*/

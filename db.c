@@ -3288,6 +3288,24 @@ const char *parse_object(FILE *obj_f, int nr)
       }
       (obj_proto + i)->mob_recepient = t[0];
       break;
+    case 'K': // object activated spells
+      if (!get_line(obj_f, line))
+      {
+        log("SYSERR: Format error in 'K' field, %s.  Expecting numeric constants, but file ended!", buf2);
+        exit(1);
+      }
+      if ((retval = sscanf(line, " %d %d %d %d %d ", t, t + 1, t + 2, t + 3, t + 4)) != 5)
+      {
+        log("SYSERR: Format error in 'K' field, %s  expecting 5 numeric args, got %d.  line: '%s'",
+            buf2, retval, line);
+        exit(1);
+      }
+      obj_proto[i].activate_spell[ACT_SPELL_LEVEL] = t[0];
+      obj_proto[i].activate_spell[ACT_SPELL_SPELLNUM] = t[1];
+      obj_proto[i].activate_spell[ACT_SPELL_CURRENT_USES] = t[2];
+      obj_proto[i].activate_spell[ACT_SPELL_MAX_USES] = t[3];
+      obj_proto[i].activate_spell[ACT_SPELL_COOLDOWN] = t[4];
+      break;
     case 'S': // weapon spells
       /*
               if (wsplnum >= MAX_WEAPON_SPELLS) {
@@ -4025,6 +4043,11 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
       GET_OBJ_LEVEL(obj) = 1;
     if (GET_OBJ_LEVEL(obj) > 30)
       GET_OBJ_LEVEL(obj) = 30;
+
+    // if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+    // {
+    //   obj->activate_spell[ACT_SPELL_CURRENT_USES] = obj->activate_spell[ACT_SPELL_MAX_USES];
+    // }
 
     // REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_SET_STATS_AT_LOAD);
   }

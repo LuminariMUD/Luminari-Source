@@ -192,6 +192,7 @@ void regen_psp(void);
 void process_walkto_actions(void);
 void self_buffing(void);
 void moving_rooms_update(void);
+void recharge_activated_items(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -1182,6 +1183,7 @@ void heartbeat(int heart_pulse)
   { // every minute
     check_auto_shutdown();
     check_auto_happy_hour();
+    recharge_activated_items();
   }
 
   if (!(heart_pulse % PULSE_ZONE))

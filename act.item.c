@@ -1277,6 +1277,20 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
   }
 
+  // activated item spells
+  if (item->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+  {
+    if (item->activate_spell[ACT_SPELL_COOLDOWN] == 0 && item->activate_spell[ACT_SPELL_CURRENT_USES] == 0)
+      item->activate_spell[ACT_SPELL_CURRENT_USES] = item->activate_spell[ACT_SPELL_MAX_USES];
+    send_to_char(ch, "Item can cast the '%s' spell at level %d with %d/%d uses remaining.\r\n",
+      spell_info[item->activate_spell[ACT_SPELL_SPELLNUM]].name, item->activate_spell[ACT_SPELL_LEVEL],
+      item->activate_spell[ACT_SPELL_CURRENT_USES], item->activate_spell[ACT_SPELL_MAX_USES]);
+    if (item->activate_spell[ACT_SPELL_COOLDOWN] > 0)
+      send_to_char(ch, "-- One of the item uses will be restored in less than %d minutes.\r\n",
+        item->activate_spell[ACT_SPELL_COOLDOWN]);
+    send_to_char(ch, "-- Type activate '%s' (target) to use the activated spell.\r\n", spell_info[item->activate_spell[ACT_SPELL_SPELLNUM]].name);
+  }
+
   // code to support proc information..
   if (GET_OBJ_RNUM(item) != NOTHING)
   {
@@ -4463,6 +4477,12 @@ ACMD(do_sac)
     return;
   }
 
+  if (OBJ_FLAGGED(j, ITEM_NOSAC))
+  {
+    send_to_char(ch, "You can't sacrifice that item.\r\n");
+    return;
+  }
+
   if (GET_OBJ_TYPE(j) == ITEM_CONTAINER && j->contains != NULL)
   {
     send_to_char(ch, "You should empty that first!\n\r");
@@ -5876,7 +5896,7 @@ ACMDU(do_unstore)
     {
       if (!IS_SPELLCASTER_CLASS(i))
         continue;
-      spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+      spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
     }
 
     if (spell_level <= 0 || spell_level > 9)
@@ -5947,7 +5967,7 @@ ACMDU(do_unstore)
     {
       if (!IS_SPELLCASTER_CLASS(i))
         continue;
-      spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+      spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
     }
 
     if (spell_level <= 0 || spell_level > 9)
@@ -6014,7 +6034,7 @@ ACMDU(do_unstore)
     {
       if (!IS_SPELLCASTER_CLASS(i))
         continue;
-      spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+      spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
     }
 
     if (spell_level <= 0 || spell_level > 9)
@@ -6084,7 +6104,7 @@ ACMDU(do_unstore)
     {
       if (!IS_SPELLCASTER_CLASS(i))
         continue;
-      spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+      spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
     }
 
     if (spell_level <= 0 || spell_level > 9)
@@ -6166,7 +6186,7 @@ void quaff_potion(struct char_data *ch, char *argument)
   {
     if (!IS_SPELLCASTER_CLASS(i))
       continue;
-    spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+    spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
   }
 
   if (spell_level <= 0 || spell_level > 9)
@@ -6253,7 +6273,7 @@ void recite_scroll(struct char_data *ch, char *argument)
   {
     if (!IS_SPELLCASTER_CLASS(i))
       continue;
-    spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+    spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
   }
 
   if (spell_level <= 0 || spell_level > 9)
@@ -6335,7 +6355,7 @@ void use_wand(struct char_data *ch, char *argument)
   {
     if (!IS_SPELLCASTER_CLASS(i))
       continue;
-    spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+    spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
   }
 
   if (spell_level <= 0 || spell_level > 9)
@@ -6400,7 +6420,7 @@ void invoke_staff(struct char_data *ch, char *argument)
   {
     if (!IS_SPELLCASTER_CLASS(i))
       continue;
-    spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+    spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
   }
 
   if (spell_level <= 0 || spell_level > 9)
@@ -7212,6 +7232,52 @@ void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum
   struct obj_data *obj;
 
   struct obj_data *bag = get_char_bag(ch, bagnum);
+
+  if (!strcmp(objname, "all"))
+  {
+    if (subcmd == SCMD_SORTTO)
+    {
+      for (obj = ch->carrying; obj; obj = obj->next_content)
+      {
+        if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
+          continue;
+        obj_from_char(obj);
+        GET_OBJ_SORT(obj) = bagnum;
+        obj_to_bag(ch, obj, bagnum);
+        send_to_char(ch, "You move '%s' to bag %d (%s).\r\n", obj->short_description, bagnum, bagnames[bagnum-1]);
+      }
+      send_to_char(ch, "You finish moving everything from your inventory to bag %d.\r\n", bagnum);
+      return;
+    }
+    else
+    {
+      struct obj_data *bag = NULL, *next_content = NULL;
+      switch (bagnum)
+      {
+        case 1: bag = ch->bags->bag1; break;
+        case 2: bag = ch->bags->bag2; break;
+        case 3: bag = ch->bags->bag3; break;
+        case 4: bag = ch->bags->bag4; break;
+        case 5: bag = ch->bags->bag5; break;
+        case 6: bag = ch->bags->bag6; break;
+        case 7: bag = ch->bags->bag7; break;
+        case 8: bag = ch->bags->bag8; break;
+        case 9: bag = ch->bags->bag9; break;
+        case 10: bag = ch->bags->bag10; break;
+        default: send_to_char(ch, "That is not a valid bag number.\r\n"); return;
+      }
+      for (obj = bag; obj; obj = next_content)
+      {
+        next_content = obj->next_content;
+        obj_from_bag(ch, obj, bagnum);
+        GET_OBJ_SORT(obj) = 0;
+        obj_to_char(obj, ch);
+        send_to_char(ch, "You move '%s' to your main inventory.\r\n", obj->short_description);
+      }
+      send_to_char(ch, "You finish moving everything from bag %d to your inventory.\r\n", bagnum);
+      return;
+    }
+  }
   
 
   if (!(obj = get_obj_in_list_vis(ch, objname, NULL, subcmd == SCMD_SORTTO ? ch->carrying : bag)))
@@ -7475,6 +7541,215 @@ ACMD(do_bagnames)
     send_to_char(ch, "%2d) %s\r\n", i+1, bagnames[i]);
   }
   send_to_char(ch, "\r\n");
+}
+
+#define SINFO spell_info[spellnum]
+
+ACMDU(do_activate)
+{
+  char *spell_arg = NULL, *target_arg = NULL;
+  char output[200];
+  struct char_data *tch = NULL;
+  struct obj_data *obj = NULL, *tobj = NULL;
+  int i = 0, spellnum = 0, wear_slot = 0, spell_level = 0, target = 0, number = 0;
+
+  spell_arg = strtok(argument, "'");
+
+  if (spell_arg == NULL)
+  {
+    send_to_char(ch, "Which spell do you wish to activate?\r\n");
+    return;
+  }
+
+  spell_arg = strtok(NULL, "'");
+
+  if (spell_arg == NULL)
+  {
+    send_to_char(ch, "Spell names must be enclosed in the symbols: '\r\n");
+    return;
+  }
+
+  target_arg = strtok(NULL, "\0");
+
+  spellnum = find_skill_num(spell_arg);
+  
+  if ((spellnum < 1) || (spellnum > MAX_SPELLS) || !*spell_arg)
+  {
+    send_to_char(ch, "That is not a valid spell name.\r\n");
+    return;
+  }
+
+  if (find_activate_object_by_spellnum(ch, spellnum, false) == -1)
+  {
+    send_to_char(ch, "None of your equipped items allows that spell to be activated.\r\n");
+    return;
+  }
+
+  if ((wear_slot = find_activate_object_by_spellnum(ch, spellnum, true)) == -1)
+  {
+    send_to_char(ch, "You do not have any objects equipped with that spell and available uses.\r\n");
+    return;
+  }
+
+  /* Find the target */
+  if (target_arg != NULL)
+  {
+    char arg[MAX_INPUT_LENGTH] = {'\0'};
+
+    strlcpy(arg, target_arg, sizeof(arg));
+    one_argument_u(arg, target_arg);
+    skip_spaces(&target_arg);
+  }
+
+  if (IS_SET(SINFO.targets, TAR_IGNORE))
+  {
+    target = TRUE;
+  }
+  else if (target_arg != NULL && *target_arg)
+  {
+    number = get_number(&target_arg);
+    if (!target && (IS_SET(SINFO.targets, TAR_CHAR_ROOM)))
+    {
+      if ((tch = get_char_vis(ch, target_arg, &number, FIND_CHAR_ROOM)) != NULL)
+        target = TRUE;
+    }
+    if (!target && IS_SET(SINFO.targets, TAR_CHAR_WORLD))
+      if ((tch = get_char_vis(ch, target_arg, &number, FIND_CHAR_WORLD)) != NULL)
+        target = TRUE;
+
+    if (!target && IS_SET(SINFO.targets, TAR_OBJ_INV))
+      if ((tobj = get_obj_in_list_vis(ch, target_arg, &number, ch->carrying)) != NULL)
+        target = TRUE;
+
+    if (!target && IS_SET(SINFO.targets, TAR_OBJ_EQUIP))
+    {
+      for (i = 0; !target && i < NUM_WEARS; i++)
+        if (GET_EQ(ch, i) && isname(target_arg, GET_EQ(ch, i)->name))
+        {
+          tobj = GET_EQ(ch, i);
+          target = TRUE;
+        }
+    }
+    if (!target && IS_SET(SINFO.targets, TAR_OBJ_ROOM))
+      if ((tobj = get_obj_in_list_vis(ch, target_arg, &number, world[IN_ROOM(ch)].contents)) != NULL)
+        target = TRUE;
+
+    if (!target && IS_SET(SINFO.targets, TAR_OBJ_WORLD))
+      if ((tobj = get_obj_vis(ch, target_arg, &number)) != NULL)
+        target = TRUE;
+  }
+  else if (!target && FIGHTING(ch) && SINFO.violent)
+  {
+    target = TRUE;
+    tch = FIGHTING(ch);
+  }
+  else
+  { /* if target string is empty */
+
+    if (!target && IS_SET(SINFO.targets, TAR_FIGHT_SELF))
+      if (FIGHTING(ch) != NULL)
+      {
+        tch = ch;
+        target = TRUE;
+      }
+    if (!target && IS_SET(SINFO.targets, TAR_FIGHT_VICT))
+      if (FIGHTING(ch) != NULL)
+      {
+        tch = FIGHTING(ch);
+        target = TRUE;
+      }
+    /* if no target specified, and the spell isn't violent, default to self */
+    if (!target && IS_SET(SINFO.targets, TAR_CHAR_ROOM) && !SINFO.violent)
+    {
+      tch = ch;
+      target = TRUE;
+    }
+
+    if (!target)
+    {
+      send_to_char(ch, "Upon %s should the %s be %s?\r\n",
+                   IS_SET(SINFO.targets, TAR_OBJ_ROOM | TAR_OBJ_INV | TAR_OBJ_WORLD | TAR_OBJ_EQUIP) ? "what" : "who",
+                   do_cast_types[subcmd][2], do_cast_types[subcmd][1]);
+      return;
+    }
+  }
+
+  if (target && (tch == ch) && SINFO.violent && (spellnum != SPELL_DISPEL_MAGIC) && subcmd != SCMD_WEAPON_TOUCH)
+  {
+    send_to_char(ch, "You shouldn't do that to yourself -- could be bad for your health!\r\n");
+    return;
+  }
+
+  if (!target)
+  {
+    send_to_char(ch, "Cannot find the target of your spell!\r\n");
+    return;
+  }
+
+  if (is_player_grouped(ch, tch) && spell_info[spellnum].violent)
+  {
+    send_to_char(ch, "You cannot use a harmful spell on an ally.\r\n");
+    return;
+  }
+
+  if ((obj = GET_EQ(ch, wear_slot)) == NULL)
+  {
+    send_to_char(ch, "There was an error activated the spell. Please tell a staff member with error code ERRACTITEM001.\r\n");
+    return;
+  }
+
+  if (ch == tch)
+  {
+    snprintf(output, sizeof(output), "You activate $p, casting '%s' on Yourself.", spell_info[spellnum].name);
+    act(output, TRUE, ch, obj, tch, TO_CHAR);
+    snprintf(output, sizeof(output), "$n activates $p, casting '%s' on $mself.", spell_info[spellnum].name);
+    act(output, TRUE, ch, obj, tch, TO_ROOM);
+  }
+  else
+  {
+    snprintf(output, sizeof(output), "You activate $p, casting '%s' on $N.", spell_info[spellnum].name);
+    act(output, TRUE, ch, obj, tch, TO_CHAR);
+    snprintf(output, sizeof(output), "$n activates $p, casting '%s' on You.", spell_info[spellnum].name);
+    act(output, TRUE, ch, obj, tch, TO_VICT);
+    snprintf(output, sizeof(output), "$n activates $p, casting '%s' on $N.", spell_info[spellnum].name);
+    act(output, TRUE, ch, obj, tch, TO_NOTVICT);
+  }
+
+  GET_DC_BONUS(ch) += spell_level / 2;
+  obj->activate_spell[ACT_SPELL_CURRENT_USES]--;
+  obj->activate_spell[ACT_SPELL_COOLDOWN] = ACT_SPELL_COOLDOWN_TIME;
+  call_magic(ch, tch, NULL, spellnum, 0, spell_level, CAST_WEAPON_SPELL); 
+}
+
+#undef SINFO
+
+int find_activate_object_by_spellnum(struct char_data *ch, int spellnum, bool require_uses_remaining)
+{
+  int i = 0;
+  struct obj_data *obj = NULL;
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if ((obj = GET_EQ(ch, i)))
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] == spellnum)
+      {
+        if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0 && obj->activate_spell[ACT_SPELL_CURRENT_USES] == 0)
+          obj->activate_spell[ACT_SPELL_CURRENT_USES] = obj->activate_spell[ACT_SPELL_MAX_USES];
+        if (require_uses_remaining)
+        {
+          if (obj->activate_spell[ACT_SPELL_CURRENT_USES] > 0)
+            return i;
+        }
+        else
+        {
+          return i;
+        }
+      }
+    }
+  }
+
+  return -1;
 }
 
 /* EOF */

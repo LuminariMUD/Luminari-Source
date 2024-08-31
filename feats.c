@@ -1394,8 +1394,9 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* here is our mounted combat feats */
   feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-        "once per round rider may negate a hit against him with a successful ride vs attack roll check",
-        "once per round rider may negate a hit against him with a successful ride vs attack roll check");
+        "Once per round rider may negate a hit against him with a successful ride vs attack roll check",
+        "Once per round rider may negate a hit against him with a successful ride vs attack roll check, "
+        "and will no longer be thrown from their mounts when moving from room to room, regardless of ride skill.");
   feat_prereq_ability(FEAT_MOUNTED_COMBAT, ABILITY_RIDE, 4);
   feato(FEAT_RIDE_BY_ATTACK, "ride by attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "normally use full round action on charge, now use move action",
@@ -1987,6 +1988,15 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "cast a spell with casting time instantly",
         "A spell prepared as 'quickened' will take a slot 4 circles higher and when "
         "cast it will remove all casting time for that given spell.");
+  feato(FEAT_SILENT_SPELL, "silent spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, 
+    "Allows the casting of spells when silenced, if enabled. Uses a spell slot one higher than normal.", 
+    "Allows the casting of spells when silenced, if enabled. Uses a spell slot one higher than normal.");
+  feato(FEAT_STILL_SPELL, "still spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, 
+    "Allows the casting of spells when held, grappled, or otherwise restricted. Uses a spell slot one higher than normal when active.", 
+    "Allows the casting of spells when held, grappled, or otherwise restricted. Uses a spell slot one higher than normal when active.");
+  feato(FEAT_EXTEND_SPELL, "extend spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC,
+    "Durations of spells are 50 percent longer when enabled ", 
+    "Durations of spells are 50 percent longer when enabled. Uses a spell slot 1 higher than normal when enabled.");
 
   /* Spellcasting feats */
 
@@ -4487,8 +4497,8 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
                "melee attacks against an opponent within reach in response to an attack that would "
                "reduce him to negative hit points, knock him unconscious, or kill him. For example, "
                "a stalwart defender has 1 hit point left when a red dragon bites him; the defender may "
-               "use this ability even if the dragon’s bite would otherwise kill him instantly. Once the "
-               "defender’s attacks are resolved, he suffers the normal effect of the attack that provoked "
+               "use this ability even if the dragon's bite would otherwise kill him instantly. Once the "
+               "defender's attacks are resolved, he suffers the normal effect of the attack that provoked "
                "this ability.");
 
   /* Shadow Dancer */
@@ -5110,11 +5120,13 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   /*metamagic*/
   feato(FEAT_ENLARGE_SPELL, "enlarge spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff ", "ask staff ");
   feato(FEAT_HEIGHTEN_SPELL, "heighten spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff ", "ask staff ");
-  feato(FEAT_SILENT_SPELL, "silent spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
-  feato(FEAT_STILL_SPELL, "still spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
+  
   feato(FEAT_WIDEN_SPELL, "widen spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
-  feato(FEAT_EMPOWER_SPELL, "empower spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all variable numerical effects of a spell are increased by one half ", "all variable numerical effects of a spell are increased by one half ");
-  feato(FEAT_EXTEND_SPELL, "extend spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "durations of spells are 50 percent longer when enabled ", "durations of spells are 50 percent longer when enabled ");
+  feato(FEAT_EMPOWER_SPELL, "empower spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, 
+    "All variable, numeric effects of an empowered spell are increased by one-half.", 
+    "All variable, numeric effects of an empowered spell are increased by one-half. "
+    "Saving throws and opposed rolls are not affected, nor are spells without random variables. "
+    "An empowered spell uses up a spell slot two levels higher than the spell's actual level.");
   /*spellcasting*/
   feato(FEAT_ESCHEW_MATERIALS, "eschew materials", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_COUNTERSPELL, "improved counterspell", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
@@ -5125,7 +5137,6 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   /*metamagic*/
   feato(FEAT_INTENSIFY_SPELL, "intensify spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "maximizes damage/healing and then doubles it.", "maximizes damage/healing and then doubles it.");
   feato(FEAT_ENHANCE_SPELL, "increase spell damage", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "increase max number of damage dice for certain damage based spell by 5", "increase max number of damage dice for certain damage based spell by 5");
-  feato(FEAT_AUTOMATIC_QUICKEN_SPELL, "automatic quicken spell", FALSE, TRUE, TRUE, FEAT_TYPE_METAMAGIC, "You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.", "You can cast level 0, 1, 2 & 3 spells automatically as if quickened.  Every addition rank increases the max spell level by 3.");
 
   /* monk */
 
@@ -5225,6 +5236,25 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "You emit an aura of light, illuminating your location.",
         "You emit an aura of light, illuminating your location.");
 
+  // EPIC FEATS GO HERE
+  feato(FEAT_AUTOMATIC_QUICKEN_SPELL, "automatic quicken spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC,
+    "Can cast circle 1, 2, 3 spells as quickened automatically.",
+    "Can cast circle 1, 2, 3 spells as quickened automatically.");
+  feat_prereq_ability(FEAT_AUTOMATIC_QUICKEN_SPELL, ABILITY_SPELLCRAFT, 26);
+  feat_prereq_feat(FEAT_AUTOMATIC_QUICKEN_SPELL, FEAT_QUICKEN_SPELL, 1);
+
+  feato(FEAT_AUTOMATIC_SILENT_SPELL, "automatic silent spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC,
+    "Can cast circle 1, 2, 3 spells as silent automatically.",
+    "Can cast circle 1, 2, 3 spells as silent automatically.");
+  feat_prereq_ability(FEAT_AUTOMATIC_SILENT_SPELL, ABILITY_SPELLCRAFT, 22);
+  feat_prereq_feat(FEAT_AUTOMATIC_SILENT_SPELL, FEAT_SILENT_SPELL, 1);
+
+  feato(FEAT_AUTOMATIC_STILL_SPELL, "automatic still spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC,
+    "Can cast circle 1, 2, 3 spells as stilled automatically.",
+    "Can cast circle 1, 2, 3 spells as stilled automatically.");
+  feat_prereq_ability(FEAT_AUTOMATIC_STILL_SPELL, ABILITY_SPELLCRAFT, 24);
+  feat_prereq_feat(FEAT_AUTOMATIC_STILL_SPELL, FEAT_STILL_SPELL, 1);
+
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");
 
@@ -5279,6 +5309,8 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   epicfeat(FEAT_SNEAK_ATTACK);
   epicfeat(FEAT_SNEAK_ATTACK_OF_OPPORTUNITY);
   epicfeat(FEAT_AUTOMATIC_QUICKEN_SPELL);
+  epicfeat(FEAT_AUTOMATIC_STILL_SPELL);
+  epicfeat(FEAT_AUTOMATIC_SILENT_SPELL);
   epicfeat(FEAT_IMPROVED_SPELL_RESISTANCE);
   epicfeat(FEAT_BLINDING_SPEED);
   epicfeat(FEAT_EPIC_ELDRITCH_MASTER);
@@ -5615,6 +5647,32 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     {
     case FEAT_AUTOMATIC_QUICKEN_SPELL:
       if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) < 30)
+        return FALSE;
+      if (compute_slots_by_circle(ch, CLASS_SORCERER, 9) > 0)
+        return TRUE;
+      if (compute_slots_by_circle(ch, CLASS_WIZARD, 9) > 0)
+        return TRUE;
+      if (compute_slots_by_circle(ch, CLASS_CLERIC, 9) > 0)
+        return TRUE;
+      if (compute_slots_by_circle(ch, CLASS_DRUID, 9) > 0)
+        return TRUE;
+      return FALSE;
+    
+    case FEAT_AUTOMATIC_SILENT_SPELL:
+      if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) < 22)
+        return FALSE;
+      if (compute_slots_by_circle(ch, CLASS_SORCERER, 9) > 0)
+        return TRUE;
+      if (compute_slots_by_circle(ch, CLASS_WIZARD, 9) > 0)
+        return TRUE;
+      if (compute_slots_by_circle(ch, CLASS_CLERIC, 9) > 0)
+        return TRUE;
+      if (compute_slots_by_circle(ch, CLASS_DRUID, 9) > 0)
+        return TRUE;
+      return FALSE;
+
+      case FEAT_AUTOMATIC_STILL_SPELL:
+    if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) < 24)
         return FALSE;
       if (compute_slots_by_circle(ch, CLASS_SORCERER, 9) > 0)
         return TRUE;
@@ -6520,12 +6578,12 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       return FALSE;
 
     case FEAT_SILENT_SPELL:
-      if (CLASS_LEVEL(ch, CLASS_WIZARD))
+      if (IS_SPELLCASTER(ch))
         return TRUE;
       return FALSE;
 
     case FEAT_STILL_SPELL:
-      if (CLASS_LEVEL(ch, CLASS_WIZARD))
+      if (IS_SPELLCASTER(ch))
         return TRUE;
       return FALSE;
 

@@ -921,6 +921,9 @@ SAVING_WILL here...  */
     case SPELL_IDENTIFY:
       MANUAL_SPELL(spell_identify);
       break;
+    case SPELL_MASS_IDENTIFY:
+      MANUAL_SPELL(spell_mass_identify);
+      break;
     case SPELL_HOLY_JAVELIN:
       MANUAL_SPELL(spell_holy_javelin);
       break;
@@ -1344,9 +1347,11 @@ void resetCastingData(struct char_data *ch)
 int castingCheckOk(struct char_data *ch)
 {
   int spellnum = CASTING_SPELLNUM(ch);
+  int metamagic = CASTING_METAMAGIC(ch);
+  bool still_spell = IS_SET(metamagic, METAMAGIC_STILL);
 
   /* position check */
-  if (GET_POS(ch) <= POS_SITTING)
+  if (GET_POS(ch) <= POS_SITTING && !still_spell)
   {
     act("$n is unable to continue $s spell in $s current position!", FALSE, ch, 0, 0,
         TO_ROOM);
@@ -1377,7 +1382,7 @@ int castingCheckOk(struct char_data *ch)
     return 0;
   }
 
-  if (AFF_FLAGGED(ch, AFF_NAUSEATED))
+  if (AFF_FLAGGED(ch, AFF_NAUSEATED) && !still_spell)
   {
     send_to_char(ch, "You are too nauseated to continue casting!\r\n");
     act("$n seems to be too nauseated to continue casting!",
@@ -1386,8 +1391,8 @@ int castingCheckOk(struct char_data *ch)
     return (0);
   }
 
-  if (AFF_FLAGGED(ch, AFF_DAZED) || AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
-      char_has_mud_event(ch, eSTUNNED))
+  if ((AFF_FLAGGED(ch, AFF_DAZED) || AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
+      char_has_mud_event(ch, eSTUNNED)) && !still_spell)
   {
     send_to_char(ch, "You are unable to continue casting!\r\n");
     act("$n seems to be unable to continue casting!",
@@ -1403,13 +1408,6 @@ int castingCheckOk(struct char_data *ch)
 /* moment of completion of spell casting */
 void finishCasting(struct char_data *ch)
 {
-
-  if (AFF_FLAGGED(ch, AFF_SILENCED) && !is_spellnum_psionic(CASTING_SPELLNUM(ch)))
-  {
-    send_to_char(ch, "You are unable to make a sound.\r\n");
-    act("$n tries to speak, but cannot seem to make a sound.", TRUE, ch, 0, 0, TO_ROOM);
-    return;
-  }
 
   if (CASTING_SPELLNUM(ch) > 0 && CASTING_SPELLNUM(ch) < NUM_SPELLS)
   {
@@ -1535,8 +1533,12 @@ EVENTFUNC(event_casting)
         return 0;
 
       // display time left to finish spell
-      snprintf(buf, sizeof(buf), "%s: %s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "Manifesting" : "Casting"),
+      snprintf(buf, sizeof(buf), "%s: %s%s%s%s%s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "Manifesting" : "Casting"),
                (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened " : ""),
+               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_EMPOWER) ? "empowered " : ""),
+               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_SILENT) ? "silent " : ""),
+               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_STILL) ? "still " : ""),
+               (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_EXTEND) ? "extended " : ""),
                (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized " : ""),
                SINFO.name);
       for (x = CASTING_TIME(ch); x > 0; x--)
@@ -1799,8 +1801,18 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       casting_time = 0;
       quickened = TRUE;
     }
+    else if (HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+    {
+      if (compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
+      {
+        quickened = true;
+      }
+    }
     if ((ch_class == CLASS_SORCERER || ch_class == CLASS_BARD) &&
-        IS_SET(metamagic, METAMAGIC_MAXIMIZE) && !IS_SET(metamagic, METAMAGIC_QUICKEN))
+        (IS_SET(metamagic, METAMAGIC_MAXIMIZE) || IS_SET(metamagic, METAMAGIC_EMPOWER) ||
+        IS_SET(metamagic, METAMAGIC_EXTEND) || IS_SET(metamagic, METAMAGIC_SILENT) ||
+        IS_SET(metamagic, METAMAGIC_STILL))
+        && !IS_SET(metamagic, METAMAGIC_QUICKEN))
     {
       // Sorcerers with Arcane Bloodline
       if (IS_SET(metamagic, METAMAGIC_ARCANE_ADEPT) || HAS_FEAT(ch, FEAT_ARCANE_APOTHEOSIS))
@@ -1869,10 +1881,27 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     {
       if (!is_action_available(ch, atSWIFT, FALSE))
       {
-        send_to_char(ch, "This action requires a swift action to be available.\r\n");
-        return 0;
+        if (!is_action_available(ch, atMOVE, FALSE))
+        {
+          if (!is_action_available(ch, atSTANDARD, FALSE))
+          {
+            send_to_char(ch, "You don't have available actions to perform this (need swift, move or standard).\r\n");
+            return 0;
+          }
+          else
+          {
+            USE_STANDARD_ACTION(ch);
+          }
+        }
+        else
+        {
+          USE_MOVE_ACTION(ch);
+        }
       }
-      USE_SWIFT_ACTION(ch);
+      else
+      {
+        USE_SWIFT_ACTION(ch);
+      }
     }
     else if (AFF_FLAGGED(ch, AFF_TIME_STOPPED))
     {
@@ -2129,60 +2158,6 @@ ACMDU(do_gen_cast)
   // log("DEBUG: target t = %s", target_arg);
   // log("DEBUG: Argument = %s", argument);
 
-  /* Check for metamagic. */
-  if (subcmd != SCMD_CAST_PSIONIC && subcmd != SCMD_CAST_SHADOW)
-  {
-    for (metamagic_arg = strtok(argument, " "); metamagic_arg && metamagic_arg[0] != '\''; metamagic_arg = strtok(NULL, " "))
-    {
-      if (is_abbrev(metamagic_arg, "quickened"))
-      {
-        if (HAS_FEAT(ch, FEAT_QUICKEN_SPELL))
-        {
-          SET_BIT(metamagic, METAMAGIC_QUICKEN);
-        }
-        else
-        {
-          send_to_char(ch, "You don't know how to quicken your %s!\r\n",
-                       do_cast_types[subcmd][4]);
-          return;
-        }
-        // log("DEBUG: Quickened metamagic used.");
-      }
-      else if (is_abbrev(metamagic_arg, "maximized"))
-      {
-        if (HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL))
-        {
-          SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-        }
-        else
-        {
-          send_to_char(ch, "You don't know how to maximize your %s!\r\n",
-                       do_cast_types[subcmd][4]);
-          return;
-        }
-      }
-      else if (is_abbrev(metamagic_arg, "metamagicadept"))
-      {
-        if (HAS_FEAT(ch, FEAT_METAMAGIC_ADEPT))
-        {
-          if (!IS_NPC(ch) && (daily_uses_remaining(ch, FEAT_METAMAGIC_ADEPT)) == 0)
-          {
-            send_to_char(ch, "You must recover before you can use your metamagic adept ability again.\r\n");
-            return;
-          }
-          if (!IS_NPC(ch))
-            start_daily_use_cooldown(ch, FEAT_METAMAGIC_ADEPT);
-          SET_BIT(metamagic, METAMAGIC_ARCANE_ADEPT);
-        }
-        else
-        {
-          send_to_char(ch, "You do not know the secrets of metamagic adepts!\r\n");
-          return;
-        }
-      }
-    }
-  }
-
   /* meta magic should be settled if applicable by now */
 
   spellnum = find_skill_num(spell_arg);
@@ -2210,6 +2185,147 @@ ACMDU(do_gen_cast)
 
   /* we have our spellnum now */
 
+  /* Check for metamagic. */
+  if (subcmd != SCMD_CAST_PSIONIC && subcmd != SCMD_CAST_SHADOW)
+  {
+    for (metamagic_arg = strtok(argument, " "); metamagic_arg && metamagic_arg[0] != '\''; metamagic_arg = strtok(NULL, " "))
+    {
+      if (is_abbrev(metamagic_arg, "quickened"))
+      {
+        if (HAS_FEAT(ch, FEAT_QUICKEN_SPELL))
+        {
+          if (HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
+          {
+            send_to_char(ch, "You don't need to quicken level 3 or lower spells as they are quickened automatically by your 'automatic quicken spell' feat.\r\n");
+          }
+          else
+          {
+            SET_BIT(metamagic, METAMAGIC_QUICKEN);
+          }
+        }
+        else
+        {
+          send_to_char(ch, "You don't know how to quicken your %s!\r\n",
+                       do_cast_types[subcmd][4]);
+          return;
+        }
+        // log("DEBUG: Quickened metamagic used.");
+      }
+      else if (is_abbrev(metamagic_arg, "maximized"))
+      {
+        if (HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL))
+        {
+          SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+        }
+        else
+        {
+          send_to_char(ch, "You don't know how to maximize your %s!\r\n",
+                       do_cast_types[subcmd][4]);
+          return;
+        }
+      }
+      else if (is_abbrev(metamagic_arg, "empowered"))
+      {
+        if (!can_spell_be_empowered(spellnum))
+        {
+          send_to_char(ch, "This spell cannot be empowered.\r\n");
+        }
+        if (HAS_FEAT(ch, FEAT_EMPOWER_SPELL))
+        {
+          SET_BIT(metamagic, METAMAGIC_EMPOWER);
+        }
+        else
+        {
+          send_to_char(ch, "You don't know how to empower your %s!\r\n",
+                       do_cast_types[subcmd][4]);
+          return;
+        }
+      }
+      else if (is_abbrev(metamagic_arg, "extended"))
+      {
+        if (!can_spell_be_extended(spellnum))
+        {
+          send_to_char(ch, "This spell cannot be extended.\r\n");
+        }
+        if (HAS_FEAT(ch, FEAT_EXTEND_SPELL))
+        {
+          SET_BIT(metamagic, METAMAGIC_EXTEND);
+        }
+        else
+        {
+          send_to_char(ch, "You don't know how to extend your %s!\r\n",
+                       do_cast_types[subcmd][4]);
+          return;
+        }
+      }
+      else if (is_abbrev(metamagic_arg, "silent"))
+      {
+        
+        if (HAS_FEAT(ch, FEAT_SILENT_SPELL))
+        {
+          if (HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) && compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
+          {
+            send_to_char(ch, "You don't need to use silent spell on level 3 or lower spells as they are made silent automatically by your 'automatic silent spell' feat.\r\n");
+          }
+          else
+          {
+            SET_BIT(metamagic, METAMAGIC_SILENT);
+          }
+        }
+        else
+        {
+          send_to_char(ch, "You don't know how to make your %s silent!\r\n",
+                       do_cast_types[subcmd][4]);
+          return;
+        }
+      }
+      else if (is_abbrev(metamagic_arg, "still"))
+      {
+        if (HAS_FEAT(ch, FEAT_STILL_SPELL))
+        {
+          if (HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
+          {
+            send_to_char(ch, "You don't need to use still spell on level 3 or lower spells as they are made still automatically by your 'automatic still spell' feat.\r\n");
+          }
+          else
+          {
+            SET_BIT(metamagic, METAMAGIC_STILL);
+          }
+        }
+        else
+        {
+          send_to_char(ch, "You don't know how to make your %s affected by still spell!\r\n",
+                       do_cast_types[subcmd][4]);
+          return;
+        }
+      }
+      else if (is_abbrev(metamagic_arg, "metamagicadept"))
+      {
+        if (HAS_FEAT(ch, FEAT_METAMAGIC_ADEPT))
+        {
+          if (!IS_NPC(ch) && (daily_uses_remaining(ch, FEAT_METAMAGIC_ADEPT)) == 0)
+          {
+            send_to_char(ch, "You must recover before you can use your metamagic adept ability again.\r\n");
+            return;
+          }
+          if (!IS_NPC(ch))
+            start_daily_use_cooldown(ch, FEAT_METAMAGIC_ADEPT);
+          SET_BIT(metamagic, METAMAGIC_ARCANE_ADEPT);
+        }
+        else
+        {
+          send_to_char(ch, "You do not know the secrets of metamagic adepts!\r\n");
+          return;
+        }
+      }
+    }
+  }
+
+  if (!IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) && compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
+    SET_BIT(metamagic, METAMAGIC_SILENT);
+  if (!IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
+    SET_BIT(metamagic, METAMAGIC_STILL);
+
   /* looking for 'easy outs' */
 
   if (IS_AFFECTED(ch, AFF_TFORM) ||
@@ -2218,6 +2334,16 @@ ACMDU(do_gen_cast)
   {
     send_to_char(ch, "%s?  Why do that when you can SMASH!!\r\n", do_cast_types[subcmd][0]);
     return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_SILENCED) && !is_spellnum_psionic(spellnum))
+  {
+    if (!IS_SET(metamagic, METAMAGIC_SILENT))
+    {
+      send_to_char(ch, "You are unable to make a sound.\r\n");
+      act("$n tries to speak, but cannot seem to make a sound.", TRUE, ch, 0, 0, TO_ROOM);
+      return;
+    }
   }
 
   if (IS_AFFECTED(ch, AFF_WILD_SHAPE) && !HAS_FEAT(ch, FEAT_NATURAL_SPELL))
@@ -2267,7 +2393,7 @@ ACMDU(do_gen_cast)
       if (school == CONJURATION && HAS_REAL_FEAT(ch, FEAT_SHADOW_CALL))
       {
         PREREQ_HAS_USES(FEAT_SHADOW_CALL, "You are not yet able to shadowcast this spell until you recover a shadow call use.\r\n");
-        circle = MIN(circle, compute_spells_circle(CLASS_WIZARD, spellnum, 0, 0));
+        circle = MIN(circle, compute_spells_circle(ch, CLASS_WIZARD, spellnum, 0, 0));
         if (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) == 10)
         {
           if (circle > 6)
@@ -2285,7 +2411,7 @@ ACMDU(do_gen_cast)
       else if (school == EVOCATION && HAS_REAL_FEAT(ch, FEAT_SHADOW_POWER))
       {
         PREREQ_HAS_USES(FEAT_SHADOW_POWER, "You are not yet able to shadowcast this spell until you recover a shadow power use.\r\n");
-        circle = MIN(circle, compute_spells_circle(CLASS_WIZARD, spellnum, 0, 0));
+        circle = MIN(circle, compute_spells_circle(ch, CLASS_WIZARD, spellnum, 0, 0));
         if (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) == 10)
         {
           if (circle > 7)
@@ -2526,7 +2652,7 @@ return;
     }
   }
 
-  circle = compute_spells_circle(GET_CASTING_CLASS(ch), spellnum, 0, 0);
+  circle = compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, 0, 0);
 
   if (!canCastAtWill(ch, spellnum) && !is_domain_spell_of_ch(ch, spellnum))
   {
@@ -3308,6 +3434,9 @@ void mag_assign_spells(void)
   /* divination */
   spello(SPELL_IDENTIFY, "identify", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
+         NULL, 5, 7, DIVINATION, FALSE);
+  spello(SPELL_MASS_IDENTIFY, "mass identify", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 5, 7, DIVINATION, FALSE);
   spello(SPELL_SHELGARNS_BLADE, "shelgarns blade", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_SUMMONS,
@@ -5247,7 +5376,7 @@ void display_shadowcast_spells(struct char_data *ch)
     found = false;
     for (i = 0; i < NUM_SPELLS; i++)
     {
-      if (circle == compute_spells_circle(CLASS_WIZARD, i, 0, 0))
+      if (circle == compute_spells_circle(ch, CLASS_WIZARD, i, 0, 0))
       {
         if (i == SPELL_MIRROR_IMAGE && HAS_REAL_FEAT(ch, FEAT_SHADOW_ILLUSION))
         {

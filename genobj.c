@@ -20,6 +20,7 @@
 #include "interpreter.h"
 #include "boards.h" /* for board_info */
 #include "craft.h"
+#include "spells.h"
 
 /* local functions */
 static int update_all_objects(struct obj_data *obj);
@@ -353,6 +354,16 @@ int save_objects(zone_rnum zone_num)
       fprintf(fp, "J\n"
                   "%d\n",
               obj->mob_recepient);
+
+      // k: spells that can be activated
+      if (obj->activate_spell[ACT_SPELL_LEVEL] > 0 && obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        fprintf(fp, "K\n"
+                  "%d %d %d %d %d\n",
+              obj->activate_spell[ACT_SPELL_LEVEL], obj->activate_spell[ACT_SPELL_SPELLNUM], 
+              obj->activate_spell[ACT_SPELL_CURRENT_USES], obj->activate_spell[ACT_SPELL_MAX_USES], 
+              obj->activate_spell[ACT_SPELL_COOLDOWN]);
+      }
 
       // S:  weapon spells
       for (counter2 = 0; counter2 < MAX_WEAPON_SPELLS; counter2++)

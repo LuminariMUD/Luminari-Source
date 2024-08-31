@@ -2466,6 +2466,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     dam = min_dice(num_dice, size_dice, min_dice_roll) + bonus;
   }
+  if (IS_SET(metamagic, METAMAGIC_EMPOWER))
+  {
+    dam *= 1.5;  
+  }
 
   if (spellnum >= WARLOCK_POWER_START && spellnum <= WARLOCK_POWER_END)
   {
@@ -2586,6 +2590,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   // dwarven racial bonus to magic, gnomes to illusion
   int race_bonus = 0;
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+#else
   if (GET_RACE(victim) == RACE_DWARF)
     race_bonus += 2;
   if (GET_RACE(victim) == RACE_DUERGAR)
@@ -2598,6 +2604,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     race_bonus += 2;
   if (GET_RACE(victim) == RACE_ARCANA_GOLEM)
     race_bonus -= 2;
+#endif
 
   if (element == DAM_POISON)
     race_bonus += get_poison_save_mod(ch, victim);
@@ -2765,6 +2772,13 @@ bool passed_poison_checks(struct char_data *ch, struct char_data *victim, int ca
 /* all spells, spell-like affects, alchemy, psionics, etc that puts on an affect should be going through here */
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
                  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic)
+{
+  mag_affects_full(level, ch, victim, wpn, spellnum, savetype, casttype, metamagic, false);
+}
+
+
+void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
+                 struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic, bool recursive_call)
 {
 
   struct affected_type af[MAX_SPELL_AFFECTS];
@@ -8528,6 +8542,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     accum_affect = FALSE;
   }
 
+  if (IS_SET(metamagic, METAMAGIC_EXTEND) && can_spell_be_extended(spellnum))
+  {
+    for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+    {
+      af[i].duration *= 1.5;
+    }
+  }
+
   /* send messages */
   if (to_vict != NULL)
     act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
@@ -8558,8 +8580,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       affect_join(victim, af + i, accum_duration, FALSE, accum_affect, FALSE);
     }
   }
-  if (HAS_FEAT(ch, FEAT_DRAGON_LINK) && is_riding_dragon_mount(ch) && casttype == CAST_SPELL)
-    mag_affects(level, ch, RIDING(ch), wpn, spellnum, savetype, casttype, metamagic);
+  if (HAS_FEAT(ch, FEAT_DRAGON_LINK) && is_riding_dragon_mount(ch) && !recursive_call)
+  {
+    mag_affects_full(level, (ch), RIDING(ch), wpn, spellnum, savetype, casttype, metamagic, true);
+  }
 }
 
 #undef WARD_THRESHOLD
@@ -9006,6 +9030,18 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
   if (tch == ch)
     return 0;
 
+  if (PRF_FLAGGED(ch, PRF_CONTAIN_AOE) || (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && (ch->master, PRF_CONTAIN_AOE)))
+  {
+    if (!FIGHTING(ch) || !FIGHTING(tch))
+    {
+      return 0;
+    }
+    if (!is_player_grouped(FIGHTING(tch), ch))
+    {
+      return 0;
+    }
+  }
+
   // earthquake currently doesn't work on flying victims
   if ((spellnum == SPELL_EARTHQUAKE) && is_flying(tch))
     return 0;
@@ -9094,6 +9130,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   struct char_data *tch = NULL, *next_tch = NULL;
   const char *to_char = NULL, *to_room = NULL;
   int isEffect = FALSE, is_eff_and_dam = FALSE, is_uneffect = FALSE;
+  int temp_meta = 0, temp_class = GET_CASTING_CLASS(ch);
 
   if (ch == NULL)
     return;
@@ -9403,6 +9440,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   if (to_room != NULL)
     act(to_room, FALSE, ch, 0, 0, TO_ROOM);
 
+  temp_meta = metamagic;
+
   for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
   {
     next_tch = tch->next_in_room;
@@ -9415,15 +9454,31 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
         continue;
       if (is_eff_and_dam)
       {
-        mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
+        metamagic = temp_meta;
+        GET_CASTING_CLASS(ch) = temp_class;
+        mag_damage(level, ch, tch, obj, spellnum, temp_meta, 1, casttype);
+        metamagic = temp_meta;
+        GET_CASTING_CLASS(ch) = temp_class;
         mag_affects(level, ch, tch, obj, spellnum, savetype, casttype, metamagic);
       }
       else if (isEffect)
+      {
+        metamagic = temp_meta;
+        GET_CASTING_CLASS(ch) = temp_class;
         mag_affects(level, ch, tch, obj, spellnum, savetype, casttype, metamagic);
+      }
       else if (is_uneffect)
+      {
+        metamagic = temp_meta;
+        GET_CASTING_CLASS(ch) = temp_class;
         mag_unaffects(level, ch, tch, obj, spellnum, savetype, casttype);
+      }
       else
+      {
+        metamagic = temp_meta;
+        GET_CASTING_CLASS(ch) = temp_class;
         mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
+      }
 
       /* we gotta start combat here */
       if (isEffect && spell_info[spellnum].violent && tch && GET_POS(tch) == POS_STANDING &&
@@ -11905,6 +11960,266 @@ bool is_spell_mind_affecting(int snum)
     case SPELL_WAIL_OF_THE_BANSHEE:
     case AFFECT_AURA_OF_TERROR:
       return true;
+  }
+  return false;
+}
+
+bool can_spell_be_empowered(int spellnum)
+{
+  switch (spellnum)
+  {
+    case SPELL_ARMOR :
+    case SPELL_BLESS :
+    case SPELL_BLINDNESS :
+    case SPELL_BURNING_HANDS :
+    case SPELL_CALL_LIGHTNING :
+    case SPELL_CHILL_TOUCH :
+    case SPELL_COLOR_SPRAY :
+    case SPELL_CURE_CRITIC :
+    case SPELL_CURE_LIGHT :
+    case SPELL_CURSE :
+    case SPELL_DISPEL_EVIL :
+    case SPELL_EARTHQUAKE :
+    case SPELL_ENERGY_DRAIN :
+    case SPELL_FIREBALL :
+    case SPELL_HARM :
+    case SPELL_HEAL :
+    case SPELL_LIGHTNING_BOLT :
+    case SPELL_MAGIC_MISSILE :
+    case SPELL_POISON :
+    case SPELL_SHOCKING_GRASP :
+    case SPELL_STRENGTH :
+    case SPELL_DISPEL_GOOD :
+    case SPELL_GROUP_HEAL :
+    case SPELL_BLUR :
+    case SPELL_ENDURANCE :
+    case SPELL_GREATER_RUIN:
+    case SPELL_HELLBALL:
+    case SPELL_CAUSE_LIGHT_WOUNDS :
+    case SPELL_CAUSE_MODERATE_WOUNDS :
+    case SPELL_CAUSE_SERIOUS_WOUNDS :
+    case SPELL_CAUSE_CRITICAL_WOUNDS :
+    case SPELL_FLAME_STRIKE :
+    case SPELL_DESTRUCTION :
+    case SPELL_ICE_STORM :
+    case SPELL_BALL_OF_LIGHTNING :
+    case SPELL_MISSILE_STORM :
+    case SPELL_CHAIN_LIGHTNING :
+    case SPELL_METEOR_SWARM :
+    case SPELL_HORIZIKAULS_BOOM :
+    case SPELL_ICE_DAGGER :
+    case SPELL_IRON_GUTS :
+    case SPELL_MAGE_ARMOR :
+    case SPELL_NEGATIVE_ENERGY_RAY :
+    case SPELL_RAY_OF_ENFEEBLEMENT :
+    case SPELL_SHELGARNS_BLADE :
+    case SPELL_SHIELD :
+    case SPELL_TRUE_STRIKE :
+    case SPELL_ACID_ARROW :
+    case SPELL_HIDEOUS_LAUGHTER :
+    case SPELL_TOUCH_OF_IDIOCY :
+    case SPELL_CONTINUAL_FLAME :
+    case SPELL_SCORCHING_RAY :
+    case SPELL_FALSE_LIFE :
+    case SPELL_GRACE :
+    case SPELL_RESIST_ENERGY :
+    case SPELL_ENERGY_SPHERE :
+    case SPELL_HEROISM :
+    case SPELL_VAMPIRIC_TOUCH :
+    case SPELL_HASTE :
+    case SPELL_SLOW :
+    case SPELL_CUNNING :
+    case SPELL_WISDOM :
+    case SPELL_CHARISMA :
+    case SPELL_ACID_SPLASH:
+    case SPELL_RAY_OF_FROST:
+    case SPELL_RAINBOW_PATTERN :
+    case SPELL_ENLARGE_PERSON :
+    case SPELL_SHRINK_PERSON :
+    case SPELL_INTERPOSING_HAND :
+    case SPELL_CLOUDKILL :
+    case SPELL_SYMBOL_OF_PAIN :
+    case SPELL_NIGHTMARE :
+    case SPELL_MIND_FOG :
+    case SPELL_CONE_OF_COLD :
+    case SPELL_DEATHCLOUD:
+    case SPELL_FREEZING_SPHERE :
+    case SPELL_ACID_FOG :
+    case SPELL_TRANSFORMATION :
+    case SPELL_EYEBITE :
+    case SPELL_GREATER_HEROISM :
+    case SPELL_GRASPING_HAND :
+    case SPELL_WAVES_OF_EXHAUSTION :
+    case SPELL_PRISMATIC_SPRAY :
+    case SPELL_THUNDERCLAP :
+    case SPELL_SPELL_MANTLE :
+    case SPELL_MASS_WISDOM :
+    case SPELL_MASS_CHARISMA :
+    case SPELL_CLENCHED_FIST :
+    case SPELL_INCENDIARY_CLOUD :
+    case SPELL_HORRID_WILTING :
+    case SPELL_IRRESISTIBLE_DANCE :
+    case SPELL_SCINT_PATTERN :
+    case SPELL_SUNBURST :
+    case SPELL_MASS_CUNNING :
+    case SPELL_BLADE_OF_DISASTER :
+    case SPELL_WAIL_OF_THE_BANSHEE :
+    case SPELL_POWER_WORD_KILL :
+    case SPELL_ENFEEBLEMENT :
+    case SPELL_WEIRD :
+    case SPELL_SHADOW_SHIELD :
+    case SPELL_PRISMATIC_SPHERE :
+    case SPELL_IMPLODE :
+    case SPELL_GREATER_SPELL_MANTLE :
+    case SPELL_MASS_ENHANCE :
+    case SPELL_ACID:
+    case SPELL_INCENDIARY:
+    case SPELL_CURE_MODERATE :
+    case SPELL_CURE_SERIOUS :
+    case SPELL_MASS_CURE_LIGHT :
+    case SPELL_AID :
+    case SPELL_BRAVERY :
+    case SPELL_MASS_CURE_MODERATE :
+    case SPELL_REGENERATION :
+    case SPELL_STRENGTHEN_BONE :
+    case SPELL_MASS_CURE_SERIOUS :
+    case SPELL_PRAYER :
+    case SPELL_WORD_OF_FAITH :
+    case SPELL_STORM_OF_VENGEANCE :
+    case SPELL_MASS_CURE_CRIT :
+    case SPELL_FAERIE_FIRE :
+    case SPELL_JUMP :
+    case SPELL_MAGIC_FANG :
+    case SPELL_PRODUCE_FLAME :
+    case SPELL_BARKSKIN :
+    case SPELL_FLAMING_SPHERE :
+    case SPELL_CALL_LIGHTNING_STORM :
+    case SPELL_SUMMON_SWARM :
+    case SPELL_CONTAGION :
+    case SPELL_GREATER_MAGIC_FANG :
+    case SPELL_SPIKE_GROWTH :
+    case SPELL_BLIGHT :
+    case SPELL_SPIKE_STONES :
+    case SPELL_INSECT_PLAGUE :
+    case SPELL_UNHALLOW :
+    case SPELL_CONFUSION :
+    case SPELL_MASS_ENDURANCE:
+    case SPELL_MASS_STRENGTH:
+    case SPELL_MASS_GRACE:
+    case SPELL_SPELL_RESISTANCE :
+    case SPELL_CREEPING_DOOM :
+    case SPELL_FIRE_STORM :
+    case SPELL_SUNBEAM :
+    case SPELL_FINGER_OF_DEATH :
+    case SPELL_BLADE_BARRIER :
+    case SPELL_BATTLETIDE :
+    case SPELL_DOOM:
+    case SPELL_VIGORIZE_LIGHT :
+    case SPELL_VIGORIZE_SERIOUS :
+    case SPELL_VIGORIZE_CRITICAL :
+    case SPELL_ELEMENTAL_RESISTANCE :
+    case SPELL_MASS_FALSE_LIFE :
+    case SPELL_CIRCLE_OF_DEATH :
+    case SPELL_UNDEATH_TO_DEATH :
+    case SPELL_LESSER_MISSILE_STORM :
+    case SPELL_DIVINE_FAVOR :
+    case SPELL_HEAL_MOUNT :
+    case SPELL_RESISTANCE :
+    case SPELL_HEDGING_WEAPONS :
+    case SPELL_HONEYED_TONGUE :
+    case SPELL_TACTICAL_ACUMEN :
+    case SPELL_EFFORTLESS_ARMOR :
+    case SPELL_FIRE_OF_ENTANGLEMENT :
+    case SPELL_LITANY_OF_DEFENSE :
+    case SPELL_LITANY_OF_RIGHTEOUSNESS :
+    case SPELL_RIGHTEOUS_VIGOR :
+    case SPELL_BLINDING_RAY :
+    case SPELL_HOLY_JAVELIN :
+    case SPELL_GREATER_MAGIC_WEAPON :
+    case SPELL_MAGIC_VESTMENT :
+    case SPELL_PROTECTION_FROM_ENERGY :
+    case SPELL_COMMUNAL_PROTECTION_FROM_ENERGY :
+    case SPELL_SEARING_LIGHT :
+    case SPELL_DIVINE_POWER :
+    case SPELL_RESTORATION :
+    case SPELL_MOONBEAM :
+    case SPELL_HELLISH_REBUKE :
+    case SPELL_ANT_HAUL :
+    case SPELL_MASS_ANT_HAUL :
+    case SPELL_CORROSIVE_TOUCH :
+    case SPELL_PLANAR_HEALING :
+    case SPELL_CUSHIONING_BANDS :
+    case SPELL_GIRD_ALLIES :
+    case SPELL_GLITTERDUST :
+    case SPELL_SPIDER_CLIMB :
+    case SPELL_AQUEOUS_ORB :
+    case SPELL_HUMAN_POTENTIAL :
+    case SPELL_MASS_HUMAN_POTENTIAL :
+    case SPELL_BLACK_TENTACLES :
+    case SPELL_GREATER_BLACK_TENTACLES :
+    case SPELL_MASS_ENLARGE_PERSON :
+    case SPELL_MASS_REDUCE_PERSON :
+    case SPELL_RAGE :
+    case SPELL_COMMUNAL_RESIST_ENERGY :
+    case SPELL_SIPHON_MIGHT :
+    case SPELL_COMMUNAL_SPIDER_CLIMB :
+    case SPELL_CAUSTIC_BLOOD :
+    case SPELL_GREATER_PLANAR_HEALING :
+    case SPELL_HOSTILE_JUXTAPOSITION :
+    case SPELL_GREATER_HOSTILE_JUXTAPOSITION :
+    case SPELL_BANISHING_BLADE :
+    case SPELL_GRAND_DESTINY :
+    case SPELL_TOUCH_OF_FATIGUE :
+    case SPELL_LESSER_REJUVENATE_EIDOLON :
+    case SPELL_REJUVENATE_EIDOLON :
+    case SPELL_GREATER_REJUVENATE_EIDOLON :
+    case SPELL_LESSER_EVOLUTION_SURGE :
+    case SPELL_EVOLUTION_SURGE :
+    case SPELL_GREATER_EVOLUTION_SURGE :
+    case SPELL_LESSER_RESTORE_EIDOLON :
+    case SPELL_RESTORE_EIDOLON :
+    case SPELL_PURIFIED_CALLING :
+    case SPELL_HOLY_AURA :
+    case SPELL_FLAME_ARROW :
+      return true;
+  }
+  return false;
+}
+
+// returns true if spell can be affected by extend spell metamagic
+bool can_spell_be_extended(int spellnum)
+{
+  if (spellnum < 0 || spellnum >= NUM_SPELLS)
+    return false;
+    
+  if (IS_SET(spell_info[spellnum].routines, MAG_AFFECTS))
+  {
+    if (spell_info[spellnum].violent == FALSE)
+      return true;
+
+    switch (spellnum)
+    {
+      // stunning spells
+      case SPELL_COLOR_SPRAY:
+      case SPELL_DAZE_MONSTER:
+      case SPELL_POWER_WORD_STUN:
+      case SPELL_PRISMATIC_SPRAY:
+      case SPELL_RAINBOW_PATTERN:
+      case SPELL_THUNDERCLAP:
+      case SPELL_WEIRD:
+      // paralyzed
+      case SPELL_HALT_UNDEAD:
+      case SPELL_HIDEOUS_LAUGHTER:
+      case SPELL_HOLD_ANIMAL:
+      case SPELL_HOLD_PERSON:
+      case SPELL_HOLD_MONSTER:
+      case SPELL_IRRESISTIBLE_DANCE:
+      case SPELL_MASS_HOLD_PERSON:
+      case SPELL_TIMESTOP:
+        return false;
+      default:
+        return true;
+    }
   }
   return false;
 }

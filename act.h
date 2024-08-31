@@ -168,6 +168,8 @@ void perform_abilities(struct char_data *ch, struct char_data *k);
 void perform_cooldowns(struct char_data *ch, struct char_data *k);
 void perform_resistances(struct char_data *ch, struct char_data *k);
 
+void list_item_activate_abilities(struct char_data *ch);
+
 // displaying more info -zusuk
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type);
 #define SHOW_OBJ_SHORT 1
@@ -319,6 +321,7 @@ void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum
 /* do_look, do_inventory utility functions */
 void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type);
 void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type, bool can_see_always);
+int find_activate_object_by_spellnum(struct char_data *ch, int spellnum, bool require_uses_remaining);
 
 /* functions with subcommands */
 /* do_drop */
@@ -341,6 +344,8 @@ ACMD_DECL(do_bagnames);
 ACMD_DECL(do_bags);
 #define SCMD_SORTTO   1
 #define SCMD_SORTFROM 2
+
+ACMD_DECL(do_activate);
 
 /* AUCTIONING STATES */
 #define AUC_NULL_STATE 0  /* not doing anything */
@@ -742,6 +747,7 @@ ACMD_DECL(do_buildwalk);
 #define SCMD_AUTOSORT 58
 #define SCMD_AUTOSTORE 59
 #define SCMD_AUTOGROUP 60
+#define SCMD_CONTAIN_AOES 61
 
 /* do_quit */
 ACMD_DECL(do_quit);
