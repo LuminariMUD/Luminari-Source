@@ -36,6 +36,7 @@
 #include "actions.h" /* for use_ACTION() */
 #include "transport.h"
 #include "evolutions.h"
+#include "feats.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
@@ -4227,6 +4228,87 @@ EVENTFUNC(event_holy_javelin)
 
   update_pos(victim);
   return 0;
+}
+
+ASPELL(spell_mass_identify)
+{
+  int i, k;
+  int found = false;
+  struct obj_data *item = NULL;
+  char buf2[300], bitbuf[300];
+  struct char_data *orig = ch;
+  ch = victim;
+
+  if (orig == victim)
+  {
+    act("You cast mass identify on yourself.", TRUE, orig, 0, 0, TO_CHAR);
+  }
+  else
+  {
+    act("You cast mass identify on $N.", TRUE, orig, 0, ch, TO_CHAR);
+    act("$n casts mass identify on You.", TRUE, orig, 0, ch, TO_VICT);
+  }
+
+  send_to_char(ch, "You are using:\r\n");
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    found = false;
+    if (GET_EQ(ch, i))
+    {
+      item = GET_EQ(ch, i);
+      if (CAN_SEE_OBJ(ch, GET_EQ(ch, i)))
+      {
+        send_to_char(ch, "%-30s", wear_where[i]);
+
+        if (GET_OBJ_TYPE(item) == ITEM_WEAPON || GET_OBJ_TYPE(item) == ITEM_ARMOR)
+          send_to_char(ch, " %s Enhancement: %d ",
+                       GET_OBJ_TYPE(item) == ITEM_ARMOR ? (CAN_WEAR(item, ITEM_WEAR_SHIELD) ? 
+                       "Shield" : "Armor") : "Weapon", GET_ENHANCEMENT_BONUS(item));
+
+        for (k = 0; k < MAX_OBJ_AFFECT; k++)
+        {
+          if ((item->affected[k].location != APPLY_NONE) && (item->affected[k].modifier != 0))
+          {
+            if (!found)
+            {
+              found = true;
+            }
+            sprinttype(item->affected[k].location, apply_types,
+                       bitbuf, sizeof(bitbuf));
+            switch (item->affected[k].location)
+            {
+            case APPLY_FEAT:
+              snprintf(buf2, sizeof(buf2), " (%s)",
+                       feat_list[item->affected[k].modifier].name);
+              send_to_char(ch, " %s%s", bitbuf, buf2);
+              break;
+            default:
+              buf2[0] = 0;
+              send_to_char(ch, " %s%s %s%d (%s)", bitbuf, buf2,
+                           (item->affected[k].modifier > 0) ? "+"
+                                                           : "",
+                           item->affected[k].modifier,
+                           bonus_types[item->affected[k].bonus_type]);
+              break;
+            }
+          }
+        }
+        send_to_char(ch, "\r\n");
+      }
+      else
+      {
+        send_to_char(ch, "%-30s", wear_where[i]);
+        send_to_char(ch, "Something.\r\n");
+      }
+    }
+    else
+    {
+      if (!GET_EQ(ch, i))
+      {
+        send_to_char(ch, "%-30s<empty>\r\n", wear_where[i]);
+      }
+    }
+  }
 }
 
 ASPELL(spell_holy_javelin)

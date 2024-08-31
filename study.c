@@ -896,7 +896,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (compute_spells_circle(CLASS_SORCERER,
+    if (compute_spells_circle(d->character, CLASS_SORCERER,
                               counter,
                               METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
@@ -1071,7 +1071,7 @@ void inquisitor_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (compute_spells_circle(CLASS_INQUISITOR,
+    if (compute_spells_circle(d->character, CLASS_INQUISITOR,
                               counter,
                               METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
@@ -1113,7 +1113,7 @@ void warlock_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = WARLOCK_POWER_START + 2; counter < WARLOCK_POWER_END; counter++)
   {    
-    if (compute_spells_circle(CLASS_WARLOCK,
+    if (compute_spells_circle(d->character, CLASS_WARLOCK,
                               counter,
                               METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
@@ -1157,7 +1157,7 @@ void bard_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (compute_spells_circle(CLASS_BARD,
+    if (compute_spells_circle(d->character, CLASS_BARD,
                               counter,
                               METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
@@ -1198,7 +1198,7 @@ void summoner_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (compute_spells_circle(CLASS_SUMMONER,
+    if (compute_spells_circle(d->character, CLASS_SUMMONER,
                               counter,
                               METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
@@ -3784,7 +3784,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number)
         {
-          if (compute_spells_circle(CLASS_SORCERER,
+          if (compute_spells_circle(ch, CLASS_SORCERER,
                                     counter,
                                     METAMAGIC_NONE,
                                     DOMAIN_UNDEFINED) ==
@@ -3871,7 +3871,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number && warlock_spell_type(counter) != WARLOCK_POWER_NONE)
         {
-          if (compute_spells_circle(CLASS_WARLOCK,
+          if (compute_spells_circle(ch, CLASS_WARLOCK,
                                     counter,
                                     METAMAGIC_NONE,
                                     DOMAIN_UNDEFINED) ==
@@ -3962,7 +3962,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number)
         {
-          if (compute_spells_circle(CLASS_BARD,
+          if (compute_spells_circle(ch, CLASS_BARD,
                                     counter,
                                     METAMAGIC_NONE,
                                     DOMAIN_UNDEFINED) ==
@@ -4053,7 +4053,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number)
         {
-          if (compute_spells_circle(CLASS_SUMMONER,
+          if (compute_spells_circle(ch, CLASS_SUMMONER,
                                     counter,
                                     METAMAGIC_NONE,
                                     DOMAIN_UNDEFINED) ==
@@ -4370,7 +4370,7 @@ void study_parse(struct descriptor_data *d, char *arg)
           {
             if (counter == number)
             {
-          if (compute_spells_circle(CLASS_INQUISITOR,
+          if (compute_spells_circle(ch, CLASS_INQUISITOR,
                                     counter,
                                     METAMAGIC_NONE,
                                     DOMAIN_UNDEFINED) ==

@@ -164,7 +164,7 @@ extern "C"
      * given above info, compute which circle this spell belongs to, this 'interesting'
      * set-up is due to a dated system that assigns spells by level, not circle
      * in addition we have metamagic that can modify the spell-circle as well */
-    int compute_spells_circle(int class, int spellnum, int metamagic, int domain);
+    int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, int metamagic, int domain);
 
     /* in: character, class we need to check
      * out: highest circle access in given class, FALSE for fail

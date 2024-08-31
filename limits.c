@@ -1343,6 +1343,215 @@ void check_idling(struct char_data *ch)
   }
 }
 
+void recharge_activated_items(void)
+{
+  struct descriptor_data *d = NULL;
+  struct char_data *ch = NULL;
+  struct obj_data *obj = NULL;
+  int i = 0, j = 0;
+  char buf[200], where_name[200];
+
+  for (d = descriptor_list; d; d = d->next)
+  {
+    ch = d->character;
+    if (!ch)
+      continue;
+
+    if (STATE(d) != CON_PLAYING)
+      continue;
+
+    for (i = 0; i < NUM_WEARS; i++)
+    {
+      if ((obj = GET_EQ(ch, i)))
+      {
+        if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+        {
+          if (obj->activate_spell[ACT_SPELL_COOLDOWN] > 0)
+          {
+            obj->activate_spell[ACT_SPELL_COOLDOWN]--;
+            if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0)
+            {
+              if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+              {
+                obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+                snprintf(where_name, sizeof(where_name), "%s", equipment_types[i]);
+                for (j = 0; j < strlen(where_name); j++)
+                {
+                  where_name[j] = tolower(where_name[j]);
+                }
+                snprintf(buf, sizeof(buf), "$p, %s, regains 1 charge of '%s'.",
+                  where_name, spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                act(buf, TRUE, ch, obj, 0, TO_CHAR);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (obj = ch->carrying; obj; obj = obj->next_content)
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+        {
+          if (obj->activate_spell[ACT_SPELL_COOLDOWN] > 0)
+          {
+            obj->activate_spell[ACT_SPELL_COOLDOWN]--;
+            if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0)
+            {
+              if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+              {
+                obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+                snprintf(buf, sizeof(buf), "$p, in your inventory, regains 1 charge of '%s'.",
+                  spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+                act(buf, TRUE, ch, obj, 0, TO_CHAR);
+              }
+            }
+          }
+        }
+    }
+
+    for (obj = ch->bags->bag1; obj; obj = obj->next_content)
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+        {
+          obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+          snprintf(buf, sizeof(buf), "$p, in your bag #1, regains 1 charge of '%s'.",
+            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+          act(buf, TRUE, ch, obj, 0, TO_CHAR);
+        }
+      }
+    }
+
+    for (obj = ch->bags->bag2; obj; obj = obj->next_content)
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+        {
+          obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+          snprintf(buf, sizeof(buf), "$p, in your bag #2, regains 1 charge of '%s'.",
+            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+          act(buf, TRUE, ch, obj, 0, TO_CHAR);
+        }
+      }
+    }
+
+    for (obj = ch->bags->bag3; obj; obj = obj->next_content)
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+        {
+          obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+          snprintf(buf, sizeof(buf), "$p, in your bag #3, regains 1 charge of '%s'.",
+            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+          act(buf, TRUE, ch, obj, 0, TO_CHAR);
+        }
+      }
+    }
+
+    for (obj = ch->bags->bag4; obj; obj = obj->next_content)
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+        {
+          obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+          snprintf(buf, sizeof(buf), "$p, in your bag #4, regains 1 charge of '%s'.",
+            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+          act(buf, TRUE, ch, obj, 0, TO_CHAR);
+        }
+      }
+    }
+
+    for (obj = ch->bags->bag5; obj; obj = obj->next_content)
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+        {
+          obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+          snprintf(buf, sizeof(buf), "$p, in your bag #5, regains 1 charge of '%s'.",
+            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+          act(buf, TRUE, ch, obj, 0, TO_CHAR);
+        }
+      }
+    }
+
+    for (obj = ch->bags->bag6; obj; obj = obj->next_content)
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+        {
+          obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+          snprintf(buf, sizeof(buf), "$p, in your bag #6, regains 1 charge of '%s'.",
+            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+          act(buf, TRUE, ch, obj, 0, TO_CHAR);
+        }
+      }
+    }
+
+    for (obj = ch->bags->bag7; obj; obj = obj->next_content)
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+        {
+          obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+          snprintf(buf, sizeof(buf), "$p, in your bag #7, regains 1 charge of '%s'.",
+            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+          act(buf, TRUE, ch, obj, 0, TO_CHAR);
+        }
+      }
+    }
+
+    for (obj = ch->bags->bag8; obj; obj = obj->next_content)
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+        {
+          obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+          snprintf(buf, sizeof(buf), "$p, in your bag #8, regains 1 charge of '%s'.",
+            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+          act(buf, TRUE, ch, obj, 0, TO_CHAR);
+        }
+      }
+    }
+
+    for (obj = ch->bags->bag9; obj; obj = obj->next_content)
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+        {
+          obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+          snprintf(buf, sizeof(buf), "$p, in your bag #9, regains 1 charge of '%s'.",
+            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+          act(buf, TRUE, ch, obj, 0, TO_CHAR);
+        }
+      }
+    }
+
+    for (obj = ch->bags->bag10; obj; obj = obj->next_content)
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+        {
+          obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
+          snprintf(buf, sizeof(buf), "$p, in your bag #10, regains 1 charge of '%s'.",
+            spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
+          act(buf, TRUE, ch, obj, 0, TO_CHAR);
+        }
+      }
+    }
+  }
+}
+
 void update_player_misc(void)
 {
   struct descriptor_data *d = NULL;

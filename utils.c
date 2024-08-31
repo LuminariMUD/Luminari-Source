@@ -3439,6 +3439,8 @@ bool char_has_ultra(struct char_data *ch)
   if (HAS_FEAT(ch, FEAT_ULTRAVISION))
     return TRUE;
 
+  if (char_has_infra(ch)) return TRUE;
+
   if (GET_RACE(ch) == RACE_HALF_TROLL)
     return TRUE;
   if (GET_RACE(ch) == RACE_H_ORC)
@@ -9148,8 +9150,9 @@ bool is_crafting_kit(struct obj_data *kit)
 {
   if (!kit) return false;
   if (GET_OBJ_TYPE(kit) != ITEM_CONTAINER) return false;
+  if (!strncmp(kit->name, "corpse ", 7)) return false;
   obj_rnum rnum = GET_OBJ_RNUM(kit);
-  if (obj_index[rnum].func != crafting_kit) return false;
+  if (rnum != NOTHING && obj_index[rnum].func != crafting_kit) return false;
   return true;
 }
 

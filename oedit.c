@@ -296,8 +296,7 @@ void oedit_save_internally(struct descriptor_data *d)
     if (STATE(dsc) == CON_SEDIT)
       for (i = 0; S_PRODUCT(OLC_SHOP(dsc), i) != NOTHING; i++)
         if (S_PRODUCT(OLC_SHOP(dsc), i) >= robj_num)
-          S_PRODUCT(OLC_SHOP(dsc), i)
-  ++;
+          S_PRODUCT(OLC_SHOP(dsc), i)++;
 
   /* Update other people in zedit too. From: C.Raehl 4/27/99 */
   for (dsc = descriptor_list; dsc; dsc = dsc->next)
@@ -1726,6 +1725,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   "%sE%s) Extra descriptions menu: %s%s%s\r\n"
                   "%sF%s) Weapon Spells          : %s%s\r\n"
                   "%sJ%s) Special Abilities      : %s%s\r\n"
+                  "%sK%s) Activated Spells       : %sLvl %d %s x%d\r\n"
                   "%sM%s) Min Level              : %s%d\r\n"
                   "%sP%s) Perm Affects           : %s%s\r\n"
                   "%sR%s) Mob Recipient          : %s%d\r\n"
@@ -1756,6 +1756,10 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   grn, nrm, grn, nrm, cyn, obj->ex_description ? "Set." : "Not Set.", grn,
                   grn, nrm, cyn, HAS_SPELLS(obj) ? "Set." : "Not set.",
                   grn, nrm, cyn, HAS_SPECIAL_ABILITIES(obj) ? "Set." : "Not Set.",
+                  grn, nrm, cyn, obj->activate_spell[ACT_SPELL_LEVEL], 
+                  obj->activate_spell[ACT_SPELL_SPELLNUM] > 0 ? 
+                  spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name : "Not Set",
+                  obj->activate_spell[ACT_SPELL_MAX_USES],
                   grn, nrm, cyn, GET_OBJ_LEVEL(obj),
                   grn, nrm, cyn, buf2,
                   grn, nrm, cyn, (obj)->mob_recepient,
@@ -2043,6 +2047,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case 'J':
       oedit_disp_weapon_special_abilities_menu(d);
       OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
+      break;
+    case 'k':
+    case 'K':
+      write_to_output(d, "Please enter the level the spell will be cast at (Enter 0 to erase this activated spell): ");
+      OLC_MODE(d) = OEDIT_ACTIVATED_SPELLS_LEVEL;
       break;
     default:
       oedit_disp_menu(d);
@@ -2852,7 +2861,14 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
   case OEDIT_WEAPON_SPELLS:
     if ((number = atoi(arg)) == -1)
+    {
+      OLC_OBJ(d)->wpn_spells[OLC_VAL(d)].level = 0;
+      OLC_OBJ(d)->wpn_spells[OLC_VAL(d)].percent = 0;
+      OLC_OBJ(d)->wpn_spells[OLC_VAL(d)].inCombat = 0;
+      OLC_OBJ(d)->wpn_spells[OLC_VAL(d)].spellnum = 0;
+      HAS_SPELLS(OLC_OBJ(d)) = 0;
       break;
+    }
     else if (number < -1 || number > MAX_SPELLS)
     {
       oedit_disp_spells_menu(d);
@@ -2865,7 +2881,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
   case OEDIT_WEAPON_SPELL_LEVEL:
     if ((number = atoi(arg)) == -1)
+    {
       break;
+    }
     if (number < 1)
     {
       send_to_char(d->character, "Invalid level.\r\n");
@@ -2916,7 +2934,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_prompt_spellbook_menu(d);
       return;
     }
-    int counter;
+    int counter = 0;
 
     if (!OLC_OBJ(d)->sbinfo)
     {
@@ -2988,6 +3006,65 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_prompt_spellbook_menu(d);
     }
     return;
+
+  case OEDIT_ACTIVATED_SPELLS_LEVEL:
+    number = atoi(arg);
+    if (number == 0)
+    {
+      OLC_OBJ(d)->activate_spell[ACT_SPELL_LEVEL] = 0;
+      OLC_OBJ(d)->activate_spell[ACT_SPELL_SPELLNUM] = 0;
+      OLC_OBJ(d)->activate_spell[ACT_SPELL_MAX_USES] = 0;
+      write_to_output(d, "You've erased the activated spell on this item.\r\n");
+      OLC_VAL(d) = 1;
+      oedit_disp_menu(d);
+      return;
+    }
+    if (number < 0 || number > 30)
+    {
+      write_to_output(d, "That is not a valid level. Choose between 1 and 30, or 0 to erase the existing activated spell.\r\n");
+      return;
+    }
+    OLC_VAL(d) = 1;
+    OLC_OBJ(d)->activate_spell[ACT_SPELL_LEVEL] = number;
+    write_to_output(d, "Please select a spell that can be activated: ");
+    count = 0;
+    for (i = 1; i < NUM_SPELLS; i++)
+    {
+      if (!strcmp(spell_info[i].name, "!UNUSED!")) continue;
+      write_to_output(d, "\tG%3d)\ty%22.22s ", i, spell_info[i].name);
+      if ((count % 3) == 2)
+        write_to_output(d, "\r\n");
+      count++;
+    }
+    if ((count % 3) != 2)
+      write_to_output(d, "\r\n");
+    write_to_output(d, "\r\n");
+    OLC_MODE(d) = OEDIT_ACTIVATED_SPELLS_SPELLNUM;
+    return;
+
+  case OEDIT_ACTIVATED_SPELLS_SPELLNUM:
+    number = atoi(arg);
+    if (number <= 0 || number >= NUM_SPELLS)
+    {
+      write_to_output(d, "That is not a valid spell.\r\n");
+      return;
+    }
+    OLC_OBJ(d)->activate_spell[ACT_SPELL_SPELLNUM] = number;
+    write_to_output(d, "Please specify the number of uses. These recover at a rate of 1 every 5 minutes. ");
+    OLC_MODE(d) = OEDIT_ACTIVATED_SPELLS_MAX_USES;
+    return;
+
+  case OEDIT_ACTIVATED_SPELLS_MAX_USES:
+    number = atoi(arg);
+    if (number <= 0 || number > MAX_NUMBER_OF_ACTIVATED_SPELL_USES)
+    {
+      write_to_output(d, "You must select between 1 and %d uses.\r\n", MAX_NUMBER_OF_ACTIVATED_SPELL_USES);
+      return;
+    }
+    OLC_OBJ(d)->activate_spell[ACT_SPELL_MAX_USES] = number;
+    oedit_disp_menu(d);
+    return;
+
   case OEDIT_WEAPON_SPECAB_MENU:
     switch (*arg)
     {

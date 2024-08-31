@@ -1471,14 +1471,11 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
 
   if (has_aura_of_terror(vict) && ch->char_specials.terror_cooldown == 0)
   {
-    send_to_char(vict, "TEST1\r\n");
     if (!is_immune_fear(vict, ch, false) && !is_immune_mind_affecting(vict, ch, false))
     {
-      send_to_char(vict, "TEST2\r\n");
       ch->char_specials.terror_cooldown = 200;
       if (!mag_savingthrow_full(vict, ch, AFFECT_AURA_OF_TERROR, 0, CAST_INNATE, GET_LEVEL(vict), ENCHANTMENT, AFFECT_AURA_OF_TERROR))
       {
-        send_to_char(vict, "TEST3\r\n");
         struct affected_type af;
         new_affect(&af);
         af.spell = AFFECT_AURA_OF_TERROR;
@@ -2533,8 +2530,8 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
       {"\tn$n \tYbarely grazes \tn$N \tYas $e #W $M.\tn", /* 1: dam <= 2% */
        "\tMYou barely graze \tn$N \tMas you #w $M.\tn",
        "\tn$n \tRbarely grazes you as $e #W you.\tn"},
-      {"\tn$n \tYnicks \tn$N \tYas $e #W $M.", /* 2: dam <= 4% */
-       "\tMYou nick \tn$N \tMas you #w $M.",
+      {"\tn$n \tYnicks \tn$N \tYas $e #W $M.\tn", /* 2: dam <= 4% */
+       "\tMYou nick \tn$N \tMas you #w $M.\tn",
        "\tn$n \tRnicks you as $e #W you.\tn"},
       {"\tn$n \tYbarely #W \tn$N\tY.\tn", /* 3: dam <= 6%  */
        "\tMYou barely #w \tn$N\tM.\tn",

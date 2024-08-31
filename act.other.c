@@ -6644,23 +6644,23 @@ ACMD(do_use)
     umd_ability_score = (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, 15));
     bool passed = FALSE;
     if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF)
-      passed = (((GET_INT(ch) > umd_ability_score) ? GET_INT(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_WIZARD, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+      passed = (((GET_INT(ch) > umd_ability_score) ? GET_INT(ch) : umd_ability_score) > (10 + compute_spells_circle(ch, CLASS_WIZARD, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
     if (spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF)
-      passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_SORCERER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+      passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(ch, CLASS_SORCERER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
     if (spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF)
-      passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_BARD, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+      passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(ch, CLASS_BARD, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
     if (MIN_SPELL_LVL(spell, CLASS_INQUISITOR, GET_1ST_DOMAIN(ch)) < LVL_STAFF)
-      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_INQUISITOR, spell, 0, GET_1ST_DOMAIN(ch))) ? TRUE : passed);
+      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(ch, CLASS_INQUISITOR, spell, 0, GET_1ST_DOMAIN(ch))) ? TRUE : passed);
     if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF)
-      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_CLERIC, spell, 0, GET_1ST_DOMAIN(ch))) ? TRUE : passed);
+      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(ch, CLASS_CLERIC, spell, 0, GET_1ST_DOMAIN(ch))) ? TRUE : passed);
     if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF)
-      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_CLERIC, spell, 0, GET_2ND_DOMAIN(ch))) ? TRUE : passed);
+      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(ch, CLASS_CLERIC, spell, 0, GET_2ND_DOMAIN(ch))) ? TRUE : passed);
     if (spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF)
-      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_DRUID, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(ch, CLASS_DRUID, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
     if (spell_info[spell].min_level[CLASS_PALADIN] < LVL_STAFF)
-      passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_PALADIN, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+      passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(ch, CLASS_PALADIN, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
     if (spell_info[spell].min_level[CLASS_RANGER] < LVL_STAFF)
-      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_RANGER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(ch, CLASS_RANGER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
     if (passed == FALSE)
     {
       send_to_char(ch, "You are physically incapable of casting the spell inscribed on the scroll.\r\n");
@@ -7172,6 +7172,9 @@ ACMD(do_gen_tog)
       // 60
       {"Autogroup disabled.\r\n",
        "Autogroup enabled.\r\n"},
+      // 61
+      {"Contain AoEs disabled.\r\n",
+       "Contain AoEs enabled.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7244,6 +7247,9 @@ ACMD(do_gen_tog)
     break;
   case SCMD_AUTOGROUP:
     result = PRF_TOG_CHK(ch, PRF_AUTO_GROUP);
+    break;
+  case SCMD_CONTAIN_AOES:
+    result = PRF_TOG_CHK(ch, PRF_CONTAIN_AOE);
     break;
   case SCMD_AUTOSTORE:
     result = PRF_TOG_CHK(ch, PRF_AUTO_STORE);

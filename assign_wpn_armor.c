@@ -1125,6 +1125,10 @@ void load_weapons(void)
   setweapon(WEAPON_TYPE_LANCE, "lance", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH | WEAPON_FLAG_CHARGE, 10, DAMAGE_TYPE_PIERCING, 10, 0,
             WEAPON_FAMILY_POLEARM, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
             "A steel-tipped spear carried by mounted knights or light cavalry.");
+  setweapon(WEAPON_TYPE_FOOTMANS_LANCE, "footmans lance", 1, 6, 0, 3, 
+            WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH | WEAPON_FLAG_CHARGE, 6, DAMAGE_TYPE_PIERCING, 10, 0,
+            WEAPON_FAMILY_POLEARM, SIZE_MEDIUM, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
+            "A steel-tipped spear carried by mounted knights or light cavalry.");
   setweapon(WEAPON_TYPE_RANSEUR, "ranseur", 2, 4, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH, 10, DAMAGE_TYPE_PIERCING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
             MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
             "Similar in appearance to a trident, a ranseur has a single spear at its tip, f lanked by a pair of short, curving blades.");
