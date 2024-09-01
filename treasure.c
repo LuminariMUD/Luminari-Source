@@ -3958,12 +3958,12 @@ SPECIAL(bazaar)
         }
         break;
       case 2: /* weapon */
-        if (selection <= 1 || selection >= NUM_WEAPON_TYPES)
+        if (selection < 1 || selection >= NUM_WEAPON_TYPES)
         {
           send_to_char(ch, "Invalid value for 'selection number'!\r\n");
           oedit_disp_weapon_type_menu(ch->desc);
-          if (selection == 1)
-            send_to_char(ch, "\tRPlease do not select UNARMED.\t\n\r\n");
+          // if (selection == 1)
+          //   send_to_char(ch, "\tRPlease do not select UNARMED.\t\n\r\n");
           return TRUE;
         }
         break;

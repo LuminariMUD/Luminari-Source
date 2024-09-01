@@ -7380,7 +7380,7 @@ void load_class_list(void)
   classo(CLASS_KNIGHT_OF_THE_SWORD, "knight of the sword", "KSw", "\tWKSw\tn", "g) \tWKnight of the Sword\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          5, Y, Y, H, 10, 0, 1, 2, Y, 2500, 0,
-         /*prestige spell progression*/ "none",
+         /*prestige spell progression*/ "Divine advancement every level.",
          /*primary attributes*/ "Strength, Con/Dex for survivability, Cha for class abilities",
          /*descrip*/ 
           "The Knights of the Sword serve the people of Ansalon as warrior-clerics,  "
@@ -7454,7 +7454,7 @@ void load_class_list(void)
   classo(CLASS_KNIGHT_OF_THE_ROSE, "knight of the rose", "KRs", "\tWKRs\tn", "g) \tWKnight of the Rose\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
-         /*prestige spell progression*/ "none",
+         /*prestige spell progression*/ "Divine advancement every level.",
          /*primary attributes*/ "Strength, Con/Dex for survivability, Cha for class abilities",
          /*descrip*/ 
           "The Order of the Rose has always been the most prestigious branch of the Knights "

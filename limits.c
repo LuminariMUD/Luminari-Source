@@ -1382,8 +1382,13 @@ void recharge_activated_items(void)
                 snprintf(buf, sizeof(buf), "$p, %s, regains 1 charge of '%s'.",
                   where_name, spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
                 act(buf, TRUE, ch, obj, 0, TO_CHAR);
+                obj->activate_spell[ACT_SPELL_COOLDOWN] = ACT_SPELL_COOLDOWN_TIME;
               }
             }
+          }
+          else if (obj->activate_spell[ACT_SPELL_MAX_USES] > obj->activate_spell[ACT_SPELL_CURRENT_USES])
+          {
+            obj->activate_spell[ACT_SPELL_COOLDOWN] = ACT_SPELL_COOLDOWN_TIME;
           }
         }
       }

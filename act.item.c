@@ -3086,7 +3086,7 @@ ACMDU(do_eat)
     return;
   }
 
-  if (affected_by_spell(ch, AFFECT_FOOD))
+  if (affected_by_spell(ch, AFFECT_FOOD) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "You are not hungry right now.\r\n");
     return;

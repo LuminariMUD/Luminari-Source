@@ -1804,7 +1804,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 #define ACT_SPELL_MAX_USES      3
 #define ACT_SPELL_COOLDOWN      4
 #define MAX_NUMBER_OF_ACTIVATED_SPELL_USES 5 // Prevents builders from giving more than this number of uses
-#define ACT_SPELL_COOLDOWN_TIME 5 // # of minutes for a single use to recharge
+#define ACT_SPELL_COOLDOWN_TIME 5 // num of minutes for a single use to recharge
 
 /* Global variables exported */
 #ifndef __SPELL_PARSER_C__
