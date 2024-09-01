@@ -169,6 +169,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k);
 void perform_resistances(struct char_data *ch, struct char_data *k);
 
 void list_item_activate_abilities(struct char_data *ch);
+void list_item_activate_ability_cooldowns(struct char_data *ch);
 
 // displaying more info -zusuk
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type);

@@ -978,6 +978,7 @@ const char *craft_type[] = {
     "staff-craft",
     "bonearmor",
     "reforge",
+    "redesc",
     "\n"};
 CHECK_TABLE_SIZE(craft_type, NUM_CRAFT + 1);
 

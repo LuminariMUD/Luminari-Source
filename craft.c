@@ -37,6 +37,7 @@
 #include "item.h"
 #include "quest.h"
 #include "assign_wpn_armor.h"
+#include "genolc.h"
 
 extern MYSQL *conn;
 
@@ -1060,12 +1061,6 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
     return 1;
   }
 
-  if (obj->ex_description)
-  {
-    send_to_char(ch, "You cannot restring items with extra descriptions.\r\n");
-    return 1;
-  }
-
   if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER ||
       GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
   {
@@ -1154,6 +1149,15 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   obj->short_description = strdup(argument);
   snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
   obj->description = strdup(buf);
+  if (obj->ex_description)
+  {
+    free_ex_descriptions(obj->ex_description);
+    struct extra_descr_data *new_descr;
+    CREATE(new_descr, struct extra_descr_data, 1);
+    new_descr->keyword = strdup(argument);
+    new_descr->description = strdup("You don't notice any extra details.\n");
+    obj->ex_description = new_descr;
+  }
   GET_CRAFTING_TYPE(ch) = SCMD_RESTRING;
   GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
   GET_CRAFTING_OBJ(ch) = obj;
@@ -1164,6 +1168,128 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   send_to_char(ch, "You put the item into the crafting kit and wait for it "
                    "to transform into %s.\r\n",
                obj->short_description);
+
+  obj_from_obj(obj);
+
+  obj_to_char(obj, ch);
+  save_char(ch, 0);
+  Crash_crashsave(ch);
+  NEW_EVENT(eCRAFTING, ch, NULL, 1 * PASSES_PER_SEC);
+
+  return 1;
+}
+
+/* change extra description of an object */
+int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
+{
+  int num_objs = 0, cost;
+  struct obj_data *obj = NULL;
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
+
+  /* Cycle through contents */
+  /* redesc requires just one item be inside the kit */
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
+  {
+    num_objs++;
+    break;
+  }
+
+  if (num_objs > 1)
+  {
+    send_to_char(ch, "Only one item should be inside the kit.\r\n");
+    return 1;
+  }
+
+  if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER ||
+      GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
+  {
+    if (obj->contains)
+    {
+      send_to_char(ch, "You cannot redesc bags that have items in them.\r\n");
+      return 1;
+    }
+  }
+
+  if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
+  {
+    send_to_char(ch, "You cannot redesc spellbooks.\r\n");
+    return 1;
+  }
+
+  /* Thazull wanted very cheap at low level for RP fun */
+  switch (GET_OBJ_LEVEL(obj))
+  {
+  case 0:
+  case 1:
+  case 2:
+  case 3:
+  case 4:
+  case 5:
+  case 6:
+    cost = 10;
+    break;
+  case 7:
+  case 8:
+  case 9:
+  case 10:
+  case 11:
+  case 12:
+    cost = 20 + GET_OBJ_LEVEL(obj);
+    break;
+  case 13:
+  case 14:
+  case 15:
+  case 16:
+    cost = 40 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 6;
+    break;
+  case 17:
+  case 18:
+  case 19:
+  case 20:
+    cost = 150 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 5;
+    break;
+  case 21:
+  case 22:
+  case 23:
+  case 24:
+  case 25:
+    cost = 500 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 4;
+    break;
+  default:
+    cost = 2000 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 2;
+    break;
+  }
+
+  if (GET_GOLD(ch) < cost)
+  {
+    send_to_char(ch, "You need %d gold on hand for supplies to redesc this item.\r\n", cost);
+    return 1;
+  }
+
+  /* you need to parse the @ sign */
+  parse_at(argument);
+
+  /* success!! */
+  if (obj->ex_description)
+  {
+    free_ex_descriptions(obj->ex_description);
+  }
+
+  struct extra_descr_data *new_descr;
+  CREATE(new_descr, struct extra_descr_data, 1);
+  new_descr->keyword = strdup(obj->name);
+  snprintf(buf, sizeof(buf), "%s\n", strfrmt(argument, 80, 1, FALSE, FALSE, FALSE));
+  new_descr->description = strdup(buf);
+  obj->ex_description = new_descr;
+
+  GET_CRAFTING_TYPE(ch) = SCMD_REDESC;
+  GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+  GET_CRAFTING_OBJ(ch) = obj;
+
+  send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
+  GET_GOLD(ch) -= cost;
+  send_to_char(ch, "You put the item into the crafting kit and wait for it to transform into %s.\r\n", obj->short_description);
 
   obj_from_obj(obj);
 
@@ -2250,7 +2376,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 SPECIAL(crafting_kit)
 {
   if (!CMD_IS("resize") && !CMD_IS("create") && !CMD_IS("checkcraft") &&
-      !CMD_IS("restring") && !CMD_IS("augment") && !CMD_IS("convert") &&
+      !CMD_IS("restring") && !CMD_IS("redesc") && !CMD_IS("augment") && !CMD_IS("convert") &&
       !CMD_IS("autocraft") && !CMD_IS("disenchant") && !CMD_IS("bonearmor") &&
       !CMD_IS("reforge"))
     return 0;
@@ -2276,7 +2402,7 @@ SPECIAL(crafting_kit)
   if (!*argument && !CMD_IS("checkcraft") && !CMD_IS("augment") &&
       !CMD_IS("autocraft") && !CMD_IS("convert") && !CMD_IS("disenchant"))
   {
-    if (CMD_IS("create") || CMD_IS("restring") || CMD_IS("bonearmor"))
+    if (CMD_IS("create") || CMD_IS("restring") || CMD_IS("bonearmor") || CMD_IS("redesc"))
       send_to_char(ch, "Please provide an item description containing the item name in the string.\r\n");
     else if (CMD_IS("resize"))
       send_to_char(ch, "What would you like the new size to be?"
@@ -2313,6 +2439,9 @@ SPECIAL(crafting_kit)
     else if (CMD_IS("restring"))
       send_to_char(ch, "You must place the item to restring and in the "
                        "crafting kit.\r\n");
+    else if (CMD_IS("redesc"))
+      send_to_char(ch, "You must place the item to redesc and in the "
+                       "crafting kit.\r\n"); 
     else if (CMD_IS("resize"))
       send_to_char(ch, "You must place the item in the kit to resize it.\r\n");
     else if (CMD_IS("bonearmor"))
@@ -2348,6 +2477,8 @@ SPECIAL(crafting_kit)
     return reforge(argument, kit, ch);
   else if (CMD_IS("restring"))
     return restring(argument, kit, ch);
+  else if (CMD_IS("redesc"))
+    return redesc(argument, kit, ch);
   else if (CMD_IS("augment"))
     return augment(kit, ch);
   else if (CMD_IS("convert"))
@@ -2892,6 +3023,16 @@ EVENTFUNC(event_crafting)
 
       /* hunt system check point -Zusuk */
       autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESTRING);
+
+      break;
+
+    case SCMD_REDESC:
+      // no skill association
+      snprintf(buf2, sizeof(buf2), "\tn");
+      snprintf(buf, sizeof(buf), "You redesc $p%s.", buf2);
+      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
+      snprintf(buf, sizeof(buf), "$n redescs $p%s.", buf2);
+      act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       break;
 

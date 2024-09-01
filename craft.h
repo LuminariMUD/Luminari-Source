@@ -187,8 +187,9 @@
 #define SCMD_STAFF_MAKING 17
 #define SCMD_BONEARMOR 18
 #define SCMD_REFORGE 19
+#define SCMD_REDESC 20
 /**craft_type in constants.c**/
-#define NUM_CRAFT 20
+#define NUM_CRAFT 21
 /***/
 
 /* autocraft */

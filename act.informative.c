@@ -2076,6 +2076,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   if (ch->char_specials.terror_cooldown > 0)
     send_to_char(ch, "Aura of Terror Immunity - Duration: %d seconds\r\n",  ch->char_specials.terror_cooldown * 6);
 
+  list_item_activate_ability_cooldowns(ch);
+
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\tn");
@@ -7261,11 +7263,30 @@ bool char_has_any_item_activation_abilities(struct char_data *ch)
   return false;
 }
 
+bool char_has_any_item_activation_ability_cooldowns(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  struct obj_data *obj = NULL;
+  int i = 0;
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if ((obj = GET_EQ(ch, i)))
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0 && obj->activate_spell[ACT_SPELL_COOLDOWN] > 0)
+        return true;
+    }
+  }
+  return false;
+}
+
 void list_item_activate_abilities(struct char_data *ch)
 {
 
   int i = 0, total = 0, remaining = 0;
   struct obj_data *obj = NULL;
+  char obj_desc[200];
 
   if (!char_has_any_item_activation_abilities(ch))
   {
@@ -7280,15 +7301,54 @@ void list_item_activate_abilities(struct char_data *ch)
     {
       if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
       {
+        if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0 && obj->activate_spell[ACT_SPELL_CURRENT_USES] == 0)
+          obj->activate_spell[ACT_SPELL_CURRENT_USES] = obj->activate_spell[ACT_SPELL_MAX_USES];
         remaining = obj->activate_spell[ACT_SPELL_CURRENT_USES];
         total = obj->activate_spell[ACT_SPELL_MAX_USES];
+        snprintf(obj_desc, sizeof(obj_desc), "%s", obj->short_description);
+        strip_colors(obj_desc);
         send_to_char(ch,
                     "%-30.30s \tc%-20s\tn %s%2d\tn/%-2d uses remaining\r\n",
-                    obj->short_description,
+                    obj_desc,
                     spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name,
                     (remaining > (total / 2) ? "\tn" : (remaining <= 1 ? "\tR" : "\tY")),
                     remaining,
                     total);
+      }
+    }
+  }
+}
+
+void list_item_activate_ability_cooldowns(struct char_data *ch)
+{
+
+  int i = 0;
+  struct obj_data *obj = NULL;
+  char obj_desc[200];
+
+  if (!char_has_any_item_activation_abilities(ch))
+  {
+    return;
+  }
+
+  text_line(ch, "\tYItem Activation Cooldowns\tC", 80, '-', '-');
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if ((obj = GET_EQ(ch, i)))
+    {
+      if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+      {
+        if (obj->activate_spell[ACT_SPELL_COOLDOWN] == 0 && obj->activate_spell[ACT_SPELL_CURRENT_USES] == 0)
+          obj->activate_spell[ACT_SPELL_CURRENT_USES] = obj->activate_spell[ACT_SPELL_MAX_USES];
+        if (obj->activate_spell[ACT_SPELL_COOLDOWN] <= 0)
+          continue;
+        snprintf(obj_desc, sizeof(obj_desc), "%s", obj->short_description);
+        strip_colors(obj_desc);
+        send_to_char(ch,
+                    "%-30.30s \tc%-20s\tn %d mins for +1 use\r\n",
+                    obj_desc, spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name,
+                    obj->activate_spell[ACT_SPELL_COOLDOWN]);
       }
     }
   }
