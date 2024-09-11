@@ -285,6 +285,7 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad);
 const char *strpaste(const char *str1, const char *str2, const char *joiner);
 struct char_data *is_playing(char *vict_name);
 char *add_commas(long X);
+bool is_monk_weapon(struct obj_data *obj);
 bool can_mastermind_power(struct char_data *ch, int spellnum);
 bool is_room_in_sunlight(room_rnum room);
 int get_encumbrance_mod(struct char_data *ch);
@@ -1037,8 +1038,8 @@ void char_from_furniture(struct char_data *ch);
 #define GET_DR_MOD(ch) ((ch)->char_specials.saved.damage_reduction_mod)
 
 // ***  char_specials (there are others spread about utils.h file) *** //
-#define GET_ELDRITCH_SHAPE(ch) ((ch)->char_specials.eldritch_shape)
-#define GET_ELDRITCH_ESSENCE(ch) ((ch)->char_specials.eldritch_essence)
+#define GET_ELDRITCH_SHAPE(ch) ((ch)->char_specials.saved.eldritch_shape)
+#define GET_ELDRITCH_ESSENCE(ch) ((ch)->char_specials.saved.eldritch_essence)
 #define VITAL_STRIKING(ch) ((ch)->player_specials->saved.vital_strike)
 /** Current position (standing, sitting) of ch. */
 #define GET_POS(ch) ((ch)->char_specials.position)
@@ -2624,6 +2625,8 @@ bool has_reach(struct char_data *ch);
                                                 HAS_FEAT(ch, FEAT_RIDERS_BOND) && (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) >= level))
 
 #define HAS_ACTIVATED_SPELLS(obj) (obj->activate_spell[0] <= 0 ? FALSE : TRUE)
+
+#define GET_BACKGROUND(ch)  (ch->player_specials->saved.background_type)
 
 #endif /* _UTILS_H_ */
 

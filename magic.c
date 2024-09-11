@@ -4420,39 +4420,66 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case WARLOCK_ELDRITCH_BLAST:
     if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_DRAINING_BLAST)
     {
+      if (victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_DRAINING_BLAST] > 0)
+      {
+        act("You have recently been affected by warlock's draining blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
+        return;
+      }
       if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
       {
-        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+        send_to_char(ch, "Your enemy has resisted your eldricth blast effect.\r\n");
         return;
       }
       
-      af[1].duration = 12;
+      af[0].spell = WARLOCK_DRAINING_BLAST;
+      af[0].duration = dice(1, 4) + 1;
       SET_BIT_AR(af[0].bitvector, AFF_SLOW);
       to_room = "$n begins to slow down!";
       to_vict = "You feel yourself slow down!";
+      victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_DRAINING_BLAST] = 10;
     } 
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_VITRIOLIC_BLAST)
     {
+      if (victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_VITRIOLIC_BLAST] > 0)
+      {
+        act("You have recently been affected by warlock's vitriolic blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
+        return;
+      }
       if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, NOSCHOOL))
       {
         return;
       }
+      af[0].spell = WARLOCK_VITRIOLIC_BLAST;
       af[0].location = APPLY_SPECIAL;
-      af[0].duration = GET_WARLOCK_LEVEL(ch) / 5;
+      af[0].duration = MAX(2, MIN(4, GET_WARLOCK_LEVEL(ch) / 5));
       SET_BIT_AR(af[0].bitvector, AFF_ACID_COAT);
       to_vict = "You are covered in burning acid.";
       to_room = "$n is seared by burning acid!";
+      victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_VITRIOLIC_BLAST] = 10;
+
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BRIMSTONE_BLAST)
     {
+      if (victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BRIMSTONE_BLAST] > 0)
+      {
+        act("You have recently been affected by warlock's brimstone blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
+        return;
+      }
+      af[0].spell = WARLOCK_BRIMSTONE_BLAST;
       af[0].location = APPLY_NONE;
-      af[0].duration = GET_WARLOCK_LEVEL(ch) / 5;
+      af[0].duration = MAX(2, MIN(4, GET_WARLOCK_LEVEL(ch) / 5));
       SET_BIT_AR(af[0].bitvector, AFF_ON_FIRE);
       to_vict = "You are covered searing flames!";
       to_room = "$n is covered in searing flames!";
+      victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BRIMSTONE_BLAST] = 10;
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_FRIGHTFUL_BLAST)
-    {    
+    {
+      if (victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_FRIGHTFUL_BLAST] > 0)
+      {
+        act("You have recently been affected by warlock's frightful blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
+        return;
+      }
       if (is_immune_fear(ch, victim, TRUE))
         return;
       if (is_immune_mind_affecting(ch, victim, TRUE))
@@ -4465,13 +4492,20 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       }
       is_mind_affect = TRUE;
 
-      SET_BIT_AR(af[0].bitvector, AFF_FEAR);
-      af[0].duration = 120;
-      to_room = "$n is imbued with fear!";
-      to_vict = "You feel scared and fearful!";
+      af[0].spell = WARLOCK_FRIGHTFUL_BLAST;
+      SET_BIT_AR(af[0].bitvector, AFF_SHAKEN);
+      af[0].duration = dice(1, 4) + 1;
+      to_room = "$n is shaken with fear!";
+      to_vict = "You feel shaken and fearful!";
+      victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_FRIGHTFUL_BLAST] = 10;
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BESHADOWED_BLAST)
     {
+      if (victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BESHADOWED_BLAST] > 0)
+      {
+        act("You have recently been affected by warlock's beshadowed blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
+        return;
+      }
       if (!can_blind(victim))
         return;
       if (mag_resistance(ch, victim, 0))
@@ -4479,35 +4513,50 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
         return;
 
+      af[0].spell = WARLOCK_BESHADOWED_BLAST;
       af[0].location = APPLY_HITROLL;
       af[0].modifier = -4;
-      af[0].duration = 12;
+      af[0].duration = dice(1, 4) + 1;
       SET_BIT_AR(af[0].bitvector, AFF_BLIND);
 
+      af[1].spell = WARLOCK_BESHADOWED_BLAST;
       af[1].location = APPLY_AC_NEW;
       af[1].modifier = -4;
-      af[1].duration = 12;
+      af[1].duration = dice(1, 4) + 1;
       SET_BIT_AR(af[1].bitvector, AFF_BLIND);
 
       to_room = "$n seems to be blinded!";
       to_vict = "You have been blinded!";
+      victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BESHADOWED_BLAST] = 10;
     } 
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_HELLRIME_BLAST)
     {
+      if (victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_HELLRIME_BLAST] > 0)
+      {
+        act("You have recently been affected by warlock's hellrime blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
+        return;
+      }
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
         return;
 
+      af[0].spell = WARLOCK_HELLRIME_BLAST;
       af[0].location = APPLY_DEX;
       af[0].modifier = -4;
-      af[0].duration = 36;
+      af[0].duration = dice(1, 4) + 1;
 
       to_room = "$n is chilled to the bone!";
       to_vict = "You're so cold it's hard to move!";
+      victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_HELLRIME_BLAST] = 10;
     }
     else if (GET_ELDRITCH_ESSENCE(ch) ==  WARLOCK_BEWITCHING_BLAST)
     {
+      if (victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BEWITCHING_BLAST] > 0)
+      {
+        act("You have recently been affected by warlock's bewitching blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
+        return;
+      }
       if (!can_confuse(victim))
         return;
       if (mag_resistance(ch, victim, 0))
@@ -4517,14 +4566,21 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
 
+      af[0].spell = WARLOCK_BEWITCHING_BLAST;
       SET_BIT_AR(af[0].bitvector, AFF_CONFUSED);
-      af[0].duration = 12;
+      af[0].duration = dice(1, 4) + 1;
       victim->confuser_idnum = GET_IDNUM(ch);
       to_room = "A look of utter confusion washes over $n's face.";
       to_vict = "You find yourself completely confused and disoriented.";
+      victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BEWITCHING_BLAST] = 10;
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_NOXIOUS_BLAST)
     {
+      if (victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_NOXIOUS_BLAST] > 0)
+      {
+        act("You have recently been affected by warlock's noxious blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
+        return;
+      }
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_FORT, dc_mod + enchantment_bonus, casttype, level, NOSCHOOL))
@@ -4534,14 +4590,21 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       if (!can_daze(victim))
         return;
 
-      af[0].duration = 4;
+      af[0].spell = WARLOCK_NOXIOUS_BLAST;
+      af[0].duration = 2;
       SET_BIT_AR(af[0].bitvector, AFF_DAZED);
       GET_NODAZE_COOLDOWN(victim) = NODAZE_COOLDOWN_TIMER;
       to_vict = "An assault on your mind has left you dazed!";
       to_room = "$n suddenly looks shocked and dazed!";
+      victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_NOXIOUS_BLAST] = 10;
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BINDING_BLAST)
     {
+      if (victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BINDING_BLAST] > 0)
+      {
+        act("You have recently been affected by warlock's binding blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
+        return;
+      }
       if (mag_resistance(ch, victim, 0))
         return;
       if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
@@ -4551,34 +4614,45 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
 
+      af[0].spell = WARLOCK_BINDING_BLAST;
       SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
       af[0].duration = 1;
       to_room = "$n is stunned by the blast!";
       to_vict = "You are stunned by the blast!";
+      victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BINDING_BLAST] = 10;
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_UTTERDARK_BLAST)
     {
+      if (victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_UTTERDARK_BLAST] > 0)
+      {
+        act("You have recently been affected by warlock's utterdark blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
+        return;
+      }
       if (mag_resistance(ch, victim, 0))
         return;
       if (mag_savingthrow(ch, victim, SAVING_FORT, enchantment_bonus, casttype, level, NOSCHOOL))
         return;
       
+      af[0].spell = WARLOCK_UTTERDARK_BLAST;
       af[0].location = APPLY_HITROLL;
       af[0].modifier = -2;
-      af[0].duration = 360;
+      af[0].duration = dice(1, 4) + 1;
 
+      af[1].spell = WARLOCK_UTTERDARK_BLAST;
       af[1].location = APPLY_AC_NEW;
       af[1].modifier = -2;
-      af[1].duration = 360;
+      af[1].duration = dice(1, 4) + 1;
 
+      af[2].spell = WARLOCK_UTTERDARK_BLAST;
       af[2].location = APPLY_HIT;
       af[2].modifier = -10;
-      af[2].duration = 360;
+      af[2].duration = dice(1, 4) + 1;
 
       GET_HIT(victim) += af[2].modifier;
 
       to_room = "$n is weakened by the utterdark blast.";
       to_vict = "You are weakened by an utterdark blast.";
+      victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_UTTERDARK_BLAST] = 10;
 
       accum_duration = accum_affect = TRUE;
     }
@@ -4683,16 +4757,11 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case WARLOCK_SEE_THE_UNSEEN:
-    if (!AFF_FLAGGED(ch, AFF_DARKVISION) && GET_LEVEL(ch) >= 5)
-    {
-      af[0].duration = 3600;
-      SET_BIT_AR(af[0].bitvector, AFF_DARKVISION);
-    }
-    if (!AFF_FLAGGED(ch, AFF_DETECT_INVIS))
-    {
-      af[1].duration = 3600;
-      SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
-    }
+
+    af[0].duration = 3600;
+    SET_BIT_AR(af[0].bitvector, AFF_DARKVISION);
+    af[1].duration = 3600;
+    SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
     to_vict = "You can now see into the shadows and things not meant to be seen.";
     break;
   
@@ -4870,7 +4939,6 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You devour energy and are filled with life.";
     to_room = "$n devours magical energy and is filled with false life.";
 
-    accum_affect = accum_duration = TRUE;
     break;
 
     // spells and other effects
@@ -8508,7 +8576,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       {
         if (IS_SET_AR(af[i].bitvector, j) && AFF_FLAGGED(victim, j))
         {
-          send_to_char(ch, "%s", CONFIG_NOEFFECT);
+          send_to_char(ch, "Target is already under the effect of %s", affected_bits[j]);
           return;
         }
       }

@@ -34,6 +34,7 @@
 #include "account.h"
 #include "psionics.h"
 #include "evolutions.h"
+#include "spell_prep.h"
 
 // external functions
 void save_char_pets(struct char_data *ch);
@@ -1561,6 +1562,7 @@ void update_player_misc(void)
 {
   struct descriptor_data *d = NULL;
   struct char_data *ch = NULL;
+  int i = 0;
 
   for (d = descriptor_list; d; d = d->next)
   {
@@ -1584,6 +1586,24 @@ void update_player_misc(void)
     {
       apply_mission_rewards(ch);
       clear_mission(ch);
+    }
+
+    if (PRF_FLAGGED(ch, PRF_AUTO_PREP))
+    {
+      for (i = 0; i < NUM_CLASSES; i++)
+      {
+        if (is_spellcasting_class(i))
+        {
+          if (CLASS_LEVEL(ch, i) > 0)
+          {
+            if (SPELL_PREP_QUEUE(ch, i))
+            {
+              begin_preparing(ch, i);
+              break;
+            }
+          }
+        }
+      }
     }
 
     if (ch->player_specials->concussive_onslaught_duration > 0)
@@ -2277,7 +2297,7 @@ void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
 
 void update_damage_and_effects_over_time(void)
 {
-  int dam = 0;
+  int dam = 0, x = 0;
   struct affected_type *affects = NULL;
   struct char_data *ch = NULL, *next_char = NULL;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -2353,6 +2373,14 @@ void update_damage_and_effects_over_time(void)
       if (IN_MOVING_WATER(ch))
       {
         damage(ch, ch, GET_MAX_HIT(ch) / 3, TYPE_MOVING_WATER, DAM_WATER, FALSE);
+      }
+    }
+
+    for (x = 0; x < NUM_ELDRITCH_BLAST_COOLDOWNS; x++)
+    {
+      if (ch->char_specials.eldritch_blast_cooldowns[x] > 0)
+      {
+        ch->char_specials.eldritch_blast_cooldowns[x]--;
       }
     }
 

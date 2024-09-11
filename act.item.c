@@ -43,6 +43,7 @@
 #include "hunts.h"
 #include "class.h"
 #include "spell_prep.h"
+#include "genobj.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -66,6 +67,8 @@ static int hands_have(struct char_data *ch);
 int hands_used(struct char_data *ch);
 int hands_available(struct char_data *ch);
 static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
+
+int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct obj_data *target_obj, bool silent);
 
 /**** start file code *****/
 
@@ -4147,7 +4150,8 @@ ACMD(do_wear)
       if (CAN_SEE_OBJ(ch, obj) && (where = find_eq_pos(ch, obj, 0)) >= 0)
       {
         if (level_allowed < GET_OBJ_LEVEL(obj))
-          send_to_char(ch, "You are not experienced enough to use %s.\r\n", GET_OBJ_SHORT(obj));
+          send_to_char(ch, "You are not experienced enough to use %s.\r\n"
+                           "You can downgrade the item to a lower level. See HELP DOWNGRADE\r\n", GET_OBJ_SHORT(obj));
         else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR && (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
           send_to_char(ch, "You are in clan %d, This belongs to clan %d.\r\n", GET_CLAN(ch), GET_OBJ_VAL(obj, 2));
         else
@@ -4172,7 +4176,8 @@ ACMD(do_wear)
     if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
       send_to_char(ch, "You don't seem to have any %ss.\r\n", arg1);
     else if (level_allowed < GET_OBJ_LEVEL(obj))
-      send_to_char(ch, "You are not experienced enough to use %s.\r\n", GET_OBJ_SHORT(obj));
+      send_to_char(ch, "You are not experienced enough to use %s.\r\n"
+                       "You can downgrade the item to a lower level. See HELP DOWNGRADE\r\n", GET_OBJ_SHORT(obj));
     else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
              (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
       send_to_char(ch, "You are in clan %d, That belongs to clan %d.\r\n", GET_CLAN(ch), GET_OBJ_VAL(obj, 2));
@@ -4195,7 +4200,8 @@ ACMD(do_wear)
     if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
       send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg1), arg1);
     else if (level_allowed < GET_OBJ_LEVEL(obj))
-      send_to_char(ch, "You are not experienced enough to use %s.\r\n", GET_OBJ_SHORT(obj));
+      send_to_char(ch, "You are not experienced enough to use %s.\r\n"
+                       "You can downgrade the item to a lower level. See HELP DOWNGRADE\r\n", GET_OBJ_SHORT(obj));
     else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
              (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
       send_to_char(ch, "You are in clan %d, That belongs to clan %d.\r\n", GET_CLAN(ch), GET_OBJ_VAL(obj, 2));
@@ -4236,7 +4242,8 @@ bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent)
   else if (level_allowed < GET_OBJ_LEVEL(obj))
   {
     if (not_silent)
-      send_to_char(ch, "You are not experienced enough to use that.\r\n");
+      send_to_char(ch, "You are not experienced enough to use that.\r\n"
+                       "You can downgrade the item to a lower level. See HELP DOWNGRADE\r\n");
   }
   else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
            (GET_CLAN(ch) == NO_CLAN || GET_OBJ_VAL(obj, 2) != GET_CLAN(ch)))
@@ -4348,7 +4355,8 @@ ACMD(do_grab)
   else if (!(obj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
     send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
   else if (level_allowed < GET_OBJ_LEVEL(obj))
-    send_to_char(ch, "You are not experienced enough to use that.\r\n");
+    send_to_char(ch, "You are not experienced enough to use that.\r\n"
+                     "You can downgrade the item to a lower level. See HELP DOWNGRADE\r\n");
   else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
            (GET_CLAN(ch) == NO_CLAN || GET_OBJ_VAL(obj, 2) != GET_CLAN(ch)))
     send_to_char(ch, "You are not in the right clan to use that.\r\n");
@@ -6776,7 +6784,7 @@ bool setup_outfit_item(struct char_data *ch, struct obj_data *obj)
   GET_OBJ_WEIGHT(obj) = GET_OBJ_TYPE(GET_OUTFIT_OBJ(ch)) == ITEM_WEAPON ? weapon_list[GET_OUTFIT_TYPE(ch)].weight : armor_list[GET_OUTFIT_TYPE(ch)].weight;
   GET_OBJ_VAL(obj, 4) = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_BONUS);
   GET_OBJ_LEVEL(obj) = MAX(0, MIN(30, (GET_OBJ_VAL(obj, 4) * 5) - 5));
-  GET_OBJ_MATERIAL(obj) = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_MATERIAL);
+  // GET_OBJ_MATERIAL(obj) = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_MATERIAL);
 
   // we are only adding apply bonuses to weapons, shields or body armor
   if (!CAN_WEAR(obj, ITEM_WEAR_HEAD) && !CAN_WEAR(obj, ITEM_WEAR_ARMS) && !CAN_WEAR(obj, ITEM_WEAR_LEGS))
@@ -7750,6 +7758,194 @@ int find_activate_object_by_spellnum(struct char_data *ch, int spellnum, bool re
   }
 
   return -1;
+}
+
+void downgrade_item(struct char_data *ch, struct obj_data *obj, int level)
+{
+
+  int i = 0, reduce = 0;
+
+  if (!obj)
+    return;
+
+  if (!ch)
+    return;
+
+  if (level >= GET_OBJ_LEVEL(obj))
+  {
+    send_to_char(ch, "You must select a level below the level of the item you're downgrading.\r\n");
+    return;
+  }
+
+  // downgraded items lose any special abilities
+  obj->special_abilities = NULL;
+
+  // downgrade items lose any weapon spells
+  HAS_SPELLS(obj) = 0;
+  for (i = 0; i < MAX_WEAPON_SPELLS; i++)
+  {
+    obj->wpn_spells[i].level = 0;
+    obj->wpn_spells[i].percent = 0;
+    obj->wpn_spells[i].inCombat = 0;
+    obj->wpn_spells[i].spellnum = 0;
+  }
+
+  // downgraded items lose all perm affects
+  obj->obj_flags.bitvector[0] = obj->obj_flags.bitvector[1] = obj->obj_flags.bitvector[2] = obj->obj_flags.bitvector[3] = 0;
+
+  // downgraded items lose any spell activations
+  obj->activate_spell[0] = obj->activate_spell[1] = obj->activate_spell[2] = obj->activate_spell[3] = obj->activate_spell[4] = 0;
+
+  reduce = GET_OBJ_LEVEL(obj) - level;
+
+  switch (GET_OBJ_TYPE(obj))
+  {
+    case ITEM_ARMOR:
+    case ITEM_WEAPON:
+    case ITEM_FIREWEAPON:
+    case ITEM_MISSILE:
+      GET_OBJ_VAL(obj, 4) -= reduce / 5;
+      GET_OBJ_VAL(obj, 4) = MAX(0, GET_OBJ_VAL(obj, 4));
+      break;
+  }
+
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+  {
+    if (obj->affected[i].modifier > 0)
+    {
+      switch (obj->affected[i].location)
+      {
+        case APPLY_HIT: obj->affected[i].modifier -= reduce; break;
+        case APPLY_MOVE: obj->affected[i].modifier -= reduce * 5; break;
+        default: obj->affected[i].modifier -= reduce / 5; break;
+      }
+      if (obj->affected[i].modifier <= 0)
+      {
+        obj->affected[i].modifier = obj->affected[i].bonus_type = obj->affected[i].location = obj->affected[i].specific = 0;
+      }
+    }
+  }
+
+  GET_OBJ_LEVEL(obj) = level;
+
+}
+
+ACMD(do_downgrade)
+{
+    char arg[200];
+    char arg2[200];
+    char arg3[200];
+    int cost = 0;
+
+    three_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2), arg3, sizeof(arg3));
+
+    if (!*arg)
+    {
+        send_to_char(ch, "What item do you wish to downgrade?\r\n");
+        return;
+    }
+
+    if (!*arg2)
+    {
+        send_to_char(ch, "What level do you wish to downgrade the item to?\r\n");
+        return;
+    }
+
+    int level = atoi(arg2);
+
+    if (level < 1)
+    {
+        send_to_char(ch, "You cannot downgrade something lower than level 1.\r\n");
+        return;
+    }
+
+    if (level > 30)
+    {
+        send_to_char(ch, "You cannot downgrade something higher than 30.\r\n");
+        return;
+    }
+
+    struct obj_data *obj = NULL;
+
+    if (!(obj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
+    {
+        send_to_char(ch, "You do not seem to have an item by that description in your inventory.\r\n");
+        return;
+    }
+
+    if (OBJ_FLAGGED(obj, ITEM_DOWNGRADED))
+    {
+      send_to_char(ch, "This item has already been downgraded, and cannot be done so again.\r\n");
+      return;
+    }
+
+    if (level > GET_LEVEL(ch))
+    {
+        send_to_char(ch, "You cannot downgrade a level higher than your own.\r\n");
+        return;
+    }
+
+    if (!can_lore_target(ch, NULL, obj, TRUE))
+    {
+      send_to_char(ch, "The object must be identified by a lore check or the identify spell before it can be downgraded.\r\n");
+      return;
+    }
+
+    cost = GET_OBJ_LEVEL(obj) * 50;
+
+    if (GET_GOLD(ch) < cost)
+    {
+      send_to_char(ch, "It will cost you %d coins to downgrade this item.\r\n", cost);
+      return;
+    }
+
+    if (ch->player_specials->downgrade_confirm == NULL)
+    {
+      struct obj_data *temp_obj;
+      if ((temp_obj = read_object(ITEM_PROTOTYPE, VIRTUAL)) == NULL)
+      {
+        send_to_char(ch, "There was an error. Please report to a staff member with error code DOWNGRADE001.\r\n");
+        return;
+      }
+      send_to_char(ch, "\tCYour downgraded item will have the following stats:\tn\r\n");
+      copy_object(temp_obj, obj);
+      downgrade_item(ch, temp_obj, level);
+      do_stat_object(ch, temp_obj, ITEM_STAT_MODE_LORE_SKILL);
+      send_to_char(ch, "\r\n");
+      send_to_char(ch, "\tCPLEASE NOTE:\tn");
+      send_to_char(ch, "\tcDowngrading an item will cause it to lose all special ability, perm affects, weapon spells and activated spells.\r\n");
+      send_to_char(ch, "In addition, it could also lose some or all of its bonuses. This process is irreversable.");
+      send_to_char(ch, "It will cost you %d coins to downgrade this item.\r\n", cost);
+      ch->player_specials->downgrade_confirm = randstring(6);
+      send_to_char(ch, "To proceed with this downgrade type: downgrade %s %d %s\r\n", arg, level, ch->player_specials->downgrade_confirm);
+      send_to_char(ch, "To abort the downgrade, type: downgrade %s %d cancel\tn\r\n", arg, level);
+      return;
+    }
+    else if (!*arg3)
+    {
+      send_to_char(ch, "To proceed with this downgrade type: downgrade %s %d %s\r\n", arg, level, ch->player_specials->downgrade_confirm);
+      send_to_char(ch, "To abort the downgrade, type: downgrade %s %d cancel\r\n", arg, level);
+      return;
+    }
+    else if (is_abbrev(arg3, "cancel"))
+    {
+      send_to_char(ch, "You've aborted the downgrade.\r\n");
+      ch->player_specials->downgrade_confirm = NULL;
+      return;
+    }
+    else if (strcmp(arg3, ch->player_specials->downgrade_confirm))
+    {
+      send_to_char(ch, "To proceed with this downgrade type: downgrade %s %d %s\r\n", arg, level, ch->player_specials->downgrade_confirm);
+      send_to_char(ch, "To abort the downgrade, type: downgrade %s %d cancel\r\n", arg, level);
+    }
+
+    GET_GOLD(ch) -= cost;
+    downgrade_item(ch, obj, level);
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_DOWNGRADED);
+    do_stat_object(ch, obj, ITEM_STAT_MODE_LORE_SKILL);
+    send_to_char(ch, "\tMYou downgrade %s to level %d.\tn\r\n", obj->short_description, level);
+    send_to_char(ch, "It cost you %d coins to downgrade this item.\tn\r\n", cost);
+    ch->player_specials->downgrade_confirm = NULL;
 }
 
 /* EOF */

@@ -465,10 +465,8 @@ int load_char(const char *name, struct char_data *ch)
     GET_PSP_REGEN(ch) = 0;
     GET_ENCUMBRANCE_MOD(ch) = 0;
     GET_FAST_HEALING_MOD(ch) = 0;
-
-    GET_ELDRITCH_ESSENCE(ch) = 0;
-    GET_ELDRITCH_SHAPE(ch) = 0;
-
+    GET_ELDRITCH_ESSENCE(ch) = -1;
+    GET_ELDRITCH_SHAPE(ch) = -1;
     GET_NUM_QUESTS(ch) = PFDEF_COMPQUESTS;
     GET_LAST_MOTD(ch) = PFDEF_LASTMOTD;
     GET_LAST_NEWS(ch) = PFDEF_LASTNEWS;
@@ -501,6 +499,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_DR(ch) = NULL;
     GET_WALKTO_LOC(ch) = 0;
     GET_TEMPLATE(ch) = PFDEF_TEMPLATE;
+    GET_BACKGROUND(ch) = 0;
     GET_PREMADE_BUILD_CLASS(ch) = PFDEF_PREMADE_BUILD;
     init_spell_prep_queue(ch);
     init_innate_magic_queue(ch);
@@ -700,6 +699,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'B':
         if (!strcmp(tag, "Badp"))
           GET_BAD_PWS(ch) = atoi(line);
+        else if (!strcmp(tag, "BGnd"))
+          GET_BACKGROUND(ch) = atoi(line);
         else if (!strcmp(tag, "Bag1"))
           GET_BAG_NAME(ch, 1) = strdup(line);
         else if (!strcmp(tag, "Bag2"))
@@ -1677,6 +1678,8 @@ void save_char(struct char_data *ch, int mode)
 
   if (GET_BAD_PWS(ch) != PFDEF_BADPWS)
     fprintf(fl, "Badp: %d\n", GET_BAD_PWS(ch));
+  if (GET_BACKGROUND(ch) != 0)
+    fprintf(fl, "BGnd: %d\n", GET_BACKGROUND(ch));
   if (GET_PRACTICES(ch) != PFDEF_PRACTICES)
     fprintf(fl, "Lern: %d\n", GET_PRACTICES(ch));
   if (GET_TRAINS(ch) != PFDEF_TRAINS)
@@ -1801,10 +1804,8 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "EfMT: %d\n", EFREETI_MAGIC_TIMER(ch));
   if (GET_ENCUMBRANCE_MOD(ch) != 0)
     fprintf(fl, "EncM: %d\n", GET_ENCUMBRANCE_MOD(ch));
-  if (GET_ELDRITCH_ESSENCE(ch) != 0)
-    fprintf(fl, "EldE: %d\n", GET_ELDRITCH_ESSENCE(ch));
-  if (GET_ELDRITCH_SHAPE(ch) != 0)
-    fprintf(fl, "EldS: %d\n", GET_ELDRITCH_SHAPE(ch));
+  fprintf(fl, "EldE: %d\n", GET_ELDRITCH_ESSENCE(ch));
+  fprintf(fl, "EldS: %d\n", GET_ELDRITCH_SHAPE(ch));
   if (GET_DR_MOD(ch) > 0)
     fprintf(fl, "DRMd: %d\n", GET_DR_MOD(ch));
 

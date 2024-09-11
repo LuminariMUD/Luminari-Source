@@ -3436,6 +3436,9 @@ bool char_has_ultra(struct char_data *ch)
   if (AFF_FLAGGED(ch, AFF_ULTRAVISION))
     return TRUE;
 
+  if (AFF_FLAGGED(ch, AFF_DARKVISION))
+    return TRUE;
+
   if (HAS_FEAT(ch, FEAT_ULTRAVISION))
     return TRUE;
 
@@ -6279,6 +6282,30 @@ bool using_monk_gloves(struct char_data *ch)
   return true;
 }
 
+bool is_monk_weapon(struct obj_data *obj)
+{
+  if (!obj) return false;
+
+  switch (GET_OBJ_VAL(obj, 0))
+  {
+    case WEAPON_TYPE_UNARMED:
+    case WEAPON_TYPE_QUARTERSTAFF:
+    case WEAPON_TYPE_KAMA:
+    case WEAPON_TYPE_NUNCHAKU:
+    case WEAPON_TYPE_SAI:
+    case WEAPON_TYPE_SIANGHAM:
+    case WEAPON_TYPE_SHURIKEN:
+    case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_CLUB:
+    case WEAPON_TYPE_HAND_AXE:
+    case WEAPON_TYPE_SHORTSPEAR:
+    case WEAPON_TYPE_SPEAR:
+    case WEAPON_TYPE_SHORT_SWORD:
+      return true;
+  }
+  return false;
+}
+
 int get_max_party_level_same_room(struct char_data *ch)
 {
   if (!ch)
@@ -9043,29 +9070,28 @@ bool is_valid_ability_number(int num)
     case ABILITY_ACROBATICS:
     case ABILITY_STEALTH:
     case ABILITY_PERCEPTION:
-    case ABILITY_HEAL:
+    case ABILITY_MEDICINE:
     case ABILITY_INTIMIDATE:
     case ABILITY_CONCENTRATION:
     case ABILITY_SPELLCRAFT:
     case ABILITY_APPRAISE:
     case ABILITY_DISCIPLINE:
     case ABILITY_TOTAL_DEFENSE:
-    case ABILITY_LORE:
+    case ABILITY_ARCANA:
     case ABILITY_RIDE:
-    case ABILITY_CLIMB:
     case ABILITY_SLEIGHT_OF_HAND:
-    case ABILITY_BLUFF:
-    case ABILITY_DIPLOMACY:
+    case ABILITY_DECEPTION:
+    case ABILITY_PERSUASION:
     case ABILITY_DISABLE_DEVICE:
     case ABILITY_DISGUISE:
-    case ABILITY_ESCAPE_ARTIST:
     case ABILITY_HANDLE_ANIMAL:
-    case ABILITY_SENSE_MOTIVE:
+    case ABILITY_INSIGHT:
     case ABILITY_SURVIVAL:
-    case ABILITY_SWIM:
     case ABILITY_USE_MAGIC_DEVICE:
     case ABILITY_LINGUISTICS:
     case ABILITY_PERFORM:
+    case ABILITY_HISTORY:
+    case ABILITY_RELIGION:
       return true;
   }
   return false;

@@ -347,6 +347,7 @@ ACMD_DECL(do_bags);
 #define SCMD_SORTFROM 2
 
 ACMD_DECL(do_activate);
+ACMD_DECL(do_downgrade);
 
 /* AUCTIONING STATES */
 #define AUC_NULL_STATE 0  /* not doing anything */
@@ -996,6 +997,7 @@ ACMD_DECL(do_holyweapon);
 ACMD_DECL(do_award);
 ACMD_DECL(do_show_blockers);
 ACMD_DECL(do_save_objects_to_database);
+ACMD_DECL(do_save_everything);
 
 ACMD_DECL(do_touch_spells);
 ACMD_DECL(do_weapon_touch);

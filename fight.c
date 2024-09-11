@@ -6572,9 +6572,25 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
     diceTwo = (CLASS_LEVEL(ch, CLASS_SORCERER) >= 7) ? 6 : 4;
   }
   else if (!is_ranged && wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
-  { // weapon
-    diceOne = GET_OBJ_VAL(wielded, 1);
-    diceTwo = GET_OBJ_VAL(wielded, 2);
+  { 
+    // weapon
+    if (is_monk_weapon(wielded) && CLASS_LEVEL(ch, CLASS_MONK) > 0)
+    {
+      int mOne, mTwo;
+      compute_barehand_dam_dice(ch, &mOne, &mTwo);
+      diceOne = GET_OBJ_VAL(wielded, 1);
+      diceTwo = GET_OBJ_VAL(wielded, 2);
+      if ((mOne * mTwo) > (diceOne * diceTwo))
+      {
+        diceOne = mOne;
+        diceTwo = mTwo;
+      }
+    }
+    else
+    {
+      diceOne = GET_OBJ_VAL(wielded, 1);
+      diceTwo = GET_OBJ_VAL(wielded, 2);
+    }
   }
   else if (is_ranged)
   { // ranged weapon

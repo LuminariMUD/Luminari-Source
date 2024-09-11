@@ -43,6 +43,7 @@
 #include "evolutions.h"
 #include "oasis.h"
 #include "quest.h"
+#include "backgrounds.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -52,6 +53,7 @@
 /* external functions */
 extern struct house_control_rec house_control[];
 extern int num_of_houses;
+extern struct background_data background_list[NUM_BACKGROUNDS];
 
 /* locally defined functions of local (file) scope */
 static int compare_spells(const void *x, const void *y);
@@ -896,6 +898,15 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value -= 2;
   }
 
+  if (GET_BACKGROUND(ch)>= 0)
+  {
+    if ((background_list[GET_BACKGROUND(ch)].skills[0] == abilityNum) ||
+        (background_list[GET_BACKGROUND(ch)].skills[1] == abilityNum))
+    {
+      value += 2;
+    }
+  }
+
   if (affected_by_spell(ch, PSIONIC_INFLICT_PAIN))
     value += get_char_affect_modifier(ch, PSIONIC_INFLICT_PAIN, APPLY_HITROLL); // this should return a negative number, so + a - is -
   if (affected_by_spell(ch, SPELL_HEROISM))
@@ -1240,24 +1251,6 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
         value += MAX(1, GET_CALL_EIDOLON_LEVEL(ch) / 2);
     }
     return value;
-  case ABILITY_CLIMB:
-    value += GET_STR_BONUS(ch);
-    if (HAS_FEAT(ch, FEAT_ATHLETIC))
-    {
-      /* Unnamed bonus */
-      value += 2;
-    }
-    if (HAS_FEAT(ch, FEAT_NATURAL_ATHLETE))
-    {
-      /* Unnamed bonus */
-      value += 2;
-    }
-    if (AFF_FLAGGED(ch, AFF_SPIDER_CLIMB))
-      value += 30;
-    else if (HAS_FEAT(ch, FEAT_VAMPIRE_SPIDER_CLIMB) && CAN_USE_VAMPIRE_ABILITY(ch))
-      value += 30;
-    value += compute_gear_armor_penalty(ch);
-    return value;
   case ABILITY_SLEIGHT_OF_HAND:
     value += GET_DEX_BONUS(ch);
     if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))
@@ -1267,6 +1260,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     {
       /* Unnamed bonus */
       value += 3;
+    }
+    if (HAS_FEAT(ch, FEAT_AGILE))
+    {
+      /* Unnamed bonus */
+      value += 2;
     }
     return value;
   case ABILITY_BLUFF:
@@ -1306,15 +1304,6 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   case ABILITY_DISGUISE:
     value += GET_CHA_BONUS(ch);
     if (HAS_FEAT(ch, FEAT_DECEITFUL))
-    {
-      /* Unnamed bonus */
-      value += 2;
-    }
-    return value;
-  case ABILITY_ESCAPE_ARTIST:
-    value += GET_DEX_BONUS(ch);
-    value += compute_gear_armor_penalty(ch);
-    if (HAS_FEAT(ch, FEAT_AGILE))
     {
       /* Unnamed bonus */
       value += 2;
@@ -1370,7 +1359,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += 2;
     }
     return value;
-  case ABILITY_SWIM:
+  case ABILITY_ATHLETICS:
     value += GET_STR_BONUS(ch);
     value += (2 * compute_gear_armor_penalty(ch));
     if (HAS_FEAT(ch, FEAT_ATHLETIC))
@@ -1395,6 +1384,10 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       if (IN_ROOM(ch) == IN_ROOM(mobfol) && HAS_EVOLUTION(mobfol, EVOLUTION_SWIM))
         value += 10;
     }
+    if (AFF_FLAGGED(ch, AFF_SPIDER_CLIMB))
+      value += 30;
+    else if (HAS_FEAT(ch, FEAT_VAMPIRE_SPIDER_CLIMB) && CAN_USE_VAMPIRE_ABILITY(ch))
+      value += 30;
     return value;
   case ABILITY_USE_MAGIC_DEVICE:
     if (HAS_FEAT(ch, FEAT_MAGICAL_APTITUDE))

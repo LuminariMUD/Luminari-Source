@@ -5255,6 +5255,15 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feat_prereq_ability(FEAT_AUTOMATIC_STILL_SPELL, ABILITY_SPELLCRAFT, 24);
   feat_prereq_feat(FEAT_AUTOMATIC_STILL_SPELL, FEAT_STILL_SPELL, 1);
 
+  // Backgrounds
+
+  feato(FEAT_BG_ACOLYTE, "acolyte background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Player and their group members can get blessings for free from city temples.",
+    "Player and their group members can get blessings for free from city temples.");
+  feato(FEAT_BG_CHARLATAN, "charlatan background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Gain access to the 'swindle' command, allowing the player to con npcs out of gold and potentially a magic item.",
+    "Gain access to the 'swindle' command, allowing the player to con npcs out of gold and potentially a magic item.");
+
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");
 

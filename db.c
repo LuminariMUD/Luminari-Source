@@ -64,6 +64,7 @@
 #include "evolutions.h"
 #include "treasure.h"
 #include "assign_wpn_armor.h"
+#include "backgrounds.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -677,6 +678,10 @@ void boot_world(void)
 
   log("Loading evolutions.");
   assign_evolutions();
+
+  // assign backgrounds
+  assign_backgrounds();
+  sort_backgrounds();
 
   log("Initializing perlin noise generator.");
   init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);
@@ -1639,6 +1644,8 @@ void parse_room(FILE *fl, int virtual_nr)
     log("SYSERR: Format error in roomflags/sector type of room #%d", virtual_nr);
     exit(1);
   }
+
+  // REMOVE_BIT_AR(world[room_nr].room_flags, ROOM_MAGICDARK);
 
   world[room_nr].func = NULL;
   world[room_nr].contents = NULL;
@@ -5500,8 +5507,7 @@ void reset_char(struct char_data *ch)
   ch->char_specials.crafting_object = NULL;
   ch->char_specials.crafting_repeat = 0;
   ch->char_specials.crafting_bonus = 0;
-  ch->char_specials.eldritch_shape = -1;
-  ch->char_specials.eldritch_essence = -1;
+
   CLOUDKILL(ch) = 0;
   DOOM(ch) = 0;
   INCENDIARY(ch) = 0;

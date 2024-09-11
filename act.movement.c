@@ -3252,17 +3252,17 @@ ACMD(do_rest)
     break;
   }
 
-  if (PRF_FLAGGED(ch, PRF_AUTO_PREP))
-  {
-    if (count_spellcasting_classes(ch) == 1)
-    {
-      do_gen_preparation(ch, "autoprep", 0, class_to_spell_prep_scmd(get_spellcasting_class(ch)));
-    }
-    else if (count_spellcasting_classes(ch) > 1)
-    {
-      send_to_char(ch, "Since you have multiple classes that can cast spells, you must prepare those spells manually.  See 'class info (class name)' to see spell prep commands for your classes.\r\n");
-    }
-  }
+  // if (PRF_FLAGGED(ch, PRF_AUTO_PREP))
+  // {
+  //   if (count_spellcasting_classes(ch) == 1)
+  //   {
+  //     do_gen_preparation(ch, "autoprep", 0, class_to_spell_prep_scmd(get_spellcasting_class(ch)));
+  //   }
+  //   else if (count_spellcasting_classes(ch) > 1)
+  //   {
+  //     send_to_char(ch, "Since you have multiple classes that can cast spells, you must prepare those spells manually.  See 'class info (class name)' to see spell prep commands for your classes.\r\n");
+  //   }
+  // }
 
 }
 

@@ -282,6 +282,7 @@ extern "C"
     bool isEpicSpell(int spellnum);
 
     int class_to_spell_prep_scmd(int class_name);
+    void begin_preparing(struct char_data *ch, int class);
 
     /** END functions **/
 

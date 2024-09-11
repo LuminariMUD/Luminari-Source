@@ -2694,12 +2694,28 @@
 #define FEAT_AURA_OF_LIGHT 1104
 #define FEAT_AUTOMATIC_SILENT_SPELL 1105
 #define FEAT_AUTOMATIC_STILL_SPELL 1106
+#define FEAT_BG_ACOLYTE 1107
+#define FEAT_BG_CHARLATAN 1108
+#define FEAT_BG_CRIMINAL 1109
+#define FEAT_BG_ENTERTAINER 1110
+#define FEAT_BG_FOLK_HERO 1111
+#define FEAT_BG_GLADIATOR 1112
+#define FEAT_BG_TRADER 1113
+#define FEAT_BG_HERMIT 1114
+#define FEAT_BG_SQUIRE 1115
+#define FEAT_BG_NOBLE 1116
+#define FEAT_BG_OUTLANDER 1117
+#define FEAT_BG_PIRATE 1118
+#define FEAT_BG_SAGE 1119
+#define FEAT_BG_SAILOR 1120
+#define FEAT_BG_SOLDIER 1121
+#define FEAT_BG_URCHIN 1122
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1107
+#define FEAT_LAST_FEAT 1123
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1108
+#define NUM_FEATS 1124
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3140,8 +3156,10 @@
 #define ITEM_SET_STATS_AT_LOAD 98
 #define ITEM_EXTRACT_AFTER_USE 99
 #define ITEM_NOSAC 100
+#define ITEM_DOWNGRADED 101
+#define ITEM_IDENTIFIED 102
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 101
+#define NUM_ITEM_FLAGS 103
 
 /* homeland-port */
 /*
@@ -3761,6 +3779,21 @@
 #define NUM_LANGUAGES 30
 
 #define NUM_KENDER_BAUBLES 314
+
+// eldritch blast cooldown types
+#define ELDRITCH_BLAST_COOLDOWN_NONE                0
+#define ELDRITCH_BLAST_COOLDOWN_DRAINING_BLAST      1
+#define ELDRITCH_BLAST_COOLDOWN_FRIGHTFUL_BLAST     2
+#define ELDRITCH_BLAST_COOLDOWN_BESHADOWED_BLAST    3
+#define ELDRITCH_BLAST_COOLDOWN_BRIMSTONE_BLAST     4
+#define ELDRITCH_BLAST_COOLDOWN_HELLRIME_BLAST      5
+#define ELDRITCH_BLAST_COOLDOWN_BEWITCHING_BLAST    6
+#define ELDRITCH_BLAST_COOLDOWN_NOXIOUS_BLAST       7
+#define ELDRITCH_BLAST_COOLDOWN_VITRIOLIC_BLAST     8
+#define ELDRITCH_BLAST_COOLDOWN_BINDING_BLAST       9
+#define ELDRITCH_BLAST_COOLDOWN_UTTERDARK_BLAST     10
+
+#define NUM_ELDRITCH_BLAST_COOLDOWNS                11
 
 /* Staff Ran Event */
 #define STAFF_RAN_EVENTS_VAR 300 /* values saved for staff events on player */
@@ -4524,7 +4557,6 @@ struct char_special_data
 
     /* Warlock data */
     int eldritch_shape;            // saved shape for eldritch blasts
-    int eldritch_essence;          // the essence used for eldritch blasts
     int daze_cooldown;             // once a character is dazed, we'll give them temporary immunity
 
     int consecutive_hits;           // increases each time a melee attack hits, resets to zero on a miss.
@@ -4535,6 +4567,7 @@ struct char_special_data
 
     bool has_borrow_been_attempted; // if true, the mob can no longer be 'borrowed' from (kender ability)
     int which_treasure_message;           // when we want to use a custom message for random treasure
+    bool has_swindle_been_attempted; // if true, the mob can no longer be 'swindled' (charlatan ability)
 
     int acid_arrow_level;
 
@@ -4549,6 +4582,9 @@ struct char_special_data
 
     byte foretell_uses;
     bool not_commanded_to_cast;     // This is set in the mobact.c file to prevent players from using the order command on charmees to use psionic powers
+
+    // warlock blast essence cooldowns
+    int eldritch_blast_cooldowns[NUM_ELDRITCH_BLAST_COOLDOWNS];
 };
 
 /* old memorization struct */
@@ -4790,6 +4826,7 @@ struct player_special_data_saved
     int fight_to_the_death_cooldown;
     int dragon_bond_type;
     int dragon_rider_dragon_type;
+    int background_type;
 
 };
 
@@ -4873,6 +4910,8 @@ struct player_special_data
     int buildwalk_flags[RF_ARRAY_MAX];
     char *buildwalk_name;
     char *buildwalk_desc;
+
+    char *downgrade_confirm;
 
 };
 
