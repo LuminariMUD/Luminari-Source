@@ -89,8 +89,9 @@ ACMD_DECL(do_featlisting);
 #define FEAT_TYPE_INNATE_ABILITY 11
 #define FEAT_TYPE_DOMAIN_ABILITY 12
 #define FEAT_TYPE_PERFORMANCE 13
+#define FEAT_TYPE_BACKGROUND 14
 
-#define NUM_FEAT_TYPES 14
+#define NUM_FEAT_TYPES 15
 /******************/
 
 /*  LIST_FEAT defines, for list_feats function. */

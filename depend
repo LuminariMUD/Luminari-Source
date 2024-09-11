@@ -30,7 +30,7 @@ act.item.o: act.item.c conf.h sysdep.h structs.h bool.h protocol.h \
  act.h quest.h spec_procs.h clan.h mud_event.h dg_event.h hlquest.h \
  fight.h mudlim.h actions.h traps.h assign_wpn_armor.h spec_abilities.h \
  item.h feats.h alchemy.h mysql.h treasure.h crafts.h hunts.h class.h \
- spell_prep.h
+ spell_prep.h genobj.h
 act.movement.o: act.movement.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h \
  interpreter.h handler.h spells.h house.h constants.h dg_scripts.h act.h \
@@ -79,6 +79,9 @@ assign_wpn_armor.o: assign_wpn_armor.c conf.h sysdep.h structs.h bool.h \
  mud_event.h dg_event.h actions.h actionqueues.h assign_wpn_armor.h \
  craft.h feats.h constants.h modify.h domains_schools.h spec_abilities.h \
  handler.h spells.h
+backgrounds.o: backgrounds.c conf.h sysdep.h structs.h bool.h protocol.h \
+ lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h spells.h \
+ handler.h interpreter.h constants.h backgrounds.h treasure.h fight.h
 ban.o: ban.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h interpreter.h \
  handler.h ban.h
@@ -142,7 +145,7 @@ db.o: db.c conf.h sysdep.h structs.h bool.h protocol.h lists.h campaign.h \
  msgedit.h craft.h hlquest.h mudlim.h spec_abilities.h perlin.h \
  wilderness.h mysql.h feats.h actionqueues.h domains_schools.h grapple.h \
  race.h spell_prep.h crafts.h trails.h premadebuilds.h encounters.h \
- hunts.h evolutions.h assign_wpn_armor.h
+ hunts.h evolutions.h assign_wpn_armor.h backgrounds.h
 deities.o: deities.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h spells.h interpreter.h \
  deities.h
@@ -309,14 +312,14 @@ interpreter.o: interpreter.c conf.h sysdep.h structs.h bool.h protocol.h \
  domains_schools.h grapple.h assign_wpn_armor.h bardic_performance.h \
  spell_prep.h crafts.h new_mail.h alchemy.h staff_events.h \
  premadebuilds.h missions.h transport.h hunts.h fight.h char_descs.h \
- evolutions.h deities.h mudlim.h
+ evolutions.h deities.h mudlim.h backgrounds.h
 kdtree.o: kdtree.c kdtree.h
 limits.o: limits.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h spells.h comm.h handler.h \
  interpreter.h dg_scripts.h class.h fight.h screen.h mud_event.h \
  dg_event.h mudlim.h act.h actions.h domains_schools.h grapple.h \
  constants.h alchemy.h staff_events.h missions.h account.h psionics.h \
- evolutions.h
+ evolutions.h spell_prep.h
 lists.o: lists.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h dg_event.h
 magic.o: magic.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
@@ -463,7 +466,7 @@ spec_procs.o: spec_procs.c conf.h sysdep.h structs.h bool.h protocol.h \
  modify.h house.h clan.h mudlim.h graph.h dg_scripts.h mud_event.h \
  dg_event.h actions.h assign_wpn_armor.h domains_schools.h feats.h \
  spell_prep.h item.h alchemy.h treasure.h mobact.h evolutions.h oasis.h \
- help.h quest.h
+ help.h quest.h backgrounds.h
 specs.artifacts.o: specs.artifacts.c
 spellbook_scroll.o: spellbook_scroll.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h utils.h db.h helpers.h perfmon.h \

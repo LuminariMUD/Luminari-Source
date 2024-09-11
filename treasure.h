@@ -386,6 +386,7 @@
 
 #define CUSTOM_TREASURE_MESSAGE_NONE   0
 #define CUSTOM_TREASURE_MESSAGE_BORROW 1
+#define CUSTOM_TREASURE_MESSAGE_SWINDLE 2
 
 /* treasure_const.c - list of constant arrays */
 extern const char *gemstones[NUM_A_GEMSTONES + 1];

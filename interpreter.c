@@ -68,6 +68,7 @@
 #include "evolutions.h"
 #include "deities.h"
 #include "mudlim.h"
+#include "backgrounds.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -343,6 +344,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deatharrow", "deatharrow", POS_FIGHTING, do_deatharrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_deatharrow},
     {"defenses", "defenses", POS_DEAD, do_defenses, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"defensivestance", "defensivestance", POS_FIGHTING, do_defensive_stance, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_defensive_stance},
+    {"downgrade", "downgrade", POS_RECLINING, do_downgrade, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"darkness", "darkness", POS_FIGHTING, do_darkness, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"dracbreath", "dracbreath", POS_FIGHTING, do_sorcerer_breath_weapon, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_sorcerer_breath_weapon},
     {"dracclaws", "dracclaws", POS_FIGHTING, do_sorcerer_claw_attack, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_sorcerer_claw_attack},
@@ -731,6 +733,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"'", "'", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"save", "sav", POS_SLEEPING, do_save, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"saveall", "saveall", POS_DEAD, do_saveall, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"saveeverything", "saveeverything", POS_DEAD, do_save_everything, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"saveobjstodb", "saveobjstodb", POS_DEAD, do_save_objects_to_database, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     //  { "savemobs"  , "savemobs" , POS_DEAD    , do_savemobs  , LVL_IMPL, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"search", "sea", POS_STANDING, do_search, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -783,6 +786,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"strengthofhonor", "strengthofhonor", POS_FIGHTING, do_strength_of_honor, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"swallow", "swallow", POS_RECLINING, do_swallow, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"switch", "switch", POS_DEAD, do_switch, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"swindle", "swindle", POS_STANDING, do_swindle, 1, 0, TRUE, ACTION_STANDARD, {0, 0}, NULL},
     {"shapechange", "shapechange", POS_FIGHTING, do_wildshape, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"skills", "skills", POS_RECLINING, do_train, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"skillcheck", "skillch", POS_RECLINING, do_skillcheck, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -815,6 +819,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"taunt", "taunt", POS_FIGHTING, do_taunt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_taunt},
     {"teleport", "tele", POS_DEAD, do_teleport, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"temote", "tem", POS_RECLINING, do_temote, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"temple", "temple", POS_RECLINING, do_not_here, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"tedit", "tedit", POS_DEAD, do_tedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL}, /* XXX: Oasisify */
     {"thaw", "thaw", POS_DEAD, do_wizutil, LVL_GRSTAFF, SCMD_THAW, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"threaten", "threaten", POS_STANDING, do_dialogue_quest, 1, SCMD_DIALOGUE_INTIMIDATE, FALSE, ACTION_NONE, {0, 0}, NULL},

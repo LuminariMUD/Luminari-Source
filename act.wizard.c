@@ -9662,4 +9662,22 @@ ACMD(do_save_objects_to_database)
   send_to_char(ch, "Objects successfully exported to database.\r\n");
 }
 
+ACMD(do_save_everything)
+{
+  int i = 0;
+  send_to_char(ch, "You are now saving every zone.\r\n");
+  for (i = 0; i <= top_of_zone_table; i++)
+  {
+    add_to_save_list(zone_table[i].number, SL_WLD);
+    add_to_save_list(zone_table[i].number, SL_MOB);
+    add_to_save_list(zone_table[i].number, SL_OBJ);
+    add_to_save_list(zone_table[i].number, SL_QST);
+    add_to_save_list(zone_table[i].number, SL_SHP);
+    add_to_save_list(zone_table[i].number, SL_ZON);
+    add_to_save_list(zone_table[i].number, SL_ACT);
+    add_to_save_list(zone_table[i].number, SL_CFG);
+    add_to_save_list(zone_table[i].number, SL_HLP);
+  }
+}
+
 /* EOF */

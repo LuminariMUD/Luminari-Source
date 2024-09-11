@@ -4478,6 +4478,10 @@ int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct ob
   bool knowledge = FALSE;
   int lore_bonus = 0;
 
+  // if the object was already identified, it can always be identified again
+  if (target_obj && OBJ_FLAGGED(target_obj, ITEM_IDENTIFIED))
+    return TRUE;
+
   /* establish any lore bonus */
   if (HAS_FEAT(ch, FEAT_KNOWLEDGE))
   {
@@ -4491,8 +4495,7 @@ int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct ob
   }
 
   /* good enough lore for object? */
-  if (target_obj && GET_OBJ_COST(target_obj) <=
-                        lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
+  if (target_obj && GET_OBJ_COST(target_obj) <= lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
   {
     knowledge = TRUE;
   }
@@ -4570,6 +4573,7 @@ ACMD(do_lore)
   /* success! */
   if (tobj)
   {
+    SET_BIT_AR(GET_OBJ_EXTRA(tobj), ITEM_IDENTIFIED);
     do_stat_object(ch, tobj, ITEM_STAT_MODE_LORE_SKILL);
   }
   else if (tch)

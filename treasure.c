@@ -185,6 +185,13 @@ void say_treasure(struct char_data *ch, struct obj_data *obj)
       send_to_char(ch, "\tYSomeone seems to have misplaced %s\tn\tY! Lucky for them that you found it!\tn\r\n", obj->short_description);
     }
   }
+  if (ch->char_specials.which_treasure_message == CUSTOM_TREASURE_MESSAGE_SWINDLE)
+  {
+    if (ch && obj && obj->short_description)
+    {
+      send_to_char(ch, "\tYYour con also awards with %s!\tn\r\n", obj->short_description);
+    }
+  }
   else if (ch && obj && obj->short_description)
   {
     send_to_char(ch, "\tYYou have found %s\tn\tY in a nearby lair (random treasure drop)!\tn\r\n", obj->short_description);
@@ -2471,16 +2478,12 @@ void set_armor_object(struct obj_data *obj, int type)
   GET_OBJ_VAL(obj, 1) = type;
 
   /* auto set ac apply, 1st value */
-  GET_OBJ_VAL(obj, 0) =
-      armor_list[GET_OBJ_VAL(obj, 1)].armorBonus;
+  GET_OBJ_VAL(obj, 0) = armor_list[GET_OBJ_VAL(obj, 1)].armorBonus;
 
   /* for convenience we are going to go ahead and set some other values */
-  GET_OBJ_COST(obj) =
-      armor_list[GET_OBJ_VAL(obj, 1)].cost + 1;
-  GET_OBJ_WEIGHT(obj) =
-      armor_list[GET_OBJ_VAL(obj, 1)].weight;
-  GET_OBJ_MATERIAL(obj) =
-      armor_list[GET_OBJ_VAL(obj, 1)].material;
+  GET_OBJ_COST(obj) = armor_list[GET_OBJ_VAL(obj, 1)].cost + 1;
+  GET_OBJ_WEIGHT(obj) = armor_list[GET_OBJ_VAL(obj, 1)].weight;
+  GET_OBJ_MATERIAL(obj) = armor_list[GET_OBJ_VAL(obj, 1)].material;
 
   /* set the proper wear bits! */
 

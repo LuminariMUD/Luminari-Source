@@ -1889,6 +1889,7 @@ ASPELL(spell_identify) // divination
 {
   if (obj)
   {
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_IDENTIFIED);
     do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
   }
   else if (victim)
@@ -3744,6 +3745,11 @@ ASPELL(spell_wizard_eye)
 
   // dummy check
   if (!eye)
+  {
+    send_to_char(ch, "You don't quite remember how to create that.\r\n");
+    return;
+  }
+  if (!ch || !ch->desc)
   {
     send_to_char(ch, "You don't quite remember how to create that.\r\n");
     return;

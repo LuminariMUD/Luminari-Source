@@ -1316,10 +1316,13 @@
 
 #define ABILITY_ACROBATICS 1        /* acrobatics, matches pfsrd */
 #define ABILITY_STEALTH 2           /* stealth, matches pfsrd, use to be hide + move silently */
-#define ABILITY_UNUSED_1 3          /* UNUSED - use to be move silently */
+#define ABILITY_RELIGION 3          /* UNUSED - use to be move silently */
 #define ABILITY_PERCEPTION 4        /* perception, matches pfsrd, use to be spot + listen */
-#define ABILITY_UNUSED_2 5          /* UNUSED - use to be listen */
+#define ABILITY_ATHLETICS 5         /* Athletics, covers swim and climb */
+#define ABILITY_CLIMB ABILITY_ATHLETICS
+#define ABILITY_SWIM ABILITY_ATHLETICS
 #define ABILITY_HEAL 6              /* heal (treatinjury), matches pfsrd */
+#define ABILITY_MEDICINE ABILITY_HEAL
 #define ABILITY_INTIMIDATE 7        /* intimidate, matches pfsrd, use to be taunt */
 #define ABILITY_CONCENTRATION 8     /* UNIQUE concentration */
 #define ABILITY_SPELLCRAFT 9        /* spellcraft, matches pfsrd */
@@ -1327,23 +1330,28 @@
 #define ABILITY_DISCIPLINE 11       /* UNIQUE discipline */
 #define ABILITY_TOTAL_DEFENSE 12    /* UNIQUE total defense */
 #define ABILITY_LORE 13             /* UNIQUE lore */
+#define ABILITY_ARCANA ABILITY_LORE
 #define ABILITY_RIDE 14             /* ride, matches pfsrd */
 #define ABILITY_UNUSED_3 15         /* UNUSED - use to be balance */
-#define ABILITY_CLIMB 16            /* climb, matches pfsrd */
-#define ABILITY_UNUSED_4 17         /* UNUSED - use to be open locks */
+#define ABILITY_UNUSED_1 16         /* unused, was climb */
+#define ABILITY_HISTORY 17          /* history */
 #define ABILITY_SLEIGHT_OF_HAND 18  /* sleight of hand */
+#define ABILITY_ESCAPE_ARTIST ABILITY_SLEIGHT_OF_HAND
 #define ABILITY_UNUSED_5 19         /* UNUSED - use to be search */
 #define ABILITY_BLUFF 20            /* bluff, matches pfsrd */
+#define ABILITY_DECEPTION ABILITY_BLUFF
 #define ABILITY_UNUSED_6 21         /* UNUSED - use to be decipher script */
 #define ABILITY_DIPLOMACY 22        /* diplomacy, matches pfsrd */
+#define ABILITY_PERSUASION ABILITY_DIPLOMACY
 #define ABILITY_DISABLE_DEVICE 23   /* disable device, matches pfsrd */
 #define ABILITY_DISGUISE 24         /* diguise, matches pfsrd */
-#define ABILITY_ESCAPE_ARTIST 25    /* escape artist, matches pfsrd */
+#define ABILITY_UNUSED_2 25         /* unused, used to be escape artist */
 #define ABILITY_HANDLE_ANIMAL 26    /* handle animal, matches pfsrd */
 #define ABILITY_UNUSED_7 27         /* UNUSED - use to be jump */
 #define ABILITY_SENSE_MOTIVE 28     /* sense motive, matches pfsrd */
+#define ABILITY_INSIGHT ABILITY_SENSE_MOTIVE
 #define ABILITY_SURVIVAL 29         /* survival, matches pfsrd */
-#define ABILITY_SWIM 30             /* swim, matches pfsrd */
+#define ABILITY_UNUSED_4 30         /* unused, used to be swim */
 #define ABILITY_USE_MAGIC_DEVICE 31 /* use magic device, matches pfsrd */
 #define ABILITY_LINGUISTICS 32      // Number of languages known
 #define ABILITY_PERFORM 33          /* perform, matches pfsrd */
