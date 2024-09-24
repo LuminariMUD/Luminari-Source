@@ -3101,11 +3101,10 @@ ACMD(do_order)
 
   if (!*name || !*message)
     send_to_char(ch, "Order who to do what?\r\n");
-  else if (!(vict = get_char_vis(ch, name, NULL, FIND_CHAR_ROOM)) &&
-           !is_abbrev(name, "followers"))
+  else if (!(vict = get_char_vis(ch, name, NULL, FIND_CHAR_ROOM)) && !is_abbrev(name, "followers"))
     send_to_char(ch, "That person isn't here.\r\n");
   else if (ch == vict)
-    send_to_char(ch, "You obviously suffer from schizophrenia.\r\n");
+    send_to_char(ch, "Why order yourself?\r\n");
   else
   {
     if (AFF_FLAGGED(ch, AFF_CHARM))
@@ -3130,7 +3129,7 @@ ACMD(do_order)
       }
 
       /* use a move action here -zusuk */
-      USE_MOVE_ACTION(ch);
+      USE_SWIFT_ACTION(ch);
     }
 
     else if (ch) /* This is order "followers" */
@@ -3183,7 +3182,7 @@ ACMD(do_order)
       /* made it! */
       if (found)
       {
-        USE_FULL_ROUND_ACTION(ch);
+        USE_SWIFT_ACTION(ch);
         send_to_char(ch, "%s", CONFIG_OK);
       }
       else

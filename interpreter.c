@@ -368,6 +368,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"encounter", "enc", POS_RECLINING, do_encounter, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"encounterinfo", "encounterinfo", POS_DEAD, do_encounterinfo, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"enlarge", "enlarge", POS_FIGHTING, do_enlarge, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
+    {"entertain", "entertain", POS_STANDING, do_entertain, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"equipment", "eq", POS_SLEEPING, do_equipment, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"eqstats", "eqst", POS_SLEEPING, do_not_here, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"exits", "ex", POS_RECLINING, do_exits, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -382,6 +383,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"evoweb", "evoweb", POS_FIGHTING, do_evoweb, 0, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"evilscythe", "evilscythe", POS_STANDING, do_evilscythe, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"eviltouch", "eviltouch", POS_STANDING, do_eviltouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"extort", "extort", POS_DEAD, do_extort, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"extracts", "extracts", POS_RECLINING, do_spells, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"extractlist", "extractlist", POS_RECLINING, do_spelllist, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"eyeofknowledge", "eyeofknowledge", POS_STANDING, do_eyeofknowledge, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
@@ -390,6 +392,7 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
     {"feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"featlisting", "featlisting", POS_SLEEPING, do_featlisting, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"forage", "forage", POS_STANDING, do_forage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"force", "force", POS_SLEEPING, do_force, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"fiendishboon", "fiendishb", POS_DEAD, do_fiendishboon, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"fill", "fil", POS_STANDING, do_pour, 0, SCMD_FILL, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -397,6 +400,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"flee", "fl", POS_FIGHTING, do_flee, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"flightlist", "flightlist", POS_RESTING, do_flightlist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"follow", "fol", POS_RECLINING, do_follow, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"forgeas", "forgeas", POS_RECLINING, do_forgeas, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"forget", "forget", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_FORGET, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"foretell", "foretell", POS_RECLINING, do_foretell, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"freeze", "freeze", POS_DEAD, do_wizutil, LVL_GRSTAFF, SCMD_FREEZE, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -677,6 +681,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"rapidshot", "rapidshot", POS_FIGHTING, do_mode, 1, MODE_RAPID_SHOT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reforge", "reforge", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"relay", "relay", POS_RECLINING, do_relay, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reload", "reload", POS_FIGHTING, do_reload, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reloadimm", "reloadimm", POS_DEAD, do_reboot, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"recite", "reci", POS_FIGHTING, do_use_consumable, 0, SCMD_RECITE, FALSE, ACTION_SWIFT, {0, 6}, NULL},
@@ -833,6 +838,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"transfer", "transfer", POS_SLEEPING, do_trans, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"transposition", "transposition", POS_STANDING, do_transposition, 0, 0, TRUE, ACTION_STANDARD, {0, 0}, NULL},
     {"treatinjury", "treatinjury", POS_RECLINING, do_treatinjury, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_treatinjury},
+    {"tribute", "tribute", POS_STANDING, do_tribute, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"trip", "trip", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, can_trip},
     //  { "_trip", "_trip", POS_FIGHTING, do_trip, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"trigedit", "trigedit", POS_DEAD, do_oasis_trigedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -2090,7 +2096,7 @@ int enter_player_game(struct descriptor_data *d)
     GET_IMM_TITLE(d->character) = strdup(admin_level_names[GET_LEVEL(d->character)-LVL_IMMORT]);
 
 
-  if (GET_REGION(d->character) < REGION_NONE || GET_REGION(d->character) >= NUM_REGIONS)
+  if (GET_REGION(d->character) < REGION_NONE || GET_REGION(d->character) >= NUM_REGIONS || !is_selectable_region(GET_REGION(d->character)))
     GET_REGION(d->character) = REGION_NONE;
 
   /* initialize the characters condensed combat data struct */
@@ -3085,7 +3091,7 @@ switch (load_result)
     }
 
     load_result = atoi(arg);
-    if (load_result <= REGION_NONE || load_result >= NUM_REGIONS)
+    if (load_result <= REGION_NONE || load_result >= NUM_REGIONS || !is_selectable_region(load_result))
     {
       write_to_output(d, "\r\nThat's not a region.\r\nRegion: ");
       return;
@@ -3118,11 +3124,14 @@ switch (load_result)
 #else
       write_to_output(d, "\tcRegions of Faerun\tn\r\n\r\n");
 #endif
-      for (i = 1; i < NUM_REGIONS; i++)
+      i = 1;
+      while (i < NUM_REGIONS)
       {
+        if (!is_selectable_region(i)) continue;
         write_to_output(d, "%-2d) %-20s ", i, regions[i]);
         if (((i - 1) % 3) == 2)
           send_to_char(d->character, "\r\n");
+        i++;
       }
       if (((i - 1) % 3) != 2)
         send_to_char(d->character, "\r\n");
@@ -3723,11 +3732,14 @@ switch (load_result)
       }
 
       write_to_output(d, "\tcRegions of Ansalon\tn\r\n\r\n");
-      for (i = 1; i < NUM_REGIONS; i++)
+      i = 1;
+      while (i < NUM_REGIONS)
       {
+        if (!is_selectable_region(i)) continue;
         write_to_output(d, "%-2d) %-20s ", i, regions[i]);
         if (((i - 1) % 3) == 2)
           send_to_char(d->character, "\r\n");
+        i++;
       }
       if (((i - 1) % 3) != 2)
         send_to_char(d->character, "\r\n");

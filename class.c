@@ -35,6 +35,7 @@
 #include "alchemy.h"
 #include "premadebuilds.h"
 #include "evolutions.h"
+#include "backgrounds.h"
 
 /** LOCAL DEFINES **/
 // good/bad
@@ -418,9 +419,11 @@ void assign_class_abils(int class_num,
   class_list[class_num].class_abil[ABILITY_APPRAISE] = appraise;
   class_list[class_num].class_abil[ABILITY_DISCIPLINE] = discipline;
   class_list[class_num].class_abil[ABILITY_TOTAL_DEFENSE] = total_defense;
-  class_list[class_num].class_abil[ABILITY_LORE] = lore;
+  class_list[class_num].class_abil[ABILITY_ARCANA] = CA;
+  class_list[class_num].class_abil[ABILITY_RELIGION] = CA;
+  class_list[class_num].class_abil[ABILITY_HISTORY] = CA;
   class_list[class_num].class_abil[ABILITY_RIDE] = ride;
-  class_list[class_num].class_abil[ABILITY_CLIMB] = climb;
+  class_list[class_num].class_abil[ABILITY_ATHLETICS] = climb;
   class_list[class_num].class_abil[ABILITY_SLEIGHT_OF_HAND] = sleight_of_hand;
   class_list[class_num].class_abil[ABILITY_BLUFF] = bluff;
   class_list[class_num].class_abil[ABILITY_DIPLOMACY] = diplomacy;
@@ -429,8 +432,7 @@ void assign_class_abils(int class_num,
   class_list[class_num].class_abil[ABILITY_ESCAPE_ARTIST] = escape_artist;
   class_list[class_num].class_abil[ABILITY_HANDLE_ANIMAL] = handle_animal;
   class_list[class_num].class_abil[ABILITY_SENSE_MOTIVE] = sense_motive;
-  class_list[class_num].class_abil[ABILITY_SURVIVAL] = survival;
-  class_list[class_num].class_abil[ABILITY_SWIM] = swim;
+  class_list[class_num].class_abil[ABILITY_SURVIVAL] = CA;
   class_list[class_num].class_abil[ABILITY_USE_MAGIC_DEVICE] = use_magic_device;
   class_list[class_num].class_abil[ABILITY_PERFORM] = perform;
   class_list[class_num].class_abil[ABILITY_LINGUISTICS] = CA;
@@ -936,7 +938,7 @@ bool display_weapon_info(struct char_data *ch, const char *weapon)
 /* display specific region details */
 bool display_region_info(struct char_data *ch, int region)
 {
-  if (!ch || region <= REGION_NONE || region > NUM_REGIONS)
+  if (!ch || region <= REGION_NONE || region > NUM_REGIONS || !is_selectable_region(region))
   {
     return FALSE;
   }
@@ -2937,6 +2939,9 @@ void init_start_char(struct char_data *ch)
   GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
   GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
 
+  if (GET_BACKGROUND(ch) != BACKGROUND_NONE)
+    SET_FEAT(ch, background_list[GET_BACKGROUND(ch)].feat, 1);
+
   /* initialize spell prep data, allow adjustment of spells known */
   destroy_spell_prep_queue(ch);
   destroy_innate_magic_queue(ch);
@@ -3000,6 +3005,9 @@ void init_start_char(struct char_data *ch)
   default:
     break;
   }
+
+  if (HAS_FEAT(ch, FEAT_BG_OUTLANDER))
+    GET_REAL_MAX_HIT(ch) += 20;
 
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)

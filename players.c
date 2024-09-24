@@ -100,8 +100,10 @@ static void load_cruelties(FILE *fl, struct char_data *ch);
 static void load_buffs(FILE *fl, struct char_data *ch);
 static void load_languages(FILE *fl, struct char_data *ch);
 
-    // external functions
-    void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
+// external functions
+void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
+void pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
+void pet_load_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
 
 /* New version to build player index for ASCII Player Files. Generate index
  * table for the player file. */
@@ -3609,6 +3611,15 @@ void save_char_pets(struct char_data *ch)
 
   mysql_ping(conn);
 
+  char del_buf[2048];
+  /* Delete existing save data.  In the future may just flag these for deletion. */
+  snprintf(del_buf, sizeof(del_buf), "delete from pet_save_objs where owner_name = '%s';", GET_NAME(ch));
+  if (mysql_query(conn, del_buf))
+  {
+    log("SYSERR: Unable to delete pet object save data: %s", mysql_error(conn));
+    return;
+  }
+
   end = stpcpy(query, "DELETE FROM pet_data WHERE owner_name=");
   *end++ = '\'';
   end += mysql_real_escape_string(conn, end, chname, strlen(chname));
@@ -3713,6 +3724,14 @@ void save_char_pets(struct char_data *ch)
       log("QUERY: %s", finalQuery);
       return;
     }
+    long int insert_id = 0;
+    insert_id = mysql_insert_id(conn);
+
+    if (insert_id > 0)
+    {
+      pet_save_objs(tch, ch, insert_id);
+    }
+
   }
 }
 
@@ -3725,6 +3744,7 @@ void load_char_pets(struct char_data *ch)
 #if defined (CAMPAIGN_DL)
   char desc1[MAX_STRING_LENGTH] = {'\0'}; char desc2[MAX_STRING_LENGTH] = {'\0'};
   char desc3[MAX_STRING_LENGTH] = {'\0'}; char desc4[MAX_STRING_LENGTH] = {'\0'};
+  long int pet_idnum = 0;
 #endif
   struct char_data *mob = NULL;
 
@@ -3737,7 +3757,7 @@ void load_char_pets(struct char_data *ch)
   mysql_ping(conn);
 
 #if defined(CAMPAIGN_DL)
-  snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, pet_name, pet_sdesc, pet_ldesc, pet_ddesc FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
+  snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, pet_data_id FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
 #else
   snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
 #endif
@@ -3820,6 +3840,10 @@ void load_char_pets(struct char_data *ch)
       snprintf(desc4, sizeof(desc4), "%s", row[14]);
       mob->player.description = strdup(desc4);
     }
+    if (atol(row[15]) > 0)
+    {
+      pet_idnum = atol(row[15]);
+    }
 #endif
     if (MOB_FLAGGED(mob, MOB_EIDOLON))
     {
@@ -3847,6 +3871,9 @@ void load_char_pets(struct char_data *ch)
     affect_total(mob);
     load_mtrigger(mob);
     add_follower(mob, ch);
+#if defined(CAMPAIGN_DL)
+    pet_load_objs(mob, ch, pet_idnum);
+#endif
     if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
     act("$N appears beside you.", true, ch, 0, mob, TO_CHAR);

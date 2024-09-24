@@ -129,6 +129,12 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
   bool has_subrace = false;
   char subraces[MEDIUM_STRING] = {'\0'};
 
+  if (IS_NPC(tch))
+  {
+    if (HAS_FEAT(ch, FEAT_BG_SAGE))
+      GET_SAGE_MOB_VNUM(ch) = GET_MOB_VNUM(tch);
+  }
+
   count = snprintf(subraces + len, sizeof(subraces) - len, ", Subrace(s): ");
   if (count > 0)
     len += count;
@@ -2075,6 +2081,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Fight to the Death - Duration: %d seconds\r\n", GET_FIGHT_TO_THE_DEATH_COOLDOWN(k) * 6);
   if (ch->char_specials.terror_cooldown > 0)
     send_to_char(ch, "Aura of Terror Immunity - Duration: %d seconds\r\n",  ch->char_specials.terror_cooldown * 6);
+  if (GET_FORAGE_COOLDOWN(k) > 0)
+    send_to_char(ch, "Forage - Duration: %d seconds\r\n", GET_FORAGE_COOLDOWN(k) * 6);
 
   list_item_activate_ability_cooldowns(ch);
 
@@ -5466,6 +5474,7 @@ ACMDU(do_homelands)
 
   if (!*argument)
   {
+    
     send_to_char(ch, "\tcRegions of Faerun\tn\r\n\r\n");
     for (i = 1; i < NUM_REGIONS; i++)
     {

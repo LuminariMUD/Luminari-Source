@@ -107,6 +107,17 @@ const char *const guard_difficulty[NUM_MISSION_DIFFICULTIES] = {
 /* begin fuctnions */
 int mission_details_to_faction(int faction)
 {
+#if defined(CAMPAIGN_DL)
+    switch (faction)
+    {
+    case FACTION_NONE:
+        return MISSION_HUTTS;
+    case FACTION_FORCES_OF_WHITESTONE:
+        return MISSION_REBELS;
+    case FACTION_DRAGONARMIES:
+        return MISSION_EMPIRE;
+    }
+#else
     switch (faction)
     {
     case FACTION_THE_ORDER:
@@ -116,6 +127,7 @@ int mission_details_to_faction(int faction)
     case FACTION_CRIMINAL:
         return MISSION_HUTTS;
     }
+#endif
     return MISSION_FREELANCERS;
 }
 

@@ -185,11 +185,32 @@ void say_treasure(struct char_data *ch, struct obj_data *obj)
       send_to_char(ch, "\tYSomeone seems to have misplaced %s\tn\tY! Lucky for them that you found it!\tn\r\n", obj->short_description);
     }
   }
-  if (ch->char_specials.which_treasure_message == CUSTOM_TREASURE_MESSAGE_SWINDLE)
+  else if (ch->char_specials.which_treasure_message == CUSTOM_TREASURE_MESSAGE_SWINDLE)
   {
     if (ch && obj && obj->short_description)
     {
-      send_to_char(ch, "\tYYour con also awards with %s!\tn\r\n", obj->short_description);
+      send_to_char(ch, "\tYYour con also awards you with %s!\tn\r\n", obj->short_description);
+    }
+  }
+  else if (ch->char_specials.which_treasure_message == CUSTOM_TREASURE_MESSAGE_PERFORM)
+  {
+    if (ch && obj && obj->short_description)
+    {
+      send_to_char(ch, "\tYYour performance also awards you with %s!\tn\r\n", obj->short_description);
+    }
+  }
+  else if (ch->char_specials.which_treasure_message == CUSTOM_TREASURE_MESSAGE_TRIBUTE)
+  {
+    if (ch && obj && obj->short_description)
+    {
+      send_to_char(ch, "\tYYour famous local accolades award you with an additonal tribute of %s!\tn\r\n", obj->short_description);
+    }
+  }
+  else if (ch->char_specials.which_treasure_message == CUSTOM_TREASURE_MESSAGE_EXTORTION)
+  {
+    if (ch && obj && obj->short_description)
+    {
+      send_to_char(ch, "\tYYour extortion victim also hands you %s!\tn\r\n", obj->short_description);
     }
   }
   else if (ch && obj && obj->short_description)

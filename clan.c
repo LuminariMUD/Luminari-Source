@@ -431,8 +431,11 @@ void copy_clan_data(struct clan_data *to_clan, struct clan_data *from_clan)
   to_clan->applev = from_clan->applev;
   to_clan->appfee = from_clan->appfee;
   to_clan->taxrate = from_clan->taxrate;
-  to_clan->at_war = from_clan->at_war;
-  to_clan->allied = from_clan->allied;
+  for (i = 0; i < MAX_CLANS; i++)
+  {
+    to_clan->allies[i] = from_clan->allies[i];
+    to_clan->at_war[i] = from_clan->at_war[i];
+  }
   to_clan->treasure = from_clan->treasure;
   to_clan->pk_win = from_clan->pk_win;
   to_clan->pk_lose = from_clan->pk_lose;
@@ -591,9 +594,12 @@ void clear_clan_vals(struct clan_data *cl)
   cl->taxrate = 0;
   cl->hall = 0;
   cl->treasure = 0;
-  cl->at_war = 0;
   cl->war_timer = 0;
-  cl->allied = 0;
+  for (i = 0; i < MAX_CLANS; i++)
+  {
+    cl->allies[i] = 0;
+    cl->at_war[i] = 0;
+  }
   cl->pk_win = 0;
   cl->pk_lose = 0;
   cl->clan_name = NULL;
@@ -967,8 +973,11 @@ ACMD(do_clancreate)
   new_clan.pk_lose = 0;
   new_clan.hall = 0;
   new_clan.treasure = 0;
-  new_clan.at_war = NO_CLAN;
-  new_clan.allied = NO_CLAN;
+  for (i = 0; i < MAX_CLANS; i++)
+  {
+    new_clan.allies[i] = NO_CLAN;
+    new_clan.at_war[i] = NO_CLAN;
+  }
   new_clan.description = NULL;
   new_clan.abrev = NULL;
 
@@ -1674,13 +1683,14 @@ ACMD(do_clanexpel) /* Expel a member */
 
 ACMD(do_claninfo) /* Information about clans */
 {
-  int i, j, count = 0, mems, pow;
+  int i, j, count = 0, mems, pow, x, xcount = 0;
   char pr[4];
 
   if (!argument || !*argument)
   {
     for (i = 0; i < num_of_clans; i++)
     {
+      xcount = 0;
       if (++count == 1)
         send_to_char(ch, "Clan ID  Clan Name                       "
                          "Members  Power\r\n");
@@ -1741,10 +1751,37 @@ ACMD(do_claninfo) /* Information about clans */
       }
       send_to_char(ch, "App Lev: %s%d%s\r\n", QYEL, clan_list[i].applev, QNRM);
       send_to_char(ch, "App Fee: %s%d%s\r\n", QYEL, clan_list[i].appfee, QNRM);
-      send_to_char(ch, "At War : %s%s  \r\n",
-                   real_clan(clan_list[i].at_war) == NO_CLAN ? "<None!>" : clan_list[(real_clan(clan_list[i].at_war))].clan_name, QNRM);
-      send_to_char(ch, "Allied : %s%s  \r\n",
-                   real_clan(clan_list[i].allied) == NO_CLAN ? "<None!>" : clan_list[(real_clan(clan_list[i].allied))].clan_name, QNRM);
+      
+      xcount = 0;
+      send_to_char(ch, "At War : %s", QNRM);
+      for (x = 0; x < num_of_clans; x++)
+      {
+        if (clan_list[i].at_war[x] == FALSE)
+          continue;
+        if (xcount > 0)
+          send_to_char(ch, ", ");
+        send_to_char(ch, "%s", clan_list[x].clan_name);
+        xcount++;
+      }
+      if (xcount == 0)
+        send_to_char(ch, "<None!>");
+      send_to_char(ch, "\r\n");
+      
+      xcount = 0;
+      send_to_char(ch, "Allies : %s", QNRM);
+      for (x = 0; x < num_of_clans; x++)
+      {
+        if (clan_list[i].allies[x] == FALSE)
+          continue;
+        if (xcount > 0)
+          send_to_char(ch, ", ");
+        send_to_char(ch, "%s", clan_list[x].clan_name);
+        xcount++;
+      }
+      if (xcount == 0)
+        send_to_char(ch, "<None!>");
+      send_to_char(ch, "\r\n");
+
       send_to_char(ch, "PK Won : %s%d%s\r\n", QYEL, clan_list[i].pk_win, QNRM);
       send_to_char(ch, "PK Lost: %s%d%s\r\n", QYEL,
                    clan_list[i].pk_lose, QNRM);
@@ -2972,7 +3009,7 @@ ACMD(do_clanset)
        rankbuf[MAX_INPUT_LENGTH] = {'\0'};
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char spellname[MAX_INPUT_LENGTH] = {'\0'}, spellbuf[MAX_INPUT_LENGTH] = {'\0'};
-  int value = 0, rankid, i, l;
+  int value = 0, rankid, i, l, x;
   int clannum = -1; /* The 'real' number of the clan */
   int spellid, spellnum;
 
@@ -2993,7 +3030,7 @@ ACMD(do_clanset)
       {"skills", LVL_STAFF, NUMBER},     /* 8  */
       {"desc", LVL_STAFF, MISC},         /* 9  */
       {"atwar", LVL_STAFF, NUMBER},      /* 10 */
-      {"allied", LVL_STAFF, NUMBER},     /* 11 */
+      {"allies", LVL_STAFF, NUMBER},     /* 11 */
       {"wartimer", LVL_GRSTAFF, NUMBER}, /* 12 */
       {"pkwin", LVL_IMPL, NUMBER},       /* 13 */
       {"pklose", LVL_IMPL, NUMBER},      /* 14 */
@@ -3032,7 +3069,7 @@ ACMD(do_clanset)
                  QBYEL, QBRED, QBYEL);
     send_to_char(ch, "       applev       appfee     desc       tax"
                      "        raided\r\n");
-    send_to_char(ch, "       atwar        allied     wartimer   pkwin"
+    send_to_char(ch, "       atwar        allies     wartimer   pkwin"
                      "      pklose\r\n");
     send_to_char(ch, "       abbreviation\r\n");
     send_to_char(ch, "%sFields shown in %sred%s use a special format shown"
@@ -3232,53 +3269,91 @@ ACMD(do_clanset)
              clan_list[clannum].vnum, clan_list[clannum].description);
     break;
   case 10: /* clanset clannum atwar <clan id>*/
-    if ((value < 0) || (value > num_of_clans))
+    if (!strcmp(val_arg, "clear"))
     {
-      send_to_char(ch, "Invalid at war clan ID (1-%d, or 0=off)",
-                   num_of_clans);
+      for (x = 0; x < MAX_CLANS; x++)
+      {
+        clan_list[clannum].at_war[x] = 0;
+      }
+      send_to_char(ch, "%s%s is no longer at war with any other clan.\r\n",
+                   clan_list[clannum].clan_name, QNRM);
+    }
+    else if ((value < 0) || (value > num_of_clans))
+    {
+      send_to_char(ch, "Invalid at war clan ID (1-%d, or 0=off)", num_of_clans);
       return;
     }
-    if (value == 0)
+    else if (value == 0)
     {
-      clan_list[clannum].at_war = NO_CLAN;
-      send_to_char(ch, "%s%s is no longer at war.  Peace declared!\r\n",
-                   clan_list[clannum].clan_name, QNRM);
+      send_to_char(ch, "Done editing clans at war.\r\n");
     }
     else
     {
-      clan_list[clannum].at_war = value;
-      send_to_char(ch, "%s%s is now at war with %s%s",
-                   clan_list[clannum].clan_name, QNRM,
-                   clan_list[real_clan(clan_list[clannum].at_war)].clan_name, QNRM);
-
-      snprintf(buf, sizeof(buf), "Clan ID %d: Enemy Clan set to %s\r\n",
+      if (clan_list[clannum].at_war[value] == 1)
+      {
+        clan_list[clannum].at_war[value] = FALSE;
+        clan_list[clannum].at_war[value] = TRUE;
+        send_to_char(ch, "%s%s is no longer at war with %s%s",
+                    clan_list[clannum].clan_name, QNRM,
+                    clan_list[value].clan_name, QNRM);
+        snprintf(buf, sizeof(buf), "Clan ID %d: At War Clan %s removed.\r\n",
                clan_list[clannum].vnum,
-               clan_list[real_clan(clan_list[clannum].at_war)].clan_name);
+               clan_list[value].clan_name);
+      }
+      else
+      {
+        clan_list[clannum].allies[value] = TRUE;
+        send_to_char(ch, "%s%s is now at war with %s%s",
+                    clan_list[clannum].clan_name, QNRM,
+                    clan_list[value].clan_name, QNRM);
+        snprintf(buf, sizeof(buf), "Clan ID %d: At War Clan set to %s\r\n",
+               clan_list[clannum].vnum,
+               clan_list[value].clan_name);
+      }
     }
     break;
   case 11: /* clanset clannum allied <clan id>*/
-    if ((value < 0) || (value > num_of_clans))
+    if (!strcmp(val_arg, "clear"))
     {
-      send_to_char(ch, "Invalid alliance clan ID (1-%d, or 0=off)",
-                   num_of_clans);
+      for (x = 0; x < MAX_CLANS; x++)
+      {
+        clan_list[clannum].allies[x] = 0;
+      }
+      send_to_char(ch, "%s%s is no longer allied with any other clan. Alliances broken!\r\n",
+                   clan_list[clannum].clan_name, QNRM);
+    }
+    else if ((value < 0) || (value > num_of_clans))
+    {
+      send_to_char(ch, "Invalid alliance clan ID (1-%d, or 0=off)", num_of_clans);
       return;
     }
-    if (value == 0)
+    else if (value == 0)
     {
-      clan_list[clannum].allied = NO_CLAN;
-      send_to_char(ch, "%s%s is no longer allied with any other clan.  "
-                       "Alliance broken!\r\n",
-                   clan_list[clannum].clan_name, QNRM);
+      send_to_char(ch, "Done editing allies.\r\n");
     }
     else
     {
-      clan_list[clannum].allied = value;
-      send_to_char(ch, "%s%s is now allied with %s%s",
-                   clan_list[clannum].clan_name, QNRM,
-                   clan_list[real_clan(clan_list[clannum].allied)].clan_name, QNRM);
-      snprintf(buf, sizeof(buf), "Clan ID %d: Ally Clan set to %s\r\n",
+      if (clan_list[clannum].allies[value] == 1)
+      {
+        clan_list[clannum].allies[value] = FALSE;
+        clan_list[clannum].allies[value] = TRUE;
+        send_to_char(ch, "%s%s is no longer allied with %s%s",
+                    clan_list[clannum].clan_name, QNRM,
+                    clan_list[value].clan_name, QNRM);
+        snprintf(buf, sizeof(buf), "Clan ID %d: Ally Clan %s removed.\r\n",
                clan_list[clannum].vnum,
-               clan_list[real_clan(clan_list[clannum].allied)].clan_name);
+               clan_list[value].clan_name);
+      }
+      else
+      {
+        clan_list[clannum].allies[value] = TRUE;
+        send_to_char(ch, "%s%s is now allied with %s%s",
+                    clan_list[clannum].clan_name, QNRM,
+                    clan_list[value].clan_name, QNRM);
+        snprintf(buf, sizeof(buf), "Clan ID %d: Ally Clan set to %s\r\n",
+               clan_list[clannum].vnum,
+               clan_list[value].clan_name);
+      }
     }
     break;
   case 12: /* clanset clannum wartimer <value>*/
@@ -3602,6 +3677,46 @@ bool check_clanpriv(struct char_data *ch, int p)
   if (rk <= CLAN_PRIV(cr, p))
     return TRUE;
   return FALSE;
+}
+
+bool are_clans_allied(int clanA, int clanB)
+{
+
+  if (clanA < 0 || clanA > num_of_clans)
+    return false;
+  if (clanB < 0 || clanB > num_of_clans)
+    return false;
+
+  if (clanA == clanB)
+    return true;
+
+  if (clan_list[clanA].allies[clanB] == TRUE)
+    return true;
+  
+  if (clan_list[clanB].allies[clanA] == TRUE)
+    return true;
+  
+  return false;
+}
+
+bool are_clans_at_war(int clanA, int clanB)
+{
+
+  if (clanA < 0 || clanA > num_of_clans)
+    return false;
+  if (clanB < 0 || clanB > num_of_clans)
+    return false;
+
+  if (clanA == clanB)
+    return true;
+
+  if (clan_list[clanA].at_war[clanB] == TRUE)
+    return true;
+  
+  if (clan_list[clanB].at_war[clanA] == TRUE)
+    return true;
+  
+  return false;
 }
 
 #endif

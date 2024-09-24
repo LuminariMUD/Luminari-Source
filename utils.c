@@ -40,6 +40,7 @@
 #include "missions.h"
 #include "psionics.h"
 #include "evolutions.h"
+#include "backgrounds.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -838,6 +839,29 @@ bool is_room_outdoors(room_rnum room_number)
   }
 
   return TRUE;
+}
+
+bool is_in_wilderness(struct char_data *ch)
+{
+  if (!OUTDOORS(ch))
+    return false;
+
+  switch (world[IN_ROOM(ch)].sector_type)
+  {
+    case SECT_BEACH:
+    case SECT_DESERT:
+    case SECT_FIELD:
+    case SECT_FOREST:
+    case SECT_HIGH_MOUNTAIN:
+    case SECT_HILLS:
+    case SECT_JUNGLE:
+    case SECT_MARSHLAND:
+    case SECT_MOUNTAIN:
+    case SECT_TAIGA:
+    case SECT_TUNDRA:
+      return true;
+  }
+  return false;
 }
 
 /* identifies if CH is outdoors or not (as opposed to room num)
@@ -5764,7 +5788,7 @@ bool can_speak_language(struct char_data *ch, int language)
   if (language == (race_list[GET_REAL_RACE(ch)].racial_language - SKILL_LANG_LOW)) return true;
   if (ch->player_specials->saved.languages_known[language]) return true;
   if (language == LANG_DRUIDIC && CLASS_LEVEL(ch, CLASS_DRUID)) return true;
-  if (language == LANG_THIEVES_CANT && CLASS_LEVEL(ch, CLASS_ROGUE)) return true;
+  if (language == LANG_THIEVES_CANT && (CLASS_LEVEL(ch, CLASS_ROGUE) || HAS_FEAT(ch, FEAT_BG_CRIMINAL))) return true;
   if (language == get_region_language(GET_REGION(ch))) return true;
 
   return false;
@@ -6370,6 +6394,9 @@ int get_avg_party_level_same_room(struct char_data *ch)
 int get_party_size_same_room(struct char_data *ch)
 {
   if (!ch)
+    return 0;
+
+  if (IN_ROOM(ch) == NOWHERE)
     return 0;
 
   struct char_data *master = NULL, *tch = NULL;
@@ -7398,7 +7425,10 @@ void dismiss_all_followers(struct char_data *ch)
 
   for (k = ch->followers; k; k = k->next)
     if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM))
+    {
+      k->follower->char_specials.is_charmie = true;
       extract_char(k->follower);
+    }
 }
 
 void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict, int aff_flag, bool display)
@@ -8341,6 +8371,7 @@ void clear_misc_cooldowns(struct char_data *ch)
   GRASP_OF_THE_DEAD_TIMER(ch) = 0;
   INCORPOREAL_FORM_TIMER(ch) = 0;
   GET_MISSION_COOLDOWN(ch) = 0;
+  GET_FORAGE_COOLDOWN(ch) = 0;
 }
 
 bool can_mastermind_power(struct char_data *ch, int spellnum)
@@ -9473,6 +9504,93 @@ bool ok_call_mob_vnum(int mob_num)
 
   return false;
 
+}
+
+bool is_selectable_region(int region)
+{
+  switch (region)
+  {
+    case REGION_OUTER_PLANES:
+      return false;
+  }
+  return true;
+}
+
+bool is_in_hometown(struct char_data *ch)
+{
+  if (!ch || IN_ROOM(ch) == NOWHERE) return false;
+
+  if (zone_table[world[IN_ROOM(ch)].zone].city == CITY_NONE) return false;
+
+  if (GET_HOMETOWN(ch) == CITY_NONE) return false;
+
+  if (zone_table[world[IN_ROOM(ch)].zone].city == GET_HOMETOWN(ch))
+    return true;
+
+  return false;
+}
+
+bool is_crafting_skill(int skillnum)
+{
+  return (spell_info[skillnum].schoolOfMagic == CRAFTING_SKILL);
+}
+
+int get_knowledge_skill_from_creature_type(int race_type)
+{
+  switch (race_type)
+  {
+    case RACE_TYPE_HUMANOID:
+    case RACE_TYPE_ANIMAL:
+    case RACE_TYPE_GIANT:
+    case RACE_TYPE_FEY:
+    case RACE_TYPE_MONSTROUS_HUMANOID:
+    case RACE_TYPE_OOZE:
+    case RACE_TYPE_PLANT:
+    case RACE_TYPE_VERMIN:
+      return ABILITY_NATURE;
+
+    case RACE_TYPE_UNDEAD:
+    case RACE_TYPE_OUTSIDER:
+    case RACE_TYPE_LYCANTHROPE:
+      return ABILITY_RELIGION;
+    
+    case RACE_TYPE_DRAGON:
+    case RACE_TYPE_ABERRATION:
+    case RACE_TYPE_CONSTRUCT:
+    case RACE_TYPE_ELEMENTAL:
+    case RACE_TYPE_MAGICAL_BEAST:
+      return ABILITY_ARCANA;    
+  }
+  return ABILITY_NATURE;
+}
+
+bool has_sage_mob_bonus(struct char_data *ch)
+{
+  struct char_data *tch, *mob;
+  bool result = false;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (!IS_NPC(tch) && HAS_FEAT(tch, FEAT_BG_SAGE) && GET_SAGE_MOB_VNUM(tch) > 0)
+    {
+      if (GROUP(tch) == GROUP(ch) || tch == ch)
+      {
+        for (mob = world[IN_ROOM(ch)].people; mob; mob = mob->next_in_room)
+        {
+          if (!IS_NPC(mob)) continue;
+          if (GET_MOB_VNUM(mob) == GET_SAGE_MOB_VNUM(tch))
+          {
+            result = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+  return result;
 }
 
 /* EoF */

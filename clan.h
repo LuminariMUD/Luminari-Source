@@ -130,8 +130,8 @@ struct clan_data
        int taxrate;                     /**< Tax rate for other clans       */
        int war_timer;                   /**< Ticks left for current 'war'   */
        zone_vnum hall;                  /**< The zone for the clan's hall   */
-       clan_vnum at_war;                /**< vnum of enemy clan             */
-       clan_vnum allied;                /**< vnum of allied clan            */
+       int at_war[MAX_CLANS];           /**< TRUE if at war                 */
+       int allies[MAX_CLANS];           /**< TRUE if allied                 */
        int spells[MAX_CLANSPELLS];      /**< Five skills known by all members */
        long treasure;                   /**< The clan's bank account        */
        int pk_win;                      /**< How many PK's have been won    */
@@ -143,6 +143,7 @@ struct clan_data
 /* globals */
 extern struct clan_data *clan_list;
 extern struct claim_data *claim_list;
+extern int num_of_clans;
 
 int find_clan_by_id(int clan_id);
 clan_rnum real_clan(clan_vnum c);
@@ -164,6 +165,8 @@ void save_clans(void);
 bool can_edit_clan(struct char_data *ch, clan_vnum c);
 void duplicate_clan_data(struct clan_data *to_clan,
                          struct clan_data *from_clan);
+bool are_clans_allied(int clanA, int clanB);
+bool are_clans_at_war(int clanA, int clanB);
 ACMD_DECL(do_clan);
 ACMD_DECL(do_clanapply);
 ACMD_DECL(do_clanaward);

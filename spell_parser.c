@@ -4801,6 +4801,10 @@ void mag_assign_spells(void)
   spello(ABILITY_AFFECT_TRUE_JUDGEMENT, "true judgement", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "You are no longer preparing a true judgement.", 1, 1, NOSCHOOL, FALSE);
+  
+  spello(ABILITY_ENTERTAIN_INSPIRATION, "entertainer inspiration", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "Your inspiration from recent performances fades.", 1, 1, NOSCHOOL, FALSE);
 
   spello(SPELL_REMOVE_PARALYSIS, "remove paralysis", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
 

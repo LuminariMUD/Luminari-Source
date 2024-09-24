@@ -2394,13 +2394,23 @@ void extract_char_final(struct char_data *ch)
   {
     obj = ch->carrying;
     obj_from_char(obj);
-    obj_to_room(obj, IN_ROOM(ch));
+    if (!ch->char_specials.is_charmie)
+      obj_to_room(obj, IN_ROOM(ch));
+    else
+      extract_obj(obj);
   }
 
   /* transfer equipment to room, if any */
   for (i = 0; i < NUM_WEARS; i++)
     if (GET_EQ(ch, i))
-      obj_to_room(unequip_char(ch, i), IN_ROOM(ch));
+    {
+      if (!ch->char_specials.is_charmie)
+        obj_to_room(unequip_char(ch, i), IN_ROOM(ch));
+      else
+      {
+        extract_obj(unequip_char(ch, i));
+      }
+    }
 
   /* stop any fighting */
   if (FIGHTING(ch))

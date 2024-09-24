@@ -46,6 +46,7 @@
 #include "staff_events.h" /* for staff events!  prisoner no xp penalty! */
 #include "assign_wpn_armor.h"
 #include "evolutions.h"
+#include "backgrounds.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -5950,6 +5951,27 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  if (HAS_FEAT(ch, FEAT_BG_GLADIATOR) && GET_CLAN(ch) > 0 && are_clans_allied(GET_CLAN(ch), zone_table[world[IN_ROOM(ch)].zone].faction))
+  {
+    if (display_mode)
+        send_to_char(ch, "Gladiator in Allied Area: \tR+1\tn\r\n");
+    dambonus += 1;
+  }
+
+  if (has_sage_mob_bonus(ch))
+  {
+    if (display_mode)
+        send_to_char(ch, "Sage Mob Research Bonus: \tR+1\tn\r\n");
+    dambonus += 1;
+  }
+
+  if (HAS_FEAT(ch, FEAT_BG_HERMIT) && get_party_size_same_room(ch))
+  {
+    if (display_mode)
+        send_to_char(ch, "Hermit Fighting Solo: \tR+1\tn\r\n");
+    dambonus += 1;
+  }
+
   // deadly aim
   if (AFF_FLAGGED(ch, AFF_DEADLY_AIM) && attack_type == ATTACK_TYPE_RANGED)
   {
@@ -8292,6 +8314,20 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
         send_to_char(ch, "-2: %-50s\r\n", "Prescience Debuff");
   }
 
+  if (HAS_FEAT(ch, FEAT_BG_GLADIATOR) && GET_CLAN(ch) > 0 && are_clans_allied(GET_CLAN(ch), zone_table[world[IN_ROOM(ch)].zone].faction))
+  {
+    if (display)
+        send_to_char(ch, "+1: %-50s\r\n", "Gladiator in Allied Area");
+    bonuses[BONUS_TYPE_MORALE] += 1;
+  }
+
+  if (has_sage_mob_bonus(ch))
+  {
+    if (display)
+        send_to_char(ch, "+1: %-50s\r\n", "Sage Mob Research Bonus");
+    bonuses[BONUS_TYPE_INSIGHT] += 1;
+  }
+
   /* Enhancement bonus */
   if (wielded)
   {
@@ -8490,6 +8526,7 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     if (display)
       send_to_char(ch, "-%2d: %-50s\r\n", SPELLBATTLE(ch), "SpellBattle");
   }
+  
   /*****/
 
   /*unnamed bonuses*/
