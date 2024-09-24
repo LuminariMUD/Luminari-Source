@@ -349,6 +349,9 @@ ACMD_DECL(do_bags);
 ACMD_DECL(do_activate);
 ACMD_DECL(do_downgrade);
 
+ACMD_DECL(do_relay);
+ACMD_DECL(do_forgeas);
+
 /* AUCTIONING STATES */
 #define AUC_NULL_STATE 0  /* not doing anything */
 #define AUC_OFFERING 1    /* object has been offfered */

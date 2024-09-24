@@ -327,6 +327,9 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define ZEDIT_ARG4 28
 #define ZEDIT_GR_QUERY 29
 #define ZEDIT_CONFIRM_RESTAT 30
+#define ZEDIT_REGIONS 31
+#define ZEDIT_CITIES 32
+#define ZEDIT_FACTION 33
 
 /* Submodes of MEDIT connectedness. */
 #define MEDIT_MAIN_MENU 0

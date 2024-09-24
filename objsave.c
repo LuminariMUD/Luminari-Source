@@ -57,6 +57,10 @@ static void Crash_cryosave(struct char_data *ch, int cost);
 static int Crash_load_objs(struct char_data *ch);
 static int handle_obj(struct obj_data *obj, struct char_data *ch, int locate, struct obj_data **cont_rows);
 static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, struct char_data *ch);
+static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct char_data *owner, long int pet_idnum, int location);
+int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch, struct char_data *owner, long int pet_idnum, int locate);
+void pet_load_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
+obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum);
 
 int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp, int locate)
 {
@@ -862,6 +866,29 @@ static int Crash_save(struct obj_data *obj, struct char_data *ch, FILE *fp, int 
   return (TRUE);
 }
 
+// Like crash save but for pets
+static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct char_data *owner, long int pet_idnum, int location)
+{
+  struct obj_data *tmp;
+  int result;
+
+  if (obj)
+  {
+    Crash_save_pet(obj->next_content, ch, owner, pet_idnum, location);
+    Crash_save_pet(obj->contains, ch, owner, pet_idnum, MIN(0, location) - 1);
+
+    /* save a single object to file */
+    result = objsave_save_obj_record_db_pet(obj, ch, owner, pet_idnum, location);
+
+    // for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
+    //   GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
+
+    if (!result)
+      return FALSE;
+  }
+  return (TRUE);
+}
+
 /* makes sure containers have proper weight for carrying objects with weight value */
 static void Crash_restore_weight(struct obj_data *obj)
 {
@@ -949,6 +976,29 @@ static void Crash_calculate_rent(struct obj_data *obj, int *cost)
     *cost += MAX(0, GET_OBJ_RENT(obj));
     Crash_calculate_rent(obj->contains, cost);
     Crash_calculate_rent(obj->next_content, cost);
+  }
+}
+
+void pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum)
+{
+  int j = 0;
+
+  for (j = 0; j < NUM_WEARS; j++)
+    if (GET_EQ(ch, j))
+    {
+      /* recursive write-to-file function (like bags) */
+      if (!Crash_save_pet(GET_EQ(ch, j), ch, owner, pet_idnum, j + 1))
+      {
+        return;
+      }
+      /* makes sure containers have proper weight for carrying objects with weight value */
+      // Crash_restore_weight(GET_EQ(ch, j));
+    }
+
+  /* inventory: recursive write-to-file function (like bags) */
+  if (!Crash_save_pet(ch->carrying, ch, owner, pet_idnum, 0))
+  {
+    return;
   }
 }
 
@@ -2303,6 +2353,7 @@ static int Crash_load_objs(struct char_data *ch)
   if (!get_filename(filename, sizeof(filename), CRASH_FILE, GET_NAME(ch)))
     return 1;
 
+
   for (i = 0; i < MAX_BAG_ROWS; i++)
     cont_row[i] = NULL;
 
@@ -2572,4 +2623,624 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate, s
   } /* locate less than zero */
 
   return TRUE;
+}
+
+
+int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch, struct char_data *owner, long int pet_idnum, int locate)
+{
+
+  char ins_buf[36767];                  /* For MySQL insert. */
+  char line_buf[MAX_STRING_LENGTH + 1]; /* For building MySQL insert statement. */
+
+  int counter2, i = 0;
+  struct extra_descr_data *ex_desc;
+  char buf1[MAX_STRING_LENGTH + 1];
+  struct obj_data *temp = NULL;
+  struct obj_special_ability *specab = NULL;
+
+  /* load up the object */
+  if (GET_OBJ_VNUM(obj) != NOTHING)
+    temp = read_object(GET_OBJ_VNUM(obj), VIRTUAL);
+  else
+  {
+    temp = create_obj();
+    temp->item_number = NOWHERE;
+  }
+
+  /* copy the action-description to buf1 */
+  if (obj->action_description)
+  {
+    strlcpy(buf1, obj->action_description, sizeof(buf1));
+    strip_cr(buf1);
+  }
+  else
+    *buf1 = 0;
+
+  snprintf(ins_buf, sizeof(ins_buf), "insert into pet_save_objs (pet_idnum, owner_name, serialized_obj) values ('%ld', '%s', '", pet_idnum, GET_NAME(owner));
+
+  snprintf(line_buf, sizeof(line_buf), "#%d\n", GET_OBJ_VNUM(obj));
+  strlcat(ins_buf, line_buf, sizeof(ins_buf));
+
+
+  if (locate)
+  {
+    snprintf(line_buf, sizeof(line_buf), "Loc : %d\n", locate);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+
+  /**** start checks for modifications to default object! ***/
+  /* is object modified from default values? */
+    snprintf(line_buf, sizeof(line_buf), "Vals: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+             GET_OBJ_VAL(obj, 0),
+             GET_OBJ_VAL(obj, 1),
+             GET_OBJ_VAL(obj, 2),
+             GET_OBJ_VAL(obj, 3),
+             GET_OBJ_VAL(obj, 4),
+             GET_OBJ_VAL(obj, 5),
+             GET_OBJ_VAL(obj, 6),
+             GET_OBJ_VAL(obj, 7),
+             GET_OBJ_VAL(obj, 8),
+             GET_OBJ_VAL(obj, 9),
+             GET_OBJ_VAL(obj, 10),
+             GET_OBJ_VAL(obj, 11),
+             GET_OBJ_VAL(obj, 12),
+             GET_OBJ_VAL(obj, 13),
+             GET_OBJ_VAL(obj, 14),
+             GET_OBJ_VAL(obj, 15));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+
+    snprintf(line_buf, sizeof(line_buf), "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0], GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
+
+#define TEST_OBJS(obj1, obj2, field) ((!obj1->field || !obj2->field || \
+                                       strcmp(obj1->field, obj2->field)))
+#define TEST_OBJN(field) (obj->obj_flags.field != temp->obj_flags.field)
+
+  if (TEST_OBJS(obj, temp, name))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Name: %s\n", obj->name ? obj->name : "Undefined");
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJS(obj, temp, short_description))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+
+  /* These two could be a pain on the read... we'll see... */
+  if (TEST_OBJS(obj, temp, description))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Desc: %s\n", obj->description ? obj->description : "Undefined");
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  /* Only even try to process this if an action desc exists */
+  if (obj->action_description || temp->action_description)
+    if (TEST_OBJS(obj, temp, action_description))
+    {
+      snprintf(line_buf, sizeof(line_buf), "ADes:\n%s~\n", buf1);
+      strlcat(ins_buf, line_buf, sizeof(ins_buf));
+    }
+  if (TEST_OBJN(type_flag))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Type: %d\n", GET_OBJ_TYPE(obj));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(prof_flag))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Prof: %d\n", GET_OBJ_PROF(obj));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(material))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Mats: %d\n", GET_OBJ_MATERIAL(obj));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(size))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Size: %d\n", GET_OBJ_SIZE(obj));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(weight))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Wght: %d\n", GET_OBJ_WEIGHT(obj));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(level))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Levl: %d\n", GET_OBJ_LEVEL(obj));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(cost))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Cost: %d\n", GET_OBJ_COST(obj));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(cost_per_day))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Rent: %d\n", GET_OBJ_RENT(obj));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(bound_id))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Bind: %d\n", GET_OBJ_BOUND_ID(obj));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(bitvector))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(wear_flags))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+  if (TEST_OBJN(i_sort))
+  {
+    snprintf(line_buf, sizeof(line_buf), "Sort: %d\n", GET_OBJ_SORT(obj));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+
+  /* Do we have modified affects? */
+  for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
+    if (obj->affected[counter2].modifier != temp->affected[counter2].modifier)
+    {
+      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d\n",
+               counter2,
+               obj->affected[counter2].location,
+               obj->affected[counter2].modifier,
+               obj->affected[counter2].bonus_type);
+      strlcat(ins_buf, line_buf, sizeof(ins_buf));
+    }
+
+/* Do we have modified extra descriptions? */
+  if (obj->ex_description || temp->ex_description)
+  {
+    /* To be reimplemented.  Need to handle this case in loading as
+       well */
+    if ((obj->ex_description && temp->ex_description &&
+         obj->ex_description != temp->ex_description) ||
+        !obj->ex_description || !temp->ex_description)
+    {
+      for (ex_desc = obj->ex_description; ex_desc; ex_desc = ex_desc->next)
+      {
+        /*. Sanity check to prevent nasty protection faults . */
+        if (!*ex_desc->keyword || !*ex_desc->description)
+        {
+          continue;
+        }
+        strlcpy(buf1, ex_desc->description, sizeof(buf1));
+        strip_cr(buf1);
+        snprintf(line_buf, sizeof(line_buf), "EDes:\n"
+                                             "%s~\n"
+                                             "%s~\n",
+                 ex_desc->keyword,
+                 buf1);
+        strlcat(ins_buf, line_buf, sizeof(ins_buf));
+      }
+    }
+  }
+
+  /* got modified spells in spellbook? */
+  if (obj->sbinfo)
+  { /*. Yep, save them too . */
+    for (i = 0; i < SPELLBOOK_SIZE; i++)
+    {
+      snprintf(line_buf, sizeof(line_buf), "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
+      strlcat(ins_buf, line_buf, sizeof(ins_buf));
+    }
+  }
+
+  // weapon and armor special abilities
+  if (obj->special_abilities)
+  { /* Yes, save them too. */
+    specab = obj->special_abilities;
+    snprintf(line_buf, sizeof(line_buf), "SpAb: %d %d %d %d %d %d %d %s\n",
+             specab->ability, specab->level, specab->activation_method,
+             specab->value[0], specab->value[1], specab->value[2], specab->value[3],
+             (specab->command_word && *specab->command_word) ? specab->command_word : "");
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+
+  if (obj->activate_spell[ACT_SPELL_SPELLNUM] > 0)
+  {
+    snprintf(line_buf, sizeof(line_buf), "Actv: %d %d %d %d %d\n",
+        obj->activate_spell[ACT_SPELL_LEVEL], obj->activate_spell[ACT_SPELL_SPELLNUM], 
+        obj->activate_spell[ACT_SPELL_CURRENT_USES], obj->activate_spell[ACT_SPELL_MAX_USES], 
+        obj->activate_spell[ACT_SPELL_COOLDOWN]);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  }
+
+  /*** end checks for object modifications ****/
+
+  snprintf(line_buf, sizeof(line_buf), "');");
+  strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  if (mysql_query(conn, ins_buf))
+  {
+    log("SYSERR: Unable to INSERT into pet_save_objs: %s\n%s\n", mysql_error(conn), ins_buf);
+    return 1;
+  }
+
+  extract_obj(temp);
+
+  return 1;
+}
+#undef TEST_OBJS
+#undef TEST_OBJN
+
+void pet_load_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum)
+{
+  obj_save_data *loaded, *current;
+  int num_objs = 0, i = 0;
+  struct obj_data *cont_row[MAX_BAG_ROWS];
+
+  for (i = 0; i < MAX_BAG_ROWS; i++)
+    cont_row[i] = NULL;
+
+  loaded = objsave_parse_objects_db_pet(GET_NAME(owner), pet_idnum);
+
+  if (loaded == NULL)
+  {
+    return;
+  }
+	
+	for (current = loaded; current != NULL; current = current->next)
+  {
+    num_objs += handle_obj(current->obj, ch, current->locate, cont_row);
+  }
+  /* now it's safe to free the obj_save_data list - all members of it
+   * have been put in the correct lists by handle_obj() */
+  while (loaded != NULL)
+  {
+    current = loaded;
+    loaded = loaded->next;
+    free(current);
+  }
+}
+
+
+obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
+{
+
+  obj_save_data *head, *current, *tempsave;
+  char f1[128], f2[128], f3[128], f4[128];
+  int t[NUM_OBJ_VAL_POSITIONS], i, nr;
+  struct obj_data *temp;
+  /* MySql Data Structures */
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char buf[1024];
+  char *serialized_obj;
+  int locate;
+
+  char **lines; /* Storage for tokenized serialization */
+  char **line;  /* Token iterator */
+
+  snprintf(buf, sizeof(buf), "SELECT   serialized_obj "
+                              "FROM     pet_save_objs "
+                              "WHERE    owner_name = '%s' "
+                              "AND      pet_idnum = '%ld' "
+                              "ORDER BY creation_date ASC;",
+            name, pet_idnum);
+
+  if (mysql_query(conn, buf))
+  {
+    log("SYSERR: Unable to SELECT from pet_save_objs: %s", mysql_error(conn));
+    exit(1);
+  }
+
+  if (!(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: Unable to SELECT from pet_save_objs: %s", mysql_error(conn));
+    exit(1);
+  }
+
+  head = NULL;
+  current = NULL;
+
+  /* Loop through the rows, each row is a serialized object.
+   * For each row take the serialized object and loop through the lines
+   * processing each one.
+   */
+  while ((row = mysql_fetch_row(result)))
+  {
+    char tag[8];
+    int num, j = 0;
+
+    /* Get the data from the row structure. */
+    serialized_obj = strdup(row[0]);
+
+    lines = tokenize(serialized_obj, "\n");
+
+    locate = 0;
+    temp = NULL;
+
+    for (line = lines; line && *line; ++line)
+    {
+      if (**line == '#')
+      {
+        /* check for false alarm. */
+        if (sscanf(*line, "#%d", &nr) == 1)
+        {
+          /* If we attempt to load an object with a legal VNUM 0-65534, that
+           * does not exist, skip it. If the object has a VNUM of NOTHING or
+           * NOWHERE, then we assume it doesn't exist on purpose. (Custom Item,
+           * Coins, Corpse, etc...) */
+          if (real_object(nr) == NOTHING && nr != NOTHING)
+          {
+            log("SYSERR: Prevented loading of non-existant item #%d.", nr);
+            continue;
+          }
+        }
+        else
+          continue;
+
+        /* we have the number, check it, load obj. */
+        if (nr == NOTHING)
+        { /* then it is unique */
+          temp = create_obj();
+          temp->item_number = NOTHING;
+        }
+        else if (nr < 0)
+        {
+          continue;
+        }
+        else
+        {
+          if (real_object(nr) != NOTHING)
+          {
+            temp = read_object(nr, VIRTUAL);
+            /* Go read next line - nothing more to see here. */
+          }
+          else
+          {
+            log("Nonexistent object %d found in rent file.", nr);
+          }
+        }
+
+        /* Reset the counter for spellbooks. */
+        j = 0;
+
+        /* go read next line - nothing more to see here. */
+        continue;
+      }
+
+      /* If "temp" is NULL, we are most likely progressing through
+       * a non-existant object, so just keep continuing till we find
+       * the next object */
+      if (temp == NULL)
+      {
+        continue;
+      }
+
+      tag_argument(*line, tag);
+      num = atoi(*line);
+      /* we need an incrementor here */
+
+      switch (*tag)
+      {
+      case 'A':
+        if (!strcmp(tag, "ADes"))
+        {
+          char error[40];
+          snprintf(error, sizeof(error) - 1, "rent(Ades):%s", temp->name);
+          free(*line);
+          ++line;
+          temp->action_description = strdup(*line);
+        }
+        else if (!strcmp(tag, "Aff "))
+        {
+          sscanf(*line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
+          if (t[0] < MAX_OBJ_AFFECT)
+          {
+            temp->affected[t[0]].location = t[1];
+            temp->affected[t[0]].modifier = t[2];
+            temp->affected[t[0]].bonus_type = t[3];
+          }
+        }
+        else if (!strcmp(tag, "Actv"))
+        {
+          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
+          temp->activate_spell[ACT_SPELL_LEVEL]         = t[0];
+          temp->activate_spell[ACT_SPELL_SPELLNUM]      = t[1];
+          temp->activate_spell[ACT_SPELL_CURRENT_USES]  = t[2];
+          temp->activate_spell[ACT_SPELL_MAX_USES]      = t[3];
+          temp->activate_spell[ACT_SPELL_COOLDOWN]      = t[4];
+        }
+        break;
+      case 'C':
+        if (!strcmp(tag, "Cost"))
+          GET_OBJ_COST(temp) = num;
+        break;
+      case 'D':
+        if (!strcmp(tag, "Desc"))
+          temp->description = strdup(*line);
+        break;
+      case 'E':
+        if (!strcmp(tag, "EDes"))
+        {
+          struct extra_descr_data *new_desc;
+          char error[40];
+          snprintf(error, sizeof(error) - 1, "rent(Edes): %s", temp->name);
+          if (temp->item_number != NOTHING && /* Regular object */
+              temp->ex_description &&         /* with ex_desc == prototype */
+              (temp->ex_description ==
+               obj_proto[real_object(temp->item_number)].ex_description))
+            temp->ex_description = NULL;
+          CREATE(new_desc, struct extra_descr_data, 1);
+          free(*line);
+          ++line;
+          new_desc->keyword = strdup(*line);
+          free(*line);
+          ++line;
+          new_desc->description = strdup(*line);
+          new_desc->next = temp->ex_description;
+          temp->ex_description = new_desc;
+        }
+        break;
+      case 'F':
+        if (!strcmp(tag, "Flag"))
+        {
+          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
+          GET_OBJ_EXTRA(temp)
+          [0] = asciiflag_conv(f1);
+          GET_OBJ_EXTRA(temp)
+          [1] = asciiflag_conv(f2);
+          GET_OBJ_EXTRA(temp)
+          [2] = asciiflag_conv(f3);
+          GET_OBJ_EXTRA(temp)
+          [3] = asciiflag_conv(f4);
+        }
+        break;
+      case 'L':
+        if (!strcmp(tag, "Loc "))
+          locate = num;
+        else if (!strcmp(tag, "Levl"))
+          GET_OBJ_LEVEL(temp) = num;
+        break;
+      case 'M':
+        if (!strcmp(tag, "Mats"))
+          GET_OBJ_MATERIAL(temp) = num;
+        break;
+      case 'N':
+        if (!strcmp(tag, "Name"))
+          temp->name = strdup(*line);
+        break;
+      case 'P':
+        if (!strcmp(tag, "Perm"))
+        {
+          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
+          GET_OBJ_PERM(temp)
+          [0] = asciiflag_conv(f1);
+          GET_OBJ_PERM(temp)
+          [1] = asciiflag_conv(f2);
+          GET_OBJ_PERM(temp)
+          [2] = asciiflag_conv(f3);
+          GET_OBJ_PERM(temp)
+          [3] = asciiflag_conv(f4);
+        }
+        break;
+        if (!strcmp(tag, "Prof"))
+          GET_OBJ_PROF(temp) = num;
+        break;
+      case 'R':
+        if (!strcmp(tag, "Rent"))
+          GET_OBJ_RENT(temp) = num;
+        break;
+      case 'S':
+        if (!strcmp(tag, "Shrt"))
+          temp->short_description = strdup(*line);
+        else if (!strcmp(tag, "Size"))
+          GET_OBJ_SIZE(temp) = num;
+        else if (!strcmp(tag, "Sort"))
+          GET_OBJ_SORT(temp) = num;
+        else if (!strcmp(tag, "Spbk"))
+        {
+          sscanf(*line, "%d %d", &t[0], &t[1]);
+          if (j < SPELLBOOK_SIZE)
+          {
+
+            if (!temp->sbinfo)
+            {
+              CREATE(temp->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+              memset((char *)temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
+            }
+
+            temp->sbinfo[j].spellname = t[0];
+            temp->sbinfo[j].pages = t[1];
+            j++;
+          }
+        }
+        else if (!strcmp(tag, "SpAb"))
+        {
+          sscanf(*line, "%d %d %d %d %d %d %d %s", &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], f1);
+          CREATE(temp->special_abilities, struct obj_special_ability, 1);
+          temp->special_abilities->ability = t[0];
+          temp->special_abilities->level = t[1];
+          temp->special_abilities->activation_method = t[2];
+          temp->special_abilities->value[0] = t[3];
+          temp->special_abilities->value[1] = t[4];
+          temp->special_abilities->value[2] = t[5];
+          temp->special_abilities->value[3] = t[6];
+          temp->special_abilities->command_word = strdup(f1);
+        }
+        break;
+      case 'T':
+        if (!strcmp(tag, "Type"))
+          GET_OBJ_TYPE(temp) = num;
+        break;
+      case 'W':
+        if (!strcmp(tag, "Wear"))
+        {
+          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
+          GET_OBJ_WEAR(temp)
+          [0] = asciiflag_conv(f1);
+          GET_OBJ_WEAR(temp)
+          [1] = asciiflag_conv(f2);
+          GET_OBJ_WEAR(temp)
+          [2] = asciiflag_conv(f3);
+          GET_OBJ_WEAR(temp)
+          [3] = asciiflag_conv(f4);
+        }
+        else if (!strcmp(tag, "Wght"))
+          GET_OBJ_WEIGHT(temp) = num;
+        break;
+      case 'V':
+        if (!strcmp(tag, "Vals"))
+        {
+          /* Initialize the values. */
+          for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
+            t[i] = 0;
+          sscanf(*line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+                 &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], &t[7],
+                 &t[8], &t[9], &t[10], &t[11], &t[12], &t[13], &t[14], &t[15]);
+          for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
+            GET_OBJ_VAL(temp, i) = t[i];
+        }
+        break;
+      default:
+        log("Unknown tag in saved obj: %s", tag);
+      }
+
+      free(*line);
+    }
+
+    /* So now if temp is not null, we have an object.
+     * Create space for it and add it to the list.  */
+    if (temp)
+    {
+
+      /* no longer allowing untyped gear affection -zusuk */
+      for (j = 0; j < MAX_OBJ_AFFECT; j++)
+      {
+        if (temp->affected[j].modifier)
+        {
+          if (temp->affected[j].bonus_type == BONUS_TYPE_UNDEFINED)
+          {
+            temp->affected[j].bonus_type = BONUS_TYPE_ENHANCEMENT;
+          }
+        }
+      }
+
+      CREATE(tempsave, obj_save_data, 1);
+      tempsave->obj = temp;
+      tempsave->locate = locate;
+
+      if (current == NULL)
+      {
+        head = tempsave;
+        current = head;
+      }
+      else
+      {
+        current->next = tempsave;
+        current = current->next;
+      }
+      temp = NULL;
+    }
+
+    free(serialized_obj); /* Done with this! */
+  }
+
+  mysql_free_result(result);
+  return head;
 }

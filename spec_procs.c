@@ -907,6 +907,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     }
   }
 
+  if (HAS_FEAT(ch, FEAT_BG_TRADER) && is_crafting_skill(abilityNum))
+  {
+    value += 1;
+  }
+
   if (affected_by_spell(ch, PSIONIC_INFLICT_PAIN))
     value += get_char_affect_modifier(ch, PSIONIC_INFLICT_PAIN, APPLY_HITROLL); // this should return a negative number, so + a - is -
   if (affected_by_spell(ch, SPELL_HEROISM))
@@ -1443,6 +1448,36 @@ const char *cross_names[] = {
     "\tcCross-Class Ability\tn",
     "\tWClass Ability\tn"};
 
+const int skills_alphabetic[NUM_SKILLS_IN_GAME] =
+{
+  ABILITY_ACROBATICS,
+  ABILITY_APPRAISE,
+  ABILITY_ARCANA,
+  ABILITY_ATHLETICS,
+  ABILITY_CONCENTRATION,
+  ABILITY_DECEPTION,
+  ABILITY_DISABLE_DEVICE,
+  ABILITY_DISCIPLINE,
+  ABILITY_DISGUISE,
+  ABILITY_HANDLE_ANIMAL,
+  ABILITY_HISTORY,
+  ABILITY_INSIGHT,
+  ABILITY_INTIMIDATE,
+  ABILITY_LINGUISTICS,
+  ABILITY_MEDICINE,
+  ABILITY_NATURE,
+  ABILITY_PERCEPTION,
+  ABILITY_PERFORM,
+  ABILITY_PERSUASION,
+  ABILITY_RELIGION,
+  ABILITY_RIDE,
+  ABILITY_SLEIGHT_OF_HAND,
+  ABILITY_SPELLCRAFT,
+  ABILITY_STEALTH,
+  ABILITY_TOTAL_DEFENSE,
+  ABILITY_USE_MAGIC_DEVICE
+};
+
 void list_abilities(struct char_data *ch, int ability_type)
 {
 
@@ -1455,9 +1490,16 @@ void list_abilities(struct char_data *ch, int ability_type)
     end_ability = NUM_ABILITIES;
     break;
   case ABILITY_TYPE_GENERAL:
-    start_ability = START_GENERAL_ABILITIES;
-    end_ability = END_GENERAL_ABILITIES + 1;
-    break;
+    send_to_char(ch, "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
+                   "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
+               GET_TRAINS(ch));
+    for (i = 0; i < NUM_SKILLS_IN_GAME; i++)
+    {
+      send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
+                 ability_names[skills_alphabetic[i]], GET_ABILITY(ch, skills_alphabetic[i]), compute_ability(ch, skills_alphabetic[i]),
+                 cross_names[modify_class_ability(ch, skills_alphabetic[i], GET_CLASS(ch))]);
+    }
+    return;
   case ABILITY_TYPE_CRAFT:
     /* as of 10/30/2014 we decided to make crafting indepdent of the skill/ability system */
     send_to_char(ch, "\tRNOTE:\tn Type '\tYcraft\tn' to see your crafting skills, "

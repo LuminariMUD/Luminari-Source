@@ -172,8 +172,10 @@ struct stack_data
 #define WILL_START_FIGHT (1 << 0)
 #define WILL_BANK_MONEY (1 << 1)
 #define HAS_UNLIMITED_CASH (1 << 2) /*zusuk disabled*/
+#define BLACK_MARKET_SHOP (1 << 3)
+#define NOBLE_SHOP (1 << 4)
 /** Total number of shop flags */
-#define NUM_SHOP_FLAGS 3
+#define NUM_SHOP_FLAGS 5
 
 #define SHOP_KILL_CHARS(i) (IS_SET(SHOP_BITVECTOR(i), WILL_START_FIGHT))
 #define SHOP_USES_BANK(i) (IS_SET(SHOP_BITVECTOR(i), WILL_BANK_MONEY))

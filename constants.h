@@ -183,6 +183,10 @@ extern const char *mold_accessories[];
 extern const int evolution_points[];
 extern const char *attack_types[];
 extern const char *dr_aligns[];
+extern const char *cities[];
+extern const char *factions[];
+extern const char *apply_type_food_names[];
+extern const int apply_type_food_or_drink[];
 
 /* NewCraft */
 extern const char *craft_flags[];

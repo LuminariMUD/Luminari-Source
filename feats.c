@@ -5263,7 +5263,36 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_BG_CHARLATAN, "charlatan background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
     "Gain access to the 'swindle' command, allowing the player to con npcs out of gold and potentially a magic item.",
     "Gain access to the 'swindle' command, allowing the player to con npcs out of gold and potentially a magic item.");
-
+  feato(FEAT_BG_CRIMINAL, "criminal background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Gain access to the 'relay' command, can speak and understand thieves cant, and is able to shop at black market shops.",
+    "Gain access to the 'relay' command, can speak and understand thieves cant, and is able to shop at black market shops.");
+  feato(FEAT_BG_ENTERTAINER, "entertainer background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Gain access to the 'entertain' command, allowing them to perform for gold and potentially a random item, as well as a buff to a few skills.",
+    "Gain access to the 'entertain' command, allowing them to perform for gold and potentially a random item, as well as a buff to a few skills.");
+  feato(FEAT_BG_FOLK_HERO, "folk hero background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Gain access to the 'tribute' command, allowing for a small reward of coins and potentially a random item, only usable in the"
+    "folk-hero's home town. Also gain +10%% when buying or selling in their home town.",
+    "Gain access to the 'tribute' command, allowing for a small reward of coins and potentially a random item, only usable in the"
+    "folk-hero's home town. Also gain +10%% when buying or selling in their home town.");
+  feato(FEAT_BG_GLADIATOR, "gladiator background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Gains +1 to attack and damage rolls when fighting in an allied area (must be clanned)",
+    "Gains +1 to attack and damage rolls when fighting in an allied area (must be clanned)");
+  feato(FEAT_BG_TRADER, "trader background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Gains +1 to all crafting skills.",
+    "Gains +1 to all crafting skills.");
+  feato(FEAT_BG_HERMIT, "hermit background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "+1 to damage and +5%% experience when fighting alone.",
+    "+1 to damage and +5%% experience when fighting alone.");
+  feato(FEAT_BG_NOBLE, "noble background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Gains/Saves +10% gold from selling or buying items in their home town and has access to Noble-only shops.",
+    "Gains/Saves +10% gold from selling or buying items in their home town and has access to Noble-only shops.");
+  feato(FEAT_BG_OUTLANDER, "outlander background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "+5 to forage checks and +20 hit points.",
+    "+5 to forage checks and +20 hit points.");
+  feato(FEAT_BG_PIRATE, "pirate background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Can use the 'extort' command to intimdate people out of money and sometimes items.",
+    "Can use the 'extort' command to intimdate people out of money and sometimes items.");
+    
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");
 

@@ -2534,6 +2534,143 @@ const char *apply_types[] = {
 };
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);
 
+// used for the forage system
+const char *apply_type_food_names[] = 
+{
+    "", // none
+    "mooncap mushrooms", // strength
+    "silverthorn berries", // dexterity
+    "bramblefruit", // intelligence
+    "golden honeydew", // wisdom
+    "stonebark nuts", // constitution
+    "fireleaf herb tea", // charisma
+    "", // class
+    "", // level
+    "", // age
+    "", // weight
+    "", // height
+    "cloudblossom tea", // max psp
+    "wildroot tubers", // max hp
+    "sunvine grapes", // max mv
+    "", // gold
+    "", // exp
+    "", // unused
+    "moss ale tea", // hitroll
+    "shadowplums", // damroll
+    "glowleaf herb tea", // fort
+    "spindleweed tea", // refl
+    "nightshade berries", // will
+    "", // save poison
+    "", // save death
+    "", // spell resist
+    "", // size
+    "", // armor class
+    "", // res fire
+    "", // res cold
+    "", // res air
+    "", // res earth
+    "", // res acid
+    "", // res holy
+    "", // res electric
+    "", // res unholy
+    "", // res slashing
+    "", // res piercing
+    "", // res bludgeoning
+    "", // res sound
+    "", // res poison
+    "", // res disease
+    "", // res negative
+    "", // res illusion
+    "", // res mental
+    "", // res light
+    "", // res energy
+    "", // res water
+    "", // damage reduction
+    "", // grant feat
+    "", // skill bonus
+    "", // special
+    "", // power resist
+    "thunderroot tea", // hp regen
+    "ironbark sap tea", // mv regen
+    "starflower petal tea", // psp regen
+    "duskmint tea", // encumberance
+    "", // fast healing
+    "", // initiative
+    "", // eldritch shape
+    "", // eldricth essence
+    "\n"
+};
+CHECK_TABLE_SIZE(apply_type_food_names, NUM_APPLIES + 1);
+
+// used for the forage system
+// returns true if the food item is food or false if it's a drink
+const int apply_type_food_or_drink[] = 
+{
+    TRUE, // none
+    TRUE, // strength
+    TRUE, // dexterity
+    TRUE, // intelligence
+    TRUE, // wisdom
+    TRUE, // constitution
+    FALSE, // charisma
+    TRUE, // class
+    TRUE, // level
+    TRUE, // age
+    TRUE, // weight
+    TRUE, // height
+    FALSE, // max psp
+    TRUE, // max hp
+    TRUE, // max mv
+    TRUE, // gold
+    TRUE, // exp
+    TRUE, // unused
+    FALSE, // hitroll
+    TRUE, // damroll
+    FALSE, // fort
+    FALSE, // refl
+    TRUE, // will
+    TRUE, // save poison
+    TRUE, // save death
+    TRUE, // spell resist
+    TRUE, // size
+    TRUE, // armor class
+    TRUE, // res fire
+    TRUE, // res cold
+    TRUE, // res air
+    TRUE, // res earth
+    TRUE, // res acid
+    TRUE, // res holy
+    TRUE, // res electric
+    TRUE, // res unholy
+    TRUE, // res slashing
+    TRUE, // res piercing
+    TRUE, // res bludgeoning
+    TRUE, // res sound
+    TRUE, // res poison
+    TRUE, // res disease
+    TRUE, // res negative
+    TRUE, // res illusion
+    TRUE, // res mental
+    TRUE, // res light
+    TRUE, // res energy
+    TRUE, // res water
+    TRUE, // damage reduction
+    TRUE, // grant feat
+    TRUE, // skill bonus
+    TRUE, // special
+    TRUE, // power resist
+    FALSE, // hp regen
+    FALSE, // mv regen
+    FALSE, // psp regen
+    FALSE, // encumberance
+    TRUE, // fast healing
+    TRUE, // initiative
+    TRUE, // eldritch shape
+    TRUE, // eldricth essence
+    TRUE
+};
+CHECK_TABLE_SIZE(apply_type_food_or_drink, NUM_APPLIES + 1);
+
 /** Matrix to show which bonus types are allowed for which apply locations */
 /* "Untyped",
   "Alchemical",
@@ -3798,7 +3935,7 @@ const char *ability_names[] = {
     "Handle Animal",
     "Unused7",
     "Insight",
-    "Survival",
+    "Nature",
     "Unused4",
     "Use Magic Device",
     "Linguistics",
@@ -5442,9 +5579,36 @@ const char *regions[] = {
     "Tarsis",
     "Teyr",
     "Thorbardin",
+    "Outer Planes",
     "\n"
 };
 CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
+
+const char *cities[] = {
+    "None",
+    "Palanthas",
+    "Sanction",
+    "Solace",
+    "Caergoth",
+    "Solanthus",
+    "Thelgaard",
+    "Neraka",
+    "Morning_Dew",
+    "Tarsis",
+    "Qualinost",
+    "Kendermore",
+    "\n"
+};
+CHECK_TABLE_SIZE(cities, NUM_CITIES + 1);
+
+const char *factions[] = {
+    "None",
+    "Forces of Whitestone",
+    "Dragonarmies",
+    "Independant",
+    "\n"
+};
+CHECK_TABLE_SIZE(factions, NUM_FACTIONS + 1);
 
 #else
 // region names
@@ -5487,6 +5651,24 @@ const char *regions[] = {
     "Zakhara",
     "\n"};
 CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
+
+const char *factions[] = {
+    "None",
+    "The Order",
+    "Darklings",
+    "Criminals",
+    "\n"
+};
+CHECK_TABLE_SIZE(factions, NUM_FACTIONS + 1);
+
+const char *cities[] = {
+    "None",
+    "Ashenport",
+    "Sanctus",
+    "\n"
+};
+CHECK_TABLE_SIZE(cities, NUM_CITIES + 1);
+
 #endif
     const int evolution_points[] = {
         0,

@@ -30,6 +30,7 @@
 #include "spec_procs.h"
 #include "mudlim.h"
 #include "item.h"
+#include "backgrounds.h"
 
 /* Global variables definitions used externally */
 /* Constant list for printing out who we sell to */
@@ -66,6 +67,8 @@ const char *shop_bits[] = {
     "WILL_FIGHT",
     "USES_BANK",
     "UNLIMITED_CASH",
+    "BLACK_MARKET_SHOP",
+    "NOBLE_ONLY_SHOP",
     "\n"};
 
 /* local (file scope) function prototypes  */
@@ -135,6 +138,20 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
   }
   if (IS_STAFF(ch))
     return (TRUE);
+
+  if (IS_SET(SHOP_BITVECTOR(shop_nr), BLACK_MARKET_SHOP) && !HAS_FEAT(ch, FEAT_BG_CRIMINAL))
+  {
+    snprintf(buf, sizeof(buf), "%s I don't know what you're talking about.", GET_NAME(ch));
+    do_tell(keeper, buf, cmd_tell, 0);
+    return (FALSE); 
+  }
+
+  if (IS_SET(SHOP_BITVECTOR(shop_nr), BLACK_MARKET_SHOP) && !HAS_FEAT(ch, FEAT_BG_NOBLE))
+  {
+    snprintf(buf, sizeof(buf), "%s I'm sorry, we only serve the aristocracy.", GET_NAME(ch));
+    do_tell(keeper, buf, cmd_tell, 0);
+    return (FALSE); 
+  }
 
   if ((IS_GOOD(ch) && NOTRADE_GOOD(shop_nr)) ||
       (IS_EVIL(ch) && NOTRADE_EVIL(shop_nr)) ||
@@ -523,6 +540,8 @@ static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *seller
 
   modifiers = ((float)GET_CHA(seller)) + ((float)compute_ability(seller, ABILITY_APPRAISE));
   modifiers -= ((float)GET_CHA(buyer)) + ((float)compute_ability(buyer, ABILITY_APPRAISE));
+  if (is_in_hometown(buyer) && (HAS_FEAT(buyer, FEAT_BG_FOLK_HERO) || HAS_FEAT(buyer, FEAT_BG_NOBLE)))
+    modifiers -= 10;
   price = 1.0 + modifiers / 70.0;
   price *= (float)GET_OBJ_COST(obj);
   price *= (float)SHOP_BUYPROFIT(shop_nr);
@@ -541,6 +560,8 @@ static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keepe
 
   modifiers = ((float)GET_CHA(keeper)) + ((float)compute_ability(keeper, ABILITY_APPRAISE));
   modifiers -= ((float)GET_CHA(seller)) + ((float)compute_ability(seller, ABILITY_APPRAISE));
+  if (is_in_hometown(seller) && (HAS_FEAT(seller, FEAT_BG_FOLK_HERO) || HAS_FEAT(seller, FEAT_BG_NOBLE)))
+    modifiers -= 10;
   price = 1.0 - modifiers / 70.0;
   price *= (float)GET_OBJ_COST(obj);
   price *= (float)SHOP_SELLPROFIT(shop_nr);

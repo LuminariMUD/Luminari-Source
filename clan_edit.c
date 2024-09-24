@@ -27,7 +27,7 @@ static void clanedit_save(struct descriptor_data *d);
 static void clanedit_disp_menu(struct descriptor_data *d);
 static void clanedit_ranks_menu(struct descriptor_data *d);
 static void clanedit_priv_menu(struct descriptor_data *d);
-static void clanedit_clans_menu(struct descriptor_data *d);
+static void clanedit_clans_menu(struct descriptor_data *d, int player_clan);
 static void get_priv_string(struct descriptor_data *d, char *t, int p);
 
 /*============================================*/
@@ -38,7 +38,7 @@ static void get_priv_string(struct descriptor_data *d, char *t, int p);
 void save_clans(void)
 {
   FILE *fl;
-  int i, j;
+  int i, j, x;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (!(fl = fopen(CLAN_FILE, "w")))
@@ -74,10 +74,19 @@ void save_clans(void)
       fprintf(fl, "Hall: %d\n", clan_list[i].hall);
     if (clan_list[i].treasure != 0)
       fprintf(fl, "Bank: %ld\n", clan_list[i].treasure);
-    if (clan_list[i].allied != NO_CLAN)
-      fprintf(fl, "Ally: %d\n", clan_list[i].allied);
-    if (clan_list[i].at_war != NO_CLAN)
-      fprintf(fl, "War : %d\n", clan_list[i].at_war);
+    fprintf(fl, "Ally:");
+    for (x = 0; x < MAX_CLANS; x++)
+    {
+      fprintf(fl, " %d", clan_list[i].allies[x]);
+    }
+    fprintf(fl, "\n");
+    
+    fprintf(fl, "War :");
+    for (x = 0; x < MAX_CLANS; x++)
+    {
+      fprintf(fl, " %d", clan_list[i].at_war[x]);
+    }
+    fprintf(fl, "\n");
     if (clan_list[i].war_timer != 0)
       fprintf(fl, "WarT: %d\n", clan_list[i].war_timer);
     if (clan_list[i].pk_win != 0)
@@ -162,7 +171,17 @@ void load_clans(void)
           else if (!strcmp(tag, "AppF"))
             c.appfee = atoi(line);
           else if (!strcmp(tag, "Ally"))
-            c.allied = atoi(line);
+          {
+            if (sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+                &c.allies[0], &c.allies[1], &c.allies[2], &c.allies[3], &c.allies[4], 
+                &c.allies[5], &c.allies[6], &c.allies[7], &c.allies[8], &c.allies[9], 
+                &c.allies[10], &c.allies[11], &c.allies[12], &c.allies[13], &c.allies[14], 
+                &c.allies[15], &c.allies[16], &c.allies[17], &c.allies[18], &c.allies[19], 
+                &c.allies[20], &c.allies[21], &c.allies[22], &c.allies[23], &c.allies[24]) != 25)
+            {
+              log("SYSERR: Unknown Ally tag format in clan file %s",CLAN_FILE);  
+            }
+          }
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
@@ -304,7 +323,17 @@ void load_clans(void)
 
         case 'W':
           if (!strcmp(tag, "War "))
-            c.at_war = atoi(line);
+          {
+            if (sscanf(line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+                &c.at_war[0], &c.at_war[1], &c.at_war[2], &c.at_war[3], &c.at_war[4], 
+                &c.at_war[5], &c.at_war[6], &c.at_war[7], &c.at_war[8], &c.at_war[9], 
+                &c.at_war[10], &c.at_war[11], &c.at_war[12], &c.at_war[13], &c.at_war[14], 
+                &c.at_war[15], &c.at_war[16], &c.at_war[17], &c.at_war[18], &c.at_war[19], 
+                &c.at_war[20], &c.at_war[21], &c.at_war[22], &c.at_war[23], &c.at_war[24]) != 25)
+            {
+              log("SYSERR: Unknown War tag format in clan file %s",CLAN_FILE);  
+            }
+          }
           else if (!strcmp(tag, "WarT"))
             c.war_timer = atoi(line);
           else
@@ -659,6 +688,7 @@ static void get_priv_string(struct descriptor_data *d, char *t, int p)
 
 static void clanedit_disp_menu(struct descriptor_data *d)
 {
+  int x, xcount = 0;
   get_char_colors(d->character);
   clear_screen(d);
 
@@ -703,26 +733,38 @@ static void clanedit_disp_menu(struct descriptor_data *d)
 
   if (CHK_CP(CP_ATWAR))
   {
-    if (OLC_CLAN(d)->at_war == NO_CLAN ||
-        real_clan(OLC_CLAN(d)->at_war) == NO_CLAN)
-      write_to_output(d, "%s7%s) At War With : %sNone!\r\n",
-                      cyn, nrm, cyn);
-    else
-      write_to_output(d, "%s7%s) At War With : %s%s (Clan ID %d)\r\n", cyn,
-                      nrm, clan_list[(real_clan(OLC_CLAN(d)->at_war))].clan_name,
-                      nrm, OLC_CLAN(d)->at_war);
+    xcount = 0;
+    write_to_output(d, "%s7%s) At War      : %s", cyn, nrm, cyn);
+      for (x = 0; x < MAX_CLANS; x++)
+      {
+        if (OLC_CLAN(d)->at_war[x] == FALSE)
+          continue;
+        if (xcount > 0)
+          write_to_output(d, ", ");
+        write_to_output(d, "%s", clan_list[x].clan_name);
+        xcount++;
+      }
+      if (xcount == 0)
+        write_to_output(d, "<None!>");
+      write_to_output(d, "%s\r\n", nrm);
   }
 
   if (CHK_CP(CP_ALLIED))
   {
-    if (OLC_CLAN(d)->allied == NO_CLAN ||
-        real_clan(OLC_CLAN(d)->allied) == NO_CLAN)
-      write_to_output(d, "%s8%s) Allied With : %sNone!\r\n",
-                      cyn, nrm, cyn);
-    else
-      write_to_output(d, "%s8%s) Allied With : %s%s (Clan ID %d)\r\n",
-                      cyn, nrm, clan_list[(real_clan(OLC_CLAN(d)->allied))].clan_name,
-                      nrm, OLC_CLAN(d)->allied);
+      xcount = 0;
+      write_to_output(d, "%s8%s) Allies      : %s", cyn, nrm, cyn);
+      for (x = 0; x < MAX_CLANS; x++)
+      {
+        if (OLC_CLAN(d)->allies[x] == FALSE)
+          continue;
+        if (xcount > 0)
+          write_to_output(d, ", ");
+        write_to_output(d, "%s", clan_list[x].clan_name);
+        xcount++;
+      }
+      if (xcount == 0)
+        write_to_output(d, "<None!>");
+      write_to_output(d, "%s\r\n", nrm);
   }
 
   if (CHK_CP(CP_RANKS))
@@ -874,7 +916,7 @@ static void clanedit_priv_menu(struct descriptor_data *d)
 
 /*. Display privileges menu . */
 
-static void clanedit_clans_menu(struct descriptor_data *d)
+static void clanedit_clans_menu(struct descriptor_data *d, int player_clan)
 {
   int i;
 
@@ -885,8 +927,10 @@ static void clanedit_clans_menu(struct descriptor_data *d)
                   cyn, nrm);
   for (i = 0; i < num_of_clans; i++)
   {
-    write_to_output(d, "%s%c%s) %s%s\r\n",
-                    cyn, 'A' + i, nrm, CLAN_NAME(i), nrm);
+    write_to_output(d, "%s%c%s) %s%s%s\r\n",
+                    cyn, 'A' + i, nrm, CLAN_NAME(i),
+                     OLC_CLAN(d)->allies[i] == TRUE ? " (Allied)" : (OLC_CLAN(d)->at_war[i] == TRUE ? " (At War)" : ""),
+                    nrm);
   }
 }
 
@@ -895,7 +939,7 @@ static void clanedit_clans_menu(struct descriptor_data *d)
 /* main clanedit parser function... interpreter throws all input to here. */
 void clanedit_parse(struct descriptor_data *d, char *arg)
 {
-  int i, number = atoi(arg);
+  int i, number = atoi(arg), x = 0, pclan = 0;
   char *oldtext = NULL;
 
   switch (OLC_MODE(d))
@@ -1036,7 +1080,10 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     case '7':
       if (CHK_CP(CP_ATWAR))
       {
-        clanedit_clans_menu(d);
+        for (x = 0; x < num_of_clans; x++)
+          if (clan_list[x].vnum == OLC_CLAN(d)->vnum)
+            pclan = x;
+        clanedit_clans_menu(d, pclan);
         write_to_output(d, "Enter Enemy Clan Choice (z=Nobody), (0=Abort) : ");
         OLC_MODE(d) = CLANEDIT_ATWAR;
       }
@@ -1050,7 +1097,10 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     case '8':
       if (CHK_CP(CP_ALLIED))
       {
-        clanedit_clans_menu(d);
+        for (x = 0; x < num_of_clans; x++)
+          if (clan_list[x].vnum == OLC_CLAN(d)->vnum)
+            pclan = x;
+        clanedit_clans_menu(d, pclan);
         write_to_output(d, "Enter Ally Clan Choice, (z=Nobody), (0=Abort) : ");
         OLC_MODE(d) = CLANEDIT_ALLIED;
       }
@@ -1564,11 +1614,13 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     }
     if (*arg == 'z')
     { /* war with no one option */
-      OLC_CLAN(d)->at_war = NO_CLAN;
+      for (x = 0; x < MAX_CLANS; x++)
+        OLC_CLAN(d)->at_war[x] = NO_CLAN;
       OLC_VAL(d) = 1;
       clanedit_disp_menu(d);
       return;
     }
+
     if (*arg >= 'a' && *arg <= 'z')
       number = *arg - 'a';
     else if (*arg >= 'A' && *arg <= 'Z')
@@ -1591,19 +1643,19 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     {
       write_to_output(d, "%sDon't be ridiculous!%s\r\n",
                       CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
-      clanedit_disp_menu(d);
       return;
     }
-    if (clan_list[number].vnum == OLC_CLAN(d)->allied)
+    if (are_clans_allied(real_clan(OLC_CLAN(d)->vnum), number))
     {
       write_to_output(d, "%sThe clan can't be at war with an ally!%s\r\n",
                       CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_disp_menu(d);
       return;
     }
-    OLC_CLAN(d)->at_war = clan_list[number].vnum;
-    OLC_VAL(d) = 1;
+    OLC_CLAN(d)->at_war[number] = !OLC_CLAN(d)->at_war[number];
+    write_to_output(d, "Your at-war status with %s has changed.\r\n", clan_list[number].clan_name);
     clanedit_disp_menu(d);
+    OLC_VAL(d) = 1;
     return;
 
     /*-------------------------------------------------------------------*/
@@ -1615,7 +1667,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     }
     if (*arg == 'z')
     { /* war with no one option */
-      OLC_CLAN(d)->allied = NO_CLAN;
+      for (x = 0; x < MAX_CLANS; x++)
+        OLC_CLAN(d)->allies[x] = NO_CLAN;
       OLC_VAL(d) = 1;
       clanedit_disp_menu(d);
       return;
@@ -1643,19 +1696,19 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     {
       write_to_output(d, "%sDon't be ridiculous!%s\r\n",
                       CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
-      clanedit_disp_menu(d);
       return;
     }
-    if (clan_list[number].vnum == OLC_CLAN(d)->at_war)
+    if (are_clans_at_war(real_clan(OLC_CLAN(d)->vnum), number))
     {
       write_to_output(d, "%sThe clan can't be allied with an enemy!%s\r\n",
                       CBRED(d->character, C_NRM), CCNRM(d->character, C_NRM));
       clanedit_disp_menu(d);
       return;
     }
-    OLC_CLAN(d)->allied = clan_list[number].vnum;
-    OLC_VAL(d) = 1;
+    OLC_CLAN(d)->allies[number] = !OLC_CLAN(d)->allies[number];
+    write_to_output(d, "Your alliance with %s has changed.\r\n", clan_list[number].clan_name);
     clanedit_disp_menu(d);
+    OLC_VAL(d) = 1;
     return;
 
     /*-------------------------------------------------------------------*/

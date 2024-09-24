@@ -210,6 +210,10 @@ struct zone_data
 
    int show_weather;
 
+   int region;
+   int city;
+   int faction;
+
    /* Reset mode:
     *   0: Don't reset, and don't update age.
     *   1: Reset if no PC's are located in zone.

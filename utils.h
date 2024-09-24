@@ -147,6 +147,7 @@ int compute_constitution_bonus(struct char_data *ch);
 int compute_intelligence_bonus(struct char_data *ch);
 int compute_wisdom_bonus(struct char_data *ch);
 int compute_charisma_bonus(struct char_data *ch);
+bool is_in_hometown(struct char_data *ch);
 int damage_type_to_resistance_type(int type);
 int stats_point_left(struct char_data *ch);
 int smite_evil_target_type(struct char_data *ch);
@@ -159,6 +160,9 @@ bool affected_by_aura_of_faith(struct char_data *ch);
 bool affected_by_aura_of_depravity(struct char_data *ch);
 bool affected_by_aura_of_righteousness(struct char_data *ch);
 bool is_fear_spell(int spellnum);
+bool is_crafting_skill(int skillnum);
+bool is_selectable_region(int region);
+int get_knowledge_skill_from_creature_type(int race_type);
 bool has_fortune_of_many_bonus(struct char_data *ch);
 bool has_authoritative_bonus(struct char_data *ch);
 bool can_add_follower(struct char_data *ch, int mob_vnum);
@@ -221,6 +225,7 @@ void manifest_mastermind_power(struct char_data *ch);
 bool can_hear_sneaking(struct char_data *ch, struct char_data *vict);
 bool can_see_hidden(struct char_data *ch, struct char_data *vict);
 int skill_check(struct char_data *ch, int skill, int dc);
+bool has_sage_mob_bonus(struct char_data *ch);
 int skill_roll(struct char_data *ch, int skillnum);
 void increase_skill(struct char_data *ch, int skillnum);
 bool ok_call_mob_vnum(int mob_num);
@@ -311,6 +316,7 @@ int num_obj_in_obj(struct obj_data *obj);
 bool ultra_blind(struct char_data *ch, room_rnum room_number);
 bool is_room_outdoors(room_rnum room_number);
 bool is_outdoors(struct char_data *ch);
+bool is_in_wilderness(struct char_data *ch);
 bool is_crafting_kit(struct obj_data *kit);
 int get_evolution_appearance_save_bonus(struct char_data *ch);
 void set_mob_grouping(struct char_data *ch);
@@ -2209,6 +2215,7 @@ int ACTUAL_BAB(struct char_data *ch);
 
 /** Defines if ch is outdoors or not. */
 #define OUTDOORS(ch) (is_outdoors(ch))
+#define IN_WILDERNESS(ch)   (is_in_wilderness(ch))
 #define ROOM_OUTDOORS(room) (is_room_outdoors(room))
 #define OUTSIDE(ch) (is_outdoors(ch))
 #define ROOM_OUTSIDE(room) (is_room_outdoors(room))
@@ -2627,6 +2634,13 @@ bool has_reach(struct char_data *ch);
 #define HAS_ACTIVATED_SPELLS(obj) (obj->activate_spell[0] <= 0 ? FALSE : TRUE)
 
 #define GET_BACKGROUND(ch)  (ch->player_specials->saved.background_type)
+#define HAS_BACKGROUND(ch, i)  (GET_LEVEL(ch) >= LVL_IMMORT ? TRUE : ch->player_specials->saved.background_type == i)
+
+#define GET_HOMETOWN(ch)    (ch->player_specials->saved.hometown)
+
+#define GET_FORAGE_COOLDOWN(ch) (ch->player_specials->saved.forage_cooldown)
+
+#define GET_SAGE_MOB_VNUM(ch)   (ch->char_specials.sage_mob_vnum)
 
 #endif /* _UTILS_H_ */
 

@@ -44,6 +44,7 @@
 #include "class.h"
 #include "spell_prep.h"
 #include "genobj.h"
+#include "backgrounds.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -7428,6 +7429,9 @@ void auto_store_obj(struct char_data *ch, struct obj_data *obj)
 
   if (!ch || !obj) return;
 
+  if (!PRF_FLAGGED(ch, PRF_AUTO_STORE))
+    return;
+
   snprintf(objname, sizeof(objname), "%s", obj->name);
 
   for (i = 0; i < strlen(objname); i++)
@@ -7912,7 +7916,7 @@ ACMD(do_downgrade)
       downgrade_item(ch, temp_obj, level);
       do_stat_object(ch, temp_obj, ITEM_STAT_MODE_LORE_SKILL);
       send_to_char(ch, "\r\n");
-      send_to_char(ch, "\tCPLEASE NOTE:\tn");
+      send_to_char(ch, "\tCPLEASE NOTE: \tn");
       send_to_char(ch, "\tcDowngrading an item will cause it to lose all special ability, perm affects, weapon spells and activated spells.\r\n");
       send_to_char(ch, "In addition, it could also lose some or all of its bonuses. This process is irreversable.");
       send_to_char(ch, "It will cost you %d coins to downgrade this item.\r\n", cost);

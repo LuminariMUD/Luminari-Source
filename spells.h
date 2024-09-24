@@ -686,6 +686,7 @@
 #define AFFECT_PRESCIENCE_DEBUFF 1278
 #define AFFECT_GLORYS_CALL 1279
 #define SPELL_AFFECT_CREEPING_DOOM_BITE 1280
+#define ABILITY_ENTERTAIN_INSPIRATION 1281
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -1351,12 +1352,15 @@
 #define ABILITY_SENSE_MOTIVE 28     /* sense motive, matches pfsrd */
 #define ABILITY_INSIGHT ABILITY_SENSE_MOTIVE
 #define ABILITY_SURVIVAL 29         /* survival, matches pfsrd */
+#define ABILITY_NATURE ABILITY_SURVIVAL
 #define ABILITY_UNUSED_4 30         /* unused, used to be swim */
 #define ABILITY_USE_MAGIC_DEVICE 31 /* use magic device, matches pfsrd */
 #define ABILITY_LINGUISTICS 32      // Number of languages known
 #define ABILITY_PERFORM 33          /* perform, matches pfsrd */
 /**/
 #define END_GENERAL_ABILITIES 33
+
+#define NUM_SKILLS_IN_GAME 26
 
 /* Start Crafting Abilities */
 #define START_CRAFT_ABILITIES 34
@@ -1823,6 +1827,7 @@ extern struct wall_information wallinfo[];
 extern char cast_arg2[];
 extern char cast_arg3[];
 extern const char *unused_spellname;
+extern const int skills_alphabetic[NUM_SKILLS_IN_GAME];
 
 #endif /* __SPELL_PARSER_C__ */
 

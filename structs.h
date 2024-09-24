@@ -895,8 +895,9 @@
 #define REGION_TARSIS 23
 #define REGION_TEYR 24
 #define REGION_THORBARDIN 25
+#define REGION_OUTER_PLANES 26
 
-#define NUM_REGIONS 26
+#define NUM_REGIONS 27
 
 #else
 
@@ -940,6 +941,57 @@
 #define NUM_REGIONS                 36
 
 #endif
+
+/* factions */
+#if defined(CAMPAIGN_DL)
+#define FACTION_NONE                    0
+#define FACTION_ADVENTURERS             FACTION_NONE
+#define FACTION_FORCES_OF_WHITESTONE    1
+#define FACTION_DRAGONARMIES            2
+#define FACTION_NEUTRAL                 3
+#define NUM_FACTIONS                    4
+#else
+#define FACTION_NONE 0
+#define FACTION_ADVENTURER 0
+#define FACTION_ADVENTURERS 0
+#define FACTION_FREELANCE 0
+#define FACTION_FREELANCERS 0
+#define FACTION_THE_ORDER 1
+#define FACTION_ORDER 1
+#define FACTION_DARKLINGS 2
+#define FACTION_DARKLING 2
+#define FACTION_CRIMINAL 3
+#define NUM_FACTIONS 4
+#endif
+
+// cities
+#if defined(CAMPAIGN_DL)
+
+#define CITY_NONE           0
+#define CITY_PALANTHAS      1
+#define CITY_SANCTION       2
+#define CITY_SOLACE         3
+#define CITY_CAERGOTH       4
+#define CITY_SOLANTHUS      5
+#define CITY_THELGAARD      6
+#define CITY_NERAKA         7
+#define CITY_MORNING_DEW    8
+#define CITY_TARSIS         9
+#define CITY_QUALINOST      10
+#define CITY_KENDERMORE     11
+
+#define NUM_CITIES          12
+
+#else
+
+#define CITY_NONE           0
+#define CITY_ASHENPORT      1
+#define CITY_SANCTUS        2
+
+#define NUM_CITIES          3
+
+#endif
+
 /* Positions */
 #define POS_DEAD 0      /**< Position = dead */
 #define POS_MORTALLYW 1 /**< Position = mortally wounded */
@@ -3730,19 +3782,6 @@
 #define SKY_RAINING 2   /**< Weather = Rain */
 #define SKY_LIGHTNING 3 /**< Weather = Lightning storm */
 
-/* factions */
-#define FACTION_NONE 0
-#define FACTION_ADVENTURER 0
-#define FACTION_ADVENTURERS 0
-#define FACTION_FREELANCE 0
-#define FACTION_FREELANCERS 0
-#define FACTION_THE_ORDER 1
-#define FACTION_ORDER 1
-#define FACTION_DARKLINGS 2
-#define FACTION_DARKLING 2
-#define FACTION_CRIMINAL 3
-#define NUM_FACTIONS 3
-
 // Spoken Languages
 #define LANG_COMMON SKILL_LANG_COMMON - SKILL_LANG_LOW
 #define LANG_DRACONIC SKILL_LANG_DRACONIC - SKILL_LANG_LOW
@@ -4567,7 +4606,10 @@ struct char_special_data
 
     bool has_borrow_been_attempted; // if true, the mob can no longer be 'borrowed' from (kender ability)
     int which_treasure_message;           // when we want to use a custom message for random treasure
-    bool has_swindle_been_attempted; // if true, the mob can no longer be 'swindled' (charlatan ability)
+    int swindle_cooldown;
+    int entertain_cooldown;
+    int tribute_cooldown;
+    int extortion_cooldown;
 
     int acid_arrow_level;
 
@@ -4585,6 +4627,9 @@ struct char_special_data
 
     // warlock blast essence cooldowns
     int eldritch_blast_cooldowns[NUM_ELDRITCH_BLAST_COOLDOWNS];
+
+    bool is_charmie;
+    int sage_mob_vnum;
 };
 
 /* old memorization struct */
@@ -4828,6 +4873,9 @@ struct player_special_data_saved
     int dragon_rider_dragon_type;
     int background_type;
 
+    int hometown;
+
+    int forage_cooldown;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -4913,6 +4961,8 @@ struct player_special_data
 
     char *downgrade_confirm;
 
+    char *forge_as_signature;
+    int forge_check;
 };
 
 /** Special data used by NPCs, not PCs */

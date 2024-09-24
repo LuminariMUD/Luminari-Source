@@ -3423,49 +3423,62 @@ static void load_zones(FILE *fl, char *zonename)
           &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
           &Z.show_weather) != 11) {
    */
-  if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top,
+  if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d %d %d %d", &Z.bot, &Z.top,
              &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
-             &Z.max_level, &Z.show_weather) != 11)
+             &Z.max_level, &Z.show_weather, &Z.region, &Z.faction, &Z.city) != 14)
   {
-    // not 11 values, lets try 10
-    if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d", &Z.bot, &Z.top, &Z.lifespan,
-               &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level) != 10)
+    // not 14 values, lets try 11
+    if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top,
+              &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
+              &Z.max_level, &Z.show_weather) != 11)
     {
-      // not 10 values, last try for 4 values
-      if (sscanf(buf, " %d %d %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4)
+      // not 11 values, lets try 10
+      if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d", &Z.bot, &Z.top, &Z.lifespan,
+                &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level) != 10)
       {
-        // attempt to fix: copy previous 2 last reads into this and last variable
-        log("SYSERR: Format error in numeric constant line of %s, attempting to fix.", zname);
-        if (sscanf(Z.name, " %d %d %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4)
+        // not 10 values, last try for 4 values
+        if (sscanf(buf, " %d %d %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4)
         {
-          log("SYSERR: Could not fix previous error, aborting game.");
-          exit(1);
+          // attempt to fix: copy previous 2 last reads into this and last variable
+          log("SYSERR: Format error in numeric constant line of %s, attempting to fix.", zname);
+          if (sscanf(Z.name, " %d %d %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4)
+          {
+            log("SYSERR: Could not fix previous error, aborting game.");
+            exit(1);
+          }
+          else
+          {
+            free(Z.name);
+            Z.name = strdup(Z.builders);
+            free(Z.builders);
+            Z.builders = strdup("None.");
+            zone_fix = TRUE;
+          }
         }
-        else
-        {
-          free(Z.name);
-          Z.name = strdup(Z.builders);
-          free(Z.builders);
-          Z.builders = strdup("None.");
-          zone_fix = TRUE;
-        }
+        /* We only found 4 values, so set 'defaults' for the ones not found */
+        Z.min_level = -1;
+        Z.max_level = -1;
+        Z.show_weather = 1;
       }
-      /* We only found 4 values, so set 'defaults' for the ones not found */
-      Z.min_level = -1;
-      Z.max_level = -1;
-      Z.show_weather = 1;
+      else
+      { // 10 values
+        Z.zone_flags[0] = asciiflag_conv(zbuf1);
+        Z.zone_flags[1] = asciiflag_conv(zbuf2);
+        Z.zone_flags[2] = asciiflag_conv(zbuf3);
+        Z.zone_flags[3] = asciiflag_conv(zbuf4);
+        Z.show_weather = 1;
+      }
     }
     else
-    { // 10 values
+    { // 11 values
       Z.zone_flags[0] = asciiflag_conv(zbuf1);
       Z.zone_flags[1] = asciiflag_conv(zbuf2);
       Z.zone_flags[2] = asciiflag_conv(zbuf3);
       Z.zone_flags[3] = asciiflag_conv(zbuf4);
-      Z.show_weather = 1;
     }
   }
   else
-  { // 11 values
+  { // 14 values
     Z.zone_flags[0] = asciiflag_conv(zbuf1);
     Z.zone_flags[1] = asciiflag_conv(zbuf2);
     Z.zone_flags[2] = asciiflag_conv(zbuf3);

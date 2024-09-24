@@ -2352,13 +2352,8 @@ static void main_boosts_disp_menu(struct descriptor_data *d)
 
 static void main_skills_disp_menu(struct descriptor_data *d)
 {
-  int i, start_ability, end_ability;
-  ;
-  // bool can_study = FALSE;
+  int i;
   struct char_data *ch = d->character;
-
-  start_ability = START_GENERAL_ABILITIES;
-  end_ability = END_GENERAL_ABILITIES + 1;
 
   get_char_colors(ch);
   clear_screen(d);
@@ -2372,27 +2367,12 @@ static void main_skills_disp_menu(struct descriptor_data *d)
                    "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
                GET_LEVELUP_SKILL_POINTS(ch));
 
-  for (i = start_ability; i < end_ability; i++)
-  {
-    /* we have some unused defines right now, we are going to skip over
-       them manaully */
-    switch (i)
+  for (i = 0; i < NUM_SKILLS_IN_GAME; i++)
     {
-    case ABILITY_UNUSED_1:
-    case ABILITY_UNUSED_2:
-    case ABILITY_UNUSED_3:
-    case ABILITY_UNUSED_4:
-    case ABILITY_UNUSED_5:
-    case ABILITY_UNUSED_6:
-    case ABILITY_UNUSED_7:
-      continue;
-    default:
-      break;
+      send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
+                 ability_names[skills_alphabetic[i]], GET_ABILITY(ch, skills_alphabetic[i]), compute_ability(ch, skills_alphabetic[i]),
+                 cross_names[modify_class_ability(ch, skills_alphabetic[i], GET_CLASS(ch))]);
     }
-    send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
-                 ability_names[i], GET_ABILITY(ch, i) + LEVELUP(ch)->skills[i], compute_ability(ch, i),
-                 cross_names[modify_class_ability(ch, i, GET_CLASS(ch))]);
-  }
 
   send_to_char(ch, "Please type quit or the name of the skill you wish to increase in rank: ");
 

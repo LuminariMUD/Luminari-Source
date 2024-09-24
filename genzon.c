@@ -428,7 +428,7 @@ int save_zone(zone_rnum zone_num)
     fprintf(zfile, "#%d\n"
                    "%s~\n"
                    "%s~\n"
-                   "%d %d %d %d %s %s %s %s %d %d %d\n", /* New tbaMUD data line */
+                   "%d %d %d %d %s %s %s %s %d %d %d %d %d %d\n", /* New tbaMUD data line */
             zone_table[zone_num].number,
             (zone_table[zone_num].builders && *zone_table[zone_num].builders)
                 ? zone_table[zone_num].builders
@@ -443,7 +443,10 @@ int save_zone(zone_rnum zone_num)
             zbuf1, zbuf2, zbuf3, zbuf4,
             zone_table[zone_num].min_level,
             zone_table[zone_num].max_level,
-            zone_table[zone_num].show_weather);
+            zone_table[zone_num].show_weather,
+            zone_table[zone_num].region,
+            zone_table[zone_num].faction,
+            zone_table[zone_num].city);
   }
 
   /* Handy Quick Reference Chart for Zone Values.

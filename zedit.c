@@ -19,6 +19,7 @@
 #include "oasis.h"
 #include "dg_scripts.h"
 #include "handler.h"
+#include "clan.h"
 
 /* Nasty internal macros to clean up the code. */
 //#define ZCMD            (zone_table[OLC_ZNUM(d)].cmd[subcmd])
@@ -266,6 +267,9 @@ static void zedit_setup(struct descriptor_data *d, int room_num)
   zone->bot = zone_table[OLC_ZNUM(d)].bot;
   zone->top = zone_table[OLC_ZNUM(d)].top;
   zone->reset_mode = zone_table[OLC_ZNUM(d)].reset_mode;
+  zone->region = zone_table[OLC_ZNUM(d)].region;
+  zone->faction = zone_table[OLC_ZNUM(d)].faction;
+  zone->city = zone_table[OLC_ZNUM(d)].city;
   /* The remaining fields are used as a 'has been modified' flag */
   zone->number = 0; /* Header information has changed.	*/
   zone->age = 0;    /* The commands have changed.		*/
@@ -423,6 +427,9 @@ static void zedit_save_internally(struct descriptor_data *d)
     zone_table[OLC_ZNUM(d)].show_weather = OLC_ZONE(d)->show_weather;
     zone_table[OLC_ZNUM(d)].min_level = OLC_ZONE(d)->min_level;
     zone_table[OLC_ZNUM(d)].max_level = OLC_ZONE(d)->max_level;
+    zone_table[OLC_ZNUM(d)].region = OLC_ZONE(d)->region;
+    zone_table[OLC_ZNUM(d)].faction = OLC_ZONE(d)->faction;
+    zone_table[OLC_ZNUM(d)].city = OLC_ZONE(d)->city;
     for (i = 0; i < ZN_ARRAY_MAX; i++)
       zone_table[OLC_ZNUM(d)].zone_flags[(i)] = OLC_ZONE(d)->zone_flags[(i)];
   }
@@ -515,7 +522,10 @@ static void zedit_disp_menu(struct descriptor_data *d)
                "%sT%s) Top of zone    : %s%d\r\n"
                "%sR%s) Reset Mode     : %s%s\r\n"
                "%sF%s) Zone Flags     : %s%s\r\n"
-               "%sM%s) Level Range    : %s%s%s\r\n"
+               "%sM%s) Level Range    : %s%s\r\n"
+               "%s2%s) Region         : %s%s\r\n"
+               "%s3%s) City           : %s%s\r\n"
+               "%s4%s) Faction        : %s%s\r\n"
                "%sA%s) Re-Stat all zone mobiles (unimplemented)\r\n"
                "[Command list]\r\n",
 
@@ -531,7 +541,10 @@ static void zedit_disp_menu(struct descriptor_data *d)
                OLC_ZONE(d)->reset_mode ? ((OLC_ZONE(d)->reset_mode == 1) ? "Reset when no players are in zone." : "Normal reset.") : "Never reset",
                grn, nrm, cyn, buf1,
                grn, nrm, levels_set ? cyn : yel, lev_string,
-               nrm, grn, nrm);
+               grn, nrm, yel, regions[OLC_ZONE(d)->region],
+               grn, nrm, yel, cities[OLC_ZONE(d)->city],
+               grn, nrm, yel, OLC_ZONE(d)->faction == 0 ? "None" : clan_list[OLC_ZONE(d)->faction-1].clan_name,
+               grn, nrm);
 
   /* Print the commands for this room into display buffer. */
   while (MYCMD.command != 'S')
@@ -986,7 +999,8 @@ void zedit_disp_levels(struct descriptor_data *d)
 /* The event handler */
 void zedit_parse(struct descriptor_data *d, char *arg)
 {
-  int pos, number;
+  int pos, number, i;
+  struct char_data *ch = d->character;
 
   switch (OLC_MODE(d))
   {
@@ -1082,6 +1096,64 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       /* Edit zone builders. */
       write_to_output(d, "Enter new builders list : ");
       OLC_MODE(d) = ZEDIT_ZONE_BUILDERS;
+      break;
+    case '2':
+      // Zone Region
+      if (GET_LEVEL(d->character) < LVL_IMMORT)
+        zedit_disp_menu(d);
+      else
+      {
+        for (i = 1; i < NUM_REGIONS; i++)
+        {
+          send_to_char(ch, "%2d) %-20s ", i, regions[i]);
+          if ((i % 3) == 0)
+            send_to_char(ch, "\r\n");
+        }
+        if ((i % 3) != 0)
+            send_to_char(ch, "\r\n");
+        send_to_char(ch, "\r\n");
+        write_to_output(d, "Enter the region this zone is within :\r\n");
+        OLC_MODE(d) = ZEDIT_REGIONS;
+      }
+      break;
+    case '3':
+      // Zone Cities
+      if (GET_LEVEL(d->character) < LVL_IMMORT)
+        zedit_disp_menu(d);
+      else
+      {
+        for (i = 1; i < NUM_CITIES; i++)
+        {
+          send_to_char(ch, "%2d) %-20s ", i, cities[i]);
+          if ((i % 3) == 0)
+            send_to_char(ch, "\r\n");
+        }
+        if ((i % 3) != 0)
+            send_to_char(ch, "\r\n");
+        send_to_char(ch, "\r\n");
+        write_to_output(d, "Enter the city this zone is within :\r\n");
+        OLC_MODE(d) = ZEDIT_CITIES;
+      }
+      break;
+    case '4':
+      // Zone Faction/Clan Ownership
+      if (GET_LEVEL(d->character) < LVL_IMMORT)
+        zedit_disp_menu(d);
+      else
+      {
+        send_to_char(ch, "%2d) %-20s ", 0, "None");
+        for (i = 1; i <= num_of_clans; i++)
+        {
+          send_to_char(ch, "%2d) %-20s ", i, clan_list[i-1].clan_name);
+          if ((i % 3) == 2)
+            send_to_char(ch, "\r\n");
+        }
+        if ((i % 3) != 2)
+            send_to_char(ch, "\r\n");
+        send_to_char(ch, "\r\n");
+        write_to_output(d, "Enter the clan that occupies this zone :\r\n");
+        OLC_MODE(d) = ZEDIT_FACTION;
+      }
       break;
     case 'b':
     case 'B':
@@ -1770,6 +1842,42 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       OLC_ZONE(d)->bot = LIMIT(atoi(arg), zone_table[OLC_ZNUM(d) - 1].top + 1, OLC_ZONE(d)->top);
     OLC_ZONE(d)->number = 1;
     zedit_disp_menu(d);
+    break;
+
+  case ZEDIT_REGIONS:
+    pos = atoi(arg);
+    if (!isdigit(*arg) || pos < 1 || pos >= NUM_REGIONS)
+      write_to_output(d, "Try again (1-%d) : ", NUM_REGIONS-1);
+    else
+    {
+      OLC_ZONE(d)->region = pos;
+      OLC_ZONE(d)->number = 1;
+      zedit_disp_menu(d);
+    }
+    break;
+
+  case ZEDIT_CITIES:
+    pos = atoi(arg);
+    if (!isdigit(*arg) || pos < 1 || pos >= NUM_CITIES)
+      write_to_output(d, "Try again (1-%d) : ", NUM_CITIES-1);
+    else
+    {
+      OLC_ZONE(d)->city = pos;
+      OLC_ZONE(d)->number = 1;
+      zedit_disp_menu(d);
+    }
+    break;
+
+  case ZEDIT_FACTION:
+    pos = atoi(arg);
+    if (!isdigit(*arg) || pos < 0 || pos > num_of_clans)
+      write_to_output(d, "Try again (0-%d) : ", num_of_clans);
+    else
+    {
+      OLC_ZONE(d)->faction = pos;
+      OLC_ZONE(d)->number = 1;
+      zedit_disp_menu(d);
+    }
     break;
 
     /*-------------------------------------------------------------------*/

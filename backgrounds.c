@@ -15,6 +15,7 @@
 #include "treasure.h"
 #include "handler.h"
 #include "fight.h"
+#include "spec_procs.h"
 
 int background_sort_info[NUM_BACKGROUNDS];
 struct background_data background_list[NUM_BACKGROUNDS];
@@ -377,14 +378,14 @@ ACMDU(do_swindle)
     return;
   }
 
-  if (vict->char_specials.has_swindle_been_attempted)
+  if (vict->char_specials.swindle_cooldown > 0)
   {
     act("$N is already wary of being swindled.", TRUE, ch, 0, vict, TO_CHAR);
     return;
   }
 
     // you can only try once;
-    vict->char_specials.has_swindle_been_attempted = true;
+    vict->char_specials.swindle_cooldown = 100;
 
   int skill = skill_roll(ch, ABILITY_DECEPTION);
   int dc = skill_roll(vict, ABILITY_INSIGHT);
@@ -437,4 +438,562 @@ ACMDU(do_swindle)
         return;
     }
   }
+}
+
+ACMDU(do_entertain)
+{
+  struct char_data *vict = NULL;
+  int grade, gold, i;
+  char buf[200];
+  struct affected_type af[3];
+
+  if (!HAS_REAL_FEAT(ch, FEAT_BG_ENTERTAINER))
+  {
+    send_to_char(ch, "Only those with the entertainer background can 'entertain'.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Who do you want to entertain?\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "You don't see anyone here by that description.\r\n");
+    return;
+  }
+
+  if (!IS_NPC(vict))
+  {
+    send_to_char(ch, "You can't 'entertain' players.\r\n");
+    return;
+  }
+
+  if (GET_RACE(vict) != RACE_TYPE_HUMANOID && GET_RACE(vict) != RACE_TYPE_GIANT && 
+        GET_RACE(vict) != RACE_TYPE_MONSTROUS_HUMANOID && GET_RACE(vict) != RACE_TYPE_DRAGON &&
+        GET_RACE(vict) != RACE_TYPE_FEY && GET_RACE(vict) != RACE_TYPE_LYCANTHROPE &&
+        GET_RACE(vict) != RACE_TYPE_OUTSIDER)
+  {
+    send_to_char(ch, "They aren't intelligent enough to be entertained.\r\n");
+    return;
+  }
+
+  if (vict->char_specials.entertain_cooldown> 0)
+  {
+    act("$N has already been entertained recently.", TRUE, ch, 0, vict, TO_CHAR);
+    return;
+  }
+
+    // you can only try once;
+    vict->char_specials.entertain_cooldown = 100;
+
+  int skill = skill_roll(ch, ABILITY_PERFORM);
+  int dc = skill_roll(vict, ABILITY_DISCIPLINE);
+
+  if (skill < dc)
+  {
+    appear(ch, FALSE);
+    act("$N looks unimpressed and moves on.", FALSE, ch, 0, vict, TO_CHAR);
+    act("You are unimpressed with $n's performance.", FALSE, ch, 0, vict, TO_VICT);
+    act("$N looks unimpressed with $n's performance.", FALSE, ch, 0, vict, TO_NOTVICT);
+    return;
+  }
+  else
+  {    
+    gold = dice(1, GET_LEVEL(vict)) * 4;
+    snprintf(buf, sizeof(buf), "You impress $N with your performance, who tips you %d coins.", gold);
+    act(buf, FALSE, ch, 0, vict, TO_CHAR);
+    snprintf(buf, sizeof(buf), "You are impressed with $n's performance, and you tip $m %d coins.", gold);
+    act(buf, FALSE, ch, 0, vict, TO_VICT);
+    act("$N looks impressed with $n's performance, and tips $m some coins.", FALSE, ch, 0, vict, TO_NOTVICT);
+
+    if (dice(1, 20) == 1)
+    {
+        ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_SWINDLE;
+        grade = quick_grade_check(GET_LEVEL(vict));
+        switch(dice(1, 10))
+        {
+            case 1:
+            award_random_crystal(ch, grade);
+            break;
+            case 2: case 3:
+            award_expendable_item(ch, grade, TYPE_SCROLL);
+            break;
+            case 5:  case 6:  case 7: 
+            award_expendable_item(ch, grade, TYPE_POTION);
+            break;
+            case 8: 
+            award_expendable_item(ch, grade, TYPE_WAND);
+            break;
+            case 9: 
+            award_expendable_item(ch, grade, TYPE_STAFF);
+            break;
+            case 10: 
+            award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
+            break;
+        }
+        ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_NONE;
+        return;
+    }
+
+    if (!affected_by_spell(ch, ABILITY_ENTERTAIN_INSPIRATION))
+    {
+        for (i = 0; i < 3; i++)
+        {
+            new_affect(&(af[i]));
+            af[i].spell = ABILITY_ENTERTAIN_INSPIRATION;
+            af[i].location = APPLY_SKILL;
+            af[i].modifier = 3;
+            af[i].bonus_type = BONUS_TYPE_MORALE;
+            af[i].duration = 50;
+        }
+
+        af[0].specific = ABILITY_PERSUASION;
+        af[1].specific = ABILITY_DECEPTION;
+        af[2].specific = ABILITY_PERFORM;
+
+        for (i = 0; i < 3; i++)
+        {
+            affect_to_char(ch, (&(af[i])));
+        }
+        
+        act("You are inspired by the results of your performance.", TRUE, ch, 0, 0, TO_CHAR);
+    }
+
+  }
+}
+
+ACMDU(do_tribute)
+{
+  struct char_data *vict = NULL;
+  int grade, gold;
+  char buf[200];
+
+  if (!HAS_REAL_FEAT(ch, FEAT_BG_FOLK_HERO))
+  {
+    send_to_char(ch, "Only those with the folk hero background can receive 'tributes'.\r\n");
+    return;
+  }
+
+    if (!is_in_hometown(ch))
+    {
+        send_to_char(ch, "You can only request a tribute when you're in your hometown.\r\n");
+        return;
+    }
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Who do you want to request a tribute from?\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "You don't see anyone here by that description.\r\n");
+    return;
+  }
+
+  if (!IS_NPC(vict))
+  {
+    send_to_char(ch, "You can't receive a 'tribute' from players.\r\n");
+    return;
+  }
+
+  if (GET_RACE(vict) != RACE_TYPE_HUMANOID && GET_RACE(vict) != RACE_TYPE_GIANT && 
+        GET_RACE(vict) != RACE_TYPE_MONSTROUS_HUMANOID && GET_RACE(vict) != RACE_TYPE_DRAGON &&
+        GET_RACE(vict) != RACE_TYPE_FEY && GET_RACE(vict) != RACE_TYPE_LYCANTHROPE &&
+        GET_RACE(vict) != RACE_TYPE_OUTSIDER)
+  {
+    send_to_char(ch, "They aren't intelligent enough to understand a request for a tribute.\r\n");
+    return;
+  }
+
+  if (vict->char_specials.tribute_cooldown> 0)
+  {
+    act("$N has already given a tribute recently.", TRUE, ch, 0, vict, TO_CHAR);
+    return;
+  }
+
+    // you can only try once;
+    vict->char_specials.tribute_cooldown = 100;
+
+  int skill = skill_roll(ch, ABILITY_PERSUASION);
+  int dc = skill_roll(vict, ABILITY_INSIGHT);
+
+  if (skill < dc)
+  {
+    appear(ch, FALSE);
+    act("$N denies your request for a tribute.", FALSE, ch, 0, vict, TO_CHAR);
+    act("You deny $n $s request for a tribute.", FALSE, ch, 0, vict, TO_VICT);
+    act("$N denies $n $s request for a tribute.", FALSE, ch, 0, vict, TO_NOTVICT);
+    return;
+  }
+  else
+  {    
+    gold = dice(1, GET_LEVEL(vict)) * 3;
+    snprintf(buf, sizeof(buf), "$N knows of your accolades and offers you a tribute of %d coins.", gold);
+    act(buf, FALSE, ch, 0, vict, TO_CHAR);
+    snprintf(buf, sizeof(buf), "You know of $n's accolades and offer $m a tribute of %d coins.", gold);
+    act(buf, FALSE, ch, 0, vict, TO_VICT);
+    act("$N knows of $n's accolades and offers $m a tribute of some coins.", FALSE, ch, 0, vict, TO_NOTVICT);
+
+    if (dice(1, 20) == 1)
+    {
+        ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_TRIBUTE;
+        grade = quick_grade_check(GET_LEVEL(vict));
+        switch(dice(1, 10))
+        {
+            case 1:
+            award_random_crystal(ch, grade);
+            break;
+            case 2: case 3:
+            award_expendable_item(ch, grade, TYPE_SCROLL);
+            break;
+            case 5:  case 6:  case 7: 
+            award_expendable_item(ch, grade, TYPE_POTION);
+            break;
+            case 8: 
+            award_expendable_item(ch, grade, TYPE_WAND);
+            break;
+            case 9: 
+            award_expendable_item(ch, grade, TYPE_STAFF);
+            break;
+            case 10: 
+            award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
+            break;
+        }
+        ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_NONE;
+        return;
+    }
+  }
+}
+
+ACMDU(do_extort)
+{
+  struct char_data *vict = NULL;
+  int grade, gold;
+  char buf[200];
+
+  if (!HAS_REAL_FEAT(ch, FEAT_BG_PIRATE))
+  {
+    send_to_char(ch, "Only those with the pirate background can 'extort' others.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Who do you want to extort?\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "You don't see anyone here by that description.\r\n");
+    return;
+  }
+
+  if (!IS_NPC(vict))
+  {
+    send_to_char(ch, "You can't extort players.\r\n");
+    return;
+  }
+
+  if (GET_RACE(vict) != RACE_TYPE_HUMANOID && GET_RACE(vict) != RACE_TYPE_GIANT && 
+        GET_RACE(vict) != RACE_TYPE_MONSTROUS_HUMANOID && GET_RACE(vict) != RACE_TYPE_DRAGON &&
+        GET_RACE(vict) != RACE_TYPE_FEY && GET_RACE(vict) != RACE_TYPE_LYCANTHROPE &&
+        GET_RACE(vict) != RACE_TYPE_OUTSIDER)
+  {
+    send_to_char(ch, "They aren't intelligent enough to understand extortion.\r\n");
+    return;
+  }
+
+  if (vict->char_specials.extortion_cooldown> 0)
+  {
+    act("$N has already been a victim of extortion recently.", TRUE, ch, 0, vict, TO_CHAR);
+    return;
+  }
+
+    // you can only try once;
+    vict->char_specials.extortion_cooldown = 100;
+
+  int skill = skill_roll(ch, ABILITY_INTIMIDATE);
+  int dc = skill_roll(vict, ABILITY_DISCIPLINE);
+
+  if (skill < dc)
+  {
+    appear(ch, FALSE);
+    act("$N denies your attempt at extortion.", FALSE, ch, 0, vict, TO_CHAR);
+    act("You deny $n's attempt at extortion.", FALSE, ch, 0, vict, TO_VICT);
+    act("$N denies $n's attempt at extortion.", FALSE, ch, 0, vict, TO_NOTVICT);
+    return;
+  }
+  else
+  {    
+    gold = dice(1, GET_LEVEL(vict)) * 3;
+    snprintf(buf, sizeof(buf), "$N backs down to your extortion and hands you %d coins.", gold);
+    act(buf, FALSE, ch, 0, vict, TO_CHAR);
+    snprintf(buf, sizeof(buf), "You back down to $n's extortion and give $m %d coins.", gold);
+    act(buf, FALSE, ch, 0, vict, TO_VICT);
+    act("$N backs down to $n's extortion and gives $m some coins.", FALSE, ch, 0, vict, TO_NOTVICT);
+
+    if (dice(1, 20) == 1)
+    {
+        ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_EXTORTION;
+        grade = quick_grade_check(GET_LEVEL(vict));
+        switch(dice(1, 10))
+        {
+            case 1:
+            award_random_crystal(ch, grade);
+            break;
+            case 2: case 3:
+            award_expendable_item(ch, grade, TYPE_SCROLL);
+            break;
+            case 5:  case 6:  case 7: 
+            award_expendable_item(ch, grade, TYPE_POTION);
+            break;
+            case 8: 
+            award_expendable_item(ch, grade, TYPE_WAND);
+            break;
+            case 9: 
+            award_expendable_item(ch, grade, TYPE_STAFF);
+            break;
+            case 10: 
+            award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
+            break;
+        }
+        ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_NONE;
+        return;
+    }
+  }
+}
+
+
+ACMDU(do_forgeas)
+{
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "NPCs cannot forge signatures.\r\n");
+    return;
+  }
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Please enter in the name of the person you're trying to forge as.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  if ((strlen(argument) - count_color_chars(argument)) > 50)
+  {
+    send_to_char(ch, "The name you forge as cannot exceed 50 characters. ( not including color code characters)\r\n");
+    return;
+  }
+
+  ch->player_specials->forge_as_signature = strdup(argument);
+  ch->player_specials->forge_check = d20(ch) + compute_ability(ch, ABILITY_LINGUISTICS);
+  send_to_char(ch, "The next note you write or relay will be forged as if signed by, \"%s\".\r\n", argument);
+
+}
+
+ACMD(do_relay)
+{
+  struct obj_data *obj = NULL;
+  int y = 0;
+  struct char_data *recipient = NULL;
+  char arg1[200], arg2[LONG_STRING];
+  char buf[MAX_INPUT_LENGTH*4];
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "Only PCs can relay messages.\r\n");
+    return;
+  }
+
+  if (!HAS_FEAT(ch, FEAT_BG_CRIMINAL))
+  {
+    send_to_char(ch, "You must have the criminal background to relay a message.\r\n");
+    return;
+  }
+
+  half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please specify the recipient of your relayed note.\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "What message do you want to relay to them?\r\n");
+    return;
+  }
+
+  if (!(recipient = get_char_vis(ch, arg1, NULL, FIND_CHAR_WORLD)))
+  {
+    send_to_char(ch, "Your contacts can't find anyone by that name.\r\n");
+    return;
+  }
+
+  if (IN_ROOM(recipient) != NOWHERE)
+  {
+    if (zone_table[world[IN_ROOM(recipient)].zone].city == CITY_NONE)
+    {
+      send_to_char(ch, "Your contacts can't find anyone by that name.\r\n");
+      return;
+    }
+  }
+
+  if (IS_NPC(recipient))
+  {
+    send_to_char(ch, "That is an NPC.  Please specify a player name. Try using 2.name, 3.name, etc.\r\n");
+    return;
+  }
+
+  snprintf(buf, sizeof(buf), "%s\n\nSigned by: %s\n", strfrmt((char *) argument, 80, 1, FALSE, FALSE, FALSE), 
+            ch->player_specials->forge_as_signature ? ch->player_specials->forge_as_signature : GET_NAME(ch));
+
+  obj = create_obj();
+  obj->item_number = 1;
+  if (ch->player_specials->forge_check > 0)
+  {
+    GET_OBJ_VAL(obj, 0) = ch->player_specials->forge_check;
+  }
+  obj->name = strdup("rolled piece paper");
+  obj->short_description = strdup("a rolled piece of paper");
+  obj->description = strdup("A rolled piece of paper lies here.");
+
+  GET_OBJ_TYPE(obj) = ITEM_NOTE;
+  for (y = 0; y < TW_ARRAY_MAX; y++)
+    obj->obj_flags.wear_flags[y] = 0;
+  SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
+  GET_OBJ_WEIGHT(obj) = 1;
+  GET_OBJ_COST(obj) = 30;
+  GET_OBJ_RENT(obj) = 10;
+  obj->action_description = strdup(buf);
+
+  obj_to_char(obj, recipient);
+
+  ch->player_specials->forge_check = 0;
+  if (ch->player_specials->forge_as_signature)
+    free(ch->player_specials->forge_as_signature);
+
+  act("A street urchin runs up and gives you a rolled piece of paper.", FALSE, 0, 0, ch, TO_VICT);
+  act("A street urchin runs up and gives $n a rolled piece of paper.", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+ACMD(do_forage)
+{
+
+  int skill, dc, result, modifier = 2, bonus = 0, roll;
+  bool food = false;
+  char ripeness[50], food_desc[150];
+  struct obj_data *obj;
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "NPCs cannot forage.\r\n");
+  }
+
+  if (GET_FORAGE_COOLDOWN(ch) > 0)
+  {
+    send_to_char(ch, "You've recently foraged and will have to wait.\r\n");
+    return;
+  }
+
+  if (!IN_WILDERNESS(ch))
+  {
+    send_to_char(ch, "You must be in the wild to forage.\r\n");
+    return;
+  }
+
+  skill = compute_ability(ch, ABILITY_NATURE);
+  dc = 15;
+  roll = d20(ch);
+  result = roll + skill - dc;
+
+  send_to_char(ch, "You attempt to forage for some food... Roll %d + %d (nature skill) for total %d vs. dc %d\r\n",
+                  roll, skill, roll + skill, dc);
+
+  if (result < 0)
+  {
+    send_to_char(ch, "You fail to find anything edible.\r\n");
+    GET_FORAGE_COOLDOWN(ch) = 100;
+    return;
+  }
+
+  result /= 10;
+
+  switch (result)
+  {
+    case 0: modifier = 2; snprintf(ripeness, sizeof(ripeness), "rather unripe"); break;
+    case 1: modifier = 3; snprintf(ripeness, sizeof(ripeness), "barely ripe"); break;
+    case 2: modifier = 4; snprintf(ripeness, sizeof(ripeness), "nicely ripened"); break;
+    case 3: modifier = 5; snprintf(ripeness, sizeof(ripeness), "very well ripened"); break;
+    default: modifier = 6; snprintf(ripeness, sizeof(ripeness), "perfectly ripened"); break;
+  }
+
+  switch (rand_number(0, 18))
+  {
+    case 0: bonus = APPLY_AC_NEW; break;
+    case 1: bonus = APPLY_STR; break;
+    case 2: bonus = APPLY_DEX; break;
+    case 3: bonus = APPLY_CON; break;
+    case 4: bonus = APPLY_INT; break;
+    case 5: bonus = APPLY_WIS; break;
+    case 6: bonus = APPLY_CHA; break;
+    case 7: bonus = APPLY_DAMROLL; modifier /= 2; break;
+    case 8: bonus = APPLY_HITROLL; modifier /= 2; break;
+    case 9: bonus = APPLY_ENCUMBRANCE; break;
+    case 10: bonus = APPLY_HIT; modifier *= 10; break;
+    case 11: bonus = APPLY_MOVE; modifier *= 100; break;
+    case 12: bonus = APPLY_HP_REGEN; break;
+    case 13: bonus = APPLY_MV_REGEN; break;
+    case 14: bonus = APPLY_PSP; modifier *= 5; break;
+    case 15: bonus = APPLY_PSP_REGEN; break;
+    case 16: bonus = APPLY_SAVING_FORT; break;
+    case 17: bonus = APPLY_SAVING_REFL; break;
+    case 18: bonus = APPLY_SAVING_WILL; break;
+  }
+
+  obj = read_object(FORAGE_FOOD_ITEM_VNUM, VIRTUAL);
+
+  if (!obj)
+  {
+    send_to_char(ch, "The forage food item prototype was not found. Please inform a staff with code ERRFOR001.\r\n");
+    return;
+  }
+
+  GET_FORAGE_COOLDOWN(ch) = 100;
+  
+  food = apply_type_food_or_drink[bonus];
+  
+  if (!food)
+    GET_OBJ_TYPE(obj) = ITEM_DRINK;
+
+  obj->affected[0].location = bonus;
+  obj->affected[0].modifier = modifier;
+  obj->affected[0].bonus_type = (food) ? BONUS_TYPE_FOOD : BONUS_TYPE_DRINK;
+  
+  snprintf(food_desc, sizeof(food_desc), "some %s %s", ripeness, apply_type_food_names[bonus]);
+  obj->name = strdup(food_desc);
+  obj->short_description = strdup(food_desc);
+  snprintf(food_desc, sizeof(food_desc), "Some %s %s lie here.", ripeness, apply_type_food_names[bonus]);
+  obj->description = strdup(food_desc);
+
+  obj_to_char(obj, ch);
+
+  act("You forage for food and find $p!", TRUE, ch, obj, 0, TO_CHAR);
+  act("$n forages for food and finds $p!", TRUE, ch, obj, 0, TO_ROOM);
+  
 }

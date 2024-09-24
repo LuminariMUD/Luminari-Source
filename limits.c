@@ -1053,6 +1053,9 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     if (HAS_FEAT(ch, FEAT_ADAPTABILITY))
       gain += (int)((float)gain * .05);
 
+    if (HAS_FEAT(ch, FEAT_BG_HERMIT) && get_party_size_same_room(ch))
+      gain += (int)((float)gain * .05);
+
 #if defined(CAMPAIGN_DL)
 /* flat rate for now! (halfed the rate for testing purposes) */
     if (rand_number(0, 1) && ch && ch->desc && ch->desc->account)
@@ -1358,6 +1361,9 @@ void recharge_activated_items(void)
     if (!ch)
       continue;
 
+    if (IS_NPC(ch))
+      continue;
+
     if (STATE(d) != CON_PLAYING)
       continue;
 
@@ -1579,6 +1585,15 @@ void update_player_misc(void)
     if (GET_MISSION_COOLDOWN(ch) > 0)
       GET_MISSION_COOLDOWN(ch)--;
 
+    if (GET_FORAGE_COOLDOWN(ch) > 0)
+    {
+      GET_FORAGE_COOLDOWN(ch)--;
+      if (GET_FORAGE_COOLDOWN(ch) == 0)
+      {
+        send_to_char(ch, "You can now forage for food again.\r\n");
+      }
+    }
+
     if (HAS_FEAT(ch, FEAT_DETECT_ALIGNMENT))
       SET_BIT_AR(AFF_FLAGS(ch), AFF_DETECT_ALIGN);
 
@@ -1793,6 +1808,13 @@ void proc_d20_round(void)
       }
     }
 
+    if (i->char_specials.swindle_cooldown > 0)
+      i->char_specials.swindle_cooldown--;
+    if (i->char_specials.entertain_cooldown > 0)
+      i->char_specials.entertain_cooldown--;
+    if (i->char_specials.tribute_cooldown > 0)
+      i->char_specials.tribute_cooldown--;
+      
     if (i->char_specials.recently_slammed > 0)
       i->char_specials.recently_slammed--;
     if (i->char_specials.recently_kicked > 0)

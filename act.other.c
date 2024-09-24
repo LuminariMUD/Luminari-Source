@@ -4476,7 +4476,8 @@ ACMD(do_not_here)
 int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct obj_data *target_obj, bool silent)
 {
   bool knowledge = FALSE;
-  int lore_bonus = 0;
+  int lore_bonus = 0, lore_skill;
+  int skill, dc, roll;
 
   // if the object was already identified, it can always be identified again
   if (target_obj && OBJ_FLAGGED(target_obj, ITEM_IDENTIFIED))
@@ -4493,34 +4494,60 @@ int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct ob
   {
     lore_bonus += CLASS_LEVEL(ch, CLASS_BARD);
   }
+  if (HAS_FEAT(ch, FEAT_BG_SAGE) && target_obj)
+    lore_bonus += 2;
 
-  /* good enough lore for object? */
-  if (target_obj && GET_OBJ_COST(target_obj) <= lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
-  {
-    knowledge = TRUE;
-  }
+  lore_skill = ABILITY_ARCANA;
+  if (compute_ability(ch, lore_skill) < compute_ability(ch, ABILITY_RELIGION))
+    lore_skill = ABILITY_RELIGION;
+  if (compute_ability(ch, lore_skill) < compute_ability(ch, ABILITY_NATURE))
+    lore_skill = ABILITY_NATURE;
 
-  if (target_obj && !knowledge)
+  roll = d20(ch);
+
+  if (target_obj)
   {
-    if (!silent)
-      send_to_char(ch, "Your knowledge is not extensive enough to know about this object!\r\n");
-    return 0;
+    skill = (compute_ability(ch, lore_skill) + lore_bonus);
+    dc = GET_OBJ_LEVEL(target_obj) * 2;
+    send_to_char(ch, "Using '%s' skill with d20 roll of %d + %d ranks, for total of %d against dc %d.\r\n", 
+                  ability_names[lore_skill], roll, skill, skill + roll, dc);
+    if (skill >= dc)
+      knowledge = TRUE;
+
+    if (!knowledge)
+    {
+      if (!silent)
+      {
+        send_to_char(ch, "Your knowledge is not extensive enough to know about this object!\r\n");
+      }
+      return 0;
+    }
   }
 
   /* good enough lore for mobile? */
   knowledge = FALSE;
   lore_bonus += HAS_FEAT(ch, FEAT_MONSTER_LORE) ? GET_WIS_BONUS(ch) : 0;
 
-  if (target_ch && (GET_LEVEL(target_ch) * 2) <= lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
+  if (target_ch)
   {
-    knowledge = TRUE;
-  }
-
-  if (target_ch && !knowledge)
-  {
-    if (!silent)
-      send_to_char(ch, "Your knowledge is not extensive enough to know about this creature!\r\n");
-    return 0;
+    if (!IS_NPC(target_ch))
+    {
+      send_to_char(ch, "You can only lore mobs.\r\n");
+      return 0;
+    }
+    lore_skill = get_knowledge_skill_from_creature_type(GET_RACE(target_ch));
+    skill = (compute_ability(ch, lore_skill) + lore_bonus);
+    dc = GET_LEVEL(target_ch) * 2;
+    send_to_char(ch, "Using '%s' skill with d20 roll of %d + %d ranks, for total of %d against dc %d.\r\n", 
+                  ability_names[lore_skill], roll, skill, skill + roll, dc);
+    if (skill >= dc)
+      knowledge = TRUE;
+    if (!knowledge)
+    {
+      if (!silent)
+        send_to_char(ch, "Your knowledge is not extensive enough to know about this creature!\r\n");
+      return 0;
+    }
   }
 
   /* we made it! */
@@ -4534,11 +4561,16 @@ ACMD(do_lore)
   struct char_data *tch = NULL;
   struct obj_data *tobj = NULL;
   int target = 0;
+  int lore_skill = ABILITY_ARCANA;
+  if (compute_ability(ch, lore_skill) < compute_ability(ch, ABILITY_RELIGION))
+    lore_skill = ABILITY_RELIGION;
+  if (compute_ability(ch, lore_skill) < compute_ability(ch, ABILITY_NATURE))
+    lore_skill = ABILITY_NATURE;
 
   if (IS_NPC(ch))
     return;
 
-  if (!IS_NPC(ch) && !GET_ABILITY(ch, ABILITY_LORE))
+  if (!IS_NPC(ch) && !GET_ABILITY(ch, lore_skill))
   {
     send_to_char(ch, "You have no ability to do that!\r\n");
     return;
@@ -4552,8 +4584,7 @@ ACMD(do_lore)
   {
     if (!target)
     {
-      act("There is nothing to here to use your Lore ability on...", FALSE,
-          ch, NULL, NULL, TO_CHAR);
+      act("There is nothing to here to use your Lore ability on...", FALSE, ch, NULL, NULL, TO_CHAR);
       return;
     }
   }
@@ -5712,12 +5743,7 @@ ACMD(do_train)
 
   one_argument(argument, arg, sizeof(arg));
 
-  if (*arg && is_abbrev(arg, "knowledge"))
-  {
-    /* Display knowledge abilities. */
-    list_abilities(ch, ABILITY_TYPE_KNOWLEDGE);
-  }
-  else if (*arg && is_abbrev(arg, "craft"))
+  if (*arg && is_abbrev(arg, "craft"))
   {
     /* Display craft abilities. */
     list_abilities(ch, ABILITY_TYPE_CRAFT);
