@@ -1122,6 +1122,19 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   if (!IS_NPC(ch) && HAS_DRAGON_BOND_ABIL(ch, 3, DRAGON_BOND_KIN))
     bonuses[BONUS_TYPE_MORALE] += 2;
 
+  if (HAS_FEAT(ch, FEAT_BG_SAILOR) && IN_WATER(ch))
+  {
+    bonuses[BONUS_TYPE_MORALE] += 1;
+  }
+
+  if (HAS_FEAT(ch, FEAT_BG_URCHIN) && is_in_hometown(ch))
+  {
+    bonuses[BONUS_TYPE_COMPETENCE] += 1;
+  }
+
+  if (is_grouped_with_soldier(ch))
+    bonuses[BONUS_TYPE_MORALE] += 1;
+
   /* These bonuses to AC apply even against touch attacks or when the monk is
    * flat-footed. She loses these bonuses when she is immobilized or helpless,
    * when she wears any armor, when she carries a shield, or when she carries
@@ -1853,16 +1866,14 @@ void death_cry(struct char_data *ch)
 
       /* this is the default NPC message */
       GUI_CMBT_NOTVICT_OPEN(ch, NULL);
-      act("Your blood freezes as you hear $n's death cry.",
-          FALSE, ch, 0, 0, TO_ROOM);
+      act("Your blood freezes as you hear $n's death cry.", FALSE, ch, 0, 0, TO_ROOM);
       GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
 
       for (door = 0; door < DIR_COUNT; door++)
       {
         if (CAN_GO(ch, door))
         {
-          send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room,
-                       "Your blood freezes as you hear someone's death cry.\r\n");
+          send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room, "Your blood freezes as you hear someone's death cry.\r\n");
         }
       }
       break;
@@ -1871,16 +1882,14 @@ void death_cry(struct char_data *ch)
   else /* this is the default PC message */
   {
     GUI_CMBT_NOTVICT_OPEN(ch, NULL);
-    act("Your blood freezes as you hear $n's death cry.",
-        FALSE, ch, 0, 0, TO_ROOM);
+    act("Your blood freezes as you hear $n's death cry.", FALSE, ch, 0, 0, TO_ROOM);
     GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
 
     for (door = 0; door < DIR_COUNT; door++)
     {
       if (CAN_GO(ch, door))
       {
-        send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room,
-                     "Your blood freezes as you hear someone's death cry.\r\n");
+        send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room, "Your blood freezes as you hear someone's death cry.\r\n");
       }
     }
   }
@@ -2018,10 +2027,14 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   if (killer)
   {
     if (death_mtrigger(ch, killer))
-      death_cry(ch);
+    {
+      if (!killer->char_specials.post_combat_messages)
+        death_cry(ch);
+    }
   }
   else
     death_cry(ch);
+
   GET_POS(ch) = POS_DEAD;
   /* end making ordinary commands work in scripts */
 
@@ -2316,11 +2329,19 @@ static void perform_group_gain(struct char_data *ch, int base,
     share = MIN(CONFIG_MAX_EXP_GAIN, MAX(1, hap_share));
   }
 
-  if (share > 1)
-    send_to_char(ch, "You receive your share of experience -- %d points.\r\n", gain_exp(ch, share, GAIN_EXP_MODE_GROUP));
+  if (!ch->char_specials.post_combat_messages)
+  {
+    if (share > 1)
+      send_to_char(ch, "You receive your share of experience -- %d points.\r\n", gain_exp(ch, share, GAIN_EXP_MODE_GROUP));
+    else
+    {
+      send_to_char(ch, "You receive your share of experience -- one measly little point!\r\n");
+      gain_exp(ch, share, GAIN_EXP_MODE_GROUP);
+    }
+  }
   else
   {
-    send_to_char(ch, "You receive your share of experience -- one measly little point!\r\n");
+    ch->char_specials.post_combat_exp = share;
     gain_exp(ch, share, GAIN_EXP_MODE_GROUP);
   }
 
@@ -4857,6 +4878,30 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
     do_sac(ch->master, "corpse", 0, 0);
   }
 
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch->char_specials.post_combat_messages)
+    {
+      int post_gold = tch->char_specials.post_combat_gold;
+      int post_exp = tch->char_specials.post_combat_exp;
+      int post_accexp = tch->char_specials.post_combat_account_exp;
+      send_to_char(tch, "\tnYou receive");
+      if (post_exp > 0)
+        send_to_char(tch, " \tY%d EXP", post_exp);
+      if (post_gold > 0)
+        send_to_char(tch, " \tC%d GOLD", post_gold);
+      if (post_accexp > 0)
+        send_to_char(tch, " \tG%d ACCOUNT EXP", post_accexp);
+      if (post_exp == 0 && post_gold == 0 && post_accexp == 0)
+        send_to_char(tch, "\tn Nothing");
+      send_to_char(tch, "\tn.\r\n");
+    }
+    tch->char_specials.post_combat_messages = false;
+    tch->char_specials.post_combat_exp = tch->char_specials.post_combat_gold = tch->char_specials.post_combat_account_exp = 0;
+  }
+  
+
   /* all done! */
   return (-1);
 }
@@ -4876,7 +4921,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
   bool is_ranged = FALSE;
   struct affected_type af;
-  struct char_data *eidolon;
+  struct char_data *eidolon, *tch;
 
   /* this is just a dummy check */
   if (!ch)
@@ -5155,7 +5200,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   if (ch != victim && GET_EXP(victim) && (GET_LEVEL(ch) - GET_LEVEL(victim)) <= 3)
   {
     if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_EIDOLON) && ch->master)
-      gain_exp(ch->master, GET_LEVEL(victim) * dam, GAIN_EXP_MODE_DAMAGE);
+      gain_exp(ch->master, GET_LEVEL(victim) * dam / 2, GAIN_EXP_MODE_DAMAGE);
     else
       gain_exp(ch, GET_LEVEL(victim) * dam, GAIN_EXP_MODE_DAMAGE);
   }
@@ -5275,7 +5320,13 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
                          "consciousness again.\r\n");
     break;
   case POS_DEAD:
-    act("$n is dead!  R.I.P.", FALSE, victim, 0, 0, TO_ROOM);
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (victim == tch) continue;
+      if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_POST_COMBAT_BRIEF))
+        tch->char_specials.post_combat_messages = true;
+      act("$n is dead!  R.I.P.", FALSE, victim, 0, tch, TO_VICT);
+    }
     send_to_char(victim, "You are dead!  Sorry...\r\n");
     break;
   default:
@@ -5958,6 +6009,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += 1;
   }
 
+  if (HAS_FEAT(ch, FEAT_BG_SAILOR) && IN_WATER(ch))
+  {
+    if (display_mode)
+      send_to_char(ch, "Sailor In/Near Water: \tR+1\tn\r\n");
+    dambonus += 1;
+  }
+
   if (has_sage_mob_bonus(ch))
   {
     if (display_mode)
@@ -5997,19 +6055,19 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   }
 
   /* smite evil (remove after one attack) */
-  if (affected_by_spell(ch, SKILL_SMITE_EVIL) && vict && IS_EVIL(vict))
+  if (affected_by_spell(ch, SKILL_SMITE_EVIL) && vict)
   {
     if (display_mode)
-      send_to_char(ch, "Smite Evil bonus: \tR%d\tn\r\n", CLASS_LEVEL(ch, CLASS_PALADIN));
-    dambonus += CLASS_LEVEL(ch, CLASS_PALADIN) * smite_evil_target_type(vict);
+      send_to_char(ch, "Smite Evil bonus: \tR%d\tn\r\n", get_smite_evil_level(ch) * smite_evil_target_type(vict));
+    dambonus += get_smite_evil_level(ch) * smite_evil_target_type(vict);
   }
   /* smite good (remove after one attack) */
-  if (affected_by_spell(ch, SKILL_SMITE_GOOD) && vict && IS_GOOD(vict))
+  if (affected_by_spell(ch, SKILL_SMITE_GOOD) && vict)
   {
     if (display_mode)
-      send_to_char(ch, "Smite Good bonus: \tR%d\tn\r\n", CLASS_LEVEL(ch, CLASS_BLACKGUARD));
+      send_to_char(ch, "Smite Good bonus: \tR%d\tn\r\n", get_smite_good_level(ch) * smite_good_target_type(vict));
 
-    dambonus += CLASS_LEVEL(ch, CLASS_BLACKGUARD) * smite_good_target_type(vict);
+    dambonus += get_smite_good_level(ch) * smite_good_target_type(vict);
   }
   /* destructive smite (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_DESTRUCTION) && vict)
@@ -7315,6 +7373,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 #define STONESKIN_ABSORB 15
 #define IRONSKIN_ABSORB 50
 #define EPIC_WARDING_ABSORB 75
+#define DARK_BLESSING_ABSORB 10
 
 /* this function takes ch (attacker) against victim (defender) who has
    inflicted dam damage and will reduce damage by X depending on the type
@@ -7622,8 +7681,7 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
     if (TRLX_PSN_LVL(ch) <= 0)
       TRLX_PSN_LVL(ch) = 1;
 
-    TRLX_PSN_HIT(ch)
-    --;
+    TRLX_PSN_HIT(ch)--;
     if (TRLX_PSN_HIT(ch) < 0)
       TRLX_PSN_HIT(ch) = 0;
     if (TRLX_PSN_HIT(ch) > MAX_PSN_HIT)
@@ -8318,6 +8376,20 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
   {
     if (display)
         send_to_char(ch, "+1: %-50s\r\n", "Gladiator in Allied Area");
+    bonuses[BONUS_TYPE_MORALE] += 1;
+  }
+
+  if (HAS_FEAT(ch, FEAT_BG_SAILOR) && IN_WATER(ch))
+  {
+    if (display)
+      send_to_char(ch, "+1: %-50s\r\n", "Sailor In/Near Water");
+    bonuses[BONUS_TYPE_MORALE] += 1;
+  }
+
+  if (is_grouped_with_soldier(ch))
+  {
+    if (display)
+      send_to_char(ch, "+1: %-50s\r\n", "Soldiers Grouped Together");
     bonuses[BONUS_TYPE_MORALE] += 1;
   }
 
@@ -10523,6 +10595,20 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (ch && victim && (wielded || missile || IS_TRELUX(ch)) && !victim_is_dead)
     weapon_poison(ch, victim, wielded, missile);
 
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ABIL_POISON))
+  {
+    act("The creature's \tGpoison\tn courses through you.", FALSE, victim, 0, 0, TO_ROOM);
+    call_magic(ch, victim, 0, POISON_TYPE_WYVERN, 0, GET_LEVEL(ch), CAST_WEAPON_POISON);
+    return dam;
+  }
+
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ABIL_CORRUPTION) && dice(1, 5) == 1)
+  {
+    act("The creature's \tDcorruption\tn courses through you.", FALSE, victim, 0, 0, TO_ROOM);
+    call_magic(ch, victim, 0, MOB_ABILITY_CORRUPTION, 0, GET_LEVEL(ch), CAST_INNATE);
+    return dam;
+  }
+
   /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */
   if (ch && victim && wielded && !victim_is_dead)
     weapon_special(wielded, ch, hit_msg);
@@ -11486,7 +11572,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     mileage out of striking-type casters. In this case we assume if the player
     is blasting they are using ranged. Otherwise if they're blasting and using
     hideous blow, they are doing melee. */
-  if (BLASTING(ch) && GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
+  if (PRF_FLAGGED(ch, PRF_AUTOBLAST) && GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
   {
     ranged_attacks += bonus_mainhand_attacks;
     if (is_tanking(ch))
@@ -12774,7 +12860,7 @@ void perform_violence(struct char_data *ch, int phase)
   if (FIGHTING(ch) && AFF_FLAGGED(FIGHTING(ch), AFF_REPULSION) &&
       !is_using_ranged_weapon(ch, TRUE) &&
       !IS_CASTING(ch) &&
-      !BLASTING(ch) &&
+      (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_AUTOBLAST)) &&
       find_in_list(ch, FIGHTING(ch)->char_specials.repulse_blacklist) != NULL)
   {
     // We need to find a new target.

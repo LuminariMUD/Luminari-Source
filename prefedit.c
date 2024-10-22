@@ -78,6 +78,8 @@ static void prefedit_save_to_char(struct descriptor_data *d)
     GET_PAGE_LENGTH(vict) = OLC_PREFS(d)->page_length;
     GET_SCREEN_WIDTH(vict) = OLC_PREFS(d)->screen_width;
 
+    BLASTING(vict) = PRF_FLAGGED(vict, PRF_AUTOBLAST);
+
     save_char(vict, 0);
   }
   else
@@ -231,7 +233,9 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                /* Line 6 (6) - Condensed Combat Mode */
                "%s7%s) Careful with Pets       %s[%s%3s%s]        %sF%s) Contain AoEs                     %s[%s%3s%s]\r\n"
                /* Line 7 (7) - Careful with Pets Toggle */
-               "%s8%s) Reject Rage Spell       %s[%s%3s%s]\r\n",
+               "%s8%s) Reject Rage Spell       %s[%s%3s%s]        %sG%s) Flag Self as Non-Roleplayer      %s[%s%3s%s]\r\n"
+               /* Line 8 (8) No Rage Spell */
+               "%sH%s) Shorten Post Combat Text%s[%s%3s%s]        %sI%s) Automatic Eldritch Blast         %s[%s%3s%s]\r\n",
                /* Line 8 (8) No Rage Spell */
                /*******1********/
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
@@ -299,7 +303,19 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                CBYEL(d->character, C_NRM),
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_NO_RAGE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_NO_RAGE)), CCCYN(d->character, C_NRM)
+               ONOFF(PREFEDIT_FLAGGED(PRF_NO_RAGE)), CCCYN(d->character, C_NRM),
+               /**/
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_NON_ROLEPLAYER) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_NON_ROLEPLAYER)), CCCYN(d->character, C_NRM),
+               /*******H*********/
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_POST_COMBAT_BRIEF) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_POST_COMBAT_BRIEF)), CCCYN(d->character, C_NRM),
+               /**/
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AUTOBLAST) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOBLAST)), CCCYN(d->character, C_NRM)
 
                /*end*/);
 
@@ -1027,6 +1043,21 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case 'f':
     case 'F':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_CONTAIN_AOE);
+      break;
+
+    case 'g':
+    case 'G':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NON_ROLEPLAYER);
+      break;
+
+    case 'h':
+    case 'H':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_POST_COMBAT_BRIEF);
+      break;
+
+    case 'i':
+    case 'I':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOBLAST);
       break;
 
     default:

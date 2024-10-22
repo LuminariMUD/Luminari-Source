@@ -912,6 +912,9 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value += 1;
   }
 
+  if (HAS_FEAT(ch, FEAT_BG_SAILOR) && abilityNum == ABILITY_CRAFT_FISHING)
+    value += 5;
+
   if (affected_by_spell(ch, PSIONIC_INFLICT_PAIN))
     value += get_char_affect_modifier(ch, PSIONIC_INFLICT_PAIN, APPLY_HITROLL); // this should return a negative number, so + a - is -
   if (affected_by_spell(ch, SPELL_HEROISM))
@@ -1425,18 +1428,6 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   case ABILITY_CRAFT_METALWORKING:
     value += GET_INT_BONUS(ch);
     return value;
-  case ABILITY_KNOWLEDGE_ARCANA:
-  case ABILITY_KNOWLEDGE_ENGINEERING:
-  case ABILITY_KNOWLEDGE_DUNGEONEERING:
-  case ABILITY_KNOWLEDGE_GEOGRAPHY:
-  case ABILITY_KNOWLEDGE_HISTORY:
-  case ABILITY_KNOWLEDGE_LOCAL:
-  case ABILITY_KNOWLEDGE_NATURE:
-  case ABILITY_KNOWLEDGE_NOBILITY:
-  case ABILITY_KNOWLEDGE_RELIGION:
-  case ABILITY_KNOWLEDGE_PLANES:
-    value += GET_INT_BONUS(ch);
-    return value;
   default:
     return -1;
   }
@@ -1506,10 +1497,6 @@ void list_abilities(struct char_data *ch, int ability_type)
                      "skills/abilities will no longer affect your crafting abilities.\r\n");
     start_ability = START_CRAFT_ABILITIES;
     end_ability = END_CRAFT_ABILITIES + 1;
-    break;
-  case ABILITY_TYPE_KNOWLEDGE:
-    start_ability = START_KNOWLEDGE_ABILITIES;
-    end_ability = END_KNOWLEDGE_ABILITIES + 1;
     break;
   default:
     log("SYSERR: list_abilities called with invalid ability_type: %d", ability_type);

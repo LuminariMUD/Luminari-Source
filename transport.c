@@ -320,7 +320,7 @@ ACMDU(do_sail)
 
   skip_spaces(&argument);
 
-  int i = 0;
+  int i = 0, cost;
   char buf[200];
   bool found = false;
 
@@ -357,7 +357,10 @@ ACMDU(do_sail)
       if (GET_ROOM_VNUM(IN_ROOM(ch)) != atoi(sailing_locales[i][1]) && valid_sailing_travel(here, i))
       {
         found = true;
-        send_to_char(ch, "%-35s %4s %10d %10d (%s)\r\n", sailing_locales[i][0], sailing_locales[i][2], get_distance(ch, i, here, TRAVEL_SAILING), get_travel_time(ch, 10, i, here, TRAVEL_SAILING), sailing_locales[i][4]);
+        cost = atoi(sailing_locales[i][2]);
+        if (HAS_FEAT(ch, FEAT_BG_SAILOR))
+          cost = 0;
+        send_to_char(ch, "%-35s %4d %10d %10d (%s)\r\n", sailing_locales[i][0], cost, get_distance(ch, i, here, TRAVEL_SAILING), get_travel_time(ch, 10, i, here, TRAVEL_SAILING), sailing_locales[i][4]);
       }
       i++;
     }
@@ -387,15 +390,22 @@ ACMDU(do_sail)
         if (is_abbrev(argument, sailing_locales[i][0]))
         {
           found = true;
-          if (GET_GOLD(ch) < atoi(sailing_locales[i][2]))
+          cost = atoi(sailing_locales[i][2]);
+          if (HAS_FEAT(ch, FEAT_BG_SAILOR))
+            cost = 0;
+          if (cost == 0)
           {
-            send_to_char(ch, "You are denied boarding as you cannot pay the fee of %s.\r\n", sailing_locales[i][2]);
+            send_to_char(ch, "The sailor waves you aboard free of charge.\r\n");
+          }
+          else if (GET_GOLD(ch) < cost)
+          {
+            send_to_char(ch, "You are denied boarding as you cannot pay the fee of %dmake.\r\n", cost);
             return;
           }
           else
           {
-            send_to_char(ch, "You give the ship's captain your fee of %s.\r\n", sailing_locales[i][2]);
-            GET_GOLD(ch) -= atoi(sailing_locales[i][2]);
+            send_to_char(ch, "You give the ship's captain your fee of %d.\r\n", cost);
+            GET_GOLD(ch) -= cost;
           }
           room_rnum to_room = NOWHERE;
           snprintf(buf, sizeof(buf), "%s", sailing_locales[i][1]);
@@ -821,6 +831,9 @@ int get_travel_time(struct char_data *ch, int speed, int locale, int here, int t
 
   distance /= speed;
 #endif
+
+  if (HAS_FEAT(ch, FEAT_BG_SAILOR))
+    distance /= 2;
 
   return distance;
 }

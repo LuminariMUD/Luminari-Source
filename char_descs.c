@@ -283,7 +283,7 @@ char *current_short_desc(struct char_data *ch)
         }
     */
 
-    snprintf(desc, sizeof(desc), "a %s %s", genders[(int)sex], race_list[(int)race].name);
+    snprintf(desc, sizeof(desc), "%s %s %s %s", AN(character_ages[GET_CH_AGE(ch)]), character_ages[GET_CH_AGE(ch)], genders[(int)sex], race_list[(int)race].name);
     snprintf(adj1, sizeof(adj1), "\tn");
     snprintf(adj2, sizeof(adj2), "\tn");
 
@@ -823,14 +823,14 @@ void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg
         GET_PC_ADJECTIVE_1(d->character) = 0;
         GET_PC_DESCRIPTOR_2(d->character) = 0;
         GET_PC_ADJECTIVE_2(d->character) = 0;
-        changeStateTo = CON_MENU;
+        changeStateTo = CON_CHAR_RP_MENU;
         SEND_TO_Q("\tcCharacter short description setting cancelled.\r\n\tn", d);
-        write_to_output(d, "%s", CONFIG_MENU);
+        show_character_rp_menu(d);
         break;
     case 1:
-        changeStateTo = CON_MENU;
+        changeStateTo = CON_CHAR_RP_MENU;
         SEND_TO_Q("\tcYour character descriptions are complete.\r\n\tn", d);
-        write_to_output(d, "%s", CONFIG_MENU);
+        show_character_rp_menu(d);
         break;
 
     case 2:

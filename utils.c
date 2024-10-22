@@ -841,6 +841,27 @@ bool is_room_outdoors(room_rnum room_number)
   return TRUE;
 }
 
+bool is_in_water(struct char_data *ch)
+{
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  switch (world[IN_ROOM(ch)].sector_type)
+  {
+    case SECT_BEACH:
+    case SECT_OCEAN:
+    case SECT_RIVER:
+    case SECT_SEAPORT:
+    case SECT_UD_NOSWIM:
+    case SECT_UD_WATER:
+    case SECT_WATER_NOSWIM:
+    case SECT_WATER_SWIM:
+    case SECT_UNDERWATER:
+      return true;
+  }
+  return false;
+}
+
 bool is_in_wilderness(struct char_data *ch)
 {
   if (!OUTDOORS(ch))
@@ -7181,12 +7202,12 @@ int smite_evil_target_type(struct char_data *ch)
     return 0;
 
   if (!IS_EVIL(ch))
-    return 0;
+    return 1;
 
   if (IS_DRAGON(ch) || IS_OUTSIDER(ch) || IS_UNDEAD(ch))
-    return 2;
+    return 3;
 
-  return 1;
+  return 2;
 }
 
 int smite_good_target_type(struct char_data *ch)
@@ -7195,14 +7216,14 @@ int smite_good_target_type(struct char_data *ch)
     return 0;
 
   if (!IS_GOOD(ch))
-    return 0;
+    return 1;
 
   if (IS_DRAGON(ch) || IS_OUTSIDER(ch) ||
       CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
       CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
-    return 2;
+    return 3;
 
-  return 1;
+  return 2;
 }
 
 /** This will run every 6 seconds as well as whenever a new affect is added or removed
@@ -9591,6 +9612,119 @@ bool has_sage_mob_bonus(struct char_data *ch)
     }
   }
   return result;
+}
+
+bool is_grouped_with_soldier(struct char_data *ch)
+{
+
+  struct char_data *tch;
+
+  if (!ch)
+    return false;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  if (!HAS_FEAT(ch, FEAT_BG_SOLDIER))
+    return false;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch) continue;
+    if (GROUP(tch) != GROUP(ch)) continue;
+    return true;
+  }
+  return false;
+}
+
+bool is_retainer_in_room(struct char_data *ch)
+{
+  struct char_data *tch;
+
+  if (!ch)
+    return false;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  if (!HAS_FEAT(ch, FEAT_BG_SQUIRE))
+    return false;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (!IS_NPC(tch)) continue;
+    if (tch->master != ch) continue;
+    if (!MOB_FLAGGED(tch, MOB_RETAINER)) continue;
+    return true;
+  }
+  return false;
+}
+
+struct char_data *get_retainer_from_room(struct char_data *ch)
+{
+  struct char_data *tch;
+
+  if (!ch)
+    return NULL;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return NULL;
+
+  if (IS_NPC(ch))
+    return NULL;
+
+  if (!HAS_FEAT(ch, FEAT_BG_SQUIRE))
+    return NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (!IS_NPC(tch)) continue;
+    if (tch->master != ch) continue;
+    if (!MOB_FLAGGED(tch, MOB_RETAINER)) continue;
+    return tch;
+  }
+  return NULL;
+}
+
+int get_smite_evil_level(struct char_data *ch)
+{
+ int smite_level = 0;
+
+ smite_level += CLASS_LEVEL(ch, CLASS_PALADIN);
+ smite_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD);
+
+ return smite_level;
+}
+
+int get_smite_good_level(struct char_data *ch)
+{
+ int smite_level = 0;
+
+ smite_level += CLASS_LEVEL(ch, CLASS_BLACKGUARD);
+ smite_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL);
+
+ return smite_level;
+}
+
+bool has_dr_affect(struct char_data *ch, int spell)
+{
+  if (!ch) return false;
+
+  struct damage_reduction_type *dr;
+  for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+  {
+    if (dr->spell == spell)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 /* EoF */

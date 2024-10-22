@@ -5255,6 +5255,19 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feat_prereq_ability(FEAT_AUTOMATIC_STILL_SPELL, ABILITY_SPELLCRAFT, 24);
   feat_prereq_feat(FEAT_AUTOMATIC_STILL_SPELL, FEAT_STILL_SPELL, 1);
 
+  feato(FEAT_IMPROVED_CRUELTIES, "improved cruelties", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Improves saving throw DCs against blackguard cruelties by 2.",
+    "Improves saving throw DCs against blackguard cruelties by 2. Stacks with other save dc increases.");
+  feato(FEAT_ADVANCED_CRUELTIES, "advanced cruelties", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Improves saving throw DCs against blackguard cruelties by 2.",
+    "Improves saving throw DCs against blackguard cruelties by 2. Stacks with other save dc increases.");
+  feato(FEAT_MASTER_CRUELTIES, "master cruelties", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Improves saving throw DCs against blackguard cruelties by 2.",
+    "Improves saving throw DCs against blackguard cruelties by 2. Stacks with other save dc increases.");
+  feato(FEAT_EPIC_CRUELTIES, "epic cruelties", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+    "Improves saving throw DCs against blackguard cruelties by 2.",
+    "Improves saving throw DCs against blackguard cruelties by 2. Stacks with other save dc increases.");
+
   // Backgrounds
 
   feato(FEAT_BG_ACOLYTE, "acolyte background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
@@ -5271,9 +5284,9 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
     "Gain access to the 'entertain' command, allowing them to perform for gold and potentially a random item, as well as a buff to a few skills.");
   feato(FEAT_BG_FOLK_HERO, "folk hero background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
     "Gain access to the 'tribute' command, allowing for a small reward of coins and potentially a random item, only usable in the"
-    "folk-hero's home town. Also gain +10%% when buying or selling in their home town.",
+    "folk-hero's home town. Also gain +10% when buying or selling in their home town.",
     "Gain access to the 'tribute' command, allowing for a small reward of coins and potentially a random item, only usable in the"
-    "folk-hero's home town. Also gain +10%% when buying or selling in their home town.");
+    "folk-hero's home town. Also gain +10% when buying or selling in their home town.");
   feato(FEAT_BG_GLADIATOR, "gladiator background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
     "Gains +1 to attack and damage rolls when fighting in an allied area (must be clanned)",
     "Gains +1 to attack and damage rolls when fighting in an allied area (must be clanned)");
@@ -5281,8 +5294,8 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
     "Gains +1 to all crafting skills.",
     "Gains +1 to all crafting skills.");
   feato(FEAT_BG_HERMIT, "hermit background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
-    "+1 to damage and +5%% experience when fighting alone.",
-    "+1 to damage and +5%% experience when fighting alone.");
+    "+1 to damage and +5% experience when fighting alone.",
+    "+1 to damage and +5% experience when fighting alone.");
   feato(FEAT_BG_NOBLE, "noble background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
     "Gains/Saves +10% gold from selling or buying items in their home town and has access to Noble-only shops.",
     "Gains/Saves +10% gold from selling or buying items in their home town and has access to Noble-only shops.");
@@ -5292,6 +5305,18 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_BG_PIRATE, "pirate background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
     "Can use the 'extort' command to intimdate people out of money and sometimes items.",
     "Can use the 'extort' command to intimdate people out of money and sometimes items.");
+  feato(FEAT_BG_SAGE, "sage background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "When successfully using lore command on a mob, the sage's party receives a +1 to hit and damage against that mob. Also gains a +2 bonus to lore checks on items.",
+    "When successfully using lore command on a mob, the sage's party receives a +1 to hit and damage against that mob. Also gains a +2 bonus to lore checks on items.");
+  feato(FEAT_BG_SAILOR, "sailor background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Sailing is free and takes 1/2 as much time. Gain +1 to hit, damage and armor class when in water. +5 to fishing skill.",
+    "Sailing is free and takes 1/2 as much time. Gain +1 to hit, damage and armor class when in water. +5 to fishing skill.");
+  feato(FEAT_BG_SOLDIER, "soldier background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Gains +1 to hitroll and armor class when grouped with another soldier.",
+    "Gains +1 to hitroll and armor class when grouped with another soldier.");
+  feato(FEAT_BG_SQUIRE, "squire background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+    "Gains access to a hired retainer that can sell items or deliver a message, using the 'retainer' command.",
+    "Gains access to a hired retainer that can sell items or deliver a message, using the 'retainer' command.");
     
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");

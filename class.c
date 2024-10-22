@@ -5702,7 +5702,7 @@ void load_class_list(void)
   feat_assignment(CLASS_SORCERER, FEAT_HELLBALL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SORCERER, FEAT_EPIC_MAGE_ARMOR, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SORCERER, FEAT_EPIC_WARDING, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_SORCERER, FEAT_GREAT_INTELLIGENCE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SORCERER, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SORCERER, FEAT_AUTOMATIC_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SORCERER, FEAT_AUTOMATIC_STILL_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SORCERER, FEAT_AUTOMATIC_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
@@ -5956,9 +5956,12 @@ void load_class_list(void)
 
   feat_assignment(CLASS_BLACKGUARD, FEAT_FIENDISH_BOON, Y, 5, N);
 
+  feat_assignment(CLASS_BLACKGUARD, FEAT_IMPROVED_CRUELTIES, Y, 6, N);
+
   // cruelty slot - 6
 
   feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 7, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_CALL_MOUNT, Y, 7, N);
 
   feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_DESPAIR, Y, 8, N);
 
@@ -5974,9 +5977,12 @@ void load_class_list(void)
 
   feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_SIN, Y, 14, Y);
 
+  feat_assignment(CLASS_BLACKGUARD, FEAT_ADVANCED_CRUELTIES, Y, 14, N);
+
   // cruelty slot - 15
 
   feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 16, Y);
+
 
   feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_DEPRAVITY, Y, 14, Y);
 
@@ -5992,6 +5998,8 @@ void load_class_list(void)
 
   feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 22, Y);
 
+  feat_assignment(CLASS_BLACKGUARD, FEAT_MASTER_CRUELTIES, Y, 23, N);
+
   // cruelty slot - 24
 
   feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 25, Y);
@@ -6002,6 +6010,7 @@ void load_class_list(void)
 
   // cruelty slot - 30
   feat_assignment(CLASS_BLACKGUARD, FEAT_UNHOLY_CHAMPION, Y, 30, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_EPIC_CRUELTIES, Y, 30, N);
 
   /* spell circles */
   feat_assignment(CLASS_BLACKGUARD, FEAT_BLACKGUARD_1ST_CIRCLE, Y, 6, N);

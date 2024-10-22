@@ -56,6 +56,7 @@
 #include "perfmon.h"
 #include "missions.h"
 #include "deities.h"
+#include "backgrounds.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -3845,7 +3846,8 @@ const struct set_struct
     {"homeland", LVL_STAFF, PC, NUMBER},        /* 102 */
     {"region", LVL_STAFF, PC, NUMBER},          /* 103 */
     {"shortdesc", LVL_STAFF, PC, MISC},         /* 104 */
-    {"necromancer", LVL_IMPL, PC, NUMBER},       /* 105 */
+    {"necromancer", LVL_IMPL, PC, NUMBER},      /* 105 */
+    {"background", LVL_STAFF, PC, MISC},        /* 106 */
 
     {"\n", 0, BOTH, MISC},
 };
@@ -4682,6 +4684,24 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     case 105: // necromancer
     CLASS_LEVEL(vict, CLASS_NECROMANCER) = RANGE(0, LVL_IMMORT - 1);
     affect_total(vict);
+    break;
+
+  case 106:
+    for (i = 0; i < NUM_BACKGROUNDS; i++)
+    {
+      if (is_abbrev(val_arg, background_list[i].name))
+      {
+        break;
+      }
+    }
+
+    if (i >= NUM_BACKGROUNDS)
+    {
+      send_to_char(ch, "That is not a valid background archtype.\r\n");
+      return 0;
+    }
+
+    GET_BACKGROUND(vict) = i;
     break;
 
 
@@ -5867,7 +5887,7 @@ void perform_do_copyover()
     {
 
       write_to_descriptor(d->descriptor, "\n\r *** Time stops for a moment as space and time folds upon itself! ***\n\r");
-
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
       switch (rand_number(1, 3))
       {
 
@@ -5939,7 +5959,7 @@ default:
         );
 break;
       }
-
+#endif
       write_to_descriptor(d->descriptor,
                           "[The game will pause for about 30 seconds while new code is being imported, \r\n"
                           "you will need to reform if you were grouped.  There is no need to disconnect, \r\n"

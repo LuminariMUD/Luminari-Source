@@ -869,7 +869,6 @@ static int Crash_save(struct obj_data *obj, struct char_data *ch, FILE *fp, int 
 // Like crash save but for pets
 static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct char_data *owner, long int pet_idnum, int location)
 {
-  struct obj_data *tmp;
   int result;
 
   if (obj)
@@ -1803,10 +1802,10 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         struct extra_descr_data *new_desc;
         char error[40];
         snprintf(error, sizeof(error) - 1, "rent(Edes): %s", temp->name);
-        if (temp->item_number != NOTHING && /* Regular object */
-            temp->ex_description &&         /* with ex_desc == prototype */
-            (temp->ex_description ==
-             obj_proto[real_object(temp->item_number)].ex_description))
+        // if (temp->item_number != NOTHING && // Regular object 
+        //     temp->ex_description &&         // with ex_desc == prototype 
+        //     (temp->ex_description ==
+        //      obj_proto[real_object(temp->item_number)].ex_description))
           temp->ex_description = NULL;
         CREATE(new_desc, struct extra_descr_data, 1);
         new_desc->keyword = fread_string(fl, error);
@@ -2145,10 +2144,10 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           struct extra_descr_data *new_desc;
           char error[40];
           snprintf(error, sizeof(error) - 1, "rent(Edes): %s", temp->name);
-          if (temp->item_number != NOTHING && /* Regular object */
-              temp->ex_description &&         /* with ex_desc == prototype */
-              (temp->ex_description ==
-               obj_proto[real_object(temp->item_number)].ex_description))
+          // if (temp->item_number != NOTHING && // Regular object //
+          //     temp->ex_description &&         // with ex_desc == prototype //
+          //     (temp->ex_description ==
+          //      obj_proto[real_object(temp->item_number)].ex_description))
             temp->ex_description = NULL;
           CREATE(new_desc, struct extra_descr_data, 1);
           free(*line);
@@ -3061,11 +3060,11 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
           struct extra_descr_data *new_desc;
           char error[40];
           snprintf(error, sizeof(error) - 1, "rent(Edes): %s", temp->name);
-          if (temp->item_number != NOTHING && /* Regular object */
-              temp->ex_description &&         /* with ex_desc == prototype */
-              (temp->ex_description ==
-               obj_proto[real_object(temp->item_number)].ex_description))
-            temp->ex_description = NULL;
+          // if (temp->item_number != NOTHING && // Regular object 
+          //     temp->ex_description &&         // with ex_desc == prototype 
+          //     (temp->ex_description ==
+          //      obj_proto[real_object(temp->item_number)].ex_description))
+          temp->ex_description = NULL;
           CREATE(new_desc, struct extra_descr_data, 1);
           free(*line);
           ++line;

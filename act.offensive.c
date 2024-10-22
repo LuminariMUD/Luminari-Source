@@ -1257,7 +1257,7 @@ void apply_paladin_mercies(struct char_data *ch, struct char_data *vict)
   if (!ch || !vict)
     return;
 
-  struct affected_type *af = NULL;
+  struct affected_type *af = NULL, *af_next = NULL;
   struct affected_type af2;
   bool found = false;
 
@@ -1292,8 +1292,9 @@ void apply_paladin_mercies(struct char_data *ch, struct char_data *vict)
 
   if (KNOWS_MERCY(ch, PALADIN_MERCY_ENFEEBLED))
   {
-    for (af = vict->affected; af; af = af->next)
+    for (af = vict->affected; af; af = af_next)
     {
+      af_next = af->next;
       if ((af->location == APPLY_STR || af->location == APPLY_CON) && af->modifier < 0)
       {
         send_to_char(vict, "Affect '%s' has been healed!\r\n", spell_info[af->spell].name);
@@ -1377,9 +1378,15 @@ void apply_paladin_mercies(struct char_data *ch, struct char_data *vict)
   // don't have their usefuless reduced by the ensorcelled mercy
   if (KNOWS_MERCY(ch, PALADIN_MERCY_ENSORCELLED))
   {
-    for (af = vict->affected; af; af = af->next)
+    int spell_num = 0;
+    for (af = vict->affected; af; af = af_next)
     {
-      if (spell_info[af->spell].violent && dice(1, 2) == 1 && !found)
+      spell_num = af->spell;
+      if (spell_num < 0 || spell_num >= TOP_SKILL_DEFINE) continue;
+      af_next = af->next;
+      if (spell_info[af->spell].violent && 
+          dice(1, 2) == 1 && 
+          !found)
       {
         found = true;
         send_to_char(vict, "Affect '%s' has been healed!\r\n", spell_info[af->spell].name);
@@ -2177,6 +2184,9 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
   else if (turn_difference >= 6)
     turn_result = 2;
 
+  if (turn_result >= 1 && !IS_NPC(vict))
+    turn_result = 3;
+
   /* messaging! */
   act("You raise your divine symbol toward $N declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_CHAR);
   act("$n raises $s divine symbol towards you declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_VICT);
@@ -2209,6 +2219,12 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
     act("The mighty force of $N's faith blasts you out of existence!", FALSE, vict, 0, ch, TO_CHAR);
     act("The mighty force of $N's faith blasts $n out of existence!", FALSE, vict, 0, ch, TO_NOTVICT);
     dam_killed_vict(ch, vict);
+    break;
+  case 3:
+    act("The mighty force of your faith blasts $N!", FALSE, ch, 0, vict, TO_CHAR);
+    act("The mighty force of $N's faith blasts you!", FALSE, vict, 0, ch, TO_CHAR);
+    act("The mighty force of $N's faith blasts $n!", FALSE, vict, 0, ch, TO_NOTVICT);
+    damage(ch, vict, dice(GET_LEVEL(ch) / 2, 6), SPELL_GREATER_RUIN, DAM_HOLY, FALSE);
     break;
   }
 
@@ -7763,7 +7779,7 @@ ACMD(do_fire)
 /* primarily useful for those with eldritch blast,
  * auto-assists players by auto-casting eldritch blast
  * when possible */
-ACMD(do_autoblast)
+ACMD(do_assistblast)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL, *tch = NULL;
@@ -7777,13 +7793,7 @@ ACMD(do_autoblast)
   if (IN_ROOM(ch) == NOWHERE)
     return;
 
-  if (BLASTING(ch))
-  {
-    send_to_char(ch, "You stop utilizing eldritch blast.\r\n");
-    BLASTING(ch) = FALSE;
-    return;
-  }
-  else if (FIGHTING(ch) && GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_SPEAR)
+  if (FIGHTING(ch) && GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_SPEAR)
   {
     send_to_char(ch, "You are too busy fighting!\r\n");
     return;
@@ -8987,22 +8997,46 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_PARALYZED:
-    to_vict = "You are -paralyzed- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$n is -paralyzed- from the cruelty inflicted upon $M by the corrupting touch!";
     if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
     {
       act("$E cannot be paralyzed!", FALSE, ch, 0, vict, TO_CHAR);
       return;
     }
+    if (vict->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BINDING_BLAST] > 0)
+    {
+      act("The target is on an immunity cooldown for paralysis already.", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    to_vict = "You are -paralyzed- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$n is -paralyzed- from the cruelty inflicted upon $M by the corrupting touch!";
+    break;
+  case BLACKGUARD_CRUELTY_DAZED:
+    if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
+    {
+      act("$E cannot be dazed!", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    if (vict->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_NOXIOUS_BLAST] > 0)
+    {
+      act("The target is on an immunity cooldown for being dazed already.", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    to_vict = "You are -dazed- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$n is -dazed- from the cruelty inflicted upon $M by the corrupting touch!";
     break;
   case BLACKGUARD_CRUELTY_STUNNED:
-    to_vict = "You are -stunned- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$n is -stunned- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_stun(vict))
     {
       act("$E cannot be stunned!", FALSE, ch, 0, vict, TO_CHAR);
       return;
     }
+    if (vict->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_NOXIOUS_BLAST] > 0)
+    {
+      act("The target is on an immunity cooldown for being stunned already.", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    to_vict = "You are -stunned- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$n is -stunned- from the cruelty inflicted upon $M by the corrupting touch!";
     break;
   }
 
@@ -9011,6 +9045,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   {
   case BLACKGUARD_CRUELTY_DAZED:
   case BLACKGUARD_CRUELTY_PARALYZED:
+  case BLACKGUARD_CRUELTY_STUNNED:
     duration = 1;
     break;
   case BLACKGUARD_CRUELTY_STAGGERED:
@@ -9020,13 +9055,19 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   case BLACKGUARD_CRUELTY_NAUSEATED:
     duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 3;
     break;
-  case BLACKGUARD_CRUELTY_STUNNED:
-    duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 4;
-    break;
   default:
     duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD);
     break;
   }
+
+  if (HAS_FEAT(ch, FEAT_IMPROVED_CRUELTIES))
+    save_mod -= 2;
+  if (HAS_FEAT(ch, FEAT_ADVANCED_CRUELTIES))
+    save_mod -= 2;
+  if (HAS_FEAT(ch, FEAT_MASTER_CRUELTIES))
+    save_mod -= 2;
+  if (HAS_FEAT(ch, FEAT_EPIC_CRUELTIES))
+    save_mod -= 2;
 
   if (mag_savingthrow(ch, vict, SAVING_FORT, save_mod, CAST_CRUELTY, CLASS_LEVEL(ch, CLASS_BLACKGUARD), NOSCHOOL))
   {

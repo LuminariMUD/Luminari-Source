@@ -102,7 +102,7 @@ struct player_special_data_saved_plrtoascii
 
   ubyte abilities[MAX_ABILITIES + 1]; // ability array
   ubyte boosts;                       // stat boosts left
-  ubyte spec_abil[MAX_CLASSES];       // spec ability (daily resets)
+  int spec_abil[MAX_CLASSES];       // spec ability (daily resets)
   ubyte spare2;
   ubyte morphed; // morph form
   ubyte page_length;

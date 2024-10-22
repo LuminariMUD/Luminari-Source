@@ -24,6 +24,8 @@
 #include "domains_schools.h"
 #include "handler.h"
 #include "deities.h"
+#include "constants.h"
+#include "roleplay.h"
 
 #define CHECK_TABLE_SIZE(tbl, exp_sz) \
     _Static_assert(sizeof((tbl)) / sizeof((tbl)[0]) == (exp_sz), #tbl " wrong number entries")
@@ -1492,7 +1494,7 @@ const char *action_bits[] = {
     "Ungrappleable", // 25
     "Animal-Companion",
     "Familiar",
-    "Paladin-Mount",
+    "Paladin/Blackguard-Mount",
     "Summoned-Elemental",
     "Animated-Dead", // 30
     "Guard",
@@ -1559,6 +1561,7 @@ const char *action_bits[] = {
     "Mob-Block-Good",
     "Mob-Geniekind",
     "Mob-Dragon-Mount",
+    "Retainer",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
@@ -1640,8 +1643,31 @@ const char *preference_bits[] = {
     "Auto-Store",
     "Auto-Group",
     "Contain-AOE",
+    "Non-Roleplayer",
+    "Brief-Post-Combat-Text",
+    "Auto-Eldritch-Blast",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
+
+const char *character_ages[] = {
+    "adult",
+    "adolescent",
+    "middle-aged",
+    "old-aged",
+    "venerable",
+    "\n"
+};
+CHECK_TABLE_SIZE(character_ages, NUM_CHARACTER_AGES + 1);
+
+const int character_age_attributes[][6] =
+{
+//   St Dx Co In Ws Ch
+    { 0, 0, 0, 0, 0, 0},
+    {-1, 2, 0, 0,-1, 0},
+    {-1,-1,-1, 1, 1, 1},
+    {-2,-2,-2, 2, 2, 2},
+    {-3,-3,-3, 3, 3, 3}
+};
 
 const char *bagnames[] = {
     "weapons",
@@ -2015,6 +2041,25 @@ const char *connected_types[] = {
     "Select Descriptions Menu Parse",
     "Enter Background Story",
     "Set Recommended Preferences",
+    "Character RP Options Menu",
+    "Select Background Archtype",
+    "Confirm Background Archtype",
+    "Generate Goal Ideas",
+    "Enter in Character Goals",
+    "Generate Personality Ideas",
+    "Enter in Character Personality",
+    "Generate Ideals Ideas",
+    "Enter in Character Ideals",
+    "Generate Bond Ideas",
+    "Enter in Character Bonds",
+    "Generate Flaw Ideas",
+    "Enter in Character Flaws",
+    "Select Character Age",
+    "Select Character Faction",
+    "Select Character Hometown",
+    "Select Characeter Deity",
+    "Confirm Character Deity",
+    "Select Role-Play Status",
     "\n" /* make sure this matches NUM_CON_STATES */
 };
 CHECK_TABLE_SIZE(connected_types, NUM_CON_STATES + 1);
@@ -2944,27 +2989,26 @@ int spell_bonus[][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 4, 4, 4, 4, 3, 3, 0}, // 48
     {0, 5, 5, 5, 4, 4, 4, 4, 3, 3, 0}, // 49
     {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, // 50
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, // 51
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 4, 0}, // 52
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 4, 0}, // 53
-    {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 54
-    {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 55
-    {0, 5, 5, 5, 5, 5, 5, 4, 4, 4, 0}, // 56
-    {0, 5, 5, 5, 5, 5, 5, 4, 4, 4, 0}, // 57
-    {0, 5, 5, 5, 5, 5, 5, 5, 4, 4, 0}, // 58
-    {0, 5, 5, 5, 5, 5, 5, 5, 4, 4, 0}, // 59
-    {0, 5, 5, 5, 5, 5, 5, 5, 5, 4, 0}, // 60
-    {0, 5, 5, 5, 5, 5, 5, 5, 5, 4, 0}, // 61
-    {0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0}, // 62
-    {0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0}, // 63
-    {0, 6, 5, 5, 5, 5, 5, 5, 5, 5, 0}, // 64
-    {0, 6, 5, 5, 5, 5, 5, 5, 5, 5, 0}, // 65
-    {0, 6, 6, 5, 5, 5, 5, 5, 5, 5, 0}, // 65
-    {0, 6, 6, 5, 5, 5, 5, 5, 5, 5, 0}, // 66
-    {0, 6, 6, 6, 5, 5, 5, 5, 5, 5, 0}, // 67
-    {0, 6, 6, 6, 5, 5, 5, 5, 5, 5, 0}, // 68
-    {0, 6, 6, 6, 6, 5, 5, 5, 5, 5, 0}, // 69
-    {0, 6, 6, 6, 6, 5, 5, 5, 5, 5, 0}, // 70
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0},
 };
 
 /** Strength attribute affects.
@@ -3952,17 +3996,9 @@ const char *ability_names[] = {
     "trapmaking",
     "poisonmaking",
     "metalworking",
-    /*knowledge*/
-    "arcana",
-    "engineering",
-    "dungeoneering",
-    "geography",
-    "history",
-    "local",
-    "nature",
-    "nobility",
-    "religion",
-    "planes",
+    "fishing",
+    "cooking",
+    "brewing",
     "\n"};
 
 #if defined(CAMPAIGN_DL)
@@ -5740,6 +5776,84 @@ const char * dragon_bond_types[] = {
     "Dragon Scion",
     "Dragon Kin",
     ""
+};
+
+const char *character_rp_goal_objectives[] =
+{
+    "",
+    "Win the heart of a certain person",
+    "Discover the identity of an important person",
+    "Return to your homeland",
+    "Slay a powerful monster",
+    "Defend a group or settlement from an impending attack",
+    "Discover the location of a fabled natural feature",
+    "Destroy a powerful magical artifact",
+    "Obtain a powerful magical artifact",
+    "Find and recover a kidnapped or missing friend or family member",
+    "Claim an ancestral birthright or fortune",
+    "Defend or mentor an important young person",
+    "Prove the existence of a certain phenomenon or being that is thought to be fictional",
+    "Forge a peace or alliance between two groups",
+    "Conceal a secret by destroying evidence or a person",
+    "Interrupt a ritual or spell that would cause a grand negative effect",
+    "Detroy or neutralize a certain powerful person",
+    "Reconnect with an important person you used to be close to",
+    "Discover your own true identity as an important person",
+    "Learn important knowledge that has been concealed or locked away",
+    "Foil the plans of a specific deity",
+    "\n"
+};
+
+const char *character_rp_goal_reasons[] =
+{
+    "",
+    "A deep-seated desire to be loved",
+    "A pathological need to be appreciated or admired",
+    "A genuine sense of concern for others",
+    "A promise to a dying family member or friend",
+    "Spite, plain and simple",
+    "A hunger for power",
+    "A quest of self improvement",
+    "The search for spiritual enlightenment",
+    "Everyone else was doing it",
+    "It just seemed like fun",
+    "A prophecy you heard and believe will happen",
+    "A prophecy you have never heard and/or believe, but which fate keeps pulling you toward",
+    "The pay was too good to turn down",
+    "Revenge",
+    "Prove yourself worthy of a love interest who does not return your feelings",
+    "Restore your family's good name",
+    "Get the attention of a potential patron",
+    "An inexplicable compulsion that's probably related to childhood somehow",
+    "Gain experience in a skill for a particular task",
+    "A deity told you to",
+    "\n"
+};
+
+const char *character_rp_goal_complications[] =
+{
+    "",
+    "It's all a big misunderstanding",
+    "A rival is interested in the same thing",
+    "Doing so would anger a local politician",
+    "It's really, really far away",
+    "Someone else has done it already, but they did it wrong",
+    "You're unknowingly missing a key piece of information",
+    "A location involved is very dangerous for you",
+    "You have sworn a vow that will make it much harder to do",
+    "There is a religious prohibition against doing it",
+    "An injury or health issue prevents you from doing so",
+    "A person integral to completing your goal is hostile to you",
+    "A persistant misconception means you are mistaken",
+    "Two other groups are involved in the same goal",
+    "The trail has gone cold",
+    "A classic switcheroo has confused similar people or items",
+    "Two factions or people who do not get along must cooperate to make this happen",
+    "An important person or object is accidentally destroyed before much progress has been made",
+    "Doing so would break an important treaty",
+    "It has literally never been done before",
+    "An involved deity's followers are powerful obstacles",
+    "\n"
 };
 
 /* --- End of constants arrays. --- */

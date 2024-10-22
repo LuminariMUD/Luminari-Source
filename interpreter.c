@@ -69,6 +69,7 @@
 #include "deities.h"
 #include "mudlim.h"
 #include "backgrounds.h"
+#include "roleplay.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -148,6 +149,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"apotheosis", "apoth", POS_STANDING, do_sorcerer_arcane_apotheosis, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"areas", "are", POS_DEAD, do_areas, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"assist", "as", POS_FIGHTING, do_assist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"assistblast", "assistblast", POS_FIGHTING, do_assistblast, 1, 0, FALSE, ACTION_NONE, {1, 0}, can_eldritch_blast},
     {"ask", "ask", POS_RECLINING, do_spec_comm, 0, SCMD_ASK, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"astat", "ast", POS_DEAD, do_astat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"attach", "attach", POS_DEAD, do_attach, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -177,7 +179,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"abilityset", "abilityset", POS_SLEEPING, do_abilityset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autocraft", "autocraft", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"adjure", "adjure", POS_RESTING, do_gen_preparation, 0, SCMD_ADJURE, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"autoblast", "autoblast", POS_FIGHTING, do_autoblast, 1, 0, FALSE, ACTION_NONE, {1, 0}, can_eldritch_blast},
+    {"autoblast", "autoblast", POS_FIGHTING, do_gen_tog, 1, SCMD_AUTO_BLAST, FALSE, ACTION_NONE, {1, 0}, can_eldritch_blast},
     {"autofire", "autofire", POS_FIGHTING, do_autofire, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"applyoil", "applyoil", POS_STANDING, do_applyoil, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"applypoison", "applypoison", POS_STANDING, do_applypoison, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
@@ -429,6 +431,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"genriver", "genriver", POS_SLEEPING, do_genriver, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"give", "giv", POS_RECLINING, do_give, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"goto", "go", POS_SLEEPING, do_goto, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"goals", "goals", POS_SLEEPING, do_goals, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"gold", "gol", POS_RECLINING, do_gold, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     {"gossip", "gos", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -516,7 +519,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-    {"kill", "k", POS_FIGHTING, do_kill, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"kill", "k", POS_FIGHTING, do_hit, 0, SCMD_HIT, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"kapaksaliva", "kapaksaliva", POS_FIGHTING, do_kapak_saliva, 0, 0, FALSE, ACTION_SWIFT, {6, 0}, NULL},
     {"kick", "ki", POS_FIGHTING, do_process_attack, 1, AA_KICK, FALSE, ACTION_NONE, {6, 0}, can_kick},
     {"keycheck", "keycheck", POS_STANDING, do_keycheck, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -626,6 +629,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"poisonbreath", "poisonb", POS_FIGHTING, do_poisonbreath, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_poisonbreath},
     {"poisontouch", "poisont", POS_FIGHTING, do_poisontouch, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"policy", "pol", POS_DEAD, do_gen_ps, 0, SCMD_POLICIES, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"postcombatbrief", "postcombatbrief", POS_SLEEPING, do_gen_tog, 0, SCMD_POST_COMBAT_BRIEF, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"pour", "pour", POS_STANDING, do_pour, 0, SCMD_POUR, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"powers", "powers", POS_RECLINING, do_spells, 1, SCMD_POWERS, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"powerslist", "powerslist", POS_RECLINING, do_spelllist, 1, SCMD_POWERS, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -695,6 +699,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"rescue", "resc", POS_FIGHTING, do_rescue, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_rescue},
     {"resistances", "res", POS_DEAD, do_affects, 0, SCMD_RESISTANCES, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"restore", "resto", POS_DEAD, do_restore, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"retainer", "retainer", POS_DEAD, do_retainer, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"return", "retu", POS_DEAD, do_return, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"redit", "redit", POS_DEAD, do_oasis_redit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"reglist", "reglist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_REGLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -702,6 +707,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"rlist", "rlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_RLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rcopy", "rcopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_REDIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"roomflags", "roomflags", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_SHOWVNUMS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"roomvnum", "roomvnum", POS_DEAD, do_roomvnum, LVL_IMMORT, SCMD_SHOWVNUMS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"respec", "respec", POS_STANDING, do_respec, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"recharge", "recharge", POS_STANDING, do_recharge, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"resize", "resize", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -716,10 +722,17 @@ cpp_extern const struct command_info cmd_info[] = {
     {"races", "races", POS_DEAD, do_race, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"racefix", "racefix", POS_DEAD, do_racefix, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rank", "rank", POS_DEAD, do_rank, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"rp", "rp", POS_DEAD, do_gen_tog, 0, SCMD_RP, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rpsheet", "rp", POS_DEAD, do_rpsheet, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rpset", "rpset", POS_DEAD, do_gen_tog, 0, SCMD_RP, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rpbackground", "rpbackground", POS_DEAD, do_showrpinfo, 0, SCMD_RP_BG_STORY, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rpbonds", "rpbonds", POS_DEAD, do_showrpinfo, 0, SCMD_RP_BONDS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rpdescription", "rpdescription", POS_DEAD, do_showrpinfo, 0, SCMD_RP_DESC, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rpflaws", "rpflaws", POS_DEAD, do_showrpinfo, 0, SCMD_RP_FLAWS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rpgoals", "rpgoals", POS_DEAD, do_showrpinfo, 0, SCMD_RP_GOALS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rpideals", "rpideals", POS_DEAD, do_showrpinfo, 0, SCMD_RP_IDEALS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rppersonality", "rppersonality", POS_DEAD, do_showrpinfo, 0, SCMD_RP_PERSONALITY, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"resetpassword", "resetpassword", POS_DEAD, do_resetpassword, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rsay", "rs", POS_RECLINING, do_rsay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -754,7 +767,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"setworldsect", "setw", POS_DEAD, do_setworldsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shadowcast", "shc", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SHADOW, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"shadowform", "shf", POS_SITTING, do_gen_tog, 1, SCMD_SHADOWFORM, FALSE, ACTION_MOVE, {0, 6}, NULL},
-    {"shout", "sho", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"shortcut", "shortcut", POS_DEAD, do_shortcut, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"shout", "shout", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"showblockers", "showblockers", POS_DEAD, do_show_blockers, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"showwearoff", "showwearoff", POS_DEAD, do_showwearoff, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -2148,7 +2162,7 @@ void nanny(struct descriptor_data *d, char *arg)
 {
   int load_result = 0; /* Overloaded variable */
   int player_i = 0;
-  int i = 0; /* incrementor */
+  int i = 0, l = 0; /* incrementor */
 
   /* OasisOLC states */
   struct
@@ -3085,8 +3099,8 @@ switch (load_result)
     if (is_abbrev(arg, "quit") || is_abbrev(arg, "Quit"))
     {
       write_to_output(d, "Homeland region selection aborted.\r\n");
-      STATE(d) = CON_MENU;
-      write_to_output(d, "%s", CONFIG_MENU);
+      STATE(d) = CON_CHAR_RP_MENU;
+      show_character_rp_menu(d);
       return;
     }
 
@@ -3127,7 +3141,7 @@ switch (load_result)
       i = 1;
       while (i < NUM_REGIONS)
       {
-        if (!is_selectable_region(i)) continue;
+        if (!is_selectable_region(i)) { i++; continue; }
         write_to_output(d, "%-2d) %-20s ", i, regions[i]);
         if (((i - 1) % 3) == 2)
           send_to_char(d->character, "\r\n");
@@ -3147,9 +3161,8 @@ switch (load_result)
       return;
     }
 
-    write_to_output(d, "%s", CONFIG_MENU);
-
-    STATE(d) = CON_MENU;
+    STATE(d) = CON_CHAR_RP_MENU;
+    show_character_rp_menu(d);
     break;
 
   case CON_QCLASS:
@@ -3502,20 +3515,114 @@ switch (load_result)
 
     write_to_output(d, "\r\nDo you wish to have the recommend preferences flags enabled? Ie. Autoloot, Show Dice Rolls, Etc.) ");
     STATE(d) = CON_SETPREFS;
+    break;
 
-    /* make sure the last log is updated correctly. */
-    GET_PREF(d->character) = rand_number(1, 128000);
-    GET_HOST(d->character) = strdup(d->host);
-
-    mudlog(NRM, LVL_STAFF, TRUE, "%s [%s] new player.", GET_NAME(d->character), d->host);
-
-    /* Add to the list of 'recent' players (since last reboot) */
-    if (AddRecentPlayer(GET_NAME(d->character), d->host, TRUE, FALSE) == FALSE)
+  case CON_CHARACTER_GOALS_IDEAS:
+    switch (*arg)
     {
-      mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE,
-             "Failure to AddRecentPlayer (returned FALSE).");
+      case '1':
+        
+        choose_random_roleplay_goal(d->character);
+        write_to_output(d, "\r\n");
+        write_to_output(d, "Enter 1 to see another example or Q to proceed and edit your character goals: ");
+        return;
+      case 'q': case 'Q':
+        show_character_goal_edit(d);
+        STATE(d) = CON_CHARACTER_GOALS_ENTER;
+        return;
+      default:
+        write_to_output(d, "\r\n");
+        write_to_output(d, "Enter 1 to see another example or Q to proceed and edit your character goals: ");
+        return;
     }
+    break;
 
+  case CON_CHARACTER_PERSONALITY_IDEAS:
+    if (*arg == 'Q' || *arg == 'q')
+    {
+      show_character_personality_edit(d);
+      STATE(d) = CON_CHARACTER_PERSONALITY_ENTER;
+      return;
+    }
+    if (atoi(arg) >= 1 && atoi(arg) < NUM_BACKGROUNDS)
+    {
+      choose_random_roleplay_personality(d->character, backgrounds_listed_alphabetically[atoi(arg)]);
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Enter a background number to see another example or Q to proceed and edit your character personality: ");
+      return;        
+    }
+    else
+    {
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Enter a background number to see another example or Q to proceed and edit your character personality: ");
+      return;
+    }
+    break;
+
+    case CON_CHARACTER_IDEALS_IDEAS:
+    if (*arg == 'Q' || *arg == 'q')
+    {
+      show_character_ideals_edit(d);
+      STATE(d) = CON_CHARACTER_IDEALS_ENTER;
+      return;
+    }
+    if (atoi(arg) >= 1 && atoi(arg) < NUM_BACKGROUNDS)
+    {
+      choose_random_roleplay_ideals(d->character, backgrounds_listed_alphabetically[atoi(arg)]);
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Enter a background number to see another example or Q to proceed and edit your character ideals: ");
+      return;        
+    }
+    else
+    {
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Enter a background number to see another example or Q to proceed and edit your character ideals: ");
+      return;
+    }
+    break;
+
+  case CON_CHARACTER_BONDS_IDEAS:
+    if (*arg == 'Q' || *arg == 'q')
+    {
+      show_character_ideals_edit(d);
+      STATE(d) = CON_CHARACTER_BONDS_ENTER;
+      return;
+    }
+    if (atoi(arg) >= 1 && atoi(arg) < NUM_BACKGROUNDS)
+    {
+      choose_random_roleplay_bonds(d->character, backgrounds_listed_alphabetically[atoi(arg)]);
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Enter a background number to see another example or Q to proceed and edit your character bonds: ");
+      return;        
+    }
+    else
+    {
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Enter a background number to see another example or Q to proceed and edit your character bonds: ");
+      return;
+    }
+    break;
+  
+  case CON_CHARACTER_FLAWS_IDEAS:
+    if (*arg == 'Q' || *arg == 'q')
+    {
+      show_character_flaws_edit(d);
+      STATE(d) = CON_CHARACTER_FLAWS_ENTER;
+      return;
+    }
+    if (atoi(arg) >= 1 && atoi(arg) < NUM_BACKGROUNDS)
+    {
+      choose_random_roleplay_flaws(d->character, backgrounds_listed_alphabetically[atoi(arg)]);
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Enter a background number to see another example or Q to proceed and edit your character flaws: ");
+      return;        
+    }
+    else
+    {
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Enter a background number to see another example or Q to proceed and edit your character flaws: ");
+      return;
+    }
     break;
 
   case CON_SETPREFS:
@@ -3544,6 +3651,7 @@ switch (load_result)
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPGOLD);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPMEMTIME);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPTIME);
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_CAREFUL_PET);
       GET_WIMP_LEV(d->character) = 10;
     }
     else if (!strcmp(arg, "no") || !strcmp(arg, "NO"))
@@ -3555,11 +3663,22 @@ switch (load_result)
       write_to_output(d, "Please enter yes or no.\r\n");
       return;
     }
+
+    /* make sure the last log is updated correctly. */
+    GET_PREF(d->character) = rand_number(1, 128000);
+    GET_HOST(d->character) = strdup(d->host);
+
+    mudlog(NRM, LVL_STAFF, TRUE, "%s [%s] new player.", GET_NAME(d->character), d->host);
+
+    /* Add to the list of 'recent' players (since last reboot) */
+    if (AddRecentPlayer(GET_NAME(d->character), d->host, TRUE, FALSE) == FALSE)
+    {
+      mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE,
+             "Failure to AddRecentPlayer (returned FALSE).");
+    }
     
-    /* print message of the day to player */
-    write_to_output(d, "\r\n");
-    write_to_output(d, "%s\r\n*** PRESS RETURN: ", motd);
-    STATE(d) = CON_RMOTD;
+    display_rp_decide_menu(d);
+    STATE(d) = CON_CHAR_RP_DECIDE;
     break;
 
   case CON_RMOTD: /* read CR after printing motd   */
@@ -3607,6 +3726,189 @@ switch (load_result)
 
   case CON_GEN_DESCS_MENU_PARSE:
     HandleStateGenericDescsParseMenuChoice(d, arg);
+    break;
+
+  case CON_CHARACTER_AGE_SELECT:
+    HandleStateCharacterAgeParseMenuChoice(d, arg);
+    break;
+  
+  case CON_CHARACTER_FACTION_SELECT:
+    HandleStateCharacterFactionParseMenuChoice(d, arg);
+    break;
+
+  case CON_CHARACTER_HOMETOWN_SELECT:
+    HandleStateCharacterHometownParseMenuChoice(d, arg);
+    break;
+
+  case CON_CHARACTER_DEITY_SELECT:
+    HandleStateCharacterDeityParseMenuChoice(d, arg);
+    break;
+
+  case CON_CHARACTER_DEITY_CONFIRM:
+    HandleStateCharacterDeityConfirmParseMenuChoice(d, arg);
+    break;
+
+  case CON_CHAR_RP_DECIDE:
+    HandleStateCharacterRPDecideParseMenuChoice(d, arg);
+    break;
+
+  case CON_CHAR_RP_MENU:
+    switch (*arg)
+    {
+      case '0':
+        show_short_description_main_menu(d);
+        break;
+      case '1':
+        show_character_long_description_menu(d);
+        break;
+      case '2':
+        show_character_background_story_menu(d);
+        break;
+      case '3': 
+        show_character_background_archtype_menu(d);
+        break;
+      case '4': 
+        show_character_goal_idea_menu(d->character);
+        STATE(d) = CON_CHARACTER_GOALS_IDEAS;
+        break;
+      case '5': 
+        show_character_personality_idea_menu(d->character);
+        STATE(d) = CON_CHARACTER_PERSONALITY_IDEAS;
+        break;
+      case '6': 
+        show_character_ideals_idea_menu(d->character);
+        STATE(d) = CON_CHARACTER_IDEALS_IDEAS;
+        break;
+      case '7': 
+        show_character_bonds_idea_menu(d->character);
+        STATE(d) = CON_CHARACTER_BONDS_IDEAS;
+        break;
+      case '8': 
+        show_character_flaws_idea_menu(d->character);
+        STATE(d) = CON_CHARACTER_FLAWS_IDEAS;
+        break;
+      case '9':
+        if (IS_DRACONIAN(d->character))
+        {
+          send_to_char(d->character, "Draconians cannot change their age, and are always considered adult.\r\n");
+          return;
+        }
+        if (d->character->player_specials->saved.character_age_saved)
+        {
+          write_to_output(d, "You have already selected your character's age. To change, please contact a staff member.\r\n");
+          return;
+        }
+        display_age_menu(d);
+        STATE(d) = CON_CHARACTER_AGE_SELECT;
+        break;
+      case 'A': case 'a':
+
+        show_homeland_region_main_menu(d);
+        break;
+      case 'B': case 'b': 
+        if (GET_CLAN(d->character) > 0)
+        {
+          send_to_char(d->character, "You have already chosen a faction. You can resign in-game or aska a staff membe rfor help.\r\n");
+          return;
+        }
+        display_faction_menu(d);
+        STATE(d) = CON_CHARACTER_FACTION_SELECT;
+        break;
+      case 'C': case 'c': 
+        if (GET_HOMETOWN(d->character))
+        {
+          send_to_char(d->character, "You have already selected a hometown. Please contact a staff member if you would like to change it.\r\n");
+          return;
+        }
+        display_hometown_menu(d);
+        STATE(d) = CON_CHARACTER_HOMETOWN_SELECT;
+        break;
+      case 'D': case 'd': 
+        if (GET_DEITY(d->character))
+        {
+          send_to_char(d->character, "You have already selected a deity. Please contact a staff member if you would like to change it.\r\n");
+          return;
+        }
+        display_deity_menu(d);
+        STATE(d) = CON_CHARACTER_DEITY_SELECT;
+        break;
+      case 'Q': case 'q':
+        write_to_output(d, "%s", CONFIG_MENU);
+        STATE(d) = CON_MENU;
+        break;
+      default:
+        write_to_output(d, "\r\nThat's not a menu choice!\r\n");
+        show_character_rp_menu(d);
+        break;
+    }
+    break;
+
+  case CON_BACKGROUND_ARCHTYPE:
+    
+    for (l = 0; *(arg + l); l++)
+    {
+      /* convert to lower case */
+      *(arg + l) = LOWER(*(arg + l));
+      if (*(arg + l) == ' ')
+        *(arg + l) = '-';
+    }
+
+    if (is_abbrev(arg, "quit"))
+    {
+      show_character_rp_menu(d);
+      STATE(d) = CON_CHAR_RP_MENU;
+      return; 
+    }
+
+    for (i = 1; i < NUM_BACKGROUNDS; i++)
+    {
+      if (is_abbrev(arg, background_list[i].name))
+      {
+        GET_BACKGROUND(d->character) = i;
+        break;
+      }
+    }
+
+    if (i >= NUM_BACKGROUNDS)
+    {
+      write_to_output(d, "That is not a valid background archtype. Please select again: ");
+      return;
+    }
+
+    show_background_help(d->character, GET_BACKGROUND(d->character));
+
+    write_to_output(d, "\r\n");
+    write_to_output(d, "Do you wish to choose this background archtype? (Y|N) ");
+    
+    STATE(d) = CON_BACKGROUND_ARCHTYPE_CONFIRM;
+    break;
+
+  case CON_BACKGROUND_ARCHTYPE_CONFIRM:
+    if (UPPER(*arg) == 'Y')
+    {
+      write_to_output(d, "\r\nBackground Confirmed!\r\n");
+      SET_FEAT(d->character, background_list[GET_BACKGROUND(d->character)].feat, 1);
+      show_character_rp_menu(d);
+      STATE(d) = CON_CHAR_RP_MENU;
+      return;
+    }
+    else if (UPPER(*arg) != 'N')
+    {
+      write_to_output(d, "\r\nY)es to confirm N)o to reselect.\r\n");
+      write_to_output(d, "Do you want to select this background? (y/n) : ");
+      STATE(d) = CON_BACKGROUND_ARCHTYPE_CONFIRM;
+      return;
+    }
+    else
+    {
+      if (GET_BACKGROUND(d->character) > 0)
+      {
+        SET_FEAT(d->character, background_list[GET_BACKGROUND(d->character)].feat, 0);
+        GET_BACKGROUND(d->character) = 0;
+      }
+      show_character_background_archtype_menu(d);
+      return;
+    }
     break;
 
   case CON_MENU:
@@ -3667,126 +3969,9 @@ switch (load_result)
       break;
 
     case '2':
-      if (d->character->player.description)
-      {
-        write_to_output(d, "Current description:\r\n%s", d->character->player.description);
-        /* Don't free this now... so that the old description gets loaded as the
-         * current buffer in the editor.  Do setup the ABORT buffer here, however. */
-        d->backstr = strdup(d->character->player.description);
-      }
-      write_to_output(d, "Enter the new text you'd like others to see when they look at you.\r\n");
-      send_editor_help(d);
-      d->str = &d->character->player.description;
-      d->max_str = PLR_DESC_LENGTH;
-      STATE(d) = CON_PLR_DESC;
+      show_character_rp_menu(d);
+      STATE(d) = CON_CHAR_RP_MENU;
       break;
-
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    case '3':
-      if (d->character->player.background)
-      {
-        write_to_output(d, "Current Character Background:\r\n%s", d->character->player.background);
-        /* Don't free this now... so that the old background gets loaded as the
-         * current buffer in the editor.  Do setup the ABORT buffer here, however. */
-        d->backstr = strdup(d->character->player.background);
-      }
-      write_to_output(d, "Enter your character background story.\r\n");
-      send_editor_help(d);
-      d->str = &d->character->player.background;
-      d->max_str = PLR_BG_LENGTH;
-      STATE(d) = CON_PLR_BG;
-      break;
-
-#if defined(CAMPAIGN_FR)
-    case '4':
-
-      if (GET_REGION(d->character))
-      {
-        write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will need to ask a staff member to do it.\r\n\r\n\tn");
-        return;
-      }
-
-      write_to_output(d, "\tcRegions of Faerun\tn\r\n\r\n");
-      for (i = 1; i < NUM_REGIONS; i++)
-      {
-        write_to_output(d, "%-2d) %-20s ", i, regions[i]);
-        if (((i - 1) % 3) == 2)
-          send_to_char(d->character, "\r\n");
-      }
-      if (((i - 1) % 3) != 2)
-        send_to_char(d->character, "\r\n");
-      write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
-                         "may be integrated into future game systems.\r\n");
-      write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
-      write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
-
-      STATE(d) = CON_QREGION;
-      break;
-#elif defined(CAMPAIGN_DL)
-    case '4':
-
-      if (GET_REGION(d->character))
-      {
-        write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will need to ask a staff member to do it.\r\n\r\n\tn");
-        return;
-      }
-
-      write_to_output(d, "\tcRegions of Ansalon\tn\r\n\r\n");
-      i = 1;
-      while (i < NUM_REGIONS)
-      {
-        if (!is_selectable_region(i)) continue;
-        write_to_output(d, "%-2d) %-20s ", i, regions[i]);
-        if (((i - 1) % 3) == 2)
-          send_to_char(d->character, "\r\n");
-        i++;
-      }
-      if (((i - 1) % 3) != 2)
-        send_to_char(d->character, "\r\n");
-      write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
-                         "may be integrated into future game systems.\r\n");
-      write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
-      write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
-
-      STATE(d) = CON_QREGION;
-      break;
-#else
-     write_to_output(d, "That is not an option at this time.\r\n");
-#endif
-
-    case '5':
-      if (GET_PC_DESCRIPTOR_1(d->character) > 0 && GET_PC_ADJECTIVE_1(d->character) > 0)
-      {
-        send_to_char(d->character, "\r\n");
-        send_to_char(d->character, "You have already chosen your description.  To change it you'll need to request a description reset from a staff member.\r\n");
-        send_to_char(d->character, "\r\n");
-        break;
-      }
-      send_to_char(d->character, "\r\n");
-      send_to_char(d->character, "SET CHARACTER SHORT DESCRIPTION: PRESS ENTER\r\n");
-      send_to_char(d->character, "\r\n");
-      STATE(d) = CON_GEN_DESCS_INTRO;
-      break;
-
-    case '6':
-      page_string(d, background, 0);
-      STATE(d) = CON_RMOTD;
-      break;
-
-    case '7':
-      write_to_output(d, "\r\nEnter your old password: ");
-      // echo_off(d);
-      ProtocolNoEcho(d, true);
-      STATE(d) = CON_CHPWD_GETOLD;
-      break;
-
-    case '8':
-      write_to_output(d, "\r\nEnter your password for verification: ");
-      // echo_off(d);
-      ProtocolNoEcho(d, true);
-      STATE(d) = CON_DELCNF1;
-      break;
-#else
 
     case '3':
       page_string(d, background, 0);
@@ -3806,7 +3991,7 @@ switch (load_result)
       ProtocolNoEcho(d, true);
       STATE(d) = CON_DELCNF1;
       break;
-#endif
+
     default:
       write_to_output(d, "\r\nThat's not a menu choice!\r\n%s", CONFIG_MENU);
       break;
@@ -3894,4 +4079,171 @@ switch (load_result)
     STATE(d) = CON_DISCONNECT; /* Safest to do. */
     break;
   }
+}
+
+void show_character_rp_menu(struct descriptor_data *d)
+{
+  write_to_output(d, "\tc");
+  draw_line(d->character, 80, '-', '-');
+  text_line(d->character, "\tWCHARACTER OPTIONS MENU\tc", 80, '-', '-');
+  draw_line(d->character, 80, '-', '-');
+  write_to_output(d, "\tn");
+
+  write_to_output(d, "\tW0)\tC Set your character short description.\tn\r\n");
+  write_to_output(d, "\tW1)\tC Enter character description.\tn\r\n");
+  write_to_output(d, "\tW2)\tC Enter character background story.\tn\r\n");
+  write_to_output(d, "\tW3)\tC Set your character background archtype.\tn\r\n");
+  write_to_output(d, "\tW4)\tC Set your character goals.\tn\r\n");
+  write_to_output(d, "\tW5)\tC Set your character personality.\tn\r\n");
+  write_to_output(d, "\tW6)\tC Set your character ideals.\tn\r\n");
+  write_to_output(d, "\tW7)\tC Set your character bonds.\tn\r\n");
+  write_to_output(d, "\tW8)\tC Set your character flaws.\tn\r\n");
+  write_to_output(d, "\tW9)\tC Set your character age.\tn\r\n");
+  write_to_output(d, "\tWA)\tC Choose character homeland region.\tn\r\n");
+  write_to_output(d, "\tWB)\tC Set your character faction.\tn\r\n");
+  write_to_output(d, "\tWC)\tC Set your character home city.\tn\r\n");
+  write_to_output(d, "\tWD)\tC Set your character deity.\tn\r\n");
+  
+  write_to_output(d, "\tWQ)\tC Quit to main game menu.\tn\r\n");
+
+  draw_line(d->character, 80, '-', '-');
+  write_to_output(d, "\tn");
+
+}
+
+void show_homeland_region_main_menu(struct descriptor_data *d)
+{
+  int i;
+
+  #if defined(CAMPAIGN_FR)
+      if (GET_REGION(d->character))
+      {
+        write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will need to ask a staff member to do it.\r\n\r\n\tn");
+        return;
+      }
+
+      write_to_output(d, "\tcRegions of Faerun\tn\r\n\r\n");
+      for (i = 1; i < NUM_REGIONS; i++)
+      {
+        write_to_output(d, "%-2d) %-20s ", i, regions[i]);
+        if (((i - 1) % 3) == 2)
+          send_to_char(d->character, "\r\n");
+      }
+      if (((i - 1) % 3) != 2)
+        send_to_char(d->character, "\r\n");
+      write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
+                         "may be integrated into future game systems.\r\n");
+      write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+
+      STATE(d) = CON_QREGION;
+#elif defined(CAMPAIGN_DL)
+
+      if (GET_REGION(d->character))
+      {
+        write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will need to ask a staff member to do it.\r\n\r\n\tn");
+        return;
+      }
+
+      write_to_output(d, "\tcRegions of Ansalon\tn\r\n\r\n");
+      i = 1;
+      while (i < NUM_REGIONS)
+      {
+        if (!is_selectable_region(i)) {i++; continue; }
+        write_to_output(d, "%-2d) %-20s ", i, regions[i]);
+        if (((i - 1) % 3) == 2)
+          send_to_char(d->character, "\r\n");
+        i++;
+      }
+      if (((i - 1) % 3) != 2)
+        send_to_char(d->character, "\r\n");
+      write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
+                         "may be integrated into future game systems.\r\n");
+      write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
+
+      STATE(d) = CON_QREGION;
+#else
+     write_to_output(d, "That is not an option at this time.\r\n");
+#endif
+}
+
+void show_character_long_description_menu(struct descriptor_data *d)
+{
+  if (d->character->player.description)
+  {
+    write_to_output(d, "Current description:\r\n%s", d->character->player.description);
+    /* Don't free this now... so that the old description gets loaded as the
+      * current buffer in the editor.  Do setup the ABORT buffer here, however. */
+    d->backstr = strdup(d->character->player.description);
+  }
+  write_to_output(d, "Enter the new text you'd like others to see when they look at you.\r\n");
+  send_editor_help(d);
+  d->str = &d->character->player.description;
+  d->max_str = PLR_DESC_LENGTH;
+  STATE(d) = CON_PLR_DESC;
+}
+
+void show_character_background_story_menu(struct descriptor_data *d)
+{
+  if (d->character->player.background)
+  {
+    write_to_output(d, "Current Character Background:\r\n%s", d->character->player.background);
+    /* Don't free this now... so that the old background gets loaded as the
+      * current buffer in the editor.  Do setup the ABORT buffer here, however. */
+    d->backstr = strdup(d->character->player.background);
+  }
+  write_to_output(d, "Enter your character background story.\r\n");
+  send_editor_help(d);
+  d->str = &d->character->player.background;
+  d->max_str = PLR_BG_LENGTH;
+  STATE(d) = CON_PLR_BG;
+}
+
+void show_short_description_main_menu(struct descriptor_data *d)
+{
+      if (GET_PC_DESCRIPTOR_1(d->character) > 0 && GET_PC_ADJECTIVE_1(d->character) > 0)
+      {
+        send_to_char(d->character, "\r\n");
+        send_to_char(d->character, "You have already chosen your description.  To change it you'll need to request a description reset from a staff member.\r\n");
+        send_to_char(d->character, "\r\n");
+      }
+      else
+      {
+        send_to_char(d->character, "\r\n");
+        send_to_char(d->character, "SET CHARACTER SHORT DESCRIPTION: PRESS ENTER\r\n");
+        send_to_char(d->character, "\r\n");
+        STATE(d) = CON_GEN_DESCS_INTRO;
+      }
+}
+
+void show_character_background_archtype_menu(struct descriptor_data *d)
+{
+
+  int i = 0;
+
+  if (GET_BACKGROUND(d->character) > 0)
+  {
+    write_to_output(d, "You have already chosen a background archtype. You can reset it by respeccing.\r\n");
+    return;
+  }
+
+  write_to_output(d, "In addition to a background story, a character can also have a background archytype.\r\n");
+  write_to_output(d, "Though this has a mechanical benefit in the way of improved skills and new abilities or\r\n");
+  write_to_output(d, "benefits, you should choose something that fits your character concept.\r\n");
+  write_to_output(d, "\r\n");
+
+  for (i = 1; i < NUM_BACKGROUNDS; i++)
+  {
+    write_to_output(d, "%s\r\n", background_list[backgrounds_listed_alphabetically[i]].name);
+  }
+
+  write_to_output(d, "\r\n");
+  write_to_output(d, "quit\r\n");
+
+  write_to_output(d, "\r\n");
+  write_to_output(d, "Enter the name of the background you would like: ");
+
+  STATE(d) = CON_BACKGROUND_ARCHTYPE;
+  
 }

@@ -687,6 +687,7 @@
 #define AFFECT_GLORYS_CALL 1279
 #define SPELL_AFFECT_CREEPING_DOOM_BITE 1280
 #define ABILITY_ENTERTAIN_INSPIRATION 1281
+#define MOB_ABILITY_CORRUPTION 1282
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -1376,39 +1377,13 @@
 #define ABILITY_CRAFT_TRAPMAKING 42
 #define ABILITY_CRAFT_POISONMAKING 43
 #define ABILITY_CRAFT_METALWORKING 44
+#define ABILITY_CRAFT_FISHING 45
+#define ABILITY_CRAFT_COOKING 46
+#define ABILITY_CRAFT_BREWING 47
 
-#define END_CRAFT_ABILITIES 44
+#define END_CRAFT_ABILITIES 47
+#define NUM_ABILITIES 47
 /* End Crafting Abilities */
-
-/* Start Knowledge Abilities */
-#define START_KNOWLEDGE_ABILITIES 45
-
-#define ABILITY_KNOWLEDGE_ARCANA 45
-#define ABILITY_KNOWLEDGE_ENGINEERING 46
-#define ABILITY_KNOWLEDGE_DUNGEONEERING 47
-#define ABILITY_KNOWLEDGE_GEOGRAPHY 48
-#define ABILITY_KNOWLEDGE_HISTORY 49
-#define ABILITY_KNOWLEDGE_LOCAL 50
-#define ABILITY_KNOWLEDGE_NATURE 51
-#define ABILITY_KNOWLEDGE_NOBILITY 52
-#define ABILITY_KNOWLEDGE_RELIGION 53
-#define ABILITY_KNOWLEDGE_PLANES 54
-
-#define END_KNOWLEDGE_ABILITIES 54
-
-/* The abilities below have 'subabilities', basically
- * the skill is broken down into many many sub skills
- * each of which can be chosen for a train. Not yet
- * Implemented. */
-/*
-#define ABILITY_CRAFT                   29
-#define ABILITY_KNOWLEDGE               30
-#define ABILITY_PROFESSION              32
-#define ABILITY_SPEAK_LANGUAGE          33
-*/
-
-#define NUM_ABILITIES 55 /* Number of defined abilities */
-/*	MAX_ABILITIES = 200 */
 /*-------------------------------------------------------------------------*/
 
 // ******** DAM_ *********

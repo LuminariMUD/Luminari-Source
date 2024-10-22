@@ -1129,8 +1129,9 @@
 #define MOB_BLOCK_GOOD 92
 #define MOB_GENIEKIND 93
 #define MOB_C_DRAGON 94
+#define MOB_RETAINER 95
 /**********************/
-#define NUM_MOB_FLAGS 95
+#define NUM_MOB_FLAGS 96
 /**********************/
 /**********************/
 
@@ -1223,6 +1224,9 @@
 #define MOB_PALADIN_MOUNT_SMALL 91
 #define MOB_EPIC_PALADIN_MOUNT 79
 #define MOB_EPIC_PALADIN_MOUNT_SMALL 92
+#define MOB_EPIC_BLACKGUARD_MOUNT 20803
+#define MOB_BLACKGUARD_MOUNT 20804
+#define MOB_ADV_BLACKGUARD_MOUNT 20805
 #define MAX_MERCS 3
 /***  end misc defines ****/
 /**********************/
@@ -1302,9 +1306,12 @@
 #define PRF_AUTO_STORE 70             // will automatically store consumables upon acquisition
 #define PRF_AUTO_GROUP 71
 #define PRF_CONTAIN_AOE 72
+#define PRF_NON_ROLEPLAYER 73
+#define PRF_POST_COMBAT_BRIEF 74
+#define PRF_AUTOBLAST 75
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 73
+#define NUM_PRF_FLAGS 76
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -1549,7 +1556,27 @@
 
 #define CON_SETPREFS 61
 
-#define NUM_CON_STATES 62
+#define CON_CHAR_RP_MENU 62
+#define CON_BACKGROUND_ARCHTYPE 63
+#define CON_BACKGROUND_ARCHTYPE_CONFIRM 64
+#define CON_CHARACTER_GOALS_IDEAS 65
+#define CON_CHARACTER_GOALS_ENTER 66
+#define CON_CHARACTER_PERSONALITY_IDEAS 67
+#define CON_CHARACTER_PERSONALITY_ENTER 68
+#define CON_CHARACTER_IDEALS_IDEAS 69
+#define CON_CHARACTER_IDEALS_ENTER 70
+#define CON_CHARACTER_BONDS_IDEAS 71
+#define CON_CHARACTER_BONDS_ENTER 72
+#define CON_CHARACTER_FLAWS_IDEAS 73
+#define CON_CHARACTER_FLAWS_ENTER 74
+#define CON_CHARACTER_AGE_SELECT 75
+#define CON_CHARACTER_FACTION_SELECT 76
+#define CON_CHARACTER_HOMETOWN_SELECT 77
+#define CON_CHARACTER_DEITY_SELECT 78
+#define CON_CHARACTER_DEITY_CONFIRM 79
+#define CON_CHAR_RP_DECIDE 80
+
+#define NUM_CON_STATES 81
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
@@ -2762,12 +2789,16 @@
 #define FEAT_BG_SAILOR 1120
 #define FEAT_BG_SOLDIER 1121
 #define FEAT_BG_URCHIN 1122
+#define FEAT_IMPROVED_CRUELTIES 1123
+#define FEAT_ADVANCED_CRUELTIES 1124
+#define FEAT_MASTER_CRUELTIES 1125
+#define FEAT_EPIC_CRUELTIES 1126
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1123
+#define FEAT_LAST_FEAT 1127
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1124
+#define NUM_FEATS 1128
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3973,6 +4004,11 @@
 #define MAX_COMPLETED_QUESTS 1024 /**< Maximum number of completed quests allowed */
 #define MAX_ANGER 100             /**< Maximum mob anger/frustration as percentage */
 #define PLR_BG_LENGTH MAX_STRING_LENGTH /**< Max length for PC background story */
+#define PLR_GOALS_LENGTH MAX_STRING_LENGTH
+#define PLR_PERSONALITY_LENGTH MAX_STRING_LENGTH
+#define PLR_IDEALS_LENGTH MAX_STRING_LENGTH
+#define PLR_BONDS_LENGTH MAX_STRING_LENGTH
+#define PLR_FLAWS_LENGTH MAX_STRING_LENGTH
 
 /* this is the value we are sending to act when we want it condensed (condensed combat toggle) -zusuk */
 #define ACT_CONDENSE_VALUE -1234
@@ -4385,6 +4421,11 @@ struct char_player_data
     char *eidolon_detaildescription;
     bool weaponSpellProc;
     char *imm_title;                 // custom title for staff members
+    char *goals;                     // character role play goals
+    char *personality;               // character role play personality
+    char *ideals;                     // character role play ideals
+    char *bonds;                     // character role play bonds
+    char *flaws;                     // character role play flaws
 };
 
 /** Character abilities. Different instances of this structure are used for
@@ -4443,7 +4484,7 @@ struct char_special_data_saved
     int act[PM_ARRAY_MAX];         /**< act flags for NPC's; player flag for PC's */
     int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
     int warding[MAX_WARDING];      // saved warding spells like stoneskin
-    ubyte spec_abil[MAX_CLASSES];  // spec abilities (ex. lay on hands)
+    int spec_abil[MAX_CLASSES];  // spec abilities (ex. lay on hands)
 
     struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
 
@@ -4630,6 +4671,11 @@ struct char_special_data
 
     bool is_charmie;
     int sage_mob_vnum;
+
+    bool post_combat_messages;
+    int post_combat_exp;
+    int post_combat_gold;
+    int post_combat_account_exp;
 };
 
 /* old memorization struct */
@@ -4876,6 +4922,9 @@ struct player_special_data_saved
     int hometown;
 
     int forage_cooldown;
+    int retainer_cooldown;
+    int character_age;
+    bool character_age_saved;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -4963,6 +5012,7 @@ struct player_special_data
 
     char *forge_as_signature;
     int forge_check;
+    char *retainer_mail_recipient;
 };
 
 /** Special data used by NPCs, not PCs */

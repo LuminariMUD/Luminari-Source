@@ -36,6 +36,11 @@ static int count_pages(char *str, struct char_data *ch);
 static void playing_string_cleanup(struct descriptor_data *d, int action);
 static void exdesc_string_cleanup(struct descriptor_data *d, int action);
 static void bg_string_cleanup(struct descriptor_data *d, int action);
+static void goal_string_cleanup(struct descriptor_data *d, int action);
+static void personality_string_cleanup(struct descriptor_data *d, int action);
+static void ideals_string_cleanup(struct descriptor_data *d, int action);
+static void bonds_string_cleanup(struct descriptor_data *d, int action);
+static void flaws_string_cleanup(struct descriptor_data *d, int action);
 
 void new_mail_string_cleanup(struct descriptor_data *d, int action);
 
@@ -232,6 +237,11 @@ void string_add(struct descriptor_data *d, char *str)
     case CON_IBTEDIT:
     case CON_NEWMAIL:
     case CON_PLR_BG:
+    case CON_CHARACTER_GOALS_ENTER:
+    case CON_CHARACTER_PERSONALITY_ENTER:
+    case CON_CHARACTER_IDEALS_ENTER:
+    case CON_CHARACTER_BONDS_ENTER:
+    case CON_CHARACTER_FLAWS_ENTER:
       free(*d->str);
       *d->str = d->backstr;
       d->backstr = NULL;
@@ -274,6 +284,11 @@ void string_add(struct descriptor_data *d, char *str)
         {CON_TRIGEDIT, trigedit_string_cleanup},
         {CON_PLR_DESC, exdesc_string_cleanup},
         {CON_PLR_BG, bg_string_cleanup},
+        {CON_CHARACTER_GOALS_ENTER, goal_string_cleanup},
+        {CON_CHARACTER_PERSONALITY_ENTER, personality_string_cleanup},
+        {CON_CHARACTER_IDEALS_ENTER, ideals_string_cleanup},
+        {CON_CHARACTER_BONDS_ENTER, bonds_string_cleanup},
+        {CON_CHARACTER_FLAWS_ENTER, flaws_string_cleanup},
         {CON_PLAYING, playing_string_cleanup},
         {CON_HEDIT, hedit_string_cleanup},
         {CON_QEDIT, qedit_string_cleanup},
@@ -410,8 +425,8 @@ static void exdesc_string_cleanup(struct descriptor_data *d, int action)
   if (action == STRINGADD_ABORT)
     write_to_output(d, "Description aborted.\r\n");
 
-  write_to_output(d, "%s", CONFIG_MENU);
-  STATE(d) = CON_MENU;
+  show_character_rp_menu(d);
+  STATE(d) = CON_CHAR_RP_MENU;
 }
 
 static void bg_string_cleanup(struct descriptor_data *d, int action)
@@ -419,8 +434,53 @@ static void bg_string_cleanup(struct descriptor_data *d, int action)
   if (action == STRINGADD_ABORT)
     write_to_output(d, "Background aborted.\r\n");
 
-  write_to_output(d, "%s", CONFIG_MENU);
-  STATE(d) = CON_MENU;
+  show_character_rp_menu(d);
+  STATE(d) = CON_CHAR_RP_MENU;
+}
+
+static void goal_string_cleanup(struct descriptor_data *d, int action)
+{
+  if (action == STRINGADD_ABORT)
+    write_to_output(d, "Goals editing aborted.\r\n");
+
+  show_character_rp_menu(d);
+  STATE(d) = CON_CHAR_RP_MENU;
+}
+
+static void personality_string_cleanup(struct descriptor_data *d, int action)
+{
+  if (action == STRINGADD_ABORT)
+    write_to_output(d, "Personality editing aborted.\r\n");
+
+  show_character_rp_menu(d);
+  STATE(d) = CON_CHAR_RP_MENU;
+}
+
+static void ideals_string_cleanup(struct descriptor_data *d, int action)
+{
+  if (action == STRINGADD_ABORT)
+    write_to_output(d, "Ideals editing aborted.\r\n");
+
+  show_character_rp_menu(d);
+  STATE(d) = CON_CHAR_RP_MENU;
+}
+
+static void bonds_string_cleanup(struct descriptor_data *d, int action)
+{
+  if (action == STRINGADD_ABORT)
+    write_to_output(d, "Bonds editing aborted.\r\n");
+
+  show_character_rp_menu(d);
+  STATE(d) = CON_CHAR_RP_MENU;
+}
+
+static void flaws_string_cleanup(struct descriptor_data *d, int action)
+{
+  if (action == STRINGADD_ABORT)
+    write_to_output(d, "Flaws editing aborted.\r\n");
+
+  show_character_rp_menu(d);
+  STATE(d) = CON_CHAR_RP_MENU;
 }
 
 /* Modification of character skills. */

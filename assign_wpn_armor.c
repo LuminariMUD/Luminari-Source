@@ -1133,7 +1133,7 @@ void load_weapons(void)
             MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
             "Similar in appearance to a trident, a ranseur has a single spear at its tip, f lanked by a pair of short, curving blades.");
   setweapon(WEAPON_TYPE_SCYTHE, "scythe", 2, 4, 0, 4, WEAPON_FLAG_MARTIAL, 18,
-            DAMAGE_TYPE_SLASHING | DAMAGE_TYPE_PIERCING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
+            DAMAGE_TYPE_SLASHING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
             MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE,
             "This weapon consists of a long wooden shaft with protruding handles and a sharp curved blade set at a right angle. Derived from a farm tool used to mow down crops, a scythe requires two hands to use, and is unwieldy but capable of inflicting grievous wounds. Its connotations as a symbol of death make it an intimidating weapon.");
   setweapon(WEAPON_TYPE_LONG_BOW, "long bow", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 75, DAMAGE_TYPE_PIERCING, 3, 100, WEAPON_FAMILY_BOW, SIZE_MEDIUM,
