@@ -469,13 +469,19 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
 
   if (cvict && IS_UNDEAD(cvict))
   {
+    if (!is_player_grouped(caster, cvict))
+    {
+      switch (spellnum)
+      {
+        case SPELL_CURE_LIGHT: spellnum = SPELL_CAUSE_LIGHT_WOUNDS; break;
+        case SPELL_CURE_MODERATE: spellnum = SPELL_CAUSE_MODERATE_WOUNDS; break;
+        case SPELL_CURE_SERIOUS: spellnum = SPELL_CAUSE_SERIOUS_WOUNDS; break;
+        case SPELL_CURE_CRITIC: spellnum = SPELL_CAUSE_CRITICAL_WOUNDS; break;
+        case SPELL_HEAL: spellnum = SPELL_HARM; break;
+      }
+    }
     switch (spellnum)
     {
-      case SPELL_CURE_LIGHT: spellnum = SPELL_CAUSE_LIGHT_WOUNDS; break;
-      case SPELL_CURE_MODERATE: spellnum = SPELL_CAUSE_MODERATE_WOUNDS; break;
-      case SPELL_CURE_SERIOUS: spellnum = SPELL_CAUSE_SERIOUS_WOUNDS; break;
-      case SPELL_CURE_CRITIC: spellnum = SPELL_CAUSE_CRITICAL_WOUNDS; break;
-      case SPELL_HEAL: spellnum = SPELL_HARM; break;
       case SPELL_CAUSE_LIGHT_WOUNDS: spellnum = SPELL_CURE_LIGHT; break;
       case SPELL_CAUSE_MODERATE_WOUNDS: spellnum = SPELL_CURE_MODERATE; break;
       case SPELL_CAUSE_SERIOUS_WOUNDS: spellnum = SPELL_CURE_SERIOUS; break;
@@ -4583,10 +4589,10 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, 7, FALSE);
   spellabilo(WARLOCK_DARK_FORESIGHT, "dark foresight", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
-        NULL, 1, 1, NOSCHOOL, 9, FALSE);
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+        "You no longer possess dark foresight.", 1, 1, NOSCHOOL, 9, FALSE);
   spellabilo(WARLOCK_RETRIBUTIVE_INVISIBILITY, "retributive invisibility", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, 6, FALSE);
   spellabilo(WARLOCK_WORD_OF_CHANGING, "word of changing", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,
@@ -5139,6 +5145,9 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
          "The typical drow poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
   spello(POISON_TYPE_DROW_STRONG, "strong drow poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
          "The strong drow poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(MOB_ABILITY_CORRUPTION, "corrupting attack", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The corrupting affect fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
 
   spello(POISON_TYPE_WYVERN, "wyvern poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
          "The wyvern poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);

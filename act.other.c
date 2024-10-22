@@ -1770,27 +1770,44 @@ void perform_call(struct char_data *ch, int call_type, int level)
     break;
 
   case MOB_C_MOUNT:
-    /* for now just one selection for paladins, soon to be changed */
-    if (HAS_FEAT(ch, FEAT_EPIC_MOUNT))
+
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
     {
-      if (GET_SIZE(ch) < SIZE_MEDIUM)
-        GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT_SMALL;
+      /* for now just one selection for paladins, soon to be changed */
+      if (HAS_FEAT(ch, FEAT_EPIC_MOUNT))
+      {
+        if (GET_SIZE(ch) < SIZE_MEDIUM)
+          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT_SMALL;
+        else
+          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
+      }
       else
-        GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
+      {
+        if (GET_SIZE(ch) < SIZE_MEDIUM)
+          GET_MOUNT(ch) = MOB_PALADIN_MOUNT_SMALL;
+        else
+          GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
+      }
     }
-    else
+    else if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) > 0)
     {
-      if (GET_SIZE(ch) < SIZE_MEDIUM)
-        GET_MOUNT(ch) = MOB_PALADIN_MOUNT_SMALL;
+      if (HAS_FEAT(ch, FEAT_EPIC_MOUNT))
+      {
+        GET_MOUNT(ch) = MOB_EPIC_BLACKGUARD_MOUNT;
+      }
       else
-        GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
+      {
+        if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 12)
+          GET_MOUNT(ch) = MOB_ADV_BLACKGUARD_MOUNT;
+        else
+          GET_MOUNT(ch) = MOB_BLACKGUARD_MOUNT;
+      }
     }
 
     /* do they even have a valid selection yet? */
     if (GET_MOUNT(ch) <= 0)
     {
-      send_to_char(ch, "You have to select your companion via the 'study' "
-                       "command.\r\n");
+      send_to_char(ch, "You have to select your companion via the 'study' command.\r\n");
       return;
     }
 
@@ -1890,6 +1907,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
     break;
   case MOB_C_MOUNT:
     if (mob_num == MOB_EPIC_PALADIN_MOUNT || mob_num == MOB_EPIC_PALADIN_MOUNT_SMALL)
+      GET_LEVEL(mob) = MIN(27, level);
+    else if (mob_num == MOB_EPIC_BLACKGUARD_MOUNT || mob_num == MOB_ADV_BLACKGUARD_MOUNT || mob_num == MOB_BLACKGUARD_MOUNT)
       GET_LEVEL(mob) = MIN(27, level);
     else
       GET_LEVEL(mob) = MIN(20, level);
@@ -2037,6 +2056,9 @@ ACMD(do_call)
   else if (is_abbrev(argument, "mount"))
   {
     level = CLASS_LEVEL(ch, CLASS_PALADIN);
+
+    if (level == 0)
+      level = CLASS_LEVEL(ch, CLASS_BLACKGUARD);
 
     if (!HAS_FEAT(ch, FEAT_CALL_MOUNT))
     {
@@ -2551,6 +2573,7 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
   SUBRACE(ch) = 0;
   IS_MORPHED(ch) = 0;
   GET_DISGUISE_RACE(ch) = -1; // 0 is human
+  GET_BACKGROUND(ch) = 0;
 
   if (affected_by_spell(ch, SKILL_WILDSHAPE))
   {
@@ -4508,10 +4531,10 @@ int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct ob
   if (target_obj)
   {
     skill = (compute_ability(ch, lore_skill) + lore_bonus);
-    dc = GET_OBJ_LEVEL(target_obj) * 2;
+    dc = (int) (GET_OBJ_LEVEL(target_obj) * 1.5);
     send_to_char(ch, "Using '%s' skill with d20 roll of %d + %d ranks, for total of %d against dc %d.\r\n", 
                   ability_names[lore_skill], roll, skill, skill + roll, dc);
-    if (skill >= dc)
+    if ((skill + roll) >= dc)
       knowledge = TRUE;
 
     if (!knowledge)
@@ -4537,10 +4560,10 @@ int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct ob
     }
     lore_skill = get_knowledge_skill_from_creature_type(GET_RACE(target_ch));
     skill = (compute_ability(ch, lore_skill) + lore_bonus);
-    dc = GET_LEVEL(target_ch) * 2;
+    dc = (int) (GET_LEVEL(target_ch) * 1.5);
     send_to_char(ch, "Using '%s' skill with d20 roll of %d + %d ranks, for total of %d against dc %d.\r\n", 
                   ability_names[lore_skill], roll, skill, skill + roll, dc);
-    if (skill >= dc)
+    if ((skill + roll) >= dc)
       knowledge = TRUE;
     if (!knowledge)
     {
@@ -6406,31 +6429,35 @@ ACMD(do_split)
     }
 
     decrease_gold(ch, share * (num - 1));
+    ch->char_specials.post_combat_gold = share;
 
     /* Abusing signed/unsigned to make sizeof work. */
-    len = snprintf(buf, sizeof(buf), "%s splits %d coins; you receive %d.\r\n",
-                   GET_NAME(ch), amount, share);
+    len = snprintf(buf, sizeof(buf), "%s splits %d coins; you receive %d.\r\n", GET_NAME(ch), amount, share);
     if (rest && len < sizeof(buf))
     {
-      snprintf(buf + len, sizeof(buf) - len,
-               "%d coin%s %s not splitable, so %s keeps the money.\r\n", rest,
+      snprintf(buf + len, sizeof(buf) - len, "%d coin%s %s not splitable, so %s keeps the money.\r\n", rest,
                (rest == 1) ? "" : "s", (rest == 1) ? "was" : "were", GET_NAME(ch));
     }
 
     while ((k = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    {
       if (k != ch && IN_ROOM(ch) == IN_ROOM(k) && !IS_NPC(k))
       {
         increase_gold(k, share);
-        send_to_char(k, "%s", buf);
+        k->char_specials.post_combat_gold = share;
+        if (!k->char_specials.post_combat_messages)
+          send_to_char(k, "%s", buf);
       }
-    send_to_char(ch, "You split %d coins among %d members -- %d coins each.\r\n",
-                 amount, num, share);
+    }
+    if (!ch->char_specials.post_combat_messages)
+      send_to_char(ch, "You split %d coins among %d members -- %d coins each.\r\n", amount, num, share);
 
     if (rest)
     {
-      send_to_char(ch, "%d coin%s %s not splitable, so you keep the money.\r\n",
-                   rest, (rest == 1) ? "" : "s", (rest == 1) ? "was" : "were");
+      if (!ch->char_specials.post_combat_messages)
+        send_to_char(ch, "%d coin%s %s not splitable, so you keep the money.\r\n", rest, (rest == 1) ? "" : "s", (rest == 1) ? "was" : "were");
       increase_gold(ch, rest);
+      ch->char_specials.post_combat_gold += rest;
     }
   }
   else
@@ -7205,6 +7232,12 @@ ACMD(do_gen_tog)
       // 61
       {"Contain AoEs disabled.\r\n",
        "Contain AoEs enabled.\r\n"},
+      // 62
+      {"Post combat text (exp, gold, etc.) is no longer reduced.\r\n",
+       "Post combat text (exp, gold, etc.) is now reduced.\r\n"},
+      // 63
+      {"You will no longer automatically use eldritrch blast in place of normal attacks.\r\n"
+       "You will now automatically use eldritrch blast in place of normal attacks.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7275,6 +7308,9 @@ ACMD(do_gen_tog)
   case SCMD_AUTOSORT:
     result = PRF_TOG_CHK(ch, PRF_AUTO_SORT);
     break;
+  case SCMD_POST_COMBAT_BRIEF:
+    result = PRF_TOG_CHK(ch, PRF_POST_COMBAT_BRIEF);
+    break;
   case SCMD_AUTOGROUP:
     result = PRF_TOG_CHK(ch, PRF_AUTO_GROUP);
     break;
@@ -7283,6 +7319,10 @@ ACMD(do_gen_tog)
     break;
   case SCMD_AUTOSTORE:
     result = PRF_TOG_CHK(ch, PRF_AUTO_STORE);
+    break;
+  case SCMD_AUTO_BLAST:
+    result = PRF_TOG_CHK(ch, PRF_AUTOBLAST);
+    BLASTING(ch) = PRF_FLAGGED(ch, PRF_AUTOBLAST);
     break;
   case SCMD_NORAGE:
     result = PRF_TOG_CHK(ch, PRF_NO_RAGE);

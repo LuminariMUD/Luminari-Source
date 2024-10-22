@@ -23,6 +23,8 @@ extern const char *shape_to_room[MAX_PC_SUBRACES + 1];
 extern const char *shape_to_char[MAX_PC_SUBRACES + 1];
 extern const char *npc_race_menu;
 extern const char *bagnames[];
+extern const char *character_ages[];
+extern const int character_age_attributes[][6];
 extern const char * dragon_bond_types[];
 extern const int dragon_type_specab_types[];
 extern const char *npc_subrace_types[NUM_SUB_RACES + 1];
@@ -101,7 +103,7 @@ extern const char *weekdays[];
 extern const char *month_name[];
 extern const char *spell_schools[];
 extern const char *spell_schools_lower[];
-extern int spell_bonus[STAT_CAP + 1][NUM_CIRCLES + 1];
+extern int spell_bonus[][NUM_CIRCLES + 1];
 extern const struct str_app_type str_app[];
 extern const struct dex_skill_type dex_app_skill[];
 extern const struct dex_app_type dex_app[];
@@ -187,6 +189,10 @@ extern const char *cities[];
 extern const char *factions[];
 extern const char *apply_type_food_names[];
 extern const int apply_type_food_or_drink[];
+
+extern const char *character_rp_goal_objectives[];
+extern const char *character_rp_goal_reasons[];
+extern const char *character_rp_goal_complications[];
 
 /* NewCraft */
 extern const char *craft_flags[];

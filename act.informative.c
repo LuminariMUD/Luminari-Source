@@ -831,6 +831,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     else
       send_to_char(ch, "\ty%s\r\n", i->player.long_descr);
 
+    if (PRF_FLAGGED(i, PRF_NON_ROLEPLAYER))
+      act("...$e is a non-roleplayer.", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, SPELL_BANISHING_BLADE))
@@ -887,6 +889,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     send_to_char(ch, "%s", i->player.long_descr);
 
+    if (PRF_FLAGGED(i, PRF_NON_ROLEPLAYER))
+      act("...$e is a non-roleplayer.", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, SPELL_BANISHING_BLADE))
@@ -1044,10 +1048,12 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   /* CARRIER RETURN! */
   send_to_char(ch, "\r\n");
 
+  if (PRF_FLAGGED(i, PRF_NON_ROLEPLAYER))
+      act("...$e is a non-roleplayer.", FALSE, i, 0, ch, TO_VICT);
   if (AFF_FLAGGED(i, AFF_SANCTUARY))
     act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
-    if (affected_by_spell(i, SPELL_BANISHING_BLADE))
-      act("...a green blade of pure energy dances at $s side!", FALSE, i, 0, ch, TO_VICT);
+  if (affected_by_spell(i, SPELL_BANISHING_BLADE))
+    act("...a green blade of pure energy dances at $s side!", FALSE, i, 0, ch, TO_VICT);
   if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
       act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
   else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
@@ -2083,6 +2089,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Aura of Terror Immunity - Duration: %d seconds\r\n",  ch->char_specials.terror_cooldown * 6);
   if (GET_FORAGE_COOLDOWN(k) > 0)
     send_to_char(ch, "Forage - Duration: %d seconds\r\n", GET_FORAGE_COOLDOWN(k) * 6);
+  if (GET_RETAINER_COOLDOWN(k) > 0)
+    send_to_char(ch, "Call Retainer - Duration: %d seconds\r\n", GET_RETAINER_COOLDOWN(k) * 6);
 
   list_item_activate_ability_cooldowns(ch);
 
@@ -2197,6 +2205,8 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
         }
       }
     }
+    if (dr->max_damage > 0)
+     send_to_char(ch, " %d damage left", dr->max_damage);
     send_to_char(ch, "\r\n");
     dr = dr->next;
   }
@@ -3351,8 +3361,8 @@ ACMD(do_score)
   snprintf(dname, sizeof(dname), "%s", deity_list[GET_DEITY(ch)].name);
   send_to_char(ch, "\tcDeity: \tn%-20s ", CAP(dname));
   send_to_char(ch, "\tcAlignment : \tn%s (%d)\r\n", get_align_by_num(GET_ALIGNMENT(ch)), GET_ALIGNMENT(ch));
-  send_to_char(ch, "\tcAge  : \tn%-3d \tcyrs / \tn%2d \tcmths    \tcPlayed  : \tn%d days / %d hrs\r\n",
-               age(ch)->year, age(ch)->month, playing_time.day, playing_time.hours);
+  send_to_char(ch, "\tcAge  : \tn%-10s    \tcPlayed  : \tn%d days / %d hrs\r\n",
+               character_ages[GET_CH_AGE(ch)], playing_time.day, playing_time.hours);
   send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs \tcNum Items: \tn%d\tc/\tn%d \tn\r\n",
                size_names[GET_SIZE(ch)], IS_CARRYING_W(ch), CAN_CARRY_W(ch), IS_CARRYING_N(ch), CAN_CARRY_N(ch));
 
@@ -4335,6 +4345,8 @@ ACMD(do_who)
           send_to_char(ch, " (THIEF)");
         if (PLR_FLAGGED(tch, PLR_KILLER))
           send_to_char(ch, " (KILLER)");
+        if (PRF_FLAGGED(tch, PRF_NON_ROLEPLAYER))
+          send_to_char(ch, " (NoRP)");
         send_to_char(ch, "\r\n");
       }
     }
@@ -7361,6 +7373,18 @@ void list_item_activate_ability_cooldowns(struct char_data *ch)
       }
     }
   }
+}
+
+ACMD(do_roomvnum)
+{
+  if (IN_ROOM(ch) == NOWHERE)
+  {
+    send_to_char(ch, "Error. Please tell staff ERRVNUMROOM001\r\n");
+    return;
+  }
+
+  send_to_char(ch, "This room's vnum is %d.\r\n", world[IN_ROOM(ch)].number);
+  return;
 }
 
 #undef WPT_SIMPLE

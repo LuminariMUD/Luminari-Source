@@ -1062,7 +1062,10 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     {
       if (gain >= 1000 && GET_ACCEXP_DESC(ch) <= 99999999)
       {
-        send_to_char(ch, "You gain %d account experience points!\r\n", (gain / 1000));
+        if (!ch->char_specials.post_combat_messages)
+          send_to_char(ch, "You gain %d account experience points!\r\n", (gain / 1000));
+        else
+          ch->char_specials.post_combat_account_exp = gain / 1000;
         change_account_xp(ch, (gain / 1000));
       }
     }
@@ -1072,8 +1075,18 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     {
       if (gain >= 3000 && GET_ACCEXP_DESC(ch) <= 99999999)
       {
-        if (gain / 3000 >= 4) /*reduce spam*/
-          send_to_char(ch, "You gain %d account experience points!\r\n", (gain / 3000));
+        
+        if (!ch->char_specials.post_combat_messages)
+        {
+          if (gain / 3000 >= 4)
+          {
+            send_to_char(ch, "You gain %d account experience points!\r\n", (gain / 3000));
+          }
+        }
+        else
+        {
+          ch->char_specials.post_combat_account_exp = gain / 3000;
+        }
         change_account_xp(ch, (gain / 3000));
       }
     }
@@ -1591,6 +1604,15 @@ void update_player_misc(void)
       if (GET_FORAGE_COOLDOWN(ch) == 0)
       {
         send_to_char(ch, "You can now forage for food again.\r\n");
+      }
+    }
+
+    if (GET_RETAINER_COOLDOWN(ch) > 0)
+    {
+      GET_RETAINER_COOLDOWN(ch)--;
+      if (GET_RETAINER_COOLDOWN(ch) == 0)
+      {
+        send_to_char(ch, "You can now call your retainer again.\r\n");
       }
     }
 
@@ -2336,7 +2358,8 @@ void update_damage_and_effects_over_time(void)
       SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
 
     // This code handles ability score damage which can be healed with various 'restoration' spells
-    if (GET_STR(ch) <= 0 || GET_DEX(ch) <= 0 || GET_INT(ch) <= 0 || GET_WIS(ch) <= 0 || GET_CHA(ch) <= 0 || GET_CON(ch) <= 0)
+    if (GET_STR(ch) <= 0 || GET_DEX(ch) <= 0 || GET_INT(ch) <= 0 || GET_WIS(ch) <= 0 || 
+        GET_CHA(ch) <= 0 || GET_CON(ch) <= 0)
     {
       struct affected_type af;
       new_affect(&af);

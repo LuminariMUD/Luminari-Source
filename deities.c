@@ -1571,9 +1571,8 @@ void assign_deities(void) {
 #elif defined(CAMPAIGN_DL)
   add_deity(DEITY_NONE, "None", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED,
             DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, WEAPON_TYPE_UNARMED, DEITY_PANTHEON_ALL, "The Faithless",
-	"Those who choose to worship no deity at all are known as the faithless.  It is their\r\n"
-	"destiny to become part of the living wall in Kelemvor's domain when they die, to\r\n"
-	"ultimately have their very soul devoured and destroyed forever.\r\n");
+	"Those who choose to worship no deity at all are known as the faithless. "
+      "Their souls belong to Chemosh, Lord of Death, when they die.\r\n");
 
   add_deity(DEITY_PALADINE, "Paladine", ETHOS_LAWFUL, ALIGNMENT_GOOD, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
             DOMAIN_UNDEFINED, WEAPON_TYPE_LONG_SWORD, DEITY_PANTHEON_ALL, "Good Dragons, Guardians, Rulers",

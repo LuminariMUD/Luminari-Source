@@ -160,6 +160,7 @@ bool affected_by_aura_of_faith(struct char_data *ch);
 bool affected_by_aura_of_depravity(struct char_data *ch);
 bool affected_by_aura_of_righteousness(struct char_data *ch);
 bool is_fear_spell(int spellnum);
+bool is_grouped_with_soldier(struct char_data *ch);
 bool is_crafting_skill(int skillnum);
 bool is_selectable_region(int region);
 int get_knowledge_skill_from_creature_type(int race_type);
@@ -213,6 +214,8 @@ void set_alignment(struct char_data *ch, int alignment);
 bool is_spellcasting_class(int class_name);
 int get_spellcasting_class(struct char_data *ch);
 bool valid_pet_name(char *name);
+bool is_retainer_in_room(struct char_data *ch);
+struct char_data *get_retainer_from_room(struct char_data *ch);
 int count_spellcasting_classes(struct char_data *ch);
 void auto_sort_obj(struct char_data *ch, struct obj_data *obj);
 void auto_store_obj(struct char_data *ch, struct obj_data *obj);
@@ -235,6 +238,7 @@ void basic_mud_vlog(const char *format, va_list args);
 int touch(const char *path);
 void mudlog(int type, int level, int file, const char *str, ...) __attribute__((format(printf, 4, 5)));
 int rand_number(int from, int to);
+bool is_in_water(struct char_data *ch);
 float rand_float(float from, float to);
 bool do_not_list_spell(int spellnum);
 void set_x_y_coords(int start, int *x, int *y, int *room);
@@ -257,6 +261,9 @@ int get_line(FILE *fl, char *buf);
 int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name);
 const char *get_wearoff(int abilnum);
 time_t mud_time_to_secs(struct time_info_data *now);
+int get_smite_evil_level(struct char_data *ch);
+bool has_dr_affect(struct char_data *ch, int spell);
+int get_smite_good_level(struct char_data *ch);
 struct time_info_data *age(struct char_data *ch);
 int num_pc_in_room(struct room_data *room);
 void core_dump_real(const char *who, int line);
@@ -751,6 +758,9 @@ void char_from_furniture(struct char_data *ch);
 #define IS_PAL_MOUNT(ch) (MOB_FLAGGED(ch, MOB_C_MOUNT) && \
                           AFF_FLAGGED(ch, AFF_CHARM) &&   \
                           ch->master)
+#define IS_BKG_MOUNT(ch) (MOB_FLAGGED(ch, MOB_C_MOUNT) && \
+                          AFF_FLAGGED(ch, AFF_CHARM) &&   \
+                          ch->master)
 #define IS_COMPANION(ch) (MOB_FLAGGED(ch, MOB_C_ANIMAL) && \
                           AFF_FLAGGED(ch, AFF_CHARM) &&    \
                           ch->master)
@@ -945,6 +955,8 @@ void char_from_furniture(struct char_data *ch);
 
 /** Sex of ch. */
 #define GET_SEX(ch) ((ch)->player.sex)
+
+#define GET_CH_AGE(ch) (ch->player_specials->saved.character_age)
 
 /* absolute stat cap */
 #define STAT_CAP 50
@@ -2215,6 +2227,7 @@ int ACTUAL_BAB(struct char_data *ch);
 
 /** Defines if ch is outdoors or not. */
 #define OUTDOORS(ch) (is_outdoors(ch))
+#define IN_WATER(ch)   (is_in_water(ch))
 #define IN_WILDERNESS(ch)   (is_in_wilderness(ch))
 #define ROOM_OUTDOORS(room) (is_room_outdoors(room))
 #define OUTSIDE(ch) (is_outdoors(ch))
@@ -2639,8 +2652,11 @@ bool has_reach(struct char_data *ch);
 #define GET_HOMETOWN(ch)    (ch->player_specials->saved.hometown)
 
 #define GET_FORAGE_COOLDOWN(ch) (ch->player_specials->saved.forage_cooldown)
+#define GET_RETAINER_COOLDOWN(ch) (ch->player_specials->saved.retainer_cooldown)
 
 #define GET_SAGE_MOB_VNUM(ch)   (ch->char_specials.sage_mob_vnum)
+
+#define GET_RETAINER_MAIL_RECIPIENT(ch) (ch->player_specials->retainer_mail_recipient)
 
 #endif /* _UTILS_H_ */
 

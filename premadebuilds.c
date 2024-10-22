@@ -508,6 +508,16 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
       break;
   }
 
+  if (level == 1)
+  {
+    GET_REAL_STR(ch) += character_age_attributes[GET_CH_AGE(ch)][0];
+    GET_REAL_CON(ch) += character_age_attributes[GET_CH_AGE(ch)][2];
+    GET_REAL_INT(ch) += character_age_attributes[GET_CH_AGE(ch)][3];
+    GET_REAL_WIS(ch) += character_age_attributes[GET_CH_AGE(ch)][4];
+    GET_REAL_DEX(ch) += character_age_attributes[GET_CH_AGE(ch)][1];
+    GET_REAL_CHA(ch) += character_age_attributes[GET_CH_AGE(ch)][5];
+  }
+
   if (IS_HUMAN(ch) && level == 1)
       add_human_premade_stats(ch, chclass);
 }

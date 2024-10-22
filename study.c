@@ -1514,13 +1514,13 @@ static void set_stats_menu(struct descriptor_data *d)
                   "to reset your characters stats to try a different configuration.\r\n"
                   "Change made to base stat:   1  2  3  4  5  6  7  8   9   10\r\n"
                   "Point cost              :   1  2  3  4  5  6  8  10  13  16\r\n"
-                  "                 Base | Race Mod | Final\r\n"
-                  "%s 0%s) Strength:      %2d%s | %6s%s%d | %d\r\n"
-                  "%s 1%s) Dexterity:     %2d%s | %6s%s%d | %d\r\n"
-                  "%s 2%s) Constitution:  %2d%s | %6s%s%d | %d\r\n"
-                  "%s 3%s) Intelligence:  %2d%s | %6s%s%d | %d\r\n"
-                  "%s 4%s) Wisdom:        %2d%s | %6s%s%d | %d\r\n"
-                  "%s 5%s) Charisma:      %2d%s | %6s%s%d | %d\r\n"
+                  "                 Base | Race Mod | Age Mod |Final\r\n"
+                  "%s 0%s) Strength:      %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
+                  "%s 1%s) Dexterity:     %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
+                  "%s 2%s) Constitution:  %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
+                  "%s 3%s) Intelligence:  %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
+                  "%s 4%s) Wisdom:        %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
+                  "%s 5%s) Charisma:      %2d%s | %6s%s%d | %5s%s%d | %d\r\n"
                   "%sPoints Left:         %d%s\r\n"
                   "\r\n"
                   "%s H%s) Help - Info on What Each Ability Score Does.\r\n"
@@ -1538,17 +1538,35 @@ static void set_stats_menu(struct descriptor_data *d)
                   mgn, nrm,
                   /* empty line */
                   grn, nrm, LEVELUP(d->character)->str, nrm, "", get_race_stat(GET_RACE(d->character), R_STR_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_STR_MOD), get_race_stat(GET_RACE(d->character), R_STR_MOD) + LEVELUP(d->character)->str,
+                  get_race_stat(GET_RACE(d->character), R_STR_MOD), 
+                  "", character_age_attributes[GET_CH_AGE(d->character)][0] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][0],
+                  get_race_stat(GET_RACE(d->character), R_STR_MOD) + LEVELUP(d->character)->str +  character_age_attributes[GET_CH_AGE(d->character)][0],
+
                   grn, nrm, LEVELUP(d->character)->dex, nrm, "", get_race_stat(GET_RACE(d->character), R_DEX_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_DEX_MOD), get_race_stat(GET_RACE(d->character), R_DEX_MOD) + LEVELUP(d->character)->dex,
+                  get_race_stat(GET_RACE(d->character), R_DEX_MOD), 
+                  "", character_age_attributes[GET_CH_AGE(d->character)][1] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][1],
+                  get_race_stat(GET_RACE(d->character), R_DEX_MOD) + LEVELUP(d->character)->dex + character_age_attributes[GET_CH_AGE(d->character)][1],
+
                   grn, nrm, LEVELUP(d->character)->con, nrm, "", get_race_stat(GET_RACE(d->character), R_CON_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_CON_MOD), get_race_stat(GET_RACE(d->character), R_CON_MOD) + LEVELUP(d->character)->con,
+                  get_race_stat(GET_RACE(d->character), R_CON_MOD),
+                  "", character_age_attributes[GET_CH_AGE(d->character)][2] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][2],
+                  get_race_stat(GET_RACE(d->character), R_CON_MOD) + LEVELUP(d->character)->con + character_age_attributes[GET_CH_AGE(d->character)][2],
+
                   grn, nrm, LEVELUP(d->character)->inte, nrm, "", get_race_stat(GET_RACE(d->character), R_INTEL_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_INTEL_MOD), get_race_stat(GET_RACE(d->character), R_INTEL_MOD) + LEVELUP(d->character)->inte,
+                  get_race_stat(GET_RACE(d->character), R_INTEL_MOD), 
+                  "", character_age_attributes[GET_CH_AGE(d->character)][3] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][3],
+                  get_race_stat(GET_RACE(d->character), R_INTEL_MOD) + LEVELUP(d->character)->inte + character_age_attributes[GET_CH_AGE(d->character)][3],
+
                   grn, nrm, LEVELUP(d->character)->wis, nrm, "", get_race_stat(GET_RACE(d->character), R_WIS_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_WIS_MOD), get_race_stat(GET_RACE(d->character), R_WIS_MOD) + LEVELUP(d->character)->wis,
+                  get_race_stat(GET_RACE(d->character), R_WIS_MOD), 
+                  "", character_age_attributes[GET_CH_AGE(d->character)][4] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][4],
+                  get_race_stat(GET_RACE(d->character), R_WIS_MOD) + LEVELUP(d->character)->wis + character_age_attributes[GET_CH_AGE(d->character)][4],
+
                   grn, nrm, LEVELUP(d->character)->cha, nrm, "", get_race_stat(GET_RACE(d->character), R_CHA_MOD) >= 0 ? "+" : "",
-                  get_race_stat(GET_RACE(d->character), R_CHA_MOD), get_race_stat(GET_RACE(d->character), R_CHA_MOD) + LEVELUP(d->character)->cha,
+                  get_race_stat(GET_RACE(d->character), R_CHA_MOD), 
+                  "", character_age_attributes[GET_CH_AGE(d->character)][5] >= 0 ? "+" : "", character_age_attributes[GET_CH_AGE(d->character)][5],
+                  get_race_stat(GET_RACE(d->character), R_CHA_MOD) + LEVELUP(d->character)->cha + character_age_attributes[GET_CH_AGE(d->character)][5],
+
                   grn, stat_points_left(d->character), nrm,
                   /* empty line */
                   grn, nrm,
@@ -2370,7 +2388,8 @@ static void main_skills_disp_menu(struct descriptor_data *d)
   for (i = 0; i < NUM_SKILLS_IN_GAME; i++)
     {
       send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
-                 ability_names[skills_alphabetic[i]], GET_ABILITY(ch, skills_alphabetic[i]), compute_ability(ch, skills_alphabetic[i]),
+                 ability_names[skills_alphabetic[i]], GET_ABILITY(ch, skills_alphabetic[i]) + LEVELUP(ch)->skills[skills_alphabetic[i]], 
+                 compute_ability(ch, skills_alphabetic[i]),
                  cross_names[modify_class_ability(ch, skills_alphabetic[i], GET_CLASS(ch))]);
     }
 
@@ -3115,6 +3134,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       // let's update trains
       if (GET_LEVELUP_BOOST_STATS(ch, 3) > 0)
         intel_bonus += ((GET_REAL_INT(ch) + 1) % 2) ? 0 : 1;
+      
       GET_LEVELUP_SKILL_POINTS(ch) += intel_bonus;
       display_main_menu(d);
       return;
@@ -5115,14 +5135,15 @@ void study_parse(struct descriptor_data *d, char *arg)
         break;
       }
       // We're applying racial bonuses now instead of in init_start_char in class.c
+      // same with age modifiers
       if (!HAS_SET_STATS_STUDY(ch))
       {
-        LEVELUP(d->character)->con += get_race_stat(GET_RACE(ch), R_CON_MOD);
-        LEVELUP(d->character)->str += get_race_stat(GET_RACE(ch), R_STR_MOD);
-        LEVELUP(d->character)->dex += get_race_stat(GET_RACE(ch), R_DEX_MOD);
-        LEVELUP(d->character)->inte += get_race_stat(GET_RACE(ch), R_INTEL_MOD);
-        LEVELUP(d->character)->wis += get_race_stat(GET_RACE(ch), R_WIS_MOD);
-        LEVELUP(d->character)->cha += get_race_stat(GET_RACE(ch), R_CHA_MOD);
+        LEVELUP(d->character)->con += get_race_stat(GET_RACE(ch), R_CON_MOD) + character_age_attributes[GET_CH_AGE(ch)][2];
+        LEVELUP(d->character)->str += get_race_stat(GET_RACE(ch), R_STR_MOD) + character_age_attributes[GET_CH_AGE(ch)][0];
+        LEVELUP(d->character)->dex += get_race_stat(GET_RACE(ch), R_DEX_MOD) + character_age_attributes[GET_CH_AGE(ch)][1];
+        LEVELUP(d->character)->inte += get_race_stat(GET_RACE(ch), R_INTEL_MOD) + character_age_attributes[GET_CH_AGE(ch)][3];
+        LEVELUP(d->character)->wis += get_race_stat(GET_RACE(ch), R_WIS_MOD) + character_age_attributes[GET_CH_AGE(ch)][4];
+        LEVELUP(d->character)->cha += get_race_stat(GET_RACE(ch), R_CHA_MOD) + character_age_attributes[GET_CH_AGE(ch)][5];
         HAS_SET_STATS_STUDY(ch) = TRUE;
       }
       // let's update trains

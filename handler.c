@@ -1746,7 +1746,7 @@ int invalid_align(struct char_data *ch, struct obj_data *obj)
     return TRUE;
   if (OBJ_FLAGGED(obj, ITEM_ANTI_GOOD) && IS_GOOD(ch))
     return TRUE;
-  if (OBJ_FLAGGED(obj, ITEM_ANTI_NEUTRAL) && IS_NEUTRAL_ANY(ch))
+  if (OBJ_FLAGGED(obj, ITEM_ANTI_NEUTRAL) && IS_NEUTRAL(ch))
     return TRUE;
   if (OBJ_FLAGGED(obj, ITEM_ANTI_LAWFUL) && IS_LAWFUL(ch))
     return TRUE;

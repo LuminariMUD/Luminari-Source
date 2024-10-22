@@ -55,6 +55,14 @@ void show_account_menu(struct descriptor_data *d);
 void remove_char_from_account(struct char_data *ch, struct account_data *account);
 char *get_char_account_name(char *name);
 
+
+void show_character_rp_menu(struct descriptor_data *d);
+void show_short_description_main_menu(struct descriptor_data *d);
+void show_character_long_description_menu(struct descriptor_data *d);
+void show_homeland_region_main_menu(struct descriptor_data *d);
+void show_character_background_story_menu(struct descriptor_data *d);
+void show_character_background_archtype_menu(struct descriptor_data *d);
+
 ACMD_DECL(do_account);
 
 /* ACMDs available through interpreter.c */
@@ -156,6 +164,14 @@ struct alias_data
 #define SCMD_DIALOGUE_DIPLOMACY  1
 #define SCMD_DIALOGUE_INTIMIDATE 2
 #define SCMD_DIALOGUE_BLUFF      3
+
+#define SCMD_RP_DESC        1
+#define SCMD_RP_PERSONALITY 2
+#define SCMD_RP_GOALS       3
+#define SCMD_RP_IDEALS      4
+#define SCMD_RP_BONDS       5
+#define SCMD_RP_FLAWS       6
+#define SCMD_RP_BG_STORY    7
 
 /* Necessary for CMD_IS macro.  Borland needs the structure defined first
  * so it has been moved down here. */

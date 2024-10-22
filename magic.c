@@ -104,7 +104,7 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   if (affected_by_spell(vict, SKILL_INNER_FIRE))
     resist = MAX(resist, 25);
 
-  if (affected_by_spell(vict, SPELL_HOLY_AURA) && IS_EVIL(ch))
+  if (affected_by_spell(vict, SPELL_HOLY_AURA) && ch && IS_EVIL(ch))
     resist = MAX(resist, 25);
 
   if (IS_AFFECTED(vict, AFF_SPELL_RESISTANT))
@@ -274,7 +274,7 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
     saves += modifier;
   }
 
-  return MIN(99, MAX(saves, 0));
+  return MIN(99, saves);
 }
 
 // TRUE = resisted
@@ -296,11 +296,12 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   int challenge = 10, // 10 is base DC
       diceroll = d20(vict),
       stat_bonus = 0,
-      savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
+      savethrow = 0;
   struct affected_type *af = NULL;
 
   if (has_teamwork_feat(vict, FEAT_DUCK_AND_COVER) && type == SAVING_REFL)
     diceroll = MAX(diceroll, d20(vict));
+
   savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
 
   if (type == SAVING_REFL && (get_speed(vict, false) - 10) > get_speed(ch, false))
@@ -536,6 +537,8 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
       }
     }
   }
+
+  savethrow = MAX(1, savethrow);
 
   if (diceroll != 1 && (savethrow >= challenge || diceroll == 20))
   {
@@ -1070,6 +1073,14 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = SAVING_FORT;
     element = DAM_POISON;
     num_dice = 3;
+    size_dice = 6;
+    bonus = 0;
+    break;
+
+  case MOB_ABILITY_CORRUPTION:
+    save = SAVING_FORT;
+    element = DAM_NEGATIVE;
+    num_dice = 1;
     size_dice = 6;
     bonus = 0;
     break;
@@ -3287,6 +3298,24 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     // misc
 
+    case MOB_ABILITY_CORRUPTION:
+      if (mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_DEX;
+      af[0].duration = 1;
+      af[0].modifier = -2;
+      af[1].location = APPLY_CON;
+      af[1].duration = 1;
+      af[1].modifier = -2;
+      af[1].location = APPLY_DEX;
+      af[1].duration = 1;
+      af[1].modifier = -2;
+      to_vict = "You feel corruption tearing apart your very essence.";
+      to_room = "$n looks seriously ill!";
+      break;
+
     case SPELL_MINOR_RAPID_BUFF:
       if (GET_LEVEL(ch) > 10)
       {
@@ -4758,10 +4787,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   case WARLOCK_SEE_THE_UNSEEN:
 
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
     af[0].duration = 3600;
     SET_BIT_AR(af[0].bitvector, AFF_DARKVISION);
+    af[1].location = APPLY_SPECIAL;
+    af[1].modifier = 1;
     af[1].duration = 3600;
-    SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
+    SET_BIT_AR(af[1].bitvector, AFF_DETECT_INVIS);
     to_vict = "You can now see into the shadows and things not meant to be seen.";
     break;
   
@@ -4796,6 +4829,26 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (!victim)
       victim = ch;
 
+    if (affected_by_spell(victim, SPELL_STONESKIN) ||
+        affected_by_spell(victim, SPELL_IRONSKIN) || 
+        affected_by_spell(victim, SPELL_EPIC_WARDING))
+    {
+      send_to_char(ch, "They already have a better ward active.\r\n");
+      return;
+    }
+
+    if (has_dr_affect(victim, WARLOCK_DARK_FORESIGHT) || affected_by_spell(victim, WARLOCK_DARK_FORESIGHT))
+    {
+      send_to_char(ch, "The target already has this affect.\r\n");
+      return;
+    }
+
+    af[0].location = APPLY_DR;
+    af[0].duration = 100;
+    af[0].modifier = 10;
+
+    GET_STONESKIN(victim) = MIN(150, 10 * GET_WARLOCK_LEVEL(ch));
+
     CREATE(new_dr, struct damage_reduction_type, 1);
 
     new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
@@ -4813,7 +4866,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     new_dr->feat = FEAT_UNDEFINED;
     new_dr->next = GET_DR(victim);
     GET_DR(victim) = new_dr;
-    to_room = "Your senses become enhanced with visions of the future.";
+    to_vict = "Your senses become enhanced with visions of the future.";
     break;
 
   case WARLOCK_RETRIBUTIVE_INVISIBILITY:
@@ -7024,6 +7077,15 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     {
       affect_from_char(victim, SPELL_STONESKIN);
     }
+    if (affected_by_spell(victim, WARLOCK_DARK_FORESIGHT))
+    {
+      affect_from_char(victim, WARLOCK_DARK_FORESIGHT);
+    }
+    if (affected_by_spell(victim, SPELL_EPIC_WARDING))
+    {
+      send_to_char(ch, "They already have a better ward active.\r\n");
+      return;
+    }
 
     SET_BIT_AR(af[0].bitvector, AFF_WARDED);
     af[0].duration = 600;
@@ -7970,7 +8032,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_STONESKIN:
     if (affected_by_spell(victim, SPELL_EPIC_WARDING) ||
-        affected_by_spell(victim, SPELL_IRONSKIN))
+        affected_by_spell(victim, SPELL_IRONSKIN) ||
+        affected_by_spell(victim, WARLOCK_DARK_FORESIGHT))
     {
       send_to_char(ch, "A magical ward is already in effect on target.\r\n");
       return;
@@ -8030,14 +8093,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   case RACIAL_ABILITY_CRYSTAL_BODY:
 
-    /* Remove the dr. */
-    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+  /* Remove the dr. */
+  for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+  {
+    if (dr->spell == spellnum)
     {
-      if (dr->spell == spellnum)
-      {
-        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
-      }
+      REMOVE_FROM_LIST(dr, GET_DR(ch), next);
     }
+  }
 
     af[0].location = APPLY_DR;
     af[0].modifier = 3;
@@ -8711,7 +8774,7 @@ static void perform_mag_groups(int level, struct char_data *ch,
     mag_affects(level, ch, tch, obj, SPELL_DAZE_MONSTER, savetype, casttype, 0);
     break;
   case ABILITY_CHANNEL_POSITIVE_ENERGY:
-    if (!IS_UNDEAD(tch))
+    if (!IS_UNDEAD(tch) && !is_player_grouped(ch, tch))
       mag_points(compute_channel_energy_level(ch), ch, tch, obj, ABILITY_CHANNEL_POSITIVE_ENERGY, savetype, casttype);
     break;
   case ABILITY_CHANNEL_NEGATIVE_ENERGY:
@@ -9516,7 +9579,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 
     if (aoeOK(ch, tch, spellnum))
     {
-      if (spellnum == ABILITY_CHANNEL_POSITIVE_ENERGY && !IS_UNDEAD(tch))
+      if (spellnum == ABILITY_CHANNEL_POSITIVE_ENERGY && (!IS_UNDEAD(tch) || is_player_grouped(ch, tch)))
         continue;
       else if (spellnum == ABILITY_CHANNEL_NEGATIVE_ENERGY && IS_UNDEAD(tch))
         continue;

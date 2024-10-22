@@ -24,6 +24,7 @@
 #include "deities.h"
 #include "act.h"
 #include "evolutions.h"
+#include "backgrounds.h"
 
 /* puts -'s instead of spaces */
 void space_to_minus(char *str)
@@ -310,6 +311,16 @@ ACMDU(do_help)
     if (is_abbrev(home_arg, regions[i]))
     {
       display_region_info(ch, i);
+      free(raw_argument);
+      return;
+    }
+  }
+
+  for (i = 1; i < NUM_BACKGROUNDS; i++)
+  {
+    if (is_abbrev(home_arg, background_list[i].name))
+    {
+      show_background_help(ch, i);
       free(raw_argument);
       return;
     }

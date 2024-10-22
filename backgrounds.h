@@ -20,10 +20,12 @@
 #define NUM_BACKGROUNDS         17
 
 #define FORAGE_FOOD_ITEM_VNUM   13820
+#define RETAINER_MOB_VNUM       13824
 
 void assign_backgrounds(void);
 void sort_backgrounds(void);
 bool has_acolyte_in_group(struct char_data *ch);
+void show_background_help(struct char_data *ch, int background);
 ACMD_DECL(do_swindle);
 ACMD_DECL(do_entertain);
 ACMD_DECL(do_forgeas);
@@ -31,6 +33,8 @@ ACMD_DECL(do_relay);
 ACMD_DECL(do_tribute);
 ACMD_DECL(do_forage);
 ACMD_DECL(do_extort);
+ACMD_DECL(do_retainer);
+ACMD_DECL(do_shortcut);
 
 struct background_data
 {
@@ -42,3 +46,4 @@ struct background_data
 
 extern int background_sort_info[NUM_BACKGROUNDS];
 extern struct background_data background_list[NUM_BACKGROUNDS];
+extern int backgrounds_listed_alphabetically[NUM_BACKGROUNDS];

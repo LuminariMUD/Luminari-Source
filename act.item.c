@@ -2101,12 +2101,16 @@ static void get_check_money(struct char_data *ch, struct obj_data *obj)
 
   extract_obj(obj);
 
+  ch->char_specials.post_combat_gold = value;
   increase_gold(ch, value);
 
-  if (value == 1)
-    send_to_char(ch, "There was 1 coin.\r\n");
-  else
-    send_to_char(ch, "There were %d coins.\r\n", value);
+  if (!ch->char_specials.post_combat_messages)
+  {
+    if (value == 1)
+      send_to_char(ch, "There was 1 coin.\r\n");
+    else
+      send_to_char(ch, "There were %d coins.\r\n", value);
+  }
 }
 
 static void perform_get_from_container(struct char_data *ch, struct obj_data *obj,
@@ -2115,6 +2119,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
   bool is_corpse = FALSE, is_clan = FALSE;
   int ct = 0;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *tch;
 
   if ((GET_OBJ_BOUND_ID(cont) != NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
   {
@@ -2163,8 +2168,15 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
         }
       }
 
-      act("You get $p from $P.", FALSE, ch, obj, cont, TO_CHAR);
-      act("$n gets $p from $P.", TRUE, ch, obj, cont, TO_ROOM);
+      if (!ch->char_specials.post_combat_messages || GET_OBJ_TYPE(obj) != ITEM_MONEY)
+        act("You get $p from $P.", FALSE, ch, obj, cont, TO_CHAR);
+      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+      {
+        if (tch == ch) continue;
+        if (tch->char_specials.post_combat_messages && GET_OBJ_TYPE(obj) == ITEM_MONEY) continue;
+        snprintf(buf, sizeof(buf), "$n gets $p from %s.", cont->short_description);
+        act(buf, TRUE, ch, obj, tch, TO_VICT);
+      }
       get_check_money(ch, obj);
       if (cont->carried_by != ch)
       {
@@ -2233,8 +2245,11 @@ void get_from_container(struct char_data *ch, struct obj_data *cont,
     if (!found)
     {
       if (obj_dotmode == FIND_ALL)
-        act("$p seems to be empty.", FALSE, ch, cont, 0, TO_CHAR);
-      else
+      {
+        if (!ch->char_specials.post_combat_messages)
+          act("$p seems to be empty.", FALSE, ch, cont, 0, TO_CHAR);
+      }
+      else if (!ch->char_specials.post_combat_messages)
       {
         char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -2316,7 +2331,7 @@ static void get_from_room(struct char_data *ch, char *arg, int howmany)
     {
       if (dotmode == FIND_ALL)
         send_to_char(ch, "There doesn't seem to be anything here.\r\n");
-      else
+      else if (!ch->char_specials.post_combat_messages)
         send_to_char(ch, "You don't see any %ss here.\r\n", arg);
     }
   }
@@ -4465,6 +4480,7 @@ ACMD(do_sac)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *j, *jj, *next_thing2;
+  struct char_data *tch;
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -4498,36 +4514,57 @@ ACMD(do_sac)
     return;
   }
 
-  act("$n sacrifices $p.", FALSE, ch, j, 0, TO_ROOM);
+  if (IN_ROOM(ch) != NOWHERE)
+  {
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (tch == ch) continue;
+      if (tch->char_specials.post_combat_messages) continue;
+      act("$n sacrifices $p.", FALSE, ch, j, tch, TO_VICT);
+    }
+  }
 
   switch (rand_number(0, 5))
   {
   case 0:
-    send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive one gold coin for your humility.\r\n", GET_OBJ_SHORT(j));
+    if (!ch->char_specials.post_combat_messages)
+      send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive one gold coin for your humility.\r\n", GET_OBJ_SHORT(j));
+    ch->char_specials.post_combat_gold += 1;
     increase_gold(ch, 1);
     break;
   case 1:
-    send_to_char(ch, "You sacrifice %s to the gods.\r\nThe gods ignore your sacrifice.\r\n", GET_OBJ_SHORT(j));
+    if (!ch->char_specials.post_combat_messages)
+      send_to_char(ch, "You sacrifice %s to the gods.\r\nThe gods ignore your sacrifice.\r\n", GET_OBJ_SHORT(j));
     break;
   case 2:
-    send_to_char(ch, "You sacrifice %s to the gods.\r\nThe gods give you %d experience points.\r\n", GET_OBJ_SHORT(j), (GET_OBJ_COST(j)));
+    if (!ch->char_specials.post_combat_messages)
+      send_to_char(ch, "You sacrifice %s to the gods.\r\nThe gods give you %d experience points.\r\n", GET_OBJ_SHORT(j), (GET_OBJ_COST(j)));
+    ch->char_specials.post_combat_exp += GET_OBJ_COST(j);
     GET_EXP(ch) += (GET_OBJ_COST(j));
     break;
   case 3:
-    send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive %d experience points.\r\n", GET_OBJ_SHORT(j), GET_OBJ_COST(j) / 2);
+    if (!ch->char_specials.post_combat_messages)
+      send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive %d experience points.\r\n", GET_OBJ_SHORT(j), GET_OBJ_COST(j) / 2);
+    ch->char_specials.post_combat_exp += GET_OBJ_COST(j) / 2;
     GET_EXP(ch) += GET_OBJ_COST(j) / 2;
     break;
   case 4:
-    send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins.\r\n", GET_OBJ_COST(j) / 4);
+    if (!ch->char_specials.post_combat_messages)
+      send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins.\r\n", GET_OBJ_COST(j) / 4);
+    ch->char_specials.post_combat_exp += GET_OBJ_COST(j) / 4;
     increase_gold(ch, GET_OBJ_COST(j) / 4);
     break;
   case 5:
-    send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins\r\n", (GET_OBJ_COST(j) / 2));
+    if (!ch->char_specials.post_combat_messages)
+      send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins\r\n", (GET_OBJ_COST(j) / 2));
     increase_gold(ch, (GET_OBJ_COST(j) / 2));
+    ch->char_specials.post_combat_gold += GET_OBJ_COST(j) / 2;
     break;
   default: /* should not get here */
-    send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive one gold coin for your humility.\r\n", GET_OBJ_SHORT(j));
+    if (!ch->char_specials.post_combat_messages)
+      send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive one gold coin for your humility.\r\n", GET_OBJ_SHORT(j));
     increase_gold(ch, 1);
+    ch->char_specials.post_combat_gold += 1;
     break;
   }
   for (jj = j->contains; jj; jj = next_thing2)
@@ -5816,8 +5853,7 @@ ACMD(do_store)
           found = true;
           continue;
         }
-        STORED_POTIONS(ch, GET_OBJ_VAL(obj, i))
-        ++;
+        STORED_POTIONS(ch, GET_OBJ_VAL(obj, i))++;
         send_to_char(ch, "You have stored a potion of '%s'.\r\n", spell_info[GET_OBJ_VAL(obj, i)].name);
         GET_OBJ_VAL(obj, i) = 0;
       }

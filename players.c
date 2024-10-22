@@ -381,17 +381,24 @@ int load_char(const char *name, struct char_data *ch)
     for (i = 0; i < NUM_SFEATS; i++)
       ch->char_specials.saved.school_feats[i] = 0;
 
+    ch->char_specials.post_combat_exp = ch->char_specials.post_combat_gold = ch->char_specials.post_combat_account_exp = 0;
+
+    BLASTING(ch) = FALSE;
+
     for (i = 0; i < NUM_CLASSES; i++)
     {
       GET_CLASS_FEATS(ch, i) = 0;
       GET_EPIC_CLASS_FEATS(ch, i) = 0;
     }
+    GET_HOMETOWN(ch) = 0;
     GET_FEAT_POINTS(ch) = 0;
     GET_EPIC_FEAT_POINTS(ch) = 0;
     destroy_spell_prep_queue(ch);
     destroy_innate_magic_queue(ch);
     destroy_spell_collection(ch);
     destroy_known_spells(ch);
+    GET_CH_AGE(ch) = 0;
+    ch->player_specials->saved.character_age_saved = false;
     GET_REAL_SIZE(ch) = PFDEF_SIZE;
     IS_MORPHED(ch) = PFDEF_MORPHED;
     GET_SEX(ch) = PFDEF_SEX;
@@ -453,6 +460,8 @@ int load_char(const char *name, struct char_data *ch)
     GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) = 0;
     GET_DRAGON_BOND_TYPE(ch) = 0;
     GET_DRAGON_RIDER_DRAGON_TYPE(ch) = 0;
+    GET_FORAGE_COOLDOWN(ch) = 0;
+    GET_RETAINER_COOLDOWN(ch) = 0;
 
     for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     { /* loop through all the character's quest slots */
@@ -461,7 +470,11 @@ int load_char(const char *name, struct char_data *ch)
     }
 
     GET_IMM_TITLE(ch) = NULL;
-
+    ch->player.goals = NULL;
+    ch->player.personality = NULL;
+    ch->player.ideals = NULL;
+    ch->player.bonds = NULL;
+    ch->player.flaws = NULL;
     GET_HP_REGEN(ch) = 0;
     GET_MV_REGEN(ch) = 0;
     GET_PSP_REGEN(ch) = 0;
@@ -694,6 +707,10 @@ int load_char(const char *name, struct char_data *ch)
           load_affects(fl, ch);
         else if (!strcmp(tag, "Alin"))
           GET_ALIGNMENT(ch) = atoi(line);
+        else if (!strcmp(tag, "Age "))
+          GET_CH_AGE(ch) = atoi(line);
+        else if (!strcmp(tag, "AgeS"))
+          (ch)->player_specials->saved.character_age_saved = atoi(line);
         else if (!strcmp(tag, "Alis"))
           read_aliases_ascii(fl, ch, atoi(line));
         break;
@@ -703,8 +720,12 @@ int load_char(const char *name, struct char_data *ch)
           GET_BAD_PWS(ch) = atoi(line);
         else if (!strcmp(tag, "BGnd"))
           GET_BACKGROUND(ch) = atoi(line);
+        else if (!strcmp(tag, "Bond"))
+          ch->player.bonds = fread_string(fl, buf2);
         else if (!strcmp(tag, "Bag1"))
           GET_BAG_NAME(ch, 1) = strdup(line);
+        else if (!strcmp(tag, "Blst"))
+          BLASTING(ch) = atoi(line);
         else if (!strcmp(tag, "Bag2"))
           GET_BAG_NAME(ch, 2) = strdup(line);
         else if (!strcmp(tag, "Bag3"))
@@ -885,8 +906,12 @@ int load_char(const char *name, struct char_data *ch)
           GET_FACTION_STANDING(ch, FACTION_ADVENTURERS) = atol(line);
         else if (!strcmp(tag, "Feat"))
           load_feats(fl, ch);
+        else if (!strcmp(tag, "FrgC"))
+          GET_FORAGE_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "FLGT"))
           FLEETING_GLANCE_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "Flaw"))
+          ch->player.flaws = fread_string(fl, buf2);
         else if (!strcmp(tag, "FdBn"))
           ch->player_specials->saved.fiendish_boons = atoi(line);
         else if (!strcmp(tag, "FLGU"))
@@ -922,6 +947,8 @@ int load_char(const char *name, struct char_data *ch)
           GRASP_OF_THE_DEAD_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "GODU"))
           GRASP_OF_THE_DEAD_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "Goal"))
+          ch->player.goals = fread_string(fl, buf2);
         break;
 
       case 'H':
@@ -935,6 +962,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_HOLY_WEAPON_TYPE(ch) = atoi(line);
         else if (!strcmp(tag, "Home"))
           GET_REGION(ch) = atoi(line);
+        else if (!strcmp(tag, "HomT"))
+          GET_HOMETOWN(ch) = atoi(line);
         else if (!strcmp(tag, "Host"))
         {
           if (GET_HOST(ch))
@@ -952,6 +981,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'I':
         if (!strcmp(tag, "Id  "))
           GET_IDNUM(ch) = atol(line);
+        else if (!strcmp(tag, "Idel"))
+          ch->player.ideals = fread_string(fl, buf2);
         else if (!strcmp(tag, "InMa"))
           load_innate_magic_queue(fl, ch);
         else if (!strcmp(tag, "Int "))
@@ -1111,6 +1142,8 @@ int load_char(const char *name, struct char_data *ch)
           PIXIE_DUST_USES(ch) = atoi(line);
         else if (!strcmp(tag, "PxDT"))
           PIXIE_DUST_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "Pers"))
+          ch->player.personality = fread_string(fl, buf2);
         break;
 
       case 'Q':
@@ -1185,6 +1218,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_1ST_RESTRICTED_SCHOOL(ch) = atoi(line);
         else if (!strcmp(tag, "RSc2"))
           GET_2ND_RESTRICTED_SCHOOL(ch) = atoi(line);
+        else if (!strcmp(tag, "RetC"))
+          GET_RETAINER_COOLDOWN(ch) = atoi(line);
         break;
 
       case 'S':
@@ -1501,6 +1536,38 @@ void save_char(struct char_data *ch, int mode)
     strip_cr(buf);
     fprintf(fl, "BGrd:\n%s~\n", buf);
   }
+  if (ch->player.goals && *ch->player.goals)
+  {
+    strlcpy(buf, ch->player.goals, sizeof(buf));
+    strip_cr(buf);
+    fprintf(fl, "Goal:\n%s~\n", buf);
+  }
+  if (ch->player.personality && *ch->player.personality)
+  {
+    strlcpy(buf, ch->player.personality, sizeof(buf));
+    strip_cr(buf);
+    fprintf(fl, "Pers:\n%s~\n", buf);
+  }
+  if (ch->player.ideals && *ch->player.ideals)
+  {
+    strlcpy(buf, ch->player.ideals, sizeof(buf));
+    strip_cr(buf);
+    fprintf(fl, "Idel:\n%s~\n", buf);
+  }
+  if (ch->player.bonds && *ch->player.bonds)
+  {
+    strlcpy(buf, ch->player.bonds, sizeof(buf));
+    strip_cr(buf);
+    fprintf(fl, "Bond:\n%s~\n", buf);
+  }
+  if (ch->player.flaws && *ch->player.flaws)
+  {
+    strlcpy(buf, ch->player.flaws, sizeof(buf));
+    strip_cr(buf);
+    fprintf(fl, "Flaw:\n%s~\n", buf);
+  }
+  if (BLASTING(ch))
+    fprintf(fl, "Blst: 1\n");
   if (POOFIN(ch))
     fprintf(fl, "PfIn: %s\n", POOFIN(ch));
   if (POOFOUT(ch))
@@ -1553,6 +1620,7 @@ void save_char(struct char_data *ch, int mode)
 
   fprintf(fl, "Spek: %d\n", SPEAKING(ch));
   fprintf(fl, "Home: %d\n", GET_REGION(ch));
+  fprintf(fl, "HomT: %d\n", GET_HOMETOWN(ch));
   fprintf(fl, "DAd1: %d\n", GET_PC_ADJECTIVE_1(ch));
   fprintf(fl, "DAd2: %d\n", GET_PC_ADJECTIVE_2(ch));
   fprintf(fl, "DDs1: %d\n", GET_PC_DESCRIPTOR_1(ch));
@@ -1573,6 +1641,10 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Wate: %d\n", GET_WEIGHT(ch));
   if (GET_ALIGNMENT(ch) != PFDEF_ALIGNMENT)
     fprintf(fl, "Alin: %d\n", GET_ALIGNMENT(ch));
+  if (GET_CH_AGE(ch) != 0)
+    fprintf(fl, "Age : %d\n", GET_CH_AGE(ch));
+  if ((ch)->player_specials->saved.character_age_saved != 0)
+    fprintf(fl, "AgeS: %d\n", (ch)->player_specials->saved.character_age_saved);
   if (GET_TEMPLATE(ch) != PFDEF_TEMPLATE)
     fprintf(fl, "Tmpl: %d\n", GET_TEMPLATE(ch));
   // Faction mission system
@@ -1778,13 +1850,16 @@ void save_char(struct char_data *ch, int mode)
   if (IS_MORPHED(ch) != PFDEF_MORPHED)
     fprintf(fl, "Mrph: %d\n", IS_MORPHED(ch));
   if (MERGE_FORMS_TIMER(ch) != 0)
-    fprintf(fl, "EidC: %d\n", MERGE_FORMS_TIMER(ch));
+    fprintf(fl, "MFrm: %d\n", MERGE_FORMS_TIMER(ch));
   if (GET_EIDOLON_BASE_FORM(ch) != 0)
     fprintf(fl, "EidB: %d\n", GET_EIDOLON_BASE_FORM(ch));
   if (CALL_EIDOLON_COOLDOWN(ch) != 0)
-    fprintf(fl, "MFrm: %d\n", CALL_EIDOLON_COOLDOWN(ch));
+    fprintf(fl, "EidC: %d\n", CALL_EIDOLON_COOLDOWN(ch));
+  if (GET_FORAGE_COOLDOWN(ch) != 0)
+    fprintf(fl, "FrgC: %d\n", GET_FORAGE_COOLDOWN(ch));
+  if (GET_RETAINER_COOLDOWN(ch) != 0)
+    fprintf(fl, "RetC: %d\n", GET_RETAINER_COOLDOWN(ch));
   fprintf(fl, "God : %d\n", GET_DEITY(ch));
-
   if (GET_AUTOCQUEST_VNUM(ch) != PFDEF_AUTOCQUEST_VNUM)
     fprintf(fl, "Cvnm: %d\n", GET_AUTOCQUEST_VNUM(ch));
   if (GET_AUTOCQUEST_MAKENUM(ch) != PFDEF_AUTOCQUEST_MAKENUM)

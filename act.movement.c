@@ -2510,7 +2510,7 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
 
 int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int door)
 {
-  int skill_lvl;
+  int skill_lvl, roll;
   int lock_dc = 10;
   // struct obj_data *tools = NULL;
 
@@ -2558,10 +2558,7 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
     return (0);
   }
 
-  if (FIGHTING(ch))
-    skill_lvl += d20(ch);
-  else
-    skill_lvl += MAX(20, d20(ch)); // take 20
+  roll = d20(ch);
 
   /* thief tools */
   /*
@@ -2589,14 +2586,15 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
   {
     send_to_char(ch, "It resists your attempts to pick it.\r\n");
   }
-  else if (lock_dc <= skill_lvl)
+  else if (lock_dc <= (skill_lvl + roll))
   {
-    send_to_char(ch, "Success! [%d dc vs. %d skill]\r\n", lock_dc, skill_lvl);
+    send_to_char(ch, "Success! [%d dc vs. %d skill + %d roll]\r\n", lock_dc, skill_lvl, roll);
     USE_MOVE_ACTION(ch);
     return (1);
   }
 
   /* failed */
+  send_to_char(ch, "Failure! [%d dc vs. %d skill + %d roll]\r\n", lock_dc, skill_lvl, roll);
   USE_MOVE_ACTION(ch);
   return (0);
 }
@@ -2694,6 +2692,7 @@ ACMD(do_gen_door)
       do_doorcmd(ch, obj, door, subcmd);
       ch->char_specials.autodoor_message = true;
       extract_key(ch, keynum);
+      return;
     }
   }
   return;

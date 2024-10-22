@@ -268,6 +268,7 @@ ACMD_DECL(do_slayer);
 ACMD_DECL(do_true_judgement);
 ACMD_DECL(do_flightlist);
 ACMD_DECL(do_kapak_saliva);
+ACMD_DECL(do_roomvnum);
 
 int max_judgements_active(struct char_data *ch);
 int num_judgements_active(struct char_data *ch);
@@ -485,7 +486,7 @@ ACMD_DECL(do_fire);
 ACMD_DECL(do_aura_of_vengeance);
 ACMD_DECL(do_aura_of_justice);
 ACMD_DECL(do_reload);
-ACMD_DECL(do_autoblast);
+ACMD_DECL(do_assistblast);
 ACMD_DECL(do_autofire);
 ACMD_DECL(do_collect);
 ACMD_DECL(do_hitall);
@@ -753,6 +754,8 @@ ACMD_DECL(do_buildwalk);
 #define SCMD_AUTOSTORE 59
 #define SCMD_AUTOGROUP 60
 #define SCMD_CONTAIN_AOES 61
+#define SCMD_POST_COMBAT_BRIEF 62
+#define SCMD_AUTO_BLAST 63
 
 /* do_quit */
 ACMD_DECL(do_quit);
