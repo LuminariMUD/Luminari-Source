@@ -371,6 +371,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"encounterinfo", "encounterinfo", POS_DEAD, do_encounterinfo, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"enlarge", "enlarge", POS_FIGHTING, do_enlarge, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"entertain", "entertain", POS_STANDING, do_entertain, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"epicfeats", "epicfeats", POS_SLEEPING, do_epicfeats, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"equipment", "eq", POS_SLEEPING, do_equipment, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"eqstats", "eqst", POS_SLEEPING, do_not_here, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"exits", "ex", POS_RECLINING, do_exits, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -533,6 +534,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"land", "land", POS_FIGHTING, do_land, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"landmarks", "landmarks", POS_DEAD, do_landmarks, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"last", "last", POS_DEAD, do_last, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"lastroom", "lastroom", POS_DEAD, do_lastroom, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_layonhands},
     {"loot", "loot", POS_STANDING, do_loot, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"leave", "lea", POS_STANDING, do_leave, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -4024,9 +4026,23 @@ switch (load_result)
     }
     else
     {
-      write_to_output(d, "\r\nYOU ARE ABOUT TO DELETE THIS CHARACTER PERMANENTLY.\r\n"
-                         "ARE YOU ABSOLUTELY SURE?\r\n\r\n"
-                         "Please type \"yes\" to confirm: ");
+      write_to_output(d, "\r\n"
+                         "\r\n"
+                         "\tY"
+                         "Did you know? If you are looking to change your character build, you don't need to self-delete.\r\n"
+                         "You can use the 'respec' command to reset everything except your name, race and gender. You will not lose\r\n"
+                         "experience, gold, equipment or anything else. See HELP RESPEC in the game for more information.\r\n"
+                         "\tn"
+                         "\r\n"
+                         "\r\n"
+                         "\tR"
+                         "YOU ARE ABOUT TO DELETE THIS CHARACTER PERMANENTLY.\r\n"
+                         "ARE YOU ABSOLUTELY SURE?\r\n"
+                         "\r\n"
+                         "\tn"
+                         "Please type \"yes\" to confirm or \"no\" to cancel: "
+                         "\tn"
+                      );
       STATE(d) = CON_DELCNF2;
     }
     break;

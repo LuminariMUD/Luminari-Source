@@ -553,6 +553,7 @@ int load_char(const char *name, struct char_data *ch)
       GET_BUFF(ch, i, 1) = 0;
     }
     GET_BUFF_TIMER(ch) = 0;
+    GET_LAST_ROOM(ch) = 0;
     GET_CURRENT_BUFF_SLOT(ch) = 0;
     IS_BUFFING(ch) = false;
     for (i = 0; i < MAX_PERFORMANCE_VARS; i++)
@@ -1028,6 +1029,8 @@ int load_char(const char *name, struct char_data *ch)
           LAUGHING_TOUCH_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "LTCU"))
           LAUGHING_TOUCH_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "LstR"))
+          GET_LAST_ROOM(ch) = atoi(line);
         break;
 
       case 'M':
@@ -1610,6 +1613,7 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "Brth: %ld\n", (long)ch->player.time.birth);
   fprintf(fl, "Plyd: %d\n", ch->player.time.played);
   fprintf(fl, "Last: %ld\n", (long)ch->player.time.logon);
+  fprintf(fl, "LstR: %d\n", GET_LAST_ROOM(ch));
 
   if (GET_LAST_MOTD(ch) != PFDEF_LASTMOTD)
     fprintf(fl, "Lmot: %d\n", (int)GET_LAST_MOTD(ch));

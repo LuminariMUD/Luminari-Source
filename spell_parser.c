@@ -5328,6 +5328,7 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   skillo(SKILL_EPIC_WILDSHAPE, "epic wildshape", PASSIVE_SKILL);
 
   /* songs */
+  skillo(SKILL_DEAFENING_SONG, "deafening song", ACTIVE_SKILL);                   // 587
   skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL);       // 588
   skillo(SKILL_SONG_OF_FEAR, "song of fear", ACTIVE_SKILL);                       // 589
   skillo(SKILL_SONG_OF_ROOTING, "song of rooting", ACTIVE_SKILL);                 // 590

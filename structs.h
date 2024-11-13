@@ -788,9 +788,27 @@
 #define RACE_EFREETI 128
 #define RACE_RAT 129
 #define RACE_BAT 130
+#define RACE_GARGANTUAN_FIRE_ELEMENTAL 131
+#define RACE_GARGANTUAN_EARTH_ELEMENTAL 132
+#define RACE_GARGANTUAN_AIR_ELEMENTAL 133
+#define RACE_GARGANTUAN_WATER_ELEMENTAL 134
+#define RACE_COLOSSAL_FIRE_ELEMENTAL 135
+#define RACE_COLOSSAL_EARTH_ELEMENTAL 136
+#define RACE_COLOSSAL_AIR_ELEMENTAL 137
+#define RACE_COLOSSAL_WATER_ELEMENTAL 138
+#define RACE_DIRE_ELEPHANT 139
+#define RACE_DIRE_CONSTRICTOR_SNAKE 140
+#define RACE_DIRE_VIPER 141
+#define RACE_DIRE_CROCODILE 142
+#define RACE_GREATER_TREANT 143
+#define RACE_ELDER_TREANT 144
+#define RACE_ROC 145
+#define RACE_DIRE_ROC 146
+#define RACE_PURPLE_WORM 147
+#define RACE_CRIMSON_WORM 148
 /**/
 /* Total Number of available (in-game) PC Races*/
-#define NUM_EXTENDED_RACES 131
+#define NUM_EXTENDED_RACES 149
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these
@@ -2793,12 +2811,20 @@
 #define FEAT_ADVANCED_CRUELTIES 1124
 #define FEAT_MASTER_CRUELTIES 1125
 #define FEAT_EPIC_CRUELTIES 1126
+#define FEAT_DEATH_OF_ENEMIES 1127
+#define FEAT_BULWARK_OF_DEFENSE 1228
+#define FEAT_CHAOTIC_RAGE 1229
+#define FEAT_GARGANTUAN_WILD_SHAPE 1230
+#define FEAT_COLOSSAL_WILD_SHAPE 1231
+#define FEAT_DEAFENING_SONG 1232
+#define FEAT_OVERWHELMING_CRITICAL 1233
+#define FEAT_DEVASTATING_CRITICAL 1234
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1127
+#define FEAT_LAST_FEAT 1235
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1128
+#define NUM_FEATS 1236
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -2900,8 +2926,10 @@
 #define CFEAT_WEAPON_SUPREMACY 15
 #define CFEAT_TRIPLE_CRIT 16
 #define CFEAT_EPIC_WEAPON_SPECIALIZATION 17
+#define CFEAT_OVERWHELMING_CRITICAL 18
+#define CFEAT_DEVASTATING_CRITICAL 19
 /**/
-#define NUM_CFEATS 18
+#define NUM_CFEATS 20
 /**/
 
 /* Spell feats that apply to a specific school of spells */
@@ -3318,9 +3346,22 @@
 #define APPLY_INITIATIVE 58
 #define APPLY_ELDRITCH_SHAPE 59
 #define APPLY_ELDRITCH_ESSENCE 60
+#define APPLY_SPELL_CIRCLE_1 61
+#define APPLY_SPELL_CIRCLE_2 62
+#define APPLY_SPELL_CIRCLE_3 63
+#define APPLY_SPELL_CIRCLE_4 64
+#define APPLY_SPELL_CIRCLE_5 65
+#define APPLY_SPELL_CIRCLE_6 66
+#define APPLY_SPELL_CIRCLE_7 67
+#define APPLY_SPELL_CIRCLE_8 68
+#define APPLY_SPELL_CIRCLE_9 69
+#define APPLY_SPELL_POTENCY 70
+#define APPLY_SPELL_DC 71
+#define APPLY_SPELL_DURATION 72
+
 
 /** Total number of applies */
-#define NUM_APPLIES 61
+#define NUM_APPLIES 73
 
 // maximum number of spells/powers to buff
 #define MAX_BUFFS 40
@@ -4925,6 +4966,8 @@ struct player_special_data_saved
     int retainer_cooldown;
     int character_age;
     bool character_age_saved;
+
+    room_vnum last_room;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

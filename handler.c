@@ -330,6 +330,18 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
     break;
   case APPLY_ELDRITCH_ESSENCE:
   case APPLY_ELDRITCH_SHAPE:
+  case APPLY_SPELL_CIRCLE_1:
+  case APPLY_SPELL_CIRCLE_2:
+  case APPLY_SPELL_CIRCLE_3:
+  case APPLY_SPELL_CIRCLE_4:
+  case APPLY_SPELL_CIRCLE_5:
+  case APPLY_SPELL_CIRCLE_6:
+  case APPLY_SPELL_CIRCLE_7:
+  case APPLY_SPELL_CIRCLE_8:
+  case APPLY_SPELL_CIRCLE_9:
+  case APPLY_SPELL_POTENCY:
+  case APPLY_SPELL_DC:
+  case APPLY_SPELL_DURATION:
     break;
 
     /* end Do Not Use */

@@ -70,6 +70,7 @@ bool valid_item_feat(int featnum);
 /**ACMD***/
 ACMD_DECL(do_feats);
 ACMD_DECL(do_featlisting);
+ACMD_DECL(do_epicfeats);
 
 /* Feat types, don't forget to update in constants.c feat_types[] */
 #define FEAT_TYPE_NONE 0

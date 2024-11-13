@@ -736,7 +736,7 @@ ACMDU(do_featset)
 
   if ((feat_num = find_feat_num(helpbuf)) <= 0)
   {
-    send_to_char(ch, "Unrecognized feat.\r\n");
+    send_to_char(ch, "Unrecognized feat: '%s'\r\n", helpbuf);
     return;
   }
   argument += qend + 1; /* skip to next parameter */

@@ -55,6 +55,7 @@ song of revelation      11
 song of fear            13
 song of forgetfulness   15
 song of rooting         17
+deafening song          20
 song of dragons         21
 song of the magi        25 */
 
@@ -100,7 +101,10 @@ int performance_info[MAX_PERFORMANCES][PERFORMANCE_INFO_FIELDS] = {
     /*11*/
     {SKILL_SONG_OF_THE_MAGI, INSTRUMENT_MANDOLIN, SKILL_MANDOLIN, 29,
      PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES, FEAT_SONG_OF_THE_MAGI},
-    /*MAX_PERFORMANCES: 12*/
+    /*12*/
+    {SKILL_DEAFENING_SONG, INSTRUMENT_DRUM, SKILL_DRUM, 20,
+     PERFORMANCE_TYPE_SING, PERFORM_AOE_FOES, FEAT_DEAFENING_SONG},
+    /*MAX_PERFORMANCES: 13*/
 };
 
 /* local functions for modifying chars points (hitpoints or moves)
@@ -139,6 +143,9 @@ bool is_valid_performance(int performance_num)
     return_val = TRUE;
     break;
   case SKILL_SONG_OF_ROOTING:
+    return_val = TRUE;
+    break;
+  case SKILL_DEAFENING_SONG:
     return_val = TRUE;
     break;
   case SKILL_SONG_OF_THE_MAGI:
@@ -659,6 +666,13 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     }
     break;
 
+  case SKILL_DEAFENING_SONG:
+    act("$n hs lost their hearing.", TRUE, tch, 0, 0, TO_ROOM);
+    SET_BIT_AR(af[0].bitvector, AFF_DEAF);
+    af[0].location = APPLY_AC_NEW;
+    af[0].modifier = -effectiveness / 5;
+    break;
+
   /* enemy spell resistance / saves reduced */
   case SKILL_SONG_OF_THE_MAGI:
     if (rand_number(0, 100) < effectiveness)
@@ -805,6 +819,11 @@ int process_performance(struct char_data *ch, int performance_num, int effective
   case SKILL_SONG_OF_ROOTING:
     act("You sing a song which makes your enemies paralysed.", FALSE, ch, 0, 0, TO_CHAR);
     act("$n sings a song so well, you feel paralysed by the tune.", TRUE, ch, 0, 0, TO_ROOM);
+    break;
+
+  case SKILL_DEAFENING_SONG:
+    act("You sing a song which deafens your enemies.", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n sings a song so well, you feel deafened by the tune.", TRUE, ch, 0, 0, TO_ROOM);
     break;
 
   case SKILL_SONG_OF_THE_MAGI:

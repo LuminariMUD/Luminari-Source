@@ -2311,6 +2311,14 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       {
         snprintf(buf3, sizeof(buf3), "%+d to %s (%s)", aff->modifier, apply_types[(int)aff->location], ability_names[aff->specific]);
       }
+      else if (aff->location >= APPLY_SPELL_CIRCLE_1 && aff->location <= APPLY_SPELL_CIRCLE_9)
+      {
+        snprintf(buf3, sizeof(buf3), "%+d to %s (%s)", aff->modifier, apply_types[(int)aff->location], class_names[aff->specific]);
+      }
+      else if (aff->location == APPLY_SPELL_POTENCY || aff->location == APPLY_SPELL_DURATION)
+      {
+        snprintf(buf3, sizeof(buf3), "%+d%% to %s", aff->modifier, apply_types[(int)aff->location]);
+      }
       else
       {
         snprintf(buf3, sizeof(buf3), "%+d to %s", aff->modifier, apply_types[(int)aff->location]);
@@ -3452,6 +3460,12 @@ ACMD(do_score)
                  damtypes[GET_PSIONIC_ENERGY_TYPE(ch)],
                  base_augment_psp_allowed(ch));
   }
+  if (IS_SPELLCASTER(ch))
+  {
+    text_line(ch, "\tySpellcaster Bonuses\tC", line_length, '-', '-');
+    send_to_char(ch, "\tcSpell DC Bonus:\tn %d \tcSpell Potency Multiplier:\tn %d%% \tcSpell Duration Multiplier:\tn %d%%\r\n",
+                 get_spell_dc_bonus(ch), get_spell_potency_bonus(ch), get_spell_duration_bonus(ch));
+  }
 
   text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');
 
@@ -4289,7 +4303,7 @@ ACMD(do_who)
 
         if (PLR_FLAGGED(tch, PLR_MAILING))
           send_to_char(ch, " (mailing)");
-        else if (d->olc)
+        else if (d->olc && d->character && GET_LEVEL(d->character) >= LVL_IMMORT)
           send_to_char(ch, " (OLC)");
         else if (PLR_FLAGGED(tch, PLR_WRITING))
           send_to_char(ch, " (writing)");

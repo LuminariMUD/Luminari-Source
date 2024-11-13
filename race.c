@@ -3741,6 +3741,66 @@ void assign_races(void)
 
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_DIRE_ELEPHANT, "dire elephant", "Dire Elephant", "Dire Elephant", "DElp", "DElp",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_GARGANTUAN, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_DIRE_ELEPHANT,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, N, N, Y, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, Y, Y, N, N);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_ROC, "roc", "Roc", "Roc", "Roc ", "Roc ",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_GARGANTUAN, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_ROC,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, N, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, Y, Y, N, N, N, N);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_DIRE_ROC, "dire roc", "Dire Roc", "Dire Roc", "DRoc", "DRoc",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_COLOSSAL, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_DIRE_ROC,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, N, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, Y, Y, N, N, N, N);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_PURPLE_WORM, "purple worm", "Purple Worm", "Purple Worm", "PWrm", "PWrm",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_GARGANTUAN, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_PURPLE_WORM,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, N, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, Y);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_CRIMSON_WORM, "crimson worm", "Crimson Worm", "Crimson Worm", "CWrm", "CWrm",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_COLOSSAL, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_CRIMSON_WORM,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, N, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, Y);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_LEOPARD, "leopard", "Leopard", "Leopard", "Leop", "Leop",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0, 0, IS_NORMAL);
@@ -3910,6 +3970,19 @@ void assign_races(void)
 
   /****************************************************************************/
   /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_DIRE_CONSTRICTOR_SNAKE, "dire constrictor snake", "Dire Constrictor Snake",
+           "Dire Constrictor Snake", "DCSk", "DCSk",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_GARGANTUAN, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_DIRE_CONSTRICTOR_SNAKE,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, Y, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
   add_race(RACE_MEDIUM_VIPER, "medium viper", "Medium Viper", "Medium Viper", "MVip", "MVip",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0, 0, IS_NORMAL);
@@ -3946,6 +4019,18 @@ void assign_races(void)
 
   /****************************************************************************/
   /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_DIRE_VIPER, "dire viper", "Dire Viper", "Dire Viper", "DVip", "DVip",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_GARGANTUAN, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_DIRE_VIPER,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, Y, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
   add_race(RACE_WOLVERINE, "wolverine", "Wolverine", "Wolverine", "Wlvr", "Wlvr",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_ANIMAL, SIZE_MEDIUM, FALSE, 0, 0, IS_NORMAL);
@@ -3974,6 +4059,18 @@ void assign_races(void)
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_ANIMAL, SIZE_HUGE, FALSE, 0, 0, IS_NORMAL);
   set_race_attack_types(RACE_GIANT_CROCODILE,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_DIRE_CROCODILE, "dire crocodile", "Dire Crocodile", "Dire Crocodile", "DCrc", "DCrc",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_GARGANTUAN, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_DIRE_CROCODILE,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
                         N, N, N, N, Y, N, N, N, N, N, N, N,
                         /* blast punch stab slice thrust hack rake peck smash trample charge gore */
@@ -4044,6 +4141,30 @@ void assign_races(void)
                         N, N, N, N, N, N, N, N, Y, N, N, N);
   /****************************************************************************/
 
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_GREATER_TREANT, "greater treant", "Greater Treant", "Greater Treant", "GTrt", "GTrt",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_PLANT, SIZE_GARGANTUAN, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_GREATER_TREANT,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, N, Y, Y, Y, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, Y, N, N, N);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_ELDER_TREANT, "elder treant", "Elder Treant", "Elder Treant", "ETrt", "ETrt",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_PLANT, SIZE_COLOSSAL, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_ELDER_TREANT,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, N, Y, Y, Y, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, Y, N, N, N);
+  /****************************************************************************/
+
   /*************/
   /* Elemental */
   /*************/
@@ -4088,6 +4209,28 @@ void assign_races(void)
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_ELEMENTAL, SIZE_HUGE, FALSE, 0, 0, IS_NORMAL);
   set_race_attack_types(RACE_HUGE_FIRE_ELEMENTAL,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, Y, N, N, N, N, N, N, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, Y, N, N, N, N, N, N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_GARGANTUAN_FIRE_ELEMENTAL, "greater fire elemental", "Greater Fire Elemental", "Greater Fire Elemental", "GFEl", "GFEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_GARGANTUAN, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_GARGANTUAN_FIRE_ELEMENTAL,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, Y, N, N, N, N, N, N, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, Y, N, N, N, N, N, N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_COLOSSAL_FIRE_ELEMENTAL, "elder fire elemental", "Elder Fire Elemental", "Elder Fire Elemental", "EFEl", "EFEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_COLOSSAL, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_COLOSSAL_FIRE_ELEMENTAL,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
                         N, N, Y, N, N, N, N, N, N, N, Y, N,
                         /* blast punch stab slice thrust hack rake peck smash trample charge gore */
@@ -4138,6 +4281,28 @@ void assign_races(void)
                         /* blast punch stab slice thrust hack rake peck smash trample charge gore */
                         N, N, N, N, N, N, N, N, Y, N, N, N);
   /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_GARGANTUAN_EARTH_ELEMENTAL, "greater earth elemental", "Greater Earth Elemental", "Greater Earth Elemental", "GEEl", "GEEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_GARGANTUAN, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_GARGANTUAN_EARTH_ELEMENTAL,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, N, Y, Y, Y, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, Y, N, N, N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_COLOSSAL_EARTH_ELEMENTAL, "elder earth elemental", "Elder Earth Elemental", "Elder Earth Elemental", "EEEl", "EEEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_COLOSSAL, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_COLOSSAL_EARTH_ELEMENTAL,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, N, Y, Y, Y, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, Y, N, N, N);
+  /****************************************************************************/
   /* Air */
   /****************************************************************************/
   /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
@@ -4183,6 +4348,28 @@ void assign_races(void)
                         /* blast punch stab slice thrust hack rake peck smash trample charge gore */
                         Y, N, N, N, N, N, N, N, N, N, N, N);
   /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_GARGANTUAN_AIR_ELEMENTAL, "greater air elemental", "Greater Air Elemental", "Greater Air Elemental", "GAEl", "GAEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_GARGANTUAN, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_GARGANTUAN_AIR_ELEMENTAL,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, Y, N, N, N, N, N, N, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        Y, N, N, N, N, N, N, N, N, N, N, N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_COLOSSAL_AIR_ELEMENTAL, "elder air elemental", "Elder Air Elemental", "Elder Air Elemental", "EAEl", "EAEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_COLOSSAL, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_COLOSSAL_AIR_ELEMENTAL,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, Y, N, N, N, N, N, N, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        Y, N, N, N, N, N, N, N, N, N, N, N);
+  /****************************************************************************/
   /* Water */
   /****************************************************************************/
   /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
@@ -4223,6 +4410,28 @@ void assign_races(void)
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_ELEMENTAL, SIZE_HUGE, FALSE, 0, 0, IS_NORMAL);
   set_race_attack_types(RACE_HUGE_WATER_ELEMENTAL,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, Y, N, N, N, N, N, N, N, Y, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, Y, N, N, N, N, N, N, N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_GARGANTUAN_WATER_ELEMENTAL, "greater water elemental", "Greater Water Elemental", "Greater Water Elemental", "GWEl", "GWEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_GARGANTUAN, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_GARGANTUAN_WATER_ELEMENTAL,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, Y, N, N, N, N, N, N, N, Y, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, Y, N, N, N, N, N, N, N);
+  /****************************************************************************/
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_COLOSSAL_WATER_ELEMENTAL, "elder water elemental", "Elder Water Elemental", "Elder Water Elemental", "EWEl", "EWEl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ELEMENTAL, SIZE_COLOSSAL, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_COLOSSAL_WATER_ELEMENTAL,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
                         N, Y, N, N, N, N, N, N, N, Y, N, N,
                         /* blast punch stab slice thrust hack rake peck smash trample charge gore */

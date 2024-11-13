@@ -2932,6 +2932,16 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
       abil_mods->strength = 6;
       abil_mods->natural_armor = 6;
       break;
+    case SIZE_GARGANTUAN:
+      abil_mods->dexterity = -6;
+      abil_mods->strength = 8;
+      abil_mods->natural_armor = 8;
+      break;
+    case SIZE_COLOSSAL:
+      abil_mods->dexterity = -8;
+      abil_mods->strength = 10;
+      abil_mods->natural_armor = 10;
+      break;
     }
     break;
   case RACE_TYPE_MAGICAL_BEAST:
@@ -3002,6 +3012,12 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
       abil_mods->constitution = 8;
       abil_mods->natural_armor = 8;
       break;
+    case SIZE_COLOSSAL:
+      abil_mods->dexterity = -10;
+      abil_mods->strength = 18;
+      abil_mods->constitution = 10;
+      abil_mods->natural_armor = 10;
+      break;
     }
     break;
   case RACE_TYPE_OUTSIDER:
@@ -3043,6 +3059,12 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
       abil_mods->constitution = 6;
       abil_mods->natural_armor = 7;
       break;
+    case SIZE_COLOSSAL:
+      abil_mods->dexterity = -8;
+      abil_mods->strength = 12;
+      abil_mods->constitution = 8;
+      abil_mods->natural_armor = 8;
+      break;
     }
     break;
   case RACE_TYPE_DRAGON:
@@ -3065,6 +3087,12 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
       abil_mods->strength = 10;
       abil_mods->constitution = 10;
       abil_mods->natural_armor = 22;
+      break;
+    case SIZE_COLOSSAL:
+      abil_mods->dexterity = 0;
+      abil_mods->strength = 12;
+      abil_mods->constitution = 12;
+      abil_mods->natural_armor = 24;
       break;
     }
     break;
@@ -3090,6 +3118,18 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
       abil_mods->dexterity = -2;
       abil_mods->constitution = 4;
       abil_mods->natural_armor = 6;
+      break;
+    case SIZE_GARGANTUAN:
+      abil_mods->strength = 10;
+      abil_mods->dexterity = -2;
+      abil_mods->constitution = 6;
+      abil_mods->natural_armor = 8;
+      break;
+    case SIZE_COLOSSAL:
+      abil_mods->strength = 12;
+      abil_mods->dexterity = -2;
+      abil_mods->constitution = 8;
+      abil_mods->natural_armor = 10;
       break;
     }
     break;
@@ -3120,6 +3160,18 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
       abil_mods->constitution = 4;
       abil_mods->natural_armor = 4;
       break;
+    case RACE_GARGANTUAN_FIRE_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 8;
+      abil_mods->constitution = 6;
+      abil_mods->natural_armor = 6;
+      break;
+    case RACE_COLOSSAL_FIRE_ELEMENTAL:
+      abil_mods->strength = 0;
+      abil_mods->dexterity = 10;
+      abil_mods->constitution = 8;
+      abil_mods->natural_armor = 8;
+      break;
     case RACE_SMALL_AIR_ELEMENTAL:
       abil_mods->strength = 0;
       abil_mods->dexterity = 2;
@@ -3143,6 +3195,18 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
       abil_mods->dexterity = 6;
       abil_mods->constitution = 0;
       abil_mods->natural_armor = 4;
+      break;
+    case RACE_GARGANTUAN_AIR_ELEMENTAL:
+      abil_mods->strength = 6;
+      abil_mods->dexterity = 8;
+      abil_mods->constitution = 0;
+      abil_mods->natural_armor = 6;
+      break;
+    case RACE_COLOSSAL_AIR_ELEMENTAL:
+      abil_mods->strength = 8;
+      abil_mods->dexterity = 10;
+      abil_mods->constitution = 0;
+      abil_mods->natural_armor = 8;
       break;
     case RACE_SMALL_EARTH_ELEMENTAL:
       abil_mods->strength = 0;
@@ -3168,6 +3232,18 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
       abil_mods->constitution = 4;
       abil_mods->natural_armor = 6;
       break;
+    case RACE_GARGANTUAN_EARTH_ELEMENTAL:
+      abil_mods->strength = 10;
+      abil_mods->dexterity = -2;
+      abil_mods->constitution = 6;
+      abil_mods->natural_armor = 8;
+      break;
+    case RACE_COLOSSAL_EARTH_ELEMENTAL:
+      abil_mods->strength = 12;
+      abil_mods->dexterity = -2;
+      abil_mods->constitution = 8;
+      abil_mods->natural_armor = 10;
+      break;
     case RACE_SMALL_WATER_ELEMENTAL:
       abil_mods->strength = 0;
       abil_mods->dexterity = 0;
@@ -3191,6 +3267,18 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
       abil_mods->dexterity = -2;
       abil_mods->constitution = 8;
       abil_mods->natural_armor = 6;
+      break;
+    case RACE_GARGANTUAN_WATER_ELEMENTAL:
+      abil_mods->strength = 6;
+      abil_mods->dexterity = -2;
+      abil_mods->constitution = 10;
+      abil_mods->natural_armor = 8;
+      break;
+    case RACE_COLOSSAL_WATER_ELEMENTAL:
+      abil_mods->strength = 8;
+      abil_mods->dexterity = -2;
+      abil_mods->constitution = 12;
+      abil_mods->natural_armor = 8;
       break;
     }
     break;
@@ -3321,10 +3409,14 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_HUGE:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
             break;
+        case SIZE_GARGANTUAN:
+          if (HAS_FEAT(ch, FEAT_GARGANTUAN_WILD_SHAPE))
+            break;
+        case SIZE_COLOSSAL:
+          if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
+            break;
 
         case SIZE_FINE:
-        case SIZE_GARGANTUAN:
-        case SIZE_COLOSSAL:
         default:
           continue;
         }
@@ -3346,12 +3438,16 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_HUGE:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
             break;
+        case SIZE_GARGANTUAN:
+          if (HAS_FEAT(ch, FEAT_GARGANTUAN_WILD_SHAPE))
+            break;
+        case SIZE_COLOSSAL:
+          if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
+            break;
 
         case SIZE_DIMINUTIVE:
         case SIZE_TINY:
         case SIZE_FINE:
-        case SIZE_GARGANTUAN:
-        case SIZE_COLOSSAL:
         default:
           continue;
         }
@@ -3373,12 +3469,16 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_HUGE:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
             break;
+        case SIZE_GARGANTUAN:
+          if (HAS_FEAT(ch, FEAT_GARGANTUAN_WILD_SHAPE))
+            break;
+        case SIZE_COLOSSAL:
+          if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
+            break;
 
         case SIZE_DIMINUTIVE:
         case SIZE_TINY:
         case SIZE_FINE:
-        case SIZE_GARGANTUAN:
-        case SIZE_COLOSSAL:
         default:
           continue;
         }
@@ -3563,18 +3663,24 @@ void cleanup_wildshape_feats(struct char_data *ch)
   case RACE_MEDIUM_FIRE_ELEMENTAL:
   case RACE_LARGE_FIRE_ELEMENTAL:
   case RACE_HUGE_FIRE_ELEMENTAL:
+  case RACE_GARGANTUAN_FIRE_ELEMENTAL:
+  case RACE_COLOSSAL_FIRE_ELEMENTAL:
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
     break;
   case RACE_SMALL_EARTH_ELEMENTAL:
   case RACE_MEDIUM_EARTH_ELEMENTAL:
   case RACE_LARGE_EARTH_ELEMENTAL:
   case RACE_HUGE_EARTH_ELEMENTAL:
+  case RACE_GARGANTUAN_EARTH_ELEMENTAL:
+  case RACE_COLOSSAL_EARTH_ELEMENTAL:
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
     break;
   case RACE_SMALL_AIR_ELEMENTAL:
   case RACE_MEDIUM_AIR_ELEMENTAL:
   case RACE_LARGE_AIR_ELEMENTAL:
   case RACE_HUGE_AIR_ELEMENTAL:
+  case RACE_GARGANTUAN_AIR_ELEMENTAL:
+  case RACE_COLOSSAL_AIR_ELEMENTAL:
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
     break;
@@ -3582,6 +3688,8 @@ void cleanup_wildshape_feats(struct char_data *ch)
   case RACE_MEDIUM_WATER_ELEMENTAL:
   case RACE_LARGE_WATER_ELEMENTAL:
   case RACE_HUGE_WATER_ELEMENTAL:
+  case RACE_GARGANTUAN_WATER_ELEMENTAL:
+  case RACE_COLOSSAL_WATER_ELEMENTAL:
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);
@@ -3783,16 +3891,19 @@ void assign_wildshape_feats(struct char_data *ch)
     break;
   case RACE_CROCODILE:
   case RACE_GIANT_CROCODILE:
+  case RACE_DIRE_CROCODILE:
     SET_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
     break;
   case RACE_MEDIUM_VIPER:
   case RACE_LARGE_VIPER:
   case RACE_HUGE_VIPER:
+  case RACE_DIRE_VIPER:
     MOB_SET_FEAT(ch, FEAT_POISON_BITE, 1);
     break;
   case RACE_CONSTRICTOR_SNAKE:
   case RACE_GIANT_CONSTRICTOR_SNAKE:
+  case RACE_DIRE_CONSTRICTOR_SNAKE:
     MOB_SET_FEAT(ch, FEAT_IMPROVED_GRAPPLE, 1);
     break;
   case RACE_MANTICORE:
@@ -3810,6 +3921,8 @@ void assign_wildshape_feats(struct char_data *ch)
     break;
   case RACE_EAGLE:
   case RACE_BAT:
+  case RACE_ROC:
+  case RACE_DIRE_ROC:
     MOB_SET_FEAT(ch, FEAT_WINGS, 1);
     break;
   case RACE_EFREETI:
@@ -3826,6 +3939,8 @@ void assign_wildshape_feats(struct char_data *ch)
   case RACE_MEDIUM_FIRE_ELEMENTAL:
   case RACE_LARGE_FIRE_ELEMENTAL:
   case RACE_HUGE_FIRE_ELEMENTAL:
+  case RACE_GARGANTUAN_FIRE_ELEMENTAL:
+  case RACE_COLOSSAL_FIRE_ELEMENTAL:
     SET_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
     MOB_SET_FEAT(ch, FEAT_AURA_OF_LIGHT, 1);
     break;
@@ -3833,12 +3948,16 @@ void assign_wildshape_feats(struct char_data *ch)
   case RACE_MEDIUM_EARTH_ELEMENTAL:
   case RACE_LARGE_EARTH_ELEMENTAL:
   case RACE_HUGE_EARTH_ELEMENTAL:
+  case RACE_GARGANTUAN_EARTH_ELEMENTAL:
+  case RACE_COLOSSAL_EARTH_ELEMENTAL:
     SET_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
     break;
   case RACE_SMALL_AIR_ELEMENTAL:
   case RACE_MEDIUM_AIR_ELEMENTAL:
   case RACE_LARGE_AIR_ELEMENTAL:
   case RACE_HUGE_AIR_ELEMENTAL:
+  case RACE_GARGANTUAN_AIR_ELEMENTAL:
+  case RACE_COLOSSAL_AIR_ELEMENTAL:
     SET_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
     break;
@@ -3846,6 +3965,8 @@ void assign_wildshape_feats(struct char_data *ch)
   case RACE_MEDIUM_WATER_ELEMENTAL:
   case RACE_LARGE_WATER_ELEMENTAL:
   case RACE_HUGE_WATER_ELEMENTAL:
+  case RACE_GARGANTUAN_WATER_ELEMENTAL:
+  case RACE_COLOSSAL_WATER_ELEMENTAL:
     SET_BIT_AR(AFF_FLAGS(ch), AFF_SCUBA);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_MINOR_GLOBE);

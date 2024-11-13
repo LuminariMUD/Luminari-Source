@@ -364,6 +364,8 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
         stat_bonus = GET_INT_BONUS(ch);
 
       challenge += stat_bonus;
+
+      challenge += get_spell_dc_bonus(ch);
     }
     break;
   }
@@ -643,6 +645,7 @@ bool alt_wear_off_msg(struct char_data *ch, int skillnum)
 
   /*skills */
   /* all fallthrough */
+  case SKILL_DEAFENING_SONG:
   case SKILL_SONG_OF_FOCUSED_MIND:
   case SKILL_SONG_OF_FEAR:
   case SKILL_SONG_OF_ROOTING:
@@ -2744,6 +2747,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     send_to_char(ch, "[\tDSURPRISE SPELL\tn] ");
     send_to_char(victim, "[\tRSURPRISE SPELL\tn] ");
   }
+
+  dam = dam * get_spell_potency_bonus(ch) / 100;
 
   if (!element) // want to make sure all spells have some sort of damage category
     log("SYSERR: %d is lacking DAM_", spellnum);
@@ -8673,11 +8678,19 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     accum_affect = FALSE;
   }
 
-  if (IS_SET(metamagic, METAMAGIC_EXTEND) && can_spell_be_extended(spellnum))
+  if (can_spell_be_extended(spellnum))
   {
+    if (IS_SET(metamagic, METAMAGIC_EXTEND))
+    {
+      for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+      {
+        af[i].duration *= 1.5;
+      }
+    }
     for (i = 0; i < MAX_SPELL_AFFECTS; i++)
     {
-      af[i].duration *= 1.5;
+      af[i].duration = af[i].duration * get_spell_duration_bonus(ch) / 100;
+      af[i].modifier = af[i].modifier * get_spell_potency_bonus(ch) / 100;
     }
   }
 
@@ -10950,6 +10963,10 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     act(to_vict, TRUE, ch, 0, victim, TO_VICT | TO_SLEEP);
   if (to_char != NULL)
     act(to_char, TRUE, ch, 0, victim, TO_CHAR);
+
+  healing = healing * get_spell_potency_bonus(ch) / 100;
+  move = move * get_spell_potency_bonus(ch) / 100;
+  psp = psp * get_spell_potency_bonus(ch) / 100;
 
   /* newer centralized function for points (modifying healing, move and psp in one place) */
   process_healing(ch, victim, spellnum, healing, move, psp);

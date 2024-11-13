@@ -1043,9 +1043,8 @@ int gain_exp(struct char_data *ch, int gain, int mode)
       return 0;
     }
 
-    gain *= leadership_exp_multiplier(ch);
-    gain /= 100;
-
+    // leadership bonus
+    gain = (int)((float)gain * ((float) leadership_exp_multiplier(ch) / (float)(100)));
     /* newbie bonus */
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
       gain += (int)((float)gain * ((float)NEWBIE_EXP / (float)(100)));
@@ -1206,6 +1205,9 @@ int gain_exp(struct char_data *ch, int gain, int mode)
   if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
       GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     send_to_char(ch, "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
+
+  if (mode == GAIN_EXP_MODE_GROUP || mode == GAIN_EXP_MODE_SOLO)
+    ch->char_specials.post_combat_exp = gain;
 
   return gain;
 }
@@ -1606,6 +1608,11 @@ void update_player_misc(void)
         send_to_char(ch, "You can now forage for food again.\r\n");
       }
     }
+
+    if (IN_ROOM(ch) == 0 || IN_ROOM(ch) == NOWHERE || GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_MORTAL_START || GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_IMMORTAL_START)
+      ;
+    else
+      GET_LAST_ROOM(ch) = GET_ROOM_VNUM(IN_ROOM(ch));
 
     if (GET_RETAINER_COOLDOWN(ch) > 0)
     {
@@ -2357,32 +2364,33 @@ void update_damage_and_effects_over_time(void)
     if (HAS_EVOLUTION(ch, EVOLUTION_GILLS))
       SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
 
+    // Disabled as causes issues with different things, such as wildshape
     // This code handles ability score damage which can be healed with various 'restoration' spells
-    if (GET_STR(ch) <= 0 || GET_DEX(ch) <= 0 || GET_INT(ch) <= 0 || GET_WIS(ch) <= 0 || 
-        GET_CHA(ch) <= 0 || GET_CON(ch) <= 0)
-    {
-      struct affected_type af;
-      new_affect(&af);
-      af.spell = ABILITY_SCORE_DAMAGE;
-      af.duration = 5;
-      SET_BIT_AR(af.bitvector, AFF_PARALYZED);
-      affect_to_char(ch, &af);
+    // if (GET_STR(ch) <= 0 || GET_DEX(ch) <= 0 || GET_INT(ch) <= 0 || GET_WIS(ch) <= 0 || 
+    //     GET_CHA(ch) <= 0 || GET_CON(ch) <= 0)
+    // {
+    //   struct affected_type af;
+    //   new_affect(&af);
+    //   af.spell = ABILITY_SCORE_DAMAGE;
+    //   af.duration = 5;
+    //   SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+    //   affect_to_char(ch, &af);
 
-      if (GET_STR(ch) <= 0)
-        act("Your strength has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
-      if (GET_CON(ch) <= 0)
-        act("Your constitution has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
-      if (GET_DEX(ch) <= 0)
-        act("Your dexterity has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
-      if (GET_INT(ch) <= 0)
-        act("Your intelligence has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
-      if (GET_WIS(ch) <= 0)
-        act("Your wisdom has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
-      if (GET_CHA(ch) <= 0)
-        act("Your charisma has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+    //   if (GET_STR(ch) <= 0)
+    //     act("Your strength has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+    //   if (GET_CON(ch) <= 0)
+    //     act("Your constitution has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+    //   if (GET_DEX(ch) <= 0)
+    //     act("Your dexterity has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+    //   if (GET_INT(ch) <= 0)
+    //     act("Your intelligence has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+    //   if (GET_WIS(ch) <= 0)
+    //     act("Your wisdom has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+    //   if (GET_CHA(ch) <= 0)
+    //     act("Your charisma has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
 
-      act("$n collapses into a helpless heap, looking completely drained.", TRUE, ch, 0, 0, TO_ROOM);
-    }
+    //   act("$n collapses into a helpless heap, looking completely drained.", TRUE, ch, 0, 0, TO_ROOM);
+    // }
 
     if (GET_NODAZE_COOLDOWN(ch) > 0)
     {

@@ -24,7 +24,7 @@ extern "C"
 
 /* defines */
 #define VERSE_INTERVAL (11 RL_SEC)
-#define MAX_PERFORMANCES 12
+#define MAX_PERFORMANCES 13
 #define MAX_PRFM_EFFECT 60 /* maximum effectiveness of performance */
 #define MAX_INSTRUMENT_EFFECT 20
 

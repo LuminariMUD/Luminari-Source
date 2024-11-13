@@ -1336,6 +1336,31 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "Can only select one critical feat without critical mastery.");
   feat_prereq_bab(FEAT_SICKENING_CRITICAL, 11);
 
+  feato(FEAT_OVERWHELMING_CRITICAL, "overwhelming critical", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "Critical hits now deal an extra 1d6 damage, or +2d6 if the critical multipler is x3, and +3d6 if the criticaal multiplier is x4.",
+    "Critical hits now deal an extra 1d6 damage, or +2d6 if the critical multipler is x3, and +3d6 if the criticaal multiplier is x4."
+    " Feat prerequisites must be in the same weapon type as this feat for this effect to function.");
+  feat_prereq_attribute(FEAT_OVERWHELMING_CRITICAL, AB_STR, 23);
+  feat_prereq_feat(FEAT_OVERWHELMING_CRITICAL, FEAT_CLEAVE, 1);
+  feat_prereq_feat(FEAT_OVERWHELMING_CRITICAL, FEAT_GREAT_CLEAVE, 1);
+  feat_prereq_feat(FEAT_OVERWHELMING_CRITICAL, FEAT_IMPROVED_CRITICAL, 1);
+  feat_prereq_feat(FEAT_OVERWHELMING_CRITICAL, FEAT_POWER_ATTACK, 1);
+  feat_prereq_feat(FEAT_OVERWHELMING_CRITICAL, FEAT_WEAPON_FOCUS, 1);
+
+  feato(FEAT_DEVASTATING_CRITICAL, "devastating critical", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+    "Critical hits now deal an extra 2d6 damage, or +4d6 if the critical multipler is x3, and +6d6 if the criticaal multiplier is x4. "
+      "This extra damage stacks with overwhelming critical.",
+    "Critical hits now deal an extra 2d6 damage, or +4d6 if the critical multipler is x3, and +6d6 if the criticaal multiplier is x4. "
+      "This extra damage stacks with overwhelming critical."
+      " Feat prerequisites must be in the same weapon type as this feat for this effect to function.");
+  feat_prereq_attribute(FEAT_DEVASTATING_CRITICAL, AB_STR, 25);
+  feat_prereq_feat(FEAT_DEVASTATING_CRITICAL, FEAT_OVERWHELMING_CRITICAL, 1);
+  feat_prereq_feat(FEAT_DEVASTATING_CRITICAL, FEAT_CLEAVE, 1);
+  feat_prereq_feat(FEAT_DEVASTATING_CRITICAL, FEAT_GREAT_CLEAVE, 1);
+  feat_prereq_feat(FEAT_DEVASTATING_CRITICAL, FEAT_IMPROVED_CRITICAL, 1);
+  feat_prereq_feat(FEAT_DEVASTATING_CRITICAL, FEAT_POWER_ATTACK, 1);
+  feat_prereq_feat(FEAT_DEVASTATING_CRITICAL, FEAT_WEAPON_FOCUS, 1);
+
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* ranged attack feats */
   feato(FEAT_POINT_BLANK_SHOT, "point blank shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
@@ -1585,7 +1610,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* epic */
-  feato(FEAT_DAMAGE_REDUCTION, "damage reduction", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+  feato(FEAT_DAMAGE_REDUCTION, "epic damage reduction", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
         "3/- damage reduction per rank of feat",
         "You get 3/- damage reduction per rank of feat, this stacks with other forms "
         "of damage reduction.  Note that damage reduction caps at 20.");
@@ -1955,10 +1980,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_ARMOR_SKIN, "armor skin", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
         "Increases natural armor by 1",
         "Increases natural armor by 1");
-  /* monk */ feato(FEAT_IMPROVED_SPELL_RESISTANCE, "improved spell resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-                   "+2 to spell resistance",
-                   "+2 to spell resistance");
-  feat_prereq_feat(FEAT_IMPROVED_SPELL_RESISTANCE, FEAT_DIAMOND_SOUL, 1);
+
   feato(FEAT_GREAT_CONSTITUTION, "great constitution", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
         "Increases Constitution by 1",
         "Increases Constitution by 1");
@@ -3776,6 +3798,14 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "weapon acts as bane",
         "Any weapon you wield that strikes an opponent that is a favored enemy will "
         "act as a bane weapon and do an additional 2d6 damage.");
+  feato(FEAT_DEATH_OF_ENEMIES, "death of enemies", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "Whenever a critical hit is made against a favored enemy, it must make a fortitude saving throw or die instantly.",
+        "Whenever a critical hit is made against a favored enemy, it must make a fortitude saving throw or die instantly. "
+        "This will not work on mobs with high hit pointds for their level or mobslevel 28 or higher.");
+  feat_prereq_feat(FEAT_DEATH_OF_ENEMIES, FEAT_BANE_OF_ENEMIES, 1);
+  feat_prereq_feat(FEAT_DEATH_OF_ENEMIES, FEAT_FAVORED_ENEMY, 5);
+  feat_prereq_ability(FEAT_DEATH_OF_ENEMIES, ABILITY_NATURE, 30);
+
   feato(FEAT_EPIC_FAVORED_ENEMY, "epic favored enemy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "gain extra bonus to dam against fav enemy.",
         "You will gain an extra bonus to your favored enemies equal to your dexterity bonus after modifications such as armor check penalty, etc.");
@@ -3832,6 +3862,16 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_WEAPON_PROFICIENCY_DRUID, "weapon proficiency - druids", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
         "proficiency in druid weapons",
         "You are proficient in the usage of clubs, daggers, quarterstaff, darts, sickle, scimitar, shortspear, spear and slings.");
+
+  feato(FEAT_GARGANTUAN_WILD_SHAPE, "gargantuan wild shape", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+        "Allows the ability to wild shape into a gargantuan animal, plant or elemental.",
+        "Allows the ability to wild shape into a gargantuan animal, plant or elemental.");
+  feat_prereq_feat(FEAT_GARGANTUAN_WILD_SHAPE, FEAT_WILD_SHAPE_5, 1);
+
+  feato(FEAT_COLOSSAL_WILD_SHAPE, "colossal wild shape", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+        "Allows the ability to wild shape into a colossal animal, plant or elemental.",
+        "Allows the ability to wild shape into a colossal animal, plant or elemental.");
+  feat_prereq_feat(FEAT_COLOSSAL_WILD_SHAPE, FEAT_GARGANTUAN_WILD_SHAPE, 1 );
 
   /* Druid / Monk */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -3927,6 +3967,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_BARDIC_MUSIC, "bardic music", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Use Perform skill to create various magical effects.",
         "Use Perform skill to create various magical effects.");
+
   /* unfinished */ feato(FEAT_COUNTERSONG, "countersong", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                          "(not yet implemented)Boost group members' resistance to sonic attacks.",
                          "(not yet implemented)Boost group members' resistance to sonic attacks.");
@@ -4002,6 +4043,12 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
                "When this song is played, it will strengthen the offensive magic of "
                "the group-members of the bard, by reducing the spell-save and magic resistance "
                "of all their enemies in the area.  Uses the mandolin.");
+  feato(FEAT_DEAFENING_SONG, "deafening song", TRUE, TRUE, FALSE, FEAT_TYPE_PERFORMANCE,
+      "When this song is played it will deafen any enemies that hear it, and also reduce their armor class.",
+      "When this song is played it will deafen any enemies that hear it, and also reduce their armor class.");
+  feat_prereq_ability(FEAT_DEAFENING_SONG, ABILITY_PERFORM, 21);
+  feat_prereq_feat(FEAT_DEAFENING_SONG, FEAT_BARDIC_MUSIC, 1);
+        
 
   /* Berserker */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -4021,7 +4068,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "+4 bonus to constitution, strength and will-saves, but 2 penalty to AC, for "
         "(2 * constitution-bonus + 6) rounds");
   feato(FEAT_GREATER_RAGE, "greater rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "+6 to str, con, and will when raging",
+        "+6 to str, con, and will when77 raging",
         "+6 to strength, constitution, and will-saves when raging");
   feato(FEAT_MIGHTY_RAGE, "mighty rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "+9 to str, con and will when raging",
@@ -4032,6 +4079,12 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_TIRELESS_RAGE, "tireless rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "no fatigue after raging",
         "no fatigue after raging");
+  feato(FEAT_CHAOTIC_RAGE, "chaotic rage", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+        "When raging your weapon attacks deal an extra +2d6 damage against Lawful foes.",
+        "When raging your weapon attacks deal an extra +2d6 damage against Lawful foes.");
+  feat_prereq_feat(FEAT_CHAOTIC_RAGE, FEAT_RAGE, 5);
+  
+  
   /*temporary mechanic*/ feato(FEAT_FAST_MOVEMENT, "fast movement", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
                                "reduces movement usage, and increases movement regen",
                                "Reduces movement usage, and increases movement regeneration.  This is a temporary mechanic.");
@@ -5317,6 +5370,17 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_BG_SQUIRE, "squire background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
     "Gains access to a hired retainer that can sell items or deliver a message, using the 'retainer' command.",
     "Gains access to a hired retainer that can sell items or deliver a message, using the 'retainer' command.");
+
+  feato(FEAT_IMPROVED_SPELL_RESISTANCE, "improved spell resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+          "+2 to spell resistance",
+          "+2 to spell resistance");
+  feat_prereq_feat(FEAT_IMPROVED_SPELL_RESISTANCE, FEAT_DIAMOND_SOUL, 1);
+
+  feato(FEAT_BULWARK_OF_DEFENSE, "bulwark of defense", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+    "Defensive stance bonus increases to +6 and duration is increased by 50%",
+    "Defensive stance bonus increases to +6 and duration is increased by 50%");
+    feat_prereq_feat(FEAT_BULWARK_OF_DEFENSE, FEAT_DEFENSIVE_STANCE, 3);
+    feat_prereq_attribute(FEAT_BULWARK_OF_DEFENSE, AB_CON, 25);
     
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");
@@ -5338,8 +5402,12 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   combatfeat(FEAT_WEAPON_SUPREMACY);
   /*epic combat feats*/
   combatfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
+  combatfeat(FEAT_OVERWHELMING_CRITICAL);
+  combatfeat(FEAT_DEVASTATING_CRITICAL);
 
   /* Epic Feats */
+  epicfeat(FEAT_OVERWHELMING_CRITICAL);
+  epicfeat(FEAT_DEVASTATING_CRITICAL);
   epicfeat(FEAT_PERFECT_DUAL_WEAPON_FIGHTING);
   epicfeat(FEAT_BANE_OF_ENEMIES);
   epicfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
@@ -5378,6 +5446,12 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   epicfeat(FEAT_BLINDING_SPEED);
   epicfeat(FEAT_EPIC_ELDRITCH_MASTER);
   epicfeat(FEAT_EPIC_ELDRITCH_BLAST);
+  epicfeat(FEAT_DEATH_OF_ENEMIES);
+  epicfeat(FEAT_BULWARK_OF_DEFENSE);
+  epicfeat(FEAT_CHAOTIC_RAGE);
+  epicfeat(FEAT_GARGANTUAN_WILD_SHAPE);
+  epicfeat(FEAT_COLOSSAL_WILD_SHAPE);
+  epicfeat(FEAT_DEAFENING_SONG);
   /* epic spell feats */
   epicfeat(FEAT_MUMMY_DUST);
   epicfeat(FEAT_DRAGON_KNIGHT);
@@ -6367,6 +6441,12 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     case FEAT_IMPROVED_CRITICAL:
       if (ACTUAL_BAB(ch) < 8)
         return FALSE;
+      if (!iarg || is_proficient_with_weapon(ch, iarg))
+        return TRUE;
+      return FALSE;
+
+    case FEAT_OVERWHELMING_CRITICAL:
+    case FEAT_DEVASTATING_CRITICAL:
       if (!iarg || is_proficient_with_weapon(ch, iarg))
         return TRUE;
       return FALSE;
@@ -8571,6 +8651,10 @@ int feat_to_cfeat(int feat)
   {
   case FEAT_IMPROVED_CRITICAL:
     return CFEAT_IMPROVED_CRITICAL;
+  case FEAT_OVERWHELMING_CRITICAL:
+    return CFEAT_OVERWHELMING_CRITICAL;
+  case FEAT_DEVASTATING_CRITICAL:
+    return CFEAT_DEVASTATING_CRITICAL;
   case FEAT_POWER_CRITICAL:
     return CFEAT_POWER_CRITICAL;
     //  case FEAT_WEAPON_FINESSE:
@@ -8698,6 +8782,76 @@ bool valid_item_feat(int featnum)
     return true;
 
   return false;
+}
+
+ACMD(do_epicfeats)
+{
+  int sortpos, i, w_type;
+  struct feat_prerequisite *prereq;
+  bool first = false;
+  struct obj_data *weap;
+  int line_length = MAX(80, GET_SCREEN_WIDTH(ch));
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
+
+  sprintf(buf + strlen(buf), "\tC%s\tn", text_line_string("\tYEpic Feats\tC", line_length, '-', '-'));
+  strlcpy(buf2, buf, sizeof(buf2));
+
+  snprintf(buf, sizeof(buf), text_line_string("All Epic Feats Requires Character Level 21+", line_length, '-', '-'));
+  strlcat(buf2, buf, sizeof(buf2));
+  snprintf(buf, sizeof(buf), text_line_string("-", line_length, '-', '-'));
+  strlcat(buf2, buf, sizeof(buf2));
+
+  for (sortpos = 1; sortpos < NUM_FEATS; sortpos++)
+  {
+    i = feat_sort_info[sortpos];
+    /*  Print the feat, depending on the type of list. */
+    if (feat_list[i].in_game && feat_list[i].epic == TRUE && feat_list[i].feat_type != FEAT_TYPE_CLASS_ABILITY)
+    {
+      if (strlen(buf2) > MAX_STRING_LENGTH - 180)
+        break;
+
+      snprintf(buf, sizeof(buf), "\tc%-30s : \tn", feat_list[i].name);
+      strlcat(buf2, buf, sizeof(buf2));
+      if (feat_list[i].prerequisite_list == NULL)
+      {
+        snprintf(buf, sizeof(buf),  "None\r\n");
+        strlcat(buf2, buf, sizeof(buf2));
+      }
+      else
+      {
+        weap = GET_EQ(ch, WEAR_WIELD_1);
+        if (GET_EQ(ch, WEAR_WIELD_2H))
+          weap = GET_EQ(ch, WEAR_WIELD_2H);
+        w_type = (weap == NULL) ? WEAPON_TYPE_UNARMED : GET_WEAPON_TYPE(weap);
+        first = true;
+        for (prereq = feat_list[i].prerequisite_list; prereq != NULL; prereq = prereq->next)
+        {
+          if (first)
+          {
+            first = false;
+            snprintf(buf, sizeof(buf), "%s%s%s", (meets_prerequisite(ch, prereq, w_type) ? "\tn" : "\tr"), prereq->description, "\tn");
+            strlcat(buf2, buf, sizeof(buf2));
+          }
+          else
+          {
+            snprintf(buf, sizeof(buf),  ", %s%s%s", (meets_prerequisite(ch, prereq, w_type) ? "\tn" : "\tr"), prereq->description, "\tn");
+            strlcat(buf2, buf, sizeof(buf2));
+          }
+        }
+        snprintf(buf, sizeof(buf),  "\tn\r\n");
+        strlcat(buf2, buf, sizeof(buf2));
+      }
+    }
+  }
+
+  snprintf(buf, sizeof(buf), text_line_string("\tn-", line_length, '-', '-'));
+  strlcat(buf2, buf, sizeof(buf2));
+  snprintf(buf, sizeof(buf), text_line_string("Use 'feat info (featname)' for more information on a certain feat", line_length, '-', '-'));
+  strlcat(buf2, buf, sizeof(buf2));
+  snprintf(buf, sizeof(buf), text_line_string("-", line_length, '-', '-'));
+  strlcat(buf2, buf, sizeof(buf2));
+
+  page_string(ch->desc, buf2, 1);
 }
 
 /* EOF */
