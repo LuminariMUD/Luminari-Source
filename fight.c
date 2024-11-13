@@ -2341,7 +2341,6 @@ static void perform_group_gain(struct char_data *ch, int base,
   }
   else
   {
-    ch->char_specials.post_combat_exp = share;
     gain_exp(ch, share, GAIN_EXP_MODE_GROUP);
   }
 
@@ -6880,9 +6879,10 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
  *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand
  *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand  */
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
-                       int w_type, int diceroll, int mode, bool is_critical, int attack_type)
+                       int w_type, int diceroll, int mode, bool is_critical, int attack_type, int dam_type)
 {
   int dam = 0, damage_holder = 0;
+  int loop = 1;
   struct obj_data *wielded = NULL;
 
   /* redundancy necessary due to sometimes arriving here without going through
@@ -7014,6 +7014,47 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         send_to_char(victim, "\tR[CRIT!]\tn");
       }
 
+      if (victim != ch && HAS_FEAT(ch, FEAT_DEATH_OF_ENEMIES) && HAS_FEAT(ch, FEAT_FAVORED_ENEMY) && !AFF_FLAGGED(victim, AFF_DEATH_WARD))
+      {
+        if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)) && !is_high_hp_mob(victim) && GET_LEVEL(victim) < 28)
+        {
+          if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_RANGER), NOSCHOOL))
+          {
+            send_combat_roll_info(ch, "\tW[DEATH OF ENEMIES]\tn ");
+            send_combat_roll_info(victim, "\tR[DEATH OF ENEMIES]\tn ");
+            dam += GET_MAX_HIT(victim) * 10;
+          }
+        }
+      }
+
+      // if they have devastating critical we will apply both overwhelming and devastating
+      // since overwhelming is a prereq, and this condenses the code required
+      if (has_devastating_critical_prereqs(ch, wielded))
+      {
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED)) ;
+          send_to_char(ch, "\tW[DEVASTATING!]\tn");
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED)) ;
+          send_to_char(victim, "\tR[DEVASTATING!]\tn");
+        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded) - 1); loop++)
+        {
+          // overwhelming critical damage
+          dam += dice(1, 6);
+          // devastating critical damage
+          dam += dice(2, 6);
+        }
+      }
+      else if (has_overwhelming_critical_prereqs(ch, wielded))
+      {
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED)) ;
+          send_to_char(ch, "\tW[OVERWHELMING!]\tn");
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED)) ;
+          send_to_char(victim, "\tR[OVERWHELMING!]\tn");
+        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded) - 1); loop++)
+        {
+          dam += dice(1, 6);
+        }
+      }
+
       if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_CRITICAL_FOCUS))
         dam += 2;
 
@@ -7025,6 +7066,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       {
         dam += (GET_LEVEL(ch) - 30) * 5;
       }
+
+
 
       /* critical bonus */
       dam *= determine_critical_multiplier(ch, wielded);
@@ -7275,6 +7318,16 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       {
         send_combat_roll_info(ch, "\tW[CHAOS]\tn ");
         send_combat_roll_info(victim, "\tR[CHAOS]\tn ");
+        dam += dice(2, 6);
+      }
+      if (HAS_FEAT(ch, FEAT_CHAOTIC_RAGE) && affected_by_spell(ch, SKILL_RAGE) &&
+          ((IS_LG(victim)) ||
+           (IS_LN(victim)) ||
+           (IS_LE(victim)) ||
+           (IS_NPC(victim) && HAS_SUBRACE(victim, SUBRACE_LAWFUL))))
+      {
+        send_combat_roll_info(ch, "\tW[CHAOTIC RAGE]\tn ");
+        send_combat_roll_info(victim, "\tR[CHAOTIC RAGE]\tn ");
         dam += dice(2, 6);
       }
       /*lawful weapon*/
@@ -9835,8 +9888,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   char hit_msg[32] = "";
   int sneakdam = 0; /* Additional sneak attack damage. */
   bool victim_is_dead = FALSE;
-  GET_CONSECUTIVE_HITS(ch)
-  ++;
+  GET_CONSECUTIVE_HITS(ch)++;
 
   if (affected_by_spell(ch, SPELL_RIGHTEOUS_VIGOR))
   {
@@ -10390,7 +10442,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   /* Calculate damage for this hit */
   dam += compute_hit_damage(ch, victim, w_type, diceroll, 0,
-                            is_critical, attack_type);
+                            is_critical, attack_type, dam_type);
   if (type == TYPE_ATTACK_OF_OPPORTUNITY && has_teamwork_feat(ch, FEAT_PAIRED_OPPORTUNISTS))
     dam += 2;
   dam += powerful_blow_bonus; /* ornir is going to yell at me for this :p  -zusuk */
@@ -11820,7 +11872,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       send_to_char(ch, "Ranged Attack Bonus:  %d; ",
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_RANGED) + penalty);
       /* display damage bonus */
-      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_RANGED, FALSE, ATTACK_TYPE_RANGED);
+      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_RANGED, FALSE, ATTACK_TYPE_RANGED, 0);
 
       if (attacks_at_max_bab > 0)
         attacks_at_max_bab--;
@@ -11894,12 +11946,12 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY));
       /* display damage bonus */
-      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY);
+      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY, 0);
       /* display hitroll bonus */
       send_to_char(ch, "Offhand, Attack Bonus:  %d; ",
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND));
       /* display damage bonus */
-      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND);
+      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND, 0);
     }
   }
   else
@@ -11919,7 +11971,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       send_to_char(ch, "Mainhand, Attack Bonus:  %d; ",
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       /* display damage bonus */
-      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY);
+      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY, 0);
     }
   }
 
@@ -11942,7 +11994,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       send_to_char(ch, "Mainhand (Haste), Attack Bonus:  %d; ",
                    compute_attack_bonus(ch, ch, ATTACK_TYPE_PRIMARY) + penalty);
       /* display damage bonus */
-      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY);
+      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY, 0);
     }
   }
 
@@ -12146,7 +12198,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       send_to_char(ch, "Mainhand Bonus %d, Attack Bonus:  %d; ",
                    i + 1, spec_hand);
       /* display damage bonus */
-      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY);
+      compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, ATTACK_TYPE_PRIMARY, 0);
     }
   } /* end for loop */
 
@@ -12179,7 +12231,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
         send_to_char(ch, "Offhand (Improved 2 Weapon Fighting), Attack Bonus:  %d; ",
                      compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + TWO_WPN_PNLTY);
         /* display damage bonus */
-        compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND);
+        compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND, 0);
       }
     }
 
@@ -12209,7 +12261,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
         send_to_char(ch, "Offhand (Great 2 Weapon Fighting), Attack Bonus:  %d; ",
                      compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + GREAT_TWO_PNLY);
         /* display damage bonus */
-        compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND);
+        compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND, 0);
       }
     }
 
@@ -12239,7 +12291,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
         send_to_char(ch, "Offhand (Epic 2 Weapon Fighting), Attack Bonus:  %d; ",
                      compute_attack_bonus(ch, ch, ATTACK_TYPE_OFFHAND) + EPIC_TWO_PNLTY);
         /* display damage bonus */
-        compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND);
+        compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_OFFHAND, FALSE, ATTACK_TYPE_OFFHAND, 0);
       }
     }
   }

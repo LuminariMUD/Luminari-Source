@@ -2575,7 +2575,19 @@ const char *apply_types[] = {
     "Initiative",
     "Eldritch-Shape",
     "Eldritch-Essence",
-    "\n" /*61*/
+    "Spell-Circle-1",
+    "Spell-Circle-2",
+    "Spell-Circle-3",
+    "Spell-Circle-4",
+    "Spell-Circle-5",
+    "Spell-Circle-6",
+    "Spell-Circle-7",
+    "Spell-Circle-8",
+    "Spell-Circle-9",
+    "Spell-Potency",
+    "Spell-DC",
+    "Spell-Duration",
+    "\n" /*73*/
 };
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);
 
@@ -2643,6 +2655,18 @@ const char *apply_type_food_names[] =
     "", // initiative
     "", // eldritch shape
     "", // eldricth essence
+    "", // spell circle 1
+    "", //  spell circle 2
+    "", //  spell circle 3
+    "", //  spell circle 4
+    "", //  spell circle 5
+    "", //  spell circle 6
+    "", //  spell circle 7
+    "", //  spell circle 8
+    "", //  spell circle 9
+    "", //  spell potency
+    "", //  spell dc
+    "", //  spell duration
     "\n"
 };
 CHECK_TABLE_SIZE(apply_type_food_names, NUM_APPLIES + 1);
@@ -2712,6 +2736,18 @@ const int apply_type_food_or_drink[] =
     TRUE, // initiative
     TRUE, // eldritch shape
     TRUE, // eldricth essence
+    TRUE, // spell circle 1
+    TRUE, // spell circle 2
+    TRUE, // spell circle 3
+    TRUE, // spell circle 4
+    TRUE, // spell circle 5
+    TRUE, // spell circle 6
+    TRUE, // spell circle 7
+    TRUE, // spell circle 8
+    TRUE, // spell circle 9
+    TRUE, // spell potency
+    TRUE, // spell dc
+    TRUE, // spell duration
     TRUE
 };
 CHECK_TABLE_SIZE(apply_type_food_or_drink, NUM_APPLIES + 1);

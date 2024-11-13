@@ -835,7 +835,10 @@ EVENTFUNC(event_aqueous_orb)
             GET_RACE(victim) == RACE_SMALL_FIRE_ELEMENTAL || 
             GET_RACE(victim) == RACE_MEDIUM_FIRE_ELEMENTAL || 
             GET_RACE(victim) == RACE_LARGE_FIRE_ELEMENTAL || 
-            GET_RACE(victim) == RACE_HUGE_FIRE_ELEMENTAL);
+            GET_RACE(victim) == RACE_HUGE_FIRE_ELEMENTAL ||
+            GET_RACE(victim) == RACE_GARGANTUAN_FIRE_ELEMENTAL ||
+            GET_RACE(victim) == RACE_COLOSSAL_FIRE_ELEMENTAL
+            );
 
   /* how about wands and everything else?? */
   level = CASTER_LEVEL(ch);

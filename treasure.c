@@ -695,6 +695,22 @@ int adjust_bonus_value(int apply_location, int bonus)
   case APPLY_MOVE:
     adjusted_bonus = bonus * 120;
     break;
+  case APPLY_MOVE_REGEN:
+    adjusted_bonus = bonus * 10;
+    break;
+  case APPLY_SPELL_DC:
+  case APPLY_SPELL_CIRCLE_1:
+  case APPLY_SPELL_CIRCLE_2:
+  case APPLY_SPELL_CIRCLE_3:
+  case APPLY_SPELL_CIRCLE_4:
+  case APPLY_SPELL_CIRCLE_5:
+  case APPLY_SPELL_CIRCLE_6:
+  case APPLY_SPELL_CIRCLE_7:
+  case APPLY_SPELL_CIRCLE_8:
+  case APPLY_SPELL_CIRCLE_9:
+  case APPLY_FAST_HEALING:
+    adjusted_bonus = bonus / 2;
+    break;
   case APPLY_RES_FIRE:
   case APPLY_RES_COLD:
   case APPLY_RES_AIR:
@@ -722,7 +738,7 @@ int adjust_bonus_value(int apply_location, int bonus)
   default:
     break;
   }
-  return MIN(RANDOM_BONUS_CAP, adjusted_bonus);
+  return MAX(1, MIN(RANDOM_BONUS_CAP, adjusted_bonus));
 }
 
 /* assign bonus-types to the bonus */
@@ -928,7 +944,11 @@ int random_apply_value(void)
   /* There will be different groupings based on item type and wear location,
    * for example weapons will get hit/dam bonus (the +) and armor will get
    * ac_apply_new bonus (the +). */
+#if defined (CAMPAIGN_DL)
+  switch (dice(1, 23))
+#else
   switch (dice(1, 12))
+#endif
   {
   case 1:
     val = APPLY_HIT;
@@ -963,6 +983,41 @@ int random_apply_value(void)
   case 11:
     val = APPLY_SAVING_WILL;
     break;
+#if defined(CAMPAIGN_DL)
+  case 12:
+    val = APPLY_HP_REGEN;
+    break;
+  case 13:
+    val = APPLY_MV_REGEN;
+    break;
+  case 14:
+    val = APPLY_PSP_REGEN;
+    break;
+  case 15:
+    val = APPLY_ENCUMBRANCE;
+    break;
+  case 16:
+    val = APPLY_FAST_HEALING;
+    break;
+  case 17:
+    val = APPLY_INITIATIVE;
+    break;
+  case 18:
+    val = determine_random_spell_circle_bonus();
+    break;
+  case 19:
+    val = APPLY_SPELL_POTENCY;
+    break;
+  case 20:
+    val = APPLY_SPELL_DC;
+    break;
+  case 21:
+    val = APPLY_SPELL_DURATION;
+    break;
+  case 22:
+    val = APPLY_SKILL;
+    break;
+#endif
   default:
     switch (rand_number(1, 20))
     {
@@ -1447,6 +1502,13 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   {
     bonus_location = random_apply_value();
   }
+  else
+  {
+    bonus_location = random_apply_value();
+  }
+#if defined(CAMPAIGN_DL)
+
+#else
   else if (CAN_WEAR(obj, ITEM_WEAR_FINGER))
   {
     bonus_location = determine_stat_apply(WEAR_FINGER_R);
@@ -1479,12 +1541,18 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   {
     bonus_location = determine_stat_apply(WEAR_HOLD_1);
   }
+#endif
+
 
   if (!has_enhancement)
   {
     obj->affected[0].location = bonus_location;
     obj->affected[0].modifier = adjust_bonus_value(bonus_location, bonus_value);
     obj->affected[0].bonus_type = adjust_bonus_type(bonus_location);
+    if (bonus_location >= APPLY_SPELL_CIRCLE_1 && bonus_location <= APPLY_SPELL_CIRCLE_9)
+      obj->affected[0].specific = get_random_spellcaster_class();
+    if (bonus_location == APPLY_SKILL)
+      obj->affected[0].specific = get_random_skill();    
   }
 
   /* rare grade */

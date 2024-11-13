@@ -4702,6 +4702,8 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     }
 
     GET_BACKGROUND(vict) = i;
+    send_to_char(ch, "You've changed %s's background archytype to %s.\r\n", GET_NAME(vict), background_list[i].name);
+    send_to_char(vict, "%s has changed your background archytype to %s.\r\n", CAN_SEE(vict, ch) ? GET_NAME(ch) : "Someone", background_list[i].name);
     break;
 
 

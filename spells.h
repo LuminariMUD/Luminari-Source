@@ -1085,6 +1085,7 @@
 /* reserving this space for different performances 2180 - 2199*/
 #define TOP_OF_PERFORMANCES 2180
 /***/
+#define SKILL_DEAFENING_SONG 2187
 #define SKILL_SONG_OF_FOCUSED_MIND 2188
 #define SKILL_SONG_OF_FEAR 2189
 #define SKILL_SONG_OF_ROOTING 2190

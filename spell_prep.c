@@ -729,9 +729,13 @@ int num_psionicist_powers_available(struct char_data *ch)
 /* total # of slots consumed by circle X */
 int count_total_slots(struct char_data *ch, int class, int circle)
 {
-  return (count_circle_collection(ch, class, circle) +
+
+  int total_slots = 0;
+
+  total_slots = (count_circle_collection(ch, class, circle) +
           count_circle_innate_magic(ch, class, circle) +
           count_circle_prep_queue(ch, class, circle));
+  return total_slots;
 }
 
 /* in: ch, class, spellnum, metamagic, domain
@@ -1778,6 +1782,8 @@ int compute_slots_by_circle(struct char_data *ch, int class, int circle)
   default:
     break;
   }
+
+  spell_slots += get_bonus_spells_by_circle_and_class(ch, class, circle);
 
   if (spell_slots <= 0)
     return FALSE;

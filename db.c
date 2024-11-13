@@ -6787,6 +6787,17 @@ void save_objects_to_database(struct char_data *ch)
               case APPLY_SKILL:
                 snprintf(bonus, sizeof(bonus), "%s", ability_names[obj->affected[i].specific]);
                 break;
+              case APPLY_SPELL_CIRCLE_1:
+              case APPLY_SPELL_CIRCLE_2:
+              case APPLY_SPELL_CIRCLE_3:
+              case APPLY_SPELL_CIRCLE_4:
+              case APPLY_SPELL_CIRCLE_5:
+              case APPLY_SPELL_CIRCLE_6:
+              case APPLY_SPELL_CIRCLE_7:
+              case APPLY_SPELL_CIRCLE_8:
+              case APPLY_SPELL_CIRCLE_9:
+                snprintf(bonus, sizeof(bonus), "%s", class_names[obj->affected[i].specific]);
+                break;
               default:
                 bonus[0] = '\0';
                 break;

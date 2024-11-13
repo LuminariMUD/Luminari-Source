@@ -464,6 +464,19 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d)
                         OLC_OBJ(d)->affected[counter].modifier,
                         bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
       }
+      else if (OLC_OBJ(d)->affected[counter].location >= APPLY_SPELL_CIRCLE_1 && OLC_OBJ(d)->affected[counter].location <= APPLY_SPELL_CIRCLE_9)
+      {
+        write_to_output(d, " %s%d%s) Improves %s for %s by %d (%s)\r\n", grn, counter + 1, nrm,
+                        apply_types[OLC_OBJ(d)->affected[counter].location],
+                        class_names[OLC_OBJ(d)->affected[counter].specific],
+                        OLC_OBJ(d)->affected[counter].modifier,
+                        bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
+      }
+      else if (OLC_OBJ(d)->affected[counter].location == APPLY_SPELL_POTENCY || OLC_OBJ(d)->affected[counter].location == APPLY_SPELL_DURATION)
+      {
+        write_to_output(d, " %s%d%s) %+d%% to %s (%s)\r\n", grn, counter + 1, nrm,
+                        OLC_OBJ(d)->affected[counter].modifier, apply_buf, bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
+      }
       else
       {
         write_to_output(d, " %s%d%s) %+d to %s (%s)\r\n", grn, counter + 1, nrm,
@@ -2482,7 +2495,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       max_val = 80;
       break;
     case ITEM_GEAR_OUTFIT:
-      if (number == APPLY_SKILL || number == APPLY_FEAT)
+      if (number == APPLY_SKILL || number == APPLY_FEAT || number == APPLY_SPELL_CIRCLE_1 || number == APPLY_SPELL_CIRCLE_2 || number == APPLY_SPELL_CIRCLE_3
+            || number == APPLY_SPELL_CIRCLE_4 || number == APPLY_SPELL_CIRCLE_5 || number == APPLY_SPELL_CIRCLE_6 || number == APPLY_SPELL_CIRCLE_7
+            || number == APPLY_SPELL_CIRCLE_8 || number == APPLY_SPELL_CIRCLE_9)
       {
         write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
         return;
@@ -2731,6 +2746,22 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Skill: ");
       OLC_MODE(d) = OEDIT_APPLY_SPECIFIC;
     }
+    if (OLC_OBJ(d)->affected[OLC_VAL(d)].location >= APPLY_SPELL_CIRCLE_1 && OLC_OBJ(d)->affected[OLC_VAL(d)].location <= APPLY_SPELL_CIRCLE_9)
+    {
+      count = 1;
+      write_to_output(d, "\r\nSelect which class to affect:\r\n\r\n");
+      for (i = CLASS_WIZARD; i < NUM_CLASSES; i++)
+      {
+        if (!IS_SPELLCASTER_CLASS(i)) continue;
+        write_to_output(d, "%2d) %-21s ", i, class_names[i]);
+        if ((count % 3) == 0)
+          write_to_output(d, "\r\n");
+        count++;
+      }
+      write_to_output(d, "\r\n");
+      write_to_output(d, "CLASS: ");
+      OLC_MODE(d) = OEDIT_APPLY_SPECIFIC;
+    }
     else
     {
       oedit_disp_prompt_apply_menu(d);
@@ -2738,10 +2769,21 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
   case OEDIT_APPLY_SPECIFIC:
     number = atoi(arg);
-    if (number < START_GENERAL_ABILITIES || number > END_CRAFT_ABILITIES)
+    if (OLC_OBJ(d)->affected[OLC_VAL(d)].location == APPLY_SKILL)
     {
-      write_to_output(d, "That is not a valid skill.\r\n");
-      return;
+      if (number < START_GENERAL_ABILITIES || number > END_CRAFT_ABILITIES)
+      {
+        write_to_output(d, "That is not a valid skill.\r\n");
+        return;
+      }
+    }
+    else if (OLC_OBJ(d)->affected[OLC_VAL(d)].location >= APPLY_SPELL_CIRCLE_1 && OLC_OBJ(d)->affected[OLC_VAL(d)].location <= APPLY_SPELL_CIRCLE_9)
+    {
+      if (!IS_SPELLCASTER_CLASS(number))
+      {
+        write_to_output(d, "That is not a valid spellcasting class.\r\n");
+        return;
+      } 
     }
     OLC_OBJ(d)->affected[OLC_VAL(d)].specific = number;
     oedit_disp_prompt_apply_menu(d);

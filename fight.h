@@ -87,7 +87,7 @@ void stop_fighting(struct char_data *ch);
 bool is_tanking(struct char_data *ch);
 void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo);
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
-                       int w_type, int diceroll, int mode, bool is_critical, int attack_type);
+                       int w_type, int diceroll, int mode, bool is_critical, int attack_type, int dam_type);
 struct obj_data *make_a_corpse_4_npcs(struct char_data *ch);
 int handle_warding(struct char_data *ch, struct char_data *victim, int dam);
 int compute_attack_bonus_full(struct char_data *ch, struct char_data *victim, int attack_type, bool display);

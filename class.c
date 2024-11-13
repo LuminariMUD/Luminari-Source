@@ -3713,6 +3713,9 @@ void advance_level(struct char_data *ch, int class)
     KNOWS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE);
   }
 
+  if (GET_LEVEL(ch) >= 21)
+    send_to_char(ch, "\tyType 'epicfeats' to see a list of available epic feats.\r\n\tn");
+
   /*******/
   /* end advancement block */
   /*******/
@@ -4880,6 +4883,8 @@ void load_class_list(void)
   feat_assignment(CLASS_WARRIOR, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARRIOR, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARRIOR, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_OVERWHELMING_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_DEVASTATING_CRITICAL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARRIOR, FEAT_EPIC_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
   /* no spell assign */
   /* no prereqs! */
@@ -5078,6 +5083,8 @@ void load_class_list(void)
   feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 26, Y);
   feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 28, Y);
   feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 30, Y);
+  feat_assignment(CLASS_DRUID, FEAT_GARGANTUAN_WILD_SHAPE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_DRUID, FEAT_COLOSSAL_WILD_SHAPE, Y, NOASSIGN_FEAT, N);
   /* no class feats */
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
@@ -5340,6 +5347,9 @@ void load_class_list(void)
   feat_assignment(CLASS_BERSERKER, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_BERSERKER, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_BERSERKER, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_CHAOTIC_RAGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_OVERWHELMING_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_DEVASTATING_CRITICAL, Y, NOASSIGN_FEAT, N);
   /* class prerequisites */
   class_prereq_align(CLASS_BERSERKER, NEUTRAL_GOOD);
   class_prereq_align(CLASS_BERSERKER, TRUE_NEUTRAL);
@@ -5820,6 +5830,8 @@ void load_class_list(void)
   feat_assignment(CLASS_PALADIN, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_PALADIN, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_PALADIN, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PALADIN, FEAT_OVERWHELMING_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PALADIN, FEAT_DEVASTATING_CRITICAL, Y, NOASSIGN_FEAT, N);
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -6078,6 +6090,8 @@ void load_class_list(void)
   feat_assignment(CLASS_BLACKGUARD, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_BLACKGUARD, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_BLACKGUARD, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_OVERWHELMING_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_DEVASTATING_CRITICAL, Y, NOASSIGN_FEAT, N);
 
   /* class prerequisites */
   class_prereq_align(CLASS_BLACKGUARD, LAWFUL_EVIL);
@@ -6233,6 +6247,7 @@ void load_class_list(void)
   feat_assignment(CLASS_RANGER, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_RANGER, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_RANGER, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_RANGER, FEAT_DEATH_OF_ENEMIES, Y, NOASSIGN_FEAT, N);
   /* no prereqs! */
   /*****/
   /* INIT spell slots, assignement of spell slots based on
@@ -6315,7 +6330,8 @@ void load_class_list(void)
   feat_assignment(CLASS_BARD, FEAT_BARD_EPIC_SPELL, Y, 21, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_DRAGONS, Y, 22, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_THE_MAGI, Y, 26, N);
-  /* no class feat assignments */
+  /* class feat assignments */
+
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -6413,6 +6429,7 @@ void load_class_list(void)
   // epic class feats
   feat_assignment(CLASS_BARD, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_BARD, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_BARD, FEAT_DEAFENING_SONG, Y, NOASSIGN_FEAT, N);
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */

@@ -4197,6 +4197,33 @@ ACMDU(do_unstuck)
   ch->player_specials->unstuck = NULL;
 }
 
+ACMD(do_lastroom)
+{
+  unsigned int last_room = GET_LAST_ROOM(ch);
+  unsigned int start_room = (unsigned int) CONFIG_MORTAL_START;
+
+  if (GET_ROOM_VNUM(IN_ROOM(ch)) != start_room)
+  {
+    send_to_char(ch, "You can't use the lastroom command here.\r\n");
+    return;
+  }
+
+  if (last_room == 0 || last_room == NOWHERE || last_room == start_room)
+  {
+    send_to_char(ch, "You don't have a valid 'last room'.\r\n");
+    return;
+  }
+
+  char_from_room(ch);
+  act("$n disappears ina  flash.", TRUE, ch, 0, 0, TO_ROOM);
+  act("You teleport to your last location.", FALSE, ch, 0, 0, TO_CHAR);
+  char_to_room(ch, real_room(last_room));
+  do_look(ch, "", 0, 0);
+
+  char_pets_to_char_loc(ch);
+
+}
+
 /* undefines */
 #undef PRISONER_KEY_1
 #undef PRISONER_KEY_2

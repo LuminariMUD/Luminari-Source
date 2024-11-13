@@ -1521,6 +1521,26 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
           send_to_char(ch, "%s %s:(%s%d) %s (%s)", found++ ? "," : "", buf, (j->affected[i].modifier >= 0) ? "+" : "",
                        j->affected[i].modifier, ability_names[feat_num], bonus_types[j->affected[i].bonus_type]);
       }
+      else if (j->affected[i].location >= APPLY_SPELL_CIRCLE_1 && j->affected[i].location <= APPLY_SPELL_CIRCLE_9)
+      {
+        feat_num = j->affected[i].specific;
+        if (feat_num < CLASS_WIZARD || feat_num >= NUM_CLASSES)
+          feat_num = CLASS_WIZARD;
+
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "%s %s:(%s%d) %s (%s)\r\n", found++ ? "," : "", buf, (j->affected[i].modifier >= 0) ? "+" : "",
+                        j->affected[i].modifier, class_names[feat_num], bonus_types[j->affected[i].bonus_type]);
+        else
+          send_to_char(ch, "%s %s:(%s%d) %s (%s)", found++ ? "," : "", buf, (j->affected[i].modifier >= 0) ? "+" : "",
+                       j->affected[i].modifier, class_names[feat_num], bonus_types[j->affected[i].bonus_type]);
+      }
+      else if (j->affected[i].location == APPLY_SPELL_POTENCY || j->affected[i].location == APPLY_SPELL_DURATION)
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "%s %+d%% to %s (%s)\r\n", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
+        else
+          send_to_char(ch, "%s %+d%% to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]); 
+      }
       else
       {
         if (mode == ITEM_STAT_MODE_G_LORE)

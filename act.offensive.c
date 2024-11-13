@@ -2439,7 +2439,7 @@ ACMDCHECK(can_defensive_stance)
 /* defensive stance skill stalwart defender primarily */
 ACMD(do_defensive_stance)
 {
-  struct affected_type af, aftwo, afthree, affour;
+  struct affected_type af, aftwo, afthree, affour, affive, afsix;
   int bonus = 0, duration = 0;
 
   PREREQ_CAN_FIGHT();
@@ -2458,8 +2458,13 @@ ACMD(do_defensive_stance)
   bonus = 4;
 
   /* duration */
-  duration = (6 + GET_CON_BONUS(ch)) +
-             (CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) * 2);
+  duration = (6 + GET_CON_BONUS(ch)) + (CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) * 2);
+
+  if (HAS_FEAT(ch, FEAT_BULWARK_OF_DEFENSE))
+  {
+    bonus = 6;
+    duration *= 1.5;
+  }
 
   send_to_char(ch, "\tcYou take on a \tWdefensive stance\tc!\tn\r\n");
   act("$n \tctakes on a \tWdefensive stance\tc!\tn", FALSE, ch, 0, 0, TO_ROOM);
@@ -2468,6 +2473,8 @@ ACMD(do_defensive_stance)
   new_affect(&aftwo);
   new_affect(&afthree);
   new_affect(&affour);
+  new_affect(&affive);
+  new_affect(&afsix);
 
   af.spell = SKILL_DEFENSIVE_STANCE;
   af.duration = duration;
@@ -2493,10 +2500,24 @@ ACMD(do_defensive_stance)
   affour.modifier = 2;
   affour.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
 
+  affive.spell = SKILL_DEFENSIVE_STANCE;
+  affive.duration = duration;
+  affive.location = APPLY_SAVING_FORT;
+  affive.modifier = 2;
+  affive.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
+
+  afsix.spell = SKILL_DEFENSIVE_STANCE;
+  afsix.duration = duration;
+  afsix.location = APPLY_SAVING_REFL;
+  afsix.modifier = 2;
+  afsix.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
+
   affect_to_char(ch, &af);
   affect_to_char(ch, &aftwo);
   affect_to_char(ch, &afthree);
   affect_to_char(ch, &affour);
+  affect_to_char(ch, &affive);
+  affect_to_char(ch, &afsix);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_DEFENSIVE_STANCE);

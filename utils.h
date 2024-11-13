@@ -115,12 +115,15 @@ void gui_room_desc_wrap_close(struct char_data *ch);
 int BAB(struct char_data *ch);
 bool is_dragon_rider_mount(struct char_data *ch);
 bool is_riding_dragon_mount(struct char_data *ch);
+bool is_high_hp_mob(struct char_data *mob);
 bool is_poison_spell(int spell);
 bool valid_vampire_cloak_apply(int type);
 bool is_valid_ability_number(int num);
 int get_region_language(int region);
 const char *get_region_info(int region);
 int get_vampire_cloak_bonus(int level, int type);
+bool has_overwhelming_critical_prereqs(struct char_data *ch, struct obj_data *wielded);
+bool has_devastating_critical_prereqs(struct char_data *ch, struct obj_data *wielded);
 bool can_silence(struct char_data *ch);
 bool can_daze(struct char_data *ch);
 bool is_random_chest_in_room(room_rnum rrnum);
@@ -230,7 +233,12 @@ bool can_see_hidden(struct char_data *ch, struct char_data *vict);
 int skill_check(struct char_data *ch, int skill, int dc);
 bool has_sage_mob_bonus(struct char_data *ch);
 int skill_roll(struct char_data *ch, int skillnum);
+bool is_valid_apply_location_and_circle(int apply, int circle);
+int get_bonus_spells_by_circle_and_class(struct char_data *ch, int ch_class, int circle);
 void increase_skill(struct char_data *ch, int skillnum);
+int get_spell_potency_bonus(struct char_data *ch);
+int get_spell_dc_bonus(struct char_data *ch);
+int get_spell_duration_bonus(struct char_data *ch);
 bool ok_call_mob_vnum(int mob_num);
 int convert_material_vnum(int obj_vnum);
 void basic_mud_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
@@ -249,6 +257,9 @@ int dice(int number, int size);
 int base_augment_psp_allowed(struct char_data *ch);
 int min_dice(int num, int size, int min);
 bool has_epic_power(struct char_data *ch, int powernum);
+int get_random_spellcaster_class(void);
+int determine_random_spell_circle_bonus(void);
+int get_random_skill(void);
 size_t sprintbit(bitvector_t vektor, const char *names[], char *result, size_t reslen);
 size_t sprinttype(int type, const char *names[], char *result, size_t reslen);
 bool is_flying(struct char_data *ch);
@@ -2657,6 +2668,8 @@ bool has_reach(struct char_data *ch);
 #define GET_SAGE_MOB_VNUM(ch)   (ch->char_specials.sage_mob_vnum)
 
 #define GET_RETAINER_MAIL_RECIPIENT(ch) (ch->player_specials->retainer_mail_recipient)
+
+#define GET_LAST_ROOM(ch)   (ch->player_specials->saved.last_room)
 
 #endif /* _UTILS_H_ */
 

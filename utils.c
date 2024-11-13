@@ -5524,23 +5524,25 @@ int leadership_exp_multiplier(struct char_data *ch)
   if (!ch)
     return exp_mult;
 
+  if (IN_ROOM(ch) == NOWHERE)
+    return exp_mult;
+
+  if (!GROUP(ch) && HAS_FEAT(ch, FEAT_LEADERSHIP))
+  {
+    exp_mult = 100 + ((HAS_FEAT(ch, FEAT_LEADERSHIP) + 1) * 5);
+    return exp_mult;
+  }
+
+
   struct char_data *tch = NULL;
 
-  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
-    struct iterator_data Iterator;
-
-    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
-    for (; tch; tch = next_in_list(&Iterator))
-    {
-      if (IN_ROOM(tch) != IN_ROOM(ch))
-        continue;
-      if (HAS_FEAT(tch, FEAT_LEADERSHIP))
+    if (GROUP(ch) != GROUP(tch)) continue;
+    if (HAS_FEAT(tch, FEAT_LEADERSHIP))
       {
         exp_mult = MAX(exp_mult, 100 + ((HAS_FEAT(tch, FEAT_LEADERSHIP) + 1) * 5));
       }
-    }
-    remove_iterator(&Iterator);
   }
 
   return exp_mult;
@@ -9523,6 +9525,8 @@ bool ok_call_mob_vnum(int mob_num)
 
   if (mob_num > 40400 && mob_num <= 40410) return true;
 
+  if (mob_num > 20803 && mob_num <= 20805) return true;
+
   return false;
 
 }
@@ -9725,6 +9729,487 @@ bool has_dr_affect(struct char_data *ch, int spell)
     }
   }
   return false;
+}
+
+bool is_high_hp_mob(struct char_data *mob)
+{
+
+  if (!mob) return false;
+  if (!IS_NPC(mob)) return false;
+
+  int hp = GET_MAX_HIT(mob);
+  int level = GET_LEVEL(mob);
+  int high_hp = (level * level) + (level * 10) * 2;
+
+  if (hp >= high_hp)
+    return true;
+
+  return false;
+
+}
+
+bool has_overwhelming_critical_prereqs(struct char_data *ch, struct obj_data *wielded)
+{
+  if (!ch) return false;
+
+  // barehanded
+  if (wielded == NULL)
+  {
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), WEAPON_FAMILY_MONK))
+      return false;
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_FAMILY_MONK))
+      return false;
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_OVERWHELMING_CRITICAL), WEAPON_FAMILY_MONK))
+      return false;
+  }
+  else
+  {
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
+      return false;
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
+      return false;
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_OVERWHELMING_CRITICAL), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
+      return false;
+  }
+  return true;
+}
+
+bool has_devastating_critical_prereqs(struct char_data *ch, struct obj_data *wielded)
+{
+
+  if (!has_overwhelming_critical_prereqs(ch, wielded))
+    return false;
+
+  if (wielded == NULL)
+  {
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_DEVASTATING_CRITICAL), WEAPON_FAMILY_MONK))
+      return false;
+  }
+  else
+  {
+    if (!HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_DEVASTATING_CRITICAL), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily))
+      return false;
+  }
+
+  return true;
+}
+
+bool is_valid_apply_location_and_circle(int apply, int circle)
+{
+  switch (apply)
+  {
+    case APPLY_SPELL_CIRCLE_1: if (circle == 1) return true; else return false;
+    case APPLY_SPELL_CIRCLE_2: if (circle == 2) return true; else return false;
+    case APPLY_SPELL_CIRCLE_3: if (circle == 3) return true; else return false;
+    case APPLY_SPELL_CIRCLE_4: if (circle == 4) return true; else return false;
+    case APPLY_SPELL_CIRCLE_5: if (circle == 5) return true; else return false;
+    case APPLY_SPELL_CIRCLE_6: if (circle == 6) return true; else return false;
+    case APPLY_SPELL_CIRCLE_7: if (circle == 7) return true; else return false;
+    case APPLY_SPELL_CIRCLE_8: if (circle == 8) return true; else return false;
+    case APPLY_SPELL_CIRCLE_9: if (circle == 9) return true; else return false;
+  }
+  return false;
+}
+
+int get_bonus_spells_by_circle_and_class(struct char_data *ch, int ch_class, int circle)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return;
+
+  int i = 0, j = 0;
+  int bonus_circles = 0;
+  int max_value[NUM_BONUS_TYPES];
+  int max_val_spell[NUM_BONUS_TYPES];
+  int max_val_worn_slot[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+  char affect_buf[2400], gear_buf[2400], temp_buf[200];
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    max_value[i] = 0;
+    max_val_spell[i] = -1;
+    max_val_worn_slot[i] = -1;
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (is_valid_apply_location_and_circle(aff->location, circle) && aff->specific == ch_class)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        bonus_circles += aff->modifier;
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        bonus_circles -= aff->modifier;
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+        max_val_spell[aff->bonus_type] = aff->spell;
+        max_val_worn_slot[aff->bonus_type] = -1;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (is_valid_apply_location_and_circle(obj->affected[j].location, circle) && obj->affected[j].specific == ch_class)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          bonus_circles += obj->affected[j].modifier;
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          bonus_circles -= obj->affected[j].modifier;
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+          max_val_spell[obj->affected[j].bonus_type] = -1;
+          max_val_worn_slot[obj->affected[j].bonus_type] = i;
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i))
+      continue;
+    bonus_circles += max_value[i];
+  }
+
+  return bonus_circles;
+}
+
+int get_spell_potency_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return;
+
+  int i = 0, j = 0;
+  int potency_bonus = 100;
+  int max_value[NUM_BONUS_TYPES];
+  int max_val_spell[NUM_BONUS_TYPES];
+  int max_val_worn_slot[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    max_value[i] = 0;
+    max_val_spell[i] = -1;
+    max_val_worn_slot[i] = -1;
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_SPELL_POTENCY)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        potency_bonus += aff->modifier;
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        potency_bonus -= aff->modifier;
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+        max_val_spell[aff->bonus_type] = aff->spell;
+        max_val_worn_slot[aff->bonus_type] = -1;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (obj->affected[j].location == APPLY_SPELL_POTENCY)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          potency_bonus += obj->affected[j].modifier;
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          potency_bonus -= obj->affected[j].modifier;
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+          max_val_spell[obj->affected[j].bonus_type] = -1;
+          max_val_worn_slot[obj->affected[j].bonus_type] = i;
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i))
+      continue;
+    potency_bonus += max_value[i];
+  }
+
+  return potency_bonus;
+}
+
+int get_spell_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return;
+
+  int i = 0, j = 0;
+  int dc_bonus = 0;
+  int max_value[NUM_BONUS_TYPES];
+  int max_val_spell[NUM_BONUS_TYPES];
+  int max_val_worn_slot[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    max_value[i] = 0;
+    max_val_spell[i] = -1;
+    max_val_worn_slot[i] = -1;
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_SPELL_DC)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        dc_bonus += aff->modifier;
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        dc_bonus -= aff->modifier;
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+        max_val_spell[aff->bonus_type] = aff->spell;
+        max_val_worn_slot[aff->bonus_type] = -1;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (obj->affected[j].location == APPLY_SPELL_DC)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          dc_bonus += obj->affected[j].modifier;
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          dc_bonus -= obj->affected[j].modifier;
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+          max_val_spell[obj->affected[j].bonus_type] = -1;
+          max_val_worn_slot[obj->affected[j].bonus_type] = i;
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i))
+      continue;
+    dc_bonus += max_value[i];
+  }
+
+  return dc_bonus;
+}
+
+int get_spell_duration_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return;
+
+  int i = 0, j = 0;
+  int duration_bonus = 100;
+  int max_value[NUM_BONUS_TYPES];
+  int max_val_spell[NUM_BONUS_TYPES];
+  int max_val_worn_slot[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    max_value[i] = 0;
+    max_val_spell[i] = -1;
+    max_val_worn_slot[i] = -1;
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_SPELL_DURATION)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        duration_bonus += aff->modifier;
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        duration_bonus -= aff->modifier;
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+        max_val_spell[aff->bonus_type] = aff->spell;
+        max_val_worn_slot[aff->bonus_type] = -1;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (obj->affected[j].location == APPLY_SPELL_DURATION)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          duration_bonus += obj->affected[j].modifier;
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          duration_bonus -= obj->affected[j].modifier;
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+          max_val_spell[obj->affected[j].bonus_type] = -1;
+          max_val_worn_slot[obj->affected[j].bonus_type] = i;
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i))
+      continue;
+    duration_bonus += max_value[i];
+  }
+
+  return duration_bonus;
+}
+
+int get_random_spellcaster_class(void)
+{
+  int chclass = -1;
+  do
+  {
+    chclass = rand_number(0, NUM_CLASSES);
+  }
+  while (!IS_SPELLCASTER_CLASS(chclass));
+
+  return chclass;
+}
+
+int determine_random_spell_circle_bonus(void)
+{
+  int which = dice(1, 100);
+
+  if (which <= 20)
+    return APPLY_SPELL_CIRCLE_1;
+  else if (which <= 35)
+    return APPLY_SPELL_CIRCLE_2;
+  else if (which <= 50)
+    return APPLY_SPELL_CIRCLE_3;
+  else if (which <= 65)
+    return APPLY_SPELL_CIRCLE_4;
+  else if (which <= 75)
+    return APPLY_SPELL_CIRCLE_5;
+  else if (which <= 85)
+    return APPLY_SPELL_CIRCLE_6;
+  else if (which <= 90)
+    return APPLY_SPELL_CIRCLE_7;
+  else if (which <= 95)
+    return APPLY_SPELL_CIRCLE_8;
+  else
+    return APPLY_SPELL_CIRCLE_9;
+
+  return APPLY_SPELL_CIRCLE_1;
+}
+
+// need to add crafting skills once new crafting system is in -- gicker
+int get_random_skill(void)
+{
+  return dice(1, END_GENERAL_ABILITIES);
 }
 
 /* EoF */

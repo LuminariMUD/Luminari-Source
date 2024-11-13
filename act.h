@@ -269,6 +269,7 @@ ACMD_DECL(do_true_judgement);
 ACMD_DECL(do_flightlist);
 ACMD_DECL(do_kapak_saliva);
 ACMD_DECL(do_roomvnum);
+ACMD_DECL(do_lastroom);
 
 int max_judgements_active(struct char_data *ch);
 int num_judgements_active(struct char_data *ch);

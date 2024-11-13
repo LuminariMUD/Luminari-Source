@@ -577,7 +577,7 @@ void perform_evolution_attack(struct char_data *ch, int mode, int phase, int att
   {
     /* display hitroll and damage bonuses */
     send_to_char(ch, "%s, Attack Bonus:  %d; ", attack_types[attack_type], compute_attack_bonus(ch, ch, attack_type));
-    compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, attack_type);
+    compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL, MODE_DISPLAY_PRIMARY, FALSE, attack_type, dam_type);
   }
 }
 #undef NORMAL_ATTACK_ROUTINE
