@@ -166,6 +166,7 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
     challenge += 3;
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
     challenge += 4;
+  challenge += get_spell_penetration_bonus(ch);
 
   if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_SPELLSWORD) > 0 && WEAPON_SPELL_PROC(ch) == TRUE)
   {
@@ -322,6 +323,10 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   case CAST_INNATE:
   case CAST_WEAPON_SPELL:
     challenge += level;
+    if (HAS_FEAT(vict, FEAT_SPELL_HARDINESS))
+      savethrow += 2;
+    if (HAS_FEAT(vict, FEAT_STRONG_SPELL_HARDINESS))
+      savethrow += 4;
     break;
   case CAST_WEAPON_POISON:
     challenge += level;
@@ -5995,6 +6000,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "It seems your opponent is not susceptible to disease.\r\n");
       return;
     }
+    if (HAS_FEAT(victim, FEAT_GRUBBY)) GET_DC_BONUS(ch) -= 4;
     switch (rand_number(1, 7))
     {
     case 1: // blinding sickness
@@ -6374,6 +6380,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "It seems your opponent is not susceptible to disease.\r\n");
       return;
     }
+    if (HAS_FEAT(victim, FEAT_GRUBBY)) GET_DC_BONUS(ch) -= 4;
     if (mag_resistance(ch, victim, 0))
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE) || HAS_EVOLUTION(victim, EVOLUTION_CELESTIAL_APPEARANCE))
@@ -8689,8 +8696,10 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     for (i = 0; i < MAX_SPELL_AFFECTS; i++)
     {
-      af[i].duration = af[i].duration * get_spell_duration_bonus(ch) / 100;
-      af[i].modifier = af[i].modifier * get_spell_potency_bonus(ch) / 100;
+      if (af[i].duration > 0)
+        af[i].duration = af[i].duration * get_spell_duration_bonus(ch) / 100;
+      if (af[i].modifier > 0)
+        af[i].modifier = af[i].modifier * get_spell_potency_bonus(ch) / 100;
     }
   }
 

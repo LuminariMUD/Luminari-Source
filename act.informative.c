@@ -2091,6 +2091,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Forage - Duration: %d seconds\r\n", GET_FORAGE_COOLDOWN(k) * 6);
   if (GET_RETAINER_COOLDOWN(k) > 0)
     send_to_char(ch, "Call Retainer - Duration: %d seconds\r\n", GET_RETAINER_COOLDOWN(k) * 6);
+  if (GET_SCROUNGE_COOLDOWN(k) > 0)
+    send_to_char(ch, "Scrounge - Duration: %d seconds\r\n", GET_SCROUNGE_COOLDOWN(k) * 6);
 
   list_item_activate_ability_cooldowns(ch);
 
@@ -4205,7 +4207,7 @@ ACMD(do_who)
         else
           snprintf(clan_name, sizeof(clan_name), "%s", ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0) ? CLAN_NAME(c_n) : "Adventurer");
       length = strlen(clan_name);
-      padding = 20 - length;
+      padding = 28 - length;
       
       // Move characters to make room for padding at the front
       for (x = length; x >= 0; x--)
@@ -4217,14 +4219,18 @@ ACMD(do_who)
           clan_name[x] = ' ';
       }
       // Append spaces at the end
-      for (x = length + padding / 2; x < 20; x++) {
+      for (x = length + padding / 2; x < 28; x++) {
           clan_name[x] = ' ';
       }
       if (padding % 2 != 0) {
           // If padding is odd, add one more space at the end
-          clan_name[20] = ' ';
+          clan_name[28] = ' ';
       }
-      send_to_char(ch, "\tC[ %20.20s ]\tn %s", clan_name, GET_TITLE(tch));
+      if (GET_LEVEL(tch) >= LVL_IMMORT)
+        send_to_char(ch, "\tW[\tC%28.28s \tW]\tn %s", clan_name, GET_TITLE(tch));
+      else
+        send_to_char(ch, "\tW[ \tC%2d %-4.4s %-20.20s \tW]\tn %s", GET_LEVEL(tch), race_list[GET_REAL_RACE(tch)].abbrev,
+        ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0) ? CLAN_NAME(c_n) : "Adventurer", GET_TITLE(tch));
 
         // num_can_see++;
         if (GET_LEVEL(tch) >= LVL_IMMORT)
@@ -4385,6 +4391,8 @@ ACMD(do_who)
   {
     send_to_char(ch, "Number of unique accounts connected: %d.\r\n", num_accounts);
   }
+
+  send_to_char(ch, "Type 'listraces' to understand race abbreviations.\r\n");
 
   if (IS_HAPPYHOUR > 0)
   {

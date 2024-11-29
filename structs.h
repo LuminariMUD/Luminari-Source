@@ -2819,12 +2819,17 @@
 #define FEAT_DEAFENING_SONG 1232
 #define FEAT_OVERWHELMING_CRITICAL 1233
 #define FEAT_DEVASTATING_CRITICAL 1234
+#define FEAT_SURVIVAL_INSTINCT 1235
+#define FEAT_PITIABLE 1236
+#define FEAT_COWARDLY 1237
+#define FEAT_GULLY_DWARF_RACIAL_ADJUSTMENT 1238
+#define FEAT_GRUBBY 1239
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1235
+#define FEAT_LAST_FEAT 1240
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1236
+#define NUM_FEATS 1241
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3358,10 +3363,11 @@
 #define APPLY_SPELL_POTENCY 70
 #define APPLY_SPELL_DC 71
 #define APPLY_SPELL_DURATION 72
+#define APPLY_SPELL_PENETRATION 73
 
 
 /** Total number of applies */
-#define NUM_APPLIES 73
+#define NUM_APPLIES 74
 
 // maximum number of spells/powers to buff
 #define MAX_BUFFS 40
@@ -4964,6 +4970,7 @@ struct player_special_data_saved
 
     int forage_cooldown;
     int retainer_cooldown;
+    int scrounge_cooldown;
     int character_age;
     bool character_age_saved;
 

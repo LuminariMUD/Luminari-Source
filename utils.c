@@ -6496,6 +6496,9 @@ bool can_flee_speed(struct char_data *ch)
 
   if (HAS_REAL_FEAT(ch, FEAT_NIMBLE_ESCAPE))
     return true;
+  
+  if (HAS_FEAT(ch, FEAT_COWARDLY))
+    return true;
 
   struct char_data *tch = NULL;
 
@@ -8395,6 +8398,7 @@ void clear_misc_cooldowns(struct char_data *ch)
   INCORPOREAL_FORM_TIMER(ch) = 0;
   GET_MISSION_COOLDOWN(ch) = 0;
   GET_FORAGE_COOLDOWN(ch) = 0;
+  GET_SCROUNGE_COOLDOWN(ch) = 0;
 }
 
 bool can_mastermind_power(struct char_data *ch, int spellnum)
@@ -9814,7 +9818,7 @@ bool is_valid_apply_location_and_circle(int apply, int circle)
 int get_bonus_spells_by_circle_and_class(struct char_data *ch, int ch_class, int circle)
 {
   if (!ch || IS_NPC(ch) || !ch->desc)
-    return;
+    return 0;
 
   int i = 0, j = 0;
   int bonus_circles = 0;
@@ -9823,7 +9827,6 @@ int get_bonus_spells_by_circle_and_class(struct char_data *ch, int ch_class, int
   int max_val_worn_slot[NUM_BONUS_TYPES];
   struct obj_data *obj = NULL;
   struct affected_type *aff = NULL;
-  char affect_buf[2400], gear_buf[2400], temp_buf[200];
 
   for (i = 0; i < NUM_BONUS_TYPES; i++)
   {
@@ -9904,7 +9907,7 @@ int get_bonus_spells_by_circle_and_class(struct char_data *ch, int ch_class, int
 int get_spell_potency_bonus(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch) || !ch->desc)
-    return;
+    return 100;
 
   int i = 0, j = 0;
   int potency_bonus = 100;
@@ -9993,7 +9996,7 @@ int get_spell_potency_bonus(struct char_data *ch)
 int get_spell_dc_bonus(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch) || !ch->desc)
-    return;
+    return 0;
 
   int i = 0, j = 0;
   int dc_bonus = 0;
@@ -10079,10 +10082,99 @@ int get_spell_dc_bonus(struct char_data *ch)
   return dc_bonus;
 }
 
+int get_spell_penetration_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return 0;
+
+  int i = 0, j = 0;
+  int penetration_bonus = 0;
+  int max_value[NUM_BONUS_TYPES];
+  int max_val_spell[NUM_BONUS_TYPES];
+  int max_val_worn_slot[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    max_value[i] = 0;
+    max_val_spell[i] = -1;
+    max_val_worn_slot[i] = -1;
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_SPELL_PENETRATION)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        penetration_bonus += aff->modifier;
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        penetration_bonus -= aff->modifier;
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+        max_val_spell[aff->bonus_type] = aff->spell;
+        max_val_worn_slot[aff->bonus_type] = -1;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i)))
+      continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (obj->affected[j].location == APPLY_SPELL_PENETRATION)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          penetration_bonus += obj->affected[j].modifier;
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          penetration_bonus -= obj->affected[j].modifier;
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+          max_val_spell[obj->affected[j].bonus_type] = -1;
+          max_val_worn_slot[obj->affected[j].bonus_type] = i;
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i))
+      continue;
+    penetration_bonus += max_value[i];
+  }
+
+  return penetration_bonus;
+}
+
 int get_spell_duration_bonus(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch) || !ch->desc)
-    return;
+    return 100;
 
   int i = 0, j = 0;
   int duration_bonus = 100;
@@ -10165,7 +10257,7 @@ int get_spell_duration_bonus(struct char_data *ch)
     duration_bonus += max_value[i];
   }
 
-  return duration_bonus;
+  return MAX(100, duration_bonus);
 }
 
 int get_random_spellcaster_class(void)

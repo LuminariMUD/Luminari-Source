@@ -462,6 +462,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_DRAGON_RIDER_DRAGON_TYPE(ch) = 0;
     GET_FORAGE_COOLDOWN(ch) = 0;
     GET_RETAINER_COOLDOWN(ch) = 0;
+    GET_SCROUNGE_COOLDOWN(ch) = 0;
 
     for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     { /* loop through all the character's quest slots */
@@ -1242,6 +1243,8 @@ int load_char(const char *name, struct char_data *ch)
         }
         else if (!strcmp(tag, "Scrl"))
           load_scrolls(fl, ch);
+        else if (!strcmp(tag, "Scrg"))
+          GET_SCROUNGE_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "ScrW"))
           GET_SCREEN_WIDTH(ch) = atoi(line);
         else if (!strcmp(tag, "Skil"))
@@ -1861,6 +1864,8 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "EidC: %d\n", CALL_EIDOLON_COOLDOWN(ch));
   if (GET_FORAGE_COOLDOWN(ch) != 0)
     fprintf(fl, "FrgC: %d\n", GET_FORAGE_COOLDOWN(ch));
+  if (GET_SCROUNGE_COOLDOWN(ch) != 0)
+    fprintf(fl, "Scrg: %d\n", GET_SCROUNGE_COOLDOWN(ch));
   if (GET_RETAINER_COOLDOWN(ch) != 0)
     fprintf(fl, "RetC: %d\n", GET_RETAINER_COOLDOWN(ch));
   fprintf(fl, "God : %d\n", GET_DEITY(ch));

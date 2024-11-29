@@ -390,6 +390,7 @@
 #define CUSTOM_TREASURE_MESSAGE_PERFORM 3
 #define CUSTOM_TREASURE_MESSAGE_TRIBUTE 4
 #define CUSTOM_TREASURE_MESSAGE_EXTORTION 5
+#define CUSTOM_TREASURE_MESSAGE_SCROUNGE 6
 
 /* treasure_const.c - list of constant arrays */
 extern const char *gemstones[NUM_A_GEMSTONES + 1];
@@ -491,6 +492,9 @@ int determine_rnd_misc_cat();
 int cp_convert_grade_enchantment(int grade);
 /* given a level, determine a random appropriate grade */
 int quick_grade_check(int level);
+int increase_gold(struct char_data *ch, int amt);
+int award_random_money(struct char_data *ch, int result);
+void award_random_food_item(struct char_data *ch, int result, int type);
 
 // staff tool to load random items
 ACMD_DECL(do_loadmagic);

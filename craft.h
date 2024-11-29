@@ -227,6 +227,7 @@ void reset_acraft(struct char_data *ch);
 /* command functions */
 ACMD_DECL(do_harvest);
 ACMD_DECL(do_disenchant);
+ACMD_DECL(do_need_craft_kit);
 /* end command functions */
 
 int get_mysql_supply_orders_available(struct char_data *ch);

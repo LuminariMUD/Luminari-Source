@@ -299,7 +299,7 @@ void perform_flee(struct char_data *ch)
     return;
   }
 
-  if (!is_action_available(ch, atMOVE, TRUE))
+  if (!is_action_available(ch, atMOVE, TRUE) && !HAS_FEAT(ch, FEAT_COWARDLY))
   {
     GUI_CMBT_OPEN(ch);
     send_to_char(ch, "You need a move action to flee!\r\n");
@@ -327,7 +327,8 @@ void perform_flee(struct char_data *ch)
   }
 
   /* cost */
-  USE_MOVE_ACTION(ch);
+  if (!HAS_FEAT(ch, FEAT_COWARDLY))
+    USE_MOVE_ACTION(ch);
 
   // not fighting?  no problems
   if (!FIGHTING(ch))
@@ -2223,6 +2224,7 @@ void die(struct char_data *ch, struct char_data *killer)
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SPELLBATTLE);
     SPELLBATTLE(ch) = 0;
     wildshape_return(ch);
+    GET_LAST_ROOM(ch) = 0;
   }
 
   /* clear grapple */
@@ -2449,7 +2451,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   /* minimum of 1 xp point */
   exp = MAX(exp, 1);
 
-#if defined(CAMAPIGN_DL)
+#if defined(CAMPAIGN_DL)
   if (GET_LEVEL(victim) < 18)
     if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < GET_LEVEL(ch))
       exp /= 2;
@@ -3594,6 +3596,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 25;
     if (HAS_FEAT(ch, FEAT_STOUT_RESILIENCE))
       damtype_reduction += 50;
+    if (HAS_FEAT(ch, FEAT_GRUBBY))
+      damtype_reduction += 50;
     if (HAS_REAL_FEAT(ch, FEAT_ESSENCE_OF_UNDEATH))
       damtype_reduction += 100;
     if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
@@ -3643,6 +3647,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_CRYSTAL_DWARF)
       damtype_reduction += 10;
     if (HAS_FEAT(ch, FEAT_STRONG_AGAINST_DISEASE))
+      damtype_reduction += 50;
+    if (HAS_FEAT(ch, FEAT_GRUBBY))
       damtype_reduction += 50;
 
     /* npc vulnerabilities/strengths */
@@ -8607,7 +8613,7 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
   /* Profane bonus */
 
   /* Racial bonus */
-#if !defined(CAMAPIGN_DL) && !defined(CAMPAIGN_FR)
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   if (GET_RACE(ch) == RACE_TRELUX)
   {
     bonuses[BONUS_TYPE_RACIAL] += 4;

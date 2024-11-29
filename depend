@@ -130,7 +130,7 @@ config.o: config.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 constants.o: constants.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h interpreter.h \
  spells.h craft.h feats.h domains_schools.h handler.h deities.h \
- constants.h
+ constants.h roleplay.h
 craft.o: craft.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mysql.h utils.h db.h helpers.h perfmon.h comm.h spells.h \
  interpreter.h constants.h handler.h craft.h mud_event.h dg_event.h \
@@ -449,7 +449,8 @@ redit.o: redit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 roleplay.o: roleplay.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h spells.h \
  handler.h interpreter.h constants.h backgrounds.h treasure.h fight.h \
- spec_procs.h clan.h dg_scripts.h feats.h improved-edit.h
+ spec_procs.h clan.h dg_scripts.h feats.h improved-edit.h roleplay.h \
+ deities.h char_descs.h modify.h
 sedit.o: sedit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h interpreter.h shop.h \
  genolc.h genshp.h genzon.h oasis.h help.h constants.h

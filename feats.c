@@ -421,7 +421,23 @@ void assign_feats(void)
   feato(FEAT_DWARF_RACIAL_ADJUSTMENT, "dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 con",
         "As a racial adjustment you have +2 to constitution.");
-#if defined(CAMAPIGN_DL)
+#if defined(CAMPAIGN_DL)
+  // gully dwarf
+  feato(FEAT_GULLY_DWARF_RACIAL_ADJUSTMENT, "gully dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+4 Con, +4 Dex, -4 Int, -2 Cha",
+        "+4 racial bonus to dexterity and constituion ability scores. -4 to intelligence and -2 to charisma.");
+  feato(FEAT_SURVIVAL_INSTINCT, "survival instinct", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+3 to Stealth and Nature skills. Can use the scrounge ability to find random items virtually anywhere.",
+    "+3 to Stealth and Nature skills. Can use the scrounge ability to find random items virtually anywhere.");
+  feato(FEAT_COWARDLY, "cowardly", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "-4 penalty to intimidation attempts on the gully dwarf. Movement speed will not prevent them from fleeing, and they do not need an action to flee. Immune to taunts.",
+    "-4 penalty to intimidation attempts on the gully dwarf. Movement speed will not prevent them from fleeing, and they do not need an action to flee. Immune to taunts.");
+  feato(FEAT_PITIABLE, "pitiable", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "Has a 75% chance to avoid aggro attacks by mobs.",
+    "Has a 75% chance to avoid aggro attacks by mobs.");
+  feato(FEAT_GRUBBY, "grubby", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "-6 to persuasion and appraise skill checks. 50% resistance to poison and disease damage. +4 saving throw bonus against disease.",
+    "-6 to persuasion and appraise skill checks. 50% resistance to poison and disease damage. +4 saving throw bonus against disease.");
   // mountain dwarf
   feato(FEAT_SHIELD_DWARF_RACIAL_ADJUSTMENT, "mountain dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 str +2 Con",
@@ -5058,7 +5074,12 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   /* Pale/Death Master */
   feato(FEAT_BONE_ARMOR, "bone armor", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
     "allows creation of bone armor with the bonearmor command, and 10 percent arcane spell failure reduction in per rank, if and only if all armor slots are made of bone (body, arms, legs and head).", 
-    "allows creation of bone armor with the bonearmor command,  and 10 percent arcane spell failure reduction in per rank, if and only if all armor slots are made of bone (body, arms, legs and head).");
+    "allows creation of bone armor with the bonearmor command,  and 10 percent arcane spell failure reduction "
+    "in per rank, if and only if all armor slots are made of bone (body, arms, legs and head). To do so, ensure "
+    "that you have a crafting station in your same room or a crafting kit in your inventory. Put the armor piece "
+    "or shield in the kit and type: bonearmor (new item description) Eg. 'put breastplate kit' then 'bonearmor a "
+    "bone breast plate'. There will be a gold cost, and then the armor piece will be placed in your inventory with "
+    "the new description and the item's material now being bone.");
   feato(FEAT_ESSENCE_OF_UNDEATH, "essence of undeath", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
     "Gives immunity to poison, sleep and death affects, paralysis, sneak attack and critical hits.",
     "Gives immunity to poison, sleep and death affects, paralysis, sneak attack and critical hits.");

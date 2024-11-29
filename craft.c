@@ -1603,7 +1603,7 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+    GET_CRAFTING_TICKS(ch) = MAX(1, 5 - fast_craft_bonus);
 
   obj_to_char(obj, ch);
   save_char(ch, 0);
@@ -2816,7 +2816,6 @@ EVENTFUNC(event_crafting)
 
       /* resize system check point -Zusuk */
       autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESIZE);
-
       break;
 
       case SCMD_REFORGE:
@@ -3551,4 +3550,9 @@ void put_mysql_supply_orders_available(struct char_data *ch, int avail)
   {
     log("SYSERR: Unable to INSERT INTO player_supply_orders: %s", mysql_error(conn));
   }
+}
+
+ACMD(do_need_craft_kit)
+{
+  send_to_char(ch, "You must be in a room with a crafting station or have a crafting kit in your inventory to perform this action.\r\n");
 }
