@@ -2587,6 +2587,7 @@ const char *apply_types[] = {
     "Spell-Potency",
     "Spell-DC",
     "Spell-Duration",
+    "Spell-Penetration",
     "\n" /*73*/
 };
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);
@@ -2667,6 +2668,7 @@ const char *apply_type_food_names[] =
     "", //  spell potency
     "", //  spell dc
     "", //  spell duration
+    "", // spell penetration
     "\n"
 };
 CHECK_TABLE_SIZE(apply_type_food_names, NUM_APPLIES + 1);
@@ -2748,6 +2750,7 @@ const int apply_type_food_or_drink[] =
     TRUE, // spell potency
     TRUE, // spell dc
     TRUE, // spell duration
+    TRUE, // spell penetration
     TRUE
 };
 CHECK_TABLE_SIZE(apply_type_food_or_drink, NUM_APPLIES + 1);

@@ -213,6 +213,13 @@ void say_treasure(struct char_data *ch, struct obj_data *obj)
       send_to_char(ch, "\tYYour extortion victim also hands you %s!\tn\r\n", obj->short_description);
     }
   }
+  else if (ch->char_specials.which_treasure_message == CUSTOM_TREASURE_MESSAGE_SCROUNGE)
+  {
+    if (ch && obj && obj->short_description)
+    {
+      send_to_char(ch, "\tYYou scrounge the area for useful items and come across %s!\tn\r\n", obj->short_description);
+    }
+  }
   else if (ch && obj && obj->short_description)
   {
     send_to_char(ch, "\tYYou have found %s\tn\tY in a nearby lair (random treasure drop)!\tn\r\n", obj->short_description);
@@ -695,7 +702,7 @@ int adjust_bonus_value(int apply_location, int bonus)
   case APPLY_MOVE:
     adjusted_bonus = bonus * 120;
     break;
-  case APPLY_MOVE_REGEN:
+  case APPLY_MV_REGEN:
     adjusted_bonus = bonus * 10;
     break;
   case APPLY_SPELL_DC:
@@ -709,6 +716,7 @@ int adjust_bonus_value(int apply_location, int bonus)
   case APPLY_SPELL_CIRCLE_8:
   case APPLY_SPELL_CIRCLE_9:
   case APPLY_FAST_HEALING:
+  case APPLY_SPELL_PENETRATION:
     adjusted_bonus = bonus / 2;
     break;
   case APPLY_RES_FIRE:
@@ -945,7 +953,7 @@ int random_apply_value(void)
    * for example weapons will get hit/dam bonus (the +) and armor will get
    * ac_apply_new bonus (the +). */
 #if defined (CAMPAIGN_DL)
-  switch (dice(1, 23))
+  switch (dice(1, 24))
 #else
   switch (dice(1, 12))
 #endif
@@ -1016,6 +1024,9 @@ int random_apply_value(void)
     break;
   case 22:
     val = APPLY_SKILL;
+    break;
+  case 23:
+    val = APPLY_SPELL_PENETRATION;
     break;
 #endif
   default:
@@ -4596,6 +4607,15 @@ bool proper_feat(struct obj_data *obj, int feat_num)
     break;
   }
   return true;
+}
+
+int award_random_money(struct char_data *ch, int result)
+{
+  int amount = MAX(1, dice(1, result * 10));
+
+  increase_gold(ch, amount);
+
+  return amount;
 }
 
 const char *kender_loot[NUM_KENDER_BAUBLES] =

@@ -1609,6 +1609,15 @@ void update_player_misc(void)
       }
     }
 
+    if (GET_SCROUNGE_COOLDOWN(ch) > 0)
+    {
+      GET_SCROUNGE_COOLDOWN(ch)--;
+      if (GET_SCROUNGE_COOLDOWN(ch) == 0)
+      {
+        send_to_char(ch, "You can now scrounge for supplies again.\r\n");
+      }
+    }
+
     if (IN_ROOM(ch) == 0 || IN_ROOM(ch) == NOWHERE || GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_MORTAL_START || GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_IMMORTAL_START)
       ;
     else

@@ -3449,6 +3449,11 @@ ACMD(do_taunt)
     send_to_char(ch, "This mob cannot be attacked by you.\r\n");
     return;
   }
+  if (HAS_FEAT(vict, FEAT_COWARDLY))
+  {
+    act("$n is too cowardly to be goaded by your taunts.", FALSE, vict, 0, ch, TO_VICT);
+    return;
+  }
   if (char_has_mud_event(vict, eTAUNTED))
   {
     send_to_char(ch, "Your target is already taunted...\r\n");
@@ -3475,6 +3480,9 @@ int perform_intimidate(struct char_data *ch, struct char_data *vict)
 
   if (HAS_FEAT(vict, FEAT_DEMORALIZE))
     resist += 2;
+
+  if (HAS_FEAT(vict, FEAT_COWARDLY))
+    resist -= 4;
 
   /* Should last one round, plus one second for every point over the resist */
   if (attempt >= resist)

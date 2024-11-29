@@ -59,9 +59,13 @@ bool has_scales(int race);
 bool has_horns(int race);
 bool is_furry(int race);
 bool race_has_no_hair(int race);
+int compare_races(const void *x, const void *y);
+void sort_races(void);
 
 /* ACMD */
 ACMD_DECL(do_race);
+ACMD_DECL(do_listraces);
+ACMD_DECL(do_scrounge);
 
 /* Global variables */
 

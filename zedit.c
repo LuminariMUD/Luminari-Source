@@ -863,7 +863,11 @@ static void zedit_disp_arg3(struct descriptor_data *d)
     write_to_output(d, "Count maximum (g)lobally, or in (r)oom : ");
     break;
   case 'E':
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
+    column_list(d->character, 0, equipment_types, NUM_WEARS, TRUE);
+#else
     column_list(d->character, 0, equipment_types, NUM_WEARS - 4, TRUE); // added -4 to prevent ear/ear/eyes/badge
+#endif
     write_to_output(d, "Location to equip : ");
     break;
   case 'P':
@@ -1576,7 +1580,11 @@ void zedit_parse(struct descriptor_data *d, char *arg)
     case 'E':
       pos = atoi(arg) - 1;
       /* Count number of wear positions. */
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
+      if (pos < 0 || pos >= NUM_WEARS)
+#else
       if (pos < 0 || pos >= NUM_WEARS - 4) // added -4 to prevent ear/ear/eyes/badge
+#endif
         write_to_output(d, "Try again : ");
       else
       {

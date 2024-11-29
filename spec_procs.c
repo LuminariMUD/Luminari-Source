@@ -1020,6 +1020,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   case ABILITY_STEALTH:
     value += GET_DEX_BONUS(ch);
     if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))  value += 2;
+    if (HAS_FEAT(ch, FEAT_SURVIVAL_INSTINCT))  value += 3;
     if (HAS_FEAT(ch, FEAT_AFFINITY_MOVE_SILENT))
       value += 4;
     if (HAS_FEAT(ch, FEAT_STEALTHY))
@@ -1202,6 +1203,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_APPRAISE:
     value += GET_INT_BONUS(ch);
+    if (HAS_FEAT(ch, FEAT_GRUBBY)) value -= 6;
     if (HAS_FEAT(ch, FEAT_DILIGENT))
     {
       /* Unnamed bonus */
@@ -1288,6 +1290,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_DIPLOMACY:
     value += GET_CHA_BONUS(ch);
+    if (HAS_FEAT(ch, FEAT_GRUBBY)) value -= 6;
     if (HAS_FEAT(ch, FEAT_NEGOTIATOR))
     {
       /* Unnamed bonus */
@@ -1356,6 +1359,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_SURVIVAL:
     value += GET_WIS_BONUS(ch);
+    if (HAS_FEAT(ch, FEAT_SURVIVAL_INSTINCT))  value += 3;
     if (HAS_FEAT(ch, FEAT_SELF_SUFFICIENT))
     {
       /* Unnamed bonus */

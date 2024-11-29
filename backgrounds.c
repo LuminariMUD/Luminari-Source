@@ -927,10 +927,7 @@ ACMD(do_relay)
 ACMD(do_forage)
 {
 
-  int skill, dc, result, modifier = 2, bonus = 0, roll;
-  bool food = false;
-  char ripeness[50], food_desc[150];
-  struct obj_data *obj;
+  int skill, dc, result, roll;
 
   if (IS_NPC(ch))
   {
@@ -964,70 +961,7 @@ ACMD(do_forage)
     return;
   }
 
-  result /= 10;
-
-  switch (result)
-  {
-    case 0: modifier = 2; snprintf(ripeness, sizeof(ripeness), "rather unripe"); break;
-    case 1: modifier = 3; snprintf(ripeness, sizeof(ripeness), "barely ripe"); break;
-    case 2: modifier = 4; snprintf(ripeness, sizeof(ripeness), "nicely ripened"); break;
-    case 3: modifier = 5; snprintf(ripeness, sizeof(ripeness), "very well ripened"); break;
-    default: modifier = 6; snprintf(ripeness, sizeof(ripeness), "perfectly ripened"); break;
-  }
-
-  switch (rand_number(0, 18))
-  {
-    case 0: bonus = APPLY_AC_NEW; break;
-    case 1: bonus = APPLY_STR; break;
-    case 2: bonus = APPLY_DEX; break;
-    case 3: bonus = APPLY_CON; break;
-    case 4: bonus = APPLY_INT; break;
-    case 5: bonus = APPLY_WIS; break;
-    case 6: bonus = APPLY_CHA; break;
-    case 7: bonus = APPLY_DAMROLL; modifier /= 2; break;
-    case 8: bonus = APPLY_HITROLL; modifier /= 2; break;
-    case 9: bonus = APPLY_ENCUMBRANCE; break;
-    case 10: bonus = APPLY_HIT; modifier *= 10; break;
-    case 11: bonus = APPLY_MOVE; modifier *= 100; break;
-    case 12: bonus = APPLY_HP_REGEN; break;
-    case 13: bonus = APPLY_MV_REGEN; break;
-    case 14: bonus = APPLY_PSP; modifier *= 5; break;
-    case 15: bonus = APPLY_PSP_REGEN; break;
-    case 16: bonus = APPLY_SAVING_FORT; break;
-    case 17: bonus = APPLY_SAVING_REFL; break;
-    case 18: bonus = APPLY_SAVING_WILL; break;
-  }
-
-  obj = read_object(FORAGE_FOOD_ITEM_VNUM, VIRTUAL);
-
-  if (!obj)
-  {
-    send_to_char(ch, "The forage food item prototype was not found. Please inform a staff with code ERRFOR001.\r\n");
-    return;
-  }
-
-  GET_FORAGE_COOLDOWN(ch) = 100;
-  
-  food = apply_type_food_or_drink[bonus];
-  
-  if (!food)
-    GET_OBJ_TYPE(obj) = ITEM_DRINK;
-
-  obj->affected[0].location = bonus;
-  obj->affected[0].modifier = modifier;
-  obj->affected[0].bonus_type = (food) ? BONUS_TYPE_FOOD : BONUS_TYPE_DRINK;
-  
-  snprintf(food_desc, sizeof(food_desc), "some %s %s", ripeness, apply_type_food_names[bonus]);
-  obj->name = strdup(food_desc);
-  obj->short_description = strdup(food_desc);
-  snprintf(food_desc, sizeof(food_desc), "Some %s %s lie here.", ripeness, apply_type_food_names[bonus]);
-  obj->description = strdup(food_desc);
-
-  obj_to_char(obj, ch);
-
-  act("You forage for food and find $p!", TRUE, ch, obj, 0, TO_CHAR);
-  act("$n forages for food and finds $p!", TRUE, ch, obj, 0, TO_ROOM);
-  
+  award_random_food_item(ch, result, 1);  
 }
 
 #define RETAINER_SYNTAX ("Proper syntax is:\r\n" \

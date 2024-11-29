@@ -1727,6 +1727,8 @@ void mobile_activity(void)
           {
             continue;
           }
+          if (HAS_FEAT(ch, FEAT_COWARDLY) && dice(1, 4) < 4)
+            continue;
           if (MOB_FLAGGED(ch, MOB_ENCOUNTER) && ((GET_LEVEL(ch) - GET_LEVEL(vict)) < 2))
           {
             // We don't want abandoned random encounters killing people they weren't meant for

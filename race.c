@@ -21,6 +21,9 @@
 #include "race.h"
 #include "feats.h"
 #include "class.h"
+#include "backgrounds.h"
+#include "treasure.h"
+#include "spec_procs.h"
 
 /* defines */
 #define Y TRUE
@@ -31,7 +34,9 @@
 #define IS_EPIC_R 2
 
 /* some pre setup here */
+
 struct race_data race_list[NUM_EXTENDED_RACES];
+int race_sort_info[NUM_EXTENDED_RACES+1];
 
 /* Zusuk, 02/2016:  Start notes here!
  * RACE_ these are specific race defines, eventually should be a massive list
@@ -140,7 +145,7 @@ void initialize_races(void)
   for (i = 0; i < NUM_EXTENDED_RACES; i++)
   {
     /* displaying the race */
-    race_list[i].name = NULL;
+    race_list[i].name = "unknown";
     race_list[i].type = NULL;
     race_list[i].type_color = NULL;
     race_list[i].abbrev = NULL;
@@ -731,7 +736,7 @@ void assign_races(void)
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(DL_RACE_KENDER, "Kender", "Kender", "\tCKender\tn", "Kend", "\tCKend\tn",
+  add_race(DL_RACE_KENDER, "kender", "Kender", "\tCKender\tn", "Kend", "\tCKend\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0, 0, IS_NORMAL);
   set_race_details(DL_RACE_KENDER,
@@ -883,6 +888,55 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
   feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
   race_list[DL_RACE_HILL_DWARF].racial_language = SKILL_LANG_DWARVEN;
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_GULLY_DWARF, "gully dwarf", "Gully Dwarf", "\tLGully Dwarf\tn", "GuDw", "\tLGuDw\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_GULLY_DWARF,
+                   // desc
+                   "The Aghar ('Anguished'), or gully dwarves as most "
+                  "races call them, are a misbegotten race of tough "
+                  "survivors. Though gully dwarves themselves have "
+                  "an extensive oral tradition (they love telling stories), "
+                  "no two gully dwarf clans ever agree on the "
+                  "exact details of their origins or history. The commonly "
+                  "accepted tale of how gully dwarves came "
+                  "to be is found within the annals of Astinus’s "
+                  "Iconochronos. According to the Iconochronos, gully "
+                  "dwarves are the result of breeding between "
+                  "gnomes and dwarves in the years following the "
+                  "transformation of the gnomes by the Graygem of "
+                  "Gargath. The gnome-dwarf half-breeds appeared "
+                  "to inherit the worst qualities of both races. The "
+                  "unfortunate half-breeds were driven out of their "
+                  "clans. Humans later christened them 'gully "
+                  "dwarves,' reflecting their lowly status and poor "
+                  "living conditions. ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Hill Dwarf.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Hill Dwarf.");
+  set_race_genders(DL_RACE_GULLY_DWARF, N, Y, Y);                      /* n m f */
+  set_race_abilities(DL_RACE_GULLY_DWARF, 0, 4, -4, 0, 4, -4);           /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_GULLY_DWARF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_GULLY_DWARF,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_GULLY_DWARF, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_GULLY_DWARF, FEAT_POISON_RESIST, 1, N);
+  feat_race_assignment(DL_RACE_GULLY_DWARF, FEAT_STABILITY, 1, N);
+  feat_race_assignment(DL_RACE_GULLY_DWARF, FEAT_SPELL_HARDINESS, 1, N);
+  feat_race_assignment(DL_RACE_GULLY_DWARF, FEAT_SURVIVAL_INSTINCT, 1, N);
+  feat_race_assignment(DL_RACE_GULLY_DWARF, FEAT_PITIABLE, 1, N);
+  feat_race_assignment(DL_RACE_GULLY_DWARF, FEAT_COWARDLY, 1, N);
+  feat_race_assignment(DL_RACE_GULLY_DWARF, FEAT_GRUBBY, 1, N);
+  feat_race_assignment(DL_RACE_GULLY_DWARF, FEAT_GULLY_DWARF_RACIAL_ADJUSTMENT, 1, N);
+  race_list[DL_RACE_GULLY_DWARF].racial_language = SKILL_LANG_GULLYTALK;
 
   /****************************************************************************/
   /****************************************************************************/
@@ -4664,9 +4718,9 @@ int parse_race_long(const char *arg_in)
   if (is_abbrev(arg, "hill dwarf")) return  DL_RACE_HILL_DWARF;
   if (is_abbrev(arg, "hill-dwarf")) return  DL_RACE_HILL_DWARF;
   if (is_abbrev(arg, "hilldwarf")) return  DL_RACE_HILL_DWARF;
-  // if (is_abbrev(arg, "gully dwarf")) return  DL_RACE_GULLY_DWARF;
-  // if (is_abbrev(arg, "gully-dwarf")) return  DL_RACE_GULLY_DWARF;
-  // if (is_abbrev(arg, "gullydwarf")) return  DL_RACE_GULLY_DWARF;
+  if (is_abbrev(arg, "gully dwarf")) return  DL_RACE_GULLY_DWARF;
+  if (is_abbrev(arg, "gully-dwarf")) return  DL_RACE_GULLY_DWARF;
+  if (is_abbrev(arg, "gullydwarf")) return  DL_RACE_GULLY_DWARF;
   if (is_abbrev(arg, "minotaur")) return  DL_RACE_MINOTAUR;
   if (is_abbrev(arg, "kender")) return  DL_RACE_KENDER;
   if (is_abbrev(arg, "gnome")) return  DL_RACE_GNOME;
@@ -5289,6 +5343,222 @@ bool race_has_no_hair(int race)
       return true;
   }
   return false;
+}
+
+int compare_races(const void *x, const void *y)
+{
+  int a = *(const int *)x,
+      b = *(const int *)y;
+
+  return strcmp(race_list[a].name, race_list[b].name);
+}
+
+/* sort feats called at boot up */
+void sort_races(void)
+{
+  int a;
+
+  /* initialize array, avoiding reserved. */
+  for (a = 0; a < NUM_EXTENDED_RACES; a++)
+    race_sort_info[a] = a;
+
+  qsort(&race_sort_info[0], NUM_EXTENDED_RACES, sizeof(int), compare_races);
+
+}
+
+ACMD(do_listraces)
+{
+  int i, sortpos;
+
+  send_to_char(ch, "\r\n");
+  draw_line(ch, 80, '-', '-');
+  text_line(ch, "Races of Krynn", 80, '-', '-');
+  draw_line(ch, 80, '-', '-');
+  for (sortpos = 0; sortpos < NUM_EXTENDED_RACES; sortpos++)
+  {
+    i = race_sort_info[sortpos];
+    if (race_list[i].is_pc)
+    {
+      send_to_char(ch, " %4.4s - %s\r\n", race_list[i].abbrev, race_list[i].type);
+    }
+  }
+  send_to_char(ch, "\r\n");
+  draw_line(ch, 80, '-', '-');
+}
+
+// awards a random food item.
+// result is the result of a skill check vs. a dc
+// type determines the output message given
+// 1 is forage, 2 is scrounge
+void award_random_food_item(struct char_data *ch, int result, int type)
+{
+
+  bool food = false;
+  char ripeness[50], food_desc[150];
+  struct obj_data *obj;
+  int modifier = 2, bonus = 0;
+
+  result /= 10;
+
+  switch (result)
+  {
+    case 0: modifier = 2; snprintf(ripeness, sizeof(ripeness), "rather unripe"); break;
+    case 1: modifier = 3; snprintf(ripeness, sizeof(ripeness), "barely ripe"); break;
+    case 2: modifier = 4; snprintf(ripeness, sizeof(ripeness), "nicely ripened"); break;
+    case 3: modifier = 5; snprintf(ripeness, sizeof(ripeness), "very well ripened"); break;
+    default: modifier = 6; snprintf(ripeness, sizeof(ripeness), "perfectly ripened"); break;
+  }
+
+  switch (rand_number(0, 18))
+  {
+    case 0: bonus = APPLY_AC_NEW; break;
+    case 1: bonus = APPLY_STR; break;
+    case 2: bonus = APPLY_DEX; break;
+    case 3: bonus = APPLY_CON; break;
+    case 4: bonus = APPLY_INT; break;
+    case 5: bonus = APPLY_WIS; break;
+    case 6: bonus = APPLY_CHA; break;
+    case 7: bonus = APPLY_DAMROLL; modifier /= 2; break;
+    case 8: bonus = APPLY_HITROLL; modifier /= 2; break;
+    case 9: bonus = APPLY_ENCUMBRANCE; break;
+    case 10: bonus = APPLY_HIT; modifier *= 10; break;
+    case 11: bonus = APPLY_MOVE; modifier *= 100; break;
+    case 12: bonus = APPLY_HP_REGEN; break;
+    case 13: bonus = APPLY_MV_REGEN; break;
+    case 14: bonus = APPLY_PSP; modifier *= 5; break;
+    case 15: bonus = APPLY_PSP_REGEN; break;
+    case 16: bonus = APPLY_SAVING_FORT; break;
+    case 17: bonus = APPLY_SAVING_REFL; break;
+    case 18: bonus = APPLY_SAVING_WILL; break;
+  }
+
+  obj = read_object(FORAGE_FOOD_ITEM_VNUM, VIRTUAL);
+
+  if (!obj)
+  {
+    send_to_char(ch, "The forage food item prototype was not found. Please inform a staff with code ERRFOR00%d.\r\n", type);
+    return;
+  }
+
+  GET_FORAGE_COOLDOWN(ch) = 100;
+  
+  food = apply_type_food_or_drink[bonus];
+  
+  if (!food)
+    GET_OBJ_TYPE(obj) = ITEM_DRINK;
+
+  obj->affected[0].location = bonus;
+  obj->affected[0].modifier = modifier;
+  obj->affected[0].bonus_type = (food) ? BONUS_TYPE_FOOD : BONUS_TYPE_DRINK;
+  
+  snprintf(food_desc, sizeof(food_desc), "some %s %s", ripeness, apply_type_food_names[bonus]);
+  obj->name = strdup(food_desc);
+  obj->short_description = strdup(food_desc);
+  snprintf(food_desc, sizeof(food_desc), "Some %s %s lie here.", ripeness, apply_type_food_names[bonus]);
+  obj->description = strdup(food_desc);
+
+  obj_to_char(obj, ch);
+
+  if (type == 1)
+  {
+    act("You forage for food and find $p!", TRUE, ch, obj, 0, TO_CHAR);
+    act("$n forages for food and finds $p!", TRUE, ch, obj, 0, TO_ROOM);
+  }
+  else if (type == 2)
+  {
+    act("You scrounge for supplies and find $p!", TRUE, ch, obj, 0, TO_CHAR);
+    act("$n scrounges for supplies and finds $p!", TRUE, ch, obj, 0, TO_ROOM);
+  }
+}
+
+ACMD(do_scrounge)
+{
+
+  int skill, dc, result, roll, scrounge, grade, amount;
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "NPCs cannot scrounge.\r\n");
+    return;
+  }
+
+  if (!HAS_FEAT(ch, FEAT_SURVIVAL_INSTINCT))
+  {
+    send_to_char(ch, "You don't know how to scrounge.\r\n");
+    return;
+  }
+
+  if (GET_SCROUNGE_COOLDOWN(ch) > 0)
+  {
+    send_to_char(ch, "You've recently scrounged for supplies and will have to wait.\r\n");
+    return;
+  }
+
+  skill = compute_ability(ch, ABILITY_NATURE);
+  dc = 15;
+  roll = d20(ch);
+  result = roll + skill - dc;
+
+  send_to_char(ch, "You attempt to scrounge for supplies... Roll %d + %d (nature skill) for total %d vs. dc %d\r\n",
+                  roll, skill, roll + skill, dc);
+
+  if (result < 0)
+  {
+    send_to_char(ch, "You fail to find anything of use.\r\n");
+    GET_SCROUNGE_COOLDOWN(ch) = 100;
+    return;
+  }
+
+  grade = result / 10;
+
+  grade = MAX(GRADE_TYPICAL, grade);
+  grade = MIN(GRADE_SUPERIOR, grade);
+
+  scrounge = dice(1, 20);
+
+  act("You scrounge the area for useful supplies.", TRUE, ch, 0, 0, TO_CHAR);
+  act("$n scrounges the area for useful supplies.", TRUE, ch, 0, 0, TO_ROOM);
+
+  ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_SCROUNGE;
+  switch (scrounge)
+  {
+    case 1: // weapon
+      award_magic_weapon(ch, grade);
+      break;
+    case 2: // armor
+      switch (dice(1, 5))
+      {
+        case 1: award_magic_armor(ch, grade, ITEM_WEAR_BODY); break;
+        case 2: award_magic_armor(ch, grade, ITEM_WEAR_ARMS); break;
+        case 3: award_magic_armor(ch, grade, ITEM_WEAR_LEGS); break;
+        case 4: award_magic_armor(ch, grade, ITEM_WEAR_HEAD); break;
+        case 5: award_magic_armor(ch, grade, ITEM_WEAR_SHIELD); break;
+      }
+      break;
+    case 3: // misc
+      award_misc_magic_item(ch, dice(1, 9), grade);
+      break;
+    case 4: // consumable
+    case 5: // consumable
+    case 6: // consumable
+      award_expendable_item(ch, grade, dice(1, 2));
+      break;
+    case 7: // food/drink
+    case 8: // food/drink
+    case 9: // food/drink
+      award_random_food_item(ch, result, 2);
+      break;
+    case 10: // gold
+    case 11: // gold
+    case 12: // gold
+      amount = award_random_money(ch, result);
+      send_to_char(ch, "You find a pouch containing %d gold coins.\r\n", amount);
+      break;
+    default: // nada
+      send_to_char(ch, "Your scrounging uncovered nothing of use.\r\n");
+      break;
+  }
+  ch->char_specials.which_treasure_message = 0;  
 }
 
 /*

@@ -342,6 +342,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
   case APPLY_SPELL_POTENCY:
   case APPLY_SPELL_DC:
   case APPLY_SPELL_DURATION:
+  case APPLY_SPELL_PENETRATION:
     break;
 
     /* end Do Not Use */

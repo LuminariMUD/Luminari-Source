@@ -127,6 +127,7 @@ bool has_devastating_critical_prereqs(struct char_data *ch, struct obj_data *wie
 bool can_silence(struct char_data *ch);
 bool can_daze(struct char_data *ch);
 bool is_random_chest_in_room(room_rnum rrnum);
+int get_spell_penetration_bonus(struct char_data *ch);
 int get_random_chest_item_level(int level);
 int get_chest_contents_type(void);
 bool is_wearing_metal(struct char_data *ch);
@@ -2664,6 +2665,7 @@ bool has_reach(struct char_data *ch);
 
 #define GET_FORAGE_COOLDOWN(ch) (ch->player_specials->saved.forage_cooldown)
 #define GET_RETAINER_COOLDOWN(ch) (ch->player_specials->saved.retainer_cooldown)
+#define GET_SCROUNGE_COOLDOWN(ch) (ch->player_specials->saved.scrounge_cooldown)
 
 #define GET_SAGE_MOB_VNUM(ch)   (ch->char_specials.sage_mob_vnum)
 

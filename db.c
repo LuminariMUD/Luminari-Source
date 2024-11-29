@@ -679,6 +679,9 @@ void boot_world(void)
   log("Loading evolutions.");
   assign_evolutions();
 
+  // we'll sort races alphabetically
+  sort_races();
+
   // assign backgrounds
   assign_backgrounds();
   sort_backgrounds();
