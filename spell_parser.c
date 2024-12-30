@@ -5012,6 +5012,8 @@ void mag_assign_spells(void)
   spello(ABILITY_KAPAK_ACID, "!UNUSED!", 79, 64, 1, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_MASSES,
          NULL, 8, 12, EVOCATION, FALSE);
+  spello(ABILITY_BOZAK_DRACONIAN_DEATH_THROES, "bozak draconian death throes", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AREAS, NULL, 5, 9, TRANSMUTATION, FALSE);
 
   /*
 spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
@@ -5470,7 +5472,28 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
     return true;
   if (isDragonRiderMagic(ch, spellnum))
     return true;
+  if (isBozakMagic(ch, spellnum))
+    return true;
 
+  return false;
+}
+
+bool isBozakMagic(struct char_data *ch, int spellnum)
+{
+  if (!ch) return false;
+
+  if (!HAS_REAL_FEAT(ch, FEAT_BOZAK_SPELLCASTING))
+    return false;
+
+  switch (spellnum)
+  {
+    case SPELL_ENLARGE_PERSON: return true;
+    case SPELL_REDUCE_PERSON: return true;
+    case SPELL_INVISIBLE: return true;
+    case SPELL_STINKING_CLOUD: return true;
+    case SPELL_WEB: return true;
+  }
+  
   return false;
 }
 

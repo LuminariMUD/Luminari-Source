@@ -121,7 +121,7 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   if (IS_DRAGON(vict))
     resist = MAX(resist, 25);
 
-  if (HAS_FEAT(vict, FEAT_KAPAK_SPELL_RESISTANCE))
+  if (HAS_FEAT(vict, FEAT_DRACONIAN_SPELL_RESISTANCE))
     resist = MAX(resist, 10 + GET_LEVEL(vict));
 
   // adjustments passed to mag_resistance
@@ -1619,6 +1619,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = 1;
     size_dice = 1;
     bonus = MIN(600, GET_HIT(victim) + 40);
+    break;
+
+  case ABILITY_BOZAK_DRACONIAN_DEATH_THROES:
+    save = SAVING_REFL;
+    mag_resist = FALSE;
+    element = DAM_PIERCING;
+    num_dice = 2;
+    size_dice = 10;
+    bonus = level / 3;
     break;
 
   case SPELL_FIREBALL: // evocation
@@ -4644,6 +4653,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         act("You have recently been affected by warlock's binding blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
         return;
       }
+      if (paralysis_immunity(victim))
+        return;
       if (mag_resistance(ch, victim, 0))
         return;
       if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
@@ -6734,6 +6745,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
       return;
     }
+    if (paralysis_immunity(victim))
+        return;
     if (mag_resistance(ch, victim, 0))
       return;
     if (mag_savingthrow(ch, victim, SAVING_WILL, paralysis_bonus, casttype, level, NECROMANCY))
@@ -6805,6 +6818,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your target is too powerful to be affected by this illusion.\r\n");
       return;
     }
+    if (paralysis_immunity(victim))
+        return;
     if (mag_resistance(ch, victim, 0))
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
@@ -6828,6 +6843,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case ABILITY_PARALYZING_TOUCH:
+    if (paralysis_immunity(victim))
+      return;
     if (mag_resistance(ch, victim, 0))
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
@@ -9440,6 +9457,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_WHIRLWIND:
     to_char = "You call down a rip-roaring cyclone on the area!";
     to_room = "$n calls down a rip-roaring cyclone on the area!";
+    break;
+  case ABILITY_BOZAK_DRACONIAN_DEATH_THROES:
+    to_char = "In death your body explodes, raining shards of bone all around!";
+    to_room = "In death $n's body explodes, raining shards of bone all around!";
     break;
   case SPELL_INVISIBILITY_PURGE:
     is_uneffect = TRUE;

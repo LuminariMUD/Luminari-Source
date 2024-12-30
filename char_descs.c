@@ -411,6 +411,33 @@ char *current_short_desc(struct char_data *ch)
     return strdup(final);
 }
 
+char * current_morphed_desc(struct char_data *ch)
+{
+    char desc[200];
+
+    snprintf(desc, sizeof(desc), "%s (morphed)", current_short_desc(ch));
+
+    return strdup(desc);
+}
+
+char *current_wildshape_desc(struct char_data *ch)
+{
+    char desc[200];
+
+    snprintf(desc, sizeof(desc), "%s (wildshaped)", current_short_desc(ch));
+
+    return strdup(desc);
+}
+    
+char *current_disguise_desc(struct char_data *ch)
+{
+    char desc[200];
+
+    snprintf(desc, sizeof(desc), "%s (disguised)", current_short_desc(ch));
+
+    return strdup(desc);
+}
+
 void short_desc_descriptors_menu(struct char_data *ch)
 {
     SEND_TO_Q(
@@ -869,4 +896,18 @@ void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg
     }
 
     STATE(d) = changeStateTo;
+}
+
+char *show_pers(struct char_data *ch, struct char_data *vict)
+{
+    if (!CAN_SEE(vict, ch))
+        return strdup("someone");
+    else
+    {
+        if (has_intro(vict, ch))
+            return GET_NAME(ch);
+        else
+            return which_desc(vict, ch);
+    }
+    return NULL;
 }

@@ -1562,6 +1562,8 @@ const char *action_bits[] = {
     "Mob-Geniekind",
     "Mob-Dragon-Mount",
     "Retainer",
+    "Buff-Out-Of-Combat",
+    "Immune-Paralysis",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);

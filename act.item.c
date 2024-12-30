@@ -5689,7 +5689,7 @@ ACMD(do_channelspell)
 
   GET_WEAPON_CHANNEL_SPELL(obj, i) = spellnum;
   obj->channel_spells[i].level = ARCANE_LEVEL(ch);
-  GET_WEAPON_CHANNEL_SPELL_PCT(obj, i) = 5;
+  GET_WEAPON_CHANNEL_SPELL_PCT(obj, i) = 5 + (HAS_FEAT(ch, FEAT_GREATER_CHANNELLING) * 5);
   GET_WEAPON_CHANNEL_SPELL_AGG(obj, i) = true;
   GET_WEAPON_CHANNEL_SPELL_USES(obj, i) = 5;
   spell_prep_gen_extract(ch, spellnum, 0);

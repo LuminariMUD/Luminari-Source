@@ -688,6 +688,7 @@
 #define SPELL_AFFECT_CREEPING_DOOM_BITE 1280
 #define ABILITY_ENTERTAIN_INSPIRATION 1281
 #define MOB_ABILITY_CORRUPTION 1282
+#define ABILITY_BOZAK_DRACONIAN_DEATH_THROES 1283
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -1780,6 +1781,7 @@ bool isPaleMasterMagic(struct char_data *ch, int spellnum);
 bool isThornMagic(struct char_data *ch, int spellnum);
 bool isSkullMagic(struct char_data *ch, int spellnum);
 bool isDragonRiderMagic(struct char_data *ch, int spellnum);
+bool isBozakMagic(struct char_data *ch, int spellnum);
 
 void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
                  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic, bool recursive_call);

@@ -1148,8 +1148,10 @@
 #define MOB_GENIEKIND 93
 #define MOB_C_DRAGON 94
 #define MOB_RETAINER 95
+#define MOB_BUFF_OUTSIDE_COMBAT 96
+#define MOB_NOPARALYZE 97
 /**********************/
-#define NUM_MOB_FLAGS 96
+#define NUM_MOB_FLAGS 98
 /**********************/
 /**********************/
 
@@ -2761,7 +2763,7 @@
 #define FEAT_KAPAK_DEATH_THROES 1078
 #define FEAT_KAPAK_DRACONIAN_SCALES 1079
 #define FEAT_KAPAK_SALIVA 1080
-#define FEAT_KAPAK_SPELL_RESISTANCE 1081
+#define FEAT_DRACONIAN_SPELL_RESISTANCE 1081
 // Knight of the Thorn
 #define FEAT_DIVINER 1082
 #define FEAT_READ_OMENS 1083
@@ -2824,12 +2826,17 @@
 #define FEAT_COWARDLY 1237
 #define FEAT_GULLY_DWARF_RACIAL_ADJUSTMENT 1238
 #define FEAT_GRUBBY 1239
+#define FEAT_BOZAK_DEATH_THROES 1240
+#define FEAT_BOZAK_DRACONIAN_SCALES 1241
+#define FEAT_BOZAK_SPELL_RESISTANCE 1242
+#define FEAT_BOZAK_SPELLCASTING 1243
+#define FEAT_BOZAK_LIGHTNING_DISCHARGE 1244
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1240
+#define FEAT_LAST_FEAT 1245
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1241
+#define NUM_FEATS 1246
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4057,6 +4064,8 @@
 #define PLR_BONDS_LENGTH MAX_STRING_LENGTH
 #define PLR_FLAWS_LENGTH MAX_STRING_LENGTH
 
+
+#define MAX_INTROS 100
 /* this is the value we are sending to act when we want it condensed (condensed combat toggle) -zusuk */
 #define ACT_CONDENSE_VALUE -1234
 
@@ -4975,6 +4984,9 @@ struct player_special_data_saved
     bool character_age_saved;
 
     room_vnum last_room;
+
+    long intro_list[MAX_INTROS][1];                   // Stores pfilepos of chars known
+  
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

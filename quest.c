@@ -697,6 +697,9 @@ void complete_quest(struct char_data *ch, int index)
 void generic_complete_quest(struct char_data *ch, int index)
 {
 
+  if (has_duplicate_quest(ch))
+    remove_duplicate_quests(ch);
+
   /* more work to do on this quest! make sure to decrement counter  */
   if (GET_QUEST(ch, index) != NOTHING && --GET_QUEST_COUNTER(ch, index) > 0)
   {
@@ -1415,7 +1418,7 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
       send_to_char(ch,
                    "You still have to achieve %d out of %d goals for the quest.\r\n",
                    GET_QUEST_COUNTER(ch, index), QST_QUANTITY(rnum));
-    if (QST_TYPE(rnum) == AQ_DIALOGUE)
+  if (QST_TYPE(rnum) == AQ_DIALOGUE)
   {
     send_to_char(ch, "\ty");
     draw_line(ch, 80, '-', '-');
@@ -1989,6 +1992,47 @@ qst_rnum get_dialogue_alternative_quest_rnum(qst_vnum dialogue_quest)
     }
   }
   return NOTHING;
+}
+
+bool has_duplicate_quest(struct char_data *ch)
+{
+  int i = 0, j = 0;
+  bool duplicate = false;
+
+  for (i = 0; i < MAX_CURRENT_QUESTS; i++)
+  {
+    if (GET_QUEST(ch, i) == NOTHING) continue;
+    for (j = i+1; j < MAX_CURRENT_QUESTS; j++)
+    {
+      if (real_quest(GET_QUEST(ch, i)) == NOTHING) continue;
+      if (real_quest(GET_QUEST(ch, j)) == NOTHING) continue;
+      if (real_quest(GET_QUEST(ch, i)) == real_quest(GET_QUEST(ch, j)))
+      {
+        duplicate = true;
+      }
+    }
+  }
+  return duplicate;
+}
+
+void remove_duplicate_quests(struct char_data *ch)
+{
+  int i = 0, j = 0;
+
+  for (i = 0; i < MAX_CURRENT_QUESTS; i++)
+  {
+    if (GET_QUEST(ch, i) == NOTHING) continue;
+    for (j = i+1; j < MAX_CURRENT_QUESTS; j++)
+    {
+      if (j >= MAX_CURRENT_QUESTS) break;
+      if (real_quest(GET_QUEST(ch, i)) == NOTHING) continue;
+      if (real_quest(GET_QUEST(ch, j)) == NOTHING) continue;
+      if (real_quest(GET_QUEST(ch, i)) == real_quest(GET_QUEST(ch, j)))
+      {
+        clear_quest(ch, i);
+      }
+    }
+  }
 }
 
 /* EOF */

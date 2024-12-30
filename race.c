@@ -1210,9 +1210,56 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_KAPAK_SALIVA, 1, N);
   feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_SNEAK_ATTACK, 1, N);
   feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_APPLY_POISON, 1, N);
-  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_KAPAK_SPELL_RESISTANCE, 1, N);
+  feat_race_assignment(DL_RACE_KAPAK_DRACONIAN, FEAT_DRACONIAN_SPELL_RESISTANCE, 1, N);
 
-  race_list[DL_RACE_BAAZ_DRACONIAN].racial_language = SKILL_LANG_DRACONIC;
+  race_list[DL_RACE_KAPAK_DRACONIAN].racial_language = SKILL_LANG_DRACONIC;
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_BOZAK_DRACONIAN, "bozak draconian", "Bozak Draconian", "\tWBozak Draconian\tn", "Bozk", "\tWBozk\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 2, 5000, IS_ADVANCE);
+  set_race_details(DL_RACE_BOZAK_DRACONIAN,
+                   // desc
+                   "Possessed of magical talent and strong wills, bozaks are natural leaders -"
+                    "often willing to give their lives for a cause they deem worthy, but intelligent"
+                    "enough to fight to survive and win. Many bozaks have strong religious"
+                    "tendencies, even though they are inherently talented in arcane magic. Bozaks"
+                    "have sharp, tactically sound minds, and honing skills that bestow high"
+                    "survivability. Most bozaks instinctively take charge of a situation and are"
+                    "suited to military command, and in this they often excel. Bozaks associate all"
+                    "magic with the gods and quite often have a reverence attached to both their"
+                    "innate and learned magical talents, though if they feel betrayed by divine"
+                    "forces they may hold a grudge that will last a lifetime. Bozaks are tall, with"
+                    "bronze-hued scales-as tiny as fish scales on the draconian's face, growing to"
+                    "the size of a bronze piece elsewhere on its body. Bozaks sport a pair of"
+                    "curved, ram-like horns on top of their heads. They have small, dragon-like"
+                    "wings they can use to glide.",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Bozak Draconian.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Bozak Draconian.");
+  set_race_abilities(DL_RACE_BOZAK_DRACONIAN, 2, 0, 2, 0, 0, 2);         /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_BOZAK_DRACONIAN, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_BOZAK_DRACONIAN,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_BOZAK_DRACONIAN, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_BOZAK_DRACONIAN, FEAT_BOZAK_DEATH_THROES, 1, N);
+  feat_race_assignment(DL_RACE_BOZAK_DRACONIAN, FEAT_DRACONIAN_CONTROLLED_FALL, 1, N);
+  feat_race_assignment(DL_RACE_BOZAK_DRACONIAN, FEAT_DRACONIC_DEVOTION, 1, N);
+  feat_race_assignment(DL_RACE_BOZAK_DRACONIAN, FEAT_DRACONIAN_GALLOP, 1, N);
+  feat_race_assignment(DL_RACE_BOZAK_DRACONIAN, FEAT_DRACONIAN_DISEASE_IMMUNITY, 1, N);
+  feat_race_assignment(DL_RACE_BOZAK_DRACONIAN, FEAT_BOZAK_DRACONIAN_SCALES, 1, N);
+  feat_race_assignment(DL_RACE_BOZAK_DRACONIAN, FEAT_DRACONIAN_BITE, 1, N);
+  feat_race_assignment(DL_RACE_BOZAK_DRACONIAN, FEAT_DRACONIAN_SPELL_RESISTANCE, 1, N);
+  feat_race_assignment(DL_RACE_BOZAK_DRACONIAN, FEAT_BOZAK_SPELLCASTING, 1, N);
+  feat_race_assignment(DL_RACE_BOZAK_DRACONIAN, FEAT_BOZAK_LIGHTNING_DISCHARGE, 1, N);
+
+  race_list[DL_RACE_BOZAK_DRACONIAN].racial_language = SKILL_LANG_DRACONIC;
 
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
@@ -4735,9 +4782,9 @@ int parse_race_long(const char *arg_in)
   if (is_abbrev(arg, "kapak draconian")) return  DL_RACE_KAPAK_DRACONIAN;
   if (is_abbrev(arg, "kapak-draconian")) return  DL_RACE_KAPAK_DRACONIAN;
   if (is_abbrev(arg, "kapakdraconian")) return  DL_RACE_KAPAK_DRACONIAN;
-  // if (is_abbrev(arg, "bozak draconian")) return  DL_RACE_BOZAK_DRACONIAN;
-  // if (is_abbrev(arg, "bozak-draconian")) return  DL_RACE_BOZAK_DRACONIAN;
-  // if (is_abbrev(arg, "bozakdraconian")) return  DL_RACE_BOZAK_DRACONIAN;
+  if (is_abbrev(arg, "bozak draconian")) return  DL_RACE_BOZAK_DRACONIAN;
+  if (is_abbrev(arg, "bozak-draconian")) return  DL_RACE_BOZAK_DRACONIAN;
+  if (is_abbrev(arg, "bozakdraconian")) return  DL_RACE_BOZAK_DRACONIAN;
   // if (is_abbrev(arg, "sivak draconian")) return  DL_RACE_SIVAK_DRACONIAN;
   // if (is_abbrev(arg, "sivak-draconian")) return  DL_RACE_SIVAK_DRACONIAN;
   // if (is_abbrev(arg, "sivakdraconian")) return  DL_RACE_SIVAK_DRACONIAN;

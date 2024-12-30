@@ -435,7 +435,8 @@ quest.o: quest.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  house.h dg_scripts.h
 race.o: race.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h spells.h interpreter.h \
- constants.h act.h handler.h comm.h race.h feats.h class.h
+ constants.h act.h handler.h comm.h race.h feats.h class.h backgrounds.h \
+ treasure.h spec_procs.h
 random.o: random.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h
 random_names.o: random_names.c random_names.h
@@ -538,7 +539,7 @@ utils.o: utils.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  mud_event.h dg_event.h feats.h spec_abilities.h assign_wpn_armor.h \
  wilderness.h domains_schools.h constants.h dg_scripts.h alchemy.h \
  premadebuilds.h craft.h fight.h missions.h psionics.h evolutions.h \
- backgrounds.h
+ backgrounds.h char_descs.h
 weather.o: weather.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h
 wilderness.o: wilderness.c perlin.h conf.h sysdep.h structs.h bool.h \

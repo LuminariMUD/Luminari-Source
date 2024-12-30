@@ -45,7 +45,7 @@
 
 #define MAX_QUEST_NAME 40  /* Length of quest name                 */
 #define MAX_QUEST_DESC 75  /* Length of quest description          */
-#define MAX_QUEST_MSG 2048 /* Length of quest message strings      */
+#define MAX_QUEST_MSG 4096 /* Length of quest message strings      */
 
 #define SCMD_QUEST_LIST 0     /* List quests available at questmaster */
 #define SCMD_QUEST_HISTORY 1  /* Show history of completed quests     */
@@ -178,6 +178,8 @@ int delete_quest(qst_rnum rnum);
 int save_quests(zone_rnum zone_num);
 
 void show_quest_dialogue_menu(struct descriptor_data *d);
+bool has_duplicate_quest(struct char_data *ch);
+void remove_duplicate_quests(struct char_data *ch);
 
 /* Qedit Connectedness ************************************************ */
 #define QEDIT_MAIN_MENU 0

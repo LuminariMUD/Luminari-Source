@@ -8371,7 +8371,7 @@ static const char *const hints[] = {
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #if defined(CAMPAIGN_DL)
     /*  */ "\tR[HINT]:\tn \ty"
-           "Not sure what and where to uypgrade your gear? We have a searchable object database that will help you see what is out there and what zone it loads in. "
+           "Not sure what and where to upgrade your gear? We have a searchable object database that will help you see what is out there and what zone it loads in. "
            "https://krynn.d20mud.com/objectdb/"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #else

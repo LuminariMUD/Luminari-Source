@@ -6123,7 +6123,7 @@ void load_class_list(void)
   assign_class_saves(CLASS_RANGER, G, B, B, B, B);
   assign_class_abils(CLASS_RANGER, /* class number */
                      /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-                     CC, CA, CA, CA, CC, CA, CC,
+                     CC, CA, CA, CA, CA, CA, CC,
                      /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
                      CC, CA, CA, CA, CA, CA, CC, CC,
                      /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
@@ -7004,9 +7004,9 @@ void load_class_list(void)
   /* feat assignment */
   /*              class num     feat                             cfeat lvl stack */
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 1, Y);
-  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_CHANNELLING, Y, 2, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_CHANNEL_SPELL, Y, 2, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 3, Y);
-  feat_assignment(CLASS_SPELLSWORD, FEAT_CHANNEL_SPELL, Y, 4, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_CHANNELLING, Y, 4, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 5, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_CHANNEL_SPELL, Y, 6, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 6, Y);

@@ -40,6 +40,7 @@ struct affect_assign
 
 /* race_data struct use to be here, move to structs.h */
 // extern struct race_data race_list[];
+extern int race_sort_info[NUM_EXTENDED_RACES+1];
 
 /* functions */
 int parse_race(char arg);
