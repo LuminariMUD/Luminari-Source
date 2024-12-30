@@ -2428,8 +2428,8 @@ void save_char(struct char_data *ch, int mode)
       fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TURN_UNDEAD) - daily_uses_remaining(ch, FEAT_TURN_UNDEAD));
     if ((pMudEvent = char_has_mud_event(ch, eSPELLBATTLE)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-    if ((pMudEvent = char_has_mud_event(ch, eQUEST_COMPLETE)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    // if ((pMudEvent = char_has_mud_event(ch, eQUEST_COMPLETE)))
+    //   fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eDRACBREATH)))
       fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON) - daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON));
     if ((pMudEvent = char_has_mud_event(ch, eDRACCLAWS)))

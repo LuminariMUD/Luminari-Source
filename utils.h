@@ -219,7 +219,9 @@ bool is_spellcasting_class(int class_name);
 int get_spellcasting_class(struct char_data *ch);
 bool valid_pet_name(char *name);
 bool is_retainer_in_room(struct char_data *ch);
+void perform_draconian_death_throes(struct char_data *ch);
 struct char_data *get_retainer_from_room(struct char_data *ch);
+char *show_pers(struct char_data *ch, struct char_data *vict);
 int count_spellcasting_classes(struct char_data *ch);
 void auto_sort_obj(struct char_data *ch, struct obj_data *obj);
 void auto_store_obj(struct char_data *ch, struct obj_data *obj);
@@ -228,7 +230,10 @@ const char *get_align_by_num_cnd(int align);
 bool char_pets_to_char_loc(struct char_data *ch);
 const char *get_align_by_num(int align);
 int d20(struct char_data *ch);
+bool hide_damage_message(int snum);
 void manifest_mastermind_power(struct char_data *ch);
+bool in_intro_list(struct char_data *ch, struct char_data *target);
+char * which_desc(struct char_data *ch, struct char_data *target);
 bool can_hear_sneaking(struct char_data *ch, struct char_data *vict);
 bool can_see_hidden(struct char_data *ch, struct char_data *vict);
 int skill_check(struct char_data *ch, int skill, int dc);
@@ -958,6 +963,9 @@ void char_from_furniture(struct char_data *ch);
 
 /* wildshape */
 #define IS_WILDSHAPED(ch) (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch))
+
+// intro system
+#define GET_INTRO(ch, i)  (ch->player_specials->saved.intro_list[i][0])
 
 /** Height of ch. */
 #define GET_HEIGHT(ch) ((ch)->player.height)
@@ -1899,9 +1907,12 @@ int ACTUAL_BAB(struct char_data *ch);
    CAN_SEE_OBJ((ch), (obj)))
 
 /** If vict can see ch, return ch name, else return "someone". */
-#define PERS(ch, vict)                                                    \
-  (!CAN_SEE(vict, ch) ? "someone" : !GET_DISGUISE_RACE(ch) ? GET_NAME(ch) \
-                                                           : race_list[GET_DISGUISE_RACE(ch)].name)
+/* OLD VERSION
+ #define PERS(ch, vict)                                                    \
+   (!CAN_SEE(vict, ch) ? "someone" : !GET_DISGUISE_RACE(ch) ? GET_NAME(ch) \
+                                                            : race_list[GET_DISGUISE_RACE(ch)].name
+*/
+#define PERS(ch, vict)  (show_pers(ch, vict))
 
 /** If vict can see obj, return obj short description, else return
  * "something". */

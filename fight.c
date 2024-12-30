@@ -763,6 +763,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += 2;
   }
+  else if (HAS_FEAT(ch, FEAT_BOZAK_DRACONIAN_SCALES))
+  {
+    bonuses[BONUS_TYPE_NATURALARMOR] += 2;
+  }
   if (HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR))
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR) * 2;
@@ -1072,6 +1076,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 6;
     ac_penalty -= 6;
+  }
+
+  if (ch && AFF_FLAGGED(ch, AFF_POISON))
+  {
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
   }
   /**/
 
@@ -2312,6 +2321,8 @@ void die(struct char_data *ch, struct char_data *killer)
       }
     }
   }
+
+  perform_draconian_death_throes(ch);
 
   raw_kill(ch, killer);
 }
@@ -7902,8 +7913,7 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
         random = rand_number(1, 100);
         if (GET_WEAPON_CHANNEL_SPELL_PCT(wpn, i) >= random)
         {
-          GET_WEAPON_CHANNEL_SPELL_USES(wpn, i)
-          --;
+          GET_WEAPON_CHANNEL_SPELL_USES(wpn, i)--;
           act("Your channelled spell erupts from $p.", TRUE, ch, wpn, 0, TO_CHAR);
           act("A channelled spell erupts from $p.", TRUE, ch, wpn, 0, TO_ROOM);
           WEAPON_SPELL_PROC(ch) = TRUE;
@@ -8954,6 +8964,13 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     calc_bab -= 2;
     if (display)
         send_to_char(ch, "-2: %-50s\r\n", "Oversized Weapon");
+  }
+
+  if (victim && AFF_FLAGGED(victim, AFF_POISON))
+  {
+    calc_bab -= 2;
+    if (display)
+        send_to_char(ch, "-2: %-50s\r\n", "Target Poisoned");
   }
 
   if (wielded)

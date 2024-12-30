@@ -428,6 +428,19 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
     }
   }
 
+  // Bozak Draconian lightning discharge
+  if (victim && HAS_FEAT(ch, FEAT_BOZAK_LIGHTNING_DISCHARGE))
+  {
+    if (actmtd == ACTMTD_ON_HIT)
+    {
+      damage(ch, victim, dice(1, 6), TYPE_SPECAB_SHOCK, DAM_ELECTRIC, FALSE);
+    }
+    if (actmtd == ACTMTD_ON_CRIT)
+    {
+      damage(ch, victim, dice(1, 10), TYPE_SPECAB_SHOCK, DAM_ELECTRIC, FALSE);
+    }
+  }
+
   // Dragon Scion Elemental attacks
   if (victim && HAS_DRAGON_BOND_ABIL(ch, 3, DRAGON_BOND_MAGE))
   {

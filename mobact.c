@@ -1643,6 +1643,18 @@ void mobile_activity(void)
           npc_class_behave(ch);
         continue;
       }
+#if defined(CAMPAIGN_DL)
+      else if (!rand_number(0, 8) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_NPC_CASTER(ch))
+      {
+        /* not in combat */
+        npc_spellup(ch);
+      }
+      else if (!rand_number(0, 8) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_PSIONIC(ch))
+      {
+        /* not in combat */
+        npc_psionic_powerup(ch);
+      }
+#else
       else if (!rand_number(0, 8) && IS_NPC_CASTER(ch))
       {
         /* not in combat */
@@ -1653,6 +1665,7 @@ void mobile_activity(void)
         /* not in combat */
         npc_psionic_powerup(ch);
       }
+#endif
       else if (!rand_number(0, 8) && !IS_NPC_CASTER(ch))
       {
         /* not in combat, non-caster */

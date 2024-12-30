@@ -3069,13 +3069,13 @@ SPECIAL(thrym)
     return 1;
   }
 
+  if (HAS_EVOLUTION(vict, EVOLUTION_UNDEAD_APPEARANCE))
+    bonus += get_evolution_appearance_save_bonus(vict);
+
   // no save, unless have special feat
-  if (HAS_FEAT(vict, FEAT_PARALYSIS_RESIST))
+  if (HAS_FEAT(vict, FEAT_PARALYSIS_RESIST) || 
+      mag_savingthrow(ch, vict, SAVING_FORT, 4 + bonus, CAST_INNATE, 30, ENCHANTMENT))
   {
-    if (HAS_EVOLUTION(vict, EVOLUTION_UNDEAD_APPEARANCE))
-        bonus += get_evolution_appearance_save_bonus(vict);
-    mag_savingthrow(ch, vict, SAVING_FORT, 4 + bonus, /* +4 bonus from feat */
-                    CAST_INNATE, 30, ENCHANTMENT);
     send_to_char(ch, "Your target is unfazed.\r\n");
     return 1;
   }

@@ -41,6 +41,7 @@
 #include "psionics.h"
 #include "evolutions.h"
 #include "backgrounds.h"
+#include "char_descs.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -5217,6 +5218,8 @@ bool paralysis_immunity(struct char_data *ch)
 {
   if (!ch)
     return FALSE;
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOPARALYZE))
+    return TRUE;
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS))
     return TRUE;
   if (HAS_FEAT(ch, FEAT_PARALYSIS_IMMUNITY))
@@ -5631,6 +5634,9 @@ void perform_draconian_death_throes(struct char_data *ch)
       return;
     case DL_RACE_KAPAK_DRACONIAN:
       call_magic(ch, 0, 0, ABILITY_KAPAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+    case DL_RACE_BOZAK_DRACONIAN:
+      call_magic(ch, 0, 0, ABILITY_BOZAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
       return;
   }
 }
@@ -6918,12 +6924,20 @@ bool can_stun(struct char_data *ch)
     return false;
   if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
     return false;
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOPARALYZE))
+    return false;
   if (HAS_REAL_FEAT(ch, FEAT_TOUGH_AS_BONE))
     return false;
   if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE) && get_evolution_appearance_save_bonus(ch) == 100)
     return false;
 
   return true;
+}
+
+// returns true if the target doesn't have immunity to paralysis
+bool can_paralyze(struct char_data *ch)
+{
+  return !paralysis_immunity(ch);
 }
 
 // returns true if the target doesn't have immunity to confusion
@@ -8720,6 +8734,9 @@ bool can_daze(struct char_data *ch)
   if (GET_NODAZE_COOLDOWN(ch) > 0)
     return false;
 
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOPARALYZE))
+    return false;
+
   if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
     return false;
 
@@ -10304,4 +10321,75 @@ int get_random_skill(void)
   return dice(1, END_GENERAL_ABILITIES);
 }
 
+// checks to see if target is in the list of ch's known people
+bool in_intro_list(struct char_data *ch, struct char_data *target)
+{
+  int i;
+
+  for (i = 0; i < MAX_INTROS; i++)
+  {
+    if (GET_INTRO(ch, i) == GET_IDNUM(target))
+      return true;
+    else
+      continue;
+  }
+  return false;
+}
+
+// checks to see if ch knows target's real name
+bool has_intro(struct char_data *ch, struct char_data *target)
+{
+
+  if (!ch || !target)
+    return false;
+
+  if (ch == target)
+    return true;
+
+  if (GET_LEVEL(ch) >= LVL_IMMORT || GET_LEVEL(target) >= LVL_IMMORT)
+    return true;
+
+  if (PRF_FLAGGED(target, PRF_NON_ROLEPLAYER))
+    return true;
+
+  if (in_intro_list(ch, target))
+      true;
+
+  return false;
+}
+
+char * which_desc(struct char_data *ch, struct char_data *target)
+{
+
+  if (!target)
+    return strdup("error");
+
+  if (IS_NPC(target))
+    return GET_SHORT(target);
+
+  if (IS_MORPHED(target))
+    return current_morphed_desc(target);
+
+  if (IS_WILDSHAPED(target))
+    return current_wildshape_desc(target);
+    
+  if (GET_DISGUISE_RACE(target))
+    return current_disguise_desc(target);
+  
+  return current_short_desc(target);
+}
+
+// checks the spell or skill num to see if it should hide damage
+// messages from persons other than the recipient of the spell/skill's affect
+bool hide_damage_message(int snum)
+{
+  switch (snum)
+  {
+    case SPELL_POISON:
+      return true;
+  }
+  return false;
+}
+
 /* EoF */
+

@@ -2348,6 +2348,8 @@ SPECIAL(quicksand)
 
   if (is_flying(ch))
     return FALSE;
+  if (paralysis_immunity(ch))
+    return FALSE;
   if (GET_LEVEL(ch) > LVL_IMMORT)
     return FALSE;
 
@@ -7571,7 +7573,7 @@ SPECIAL(fog_dagger)
     if (perform_backstab(ch, vict))
     {
       if (FIGHTING(ch) == vict &&
-          !AFF_FLAGGED(vict, AFF_PARALYZED) &&
+          !AFF_FLAGGED(vict, AFF_PARALYZED) && !paralysis_immunity(vict) &&
           !rand_number(0, 9))
       {
         new_affect(&af2);

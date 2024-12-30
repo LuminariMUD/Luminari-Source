@@ -1211,12 +1211,14 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You can't use immortal commands while switched.\r\n");
   else if (IS_CASTING(ch) && !is_abbrev(complete_cmd_info[cmd].command, "abort") && !IS_NPC(ch))
     send_to_char(ch, "You are too busy casting [you can 'abort' the spell]...\r\n");
-  else if (AFF_FLAGGED(ch, AFF_HIDE) && !AFF_FLAGGED(ch, AFF_SNEAK))
+  else if (AFF_FLAGGED(ch, AFF_HIDE) && !AFF_FLAGGED(ch, AFF_SNEAK) && !is_abbrev(complete_cmd_info[cmd].command, "sneak"))
   {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You slowly step out of the shadows... (command removed hide, try sneaking before hiding)\r\n");
   }
   else if (AFF_FLAGGED(ch, AFF_HIDE) && AFF_FLAGGED(ch, AFF_SNEAK) &&
+           !is_abbrev(complete_cmd_info[cmd].command, "hide") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "sneak") &&
            !is_abbrev(complete_cmd_info[cmd].command, "look") &&
            !is_abbrev(complete_cmd_info[cmd].command, "trip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "north") &&
@@ -2166,7 +2168,7 @@ void nanny(struct descriptor_data *d, char *arg)
 {
   int load_result = 0; /* Overloaded variable */
   int player_i = 0;
-  int i = 0, l = 0; /* incrementor */
+  int i = 0, l = 0, sortpos = 0; /* incrementor */
 
   /* OasisOLC states */
   struct
@@ -2831,8 +2833,9 @@ void nanny(struct descriptor_data *d, char *arg)
     }
 #elif defined(CAMPAIGN_DL)
     write_to_output(d, "Races of Krynn\r\n\r\n");
-    for (i = DL_RACE_START; i < DL_RACE_END; i++)
+    for (sortpos = 0; sortpos < NUM_EXTENDED_RACES; sortpos++)
     {
+      i = race_sort_info[sortpos];
       if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
         write_to_output(d, "%s\r\n", race_list[i].type);
     }
@@ -3044,8 +3047,9 @@ switch (load_result)
       }
 #elif defined(CAMPAIGN_DL)
       write_to_output(d, "Races of Krynn\r\n\r\n");
-      for (i = DL_RACE_START; i < DL_RACE_END; i++)
+      for (sortpos = 0; sortpos < NUM_EXTENDED_RACES; sortpos++)
       {
+        i = race_sort_info[sortpos];
         if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
           write_to_output(d, "%s\r\n", race_list[i].type);
       }

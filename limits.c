@@ -563,6 +563,7 @@ void regen_update(struct char_data *ch)
       return;
     }
 
+#if !defined(CAMPAIGN_DL)
     if (FIGHTING(ch) || dice(1, 2) == 2)
     {
       for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
@@ -587,6 +588,7 @@ void regen_update(struct char_data *ch)
       update_pos(ch);
       return;
     }
+#endif
 
   } /* done dealing with poison */
 

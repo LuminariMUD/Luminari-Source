@@ -311,7 +311,8 @@ EVENTFUNC(event_trap_triggered)
 
       case TRAP_EFFECT_IMPALING_SPIKE:
         af.spell = effect;
-        SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+        if (!paralysis_immunity(ch))
+          SET_BIT_AR(af.bitvector, AFF_PARALYZED);
         af.duration = 5;
         to_char = "\tLA large \tWspike\tL shoots up from the floor, and \trimpales\tL you upon it.\tn";
         to_room = "\tLSuddenly, a large \tWspike\tL impales \tn$n\tL as it shoots up from the floor.\tn";

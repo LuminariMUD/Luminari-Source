@@ -1130,10 +1130,11 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "Fae can fly at a speed of 60 ft / round.",
         "Fae can fly at a speed of 60 ft / round. Uses the fly and land commands.");
 
-  // baaz draconian
-  feato(FEAT_BAAZ_DEATH_THROES, "baaz death throes", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "Upon death, all enemies will be paralyzed.",
-        "When a Baaz Draconian dies, it turns to stone and let's out a puff of gas that will paralyze all enemies in the room.");
+  // draconians
+
+  feato(FEAT_DRACONIAN_SPELL_RESISTANCE, "draconian spell resistance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Gains spell resistance equal to 10 + character level.",
+        "Gains spell resistance equal to 10 + character level.");
   feato(FEAT_DRACONIAN_CONTROLLED_FALL, "draconian controlled fall", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Divide fall damge in half.",
         "When falling, the draconian can spread their wings to halve any fall damage they might take.");
@@ -1146,12 +1147,17 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_DRACONIAN_DISEASE_IMMUNITY, "draconian disease immunity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Immune to all disease.",
         "Immune to all disease.");
-  feato(FEAT_BAAZ_DRACONIAN_SCALES, "baaz draconian scales", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "Gains +1 to Natural Armor Class bonus.",
-        "Gains +1 to Natural Armor Class bonus.");
   feato(FEAT_DRACONIAN_BITE, "draconian bite", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Able to make a bite attack in combat with a swift action. Uses bite command.",
         "Able to make a bite attack in combat with a swift action. Uses bite command.");
+
+  // baaz draconian
+  feato(FEAT_BAAZ_DEATH_THROES, "baaz death throes", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Upon death, all enemies will be paralyzed.",
+        "When a Baaz Draconian dies, it turns to stone and let's out a puff of gas that will paralyze all enemies in the room.");
+  feato(FEAT_BAAZ_DRACONIAN_SCALES, "baaz draconian scales", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Gains +1 to Natural Armor Class bonus.",
+        "Gains +1 to Natural Armor Class bonus.");
 
   // kapak draconian
   feato(FEAT_KAPAK_DRACONIAN_SCALES, "kapak draconian scales", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
@@ -1163,9 +1169,20 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_KAPAK_SALIVA, "kapak saliva", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Male kapaks can poison their weapons with their saliva. Females can heal wounds with their saliva.",
         "Male kapaks can poison their weapons with their saliva. Females can heal wounds with their saliva. Uses the kapaksaliva command.");
-  feato(FEAT_KAPAK_SPELL_RESISTANCE, "kapak spell resistance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "Gains spell resistance equal to 10 + character level.",
-        "Gains spell resistance equal to 10 + character level.");
+
+  // bozak draconian
+  feato(FEAT_BOZAK_DRACONIAN_SCALES, "bozak draconian scales", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Gains +2 to Natural Armor Class bonus.",
+        "Gains +2 to Natural Armor Class bonus.");
+  feato(FEAT_BOZAK_DEATH_THROES, "bozak death throes", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Upon death, the draconian's bones will explode dealing damage to all enemies in the room.",
+        "Upon death, the draconian's bones will explode dealing damage to all enemies in the room.");
+  feato(FEAT_BOZAK_SPELLCASTING, "bozak spellcasting", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Bozaks can cast the following spells at-will: enlarge person, reduce person, invisibility, stinking cloud, web.",
+        "Bozaks can cast the following spells at-will: enlarge person, reduce person, invisibility, stinking cloud, web.");
+  feato(FEAT_BOZAK_LIGHTNING_DISCHARGE, "bozak lightning discharge", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Bozaks deal extra lightning damage on all melee attacks.",
+        "Bozaks deal extra lightning damage on all melee attacks.");
 
   /* End Racial ability feats */
 
@@ -3097,8 +3114,8 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2.",
         "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2. Stacks with improved channelling.");
   feato(FEAT_GREATER_CHANNELLING, "greater channelling", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2.",
-        "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2. Stacks with improved and advanced channelling.");
+        "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2. Chance of channelled spell proccing increased to 10%.",
+        "Increases the spell dc of spells channelled through a weapon by +1 and spell penetration of chanelling by +2. Stacks with improved and advanced channelling. Chance of channelled spell proccing increased to 10%.");
 
   // Inquisitors
   feato(FEAT_JUDGEMENT, "judgement", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
