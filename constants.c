@@ -1209,6 +1209,7 @@ const char *room_bits[] = {
     "Player-Shop",
     "Random-Trap",
     "Random-Chest",
+    "Always-Load-Harvest-Node",
     "\n"};
 CHECK_TABLE_SIZE(room_bits, NUM_ROOM_FLAGS + 1);
 
@@ -5896,6 +5897,78 @@ const char *character_rp_goal_complications[] =
     "An involved deity's followers are powerful obstacles",
     "\n"
 };
+
+const char *crafting_materials[] = {
+    "",
+    "copper",
+    "tin",
+    "bronze",
+    "iron",
+    "coal",
+    "steel",
+    "cold iron",
+    "alchemical silver",
+    "mithril",
+    "adamantite",
+    "silver",
+    "gold",
+    "platinum",
+    "dragonmetal",
+    "dragonscale",
+    "dragonbone",
+    "low grade hide",
+    "medium grade hide",
+    "high grade hide",
+    "pristine grade hide",
+    "ash wood",
+    "maple wood",
+    "mahagony wood",
+    "valenwood",
+    "ironwood",
+    "hemp",
+    "wool",
+    "linen",
+    "satin",
+    "silk",
+    "\n"
+};
+CHECK_TABLE_SIZE(crafting_materials, NUM_CRAFT_MATS + 1);
+
+const char *crafting_material_nodes[] = {
+    "",
+    "a vein of copper ore",
+    "a vein of tin ore",
+    "bronze",
+    "a vein of iron ore",
+    "a deposit of coal",
+    "steel",
+    "cold iron",
+    "alchemical silver",
+    "a vein of mithril ore",
+    "a vein of adamantite ore",
+    "a vein of silver ore",
+    "a vein of gold ore",
+    "a vein of platinum ore",
+    "dragonmetal",
+    "dragonscale",
+    "dragonbone",
+    "the tracks of tiny game",
+    "the tracks of small game",
+    "the tracks of medium game",
+    "the tracks of large game",
+    "a cluster of ash trees",
+    "a cluster of maple trees",
+    "a cluster of mahagony trees",
+    "a cluster of valenwood trees",
+    "a cluster of ironwood trees",
+    "a patch of hemp plants",
+    "a herd of wild sheep",
+    "a patch of flax plants",
+    "satin",
+    "a growth of silk worms",
+    "\n"
+};
+CHECK_TABLE_SIZE(crafting_material_nodes, NUM_CRAFT_MATS + 1);
 
 /* --- End of constants arrays. --- */
 

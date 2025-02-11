@@ -5568,7 +5568,8 @@ ACMD(do_setbaneweapon)
 
 #define CHANNEL_SPELL_INFO "You need to specify the weapon to channel into and the spell name of a spell you have prepared to channel into the weapon.\r\n" \
                            "Eg. channel longsword magic missile\r\n"                                                                                        \
-                           "You can also use the info tag to view any spells currently channeled into the weapon. Eg. channel longsword info\r\n"
+                           "You can use the info tag to view any spells currently channeled into the weapon. Eg. channel longsword info\r\n"                \
+                           "You can use the remove tag to remove any chanelled spells on the weapon. Eg. channel longsword remove\r\n"
 
 ACMD(do_channelspell)
 {
@@ -5623,6 +5624,24 @@ ACMD(do_channelspell)
       if (GET_WEAPON_CHANNEL_SPELL(obj, i) > 0)
         send_to_char(ch, "%-25s level %d %d uses left\r\n", spell_info[GET_WEAPON_CHANNEL_SPELL(obj, i)].name,
                      GET_WEAPON_CHANNEL_SPELL_LVL(obj, i), GET_WEAPON_CHANNEL_SPELL_USES(obj, i));
+    }
+    return;
+  }
+  if (is_abbrev(spell, "remove"))
+  {
+    found = false;
+    for (i = 0; i < (1 + HAS_FEAT(ch, FEAT_MULTIPLE_CHANNEL_SPELL)); i++)
+    {
+      if (GET_WEAPON_CHANNEL_SPELL(obj, i) > 0)
+      {
+        found = true;
+        send_to_char(ch, "You remove '%s' from %s.\r\n", spell_info[GET_WEAPON_CHANNEL_SPELL(obj, i)].name, obj->short_description);
+        GET_WEAPON_CHANNEL_SPELL(obj, i) = 0;
+      }
+    }
+    if (!found)
+    {
+      send_to_char(ch, "There are no channeled spells on that weapon.\r\n");
     }
     return;
   }
@@ -5689,9 +5708,9 @@ ACMD(do_channelspell)
 
   GET_WEAPON_CHANNEL_SPELL(obj, i) = spellnum;
   obj->channel_spells[i].level = ARCANE_LEVEL(ch);
-  GET_WEAPON_CHANNEL_SPELL_PCT(obj, i) = 5 + (HAS_FEAT(ch, FEAT_GREATER_CHANNELLING) * 5);
+  GET_WEAPON_CHANNEL_SPELL_PCT(obj, i) = 10 + (HAS_FEAT(ch, FEAT_GREATER_CHANNELLING) * 5);
   GET_WEAPON_CHANNEL_SPELL_AGG(obj, i) = true;
-  GET_WEAPON_CHANNEL_SPELL_USES(obj, i) = 5;
+  GET_WEAPON_CHANNEL_SPELL_USES(obj, i) = 5 + (HAS_FEAT(ch, FEAT_GREATER_CHANNELLING) * 5);
   spell_prep_gen_extract(ch, spellnum, 0);
   send_to_char(ch, "You channel the spell '%s' into %s.\r\n", spell_info[spellnum].name, obj->short_description);
 

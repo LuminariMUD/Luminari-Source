@@ -189,6 +189,8 @@ extern const char *cities[];
 extern const char *factions[];
 extern const char *apply_type_food_names[];
 extern const int apply_type_food_or_drink[];
+extern const char *crafting_materials[];
+extern const char *crafting_material_nodes[];
 
 extern const char *character_rp_goal_objectives[];
 extern const char *character_rp_goal_reasons[];

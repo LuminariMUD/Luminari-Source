@@ -70,6 +70,7 @@
 #include "mudlim.h"
 #include "backgrounds.h"
 #include "roleplay.h"
+#include "crafting_new.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -292,7 +293,10 @@ cpp_extern const struct command_info cmd_info[] = {
     {"class", "class", POS_DEAD, do_class, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"charmiecombatroll", "charmiecombatroll", POS_DEAD, do_gen_tog, 0, SCMD_CHARMIE_COMBATROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"combatroll", "combatroll", POS_DEAD, do_gen_tog, 0, SCMD_COMBATROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
+#else
     {"coordconvince", "coordconvert", POS_SLEEPING, do_coordconvert, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"cmdlev", "cmdlev", POS_DEAD, do_cmdlev, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #if !defined(CAMPAIGN_DL)
     {"cexchange", "cexchange", POS_RECLINING, do_cexchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -586,7 +590,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"nogossip", "nogossip", POS_DEAD, do_gen_tog, 0, SCMD_NOGOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nograts", "nograts", POS_DEAD, do_gen_tog, 0, SCMD_NOGRATZ, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nohassle", "nohassle", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_NOHASSLE, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"norage", "norage", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_NORAGE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"norage", "norage", POS_DEAD, do_gen_tog, 1, SCMD_NORAGE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"norepeat", "norepeat", POS_DEAD, do_gen_tog, 0, SCMD_NOREPEAT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"noshout", "noshout", POS_SLEEPING, do_gen_tog, 1, SCMD_NOSHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nosummon", "nosummon", POS_DEAD, do_gen_tog, 1, SCMD_NOSUMMON, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -827,7 +831,11 @@ cpp_extern const struct command_info cmd_info[] = {
     {"surpriseaccuracy", "surpriseaccuracy", POS_FIGHTING, do_surpriseaccuracy, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_surpriseaccuracy},
     {"struggle", "struggle", POS_RECLINING, do_struggle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"seekerarrow", "seekerarrow", POS_FIGHTING, do_seekerarrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_seekerarrow},
+#if defined(CAMPAIGN_DL)
+    {"survey", "survey", POS_STANDING, do_craft_survey, 0, 0, TRUE, ACTION_STANDARD, {0, 0}, NULL},
+#else
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"sacredflames", "sacredflames", POS_FIGHTING, do_sacredflames, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"staffevents", "staffevents", POS_SLEEPING, do_staffevents, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"summon", "summon", POS_RECLINING, do_summon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

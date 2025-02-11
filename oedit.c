@@ -2732,7 +2732,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_apply_prompt_bonus_type_menu(d);
       return;
     }
+
     OLC_OBJ(d)->affected[OLC_VAL(d)].bonus_type = atoi(arg);
+    
     if (OLC_OBJ(d)->affected[OLC_VAL(d)].location == APPLY_SKILL)
     {
       write_to_output(d, "\r\nSelect which skill to affect:\r\n\r\n");
@@ -2746,7 +2748,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Skill: ");
       OLC_MODE(d) = OEDIT_APPLY_SPECIFIC;
     }
-    if (OLC_OBJ(d)->affected[OLC_VAL(d)].location >= APPLY_SPELL_CIRCLE_1 && OLC_OBJ(d)->affected[OLC_VAL(d)].location <= APPLY_SPELL_CIRCLE_9)
+    else if (OLC_OBJ(d)->affected[OLC_VAL(d)].location >= APPLY_SPELL_CIRCLE_1 && OLC_OBJ(d)->affected[OLC_VAL(d)].location <= APPLY_SPELL_CIRCLE_9)
     {
       count = 1;
       write_to_output(d, "\r\nSelect which class to affect:\r\n\r\n");

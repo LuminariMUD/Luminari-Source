@@ -65,6 +65,7 @@
 #include "treasure.h"
 #include "assign_wpn_armor.h"
 #include "backgrounds.h"
+#include "crafting_new.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -642,6 +643,11 @@ void boot_world(void)
     for (x = 0; x < NUM_HARVEST_NODE_RESETS; x++)
       reset_harvesting_rooms();
   }
+
+#if defined(CAMPAIGN_DL)
+  // assigning new crafting system harvesting nodes.
+  assign_harvest_materials_to_word();
+#endif
 
   log("Loading quests.");
   index_boot(DB_BOOT_QST);

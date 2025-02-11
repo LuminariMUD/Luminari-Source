@@ -1097,6 +1097,11 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = ZEDIT_ZONE_NAME;
       break;
     case '1':
+      if (GET_LEVEL(ch) <= LVL_STAFF)
+      {
+        write_to_output(d, "You cannot change the builder's list.\r\n");
+        return;
+      }
       /* Edit zone builders. */
       write_to_output(d, "Enter new builders list : ");
       OLC_MODE(d) = ZEDIT_ZONE_BUILDERS;

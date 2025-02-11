@@ -6629,7 +6629,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ASSIMILATE, 17);
 
   // epic class feats
-  feat_assignment(CLASS_BARD, FEAT_GREAT_INTELLIGENCE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_GREAT_INTELLIGENCE, Y, NOASSIGN_FEAT, N);
 
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_TIMELESS_BODY, 17);
   /**** end psi power assignment *****/

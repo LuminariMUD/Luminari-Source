@@ -245,6 +245,7 @@ void populate_encounter_table(void)
                        SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, HOSTILE, NON_SENTIENT, SIZE_SMALL);
   set_encounter_terrain_any(ENCOUNTER_TYPE_FIRE_BEETLE);
 
+#if !defined(CAMPAIGN_DL)
   add_encounter_record(ENCOUNTER_TYPE_DROW_WARRIOR, ENCOUNTER_CLASS_COMBAT, 1, 20, ENCOUNTER_GROUP_TYPE_DROW_PATROL, "drow warrior", 100, 1, 3,
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, CHAOTIC_EVIL, RACE_TYPE_HUMANOID,
                        SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, HOSTILE, SENTIENT, SIZE_MEDIUM);
@@ -265,6 +266,7 @@ void populate_encounter_table(void)
   add_encounter_sector(ENCOUNTER_TYPE_DROW_WIZARD, SECT_UD_WILD);
   add_encounter_sector(ENCOUNTER_TYPE_DROW_WIZARD, SECT_UD_CITY);
   add_encounter_sector(ENCOUNTER_TYPE_DROW_WIZARD, SECT_UD_INSIDE);
+#endif  
 
   add_encounter_record(ENCOUNTER_TYPE_DUERGAR_WARRIOR, ENCOUNTER_CLASS_COMBAT, 1, 20, ENCOUNTER_GROUP_TYPE_DUERGAR_PATROL, "duergar warrior", 100, 1, 4,
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, LAWFUL_EVIL, RACE_TYPE_HUMANOID,
@@ -285,6 +287,7 @@ void populate_encounter_table(void)
                        SUBRACE_AQUATIC, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, NON_HOSTILE, SENTIENT, SIZE_MEDIUM);
   set_encounter_terrain_all_water(ENCOUNTER_TYPE_MERFOLK_HUNTER);
 
+#if !defined(CAMPAIGN_DL)
   add_encounter_record(ENCOUNTER_TYPE_ORCISH_WARRIOR, ENCOUNTER_CLASS_COMBAT, 1, 15, ENCOUNTER_GROUP_TYPE_ORC_PATROL, "orcish warrior", 100, 1, 6,
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, CHAOTIC_EVIL, RACE_TYPE_HUMANOID,
                        SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, HOSTILE, SENTIENT, SIZE_MEDIUM);
@@ -296,6 +299,7 @@ void populate_encounter_table(void)
   add_encounter_sector(ENCOUNTER_TYPE_ORCISH_WARRIOR, SECT_UD_WILD);
   add_encounter_sector(ENCOUNTER_TYPE_ORCISH_WARRIOR, SECT_UD_INSIDE);
   add_encounter_sector(ENCOUNTER_TYPE_ORCISH_WARRIOR, SECT_CAVE);
+#endif
 
   add_encounter_record(ENCOUNTER_TYPE_OWL, ENCOUNTER_CLASS_COMBAT, 1, 10, ENCOUNTER_GROUP_TYPE_OWL, "owl", 100, 1, 2,
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, TRUE_NEUTRAL, RACE_TYPE_ANIMAL,
@@ -687,6 +691,7 @@ void populate_encounter_table(void)
   add_encounter_sector(ENCOUNTER_TYPE_MANDRAGORA, SECT_FIELD);
   add_encounter_sector(ENCOUNTER_TYPE_MANDRAGORA, SECT_FOREST);
 
+#if !defined(CAMPAIGN_DL)
   add_encounter_record(ENCOUNTER_TYPE_OGRILLON, ENCOUNTER_CLASS_COMBAT, 1, 15, ENCOUNTER_GROUP_TYPE_OGRILLON, "ogrillon", 100, 1, 5,
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, CHAOTIC_EVIL, RACE_TYPE_GIANT,
                        SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, HOSTILE, SENTIENT, SIZE_MEDIUM);
@@ -694,6 +699,7 @@ void populate_encounter_table(void)
   set_encounter_long_description(ENCOUNTER_TYPE_OGRILLON, "A towering ogrillon, half-orc, half-ogre, grins wickedly at you.");
   set_encounter_terrain_all_surface(ENCOUNTER_TYPE_OGRILLON);
   set_encounter_terrain_all_underdark(ENCOUNTER_TYPE_OGRILLON);
+#endif
 
   add_encounter_record(ENCOUNTER_TYPE_OROG, ENCOUNTER_CLASS_COMBAT, 1, 15, ENCOUNTER_GROUP_TYPE_OROG, "orog", 100, 1, 5,
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, LAWFUL_EVIL, RACE_TYPE_HUMANOID,

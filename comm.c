@@ -98,6 +98,7 @@
 #include "transport.h"
 #include "hunts.h"
 #include "bardic_performance.h" /* for the bard performance pulse */
+#include "crafting_new.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -1308,6 +1309,12 @@ void heartbeat(int heart_pulse)
   /* every 30 minutes */
   if (!(heart_pulse % PULSE_TIMESAVE))
     save_mud_time(&time_info);
+
+#if defined(CAMPAIGN_DL)
+  // assigning new crafting system harvesting nodes.
+  if (!(heart_pulse % PULSE_RESET_HARVEST_MATS))
+    assign_harvest_materials_to_word();
+#endif
 
   /* Every pulse! Don't want them to stink the place up... */
   extract_pending_chars();

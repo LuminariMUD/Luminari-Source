@@ -207,10 +207,11 @@
 #define ROOM_PLAYER_SHOP 35     /* indicates player shop, currently used so hsort() won't work */
 #define ROOM_RANDOM_TRAP 36    // a random trap will load in this room
 #define ROOM_RANDOM_CHEST 37    // a random treasure chest will load in this room
+#define ROOM_HARVEST_NODE 38    // this room will always load a harvest node
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS 38
+#define NUM_ROOM_FLAGS 39
 
 /* Room affects */
 /* Old room-affection system, could be replaced by room-events
@@ -3139,6 +3140,8 @@
 /** Total number of item mats.*/
 #define NUM_MATERIALS 48
 
+#define NUM_CRAFT_MATS 31
+
 /* Portal types for the portal object */
 #define PORTAL_NORMAL 0
 #define PORTAL_RANDOM 1
@@ -4020,6 +4023,8 @@
 /** Controls when to save the current ingame MUD time to disk.
  * This should be set >= SECS_PER_MUD_HOUR */
 #define PULSE_TIMESAVE (30 * 60 RL_SEC)
+// how often to reset the new crafting system harvest materials
+#define PULSE_RESET_HARVEST_MATS  (30 * 60 RL_SEC)
 /* Variables for the output buffering system */
 #define MAX_SOCK_BUF (24 * 1024) /**< Size of kernel's sock buf   */
 #define MAX_PROMPT_LENGTH 400    /**< Max length of prompt        */
@@ -4401,6 +4406,9 @@ struct room_data
     // struct trail_data_list *trail_blood;
     //// struct trail_data_list *trail_magic;
     struct moving_room_data  *mover;  /*  if it's a moving room       */
+
+    int harvest_material;
+    int harvest_material_amount;
 };
 
 /* char-related structures */
