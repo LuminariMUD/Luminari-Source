@@ -4207,6 +4207,7 @@ ACMD(do_who)
         else
           snprintf(clan_name, sizeof(clan_name), "%s", ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0) ? CLAN_NAME(c_n) : "Adventurer");
       length = strlen(clan_name);
+      length += count_color_chars(clan_name);
       padding = 28 - length;
       
       // Move characters to make room for padding at the front
