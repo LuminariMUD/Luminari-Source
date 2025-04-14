@@ -147,6 +147,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"affects", "aff", POS_DEAD, do_affects, 0, SCMD_AFFECTS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"afk", "afk", POS_DEAD, do_gen_tog, 0, SCMD_AFK, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"aoebombs", "aoeb", POS_RECLINING, do_gen_tog, 0, SCMD_AOE_BOMBS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"applies", "applies", POS_RECLINING, do_craftbonuses, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"apotheosis", "apoth", POS_STANDING, do_sorcerer_arcane_apotheosis, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"areas", "are", POS_DEAD, do_areas, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"assist", "as", POS_FIGHTING, do_assist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -223,6 +224,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"blooddrain", "blooddrain", POS_RESTING, do_blood_drain, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"bombs", "bombs", POS_RESTING, do_bombs, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"bonearmor", "bonearmor", POS_STANDING, do_need_craft_kit, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"bonuses", "bonuses", POS_RECLINING, do_craftbonuses, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"boosts", "boost", POS_RECLINING, do_boosts, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"buck", "buck", POS_FIGHTING, do_buck, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"bodyslam", "bodyslam", POS_FIGHTING, do_bodyslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_bodyslam},
@@ -267,7 +269,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"copyroom", "copyroom", POS_DEAD, do_copyroom, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"credits", "cred", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"ct", "ct", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"craftedit", "crafte", POS_DEAD, do_oasis_craftedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"create", "create", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"checkcraft", "checkcraft", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"compose", "compose", POS_RESTING, do_gen_preparation, 0, SCMD_COMPOSE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -282,10 +283,16 @@ cpp_extern const struct command_info cmd_info[] = {
     {"charge", "charge", POS_FIGHTING, do_charge, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_charge},
     {"circle", "circle", POS_FIGHTING, do_circle, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_circle},
     {"collect", "collect", POS_STANDING, do_collect, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
+#if defined(CAMPAIGN_DL) // && FALSE // (for testing)
+    {"craft", "craft", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_CREATE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"craftscore", "craftsc", POS_STANDING, do_craft_score, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#else
     /* we are just using the old do_practice function for crafting for now */
     {"craft", "craft", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     /* newer crafting system */
     {"crafting", "crafting", POS_STANDING, do_craft, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
+  #endif
+    {"craftedit", "crafte", POS_DEAD, do_oasis_craftedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"comeandgetme", "comeandgetme", POS_FIGHTING, do_comeandgetme, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_comeandgetme},
     {"curingtouch", "curingtouch", POS_STANDING, do_curingtouch, 0, 0, FALSE, ACTION_SWIFT, {6, 0}, NULL},
     {"cursetouch", "cursetouch", POS_FIGHTING, do_cursetouch, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
@@ -477,7 +484,11 @@ cpp_extern const struct command_info cmd_info[] = {
     {"holylight", "holy", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_HOLYLIGHT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"holyweapon", "holyw", POS_DEAD, do_holyweapon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"house", "house", POS_RECLINING, do_house, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#if defined(CAMPAIGN_DL)
+    {"harvest", "harvest", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_HARVEST, TRUE, ACTION_STANDARD, {0, 0}, NULL},
+#else
     {"harvest", "harvest", POS_STANDING, do_harvest, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"hlqedit", "hlqedit", POS_DEAD, do_hlqedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hlqlist", "hlqlist", POS_DEAD, do_hlqlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"headbutt", "headbutt", POS_FIGHTING, do_process_attack, 1, AA_HEADBUTT, FALSE, ACTION_NONE, {0, 0}, can_headbutt},
@@ -567,6 +578,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"map", "map", POS_STANDING, do_map, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mark", "mark", POS_STANDING, do_mark, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mastermind", "mastermind", POS_FIGHTING, do_mastermind, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_mastermind},
+    {"materials", "materials", POS_DEAD, do_list_craft_materials, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"maxhp", "maxhp", POS_DEAD, do_maxhp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -585,7 +597,9 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"news", "news", POS_SLEEPING, do_gen_ps, 0, SCMD_NEWS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"newcraft", "newcraft", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_CREATE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"noauction", "noauction", POS_DEAD, do_gen_tog, 0, SCMD_NOAUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"nocraftprogress", "nocraftpr", POS_DEAD, do_gen_tog, 1, SCMD_NOCRAFTPROGRESS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"noclantalk", "noclant", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_NOCLANTALK, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nogossip", "nogossip", POS_DEAD, do_gen_tog, 0, SCMD_NOGOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nograts", "nograts", POS_DEAD, do_gen_tog, 0, SCMD_NOGRATZ, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -627,7 +641,11 @@ cpp_extern const struct command_info cmd_info[] = {
     {"pathlist", "pathlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_PATHLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#if defined(CAMPAIGN_DL)
+    {"picklock", "pi", POS_STANDING, do_pick_lock, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#else
     {"picklock", "pi", POS_STANDING, do_gen_door, 1, SCMD_PICK, FALSE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"pilfer", "pil", POS_STANDING, do_loot, 1, SCMD_PILFER, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"page", "pag", POS_DEAD, do_page, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -691,6 +709,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"rallyingcry", "rallyingcry", POS_FIGHTING, do_rallying_cry, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rapidshot", "rapidshot", POS_FIGHTING, do_mode, 1, MODE_RAPID_SHOT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}, NULL},
+#if defined(CAMPAIGN_DL)
+    {"refine", "refine", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_REFINE, TRUE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"reforge", "reforge", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"relay", "relay", POS_RECLINING, do_relay, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reload", "reload", POS_FIGHTING, do_reload, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -717,7 +738,12 @@ cpp_extern const struct command_info cmd_info[] = {
     {"roomvnum", "roomvnum", POS_DEAD, do_roomvnum, LVL_IMMORT, SCMD_SHOWVNUMS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"respec", "respec", POS_STANDING, do_respec, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"recharge", "recharge", POS_STANDING, do_recharge, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#if defined(CAMPAIGN_DL)
+    {"resize", "resize", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_RESIZE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    // {"resize", "resize", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#else
     {"resize", "resize", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"redesc", "redesc", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"restring", "restring", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rage", "rage", POS_FIGHTING, do_rage, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_rage},
@@ -769,8 +795,10 @@ cpp_extern const struct command_info cmd_info[] = {
     {"set", "set", POS_DEAD, do_set, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setcloak", "setcloak", POS_RECLINING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"setbaneweapon", "setb", POS_RECLINING, do_setbaneweapon, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setmaterials", "setm", POS_DEAD, do_setmaterial, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomname", "setr", POS_DEAD, do_setroomname, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomdesc", "setroomd", POS_DEAD, do_setroomdesc, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setroomflags", "setroomf", POS_DEAD, do_setroomflag, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomsect", "setrooms", POS_DEAD, do_setroomsect, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setworldsect", "setw", POS_DEAD, do_setworldsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shadowcast", "shc", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SHADOW, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -832,7 +860,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"struggle", "struggle", POS_RECLINING, do_struggle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"seekerarrow", "seekerarrow", POS_FIGHTING, do_seekerarrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_seekerarrow},
 #if defined(CAMPAIGN_DL)
-    {"survey", "survey", POS_STANDING, do_craft_survey, 0, 0, TRUE, ACTION_STANDARD, {0, 0}, NULL},
+    {"survey", "survey", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_SURVEY, TRUE, ACTION_STANDARD, {0, 0}, NULL},
 #else
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
@@ -1307,7 +1335,52 @@ void command_interpreter(struct char_data *ch, char *argument)
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...  (attempting to cast without 'magical ambush' removes hidden status)\r\n");
   }
-  else if (char_has_mud_event(ch, eCRAFTING) &&
+#if defined(CAMPAIGN_DL)
+  else if (GET_CRAFT(ch).craft_duration > 0 && 
+           !is_abbrev(complete_cmd_info[cmd].command, "look") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "group") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "gtell") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "gsay") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "consider") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "equipment") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "idea") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "bug") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "typo") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "inventory") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "scan") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "who") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "score") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "craftscore") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "nocraftprogress") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "materials") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "applies") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "bonuses") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "cancel") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "queue") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "help") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "feat") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "tnl") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "prefedit") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "races") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "class") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "cooldowns") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "abilities") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "resistances") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "lore") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "powerattack") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "expertise") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "ooc") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "osay") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "rest") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "save") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "say"))
+  {
+    send_to_char(ch, "You can't do that while %s.\r\n", crafting_methods[GET_CRAFT(ch).crafting_method]);
+  }
+  #endif
+  else if ((char_has_mud_event(ch, eCRAFTING)) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
            !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
@@ -1677,6 +1750,22 @@ const char *three_arguments(
     char *first_arg, size_t n1, char *second_arg, size_t n2, char *third_arg, size_t n3)
 {
   return (one_argument(one_argument(one_argument(argument, first_arg, n1), second_arg, n2), third_arg, n3)); /* :-) */
+}
+
+const char *four_arguments(
+    const char *argument,
+    char *first_arg, size_t n1, char *second_arg, size_t n2, char *third_arg, size_t n3,
+    char *fourth_arg, size_t n4)
+{
+  return (one_argument(one_argument(one_argument(one_argument(argument, first_arg, n1), second_arg, n2), third_arg, n3), fourth_arg, n4));
+}
+
+const char *five_arguments(
+    const char *argument,
+    char *first_arg, size_t n1, char *second_arg, size_t n2, char *third_arg, size_t n3,
+    char *fourth_arg, size_t n4, char *fifth_arg, size_t n5)
+{
+  return (one_argument(one_argument(one_argument(one_argument(one_argument(argument, first_arg, n1), second_arg, n2), third_arg, n3), fourth_arg, n4), fifth_arg, n5));
 }
 
 /* Determine if a given string is an abbreviation of another.

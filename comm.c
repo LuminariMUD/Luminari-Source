@@ -195,6 +195,8 @@ void self_buffing(void);
 void moving_rooms_update(void);
 void recharge_activated_items(void);
 
+void craft_update(void);
+
 /* externally defined functions, used locally */
 #ifdef __CXREF__
 #undef FD_ZERO
@@ -1172,10 +1174,13 @@ void heartbeat(int heart_pulse)
     PERF_PROF_EXIT(pr_msdp_update_);
     travel_tickdown();
     self_buffing();
+    craft_update();
   }
 
   if (!(heart_pulse % (PASSES_PER_SEC * 5)))
+  {
     regen_psp();
+  }
 
   if (!(heart_pulse % (int)(PASSES_PER_SEC * 0.75)))
     process_walkto_actions();

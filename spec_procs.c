@@ -1418,19 +1418,28 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value += GET_CHA_BONUS(ch);
     return value;
 
-    /* Knowledge Skills */
+    // Crafting Skills
   case ABILITY_CRAFT_WOODWORKING:
   case ABILITY_CRAFT_TAILORING:
   case ABILITY_CRAFT_ALCHEMY:
   case ABILITY_CRAFT_ARMORSMITHING:
   case ABILITY_CRAFT_WEAPONSMITHING:
   case ABILITY_CRAFT_BOWMAKING:
-  case ABILITY_CRAFT_GEMCUTTING:
+  case ABILITY_CRAFT_JEWELCRAFTING:
   case ABILITY_CRAFT_LEATHERWORKING:
   case ABILITY_CRAFT_TRAPMAKING:
   case ABILITY_CRAFT_POISONMAKING:
   case ABILITY_CRAFT_METALWORKING:
+  case ABILITY_CRAFT_FISHING:
+  case ABILITY_CRAFT_COOKING:
+  case ABILITY_CRAFT_BREWING:
+  case ABILITY_HARVEST_MINING   :
+  case ABILITY_HARVEST_HUNTING  :
+  case ABILITY_HARVEST_FORESTRY :
+  case ABILITY_HARVEST_GATHERING:
+#if !defined(CAMPAIGN_DL)
     value += GET_INT_BONUS(ch);
+#endif
     return value;
   default:
     return -1;
@@ -11192,12 +11201,32 @@ SPECIAL(identify_mob)
 
   char arg1[200];
   struct obj_data *obj = NULL;
+  int cost = 0;
 
   one_argument(argument, arg1, sizeof(arg1));
 
   if (!*arg1)
   {
-    send_to_char(ch, "Which item do you wish to have identified?\r\n");
+    send_to_char(ch, "Which item do you wish to have identified? Or enter 'worn' to show basic bonuses on equipped items.\r\n");
+    return 1;
+  }
+
+  if (is_abbrev(arg1, "worn"))
+  {
+    cost = MIN(500, GET_LEVEL(ch) * 25);
+
+    if (GET_GOLD(ch) < cost)
+    {
+      send_to_char(ch, "You need to pay %d coins to identify your worn equipment.\r\n", cost);
+      return 1;
+    }
+    
+    GET_GOLD(ch) -= cost;
+    
+    send_to_char(ch, "\r\nYour equipped items have been identified for %d coins.\r\n\r\n", cost);
+
+    call_magic(ch, ch, 0, SPELL_MASS_IDENTIFY, 0, 30, CAST_SPELL);
+    
     return 1;
   }
 

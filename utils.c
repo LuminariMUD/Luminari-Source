@@ -6531,6 +6531,12 @@ int d20(struct char_data *ch)
   int roll2 = 0;
   int low = 0, high = 0;
 
+  // critical failure always returns a roll of one
+  if (roll == 1) return 1;
+
+  // critical success will always rerturn 20
+  if (roll == 20) return 20;
+
   if (roll <= 5 && HAS_REAL_FEAT(ch, FEAT_FORTUNE_OF_THE_MANY))
   {
     if (dice(1, 10) == 1)
@@ -10388,6 +10394,183 @@ bool hide_damage_message(int snum)
     case SPELL_POISON:
       return true;
   }
+  return false;
+}
+
+bool is_valid_apply(int apply)
+{
+  switch (apply)
+  {
+    case APPLY_NONE:
+    case APPLY_CLASS:
+    case APPLY_LEVEL:
+    case APPLY_AGE:
+    case APPLY_CHAR_WEIGHT:
+    case APPLY_CHAR_HEIGHT:
+    case APPLY_GOLD:
+    case APPLY_EXP:
+    case APPLY_AC:
+    case APPLY_SAVING_POISON:
+    case APPLY_SAVING_DEATH:
+    case APPLY_SIZE:
+    case APPLY_DR:
+    case APPLY_SPECIAL:
+    case APPLY_ELDRITCH_SHAPE:
+    case APPLY_ELDRITCH_ESSENCE:
+      return false;
+  }
+
+  return true;
+}
+
+int max_bonus_modifier(int location, int bonus_type)
+{
+
+  int max_modifier = 0;
+
+  switch (location)
+  {
+    case APPLY_STR:
+    case APPLY_DEX:
+    case APPLY_INT:
+    case APPLY_WIS:
+    case APPLY_CON:
+    case APPLY_CHA:
+      max_modifier = 9; break;
+
+    case APPLY_PSP:
+      max_modifier = 100; break;
+    
+    case APPLY_HIT:
+      max_modifier = 100; break;
+    
+    case APPLY_MOVE:
+      max_modifier = 1000; break;
+    
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+      max_modifier = 6; break;
+    
+    case APPLY_SAVING_FORT:
+    case APPLY_SAVING_REFL:
+    case APPLY_SAVING_WILL:
+      max_modifier = 6; break;
+    
+    case APPLY_AC_NEW:
+      max_modifier = 9; break;
+    
+    case APPLY_RES_FIRE:
+    case APPLY_RES_COLD:
+    case APPLY_RES_AIR:
+    case APPLY_RES_EARTH:
+    case APPLY_RES_ACID:
+    case APPLY_RES_HOLY:
+    case APPLY_RES_ELECTRIC:
+    case APPLY_RES_UNHOLY:
+    case APPLY_RES_SLICE:
+    case APPLY_RES_PUNCTURE:
+    case APPLY_RES_FORCE:
+    case APPLY_RES_SOUND:
+    case APPLY_RES_POISON:
+    case APPLY_RES_DISEASE:
+    case APPLY_RES_NEGATIVE:
+    case APPLY_RES_ILLUSION:
+    case APPLY_RES_MENTAL:
+    case APPLY_RES_LIGHT:
+    case APPLY_RES_ENERGY:
+    case APPLY_RES_WATER:
+      max_modifier = 30; break;
+
+    case APPLY_FEAT:
+      max_modifier = 1; break;
+    
+    case APPLY_SKILL:
+      max_modifier = 6; break;
+
+    case APPLY_POWER_RES:
+    case APPLY_SPELL_RES:
+      max_modifier = 20; break;
+
+    case APPLY_HP_REGEN:
+    case APPLY_PSP_REGEN:
+      max_modifier = 6; break;
+    
+    case APPLY_MV_REGEN:
+      max_modifier = 60; break;
+   
+    case APPLY_ENCUMBRANCE:
+      max_modifier = 6; break;
+    
+    case APPLY_FAST_HEALING:
+      max_modifier = 3; break;
+    
+    case APPLY_INITIATIVE:
+      max_modifier = 6; break;
+    
+    case APPLY_SPELL_CIRCLE_1:
+    case APPLY_SPELL_CIRCLE_2:
+    case APPLY_SPELL_CIRCLE_3:    
+    case APPLY_SPELL_CIRCLE_4:
+    case APPLY_SPELL_CIRCLE_5:
+    case APPLY_SPELL_CIRCLE_6:
+    case APPLY_SPELL_CIRCLE_7:
+    case APPLY_SPELL_CIRCLE_8:
+    case APPLY_SPELL_CIRCLE_9:
+      max_modifier = 3; break;
+    
+    case APPLY_SPELL_POTENCY:
+    case APPLY_SPELL_DURATION:
+      max_modifier = 30; break;
+
+    case APPLY_SPELL_DC:
+      max_modifier = 3; break;
+    
+    case APPLY_SPELL_PENETRATION:
+      max_modifier = 3; break;
+  }
+
+  if (bonus_type == BONUS_TYPE_UNIVERSAL)
+    max_modifier /= 3;
+
+  return MAX(1, max_modifier);
+
+}
+
+bool is_exit_hidden(struct char_data *ch, int dir)
+{
+
+  if (dir < 0 || dir >= NUM_OF_DIRS)
+    return false;
+  
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return false;
+
+   if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN))
+    return true;
+   else if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_EASY))
+    return true;
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_MEDIUM))
+    return true;
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN_HARD))
+    return true;
+
+  return false;
+}
+
+bool is_exit_locked(struct char_data *ch, int dir)
+{
+  if (dir < 0 || dir >= NUM_OF_DIRS)
+    return false;
+  
+  if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED))
+    return true;
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_EASY))
+    return true;
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_MEDIUM))
+    return true;
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_HARD))
+    return true;
+
   return false;
 }
 

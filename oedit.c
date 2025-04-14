@@ -1720,6 +1720,9 @@ static void oedit_disp_menu(struct descriptor_data *d)
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BADGE))
       len += snprintf(buf3 + len, sizeof(buf3) - len,
                       "[wear-badge:NONE] ");
+    if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHOULDERS))
+      len += snprintf(buf3 + len, sizeof(buf3) - len,
+                      "[wear-shoulders:NONE] ");
   }
   /* end eq-wear suggestions */
 

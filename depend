@@ -130,7 +130,7 @@ config.o: config.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 constants.o: constants.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h interpreter.h \
  spells.h craft.h feats.h domains_schools.h handler.h deities.h \
- constants.h roleplay.h
+ constants.h roleplay.h crafting_new.h
 craft.o: craft.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mysql.h utils.h db.h helpers.h perfmon.h comm.h spells.h \
  interpreter.h constants.h handler.h craft.h mud_event.h dg_event.h \
@@ -140,7 +140,8 @@ crafting_new.o: crafting_new.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h mysql.h utils.h db.h helpers.h perfmon.h \
  comm.h spells.h interpreter.h constants.h handler.h craft.h mud_event.h \
  dg_event.h modify.h treasure.h mudlim.h spec_procs.h item.h quest.h \
- assign_wpn_armor.h genolc.h crafting_new.h
+ assign_wpn_armor.h genolc.h crafting_new.h oasis.h help.h feats.h \
+ class.h improved-edit.h crafting_recipes.h
 crafting_recipes.o: crafting_recipes.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h mysql.h utils.h db.h helpers.h perfmon.h \
  comm.h spells.h interpreter.h constants.h handler.h craft.h mud_event.h \
@@ -158,7 +159,8 @@ db.o: db.c conf.h sysdep.h structs.h bool.h protocol.h lists.h campaign.h \
  msgedit.h craft.h hlquest.h mudlim.h spec_abilities.h perlin.h \
  wilderness.h mysql.h feats.h actionqueues.h domains_schools.h grapple.h \
  race.h spell_prep.h crafts.h trails.h premadebuilds.h encounters.h \
- hunts.h evolutions.h assign_wpn_armor.h backgrounds.h crafting_new.h
+ hunts.h evolutions.h assign_wpn_armor.h backgrounds.h crafting_new.h \
+ crafting_recipes.h
 deities.o: deities.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h spells.h interpreter.h \
  deities.h
@@ -279,7 +281,7 @@ handler.o: handler.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h handler.h screen.h \
  interpreter.h spells.h dg_scripts.h act.h class.h fight.h quest.h \
  mud_event.h dg_event.h wilderness.h actionqueues.h constants.h \
- spec_abilities.h
+ spec_abilities.h crafting_new.h
 hedit.o: hedit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h interpreter.h \
  boards.h oasis.h help.h genolc.h genzon.h handler.h improved-edit.h \
@@ -415,7 +417,7 @@ players.o: players.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  dg_scripts.h comm.h interpreter.h mysql.h genolc.h config.h quest.h \
  spells.h clan.h mud_event.h dg_event.h craft.h spell_prep.h alchemy.h \
  templates.h premadebuilds.h missions.h evolutions.h class.h oasis.h \
- help.h
+ help.h crafting_new.h
 prefedit.o: prefedit.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h comm.h utils.h db.h helpers.h perfmon.h handler.h \
  interpreter.h oasis.h help.h prefedit.h screen.h encounters.h
@@ -539,7 +541,8 @@ traps.o: traps.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 treasure.o: treasure.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h interpreter.h \
  handler.h spells.h constants.h dg_scripts.h treasure.h craft.h \
- assign_wpn_armor.h oasis.h help.h item.h staff_events.h feats.h
+ assign_wpn_armor.h oasis.h help.h item.h staff_events.h feats.h \
+ crafting_new.h
 treasure_const.o: treasure_const.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h utils.h db.h helpers.h perfmon.h \
  interpreter.h treasure.h

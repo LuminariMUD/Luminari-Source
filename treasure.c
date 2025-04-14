@@ -26,6 +26,7 @@
 #include "item.h"
 #include "staff_events.h"
 #include "feats.h"
+#include "crafting_new.h"
 
 /***  utility functions ***/
 
@@ -536,154 +537,29 @@ int apply_bonus_feat(int rare_grade)
     return FEAT_UNDEFINED;
 
   int feat_num = FEAT_UNDEFINED;
-  int roll = 1;
+  int roll = 1, i = 0, count = 0;
 
-  switch (rare_grade)
+  for (i = 1; i < FEAT_LAST_FEAT; i++)
   {
-  case RARE_GRADE_RARE:
-    roll = dice(1, 93);
-    break;
-  case RARE_GRADE_LEGENDARY:
-    roll = dice(1, 121);
-    break;
-  case RARE_GRADE_MYTHICAL:
-    roll = dice(1, 151);
-    break;
+    if (is_valid_craft_feat(i))
+      count++;
   }
 
-  if (roll <= 3)
-    feat_num = FEAT_ALERTNESS;
-  else if (roll <= 6)
-    feat_num = FEAT_ARMOR_PROFICIENCY_LIGHT;
-  else if (roll <= 9)
-    feat_num = FEAT_ARMOR_PROFICIENCY_MEDIUM;
-  else if (roll <= 12)
-    feat_num = FEAT_ENDURANCE;
-  else if (roll <= 15)
-    feat_num = FEAT_FAST_MOVEMENT;
-  else if (roll <= 18)
-    feat_num = FEAT_DETECT_EVIL;
-  else if (roll <= 21)
-    feat_num = FEAT_SLEEP_ENCHANTMENT_IMMUNITY;
-  else if (roll <= 24)
-    feat_num = FEAT_RESISTANCE_TO_ENCHANTMENTS;
-  else if (roll <= 27)
-    feat_num = FEAT_IRON_WILL;
-  else if (roll <= 30)
-    feat_num = FEAT_LIGHTNING_REFLEXES;
-  else if (roll <= 33)
-    feat_num = FEAT_STABILITY;
-  else if (roll <= 36)
-    feat_num = FEAT_TOUGHNESS;
-  else if (roll <= 39)
-    feat_num = FEAT_LUCKY;
-  else if (roll <= 42)
-    feat_num = FEAT_UNARMED_STRIKE;
-  else if (roll <= 45)
-    feat_num = FEAT_INFRAVISION;
-  else if (roll <= 48)
-    feat_num = FEAT_DETECT_GOOD;
-  else if (roll <= 51)
-    feat_num = FEAT_RESISTANCE_TO_ILLUSIONS;
-  else if (roll <= 54)
-    feat_num = FEAT_ARMOR_PROFICIENCY_SHIELD;
-  else if (roll <= 57)
-    feat_num = FEAT_ANIMAL_AFFINITY;
-  else if (roll <= 60)
-    feat_num = FEAT_DECEITFUL;
-  else if (roll <= 63)
-    feat_num = FEAT_DEFT_HANDS;
-  else if (roll <= 66)
-    feat_num = FEAT_DILIGENT;
-  else if (roll <= 69)
-    feat_num = FEAT_MAGICAL_APTITUDE;
-  else if (roll <= 72)
-    feat_num = FEAT_NIMBLE_FINGERS;
-  else if (roll <= 75)
-    feat_num = FEAT_PERSUASIVE;
-  else if (roll <= 78)
-    feat_num = FEAT_SELF_SUFFICIENT;
-  else if (roll <= 81)
-    feat_num = FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD;
-  else if (roll <= 84)
-    feat_num = FEAT_ARMOR_SPECIALIZATION_LIGHT;
-  else if (roll <= 87)
-    feat_num = FEAT_ARMOR_SPECIALIZATION_MEDIUM;
-  else if (roll <= 90)
-    feat_num = FEAT_STRONG_AGAINST_POISON;
-  else if (roll <= 93)
-    feat_num = FEAT_STRONG_AGAINST_DISEASE;
+  roll = dice(1, count);
+  count = 0;
 
-  /* nicer feats */
-  else if (roll <= 95)
-    feat_num = FEAT_ARMOR_SPECIALIZATION_HEAVY;
-  else if (roll <= 97)
-    feat_num = FEAT_BARDIC_KNOWLEDGE;
-  else if (roll <= 99)
-    feat_num = FEAT_TWO_WEAPON_DEFENSE;
-  else if (roll <= 101)
-    feat_num = FEAT_STEALTHY;
-  else if (roll <= 103)
-    feat_num = FEAT_RAPID_RELOAD;
-  else if (roll <= 105)
-    feat_num = FEAT_IMPROVED_SHIELD_PUNCH;
-  else if (roll <= 107)
-    feat_num = FEAT_IMPROVED_FEINT;
-  else if (roll <= 109)
-    feat_num = FEAT_IMPROVED_GRAPPLE;
-  else if (roll <= 111)
-    feat_num = FEAT_EXOTIC_WEAPON_PROFICIENCY;
-  else if (roll <= 113)
-    feat_num = FEAT_SNEAK_ATTACK;
-  else if (roll <= 115)
-    feat_num = FEAT_FAST_HEALER;
-  else if (roll <= 117)
-    feat_num = FEAT_ABLE_LEARNER;
-  else if (roll <= 119)
-    feat_num = FEAT_IMPROVED_TAUNTING;
-  else if (roll <= 121)
-    feat_num = FEAT_IMPROVED_INTIMIDATION;
-  else if (roll <= 123)
-    feat_num = FEAT_WEAPON_FINESSE;
-  else if (roll <= 125)
-    feat_num = FEAT_TWO_WEAPON_FIGHTING;
-  else if (roll <= 127)
-    feat_num = FEAT_SPRING_ATTACK;
-  else if (roll <= 129)
-    feat_num = FEAT_MOBILITY;
-  else if (roll <= 131)
-    feat_num = FEAT_MARTIAL_WEAPON_PROFICIENCY;
-  else if (roll <= 133)
-    feat_num = FEAT_IMPROVED_TRIP;
-  else if (roll <= 135)
-    feat_num = FEAT_IMPROVED_INITIATIVE;
-  else if (roll <= 137)
-    feat_num = FEAT_IMPROVED_DISARM;
-  else if (roll <= 139)
-    feat_num = FEAT_RAGE;
-  else if (roll <= 141)
-    feat_num = FEAT_DODGE;
-  else if (roll <= 143)
-    feat_num = FEAT_DEFLECT_ARROWS;
-  else if (roll <= 145)
-    feat_num = FEAT_COMBAT_REFLEXES;
-  else if (roll <= 147)
-    feat_num = FEAT_CLEAVE;
-  else if (roll <= 149)
-    feat_num = FEAT_ARMOR_PROFICIENCY_HEAVY;
-  else if (roll <= 151)
-    feat_num = FEAT_BLIND_FIGHT;
-
-  /* just in case */
-  if (feat_num < 0)
-    feat_num = FEAT_UNDEFINED;
-  if (feat_num >= NUM_FEATS)
-    feat_num = FEAT_UNDEFINED;
-
-  if (!feat_list[feat_num].can_learn)
+  for (i = 1; i < FEAT_LAST_FEAT; i++)
   {
+    if (is_valid_craft_feat(i))
+      count++;
+    if (count == roll)
+      break;
+  }
+
+  feat_num = i;
+
+  if (feat_num <= FEAT_UNDEFINED || feat_num >= FEAT_LAST_FEAT)
     return apply_bonus_feat(rare_grade);
-  }
 
   return feat_num;
 }

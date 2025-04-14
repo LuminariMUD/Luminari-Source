@@ -144,8 +144,20 @@
 #define CRAFT_RECIPE_INSTRUMENT_DRUM        141
 #define CRAFT_RECIPE_INSTRUMENT_HARP        142
 #define CRAFT_RECIPE_INSTRUMENT_MANDOLIN    143
+#define CRAFT_RECIPE_MISC_PAULDRONS         144
 
-#define NUM_CRAFTING_RECIPES                144
+#define NUM_CRAFTING_RECIPES                145
+
+#define REFINE_RECIPE_NONE              0
+#define REFINE_RECIPE_BRONZE            1
+#define REFINE_RECIPE_STEEL             2
+#define REFINE_RECIPE_SATIN             3
+#define REFINE_RECIPE_BRASS             4
+#define REFINE_RECIPE_LINEN             5
+#define REFINE_RECIPE_ALCHEMICAL_SILVER 6
+#define REFINE_RECIPE_COLD_IRON         7
+
+#define NUM_REFINING_RECIPES            8
 
 #define NUM_CRAFT_VARIANTS      10
 
@@ -155,10 +167,24 @@ struct craft_recipe_data
     int object_type;
     int object_subtype;
     int variant_skill[NUM_CRAFT_VARIANTS]; // variants of the type. Eg. bracelet, bracer and wristguard
-    int material_one[NUM_CRAFT_VARIANTS][2]; // type and num units required Eg. bracelet needs soft metal 5 units, bracer needs leather 7 units
-    int material_two[NUM_CRAFT_VARIANTS][2]; // type and num units required
-    int material_three[NUM_CRAFT_VARIANTS][2]; // type and num units required
+    int materials[3][NUM_CRAFT_VARIANTS][2]; // type and num units required Eg. bracelet needs soft metal 5 units, bracer needs leather 7 units
     const char *variant_descriptions[NUM_CRAFT_VARIANTS];
+    int practical_type; // for weapons, this is the weapon type, for armor, the armor type, instruments, the intrument type, and others, the wear slot.
 };
+
+struct refine_recipe_data
+{
+    int skill;
+    int dc;
+    int materials[3][2];
+    int result[2];
+    int crafting_station_flag;
+};
+
+extern struct craft_recipe_data crafting_recipes[NUM_CRAFTING_RECIPES];
+extern struct refine_recipe_data refining_recipes[NUM_REFINING_RECIPES];
+void populate_crafting_recipes(void);
+void initialize_refining_recipes(void);
+void populate_refining_recipes(void);
 
 #endif

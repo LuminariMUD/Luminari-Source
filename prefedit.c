@@ -235,7 +235,10 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                /* Line 7 (7) - Careful with Pets Toggle */
                "%s8%s) Reject Rage Spell       %s[%s%3s%s]        %sG%s) Flag Self as Non-Roleplayer      %s[%s%3s%s]\r\n"
                /* Line 8 (8) No Rage Spell */
-               "%sH%s) Shorten Post Combat Text%s[%s%3s%s]        %sI%s) Automatic Eldritch Blast         %s[%s%3s%s]\r\n",
+               "%sH%s) Shorten Post Combat Text%s[%s%3s%s]        %sI%s) Automatic Eldritch Blast         %s[%s%3s%s]\r\n"
+               /* Line 9 (9) No Crafting Progress Messages */
+               "%sJ%s) No Crafting Progress Msg%s[%s%3s%s]\r\n"
+               ,
                /* Line 8 (8) No Rage Spell */
                /*******1********/
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
@@ -315,7 +318,11 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                /**/
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_AUTOBLAST) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOBLAST)), CCCYN(d->character, C_NRM)
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOBLAST)), CCCYN(d->character, C_NRM),
+               /*******J*********/
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_NO_CRAFT_PROGRESS) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_NO_CRAFT_PROGRESS)), CCCYN(d->character, C_NRM)
 
                /*end*/);
 
@@ -1058,6 +1065,11 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case 'i':
     case 'I':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOBLAST);
+      break;
+
+    case 'j':
+    case 'J':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NO_CRAFT_PROGRESS);
       break;
 
     default:

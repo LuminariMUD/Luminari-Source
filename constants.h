@@ -191,13 +191,22 @@ extern const char *apply_type_food_names[];
 extern const int apply_type_food_or_drink[];
 extern const char *crafting_materials[];
 extern const char *crafting_material_nodes[];
+extern const char *harvesting_messages[];
 
 extern const char *character_rp_goal_objectives[];
 extern const char *character_rp_goal_reasons[];
 extern const char *character_rp_goal_complications[];
 
+extern const char *crafting_types[];
+extern const char *crafting_jewelry_types[];
+extern const char *crafting_instrument_types[];
+extern const char *crafting_misc_types[];
+extern const char *crafting_material_groups[];
+extern const char *crafting_methods [];
+
 /* NewCraft */
 extern const char *craft_flags[];
 extern const char *requirement_flags[];
+extern const char *crafting_motes [];
 
 #endif /* _CONSTANTS_H_ */

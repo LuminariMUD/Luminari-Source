@@ -120,6 +120,9 @@ bool is_poison_spell(int spell);
 bool valid_vampire_cloak_apply(int type);
 bool is_valid_ability_number(int num);
 int get_region_language(int region);
+bool is_valid_apply(int apply);
+int max_bonus_modifier(int location, int bonus_type);
+bool has_intro(struct char_data *ch, struct char_data *target);
 const char *get_region_info(int region);
 int get_vampire_cloak_bonus(int level, int type);
 bool has_overwhelming_critical_prereqs(struct char_data *ch, struct obj_data *wielded);
@@ -316,6 +319,7 @@ struct char_data *is_playing(char *vict_name);
 char *add_commas(long X);
 bool is_monk_weapon(struct obj_data *obj);
 bool can_mastermind_power(struct char_data *ch, int spellnum);
+bool is_exit_hidden(struct char_data *ch, int dir);
 bool is_room_in_sunlight(room_rnum room);
 int get_encumbrance_mod(struct char_data *ch);
 bool is_covered(struct char_data *ch);
@@ -2683,6 +2687,15 @@ bool has_reach(struct char_data *ch);
 #define GET_RETAINER_MAIL_RECIPIENT(ch) (ch->player_specials->retainer_mail_recipient)
 
 #define GET_LAST_ROOM(ch)   (ch->player_specials->saved.last_room)
+
+// new crafting system
+#define GET_CRAFT(ch)         (ch->player_specials->saved.craft_data)
+#define GET_CRAFT_MAT(ch, i)  (ch->player_specials->saved.craft_mats_owned[i])
+#define GET_CRAFT_MOTES(ch, i)  (ch->player_specials->saved.craft_motes_owned[i])
+#define GET_CRAFT_SKILL_EXP(ch, i)  (ch->player_specials->saved.ability_exp[i])
+
+#define GET_NSUPPLY_NUM_MADE(ch)    (ch->player_specials->saved.new_supply_num_made)
+#define GET_NSUPPLY_COOLDOWN(ch)    (ch->player_specials->saved.new_supply_cooldown)
 
 #endif /* _UTILS_H_ */
 

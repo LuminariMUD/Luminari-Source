@@ -96,6 +96,7 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_FACE,          //<worn on face>
     WEAR_NECK_1,        //<worn around neck>
     WEAR_NECK_2,        //<worn around neck>
+    WEAR_SHOULDERS,     //<worn on shoulders>
     WEAR_BODY,          //<worn on body>
     WEAR_ABOUT,         //<worn about body>
     WEAR_AMMO_POUCH,    //<worn as ammo pouch>
@@ -1369,9 +1370,22 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   else // non-staffers just see the name
     send_to_char(ch, "%s", world[IN_ROOM(ch)].name);
 
+  send_to_char(ch, " \tc[%s]\tn", sector_types[(world[IN_ROOM(ch)].sector_type)]);
+
   // room affections
   sprintbit((long)rm->room_affections, room_affections, buf, sizeof(buf));
   send_to_char(ch, " ( %s)", buf);
+
+    
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
+  {
+    if (world[IN_ROOM(ch)].harvest_material != 0 && world[IN_ROOM(ch)].harvest_material_amount > 0)
+    {
+      send_to_char(ch, "\r\n\ty[MATS: %d %s] \r\n\tn",
+              world[IN_ROOM(ch)].harvest_material_amount, 
+              crafting_materials[world[IN_ROOM(ch)].harvest_material]);
+    }
+  }
 
   /* display some extra info about the room (special flags) */
   send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM)); // CR
@@ -1743,10 +1757,11 @@ static void perform_immort_where(struct char_data *ch, char *arg)
  * the suggested fix to this problem. */
 static void look_at_target(struct char_data *ch, char *arg)
 {
-  int bits, found = FALSE, j, fnum, i = 0;
+  int bits, found = FALSE, j, fnum, i = 0, x = 0;
   struct char_data *found_char = NULL;
   struct obj_data *obj, *found_obj = NULL;
   char *desc;
+  char desc_out[512];
 
   if (!ch->desc)
     return;
@@ -1796,7 +1811,21 @@ static void look_at_target(struct char_data *ch, char *arg)
         show_obj_info(GET_EQ(ch, j), ch);
         send_to_char(ch, "\r\n");
 
-        send_to_char(ch, "%s", desc);
+        if (OBJ_FLAGGED(GET_EQ(ch, j), ITEM_CRAFTED))
+        {
+          snprintf(desc_out, sizeof(desc_out), "%s", strfrmt(desc, 80, 1, FALSE, FALSE, FALSE));
+          for (x = 0; x < strlen(desc_out); x++)
+          {
+            if (desc_out[x] == '~')
+              desc_out[x] = '\0';
+          }
+        }
+        else
+        {
+          snprintf(desc_out, sizeof(desc_out), "%s", desc);
+        }
+
+        send_to_char(ch, "%s\n", desc_out);
         found = TRUE;
       }
 
@@ -1814,7 +1843,21 @@ static void look_at_target(struct char_data *ch, char *arg)
           send_to_char(ch, "\r\n");
         }
 
-        send_to_char(ch, "%s", desc);
+        if (OBJ_FLAGGED(obj, ITEM_CRAFTED))
+        {
+          snprintf(desc_out, sizeof(desc_out), "%s", strfrmt(desc, 80, 1, FALSE, FALSE, FALSE));
+          for (x = 0; x < strlen(desc_out); x++)
+          {
+            if (desc_out[x] == '~')
+              desc_out[x] = '\0';
+          }
+        }
+        else
+        {
+          snprintf(desc_out, sizeof(desc_out), "%s", desc);
+        }
+
+        send_to_char(ch, "%s\n", desc_out);
         found = TRUE;
       }
   }
@@ -1832,7 +1875,21 @@ static void look_at_target(struct char_data *ch, char *arg)
           send_to_char(ch, "\r\n");
         }
 
-        send_to_char(ch, "%s", desc);
+        if (OBJ_FLAGGED(obj, ITEM_CRAFTED))
+        {
+          snprintf(desc_out, sizeof(desc_out), "%s", strfrmt(desc, 80, 1, FALSE, FALSE, FALSE));
+          for (x = 0; x < strlen(desc_out); x++)
+          {
+            if (desc_out[x] == '~')
+              desc_out[x] = '\0';
+          }
+        }
+        else
+        {
+          snprintf(desc_out, sizeof(desc_out), "%s", desc);
+        }
+
+        send_to_char(ch, "%s\n", desc_out);
         found = TRUE;
       }
 

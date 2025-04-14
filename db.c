@@ -66,6 +66,7 @@
 #include "assign_wpn_armor.h"
 #include "backgrounds.h"
 #include "crafting_new.h"
+#include "crafting_recipes.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -593,7 +594,6 @@ ACMD(do_reboot)
      extended races, armor/weapon lists, domains and deities */
 void boot_world(void)
 {
-  int x = 0;
 
   /* Initialize the db connection. */
   connect_to_mysql();
@@ -639,14 +639,20 @@ void boot_world(void)
     log("Loading shops.");
     index_boot(DB_BOOT_SHP);
 
+#if !defined(CAMPAIGN_DL)
+    int x = 0;
     log("Placing Harvesting Nodes");
     for (x = 0; x < NUM_HARVEST_NODE_RESETS; x++)
       reset_harvesting_rooms();
+#endif
   }
 
 #if defined(CAMPAIGN_DL)
   // assigning new crafting system harvesting nodes.
   assign_harvest_materials_to_word();
+  populate_crafting_recipes();
+  populate_refining_recipes();
+  sort_materials();
 #endif
 
   log("Loading quests.");

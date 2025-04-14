@@ -1197,6 +1197,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
     need_movement--;
 
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_ROAD))
+    need_movement--;
+
   if (ROOM_AFFECTED(going_to, RAFF_DIFFICULT_TERRAIN))
     need_movement *= 2;
   /* if in "spot-mode" double cost of movement */

@@ -229,6 +229,10 @@
 #define BELT_MOLD 40184 // 5
 #define WRIST_MOLD 40185
 #define HELD_MOLD 40186
+#define EYES_MOLD 40249
+#define FACE_MOLD 40250
+#define EARS_MOLD 40251
+#define SHOULDERS_MOLD 40252
 /* end misc molds */
 #define NUM_MISC_MOLDS 8
 

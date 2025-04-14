@@ -208,10 +208,11 @@
 #define ROOM_RANDOM_TRAP 36    // a random trap will load in this room
 #define ROOM_RANDOM_CHEST 37    // a random treasure chest will load in this room
 #define ROOM_HARVEST_NODE 38    // this room will always load a harvest node
+#define ROOM_ROAD 39
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS 39
+#define NUM_ROOM_FLAGS 40
 
 /* Room affects */
 /* Old room-affection system, could be replaced by room-events
@@ -1330,9 +1331,10 @@
 #define PRF_NON_ROLEPLAYER 73
 #define PRF_POST_COMBAT_BRIEF 74
 #define PRF_AUTOBLAST 75
+#define PRF_NO_CRAFT_PROGRESS 76
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 76
+#define NUM_PRF_FLAGS 77
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -1632,8 +1634,9 @@
 #define WEAR_EAR_L 25         /* worn on/in left ear */
 #define WEAR_EYES 26          /* worn in/over eye(s) */
 #define WEAR_BADGE 27         /* attached to your body armor as a badge */
+#define WEAR_SHOULDERS 28
 /** Total number of available equipment lcoations */
-#define NUM_WEARS 28
+#define NUM_WEARS 29
 /**/
 
 /* ranged combat */
@@ -3137,10 +3140,25 @@
 #define MATERIAL_DRAGONSCALE 45
 #define MATERIAL_DRAGONBONE 46
 #define MATERIAL_SEA_IVORY 47
-/** Total number of item mats.*/
-#define NUM_MATERIALS 48
+#define MATERIAL_TIN 48
+#define MATERIAL_COAL 49
+#define MATERIAL_DRAGONMETAL 50
+#define MATERIAL_ASH 51
+#define MATERIAL_MAPLE 52
+#define MATERIAL_MAHAGONY 53
+#define MATERIAL_VALENWOOD 54
+#define MATERIAL_IRONWOOD 55
+#define MATERIAL_LINEN 56
+#define MATERIAL_ZINC 57
+#define MATERIAL_FLAX 58
 
-#define NUM_CRAFT_MATS 31
+/** Total number of item mats.*/
+#define NUM_MATERIALS 59
+
+#define NUM_CRAFT_MATS 36
+#define NUM_CRAFT_MOTES 9
+
+#define NUM_CRAFT_GROUPS 8
 
 /* Portal types for the portal object */
 #define PORTAL_NORMAL 0
@@ -3173,8 +3191,9 @@
 #define ITEM_WEAR_EYES 18  // item can be worn on eyes
 #define ITEM_WEAR_BADGE 19 // item can be worn as badge
 #define ITEM_WEAR_INSTRUMENT 20
+#define ITEM_WEAR_SHOULDERS 21
 /** Total number of item wears */
-#define NUM_ITEM_WEARS 21
+#define NUM_ITEM_WEARS 22
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
 #define ITEM_GLOW 0             /**< Item is glowing */
@@ -3284,8 +3303,13 @@
 #define ITEM_NOSAC 100
 #define ITEM_DOWNGRADED 101
 #define ITEM_IDENTIFIED 102
+#define ITEM_CRAFTED 103
+#define ITEM_ONLY_EQUIP_ONE 104
+#define ITEM_ONLY_POSSES_ONE 105
+#define ITEM_CRAFTING_SMELTER 106
+#define ITEM_CRAFTING_LOOM 107
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 103
+#define NUM_ITEM_FLAGS 108
 
 /* homeland-port */
 /*
@@ -4246,6 +4270,52 @@ struct obj_weapon_poison
     int poison_hits;  /* how many times the poison will fire off the weapon */
 };
 
+struct crafting_data_info
+{
+    // craft info
+    int crafting_method;                            // crafting method Eg. create, restring, resize, etc.
+    int crafting_item_type;                         // weapon, armor, misc
+    int crafting_specific;                          // long sword, full plate breastplate, earring
+    int skill_type;
+    int crafting_recipe;
+    int craft_variant;
+    int materials[NUM_CRAFT_GROUPS][2];             // 0 = mat type, 1 = mat amount
+    int craft_obj_rnum;
+
+    // obj info
+    char *keywords;
+    char *short_description;
+    char *room_description;
+    char *ex_description;
+    struct obj_flag_data obj_flags;
+    struct obj_affected_type affected[MAX_OBJ_AFFECT];
+    int motes_required[MAX_OBJ_AFFECT];
+    int enhancement;
+    int enhancement_motes_required;
+
+    // process info
+    int skill_roll;
+    int dc;
+    int craft_duration;
+    int obj_level;
+
+    // refining info
+    int refining_materials[3][2];
+    int refining_result[2];
+
+    // resize info
+    int new_size;
+    int resize_mat_type;
+    int resize_mat_num;
+
+    // supply order info
+    int supply_item_type;
+    int supply_spec_type;
+    int supply_variant_type;
+    int supply_num_required;
+    
+};
+
 /** The Object structure. */
 struct obj_data
 {
@@ -4994,7 +5064,15 @@ struct player_special_data_saved
     room_vnum last_room;
 
     long intro_list[MAX_INTROS][1];                   // Stores pfilepos of chars known
-  
+
+    struct crafting_data_info craft_data;             // New crafting system info
+
+    int craft_mats_owned[NUM_CRAFT_MATS];
+    int craft_motes_owned[NUM_CRAFT_MOTES]; 
+    int ability_exp[MAX_ABILITIES + 1];               // abilities
+
+    int new_supply_num_made;
+    int new_supply_cooldown;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -5083,6 +5161,8 @@ struct player_special_data
     char *forge_as_signature;
     int forge_check;
     char *retainer_mail_recipient;
+
+    bool surveyed_room;
 };
 
 /** Special data used by NPCs, not PCs */

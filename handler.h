@@ -56,8 +56,10 @@ void obj_from_inv_to_bag(struct char_data *ch, struct obj_data *object, int bagn
 void obj_from_bag(struct char_data *ch, struct obj_data *object, int bagnum);
 void obj_to_bag(struct char_data *ch, struct obj_data *object, int bagnum);
 void empty_bags_to_inventory(struct char_data *ch);
+void obj_to_craft(struct obj_data *object, struct char_data *ch);
+void obj_from_craft(struct obj_data *object, struct char_data *ch);
 
-    void equip_char(struct char_data *ch, struct obj_data *obj, int pos);
+void equip_char(struct char_data *ch, struct obj_data *obj, int pos);
 struct obj_data *unequip_char(struct char_data *ch, int pos);
 int invalid_align(struct char_data *ch, struct obj_data *obj);
 int invalid_prof(struct char_data *ch, struct obj_data *obj);
