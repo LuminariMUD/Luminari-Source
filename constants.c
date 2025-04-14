@@ -26,6 +26,7 @@
 #include "deities.h"
 #include "constants.h"
 #include "roleplay.h"
+#include "crafting_new.h"
 
 #define CHECK_TABLE_SIZE(tbl, exp_sz) \
     _Static_assert(sizeof((tbl)) / sizeof((tbl)[0]) == (exp_sz), #tbl " wrong number entries")
@@ -1210,6 +1211,7 @@ const char *room_bits[] = {
     "Random-Trap",
     "Random-Chest",
     "Always-Load-Harvest-Node",
+    "Road",
     "\n"};
 CHECK_TABLE_SIZE(room_bits, NUM_ROOM_FLAGS + 1);
 
@@ -1649,6 +1651,7 @@ const char *preference_bits[] = {
     "Non-Roleplayer",
     "Brief-Post-Combat-Text",
     "Auto-Eldritch-Blast",
+    "No-Craft-Progress",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -2099,6 +2102,7 @@ const char *wear_where[] = {
     "\tY{Worn In Ear}\tn        ", // 25
     "\tY{Worn On Eyes}\tn       ",
     "\tY{Worn As Badge}\tn      ",
+    "\tY{Worn On Shoulders}\tn  ",
 };
 CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 
@@ -2134,6 +2138,7 @@ const char *equipment_types[] = {
     "Worn in left ear", // 25
     "Worn on eyes",
     "Worn as badge",
+    "Worn on shoulders",
     "\n"};
 CHECK_TABLE_SIZE(equipment_types, NUM_WEARS + 1);
 
@@ -2309,6 +2314,17 @@ const char *material_name[] = {
     "dragonscale",
     "dragonbone",
     "sea ivory",
+    "tin",
+    "coal",
+    "dragonmetal",
+    "ash wood",
+    "maple wood",
+    "mahagony",
+    "valenwood",
+    "ironwood",
+    "linen",
+    "zinc",
+    "flax",
     "\n"};
 CHECK_TABLE_SIZE(material_name, NUM_MATERIALS + 1);
 
@@ -2399,6 +2415,7 @@ const char *wear_bits[] = {
     "Eyes",
     "Badge",
     "Instrument",
+    "Shoulders",
     "\n"};
 CHECK_TABLE_SIZE(wear_bits, NUM_ITEM_WEARS + 1);
 
@@ -2510,6 +2527,11 @@ const char *extra_bits[] = {
     "No-Sacrifice",
     "Has-Been-Downgraded",
     "Item-Has-Been-Identified",
+    "Crafted-Item",
+    "Can-Only-Equip-One",
+    "Can-Only-Possess-One",
+    "Crafting-Smelter",
+    "Crafting-Loom",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 
@@ -4033,7 +4055,7 @@ const char *ability_names[] = {
     "armorsmithing",
     "weaponsmithing",
     "bowmaking",
-    "gemcutting",
+    "jewelcrafting",
     "leatherworking",
     "trapmaking",
     "poisonmaking",
@@ -4041,7 +4063,14 @@ const char *ability_names[] = {
     "fishing",
     "cooking",
     "brewing",
-    "\n"};
+    // harvesting
+    "mining",
+    "hunting",
+    "forestry",
+    "gathering",
+    "\n"
+};
+CHECK_TABLE_SIZE(ability_names, NUM_ABILITIES - START_GENERAL_ABILITIES + 3);
 
 #if defined(CAMPAIGN_DL)
 
@@ -5930,6 +5959,11 @@ const char *crafting_materials[] = {
     "linen",
     "satin",
     "silk",
+    "zinc",
+    "cotton",
+    "brass",
+    "flax",
+    "bone",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_materials, NUM_CRAFT_MATS + 1);
@@ -5966,9 +6000,129 @@ const char *crafting_material_nodes[] = {
     "a patch of flax plants",
     "satin",
     "a growth of silk worms",
+    "a vein of zinc ore",
+    "a patch of cotton plants",
+    "brass",
+    "a patch of flax plants",
+    "bone",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_material_nodes, NUM_CRAFT_MATS + 1);
+
+const char *harvesting_messages[] = {
+    "",
+    "mining a vein of copper ore",
+    "mining a vein of tin ore",
+    "bronze",
+    "mining a vein of iron ore",
+    "mining a deposit of coal",
+    "steel",
+    "cold iron",
+    "alchemical silver",
+    "mining a vein of mithril ore",
+    "mining a vein of adamantite ore",
+    "mining a vein of silver ore",
+    "mining a vein of gold ore",
+    "mining a vein of platinum ore",
+    "dragonmetal",
+    "dragonscale",
+    "dragonbone",
+    "hunting the tracks of tiny game",
+    "hunting the tracks of small game",
+    "hunting the tracks of medium game",
+    "hunting the tracks of large game",
+    "logging a cluster of ash trees",
+    "logging a cluster of maple trees",
+    "logging a cluster of mahagony trees",
+    "logging a cluster of valenwood trees",
+    "logging a cluster of ironwood trees",
+    "gathering a patch of hemp plants",
+    "shearing a herd of wild sheep",
+    "gathering a patch of flax plants",
+    "satin",
+    "harvesting a growth of silk worms",
+    "mining a vein of zinc ore",
+    "gathering a patch of cotton plants",
+    "brass",
+    "gathering a patch of flax plants",
+    "bone",
+    "\n"
+};
+CHECK_TABLE_SIZE(harvesting_messages, NUM_CRAFT_MATS + 1);
+
+const char *crafting_types[] = {
+    "",
+    "weapon",
+    "armor",
+    "misc",
+    "instrument",
+    "\n"
+};
+CHECK_TABLE_SIZE(crafting_types, NUM_CRAFT_TYPES + 1);
+
+const char *crafting_misc_types[] = {
+    "",
+    "ring",
+    "necklace",
+    "bracelet",
+    "earring",
+    "glasses",
+    "boots",
+    "gloves",
+    "cloak",
+    "belt",
+    "mask",
+    "pauldrons",
+    "\n"
+};
+CHECK_TABLE_SIZE(crafting_misc_types, NUM_CRAFT_MISC_TYPES + 1);
+
+const char *crafting_instrument_types[] = {
+    "",
+    "lyre",
+    "flute",
+    "harp",
+    "drum",
+    "mandolin",
+    "\n"
+};
+CHECK_TABLE_SIZE(crafting_instrument_types, NUM_CRAFT_INSTRUMENT_TYPES + 1);
+
+const char *crafting_material_groups[] = {
+    "",
+    "hard metals",
+    "soft metals",
+    "animal hides",
+    "wood",
+    "cloth",
+    "refining",
+    "resizing",
+    "\n"
+};
+CHECK_TABLE_SIZE(crafting_material_groups, NUM_CRAFT_GROUPS + 1);
+
+const char *crafting_motes [] = {
+    "",
+    "air mote",
+    "dark mote",
+    "earth mote",
+    "fire mote",
+    "ice mote",
+    "light mote",
+    "lightning mote",
+    "water mote",
+    ""
+};
+
+const char *crafting_methods [] = {
+    "",
+    "crafting",
+    "surveying",
+    "harvesting",
+    "refining",
+    "resizing",
+    "\n"
+};
 
 /* --- End of constants arrays. --- */
 

@@ -2790,6 +2790,12 @@ void study_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = STUDY_CONFIRM_SAVE;
       break;
     case '0':
+      if (GET_LEVELUP_SKILL_POINTS(ch) <= 0)
+      {
+        generic_main_disp_menu(d);
+        write_to_output(d, "That is an invalid choice at this time!\r\n");
+        break;
+      }
       main_skills_disp_menu(d);
       break;
     case '1':

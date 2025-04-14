@@ -10,9 +10,9 @@
 #define CRAFT_MAT_COAL                  5
 #define CRAFT_MAT_STEEL                 6
 #define CRAFT_MAT_COLD_IRON             7
-#define CRAFT_MAT_ALCHEMICAL_SILVER     8
+#define CRAFT_MAT_ALCHEMAL_SILVER       8
 #define CRAFT_MAT_MITHRIL               9
-#define CRAFT_MAT_ADAMANTITE            10
+#define CRAFT_MAT_ADAMANTINE            10
 #define CRAFT_MAT_SILVER                11
 #define CRAFT_MAT_GOLD                  12
 #define CRAFT_MAT_PLATINUM              13
@@ -33,8 +33,13 @@
 #define CRAFT_MAT_LINEN                 28
 #define CRAFT_MAT_SATIN                 29
 #define CRAFT_MAT_SILK                  30
+#define CRAFT_MAT_ZINC                  31
+#define CRAFT_MAT_COTTON                32
+#define CRAFT_MAT_BRASS                 33
+#define CRAFT_MAT_FLAX                  34
+#define CRAFT_MAT_BONE                  35
 
-#define NUM_CRAFT_MATS                  31
+#define NUM_CRAFT_MATS                  36
 // also set in structs.h
 
 #define CRAFT_GROUP_NONE            0
@@ -43,8 +48,11 @@
 #define CRAFT_GROUP_HIDES           3
 #define CRAFT_GROUP_WOOD            4
 #define CRAFT_GROUP_CLOTH           5
+#define CRAFT_GROUP_REFINING        6
+#define CRAFT_GROUP_RESIZING        7
 
-#define NUM_CRAFT_GROUPS            6
+#define NUM_CRAFT_GROUPS            8
+// also set in structs.h
 
 #define CRAFT_SKILL_NONE            0
 #define CRAFT_SKILL_WEAPONSMITH     1
@@ -72,12 +80,68 @@
 
 #define NUM_REFINING_SKILLS         5
 
-struct crafting_data_info
-{
+#define CRAFT_TYPE_NONE             0
+#define CRAFT_TYPE_WEAPON           1
+#define CRAFT_TYPE_ARMOR            2
+#define CRAFT_TYPE_MISC             3
+#define CRAFT_TYPE_INSTRUMENT       4
 
-    struct obj_data *crafting_obj;
+#define NUM_CRAFT_TYPES             5
 
-};
+#define CRAFT_JEWELRY_NONE          0
+#define CRAFT_JEWELRY_RING          1
+#define CRAFT_JEWELRY_NECKLACE      2
+#define CRAFT_JEWELRY_BRACELET      3
+#define CRAFT_JEWELRY_EARRING       4
+#define CRAFT_JEWELRY_GLASSES       5
+#define CRAFT_MISC_BOOTS            6
+#define CRAFT_MISC_GLOVES           7
+#define CRAFT_MISC_CLOAK            8
+#define CRAFT_MISC_BELT             9
+#define CRAFT_MISC_MASK             10
+#define CRAFT_MISC_SHOULDERS        11
+
+#define NUM_CRAFT_MISC_TYPES        12
+
+#define CRAFT_INSTRUMENT_NONE       0
+#define CRAFT_INSTRUMENT_LYRE       1
+#define CRAFT_INSTRUMENT_FLUTE      2
+#define CRAFT_INSTRUMENT_HARP       3
+#define CRAFT_INSTRUMENT_DRUM       4
+#define CRAFT_INSTRUMENT_MANDOLIN   5
+
+#define NUM_CRAFT_INSTRUMENT_TYPES  6
+
+#define SCMD_NEWCRAFT_CREATE        1
+#define SCMD_NEWCRAFT_SURVEY        2
+#define SCMD_NEWCRAFT_HARVEST       3
+#define SCMD_NEWCRAFT_REFINE        4
+#define SCMD_NEWCRAFT_RESIZE        5
+
+#define NUM_CRAFTING_METHODS        6
+
+#define CRAFT_SKILL_TYPE_NONE       0
+#define CRAFT_SKILL_TYPE_CRAFT      1
+#define CRAFT_SKILL_TYPE_HARVEST    2
+
+#define NUM_CRAFT_SKILL_TYPES       3
+
+#define CRAFTING_MOTE_NONE          0
+#define CRAFTING_MOTE_AIR           1
+#define CRAFTING_MOTE_DARK          2
+#define CRAFTING_MOTE_EARTH         3
+#define CRAFTING_MOTE_FIRE          4
+#define CRAFTING_MOTE_ICE           5
+#define CRAFTING_MOTE_LIGHT         6
+#define CRAFTING_MOTE_LIGHTNING     7
+#define CRAFTING_MOTE_WATER         8
+
+#define NUM_CRAFT_MOTES             9 // Also defined in structs.h
+
+#define MAX_CRAFT_SKILL             30
+
+#define ARMOR_ENHANCEMENT_MOTE CRAFTING_MOTE_WATER
+#define WEAPON_ENHANCEMENT_MOTE CRAFTING_MOTE_ICE
 
 bool room_has_harvest_materials(room_rnum room);
 int material_grade(int material);
@@ -92,8 +156,63 @@ int determine_harvest_material_for_room(room_rnum room);
 int determine_number_of_harvest_units_for_room(void);
 int determine_material_type_by_group_and_grade(int group, int grade);
 int determine_random_material_group_by_sector_type(room_rnum sector);
+bool is_valid_craft_ability(int ability);
+bool is_valid_craft_feat(int feat);
+bool is_valid_craft_class(int ch_class, int location);
+void reset_current_craft(struct char_data *ch, bool verbose, bool reimburse);
+int craft_recipe_by_type(int type);
+int craft_misc_type_by_wear_loc(int wear_loc);
+bool is_craft_ready(struct char_data *ch, bool verbose);
+void set_crafting_variant(struct char_data *ch, char *arg2);
+void begin_current_craft(struct char_data *ch);
+void craft_create_complete(struct char_data *ch);
+void set_craft_item_descs(struct char_data *ch, struct obj_data *obj);
+void set_craft_item_affects(struct char_data *ch, struct obj_data *obj);
+void create_craft_armor(struct char_data *ch);
+void set_craft_item_flags(struct char_data *ch, struct obj_data *obj);
+void set_crafting_materials(struct char_data *ch, const char *arg2);
+int craft_group_by_material(int material);
+void process_crafting_materials(struct char_data *ch, int group, int mat_type, int num_mats, int mat_slot);
+void survey_complete(struct char_data *ch);
+void sort_materials(void);
+int harvesting_skill_by_material(int material);
+int crafting_skill_type(int skill);
+int craft_skill_level_exp(struct char_data *ch, int level);
+void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose);
+void set_crafting_enhancement(struct char_data *ch, const char *arg2);
+int get_level_adjustment_by_apply_and_modifier(int apply, int mod, int btype);
+int get_level_adjustment_by_enhancement_bonus(int bonus_amt);
+int get_craft_obj_level(struct obj_data *obj, struct char_data *ch);
+int craft_motes_required(int location, int modifier, int bonus_type, int enhancement);
+int crafting_mote_by_bonus_location(int location, int specific, int bonus_type);
+void set_crafting_motes(struct char_data *ch, const char *argument);
+void reset_craft_materials(struct char_data *ch, bool reimburse);
+int get_craft_project_level(struct char_data *ch);
+int get_enhancement_mote_type(struct char_data *ch);
+void show_craft_progress_meter(void);
+bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill, char *method, int exp, int dc);
+int get_craft_material_final_level_adjustment(struct char_data *ch);
+int craft_material_to_obj_material(int craftmat);
+void show_refine_noargs(struct char_data *ch);
+bool is_refine_ready(struct char_data *ch, bool verbose);
+void craft_refine_complete(struct char_data *ch);
+int get_craft_skill_value(struct char_data *ch, int skill_num);
+int craft_material_to_obj_material(int material);
+void craft_resize_complete(struct char_data *ch);
+void reset_crafting_obj(struct char_data *ch);
+struct obj_data *find_obj_rnum_in_inventory(struct char_data *ch, obj_rnum obj_rnum);
+bool does_craft_apply_type_have_specific_value(int location);
+struct obj_data *setup_craft_weapon(struct char_data *ch, int w_type);
+struct obj_data *setup_craft_misc(struct char_data *ch, int vnum);
+struct obj_data *setup_craft_armor(struct char_data *ch, int a_type);
 
-ACMD_DECL(do_craft_survey);
+ACMD_DECL(do_newcraft);
+ACMD_DECL(do_setmaterial);
+ACMD_DECL(do_list_craft_materials);
+ACMD_DECL(do_craftbonuses);
+ACMD_DECL(do_craft_score);
+
+extern int materials_sort_info[NUM_CRAFT_MATS];
 
 
 #endif // NEWCRAFT_H

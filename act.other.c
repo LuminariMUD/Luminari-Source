@@ -1803,6 +1803,11 @@ void perform_call(struct char_data *ch, int call_type, int level)
           GET_MOUNT(ch) = MOB_BLACKGUARD_MOUNT;
       }
     }
+    else
+    {
+      send_to_char(ch, "You need levels in either paladin or blackguard to call a mount.\r\n");
+      return;
+    }
 
     /* do they even have a valid selection yet? */
     if (GET_MOUNT(ch) <= 0)
@@ -7359,6 +7364,9 @@ ACMD(do_gen_tog)
       // 63
       {"You will no longer automatically use eldritrch blast in place of normal attacks.\r\n"
        "You will now automatically use eldritrch blast in place of normal attacks.\r\n"},
+      // 64
+      {"You will now see craft progress indicators.\r\n",
+       "You will no longer see craft progress indicators.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7431,6 +7439,9 @@ ACMD(do_gen_tog)
     break;
   case SCMD_POST_COMBAT_BRIEF:
     result = PRF_TOG_CHK(ch, PRF_POST_COMBAT_BRIEF);
+    break;
+  case SCMD_NOCRAFTPROGRESS:
+    result = PRF_TOG_CHK(ch, PRF_NO_CRAFT_PROGRESS);
     break;
   case SCMD_AUTOGROUP:
     result = PRF_TOG_CHK(ch, PRF_AUTO_GROUP);
@@ -9609,6 +9620,157 @@ ACMD(do_deadly_power)
   GET_HIT(ch) -= hp_cost;
   star_circlet_proc(ch, 1);
   USE_SWIFT_ACTION(ch);
+}
+
+#define DOOR_IS_OPENABLE(ch, obj, door) ((obj) ? (((GET_OBJ_TYPE(obj) ==                    \
+                                                    ITEM_CONTAINER) ||                      \
+                                                   GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) && \
+                                                  OBJVAL_FLAGGED(obj, CONT_CLOSEABLE))      \
+                                               : (EXIT_FLAGGED(EXIT(ch, door), EX_ISDOOR)))
+#define DOOR_IS_OPEN(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,          \
+                                                              CONT_CLOSED)) \
+                                           : (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)))
+#define DOOR_IS_UNLOCKED(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,                                                                         \
+                                                                  CONT_LOCKED))                                                                \
+                                               : (!EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED) && !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_EASY) && \
+                                                  !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_MEDIUM) && !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_HARD)))
+#define DOOR_IS_PICKPROOF(ch, obj, door) ((obj) ? (OBJVAL_FLAGGED(obj,             \
+                                                                  CONT_PICKPROOF)) \
+                                                : (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF)))
+#define DOOR_IS_CLOSED(ch, obj, door) (!(DOOR_IS_OPEN(ch, obj, door)))
+#define DOOR_IS_LOCKED(ch, obj, door) (!(DOOR_IS_UNLOCKED(ch, obj, door)))
+#define DOOR_KEY(ch, obj, door) ((obj) ? ((GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST) ? 0 : GET_OBJ_VAL(obj, 2)) : (EXIT(ch, door)->key))
+
+ACMD(do_pick_lock)
+{
+
+  char arg1[200], buf[100];
+  int i = 0, dir = 0;
+  int skill = 0, roll = 0, lock_dc = 0;
+  bool is_obj = false;
+  struct obj_data *obj = NULL;
+
+  one_argument(argument, arg1, sizeof(arg1));
+
+  if (GET_ABILITY(ch, ABILITY_DISABLE_DEVICE) <= 0 || IS_NPC(ch))
+  {
+    send_to_char(ch, "You do not know how to pick locks.\r\n");
+    return;
+  }
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please specify the direction of the door, or the name of the container you'd like to pick.\r\n");
+    return;
+  }
+
+  for (i = 0; i < NUM_OF_DIRS; i++)
+  {
+    if (is_abbrev(arg1, dirs[i]))
+      break;
+  }
+
+  if (i >= NUM_OF_DIRS)
+  {
+    is_obj = true;
+  }
+
+  if (is_obj)
+  {
+    if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, world[IN_ROOM(ch)].contents)))
+    {
+      if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
+      {
+        send_to_char(ch, "Either the direction specified does not exist, or there is no object in the room or your inventory by that description.\r\n");
+        return;
+      }
+    }
+  }
+
+  if (!is_obj)
+  {
+    dir = i;
+
+    if (!EXIT(ch, dir) || is_exit_hidden(ch, dir))
+    {
+      send_to_char(ch, "There's no visible exit in that direction.\r\n");
+      return;
+    }
+
+    if (!is_door_locked(IN_ROOM(ch), dir))
+    {
+      send_to_char(ch, "That door isn't locked.\r\n");
+      return;
+    }
+
+    if (EXIT_FLAGGED(EXIT(ch, dir), EX_PICKPROOF))
+    {
+      send_to_char(ch, "That door cannot be picked.\r\n");
+      return;
+    }
+
+    if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_HARD))
+      lock_dc = 50;
+    else if (EXIT_FLAGGED(EXIT(ch, dir), EX_LOCKED_MEDIUM))
+      lock_dc = 35;
+    else // EX_LOCKED and EX_LOCKED_EASY
+      lock_dc = 20;
+  }
+  else
+  {
+    if (GET_OBJ_TYPE(obj) != ITEM_CONTAINER)
+    {
+      send_to_char(ch, "That item is not a container.\r\n");
+      return;
+    }
+
+    if (DOOR_IS_UNLOCKED(ch, obj, 0))
+    {
+      act("$p is not locked.", TRUE, ch, obj, 0, TO_CHAR);
+      return;
+    }
+
+    if (DOOR_IS_PICKPROOF(ch, obj, 0))
+    {
+      act("$p cannot be picked.", TRUE, ch, obj, 0, TO_CHAR);
+      return;
+    }
+
+    lock_dc = GET_OBJ_VAL(obj, 4);
+  }
+
+  roll = d20(ch);
+
+  skill = compute_ability(ch, ABILITY_DISABLE_DEVICE);
+  if (affected_by_spell(ch, PSIONIC_BREACH))
+  {
+    affect_from_char(ch, PSIONIC_BREACH);
+  }  
+
+  if (lock_dc > (skill + 20))
+  {
+    send_to_char(ch, "That lock is too complex for your abilities.\r\n");
+    return;
+  }
+
+  snprintf(buf, sizeof(buf), "$n attempts to pick a lock to the %s", dirs[dir]);
+  act(buf, TRUE, ch, 0, 0, TO_ROOM);
+
+  if (lock_dc <= (skill + roll))
+  {
+    send_to_char(ch, "Success! [%d dc vs. %d skill + %d roll]\r\n", lock_dc, skill, roll);
+    act("$n succeeds in picking the lock!", TRUE, ch, 0, 0, TO_ROOM);
+    UNLOCK_DOOR(IN_ROOM(ch), obj, dir);
+    if (is_obj)
+      GET_OBJ_VAL(obj, 4) = 0;
+  }
+  else
+  {
+    send_to_char(ch, "Failure! [%d dc vs. %d skill + %d roll]\r\n", lock_dc, skill, roll);
+    act("$n fails in picking the lock.", TRUE, ch, 0, 0, TO_ROOM);
+  }
+
+  USE_MOVE_ACTION(ch);
 }
 
 /* undefines */

@@ -3732,6 +3732,9 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where)
       {"$n wears $p as a badge.",
        "You wear $p as a badge."},
 
+      {"$n wears $p on $s shoulders.",
+       "You wear $p on your shoulders."},
+
   };
 
   /* extinguished light! */
@@ -3868,7 +3871,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       ITEM_WEAR_ABOUT, ITEM_WEAR_WAIST, ITEM_WEAR_WRIST, ITEM_WEAR_WRIST,
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_WIELD, ITEM_WEAR_TAKE,
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_FACE, ITEM_WEAR_AMMO_POUCH,
-      ITEM_WEAR_EAR, ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE};
+      ITEM_WEAR_EAR, ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE,
+      ITEM_WEAR_SHOULDERS};
 
   const char *const already_wearing[NUM_WEARS] = {
       "You're already using a light.\r\n",                                  // 0
@@ -3899,6 +3903,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       "You are already wearing an item on each ear.\r\n", // 25
       "You are already wearing something on your eyes.\r\n",
       "You are already wearing a badge.\r\n",
+      "You are already wearing something on your shoulders.\r\n",
   };
 
   /* we are looking for some quick exits */
@@ -4094,6 +4099,7 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
       "!RESERVED!", // 25 (2nd ear)
       "eyes",
       "badge",
+      "shoulders",
       "\n"};
 
   if (!arg || !*arg)
@@ -4132,6 +4138,8 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
       where = WEAR_EYES;
     if (CAN_WEAR(obj, ITEM_WEAR_BADGE))
       where = WEAR_BADGE;
+    if (CAN_WEAR(obj, ITEM_WEAR_SHOULDERS))
+      where = WEAR_SHOULDERS;
 
     /* this means we have an argument, does it match our keywords-array ?*/
   }

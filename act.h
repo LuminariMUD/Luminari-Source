@@ -404,6 +404,7 @@ int is_evaporating_key(struct char_data *ch, obj_vnum key);
 int has_key(struct char_data *ch, obj_vnum key);
 void extract_key(struct char_data *ch, obj_vnum key);
 bool can_stand(struct char_data *ch);
+ACMD_DECL(do_pick_lock);
 
 /* Functions with subcommands */
 /* do_gen_door */
@@ -757,6 +758,7 @@ ACMD_DECL(do_buildwalk);
 #define SCMD_CONTAIN_AOES 61
 #define SCMD_POST_COMBAT_BRIEF 62
 #define SCMD_AUTO_BLAST 63
+#define SCMD_NOCRAFTPROGRESS 64
 
 /* do_quit */
 ACMD_DECL(do_quit);
@@ -912,6 +914,7 @@ ACMD_DECL(do_setroomsect);
 ACMD_DECL(do_setworldsect);
 ACMD_DECL(do_setroomname);
 ACMD_DECL(do_setroomdesc);
+ACMD_DECL(do_setroomflag);
 ACMD_DECL(do_hlqlist);
 ACMD_DECL(do_advance);
 ACMD_DECL(do_objlist);

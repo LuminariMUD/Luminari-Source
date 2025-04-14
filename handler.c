@@ -28,6 +28,7 @@
 #include "actionqueues.h"
 #include "constants.h"
 #include "spec_abilities.h"
+#include "crafting_new.h"
 
 /* local file scope variables */
 static int extractions_pending = 0;
@@ -1388,6 +1389,17 @@ void char_from_room(struct char_data *ch)
 
   /* checks for light, globes of darkness, etc */
   check_room_lighting(IN_ROOM(ch), ch, FALSE);
+
+  if (!IS_NPC(ch))
+  {
+    if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_SURVEY)
+    {
+      GET_CRAFT(ch).crafting_method = 0;
+      GET_CRAFT(ch).craft_duration = 0;
+      ch->player_specials->surveyed_room = false;
+      send_to_char(ch, "Your surveying is interrupted.\r\n");
+    }
+  }
 
   REMOVE_FROM_LIST(ch, world[IN_ROOM(ch)].people, next_in_room);
   IN_ROOM(ch) = NOWHERE;

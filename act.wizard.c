@@ -5125,7 +5125,8 @@ const struct zcheck_armor
     {ITEM_WEAR_AMMO_POUCH, 1, "Ammo pouch"}, // 15
     {ITEM_WEAR_EAR, 1, "Earring"},
     {ITEM_WEAR_EYES, 1, "Eyewear"},
-    {ITEM_WEAR_BADGE, 1, "Badge"} // 18
+    {ITEM_WEAR_BADGE, 1, "Badge"},
+    {ITEM_WEAR_SHOULDERS, 1, "Pauldrons"} // 19
 };
 
 /*These are strictly boolean*/
@@ -9629,6 +9630,71 @@ ACMDU(do_setroomsect)
   world[IN_ROOM(ch)].sector_type = i;
 
   send_to_char(ch, "You have set this room as a worldmap room using sector type: %s.\r\n", sector_types[i]);
+
+  add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
+}
+
+ACMDU(do_setroomflag)
+{
+
+  if (!can_edit_zone(ch, world[IN_ROOM(ch)].zone))
+  {
+    send_to_char(ch, "You do not have build permissions in this zone.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  int i = 0, j = 0;
+
+  if (!*argument)
+  {
+    send_to_char(ch, "You must select a room flag type from:\r\n");
+    for (i = 0; i < NUM_ROOM_FLAGS; i++)
+    {
+      send_to_char(ch, "%-25s ", room_bits[i]);
+      if ((i % 3) == 2)
+        send_to_char(ch, "\r\n");
+    }
+    if ((i % 3) != 2)
+        send_to_char(ch, "\r\n");
+    return;
+  }
+
+  char buf[200];
+  char arg[200];
+  sprintf(arg, "%s", argument);
+  for (j = 0; j < strlen(arg); j++)
+  {
+    arg[j] = tolower(arg[j]);
+  }
+
+  for (i = 0; i < NUM_ROOM_FLAGS; i++)
+  {
+    sprintf(buf, "%s", room_bits[i]);
+    for (j = 0; j < strlen(buf); j++)
+      buf[j] = tolower(buf[j]);
+    if (is_abbrev(arg, buf))
+      break;
+  }
+
+  if (i >= NUM_ROOM_FLAGS)
+  {
+    send_to_char(ch, "You must select a room flag type from:\r\n");
+    for (i = 0; i < NUM_ROOM_FLAGS; i++)
+    {
+      send_to_char(ch, "%-25s ", room_bits[i]);
+      if ((i % 3) == 2)
+        send_to_char(ch, "\r\n");
+    }
+    if ((i % 3) != 2)
+        send_to_char(ch, "\r\n");
+    return;
+  }
+
+  TOGGLE_BIT_AR(ROOM_FLAGS(IN_ROOM(ch)), i);
+
+  send_to_char(ch, "You have toggle the room flag '%s' here.\r\n", room_bits[i]);
 
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
 }

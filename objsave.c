@@ -89,11 +89,13 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   char line_buf[MAX_STRING_LENGTH + 1]; /* For building MySQL insert statement. */
 #endif
 
-  int counter2, i = 0;
+  int counter2, i = 0, x = 0;
   struct extra_descr_data *ex_desc;
   char buf1[MAX_STRING_LENGTH + 1];
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
+  char escaped_buf[MAX_STRING_LENGTH];
+  char escaped_key[MAX_STRING_LENGTH];
 
   /* load up the object */
   if (GET_OBJ_VNUM(obj) != NOTHING)
@@ -387,11 +389,23 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
                 ex_desc->keyword,
                 buf1);
 #ifdef OBJSAVE_DB
+        mysql_real_escape_string(conn, escaped_buf, buf1, strlen(buf1));
+        for (x = 0; x < strlen(escaped_buf); x++)
+        {
+          if (escaped_buf[x] == '~')
+            escaped_buf[x] = '\0';
+        }
+        snprintf(escaped_key, sizeof(escaped_key), "%s", ex_desc->keyword);
+        for (x = 0; x < strlen(escaped_key); x++)
+        {
+          if (escaped_key[x] == '~')
+            escaped_key[x] = '\0';
+        }
         snprintf(line_buf, sizeof(line_buf), "EDes:\n"
                                              "%s~\n"
                                              "%s~\n",
-                 ex_desc->keyword,
-                 buf1);
+                 escaped_key,
+                 escaped_buf);
         strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
       }
@@ -591,6 +605,10 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
       break;
     case WEAR_BADGE:
       if (!CAN_WEAR(obj, ITEM_WEAR_BADGE))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_SHOULDERS:
+      if (!CAN_WEAR(obj, ITEM_WEAR_SHOULDERS))
         location = LOC_INVENTORY;
       break;
     default:

@@ -33,6 +33,12 @@ const char *three_arguments(const char *argument,
                             char *first_arg, size_t n1,
                             char *second_arg, size_t n2,
                             char *third_arg, size_t n3);
+const char *four_arguments(const char *argument,
+                          char *first_arg, size_t n1, char *second_arg, size_t n2, char *third_arg, size_t n3,
+                          char *fourth_arg, size_t n4);
+const char *five_arguments(const char *argument,
+                          char *first_arg, size_t n1, char *second_arg, size_t n2, char *third_arg, size_t n3,
+                          char *fourth_arg, size_t n4, char *fifth_arg, size_t n5);
 int fill_word(char *argument);
 int reserved_word(char *argument);
 void half_chop(char *string, char *arg1, char *arg2);

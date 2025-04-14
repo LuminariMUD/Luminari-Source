@@ -35,6 +35,7 @@
 #include "evolutions.h"
 #include "class.h"
 #include "oasis.h"
+#include "crafting_new.h"
 
 #define LOAD_HIT 0
 #define LOAD_PSP 1
@@ -71,6 +72,7 @@ static void load_class_feat_points(FILE *fl, struct char_data *ch);
 static void load_epic_class_feat_points(FILE *fl, struct char_data *ch);
 static void load_skill_focus(FILE *fl, struct char_data *ch);
 static void load_abilities(FILE *fl, struct char_data *ch);
+static void load_ability_exp(FILE *fl, struct char_data *ch);
 static void load_favored_enemy(FILE *fl, struct char_data *ch);
 static void load_spec_abil(FILE *fl, struct char_data *ch);
 static void load_warding(FILE *fl, struct char_data *ch);
@@ -87,6 +89,8 @@ static void load_HMVS(struct char_data *ch, const char *line, int mode);
 static void write_aliases_ascii(FILE *file, struct char_data *ch);
 static void read_aliases_ascii(FILE *file, struct char_data *ch, int count);
 static void load_bombs(FILE *fl, struct char_data *ch);
+static void load_craft_mats_onhand(FILE *fl, struct char_data *ch);
+static void load_craft_motes_onhand(FILE *fl, struct char_data *ch);
 static void load_judgements(FILE *fl, struct char_data *ch);
 static void load_potions(FILE *fl, struct char_data *ch);
 static void load_scrolls(FILE *fl, struct char_data *ch);
@@ -99,6 +103,10 @@ static void load_mercies(FILE *fl, struct char_data *ch);
 static void load_cruelties(FILE *fl, struct char_data *ch);
 static void load_buffs(FILE *fl, struct char_data *ch);
 static void load_languages(FILE *fl, struct char_data *ch);
+static void load_craft_affects(FILE *fl, struct char_data *ch);
+static void load_craft_materials(FILE *fl, struct char_data *ch);
+static void load_craft_motes(FILE *fl, struct char_data *ch);
+
 
 // external functions
 void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
@@ -368,7 +376,10 @@ int load_char(const char *name, struct char_data *ch)
     for (i = 1; i < MAX_SKILLS; i++)
       GET_SKILL(ch, i) = 0;
     for (i = 1; i <= MAX_ABILITIES; i++)
+    {
       GET_ABILITY(ch, i) = 0;
+      GET_CRAFT_SKILL_EXP(ch, i) = 0;
+    }
     for (i = 0; i < NUM_FEATS; i++)
       SET_FEAT(ch, i, 0);
     for (i = 0; i < (END_GENERAL_ABILITIES + 1); i++)
@@ -521,6 +532,11 @@ int load_char(const char *name, struct char_data *ch)
     init_innate_magic_queue(ch);
     init_collection_queue(ch);
     init_known_spells(ch);
+    reset_current_craft(ch, false, false);
+    for (i = 0; i < NUM_CRAFT_MOTES; i++)
+      GET_CRAFT_MOTES(ch, i) = 0;
+    for (i = 0; i < NUM_CRAFT_MATS; i++)
+      GET_CRAFT_MAT(ch, i) = 0;
     GET_DIPTIMER(ch) = PFDEF_DIPTIMER;
     GET_CLAN(ch) = PFDEF_CLAN;
     GET_CLANRANK(ch) = PFDEF_CLANRANK;
@@ -657,6 +673,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'A':
         if (!strcmp(tag, "Ablt"))
           load_abilities(fl, ch);
+        if (!strcmp(tag, "AbXP"))
+          load_ability_exp(fl, ch);
         else if (!strcmp(tag, "Ac  "))
           GET_REAL_AC(ch) = atoi(line);
         else if (!strcmp(tag, "Acct"))
@@ -744,7 +762,7 @@ int load_char(const char *name, struct char_data *ch)
           GET_BAG_NAME(ch, 8) = strdup(line);
         else if (!strcmp(tag, "Bag9"))
           GET_BAG_NAME(ch, 9) = strdup(line);
-        else if (!strcmp(tag, "Bag10"))
+        else if (!strcmp(tag, "Bag0"))
           GET_BAG_NAME(ch, 10) = strdup(line);
         else if (!strcmp(tag, "Bane"))
           GET_BANE_TARGET_TYPE(ch) = atoi(line);
@@ -788,6 +806,8 @@ int load_char(const char *name, struct char_data *ch)
           load_spell_collection(fl, ch);
         else if (!strcmp(tag, "Con "))
           GET_REAL_CON(ch) = atoi(line);
+        else if (!strcmp(tag, "CfMt"))
+          load_craft_mats_onhand(fl, ch);
         else if (!strcmp(tag, "CLoc"))
           load_coord_location(fl, ch);
         else if (!strcmp(tag, "CLvl"))
@@ -816,7 +836,45 @@ int load_char(const char *name, struct char_data *ch)
           GET_AUTOCQUEST_MATERIAL(ch) = atoi(line);
         else if (!strcmp(tag, "ChEn"))
           ch->player_specials->saved.channel_energy_type = atoi(line);
-
+        else if (!strcmp(tag, "CrAf"))
+          load_craft_affects(fl, ch);
+        else if (!strcmp(tag, "CrMo"))
+          load_craft_motes(fl, ch);
+        else if (!strcmp(tag, "CrMa"))
+          load_craft_materials(fl, ch);
+        else if (!strcmp(tag, "CrMe"))
+          GET_CRAFT(ch).crafting_method = atoi(line);
+        else if (!strcmp(tag, "CrIT"))
+          GET_CRAFT(ch).crafting_item_type = atoi(line);
+        else if (!strcmp(tag, "CrSp"))
+          GET_CRAFT(ch).crafting_specific = atoi(line);
+        else if (!strcmp(tag, "CrSk"))
+          GET_CRAFT(ch).skill_type = atoi(line);
+        else if (!strcmp(tag, "CrRe"))
+          GET_CRAFT(ch).crafting_recipe = atoi(line);
+        else if (!strcmp(tag, "CrVt"))
+          GET_CRAFT(ch).craft_variant = atoi(line);
+        else if (!strcmp(tag, "CrMe"))
+          GET_CRAFT(ch).crafting_method = atoi(line);
+        else if (!strcmp(tag, "CrEn"))
+          GET_CRAFT(ch).enhancement = atoi(line);
+        else if (!strcmp(tag, "CrEM"))
+          GET_CRAFT(ch).enhancement_motes_required = atoi(line);
+        else if (!strcmp(tag, "CrRl"))
+          GET_CRAFT(ch).skill_roll = atoi(line);
+        else if (!strcmp(tag, "CrDC"))
+          GET_CRAFT(ch).dc = atoi(line);
+        else if (!strcmp(tag, "CrDu"))
+          GET_CRAFT(ch).craft_duration = atoi(line);
+        else if (!strcmp(tag, "CrKy"))
+          GET_CRAFT(ch).keywords = strdup(line);
+        else if (!strcmp(tag, "CrSD"))
+          GET_CRAFT(ch).short_description = strdup(line);
+        else if (!strcmp(tag, "CrRD"))
+          GET_CRAFT(ch).room_description = strdup(line);
+        else if (!strcmp(tag, "CrEx"))
+          GET_CRAFT(ch).ex_description = strdup(line);
+        
         break;
 
       case 'D':
@@ -1037,6 +1095,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'M':
         if (!strcmp(tag, "Move"))
           load_HMVS(ch, line, LOAD_MOVE);
+        else if (!strcmp(tag, "Mote"))
+          load_craft_motes_onhand(fl, ch);
         else if (!strcmp(tag, "Mrph"))
           IS_MORPHED(ch) = atol(line);
         else if (!strcmp(tag, "MFrm"))
@@ -1224,6 +1284,28 @@ int load_char(const char *name, struct char_data *ch)
           GET_2ND_RESTRICTED_SCHOOL(ch) = atoi(line);
         else if (!strcmp(tag, "RetC"))
           GET_RETAINER_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "RM00"))
+          GET_CRAFT(ch).refining_materials[0][0] = atoi(line);
+        else if (!strcmp(tag, "RM01"))
+          GET_CRAFT(ch).refining_materials[0][1] = atoi(line);
+        else if (!strcmp(tag, "RM10"))
+          GET_CRAFT(ch).refining_materials[1][0] = atoi(line);
+        else if (!strcmp(tag, "RM11"))
+          GET_CRAFT(ch).refining_materials[1][1] = atoi(line);
+        else if (!strcmp(tag, "RM20"))
+          GET_CRAFT(ch).refining_materials[2][0] = atoi(line);
+        else if (!strcmp(tag, "RM21"))
+          GET_CRAFT(ch).refining_materials[2][1] = atoi(line);
+        else if (!strcmp(tag, "RRs0"))
+          GET_CRAFT(ch).refining_result[0] = atoi(line);
+        else if (!strcmp(tag, "RRs1"))
+          GET_CRAFT(ch).refining_result[1] = atoi(line);
+        else if (!strcmp(tag, "RSSz"))
+          GET_CRAFT(ch).new_size = atoi(line);
+        else if (!strcmp(tag, "RSMT"))
+          GET_CRAFT(ch).resize_mat_type = atoi(line);
+        else if (!strcmp(tag, "RSMN"))
+          GET_CRAFT(ch).resize_mat_num = atoi(line);
         break;
 
       case 'S':
@@ -1269,6 +1351,10 @@ int load_char(const char *name, struct char_data *ch)
           load_HMVS(ch, line, LOAD_STRENGTH);
         else if (!strcmp(tag, "SSch"))
           GET_SPECIALTY_SCHOOL(ch) = atoi(line);
+        else if (!strcmp(tag, "SpNM"))
+          GET_NSUPPLY_NUM_MADE(ch) = atoi(line);
+        else if (!strcmp(tag, "SpCd"))
+          GET_NSUPPLY_COOLDOWN(ch) = atoi(line);
         break;
 
       case 'T':
@@ -1363,6 +1449,12 @@ int load_char(const char *name, struct char_data *ch)
   DOOM(ch) = 0;       // make sure init creeping doom
   TENACIOUS_PLAGUE(ch) = 0;
   INCENDIARY(ch) = 0; // make sure init incendiary burst
+
+  if (GET_CRAFT(ch).new_size)
+  {
+    GET_CRAFT_MAT(ch, GET_CRAFT(ch).resize_mat_type) += GET_CRAFT(ch).resize_mat_num;
+    GET_CRAFT(ch).new_size = GET_CRAFT(ch).resize_mat_type = GET_CRAFT(ch).resize_mat_num = GET_CRAFT(ch).crafting_method = GET_CRAFT(ch).craft_duration = 0;
+  }
 
   affect_total(ch);
 
@@ -1966,6 +2058,12 @@ void save_char(struct char_data *ch, int mode)
       fprintf(fl, "%d\n", ch->player_specials->saved.completed_quests[i]);
     fprintf(fl, "%d\n", NOTHING);
   }
+
+  if (GET_NSUPPLY_COOLDOWN(ch) != 0)
+    fprintf(fl, "SpCd: %d\n", GET_NSUPPLY_COOLDOWN(ch));
+  if (GET_NSUPPLY_NUM_MADE(ch) != 0)
+    fprintf(fl, "SpNM: %d\n", GET_NSUPPLY_NUM_MADE(ch));
+
   if (GET_QUEST(ch, 0) != PFDEF_CURRQUEST)
     fprintf(fl, "Qcur: %d\n", GET_QUEST(ch, 0));
   if (GET_QUEST(ch, 1) != PFDEF_CURRQUEST)
@@ -2025,6 +2123,16 @@ void save_char(struct char_data *ch, int mode)
     }
     fprintf(fl, "0 0\n");
   }
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    fprintf(fl, "AbXP:\n");
+    for (i = 1; i <= MAX_ABILITIES; i++)
+    {
+      if (GET_CRAFT_SKILL_EXP(ch, i))
+        fprintf(fl, "%d %d\n", i, GET_CRAFT_SKILL_EXP(ch, i));
+    }
+    fprintf(fl, "0 0\n");
+  }
 
   // Save Buffs
   fprintf(fl, "Buff:\n");
@@ -2036,29 +2144,92 @@ void save_char(struct char_data *ch, int mode)
   if (GET_BAG_NAME(ch, 1))
     fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 1));
   if (GET_BAG_NAME(ch, 2))
-    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 2));
+    fprintf(fl, "Bag2: %s\n", GET_BAG_NAME(ch, 2));
   if (GET_BAG_NAME(ch, 3))
-    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 3));
+    fprintf(fl, "Bag3: %s\n", GET_BAG_NAME(ch, 3));
   if (GET_BAG_NAME(ch, 4))
-    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 4));
+    fprintf(fl, "Bag4: %s\n", GET_BAG_NAME(ch, 4));
   if (GET_BAG_NAME(ch, 5))
-    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 5));
+    fprintf(fl, "Bag5: %s\n", GET_BAG_NAME(ch, 5));
   if (GET_BAG_NAME(ch, 6))
-    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 6));
+    fprintf(fl, "Bag6: %s\n", GET_BAG_NAME(ch, 6));
   if (GET_BAG_NAME(ch, 7))
-    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 7));
+    fprintf(fl, "Bag7: %s\n", GET_BAG_NAME(ch, 7));
   if (GET_BAG_NAME(ch, 8))
-    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 8));
+    fprintf(fl, "Bag8: %s\n", GET_BAG_NAME(ch, 8));
   if (GET_BAG_NAME(ch, 9))
-    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 9));
+    fprintf(fl, "Bag9: %s\n", GET_BAG_NAME(ch, 9));
   if (GET_BAG_NAME(ch, 10))
-    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 10));
+    fprintf(fl, "Bag0: %s\n", GET_BAG_NAME(ch, 10));
 
   /* Save Bombs */
   fprintf(fl, "Bomb:\n");
   for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
     fprintf(fl, "%d\n", GET_BOMB(ch, i));
   fprintf(fl, "-1\n");
+
+  // Save Craft mats onhand
+  fprintf(fl, "CfMt:\n");
+  for (i = 0; i < NUM_CRAFT_MATS; i++)
+    fprintf(fl, "%d\n", GET_CRAFT_MAT(ch, i));
+  fprintf(fl, "-1\n");
+
+  // Save Craft motes onhand
+  fprintf(fl, "Mote:\n");
+  for (i = 0; i < NUM_CRAFT_MOTES; i++)
+    fprintf(fl, "%d\n", GET_CRAFT_MOTES(ch, i));
+  fprintf(fl, "-1\n");
+
+  // Save Craft Affects
+  fprintf(fl, "CrAf:\n");
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+    fprintf(fl, "%d %d %d %d %d\n", i, GET_CRAFT(ch).affected[i].location, GET_CRAFT(ch).affected[i].modifier, GET_CRAFT(ch).affected[i].bonus_type, GET_CRAFT(ch).affected[i].specific);
+  fprintf(fl, "-1\n");
+
+  // Save Craft Motes
+  fprintf(fl, "CrMo:\n");
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+    fprintf(fl, "%d %d\n", i, GET_CRAFT(ch).motes_required[i]);
+  fprintf(fl, "-1\n");
+
+  // Save Craft Materials
+  fprintf(fl, "CrMa:\n");
+  for (i = 0; i < NUM_CRAFT_GROUPS; i++)
+    fprintf(fl, "%d %d %d\n", i, GET_CRAFT(ch).materials[i][0], GET_CRAFT(ch).materials[i][1]);
+  fprintf(fl, "-1\n");
+
+  // misc craft things
+  fprintf(fl, "CrMe: %d\n", GET_CRAFT(ch).crafting_method);
+  fprintf(fl, "CrIT: %d\n", GET_CRAFT(ch).crafting_item_type);
+  fprintf(fl, "CrSp: %d\n", GET_CRAFT(ch).crafting_specific);
+  fprintf(fl, "CrSk: %d\n", GET_CRAFT(ch).skill_type);
+  fprintf(fl, "CrRe: %d\n", GET_CRAFT(ch).crafting_recipe);
+  fprintf(fl, "CrVt: %d\n", GET_CRAFT(ch).craft_variant);
+  fprintf(fl, "CrMe: %d\n", GET_CRAFT(ch).crafting_method);
+  fprintf(fl, "CrEn: %d\n", GET_CRAFT(ch).enhancement);
+  fprintf(fl, "CrEM: %d\n", GET_CRAFT(ch).enhancement_motes_required);
+  fprintf(fl, "CrRl: %d\n", GET_CRAFT(ch).skill_roll);
+  fprintf(fl, "CrDC: %d\n", GET_CRAFT(ch).dc);
+  fprintf(fl, "CrDu: %d\n", GET_CRAFT(ch).craft_duration);
+  fprintf(fl, "CrKy: %s\n", GET_CRAFT(ch).keywords);
+  fprintf(fl, "CrSD: %s\n", GET_CRAFT(ch).short_description);
+  fprintf(fl, "CrRD: %s\n", GET_CRAFT(ch).room_description);
+  fprintf(fl, "CrEx: %s\n", GET_CRAFT(ch).ex_description);
+
+  // refining stuff
+  fprintf(fl, "RM00: %d\n", GET_CRAFT(ch).refining_materials[0][0]);
+  fprintf(fl, "RM01: %d\n", GET_CRAFT(ch).refining_materials[0][1]);
+  fprintf(fl, "RM10: %d\n", GET_CRAFT(ch).refining_materials[1][0]);
+  fprintf(fl, "RM11: %d\n", GET_CRAFT(ch).refining_materials[1][1]);
+  fprintf(fl, "RM20: %d\n", GET_CRAFT(ch).refining_materials[2][0]);
+  fprintf(fl, "RM21: %d\n", GET_CRAFT(ch).refining_materials[2][1]);
+  fprintf(fl, "RRs0: %d\n", GET_CRAFT(ch).refining_result[0]);
+  fprintf(fl, "RRs1: %d\n", GET_CRAFT(ch).refining_result[1]);
+
+  // resizing stuff
+  fprintf(fl, "RSSz: %d\n", GET_CRAFT(ch).new_size);
+  fprintf(fl, "RSMT: %d\n", GET_CRAFT(ch).resize_mat_type);
+  fprintf(fl, "RSMN: %d\n", GET_CRAFT(ch).resize_mat_num);
 
   // Save consumables: potions, scrolls, wands and staves
   fprintf(fl, "Potn:\n");
@@ -2818,6 +2989,75 @@ static void load_dr(FILE *f1, struct char_data *ch)
   } while (num != 0 && 0 <= max_loops--);
 }
 
+static void load_craft_affects(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
+    if (num != -1)
+    {
+      GET_CRAFT(ch).affected[num].location = num2;
+      GET_CRAFT(ch).affected[num].modifier = num3;
+      GET_CRAFT(ch).affected[num].bonus_type = num4;
+      GET_CRAFT(ch).affected[num].specific = num5;
+    }
+  } while (num != -1);
+}
+
+static void load_craft_materials(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, num3 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d %d", &num, &num2, &num3);
+    if (num != -1)
+    {
+      GET_CRAFT(ch).materials[num][0] = num2;
+      GET_CRAFT(ch).materials[num][1] = num3;
+    }
+  } while (num != -1);
+}
+
+static void load_craft_motes_onhand(FILE *fl, struct char_data *ch)
+{
+  int num = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  int i = 0;
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+      GET_CRAFT_MOTES(ch, i) = num;
+    i++;
+  } while (num != -1);
+}
+
+static void load_craft_motes(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != -1)
+    {
+      GET_CRAFT(ch).motes_required[num] = num2;
+    }
+  } while (num != -1);
+}
+
 /* load_affects function now handles both 32-bit and
    128-bit affect bitvectors for backward compatibility */
 static void load_affects(FILE *fl, struct char_data *ch)
@@ -3245,6 +3485,23 @@ static void load_bombs(FILE *fl, struct char_data *ch)
   } while (num != -1);
 }
 
+static void load_craft_mats_onhand(FILE *fl, struct char_data *ch)
+{
+  int num = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  int i = 0;
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+      GET_CRAFT_MAT(ch, i) = num;
+    i++;
+  } while (num != -1);
+}
+
 static void load_favored_enemy(FILE *fl, struct char_data *ch)
 {
   int num = 0, num2 = 0;
@@ -3340,6 +3597,20 @@ static void load_abilities(FILE *fl, struct char_data *ch)
     sscanf(line, "%d %d", &num, &num2);
     if (num != 0)
       GET_ABILITY(ch, num) = num2;
+  } while (num != 0);
+}
+
+static void load_ability_exp(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      GET_CRAFT_SKILL_EXP(ch, num) = num2;
   } while (num != 0);
 }
 

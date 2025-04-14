@@ -6016,6 +6016,8 @@ void load_class_list(void)
 
   feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 25, Y);
 
+  feat_assignment(CLASS_BLACKGUARD, FEAT_EPIC_MOUNT, Y, 27, N);
+
   // cruelty slot - 27
 
   feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 28, Y);
