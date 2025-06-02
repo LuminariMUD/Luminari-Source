@@ -297,7 +297,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"curingtouch", "curingtouch", POS_STANDING, do_curingtouch, 0, 0, FALSE, ACTION_SWIFT, {6, 0}, NULL},
     {"cursetouch", "cursetouch", POS_FIGHTING, do_cursetouch, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"copycat", "copycat", POS_FIGHTING, do_copycat, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
-    {"class", "class", POS_DEAD, do_class, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"classes", "classes", POS_DEAD, do_class, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"charmiecombatroll", "charmiecombatroll", POS_DEAD, do_gen_tog, 0, SCMD_CHARMIE_COMBATROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"combatroll", "combatroll", POS_DEAD, do_gen_tog, 0, SCMD_COMBATROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
 #if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
@@ -1245,7 +1245,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "Sorry, that command hasn't been implemented yet.\r\n");
   else if (IS_NPC(ch) && complete_cmd_info[cmd].minimum_level >= LVL_IMMORT)
     send_to_char(ch, "You can't use immortal commands while switched.\r\n");
-  else if (IS_CASTING(ch) && !is_abbrev(complete_cmd_info[cmd].command, "abort") && !IS_NPC(ch))
+  else if (IS_CASTING(ch) && !command_can_be_used_while_casting(cmd) && !IS_NPC(ch))
     send_to_char(ch, "You are too busy casting [you can 'abort' the spell]...\r\n");
   else if (AFF_FLAGGED(ch, AFF_HIDE) && !AFF_FLAGGED(ch, AFF_SNEAK) && !is_abbrev(complete_cmd_info[cmd].command, "sneak"))
   {
@@ -1310,7 +1310,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "cast") &&
            !is_abbrev(complete_cmd_info[cmd].command, "mark") &&
            !is_abbrev(complete_cmd_info[cmd].command, "races") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "class") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "classes") &&
            !is_abbrev(complete_cmd_info[cmd].command, "cooldowns") &&
            !is_abbrev(complete_cmd_info[cmd].command, "abilities") &&
            !is_abbrev(complete_cmd_info[cmd].command, "resistances") &&
@@ -4365,4 +4365,40 @@ void show_character_background_archtype_menu(struct descriptor_data *d)
 
   STATE(d) = CON_BACKGROUND_ARCHTYPE;
   
+}
+
+bool command_can_be_used_while_casting(int cmd)
+{
+
+  if (
+           !is_abbrev(complete_cmd_info[cmd].command, "look") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "group") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "gtell") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "gsay") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "equipment") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "inventory") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "who") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "score") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "queue") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "help") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "feat") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "tnl") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "prefedit") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "races") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "classes") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "cooldowns") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "abilities") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "resistances") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "ooc") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "osay") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "save") &&
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
+           !is_abbrev(complete_cmd_info[cmd].command, "say") &&
+#endif
+           !is_abbrev(complete_cmd_info[cmd].command, "attackqueue"))
+    return false;
+
+  return true;
 }

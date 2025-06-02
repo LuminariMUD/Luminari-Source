@@ -69,6 +69,8 @@ void show_homeland_region_main_menu(struct descriptor_data *d);
 void show_character_background_story_menu(struct descriptor_data *d);
 void show_character_background_archtype_menu(struct descriptor_data *d);
 
+bool command_can_be_used_while_casting(int cmd);
+
 ACMD_DECL(do_account);
 
 /* ACMDs available through interpreter.c */

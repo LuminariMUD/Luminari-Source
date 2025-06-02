@@ -2354,10 +2354,13 @@ void begin_preparing(struct char_data *ch, int class)
       APOTHEOSIS_SLOTS(ch) = 0;
       send_to_char(ch, "You feel your focused arcane energy fade away.\r\n");
     }
-    send_to_char(ch, "You continue your %s.\r\n", spell_prep_dict[class][3]);
-    *buf = '\0';
-    snprintf(buf, sizeof(buf), "$n continues $s %s.", spell_prep_dict[class][3]);
-    act(buf, FALSE, ch, 0, 0, TO_ROOM);
+    if (!PRF_FLAGGED(ch, PRF_AUTO_PREP))
+    {
+      send_to_char(ch, "You continue your %s.\r\n", spell_prep_dict[class][3]);
+      *buf = '\0';
+      snprintf(buf, sizeof(buf), "$n continues $s %s.", spell_prep_dict[class][3]);
+      act(buf, FALSE, ch, 0, 0, TO_ROOM);
+    }
     start_prep_event(ch, class);
   }
 }

@@ -12699,9 +12699,12 @@ void perform_violence(struct char_data *ch, int phase)
                    CNDNSD(ch)->num_times_hit_targets, CNDNSD(ch)->num_times_hit_targets_melee, CNDNSD(ch)->num_times_hit_targets_ranged,
                    CNDNSD(ch)->num_times_others_attack_you, CNDNSD(ch)->num_times_shieldblock, CNDNSD(ch)->num_times_parry, CNDNSD(ch)->num_times_dodge, CNDNSD(ch)->num_times_glance, CNDNSD(ch)->num_times_hit_by_others,
                    CNDNSD(ch)->num_times_hit_by_others_ranged, CNDNSD(ch)->num_times_hit_by_others_melee);*/
-      send_to_char(ch, "Phase %d: You attacked %d times, hitting with %d attacks for \tW%d\tn damage.  "
+      send_to_char(ch, 
+                       // "Phase %d:\r\n"
+                       "You attacked %d times, hitting with %d attacks for \tG%d\tn damage.\r\n"
                        "You were attacked %d times, defending %d times, struck with %d attacks for \tR%d\tn damage.\r\n",
-                   phase, CNDNSD(ch)->num_times_attacking,
+                  //  phase, 
+                   CNDNSD(ch)->num_times_attacking,
                    (CNDNSD(ch)->num_times_hit_targets + CNDNSD(ch)->num_times_hit_targets_melee + CNDNSD(ch)->num_times_hit_targets_ranged),
                    CNDNSD(ch)->damage_inflicted,
                    CNDNSD(ch)->num_times_others_attack_you,

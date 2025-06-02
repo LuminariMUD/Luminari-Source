@@ -4309,10 +4309,17 @@ struct crafting_data_info
     int resize_mat_num;
 
     // supply order info
-    int supply_item_type;
-    int supply_spec_type;
-    int supply_variant_type;
     int supply_num_required;
+
+    // surveying;
+    int survey_rooms;
+
+    // instruments
+    int instrument_type;
+    int instrument_quality;
+    int instrument_effectiveness;
+    int instrument_breakability;
+    int intrument_motes[4];
     
 };
 

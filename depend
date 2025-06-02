@@ -480,7 +480,7 @@ spec_abilities.o: spec_abilities.c conf.h sysdep.h structs.h bool.h \
 spec_assign.o: spec_assign.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h interpreter.h \
  spec_procs.h spells.h ban.h boards.h mail.h treasure.h missions.h \
- hunts.h
+ hunts.h crafting_new.h
 spec_procs.o: spec_procs.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h interpreter.h \
  handler.h spells.h constants.h act.h spec_procs.h class.h fight.h \
