@@ -874,6 +874,26 @@ int load_char(const char *name, struct char_data *ch)
           GET_CRAFT(ch).room_description = strdup(line);
         else if (!strcmp(tag, "CrEx"))
           GET_CRAFT(ch).ex_description = strdup(line);
+        else if (!strcmp(tag, "CrOL"))
+          GET_CRAFT(ch).obj_level = atoi(line);
+        else if (!strcmp(tag, "CrSN"))
+          GET_CRAFT(ch).supply_num_required = atoi(line);
+        else if (!strcmp(tag, "CrSR"))
+          GET_CRAFT(ch).survey_rooms = atoi(line);
+        else if (!strcmp(tag, "CrIy"))
+          GET_CRAFT(ch).instrument_type = atoi(line);
+        else if (!strcmp(tag, "CrIQ"))
+          GET_CRAFT(ch).instrument_quality = atoi(line);
+        else if (!strcmp(tag, "CrIE"))
+          GET_CRAFT(ch).instrument_effectiveness = atoi(line);
+        else if (!strcmp(tag, "CrIB"))
+          GET_CRAFT(ch).instrument_breakability = atoi(line);
+        else if (!strcmp(tag, "CrI1"))
+          GET_CRAFT(ch).intrument_motes[1] = atoi(line);
+        else if (!strcmp(tag, "CrI2"))
+          GET_CRAFT(ch).intrument_motes[2] = atoi(line);
+        else if (!strcmp(tag, "CrI3"))
+          GET_CRAFT(ch).intrument_motes[3] = atoi(line);
         
         break;
 
@@ -2230,6 +2250,19 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "RSSz: %d\n", GET_CRAFT(ch).new_size);
   fprintf(fl, "RSMT: %d\n", GET_CRAFT(ch).resize_mat_type);
   fprintf(fl, "RSMN: %d\n", GET_CRAFT(ch).resize_mat_num);
+
+  fprintf(fl, "CrOL: %d\n", GET_CRAFT(ch).obj_level);
+
+  fprintf(fl, "CrSN: %d\n", GET_CRAFT(ch).supply_num_required);
+  fprintf(fl, "CrSR: %d\n", GET_CRAFT(ch).survey_rooms);
+  fprintf(fl, "CrIy: %d\n", GET_CRAFT(ch).instrument_type);
+  fprintf(fl, "CrIQ: %d\n", GET_CRAFT(ch).instrument_quality);
+  fprintf(fl, "CrIE: %d\n", GET_CRAFT(ch).instrument_effectiveness);
+  fprintf(fl, "CrIB: %d\n", GET_CRAFT(ch).instrument_breakability);
+  fprintf(fl, "CrI1: %d\n", GET_CRAFT(ch).intrument_motes[1]);
+  fprintf(fl, "CrI2: %d\n", GET_CRAFT(ch).intrument_motes[2]);
+  fprintf(fl, "CrI3: %d\n", GET_CRAFT(ch).intrument_motes[3]);
+
 
   // Save consumables: potions, scrolls, wands and staves
   fprintf(fl, "Potn:\n");

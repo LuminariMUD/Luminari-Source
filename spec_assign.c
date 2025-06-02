@@ -21,6 +21,7 @@
 #include "treasure.h"
 #include "missions.h"
 #include "hunts.h"
+#include "crafting_new.h"
 
 SPECIAL_DECL(questmaster);
 SPECIAL_DECL(shop_keeper);
@@ -120,7 +121,7 @@ void assign_mobiles(void)
   ASSIGNMOB(2430, buyweapons);
   ASSIGNMOB(2429, buyarmor);
   ASSIGNMOB(15325, faction_mission);
-  ASSIGNMOB(15321, crafting_quest);
+  ASSIGNMOB(15321, new_supply_orders);
   ASSIGNMOB(15322, buymolds);
   ASSIGNMOB(7021, identify_mob);
   ASSIGNMOB(15326, huntsmaster);

@@ -9550,9 +9550,9 @@ bool ok_call_mob_vnum(int mob_num)
 
   if (mob_num == MOB_NUM_EIDOLON) return true;
 
-  if (mob_num > 40400 && mob_num <= 40410) return true;
+  if (mob_num >= 40400 && mob_num <= 40410) return true;
 
-  if (mob_num > 20803 && mob_num <= 20805) return true;
+  if (mob_num >= 20803 && mob_num <= 20805) return true;
 
   return false;
 

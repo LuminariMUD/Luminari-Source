@@ -5968,6 +5968,47 @@ const char *crafting_materials[] = {
 };
 CHECK_TABLE_SIZE(crafting_materials, NUM_CRAFT_MATS + 1);
 
+const char *crafting_material_descriptions[] = {
+    "",
+    "copper",
+    "tin",
+    "bronze",
+    "iron",
+    "coal",
+    "steel",
+    "cold iron",
+    "alchemical silver",
+    "mithril",
+    "adamantite",
+    "silver",
+    "gold",
+    "platinum",
+    "dragonmetal",
+    "dragonscale",
+    "dragonbone",
+    "leather",
+    "leather",
+    "leather",
+    "leather",
+    "ash",
+    "maple",
+    "mahagony",
+    "valenwood",
+    "ironwood",
+    "hemp",
+    "wool",
+    "linen",
+    "satin",
+    "silk",
+    "zinc",
+    "cotton",
+    "brass",
+    "flax",
+    "bone",
+    "\n"
+};
+CHECK_TABLE_SIZE(crafting_material_descriptions, NUM_CRAFT_MATS + 1);
+
 const char *crafting_material_nodes[] = {
     "",
     "a vein of copper ore",
@@ -6081,6 +6122,7 @@ const char *crafting_instrument_types[] = {
     "",
     "lyre",
     "flute",
+    "horn",
     "harp",
     "drum",
     "mandolin",
@@ -6121,6 +6163,18 @@ const char *crafting_methods [] = {
     "harvesting",
     "refining",
     "resizing",
+    "doing a supplyorder",
+    "\n"
+};
+
+const char *crafting_methods_short [] = {
+    "",
+    "craft",
+    "survey",
+    "harvest",
+    "refine",
+    "resize",
+    "supplyorder",
     "\n"
 };
 

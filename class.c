@@ -3813,8 +3813,11 @@ int level_exp(struct char_data *ch, int level)
   {
     return EXP_MAX - ((LVL_IMPL - level) * 1000);
   }
-
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
+  factor = 2000 + (level - 2) * 900;
+#else
   factor = 2000 + (level - 2) * 750;
+#endif
 
   /* Exp required for normal mortals is below */
   switch (chclass)
@@ -3964,27 +3967,6 @@ int level_exp(struct char_data *ch, int level)
   default:
     break;
   }
-
-#if defined(CAMPAIGN_FR)
-  // This is the final multiplier.  This will change all exp requirements across the board.
-  // To keep it at the original -LuminariMUD based levels, comment out this line entirely
-  exp *= 2;
-#endif
-
-#if defined(CAMPAIGN_DL)
-    // we are a flat 1.75 x the default luminarimud exp tables.
-    exp *= 1.75;
-
-    // We also increment exp requirements more as you level up.
-    if (level >= 25)
-      exp *= 1.8;
-    else if (level >= 20)
-      exp *= 1.6;
-    else if (level >= 15)
-      exp *= 1.4;
-    else if (level >= 10)
-      exp *= 1.2;
-#endif
 
   return exp;
 }

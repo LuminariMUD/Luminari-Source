@@ -219,6 +219,7 @@
 #define ARMOR_PROTO 40298
 /* ammo blank object */
 #define AMMO_PROTO 40297
+#define INSTRUMENT_PROTO 40296
 
 /* misc mold vnums */
 #define RING_MOLD 40176 // 0

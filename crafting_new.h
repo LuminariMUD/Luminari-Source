@@ -106,19 +106,21 @@
 #define CRAFT_INSTRUMENT_NONE       0
 #define CRAFT_INSTRUMENT_LYRE       1
 #define CRAFT_INSTRUMENT_FLUTE      2
-#define CRAFT_INSTRUMENT_HARP       3
-#define CRAFT_INSTRUMENT_DRUM       4
-#define CRAFT_INSTRUMENT_MANDOLIN   5
+#define CRAFT_INSTRUMENT_HORN       3
+#define CRAFT_INSTRUMENT_HARP       4
+#define CRAFT_INSTRUMENT_DRUM       5
+#define CRAFT_INSTRUMENT_MANDOLIN   6
 
-#define NUM_CRAFT_INSTRUMENT_TYPES  6
+#define NUM_CRAFT_INSTRUMENT_TYPES  7
 
 #define SCMD_NEWCRAFT_CREATE        1
 #define SCMD_NEWCRAFT_SURVEY        2
 #define SCMD_NEWCRAFT_HARVEST       3
 #define SCMD_NEWCRAFT_REFINE        4
 #define SCMD_NEWCRAFT_RESIZE        5
+#define SCMD_NEWCRAFT_SUPPLYORDER   6
 
-#define NUM_CRAFTING_METHODS        6
+#define NUM_CRAFTING_METHODS        7
 
 #define CRAFT_SKILL_TYPE_NONE       0
 #define CRAFT_SKILL_TYPE_CRAFT      1
@@ -186,7 +188,7 @@ int get_craft_obj_level(struct obj_data *obj, struct char_data *ch);
 int craft_motes_required(int location, int modifier, int bonus_type, int enhancement);
 int crafting_mote_by_bonus_location(int location, int specific, int bonus_type);
 void set_crafting_motes(struct char_data *ch, const char *argument);
-void reset_craft_materials(struct char_data *ch, bool reimburse);
+void reset_craft_materials(struct char_data *ch, bool verbose, bool reimburse);
 int get_craft_project_level(struct char_data *ch);
 int get_enhancement_mote_type(struct char_data *ch);
 void show_craft_progress_meter(void);
@@ -199,12 +201,31 @@ void craft_refine_complete(struct char_data *ch);
 int get_craft_skill_value(struct char_data *ch, int skill_num);
 int craft_material_to_obj_material(int material);
 void craft_resize_complete(struct char_data *ch);
+char *get_supply_order_item_desc(struct char_data *ch);
+int determine_supply_order_exp(struct char_data *ch);
+void craft_supplyorder_complete(struct char_data *ch);
 void reset_crafting_obj(struct char_data *ch);
 struct obj_data *find_obj_rnum_in_inventory(struct char_data *ch, obj_rnum obj_rnum);
 bool does_craft_apply_type_have_specific_value(int location);
+int get_craft_material_by_name(struct char_data *ch, char *arg);
+int get_current_craft_project_recipe(struct char_data *ch);
+bool remove_supply_order_materials(struct char_data *ch);
+void set_supply_order_materials(struct char_data *ch, char *arg2, char *arg3);
+int select_random_craft_recipe(void);
+bool player_has_supply_order(struct char_data *ch);
+void request_new_supply_order(struct char_data *ch);
+int num_supply_order_requisitions_to_go(struct char_data *ch);
+void start_supply_order(struct char_data *ch);
+void show_supply_order_materials(struct char_data *ch, int recipe, int variant);
+void show_supply_order(struct char_data *ch);
+void reset_supply_order(struct char_data *ch);
+SPECIAL_DECL(new_supply_orders);
 struct obj_data *setup_craft_weapon(struct char_data *ch, int w_type);
 struct obj_data *setup_craft_misc(struct char_data *ch, int vnum);
 struct obj_data *setup_craft_armor(struct char_data *ch, int a_type);
+void set_crafting_instrument(struct char_data *ch, char *arg2);
+int get_crafting_instrument_dc_modifier(struct char_data *ch);
+int get_crafting_instrument_motes(struct char_data *ch, int type, bool get_amount);
 
 ACMD_DECL(do_newcraft);
 ACMD_DECL(do_setmaterial);
