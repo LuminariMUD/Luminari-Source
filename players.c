@@ -532,7 +532,7 @@ int load_char(const char *name, struct char_data *ch)
     init_innate_magic_queue(ch);
     init_collection_queue(ch);
     init_known_spells(ch);
-    reset_current_craft(ch, false, false);
+    reset_current_craft(ch, NULL, false, false);
     for (i = 0; i < NUM_CRAFT_MOTES; i++)
       GET_CRAFT_MOTES(ch, i) = 0;
     for (i = 0; i < NUM_CRAFT_MATS; i++)
@@ -889,11 +889,11 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "CrIB"))
           GET_CRAFT(ch).instrument_breakability = atoi(line);
         else if (!strcmp(tag, "CrI1"))
-          GET_CRAFT(ch).intrument_motes[1] = atoi(line);
+          GET_CRAFT(ch).instrument_motes[1] = atoi(line);
         else if (!strcmp(tag, "CrI2"))
-          GET_CRAFT(ch).intrument_motes[2] = atoi(line);
+          GET_CRAFT(ch).instrument_motes[2] = atoi(line);
         else if (!strcmp(tag, "CrI3"))
-          GET_CRAFT(ch).intrument_motes[3] = atoi(line);
+          GET_CRAFT(ch).instrument_motes[3] = atoi(line);
         
         break;
 
@@ -2259,9 +2259,9 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "CrIQ: %d\n", GET_CRAFT(ch).instrument_quality);
   fprintf(fl, "CrIE: %d\n", GET_CRAFT(ch).instrument_effectiveness);
   fprintf(fl, "CrIB: %d\n", GET_CRAFT(ch).instrument_breakability);
-  fprintf(fl, "CrI1: %d\n", GET_CRAFT(ch).intrument_motes[1]);
-  fprintf(fl, "CrI2: %d\n", GET_CRAFT(ch).intrument_motes[2]);
-  fprintf(fl, "CrI3: %d\n", GET_CRAFT(ch).intrument_motes[3]);
+  fprintf(fl, "CrI1: %d\n", GET_CRAFT(ch).instrument_motes[1]);
+  fprintf(fl, "CrI2: %d\n", GET_CRAFT(ch).instrument_motes[2]);
+  fprintf(fl, "CrI3: %d\n", GET_CRAFT(ch).instrument_motes[3]);
 
 
   // Save consumables: potions, scrolls, wands and staves

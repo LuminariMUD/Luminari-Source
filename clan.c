@@ -114,6 +114,8 @@ const struct clan_cmds clan_commands[] = {
     {"unclaim", CP_NONE, LVL_IMPL, do_clanunclaim,
      "%sclan unclaim <zone>       %s- %sRemove all claims over a "
      "specified zone \tw(IMP-Only)%s\r\n"},
+     {"leave", CP_ALL, LVL_GRSTAFF, do_clanleave,
+     "%sclan leave                %s- %sLeave current clan%s\r\n"},
     {"\n", 0, 0, 0, "\n"}};
 
 /****************************************************************************
@@ -1579,6 +1581,42 @@ ACMD(do_clanenrol)
                clan_list[(c_n)].clan_name, QNRM);
   send_to_char(v, "You have been enrolled into %s%s.\r\n",
                clan_list[(c_n)].clan_name, CCNRM(v, C_NRM));
+}
+
+ACMDU(do_clanleave)
+{
+  clan_rnum c_n = NO_CLAN;
+
+  c_n = real_clan(GET_CLAN(ch));
+
+  if (c_n == NO_CLAN)
+  {
+    send_to_char(ch, "You aren't a member of any clan.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  if (ch->player_specials->clan_leave_code == NULL)
+  {
+    ch->player_specials->clan_leave_code = randstring(6);
+    send_to_char(ch, "You must type clan leave %s to leave your clan.\r\n",
+                 ch->player_specials->clan_leave_code);
+    return;
+  }
+  else if (strcmp(ch->player_specials->clan_leave_code, argument))
+  {
+    send_to_char(ch, "You must type clan leave %s to leave your clan.\r\n",
+                 ch->player_specials->clan_leave_code);
+    return;
+  }
+
+  GET_CLAN(ch) = 0;
+  GET_CLANRANK(ch) = NO_CLANRANK;
+  player_table[GET_PFILEPOS(ch)].clan = 0;
+  ch->player_specials->clan_leave_code = NULL;
+
+  send_to_char(ch, "You have left %s%s.\r\n", clan_list[c_n].clan_name, CCNRM(ch, C_NRM));
 }
 
 ACMD(do_clanexpel) /* Expel a member */

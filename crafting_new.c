@@ -51,8 +51,9 @@ int materials_sort_info[NUM_CRAFT_MATS];
                                 "craft extradesc (extra desc string\r\n" \
                                 "craft bonuses (slot) (bonus location) (bonus type) (modifier) (specific)\r\n" \
                                 "craft enhancement (enhancement modifier\r\n" \
+                                "craft instrument (quality|effectiveness|breakability) (amount)" \
                                 "craft materials (add|remove) (material type)\r\n" \
-                                "craft motes (add|remove) (enhancement|bonus slot #)\r\n" \
+                                "craft motes (add|remove) (enhancement|quality|effectiveness|breakability|bonus slot #)\r\n" \
                                 "craft score\r\n" \
                                 "craft show\r\n" \
                                 "craft check\r\n" \
@@ -1132,12 +1133,6 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
             return;
         }
 
-        if (GET_CRAFT(ch).intrument_motes[1] > 0)
-        {
-            send_to_char(ch, "You have already assigned motes for the instrument quality.\r\n");
-            return;
-        }
-
         mote_type = get_crafting_instrument_motes(ch, 1, false);
         have = GET_CRAFT_MOTES(ch, mote_type);
         required = get_crafting_instrument_motes(ch, 1, true);
@@ -1151,12 +1146,6 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
             return;
         }
 
-        if (GET_CRAFT(ch).intrument_motes[2] > 0)
-        {
-            send_to_char(ch, "You have already assigned motes for the instrument effectiveness.\r\n");
-            return;
-        }
-
         mote_type = get_crafting_instrument_motes(ch, 2, false);
         have = GET_CRAFT_MOTES(ch, mote_type);
         required = get_crafting_instrument_motes(ch, 2, true);
@@ -1167,12 +1156,6 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
         if (GET_CRAFT(ch).crafting_item_type != CRAFT_TYPE_INSTRUMENT)
         {
             send_to_char(ch, "You can only set motes for the breakability of an instrument.\r\n");
-            return;
-        }
-
-        if (GET_CRAFT(ch).intrument_motes[3] > 0)
-        {
-            send_to_char(ch, "You have already assigned motes for the instrument breakability.\r\n");
             return;
         }
 
@@ -1220,17 +1203,17 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
             send_to_char(ch, "You have already assigned motes for the enhancement bonus.\r\n");
             return;
         }
-        else if (GET_CRAFT(ch).intrument_motes[1] > 0 && method == 3)
+        else if (GET_CRAFT(ch).instrument_motes[1] > 0 && method == 3)
         {
             send_to_char(ch, "You have already assigned motes for the instrument quality.\r\n");
             return;
         }
-        else if (GET_CRAFT(ch).intrument_motes[2] > 0 && method == 4)
+        else if (GET_CRAFT(ch).instrument_motes[2] > 0 && method == 4)
         {
             send_to_char(ch, "You have already assigned motes for the instrument effectiveness.\r\n");
             return;
         }
-        else if (GET_CRAFT(ch).intrument_motes[3] > 0 && method == 5)
+        else if (GET_CRAFT(ch).instrument_motes[3] > 0 && method == 5)
         {
             send_to_char(ch, "You have already assigned motes for the instrument breakability.\r\n");
             return;
@@ -1248,11 +1231,11 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
         if (method == 2)
             GET_CRAFT(ch).motes_required[slot] = required;
         else if (method == 3)
-            GET_CRAFT(ch).intrument_motes[1] = required;
+            GET_CRAFT(ch).instrument_motes[1] = required;
         else if (method == 4)
-            GET_CRAFT(ch).intrument_motes[2] = required;
+            GET_CRAFT(ch).instrument_motes[2] = required;
         else if (method == 5)
-            GET_CRAFT(ch).intrument_motes[3] = required;
+            GET_CRAFT(ch).instrument_motes[3] = required;
         else
             GET_CRAFT(ch).enhancement_motes_required = required;
         GET_CRAFT_MOTES(ch, mote_type) -= required;
@@ -1273,36 +1256,36 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
         }
         if (method == 3)
         {
-            allocated = GET_CRAFT(ch).intrument_motes[1];
+            allocated = GET_CRAFT(ch).instrument_motes[1];
             if (allocated <= 0)
             {
                 send_to_char(ch, "There are no motes assigned for your instrument quality yet.\r\n");
                 return;
             }
             GET_CRAFT_MOTES(ch, mote_type) += allocated;
-            GET_CRAFT(ch).intrument_motes[1] = 0;
+            GET_CRAFT(ch).instrument_motes[1] = 0;
         }
         else if (method == 4)
         {
-            allocated = GET_CRAFT(ch).intrument_motes[2];
+            allocated = GET_CRAFT(ch).instrument_motes[2];
             if (allocated <= 0)
             {
                 send_to_char(ch, "There are no motes assigned for your instrument effectiveness yet.\r\n");
                 return;
             }
             GET_CRAFT_MOTES(ch, mote_type) += allocated;
-            GET_CRAFT(ch).intrument_motes[2] = 0;
+            GET_CRAFT(ch).instrument_motes[2] = 0;
         }
         else if (method == 5)
         {
-            allocated = GET_CRAFT(ch).intrument_motes[3];
+            allocated = GET_CRAFT(ch).instrument_motes[3];
             if (allocated <= 0)
             {
                 send_to_char(ch, "There are no motes assigned for your instrument breakability yet.\r\n");
                 return;
             }
             GET_CRAFT_MOTES(ch, mote_type) += allocated;
-            GET_CRAFT(ch).intrument_motes[3] = 0;
+            GET_CRAFT(ch).instrument_motes[3] = 0;
         }
         else
         {
@@ -1988,9 +1971,12 @@ void show_current_craft(struct char_data *ch)
     {
         send_to_char(ch, "\r\n");
         send_to_char(ch, "\tc   INSTRUMENT INFO:\tn\r\n");
-        send_to_char(ch, "-- quality       : %d (motes: %2d %s%s)\r\n", GET_CRAFT(ch).instrument_quality, get_crafting_instrument_motes(ch, 1, true), crafting_motes[get_crafting_instrument_motes(ch, 1, false)], get_crafting_instrument_motes(ch, 1, true) == 1 ? "" : "s");
-        send_to_char(ch, "-- effectiveness : %d (motes: %2d %s%s)\r\n", GET_CRAFT(ch).instrument_effectiveness, get_crafting_instrument_motes(ch, 2, true), crafting_motes[get_crafting_instrument_motes(ch, 2, false)], get_crafting_instrument_motes(ch, 1, true) == 2 ? "" : "s");
-        send_to_char(ch, "-- breakability  : %d (motes: %2d %s%s)\r\n", GET_CRAFT(ch).instrument_breakability, get_crafting_instrument_motes(ch, 3, true), crafting_motes[get_crafting_instrument_motes(ch, 3, false)], get_crafting_instrument_motes(ch, 1, true) == 3 ? "" : "s");
+        send_to_char(ch, "-- quality       : %d (motes: %2d/%2d %s%s)\r\n", GET_CRAFT(ch).instrument_quality, GET_CRAFT(ch).instrument_motes[1],
+            get_crafting_instrument_motes(ch, 1, true), crafting_motes[get_crafting_instrument_motes(ch, 1, false)], get_crafting_instrument_motes(ch, 1, true) == 1 ? "" : "s");
+        send_to_char(ch, "-- effectiveness : %d (motes: %2d/%2d %s%s)\r\n", GET_CRAFT(ch).instrument_effectiveness,  GET_CRAFT(ch).instrument_motes[2],
+            get_crafting_instrument_motes(ch, 2, true), crafting_motes[get_crafting_instrument_motes(ch, 2, false)], get_crafting_instrument_motes(ch, 1, true) == 2 ? "" : "s");
+        send_to_char(ch, "-- breakability  : %d (motes: %2d/%2d %s%s)\r\n", GET_CRAFT(ch).instrument_breakability,  GET_CRAFT(ch).instrument_motes[3],
+            get_crafting_instrument_motes(ch, 3, true), crafting_motes[get_crafting_instrument_motes(ch, 3, false)], get_crafting_instrument_motes(ch, 1, true) == 3 ? "" : "s");
     }
 
     if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON || GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_ARMOR)
@@ -2057,6 +2043,10 @@ void show_current_craft(struct char_data *ch)
         {
             setup_craft_misc(ch, spec_type);
         }
+        if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_INSTRUMENT)
+        {
+            setup_craft_instrument(ch, spec_type);
+        }
         skill = GET_CRAFT(ch).skill_type;
         dc = GET_CRAFT(ch).dc;
         send_to_char(ch, "\r\n");
@@ -2105,100 +2095,185 @@ void reset_craft_materials(struct char_data *ch, bool verbose, bool reimburse)
     }
 }
 
-void reset_current_craft(struct char_data *ch, bool verbose, bool reimburse)
+#define CR_RESET_ALL            0
+#define CR_RESET_MOTES          1
+#define CR_RESET_MATERIALS      2
+#define CR_RESET_ENHANCEMENT    3
+#define CR_RESET_INSTRUMENT     4
+#define CR_RESET_BONUSES        5
+#define CR_RESET_DESCRIPTIONS   6
+#define CR_RESET_REFINE         7
+#define CR_RESET_RESIZE         8
+
+void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool reimburse)
 {
     int i = 0, mote;
+    int mode = 0;
+
+    if (arg2 != NULL)
+    {
+        if (is_abbrev(arg2, "motes"))
+            mode = CR_RESET_MOTES;
+        else if (is_abbrev(arg2, "materials"))
+            mode = CR_RESET_MATERIALS;
+        else if (is_abbrev(arg2, "enhancement"))
+            mode = CR_RESET_ENHANCEMENT;
+        else if (is_abbrev(arg2, "instrument"))
+            mode = CR_RESET_INSTRUMENT;
+        else if (is_abbrev(arg2, "bonuses"))
+            mode = CR_RESET_BONUSES;
+        else if (is_abbrev(arg2, "descriptions"))
+            mode = CR_RESET_DESCRIPTIONS;
+        else if (is_abbrev(arg2, "refine"))
+            mode = CR_RESET_REFINE;
+        else if (is_abbrev(arg2, "resize"))
+            mode = CR_RESET_RESIZE;
+    }
 
     // reimburse motes
 
-    if (GET_CRAFT(ch).enhancement_motes_required > 0)
+    if (mode == CR_RESET_ALL || mode == CR_RESET_MOTES || mode == CR_RESET_ENHANCEMENT)
     {
-        mote = get_enhancement_mote_type(ch);
-        if (mote != CRAFTING_MOTE_NONE && reimburse)
+        if (GET_CRAFT(ch).enhancement_motes_required > 0)
         {
-            GET_CRAFT_MOTES(ch, mote) += GET_CRAFT(ch).enhancement_motes_required;
-            if (verbose)
+            mote = get_enhancement_mote_type(ch);
+            if (mote != CRAFTING_MOTE_NONE && reimburse)
             {
-                send_to_char(ch, "You have recovered %d %ss.\r\n", GET_CRAFT(ch).enhancement_motes_required, crafting_motes[mote]);
+                GET_CRAFT_MOTES(ch, mote) += GET_CRAFT(ch).enhancement_motes_required;
+                if (verbose)
+                {
+                    send_to_char(ch, "You have recovered %d %ss.\r\n", GET_CRAFT(ch).enhancement_motes_required, crafting_motes[mote]);
+                }
+            }
+            GET_CRAFT(ch).enhancement_motes_required = 0;
+        }
+    }
+
+    if (mode == CR_RESET_ALL || mode == CR_RESET_ENHANCEMENT)
+        GET_CRAFT(ch).enhancement = 0;
+
+    if (mode == CR_RESET_ALL || mode == CR_RESET_MOTES || mode == CR_RESET_BONUSES)
+    {
+        for (i = 0; i < MAX_OBJ_AFFECT; i++)
+        {
+            if (GET_CRAFT(ch).motes_required[i] == 0) continue;
+            mote = crafting_mote_by_bonus_location(GET_CRAFT(ch).affected[i].location, GET_CRAFT(ch).affected[i].specific, GET_CRAFT(ch).affected[i].bonus_type);
+            if (mote != CRAFTING_MOTE_NONE && reimburse)
+            {
+                GET_CRAFT_MOTES(ch, mote) += GET_CRAFT(ch).motes_required[i];   
+                if (verbose)
+                {
+                    send_to_char(ch, "You have recovered %d %ss.\r\n", GET_CRAFT(ch).motes_required[i], crafting_motes[mote]);
+                }
+            }
+            GET_CRAFT(ch).motes_required[i] = 0;
+        }
+
+        // bonuses / applies
+        for (i = 0; i < MAX_OBJ_AFFECT; i++)
+        {
+            GET_CRAFT(ch).affected[i].location = 0;
+            GET_CRAFT(ch).affected[i].modifier = 0;
+            GET_CRAFT(ch).affected[i].bonus_type = 0;
+            GET_CRAFT(ch).affected[i].specific = 0;
+        }
+    }
+
+    if (mode == CR_RESET_ALL || mode == CR_RESET_MATERIALS || mode == CR_RESET_DESCRIPTIONS)
+    {
+        // reimburse materials
+        reset_craft_materials(ch, verbose, reimburse);
+    }
+
+    if (mode == CR_RESET_ALL || mode == CR_RESET_MATERIALS || mode == CR_RESET_REFINE)
+    {
+        for (i = 0; i < 3; i++)
+        {
+            if (GET_CRAFT(ch).refining_materials[i][1] > 0)
+            {
+                if (reimburse)
+                {
+                    GET_CRAFT_MAT(ch, GET_CRAFT(ch).refining_materials[i][0]) += GET_CRAFT(ch).refining_materials[i][1];
+                    if (verbose)
+                    {
+                        send_to_char(ch, "You have recovered %d %s.\r\n", GET_CRAFT(ch).refining_materials[i][1], crafting_materials[GET_CRAFT(ch).refining_materials[i][0]]);
+                    }
+                }
+                GET_CRAFT(ch).refining_materials[i][0] = GET_CRAFT(ch).refining_materials[i][1] = 0;
             }
         }
-        GET_CRAFT(ch).enhancement_motes_required = 0;
+        
+        GET_CRAFT(ch).refining_result[0] = GET_CRAFT(ch).refining_result[1] = 0;
+        if (verbose && mode != CR_RESET_ALL)
+            send_to_char(ch, "You have reset refining values to the default.\r\n");
     }
 
-    GET_CRAFT(ch).enhancement = 0;
-
-    for (i = 0; i < MAX_OBJ_AFFECT; i++)
+    if (mode == CR_RESET_ALL || mode == CR_RESET_MATERIALS || mode == CR_RESET_RESIZE)
     {
-        if (GET_CRAFT(ch).motes_required[i] == 0) continue;
-        mote = crafting_mote_by_bonus_location(GET_CRAFT(ch).affected[i].location, GET_CRAFT(ch).affected[i].specific, GET_CRAFT(ch).affected[i].bonus_type);
-        if (mote != CRAFTING_MOTE_NONE && reimburse)
-        {
-            GET_CRAFT_MOTES(ch, mote) += GET_CRAFT(ch).motes_required[i];   
-            if (verbose)
-            {
-                send_to_char(ch, "You have recovered %d %ss.\r\n", GET_CRAFT(ch).motes_required[i], crafting_motes[mote]);
-            }
-        }
-        GET_CRAFT(ch).motes_required[i] = 0;
-    }
-
-    // bonuses / applies
-    for (i = 0; i < MAX_OBJ_AFFECT; i++)
-    {
-        GET_CRAFT(ch).affected[i].location = 0;
-        GET_CRAFT(ch).affected[i].modifier = 0;
-        GET_CRAFT(ch).affected[i].bonus_type = 0;
-        GET_CRAFT(ch).affected[i].specific = 0;
-    }
-
-    // reimburse materials
-    reset_craft_materials(ch, verbose, reimburse);
-
-    for (i = 0; i < 3; i++)
-    {
-        if (GET_CRAFT(ch).refining_materials[i][1] > 0)
+        if (GET_CRAFT(ch).new_size)
         {
             if (reimburse)
             {
-                GET_CRAFT_MAT(ch, GET_CRAFT(ch).refining_materials[i][0]) += GET_CRAFT(ch).refining_materials[i][1];
+                GET_CRAFT_MAT(ch, GET_CRAFT(ch).resize_mat_type) += GET_CRAFT(ch).resize_mat_num;
                 if (verbose)
                 {
-                    send_to_char(ch, "You have recovered %d %s.\r\n", GET_CRAFT(ch).refining_materials[i][1], crafting_materials[GET_CRAFT(ch).refining_materials[i][0]]);
+                    send_to_char(ch, "You have recovered %d %s.\r\n", GET_CRAFT(ch).resize_mat_num, crafting_materials[GET_CRAFT(ch).resize_mat_type]);
                 }
             }
-            GET_CRAFT(ch).refining_materials[i][0] = GET_CRAFT(ch).refining_materials[i][1] = 0;
+
+            GET_CRAFT(ch).new_size = GET_CRAFT(ch).resize_mat_type, GET_CRAFT(ch).resize_mat_num = 0;
+            reset_crafting_obj(ch);
+
+            if (verbose && mode != CR_RESET_ALL)
+                send_to_char(ch, "You have reset resizing values to the default.\r\n");
         }
     }
 
-    GET_CRAFT(ch).refining_result[0] = GET_CRAFT(ch).refining_result[1] = 0;
-
-    if (GET_CRAFT(ch).new_size)
+    if (mode == CR_RESET_ALL || mode == CR_RESET_INSTRUMENT || mode == CR_RESET_MOTES)
     {
-        if (reimburse)
+        for (i = 0; i < 4; i++)
         {
-            GET_CRAFT_MAT(ch, GET_CRAFT(ch).resize_mat_type) += GET_CRAFT(ch).resize_mat_num;
-            if (verbose)
+            if (GET_CRAFT(ch).instrument_motes[i] > 0 && reimburse)
             {
-                send_to_char(ch, "You have recovered %d %s.\r\n", GET_CRAFT(ch).resize_mat_num, crafting_materials[GET_CRAFT(ch).resize_mat_type]);
+                GET_CRAFT_MOTES(ch, get_crafting_instrument_motes(ch, i, false)) += GET_CRAFT(ch).instrument_motes[i];
+                if (verbose)
+                {
+                    send_to_char(ch, "You have recovered %d %s.\r\n", GET_CRAFT(ch).instrument_motes[i], crafting_motes[get_crafting_instrument_motes(ch, i, false)]);
+                }
             }
+            GET_CRAFT(ch).instrument_motes[i] = 0;
         }
-
-        GET_CRAFT(ch).new_size = GET_CRAFT(ch).resize_mat_type, GET_CRAFT(ch).resize_mat_num = 0;
-        reset_crafting_obj(ch);
+    }
+    
+    if (mode == CR_RESET_INSTRUMENT || mode == CR_RESET_ALL)
+    {
+        GET_CRAFT(ch).instrument_quality = 0;
+        GET_CRAFT(ch).instrument_effectiveness = 0;
+        GET_CRAFT(ch).instrument_breakability = 30;
+        if (verbose && mode != CR_RESET_ALL)
+            send_to_char(ch, "You have reset instrument values to the default.\r\n");
     }
 
-    GET_CRAFT(ch).crafting_method = 0;
-    GET_CRAFT(ch).crafting_item_type = 0;
-    GET_CRAFT(ch).crafting_specific = 0;
-    GET_CRAFT(ch).skill_type = 0;
-    GET_CRAFT(ch).skill_roll = 0;
-    GET_CRAFT(ch).dc = 0;
-    GET_CRAFT(ch).craft_variant = -1;
+    if (mode == CR_RESET_ALL || mode == CR_RESET_DESCRIPTIONS || mode == CR_RESET_MATERIALS)
+    {
+        GET_CRAFT(ch).keywords = NULL;
+        GET_CRAFT(ch).short_description = NULL;
+        GET_CRAFT(ch).room_description = NULL;
+        GET_CRAFT(ch).ex_description = NULL;
+        if (verbose && mode != CR_RESET_ALL)
+            send_to_char(ch, "You have reset the descriptions to default values.\r\n");
+    }
 
-    GET_CRAFT(ch).keywords = NULL;
-    GET_CRAFT(ch).short_description = NULL;
-    GET_CRAFT(ch).room_description = NULL;
-    GET_CRAFT(ch).ex_description = NULL;
+    if (mode == CR_RESET_ALL)
+    {
+        GET_CRAFT(ch).crafting_method = 0;
+        GET_CRAFT(ch).crafting_item_type = 0;
+        GET_CRAFT(ch).crafting_specific = 0;
+        GET_CRAFT(ch).skill_type = 0;
+        GET_CRAFT(ch).skill_roll = 0;
+        GET_CRAFT(ch).dc = 0;
+        GET_CRAFT(ch).craft_variant = -1;
+    }
 
     if (verbose)
     {
@@ -2299,6 +2374,39 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
                 if (verbose)
                     send_to_char(ch, "The project requires %d unit%s of %s allocated\r\n", base_amount, base_amount == 1 ? "s" : "", 
                                     crafting_material_groups[base_group]);
+            }
+        }
+    }
+
+    if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_INSTRUMENT)
+    {
+        if (GET_CRAFT(ch).instrument_quality > 0)
+        {
+            if (GET_CRAFT(ch).instrument_motes[1] != get_crafting_instrument_motes(ch, 1, true))
+            {
+                ready = false;
+                if (verbose)
+                    send_to_char(ch, "The instrument quality requires %d %ss.\r\n", get_crafting_instrument_motes(ch, 1, true), crafting_motes[get_crafting_instrument_motes(ch, 1, false)]);
+            }
+        }
+        if (GET_CRAFT(ch).instrument_effectiveness > 0)
+        {
+            if (GET_CRAFT(ch).instrument_motes[2] != get_crafting_instrument_motes(ch, 2, true))
+            {
+                ready = false;
+                if (verbose)
+                    send_to_char(ch, "The instrument effectiveness requires %d %ss.\r\n", get_crafting_instrument_motes(ch, 2, true), 
+                    crafting_motes[get_crafting_instrument_motes(ch, 2, false)]);
+            }
+        }
+        if (GET_CRAFT(ch).instrument_breakability != 30)
+        {
+            if (GET_CRAFT(ch).instrument_motes[3] != get_crafting_instrument_motes(ch, 3, true))
+            {
+                ready = false;
+                if (verbose)
+                    send_to_char(ch, "The instrument breakability requires %d %ss.\r\n", get_crafting_instrument_motes(ch, 3, true), 
+                    crafting_motes[get_crafting_instrument_motes(ch, 3, false)]);
             }
         }
     }
@@ -2436,6 +2544,8 @@ int material_to_craft_skill(int item_type, int material)
                 return ABILITY_CRAFT_WOODWORKING;
             else if (IS_LEATHER(material))
                 return ABILITY_CRAFT_LEATHERWORKING;
+            else if (IS_PRECIOUS_METAL(material))
+                return ABILITY_CRAFT_JEWELCRAFTING;
             else
                 return ABILITY_CRAFT_METALWORKING;
             break;
@@ -2461,7 +2571,7 @@ bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int sk
     if (roll == 1)
     {
         send_to_char(ch, "\tM[CRITICAL FAILURE]\tn You rolled a natural 1! The %s failed and you lost your materials and motes.\r\n", method);
-        reset_current_craft(ch, false, false);
+        reset_current_craft(ch, NULL, false, false);
         return false;
     }
     // critical success. Item is masterwork quality.
@@ -2702,6 +2812,66 @@ void create_craft_armor(struct char_data *ch)
     obj_to_char(obj, ch);
 }
 
+void set_craft_instrument_object(struct obj_data *obj, struct char_data *ch)
+{
+  int wear_inc;
+
+  GET_OBJ_TYPE(obj) = ITEM_INSTRUMENT;
+
+  // Instrument Type
+  GET_OBJ_VAL(obj, 0) = craft_instrument_type_to_actual(GET_CRAFT(ch).crafting_specific);
+  // Quality
+  GET_OBJ_VAL(obj, 1) = GET_CRAFT(ch).instrument_quality;
+  // Effecitveness
+  GET_OBJ_VAL(obj, 2) = GET_CRAFT(ch).instrument_effectiveness;
+  // Breakability
+  GET_OBJ_VAL(obj, 3) = GET_CRAFT(ch).instrument_breakability;
+
+  /* for convenience we are going to go ahead and set some other values */
+  GET_OBJ_COST(obj) = 100;
+  GET_OBJ_WEIGHT(obj) = 1;
+
+  /* going to go ahead and reset all the bits off */
+  for (wear_inc = 0; wear_inc < NUM_ITEM_WEARS; wear_inc++)
+  {
+    REMOVE_BIT_AR(GET_OBJ_WEAR(obj), wear_inc);
+  }
+
+  /* now set take bit */
+  TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
+  TOGGLE_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_INSTRUMENT);
+}
+
+/**
+ * @brief Converts a given instrument type to its actual representation.
+ *
+ * This function takes an integer representing an instrument type and
+ * returns the corresponding actual instrument value. The mapping of
+ * types to actual values is defined within the function.
+ *
+ * @param type An integer representing the instrument type to be converted.
+ * @return An integer representing the actual instrument value.
+ */
+int craft_instrument_type_to_actual(int type)
+{
+    switch (type)
+    {
+        case CRAFT_INSTRUMENT_LYRE:
+            return INSTRUMENT_LYRE;
+        case CRAFT_INSTRUMENT_FLUTE:
+            return INSTRUMENT_FLUTE;
+        case CRAFT_INSTRUMENT_HARP:
+            return INSTRUMENT_HARP;
+        case CRAFT_INSTRUMENT_DRUM:
+            return INSTRUMENT_DRUM;
+        case CRAFT_INSTRUMENT_HORN:
+            return INSTRUMENT_HORN;
+        case CRAFT_INSTRUMENT_MANDOLIN:
+            return INSTRUMENT_MANDOLIN;        
+    }
+    return INSTRUMENT_LYRE; // default to lyre if not found
+}
+
 struct obj_data *setup_craft_instrument(struct char_data *ch, int a_type)
 {
     struct obj_data *obj;
@@ -2714,16 +2884,13 @@ struct obj_data *setup_craft_instrument(struct char_data *ch, int a_type)
     }
 
     // set up default values for the weapon type
-    set_armor_object(obj, a_type);
+    set_craft_instrument_object(obj, ch);
 
     // set descriptions
     set_craft_item_descs(ch, obj);
 
     // set obj affects
     set_craft_item_affects(ch, obj);
-
-    // set enhancement bonus
-    GET_OBJ_VAL(obj, 4) = GET_CRAFT(ch).enhancement;
 
     // set obj flags
     set_craft_item_flags(ch, obj);
@@ -2733,7 +2900,7 @@ struct obj_data *setup_craft_instrument(struct char_data *ch, int a_type)
     // set the obj material to the main craft material used
     GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material(GET_CRAFT(ch).materials[0][0]);
 
-    GET_CRAFT(ch).obj_level = MAX(1, GET_OBJ_LEVEL(obj) = get_craft_obj_level(obj, ch));
+    GET_CRAFT(ch).obj_level = MAX(1, GET_OBJ_LEVEL(obj) = (get_craft_obj_level(obj, ch) + get_crafting_instrument_dc_modifier(ch)));
 
     dc = (CREATE_BASE_DC + GET_OBJ_LEVEL(obj));
 
@@ -2755,6 +2922,8 @@ void create_craft_instrument(struct char_data *ch)
         log("SYSERR: create_craft_instrument created NULL object");
         return;
     }
+
+    dc = GET_CRAFT(ch).dc;
 
     // skill check to determine success or failure
     if (!create_craft_skill_check(ch, obj, skill, "craft", CREATE_BASE_EXP / 2, dc))
@@ -2882,7 +3051,7 @@ void craft_create_complete(struct char_data *ch)
             break;
     }
     act("$n finishes crafting.", FALSE, ch, 0, 0, TO_ROOM);
-    reset_current_craft(ch, false, false);
+    reset_current_craft(ch, NULL, false, false);
 }
 
 void check_current_craft(struct char_data *ch, bool verbose)
@@ -3327,7 +3496,7 @@ void newcraft_create(struct char_data *ch, const char *argument)
     }
     else if (is_abbrev(arg1, "reset"))
     {
-        reset_current_craft(ch, true, true);
+        reset_current_craft(ch, arg2, true, true);
     }
     else if (is_abbrev(arg1, "check"))
     {
@@ -3391,13 +3560,13 @@ void craft_refine_complete(struct char_data *ch)
     if ((20 + skill) < dc)
     {
         send_to_char(ch, "That refining type is too complex for you.\r\n");
-        reset_current_craft(ch, true, true);
+        reset_current_craft(ch, NULL, true, true);
         return;
     }
     else if (roll == 1)
     {
         send_to_char(ch, "\tM[CRITICAL FAILURE]\tn You rolled a natural 1! Your refining attempt failed and you lost your materials.\r\n");
-        reset_current_craft(ch, false, false);
+        reset_current_craft(ch, NULL, false, false);
         return;
     }
     else if (roll == 20)
@@ -3419,7 +3588,7 @@ void craft_refine_complete(struct char_data *ch)
 
     GET_CRAFT_MAT(ch, GET_CRAFT(ch).refining_result[0]) += GET_CRAFT(ch).refining_result[1];
     send_to_char(ch, "You refine %d unit%s of %s.\r\n", GET_CRAFT(ch).refining_result[1], GET_CRAFT(ch).refining_result[1] > 1 ? "s" : "", crafting_materials[GET_CRAFT(ch).refining_result[0]]);
-    reset_current_craft(ch, false, false);
+    reset_current_craft(ch, NULL, false, false);
     act("$n finishes refining.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
@@ -3708,7 +3877,7 @@ void newcraft_refine(struct char_data *ch, const char *argument)
         }
 
         send_to_char(ch, "You cancel your refining project.\r\n");
-        reset_current_craft(ch, true, true);
+        reset_current_craft(ch, NULL, true, true);
         return;
     }
     else if (is_abbrev(arg1, "show") || is_abbrev(arg1, "display") || is_abbrev(arg1, "info"))
@@ -4649,6 +4818,9 @@ int get_craft_project_level(struct char_data *ch)
 
     // material adjustment
     level += get_craft_material_final_level_adjustment(ch);
+
+    if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_INSTRUMENT)
+        level += get_crafting_instrument_dc_modifier(ch);
 
     return MAX(1, level);
 }

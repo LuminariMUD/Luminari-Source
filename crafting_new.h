@@ -161,7 +161,7 @@ int determine_random_material_group_by_sector_type(room_rnum sector);
 bool is_valid_craft_ability(int ability);
 bool is_valid_craft_feat(int feat);
 bool is_valid_craft_class(int ch_class, int location);
-void reset_current_craft(struct char_data *ch, bool verbose, bool reimburse);
+void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool reimburse);
 int craft_recipe_by_type(int type);
 int craft_misc_type_by_wear_loc(int wear_loc);
 bool is_craft_ready(struct char_data *ch, bool verbose);
@@ -226,6 +226,9 @@ struct obj_data *setup_craft_armor(struct char_data *ch, int a_type);
 void set_crafting_instrument(struct char_data *ch, char *arg2);
 int get_crafting_instrument_dc_modifier(struct char_data *ch);
 int get_crafting_instrument_motes(struct char_data *ch, int type, bool get_amount);
+void set_craft_instrument_object(struct obj_data *obj, struct char_data *ch);
+int craft_instrument_type_to_actual(int type);
+struct obj_data *setup_craft_instrument(struct char_data *ch, int a_type);
 
 ACMD_DECL(do_newcraft);
 ACMD_DECL(do_setmaterial);
