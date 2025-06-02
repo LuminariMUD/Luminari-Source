@@ -187,6 +187,7 @@ ACMD_DECL(do_clanstatus);
 ACMD_DECL(do_clanwhere);
 ACMD_DECL(do_clanwithdraw);
 ACMD_DECL(do_clanunclaim);
+ACMD_DECL(do_clanleave);
 
 ACMD_DECL(do_clanset);
 ACMD_DECL(do_clantalk);

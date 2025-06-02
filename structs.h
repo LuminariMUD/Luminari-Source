@@ -4319,7 +4319,7 @@ struct crafting_data_info
     int instrument_quality;
     int instrument_effectiveness;
     int instrument_breakability;
-    int intrument_motes[4];
+    int instrument_motes[4];
     
 };
 
@@ -5170,6 +5170,8 @@ struct player_special_data
     char *retainer_mail_recipient;
 
     bool surveyed_room;
+
+    char *clan_leave_code;
 };
 
 /** Special data used by NPCs, not PCs */
