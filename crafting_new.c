@@ -707,7 +707,7 @@ void set_crafting_itemtype(struct char_data *ch, char *arg2)
 
     if (i == CRAFT_TYPE_INSTRUMENT)
     {
-        GET_CRAFT(ch).instrument_breakability = 30;
+        GET_CRAFT(ch).instrument_breakability = INSTRUMENT_BREAKABILITY_DEFAULT;
     }
 
     send_to_char(ch, "Crafting item type set to: %s\r\n", crafting_types[i]);
@@ -1318,7 +1318,7 @@ int get_crafting_instrument_dc_modifier(struct char_data *ch)
     if (breakability == 0)
         dc_mod += 10;
     else
-        dc_mod += (30 - breakability) / 5;
+        dc_mod += (INSTRUMENT_BREAKABILITY_DEFAULT - breakability) / 5;
 
     return dc_mod;
 }
@@ -1359,7 +1359,7 @@ int get_crafting_instrument_motes(struct char_data *ch, int type, bool get_amoun
                 if (GET_CRAFT(ch).instrument_breakability == 0)
                     return 15; // 0 breakability means unbreakable, so 15 motes
                 else
-                    return (30 - GET_CRAFT(ch).instrument_breakability) / 5; // 0-30 breakability, so 0-6 motes
+                    return (INSTRUMENT_BREAKABILITY_DEFAULT - GET_CRAFT(ch).instrument_breakability) / 5; // 0-30 breakability, so 0-6 motes
             }
             break;
     }
@@ -1384,7 +1384,7 @@ void set_crafting_instrument(struct char_data *ch, char *arg2)
         send_to_char(ch, "Please enter one of the following:\r\n"
                          "-- craft instrument quality [1-30]\r\n"
                          "-- craft instrument effectiveness [1-10]\r\n"
-                         "-- craft instrument breakability [0-30]\r\n");
+                         "-- craft instrument breakability [0-%d]\r\n", INSTRUMENT_BREAKABILITY_DEFAULT);
         return;
     }
 
@@ -1418,11 +1418,11 @@ void set_crafting_instrument(struct char_data *ch, char *arg2)
     else if (is_abbrev(arg3, "breakability"))
     {
         value = atoi(arg4);
-        if (value < 0 || value > 30)
+        if (value < 0 || value > INSTRUMENT_BREAKABILITY_DEFAULT)
         {
-            send_to_char(ch, "The breakability must be between 0 and 30.\r\n"
+            send_to_char(ch, "The breakability must be between 0 and %d.\r\n"
                              "This will set the chance of breaking the instrument by that amount in 11,111.\r\n"
-                             "Ie. breakability 0 means unbreakable, 1 means 1 in 11,111 chance to break, 30 means 30 in 11,111 chance to break.\r\n");
+                             "Ie. breakability 0 means unbreakable, 1 means 1 in 11,111 chance to break, 30 means 30 in 11,111 chance to break.\r\n", INSTRUMENT_BREAKABILITY_DEFAULT);
             return;
         }
         GET_CRAFT(ch).instrument_breakability = value;
@@ -1434,7 +1434,7 @@ void set_crafting_instrument(struct char_data *ch, char *arg2)
         send_to_char(ch, "You need to specify one of the following:\r\n"
                          "-- craft instrument quality [1-30]\r\n"
                          "-- craft instrument effectiveness [1-10]\r\n"
-                         "-- craft instrument breakability [0-30]\r\n");
+                         "-- craft instrument breakability [0-%d]\r\n", INSTRUMENT_BREAKABILITY_DEFAULT);
         return;
     }
 }
@@ -2249,16 +2249,16 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
     {
         GET_CRAFT(ch).instrument_quality = 0;
         GET_CRAFT(ch).instrument_effectiveness = 0;
-        GET_CRAFT(ch).instrument_breakability = 30;
+        GET_CRAFT(ch).instrument_breakability = INSTRUMENT_BREAKABILITY_DEFAULT;
         if (verbose && mode != CR_RESET_ALL)
             send_to_char(ch, "You have reset instrument values to the default.\r\n");
     }
 
     if (mode == CR_RESET_ALL || mode == CR_RESET_DESCRIPTIONS || mode == CR_RESET_MATERIALS)
     {
-        GET_CRAFT(ch).keywords = NULL;
-        GET_CRAFT(ch).short_description = NULL;
-        GET_CRAFT(ch).room_description = NULL;
+        GET_CRAFT(ch).keywords = strdup("not set");
+        GET_CRAFT(ch).short_description = strdup("not set");
+        GET_CRAFT(ch).room_description = strdup("not set");
         GET_CRAFT(ch).ex_description = NULL;
         if (verbose && mode != CR_RESET_ALL)
             send_to_char(ch, "You have reset the descriptions to default values.\r\n");
@@ -2399,7 +2399,7 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
                     crafting_motes[get_crafting_instrument_motes(ch, 2, false)]);
             }
         }
-        if (GET_CRAFT(ch).instrument_breakability != 30)
+        if (GET_CRAFT(ch).instrument_breakability != INSTRUMENT_BREAKABILITY_DEFAULT)
         {
             if (GET_CRAFT(ch).instrument_motes[3] != get_crafting_instrument_motes(ch, 3, true))
             {
