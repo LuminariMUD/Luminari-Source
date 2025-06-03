@@ -614,6 +614,8 @@
 #define MAX_INSTRUMENTS 6
 /****************************************/
 
+#define INSTRUMENT_BREAKABILITY_DEFAULT     30
+
 /* Draconic Heritages from Sorcerer Bloodline: Draconic */
 #define DRACONIC_HERITAGE_NONE 0
 #define DRACONIC_HERITAGE_BLACK 1
