@@ -54,10 +54,11 @@ int materials_sort_info[NUM_CRAFT_MATS];
                                 "craft instrument (quality|effectiveness|breakability) (amount)" \
                                 "craft materials (add|remove) (material type)\r\n" \
                                 "craft motes (add|remove) (enhancement|quality|effectiveness|breakability|bonus slot #)\r\n" \
+                                "craft leveladjust (level adjustment)\r\n" \
                                 "craft score\r\n" \
                                 "craft show\r\n" \
                                 "craft check\r\n" \
-                                "craft reset\r\n" \
+                                "craft reset (no argument|motes|materials|enhancement|instrument|bonuses|descriptions|refine|rezize)\r\n" \
                                 "craft start\r\n"
 
 #define NEWCRAFT_CREATE_TYPES   ("What item type do you wish to make?\r\n" \
@@ -68,7 +69,7 @@ int materials_sort_info[NUM_CRAFT_MATS];
 #define NEWCRAFT_CREATE_BONUSES_NOARG   "You need to specify all of the bonus information:\r\n" \
                                         "Eg. craft bonuses (slot) (bonus location) (bonus type) (modifier) (specific)\r\n" \
                                         "-- slot needs to be 1-6 as an item can only have 6 bonuses total\r\n" \
-                                        "-- bonus location is what the bonus affects. Eg. strength, hit-points, reflex-save, etc.\r\n" \
+                                        "-- bonus location is what the bonus affects. Eg. strength, hit-points, reflex-save, etc. Type 'applies' for a list.\r\n" \
                                         "-- bonus type is either enhancement or universal. See HELP CRAFTING for more info\r\n" \
                                         "-- modifier is how much the bonus will affect that associated stat\r\n" \
                                         "-- specific is only required for feat, skill, and spell slot bonus types\r\n" \
@@ -1439,6 +1440,28 @@ void set_crafting_instrument(struct char_data *ch, char *arg2)
     }
 }
 
+int get_craft_level_adjust_dc_change(int adjust)
+{
+    return -(adjust * 5);
+}
+
+void set_craft_level_adjust(struct char_data *ch, char *arg2)
+{
+    int adjust = 0;
+
+    if (!*arg2)
+    {
+        send_to_char(ch, "You need to specify the level adjustment for the crafting item. Each -1 to the final object level adds +5 to the craft dc, and vice versa for increasing object level.\r\n");
+        return;
+    }
+
+    adjust = atoi(arg2);
+
+    send_to_char(ch, "You've set the crafting level adjustment to %d.\r\n", adjust);
+    send_to_char(ch, "This will adjust the final object level by %s%d and the dc will change by %s%d.\r\n", adjust > 0 ? "+" : "", adjust, get_craft_level_adjust_dc_change(adjust) > 0 ? "+" : "", get_craft_level_adjust_dc_change(adjust));
+    GET_CRAFT(ch).level_adjust = adjust;
+}
+
 void set_crafting_bonuses(struct char_data *ch, const char *argument)
 {
     char arg1[100], // bonus slot (0-5)
@@ -2048,9 +2071,12 @@ void show_current_craft(struct char_data *ch)
             setup_craft_instrument(ch, spec_type);
         }
         skill = GET_CRAFT(ch).skill_type;
-        dc = GET_CRAFT(ch).dc;
+        dc = GET_CRAFT(ch).dc + get_craft_level_adjust_dc_change(GET_CRAFT(ch).level_adjust);
         send_to_char(ch, "\r\n");
         send_to_char(ch, "Skill Required: %s [rank %d].\r\n", ability_names[skill], get_craft_skill_value(ch, skill));
+        if (GET_CRAFT(ch).level_adjust)
+            send_to_char(ch, "Level Adjust  : %s%d (%s%d to dc).\r\n",  GET_CRAFT(ch).level_adjust > 0 ? "+" : "", GET_CRAFT(ch).level_adjust, 
+                         get_craft_level_adjust_dc_change(GET_CRAFT(ch).level_adjust) > 0 ? "+" : "", get_craft_level_adjust_dc_change(GET_CRAFT(ch).level_adjust));
         send_to_char(ch, "Project DC    : %d.\r\n", dc);
         send_to_char(ch, "Object Level  : %d.\r\n", GET_CRAFT(ch).obj_level);
         send_to_char(ch, "\r\n");
@@ -2711,7 +2737,7 @@ struct obj_data *setup_craft_weapon(struct char_data *ch, int w_type)
 
     GET_CRAFT(ch).obj_level = MAX(1, GET_OBJ_LEVEL(obj) = get_craft_obj_level(obj, ch));
 
-    dc = (CREATE_BASE_DC + GET_OBJ_LEVEL(obj));
+    dc = (CREATE_BASE_DC + GET_OBJ_LEVEL(obj) - GET_CRAFT(ch).level_adjust);
 
     GET_CRAFT(ch).skill_type = skill;
     GET_CRAFT(ch).dc = dc;
@@ -2731,6 +2757,10 @@ void create_craft_weapon(struct char_data *ch)
         log("SYSERR: create_craft_weapon created NULL object");
         return;
     }
+
+    dc = GET_CRAFT(ch).dc + get_craft_level_adjust_dc_change(GET_CRAFT(ch).level_adjust);
+
+    GET_CRAFT(ch).skill_type = skill;
 
     // skill check to determine success or failure
     if (!create_craft_skill_check(ch, obj, skill, "craft", CREATE_BASE_EXP / 2, dc))
@@ -2774,11 +2804,12 @@ struct obj_data *setup_craft_armor(struct char_data *ch, int a_type)
     skill = material_to_craft_skill(GET_OBJ_TYPE(obj), GET_OBJ_MATERIAL(obj));
 
     // set the obj material to the main craft material used
-    GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material(GET_CRAFT(ch).materials[0][0]);
+    // GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material(GET_CRAFT(ch).materials[0][0]);
+    GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material( GET_CRAFT(ch).materials[ crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[0][GET_CRAFT(ch).craft_variant][0] ] [0]  );
 
     GET_CRAFT(ch).obj_level = MAX(1, GET_OBJ_LEVEL(obj) = get_craft_obj_level(obj, ch));
 
-    dc = (CREATE_BASE_DC + GET_OBJ_LEVEL(obj));
+    dc = (CREATE_BASE_DC + GET_OBJ_LEVEL(obj) - GET_CRAFT(ch).level_adjust);
 
     GET_CRAFT(ch).skill_type = skill;
     GET_CRAFT(ch).dc = dc;
@@ -2790,7 +2821,7 @@ void create_craft_armor(struct char_data *ch)
 {
     int a_type = GET_CRAFT(ch).crafting_specific;
     struct obj_data *obj;
-        int skill = ABILITY_CRAFT_ARMORSMITHING;
+    int skill = ABILITY_CRAFT_ARMORSMITHING;
     int dc = 0;
 
     if ((obj = setup_craft_armor(ch, a_type) ) == NULL)
@@ -2798,6 +2829,10 @@ void create_craft_armor(struct char_data *ch)
         log("SYSERR: create_craft_armor created NULL object");
         return;
     }
+
+    dc = GET_CRAFT(ch).dc + get_craft_level_adjust_dc_change(GET_CRAFT(ch).level_adjust);
+
+    GET_CRAFT(ch).skill_type = skill;
 
     // skill check to determine success or failure
     if (!create_craft_skill_check(ch, obj, skill, "craft", CREATE_BASE_EXP / 2, dc))
@@ -2895,14 +2930,15 @@ struct obj_data *setup_craft_instrument(struct char_data *ch, int a_type)
     // set obj flags
     set_craft_item_flags(ch, obj);
 
-    skill = material_to_craft_skill(GET_OBJ_TYPE(obj), GET_OBJ_MATERIAL(obj));
-
     // set the obj material to the main craft material used
-    GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material(GET_CRAFT(ch).materials[0][0]);
+    // GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material(GET_CRAFT(ch).materials[0][0]);
+    GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material( GET_CRAFT(ch).materials[ crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[0][GET_CRAFT(ch).craft_variant][0] ] [0]  );
+
+    skill = material_to_craft_skill(GET_OBJ_TYPE(obj), GET_OBJ_MATERIAL(obj));
 
     GET_CRAFT(ch).obj_level = MAX(1, GET_OBJ_LEVEL(obj) = (get_craft_obj_level(obj, ch) + get_crafting_instrument_dc_modifier(ch)));
 
-    dc = (CREATE_BASE_DC + GET_OBJ_LEVEL(obj));
+    dc = (CREATE_BASE_DC + GET_OBJ_LEVEL(obj) - GET_CRAFT(ch).level_adjust);
 
     GET_CRAFT(ch).skill_type = skill;
     GET_CRAFT(ch).dc = dc;
@@ -2914,7 +2950,7 @@ void create_craft_instrument(struct char_data *ch)
 {
     int i_type = GET_CRAFT(ch).crafting_specific;
     struct obj_data *obj;
-        int skill = ABILITY_CRAFT_ARMORSMITHING;
+    int skill = 0;
     int dc = 0;
 
     if ((obj = setup_craft_instrument(ch, i_type) ) == NULL)
@@ -2923,7 +2959,9 @@ void create_craft_instrument(struct char_data *ch)
         return;
     }
 
-    dc = GET_CRAFT(ch).dc;
+    skill = GET_CRAFT(ch).skill_type;
+
+    dc = GET_CRAFT(ch).dc + get_craft_level_adjust_dc_change(GET_CRAFT(ch).level_adjust);
 
     // skill check to determine success or failure
     if (!create_craft_skill_check(ch, obj, skill, "craft", CREATE_BASE_EXP / 2, dc))
@@ -2958,14 +2996,15 @@ struct obj_data *setup_craft_misc(struct char_data *ch, int vnum)
     // set obj flags
     set_craft_item_flags(ch, obj);
 
-    skill = material_to_craft_skill(GET_OBJ_TYPE(obj), GET_OBJ_MATERIAL(obj));
-
     // set the obj material to the main craft material used
-    GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material(GET_CRAFT(ch).materials[0][0]);
+    // GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material(GET_CRAFT(ch).materials[0][0]);
+    GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material( GET_CRAFT(ch).materials[ crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[0][GET_CRAFT(ch).craft_variant][0] ] [0]  );
+
+    skill = material_to_craft_skill(GET_OBJ_TYPE(obj), GET_OBJ_MATERIAL(obj));
 
     GET_CRAFT(ch).obj_level = MAX(1, GET_OBJ_LEVEL(obj) = get_craft_obj_level(obj, ch));
 
-    dc = (CREATE_BASE_DC + GET_OBJ_LEVEL(obj));
+    dc = (CREATE_BASE_DC + GET_OBJ_LEVEL(obj) - GET_CRAFT(ch).level_adjust);
 
     GET_CRAFT(ch).skill_type = skill;
     GET_CRAFT(ch).dc = dc;
@@ -3019,6 +3058,10 @@ void create_craft_misc(struct char_data *ch)
         log("SYSERR: create_craft_misc created NULL object");
         return;
     }
+
+    skill = GET_CRAFT(ch).skill_type;
+
+    dc = GET_CRAFT(ch).dc + get_craft_level_adjust_dc_change(GET_CRAFT(ch).level_adjust);
 
     // skill check to determine success or failure
     if (!create_craft_skill_check(ch, obj, skill, "craft", CREATE_BASE_EXP / 2, dc))
@@ -3393,7 +3436,7 @@ void set_crafting_enhancement(struct char_data *ch, const char *arg2)
     }
 
     GET_CRAFT(ch).enhancement = amount;
-    send_to_char(ch, "You set %s's enhancement bonus to %d.\r\n", GET_CRAFT(ch).short_description, amount);
+    send_to_char(ch, "You set your project's enhancement bonus to %d.\r\n", amount);
 
 }
 
@@ -3485,6 +3528,10 @@ void newcraft_create(struct char_data *ch, const char *argument)
     else if (is_abbrev(arg1, "instrument"))
     {
         set_crafting_instrument(ch, arg2);
+    }
+    else if (is_abbrev(arg1, "leveladjust"))
+    {
+        set_craft_level_adjust(ch, arg2);
     }
     else if (is_abbrev(arg1, "score"))
     {
@@ -4773,9 +4820,9 @@ int get_craft_obj_level(struct obj_data *obj, struct char_data *ch)
         if (obj->affected[i].modifier == 0) continue;
         if (obj->affected[i].bonus_type != BONUS_TYPE_UNIVERSAL && obj->affected[i].bonus_type != BONUS_TYPE_ENHANCEMENT) continue;
         level += get_level_adjustment_by_apply_and_modifier(obj->affected[i].location, obj->affected[i].modifier, obj->affected[i].bonus_type);
-        send_to_char(ch, "%s (%s) +%d = %d\r\n", 
-            apply_types[obj->affected[i].location], bonus_types[obj->affected[i].bonus_type], obj->affected[i].modifier,
-            get_level_adjustment_by_apply_and_modifier(obj->affected[i].location, obj->affected[i].modifier, obj->affected[i].bonus_type));
+        // send_to_char(ch, "%s (%s) +%d = %d\r\n", 
+        //     apply_types[obj->affected[i].location], bonus_types[obj->affected[i].bonus_type], obj->affected[i].modifier,
+        //     get_level_adjustment_by_apply_and_modifier(obj->affected[i].location, obj->affected[i].modifier, obj->affected[i].bonus_type));
     }
 
     if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
@@ -4792,6 +4839,9 @@ int get_craft_obj_level(struct obj_data *obj, struct char_data *ch)
     // material adjustment
     level += get_craft_material_final_level_adjustment(ch);
     // send_to_char(ch, "Material Adjustment = %d\r\n", get_craft_material_final_level_adjustment(ch));
+
+    // crafdter's attempted level adjustment
+    level += GET_CRAFT(ch).level_adjust;
 
     return level;
 }

@@ -876,6 +876,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_CRAFT(ch).ex_description = strdup(line);
         else if (!strcmp(tag, "CrOL"))
           GET_CRAFT(ch).obj_level = atoi(line);
+        else if (!strcmp(tag, "CrLA"))
+          GET_CRAFT(ch).level_adjust = atoi(line);
         else if (!strcmp(tag, "CrSN"))
           GET_CRAFT(ch).supply_num_required = atoi(line);
         else if (!strcmp(tag, "CrSR"))
@@ -2252,6 +2254,7 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "RSMN: %d\n", GET_CRAFT(ch).resize_mat_num);
 
   fprintf(fl, "CrOL: %d\n", GET_CRAFT(ch).obj_level);
+  fprintf(fl, "CrLA: %d\n", GET_CRAFT(ch).level_adjust);
 
   fprintf(fl, "CrSN: %d\n", GET_CRAFT(ch).supply_num_required);
   fprintf(fl, "CrSR: %d\n", GET_CRAFT(ch).survey_rooms);
