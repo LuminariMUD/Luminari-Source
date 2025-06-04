@@ -4300,6 +4300,7 @@ struct crafting_data_info
     int dc;
     int craft_duration;
     int obj_level;
+    int level_adjust;
 
     // refining info
     int refining_materials[3][2];

@@ -229,6 +229,8 @@ int get_crafting_instrument_motes(struct char_data *ch, int type, bool get_amoun
 void set_craft_instrument_object(struct obj_data *obj, struct char_data *ch);
 int craft_instrument_type_to_actual(int type);
 struct obj_data *setup_craft_instrument(struct char_data *ch, int a_type);
+int get_craft_level_adjust_dc_change(int adjust);
+void set_craft_level_adjust(struct char_data *ch, char *arg2);
 
 ACMD_DECL(do_newcraft);
 ACMD_DECL(do_setmaterial);
