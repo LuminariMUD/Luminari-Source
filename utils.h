@@ -330,6 +330,7 @@ int can_carry_weight_limit(struct char_data *ch);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
 char *convert_from_tabs(char *string);
+bool is_weapon_wielded_two_handed(struct obj_data *obj, struct char_data *ch);
 int count_non_protocol_chars(const char *str);
 const char *a_or_an(const char *string);
 bool is_immaterial(struct char_data *ch);

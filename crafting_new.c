@@ -2064,7 +2064,7 @@ void show_current_craft(struct char_data *ch)
         }
         if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_MISC)
         {
-            setup_craft_misc(ch, spec_type);
+            setup_craft_misc(ch, craft_misc_spec_to_vnum(spec_type));
         }
         if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_INSTRUMENT)
         {
@@ -2299,6 +2299,7 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
         GET_CRAFT(ch).skill_roll = 0;
         GET_CRAFT(ch).dc = 0;
         GET_CRAFT(ch).craft_variant = -1;
+        GET_CRAFT(ch).level_adjust = 0;
     }
 
     if (verbose)
@@ -2999,6 +3000,7 @@ struct obj_data *setup_craft_misc(struct char_data *ch, int vnum)
     // set the obj material to the main craft material used
     // GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material(GET_CRAFT(ch).materials[0][0]);
     GET_OBJ_MATERIAL(obj) = craft_material_to_obj_material( GET_CRAFT(ch).materials[ crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[0][GET_CRAFT(ch).craft_variant][0] ] [0]  );
+    send_to_char(ch, "Mat: %d\r\n", GET_OBJ_MATERIAL(obj));
 
     skill = material_to_craft_skill(GET_OBJ_TYPE(obj), GET_OBJ_MATERIAL(obj));
 
@@ -3010,6 +3012,39 @@ struct obj_data *setup_craft_misc(struct char_data *ch, int vnum)
     GET_CRAFT(ch).dc = dc;
     
     return obj;
+}
+
+int craft_misc_spec_to_vnum(int s_type)
+{
+    int vnum = 0;
+
+    switch (s_type)
+    {
+        case CRAFT_JEWELRY_BRACELET:
+            vnum = WRIST_MOLD; break;
+        case CRAFT_JEWELRY_EARRING:
+            vnum = EARS_MOLD; break;
+        case CRAFT_JEWELRY_GLASSES:
+            vnum = EYES_MOLD; break;
+        case CRAFT_JEWELRY_NECKLACE:
+            vnum = NECKLACE_MOLD; break;
+        case CRAFT_JEWELRY_RING:
+            vnum = RING_MOLD; break;
+        case CRAFT_MISC_BELT:
+            vnum = BELT_MOLD; break;
+        case CRAFT_MISC_BOOTS:
+            vnum = BOOTS_MOLD; break;
+        case CRAFT_MISC_CLOAK:
+            vnum = CLOAK_MOLD; break;
+        case CRAFT_MISC_GLOVES:
+            vnum = GLOVES_MOLD; break;
+        case CRAFT_MISC_MASK:
+            vnum = FACE_MOLD; break;
+        case CRAFT_MISC_SHOULDERS:
+            vnum = SHOULDERS_MOLD; break;
+            break;
+    }
+    return vnum;
 }
 
 void create_craft_misc(struct char_data *ch)
@@ -3024,32 +3059,7 @@ void create_craft_misc(struct char_data *ch)
     switch (m_type)
     {
         case CRAFT_TYPE_MISC:
-            switch (s_type)
-            {
-                case CRAFT_JEWELRY_BRACELET:
-                    vnum = WRIST_MOLD; break;
-                case CRAFT_JEWELRY_EARRING:
-                    vnum = EARS_MOLD; break;
-                case CRAFT_JEWELRY_GLASSES:
-                    vnum = EYES_MOLD; break;
-                case CRAFT_JEWELRY_NECKLACE:
-                    vnum = NECKLACE_MOLD; break;
-                case CRAFT_JEWELRY_RING:
-                    vnum = RING_MOLD; break;
-                case CRAFT_MISC_BELT:
-                    vnum = BELT_MOLD; break;
-                case CRAFT_MISC_BOOTS:
-                    vnum = BOOTS_MOLD; break;
-                case CRAFT_MISC_CLOAK:
-                    vnum = CLOAK_MOLD; break;
-                case CRAFT_MISC_GLOVES:
-                    vnum = GLOVES_MOLD; break;
-                case CRAFT_MISC_MASK:
-                    vnum = FACE_MOLD; break;
-                case CRAFT_MISC_SHOULDERS:
-                    vnum = SHOULDERS_MOLD; break;
-                    break;
-            }
+            vnum = craft_misc_spec_to_vnum(s_type);
             break;
     }
 

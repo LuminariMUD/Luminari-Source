@@ -10574,5 +10574,36 @@ bool is_exit_locked(struct char_data *ch, int dir)
   return false;
 }
 
+bool is_weapon_wielded_two_handed(struct obj_data *obj, struct char_data *ch)
+{
+
+  int wsize, csize;
+
+  if (!obj || !ch)
+    return false;
+
+  if (GET_OBJ_TYPE(obj) != ITEM_WEAPON)
+    return false;
+
+  wsize = GET_OBJ_SIZE(obj);
+  csize = GET_SIZE(ch);
+
+  if (wsize >= csize)
+  {
+    if (GET_EQ(ch, WEAR_HOLD_1))
+      return false;
+    if (GET_EQ(ch, WEAR_HOLD_2))
+      return false;
+    if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
+      return false;
+    if (GET_EQ(ch, WEAR_SHIELD))
+      return false;
+  }
+  else
+    return false;
+
+  return true;  
+}
+
 /* EoF */
 
