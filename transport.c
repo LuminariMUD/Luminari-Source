@@ -191,8 +191,6 @@ const char *sailing_locales[][SAILING_LOCALES_FIELDS] = {
     {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"},
 };
 
-#endif
-
 /* zone, destination vnum, title, details */
 const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
     /* Ashenport */
@@ -215,6 +213,117 @@ const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
     {"1030", "103053", "grocer", "food and drink"},
     {"1030", "103052", "baker", "bread & pastries"},
     {"1030", "103070", "elfstone tavern", "specialty drinks"},
+
+    /* always last! */
+    {"0", "", "always last item", ""},
+};
+
+#endif
+
+/* zone, destination vnum, title, details */
+const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
+{"Abanasinia" , "300" , "Darken Wood"} , 
+{"Abanasinia" , "6318" , "Elven Cadre"} , 
+{"Abanasinia" , "9000" , "Ettin Cave"} , 
+{"Abanasinia" , "229" , "Fireside Tavern"} , 
+{"Abanasinia" , "11700" , "Goblin Warrens"} , 
+{"Abanasinia" , "14000" , "Icewall Castle"} , 
+{"Abanasinia" , "700" , "Marsh Temple"} , 
+{"Abanasinia" , "5900" , "Onyx Obelisk"} , 
+{"Abanasinia" , "14701" , "Para-Elemental Planes"} , 
+{"Abanasinia" , "7200" , "Plains of Dust West"} , 
+{"Abanasinia" , "1002" , "Qualinost"} , 
+{"Abanasinia" , "3205" , "Que-Shu Village"} , 
+{"Abanasinia" , "1358" , "Solace East Gate"} , 
+{"Abanasinia" , "13145" , "Tarsis"} , 
+{"Abanasinia" , "2950" , "Xak Tsaroth"} , 
+{"Palanthas" , "2314" , "Bank"} , 
+{"Palanthas" , "2496" , "Bazaar"} , 
+{"Palanthas" , "15328" , "Bounties"} , 
+{"Palanthas" , "2200" , "Center Plaza"} , 
+{"Palanthas" , "15310" , "Crafting Halls"} , 
+{"Palanthas" , "15326" , "Donations"} , 
+{"Palanthas" , "15305" , "Dump"} , 
+{"Palanthas" , "2459" , "Ferry to Bethel Island"} , 
+{"Palanthas" , "5052" , "Gardens of the Blue Phoenix"} , 
+{"Palanthas" , "15329" , "Hunts"} , 
+{"Palanthas" , "15347" , "Lost Caverns of Palanthas"} , 
+{"Palanthas" , "7067" , "Magic Shop"} , 
+{"Palanthas" , "2220" , "Market Square"} , 
+{"Palanthas" , "15306" , "Mercenary Hirelings"} , 
+{"Palanthas" , "7069" , "Object identifying"} , 
+{"Palanthas" , "5718" , "Palanthas Graveyard"} , 
+{"Palanthas" , "4200" , "Palanthas Palace"} , 
+{"Palanthas" , "500" , "Palanthas Training Pit"} , 
+{"Palanthas" , "7002" , "Palanthas Wizard Academy"} , 
+{"Palanthas" , "15327" , "Pawn Shop"} , 
+{"Palanthas" , "15330" , "Quest Item Recovery"} , 
+{"Palanthas" , "2357" , "South Gate"} , 
+{"Palanthas" , "7068" , "Spell Researching"} , 
+{"Palanthas" , "15303" , "Stables"} , 
+{"Palanthas" , "15348" , "Temple"} , 
+{"Sanction" , "13815" , "Bazaar"} , 
+{"Sanction" , "5387" , "Black Dragonarmy Camp"} , 
+{"Sanction" , "13827" , "Bounties"} , 
+{"Sanction" , "6530" , "Center Square"} , 
+{"Sanction" , "13824" , "Crafting Halls"} , 
+{"Sanction" , "13826" , "Donations"} , 
+{"Sanction" , "13816" , "Magic Shop"} , 
+{"Sanction" , "13805" , "Mercenary Hirelings"} , 
+{"Sanction" , "13822" , "Object identifying"} , 
+{"Sanction" , "13804" , "Pawn Shop"} , 
+{"Sanction" , "13831" , "Quest Item Recovery"} , 
+{"Sanction" , "5399" , "Red Dragonarmy Camp"} , 
+{"Sanction" , "14210" , "Sanction Concentration Camp"} , 
+{"Sanction" , "6584" , "Sanction East Gate"} , 
+{"Sanction" , "9735" , "Sanction Palace"} , 
+{"Sanction" , "3700" , "Sanction Sewers"} , 
+{"Sanction" , "60373" , "Sanction Slave Mines"} , 
+{"Sanction" , "6601" , "Sanction Slums"} , 
+{"Sanction" , "6599" , "Sanction Thieves Guild"} , 
+{"Sanction" , "6000" , "Sanction Training Pits"} , 
+{"Sanction" , "3705" , "Shadowpeople City"} , 
+{"Sanction" , "6531" , "Shops"} , 
+{"Sanction" , "8644" , "Snow Wood Convent"} , 
+{"Sanction" , "13814" , "Spell Researching"} , 
+{"Sanction" , "6516" , "Temple"} , 
+{"Sanction" , "8406" , "Temple of Huerzyd"} , 
+{"Sanction" , "9461" , "Temple of Luerkhisis"} , 
+{"Solace" , "604" , "Crystalmir Lake"} , 
+{"Solace" , "3100" , "Eld Manor"} , 
+{"Solace" , "2606" , "Goblin Encampment"} , 
+{"Solace" , "15000" , "Infected Forest"} , 
+{"Solace" , "2802" , "Red Moon Festival"} , 
+{"Solace" , "1358" , "Solace East Gate"} , 
+{"Solace" , "2100" , "Tainted Druids"} , 
+{"Solace" , "15100" , "Woodland Grove"} , 
+{"Solamnia" , "6100" , "Caergoth"} , 
+{"Solamnia" , "5400" , "Cult of Hikkudel"} , 
+{"Solamnia" , "228" , "Cultists of Morgion"} , 
+{"Solamnia" , "11600" , "Dargaard Keep"} , 
+{"Solamnia" , "4300" , "Forces of Whitestone Camp"} , 
+{"Solamnia" , "9511" , "Lord Anias Estate"} , 
+{"Solamnia" , "60100" , "North Vingaard Mines"} , 
+{"Solamnia" , "60128" , "Northwestern Solamnic Wilds"} , 
+{"Solamnia" , "6702" , "Solanthus"} , 
+{"Solamnia" , "5115" , "Temple of Chemosh"} , 
+{"Solamnia" , "3400" , "Thelgaard Keep"} , 
+{"Solamnia" , "6445" , "Village of Keiflore"} , 
+{"Solamnia" , "8300" , "Vingaard Keep"} , 
+{"Solamnia" , "9100" , "Wenfyr Mansion"} , 
+{"Taman Busuk" , "1714" , "Bugbear Cave"} , 
+{"Taman Busuk" , "11812" , "City of Morning Dew"} , 
+{"Taman Busuk" , "5400" , "Cult of Hikkudel"} , 
+{"Taman Busuk" , "9511" , "Lord Anias Estate"} , 
+{"Taman Busuk" , "8709" , "Neraka"} , 
+{"Taman Busuk" , "5900" , "Onyx Obelisk"} , 
+{"Taman Busuk" , "7581" , "Plains of Dust East"} , 
+{"Taman Busuk" , "13500" , "Pristine Valley"} , 
+{"Taman Busuk" , "9800" , "Rogue Encampment"} , 
+{"Taman Busuk" , "6584" , "Sanction East Gate"} , 
+{"Taman Busuk" , "4135" , "Slave Market"} , 
+{"Taman Busuk" , "8644" , "Snow Wood Convent"} , 
+{"Taman Busuk" , "11000" , "Wyvern Den"} , 
 
     /* always last! */
     {"0", "", "always last item", ""},
@@ -837,7 +946,29 @@ int get_travel_time(struct char_data *ch, int speed, int locale, int here, int t
 
   return distance;
 }
+#if defined(CAMPAIGN_DL)
+const char *get_walkto_location_name(int locale_vnum)
+{
 
+  int i = 0;
+
+  if (locale_vnum == 0)
+  {
+    return "WALKTO NAME ERROR 1!";
+  }
+
+  while (walkto_landmarks[i][0][0] != '0')
+  {
+    if (locale_vnum == atoi(walkto_landmarks[i][1]))
+    {
+      return walkto_landmarks[i][2];
+    }
+    i++;
+  }
+
+  return "WALKTO NAME ERROR 2!";
+}
+#else
 const char *get_walkto_location_name(int locale_vnum)
 {
 
@@ -859,7 +990,62 @@ const char *get_walkto_location_name(int locale_vnum)
 
   return "WALKTO NAME ERROR 2!";
 }
+#endif
 
+#if defined(CAMPAIGN_DL)
+ACMDU(do_walkto)
+{
+
+  int i = 0;
+  bool found = false;
+  int vnum = 0, specified = 0;
+  int landmark = 0;
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "You need to specify the landmark you wish to travel to.  Type 'LANDMARKS' for a list.\r\n");
+    send_to_char(ch, "You can type 'walkto cancel' to cancel your current walkto action.\r\n");
+    return;
+  }
+
+  if (IN_ROOM(ch) == NOWHERE)
+  {
+    send_to_char(ch, "You cannot use this command here.\r\n");
+    return;
+  }
+
+  if (is_abbrev(argument, "cancel"))
+  {
+    send_to_char(ch, "You stop walking to '%s'", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+    GET_WALKTO_LOC(ch) = 0;
+    return;
+  }
+
+  while (walkto_landmarks[i][0][0] != '0')
+  {
+    vnum = atoi(walkto_landmarks[i][1]);
+    specified = atoi(argument);
+    if (vnum == specified)
+    {
+      landmark = atoi(walkto_landmarks[i][1]);
+      found = true;
+      break;
+    }
+    i++;
+  }
+
+  if (!found)
+  {
+    send_to_char(ch, "That is not a valid landmark you can to travel to.  Type 'LANDMARKS' for a list, and type: walkto (room #)\r\n");
+    return;
+  }
+
+  GET_WALKTO_LOC(ch) = landmark;
+  send_to_char(ch, "You begin walking to '%s'.\r\n", get_walkto_location_name(landmark));
+}
+#else
 ACMDU(do_walkto)
 {
 
@@ -914,6 +1100,63 @@ ACMDU(do_walkto)
   send_to_char(ch, "You begin walking to the %s.\r\n", get_walkto_location_name(landmark));
 }
 
+#endif
+
+#if defined(CAMPAIGN_DL)
+ACMD(do_landmarks)
+{
+  int i = 0, count = 0, j = 0, destination = NOWHERE, dir = 0;
+  bool found = false;
+  char buf[200], arg1[200], direction[50];
+
+  if (IN_ROOM(ch) == NOWHERE)
+  {
+    send_to_char(ch, "You cannot use this command right now.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg1, sizeof(arg1));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please specify one of the following regions:\r\n");
+    send_to_char(ch, "Abanasinia, Palanthas, Sanction, Solace, Solamnia, Taman Busuk.\r\n");
+    return;
+  }
+
+  while (walkto_landmarks[i][0][0] != '0')
+  {
+      snprintf(buf, sizeof(buf), "%s", walkto_landmarks[i][0]);
+      for (j = 0; j < strlen(buf); j++)
+        buf[j] = LOWER(buf[j]);
+      if (is_abbrev(arg1, buf))
+      {
+        if (count == 0)
+        {
+          send_to_char(ch, "\tC%-30s | %6.6s | %s\tn\r\n", "LANDMARK NAME", "ROOM #", "DIRECTION");
+        }
+        destination = real_room(atoi(walkto_landmarks[i][1]));
+        if (destination == NOWHERE)
+          snprintf(direction, sizeof(direction), "Not Accessible From Here");
+        if ((dir = find_first_step(IN_ROOM(ch), destination)) == BFS_ALREADY_THERE)
+          snprintf(direction, sizeof(direction), "You've Arrived!");
+        else if (dir < 0)
+          snprintf(direction, sizeof(direction), "Not Accessible From Here");
+        else
+          snprintf(direction, sizeof(direction), "%s", dirs[dir]);
+        send_to_char(ch, "%-30s | %-6.6s | %s\r\n", walkto_landmarks[i][2], walkto_landmarks[i][1], direction);
+        found = true;
+        count++;
+      }
+    i++;
+  }
+
+  send_to_char(ch, "\r\n");
+
+  if (!found)
+    send_to_char(ch, "There are no landmarks for that region.\r\n");
+}
+#else
 ACMD(do_landmarks)
 {
   int i = 0, zone = 0, count = 0;
@@ -945,6 +1188,7 @@ ACMD(do_landmarks)
   if (!found)
     send_to_char(ch, "There are no landmarks in this area.\r\n");
 }
+#endif
 
 void process_walkto_actions(void)
 {
@@ -965,7 +1209,7 @@ void process_walkto_actions(void)
       continue;
     if ((dir = find_first_step(IN_ROOM(ch), destination)) < 0)
     {
-      send_to_char(ch, "Your walk to the %s has been interrupted %d.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)), dir);
+      send_to_char(ch, "Your walk to '%s' has been interrupted %d.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)), dir);
       GET_WALKTO_LOC(ch) = 0;
       continue;
     }
@@ -979,7 +1223,7 @@ void process_walkto_actions(void)
       }
       else
       {
-        send_to_char(ch, "You continue walking to the %s.  Type walkto cancel to stop.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+        send_to_char(ch, "You continue walking to '%s'.  Type walkto cancel to stop.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
       }
     }
   }

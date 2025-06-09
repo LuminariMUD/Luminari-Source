@@ -548,6 +548,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"lore", "lore", POS_RESTING, do_lore, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"land", "land", POS_FIGHTING, do_land, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"landmarks", "landmarks", POS_DEAD, do_landmarks, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"lm", "lm", POS_DEAD, do_landmarks, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"last", "last", POS_DEAD, do_last, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"lastroom", "lastroom", POS_DEAD, do_lastroom, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_layonhands},

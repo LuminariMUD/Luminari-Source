@@ -1551,6 +1551,14 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
     }
   }
 
+  if (GET_OBJ_TYPE(j) == ITEM_WEAPON)
+  {
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "\r\nAffection bonuses above (if any) are doubled on weapons wielded in two hands.\r\n");
+    else
+      send_to_char(ch, "\r\nAffection bonuses above (if any) are doubled on weapons wielded in two hands.");
+  }
+
   if (!found)
   {
     if (mode == ITEM_STAT_MODE_G_LORE)

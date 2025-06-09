@@ -231,6 +231,7 @@ int craft_instrument_type_to_actual(int type);
 struct obj_data *setup_craft_instrument(struct char_data *ch, int a_type);
 int get_craft_level_adjust_dc_change(int adjust);
 void set_craft_level_adjust(struct char_data *ch, char *arg2);
+int craft_misc_spec_to_vnum(int s_type);
 
 ACMD_DECL(do_newcraft);
 ACMD_DECL(do_setmaterial);

@@ -437,7 +437,7 @@ int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int e
           if (modifier < 0)
             penalty -= modifier;
           if (modifier > best)
-            best = modifier;
+            best = is_weapon_wielded_two_handed(GET_EQ(ch, i), ch) ? modifier * 2 : modifier;
         }
       }
     }
@@ -845,7 +845,7 @@ int affect_total_sub(struct char_data *ch)
 {
   struct affected_type *af;
   int i, j, at_armor = 100;
-  int modifier = 0;
+  int modifier = 0, temp_mod = 0;
   int empty_bits[AF_ARRAY_MAX];
 
   for (i = 0; i > AF_ARRAY_MAX; i++)
@@ -860,8 +860,11 @@ int affect_total_sub(struct char_data *ch)
       {
         if (BONUS_TYPE_STACKS(GET_EQ(ch, i)->affected[j].bonus_type))
         {
+          temp_mod = GET_EQ(ch, i)->affected[j].modifier;
+          if (is_weapon_wielded_two_handed(GET_EQ(ch, i), ch))
+            temp_mod *= 2;
           affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
-                           GET_EQ(ch, i)->affected[j].modifier,
+                           temp_mod,
                            GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
         }
         else
@@ -910,7 +913,7 @@ int affect_total_sub(struct char_data *ch)
 void affect_total_plus(struct char_data *ch, int at_armor)
 {
   struct affected_type *af;
-  int i, j;
+  int i, j, temp_mod;
   int empty_bits[AF_ARRAY_MAX];
   int modifier = 0;
 
@@ -930,8 +933,11 @@ void affect_total_plus(struct char_data *ch, int at_armor)
       {
         if (BONUS_TYPE_STACKS(GET_EQ(ch, i)->affected[j].bonus_type))
         {
+          temp_mod = GET_EQ(ch, i)->affected[j].modifier;
+          if (is_weapon_wielded_two_handed(GET_EQ(ch, i), ch))
+            temp_mod *= 2;
           affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
-                           GET_EQ(ch, i)->affected[j].modifier,
+                           temp_mod,
                            GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
         }
         else
@@ -1931,7 +1937,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
     }
     else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1))
     {
-      affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), TRUE);
+      affect_modify_ar(ch, obj->affected[j].location, is_weapon_wielded_two_handed(obj, ch) ? obj->affected[j].modifier * 2: obj->affected[j].modifier, GET_OBJ_AFFECT(obj), TRUE);
       aff_apply_modify(ch, obj->affected[j].location, -calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), "equip_char");
       // affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, FALSE);
     }
@@ -1987,7 +1993,7 @@ struct obj_data *unequip_char(struct char_data *ch, int pos)
     }
     else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1))
     {
-      affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), FALSE);
+      affect_modify_ar(ch, obj->affected[j].location, is_weapon_wielded_two_handed(obj, ch) ? obj->affected[j].modifier * 2: obj->affected[j].modifier, GET_OBJ_AFFECT(obj), FALSE);
       aff_apply_modify(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), "equip_char");
       // affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, TRUE);
     }
