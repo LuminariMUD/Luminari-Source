@@ -9658,6 +9658,12 @@ ACMD(do_pick_lock)
     return;
   }
 
+  if (!is_action_available(ch, atMOVE, TRUE))
+  {
+    send_to_char(ch, "You need a move action to pick a lock.\r\n");
+    return;
+  }
+
   if (!*arg1)
   {
     send_to_char(ch, "Please specify the direction of the door, or the name of the container you'd like to pick.\r\n");

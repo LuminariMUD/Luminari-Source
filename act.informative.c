@@ -115,6 +115,8 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_HOLD_2H,       //<wielding/held slots>
     WEAR_SHIELD,        //<worn as shield>
     WEAR_LEGS,          //<worn on legs>
+    WEAR_ANKLE_R,       //<worn on ankle>
+    WEAR_ANKLE_L,       //<worn on ankle>
     WEAR_FEET,          //<worn on feet>
 };
 

@@ -599,6 +599,11 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
       if (!CAN_WEAR(obj, ITEM_WEAR_EAR))
         location = LOC_INVENTORY;
       break;
+    case WEAR_ANKLE_R:
+    case WEAR_ANKLE_L:
+      if (!CAN_WEAR(obj, ITEM_WEAR_ANKLE))
+        location = LOC_INVENTORY;
+      break;
     case WEAR_EYES:
       if (!CAN_WEAR(obj, ITEM_WEAR_EYES))
         location = LOC_INVENTORY;

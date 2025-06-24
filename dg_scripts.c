@@ -259,6 +259,8 @@ int find_eq_pos_script(char *arg)
       {"waist", WEAR_WAIST},
       {"rwrist", WEAR_WRIST_R},
       {"lwrist", WEAR_WRIST_L},
+      {"rankle", WEAR_ANKLE_R},
+      {"lankle", WEAR_ANKLE_L},
       {"none", -1}};
 
   if (is_number(arg) && (i = atoi(arg)) >= 0 && i < NUM_WEARS)
@@ -293,6 +295,9 @@ int can_wear_on_pos(struct obj_data *obj, int pos)
   case WEAR_FINGER_R:
   case WEAR_FINGER_L:
     return CAN_WEAR(obj, ITEM_WEAR_FINGER);
+  case WEAR_ANKLE_R:
+  case WEAR_ANKLE_L:
+    return CAN_WEAR(obj, ITEM_WEAR_ANKLE);
   case WEAR_NECK_1:
   case WEAR_NECK_2:
     return CAN_WEAR(obj, ITEM_WEAR_NECK);
@@ -314,6 +319,8 @@ int can_wear_on_pos(struct obj_data *obj, int pos)
     return CAN_WEAR(obj, ITEM_WEAR_ABOUT);
   case WEAR_WAIST:
     return CAN_WEAR(obj, ITEM_WEAR_WAIST);
+  case WEAR_SHOULDERS:
+    return CAN_WEAR(obj, ITEM_WEAR_SHOULDERS);
   case WEAR_WRIST_R:
   case WEAR_WRIST_L:
     return CAN_WEAR(obj, ITEM_WEAR_WRIST);

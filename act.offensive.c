@@ -627,6 +627,18 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     return FALSE;
   }
 
+  if (HAS_SUBRACE(vict, SUBRACE_SWARM))
+  {
+    act("$n sprawls completely through $N as $e tries to attack $M, slamming into the ground!",
+          FALSE, ch, NULL, vict, TO_NOTVICT);
+    act("You sprawl completely through $N as you try to attack $M, slamming into the ground!",
+        FALSE, ch, NULL, vict, TO_CHAR);
+    act("$n sprawls completely through you as $e tries to attack you, slamming into the ground!",
+        FALSE, ch, NULL, vict, TO_VICT);
+    change_position(ch, POS_SITTING);
+    return FALSE;
+  }
+
   if (MOB_FLAGGED(vict, MOB_NOBASH))
   {
     if (display)

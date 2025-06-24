@@ -241,6 +241,12 @@ ACMD(do_grapple)
     return;
   }
 
+  if (HAS_SUBRACE(vict, SUBRACE_SWARM))
+  {
+    send_to_char(ch, "You can't grapple a swarm!\r\n");
+    return;
+  }
+
   if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE) && HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
     grapple_mod = 0;
   else if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE))

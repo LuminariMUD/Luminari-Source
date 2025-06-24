@@ -1045,11 +1045,8 @@ void set_crafting_extra_desc(struct char_data *ch, const char *arg2)
     return;
 }
 
-int get_enhancement_mote_type(struct char_data *ch)
+int get_enhancement_mote_type(struct char_data *ch, int type, int spec)
 {
-    int type = GET_CRAFT(ch).crafting_item_type, 
-        spec = GET_CRAFT(ch).crafting_specific;
-
     switch (type)
     {
         case CRAFT_TYPE_WEAPON:
@@ -1074,6 +1071,7 @@ int get_enhancement_mote_type(struct char_data *ch)
                 case ARMOR_TYPE_MEDIUM: return CRAFTING_MOTE_EARTH;
                 case ARMOR_TYPE_SHIELD: return CRAFTING_MOTE_WATER;
                 case ARMOR_TYPE_TOWER_SHIELD: return CRAFTING_MOTE_AIR;
+                case ARMOR_TYPE_NONE: return  CRAFTING_MOTE_ICE;
                 default: CRAFTING_MOTE_NONE;
             }
             break;
@@ -1121,7 +1119,7 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
             return;
         }
 
-        mote_type = get_enhancement_mote_type(ch);
+        mote_type = get_enhancement_mote_type(ch, GET_CRAFT(ch).crafting_item_type, GET_CRAFT(ch).crafting_specific);
         have = GET_CRAFT_MOTES(ch, mote_type);
         required = craft_motes_required(0, 0, 0, enhancement);
         method = 1;
@@ -2007,7 +2005,7 @@ void show_current_craft(struct char_data *ch)
         send_to_char(ch, "\r\n");
         send_to_char(ch, "\tc   ENHANCEMENT BONUS:\tn %s%d", GET_CRAFT(ch).enhancement > 0 ? "+" : "", GET_CRAFT(ch).enhancement);
         if (GET_CRAFT(ch).enhancement > 0)
-            send_to_char(ch, " %d/%d %ss required", GET_CRAFT(ch).enhancement_motes_required,  craft_motes_required(0, 0, 0, GET_CRAFT(ch).enhancement), crafting_motes[get_enhancement_mote_type(ch)]);
+            send_to_char(ch, " %d/%d %ss required", GET_CRAFT(ch).enhancement_motes_required,  craft_motes_required(0, 0, 0, GET_CRAFT(ch).enhancement), crafting_motes[get_enhancement_mote_type(ch, GET_CRAFT(ch).crafting_item_type, GET_CRAFT(ch).crafting_specific)]);
         send_to_char(ch, "\r\n");
         send_to_char(ch, "\r\n");
     }
@@ -2162,7 +2160,7 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
     {
         if (GET_CRAFT(ch).enhancement_motes_required > 0)
         {
-            mote = get_enhancement_mote_type(ch);
+            mote = get_enhancement_mote_type(ch, GET_CRAFT(ch).crafting_item_type, GET_CRAFT(ch).crafting_specific);
             if (mote != CRAFTING_MOTE_NONE && reimburse)
             {
                 GET_CRAFT_MOTES(ch, mote) += GET_CRAFT(ch).enhancement_motes_required;
@@ -2465,7 +2463,7 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
         if (GET_CRAFT(ch).enhancement_motes_required < craft_motes_required(0, 0, 0, GET_CRAFT(ch).enhancement))
         {
             ready = false;
-            send_to_char(ch, "You require %d %ss for the object's enhancement bonus.\r\n", craft_motes_required(0, 0, 0, GET_CRAFT(ch).enhancement), crafting_motes[get_enhancement_mote_type(ch)]);
+            send_to_char(ch, "You require %d %ss for the object's enhancement bonus.\r\n", craft_motes_required(0, 0, 0, GET_CRAFT(ch).enhancement), crafting_motes[get_enhancement_mote_type(ch, GET_CRAFT(ch).crafting_item_type, GET_CRAFT(ch).crafting_specific)]);
         }
     }
 
@@ -2774,6 +2772,7 @@ void create_craft_weapon(struct char_data *ch)
 
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
+    reset_current_craft(ch, NULL, false, false);
 }
 
 struct obj_data *setup_craft_armor(struct char_data *ch, int a_type)
@@ -2846,6 +2845,7 @@ void create_craft_armor(struct char_data *ch)
 
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
+    reset_current_craft(ch, NULL, false, false);
 }
 
 void set_craft_instrument_object(struct obj_data *obj, struct char_data *ch)
@@ -2975,6 +2975,7 @@ void create_craft_instrument(struct char_data *ch)
 
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
+    reset_current_craft(ch, NULL, false, false);
 }
 
 struct obj_data *setup_craft_misc(struct char_data *ch, int vnum)
@@ -3042,6 +3043,8 @@ int craft_misc_spec_to_vnum(int s_type)
             vnum = FACE_MOLD; break;
         case CRAFT_MISC_SHOULDERS:
             vnum = SHOULDERS_MOLD; break;
+        case CRAFT_MISC_ANKLET:
+            vnum = ANKLET_MOLD; break;
             break;
     }
     return vnum;
@@ -3084,6 +3087,7 @@ void create_craft_misc(struct char_data *ch)
 
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
+    reset_current_craft(ch, NULL, false, false);
 }
 
 void craft_create_complete(struct char_data *ch)
@@ -3104,7 +3108,6 @@ void craft_create_complete(struct char_data *ch)
             break;
     }
     act("$n finishes crafting.", FALSE, ch, 0, 0, TO_ROOM);
-    reset_current_craft(ch, NULL, false, false);
 }
 
 void check_current_craft(struct char_data *ch, bool verbose)
@@ -3420,7 +3423,7 @@ void set_crafting_enhancement(struct char_data *ch, const char *arg2)
     if (is_abbrev(arg2, "reset"))
     {
         send_to_char(ch, "You reset your project's enhancement bonus to 0.\r\n");
-        int mote_type = get_enhancement_mote_type(ch);
+        int mote_type = get_enhancement_mote_type(ch, GET_CRAFT(ch).crafting_item_type, GET_CRAFT(ch).crafting_specific);
         if (GET_CRAFT(ch).enhancement_motes_required > 0)
         {
             send_to_char(ch, "You've recovered %d %s.\r\n", GET_CRAFT(ch).enhancement_motes_required, crafting_motes[mote_type]);
@@ -4291,6 +4294,8 @@ int craft_misc_type_by_wear_loc(int wear_loc)
         case ITEM_WEAR_ABOUT:
         case ITEM_WEAR_WAIST:
         case ITEM_WEAR_FACE:
+        case ITEM_WEAR_ANKLE:
+        case ITEM_WEAR_SHOULDERS:
             return CRAFT_TYPE_MISC;
     }
     return CRAFT_TYPE_NONE;
@@ -4982,6 +4987,7 @@ void craft_resize_complete(struct char_data *ch)
     GET_OBJ_SIZE(obj) = size;
     reset_crafting_obj(ch);
     GET_CRAFT(ch).new_size = GET_CRAFT(ch).resize_mat_type = GET_CRAFT(ch).resize_mat_num = 0;
+    reset_current_craft(ch, NULL, false, false);
 }
 
 /**
@@ -5873,6 +5879,183 @@ SPECIAL(new_supply_orders)
     return 1;
 
 }
+
+void show_mote_bonuses(struct char_data *ch, int mote)
+{
+    int i, j, length = 0;
+    bool found = false;
+
+    send_to_char(ch, "\r\n");
+
+    // weapon enhancements
+    send_to_char(ch, "\tcWeapon Enhancement Bonuses for:\tn\r\n");
+    for (i = 1; i < NUM_WEAPON_TYPES; i++)
+    {
+        if (get_enhancement_mote_type(ch, CRAFT_TYPE_WEAPON, i) == mote)
+        {
+            send_to_char(ch, "%s", weapon_list[i].name);
+            send_to_char(ch, ", ");
+            length += strlen(weapon_list[i].name);
+            if (length > 80)
+            {
+                send_to_char(ch, "\r\n");
+                length = 0;
+            }
+            found = true;
+        }
+    }
+    if (!found)
+        send_to_char(ch, "None");
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+
+    // armor enhancements
+    found = false;
+    length = 0;
+    send_to_char(ch, "\tcArmor Enhancement Bonuses for:\tn\r\n");
+    for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
+    {
+        if (get_enhancement_mote_type(ch, CRAFT_TYPE_ARMOR, i) == mote)
+        {
+            send_to_char(ch, "%s", armor_list[i].name);
+            send_to_char(ch, ", ");
+            length += strlen(armor_list[i].name);
+            if (length > 80)
+            {
+                send_to_char(ch, "\r\n");
+                length = 0;
+            }
+            
+            found = true;
+        }
+    }
+    if (!found)
+        send_to_char(ch, "None");
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+
+
+    send_to_char(ch, "\tcOther Bonuses:\tn\r\n");
+    found = false;
+    length = 0;
+    for (i = 0; i < NUM_APPLIES; i++)
+    {
+        switch (i)
+        {
+            case APPLY_SKILL:
+                for (j = 1; j <= END_GENERAL_ABILITIES; j++)
+                {
+                    if (crafting_mote_by_bonus_location(i, j, 0) == mote)
+                    {
+                        send_to_char(ch, "%s (%s), ", apply_types[i], ability_names[j]);
+                        length += strlen(apply_types[i]) + strlen(ability_names[j]) + 2; // +2 for the parentheses and comma
+                        if (length > 80)
+                        {
+                            send_to_char(ch, "\r\n");
+                            length = 0;
+                        }
+                        found = true;
+                    }
+                }
+                break;
+            case APPLY_AC_NEW:
+                if (crafting_mote_by_bonus_location(i, 0, BONUS_TYPE_DEFLECTION) == mote)
+                {
+                    send_to_char(ch, "%s (Deflection), ", apply_types[i]);
+                    length += strlen(apply_types[i]) + 14; // +14 for " (Deflection), "
+                    if (length > 80)
+                    {
+                        send_to_char(ch, "\r\n");
+                        length = 0;
+                    }
+                    found = true;
+                }
+                if (crafting_mote_by_bonus_location(i, 0, BONUS_TYPE_NATURALARMOR) == mote)
+                {
+                    send_to_char(ch, "%s (Natural), ", apply_types[i]);
+                    length += strlen(apply_types[i]) + 12; // +12 for " (Natural), "
+                    if (length > 80)
+                    {
+                        send_to_char(ch, "\r\n");
+                        length = 0;
+                    }
+                    found = true;
+                }
+                if (crafting_mote_by_bonus_location(i, 0, BONUS_TYPE_DODGE) == mote)
+                {
+                    send_to_char(ch, "%s (Dodge), ", apply_types[i]);send_to_char(ch, "%s, ", ability_names[j]);
+                    length += strlen(apply_types[i]) + 8; // +8 for " (Dodge), "
+                    if (length > 80)
+                    {
+                        send_to_char(ch, "\r\n");
+                        length = 0;
+                    }
+                    found = true;
+                }
+                break;
+            default:
+                if (crafting_mote_by_bonus_location(i, 0, 0) == mote)
+                {
+                    send_to_char(ch, "%s, ", apply_types[i]);
+                    length += strlen(apply_types[i]) + 2; // +2 for the comma
+                    if (length > 80)
+                    {
+                        send_to_char(ch, "\r\n");
+                        length = 0;
+                    }
+                    found = true;
+                }
+                break;
+        }
+    }
+    send_to_char(ch, "\r\n");
+    
+    // crafting_mote_by_bonus_location
+    
+}
+
+ACMDU(do_motes)
+{
+    int i;
+    char mote[50];
+
+    skip_spaces(&argument);
+
+    if (!*argument)
+    {
+        send_to_char(ch, "Please specify one of the following mote types to see associated bonuses:\r\n");
+        for (i = 1; i < NUM_CRAFT_MOTES; i++)
+        {
+            if (i > 1)
+                send_to_char(ch, ", ");
+            send_to_char(ch, "%s", crafting_motes[i]);
+        }
+        send_to_char(ch, ".\r\n");
+        return;
+    }
+
+    for (i = 1; i < NUM_CRAFT_MOTES; i++)
+    {
+        if (is_abbrev(argument, crafting_motes[i]))
+        {
+            snprintf(mote, sizeof(mote), "%s", crafting_motes[i]);
+            send_to_char(ch, "\tC%ss provide the following bonuses:\tn\r\n", CAP(mote));
+            show_mote_bonuses(ch, i);
+            return;
+        }
+    }
+
+    send_to_char(ch, "That is not a valid mote type. Please specify one of the following:\r\n");
+    for (i = 1; i < NUM_CRAFT_MOTES; i++)
+    {
+        if (i > 1)
+            send_to_char(ch, ", ");
+        send_to_char(ch, "%s", crafting_motes[i]);
+    }
+    send_to_char(ch, ".\r\n");
+
+}
+
 
 // Todo: 
 // greygem shards - extract motes, get feats out, store feat motes separately

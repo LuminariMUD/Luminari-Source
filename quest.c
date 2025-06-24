@@ -1262,11 +1262,11 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     draw_line(ch, 80, '-', '-');
     send_to_char(ch, "This is a dialogue quest. You must attempt to complete it using one of the\r\nfollowing dialogue commands:\r\n");
     if (aquest_table[rnum].diplomacy_dc > 0)
-      send_to_char(ch, "Diplomacy Skill  - 'convince' command.\r\n");
+      send_to_char(ch, "Persuasion Skill  - 'convince' command.\r\n");
     if (aquest_table[rnum].intimidate_dc > 0)
       send_to_char(ch, "Intimidate Skill - 'threaten' command.\r\n");
     if (aquest_table[rnum].diplomacy_dc > 0)
-      send_to_char(ch, "Bluff Skill      - 'beguile' command.\r\n");
+      send_to_char(ch, "Deception Skill      - 'beguile' command.\r\n");
     draw_line(ch, 80, '-', '-');
     send_to_char(ch, "\tn");
   }
@@ -1424,11 +1424,11 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     draw_line(ch, 80, '-', '-');
     send_to_char(ch, "This is a dialogue quest. You must find the mob attempt to persuade it using\r\none of the following dialogue commands:\r\n");
     if (aquest_table[rnum].diplomacy_dc > 0)
-      send_to_char(ch, "Diplomacy Skill  - 'convince' command.\r\n");
+      send_to_char(ch, "Persuasion Skill  - 'convince' command.\r\n");
     if (aquest_table[rnum].intimidate_dc > 0)
       send_to_char(ch, "Intimidate Skill - 'threaten' command.\r\n");
     if (aquest_table[rnum].diplomacy_dc > 0)
-      send_to_char(ch, "Bluff Skill      - 'beguile' command.\r\n");
+      send_to_char(ch, "Deception Skill      - 'beguile' command.\r\n");
     draw_line(ch, 80, '-', '-');
     send_to_char(ch, "\tn");
   }

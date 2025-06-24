@@ -2103,6 +2103,8 @@ const char *wear_where[] = {
     "\tY{Worn On Eyes}\tn       ",
     "\tY{Worn As Badge}\tn      ",
     "\tY{Worn On Shoulders}\tn  ",
+    "\tY{Worn In Ankle}\tn      ",
+    "\tY{Worn In Ankle}\tn      ", // 30
 };
 CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 
@@ -2139,6 +2141,8 @@ const char *equipment_types[] = {
     "Worn on eyes",
     "Worn as badge",
     "Worn on shoulders",
+    "Worn on right ankle",
+    "Worn on left ankle", // 30
     "\n"};
 CHECK_TABLE_SIZE(equipment_types, NUM_WEARS + 1);
 
@@ -2416,6 +2420,7 @@ const char *wear_bits[] = {
     "Badge",
     "Instrument",
     "Shoulders",
+    "Ankle",
     "\n"};
 CHECK_TABLE_SIZE(wear_bits, NUM_ITEM_WEARS + 1);
 
@@ -6114,6 +6119,7 @@ const char *crafting_misc_types[] = {
     "belt",
     "mask",
     "pauldrons",
+    "anklet",
     "\n"
 };
 CHECK_TABLE_SIZE(crafting_misc_types, NUM_CRAFT_MISC_TYPES + 1);

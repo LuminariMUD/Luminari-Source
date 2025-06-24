@@ -1637,8 +1637,10 @@
 #define WEAR_EYES 26          /* worn in/over eye(s) */
 #define WEAR_BADGE 27         /* attached to your body armor as a badge */
 #define WEAR_SHOULDERS 28
+#define WEAR_ANKLE_R 29
+#define WEAR_ANKLE_L 30
 /** Total number of available equipment lcoations */
-#define NUM_WEARS 29
+#define NUM_WEARS 31
 /**/
 
 /* ranged combat */
@@ -3194,8 +3196,9 @@
 #define ITEM_WEAR_BADGE 19 // item can be worn as badge
 #define ITEM_WEAR_INSTRUMENT 20
 #define ITEM_WEAR_SHOULDERS 21
+#define ITEM_WEAR_ANKLE 22
 /** Total number of item wears */
-#define NUM_ITEM_WEARS 22
+#define NUM_ITEM_WEARS 23
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
 #define ITEM_GLOW 0             /**< Item is glowing */
