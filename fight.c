@@ -599,6 +599,9 @@ bool is_flanked(struct char_data *attacker, struct char_data *ch)
   if (affected_by_spell(ch, SPELL_SHIELD_OF_FORTIFICATION) && dice(1, 4) == 1)
     return FALSE;
 
+  if (HAS_SUBRACE(ch, SUBRACE_SWARM))
+    return FALSE;
+
   /* most common scenario */
   if (FIGHTING(ch) && (FIGHTING(ch) != attacker) && !HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE))
     return TRUE;
@@ -3546,6 +3549,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 20;
     if (HAS_DRAGON_BOND_ABIL(ch, 7, DRAGON_BOND_CHAMPION))
       damtype_reduction += 10;
+    if (HAS_SUBRACE(ch, SUBRACE_SWARM))
+        damtype_reduction += 50;
 
     /* npc vulnerabilities/strengths */
     if (IS_NPC(ch))
@@ -3561,6 +3566,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 10;
     if (HAS_DRAGON_BOND_ABIL(ch, 7, DRAGON_BOND_CHAMPION))
       damtype_reduction += 10;
+    if (HAS_SUBRACE(ch, SUBRACE_SWARM))
+        damtype_reduction += 50;
 
     /* npc vulnerabilities/strengths */
     if (IS_NPC(ch))
@@ -9867,6 +9874,9 @@ int can_sneak_attack(struct char_data *ch, struct char_data *victim)
     return FALSE;
 
   if (HAS_REAL_FEAT(victim, FEAT_ESSENCE_OF_UNDEATH))
+    return FALSE;
+  
+  if (HAS_SUBRACE(victim, SUBRACE_SWARM))
     return FALSE;
 
   /* preserve organs defended from this sneak attack */

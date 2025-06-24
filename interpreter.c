@@ -587,6 +587,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"mission", "mission", POS_RESTING, do_missions, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mlist", "mlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_MLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"mcopy", "mcopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_MEDIT, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"motes", "motes", POS_SLEEPING, do_motes, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"motd", "motd", POS_DEAD, do_gen_ps, 0, SCMD_MOTD, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"msgedit", "msgedit", POS_DEAD, do_msgedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"mute", "mute", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_MUTE, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1296,6 +1297,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "scan") &&
            !is_abbrev(complete_cmd_info[cmd].command, "who") &&
            !is_abbrev(complete_cmd_info[cmd].command, "score") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "craftscore") &&
            !is_abbrev(complete_cmd_info[cmd].command, "queue") &&
            !is_abbrev(complete_cmd_info[cmd].command, "help") &&
            !is_abbrev(complete_cmd_info[cmd].command, "feat") &&
@@ -1387,6 +1389,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
            !is_abbrev(complete_cmd_info[cmd].command, "look") &&
            !is_abbrev(complete_cmd_info[cmd].command, "score") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "craftscore") &&
            !is_abbrev(complete_cmd_info[cmd].command, "group") &&
            !is_abbrev(complete_cmd_info[cmd].command, "say") &&
            !is_abbrev(complete_cmd_info[cmd].command, "'") &&

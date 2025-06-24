@@ -145,8 +145,9 @@
 #define CRAFT_RECIPE_INSTRUMENT_HARP        142
 #define CRAFT_RECIPE_INSTRUMENT_MANDOLIN    143
 #define CRAFT_RECIPE_MISC_PAULDRONS         144
+#define CRAFT_RECIPE_MISC_ANKLET            145
 
-#define NUM_CRAFTING_RECIPES                145
+#define NUM_CRAFTING_RECIPES                146
 
 #define REFINE_RECIPE_NONE              0
 #define REFINE_RECIPE_BRONZE            1

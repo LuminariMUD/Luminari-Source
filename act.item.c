@@ -3743,6 +3743,13 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where)
       {"$n wears $p on $s shoulders.",
        "You wear $p on your shoulders."},
 
+      {"$n clips $p on to $s right ankle.",
+       "You clip $p on to your right ankle."},
+
+      {"$n clips $p on to $s left ankle.",
+       "You clip $p on to your left ankle."},
+
+
   };
 
   /* extinguished light! */
@@ -3880,7 +3887,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_WIELD, ITEM_WEAR_TAKE,
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_FACE, ITEM_WEAR_AMMO_POUCH,
       ITEM_WEAR_EAR, ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE,
-      ITEM_WEAR_SHOULDERS};
+      ITEM_WEAR_SHOULDERS, ITEM_WEAR_ANKLE, ITEM_WEAR_ANKLE};
 
   const char *const already_wearing[NUM_WEARS] = {
       "You're already using a light.\r\n",                                  // 0
@@ -3912,6 +3919,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       "You are already wearing something on your eyes.\r\n",
       "You are already wearing a badge.\r\n",
       "You are already wearing something on your shoulders.\r\n",
+      "YOU SHOULD NEVER SEE THIS MESSAGE.  PLEASE REPORT.\r\n",
+      "You're already wearing something on both of your ankles.\r\n",      
   };
 
   /* we are looking for some quick exits */
@@ -4001,6 +4010,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       where != WEAR_WRIST_L && where != WEAR_AMMO_POUCH &&
       where != WEAR_FINGER_R && where != WEAR_FINGER_L &&
       where != WEAR_EAR_R && where != WEAR_EAR_L &&
+      where != WEAR_ANKLE_R && where != WEAR_ANKLE_L &&
       where != WEAR_EYES && where != WEAR_BADGE)
   {
     if (GET_OBJ_SIZE(obj) < GET_SIZE(ch))
@@ -4017,7 +4027,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
 
   // code for gear with 2 possible slots, and next to each other in array
   if ((where == WEAR_FINGER_R) || (where == WEAR_NECK_1) ||
-      (where == WEAR_WRIST_R) || (where == WEAR_EAR_R))
+      (where == WEAR_WRIST_R) || (where == WEAR_EAR_R) || 
+      (where == WEAR_ANKLE_R))
     if (GET_EQ(ch, where))
       where++;
 
@@ -4108,6 +4119,8 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
       "eyes",
       "badge",
       "shoulders",
+      "ankle",
+      "!RESERVED!", // (2nd ankle)
       "\n"};
 
   if (!arg || !*arg)
@@ -4148,6 +4161,8 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
       where = WEAR_BADGE;
     if (CAN_WEAR(obj, ITEM_WEAR_SHOULDERS))
       where = WEAR_SHOULDERS;
+    if (CAN_WEAR(obj, ITEM_WEAR_ANKLE))
+      where = WEAR_ANKLE_R;
 
     /* this means we have an argument, does it match our keywords-array ?*/
   }

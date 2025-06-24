@@ -2186,6 +2186,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 
   /* jewel making (finger, */
   if (CAN_WEAR(mold, ITEM_WEAR_FINGER) ||
+      CAN_WEAR(mold, ITEM_WEAR_ANKLE) ||
       CAN_WEAR(mold, ITEM_WEAR_NECK) ||
       CAN_WEAR(mold, ITEM_WEAR_HOLD))
   {

@@ -100,8 +100,9 @@
 #define CRAFT_MISC_BELT             9
 #define CRAFT_MISC_MASK             10
 #define CRAFT_MISC_SHOULDERS        11
+#define CRAFT_MISC_ANKLET           12
 
-#define NUM_CRAFT_MISC_TYPES        12
+#define NUM_CRAFT_MISC_TYPES        13
 
 #define CRAFT_INSTRUMENT_NONE       0
 #define CRAFT_INSTRUMENT_LYRE       1
@@ -190,7 +191,7 @@ int crafting_mote_by_bonus_location(int location, int specific, int bonus_type);
 void set_crafting_motes(struct char_data *ch, const char *argument);
 void reset_craft_materials(struct char_data *ch, bool verbose, bool reimburse);
 int get_craft_project_level(struct char_data *ch);
-int get_enhancement_mote_type(struct char_data *ch);
+int get_enhancement_mote_type(struct char_data *ch, int type, int spec);
 void show_craft_progress_meter(void);
 bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill, char *method, int exp, int dc);
 int get_craft_material_final_level_adjustment(struct char_data *ch);
@@ -238,6 +239,7 @@ ACMD_DECL(do_setmaterial);
 ACMD_DECL(do_list_craft_materials);
 ACMD_DECL(do_craftbonuses);
 ACMD_DECL(do_craft_score);
+ACMD_DECL(do_motes);
 
 extern int materials_sort_info[NUM_CRAFT_MATS];
 

@@ -234,6 +234,7 @@
 #define FACE_MOLD 40250
 #define EARS_MOLD 40251
 #define SHOULDERS_MOLD 40252
+#define ANKLET_MOLD 40253
 /* end misc molds */
 #define NUM_MISC_MOLDS 8
 
