@@ -305,6 +305,7 @@ struct time_info_data *real_time_passed(time_t t2, time_t t1);
 struct time_info_data *mud_time_passed(time_t t2, time_t t1);
 void prune_crlf(char *txt);
 void column_list(struct char_data *ch, int num_cols, const char **list, int list_length, bool show_nums);
+void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_cols, const char **list, int list_length, bool show_nums);
 int get_flag_by_name(const char *flag_list[], char *flag_name);
 int file_head(FILE *file, char *buf, size_t bufsize, int lines_to_read);
 int file_tail(FILE *file, char *buf, size_t bufsize, int lines_to_read);

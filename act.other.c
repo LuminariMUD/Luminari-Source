@@ -9727,6 +9727,10 @@ ACMD(do_pick_lock)
     if (GET_OBJ_TYPE(obj) != ITEM_CONTAINER)
     {
       send_to_char(ch, "That item is not a container.\r\n");
+      if (GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST)
+      {
+        act("$p can be looted with the loot command.", TRUE, ch, obj, 0, TO_CHAR);
+      }
       return;
     }
 
@@ -9759,12 +9763,15 @@ ACMD(do_pick_lock)
     return;
   }
 
-  snprintf(buf, sizeof(buf), "$n attempts to pick a lock to the %s", dirs[dir]);
+  snprintf(buf, sizeof(buf), "You attempt to pick a lock to the %s.", dirs[dir]);
+  act(buf, TRUE, ch, 0, 0, TO_CHAR);
+  snprintf(buf, sizeof(buf), "$n attempts to pick a lock to the %s.", dirs[dir]);
   act(buf, TRUE, ch, 0, 0, TO_ROOM);
+  
 
   if (lock_dc <= (skill + roll))
   {
-    send_to_char(ch, "Success! [%d dc vs. %d skill + %d roll]\r\n", lock_dc, skill, roll);
+    send_to_char(ch, "Success! [%d dc vs %d: %d skill + %d roll]\r\n", lock_dc, skill + roll, skill, roll);
     act("$n succeeds in picking the lock!", TRUE, ch, 0, 0, TO_ROOM);
     UNLOCK_DOOR(IN_ROOM(ch), obj, dir);
     if (is_obj)
@@ -9772,7 +9779,7 @@ ACMD(do_pick_lock)
   }
   else
   {
-    send_to_char(ch, "Failure! [%d dc vs. %d skill + %d roll]\r\n", lock_dc, skill, roll);
+    send_to_char(ch, "Failure! [%d dc vs %d: %d skill + %d roll]\r\n", lock_dc, skill + roll, skill, roll);
     act("$n fails in picking the lock.", TRUE, ch, 0, 0, TO_ROOM);
   }
 

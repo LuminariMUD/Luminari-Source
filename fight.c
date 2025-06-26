@@ -5237,7 +5237,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   { // display damage done
     snprintf(buf1, sizeof(buf1), "[%d]", dam);
     snprintf(buf, sizeof(buf), "%5s", buf1);
-    send_combat_roll_info(ch, "\tW%s\tn ", buf);
+    if (ch != victim)
+      send_combat_roll_info(ch, "\tW%s\tn ", buf);
     send_combat_roll_info(victim, "\tR%s\tn ", buf);
   }
 

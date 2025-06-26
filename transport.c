@@ -30,6 +30,7 @@
 #include "transport.h"
 #include "dg_scripts.h"
 #include "wilderness.h"
+#include "graph.h"
 
 extern struct room_data *world;
 extern struct char_data *character_list;
@@ -222,109 +223,110 @@ const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
 
 /* zone, destination vnum, title, details */
 const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
-{"Abanasinia" , "300" , "Darken Wood"} , 
-{"Abanasinia" , "6318" , "Elven Cadre"} , 
-{"Abanasinia" , "9000" , "Ettin Cave"} , 
-{"Abanasinia" , "229" , "Fireside Tavern"} , 
-{"Abanasinia" , "11700" , "Goblin Warrens"} , 
-{"Abanasinia" , "14000" , "Icewall Castle"} , 
-{"Abanasinia" , "700" , "Marsh Temple"} , 
-{"Abanasinia" , "5900" , "Onyx Obelisk"} , 
-{"Abanasinia" , "14701" , "Para-Elemental Planes"} , 
-{"Abanasinia" , "7200" , "Plains of Dust West"} , 
-{"Abanasinia" , "1002" , "Qualinost"} , 
-{"Abanasinia" , "3205" , "Que-Shu Village"} , 
-{"Abanasinia" , "1358" , "Solace East Gate"} , 
-{"Abanasinia" , "13145" , "Tarsis"} , 
-{"Abanasinia" , "2950" , "Xak Tsaroth"} , 
-{"Palanthas" , "2314" , "Bank"} , 
-{"Palanthas" , "2496" , "Bazaar"} , 
-{"Palanthas" , "15328" , "Bounties"} , 
-{"Palanthas" , "2200" , "Center Plaza"} , 
-{"Palanthas" , "15310" , "Crafting Halls"} , 
-{"Palanthas" , "15326" , "Donations"} , 
-{"Palanthas" , "15305" , "Dump"} , 
-{"Palanthas" , "2459" , "Ferry to Bethel Island"} , 
-{"Palanthas" , "5052" , "Gardens of the Blue Phoenix"} , 
-{"Palanthas" , "15329" , "Hunts"} , 
-{"Palanthas" , "15347" , "Lost Caverns of Palanthas"} , 
-{"Palanthas" , "7067" , "Magic Shop"} , 
-{"Palanthas" , "2220" , "Market Square"} , 
-{"Palanthas" , "15306" , "Mercenary Hirelings"} , 
-{"Palanthas" , "7069" , "Object identifying"} , 
-{"Palanthas" , "5718" , "Palanthas Graveyard"} , 
-{"Palanthas" , "4200" , "Palanthas Palace"} , 
-{"Palanthas" , "500" , "Palanthas Training Pit"} , 
-{"Palanthas" , "7002" , "Palanthas Wizard Academy"} , 
-{"Palanthas" , "15327" , "Pawn Shop"} , 
-{"Palanthas" , "15330" , "Quest Item Recovery"} , 
-{"Palanthas" , "2357" , "South Gate"} , 
-{"Palanthas" , "7068" , "Spell Researching"} , 
-{"Palanthas" , "15303" , "Stables"} , 
-{"Palanthas" , "15348" , "Temple"} , 
-{"Sanction" , "13815" , "Bazaar"} , 
-{"Sanction" , "5387" , "Black Dragonarmy Camp"} , 
-{"Sanction" , "13827" , "Bounties"} , 
-{"Sanction" , "6530" , "Center Square"} , 
-{"Sanction" , "13824" , "Crafting Halls"} , 
-{"Sanction" , "13826" , "Donations"} , 
-{"Sanction" , "13816" , "Magic Shop"} , 
-{"Sanction" , "13805" , "Mercenary Hirelings"} , 
-{"Sanction" , "13822" , "Object identifying"} , 
-{"Sanction" , "13804" , "Pawn Shop"} , 
-{"Sanction" , "13831" , "Quest Item Recovery"} , 
-{"Sanction" , "5399" , "Red Dragonarmy Camp"} , 
-{"Sanction" , "14210" , "Sanction Concentration Camp"} , 
-{"Sanction" , "6584" , "Sanction East Gate"} , 
-{"Sanction" , "9735" , "Sanction Palace"} , 
-{"Sanction" , "3700" , "Sanction Sewers"} , 
-{"Sanction" , "60373" , "Sanction Slave Mines"} , 
-{"Sanction" , "6601" , "Sanction Slums"} , 
-{"Sanction" , "6599" , "Sanction Thieves Guild"} , 
-{"Sanction" , "6000" , "Sanction Training Pits"} , 
-{"Sanction" , "3705" , "Shadowpeople City"} , 
-{"Sanction" , "6531" , "Shops"} , 
-{"Sanction" , "8644" , "Snow Wood Convent"} , 
-{"Sanction" , "13814" , "Spell Researching"} , 
-{"Sanction" , "6516" , "Temple"} , 
-{"Sanction" , "8406" , "Temple of Huerzyd"} , 
-{"Sanction" , "9461" , "Temple of Luerkhisis"} , 
-{"Solace" , "604" , "Crystalmir Lake"} , 
-{"Solace" , "3100" , "Eld Manor"} , 
-{"Solace" , "2606" , "Goblin Encampment"} , 
-{"Solace" , "15000" , "Infected Forest"} , 
-{"Solace" , "2802" , "Red Moon Festival"} , 
-{"Solace" , "1358" , "Solace East Gate"} , 
-{"Solace" , "2100" , "Tainted Druids"} , 
-{"Solace" , "15100" , "Woodland Grove"} , 
-{"Solamnia" , "6100" , "Caergoth"} , 
-{"Solamnia" , "5400" , "Cult of Hikkudel"} , 
-{"Solamnia" , "228" , "Cultists of Morgion"} , 
-{"Solamnia" , "11600" , "Dargaard Keep"} , 
-{"Solamnia" , "4300" , "Forces of Whitestone Camp"} , 
-{"Solamnia" , "9511" , "Lord Anias Estate"} , 
-{"Solamnia" , "60100" , "North Vingaard Mines"} , 
-{"Solamnia" , "60128" , "Northwestern Solamnic Wilds"} , 
-{"Solamnia" , "6702" , "Solanthus"} , 
-{"Solamnia" , "5115" , "Temple of Chemosh"} , 
-{"Solamnia" , "3400" , "Thelgaard Keep"} , 
-{"Solamnia" , "6445" , "Village of Keiflore"} , 
-{"Solamnia" , "8300" , "Vingaard Keep"} , 
-{"Solamnia" , "9100" , "Wenfyr Mansion"} , 
-{"Taman Busuk" , "1714" , "Bugbear Cave"} , 
-{"Taman Busuk" , "11812" , "City of Morning Dew"} , 
-{"Taman Busuk" , "5400" , "Cult of Hikkudel"} , 
-{"Taman Busuk" , "9511" , "Lord Anias Estate"} , 
-{"Taman Busuk" , "8709" , "Neraka"} , 
-{"Taman Busuk" , "5900" , "Onyx Obelisk"} , 
-{"Taman Busuk" , "7581" , "Plains of Dust East"} , 
-{"Taman Busuk" , "13500" , "Pristine Valley"} , 
-{"Taman Busuk" , "9800" , "Rogue Encampment"} , 
-{"Taman Busuk" , "6584" , "Sanction East Gate"} , 
-{"Taman Busuk" , "4135" , "Slave Market"} , 
-{"Taman Busuk" , "8644" , "Snow Wood Convent"} , 
-{"Taman Busuk" , "11000" , "Wyvern Den"} , 
-
+    {"Abanasinia" , "4429" , "Abanasinia to Solamnia Ferry"} ,
+    {"Abanasinia" , "15416" , "Corrupted Grove"} , 
+    {"Abanasinia" , "300" , "Darken Wood"} , 
+    {"Abanasinia" , "6318" , "Elven Cadre"} , 
+    {"Abanasinia" , "9000" , "Ettin Cave"} , 
+    {"Abanasinia" , "229" , "Fireside Tavern"} , 
+    {"Abanasinia" , "11700" , "Goblin Warrens"} , 
+    {"Abanasinia" , "14000" , "Icewall Castle"} , 
+    {"Abanasinia" , "700" , "Marsh Temple"} , 
+    {"Abanasinia" , "5900" , "Onyx Obelisk"} , 
+    {"Abanasinia" , "14701" , "Para-Elemental Planes"} , 
+    {"Abanasinia" , "7200" , "Plains of Dust West"} , 
+    {"Abanasinia" , "1002" , "Qualinost"} , 
+    {"Abanasinia" , "3205" , "Que-Shu Village"} , 
+    {"Abanasinia" , "1358" , "Solace East Gate"} , 
+    {"Abanasinia" , "13145" , "Tarsis"} , 
+    {"Abanasinia" , "2950" , "Xak Tsaroth"} , 
+    {"Palanthas" , "5052" , "Gardens of the Blue Phoenix"} , 
+    {"Palanthas" , "15347" , "Lost Caverns of Palanthas"} , 
+    {"Palanthas" , "2314" , "Palanthas Bank"} , 
+    {"Palanthas" , "2496" , "Palanthas Bazaar"} , 
+    {"Palanthas" , "15328" , "Palanthas Bounties"} , 
+    {"Palanthas" , "2200" , "Palanthas Center Plaza"} , 
+    {"Palanthas" , "15310" , "Palanthas Crafting Halls"} , 
+    {"Palanthas" , "15326" , "Palanthas Donations"} , 
+    {"Palanthas" , "15305" , "Palanthas Dump"} , 
+    {"Palanthas" , "2459" , "Palanthas Ferry to Bethel Island"} , 
+    {"Palanthas" , "5718" , "Palanthas Graveyard"} , 
+    {"Palanthas" , "15329" , "Palanthas Hunts"} , 
+    {"Palanthas" , "7067" , "Palanthas Magic Shop"} , 
+    {"Palanthas" , "2220" , "Palanthas Market Square"} , 
+    {"Palanthas" , "15306" , "Palanthas Mercenary Hirelings"} , 
+    {"Palanthas" , "7069" , "Palanthas Object identifying"} , 
+    {"Palanthas" , "4200" , "Palanthas Palace"} , 
+    {"Palanthas" , "15327" , "Palanthas Pawn Shop"} , 
+    {"Palanthas" , "15330" , "Palanthas Quest Item Recovery"} , 
+    {"Palanthas" , "2357" , "Palanthas South Gate"} , 
+    {"Palanthas" , "15303" , "Palanthas Stables"} , 
+    {"Palanthas" , "15348" , "Palanthas Temple"} , 
+    {"Palanthas" , "500" , "Palanthas Training Pit"} , 
+    {"Palanthas" , "7002" , "Palanthas Wizard Academy"} , 
+    {"Sanction" , "5387" , "Black Dragonarmy Camp"} , 
+    {"Sanction" , "14210" , "Sanction Concentration Camp"} , 
+    {"Sanction" , "13827" , "Sanction Bounties"} , 
+    {"Sanction" , "6530" , "Sanction Center Square"} , 
+    {"Sanction" , "13824" , "Sanction Crafting Halls"} , 
+    {"Sanction" , "6500" , "Sanction Docks"} ,
+    {"Sanction" , "13826" , "Sanction Donations"} , 
+    {"Sanction" , "13816" , "Sanction Magic Shop"} , 
+    {"Sanction" , "13805" , "Sanction Mercenary Hirelings"} , 
+    {"Sanction" , "13822" , "Sanction Object identifying"} , 
+    {"Sanction" , "13804" , "Sanction Pawn Shop"} , 
+    {"Sanction" , "13831" , "Sanction Quest Item Recovery"} , 
+    {"Sanction" , "9735" , "Sanction Palace"} , 
+    {"Sanction" , "6531" , "Sanction Shops"} , 
+    {"Sanction" , "6516" , "Sanction Temple"} , 
+    {"Sanction" , "6000" , "Sanction Training Pits"} , 
+    {"Sanction" , "3700" , "Sanction Sewers"} , 
+    {"Sanction" , "6601" , "Sanction Slums"} , 
+    {"Sanction" , "60373" , "Sanction Slave Mines"} , 
+    {"Sanction" , "6599" , "Sanction Thieves Guild"} , 
+    {"Sanction" , "6584" , "Sanction East Gate"} , 
+    {"Sanction" , "13814" , "Sanction Spell Researching"} , 
+    {"Sanction" , "5399" , "Red Dragonarmy Camp"} , 
+    {"Sanction" , "3705" , "Shadowpeople City"} , 
+    {"Sanction" , "8644" , "Snow Wood Convent"} , 
+    {"Sanction" , "8406" , "Temple of Huerzyd"} , 
+    {"Sanction" , "9461" , "Temple of Luerkhisis"} , 
+    {"Solace" , "604" , "Crystalmir Lake"} , 
+    {"Solace" , "3100" , "Eld Manor"} , 
+    {"Solace" , "2606" , "Goblin Encampment"} , 
+    {"Solace" , "15000" , "Infected Forest"} , 
+    {"Solace" , "2802" , "Red Moon Festival"} , 
+    {"Solace" , "1358" , "Solace East Gate"} , 
+    {"Solace" , "2100" , "Tainted Druids"} , 
+    {"Solace" , "15100" , "Woodland Grove"} , 
+    {"Solamnia" , "6100" , "Caergoth"} , 
+    {"Solamnia" , "5400" , "Cult of Hikkudel"} , 
+    {"Solamnia" , "228" , "Cultists of Morgion"} , 
+    {"Solamnia" , "11600" , "Dargaard Keep"} , 
+    {"Solamnia" , "4300" , "Forces of Whitestone Camp"} , 
+    {"Solamnia" , "9511" , "Lord Anias Estate"} , 
+    {"Solamnia" , "60100" , "North Vingaard Mines"} , 
+    {"Solamnia" , "60128" , "Northwestern Solamnic Wilds"} , 
+    {"Solamnia" , "4430" , "Solamnia to Abanasinia Ferry"} , 
+    {"Solamnia" , "6702" , "Solanthus"} , 
+    {"Solamnia" , "5115" , "Temple of Chemosh"} , 
+    {"Solamnia" , "3400" , "Thelgaard Keep"} , 
+    {"Solamnia" , "6445" , "Village of Keiflore"} , 
+    {"Solamnia" , "8300" , "Vingaard Keep"} , 
+    {"Solamnia" , "9100" , "Wenfyr Mansion"} , 
+    {"Taman Busuk" , "1714" , "Bugbear Cave"} , 
+    {"Taman Busuk" , "11812" , "City of Morning Dew"} , 
+    {"Taman Busuk" , "5400" , "Cult of Hikkudel"} , 
+    {"Taman Busuk" , "9511" , "Lord Anias Estate"} , 
+    {"Taman Busuk" , "8709" , "Neraka"} , 
+    {"Taman Busuk" , "5900" , "Onyx Obelisk"} , 
+    {"Taman Busuk" , "7581" , "Plains of Dust East"} , 
+    {"Taman Busuk" , "13500" , "Pristine Valley"} , 
+    {"Taman Busuk" , "9800" , "Rogue Encampment"} , 
+    {"Taman Busuk" , "6584" , "Sanction East Gate"} , 
+    {"Taman Busuk" , "4135" , "Slave Market"} , 
+    {"Taman Busuk" , "8644" , "Snow Wood Convent"} , 
+    {"Taman Busuk" , "11000" , "Wyvern Den"} , 
     /* always last! */
     {"0", "", "always last item", ""},
 };
@@ -996,10 +998,12 @@ const char *get_walkto_location_name(int locale_vnum)
 ACMDU(do_walkto)
 {
 
-  int i = 0;
+  int i = 0, j = 0;
   bool found = false;
   int vnum = 0, specified = 0;
   int landmark = 0;
+  char landmark_name[200];
+  char specified_name[200];
 
   skip_spaces(&argument);
 
@@ -1032,6 +1036,27 @@ ACMDU(do_walkto)
       landmark = atoi(walkto_landmarks[i][1]);
       found = true;
       break;
+    }
+    else
+    {
+      snprintf(landmark_name, sizeof(landmark_name), "%s", argument);
+      for (j = 0; j < strlen(landmark_name); j++)
+      {
+        landmark_name[j] = LOWER(landmark_name[j]);
+      }
+      
+      snprintf(specified_name, sizeof(specified_name), "%s", walkto_landmarks[i][2]);
+      for (j = 0; j < strlen(specified_name); j++)
+      {
+        specified_name[j] = LOWER(specified_name[j]);
+      }
+      
+      if (is_abbrev(landmark_name, specified_name))
+      {
+        landmark = atoi(walkto_landmarks[i][1]);
+        found = true;
+        break;
+      }
     }
     i++;
   }
@@ -1133,7 +1158,7 @@ ACMD(do_landmarks)
       {
         if (count == 0)
         {
-          send_to_char(ch, "\tC%-30s | %6.6s | %s\tn\r\n", "LANDMARK NAME", "ROOM #", "DIRECTION");
+          send_to_char(ch, "\tC%-35s | %6.6s | %-15s | %s\tn\r\n", "LANDMARK NAME", "ROOM #", "DIRECTION", "DISTANCE");
         }
         destination = real_room(atoi(walkto_landmarks[i][1]));
         if (destination == NOWHERE)
@@ -1141,10 +1166,11 @@ ACMD(do_landmarks)
         if ((dir = find_first_step(IN_ROOM(ch), destination)) == BFS_ALREADY_THERE)
           snprintf(direction, sizeof(direction), "You've Arrived!");
         else if (dir < 0)
-          snprintf(direction, sizeof(direction), "Not Accessible From Here");
+          snprintf(direction, sizeof(direction), "Not Accessible");
         else
           snprintf(direction, sizeof(direction), "%s", dirs[dir]);
-        send_to_char(ch, "%-30s | %-6.6s | %s\r\n", walkto_landmarks[i][2], walkto_landmarks[i][1], direction);
+        send_to_char(ch, "%-35s | %-6.6s | %-15s | %3d rooms\r\n", walkto_landmarks[i][2], walkto_landmarks[i][1], direction, 
+                      count_rooms_between(IN_ROOM(ch), destination));
         found = true;
         count++;
       }
@@ -1218,10 +1244,10 @@ void process_walkto_actions(void)
       perform_move(ch, dir, 1);
       if (IN_ROOM(ch) == destination)
       {
-        send_to_char(ch, "You have arrived at the %s.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+        send_to_char(ch, "You have arrived at the '%s' landmark.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
         GET_WALKTO_LOC(ch) = 0;
       }
-      else
+      else if (GET_WALKTO_LOC(ch))
       {
         send_to_char(ch, "You continue walking to '%s'.  Type walkto cancel to stop.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
       }

@@ -556,3 +556,40 @@ void hunt_loadroom(struct char_data *ch)
 
   perform_move(ch, dir, 1);
 }
+
+int count_rooms_between(room_rnum src, room_rnum target) {
+  room_rnum curr;
+  int visited[top_of_world + 1];
+  int queue[top_of_world];
+  int head = 0, tail = 0;int dir = 0;
+
+  if (src == NOWHERE || target == NOWHERE)
+    return -1;
+
+  if (src == target)
+    return 0;
+
+  memset(visited, 0, sizeof(visited));
+  visited[src] = 1;
+  queue[tail++] = src;
+
+  while (head < tail) {
+    curr = queue[head++];
+
+    for (dir = 0; dir < NUM_OF_DIRS; dir++) {
+      room_rnum next = world[curr].dir_option[dir] ? world[curr].dir_option[dir]->to_room : NOWHERE;
+
+      if (next == NOWHERE || visited[next])
+        continue;
+
+      visited[next] = visited[curr] + 1; // Track distance via visited array
+
+      if (next == target)
+        return visited[next] - 1;
+
+      queue[tail++] = next;
+    }
+  }
+
+  return -1; // No path found
+}
