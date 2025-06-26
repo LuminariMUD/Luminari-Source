@@ -61,7 +61,7 @@ static void perform_give_gold(struct char_data *ch, struct char_data *vict, int 
 static int perform_drop(struct char_data *ch, struct obj_data *obj, byte mode, const char *sname, room_rnum RDR);
 static void perform_drop_gold(struct char_data *ch, int amount, byte mode, room_rnum RDR);
 /* do_put utility functions */
-static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_data *cont);
+// static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_data *cont);
 /* do_remove utility functions */
 /* do_wear utility functions */
 static int hands_have(struct char_data *ch);
@@ -1886,99 +1886,99 @@ void check_room_lighting_special(room_rnum room, struct char_data *ch,
   }
 }
 
-static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_data *cont)
-{
-  char buf[MEDIUM_STRING] = {'\0'};
+// static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_data *cont)
+// {
+//   char buf[MEDIUM_STRING] = {'\0'};
 
-  if (!drop_otrigger(obj, ch))
-    return;
+//   if (!drop_otrigger(obj, ch))
+//     return;
 
-  if (!obj) /* object might be extracted by drop_otrigger */
-    return;
+//   if (!obj) /* object might be extracted by drop_otrigger */
+//     return;
 
-  if ((GET_OBJ_BOUND_ID(cont) != NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
-  {
-    if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL)
-    {
-      snprintf(buf, sizeof(buf), "$p belongs to %s.  You cannot put anything inside it.\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(cont))));
-      act(buf, FALSE, ch, cont, 0, TO_CHAR);
-      return;
-    }
-  }
+//   if ((GET_OBJ_BOUND_ID(cont) != NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
+//   {
+//     if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL)
+//     {
+//       snprintf(buf, sizeof(buf), "$p belongs to %s.  You cannot put anything inside it.\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(cont))));
+//       act(buf, FALSE, ch, cont, 0, TO_CHAR);
+//       return;
+//     }
+//   }
 
-  if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH && GET_OBJ_TYPE(obj) != ITEM_MISSILE)
-  {
-    act("You can only put ammo into $P.", FALSE, ch, obj, cont, TO_CHAR);
-    return;
-  }
+//   if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH && GET_OBJ_TYPE(obj) != ITEM_MISSILE)
+//   {
+//     act("You can only put ammo into $P.", FALSE, ch, obj, cont, TO_CHAR);
+//     return;
+//   }
 
-  if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH &&
-      GET_OBJ_VAL(cont, 0) <= num_obj_in_obj(cont))
-  {
-    snprintf(buf, sizeof(buf), "You can only fit %d $p into $P.", GET_OBJ_VAL(cont, 0));
-    act(buf, FALSE, ch, obj, cont, TO_CHAR);
-    return;
-  }
+//   if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH &&
+//       GET_OBJ_VAL(cont, 0) <= num_obj_in_obj(cont))
+//   {
+//     snprintf(buf, sizeof(buf), "You can only fit %d $p into $P.", GET_OBJ_VAL(cont, 0));
+//     act(buf, FALSE, ch, obj, cont, TO_CHAR);
+//     return;
+//   }
 
-#if defined(CAMPAIGN_DL)
-  if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER && !is_crafting_kit(cont))
-  {
-    send_to_char(ch, "We are having issues right now with containers losing items. Until then please use the virtual bag system. Read HELP BAGS.\r\n");
-    return;
-  }
-#elif defined(CAMPAIGN_FR)
-  if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER && num_obj_in_obj(cont) >= 10 && !is_crafting_kit(cont))
-  {
-    send_to_char(ch, "Containers can only fit 10 items.  Please use the 'sort' command to organize your inventory.\r\n");
-    return;
-  }
-#endif
+// #if defined(CAMPAIGN_DL)
+//   if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER && !is_crafting_kit(cont))
+//   {
+//     send_to_char(ch, "We are having issues right now with containers losing items. Until then please use the virtual bag system. Read HELP BAGS.\r\n");
+//     return;
+//   }
+// #elif defined(CAMPAIGN_FR)
+//   if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER && num_obj_in_obj(cont) >= 10 && !is_crafting_kit(cont))
+//   {
+//     send_to_char(ch, "Containers can only fit 10 items.  Please use the 'sort' command to organize your inventory.\r\n");
+//     return;
+//   }
+// #endif
 
-  if ((GET_OBJ_VAL(cont, 0) > 0) &&
-      (GET_OBJ_WEIGHT(cont) + GET_OBJ_WEIGHT(obj) > GET_OBJ_VAL(cont, 0)))
-    act("$p won't fit in $P.", FALSE, ch, obj, cont, TO_CHAR);
-  else if (OBJ_FLAGGED(obj, ITEM_NODROP) && IN_ROOM(cont) != NOWHERE)
-    act("You can't get $p out of your hand.", FALSE, ch, obj, NULL, TO_CHAR);
-  else
-  {
-    obj_from_char(obj);
-    obj_to_obj(obj, cont);
+//   if ((GET_OBJ_VAL(cont, 0) > 0) &&
+//       (GET_OBJ_WEIGHT(cont) + GET_OBJ_WEIGHT(obj) > GET_OBJ_VAL(cont, 0)))
+//     act("$p won't fit in $P.", FALSE, ch, obj, cont, TO_CHAR);
+//   else if (OBJ_FLAGGED(obj, ITEM_NODROP) && IN_ROOM(cont) != NOWHERE)
+//     act("You can't get $p out of your hand.", FALSE, ch, obj, NULL, TO_CHAR);
+//   else
+//   {
+//     obj_from_char(obj);
+//     obj_to_obj(obj, cont);
 
-    act("$n puts $p in $P.", TRUE, ch, obj, cont, TO_ROOM);
+//     act("$n puts $p in $P.", TRUE, ch, obj, cont, TO_ROOM);
 
-    /* Yes, I realize this is strange until we have auto-equip on rent. -gg */
-    if (OBJ_FLAGGED(obj, ITEM_NODROP) && !OBJ_FLAGGED(cont, ITEM_NODROP))
-    {
-      SET_BIT_AR(GET_OBJ_EXTRA(cont), ITEM_NODROP);
-      act("You get a strange feeling as you put $p in $P.", FALSE,
-          ch, obj, cont, TO_CHAR);
-    }
-    else
-    {
+//     /* Yes, I realize this is strange until we have auto-equip on rent. -gg */
+//     if (OBJ_FLAGGED(obj, ITEM_NODROP) && !OBJ_FLAGGED(cont, ITEM_NODROP))
+//     {
+//       SET_BIT_AR(GET_OBJ_EXTRA(cont), ITEM_NODROP);
+//       act("You get a strange feeling as you put $p in $P.", FALSE,
+//           ch, obj, cont, TO_CHAR);
+//     }
+//     else
+//     {
 
-      // 15 is DC
-      if (FIGHTING(ch))
-        update_pos(FIGHTING(ch));
-      if (FIGHTING(ch) && GET_HIT(FIGHTING(ch)) >= 1)
-      {
-        if (d20(ch) + compute_ability(ch, ABILITY_ACROBATICS) <= 15)
-        {
-          send_to_char(ch, "You fumble putting away the item:  ");
-          USE_SWIFT_ACTION(ch);
-        }
-        else
-        {
-          send_to_char(ch, "*Acrobatics Success*  ");
-        }
-      }
+//       // 15 is DC
+//       if (FIGHTING(ch))
+//         update_pos(FIGHTING(ch));
+//       if (FIGHTING(ch) && GET_HIT(FIGHTING(ch)) >= 1)
+//       {
+//         if (d20(ch) + compute_ability(ch, ABILITY_ACROBATICS) <= 15)
+//         {
+//           send_to_char(ch, "You fumble putting away the item:  ");
+//           USE_SWIFT_ACTION(ch);
+//         }
+//         else
+//         {
+//           send_to_char(ch, "*Acrobatics Success*  ");
+//         }
+//       }
 
-      act("You put $p in $P.", FALSE, ch, obj, cont, TO_CHAR);
-    }
+//       act("You put $p in $P.", FALSE, ch, obj, cont, TO_CHAR);
+//     }
 
-    /* in case you put a light in your container */
-    check_room_lighting_special(IN_ROOM(ch), ch, obj, FALSE);
-  }
-}
+//     /* in case you put a light in your container */
+//     check_room_lighting_special(IN_ROOM(ch), ch, obj, FALSE);
+//   }
+// }
 
 /* The following put modes are supported:
      1) put <object> <container>
@@ -1990,99 +1990,94 @@ ACMD(do_put)
 {
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
-  char arg3[MAX_INPUT_LENGTH] = {'\0'};
-  struct obj_data *obj = NULL, *next_obj = NULL, *cont = NULL;
-  struct char_data *tmp_char = NULL;
-  int obj_dotmode = 0, cont_dotmode = 0, found = 0, howmany = 1;
-  char *theobj = NULL, *thecont = NULL;
+  int bagnum = 0;
+  char *bag = NULL;
 
-  one_argument(two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2)), arg3, sizeof(arg3)); /* three_arguments */
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
-  if (*arg3 && is_number(arg1))
-  {
-    howmany = atoi(arg1);
-    theobj = arg2;
-    thecont = arg3;
-  }
-  else
-  {
-    theobj = arg1;
-    thecont = arg2;
-  }
-  obj_dotmode = find_all_dots(theobj);
-  cont_dotmode = find_all_dots(thecont);
-
-  if (!*theobj)
+  if (!*arg1)
     send_to_char(ch, "Put what in what?\r\n");
-  else if (cont_dotmode != FIND_INDIV)
-    send_to_char(ch, "You can only put things into one container at a time.\r\n");
-  else if (!*thecont)
+  else if (!*arg2)
   {
-    send_to_char(ch, "What do you want to put %s in?\r\n", obj_dotmode == FIND_INDIV ? "it" : "them");
+    send_to_char(ch, "Which bag do you want to put that in?\r\n");
   }
   else
   {
-    generic_find(thecont, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &cont);
-    if (!cont)
-      send_to_char(ch, "You don't see %s %s here.\r\n", AN(thecont), thecont);
-    else if (GET_OBJ_TYPE(cont) != ITEM_CONTAINER &&
-             GET_OBJ_TYPE(cont) != ITEM_AMMO_POUCH)
-      act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
-    else if (OBJVAL_FLAGGED(cont, CONT_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
-      send_to_char(ch, "You'd better open it first!\r\n");
-    else
+    bag = arg2+3;
+
+    bagnum = atoi(bag);
+
+    if (bagnum <= 0 && bagnum > 10)
     {
-      if (obj_dotmode == FIND_INDIV)
-      { /* put <obj> <container> */
-        if (!(obj = get_obj_in_list_vis(ch, theobj, NULL, ch->carrying)))
-          send_to_char(ch, "You aren't carrying %s %s.\r\n", AN(theobj), theobj);
-        else if (obj == cont && howmany == 1)
-          send_to_char(ch, "You attempt to fold it into itself, but fail.\r\n");
-        else
-        {
-          while (obj && howmany)
-          {
-            if (OBJ_FLAGGED(obj, ITEM_NODROP) && GET_LEVEL(ch) < LVL_IMPL)
-              act("You can't let go of $p, it must be CURSED!", FALSE, ch, obj, 0, TO_CHAR);
-            else
-            {
-              next_obj = obj->next_content;
-              if (obj != cont)
-              {
-                howmany--;
-                perform_put(ch, obj, cont);
-              }
-            }
-            obj = get_obj_in_list_vis(ch, theobj, NULL, next_obj);
-          }
-        }
-      }
-      else
-      {
-        for (obj = ch->carrying; obj; obj = next_obj)
-        {
-          next_obj = obj->next_content;
-          if (OBJ_FLAGGED(obj, ITEM_NODROP) && GET_LEVEL(ch) < LVL_IMPL)
-            act("You can't let go of $p, it must be CURSED!", FALSE, ch, obj, 0, TO_CHAR);
-          else
-          {
-            if (obj != cont && CAN_SEE_OBJ(ch, obj) &&
-                (obj_dotmode == FIND_ALL || isname(theobj, obj->name)))
-            {
-              found = 1;
-              perform_put(ch, obj, cont);
-            }
-          }
-        }
-        if (!found)
-        {
-          if (obj_dotmode == FIND_ALL)
-            send_to_char(ch, "You don't seem to have anything to put in it.\r\n");
-          else
-            send_to_char(ch, "You don't seem to have any %ss.\r\n", theobj);
-        }
-      }
+      send_to_char(ch, "Please specify a bag from bag1 to bag10.\r\n");
+      return;
     }
+    
+    sort_object_bag(ch, arg1, SCMD_SORTTO, bagnum);
+
+    return;
+
+    // generic_find(thecont, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &cont);
+    // if (!cont)
+    //   send_to_char(ch, "You don't see %s %s here.\r\n", AN(thecont), thecont);
+    // else if (GET_OBJ_TYPE(cont) != ITEM_CONTAINER &&
+    //          GET_OBJ_TYPE(cont) != ITEM_AMMO_POUCH)
+    //   act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
+    // else if (OBJVAL_FLAGGED(cont, CONT_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
+    //   send_to_char(ch, "You'd better open it first!\r\n");
+    // else
+    // {
+    //   if (obj_dotmode == FIND_INDIV)
+    //   { /* put <obj> <container> */
+    //     if (!(obj = get_obj_in_list_vis(ch, theobj, NULL, ch->carrying)))
+    //       send_to_char(ch, "You aren't carrying %s %s.\r\n", AN(theobj), theobj);
+    //     else if (obj == cont && howmany == 1)
+    //       send_to_char(ch, "You attempt to fold it into itself, but fail.\r\n");
+    //     else
+    //     {
+    //       while (obj && howmany)
+    //       {
+    //         if (OBJ_FLAGGED(obj, ITEM_NODROP) && GET_LEVEL(ch) < LVL_IMPL)
+    //           act("You can't let go of $p, it must be CURSED!", FALSE, ch, obj, 0, TO_CHAR);
+    //         else
+    //         {
+    //           next_obj = obj->next_content;
+    //           if (obj != cont)
+    //           {
+    //             howmany--;
+    //             perform_put(ch, obj, cont);
+    //           }
+    //         }
+    //         obj = get_obj_in_list_vis(ch, theobj, NULL, next_obj);
+    //       }
+    //     }
+    //   }
+    //   else
+    //   {
+    //     for (obj = ch->carrying; obj; obj = next_obj)
+    //     {
+    //       next_obj = obj->next_content;
+    //       if (OBJ_FLAGGED(obj, ITEM_NODROP) && GET_LEVEL(ch) < LVL_IMPL)
+    //         act("You can't let go of $p, it must be CURSED!", FALSE, ch, obj, 0, TO_CHAR);
+    //       else
+    //       {
+    //         if (obj != cont && CAN_SEE_OBJ(ch, obj) &&
+    //             (obj_dotmode == FIND_ALL || isname(theobj, obj->name)))
+    //         {
+    //           found = 1;
+    //           perform_put(ch, obj, cont);
+    //         }
+    //       }
+    //     }
+    //     if (!found)
+    //     {
+    //       if (obj_dotmode == FIND_ALL)
+    //         send_to_char(ch, "You don't seem to have anything to put in it.\r\n");
+    //       else
+    //         send_to_char(ch, "You don't seem to have any %ss.\r\n", theobj);
+    //     }
+    //   }
+    // }
   }
 }
 
@@ -2371,9 +2366,12 @@ ACMD(do_get)
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
   char arg3[MAX_INPUT_LENGTH] = {'\0'};
 
-  int cont_dotmode = 0, found = 0, mode = 0;
+  int cont_dotmode = 0;
+  int found = 0, mode = 0;
   struct obj_data *cont = NULL;
   struct char_data *tmp_char = NULL;
+  int bagnum = 0;
+  char *bag = NULL;
 
   one_argument(two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2)), arg3, sizeof(arg3)); /* three_arguments */
 
@@ -2393,17 +2391,34 @@ ACMD(do_get)
       strlcpy(arg2, arg3, sizeof(arg2)); /* strcpy: OK (sizeof: arg2 == arg3) */
     }
     cont_dotmode = find_all_dots(arg2);
+
     if (cont_dotmode == FIND_INDIV)
     {
-      /* TODO: we want a case for finding light sources even in darkness */
-      mode = generic_find(arg2, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &cont);
-      if (!cont)
-        send_to_char(ch, "You don't have %s %s.\r\n", AN(arg2), arg2);
-      else if (GET_OBJ_TYPE(cont) != ITEM_CONTAINER &&
-               GET_OBJ_TYPE(cont) != ITEM_AMMO_POUCH)
-        act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
-      else
-        get_from_container(ch, cont, arg1, mode, amount);
+      bag = arg2 + 3;
+
+      bagnum = atoi(bag);
+
+      if (bagnum <= 0 || bagnum > 10)
+      {
+        /* TODO: we want a case for finding light sources even in darkness */
+        mode = generic_find(arg2, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &cont);
+        if (!cont)
+          send_to_char(ch, "You don't have %s %s.\r\n", AN(arg2), arg2);
+        else if (GET_OBJ_TYPE(cont) != ITEM_CONTAINER &&
+                 GET_OBJ_TYPE(cont) != ITEM_AMMO_POUCH)
+        {
+          act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
+          if (GET_OBJ_TYPE(cont) == ITEM_TREASURE_CHEST)
+          {
+            act("$p can be looted with the loot command.", TRUE, ch, cont, 0, TO_CHAR);
+          }
+        }
+        else
+          get_from_container(ch, cont, arg1, mode, amount);
+        return;
+      }
+
+      sort_object_bag(ch, arg1, SCMD_SORTFROM, bagnum);
     }
     else
     {
@@ -2412,47 +2427,73 @@ ACMD(do_get)
         send_to_char(ch, "Get from all of what?\r\n");
         return;
       }
-      for (cont = ch->carrying; cont; cont = cont->next_content)
-        if (CAN_SEE_OBJ(ch, cont) &&
-            (cont_dotmode == FIND_ALL || isname(arg2, cont->name)))
-        {
-          if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH)
-          {
-            found = 1;
-            get_from_container(ch, cont, arg1, FIND_OBJ_INV, amount);
-          }
-          else if (cont_dotmode == FIND_ALLDOT)
-          {
-            found = 1;
-            act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
-          }
-        }
 
-      for (cont = world[IN_ROOM(ch)].contents; cont; cont = cont->next_content)
-        if (CAN_SEE_OBJ(ch, cont) &&
-            (cont_dotmode == FIND_ALL || isname(arg2, cont->name)))
-        {
-          if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER ||
-              GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH)
-          {
-            get_from_container(ch, cont, arg1, FIND_OBJ_ROOM, amount);
-            found = 1;
-          }
-          else if (cont_dotmode == FIND_ALLDOT)
-          {
-            act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
-            found = 1;
-          }
-        }
-
-      if (!found)
+      if (!*arg2)
       {
-        if (cont_dotmode == FIND_ALL)
-          send_to_char(ch, "You can't seem to find any containers.\r\n");
-        else
-          send_to_char(ch, "You can't seem to find any %ss here.\r\n", arg2);
+        send_to_char(ch, "Please specify which bag you wish to get all from.\r\n");
+        return;
       }
+
+      bag = arg2 + 3;
+
+      bagnum = atoi(bag);
+
+      if (bagnum <= 0 || bagnum > 10)
+      {
+        for (cont = ch->carrying; cont; cont = cont->next_content)
+          if (CAN_SEE_OBJ(ch, cont) &&
+              (cont_dotmode == FIND_ALL || isname(arg2, cont->name)))
+          {
+            if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER ||
+                GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH)
+            {
+              found = 1;
+              get_from_container(ch, cont, arg1, FIND_OBJ_INV, amount);
+            }
+            else if (cont_dotmode == FIND_ALLDOT)
+            {
+              found = 1;
+              act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
+              if (GET_OBJ_TYPE(cont) == ITEM_TREASURE_CHEST)
+              {
+                act("$p can be looted with the loot command.", TRUE, ch, cont, 0, TO_CHAR);
+              }
+            }
+          }
+
+        for (cont = world[IN_ROOM(ch)].contents; cont; cont = cont->next_content)
+          if (CAN_SEE_OBJ(ch, cont) &&
+              (cont_dotmode == FIND_ALL || isname(arg2, cont->name)))
+          {
+            if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER ||
+                GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH)
+            {
+              get_from_container(ch, cont, arg1, FIND_OBJ_ROOM, amount);
+              found = 1;
+            }
+            else if (cont_dotmode == FIND_ALLDOT)
+            {
+              act("$p is not a container.", FALSE, ch, cont, 0, TO_CHAR);
+              found = 1;
+              if (GET_OBJ_TYPE(cont) == ITEM_TREASURE_CHEST)
+              {
+                act("$p can be looted with the loot command.", TRUE, ch, cont, 0, TO_CHAR);
+              }
+            }
+          }
+
+        if (!found)
+        {
+          if (cont_dotmode == FIND_ALL)
+            send_to_char(ch, "You can't seem to find any containers.\r\n");
+          else
+            send_to_char(ch, "You can't seem to find any %ss here.\r\n", arg2);
+        }
+        return;
+      }
+
+      send_to_char(ch, "You move everything from bag%d to your inventory.\r\n", bagnum);
+      sort_object_bag(ch, "all", SCMD_SORTFROM, bagnum);
     }
   }
 }
@@ -7344,7 +7385,8 @@ ACMDU(do_tinker)
 void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum)
 {
   char bagname[MEDIUM_STRING] = {'\0'};
-  struct obj_data *obj;
+  struct obj_data *obj, *next_obj;
+      
 
   struct obj_data *bag = get_char_bag(ch, bagnum);
 
@@ -7352,14 +7394,15 @@ void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum
   {
     if (subcmd == SCMD_SORTTO)
     {
-      for (obj = ch->carrying; obj; obj = obj->next_content)
+      for (obj = ch->carrying; obj; obj = next_obj)
       {
+        next_obj = obj->next_content;
         if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
           continue;
         obj_from_char(obj);
         GET_OBJ_SORT(obj) = bagnum;
         obj_to_bag(ch, obj, bagnum);
-        send_to_char(ch, "You move '%s' to bag %d (%s).\r\n", obj->short_description, bagnum, bagnames[bagnum-1]);
+        send_to_char(ch, "You move '%s' to bag %d.\r\n", obj->short_description, bagnum);
       }
       send_to_char(ch, "You finish moving everything from your inventory to bag %d.\r\n", bagnum);
       return;
@@ -7434,7 +7477,6 @@ void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum
 
 ACMD(do_sort)
 {
-
   char arg1[MEDIUM_STRING] = { '\0' };
   char arg2[MEDIUM_STRING] = {'\0'};
   char bagname[MEDIUM_STRING] = {'\0'};

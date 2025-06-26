@@ -3938,8 +3938,8 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "can heal class level*2 + 20 hp to self",
         "can heal class level*2 + 20 hp to self");
   feato(FEAT_SLOW_FALL, "slow fall", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "no damage for falling 1 room/feat rank",
-        "no damage for falling 1 room/feat rank");
+        "Each rank reduces falling damage by 3.",
+        "Each rank reduces falling damage by 3.");
   feato(FEAT_ABUNDANT_STEP, "abundant step", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "magically move between tight spaces, as the spell dimension door",
         "Magically move between tight spaces, as the spell dimension door.  You "
@@ -7392,12 +7392,12 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       {
         if (mode == 1)
         {
-          snprintf(buf3, sizeof(buf3), "%s (+%d feet)", feat_list[i].name, 10 * HAS_FEAT(ch, FEAT_SLOW_FALL));
+          snprintf(buf3, sizeof(buf3), "%s (-%d fall dam)", feat_list[i].name, 3 * HAS_FEAT(ch, FEAT_SLOW_FALL));
           snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          snprintf(buf3, sizeof(buf3), "%s (+%d feet)", feat_list[i].name, 10 * HAS_FEAT(ch, FEAT_SLOW_FALL));
+          snprintf(buf3, sizeof(buf3), "%s (-%d fall dam)", feat_list[i].name, 3 * HAS_FEAT(ch, FEAT_SLOW_FALL));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

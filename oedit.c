@@ -759,7 +759,9 @@ static void oedit_disp_apply_menu(struct descriptor_data *d)
 {
   get_char_colors(d->character);
   clear_screen(d);
-  column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
+  column_list_applies(d->character, OLC_OBJ(d), 0, apply_types, NUM_APPLIES, TRUE);
+  write_to_output(d, "\r\nIt is highly recommended to set the item type, wear slots and minimum level before setting applies, in order to get proper gear bonus suggestions.\r\n");
+  write_to_output(d, "Eligible Bonus Types are highlighted in \tCcyan\tn.\r\n");
   write_to_output(d, "\r\nEnter apply type (0 is no apply)\r\n(for 'grant feat' select featnum here, 'featlist' out of editor for master list) : ");
   OLC_MODE(d) = OEDIT_APPLY;
 }
@@ -1334,12 +1336,18 @@ static void oedit_disp_val5_menu(struct descriptor_data *d)
     write_to_output(d, "Apply modifier amount: ");
     break;
   case ITEM_WEAPON:
+    write_to_output(d, "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal Mob (%d) Boss Mob (%d)\tn\r\n", 
+                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), FALSE), get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), TRUE));
     write_to_output(d, "Enhancement bonus : ");
     break;
   case ITEM_ARMOR:
+    write_to_output(d, "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal Mob (%d) Boss Mob (%d)\tn\r\n", 
+                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), FALSE), get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), TRUE));
     write_to_output(d, "Enhancement bonus : ");
     break;
   case ITEM_MISSILE:
+    write_to_output(d, "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal Mob (%d) Boss Mob (%d)\tn\r\n", 
+                    get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), FALSE), get_suggested_enhancement_bonus(GET_OBJ_LEVEL(OLC_OBJ(d)), TRUE));
     write_to_output(d, "Enhancement bonus : ");
     break;
   default:
@@ -2686,6 +2694,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       }
       else
       {
+        send_to_char(d->character, "\tcSuggested Modifier Based on Object Level: %d\tn\r\n", get_gear_bonus_amount_by_level(OLC_OBJ(d)->affected[OLC_VAL(d)].location, GET_OBJ_LEVEL(OLC_OBJ(d))));
         write_to_output(d, "Modifier : ");
       }
       OLC_MODE(d) = OEDIT_APPLYMOD;

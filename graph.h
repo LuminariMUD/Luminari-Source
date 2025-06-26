@@ -21,5 +21,6 @@
 void hunt_victim(struct char_data *ch);
 void hunt_loadroom(struct char_data *ch);
 int find_first_step(room_rnum src, room_rnum target);
+int count_rooms_between(room_rnum src, room_rnum target);
 
 #endif /* _GRAPH_H_*/

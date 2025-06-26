@@ -502,6 +502,16 @@ int increase_gold(struct char_data *ch, int amt);
 int award_random_money(struct char_data *ch, int result);
 void award_random_food_item(struct char_data *ch, int result, int type);
 
+bool is_resist_magic_apply(int bonus);
+bool is_resist_physical_apply(int bonus);
+bool is_spell_slot_apply(int bonus);
+bool is_bonus_valid_for_item_type(int bonus, int item_type);
+bool is_bonus_valid_for_where_slot(int bonus, int wear_slot);
+bool is_ability_score_apply(int bonus);
+int get_gear_bonus_amount_by_level(int bonus, int olevel);
+bool highlight_apply_by_obj(struct obj_data *obj, int offset);
+int get_suggested_enhancement_bonus(int olevel, bool boss_mob);
+
 // staff tool to load random items
 ACMD_DECL(do_loadmagic);
 ACMD_DECL(do_loadmagicspecific);

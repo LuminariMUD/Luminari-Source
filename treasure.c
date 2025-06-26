@@ -4811,3 +4811,672 @@ const char *kender_loot[NUM_KENDER_BAUBLES] =
   "cooled lava rock",
   "a mushroom"
 };
+
+bool is_resist_magic_apply(int bonus)
+{
+  switch (bonus)
+  {
+    case APPLY_RES_FIRE:
+    case APPLY_RES_COLD:
+    case APPLY_RES_AIR:
+    case APPLY_RES_EARTH:
+    case APPLY_RES_ACID:
+    case APPLY_RES_HOLY:
+    case APPLY_RES_ELECTRIC:
+    case APPLY_RES_UNHOLY:
+    case APPLY_RES_SOUND:
+    case APPLY_RES_POISON:
+    case APPLY_RES_DISEASE:
+    case APPLY_RES_NEGATIVE:
+    case APPLY_RES_ILLUSION:
+    case APPLY_RES_MENTAL:
+    case APPLY_RES_LIGHT:
+    case APPLY_RES_ENERGY:
+    case APPLY_RES_WATER:
+      return true;
+  }
+  return false;
+}
+
+bool is_resist_physical_apply(int bonus)
+{
+  switch (bonus)
+  {
+    case APPLY_RES_SLICE:
+    case APPLY_RES_PUNCTURE:
+    case APPLY_RES_FORCE:
+      return true;
+  }
+  return false;
+}
+
+bool is_everywhere_apply(int bonus)
+{
+  if (is_spell_slot_apply(bonus)) return true;
+
+  switch (bonus)
+  {
+    case APPLY_STR:
+    case APPLY_DEX:
+    case APPLY_INT:
+    case APPLY_WIS:
+    case APPLY_CON:
+    case APPLY_CHA:
+    case APPLY_SKILL:
+    case APPLY_FEAT:
+    case APPLY_AC_NEW:
+    case APPLY_SAVING_WILL:
+    case APPLY_SAVING_FORT:
+    case APPLY_SAVING_REFL:
+    case APPLY_ENCUMBRANCE:
+      return true;
+  }
+  return false;
+}
+
+bool is_spell_slot_apply(int bonus)
+{
+  switch (bonus)
+  {
+    case APPLY_SPELL_CIRCLE_1:
+    case APPLY_SPELL_CIRCLE_2:
+    case APPLY_SPELL_CIRCLE_3:
+    case APPLY_SPELL_CIRCLE_4:
+    case APPLY_SPELL_CIRCLE_5:
+    case APPLY_SPELL_CIRCLE_6:
+    case APPLY_SPELL_CIRCLE_7:
+    case APPLY_SPELL_CIRCLE_8:
+    case APPLY_SPELL_CIRCLE_9:
+      return true;
+  }
+  return false;
+}
+
+bool is_bonus_valid_for_item_type(int bonus, int item_type)
+{
+  if (is_everywhere_apply(bonus)) return true;
+
+  switch (item_type)
+  {
+    // weapons can have everything
+    case ITEM_WEAPON:
+    case ITEM_INSTRUMENT:
+      return true;
+    case ITEM_LIGHT:
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_SPELL_RES:
+        case APPLY_HITROLL:
+        case APPLY_DAMROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+        case APPLY_SPELL_POTENCY:
+        case APPLY_SPELL_DC:
+        case APPLY_SPELL_DURATION:
+        case APPLY_SPELL_PENETRATION:
+          return true;
+      }
+      break;
+  }
+  return false;
+}
+
+bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
+{
+  if (is_everywhere_apply(bonus)) return true;
+  
+  switch (wear_slot)
+  {
+    case  ITEM_WEAR_FINGER:
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_SPELL_RES:
+        case APPLY_DR:
+        case APPLY_DAMROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+        case APPLY_SPELL_POTENCY:
+        case APPLY_SPELL_DC:
+        case APPLY_SPELL_DURATION:
+        case APPLY_SPELL_PENETRATION:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_NECK:
+      if (is_resist_physical_apply(bonus)) return true;
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_SPELL_RES:
+        case APPLY_DR:
+        case APPLY_HITROLL:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+        case APPLY_SPELL_POTENCY:
+        case APPLY_SPELL_DC:
+        case APPLY_SPELL_DURATION:
+        case APPLY_SPELL_PENETRATION:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_BODY:
+      if (is_resist_physical_apply(bonus)) return true;
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_SPELL_RES:
+        case APPLY_DR:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_HEAD:
+      if (is_resist_physical_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_DR:
+        case APPLY_HITROLL:
+        case APPLY_DAMROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_LEGS:
+      if (is_resist_physical_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_DR:
+        case APPLY_HITROLL:
+        case APPLY_DAMROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_FEET:
+      if (is_resist_physical_apply(bonus)) return true;
+      switch (bonus)
+      {       
+        case APPLY_DR:
+        case APPLY_DAMROLL:
+        case APPLY_HITROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_HANDS:
+      if (is_resist_physical_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_DR:
+        case APPLY_HITROLL:
+        case APPLY_DAMROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_ARMS:
+      if (is_resist_physical_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_DR:
+        case APPLY_HITROLL:
+        case APPLY_DAMROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_SHIELD:
+      if (is_resist_physical_apply(bonus)) return true;
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_SPELL_RES:
+        case APPLY_DR:
+        case APPLY_HITROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_ABOUT:
+      if (is_resist_physical_apply(bonus)) return true;
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_DR:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_WAIST:
+      if (is_resist_physical_apply(bonus)) return true;
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_SPELL_RES:
+        case APPLY_DR:
+        case APPLY_DAMROLL:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_WRIST:
+      if (is_resist_physical_apply(bonus)) return true;
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_DR:
+        case APPLY_HITROLL:
+        case APPLY_DAMROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    // held items can have everything
+    case  ITEM_WEAR_HOLD:
+      return true;
+    case  ITEM_WEAR_FACE:
+      if (is_resist_physical_apply(bonus)) return true;
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_SPELL_RES:
+        case APPLY_DR:
+        case APPLY_HITROLL:
+        case APPLY_DAMROLL:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_AMMO_POUCH:
+      switch (bonus)
+      {
+        case APPLY_HITROLL:
+        case APPLY_DAMROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_EAR:
+      if (is_resist_physical_apply(bonus)) return true;
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_SPELL_RES:
+        case APPLY_HITROLL:
+        case APPLY_DAMROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+        case APPLY_SPELL_POTENCY:
+        case APPLY_SPELL_DC:
+        case APPLY_SPELL_DURATION:
+        case APPLY_SPELL_PENETRATION:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_EYES:
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_SPELL_RES:
+        case APPLY_HITROLL:
+        case APPLY_DAMROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+
+    case  ITEM_WEAR_BADGE:
+      if (is_resist_physical_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_DR:
+        case APPLY_HITROLL:
+        case APPLY_DAMROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+        case APPLY_SPELL_POTENCY:
+        case APPLY_SPELL_DC:
+        case APPLY_SPELL_DURATION:
+        case APPLY_SPELL_PENETRATION:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_INSTRUMENT:
+    case  ITEM_WEAR_SHOULDERS:
+      if (is_resist_physical_apply(bonus)) return true;
+      if (is_resist_magic_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_SPELL_RES:
+        case APPLY_DR:
+        case APPLY_HITROLL:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+          return true;
+      }
+      break;
+    case  ITEM_WEAR_ANKLE:
+      if (is_resist_physical_apply(bonus)) return true;
+      switch (bonus)
+      {
+        case APPLY_SPELL_RES:
+        case APPLY_DR:
+        case APPLY_HITROLL:
+        case APPLY_INITIATIVE:
+        case APPLY_HP_REGEN:
+        case APPLY_MV_REGEN:
+        case APPLY_PSP_REGEN:
+        case APPLY_FAST_HEALING:
+        case APPLY_HIT:
+        case APPLY_MOVE:
+        case APPLY_PSP:
+        case APPLY_SPELL_POTENCY:
+        case APPLY_SPELL_DC:
+        case APPLY_SPELL_DURATION:
+        case APPLY_SPELL_PENETRATION:
+          return true;
+      }
+  }
+  return false;
+}
+
+int get_gear_bonus_amount_by_level(int bonus, int olevel)
+{
+  olevel = MAX(1, olevel);
+
+  switch (bonus)
+  {
+    case APPLY_STR:
+    case APPLY_DEX:
+    case APPLY_INT:
+    case APPLY_WIS:
+    case APPLY_CON:
+    case APPLY_CHA:
+      return olevel / 6;
+
+    case APPLY_PSP:
+      return (int) (5 + (olevel * 0.667));
+
+    case APPLY_HIT:
+      return 5 + (olevel / 2) + olevel;
+
+    case APPLY_MOVE:
+      return 20 + (olevel * 30);
+
+    case APPLY_HITROLL:
+      return olevel / 7;
+
+    case APPLY_DAMROLL:
+      return olevel / 6;
+
+    case APPLY_SAVING_FORT:
+    case APPLY_SAVING_REFL:
+    case APPLY_SAVING_WILL:
+      return olevel / 6;
+
+    case APPLY_SPELL_RES:
+    case APPLY_POWER_RES:
+      return olevel / 7;
+
+    case APPLY_AC_NEW:
+      return olevel / 6;
+
+    case APPLY_RES_FIRE:
+    case APPLY_RES_COLD:
+    case APPLY_RES_AIR:
+    case APPLY_RES_EARTH:
+    case APPLY_RES_ACID:
+    case APPLY_RES_HOLY:
+    case APPLY_RES_ELECTRIC:
+    case APPLY_RES_UNHOLY:
+    case APPLY_RES_SLICE:
+    case APPLY_RES_PUNCTURE:
+    case APPLY_RES_FORCE:
+    case APPLY_RES_SOUND:
+    case APPLY_RES_POISON:
+    case APPLY_RES_DISEASE:
+    case APPLY_RES_NEGATIVE:
+    case APPLY_RES_ILLUSION:
+    case APPLY_RES_MENTAL:
+    case APPLY_RES_LIGHT:
+    case APPLY_RES_ENERGY:
+    case APPLY_RES_WATER:
+      return olevel / 3;
+
+    case APPLY_DR:
+      return olevel / 10;
+
+    case APPLY_SKILL:
+      return olevel / 5;
+
+    case APPLY_HP_REGEN:
+      return olevel / 6;
+
+    case APPLY_MV_REGEN:
+      return olevel / 6 * 10;
+
+    case APPLY_PSP_REGEN:
+      return olevel / 6;
+
+    case APPLY_ENCUMBRANCE:
+      return olevel / 3;
+
+    case APPLY_FAST_HEALING:
+      return olevel / 6;
+
+    case APPLY_INITIATIVE:
+      return olevel / 6;
+
+    case APPLY_SPELL_CIRCLE_1:
+    case APPLY_SPELL_CIRCLE_2:
+    case APPLY_SPELL_CIRCLE_3:
+      return olevel / 10;
+
+    case APPLY_SPELL_CIRCLE_4:
+    case APPLY_SPELL_CIRCLE_5:
+    case APPLY_SPELL_CIRCLE_6:
+    return olevel * 0.667;
+
+    case APPLY_SPELL_CIRCLE_7:
+    case APPLY_SPELL_CIRCLE_8:
+    case APPLY_SPELL_CIRCLE_9:
+      return 1;
+
+    case APPLY_SPELL_POTENCY:
+    case APPLY_SPELL_DURATION:
+      return olevel / 3;
+
+    case APPLY_SPELL_DC:    
+    case APPLY_SPELL_PENETRATION:
+      return olevel / 10;
+      
+    default:
+      return 0;
+  }
+  return 0;
+}
+
+bool highlight_apply_by_obj(struct obj_data *obj, int offset)
+{
+  if (!obj) return false;
+
+  int i = 0;
+
+  if (is_bonus_valid_for_item_type(offset, GET_OBJ_TYPE(obj)))
+    return true;
+
+  for (i = 1; i < NUM_ITEM_WEARS; i++)
+  {
+    if (CAN_WEAR(obj, i))
+    {
+      if (is_bonus_valid_for_where_slot(offset, i))
+        return true;
+    }
+  }
+
+  return false;
+}
+
+int get_suggested_enhancement_bonus(int olevel, bool boss_mob)
+{
+  if (boss_mob)
+  {
+    if (olevel <= 2)
+      return 1;
+    else if (olevel <= 5)
+      return 2;
+    else if (olevel <= 8)
+      return 2;
+    else if (olevel <= 11)
+      return 3;
+    else if (olevel <= 14)
+      return 3;
+    else if (olevel <= 17)
+      return 4;
+    else if (olevel <= 20)
+      return 4;
+    else if (olevel <= 23)
+      return 5;
+    else if (olevel <= 26)
+      return 6;
+    else if (olevel <= 29)
+      return 7;
+    else
+      return 8;
+  }
+  else
+  {
+    if (olevel <= 2)
+      return 0;
+    else if (olevel <= 5)
+      return 0;
+    else if (olevel <= 8)
+      return 1;
+    else if (olevel <= 11)
+      return 1;
+    else if (olevel <= 14)
+      return 2;
+    else if (olevel <= 17)
+      return 2;
+    else if (olevel <= 20)
+      return 3;
+    else if (olevel <= 23)
+      return 3;
+    else if (olevel <= 26)
+      return 4;
+    else if (olevel <= 29)
+      return 5;
+    else
+      return 6;
+  }
+  return 0;
+}

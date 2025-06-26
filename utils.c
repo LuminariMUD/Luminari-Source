@@ -42,6 +42,7 @@
 #include "evolutions.h"
 #include "backgrounds.h"
 #include "char_descs.h"
+#include "treasure.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -3856,6 +3857,88 @@ void column_list(struct char_data *ch, int num_cols, const char **list, int list
           temp_len = snprintf(buf + len, sizeof(buf) - len, "%2d) %-*s", offset + 1, col_width, list[(offset)]);
         else
           temp_len = snprintf(buf + len, sizeof(buf) - len, "%-*s", col_width, list[(offset)]);
+        len += temp_len;
+      }
+    }
+    temp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n");
+    len += temp_len;
+  }
+
+  if (len >= sizeof(buf))
+    snprintf((buf + MAX_STRING_LENGTH) - 22, 22, "\r\n*** OVERFLOW ***\r\n");
+
+  /* Send the list to the player */
+  page_string(ch->desc, buf, TRUE);
+}
+
+/* column_list
+   The list is output in a fixed format, and only the number of columns can be adjusted
+   This function will output the list to the player
+   Vars:
+     ch          - the player
+     num_cols    - the desired number of columns
+     list        - a pointer to a list of strings
+     list_length - So we can work with lists that don't end with /n
+     show_nums   - when set to TRUE, it will show a number before the list entry.
+ */
+void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_cols, const char **list, int list_length, bool show_nums)
+{
+
+  if (!ch || !obj)
+    return;
+
+  int num_per_col, col_width, r, c, i, offset = 0, len = 0, temp_len, max_len = 0;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  bool highlight = false;
+
+  /* Work out the longest list item */
+  for (i = 0; i < list_length; i++)
+    if (max_len < strlen(list[i]))
+      max_len = strlen(list[i]);
+
+  /* auto columns case */
+  if (num_cols == 0)
+  {
+    num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / (max_len + (show_nums ? 5 : 1));
+  }
+
+  /* Ensure that the number of columns is in the range 1-10 */
+  num_cols = MIN(MAX(num_cols, 1), 10);
+
+  /* Work out the longest list item */
+  for (i = 0; i < list_length; i++)
+    if (max_len < strlen(list[i]))
+      max_len = strlen(list[i]);
+
+  /* Calculate the width of each column */
+  if (IS_NPC(ch))
+    col_width = 80 / num_cols;
+  else
+    col_width = (GET_SCREEN_WIDTH(ch)) / num_cols;
+
+  if (show_nums)
+    col_width -= 4;
+
+  if (col_width < max_len)
+    log("Warning: columns too narrow for correct output to %s in simple_column_list (utils.c)", GET_NAME(ch));
+
+  /* Calculate how many list items there should be per column */
+  num_per_col = (list_length / num_cols) + ((list_length % num_cols) ? 1 : 0);
+
+  /* Fill 'buf' with the columnised list */
+  for (r = 0; r < num_per_col; r++)
+  {
+    for (c = 0; c < num_cols; c++)
+    {
+      offset = (c * num_per_col) + r;
+      if (offset < list_length)
+      {
+        highlight = highlight_apply_by_obj(obj, offset);         
+        
+        if (show_nums)
+          temp_len = snprintf(buf + len, sizeof(buf) - len, "%s%2d) %-*s\tn", highlight ? "\tC" : "", offset + 1, col_width, list[(offset)]);
+        else
+          temp_len = snprintf(buf + len, sizeof(buf) - len, "%s%-*s\tn", highlight ? "\tC" : "", col_width, list[(offset)]);
         len += temp_len;
       }
     }

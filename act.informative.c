@@ -453,6 +453,11 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
     /* obj size, material, weapon/armor */
     show_obj_info(obj, ch);
 
+    if (GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST)
+    {
+      act("\r\n$p can be looted with the loot command.", TRUE, ch, obj, 0, TO_CHAR);
+    }
+
     break;
 
   default:
@@ -3706,7 +3711,7 @@ ACMD(do_inventory)
 
   if (!IS_NPC(ch))
   {
-    send_to_char(ch, "\r\nSee HELP SORT to view information on sorting your inventory into different virtual bags.\r\n");
+    send_to_char(ch, "\r\n\tcUse the 'bags' command to see what is in your bags. See help files for: GET, PUT and SORT.\tn\r\n");
   }
 }
 
