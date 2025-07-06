@@ -788,7 +788,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"save", "sav", POS_SLEEPING, do_save, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"saveall", "saveall", POS_DEAD, do_saveall, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"saveeverything", "saveeverything", POS_DEAD, do_save_everything, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"saveobjstodb", "saveobjstodb", POS_DEAD, do_save_objects_to_database, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"saveobjstodb", "saveobjstodb", POS_DEAD, do_save_objects_to_database, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     //  { "savemobs"  , "savemobs" , POS_DEAD    , do_savemobs  , LVL_IMPL, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"search", "sea", POS_STANDING, do_search, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sell", "sell", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

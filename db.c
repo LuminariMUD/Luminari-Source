@@ -163,6 +163,8 @@ struct happyhour happy_data = {0, 0, 0, 0, 0};
 /* declaration of local (file scope) variables */
 static int converting = FALSE;
 
+int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
+
 /* Local (file scope) utility functions */
 static int check_bitvector_names(bitvector_t bits, size_t namecount, const char *whatami, const char *whatbits);
 static int check_object_spell_number(struct obj_data *obj, int val);
@@ -190,6 +192,8 @@ static int help_sort(const void *a, const void *b);
 void assign_deities(void);
 void set_armor_object(struct obj_data *obj, int type);
 SPECIAL_DECL(moving_rooms);
+
+void assign_weighted_bonuses(void);
 
 /* Ils: Global result_q needed for init_result_q, push_result & test_result */
 struct
@@ -697,6 +701,9 @@ void boot_world(void)
   // assign backgrounds
   assign_backgrounds();
   sort_backgrounds();
+
+  // assign object bonuses table
+  assign_weighted_bonuses();
 
   log("Initializing perlin noise generator.");
   init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);

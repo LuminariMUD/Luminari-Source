@@ -76,6 +76,7 @@ static int get_max_recent(void);
 static void clear_recent(struct recent_player *this);
 static struct recent_player *create_recent(void);
 
+void assign_weighted_bonuses(void);
 const char *get_spec_func_name(SPECIAL_DECL(*func));
 bool zedit_get_levels(struct descriptor_data *d, char *buf);
 
@@ -4890,6 +4891,7 @@ ACMD(do_saveall)
   {
     save_all();
     House_save_all();
+    assign_weighted_bonuses();
     // hlqedit_save_to_disk(OLC_ZNUM(d));
     send_to_char(ch, "World and house files saved.\n\r");
   }

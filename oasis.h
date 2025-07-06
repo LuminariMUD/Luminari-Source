@@ -276,6 +276,9 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define OEDIT_ACTIVATED_SPELLS_LEVEL 58
 #define OEDIT_ACTIVATED_SPELLS_SPELLNUM 59
 #define OEDIT_ACTIVATED_SPELLS_MAX_USES 60
+#define OEDIT_RANDOM_APPLY 61
+#define OEDIT_RANDOM_APPLY_SLOT 62
+#define OEDIT_ERASE_SLOT 63
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 1

@@ -511,6 +511,13 @@ bool is_ability_score_apply(int bonus);
 int get_gear_bonus_amount_by_level(int bonus, int olevel);
 bool highlight_apply_by_obj(struct obj_data *obj, int offset);
 int get_suggested_enhancement_bonus(int olevel, bool boss_mob);
+void assign_random_bonuses(struct obj_data *obj, int olevel, int num_bonuses);
+bool does_obj_have_wear_slots(struct obj_data *obj);
+void assign_a_random_apply_to_slot(struct obj_data *obj, int olevel, int i);
+void erase_bonus_info_for_slot(struct obj_data *obj, int slot);
+int choose_random_apply_type(void);
+int get_first_wear_slot(struct obj_data *obj);
+int get_apply_no_repeat_category(int apply);
 
 // staff tool to load random items
 ACMD_DECL(do_loadmagic);
