@@ -28,6 +28,8 @@
 #include "feats.h"
 #include "crafting_new.h"
 
+extern int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
+
 /***  utility functions ***/
 
 /* utility function to label 'rare grade' gear */
@@ -5301,34 +5303,124 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
     case APPLY_WIS:
     case APPLY_CON:
     case APPLY_CHA:
-      return olevel / 6;
+      if (olevel >= 30)       return 4;
+      else if (olevel >= 27)  return 3;
+      else if (olevel >= 24)  return 3;
+      else if (olevel >= 21)  return 3;
+      else if (olevel >= 18)  return 2;
+      else if (olevel >= 15)  return 2;
+      else if (olevel >= 12)  return 2;
+      else if (olevel >= 9)   return 1;
+      else if (olevel >= 6)   return 1;
+      else if (olevel >= 3)   return 0;
+      else                    return 0;
 
     case APPLY_PSP:
-      return (int) (5 + (olevel * 0.667));
+      if (olevel >= 30)       return 25;
+      else if (olevel >= 27)  return 23;
+      else if (olevel >= 24)  return 21;
+      else if (olevel >= 21)  return 19;
+      else if (olevel >= 18)  return 17;
+      else if (olevel >= 15)  return 15;
+      else if (olevel >= 12)  return 13;
+      else if (olevel >= 9)   return 11;
+      else if (olevel >= 6)   return 9;
+      else if (olevel >= 3)   return 7;
+      else                    return 5;
 
     case APPLY_HIT:
-      return 5 + (olevel / 2) + olevel;
+      if (olevel >= 30)       return 50;
+      else if (olevel >= 27)  return 45;
+      else if (olevel >= 24)  return 40;
+      else if (olevel >= 21)  return 35;
+      else if (olevel >= 18)  return 30;
+      else if (olevel >= 15)  return 25;
+      else if (olevel >= 12)  return 20;
+      else if (olevel >= 9)   return 15;
+      else if (olevel >= 6)   return 10;
+      else if (olevel >= 3)   return 10;
+      else                    return 5;
 
     case APPLY_MOVE:
-      return 20 + (olevel * 30);
+      if (olevel >= 30)       return 1000;
+      else if (olevel >= 27)  return 900;
+      else if (olevel >= 24)  return 800;
+      else if (olevel >= 21)  return 700;
+      else if (olevel >= 18)  return 600;
+      else if (olevel >= 15)  return 500;
+      else if (olevel >= 12)  return 400;
+      else if (olevel >= 9)   return 300;
+      else if (olevel >= 6)   return 200;
+      else if (olevel >= 3)   return 100;
+      else                    return 50;
 
     case APPLY_HITROLL:
-      return olevel / 7;
+      if (olevel >= 30)       return 4;
+      else if (olevel >= 27)  return 4;
+      else if (olevel >= 24)  return 3;
+      else if (olevel >= 21)  return 3;
+      else if (olevel >= 18)  return 2;
+      else if (olevel >= 15)  return 2;
+      else if (olevel >= 12)  return 1;
+      else if (olevel >= 9)   return 1;
+      else if (olevel >= 6)   return 0;
+      else if (olevel >= 3)   return 0;
+      else                    return 0;
 
     case APPLY_DAMROLL:
-      return olevel / 6;
+      if (olevel >= 30)       return 3;
+      else if (olevel >= 27)  return 3;
+      else if (olevel >= 24)  return 2;
+      else if (olevel >= 21)  return 2;
+      else if (olevel >= 18)  return 2;
+      else if (olevel >= 15)  return 1;
+      else if (olevel >= 12)  return 1;
+      else if (olevel >= 9)   return 1;
+      else if (olevel >= 6)   return 0;
+      else if (olevel >= 3)   return 0;
+      else                    return 0;
 
     case APPLY_SAVING_FORT:
     case APPLY_SAVING_REFL:
     case APPLY_SAVING_WILL:
-      return olevel / 6;
+      if (olevel >= 30)       return 5;
+      else if (olevel >= 27)  return 4;
+      else if (olevel >= 24)  return 4;
+      else if (olevel >= 21)  return 3;
+      else if (olevel >= 18)  return 3;
+      else if (olevel >= 15)  return 2;
+      else if (olevel >= 12)  return 2;
+      else if (olevel >= 9)   return 2;
+      else if (olevel >= 6)   return 1;
+      else if (olevel >= 3)   return 1;
+      else                    return 1;
 
     case APPLY_SPELL_RES:
     case APPLY_POWER_RES:
-      return olevel / 7;
+      if (olevel >= 30)       return 3;
+      else if (olevel >= 27)  return 3;
+      else if (olevel >= 24)  return 3;
+      else if (olevel >= 21)  return 2;
+      else if (olevel >= 18)  return 2;
+      else if (olevel >= 15)  return 2;
+      else if (olevel >= 12)  return 1;
+      else if (olevel >= 9)   return 1;
+      else if (olevel >= 6)   return 1;
+      else if (olevel >= 3)   return 0;
+      else                    return 0;
 
     case APPLY_AC_NEW:
-      return olevel / 6;
+      if (olevel >= 30)       return 5;
+      else if (olevel >= 27)  return 4;
+      else if (olevel >= 24)  return 4;
+      else if (olevel >= 21)  return 4;
+      else if (olevel >= 18)  return 3;
+      else if (olevel >= 15)  return 3;
+      else if (olevel >= 12)  return 2;
+      else if (olevel >= 9)   return 2;
+      else if (olevel >= 6)   return 1;
+      else if (olevel >= 3)   return 1;
+      else                    return 1;
 
     case APPLY_RES_FIRE:
     case APPLY_RES_COLD:
@@ -5350,54 +5442,197 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
     case APPLY_RES_LIGHT:
     case APPLY_RES_ENERGY:
     case APPLY_RES_WATER:
-      return olevel / 3;
+      if (olevel >= 30)       return 10;
+      else if (olevel >= 27)  return 9;
+      else if (olevel >= 24)  return 8;
+      else if (olevel >= 21)  return 7;
+      else if (olevel >= 18)  return 6;
+      else if (olevel >= 15)  return 5;
+      else if (olevel >= 12)  return 4;
+      else if (olevel >= 9)   return 3;
+      else if (olevel >= 6)   return 2;
+      else if (olevel >= 3)   return 1;
+      else                    return 0;
 
     case APPLY_DR:
-      return olevel / 10;
+      if (olevel >= 30)       return 3;
+      else if (olevel >= 27)  return 3;
+      else if (olevel >= 24)  return 2;
+      else if (olevel >= 21)  return 2;
+      else if (olevel >= 18)  return 2;
+      else if (olevel >= 15)  return 1;
+      else if (olevel >= 12)  return 1;
+      else if (olevel >= 9)   return 1;
+      else if (olevel >= 6)   return 0;
+      else if (olevel >= 3)   return 0;
+      else                    return 0;
 
     case APPLY_SKILL:
-      return olevel / 5;
+      if (olevel >= 30)       return 6;
+      else if (olevel >= 27)  return 5;
+      else if (olevel >= 24)  return 5;
+      else if (olevel >= 21)  return 4;
+      else if (olevel >= 18)  return 4;
+      else if (olevel >= 15)  return 3;
+      else if (olevel >= 12)  return 3;
+      else if (olevel >= 9)   return 2;
+      else if (olevel >= 6)   return 2;
+      else if (olevel >= 3)   return 1;
+      else                    return 1;
 
     case APPLY_HP_REGEN:
-      return olevel / 6;
+      if (olevel >= 30)       return 5;
+      else if (olevel >= 27)  return 5;
+      else if (olevel >= 24)  return 4;
+      else if (olevel >= 21)  return 4;
+      else if (olevel >= 18)  return 3;
+      else if (olevel >= 15)  return 3;
+      else if (olevel >= 12)  return 2;
+      else if (olevel >= 9)   return 2;
+      else if (olevel >= 6)   return 2;
+      else if (olevel >= 3)   return 1;
+      else                    return 1;
 
     case APPLY_MV_REGEN:
-      return olevel / 6 * 10;
+      if (olevel >= 30)       return 50;
+      else if (olevel >= 27)  return 45;
+      else if (olevel >= 24)  return 40;
+      else if (olevel >= 21)  return 35;
+      else if (olevel >= 18)  return 30;
+      else if (olevel >= 15)  return 25;
+      else if (olevel >= 12)  return 20;
+      else if (olevel >= 9)   return 15;
+      else if (olevel >= 6)   return 10;
+      else if (olevel >= 3)   return 5;
+      else                    return 5;
 
     case APPLY_PSP_REGEN:
-      return olevel / 6;
+      if (olevel >= 30)       return 5;
+      else if (olevel >= 27)  return 5;
+      else if (olevel >= 24)  return 4;
+      else if (olevel >= 21)  return 4;
+      else if (olevel >= 18)  return 3;
+      else if (olevel >= 15)  return 3;
+      else if (olevel >= 12)  return 2;
+      else if (olevel >= 9)   return 2;
+      else if (olevel >= 6)   return 2;
+      else if (olevel >= 3)   return 1;
+      else                    return 1;
 
     case APPLY_ENCUMBRANCE:
-      return olevel / 3;
+      if (olevel >= 30)       return 10;
+      else if (olevel >= 27)  return 9;
+      else if (olevel >= 24)  return 8;
+      else if (olevel >= 21)  return 7;
+      else if (olevel >= 18)  return 6;
+      else if (olevel >= 15)  return 5;
+      else if (olevel >= 12)  return 4;
+      else if (olevel >= 9)   return 3;
+      else if (olevel >= 6)   return 2;
+      else if (olevel >= 3)   return 1;
+      else                    return 1;
 
     case APPLY_FAST_HEALING:
-      return olevel / 6;
+      if (olevel >= 30)       return 5;
+      else if (olevel >= 27)  return 5;
+      else if (olevel >= 24)  return 4;
+      else if (olevel >= 21)  return 4;
+      else if (olevel >= 18)  return 3;
+      else if (olevel >= 15)  return 3;
+      else if (olevel >= 12)  return 2;
+      else if (olevel >= 9)   return 2;
+      else if (olevel >= 6)   return 2;
+      else if (olevel >= 3)   return 1;
+      else                    return 1;
 
     case APPLY_INITIATIVE:
-      return olevel / 6;
+      if (olevel >= 30)       return 5;
+      else if (olevel >= 27)  return 5;
+      else if (olevel >= 24)  return 4;
+      else if (olevel >= 21)  return 4;
+      else if (olevel >= 18)  return 3;
+      else if (olevel >= 15)  return 3;
+      else if (olevel >= 12)  return 2;
+      else if (olevel >= 9)   return 2;
+      else if (olevel >= 6)   return 1;
+      else if (olevel >= 3)   return 1;
+      else                    return 1;
 
     case APPLY_SPELL_CIRCLE_1:
+      if (olevel >= 20) return 3;
+      else if (olevel >= 10) return 2;
+      else return 1;
     case APPLY_SPELL_CIRCLE_2:
+      if (olevel < 3) return 0;
+      else if (olevel < 10) return 1;
+      else if (olevel < 20) return 2;
+      else return 3;
     case APPLY_SPELL_CIRCLE_3:
-      return olevel / 10;
-
+      if (olevel < 5) return 0;
+      else if (olevel < 10) return 1;
+      else if (olevel < 20) return 2;
+      else return 3;
     case APPLY_SPELL_CIRCLE_4:
+      if (olevel < 7) return 0;
+      else if (olevel < 20) return 1;
+      else return 2;
     case APPLY_SPELL_CIRCLE_5:
+      if (olevel < 9) return 0;
+      else if (olevel < 20) return 1;
+      else return 2;
     case APPLY_SPELL_CIRCLE_6:
-    return olevel * 0.667;
-
+      if (olevel < 11) return 0;
+      else if (olevel < 20) return 1;
+      else return 2;
     case APPLY_SPELL_CIRCLE_7:
+      if (olevel < 13) return 0;
+      return 1;
     case APPLY_SPELL_CIRCLE_8:
+      if (olevel < 15) return 0;
+      return 1;
     case APPLY_SPELL_CIRCLE_9:
+      if (olevel < 17) return 0;
       return 1;
 
     case APPLY_SPELL_POTENCY:
+      if (olevel >= 30)       return 11;
+      else if (olevel >= 27)  return 10;
+      else if (olevel >= 24)  return 9;
+      else if (olevel >= 21)  return 8;
+      else if (olevel >= 18)  return 8;
+      else if (olevel >= 15)  return 7;
+      else if (olevel >= 12)  return 7;
+      else if (olevel >= 9)   return 6;
+      else if (olevel >= 6)   return 6;
+      else if (olevel >= 3)   return 5;
+      else                    return 5;
+
     case APPLY_SPELL_DURATION:
-      return olevel / 3;
+      if (olevel >= 30)       return 13;
+      else if (olevel >= 27)  return 12;
+      else if (olevel >= 24)  return 11;
+      else if (olevel >= 21)  return 10;
+      else if (olevel >= 18)  return 9;
+      else if (olevel >= 15)  return 8;
+      else if (olevel >= 12)  return 7;
+      else if (olevel >= 9)   return 6;
+      else if (olevel >= 6)   return 5;
+      else if (olevel >= 3)   return 4;
+      else                    return 3;
 
     case APPLY_SPELL_DC:    
     case APPLY_SPELL_PENETRATION:
-      return olevel / 10;
+      if (olevel >= 30)       return 3;
+      else if (olevel >= 27)  return 2;
+      else if (olevel >= 24)  return 2;
+      else if (olevel >= 21)  return 2;
+      else if (olevel >= 18)  return 1;
+      else if (olevel >= 15)  return 1;
+      else if (olevel >= 12)  return 1;
+      else if (olevel >= 9)   return 1;
+      else if (olevel >= 6)   return 0;
+      else if (olevel >= 3)   return 0;
+      else                    return 0;
       
     default:
       return 0;
@@ -5479,4 +5714,488 @@ int get_suggested_enhancement_bonus(int olevel, bool boss_mob)
       return 6;
   }
   return 0;
+}
+
+void assign_weighted_bonuses(void)
+{
+
+  struct obj_data *obj;
+  int i, j, k;
+  int apply;
+
+    for (j = 0; j < top_of_objt; j++)
+    {
+      // we have issues with obj vnums above this number.
+      // all zones that are made should be below these vnums anyway.
+      if (obj_index[j].vnum >= 60000) continue;
+
+      obj = read_object(obj_index[j].vnum, VIRTUAL);
+
+      if (!obj) continue;
+
+      // initialize first
+      for (i = 0; i < NUM_ITEM_WEARS; i++)
+      {
+        for (k = 0; k < NUM_APPLIES; k++)
+        {
+          weighted_object_bonuses[i][k] = 0;
+        }
+      }
+    }
+
+  for (j = 0; j < top_of_objt; j++)
+  {
+    // we have issues with obj vnums above this number.
+    // all zones that are made should be below these vnums anyway.
+    if (obj_index[j].vnum >= 60000) continue;
+
+    obj = read_object(obj_index[j].vnum, VIRTUAL);
+
+    if (!obj) continue;
+
+    for (k = 0; k < 6; k++)
+    {
+      apply = obj->affected[k].location;
+      if (!is_valid_apply(apply))
+        continue;
+      for (i = ITEM_WEAR_TAKE+1; i < NUM_ITEM_WEARS; i++)
+      {
+        if (CAN_WEAR(obj, i) && is_bonus_valid_for_where_slot(apply, i))
+        {
+          weighted_object_bonuses[i][apply]++;
+        }
+      }
+    }
+  }
+}
+
+bool obj_has_bonus_already(struct obj_data *obj, int apply)
+{
+  int i;
+
+  if (!obj || !is_valid_apply(apply))
+    return false;
+
+  // we need to do this as otherwise low level items could cause infinite loops due to not having enough
+  // possibilities to fill out 6 random applies
+  if (GET_OBJ_LEVEL(obj) < 5)
+    return false;
+
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+  {
+    if (get_apply_no_repeat_category(obj->affected[i].location) == get_apply_no_repeat_category(apply))
+      return true;
+  }
+  
+  return false;
+}
+
+int get_first_wear_slot(struct obj_data *obj)
+{
+  int i;
+
+  if (!obj) return ITEM_WEAR_TAKE;
+
+  for (i = ITEM_WEAR_TAKE+1; i < NUM_ITEM_WEARS; i++)
+  {
+    if (CAN_WEAR(obj, i))
+      return i;
+  }
+
+  return ITEM_WEAR_TAKE;
+
+}
+
+int get_apply_type_from_apply(int apply)
+{
+  switch (apply)
+  {
+    case APPLY_STR:
+    case APPLY_DEX:
+    case APPLY_INT:
+    case APPLY_WIS:
+    case APPLY_CON:
+    case APPLY_CHA:
+      return APPLY_TYPE_ABILITY;
+
+    case APPLY_PSP:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+      return APPLY_TYPE_RESOURCE;
+
+    case APPLY_MV_REGEN:
+    case APPLY_HP_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+      return APPLY_TYPE_REGEN;
+
+    case APPLY_SKILL:
+      return APPLY_TYPE_SKILL;
+
+    case APPLY_HITROLL:
+    case APPLY_DAMROLL:
+      return APPLY_TYPE_ATTACK;
+
+    case APPLY_SAVING_FORT:
+    case APPLY_SAVING_REFL:
+    case APPLY_SAVING_WILL:
+      return APPLY_TYPE_SAVE;
+
+    case APPLY_SPELL_RES:
+    case APPLY_POWER_RES:
+      return APPLY_TYPE_SPELL_RESIST;
+
+    case APPLY_SPELL_CIRCLE_1:
+    case APPLY_SPELL_CIRCLE_2:
+    case APPLY_SPELL_CIRCLE_3:
+    case APPLY_SPELL_CIRCLE_4:
+    case APPLY_SPELL_CIRCLE_5:
+    case APPLY_SPELL_CIRCLE_6:
+    case APPLY_SPELL_CIRCLE_7:
+    case APPLY_SPELL_CIRCLE_8:
+    case APPLY_SPELL_CIRCLE_9:
+      return APPLY_TYPE_SPELL_SLOT;
+
+    case APPLY_AC_NEW:
+      return APPLY_TYPE_AC;
+
+    case APPLY_DR:
+      return APPLY_TYPE_DAMAGE_REDUCTION;
+
+    case APPLY_RES_ACID:
+    case APPLY_RES_AIR:
+    case APPLY_RES_COLD:
+    case APPLY_RES_EARTH:
+    case APPLY_RES_ELECTRIC:
+    case APPLY_RES_FIRE:
+    case APPLY_RES_HOLY:
+    case APPLY_RES_LIGHT:
+    case APPLY_RES_MENTAL:
+    case APPLY_RES_NEGATIVE:
+    case APPLY_RES_POISON:
+    case APPLY_RES_SOUND:
+    case APPLY_RES_UNHOLY:
+    case APPLY_RES_ILLUSION:
+    case APPLY_RES_WATER:
+    case APPLY_RES_DISEASE:
+      return APPLY_TYPE_RESIST_MAGIC;
+
+    case APPLY_RES_SLICE:
+    case APPLY_RES_PUNCTURE:
+    case APPLY_RES_FORCE:
+      return APPLY_TYPE_RESIST_PHYSICAL;
+
+    case APPLY_SPELL_POTENCY:
+    case APPLY_SPELL_DC:
+    case APPLY_SPELL_DURATION:
+    case APPLY_SPELL_PENETRATION:
+      return APPLY_TYPE_SPELL_ENHANCE;
+
+  }
+  return APPLY_TYPE_NONE;
+}
+
+int choose_random_apply_type(void)
+{
+
+  int roll = dice(1, 100);
+
+  if (roll <= 10)
+    return APPLY_TYPE_ABILITY;
+  else if (roll <= 20)
+    return APPLY_TYPE_RESOURCE;
+  else if (roll <= 25)
+    return APPLY_TYPE_ATTACK;
+  else if (roll <= 35)
+    return APPLY_TYPE_SAVE;
+  else if (roll <= 45)
+    return APPLY_TYPE_SKILL;
+  else if (roll <= 55)
+    return APPLY_TYPE_RESIST_MAGIC;
+  else if (roll <= 65)
+    return APPLY_TYPE_RESIST_PHYSICAL;
+  else if (roll <= 75)
+    return APPLY_TYPE_AC;
+  else if (roll <= 80)
+    return APPLY_TYPE_DAMAGE_REDUCTION;
+  else if (roll <= 85)
+    return APPLY_TYPE_REGEN;
+  else if (roll <= 90)
+    return APPLY_TYPE_SPELL_RESIST;
+  else if (roll <= 95)
+    return APPLY_TYPE_SPELL_SLOT;
+  else
+    return APPLY_TYPE_SPELL_ENHANCE;
+
+}
+
+int choose_random_apply(struct obj_data *obj)
+{
+  int i, j, total = 0, count = 0;
+  int apply = -1;
+  int apply_type;
+
+  if (!obj) return -1;
+
+  apply_type = choose_random_apply_type();
+
+  for (i = ITEM_WEAR_TAKE+1; i < NUM_ITEM_WEARS; i++)
+  {
+    if (CAN_WEAR(obj, i))
+    {
+      for (j = 0; j < NUM_APPLIES; j++)
+      {
+        if (is_bonus_valid_for_where_slot(j, i) && !obj_has_bonus_already(obj, j) && get_apply_type_from_apply(j) == apply_type)
+        {
+          total++;
+        }
+      }
+    }
+  }
+
+  if (total <= 0)
+    return -1;
+
+  int roll = dice(1, total);
+
+  for (i = ITEM_WEAR_TAKE+1; i < NUM_ITEM_WEARS; i++)
+  {
+    if (CAN_WEAR(obj, i))
+    {
+      for (j = 0; j < NUM_APPLIES; j++)
+      {
+        if (is_bonus_valid_for_where_slot(j, i) && !obj_has_bonus_already(obj, j) && get_apply_type_from_apply(j) == apply_type)
+        {
+          count++;
+          if (roll == count)
+          {
+            apply = j;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return apply;
+
+}
+
+void assign_a_random_apply_to_slot(struct obj_data *obj, int olevel, int i)
+{
+  int snum;
+  int apply = choose_random_apply(obj);
+
+  while (obj_has_bonus_already(obj, apply) || get_gear_bonus_amount_by_level(apply, olevel) <= 0)
+  {
+    apply = choose_random_apply(obj);
+  }
+
+  obj->affected[i].location = apply;
+  obj->affected[i].modifier = get_gear_bonus_amount_by_level(apply, olevel);
+  if (apply == APPLY_AC_NEW)
+  {
+    switch(dice(1, 3))
+    {
+      case 1: obj->affected[i].bonus_type = BONUS_TYPE_NATURALARMOR; break;
+      case 2: obj->affected[i].bonus_type = BONUS_TYPE_DEFLECTION; break;
+      case 3: obj->affected[i].bonus_type = BONUS_TYPE_DODGE; break;
+    }
+  }
+  else
+    obj->affected[i].bonus_type = BONUS_TYPE_UNIVERSAL;
+  
+  if (apply == APPLY_SKILL)
+  {
+    snum = dice(1, NUM_SKILLS_IN_GAME);
+    while (!is_valid_skill(snum))
+    {
+      snum = dice(1, NUM_SKILLS_IN_GAME);
+    }
+    obj->affected[i].specific = snum;
+  }
+  else if (is_spell_slot_apply(apply))
+  {
+    obj->affected[i].specific = dice(1, NUM_CLASSES) -1;
+    while (!is_caster_class(obj->affected[i].specific))
+    {
+      obj->affected[i].specific = dice(1, NUM_CLASSES) -1;
+    }
+  }
+}
+
+// this function will assign random bonuses to an object based on its level and the number of bonuses specified.
+// can be used for random treasure, creating items with oedit, bazaars, treasure chests and more.
+void assign_random_bonuses(struct obj_data *obj, int olevel, int num_bonuses)
+{
+  int i;
+
+  if (!obj)
+  {
+    return;
+  }
+
+  if (num_bonuses < 1)
+    num_bonuses = 1;
+  if (num_bonuses > MAX_OBJ_AFFECT)
+    num_bonuses = MAX_OBJ_AFFECT;
+  
+  for (i = 0; i < num_bonuses; i++)
+  {
+    assign_a_random_apply_to_slot(obj, olevel, i);
+  }
+}
+
+void erase_bonus_info_for_slot(struct obj_data *obj, int slot)
+{
+  if (!obj || slot < 0 || slot >= MAX_OBJ_AFFECT)
+    return;
+
+  obj->affected[slot].location = APPLY_NONE;
+  obj->affected[slot].modifier = 0;
+  obj->affected[slot].bonus_type = BONUS_TYPE_UNDEFINED;
+  obj->affected[slot].specific = 0;
+}
+
+bool does_obj_have_wear_slots(struct obj_data *obj)
+{
+  int i;
+
+  if (!obj) return false;
+
+  for (i = ITEM_WEAR_TAKE+1; i < NUM_ITEM_WEARS; i++)
+  {
+    if (CAN_WEAR(obj, i))
+      return true;
+  }
+
+  return false;
+}
+
+#define APPLY_CAT_NONE  0
+#define APPLY_CAT_AS    1   // ability scores
+#define APPLY_CAT_AC    2   // armor class
+#define APPLY_CAT_ST    3   // saving throws
+#define APPLY_CAT_RM    4   // resist magic
+#define APPLY_CAT_SR    5   // spell resistance
+#define APPLY_CAT_PR    6   // physical resistance
+#define APPLY_CAT_DR    7   // damage reduction
+#define APPLY_CAT_HR    8   // hitroll
+#define APPLY_CAT_DM    9   // damroll
+#define APPLY_CAT_IN    10  // initiative
+#define APPLY_CAT_AP    11  // ability points / skills
+#define APPLY_CAT_CS    12  // spell circles
+#define APPLY_CAT_EN    13  // encumberance
+#define APPLY_CAT_GB    14  // grant bulk
+#define APPLY_CAT_GR    15  // grant regen
+#define APPLY_CAT_SP    16  // spell potency
+#define APPLY_CAT_SD    17  // spell duration
+#define APPLY_CAT_SDC   18  // spell dc
+#define APPLY_CAT_SPN   19  // spell penetration
+
+// This function will return the category assigned to it which is used to prevent
+// duplicate apply types from appearing on gear where the apply bonuses are randomly
+// applied. Example: It will prevent an item from having two ability score increases
+// such as +strength and +dexterity. This is to coincide with the gear balancing
+// guide written by Meka for Chronicles of Krynn
+int get_apply_no_repeat_category(int apply)
+{
+  switch (apply)
+  {
+    case APPLY_STR:
+    case APPLY_DEX:
+    case APPLY_INT:
+    case APPLY_WIS:
+    case APPLY_CON:
+    case APPLY_CHA:
+      return APPLY_CAT_AS; // ability scores
+
+    case APPLY_PSP:
+    case APPLY_HIT:
+    case APPLY_MOVE:
+      return APPLY_CAT_GB; // grant bulk
+
+    case APPLY_MV_REGEN:
+    case APPLY_HP_REGEN:
+    case APPLY_PSP_REGEN:
+    case APPLY_FAST_HEALING:
+      return APPLY_CAT_GR; // grant regen
+
+    case APPLY_SKILL:
+      return APPLY_CAT_AP; // ability points / skills
+
+    case APPLY_HITROLL:
+      return APPLY_CAT_HR; // hitroll
+    
+    case APPLY_DAMROLL:
+      return APPLY_CAT_DR; // damroll
+
+    case APPLY_SAVING_FORT:
+    case APPLY_SAVING_REFL:
+    case APPLY_SAVING_WILL:
+      return APPLY_CAT_ST; // saving throws
+
+    case APPLY_SPELL_RES:
+    case APPLY_POWER_RES:
+      return APPLY_CAT_SR; // spell resistance
+
+    case APPLY_SPELL_CIRCLE_1:
+    case APPLY_SPELL_CIRCLE_2:
+    case APPLY_SPELL_CIRCLE_3:
+    case APPLY_SPELL_CIRCLE_4:
+    case APPLY_SPELL_CIRCLE_5:
+    case APPLY_SPELL_CIRCLE_6:
+    case APPLY_SPELL_CIRCLE_7:
+    case APPLY_SPELL_CIRCLE_8:
+    case APPLY_SPELL_CIRCLE_9:
+      return APPLY_CAT_CS; // spell circles
+
+    case APPLY_AC_NEW:
+      return APPLY_CAT_AC; // armor class
+
+    case APPLY_DR:
+      return APPLY_CAT_DR; // damage reduction
+
+    case APPLY_RES_ACID:
+    case APPLY_RES_AIR:
+    case APPLY_RES_COLD:
+    case APPLY_RES_EARTH:
+    case APPLY_RES_ELECTRIC:
+    case APPLY_RES_FIRE:
+    case APPLY_RES_HOLY:
+    case APPLY_RES_LIGHT:
+    case APPLY_RES_MENTAL:
+    case APPLY_RES_NEGATIVE:
+    case APPLY_RES_POISON:
+    case APPLY_RES_SOUND:
+    case APPLY_RES_UNHOLY:
+    case APPLY_RES_ILLUSION:
+    case APPLY_RES_WATER:
+    case APPLY_RES_DISEASE:
+      return APPLY_CAT_RM; // resist magic
+
+    case APPLY_RES_SLICE:
+    case APPLY_RES_PUNCTURE:
+    case APPLY_RES_FORCE:
+        return APPLY_CAT_PR; // physical resistance
+
+    case APPLY_SPELL_POTENCY:
+      return APPLY_CAT_SP; // spell potency
+    
+    case APPLY_SPELL_DC:
+      return APPLY_CAT_SDC; // spell dc
+    case APPLY_SPELL_DURATION:
+      return APPLY_CAT_SD; // spell duration
+    case APPLY_SPELL_PENETRATION:
+      return APPLY_CAT_SPN; // spell penetration
+  }
+  return APPLY_CAT_NONE; // no category assigned
+}
+
+// this function will assign random bonuses to an object based on its level and the number of bonuses specified.
+// the bonuses assigned will be weighted based on how common the bonuses are in existing gear.
+// can be used for random treasure, creating items with oedit, bazaars, treasure chests and more.
+void assign_weighted_random_bonuses(struct obj_data *obj, int olevel, int num_bonuses)
+{
+
 }

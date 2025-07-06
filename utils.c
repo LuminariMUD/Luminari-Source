@@ -44,6 +44,8 @@
 #include "char_descs.h"
 #include "treasure.h"
 
+extern int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
+
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
 /* Functions of a general utility nature
@@ -3890,6 +3892,10 @@ void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_col
   int num_per_col, col_width, r, c, i, offset = 0, len = 0, temp_len, max_len = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   bool highlight = false;
+  int base_width = 120;
+  int wear_loc;
+  int num_existing;
+  char existing[10];
 
   /* Work out the longest list item */
   for (i = 0; i < list_length; i++)
@@ -3899,7 +3905,7 @@ void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_col
   /* auto columns case */
   if (num_cols == 0)
   {
-    num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / (max_len + (show_nums ? 5 : 1));
+    num_cols = (IS_NPC(ch) ? base_width : GET_SCREEN_WIDTH(ch)) / (max_len + (show_nums ? 5 : 1));
   }
 
   /* Ensure that the number of columns is in the range 1-10 */
@@ -3912,7 +3918,7 @@ void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_col
 
   /* Calculate the width of each column */
   if (IS_NPC(ch))
-    col_width = 80 / num_cols;
+    col_width = base_width / num_cols;
   else
     col_width = (GET_SCREEN_WIDTH(ch)) / num_cols;
 
@@ -3933,10 +3939,21 @@ void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_col
       offset = (c * num_per_col) + r;
       if (offset < list_length)
       {
-        highlight = highlight_apply_by_obj(obj, offset);         
+        highlight = highlight_apply_by_obj(obj, offset);
+        wear_loc = get_first_wear_slot(obj);
+        if (wear_loc == ITEM_WEAR_TAKE)
+        {
+          snprintf(existing, sizeof(existing), " ");
+          num_existing = 0;
+        }
+        else
+        {
+          num_existing = weighted_object_bonuses[wear_loc][offset];
+          snprintf(existing, sizeof(existing), "[%4d]", num_existing);
+        }
         
         if (show_nums)
-          temp_len = snprintf(buf + len, sizeof(buf) - len, "%s%2d) %-*s\tn", highlight ? "\tC" : "", offset + 1, col_width, list[(offset)]);
+          temp_len = snprintf(buf + len, sizeof(buf) - len, "%s%2d) %-6s %-*s\tn", highlight ? "\tC" : "", offset + 1, existing, col_width, list[(offset)]);
         else
           temp_len = snprintf(buf + len, sizeof(buf) - len, "%s%-*s\tn", highlight ? "\tC" : "", col_width, list[(offset)]);
         len += temp_len;
@@ -10686,6 +10703,41 @@ bool is_weapon_wielded_two_handed(struct obj_data *obj, struct char_data *ch)
     return false;
 
   return true;  
+}
+
+bool is_valid_skill(int snum)
+{
+  switch (snum)
+  {
+    case ABILITY_ACROBATICS:
+    case ABILITY_APPRAISE:
+    case ABILITY_ARCANA:
+    case ABILITY_ATHLETICS:
+    case ABILITY_CONCENTRATION:
+    case ABILITY_DECEPTION:
+    case ABILITY_DISABLE_DEVICE:
+    case ABILITY_DISCIPLINE:
+    case ABILITY_DISGUISE:
+    case ABILITY_HANDLE_ANIMAL:
+    case ABILITY_HISTORY:
+    case ABILITY_INSIGHT:
+    case ABILITY_INTIMIDATE:
+    case ABILITY_LINGUISTICS:
+    case ABILITY_MEDICINE:
+    case ABILITY_NATURE:
+    case ABILITY_PERCEPTION:
+    case ABILITY_PERFORM:
+    case ABILITY_PERSUASION:
+    case ABILITY_RELIGION:
+    case ABILITY_RIDE:
+    case ABILITY_SLEIGHT_OF_HAND:
+    case ABILITY_SPELLCRAFT:
+    case ABILITY_STEALTH:
+    case ABILITY_TOTAL_DEFENSE:
+    case ABILITY_USE_MAGIC_DEVICE:
+      return true;
+  }
+  return false;
 }
 
 /* EoF */

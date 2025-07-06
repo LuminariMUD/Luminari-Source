@@ -534,7 +534,7 @@ transport.o: transport.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h oasis.h \
  help.h screen.h interpreter.h modify.h spells.h feats.h class.h \
  handler.h constants.h assign_wpn_armor.h domains_schools.h spell_prep.h \
- alchemy.h race.h transport.h dg_scripts.h wilderness.h
+ alchemy.h race.h transport.h dg_scripts.h wilderness.h graph.h
 traps.o: traps.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h handler.h mud_event.h \
  dg_event.h actions.h mudlim.h fight.h spells.h traps.h
