@@ -73,6 +73,25 @@ The codebase follows a modular MUD architecture:
 - When adding new commands, register them in interpreter.c
 - Use the existing logging macros (log(), mudlog()) for debugging
 
+### Code Formatting
+The project includes a `.clang-format` configuration file for consistent code formatting:
+```bash
+# Format a single file
+clang-format -i filename.c
+
+# Format all C files in current directory
+clang-format -i *.c
+
+# Format all C and header files recursively
+find . -name "*.c" -o -name "*.h" | xargs clang-format -i
+
+# Check formatting without modifying files
+clang-format -n filename.c
+
+# Format only modified lines (requires git)
+git diff -U0 --no-color | clang-format-diff -i
+```
+
 ### Key Systems to Understand
 1. **DG Scripts** - The scripting system used for dynamic content
 2. **OLC (Online Creation)** - The in-game building tools
