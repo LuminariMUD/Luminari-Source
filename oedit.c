@@ -34,9 +34,6 @@
 #include "act.h"      /* get_eq_score() */
 #include "feats.h"
 #include "handler.h"
-#include "treasure.h"
-
-extern int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);
@@ -491,9 +488,6 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d)
       write_to_output(d, " %s%d%s) None.\r\n", grn, counter + 1, nrm);
     }
   }
-  write_to_output(d, "\r\nTo select a random number of applies, type: random.\r\n");
-  write_to_output(d, "To select a random apply for a certain slot, type: slot.\r\n");
-  write_to_output(d, "To erase the bonus for a certain slot, type: erase\r\n");
   write_to_output(d, "\r\nEnter affection to modify (0 to quit) : ");
   OLC_MODE(d) = OEDIT_PROMPT_APPLY;
 }
@@ -766,12 +760,8 @@ static void oedit_disp_apply_menu(struct descriptor_data *d)
   get_char_colors(d->character);
   clear_screen(d);
   column_list_applies(d->character, OLC_OBJ(d), 0, apply_types, NUM_APPLIES, TRUE);
-  write_to_output(d, "\r\n"
-                     "It is highly recommended to set the item type, wear slots and minimum level before\r\n"
-                     "setting applies, in order to get proper gear bonus suggestions.\r\n");
+  write_to_output(d, "\r\nIt is highly recommended to set the item type, wear slots and minimum level before setting applies, in order to get proper gear bonus suggestions.\r\n");
   write_to_output(d, "Eligible Bonus Types are highlighted in \tCcyan\tn.\r\n");
-  write_to_output(d, "Numbers preceeding the bonus types in [] signify the number of times that bonus\r\n"
-                    "has been used for the primary wear slot (first one in the wear slot list excluding 'take').\r\n");
   write_to_output(d, "\r\nEnter apply type (0 is no apply)\r\n(for 'grant feat' select featnum here, 'featlist' out of editor for master list) : ");
   OLC_MODE(d) = OEDIT_APPLY;
 }
@@ -2650,91 +2640,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     //    }
     //  }
 
-  case OEDIT_RANDOM_APPLY:
-    if (GET_OBJ_LEVEL(OLC_OBJ(d)) <= 0 || !does_obj_have_wear_slots(OLC_OBJ(d)))
-    {
-      write_to_output(d, "You need to set the object level and at least one wear slot before you can assign random applies.\r\n");
-      OLC_MODE(d) = OEDIT_PROMPT_APPLY;
-      oedit_disp_prompt_apply_menu(d);
-      return;
-    }
-    if (!isdigit(*arg) || (number = atoi(arg)) < 1)
-    {
-      write_to_output(d, "Please enter a valid number of random applies: ");
-      return;
-    }
-    if (number > MAX_OBJ_AFFECT)
-    {
-      write_to_output(d, "You can only apply a maximum of %d random applies.\r\n", MAX_OBJ_AFFECT);
-      return;
-    }
-    write_to_output(d, "Assigning %d random applies to the object.\r\n", number);
-    assign_random_bonuses(OLC_OBJ(d), GET_OBJ_LEVEL(OLC_OBJ(d)), number);
-    OLC_MODE(d) = OEDIT_PROMPT_APPLY;
-    oedit_disp_prompt_apply_menu(d);
-    return;
-
-  case OEDIT_RANDOM_APPLY_SLOT:
-    if (GET_OBJ_LEVEL(OLC_OBJ(d)) <= 0 || !does_obj_have_wear_slots(OLC_OBJ(d)))
-    {
-      write_to_output(d, "You need to set the object level and at least one wear slot before you can assign random applies.\r\n");
-      OLC_MODE(d) = OEDIT_PROMPT_APPLY;
-      oedit_disp_prompt_apply_menu(d);
-      return;
-    }
-    if (!isdigit(*arg) || (number = atoi(arg)) < 1)
-    {
-      write_to_output(d, "Please enter which slot you want to apply a random bonus to: ");
-      return;
-    }
-    if (number > MAX_OBJ_AFFECT)
-    {
-      write_to_output(d, "You must choose a slot from 1 to %d.\r\n", MAX_OBJ_AFFECT);
-      return;
-    }
-    write_to_output(d, "Assigning a random apply to slot %d of the object.\r\n", number);
-    assign_a_random_apply_to_slot(OLC_OBJ(d), GET_OBJ_LEVEL(OLC_OBJ(d)), number - 1);
-    OLC_MODE(d) = OEDIT_PROMPT_APPLY;
-    oedit_disp_prompt_apply_menu(d);
-    return;
-
-  case OEDIT_ERASE_SLOT:
-    if (!isdigit(*arg) || (number = atoi(arg)) < 1)
-    {
-      write_to_output(d, "Please enter which slot you want to erase the bonus from: ");
-      return;
-    }
-    if (number > MAX_OBJ_AFFECT)
-    {
-      write_to_output(d, "You must choose a slot from 1 to %d.\r\n", MAX_OBJ_AFFECT);
-      return;
-    }
-    write_to_output(d, "Erasing bonus info for slot %d of the object.\r\n", number);
-    erase_bonus_info_for_slot(OLC_OBJ(d), number - 1);
-    OLC_MODE(d) = OEDIT_PROMPT_APPLY;
-    oedit_disp_prompt_apply_menu(d);
-    return;
-
   case OEDIT_PROMPT_APPLY:
-    if (*arg && is_abbrev(arg, "random"))
-    {
-      write_to_output(d, "How many random applies? ");
-      OLC_MODE(d) = OEDIT_RANDOM_APPLY;
-      return;
-    }
-    if (*arg && is_abbrev(arg, "slot"))
-    {
-      write_to_output(d, "Add a random apply to which slot? ");
-      OLC_MODE(d) = OEDIT_RANDOM_APPLY_SLOT;
-      return;
-    }
-    if (*arg && is_abbrev(arg, "erase"))
-    {
-      write_to_output(d, "Erase bonus info for which slot? ");
-      OLC_MODE(d) = OEDIT_ERASE_SLOT;
-      return;
-    }
-    else if ((number = atoi(arg)) == 0)
+    if ((number = atoi(arg)) == 0)
       break;
     else if (number < 0 || number > MAX_OBJ_AFFECT)
     {
