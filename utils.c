@@ -10688,5 +10688,40 @@ bool is_weapon_wielded_two_handed(struct obj_data *obj, struct char_data *ch)
   return true;  
 }
 
+bool is_valid_skill(int snum)
+{
+  switch (snum)
+  {
+    case ABILITY_ACROBATICS:
+    case ABILITY_APPRAISE:
+    case ABILITY_ARCANA:
+    case ABILITY_ATHLETICS:
+    case ABILITY_CONCENTRATION:
+    case ABILITY_DECEPTION:
+    case ABILITY_DISABLE_DEVICE:
+    case ABILITY_DISCIPLINE:
+    case ABILITY_DISGUISE:
+    case ABILITY_HANDLE_ANIMAL:
+    case ABILITY_HISTORY:
+    case ABILITY_INSIGHT:
+    case ABILITY_INTIMIDATE:
+    case ABILITY_LINGUISTICS:
+    case ABILITY_MEDICINE:
+    case ABILITY_NATURE:
+    case ABILITY_PERCEPTION:
+    case ABILITY_PERFORM:
+    case ABILITY_PERSUASION:
+    case ABILITY_RELIGION:
+    case ABILITY_RIDE:
+    case ABILITY_SLEIGHT_OF_HAND:
+    case ABILITY_SPELLCRAFT:
+    case ABILITY_STEALTH:
+    case ABILITY_TOTAL_DEFENSE:
+    case ABILITY_USE_MAGIC_DEVICE:
+      return true;
+  }
+  return false;
+}
+
 /* EoF */
 

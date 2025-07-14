@@ -134,6 +134,8 @@ int get_spell_penetration_bonus(struct char_data *ch);
 int get_random_chest_item_level(int level);
 int get_chest_contents_type(void);
 bool is_wearing_metal(struct char_data *ch);
+bool is_valid_skill(int snum);
+bool is_caster_class(int class);
 bool has_aura_of_terror(struct char_data *ch);
 int get_random_chest_dc(int level);
 bool has_blindsense(struct char_data *ch);
