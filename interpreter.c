@@ -365,6 +365,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"dragbreath", "dragbreath", POS_FIGHTING, do_dragonborn_breath_weapon, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_dragonborn_breath_weapon},
     {"dragonfear", "dragonfear", POS_FIGHTING, do_dragonfear, 1, 0, FALSE, ACTION_SWIFT, {6, 0}, can_dragonfear},
     {"dragonmagic", "dragonmagic", POS_FIGHTING, do_dragonmagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_dragonmagic},
+    {"draw", "draw", POS_SITTING, do_unsheath, 1, 0, FALSE, ACTION_NONE, {0, 6}, NULL},
     {"dice", "dice", POS_RECLINING, do_dice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
@@ -805,6 +806,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"setworldsect", "setw", POS_DEAD, do_setworldsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shadowcast", "shc", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SHADOW, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"shadowform", "shf", POS_SITTING, do_gen_tog, 1, SCMD_SHADOWFORM, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"sheath", "she", POS_SITTING, do_sheath, 1, 0, FALSE, ACTION_NONE, {0, 6}, NULL},
     {"shortcut", "shortcut", POS_DEAD, do_shortcut, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shout", "shout", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -919,6 +921,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"uncommune", "uncommune", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_UNCOMMUNE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"unconjure", "unconjure", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_UNCONJURE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"undeath", "undeath", POS_FIGHTING, do_touch_of_undeath, 0, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
+    {"unsheath", "unshe", POS_SITTING, do_unsheath, 1, 0, FALSE, ACTION_NONE, {0, 6}, NULL},
     {"unstore", "unstore", POS_FIGHTING, do_unstore, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"unstuck", "unstuck", POS_DEAD, do_unstuck, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"uptime", "uptime", POS_DEAD, do_date, 1, SCMD_UPTIME, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -948,6 +951,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"wake", "wake", POS_SLEEPING, do_wake, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"walkto", "walkto", POS_STANDING, do_walkto, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wear", "wea", POS_RESTING, do_wear, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"wearapplies", "wearapplies", POS_RESTING, do_wearapplies, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"wearlocations", "wearlocations", POS_RESTING, do_wearlocations, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"weather", "weather", POS_RECLINING, do_weather, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"who", "wh", POS_DEAD, do_who, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"whois", "whoi", POS_DEAD, do_whois, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1325,6 +1330,8 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "osay") &&
            !is_abbrev(complete_cmd_info[cmd].command, "rest") &&
            !is_abbrev(complete_cmd_info[cmd].command, "save") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "wearapplies") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "wearlocations") &&
 #if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
            !is_abbrev(complete_cmd_info[cmd].command, "say") &&
 #endif
@@ -1378,6 +1385,8 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "osay") &&
            !is_abbrev(complete_cmd_info[cmd].command, "rest") &&
            !is_abbrev(complete_cmd_info[cmd].command, "save") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "wearapplies") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "wearlocations") &&
            !is_abbrev(complete_cmd_info[cmd].command, "say"))
   {
     send_to_char(ch, "You can't do that while %s.\r\n", crafting_methods[GET_CRAFT(ch).crafting_method]);
@@ -1402,6 +1411,8 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "bug") &&
            !is_abbrev(complete_cmd_info[cmd].command, "typo") &&
            !is_abbrev(complete_cmd_info[cmd].command, "idea") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "wearapplies") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "wearlocations") &&
            !is_abbrev(complete_cmd_info[cmd].command, "tell"))
     send_to_char(ch, "You are too busy crafting. [Available commands: gossip/"
                      "chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea/class/race/spelllist]\r\n");
@@ -2153,11 +2164,11 @@ int enter_player_game(struct descriptor_data *d)
   create_group(d->character);
 
   /* load up their pets, new system by gicksta */
-  load_char_pets(d->character);
+  load_char_pets(d->character);  
 
-  /* Save the character and their object file */
-  save_char(d->character, 0);
-  Crash_crashsave(d->character);
+  // /* Save the character and their object file */
+  // save_char(d->character, 0);
+  // Crash_crashsave(d->character);
 
   /* Check for a login trigger in the players' start room */
   login_wtrigger(&world[IN_ROOM(d->character)], d->character);

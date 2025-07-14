@@ -46,6 +46,8 @@
 #include "transport.h"
 #include "encounters.h"
 #include "deities.h"
+#include "treasure.h"
+#include "boards.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -101,6 +103,7 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_ABOUT,         //<worn about body>
     WEAR_AMMO_POUCH,    //<worn as ammo pouch>
     WEAR_WAIST,         //<worn about waist>
+    WEAR_SHEATH,        //<worn as sheath>
     WEAR_ARMS,          //<worn on arms>
     WEAR_WRIST_R,       //<worn around wrist>
     WEAR_WRIST_L,       //<worn around wrist>
@@ -1768,7 +1771,7 @@ static void look_at_target(struct char_data *ch, char *arg)
   struct char_data *found_char = NULL;
   struct obj_data *obj, *found_obj = NULL;
   char *desc;
-  char desc_out[512];
+  char desc_out[MAX_MESSAGE_LENGTH] = {'\0'};
 
   if (!ch->desc)
     return;
@@ -1833,6 +1836,24 @@ static void look_at_target(struct char_data *ch, char *arg)
         }
 
         send_to_char(ch, "%s\n", desc_out);
+
+        if (j == WEAR_SHEATH)
+        {
+          if (GET_EQ(ch, j)->sheath_primary || GET_EQ(ch, j)->sheath_secondary)
+          {
+            send_to_char(ch, "It contains:\r\n");
+
+            if (GET_EQ(ch, j)->sheath_primary)
+              send_to_char(ch, "  %s\r\n", GET_EQ(ch, j)->sheath_primary->short_description);
+
+            if (GET_EQ(ch, j)->sheath_secondary)
+              send_to_char(ch, "  %s\r\n", GET_EQ(ch, j)->sheath_secondary->short_description);
+          }
+          else
+          {
+            send_to_char(ch, "It is currently empty.\r\n");
+          }
+        }
         found = TRUE;
       }
 
@@ -1865,6 +1886,25 @@ static void look_at_target(struct char_data *ch, char *arg)
         }
 
         send_to_char(ch, "%s\n", desc_out);
+
+        if (CAN_WEAR(obj, ITEM_WEAR_SHEATH))
+        {
+          if (obj->sheath_primary || obj->sheath_secondary)
+          {
+            send_to_char(ch, "It contains:\r\n");
+
+            if (obj->sheath_primary)
+              send_to_char(ch, "  %s\r\n", obj->sheath_primary->short_description);
+
+            if (obj->sheath_secondary)
+              send_to_char(ch, "  %s\r\n", obj->sheath_secondary->short_description);
+          }
+          else
+          {
+            send_to_char(ch, "It is currently empty.\r\n");
+          }
+        }
+
         found = TRUE;
       }
   }
@@ -1897,6 +1937,25 @@ static void look_at_target(struct char_data *ch, char *arg)
         }
 
         send_to_char(ch, "%s\n", desc_out);
+
+        if (CAN_WEAR(obj, ITEM_WEAR_SHEATH))
+        {
+          if (obj->sheath_primary || obj->sheath_secondary)
+          {
+            send_to_char(ch, "It contains:\r\n");
+
+            if (obj->sheath_primary)
+              send_to_char(ch, "  %s\r\n", obj->sheath_primary->short_description);
+
+            if (obj->sheath_secondary)
+              send_to_char(ch, "  %s\r\n", obj->sheath_secondary->short_description);
+          }
+          else
+          {
+            send_to_char(ch, "It is currently empty.\r\n");
+          }
+        }
+
         found = TRUE;
       }
 
@@ -3443,8 +3502,8 @@ ACMD(do_score)
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
-  send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)   \tcSpeed:\tn %d\r\n",
-               GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch), get_speed(ch, TRUE));
+  send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)   \tcSpeed:\tn %-3d   \tcInitiative:\tn %s%d\r\n",
+               GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch), get_speed(ch, TRUE), get_initiative_modifier(ch) >= 0 ? "+" : "", get_initiative_modifier(ch));
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tyExperience\tC", line_length, '-', '-');
@@ -7472,6 +7531,66 @@ ACMD(do_roomvnum)
 
   send_to_char(ch, "This room's vnum is %d.\r\n", world[IN_ROOM(ch)].number);
   return;
+}
+
+ACMD(do_wearlocations)
+{
+  int i;
+
+  send_to_char(ch, "\tCWear Locations:\tn\r\n");
+
+  for (i = 1; i < NUM_ITEM_WEARS; i++)
+  {
+    column_list(ch, 3, wear_bits, NUM_ITEM_WEARS, FALSE);
+    return;
+  }
+}
+
+ACMDU(do_wearapplies)
+{
+
+  skip_spaces(&argument);
+  int i, j, wear_loc, count = 0;
+  char wears[100];
+  char *apply_list[NUM_APPLIES];
+
+  if (!*argument)
+  {
+    send_to_char(ch, "You need to specify a wear location. You can see a list by typing: wearlocations.\r\n");
+    return;
+  }
+
+  for (i = 1; i < NUM_ITEM_WEARS; i++)
+  {
+    snprintf(wears, sizeof(wears), "%s", wear_bits[i]);
+    for (j = 0; j < strlen(wears); j++)
+      wears[j] = tolower(wears[j]);
+
+    if (is_abbrev(argument, wears))
+      break;
+  }
+
+  if (i >= NUM_ITEM_WEARS)
+  {
+    send_to_char(ch, "That is not a valid wear location. You can see a list by typing: wearlocations.\r\n");
+    return;
+  }
+
+  wear_loc = i;
+
+  for (i = 0; i < NUM_APPLIES; i++)
+  {
+    if (is_bonus_valid_for_where_slot(i, wear_loc))
+    {
+      apply_list[count] = strdup(apply_types[i]);
+      count++;
+    }
+  }
+
+  send_to_char(ch, "\tCApply Types for Wear Location %s:\tn\r\n", wear_bits[wear_loc]);
+  column_list(ch, 3, (const char **)apply_list, count, FALSE);
+  send_to_char(ch, "\r\n");
+
 }
 
 #undef WPT_SIMPLE

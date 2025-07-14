@@ -3790,6 +3790,9 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where)
       {"$n clips $p on to $s left ankle.",
        "You clip $p on to your left ankle."},
 
+      {"$n straps $p on as $s sheath.",
+       "You strap $p on as your sheath."},
+
 
   };
 
@@ -3928,7 +3931,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_WIELD, ITEM_WEAR_TAKE,
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_FACE, ITEM_WEAR_AMMO_POUCH,
       ITEM_WEAR_EAR, ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE,
-      ITEM_WEAR_SHOULDERS, ITEM_WEAR_ANKLE, ITEM_WEAR_ANKLE};
+      ITEM_WEAR_SHOULDERS, ITEM_WEAR_ANKLE, ITEM_WEAR_ANKLE, ITEM_WEAR_SHEATH};
 
   const char *const already_wearing[NUM_WEARS] = {
       "You're already using a light.\r\n",                                  // 0
@@ -3961,7 +3964,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       "You are already wearing a badge.\r\n",
       "You are already wearing something on your shoulders.\r\n",
       "YOU SHOULD NEVER SEE THIS MESSAGE.  PLEASE REPORT.\r\n",
-      "You're already wearing something on both of your ankles.\r\n",      
+      "You're already wearing something on both of your ankles.\r\n",     
+      "You are already wearing a sheath.\r\n",
   };
 
   /* we are looking for some quick exits */
@@ -4041,6 +4045,13 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
     return;
   }
 
+  if ((where == WEAR_AMMO_POUCH && GET_EQ(ch, WEAR_SHEATH)) ||
+       (where == WEAR_SHEATH && GET_EQ(ch, WEAR_AMMO_POUCH)))
+  {
+    send_to_char(ch, "You can't wear an ammo pouch and a weapon sheath at the same time.\r\n");
+    return;
+  }
+
   // size for gear, not in-hands
   if (where != WEAR_WIELD_1 && where != WEAR_WIELD_OFFHAND &&
       where != WEAR_HOLD_1 && where != WEAR_HOLD_2 &&
@@ -4052,7 +4063,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       where != WEAR_FINGER_R && where != WEAR_FINGER_L &&
       where != WEAR_EAR_R && where != WEAR_EAR_L &&
       where != WEAR_ANKLE_R && where != WEAR_ANKLE_L &&
-      where != WEAR_EYES && where != WEAR_BADGE)
+      where != WEAR_EYES && where != WEAR_BADGE && where != WEAR_SHEATH)
   {
     if (GET_OBJ_SIZE(obj) < GET_SIZE(ch))
     {
@@ -4084,7 +4095,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       send_to_char(ch, "You have no hands!\r\n");
       return;
     }
-
+  
     if (handsNeeded == 2 && where == WEAR_WIELD_1)
       where = WEAR_WIELD_2H;
     if (handsNeeded == 2 && where == WEAR_HOLD_1)
@@ -4204,6 +4215,8 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
       where = WEAR_SHOULDERS;
     if (CAN_WEAR(obj, ITEM_WEAR_ANKLE))
       where = WEAR_ANKLE_R;
+    if (CAN_WEAR(obj, ITEM_WEAR_SHEATH))
+      where = WEAR_SHEATH;
 
     /* this means we have an argument, does it match our keywords-array ?*/
   }
@@ -8099,5 +8112,136 @@ ACMD(do_downgrade)
     send_to_char(ch, "It cost you %d coins to downgrade this item.\tn\r\n", cost);
     ch->player_specials->downgrade_confirm = NULL;
 }
+
+ACMD(do_sheath)
+{
+  struct obj_data *sheath = GET_EQ(ch, WEAR_SHEATH);
+  struct obj_data *primary = NULL, *secondary = NULL;
+
+  if (!sheath) {
+    send_to_char(ch, "You aren't wearing a sheath.\r\n");
+    return;
+  }
+
+  if (sheath->sheath_primary || sheath->sheath_secondary) {
+    send_to_char(ch, "Your sheath is already full.\r\n");
+    return;
+  }
+
+  // Gather wielded equipment
+  if ((primary = GET_EQ(ch, WEAR_WIELD_2H))) {
+    // 2H weapon
+    unequip_char(ch, WEAR_WIELD_2H);
+    sheath->sheath_primary = primary;
+    act("You sheath $p into $P.", FALSE, ch, primary, sheath, TO_CHAR);
+    act("$n sheathes $p into $P.", FALSE, ch, primary, sheath, TO_ROOM);
+    return;
+  }
+
+  // 1H and offhand/shield case
+  primary = GET_EQ(ch, WEAR_WIELD_1);
+  secondary = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (secondary == NULL)
+    secondary = GET_EQ(ch, WEAR_SHIELD);
+
+  if (!primary && !secondary) {
+    send_to_char(ch, "You aren't wielding anything to sheath.\r\n");
+    return;
+  }
+
+  if (primary) {
+    unequip_char(ch, WEAR_WIELD_1);
+    sheath->sheath_primary = primary;
+  }
+  if (secondary)
+  {
+    if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
+      unequip_char(ch, WEAR_WIELD_OFFHAND);
+    else
+      unequip_char(ch, WEAR_SHIELD);
+    sheath->sheath_secondary = secondary;
+  }
+
+  if (primary && secondary) {
+    act("You sheath $p and $P.", FALSE, ch, primary, secondary, TO_CHAR);
+    act("$n sheathes $p and $P.", FALSE, ch, primary, secondary, TO_ROOM);
+  } else if (primary) {
+    act("You sheath $p.", FALSE, ch, primary, NULL, TO_CHAR);
+    act("$n sheathes $p.", FALSE, ch, primary, NULL, TO_ROOM);
+  } else if (secondary) {
+    act("You sheath $p.", FALSE, ch, secondary, NULL, TO_CHAR);
+    act("$n sheathes $p.", FALSE, ch, secondary, NULL, TO_ROOM);
+  }
+}
+
+ACMD(do_unsheath)
+{
+  struct obj_data *sheath = GET_EQ(ch, WEAR_SHEATH);
+  struct obj_data *primary, *secondary;
+  int handsNeeded = 1;
+
+  if (!sheath || (!sheath->sheath_primary && !sheath->sheath_secondary)) {
+    send_to_char(ch, "Your sheath is empty.\r\n");
+    return;
+  }
+
+  if (GET_EQ(ch, WEAR_WIELD_1) || GET_EQ(ch, WEAR_WIELD_2H) ||
+      GET_EQ(ch, WEAR_WIELD_OFFHAND) || GET_EQ(ch, WEAR_SHIELD)) {
+    send_to_char(ch, "You must have your hands free to unsheath.\r\n");
+    return;
+  }
+
+  primary = sheath->sheath_primary;
+  secondary = sheath->sheath_secondary;
+
+  // Check if hands are free
+  if (primary != NULL && GET_EQ(ch, WEAR_WIELD_1))
+    unequip_char(ch, WEAR_WIELD_1);
+  if (secondary != NULL) {
+    if (CAN_WEAR(secondary, ITEM_WEAR_SHIELD))
+    {
+      if (GET_EQ(ch, WEAR_SHIELD)) unequip_char(ch, WEAR_SHIELD);
+    }
+    else
+    {
+      if (GET_EQ(ch, WEAR_WIELD_OFFHAND)) unequip_char(ch, WEAR_WIELD_OFFHAND);
+    }
+  }
+
+  // Equip
+  
+  if (primary != NULL)
+    handsNeeded = hands_needed(ch, primary);
+  if (primary != NULL && handsNeeded == 2)
+  {
+    equip_char(ch, primary, WEAR_WIELD_2H);
+    sheath->sheath_primary = NULL;
+  }
+  else if (primary != NULL)
+  {
+    equip_char(ch, primary, WEAR_WIELD_1);
+    sheath->sheath_primary = NULL;
+  }
+
+  if (secondary != NULL) {
+    if (CAN_WEAR(secondary, ITEM_WEAR_SHIELD))
+      equip_char(ch, secondary, WEAR_SHIELD);
+    else
+      equip_char(ch, secondary, WEAR_WIELD_OFFHAND);
+    sheath->sheath_secondary = NULL;
+  }
+
+  if (primary && secondary) {
+    act("You unsheath $p and $P.", FALSE, ch, primary, secondary, TO_CHAR);
+    act("$n unsheathes $p and $P.", FALSE, ch, primary, secondary, TO_ROOM);
+  } else if (primary) {
+    act("You unsheath $p.", FALSE, ch, primary, NULL, TO_CHAR);
+    act("$n unsheathes $p.", FALSE, ch, primary, NULL, TO_ROOM);
+  } else if (secondary) {
+    act("You unsheath $p.", FALSE, ch, secondary, NULL, TO_CHAR);
+    act("$n unsheathes $p.", FALSE, ch, secondary, NULL, TO_ROOM);
+  }
+}
+
 
 /* EOF */

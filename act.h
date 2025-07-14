@@ -270,6 +270,8 @@ ACMD_DECL(do_flightlist);
 ACMD_DECL(do_kapak_saliva);
 ACMD_DECL(do_roomvnum);
 ACMD_DECL(do_lastroom);
+ACMD_DECL(do_wearlocations);
+ACMD_DECL(do_wearapplies);
 
 int max_judgements_active(struct char_data *ch);
 int num_judgements_active(struct char_data *ch);
@@ -326,6 +328,8 @@ void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int
 void list_obj_to_char_full(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type, bool can_see_always);
 int find_activate_object_by_spellnum(struct char_data *ch, int spellnum, bool require_uses_remaining);
 
+ACMD_DECL(do_sheath);
+ACMD_DECL(do_unsheath);
 /* functions with subcommands */
 /* do_drop */
 ACMD_DECL(do_drop);

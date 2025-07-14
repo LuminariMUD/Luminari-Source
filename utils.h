@@ -167,6 +167,7 @@ bool affected_by_aura_of_sin(struct char_data *ch);
 bool affected_by_aura_of_faith(struct char_data *ch);
 bool affected_by_aura_of_depravity(struct char_data *ch);
 bool affected_by_aura_of_righteousness(struct char_data *ch);
+void objs_from_sheath(struct char_data *ch, struct obj_data *sheath);
 bool is_fear_spell(int spellnum);
 bool is_valid_skill(int snum);
 bool is_grouped_with_soldier(struct char_data *ch);

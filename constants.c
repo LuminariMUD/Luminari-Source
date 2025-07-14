@@ -2105,6 +2105,7 @@ const char *wear_where[] = {
     "\tY{Worn On Shoulders}\tn  ",
     "\tY{Worn In Ankle}\tn      ",
     "\tY{Worn In Ankle}\tn      ", // 30
+    "\tY{Worn As Sheath}\tn     ",
 };
 CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 
@@ -2143,6 +2144,7 @@ const char *equipment_types[] = {
     "Worn on shoulders",
     "Worn on right ankle",
     "Worn on left ankle", // 30
+    "Worn as sheath",
     "\n"};
 CHECK_TABLE_SIZE(equipment_types, NUM_WEARS + 1);
 
@@ -2421,6 +2423,7 @@ const char *wear_bits[] = {
     "Instrument",
     "Shoulders",
     "Ankle",
+    "Sheath",
     "\n"};
 CHECK_TABLE_SIZE(wear_bits, NUM_ITEM_WEARS + 1);
 
