@@ -5129,7 +5129,8 @@ const struct zcheck_armor
     {ITEM_WEAR_EYES, 1, "Eyewear"},
     {ITEM_WEAR_BADGE, 1, "Badge"},
     {ITEM_WEAR_SHOULDERS, 1, "Pauldrons"}, // 19
-    {ITEM_WEAR_ANKLE, 1, "Anklet"} // 20
+    {ITEM_WEAR_ANKLE, 1, "Anklet"}, // 20
+    {ITEM_WEAR_SHEATH, 1, "Sheath"} // 21
 };
 
 /*These are strictly boolean*/

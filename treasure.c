@@ -124,7 +124,7 @@ int cp_convert_grade_enchantment(int grade)
 /* determine a random category for misc treasure */
 int determine_rnd_misc_cat()
 {
-  int diceroll = dice(1, 12);
+  int diceroll = dice(1, 19);
   int category = 0;
 
   switch (diceroll)
@@ -158,6 +158,28 @@ int determine_rnd_misc_cat()
     break;
   case 12: /*monk gloves*/
     category = TRS_SLOT_MONK_GLOVE;
+    break;
+  case 13:
+    /* shoulders */
+    category = TRS_SLOT_SHOULDERS;
+    break;
+  case 14:
+    /* eyes */
+    category = TRS_SLOT_EYES;
+    break;
+  case 15:
+    /* face */
+    category = TRS_SLOT_FACE;
+    break;
+  case 16:
+  case 17:
+    /* ears */
+    category = TRS_SLOT_EARS;
+    break;
+  case 18:
+  case 19:
+    /* anklet */
+    category = TRS_SLOT_ANKLET;
     break;
   }
 
@@ -758,6 +780,77 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
   }
 }
 
+void award_random_magic_armor(struct char_data *ch, int grade)
+{
+  if (dice(1, 3) != 3)
+      award_magic_armor_suit(ch, grade);
+    else
+      award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
+}
+
+void award_random_expendible_item(struct char_data *ch, int grade)
+{
+  switch (dice(1, 8))
+  {
+    case 1:
+    case 2:
+    case 3:
+      award_expendable_item(ch, grade, TYPE_SCROLL);
+      award_expendable_item(ch, grade, TYPE_SCROLL);
+      break;
+    case 4:
+    case 5:
+    case 6:
+      award_expendable_item(ch, grade, TYPE_POTION);
+      award_expendable_item(ch, grade, TYPE_POTION);
+      award_expendable_item(ch, grade, TYPE_POTION);
+      break;
+    case 7:
+      award_expendable_item(ch, grade, TYPE_WAND);
+      break;
+    case 8:
+      award_expendable_item(ch, grade, TYPE_STAFF);
+      break;
+  }
+}
+
+#if defined(USE_NEW_CRAFTING_SYSTEM)
+/* character should get treasure, roll dice for what items to give out */
+void award_magic_item(int number, struct char_data *ch, int grade)
+{
+  int i = 0;
+  int roll = 0;
+  if (number <= 0)
+    number = 1;
+
+  if (number >= 50)
+    number = 50;
+
+  /* crystals drop 5% of the time.
+   * scrolls/wands/potions/staves drop 40% of the time. (each 10%)
+   * trinkets (bracelets, rings, etc. including cloaks, boots and gloves) drop 20% of the time.
+   * armor (head, arms, legs, body) drop 25% of the time.
+   * weapons drop 10% of the time. */
+  for (i = 0; i < number; i++)
+  {
+    roll = dice(1, 100);
+    if (roll <= 20) // 20%
+      award_magic_weapon(ch, grade);
+    else if (roll <= 50) // 30%
+    {
+      award_random_expendible_item(ch, grade);
+    }
+    else if (roll <= 80) // 30%
+    {
+      award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
+    }
+    else // 20%
+    {
+      award_random_magic_armor(ch, grade);
+    }
+  }
+}
+#elif defined(USE_OLD_CRAFTING_SYSTEM)
 /* character should get treasure, roll dice for what items to give out */
 void award_magic_item(int number, struct char_data *ch, int grade)
 {
@@ -822,6 +915,8 @@ void award_magic_item(int number, struct char_data *ch, int grade)
     }
   }
 }
+
+#endif
 
 int random_apply_value(void)
 {
@@ -1391,13 +1486,11 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   {
     bonus_location = random_apply_value();
   }
+#if defined(USE_ORIGINAL_RANDOM_OBJECT_GUIDELINES)
   else
   {
     bonus_location = random_apply_value();
   }
-#if defined(CAMPAIGN_DL)
-
-#else
   else if (CAN_WEAR(obj, ITEM_WEAR_FINGER))
   {
     bonus_location = determine_stat_apply(WEAR_FINGER_R);
@@ -1430,8 +1523,6 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   {
     bonus_location = determine_stat_apply(WEAR_HOLD_1);
   }
-#endif
-
 
   if (!has_enhancement)
   {
@@ -1478,6 +1569,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
       break;
     }
   }
+  #endif
 
   /* lets modify this ammo's breakability (base 30%) */
   if (cp_type == CP_TYPE_AMMO)
@@ -1485,6 +1577,31 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   /* object level (min level to use) */
   GET_OBJ_LEVEL(obj) = MIN(30, bonus_value * 5);
+
+#if defined(USE_NEW_RANDOM_OBJECT_GUIDELINES)
+  
+  if (rare_grade > RARE_GRADE_NORMAL)
+  {
+    feat_num = apply_bonus_feat(rare_grade);
+    // send_to_char(ch, "debug: %d\r\n", feat_num);
+    while (!proper_feat(obj, feat_num))
+    {
+      feat_num = apply_bonus_feat(rare_grade);
+    }
+    if (feat_num != FEAT_UNDEFINED)
+    {
+      obj->affected[5].location = APPLY_FEAT;
+      obj->affected[5].modifier = feat_num;
+      obj->affected[5].bonus_type = adjust_bonus_type(APPLY_FEAT);
+    }
+  }
+  int num_bonuses = rare_grade + 2;
+
+  assign_random_bonuses(obj, GET_OBJ_LEVEL(obj), num_bonuses);
+  
+#endif
+
+#if defined(USE_ORIGINAL_RANDOM_OBJECT_GUIDELINES)
   /** we're dropping the min level a bit here, because
    *  we recently increased bonuses on random treasure
    *  bonuses by +1 across the board in an effort to make
@@ -1494,6 +1611,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
    */
   if (GET_OBJ_TYPE(obj) != ITEM_CRYSTAL)
     GET_OBJ_LEVEL(obj) = MAX(1, GET_OBJ_LEVEL(obj) - 5);
+#endif
 
   if (cp_type == CP_TYPE_AMMO)
     ;
@@ -3265,6 +3383,38 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
+  case 10: // Shoulder
+    vnum = SHOULDERS_MOLD;
+    material = MATERIAL_LEATHER;
+    snprintf(armor_name, MEDIUM_STRING, "%s", waist_descs[rand_number(0, NUM_A_SHOULDER_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
+    break;
+  case 11: // Eyes
+    vnum = EYES_MOLD;
+    material = MATERIAL_COPPER;
+    snprintf(armor_name, MEDIUM_STRING, "%s", eyes_descs[rand_number(0, NUM_A_EYES_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    break;
+  case 12: // Face
+    vnum = FACE_MOLD;
+    material = MATERIAL_LEATHER;
+    snprintf(armor_name, MEDIUM_STRING, "%s", face_descs[rand_number(0, NUM_A_FACE_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
+    break;
+  case 13: // Ears
+    vnum = EARS_MOLD;
+    material = MATERIAL_COPPER;
+    snprintf(armor_name, MEDIUM_STRING, "%s", ears_descs[rand_number(0, NUM_A_EARS_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    break;
+  case 14: // Anklets
+    vnum = ANKLET_MOLD;
+    material = MATERIAL_COPPER;
+    snprintf(armor_name, MEDIUM_STRING, "%s", ankle_descs[rand_number(0, NUM_A_ANKLET_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    break;
   }
 
   /* we already determined 'base' material, now
@@ -3408,6 +3558,10 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   case RING_MOLD:
   case NECKLACE_MOLD:
   case WRIST_MOLD:
+  case EARS_MOLD:
+  case ANKLET_MOLD:
+  case EYES_MOLD:
+  case FACE_MOLD:
     snprintf(keywords, MEDIUM_STRING, "%s %s set with %s gemstone",
              armor_name, material_name[material], desc2);
     obj->name = strdup(keywords);
@@ -3446,6 +3600,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     obj->description = strdup(CAP(desc));
     break;
   case BELT_MOLD:
+  case SHOULDERS_MOLD:
     snprintf(keywords, MEDIUM_STRING, "%s %s %s", armor_name, desc2, desc3);
     obj->name = strdup(keywords);
     snprintf(buf, MEDIUM_STRING, "%s %s %s %s", AN(desc2), desc2, desc3,
@@ -3561,6 +3716,38 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     snprintf(armor_name, MEDIUM_STRING, "%s", monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
     snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
     snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
+    break;
+  case 10: // Shoulder
+    vnum = SHOULDERS_MOLD;
+    material = MATERIAL_LEATHER;
+    snprintf(armor_name, MEDIUM_STRING, "%s", waist_descs[rand_number(0, NUM_A_SHOULDER_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
+    break;
+  case 11: // Eyes
+    vnum = EYES_MOLD;
+    material = MATERIAL_COPPER;
+    snprintf(armor_name, MEDIUM_STRING, "%s", eyes_descs[rand_number(0, NUM_A_EYES_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    break;
+  case 12: // Face
+    vnum = FACE_MOLD;
+    material = MATERIAL_LEATHER;
+    snprintf(armor_name, MEDIUM_STRING, "%s", face_descs[rand_number(0, NUM_A_FACE_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
+    break;
+  case 13: // Ears
+    vnum = EARS_MOLD;
+    material = MATERIAL_COPPER;
+    snprintf(armor_name, MEDIUM_STRING, "%s", ears_descs[rand_number(0, NUM_A_EARS_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    break;
+  case 14: // Anklets
+    vnum = ANKLET_MOLD;
+    material = MATERIAL_COPPER;
+    snprintf(armor_name, MEDIUM_STRING, "%s", ankle_descs[rand_number(0, NUM_A_ANKLET_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
     break;
   }
 
@@ -3705,6 +3892,10 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
   case RING_MOLD:
   case NECKLACE_MOLD:
   case WRIST_MOLD:
+  case EARS_MOLD:
+  case ANKLET_MOLD:
+  case EYES_MOLD:
+  case FACE_MOLD:
     snprintf(keywords, MEDIUM_STRING, "%s %s set with %s gemstone",
              armor_name, material_name[material], desc2);
     obj->name = strdup(keywords);
@@ -3720,6 +3911,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     break;
   case BOOTS_MOLD:
   case GLOVES_MOLD:
+  case SHOULDERS_MOLD:
     snprintf(keywords, MEDIUM_STRING, "%s pair %s %s", armor_name, desc2, desc3);
     obj->name = strdup(keywords);
     snprintf(buf, MEDIUM_STRING, "a pair of %s %s %s", desc2, desc3,
@@ -4101,6 +4293,16 @@ ACMD(do_loadmagicspecific)
       award_misc_magic_item(ch, TRS_SLOT_WAIST, grade);
     else if (is_abbrev(arg2, "held"))
       award_misc_magic_item(ch, TRS_SLOT_HELD, grade);
+    else if (is_abbrev(arg2, "face"))
+      award_misc_magic_item(ch, TRS_SLOT_FACE, grade);
+    else if (is_abbrev(arg2, "shoulders"))
+      award_misc_magic_item(ch, TRS_SLOT_SHOULDERS, grade);
+    else if (is_abbrev(arg2, "ears"))
+      award_misc_magic_item(ch, TRS_SLOT_EARS, grade);
+    else if (is_abbrev(arg2, "ankles"))
+      award_misc_magic_item(ch, TRS_SLOT_ANKLET, grade);
+    else if (is_abbrev(arg2, "eyes"))
+      award_misc_magic_item(ch, TRS_SLOT_EYES, grade);
     else if (is_abbrev(arg2, "scroll"))
       award_expendable_item(ch, grade, TYPE_SCROLL);
     else if (is_abbrev(arg2, "potion"))
@@ -5176,6 +5378,7 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
       }
       break;
     case  ITEM_WEAR_AMMO_POUCH:
+    case  ITEM_WEAR_SHEATH:
       switch (bonus)
       {
         case APPLY_HITROLL:
@@ -6017,11 +6220,47 @@ void assign_a_random_apply_to_slot(struct obj_data *obj, int olevel, int i)
   else if (is_spell_slot_apply(apply))
   {
     obj->affected[i].specific = dice(1, NUM_CLASSES) -1;
-    while (!is_caster_class(obj->affected[i].specific))
+    while (!is_valid_spell_circle_for_class(obj->affected[i].location, obj->affected[i].specific))
     {
       obj->affected[i].specific = dice(1, NUM_CLASSES) -1;
     }
   }
+}
+
+bool is_valid_spell_circle_for_class(int circle, int ch_class)
+{
+  if (!is_caster_class(ch_class))
+    return false; // only spellcasters
+
+  switch (circle)
+  {
+    case APPLY_SPELL_CIRCLE_1:
+    case APPLY_SPELL_CIRCLE_2:
+    case APPLY_SPELL_CIRCLE_3:
+    case APPLY_SPELL_CIRCLE_4:
+      return true; // spellcasting classes can cast circle 4 and lower spells
+    case APPLY_SPELL_CIRCLE_5:
+    case APPLY_SPELL_CIRCLE_6:
+      switch (ch_class)
+      {
+        case CLASS_PALADIN:
+        case CLASS_RANGER:
+        case CLASS_BLACKGUARD:
+          return false; // these classes can only cast up to circle 4 spells
+      }
+    case APPLY_SPELL_CIRCLE_7:
+    case APPLY_SPELL_CIRCLE_8:
+    case APPLY_SPELL_CIRCLE_9:
+      switch (ch_class)
+      {
+        case CLASS_SUMMONER:
+        case CLASS_ALCHEMIST:
+        case CLASS_BARD:
+        case CLASS_INQUISITOR:
+          return false; // these classes can only cast up to level 6 spells.
+      }
+  }
+  return true;
 }
 
 // this function will assign random bonuses to an object based on its level and the number of bonuses specified.

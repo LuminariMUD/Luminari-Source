@@ -58,6 +58,46 @@ const char *ring_descs[NUM_A_RING_DESCS + 1] = {
     "\n"};
 //3
 
+const char *ankle_descs[NUM_A_ANKLET_DESCS + 1] = {
+    "anklet", //0
+    "anklet",
+    "anklet",
+    "\n"};
+//3
+
+const char *face_descs[NUM_A_FACE_DESCS + 1] = {
+    "mask", //0
+    "visor",
+    "veil",
+    "\n"};
+//3
+
+const char *shoulder_descs[NUM_A_SHOULDER_DESCS + 1] = {
+    "pauldrons", //0
+    "epaulets",
+    "mantle",
+    "\n"};
+//3
+
+const char *eyes_descs[NUM_A_EYES_DESCS + 1] = {
+    "glasses", //0
+    "spectacles",
+    "monocle",
+    "goggles",
+    "\n"};
+//3
+
+const char *ears_descs[NUM_A_EARS_DESCS + 1] = {
+    "earring", //0
+    "earring", 
+    "earring", 
+    "hoop",
+    "loop",
+    "stud",
+    "trinket",
+    "\n"};
+//7
+
 const char *wrist_descs[NUM_A_WRIST_DESCS + 1] = {
     "bracer", //0
     "bracer",

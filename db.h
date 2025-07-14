@@ -263,6 +263,7 @@ struct obj_save_data_t
    struct obj_data *obj;
    int locate;
    struct obj_save_data_t *next;
+   int db_idnum;
 };
 typedef struct obj_save_data_t obj_save_data;
 

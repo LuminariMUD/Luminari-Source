@@ -35,8 +35,13 @@
 #define TRS_SLOT_HELD 8
 #define TRS_SLOT_MONK_GLOVE 9
 #define TRS_SLOT_MONK_GLOVES TRS_SLOT_MONK_GLOVE
+#define TRS_SLOT_SHOULDERS 10
+#define TRS_SLOT_EYES 11
+#define TRS_SLOT_FACE 12
+#define TRS_SLOT_EARS 13
+#define TRS_SLOT_ANKLET 14
 /* for random miscellaneous items, this is the number of categories */
-#define NUM_MISC_CATEGORIES 9 /* match last value above */
+#define NUM_MISC_CATEGORIES 14 /* match last value above */
 
 /* Ornir CP System Defines, CP = creation points*/
 /* we manually add +X to cp_max_bonus in the code */
@@ -81,6 +86,11 @@
 #define NUM_A_ARMOR_CRESTS 39
 #define NUM_A_HANDLE_TYPES 6
 #define NUM_A_HEAD_TYPES 10
+#define NUM_A_ANKLET_DESCS 3
+#define NUM_A_FACE_DESCS 3
+#define NUM_A_SHOULDER_DESCS 3
+#define NUM_A_EYES_DESCS 4
+#define NUM_A_EARS_DESCS 7
 
 #define GRADE_MUNDANE 1  // 0-5
 #define GRADE_MINOR 2    // 5-10
@@ -93,302 +103,6 @@
 #define TYPE_SCROLL 2
 #define TYPE_WAND 3
 #define TYPE_STAFF 4
-
-/* armor mold vnums (body, helm, sleeves, leggings) */
-/*body*/
-#if defined(CAMPAIGN_DL)
-
-#define PLATE_BODY 40119
-#define HALFPLATE_BODY 40143
-#define SPLINT_BODY 40144
-#define BREASTPLATE_BODY 40145 /*piecemail armor*/
-#define CHAIN_BODY 40146
-#define STUD_LEATHER_BODY 40147
-#define LEATHER_BODY 40148
-#define PADDED_BODY 40149
-#define CLOTH_BODY 40150
-#define BANDED_BODY 40241
-#define SCALE_BODY 40242
-#define HIDE_BODY 40243
-#define LIGHT_CHAIN_BODY 40244
-
-/*head*/
-#define PLATE_HELM 40151
-#define HALFPLATE_HELM 40152
-#define SPLINT_HELM 40153
-#define PIECEPLATE_HELM 40154
-#define CHAIN_HELM 40155
-#define STUD_LEATHER_HELM 40156
-#define LEATHER_HELM 40157
-#define PADDED_HELM 40158
-#define CLOTH_HELM 40159
-
-#define BANDED_HELM 40245
-#define SCALE_HELM 40246
-#define HIDE_HELM 40247
-#define LIGHT_CHAIN_HELM 40248
-
-/*arms*/
-#define PLATE_ARMS 40160
-#define HALFPLATE_ARMS 40161
-#define SPLINT_ARMS 40162
-#define CHAIN_ARMS 40163
-#define STUD_LEATHER_ARMS 40164
-#define LEATHER_ARMS 40165
-#define PADDED_ARMS 40166
-#define CLOTH_ARMS 40167
-
-#define BANDED_ARMS 40249
-#define PIECEPLATE_ARMS 40250
-#define SCALE_ARMS 40251
-#define HIDE_ARMS 40252
-#define LIGHT_CHAIN_ARMS 40253
-
-/*legs*/
-#define PLATE_LEGS 40168
-#define HALFPLATE_LEGS 40169
-#define SPLINT_LEGS 40170
-#define CHAIN_LEGS 40171
-#define STUD_LEATHER_LEGS 40172
-#define LEATHER_LEGS 40173
-#define PADDED_LEGS 40174
-#define CLOTH_LEGS 40175
-
-#define BANDED_LEGS 40254
-#define PIECEPLATE_LEGS 40255
-#define SCALE_LEGS 40256
-#define HIDE_LEGS 40257
-#define LIGHT_CHAIN_LEGS 40258
-
-/*shields*/
-#define SHIELD_MEDIUM 40180
-#define SHIELD_LARGE 40181
-#define SHIELD_TOWER 40182
-
-/* end armor molds */
-#define NUM_ARMOR_MOLDS 37
-
-/* weapon mold vnums */
-/* simple */
-/* light */
-#define DAGGER 40212 // 0
-#define MACE 40213
-#define SICKLE 40214
-/* one handed */
-#define CLUB 40215
-#define MORNINGSTAR 40216
-/* two handed */
-#define SPEAR 40217 // 5
-#define QUARTERSTAFF 40218
-/* martial */
-/* light */
-#define HANDAXE 40219
-#define KUKRI 40220
-#define SHORTSWORD 40221
-/* one handed */
-#define BATTLEAXE 40222 // 10
-#define FLAIL 40223
-#define LONGSWORD 40224
-#define RAPIER 40225
-#define SCIMITAR 40226
-#define TRIDENT 40227 // 15
-#define WARHAMMER 40228
-/* two handed */
-#define FALCHION 40229
-#define GLAIVE 40230
-#define GREATAXE 40231
-#define GREATCLUB 40232 // 20
-#define GREATSWORD 40233
-#define HALBERD 40234
-#define LANCE 40235
-#define SCYTHE 40236
-/* exotic */
-/* light */
-#define KAMA 40237 // 25
-/* one handed */
-#define BASTARDSWORD 40238
-#define DWARVENWARAXE 40239
-/* two handed */
-#define DIREFLAIL 40240
-/* end weapon molds */
-#define NUM_WEAPON_MOLDS 29
-
-/* weapon blank object */
-#define WEAPON_PROTO 40299
-/* armor blank object */
-#define ARMOR_PROTO 40298
-/* ammo blank object */
-#define AMMO_PROTO 40297
-#define INSTRUMENT_PROTO 40296
-
-/* misc mold vnums */
-#define RING_MOLD 40176 // 0
-#define NECKLACE_MOLD 40177
-#define BOOTS_MOLD 40178
-#define GLOVES_MOLD 40179
-#define CLOAK_MOLD 40183
-#define BELT_MOLD 40184 // 5
-#define WRIST_MOLD 40185
-#define HELD_MOLD 40186
-#define EYES_MOLD 40249
-#define FACE_MOLD 40250
-#define EARS_MOLD 40251
-#define SHOULDERS_MOLD 40252
-#define ANKLET_MOLD 40253
-/* end misc molds */
-#define NUM_MISC_MOLDS 8
-
-/* item prototype for potions/scrolls/wands/staves */
-#define ITEM_PROTOTYPE 40210
-/* item prototype for crystals */
-#define CRYSTAL_PROTOTYPE 40211
-
-#define KENDER_BAUBLE 40447
-
-#else
-
-#define PLATE_BODY 3119
-#define HALFPLATE_BODY 3143
-#define SPLINT_BODY 3144
-#define BREASTPLATE_BODY 3145 /*piecemail armor*/
-#define CHAIN_BODY 3146
-#define STUD_LEATHER_BODY 3147
-#define LEATHER_BODY 3148
-#define PADDED_BODY 3149
-#define CLOTH_BODY 3150
-#define BANDED_BODY 3241
-#define SCALE_BODY 3242
-#define HIDE_BODY 3243
-#define LIGHT_CHAIN_BODY 3244
-
-/*head*/
-#define PLATE_HELM 3151
-#define HALFPLATE_HELM 3152
-#define SPLINT_HELM 3153
-#define PIECEPLATE_HELM 3154
-#define CHAIN_HELM 3155
-#define STUD_LEATHER_HELM 3156
-#define LEATHER_HELM 3157
-#define PADDED_HELM 3158
-#define CLOTH_HELM 3159
-
-#define BANDED_HELM 3245
-#define SCALE_HELM 3246
-#define HIDE_HELM 3247
-#define LIGHT_CHAIN_HELM 3248
-
-/*arms*/
-#define PLATE_ARMS 3160
-#define HALFPLATE_ARMS 3161
-#define SPLINT_ARMS 3162
-#define CHAIN_ARMS 3163
-#define STUD_LEATHER_ARMS 3164
-#define LEATHER_ARMS 3165
-#define PADDED_ARMS 3166
-#define CLOTH_ARMS 3167
-
-#define BANDED_ARMS 3249
-#define PIECEPLATE_ARMS 3250
-#define SCALE_ARMS 3251
-#define HIDE_ARMS 3252
-#define LIGHT_CHAIN_ARMS 3253
-
-/*legs*/
-#define PLATE_LEGS 3168
-#define HALFPLATE_LEGS 3169
-#define SPLINT_LEGS 3170
-#define CHAIN_LEGS 3171
-#define STUD_LEATHER_LEGS 3172
-#define LEATHER_LEGS 3173
-#define PADDED_LEGS 3174
-#define CLOTH_LEGS 3175
-
-#define BANDED_LEGS 3254
-#define PIECEPLATE_LEGS 3255
-#define SCALE_LEGS 3256
-#define HIDE_LEGS 3257
-#define LIGHT_CHAIN_LEGS 3258
-
-/*shields*/
-#define SHIELD_MEDIUM 3180
-#define SHIELD_LARGE 3181
-#define SHIELD_TOWER 3182
-
-/* end armor molds */
-#define NUM_ARMOR_MOLDS 37
-
-/* weapon mold vnums */
-/* simple */
-/* light */
-#define DAGGER 3212 // 0
-#define MACE 3213
-#define SICKLE 3214
-/* one handed */
-#define CLUB 3215
-#define MORNINGSTAR 3216
-/* two handed */
-#define SPEAR 3217 // 5
-#define QUARTERSTAFF 3218
-/* martial */
-/* light */
-#define HANDAXE 3219
-#define KUKRI 3220
-#define SHORTSWORD 3221
-/* one handed */
-#define BATTLEAXE 3222 // 10
-#define FLAIL 3223
-#define LONGSWORD 3224
-#define RAPIER 3225
-#define SCIMITAR 3226
-#define TRIDENT 3227 // 15
-#define WARHAMMER 3228
-/* two handed */
-#define FALCHION 3229
-#define GLAIVE 3230
-#define GREATAXE 3231
-#define GREATCLUB 3232 // 20
-#define GREATSWORD 3233
-#define HALBERD 3234
-#define LANCE 3235
-#define SCYTHE 3236
-/* exotic */
-/* light */
-#define KAMA 3237 // 25
-/* one handed */
-#define BASTARDSWORD 3238
-#define DWARVENWARAXE 3239
-/* two handed */
-#define DIREFLAIL 3240
-/* end weapon molds */
-#define NUM_WEAPON_MOLDS 29
-
-/* weapon blank object */
-#define WEAPON_PROTO 3299
-/* armor blank object */
-#define ARMOR_PROTO 3298
-/* ammo blank object */
-#define AMMO_PROTO 3297
-
-/* misc mold vnums */
-#define RING_MOLD 3176 // 0
-#define NECKLACE_MOLD 3177
-#define BOOTS_MOLD 3178
-#define GLOVES_MOLD 3179
-#define CLOAK_MOLD 3183
-#define BELT_MOLD 3184 // 5
-#define WRIST_MOLD 3185
-#define HELD_MOLD 3186
-/* end misc molds */
-#define NUM_MISC_MOLDS 8
-
-/* item prototype for potions/scrolls/wands/staves */
-#define ITEM_PROTOTYPE 3210
-/* item prototype for crystals */
-#define CRYSTAL_PROTOTYPE 3211
-
-#define KENDER_BAUBLE 66700
-
-#endif
 
 #define CUSTOM_TREASURE_MESSAGE_NONE   0
 #define CUSTOM_TREASURE_MESSAGE_BORROW 1
@@ -422,6 +136,11 @@ extern const char *head_types[NUM_A_HEAD_TYPES + 1];
 extern const char *ammo_descs[NUM_A_AMMO_DESCS + 1];
 extern const char *ammo_head_descs[NUM_A_AMMO_HEAD_DESCS + 1];
 extern const char *kender_loot[NUM_KENDER_BAUBLES];
+extern const char *ankle_descs[NUM_A_ANKLET_DESCS + 1];
+extern const char *face_descs[NUM_A_FACE_DESCS + 1];
+extern const char *shoulder_descs[NUM_A_SHOULDER_DESCS + 1];
+extern const char *eyes_descs[NUM_A_EYES_DESCS + 1];
+extern const char *ears_descs[NUM_A_EARS_DESCS + 1];
 
 /* treasure.c functions */
 
@@ -518,6 +237,10 @@ void erase_bonus_info_for_slot(struct obj_data *obj, int slot);
 int choose_random_apply_type(void);
 int get_first_wear_slot(struct obj_data *obj);
 int get_apply_no_repeat_category(int apply);
+bool is_valid_spell_circle_for_class(int circle, int ch_class);
+
+// in assign_wpn_armor.c
+int get_wear_location_by_armor_type(int type);
 
 // staff tool to load random items
 ACMD_DECL(do_loadmagic);

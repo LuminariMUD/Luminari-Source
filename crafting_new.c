@@ -1474,7 +1474,30 @@ void set_crafting_bonuses(struct char_data *ch, const char *argument)
         location = 0,
         modifier = 0, max_modifier = 0,
         bonus_type = 0,
-        specific = 0;
+        specific = 0,
+        cr_type = 0,
+        cr_spec_type = 0,
+        cr_variant = 0,
+        cr_recipe = -1,
+        wear_loc = 0;
+
+    if (!ch)
+        return;
+
+    cr_type = GET_CRAFT(ch).crafting_item_type;
+    cr_spec_type = GET_CRAFT(ch).crafting_specific;
+    cr_variant = GET_CRAFT(ch).craft_variant;
+    cr_recipe = GET_CRAFT(ch).crafting_recipe;
+
+    if (!cr_type || !cr_spec_type || !cr_variant || cr_recipe == -1)
+    {
+        send_to_char(ch, "You must set the following before you can apply bonuses.\r\n"
+                         "-- craft type [weapon, armor, shield, instrument, misc]\r\n"
+                         "-- craft specific [weapon type, armor type, instrument type, misc type]\r\n"
+                         "-- craft variant [variant name]\r\n"
+                         "-- craft recipe [recipe name]\r\n");
+        return;
+    }
 
     if (!*argument)
     {
@@ -1557,6 +1580,15 @@ void set_crafting_bonuses(struct char_data *ch, const char *argument)
 
     location = i;
 
+    wear_loc = get_craft_wear_loc(ch);
+
+    if (!is_bonus_valid_for_where_slot(location, wear_loc))
+    {
+        send_to_char(ch, "You cannot set a bonus of type %s on a %s.\r\n", apply_types[location], wear_bits[wear_loc]);
+        send_to_char(ch, "You can see valid bonus types for wear slots by typing: wearapplies.\r\n");
+        return;
+    }
+
     if (GET_CRAFT(ch).affected[slot].bonus_type != BONUS_TYPE_UNDEFINED)
     {
         send_to_char(ch, "You have already set the bonus type for this bonus slot. You'll have to do 'craft bonus %d reset' to change it.\r\n", slot+1);
@@ -1629,7 +1661,10 @@ void set_crafting_bonuses(struct char_data *ch, const char *argument)
         return;
     }
 
-    max_modifier = max_bonus_modifier(location, bonus_type);
+    max_modifier = get_gear_bonus_amount_by_level(location, 30);
+
+    if (bonus_type == BONUS_TYPE_ENHANCEMENT)
+        max_modifier *= 2;
 
     if (modifier > max_modifier)
     {
@@ -6054,6 +6089,38 @@ ACMDU(do_motes)
     }
     send_to_char(ch, ".\r\n");
 
+}
+
+int get_craft_wear_loc(struct char_data *ch)
+{
+    if (!ch) return ITEM_WEAR_TAKE;
+
+    int cr_type = GET_CRAFT(ch).crafting_item_type;
+    int cr_specific = GET_CRAFT(ch).crafting_specific;
+    int cr_recipe = GET_CRAFT(ch).crafting_recipe;
+
+    if (cr_type <= CRAFT_TYPE_NONE || cr_specific <= 0 || cr_recipe <= CRAFT_RECIPE_NONE)
+    {
+        return ITEM_WEAR_TAKE; // default to take if no crafting project is set
+    }
+
+    if (cr_type == CRAFT_TYPE_WEAPON)
+    {
+        return ITEM_WEAR_WIELD;
+    }
+    else if (cr_type == CRAFT_TYPE_ARMOR)
+    {
+        return get_wear_location_by_armor_type(crafting_recipes[cr_recipe].object_subtype);
+    }
+    else if (cr_type == ITEM_INSTRUMENT)
+    {
+        return ITEM_WEAR_INSTRUMENT;
+    }
+    else
+    {
+        return crafting_recipes[cr_recipe].object_subtype;
+    }
+     return ITEM_WEAR_TAKE;   
 }
 
 

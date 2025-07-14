@@ -625,16 +625,24 @@ bool is_flanked(struct char_data *attacker, struct char_data *ch)
 
   return FALSE; /* default */
 }
+int get_initiative_modifier(struct char_data *ch)
+{
+  int initiative = 0;
+  
+  initiative += GET_DEX_BONUS(ch) + 4 * HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE);
+  initiative += 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION);
+  initiative += GET_WIS_BONUS(ch) * HAS_FEAT(ch, FEAT_CUNNING_INITIATIVE);
+  initiative += GET_INITIATIVE_MOD(ch);
+  initiative += HAS_FEAT(ch, FEAT_HEROIC_INITIATIVE) ? 4 : 0;
+  
+  return initiative;
+}
 
 int roll_initiative(struct char_data *ch)
 {
   int initiative = 0;
 
-  initiative = d20(ch) + GET_DEX_BONUS(ch) + 4 * HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE);
-  initiative += 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION);
-  initiative += GET_WIS_BONUS(ch) * HAS_FEAT(ch, FEAT_CUNNING_INITIATIVE);
-  initiative += GET_INITIATIVE_MOD(ch);
-  initiative += HAS_FEAT(ch, FEAT_HEROIC_INITIATIVE) ? 4 : 0;
+  initiative = d20(ch) + get_initiative_modifier(ch);
 
   return initiative;
 }

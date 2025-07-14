@@ -70,3 +70,5 @@ dkms.conf
 # generated source file
 /unittests/CuTest/AllTests.c
 .vscode/c_cpp_properties.json
+vnums.h
+mud_options.h

@@ -24,6 +24,17 @@
 // and add theme-specific code. This is mainly used for the Faerun codebase.
 #include "campaign.h"
 
+// You will need to add a mud_options.h file that contains the various
+// options which must be defined in the code to work properly. This will
+// eventually replace the campaign.h file entirely. You can make a copy of the
+// mud_options.example.h file to get started.
+#include "mud_options.h"
+
+// You will need to have a vnums.h file. You can make a copy of vnums.example.h
+// and change the vnums as needed. This ensures all of the vnums used by the
+// code are defined in one place, so you can review and change them easily.
+#include "vnums.h"
+
 /** Intended use of this macro is to allow external packages to work with a
  * variety of versions without modifications.  For instance, an IS_CORPSE()
  * macro was introduced in pl13.  Any future code add-ons could take into
@@ -1639,8 +1650,9 @@
 #define WEAR_SHOULDERS 28
 #define WEAR_ANKLE_R 29
 #define WEAR_ANKLE_L 30
+#define WEAR_SHEATH 31
 /** Total number of available equipment lcoations */
-#define NUM_WEARS 31
+#define NUM_WEARS 32
 /**/
 
 /* ranged combat */
@@ -3197,8 +3209,9 @@
 #define ITEM_WEAR_INSTRUMENT 20
 #define ITEM_WEAR_SHOULDERS 21
 #define ITEM_WEAR_ANKLE 22
+#define ITEM_WEAR_SHEATH 23
 /** Total number of item wears */
-#define NUM_ITEM_WEARS 23
+#define NUM_ITEM_WEARS 24
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
 #define ITEM_GLOW 0             /**< Item is glowing */
@@ -4398,6 +4411,9 @@ struct obj_data
     int temp_bag_num;
 
     int activate_spell[5]; // used for spells that the item allows you to use.
+
+    struct obj_data *sheath_primary;     // for wielded or 2H weapon
+    struct obj_data *sheath_secondary;   // for offhand weapon or shield
 };
 
 /** Instance info for an object that gets saved to disk.
