@@ -7,7 +7,9 @@
       "Bash(sudo apt install:*)",
       "Bash(apt install:*)",
       "Bash(rm:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git add:*)",
+      "Bash(git branch:*)"
     ],
     "deny": []
   }
