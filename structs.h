@@ -3421,21 +3421,6 @@
 /** Total number of applies */
 #define NUM_APPLIES 74
 
-#define APPLY_TYPE_NONE         0
-#define APPLY_TYPE_ABILITY      1
-#define APPLY_TYPE_RESOURCE      2
-#define APPLY_TYPE_ATTACK        3
-#define APPLY_TYPE_SAVE          4
-#define APPLY_TYPE_RESIST_MAGIC 5
-#define APPLY_TYPE_AC             6
-#define APPLY_TYPE_DAMAGE_REDUCTION 7
-#define APPLY_TYPE_REGEN        8
-#define APPLY_TYPE_SPELL_RESIST 9
-#define APPLY_TYPE_SPELL_SLOT  10
-#define APPLY_TYPE_SKILL       11
-#define APPLY_TYPE_RESIST_PHYSICAL 12
-#define APPLY_TYPE_SPELL_ENHANCE 13
-
 // maximum number of spells/powers to buff
 #define MAX_BUFFS 40
 
