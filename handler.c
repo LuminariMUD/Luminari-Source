@@ -180,10 +180,13 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
   case APPLY_PSP:
     GET_MAX_PSP(ch) += mod;
     break;
+
+  /* PC Max HP calculation is handled in utils.c - calculate_max_hp*/
   case APPLY_HIT:
     if (IS_NPC(ch))
       GET_MAX_HIT(ch) += mod;
     break;
+
   case APPLY_MOVE:
     GET_MAX_MOVE(ch) += mod;
     break;
