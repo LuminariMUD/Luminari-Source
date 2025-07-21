@@ -7528,6 +7528,12 @@ void calculate_max_hp(struct char_data *ch, bool display)
     if (display)
       send_to_char(ch, "%-40s = +%d\r\n", "Lich Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
   }
+  if (GET_REAL_RACE(ch) == RACE_VAMPIRE)
+  {
+    max_hp += GET_LEVEL(ch) * 4;
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Vampire Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
+  }
 
   // misc
   max_hp += CONFIG_EXTRA_PLAYER_HP_PER_LEVEL * GET_LEVEL(ch);
