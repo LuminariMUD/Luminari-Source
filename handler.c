@@ -1217,11 +1217,15 @@ void affect_from_char(struct char_data *ch, int spell)
     next = hjp->next;
     if (hjp->spell == spell)
     {
+      /* not sure why this is here, but it's causing issues with bardic performance 
+           APPLY_HIT is for MAX HP -- why would losing the spell hurt your current HP?*/
+      /*
       if (hjp->location == APPLY_HIT)
       {
         if (GET_HIT(ch) > 0)
           GET_HIT(ch) = MAX(1, GET_HIT(ch) - hjp->modifier);
       }
+      */
       affect_remove(ch, hjp);
       if (spell == PSIONIC_ENERGY_CONVERSION)
       {
