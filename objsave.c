@@ -3021,7 +3021,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
   {
     log("SYSERR: Unable to SELECT from pet_save_objs: %s", mysql_error(conn));
     /* Table doesn't exist, so no pet objects to load */
-    return;
+    return NULL;
   }
 
   if (!(result = mysql_store_result(conn)))
