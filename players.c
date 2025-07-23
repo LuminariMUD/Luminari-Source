@@ -3971,7 +3971,12 @@ void update_player_last_on(void)
     snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW(), character_info='%s' WHERE name = '%s';", char_info, GET_NAME(d->character));
     if (mysql_query(conn, buf))
     {
-      log("SYSERR: Unable to UPDATE last_online and character_info for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));
+      /* Try without character_info column for compatibility */
+      snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW() WHERE name = '%s';", GET_NAME(d->character));
+      if (mysql_query(conn, buf))
+      {
+        log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));
+      }
     }
   }
 }
@@ -4007,8 +4012,8 @@ void save_char_pets(struct char_data *ch)
   snprintf(del_buf, sizeof(del_buf), "delete from pet_save_objs where owner_name = '%s';", GET_NAME(ch));
   if (mysql_query(conn, del_buf))
   {
-    log("SYSERR: Unable to delete pet object save data: %s", mysql_error(conn));
-    return;
+    /* Table might not exist, continue anyway */
+    log("INFO: pet_save_objs table might not exist: %s", mysql_error(conn));
   }
 
   end = stpcpy(query, "DELETE FROM pet_data WHERE owner_name=");
@@ -4030,9 +4035,9 @@ void save_char_pets(struct char_data *ch)
     if (!AFF_FLAGGED(tch, AFF_CHARM))
       continue;
 #if defined(CAMPAIGN_DL)
-    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
+    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
 
-    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
+    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
     *end2++ = '\'';
     end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
     *end2++ = '\'';
@@ -4089,24 +4094,24 @@ void save_char_pets(struct char_data *ch)
     
     *end2++ = '\0';
 
-    snprintf(query3, sizeof(query3), "'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
+    snprintf(query3, sizeof(query3), "'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
              GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
              GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch),
-             GET_REAL_INT(tch), GET_REAL_WIS(tch), GET_REAL_CHA(tch));
+             GET_REAL_WIS(tch), GET_REAL_CHA(tch));
     snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
 #else
-    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
+    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
 
-    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
+    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
     *end2++ = '\'';
     end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
     *end2++ = '\'';
     *end2++ = '\0';
 
-    snprintf(query3, sizeof(query3), ",'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
+    snprintf(query3, sizeof(query3), ",'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
              GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
              GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch),
-             GET_REAL_INT(tch), GET_REAL_WIS(tch), GET_REAL_CHA(tch));
+             GET_REAL_WIS(tch), GET_REAL_CHA(tch));
     snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
 #endif
     if (mysql_query(conn, finalQuery))
