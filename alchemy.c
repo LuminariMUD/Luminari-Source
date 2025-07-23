@@ -3182,7 +3182,7 @@ int find_discovery_num(char *name)
       temp = any_one_arg(temp, first);
       temp2 = any_one_arg(temp2, first2);
     }
-    if (ok && !*first2)
+    if (ok && !*first2 && !*first)
       return (index);
   }
 
@@ -3269,7 +3269,7 @@ int find_grand_discovery_num(char *name)
       temp = any_one_arg(temp, first);
       temp2 = any_one_arg(temp2, first2);
     }
-    if (ok && !*first2)
+    if (ok && !*first2 && !*first)
       return (index);
   }
 

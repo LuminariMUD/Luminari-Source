@@ -406,7 +406,7 @@ int find_skill_num(char *name)
       temp2 = any_one_arg(temp2, first2);
     }
 
-    if (ok && !*first2)
+    if (ok && !*first2 && !*first)
       return (skindex);
   }
 
@@ -439,7 +439,7 @@ int find_ability_num(char *name)
       temp2 = any_one_arg(temp2, first2);
     }
 
-    if (ok && !*first2)
+    if (ok && !*first2 && !*first)
       return (skindex);
   }
 

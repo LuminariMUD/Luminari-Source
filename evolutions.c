@@ -1537,7 +1537,7 @@ int find_evolution_num(const char *name)
       temp = any_one_arg_c(temp, first, sizeof(first));
       temp2 = any_one_arg_c(temp2, first2, sizeof(first2));
     }
-    if (ok && !*first2)
+    if (ok && !*first2 && !*first)
       return (index);
   }
 
