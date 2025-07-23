@@ -389,11 +389,16 @@ int find_skill_num(char *name)
   char *temp, *temp2;
   char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'}, tempbuf[MEDIUM_STRING] = {'\0'};
 
+  /* PHASE 1: Check for exact match first (case-insensitive) */
   for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
   {
-    if (is_abbrev(name, spell_info[skindex].name))
+    if (!strcasecmp(name, spell_info[skindex].name))
       return (skindex);
+  }
 
+  /* PHASE 2: Try word-by-word matching for multi-word names */
+  for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
+  {
     ok = TRUE;
     strlcpy(tempbuf, spell_info[skindex].name, sizeof(tempbuf)); /* strlcpy: OK */
     temp = any_one_arg(tempbuf, first);
@@ -410,6 +415,13 @@ int find_skill_num(char *name)
       return (skindex);
   }
 
+  /* PHASE 3: Finally try abbreviation matching as fallback */
+  for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
+  {
+    if (is_abbrev(name, spell_info[skindex].name))
+      return (skindex);
+  }
+
   return (-1);
 }
 
@@ -422,11 +434,16 @@ int find_ability_num(char *name)
   char *temp, *temp2;
   char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'}, tempbuf[MEDIUM_STRING] = {'\0'};
 
+  /* PHASE 1: Check for exact match first (case-insensitive) */
   for (skindex = 1; skindex < NUM_ABILITIES; skindex++)
   {
-    if (is_abbrev(name, ability_names[skindex]))
+    if (!strcasecmp(name, ability_names[skindex]))
       return (skindex);
+  }
 
+  /* PHASE 2: Try word-by-word matching for multi-word names */
+  for (skindex = 1; skindex < NUM_ABILITIES; skindex++)
+  {
     ok = TRUE;
     strlcpy(tempbuf, ability_names[skindex], sizeof(tempbuf));
     temp = any_one_arg(tempbuf, first);
@@ -440,6 +457,13 @@ int find_ability_num(char *name)
     }
 
     if (ok && !*first2 && !*first)
+      return (skindex);
+  }
+
+  /* PHASE 3: Finally try abbreviation matching as fallback */
+  for (skindex = 1; skindex < NUM_ABILITIES; skindex++)
+  {
+    if (is_abbrev(name, ability_names[skindex]))
       return (skindex);
   }
 
