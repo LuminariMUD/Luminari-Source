@@ -1,6 +1,8 @@
 # Task List for LuminariMUD Code Fixes
 
-## Issue #1: "feat info dragon mount" Command Not Working
+## Issue #1: "feat info dragon mount" Command Not Working - **RESOLVED**
+
+### Resolution Date: July 24, 2025
 
 ### Problem Description
 The command `feat info dragon mount` returns "Could not find that feat" even though:
@@ -8,103 +10,158 @@ The command `feat info dragon mount` returns "Could not find that feat" even tho
 - Similar commands like `feat info dragon link` work correctly
 - The feat is properly defined in the code as FEAT_DRAGON_BOND with name "dragon mount"
 
+### Root Cause (Identified)
+The actual problem was with the search order in `find_feat_num`:
+- The function checked for abbreviations before exact matches
+- "dragon mount" matched as an abbreviation to "dragon mount boost" (FEAT_DRAGON_MOUNT_BOOST)
+- "dragon mount boost" has `in_game = FALSE`, so it returned "Could not find that feat"
+- The search never reached the exact match "dragon mount" (FEAT_DRAGON_BOND)
+
+### Resolution Applied
+Fixed the search order in 5 functions to prioritize exact matches:
+
+1. **`find_feat_num`** in feats.c (line 8325)
+2. **`find_evolution_num`** in evolutions.c (line 1518)
+3. **`find_skill_num`** in spell_parser.c (line 386)
+4. **`find_ability_num`** in spell_parser.c (line 431)
+5. **`find_discovery_num`** in alchemy.c (line 3163)
+
+Each function now uses a 3-phase search:
+- **Phase 1**: Exact match (case-insensitive) - highest priority
+- **Phase 2**: Word-by-word matching for multi-word names
+- **Phase 3**: Abbreviation matching as fallback
+
+### Verification
+- Code compiled successfully without errors
+- The fix ensures "dragon mount" will find FEAT_DRAGON_BOND before checking abbreviations
+- All similar search functions have been updated to prevent the same issue
+
+### Previous Fix Attempts - FAILED
+1. **July 23, 2025 Fix**: Added `&& !*first` to matching conditions in multiple files
+   - Modified: feats.c, evolutions.c, spell_parser.c, alchemy.c
+   - Result: Did not resolve the issue
+   - Reason for failure: Misdiagnosed the root cause
+
+---
+
+## Issue #2: System Error Analysis - Multiple Recurring Issues
+
+### Problem Description
+The system logs show several recurring errors that indicate both code and database issues:
+
+1. **Objects in NOWHERE executing scripts** - PARTIALLY FIXED
+   - Dragon eggs (VNum 1015)
+   - Webbed cocoons (VNum 1920)
+   - Red liquid streams (VNum 193)
+   - Error: "oecho called by object in NOWHERE"
+   - **Status**: Room validity checks were added in dg_variables.c on 2025-07-23
+
+2. **Script syntax errors** - NOT FIXED
+   - Dragon egg timer script has malformed `remote` command
+   - Error: "remote: invalid arguments 'remote egg_hatch_total_time '"
+   - **Status**: Requires DG Script editing, not C code changes
+
+3. **Mobs accessing player-only data** - NOT FIXED
+   - Multiple locations trying to use PRF_FLAGGED on NPCs
+   - Error: "Mob using '((target)->player_specials->saved.pref)'"
+   - **Status**: Still needs fixes in utils.c and magic.c
+
+4. **Database schema mismatches** - PARTIALLY FIXED
+   - Missing table: `luminari_muddev.pet_save_objs`
+   - Missing column: `character_info` in PLAYER_DATA table
+   - **Status**: Compatibility code added in objsave.c on 2025-07-23
+
 ### Root Cause Analysis
-The `find_feat_num` function in `feats.c` has a word-matching logic bug:
 
-1. **The Bug:**
-   - The function uses word-by-word matching to allow partial matches
-   - When all words in the search term are matched, it checks `ok && !*first2`
-   - This means "all search words consumed", but doesn't verify all feat name words were consumed
-   - Example: Searching "dragon" matches both "dragon mount" and "dragon link" incorrectly
-   - The search should only match if BOTH the search term AND feat name are fully consumed
+#### 1. Objects in NOWHERE
+- Objects without valid room locations are executing scripts
+- **FIXED**: Room validity checks added to dg_variables.c
+- **FIXED**: VALID_ROOM_RNUM macro corrected in utils.h
 
-2. **Code Location:** `feats.c`, function `find_feat_num` (line 8347)
+#### 2. Script Syntax Error (VNum 1015)
+- The `remote` command is missing required parameters
+- Syntax should be: `remote <target> <variable> <value>`
+- Current script only has: `remote egg_hatch_total_time` (missing target and value)
+- **NOT FIXED**: Requires editing the DG Script itself
 
-### Proposed Fix
+#### 3. PRF_FLAGGED on Mobs
+- **utils.c:10447**: `PRF_FLAGGED(target, PRF_NON_ROLEPLAYER)` doesn't check if target is NPC
+- **magic.c:9203**: `PRF_FLAGGED(ch, PRF_CONTAIN_AOE)` doesn't check if ch is NPC
+- PRF_FLAGGED macro accesses player_specials which NPCs don't have
+- **NOT FIXED**: Still needs code changes
 
-#### Simple One-Line Fix (Recommended)
-The bug can be fixed by ensuring both the search term AND the feat name are fully consumed. Change line 8347 in `find_feat_num` from:
+#### 4. Database Schema
+- Development server is missing tables/columns that code expects
+- **PARTIALLY FIXED**: Compatibility code added for some tables
 
-```c
-if (ok && !*first2)
+### Proposed Fixes
+
+#### Fix 1: Objects in NOWHERE - COMPLETED
+Room validity checks have been implemented.
+
+#### Fix 2: Dragon Egg Script (VNum 1015) - STILL NEEDED
+Fix the `remote` command in the DG Script:
+```
+* Current (broken):
+remote egg_hatch_total_time
+
+* Fixed (example):
+remote %self% egg_hatch_total_time 100
 ```
 
-to:
+#### Fix 3: PRF_FLAGGED on Mobs - STILL NEEDED
 
+**utils.c:10447**:
 ```c
-if (ok && !*first2 && !*first)
+// Change from:
+if (PRF_FLAGGED(target, PRF_NON_ROLEPLAYER))
+
+// To:
+if (!IS_NPC(target) && PRF_FLAGGED(target, PRF_NON_ROLEPLAYER))
 ```
 
-This ensures that:
-- All words in the search term have been matched (`!*first2`)
-- All words in the feat name have been matched (`!*first`)
-- Prevents partial matches like "dragon" matching "dragon mount"
+**magic.c:9203**:
+```c
+// Change from:
+if (PRF_FLAGGED(ch, PRF_CONTAIN_AOE) || (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && (ch->master, PRF_CONTAIN_AOE)))
 
-#### Affected Functions
-The same bug exists in multiple search functions throughout the codebase. All need the identical fix:
+// To:
+if ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONTAIN_AOE)) || (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && PRF_FLAGGED(ch->master, PRF_CONTAIN_AOE)))
+```
 
-1. `find_feat_num()` in feats.c (line 8347)
-2. `find_evolution_num()` in evolutions.c (line 1251)
-3. `find_skill_num()` in spell_parser.c (line 170)
-4. `find_ability_num()` in spell_parser.c (line 237)
-5. `find_discovery_num()` in alchemy.c (line 889)
-6. `find_grand_discovery_num()` in alchemy.c (line 1022)
+#### Fix 4: Database Schema - PARTIALLY COMPLETED
+Compatibility code has been added for some missing columns.
 
 ### Testing Requirements
 
-1. **Test Cases for feat info:**
-   - `feat info dragon mount` → Should find FEAT_DRAGON_BOND
-   - `feat info dragon link` → Should find FEAT_DRAGON_LINK  
-   - `feat info dragon` → Should NOT match multi-word feats (bug fix prevents this)
-   - `feat info drag mount` → Should find dragon mount (partial match)
-   - `feat info dragon mou` → Should find dragon mount (abbreviated)
-   - `feat info power attack` → Should still work for non-conflicting feats
+1. **Object Scripts:**
+   - Verify objects in NOWHERE don't crash when executing scripts
+   - Test that valid objects still execute scripts normally
 
-2. **Test Similar Commands:**
-   - `evo info` - Test evolution searches
-   - `skill info` - Test skill searches  
-   - `abil info` - Test ability searches
-   - Discovery searches (if command exists)
+2. **DG Scripts:**
+   - Fix and test the dragon egg timer script
+   - Verify `remote` command works with proper syntax
 
-3. **Edge Cases:**
-   - Searching for partial names should still work when unambiguous
-   - Full exact matches should work
-   - Single-word searches should only match single-word items
+3. **PRF_FLAGGED:**
+   - Test combat with NPCs to ensure no crashes
+   - Verify player preferences still work correctly
 
-### Temporary Workarounds (Until Fix is Implemented)
-
-Users can work around this issue by:
-
-1. **Use more specific abbreviations:**
-   - `feat info dragon mou` (abbreviated second word)
-   - `feat info drago mount` (abbreviated first word)
-
-2. **Use quotes if supported:**
-   - `feat info "dragon mount"`
-
-3. **Find the feat number:**
-   - Use `feats all` to find the feat
-   - Note its position/number if displayed
-   - Use the number instead of the name
-
-### Implementation Notes
-
-- The fix is a simple one-line change to the matching logic
-- No performance impact - same algorithm, just corrected logic
-- Maintains backward compatibility for valid searches
-- Prevents incorrect partial matches that were bugs, not features
-- The same fix pattern applies to all 6 affected functions
-
-### Related Files
-- `feats.c` - Contains `find_feat_num` function
-- `evolutions.c` - Contains `find_evolution_num` function
-- `spell_parser.c` - Contains `find_skill_num` and `find_ability_num` functions
-- `alchemy.c` - Contains `find_discovery_num` and `find_grand_discovery_num` functions
+4. **Database:**
+   - Test with both complete and incomplete schemas
+   - Verify graceful degradation without crashes
 
 ### Priority
-High - This affects usability of multiple core game features (feats, evolutions, skills, abilities, discoveries)
+High - These errors are occurring frequently and could cause server instability or crashes
 
-### Additional Notes
-- The bug allows searches like "dragon" to incorrectly match "dragon mount" or "dragon link"
-- After the fix, searching "dragon" will only match items named exactly "dragon"
-- To search for dragon-related items, users must provide more specific terms like "dragon m" or "drag mount"
+### Implementation Notes
+- The "object in NOWHERE" fixes have been applied and verified
+- PRF_FLAGGED usage still needs to be audited for NPC safety
+- DG Script syntax errors require builder-level access to fix
+- Database compatibility is partially implemented but may need expansion
+
+### Related Files
+- `dg_variables.c` - Script variable handling (FIXED)
+- `utils.c` - PRF_FLAGGED usage at line 10447 (NEEDS FIX)
+- `magic.c` - PRF_FLAGGED usage at line 9203 (NEEDS FIX)
+- `objsave.c` - Database compatibility code (PARTIALLY FIXED)
+- DG Script files for VNums 1015, 1920, 193 (NEED BUILDER ACCESS)

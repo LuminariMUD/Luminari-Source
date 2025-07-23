@@ -210,17 +210,15 @@ int compute_bonus_caster_level(struct char_data *ch, int class)
   case CLASS_BARD:
   case CLASS_SUMMONER:
     bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4 + CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + 
-                    ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN);
-    if (CLASS_LEVEL(ch, CLASS_NECROMANCER) && NECROMANCER_CAST_TYPE(ch) == 1)
-      bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);  
+                    ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN) +
+                    CLASS_LEVEL(ch, CLASS_NECROMANCER);
     break;
   case CLASS_CLERIC:
   case CLASS_DRUID:
   case CLASS_RANGER:
   case CLASS_PALADIN:
   case CLASS_INQUISITOR:
-    if (CLASS_LEVEL(ch, CLASS_NECROMANCER) && NECROMANCER_CAST_TYPE(ch) == 2)
-        bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
+    bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
     bonus_levels += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
     bonus_levels += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
     bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD);

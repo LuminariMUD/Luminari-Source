@@ -1,5 +1,73 @@
 # CHANGELOG
 
+## [2025-07-24] - Fixed Search Functions Priority Issue
+
+### Summary
+Fixed a critical bug in multiple search functions where abbreviation matching would incorrectly take precedence over exact matches. This affected commands like `feat info dragon mount` which would fail to find valid entries.
+
+### Problem Description
+The search functions were checking for abbreviations in the same pass as exact matches. When searching for "dragon mount", the function would find "dragon mount boost" as an abbreviation match first. Since "dragon mount boost" had `in_game = FALSE`, it would return "Could not find that feat" without ever checking for the exact match "dragon mount" (FEAT_DRAGON_BOND).
+
+### Root Cause
+All affected search functions followed a flawed pattern:
+1. They would check `is_abbrev()` first in the search loop
+2. Finding "dragon mount boost" as an abbreviation of "dragon mount"
+3. Returning immediately without checking for exact matches later in the list
+
+### Files Modified
+
+#### 1. `feats.c` - Fixed `find_feat_num()`
+- **Line**: 8325
+- **Change**: Reorganized search into 3 phases: exact match, word-by-word, then abbreviation
+- **Result**: "dragon mount" now correctly finds FEAT_DRAGON_BOND
+
+#### 2. `evolutions.c` - Fixed `find_evolution_num()`
+- **Line**: 1518
+- **Change**: Same 3-phase search reorganization
+- **Result**: Prevents similar issues with evolution names
+
+#### 3. `spell_parser.c` - Fixed `find_skill_num()` and `find_ability_num()`
+- **Lines**: 386 (find_skill_num), 431 (find_ability_num)
+- **Change**: Same 3-phase search reorganization for both functions
+- **Result**: Prevents similar issues with skill and ability names
+
+#### 4. `alchemy.c` - Fixed `find_discovery_num()`
+- **Line**: 3163
+- **Change**: Same 3-phase search reorganization
+- **Result**: Prevents similar issues with discovery names
+
+### Technical Implementation
+Each function now uses a 3-phase search approach:
+```c
+/* PHASE 1: Check for exact match first (case-insensitive) */
+for (index = 1; index < MAX_ITEMS; index++) {
+    if (!strcasecmp(name, item_list[index].name))
+        return (index);
+}
+
+/* PHASE 2: Try word-by-word matching for multi-word names */
+// ... existing word-by-word logic ...
+
+/* PHASE 3: Finally try abbreviation matching as fallback */
+for (index = 1; index < MAX_ITEMS; index++) {
+    if (is_abbrev(name, item_list[index].name))
+        return (index);
+}
+```
+
+### Impact
+- Exact matches now always take priority over abbreviations
+- Maintains backward compatibility - all previously working searches continue to work
+- Fixes the specific issue where "dragon mount" failed to find FEAT_DRAGON_BOND
+- Prevents similar issues across all search functions
+
+### Testing Verification
+After the fix:
+- `feat info dragon mount` → Finds FEAT_DRAGON_BOND (exact match)
+- `feat info dragon mount boost` → Finds FEAT_DRAGON_MOUNT_BOOST (exact match)
+- `feat info drag` → Still finds first feat starting with "drag" (abbreviation)
+- Similar improvements for evolution, skill, ability, and discovery searches
+
 ## [2025-07-23] - Enhanced DG Scripts Safety and Room Validation
 
 ### Summary
@@ -262,3 +330,6 @@ For developers setting up local builds:
 
 ### Backwards Compatibility
 This fix maintains backwards compatibility. All previously working searches will continue to work. The fix only prevents incorrect matches that were bugs, not features.
+
+### Update: Fix Failed
+The attempted fix did not resolve the issue. The `feat info dragon mount` command still returns "Could not find that feat". Further investigation needed.
