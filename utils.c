@@ -10442,7 +10442,7 @@ bool has_intro(struct char_data *ch, struct char_data *target)
   if (GET_LEVEL(ch) >= LVL_IMMORT || GET_LEVEL(target) >= LVL_IMMORT)
     return true;
 
-  if (PRF_FLAGGED(target, PRF_NON_ROLEPLAYER))
+  if (!IS_NPC(target) && PRF_FLAGGED(target, PRF_NON_ROLEPLAYER))
     return true;
 
   if (in_intro_list(ch, target))

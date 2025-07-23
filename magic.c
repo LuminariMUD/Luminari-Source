@@ -9200,7 +9200,7 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
   if (tch == ch)
     return 0;
 
-  if (PRF_FLAGGED(ch, PRF_CONTAIN_AOE) || (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && (ch->master, PRF_CONTAIN_AOE)))
+  if ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONTAIN_AOE)) || (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && PRF_FLAGGED(ch->master, PRF_CONTAIN_AOE)))
   {
     if (!FIGHTING(ch) || !FIGHTING(tch))
     {

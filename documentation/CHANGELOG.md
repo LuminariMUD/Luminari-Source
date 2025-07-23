@@ -1,5 +1,51 @@
 # CHANGELOG
 
+## [2025-07-23] - Fixed PRF_FLAGGED NPCs Crash
+
+### Summary
+Fixed critical crashes where NPCs accessing player-only preference flags would cause segmentation faults. Added NPC safety checks to prevent accessing player_specials structure on non-player characters.
+
+### Problem Description
+The PRF_FLAGGED macro accesses the player_specials structure which NPCs don't have. When NPCs triggered code paths that checked preference flags, the server would crash with errors like "Mob using '((target)->player_specials->saved.pref)'".
+
+### Files Modified
+
+#### 1. `utils.c` - Fixed `has_intro()` function
+- **Line**: 10445
+- **Change**: Added IS_NPC check before PRF_FLAGGED
+- **Fix**: `if (!IS_NPC(target) && PRF_FLAGGED(target, PRF_NON_ROLEPLAYER))`
+- **Result**: NPCs no longer crash when checking roleplay preferences
+
+#### 2. `magic.c` - Fixed `aoeOK()` function
+- **Line**: 9203
+- **Change**: Fixed syntax error and added IS_NPC checks
+- **Fix**: `if ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONTAIN_AOE)) || (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && PRF_FLAGGED(ch->master, PRF_CONTAIN_AOE)))`
+- **Result**: Area-of-effect spells no longer crash when cast by or near NPCs
+
+#### 3. `DG_SCRIPT_FIXES_NEEDED.md` - Created documentation
+- **Purpose**: Document DG Script errors requiring builder-level access
+- **Contents**: 
+  - Dragon egg timer script (VNum 1015) syntax error
+  - Objects executing scripts from NOWHERE location
+- **Result**: Clear tracking of script issues for builders to fix
+
+### Technical Details
+- PRF_FLAGGED expands to `IS_SET_AR(PRF_FLAGS(ch), (flag))`
+- PRF_FLAGS expands to `CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.pref))`
+- NPCs don't have player_specials allocated, causing null pointer dereference
+- All PRF_FLAGGED usage now properly checks IS_NPC first
+
+### Impact
+- Prevents server crashes during combat with NPCs
+- Fixes crashes in roleplay systems when NPCs are involved
+- Maintains full functionality for player characters
+- No gameplay changes, only stability improvements
+
+### Related Issues
+- Error logs showed "Mob using '((target)->player_specials->saved.pref)'"
+- Crashes occurred in combat and roleplay scenarios
+- Part of ongoing stability improvements documented in TASK_LIST.md
+
 ## [2025-07-24] - Fixed Search Functions Priority Issue
 
 ### Summary
