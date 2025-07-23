@@ -4096,9 +4096,9 @@ ACMD(do_who)
   int mortals = 0, staff = 0;
   clan_rnum c_n;
   size_t len = 0;
-  char clan_name[50];
-  int length = 0;
-  int padding = 0;
+  /* char clan_name[50]; */ /* Currently unused */
+  /* int length = 0; */ /* Currently unused */
+  /* int padding = 0; */ /* Currently unused */
 
   char *account_names[CONFIG_MAX_PLAYING];
   int num_accounts = 0, x = 0, y = 0;

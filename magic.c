@@ -258,10 +258,10 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
   if (has_one_thought(vict))
     saves += 1;
 
-    /* determine base, add/minus bonus/penalty and return */
-    if (IS_NPC(vict))
-      saves += (GET_LEVEL(vict) / 3) + 1;
-    else
+  /* determine base, add/minus bonus/penalty and return */
+  if (IS_NPC(vict))
+    saves += (GET_LEVEL(vict) / 3) + 1;
+  else
       saves += saving_throws(vict, type);
 
   /* display mode (used in handler for stat caps) */

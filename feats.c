@@ -8834,9 +8834,9 @@ ACMD(do_epicfeats)
   sprintf(buf + strlen(buf), "\tC%s\tn", text_line_string("\tYEpic Feats\tC", line_length, '-', '-'));
   strlcpy(buf2, buf, sizeof(buf2));
 
-  snprintf(buf, sizeof(buf), text_line_string("All Epic Feats Requires Character Level 21+", line_length, '-', '-'));
+  snprintf(buf, sizeof(buf), "%s", text_line_string("All Epic Feats Requires Character Level 21+", line_length, '-', '-'));
   strlcat(buf2, buf, sizeof(buf2));
-  snprintf(buf, sizeof(buf), text_line_string("-", line_length, '-', '-'));
+  snprintf(buf, sizeof(buf), "%s", text_line_string("-", line_length, '-', '-'));
   strlcat(buf2, buf, sizeof(buf2));
 
   for (sortpos = 1; sortpos < NUM_FEATS; sortpos++)
@@ -8882,11 +8882,11 @@ ACMD(do_epicfeats)
     }
   }
 
-  snprintf(buf, sizeof(buf), text_line_string("\tn-", line_length, '-', '-'));
+  snprintf(buf, sizeof(buf), "%s", text_line_string("\tn-", line_length, '-', '-'));
   strlcat(buf2, buf, sizeof(buf2));
-  snprintf(buf, sizeof(buf), text_line_string("Use 'feat info (featname)' for more information on a certain feat", line_length, '-', '-'));
+  snprintf(buf, sizeof(buf), "%s", text_line_string("Use 'feat info (featname)' for more information on a certain feat", line_length, '-', '-'));
   strlcat(buf2, buf, sizeof(buf2));
-  snprintf(buf, sizeof(buf), text_line_string("-", line_length, '-', '-'));
+  snprintf(buf, sizeof(buf), "%s", text_line_string("-", line_length, '-', '-'));
   strlcat(buf2, buf, sizeof(buf2));
 
   page_string(ch->desc, buf2, 1);
