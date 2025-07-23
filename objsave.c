@@ -2017,7 +2017,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   char *serialized_obj;
   int locate;
   int obj_db_idnum = 0;
-  int loading_house_data = 0; /* Track if we're loading house data */
+  int loading_house_data = 0; /* Track query type: 0=player with idnum, 1=house with idnum, 2=house no idnum, 3=player no idnum */
 
   char **lines; /* Storage for tokenized serialization */
   char **line;  /* Token iterator */
@@ -2033,7 +2033,19 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     if (mysql_query(conn, buf))
     {
       log("SYSERR: Unable to SELECT from player_save_objs: %s", mysql_error(conn));
-      exit(1);
+      /* Try without idnum column for compatibility with dev server */
+      snprintf(buf, sizeof(buf), "SELECT   serialized_obj "
+                                 "FROM     player_save_objs "
+                                 "WHERE    name = '%s' "
+                                 "ORDER BY creation_date ASC;",
+               name);
+      
+      if (mysql_query(conn, buf))
+      {
+        log("SYSERR: Unable to SELECT from player_save_objs (without idnum): %s", mysql_error(conn));
+        exit(1); /* Still exit if both queries fail - this maintains original behavior */
+      }
+      loading_house_data = 3; /* Mark that we're using player data without idnum */
     }
 
     if (!(result = mysql_store_result(conn)))
@@ -2096,13 +2108,16 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     serialized_obj = strdup(row[0]);
     /* Handle different query types */
     if (loading_house_data == 2) {
-      /* Fallback query without idnum */
+      /* House data fallback query without idnum */
+      obj_db_idnum = 0;
+    } else if (loading_house_data == 3) {
+      /* Player data fallback query without idnum */
       obj_db_idnum = 0;
     } else if (loading_house_data == 1) {
       /* House data with idnum column */
       obj_db_idnum = atoi(row[1]);
     } else {
-      /* Player data always has idnum */
+      /* Player data with idnum column (normal case) */
       obj_db_idnum = atoi(row[1]);
     }
 

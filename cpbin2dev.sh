@@ -7,4 +7,4 @@ echo Moved changelog over to news file
 echo "5 second delay before starting server..."
 sleep 5
 echo "Starting dev server on port 4101"
-cd /home/luminari/dev && ./autorun-luminari-dp
+cd /home/luminari/dev && ./autorun-luminari-dp &
