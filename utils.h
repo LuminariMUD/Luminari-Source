@@ -865,7 +865,7 @@ void char_from_furniture(struct char_data *ch);
 #define IS_DAYLIT(room) room_is_daylit((room))
 
 /** 1 if this is a valid room number, 0 if not. */
-#define VALID_ROOM_RNUM(rnum) ((rnum) != NOWHERE && (rnum) <= top_of_world)
+#define VALID_ROOM_RNUM(rnum) ((rnum) != NOWHERE && (rnum) >= 0 && (rnum) < top_of_world)
 
 /** The room number if this is a valid room, NOWHERE if it is not */
 #define GET_ROOM_VNUM(rnum) \

@@ -1,5 +1,47 @@
 # CHANGELOG
 
+## [2025-07-23] - Enhanced DG Scripts Safety and Room Validation
+
+### Summary
+Fixed additional segmentation faults in the DG Scripts system by adding comprehensive bounds checking for room access. Corrected the VALID_ROOM_RNUM macro to prevent array out-of-bounds access.
+
+### Files Modified
+
+#### 1. `dg_variables.c` - Additional Script Safety Fixes
+- **Problem**: Segmentation fault at address 0xE809A60018 when scripts accessed room data
+- **Root Cause**: Objects in NOWHERE executing scripts with `%random.char%` or accessing `.room` property
+- **Changes**:
+  - Lines 626: Added VALID_ROOM_RNUM check for MOB_TRIGGER random.char access
+  - Lines 641: Added VALID_ROOM_RNUM check for OBJ_TRIGGER random.char access  
+  - Lines 687: Added bounds checking for random.dir access
+  - Lines 1927: Added bounds checking for obj.room property access
+- **Result**: Scripts no longer crash when accessing room data from invalid locations
+
+#### 2. `utils.h` - VALID_ROOM_RNUM Macro Fix
+- **Line 868**: Fixed macro from `<= top_of_world` to `< top_of_world`
+- **Problem**: Array bounds check was off by one (arrays are 0-indexed)
+- **Result**: Prevents potential buffer overrun when accessing world array
+
+#### 3. `class.c` - Compilation Fix
+- **Line 2321**: Uncommented `int x;` variable declaration
+- **Problem**: Variable was used but commented out, causing compilation error
+- **Result**: Code compiles successfully
+
+#### 4. `cpbin2dev.sh` - Script Enhancement
+- **Lines 4,6**: Added quotes around echo strings for consistency
+- **Lines 11-13**: Added reminder message for changing directories after deployment
+
+### Technical Details
+- **Error Path**: heartbeat() → script_trigger_check() → random_otrigger() → script_driver() → process_if() → eval_expr() → var_subst() → find_replacement()
+- The crash occurred when find_replacement() tried to access world[invalid_room].people
+- All room access now uses VALID_ROOM_RNUM macro for consistent validation
+- The fixes handle cases where obj_room() returns NOWHERE or invalid positive numbers
+
+### Impact
+- Prevents crashes from scripts on objects/mobs in invalid locations
+- Improves overall server stability during script execution
+- Maintains compatibility with existing scripts and content
+
 ## [2025-07-23] - Database Compatibility and Crash Fixes
 
 ### Summary
