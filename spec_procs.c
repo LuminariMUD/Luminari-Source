@@ -3157,7 +3157,7 @@ int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMda
         if (theRoom->from[cibIdx] != ONMdata->oldRoom) {
             sprintf(errStr, "SPEC(move_room): [%d] from[cibIdx] != oldRoom (or <= 0) (%d/%d %d)",
                     (int)ONMdata->moveRoom, theRoom->from[cibIdx], ONMdata->oldRoom, cibIdx);
-            log(errStr);
+            log("%s", errStr);
             return 0;
         }
 
@@ -3171,7 +3171,7 @@ int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMda
         if (world[real_room(ONMdata->oldRoom)].dir_option[ONMdata->oldDir] == NULL) {
             sprintf(errStr, "SPEC(move_room): [%d] old conn room %d dir %d not set...", (int)ONMdata->moveRoom,
                     ONMdata->oldRoom, ONMdata->oldDir);
-            log(errStr);
+            log("%s", errStr);
             return 0;
         }
 
@@ -3216,7 +3216,7 @@ int linkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata
             sprintf(errStr, "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%d:  to:%d:", (int)ONMdata->moveRoom,
                     (rdd->general_description == NULL) ? "" : rdd->general_description,
                     (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
-            log(errStr);
+            log("%s", errStr);
 
             return 0;
         }
@@ -3225,13 +3225,13 @@ int linkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata
         if (world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir] != NULL) {
             sprintf(errStr, "SPEC(move_room): [%d] conn room has dir %d set...", (int)ONMdata->moveRoom,
                     ONMdata->nextDir);
-            log(errStr);
+            log("%s", errStr);
 
             rdd = world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir];
             sprintf(errStr, "SPEC(move): [%d] rdd - desc:%s:  key:%s:  ei:%d:  key:%d:  to:%d:", (int)ONMdata->moveRoom,
                     (rdd->general_description == NULL) ? "" : rdd->general_description,
                     (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
-            log(errStr);
+            log("%s", errStr);
 
 /*  pdh 5/3/01 - don't return - instead remove the offending exit
 return 0;

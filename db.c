@@ -1766,7 +1766,7 @@ void moving_rooms_update(void)
                 }
             } else {
                 sprintf(errStr, "moving_rooms_update: real_room(%d) < 0", mover);
-                log(errStr);
+                log("%s", errStr);
             }
 
             nextRoom->remainingZonePulses = nextRoom->resetZonePulse;

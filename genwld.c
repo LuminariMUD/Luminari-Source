@@ -632,24 +632,24 @@ void dump_moving(struct moving_room_data * mr, struct char_data * ch)
   if ( mr ) {
     sprintf(pdh, "Reset: %d (%d left)\r\n",
 	    mr->resetZonePulse, mr->remainingZonePulses);
-    send_to_char(ch, pdh);
+    send_to_char(ch, "%s", pdh);
     sprintf(pdh, "Current Inbound Idx: %d\r\n", mr->currentInbound);
-    send_to_char(ch, pdh);
+    send_to_char(ch, "%s", pdh);
     sprintf(pdh, "Destination: %d        Inbound Dir: %d\r\n",
 	    mr->destination, mr->inbound_dir);
-    send_to_char(ch, pdh);
+    send_to_char(ch, "%s", pdh);
     sprintf(pdh, "Random: %s\r\n", (mr->randomMove) ? "yes" : "no");
-    send_to_char(ch, pdh);
+    send_to_char(ch, "%s", pdh);
 
     sprintf(buf, "Transit Msg: %s\r\n",
 	    mr->msg_transit ? mr->msg_transit : "<none>");
-    send_to_char(ch, buf);
+    send_to_char(ch, "%s", buf);
     sprintf(buf, "Docking Msg: %s\r\n",
 	    mr->msg_docking ? mr->msg_docking : "<none>");
-    send_to_char(ch, buf);
+    send_to_char(ch, "%s", buf);
     sprintf(buf, "Dest Docking Msg: %s\r\n",
 	    mr->msg_dest_docking ? mr->msg_dest_docking : "<none>");
-    send_to_char(ch, buf);
+    send_to_char(ch, "%s", buf);
 
 
     send_to_char(ch, "TARGET DIR\r\n");
@@ -657,7 +657,7 @@ void dump_moving(struct moving_room_data * mr, struct char_data * ch)
       for(ridx=0; ridx<MAX_MOVING_ROOMS && mr->from[ridx] != ENDMOVING;
 	  ridx++) {
 	sprintf(pdh, "%6d  %d\r\n", mr->from[ridx], mr->fromDir[ridx]);
-	send_to_char(ch, pdh);
+	send_to_char(ch, "%s", pdh);
       }
     } else {
       send_to_char(ch, " none  ---\r\n");

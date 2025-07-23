@@ -7064,9 +7064,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       // since overwhelming is a prereq, and this condenses the code required
       if (has_devastating_critical_prereqs(ch, wielded))
       {
-        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED)) ;
+        if (IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_CONDENSED))
           send_to_char(ch, "\tW[DEVASTATING!]\tn");
-        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED)) ;
+        if (IS_NPC(victim) || !PRF_FLAGGED(victim, PRF_CONDENSED))
           send_to_char(victim, "\tR[DEVASTATING!]\tn");
         for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded) - 1); loop++)
         {
@@ -7078,9 +7078,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       }
       else if (has_overwhelming_critical_prereqs(ch, wielded))
       {
-        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED)) ;
+        if (IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_CONDENSED))
           send_to_char(ch, "\tW[OVERWHELMING!]\tn");
-        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED)) ;
+        if (IS_NPC(victim) || !PRF_FLAGGED(victim, PRF_CONDENSED))
           send_to_char(victim, "\tR[OVERWHELMING!]\tn");
         for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded) - 1); loop++)
         {

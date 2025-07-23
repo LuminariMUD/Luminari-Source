@@ -2280,7 +2280,7 @@ void nanny(struct descriptor_data *d, char *arg)
 {
   int load_result = 0; /* Overloaded variable */
   int player_i = 0;
-  int i = 0, l = 0, sortpos = 0; /* incrementor */
+  int i = 0, l = 0; /* sortpos = 0; */ /* sortpos currently unused */ /* incrementor */
 
   /* OasisOLC states */
   struct
@@ -4247,7 +4247,7 @@ void show_character_rp_menu(struct descriptor_data *d)
 
 void show_homeland_region_main_menu(struct descriptor_data *d)
 {
-  int i;
+  /* int i; */ /* Currently unused */
 
   #if defined(CAMPAIGN_FR)
       if (GET_REGION(d->character))
