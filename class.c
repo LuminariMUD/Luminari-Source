@@ -2318,7 +2318,6 @@ int level_feats[][LEVEL_FEATS] = {
 void newbieEquipment(struct char_data *ch)
 {
   struct obj_data *obj = NULL;
-  int x; /* used in USE_CONTAINER_OBJECTS section */
 
 #if defined(USE_OLD_NOOB_GEAR)
   struct obj_data *quiver = NULL, *pouch = NULL, *bp = NULL;
@@ -2346,6 +2345,7 @@ void newbieEquipment(struct char_data *ch)
 
 #if defined(USE_CONTAINER_OBJECTS)
   // give everyone torch, rations, skin, backpack, bow, etc
+  int x;
   for (x = 0; objNums[x] != -1; x++)
   {
     obj = read_object(objNums[x], VIRTUAL);

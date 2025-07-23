@@ -23,9 +23,10 @@ Fixed additional segmentation faults in the DG Scripts system by adding comprehe
 - **Result**: Prevents potential buffer overrun when accessing world array
 
 #### 3. `class.c` - Compilation Fix
-- **Line 2321**: Uncommented `int x;` variable declaration
-- **Problem**: Variable was used but commented out, causing compilation error
-- **Result**: Code compiles successfully
+- **Line 2321**: Removed unused `int x;` variable declaration
+- **Line 2348**: Added `int x;` declaration inside `USE_CONTAINER_OBJECTS` block where it's actually used
+- **Problem**: Variable was declared at function scope but only used in conditional compilation block
+- **Result**: Eliminates unused variable warning
 
 #### 4. `cpbin2dev.sh` - Script Enhancement
 - **Lines 4,6**: Added quotes around echo strings for consistency
