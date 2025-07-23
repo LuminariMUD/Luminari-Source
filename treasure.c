@@ -916,6 +916,13 @@ void award_magic_item(int number, struct char_data *ch, int grade)
   }
 }
 
+#else
+/* Default implementation when no crafting system is defined */
+void award_magic_item(int number, struct char_data *ch, int grade)
+{
+  /* Simple stub implementation - just log a message */
+  log("award_magic_item called but no crafting system is defined");
+}
 #endif
 
 int random_apply_value(void)

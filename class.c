@@ -2321,7 +2321,7 @@ void newbieEquipment(struct char_data *ch)
   int x;
 
 #if defined(USE_OLD_NOOB_GEAR)
-  struct *quiver = NULL, *pouch = NULL, *bp = NULL;
+  struct obj_data *quiver = NULL, *pouch = NULL, *bp = NULL;
   int objNums[] = {
       NOOB_BP, /* HAS to be first */
       NOOB_BOW,

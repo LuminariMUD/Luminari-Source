@@ -1,5 +1,106 @@
 # CHANGELOG
 
+## [2025-07-23] - Project Cleanup
+
+### Summary
+Removed obsolete and unnecessary files to clean up the project directory. These files were either for legacy platforms, unused build configurations, or IDE-specific settings.
+
+### Files Removed
+
+#### 1. Legacy/Obsolete Files
+- **`SCOPTIONS`** - Configuration file for SAS/C compiler on Amiga platform (obsolete since 1990s)
+- **`newdepend.sh`** - Simple script that just deleted and restored the depend file from git
+- **`htmlh-head`** and **`htmlh-tail`** - Unused HTML template fragments
+
+#### 2. Backup Makefiles
+- **`Makefile.2`**, **`Makefile.3`**, **`Makefile.4`** - Alternative Makefile versions with different compiler flags
+- **`Makefile2`** - Another backup Makefile
+- **Note**: Kept `Makefile.in` as it's the template used by the configure script
+
+#### 3. Documentation Files
+- **`dox_withGraphs.doxyfile`** - Doxygen configuration with graph generation enabled
+- **`dox_noGraphs.doxyfile`** - Doxygen configuration without graphs
+- **Note**: Both referenced outdated project name "tbaMUD" instead of "LuminariMUD"
+
+#### 4. IDE Configuration
+- **`nbproject/`** directory - NetBeans IDE project configuration files
+  - Not needed for command-line builds
+  - Only useful if developing with NetBeans IDE
+
+#### 5. Dependency File Backups
+- **`depend.4`** and **`depend.bak`** - Backup copies of the dependency file
+
+### Other Changes
+- Regenerated `depend` file using `gcc -MM *.c > depend` to ensure up-to-date dependency tracking
+
+### Impact
+These removals have no impact on the build process or functionality. The project still builds successfully with `make all` and is cleaner without these obsolete files.
+
+## [2025-07-23] - Build System Fixes
+
+### Summary
+Fixed multiple compilation errors preventing the project from building successfully. These included syntax errors, duplicate definitions, missing constants, and unresolved dependencies.
+
+### Files Modified
+
+#### 1. `class.c`
+- **Line**: 2324
+- **Error**: `struct *quiver = NULL, *pouch = NULL, *bp = NULL;` - missing type name
+- **Fix**: Changed to `struct obj_data *quiver = NULL, *pouch = NULL, *bp = NULL;`
+
+#### 2. `transport.c`
+- **Lines**: 224-334
+- **Error**: Duplicate definition of `walkto_landmarks` array
+- **Fix**: Commented out the second definition using `#if 0 ... #endif`
+
+#### 3. `structs.h`
+- **Line**: 973 (after `#define REGION_ZAKHARA`)
+- **Error**: `REGION_OUTER_PLANES` was undefined for non-DL campaigns
+- **Fix**: Added `#define REGION_OUTER_PLANES 36` and updated `NUM_REGIONS` to 37
+
+#### 4. `constants.c`
+- **Line**: 5767 (in regions array)
+- **Error**: Missing "Outer Planes" entry causing static assertion failure
+- **Fix**: Added `"Outer Planes",` before the terminating `"\n"`
+
+#### 5. `wilderness.c`
+- **Multiple locations**
+- **Initial Error**: Missing `gd.h` header file (GD graphics library)
+- **Initial Approach**: Attempted to disable GD functionality
+- **Final Fix**: Reverted changes after discovering libgd-dev was already installed
+  - Fixed syntax errors from incomplete reversion (removed extra closing braces on lines 1237 and 1294)
+  - GD library functionality remains intact
+  - Map generation features (`save_map_to_file()` and `save_noise_to_file()`) are fully functional
+
+#### 6. `Makefile`
+- **Line**: 31
+- **No changes needed** - `-lgd` remains in LIBS since the library is installed
+
+#### 7. `treasure.c`
+- **Line**: 919 (after `#endif`)
+- **Error**: `award_magic_item()` undefined when neither `USE_NEW_CRAFTING_SYSTEM` nor `USE_OLD_CRAFTING_SYSTEM` is defined
+- **Fix**: Added default stub implementation:
+  ```c
+  #else
+  /* Default implementation when no crafting system is defined */
+  void award_magic_item(int number, struct char_data *ch, int grade)
+  {
+    /* Simple stub implementation - just log a message */
+    log("award_magic_item called but no crafting system is defined");
+  }
+  #endif
+  ```
+
+### Build Process
+After these fixes, the project builds successfully with `make all`, creating:
+- Main game executable: `../bin/circle`
+- All utility programs in `../bin/`
+
+### Notes
+- The GD library (libgd-dev) is required and installed - map generation features are fully functional
+- The crafting system needs to be properly configured by defining either `USE_NEW_CRAFTING_SYSTEM` or `USE_OLD_CRAFTING_SYSTEM`
+- Several warnings remain but don't prevent successful compilation
+
 ## [2025-07-23] - Bug Fix: Multi-word Search Functions
 
 ### Summary

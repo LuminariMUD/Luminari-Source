@@ -970,8 +970,9 @@
 #define REGION_UNTHER               33
 #define REGION_WESTGATE             34
 #define REGION_ZAKHARA              35
+#define REGION_OUTER_PLANES         36
 
-#define NUM_REGIONS                 36
+#define NUM_REGIONS                 37
 
 #endif
 
