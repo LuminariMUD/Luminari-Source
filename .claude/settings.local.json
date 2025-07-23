@@ -9,7 +9,11 @@
       "Bash(rm:*)",
       "Bash(cat:*)",
       "Bash(git add:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(make:*)",
+      "Bash(ls:*)",
+      "Bash(gcc:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }
