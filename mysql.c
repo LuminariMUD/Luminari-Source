@@ -124,6 +124,8 @@ void connect_to_mysql()
     log("SYSERR: Unable to connect to MySQL3: %s", mysql_error(conn3));
     exit(1);
   }
+  
+  log("SUCCESS: Connected to MySQL database '%s' on host '%s' as user '%s'", database, host, username);
 }
 
 void disconnect_from_mysql()
