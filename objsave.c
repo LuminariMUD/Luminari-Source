@@ -2017,6 +2017,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   char *serialized_obj;
   int locate;
   int obj_db_idnum = 0;
+  int loading_house_data = 0; /* Track if we're loading house data */
 
   char **lines; /* Storage for tokenized serialization */
   char **line;  /* Token iterator */
@@ -2044,6 +2045,8 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   else
   {
     /* house_vnum was given, so load the house data instead. */
+    loading_house_data = 1;
+    /* Try to select both columns - if idnum doesn't exist, MySQL will error but we handle it */
     snprintf(buf, sizeof(buf), "SELECT   serialized_obj, idnum "
                                "FROM     house_data "
                                "WHERE    vnum = '%d' "
@@ -2053,13 +2056,27 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     if (mysql_query(conn, buf))
     {
       log("SYSERR: Unable to SELECT from house_data: %s", mysql_error(conn));
-      exit(1);
+      /* Try without idnum column for compatibility with older schema */
+      snprintf(buf, sizeof(buf), "SELECT   serialized_obj "
+                                 "FROM     house_data "
+                                 "WHERE    vnum = '%d' "
+                                 "ORDER BY creation_date ASC;",
+               house_vnum);
+      
+      if (mysql_query(conn, buf))
+      {
+        log("SYSERR: Unable to SELECT from house_data (without idnum): %s", mysql_error(conn));
+        log("WARNING: Skipping house data loading for vnum %d", house_vnum);
+        return NULL;
+      }
+      loading_house_data = 2; /* Mark that we're using the fallback query */
     }
 
     if (!(result = mysql_store_result(conn)))
     {
       log("SYSERR: Unable to SELECT from house_data: %s", mysql_error(conn));
-      exit(1);
+      log("WARNING: Skipping house data loading for vnum %d", house_vnum);
+      return NULL;
     }
   }
 
@@ -2077,7 +2094,17 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
 
     /* Get the data from the row structure. */
     serialized_obj = strdup(row[0]);
-    obj_db_idnum = atoi(row[1]);
+    /* Handle different query types */
+    if (loading_house_data == 2) {
+      /* Fallback query without idnum */
+      obj_db_idnum = 0;
+    } else if (loading_house_data == 1) {
+      /* House data with idnum column */
+      obj_db_idnum = atoi(row[1]);
+    } else {
+      /* Player data always has idnum */
+      obj_db_idnum = atoi(row[1]);
+    }
 
     lines = tokenize(serialized_obj, "\n");
 
