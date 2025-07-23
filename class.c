@@ -2318,7 +2318,7 @@ int level_feats[][LEVEL_FEATS] = {
 void newbieEquipment(struct char_data *ch)
 {
   struct obj_data *obj = NULL;
-  /* int x; */ /* unused */
+  int x; /* used in USE_CONTAINER_OBJECTS section */
 
 #if defined(USE_OLD_NOOB_GEAR)
   struct obj_data *quiver = NULL, *pouch = NULL, *bp = NULL;
