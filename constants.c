@@ -5764,6 +5764,7 @@ const char *regions[] = {
     "Unther",
     "Westgate",
     "Zakhara",
+    "Outer Planes",
     "\n"};
 CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
 
