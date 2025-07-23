@@ -11666,7 +11666,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     mileage out of striking-type casters. In this case we assume if the player
     is blasting they are using ranged. Otherwise if they're blasting and using
     hideous blow, they are doing melee. */
-  if (PRF_FLAGGED(ch, PRF_AUTOBLAST) && GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOBLAST) && GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
   {
     ranged_attacks += bonus_mainhand_attacks;
     if (is_tanking(ch))

@@ -2950,8 +2950,9 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch, s
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
   if (mysql_query(conn, ins_buf))
   {
-    log("SYSERR: Unable to INSERT into pet_save_objs: %s\n%s\n", mysql_error(conn), ins_buf);
-    return 1;
+    log("SYSERR: Unable to INSERT into pet_save_objs: %s", mysql_error(conn));
+    /* Table doesn't exist, skip saving pet objects */
+    return 0;
   }
 
   extract_obj(temp);
@@ -3019,7 +3020,8 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to SELECT from pet_save_objs: %s", mysql_error(conn));
-    exit(1);
+    /* Table doesn't exist, so no pet objects to load */
+    return;
   }
 
   if (!(result = mysql_store_result(conn)))

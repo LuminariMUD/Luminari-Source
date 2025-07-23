@@ -721,6 +721,10 @@ void random_otrigger(obj_data *obj)
 {
   trig_data *t;
 
+  /* Don't execute scripts for objects in NOWHERE */
+  if (IN_ROOM(obj) == NOWHERE && obj->carried_by == NULL && obj->worn_by == NULL && obj->in_obj == NULL)
+    return;
+
   if (!SCRIPT_CHECK(obj, OTRIG_RANDOM))
     return;
 
@@ -740,6 +744,10 @@ void timer_otrigger(struct obj_data *obj)
   trig_data *t = NULL;
 
   if (obj == NULL)
+    return;
+
+  /* Don't execute scripts for objects in NOWHERE */
+  if (IN_ROOM(obj) == NOWHERE && obj->carried_by == NULL && obj->worn_by == NULL && obj->in_obj == NULL)
     return;
 
   if (!SCRIPT_CHECK(obj, OTRIG_TIMER))
