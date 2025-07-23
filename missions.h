@@ -64,6 +64,6 @@ bool is_mission_mob(struct char_data *ch, struct char_data *mob);
 void create_mission_on_entry(struct char_data *ch);
 int select_mission_coords(int start);
 room_rnum get_random_road_room(int type);
-char * get_mission_zone_name(struct char_data *ch);
+const char * get_mission_zone_name(struct char_data *ch);
 
 #endif
