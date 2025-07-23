@@ -620,25 +620,32 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           if (type == MOB_TRIGGER)
           {
             ch = (char_data *)go;
-            for (c = world[IN_ROOM(ch)].people; c; c = c->next_in_room)
-              if ((c != ch) && valid_dg_target(c, DG_ALLOW_STAFFS) &&
-                  CAN_SEE(ch, c))
-              {
-                if (!rand_number(0, count))
-                  rndm = c;
-                count++;
-              }
+            if (IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) < top_of_world && IN_ROOM(ch) >= 0)
+            {
+              for (c = world[IN_ROOM(ch)].people; c; c = c->next_in_room)
+                if ((c != ch) && valid_dg_target(c, DG_ALLOW_STAFFS) &&
+                    CAN_SEE(ch, c))
+                {
+                  if (!rand_number(0, count))
+                    rndm = c;
+                  count++;
+                }
+            }
           }
           else if (type == OBJ_TRIGGER)
           {
-            for (c = world[obj_room((obj_data *)go)].people; c;
-                 c = c->next_in_room)
-              if (valid_dg_target(c, DG_ALLOW_STAFFS))
-              {
-                if (!rand_number(0, count))
-                  rndm = c;
-                count++;
-              }
+            room_rnum obj_rm = obj_room((obj_data *)go);
+            if (obj_rm != NOWHERE && obj_rm < top_of_world && obj_rm >= 0)
+            {
+              for (c = world[obj_rm].people; c;
+                   c = c->next_in_room)
+                if (valid_dg_target(c, DG_ALLOW_STAFFS))
+                {
+                  if (!rand_number(0, count))
+                    rndm = c;
+                  count++;
+                }
+            }
           }
           else if (type == WLD_TRIGGER)
           {

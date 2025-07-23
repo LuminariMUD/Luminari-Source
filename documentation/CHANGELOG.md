@@ -1,5 +1,48 @@
 # CHANGELOG
 
+## [2025-07-23] - Database Compatibility and Crash Fixes
+
+### Summary
+Fixed multiple critical issues affecting development server compatibility and stability. Added graceful handling for missing database columns and fixed a segmentation fault in the DG Scripts system.
+
+### Files Modified
+
+#### 1. `objsave.c` - Database Column Compatibility
+- **Problem**: Server crashed with "Unknown column 'idnum' in 'field list'" errors when database schema was incomplete
+- **Changes**:
+  - Lines 2033-2049: Added fallback query for `player_save_objs` without idnum column
+  - Lines 2056-2073: Added fallback query for `house_data` without idnum column  
+  - Lines 2098-2122: Added logic to handle different query types based on which columns exist
+  - Line 2020: Added `loading_house_data` variable to track query type
+- **Result**: Server now gracefully handles missing idnum columns instead of crashing
+
+#### 2. `dg_variables.c` - Script Crash Fix
+- **Problem**: Segmentation fault when objects/mobs in NOWHERE tried to access `%random.char%`
+- **Error**: "SCRIPT ERROR: Obj (a burning cluster of pines, VNum 11865):: oecho called by object in NOWHERE"
+- **Changes**:
+  - Lines 623-633: Added safety check for MOB_TRIGGER to verify room is valid
+  - Lines 634-645: Added safety check for OBJ_TRIGGER to verify room is valid
+- **Result**: Scripts no longer crash when entities are in invalid locations
+
+#### 3. `mysql.c` - Connection Logging
+- **Line 128**: Added success message when MySQL connection is established
+- **Result**: Easier debugging of database connection issues
+
+#### 4. `cpbin2dev.sh` - Development Deployment Enhancement
+- **Lines 7-10**: Added 5-second delay and automatic server startup after deployment
+- **Result**: Streamlined development deployment process
+
+### Technical Details
+- The database compatibility fixes use a fallback pattern: try with full schema first, then retry with reduced schema
+- Room validity checks prevent accessing `world[NOWHERE].people` which causes segfaults
+- All changes maintain full backward compatibility with production servers
+
+### Impact
+- Development servers can now run without complete database schemas
+- Objects and mobs in invalid locations no longer crash the server
+- Database connection issues are easier to diagnose
+- Development deployment is more automated
+
 ## [2025-07-23] - Project Cleanup
 
 ### Summary
