@@ -473,6 +473,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     if (mysql_query(conn, ins_buf))
     {
       log("SYSERR: Unable to REPLACE into player_save_objs: %s", mysql_error(conn));
+      extract_obj(temp);
       return 1;
     }
   }
@@ -481,6 +482,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     if (mysql_query(conn, ins_buf))
     {
       log("SYSERR: Unable to INSERT into house_data: %s", mysql_error(conn));
+      extract_obj(temp);
       return 1;
     }
   }
