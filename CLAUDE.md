@@ -64,8 +64,9 @@ The codebase follows a modular MUD architecture:
 
 ## Important Development Notes
 
-### Missing Files
-- **campaign.h** - Must be created locally. This file contains campaign-specific customizations.
+### Configuration Files
+- **campaign.h** - Copy from `campaign.example.h` to create your local campaign configuration. This file contains campaign-specific customizations (CAMPAIGN_DL for Dragonlance, CAMPAIGN_FR for Forgotten Realms, or leave empty for default LuminariMUD).
+- **mud_options.h** - Copy from `mud_options.example.h` to configure MUD-specific options.
 
 ### Code Style
 - Follow existing indentation and brace style in each file

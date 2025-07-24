@@ -16,12 +16,19 @@
 - Modified files:
   - `fight.c` - Line 11669: Added `!IS_NPC(ch) &&` check
   - `dg_triggers.c` - Added NOWHERE checks in timer_otrigger() and random_otrigger()
-  - `objsave.c` - Modified pet_load_objs() and pet object saving to handle missing table
+  - `objsave.c` - Modified pet_load_objs() and pet object saving to handle missing table; fixed compilation warning by returning NULL instead of void
   - `players.c` - Fixed pet_data INSERT queries and character_info UPDATE
   - `act.wizard.c` - Modified SELECT queries to use empty string for missing character_info column
+
+#### Low Priority Fix
+- **Fixed award_magic_item crafting system configuration** - Added USE_OLD_CRAFTING_SYSTEM configuration option to mud_options.h and mud_options.example.h. This eliminates the "award_magic_item called but no crafting system is defined" log spam and enables magic item awards to actually function.
+
+### Added
+- **campaign.example.h** - Added example campaign configuration file to repository. Users can now copy this to campaign.h instead of creating from scratch. Includes options for CAMPAIGN_DL (Dragonlance) and CAMPAIGN_FR (Forgotten Realms).
 
 ### Notes
 - These fixes should significantly reduce error spam in the logs
 - Most remaining issues are world file problems (missing triggers, invalid zone commands, etc.) rather than code bugs
 - The code already handles most world file issues gracefully by logging errors and continuing operation
+- Magic items will now be properly awarded when treasure is generated
 

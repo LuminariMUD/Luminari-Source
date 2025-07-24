@@ -18,6 +18,14 @@
 #define USE_NEW_NOOB_GEAR // Uses the new newbie gear created in Chronicles of Krynn
 // #define USE_OLD_NOOB_GEAR // Uses the old newbie gear created in LuminariMUD
 
+
+// ----- ONE OF THE TWO BELOW MUST BE SET, BUT NOT BOTH -----
+// The crafting system determines how magic items are awarded in the game.
+// USE_OLD_CRAFTING_SYSTEM is the simpler, more stable option and is recommended for most MUDs.
+// USE_NEW_CRAFTING_SYSTEM provides more advanced crafting features but may be less stable.
+#define USE_OLD_CRAFTING_SYSTEM  // Traditional magic item award system
+// #define USE_NEW_CRAFTING_SYSTEM  // Advanced crafting system with more features
+
 // Make sure this is uncommented if you want to allow the kender race
 #define RACE_ALLOW_KENDER
 // Make sure this is uncommented if you want to allow the drow elf race
