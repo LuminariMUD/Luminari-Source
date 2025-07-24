@@ -1519,7 +1519,7 @@ static inline void buffer_write_string_field(char *buffer, size_t *buffer_used, 
 void save_char(struct char_data *ch, int mode)
 {
   FILE *fl;
-  char filename[40] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'},
+  char filename[40] = {'\0'},
        bits[127] = {'\0'}, bits2[127] = {'\0'},
        bits3[127] = {'\0'}, bits4[127] = {'\0'};
   int i = 0, j = 0, id = 0, save_index = FALSE;
