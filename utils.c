@@ -9119,7 +9119,7 @@ bool show_combat_roll(struct char_data *ch)
 {
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
     return true;
-  if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master && PRF_FLAGGED(ch->master, PRF_CHARMIE_COMBATROLL))
+  if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !IS_NPC(ch->master) && PRF_FLAGGED(ch->master, PRF_CHARMIE_COMBATROLL))
     return true;
   return false;
 }
@@ -9140,7 +9140,7 @@ void send_combat_roll_info(struct char_data *ch, const char *messg, ...)
       va_end(args);
     }
   }
-  if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master && PRF_FLAGGED(ch->master, PRF_CHARMIE_COMBATROLL))
+  if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !IS_NPC(ch->master) && PRF_FLAGGED(ch->master, PRF_CHARMIE_COMBATROLL))
   {
     if (ch->master->desc && messg && *messg)
     {

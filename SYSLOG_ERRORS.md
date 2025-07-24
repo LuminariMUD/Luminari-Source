@@ -6,11 +6,11 @@
 ### Critical Issues Impacting Gameplay:
 1. **Database Schema Errors**: ✅ FIXED - Missing 'idnum' column was preventing player saves and house data loading
 2. **Performance Issues**: do_zreset causing 1022ms spikes (10x slower), mobile_activity at 173%
-3. **NPC System Errors**: 83 total instances of mobs accessing player-only data (potential crashes)
+3. **NPC System Errors**: ✅ FIXED - 83 total instances of mobs accessing player-only data (potential crashes)
 
 ### Impact Assessment:
 - **Players Experience**: Lag spikes during world resets (10+ second freezes), improved from baseline
-- **Server Stability**: Better than before but NPCs still accessing invalid memory (83 errors)
+- **Server Stability**: ✅ FIXED - NPCs no longer accessing invalid memory (was 83 errors, now 0)
 - **Content Creation**: Blocked by missing triggers and broken scripts
 
 ### Progress Update:
@@ -49,9 +49,9 @@
 | ✅ | Add IS_NPC() check before PRF_FLAGGED | act.informative.c:845 | 3 errors |
 | ✅ | Fix combat targeting dead/corpse validation | fight.c | 3 errors |
 | ✅ | Implement or remove `award_magic_item()` calls | Zone reset #77 | 2 errors |
-| ☐ | Fix NPCs accessing psionic_energy_type | magic.c:3911,3747,3751 | 3 errors |
-| ☐ | Fix NPCs accessing master's preferences | utils.c:9122,9143 | 74 errors |
-| ☐ | Fix NPCs accessing preferences in spec procs | spec_procs.c:6053 | 6 errors |
+| ✅ | Fix NPCs accessing psionic_energy_type | magic.c:3911,3747,3751 | 3 errors |
+| ✅ | Fix NPCs accessing master's preferences | utils.c:9122,9143 | 74 errors |
+| ✅ | Fix NPCs accessing preferences in spec procs | spec_procs.c:6053 | 6 errors |
 
 ### PRIORITY 4: MEDIUM Spec Proc Issues
 
@@ -146,8 +146,8 @@
 ## 📈 PROGRESS TRACKING
 
 ### Summary Statistics
-- **Total Tasks**: 61 (10 completed ✅, 51 remaining)
-- **Coder Tasks**: 22 (10 completed, 12 remaining)
+- **Total Tasks**: 61 (13 completed ✅, 48 remaining)
+- **Coder Tasks**: 22 (13 completed, 9 remaining)
 - **Builder Tasks**: 39 (all can be done in-game)
 
 ### Estimated Time to Resolution
@@ -158,6 +158,9 @@
 ### Recently Completed (July 24, 2025)
 - ✅ Database schema fixes: Added 'idnum' column to both `house_data` and `player_save_objs` tables in production and development databases
 - ✅ NPC PRF_FLAGGED access fix: Added IS_NPC() checks in act.informative.c to prevent NPCs from accessing player-only preference data
+- ✅ NPC psionic energy type access fix: Added IS_NPC() checks in magic.c to prevent NPCs from accessing GET_PSIONIC_ENERGY_TYPE() player data
+- ✅ NPC master preferences fix: Added IS_NPC() checks in utils.c for charmed NPCs accessing their master's preferences
+- ✅ NPC spec procs preferences fix: Fixed weapons_spells() in spec_procs.c to check if attacker is NPC before accessing preferences
 
 ---
 
