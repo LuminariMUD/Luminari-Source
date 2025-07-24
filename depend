@@ -442,6 +442,9 @@ oedit.o: oedit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  genzon.h oasis.h help.h improved-edit.h dg_olc.h dg_scripts.h fight.h \
  modify.h clan.h craft.h spec_abilities.h feats.h assign_wpn_armor.h \
  domains_schools.h treasure.h act.h handler.h
+perfmon_optimized.o: perfmon_optimized.c conf.h sysdep.h structs.h bool.h \
+ protocol.h lists.h campaign.h mud_options.h vnums.h utils.h db.h \
+ helpers.h perfmon.h comm.h interpreter.h perfmon_config.h
 perlin.o: perlin.c perlin.h
 players.o: players.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h \

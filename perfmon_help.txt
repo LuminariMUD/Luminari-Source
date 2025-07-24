@@ -1,0 +1,35 @@
+PERFCONFIG
+
+Usage: perfconfig [off|basic|sampling|full|dynamic|<number>]
+
+The perfconfig command controls the server's performance monitoring system.
+This allows administrators to adjust monitoring overhead based on current needs.
+
+Monitoring Levels:
+  off      - Disable all performance monitoring (0% overhead)
+  basic    - Monitor only when performance exceeds 100% (minimal overhead)
+  sampling - Sample every N pulses (default: 1/10, ~90% reduction)
+  full     - Monitor every pulse (original behavior, highest overhead)
+  
+Additional Options:
+  dynamic  - Toggle automatic high-load monitoring (on/off)
+  <number> - Set sampling rate (e.g., "perfmon 20" = sample 1/20 pulses)
+
+Current Status:
+  Type "perfmon" with no arguments to see current monitoring status.
+
+Dynamic Monitoring:
+  When enabled, the system automatically switches to full monitoring when
+  server load exceeds 150% and returns to sampling mode when load drops
+  below 130%.
+
+Examples:
+  perfconfig           - Show current status
+  perfconfig sampling  - Use sampling mode (recommended for production)
+  perfconfig full     - Enable full monitoring (for debugging)
+  perfconfig 5        - Sample every 5th pulse
+  perfconfig dynamic  - Toggle automatic load-based monitoring
+
+Note: This command requires Greater God level (LVL_GRGOD) privileges.
+
+See also: PERFMON, SHOW STATS

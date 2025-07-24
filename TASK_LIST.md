@@ -5,6 +5,41 @@ This document tracks ongoing development tasks, bug fixes, and improvements for 
 
 ## CODER TASKS
 
+### 🚨 Critical Code Issues (Require Developer Attention)
+
+#### Player Data Structure Access Violations
+| ☐ | File | Line | Issue | Priority |
+|---|------|------|-------|----------|
+| ☐ | treasure.c | 1525 | Mobs accessing `((ch)->player_specials->saved.pref)` | HIGH |
+| ☐ | spec_procs.c | 6315 | Mobs accessing `((vict)->player_specials->saved.pref)` | HIGH |
+| ☐ | magic.c | 1284,1287,1290-1292,1307 | Mobs accessing `((ch)->player_specials->saved.psionic_energy_type)` | HIGH |
+| ☐ | magic.c | 1250,1265,1268 | Mobs accessing `((ch)->player_specials->saved.psionic_energy_type)` | HIGH |
+
+**Description**: Mobs are incorrectly trying to access player-specific data structures. This causes system errors and could lead to crashes or undefined behavior.
+
+#### Object Handling Errors
+| ☐ | Issue | Frequency | Priority |
+|---|-------|-----------|----------|
+| ☐ | NULL object passed to obj_to_obj() | Multiple occurrences | HIGH |
+| ☐ | Extraction counting mismatch | Multiple occurrences | MEDIUM |
+
+**Description**: Object manipulation functions receiving NULL pointers or having counting issues during object extraction.
+
+#### Missing Damage Types
+| ☐ | Damage ID | File Reference | Priority |
+|---|-----------|----------------|----------|
+| ☐ | 1527 | Unknown | MEDIUM |
+| ☐ | 1507 | Unknown | MEDIUM |
+
+**Description**: Damage types are missing DAM_ definitions, which could cause combat calculation errors.
+
+#### Performance Monitoring
+| ☐ | System | Current Load | Action Required |
+|---|--------|--------------|-----------------|
+| ☐ | affect_update() | 28,795 chars processed | Monitor for performance degradation |
+
+**Description**: System is processing a large number of characters and affects. Monitor for performance issues as player base grows.
+
 ---
 
 ## 🏗️ BUILDER TASKS (Fixable In-Game with OLC)
