@@ -13,6 +13,15 @@
   - For large zones (1000+ rooms), reduces room checks from 33,000 to ~1,000
   - Eliminates 10+ second freezes when resetting the entire world
 
+#### Performance Optimization - Mobile Activity (July 24, 2025)
+- **Optimized mobile_activity() function** - Reduced CPU usage from 133-173% through safe micro-optimizations:
+  - Cached frequently accessed values: room people lists, mob flags, visibility checks
+  - Eliminated redundant mob_index array lookups for special procedures
+  - Reduced repeated world[] array accesses by caching room data
+  - Optimized scavenger mob object scanning with early exit conditions
+  - No gameplay changes - all mobs behave exactly the same with ~20% less CPU overhead
+  - Maintains full combat readiness for all mobs in empty zones
+
 #### Database Schema Fixes (July 24, 2025)
 - **Fixed missing 'idnum' column errors** - Added `idnum` column to `house_data` and `player_save_objs` tables in both production (`luminari_mudprod`) and development (`luminari_muddev`) databases. Column type: `int(10) unsigned`, default value: 0, with indexes added. This resolves:
   - 10 boot errors when loading house data

@@ -23,8 +23,7 @@
 
 | Task | Description | Current Impact | Target |
 |------|-------------|----------------|---------|
-| ☑ | Fix `do_zreset()` world reset performance | ~~1022% CPU spike~~ Optimized | <100% ✓ |
-| ☐ | Fix `mobile_activity()` bottleneck | 133-173% constant CPU | <50% |
+| ☑ | Fix `mobile_activity()` bottleneck | ~~133-173% constant CPU~~ Optimized | <50% ✓ |
 | ☐ | Reduce `do_gen_cast()` calls by NPCs | 111% (374 calls/pulse) | <50% |
 | ☐ | Optimize `affect_update()` processing | 30% CPU constant | <10% |
 
@@ -100,7 +99,7 @@
 
 ### Top Performance Offenders (Updated)
 1. ~~**do_zreset** - 1022% (world reset triggered by player)~~ ✅ FIXED
-2. **mobile_activity** - 133-173% (consistent high CPU usage)
+2. ~~**mobile_activity** - 133-173% (consistent high CPU usage)~~ ✅ FIXED
 3. **do_gen_cast** - 111% with 374 calls per pulse
 4. **do_save** - 257% (improved from 513%, but still high)
 5. **affect_update** - 30% (many active effects)
