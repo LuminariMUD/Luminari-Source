@@ -288,37 +288,34 @@ static PerfIntvlData sPulseData( PULSE_PER_SECOND, &sSecData );
 void
 PerfIntvlData::AddData(double avg, double min, double max)
 {
-    // Store the new data at the current write position
-    mAvgs[mInd] = avg;
-    mMins[mInd] = min;
-    mMaxes[mInd] = max;
+  // Store the new data at the current write position
+  mAvgs[mInd] = avg;
+  mMins[mInd] = min;
+  mMaxes[mInd] = max;
 
-    // Update the count of valid entries (grows until buffer is full)
-    if ( mCount <= mInd )
-    {
-        mCount = mInd + 1;
-    }
+  // Update the count of valid entries (grows until buffer is full)
+  if ( mCount <= mInd )
+  {
+    mCount = mInd + 1;
+  }
 
-    // Advance to the next write position
-    if ( mInd < (mSize - 1) )
-    {
-        // Still room in buffer - just advance the index
-        mInd += 1;
-    }
-    else
-    {
-        // Buffer is full - wrap around to beginning
-        mInd = 0;
+  // Advance to the next write position
+  ++mInd;  // Pre-increment is slightly more efficient
 
-        // Aggregate all our data and pass it to the next higher level
-        if ( mpNextIntvl )
-        {
-            mpNextIntvl->AddData(
-                this->GetAvgAvg(),    // Average of all our averages
-                this->GetMinMin(),    // Minimum of all our minimums
-                this->GetMaxMax());   // Maximum of all our maximums
-        }
+  if ( mInd >= mSize )
+  {
+    // Buffer is full - wrap around to beginning
+    mInd = 0;
+
+    // Aggregate all our data and pass it to the next higher level
+    if ( mpNextIntvl )
+    {
+      mpNextIntvl->AddData(
+          this->GetAvgAvg(),    // Average of all our averages
+          this->GetMinMin(),    // Minimum of all our minimums
+          this->GetMaxMax());   // Maximum of all our maximums
     }
+  }
 }
 
 /**
@@ -333,16 +330,22 @@ PerfIntvlData::AddData(double avg, double min, double max)
 double
 PerfIntvlData::GetAvgAvg() const
 {
-    double sum = 0;
+  // Early return for empty data
+  if (mCount == 0)
+  {
+    return 0.0;
+  }
 
-    // Sum all the average values we have stored
-    for ( size_t i = 0 ; i < mCount ; ++i)
-    {
-        sum += mAvgs[i];
-    }
+  double sum = 0.0;
 
-    // Return the average of the averages (avoid division by zero)
-    return (mCount > 0) ? (sum / mCount) : 0;
+  // Sum all the average values we have stored
+  for ( size_t i = 0 ; i < mCount ; ++i)
+  {
+    sum += mAvgs[i];
+  }
+
+  // Return the average of the averages
+  return sum / static_cast<double>(mCount);
 }
 
 /**
@@ -356,18 +359,24 @@ PerfIntvlData::GetAvgAvg() const
 double
 PerfIntvlData::GetMinMin() const
 {
-    double min = INFINITY;
+  // Early return for empty data
+  if (mCount == 0)
+  {
+    return INFINITY;
+  }
 
-    // Find the smallest minimum value across all time slots
-    for ( size_t i = 0 ; i < mCount ; ++i )
+  double min = mMins[0];  // Start with first value instead of INFINITY
+
+  // Find the smallest minimum value across all time slots
+  for ( size_t i = 1 ; i < mCount ; ++i )
+  {
+    if ( mMins[i] < min )
     {
-        if ( mMins[i] < min )
-        {
-            min = mMins[i];
-        }
+      min = mMins[i];
     }
+  }
 
-    return min;
+  return min;
 }
 
 /**
@@ -381,18 +390,24 @@ PerfIntvlData::GetMinMin() const
 double
 PerfIntvlData::GetMaxMax() const
 {
-    double max = 0;
+  // Early return for empty data
+  if (mCount == 0)
+  {
+    return 0.0;
+  }
 
-    // Find the largest maximum value across all time slots
-    for ( size_t i = 0 ; i < mCount ; ++i )
+  double max = mMaxes[0];  // Start with first value instead of 0
+
+  // Find the largest maximum value across all time slots
+  for ( size_t i = 1 ; i < mCount ; ++i )
+  {
+    if ( mMaxes[i] > max )
     {
-        if ( mMaxes[i] > max )
-        {
-            max = mMaxes[i];
-        }
+      max = mMaxes[i];
     }
+  }
 
-    return max;
+  return max;
 }
 
 /* ========================================================================
@@ -411,14 +426,14 @@ PerfIntvlData::GetMaxMax() const
  */
 static void check_init( void )
 {
-    static bool init_done = false;  // Static flag to prevent re-initialization
-    if (init_done)
-        return;
+  static bool init_done = false;  // Static flag to prevent re-initialization
+  if (init_done)
+    return;
 
-    // Record the current time as system initialization time
-    init_time = time(NULL);
+  // Record the current time as system initialization time
+  init_time = time(NULL);
 
-    init_done = true;
+  init_done = true;
 }
 
 /**
@@ -436,25 +451,25 @@ static void check_init( void )
  */
 static void check_thresholds(double val)
 {
-    const unsigned int thresh_count = sizeof(threshold_info) / sizeof(threshold_info[0]);
+  const unsigned int thresh_count = sizeof(threshold_info) / sizeof(threshold_info[0]);
 
-    unsigned int i;
+  unsigned int i;
 
-    // Check each threshold in ascending order
-    for (i=0; i < thresh_count; ++i)
+  // Check each threshold in ascending order
+  for (i = 0; i < thresh_count; ++i)
+  {
+    if (val > threshold_info[i].threshold)
     {
-        if (val > threshold_info[i].threshold)
-        {
-            // Performance exceeded this threshold - increment its counter
-            ++(threshold_info[i].count);
-        }
-        else
-        {
-            // Performance didn't exceed this threshold, and since the array
-            // is sorted in ascending order, it won't exceed any higher thresholds either
-            break;
-        }
+      // Performance exceeded this threshold - increment its counter
+      ++(threshold_info[i].count);
     }
+    else
+    {
+      // Performance didn't exceed this threshold, and since the array
+      // is sorted in ascending order, it won't exceed any higher thresholds either
+      break;
+    }
+  }
 }
 
 /* ========================================================================
@@ -479,22 +494,22 @@ static void check_thresholds(double val)
  */
 void PERF_log_pulse(double val)
 {
-    // Ensure the monitoring system is initialized
-    check_init();
+  // Ensure the monitoring system is initialized
+  check_init();
 
-    // Update current pulse tracking
-    last_pulse = val;
+  // Update current pulse tracking
+  last_pulse = val;
 
-    // Update maximum pulse tracking (worst performance ever seen)
-    if (val > max_pulse)
-        max_pulse = val;
+  // Update maximum pulse tracking (worst performance ever seen)
+  if (val > max_pulse)
+    max_pulse = val;
 
-    // Update threshold violation counters
-    check_thresholds(val);
+  // Update threshold violation counters
+  check_thresholds(val);
 
-    // Add this pulse data to the hierarchical storage system
-    // For pulse data, avg=min=max since it's a single data point
-    sPulseData.AddData( val, val, val );
+  // Add this pulse data to the hierarchical storage system
+  // For pulse data, avg=min=max since it's a single data point
+  sPulseData.AddData( val, val, val );
 }
 
 /**
@@ -516,19 +531,20 @@ void PERF_log_pulse(double val)
  */
 size_t PERF_repr( char *out_buf, size_t n )
 {
-    // Input validation - ensure we have a valid output buffer
-    if (!out_buf)
-    {
-        return 0;
-    }
-    if (n < 1)
-    {
-        out_buf[0] = '\0';
-        return 0;
-    }
+  // Input validation - ensure we have a valid output buffer
+  if (!out_buf)
+  {
+    return 0;
+  }
+  if (n < 1)
+  {
+    out_buf[0] = '\0';
+    return 0;
+  }
 
-    // Use string stream for formatted output
-    std::ostringstream os;
+  // Use string stream for formatted output with reserve for better performance
+  std::ostringstream os;
+  os.str().reserve(1024);  // Reserve space to reduce reallocations
 
     // Calculate basic statistics for the report
     const unsigned int thresh_count = sizeof(threshold_info) / sizeof(threshold_info[0]);
@@ -596,9 +612,11 @@ size_t PERF_repr( char *out_buf, size_t n )
            << threshold_info[i].threshold << "%:      ";
 
         // Calculate percentage of total runtime spent above this threshold
-        if (total_pulses > 0)
+        // Protect against division by zero
+        if (total_pulses > 0.0)
         {
-            os << (threshold_info[i].count / total_pulses) << "% ";
+            double percentage = (static_cast<double>(threshold_info[i].count) / total_pulses) * 100.0;
+            os << std::setprecision(2) << std::fixed << percentage << "% ";
         }
         else
         {
@@ -611,10 +629,19 @@ size_t PERF_repr( char *out_buf, size_t n )
 
     // Convert the formatted output to a C-style string
     std::string str = os.str();
-    size_t copied = str.copy( out_buf, n - 1 );  // Leave room for null terminator
-    out_buf[copied] = '\0';  // Ensure null termination
 
-    return copied;
+    // Ensure we don't exceed buffer bounds
+    size_t max_copy = (n > 0) ? n - 1 : 0;  // Leave room for null terminator
+    size_t to_copy = std::min(str.length(), max_copy);
+
+    if (to_copy > 0)
+    {
+        str.copy( out_buf, to_copy );
+    }
+
+    out_buf[to_copy] = '\0';  // Ensure null termination
+
+    return to_copy;
 }
 
 /* ========================================================================
@@ -685,16 +712,16 @@ public:
     inline void Exit();
 
     // Accessor methods for retrieving statistics
-    std::string const & GetId() { return mId; }                                    ///< Get section identifier
+    const std::string & GetId() const { return mId; }                                    ///< Get section identifier
 
-    struct timeval const & GetPulseTotal() { return mPulseTotal; }                 ///< Get total time this pulse
-    struct timeval const & GetPulseMax() { return mPulseMax; }                     ///< Get max single entry this pulse
-    struct timeval const & GetTotal() { return mTotal; }                           ///< Get total time ever
-    struct timeval const & GetMax() { return mMax; }                               ///< Get max single entry ever
+    const struct timeval & GetPulseTotal() const { return mPulseTotal; }                 ///< Get total time this pulse
+    const struct timeval & GetPulseMax() const { return mPulseMax; }                     ///< Get max single entry this pulse
+    const struct timeval & GetTotal() const { return mTotal; }                           ///< Get total time ever
+    const struct timeval & GetMax() const { return mMax; }                               ///< Get max single entry ever
 
-    unsigned long int GetPulseEnterCount() { return mPulseEnterCount; }            ///< Get enter count this pulse
-    unsigned long int GetPulseExitCount() { return mPulseExitCount; }              ///< Get exit count this pulse
-    unsigned long int GetTotalEnterCount() { return mTotalEnterCount; }            ///< Get enter count ever
+    unsigned long int GetPulseEnterCount() const { return mPulseEnterCount; }            ///< Get enter count this pulse
+    unsigned long int GetPulseExitCount() const { return mPulseExitCount; }              ///< Get exit count this pulse
+    unsigned long int GetTotalEnterCount() const { return mTotalEnterCount; }            ///< Get enter count ever
 
 private:
     // Prevent copying - these objects manage timing state and should not be copied
@@ -739,7 +766,20 @@ public:
         : mSections( )  // Initialize empty map of profiling sections
     {
         // Constructor body is empty - all initialization done in member initializer list
-    };
+    }
+
+    /**
+     * @brief Destructor - cleans up all allocated profiling sections
+     */
+    ~PerfProfMgr()
+    {
+        // Clean up all allocated profiling sections to prevent memory leaks
+        for ( auto &&entry : mSections )
+        {
+            delete entry.second;
+        }
+        mSections.clear();
+    }
 
     /**
      * @brief Create a new profiling section or return existing one
@@ -779,6 +819,10 @@ public:
     size_t ReprSect( char *out_buf, size_t n, const char *id ) const;
 
 private:
+    // Prevent copying - these objects manage resources and should not be copied
+    PerfProfMgr( const PerfProfMgr & ); // unimplemented
+    PerfProfMgr & operator=( const PerfProfMgr & ); // unimplemented
+
     /**
      * @brief Internal function to generate formatted profiling reports
      * @param out_buf Buffer to store the report
@@ -787,7 +831,7 @@ private:
      * @param sect Specific section to report on, or nullptr for all sections
      * @return Number of characters written
      */
-    size_t ReprBase( char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sect ) const;
+    size_t ReprBase( char *out_buf, size_t n, bool isTotal, const PERF_prof_sect *sect ) const;
 
     /**
      * @brief Format output for a single profiling section
@@ -795,7 +839,7 @@ private:
      * @param sect Profiling section to output
      * @param isTotal True for cumulative stats, false for per-pulse stats
      */
-    void SectOutput( std::ostream &os, PERF_prof_sect *sect, bool isTotal) const;
+    void SectOutput( std::ostream &os, const PERF_prof_sect *sect, bool isTotal) const;
 
     std::map<std::string, PERF_prof_sect *> mSections;  ///< Registry of all profiling sections
 };
@@ -834,15 +878,29 @@ PerfProfMgr::ReprSect(char *out_buf, size_t n, const char *id) const
         std::ostringstream os;
         os << "No such section '" << id << "'\n\r";
         std::string str = os.str();
-        size_t copied = str.copy( out_buf, n - 1 );
-        out_buf[copied] = '\0';
 
-        return copied;
+        // Ensure we don't exceed buffer bounds
+        size_t max_copy = (n > 0) ? n - 1 : 0;  // Leave room for null terminator
+        size_t to_copy = std::min(str.length(), max_copy);
+
+        if (to_copy > 0)
+        {
+            str.copy( out_buf, to_copy );
+        }
+
+        out_buf[to_copy] = '\0';  // Ensure null termination
+        return to_copy;
     }
 
     // Generate both per-pulse and cumulative reports for this section
     size_t copied = ReprBase(out_buf, n, false, it->second);  // Per-pulse report
-    copied += ReprBase(out_buf + copied, n - copied, true, it->second);  // Cumulative report
+
+    // Ensure we don't exceed buffer bounds for the second report
+    if (copied < n)
+    {
+        copied += ReprBase(out_buf + copied, n - copied, true, it->second);  // Cumulative report
+    }
+
     return copied;
 }
 
@@ -864,7 +922,7 @@ PerfProfMgr::ReprSect(char *out_buf, size_t n, const char *id) const
  * @param isTotal True for cumulative stats, false for per-pulse stats
  */
 void
-PerfProfMgr::SectOutput(std::ostream &os, PERF_prof_sect *sect, bool isTotal) const
+PerfProfMgr::SectOutput(std::ostream &os, const PERF_prof_sect *sect, bool isTotal) const
 {
     unsigned long int enterCount;
     long int usecTotal;
@@ -945,7 +1003,7 @@ PerfProfMgr::SectOutput(std::ostream &os, PERF_prof_sect *sect, bool isTotal) co
  * @return Number of characters written to the buffer
  */
 size_t
-PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sect) const
+PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal, const PERF_prof_sect *sect) const
 {
     // Input validation
     if (!out_buf)
@@ -1017,10 +1075,19 @@ PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sec
 
     // Convert to C-style string and return
     std::string str = os.str();
-    size_t copied = str.copy( out_buf, n - 1 );
-    out_buf[copied] = '\0';
 
-    return copied;
+    // Ensure we don't exceed buffer bounds
+    size_t max_copy = (n > 0) ? n - 1 : 0;  // Leave room for null terminator
+    size_t to_copy = std::min(str.length(), max_copy);
+
+    if (to_copy > 0)
+    {
+        str.copy( out_buf, to_copy );
+    }
+
+    out_buf[to_copy] = '\0';  // Ensure null termination
+
+    return to_copy;
 }
 
 /**
@@ -1030,10 +1097,8 @@ PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sec
  * section with the given ID already exists, it returns the existing one.
  * Otherwise, it creates a new section, adds it to the registry, and returns it.
  *
- * Note: This implementation always creates a new section without checking
- * for existing ones. This could lead to memory leaks if the same ID is
- * used multiple times. A proper implementation would check mSections.find(id)
- * first.
+ * This implementation properly checks for existing sections to prevent
+ * memory leaks and ensures each section ID is unique.
  *
  * @param id String identifier for the profiling section
  * @return Pointer to the profiling section (new or existing)
@@ -1041,9 +1106,23 @@ PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sec
 PERF_prof_sect *
 PerfProfMgr::NewSection(const char *id)
 {
-    // TODO: This should check if section already exists to prevent memory leaks
+    // Input validation
+    if (!id)
+    {
+        return nullptr;
+    }
+
+    // Check if section already exists
+    auto it = mSections.find(id);
+    if (it != mSections.end())
+    {
+        // Return existing section
+        return it->second;
+    }
+
+    // Create new section and add to registry
     PERF_prof_sect *ptr = new PERF_prof_sect( id );
-    mSections[id] = ptr;  // Add to registry (overwrites if ID already exists)
+    mSections[id] = ptr;
     return ptr;
 }
 
@@ -1170,6 +1249,12 @@ static PerfProfMgr sProfMgr;
  */
 void PERF_prof_sect_init(PERF_prof_sect **ptr, const char *id)
 {
+    // Input validation
+    if (!ptr || !id)
+    {
+        return;
+    }
+
     // If already initialized, do nothing (lazy initialization)
     if (*ptr)
     {
@@ -1190,6 +1275,12 @@ void PERF_prof_sect_init(PERF_prof_sect **ptr, const char *id)
  */
 void PERF_prof_sect_enter(PERF_prof_sect *ptr)
 {
+    // Input validation
+    if (!ptr)
+    {
+        return;
+    }
+
     ptr->Enter();
 }
 
@@ -1203,6 +1294,12 @@ void PERF_prof_sect_enter(PERF_prof_sect *ptr)
  */
 void PERF_prof_sect_exit(PERF_prof_sect *ptr)
 {
+    // Input validation
+    if (!ptr)
+    {
+        return;
+    }
+
     ptr->Exit();
 }
 
