@@ -168,8 +168,8 @@ void assign_mobiles(void)
   ASSIGNMOB(103499, buyarmor); // +1 armor
   ASSIGNMOB(103498, buyweapons); // +1 weapons
   ASSIGNMOB(103801, huntsmaster);
-  ASSIGNMOB(103802, buyarmor); // +2 armor
-  ASSIGNMOB(103803, buyweapons); // +2 weapons
+  // ASSIGNMOB(103802, buyarmor); // +2 armor - mob #103802 doesn't exist
+  // ASSIGNMOB(103803, buyweapons); // +2 weapons - mob #103803 doesn't exist
 
   /* faction mission system */
   ASSIGNMOB(103698, faction_mission);
@@ -928,12 +928,12 @@ void assign_objects(void)
   ASSIGNOBJ(139200, floating_teleport);
   ASSIGNOBJ(139201, floating_teleport);
   ASSIGNOBJ(139202, floating_teleport);
-  ASSIGNOBJ(139203, floating_teleport);
+  // ASSIGNOBJ(139203, floating_teleport); // obj #139203 doesn't exist
 
   /* ferry, ferry-like */
   ASSIGNOBJ(104072, chionthar_ferry);
   ASSIGNOBJ(126429, alandor_ferry);
-  ASSIGNOBJ(120010, md_carpet);
+  // ASSIGNOBJ(120010, md_carpet); // obj #120010 doesn't exist
 
   /* purchased pet objects */
   ASSIGNOBJ(118190, bought_pet);
@@ -965,12 +965,12 @@ void assign_objects(void)
   ASSIGNOBJ(135534, snakewhip);
   ASSIGNOBJ(135199, acidsword);
   ASSIGNOBJ(100510, halberd);
-  ASSIGNOBJ(100513, halberd);
+  // ASSIGNOBJ(100513, halberd); // obj #100513 doesn't exist
 
   ASSIGNOBJ(114838, rughnark);
   ASSIGNOBJ(139900, magma);
   ASSIGNOBJ(110601, bolthammer);
-  ASSIGNOBJ(111507, prismorb);
+  // ASSIGNOBJ(111507, prismorb); // obj #111507 doesn't exist
   ASSIGNOBJ(129602, flamingwhip);
   ASSIGNOBJ(126315, dorfaxe);
   ASSIGNOBJ(121207, helmblade);
@@ -1002,7 +1002,7 @@ void assign_objects(void)
   ASSIGNOBJ(128150, spikeshield);
   ASSIGNOBJ(128106, ches);
   ASSIGNOBJ(100596, tormblade);
-  ASSIGNOBJ(100599, tormblade);
+  // ASSIGNOBJ(100599, tormblade); // obj #100599 doesn't exist
 
   ASSIGNOBJ(138447, disruption_mace);
   ASSIGNOBJ(138415, haste_bracers);

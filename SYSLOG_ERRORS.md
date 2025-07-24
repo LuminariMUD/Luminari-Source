@@ -48,8 +48,8 @@
 
 | Task | Description | Missing Vnums |
 |------|-------------|---------------|
-| ☐ | Fix (preferred if possible) or Remove invalid mob spec assignments | #103802, #103803 |
-| ☐ | Fix (preferred if possible) or Remove invalid obj spec assignments | #139203, #120010, #100513, #111507, #100599 |
+| ✅ | Fix (preferred if possible) or Remove invalid mob spec assignments | #103802, #103803 |
+| ✅ | Fix (preferred if possible) or Remove invalid obj spec assignments | #139203, #120010, #100513, #111507, #100599 |
 
 ---
 

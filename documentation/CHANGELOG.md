@@ -37,6 +37,13 @@
   - Default implementation awards treasures with appropriate distribution (10% crystals, 40% expendables, 25% trinkets, 20% armor, 5% weapons)
   - Eliminates error spam during zone resets while maintaining treasure functionality
 
+#### Spec Proc Assignment Fixes (July 24, 2025)
+- **Fixed invalid spec proc assignments** - Commented out assignments to non-existent mobs and objects:
+  - Mob spec procs: #103802 (buyarmor), #103803 (buyweapons)
+  - Object spec procs: #139203 (floating_teleport), #120010 (md_carpet), #100513 (halberd), #111507 (prismorb), #100599 (tormblade)
+  - Added comments explaining why they're disabled to help builders know these spec procs are available
+  - Eliminates "Attempt to assign spec to non-existant" errors during boot
+
 ## [Previous] - 2025-01-23
 
 ### Fixed
