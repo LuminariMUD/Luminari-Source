@@ -57,13 +57,19 @@ static struct item_data * create_item(void)
 
 void free_list(struct list_data * pList)
 {
-  void * pContent;
+  struct item_data *pItem, *pNext;
   
   clear_simple_list();  
     
-  if (pList->iSize)
-    while ((pContent = simple_list(pList)))
-      remove_from_list(pContent, pList);
+  /* Safe iteration - cache next pointer before removing */
+  if (pList->iSize) {
+    pItem = pList->pFirstItem;
+    while (pItem) {
+      pNext = pItem->pNextItem;
+      remove_from_list(pItem->pContent, pList);
+      pItem = pNext;
+    }
+  }
     
 //  if (pList->iSize > 0)
 //    mudlog(CMP, LVL_STAFF, TRUE, "List being freed while not empty.");
@@ -401,13 +407,19 @@ void free_list(struct list_data *pList)
 //   pList = NULL;
 //   return;
 // #endif
-  void *pContent = NULL;
+  struct item_data *pItem, *pNext;
 
   simple_list(NULL);
 
-  if (pList && pList->iSize)
-    while ((pContent = simple_list(pList)))
-      remove_from_list(pContent, pList);
+  /* Safe iteration - cache next pointer before removing */
+  if (pList && pList->iSize) {
+    pItem = pList->pFirstItem;
+    while (pItem) {
+      pNext = pItem->pNextItem;
+      remove_from_list(pItem->pContent, pList);
+      pItem = pNext;
+    }
+  }
 
 //  if (pList && pList->iSize > 0)
 //    mudlog(CMP, LVL_STAFF, TRUE, "List being freed while not empty.");
@@ -542,6 +554,13 @@ void *next_in_list(struct iterator_data *pIterator)
   if (pIterator->pList == NULL)
   {
     mudlog(NRM, LVL_STAFF, TRUE, "WARNING: Attempting to get content from iterator with NULL list.");
+    return NULL;
+  }
+
+  /* Safety check - ensure current item is still valid */
+  if (pIterator->pItem == NULL)
+  {
+    mudlog(NRM, LVL_STAFF, TRUE, "WARNING: Iterator has NULL item pointer in next_in_list().");
     return NULL;
   }
 

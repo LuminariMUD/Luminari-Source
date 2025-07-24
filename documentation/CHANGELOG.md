@@ -11,6 +11,16 @@
 - **Impact**: Prevents major memory leak during house saves when database errors occur
 - **Source**: Identified via valgrind analysis (`valgrind_20250724_210758.log`)
 
+#### Fixed Use-After-Free Bug in List Iterator System
+- **Issue**: Use-after-free error in `lists.c:553` when removing items during iteration
+- **Root Cause**: `simple_list()` iterator held stale pointers to freed items after `remove_from_list()`
+- **Solution**: 
+  - Added NULL pointer safety check in `next_in_list()` to prevent dereferencing freed memory
+  - Refactored `free_list()` functions to use safe iteration pattern with cached next pointers
+  - Prevents iterator from accessing freed memory by pre-caching next item before removal
+- **Impact**: Eliminates crashes when lists are modified during iteration (common in cleanup operations)
+- **Source**: Identified via valgrind analysis (`valgrind_20250724_210758.log`)
+
 ## 2025-01-24
 
 ### Performance Optimizations

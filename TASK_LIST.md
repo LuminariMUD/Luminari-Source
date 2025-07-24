@@ -29,7 +29,7 @@ This document tracks ongoing development tasks, bug fixes, and improvements for 
 | ☐ | Location | Issue | Size | Priority |
 |---|----------|-------|------|----------|
 | ☑ | objsave.c:476,484 | Temp object not freed on MySQL error | 460KB total | CRITICAL |
-| ☐ | lists.c:553 | Use-after-free in simple_list() iterator | N/A | CRITICAL |
+| ☑ | lists.c:553 | Use-after-free in simple_list() iterator | N/A | CRITICAL |
 | ☐ | db.c:4937 | Uninitialized values in fread_clean_string() | N/A | MEDIUM |
 | ☐ | dg_variables.c:65 | Script variable memory not freed | Multiple small | LOW |
 
