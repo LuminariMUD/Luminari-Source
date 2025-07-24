@@ -17,7 +17,8 @@
       "Bash(ssh:*)",
       "Bash(find:*)",
       "Bash(nm:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

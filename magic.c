@@ -747,27 +747,35 @@ void rem_room_aff(struct raff_node *raff)
 void affect_update(void)
 {
   struct affected_type *af, *next;
-  struct char_data *i;
+  struct char_data *i, *next_char;
   struct raff_node *raff, *next_raff;
   static int update_count = 0;
   int char_count = 0, npc_count = 0, pc_count = 0;
+  int affected_chars = 0, processed_affects = 0;
 
   update_count++;
 
-  for (i = character_list; i; i = i->next)
+  for (i = character_list; i; i = next_char)
   { /* go through everything */
+    next_char = i->next; /* Cache next pointer in case character is extracted */
     char_count++;
     if (IS_NPC(i))
       npc_count++;
     else
       pc_count++;
 
-    /* Skip characters with no affects for better performance */
-    if (!i->affected && IS_NPC(i))
-      continue;
+    /* Skip NPCs with no affects - they don't need affect processing or MSDP updates */
+    if (IS_NPC(i)) {
+      if (!i->affected)
+        continue;
+    }
+
+    if (i->affected)
+      affected_chars++;
 
     for (af = i->affected; af; af = next)
     { /* loop his/her aff list */
+      processed_affects++;
       next = af->next;
       if (af->duration >= 1) /* duration > 0, decrement */
         af->duration--;
@@ -811,8 +819,8 @@ void affect_update(void)
         affect_remove(i, af);
       }
     }
-    /* Skip MSDP updates for NPCs - they don't have descriptors and can't receive MSDP data */
-    if (!IS_NPC(i))
+    /* Only update MSDP for player characters with active descriptors */
+    if (!IS_NPC(i) && i->desc)
       update_msdp_affects(i);
   }
 
@@ -829,8 +837,8 @@ void affect_update(void)
   /* Log performance metrics every 100 updates (10 minutes) */
   if (update_count % 100 == 0)
   {
-    log("PERF: affect_update() - Total: %d chars (%d NPCs, %d PCs) processed",
-        char_count, npc_count, pc_count);
+    log("PERF: affect_update() - Total: %d chars (%d NPCs, %d PCs), Affected: %d, Affects processed: %d",
+        char_count, npc_count, pc_count, affected_chars, processed_affects);
   }
 }
 
