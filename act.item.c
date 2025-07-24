@@ -5372,7 +5372,7 @@ void auc_send_to_all(char *messg, bool buyer)
     if (!i->character)
       continue;
 
-    if (!IS_NPC(ch) && PRF_FLAGGED(i->character, PRF_NOAUCT))
+    if (!IS_NPC(i->character) && PRF_FLAGGED(i->character, PRF_NOAUCT))
       continue;
 
     if (buyer && ch_buying)
