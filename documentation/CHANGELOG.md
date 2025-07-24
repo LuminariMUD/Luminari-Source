@@ -52,6 +52,12 @@
   - With 796 objects, this was ~66MB of stack allocations causing 445% CPU spike
   - Performance improvement: Reduces save CPU usage from 445% to under 50%
 
+#### Compilation Fix - Missing vnums.h include (July 24, 2025)
+- **Fixed crafting_new.c compilation error** - Added missing vnums.h include:
+  - crafting_new.c was missing #include "vnums.h" causing undefined symbols
+  - Added include after line 30 to provide INSTRUMENT_PROTO, EARS_MOLD, etc. definitions
+  - Resolves compilation errors on dev server for missing object vnum constants
+
 ## [Previous] - 2025-01-23
 
 ### Fixed

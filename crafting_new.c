@@ -28,6 +28,7 @@
 #include "feats.h"
 #include "class.h"
 #include "improved-edit.h"
+#include "vnums.h"
 #include "crafting_recipes.h"
 
 int copy_object(struct obj_data *to, struct obj_data *from);
