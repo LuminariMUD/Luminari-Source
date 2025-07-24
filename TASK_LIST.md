@@ -8,14 +8,16 @@ This document tracks ongoing development tasks, bug fixes, and improvements for 
 ### 🚨 Critical Code Issues (Require Developer Attention)
 
 #### Player Data Structure Access Violations
-| ☐ | File | Line | Issue | Priority |
+| ✓ | File | Line | Issue | Priority |
 |---|------|------|-------|----------|
-| ☐ | treasure.c | 1525 | Mobs accessing `((ch)->player_specials->saved.pref)` | HIGH |
-| ☐ | spec_procs.c | 6315 | Mobs accessing `((vict)->player_specials->saved.pref)` | HIGH |
-| ☐ | magic.c | 1284,1287,1290-1292,1307 | Mobs accessing `((ch)->player_specials->saved.psionic_energy_type)` | HIGH |
-| ☐ | magic.c | 1250,1265,1268 | Mobs accessing `((ch)->player_specials->saved.psionic_energy_type)` | HIGH |
+| ✓ | treasure.c | 1525 | Mobs accessing `((ch)->player_specials->saved.pref)` | HIGH |
+| ✓ | spec_procs.c | 6315 | Mobs accessing `((vict)->player_specials->saved.pref)` | HIGH |
+| ✓ | magic.c | 1284,1287,1290-1292,1307 | Mobs accessing `((ch)->player_specials->saved.psionic_energy_type)` | HIGH |
+| ✓ | magic.c | 1250,1265,1268 | Mobs accessing `((ch)->player_specials->saved.psionic_energy_type)` | HIGH |
 
 **Description**: Mobs are incorrectly trying to access player-specific data structures. This causes system errors and could lead to crashes or undefined behavior.
+
+**Status**: ✅ FIXED (2025-01-25) - Added IS_NPC() checks before all player_specials accesses. NPCs now use DAM_MENTAL as default psionic energy type.
 
 #### Object Handling Errors
 | ☐ | Issue | Frequency | Priority |

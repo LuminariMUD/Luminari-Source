@@ -27,6 +27,22 @@
   - New: `perfmon_config.h`, `perfmon_optimized.c`
   - Modified: `comm.c`, `perfmon.h`, `perfmon.cpp`, `act.h`, `interpreter.c`
 
+## 2025-01-25
+
+### Bug Fixes
+
+#### Fixed Critical Player Data Structure Access Violations
+- **Issue**: NPCs were attempting to access player-only data structures (player_specials), causing crashes
+- **Affected Files**:
+  - `treasure.c:1525,1702` - NPCs accessing PRF_USE_STORED_CONSUMABLES preference flag
+  - `spec_procs.c:6315,6335,6354,6376,6395,6417,6436,6458` - NPCs accessing PRF_CONDENSED preference flag
+  - `magic.c` - Multiple instances of NPCs accessing GET_PSIONIC_ENERGY_TYPE
+- **Solution**: 
+  - Added `!IS_NPC()` checks before all PRF_FLAGGED macro uses
+  - Implemented safe energy type access: `IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch)`
+  - NPCs now default to DAM_MENTAL damage type for psionic abilities
+- **Impact**: Prevents server crashes when NPCs receive treasure, engage in combat with special weapons, or cast psionic spells
+
 ## 2025-01-27
 
 ### Performance Optimizations

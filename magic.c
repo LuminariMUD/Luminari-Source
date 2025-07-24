@@ -1247,25 +1247,32 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_ENERGY_RAY: /* 1st circle */
-    if (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND)
-      GET_TEMP_ATTACK_ROLL_BONUS(ch) = 4;
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      if (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND)
+        GET_TEMP_ATTACK_ROLL_BONUS(ch) = 4;
+    }
     if (!attack_roll(ch, victim, ATTACK_TYPE_PSIONICS, TRUE, 0))
     {
-      snprintf(desc, sizeof(desc), "$n fires a ray of %s at $N, but it goes wide.", damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      snprintf(desc, sizeof(desc), "$n fires a ray of %s at $N, but it goes wide.", damtypes[energy_type]);
       act(desc, FALSE, ch, 0, victim, TO_NOTVICT);
-      snprintf(desc, sizeof(desc), "You fire a ray of %s at $N, but it goes wide.", damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
+      snprintf(desc, sizeof(desc), "You fire a ray of %s at $N, but it goes wide.", damtypes[energy_type]);
       act(desc, FALSE, ch, 0, victim, TO_CHAR);
-      snprintf(desc, sizeof(desc), "$n fires a ray of %s at YOU, but it goes wide.", damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
+      snprintf(desc, sizeof(desc), "$n fires a ray of %s at YOU, but it goes wide.", damtypes[energy_type]);
       act(desc, FALSE, ch, 0, victim, TO_VICT);
       return 0;
     }
 
     save = -1; // no save
     mag_resist = TRUE;
-    element = GET_PSIONIC_ENERGY_TYPE(ch);
+    element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     num_dice = 1 + GET_AUGMENT_PSP(ch);
     size_dice = 6;
-    bonus = (GET_PSIONIC_ENERGY_TYPE(ch) != DAM_ELECTRIC && GET_PSIONIC_ENERGY_TYPE(ch) != DAM_SOUND) ? num_dice : 0;
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      bonus = (energy_type != DAM_ELECTRIC && energy_type != DAM_SOUND) ? num_dice : 0;
+    }
 
     break;
 
@@ -1281,46 +1288,67 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_ENERGY_PUSH: /* 2nd circle */
     save = SAVING_FORT;
     mag_resist = TRUE;
-    element = GET_PSIONIC_ENERGY_TYPE(ch);
+    element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     num_dice = 2 + (GET_AUGMENT_PSP(ch) / 2);
     size_dice = 6;
-    bonus = (GET_PSIONIC_ENERGY_TYPE(ch) != DAM_ELECTRIC && GET_PSIONIC_ENERGY_TYPE(ch) != DAM_SOUND) ? num_dice : 0;
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      bonus = (energy_type != DAM_ELECTRIC && energy_type != DAM_SOUND) ? num_dice : 0;
+    }
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
-    mag_resist_bonus = (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? -2 : 0;
-    if (!mag_savingthrow(ch, victim, GET_PSIONIC_ENERGY_TYPE(ch) == DAM_COLD ? SAVING_FORT : SAVING_REFL, 0, casttype, level, NOSCHOOL) &&
-        !power_resistance(ch, victim, mag_resist_bonus) && ((GET_SIZE(victim) - GET_SIZE(ch)) <= 1))
     {
-      change_position(victim, POS_SITTING);
-      act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
-      act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);
-      if (!OUTDOORS(victim))
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      GET_DC_BONUS(ch) += (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? 2 : 0;
+      mag_resist_bonus = (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? -2 : 0;
+      if (!mag_savingthrow(ch, victim, energy_type == DAM_COLD ? SAVING_FORT : SAVING_REFL, 0, casttype, level, NOSCHOOL) &&
+          !power_resistance(ch, victim, mag_resist_bonus) && ((GET_SIZE(victim) - GET_SIZE(ch)) <= 1))
       {
-        act("You have been slammed hard against the wall!", FALSE, victim, 0, ch, TO_CHAR);
-        act("$n is slammed hard against the wall!", TRUE, victim, 0, ch, TO_ROOM);
-        damage(ch, victim, dice(num_dice, size_dice) + bonus, spellnum, DAM_FORCE, FALSE);
+        change_position(victim, POS_SITTING);
+        act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
+        act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);
+        if (!OUTDOORS(victim))
+        {
+          act("You have been slammed hard against the wall!", FALSE, victim, 0, ch, TO_CHAR);
+          act("$n is slammed hard against the wall!", TRUE, victim, 0, ch, TO_ROOM);
+          damage(ch, victim, dice(num_dice, size_dice) + bonus, spellnum, DAM_FORCE, FALSE);
+        }
       }
     }
     // we do this again because it will have been set to zero in the mag_savingthrow we just called
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      GET_DC_BONUS(ch) += (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? 2 : 0;
+    }
     break;
 
   case PSIONIC_ENERGY_STUN: /* 2nd circle */
-    if (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_COLD)
-      save = SAVING_FORT;
-    else
-      save = SAVING_REFL;
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      if (energy_type == DAM_COLD)
+        save = SAVING_FORT;
+      else
+        save = SAVING_REFL;
+    }
     mag_resist = TRUE;
-    element = GET_PSIONIC_ENERGY_TYPE(ch);
+    element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     num_dice = 1 + GET_AUGMENT_PSP(ch);
     size_dice = 6;
-    bonus = (GET_PSIONIC_ENERGY_TYPE(ch) != DAM_ELECTRIC && GET_PSIONIC_ENERGY_TYPE(ch) != DAM_SOUND) ? num_dice : 0;
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      bonus = (energy_type != DAM_ELECTRIC && energy_type != DAM_SOUND) ? num_dice : 0;
+    }
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
-    mag_resist_bonus = (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? -2 : 0;
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      GET_DC_BONUS(ch) += (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? 2 : 0;
+    }
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      mag_resist_bonus = (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? -2 : 0;
+    }
     break;
 
   case PSIONIC_RECALL_AGONY: /* 2nd circle */
@@ -1344,18 +1372,30 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_ENERGY_BURST: /* 3rd circle */ /* AoE */
-    if (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_COLD)
-      save = SAVING_FORT;
-    else
-      save = SAVING_REFL;
-    element = GET_PSIONIC_ENERGY_TYPE(ch);
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      if (energy_type == DAM_COLD)
+        save = SAVING_FORT;
+      else
+        save = SAVING_REFL;
+    }
+    element = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
     mag_resist = TRUE;
     num_dice = 5 + GET_AUGMENT_PSP(ch);
     size_dice = 8;
-    bonus = (GET_PSIONIC_ENERGY_TYPE(ch) != DAM_ELECTRIC && GET_PSIONIC_ENERGY_TYPE(ch) != DAM_SOUND) ? num_dice : 0;
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      bonus = (energy_type != DAM_ELECTRIC && energy_type != DAM_SOUND) ? num_dice : 0;
+    }
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
-    mag_resist_bonus = (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? -2 : 0;
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      GET_DC_BONUS(ch) += (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? 2 : 0;
+    }
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      mag_resist_bonus = (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? -2 : 0;
+    }
     break;
 
   case PSIONIC_DEADLY_FEAR: /* 4th circle */
@@ -3836,7 +3876,10 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
+    {
+      int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
+      GET_DC_BONUS(ch) += (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? 2 : 0;
+    }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
     if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
