@@ -1522,7 +1522,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
   /* inform ch and surrounding that they received this item */
   say_treasure(ch, obj);
 
-  if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
+  if (!IS_NPC(ch) && IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
     auto_store_obj(ch, obj);
   else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_SORT))
     auto_sort_obj(ch, obj);
@@ -1699,7 +1699,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   else
     say_bazaar(ch, obj);
 
-  if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
+  if (!IS_NPC(ch) && IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
     auto_store_obj(ch, obj);
   else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_SORT))
     auto_sort_obj(ch, obj);

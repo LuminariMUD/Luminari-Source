@@ -6312,7 +6312,7 @@ SPECIAL(spikeshield)
           FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
     }
 
-    if (PRF_FLAGGED(vict, PRF_CONDENSED))
+    if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED))
     {
     }
     else
@@ -6344,7 +6344,7 @@ SPECIAL(spikeshield)
           FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
     }
 
-    if (PRF_FLAGGED(vict, PRF_CONDENSED))
+    if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED))
     {
     }
     else
@@ -6449,7 +6449,7 @@ SPECIAL(ches)
             FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
       }
 
-      if (PRF_FLAGGED(vict, PRF_CONDENSED))
+      if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED))
       {
       }
       else
@@ -7333,7 +7333,7 @@ SPECIAL(purity)
           FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
     }
 
-    if (PRF_FLAGGED(vict, PRF_CONDENSED))
+    if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED))
     {
     }
     else
@@ -7362,7 +7362,7 @@ SPECIAL(purity)
           FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
     }
 
-    if (PRF_FLAGGED(vict, PRF_CONDENSED))
+    if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED))
     {
     }
     else

@@ -18,7 +18,8 @@
       "Bash(find:*)",
       "Bash(nm:*)",
       "Bash(mv:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(python3:*)"
     ],
     "deny": []
   }
