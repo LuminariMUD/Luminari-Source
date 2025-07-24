@@ -29,8 +29,20 @@
   - Count total affects processed per update
   - Log metrics every 100 updates (10 minutes) for monitoring
 
+### Bug Fixes
+
+#### Fixed "degenerate board" Error
+- **Issue**: Board initialization was missing the rnum field, causing find_board() to fail
+- **Solution**: 
+  - Explicitly initialized rnum to NOTHING in board_info array declarations
+  - Fixed array initialization for both CAMPAIGN_DL (7 boards) and standard (1 board)
+  - Added enhanced error logging to identify problematic boards
+  - Added validation to ensure board array size matches NUM_OF_BOARDS
+- **Impact**: Eliminates SYSERR log spam and allows bulletin boards to function properly
+
 ### Technical Details
 - Added `<sys/time.h>` include to players.c for performance timing
+- Fixed C99 compilation error in db.c (for loop variable declaration)
 - Maintained full backwards compatibility with existing save files
 - No changes to save file format or data structures
 - All existing functionality preserved
