@@ -31,9 +31,14 @@ This comprehensive technical documentation is organized into the following major
 
 ### 4. Development and Maintenance
 - **[Setup and Build](SETUP_AND_BUILD_GUIDE.md)** - Compilation, installation, configuration
-- **[Developer Guide](DEVELOPER_GUIDE_AND_API.md)** - Coding standards, API reference
+- **[Developer Guide](DEVELOPER_GUIDE_AND_API.md)** - Coding standards, API reference, PHP tools development
 - **[Testing Guide](TESTING_GUIDE.md)** - Unit testing, performance testing, quality assurance
-- **[Troubleshooting](TROUBLESHOOTING_AND_MAINTENANCE.md)** - Common issues, debugging, optimization
+- **[Troubleshooting](TROUBLESHOOTING_AND_MAINTENANCE.md)** - Common issues, debugging, optimization, security audit results
+
+### 5. PHP Tools and Web Interface
+- **[PHP Tools Guide](PHP_TOOLS_README.md)** - Security audit report, deployment guide, configuration
+- **Security Status**: All PHP tools audited and secured (January 2025)
+- **Tools Available**: Bonus analysis, encounter generator, hunt creator, spell help generator
 
 ## Key Technical Characteristics
 

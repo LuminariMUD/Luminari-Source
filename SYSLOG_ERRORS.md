@@ -26,7 +26,7 @@
 | ☑ | Fix `mobile_activity()` bottleneck | ~~133-173% constant CPU~~ Optimized | <50% ✓ |
 | ☑ | Reduce `do_gen_cast()` calls by NPCs | ~~111% (374 calls/pulse)~~ Fixed | <50% ✓ |
 | ☑ | Optimize NPC out-of-combat buffing | ~~Excessive buffing~~ Reduced frequency | Normal ✓ |
-| ☐ | Optimize `affect_update()` processing | 30% CPU constant | <10% |
+| ☑ | Optimize `affect_update()` processing | ~~30% CPU constant~~ Optimized | <10% ✓ |
 
 
 ### PRIORITY 5: LOW System Issues

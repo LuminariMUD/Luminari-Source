@@ -1005,22 +1005,28 @@ void update_msdp_affects(struct char_data *ch)
 
   /* MSDP */
 
+  /* Early exit if no character, no descriptor, or character is an NPC */
+  if (!ch || !ch->desc || IS_NPC(ch))
+    return;
+
+  /* Skip if client doesn't support MSDP */
+  if (!ch->desc->pProtocol || !ch->desc->pProtocol->bMSDP)
+    return;
+
   msdp_buffer[0] = '\0';
-  if (ch && ch->desc)
+  /* Open up the AFFECTS table */
+  char buf2[100];
+  snprintf(buf2, sizeof(buf2), "%c"
+                               "%c%s%c"
+                               "%c",
+           (char)MSDP_TABLE_OPEN,
+           (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
+           (char)MSDP_ARRAY_OPEN);
+  strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
+  for (i = 0; i < NUM_AFF_FLAGS; i++)
   {
-    /* Open up the AFFECTS table */
-    char buf2[100];
-    snprintf(buf2, sizeof(buf2), "%c"
-                                 "%c%s%c"
-                                 "%c",
-             (char)MSDP_TABLE_OPEN,
-             (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
-             (char)MSDP_ARRAY_OPEN);
-    strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
-    for (i = 0; i < NUM_AFF_FLAGS; i++)
+    if (IS_SET_AR(AFF_FLAGS(ch), i))
     {
-      if (IS_SET_AR(AFF_FLAGS(ch), i))
-      {
         char buf[200];
         snprintf(buf, sizeof(buf), "%c%c"
                                    "%c%s%c%s"
@@ -1031,18 +1037,18 @@ void update_msdp_affects(struct char_data *ch)
                  (char)MSDP_VAR, "NAME", (char)MSDP_VAL, affected_bits[i],
                  (char)MSDP_VAR, "DESC", (char)MSDP_VAL, affected_bit_descs[i],
                  (char)MSDP_TABLE_CLOSE);
-        strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
-      }
+      strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
     }
-    snprintf(buf2, sizeof(buf2), "%c"
+  }
+  snprintf(buf2, sizeof(buf2), "%c"
                                  "%c%s%c"
                                  "%c",
              (char)MSDP_ARRAY_CLOSE,
              (char)MSDP_VAR, "SPELL_LIKE_AFFECTS", (char)MSDP_VAL,
              (char)MSDP_ARRAY_OPEN);
-    strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
-    for (af = ch->affected; af; af = next)
-    {
+  strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
+  for (af = ch->affected; af; af = next)
+  {
       char buf[400]; // Buffer for building the affect table for MSDP
       next = af->next;
       snprintf(buf, sizeof(buf), "%c%c"
@@ -1060,20 +1066,19 @@ void update_msdp_affects(struct char_data *ch)
                (char)MSDP_VAR, "TYPE", (char)MSDP_VAL, bonus_types[af->bonus_type],
                (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration,
                (char)MSDP_TABLE_CLOSE);
-      strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
-      first = FALSE;
-    }
-    snprintf(buf2, sizeof(buf2), "%c"
+    strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
+    first = FALSE;
+  }
+  snprintf(buf2, sizeof(buf2), "%c"
                                  "%c",
              (char)MSDP_ARRAY_CLOSE,
              (char)MSDP_TABLE_CLOSE);
-    strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
+  strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
 
-    // send_to_char(ch, "%s", msdp_buffer);
+  // send_to_char(ch, "%s", msdp_buffer);
 
-    MSDPSetString(ch->desc, eMSDP_AFFECTS, msdp_buffer);
-    MSDPFlush(ch->desc, eMSDP_AFFECTS);
-  }
+  MSDPSetString(ch->desc, eMSDP_AFFECTS, msdp_buffer);
+  MSDPFlush(ch->desc, eMSDP_AFFECTS);
 }
 
 /* This updates a character by subtracting everything he is affected by
