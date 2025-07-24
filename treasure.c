@@ -27,6 +27,7 @@
 #include "staff_events.h"
 #include "feats.h"
 #include "crafting_new.h"
+#include "mud_options.h"
 
 extern int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
 
@@ -920,8 +921,68 @@ void award_magic_item(int number, struct char_data *ch, int grade)
 /* Default implementation when no crafting system is defined */
 void award_magic_item(int number, struct char_data *ch, int grade)
 {
-  /* Simple stub implementation - just log a message */
-  log("award_magic_item called but no crafting system is defined");
+  int i = 0;
+  int roll = 0;
+  
+  if (number <= 0)
+    number = 1;
+
+  if (number >= 50)
+    number = 50;
+
+  /* Default treasure distribution based on old crafting system:
+   * crystals drop 10% of the time.
+   * scrolls/wands/potions/staves drop 40% of the time.
+   * trinkets drop 25% of the time.
+   * armor drop 20% of the time.
+   * weapons drop 5% of the time. */
+  for (i = 0; i < number; i++)
+  {
+    roll = dice(1, 100);
+    if (roll <= 10) /* 1-10: 10% crystals */
+      award_random_crystal(ch, grade);
+    else if (roll <= 15) /* 11-15: 5% weapons */
+      award_magic_weapon(ch, grade);
+    else if (roll <= 55) /* 16-55: 40% expendables */
+    {
+      switch (dice(1, 9))
+      {
+      case 1:
+      case 2:
+      case 3:
+        award_expendable_item(ch, grade, TYPE_SCROLL);
+        award_expendable_item(ch, grade, TYPE_SCROLL);
+        break;
+      case 4:
+      case 5:
+      case 6:
+        award_expendable_item(ch, grade, TYPE_POTION);
+        award_expendable_item(ch, grade, TYPE_POTION);
+        award_expendable_item(ch, grade, TYPE_POTION);
+        break;
+      case 7:
+        award_expendable_item(ch, grade, TYPE_WAND);
+        break;
+      case 8:
+        award_expendable_item(ch, grade, TYPE_STAFF);
+        break;
+      default: /* 9 */
+        award_magic_ammo(ch, grade);
+        break;
+      }
+    }
+    else if (roll <= 80) /* 56-80: 25% misc items/trinkets */
+    {
+      award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
+    }
+    else /* 81-100: 20% armor */
+    {
+      if (dice(1, 3) != 3)
+        award_magic_armor_suit(ch, grade);
+      else
+        award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
+    }
+  }
 }
 #endif
 
