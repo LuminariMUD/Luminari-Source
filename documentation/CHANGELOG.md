@@ -10,6 +10,14 @@
   - Player item save failures on login
   - Database compatibility issues that were blocking core game functionality
 
+#### NPC Access Violations (July 24, 2025)
+- **Fixed NPCs accessing player preference flags** - Added IS_NPC() checks in act.informative.c to prevent NPCs from accessing PRF_FLAGGED player data. This fixes:
+  - Lines 845-847: Commented out PRF_NON_ROLEPLAYER check in NPC-only display block
+  - Lines 903-906: Commented out PRF_NON_ROLEPLAYER check in non-fighting NPC block  
+  - Line 1064: Added !IS_NPC() check before PRF_FLAGGED access
+  - Line 4494: Added !IS_NPC() check in user listing
+  - Eliminates "Mob using '((i)->player_specials->saved.pref)' at act.informative.c:845" errors
+
 ## [Previous] - 2025-01-23
 
 ### Fixed

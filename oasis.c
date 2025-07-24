@@ -60,7 +60,7 @@ static void free_config(struct config_data *data);
 /* Only player characters should be using OLC anyway. */
 void clear_screen(struct descriptor_data *d)
 {
-  if (PRF_FLAGGED(d->character, PRF_CLS))
+  if (!IS_NPC(ch) && PRF_FLAGGED(d->character, PRF_CLS))
     write_to_output(d, "[H[J");
 }
 

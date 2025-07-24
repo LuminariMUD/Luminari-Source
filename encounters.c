@@ -1100,11 +1100,11 @@ int encounter_chance(struct char_data *ch)
   // out of 1,000.  Base chance of 3%
   int chance = 30;
 
-  if (PRF_FLAGGED(ch, PRF_AVOID_ENCOUNTERS))
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AVOID_ENCOUNTERS))
   {
     chance -= combat_skill_roll(ch, ABILITY_SURVIVAL) * 5;
   }
-  else if (PRF_FLAGGED(ch, PRF_SEEK_ENCOUNTERS))
+  else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SEEK_ENCOUNTERS))
     chance += combat_skill_roll(ch, ABILITY_SURVIVAL) * 5;
 
   // send_to_char(ch, " Chance: %d\r\n", chance);
@@ -1154,7 +1154,7 @@ void check_random_encounter(struct char_data *ch)
   if (roll > encounter_chance(ch))
     return;
 
-  if (PRF_FLAGGED(ch, PRF_AVOID_ENCOUNTERS))
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AVOID_ENCOUNTERS))
   {
     if (AFF_FLAGGED(ch, AFF_SNEAK) && skill_roll(ch, ABILITY_STEALTH) >= (GET_LEVEL(ch) + 5))
     {

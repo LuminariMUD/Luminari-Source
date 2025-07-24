@@ -3338,7 +3338,7 @@ ACMD(do_rest)
     break;
   }
 
-  // if (PRF_FLAGGED(ch, PRF_AUTO_PREP))
+  // if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_PREP))
   // {
   //   if (count_spellcasting_classes(ch) == 1)
   //   {

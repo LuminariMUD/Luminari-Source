@@ -1643,7 +1643,7 @@ void update_player_misc(void)
       clear_mission(ch);
     }
 
-    if (PRF_FLAGGED(ch, PRF_AUTO_PREP))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_PREP))
     {
       for (i = 0; i < NUM_CLASSES; i++)
       {
@@ -2720,7 +2720,7 @@ void self_buffing(void)
         else
         {
           int augment = 0;
-          if (PRF_FLAGGED(ch, PRF_AUGMENT_BUFFS))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUGMENT_BUFFS))
             augment = max_augment_psp_allowed(ch, spellnum);
           snprintf(spellname, sizeof(spellname), " %d '%s'", augment, spell_info[spellnum].name);
           do_manifest(ch, (const char *)spellname, 0, SCMD_CAST_PSIONIC);

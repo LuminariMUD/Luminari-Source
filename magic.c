@@ -5382,7 +5382,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_RAGE:
-    if (PRF_FLAGGED(victim, PRF_NO_RAGE))
+    if (!IS_NPC(ch) && PRF_FLAGGED(victim, PRF_NO_RAGE))
     {
       act("$N has their NO_RAGE toggle turned off, so they will be skipped.", FALSE, ch, 0, victim, TO_CHAR);
       act("You hav your NO_RAGE toggle turned off, so you will be skipped. Use PREFEDIT or type NORAGE to toggle it on.", FALSE, ch, 0, victim, TO_VICT);
