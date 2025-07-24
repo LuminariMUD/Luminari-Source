@@ -42,14 +42,14 @@
 |------|-------------|----------|-------------|
 | ✅ | Add IS_NPC() check before PRF_FLAGGED | act.informative.c:845 | 3 errors |
 | ✅ | Fix combat targeting dead/corpse validation | fight.c | 3 errors |
-| ☐ | Implement or remove `award_magic_item()` calls | Zone reset #77 | 2 errors |
+| ✅ | Implement or remove `award_magic_item()` calls | Zone reset #77 | 2 errors |
 
 ### PRIORITY 4: MEDIUM Spec Proc Issues
 
 | Task | Description | Missing Vnums |
 |------|-------------|---------------|
-| ☐ | Remove invalid mob spec assignments | #103802, #103803 |
-| ☐ | Remove invalid obj spec assignments | #139203, #120010, #100513, #111507, #100599 |
+| ☐ | Fix (preferred if possible) or Remove invalid mob spec assignments | #103802, #103803 |
+| ☐ | Fix (preferred if possible) or Remove invalid obj spec assignments | #139203, #120010, #100513, #111507, #100599 |
 
 ---
 

@@ -30,6 +30,13 @@
   - act.item.c:5375: Changed `!IS_NPC(ch)` to `!IS_NPC(i->character)` in auc_send_to_all()
   - oasis.c:63: Changed `!IS_NPC(ch)` to `!IS_NPC(d->character)` in clear_screen()
 
+#### Treasure System Fix (July 24, 2025)
+- **Fixed award_magic_item() implementation** - Resolved "award_magic_item called but no crafting system is defined" errors:
+  - Added `#include "mud_options.h"` to treasure.c to ensure crafting system macros are visible
+  - Replaced stub error logging with a fully functional default implementation
+  - Default implementation awards treasures with appropriate distribution (10% crystals, 40% expendables, 25% trinkets, 20% armor, 5% weapons)
+  - Eliminates error spam during zone resets while maintaining treasure functionality
+
 ## [Previous] - 2025-01-23
 
 ### Fixed

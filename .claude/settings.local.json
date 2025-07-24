@@ -15,7 +15,8 @@
       "Bash(gcc:*)",
       "Bash(cp:*)",
       "Bash(ssh:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(nm:*)"
     ],
     "deny": []
   }
