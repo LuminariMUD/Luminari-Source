@@ -1350,3 +1350,11 @@ size_t PERF_prof_repr_sect( char *out_buf, size_t n, const char *id)
 {
     return sProfMgr.ReprSect(out_buf, n, id);
 }
+
+/* Fallback implementation if perfmon_optimized.c is not linked */
+__attribute__((weak))
+void PERF_log_pulse_optimized(double val)
+{
+    /* Default to full monitoring if optimized version not available */
+    PERF_log_pulse(val);
+}

@@ -58,6 +58,17 @@ extern const unsigned PERF_pulse_per_second;
 void PERF_log_pulse(double val);
 
 /**
+ * @brief Optimized pulse logging with configurable monitoring levels
+ *
+ * This function provides a more efficient alternative to PERF_log_pulse()
+ * with support for different monitoring levels and sampling rates to reduce
+ * overhead in production environments.
+ *
+ * @param val Pulse duration as percentage (0-100+)
+ */
+void PERF_log_pulse_optimized(double val);
+
+/**
  * @brief Generate a formatted performance report
  *
  * Creates a comprehensive text report showing pulse performance statistics

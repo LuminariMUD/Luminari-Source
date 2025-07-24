@@ -873,7 +873,7 @@ void game_loop(socket_t local_mother_desc)
     {
       long int total_usec = 1000000 * process_time.tv_sec + process_time.tv_usec;
       double usage_pcnt = 100 * ((double)total_usec / OPT_USEC);
-      PERF_log_pulse(usage_pcnt);
+      PERF_log_pulse_optimized(usage_pcnt);
 
       if (total_usec > perf_high_water_mark)
       {
