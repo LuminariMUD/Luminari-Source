@@ -30,7 +30,7 @@
 
 | Task | Description | Current Impact | Target |
 |------|-------------|----------------|---------|
-| ☐ | Optimize `Crash_save_all()` - convert to async/incremental | 445% CPU spike | <50% |
+| ✅ | Optimize `Crash_save_all()` - convert to async/incremental | 445% CPU spike | <50% |
 | ☐ | Fix `mobile_activity()` bottleneck | 158-182% constant CPU | <50% |
 | ☐ | Reduce `do_gen_cast()` calls by NPCs | 300-400 calls/pulse | <50 calls |
 | ☐ | Optimize `affect_update()` processing | 30-40% CPU constant | <10% |
