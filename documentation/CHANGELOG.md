@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2025-07-25
+
+### Bug Fixes
+
+#### Fixed Critical Memory Leak in Object Save System
+- **Issue**: 460KB memory leak in `objsave_save_obj_record_db()` when MySQL operations failed
+- **Root Cause**: Temporary object created for comparison was not freed on early return from MySQL errors
+- **Solution**: Added `extract_obj(temp)` cleanup calls before error returns at lines 476 and 485
+- **Impact**: Prevents major memory leak during house saves when database errors occur
+- **Source**: Identified via valgrind analysis (`valgrind_20250724_210758.log`)
+
 ## 2025-01-24
 
 ### Performance Optimizations

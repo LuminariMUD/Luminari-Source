@@ -7,18 +7,6 @@ This document tracks ongoing development tasks, bug fixes, and improvements for 
 
 ### 🚨 Critical Code Issues (Require Developer Attention)
 
-#### Player Data Structure Access Violations
-| ✓ | File | Line | Issue | Priority |
-|---|------|------|-------|----------|
-| ✓ | treasure.c | 1525 | Mobs accessing `((ch)->player_specials->saved.pref)` | HIGH |
-| ✓ | spec_procs.c | 6315 | Mobs accessing `((vict)->player_specials->saved.pref)` | HIGH |
-| ✓ | magic.c | 1284,1287,1290-1292,1307 | Mobs accessing `((ch)->player_specials->saved.psionic_energy_type)` | HIGH |
-| ✓ | magic.c | 1250,1265,1268 | Mobs accessing `((ch)->player_specials->saved.psionic_energy_type)` | HIGH |
-
-**Description**: Mobs are incorrectly trying to access player-specific data structures. This causes system errors and could lead to crashes or undefined behavior.
-
-**Status**: ✅ FIXED (2025-01-25) - Added IS_NPC() checks before all player_specials accesses. NPCs now use DAM_MENTAL as default psionic energy type.
-
 #### Object Handling Errors
 | ☐ | Issue | Frequency | Priority |
 |---|-------|-----------|----------|
@@ -35,12 +23,22 @@ This document tracks ongoing development tasks, bug fixes, and improvements for 
 
 **Description**: Damage types are missing DAM_ definitions, which could cause combat calculation errors.
 
-#### Performance Monitoring
-| ☐ | System | Current Load | Action Required |
-|---|--------|--------------|-----------------|
-| ☐ | affect_update() | 28,795 chars processed | Monitor for performance degradation |
+### Memory Leaks and Issues (From Valgrind Analysis - July 24, 2025)
 
-**Description**: System is processing a large number of characters and affects. Monitor for performance issues as player base grows.
+#### Critical Memory Leaks
+| ☐ | Location | Issue | Size | Priority |
+|---|----------|-------|------|----------|
+| ☑ | objsave.c:476,484 | Temp object not freed on MySQL error | 460KB total | CRITICAL |
+| ☐ | lists.c:553 | Use-after-free in simple_list() iterator | N/A | CRITICAL |
+| ☐ | db.c:4937 | Uninitialized values in fread_clean_string() | N/A | MEDIUM |
+| ☐ | dg_variables.c:65 | Script variable memory not freed | Multiple small | LOW |
+
+**Details**:
+- **objsave.c**: In `objsave_save_obj_record_db()`, when MySQL operations fail, the function returns without calling `extract_obj(temp)`. Fix: Add cleanup before returns at lines 476 and 484.
+- **lists.c**: Iterator retains stale pointers after list modifications. Address: 0xbbbbbbbbbbbbbbcb indicates freed memory access.
+- **db.c**: Valgrind reports conditional jumps on uninitialized values (may be false positive).
+- **Total memory leaked**: 460,218 bytes in 11,147 blocks
+- **Source**: Analysis from valgrind log `valgrind_20250724_210758.log`
 
 ---
 
