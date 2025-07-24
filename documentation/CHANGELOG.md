@@ -4,6 +4,15 @@
 
 ### Fixed
 
+#### Performance Optimization - Zone Reset (July 24, 2025)
+- **Fixed do_zreset() O(n²) performance issue** - Optimized random chest placement algorithm in reset_zone():
+  - Previous algorithm: Nested loops iterating through all zone rooms up to 33 times (O(n²) complexity)
+  - New algorithm: Builds eligible room list once, then iterates efficiently (O(n) complexity)
+  - Performance improvement: Reduces CPU spike from 1022% to normal levels during `zreset *`
+  - Maintains exact same chest placement probability and game behavior
+  - For large zones (1000+ rooms), reduces room checks from 33,000 to ~1,000
+  - Eliminates 10+ second freezes when resetting the entire world
+
 #### Database Schema Fixes (July 24, 2025)
 - **Fixed missing 'idnum' column errors** - Added `idnum` column to `house_data` and `player_save_objs` tables in both production (`luminari_mudprod`) and development (`luminari_muddev`) databases. Column type: `int(10) unsigned`, default value: 0, with indexes added. This resolves:
   - 10 boot errors when loading house data
