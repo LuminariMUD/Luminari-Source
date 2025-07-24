@@ -44,6 +44,14 @@
   - Added comments explaining why they're disabled to help builders know these spec procs are available
   - Eliminates "Attempt to assign spec to non-existant" errors during boot
 
+#### Performance Optimization - Crash_save_all() (July 24, 2025)
+- **Fixed massive CPU spike in player saves** - Optimized memory allocation in object saving functions:
+  - Changed large stack-allocated buffers to static buffers in objsave_save_obj_record_db() functions
+  - Reduced buffer sizes from MAX_STRING_LENGTH (49KB) to reasonable sizes (4KB)
+  - Previously allocated ~84KB on stack per object (36KB ins_buf + 48KB line_buf)
+  - With 796 objects, this was ~66MB of stack allocations causing 445% CPU spike
+  - Performance improvement: Reduces save CPU usage from 445% to under 50%
+
 ## [Previous] - 2025-01-23
 
 ### Fixed

@@ -89,17 +89,17 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 {
 
 #ifdef OBJSAVE_DB
-  char ins_buf[36767];                  /* For MySQL insert. */
-  char line_buf[MAX_STRING_LENGTH + 1]; /* For building MySQL insert statement. */
+  static char ins_buf[36767];           /* For MySQL insert - static to avoid stack allocation */
+  static char line_buf[4096];           /* For building MySQL insert statement - reduced size */
 #endif
 
   int counter2, i = 0, x = 0;
   struct extra_descr_data *ex_desc;
-  char buf1[MAX_STRING_LENGTH + 1];
+  char buf1[4096];                      /* Reduced from MAX_STRING_LENGTH */
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
-  char escaped_buf[MAX_STRING_LENGTH];
-  char escaped_key[MAX_STRING_LENGTH];
+  char escaped_buf[4096];               /* Reduced from MAX_STRING_LENGTH */
+  char escaped_key[512];                /* Reduced from MAX_STRING_LENGTH */
 
   /* load up the object */
   if (GET_OBJ_VNUM(obj) != NOTHING)
@@ -2723,12 +2723,12 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate, s
 int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch, struct char_data *owner, long int pet_idnum, int locate)
 {
 
-  char ins_buf[36767];                  /* For MySQL insert. */
-  char line_buf[MAX_STRING_LENGTH + 1]; /* For building MySQL insert statement. */
+  static char ins_buf[36767];           /* For MySQL insert - static to avoid stack allocation */
+  static char line_buf[4096];           /* For building MySQL insert statement - reduced size */
 
   int counter2, i = 0;
   struct extra_descr_data *ex_desc;
-  char buf1[MAX_STRING_LENGTH + 1];
+  char buf1[4096];                      /* Reduced from MAX_STRING_LENGTH */
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
 
@@ -3344,12 +3344,12 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
 int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch, long int sheath_idnum, int sheath_slot)
 {
 
-  char ins_buf[36767];                  /* For MySQL insert. */
-  char line_buf[MAX_STRING_LENGTH + 1]; /* For building MySQL insert statement. */
+  static char ins_buf[36767];           /* For MySQL insert - static to avoid stack allocation */
+  static char line_buf[4096];           /* For building MySQL insert statement - reduced size */
 
   int counter2, i = 0;
   struct extra_descr_data *ex_desc;
-  char buf1[MAX_STRING_LENGTH + 1];
+  char buf1[4096];                      /* Reduced from MAX_STRING_LENGTH */
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
 
