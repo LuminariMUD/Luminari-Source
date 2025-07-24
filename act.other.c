@@ -5691,7 +5691,7 @@ ACMD(do_spells)
   else
   {
     if (get_number_of_spellcasting_classes(ch) == 1 && GET_LEVEL(ch) < LVL_IMMORT && 
-        IS_SPELLCASTER_CLASS(get_first_spellcasting_classes(ch)) < NUM_CLASSES && IS_SPELLCASTER_CLASS(get_first_spellcasting_classes(ch)))
+        get_first_spellcasting_classes(ch) < NUM_CLASSES && IS_SPELLCASTER_CLASS(get_first_spellcasting_classes(ch)))
       class = get_first_spellcasting_classes(ch);
     else if (subcmd == SCMD_CONCOCT)
       class = CLASS_ALCHEMIST;
