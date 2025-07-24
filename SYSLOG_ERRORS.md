@@ -5,13 +5,18 @@
 
 ### Critical Issues Impacting Gameplay:
 1. **Database Schema Errors**: ✅ FIXED - Missing 'idnum' column was preventing player saves and house data loading
-2. **Severe Performance Degradation**: Game pulses taking 740ms instead of 100ms (7.4x slower)
-3. **NPC System Errors**: Mobs accessing player-only functions causing potential crashes
+2. **Performance Issues**: do_zreset causing 1022ms spikes (10x slower), mobile_activity at 173%
+3. **NPC System Errors**: 83 total instances of mobs accessing player-only data (potential crashes)
 
 ### Impact Assessment:
-- **Players Experience**: Severe lag, lost items, unable to save progress
-- **Server Stability**: At risk due to performance issues and code safety problems
+- **Players Experience**: Lag spikes during world resets (10+ second freezes), improved from baseline
+- **Server Stability**: Better than before but NPCs still accessing invalid memory (83 errors)
 - **Content Creation**: Blocked by missing triggers and broken scripts
+
+### Progress Update:
+- ✅ Major performance improvements: Crash_save_all fixed, do_save improved by 50%
+- ⚠️ New issue discovered: do_zreset causing 10-second freezes during world resets
+- ⚠️ NPCs accessing player-only data in 3 new locations (magic.c, utils.c, spec_procs.c)
 
 ---
 
@@ -30,11 +35,12 @@
 
 | Task | Description | Current Impact | Target |
 |------|-------------|----------------|---------|
-| ✅ | Optimize `Crash_save_all()` - convert to async/incremental | 445% CPU spike | <50% |
-| ☐ | Fix `mobile_activity()` bottleneck | 158-182% constant CPU | <50% |
-| ☐ | Reduce `do_gen_cast()` calls by NPCs | 300-400 calls/pulse | <50 calls |
-| ☐ | Optimize `affect_update()` processing | 30-40% CPU constant | <10% |
-| ☐ | Fix `do_save()` performance with DB errors | 285-513% CPU on login | <50% |
+| ✅ | Optimize `Crash_save_all()` - convert to async/incremental | ~~445%~~ Improved! | <50% |
+| ☐ | Fix `do_zreset()` world reset performance | 1022% CPU spike | <100% |
+| ☐ | Fix `mobile_activity()` bottleneck | 133-173% constant CPU | <50% |
+| ☐ | Reduce `do_gen_cast()` calls by NPCs | 111% (374 calls/pulse) | <50% |
+| ☐ | Optimize `affect_update()` processing | 30% CPU constant | <10% |
+| ✅ | Fix `do_save()` performance | ~~285-513%~~ Now 257% | <50% |
 
 ### PRIORITY 3: HIGH Code Safety Issues
 
@@ -43,6 +49,9 @@
 | ✅ | Add IS_NPC() check before PRF_FLAGGED | act.informative.c:845 | 3 errors |
 | ✅ | Fix combat targeting dead/corpse validation | fight.c | 3 errors |
 | ✅ | Implement or remove `award_magic_item()` calls | Zone reset #77 | 2 errors |
+| ☐ | Fix NPCs accessing psionic_energy_type | magic.c:3911,3747,3751 | 3 errors |
+| ☐ | Fix NPCs accessing master's preferences | utils.c:9122,9143 | 74 errors |
+| ☐ | Fix NPCs accessing preferences in spec procs | spec_procs.c:6053 | 6 errors |
 
 ### PRIORITY 4: MEDIUM Spec Proc Issues
 
@@ -50,6 +59,12 @@
 |------|-------------|---------------|
 | ✅ | Fix (preferred if possible) or Remove invalid mob spec assignments | #103802, #103803 |
 | ✅ | Fix (preferred if possible) or Remove invalid obj spec assignments | #139203, #120010, #100513, #111507, #100599 |
+
+### PRIORITY 5: LOW System Issues
+
+| Task | Description | Location | Notes |
+|------|-------------|----------|-------|
+| ☐ | Fix degenerate board error | gen_board() | "degenerate board! (what the hell...)" |
 
 ---
 
@@ -99,36 +114,41 @@
 | ☐ | Object Vnum | References | Action |
 |---|-------------|------------|---------|
 | ☐ | #19216 | 2 references during boot | Create object or remove refs |
+| ☐ | #40252 | award_misc_magic_item() | Create object or fix award function |
 
 ---
 
 ## 📊 PERFORMANCE ANALYSIS DETAILS
 
-### Performance Degradation Timeline
-- **09:32:46** - Initial: 2.50% (2.5ms) ✅ Normal
-- **09:32:51** - Minor: 8.82% (8.8ms) ✅ Acceptable  
-- **09:32:52** - Major spike: 197.76% (197ms) ⚠️ Laggy
-- **09:32:58** - Sustained: 208.24% (208ms) ⚠️ 
-- **09:33:08** - Login spike: 286.21% (286ms) 🔴
-- **09:33:20** - Another login: 305.94% (306ms) 🔴
-- **09:33:43** - Degrading: 376.66% (377ms) 🔴
-- **09:33:50** - Severe: 514.06% (514ms) 🔴
-- **09:34:47** - CRITICAL: 740.24% (740ms) 🚨
+### Performance Degradation Timeline (Updated July 24, 12:17)
+- **12:17:22** - Initial: 3.57% (3.6ms) ✅ Normal
+- **12:17:25** - Minor: 4.76% (4.8ms) ✅ Acceptable  
+- **12:17:27** - Spike: 41.12% (41ms) ⚠️ Noticeable
+- **12:17:28** - Major spike: 173.35% (173ms) 🔴 Laggy (mobile_activity: 133%)
+- **12:17:30** - Login spike: 214.79% (214ms) 🔴
+- **12:17:32** - Save spike: 257.08% (257ms) 🔴 (do_save: 257%)
+- **12:17:37** - CRITICAL: 1022.25% (1022ms) 🚨 (do_zreset: 1022%)
 
-### Top Performance Offenders
-1. **Crash_save_all** - 445.62% (needs async rewrite)
-2. **mobile_activity** - 158-182% (too many NPCs or inefficient loops)
-3. **do_gen_cast** - 125-154% (NPCs casting too frequently)
-4. **do_save** - 285-513% (failing due to DB errors)
+### Top Performance Offenders (Updated)
+1. **do_zreset** - 1022% (world reset triggered by player)
+2. **mobile_activity** - 133-173% (consistent high CPU usage)
+3. **do_gen_cast** - 111% with 374 calls per pulse
+4. **do_save** - 257% (improved from 513%, but still high)
+5. **affect_update** - 30% (many active effects)
+
+### Performance Improvements Since Last Analysis
+- **Crash_save_all**: Major improvement (was causing 445% spikes)
+- **do_save**: Reduced from 285-513% to 257%
+- **Overall baseline**: Much better, but new issues emerged
 
 ---
 
 ## 📈 PROGRESS TRACKING
 
 ### Summary Statistics
-- **Total Tasks**: 55 (3 completed ✅, 52 remaining)
-- **Coder Tasks**: 17 (3 completed, 14 remaining)
-- **Builder Tasks**: 38 (all can be done in-game)
+- **Total Tasks**: 61 (10 completed ✅, 51 remaining)
+- **Coder Tasks**: 22 (10 completed, 12 remaining)
+- **Builder Tasks**: 39 (all can be done in-game)
 
 ### Estimated Time to Resolution
 - **Critical DB fixes**: ✅ COMPLETED
