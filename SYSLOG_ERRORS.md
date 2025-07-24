@@ -24,7 +24,8 @@
 | Task | Description | Current Impact | Target |
 |------|-------------|----------------|---------|
 | ☑ | Fix `mobile_activity()` bottleneck | ~~133-173% constant CPU~~ Optimized | <50% ✓ |
-| ☐ | Reduce `do_gen_cast()` calls by NPCs | 111% (374 calls/pulse) | <50% |
+| ☑ | Reduce `do_gen_cast()` calls by NPCs | ~~111% (374 calls/pulse)~~ Fixed | <50% ✓ |
+| ☑ | Optimize NPC out-of-combat buffing | ~~Excessive buffing~~ Reduced frequency | Normal ✓ |
 | ☐ | Optimize `affect_update()` processing | 30% CPU constant | <10% |
 
 
@@ -100,7 +101,7 @@
 ### Top Performance Offenders (Updated)
 1. ~~**do_zreset** - 1022% (world reset triggered by player)~~ ✅ FIXED
 2. ~~**mobile_activity** - 133-173% (consistent high CPU usage)~~ ✅ FIXED
-3. **do_gen_cast** - 111% with 374 calls per pulse
+3. ~~**do_gen_cast** - 111% with 374 calls per pulse~~ ✅ FIXED
 4. **do_save** - 257% (improved from 513%, but still high)
 5. **affect_update** - 30% (many active effects)
 

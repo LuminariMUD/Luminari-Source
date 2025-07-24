@@ -2101,6 +2101,27 @@ will be using for casting this spell */
   return (1);
 }
 
+/* manifest_power is the entry point for NPC psionic power manifestation.
+ * It's a simplified version of cast_spell that bypasses do_gen_cast overhead. */
+int manifest_power(struct char_data *ch, struct char_data *tch,
+                   int powernum, int augment_psp)
+{
+  if (!ch || !IS_NPC(ch))
+    return 0;
+    
+  if (powernum < PSIONIC_POWER_START || powernum > PSIONIC_POWER_END)
+  {
+    log("SYSERR: manifest_power trying to manifest invalid power %d", powernum);
+    return 0;
+  }
+  
+  /* Set augmentation for this manifestation */
+  GET_AUGMENT_PSP(ch) = augment_psp;
+  
+  /* NPCs manifest powers immediately without casting time */
+  return (call_magic(ch, tch, NULL, powernum, 0, GET_LEVEL(ch), CAST_SPELL));
+}
+
 ACMD(do_abort)
 {
   if (IS_NPC(ch))

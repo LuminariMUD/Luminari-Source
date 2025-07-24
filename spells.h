@@ -1704,6 +1704,8 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
                      char *argument);
 int cast_spell(struct char_data *ch, struct char_data *tch,
                struct obj_data *tobj, int spellnum, int metamagic);
+int manifest_power(struct char_data *ch, struct char_data *tch,
+                   int powernum, int augment_psp);
 
 /* other prototypes */
 void spell_level(int spell, int chclass, int level);
