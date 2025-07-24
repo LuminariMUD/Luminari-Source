@@ -12,7 +12,9 @@
 #include <sstream>
 
 // Mock the external constant for testing
-const unsigned PERF_pulse_per_second = 10;
+extern "C" {
+    const unsigned PERF_pulse_per_second = 10;
+}
 
 // Include the perfmon implementation
 #include "perfmon.cpp"
