@@ -5831,7 +5831,7 @@ bool is_grouped_in_room(struct char_data *ch)
 
   struct char_data *tch = NULL;
   bool grouped = false;
-  bool num = 0;
+  int num = 0;
 
   if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
   {
@@ -7395,8 +7395,10 @@ void calculate_max_hp(struct char_data *ch, bool display)
         max_hp += aff->modifier;
         if (display)
         {
+          char line_buf[200];
           snprintf(temp_buf, sizeof(temp_buf), "Affect '%s'", spell_info[aff->spell].name);
-          snprintf(affect_buf, sizeof(affect_buf), "%s%-40s = %s%d\r\n", affect_buf, temp_buf, aff->modifier > 0 ? "+" : "", aff->modifier);
+          snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf, aff->modifier > 0 ? "+" : "", aff->modifier);
+          strlcat(affect_buf, line_buf, sizeof(affect_buf));
         }
       }
       // penalties and debuffs are always applied
@@ -7405,8 +7407,10 @@ void calculate_max_hp(struct char_data *ch, bool display)
         max_hp -= aff->modifier;
         if (display)
         {
+          char line_buf[200];
           snprintf(temp_buf, sizeof(temp_buf), "Affect '%s'", spell_info[aff->spell].name);
-          snprintf(affect_buf, sizeof(affect_buf), "%s%-40s = %d\r\n", affect_buf, temp_buf, aff->modifier);
+          snprintf(line_buf, sizeof(line_buf), "%-40s = %d\r\n", temp_buf, aff->modifier);
+          strlcat(affect_buf, line_buf, sizeof(affect_buf));
         }
       }
       // we only want the maximum per bonus type
@@ -7434,8 +7438,10 @@ void calculate_max_hp(struct char_data *ch, bool display)
           max_hp += obj->affected[j].modifier;
           if (display)
           {
+            char line_buf[200];
             snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'", obj->short_description);
-            snprintf(gear_buf, sizeof(gear_buf), "%s%-40s = %s%d\r\n", gear_buf, temp_buf, obj->affected[j].modifier > 0 ? "+" : "", obj->affected[j].modifier);
+            snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf, obj->affected[j].modifier > 0 ? "+" : "", obj->affected[j].modifier);
+            strlcat(gear_buf, line_buf, sizeof(gear_buf));
           }
         }
         // penalties and debuffs are always applied
@@ -7444,8 +7450,10 @@ void calculate_max_hp(struct char_data *ch, bool display)
           max_hp -= obj->affected[j].modifier;
           if (display)
           {
+            char line_buf[200];
             snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'", obj->short_description);
-            snprintf(gear_buf, sizeof(gear_buf), "%s%-40s = %s%d\r\n", gear_buf, temp_buf, obj->affected[j].modifier > 0 ? "+" : "", obj->affected[j].modifier);
+            snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf, obj->affected[j].modifier > 0 ? "+" : "", obj->affected[j].modifier);
+            strlcat(gear_buf, line_buf, sizeof(gear_buf));
           }
         }
         // we only want the maximum per bonus type
@@ -7469,8 +7477,10 @@ void calculate_max_hp(struct char_data *ch, bool display)
     {
       if (max_val_spell[i] != -1)
       {
+        char line_buf[200];
         snprintf(temp_buf, sizeof(temp_buf), "Affect '%s'", spell_info[max_val_spell[i]].name);
-        snprintf(affect_buf, sizeof(affect_buf), "%s%-40s = %s%d\r\n", affect_buf, temp_buf, max_value[i] > 0 ? "+" : "", max_value[i]);
+        snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf, max_value[i] > 0 ? "+" : "", max_value[i]);
+        strlcat(affect_buf, line_buf, sizeof(affect_buf));
       }
       else if (max_val_worn_slot[i] != -1)
       {
@@ -7478,10 +7488,12 @@ void calculate_max_hp(struct char_data *ch, bool display)
         {
           if (GET_EQ(ch, max_val_worn_slot[i])->affected[j].location == APPLY_HIT)
           {
+            char line_buf[200];
             snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'", GET_EQ(ch, max_val_worn_slot[i])->short_description);
-            snprintf(gear_buf, sizeof(gear_buf), "%s%-40s = %s%d\r\n", gear_buf, temp_buf,
+            snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf,
                      GET_EQ(ch, max_val_worn_slot[i])->affected[j].modifier > 0 ? "+" : "",
                      GET_EQ(ch, max_val_worn_slot[i])->affected[j].modifier);
+            strlcat(gear_buf, line_buf, sizeof(gear_buf));
           }
         }
       }

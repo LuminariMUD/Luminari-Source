@@ -2,6 +2,22 @@
 
 ## 2025-07-25
 
+### Compiler Warning Fixes
+
+#### Fixed Critical Compiler Warnings (86 → 6 warnings)
+- **Dangling Pointer Warnings**: 
+  - Fixed in `spec_procs.c` (mayor function) - Made path arrays static to prevent dangling pointers
+  - Fixed in `zone_procs.c` (king_welmar function) - Made path arrays static
+- **Null Pointer Dereferences**:
+  - Fixed 3 instances in `spec_procs.c` ferry functions - Added NULL checks before strcmp()
+- **Buffer Overlap Issues**:
+  - Fixed 6 instances in `utils.c` - Replaced overlapping snprintf() calls with safe strlcat() approach
+  - Prevents undefined behavior when source and destination buffers overlap
+- **Boolean Logic Errors**:
+  - Fixed in `utils.c:5834` - Changed `bool num` to `int num` for proper counting
+  - Fixed in `act.other.c:5694` - Corrected boolean comparison logic
+- **Impact**: Eliminates potential crashes, undefined behavior, and memory corruption
+
 ### Bug Fixes
 
 #### Fixed Critical Memory Leak in Object Save System
