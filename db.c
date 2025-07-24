@@ -4764,26 +4764,53 @@ void reset_zone(zone_rnum zone)
   // we'll place some random chests or traps
   if (has_random_chests || has_random_traps)
   {
+    // Build list of eligible rooms to avoid repeated eligibility checks
+    room_rnum *eligible_rooms = NULL;
+    int eligible_count = 0;
+    int eligible_capacity = 0;
+    
+    // Collect all eligible rooms once
+    rvnum = zone_table[zone].bot;
+    while (rvnum <= zone_table[zone].top)
+    {
+      rrnum = real_room(rvnum);
+      if (rrnum != NOWHERE)
+      {
+        // Note: We check initial eligibility only - num_chests may change during placement
+        if (can_place_random_chest_in_room(rrnum, total_rooms, num_chests))
+        {
+          // Grow array if needed
+          if (eligible_count >= eligible_capacity)
+          {
+            eligible_capacity = eligible_capacity ? eligible_capacity * 2 : 64;
+            RECREATE(eligible_rooms, room_rnum, eligible_capacity);
+          }
+          eligible_rooms[eligible_count++] = rrnum;
+        }
+      }
+      rvnum++;
+    }
+    
+    // Replicate original algorithm behavior but using cached eligible rooms
     while (max_chests > num_chests && num_loops < NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST)
     {
-      rvnum = zone_table[zone].bot;
-      while (rvnum <= zone_table[zone].top)
+      // Check each eligible room with the same 1/33 probability
+      for (int i = 0; i < eligible_count && max_chests > num_chests; i++)
       {
-        rrnum = real_room(rvnum);
-        if (rrnum != NOWHERE)
+        // Re-check eligibility as num_chests has changed
+        if (can_place_random_chest_in_room(eligible_rooms[i], total_rooms, num_chests) && 
+            (dice(1, NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST) == 1))
         {
-          if (can_place_random_chest_in_room(rrnum, total_rooms, num_chests) && (dice(1, NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST) == 1))
-          {
-            place_random_chest(rrnum, zone_table[zone].max_level, -1, -1, 25);
-            // we increase num_chests for the one we just placed, to ensure we won't go over
-            // our limit in zones flagged for random_chests
-            num_chests++;
-          }
+          place_random_chest(eligible_rooms[i], zone_table[zone].max_level, -1, -1, 25);
+          num_chests++;
         }
-        rvnum++;
       }
-      num_loops++; 
+      num_loops++;
     }
+    
+    // Clean up
+    if (eligible_rooms)
+      free(eligible_rooms);
   }
 }
 
