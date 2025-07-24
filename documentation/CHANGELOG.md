@@ -1,6 +1,16 @@
 # CHANGELOG
 
-## [Unreleased] - 2025-01-23
+## [Unreleased] - 2025-01-24
+
+### Fixed
+
+#### Database Schema Fixes (July 24, 2025)
+- **Fixed missing 'idnum' column errors** - Added `idnum` column to `house_data` and `player_save_objs` tables in both production (`luminari_mudprod`) and development (`luminari_muddev`) databases. Column type: `int(10) unsigned`, default value: 0, with indexes added. This resolves:
+  - 10 boot errors when loading house data
+  - Player item save failures on login
+  - Database compatibility issues that were blocking core game functionality
+
+## [Previous] - 2025-01-23
 
 ### Fixed
 
