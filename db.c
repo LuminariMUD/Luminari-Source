@@ -4794,8 +4794,9 @@ void reset_zone(zone_rnum zone)
     // Replicate original algorithm behavior but using cached eligible rooms
     while (max_chests > num_chests && num_loops < NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST)
     {
+      int i;
       // Check each eligible room with the same 1/33 probability
-      for (int i = 0; i < eligible_count && max_chests > num_chests; i++)
+      for (i = 0; i < eligible_count && max_chests > num_chests; i++)
       {
         // Re-check eligibility as num_chests has changed
         if (can_place_random_chest_in_room(eligible_rooms[i], total_rooms, num_chests) && 
