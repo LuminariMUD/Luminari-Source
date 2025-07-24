@@ -40,7 +40,7 @@
 
 | Task | Description | Location | Error Count |
 |------|-------------|----------|-------------|
-| ☐ | Add IS_NPC() check before PRF_FLAGGED | act.informative.c:845 | 3 errors |
+| ✅ | Add IS_NPC() check before PRF_FLAGGED | act.informative.c:845 | 3 errors |
 | ☐ | Fix combat targeting dead/corpse validation | fight.c | 3 errors |
 | ☐ | Implement or remove `award_magic_item()` calls | Zone reset #77 | 2 errors |
 
@@ -126,8 +126,8 @@
 ## 📈 PROGRESS TRACKING
 
 ### Summary Statistics
-- **Total Tasks**: 55 (2 completed ✅, 53 remaining)
-- **Coder Tasks**: 17 (2 completed, 15 remaining)
+- **Total Tasks**: 55 (3 completed ✅, 52 remaining)
+- **Coder Tasks**: 17 (3 completed, 14 remaining)
 - **Builder Tasks**: 38 (all can be done in-game)
 
 ### Estimated Time to Resolution
@@ -137,6 +137,7 @@
 
 ### Recently Completed (July 24, 2025)
 - ✅ Database schema fixes: Added 'idnum' column to both `house_data` and `player_save_objs` tables in production and development databases
+- ✅ NPC PRF_FLAGGED access fix: Added IS_NPC() checks in act.informative.c to prevent NPCs from accessing player-only preference data
 
 ---
 

@@ -938,7 +938,7 @@ void who_to_mysql()
       buf2[0] = '\0';
 
     /* Hide level for anonymous players */
-    if (PRF_FLAGGED(tch, PRF_ANON))
+    if (!IS_NPC(ch) && PRF_FLAGGED(tch, PRF_ANON))
     {
       snprintf(buf, sizeof(buf), "INSERT INTO who (player, title, killer, thief) VALUES ('%s', '%s', %d, %d)",
                GET_NAME(tch), buf2, PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);

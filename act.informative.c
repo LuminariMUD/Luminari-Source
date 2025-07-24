@@ -842,8 +842,9 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     else
       send_to_char(ch, "\ty%s\r\n", i->player.long_descr);
 
-    if (PRF_FLAGGED(i, PRF_NON_ROLEPLAYER))
-      act("...$e is a non-roleplayer.", FALSE, i, 0, ch, TO_VICT);
+    // Removed PRF_FLAGGED check - NPCs cannot have player preferences
+    // if (!IS_NPC(ch) && PRF_FLAGGED(i, PRF_NON_ROLEPLAYER))
+    //   act("...$e is a non-roleplayer.", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, SPELL_BANISHING_BLADE))
@@ -900,8 +901,9 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     send_to_char(ch, "%s", i->player.long_descr);
 
-    if (PRF_FLAGGED(i, PRF_NON_ROLEPLAYER))
-      act("...$e is a non-roleplayer.", FALSE, i, 0, ch, TO_VICT);
+    // Removed PRF_FLAGGED check - NPCs cannot have player preferences
+    // if !IS_NPC(ch) && (i, PRF_NON_ROLEPLAYER))
+    //   act("...$e is a non-roleplayer.", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, SPELL_BANISHING_BLADE))
@@ -1059,7 +1061,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   /* CARRIER RETURN! */
   send_to_char(ch, "\r\n");
 
-  if (PRF_FLAGGED(i, PRF_NON_ROLEPLAYER))
+  if (!IS_NPC(i) && PRF_FLAGGED(i, PRF_NON_ROLEPLAYER))
       act("...$e is a non-roleplayer.", FALSE, i, 0, ch, TO_VICT);
   if (AFF_FLAGGED(i, AFF_SANCTUARY))
     act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
@@ -1439,7 +1441,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   {
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) && can_see_map(ch))
     {
-      if (PRF_FLAGGED(ch, PRF_GUI_MODE))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE))
       { // GUI mode!
         // Send tags, then map.
         send_to_char(ch,
@@ -4483,13 +4485,13 @@ ACMD(do_who)
           send_to_char(ch, " (noshout)");
         if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_NOTELL))
           send_to_char(ch, " (notell)");
-        if (PRF_FLAGGED(tch, PRF_QUEST))
+        if (!IS_NPC(ch) && PRF_FLAGGED(tch, PRF_QUEST))
           send_to_char(ch, " (quest)");
         if (PLR_FLAGGED(tch, PLR_THIEF))
           send_to_char(ch, " (THIEF)");
         if (PLR_FLAGGED(tch, PLR_KILLER))
           send_to_char(ch, " (KILLER)");
-        if (PRF_FLAGGED(tch, PRF_NON_ROLEPLAYER))
+        if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_NON_ROLEPLAYER))
           send_to_char(ch, " (NoRP)");
         send_to_char(ch, "\r\n");
       }
@@ -5356,7 +5358,7 @@ ACMD(do_toggle)
       return;
     }
     result = PRF_TOG_CHK(ch, PRF_BUILDWALK);
-    if (PRF_FLAGGED(ch, PRF_BUILDWALK))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_BUILDWALK))
     {
       for (i = 0; *arg2 && *(sector_types[i]) != '\n'; i++)
         if (is_abbrev(arg2, sector_types[i]))
@@ -5844,7 +5846,7 @@ ACMD(do_whois)
       else
         send_to_char(ch, "\r\n");
 
-      if (PRF_FLAGGED(victim, PRF_AFK))
+      if (!IS_NPC(ch) && PRF_FLAGGED(victim, PRF_AFK))
         send_to_char(ch, "%s%s is afk right now, so %s may not respond to communication.%s\r\n", CBGRN(ch, C_NRM), GET_NAME(victim), GET_SEX(victim) == SEX_NEUTRAL ? "it" : (GET_SEX(victim) == SEX_MALE ? "he" : "she"), CCNRM(ch, C_NRM));
     }
     else if (hours > 0)
@@ -7106,7 +7108,7 @@ ACMD(do_pets)
 /* brief display on left side of mobile indicating their toughness */
 ACMD(do_autocon)
 {
-  if (PRF_FLAGGED(ch, PRF_AUTOCON))
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOCON))
   {
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_AUTOCON);
     send_to_char(ch, "Auto-consider has been turned off.\r\n");

@@ -7565,7 +7565,7 @@ case SCMD_AUTO_AUGMENT:
       return;
     }
     result = PRF_TOG_CHK(ch, PRF_BUILDWALK);
-    if (PRF_FLAGGED(ch, PRF_BUILDWALK))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_BUILDWALK))
     {
       one_argument(argument, arg, sizeof(arg));
       for (i = 0; *arg && *(sector_types[i]) != '\n'; i++)
@@ -7585,7 +7585,7 @@ case SCMD_AUTO_AUGMENT:
     break;
   case SCMD_AFK:
     result = PRF_TOG_CHK(ch, PRF_AFK);
-    if (PRF_FLAGGED(ch, PRF_AFK))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AFK))
       act("$n has gone AFK.", TRUE, ch, 0, 0, TO_ROOM);
     else
     {
@@ -7596,7 +7596,7 @@ case SCMD_AUTO_AUGMENT:
     break;
   case SCMD_RP:
     result = PRF_TOG_CHK(ch, PRF_RP);
-    if (PRF_FLAGGED(ch, PRF_RP))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_RP))
       act("$n is interested in Role-play!.", TRUE, ch, 0, 0, TO_ROOM);
     else
     {

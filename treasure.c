@@ -1463,7 +1463,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
 
   if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
     auto_store_obj(ch, obj);
-  else if (PRF_FLAGGED(ch, PRF_AUTO_SORT))
+  else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_SORT))
     auto_sort_obj(ch, obj);
 }
 
@@ -1640,7 +1640,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
     auto_store_obj(ch, obj);
-  else if (PRF_FLAGGED(ch, PRF_AUTO_SORT))
+  else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_SORT))
     auto_sort_obj(ch, obj);
 
   /* staff will get a free ID here -zusuk */
