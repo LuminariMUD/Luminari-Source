@@ -3744,22 +3744,32 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   case PSIONIC_ENERGY_ADAPTATION_SPECIFIED:
     af[0].duration = level * 120;
-    af[0].location = damage_type_to_resistance_type(GET_PSIONIC_ENERGY_TYPE(ch));
+    /* NPCs default to fire resistance to avoid accessing player-only data */
+    int energy_type = DAM_FIRE;
+    if (!IS_NPC(ch)) {
+      energy_type = GET_PSIONIC_ENERGY_TYPE(ch);
+    }
+    af[0].location = damage_type_to_resistance_type(energy_type);
     af[0].modifier = (level >= 11) ? 60 : (level >= 7) ? 40
                                                        : 20;
     accum_duration = FALSE;
-    switch (GET_PSIONIC_ENERGY_TYPE(ch))
+    switch (energy_type)
     {
     case DAM_FIRE:
       to_vict = "Your resistance to fire has improved.";
+      break;
     case DAM_COLD:
       to_vict = "Your resistance to cold has improved.";
+      break;
     case DAM_ACID:
       to_vict = "Your resistance to acid has improved.";
+      break;
     case DAM_ELECTRIC:
       to_vict = "Your resistance to lightning has improved.";
+      break;
     case DAM_SOUND:
       to_vict = "Your resistance to sonic damage has improved.";
+      break;
     }
     break;
 
@@ -3908,7 +3918,12 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     af[0].duration = (level + GET_AUGMENT_PSP(ch)) * 10;
     af[0].location = APPLY_SPECIAL;
-    af[0].modifier = GET_PSIONIC_ENERGY_TYPE(ch);
+    /* NPCs default to electric damage for energy retort */
+    if (!IS_NPC(ch)) {
+      af[0].modifier = GET_PSIONIC_ENERGY_TYPE(ch);
+    } else {
+      af[0].modifier = DAM_ELECTRIC;
+    }
     accum_duration = FALSE;
     to_vict = "You are surrounded by a psychic shield of elemental energy.";
     to_room = "$n is surrounded by a psychic shield of elemental energy.";

@@ -6050,7 +6050,7 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
   if (level > 30)
     level = 30;
 
-  if (!IS_NPC(vict) && PRF_FLAGGED(ch, PRF_CONDENSED))
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
   {
   }
   else

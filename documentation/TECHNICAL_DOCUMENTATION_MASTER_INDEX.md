@@ -32,6 +32,7 @@ This comprehensive technical documentation is organized into the following major
 ### 4. Development and Maintenance
 - **[Setup and Build](SETUP_AND_BUILD_GUIDE.md)** - Compilation, installation, configuration
 - **[Developer Guide](DEVELOPER_GUIDE_AND_API.md)** - Coding standards, API reference
+- **[Testing Guide](TESTING_GUIDE.md)** - Unit testing, performance testing, quality assurance
 - **[Troubleshooting](TROUBLESHOOTING_AND_MAINTENANCE.md)** - Common issues, debugging, optimization
 
 ## Key Technical Characteristics

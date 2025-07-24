@@ -2,44 +2,6 @@
 
 ## High Priority Issues
 
-### 1. PRF_FLAGGED Mob Access Issue - FIXED ✓
-- **Error**: `SYSERR: Mob using '((ch)->player_specials->saved.pref)' at fight.c:11669.`
-- **Frequency**: Extremely high (occurs every 2 seconds during combat)
-- **Location**: fight.c:11669
-- **Problem**: Code is trying to access player_specials on NPCs
-- **Solution**: Added IS_NPC check before PRF_FLAGGED usage
-- **Status**: FIXED - Added `!IS_NPC(ch) &&` check at line 11669
-
-### 2. Objects in NOWHERE Executing Scripts - FIXED ✓
-- **Error**: `SCRIPT ERROR: Obj (VNum):: oecho called by object in NOWHERE`
-- **Affected Objects**:
-  - a burning cluster of pines (VNum 11865)
-  - a large webbed cocoon (VNum 1920)
-  - a little green mound of earth (VNum 11870)
-  - the corpse of a ghostly girl (VNum 11869)
-  - a black egg (VNum 11862)
-  - the corpse of the vile toad (VNum 11858)
-  - the corpse of the taildove (VNum 11857)
-  - the corpse of the red trout (VNum 11856)
-  - a Goethite staff alight with flame (VNum 2779)
-  - a red apple (VNum 501)
-  - an ice cream (VNum 90)
-- **Status**: FIXED - Added NOWHERE checks in dg_triggers.c
-- **Solution**: Added checks in `timer_otrigger()` and `random_otrigger()` to prevent script execution for objects in NOWHERE
-
-### 3. Database Schema Mismatches - FIXED ✓
-- **Missing Tables**:
-  - `luminari_muddev.pet_save_objs` - Table doesn't exist
-- **Missing Columns**:
-  - `house_data.idnum` - Unknown column (already had fallback in objsave.c)
-  - `player_save_objs.idnum` - Unknown column (already had fallback in objsave.c)
-  - `pet_data.intel` - Unknown column
-  - `PLAYER_DATA.character_info` - Unknown column
-- **Status**: FIXED - Added compatibility code for all missing columns
-- **Solution**: 
-  - pet_save_objs: Changed fatal errors to graceful handling
-  - pet_data.intel: Removed column from INSERT queries
-  - character_info: Added fallback UPDATE queries
 
 ## Medium Priority Issues (World File Issues - Not Code Bugs)
 
@@ -85,10 +47,6 @@
 
 ## Low Priority Issues
 
-### 9. Award Magic Item System - FIXED ✓
-- **Error**: `award_magic_item called but no crafting system is defined`
-- **Status**: FIXED - Added crafting system configuration to mud_options.h and mud_options.example.h
-- **Solution**: Added USE_OLD_CRAFTING_SYSTEM as default configuration option
 
 ### 10. Missing Object References - WORLD FILE ISSUE
 - **Error**: `Object (V) 19216 does not exist in database`
@@ -96,11 +54,6 @@
 - **Solution**: Create object or remove references
 
 ## Implementation Status
-
-### Phase 1: Critical Fixes (COMPLETED) ✓
-1. ✓ Fixed PRF_FLAGGED usage in fight.c:11669
-2. ✓ Enhanced object NOWHERE checks to prevent all script execution
-3. ✓ Added database compatibility for critical missing columns
 
 ### Phase 2: Stability Improvements (NOTED)
 1. Missing triggers - World file issue, code handles gracefully

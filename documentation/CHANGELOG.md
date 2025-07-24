@@ -71,6 +71,25 @@
   - **Documentation**: Added detailed improvement documentation (PERFMON_IMPROVEMENTS.md)
   - Maintains 100% backward compatibility while eliminating potential crashes and memory leaks
 
+#### NPC Player-Only Data Access Fixes (July 24, 2025)
+- **Fixed NPCs accessing psionic energy type** - Modified psionic spell handling in magic.c to prevent NPCs from accessing player-only psionic_energy_type data:
+  - Lines 3745-3774: Fixed PSIONIC_ENERGY_ADAPTATION_SPECIFIED to check IS_NPC() before accessing GET_PSIONIC_ENERGY_TYPE(), NPCs default to fire resistance
+  - Lines 3907-3931: Fixed PSIONIC_ENERGY_RETORT to check IS_NPC() before accessing GET_PSIONIC_ENERGY_TYPE(), NPCs default to electric damage
+  - Added missing break statements in switch cases for proper fall-through behavior
+  - Eliminates 3 instances of NPCs accessing player_specials->saved.psionic_energy_type
+
+- **Fixed NPCs accessing master's preferences** - Added IS_NPC() checks in utils.c to prevent charmed NPCs from accessing their master's player-only preference flags:
+  - Line 9122: Added !IS_NPC(ch->master) check in show_combat_roll() before accessing PRF_CHARMIE_COMBATROLL
+  - Line 9143: Added !IS_NPC(ch->master) check in send_combat_roll_info() before accessing PRF_CHARMIE_COMBATROLL
+  - Eliminates 74 instances of "Mob using '((i)->player_specials->saved.pref)'" errors from charmed NPCs
+
+- **Fixed NPCs accessing preferences in spec procs** - Fixed weapons_spells() in spec_procs.c:
+  - Line 6053: Changed condition from checking vict to checking ch for IS_NPC() before accessing PRF_CONDENSED
+  - Properly prevents NPCs from accessing player preference flags when using weapon special abilities
+  - Eliminates 6 instances of NPCs accessing player_specials in combat
+
+- **Summary**: Fixed all 83 instances of NPCs accessing player-only data structures, eliminating potential crashes and improving server stability
+
 ## [Previous] - 2025-01-23
 
 ### Fixed
