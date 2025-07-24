@@ -1,35 +1,12 @@
 # LuminariMUD Error Analysis & Task Worklist
+
 *ToDo list generated from our game SySlogs
-
-## 🚨 EXECUTIVE SUMMARY
-
-### Critical Issues Impacting Gameplay:
-2. **Performance Issues**: do_zreset causing 1022ms spikes (10x slower), mobile_activity at 173%
-
-### Impact Assessment:
-- **Players Experience**: Lag spikes during world resets (10+ second freezes), improved from baseline
-- **Content Creation**: Blocked by missing triggers and broken scripts
-
-### Progress Update:
-- ⚠️ NPCs accessing player-only data in 3 new locations (magic.c, utils.c, spec_procs.c)
 
 ---
 
-## 📋 TASK WORKLIST BY RESPONSIBILITY
+## 📋 TASK WORKLIST
 
-## 🔧 CODER TASKS (Requires Source Code Changes)
-
-### PRIORITY 2: CRITICAL Performance Issues
-
-| Task | Description | Current Impact | Target |
-|------|-------------|----------------|---------|
-| ☑ | Fix `mobile_activity()` bottleneck | ~~133-173% constant CPU~~ Optimized | <50% ✓ |
-| ☑ | Reduce `do_gen_cast()` calls by NPCs | ~~111% (374 calls/pulse)~~ Fixed | <50% ✓ |
-| ☑ | Optimize NPC out-of-combat buffing | ~~Excessive buffing~~ Reduced frequency | Normal ✓ |
-| ☑ | Optimize `affect_update()` processing | ~~30% CPU constant~~ Optimized | <10% ✓ |
-
-
-### PRIORITY 5: LOW System Issues
+## 🔧 CODER TASKS
 
 | Task | Description | Location | Notes |
 |------|-------------|----------|-------|
@@ -102,7 +79,13 @@
 1. ~~**do_zreset** - 1022% (world reset triggered by player)~~ ✅ FIXED
 2. ~~**mobile_activity** - 133-173% (consistent high CPU usage)~~ ✅ FIXED
 3. ~~**do_gen_cast** - 111% with 374 calls per pulse~~ ✅ FIXED
-4. **do_save** - 257% (improved from 513%, but still high)
-5. **affect_update** - 30% (many active effects)
+4. ~~**do_save** - 257% (improved from 513%, but still high)~~ ✅ OPTIMIZED
+   - Implemented buffered I/O (64KB buffer, single write operation)
+   - Optimized string operations with dedicated helper function
+   - Added performance logging (target: 50-75ms)
+5. ~~**affect_update** - 30% (many active effects)~~ ✅ OPTIMIZED
+   - Enhanced NPC skipping (skip NPCs without affects entirely)
+   - Only update MSDP for players with active descriptors
+   - Added performance metrics tracking
 
 ---
