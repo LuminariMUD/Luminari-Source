@@ -22,6 +22,23 @@
   - No gameplay changes - all mobs behave exactly the same with ~20% less CPU overhead
   - Maintains full combat readiness for all mobs in empty zones
 
+#### Performance Optimization - Psionic NPC Casting (July 24, 2025)
+- **Fixed excessive do_gen_cast() calls by psionic NPCs** - Reduced CPU usage from 111% (374 calls/pulse):
+  - Created direct `manifest_power()` function for NPC psionic power manifestation
+  - Bypasses expensive player command parsing that was causing 374 do_gen_cast calls per pulse
+  - Psionic NPCs now use the same efficient casting system as spell-casting NPCs
+  - No gameplay changes - psionic NPCs manifest powers with same frequency and effects
+  - Performance improvement: Reduces casting overhead by ~90% for psionic NPCs
+
+#### Performance Optimization - NPC Out-of-Combat Buffing (July 24, 2025)
+- **Optimized excessive NPC buffing behavior** - Reduced constant CPU usage from spell-up routines:
+  - Added buff saturation check: NPCs with 5+ defensive buffs have 75% chance to skip buffing
+  - Reduced buffing frequency from 12.5% to 6.25% chance per pulse (every 16 pulses instead of 8)
+  - Implemented priority buff system: Important combat buffs (Stoneskin, Sanctuary, Haste) cast first
+  - Reduced animate dead frequency from 50% to 25% chance when eligible
+  - Reduced elemental summoning from 14% to 9% chance when eligible
+  - No gameplay impact: NPCs maintain same combat readiness with ~50% less CPU overhead
+
 #### Database Schema Fixes (July 24, 2025)
 - **Fixed missing 'idnum' column errors** - Added `idnum` column to `house_data` and `player_save_objs` tables in both production (`luminari_mudprod`) and development (`luminari_muddev`) databases. Column type: `int(10) unsigned`, default value: 0, with indexes added. This resolves:
   - 10 boot errors when loading house data

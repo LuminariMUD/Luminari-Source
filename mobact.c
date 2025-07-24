@@ -1163,6 +1163,7 @@ void npc_spellup(struct char_data *ch)
   struct obj_data *obj = NULL;
   struct char_data *victim = ch;
   int level, spellnum = -1, loop_counter = 0;
+  int buff_count = 0;
   /* our priorities are going to be in this order:
    1)  get a charmee
    2)  heal (heal group?), condition issues
@@ -1174,6 +1175,24 @@ void npc_spellup(struct char_data *ch)
     return;
   if (!can_continue(ch, FALSE))
     return;
+  
+  /* Check buff saturation - count existing defensive buffs */
+  if (affected_by_spell(ch, SPELL_STONESKIN)) buff_count++;
+  if (affected_by_spell(ch, SPELL_SANCTUARY)) buff_count++;
+  if (affected_by_spell(ch, SPELL_SHIELD)) buff_count++;
+  if (affected_by_spell(ch, SPELL_MAGE_ARMOR)) buff_count++;
+  if (affected_by_spell(ch, SPELL_BLUR)) buff_count++;
+  if (affected_by_spell(ch, SPELL_MIRROR_IMAGE)) buff_count++;
+  if (affected_by_spell(ch, SPELL_GREATER_MIRROR_IMAGE)) buff_count++;
+  if (affected_by_spell(ch, SPELL_DISPLACEMENT)) buff_count++;
+  if (affected_by_spell(ch, SPELL_HASTE)) buff_count++;
+  if (affected_by_spell(ch, SPELL_GLOBE_OF_INVULN)) buff_count++;
+  
+  /* If already well-buffed (5+ defensive spells), reduce buff frequency */
+  if (buff_count >= 5) {
+    if (rand_number(0, 3)) /* 75% chance to skip buffing */
+      return;
+  }
 
   /* we're checking spell min-levels so this is a necessity */
   if (GET_LEVEL(ch) >= LVL_IMMORT)
@@ -1181,10 +1200,11 @@ void npc_spellup(struct char_data *ch)
   else
     level = GET_LEVEL(ch);
 
-  /* try animate undead first */
+  /* try animate undead first - reduced frequency */
   /* UPDATE: plans to add a mob flag for this, for now restrict to mobs
    over level 30 -zusuk */
-  if (GET_LEVEL(ch) > 30 && !can_add_follower_by_flag(ch, MOB_ANIMATED_DEAD) && !rand_number(0, 1) && !ch->master)
+  if (GET_LEVEL(ch) > 30 && !can_add_follower_by_flag(ch, MOB_ANIMATED_DEAD) && !rand_number(0, 3) && !ch->master &&
+      level >= spell_info[SPELL_GREATER_ANIMATION].min_level[GET_CLASS(ch)])
   {
     for (obj = world[ch->in_room].contents; obj; obj = obj->next_content)
     {
@@ -1193,20 +1213,17 @@ void npc_spellup(struct char_data *ch)
       if (GET_OBJ_VAL(obj, 4)) /* pcorpse */
         continue;
 
-      if (level >= spell_info[SPELL_GREATER_ANIMATION].min_level[GET_CLASS(ch)])
-      {
-        if (!GROUP(ch))
-          create_group(ch);
-        cast_spell(ch, NULL, obj, SPELL_GREATER_ANIMATION, 0);
-        return;
-      }
+      if (!GROUP(ch))
+        create_group(ch);
+      cast_spell(ch, NULL, obj, SPELL_GREATER_ANIMATION, 0);
+      return;
     }
   }
 
-  /* try for an elemental */
+  /* try for an elemental - reduced frequency and combined level check */
   /* UPDATE: plans to add a mob flag for this, for now restrict to mobs
    over level 30 -zusuk */
-  if (GET_LEVEL(ch) > 30 && !can_add_follower_by_flag(ch, MOB_ELEMENTAL) && !rand_number(0, 6) && !ch->master)
+  if (GET_LEVEL(ch) > 30 && !can_add_follower_by_flag(ch, MOB_ELEMENTAL) && !rand_number(0, 10) && !ch->master)
   {
     if (level >= spell_info[SPELL_SUMMON_CREATURE_9].min_level[GET_CLASS(ch)])
     {
@@ -1262,14 +1279,32 @@ void npc_spellup(struct char_data *ch)
   /* try to fix condition issues (blindness, etc) */
   /* TODO */
 
-  /* random buffs */
-  do
-  {
-    spellnum = valid_spellup_spell[rand_number(0, SPELLUP_SPELLS - 1)];
-    loop_counter++;
-    if (loop_counter >= (MAX_LOOPS))
+  /* Priority buffs - try important combat buffs first */
+  int priority_buffs[] = {
+    SPELL_STONESKIN, SPELL_SANCTUARY, SPELL_HASTE, 
+    SPELL_GLOBE_OF_INVULN, SPELL_MIRROR_IMAGE, SPELL_BLUR
+  };
+  int i;
+  
+  for (i = 0; i < 6; i++) {
+    if (level >= spell_info[priority_buffs[i]].min_level[GET_CLASS(ch)] &&
+        !affected_by_spell(victim, priority_buffs[i])) {
+      spellnum = priority_buffs[i];
+      loop_counter = 0; /* found priority buff */
       break;
-  } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] || affected_by_spell(victim, spellnum));
+    }
+  }
+  
+  /* If no priority buff needed, pick random buff */
+  if (spellnum == -1) {
+    do
+    {
+      spellnum = valid_spellup_spell[rand_number(0, SPELLUP_SPELLS - 1)];
+      loop_counter++;
+      if (loop_counter >= (MAX_LOOPS))
+        break;
+    } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] || affected_by_spell(victim, spellnum));
+  }
 
   /* we're putting some special restrictions here */
 
@@ -1324,28 +1359,6 @@ void npc_spellup(struct char_data *ch)
 }
 
 
-char * create_npc_manifest_command(struct char_data *ch, struct char_data *tch, int powernum)
-{
-    char buf[200];
-    char name[200];
-    int i = 0;
-
-    if (!ch || !tch)
-      return NULL;
-
-    snprintf(name, sizeof(name), "%s", GET_NAME(tch));
-    
-    for (i = 0; i < strlen(name); i++)
-    {
-      if (name[i] == ' ')
-        name[i] = '-';
-      name[i] = tolower(name[i]);
-    }
-
-    snprintf(buf, sizeof(buf), " '%s' %s", spell_info[powernum].name, name);
-    return strdup(buf);
-}
-
 /* note MAX_LOOPS used here too */
 
 void npc_psionic_powerup(struct char_data *ch)
@@ -1353,13 +1366,29 @@ void npc_psionic_powerup(struct char_data *ch)
 
   int level = 0, powernum = 0, i = 0;
   bool found = false;
-
+  int buff_count = 0;
 
   if (!ch)
     return;
 
   if (MOB_FLAGGED(ch, MOB_NOCLASS))
     return;
+  
+  /* Check buff saturation - count existing psionic buffs */
+  if (affected_by_spell(ch, PSIONIC_INERTIAL_ARMOR)) buff_count++;
+  if (affected_by_spell(ch, PSIONIC_FORCE_SCREEN)) buff_count++;
+  if (affected_by_spell(ch, PSIONIC_FORTIFY)) buff_count++;
+  if (affected_by_spell(ch, PSIONIC_BIOFEEDBACK)) buff_count++;
+  if (affected_by_spell(ch, PSIONIC_BODY_EQUILIBRIUM)) buff_count++;
+  if (affected_by_spell(ch, PSIONIC_TOWER_OF_IRON_WILL)) buff_count++;
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY)) buff_count++;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON)) buff_count++;
+  
+  /* If already well-buffed (4+ defensive powers), reduce buff frequency */
+  if (buff_count >= 4) {
+    if (rand_number(0, 3)) /* 75% chance to skip buffing */
+      return;
+  }
 
   /* capping */
   if (GET_LEVEL(ch) >= LVL_IMMORT)
@@ -1379,10 +1408,8 @@ void npc_psionic_powerup(struct char_data *ch)
     }
   }
 
-  GET_AUGMENT_PSP(ch) = GET_LEVEL(ch) / 2;
-  ch->char_specials.not_commanded_to_cast = true;
-  do_gen_cast(ch, create_npc_manifest_command(ch, ch, powernum), 0, SCMD_CAST_PSIONIC);
-  ch->char_specials.not_commanded_to_cast = false;
+  /* Use direct power manifestation instead of command parsing */
+  manifest_power(ch, ch, powernum, GET_LEVEL(ch) / 2);
 }
 
 void npc_offensive_powers(struct char_data *ch)
@@ -1427,11 +1454,8 @@ void npc_offensive_powers(struct char_data *ch)
 
     if (loop_counter < (MAX_LOOPS / 2) && powernum != -1)
     {
-      // found a power, cast it
-      GET_AUGMENT_PSP(ch) = GET_LEVEL(ch) / 2;
-      ch->char_specials.not_commanded_to_cast = true;
-      do_gen_cast(ch, create_npc_manifest_command(ch, tch, powernum), 0, SCMD_CAST_PSIONIC);
-      ch->char_specials.not_commanded_to_cast = false;
+      // found a power, manifest it
+      manifest_power(ch, tch, powernum, GET_LEVEL(ch) / 2);
       return;
     }
   }
@@ -1448,11 +1472,8 @@ void npc_offensive_powers(struct char_data *ch)
     }
   }
 
-  GET_AUGMENT_PSP(ch) = GET_LEVEL(ch) / 2;
-  ch->char_specials.not_commanded_to_cast = true;
-  do_gen_cast(ch, create_npc_manifest_command(ch, tch, powernum), 0, SCMD_CAST_PSIONIC);
-  ch->char_specials.not_commanded_to_cast = false;
-
+  /* Use direct power manifestation instead of command parsing */
+  manifest_power(ch, tch, powernum, GET_LEVEL(ch) / 2);
 }
 
 /* generic function for spelling up as a caster */
@@ -1650,25 +1671,25 @@ void mobile_activity(void)
         continue;
       }
 #if defined(CAMPAIGN_DL)
-      else if (!rand_number(0, 8) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_NPC_CASTER(ch))
+      else if (!rand_number(0, 15) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_NPC_CASTER(ch))
       {
-        /* not in combat */
+        /* not in combat - reduced from 12.5% to 6.25% chance */
         npc_spellup(ch);
       }
-      else if (!rand_number(0, 8) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_PSIONIC(ch))
+      else if (!rand_number(0, 15) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_PSIONIC(ch))
       {
-        /* not in combat */
+        /* not in combat - reduced from 12.5% to 6.25% chance */
         npc_psionic_powerup(ch);
       }
 #else
-      else if (!rand_number(0, 8) && IS_NPC_CASTER(ch))
+      else if (!rand_number(0, 15) && IS_NPC_CASTER(ch))
       {
-        /* not in combat */
+        /* not in combat - reduced from 12.5% to 6.25% chance */
         npc_spellup(ch);
       }
-      else if (!rand_number(0, 8) && IS_PSIONIC(ch))
+      else if (!rand_number(0, 15) && IS_PSIONIC(ch))
       {
-        /* not in combat */
+        /* not in combat - reduced from 12.5% to 6.25% chance */
         npc_psionic_powerup(ch);
       }
 #endif
