@@ -18,6 +18,18 @@
   - Line 4494: Added !IS_NPC() check in user listing
   - Eliminates "Mob using '((i)->player_specials->saved.pref)' at act.informative.c:845" errors
 
+#### Combat System Fixes (July 24, 2025)
+- **Fixed combat targeting dead/corpse validation** - Modified damage() function in fight.c to handle the race condition when creatures attempt to damage corpses. This fixes:
+  - Lines 4971-4976: Removed error log and redundant die() call when attempting to damage a corpse
+  - Added stop_fighting() call to ensure attackers stop targeting corpses
+  - Eliminates "Attempt to damage corpse" errors for creatures like spiders, crows, and crickets attacking their own corpses
+  - This was a normal race condition where combat continued briefly after death before raw_kill() could clear fighting status
+
+#### Compilation Fixes (July 24, 2025)
+- **Fixed compilation errors in act.item.c and oasis.c** - Fixed incorrect variable references:
+  - act.item.c:5375: Changed `!IS_NPC(ch)` to `!IS_NPC(i->character)` in auc_send_to_all()
+  - oasis.c:63: Changed `!IS_NPC(ch)` to `!IS_NPC(d->character)` in clear_screen()
+
 ## [Previous] - 2025-01-23
 
 ### Fixed

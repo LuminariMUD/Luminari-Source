@@ -41,7 +41,7 @@
 | Task | Description | Location | Error Count |
 |------|-------------|----------|-------------|
 | ✅ | Add IS_NPC() check before PRF_FLAGGED | act.informative.c:845 | 3 errors |
-| ☐ | Fix combat targeting dead/corpse validation | fight.c | 3 errors |
+| ✅ | Fix combat targeting dead/corpse validation | fight.c | 3 errors |
 | ☐ | Implement or remove `award_magic_item()` calls | Zone reset #77 | 2 errors |
 
 ### PRIORITY 4: MEDIUM Spec Proc Issues
