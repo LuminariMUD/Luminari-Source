@@ -4082,7 +4082,6 @@ void save_char_pets(struct char_data *ch)
       continue;
     if (!AFF_FLAGGED(tch, AFF_CHARM))
       continue;
-#if defined(CAMPAIGN_DL)
     snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
 
     end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
@@ -4090,7 +4089,7 @@ void save_char_pets(struct char_data *ch)
     end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
     *end2++ = '\'';
     *end2++ = ',';
-
+    
     if (valid_pet_name(tch->player.name))
     {
       *end2++ = '\'';
@@ -4142,39 +4141,11 @@ void save_char_pets(struct char_data *ch)
     
     *end2++ = '\0';
 
-    snprintf(query3, sizeof(query3), "'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
-             GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
-             GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch),
-             GET_REAL_WIS(tch), GET_REAL_CHA(tch));
-    snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
-#else
-    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
-
-    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
-    *end2++ = '\'';
-    end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
-    *end2++ = '\'';
-    *end2++ = ',';
-    
-    if (valid_pet_name(tch->player.name))
-    {
-      *end2++ = '\'';
-      end2 += mysql_real_escape_string(conn, end2, GET_NAME(tch), strlen(GET_NAME(tch)));
-      *end2++ = '\'';
-    }
-    else
-    {
-      *end2++ = '\'';
-      *end2++ = '\'';
-    }
-    *end2++ = '\0';
-
     snprintf(query3, sizeof(query3), ",'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
              GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
              GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch),
              GET_REAL_WIS(tch), GET_REAL_CHA(tch));
     snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
-#endif
     if (mysql_query(conn, finalQuery))
     {
       log("SYSERR: Unable to INSERT INTO pet_data: %s", mysql_error(conn));
@@ -4198,11 +4169,9 @@ void load_char_pets(struct char_data *ch)
   MYSQL_ROW row;
   char query[200];
   char buf[MAX_EXTRA_DESC];
-#if defined (CAMPAIGN_DL)
   char desc1[MAX_STRING_LENGTH] = {'\0'}; char desc2[MAX_STRING_LENGTH] = {'\0'};
   char desc3[MAX_STRING_LENGTH] = {'\0'}; char desc4[MAX_STRING_LENGTH] = {'\0'};
   long int pet_idnum = 0;
-#endif
   struct char_data *mob = NULL;
 
   if (!ch)
@@ -4213,11 +4182,7 @@ void load_char_pets(struct char_data *ch)
 
   mysql_ping(conn);
 
-#if defined(CAMPAIGN_DL)
   snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, pet_data_id FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
-#else
-  snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
-#endif
 
   if (mysql_query(conn, query))
   {
@@ -4276,7 +4241,6 @@ void load_char_pets(struct char_data *ch)
       mob->player.name = strdup(GET_NAME(ch));
       mob->player.short_descr = strdup(GET_NAME(ch));
     }
-#if defined(CAMPAIGN_DL)
     if (strlen(row[11]) > 0)
     {
       snprintf(desc1, sizeof(desc1), "%s", row[11]);
@@ -4301,7 +4265,6 @@ void load_char_pets(struct char_data *ch)
     {
       pet_idnum = atol(row[15]);
     }
-#endif
     if (MOB_FLAGGED(mob, MOB_EIDOLON))
     {
       set_eidolon_descs(ch);
@@ -4328,9 +4291,7 @@ void load_char_pets(struct char_data *ch)
     affect_total(mob);
     load_mtrigger(mob);
     add_follower(mob, ch);
-#if defined(CAMPAIGN_DL)
     pet_load_objs(mob, ch, pet_idnum);
-#endif
     if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
     act("$N appears beside you.", true, ch, 0, mob, TO_CHAR);
