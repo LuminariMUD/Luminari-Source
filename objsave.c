@@ -2123,17 +2123,6 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       obj_db_idnum = atoi(row[1]);
     }
 
-    /* DEBUG: Log raw data to identify empty token issue */
-    if (loading_house_data && house_vnum == 24828) {
-      int i;
-      log("DEBUG: House #24828 raw data first 20 chars (hex):");
-      log("DEBUG: String length: %d", (int)strlen(serialized_obj));
-      for (i = 0; i < 20 && serialized_obj[i]; i++) {
-        log("DEBUG:   [%d] = 0x%02X ('%c')", i, (unsigned char)serialized_obj[i], 
-            (serialized_obj[i] >= 32 && serialized_obj[i] <= 126) ? serialized_obj[i] : '.');
-      }
-    }
-    
     /* Tokenize the serialized object data */
     lines = tokenize(serialized_obj, "\n");
     if (!lines) {
@@ -2141,15 +2130,6 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           loading_house_data ? "house" : "player");
       free(serialized_obj);
       continue;  /* Skip this object and try the next one */
-    }
-    
-    /* DEBUG: Check for empty first token */
-    if (lines[0] && strlen(lines[0]) == 0) {
-      log("WARNING: Empty first token detected in %s data", 
-          loading_house_data ? "house" : "player");
-      if (loading_house_data) {
-        log("WARNING: House vnum: %d", house_vnum);
-      }
     }
 
     locate = 0;
