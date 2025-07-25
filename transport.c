@@ -224,12 +224,12 @@ const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
 /* zone, destination vnum, title, details */
 const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
     {"Abanasinia" , "4429" , "Abanasinia to Solamnia Ferry"} ,
-    {"Abanasinia" , "15416" , "Corrupted Grove"} , 
     {"Abanasinia" , "300" , "Darken Wood"} , 
     {"Abanasinia" , "6318" , "Elven Cadre"} , 
     {"Abanasinia" , "9000" , "Ettin Cave"} , 
     {"Abanasinia" , "229" , "Fireside Tavern"} , 
     {"Abanasinia" , "11700" , "Goblin Warrens"} , 
+    {"Abanasinia" , "15416" , "Grove of Ambarin"} , 
     {"Abanasinia" , "14000" , "Icewall Castle"} , 
     {"Abanasinia" , "700" , "Marsh Temple"} , 
     {"Abanasinia" , "5900" , "Onyx Obelisk"} , 
