@@ -210,6 +210,7 @@ char **tokenize(const char *input, const char *delim)
   char *tok;
   int count = 0;
   int capacity = 10;
+  const char *trimmed_input;
   
   /* Sanity check inputs */
   if (!input || !delim) {
@@ -217,22 +218,25 @@ char **tokenize(const char *input, const char *delim)
     return NULL;
   }
   
-  /* DEBUG: Check if input starts with delimiter */
-  if (input[0] == '\n') {
-    log("DEBUG: WARNING - tokenize input starts with newline!");
+  /* Skip leading delimiters to avoid empty first token */
+  trimmed_input = input;
+  while (*trimmed_input && strchr(delim, *trimmed_input)) {
+    trimmed_input++;
   }
-  /* DEBUG: Log first few chars of input in hex */
-  log("DEBUG: tokenize input first bytes: %02X %02X %02X %02X %02X ('%c%c%c%c%c')",
-      (unsigned char)input[0], (unsigned char)input[1], 
-      (unsigned char)input[2], (unsigned char)input[3],
-      (unsigned char)input[4],
-      input[0] > 31 ? input[0] : '?',
-      input[1] > 31 ? input[1] : '?',
-      input[2] > 31 ? input[2] : '?',
-      input[3] > 31 ? input[3] : '?',
-      input[4] > 31 ? input[4] : '?');
   
-  str = strdup(input);
+  /* Check if entire string was delimiters */
+  if (!*trimmed_input) {
+    /* Return array with single NULL element */
+    result = malloc(sizeof(char*));
+    if (!result) {
+      log("SYSERR: tokenize() failed to allocate memory for empty result");
+      return NULL;
+    }
+    result[0] = NULL;
+    return result;
+  }
+  
+  str = strdup(trimmed_input);
   if (!str) {
     log("SYSERR: tokenize() failed to allocate memory for input string");
     return NULL;
@@ -248,17 +252,6 @@ char **tokenize(const char *input, const char *delim)
 
   /* Use strtok - strtok_r may not be available in all C90 environments */
   tok = strtok(str, delim);
-  
-  /* DEBUG: Log what strtok returns */
-  if (tok) {
-    log("DEBUG: First strtok token: '%s' (length %d)", tok, (int)strlen(tok));
-    /* Also log first few bytes in hex to check for weird characters */
-    log("DEBUG: First bytes of token: %02X %02X %02X %02X", 
-        (unsigned char)tok[0], (unsigned char)tok[1], 
-        (unsigned char)tok[2], (unsigned char)tok[3]);
-  } else {
-    log("DEBUG: First strtok returned NULL!");
-  }
 
   while (tok)
   {
