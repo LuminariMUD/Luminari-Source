@@ -4,6 +4,25 @@
 
 ### Critical Bug Fixes
 
+#### Fixed Player Death Crash - Race Condition with Combat Events
+- **Issue**: Server crash during player death when `save_char()` tries to allocate memory, resulting in heap corruption
+- **Root Cause**: 
+  - Combat events continued executing after character death was initiated
+  - The `event_combat_round()` was still in the call stack when `raw_kill()` was modifying character state
+  - Character was moved between rooms and had affects applied while combat events were still processing
+  - This race condition caused memory corruption that manifested as malloc_consolidate() crash during save_char()
+- **Solution**: 
+  - Moved `clear_char_event_list(ch)` to execute immediately after `stop_fighting()` in `raw_kill()`
+  - This matches the order from the old stable code where events were cleared before any state changes
+  - Added comprehensive safety checks at the beginning of `event_combat_round()`:
+    - Check for NULL character, NOWHERE room, or DEAD position
+    - Check for PLR_NOTDEADYET flag (player pending extraction)
+    - Check for MOB_NOTDEADYET flag (NPC pending extraction)
+- **Files Modified**: 
+  - fight.c:2014 (moved clear_char_event_list earlier in raw_kill)
+  - fight.c:12519-12529 (added safety checks in event_combat_round)
+- **Impact**: Eliminates crashes during player death by ensuring combat events cannot execute on characters being processed for death
+
 #### Fixed Heap Corruption in raw_kill() During NPC Death
 - **Issue**: Server crash with heap corruption in malloc_consolidate() when characters died
 - **Root Cause**: 
