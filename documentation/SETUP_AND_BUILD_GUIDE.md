@@ -24,11 +24,13 @@ This comprehensive guide covers the complete process of setting up, building, co
 
 ### Core Dependencies
 - **build-essential** - GCC compiler and build tools
-- **mysql-server** - MySQL database server
+- **mysql-server** - MySQL database server (5.0+ or MariaDB 10.3+)
 - **libmysqlclient-dev** - MySQL client development libraries
 - **libgd-dev** - GD graphics library for map generation
 - **libcrypt-dev** - Cryptographic functions library
 - **git** - Version control system
+- **autoconf** - Build configuration tool
+- **valgrind** - Memory debugging tool (recommended)
 
 ### Ubuntu/Debian Installation
 ```bash
@@ -39,8 +41,8 @@ sudo apt-get update
 sudo apt-get install -y build-essential mysql-server libmysqlclient-dev \
                         libgd-dev libcrypt-dev git make autoconf
 
-# Install additional development tools (optional)
-sudo apt-get install -y gdb valgrind doxygen graphviz
+# Install additional development tools (recommended)
+sudo apt-get install -y gdb valgrind doxygen graphviz cppcheck clang-format
 ```
 
 ### CentOS/RHEL/Fedora Installation

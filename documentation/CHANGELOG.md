@@ -4,6 +4,31 @@
 
 ### Bug Fixes
 
+#### Fixed Major Memory Leak in tokenize() Function (mysql.c)
+- **Issue**: 318KB memory leak - the largest single memory leak identified in valgrind analysis
+- **Root Cause**: In mysql.c, three locations were manually freeing individual tokens but not calling `free_tokens()` to properly free the token array itself
+- **Solution**: 
+  - Replaced manual token cleanup loops with proper `free_tokens()` calls in:
+    - `load_regions()` at line 337 (was lines 332-338)
+    - `load_paths()` at line 691 (was lines 686-693)  
+    - `envelope()` at line 900 (was lines 887-903)
+- **Files Modified**: mysql.c:337, 691, 900
+- **Impact**: Eliminates 318KB of memory leaks from database operations - the single largest memory leak fixed to date
+
+#### Fixed Critical Use-After-Free in close_socket()
+- **Issue**: Use-after-free bug causing segfaults during player disconnection
+- **Root Cause**: In `comm.c:2951`, the code used `simple_list()` to iterate through descriptor events while calling `event_cancel()`, which freed the memory that the iterator was still referencing
+- **Solution**: 
+  - Replaced unsafe `simple_list()` iteration with direct access to first item
+  - New code safely gets events from the list head while the list size > 0
+  - Prevents iterator from accessing freed memory
+- **Files Modified**: comm.c:2951-2956
+- **Impact**: Eliminates critical crashes during player disconnections, significantly improving server stability
+
+## 2025-07-25
+
+### Bug Fixes
+
 #### Fixed Critical Memory Leaks in tokenize() Function Usage
 - **Issue**: Most frequently occurring memory leak in valgrind analysis - tokenize() results not being freed
 - **Root Cause**: The tokenize() function returns dynamically allocated arrays of strings, but several callers were not freeing the array itself (only the individual strings)

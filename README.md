@@ -51,8 +51,10 @@ This project embodies commitment, self-motivation, and perseverance through chal
 - **MySQL Integration**: Persistent player data and world state
 - **DG Scripting System**: Powerful scripting for NPCs, objects, and rooms
 - **Online Level Creation (OLC)**: In-game world building tools
-- **Advanced Networking**: Support for modern MUD protocols
-- **Performance Monitoring**: Built-in profiling and debugging tools
+- **Advanced Networking**: Support for modern MUD protocols including MSDP
+- **Performance Monitoring**: Built-in profiling and debugging tools with C++ optimization
+- **Security Hardened**: All PHP tools audited and secured (January 2025)
+- **Memory Management**: Advanced debugging with Valgrind integration
 
 ## Quick Start
 
@@ -88,14 +90,17 @@ make
 #### Ubuntu/Debian
 ```bash
 sudo apt-get update
-sudo apt-get install build-essential mysql-server libmysqlclient-dev libgd-dev
+sudo apt-get install build-essential mysql-server libmysqlclient-dev libgd-dev \
+                     libcrypt-dev git make autoconf
 ```
 
 #### CentOS/RHEL/Fedora
 ```bash
-sudo yum install gcc make mysql-server mysql-devel gd-devel
-# or for newer versions:
-sudo dnf install gcc make mysql-server mysql-devel gd-devel
+# For CentOS 7/RHEL 7
+sudo yum install gcc make mysql-server mysql-devel gd-devel libcrypt-devel git autoconf
+
+# For newer versions (CentOS 8+/Fedora)
+sudo dnf install gcc make mysql-server mysql-devel gd-devel libcrypt-devel git autoconf
 ```
 
 ### Detailed Installation Steps
@@ -204,8 +209,11 @@ nohup ../bin/circle &
 
 ## Documentation
 
+### Quick Access
+- **[📚 Complete Documentation Index](documentation/DOCUMENTATION_INDEX.md)**: Navigate all documentation by audience and topic
+- **[🔧 Technical Master Index](documentation/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**: Complete technical documentation overview
+
 ### Technical Documentation
-- **[Master Index](documentation/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**: Complete technical documentation overview
 - **[Architecture](documentation/CORE_SERVER_ARCHITECTURE.md)**: Server architecture and design patterns
 - **[Setup Guide](documentation/SETUP_AND_BUILD_GUIDE.md)**: Detailed installation and configuration
 - **[Developer Guide](documentation/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
@@ -218,7 +226,9 @@ nohup ../bin/circle &
 ### Additional Resources
 - **[Testing Guide](documentation/TESTING_GUIDE.md)**: Quality assurance and testing procedures
 - **[Troubleshooting](documentation/TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
-- **[Original tbaMUD Documentation](https://github.com/LuminariMUD/LuminariMUD/tree/master/doc)**: Legacy documentation
+- **[PHP Tools Guide](documentation/PHP_TOOLS_README.md)**: Web tools security audit and deployment
+- **[Ultimate Writing Guide](documentation/ultimate-mud-writing-guide.md)**: Zone building and content creation
+- **[AI Assistant Guide](CLAUDE.md)**: Comprehensive guide for AI-assisted development
 ## Contributing
 
 We welcome contributions from developers, builders, and community members! Please read our guidelines before contributing.

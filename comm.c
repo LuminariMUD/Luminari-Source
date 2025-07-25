@@ -2948,8 +2948,12 @@ void close_socket(struct descriptor_data *d)
   {
     struct event *pEvent;
 
-    while ((pEvent = simple_list(d->events)) != NULL)
+    /* Use safe iteration - get first item directly to avoid iterator issues */
+    while (d->events->iSize > 0 && d->events->pFirstItem)
+    {
+      pEvent = (struct event *)d->events->pFirstItem->pContent;
       event_cancel(pEvent);
+    }
   }
 
   free_list(d->events);
