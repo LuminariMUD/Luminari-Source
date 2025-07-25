@@ -1786,8 +1786,11 @@ static void make_corpse(struct char_data *ch)
   for (i = 0; i < NUM_WEARS; i++)
     if (GET_EQ(ch, i))
     {
+      struct obj_data *obj;
       remove_otrigger(GET_EQ(ch, i), ch);
-      obj_to_obj(unequip_char(ch, i), corpse);
+      obj = unequip_char(ch, i);
+      if (obj)
+        obj_to_obj(obj, corpse);
     }
 
   /* transfer gold */
