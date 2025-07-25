@@ -4871,16 +4871,22 @@ char *fread_string(FILE *fl, const char *error)
       exit(1);
     }
 
-    for (point--; (*point == '\r' || *point == '\n' || point == 0); point--)
-      ;
+    /* Ensure we don't go before the beginning of tmp array */
+    if (point > tmp) {
+      for (point--; (point >= tmp && (*point == '\r' || *point == '\n')); point--)
+        ;
+    }
 
-    if (*point == '~')
+    if (point >= tmp && *point == '~')
     {
       *point = '\0';
       done = 1;
     }
     else
     {
+      /* Move back to the last valid position if we went too far */
+      if (point < tmp)
+        point = tmp - 1;
       *(++point) = '\r';
       *(++point) = '\n';
       *(++point) = '\0';
@@ -4938,15 +4944,21 @@ char *fread_clean_string(FILE *fl, const char *error)
     /* If there is a '~', end the string; else put an "\r\n" over the '\n'. */
     /* now only removes trailing ~'s -- Welcor */
     point = strchr(tmp, '\0');
-    for (point--; (*point == '\r' || *point == '\n'); point--)
-      ;
-    if (*point == '~')
+    /* Ensure we don't go before the beginning of tmp array */
+    if (point > tmp) {
+      for (point--; (point >= tmp && (*point == '\r' || *point == '\n')); point--)
+        ;
+    }
+    if (point >= tmp && *point == '~')
     {
       *point = '\0';
       done = 1;
     }
     else
     {
+      /* Move back to the last valid position if we went too far */
+      if (point < tmp)
+        point = tmp - 1;
       *(++point) = '\r';
       *(++point) = '\n';
       *(++point) = '\0';

@@ -4,6 +4,39 @@
 
 ### Critical Bug Fixes
 
+#### Fixed Use-After-Free in Event System
+- **Issue**: Use-after-free error in event system causing crashes when events were cancelled during iteration
+- **Root Cause**: 
+  - List iterators held pointers to freed memory when events were cancelled during traversal
+  - Functions like `event_cancel_specific()`, `clear_char_event_list()`, and related functions modified lists while iterating
+  - When an event was freed, iterators could access the freed memory (8 bytes inside freed 24-byte block)
+- **Solution**: 
+  - Modified `event_cancel_specific()` to use `simple_list()` instead of iterators for safer iteration
+  - Refactored all `clear_*_event_list()` functions to use two-pass approach:
+    - First pass: Collect events to cancel into temporary list
+    - Second pass: Cancel collected events from temporary list
+  - Fixed `change_event_duration()` and `change_event_svariables()` to copy data before cancelling old events
+- **Files Modified**: 
+  - mud_event.c: event_cancel_specific(), clear_char_event_list(), clear_room_event_list(), clear_region_event_list()
+  - mud_event.c: change_event_duration(), change_event_svariables()
+- **Impact**: Eliminates crashes from use-after-free errors in the event system, significantly improving server stability
+
+#### Fixed Uninitialized Memory Access in String Reading Functions
+- **Issue**: 60 conditional jump errors in valgrind caused by accessing uninitialized memory in fread_string() and fread_clean_string()
+- **Root Cause**: 
+  - When processing empty strings or strings with only newlines, the code would decrement a pointer before the start of the array
+  - Line 4874 in fread_string() had incorrect condition `point == 0` comparing pointer to integer
+  - Both functions lacked bounds checking when removing trailing newlines/carriage returns
+- **Solution**: 
+  - Added bounds check `if (point > tmp)` before decrementing pointer
+  - Added condition `(point >= tmp)` in the for loop to prevent underflow
+  - Added safety check `if (point >= tmp)` before dereferencing pointer
+  - Fixed the incorrect `point == 0` comparison in fread_string()
+- **Files Modified**: 
+  - db.c:4874-4893 (fread_string function)
+  - db.c:4941-4959 (fread_clean_string function)
+- **Impact**: Eliminates 60 valgrind errors related to conditional jumps on uninitialized values, improving IBT file loading reliability
+
 #### Fixed "(null)" Race Display in Character Creation
 - **Issue**: New players saw "(null)" entries in race selection during character creation, severely impacting first impressions
 - **Root Cause**: RACE_GOBLIN and RACE_HOBGOBLIN were only implemented in FR campaign section, not default campaign:
