@@ -2,6 +2,18 @@
 
 ## 2025-07-25
 
+### Critical Bug Fixes
+
+#### Fixed Critical tokenize() NULL Termination Crash
+- **Issue**: Server crash (SIGABRT) when loading house data during boot
+- **Root Cause**: The `tokenize()` function in mysql.c:215-226 was improperly NULL-terminating arrays by incrementing count after adding NULL, causing `free_tokens()` to read uninitialized memory and attempt to free garbage pointers
+- **Solution**: 
+  - Changed loop from `while(1)` to `while(tok)` to only process valid tokens
+  - Properly NULL-terminate array after loop without incrementing count
+  - Ensure adequate space for NULL terminator with bounds checking
+- **Files Modified**: mysql.c:215-229
+- **Impact**: Eliminates deterministic crash during server boot when loading house #24828, restoring server stability
+
 ### Compiler Warning Fixes
 
 #### Fixed All Remaining Compiler Warnings (32 warnings eliminated)
