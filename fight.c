@@ -2009,8 +2009,15 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   }
 
   /* clear all affections */
-  while (ch->affected)
-    affect_remove(ch, ch->affected);
+  if (IS_NPC(ch)) {
+    /* NPCs will be extracted, so avoid recalculating stats */
+    while (ch->affected)
+      affect_remove_no_total(ch, ch->affected);
+  } else {
+    /* Players remain in game and need proper stat recalculation */
+    while (ch->affected)
+      affect_remove(ch, ch->affected);
+  }
 
   /* this was commented out for some reason, undid that to make sure
    events clear on death */
