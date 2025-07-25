@@ -3790,9 +3790,6 @@ void mag_assign_spells(void)
          TAR_CHAR_WORLD, FALSE, MAG_MANUAL,
          NULL, 12, 13, DIVINATION, FALSE);
   /* abjuration */
-  spello(SPELL_FREE_MOVEMENT, "freedom of movement(inc)", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-         "You are no longer able to move freely.", 3, 13, ABJURATION, FALSE);
   spello(SPELL_STONESKIN, "stone skin", 51, 36, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "Your skin returns to its normal texture.", 3, 13, ABJURATION, FALSE);
