@@ -530,6 +530,8 @@
 #define AMMO_PROTO                  3297
 #define ITEM_PROTOTYPE              3210
 #define CRYSTAL_PROTOTYPE           3211
+/* unfinished */
+#define INSTRUMENT_PROTO 40296
 
 /* Miscellaneous Items */
 #define RING_MOLD                   3176
