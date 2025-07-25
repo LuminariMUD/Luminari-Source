@@ -303,7 +303,7 @@ SPECIAL(faction_mission)
     return 1;
 }
 
-char * get_mission_zone_name(struct char_data *ch)
+const char * get_mission_zone_name(struct char_data *ch)
 {
 #if defined(CAMPAIGN_DL)
     if (GET_CURRENT_MISSION_ROOM(ch) == NOWHERE)

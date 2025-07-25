@@ -1521,11 +1521,16 @@ int find_evolution_num(const char *name)
   const char *temp, *temp2;
   char first[256], first2[256];
 
+  /* PHASE 1: Check for exact match first (case-insensitive) */
   for (index = 1; index < NUM_EVOLUTIONS; index++)
   {
-    if (is_abbrev(name, evolution_list[index].name))
+    if (!strcasecmp(name, evolution_list[index].name))
       return (index);
+  }
 
+  /* PHASE 2: Try word-by-word matching for multi-word names */
+  for (index = 1; index < NUM_EVOLUTIONS; index++)
+  {
     ok = TRUE;
     /* It won't be changed, but other uses of this function elsewhere may. */
     temp = any_one_arg_c(evolution_list[index].name, first, sizeof(first));
@@ -1537,7 +1542,14 @@ int find_evolution_num(const char *name)
       temp = any_one_arg_c(temp, first, sizeof(first));
       temp2 = any_one_arg_c(temp2, first2, sizeof(first2));
     }
-    if (ok && !*first2)
+    if (ok && !*first2 && !*first)
+      return (index);
+  }
+
+  /* PHASE 3: Finally try abbreviation matching as fallback */
+  for (index = 1; index < NUM_EVOLUTIONS; index++)
+  {
+    if (is_abbrev(name, evolution_list[index].name))
       return (index);
   }
 

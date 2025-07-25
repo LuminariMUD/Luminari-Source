@@ -3166,11 +3166,16 @@ int find_discovery_num(char *name)
   char *temp, *temp2;
   char first[256], first2[256];
 
+  /* PHASE 1: Check for exact match first (case-insensitive) */
   for (index = 0; index < NUM_ALC_DISCOVERIES; index++)
   {
-    if (is_abbrev(name, alchemical_discovery_names[index]))
+    if (!strcasecmp(name, alchemical_discovery_names[index]))
       return (index);
+  }
 
+  /* PHASE 2: Try word-by-word matching for multi-word names */
+  for (index = 0; index < NUM_ALC_DISCOVERIES; index++)
+  {
     ok = TRUE;
     /* It won't be changed, but other uses of this function elsewhere may. */
     temp = any_one_arg((char *)alchemical_discovery_names[index], first);
@@ -3182,7 +3187,14 @@ int find_discovery_num(char *name)
       temp = any_one_arg(temp, first);
       temp2 = any_one_arg(temp2, first2);
     }
-    if (ok && !*first2)
+    if (ok && !*first2 && !*first)
+      return (index);
+  }
+
+  /* PHASE 3: Finally try abbreviation matching as fallback */
+  for (index = 0; index < NUM_ALC_DISCOVERIES; index++)
+  {
+    if (is_abbrev(name, alchemical_discovery_names[index]))
       return (index);
   }
 
@@ -3269,7 +3281,7 @@ int find_grand_discovery_num(char *name)
       temp = any_one_arg(temp, first);
       temp2 = any_one_arg(temp2, first2);
     }
-    if (ok && !*first2)
+    if (ok && !*first2 && !*first)
       return (index);
   }
 

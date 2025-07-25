@@ -137,7 +137,10 @@ int isname(const char *str, const char *namelist)
     if (!substr)
       continue;
     if (!isname_tok(substr, namelist))
+    {
+      free(strlist);
       return 0;
+    }
   }
   free(strlist);
   /* If we didn't fail, assume we succeeded because every token was matched */
@@ -180,10 +183,13 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
   case APPLY_PSP:
     GET_MAX_PSP(ch) += mod;
     break;
+
+  /* PC Max HP calculation is handled in utils.c - calculate_max_hp*/
   case APPLY_HIT:
     if (IS_NPC(ch))
       GET_MAX_HIT(ch) += mod;
     break;
+
   case APPLY_MOVE:
     GET_MAX_MOVE(ch) += mod;
     break;
@@ -1002,22 +1008,28 @@ void update_msdp_affects(struct char_data *ch)
 
   /* MSDP */
 
+  /* Early exit if no character, no descriptor, or character is an NPC */
+  if (!ch || !ch->desc || IS_NPC(ch))
+    return;
+
+  /* Skip if client doesn't support MSDP */
+  if (!ch->desc->pProtocol || !ch->desc->pProtocol->bMSDP)
+    return;
+
   msdp_buffer[0] = '\0';
-  if (ch && ch->desc)
+  /* Open up the AFFECTS table */
+  char buf2[100];
+  snprintf(buf2, sizeof(buf2), "%c"
+                               "%c%s%c"
+                               "%c",
+           (char)MSDP_TABLE_OPEN,
+           (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
+           (char)MSDP_ARRAY_OPEN);
+  strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
+  for (i = 0; i < NUM_AFF_FLAGS; i++)
   {
-    /* Open up the AFFECTS table */
-    char buf2[100];
-    snprintf(buf2, sizeof(buf2), "%c"
-                                 "%c%s%c"
-                                 "%c",
-             (char)MSDP_TABLE_OPEN,
-             (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
-             (char)MSDP_ARRAY_OPEN);
-    strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
-    for (i = 0; i < NUM_AFF_FLAGS; i++)
+    if (IS_SET_AR(AFF_FLAGS(ch), i))
     {
-      if (IS_SET_AR(AFF_FLAGS(ch), i))
-      {
         char buf[200];
         snprintf(buf, sizeof(buf), "%c%c"
                                    "%c%s%c%s"
@@ -1028,18 +1040,18 @@ void update_msdp_affects(struct char_data *ch)
                  (char)MSDP_VAR, "NAME", (char)MSDP_VAL, affected_bits[i],
                  (char)MSDP_VAR, "DESC", (char)MSDP_VAL, affected_bit_descs[i],
                  (char)MSDP_TABLE_CLOSE);
-        strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
-      }
+      strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
     }
-    snprintf(buf2, sizeof(buf2), "%c"
+  }
+  snprintf(buf2, sizeof(buf2), "%c"
                                  "%c%s%c"
                                  "%c",
              (char)MSDP_ARRAY_CLOSE,
              (char)MSDP_VAR, "SPELL_LIKE_AFFECTS", (char)MSDP_VAL,
              (char)MSDP_ARRAY_OPEN);
-    strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
-    for (af = ch->affected; af; af = next)
-    {
+  strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
+  for (af = ch->affected; af; af = next)
+  {
       char buf[400]; // Buffer for building the affect table for MSDP
       next = af->next;
       snprintf(buf, sizeof(buf), "%c%c"
@@ -1057,20 +1069,19 @@ void update_msdp_affects(struct char_data *ch)
                (char)MSDP_VAR, "TYPE", (char)MSDP_VAL, bonus_types[af->bonus_type],
                (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration,
                (char)MSDP_TABLE_CLOSE);
-      strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
-      first = FALSE;
-    }
-    snprintf(buf2, sizeof(buf2), "%c"
+    strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
+    first = FALSE;
+  }
+  snprintf(buf2, sizeof(buf2), "%c"
                                  "%c",
              (char)MSDP_ARRAY_CLOSE,
              (char)MSDP_TABLE_CLOSE);
-    strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
+  strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
 
-    // send_to_char(ch, "%s", msdp_buffer);
+  // send_to_char(ch, "%s", msdp_buffer);
 
-    MSDPSetString(ch->desc, eMSDP_AFFECTS, msdp_buffer);
-    MSDPFlush(ch->desc, eMSDP_AFFECTS);
-  }
+  MSDPSetString(ch->desc, eMSDP_AFFECTS, msdp_buffer);
+  MSDPFlush(ch->desc, eMSDP_AFFECTS);
 }
 
 /* This updates a character by subtracting everything he is affected by
@@ -1131,6 +1142,54 @@ void affect_to_char(struct char_data *ch, struct affected_type *af)
 /* Remove an affected_type structure from a char (called when duration reaches
  * zero). Pointer *af must never be NIL!  Frees mem and calls
  * affect_location_apply */
+/* Remove an affect without recalculating totals - used during character cleanup */
+void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
+{
+  int i = 0;
+  struct affected_type *temp = NULL;
+  int empty_bits[AF_ARRAY_MAX];
+
+  for (i = 0; i > AF_ARRAY_MAX; i++)
+    empty_bits[i] = 0;
+
+  if (ch->affected == NULL)
+  {
+    core_dump();
+    return;
+  }
+
+  if (IS_SET_AR(af->bitvector, AFF_CONFUSED))
+    ch->confuser_idnum = 0;
+
+  affect_modify_ar(ch, af->location, 0, af->bitvector, FALSE);
+
+  if (BONUS_TYPE_STACKS(af->bonus_type))
+  {
+    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
+  }
+  else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
+  {
+    aff_apply_modify(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), "affect_remove_no_total");
+  }
+
+  /* Check if we have anything that is 'nonstandard' from this affect */
+  if (af->location == APPLY_DR)
+  {
+    /* Remove the dr. */
+    struct damage_reduction_type *temp, *dr; /* Used by REMOVE_FROM_LIST */
+    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+    {
+      if (dr->spell == af->spell)
+      {
+        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+      }
+    }
+  }
+
+  REMOVE_FROM_LIST(af, ch->affected, next);
+  free_affect(af);
+}
+
 void affect_remove(struct char_data *ch, struct affected_type *af)
 {
   int i = 0;
@@ -1217,11 +1276,15 @@ void affect_from_char(struct char_data *ch, int spell)
     next = hjp->next;
     if (hjp->spell == spell)
     {
+      /* not sure why this is here, but it's causing issues with bardic performance 
+           APPLY_HIT is for MAX HP -- why would losing the spell hurt your current HP?*/
+      /*
       if (hjp->location == APPLY_HIT)
       {
         if (GET_HIT(ch) > 0)
           GET_HIT(ch) = MAX(1, GET_HIT(ch) - hjp->modifier);
       }
+      */
       affect_remove(ch, hjp);
       if (spell == PSIONIC_ENERGY_CONVERSION)
       {

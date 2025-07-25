@@ -1786,8 +1786,11 @@ static void make_corpse(struct char_data *ch)
   for (i = 0; i < NUM_WEARS; i++)
     if (GET_EQ(ch, i))
     {
+      struct obj_data *obj;
       remove_otrigger(GET_EQ(ch, i), ch);
-      obj_to_obj(unequip_char(ch, i), corpse);
+      obj = unequip_char(ch, i);
+      if (obj)
+        obj_to_obj(obj, corpse);
     }
 
   /* transfer gold */
@@ -4968,8 +4971,11 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     if (PLR_FLAGGED(victim, PLR_NOTDEADYET) ||
         MOB_FLAGGED(victim, MOB_NOTDEADYET))
       return (-1);
-    log("SYSERR: Attempt to damage corpse '%s' in room #%d by '%s'.", GET_NAME(victim), GET_ROOM_VNUM(IN_ROOM(victim)), GET_NAME(ch));
-    die(victim, ch);
+    /* This is a normal occurrence when combat continues briefly after death
+       before raw_kill() can clear fighting status. Just stop the attacker
+       from continuing to fight the corpse. */
+    if (ch && FIGHTING(ch) == victim)
+      stop_fighting(ch);
     return (-1);
   }
 
@@ -7064,9 +7070,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       // since overwhelming is a prereq, and this condenses the code required
       if (has_devastating_critical_prereqs(ch, wielded))
       {
-        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED)) ;
+        if (IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_CONDENSED))
           send_to_char(ch, "\tW[DEVASTATING!]\tn");
-        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED)) ;
+        if (IS_NPC(victim) || !PRF_FLAGGED(victim, PRF_CONDENSED))
           send_to_char(victim, "\tR[DEVASTATING!]\tn");
         for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded) - 1); loop++)
         {
@@ -7078,9 +7084,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       }
       else if (has_overwhelming_critical_prereqs(ch, wielded))
       {
-        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED)) ;
+        if (IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_CONDENSED))
           send_to_char(ch, "\tW[OVERWHELMING!]\tn");
-        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED)) ;
+        if (IS_NPC(victim) || !PRF_FLAGGED(victim, PRF_CONDENSED))
           send_to_char(victim, "\tR[OVERWHELMING!]\tn");
         for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded) - 1); loop++)
         {
@@ -7137,7 +7143,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         if ((pMudEvent = char_has_mud_event(victim, eCRIPPLING_CRITICAL)))
         {
           int crippling_critical_var = 0;
-          char buf[10] = {'\0'};
+          char buf[20] = {'\0'}; /* Increased to handle all int values */
 
           crippling_critical_var = atoi((char *)pMudEvent->sVariables);
           crippling_critical_var++;
@@ -11666,7 +11672,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     mileage out of striking-type casters. In this case we assume if the player
     is blasting they are using ranged. Otherwise if they're blasting and using
     hideous blow, they are doing melee. */
-  if (PRF_FLAGGED(ch, PRF_AUTOBLAST) && GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOBLAST) && GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
   {
     ranged_attacks += bonus_mainhand_attacks;
     if (is_tanking(ch))

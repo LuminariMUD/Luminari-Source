@@ -185,10 +185,10 @@ ACMD(do_ban)
   }
 
   CREATE(ban_node, struct ban_list_element, 1);
-  strncpy(ban_node->site, site, BANNED_SITE_LENGTH); /* strncpy: OK (b_n->site:BANNED_SITE_LENGTH+1) */
+  strncpy(ban_node->site, site, BANNED_SITE_LENGTH - 1); /* Reserve space for null terminator */
+  ban_node->site[BANNED_SITE_LENGTH - 1] = '\0'; /* Ensure null termination */
   for (nextchar = ban_node->site; *nextchar; nextchar++)
     *nextchar = LOWER(*nextchar);
-  ban_node->site[BANNED_SITE_LENGTH] = '\0';
   strncpy(ban_node->name, GET_NAME(ch), MAX_NAME_LENGTH); /* strncpy: OK (b_n->size:MAX_NAME_LENGTH+1) */
   ban_node->name[MAX_NAME_LENGTH] = '\0';
   ban_node->date = time(0);
@@ -278,7 +278,7 @@ int valid_name(char *newname)
     return (0);
 
   /* return valid if list doesn't exist */
-  if (invalid_list == NULL || num_invalid < 1)
+  if (num_invalid < 1)
     return (1);
 
   /* change to lowercase */

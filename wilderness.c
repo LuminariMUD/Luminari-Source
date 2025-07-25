@@ -915,7 +915,7 @@ void show_wilderness_map(struct char_data *ch, int size, int x, int y)
     if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_GENDESC) || IS_DYNAMIC(IN_ROOM(ch)))
     {
       generated_desc = gen_room_description(ch, IN_ROOM(ch));
-      if (PRF_FLAGGED(ch, PRF_GUI_MODE))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE))
       {
         // Display the map inline, with tags.
         send_to_char(ch,
@@ -943,7 +943,7 @@ void show_wilderness_map(struct char_data *ch, int size, int x, int y)
     }
     else
     {
-      if (PRF_FLAGGED(ch, PRF_GUI_MODE))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE))
       {
         // Display the map inline, with tags.
         send_to_char(ch,

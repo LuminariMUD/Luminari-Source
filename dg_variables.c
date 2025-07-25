@@ -620,25 +620,32 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           if (type == MOB_TRIGGER)
           {
             ch = (char_data *)go;
-            for (c = world[IN_ROOM(ch)].people; c; c = c->next_in_room)
-              if ((c != ch) && valid_dg_target(c, DG_ALLOW_STAFFS) &&
-                  CAN_SEE(ch, c))
-              {
-                if (!rand_number(0, count))
-                  rndm = c;
-                count++;
-              }
+            if (VALID_ROOM_RNUM(IN_ROOM(ch)))
+            {
+              for (c = world[IN_ROOM(ch)].people; c; c = c->next_in_room)
+                if ((c != ch) && valid_dg_target(c, DG_ALLOW_STAFFS) &&
+                    CAN_SEE(ch, c))
+                {
+                  if (!rand_number(0, count))
+                    rndm = c;
+                  count++;
+                }
+            }
           }
           else if (type == OBJ_TRIGGER)
           {
-            for (c = world[obj_room((obj_data *)go)].people; c;
-                 c = c->next_in_room)
-              if (valid_dg_target(c, DG_ALLOW_STAFFS))
-              {
-                if (!rand_number(0, count))
-                  rndm = c;
-                count++;
-              }
+            room_rnum obj_rm = obj_room((obj_data *)go);
+            if (VALID_ROOM_RNUM(obj_rm))
+            {
+              for (c = world[obj_rm].people; c;
+                   c = c->next_in_room)
+                if (valid_dg_target(c, DG_ALLOW_STAFFS))
+                {
+                  if (!rand_number(0, count))
+                    rndm = c;
+                  count++;
+                }
+            }
           }
           else if (type == WLD_TRIGGER)
           {
@@ -674,7 +681,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             in_room = IN_ROOM((struct char_data *)go);
             break;
           }
-          if (in_room == NOWHERE)
+          if (!VALID_ROOM_RNUM(in_room))
           {
             *str = '\0';
           }
@@ -1913,8 +1920,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
       case 'r':
         if (!str_cmp(field, "room"))
         {
-          if (obj_room(o) != NOWHERE)
-            snprintf(str, slen, "%c%ld", UID_CHAR, (long)world[obj_room(o)].number + ROOM_ID_BASE);
+          room_rnum rm = obj_room(o);
+          if (VALID_ROOM_RNUM(rm))
+            snprintf(str, slen, "%c%ld", UID_CHAR, (long)world[rm].number + ROOM_ID_BASE);
           else
             *str = '\0';
         }

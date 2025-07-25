@@ -1334,7 +1334,7 @@ ACMD(do_detach)
         }
       }
 
-      if (arg3 == NULL || !*arg3)
+      if (!*arg3)
         send_to_char(ch, "You must specify a trigger to remove.\r\n");
       else
         trigger = arg3;
@@ -1362,7 +1362,7 @@ ACMD(do_detach)
         }
       }
 
-      if (arg3 == NULL || !*arg3)
+      if (!*arg3)
         send_to_char(ch, "You must specify a trigger to remove.\r\n");
       else
         trigger = arg3;
@@ -2180,7 +2180,7 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig,
     return;
   }
 
-  if (arg == NULL || !*arg)
+  if (!*arg)
   {
     script_log("Trigger: %s, VNum %d. makeuid invalid id arg: '%s'",
                GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
@@ -2196,7 +2196,7 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig,
   }
   else
   { /* a lot more work without it */
-    if (name == NULL || !*name)
+    if (!*name)
     {
       script_log("Trigger: %s, VNum %d. makeuid needs name: '%s'",
                  GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
@@ -2509,7 +2509,7 @@ int perform_set_dg_var(struct char_data *ch, struct char_data *vict, char *val_a
 
   var_value = any_one_arg(val_arg, var_name);
 
-  if (var_name == NULL || !*var_name || var_value == NULL || !*var_value)
+  if (!*var_name || var_value == NULL || !*var_value)
   {
     send_to_char(ch, "Usage: set <char> <varname> <value>\r\n");
     return 0;

@@ -49,18 +49,17 @@
  * to also change NUM_OF_BOARDS in board.h*/
 #if defined(CAMPAIGN_DL)
 struct board_info_type board_info[NUM_OF_BOARDS] = {
-    {1367, 0, 1, LVL_IMPL, LIB_ETC "board.ooc"},
-    {1369, 0, 1, LVL_IMPL, LIB_ETC "board.bug"},
-    {1370, 0, 1, LVL_IMPL, LIB_ETC "board.policy"},
-    {2201, 0, 1, LVL_IMPL, LIB_ETC "board.genera"},
-    {2202, 0, 1, LVL_IMPL, LIB_ETC "board.trade"},
-    {2203, 0, 1, LVL_IMPL, LIB_ETC "board.crime"},
-    {2403, 0, 1, LVL_IMPL, LIB_ETC "board.palanthas.thief"},
-
+    {1367, 0, 1, LVL_IMPL, LIB_ETC "board.ooc", NOTHING},
+    {1369, 0, 1, LVL_IMPL, LIB_ETC "board.bug", NOTHING},
+    {1370, 0, 1, LVL_IMPL, LIB_ETC "board.policy", NOTHING},
+    {2201, 0, 1, LVL_IMPL, LIB_ETC "board.genera", NOTHING},
+    {2202, 0, 1, LVL_IMPL, LIB_ETC "board.trade", NOTHING},
+    {2203, 0, 1, LVL_IMPL, LIB_ETC "board.crime", NOTHING},
+    {2403, 0, 1, LVL_IMPL, LIB_ETC "board.palanthas.thief", NOTHING}
 };
 #else
 struct board_info_type board_info[NUM_OF_BOARDS] = {
-    {2201, 0, 1, LVL_IMPL, LIB_ETC "board.general"},
+    {2201, 0, 1, LVL_IMPL, LIB_ETC "board.general", NOTHING}
 };
 #endif
 
@@ -120,6 +119,14 @@ static void init_boards(void)
     msg_storage_taken[i] = 0;
   }
 
+  /* Verify board array size matches NUM_OF_BOARDS */
+  int actual_boards = sizeof(board_info) / sizeof(board_info[0]);
+  if (actual_boards != NUM_OF_BOARDS) {
+    log("SYSERR: Board count mismatch! NUM_OF_BOARDS=%d but board_info has %d entries",
+        NUM_OF_BOARDS, actual_boards);
+    fatal_error = 1;
+  }
+
   for (i = 0; i < NUM_OF_BOARDS; i++)
   {
     if ((BOARD_RNUM(i) = real_object(BOARD_VNUM(i))) == NOTHING)
@@ -127,6 +134,9 @@ static void init_boards(void)
       log("SYSERR: Fatal board error: board vnum %d does not exist!",
           BOARD_VNUM(i));
       fatal_error = 1;
+    }
+    else {
+      log("Board %d initialized: vnum=%d, rnum=%d", i, BOARD_VNUM(i), BOARD_RNUM(i));
     }
     num_of_msgs[i] = 0;
     for (j = 0; j < MAX_BOARD_MESSAGES; j++)
@@ -170,7 +180,16 @@ SPECIAL(gen_board)
 
   if ((board_type = find_board(ch)) == -1)
   {
-    log("SYSERR:  degenerate board!  (what the hell...)");
+    /* Enhanced error logging to help diagnose board issues */
+    log("SYSERR: degenerate board! Character %s in room #%d, board obj #%d",
+        GET_NAME(ch), GET_ROOM_VNUM(IN_ROOM(ch)), 
+        board ? GET_OBJ_VNUM(board) : -1);
+    
+    /* Log all configured boards for debugging */
+    int i;
+    for (i = 0; i < NUM_OF_BOARDS; i++) {
+      log("  Board %d: vnum=%d, rnum=%d", i, BOARD_VNUM(i), BOARD_RNUM(i));
+    }
     return (0);
   }
   if (cmd == ACMD_WRITE)

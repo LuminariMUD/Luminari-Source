@@ -124,6 +124,8 @@ void connect_to_mysql()
     log("SYSERR: Unable to connect to MySQL3: %s", mysql_error(conn3));
     exit(1);
   }
+  
+  log("SUCCESS: Connected to MySQL database '%s' on host '%s' as user '%s'", database, host, username);
 }
 
 void disconnect_from_mysql()
@@ -203,28 +205,146 @@ struct wilderness_data *load_wilderness(zone_vnum zone)
 /* String tokenizer. */
 char **tokenize(const char *input, const char *delim)
 {
-  char *str = strdup(input);
+  char *str;
+  char **result;
+  char *tok;
   int count = 0;
   int capacity = 10;
-  char **result = malloc(capacity * sizeof(*result));
+  const char *trimmed_input;
+  
+  /* Sanity check inputs */
+  if (!input || !delim) {
+    log("SYSERR: tokenize() called with NULL input or delim");
+    return NULL;
+  }
+  
+  /* Skip leading delimiters to avoid empty first token */
+  trimmed_input = input;
+  while (*trimmed_input && strchr(delim, *trimmed_input)) {
+    trimmed_input++;
+  }
+  
+  /* Check if entire string was delimiters */
+  if (!*trimmed_input) {
+    /* Return array with single NULL element */
+    result = malloc(sizeof(char*));
+    if (!result) {
+      log("SYSERR: tokenize() failed to allocate memory for empty result");
+      return NULL;
+    }
+    result[0] = NULL;
+    return result;
+  }
+  
+  str = strdup(trimmed_input);
+  if (!str) {
+    log("SYSERR: tokenize() failed to allocate memory for input string");
+    return NULL;
+  }
+  
+  /* Allocate space including room for NULL terminator */
+  result = malloc((capacity + 1) * sizeof(*result));
+  if (!result) {
+    log("SYSERR: tokenize() failed to allocate memory for result array");
+    free(str);
+    return NULL;
+  }
 
-  char *tok = strtok(str, delim);
+  /* Use strtok - strtok_r may not be available in all C90 environments */
+  tok = strtok(str, delim);
 
-  while (1)
+  while (tok)
   {
-    if (count >= capacity)
-      result = realloc(result, (capacity *= 2) * sizeof(*result));
+    char *dup;
+    
+    if (count >= capacity) {
+      char **new_result;
+      int i;
+      
+      capacity *= 2;
+      new_result = realloc(result, (capacity + 1) * sizeof(*result));
+      if (!new_result) {
+        log("SYSERR: tokenize() failed to realloc result array to size %d", capacity);
+        /* Clean up and bail out */
+        for (i = 0; i < count; i++)
+          free(result[i]);
+        free(result);
+        free(str);
+        return NULL;
+      }
+      result = new_result;
+    }
 
-    result[count++] = tok ? strdup(tok) : tok;
-
-    if (!tok)
-      break;
-
+    dup = strdup(tok);
+    if (!dup) {
+      int i;
+      log("SYSERR: tokenize() failed to duplicate token: %s", tok);
+      /* Clean up everything */
+      for (i = 0; i < count; i++)
+        free(result[i]);
+      free(result);
+      free(str);
+      return NULL;
+    }
+    result[count++] = dup;
     tok = strtok(NULL, delim);
   }
+  
+  /* NULL-terminate the array */
+  result[count] = NULL;
 
   free(str);
   return result;
+}
+
+/* Test function for tokenize - remove after debugging */
+void test_tokenize(void)
+{
+  char **tokens;
+  char **it;
+  const char *test_input = "#3183\nLoc : -1\nFlag: 64 0 0 0\nName: a small leather pouch";
+  char test_str[256];
+  char *tok;
+  
+  log("DEBUG: Testing tokenize with input: '%s'", test_input);
+  
+  /* First test strtok directly */
+  log("DEBUG: Testing strtok directly:");
+  strcpy(test_str, test_input);
+  tok = strtok(test_str, "\n");
+  log("DEBUG: Direct strtok first token: '%s'", tok ? tok : "NULL");
+  
+  /* Now test our tokenize function */
+  tokens = tokenize(test_input, "\n");
+  if (!tokens) {
+    log("DEBUG: tokenize returned NULL!");
+    return;
+  }
+  
+  log("DEBUG: Tokenize results:");
+  for (it = tokens; *it; ++it) {
+    log("DEBUG:   Token: '%s'", *it);
+  }
+  
+  free_tokens(tokens);
+}
+
+/* Free the memory allocated by tokenize() */
+void free_tokens(char **tokens)
+{
+  char **it;
+  
+  if (!tokens)
+    return;
+    
+  /* Free each individual token string */
+  for (it = tokens; *it; ++it)
+  {
+    free(*it);
+  }
+  
+  /* Free the array itself */
+  free(tokens);
 }
 
 void load_regions()
@@ -304,6 +424,13 @@ void load_regions()
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
     sscanf(row[5], "LINESTRING(%[^)])", buf2);
     tokens = tokenize(buf2, ",");
+    if (!tokens) {
+      log("SYSERR: tokenize() failed in load_regions for region %s", row[2]);
+      /* Clean up this region entry */
+      if (region_table[i].name) free(region_table[i].name);
+      /* Skip to next region */
+      continue;
+    }
 
     CREATE(region_table[i].vertices, struct vertex, region_table[i].num_vertices);
 
@@ -313,8 +440,8 @@ void load_regions()
     {
       sscanf(*it, "%d %d", &(region_table[i].vertices[vtx].x), &(region_table[i].vertices[vtx].y));
       vtx++;
-      free(*it);
     }
+    free_tokens(tokens);
 
     top_of_region_table = i;
 
@@ -658,6 +785,16 @@ void load_paths()
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
     sscanf(row[5], "LINESTRING(%[^)])", buf2);
     tokens = tokenize(buf2, ",");
+    if (!tokens) {
+      log("SYSERR: tokenize() failed in load_paths for path %s", row[2]);
+      /* Clean up this path entry */
+      if (path_table[i].name) free(path_table[i].name);
+      if (path_table[i].glyphs[GLYPH_TYPE_PATH_NS]) free(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
+      if (path_table[i].glyphs[GLYPH_TYPE_PATH_EW]) free(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
+      if (path_table[i].glyphs[GLYPH_TYPE_PATH_INT]) free(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
+      /* Skip to next path */
+      continue;
+    }
 
     CREATE(path_table[i].vertices, struct vertex, path_table[i].num_vertices);
 
@@ -667,8 +804,8 @@ void load_paths()
     {
       sscanf(*it, "%d %d", &(path_table[i].vertices[vtx].x), &(path_table[i].vertices[vtx].y));
       vtx++;
-      free(*it);
     }
+    free_tokens(tokens);
 
     top_of_path_table = i;
     i++;
@@ -862,6 +999,11 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
     log(" Envelope: %s", row[0]);
     sscanf(row[0], "POLYGON((%[^)]))", buf2);
     tokens = tokenize(buf2, ",");
+    if (!tokens) {
+      log("SYSERR: tokenize() failed in envelope()");
+      /* Skip this envelope entry */
+      continue;
+    }
 
     int newx, newy;
     for (it = tokens; it && *it; ++it)
@@ -876,8 +1018,8 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
         ylow = newy;
       if (newy > yhigh)
         yhigh = newy;
-      free(*it);
     }
+    free_tokens(tokens);
   }
 
   mysql_free_result(result);
@@ -936,7 +1078,7 @@ void who_to_mysql()
       buf2[0] = '\0';
 
     /* Hide level for anonymous players */
-    if (PRF_FLAGGED(tch, PRF_ANON))
+    if (!IS_NPC(ch) && PRF_FLAGGED(tch, PRF_ANON))
     {
       snprintf(buf, sizeof(buf), "INSERT INTO who (player, title, killer, thief) VALUES ('%s', '%s', %d, %d)",
                GET_NAME(tch), buf2, PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);

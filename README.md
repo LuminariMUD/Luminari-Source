@@ -1,197 +1,405 @@
-# luminari-source
-# Source Code for LuminariMUD
+# LuminariMUD
 
-The actual README and other documentation included in the original tbaMUD/CircleMUD packaging can be found here:
-https://github.com/LuminariMUD/LuminariMUD/tree/master/doc
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![C](https://img.shields.io/badge/language-C-blue.svg)](https://en.wikipedia.org/wiki/C_(programming_language))
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Unix-lightgrey.svg)](https://github.com/LuminariMUD/Luminari-Source)
 
-Join us on DISCORD: https://discord.gg/Me3Tuu4
+A text-based multiplayer online role-playing game (MUD) server implementing Pathfinder/D&D 3.5 mechanics, built on the robust tbaMUD/CircleMUD foundation with extensive custom enhancements.
 
+## Table of Contents
 
-------------------------------------------------------------------------------------------
+- [Overview](#overview)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Community](#community)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
-Vision
+## Overview
 
-Initial Vision:  To create a MUD, influenced by Pathfinder/d20/DnD3.5 rules in mechanics, integrating the code-bases:  TBA/CWG/d20.  With an original world inspired by the Bible, Dragonlance and Forgotten Realms stories.  Above all, to build a safe and friendly community of like-minded gamers to socialize and advance characters in.
+LuminariMUD is a feature-rich MUD server that brings the beloved Pathfinder/D&D 3.5 rule system to life in a text-based multiplayer environment. Built upon the proven tbaMUD/CircleMUD codebase, it features an original world inspired by Biblical, Dragonlance, and Forgotten Realms stories.
 
-A Note from the Lead Designer/Coder and Owner of LuminariMUD
-	I’ve been a player/coder and builder in the MUD community for many years.  Some basic demanding traits are required to endure.  Commitment first and foremost, goal-oriented and self-motivated staff is vital as well.  Also critical is the ability to make sacrifices – for whatever reason that drives the individual, you have to be able to work through the bad times which can often outnumber the good times.  You have to, if you are a leader, lead by example.  If you are under someone else’s leadership, prove yourself to be an asset and work hard.
-	Creating a MUD is not a heavily rewarding experience.  You can spend tens, hundreds even thousands of hours working on it just to get a small player-base that complains all the time.  The only real appeal is that the work itself is rewarding.  If you can adapt that attitude, then you can have a successful experience regardless of the outcome.
-	As the lead on this project, I’m committed to the initial vision – and I’m committed to hard work.  Hopefully together we can make this project a success.
+### Project Vision
 
-Luminari Staff Positions:
+Create a MUD with authentic Pathfinder/d20/D&D 3.5 mechanics featuring an original world that fosters a safe, friendly community for like-minded gamers. Our primary goal is building meaningful connections through collaborative storytelling and adventure.
 
-Website:
-Website Designer/Manager (Blog)		Staff/Senior Staff
-Website Designer/Manager (Forum)		Staff/Senior Staff
+### Project Philosophy
 
-Helpfiles:
-Help File Lead					Staff/Senior Staff
-Help File Creator/Editor(s)			Staff/Senior Staff
+This project embodies commitment, self-motivation, and perseverance through challenges. Creating a MUD is inherently rewarding work, regardless of player base size. We remain dedicated to our initial vision and the hard work required to make this project successful.
 
-World and Lore:
-Lead World Design				Forger
-Lead Lore Design				Forger
-Lead Scripter					Forger
-Quest Designer(s)				Staff/Senior Staff
-Builder(s)					Staff/Senior Staff
+## Features
 
-Code, Mechanics Designer:
-Lead Programmer				Forger
-Lead Game Designer				Forger
-Programmer(s)				Staff/Senior Staff
+### Core Game Systems
+- **Authentic Pathfinder/D&D 3.5 Mechanics**: Complete implementation of familiar rule systems
+- **Advanced Character System**: Multiple races, classes, feats, and skills
+- **Dynamic Combat**: Initiative-based combat with tactical positioning
+- **Spell System**: Comprehensive magic system with spell preparation and components
+- **Crafting & Alchemy**: Extensive item creation and enhancement systems
 
-Game Administration:
-Lead Administrator				Forger
-Administrator(s)				Staff/Senior Staff
-Recruiter / 101					Senior Staff / Forger
+### World & Content
+- **Original World Design**: Unique setting inspired by Biblical, Dragonlance, and Forgotten Realms
+- **Quest-Driven Progression**: Story-oriented advancement system
+- **Living World**: Heavy scripting for dynamic, responsive environments
+- **Zone-to-Zone Travel**: World map navigation with vehicle support
+- **High-Quality Content**: Custom zones replacing stock content
 
-Staff Position Description
+### Technical Features
+- **MySQL Integration**: Persistent player data and world state
+- **DG Scripting System**: Powerful scripting for NPCs, objects, and rooms
+- **Online Level Creation (OLC)**: In-game world building tools
+- **Advanced Networking**: Support for modern MUD protocols including MSDP
+- **Performance Monitoring**: Built-in profiling and debugging tools with C++ optimization
+- **Security Hardened**: All PHP tools audited and secured (January 2025)
+- **Memory Management**: Advanced debugging with Valgrind integration
 
-Website Designer/Manager (Blog)
-Responsibilities:
-To create, design and manage all content of the blog aspect of the website.  Content will be at the very least minimum weekly updates of code changes.
-Limitations:
-	Maintenance of the Web Forum	
+## Quick Start
 
-Website Designer/Manager (Forum)
-Responsibilities:  
-To create, design and manage all content of the forum aspect of the website.  Content includes all community discussion, and will require maintenance, organization of content, and other responsibilities.
-Limitations:
-	Maintenance of the Web Blog	
+### Prerequisites
+- **Operating System**: Linux or Unix-like system
+- **Compiler**: GCC with C99 support
+- **Database**: MySQL 5.0+ or MariaDB
+- **Libraries**: libcrypt, libgd, libm, libmysqlclient
 
-Help File Lead:
-Responsibilities:  
-	To organize a system for keyword content of help files.  Organizing and designing the primary ‘HELP’ command formatting.  Add help files as needed.  Needs to be in good communication with programmers on understanding the content that gets added to the game.
-Limitations:
-	No building responsibilities
+### Build and Run
+```bash
+# Clone the repository
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
 
-Help File Creator/Editor(s)
-Responsibilities:  
-	Adding help-file content for any conceivable topic that would assist player in navigating the MUD
-Limitations:
-	
-Lead World Design (Head Builder)
-Responsibilities:
-	Design maps and layout of lands, attach zones in appropriate areas.  Establish building-standards, rules and stylistics.  In charge of making sure world creation meets goals in a timely manner.  Assist new builders in building and scripting.
-Limitations:
-	Expected to create the world with the tools provided and to maintain the TBA codebase standards for building techniques.
-	
-Lead Lore Design
-Responsibilities:  
-	Designs all aspects within the realm of game-lore.  Including stories, world background information, world-inhabitants relationship, etc.
-Limitations:
-	Creating lore that isn’t consistent with the base rules of content:  There is only one true G-d in Luminari lore.  Also to stay within the realm of reasonable Dungeons-and-Dragons content.
+# Build the server
+make
 
-Quest Designer(s)
-Responsibilities:  
-	Take leadership in making sure quests are consistent in rewards and that they match with the Lore content.
-Limitations:
-	Creating ALL the quest content, the responsibility lies on the builders 	
+# Run the server (after configuration)
+../bin/circle
+```
 
-Recruiter / 101
-Responsibilities: 
-	To be liaison in the MUDding community forums.  To actively post recruiting messages to the MUDding community, but not be obnoxious about it.  To help start off new staff members and ease the heavy training load of Lead Builder.   
-Limitations:
-	For building aspects of the job, under jurisdiction of Lead Builder
+## Installation
 
-Builder(s)
-Responsibilities: 
-	To create the world, scripts and quests for players to explore. 
-Limitations:
-	Under jurisdiction of Lead Builder
+### System Requirements
+- **Memory**: Minimum 512MB RAM (2GB+ recommended for production)
+- **Storage**: 1GB+ free disk space
+- **Network**: TCP/IP networking capability
+- **Compiler**: GCC 4.8+ or compatible C compiler
 
-Lead Scripter
-Responsibilities: 
-	To create universal scripts for the builders to use, to help support and answer questions about scripts
-Limitations:
+### Dependencies
 
-Lead Programmer
-Responsibilities:
-	Divide amongst the coders work-load.  Oversee consistency in code-content that enters the Subversion control.  Manage backups and SVN content.  Makes final decisions on technique for implementation and coding-standards.
-Limitations:
-	Authority limited to code
+#### Ubuntu/Debian
+```bash
+sudo apt-get update
+sudo apt-get install build-essential mysql-server libmysqlclient-dev libgd-dev \
+                     libcrypt-dev git make autoconf
+```
 
-Lead Game Designer
-Responsibilities:  
-	Decide game rules for in-game systems and mechanics.  Overall vision for project direction.  Management of project to achieve goals in timely manner.
-Limitations:	
-	Authority doesn’t include building-standards, lore or deciding coding technique.  Also not an administrator.
+#### CentOS/RHEL/Fedora
+```bash
+# For CentOS 7/RHEL 7
+sudo yum install gcc make mysql-server mysql-devel gd-devel libcrypt-devel git autoconf
 
-Programmer(s)
-Responsibilities:  
-	Implement game mechanics.
-Limitations:
-	Answers to Lead-Programmer, authority limited to code.
+# For newer versions (CentOS 8+/Fedora)
+sudo dnf install gcc make mysql-server mysql-devel gd-devel libcrypt-devel git autoconf
+```
 
-Lead Administrator
-Responsibilities:  
-	Lead management of administrators.  Maintain peace between staff and players, implement rules-of-conduct for player and staff behaviour.
-Limitations:
-	The rules of behaviour have to be consistent with Judeo-Christian ideals:  Do not do unto others that you don’t want done to yourself.
+### Detailed Installation Steps
 
-Administrator(s)
-Responsibilities: 
-	Assist in enforcement of conduct rules between players and players, staff and staff.  Invest time and patience in new players (newbies).
-Limitations:
-	Under management of Lead Administrator
+1. **Install Dependencies** (see above for your distribution)
 
-General Guidelines of Staff Conduct
-(The Luminari Constitution)
+2. **Clone and Build**
+   ```bash
+   git clone https://github.com/LuminariMUD/Luminari-Source.git
+   cd Luminari-Source
 
-Initial ideas for the world are:
-	-Worldmap for navigation between zones
-	-Allows for expansion of system including vehicles, etc
-	-Heavily quest and story orientated progression
-	-Keeps players involved to see advancement of a story
-	-Heavy usage of scripting to create a “living and breathing” world
-	-Stock zones can only be kept if redesigned
-	-Keeps content high
-	-Keeps mud-stats high
-	-Allows some familiar zones for those who have affectionate memories of some of the stock zones
-  		** We can take out zones as they get replaced with new ones if the lead builder desires
-	-The goals for Beta in mechanics and code have already been established.  The allowance for change in direction is limited due to time-related goals.  After Beta, major changes in system CAN be considered.
-	-Very simple to understand the mechanic goals:  view any Pathfinder/d20/DnD3.5 rules website to get the idea
-	-The lead designer is choosing what to implement and what not to implement based on
-		--Ease
-		--Past experience on what systems work
-		--Fun-factor
-	-Ideas coming from the staff should be well thought out to avoid clutter.  If you have a lot of ideas, it’s best to start a Forum-Topic and post them under your topic, then go to town
-	-Bugs and Typos do NOT need to be thought out at all, if you even slightly think something is  a Bug/Typo, do not be afraid to report it
-	-Builders or Builder’s Leadership should NOT try and change the standards and system established by TBA – that would destroy our primary community of potential builders.
-		--One of the big advantages of using TBA codebase is the active community
-	-It’s OK to discuss with other leadership ideas in their field of leadership, but remember whose field of leadership it is… and AVOID arguing if that leadership makes a decision; examples:
-	-If you are the Lead Designer or Lead Builder, don’t try to trump the Lead Admin (for example in establishment of in-game player-to-player rules)
-	-If you are the Lead Designer or Lead Admin, don’t submit lore or content that isn’t consistent with the Lead Builder/Lore
-	-If you are the Lead Builder/Admin, don’t try to insist on game mechanics or design of OLC interface, etc
-	-Try to be at least a little respectful and sensitive to any individuals who are committing a lot more of their effort/work into the MUD
-	-Do NOT take other’s time for granted, if you ask a coder to do something that takes 10 hours of his time, you should be prepared to do that much work in return for the coder
-	-Although the Lead-Designer does tend to heavily implement ideas submitted by the community, the default expectation is quite simple:  we do NOT customize the MUD to individual preferences.
+   # Generate build configuration
+   ./configure
 
+   # Build the main executable
+   make
 
-Conflict of Interest (Leaders Only)
-	-You can NOT hold a position of leadership in Luminari if you are committed more or equally to another MUD.  This includes, but is not limited to, being the leader of a very active guild on another MUD.
-	-You can NOT hold a position of leadership in Luminari if you are in any sort of conflicting relationship with any other game as per discretion of the Lead Administrator
+   # Build utilities (optional)
+   make utils
+   ```
 
+3. **Database Setup**
+   ```bash
+   # Create MySQL database
+   mysql -u root -p
+   CREATE DATABASE luminari;
+   CREATE USER 'luminari'@'localhost' IDENTIFIED BY 'your_password';
+   GRANT ALL PRIVILEGES ON luminari.* TO 'luminari'@'localhost';
+   FLUSH PRIVILEGES;
+   EXIT;
+   ```
 
-Minimal Log-In Time (All Staff)
-	-6 weeks on inactivity with no contact can result in demotion
+4. **Configuration**
+   ```bash
+   # Copy example configuration files
+   cp campaign.example.h campaign.h
+   cp mud_options.example.h mud_options.h
+   cp vnums.example.h vnums.h
 
+   # Edit configuration files as needed
+   nano campaign.h
+   nano mud_options.h
+   ```
 
-Minimal Knowledge (Leaders Only)
-	-How can one lead a MUD they know nothing about?
-	-All Leaders are required to be familiar with all base races/classes and MUD lore
-	-Leadership positions individuals are expected to lead by example
-	-Life comes first, but if you can’t handle the responsibilities and time investment of leadership, you should try to find a replacement
-	-If you can’t invest minimal amount of time to work on the MUD as a leader, you will be politely placed in a non-leadership role
+5. **First Run**
+   ```bash
+   # Create bin directory if it doesn't exist
+   mkdir -p ../bin
 
+   # Run the server
+   ../bin/circle
+   ```
 
-Leadership Positions MINIMUM Required Work:
-	-Building:  3 “things” per week, see Lead Builder for details
-	-Admin:  X hours of active time on the MUD, see Lead Admin
+## Usage
 
-ANYONE has a right to request the code
+### Basic Commands
 
-ANYONE can request a copy of their zone at any time, but see the on-line DISCLAIMER help file for details on the MUD’s rights with the builders zones
+#### Building and Development
+```bash
+# Build everything
+make all
 
-REMEMBER:  Ultimately, if push comes to shove, the lead does have a right to trump decisions that aren’t in-line with the initial vision.  Or if he knows the idea to be ineffective based on past MUDding experience.
+# Clean build artifacts
+make clean
 
+# Run unit tests
+make cutest
+
+# Generate dependencies
+make depend
+```
+
+#### Server Management
+```bash
+# Start the server
+../bin/circle
+
+# Start with specific port
+../bin/circle -p 4000
+
+# Run in background
+nohup ../bin/circle &
+```
+
+### Configuration Files
+
+- **`campaign.h`**: Core game settings and world configuration
+- **`mud_options.h`**: Server options and feature toggles
+- **`vnums.h`**: Virtual number assignments for objects, rooms, and NPCs
+
+### Common Use Cases
+
+#### For Players
+- Connect via telnet: `telnet your-server-ip 4000`
+- Use a MUD client like MUSHclient, TinTin++, or Mudlet for enhanced experience
+
+#### For Builders
+- Use in-game OLC (Online Level Creation) commands
+- Access building documentation in `/documentation/`
+- Follow building standards and guidelines
+
+#### For Developers
+- Review code in modular C files
+- Use the DG scripting system for advanced features
+- Contribute via GitHub pull requests
+
+## Documentation
+
+### Quick Access
+- **[📚 Complete Documentation Index](documentation/DOCUMENTATION_INDEX.md)**: Navigate all documentation by audience and topic
+- **[🔧 Technical Master Index](documentation/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**: Complete technical documentation overview
+
+### Technical Documentation
+- **[Architecture](documentation/CORE_SERVER_ARCHITECTURE.md)**: Server architecture and design patterns
+- **[Setup Guide](documentation/guides/SETUP_AND_BUILD_GUIDE.md)**: Detailed installation and configuration
+- **[Developer Guide](documentation/guides/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
+
+### Game Documentation
+- **[Combat System](documentation/systems/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
+- **[Player Management](documentation/systems/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
+- **[World Simulation](documentation/systems/WORLD_SIMULATION_SYSTEM.md)**: World systems and mechanics
+
+### Additional Resources
+- **[Testing Guide](documentation/guides/TESTING_GUIDE.md)**: Quality assurance and testing procedures
+- **[Troubleshooting](documentation/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
+- **[PHP Tools Guide](documentation/PHP_TOOLS_README.md)**: Web tools security audit and deployment
+- **[Ultimate Writing Guide](documentation/guides/ultimate-mud-writing-guide.md)**: Zone building and content creation
+- **[AI Assistant Guide](documentation/development/CLAUDE.md)**: Comprehensive guide for AI-assisted development
+## Contributing
+
+We welcome contributions from developers, builders, and community members! Please read our guidelines before contributing.
+
+### How to Contribute
+
+1. **Fork the Repository**
+   ```bash
+   # Fork on GitHub, then clone your fork
+   git clone https://github.com/YOUR_USERNAME/Luminari-Source.git
+   cd Luminari-Source
+   ```
+
+2. **Create a Feature Branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+3. **Make Your Changes**
+   - Follow our coding standards (see [Developer Guide](documentation/guides/DEVELOPER_GUIDE_AND_API.md))
+   - Add tests for new functionality
+   - Update documentation as needed
+
+4. **Test Your Changes**
+   ```bash
+   make clean
+   make all
+   make cutest  # Run unit tests
+   ```
+
+5. **Submit a Pull Request**
+   - Push your branch to your fork
+   - Create a pull request with a clear description
+   - Reference any related issues
+
+### Contribution Guidelines
+
+#### Code Contributions
+- **Coding Standards**: Follow existing code style and conventions
+- **Documentation**: Update relevant documentation for new features
+- **Testing**: Include unit tests for new functionality
+- **Commit Messages**: Use clear, descriptive commit messages
+
+#### Content Contributions
+- **World Building**: Follow established lore and building standards
+- **Help Files**: Maintain consistency with existing help system
+- **Scripts**: Use DG scripting best practices
+
+#### Bug Reports
+- Use GitHub Issues to report bugs
+- Include steps to reproduce the issue
+- Provide system information and error messages
+- Check existing issues before creating new ones
+
+### Development Team Structure
+
+#### Core Development
+- **Lead Programmer**: Manages code standards and development workflow
+- **Game Designer**: Defines game mechanics and project direction
+- **Programmers**: Implement game mechanics and features
+
+#### Content Creation
+- **World Designer**: Designs maps, zones, and building standards
+- **Lore Designer**: Develops world background and stories
+- **Quest Designers**: Creates quest content and rewards
+- **Builders**: Creates world content, scripts, and quests
+- **Lead Scripter**: Develops universal scripts and provides support
+
+#### Community Management
+- **Lead Administrator**: Manages staff and community standards
+- **Administrators**: Support player relations and enforce guidelines
+- **Help File Lead**: Organizes help system and documentation
+
+### Contributor License Agreement
+
+Contributions to this project must be accompanied by a Contributor License Agreement. You retain copyright to your contribution; this gives us permission to use and redistribute your contributions as part of the project.
+
+## Community
+
+### Join Our Community
+- **Discord**: [Join our community](https://discord.gg/Me3Tuu4) - Primary communication hub
+- **GitHub Discussions**: Use for development-related discussions
+- **Issues**: Report bugs and request features
+
+### Community Guidelines
+- **Respect**: Treat all community members with respect and kindness
+- **Collaboration**: Work together towards common goals
+- **Constructive Feedback**: Provide helpful, actionable feedback
+- **Inclusivity**: Welcome newcomers and help them get started
+
+### Getting Help
+- **Discord**: Ask questions in appropriate channels
+- **Documentation**: Check our comprehensive documentation first
+- **GitHub Issues**: For bug reports and feature requests
+- **In-Game Help**: Use the built-in help system
+
+## Troubleshooting
+
+### Common Issues
+
+#### Build Problems
+```bash
+# Missing dependencies
+sudo apt-get install build-essential mysql-server libmysqlclient-dev libgd-dev
+
+# Permission issues
+chmod +x configure
+chmod +x licheck
+
+# Clean build
+make clean && make
+```
+
+#### Runtime Issues
+```bash
+# Database connection problems
+# Check MySQL service status
+sudo systemctl status mysql
+
+# Port already in use
+# Check what's using port 4000
+netstat -tulpn | grep :4000
+```
+
+#### Configuration Issues
+- Verify all `.h` configuration files are properly set up
+- Check file permissions on configuration files
+- Ensure database credentials are correct
+
+### Getting Support
+1. Check the [Troubleshooting Guide](documentation/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)
+2. Search existing GitHub Issues
+3. Ask on Discord for community support
+4. Create a GitHub Issue for bugs or feature requests
+## License
+
+This project uses a dual licensing approach:
+
+### tbaMUD/CircleMUD Code
+Code contributed by the tbaMUD project follows their licensing terms. See [tbamud.com](https://tbamud.com) for details.
+
+### LuminariMUD Custom Code
+Custom code developed for LuminariMUD is released into the **public domain**:
+
+> This is free and unencumbered software released into the public domain.
+>
+> Anyone is free to copy, modify, publish, use, compile, sell, or distribute this software, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means.
+
+For complete license details, see the [LICENSE](LICENSE) file.
+
+## Acknowledgments
+
+### Built Upon
+- **[tbaMUD](https://tbamud.com)**: The base MUD codebase
+- **[CircleMUD](http://www.circlemud.org)**: The original foundation
+- **CWG (Copper) MUD**: Additional enhancements and features
+
+### Inspiration
+- **Biblical Stories**: Spiritual and moral themes
+- **Dragonlance**: Epic fantasy elements
+- **Forgotten Realms**: Rich world-building traditions
+
+### Version Information
+- **Current Version**: LuminariMUD 2.4839 (tbaMUD 3.64)
+- **Repository**: https://github.com/LuminariMUD/Luminari-Source
+- **Created**: July 16, 2019
+- **Language**: C (C99 standard) with C++11 performance monitoring
+- **Last Updated**: January 2025
+
+---
+
+**Remember**: *The work itself is the reward. Focus on creating something meaningful for the community.*
+
+For more information, visit our [technical documentation](documentation/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) or join our [Discord community](https://discord.gg/Me3Tuu4).

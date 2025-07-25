@@ -644,6 +644,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"pathlist", "pathlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_PATHLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"perfconfig", "perfco", POS_DEAD, do_perfconfig, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #if defined(CAMPAIGN_DL)
     {"picklock", "pi", POS_STANDING, do_pick_lock, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #else
@@ -2280,7 +2281,7 @@ void nanny(struct descriptor_data *d, char *arg)
 {
   int load_result = 0; /* Overloaded variable */
   int player_i = 0;
-  int i = 0, l = 0, sortpos = 0; /* incrementor */
+  int i = 0, l = 0; /* sortpos = 0; */ /* sortpos currently unused */ /* incrementor */
 
   /* OasisOLC states */
   struct
@@ -2955,7 +2956,7 @@ void nanny(struct descriptor_data *d, char *arg)
     write_to_output(d, "Races of Luminari\r\n\r\n");
     for (i = 0; i < NUM_RACES; i++)
     {
-      if (!is_locked_race(i) || has_unlocked_race(d->character, i))
+      if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
         write_to_output(d, "%s\r\n", race_list[i].type);
     }
 #endif
@@ -3169,7 +3170,7 @@ switch (load_result)
         write_to_output(d, "Races of Luminari\r\n\r\n");
       for (i = 0; i < NUM_RACES; i++)
       {
-        if (!is_locked_race(i) || has_unlocked_race(d->character, i))
+        if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
           write_to_output(d, "%s\r\n", race_list[i].type);
       }
 #endif
@@ -4247,7 +4248,7 @@ void show_character_rp_menu(struct descriptor_data *d)
 
 void show_homeland_region_main_menu(struct descriptor_data *d)
 {
-  int i;
+  /* int i; */ /* Currently unused */
 
   #if defined(CAMPAIGN_FR)
       if (GET_REGION(d->character))

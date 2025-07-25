@@ -3338,7 +3338,7 @@ ACMD(do_rest)
     break;
   }
 
-  // if (PRF_FLAGGED(ch, PRF_AUTO_PREP))
+  // if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_PREP))
   // {
   //   if (count_spellcasting_classes(ch) == 1)
   //   {
@@ -4136,7 +4136,7 @@ ACMD(do_transposition)
 
   struct follow_type *f = NULL;
   struct char_data *mob = NULL, *eidolon = NULL;
-  room_rnum chRoom = NULL, eidolonRoom = NULL;
+  room_rnum chRoom = NOWHERE, eidolonRoom = NOWHERE;
 
   for (f = ch->followers; f; f = f->next)
   {

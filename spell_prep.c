@@ -88,54 +88,58 @@ void init_known_spells(struct char_data *ch)
 /* clear prep queue by class */
 void clear_prep_queue_by_class(struct char_data *ch, int ch_class)
 {
-  if (!SPELL_PREP_QUEUE(ch, ch_class))
-    return;
-  do
+  struct prep_collection_spell_data *tmp, *next;
+  
+  tmp = SPELL_PREP_QUEUE(ch, ch_class);
+  while (tmp)
   {
-    struct prep_collection_spell_data *tmp;
-    tmp = SPELL_PREP_QUEUE(ch, ch_class);
-    SPELL_PREP_QUEUE(ch, ch_class) = SPELL_PREP_QUEUE(ch, ch_class)->next;
+    next = tmp->next;
     free(tmp);
-  } while (SPELL_PREP_QUEUE(ch, ch_class));
+    tmp = next;
+  }
+  SPELL_PREP_QUEUE(ch, ch_class) = NULL;
 }
 /* clear innate magic by class */
 void clear_innate_magic_by_class(struct char_data *ch, int ch_class)
 {
-  if (!INNATE_MAGIC(ch, ch_class))
-    return;
-  do
+  struct innate_magic_data *tmp, *next;
+  
+  tmp = INNATE_MAGIC(ch, ch_class);
+  while (tmp)
   {
-    struct innate_magic_data *tmp;
-    tmp = INNATE_MAGIC(ch, ch_class);
-    INNATE_MAGIC(ch, ch_class) = INNATE_MAGIC(ch, ch_class)->next;
+    next = tmp->next;
     free(tmp);
-  } while (INNATE_MAGIC(ch, ch_class));
+    tmp = next;
+  }
+  INNATE_MAGIC(ch, ch_class) = NULL;
 }
 /* clear collection by class */
 void clear_collection_by_class(struct char_data *ch, int ch_class)
 {
-  if (!SPELL_COLLECTION(ch, ch_class))
-    return;
-  do
+  struct prep_collection_spell_data *tmp, *next;
+  
+  tmp = SPELL_COLLECTION(ch, ch_class);
+  while (tmp)
   {
-    struct prep_collection_spell_data *tmp;
-    tmp = SPELL_COLLECTION(ch, ch_class);
-    SPELL_COLLECTION(ch, ch_class) = SPELL_COLLECTION(ch, ch_class)->next;
+    next = tmp->next;
     free(tmp);
-  } while (SPELL_COLLECTION(ch, ch_class));
+    tmp = next;
+  }
+  SPELL_COLLECTION(ch, ch_class) = NULL;
 }
 /* clear known spells by class */
 void clear_known_spells_by_class(struct char_data *ch, int ch_class)
 {
-  if (!KNOWN_SPELLS(ch, ch_class))
-    return;
-  do
+  struct known_spell_data *tmp, *next;
+  
+  tmp = KNOWN_SPELLS(ch, ch_class);
+  while (tmp)
   {
-    struct known_spell_data *tmp;
-    tmp = KNOWN_SPELLS(ch, ch_class);
-    KNOWN_SPELLS(ch, ch_class) = KNOWN_SPELLS(ch, ch_class)->next;
+    next = tmp->next;
     free(tmp);
-  } while (KNOWN_SPELLS(ch, ch_class));
+    tmp = next;
+  }
+  KNOWN_SPELLS(ch, ch_class) = NULL;
 }
 
 /* destroy the spell prep queue, example ch logout */
