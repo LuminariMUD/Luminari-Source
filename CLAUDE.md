@@ -37,10 +37,16 @@ LuminariMUD is a sophisticated text-based multiplayer online role-playing game (
 
 ### Current Version
 - **LuminariMUD** (based on tbaMUD 3.64)
-- **Language**: C (C99 standard) with C++ performance monitoring
+- **Language**: C (ANSI C90/C89 - NOT C99!) with C++ performance monitoring
+  - **IMPORTANT**: The codebase does NOT compile with C99 mode enabled
+  - **DO NOT** use C99 features like:
+    - Variable declarations inside for loops: `for (int i = 0; ...)`
+    - Mixed declarations and code
+    - Variable length arrays
+  - **ALWAYS** declare variables at the beginning of blocks
 - **Platform**: Linux/Unix systems, WSL/Windows compatible
 - **Database**: MySQL 5.0+ or MariaDB
-- **Compiler**: GCC/Clang with C99 and C++11 support
+- **Compiler**: GCC/Clang (without -std=c99 flag)
 
 ### Recent Development Focus (2025)
 - **Performance Optimization**: Zone resets O(n²) to O(n), mobile activity caching, NPC casting efficiency
@@ -166,6 +172,11 @@ These files must be created from examples and are `.gitignore`d:
 - **vnums.h** - Copy from `vnums.example.h` for zone virtual number assignments
 
 ### Code Style
+- **C90/C89 COMPLIANCE REQUIRED**: 
+  - Declare ALL variables at the beginning of blocks
+  - NO variable declarations in for loops
+  - NO mixed declarations and code
+  - NO C99/C11 features
 - Follow existing indentation and brace style in each file
 - Use the existing utility functions and macros defined in utils.h
 - When adding new commands, register them in interpreter.c
