@@ -691,9 +691,13 @@
 /* last playable race above +1 */
 #define NUM_RACES 28
 
+/* Commented out to fix "(null)" race display issue - these duplicate existing values
+ * RACE_GOBLIN already uses 26, RACE_HOBGOBLIN already uses 27
+ * If needed for specific campaigns, these should use different numbers
 #define RACE_DEEP_GNOME 26
 #define RACE_SVIRFNEBLIN RACE_DEEP_GNOME
 #define RACE_ORC 27
+*/
 #define RACE_H_OGRE 28 // not yet implemented
 #define RACE_HALF_OGRE RACE_H_OGRE
 // space for new races up to 44

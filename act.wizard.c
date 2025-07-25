@@ -7273,7 +7273,7 @@ ACMD(do_objlist)
   char buf3[8192];
   char buf4[8192];
   char buf5[8192];
-  char tmp_buf[8192];
+  char tmp_buf[32768];
   one_argument(argument, value, sizeof(value));
 
   if (*value && is_number(value))
