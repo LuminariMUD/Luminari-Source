@@ -2124,6 +2124,12 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     }
 
     lines = tokenize(serialized_obj, "\n");
+    if (!lines) {
+      log("SYSERR: tokenize() failed in objsave_parse_objects_db for %s data",
+          loading_house_data ? "house" : "player");
+      free(serialized_obj);
+      continue;  /* Skip this object and try the next one */
+    }
 
     locate = 0;
     temp = NULL;
@@ -3049,6 +3055,11 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
     serialized_obj = strdup(row[0]);
 
     lines = tokenize(serialized_obj, "\n");
+    if (!lines) {
+      log("SYSERR: tokenize() failed in pet_load_objs/obj_from_obj_file");
+      free(serialized_obj);
+      continue;  /* Skip this object and try the next one */
+    }
 
     locate = 0;
     temp = NULL;
@@ -3660,6 +3671,11 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
     serialized_obj = strdup(row[0]);
 
     lines = tokenize(serialized_obj, "\n");
+    if (!lines) {
+      log("SYSERR: tokenize() failed in objsave_parse_objects_db_sheath for sheath %s", name);
+      free(serialized_obj);
+      continue;  /* Skip this object and try the next one */
+    }
 
     locate = 0;
     temp = NULL;
