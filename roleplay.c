@@ -1562,7 +1562,7 @@ ACMD(do_rpsheet)
 ACMD(do_showrpinfo)
 {
 
-  char arg[100], buf[100], buf2[100];
+  char arg[100], buf[100], buf2[200];
   char *text_out = NULL;
   struct char_data *t;
   int i;

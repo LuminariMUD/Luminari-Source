@@ -389,11 +389,16 @@ int find_skill_num(char *name)
   char *temp, *temp2;
   char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'}, tempbuf[MEDIUM_STRING] = {'\0'};
 
+  /* PHASE 1: Check for exact match first (case-insensitive) */
   for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
   {
-    if (is_abbrev(name, spell_info[skindex].name))
+    if (!strcasecmp(name, spell_info[skindex].name))
       return (skindex);
+  }
 
+  /* PHASE 2: Try word-by-word matching for multi-word names */
+  for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
+  {
     ok = TRUE;
     strlcpy(tempbuf, spell_info[skindex].name, sizeof(tempbuf)); /* strlcpy: OK */
     temp = any_one_arg(tempbuf, first);
@@ -406,7 +411,14 @@ int find_skill_num(char *name)
       temp2 = any_one_arg(temp2, first2);
     }
 
-    if (ok && !*first2)
+    if (ok && !*first2 && !*first)
+      return (skindex);
+  }
+
+  /* PHASE 3: Finally try abbreviation matching as fallback */
+  for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
+  {
+    if (is_abbrev(name, spell_info[skindex].name))
       return (skindex);
   }
 
@@ -422,11 +434,16 @@ int find_ability_num(char *name)
   char *temp, *temp2;
   char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'}, tempbuf[MEDIUM_STRING] = {'\0'};
 
+  /* PHASE 1: Check for exact match first (case-insensitive) */
   for (skindex = 1; skindex < NUM_ABILITIES; skindex++)
   {
-    if (is_abbrev(name, ability_names[skindex]))
+    if (!strcasecmp(name, ability_names[skindex]))
       return (skindex);
+  }
 
+  /* PHASE 2: Try word-by-word matching for multi-word names */
+  for (skindex = 1; skindex < NUM_ABILITIES; skindex++)
+  {
     ok = TRUE;
     strlcpy(tempbuf, ability_names[skindex], sizeof(tempbuf));
     temp = any_one_arg(tempbuf, first);
@@ -439,7 +456,14 @@ int find_ability_num(char *name)
       temp2 = any_one_arg(temp2, first2);
     }
 
-    if (ok && !*first2)
+    if (ok && !*first2 && !*first)
+      return (skindex);
+  }
+
+  /* PHASE 3: Finally try abbreviation matching as fallback */
+  for (skindex = 1; skindex < NUM_ABILITIES; skindex++)
+  {
+    if (is_abbrev(name, ability_names[skindex]))
       return (skindex);
   }
 
@@ -2077,6 +2101,27 @@ will be using for casting this spell */
   return (1);
 }
 
+/* manifest_power is the entry point for NPC psionic power manifestation.
+ * It's a simplified version of cast_spell that bypasses do_gen_cast overhead. */
+int manifest_power(struct char_data *ch, struct char_data *tch,
+                   int powernum, int augment_psp)
+{
+  if (!ch || !IS_NPC(ch))
+    return 0;
+    
+  if (powernum < PSIONIC_POWER_START || powernum > PSIONIC_POWER_END)
+  {
+    log("SYSERR: manifest_power trying to manifest invalid power %d", powernum);
+    return 0;
+  }
+  
+  /* Set augmentation for this manifestation */
+  GET_AUGMENT_PSP(ch) = augment_psp;
+  
+  /* NPCs manifest powers immediately without casting time */
+  return (call_magic(ch, tch, NULL, powernum, 0, GET_LEVEL(ch), CAST_SPELL));
+}
+
 ACMD(do_abort)
 {
   if (IS_NPC(ch))
@@ -3007,10 +3052,18 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
   {
     char buf[MEDIUM_STRING] = {'\0'};
     snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
+    /* Free previous allocation if it exists and is not a constant */
+    if (spell_info[spl].wear_off_msg && 
+        spell_info[spl].wear_off_msg != unused_wearoff)
+      free((char *)spell_info[spl].wear_off_msg);
     spell_info[spl].wear_off_msg = strdup(buf);
   }
   else
   {
+    /* Free previous allocation if it exists and is not a constant */
+    if (spell_info[spl].wear_off_msg && 
+        spell_info[spl].wear_off_msg != unused_wearoff)
+      free((char *)spell_info[spl].wear_off_msg);
     spell_info[spl].wear_off_msg = wearoff;
   }
   spell_info[spl].time = time;
@@ -3737,9 +3790,6 @@ void mag_assign_spells(void)
          TAR_CHAR_WORLD, FALSE, MAG_MANUAL,
          NULL, 12, 13, DIVINATION, FALSE);
   /* abjuration */
-  spello(SPELL_FREE_MOVEMENT, "freedom of movement(inc)", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-         "You are no longer able to move freely.", 3, 13, ABJURATION, FALSE);
   spello(SPELL_STONESKIN, "stone skin", 51, 36, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "Your skin returns to its normal texture.", 3, 13, ABJURATION, FALSE);
@@ -4198,11 +4248,6 @@ void mag_assign_spells(void)
   spello(SPELL_DIVINE_FAVOR, "divine favor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel the divine favor subside.", 4, 8, EVOCATION, FALSE);
   spello(SPELL_SILENCE, "silence", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "You feel the power that is muting you fade.", 3, 11, ILLUSION, FALSE); // wiz2, cle3
-  spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 2, 8, NOSCHOOL, FALSE);
-  spello(SPELL_REMOVE_FEAR, "remove fear", 44, 29, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS,
-         NULL, 3, 8, NOSCHOOL, FALSE);
   spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
          "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
 
@@ -5021,12 +5066,6 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
     NULL, 0, 0, NOSCHOOL, FALSE);
 */
 
-  spello(SKILL_SURPRISE_ACCURACY, "surprise accuracy", 0, 0, 0, POS_STANDING, // 529
-         TAR_IGNORE, FALSE, 0,
-         "The effects of your surprise accuracy have expired.", 0, 0, NOSCHOOL, FALSE);
-  spello(SKILL_POWERFUL_BLOW, "powerful blow", 0, 0, 0, POS_STANDING, // 530
-         TAR_IGNORE, FALSE, 0,
-         "The effects of your powerful blow have expired.", 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_INCENDIARY, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);

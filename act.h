@@ -1012,6 +1012,7 @@ ACMD_DECL(do_award);
 ACMD_DECL(do_show_blockers);
 ACMD_DECL(do_save_objects_to_database);
 ACMD_DECL(do_save_everything);
+ACMD_DECL(do_perfconfig);
 
 ACMD_DECL(do_touch_spells);
 ACMD_DECL(do_weapon_touch);

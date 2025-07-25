@@ -581,6 +581,10 @@ EVENTFUNC(event_countdown)
     {
       /* Process all encounter rooms for this region */
       tokens = tokenize(pMudEvent->sVariables, ",");
+      if (!tokens) {
+        log("SYSERR: tokenize() failed in event_countdown for region %d", *regvnum);
+        break;  /* Exit this case */
+      }
 
       for (it = tokens; it && *it; ++it)
       {
@@ -632,6 +636,7 @@ EVENTFUNC(event_countdown)
         world[eroom_rnum].coords[1] = y;
       }
       initialize_wilderness_lists();
+      free_tokens(tokens); /* Free the tokenized list */
     }
 
     return 60 RL_SEC;
@@ -1424,7 +1429,6 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
   struct event *pEvent;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
-  struct iterator_data it;
 
   if (ch->events == NULL)
   {
@@ -1440,9 +1444,9 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
     return;
   }
 
-  for (pEvent = (struct event *)merge_iterator(&it, ch->events);
-       pEvent != NULL;
-       pEvent = next_in_list(&it))
+  /* Use simple_list for safer iteration when we're going to modify the list */
+  simple_list(NULL); /* Reset the simple list iterator */
+  while ((pEvent = (struct event *)simple_list(ch->events)) != NULL)
   {
     if (!pEvent->isMudEvent)
       continue;
@@ -1453,32 +1457,7 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
       break;
     }
   }
-  remove_iterator(&it);
-
-  /* need to clear simple lists */
-  /*
-  simple_list(NULL);
-  act("Clearing simple list for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
-  send_to_char(ch, "Clearing simple list.\r\n");
-   */
-  /* fill simple_list with ch's events, use it to try and find event ID */
-  /*
-  while ((pEvent = (struct event *) simple_list(ch->events)) != NULL) {
-    if (!pEvent->isMudEvent)
-      continue;
-    pMudEvent = (struct mud_event_data *) pEvent->event_obj;
-    if (pMudEvent->iId == iId) {
-      found = TRUE;
-      break;
-    }
-  }
-   */
-  /* need to clear simple lists */
-  /*
-  simple_list(NULL);
-  act("Clearing simple list for $n, 2nd time.", FALSE, ch, NULL, NULL, TO_ROOM);
-  send_to_char(ch, "Clearing simple list, 2nd time.\r\n");
-   */
+  simple_list(NULL); /* Clear the simple list state */
 
   if (found)
   {
@@ -1499,7 +1478,7 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
 void clear_char_event_list(struct char_data *ch)
 {
   struct event *pEvent = NULL;
-  struct iterator_data it;
+  struct list_data *temp_list = NULL;
 
   if (ch->events == NULL)
     return;
@@ -1507,28 +1486,37 @@ void clear_char_event_list(struct char_data *ch)
   if (ch->events->iSize == 0)
     return;
 
-  /* This uses iterators because we might be in the middle of another
-   * function using simple_list, and that method requires that we do not use simple_list again
-   * on another list -> It generates unpredictable results.  Iterators are safe. */
-  for (pEvent = (struct event *)merge_iterator(&it, ch->events);
-       pEvent != NULL;
-       pEvent = next_in_list(&it))
+  /* Create a temporary list to hold events that need to be cancelled */
+  temp_list = create_list();
+
+  /* First pass: collect all events that need cancelling */
+  simple_list(NULL);
+  while ((pEvent = (struct event *)simple_list(ch->events)) != NULL)
   {
     /* Here we have an issue - If we are currently executing an event, and it results in a char
      * having their events cleared (death) then we must be sure that we don't clear the executing
      * event!  Doing so will crash the event system. */
-
     if (event_is_queued(pEvent))
-      event_cancel(pEvent);
-    else if (ch->events->iSize == 1)
-      break;
+      add_to_list(pEvent, temp_list);
   }
-  remove_iterator(&it);
+  simple_list(NULL);
+
+  /* Second pass: cancel the collected events */
+  simple_list(NULL);
+  while ((pEvent = (struct event *)simple_list(temp_list)) != NULL)
+  {
+    event_cancel(pEvent);
+  }
+  simple_list(NULL);
+
+  /* Clean up the temporary list */
+  free_list(temp_list);
 }
 
 void clear_room_event_list(struct room_data *rm)
 {
   struct event *pEvent = NULL;
+  struct list_data *temp_list = NULL;
 
   if (rm->events == NULL)
     return;
@@ -1536,18 +1524,34 @@ void clear_room_event_list(struct room_data *rm)
   if (rm->events->iSize == 0)
     return;
 
+  /* Create a temporary list to hold events that need to be cancelled */
+  temp_list = create_list();
+
+  /* First pass: collect all events that need cancelling */
   simple_list(NULL);
   while ((pEvent = (struct event *)simple_list(rm->events)) != NULL)
   {
     if (event_is_queued(pEvent))
-      event_cancel(pEvent);
+      add_to_list(pEvent, temp_list);
   }
   simple_list(NULL);
+
+  /* Second pass: cancel the collected events */
+  simple_list(NULL);
+  while ((pEvent = (struct event *)simple_list(temp_list)) != NULL)
+  {
+    event_cancel(pEvent);
+  }
+  simple_list(NULL);
+
+  /* Clean up the temporary list */
+  free_list(temp_list);
 }
 
 void clear_region_event_list(struct region_data *reg)
 {
   struct event *pEvent = NULL;
+  struct list_data *temp_list = NULL;
 
   if (reg->events == NULL)
     return;
@@ -1555,13 +1559,28 @@ void clear_region_event_list(struct region_data *reg)
   if (reg->events->iSize == 0)
     return;
 
+  /* Create a temporary list to hold events that need to be cancelled */
+  temp_list = create_list();
+
+  /* First pass: collect all events that need cancelling */
   simple_list(NULL);
   while ((pEvent = (struct event *)simple_list(reg->events)) != NULL)
   {
     if (event_is_queued(pEvent))
-      event_cancel(pEvent);
+      add_to_list(pEvent, temp_list);
   }
   simple_list(NULL);
+
+  /* Second pass: cancel the collected events */
+  simple_list(NULL);
+  while ((pEvent = (struct event *)simple_list(temp_list)) != NULL)
+  {
+    event_cancel(pEvent);
+  }
+  simple_list(NULL);
+
+  /* Clean up the temporary list */
+  free_list(temp_list);
 }
 
 /* ripley's version of change_event_duration
@@ -1571,7 +1590,9 @@ void change_event_duration(struct char_data *ch, event_id iId, long time)
 {
   struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
+  struct mud_event_data *pNewMudEvent = NULL;
   bool found = FALSE;
+  char *sVarCopy = NULL;
 
   if (ch->events->iSize == 0)
     return;
@@ -1588,6 +1609,9 @@ void change_event_duration(struct char_data *ch, event_id iId, long time)
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
+      /* Make a copy of the variables before we cancel the event */
+      if (pMudEvent->sVariables)
+        sVarCopy = strdup(pMudEvent->sVariables);
       break;
     }
   }
@@ -1595,10 +1619,19 @@ void change_event_duration(struct char_data *ch, event_id iId, long time)
 
   if (found)
   {
-    /* So we found the offending event, now build a new one, with the new time */
-    attach_mud_event(new_mud_event(iId, pMudEvent->pStruct, pMudEvent->sVariables), time);
+    /* Create the new event first */
+    pNewMudEvent = new_mud_event(iId, ch, sVarCopy);
+    
+    /* Cancel the old event */
     if (event_is_queued(pEvent))
       event_cancel(pEvent);
+    
+    /* Now attach the new event */
+    attach_mud_event(pNewMudEvent, time);
+    
+    /* Free our temporary copy */
+    if (sVarCopy)
+      free(sVarCopy);
   }
 }
 
@@ -1607,6 +1640,7 @@ void change_event_svariables(struct char_data *ch, event_id iId, char *sVariable
 {
   struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
+  struct mud_event_data *pNewMudEvent = NULL;
   bool found = FALSE;
   long time = 0;
 
@@ -1633,9 +1667,14 @@ void change_event_svariables(struct char_data *ch, event_id iId, char *sVariable
 
   if (found)
   {
-    /* So we found the offending event, now build a new one, with the new time */
-    attach_mud_event(new_mud_event(iId, pMudEvent->pStruct, sVariables), time);
+    /* Create the new event first */
+    pNewMudEvent = new_mud_event(iId, ch, sVariables);
+    
+    /* Cancel the old event */
     if (event_is_queued(pEvent))
       event_cancel(pEvent);
+    
+    /* Now attach the new event */
+    attach_mud_event(pNewMudEvent, time);
   }
 }

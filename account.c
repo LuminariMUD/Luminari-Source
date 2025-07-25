@@ -396,7 +396,8 @@ int load_account(char *name, struct account_data *account)
 
   account->id = atoi(row[0]);
   account->name = strdup(row[1]);
-  strncpy(account->password, row[2], MAX_PWD_LENGTH + 1);
+  strncpy(account->password, row[2], MAX_PWD_LENGTH);
+  account->password[MAX_PWD_LENGTH] = '\0'; /* Ensure null termination */
   account->experience = atoi(row[3]);
   account->email = (row[4] ? strdup(row[4]) : NULL);
 

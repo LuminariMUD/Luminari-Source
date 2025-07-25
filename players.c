@@ -36,6 +36,7 @@
 #include "class.h"
 #include "oasis.h"
 #include "crafting_new.h"
+#include <sys/time.h>
 
 #define LOAD_HIT 0
 #define LOAD_PSP 1
@@ -1497,11 +1498,28 @@ int load_char(const char *name, struct char_data *ch)
 
 /* Write the vital data of a player to the player file. */
 
+/* Helper function for save_char to optimize string operations */
+static inline void buffer_write_string_field(char *buffer, size_t *buffer_used, size_t buffer_size, 
+                                            const char *field_name, const char *field_value, 
+                                            char *temp_buf, size_t temp_buf_size) {
+  if (field_value && *field_value) {
+    char stripped[MAX_STRING_LENGTH];
+    strlcpy(stripped, field_value, sizeof(stripped));
+    strip_cr(stripped);
+    
+    int len = snprintf(temp_buf, temp_buf_size, "%s:\n%s~\n", field_name, stripped);
+    if (len > 0 && *buffer_used + len < buffer_size) {
+      memcpy(buffer + *buffer_used, temp_buf, len);
+      *buffer_used += len;
+    }
+  }
+}
+
 /* This is the ASCII Player Files save routine. */
 void save_char(struct char_data *ch, int mode)
 {
   FILE *fl;
-  char filename[40] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'},
+  char filename[40] = {'\0'},
        bits[127] = {'\0'}, bits2[127] = {'\0'},
        bits3[127] = {'\0'}, bits4[127] = {'\0'};
   int i = 0, j = 0, id = 0, save_index = FALSE;
@@ -1512,14 +1530,52 @@ void save_char(struct char_data *ch, int mode)
   struct obj_data *char_eq[NUM_WEARS] = {NULL};
   trig_data *t = NULL;
   struct mud_event_data *pMudEvent = NULL;
+  
+  /* PERFORMANCE OPTIMIZATION: Buffered I/O system */
+  char *write_buffer = NULL;
+  size_t buffer_size = 65536; /* 64KB initial buffer */
+  size_t buffer_used = 0;
+  char temp_buf[2048]; /* Temporary buffer for sprintf operations */
+  
+  /* Performance timing */
+  struct timeval start_time, end_time;
+  gettimeofday(&start_time, NULL);
 
   if (IS_NPC(ch) || GET_PFILEPOS(ch) < 0)
     return;
+  
+  /* Allocate write buffer for performance */
+  CREATE(write_buffer, char, buffer_size);
+  if (!write_buffer) {
+    log("SYSERR: save_char: Could not allocate write buffer for %s", GET_NAME(ch));
+    return;
+  }
+  
+  /* Helper macro for buffered writes */
+  #define BUFFER_WRITE(...) do { \
+    int len = snprintf(temp_buf, sizeof(temp_buf), __VA_ARGS__); \
+    if (len > 0) { \
+      if (buffer_used + len >= buffer_size) { \
+        /* Expand buffer if needed */ \
+        size_t new_size = buffer_size * 2; \
+        char *new_buffer = realloc(write_buffer, new_size); \
+        if (!new_buffer) { \
+          log("SYSERR: save_char: Buffer realloc failed"); \
+          free(write_buffer); \
+          return; \
+        } \
+        write_buffer = new_buffer; \
+        buffer_size = new_size; \
+      } \
+      memcpy(write_buffer + buffer_used, temp_buf, len); \
+      buffer_used += len; \
+    } \
+  } while(0)
 
   /* If ch->desc is not null, then update session data before saving. */
   if (ch->desc)
   {
-    if (ch->desc->host && *ch->desc->host)
+    if (*ch->desc->host)
     {
       if (!GET_HOST(ch))
         GET_HOST(ch) = strdup(ch->desc->host);
@@ -1539,11 +1595,14 @@ void save_char(struct char_data *ch, int mode)
   }
 
   /* any problems with file handling? */
-  if (!get_filename(filename, sizeof(filename), PLR_FILE, GET_NAME(ch)))
+  if (!get_filename(filename, sizeof(filename), PLR_FILE, GET_NAME(ch))) {
+    free(write_buffer);
     return;
+  }
   if (!(fl = fopen(filename, "w")))
   {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't open player file %s for write", filename);
+    free(write_buffer);
     return;
   }
 
@@ -1616,714 +1675,680 @@ void save_char(struct char_data *ch, int mode)
   /* end char_to_store code */
 
   if (GET_NAME(ch))
-    fprintf(fl, "Name: %s\n", GET_NAME(ch));
+    BUFFER_WRITE("Name: %s\n", GET_NAME(ch));
   if (GET_PASSWD(ch))
-    fprintf(fl, "Pass: %s\n", GET_PASSWD(ch));
+    BUFFER_WRITE("Pass: %s\n", GET_PASSWD(ch));
   if (ch->desc && ch->desc->account && ch->desc->account->name)
   {
-    fprintf(fl, "Acct: %s\n", ch->desc->account->name);
-    //    fprintf(fl, "ActN: %s\n", ch->desc->account->name);
+    BUFFER_WRITE("Acct: %s\n", ch->desc->account->name);
+    //    BUFFER_WRITE( "ActN: %s\n", ch->desc->account->name);
   }
 
   if (GET_TITLE(ch))
-    fprintf(fl, "Titl: %s\n", GET_TITLE(ch));
+    BUFFER_WRITE("Titl: %s\n", GET_TITLE(ch));
   if (GET_IMM_TITLE(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
-    fprintf(fl, "ITtl: %s\n", GET_IMM_TITLE(ch));
+    BUFFER_WRITE("ITtl: %s\n", GET_IMM_TITLE(ch));
 
   /*save todo lists*/
   struct txt_block *tmp;
   if ((tmp = GET_TODO(ch)))
   {
-    fprintf(fl, "Todo:\n");
+    BUFFER_WRITE("Todo:\n");
     while (tmp)
     {
       if (tmp->text)
-        fprintf(fl, "%s\n", tmp->text);
+        BUFFER_WRITE("%s\n", tmp->text);
       tmp = tmp->next;
     }
-    fprintf(fl, "~\n");
+    BUFFER_WRITE("~\n");
   }
 
-  if (ch->player.description && *ch->player.description)
-  {
-    strlcpy(buf, ch->player.description, sizeof(buf));
-    strip_cr(buf);
-    fprintf(fl, "Desc:\n%s~\n", buf);
-  }
-  if (ch->player.background && *ch->player.background)
-  {
-    strlcpy(buf, ch->player.background, sizeof(buf));
-    strip_cr(buf);
-    fprintf(fl, "BGrd:\n%s~\n", buf);
-  }
-  if (ch->player.goals && *ch->player.goals)
-  {
-    strlcpy(buf, ch->player.goals, sizeof(buf));
-    strip_cr(buf);
-    fprintf(fl, "Goal:\n%s~\n", buf);
-  }
-  if (ch->player.personality && *ch->player.personality)
-  {
-    strlcpy(buf, ch->player.personality, sizeof(buf));
-    strip_cr(buf);
-    fprintf(fl, "Pers:\n%s~\n", buf);
-  }
-  if (ch->player.ideals && *ch->player.ideals)
-  {
-    strlcpy(buf, ch->player.ideals, sizeof(buf));
-    strip_cr(buf);
-    fprintf(fl, "Idel:\n%s~\n", buf);
-  }
-  if (ch->player.bonds && *ch->player.bonds)
-  {
-    strlcpy(buf, ch->player.bonds, sizeof(buf));
-    strip_cr(buf);
-    fprintf(fl, "Bond:\n%s~\n", buf);
-  }
-  if (ch->player.flaws && *ch->player.flaws)
-  {
-    strlcpy(buf, ch->player.flaws, sizeof(buf));
-    strip_cr(buf);
-    fprintf(fl, "Flaw:\n%s~\n", buf);
-  }
+  /* Optimize string field writes */
+  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Desc", ch->player.description, temp_buf, sizeof(temp_buf));
+  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "BGrd", ch->player.background, temp_buf, sizeof(temp_buf));
+  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Goal", ch->player.goals, temp_buf, sizeof(temp_buf));
+  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Pers", ch->player.personality, temp_buf, sizeof(temp_buf));
+  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Idel", ch->player.ideals, temp_buf, sizeof(temp_buf));
+  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Bond", ch->player.bonds, temp_buf, sizeof(temp_buf));
+  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Flaw", ch->player.flaws, temp_buf, sizeof(temp_buf));
   if (BLASTING(ch))
-    fprintf(fl, "Blst: 1\n");
+    BUFFER_WRITE( "Blst: 1\n");
   if (POOFIN(ch))
-    fprintf(fl, "PfIn: %s\n", POOFIN(ch));
+    BUFFER_WRITE( "PfIn: %s\n", POOFIN(ch));
   if (POOFOUT(ch))
-    fprintf(fl, "PfOt: %s\n", POOFOUT(ch));
+    BUFFER_WRITE( "PfOt: %s\n", POOFOUT(ch));
   if (GET_SEX(ch) != PFDEF_SEX)
-    fprintf(fl, "Sex : %d\n", GET_SEX(ch));
+    BUFFER_WRITE( "Sex : %d\n", GET_SEX(ch));
   if (GET_BLOODLINE_SUBTYPE(ch) != PFDEF_SORC_BLOODLINE_SUBTYPE)
-    fprintf(fl, "SBld: %d\n", GET_BLOODLINE_SUBTYPE(ch));
+    BUFFER_WRITE( "SBld: %d\n", GET_BLOODLINE_SUBTYPE(ch));
   if (GET_CLASS(ch) != PFDEF_CLASS)
-    fprintf(fl, "Clas: %d\n", GET_CLASS(ch));
+    BUFFER_WRITE( "Clas: %d\n", GET_CLASS(ch));
   if (GET_REAL_RACE(ch) != PFDEF_RACE)
-    fprintf(fl, "Race: %d\n", GET_REAL_RACE(ch));
+    BUFFER_WRITE( "Race: %d\n", GET_REAL_RACE(ch));
   if (GET_REAL_SIZE(ch) != PFDEF_SIZE)
-    fprintf(fl, "Size: %d\n", GET_REAL_SIZE(ch));
+    BUFFER_WRITE( "Size: %d\n", GET_REAL_SIZE(ch));
   if (HAS_SET_STATS_STUDY(ch) != PFDEF_HAS_SET_STATS_STUDY)
-    fprintf(fl, "SySt: %d\n", HAS_SET_STATS_STUDY(ch));
+    BUFFER_WRITE( "SySt: %d\n", HAS_SET_STATS_STUDY(ch));
   if (GET_LEVEL(ch) != PFDEF_LEVEL)
-    fprintf(fl, "Levl: %d\n", GET_LEVEL(ch));
+    BUFFER_WRITE( "Levl: %d\n", GET_LEVEL(ch));
   if (GET_DISGUISE_RACE(ch))
-    fprintf(fl, "DRac: %d\n", GET_DISGUISE_RACE(ch));
+    BUFFER_WRITE( "DRac: %d\n", GET_DISGUISE_RACE(ch));
   if (GET_DISGUISE_STR(ch))
-    fprintf(fl, "DStr: %d\n", GET_DISGUISE_STR(ch));
+    BUFFER_WRITE( "DStr: %d\n", GET_DISGUISE_STR(ch));
   if (GET_DISGUISE_DEX(ch))
-    fprintf(fl, "DDex: %d\n", GET_DISGUISE_DEX(ch));
+    BUFFER_WRITE( "DDex: %d\n", GET_DISGUISE_DEX(ch));
   if (GET_DISGUISE_CON(ch))
-    fprintf(fl, "DCon: %d\n", GET_DISGUISE_CON(ch));
+    BUFFER_WRITE( "DCon: %d\n", GET_DISGUISE_CON(ch));
   if (GET_DISGUISE_AC(ch))
-    fprintf(fl, "DAC: %d\n", GET_DISGUISE_AC(ch));
+    BUFFER_WRITE( "DAC: %d\n", GET_DISGUISE_AC(ch));
   if (NEW_ARCANA_SLOT(ch, 0))
-    fprintf(fl, "NAr0: %d\n", NEW_ARCANA_SLOT(ch, 0));
+    BUFFER_WRITE( "NAr0: %d\n", NEW_ARCANA_SLOT(ch, 0));
   if (NEW_ARCANA_SLOT(ch, 1))
-    fprintf(fl, "NAr1: %d\n", NEW_ARCANA_SLOT(ch, 1));
+    BUFFER_WRITE( "NAr1: %d\n", NEW_ARCANA_SLOT(ch, 1));
   if (NEW_ARCANA_SLOT(ch, 2))
-    fprintf(fl, "NAr2: %d\n", NEW_ARCANA_SLOT(ch, 2));
+    BUFFER_WRITE( "NAr2: %d\n", NEW_ARCANA_SLOT(ch, 2));
   if (NEW_ARCANA_SLOT(ch, 3))
-    fprintf(fl, "NAr3: %d\n", NEW_ARCANA_SLOT(ch, 3));
+    BUFFER_WRITE( "NAr3: %d\n", NEW_ARCANA_SLOT(ch, 3));
   if (NECROMANCER_CAST_TYPE(ch))
-    fprintf(fl, "NecC: %d\n", NECROMANCER_CAST_TYPE(ch));
-  fprintf(fl, "Id  : %ld\n", GET_IDNUM(ch));
-  fprintf(fl, "Brth: %ld\n", (long)ch->player.time.birth);
-  fprintf(fl, "Plyd: %d\n", ch->player.time.played);
-  fprintf(fl, "Last: %ld\n", (long)ch->player.time.logon);
-  fprintf(fl, "LstR: %d\n", GET_LAST_ROOM(ch));
+    BUFFER_WRITE( "NecC: %d\n", NECROMANCER_CAST_TYPE(ch));
+  BUFFER_WRITE( "Id  : %ld\n", GET_IDNUM(ch));
+  BUFFER_WRITE( "Brth: %ld\n", (long)ch->player.time.birth);
+  BUFFER_WRITE( "Plyd: %d\n", ch->player.time.played);
+  BUFFER_WRITE( "Last: %ld\n", (long)ch->player.time.logon);
+  BUFFER_WRITE( "LstR: %d\n", GET_LAST_ROOM(ch));
 
   if (GET_LAST_MOTD(ch) != PFDEF_LASTMOTD)
-    fprintf(fl, "Lmot: %d\n", (int)GET_LAST_MOTD(ch));
+    BUFFER_WRITE( "Lmot: %d\n", (int)GET_LAST_MOTD(ch));
   if (GET_LAST_NEWS(ch) != PFDEF_LASTNEWS)
-    fprintf(fl, "Lnew: %d\n", (int)GET_LAST_NEWS(ch));
+    BUFFER_WRITE( "Lnew: %d\n", (int)GET_LAST_NEWS(ch));
 
-  fprintf(fl, "DrgB: %d\n", GET_DRAGONBORN_ANCESTRY(ch));
+  BUFFER_WRITE( "DrgB: %d\n", GET_DRAGONBORN_ANCESTRY(ch));
 
-  fprintf(fl, "Spek: %d\n", SPEAKING(ch));
-  fprintf(fl, "Home: %d\n", GET_REGION(ch));
-  fprintf(fl, "HomT: %d\n", GET_HOMETOWN(ch));
-  fprintf(fl, "DAd1: %d\n", GET_PC_ADJECTIVE_1(ch));
-  fprintf(fl, "DAd2: %d\n", GET_PC_ADJECTIVE_2(ch));
-  fprintf(fl, "DDs1: %d\n", GET_PC_DESCRIPTOR_1(ch));
-  fprintf(fl, "DDs2: %d\n", GET_PC_DESCRIPTOR_2(ch));
+  BUFFER_WRITE( "Spek: %d\n", SPEAKING(ch));
+  BUFFER_WRITE( "Home: %d\n", GET_REGION(ch));
+  BUFFER_WRITE( "HomT: %d\n", GET_HOMETOWN(ch));
+  BUFFER_WRITE( "DAd1: %d\n", GET_PC_ADJECTIVE_1(ch));
+  BUFFER_WRITE( "DAd2: %d\n", GET_PC_ADJECTIVE_2(ch));
+  BUFFER_WRITE( "DDs1: %d\n", GET_PC_DESCRIPTOR_1(ch));
+  BUFFER_WRITE( "DDs2: %d\n", GET_PC_DESCRIPTOR_2(ch));
 
   if (ch->player_specials->saved.new_race_stats)
-    fprintf(fl, "RacR: %d\n", ch->player_specials->saved.new_race_stats);
+    BUFFER_WRITE( "RacR: %d\n", ch->player_specials->saved.new_race_stats);
 
   if (GET_HOST(ch))
-    fprintf(fl, "Host: %s\n", GET_HOST(ch));
+    BUFFER_WRITE( "Host: %s\n", GET_HOST(ch));
   if (GET_HEIGHT(ch) != PFDEF_HEIGHT)
-    fprintf(fl, "Hite: %d\n", GET_HEIGHT(ch));
+    BUFFER_WRITE( "Hite: %d\n", GET_HEIGHT(ch));
   if (HIGH_ELF_CANTRIP(ch))
-    fprintf(fl, "HECn: %d\n", HIGH_ELF_CANTRIP(ch));
+    BUFFER_WRITE( "HECn: %d\n", HIGH_ELF_CANTRIP(ch));
   if (GET_HOLY_WEAPON_TYPE(ch) != PFDEF_HOLY_WEAPON_TYPE)
-    fprintf(fl, "HlyW: %d\n", GET_HOLY_WEAPON_TYPE(ch));
+    BUFFER_WRITE( "HlyW: %d\n", GET_HOLY_WEAPON_TYPE(ch));
   if (GET_WEIGHT(ch) != PFDEF_WEIGHT)
-    fprintf(fl, "Wate: %d\n", GET_WEIGHT(ch));
+    BUFFER_WRITE( "Wate: %d\n", GET_WEIGHT(ch));
   if (GET_ALIGNMENT(ch) != PFDEF_ALIGNMENT)
-    fprintf(fl, "Alin: %d\n", GET_ALIGNMENT(ch));
+    BUFFER_WRITE( "Alin: %d\n", GET_ALIGNMENT(ch));
   if (GET_CH_AGE(ch) != 0)
-    fprintf(fl, "Age : %d\n", GET_CH_AGE(ch));
+    BUFFER_WRITE( "Age : %d\n", GET_CH_AGE(ch));
   if ((ch)->player_specials->saved.character_age_saved != 0)
-    fprintf(fl, "AgeS: %d\n", (ch)->player_specials->saved.character_age_saved);
+    BUFFER_WRITE( "AgeS: %d\n", (ch)->player_specials->saved.character_age_saved);
   if (GET_TEMPLATE(ch) != PFDEF_TEMPLATE)
-    fprintf(fl, "Tmpl: %d\n", GET_TEMPLATE(ch));
+    BUFFER_WRITE( "Tmpl: %d\n", GET_TEMPLATE(ch));
   // Faction mission system
-  fprintf(fl, "MiCu: %d\n", GET_CURRENT_MISSION(ch));
-  fprintf(fl, "MiCr: %ld\n", GET_MISSION_CREDITS(ch));
-  fprintf(fl, "MiCd: %d\n", GET_MISSION_COOLDOWN(ch));
-  fprintf(fl, "MiSt: %ld\n", GET_MISSION_STANDING(ch));
-  fprintf(fl, "MiFa: %d\n", GET_MISSION_FACTION(ch));
-  fprintf(fl, "MiRe: %ld\n", GET_MISSION_REP(ch));
-  fprintf(fl, "MiXp: %ld\n", GET_MISSION_EXP(ch));
-  fprintf(fl, "MiDf: %d\n", GET_MISSION_DIFFICULTY(ch));
-  fprintf(fl, "MiRN: %d\n", GET_MISSION_NPC_NAME_NUM(ch));
-  fprintf(fl, "MiRm: %d\n", GET_CURRENT_MISSION_ROOM(ch));
+  BUFFER_WRITE( "MiCu: %d\n", GET_CURRENT_MISSION(ch));
+  BUFFER_WRITE( "MiCr: %ld\n", GET_MISSION_CREDITS(ch));
+  BUFFER_WRITE( "MiCd: %d\n", GET_MISSION_COOLDOWN(ch));
+  BUFFER_WRITE( "MiSt: %ld\n", GET_MISSION_STANDING(ch));
+  BUFFER_WRITE( "MiFa: %d\n", GET_MISSION_FACTION(ch));
+  BUFFER_WRITE( "MiRe: %ld\n", GET_MISSION_REP(ch));
+  BUFFER_WRITE( "MiXp: %ld\n", GET_MISSION_EXP(ch));
+  BUFFER_WRITE( "MiDf: %d\n", GET_MISSION_DIFFICULTY(ch));
+  BUFFER_WRITE( "MiRN: %d\n", GET_MISSION_NPC_NAME_NUM(ch));
+  BUFFER_WRITE( "MiRm: %d\n", GET_CURRENT_MISSION_ROOM(ch));
 
   if (VITAL_STRIKING(ch))
-    fprintf(fl, "VitS: %d\n", VITAL_STRIKING(ch));
+    BUFFER_WRITE( "VitS: %d\n", VITAL_STRIKING(ch));
 
   sprintascii(bits, PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);
   sprintascii(bits3, PLR_FLAGS(ch)[2]);
   sprintascii(bits4, PLR_FLAGS(ch)[3]);
-  fprintf(fl, "Act : %s %s %s %s\n", bits, bits2, bits3, bits4);
+  BUFFER_WRITE( "Act : %s %s %s %s\n", bits, bits2, bits3, bits4);
 
   sprintascii(bits, AFF_FLAGS(ch)[0]);
   sprintascii(bits2, AFF_FLAGS(ch)[1]);
   sprintascii(bits3, AFF_FLAGS(ch)[2]);
   sprintascii(bits4, AFF_FLAGS(ch)[3]);
-  fprintf(fl, "Aff : %s %s %s %s\n", bits, bits2, bits3, bits4);
+  BUFFER_WRITE( "Aff : %s %s %s %s\n", bits, bits2, bits3, bits4);
 
   sprintascii(bits, PRF_FLAGS(ch)[0]);
   sprintascii(bits2, PRF_FLAGS(ch)[1]);
   sprintascii(bits3, PRF_FLAGS(ch)[2]);
   sprintascii(bits4, PRF_FLAGS(ch)[3]);
-  fprintf(fl, "Pref: %s %s %s %s\n", bits, bits2, bits3, bits4);
+  BUFFER_WRITE( "Pref: %s %s %s %s\n", bits, bits2, bits3, bits4);
 
   if (GET_SAVE(ch, 0) != PFDEF_SAVETHROW)
-    fprintf(fl, "Thr1: %d\n", GET_SAVE(ch, 0));
+    BUFFER_WRITE( "Thr1: %d\n", GET_SAVE(ch, 0));
   if (GET_SAVE(ch, 1) != PFDEF_SAVETHROW)
-    fprintf(fl, "Thr2: %d\n", GET_SAVE(ch, 1));
+    BUFFER_WRITE( "Thr2: %d\n", GET_SAVE(ch, 1));
   if (GET_SAVE(ch, 2) != PFDEF_SAVETHROW)
-    fprintf(fl, "Thr3: %d\n", GET_SAVE(ch, 2));
+    BUFFER_WRITE( "Thr3: %d\n", GET_SAVE(ch, 2));
   if (GET_SAVE(ch, 3) != PFDEF_SAVETHROW)
-    fprintf(fl, "Thr4: %d\n", GET_SAVE(ch, 3));
+    BUFFER_WRITE( "Thr4: %d\n", GET_SAVE(ch, 3));
   if (GET_SAVE(ch, 4) != PFDEF_SAVETHROW)
-    fprintf(fl, "Thr5: %d\n", GET_SAVE(ch, 4));
+    BUFFER_WRITE( "Thr5: %d\n", GET_SAVE(ch, 4));
 
   if (GET_RESISTANCES(ch, 1) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res1: %d\n", GET_RESISTANCES(ch, 1));
+    BUFFER_WRITE( "Res1: %d\n", GET_RESISTANCES(ch, 1));
   if (GET_RESISTANCES(ch, 2) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res2: %d\n", GET_RESISTANCES(ch, 2));
+    BUFFER_WRITE( "Res2: %d\n", GET_RESISTANCES(ch, 2));
   if (GET_RESISTANCES(ch, 3) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res3: %d\n", GET_RESISTANCES(ch, 3));
+    BUFFER_WRITE( "Res3: %d\n", GET_RESISTANCES(ch, 3));
   if (GET_RESISTANCES(ch, 4) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res4: %d\n", GET_RESISTANCES(ch, 4));
+    BUFFER_WRITE( "Res4: %d\n", GET_RESISTANCES(ch, 4));
   if (GET_RESISTANCES(ch, 5) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res5: %d\n", GET_RESISTANCES(ch, 5));
+    BUFFER_WRITE( "Res5: %d\n", GET_RESISTANCES(ch, 5));
   if (GET_RESISTANCES(ch, 6) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res6: %d\n", GET_RESISTANCES(ch, 6));
+    BUFFER_WRITE( "Res6: %d\n", GET_RESISTANCES(ch, 6));
   if (GET_RESISTANCES(ch, 7) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res7: %d\n", GET_RESISTANCES(ch, 7));
+    BUFFER_WRITE( "Res7: %d\n", GET_RESISTANCES(ch, 7));
   if (GET_RESISTANCES(ch, 8) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res8: %d\n", GET_RESISTANCES(ch, 8));
+    BUFFER_WRITE( "Res8: %d\n", GET_RESISTANCES(ch, 8));
   if (GET_RESISTANCES(ch, 9) != PFDEF_RESISTANCES)
-    fprintf(fl, "Res9: %d\n", GET_RESISTANCES(ch, 9));
+    BUFFER_WRITE( "Res9: %d\n", GET_RESISTANCES(ch, 9));
   if (GET_RESISTANCES(ch, 10) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResA: %d\n", GET_RESISTANCES(ch, 10));
+    BUFFER_WRITE( "ResA: %d\n", GET_RESISTANCES(ch, 10));
   if (GET_RESISTANCES(ch, 11) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResB: %d\n", GET_RESISTANCES(ch, 11));
+    BUFFER_WRITE( "ResB: %d\n", GET_RESISTANCES(ch, 11));
   if (GET_RESISTANCES(ch, 12) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResC: %d\n", GET_RESISTANCES(ch, 12));
+    BUFFER_WRITE( "ResC: %d\n", GET_RESISTANCES(ch, 12));
   if (GET_RESISTANCES(ch, 13) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResD: %d\n", GET_RESISTANCES(ch, 13));
+    BUFFER_WRITE( "ResD: %d\n", GET_RESISTANCES(ch, 13));
   if (GET_RESISTANCES(ch, 14) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResE: %d\n", GET_RESISTANCES(ch, 14));
+    BUFFER_WRITE( "ResE: %d\n", GET_RESISTANCES(ch, 14));
   if (GET_RESISTANCES(ch, 15) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResF: %d\n", GET_RESISTANCES(ch, 15));
+    BUFFER_WRITE( "ResF: %d\n", GET_RESISTANCES(ch, 15));
   if (GET_RESISTANCES(ch, 16) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResG: %d\n", GET_RESISTANCES(ch, 16));
+    BUFFER_WRITE( "ResG: %d\n", GET_RESISTANCES(ch, 16));
   if (GET_RESISTANCES(ch, 17) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResH: %d\n", GET_RESISTANCES(ch, 17));
+    BUFFER_WRITE( "ResH: %d\n", GET_RESISTANCES(ch, 17));
   if (GET_RESISTANCES(ch, 18) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResI: %d\n", GET_RESISTANCES(ch, 18));
+    BUFFER_WRITE( "ResI: %d\n", GET_RESISTANCES(ch, 18));
   if (GET_RESISTANCES(ch, 19) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResJ: %d\n", GET_RESISTANCES(ch, 19));
+    BUFFER_WRITE( "ResJ: %d\n", GET_RESISTANCES(ch, 19));
   if (GET_RESISTANCES(ch, 20) != PFDEF_RESISTANCES)
-    fprintf(fl, "ResK: %d\n", GET_RESISTANCES(ch, 20));
+    BUFFER_WRITE( "ResK: %d\n", GET_RESISTANCES(ch, 20));
 
   if (GET_WIMP_LEV(ch) != PFDEF_WIMPLEV)
-    fprintf(fl, "Wimp: %d\n", GET_WIMP_LEV(ch));
+    BUFFER_WRITE( "Wimp: %d\n", GET_WIMP_LEV(ch));
   if (GET_FREEZE_LEV(ch) != PFDEF_FREEZELEV)
-    fprintf(fl, "Frez: %d\n", GET_FREEZE_LEV(ch));
+    BUFFER_WRITE( "Frez: %d\n", GET_FREEZE_LEV(ch));
   if (GET_INVIS_LEV(ch) != PFDEF_INVISLEV)
-    fprintf(fl, "Invs: %d\n", GET_INVIS_LEV(ch));
+    BUFFER_WRITE( "Invs: %d\n", GET_INVIS_LEV(ch));
   if (GET_LOADROOM(ch) != PFDEF_LOADROOM)
-    fprintf(fl, "Room: %d\n", GET_LOADROOM(ch));
+    BUFFER_WRITE( "Room: %d\n", GET_LOADROOM(ch));
   if (ch->player_specials->saved.fiendish_boons != 0)
-    fprintf(fl, "FdBn: %d\n", ch->player_specials->saved.fiendish_boons);
+    BUFFER_WRITE( "FdBn: %d\n", ch->player_specials->saved.fiendish_boons);
   if (ch->player_specials->saved.channel_energy_type != 0)
-    fprintf(fl, "ChEn: %d\n", ch->player_specials->saved.channel_energy_type);
+    BUFFER_WRITE( "ChEn: %d\n", ch->player_specials->saved.channel_energy_type);
 
   if (FIXED_BAB(ch) != 0)
-    fprintf(fl, "FBAB: %d\n", FIXED_BAB(ch));
+    BUFFER_WRITE( "FBAB: %d\n", FIXED_BAB(ch));
 
-  fprintf(fl, "FaAd: %ld\n", GET_FACTION_STANDING(ch, FACTION_ADVENTURERS));
+  BUFFER_WRITE( "FaAd: %ld\n", GET_FACTION_STANDING(ch, FACTION_ADVENTURERS));
 
   if (GET_BAD_PWS(ch) != PFDEF_BADPWS)
-    fprintf(fl, "Badp: %d\n", GET_BAD_PWS(ch));
+    BUFFER_WRITE( "Badp: %d\n", GET_BAD_PWS(ch));
   if (GET_BACKGROUND(ch) != 0)
-    fprintf(fl, "BGnd: %d\n", GET_BACKGROUND(ch));
+    BUFFER_WRITE( "BGnd: %d\n", GET_BACKGROUND(ch));
   if (GET_PRACTICES(ch) != PFDEF_PRACTICES)
-    fprintf(fl, "Lern: %d\n", GET_PRACTICES(ch));
+    BUFFER_WRITE( "Lern: %d\n", GET_PRACTICES(ch));
   if (GET_TRAINS(ch) != PFDEF_TRAINS)
-    fprintf(fl, "Trns: %d\n", GET_TRAINS(ch));
+    BUFFER_WRITE( "Trns: %d\n", GET_TRAINS(ch));
   if (GET_BOOSTS(ch) != PFDEF_BOOSTS)
-    fprintf(fl, "Bost: %d\n", GET_BOOSTS(ch));
+    BUFFER_WRITE( "Bost: %d\n", GET_BOOSTS(ch));
 
   if (GET_1ST_DOMAIN(ch) != PFDEF_DOMAIN_1)
-    fprintf(fl, "Dom1: %d\n", GET_1ST_DOMAIN(ch));
+    BUFFER_WRITE( "Dom1: %d\n", GET_1ST_DOMAIN(ch));
   if (GET_2ND_DOMAIN(ch) != PFDEF_DOMAIN_2)
-    fprintf(fl, "Dom2: %d\n", GET_2ND_DOMAIN(ch));
+    BUFFER_WRITE( "Dom2: %d\n", GET_2ND_DOMAIN(ch));
   if (GET_SPECIALTY_SCHOOL(ch) != PFDEF_SPECIALTY_SCHOOL)
-    fprintf(fl, "SSch: %d\n", GET_SPECIALTY_SCHOOL(ch));
+    BUFFER_WRITE( "SSch: %d\n", GET_SPECIALTY_SCHOOL(ch));
   if (GET_1ST_RESTRICTED_SCHOOL(ch) != PFDEF_RESTRICTED_SCHOOL_1)
-    fprintf(fl, "RSc1: %d\n", GET_1ST_RESTRICTED_SCHOOL(ch));
+    BUFFER_WRITE( "RSc1: %d\n", GET_1ST_RESTRICTED_SCHOOL(ch));
   if (GET_2ND_RESTRICTED_SCHOOL(ch) != PFDEF_RESTRICTED_SCHOOL_2)
-    fprintf(fl, "RSc2: %d\n", GET_2ND_RESTRICTED_SCHOOL(ch));
+    BUFFER_WRITE( "RSc2: %d\n", GET_2ND_RESTRICTED_SCHOOL(ch));
 
   if (GET_PREFERRED_ARCANE(ch) != PFDEF_PREFERRED_ARCANE)
-    fprintf(fl, "PCAr: %d\n", GET_PREFERRED_ARCANE(ch));
+    BUFFER_WRITE( "PCAr: %d\n", GET_PREFERRED_ARCANE(ch));
   if (GET_PREFERRED_DIVINE(ch) != PFDEF_PREFERRED_DIVINE)
-    fprintf(fl, "PCDi: %d\n", GET_PREFERRED_DIVINE(ch));
+    BUFFER_WRITE( "PCDi: %d\n", GET_PREFERRED_DIVINE(ch));
 
   if (GET_FEAT_POINTS(ch) != 0)
-    fprintf(fl, "Ftpt: %d\n", GET_FEAT_POINTS(ch));
+    BUFFER_WRITE( "Ftpt: %d\n", GET_FEAT_POINTS(ch));
 
-  fprintf(fl, "Cfpt:\n");
+  BUFFER_WRITE( "Cfpt:\n");
   for (i = 0; i < NUM_CLASSES; i++)
     if (GET_CLASS_FEATS(ch, i) != 0)
-      fprintf(fl, "%d %d\n", i, GET_CLASS_FEATS(ch, i));
-  fprintf(fl, "0\n");
+      BUFFER_WRITE( "%d %d\n", i, GET_CLASS_FEATS(ch, i));
+  BUFFER_WRITE( "0\n");
 
   if (GET_EPIC_FEAT_POINTS(ch) != 0)
-    fprintf(fl, "Efpt: %d\n", GET_EPIC_FEAT_POINTS(ch));
+    BUFFER_WRITE( "Efpt: %d\n", GET_EPIC_FEAT_POINTS(ch));
 
-  fprintf(fl, "Ecfp:\n");
+  BUFFER_WRITE( "Ecfp:\n");
   for (i = 0; i < NUM_CLASSES; i++)
     if (GET_EPIC_CLASS_FEATS(ch, i) != 0)
-      fprintf(fl, "%d %d\n", i, GET_EPIC_CLASS_FEATS(ch, i));
-  fprintf(fl, "0\n");
+      BUFFER_WRITE( "%d %d\n", i, GET_EPIC_CLASS_FEATS(ch, i));
+  BUFFER_WRITE( "0\n");
 
   if (GET_COND(ch, HUNGER) != PFDEF_HUNGER && GET_LEVEL(ch) < LVL_IMMORT)
-    fprintf(fl, "Hung: %d\n", GET_COND(ch, HUNGER));
+    BUFFER_WRITE( "Hung: %d\n", GET_COND(ch, HUNGER));
   if (GET_COND(ch, THIRST) != PFDEF_THIRST && GET_LEVEL(ch) < LVL_IMMORT)
-    fprintf(fl, "Thir: %d\n", GET_COND(ch, THIRST));
+    BUFFER_WRITE( "Thir: %d\n", GET_COND(ch, THIRST));
   if (GET_COND(ch, DRUNK) != PFDEF_DRUNK && GET_LEVEL(ch) < LVL_IMMORT)
-    fprintf(fl, "Drnk: %d\n", GET_COND(ch, DRUNK));
+    BUFFER_WRITE( "Drnk: %d\n", GET_COND(ch, DRUNK));
 
   if (GET_HIT(ch) != PFDEF_HIT || GET_MAX_HIT(ch) != PFDEF_MAXHIT)
-    fprintf(fl, "Hit : %d/%d\n", GET_HIT(ch), GET_MAX_HIT(ch));
+    BUFFER_WRITE( "Hit : %d/%d\n", GET_HIT(ch), GET_MAX_HIT(ch));
   if (GET_PSP(ch) != PFDEF_PSP || GET_MAX_PSP(ch) != PFDEF_MAXPSP)
-    fprintf(fl, "PSP : %d/%d\n", GET_PSP(ch), GET_MAX_PSP(ch));
+    BUFFER_WRITE( "PSP : %d/%d\n", GET_PSP(ch), GET_MAX_PSP(ch));
   if (GET_MOVE(ch) != PFDEF_MOVE || GET_MAX_MOVE(ch) != PFDEF_MAXMOVE)
-    fprintf(fl, "Move: %d/%d\n", GET_MOVE(ch), GET_MAX_MOVE(ch));
+    BUFFER_WRITE( "Move: %d/%d\n", GET_MOVE(ch), GET_MAX_MOVE(ch));
 
   if (GET_HP_REGEN(ch) != PFDEF_HP_REGEN)
-    fprintf(fl, "HPRg : %d\n", GET_HP_REGEN(ch));
+    BUFFER_WRITE( "HPRg : %d\n", GET_HP_REGEN(ch));
   if (GET_MV_REGEN(ch) != PFDEF_MV_REGEN)
-    fprintf(fl, "MVRg : %d\n", GET_MV_REGEN(ch));
+    BUFFER_WRITE( "MVRg : %d\n", GET_MV_REGEN(ch));
   if (GET_PSP_REGEN(ch) != PFDEF_PSP_REGEN)
-    fprintf(fl, "PSRg : %d\n", GET_PSP_REGEN(ch));
+    BUFFER_WRITE( "PSRg : %d\n", GET_PSP_REGEN(ch));
 
   if (GET_SETCLOAK_TIMER(ch) != PFDEF_SETCLOAK_TIMER)
-    fprintf(fl, "ClkT : %d\n", GET_SETCLOAK_TIMER(ch));
+    BUFFER_WRITE( "ClkT : %d\n", GET_SETCLOAK_TIMER(ch));
 
   if (GET_STR(ch) != PFDEF_STR || GET_ADD(ch) != PFDEF_STRADD)
-    fprintf(fl, "Str : %d/%d\n", GET_STR(ch), GET_ADD(ch));
+    BUFFER_WRITE( "Str : %d/%d\n", GET_STR(ch), GET_ADD(ch));
 
   if (GET_INT(ch) != PFDEF_INT)
-    fprintf(fl, "Int : %d\n", GET_INT(ch));
+    BUFFER_WRITE( "Int : %d\n", GET_INT(ch));
   if (GET_WIS(ch) != PFDEF_WIS)
-    fprintf(fl, "Wis : %d\n", GET_WIS(ch));
+    BUFFER_WRITE( "Wis : %d\n", GET_WIS(ch));
   if (GET_DEX(ch) != PFDEF_DEX)
-    fprintf(fl, "Dex : %d\n", GET_DEX(ch));
+    BUFFER_WRITE( "Dex : %d\n", GET_DEX(ch));
   if (GET_CON(ch) != PFDEF_CON)
-    fprintf(fl, "Con : %d\n", GET_CON(ch));
+    BUFFER_WRITE( "Con : %d\n", GET_CON(ch));
   if (GET_CHA(ch) != PFDEF_CHA)
-    fprintf(fl, "Cha : %d\n", GET_CHA(ch));
+    BUFFER_WRITE( "Cha : %d\n", GET_CHA(ch));
 
   if (GET_AC(ch) != PFDEF_AC)
-    fprintf(fl, "Ac  : %d\n", GET_AC(ch));
+    BUFFER_WRITE( "Ac  : %d\n", GET_AC(ch));
   if (GET_GOLD(ch) != PFDEF_GOLD)
-    fprintf(fl, "Gold: %d\n", GET_GOLD(ch));
+    BUFFER_WRITE( "Gold: %d\n", GET_GOLD(ch));
   if (GET_BANK_GOLD(ch) != PFDEF_BANK)
-    fprintf(fl, "Bank: %d\n", GET_BANK_GOLD(ch));
+    BUFFER_WRITE( "Bank: %d\n", GET_BANK_GOLD(ch));
   if (GET_EXP(ch) != PFDEF_EXP)
-    fprintf(fl, "Exp : %d\n", GET_EXP(ch));
+    BUFFER_WRITE( "Exp : %d\n", GET_EXP(ch));
   if (GET_HITROLL(ch) != PFDEF_HITROLL)
-    fprintf(fl, "Hrol: %d\n", GET_HITROLL(ch));
+    BUFFER_WRITE( "Hrol: %d\n", GET_HITROLL(ch));
   if (GET_DAMROLL(ch) != PFDEF_DAMROLL)
-    fprintf(fl, "Drol: %d\n", GET_DAMROLL(ch));
+    BUFFER_WRITE( "Drol: %d\n", GET_DAMROLL(ch));
   if (GET_SPELL_RES(ch) != PFDEF_SPELL_RES)
-    fprintf(fl, "SpRs: %d\n", GET_SPELL_RES(ch));
+    BUFFER_WRITE( "SpRs: %d\n", GET_SPELL_RES(ch));
   if (IS_MORPHED(ch) != PFDEF_MORPHED)
-    fprintf(fl, "Mrph: %d\n", IS_MORPHED(ch));
+    BUFFER_WRITE( "Mrph: %d\n", IS_MORPHED(ch));
   if (MERGE_FORMS_TIMER(ch) != 0)
-    fprintf(fl, "MFrm: %d\n", MERGE_FORMS_TIMER(ch));
+    BUFFER_WRITE( "MFrm: %d\n", MERGE_FORMS_TIMER(ch));
   if (GET_EIDOLON_BASE_FORM(ch) != 0)
-    fprintf(fl, "EidB: %d\n", GET_EIDOLON_BASE_FORM(ch));
+    BUFFER_WRITE( "EidB: %d\n", GET_EIDOLON_BASE_FORM(ch));
   if (CALL_EIDOLON_COOLDOWN(ch) != 0)
-    fprintf(fl, "EidC: %d\n", CALL_EIDOLON_COOLDOWN(ch));
+    BUFFER_WRITE( "EidC: %d\n", CALL_EIDOLON_COOLDOWN(ch));
   if (GET_FORAGE_COOLDOWN(ch) != 0)
-    fprintf(fl, "FrgC: %d\n", GET_FORAGE_COOLDOWN(ch));
+    BUFFER_WRITE( "FrgC: %d\n", GET_FORAGE_COOLDOWN(ch));
   if (GET_SCROUNGE_COOLDOWN(ch) != 0)
-    fprintf(fl, "Scrg: %d\n", GET_SCROUNGE_COOLDOWN(ch));
+    BUFFER_WRITE( "Scrg: %d\n", GET_SCROUNGE_COOLDOWN(ch));
   if (GET_RETAINER_COOLDOWN(ch) != 0)
-    fprintf(fl, "RetC: %d\n", GET_RETAINER_COOLDOWN(ch));
-  fprintf(fl, "God : %d\n", GET_DEITY(ch));
+    BUFFER_WRITE( "RetC: %d\n", GET_RETAINER_COOLDOWN(ch));
+  BUFFER_WRITE( "God : %d\n", GET_DEITY(ch));
   if (GET_AUTOCQUEST_VNUM(ch) != PFDEF_AUTOCQUEST_VNUM)
-    fprintf(fl, "Cvnm: %d\n", GET_AUTOCQUEST_VNUM(ch));
+    BUFFER_WRITE( "Cvnm: %d\n", GET_AUTOCQUEST_VNUM(ch));
   if (GET_AUTOCQUEST_MAKENUM(ch) != PFDEF_AUTOCQUEST_MAKENUM)
-    fprintf(fl, "Cmnm: %d\n", GET_AUTOCQUEST_MAKENUM(ch));
+    BUFFER_WRITE( "Cmnm: %d\n", GET_AUTOCQUEST_MAKENUM(ch));
   if (GET_AUTOCQUEST_QP(ch) != PFDEF_AUTOCQUEST_QP)
-    fprintf(fl, "Cqps: %d\n", GET_AUTOCQUEST_QP(ch));
+    BUFFER_WRITE( "Cqps: %d\n", GET_AUTOCQUEST_QP(ch));
   if (GET_AUTOCQUEST_EXP(ch) != PFDEF_AUTOCQUEST_EXP)
-    fprintf(fl, "Cexp: %d\n", GET_AUTOCQUEST_EXP(ch));
+    BUFFER_WRITE( "Cexp: %d\n", GET_AUTOCQUEST_EXP(ch));
   if (GET_AUTOCQUEST_GOLD(ch) != PFDEF_AUTOCQUEST_GOLD)
-    fprintf(fl, "Cgld: %d\n", GET_AUTOCQUEST_GOLD(ch));
+    BUFFER_WRITE( "Cgld: %d\n", GET_AUTOCQUEST_GOLD(ch));
   if (GET_AUTOCQUEST_DESC(ch) != PFDEF_AUTOCQUEST_DESC)
-    fprintf(fl, "Cdsc: %s\n", GET_AUTOCQUEST_DESC(ch));
+    BUFFER_WRITE( "Cdsc: %s\n", GET_AUTOCQUEST_DESC(ch));
   if (GET_AUTOCQUEST_MATERIAL(ch) != PFDEF_AUTOCQUEST_MATERIAL)
-    fprintf(fl, "Cmat: %d\n", GET_AUTOCQUEST_MATERIAL(ch));
+    BUFFER_WRITE( "Cmat: %d\n", GET_AUTOCQUEST_MATERIAL(ch));
 
   if (EFREETI_MAGIC_USES(ch) != PFDEF_EFREETI_MAGIC_USES)
-    fprintf(fl, "EfMU: %d\n", EFREETI_MAGIC_USES(ch));
+    BUFFER_WRITE( "EfMU: %d\n", EFREETI_MAGIC_USES(ch));
   if (EFREETI_MAGIC_TIMER(ch) != PFDEF_EFREETI_MAGIC_TIMER)
-    fprintf(fl, "EfMT: %d\n", EFREETI_MAGIC_TIMER(ch));
+    BUFFER_WRITE( "EfMT: %d\n", EFREETI_MAGIC_TIMER(ch));
   if (GET_ENCUMBRANCE_MOD(ch) != 0)
-    fprintf(fl, "EncM: %d\n", GET_ENCUMBRANCE_MOD(ch));
-  fprintf(fl, "EldE: %d\n", GET_ELDRITCH_ESSENCE(ch));
-  fprintf(fl, "EldS: %d\n", GET_ELDRITCH_SHAPE(ch));
+    BUFFER_WRITE( "EncM: %d\n", GET_ENCUMBRANCE_MOD(ch));
+  BUFFER_WRITE( "EldE: %d\n", GET_ELDRITCH_ESSENCE(ch));
+  BUFFER_WRITE( "EldS: %d\n", GET_ELDRITCH_SHAPE(ch));
   if (GET_DR_MOD(ch) > 0)
-    fprintf(fl, "DRMd: %d\n", GET_DR_MOD(ch));
+    BUFFER_WRITE( "DRMd: %d\n", GET_DR_MOD(ch));
 
   if (DRAGON_MAGIC_USES(ch) != PFDEF_DRAGON_MAGIC_USES)
-    fprintf(fl, "DrMU: %d\n", DRAGON_MAGIC_USES(ch));
+    BUFFER_WRITE( "DrMU: %d\n", DRAGON_MAGIC_USES(ch));
   if (DRAGON_MAGIC_TIMER(ch) != PFDEF_DRAGON_MAGIC_TIMER)
-    fprintf(fl, "DrMT: %d\n", DRAGON_MAGIC_TIMER(ch));
+    BUFFER_WRITE( "DrMT: %d\n", DRAGON_MAGIC_TIMER(ch));
   if (PIXIE_DUST_USES(ch) != PFDEF_PIXIE_DUST_USES)
-    fprintf(fl, "PxDU: %d\n", PIXIE_DUST_USES(ch));
+    BUFFER_WRITE( "PxDU: %d\n", PIXIE_DUST_USES(ch));
   if (PIXIE_DUST_TIMER(ch) != PFDEF_PIXIE_DUST_TIMER)
-    fprintf(fl, "PxDT: %d\n", PIXIE_DUST_TIMER(ch));
+    BUFFER_WRITE( "PxDT: %d\n", PIXIE_DUST_TIMER(ch));
 
   if (LAUGHING_TOUCH_USES(ch) != PFDEF_LAUGHING_TOUCH_USES)
-    fprintf(fl, "LTCU: %d\n", LAUGHING_TOUCH_USES(ch));
+    BUFFER_WRITE( "LTCU: %d\n", LAUGHING_TOUCH_USES(ch));
   if (LAUGHING_TOUCH_TIMER(ch) != PFDEF_LAUGHING_TOUCH_TIMER)
-    fprintf(fl, "LTCT: %d\n", LAUGHING_TOUCH_TIMER(ch));
+    BUFFER_WRITE( "LTCT: %d\n", LAUGHING_TOUCH_TIMER(ch));
 
   if (FLEETING_GLANCE_USES(ch) != PFDEF_FLEETING_GLANCE_USES)
-    fprintf(fl, "FLGU: %d\n", FLEETING_GLANCE_USES(ch));
+    BUFFER_WRITE( "FLGU: %d\n", FLEETING_GLANCE_USES(ch));
   if (FLEETING_GLANCE_TIMER(ch) != PFDEF_FLEETING_GLANCE_TIMER)
-    fprintf(fl, "FLGT: %d\n", FLEETING_GLANCE_TIMER(ch));
+    BUFFER_WRITE( "FLGT: %d\n", FLEETING_GLANCE_TIMER(ch));
 
   if (FEY_SHADOW_WALK_USES(ch) != PFDEF_FEY_SHADOW_WALK_USES)
-    fprintf(fl, "FSWU: %d\n", FEY_SHADOW_WALK_USES(ch));
+    BUFFER_WRITE( "FSWU: %d\n", FEY_SHADOW_WALK_USES(ch));
   if (FEY_SHADOW_WALK_TIMER(ch) != PFDEF_FEY_SHADOW_WALK_TIMER)
-    fprintf(fl, "FSWT: %d\n", FEY_SHADOW_WALK_TIMER(ch));
+    BUFFER_WRITE( "FSWT: %d\n", FEY_SHADOW_WALK_TIMER(ch));
 
   if (GET_FAST_HEALING_MOD(ch) != 0)
-    fprintf(fl, "FstH: %d\n", GET_FAST_HEALING_MOD(ch));
+    BUFFER_WRITE( "FstH: %d\n", GET_FAST_HEALING_MOD(ch));
   if (GRAVE_TOUCH_USES(ch) != PFDEF_GRAVE_TOUCH_USES)
-    fprintf(fl, "GTCU: %d\n", GRAVE_TOUCH_USES(ch));
+    BUFFER_WRITE( "GTCU: %d\n", GRAVE_TOUCH_USES(ch));
   if (GRAVE_TOUCH_TIMER(ch) != PFDEF_GRAVE_TOUCH_TIMER)
-    fprintf(fl, "GTCT: %d\n", GRAVE_TOUCH_TIMER(ch));
+    BUFFER_WRITE( "GTCT: %d\n", GRAVE_TOUCH_TIMER(ch));
   if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) != 0)
-    fprintf(fl, "FttD: %d\n", GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch));
+    BUFFER_WRITE( "FttD: %d\n", GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch));
   if (GET_DRAGON_BOND_TYPE(ch) != 0)
-    fprintf(fl, "DrBT: %d\n", GET_DRAGON_BOND_TYPE(ch));
+    BUFFER_WRITE( "DrBT: %d\n", GET_DRAGON_BOND_TYPE(ch));
   if (GET_DRAGON_RIDER_DRAGON_TYPE(ch) != 0)
-    fprintf(fl, "DrDT: %d\n", GET_DRAGON_RIDER_DRAGON_TYPE(ch));
+    BUFFER_WRITE( "DrDT: %d\n", GET_DRAGON_RIDER_DRAGON_TYPE(ch));
 
   if (GRASP_OF_THE_DEAD_USES(ch) != PFDEF_GRASP_OF_THE_DEAD_USES)
-    fprintf(fl, "GODU: %d\n", GRASP_OF_THE_DEAD_USES(ch));
+    BUFFER_WRITE( "GODU: %d\n", GRASP_OF_THE_DEAD_USES(ch));
   if (GRASP_OF_THE_DEAD_TIMER(ch) != PFDEF_GRASP_OF_THE_DEAD_TIMER)
-    fprintf(fl, "GODT: %d\n", GRASP_OF_THE_DEAD_TIMER(ch));
+    BUFFER_WRITE( "GODT: %d\n", GRASP_OF_THE_DEAD_TIMER(ch));
 
   if (INCORPOREAL_FORM_USES(ch) != PFDEF_INCORPOREAL_FORM_USES)
-    fprintf(fl, "InFU: %d\n", INCORPOREAL_FORM_USES(ch));
+    BUFFER_WRITE( "InFU: %d\n", INCORPOREAL_FORM_USES(ch));
   if (INCORPOREAL_FORM_TIMER(ch) != PFDEF_INCORPOREAL_FORM_TIMER)
-    fprintf(fl, "InFT: %d\n", INCORPOREAL_FORM_TIMER(ch));
+    BUFFER_WRITE( "InFT: %d\n", INCORPOREAL_FORM_TIMER(ch));
 
   if (GET_PSIONIC_ENERGY_TYPE(ch) != PFDEF_PSIONIC_ENERGY_TYPE)
-    fprintf(fl, "PsET: %d\n", GET_PSIONIC_ENERGY_TYPE(ch));
+    BUFFER_WRITE( "PsET: %d\n", GET_PSIONIC_ENERGY_TYPE(ch));
 
   if (GET_OLC_ZONE(ch) != PFDEF_OLC)
-    fprintf(fl, "Olc : %d\n", GET_OLC_ZONE(ch));
+    BUFFER_WRITE( "Olc : %d\n", GET_OLC_ZONE(ch));
   if (GET_PAGE_LENGTH(ch) != PFDEF_PAGELENGTH)
-    fprintf(fl, "Page: %d\n", GET_PAGE_LENGTH(ch));
+    BUFFER_WRITE( "Page: %d\n", GET_PAGE_LENGTH(ch));
   if (GET_SCREEN_WIDTH(ch) != PFDEF_SCREENWIDTH)
-    fprintf(fl, "ScrW: %d\n", GET_SCREEN_WIDTH(ch));
+    BUFFER_WRITE( "ScrW: %d\n", GET_SCREEN_WIDTH(ch));
   if (GET_QUESTPOINTS(ch) != PFDEF_QUESTPOINTS)
-    fprintf(fl, "Qstp: %d\n", GET_QUESTPOINTS(ch));
+    BUFFER_WRITE( "Qstp: %d\n", GET_QUESTPOINTS(ch));
   if (GET_QUEST_COUNTER(ch, 0) != PFDEF_QUESTCOUNT)
-    fprintf(fl, "Qcnt: %d\n", GET_QUEST_COUNTER(ch, 0));
+    BUFFER_WRITE( "Qcnt: %d\n", GET_QUEST_COUNTER(ch, 0));
   if (GET_QUEST_COUNTER(ch, 1) != PFDEF_QUESTCOUNT)
-    fprintf(fl, "Qcn1: %d\n", GET_QUEST_COUNTER(ch, 1));
+    BUFFER_WRITE( "Qcn1: %d\n", GET_QUEST_COUNTER(ch, 1));
   if (GET_QUEST_COUNTER(ch, 2) != PFDEF_QUESTCOUNT)
-    fprintf(fl, "Qcn2: %d\n", GET_QUEST_COUNTER(ch, 2));
+    BUFFER_WRITE( "Qcn2: %d\n", GET_QUEST_COUNTER(ch, 2));
   if (GET_NUM_QUESTS(ch) != PFDEF_COMPQUESTS)
   {
-    fprintf(fl, "Qest:\n");
+    BUFFER_WRITE( "Qest:\n");
     for (i = 0; i < GET_NUM_QUESTS(ch); i++)
-      fprintf(fl, "%d\n", ch->player_specials->saved.completed_quests[i]);
-    fprintf(fl, "%d\n", NOTHING);
+      BUFFER_WRITE( "%d\n", ch->player_specials->saved.completed_quests[i]);
+    BUFFER_WRITE( "%d\n", NOTHING);
   }
 
   if (GET_NSUPPLY_COOLDOWN(ch) != 0)
-    fprintf(fl, "SpCd: %d\n", GET_NSUPPLY_COOLDOWN(ch));
+    BUFFER_WRITE( "SpCd: %d\n", GET_NSUPPLY_COOLDOWN(ch));
   if (GET_NSUPPLY_NUM_MADE(ch) != 0)
-    fprintf(fl, "SpNM: %d\n", GET_NSUPPLY_NUM_MADE(ch));
+    BUFFER_WRITE( "SpNM: %d\n", GET_NSUPPLY_NUM_MADE(ch));
 
   if (GET_QUEST(ch, 0) != PFDEF_CURRQUEST)
-    fprintf(fl, "Qcur: %d\n", GET_QUEST(ch, 0));
+    BUFFER_WRITE( "Qcur: %d\n", GET_QUEST(ch, 0));
   if (GET_QUEST(ch, 1) != PFDEF_CURRQUEST)
-    fprintf(fl, "Qcu1: %d\n", GET_QUEST(ch, 1));
+    BUFFER_WRITE( "Qcu1: %d\n", GET_QUEST(ch, 1));
   if (GET_QUEST(ch, 2) != PFDEF_CURRQUEST)
-    fprintf(fl, "Qcu2: %d\n", GET_QUEST(ch, 2));
+    BUFFER_WRITE( "Qcu2: %d\n", GET_QUEST(ch, 2));
   if (GET_DIPTIMER(ch) != PFDEF_DIPTIMER)
-    fprintf(fl, "DipT: %d\n", GET_DIPTIMER(ch));
+    BUFFER_WRITE( "DipT: %d\n", GET_DIPTIMER(ch));
   if (GET_CLAN(ch) != PFDEF_CLAN)
-    fprintf(fl, "Cln : %d\n", GET_CLAN(ch));
+    BUFFER_WRITE( "Cln : %d\n", GET_CLAN(ch));
   if (GET_CLANRANK(ch) != PFDEF_CLANRANK)
-    fprintf(fl, "Clrk: %d\n", GET_CLANRANK(ch));
+    BUFFER_WRITE( "Clrk: %d\n", GET_CLANRANK(ch));
   if (GET_CLANPOINTS(ch) != PFDEF_CLANPOINTS)
-    fprintf(fl, "CPts: %d\n", GET_CLANPOINTS(ch));
+    BUFFER_WRITE( "CPts: %d\n", GET_CLANPOINTS(ch));
   if (GET_SLAYER_JUDGEMENT(ch) != 0)
-    fprintf(fl, "Slyr: %d\n", GET_SLAYER_JUDGEMENT(ch));
+    BUFFER_WRITE( "Slyr: %d\n", GET_SLAYER_JUDGEMENT(ch));
   if (GET_BANE_TARGET_TYPE(ch) != 0)
-    fprintf(fl, "Bane: %d\n", GET_BANE_TARGET_TYPE(ch));
+    BUFFER_WRITE( "Bane: %d\n", GET_BANE_TARGET_TYPE(ch));
   if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch) != 0)
-    fprintf(fl, "KpkS: %d\n", GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch));
+    BUFFER_WRITE( "KpkS: %d\n", GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch));
   if (SCRIPT(ch))
   {
     for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next)
-      fprintf(fl, "Trig: %d\n", GET_TRIG_VNUM(t));
+      BUFFER_WRITE( "Trig: %d\n", GET_TRIG_VNUM(t));
   }
 
   if (ch->desc)
   {
-    fprintf(fl, "GMCP: %d\n", ch->desc->pProtocol->bGMCP);
-    fprintf(fl, "XTrm: %d\n", ch->desc->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt);
-    fprintf(fl, "UTF8: %d\n", ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
+    BUFFER_WRITE( "GMCP: %d\n", ch->desc->pProtocol->bGMCP);
+    BUFFER_WRITE( "XTrm: %d\n", ch->desc->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt);
+    BUFFER_WRITE( "UTF8: %d\n", ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
   }
 
   if (GET_PREMADE_BUILD_CLASS(ch) != PFDEF_PREMADE_BUILD)
-    fprintf(fl, "PreB: %d\n", GET_PREMADE_BUILD_CLASS(ch));
+    BUFFER_WRITE( "PreB: %d\n", GET_PREMADE_BUILD_CLASS(ch));
 
   /* Save skills */
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
-    fprintf(fl, "Skil:\n");
+    BUFFER_WRITE( "Skil:\n");
     for (i = 1; i < MAX_SKILLS; i++)
     {
       if (GET_SKILL(ch, i))
-        fprintf(fl, "%d %d\n", i, GET_SKILL(ch, i));
+        BUFFER_WRITE( "%d %d\n", i, GET_SKILL(ch, i));
     }
-    fprintf(fl, "0 0\n");
+    BUFFER_WRITE( "0 0\n");
   }
 
   /* Save abilities */
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
-    fprintf(fl, "Ablt:\n");
+    BUFFER_WRITE( "Ablt:\n");
     for (i = 1; i <= MAX_ABILITIES; i++)
     {
       if (GET_ABILITY(ch, i))
-        fprintf(fl, "%d %d\n", i, GET_ABILITY(ch, i));
+        BUFFER_WRITE( "%d %d\n", i, GET_ABILITY(ch, i));
     }
-    fprintf(fl, "0 0\n");
+    BUFFER_WRITE( "0 0\n");
   }
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
-    fprintf(fl, "AbXP:\n");
+    BUFFER_WRITE( "AbXP:\n");
     for (i = 1; i <= MAX_ABILITIES; i++)
     {
       if (GET_CRAFT_SKILL_EXP(ch, i))
-        fprintf(fl, "%d %d\n", i, GET_CRAFT_SKILL_EXP(ch, i));
+        BUFFER_WRITE( "%d %d\n", i, GET_CRAFT_SKILL_EXP(ch, i));
     }
-    fprintf(fl, "0 0\n");
+    BUFFER_WRITE( "0 0\n");
   }
 
   // Save Buffs
-  fprintf(fl, "Buff:\n");
+  BUFFER_WRITE( "Buff:\n");
   for (i = 0; i < MAX_BUFFS; i++)
-    fprintf(fl, "%d %d %d\n", i, GET_BUFF(ch, i, 0), GET_BUFF(ch, i, 1));
-  fprintf(fl, "-1 -1 -1\n");
+    BUFFER_WRITE( "%d %d %d\n", i, GET_BUFF(ch, i, 0), GET_BUFF(ch, i, 1));
+  BUFFER_WRITE( "-1 -1 -1\n");
 
   // Save Bags
   if (GET_BAG_NAME(ch, 1))
-    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 1));
+    BUFFER_WRITE( "Bag1: %s\n", GET_BAG_NAME(ch, 1));
   if (GET_BAG_NAME(ch, 2))
-    fprintf(fl, "Bag2: %s\n", GET_BAG_NAME(ch, 2));
+    BUFFER_WRITE( "Bag2: %s\n", GET_BAG_NAME(ch, 2));
   if (GET_BAG_NAME(ch, 3))
-    fprintf(fl, "Bag3: %s\n", GET_BAG_NAME(ch, 3));
+    BUFFER_WRITE( "Bag3: %s\n", GET_BAG_NAME(ch, 3));
   if (GET_BAG_NAME(ch, 4))
-    fprintf(fl, "Bag4: %s\n", GET_BAG_NAME(ch, 4));
+    BUFFER_WRITE( "Bag4: %s\n", GET_BAG_NAME(ch, 4));
   if (GET_BAG_NAME(ch, 5))
-    fprintf(fl, "Bag5: %s\n", GET_BAG_NAME(ch, 5));
+    BUFFER_WRITE( "Bag5: %s\n", GET_BAG_NAME(ch, 5));
   if (GET_BAG_NAME(ch, 6))
-    fprintf(fl, "Bag6: %s\n", GET_BAG_NAME(ch, 6));
+    BUFFER_WRITE( "Bag6: %s\n", GET_BAG_NAME(ch, 6));
   if (GET_BAG_NAME(ch, 7))
-    fprintf(fl, "Bag7: %s\n", GET_BAG_NAME(ch, 7));
+    BUFFER_WRITE( "Bag7: %s\n", GET_BAG_NAME(ch, 7));
   if (GET_BAG_NAME(ch, 8))
-    fprintf(fl, "Bag8: %s\n", GET_BAG_NAME(ch, 8));
+    BUFFER_WRITE( "Bag8: %s\n", GET_BAG_NAME(ch, 8));
   if (GET_BAG_NAME(ch, 9))
-    fprintf(fl, "Bag9: %s\n", GET_BAG_NAME(ch, 9));
+    BUFFER_WRITE( "Bag9: %s\n", GET_BAG_NAME(ch, 9));
   if (GET_BAG_NAME(ch, 10))
-    fprintf(fl, "Bag0: %s\n", GET_BAG_NAME(ch, 10));
+    BUFFER_WRITE( "Bag0: %s\n", GET_BAG_NAME(ch, 10));
 
   /* Save Bombs */
-  fprintf(fl, "Bomb:\n");
+  BUFFER_WRITE( "Bomb:\n");
   for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
-    fprintf(fl, "%d\n", GET_BOMB(ch, i));
-  fprintf(fl, "-1\n");
+    BUFFER_WRITE( "%d\n", GET_BOMB(ch, i));
+  BUFFER_WRITE( "-1\n");
 
   // Save Craft mats onhand
-  fprintf(fl, "CfMt:\n");
+  BUFFER_WRITE( "CfMt:\n");
   for (i = 0; i < NUM_CRAFT_MATS; i++)
-    fprintf(fl, "%d\n", GET_CRAFT_MAT(ch, i));
-  fprintf(fl, "-1\n");
+    BUFFER_WRITE( "%d\n", GET_CRAFT_MAT(ch, i));
+  BUFFER_WRITE( "-1\n");
 
   // Save Craft motes onhand
-  fprintf(fl, "Mote:\n");
+  BUFFER_WRITE( "Mote:\n");
   for (i = 0; i < NUM_CRAFT_MOTES; i++)
-    fprintf(fl, "%d\n", GET_CRAFT_MOTES(ch, i));
-  fprintf(fl, "-1\n");
+    BUFFER_WRITE( "%d\n", GET_CRAFT_MOTES(ch, i));
+  BUFFER_WRITE( "-1\n");
 
   // Save Craft Affects
-  fprintf(fl, "CrAf:\n");
+  BUFFER_WRITE( "CrAf:\n");
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
-    fprintf(fl, "%d %d %d %d %d\n", i, GET_CRAFT(ch).affected[i].location, GET_CRAFT(ch).affected[i].modifier, GET_CRAFT(ch).affected[i].bonus_type, GET_CRAFT(ch).affected[i].specific);
-  fprintf(fl, "-1\n");
+    BUFFER_WRITE( "%d %d %d %d %d\n", i, GET_CRAFT(ch).affected[i].location, GET_CRAFT(ch).affected[i].modifier, GET_CRAFT(ch).affected[i].bonus_type, GET_CRAFT(ch).affected[i].specific);
+  BUFFER_WRITE( "-1\n");
 
   // Save Craft Motes
-  fprintf(fl, "CrMo:\n");
+  BUFFER_WRITE( "CrMo:\n");
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
-    fprintf(fl, "%d %d\n", i, GET_CRAFT(ch).motes_required[i]);
-  fprintf(fl, "-1\n");
+    BUFFER_WRITE( "%d %d\n", i, GET_CRAFT(ch).motes_required[i]);
+  BUFFER_WRITE( "-1\n");
 
   // Save Craft Materials
-  fprintf(fl, "CrMa:\n");
+  BUFFER_WRITE( "CrMa:\n");
   for (i = 0; i < NUM_CRAFT_GROUPS; i++)
-    fprintf(fl, "%d %d %d\n", i, GET_CRAFT(ch).materials[i][0], GET_CRAFT(ch).materials[i][1]);
-  fprintf(fl, "-1\n");
+    BUFFER_WRITE( "%d %d %d\n", i, GET_CRAFT(ch).materials[i][0], GET_CRAFT(ch).materials[i][1]);
+  BUFFER_WRITE( "-1\n");
 
   // misc craft things
-  fprintf(fl, "CrMe: %d\n", GET_CRAFT(ch).crafting_method);
-  fprintf(fl, "CrIT: %d\n", GET_CRAFT(ch).crafting_item_type);
-  fprintf(fl, "CrSp: %d\n", GET_CRAFT(ch).crafting_specific);
-  fprintf(fl, "CrSk: %d\n", GET_CRAFT(ch).skill_type);
-  fprintf(fl, "CrRe: %d\n", GET_CRAFT(ch).crafting_recipe);
-  fprintf(fl, "CrVt: %d\n", GET_CRAFT(ch).craft_variant);
-  fprintf(fl, "CrMe: %d\n", GET_CRAFT(ch).crafting_method);
-  fprintf(fl, "CrEn: %d\n", GET_CRAFT(ch).enhancement);
-  fprintf(fl, "CrEM: %d\n", GET_CRAFT(ch).enhancement_motes_required);
-  fprintf(fl, "CrRl: %d\n", GET_CRAFT(ch).skill_roll);
-  fprintf(fl, "CrDC: %d\n", GET_CRAFT(ch).dc);
-  fprintf(fl, "CrDu: %d\n", GET_CRAFT(ch).craft_duration);
-  fprintf(fl, "CrKy: %s\n", GET_CRAFT(ch).keywords);
-  fprintf(fl, "CrSD: %s\n", GET_CRAFT(ch).short_description);
-  fprintf(fl, "CrRD: %s\n", GET_CRAFT(ch).room_description);
-  fprintf(fl, "CrEx: %s\n", GET_CRAFT(ch).ex_description);
+  BUFFER_WRITE( "CrMe: %d\n", GET_CRAFT(ch).crafting_method);
+  BUFFER_WRITE( "CrIT: %d\n", GET_CRAFT(ch).crafting_item_type);
+  BUFFER_WRITE( "CrSp: %d\n", GET_CRAFT(ch).crafting_specific);
+  BUFFER_WRITE( "CrSk: %d\n", GET_CRAFT(ch).skill_type);
+  BUFFER_WRITE( "CrRe: %d\n", GET_CRAFT(ch).crafting_recipe);
+  BUFFER_WRITE( "CrVt: %d\n", GET_CRAFT(ch).craft_variant);
+  BUFFER_WRITE( "CrMe: %d\n", GET_CRAFT(ch).crafting_method);
+  BUFFER_WRITE( "CrEn: %d\n", GET_CRAFT(ch).enhancement);
+  BUFFER_WRITE( "CrEM: %d\n", GET_CRAFT(ch).enhancement_motes_required);
+  BUFFER_WRITE( "CrRl: %d\n", GET_CRAFT(ch).skill_roll);
+  BUFFER_WRITE( "CrDC: %d\n", GET_CRAFT(ch).dc);
+  BUFFER_WRITE( "CrDu: %d\n", GET_CRAFT(ch).craft_duration);
+  BUFFER_WRITE( "CrKy: %s\n", GET_CRAFT(ch).keywords);
+  BUFFER_WRITE( "CrSD: %s\n", GET_CRAFT(ch).short_description);
+  BUFFER_WRITE( "CrRD: %s\n", GET_CRAFT(ch).room_description);
+  BUFFER_WRITE( "CrEx: %s\n", GET_CRAFT(ch).ex_description);
 
   // refining stuff
-  fprintf(fl, "RM00: %d\n", GET_CRAFT(ch).refining_materials[0][0]);
-  fprintf(fl, "RM01: %d\n", GET_CRAFT(ch).refining_materials[0][1]);
-  fprintf(fl, "RM10: %d\n", GET_CRAFT(ch).refining_materials[1][0]);
-  fprintf(fl, "RM11: %d\n", GET_CRAFT(ch).refining_materials[1][1]);
-  fprintf(fl, "RM20: %d\n", GET_CRAFT(ch).refining_materials[2][0]);
-  fprintf(fl, "RM21: %d\n", GET_CRAFT(ch).refining_materials[2][1]);
-  fprintf(fl, "RRs0: %d\n", GET_CRAFT(ch).refining_result[0]);
-  fprintf(fl, "RRs1: %d\n", GET_CRAFT(ch).refining_result[1]);
+  BUFFER_WRITE( "RM00: %d\n", GET_CRAFT(ch).refining_materials[0][0]);
+  BUFFER_WRITE( "RM01: %d\n", GET_CRAFT(ch).refining_materials[0][1]);
+  BUFFER_WRITE( "RM10: %d\n", GET_CRAFT(ch).refining_materials[1][0]);
+  BUFFER_WRITE( "RM11: %d\n", GET_CRAFT(ch).refining_materials[1][1]);
+  BUFFER_WRITE( "RM20: %d\n", GET_CRAFT(ch).refining_materials[2][0]);
+  BUFFER_WRITE( "RM21: %d\n", GET_CRAFT(ch).refining_materials[2][1]);
+  BUFFER_WRITE( "RRs0: %d\n", GET_CRAFT(ch).refining_result[0]);
+  BUFFER_WRITE( "RRs1: %d\n", GET_CRAFT(ch).refining_result[1]);
 
   // resizing stuff
-  fprintf(fl, "RSSz: %d\n", GET_CRAFT(ch).new_size);
-  fprintf(fl, "RSMT: %d\n", GET_CRAFT(ch).resize_mat_type);
-  fprintf(fl, "RSMN: %d\n", GET_CRAFT(ch).resize_mat_num);
+  BUFFER_WRITE( "RSSz: %d\n", GET_CRAFT(ch).new_size);
+  BUFFER_WRITE( "RSMT: %d\n", GET_CRAFT(ch).resize_mat_type);
+  BUFFER_WRITE( "RSMN: %d\n", GET_CRAFT(ch).resize_mat_num);
 
-  fprintf(fl, "CrOL: %d\n", GET_CRAFT(ch).obj_level);
-  fprintf(fl, "CrLA: %d\n", GET_CRAFT(ch).level_adjust);
+  BUFFER_WRITE( "CrOL: %d\n", GET_CRAFT(ch).obj_level);
+  BUFFER_WRITE( "CrLA: %d\n", GET_CRAFT(ch).level_adjust);
 
-  fprintf(fl, "CrSN: %d\n", GET_CRAFT(ch).supply_num_required);
-  fprintf(fl, "CrSR: %d\n", GET_CRAFT(ch).survey_rooms);
-  fprintf(fl, "CrIy: %d\n", GET_CRAFT(ch).instrument_type);
-  fprintf(fl, "CrIQ: %d\n", GET_CRAFT(ch).instrument_quality);
-  fprintf(fl, "CrIE: %d\n", GET_CRAFT(ch).instrument_effectiveness);
-  fprintf(fl, "CrIB: %d\n", GET_CRAFT(ch).instrument_breakability);
-  fprintf(fl, "CrI1: %d\n", GET_CRAFT(ch).instrument_motes[1]);
-  fprintf(fl, "CrI2: %d\n", GET_CRAFT(ch).instrument_motes[2]);
-  fprintf(fl, "CrI3: %d\n", GET_CRAFT(ch).instrument_motes[3]);
+  BUFFER_WRITE( "CrSN: %d\n", GET_CRAFT(ch).supply_num_required);
+  BUFFER_WRITE( "CrSR: %d\n", GET_CRAFT(ch).survey_rooms);
+  BUFFER_WRITE( "CrIy: %d\n", GET_CRAFT(ch).instrument_type);
+  BUFFER_WRITE( "CrIQ: %d\n", GET_CRAFT(ch).instrument_quality);
+  BUFFER_WRITE( "CrIE: %d\n", GET_CRAFT(ch).instrument_effectiveness);
+  BUFFER_WRITE( "CrIB: %d\n", GET_CRAFT(ch).instrument_breakability);
+  BUFFER_WRITE( "CrI1: %d\n", GET_CRAFT(ch).instrument_motes[1]);
+  BUFFER_WRITE( "CrI2: %d\n", GET_CRAFT(ch).instrument_motes[2]);
+  BUFFER_WRITE( "CrI3: %d\n", GET_CRAFT(ch).instrument_motes[3]);
 
 
   // Save consumables: potions, scrolls, wands and staves
-  fprintf(fl, "Potn:\n");
+  BUFFER_WRITE( "Potn:\n");
   for (i = 0; i < MAX_SPELLS; i++)
     if (STORED_POTIONS(ch, i) > 0)
-      fprintf(fl, "%d %d\n", i, STORED_POTIONS(ch, i));
-  fprintf(fl, "-1\n");
+      BUFFER_WRITE( "%d %d\n", i, STORED_POTIONS(ch, i));
+  BUFFER_WRITE( "-1\n");
 
-  fprintf(fl, "Scrl:\n");
+  BUFFER_WRITE( "Scrl:\n");
   for (i = 0; i < MAX_SPELLS; i++)
     if (STORED_SCROLLS(ch, i) > 0)
-      fprintf(fl, "%d %d\n", i, STORED_SCROLLS(ch, i));
-  fprintf(fl, "-1\n");
+      BUFFER_WRITE( "%d %d\n", i, STORED_SCROLLS(ch, i));
+  BUFFER_WRITE( "-1\n");
 
-  fprintf(fl, "Stav:\n");
+  BUFFER_WRITE( "Stav:\n");
   for (i = 0; i < MAX_SPELLS; i++)
     if (STORED_STAVES(ch, i) > 0)
-      fprintf(fl, "%d %d\n", i, STORED_STAVES(ch, i));
-  fprintf(fl, "-1\n");
+      BUFFER_WRITE( "%d %d\n", i, STORED_STAVES(ch, i));
+  BUFFER_WRITE( "-1\n");
 
-  fprintf(fl, "Wand:\n");
+  BUFFER_WRITE( "Wand:\n");
   for (i = 0; i < MAX_SPELLS; i++)
     if (STORED_WANDS(ch, i) > 0)
-      fprintf(fl, "%d %d\n", i, STORED_WANDS(ch, i));
-  fprintf(fl, "-1\n");
+      BUFFER_WRITE( "%d %d\n", i, STORED_WANDS(ch, i));
+  BUFFER_WRITE( "-1\n");
   // End save consumables
 
-  fprintf(fl, "Disc:\n");
+  BUFFER_WRITE( "Disc:\n");
   for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
-    fprintf(fl, "%d\n", KNOWS_DISCOVERY(ch, i));
-  fprintf(fl, "-1\n");
-  fprintf(fl, "GrDs: %d\n", GET_GRAND_DISCOVERY(ch));
+    BUFFER_WRITE( "%d\n", KNOWS_DISCOVERY(ch, i));
+  BUFFER_WRITE( "-1\n");
+  BUFFER_WRITE( "GrDs: %d\n", GET_GRAND_DISCOVERY(ch));
 
-  fprintf(fl, "Mrcy:\n");
+  BUFFER_WRITE( "Mrcy:\n");
   for (i = 0; i < NUM_PALADIN_MERCIES; i++)
-    fprintf(fl, "%d\n", KNOWS_MERCY(ch, i));
-  fprintf(fl, "-1\n");
+    BUFFER_WRITE( "%d\n", KNOWS_MERCY(ch, i));
+  BUFFER_WRITE( "-1\n");
 
-  fprintf(fl, "FDQs:\n");
+  BUFFER_WRITE( "FDQs:\n");
   for (i = 0; i < 100; i++)
     if (ch->player_specials->saved.failed_dialogue_quests[i] > 0)
-      fprintf(fl, "%d\n", ch->player_specials->saved.failed_dialogue_quests[i]);
-  fprintf(fl, "-1\n");
+      BUFFER_WRITE( "%d\n", ch->player_specials->saved.failed_dialogue_quests[i]);
+  BUFFER_WRITE( "-1\n");
 
-  fprintf(fl, "Clty:\n");
+  BUFFER_WRITE( "Clty:\n");
   for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
-    fprintf(fl, "%d\n", KNOWS_CRUELTY(ch, i));
-  fprintf(fl, "-1\n");
+    BUFFER_WRITE( "%d\n", KNOWS_CRUELTY(ch, i));
+  BUFFER_WRITE( "-1\n");
 
-  fprintf(fl, "Judg:\n");
+  BUFFER_WRITE( "Judg:\n");
   for (i = 0; i < NUM_INQ_JUDGEMENTS; i++)
-    fprintf(fl, "%d\n", IS_JUDGEMENT_ACTIVE(ch, i));
-  fprintf(fl, "-1\n");
+    BUFFER_WRITE( "%d\n", IS_JUDGEMENT_ACTIVE(ch, i));
+  BUFFER_WRITE( "-1\n");
 
-  fprintf(fl, "Lang:\n");
+  BUFFER_WRITE( "Lang:\n");
   for (i = 0; i < NUM_LANGUAGES; i++)
-    fprintf(fl, "%d\n", ch->player_specials->saved.languages_known[i]);
-  fprintf(fl, "-1\n");
+    BUFFER_WRITE( "%d\n", ch->player_specials->saved.languages_known[i]);
+  BUFFER_WRITE( "-1\n");
 
   /* Save Combat Feats */
   for (i = 0; i < NUM_CFEATS; i++)
@@ -2332,64 +2357,64 @@ void save_char(struct char_data *ch, int mode)
     sprintascii(bits2, ch->char_specials.saved.combat_feats[i][1]);
     sprintascii(bits3, ch->char_specials.saved.combat_feats[i][2]);
     sprintascii(bits4, ch->char_specials.saved.combat_feats[i][3]);
-    fprintf(fl, "CbFt: %d %s %s %s %s\n", i, bits, bits2, bits3, bits4);
+    BUFFER_WRITE( "CbFt: %d %s %s %s %s\n", i, bits, bits2, bits3, bits4);
   }
 
   /* Save School Feats */
   for (i = 0; i < NUM_SFEATS; i++)
   {
     sprintascii(bits, ch->char_specials.saved.school_feats[i]);
-    fprintf(fl, "SclF: %d %s\n", i, bits);
+    BUFFER_WRITE( "SclF: %d %s\n", i, bits);
   }
 
   /* Save Skill Foci */
-  fprintf(fl, "SklF:\n");
+  BUFFER_WRITE( "SklF:\n");
   for (i = 0; i < MAX_ABILITIES; i++)
   {
-    fprintf(fl, "%d ", i);
+    BUFFER_WRITE( "%d ", i);
     for (j = 0; j < NUM_SKFEATS; j++)
     {
-      fprintf(fl, "%d ", ch->player_specials->saved.skill_focus[i][j]);
+      BUFFER_WRITE( "%d ", ch->player_specials->saved.skill_focus[i][j]);
     }
-    fprintf(fl, "\n");
+    BUFFER_WRITE( "\n");
   }
-  fprintf(fl, "-1 -1 -1\n");
+  BUFFER_WRITE( "-1 -1 -1\n");
 
   /* Save feats */
-  fprintf(fl, "Feat:\n");
+  BUFFER_WRITE( "Feat:\n");
   for (i = 1; i < NUM_FEATS; i++)
   {
     if (HAS_REAL_FEAT(ch, i))
-      fprintf(fl, "%d %d\n", i, HAS_REAL_FEAT(ch, i));
+      BUFFER_WRITE( "%d %d\n", i, HAS_REAL_FEAT(ch, i));
   }
-  fprintf(fl, "0 0\n");
+  BUFFER_WRITE( "0 0\n");
 
   /* Save evolutions */
-  fprintf(fl, "Evol:\n");
+  BUFFER_WRITE( "Evol:\n");
   for (i = 1; i < NUM_EVOLUTIONS; i++)
   {
     if (HAS_REAL_EVOLUTION(ch, i))
-      fprintf(fl, "%d %d\n", i, HAS_REAL_EVOLUTION(ch, i));
+      BUFFER_WRITE( "%d %d\n", i, HAS_REAL_EVOLUTION(ch, i));
   }
-  fprintf(fl, "0 0\n");
+  BUFFER_WRITE( "0 0\n");
 
   /* Save temp evolutions */
-  fprintf(fl, "TEvo:\n");
+  BUFFER_WRITE( "TEvo:\n");
   for (i = 1; i < NUM_EVOLUTIONS; i++)
   {
     if (HAS_TEMP_EVOLUTION(ch, i))
-      fprintf(fl, "%d %d\n", i, HAS_TEMP_EVOLUTION(ch, i));
+      BUFFER_WRITE( "%d %d\n", i, HAS_TEMP_EVOLUTION(ch, i));
   }
-  fprintf(fl, "0 0\n");
+  BUFFER_WRITE( "0 0\n");
 
   /* Save known evolutions */
-  fprintf(fl, "KEvo:\n");
+  BUFFER_WRITE( "KEvo:\n");
   for (i = 1; i < NUM_EVOLUTIONS; i++)
   {
     if (KNOWS_EVOLUTION(ch, i))
-      fprintf(fl, "%d %d\n", i, KNOWS_EVOLUTION(ch, i));
+      BUFFER_WRITE( "%d %d\n", i, KNOWS_EVOLUTION(ch, i));
   }
-  fprintf(fl, "0 0\n");
+  BUFFER_WRITE( "0 0\n");
 
   /* spell prep system */
   save_spell_prep_queue(fl, ch);
@@ -2400,104 +2425,104 @@ void save_char(struct char_data *ch, int mode)
 
   // Save memorizing list of prayers, prayed list and times
   /* Note: added metamagic to pfile.  19.01.2015 Ornir */
-  fprintf(fl, "Pryg:\n");
+  BUFFER_WRITE( "Pryg:\n");
   for (i = 0; i < MAX_MEM; i++)
   {
-    fprintf(fl, "%d ", i);
+    BUFFER_WRITE( "%d ", i);
     for (j = 0; j < NUM_CASTERS; j++)
     {
       if (PREPARATION_QUEUE(ch, i, j).spell < MAX_SPELLS)
-        fprintf(fl, "%d ", PREPARATION_QUEUE(ch, i, j).spell);
+        BUFFER_WRITE( "%d ", PREPARATION_QUEUE(ch, i, j).spell);
       else
-        fprintf(fl, "0 ");
+        BUFFER_WRITE( "0 ");
     }
-    fprintf(fl, "\n");
+    BUFFER_WRITE( "\n");
   }
-  fprintf(fl, "Prgm:\n");
+  BUFFER_WRITE( "Prgm:\n");
   for (i = 0; i < MAX_MEM; i++)
   {
-    fprintf(fl, "%d ", i);
+    BUFFER_WRITE( "%d ", i);
     for (j = 0; j < NUM_CASTERS; j++)
     {
       if (PREPARATION_QUEUE(ch, i, j).spell < MAX_SPELLS)
-        fprintf(fl, "%d ", PREPARATION_QUEUE(ch, i, j).metamagic);
+        BUFFER_WRITE( "%d ", PREPARATION_QUEUE(ch, i, j).metamagic);
       else
-        fprintf(fl, "0 ");
+        BUFFER_WRITE( "0 ");
     }
-    fprintf(fl, "\n");
+    BUFFER_WRITE( "\n");
   }
-  fprintf(fl, "-1 -1\n");
-  fprintf(fl, "Pryd:\n");
+  BUFFER_WRITE( "-1 -1\n");
+  BUFFER_WRITE( "Pryd:\n");
   for (i = 0; i < MAX_MEM; i++)
   {
-    fprintf(fl, "%d ", i);
+    BUFFER_WRITE( "%d ", i);
     for (j = 0; j < NUM_CASTERS; j++)
     {
-      fprintf(fl, "%d ", PREPARED_SPELLS(ch, i, j).spell);
+      BUFFER_WRITE( "%d ", PREPARED_SPELLS(ch, i, j).spell);
     }
-    fprintf(fl, "\n");
+    BUFFER_WRITE( "\n");
   }
-  fprintf(fl, "-1 -1\n");
+  BUFFER_WRITE( "-1 -1\n");
 
-  fprintf(fl, "Pryt:\n");
+  BUFFER_WRITE( "Pryt:\n");
   for (i = 0; i < MAX_MEM; i++)
   {
-    fprintf(fl, "%d ", i);
+    BUFFER_WRITE( "%d ", i);
     for (j = 0; j < NUM_CASTERS; j++)
     {
-      fprintf(fl, "%d ", PREP_TIME(ch, i, j));
+      BUFFER_WRITE( "%d ", PREP_TIME(ch, i, j));
     }
-    fprintf(fl, "\n");
+    BUFFER_WRITE( "\n");
   }
-  fprintf(fl, "-1 -1\n");
+  BUFFER_WRITE( "-1 -1\n");
 
-  fprintf(fl, "Prdm:\n");
+  BUFFER_WRITE( "Prdm:\n");
   for (i = 0; i < MAX_MEM; i++)
   {
-    fprintf(fl, "%d ", i);
+    BUFFER_WRITE( "%d ", i);
     for (j = 0; j < NUM_CASTERS; j++)
     {
-      fprintf(fl, "%d ", PREPARED_SPELLS(ch, i, j).metamagic);
+      BUFFER_WRITE( "%d ", PREPARED_SPELLS(ch, i, j).metamagic);
     }
-    fprintf(fl, "\n");
+    BUFFER_WRITE( "\n");
   }
-  fprintf(fl, "-1 -1\n");
+  BUFFER_WRITE( "-1 -1\n");
 
   // class levels
-  fprintf(fl, "CLvl:\n");
+  BUFFER_WRITE( "CLvl:\n");
   for (i = 0; i < MAX_CLASSES; i++)
   {
-    fprintf(fl, "%d %d\n", i, CLASS_LEVEL(ch, i));
+    BUFFER_WRITE( "%d %d\n", i, CLASS_LEVEL(ch, i));
   }
-  fprintf(fl, "-1 -1\n");
+  BUFFER_WRITE( "-1 -1\n");
 
   // coordinate location
-  fprintf(fl, "CLoc:\n");
-  fprintf(fl, "%d %d\n", ch->coords[0], ch->coords[1]);
+  BUFFER_WRITE( "CLoc:\n");
+  BUFFER_WRITE( "%d %d\n", ch->coords[0], ch->coords[1]);
 
   // warding, etc..
-  fprintf(fl, "Ward:\n");
+  BUFFER_WRITE( "Ward:\n");
   for (i = 0; i < MAX_WARDING; i++)
   {
-    fprintf(fl, "%d %d\n", i, GET_WARDING(ch, i));
+    BUFFER_WRITE( "%d %d\n", i, GET_WARDING(ch, i));
   }
-  fprintf(fl, "-1 -1\n");
+  BUFFER_WRITE( "-1 -1\n");
 
   // spec abilities
-  fprintf(fl, "SpAb:\n");
+  BUFFER_WRITE( "SpAb:\n");
   for (i = 0; i < MAX_CLASSES; i++)
   {
-    fprintf(fl, "%d %d\n", i, GET_SPEC_ABIL(ch, i));
+    BUFFER_WRITE( "%d %d\n", i, GET_SPEC_ABIL(ch, i));
   }
-  fprintf(fl, "-1 -1\n");
+  BUFFER_WRITE( "-1 -1\n");
 
   // favored enemies (rangers)
-  fprintf(fl, "FaEn:\n");
+  BUFFER_WRITE( "FaEn:\n");
   for (i = 0; i < MAX_ENEMIES; i++)
   {
-    fprintf(fl, "%d %d\n", i, GET_FAVORED_ENEMY(ch, i));
+    BUFFER_WRITE( "%d %d\n", i, GET_FAVORED_ENEMY(ch, i));
   }
-  fprintf(fl, "-1 -1\n");
+  BUFFER_WRITE( "-1 -1\n");
 
   /* save_char(x, 1) will skip this block (i.e. not saving events)
      this is necessary due to clearing events that occurs immediately
@@ -2506,206 +2531,206 @@ void save_char(struct char_data *ch, int mode)
   {
     /* Save events */
     /* Not going to save every event */
-    fprintf(fl, "Evnt:\n");
+    BUFFER_WRITE( "Evnt:\n");
     /* Order:  Event-ID   Duration */
     /* eSTRUGGLE - don't need to save this */
     if ((pMudEvent = char_has_mud_event(ch, eINVISIBLE_ROGUE)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INVISIBLE_ROGUE) - daily_uses_remaining(ch, FEAT_INVISIBLE_ROGUE));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INVISIBLE_ROGUE) - daily_uses_remaining(ch, FEAT_INVISIBLE_ROGUE));
     if ((pMudEvent = char_has_mud_event(ch, eVANISHED)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VANISH) - daily_uses_remaining(ch, FEAT_VANISH));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VANISH) - daily_uses_remaining(ch, FEAT_VANISH));
     if ((pMudEvent = char_has_mud_event(ch, eVANISH)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VANISH) - daily_uses_remaining(ch, FEAT_VANISH));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VANISH) - daily_uses_remaining(ch, FEAT_VANISH));
     if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eTAUNTED)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eINTIMIDATED)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eINTIMIDATE_COOLDOWN)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RAGE) - daily_uses_remaining(ch, FEAT_RAGE));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RAGE) - daily_uses_remaining(ch, FEAT_RAGE));
     if ((pMudEvent = char_has_mud_event(ch, eSACRED_FLAMES)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SACRED_FLAMES) - daily_uses_remaining(ch, FEAT_SACRED_FLAMES));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SACRED_FLAMES) - daily_uses_remaining(ch, FEAT_SACRED_FLAMES));
     if ((pMudEvent = char_has_mud_event(ch, eINNER_FIRE)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INNER_FIRE) - daily_uses_remaining(ch, FEAT_INNER_FIRE));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INNER_FIRE) - daily_uses_remaining(ch, FEAT_INNER_FIRE));
     if ((pMudEvent = char_has_mud_event(ch, eMUTAGEN)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_MUTAGEN) - daily_uses_remaining(ch, FEAT_MUTAGEN));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_MUTAGEN) - daily_uses_remaining(ch, FEAT_MUTAGEN));
     if ((pMudEvent = char_has_mud_event(ch, eCRIPPLING_CRITICAL)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CRIPPLING_CRITICAL) - daily_uses_remaining(ch, FEAT_CRIPPLING_CRITICAL));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CRIPPLING_CRITICAL) - daily_uses_remaining(ch, FEAT_CRIPPLING_CRITICAL));
     if ((pMudEvent = char_has_mud_event(ch, eDEFENSIVE_STANCE)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DEFENSIVE_STANCE) - daily_uses_remaining(ch, FEAT_DEFENSIVE_STANCE));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DEFENSIVE_STANCE) - daily_uses_remaining(ch, FEAT_DEFENSIVE_STANCE));
     if ((pMudEvent = char_has_mud_event(ch, eINSECTBEING)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INSECTBEING) - daily_uses_remaining(ch, FEAT_INSECTBEING));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INSECTBEING) - daily_uses_remaining(ch, FEAT_INSECTBEING));
     if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CRYSTAL_FIST) - daily_uses_remaining(ch, FEAT_CRYSTAL_FIST));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CRYSTAL_FIST) - daily_uses_remaining(ch, FEAT_CRYSTAL_FIST));
     if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CRYSTAL_BODY) - daily_uses_remaining(ch, FEAT_CRYSTAL_BODY));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CRYSTAL_BODY) - daily_uses_remaining(ch, FEAT_CRYSTAL_BODY));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_STRENGTH)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_STRENGTH) - daily_uses_remaining(ch, FEAT_SLA_STRENGTH));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_STRENGTH) - daily_uses_remaining(ch, FEAT_SLA_STRENGTH));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_ENLARGE)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_ENLARGE) - daily_uses_remaining(ch, FEAT_SLA_ENLARGE));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_ENLARGE) - daily_uses_remaining(ch, FEAT_SLA_ENLARGE));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_INVIS)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_INVIS) - daily_uses_remaining(ch, FEAT_SLA_INVIS));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_INVIS) - daily_uses_remaining(ch, FEAT_SLA_INVIS));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_LEVITATE)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_LEVITATE) - daily_uses_remaining(ch, FEAT_SLA_LEVITATE));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_LEVITATE) - daily_uses_remaining(ch, FEAT_SLA_LEVITATE));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_DARKNESS)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_DARKNESS) - daily_uses_remaining(ch, FEAT_SLA_DARKNESS));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_DARKNESS) - daily_uses_remaining(ch, FEAT_SLA_DARKNESS));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_FAERIE_FIRE)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_FAERIE_FIRE) - daily_uses_remaining(ch, FEAT_SLA_FAERIE_FIRE));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SLA_FAERIE_FIRE) - daily_uses_remaining(ch, FEAT_SLA_FAERIE_FIRE));
     if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_LAYHANDS) - daily_uses_remaining(ch, FEAT_LAYHANDS));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_LAYHANDS) - daily_uses_remaining(ch, FEAT_LAYHANDS));
     if ((pMudEvent = char_has_mud_event(ch, eTOUCHOFCORRUPTION)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TOUCH_OF_CORRUPTION) - daily_uses_remaining(ch, FEAT_TOUCH_OF_CORRUPTION));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TOUCH_OF_CORRUPTION) - daily_uses_remaining(ch, FEAT_TOUCH_OF_CORRUPTION));
     if ((pMudEvent = char_has_mud_event(ch, eJUDGEMENT)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_JUDGEMENT) - daily_uses_remaining(ch, FEAT_JUDGEMENT));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_JUDGEMENT) - daily_uses_remaining(ch, FEAT_JUDGEMENT));
     if ((pMudEvent = char_has_mud_event(ch, eTRUEJUDGEMENT)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TRUE_JUDGEMENT) - daily_uses_remaining(ch, FEAT_TRUE_JUDGEMENT));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TRUE_JUDGEMENT) - daily_uses_remaining(ch, FEAT_TRUE_JUDGEMENT));
     if ((pMudEvent = char_has_mud_event(ch, eCHILDRENOFTHENIGHT)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT) - daily_uses_remaining(ch, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT) - daily_uses_remaining(ch, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT));
     if ((pMudEvent = char_has_mud_event(ch, eVAMPIREENERGYDRAIN)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VAMPIRE_ENERGY_DRAIN) - daily_uses_remaining(ch, FEAT_VAMPIRE_ENERGY_DRAIN));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VAMPIRE_ENERGY_DRAIN) - daily_uses_remaining(ch, FEAT_VAMPIRE_ENERGY_DRAIN));
     if ((pMudEvent = char_has_mud_event(ch, eVAMPIREBLOODDRAIN)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VAMPIRE_BLOOD_DRAIN) - daily_uses_remaining(ch, FEAT_VAMPIRE_BLOOD_DRAIN));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_VAMPIRE_BLOOD_DRAIN) - daily_uses_remaining(ch, FEAT_VAMPIRE_BLOOD_DRAIN));
     if ((pMudEvent = char_has_mud_event(ch, eBANE)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_BANE) - daily_uses_remaining(ch, FEAT_BANE));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_BANE) - daily_uses_remaining(ch, FEAT_BANE));
     if ((pMudEvent = char_has_mud_event(ch, eMASTERMIND)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_MASTER_OF_THE_MIND) - daily_uses_remaining(ch, FEAT_MASTER_OF_THE_MIND));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_MASTER_OF_THE_MIND) - daily_uses_remaining(ch, FEAT_MASTER_OF_THE_MIND));
     if ((pMudEvent = char_has_mud_event(ch, eDANCINGWEAPON)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eSPIRITUALWEAPON)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eCHANNELENERGY)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CHANNEL_ENERGY) - daily_uses_remaining(ch, FEAT_CHANNEL_ENERGY));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CHANNEL_ENERGY) - daily_uses_remaining(ch, FEAT_CHANNEL_ENERGY));
     if ((pMudEvent = char_has_mud_event(ch, eEMPTYBODY)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_EMPTY_BODY) - daily_uses_remaining(ch, FEAT_EMPTY_BODY));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_EMPTY_BODY) - daily_uses_remaining(ch, FEAT_EMPTY_BODY));
     if ((pMudEvent = char_has_mud_event(ch, eWHOLENESSOFBODY)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_WHOLENESS_OF_BODY) - daily_uses_remaining(ch, FEAT_WHOLENESS_OF_BODY));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_WHOLENESS_OF_BODY) - daily_uses_remaining(ch, FEAT_WHOLENESS_OF_BODY));
     if ((pMudEvent = char_has_mud_event(ch, eRENEWEDDEFENSE)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RENEWED_DEFENSE) - daily_uses_remaining(ch, FEAT_RENEWED_DEFENSE));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RENEWED_DEFENSE) - daily_uses_remaining(ch, FEAT_RENEWED_DEFENSE));
     if ((pMudEvent = char_has_mud_event(ch, eRENEWEDVIGOR)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_RENEWED_VIGOR) - daily_uses_remaining(ch, FEAT_RP_RENEWED_VIGOR));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_RENEWED_VIGOR) - daily_uses_remaining(ch, FEAT_RP_RENEWED_VIGOR));
     if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eMUMMYDUST)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eDRAGONKNIGHT)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eGREATERRUIN)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eHELLBALL)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eEPICMAGEARMOR)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eDEATHARROW)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eQUIVERINGPALM)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eANIMATEDEAD)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_ANIMATE_DEAD) - daily_uses_remaining(ch, FEAT_ANIMATE_DEAD));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_ANIMATE_DEAD) - daily_uses_remaining(ch, FEAT_ANIMATE_DEAD));
     if ((pMudEvent = char_has_mud_event(ch, eSTUNNINGFIST)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_STUNNING_FIST) - daily_uses_remaining(ch, FEAT_STUNNING_FIST));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_STUNNING_FIST) - daily_uses_remaining(ch, FEAT_STUNNING_FIST));
     if ((pMudEvent = char_has_mud_event(ch, eSURPRISE_ACCURACY)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_SURPRISE_ACCURACY) - daily_uses_remaining(ch, FEAT_RP_SURPRISE_ACCURACY));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_SURPRISE_ACCURACY) - daily_uses_remaining(ch, FEAT_RP_SURPRISE_ACCURACY));
     if ((pMudEvent = char_has_mud_event(ch, eCOME_AND_GET_ME)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_COME_AND_GET_ME) - daily_uses_remaining(ch, FEAT_RP_COME_AND_GET_ME));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_COME_AND_GET_ME) - daily_uses_remaining(ch, FEAT_RP_COME_AND_GET_ME));
     if ((pMudEvent = char_has_mud_event(ch, ePOWERFUL_BLOW)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_POWERFUL_BLOW) - daily_uses_remaining(ch, FEAT_RP_POWERFUL_BLOW));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RP_POWERFUL_BLOW) - daily_uses_remaining(ch, FEAT_RP_POWERFUL_BLOW));
     if ((pMudEvent = char_has_mud_event(ch, eD_ROLL)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DEFENSIVE_ROLL) - daily_uses_remaining(ch, FEAT_DEFENSIVE_ROLL));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DEFENSIVE_ROLL) - daily_uses_remaining(ch, FEAT_DEFENSIVE_ROLL));
     if ((pMudEvent = char_has_mud_event(ch, eLAST_WORD)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_LAST_WORD) - daily_uses_remaining(ch, FEAT_LAST_WORD));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_LAST_WORD) - daily_uses_remaining(ch, FEAT_LAST_WORD));
     if ((pMudEvent = char_has_mud_event(ch, ePURIFY)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_REMOVE_DISEASE) - daily_uses_remaining(ch, FEAT_REMOVE_DISEASE));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_REMOVE_DISEASE) - daily_uses_remaining(ch, FEAT_REMOVE_DISEASE));
     if ((pMudEvent = char_has_mud_event(ch, eC_ANIMAL)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_ANIMAL_COMPANION) - daily_uses_remaining(ch, FEAT_ANIMAL_COMPANION));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_ANIMAL_COMPANION) - daily_uses_remaining(ch, FEAT_ANIMAL_COMPANION));
     if ((pMudEvent = char_has_mud_event(ch, eC_DRAGONMOUNT)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGON_BOND) - daily_uses_remaining(ch, FEAT_DRAGON_BOND));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGON_BOND) - daily_uses_remaining(ch, FEAT_DRAGON_BOND));
     if ((pMudEvent = char_has_mud_event(ch, eC_EIDOLON)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_EIDOLON) - daily_uses_remaining(ch, FEAT_EIDOLON));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_EIDOLON) - daily_uses_remaining(ch, FEAT_EIDOLON));
     if ((pMudEvent = char_has_mud_event(ch, eC_FAMILIAR)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SUMMON_FAMILIAR) - daily_uses_remaining(ch, FEAT_SUMMON_FAMILIAR));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SUMMON_FAMILIAR) - daily_uses_remaining(ch, FEAT_SUMMON_FAMILIAR));
     if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CALL_MOUNT) - daily_uses_remaining(ch, FEAT_CALL_MOUNT));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CALL_MOUNT) - daily_uses_remaining(ch, FEAT_CALL_MOUNT));
     if ((pMudEvent = char_has_mud_event(ch, eSUMMONSHADOW)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SUMMON_SHADOW) - daily_uses_remaining(ch, FEAT_SUMMON_SHADOW));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SUMMON_SHADOW) - daily_uses_remaining(ch, FEAT_SUMMON_SHADOW));
     if ((pMudEvent = char_has_mud_event(ch, eTURN_UNDEAD)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TURN_UNDEAD) - daily_uses_remaining(ch, FEAT_TURN_UNDEAD));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TURN_UNDEAD) - daily_uses_remaining(ch, FEAT_TURN_UNDEAD));
     if ((pMudEvent = char_has_mud_event(ch, eSPELLBATTLE)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     // if ((pMudEvent = char_has_mud_event(ch, eQUEST_COMPLETE)))
-    //   fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    //   BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eDRACBREATH)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON) - daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON) - daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON));
     if ((pMudEvent = char_has_mud_event(ch, eDRACCLAWS)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRACONIC_HERITAGE_CLAWS) - daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_CLAWS));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRACONIC_HERITAGE_CLAWS) - daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_CLAWS));
     if ((pMudEvent = char_has_mud_event(ch, eDRAGBREATH)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGONBORN_BREATH) - daily_uses_remaining(ch, FEAT_DRAGONBORN_BREATH));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGONBORN_BREATH) - daily_uses_remaining(ch, FEAT_DRAGONBORN_BREATH));
     if ((pMudEvent = char_has_mud_event(ch, eCATSCLAWS)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TABAXI_CATS_CLAWS) - daily_uses_remaining(ch, FEAT_TABAXI_CATS_CLAWS));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TABAXI_CATS_CLAWS) - daily_uses_remaining(ch, FEAT_TABAXI_CATS_CLAWS));
     if ((pMudEvent = char_has_mud_event(ch, eARCANEADEPT)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_METAMAGIC_ADEPT) - daily_uses_remaining(ch, FEAT_METAMAGIC_ADEPT));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_METAMAGIC_ADEPT) - daily_uses_remaining(ch, FEAT_METAMAGIC_ADEPT));
     if ((pMudEvent = char_has_mud_event(ch, eCHANNELSPELL)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CHANNEL_SPELL) - daily_uses_remaining(ch, FEAT_CHANNEL_SPELL));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CHANNEL_SPELL) - daily_uses_remaining(ch, FEAT_CHANNEL_SPELL));
     if ((pMudEvent = char_has_mud_event(ch, ePSIONICFOCUS)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_PSIONIC_FOCUS) - daily_uses_remaining(ch, FEAT_PSIONIC_FOCUS));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_PSIONIC_FOCUS) - daily_uses_remaining(ch, FEAT_PSIONIC_FOCUS));
     if ((pMudEvent = char_has_mud_event(ch, eDOUBLEMANIFEST)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DOUBLE_MANIFEST) - daily_uses_remaining(ch, FEAT_DOUBLE_MANIFEST));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DOUBLE_MANIFEST) - daily_uses_remaining(ch, FEAT_DOUBLE_MANIFEST));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWCALL)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_CALL) - daily_uses_remaining(ch, FEAT_SHADOW_CALL));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_CALL) - daily_uses_remaining(ch, FEAT_SHADOW_CALL));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWJUMP)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_JUMP) - daily_uses_remaining(ch, FEAT_SHADOW_JUMP));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_JUMP) - daily_uses_remaining(ch, FEAT_SHADOW_JUMP));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWILLUSION)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_ILLUSION) - daily_uses_remaining(ch, FEAT_SHADOW_ILLUSION));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_ILLUSION) - daily_uses_remaining(ch, FEAT_SHADOW_ILLUSION));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWPOWER)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_POWER) - daily_uses_remaining(ch, FEAT_SHADOW_POWER));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SHADOW_POWER) - daily_uses_remaining(ch, FEAT_SHADOW_POWER));
     if ((pMudEvent = char_has_mud_event(ch, eEVOBREATH)))
-      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eTOUCHOFUNDEATH)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TOUCH_OF_UNDEATH) - daily_uses_remaining(ch, FEAT_TOUCH_OF_UNDEATH));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_TOUCH_OF_UNDEATH) - daily_uses_remaining(ch, FEAT_TOUCH_OF_UNDEATH));
     if ((pMudEvent = char_has_mud_event(ch, eSTRENGTHOFHONOR)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_STRENGTH_OF_HONOR) - daily_uses_remaining(ch, FEAT_STRENGTH_OF_HONOR));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_STRENGTH_OF_HONOR) - daily_uses_remaining(ch, FEAT_STRENGTH_OF_HONOR));
     if ((pMudEvent = char_has_mud_event(ch, eCROWNOFKNIGHTHOOD)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CROWN_OF_KNIGHTHOOD) - daily_uses_remaining(ch, FEAT_CROWN_OF_KNIGHTHOOD));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_CROWN_OF_KNIGHTHOOD) - daily_uses_remaining(ch, FEAT_CROWN_OF_KNIGHTHOOD));
     if ((pMudEvent = char_has_mud_event(ch, eSOULOFKNIGHTHOOD)))
-      fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SOUL_OF_KNIGHTHOOD) - daily_uses_remaining(ch, FEAT_SOUL_OF_KNIGHTHOOD));
+      BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SOUL_OF_KNIGHTHOOD) - daily_uses_remaining(ch, FEAT_SOUL_OF_KNIGHTHOOD));
     if ((pMudEvent = char_has_mud_event(ch, eINSPIRECOURAGE)))
-        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INSPIRE_COURAGE) - daily_uses_remaining(ch, FEAT_INSPIRE_COURAGE));
+        BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_INSPIRE_COURAGE) - daily_uses_remaining(ch, FEAT_INSPIRE_COURAGE));
     if ((pMudEvent = char_has_mud_event(ch, eWISDOMOFTHEMEASURE)))
-        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_WISDOM_OF_THE_MEASURE) - daily_uses_remaining(ch, FEAT_WISDOM_OF_THE_MEASURE));
+        BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_WISDOM_OF_THE_MEASURE) - daily_uses_remaining(ch, FEAT_WISDOM_OF_THE_MEASURE));
     if ((pMudEvent = char_has_mud_event(ch, eFINALSTAND)))
-        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_FINAL_STAND) - daily_uses_remaining(ch, FEAT_FINAL_STAND));
+        BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_FINAL_STAND) - daily_uses_remaining(ch, FEAT_FINAL_STAND));
     if ((pMudEvent = char_has_mud_event(ch, eKNIGHTHOODSFLOWER)))
-        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_KNIGHTHOODS_FLOWER) - daily_uses_remaining(ch, FEAT_KNIGHTHOODS_FLOWER));
+        BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_KNIGHTHOODS_FLOWER) - daily_uses_remaining(ch, FEAT_KNIGHTHOODS_FLOWER));
     if ((pMudEvent = char_has_mud_event(ch, eRALLYINGCRY)))
-        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RALLYING_CRY) - daily_uses_remaining(ch, FEAT_RALLYING_CRY));
+        BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_RALLYING_CRY) - daily_uses_remaining(ch, FEAT_RALLYING_CRY));
     if ((pMudEvent = char_has_mud_event(ch, eCOSMICUNDERSTANDING)))
-        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_COSMIC_UNDERSTANDING) - daily_uses_remaining(ch, FEAT_COSMIC_UNDERSTANDING));
+        BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_COSMIC_UNDERSTANDING) - daily_uses_remaining(ch, FEAT_COSMIC_UNDERSTANDING));
     if ((pMudEvent = char_has_mud_event(ch, eDRAGOONPOINTS)))
-        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGOON_POINTS) - daily_uses_remaining(ch, FEAT_DRAGOON_POINTS));
+        BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGOON_POINTS) - daily_uses_remaining(ch, FEAT_DRAGOON_POINTS));
     if ((pMudEvent = char_has_mud_event(ch, eC_DRAGONMOUNT)))
-        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGON_BOND) - daily_uses_remaining(ch, FEAT_DRAGON_BOND));
+        BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DRAGON_BOND) - daily_uses_remaining(ch, FEAT_DRAGON_BOND));
     if ((pMudEvent = char_has_mud_event(ch, eSMITE_EVIL)))
-        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SMITE_EVIL) - daily_uses_remaining(ch, FEAT_SMITE_EVIL));
+        BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SMITE_EVIL) - daily_uses_remaining(ch, FEAT_SMITE_EVIL));
     if ((pMudEvent = char_has_mud_event(ch, eSMITE_GOOD)))
-        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SMITE_GOOD) - daily_uses_remaining(ch, FEAT_SMITE_GOOD));
+        BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_SMITE_GOOD) - daily_uses_remaining(ch, FEAT_SMITE_GOOD));
     if ((pMudEvent = char_has_mud_event(ch, eSMITE_DESTRUCTION)))
-        fprintf(fl, "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DESTRUCTIVE_SMITE) - daily_uses_remaining(ch, FEAT_DESTRUCTIVE_SMITE));
+        BUFFER_WRITE( "%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent), get_daily_uses(ch, FEAT_DESTRUCTIVE_SMITE) - daily_uses_remaining(ch, FEAT_DESTRUCTIVE_SMITE));
 
-    fprintf(fl, "-1 -1\n");
+    BUFFER_WRITE( "-1 -1\n");
   }
 
   /* Save affects */
   if (tmp_aff[0].spell > 0)
   {
-    fprintf(fl, "Affs:\n");
+    BUFFER_WRITE( "Affs:\n");
     for (i = 0; i < MAX_AFFECT; i++)
     {
       aff = &tmp_aff[i];
       if (aff->spell)
-        fprintf(fl,
+        BUFFER_WRITE(
                 "%d %d %d %d %d %d %d %d %d %d\n",
                 aff->spell,
                 aff->duration,
@@ -2718,7 +2743,7 @@ void save_char(struct char_data *ch, int mode)
                 aff->bonus_type,
                 aff->specific);
     }
-    fprintf(fl, "0 0 0 0 0 0 0 0 0 0\n");
+    BUFFER_WRITE( "0 0 0 0 0 0 0 0 0 0\n");
   }
 
   /* Save Damage Reduction */
@@ -2730,7 +2755,7 @@ void save_char(struct char_data *ch, int mode)
     int snum[100];
     bool found = false;
 
-    fprintf(fl, "DmgR:\n");
+    BUFFER_WRITE( "DmgR:\n");
 
     /* DR from affects...*/
     for (dr = tmp_dr; dr != NULL && 0 <= max_loops--; dr = dr->next)
@@ -2753,10 +2778,10 @@ void save_char(struct char_data *ch, int mode)
       if (found || x == 100)
         continue;
 
-      fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
+      BUFFER_WRITE( "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++)
       {
-        fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
+        BUFFER_WRITE( "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
       }
     }
 
@@ -2783,15 +2808,15 @@ void save_char(struct char_data *ch, int mode)
       }
       if (found || x == 100)
         continue;
-      fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
+      BUFFER_WRITE( "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++)
       {
-        fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
+        BUFFER_WRITE( "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
       }
     }
 
     /* done close off */
-    fprintf(fl, "0 0 0 0 0\n");
+    BUFFER_WRITE( "0 0 0 0 0\n");
   }
   /* end DR saving */
 
@@ -2817,8 +2842,19 @@ void save_char(struct char_data *ch, int mode)
     save_account(ch->desc->account);
   }
 
+  /* Write buffer to file and close */
+  if (buffer_used > 0) {
+    if (fwrite(write_buffer, 1, buffer_used, fl) != buffer_used) {
+      log("SYSERR: save_char: Failed to write buffer for %s", GET_NAME(ch));
+    }
+  }
+  
   /* FILE CLOSED!!! */
   fclose(fl);
+  
+  /* Free the write buffer */
+  free(write_buffer);
+  #undef BUFFER_WRITE
 
   /* add affects, dr, etc back in */
 
@@ -2887,6 +2923,18 @@ void save_char(struct char_data *ch, int mode)
 
   if (player_table[id].flags != i || save_index)
     save_player_index();
+  
+  /* Log performance metrics */
+  gettimeofday(&end_time, NULL);
+  long elapsed_usec = (end_time.tv_sec - start_time.tv_sec) * 1000000 + 
+                      (end_time.tv_usec - start_time.tv_usec);
+  long elapsed_ms = elapsed_usec / 1000;
+  
+  /* Log if save took more than 50ms (previously was taking 257ms) */
+  if (elapsed_ms > 50) {
+    log("PERF: save_char(%s) took %ldms (buffer: %zu bytes)", 
+        GET_NAME(ch), elapsed_ms, buffer_used);
+  }
 }
 
 /* Separate a 4-character id tag from the data it precedes */
@@ -3971,7 +4019,12 @@ void update_player_last_on(void)
     snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW(), character_info='%s' WHERE name = '%s';", char_info, GET_NAME(d->character));
     if (mysql_query(conn, buf))
     {
-      log("SYSERR: Unable to UPDATE last_online and character_info for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));
+      /* Try without character_info column for compatibility */
+      snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW() WHERE name = '%s';", GET_NAME(d->character));
+      if (mysql_query(conn, buf))
+      {
+        log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));
+      }
     }
   }
 }
@@ -4007,8 +4060,8 @@ void save_char_pets(struct char_data *ch)
   snprintf(del_buf, sizeof(del_buf), "delete from pet_save_objs where owner_name = '%s';", GET_NAME(ch));
   if (mysql_query(conn, del_buf))
   {
-    log("SYSERR: Unable to delete pet object save data: %s", mysql_error(conn));
-    return;
+    /* Table might not exist, continue anyway */
+    log("INFO: pet_save_objs table might not exist: %s", mysql_error(conn));
   }
 
   end = stpcpy(query, "DELETE FROM pet_data WHERE owner_name=");
@@ -4030,9 +4083,9 @@ void save_char_pets(struct char_data *ch)
     if (!AFF_FLAGGED(tch, AFF_CHARM))
       continue;
 #if defined(CAMPAIGN_DL)
-    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
+    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
 
-    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
+    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
     *end2++ = '\'';
     end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
     *end2++ = '\'';
@@ -4089,24 +4142,37 @@ void save_char_pets(struct char_data *ch)
     
     *end2++ = '\0';
 
-    snprintf(query3, sizeof(query3), "'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
+    snprintf(query3, sizeof(query3), "'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
              GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
              GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch),
-             GET_REAL_INT(tch), GET_REAL_WIS(tch), GET_REAL_CHA(tch));
+             GET_REAL_WIS(tch), GET_REAL_CHA(tch));
     snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
 #else
-    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
+    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
 
-    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
+    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
     *end2++ = '\'';
     end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
     *end2++ = '\'';
+    *end2++ = ',';
+    
+    if (valid_pet_name(tch->player.name))
+    {
+      *end2++ = '\'';
+      end2 += mysql_real_escape_string(conn, end2, GET_NAME(tch), strlen(GET_NAME(tch)));
+      *end2++ = '\'';
+    }
+    else
+    {
+      *end2++ = '\'';
+      *end2++ = '\'';
+    }
     *end2++ = '\0';
 
-    snprintf(query3, sizeof(query3), ",'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
+    snprintf(query3, sizeof(query3), ",'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
              GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
              GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch),
-             GET_REAL_INT(tch), GET_REAL_WIS(tch), GET_REAL_CHA(tch));
+             GET_REAL_WIS(tch), GET_REAL_CHA(tch));
     snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
 #endif
     if (mysql_query(conn, finalQuery))

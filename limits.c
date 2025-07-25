@@ -1370,7 +1370,7 @@ void recharge_activated_items(void)
   struct char_data *ch = NULL;
   struct obj_data *obj = NULL;
   int i = 0, j = 0;
-  char buf[200], where_name[200];
+  char buf[256], where_name[200];
 
   for (d = descriptor_list; d; d = d->next)
   {
@@ -1643,7 +1643,7 @@ void update_player_misc(void)
       clear_mission(ch);
     }
 
-    if (PRF_FLAGGED(ch, PRF_AUTO_PREP))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_PREP))
     {
       for (i = 0; i < NUM_CLASSES; i++)
       {
@@ -2720,7 +2720,7 @@ void self_buffing(void)
         else
         {
           int augment = 0;
-          if (PRF_FLAGGED(ch, PRF_AUGMENT_BUFFS))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUGMENT_BUFFS))
             augment = max_augment_psp_allowed(ch, spellnum);
           snprintf(spellname, sizeof(spellname), " %d '%s'", augment, spell_info[spellnum].name);
           do_manifest(ch, (const char *)spellname, 0, SCMD_CAST_PSIONIC);

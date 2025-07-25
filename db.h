@@ -336,6 +336,7 @@ void build_player_index(void);
 struct obj_data *create_obj(void);
 void clear_object(struct obj_data *obj);
 void free_obj(struct obj_data *obj);
+void free_obj_special_abilities(struct obj_special_ability *list);
 struct obj_data *read_object(obj_vnum nr, int type);
 int vnum_object(char *searchname, struct char_data *ch);
 int vnum_room(char *, struct char_data *);

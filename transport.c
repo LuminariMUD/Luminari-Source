@@ -222,7 +222,9 @@ const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
 #endif
 
 /* zone, destination vnum, title, details */
-const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
+/* Commenting out duplicate definition - already defined above
+const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = { */
+#if 0
     {"Abanasinia" , "4429" , "Abanasinia to Solamnia Ferry"} ,
     {"Abanasinia" , "300" , "Darken Wood"} , 
     {"Abanasinia" , "6318" , "Elven Cadre"} , 
@@ -330,6 +332,7 @@ const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
     /* always last! */
     {"0", "", "always last item", ""},
 };
+#endif
 
 ACMDU(do_carriage)
 {

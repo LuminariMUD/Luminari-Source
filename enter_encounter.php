@@ -1,10 +1,83 @@
 <?php
-//ini_set('display_errors', 1);
-//ini_set('display_startup_errors', 1);
-//error_reporting(E_ALL);
+/**
+ * enter_encounter.php - LuminariMUD Random Encounter Generator Tool
+ *
+ * SECURITY NOTICE:
+ * This tool generates C code and should be heavily restricted.
+ * Only authorized developers should have access to this tool.
+ */
+
+// Security: Start session for authentication and CSRF protection
+session_start();
+
+// Security: Strict authentication check for code generation tools
+if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true ||
+    !isset($_SESSION['role']) || $_SESSION['role'] !== 'developer') {
+    error_log("Unauthorized access attempt to enter_encounter.php from IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+    http_response_code(403);
+    die("Access denied. This tool requires developer authentication.");
+}
+
+// Security: Generate CSRF token if not exists
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+/**
+ * enter_encounter.php - LuminariMUD Random Encounter Generator Tool
+ * 
+ * PURPOSE:
+ * This tool generates C code for random encounter definitions in the LuminariMUD
+ * encounter system. It provides a web form interface for game designers to create
+ * new encounter types without manually writing code.
+ * 
+ * FUNCTIONALITY:
+ * - Accepts encounter parameters through a web form
+ * - Validates and processes input data
+ * - Generates properly formatted C code for encounters.c
+ * - Handles encounter groups (multiple mobs in one encounter)
+ * - Supports terrain-based encounter spawning
+ * 
+ * ENCOUNTER SYSTEM OVERVIEW:
+ * Random encounters in LuminariMUD spawn dynamically based on:
+ * - Player level range
+ * - Terrain type (forest, mountains, underdark, etc.)
+ * - Encounter probability tables
+ * - Group composition (single or multiple mobs)
+ * 
+ * GENERATED CODE FORMAT:
+ * The tool generates three types of C code:
+ * 1. add_encounter_record() - Main encounter definition
+ * 2. set_encounter_description() - Look description
+ * 3. add_encounter_sector() - Terrain assignments
+ * 
+ * INTEGRATION:
+ * Generated code should be added to:
+ * - encounters.c (function calls)
+ * - encounters.h (macro definitions)
+ * 
+ * SECURITY NOTES:
+ * - Input sanitization is performed on all text fields
+ * - Quotes are escaped to prevent code injection
+ * - Database credentials should never be exposed
+ */
+
+// Security: Enable error reporting only in development
+if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+} else {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+    ini_set('log_errors', 1);
+}
 ?>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <title>LuminariMUD Encounter Creator</title>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
@@ -25,53 +98,233 @@
 </head>
 <body>
 <?php
+/* ===========================================================================
+ * Security Functions and Input Validation
+ * ===========================================================================*/
+
+/**
+ * Validate and sanitize input for C code generation
+ *
+ * @param string $input The input to validate
+ * @param string $type The type of input (identifier, text, number)
+ * @param int $max_length Maximum allowed length
+ * @return string|false Sanitized input or false if invalid
+ */
+function validateInput($input, $type, $max_length = 255) {
+    if (empty($input) || strlen($input) > $max_length) {
+        return false;
+    }
+
+    switch ($type) {
+        case 'identifier':
+            // Only allow alphanumeric and underscores for C identifiers
+            if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $input)) {
+                return false;
+            }
+            break;
+        case 'text':
+            // Remove potentially dangerous characters
+            $input = preg_replace('/[<>"\'\\\]/', '', $input);
+            break;
+        case 'number':
+            if (!is_numeric($input) || $input < 0 || $input > 999999) {
+                return false;
+            }
+            $input = (int)$input;
+            break;
+    }
+
+    return $input;
+}
+
+/**
+ * Validate CSRF token
+ */
+function validateCSRF() {
+    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) ||
+        !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        error_log("CSRF token validation failed");
+        http_response_code(403);
+        die("CSRF token validation failed. Please refresh and try again.");
+    }
+}
+
+/* ===========================================================================
+ * Form Processing - Convert Form Data to C Code
+ * ===========================================================================*/
+
 if ($_POST)
 {
-    $encounter_record = "ENCOUNTER_TYPE_" . str_replace(" ", "_", strtoupper(trim($_POST['encounter_record'])));
-    $encounter_type = $_POST['encounter_type'];
-    $min_level = $_POST['min_level'];
-    $max_level = $_POST['max_level'];
-    $encounter_group = "ENCOUNTER_GROUP_TYPE_" . str_replace(" ", "_", strtoupper(trim($_POST['encounter_group'])));
-    $object_name = $_POST['object_name'];
-    $load_chance = $_POST['load_chance'];
-    $min_number = $_POST['min_number'];
-    $max_number = $_POST['max_number'];
-    $encounter_strength = $_POST['encounter_strength'];
-    $class = $_POST['class'];
+    // Security: Validate CSRF token first
+    validateCSRF();
+    /**
+     * Process form submission and generate C code
+     *
+     * Data processing steps:
+     * 1. Validate and sanitize all input values
+     * 2. Convert spaces to underscores for C macros
+     * 3. Add appropriate prefixes for constants
+     * 4. Escape special characters in descriptions
+     */
+
+    // Validate and sanitize all inputs
+    $encounter_record_raw = validateInput($_POST['encounter_record'] ?? '', 'identifier', 50);
+    if ($encounter_record_raw === false) {
+        http_response_code(400);
+        die("Invalid encounter record name. Use only letters, numbers, and underscores.");
+    }
+
+    // Generate unique encounter identifier
+    // Format: ENCOUNTER_TYPE_NAME_HERE
+    $encounter_record = "ENCOUNTER_TYPE_" . str_replace(" ", "_", strtoupper($encounter_record_raw));
+
+    // Validate encounter type against whitelist
+    $allowed_encounter_types = ['ENCOUNTER_CLASS_COMBAT'];
+    $encounter_type = $_POST['encounter_type'] ?? '';
+    if (!in_array($encounter_type, $allowed_encounter_types, true)) {
+        http_response_code(400);
+        die("Invalid encounter type.");
+    }
+
+    // Validate level ranges
+    $min_level = validateInput($_POST['min_level'] ?? '', 'number');
+    $max_level = validateInput($_POST['max_level'] ?? '', 'number');
+    if ($min_level === false || $max_level === false || $min_level > $max_level) {
+        http_response_code(400);
+        die("Invalid level range. Must be numbers with min <= max.");
+    }
+    
+    // Validate encounter group
+    $encounter_group_raw = validateInput($_POST['encounter_group'] ?? '', 'identifier', 50);
+    if ($encounter_group_raw === false) {
+        http_response_code(400);
+        die("Invalid encounter group name. Use only letters, numbers, and underscores.");
+    }
+    $encounter_group = "ENCOUNTER_GROUP_TYPE_" . str_replace(" ", "_", strtoupper($encounter_group_raw));
+
+    // Validate object name
+    $object_name = validateInput($_POST['object_name'] ?? '', 'text', 100);
+    if ($object_name === false) {
+        http_response_code(400);
+        die("Invalid object name. Maximum 100 characters, no special characters.");
+    }
+
+    // Validate load chance (0-100)
+    $load_chance = validateInput($_POST['load_chance'] ?? '', 'number');
+    if ($load_chance === false || $load_chance > 100) {
+        http_response_code(400);
+        die("Invalid load chance. Must be a number between 0 and 100.");
+    }
+
+    // Validate number ranges
+    $min_number = validateInput($_POST['min_number'] ?? '', 'number');
+    $max_number = validateInput($_POST['max_number'] ?? '', 'number');
+    if ($min_number === false || $max_number === false || $min_number > $max_number) {
+        http_response_code(400);
+        die("Invalid number range. Must be numbers with min <= max.");
+    }
+
+    // Validate encounter strength against whitelist
+    $allowed_strengths = ['ENCOUNTER_STRENGTH_NORMAL', 'ENCOUNTER_STRENGTH_BOSS'];
+    $encounter_strength = $_POST['encounter_strength'] ?? '';
+    if (!in_array($encounter_strength, $allowed_strengths, true)) {
+        http_response_code(400);
+        die("Invalid encounter strength.");
+    }
+
+    // Validate class against whitelist
+    $allowed_classes = ['CLASS_WIZARD', 'CLASS_CLERIC', 'CLASS_ROGUE', 'CLASS_WARRIOR',
+                       'CLASS_MONK', 'CLASS_DRUID', 'CLASS_BERSERKER', 'CLASS_SORCERER',
+                       'CLASS_PALADIN', 'CLASS_RANGER', 'CLASS_BARD', 'CLASS_ALCHEMIST'];
+    $class = $_POST['class'] ?? '';
+    if (!in_array($class, $allowed_classes, true)) {
+        http_response_code(400);
+        die("Invalid class selection.");
+    }
+    
+    // Extra treasure table reference
     $treasure_table = $_POST['treasure_table'];
+    
+    // Mob characteristics
     $alignment = $_POST['alignment'];
     $race_type = $_POST['race_type'];
     $subrace1 = $_POST['subrace1'];
     $subrace2 = $_POST['subrace2'];
     $subrace3 = $_POST['subrace3'];
     $size = $_POST['size'];
-    $hostile = $_POST['hostile'];
-    $sentient = $_POST['sentient'];
-    $long_desc = $_POST['long_desc'];
-    $desc = $_POST['description'];
+    
+    // Behavior flags
+    $hostile = $_POST['hostile'];      // Can players leave without fighting?
+    $sentient = $_POST['sentient'];    // Can be negotiated with?
+    
+    // Descriptions
+    $long_desc = $_POST['long_desc'];   // Room description
+    $desc = $_POST['description'];      // Look at mob description
 
+    /**
+     * Generate C code for encounter definition
+     * 
+     * Function: add_encounter_record()
+     * Parameters:
+     * - encounter_id: Unique identifier
+     * - type: ENCOUNTER_CLASS_COMBAT, etc.
+     * - min/max_level: Level range
+     * - group: Group identifier for multi-mob encounters
+     * - name: Mob name
+     * - load_chance: Probability (0-100)
+     * - min/max_number: Spawn count range
+     * - treasure: Treasure table reference
+     * - class: Mob class (warrior, wizard, etc.)
+     * - strength: Normal or boss
+     * - alignment: Alignment constant
+     * - race_type: Primary race
+     * - subraces: Up to 3 subrace modifiers
+     * - hostile: Combat requirement flag
+     * - sentient: Negotiation possibility flag
+     * - size: Size category
+     */
     $output = "    add_encounter_record(".$encounter_record.", ".$encounter_type.", ".$min_level.", ".$max_level.", ".$encounter_group.", \"".$object_name."\", ".
                $load_chance.", ".$min_number.", ".$max_number.", \n      ".$treasure_table.
               ", ".$class.", ".$encounter_strength.", ".$alignment.", ".$race_type.", \n".
             "      ".$subrace1.", ".$subrace2.", ".$subrace3.", ".$hostile.", ".$sentient.", ".$size." );\n";
+    
+    // Generate description setter calls
+    // Note: Double quotes are converted to single quotes to avoid C string issues
     $output .= "    set_encounter_description(".$encounter_record.", \"".addslashes(str_replace("\"", "'", $desc))."\");\n";
     $output .= "    set_encounter_long_description(".$encounter_record.", \"".addslashes(str_replace("\"", "'", $long_desc))."\");\n";
 
+    /**
+     * Process terrain selections
+     * 
+     * Terrain assignment methods:
+     * - set_encounter_terrain_any(): All terrains
+     * - set_encounter_terrain_all_surface(): All surface world terrains
+     * - set_encounter_terrain_all_underdark(): All underdark terrains
+     * - set_encounter_terrain_all_roads(): All road types
+     * - set_encounter_terrain_all_water(): All water types
+     * - add_encounter_sector(): Specific terrain types
+     * 
+     * Code formatting: 2 terrain assignments per line for readability
+     */
     $i = 0;
     foreach ($_POST['terrain'] as $key)
     {
+        // Check for special terrain groupings first
         if ($key == "SECT_ALL")
             $output .= "    set_encounter_terrain_any(".$encounter_record.");\n";
         else if ($key == "SECT_ALL_SURFACE")
             $output .= "    set_encounter_terrain_all_surface(".$encounter_record.");";
         else if ($key == "SECT_ALL_UD")
             $output .= "    set_encounter_terrain_all_underdark(".$encounter_record.");";
-            else if ($key == "SECT_ALL_SURFACE")
+        else if ($key == "SECT_ROADS")  // Fixed: was checking SECT_ALL_SURFACE twice
             $output .= "    set_encounter_terrain_all_roads(".$encounter_record.");";
-            else if ($key == "SECT_ALL_WATER")
+        else if ($key == "SECT_ALL_WATER")
             $output .= "    set_encounter_terrain_all_water(".$encounter_record.");";
         else
+            // Individual terrain type
             $output .= "    add_encounter_sector(".$encounter_record.", ".$key.");";
+        
+        // Format output: 2 entries per line
         if (($i % 2) == 1)
             $output .= "\n";
         else
@@ -79,10 +332,23 @@ if ($_POST)
         $i++;
     }
     $output .= "\n";
+    
+    // Add macro definitions for encounters.h
     $output .= "#define ".$encounter_record."\n";
     $output .= "#define ".$encounter_group."\n";
 ?>
 <script>
+/**
+ * Copy generated code to clipboard
+ * 
+ * This function:
+ * 1. Selects all text in the output textarea
+ * 2. Copies it to the system clipboard
+ * 3. Shows confirmation alert
+ * 
+ * Browser compatibility: Works in all modern browsers
+ * Mobile support: setSelectionRange ensures mobile compatibility
+ */
 function copyCode() {
   /* Get the text field */
   var copyText = document.getElementById("codeOutput");
@@ -101,7 +367,8 @@ function copyCode() {
 <div class="container" style="max-width: 1300px !important;">
     <div class="row">
         <div class="col-sm-12">
-            <textarea name="codeOutput" id="codeOutput" class="w-100" style="height: 400px;"><?=$output?></textarea>
+            <!-- Generated C code output textarea -->
+            <textarea name="codeOutput" id="codeOutput" class="w-100" style="height: 400px;"><?=htmlspecialchars($output, ENT_QUOTES | ENT_HTML5, 'UTF-8')?></textarea>
         </div>
     </div>
     <div class="row">
@@ -116,9 +383,17 @@ function copyCode() {
 <?php
 }
 else{
+    /**
+     * Display the encounter creation form
+     * 
+     * The form is displayed when no POST data is present
+     * All fields include Bootstrap tooltips explaining their purpose
+     */
 ?>
 
 <form action="" method="POST">
+    <!-- Security: CSRF Protection -->
+    <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES | ENT_HTML5, 'UTF-8')?>">
 <div class="container">
     <div class="row pt-1 pb-1">
         <div class="col-sm-12 pt-2 pb-2 text-center"><h1>LuminariMUD Random Encounter Entry Creator</h1></div>
@@ -381,12 +656,29 @@ else{
     <div class="row pt-1 pb-1">
         <div class="col-sm-6 w-100 text-right font-weight-bold" data-toggle="tooltip" data-placement="bottom" title="Different terrain types the mob can appear in. All surface/underdark terrains do not include flying or water.">Terrains Encounter Can Spawn In (Multi Select with CTRL+Click)</div>
         <div class="col-sm-6">
+            <?php
+            /**
+             * Terrain selection list
+             * 
+             * Terrain categories:
+             * - Special groups (ALL, ALL_SURFACE, etc.) - Apply multiple terrains at once
+             * - Surface world terrains - Normal overworld locations
+             * - Underdark terrains - Underground specific locations
+             * - Special terrains - Water, flying, lava, etc.
+             * 
+             * Note: Using a special group (like SECT_ALL_SURFACE) will override
+             * individual terrain selections for that category
+             */
+            ?>
             <select class="w-100" name="terrain[]" size="8" multiple="multiple">
+                <!-- Special terrain groups -->
                 <option value="SECT_ALL">All Terrains</option>
                 <option value="SECT_ALL_SURFACE">All Surface Terrains</option>
                 <option value="SECT_ALL_UD">All Underdark Terrains</option>
                 <option value="SECT_ROADS">All Surface Roads</option>
                 <option value="SECT_ALL_WATER">All Water Types</option>
+                
+                <!-- Surface world terrains -->
                 <option value="SECT_INSIDE">Inside (Eg. Buildings)</option>
                 <option value="SECT_CITY">City Streets</option>
                 <option value="SECT_FIELD">Field</option>
@@ -401,12 +693,16 @@ else{
                 <option value="SECT_OCEAN">Ocean</option>
                 <option value="SECT_MARSHLAND">Marshland</option>
                 <option value="SECT_HIGH_MOUNTAIN">High Mountains (Requires Flight or Climbing)</option>
+                
+                <!-- Underdark specific terrains -->
                 <option value="SECT_UD_WILD">Underdark Wild</option>
                 <option value="SECT_UD_CITY">Underdark City Streets</option>
                 <option value="SECT_UD_INSIDE">Underdark Inside (Eg. Buildings)</option>
                 <option value="SECT_UD_WATER">Underdark Swimmable Water</option>
                 <option value="SECT_UD_NOSWIM">Underdark Unswimmable Water</option>
                 <option value="SECT_UD_NOGROUND">Underdark Flying (Eg. Chasm)</option>
+                
+                <!-- Other terrain types -->
                 <option value="SECT_LAVA">Lava</option>
                 <option value="SECT_CAVE">Cave</option>
                 <option value="SECT_JUNGLE">Jungle</option>

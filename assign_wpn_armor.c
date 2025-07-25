@@ -35,7 +35,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
   if (affected_by_spell(ch, SPELL_BESTOW_WEAPON_PROFICIENCY))
     return true;
 
-  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_KENDER) && weapon == WEAPON_TYPE_HOOPAK);
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_KENDER) && weapon == WEAPON_TYPE_HOOPAK)
     return TRUE;
 
   if (HAS_REAL_FEAT(ch, FEAT_PALE_MASTER_WEAPONS) && weapon == WEAPON_TYPE_SCYTHE)

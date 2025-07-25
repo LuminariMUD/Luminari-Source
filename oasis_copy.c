@@ -531,7 +531,7 @@ ACMDU(do_buildwalk)
     GET_BUILDWALK_NAME(ch) = NULL;
     GET_BUILDWALK_DESC(ch) = NULL;
     send_to_char(ch, "All buildwalk extra settings removed.\r\n");
-    if (PRF_FLAGGED((ch), PRF_BUILDWALK))
+    if (!IS_NPC(ch) && PRF_FLAGGED((ch), PRF_BUILDWALK))
       send_to_char(ch, "Buildwalk still on.\r\n");
     else
       send_to_char(ch, "Buildwalk still turned off.\r\n");

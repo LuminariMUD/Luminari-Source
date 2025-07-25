@@ -765,8 +765,8 @@ void quest_give(struct char_data *ch, struct char_data *victim)
 void clear_hlquest(struct quest_entry *quest)
 {
   quest->type = -1;
-  quest->keywords = strdup("hi hello quest");
-  quest->reply_msg = strdup("Undefined Quest");
+  quest->keywords = NULL;
+  quest->reply_msg = NULL;
   quest->in = NULL;
   quest->out = NULL;
   quest->approved = FALSE;

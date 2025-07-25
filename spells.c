@@ -550,23 +550,19 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
   {
     send_to_char(ch, "You dispel all your own magic!\r\n");
     act("$n dispels all $s magic!", FALSE, ch, 0, 0, TO_ROOM);
-    if (ch->affected || AFF_FLAGS(ch))
+    while (ch->affected)
     {
-      while (ch->affected)
-      {
-        if (get_wearoff(ch->affected->spell))
-          send_to_char(ch, "%s\r\n",
-                       get_wearoff(ch->affected->spell));
-        affect_remove(ch, ch->affected);
-      }
-      if (AFF_FLAGGED(ch, AFF_WILD_SHAPE))
-        wildshape = true;
-      for (i = 0; i < AF_ARRAY_MAX; i++)
-        AFF_FLAGS(ch)
-      [i] = 0;
-      if (wildshape)
-        SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
+      if (get_wearoff(ch->affected->spell))
+        send_to_char(ch, "%s\r\n",
+                     get_wearoff(ch->affected->spell));
+      affect_remove(ch, ch->affected);
     }
+    if (AFF_FLAGGED(ch, AFF_WILD_SHAPE))
+      wildshape = true;
+    for (i = 0; i < AF_ARRAY_MAX; i++)
+      AFF_FLAGS(ch)[i] = 0;
+    if (wildshape)
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
     return;
   }
   else
@@ -2710,7 +2706,7 @@ ASPELL(spell_spellstaff)
   // cast_arg2 should be the spellname
   one_argument(cast_arg2, spellname, sizeof(spellname));
 
-  if (!*spellname || spellname == NULL)
+  if (!*spellname)
   {
     send_to_char(ch, "You must specify which spell you want to enchant the staff with.\r\n");
     return;

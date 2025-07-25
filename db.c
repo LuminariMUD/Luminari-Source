@@ -819,6 +819,10 @@ void destroy_db(void)
       free(obj_proto[cnt].action_description);
     free_extra_descriptions(obj_proto[cnt].ex_description);
 
+    /* free special abilities list */
+    if (obj_proto[cnt].special_abilities)
+      free_obj_special_abilities(obj_proto[cnt].special_abilities);
+
     /* free script proto list */
     free_proto_script(&obj_proto[cnt], OBJ_TRIGGER);
   }
@@ -848,6 +852,9 @@ void destroy_db(void)
 
     while (mob_proto[cnt].affected)
       affect_remove(&mob_proto[cnt], mob_proto[cnt].affected);
+
+    /* free quest data */
+    free_hlquest(&mob_proto[cnt]);
   }
   free(mob_proto);
   free(mob_index);
@@ -1103,7 +1110,8 @@ void boot_db(void)
 
   for (i = 0; i <= top_of_zone_table; i++)
   {
-    strncpy(buf1, zone_table[i].name, sizeof(buf1));
+    strncpy(buf1, zone_table[i].name, sizeof(buf1) - 1);
+    buf1[sizeof(buf1) - 1] = '\0';
     strip_colors(buf1);
     log("Resetting #%d: %s (rooms %d-%d).", zone_table[i].number,
         buf1, zone_table[i].bot, zone_table[i].top);
@@ -1766,7 +1774,7 @@ void moving_rooms_update(void)
                 }
             } else {
                 sprintf(errStr, "moving_rooms_update: real_room(%d) < 0", mover);
-                log(errStr);
+                log("%s", errStr);
             }
 
             nextRoom->remainingZonePulses = nextRoom->resetZonePulse;
@@ -4764,26 +4772,54 @@ void reset_zone(zone_rnum zone)
   // we'll place some random chests or traps
   if (has_random_chests || has_random_traps)
   {
+    // Build list of eligible rooms to avoid repeated eligibility checks
+    room_rnum *eligible_rooms = NULL;
+    int eligible_count = 0;
+    int eligible_capacity = 0;
+    
+    // Collect all eligible rooms once
+    rvnum = zone_table[zone].bot;
+    while (rvnum <= zone_table[zone].top)
+    {
+      rrnum = real_room(rvnum);
+      if (rrnum != NOWHERE)
+      {
+        // Note: We check initial eligibility only - num_chests may change during placement
+        if (can_place_random_chest_in_room(rrnum, total_rooms, num_chests))
+        {
+          // Grow array if needed
+          if (eligible_count >= eligible_capacity)
+          {
+            eligible_capacity = eligible_capacity ? eligible_capacity * 2 : 64;
+            RECREATE(eligible_rooms, room_rnum, eligible_capacity);
+          }
+          eligible_rooms[eligible_count++] = rrnum;
+        }
+      }
+      rvnum++;
+    }
+    
+    // Replicate original algorithm behavior but using cached eligible rooms
     while (max_chests > num_chests && num_loops < NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST)
     {
-      rvnum = zone_table[zone].bot;
-      while (rvnum <= zone_table[zone].top)
+      int i;
+      // Check each eligible room with the same 1/33 probability
+      for (i = 0; i < eligible_count && max_chests > num_chests; i++)
       {
-        rrnum = real_room(rvnum);
-        if (rrnum != NOWHERE)
+        // Re-check eligibility as num_chests has changed
+        if (can_place_random_chest_in_room(eligible_rooms[i], total_rooms, num_chests) && 
+            (dice(1, NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST) == 1))
         {
-          if (can_place_random_chest_in_room(rrnum, total_rooms, num_chests) && (dice(1, NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST) == 1))
-          {
-            place_random_chest(rrnum, zone_table[zone].max_level, -1, -1, 25);
-            // we increase num_chests for the one we just placed, to ensure we won't go over
-            // our limit in zones flagged for random_chests
-            num_chests++;
-          }
+          place_random_chest(eligible_rooms[i], zone_table[zone].max_level, -1, -1, 25);
+          num_chests++;
         }
-        rvnum++;
       }
-      num_loops++; 
+      num_loops++;
     }
+    
+    // Clean up
+    if (eligible_rooms)
+      free(eligible_rooms);
   }
 }
 
@@ -4839,16 +4875,22 @@ char *fread_string(FILE *fl, const char *error)
       exit(1);
     }
 
-    for (point--; (*point == '\r' || *point == '\n' || point == 0); point--)
-      ;
+    /* Ensure we don't go before the beginning of tmp array */
+    if (point > tmp) {
+      for (point--; (point >= tmp && (*point == '\r' || *point == '\n')); point--)
+        ;
+    }
 
-    if (*point == '~')
+    if (point >= tmp && *point == '~')
     {
       *point = '\0';
       done = 1;
     }
     else
     {
+      /* Move back to the last valid position if we went too far */
+      if (point < tmp)
+        point = tmp - 1;
       *(++point) = '\r';
       *(++point) = '\n';
       *(++point) = '\0';
@@ -4906,15 +4948,21 @@ char *fread_clean_string(FILE *fl, const char *error)
     /* If there is a '~', end the string; else put an "\r\n" over the '\n'. */
     /* now only removes trailing ~'s -- Welcor */
     point = strchr(tmp, '\0');
-    for (point--; (*point == '\r' || *point == '\n'); point--)
-      ;
-    if (*point == '~')
+    /* Ensure we don't go before the beginning of tmp array */
+    if (point > tmp) {
+      for (point--; (point >= tmp && (*point == '\r' || *point == '\n')); point--)
+        ;
+    }
+    if (point >= tmp && *point == '~')
     {
       *point = '\0';
       done = 1;
     }
     else
     {
+      /* Move back to the last valid position if we went too far */
+      if (point < tmp)
+        point = tmp - 1;
       *(++point) = '\r';
       *(++point) = '\n';
       *(++point) = '\0';
@@ -5314,7 +5362,7 @@ void free_char(struct char_data *ch)
   }
 
   while (ch->affected)
-    affect_remove(ch, ch->affected);
+    affect_remove_no_total(ch, ch->affected);
 
   /* free any assigned scripts */
   if (SCRIPT(ch))
@@ -5377,6 +5425,20 @@ void free_char(struct char_data *ch)
 }
 
 /* release memory allocated for an obj struct */
+/* Free the special abilities linked list */
+void free_obj_special_abilities(struct obj_special_ability *list)
+{
+  struct obj_special_ability *next;
+  
+  while (list) {
+    next = list->next;
+    if (list->command_word)
+      free(list->command_word);
+    free(list);
+    list = next;
+  }
+}
+
 void free_obj(struct obj_data *obj)
 {
   if (GET_OBJ_RNUM(obj) == NOWHERE)
@@ -5395,6 +5457,10 @@ void free_obj(struct obj_data *obj)
   /* free any assigned scripts */
   if (SCRIPT(obj))
     extract_script(obj, OBJ_TRIGGER);
+
+  /* free special abilities list */
+  if (obj->special_abilities)
+    free_obj_special_abilities(obj->special_abilities);
 
   /* find_obj helper */
   remove_from_lookup_table(GET_ID(obj));
@@ -5994,7 +6060,8 @@ static int check_object(struct obj_data *obj)
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
   /* stripping colors for SYSLOG -zusuk */
-  strncpy(buf1, obj->short_description, sizeof(buf1));
+  strncpy(buf1, obj->short_description, sizeof(buf1) - 1);
+  buf1[sizeof(buf1) - 1] = '\0';
   strip_colors(buf1);
 
   if (GET_OBJ_WEIGHT(obj) < 0 && (error = TRUE))
@@ -6327,7 +6394,7 @@ void load_config(void)
       {
         if (CONFIG_DFLT_DIR)
           free(CONFIG_DFLT_DIR);
-        if (line != NULL && *line)
+        if (*line)
           CONFIG_DFLT_DIR = strdup(line);
         else
           CONFIG_DFLT_DIR = strdup(DFLT_DIR);
@@ -6336,7 +6403,7 @@ void load_config(void)
       {
         if (CONFIG_DFLT_IP)
           free(CONFIG_DFLT_IP);
-        if (line != NULL && *line)
+        if (*line)
           CONFIG_DFLT_IP = strdup(line);
         else
           CONFIG_DFLT_IP = NULL;
@@ -6404,7 +6471,7 @@ void load_config(void)
       {
         if (CONFIG_LOGNAME)
           free(CONFIG_LOGNAME);
-        if (line != NULL && *line)
+        if (*line)
           CONFIG_LOGNAME = strdup(line);
         else
           CONFIG_LOGNAME = NULL;

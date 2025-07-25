@@ -2318,10 +2318,9 @@ int level_feats[][LEVEL_FEATS] = {
 void newbieEquipment(struct char_data *ch)
 {
   struct obj_data *obj = NULL;
-  int x;
 
 #if defined(USE_OLD_NOOB_GEAR)
-  struct *quiver = NULL, *pouch = NULL, *bp = NULL;
+  struct obj_data *quiver = NULL, *pouch = NULL, *bp = NULL;
   int objNums[] = {
       NOOB_BP, /* HAS to be first */
       NOOB_BOW,
@@ -2346,6 +2345,7 @@ void newbieEquipment(struct char_data *ch)
 
 #if defined(USE_CONTAINER_OBJECTS)
   // give everyone torch, rations, skin, backpack, bow, etc
+  int x;
   for (x = 0; objNums[x] != -1; x++)
   {
     obj = read_object(objNums[x], VIRTUAL);
@@ -3098,14 +3098,10 @@ void init_start_char(struct char_data *ch)
       perform_remove(ch, i, TRUE);
 
   /* clear affects for clean start */
-  if (ch->affected || AFF_FLAGS(ch))
-  {
-    while (ch->affected)
-      affect_remove(ch, ch->affected);
-    for (i = 0; i < AF_ARRAY_MAX; i++)
-      AFF_FLAGS(ch)
-    [i] = 0;
-  }
+  while (ch->affected)
+    affect_remove(ch, ch->affected);
+  for (i = 0; i < AF_ARRAY_MAX; i++)
+    AFF_FLAGS(ch)[i] = 0;
 
   /* initialize all levels and spec_abil array */
   for (i = 0; i < MAX_CLASSES; i++)

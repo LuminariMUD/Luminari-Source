@@ -25,10 +25,10 @@
 
 void init_perlin(int idx, int seed);
 double noise1(int idx, double);
-double noise2(int idx, double *);
-double noise3(int idx, double *);
-void normalize3(double *);
-void normalize2(double *);
+double noise2(int idx, double vec[2]);
+double noise3(int idx, double vec[3]);
+void normalize3(double v[3]);
+void normalize2(double v[2]);
 
 double PerlinNoise1D(int idx, double, double, double, int);
 double PerlinNoise2D(int idx, double, double, double, double, int);

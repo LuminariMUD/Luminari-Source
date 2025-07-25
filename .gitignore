@@ -72,3 +72,32 @@ dkms.conf
 .vscode/c_cpp_properties.json
 vnums.h
 mud_options.h
+
+# PHP Tools - Sensitive Configuration Files
+.env
+.env.local
+.env.production
+.env.staging
+
+# PHP Tools - Cache and Logs
+cache/
+logs/
+*.log
+
+# PHP Tools - Temporary Files
+tmp/
+temp/
+
+# PHP Tools - Backup Files
+backups/
+*.backup
+
+# PHP Tools - IDE and Editor Files
+.idea/
+*.swp
+*.swo
+*~
+
+# PHP Tools - Composer Dependencies (if added later)
+vendor/
+composer.lock

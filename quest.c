@@ -1700,7 +1700,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 /*--------------------------------------------------------------------------*/
 ACMD(do_quest)
 {
-  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_STRING_LENGTH] = {'\0'};
   int tp;
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));

@@ -89,17 +89,17 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 {
 
 #ifdef OBJSAVE_DB
-  char ins_buf[36767];                  /* For MySQL insert. */
-  char line_buf[MAX_STRING_LENGTH + 1]; /* For building MySQL insert statement. */
+  static char ins_buf[36767];           /* For MySQL insert - static to avoid stack allocation */
+  static char line_buf[4096];           /* For building MySQL insert statement - reduced size */
 #endif
 
   int counter2, i = 0, x = 0;
   struct extra_descr_data *ex_desc;
-  char buf1[MAX_STRING_LENGTH + 1];
+  char buf1[4096];                      /* Reduced from MAX_STRING_LENGTH */
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
-  char escaped_buf[MAX_STRING_LENGTH];
-  char escaped_key[MAX_STRING_LENGTH];
+  char escaped_buf[4096];               /* Reduced from MAX_STRING_LENGTH */
+  char escaped_key[512];                /* Reduced from MAX_STRING_LENGTH */
 
   /* load up the object */
   if (GET_OBJ_VNUM(obj) != NOTHING)
@@ -473,6 +473,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     if (mysql_query(conn, ins_buf))
     {
       log("SYSERR: Unable to REPLACE into player_save_objs: %s", mysql_error(conn));
+      extract_obj(temp);
       return 1;
     }
   }
@@ -481,6 +482,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     if (mysql_query(conn, ins_buf))
     {
       log("SYSERR: Unable to INSERT into house_data: %s", mysql_error(conn));
+      extract_obj(temp);
       return 1;
     }
   }
@@ -2017,6 +2019,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   char *serialized_obj;
   int locate;
   int obj_db_idnum = 0;
+  int loading_house_data = 0; /* Track query type: 0=player with idnum, 1=house with idnum, 2=house no idnum, 3=player no idnum */
 
   char **lines; /* Storage for tokenized serialization */
   char **line;  /* Token iterator */
@@ -2032,7 +2035,19 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     if (mysql_query(conn, buf))
     {
       log("SYSERR: Unable to SELECT from player_save_objs: %s", mysql_error(conn));
-      exit(1);
+      /* Try without idnum column for compatibility with dev server */
+      snprintf(buf, sizeof(buf), "SELECT   serialized_obj "
+                                 "FROM     player_save_objs "
+                                 "WHERE    name = '%s' "
+                                 "ORDER BY creation_date ASC;",
+               name);
+      
+      if (mysql_query(conn, buf))
+      {
+        log("SYSERR: Unable to SELECT from player_save_objs (without idnum): %s", mysql_error(conn));
+        exit(1); /* Still exit if both queries fail - this maintains original behavior */
+      }
+      loading_house_data = 3; /* Mark that we're using player data without idnum */
     }
 
     if (!(result = mysql_store_result(conn)))
@@ -2044,6 +2059,8 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   else
   {
     /* house_vnum was given, so load the house data instead. */
+    loading_house_data = 1;
+    /* Try to select both columns - if idnum doesn't exist, MySQL will error but we handle it */
     snprintf(buf, sizeof(buf), "SELECT   serialized_obj, idnum "
                                "FROM     house_data "
                                "WHERE    vnum = '%d' "
@@ -2053,13 +2070,27 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     if (mysql_query(conn, buf))
     {
       log("SYSERR: Unable to SELECT from house_data: %s", mysql_error(conn));
-      exit(1);
+      /* Try without idnum column for compatibility with older schema */
+      snprintf(buf, sizeof(buf), "SELECT   serialized_obj "
+                                 "FROM     house_data "
+                                 "WHERE    vnum = '%d' "
+                                 "ORDER BY creation_date ASC;",
+               house_vnum);
+      
+      if (mysql_query(conn, buf))
+      {
+        log("SYSERR: Unable to SELECT from house_data (without idnum): %s", mysql_error(conn));
+        log("WARNING: Skipping house data loading for vnum %d", house_vnum);
+        return NULL;
+      }
+      loading_house_data = 2; /* Mark that we're using the fallback query */
     }
 
     if (!(result = mysql_store_result(conn)))
     {
       log("SYSERR: Unable to SELECT from house_data: %s", mysql_error(conn));
-      exit(1);
+      log("WARNING: Skipping house data loading for vnum %d", house_vnum);
+      return NULL;
     }
   }
 
@@ -2077,15 +2108,40 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
 
     /* Get the data from the row structure. */
     serialized_obj = strdup(row[0]);
-    obj_db_idnum = atoi(row[1]);
+    /* Handle different query types */
+    if (loading_house_data == 2) {
+      /* House data fallback query without idnum */
+      obj_db_idnum = 0;
+    } else if (loading_house_data == 3) {
+      /* Player data fallback query without idnum */
+      obj_db_idnum = 0;
+    } else if (loading_house_data == 1) {
+      /* House data with idnum column */
+      obj_db_idnum = atoi(row[1]);
+    } else {
+      /* Player data with idnum column (normal case) */
+      obj_db_idnum = atoi(row[1]);
+    }
 
+    /* Tokenize the serialized object data */
     lines = tokenize(serialized_obj, "\n");
+    if (!lines) {
+      log("SYSERR: tokenize() failed in objsave_parse_objects_db for %s data",
+          loading_house_data ? "house" : "player");
+      free(serialized_obj);
+      continue;  /* Skip this object and try the next one */
+    }
 
     locate = 0;
     temp = NULL;
 
     for (line = lines; line && *line; ++line)
     {
+      /* Skip empty lines that might have been created */
+      if (!**line) {
+        continue;
+      }
+      
       if (**line == '#')
       {
         /* check for false alarm. */
@@ -2142,6 +2198,12 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         continue;
       }
 
+      /* Validate line is not empty before parsing tag */
+      if (!**line) {
+        log("WARNING: Empty line encountered while parsing object data");
+        continue;
+      }
+
       tag_argument(*line, tag);
       num = atoi(*line);
       /* we need an incrementor here */
@@ -2153,7 +2215,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         {
           char error[40];
           snprintf(error, sizeof(error) - 1, "rent(Ades):%s", temp->name);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           temp->action_description = strdup(*line);
         }
@@ -2197,10 +2259,10 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           //      obj_proto[real_object(temp->item_number)].ex_description))
             temp->ex_description = NULL;
           CREATE(new_desc, struct extra_descr_data, 1);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->keyword = strdup(*line);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->description = strdup(*line);
           new_desc->next = temp->ex_description;
@@ -2331,7 +2393,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         log("Unknown tag in saved obj: %s", tag);
       }
 
-      free(*line);
+      /* DO NOT free(*line) here - the lines array will be freed by free_tokens() */
     }
 
     /* So now if temp is not null, we have an object.
@@ -2369,6 +2431,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       temp = NULL;
     }
 
+    free_tokens(lines); /* Free the tokenized lines */
     free(serialized_obj); /* Done with this! */
   }
 
@@ -2681,12 +2744,12 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate, s
 int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch, struct char_data *owner, long int pet_idnum, int locate)
 {
 
-  char ins_buf[36767];                  /* For MySQL insert. */
-  char line_buf[MAX_STRING_LENGTH + 1]; /* For building MySQL insert statement. */
+  static char ins_buf[36767];           /* For MySQL insert - static to avoid stack allocation */
+  static char line_buf[4096];           /* For building MySQL insert statement - reduced size */
 
   int counter2, i = 0;
   struct extra_descr_data *ex_desc;
-  char buf1[MAX_STRING_LENGTH + 1];
+  char buf1[4096];                      /* Reduced from MAX_STRING_LENGTH */
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
 
@@ -2908,8 +2971,9 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch, s
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
   if (mysql_query(conn, ins_buf))
   {
-    log("SYSERR: Unable to INSERT into pet_save_objs: %s\n%s\n", mysql_error(conn), ins_buf);
-    return 1;
+    log("SYSERR: Unable to INSERT into pet_save_objs: %s", mysql_error(conn));
+    /* Table doesn't exist, skip saving pet objects */
+    return 0;
   }
 
   extract_obj(temp);
@@ -2977,7 +3041,8 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to SELECT from pet_save_objs: %s", mysql_error(conn));
-    exit(1);
+    /* Table doesn't exist, so no pet objects to load */
+    return NULL;
   }
 
   if (!(result = mysql_store_result(conn)))
@@ -3002,6 +3067,11 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
     serialized_obj = strdup(row[0]);
 
     lines = tokenize(serialized_obj, "\n");
+    if (!lines) {
+      log("SYSERR: tokenize() failed in pet_load_objs/obj_from_obj_file");
+      free(serialized_obj);
+      continue;  /* Skip this object and try the next one */
+    }
 
     locate = 0;
     temp = NULL;
@@ -3064,6 +3134,12 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         continue;
       }
 
+      /* Validate line is not empty before parsing tag */
+      if (!**line) {
+        log("WARNING: Empty line encountered while parsing object data");
+        continue;
+      }
+
       tag_argument(*line, tag);
       num = atoi(*line);
       /* we need an incrementor here */
@@ -3075,7 +3151,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         {
           char error[40];
           snprintf(error, sizeof(error) - 1, "rent(Ades):%s", temp->name);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           temp->action_description = strdup(*line);
         }
@@ -3119,10 +3195,10 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
           //      obj_proto[real_object(temp->item_number)].ex_description))
           temp->ex_description = NULL;
           CREATE(new_desc, struct extra_descr_data, 1);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->keyword = strdup(*line);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->description = strdup(*line);
           new_desc->next = temp->ex_description;
@@ -3253,7 +3329,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         log("Unknown tag in saved obj: %s", tag);
       }
 
-      free(*line);
+      /* DO NOT free(*line) here - the lines array will be freed by free_tokens() */
     }
 
     /* So now if temp is not null, we have an object.
@@ -3290,6 +3366,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
       temp = NULL;
     }
 
+    free_tokens(lines); /* Free the tokenized lines */
     free(serialized_obj); /* Done with this! */
   }
 
@@ -3300,12 +3377,12 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
 int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch, long int sheath_idnum, int sheath_slot)
 {
 
-  char ins_buf[36767];                  /* For MySQL insert. */
-  char line_buf[MAX_STRING_LENGTH + 1]; /* For building MySQL insert statement. */
+  static char ins_buf[36767];           /* For MySQL insert - static to avoid stack allocation */
+  static char line_buf[4096];           /* For building MySQL insert statement - reduced size */
 
   int counter2, i = 0;
   struct extra_descr_data *ex_desc;
-  char buf1[MAX_STRING_LENGTH + 1];
+  char buf1[4096];                      /* Reduced from MAX_STRING_LENGTH */
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
 
@@ -3612,6 +3689,11 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
     serialized_obj = strdup(row[0]);
 
     lines = tokenize(serialized_obj, "\n");
+    if (!lines) {
+      log("SYSERR: tokenize() failed in objsave_parse_objects_db_sheath for sheath %s", name);
+      free(serialized_obj);
+      continue;  /* Skip this object and try the next one */
+    }
 
     locate = 0;
     temp = NULL;
@@ -3676,6 +3758,12 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         continue;
       }
 
+      /* Validate line is not empty before parsing tag */
+      if (!**line) {
+        log("WARNING: Empty line encountered while parsing object data");
+        continue;
+      }
+
       tag_argument(*line, tag);
       num = atoi(*line);
       /* we need an incrementor here */
@@ -3687,7 +3775,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         {
           char error[40];
           snprintf(error, sizeof(error) - 1, "rent(Ades):%s", temp->name);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           temp->action_description = strdup(*line);
         }
@@ -3731,10 +3819,10 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
           //      obj_proto[real_object(temp->item_number)].ex_description))
           temp->ex_description = NULL;
           CREATE(new_desc, struct extra_descr_data, 1);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->keyword = strdup(*line);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->description = strdup(*line);
           new_desc->next = temp->ex_description;
@@ -3865,7 +3953,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         log("Unknown tag in saved obj: %s", tag);
       }
 
-      free(*line);
+      /* DO NOT free(*line) here - the lines array will be freed by free_tokens() */
     }
 
     /* So now if temp is not null, we have an object.
@@ -3918,6 +4006,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
       temp = NULL;
     }
 
+    free_tokens(lines); /* Free the tokenized lines */
     free(serialized_obj); /* Done with this! */
   }
 

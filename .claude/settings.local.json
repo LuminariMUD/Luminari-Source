@@ -9,7 +9,21 @@
       "Bash(rm:*)",
       "Bash(cat:*)",
       "Bash(git add:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(make:*)",
+      "Bash(ls:*)",
+      "Bash(gcc:*)",
+      "Bash(cp:*)",
+      "Bash(ssh:*)",
+      "Bash(find:*)",
+      "Bash(nm:*)",
+      "Bash(mv:*)",
+      "Bash(sed:*)",
+      "Bash(python3:*)",
+      "Bash(awk:*)",
+      "Bash(echo:*)",
+      "Bash(./test_event_fix)",
+      "Bash(./test_fread_fix)"
     ],
     "deny": []
   }

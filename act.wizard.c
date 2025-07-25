@@ -1447,7 +1447,7 @@ ACMD(do_stat)
           send_to_char(ch, "Sorry, you can't do that.\r\n");
         else
           do_stat_character(ch, victim);
-        extract_char_final(victim);
+        extract_char(victim);
       }
       else
       {
@@ -2657,7 +2657,7 @@ void show_full_last_command(struct char_data *ch)
   MYSQL_ROW row;
 
   send_to_char(ch, "%-20s %-20s %-25s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)", "CHARACTER INFO");
-  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, a.character_info, b.name AS account_name FROM player_data a "
+  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, '' AS character_info, b.name AS account_name FROM player_data a "
                                  "LEFT JOIN account_data b ON a.account_id=b.id ORDER BY a.last_online DESC LIMIT 40;");
   mysql_query(conn, query);
   res = mysql_use_result(conn);
@@ -2679,7 +2679,7 @@ void show_full_last_command_unique(struct char_data *ch)
   MYSQL_ROW row;
 
   send_to_char(ch, "%-20s %-20s %-25s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)", "CHARACTER INFO");
-  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, b.name AS account_name, a.character_info FROM player_data a "
+  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, b.name AS account_name, '' AS character_info FROM player_data a "
                                  "LEFT JOIN account_data b ON a.account_id=b.id GROUP BY b.name ORDER BY a.last_online DESC LIMIT 40;");
   mysql_query(conn, query);
   res = mysql_use_result(conn);
@@ -2733,7 +2733,10 @@ ACMDU(do_last)
           num = 0;
       }
       else
+      {
         strncpy(name, arg, sizeof(name) - 1);
+        name[sizeof(name) - 1] = '\0'; /* Ensure null termination */
+      }
       half_chop(argument, arg, argument);
     }
   }
@@ -3158,7 +3161,7 @@ ACMD(do_wizutil)
       // Clear Misc Cooldowns
       clear_misc_cooldowns(vict);
       // clear affects
-      if (vict->affected || AFF_FLAGS(vict))
+      if (vict->affected)
       {
         while (vict->affected)
           affect_remove(vict, vict->affected);
@@ -7152,7 +7155,7 @@ ACMD(do_recent)
     ct = this->time;
     tmstr = asctime(localtime(&ct));
     *(tmstr + strlen(tmstr) - 1) = '\0'; /* Cut off last char */
-    if (this->host && *(this->host))
+    if (*(this->host))
     {
       if (!strcmp(this->host, "localhost"))
         loc = TRUE;
@@ -7270,7 +7273,7 @@ ACMD(do_objlist)
   char buf3[8192];
   char buf4[8192];
   char buf5[8192];
-  char tmp_buf[1024];
+  char tmp_buf[32768];
   one_argument(argument, value, sizeof(value));
 
   if (*value && is_number(value))

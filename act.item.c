@@ -2205,7 +2205,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
       {
         if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
           auto_store_obj(ch, obj);
-        else if (PRF_FLAGGED(ch, PRF_AUTO_SORT))
+        else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_SORT))
           auto_sort_obj(ch, obj);
       }
       if (ct > 0)
@@ -2296,7 +2296,7 @@ static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
     act("$n gets $p.", TRUE, ch, obj, 0, TO_ROOM);
     if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
       auto_store_obj(ch, obj);
-    else if (PRF_FLAGGED(ch, PRF_AUTO_SORT))
+    else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_SORT))
       auto_sort_obj(ch, obj);
     get_check_money(ch, obj);
 
@@ -2987,7 +2987,10 @@ void name_from_drinkcon(struct obj_data *obj)
 
     if (*new_name)
       strcat(new_name, " ");             /* strcat: OK (size precalculated) */
-    strncat(new_name, cur_name, cpylen); /* strncat: OK (size precalculated) */
+    /* Use memcpy instead of strncat to avoid compiler warning */
+    size_t cur_len = strlen(new_name);
+    memcpy(new_name + cur_len, cur_name, cpylen);
+    new_name[cur_len + cpylen] = '\0';
   }
 
   if (GET_OBJ_RNUM(obj) == NOTHING || obj->name != obj_proto[GET_OBJ_RNUM(obj)].name)
@@ -5372,7 +5375,7 @@ void auc_send_to_all(char *messg, bool buyer)
     if (!i->character)
       continue;
 
-    if (PRF_FLAGGED(i->character, PRF_NOAUCT))
+    if (!IS_NPC(i->character) && PRF_FLAGGED(i->character, PRF_NOAUCT))
       continue;
 
     if (buyer && ch_buying)
