@@ -1257,4 +1257,12 @@ void process_walkto_actions(void)
   }
 }
 
+#if !defined(USE_WALKTO_LANDMARKS) && !defined(USE_CITY_LANDMARKS_ONLY)
+/* Stub function when neither USE_WALKTO_LANDMARKS nor USE_CITY_LANDMARKS_ONLY is defined */
+ACMD(do_landmarks)
+{
+  send_to_char(ch, "The landmarks system is not enabled on this MUD.\r\n");
+}
+#endif
+
 /* EoF */

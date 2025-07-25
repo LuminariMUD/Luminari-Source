@@ -135,10 +135,27 @@
  */
 #define RACE_ALLOW_VAMPIRE
 
-// The landmarks system allows players to automatically walk to certain zones.
-// If you'd like to use the landmarks that cover the whole world, uncomment the following line.
-// #define USE_WALKTO_LANDMARKS
-// Otherwise if you want to use city landmarks only, uncomment the following line.
+/* ************************************************************************
+ * Landmarks System Configuration
+ * 
+ * The landmarks system allows players to automatically walk to certain zones.
+ * Choose ONE of the following options or leave both commented out to disable.
+ * ************************************************************************ */
+
+/**
+ * USE_WALKTO_LANDMARKS - Global landmark navigation
+ * 
+ * Enables landmarks that cover the entire world, allowing players to
+ * automatically walk to distant zones across the map.
+ */
+/* #define USE_WALKTO_LANDMARKS */
+
+/**
+ * USE_CITY_LANDMARKS_ONLY - City-specific landmark navigation
+ * 
+ * Limits landmarks to city areas only, providing navigation within
+ * urban zones but not across the wider world.
+ */
 #define USE_CITY_LANDMARKS_ONLY
 
 #endif /* _MUD_OPTIONS_H_ */
