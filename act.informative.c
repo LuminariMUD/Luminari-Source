@@ -6938,7 +6938,7 @@ ACMD(do_weaponproficiencies)
   int i = 0;
 
   send_to_char(ch, "Weapons available for proficiency '%s'\r\n", argument);
-  for (i = 0; i < NUM_WEAPON_TYPES; i++)
+  for (i = 1; i < NUM_WEAPON_TYPES; i++)
   {
     if (is_weapon_proficient(i, type))
       send_to_char(ch, "--%s\r\n", weapon_list[i].name);
