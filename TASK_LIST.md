@@ -18,6 +18,10 @@ Log file for reference if needed: valgrind_20250724_221634.md
 | ☐ | db.c:4021 | read_object() object creation leaks | ~7KB | MEDIUM |
 | ☐ | db.c:4004 | read_object() larger object leaks | 2.4KB | MEDIUM |
 | ☐ | dg_variables.c:65 | Script variable memory not freed | Multiple small | LOW |
+| ☐ | handler.c:134 | isname() strdup temporary strings not freed | Multiple 6-7 bytes | MEDIUM |
+| ☐ | spell_parser.c:3055 | spello() spell name strings not freed | 38-39 bytes each | MEDIUM |
+| ☐ | dg_scripts.c:2990,2996 | script_driver() temp data during triggers | Various | MEDIUM |
+| ☐ | db.c:4311,4385 | Object strings during zone resets not freed | Various | MEDIUM |
 
 #### Uninitialized Values
 | ☐ | Location | Issue | Errors | Priority |
@@ -28,12 +32,18 @@ Log file for reference if needed: valgrind_20250724_221634.md
 | ☐ | Location | Issue | Details | Priority |
 |---|----------|-------|---------|----------|
 | ☐ | lists.c/mud_event.c | Accessing freed event memory | 8 bytes inside freed block | HIGH |
+| ☐ | comm.c:2951 | close_socket() accessing freed descriptor | Segfault during cleanup | CRITICAL |
 
 **Details**:
 - **hlquest.c**: Major leaks in quest system - clear_hlquest() allocates strings with strdup (lines 768, 769) but never frees them. Called from boot_the_quests() at lines 901 and 914. Total: 9,840 + 10,496 + 44,970 + 47,952 = 113,258 bytes lost.
 - **mysql.c**: tokenize() function has severe memory leaks from malloc (line 211) and realloc (line 218) operations. Affects load_paths() and other database operations. Total: ~318KB lost.
 - **db.c:4937**: fread_clean_string() has uninitialized stack variables causing 60 conditional jump errors. Affects IBT file loading.
+- **handler.c:134**: isname() creates temporary strings with strdup during name parsing that are never freed. Common in movement/equipment commands.
+- **spell_parser.c:3055**: spello() allocates spell name strings that persist for the entire runtime without cleanup.
+- **dg_scripts.c**: script_driver() at lines 2990/2996 leaks temporary data during trigger execution, especially through load_mtrigger and reset_wtrigger.
+- **Zone resets**: Objects loaded during zone resets (db.c:4311,4385) allocate strings that aren't tracked for cleanup.
 - **Use-after-free**: Event system accessing memory 8 bytes inside a 24-byte block that was freed by free_mud_event().
+- **close_socket**: Critical use-after-free at comm.c:2951 accessing descriptor data after freeing, causing segfaults.
 
 Log file for reference if needed: valgrind_20250724_221634.md
 

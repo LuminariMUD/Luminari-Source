@@ -385,7 +385,8 @@ For complete license details, see the [LICENSE](LICENSE) file.
 - **Current Version**: LuminariMUD 2.4839 (tbaMUD 3.64)
 - **Repository**: https://github.com/LuminariMUD/Luminari-Source
 - **Created**: July 16, 2019
-- **Language**: C (C99 standard)
+- **Language**: C (C99 standard) with C++11 performance monitoring
+- **Last Updated**: January 2025
 
 ---
 

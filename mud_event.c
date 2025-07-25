@@ -632,6 +632,7 @@ EVENTFUNC(event_countdown)
         world[eroom_rnum].coords[1] = y;
       }
       initialize_wilderness_lists();
+      free_tokens(tokens); /* Free the tokenized list */
     }
 
     return 60 RL_SEC;
