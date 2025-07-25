@@ -1538,7 +1538,9 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 {
   int bonus_value = enchantment_grade, bonus_location = APPLY_NONE;
   bool has_enhancement = FALSE;
-  /* int feat_num = FEAT_UNDEFINED; */ /* Currently unused */
+#if defined(USE_NEW_RANDOM_OBJECT_GUIDELINES)
+  int feat_num = FEAT_UNDEFINED;
+#endif
 
   /* items that will only get an enhancement bonus */
   if (CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD) ||

@@ -4088,6 +4088,9 @@ ACMD(do_who)
   int i, num_can_see = 0;
 #if !defined(CAMPAIGN_DL)  
   int class_len = 0;
+#else
+  char clan_name[MAX_CLAN_NAME] = {'\0'}; /* Currently unused */
+  int length = 0, padding = 0;
 #endif
   char name_search[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, classes_list[MAX_INPUT_LENGTH] = {'\0'};
   char mode;

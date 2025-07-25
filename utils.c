@@ -9485,6 +9485,11 @@ bool is_road_room(room_rnum room, int type)
 {
   if (room == NOWHERE)
     return false;
+
+  // log("R: %d, Z: %d, T: %d\n", room, GET_ROOM_ZONE(room), type);
+
+  if (GET_ROOM_ZONE(room) == -1)
+    return false;
     
   if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_MISSIONS) && type == 1)
     return true;

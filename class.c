@@ -2385,6 +2385,7 @@ void newbieEquipment(struct char_data *ch)
 #elif defined(USE_VIRTUAL_BAGS_ONLY)
 
 #if defined(USE_NEW_NOOB_GEAR)
+    int x;
     for (x = 0; x < 5; x++)
     {
       obj = read_object(NOOB_RATIONS, VIRTUAL);

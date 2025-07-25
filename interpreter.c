@@ -2945,6 +2945,7 @@ void nanny(struct descriptor_data *d, char *arg)
         write_to_output(d, "%s\r\n", race_list[i].type);
     }
 #elif defined(CAMPAIGN_DL)
+    int sortpos;
     write_to_output(d, "Races of Krynn\r\n\r\n");
     for (sortpos = 0; sortpos < NUM_EXTENDED_RACES; sortpos++)
     {
@@ -4281,7 +4282,7 @@ void show_homeland_region_main_menu(struct descriptor_data *d)
       }
 
       write_to_output(d, "\tcRegions of Ansalon\tn\r\n\r\n");
-      i = 1;
+      int i = 1;
       while (i < NUM_REGIONS)
       {
         if (!is_selectable_region(i)) {i++; continue; }
