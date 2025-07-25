@@ -4,6 +4,15 @@
 
 ### Critical Bug Fixes
 
+#### Fixed "(null)" Race Display in Character Creation
+- **Issue**: New players saw "(null)" entries in race selection during character creation, severely impacting first impressions
+- **Root Cause**: Duplicate race constant definitions in structs.h:
+  - RACE_GOBLIN = 26 (has implementation) vs RACE_DEEP_GNOME = 26 (no implementation)
+  - RACE_HOBGOBLIN = 27 (has implementation) vs RACE_ORC = 27 (no implementation)
+- **Solution**: Commented out the unimplemented duplicate definitions (RACE_DEEP_GNOME, RACE_SVIRFNEBLIN, RACE_ORC)
+- **Files Modified**: structs.h:694-700
+- **Impact**: Eliminates "(null)" entries in race selection, fixing critical new player experience issue
+
 #### Fixed Critical Double-Free Bug in objsave.c
 - **Issue**: Server crash (SIGABRT) when loading house data, with corruption in free_tokens()
 - **Root Cause**: The object parsing code in objsave.c was calling `free(*line)` to free individual token strings during parsing, but these strings belonged to the tokenize() array and were freed again by `free_tokens()` at the end, causing a double-free

@@ -160,7 +160,8 @@ int get_line(FILE *fl, char *buf)
 
   do
   {
-    fgets(temp, MEM_USE, fl);
+    if (!fgets(temp, MEM_USE, fl))
+      break;
     if (*temp)
       temp[strlen(temp) - 1] = '\0';
   } while (!feof(fl) && !*temp);
