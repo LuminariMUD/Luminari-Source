@@ -77,6 +77,7 @@
 #define NOOB_GEAR_DRUID_HEAD        160005
 #define NOOB_GEAR_DRUID_LEGS        160006
 #define NOOB_GEAR_DRUID_ARMS        160007
+*/
 
 /* Berserker Starting Gear */
 /*
