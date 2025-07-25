@@ -215,3 +215,43 @@
   - `players.c`: Removed redundant NULL check for host array member
   - Arrays cannot be NULL by definition, making these checks unnecessary
 - **Impact**: Clean compilation with zero warnings, improving code quality and maintainability
+
+### Spell System Fixes
+
+#### Fixed Duplicate Spell Definitions Causing malloc_printerr Crashes
+- **Issue**: Server crash during boot with malloc_printerr errors when initializing spells
+- **Root Cause**: Multiple spells were defined twice with spello() calls:
+  - SPELL_FREE_MOVEMENT defined at lines 3793 and 4368
+  - SPELL_CAUSE_LIGHT_WOUNDS defined at lines 4218 and 4251  
+  - SPELL_REMOVE_FEAR defined at lines 4245 and 4253
+  - SKILL_SURPRISE_ACCURACY and SKILL_POWERFUL_BLOW incorrectly defined with spello() instead of skillo()
+- **Crash Mechanism**: When spello() was called the second time for the same spell:
+  - It attempted to free the wear_off_msg from the first definition
+  - If the wear_off_msg was a string literal (not heap-allocated), free() would crash
+  - This caused malloc_printerr: "free(): invalid pointer" errors
+- **Solution**:
+  - Removed duplicate SPELL_FREE_MOVEMENT definition at line 3793
+  - Removed duplicate SPELL_CAUSE_LIGHT_WOUNDS definition at line 4251
+  - Removed duplicate SPELL_REMOVE_FEAR definition at line 4253
+  - Removed SKILL_SURPRISE_ACCURACY and SKILL_POWERFUL_BLOW spello() definitions (skills should use skillo())
+- **Files Modified**: spell_parser.c (multiple locations)
+- **Impact**: Eliminates server crashes during startup, allowing the MUD to boot properly
+
+### Database Fixes
+
+#### Fixed Missing pet_name Field in pet_data INSERT Query
+- **Issue**: Repeated database errors "Field 'pet_name' doesn't have a default value" causing performance spikes
+- **Root Cause**: The non-DL campaign version of save_char_pets() was missing the pet_name field in its INSERT query
+  - DL campaign version (line 4086) included pet_name field
+  - Non-DL version (line 4151) omitted pet_name field
+  - Database schema requires pet_name (no default value)
+- **Symptoms**:
+  - Error occurred every 6 seconds during autosave cycles
+  - Performance spikes (150-300% CPU) when errors occurred
+  - Affected players with pets (particularly ethereal NPCs like wights)
+- **Solution**: Added pet_name field to non-DL INSERT query with proper validation:
+  - Check if pet name is valid using valid_pet_name()
+  - Escape pet name with mysql_real_escape_string()
+  - Insert empty string if name is invalid
+- **Files Modified**: players.c:4151-4170
+- **Impact**: Eliminates database errors and performance spikes during pet autosaves

@@ -4148,12 +4148,25 @@ void save_char_pets(struct char_data *ch)
              GET_REAL_WIS(tch), GET_REAL_CHA(tch));
     snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
 #else
-    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
+    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
 
-    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
+    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) VALUES(NULL,");
     *end2++ = '\'';
     end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
     *end2++ = '\'';
+    *end2++ = ',';
+    
+    if (valid_pet_name(tch->player.name))
+    {
+      *end2++ = '\'';
+      end2 += mysql_real_escape_string(conn, end2, GET_NAME(tch), strlen(GET_NAME(tch)));
+      *end2++ = '\'';
+    }
+    else
+    {
+      *end2++ = '\'';
+      *end2++ = '\'';
+    }
     *end2++ = '\0';
 
     snprintf(query3, sizeof(query3), ",'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
