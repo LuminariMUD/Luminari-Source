@@ -20,6 +20,7 @@ void affect_total_plus(struct char_data *ch, int at_armor);
 void affect_total(struct char_data *ch);
 void affect_to_char(struct char_data *ch, struct affected_type *af);
 void affect_remove(struct char_data *ch, struct affected_type *af);
+void affect_remove_no_total(struct char_data *ch, struct affected_type *af);
 void affect_from_char(struct char_data *ch, int type);
 void affect_type_from_char(struct char_data *ch, int type);
 bool affected_by_spell(struct char_data *ch, int type);

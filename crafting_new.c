@@ -2316,6 +2316,14 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
 
     if (mode == CR_RESET_ALL || mode == CR_RESET_DESCRIPTIONS || mode == CR_RESET_MATERIALS)
     {
+        /* Free old strings before allocating new ones to prevent memory leaks */
+        if (GET_CRAFT(ch).keywords)
+            free(GET_CRAFT(ch).keywords);
+        if (GET_CRAFT(ch).short_description)
+            free(GET_CRAFT(ch).short_description);
+        if (GET_CRAFT(ch).room_description)
+            free(GET_CRAFT(ch).room_description);
+        
         GET_CRAFT(ch).keywords = strdup("not set");
         GET_CRAFT(ch).short_description = strdup("not set");
         GET_CRAFT(ch).room_description = strdup("not set");
