@@ -333,9 +333,8 @@ void load_regions()
     {
       sscanf(*it, "%d %d", &(region_table[i].vertices[vtx].x), &(region_table[i].vertices[vtx].y));
       vtx++;
-      free(*it);
     }
-    free(tokens);
+    free_tokens(tokens);
 
     top_of_region_table = i;
 
@@ -688,9 +687,8 @@ void load_paths()
     {
       sscanf(*it, "%d %d", &(path_table[i].vertices[vtx].x), &(path_table[i].vertices[vtx].y));
       vtx++;
-      free(*it);
     }
-    free(tokens);
+    free_tokens(tokens);
 
     top_of_path_table = i;
     i++;
@@ -898,9 +896,8 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
         ylow = newy;
       if (newy > yhigh)
         yhigh = newy;
-      free(*it);
     }
-    free(tokens);
+    free_tokens(tokens);
   }
 
   mysql_free_result(result);

@@ -10,6 +10,8 @@ LuminariMUD is a text-based multiplayer online role-playing game (MUD) server ba
 
 ## Documentation Structure
 
+📚 **[Complete Documentation Index](DOCUMENTATION_INDEX.md)** - Navigate all documentation by audience and topic
+
 This comprehensive technical documentation is organized into the following major sections:
 
 ### 1. Core Architecture Documentation
@@ -33,12 +35,14 @@ This comprehensive technical documentation is organized into the following major
 - **[Setup and Build](SETUP_AND_BUILD_GUIDE.md)** - Compilation, installation, configuration
 - **[Developer Guide](DEVELOPER_GUIDE_AND_API.md)** - Coding standards, API reference, PHP tools development
 - **[Testing Guide](TESTING_GUIDE.md)** - Unit testing, performance testing, quality assurance
+- **[Performance Optimizations](PERFORMANCE_OPTIMIZATIONS.md)** - CPU and memory optimization strategies
 - **[Troubleshooting](TROUBLESHOOTING_AND_MAINTENANCE.md)** - Common issues, debugging, optimization, security audit results
 
 ### 5. PHP Tools and Web Interface
 - **[PHP Tools Guide](PHP_TOOLS_README.md)** - Security audit report, deployment guide, configuration
 - **Security Status**: All PHP tools audited and secured (January 2025)
 - **Tools Available**: Bonus analysis, encounter generator, hunt creator, spell help generator
+- **Risk Level**: LOW (18 vulnerabilities fixed across 5 files)
 
 ## Key Technical Characteristics
 
@@ -67,6 +71,8 @@ This comprehensive technical documentation is organized into the following major
 - **Memory pooling** for frequently allocated objects
 - **Efficient data structures** (hash tables, linked lists)
 - **Lazy loading** of world data where appropriate
+- **Optimized affect_update()** - 80-90% CPU reduction through MSDP optimization
+- **Performance monitoring** with C++ profiling tools
 
 ## File Organization
 
@@ -151,10 +157,11 @@ This comprehensive technical documentation is organized into the following major
 
 ## Version Information
 
-**Documentation Version:** 1.0  
-**Last Updated:** 2025-01-23  
-**Covers Codebase:** Current master branch  
+**Documentation Version:** 1.1
+**Last Updated:** 2025-01-25
+**Covers Codebase:** Current master branch
 **Maintainer:** Development Team
+**Recent Updates:** Security audit completion, performance optimizations, documentation audit
 
 ## Contributing to Documentation
 

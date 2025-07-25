@@ -1,7 +1,13 @@
-TODO:
-*
-*
-*
+# LuminariMUD Crafting System Documentation
+
+## Overview
+
+The LuminariMUD crafting system provides comprehensive item creation and enhancement capabilities based on D&D 3.5/Pathfinder mechanics. Players can gather materials, learn crafting skills, and create custom equipment.
+
+## TODO Items
+* Complete documentation for all crafting commands
+* Add examples for each crafting skill
+* Document material acquisition methods
 
 Weapon Resize Charts:
 F      D      T       S     M      L       H      G      C      ?      ??
@@ -80,12 +86,22 @@ crafting related skills:
  * silk
  */
 
-Crafting Commands:
-augment - combine essence to make them stronger
-convert - convert 10 of one mat to make something else ?
-restring - rename an object
-autocraft - crafting quest, supply order
-resize - resize object
-disenchant - create essence
-create - create/craft an object
-checkcraft - check the result of create
+## Crafting Commands
+
+### Core Commands
+- **augment** - Combine essence to make them stronger
+- **convert** - Convert 10 of one material to make something else
+- **restring** - Rename an object (cosmetic changes)
+- **autocraft** - Crafting quest system, supply orders
+- **resize** - Resize object for different character sizes
+- **disenchant** - Create essence from magical items
+- **create** - Create/craft an object using materials and skills
+- **checkcraft** - Check the result of create command
+
+### Usage Examples
+```
+create sword steel
+augment essence fire essence ice
+resize sword large
+restring sword "a gleaming steel blade"
+```

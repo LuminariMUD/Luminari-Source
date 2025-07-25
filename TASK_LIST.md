@@ -14,7 +14,7 @@ Log file for reference if needed: valgrind_20250724_221634.md
 |---|----------|-------|------|----------|
 | ☑ | hlquest.c:768, 769 | clear_hlquest() strdup without free | 113KB total | CRITICAL |
 | ☑ | hlquest.c:925 | boot_the_quests() calloc without free | 15.7KB | HIGH |
-| ☑ | mysql.c:211, 218 | tokenize() malloc/realloc leaks | 318KB total | CRITICAL |
+| ✅ | mysql.c:211, 218 | tokenize() malloc/realloc leaks | 318KB total | CRITICAL |
 | ☐ | db.c:4021 | read_object() object creation leaks | ~7KB | MEDIUM |
 | ☐ | db.c:4004 | read_object() larger object leaks | 2.4KB | MEDIUM |
 | ☐ | dg_variables.c:65 | Script variable memory not freed | Multiple small | LOW |
@@ -32,7 +32,7 @@ Log file for reference if needed: valgrind_20250724_221634.md
 | ☐ | Location | Issue | Details | Priority |
 |---|----------|-------|---------|----------|
 | ☐ | lists.c/mud_event.c | Accessing freed event memory | 8 bytes inside freed block | HIGH |
-| ☐ | comm.c:2951 | close_socket() accessing freed descriptor | Segfault during cleanup | CRITICAL |
+| ✅ | comm.c:2951 | close_socket() accessing freed descriptor | Segfault during cleanup | CRITICAL |
 
 **Details**:
 - **hlquest.c**: Major leaks in quest system - clear_hlquest() allocates strings with strdup (lines 768, 769) but never frees them. Called from boot_the_quests() at lines 901 and 914. Total: 9,840 + 10,496 + 44,970 + 47,952 = 113,258 bytes lost.

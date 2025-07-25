@@ -179,7 +179,14 @@ make all
 
 # Test with sample data
 # Verify no memory leaks with valgrind
-valgrind --leak-check=full ../bin/circle
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ../bin/circle
+```
+
+### Performance Testing
+```bash
+# Monitor performance with built-in tools
+# Check affect_update() optimization logs
+# Use performance monitoring features
 ```
 
 ### Manual Testing
@@ -312,6 +319,7 @@ clang-format -i *.c *.h
 - **[Technical Documentation](documentation/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**
 - **[Developer Guide](documentation/DEVELOPER_GUIDE_AND_API.md)**
 - **[Setup Guide](documentation/SETUP_AND_BUILD_GUIDE.md)**
+- **[AI Assistant Guide](CLAUDE.md)** - Comprehensive guide for AI-assisted development
 - **[Discord Community](https://discord.gg/Me3Tuu4)**
 - **[GitHub Repository](https://github.com/LuminariMUD/Luminari-Source)**
 

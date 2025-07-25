@@ -10,9 +10,10 @@ This guide provides comprehensive information for developers working on Luminari
 - **GCC 9.0+** or **Clang 10.0+** - C compiler with C99 support
 - **Git** - Version control system
 - **GDB** - Debugger for troubleshooting
-- **Valgrind** - Memory leak detection (Linux)
+- **Valgrind** - Memory leak detection (Linux) - Essential for development
 - **Doxygen** - Documentation generation (optional)
 - **Text Editor/IDE** - VS Code, Vim, Emacs, or CLion
+- **Performance Tools** - Built-in C++ performance monitoring available
 
 ### Development Dependencies
 ```bash
