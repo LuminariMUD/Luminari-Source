@@ -212,18 +212,21 @@ char **tokenize(const char *input, const char *delim)
 
   char *tok = strtok(str, delim);
 
-  while (1)
+  while (tok)
   {
     if (count >= capacity)
       result = realloc(result, (capacity *= 2) * sizeof(*result));
 
-    result[count++] = tok ? strdup(tok) : tok;
-
-    if (!tok)
-      break;
-
+    result[count++] = strdup(tok);
     tok = strtok(NULL, delim);
   }
+
+  /* Ensure space for NULL terminator */
+  if (count >= capacity)
+    result = realloc(result, (capacity + 1) * sizeof(*result));
+  
+  /* NULL-terminate the array */
+  result[count] = NULL;
 
   free(str);
   return result;

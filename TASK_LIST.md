@@ -7,85 +7,25 @@ This document tracks ongoing development tasks, bug fixes, and improvements for 
 ## CODER TASKS
 
 ---
-FIX THIS FIRST & NOW!!!!!!!!!!!:
+### ✅ FIXED: Critical tokenize() Crash (July 25, 2025)
 
-## Core Dump Analysis Summary for LuminariMUD
+**Status**: FIXED - The critical crash bug in `tokenize()` has been resolved.
 
-### The Crash
-- **Signal**: SIGABRT (Signal 6) - The program called `abort()` due to a fatal error
-- **Location**: Inside `free()` in the C library, called from `free_tokens()` at mysql.c:243
-- **Root Cause**: Memory corruption - attempting to free invalid/garbage memory pointers
+**The Bug**: The `tokenize()` function in mysql.c:215-226 was improperly NULL-terminating arrays by incrementing count after adding NULL, causing `free_tokens()` to read garbage memory and crash.
 
-### Call Stack (Bottom to Top)
-1. MUD boots up (`main()` → `init_game()` → `boot_db()`)
-2. House system initialization (`House_boot()`)
-3. Loading house #24828 (`House_load()`)
-4. Parsing objects from database (`objsave_parse_objects_db()`)
-5. Tokenizing object data with `tokenize()` function
-6. Attempting to free tokens with `free_tokens()` - **CRASH HERE**
-
-### The Bug
-
-The `tokenize()` function in mysql.c has a critical bug in how it NULL-terminates the token array:
-
+**The Fix**: Changed the loop to only process valid tokens and properly NULL-terminate the array:
 ```c
-// Current buggy code (mysql.c lines 215-226):
-while (1)
-{
+while (tok) {
     if (count >= capacity)
         result = realloc(result, (capacity *= 2) * sizeof(*result));
-    
-    result[count++] = tok ? strdup(tok) : tok;  // <-- Adds NULL but increments count
-    
-    if (!tok)
-        break;
-    
-    tok = strtok(NULL, delim);
-}
-```
-
-**The Problem**: 
-- When `strtok` returns NULL (no more tokens), the code stores NULL at `result[count]` and increments `count`
-- Then it breaks from the loop
-- The array now has NULL at position `count-1`, but position `count` and beyond contain uninitialized garbage memory
-
-**Why It Crashes**:
-- `free_tokens()` expects a NULL-terminated array
-- It loops through with `for (it = tokens; *it; ++it)` looking for NULL
-- Because the NULL is not at the end of the allocated data, it continues past NULL into garbage memory
-- When it tries to `free()` these garbage pointers (like `0x24055380 " R\005$"`), the program crashes
-
-### Evidence from GDB
-- `lines` array after tokenize: Valid pointer addresses followed by garbage
-- Token values show corrupted data: `" U\005$"`, `"\200R\005$"`, etc. instead of valid strings
-- The serialized object data itself was valid (started with `"#3183\nLoc : -1\nFlag:..."`)
-
-### The Fix
-
-Replace the tokenize loop with proper NULL termination:
-
-```c
-while (tok)
-{
-    if (count >= capacity)
-        result = realloc(result, (capacity *= 2) * sizeof(*result));
-    
     result[count++] = strdup(tok);
     tok = strtok(NULL, delim);
 }
-
-// Ensure space for NULL terminator and add it
+// Ensure space for NULL terminator
 if (count >= capacity)
     result = realloc(result, (capacity + 1) * sizeof(*result));
 result[count] = NULL;
 ```
-
-This ensures the array is properly NULL-terminated without garbage values after the NULL.
-
-### Additional Notes
-- This bug only manifests when loading house data (not player data)
-- The crash happens during boot when loading house #24828
-- The bug is deterministic - it will crash every time at the same place until fixed
 
 ---
 
@@ -103,8 +43,8 @@ Log file for reference if needed: valgrind_20250724_221634.md
 | ☐ | db.c:4021 | read_object() object creation leaks | ~7KB | MEDIUM |
 | ☐ | db.c:4004 | read_object() larger object leaks | 2.4KB | MEDIUM |
 | ☐ | dg_variables.c:65 | Script variable memory not freed | Multiple small | LOW |
-| ☐ | handler.c:134 | isname() strdup temporary strings not freed | Multiple 6-7 bytes | MEDIUM |
-| ☐ | spell_parser.c:3055 | spello() spell name strings not freed | 38-39 bytes each | MEDIUM |
+| ⚠️ | handler.c:134 | isname() - FALSE POSITIVE: strlist is properly freed at line 142 | Multiple 6-7 bytes | RESOLVED |
+| ☐ | spell_parser.c:3055 | spello() wear_off_msg strdup() never freed at shutdown | 38-39 bytes per spell | MEDIUM |
 | ☐ | dg_scripts.c:2990,2996 | script_driver() temp data during triggers | Various | MEDIUM |
 | ☐ | db.c:4311,4385 | Object strings during zone resets not freed | Various | MEDIUM |
 
