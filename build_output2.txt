@@ -1,29 +1,12 @@
 gcc -MM *.c > depend
+make: Warning: File 'depend' has modification time 0.22 s in the future
 make ../bin/circle
 make[1]: Entering directory '/mnt/c/Projects/Luminari-Source'
+make[1]: Warning: File 'depend' has modification time 0.14 s in the future
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o account.o account.c
-account.c: In function ‘load_account’:
-account.c:399:3: warning: ‘__builtin_strncpy’ specified bound 31 equals destination size [-Wstringop-truncation]
-  399 |   strncpy(account->password, row[2], MAX_PWD_LENGTH + 1);
-      |   ^
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o act.comm.o act.comm.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o act.comm.do_spec_comm.o act.comm.do_spec_comm.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o act.informative.o act.informative.c
-act.informative.c: In function ‘impl_do_users_’:
-act.informative.c:4665:9: warning: the comparison will always evaluate as ‘true’ for the address of ‘host’ will never be NULL [-Waddress]
- 4665 |     if (d->host && *d->host)
-      |         ^
-In file included from act.informative.c:13:
-structs.h:5556:10: note: ‘host’ declared here
- 5556 |     char host[HOST_LENGTH + 1];        /**< hostname */
-      |          ^~~~
-act.informative.c: In function ‘impl_do_levels_’:
-act.informative.c:4776:11: warning: the comparison will always evaluate as ‘true’ for the address of ‘arg’ will never be NULL [-Waddress]
- 4776 |   if (arg != NULL && *arg)
-      |           ^~
-act.informative.c:4765:41: note: ‘arg’ declared here
- 4765 |   char buf[MAX_STRING_LENGTH] = {'\0'}, arg[MAX_STRING_LENGTH] = {'\0'};
-      |                                         ^~~
 act.informative.c: In function ‘show_obj_to_char’:
 act.informative.c:388:52: warning: ‘%s’ directive output may be truncated writing up to 99 bytes into a region of size between 89 and 98 [-Wformat-truncation=]
   388 |           snprintf(keyword1, sizeof(keyword1), "%d.%s", (item_num + 1), keyword);
@@ -68,41 +51,34 @@ act.item.c:2983:16: note: length computed here
  2983 |       cpylen = strlen(cur_name);
       |                ^~~~~~~~~~~~~~~~
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o act.movement.o act.movement.c
-act.movement.c: In function ‘impl_do_transposition_’:
-act.movement.c:4139:22: warning: initialization of ‘room_rnum’ {aka ‘unsigned int’} from ‘void *’ makes integer from pointer without a cast [-Wint-conversion]
- 4139 |   room_rnum chRoom = NULL, eidolonRoom = NULL;
-      |                      ^~~~
-act.movement.c:4139:42: warning: initialization of ‘room_rnum’ {aka ‘unsigned int’} from ‘void *’ makes integer from pointer without a cast [-Wint-conversion]
- 4139 |   room_rnum chRoom = NULL, eidolonRoom = NULL;
-      |                                          ^~~~
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o act.offensive.o act.offensive.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o act.other.o act.other.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o act.social.o act.social.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o act.wizard.o act.wizard.c
+act.wizard.c: In function ‘impl_do_last_’:
+act.wizard.c:2735:7: warning: this ‘else’ clause does not guard... [-Wmisleading-indentation]
+ 2735 |       else
+      |       ^~~~
+act.wizard.c:2737:9: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘else’
+ 2737 |         name[sizeof(name) - 1] = '\0'; /* Ensure null termination */
+      |         ^~~~
 act.wizard.c: In function ‘impl_do_wizutil_’:
-act.wizard.c:3161:26: warning: the comparison will always evaluate as ‘true’ for the address of ‘affected_by’ will never be NULL [-Waddress]
- 3161 |       if (vict->affected || AFF_FLAGS(vict))
+act.wizard.c:3162:26: warning: the comparison will always evaluate as ‘true’ for the address of ‘affected_by’ will never be NULL [-Waddress]
+ 3162 |       if (vict->affected || AFF_FLAGS(vict))
       |                          ^~
 In file included from act.wizard.c:13:
 structs.h:4664:9: note: ‘affected_by’ declared here
  4664 |     int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
       |         ^~~~~~~~~~~
-act.wizard.c: In function ‘impl_do_recent_’:
-act.wizard.c:7155:9: warning: the comparison will always evaluate as ‘true’ for the address of ‘host’ will never be NULL [-Waddress]
- 7155 |     if (this->host && *(this->host))
-      |         ^~~~
-structs.h:5783:10: note: ‘host’ declared here
- 5783 |     char host[HOST_LENGTH + 1]; /* Host IP address                 */
-      |          ^~~~
 act.wizard.c: In function ‘impl_do_objlist_.isra’:
-act.wizard.c:7323:50: warning: ‘%s’ directive output may be truncated writing up to 8191 bytes into a region of size 1022 [-Wformat-truncation=]
- 7323 |           snprintf(tmp_buf, sizeof(tmp_buf), "\tc%s\tn%s%d ", buf2, (obj->affected[m].modifier > 0 ? "+" : ""),
+act.wizard.c:7324:50: warning: ‘%s’ directive output may be truncated writing up to 8191 bytes into a region of size 1022 [-Wformat-truncation=]
+ 7324 |           snprintf(tmp_buf, sizeof(tmp_buf), "\tc%s\tn%s%d ", buf2, (obj->affected[m].modifier > 0 ? "+" : ""),
       |                                                  ^~           ~~~~
 In file included from /usr/include/stdio.h:980,
                  from sysdep.h:69,
                  from act.wizard.c:12:
 In function ‘snprintf’,
-    inlined from ‘impl_do_objlist_.isra’ at act.wizard.c:7323:11:
+    inlined from ‘impl_do_objlist_.isra’ at act.wizard.c:7324:11:
 /usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output between 7 and 8209 bytes into a destination of size 1024
    54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -111,13 +87,13 @@ In function ‘snprintf’,
    56 |                                    __va_arg_pack ());
       |                                    ~~~~~~~~~~~~~~~~~
 act.wizard.c: In function ‘impl_do_objlist_.isra’:
-act.wizard.c:7341:61: warning: ‘%s’ directive output may be truncated writing up to 8191 bytes into a region of size 1008 [-Wformat-truncation=]
- 7341 |       snprintf(tmp_buf, sizeof(tmp_buf), "      \tcWorn\tn: %s \tcAffects:\tn %s %s %s\r\n",
+act.wizard.c:7342:61: warning: ‘%s’ directive output may be truncated writing up to 8191 bytes into a region of size 1008 [-Wformat-truncation=]
+ 7342 |       snprintf(tmp_buf, sizeof(tmp_buf), "      \tcWorn\tn: %s \tcAffects:\tn %s %s %s\r\n",
       |                                                             ^~
- 7342 |                buf2, buf3, buf4, buf5);
+ 7343 |                buf2, buf3, buf4, buf5);
       |                ~~~~                                          
 In function ‘snprintf’,
-    inlined from ‘impl_do_objlist_.isra’ at act.wizard.c:7341:7:
+    inlined from ‘impl_do_objlist_.isra’ at act.wizard.c:7342:7:
 /usr/include/x86_64-linux-gnu/bits/stdio2.h:54:10: note: ‘__builtin___snprintf_chk’ output 35 or more bytes (assuming 8226) into a destination of size 1024
    54 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -125,10 +101,6 @@ In function ‘snprintf’,
       |                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    56 |                                    __va_arg_pack ());
       |                                    ~~~~~~~~~~~~~~~~~
-act.wizard.c: In function ‘impl_do_last_.isra’:
-act.wizard.c:2736:9: warning: ‘__builtin_strncpy’ output may be truncated copying 511 bytes from a string of length 511 [-Wstringop-truncation]
- 2736 |         strncpy(name, arg, sizeof(name) - 1);
-      |         ^
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o actionqueues.o actionqueues.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o actions.o actions.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o aedit.o aedit.c
@@ -137,13 +109,6 @@ gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressi
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o assign_wpn_armor.o assign_wpn_armor.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o backgrounds.o backgrounds.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o ban.o ban.c
-ban.c: In function ‘valid_name’:
-ban.c:281:20: warning: the comparison will always evaluate as ‘false’ for the address of ‘invalid_list’ will never be NULL [-Waddress]
-  281 |   if (invalid_list == NULL || num_invalid < 1)
-      |                    ^~
-ban.c:29:14: note: ‘invalid_list’ declared here
-   29 | static char *invalid_list[MAX_INVALID_NAMES];
-      |              ^~~~~~~~~~~~
 ban.c: In function ‘impl_do_ban_.isra’:
 ban.c:188:3: warning: ‘__builtin_strncpy’ output may be truncated copying 50 bytes from a string of length 511 [-Wstringop-truncation]
   188 |   strncpy(ban_node->site, site, BANNED_SITE_LENGTH); /* strncpy: OK (b_n->site:BANNED_SITE_LENGTH+1) */
@@ -183,31 +148,12 @@ structs.h:4664:9: note: ‘affected_by’ declared here
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o combat_modes.o combat_modes.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o comm.o comm.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o config.o config.c
-gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000   -DMKTIME=\""Fri Jul 25 01:22:04 IDT 2025"\" -DMKUSER=\""xamgibson"\" -DMKHOST=\"""\" -DBRANCH=\""* master"\" -DPARENT=\""85190524ed3310c985a9f14289df6121a88e710e"\"   -c -o constants.o constants.c
+gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000   -DMKTIME=\""Fri Jul 25 08:53:10 IDT 2025"\" -DMKUSER=\""xamgibson"\" -DMKHOST=\"""\" -DBRANCH=\""* master"\" -DPARENT=\""85190524ed3310c985a9f14289df6121a88e710e"\"   -c -o constants.o constants.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o craft.o craft.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o crafting_new.o crafting_new.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o crafting_recipes.o crafting_recipes.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o crafts.o crafts.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o db.o db.c
-db.c: In function ‘load_config’:
-db.c:6358:18: warning: the comparison will always evaluate as ‘true’ for the address of ‘line’ will never be NULL [-Waddress]
- 6358 |         if (line != NULL && *line)
-      |                  ^~
-db.c:6279:8: note: ‘line’ declared here
- 6279 |   char line[MAX_STRING_LENGTH] = {'\0'};
-      |        ^~~~
-db.c:6367:18: warning: the comparison will always evaluate as ‘true’ for the address of ‘line’ will never be NULL [-Waddress]
- 6367 |         if (line != NULL && *line)
-      |                  ^~
-db.c:6279:8: note: ‘line’ declared here
- 6279 |   char line[MAX_STRING_LENGTH] = {'\0'};
-      |        ^~~~
-db.c:6435:18: warning: the comparison will always evaluate as ‘true’ for the address of ‘line’ will never be NULL [-Waddress]
- 6435 |         if (line != NULL && *line)
-      |                  ^~
-db.c:6279:8: note: ‘line’ declared here
- 6279 |   char line[MAX_STRING_LENGTH] = {'\0'};
-      |        ^~~~
 db.c: In function ‘parse_object’:
 db.c:6025:3: warning: ‘__builtin_strncpy’ specified bound 512 equals destination size [-Wstringop-truncation]
  6025 |   strncpy(buf1, obj->short_description, sizeof(buf1));
@@ -223,117 +169,13 @@ gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressi
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o dg_event.o dg_event.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o dg_handler.o dg_handler.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o dg_misc.o dg_misc.c
-dg_misc.c: In function ‘do_dg_affect’:
-dg_misc.c:188:16: warning: the comparison will always evaluate as ‘false’ for the address of ‘charname’ will never be NULL [-Waddress]
-  188 |   if (charname == NULL || !*charname || property == NULL || !*property ||
-      |                ^~
-dg_misc.c:177:8: note: ‘charname’ declared here
-  177 |   char charname[MAX_INPUT_LENGTH] = {'\0'}, property[MAX_INPUT_LENGTH] = {'\0'};
-      |        ^~~~~~~~
-dg_misc.c:188:50: warning: the comparison will always evaluate as ‘false’ for the address of ‘property’ will never be NULL [-Waddress]
-  188 |   if (charname == NULL || !*charname || property == NULL || !*property ||
-      |                                                  ^~
-dg_misc.c:177:45: note: ‘property’ declared here
-  177 |   char charname[MAX_INPUT_LENGTH] = {'\0'}, property[MAX_INPUT_LENGTH] = {'\0'};
-      |                                             ^~~~~~~~
-dg_misc.c:189:15: warning: the comparison will always evaluate as ‘false’ for the address of ‘value_p’ will never be NULL [-Waddress]
-  189 |       value_p == NULL || !*value_p || duration_p == NULL || !*duration_p)
-      |               ^~
-dg_misc.c:178:8: note: ‘value_p’ declared here
-  178 |   char value_p[MAX_INPUT_LENGTH] = {'\0'}, duration_p[MAX_INPUT_LENGTH] = {'\0'};
-      |        ^~~~~~~
-dg_misc.c:189:50: warning: the comparison will always evaluate as ‘false’ for the address of ‘duration_p’ will never be NULL [-Waddress]
-  189 |       value_p == NULL || !*value_p || duration_p == NULL || !*duration_p)
-      |                                                  ^~
-dg_misc.c:178:44: note: ‘duration_p’ declared here
-  178 |   char value_p[MAX_INPUT_LENGTH] = {'\0'}, duration_p[MAX_INPUT_LENGTH] = {'\0'};
-      |                                            ^~~~~~~~~~
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o dg_mobcmd.o dg_mobcmd.c
-dg_mobcmd.c: In function ‘impl_do_mload_’:
-dg_mobcmd.c:461:17: warning: the comparison will always evaluate as ‘true’ for the address of ‘arg1’ will never be NULL [-Waddress]
-  461 |     tch = (arg1 != NULL && *arg1 == UID_CHAR) ? get_char(arg1) : get_char_room_vis(ch, arg1, NULL);
-      |                 ^~
-dg_mobcmd.c:365:8: note: ‘arg1’ declared here
-  365 |   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
-      |        ^~~~
-dg_mobcmd.c:464:16: warning: the comparison will always evaluate as ‘true’ for the address of ‘arg2’ will never be NULL [-Waddress]
-  464 |       if (arg2 != NULL && *arg2 && (pos = find_eq_pos_script(arg2)) >= 0 &&
-      |                ^~
-dg_mobcmd.c:365:41: note: ‘arg2’ declared here
-  365 |   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
-      |                                         ^~~~
-dg_mobcmd.c:475:17: warning: the comparison will always evaluate as ‘true’ for the address of ‘arg1’ will never be NULL [-Waddress]
-  475 |     cnt = (arg1 != NULL && *arg1 == UID_CHAR) ? get_obj(arg1) : get_obj_vis(ch, arg1, NULL);
-      |                 ^~
-dg_mobcmd.c:365:8: note: ‘arg1’ declared here
-  365 |   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
-      |        ^~~~
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o dg_objcmd.o dg_objcmd.c
-dg_objcmd.c: In function ‘do_dgoload’:
-dg_objcmd.c:595:16: warning: the comparison will always evaluate as ‘true’ for the address of ‘arg2’ will never be NULL [-Waddress]
-  595 |       if (arg2 != NULL && *arg2 && (pos = find_eq_pos_script(arg2)) >= 0 &&
-      |                ^~
-dg_objcmd.c:505:41: note: ‘arg2’ declared here
-  505 |   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
-      |                                         ^~~~
-dg_objcmd.c: In function ‘do_osetval’:
-dg_objcmd.c:787:12: warning: the comparison will always evaluate as ‘false’ for the address of ‘arg1’ will never be NULL [-Waddress]
-  787 |   if (arg1 == NULL || !*arg1 || arg2 == NULL || !*arg2 || !is_number(arg1) || !is_number(arg2))
-      |            ^~
-dg_objcmd.c:782:8: note: ‘arg1’ declared here
-  782 |   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
-      |        ^~~~
-dg_objcmd.c:787:38: warning: the comparison will always evaluate as ‘false’ for the address of ‘arg2’ will never be NULL [-Waddress]
-  787 |   if (arg1 == NULL || !*arg1 || arg2 == NULL || !*arg2 || !is_number(arg1) || !is_number(arg2))
-      |                                      ^~
-dg_objcmd.c:782:41: note: ‘arg2’ declared here
-  782 |   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
-      |                                         ^~~~
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o dg_olc.o dg_olc.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o dg_scripts.o dg_scripts.c
-dg_scripts.c: In function ‘impl_do_detach_’:
-dg_scripts.c:1337:16: warning: the comparison will always evaluate as ‘false’ for the address of ‘arg3’ will never be NULL [-Waddress]
- 1337 |       if (arg3 == NULL || !*arg3)
-      |                ^~
-dg_scripts.c:1276:74: note: ‘arg3’ declared here
- 1276 |   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'}, arg3[MAX_INPUT_LENGTH] = {'\0'};
-      |                                                                          ^~~~
-dg_scripts.c:1365:16: warning: the comparison will always evaluate as ‘false’ for the address of ‘arg3’ will never be NULL [-Waddress]
- 1365 |       if (arg3 == NULL || !*arg3)
-      |                ^~
-dg_scripts.c:1276:74: note: ‘arg3’ declared here
- 1276 |   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'}, arg3[MAX_INPUT_LENGTH] = {'\0'};
-      |                                                                          ^~~~
-dg_scripts.c: In function ‘makeuid_var’:
-dg_scripts.c:2183:11: warning: the comparison will always evaluate as ‘false’ for the address of ‘arg’ will never be NULL [-Waddress]
- 2183 |   if (arg == NULL || !*arg)
-      |           ^~
-dg_scripts.c:2166:8: note: ‘arg’ declared here
- 2166 |   char arg[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'};
-      |        ^~~
-dg_scripts.c:2199:14: warning: the comparison will always evaluate as ‘false’ for the address of ‘name’ will never be NULL [-Waddress]
- 2199 |     if (name == NULL || !*name)
-      |              ^~
-dg_scripts.c:2166:40: note: ‘name’ declared here
- 2166 |   char arg[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'};
-      |                                        ^~~~
-dg_scripts.c: In function ‘perform_set_dg_var’:
-dg_scripts.c:2512:16: warning: the comparison will always evaluate as ‘false’ for the address of ‘var_name’ will never be NULL [-Waddress]
- 2512 |   if (var_name == NULL || !*var_name || var_value == NULL || !*var_value)
-      |                ^~
-dg_scripts.c:2508:8: note: ‘var_name’ declared here
- 2508 |   char var_name[MAX_INPUT_LENGTH] = {'\0'}, *var_value;
-      |        ^~~~~~~~
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o dg_triggers.o dg_triggers.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o dg_variables.o dg_variables.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o dg_wldcmd.o dg_wldcmd.c
-dg_wldcmd.c: In function ‘do_wload’:
-dg_wldcmd.c:556:16: warning: the comparison will always evaluate as ‘true’ for the address of ‘arg2’ will never be NULL [-Waddress]
-  556 |       if (arg2 != NULL && *arg2 && (pos = find_eq_pos_script(arg2)) >= 0 &&
-      |                ^~
-dg_wldcmd.c:476:41: note: ‘arg2’ declared here
-  476 |   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
-      |                                         ^~~~
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o domain_powers.o domain_powers.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o domains_schools.o domains_schools.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o encounters.o encounters.c
@@ -442,31 +284,6 @@ gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressi
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o oedit.o oedit.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o perfmon_optimized.o perfmon_optimized.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o perlin.o perlin.c
-perlin.c:36:31: warning: argument 2 of type ‘double[2]’ with mismatched bound [-Warray-parameter=]
-   36 | double noise2(int idx, double vec[2])
-      |                        ~~~~~~~^~~~~~
-In file included from perlin.c:8:
-perlin.h:28:24: note: previously declared as ‘double *’
-   28 | double noise2(int idx, double *);
-      |                        ^~~~~~~~
-perlin.c:78:31: warning: argument 2 of type ‘double[3]’ with mismatched bound [-Warray-parameter=]
-   78 | double noise3(int idx, double vec[3])
-      |                        ~~~~~~~^~~~~~
-perlin.h:29:24: note: previously declared as ‘double *’
-   29 | double noise3(int idx, double *);
-      |                        ^~~~~~~~
-perlin.c:137:24: warning: argument 1 of type ‘double[2]’ with mismatched bound [-Warray-parameter=]
-  137 | void normalize2(double v[2])
-      |                 ~~~~~~~^~~~
-perlin.h:31:17: note: previously declared as ‘double *’
-   31 | void normalize2(double *);
-      |                 ^~~~~~~~
-perlin.c:146:24: warning: argument 1 of type ‘double[3]’ with mismatched bound [-Warray-parameter=]
-  146 | void normalize3(double v[3])
-      |                 ~~~~~~~^~~~
-perlin.h:30:17: note: previously declared as ‘double *’
-   30 | void normalize3(double *);
-      |                 ^~~~~~~~
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o players.o players.c
 players.c: In function ‘save_char’:
 players.c:1578:9: warning: the comparison will always evaluate as ‘true’ for the address of ‘host’ will never be NULL [-Waddress]
@@ -482,50 +299,6 @@ gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressi
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o psionics.o psionics.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o qedit.o qedit.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o quest.o quest.c
-quest.c: In function ‘impl_do_quest_’:
-quest.c:1722:7: warning: ‘quest_hist’ accessing 49152 bytes in a region of size 512 [-Wstringop-overflow=]
- 1722 |       quest_hist(ch, arg2);
-      |       ^~~~~~~~~~~~~~~~~~~~
-quest.c:1722:7: note: referencing argument 2 of type ‘char[49152]’
-quest.c:995:6: note: in a call to function ‘quest_hist’
-  995 | void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH])
-      |      ^~~~~~~~~~
-quest.c:1725:7: warning: ‘quest_quit’ accessing 49152 bytes in a region of size 512 [-Wstringop-overflow=]
- 1725 |       quest_quit(ch, arg2);
-      |       ^~~~~~~~~~~~~~~~~~~~
-quest.c:1725:7: note: referencing argument 2 of type ‘char[49152]’
-quest.c:1320:6: note: in a call to function ‘quest_quit’
- 1320 | void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH])
-      |      ^~~~~~~~~~
-quest.c:1728:7: warning: ‘quest_progress’ accessing 49152 bytes in a region of size 512 [-Wstringop-overflow=]
- 1728 |       quest_progress(ch, arg2);
-      |       ^~~~~~~~~~~~~~~~~~~~~~~~
-quest.c:1728:7: note: referencing argument 2 of type ‘char[49152]’
-quest.c:1373:6: note: in a call to function ‘quest_progress’
- 1373 | void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
-      |      ^~~~~~~~~~~~~~
-quest.c:1734:9: warning: ‘quest_stat’ accessing 49152 bytes in a region of size 512 [-Wstringop-overflow=]
- 1734 |         quest_stat(ch, arg2);
-      |         ^~~~~~~~~~~~~~~~~~~~
-quest.c:1734:9: note: referencing argument 2 of type ‘char[49152]’
-quest.c:1526:6: note: in a call to function ‘quest_stat’
- 1526 | void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
-      |      ^~~~~~~~~~
-quest.c:1737:7: warning: ‘quest_assign’ accessing 49152 bytes in a region of size 512 [-Wstringop-overflow=]
- 1737 |       quest_assign(ch, arg2);
-      |       ^~~~~~~~~~~~~~~~~~~~~~
-quest.c:1737:7: note: referencing argument 2 of type ‘char[49152]’
-quest.c:1480:6: note: in a call to function ‘quest_assign’
- 1480 | void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
-      |      ^~~~~~~~~~~~
-In function ‘quest_quit’,
-    inlined from ‘impl_do_quest_.isra’ at quest.c:1725:7:
-cc1: warning: ‘quest_quit.part.0’ accessing 49152 bytes in a region of size 512 [-Wstringop-overflow=]
-cc1: note: referencing argument 2 of type ‘char[49152]’
-quest.c: In function ‘impl_do_quest_.isra’:
-quest.c:1320:6: note: in a call to function ‘quest_quit.part.0’
- 1320 | void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH])
-      |      ^~~~~~~~~~
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o race.o race.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o random.o random.c
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o random_names.o random_names.c
@@ -755,6 +528,7 @@ gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressi
 gcc -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000     -c -o zone_procs.o zone_procs.c
 g++ -g -O2 -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000   -std=c++11   -c -o perfmon.o perfmon.cpp
 gcc -o ../bin/circle  account.o act.comm.o act.comm.do_spec_comm.o act.informative.o act.item.o act.movement.o act.offensive.o act.other.o act.social.o act.wizard.o actionqueues.o actions.o aedit.o alchemy.o asciimap.o assign_wpn_armor.o backgrounds.o ban.o bardic_performance.o boards.o bsd-snprintf.o cedit.o char_descs.o clan.o clan_edit.o class.o combat_modes.o comm.o config.o constants.o craft.o crafting_new.o crafting_recipes.o crafts.o db.o deities.o desc_engine.o dg_comm.o dg_db_scripts.o dg_event.o dg_handler.o dg_misc.o dg_mobcmd.o dg_objcmd.o dg_olc.o dg_scripts.o dg_triggers.o dg_variables.o dg_wldcmd.o domain_powers.o domains_schools.o encounters.o evolutions.o feats.o fight.o gain.o genmob.o genobj.o genolc.o genqst.o genshp.o genwld.o genzon.o graph.o grapple.o handler.o hedit.o help.o helpers.o hlqedit.o hlquest.o house.o hsedit.o hunts.o ibt.o improved-edit.o interpreter.o kdtree.o limits.o lists.o magic.o mail.o medit.o missions.o mobact.o modify.o msgedit.o mud_event.o mysql.o new_mail.o oasis.o oasis_copy.o oasis_delete.o oasis_list.o objsave.o oedit.o perfmon_optimized.o perlin.o players.o prefedit.o premadebuilds.o protocol.o psionics.o qedit.o quest.o race.o random.o random_names.o rank.o redit.o roleplay.o sedit.o shop.o spec_abilities.o spec_assign.o spec_procs.o specs.artifacts.o spell_parser.o spell_prep.o spellbook_scroll.o spells.o staff_events.o study.o tedit.o templates.o trade.o transport.o traps.o treasure.o treasure_const.o utils.o weather.o wilderness.o zedit.o zmalloc.o zone_procs.o perfmon.o -lstdc++ -lcrypt -lgd -lm -lmysqlclient
+make[1]: warning:  Clock skew detected.  Your build may be incomplete.
 make[1]: Leaving directory '/mnt/c/Projects/Luminari-Source'
 make utils
 make[1]: Entering directory '/mnt/c/Projects/Luminari-Source'
@@ -763,3 +537,4 @@ make[2]: Entering directory '/mnt/c/Projects/Luminari-Source/util'
 make[2]: Nothing to be done for 'all'.
 make[2]: Leaving directory '/mnt/c/Projects/Luminari-Source/util'
 make[1]: Leaving directory '/mnt/c/Projects/Luminari-Source'
+make: warning:  Clock skew detected.  Your build may be incomplete.

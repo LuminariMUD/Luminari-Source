@@ -4662,7 +4662,7 @@ ACMD(do_users)
                                                                                                                             : "UNDEFINED",
              state, idletime, timeptr);
 
-    if (d->host && *d->host)
+    if (*d->host)
       sprintf(line + strlen(line), "[%s]\r\n", d->host);
     else
       strlcat(line, "[Hostname unknown]\r\n", sizeof(line));
@@ -4773,7 +4773,7 @@ ACMD(do_levels)
   }
   one_argument(argument, arg, sizeof(arg));
 
-  if (arg != NULL && *arg)
+  if (*arg)
   {
     if (isdigit(*arg))
     {

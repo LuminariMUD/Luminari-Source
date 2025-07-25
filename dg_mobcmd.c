@@ -458,10 +458,10 @@ ACMD(do_mload)
       return;
     }
     two_arguments(target, arg1, sizeof(arg1), arg2, sizeof(arg2)); /* recycling ... */
-    tch = (arg1 != NULL && *arg1 == UID_CHAR) ? get_char(arg1) : get_char_room_vis(ch, arg1, NULL);
+    tch = (*arg1 == UID_CHAR) ? get_char(arg1) : get_char_room_vis(ch, arg1, NULL);
     if (tch)
     {
-      if (arg2 != NULL && *arg2 && (pos = find_eq_pos_script(arg2)) >= 0 &&
+      if (*arg2 && (pos = find_eq_pos_script(arg2)) >= 0 &&
           !GET_EQ(tch, pos) && can_wear_on_pos(object, pos))
       {
         equip_char(tch, object, pos);
@@ -472,7 +472,7 @@ ACMD(do_mload)
       load_otrigger(object);
       return;
     }
-    cnt = (arg1 != NULL && *arg1 == UID_CHAR) ? get_obj(arg1) : get_obj_vis(ch, arg1, NULL);
+    cnt = (*arg1 == UID_CHAR) ? get_obj(arg1) : get_obj_vis(ch, arg1, NULL);
     if (cnt && (GET_OBJ_TYPE(cnt) == ITEM_CONTAINER ||
                 GET_OBJ_TYPE(cnt) == ITEM_AMMO_POUCH))
     {

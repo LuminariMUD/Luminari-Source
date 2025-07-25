@@ -4,7 +4,23 @@
 
 ### Compiler Warning Fixes
 
-#### Fixed Critical Compiler Warnings (86 → 6 warnings)
+#### Fixed Additional Compiler Warnings (70 → 36 warnings)
+- **Type Conversion Errors**:
+  - Fixed `room_rnum` initialization in `act.movement.c:4139` - Changed from NULL to NOWHERE
+- **Buffer Overflow Warnings**:
+  - Fixed in `quest.c` - Changed `arg2` buffer from MAX_INPUT_LENGTH to MAX_STRING_LENGTH in do_quest()
+- **Array Address Comparisons**:
+  - Removed 15+ unnecessary NULL checks for array addresses across multiple files
+  - Arrays like `char host[SIZE]` cannot be NULL by definition
+  - Fixed in: act.informative.c, act.wizard.c, ban.c, db.c, dg_misc.c, dg_mobcmd.c, dg_objcmd.c, dg_scripts.c, dg_wldcmd.c
+- **String Truncation Warnings**:
+  - Fixed `strncpy` warnings by ensuring null termination in account.c and act.wizard.c
+- **Array Parameter Mismatches**:
+  - Fixed function declarations in perlin.h to match implementation array bounds
+- **Indentation Issues**:
+  - Fixed misleading indentation in act.wizard.c else clause
+
+#### Previous Fixes: Critical Compiler Warnings (86 → 6 warnings)
 - **Dangling Pointer Warnings**: 
   - Fixed in `spec_procs.c` (mayor function) - Made path arrays static to prevent dangling pointers
   - Fixed in `zone_procs.c` (king_welmar function) - Made path arrays static

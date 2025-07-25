@@ -2733,7 +2733,10 @@ ACMDU(do_last)
           num = 0;
       }
       else
+      {
         strncpy(name, arg, sizeof(name) - 1);
+        name[sizeof(name) - 1] = '\0'; /* Ensure null termination */
+      }
       half_chop(argument, arg, argument);
     }
   }
@@ -7152,7 +7155,7 @@ ACMD(do_recent)
     ct = this->time;
     tmstr = asctime(localtime(&ct));
     *(tmstr + strlen(tmstr) - 1) = '\0'; /* Cut off last char */
-    if (this->host && *(this->host))
+    if (*(this->host))
     {
       if (!strcmp(this->host, "localhost"))
         loc = TRUE;
