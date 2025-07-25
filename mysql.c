@@ -229,6 +229,24 @@ char **tokenize(const char *input, const char *delim)
   return result;
 }
 
+/* Free the memory allocated by tokenize() */
+void free_tokens(char **tokens)
+{
+  char **it;
+  
+  if (!tokens)
+    return;
+    
+  /* Free each individual token string */
+  for (it = tokens; *it; ++it)
+  {
+    free(*it);
+  }
+  
+  /* Free the array itself */
+  free(tokens);
+}
+
 void load_regions()
 {
   /* region_data* region_table */

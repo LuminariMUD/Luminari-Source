@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 2025-07-25
+
+### Bug Fixes
+
+#### Fixed Critical Memory Leaks in tokenize() Function Usage
+- **Issue**: Most frequently occurring memory leak in valgrind analysis - tokenize() results not being freed
+- **Root Cause**: The tokenize() function returns dynamically allocated arrays of strings, but several callers were not freeing the array itself (only the individual strings)
+- **Solution**: 
+  - Added `free_tokens()` helper function in mysql.c to properly free both strings and the array
+  - Fixed memory leaks in:
+    - objsave.c: Added `free_tokens(lines)` calls in objsave_parse_objects_db() (3 locations)
+    - mud_event.c: Added `free_tokens(tokens)` in event_encounter_reset()
+- **Files Modified**: 
+  - mysql.c:232-248 (added free_tokens function)
+  - mysql.h:29 (added free_tokens declaration)
+  - objsave.c:2417, 3340, 3968 (added free_tokens calls)
+  - mud_event.c:635 (added free_tokens call)
+- **Impact**: Eliminates the most common memory leak pattern found in valgrind analysis (159KB+ from tokenize calls)
+
 ## 2025-01-27
 
 ### Bug Fixes

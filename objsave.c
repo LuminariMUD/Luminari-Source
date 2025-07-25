@@ -2413,6 +2413,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       temp = NULL;
     }
 
+    free_tokens(lines); /* Free the tokenized lines */
     free(serialized_obj); /* Done with this! */
   }
 
@@ -3336,6 +3337,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
       temp = NULL;
     }
 
+    free_tokens(lines); /* Free the tokenized lines */
     free(serialized_obj); /* Done with this! */
   }
 
@@ -3964,6 +3966,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
       temp = NULL;
     }
 
+    free_tokens(lines); /* Free the tokenized lines */
     free(serialized_obj); /* Done with this! */
   }
 
