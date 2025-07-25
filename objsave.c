@@ -2235,7 +2235,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         {
           char error[40];
           snprintf(error, sizeof(error) - 1, "rent(Ades):%s", temp->name);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           temp->action_description = strdup(*line);
         }
@@ -2279,10 +2279,10 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           //      obj_proto[real_object(temp->item_number)].ex_description))
             temp->ex_description = NULL;
           CREATE(new_desc, struct extra_descr_data, 1);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->keyword = strdup(*line);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->description = strdup(*line);
           new_desc->next = temp->ex_description;
@@ -2413,7 +2413,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         log("Unknown tag in saved obj: %s", tag);
       }
 
-      free(*line);
+      /* DO NOT free(*line) here - the lines array will be freed by free_tokens() */
     }
 
     /* So now if temp is not null, we have an object.
@@ -3171,7 +3171,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         {
           char error[40];
           snprintf(error, sizeof(error) - 1, "rent(Ades):%s", temp->name);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           temp->action_description = strdup(*line);
         }
@@ -3215,10 +3215,10 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
           //      obj_proto[real_object(temp->item_number)].ex_description))
           temp->ex_description = NULL;
           CREATE(new_desc, struct extra_descr_data, 1);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->keyword = strdup(*line);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->description = strdup(*line);
           new_desc->next = temp->ex_description;
@@ -3349,7 +3349,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         log("Unknown tag in saved obj: %s", tag);
       }
 
-      free(*line);
+      /* DO NOT free(*line) here - the lines array will be freed by free_tokens() */
     }
 
     /* So now if temp is not null, we have an object.
@@ -3795,7 +3795,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         {
           char error[40];
           snprintf(error, sizeof(error) - 1, "rent(Ades):%s", temp->name);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           temp->action_description = strdup(*line);
         }
@@ -3839,10 +3839,10 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
           //      obj_proto[real_object(temp->item_number)].ex_description))
           temp->ex_description = NULL;
           CREATE(new_desc, struct extra_descr_data, 1);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->keyword = strdup(*line);
-          free(*line);
+          /* DO NOT free(*line) - will be freed by free_tokens() */
           ++line;
           new_desc->description = strdup(*line);
           new_desc->next = temp->ex_description;
@@ -3973,7 +3973,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         log("Unknown tag in saved obj: %s", tag);
       }
 
-      free(*line);
+      /* DO NOT free(*line) here - the lines array will be freed by free_tokens() */
     }
 
     /* So now if temp is not null, we have an object.

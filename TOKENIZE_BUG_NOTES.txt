@@ -416,3 +416,163 @@ char **tokenize(const char *input, const char *delim) {
 
 ### Status: ATTEMPT - NOT YET VERIFIED
 This fix addresses the most likely cause (leading newlines in MySQL data) but needs testing to confirm.
+
+---
+
+## CORE DUMP ANALYSIS (July 25, 2025 - House #24828)
+===================================================
+
+### Debug Output Results:
+The debug code successfully captured the raw data from house #24828:
+```
+DEBUG: House #24828 raw data first 20 chars (hex):
+DEBUG: String length: 284
+DEBUG:   [0] = 0x23 ('#')
+DEBUG:   [1] = 0x33 ('3')
+DEBUG:   [2] = 0x31 ('1')
+DEBUG:   [3] = 0x38 ('8')
+DEBUG:   [4] = 0x33 ('3')
+DEBUG:   [5] = 0x0A ('.')    <- newline (correct)
+DEBUG:   [6] = 0x4C ('L')
+DEBUG:   [7] = 0x6F ('o')
+DEBUG:   [8] = 0x63 ('c')
+...
+```
+
+**FINDING**: The data is CORRECT! It starts with "#3183" - no leading newline issue.
+
+### Core Dump Stack Trace:
+```
+#0  0x00007f7afd66c387 in raise () from /lib64/libc.so.6
+#1  0x00007f7afd66da78 in abort () from /lib64/libc.so.6
+#2  0x00007f7afd6aef67 in __libc_message () from /lib64/libc.so.6
+#3  0x00007f7afd6b7329 in _int_free () from /lib64/libc.so.6
+#4  0x00000000004d2669 in free_tokens (tokens=0x244b9a70) at mysql.c:343
+#5  0x00000000005d2fc5 in objsave_parse_objects_db (name=0x0, house_vnum=24828) at objsave.c:2454
+#6  0x00000000005df9ad in House_load (vnum=24828) at house.c:174
+```
+
+### THE REAL BUG - MEMORY CORRUPTION IN PARSING CODE
+====================================================
+
+#### Discovery Process:
+
+1. **Initial Investigation**:
+   - Crash in free_tokens() trying to free corrupted memory
+   - tokens[0] = "0\233K$" (garbage instead of expected string)
+   - All token strings corrupted with similar patterns
+
+2. **Memory Layout Analysis**:
+   ```
+   tokens array at 0x244b9a70:
+   0x244b9a70:     0x244b98a0      0x00000000      0x244b98c0      0x00000000
+   0x244b9a80:     0x244b98e0      0x00000000      0x244b9900      0x00000000
+   ```
+   - Pointers are correctly stored as 64-bit values
+   - No 32/64-bit compatibility issue
+
+3. **Corruption Pattern Discovered**:
+   Each token string has its first 8 bytes overwritten with a pointer value:
+   ```
+   0x244b98a0:     0x30 0x9b 0x4b 0x24 0x00 0x00 0x00 0x00  <- corrupted
+   0x244b98c0:     0x90 0x98 0x4b 0x24 0x00 0x00 0x00 0x00  <- corrupted
+   0x244b98e0:     0xb0 0x98 0x4b 0x24 0x00 0x00 0x00 0x00  <- corrupted
+   ```
+
+4. **Smoking Gun**:
+   At address 0x244b9990 (tokens[5]):
+   ```
+   0x244b9990:     0x30 0x98 0x4b 0x24 0x00 0x00 0x00 0x00  <- corruption
+   0x244b9998:     0x73 0x69 0x6c 0x6b 0x20 0x63 0x61 0x70  <- "silk cap"
+   ```
+   The original string content "silk cape" is still there, but the first 8 bytes
+   have been overwritten with what looks like a pointer (0x244b9830).
+
+#### Root Cause Analysis:
+
+**The bug is NOT in tokenize() or free_tokens()!**
+
+The tokenize() function is working correctly. The corruption happens AFTER 
+tokenization, during the object parsing loop (lines 2158-2454 in objsave.c).
+
+Something in the parsing code is:
+1. Treating the token strings as if they were pointers to pointers
+2. Writing 8-byte values (pointers) through them
+3. Overwriting the beginning of each string with pointer values
+
+This is likely caused by incorrect use of sscanf() or similar functions where
+the destination is incorrectly specified, such as:
+```c
+sscanf(*line, "format", line);   // WRONG - writes through the pointer
+```
+Instead of:
+```c
+sscanf(*line, "format", buffer); // CORRECT - writes to a buffer
+```
+
+#### Evidence Supporting This Theory:
+
+1. The serialized_obj data is intact and correct
+2. The tokens array structure is valid
+3. The corruption is systematic - exactly 8 bytes at the start of each string
+4. The corruption contains what appear to be valid pointer values
+5. The rest of the string data after the first 8 bytes is intact
+
+### CONCLUSION
+=============
+
+The crash is caused by memory corruption in the object parsing code, NOT by
+the tokenize function. The parsing code is incorrectly writing pointer values
+over the beginning of the token strings, corrupting them before free_tokens()
+is called.
+
+### NEXT STEPS FOR FIXING
+========================
+
+1. Search objsave.c parsing loop (lines 2158-2454) for incorrect pointer usage
+2. Look for sscanf() or similar functions using token pointers as destinations
+3. Check tag_argument() function and how it handles the string pointers
+4. Verify all parsing operations write to appropriate buffers, not through token pointers
+
+The fix will involve correcting the parsing code to not overwrite the token strings.
+
+---
+
+## ACTUAL FIX IMPLEMENTED (July 25, 2025)
+==========================================
+
+### THE REAL BUG: Double-Free in objsave.c
+
+After extensive investigation, the actual bug was found:
+
+**Bug Location**: objsave.c lines 2416, 3352, 3976 (and other locations)
+```c
+free(*line);  // WRONG! This frees individual token strings
+```
+
+**The Problem**:
+1. The parsing loop was calling `free(*line)` to free individual token strings
+2. These strings were allocated by tokenize() and belong to the lines array
+3. At the end of parsing (line 2454), `free_tokens(lines)` is called
+4. free_tokens() tries to free all the strings again, causing a double-free
+
+**Memory Corruption Pattern Explained**:
+1. During parsing, `free(*line)` frees the token strings
+2. The memory allocator reuses this freed memory for other allocations
+3. New allocations write pointer values into the old string memory
+4. When free_tokens() runs, it sees corrupted data (the pointer values)
+5. Attempting to free these corrupted "strings" causes the crash
+
+### Fix Applied:
+Removed all `free(*line)` calls in the parsing loops and replaced them with comments:
+```c
+/* DO NOT free(*line) here - the lines array will be freed by free_tokens() */
+```
+
+### Files Modified:
+- objsave.c: Removed free(*line) calls at lines 2416, 3352, 3976 and all similar locations
+
+### Key Lesson:
+When using tokenize(), the returned array owns all the token strings. Individual strings should NOT be freed during processing - only free_tokens() should be called at the end to properly clean up the entire array.
+
+The tokenize() function itself was working correctly all along. The bug was a classic double-free error in the code that used tokenize().
