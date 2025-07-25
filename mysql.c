@@ -227,9 +227,10 @@ char **tokenize(const char *input, const char *delim)
     if (count >= capacity) {
       char **new_result = realloc(result, (capacity *= 2) * sizeof(*result));
       if (!new_result) {
+        int i;
         log("SYSERR: tokenize() failed to realloc result array to size %d", capacity);
         /* Clean up and bail out */
-        for (int i = 0; i < count; i++)
+        for (i = 0; i < count; i++)
           free(result[i]);
         free(result);
         free(str);
@@ -240,9 +241,10 @@ char **tokenize(const char *input, const char *delim)
 
     char *dup = strdup(tok);
     if (!dup) {
+      int i;
       log("SYSERR: tokenize() failed to duplicate token: %s", tok);
       /* Clean up everything */
-      for (int i = 0; i < count; i++)
+      for (i = 0; i < count; i++)
         free(result[i]);
       free(result);
       free(str);
