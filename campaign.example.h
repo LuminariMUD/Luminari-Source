@@ -20,7 +20,7 @@
 /* ************************************************************************
  * Campaign Selection
  * 
- * Define ONE of the following campaigns, or leave all commented out to
+ * Define ONE of the following campaigns, OR leave ALL commented out to
  * use the default LuminariMUD campaign settings.
  * ************************************************************************ */
 
