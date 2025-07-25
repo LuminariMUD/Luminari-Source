@@ -819,6 +819,10 @@ void destroy_db(void)
       free(obj_proto[cnt].action_description);
     free_extra_descriptions(obj_proto[cnt].ex_description);
 
+    /* free special abilities list */
+    if (obj_proto[cnt].special_abilities)
+      free_obj_special_abilities(obj_proto[cnt].special_abilities);
+
     /* free script proto list */
     free_proto_script(&obj_proto[cnt], OBJ_TRIGGER);
   }
@@ -5358,7 +5362,7 @@ void free_char(struct char_data *ch)
   }
 
   while (ch->affected)
-    affect_remove(ch, ch->affected);
+    affect_remove_no_total(ch, ch->affected);
 
   /* free any assigned scripts */
   if (SCRIPT(ch))
@@ -5421,6 +5425,20 @@ void free_char(struct char_data *ch)
 }
 
 /* release memory allocated for an obj struct */
+/* Free the special abilities linked list */
+void free_obj_special_abilities(struct obj_special_ability *list)
+{
+  struct obj_special_ability *next;
+  
+  while (list) {
+    next = list->next;
+    if (list->command_word)
+      free(list->command_word);
+    free(list);
+    list = next;
+  }
+}
+
 void free_obj(struct obj_data *obj)
 {
   if (GET_OBJ_RNUM(obj) == NOWHERE)
@@ -5439,6 +5457,10 @@ void free_obj(struct obj_data *obj)
   /* free any assigned scripts */
   if (SCRIPT(obj))
     extract_script(obj, OBJ_TRIGGER);
+
+  /* free special abilities list */
+  if (obj->special_abilities)
+    free_obj_special_abilities(obj->special_abilities);
 
   /* find_obj helper */
   remove_from_lookup_table(GET_ID(obj));

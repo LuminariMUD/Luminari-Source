@@ -3052,10 +3052,18 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
   {
     char buf[MEDIUM_STRING] = {'\0'};
     snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
+    /* Free previous allocation if it exists and is not a constant */
+    if (spell_info[spl].wear_off_msg && 
+        spell_info[spl].wear_off_msg != unused_wearoff)
+      free((char *)spell_info[spl].wear_off_msg);
     spell_info[spl].wear_off_msg = strdup(buf);
   }
   else
   {
+    /* Free previous allocation if it exists and is not a constant */
+    if (spell_info[spl].wear_off_msg && 
+        spell_info[spl].wear_off_msg != unused_wearoff)
+      free((char *)spell_info[spl].wear_off_msg);
     spell_info[spl].wear_off_msg = wearoff;
   }
   spell_info[spl].time = time;

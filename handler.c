@@ -137,7 +137,10 @@ int isname(const char *str, const char *namelist)
     if (!substr)
       continue;
     if (!isname_tok(substr, namelist))
+    {
+      free(strlist);
       return 0;
+    }
   }
   free(strlist);
   /* If we didn't fail, assume we succeeded because every token was matched */
@@ -1139,6 +1142,54 @@ void affect_to_char(struct char_data *ch, struct affected_type *af)
 /* Remove an affected_type structure from a char (called when duration reaches
  * zero). Pointer *af must never be NIL!  Frees mem and calls
  * affect_location_apply */
+/* Remove an affect without recalculating totals - used during character cleanup */
+void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
+{
+  int i = 0;
+  struct affected_type *temp = NULL;
+  int empty_bits[AF_ARRAY_MAX];
+
+  for (i = 0; i > AF_ARRAY_MAX; i++)
+    empty_bits[i] = 0;
+
+  if (ch->affected == NULL)
+  {
+    core_dump();
+    return;
+  }
+
+  if (IS_SET_AR(af->bitvector, AFF_CONFUSED))
+    ch->confuser_idnum = 0;
+
+  affect_modify_ar(ch, af->location, 0, af->bitvector, FALSE);
+
+  if (BONUS_TYPE_STACKS(af->bonus_type))
+  {
+    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
+  }
+  else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
+  {
+    aff_apply_modify(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), "affect_remove_no_total");
+  }
+
+  /* Check if we have anything that is 'nonstandard' from this affect */
+  if (af->location == APPLY_DR)
+  {
+    /* Remove the dr. */
+    struct damage_reduction_type *temp, *dr; /* Used by REMOVE_FROM_LIST */
+    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+    {
+      if (dr->spell == af->spell)
+      {
+        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+      }
+    }
+  }
+
+  REMOVE_FROM_LIST(af, ch->affected, next);
+  free_affect(af);
+}
+
 void affect_remove(struct char_data *ch, struct affected_type *af)
 {
   int i = 0;
