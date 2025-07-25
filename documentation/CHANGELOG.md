@@ -4,6 +4,22 @@
 
 ### Critical Bug Fixes
 
+#### Fixed Critical Double-Free Bug in objsave.c
+- **Issue**: Server crash (SIGABRT) when loading house data, with corruption in free_tokens()
+- **Root Cause**: The object parsing code in objsave.c was calling `free(*line)` to free individual token strings during parsing, but these strings belonged to the tokenize() array and were freed again by `free_tokens()` at the end, causing a double-free
+- **Memory Corruption Pattern**:
+  - During parsing, `free(*line)` freed the token strings
+  - Memory allocator reused the freed memory for other allocations
+  - New allocations wrote pointer values into the old string memory
+  - When `free_tokens()` ran, it tried to free these corrupted pointers, causing crash
+- **Solution**: 
+  - Removed all `free(*line)` calls in parsing loops (lines 2416, 3352, 3976, etc.)
+  - Added comments explaining that token strings must not be freed individually
+  - Only `free_tokens()` should be called at the end to properly clean up the entire array
+- **Files Modified**: 
+  - objsave.c: Multiple locations where `free(*line)` was removed
+- **Impact**: Eliminates crashes when loading house data, particularly house #24828 which triggered the bug consistently
+
 #### Fixed Critical Memory Allocation Failures in tokenize() Function
 - **Issue**: Server crash (SIGABRT) when loading house data due to unchecked memory allocation failures
 - **Root Cause**: The `tokenize()` function in mysql.c had no error handling for memory allocation failures:
