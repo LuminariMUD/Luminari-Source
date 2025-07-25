@@ -255,3 +255,25 @@
   - Insert empty string if name is invalid
 - **Files Modified**: players.c:4151-4170
 - **Impact**: Eliminates database errors and performance spikes during pet autosaves
+
+#### Unified Pet System Across All Campaigns
+- **Issue**: Pet system had different database schemas and functionality between DragonLance and default/Faerun campaigns
+- **Root Cause**: 
+  - DragonLance campaign included pet_sdesc, pet_ldesc, pet_ddesc fields in pet_data table
+  - Default campaign omitted these fields, causing "Field 'pet_sdesc' doesn't have a default value" errors
+  - Different INSERT/SELECT queries and pet loading logic between campaigns
+  - Inconsistent feature availability based on campaign selection
+- **Solution**: Unified pet system to use DragonLance structure for all campaigns:
+  - Modified default campaign INSERT query to include pet_sdesc, pet_ldesc, pet_ddesc fields
+  - Updated SELECT query to retrieve all pet description fields
+  - Removed all #if defined(CAMPAIGN_DL) conditionals around pet code
+  - Made pet_load_objs() and pet description loading available for all campaigns
+  - Properly handle empty pet descriptions with validation checks
+- **Files Modified**: 
+  - players.c:4085-4210 (save_char_pets - unified INSERT queries)
+  - players.c:4233-4370 (load_char_pets - unified SELECT queries and loading logic)
+- **Impact**: 
+  - Eliminates database errors for missing pet_sdesc field
+  - Provides consistent pet functionality across all campaign types
+  - Simplifies maintenance by removing campaign-specific code branches
+  - Prevents future inconsistencies between campaign pet systems
