@@ -19,12 +19,12 @@ Log file for reference if needed: valgrind_20250724_221634.md
 #### Uninitialized Values
 | ☐ | Location | Issue | Errors | Priority |
 |---|----------|-------|--------|----------|
-| ☐ | db.c:4937, 4939 | fread_clean_string() uninitialized stack vars | 60 errors | MEDIUM |
+| ☑ | db.c:4937, 4939 | fread_clean_string() uninitialized stack vars | 60 errors | MEDIUM |
 
 #### Use-After-Free
 | ☐ | Location | Issue | Details | Priority |
 |---|----------|-------|---------|----------|
-| ☐ | lists.c/mud_event.c | Accessing freed event memory | 8 bytes inside freed block | HIGH |
+| ☑ | lists.c/mud_event.c | Accessing freed event memory | 8 bytes inside freed block | HIGH |
 
 **Details**:
 - **db.c:4937**: fread_clean_string() has uninitialized stack variables causing 60 conditional jump errors. Affects IBT file loading.

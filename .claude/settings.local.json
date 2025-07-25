@@ -21,7 +21,9 @@
       "Bash(sed:*)",
       "Bash(python3:*)",
       "Bash(awk:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(./test_event_fix)",
+      "Bash(./test_fread_fix)"
     ],
     "deny": []
   }
