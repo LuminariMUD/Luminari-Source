@@ -371,3 +371,48 @@ char **tokenize(const char *input, const char *delim) {
 2. If house #24828 specific, examine its data closely
 3. If not house specific, focus on memory corruption analysis
 4. Document findings at each step for pattern recognition
+
+---
+
+## FIX ATTEMPT #1 (July 25, 2025)
+================================
+
+### Changes Made:
+
+1. **Enhanced tokenize() function in mysql.c (lines 221-237)**:
+   - Added trimming of leading delimiters to prevent empty first tokens
+   - Skip leading delimiters with: `while (*trimmed_input && strchr(delim, *trimmed_input))`
+   - Handle edge case where entire string is delimiters
+   - Return properly NULL-terminated empty array if needed
+
+2. **Added debugging in objsave.c (lines 2126-2153)**:
+   - Log hex dump of first 20 characters for house #24828
+   - Log string length
+   - Display each character as hex and printable (or '.')
+   - Detect and warn about empty first tokens
+   - Report house vnum when empty token detected
+
+3. **Added input validation in objsave.c**:
+   - Skip empty lines during parsing (line 2161-2163)
+   - Added validation before tag parsing (lines 2220-2223, 3150-3153, 3768-3771)
+   - Log warning and continue on empty lines
+   - Prevents crashes from empty tokens causing garbage in tag parsing
+
+### Expected Behavior:
+- Server should not crash on empty first tokens
+- Debug output will show if house #24828 data starts with newline (0x0A)
+- Empty lines will be gracefully skipped
+- Better error messages for troubleshooting
+
+### Testing:
+- Code compiles successfully
+- Run server and check logs for house #24828 debug output
+- Look for patterns like:
+  ```
+  DEBUG: House #24828 raw data first 20 chars (hex):
+  DEBUG:   [0] = 0x0A ('.')
+  WARNING: Empty first token detected in house data
+  ```
+
+### Status: ATTEMPT - NOT YET VERIFIED
+This fix addresses the most likely cause (leading newlines in MySQL data) but needs testing to confirm.
