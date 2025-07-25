@@ -4,6 +4,27 @@
 
 ### Bug Fixes
 
+#### Fixed Major Memory Leak in Quest System (hlquest.c)
+- **Issue**: 113KB memory leak in `clear_hlquest()` function during quest initialization
+- **Root Cause**: Function allocated memory with `strdup()` for keywords and reply_msg fields that were immediately overwritten in `boot_the_quests()`
+- **Solution**: Changed `clear_hlquest()` to initialize these pointers to NULL instead of allocating unused memory
+- **Files Modified**: hlquest.c:768-769
+- **Impact**: Eliminates 113KB of memory leaks during server boot (part of 460KB total identified leaks)
+
+#### Fixed Quest Command Memory Leak in Mob Prototype Cleanup
+- **Issue**: 15.7KB memory leak from quest_command structures allocated in `boot_the_quests()`
+- **Root Cause**: `destroy_db()` was not freeing quest data attached to mob prototypes during shutdown
+- **Solution**: Added `free_hlquest(&mob_proto[cnt])` to the mob prototype cleanup loop in db.c:853
+- **Files Modified**: db.c:853 (in destroy_db function)
+- **Impact**: Eliminates 15.7KB of memory leaks during server shutdown (part of 460KB total identified leaks)
+
+#### Fixed Major Memory Leak in tokenize() Function
+- **Issue**: 318KB memory leak in `tokenize()` function used for parsing database queries
+- **Root Cause**: The dynamically allocated token array (char**) was never freed after use, only individual strings were freed
+- **Solution**: Added `free(tokens)` after each tokenize usage in load_regions(), load_paths(), and envelope() functions
+- **Files Modified**: mysql.c:320, 675, 885
+- **Impact**: Eliminates 318KB of memory leaks during database operations (largest single leak, part of 460KB total identified leaks)
+
 #### Fixed NULL Object Handling in fight.c
 - **Issue**: `unequip_char()` could return NULL when called in corpse equipment transfer, causing crashes when passed to `obj_to_obj()`
 - **Solution**: Added NULL check after `unequip_char()` before calling `obj_to_obj()` in fight.c:1791-1793

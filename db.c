@@ -848,6 +848,9 @@ void destroy_db(void)
 
     while (mob_proto[cnt].affected)
       affect_remove(&mob_proto[cnt], mob_proto[cnt].affected);
+
+    /* free quest data */
+    free_hlquest(&mob_proto[cnt]);
   }
   free(mob_proto);
   free(mob_index);
