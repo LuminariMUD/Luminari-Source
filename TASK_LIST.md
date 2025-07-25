@@ -1,9 +1,94 @@
 # LuminariMUD Development Task List
 
 This document tracks ongoing development tasks, bug fixes, and improvements for the LuminariMUD project. Tasks are organized by priority and category to help contributors identify areas where help is needed.
+
 ---
 
 ## CODER TASKS
+
+---
+FIX THIS FIRST & NOW!!!!!!!!!!!:
+
+## Core Dump Analysis Summary for LuminariMUD
+
+### The Crash
+- **Signal**: SIGABRT (Signal 6) - The program called `abort()` due to a fatal error
+- **Location**: Inside `free()` in the C library, called from `free_tokens()` at mysql.c:243
+- **Root Cause**: Memory corruption - attempting to free invalid/garbage memory pointers
+
+### Call Stack (Bottom to Top)
+1. MUD boots up (`main()` → `init_game()` → `boot_db()`)
+2. House system initialization (`House_boot()`)
+3. Loading house #24828 (`House_load()`)
+4. Parsing objects from database (`objsave_parse_objects_db()`)
+5. Tokenizing object data with `tokenize()` function
+6. Attempting to free tokens with `free_tokens()` - **CRASH HERE**
+
+### The Bug
+
+The `tokenize()` function in mysql.c has a critical bug in how it NULL-terminates the token array:
+
+```c
+// Current buggy code (mysql.c lines 215-226):
+while (1)
+{
+    if (count >= capacity)
+        result = realloc(result, (capacity *= 2) * sizeof(*result));
+    
+    result[count++] = tok ? strdup(tok) : tok;  // <-- Adds NULL but increments count
+    
+    if (!tok)
+        break;
+    
+    tok = strtok(NULL, delim);
+}
+```
+
+**The Problem**: 
+- When `strtok` returns NULL (no more tokens), the code stores NULL at `result[count]` and increments `count`
+- Then it breaks from the loop
+- The array now has NULL at position `count-1`, but position `count` and beyond contain uninitialized garbage memory
+
+**Why It Crashes**:
+- `free_tokens()` expects a NULL-terminated array
+- It loops through with `for (it = tokens; *it; ++it)` looking for NULL
+- Because the NULL is not at the end of the allocated data, it continues past NULL into garbage memory
+- When it tries to `free()` these garbage pointers (like `0x24055380 " R\005$"`), the program crashes
+
+### Evidence from GDB
+- `lines` array after tokenize: Valid pointer addresses followed by garbage
+- Token values show corrupted data: `" U\005$"`, `"\200R\005$"`, etc. instead of valid strings
+- The serialized object data itself was valid (started with `"#3183\nLoc : -1\nFlag:..."`)
+
+### The Fix
+
+Replace the tokenize loop with proper NULL termination:
+
+```c
+while (tok)
+{
+    if (count >= capacity)
+        result = realloc(result, (capacity *= 2) * sizeof(*result));
+    
+    result[count++] = strdup(tok);
+    tok = strtok(NULL, delim);
+}
+
+// Ensure space for NULL terminator and add it
+if (count >= capacity)
+    result = realloc(result, (capacity + 1) * sizeof(*result));
+result[count] = NULL;
+```
+
+This ensures the array is properly NULL-terminated without garbage values after the NULL.
+
+### Additional Notes
+- This bug only manifests when loading house data (not player data)
+- The crash happens during boot when loading house #24828
+- The bug is deterministic - it will crash every time at the same place until fixed
+
+---
+
 
 ### Memory Leaks and Issues (From Valgrind Analysis - July 24, 2025)
 

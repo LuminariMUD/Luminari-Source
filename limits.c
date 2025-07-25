@@ -1370,7 +1370,7 @@ void recharge_activated_items(void)
   struct char_data *ch = NULL;
   struct obj_data *obj = NULL;
   int i = 0, j = 0;
-  char buf[200], where_name[200];
+  char buf[256], where_name[200];
 
   for (d = descriptor_list; d; d = d->next)
   {

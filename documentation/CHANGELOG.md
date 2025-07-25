@@ -2,6 +2,28 @@
 
 ## 2025-07-25
 
+### Compiler Warning Fixes
+
+#### Fixed All Remaining Compiler Warnings (32 warnings eliminated)
+- **Format Truncation Warnings**:
+  - `act.informative.c`: Increased buffer sizes for keyword1 (100→128) and dex_max (10→20)
+  - `act.wizard.c`: Increased tmp_buf size from 1024 to 8192 to handle large format strings
+  - `char_descs.c`: Increased final buffer from 256 to 512 to handle concatenated strings
+  - `fight.c`: Increased buf size from 10 to 20 for integer formatting
+  - `limits.c`: Increased buf size from 200 to 256 for spell name formatting
+  - `roleplay.c`: Increased buf2 size from 100 to 200 for roleplay info formatting
+  - `utils.c`: Increased temp_buf (200→256) and line_buf (200→256) for HP calculations
+- **String Operation Warnings**:
+  - `act.item.c`: Replaced strncat with memcpy to avoid compiler warning about length dependency
+  - `ban.c`: Fixed strncpy truncation by reserving space for null terminator
+  - `db.c`: Added null termination after strncpy in two locations (zone names and object descriptions)
+  - `genolc.c` & `genwld.c`: Added null termination after strncpy for room descriptions
+- **Address Comparison Warnings**:
+  - `act.wizard.c`, `class.c`, `magic.c`, `spells.c`: Removed redundant NULL checks for array addresses (AFF_FLAGS)
+  - `players.c`: Removed redundant NULL check for host array member
+  - Arrays cannot be NULL by definition, making these checks unnecessary
+- **Impact**: Clean compilation with zero warnings, improving code quality and maintainability
+
 ### Bug Fixes
 
 #### Fixed Major Memory Leak in tokenize() Function (mysql.c)

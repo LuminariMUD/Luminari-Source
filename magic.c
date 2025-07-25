@@ -11365,7 +11365,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   /* this is to try and clean up bits related to the spell */
   for (af = victim->affected; af; af = af->next)
   {
-    if (af && affect && af->bitvector && IS_SET_AR(af->bitvector, affect))
+    if (af && affect && IS_SET_AR(af->bitvector, affect))
     {
       if (victim && af->spell)
       {
@@ -11374,7 +11374,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
         continue;
       }
     }
-    if (af && affect2 && af->bitvector && IS_SET_AR(af->bitvector, affect2))
+    if (af && affect2 && IS_SET_AR(af->bitvector, affect2))
     {
       if (victim && af->spell)
       {

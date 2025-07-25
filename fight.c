@@ -7143,7 +7143,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         if ((pMudEvent = char_has_mud_event(victim, eCRIPPLING_CRITICAL)))
         {
           int crippling_critical_var = 0;
-          char buf[10] = {'\0'};
+          char buf[20] = {'\0'}; /* Increased to handle all int values */
 
           crippling_critical_var = atoi((char *)pMudEvent->sVariables);
           crippling_critical_var++;

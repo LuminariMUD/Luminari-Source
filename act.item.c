@@ -2987,7 +2987,10 @@ void name_from_drinkcon(struct obj_data *obj)
 
     if (*new_name)
       strcat(new_name, " ");             /* strcat: OK (size precalculated) */
-    strncat(new_name, cur_name, cpylen); /* strncat: OK (size precalculated) */
+    /* Use memcpy instead of strncat to avoid compiler warning */
+    size_t cur_len = strlen(new_name);
+    memcpy(new_name + cur_len, cur_name, cpylen);
+    new_name[cur_len + cpylen] = '\0';
   }
 
   if (GET_OBJ_RNUM(obj) == NOTHING || obj->name != obj_proto[GET_OBJ_RNUM(obj)].name)

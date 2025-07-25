@@ -3161,7 +3161,7 @@ ACMD(do_wizutil)
       // Clear Misc Cooldowns
       clear_misc_cooldowns(vict);
       // clear affects
-      if (vict->affected || AFF_FLAGS(vict))
+      if (vict->affected)
       {
         while (vict->affected)
           affect_remove(vict, vict->affected);
@@ -7273,7 +7273,7 @@ ACMD(do_objlist)
   char buf3[8192];
   char buf4[8192];
   char buf5[8192];
-  char tmp_buf[1024];
+  char tmp_buf[8192];
   one_argument(argument, value, sizeof(value));
 
   if (*value && is_number(value))
