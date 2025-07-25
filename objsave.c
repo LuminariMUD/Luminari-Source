@@ -2123,12 +2123,23 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       obj_db_idnum = atoi(row[1]);
     }
 
-    lines = tokenize(serialized_obj, "\n");
-    if (!lines) {
-      log("SYSERR: tokenize() failed in objsave_parse_objects_db for %s data",
-          loading_house_data ? "house" : "player");
-      free(serialized_obj);
-      continue;  /* Skip this object and try the next one */
+    /* TEMPORARY DEBUG TEST - hardcode the tokenization to isolate the issue */
+    if (0) {  /* Set to 1 to enable hardcoded test */
+      lines = malloc(5 * sizeof(char*));
+      lines[0] = strdup("#3183");
+      lines[1] = strdup("Loc : -1");
+      lines[2] = strdup("Flag: 64 0 0 0");
+      lines[3] = strdup("Name: a small leather pouch");
+      lines[4] = NULL;
+      log("DEBUG: Using hardcoded tokenization for testing");
+    } else {
+      lines = tokenize(serialized_obj, "\n");
+      if (!lines) {
+        log("SYSERR: tokenize() failed in objsave_parse_objects_db for %s data",
+            loading_house_data ? "house" : "player");
+        free(serialized_obj);
+        continue;  /* Skip this object and try the next one */
+      }
     }
 
     locate = 0;

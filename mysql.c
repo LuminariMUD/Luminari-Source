@@ -205,29 +205,72 @@ struct wilderness_data *load_wilderness(zone_vnum zone)
 /* String tokenizer. */
 char **tokenize(const char *input, const char *delim)
 {
-  char *str = strdup(input);
+  char *str;
+  char **result;
+  char *tok;
+  int count = 0;
+  int capacity = 10;
+  
+  /* Sanity check inputs */
+  if (!input || !delim) {
+    log("SYSERR: tokenize() called with NULL input or delim");
+    return NULL;
+  }
+  
+  /* DEBUG: Check if input starts with delimiter */
+  if (input[0] == '\n') {
+    log("DEBUG: WARNING - tokenize input starts with newline!");
+  }
+  /* DEBUG: Log first few chars of input in hex */
+  log("DEBUG: tokenize input first bytes: %02X %02X %02X %02X %02X ('%c%c%c%c%c')",
+      (unsigned char)input[0], (unsigned char)input[1], 
+      (unsigned char)input[2], (unsigned char)input[3],
+      (unsigned char)input[4],
+      input[0] > 31 ? input[0] : '?',
+      input[1] > 31 ? input[1] : '?',
+      input[2] > 31 ? input[2] : '?',
+      input[3] > 31 ? input[3] : '?',
+      input[4] > 31 ? input[4] : '?');
+  
+  str = strdup(input);
   if (!str) {
     log("SYSERR: tokenize() failed to allocate memory for input string");
     return NULL;
   }
   
-  int count = 0;
-  int capacity = 10;
-  char **result = malloc(capacity * sizeof(*result));
+  /* Allocate space including room for NULL terminator */
+  result = malloc((capacity + 1) * sizeof(*result));
   if (!result) {
     log("SYSERR: tokenize() failed to allocate memory for result array");
     free(str);
     return NULL;
   }
 
-  char *tok = strtok(str, delim);
+  /* Use strtok - strtok_r may not be available in all C90 environments */
+  tok = strtok(str, delim);
+  
+  /* DEBUG: Log what strtok returns */
+  if (tok) {
+    log("DEBUG: First strtok token: '%s' (length %d)", tok, (int)strlen(tok));
+    /* Also log first few bytes in hex to check for weird characters */
+    log("DEBUG: First bytes of token: %02X %02X %02X %02X", 
+        (unsigned char)tok[0], (unsigned char)tok[1], 
+        (unsigned char)tok[2], (unsigned char)tok[3]);
+  } else {
+    log("DEBUG: First strtok returned NULL!");
+  }
 
   while (tok)
   {
+    char *dup;
+    
     if (count >= capacity) {
-      char **new_result = realloc(result, (capacity *= 2) * sizeof(*result));
+      char **new_result;
+      int i;
+      
+      capacity *= 2;
+      new_result = realloc(result, (capacity + 1) * sizeof(*result));
       if (!new_result) {
-        int i;
         log("SYSERR: tokenize() failed to realloc result array to size %d", capacity);
         /* Clean up and bail out */
         for (i = 0; i < count; i++)
@@ -239,7 +282,7 @@ char **tokenize(const char *input, const char *delim)
       result = new_result;
     }
 
-    char *dup = strdup(tok);
+    dup = strdup(tok);
     if (!dup) {
       int i;
       log("SYSERR: tokenize() failed to duplicate token: %s", tok);
@@ -253,24 +296,44 @@ char **tokenize(const char *input, const char *delim)
     result[count++] = dup;
     tok = strtok(NULL, delim);
   }
-
-  /* Ensure space for NULL terminator */
-  if (count >= capacity) {
-    char **new_result = realloc(result, (capacity + 1) * sizeof(*result));
-    if (!new_result) {
-      /* Not critical - we have enough space, just might waste a bit of memory
-       * Log warning but continue */
-      log("WARNING: tokenize() failed final realloc, but continuing with existing allocation");
-    } else {
-      result = new_result;
-    }
-  }
   
   /* NULL-terminate the array */
   result[count] = NULL;
 
   free(str);
   return result;
+}
+
+/* Test function for tokenize - remove after debugging */
+void test_tokenize(void)
+{
+  char **tokens;
+  char **it;
+  const char *test_input = "#3183\nLoc : -1\nFlag: 64 0 0 0\nName: a small leather pouch";
+  char test_str[256];
+  char *tok;
+  
+  log("DEBUG: Testing tokenize with input: '%s'", test_input);
+  
+  /* First test strtok directly */
+  log("DEBUG: Testing strtok directly:");
+  strcpy(test_str, test_input);
+  tok = strtok(test_str, "\n");
+  log("DEBUG: Direct strtok first token: '%s'", tok ? tok : "NULL");
+  
+  /* Now test our tokenize function */
+  tokens = tokenize(test_input, "\n");
+  if (!tokens) {
+    log("DEBUG: tokenize returned NULL!");
+    return;
+  }
+  
+  log("DEBUG: Tokenize results:");
+  for (it = tokens; *it; ++it) {
+    log("DEBUG:   Token: '%s'", *it);
+  }
+  
+  free_tokens(tokens);
 }
 
 /* Free the memory allocated by tokenize() */
