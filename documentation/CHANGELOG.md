@@ -4,6 +4,26 @@
 
 ### Critical Bug Fixes
 
+#### Fixed Heap Corruption in raw_kill() During NPC Death
+- **Issue**: Server crash with heap corruption in malloc_consolidate() when characters died
+- **Root Cause**: 
+  - In fight.c:2012-2013, `raw_kill()` used `affect_remove()` to clear all affects during death
+  - `affect_remove()` calls `affect_total()` which recalculates character stats
+  - For NPCs that are about to be extracted, accessing character data during affect_total() could reference freed or corrupted memory
+  - The corruption manifested later as a crash in malloc_consolidate() during save_char()
+- **Solution**: 
+  - Modified `raw_kill()` to use different affect removal based on character type:
+    - NPCs: Use `affect_remove_no_total()` since they will be extracted and don't need stat recalculation
+    - Players: Continue using `affect_remove()` since they remain in game and need proper stats
+  - This prevents accessing potentially corrupted data for NPCs while maintaining correct behavior for players
+- **Files Modified**: 
+  - fight.c:2011-2020 (raw_kill function)
+- **Impact**: Eliminates heap corruption during NPC death while preserving correct player death handling
+
+## 2025-07-25
+
+### Critical Bug Fixes
+
 #### Fixed String Overlap Error in half_chop() Function
 - **Issue**: Undefined behavior due to overlapping memory regions in strcpy() call
 - **Root Cause**: 
