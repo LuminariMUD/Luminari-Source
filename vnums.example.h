@@ -13,52 +13,65 @@
 #define _VNUMS_H_
 
 /* ************************************************************************
- * Newbie Starting Equipment
+ * DragonLance Newbie Starting Equipment
  * ************************************************************************ */
 
 /* Wizard Starting Gear */
+/*
 #define NOOB_GEAR_WIZ_WEAPON        160016
 #define NOOB_GEAR_WIZ_BODY          160000
 #define NOOB_GEAR_WIZ_HEAD          160001
 #define NOOB_GEAR_WIZ_LEGS          160002
 #define NOOB_GEAR_WIZ_ARMS          160003
+*/
 
 /* Sorcerer Starting Gear */
+/*
 #define NOOB_GEAR_SORC_WEAPON       160017
 #define NOOB_GEAR_SORC_BODY         160000
 #define NOOB_GEAR_SORC_HEAD         160001
 #define NOOB_GEAR_SORC_LEGS         160002
 #define NOOB_GEAR_SORC_ARMS         160003
+*/
 
 /* Cleric Starting Gear */
+/*
 #define NOOB_GEAR_CLER_WEAPON       160026
 #define NOOB_GEAR_CLER_BODY         160012
 #define NOOB_GEAR_CLER_HEAD         160013
 #define NOOB_GEAR_CLER_LEGS         160014
 #define NOOB_GEAR_CLER_ARMS         160015
+*/
 
 /* Rogue Starting Gear */
+/*
 #define NOOB_GEAR_ROG_WEAPON        160023
 #define NOOB_GEAR_ROG_BODY          160004
 #define NOOB_GEAR_ROG_HEAD          160005
 #define NOOB_GEAR_ROG_LEGS          160006
 #define NOOB_GEAR_ROG_ARMS          160007
+*/
 
 /* Fighter Starting Gear */
+/*
 #define NOOB_GEAR_FIGHT_WEAPON      160033
 #define NOOB_GEAR_FIGHT_BODY        160012
 #define NOOB_GEAR_FIGHT_HEAD        160013
 #define NOOB_GEAR_FIGHT_LEGS        160014
 #define NOOB_GEAR_FIGHT_ARMS        160015
+*/
 
 /* Monk Starting Gear */
+/*
 #define NOOB_GEAR_MONK_WEAPON       160028
 #define NOOB_GEAR_MONK_BODY         160000
 #define NOOB_GEAR_MONK_HEAD         160001
 #define NOOB_GEAR_MONK_LEGS         160002
 #define NOOB_GEAR_MONK_ARMS         160003
+*/
 
 /* Druid Starting Gear */
+/*
 #define NOOB_GEAR_DRUID_WEAPON      160024
 #define NOOB_GEAR_DRUID_BODY        160004
 #define NOOB_GEAR_DRUID_HEAD        160005
@@ -66,89 +79,105 @@
 #define NOOB_GEAR_DRUID_ARMS        160007
 
 /* Berserker Starting Gear */
+/*
 #define NOOB_GEAR_BERSER_WEAPON     160030
 #define NOOB_GEAR_BERSER_BODY       160008
 #define NOOB_GEAR_BERSER_HEAD       160009
 #define NOOB_GEAR_BERSER_LEGS       160010
 #define NOOB_GEAR_BERSER_ARMS       160011
+*/
 
 /* Paladin Starting Gear */
+/*
 #define NOOB_GEAR_PALAD_WEAPON      160031
 #define NOOB_GEAR_PALAD_BODY        160012
 #define NOOB_GEAR_PALAD_HEAD        160013
 #define NOOB_GEAR_PALAD_LEGS        160014
 #define NOOB_GEAR_PALAD_ARMS        160015
+*/
 
 /* Ranger Starting Gear */
+/*
 #define NOOB_GEAR_RANGER_WEAPON     160029
 #define NOOB_GEAR_RANGER_BODY       160008
 #define NOOB_GEAR_RANGER_HEAD       160009
 #define NOOB_GEAR_RANGER_LEGS       160010
 #define NOOB_GEAR_RANGER_ARMS       160011
+*/
 
 /* Bard Starting Gear */
+/*
 #define NOOB_GEAR_BARD_WEAPON       160020
 #define NOOB_GEAR_BARD_INSTRUMENT   160022
 #define NOOB_GEAR_BARD_BODY         160004
 #define NOOB_GEAR_BARD_HEAD         160005
 #define NOOB_GEAR_BARD_LEGS         160006
 #define NOOB_GEAR_BARD_ARMS         160007
+*/
 
 /* Blackguard Starting Gear */
+/*
 #define NOOB_GEAR_BLKG_WEAPON       160032
 #define NOOB_GEAR_BLKG_BODY         160012
 #define NOOB_GEAR_BLKG_HEAD         160013
 #define NOOB_GEAR_BLKG_LEGS         160014
 #define NOOB_GEAR_BLKG_ARMS         160015
+*/
 
 /* Psionicist Starting Gear */
+/*
 #define NOOB_GEAR_PSION_WEAPON      160025
 #define NOOB_GEAR_PSION_BODY        160000
 #define NOOB_GEAR_PSION_HEAD        160001
 #define NOOB_GEAR_PSION_LEGS        160002
 #define NOOB_GEAR_PSION_ARMS        160003
+*/
 
 /* Warlock Starting Gear */
+/*
 #define NOOB_GEAR_WARLOCK_WEAPON    160021
 #define NOOB_GEAR_WARLOCK_BODY      160004
 #define NOOB_GEAR_WARLOCK_HEAD      160005
 #define NOOB_GEAR_WARLOCK_LEGS      160006
 #define NOOB_GEAR_WARLOCK_ARMS      160007
+*/
 
 /* Summoner Starting Gear */
+/*
 #define NOOB_GEAR_SUMMONER_WEAPON   160019
 #define NOOB_GEAR_SUMMONER_BODY     160004
 #define NOOB_GEAR_SUMMONER_HEAD     160005
 #define NOOB_GEAR_SUMMONER_LEGS     160006
 #define NOOB_GEAR_SUMMONER_ARMS     160007
+*/
 
 /* Inquisitor Starting Gear */
+/*
 #define NOOB_GEAR_INQUISITOR_WEAPON 160027
 #define NOOB_GEAR_INQUISITOR_BODY   160008
 #define NOOB_GEAR_INQUISITOR_HEAD   160009
 #define NOOB_GEAR_INQUISITOR_LEGS   160010
 #define NOOB_GEAR_INQUISITOR_ARMS   160011
+*/
 
 /* Alchemist Starting Gear */
+/*
 #define NOOB_GEAR_ALCHEMIST_WEAPON  160018
 #define NOOB_GEAR_ALCHEMIST_BODY    160004
 #define NOOB_GEAR_ALCHEMIST_HEAD    160005
 #define NOOB_GEAR_ALCHEMIST_LEGS    160006
 #define NOOB_GEAR_ALCHEMIST_ARMS    160007
-
-/* Starting Equipment Constants */
-#define NUM_NOOB_ARROWS             40
-#define NUM_NOOB_DROW_BOLTS         30
-#define NOOB_TELEPORTER             82
+*/
 
 /* ************************************************************************
- * Campaign-Specific Starting Items
+ * More Campaign-Specific Starting Items
  * ************************************************************************ */
 
 /* 
  * Chronicles of Krynn Campaign Items
  * Uncomment this section for Krynn campaign
  */
+/*
 #define NOOB_TORCH                  20858
 #define NOOB_RATIONS                20804
 #define NOOB_WATERSKIN              20803
@@ -178,19 +207,24 @@
 #define NOOB_DROW_XBOW              20832
 #define NOOB_DROW_BOLT              20831
 #define NOOB_DROW_POUCH             20833
+*/
 
 /* Musical Instruments */
+/*
 #define LYRE                        20825
 #define FLUTE                       20826
 #define DRUM                        20827
 #define HORN                        20828
 #define HARP                        20829
 #define MANDOLIN                    20830
+*/
 
 /* Special Items */
+/*
 #define NOOB_HOOPAK                 117
 #define NOOB_GEAR_MAP_ONE           2227   
 #define NOOB_GEAR_MAP_TWO           6526
+*/
 
 /* 
  * LuminariMUD and Faerun Campaign Items
@@ -243,6 +277,7 @@
  */
 
 /* Body Armor Molds */
+/*
 #define PLATE_BODY                  40119
 #define HALFPLATE_BODY              40143
 #define SPLINT_BODY                 40144
@@ -256,8 +291,10 @@
 #define SCALE_BODY                  40242
 #define HIDE_BODY                   40243
 #define LIGHT_CHAIN_BODY            40244
+*/
 
 /* Helm Molds */
+/*
 #define PLATE_HELM                  40151
 #define HALFPLATE_HELM              40152
 #define SPLINT_HELM                 40153
@@ -271,8 +308,10 @@
 #define SCALE_HELM                  40246
 #define HIDE_HELM                   40247
 #define LIGHT_CHAIN_HELM            40248
+*/
 
 /* Arm Armor Molds */
+/*
 #define PLATE_ARMS                  40160
 #define HALFPLATE_ARMS              40161
 #define SPLINT_ARMS                 40162
@@ -286,8 +325,10 @@
 #define SCALE_ARMS                  40251
 #define HIDE_ARMS                   40252
 #define LIGHT_CHAIN_ARMS            40253
+*/
 
 /* Leg Armor Molds */
+/*
 #define PLATE_LEGS                  40168
 #define HALFPLATE_LEGS              40169
 #define SPLINT_LEGS                 40170
@@ -301,19 +342,23 @@
 #define SCALE_LEGS                  40256
 #define HIDE_LEGS                   40257
 #define LIGHT_CHAIN_LEGS            40258
+*/
 
 /* Shield Molds */
+/*
 #define SHIELD_MEDIUM               40180
 #define SHIELD_LARGE                40181
 #define SHIELD_TOWER                40182
 
 #define NUM_ARMOR_MOLDS             37
+*/
 
 /* ************************************************************************
- * Crafting System - Weapon Molds
+ * DragonLance Crafting System - Weapon Molds
  * ************************************************************************ */
 
 /* Weapon Molds */
+/*
 #define DAGGER                      40212
 #define MACE                        40213
 #define SICKLE                      40214
@@ -345,12 +390,14 @@
 #define DIREFLAIL                   40240
 
 #define NUM_WEAPON_MOLDS            29
+*/
 
 /* ************************************************************************
- * Crafting System - Miscellaneous Items
+ * Crafting System - DragonLance Miscellaneous Items
  * ************************************************************************ */
 
 /* Equipment Molds */
+/*
 #define RING_MOLD                   40176
 #define NECKLACE_MOLD               40177
 #define BOOTS_MOLD                  40178
@@ -366,8 +413,10 @@
 #define ANKLET_MOLD                 40253
 
 #define NUM_MISC_MOLDS              8
+*/
 
 /* Crafting Prototypes */
+/*
 #define WEAPON_PROTO                40299
 #define ARMOR_PROTO                 40298
 #define AMMO_PROTO                  40297
@@ -375,12 +424,14 @@
 #define ITEM_PROTOTYPE              40210
 #define CRYSTAL_PROTOTYPE           40211
 #define KENDER_BAUBLE               40447
+*/
 
-/*
+/*************************************************************
  * LuminariMUD and Faerun Crafting Molds
  * Uncomment this section for Faerun campaign
- */
-/*
+ *************************************************************/
+
+/* Armor Molds */
 #define PLATE_BODY                  3119
 #define HALFPLATE_BODY              3143
 #define SPLINT_BODY                 3144
@@ -436,7 +487,10 @@
 #define SHIELD_MEDIUM               3180
 #define SHIELD_LARGE                3181
 #define SHIELD_TOWER                3182
+
 #define NUM_ARMOR_MOLDS             37
+
+/* Weapon Molds */
 #define DAGGER                      3212
 #define MACE                        3213
 #define SICKLE                      3214
@@ -466,10 +520,17 @@
 #define BASTARDSWORD                3238
 #define DWARVENWARAXE               3239
 #define DIREFLAIL                   3240
+
 #define NUM_WEAPON_MOLDS            29
+
+/* Prototypes */
 #define WEAPON_PROTO                3299
 #define ARMOR_PROTO                 3298
 #define AMMO_PROTO                  3297
+#define ITEM_PROTOTYPE              3210
+#define CRYSTAL_PROTOTYPE           3211
+
+/* Miscellaneous Items */
 #define RING_MOLD                   3176
 #define NECKLACE_MOLD               3177
 #define BOOTS_MOLD                  3178
@@ -478,10 +539,31 @@
 #define BELT_MOLD                   3184
 #define WRIST_MOLD                  3185
 #define HELD_MOLD                   3186
+
+/* unfinished */
+#define EYES_MOLD                   40249
+#define FACE_MOLD                   40250
+#define EARS_MOLD                   40251
+#define SHOULDERS_MOLD              40252
+#define ANKLET_MOLD                 40253
+
 #define NUM_MISC_MOLDS              8
-#define ITEM_PROTOTYPE              3210
-#define CRYSTAL_PROTOTYPE           3211
+
+/* unfinished Kender */
 #define KENDER_BAUBLE               66700
-*/
+#define NOOB_HOOPAK                 117
+
+/* End of LuminariMUD and Faerun Crafting Molds */
+
+
+/**************************
+ * Shared Constants
+ **************************/
+
+ /* Starting Equipment Constants */
+#define NUM_NOOB_ARROWS             40
+#define NUM_NOOB_DROW_BOLTS         30
+#define NOOB_TELEPORTER             82
+
 
 #endif /* _VNUMS_H_ */

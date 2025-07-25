@@ -35,7 +35,7 @@
  * 
  * Status: NOT RECOMMENDED - Known bugs
  */
-/* #define USE_CONTAINER_OBJECTS */
+#define USE_CONTAINER_OBJECTS
 
 /**
  * USE_VIRTUAL_BAGS_ONLY - Virtual bag container system
@@ -48,7 +48,7 @@
  * 
  * Status: RECOMMENDED - Stable and bug-free
  */
-#define USE_VIRTUAL_BAGS_ONLY
+/* #define USE_VIRTUAL_BAGS_ONLY */
 
 /* ************************************************************************
  * Newbie Equipment Configuration
@@ -63,7 +63,7 @@
  * Uses the new newbie gear created in Chronicles of Krynn.
  * This gear is more balanced and fits the Krynn campaign setting.
  */
-#define USE_NEW_NOOB_GEAR
+/*#define USE_NEW_NOOB_GEAR */
 
 /**
  * USE_OLD_NOOB_GEAR - LuminariMUD legacy newbie equipment
@@ -71,7 +71,7 @@
  * Uses the old newbie gear created in LuminariMUD.
  * This gear is for backward compatibility with existing areas.
  */
-/* #define USE_OLD_NOOB_GEAR */
+#define USE_OLD_NOOB_GEAR
 
 /* ************************************************************************
  * Crafting System Configuration
