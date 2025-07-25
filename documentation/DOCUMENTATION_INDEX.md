@@ -4,7 +4,7 @@
 
 ### 🚀 Getting Started
 - **[README.md](../README.md)** - Project overview and quick start
-- **[Setup Guide](SETUP_AND_BUILD_GUIDE.md)** - Installation and configuration
+- **[Setup Guide](guides/SETUP_AND_BUILD_GUIDE.md)** - Installation and configuration
 - **[Contributing Guide](../CONTRIBUTING.md)** - How to contribute to the project
 
 ### 📚 Core Documentation
@@ -13,21 +13,21 @@
 - **[Core Server Architecture](CORE_SERVER_ARCHITECTURE.md)** - Server design and patterns
 
 ### 🎮 Game Systems
-- **[Combat System](COMBAT_SYSTEM.md)** - Combat mechanics and calculations
-- **[Game Mechanics](GAME_MECHANICS_SYSTEMS.md)** - Classes, races, feats, spells
-- **[Player Management](PLAYER_MANAGEMENT_SYSTEM.md)** - Character creation and progression
-- **[World Simulation](WORLD_SIMULATION_SYSTEM.md)** - Rooms, zones, wilderness
+- **[Combat System](systems/COMBAT_SYSTEM.md)** - Combat mechanics and calculations
+- **[Game Mechanics](systems/GAME_MECHANICS_SYSTEMS.md)** - Classes, races, feats, spells
+- **[Player Management](systems/PLAYER_MANAGEMENT_SYSTEM.md)** - Character creation and progression
+- **[World Simulation](systems/WORLD_SIMULATION_SYSTEM.md)** - Rooms, zones, wilderness
 
 ### 🛠️ Development
-- **[Developer Guide](DEVELOPER_GUIDE_AND_API.md)** - Coding standards and API reference
+- **[Developer Guide](guides/DEVELOPER_GUIDE_AND_API.md)** - Coding standards and API reference
 - **[Data Structures](DATA_STRUCTURES_AND_MEMORY.md)** - Core data structures and memory
-- **[Command System](COMMAND_SYSTEM_AND_INTERPRETER.md)** - Command parsing and execution
+- **[Command System](systems/COMMAND_SYSTEM_AND_INTERPRETER.md)** - Command parsing and execution
 - **[Database Integration](DATABASE_INTEGRATION.md)** - MySQL integration and schema
 
 ### 🔧 Advanced Systems
-- **[Scripting System](SCRIPTING_SYSTEM_DG.md)** - DG Scripts, triggers, variables
-- **[OLC System](OLC_ONLINE_CREATION_SYSTEM.md)** - Online level creation tools
-- **[Utility Systems](UTILITY_SYSTEMS.md)** - Logging, events, mail, boards, clans
+- **[Scripting System](systems/SCRIPTING_SYSTEM_DG.md)** - DG Scripts, triggers, variables
+- **[OLC System](systems/OLC_ONLINE_CREATION_SYSTEM.md)** - Online level creation tools
+- **[Utility Systems](systems/UTILITY_SYSTEMS.md)** - Logging, events, mail, boards, clans
 - **[Performance Optimizations](PERFORMANCE_OPTIMIZATIONS.md)** - CPU and memory optimization
 
 ### 🌐 Web Tools & Security
@@ -36,17 +36,17 @@
 - **Risk Level**: LOW (18 vulnerabilities fixed)
 
 ### 🧪 Testing & Quality
-- **[Testing Guide](TESTING_GUIDE.md)** - Unit testing and quality assurance
-- **[Troubleshooting](TROUBLESHOOTING_AND_MAINTENANCE.md)** - Common issues and solutions
+- **[Testing Guide](guides/TESTING_GUIDE.md)** - Unit testing and quality assurance
+- **[Troubleshooting](guides/TROUBLESHOOTING_AND_MAINTENANCE.md)** - Common issues and solutions
 - **Memory Testing**: Valgrind integration and leak detection
 
 ### 🎨 Content Creation
-- **[Ultimate Writing Guide](ultimate-mud-writing-guide.md)** - Zone building and content creation
-- **[Crafting System](crafting-notes.md)** - Item creation and enhancement
+- **[Ultimate Writing Guide](guides/ultimate-mud-writing-guide.md)** - Zone building and content creation
+- **[Crafting System](game-data/crafting-notes.md)** - Item creation and enhancement
 - **Building Standards**: Follow established lore and guidelines
 
 ### 🤖 AI Development
-- **[AI Assistant Guide](../CLAUDE.md)** - Comprehensive guide for AI-assisted development
+- **[AI Assistant Guide](development/CLAUDE.md)** - Comprehensive guide for AI-assisted development
 - **Development Patterns**: Best practices for AI collaboration
 - **Code Standards**: Automated assistance guidelines
 
@@ -54,33 +54,33 @@
 
 ### For New Players
 1. **[README.md](../README.md)** - Start here for project overview
-2. **[Setup Guide](SETUP_AND_BUILD_GUIDE.md)** - Get the game running
+2. **[Setup Guide](guides/SETUP_AND_BUILD_GUIDE.md)** - Get the game running
 3. **In-game Help System** - Use `help` command in game
 
 ### For Developers
 1. **[Technical Master Index](TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)** - Complete overview
-2. **[Developer Guide](DEVELOPER_GUIDE_AND_API.md)** - Coding standards and API
+2. **[Developer Guide](guides/DEVELOPER_GUIDE_AND_API.md)** - Coding standards and API
 3. **[Core Server Architecture](CORE_SERVER_ARCHITECTURE.md)** - System design
 4. **[Data Structures](DATA_STRUCTURES_AND_MEMORY.md)** - Core structures
-5. **[AI Assistant Guide](../CLAUDE.md)** - AI development assistance
+5. **[AI Assistant Guide](development/CLAUDE.md)** - AI development assistance
 
 ### For System Administrators
-1. **[Setup Guide](SETUP_AND_BUILD_GUIDE.md)** - Installation and configuration
+1. **[Setup Guide](guides/SETUP_AND_BUILD_GUIDE.md)** - Installation and configuration
 2. **[Database Integration](DATABASE_INTEGRATION.md)** - Database setup
-3. **[Troubleshooting](TROUBLESHOOTING_AND_MAINTENANCE.md)** - Maintenance and issues
+3. **[Troubleshooting](guides/TROUBLESHOOTING_AND_MAINTENANCE.md)** - Maintenance and issues
 4. **[PHP Tools Guide](PHP_TOOLS_README.md)** - Web tools deployment
 
 ### For Content Creators
-1. **[Ultimate Writing Guide](ultimate-mud-writing-guide.md)** - Zone building excellence
-2. **[OLC System](OLC_ONLINE_CREATION_SYSTEM.md)** - Online creation tools
-3. **[Scripting System](SCRIPTING_SYSTEM_DG.md)** - DG scripting
-4. **[Game Mechanics](GAME_MECHANICS_SYSTEMS.md)** - Understanding game systems
+1. **[Ultimate Writing Guide](guides/ultimate-mud-writing-guide.md)** - Zone building excellence
+2. **[OLC System](systems/OLC_ONLINE_CREATION_SYSTEM.md)** - Online creation tools
+3. **[Scripting System](systems/SCRIPTING_SYSTEM_DG.md)** - DG scripting
+4. **[Game Mechanics](systems/GAME_MECHANICS_SYSTEMS.md)** - Understanding game systems
 
 ### For Contributors
 1. **[Contributing Guide](../CONTRIBUTING.md)** - How to contribute
 2. **[Code of Conduct](../CODE_OF_CONDUCT.md)** - Community standards
-3. **[Testing Guide](TESTING_GUIDE.md)** - Quality assurance
-4. **[Developer Guide](DEVELOPER_GUIDE_AND_API.md)** - Development standards
+3. **[Testing Guide](guides/TESTING_GUIDE.md)** - Quality assurance
+4. **[Developer Guide](guides/DEVELOPER_GUIDE_AND_API.md)** - Development standards
 
 ## Recent Updates (January 2025)
 
@@ -99,6 +99,19 @@
 - ✅ **Cross-Reference Updates** - Improved navigation and links
 - ✅ **New Documentation** - Performance optimizations guide
 - ✅ **Structure Improvements** - Better organization and indexing
+
+## Documentation Organization
+
+The documentation is organized into logical subdirectories:
+
+- **`/guides/`** - User guides, setup instructions, and tutorials
+- **`/systems/`** - Game system documentation (combat, scripting, etc.)
+- **`/game-data/`** - Game content data and statistics
+- **`/development/`** - Development tools and AI assistance
+- **`/testing/`** - Testing frameworks and quality assurance
+- **`/project-management/`** - Project planning and task management
+- **`/reports/`** - Analysis reports and debugging information
+- **`/previous_changelogs/`** - Historical change logs
 
 ## File Status Legend
 

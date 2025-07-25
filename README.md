@@ -215,20 +215,20 @@ nohup ../bin/circle &
 
 ### Technical Documentation
 - **[Architecture](documentation/CORE_SERVER_ARCHITECTURE.md)**: Server architecture and design patterns
-- **[Setup Guide](documentation/SETUP_AND_BUILD_GUIDE.md)**: Detailed installation and configuration
-- **[Developer Guide](documentation/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
+- **[Setup Guide](documentation/guides/SETUP_AND_BUILD_GUIDE.md)**: Detailed installation and configuration
+- **[Developer Guide](documentation/guides/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
 
 ### Game Documentation
-- **[Combat System](documentation/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
-- **[Player Management](documentation/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
-- **[World Simulation](documentation/WORLD_SIMULATION_SYSTEM.md)**: World systems and mechanics
+- **[Combat System](documentation/systems/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
+- **[Player Management](documentation/systems/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
+- **[World Simulation](documentation/systems/WORLD_SIMULATION_SYSTEM.md)**: World systems and mechanics
 
 ### Additional Resources
-- **[Testing Guide](documentation/TESTING_GUIDE.md)**: Quality assurance and testing procedures
-- **[Troubleshooting](documentation/TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
+- **[Testing Guide](documentation/guides/TESTING_GUIDE.md)**: Quality assurance and testing procedures
+- **[Troubleshooting](documentation/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
 - **[PHP Tools Guide](documentation/PHP_TOOLS_README.md)**: Web tools security audit and deployment
-- **[Ultimate Writing Guide](documentation/ultimate-mud-writing-guide.md)**: Zone building and content creation
-- **[AI Assistant Guide](CLAUDE.md)**: Comprehensive guide for AI-assisted development
+- **[Ultimate Writing Guide](documentation/guides/ultimate-mud-writing-guide.md)**: Zone building and content creation
+- **[AI Assistant Guide](documentation/development/CLAUDE.md)**: Comprehensive guide for AI-assisted development
 ## Contributing
 
 We welcome contributions from developers, builders, and community members! Please read our guidelines before contributing.
@@ -248,7 +248,7 @@ We welcome contributions from developers, builders, and community members! Pleas
    ```
 
 3. **Make Your Changes**
-   - Follow our coding standards (see [Developer Guide](documentation/DEVELOPER_GUIDE_AND_API.md))
+   - Follow our coding standards (see [Developer Guide](documentation/guides/DEVELOPER_GUIDE_AND_API.md))
    - Add tests for new functionality
    - Update documentation as needed
 
@@ -359,7 +359,7 @@ netstat -tulpn | grep :4000
 - Ensure database credentials are correct
 
 ### Getting Support
-1. Check the [Troubleshooting Guide](documentation/TROUBLESHOOTING_AND_MAINTENANCE.md)
+1. Check the [Troubleshooting Guide](documentation/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)
 2. Search existing GitHub Issues
 3. Ask on Discord for community support
 4. Create a GitHub Issue for bugs or feature requests
