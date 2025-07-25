@@ -2124,7 +2124,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     }
 
     /* TEMPORARY DEBUG TEST - hardcode the tokenization to isolate the issue */
-    if (0) {  /* Set to 1 to enable hardcoded test */
+    if (1) {  /* Set to 1 to enable hardcoded test */
       lines = malloc(5 * sizeof(char*));
       lines[0] = strdup("#3183");
       lines[1] = strdup("Loc : -1");
