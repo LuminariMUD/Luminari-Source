@@ -262,7 +262,7 @@ char *current_short_desc(struct char_data *ch)
     char desc[MEDIUM_STRING];
     char adj1[SMALL_STRING];
     char adj2[SMALL_STRING];
-    char final[MEDIUM_STRING];
+    char final[MEDIUM_STRING * 2]; /* Increased to handle desc + adj1 + adj2 */
 
     int race = GET_RACE(ch);
     int sex = GET_SEX(ch);

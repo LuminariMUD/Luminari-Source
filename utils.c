@@ -7348,7 +7348,7 @@ void calculate_max_hp(struct char_data *ch, bool display)
   int max_val_worn_slot[NUM_BONUS_TYPES];
   struct obj_data *obj = NULL;
   struct affected_type *aff = NULL;
-  char affect_buf[2400], gear_buf[2400], temp_buf[200];
+  char affect_buf[2400], gear_buf[2400], temp_buf[256];
 
   for (i = 0; i < NUM_BONUS_TYPES; i++)
   {
@@ -7395,7 +7395,7 @@ void calculate_max_hp(struct char_data *ch, bool display)
         max_hp += aff->modifier;
         if (display)
         {
-          char line_buf[200];
+          char line_buf[256];
           snprintf(temp_buf, sizeof(temp_buf), "Affect '%s'", spell_info[aff->spell].name);
           snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf, aff->modifier > 0 ? "+" : "", aff->modifier);
           strlcat(affect_buf, line_buf, sizeof(affect_buf));
@@ -7407,7 +7407,7 @@ void calculate_max_hp(struct char_data *ch, bool display)
         max_hp -= aff->modifier;
         if (display)
         {
-          char line_buf[200];
+          char line_buf[256];
           snprintf(temp_buf, sizeof(temp_buf), "Affect '%s'", spell_info[aff->spell].name);
           snprintf(line_buf, sizeof(line_buf), "%-40s = %d\r\n", temp_buf, aff->modifier);
           strlcat(affect_buf, line_buf, sizeof(affect_buf));
@@ -7438,7 +7438,7 @@ void calculate_max_hp(struct char_data *ch, bool display)
           max_hp += obj->affected[j].modifier;
           if (display)
           {
-            char line_buf[200];
+            char line_buf[256];
             snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'", obj->short_description);
             snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf, obj->affected[j].modifier > 0 ? "+" : "", obj->affected[j].modifier);
             strlcat(gear_buf, line_buf, sizeof(gear_buf));
@@ -7450,7 +7450,7 @@ void calculate_max_hp(struct char_data *ch, bool display)
           max_hp -= obj->affected[j].modifier;
           if (display)
           {
-            char line_buf[200];
+            char line_buf[256];
             snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'", obj->short_description);
             snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf, obj->affected[j].modifier > 0 ? "+" : "", obj->affected[j].modifier);
             strlcat(gear_buf, line_buf, sizeof(gear_buf));
@@ -7488,7 +7488,7 @@ void calculate_max_hp(struct char_data *ch, bool display)
         {
           if (GET_EQ(ch, max_val_worn_slot[i])->affected[j].location == APPLY_HIT)
           {
-            char line_buf[200];
+            char line_buf[256];
             snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'", GET_EQ(ch, max_val_worn_slot[i])->short_description);
             snprintf(line_buf, sizeof(line_buf), "%-40s = %s%d\r\n", temp_buf,
                      GET_EQ(ch, max_val_worn_slot[i])->affected[j].modifier > 0 ? "+" : "",

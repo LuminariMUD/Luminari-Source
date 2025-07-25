@@ -3098,14 +3098,10 @@ void init_start_char(struct char_data *ch)
       perform_remove(ch, i, TRUE);
 
   /* clear affects for clean start */
-  if (ch->affected || AFF_FLAGS(ch))
-  {
-    while (ch->affected)
-      affect_remove(ch, ch->affected);
-    for (i = 0; i < AF_ARRAY_MAX; i++)
-      AFF_FLAGS(ch)
-    [i] = 0;
-  }
+  while (ch->affected)
+    affect_remove(ch, ch->affected);
+  for (i = 0; i < AF_ARRAY_MAX; i++)
+    AFF_FLAGS(ch)[i] = 0;
 
   /* initialize all levels and spec_abil array */
   for (i = 0; i < MAX_CLASSES; i++)

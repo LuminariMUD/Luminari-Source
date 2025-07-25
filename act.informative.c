@@ -288,7 +288,7 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch)
 
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type)
 {
-  char keyword[100], keyword1[100], sendcmd[20];
+  char keyword[100], keyword1[128], sendcmd[20];
   int found = 0, item_num = 0;
   struct char_data *temp;
   struct obj_data *temp_obj;
@@ -3929,7 +3929,7 @@ ACMD(do_equipment)
 {
   int i, found = 0;
   int mxp_type = 2;
-  char dex_max[10] = "No-Max";
+  char dex_max[20] = "No-Max";
   int j = compute_gear_max_dex(ch);
 
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))

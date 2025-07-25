@@ -1106,7 +1106,8 @@ void boot_db(void)
 
   for (i = 0; i <= top_of_zone_table; i++)
   {
-    strncpy(buf1, zone_table[i].name, sizeof(buf1));
+    strncpy(buf1, zone_table[i].name, sizeof(buf1) - 1);
+    buf1[sizeof(buf1) - 1] = '\0';
     strip_colors(buf1);
     log("Resetting #%d: %s (rooms %d-%d).", zone_table[i].number,
         buf1, zone_table[i].bot, zone_table[i].top);
@@ -6025,7 +6026,8 @@ static int check_object(struct obj_data *obj)
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
   /* stripping colors for SYSLOG -zusuk */
-  strncpy(buf1, obj->short_description, sizeof(buf1));
+  strncpy(buf1, obj->short_description, sizeof(buf1) - 1);
+  buf1[sizeof(buf1) - 1] = '\0';
   strip_colors(buf1);
 
   if (GET_OBJ_WEIGHT(obj) < 0 && (error = TRUE))
