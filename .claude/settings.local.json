@@ -19,7 +19,9 @@
       "Bash(nm:*)",
       "Bash(mv:*)",
       "Bash(sed:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(awk:*)",
+      "Bash(echo:*)"
     ],
     "deny": []
   }
