@@ -4248,11 +4248,6 @@ void mag_assign_spells(void)
   spello(SPELL_DIVINE_FAVOR, "divine favor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel the divine favor subside.", 4, 8, EVOCATION, FALSE);
   spello(SPELL_SILENCE, "silence", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "You feel the power that is muting you fade.", 3, 11, ILLUSION, FALSE); // wiz2, cle3
-  spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 2, 8, NOSCHOOL, FALSE);
-  spello(SPELL_REMOVE_FEAR, "remove fear", 44, 29, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS,
-         NULL, 3, 8, NOSCHOOL, FALSE);
   spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
          "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
 
@@ -5071,12 +5066,6 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
     NULL, 0, 0, NOSCHOOL, FALSE);
 */
 
-  spello(SKILL_SURPRISE_ACCURACY, "surprise accuracy", 0, 0, 0, POS_STANDING, // 529
-         TAR_IGNORE, FALSE, 0,
-         "The effects of your surprise accuracy have expired.", 0, 0, NOSCHOOL, FALSE);
-  spello(SKILL_POWERFUL_BLOW, "powerful blow", 0, 0, 0, POS_STANDING, // 530
-         TAR_IGNORE, FALSE, 0,
-         "The effects of your powerful blow have expired.", 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_INCENDIARY, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
