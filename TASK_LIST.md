@@ -7,14 +7,35 @@ This document tracks ongoing development tasks, bug fixes, and improvements for 
 
 ### Memory Leaks and Issues (From Valgrind Analysis - July 24, 2025)
 
-#### Critical Memory Leaks
+Log file for reference if needed: valgrind_20250724_221634.md
+
+#### Critical Memory Leaks (460KB total definitely lost)
 | ☐ | Location | Issue | Size | Priority |
 |---|----------|-------|------|----------|
-| ☐ | db.c:4937 | Uninitialized values in fread_clean_string() | N/A | MEDIUM |
+| ☑ | hlquest.c:768, 769 | clear_hlquest() strdup without free | 113KB total | CRITICAL |
+| ☑ | hlquest.c:925 | boot_the_quests() calloc without free | 15.7KB | HIGH |
+| ☑ | mysql.c:211, 218 | tokenize() malloc/realloc leaks | 318KB total | CRITICAL |
+| ☐ | db.c:4021 | read_object() object creation leaks | ~7KB | MEDIUM |
+| ☐ | db.c:4004 | read_object() larger object leaks | 2.4KB | MEDIUM |
 | ☐ | dg_variables.c:65 | Script variable memory not freed | Multiple small | LOW |
 
+#### Uninitialized Values
+| ☐ | Location | Issue | Errors | Priority |
+|---|----------|-------|--------|----------|
+| ☐ | db.c:4937, 4939 | fread_clean_string() uninitialized stack vars | 60 errors | MEDIUM |
+
+#### Use-After-Free
+| ☐ | Location | Issue | Details | Priority |
+|---|----------|-------|---------|----------|
+| ☐ | lists.c/mud_event.c | Accessing freed event memory | 8 bytes inside freed block | HIGH |
+
 **Details**:
-- **db.c**: Valgrind reports conditional jumps on uninitialized values (may be false positive).
+- **hlquest.c**: Major leaks in quest system - clear_hlquest() allocates strings with strdup (lines 768, 769) but never frees them. Called from boot_the_quests() at lines 901 and 914. Total: 9,840 + 10,496 + 44,970 + 47,952 = 113,258 bytes lost.
+- **mysql.c**: tokenize() function has severe memory leaks from malloc (line 211) and realloc (line 218) operations. Affects load_paths() and other database operations. Total: ~318KB lost.
+- **db.c:4937**: fread_clean_string() has uninitialized stack variables causing 60 conditional jump errors. Affects IBT file loading.
+- **Use-after-free**: Event system accessing memory 8 bytes inside a 24-byte block that was freed by free_mud_event().
+
+Log file for reference if needed: valgrind_20250724_221634.md
 
 ---
 

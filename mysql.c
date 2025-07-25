@@ -317,6 +317,7 @@ void load_regions()
       vtx++;
       free(*it);
     }
+    free(tokens);
 
     top_of_region_table = i;
 
@@ -671,6 +672,7 @@ void load_paths()
       vtx++;
       free(*it);
     }
+    free(tokens);
 
     top_of_path_table = i;
     i++;
@@ -880,6 +882,7 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
         yhigh = newy;
       free(*it);
     }
+    free(tokens);
   }
 
   mysql_free_result(result);
