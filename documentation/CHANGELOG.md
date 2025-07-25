@@ -26,6 +26,7 @@
   - mud_event.c:583-587
   - mysql.c:368-375, 729-739, 943-948
 - **Impact**: Prevents server crashes from memory allocation failures, provides graceful degradation under low memory conditions
+- **Additional Fix**: Fixed C90 compatibility - declared all variables at beginning of blocks (no C99-style declarations)
 
 #### Fixed Critical tokenize() NULL Termination Crash
 - **Issue**: Server crash (SIGABRT) when loading house data during boot
