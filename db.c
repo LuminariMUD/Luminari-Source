@@ -6355,7 +6355,7 @@ void load_config(void)
       {
         if (CONFIG_DFLT_DIR)
           free(CONFIG_DFLT_DIR);
-        if (line != NULL && *line)
+        if (*line)
           CONFIG_DFLT_DIR = strdup(line);
         else
           CONFIG_DFLT_DIR = strdup(DFLT_DIR);
@@ -6364,7 +6364,7 @@ void load_config(void)
       {
         if (CONFIG_DFLT_IP)
           free(CONFIG_DFLT_IP);
-        if (line != NULL && *line)
+        if (*line)
           CONFIG_DFLT_IP = strdup(line);
         else
           CONFIG_DFLT_IP = NULL;
@@ -6432,7 +6432,7 @@ void load_config(void)
       {
         if (CONFIG_LOGNAME)
           free(CONFIG_LOGNAME);
-        if (line != NULL && *line)
+        if (*line)
           CONFIG_LOGNAME = strdup(line);
         else
           CONFIG_LOGNAME = NULL;
