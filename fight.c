@@ -2008,6 +2008,11 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
       stop_fighting(k);
   }
 
+  /* Clear all events immediately after stopping fighting to prevent race conditions
+   * This must happen before any state changes to avoid combat events executing
+   * on a character being processed for death */
+  clear_char_event_list(ch);
+
   /* clear all affections */
   if (IS_NPC(ch)) {
     /* NPCs will be extracted, so avoid recalculating stats */
@@ -2018,10 +2023,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     while (ch->affected)
       affect_remove(ch, ch->affected);
   }
-
-  /* this was commented out for some reason, undid that to make sure
-   events clear on death */
-  clear_char_event_list(ch);
 
   /* Wipe character from the memory of hunters and other intelligent NPCs... */
   for (temp = character_list; temp; temp = temp->next)
@@ -12514,6 +12515,18 @@ EVENTFUNC(event_combat_round)
    * referenced pointers */
   pMudEvent = (struct mud_event_data *)event_obj;
   ch = (struct char_data *)pMudEvent->pStruct;
+
+  /* Safety check: Validate character state before processing combat */
+  if (!ch || IN_ROOM(ch) == NOWHERE || GET_POS(ch) <= POS_DEAD)
+    return 0;
+  
+  /* Check if character is pending extraction */
+  if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_NOTDEADYET))
+    return 0;
+  
+  /* Additional check for NPCs pending extraction */
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOTDEADYET))
+    return 0;
 
   if ((!IS_NPC(ch) && (ch->desc != NULL && !IS_PLAYING(ch->desc))) || (FIGHTING(ch) == NULL))
   {
