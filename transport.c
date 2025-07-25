@@ -222,9 +222,8 @@ const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
 #endif
 
 /* zone, destination vnum, title, details */
-/* Commenting out duplicate definition - already defined above
-const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = { */
-#if 0
+#if defined(USE_WALKTO_LANDMARKS)
+const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
     {"Abanasinia" , "4429" , "Abanasinia to Solamnia Ferry"} ,
     {"Abanasinia" , "300" , "Darken Wood"} , 
     {"Abanasinia" , "6318" , "Elven Cadre"} , 
@@ -1130,7 +1129,7 @@ ACMDU(do_walkto)
 
 #endif
 
-#if defined(CAMPAIGN_DL)
+#if defined(USE_WALKTO_LANDMARKS)
 ACMD(do_landmarks)
 {
   int i = 0, count = 0, j = 0, destination = NOWHERE, dir = 0;
@@ -1185,7 +1184,7 @@ ACMD(do_landmarks)
   if (!found)
     send_to_char(ch, "There are no landmarks for that region.\r\n");
 }
-#else
+#elif defined(USE_CITY_LANDMARKS_ONLY)
 ACMD(do_landmarks)
 {
   int i = 0, zone = 0, count = 0;
