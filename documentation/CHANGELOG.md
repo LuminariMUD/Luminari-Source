@@ -6,12 +6,13 @@
 
 #### Fixed "(null)" Race Display in Character Creation
 - **Issue**: New players saw "(null)" entries in race selection during character creation, severely impacting first impressions
-- **Root Cause**: Duplicate race constant definitions in structs.h:
-  - RACE_GOBLIN = 26 (has implementation) vs RACE_DEEP_GNOME = 26 (no implementation)
-  - RACE_HOBGOBLIN = 27 (has implementation) vs RACE_ORC = 27 (no implementation)
-- **Solution**: Commented out the unimplemented duplicate definitions (RACE_DEEP_GNOME, RACE_SVIRFNEBLIN, RACE_ORC)
-- **Files Modified**: structs.h:694-700
-- **Impact**: Eliminates "(null)" entries in race selection, fixing critical new player experience issue
+- **Root Cause**: RACE_GOBLIN and RACE_HOBGOBLIN were only implemented in FR campaign section, not default campaign:
+  - Race constants RACE_GOBLIN=26 and RACE_HOBGOBLIN=27 are defined in structs.h
+  - But their add_race() implementations were only in the FR campaign section of race.c
+  - Default campaign had no implementations for slots 26 & 27, showing as "(null)"
+- **Solution**: Copied RACE_GOBLIN and RACE_HOBGOBLIN implementations to default campaign section
+- **Files Modified**: race.c:3599-3689 (added Goblin and Hobgoblin race implementations for default campaign)
+- **Impact**: Goblin and Hobgoblin races now properly display in default campaign character creation
 
 #### Fixed Critical Double-Free Bug in objsave.c
 - **Issue**: Server crash (SIGABRT) when loading house data, with corruption in free_tokens()

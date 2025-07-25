@@ -3596,6 +3596,97 @@ void assign_races(void)
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_GOBLIN, "goblin", "Goblin", "\tgGoblin\tn", "Gobn", "\tgGobn\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(RACE_GOBLIN,
+                   // Description
+                   "The Goblins of Ansalon are little, thin humanoids, standing no more than three  "
+                    "and half feet in height. Their skin tones vary greatly. They have flat faces and "
+                    "dark, stringy hair. They have dull red or yellow eyes. They are very quick and  "
+                    "have sharp teeth. Goblins dress in leathers made from animal hide or scavenged  "
+                    "clothing, and speak the Goblin Language. "
+                    "Goblins respect and cherish those who have power and are strong. They are  "
+                    "ambitious, seeking power for themselves but most never attain it. When in large  "
+                    "groups they tend to fall prey to mob mentality and in some cases, operate like a "
+                    "wolf pack. Goblins back a strong leader and will follow their lead. A lone  "
+                    "goblin may appear weak and vulnerable but typically they are confident and sure  "
+                    "of themselves. "
+                    "Goblins live in tribes when their larger cousins, Bugbears and Hobgoblins, are  "
+                    "not dominating them. Leaders, called Rukras, lead either through trickery or  "
+                    "strength. Though nasty and callous, they have the best interests of their people "
+                    "in their hearts. "
+                    "Goblins are simple beings but are led by their cultural imperatives to fight,  "
+                    "kill and do what the larger, meaner goblins tell them to do. They are numerous  "
+                    "and are spread across the interior of Ansalon, from the far north to the colds  "
+                    "of Icereach. They continually struggle against the other races to survive. ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Goblin.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Goblin.");
+  set_race_genders(RACE_GOBLIN, N, Y, Y);                      /* n m f */
+  set_race_abilities(RACE_GOBLIN, -2, 2, 0, 0, 4, -2);           /* str con int wis dex cha */
+  set_race_alignments(RACE_GOBLIN, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(RACE_GOBLIN,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(RACE_GOBLIN, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_GOBLIN, FEAT_GOBLIN_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(RACE_GOBLIN, FEAT_NIMBLE_ESCAPE, 1, N);
+  feat_race_assignment(RACE_GOBLIN, FEAT_FAST_MOVEMENT, 1, N);
+  feat_race_assignment(RACE_GOBLIN, FEAT_STUBBORN_MIND, 1, N);
+  feat_race_assignment(RACE_GOBLIN, FEAT_FURY_OF_THE_SMALL, 1, N);
+  race_list[RACE_GOBLIN].racial_language = SKILL_LANG_GOBLIN;
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_HOBGOBLIN, "hobgoblin", "Hobgoblin", "\tmHobgoblin\tn", "HobG", "\tmHobG\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(RACE_HOBGOBLIN,
+                   // Description
+                   "The Hobgoblins of Krynn are usually over six feet in height, can have a ruddy  "
+                    "yellow, tan, dark red, or red-orange skin tone, brown-gray hair that covers  "
+                    "their bodies, large pointed ears, and flattened, vaguely batlike faces. They  "
+                    "closely resemble their smaller cousins the Goblins but are bigger and uglier,  "
+                    "and are much smarter. They are faster than a Human, and have a much stronger  "
+                    "endurance. Hobgoblins bore easily and will pick fights with their inferiors, but "
+                    "will protect party members that are weaker than their opponents. "
+                    "Most hobgoblins thrive on war, terror, and an impulse to oppose all other races. "
+                    "There are some though that are understanding of civilization, and want to bring  "
+                    "this to their goblin kin. These hobgoblins are called donek, or renegades in the "
+                    "goblin language. The most famous donek is Lord Toede. "
+                    "Hobgoblins live in semi-nomadic auls, or tribes, and are led by a murza. The  "
+                    "murza will have a troop of assassins, shamans, bodyguards, and always a rival  "
+                    "who wants to kill the current murza. Hobgoblins almost always defer to a  "
+                    "bugbear, but will dominate any goblins in their group even going to live with  "
+                    "larger goblin tribes to serve as leaders. The auls are usually dedicated to  "
+                    "conquest and warfare. ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Hobgoblin.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Hobgoblin.");
+  set_race_genders(RACE_HOBGOBLIN, N, Y, Y);                      /* n m f */
+  set_race_abilities(RACE_HOBGOBLIN, 0, 2, 0, 0, 1, 0);           /* str con int wis dex cha */
+  set_race_alignments(RACE_HOBGOBLIN, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(RACE_HOBGOBLIN,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(RACE_HOBGOBLIN, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_HOBGOBLIN, FEAT_HOBGOBLIN_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(RACE_HOBGOBLIN, FEAT_STUBBORN_MIND, 1, N);
+  feat_race_assignment(RACE_HOBGOBLIN, FEAT_AUTHORITATIVE, 1, N);
+  feat_race_assignment(RACE_HOBGOBLIN, FEAT_FORTUNE_OF_THE_MANY, 1, N);
+  race_list[RACE_HOBGOBLIN].racial_language = SKILL_LANG_GOBLIN;
+
   // end luminari race info
 #endif
   /* affect assignment */

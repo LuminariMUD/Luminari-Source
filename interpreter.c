@@ -2956,7 +2956,7 @@ void nanny(struct descriptor_data *d, char *arg)
     write_to_output(d, "Races of Luminari\r\n\r\n");
     for (i = 0; i < NUM_RACES; i++)
     {
-      if (!is_locked_race(i) || has_unlocked_race(d->character, i))
+      if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
         write_to_output(d, "%s\r\n", race_list[i].type);
     }
 #endif
@@ -3170,7 +3170,7 @@ switch (load_result)
         write_to_output(d, "Races of Luminari\r\n\r\n");
       for (i = 0; i < NUM_RACES; i++)
       {
-        if (!is_locked_race(i) || has_unlocked_race(d->character, i))
+        if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
           write_to_output(d, "%s\r\n", race_list[i].type);
       }
 #endif
