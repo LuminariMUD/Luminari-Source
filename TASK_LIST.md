@@ -1,32 +1,5 @@
 # LuminariMUD Development Task List
 
-## 🚨 CRITICAL PRIORITY - IMMEDIATE ACTION REQUIRED 🚨
-
-### ~~CRITICAL BUG: "(null)" Entries Breaking Character Creation First Impression~~ ✓ FIXED
-**Status: RESOLVED**
-**Resolution Date: 2025-07-25**
-
-**Issue:** New players were seeing "(null)" entries in race selection during character creation.
-
-**Root Cause:** Conflicting race constant definitions in `structs.h`
-- `RACE_GOBLIN` (26) and `RACE_DEEP_GNOME` (26) - DUPLICATE VALUES
-- `RACE_HOBGOBLIN` (27) and `RACE_ORC` (27) - DUPLICATE VALUES
-
-**Fix Applied:** 
-- Commented out duplicate definitions in `structs.h` (lines 694-700)
-- Added documentation explaining the duplication issue
-- Preserved code for reference in case specific campaigns need these races with different values
-- No code references these constants, so the change is safe
-
-**Files Modified:**
-- `structs.h` - Commented out RACE_DEEP_GNOME, RACE_SVIRFNEBLIN, and RACE_ORC definitions
-
----
-
-This document tracks ongoing development tasks, bug fixes, and improvements for the LuminariMUD project. Tasks are organized by priority and category to help contributors identify areas where help is needed.
-
----
-
 ## CODER TASKS
 
 ### Memory Leaks and Issues (From Valgrind Analysis - July 24, 2025)
