@@ -229,9 +229,8 @@
 
 /* 
  * LuminariMUD and Faerun Campaign Items
- * Uncomment this section for Faerun campaign
+ * Uncomment this section for LuminariMUD and Faerun campaign
  */
-/*
 #define NOOB_TORCH                  867
 #define NOOB_RATIONS                804
 #define NOOB_WATERSKIN              803
@@ -267,7 +266,6 @@
 #define HORN                        828
 #define HARP                        829
 #define MANDOLIN                    830
-*/
 
 /* ************************************************************************
  * Crafting System - Armor Molds
