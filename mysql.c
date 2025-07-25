@@ -206,24 +206,63 @@ struct wilderness_data *load_wilderness(zone_vnum zone)
 char **tokenize(const char *input, const char *delim)
 {
   char *str = strdup(input);
+  if (!str) {
+    log("SYSERR: tokenize() failed to allocate memory for input string");
+    return NULL;
+  }
+  
   int count = 0;
   int capacity = 10;
   char **result = malloc(capacity * sizeof(*result));
+  if (!result) {
+    log("SYSERR: tokenize() failed to allocate memory for result array");
+    free(str);
+    return NULL;
+  }
 
   char *tok = strtok(str, delim);
 
   while (tok)
   {
-    if (count >= capacity)
-      result = realloc(result, (capacity *= 2) * sizeof(*result));
+    if (count >= capacity) {
+      char **new_result = realloc(result, (capacity *= 2) * sizeof(*result));
+      if (!new_result) {
+        log("SYSERR: tokenize() failed to realloc result array to size %d", capacity);
+        /* Clean up and bail out */
+        for (int i = 0; i < count; i++)
+          free(result[i]);
+        free(result);
+        free(str);
+        return NULL;
+      }
+      result = new_result;
+    }
 
-    result[count++] = strdup(tok);
+    char *dup = strdup(tok);
+    if (!dup) {
+      log("SYSERR: tokenize() failed to duplicate token: %s", tok);
+      /* Clean up everything */
+      for (int i = 0; i < count; i++)
+        free(result[i]);
+      free(result);
+      free(str);
+      return NULL;
+    }
+    result[count++] = dup;
     tok = strtok(NULL, delim);
   }
 
   /* Ensure space for NULL terminator */
-  if (count >= capacity)
-    result = realloc(result, (capacity + 1) * sizeof(*result));
+  if (count >= capacity) {
+    char **new_result = realloc(result, (capacity + 1) * sizeof(*result));
+    if (!new_result) {
+      /* Not critical - we have enough space, just might waste a bit of memory
+       * Log warning but continue */
+      log("WARNING: tokenize() failed final realloc, but continuing with existing allocation");
+    } else {
+      result = new_result;
+    }
+  }
   
   /* NULL-terminate the array */
   result[count] = NULL;
@@ -327,6 +366,13 @@ void load_regions()
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
     sscanf(row[5], "LINESTRING(%[^)])", buf2);
     tokens = tokenize(buf2, ",");
+    if (!tokens) {
+      log("SYSERR: tokenize() failed in load_regions for region %s", row[2]);
+      /* Clean up this region entry */
+      if (region_table[i].name) free(region_table[i].name);
+      /* Skip to next region */
+      continue;
+    }
 
     CREATE(region_table[i].vertices, struct vertex, region_table[i].num_vertices);
 
@@ -681,6 +727,16 @@ void load_paths()
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
     sscanf(row[5], "LINESTRING(%[^)])", buf2);
     tokens = tokenize(buf2, ",");
+    if (!tokens) {
+      log("SYSERR: tokenize() failed in load_paths for path %s", row[2]);
+      /* Clean up this path entry */
+      if (path_table[i].name) free(path_table[i].name);
+      if (path_table[i].glyphs[GLYPH_TYPE_PATH_NS]) free(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
+      if (path_table[i].glyphs[GLYPH_TYPE_PATH_EW]) free(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
+      if (path_table[i].glyphs[GLYPH_TYPE_PATH_INT]) free(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
+      /* Skip to next path */
+      continue;
+    }
 
     CREATE(path_table[i].vertices, struct vertex, path_table[i].num_vertices);
 
@@ -885,6 +941,11 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
     log(" Envelope: %s", row[0]);
     sscanf(row[0], "POLYGON((%[^)]))", buf2);
     tokens = tokenize(buf2, ",");
+    if (!tokens) {
+      log("SYSERR: tokenize() failed in envelope()");
+      /* Skip this envelope entry */
+      continue;
+    }
 
     int newx, newy;
     for (it = tokens; it && *it; ++it)

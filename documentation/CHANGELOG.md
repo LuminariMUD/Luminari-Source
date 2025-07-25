@@ -4,6 +4,29 @@
 
 ### Critical Bug Fixes
 
+#### Fixed Critical Memory Allocation Failures in tokenize() Function
+- **Issue**: Server crash (SIGABRT) when loading house data due to unchecked memory allocation failures
+- **Root Cause**: The `tokenize()` function in mysql.c had no error handling for memory allocation failures:
+  - `malloc()` at line 211 could return NULL
+  - `realloc()` at lines 218 and 226 could return NULL and leak memory
+  - `strdup()` at lines 208 and 220 could return NULL
+  - When any allocation failed, NULL or invalid pointers were stored in the array, causing crashes in `free_tokens()`
+- **Solution**: 
+  - Added comprehensive NULL checks after every memory allocation
+  - Implemented proper cleanup on allocation failures to prevent memory leaks
+  - Return NULL on error to allow graceful error handling by callers
+  - Added detailed error logging to help diagnose memory issues
+- **Caller Updates**: Updated all tokenize() callers to handle NULL returns:
+  - `objsave.c`: 3 locations (objsave_parse_objects_db, pet_load_objs, objsave_parse_objects_db_sheath)
+  - `mud_event.c`: 1 location (event_countdown)
+  - `mysql.c`: 3 locations (load_regions, load_paths, envelope)
+- **Files Modified**: 
+  - mysql.c:206-272 (tokenize function)
+  - objsave.c:2126-2132, 3057-3062, 3673-3678
+  - mud_event.c:583-587
+  - mysql.c:368-375, 729-739, 943-948
+- **Impact**: Prevents server crashes from memory allocation failures, provides graceful degradation under low memory conditions
+
 #### Fixed Critical tokenize() NULL Termination Crash
 - **Issue**: Server crash (SIGABRT) when loading house data during boot
 - **Root Cause**: The `tokenize()` function in mysql.c:215-226 was improperly NULL-terminating arrays by incrementing count after adding NULL, causing `free_tokens()` to read uninitialized memory and attempt to free garbage pointers

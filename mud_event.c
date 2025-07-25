@@ -581,6 +581,10 @@ EVENTFUNC(event_countdown)
     {
       /* Process all encounter rooms for this region */
       tokens = tokenize(pMudEvent->sVariables, ",");
+      if (!tokens) {
+        log("SYSERR: tokenize() failed in event_countdown for region %d", *regvnum);
+        break;  /* Exit this case */
+      }
 
       for (it = tokens; it && *it; ++it)
       {
