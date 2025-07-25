@@ -1447,7 +1447,7 @@ ACMD(do_stat)
           send_to_char(ch, "Sorry, you can't do that.\r\n");
         else
           do_stat_character(ch, victim);
-        extract_char_final(victim);
+        extract_char(victim);
       }
       else
       {

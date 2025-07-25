@@ -5,40 +5,16 @@ This document tracks ongoing development tasks, bug fixes, and improvements for 
 
 ## CODER TASKS
 
-### 🚨 Critical Code Issues (Require Developer Attention)
-
-#### Object Handling Errors
-| ☐ | Issue | Frequency | Priority |
-|---|-------|-----------|----------|
-| ☐ | NULL object passed to obj_to_obj() | Multiple occurrences | HIGH |
-| ☐ | Extraction counting mismatch | Multiple occurrences | MEDIUM |
-
-**Description**: Object manipulation functions receiving NULL pointers or having counting issues during object extraction.
-
-#### Missing Damage Types
-| ☐ | Damage ID | File Reference | Priority |
-|---|-----------|----------------|----------|
-| ☐ | 1527 | Unknown | MEDIUM |
-| ☐ | 1507 | Unknown | MEDIUM |
-
-**Description**: Damage types are missing DAM_ definitions, which could cause combat calculation errors.
-
 ### Memory Leaks and Issues (From Valgrind Analysis - July 24, 2025)
 
 #### Critical Memory Leaks
 | ☐ | Location | Issue | Size | Priority |
 |---|----------|-------|------|----------|
-| ☑ | objsave.c:476,484 | Temp object not freed on MySQL error | 460KB total | CRITICAL |
-| ☑ | lists.c:553 | Use-after-free in simple_list() iterator | N/A | CRITICAL |
 | ☐ | db.c:4937 | Uninitialized values in fread_clean_string() | N/A | MEDIUM |
 | ☐ | dg_variables.c:65 | Script variable memory not freed | Multiple small | LOW |
 
 **Details**:
-- **objsave.c**: In `objsave_save_obj_record_db()`, when MySQL operations fail, the function returns without calling `extract_obj(temp)`. Fix: Add cleanup before returns at lines 476 and 484.
-- **lists.c**: Iterator retains stale pointers after list modifications. Address: 0xbbbbbbbbbbbbbbcb indicates freed memory access.
 - **db.c**: Valgrind reports conditional jumps on uninitialized values (may be false positive).
-- **Total memory leaked**: 460,218 bytes in 11,147 blocks
-- **Source**: Analysis from valgrind log `valgrind_20250724_210758.log`
 
 ---
 

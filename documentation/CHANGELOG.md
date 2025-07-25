@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## 2025-01-27
+
+### Bug Fixes
+
+#### Fixed NULL Object Handling in fight.c
+- **Issue**: `unequip_char()` could return NULL when called in corpse equipment transfer, causing crashes when passed to `obj_to_obj()`
+- **Solution**: Added NULL check after `unequip_char()` before calling `obj_to_obj()` in fight.c:1791-1793
+- **Impact**: Prevents crashes during death when equipment slots are empty or unequip fails
+
+#### Fixed Extraction Counting Mismatch
+- **Issue**: Direct call to `extract_char_final()` in act.wizard.c bypassed extraction counting mechanism
+- **Root Cause**: `extractions_pending` counter only incremented in `extract_char()`, not in direct `extract_char_final()` calls
+- **Solution**: Changed `extract_char_final(victim)` to `extract_char(victim)` in act.wizard.c:1450
+- **Impact**: Eliminates "Couldn't find X extractions as counted" errors and ensures proper character cleanup
+
+#### Resolved False "Missing Damage Types" Issue
+- **Issue**: Task list incorrectly identified spell IDs 1507 and 1527 as missing damage type definitions
+- **Investigation**: Found that these are psionic spell IDs:
+  - 1507 = PSIONIC_ENERGY_RAY (defined in spells.h)
+  - 1527 = PSIONIC_ENERGY_PUSH (defined in spells.h)
+- **Resolution**: No code changes needed - these spells correctly use `GET_PSIONIC_ENERGY_TYPE(ch)` for damage
+- **Impact**: Clarified that no damage types are missing; updated task list to reflect resolved status
+
 ## 2025-07-25
 
 ### Compiler Warning Fixes
