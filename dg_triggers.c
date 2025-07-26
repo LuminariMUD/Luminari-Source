@@ -739,29 +739,40 @@ void random_otrigger(obj_data *obj)
   }
 }
 
-void timer_otrigger(struct obj_data *obj)
+int timer_otrigger(struct obj_data *obj)
 {
   trig_data *t = NULL;
+  int purged = 0;
 
   if (obj == NULL)
-    return;
+    return 0;
 
   /* Don't execute scripts for objects in NOWHERE */
   if (IN_ROOM(obj) == NOWHERE && obj->carried_by == NULL && obj->worn_by == NULL && obj->in_obj == NULL)
-    return;
+    return 0;
 
   if (!SCRIPT_CHECK(obj, OTRIG_TIMER))
-    return;
+    return 0;
 
+  /* Reset global flag before triggers execute */
+  dg_owner_purged = 0;
+  
   for (t = TRIGGERS(SCRIPT(obj)); t; t = t->next)
   {
     if (TRIGGER_CHECK(t, OTRIG_TIMER))
     {
       script_driver(&obj, t, OBJ_TRIGGER, TRIG_NEW);
+      
+      /* Check if object purged itself during trigger execution */
+      if (dg_owner_purged)
+      {
+        purged = 1;
+        break;  /* Object is gone, stop processing triggers */
+      }
     }
   }
 
-  return;
+  return purged;
 }
 
 int get_otrigger(obj_data *obj, char_data *actor)

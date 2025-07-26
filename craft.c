@@ -1793,8 +1793,12 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
   obj->name = strdup(buf);
   strip_colors(obj->name);
   obj->short_description = strdup(buf);
-  snprintf(buf, sizeof(buf), "%s lies here.", CAP(strdup(obj->short_description)));
+  
+  /* Fix string memory leak - CAP modifies the string in-place, but strdup creates a leak */
+  char *temp_str = strdup(obj->short_description);
+  snprintf(buf, sizeof(buf), "%s lies here.", CAP(temp_str));
   obj->description = strdup(buf);
+  free(temp_str);
 
   obj_from_obj(obj);
 

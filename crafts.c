@@ -84,12 +84,22 @@ void free_craft(struct craft_data *craft)
 
   if (craft->requirements->iSize)
   {
-    for (r = (struct requirement_data *)merge_iterator(&Iterator, craft->requirements);
-         r;
-         r = next_in_list(&Iterator))
+    struct requirement_data *next_r = NULL;
+    
+    /* Fix double-free: Get first item from list */
+    r = (struct requirement_data *)merge_iterator(&Iterator, craft->requirements);
+    
+    while (r)
     {
+      /* Get next item BEFORE removing current item from list */
+      next_r = (struct requirement_data *)next_in_list(&Iterator);
+      
+      /* Now safe to remove and free current item */
       remove_from_list(r, craft->requirements);
       free(r);
+      
+      /* Move to next item */
+      r = next_r;
     }
     remove_iterator(&Iterator);
     free_list(craft->requirements);

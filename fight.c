@@ -5040,8 +5040,22 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   { // mainly for type_suffering, dying without awarding xp
     if (victim->last_attacker)
     {
-      if (IN_ROOM(victim->last_attacker) == IN_ROOM(victim))
+      // Validate that last_attacker is still a valid character
+      struct char_data *iter;
+      bool valid_attacker = FALSE;
+      
+      // Check character_list for validity
+      for (iter = character_list; iter; iter = iter->next) {
+        if (iter == victim->last_attacker) {
+          valid_attacker = TRUE;
+          break;
+        }
+      }
+      
+      if (valid_attacker && IN_ROOM(victim->last_attacker) == IN_ROOM(victim))
         ch = victim->last_attacker;
+      else
+        victim->last_attacker = NULL; // Clear invalid reference
     }
   }
 

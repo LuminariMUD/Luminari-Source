@@ -2144,6 +2144,11 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *tch;
 
+  /* Safety check: ensure ch is still valid */
+  if (!ch || IN_ROOM(ch) == NOWHERE) {
+    return;
+  }
+
   if ((GET_OBJ_BOUND_ID(cont) != NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
   {
     if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL)
@@ -2203,7 +2208,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
       get_check_money(ch, obj);
       if (cont->carried_by != ch)
       {
-        if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
+        if (IS_OBJ_CONSUMABLE(obj) && !IS_NPC(ch) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
           auto_store_obj(ch, obj);
         else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_SORT))
           auto_sort_obj(ch, obj);

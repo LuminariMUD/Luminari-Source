@@ -4141,7 +4141,7 @@ void save_char_pets(struct char_data *ch)
     
     *end2++ = '\0';
 
-    snprintf(query3, sizeof(query3), ",'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
+    snprintf(query3, sizeof(query3), "'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
              GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
              GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch),
              GET_REAL_WIS(tch), GET_REAL_CHA(tch));

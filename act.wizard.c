@@ -8926,9 +8926,12 @@ ACMDU(do_plist) {
 
     time_str[strlen(time_str) - 1] = '\0';
 
+    /* Fix string memory leak - CAP modifies the string in-place, but strdup creates a leak */
+    char *temp_name = strdup(player_table[i].name);
     len += snprintf(buf + len, sizeof (buf) - len, "\t%c[%3ld] (%3d) %-12s %s\tn\r\n",
-            col, player_table[i].id, player_table[i].level, CAP(strdup(player_table[i].name)),
+            col, player_table[i].id, player_table[i].level, CAP(temp_name),
             time_str);
+    free(temp_name);
     count++;
   }
   snprintf(buf + len, sizeof (buf) - len, "@c-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-@n\r\n"

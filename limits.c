@@ -2115,7 +2115,11 @@ void point_update(void)
      * that cause extraction!! **/
     if (GET_OBJ_TIMER(j) <= 0)
     {
-      timer_otrigger(j);
+      /* timer_otrigger returns 1 if object was purged */
+      if (timer_otrigger(j))
+      {
+        continue; /* object was purged, skip to next object */
+      }
     }
 
     /* END timer counting down that doesn't result in extraction */

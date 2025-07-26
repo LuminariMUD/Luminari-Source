@@ -748,12 +748,38 @@ void destroy_db(void)
   struct obj_data *objtmp = NULL;
 
   /* Active Mobiles & Players */
+  /* First pass: Clear all follower relationships without messages */
+  for (chtmp = character_list; chtmp; chtmp = chtmp->next)
+  {
+    struct follow_type *k, *k_next;
+    
+    /* Clear this character's master pointer */
+    if (chtmp->master)
+    {
+      /* Don't use stop_follower() as it sends messages */
+      chtmp->master = NULL;
+      REMOVE_BIT_AR(AFF_FLAGS(chtmp), AFF_CHARM);
+    }
+    
+    /* Clear all followers of this character */
+    for (k = chtmp->followers; k; k = k_next)
+    {
+      k_next = k->next;
+      if (k->follower)
+      {
+        k->follower->master = NULL;
+        REMOVE_BIT_AR(AFF_FLAGS(k->follower), AFF_CHARM);
+      }
+      free(k);
+    }
+    chtmp->followers = NULL;
+  }
+  
+  /* Second pass: Now free all characters */
   while (character_list)
   {
     chtmp = character_list;
     character_list = character_list->next;
-    if (chtmp->master)
-      stop_follower(chtmp);
     free_char(chtmp);
   }
 
