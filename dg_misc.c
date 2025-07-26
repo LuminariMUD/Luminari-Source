@@ -321,6 +321,10 @@ int valid_dg_target(struct char_data *ch, int bitvector)
 
 void script_damage(struct char_data *vict, int dam)
 {
+  /* Don't damage dead characters */
+  if (GET_POS(vict) <= POS_DEAD || DEAD(vict))
+    return;
+
   if (GET_LEVEL(vict) >= LVL_IMMORT && (dam > 0))
   {
     send_to_char(vict, "Being the cool immortal you are, you sidestep a trap, "
