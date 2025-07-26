@@ -8819,7 +8819,7 @@ ACMD(do_obind)
 
 /*
 #define PLIST_FORMAT \
-  "plist [minlev[-maxlev]] [-n name] [-a] [-u] [-o] [-i] [-m]"
+  "plist [minlev[-maxlev]] [-n name] [-d days] [-h hours] [-i] [-m]"
 
 ACMDU(do_plist) {
   int i, len = 0, count = 0;
@@ -8887,6 +8887,8 @@ ACMDU(do_plist) {
           "\tc-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n");
 
   for (i = 0; i <= top_of_p_table; i++) {
+    char *temp_name;
+    
     if (player_table[i].level < low || player_table[i].level > high)
       continue;
 
@@ -8926,8 +8928,8 @@ ACMDU(do_plist) {
 
     time_str[strlen(time_str) - 1] = '\0';
 
-    /* Fix string memory leak - CAP modifies the string in-place, but strdup creates a leak */
-    char *temp_name = strdup(player_table[i].name);
+    // Fix string memory leak - CAP modifies the string in-place, but strdup creates a leak
+    temp_name = strdup(player_table[i].name);
     len += snprintf(buf + len, sizeof (buf) - len, "\t%c[%3ld] (%3d) %-12s %s\tn\r\n",
             col, player_table[i].id, player_table[i].level, CAP(temp_name),
             time_str);
@@ -8938,6 +8940,7 @@ ACMDU(do_plist) {
           "%d players listed.\r\n", count);
   page_string(ch->desc, buf, TRUE);
 }
+ */
 
 /* do_finddoor, finds the door(s) that a key goes to */
 ACMD(do_finddoor)
