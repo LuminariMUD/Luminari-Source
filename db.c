@@ -1193,9 +1193,6 @@ void boot_db(void)
 
     if (j->in_room == NOWHERE)
     {
-      mudlog(BRF, LVL_BUILDER, TRUE,
-             "SYSERR: Point update found object %s (%d) in NOWHERE.",
-             j->short_description ? j->short_description : "UNDEFINED", GET_OBJ_VNUM(j));
       extract_obj(j);
       continue;
     }
