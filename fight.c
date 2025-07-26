@@ -285,7 +285,7 @@ void perform_flee(struct char_data *ch)
     GUI_CMBT_CLOSE(ch);
 
     GUI_CMBT_NOTVICT_OPEN(ch, NULL);
-    act("$n attemps to flee, but is unable to move!", TRUE, ch, 0, 0, TO_ROOM);
+    act("$n attempts to flee, but is unable to move!", TRUE, ch, 0, 0, TO_ROOM);
     GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
     return;
   }
@@ -348,7 +348,7 @@ void perform_flee(struct char_data *ch)
     GUI_CMBT_CLOSE(ch);
 
     GUI_CMBT_NOTVICT_OPEN(ch, NULL);
-    act("$n attemps to flee...", TRUE, ch, 0, 0, TO_ROOM);
+    act("$n attempts to flee...", TRUE, ch, 0, 0, TO_ROOM);
     GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
 
     // ok beat all odds, fleeing

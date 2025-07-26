@@ -3548,7 +3548,7 @@ SPECIAL(planetar_sword)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Proc Cure Critic and Dispel Evil\r\n");
+    send_to_char(ch, "Proc Cure Critical and Dispel Evil\r\n");
     return 1;
   }
 
