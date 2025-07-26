@@ -5169,8 +5169,8 @@ const struct zcheck_affs
     {APPLY_GOLD, 0, 0, "gold"}, // 15
     {APPLY_EXP, 0, 0, "experience"},
     {APPLY_AC, -10, 10, "!Unused!"},
-    {APPLY_HITROLL, 0, -99, "hitroll"},                     /* Handled seperately below */
-    {APPLY_DAMROLL, 0, -99, "damroll"},                     /* Handled seperately below */
+    {APPLY_HITROLL, 0, -99, "hitroll"},                     /* Handled separately below */
+    {APPLY_DAMROLL, 0, -99, "damroll"},                     /* Handled separately below */
     {APPLY_SAVING_FORT, -5, 9, "saving throw (fortitude)"}, // 20
     {APPLY_SAVING_REFL, -5, 9, "saving throw (reflex)"},
     {APPLY_SAVING_WILL, -5, 9, "saving throw (willpower)"},

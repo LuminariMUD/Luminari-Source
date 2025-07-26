@@ -257,7 +257,7 @@ void affliction_tick(struct char_data *ch)
   remove_fear_affects(ch, TRUE);
 }
 
-/* dummy check mostly, checks to see if mount/rider got seperated */
+/* dummy check mostly, checks to see if mount/rider got separated */
 void mount_cleanup(struct char_data *ch)
 {
   if (RIDING(ch))

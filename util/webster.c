@@ -52,7 +52,7 @@ void parse_webster_html(char *arg)
   infile = fopen("webster.html", "r");
   if (!infile)
   {
-    fprintf(outfile, "A bug has occured in webster. (no webster.html) Please notify Welcor.");
+    fprintf(outfile, "A bug has occurred in webster. (no webster.html) Please notify Welcor.");
     fclose(outfile);
     return;
   }

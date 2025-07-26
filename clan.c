@@ -3191,7 +3191,7 @@ ACMD(do_clanset)
 
     /* clanset <clannum> rankname <rank id> <val_arg>*/
   case 2:
-    /* Val arg would be the rank ID, and the title - seperate them */
+    /* Val arg would be the rank ID, and the title - separate them */
     half_chop(val_arg, rankbuf, rankname);
     rankid = atoi(rankbuf);
     if ((rankid < 1) || (rankid > clan_list[clannum].ranks))
@@ -3271,7 +3271,7 @@ ACMD(do_clanset)
              clan_list[clannum].vnum, value);
     break;
   case 8: /* clanset clannum skills <id> <value>*/
-    /* Val arg would be the spell ID, and the spell name - seperate them */
+    /* Val arg would be the spell ID, and the spell name - separate them */
     half_chop(val_arg, spellbuf, spellname);
     spellid = atoi(spellbuf);
     if ((spellid < 1) || (spellid > 5))
