@@ -17,7 +17,7 @@
 ### Dead NPCs Continue Taking Damage from Area Effects
 - **Description**: When multiple magic stones explode, dead NPCs show multiple death messages
 - **Reported by**: Zusuk (testing magic stones)
-- **Status**: NEEDS INVESTIGATION
+- **Status**: FIXED (2025-07-26)
 - **Details**: When 30 magic stones exploded, killing the Elven bartender with the first explosion, subsequent explosions continued to show "The Elven bartender is dead!" messages, suggesting the corpse was still being targeted by the area damage.
 - **Expected Behavior**: Dead NPCs should not be targeted by subsequent area effects
 - **Actual Behavior**: Dead NPCs continue to receive damage messages from area effects until extracted
@@ -37,7 +37,7 @@
   %purge% %self%
   ```
 - **Issue**: The script loops through all people in room without checking if they're alive
-- **Potential Fix**: Add condition to check if target is alive before applying damage
+- **Fix**: Added check for GET_POS(vict) <= POS_DEAD || DEAD(vict) at the beginning of script_damage() function in dg_misc.c:325 to prevent damage to already dead characters
 
 
 
