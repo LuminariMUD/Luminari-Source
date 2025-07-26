@@ -9,9 +9,10 @@ This file contains bugs that have been verified as potentially legitimate code-r
 ### Sending Password Too Early
 - **Description**: Sending password in same packet as username causes echo loop (DO ECHO, WILL ECHO, DONT ECHO, WONT ECHO)
 - **Reported by**: Yarea (Level 4)
-- **Status**: POTENTIALLY VALID - Protocol timing issue
+- **Status**: FIXED (2025-07-26)
 - **Details**: If a client sends the password too early (in the same packet as username), there could be a race condition with the echo negotiation (ProtocolNoEcho).
 - **Location**: interpreter.c:2367, protocol.c:1078
+- **Fix**: Modified all password input states to clear pending input queue before entering password mode, preventing early password processing
 
 ### Clairvoyance Fall Damage
 - **Description**: Casting clairvoyance on eternal staircase causes fall damage

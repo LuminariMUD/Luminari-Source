@@ -2365,6 +2365,16 @@ void nanny(struct descriptor_data *d, char *arg)
         d->idle_tics = 0;
         STATE(d) = CON_PASSWORD;
         ProtocolNoEcho(d, true);
+        
+        /* Clear any pending input to prevent password being sent too early */
+        while (d->input.head)
+        {
+          struct txt_block *tmp = d->input.head;
+          d->input.head = d->input.head->next;
+          free(tmp->text);
+          free(tmp);
+        }
+        d->input.tail = NULL;
       }
       else
       {
@@ -2402,6 +2412,16 @@ void nanny(struct descriptor_data *d, char *arg)
       }
       write_to_output(d, "New Account.\r\nGive me a Password: ");
       STATE(d) = CON_NEWPASSWD;
+      
+      /* Clear any pending input to prevent password being sent too early */
+      while (d->input.head)
+      {
+        struct txt_block *tmp = d->input.head;
+        d->input.head = d->input.head->next;
+        free(tmp->text);
+        free(tmp);
+      }
+      d->input.tail = NULL;
     }
     else if (*arg == 'n' || *arg == 'N')
     {
@@ -2582,6 +2602,16 @@ void nanny(struct descriptor_data *d, char *arg)
         write_to_output(d, "Please enter the character password for %s : ", GET_NAME(d->character));
         STATE(d) = CON_ACCOUNT_ADD_PWD;
         ProtocolNoEcho(d, true);
+        
+        /* Clear any pending input to prevent password being sent too early */
+        while (d->input.head)
+        {
+          struct txt_block *tmp = d->input.head;
+          d->input.head = d->input.head->next;
+          free(tmp->text);
+          free(tmp);
+        }
+        d->input.tail = NULL;
         return;
       }
       else
@@ -2805,6 +2835,16 @@ void nanny(struct descriptor_data *d, char *arg)
           write_to_output(d, "Wrong password.\r\nPassword: ");
           // echo_off(d);
           ProtocolNoEcho(d, true);
+          
+          /* Clear any pending input to prevent password being sent too early */
+          while (d->input.head)
+          {
+            struct txt_block *tmp = d->input.head;
+            d->input.head = d->input.head->next;
+            free(tmp->text);
+            free(tmp);
+          }
+          d->input.tail = NULL;
         }
         return;
       }
@@ -2894,6 +2934,16 @@ void nanny(struct descriptor_data *d, char *arg)
         STATE(d) = CON_NEWPASSWD;
       else
         STATE(d) = CON_CHPWD_GETNEW;
+        
+      /* Clear any pending input to prevent password being sent too early */
+      while (d->input.head)
+      {
+        struct txt_block *tmp = d->input.head;
+        d->input.head = d->input.head->next;
+        free(tmp->text);
+        free(tmp);
+      }
+      d->input.tail = NULL;
       return;
     }
     // echo_on(d);
@@ -4106,6 +4156,16 @@ switch (load_result)
       // echo_off(d);
       ProtocolNoEcho(d, true);
       STATE(d) = CON_CHPWD_GETOLD;
+      
+      /* Clear any pending input to prevent password being sent too early */
+      while (d->input.head)
+      {
+        struct txt_block *tmp = d->input.head;
+        d->input.head = d->input.head->next;
+        free(tmp->text);
+        free(tmp);
+      }
+      d->input.tail = NULL;
       break;
 
     case '5':
@@ -4113,6 +4173,16 @@ switch (load_result)
       // echo_off(d);
       ProtocolNoEcho(d, true);
       STATE(d) = CON_DELCNF1;
+      
+      /* Clear any pending input to prevent password being sent too early */
+      while (d->input.head)
+      {
+        struct txt_block *tmp = d->input.head;
+        d->input.head = d->input.head->next;
+        free(tmp->text);
+        free(tmp);
+      }
+      d->input.tail = NULL;
       break;
 
     default:
@@ -4134,6 +4204,16 @@ switch (load_result)
     {
       write_to_output(d, "\r\nEnter a new password: ");
       STATE(d) = CON_CHPWD_GETNEW;
+      
+      /* Clear any pending input to prevent password being sent too early */
+      while (d->input.head)
+      {
+        struct txt_block *tmp = d->input.head;
+        d->input.head = d->input.head->next;
+        free(tmp->text);
+        free(tmp);
+      }
+      d->input.tail = NULL;
     }
     return;
 
