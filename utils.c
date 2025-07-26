@@ -4483,6 +4483,7 @@ void new_affect(struct affected_type *af)
   af->location = APPLY_NONE;
   af->bonus_type = BONUS_TYPE_ENHANCEMENT;
   af->specific = 0;
+  af->next = NULL;  /* CRITICAL: Must initialize next pointer to prevent heap corruption */
 
   for (i = 0; i < AF_ARRAY_MAX; i++)
     af->bitvector[i] = 0;

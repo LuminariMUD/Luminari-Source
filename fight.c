@@ -1511,7 +1511,7 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
       ch->char_specials.terror_cooldown = 200;
       if (!mag_savingthrow_full(vict, ch, AFFECT_AURA_OF_TERROR, 0, CAST_INNATE, GET_LEVEL(vict), ENCHANTMENT, AFFECT_AURA_OF_TERROR))
       {
-        struct affected_type af;
+        struct affected_type af = {0};
         new_affect(&af);
         af.spell = AFFECT_AURA_OF_TERROR;
         af.duration = 3;
@@ -2001,7 +2001,7 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
 void raw_kill(struct char_data *ch, struct char_data *killer)
 {
   struct char_data *k, *temp;
-  struct affected_type af;
+  struct affected_type af = {0};  /* Zero-initialize to prevent stack garbage */
 
   /* stop relevant fighting */
   if (FIGHTING(ch))
@@ -4430,7 +4430,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       dam *= 2;
       if (has_aura_of_evil(victim) && !affected_by_spell(victim, SPELL_EFFECT_DAZZLED))
       {
-        struct affected_type af;
+        struct affected_type af = {0};
         new_affect(&af);
         af.spell = SPELL_EFFECT_DAZZLED;
         af.location = APPLY_SPECIAL;
@@ -4977,7 +4977,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
   bool is_ranged = FALSE;
-  struct affected_type af;
+  struct affected_type af = {0};
   struct char_data *eidolon, *tch;
 
   /* this is just a dummy check */
@@ -7004,7 +7004,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       {
         if (!AFF_FLAGGED(ch, AFF_BLIND) && can_blind(ch) && !mag_savingthrow(victim, ch, SAVING_FORT, 0, AFFECT_HOLY_AURA_RETRIBUTION, compute_divine_level(victim), ABJURATION))
         {
-          struct affected_type af;
+          struct affected_type af = {0};
           new_affect(&af);
           af.spell = AFFECT_HOLY_AURA_RETRIBUTION;
           af.duration = 5;
@@ -7023,7 +7023,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       if (!is_immune_mind_affecting(ch, victim, FALSE) &&
           !is_immune_fear(ch, victim, FALSE))
       {
-        struct affected_type af;
+        struct affected_type af = {0};
         new_affect(&af);
         af.spell = SPELL_AFFECT_WEAPON_OF_AWE;
         af.duration = 1;
@@ -7041,7 +7041,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       if (!is_immune_mind_affecting(ch, victim, FALSE) &&
           !is_immune_fear(ch, victim, FALSE))
       {
-        struct affected_type af;
+        struct affected_type af = {0};
         new_affect(&af);
         af.spell = SPELL_AFFECT_WEAPON_OF_AWE;
         af.duration = 1;
@@ -7142,7 +7142,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         if (!is_immune_mind_affecting(ch, victim, FALSE) &&
             !is_immune_fear(ch, victim, FALSE))
         {
-          struct affected_type af;
+          struct affected_type af = {0};
           new_affect(&af);
           af.spell = SPELL_AFFECT_WEAPON_OF_AWE;
           af.duration = 1;
@@ -7160,7 +7160,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT)
       {
         struct mud_event_data *pMudEvent = NULL;
-        struct affected_type af;
+        struct affected_type af = {0};
 
         /* has event?  then we increment the events svariable */
         if ((pMudEvent = char_has_mud_event(victim, eCRIPPLING_CRITICAL)))
@@ -9950,7 +9950,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              int is_critical, int attack_type, int dam_type,
                              struct obj_data *missile)
 {
-  struct affected_type af;   /* for crippling strike */
+  struct affected_type af = {0};   /* for crippling strike */
   struct affected_type *af2; // for hostile juxtaposition
   /* This is a bit of cruft from homeland code - It is used to activate a weapon 'special'
             under certain circumstances.  This could be refactored into something else, but it may
@@ -10889,7 +10889,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       can_hit = 0,        /* ch successfully hit? */
       dam = 0;            /* Damage for the attack, with mods. */
 
-  struct affected_type af;
+  struct affected_type af = {0};
 
   bool is_critical = FALSE;
 
@@ -12733,7 +12733,7 @@ void perform_violence(struct char_data *ch, int phase)
       {
         if (!mag_savingthrow(tch, ch, SAVING_WILL, 0, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(tch), ENCHANTMENT))
         {
-          struct affected_type af;
+          struct affected_type af = {0};
           new_affect(&af);
           af.spell = EVOLUTION_FRIGHTFUL_EFFECT;
           af.duration = dice(3, 6);

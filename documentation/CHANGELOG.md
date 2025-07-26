@@ -2,6 +2,28 @@
 
 ## 2025-07-26
 
+### CRITICAL FIX: Player Death Crash - Heap Corruption from Uninitialized Pointer
+
+#### Sixth Fix Attempt - Root Cause Identified and Fixed (SUCCESSFUL)
+- **Issue**: Server crash with malloc_consolidate error when player dies during combat
+- **Root Cause**: 
+  - In `raw_kill()` (fight.c:2004), an `affected_type af` was declared on the stack
+  - `new_affect(&af)` was called to initialize the structure, but it did NOT initialize the `next` pointer field
+  - The uninitialized `next` pointer contained stack garbage (in this case, ASCII text "ying her" from previous function calls)
+  - When `affect_join()` was called, it passed this corrupted structure to `affect_to_char()`
+  - `affect_to_char()` allocated memory and copied the entire structure, including the garbage pointer
+  - This corrupted the heap metadata, causing malloc_consolidate to crash on the next memory allocation
+- **Solution**: 
+  1. **Primary Fix**: Modified `new_affect()` in utils.c to properly initialize the `next` pointer to NULL
+  2. **Defensive Fix**: Changed all stack declarations of `affected_type` to use zero-initialization `{0}`
+- **Files Modified**: 
+  - utils.c:4486 (added `af->next = NULL;` in new_affect())
+  - fight.c (multiple locations - zero-initialized all affected_type stack variables)
+- **Impact**: Eliminates heap corruption that was causing consistent player death crashes
+- **Testing**: The fix addresses the root cause of the corruption, preventing future crashes in any code that uses new_affect()
+
+## 2025-07-26
+
 ### Minor Fixes
 
 #### Fixed Shutdown Warning - "Attempting to merge iterator to empty list"

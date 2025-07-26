@@ -1,19 +1,6 @@
-# LuminariMUD Development Task List
+# LuminariMUD Builder Development Task List
 
-## CODER TASKS
-
-### Player Death Crash - FAILED ATTEMPTS (DO NOT REPEAT)
-
-**Problem**: malloc_consolidate crash during player death when save_char() allocates memory
-
-**Failed Attempts**:
-1. **Clear events + safety checks** (2025-07-25) - Added clear_char_event_list() and checks in event_combat_round()
-2. **Use affect_remove_no_total for NPCs** (2025-07-25) - Changed NPC death to skip affect_total() 
-3. **Check POS_DEAD in update_msdp_affects()** (2025-07-26) - Didn't work, update_pos() changes DEAD→RESTING
-4. **Use affect_remove_no_total for players** (2025-07-26) - Skip affect_total() during player death
-5. **Skip update_pos() if target POS_DEAD** (2025-07-26) - Added check in valid_fight_cond() [NOT TESTED]
-
----
+This task list covers builder-related issues that require in-game fixes using OLC (Online Level Creation) commands.
 
 ## 🏗️ BUILDER TASKS (Fixable In-Game with OLC)
 
