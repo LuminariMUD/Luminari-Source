@@ -8938,7 +8938,6 @@ ACMDU(do_plist) {
           "%d players listed.\r\n", count);
   page_string(ch->desc, buf, TRUE);
 }
- */
 
 /* do_finddoor, finds the door(s) that a key goes to */
 ACMD(do_finddoor)
