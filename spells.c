@@ -1397,7 +1397,7 @@ ASPELL(spell_charm_animal) // enchantment
 
 ASPELL(spell_clairvoyance)
 {
-  room_rnum location, original_loc;
+  room_rnum location;
 
   if (ch == NULL || victim == NULL)
     return;
@@ -1420,31 +1420,10 @@ ASPELL(spell_clairvoyance)
     return;
   }
 
-  /* a location has been found. */
-  original_loc = IN_ROOM(ch);
-  char_from_room(ch);
-
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS))
-  {
-    X_LOC(ch) = world[location].coords[0];
-    Y_LOC(ch) = world[location].coords[1];
-  }
-
-  char_to_room(ch, location);
-  look_at_room(ch, 0);
-
-  /* check if the char is still there */
-  if (IN_ROOM(ch) == location)
-  {
-    char_from_room(ch);
-
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(original_loc), ZONE_WILDERNESS))
-    {
-      X_LOC(ch) = world[original_loc].coords[0];
-      Y_LOC(ch) = world[original_loc].coords[1];
-    }
-    char_to_room(ch, original_loc);
-  }
+  /* Use look_at_room_number to view the target room without physically moving there */
+  send_to_char(ch, "You close your eyes and your vision shifts...\r\n\r\n");
+  look_at_room_number(ch, 0, location);
+  send_to_char(ch, "\r\nYour vision returns to normal.\r\n");
 }
 
 ASPELL(spell_cloudkill)
