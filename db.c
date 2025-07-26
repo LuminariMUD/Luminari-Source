@@ -1178,6 +1178,36 @@ void boot_db(void)
     House_boot();
   }
 
+  // The next few procedures are used to clean up the world, as many objects loaded into
+  // rooms are being loaded in NOWHERE. Cause not found yet... reset_zone being called too many times
+  // before the world is completely set up perhaps
+  log("Cleaning up objects loaded in rooms.");
+
+  struct obj_data *j = NULL, *next_thing;
+  for (j = object_list; j; j = next_thing)
+  {
+    next_thing = j->next; /* Next in object list */
+
+    if (!j)
+      continue;
+
+    if (j->in_room == NOWHERE)
+    {
+      mudlog(BRF, LVL_BUILDER, TRUE,
+             "SYSERR: Point update found object %s (%d) in NOWHERE.",
+             j->short_description ? j->short_description : "UNDEFINED", GET_OBJ_VNUM(j));
+      extract_obj(j);
+      continue;
+    }
+  }
+
+  for (i = 0; i <= top_of_zone_table; i++)
+  {
+    reset_zone(i);
+  }
+
+  log("Cleaning up objects loaded in rooms - DONE.");
+
   log("Boot db -- DONE.");
 }
 
@@ -4501,7 +4531,8 @@ void reset_zone(zone_rnum zone)
 
     case 'O': /* read an object (with percentage loads) */
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
-      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt) {
+      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt)
+      {
         log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'O' command", 
             zone_table[zone].number, cmd_no, ZCMD.arg1);
         push_result(0);
@@ -4542,18 +4573,6 @@ void reset_zone(zone_rnum zone)
           push_result(1);
           tobj = obj;
         }
-      }
-      else {
-        /* Add logging for debugging why objects don't load */
-        if (obj_index[ZCMD.arg1].number >= ZCMD.arg2 && ZCMD.arg2 > 0) {
-          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d)",
-              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
-              obj_index[ZCMD.arg1].number, ZCMD.arg2);
-        } else if (rand_number(1, 100) > ZCMD.arg4) {
-          log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%)",
-              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg4);
-        }
-        push_result(0);
       }
       tmob = NULL;
       break;
