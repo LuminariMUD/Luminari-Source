@@ -214,6 +214,10 @@ struct zone_data
    int city;
    int faction;
 
+   /* Zone reset state - for preventing race conditions */
+   int reset_state;     /* 0 = normal, 1 = resetting */
+   time_t reset_start;  /* When reset started (for timeout detection) */
+
    /* Reset mode:
     *   0: Don't reset, and don't update age.
     *   1: Reset if no PC's are located in zone.
@@ -342,6 +346,11 @@ int vnum_object(char *searchname, struct char_data *ch);
 int vnum_room(char *, struct char_data *);
 int vnum_trig(char *, struct char_data *);
 
+/* Object rnum hash table functions */
+void init_obj_rnum_hash(void);
+void add_obj_to_rnum_hash(struct obj_data *obj);
+void remove_obj_from_rnum_hash(struct obj_data *obj);
+
 void setup_dir(FILE *fl, int room, int dir);
 void index_boot(int mode);
 void discrete_load(FILE *fl, int mode, char *filename);
@@ -359,6 +368,12 @@ void load_config(void);
 struct char_data *new_char();
 
 /* global buffering system */
+
+/* Object rnum hash table for fast lookups */
+#define OBJ_RNUM_HASH_SIZE 1024
+struct obj_rnum_hash_bucket {
+  struct obj_data *objs;  /* Head of linked list of objects with this rnum */
+};
 
 #ifndef __DB_C__
 
@@ -425,6 +440,9 @@ extern struct index_data *obj_index;
 extern struct obj_data *object_list;
 extern struct obj_data *obj_proto;
 extern obj_rnum top_of_objt;
+
+/* Object rnum hash table extern declaration */
+extern struct obj_rnum_hash_bucket obj_rnum_hash[OBJ_RNUM_HASH_SIZE];
 
 extern struct social_messg *soc_mess_list;
 extern int top_of_socialt;

@@ -1,4 +1,2 @@
-# LuminariMUD Development Task List
-
-## CODER TASKS
+# TASK LIST - Coding TODO Items
 

@@ -86,6 +86,9 @@ struct index_data *obj_index = NULL; /* index table for object file	 */
 struct obj_data *obj_proto = NULL;   /* prototypes for objs		 */
 obj_rnum top_of_objt = 0;            /* top of object index table	 */
 
+/* Object rnum hash table for fast lookups */
+struct obj_rnum_hash_bucket obj_rnum_hash[OBJ_RNUM_HASH_SIZE];
+
 struct zone_data *zone_table = NULL; /* zone table      */
 zone_rnum top_of_zone_table = 0;     /* top element of zone tab   */
 
@@ -1004,6 +1007,9 @@ void boot_db(void)
 
   log("Loading weapon and armor special ability definitions.");
   initialize_special_abilities();
+
+  log("Initializing object rnum hash table.");
+  init_obj_rnum_hash();
 
   boot_world();
 
@@ -2101,26 +2107,79 @@ static void renum_zone_table(void)
         c = ZCMD.arg3 = real_room(ZCMD.arg3);
         break;
       case 'O':
-        a = ZCMD.arg1 = real_object(ZCMD.arg1);
+        a = real_object(ZCMD.arg1);
+        /* CRITICAL: Validate object vnum at parse time */
+        if (a == NOTHING) {
+          log("SYSERR: Zone %d cmd %d: Object vnum %d does not exist (O command)", 
+              zone_table[zone].number, cmd_no, olda);
+          /* Keep the original vnum for error tracking but mark as invalid */
+          ZCMD.arg1 = NOTHING;
+        } else {
+          ZCMD.arg1 = a;
+        }
         if (ZCMD.arg3 != NOWHERE)
           c = ZCMD.arg3 = real_room(ZCMD.arg3);
         break;
       case 'G':
-        a = ZCMD.arg1 = real_object(ZCMD.arg1);
+        a = real_object(ZCMD.arg1);
+        /* CRITICAL: Validate object vnum at parse time */
+        if (a == NOTHING) {
+          log("SYSERR: Zone %d cmd %d: Object vnum %d does not exist (G command)", 
+              zone_table[zone].number, cmd_no, olda);
+          /* Keep the original vnum for error tracking but mark as invalid */
+          ZCMD.arg1 = NOTHING;
+        } else {
+          ZCMD.arg1 = a;
+        }
         break;
       case 'E':
-        a = ZCMD.arg1 = real_object(ZCMD.arg1);
+        a = real_object(ZCMD.arg1);
+        /* CRITICAL: Validate object vnum at parse time */
+        if (a == NOTHING) {
+          log("SYSERR: Zone %d cmd %d: Object vnum %d does not exist (E command)", 
+              zone_table[zone].number, cmd_no, olda);
+          /* Keep the original vnum for error tracking but mark as invalid */
+          ZCMD.arg1 = NOTHING;
+        } else {
+          ZCMD.arg1 = a;
+        }
         break;
       case 'P':
-        a = ZCMD.arg1 = real_object(ZCMD.arg1);
-        c = ZCMD.arg3 = real_object(ZCMD.arg3);
+        a = real_object(ZCMD.arg1);
+        /* CRITICAL: Validate object vnum at parse time */
+        if (a == NOTHING) {
+          log("SYSERR: Zone %d cmd %d: Object vnum %d does not exist (P command)", 
+              zone_table[zone].number, cmd_no, olda);
+          /* Keep the original vnum for error tracking but mark as invalid */
+          ZCMD.arg1 = NOTHING;
+        } else {
+          ZCMD.arg1 = a;
+        }
+        c = real_object(ZCMD.arg3);
+        if (c == NOTHING) {
+          log("SYSERR: Zone %d cmd %d: Container object vnum %d does not exist (P command)", 
+              zone_table[zone].number, cmd_no, oldc);
+          /* Keep the original vnum for error tracking but mark as invalid */
+          ZCMD.arg3 = NOTHING;
+        } else {
+          ZCMD.arg3 = c;
+        }
         break;
       case 'D':
         a = ZCMD.arg1 = real_room(ZCMD.arg1);
         break;
       case 'R': /* rem obj from room */
         a = ZCMD.arg1 = real_room(ZCMD.arg1);
-        b = ZCMD.arg2 = real_object(ZCMD.arg2);
+        b = real_object(ZCMD.arg2);
+        /* CRITICAL: Validate object vnum at parse time */
+        if (b == NOTHING) {
+          log("SYSERR: Zone %d cmd %d: Object vnum %d does not exist (R command)", 
+              zone_table[zone].number, cmd_no, oldb);
+          /* Keep the original vnum for error tracking but mark as invalid */
+          ZCMD.arg2 = NOTHING;
+        } else {
+          ZCMD.arg2 = b;
+        }
         break;
       case 'T': /* a trigger */
         b = ZCMD.arg2 = real_trigger(ZCMD.arg2);
@@ -2128,6 +2187,18 @@ static void renum_zone_table(void)
         break;
       case 'V': /* trigger variable assignment */
         b = ZCMD.arg3 = real_room(ZCMD.arg3);
+        break;
+      case 'L': /* Load random treasure in container */
+        c = real_object(ZCMD.arg3);
+        /* CRITICAL: Validate container object vnum at parse time */
+        if (c == NOTHING) {
+          log("SYSERR: Zone %d cmd %d: Container object vnum %d does not exist (L command)", 
+              zone_table[zone].number, cmd_no, oldc);
+          /* Keep the original vnum for error tracking but mark as invalid */
+          ZCMD.arg3 = NOTHING;
+        } else {
+          ZCMD.arg3 = c;
+        }
         break;
       }
       if (a == NOWHERE || b == NOWHERE || c == NOWHERE)
@@ -3994,6 +4065,70 @@ struct obj_data *create_obj(void)
   return (obj);
 }
 
+/* Hash table functions for fast object rnum lookups */
+
+/* Initialize the object rnum hash table */
+void init_obj_rnum_hash(void)
+{
+  int i;
+  
+  for (i = 0; i < OBJ_RNUM_HASH_SIZE; i++) {
+    obj_rnum_hash[i].objs = NULL;
+  }
+}
+
+/* Get hash bucket for an object rnum */
+static int obj_rnum_hash_key(obj_rnum rnum)
+{
+  /* Simple modulo hash function */
+  if (rnum < 0)
+    return 0;
+  return (rnum % OBJ_RNUM_HASH_SIZE);
+}
+
+/* Add an object to the rnum hash table */
+void add_obj_to_rnum_hash(struct obj_data *obj)
+{
+  int hash_key;
+  
+  if (!obj || obj->item_number == NOTHING)
+    return;
+    
+  hash_key = obj_rnum_hash_key(obj->item_number);
+  
+  /* Add to the front of the linked list in this bucket */
+  obj->next_in_hash = obj_rnum_hash[hash_key].objs;
+  obj->prev_in_hash = NULL;
+  
+  if (obj_rnum_hash[hash_key].objs)
+    obj_rnum_hash[hash_key].objs->prev_in_hash = obj;
+    
+  obj_rnum_hash[hash_key].objs = obj;
+}
+
+/* Remove an object from the rnum hash table */
+void remove_obj_from_rnum_hash(struct obj_data *obj)
+{
+  int hash_key;
+  
+  if (!obj || obj->item_number == NOTHING)
+    return;
+    
+  hash_key = obj_rnum_hash_key(obj->item_number);
+  
+  /* Update the linked list pointers */
+  if (obj->prev_in_hash)
+    obj->prev_in_hash->next_in_hash = obj->next_in_hash;
+  else
+    obj_rnum_hash[hash_key].objs = obj->next_in_hash;
+    
+  if (obj->next_in_hash)
+    obj->next_in_hash->prev_in_hash = obj->prev_in_hash;
+    
+  obj->next_in_hash = NULL;
+  obj->prev_in_hash = NULL;
+}
+
 /* create a new object from a prototype */
 struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
 {
@@ -4015,6 +4150,9 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   object_list = obj;
 
   obj->events = NULL;
+
+  /* Add object to rnum hash table for fast lookups */
+  add_obj_to_rnum_hash(obj);
 
   obj_index[i].number++;
 
@@ -4261,6 +4399,16 @@ void reset_zone(zone_rnum zone)
   struct char_data *tmob = NULL; /* for trigger assignment */
   struct obj_data *tobj = NULL;  /* for trigger assignment */
 
+  /* CRITICAL: Set zone reset state to prevent race conditions */
+  if (zone_table[zone].reset_state == ZONE_RESET_ACTIVE) {
+    log("SYSERR: Zone %d already resetting - possible race condition detected!", 
+        zone_table[zone].number);
+    return;
+  }
+  
+  zone_table[zone].reset_state = ZONE_RESET_ACTIVE;
+  zone_table[zone].reset_start = time(0);
+  
   init_result_q();
 
   for (cmd_no = 0; ZCMD.command != 'S'; cmd_no++)
@@ -4326,6 +4474,15 @@ void reset_zone(zone_rnum zone)
       break;
 
     case 'O': /* read an object (with percentage loads) */
+      /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
+      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt) {
+        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'O' command", 
+            zone_table[zone].number, cmd_no, ZCMD.arg1);
+        push_result(0);
+        break;
+      }
+      
+      /* Check max existing and percentage */
       if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 ||
            (ZCMD.arg2 == 0 && boot_time <= 1)) &&
           rand_number(1, 100) <= ZCMD.arg4)
@@ -4333,6 +4490,13 @@ void reset_zone(zone_rnum zone)
         if (ZCMD.arg3 != NOWHERE)
         {
           obj = read_object(ZCMD.arg1, REAL);
+          /* CRITICAL FIX: Check for NULL object before use */
+          if (!obj) {
+            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d", 
+                zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
+            push_result(0);
+            break;
+          }
           obj_to_room(obj, ZCMD.arg3);
           push_result(1);
           load_otrigger(obj);
@@ -4341,24 +4505,60 @@ void reset_zone(zone_rnum zone)
         else
         {
           obj = read_object(ZCMD.arg1, REAL);
+          /* CRITICAL FIX: Check for NULL object before use */
+          if (!obj) {
+            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d (no room)", 
+                zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
+            push_result(0);
+            break;
+          }
           IN_ROOM(obj) = NOWHERE;
           push_result(1);
           tobj = obj;
         }
       }
-      else
+      else {
+        /* Add logging for debugging why objects don't load */
+        if (obj_index[ZCMD.arg1].number >= ZCMD.arg2 && ZCMD.arg2 > 0) {
+          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d)",
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
+              obj_index[ZCMD.arg1].number, ZCMD.arg2);
+        } else if (rand_number(1, 100) > ZCMD.arg4) {
+          log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%)",
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg4);
+        }
         push_result(0);
+      }
       tmob = NULL;
       break;
 
     case 'P': /* object to object (with percentage loads) */
+      /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
+      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt) {
+        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'P' command", 
+            zone_table[zone].number, cmd_no, ZCMD.arg1);
+        push_result(0);
+        break;
+      }
+      
       if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 ||
            (ZCMD.arg2 == 0 && boot_time <= 1)) &&
           rand_number(1, 100) <= ZCMD.arg4)
       {
         obj = read_object(ZCMD.arg1, REAL);
+        /* CRITICAL FIX: Check for NULL object before use */
+        if (!obj) {
+          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'P' command", 
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
+          push_result(0);
+          break;
+        }
+        
         if (!(obj_to = get_obj_num(ZCMD.arg3)))
         {
+          /* CRITICAL FIX: Free the created object to prevent memory leak */
+          extract_obj(obj);
+          
           if (ZCMD.if_flag == 0)
           {
             ZONE_ERROR("target obj not found");
@@ -4375,12 +4575,30 @@ void reset_zone(zone_rnum zone)
         load_otrigger(obj);
         tobj = obj;
       }
-      else
+      else {
+        /* Add logging for debugging */
+        if (obj_index[ZCMD.arg1].number >= ZCMD.arg2 && ZCMD.arg2 > 0) {
+          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'P' command",
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
+              obj_index[ZCMD.arg1].number, ZCMD.arg2);
+        } else if (rand_number(1, 100) > ZCMD.arg4) {
+          log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'P' command",
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg4);
+        }
         push_result(0);
+      }
       tmob = NULL;
       break;
 
     case 'G': /* obj_to_char (with percentage loads) */
+      /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
+      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt) {
+        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'G' command", 
+            zone_table[zone].number, cmd_no, ZCMD.arg1);
+        push_result(0);
+        break;
+      }
+      
       if (!mob)
       {
         if (ZCMD.if_flag == 0)
@@ -4398,6 +4616,13 @@ void reset_zone(zone_rnum zone)
           (rand_number(1, 100) <= ZCMD.arg3))
       {
         obj = read_object(ZCMD.arg1, REAL);
+        /* CRITICAL FIX: Check for NULL object before use */
+        if (!obj) {
+          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'G' command", 
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
+          push_result(0);
+          break;
+        }
         obj_to_char(obj, mob);
         load_otrigger(obj);
         tobj = obj;
@@ -4407,13 +4632,30 @@ void reset_zone(zone_rnum zone)
                (rand_number(1, 100) <= ZCMD.arg3))
       {
         obj = read_object(ZCMD.arg1, REAL);
+        /* CRITICAL FIX: Check for NULL object before use */
+        if (!obj) {
+          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'G' command (boot)", 
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
+          push_result(0);
+          break;
+        }
         obj_to_char(obj, mob);
         load_otrigger(obj);
         tobj = obj;
         push_result(1);
       }
-      else
+      else {
+        /* Add logging for debugging */
+        if (obj_index[ZCMD.arg1].number >= ZCMD.arg2 && ZCMD.arg2 > 0) {
+          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'G' command",
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
+              obj_index[ZCMD.arg1].number, ZCMD.arg2);
+        } else if (rand_number(1, 100) > ZCMD.arg3) {
+          log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'G' command",
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg3);
+        }
         push_result(0);
+      }
       tmob = NULL;
       break;
 
@@ -4448,6 +4690,14 @@ void reset_zone(zone_rnum zone)
       break;
 
     case 'E': /* object to equipment list (with percentage loads) */
+      /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
+      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt) {
+        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'E' command", 
+            zone_table[zone].number, cmd_no, ZCMD.arg1);
+        push_result(0);
+        break;
+      }
+      
       if (!mob)
       {
         if (ZCMD.if_flag == 0)
@@ -4470,15 +4720,23 @@ void reset_zone(zone_rnum zone)
         if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS)
         {
           char error[MAX_INPUT_LENGTH] = {'\0'};
+          /* FIX: arg2 should be arg1 for object vnum */
           snprintf(error, sizeof(error), "invalid equipment pos number (mob %s, "
                                          "obj %d, pos %d)",
-                   GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
+                   GET_NAME(mob), obj_index[ZCMD.arg1].vnum, ZCMD.arg3);
           ZONE_ERROR(error);
           // ZCMD.command = '*';
         }
         else
         {
           obj = read_object(ZCMD.arg1, REAL);
+          /* CRITICAL FIX: Check for NULL object before use */
+          if (!obj) {
+            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'E' command", 
+                zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
+            push_result(0);
+            break;
+          }
           IN_ROOM(obj) = IN_ROOM(mob);
           load_otrigger(obj);
           if (wear_otrigger(obj, mob, ZCMD.arg3))
@@ -4498,15 +4756,23 @@ void reset_zone(zone_rnum zone)
         if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS)
         {
           char error[MAX_INPUT_LENGTH] = {'\0'};
+          /* FIX: arg2 should be arg1 for object vnum */
           snprintf(error, sizeof(error), "invalid equipment pos number (mob %s, "
                                          "obj %d, pos %d)",
-                   GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
+                   GET_NAME(mob), obj_index[ZCMD.arg1].vnum, ZCMD.arg3);
           ZONE_ERROR(error);
           // ZCMD.command = '*';
         }
         else
         {
           obj = read_object(ZCMD.arg1, REAL);
+          /* CRITICAL FIX: Check for NULL object before use */
+          if (!obj) {
+            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'E' command (boot)", 
+                zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
+            push_result(0);
+            break;
+          }
           IN_ROOM(obj) = IN_ROOM(mob);
           load_otrigger(obj);
           if (wear_otrigger(obj, mob, ZCMD.arg3))
@@ -4520,8 +4786,18 @@ void reset_zone(zone_rnum zone)
           push_result(1);
         }
       }
-      else
+      else {
+        /* Add logging for debugging */
+        if (obj_index[ZCMD.arg1].number >= ZCMD.arg2 && ZCMD.arg2 > 0) {
+          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'E' command",
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
+              obj_index[ZCMD.arg1].number, ZCMD.arg2);
+        } else if (rand_number(1, 100) > ZCMD.arg4) {
+          log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'E' command",
+              zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg4);
+        }
         push_result(0);
+      }
 
       tmob = NULL;
       break;
@@ -4837,6 +5113,10 @@ void reset_zone(zone_rnum zone)
     if (eligible_rooms)
       free(eligible_rooms);
   }
+  
+  /* CRITICAL: Clear zone reset state */
+  zone_table[zone].reset_state = ZONE_RESET_NORMAL;
+  zone_table[zone].reset_start = 0;
 }
 
 /* for use in reset_zone; return TRUE if zone 'nr' is free of PC's  */

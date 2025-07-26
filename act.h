@@ -962,6 +962,7 @@ ACMD_DECL(do_zcheck);
 ACMD_DECL(do_zlock);
 ACMD_DECL(do_zpurge);
 ACMD_DECL(do_zreset);
+ACMD_DECL(do_objcheck);
 ACMD_DECL(do_zunlock);
 ACMD_DECL(do_afflist);
 ACMD_DECL(do_typelist);

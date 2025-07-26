@@ -638,6 +638,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"osay", "osay", POS_RECLINING, do_osay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"ooc", "ooc", POS_RECLINING, do_osay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"outfit", "outfit", POS_RECLINING, do_outfit, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"objcheck", "objc", POS_DEAD, do_objcheck, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 

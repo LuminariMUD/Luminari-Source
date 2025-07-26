@@ -9775,4 +9775,63 @@ ACMD(do_save_everything)
   }
 }
 
+/* Check object index integrity */
+ACMD(do_objcheck)
+{
+  int i, errors = 0, warnings = 0;
+  struct obj_data *obj;
+  int actual_count[65536]; /* Assuming max objects < 65536 */
+  char buf[MAX_STRING_LENGTH];
+  
+  /* Initialize counts */
+  for (i = 0; i <= top_of_objt; i++) {
+    actual_count[i] = 0;
+  }
+  
+  /* Count all objects in game */
+  for (obj = object_list; obj; obj = obj->next) {
+    if (GET_OBJ_RNUM(obj) >= 0 && GET_OBJ_RNUM(obj) <= top_of_objt) {
+      actual_count[GET_OBJ_RNUM(obj)]++;
+    } else {
+      errors++;
+      log("SYSERR: Object with invalid rnum %d found in object_list", GET_OBJ_RNUM(obj));
+    }
+  }
+  
+  /* Compare with index counts */
+  send_to_char(ch, "Object Index Integrity Check:\r\n");
+  send_to_char(ch, "=============================\r\n");
+  
+  for (i = 0; i <= top_of_objt; i++) {
+    if (obj_index[i].number != actual_count[i]) {
+      errors++;
+      snprintf(buf, sizeof(buf), "ERROR: Object %d (%s) - Index count: %d, Actual count: %d\r\n",
+               obj_index[i].vnum, 
+               obj_proto[i].short_description ? obj_proto[i].short_description : "UNDEFINED",
+               obj_index[i].number, actual_count[i]);
+      send_to_char(ch, "%s", buf);
+      
+      /* Fix the count */
+      obj_index[i].number = actual_count[i];
+    }
+    
+    if (obj_index[i].number < 0) {
+      warnings++;
+      snprintf(buf, sizeof(buf), "WARNING: Object %d has negative count: %d\r\n",
+               obj_index[i].vnum, obj_index[i].number);
+      send_to_char(ch, "%s", buf);
+      obj_index[i].number = 0;
+    }
+  }
+  
+  if (errors == 0 && warnings == 0) {
+    send_to_char(ch, "All object counts verified - no issues found.\r\n");
+  } else {
+    send_to_char(ch, "\r\nSummary: %d errors found and corrected, %d warnings.\r\n", 
+                 errors, warnings);
+    mudlog(BRF, LVL_IMMORT, TRUE, "OBJCHECK: %s found and fixed %d object count errors",
+           GET_NAME(ch), errors);
+  }
+}
+
 /* EOF */
