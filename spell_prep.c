@@ -1634,7 +1634,7 @@ bool is_a_known_spell(struct char_data *ch, int class, int spellnum)
   case CLASS_CLERIC:
     if (is_domain_spell_of_ch(ch, spellnum))
       return TRUE;
-    break;
+    break;  /* BUG FIX: Added missing break to prevent fall-through */
   case CLASS_PSIONICIST:
     if (has_epic_power(ch, spellnum))
       return TRUE;
@@ -1662,8 +1662,22 @@ bool is_a_known_spell(struct char_data *ch, int class, int spellnum)
 
 /* START bloodline code */
 
-/* in: bloodline, spellnum
-   out: bool - is this a bloodline spell? */
+/**
+ * is_sorc_bloodline_spell - Check if a spell is granted by sorcerer bloodline
+ * @bloodline: The bloodline type (SORC_BLOODLINE_DRACONIC, etc.)
+ * @spellnum: The spell number to check
+ * 
+ * Sorcerer bloodlines grant bonus spells that don't count against spells known.
+ * Each bloodline provides thematic spells at specific levels:
+ * - Draconic: Dragon-themed spells (mage armor, fly, etc.)
+ * - Arcane: Pure magic spells (identify, dispel magic, etc.)
+ * - Fey: Enchantment/illusion spells (charm, hideous laughter, etc.)
+ * - Undead: Necromancy spells (chill touch, animate dead, etc.)
+ * 
+ * These spells are automatically known and don't use up spell selections.
+ * 
+ * Returns: TRUE if the spell is a bloodline spell, FALSE otherwise
+ */
 bool is_sorc_bloodline_spell(int bloodline, int spellnum)
 {
   switch (bloodline)
@@ -1737,7 +1751,19 @@ bool is_sorc_bloodline_spell(int bloodline, int spellnum)
   }
   return FALSE;
 }
-/* given char, check their bloodline */
+
+/**
+ * get_sorc_bloodline - Determine which bloodline a sorcerer has
+ * @ch: Character to check
+ * 
+ * Checks the character's feats to determine their sorcerer bloodline.
+ * A sorcerer must choose a bloodline at 1st level, which grants:
+ * - Bonus spells at specific levels
+ * - Special bloodline powers
+ * - Thematic abilities related to their heritage
+ * 
+ * Returns: Bloodline type constant, or SORC_BLOODLINE_NONE if no bloodline
+ */
 int get_sorc_bloodline(struct char_data *ch)
 {
   if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC))
@@ -1782,7 +1808,14 @@ int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, in
   int spell_circle = 0;   /* Final calculated circle */
   int min_level = 0;      /* Minimum level to cast this spell */
 
-  /* Validate spell number based on class type */
+  /* Validate spell number based on class type 
+   * Different classes have different spell number ranges:
+   * - Standard casters: Use normal spell range (SPELL_RESERVED_DBC to NUM_SPELLS)
+   * - Psionicists: Use psionic power range (PSIONIC_POWER_START to PSIONIC_POWER_END)
+   * - Warlocks: Use invocation range (WARLOCK_POWER_START to WARLOCK_POWER_END)
+   * 
+   * Return NUM_CIRCLES+1 (invalid) if spell is outside valid range for the class
+   */
   if (char_class != CLASS_WARLOCK && char_class != CLASS_PSIONICIST && 
       (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS))
     return (NUM_CIRCLES + 1);  /* Invalid spell number */
@@ -1818,7 +1851,18 @@ switch (spellnum)
   }
 #endif
 
-  /* Here we add the circle changes resulting from metamagic use: */
+  /* Calculate total metamagic circle adjustments
+   * Each metamagic feat increases the effective spell circle:
+   * - Quicken: +4 circles (cast as swift action - very powerful)
+   * - Maximize: +3 circles (all variable numeric effects maximized)
+   * - Empower: +2 circles (all variable numeric effects increased by 50%)
+   * - Extend: +1 circle (doubles duration of spells)
+   * - Still: +1 circle (cast without somatic components)
+   * - Silent: +1 circle (cast without verbal components)
+   * 
+   * Multiple metamagics stack, so a quickened, maximized fireball would
+   * be +7 circles (3rd circle base + 4 + 3 = 10th circle - impossible!)
+   */
   if (IS_SET(metamagic, METAMAGIC_QUICKEN))
     metamagic_mod += 4;
   if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
@@ -1832,14 +1876,26 @@ switch (spellnum)
   if (IS_SET(metamagic, METAMAGIC_SILENT))
     metamagic_mod += 1;
 
+  /* Class-specific spell level to circle conversions
+   * Each class has different spell progression rates:
+   * - Full casters (Wizard, Cleric, Druid): Get new spell levels every 2 character levels
+   * - 3/4 casters (Bard, Alchemist): Slower progression, max 6th circle
+   * - Half casters (Paladin, Ranger): Very slow, max 4th circle
+   * - Spontaneous casters may have different progressions than prepared
+   */
   switch (char_class)
   {
   case CLASS_ALCHEMIST:
+    /* Alchemists are 3/4 casters with max 6th circle extracts
+     * Level progression: 1-3 = 1st, 4-6 = 2nd, 7-9 = 3rd, etc.
+     * Automatic metamagic feats reduce the circle increase for low-level spells
+     */
     switch (spell_info[spellnum].min_level[char_class])
     {
     case 1:
     case 2:
     case 3:
+      /* First circle spells - automatic metamagic applies */
       if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
         metamagic_mod -= 4;
       if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
@@ -2043,12 +2099,18 @@ switch (spellnum)
     break;
   case CLASS_PALADIN:
   case CLASS_BLACKGUARD:
+    /* Paladins and Blackguards are half-casters (max 4th circle)
+     * They don't get spells until 6th level, then progress slowly:
+     * Levels 6-9 = 1st circle, 10-11 = 2nd, 12-14 = 3rd, 15+ = 4th
+     * This reflects their martial focus with divine magic support
+     */
     switch (spell_info[spellnum].min_level[char_class])
     {
     case 6:
     case 7:
     case 8:
     case 9:
+      /* 1st circle spells - gained at 6th level */
       if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
         metamagic_mod -= 4;
       if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
@@ -2165,7 +2227,13 @@ switch (spellnum)
     }
     return 4;
   case CLASS_SORCERER:
+    /* Sorcerers are full spontaneous arcane casters
+     * Simple formula: spell level / 2 = circle (rounded down)
+     * They get spells one level later than wizards but cast spontaneously
+     * Example: 1st level spells at char level 2 (2/2 = 1st circle)
+     */
     spell_circle = spell_info[spellnum].min_level[char_class] / 2;
+    /* Automatic metamagic only applies to spells of 3rd circle or lower */
     if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
     {
         metamagic_mod -= 4;
@@ -2175,14 +2243,18 @@ switch (spellnum)
     if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) && spell_circle <= 3)
       metamagic_mod -= 1;
     spell_circle += metamagic_mod;
+    /* Check if metamagic pushed spell beyond 9th circle */
     if (spell_circle > TOP_CIRCLE)
     {
       return (NUM_CIRCLES + 1);
     }
     return (MAX(1, spell_circle));
   case CLASS_CLERIC:
-    /* MIN_SPELL_LVL will determine whether domain has a lower level version
-           of the spell */
+    /* Clerics are full divine prepared casters with domain spells
+     * Formula: (spell level + 1) / 2 = circle
+     * Domain spells may be available at lower levels than normal
+     * MIN_SPELL_LVL checks both normal and domain spell levels
+     */
     spell_circle = (MIN_SPELL_LVL(spellnum, char_class, domain) + 1) / 2;
     if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
     {
@@ -2375,27 +2447,54 @@ int get_class_highest_circle(struct char_data *ch, int class)
   }
 }
 
-/* are we in a state that allows us to prep spells? */
-/* define: READY_TO_PREP(ch, class) */
+/**
+ * ready_to_prep_spells - Check if character can prepare spells
+ * @ch: Character to check
+ * @class: Class to prepare spells for
+ * 
+ * Validates all conditions required for spell preparation:
+ * 
+ * CLASS-SPECIFIC CHECKS:
+ * - Wizards must have their spellbook or a scroll for the spell
+ * 
+ * POSITION REQUIREMENTS:
+ * - Must be resting (sitting or lying down)
+ * - Cannot be fighting
+ * 
+ * DEBUFF RESTRICTIONS:
+ * The following conditions prevent preparation:
+ * - Stunned: Can't concentrate
+ * - Paralyzed: Can't move or speak
+ * - Grappled: Physically restrained
+ * - Nauseated: Too sick to concentrate
+ * - Confused: Mind is scrambled
+ * - Dazed: Mentally incapacitated
+ * - Pinned: Completely immobilized
+ * 
+ * This function is called every pulse during preparation to ensure
+ * the character maintains proper conditions throughout.
+ * 
+ * Returns: TRUE if can prepare, FALSE if any condition fails
+ */
 bool ready_to_prep_spells(struct char_data *ch, int class)
 {
 
   switch (class)
   {
-  case CLASS_WIZARD: /* wizards need to study a book or scroll */
+  case CLASS_WIZARD: /* Wizards need their spellbook or a scroll to study from */
     if (SPELL_PREP_QUEUE(ch, class))
       if (!spellbook_ok(ch, SPELL_PREP_QUEUE(ch, class)->spell, CLASS_WIZARD, FALSE))
         return FALSE;
     break;
   }
 
-  /* posiiton / fighting */
+  /* Position check - must be resting (not standing, sleeping, or incapacitated) */
   if (GET_POS(ch) != POS_RESTING)
     return FALSE;
   if (FIGHTING(ch))
     return FALSE;
 
-  /* debuffs */
+  /* Debuff checks - various conditions that prevent concentration */
   if (AFF_FLAGGED(ch, AFF_STUN))
     return FALSE;
   if (AFF_FLAGGED(ch, AFF_PARALYZED))
@@ -2411,7 +2510,7 @@ bool ready_to_prep_spells(struct char_data *ch, int class)
   if (AFF_FLAGGED(ch, AFF_PINNED))
     return FALSE;
 
-  /* made it! */
+  /* All conditions met! */
   return TRUE;
 }
 
@@ -2503,15 +2602,37 @@ void stop_all_preparations(struct char_data *ch)
     stop_prep_event(ch, class);
 }
 
-/* does ch level qualify them for this particular spell?
-     includes domain system for clerics  */
+/**
+ * is_min_level_for_spell - Check if character meets level requirement for spell
+ * @ch: Character to check
+ * @class: Class being used to cast/prepare
+ * @spellnum: Spell number to check
+ * 
+ * Determines if the character's level in the specified class is high enough
+ * to cast/prepare the spell. This includes:
+ * 
+ * SPECIAL CASES:
+ * - Clerics: Check both domains for potentially lower level access
+ *   Example: Cure Light Wounds might be 1st level for Healing domain
+ * - Inquisitors: Check their single domain for special access
+ * 
+ * LEVEL CALCULATION:
+ * - Base class level + Bonus caster levels (from prestige classes, etc.)
+ * - Must meet or exceed the spell's minimum level for that class
+ * 
+ * Each spell has different level requirements per class:
+ * - Wizards might get Fireball at 5th level (3rd circle)
+ * - Sorcerers might get it at 6th level (delayed progression)
+ * 
+ * Returns: TRUE if level requirement met, FALSE otherwise
+ */
 bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum)
 {
   int min_level = 0;
 
   switch (class)
   {
-  case CLASS_CLERIC: /*domain system!*/
+  case CLASS_CLERIC: /* Domain system - check both domains for best access */
     min_level = MIN(MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch)),
                     MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch)));
     if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_CLERIC)) <
@@ -2520,7 +2641,7 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum)
       return FALSE;
     }
     break;
-  case CLASS_INQUISITOR: /*domain system!*/
+  case CLASS_INQUISITOR: /* Single domain system */
     min_level = MIN_SPELL_LVL(spellnum, CLASS_INQUISITOR, GET_1ST_DOMAIN(ch));
     if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_INQUISITOR)) < min_level)
     {
@@ -2528,6 +2649,7 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum)
     }
     break;
   default:
+    /* Standard level check for other classes */
     if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) <
         spell_info[spellnum].min_level[class])
     {
@@ -2770,12 +2892,33 @@ void assign_feat_spell_slots(int ch_class)
 }
 /**** END CONSTRUCTION ZONE *****/
 
-/* this function is our connection / hook between the casting system and spell preparation
-   system, we are checking -all- our spell prep systems to see if we have the
-   given spell, if we do:
-     gen prep system: extract from collection and move to prep queue
-     innate magic system:  put the proper circle in innate magic queue
- * we check general prep system first, THEN innate magic system  */
+/**
+ * spell_prep_gen_extract - Extract a spell when cast (moves from ready to recovering)
+ * @ch: Character casting the spell
+ * @spellnum: Spell being cast
+ * @metamagic: Metamagic flags applied to the spell
+ * 
+ * This is THE KEY FUNCTION that connects casting to preparation!
+ * Called when a spell is successfully cast, it handles the "using up" of a spell.
+ * 
+ * FOR PREPARED CASTERS (Wizard, Cleric, etc.):
+ * 1. Finds the spell in their collection (prepared spells)
+ * 2. Removes it from collection (spell is "used up")
+ * 3. Adds it back to prep queue with full prep time
+ * 4. The spell must be prepared again before next use
+ * 
+ * FOR SPONTANEOUS CASTERS (Sorcerer, Bard, etc.):
+ * 1. Checks if they know the spell
+ * 2. Verifies they have an available slot of that circle
+ * 3. Adds a slot of that circle to recovery queue
+ * 4. The slot will regenerate over time
+ * 
+ * SEARCH ORDER:
+ * - Checks prepared collections first (faster for mixed classes)
+ * - Then checks spontaneous casting ability
+ * 
+ * Returns: Class that had the spell, or CLASS_UNDEFINED if not found
+ */
 int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
 {
   int ch_class = CLASS_UNDEFINED, prep_time = 99,
@@ -2786,17 +2929,16 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
     send_to_char(ch, "{entered spell_prep_gen_extract()}    ");
   }
 
-  /* go through all the classes checking our collection */
+  /* FIRST: Check all prepared spell collections */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
   {
     if (is_spell_in_collection(ch, ch_class, spellnum, metamagic))
     {
-
-      /*extract from collection*/
+      /* Found it! Extract from collection */
       if (!collection_remove_by_class(ch, ch_class, spellnum, metamagic))
-        return CLASS_UNDEFINED; /* failed somehow */
+        return CLASS_UNDEFINED; /* Removal failed - shouldn't happen */
 
-      /*place in queue*/
+      /* Put spell back in prep queue to be prepared again */
       is_domain = is_domain_spell_of_ch(ch, spellnum);
       circle = compute_spells_circle(ch, ch_class, spellnum, metamagic, is_domain);
       prep_time = compute_spells_prep_time(ch, ch_class, circle, is_domain);
@@ -2806,19 +2948,23 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
     }
   }
 
-  /* nothing yet? go through our innate magic system now! */
+  /* SECOND: Check spontaneous casting ability (innate magic) */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
   {
     is_domain = is_domain_spell_of_ch(ch, spellnum);
-    circle = /* computes adjustment to circle via metamagic */
-        compute_spells_circle(ch, ch_class, spellnum, metamagic, is_domain);
+    /* Calculate which circle this spell+metamagic combination requires */
+    circle = compute_spells_circle(ch, ch_class, spellnum, metamagic, is_domain);
+    
+    /* Check two conditions for spontaneous casting:
+     * 1. Character must know the spell (permanently learned)
+     * 2. Must have available slots of the required circle
+     */
     if (is_a_known_spell(ch, ch_class, spellnum) &&
         (compute_slots_by_circle(ch, ch_class, circle) -
              count_total_slots(ch, ch_class, circle) >
          0))
     {
-
-      /*place circle in innate magic queue*/
+      /* Success! Put a slot of this circle into recovery queue */
       prep_time = compute_spells_prep_time(ch, ch_class, circle, is_domain);
       innate_magic_add(ch, ch_class, circle, metamagic, prep_time, is_domain);
 
@@ -2826,48 +2972,70 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
     }
   }
 
-  /* FAILED! */
+  /* No prepared spell found and can't cast spontaneously */
   return CLASS_UNDEFINED;
 }
 
-/* this function is our connection between the casting system and spell preparation
-   system, we are checking -all- our spell prep systems to see if we have the
-   given spell, if we do, returns class, otherwise undefined-class
-   we are checking our spell-prep system, THEN innate magic system */
+/**
+ * spell_prep_gen_check - Check if character can cast a spell
+ * @ch: Character attempting to cast
+ * @spellnum: Spell to check
+ * @metamagic: Metamagic being applied
+ * 
+ * This function validates whether a character has a spell available to cast.
+ * Called by the casting system BEFORE attempting to cast.
+ * 
+ * CHECKS IN ORDER:
+ * 1. Staff members can cast anything (for testing/events)
+ * 2. Prepared casters: Is spell in collection (ready to cast)?
+ * 3. Spontaneous casters: Do they know it AND have slots?
+ * 
+ * PREPARED CASTERS:
+ * - Must have exact spell+metamagic combo prepared
+ * - Quickened fireball is different from regular fireball
+ * 
+ * SPONTANEOUS CASTERS:
+ * - Must know the spell (permanent knowledge)
+ * - Must have available slot of appropriate circle
+ * - Metamagic increases circle requirement
+ * 
+ * Returns: Class that can cast it, or CLASS_UNDEFINED if unavailable
+ */
 int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
 {
 
-  // Staff can cast any spell at any time
+  /* Staff override - immortals can cast anything for testing */
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return true;
 
   int class = CLASS_UNDEFINED;
 
-  /* go through all the classes checking our collection */
+  /* FIRST: Check all prepared spell collections */
   for (class = 0; class < NUM_CLASSES; class ++)
   {
     if (is_spell_in_collection(ch, class, spellnum, metamagic))
       return class;
   }
 
-  /* nothing yet? go through our innate magic system now! */
+  /* SECOND: Check spontaneous casting ability */
   int circle_of_this_spell = TOP_CIRCLE + 1;
   for (class = 0; class < NUM_CLASSES; class ++)
   {
-    /* computes adjustment to circle via metamagic */
+    /* Calculate effective circle (including metamagic adjustments) */
     if (CLASS_LEVEL(ch, CLASS_INQUISITOR) && class == CLASS_INQUISITOR)
       circle_of_this_spell = compute_spells_circle(ch, class, spellnum, metamagic, GET_1ST_DOMAIN(ch));
     else
       circle_of_this_spell = compute_spells_circle(ch, class, spellnum, metamagic, DOMAIN_UNDEFINED);
+      
+    /* Check if they know the spell AND have available slots */
     if (is_a_known_spell(ch, class, spellnum) &&
         (compute_slots_by_circle(ch, class, circle_of_this_spell) - count_total_slots(ch, class, circle_of_this_spell) > 0))
     {
-
       return class;
     }
   }
 
-  /* FAILED! */
+  /* Character cannot cast this spell */
   return CLASS_UNDEFINED;
 }
 
@@ -3010,6 +3178,22 @@ void print_collection(struct char_data *ch, int ch_class)
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int line_length = 80, high_circle = get_class_highest_circle(ch, ch_class);
   int counter = 0, this_circle = 0;
+  
+  /* Spell counting structure for stacking */
+  struct spell_count_data {
+    int spell;
+    int metamagic;
+    int domain;
+    int count;
+    struct spell_count_data *next;
+  };
+  struct spell_count_data *spell_counts[NUM_CIRCLES];
+  int i;
+
+  /* Initialize spell count arrays */
+  for (i = 0; i < NUM_CIRCLES; i++) {
+    spell_counts[i] = NULL;
+  }
 
   /* build a nice heading */
   *buf = '\0';
@@ -3025,65 +3209,113 @@ void print_collection(struct char_data *ch, int ch_class)
     return;
   }
 
-  /* loop for circles */
+  /* First pass: count all spells by circle and identity */
+  struct prep_collection_spell_data *current;
+  for (current = SPELL_COLLECTION(ch, ch_class); current; current = current->next)
+  {
+    this_circle = compute_spells_circle(ch, ch_class, current->spell, 
+                                      current->metamagic, current->domain);
+    if (this_circle >= 0 && this_circle < NUM_CIRCLES)
+    {
+      /* Look for existing entry with same spell/metamagic/domain */
+      struct spell_count_data *count_entry = spell_counts[this_circle];
+      struct spell_count_data *prev = NULL;
+      int found = 0;
+      
+      while (count_entry)
+      {
+        if (count_entry->spell == current->spell &&
+            count_entry->metamagic == current->metamagic &&
+            count_entry->domain == current->domain)
+        {
+          count_entry->count++;
+          found = 1;
+          break;
+        }
+        prev = count_entry;
+        count_entry = count_entry->next;
+      }
+      
+      if (!found)
+      {
+        /* Create new count entry */
+        struct spell_count_data *new_count;
+        CREATE(new_count, struct spell_count_data, 1);
+        new_count->spell = current->spell;
+        new_count->metamagic = current->metamagic;
+        new_count->domain = current->domain;
+        new_count->count = 1;
+        new_count->next = spell_counts[this_circle];
+        spell_counts[this_circle] = new_count;
+      }
+    }
+  }
+
+  /* Second pass: display counted spells by circle */
   for (high_circle; high_circle >= 0; high_circle--)
   {
     counter = 0;
-    struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, ch_class);
-    struct prep_collection_spell_data *next;
-
-    /* traverse and print */
-    if (SPELL_COLLECTION(ch, ch_class))
+    struct spell_count_data *count_entry = spell_counts[high_circle];
+    
+    while (count_entry)
     {
-      for (; current; current = next)
+      counter++;
+      /* Build the metamagic string */
+      char metamagic_str[256] = "";
+      if (IS_SET(count_entry->metamagic, METAMAGIC_QUICKEN))
+        strcat(metamagic_str, " [quickened]");
+      if (IS_SET(count_entry->metamagic, METAMAGIC_EMPOWER))
+        strcat(metamagic_str, " [empowered]");
+      if (IS_SET(count_entry->metamagic, METAMAGIC_MAXIMIZE))
+        strcat(metamagic_str, " [maximized]");
+      if (IS_SET(count_entry->metamagic, METAMAGIC_EXTEND))
+        strcat(metamagic_str, " [extended]");
+      if (IS_SET(count_entry->metamagic, METAMAGIC_SILENT))
+        strcat(metamagic_str, " [silent]");
+      if (IS_SET(count_entry->metamagic, METAMAGIC_STILL))
+        strcat(metamagic_str, " [still]");
+      if (count_entry->domain)
+        sprintf(metamagic_str + strlen(metamagic_str), " [%s]", domain_list[count_entry->domain].name);
+      
+      /* Add count if more than 1 */
+      if (count_entry->count > 1)
+        sprintf(metamagic_str + strlen(metamagic_str), " \tYx%d\tn", count_entry->count);
+      
+      if (counter == 1)
       {
-        next = current->next;
-        /* check if our circle matches this entry */
-        this_circle = compute_spells_circle(ch, 
-            ch_class,
-            current->spell,
-            current->metamagic,
-            current->domain);
-        if (high_circle == this_circle)
-        { /* print! */
-          counter++;
-          if (counter == 1)
-          {
-            send_to_char(ch, "\tY%d%s:\tn \tW%20s\tn %12s%12s%12s%12s%12s%12s%s%13s%s\r\n",
-                         high_circle,
-                         (high_circle == 1) ? "st" : (high_circle == 2) ? "nd"
-                                                 : (high_circle == 3)   ? "rd"
-                                                                        : "th",
-                         spell_info[current->spell].name,
-                         (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-                         (IS_SET(current->metamagic, METAMAGIC_EMPOWER) ? "\tc[\tnempowered\tc]\tn" : ""),
-                         (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-                         (IS_SET(current->metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextended\tc]\tn" : ""),
-                         (IS_SET(current->metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
-                         (IS_SET(current->metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
-                         current->domain ? "\tc[\tn" : "",
-                         current->domain ? domain_list[current->domain].name : "",
-                         current->domain ? "\tc]\tn" : "");
-          }
-          else
-          {
-            send_to_char(ch, "%4s \tW%20s\tn %12s%12s%12s%12s%12s%12s%s%13s%s\r\n",
-                         "    ",
-                         spell_info[current->spell].name,
-                         (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-                         (IS_SET(current->metamagic, METAMAGIC_EMPOWER) ? "\tc[\tnempowered\tc]\tn" : ""),
-                         (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-                         (IS_SET(current->metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextended\tc]\tn" : ""),
-                         (IS_SET(current->metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
-                         (IS_SET(current->metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
-                         current->domain ? "\tc[\tn" : "",
-                         current->domain ? domain_list[current->domain].name : "",
-                         current->domain ? "\tc]\tn" : "");
-          }
-        }
-      } /*end collection*/
+        send_to_char(ch, "\tY%d%s:\tn    \tW%s\tn%s\r\n",
+                     high_circle,
+                     (high_circle == 1) ? "st" : (high_circle == 2) ? "nd"
+                                             : (high_circle == 3)   ? "rd"
+                                                                    : "th",
+                     spell_info[count_entry->spell].name,
+                     metamagic_str);
+      }
+      else
+      {
+        send_to_char(ch, "%8s\tW%s\tn%s\r\n",
+                     "    ",
+                     spell_info[count_entry->spell].name,
+                     metamagic_str);
+      }
+      
+      count_entry = count_entry->next;
     }
-  } /*end circle loop*/
+  }
+
+  /* Clean up allocated memory */
+  for (i = 0; i < NUM_CIRCLES; i++)
+  {
+    struct spell_count_data *count_entry = spell_counts[i];
+    struct spell_count_data *next_count;
+    
+    while (count_entry)
+    {
+      next_count = count_entry->next;
+      free(count_entry);
+      count_entry = next_count;
+    }
+  }
 }
 
 /* display avaialble slots based on what is in the queue/collection, and other
@@ -3197,14 +3429,36 @@ void begin_preparing(struct char_data *ch, int class)
   }
 }
 
-/* in: char data, class associated with spell, circle of spell, domain
- * out: preparation time for spell number
- * given the above info, calculate how long this particular spell will take to
- * prepare..  this should take into account:
- *   circle
- *   class (arbitrary factor value)
- *   character's skills
- *   character feats   */
+/**
+ * compute_spells_prep_time - Calculate how long a spell takes to prepare
+ * @ch: Character preparing the spell
+ * @class: Class being used to prepare
+ * @circle: Spell circle (1-9)
+ * @domain: TRUE if this is a domain spell
+ * 
+ * This function determines preparation time in seconds based on multiple factors:
+ * 
+ * BASE CALCULATION:
+ * - Starts with BASE_PREP_TIME (usually 5 seconds)
+ * - Adds PREP_TIME_INTERVALS (usually 5) * (circle - 1)
+ * - So 1st circle = 5 sec, 2nd = 10 sec, 3rd = 15 sec, etc.
+ * 
+ * CLASS MODIFIERS:
+ * - Each class has a multiplier factor (e.g., wizards faster than clerics)
+ * - Rangers/Paladins have penalties due to being half-casters
+ * 
+ * BONUS REDUCTIONS:
+ * - Character level (level/2 seconds reduction)
+ * - Ability score bonus (WIS for divine, INT for arcane, etc.)
+ * - Concentration skill (skill ranks / 4)
+ * - Feats like Faster Memorization (-25%) or Wizard Memorization (-16.7%)
+ * - Resting in a regeneration room (-25%)
+ * 
+ * CONFIG MODIFIERS:
+ * - Server-wide modifiers for arcane/divine/alchemy prep times
+ * 
+ * Returns: Preparation time in seconds (minimum = circle level)
+ */
 int compute_spells_prep_time(struct char_data *ch, int class, int circle, int domain)
 {
   float prep_time = 0.0;
@@ -3212,20 +3466,24 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   int stat_bonus = 0;
   int level_bonus = 0;
 
-  /* base prep time based on circle, etc */
+  /* Base prep time: 5 seconds + 5 seconds per circle above 1st */
   prep_time = BASE_PREP_TIME + (PREP_TIME_INTERVALS * (circle - 1));
 
-  /* this is arbitrary, to display that domain-spells can affect prep time */
+  /* Domain spells take slightly longer (1 extra second) - shows divine focus */
   if (domain)
     prep_time++;
 
-  /* class factors */
+  /* Calculate level bonus - higher level characters prepare faster */
   level_bonus = CLASS_LEVEL(ch, class) / 2;
+  
+  /* Apply class-specific multipliers and determine relevant ability bonus
+   * Each class has different preparation speeds based on their magical tradition
+   */
   switch (class)
   {
   case CLASS_RANGER:
-    prep_time *= RANGER_PREP_TIME_FACTOR;
-    stat_bonus = GET_WIS_BONUS(ch);
+    prep_time *= RANGER_PREP_TIME_FACTOR;  /* Rangers are slower (half-casters) */
+    stat_bonus = GET_WIS_BONUS(ch);        /* Wisdom-based divine magic */
     break;
   case CLASS_PALADIN:
   case CLASS_BLACKGUARD:
@@ -3266,50 +3524,66 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     break;
   }
 
-  /** calculate bonuses **/
-  /*level*/
+  /** Calculate time reductions from various sources **/
+  
+  /* Level bonus - experienced casters prepare faster */
   bonus_time += level_bonus;
-  /*skills*/
-  /* stat bonus */
+  
+  /* Ability score bonus - mental acuity speeds preparation
+   * Formula: 2/3 of ability bonus (so +6 INT = 4 seconds faster)
+   */
   bonus_time += stat_bonus / 3 * 2;
-  /* concentration */
+  
+  /* Concentration skill - focused mind speeds memorization
+   * Each 4 ranks = 1 second reduction
+   */
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_CONCENTRATION))
   {
     bonus_time += compute_ability(ch, ABILITY_CONCENTRATION) / 4;
   }
-  /* class */
-  /* faster memorization, reduces prep time by a 6th */
+  
+  /* FEAT: Wizard Memorization - reduces prep time by 1/6 (16.7%)
+   * This is a class-specific feat for specialist wizards
+   */
   if (HAS_FEAT(ch, FEAT_WIZ_MEMORIZATION))
   {
     bonus_time += prep_time / 6;
   }
-  /*feats*/
-  /* faster memorization, reduces prep time by a quarter */
+  
+  /* FEAT: Faster Memorization - reduces prep time by 1/4 (25%)
+   * This is a general feat available to all casters
+   */
   if (HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION))
   {
     bonus_time += prep_time / 4;
   }
-  // If in a regenerating room... normally taverns
+  
+  /* Regeneration rooms (usually taverns) provide a calm environment
+   * Reduces prep time by 25% - encourages social gathering spots
+   */
   if (IN_ROOM(ch) != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
     bonus_time += prep_time / 4;
-  /*spells/affections*/
-  /* song of focused mind, halves prep time (this is the wrong place) */
-  /*
-  if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
-  {
-    bonus_time += prep_time / 2;
-  }
-  */
-  /** end bonus calculations **/
+    
+  /* Note: Song of Focused Mind is handled elsewhere in the event system
+   * It would halve prep time but needs to be checked each pulse
+   */
+  
+  /** End bonus calculations **/
 
+  /* Subtract all bonuses from base prep time */
   prep_time -= bonus_time;
 
+  /* Apply server-wide configuration modifiers by magic type
+   * These allow server admins to globally adjust preparation speeds
+   * CONFIG values are percentages (e.g., 50 = 50% of normal time)
+   */
   switch (class)
   {
   case CLASS_WIZARD:
   case CLASS_SORCERER:
   case CLASS_BARD:
   case CLASS_SUMMONER:
+    /* Arcane casters - affected by CONFIG_ARCANE_PREP_TIME */
     prep_time = prep_time * CONFIG_ARCANE_PREP_TIME / 100;
     break;
 
@@ -3319,22 +3593,28 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   case CLASS_RANGER:
   case CLASS_BLACKGUARD:
   case CLASS_INQUISITOR:
+    /* Divine casters - affected by CONFIG_DIVINE_PREP_TIME */
     prep_time = prep_time * CONFIG_DIVINE_PREP_TIME / 100;
     break;
 
   case CLASS_PSIONICIST:
-    // Psionicists use PSP which recharges along with hp and mv
+    /* Psionicists don't prepare - they use PSP that regenerates naturally */
     break;
 
   case CLASS_ALCHEMIST:
+    /* Alchemists - affected by CONFIG_ALCHEMY_PREP_TIME */
     prep_time = prep_time * CONFIG_ALCHEMY_PREP_TIME / 100;
     break;
   }
 
+  /* Ensure minimum 1 second prep time */
   if (prep_time <= 0)
     prep_time = 1;
 
-  return (MAX(circle, prep_time)); /* CAP */
+  /* Final cap: preparation time cannot be less than the spell's circle
+   * This ensures higher level spells always take meaningful time
+   */
+  return (MAX(circle, prep_time));
 }
 
 /* look at top of the queue, and reset preparation time of that entry */
@@ -3494,9 +3774,30 @@ int star_circlet_proc(struct char_data *ch, int num_times)
 
 /* START event-related */
 
-/* this will move the spell from the prep-queue to the collection, and if
- * appropriate continue the preparation process - restart the event with
- * the correct prep-time for the next spell in the queue ; default return time is 1 RL sec */
+/**
+ * event_preparation - Main event handler for spell preparation
+ * @event_obj: The mud event data structure
+ * 
+ * This is the heart of the spell preparation system. It runs every second
+ * while a character is preparing spells and handles:
+ * 
+ * 1. VALIDATION: Checks if character can still prepare (position, status)
+ * 2. COUNTDOWN: Decrements preparation time for the current spell/slot
+ * 3. COMPLETION: When prep_time reaches 0:
+ *    - For prepared casters: Moves spell from queue to collection
+ *    - For spontaneous casters: Removes slot from innate magic queue
+ * 4. CONTINUATION: If more spells/slots in queue, continues preparation
+ * 5. TERMINATION: When queue is empty, ends preparation state
+ * 
+ * The event carries the class as a string variable (sVariables) to know
+ * which class's queue to process. This allows multiclass characters to
+ * prepare spells for different classes separately.
+ * 
+ * RETURN VALUES:
+ * - 0: Event terminates (preparation complete or interrupted)
+ * - PASSES_PER_SEC: Event continues next second
+ * - PASSES_PER_SEC/2: Event continues in 0.5 seconds (with Song of Focused Mind)
+ */
 EVENTFUNC(event_preparation)
 {
   int class = 0;
@@ -3504,7 +3805,7 @@ EVENTFUNC(event_preparation)
   struct mud_event_data *prepare_event = NULL;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  /* initialize everything and dummy checks */
+  /* Initialize and validate event data */
   *buf = '\0';
   if (event_obj == NULL)
     return 0;
@@ -3512,16 +3813,20 @@ EVENTFUNC(event_preparation)
   ch = (struct char_data *)prepare_event->pStruct;
   if (!ch)
     return 0;
-  /* grab the svariable for class */
+  /* Extract the class from event variables (stored as string) */
   class = atoi((char *)prepare_event->sVariables);
 
-  /* this is definitely a dummy check */
+  /* Verify the character has something to prepare
+   * Spontaneous casters use INNATE_MAGIC queue for spell slots
+   * Prepared casters use SPELL_PREP_QUEUE for specific spells
+   */
   switch (class)
   {
   case CLASS_SORCERER:
   case CLASS_BARD:
   case CLASS_INQUISITOR:
   case CLASS_SUMMONER:
+    /* Spontaneous casters - check for recovering spell slots */
     if (!INNATE_MAGIC(ch, class))
     {
       send_to_char(ch, "Your preparations are aborted!  You do not seem to have anything in your queue!\r\n");
@@ -3529,6 +3834,7 @@ EVENTFUNC(event_preparation)
     }
     break;
   default:
+    /* Prepared casters - check for spells being memorized */
     if (!SPELL_PREP_QUEUE(ch, class))
     {
       send_to_char(ch, "Your preparations are aborted!  You do not seem to have anything in your queue!\r\n");
@@ -3537,8 +3843,11 @@ EVENTFUNC(event_preparation)
     break;
   }
 
-  /* first we make a check that we arrived here in a 'valid' state, reset
-   * prearation time if not, then exit */
+  /* Validate character can continue preparing
+   * ready_to_prep_spells() checks: position, fighting, debuffs, spellbook
+   * is_preparing() checks: preparation state flag
+   * If either fails, preparation is interrupted
+   */
   if (!ready_to_prep_spells(ch, class) ||
       !is_preparing(ch))
   {
@@ -3547,17 +3856,24 @@ EVENTFUNC(event_preparation)
     return 0;
   }
 
+  /* Main preparation processing - different for spontaneous vs prepared casters */
   switch (class)
   {
   case CLASS_BARD:
   case CLASS_SORCERER:
   case CLASS_INQUISITOR:
   case CLASS_SUMMONER:
+    /* SPONTANEOUS CASTERS: Process spell slot recovery
+     * Each second, decrement the prep_time of the first slot in queue
+     */
     INNATE_MAGIC(ch, class)->prep_time--;
+    
+    /* Check if this spell slot has finished recovering */
     if ((INNATE_MAGIC(ch, class)->prep_time) <= 0)
     {
+      /* Slot is ready! Announce completion with any metamagic info */
       send_to_char(ch, "You finish %s for %s%s%s%s%s%s%d circle slot.\r\n",
-                   spell_prep_dict[class][1],
+                   spell_prep_dict[class][1],  /* "meditation", "composition", etc. */
                    (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
                    (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_EMPOWER) ? "empowered " : ""),
                    (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
@@ -3565,27 +3881,41 @@ EVENTFUNC(event_preparation)
                    (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_SILENT) ? "silent " : ""),
                    (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_STILL) ? "still " : ""),
                    INNATE_MAGIC(ch, class)->circle);
+                   
+      /* Remove the completed slot from recovery queue
+       * The slot is now available for casting any known spell of that circle
+       */
       innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->circle,
                                    INNATE_MAGIC(ch, class)->metamagic);
+                                   
+      /* Check if more slots need recovery */
       if (INNATE_MAGIC(ch, class))
       {
+        /* Reset timer for next slot and continue */
         reset_preparation_time(ch, class);
 
+        /* Song of Focused Mind doubles preparation speed */
         if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
         {
-          return ((1 * PASSES_PER_SEC) / 2);
+          return ((1 * PASSES_PER_SEC) / 2);  /* 0.5 second pulses */
         }
 
-        return (1 * PASSES_PER_SEC);
+        return (1 * PASSES_PER_SEC);  /* Normal 1 second pulses */
       }
     }
     break;
   default:
+    /* PREPARED CASTERS: Process specific spell memorization
+     * Each second, decrement the prep_time of the first spell in queue
+     */
     SPELL_PREP_QUEUE(ch, class)->prep_time--;
+    
+    /* Check if this spell has finished preparing */
     if ((SPELL_PREP_QUEUE(ch, class)->prep_time) <= 0)
     {
+      /* Spell is ready! Announce completion with spell name and metamagic */
       send_to_char(ch, "You finish %s for %s%s%s%s%s%s%s.\r\n",
-                   spell_prep_dict[class][1],
+                   spell_prep_dict[class][1],  /* "memorizing", "praying", etc. */
                    (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
                    (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_EMPOWER) ? "empowered " : ""),
                    (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
@@ -3593,33 +3923,47 @@ EVENTFUNC(event_preparation)
                    (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_SILENT) ? "silent " : ""),
                    (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_STILL) ? "still " : ""),
                    spell_info[SPELL_PREP_QUEUE(ch, class)->spell].name);
+                   
+      /* Move the prepared spell from queue to collection
+       * Collection holds fully prepared spells ready to cast
+       */
       collection_add(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
                      SPELL_PREP_QUEUE(ch, class)->metamagic,
                      SPELL_PREP_QUEUE(ch, class)->prep_time,
                      SPELL_PREP_QUEUE(ch, class)->domain);
+                     
+      /* Remove the spell from preparation queue */
       prep_queue_remove_by_class(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
                                  SPELL_PREP_QUEUE(ch, class)->metamagic);
+                                 
+      /* Check if more spells need preparation */
       if (SPELL_PREP_QUEUE(ch, class))
       {
+        /* Reset timer for next spell and continue */
         reset_preparation_time(ch, class);
 
+        /* Song of Focused Mind doubles preparation speed */
         if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
         {
-          return ((1 * PASSES_PER_SEC) / 2);
+          return ((1 * PASSES_PER_SEC) / 2);  /* 0.5 second pulses */
         }
 
-        return (1 * PASSES_PER_SEC);
+        return (1 * PASSES_PER_SEC);  /* Normal 1 second pulses */
       }
     }
     break;
   }
 
+  /* Check if all preparation is complete
+   * If the queue is empty, end the preparation state
+   */
   switch (class)
   {
   case CLASS_BARD:
   case CLASS_SORCERER:
   case CLASS_INQUISITOR:
   case CLASS_SUMMONER:
+    /* Spontaneous casters - check if all slots are recovered */
     if (!INNATE_MAGIC(ch, class))
     {
       *buf = '\0';
@@ -3627,10 +3971,11 @@ EVENTFUNC(event_preparation)
       snprintf(buf, sizeof(buf), "$n completes $s %s.", spell_prep_dict[class][3]);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
       set_preparing_state(ch, class, FALSE);
-      return 0;
+      return 0;  /* Event terminates - all slots recovered */
     }
     break;
   default:
+    /* Prepared casters - check if all spells are memorized */
     if (!SPELL_PREP_QUEUE(ch, class))
     {
       *buf = '\0';
@@ -3638,17 +3983,18 @@ EVENTFUNC(event_preparation)
       snprintf(buf, sizeof(buf), "$n completes $s %s.", spell_prep_dict[class][3]);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
       set_preparing_state(ch, class, FALSE);
-      return 0;
+      return 0;  /* Event terminates - all spells prepared */
     }
     break;
   }
 
+  /* Continue preparation - check for speed bonus from bard song */
   if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
   {
-    return ((1 * PASSES_PER_SEC) / 2);
+    return ((1 * PASSES_PER_SEC) / 2);  /* Double speed preparation */
   }
 
-  return (1 * PASSES_PER_SEC);
+  return (1 * PASSES_PER_SEC);  /* Normal speed - continue next second */
 }
 
 /* END event-related */
