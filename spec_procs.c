@@ -84,7 +84,7 @@ static int compare_spells(const void *x, const void *y)
 }
 
 /* this will create a full list, added two more lists
-   to seperate the skills/spells */
+   to separate the skills/spells */
 void sort_spells(void)
 {
   int a;

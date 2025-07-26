@@ -240,7 +240,7 @@ void hlqedit_addtoout(struct descriptor_data *d, struct quest_command *qcom)
 
 /* our saving function, comes from a deprecated system that added
    a list of zone info that needed to be saved, which you then would
-   save with a seperate command - it is now changed to autosave to
+   save with a separate command - it is now changed to autosave to
    disk whenever its saved internally
  */
 void hlqedit_save_internally(struct descriptor_data *d)
