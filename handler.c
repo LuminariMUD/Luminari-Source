@@ -3145,14 +3145,18 @@ void leave_group(struct char_data *ch)
   remove_from_list(ch, group->members);
   ch->group = NULL;
 
+  /* Check both iSize and if merge_iterator returns something to avoid empty list warning */
   if (group->members->iSize)
   {
-    for (tch = (struct char_data *)merge_iterator(&Iterator, group->members);
-         tch; tch = next_in_list(&Iterator))
-      if (!IS_NPC(tch))
-        found_pc = TRUE;
-
-    remove_iterator(&Iterator);
+    tch = (struct char_data *)merge_iterator(&Iterator, group->members);
+    if (tch) {
+      do {
+        if (!IS_NPC(tch))
+          found_pc = TRUE;
+      } while ((tch = next_in_list(&Iterator)));
+      
+      remove_iterator(&Iterator);
+    }
   }
 
   if (!found_pc)

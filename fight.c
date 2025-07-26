@@ -11560,7 +11560,9 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 
   if (FIGHTING(ch) && !strict)
   {
-    update_pos(FIGHTING(ch));
+    /* Don't update position if target is already dead - prevents changing POS_DEAD to POS_RESTING */
+    if (GET_POS(FIGHTING(ch)) != POS_DEAD)
+      update_pos(FIGHTING(ch));
     if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
         IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
 
@@ -11568,7 +11570,9 @@ int valid_fight_cond(struct char_data *ch, bool strict)
   }
   else if (strict && FIGHTING(ch))
   {
-    update_pos(FIGHTING(ch));
+    /* Don't update position if target is already dead - prevents changing POS_DEAD to POS_RESTING */
+    if (GET_POS(FIGHTING(ch)) != POS_DEAD)
+      update_pos(FIGHTING(ch));
     update_pos(ch);
     if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
         IN_ROOM(ch) != NOWHERE &&
