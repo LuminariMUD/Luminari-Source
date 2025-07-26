@@ -158,6 +158,10 @@ void clear_known_spells_by_class(struct char_data *ch, int ch_class)
 void destroy_spell_prep_queue(struct char_data *ch)
 {
   int ch_class;
+  
+  if (!ch || !ch->player_specials)
+    return;
+    
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     clear_prep_queue_by_class(ch, ch_class);
 }
@@ -165,6 +169,10 @@ void destroy_spell_prep_queue(struct char_data *ch)
 void destroy_innate_magic_queue(struct char_data *ch)
 {
   int ch_class;
+  
+  if (!ch || !ch->player_specials)
+    return;
+    
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     clear_innate_magic_by_class(ch, ch_class);
 }
@@ -172,6 +180,10 @@ void destroy_innate_magic_queue(struct char_data *ch)
 void destroy_spell_collection(struct char_data *ch)
 {
   int ch_class;
+  
+  if (!ch || !ch->player_specials)
+    return;
+    
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     clear_collection_by_class(ch, ch_class);
 }
@@ -179,6 +191,10 @@ void destroy_spell_collection(struct char_data *ch)
 void destroy_known_spells(struct char_data *ch)
 {
   int ch_class;
+  
+  if (!ch || !ch->player_specials)
+    return;
+    
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     clear_known_spells_by_class(ch, ch_class);
 }

@@ -2323,6 +2323,8 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
             free(GET_CRAFT(ch).short_description);
         if (GET_CRAFT(ch).room_description)
             free(GET_CRAFT(ch).room_description);
+        if (GET_CRAFT(ch).ex_description)
+            free(GET_CRAFT(ch).ex_description);
         
         GET_CRAFT(ch).keywords = strdup("not set");
         GET_CRAFT(ch).short_description = strdup("not set");
@@ -3254,6 +3256,15 @@ void set_crafting_variant(struct char_data *ch, char *arg2)
         GET_CRAFT(ch).craft_variant = variant;
         GET_CRAFT(ch).crafting_recipe = recipe;
         send_to_char(ch, "You have chosen '%s' as the variant type for your craft.\r\n", crafting_recipes[recipe].variant_descriptions[variant]);
+        /* Free old strings before allocating new ones to prevent memory leaks */
+        if (GET_CRAFT(ch).keywords)
+            free(GET_CRAFT(ch).keywords);
+        if (GET_CRAFT(ch).short_description)
+            free(GET_CRAFT(ch).short_description);
+        if (GET_CRAFT(ch).room_description)
+            free(GET_CRAFT(ch).room_description);
+        if (GET_CRAFT(ch).ex_description)
+            free(GET_CRAFT(ch).ex_description);
         GET_CRAFT(ch).keywords = strdup("not set");
         GET_CRAFT(ch).short_description = strdup("not set");
         GET_CRAFT(ch).room_description = strdup("not set");

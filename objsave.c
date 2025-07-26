@@ -2973,6 +2973,7 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch, s
   {
     log("SYSERR: Unable to INSERT into pet_save_objs: %s", mysql_error(conn));
     /* Table doesn't exist, skip saving pet objects */
+    extract_obj(temp);
     return 0;
   }
 
@@ -3598,6 +3599,7 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
   if (mysql_query(conn, ins_buf))
   {
     log("SYSERR: Unable to INSERT into player_save_objs_sheathed: %s\n%s\n", mysql_error(conn), ins_buf);
+    extract_obj(temp);
     return 1;
   }
 

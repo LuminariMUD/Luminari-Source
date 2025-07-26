@@ -653,6 +653,7 @@ void show_account_menu(struct descriptor_data *d)
       if (d->account->character_names[i] != NULL && load_char(d->account->character_names[i], xtch) > -1)
       {
         free_char(xtch);
+        xtch = NULL;
 
         write_to_output(d, " \tW%-3d\tn \tC|\tn \tW%-20s\tn\tC|\tn", i + 1, d->account->character_names[i]);
         snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE lower(name)=lower('%s')", d->account->character_names[i]);
