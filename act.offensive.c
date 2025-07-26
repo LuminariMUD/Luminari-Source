@@ -564,6 +564,18 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
   int penalty = 0, attack_check = 0, defense_check = 0;
   bool success = FALSE, counter_success = FALSE, skilled_monk = FALSE;
 
+  /* Safety check: prevent dead characters from performing knockdown */
+  if (!ch || GET_POS(ch) <= POS_DEAD || DEAD(ch))
+  {
+    return FALSE;
+  }
+
+  /* Safety check: prevent knockdown on dead or invalid targets */
+  if (!vict || GET_POS(vict) <= POS_DEAD || DEAD(vict))
+  {
+    return FALSE;
+  }
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
       ch->next_in_room != vict && vict->next_in_room != ch && skill != SPELL_BANISHING_BLADE)
   {
