@@ -97,9 +97,14 @@ After initial fix, crash still occurred but in a different location:
 - Stack trace showed: `affect_remove()` → `affect_total()` → `update_msdp_affects()` → crash in `AllocString()`
 - Root cause: MSDP protocol updates being sent during death processing when character state is unstable
 
-**Second Fix Applied**:
-- Added check in `update_msdp_affects()` (handler.c:1016-1017) to skip MSDP updates when `PLR_NOTDEADYET` flag is set
-- This prevents protocol operations during death processing
+**Second Fix Applied (INCORRECT - REVERTED)**:
+- Initially added check for `PLR_NOTDEADYET` flag but this was wrong - PLR_NOTDEADYET is for extraction queuing, not player death
+- Players are NEVER extracted when they die - they remain in game and respawn
+
+**Third Fix Attempt (2025-07-26)**:
+- Added check in `update_msdp_affects()` (handler.c:1018-1019) to skip MSDP updates when `GET_POS(ch) == POS_DEAD`
+- This might work because `dam_killed_vict()` sets `GET_POS(victim) = POS_DEAD` at line 4736 BEFORE calling `die()` → `raw_kill()`
+- The death sequence: damage → dam_killed_vict (sets POS_DEAD) → die → raw_kill (removes affects) → affect_remove → update_msdp_affects
 
 **Testing Required**:
 - Test player death in various combat scenarios

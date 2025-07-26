@@ -1012,8 +1012,10 @@ void update_msdp_affects(struct char_data *ch)
   if (!ch || !ch->desc || IS_NPC(ch))
     return;
 
-  /* Skip MSDP updates during death processing to prevent crashes */
-  if (PLR_FLAGGED(ch, PLR_NOTDEADYET))
+  /* Skip MSDP updates during player death processing to prevent crashes
+   * When a player dies, affects are removed which triggers this function
+   * But the descriptor may be in an unstable state during death processing */
+  if (GET_POS(ch) == POS_DEAD)
     return;
 
   /* Skip if client doesn't support MSDP */

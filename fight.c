@@ -1988,10 +1988,16 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
   }
 }
 
-/* PC death: we are not extracting OR creating corpses.  Open to
-     restoring corpse creation upon creation of a good corpse
-     saving solution so we do not have to worry about copyover
-     or crashes deleting all of the PC's gear */
+/* IMPORTANT: Player characters (PCs) are NEVER extracted from the game when they die!
+ * - NPCs are extracted (removed from game completely) when they die
+ * - PCs remain in the game world after death - they are moved to a respawn room
+ * - PCs keep their connection and can continue playing after death
+ * - This is why we handle affects differently for PCs vs NPCs below
+ * 
+ * PC death: we are not extracting OR creating corpses.  Open to
+ * restoring corpse creation upon creation of a good corpse
+ * saving solution so we do not have to worry about copyover
+ * or crashes deleting all of the PC's gear */
 void raw_kill(struct char_data *ch, struct char_data *killer)
 {
   struct char_data *k, *temp;
