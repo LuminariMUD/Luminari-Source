@@ -2051,6 +2051,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
   obj_data *o = NULL;
   room_data *r = NULL;
   long id = 0;
+  int detaching_self = 0;
 
   id_p = two_arguments_u(cmd, arg, trignum_s);
   skip_spaces(&id_p);
@@ -2095,8 +2096,18 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
 
   if (c && SCRIPT(c))
   {
+    /* Check if we're detaching our own script */
+    if (sc == SCRIPT(c) && (go == c || (type == MOB_TRIGGER && go == c)))
+    {
+      detaching_self = 1;
+    }
+    
     if (!strcmp(trignum_s, "all"))
     {
+      if (detaching_self)
+      {
+        dg_owner_purged = 1;
+      }
       extract_script(c, MOB_TRIGGER);
       return;
     }
@@ -2104,6 +2115,10 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
     {
       if (!TRIGGERS(SCRIPT(c)))
       {
+        if (detaching_self)
+        {
+          dg_owner_purged = 1;
+        }
         extract_script(c, MOB_TRIGGER);
       }
     }
@@ -2112,8 +2127,18 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
 
   if (o && SCRIPT(o))
   {
+    /* Check if we're detaching our own script */
+    if (sc == SCRIPT(o) && (go == o || (type == OBJ_TRIGGER && go == o)))
+    {
+      detaching_self = 1;
+    }
+    
     if (!strcmp(trignum_s, "all"))
     {
+      if (detaching_self)
+      {
+        dg_owner_purged = 1;
+      }
       extract_script(o, OBJ_TRIGGER);
       return;
     }
@@ -2121,6 +2146,10 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
     {
       if (!TRIGGERS(SCRIPT(o)))
       {
+        if (detaching_self)
+        {
+          dg_owner_purged = 1;
+        }
         extract_script(o, OBJ_TRIGGER);
       }
     }
@@ -2129,8 +2158,18 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
 
   if (r && SCRIPT(r))
   {
+    /* Check if we're detaching our own script */
+    if (sc == SCRIPT(r) && (go == r || (type == WLD_TRIGGER && go == r)))
+    {
+      detaching_self = 1;
+    }
+    
     if (!strcmp(trignum_s, "all"))
     {
+      if (detaching_self)
+      {
+        dg_owner_purged = 1;
+      }
       extract_script(r, WLD_TRIGGER);
       return;
     }
@@ -2138,6 +2177,10 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
     {
       if (!TRIGGERS(SCRIPT(r)))
       {
+        if (detaching_self)
+        {
+          dg_owner_purged = 1;
+        }
         extract_script(r, WLD_TRIGGER);
       }
     }
@@ -2814,7 +2857,7 @@ int script_driver(void *go_adress, trig_data *trig, int type, int mode)
   dg_owner_purged = 0;
 
   for (cl = (mode == TRIG_NEW) ? trig->cmdlist : trig->curr_state;
-       cl && GET_TRIG_DEPTH(trig); cl = cl->next)
+       cl && GET_TRIG_DEPTH(trig) && !dg_owner_purged; cl = cl->next)
   {
     for (p = cl->cmd; *p && isspace(*p); p++)
       ;
@@ -2979,7 +3022,14 @@ int script_driver(void *go_adress, trig_data *trig, int type, int mode)
         process_attach(go, sc, trig, type, cmd);
 
       else if (!strn_cmp(cmd, "detach ", 7))
+      {
         process_detach(go, sc, trig, type, cmd);
+        if (dg_owner_purged)
+        {
+          depth--;
+          return ret_val;
+        }
+      }
 
       else
       {

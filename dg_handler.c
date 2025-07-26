@@ -76,7 +76,8 @@ int remove_var(struct trig_var_data **var_list, char *name)
 }
 
 /* Return memory used by a trigger. The command list is free'd when changed and
- * when shutting down. */
+ * when shutting down. Note: The cmdlist is shared between all instances of a
+ * trigger and is only freed when the prototype is destroyed in destroy_db(). */
 void free_trigger(struct trig_data *trig)
 {
   free(trig->name);

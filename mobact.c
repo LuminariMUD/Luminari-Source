@@ -1609,6 +1609,14 @@ void mobile_activity(void)
   {
     next_ch = ch->next;
 
+    /* Defensive check - verify character is still valid */
+    if (!ch || ch->in_room == NOWHERE)
+      continue;
+
+    /* CRITICAL: Skip characters marked for extraction */
+    if (MOB_FLAGGED(ch, MOB_NOTDEADYET))
+      continue;
+
     if (IN_ROOM(ch) > top_of_world)
       continue;
 
@@ -1784,12 +1792,18 @@ void mobile_activity(void)
             // We don't want abandoned random encounters killing people they weren't meant for
             hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
             found = TRUE;
+            /* CRITICAL: mob may have been extracted during combat */
+            if (!ch || ch->in_room == NOWHERE)
+              break;
           }
           else if (!mob_is_encounter)
           {
             // all other aggro mobs
             hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
             found = TRUE;
+            /* CRITICAL: mob may have been extracted during combat */
+            if (!ch || ch->in_room == NOWHERE)
+              break;
           }
         }
       }
@@ -1811,6 +1825,9 @@ void mobile_activity(void)
       {
         act("'!!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+        /* CRITICAL: mob may have been extracted during combat */
+        if (!ch || ch->in_room == NOWHERE)
+          continue;
       }
     }
 
@@ -1845,6 +1862,9 @@ void mobile_activity(void)
         act("$n jumps to the aid of $N!", FALSE, ch, 0, vict, TO_ROOM);
         hit(ch, FIGHTING(vict), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         found = TRUE;
+        /* CRITICAL: mob may have been extracted during combat */
+        if (!ch || ch->in_room == NOWHERE)
+          break;
       }
       if (found)
         continue;
@@ -1872,7 +1892,10 @@ void mobile_activity(void)
           if (FIGHTING(vict) && !rand_number(0, 3) && !ROOM_FLAGGED(vict->in_room, ROOM_NOTRACK))
           {
             perform_move(ch, door, 1);
-            return;
+            /* CRITICAL: mob may have been extracted during move */
+            if (!ch || ch->in_room == NOWHERE)
+              return;
+            continue;
           }
         }
       }
@@ -1889,7 +1912,12 @@ void mobile_activity(void)
       {
         /* If the mob is charmed, do not move the mob. */
         if (ch->master == NULL)
+        {
           perform_move(ch, door, 1);
+          /* CRITICAL: mob may have been extracted during move */
+          if (!ch || ch->in_room == NOWHERE)
+            continue;
+        }
       }
 
     /* helping group members use to be here, now its in

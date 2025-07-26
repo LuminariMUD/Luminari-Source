@@ -2446,6 +2446,13 @@ void extract_char_final(struct char_data *ch)
     exit(1);
   }
 
+  /* Clear last_attacker references to this character */
+  for (k = character_list; k; k = k->next) {
+    if (k->last_attacker == ch) {
+      k->last_attacker = NULL;
+    }
+  }
+
   /* We're booting the character of someone who has switched so first we need
    * to stuff them back into their own body.  This will set ch->desc we're
    * checking below this loop to the proper value. */
@@ -3088,7 +3095,7 @@ int find_all_dots(char *arg)
     return (FIND_ALL);
   else if (!strncmp(arg, "all.", 4))
   {
-    strcpy(arg, arg + 4); /* strcpy: OK (always less) */
+    memmove(arg, arg + 4, strlen(arg + 4) + 1); /* Use memmove for overlapping regions */
     return (FIND_ALLDOT);
   }
   else

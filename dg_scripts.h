@@ -219,7 +219,7 @@ int entry_mtrigger(char_data *ch);
 void entry_memory_mtrigger(char_data *ch);
 int enter_wtrigger(room_data *room, char_data *actor, int dir);
 int drop_otrigger(obj_data *obj, char_data *actor);
-void timer_otrigger(obj_data *obj);
+int timer_otrigger(obj_data *obj);
 int get_otrigger(obj_data *obj, char_data *actor);
 int drop_wtrigger(obj_data *obj, char_data *actor);
 int give_otrigger(obj_data *obj, char_data *actor,
