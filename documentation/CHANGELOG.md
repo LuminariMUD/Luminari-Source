@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 2025-07-26
+
+### Critical Bug Fix Attempts
+
+#### Additional Fix Attempt for Player Death Crash - MSDP Protocol Issue
+- **Issue**: Server still crashing during player death after initial fix, but in different location
+- **New Stack Trace**: Crash occurring in `protocol.c` during `AllocString()` call from MSDP affect updates
+- **Root Cause**: 
+  - During death processing, `raw_kill()` removes all affects from the character
+  - Each `affect_remove()` call triggers `affect_total()` which calls `update_msdp_affects()`
+  - MSDP protocol tries to send updates to the client during death processing
+  - Character descriptor may be in unstable state during death, causing malloc errors
+- **Solution Attempt**: 
+  - Added check in `update_msdp_affects()` to skip MSDP updates when `PLR_NOTDEADYET` flag is set
+  - This prevents any protocol operations during the critical death processing phase
+- **Files Modified**: 
+  - handler.c:1016-1017 (added PLR_NOTDEADYET check in update_msdp_affects)
+- **Impact**: Attempts to prevent crashes by skipping MSDP protocol updates during death processing
+
 ## 2025-07-25
 
 ### Critical Bug Fixes

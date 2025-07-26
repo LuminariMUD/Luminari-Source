@@ -6,7 +6,7 @@
 
 #### Player Death Crash (Memory Corruption)
 **Priority: CRITICAL**
-**Status: Fix Implemented - Testing Required**
+**Status: Additional Fix Attempt - Testing Required**
 
 **Problem**: Game crashes during player death when `save_char()` tries to allocate memory with `calloc()`. The crash occurs in `malloc_consolidate()`, indicating heap corruption.
 
@@ -91,11 +91,22 @@ clear_char_event_list(ch);
    - Check for PLR_NOTDEADYET flag (player pending extraction)
    - Check for MOB_NOTDEADYET flag (NPC pending extraction)
 
+**Additional Fix Attempt (2025-07-26)**:
+After initial fix, crash still occurred but in a different location:
+- New crash in `protocol.c` during MSDP affect updates
+- Stack trace showed: `affect_remove()` → `affect_total()` → `update_msdp_affects()` → crash in `AllocString()`
+- Root cause: MSDP protocol updates being sent during death processing when character state is unstable
+
+**Second Fix Applied**:
+- Added check in `update_msdp_affects()` (handler.c:1016-1017) to skip MSDP updates when `PLR_NOTDEADYET` flag is set
+- This prevents protocol operations during death processing
+
 **Testing Required**:
 - Test player death in various combat scenarios
 - Verify no crashes occur during death processing
 - Confirm combat events properly stop when character dies
 - Monitor for any side effects of early event clearing
+- Verify MSDP updates resume normally after death processing completes
 
 
 ---

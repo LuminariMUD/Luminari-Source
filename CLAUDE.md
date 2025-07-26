@@ -27,7 +27,7 @@ This file provides comprehensive guidance for AI assistants (Claude, GPT, etc.) 
 
 LuminariMUD is a sophisticated text-based multiplayer online role-playing game (MUD) server implementing authentic Pathfinder/D&D 3.5 mechanics. Built on the proven tbaMUD/CircleMUD foundation, it features:
 
-- **Authentic D&D 3.5 Rules**: Complete implementation of classes, races, feats, skills, and spells
+- **Authentic D&D 3.5 Rules / D20 / and Pathfinder-Inspired**: Complete implementation of classes, races, feats, skills, and spells
 - **Advanced Combat System**: Initiative-based combat with tactical positioning and combat modes
 - **Dynamic Scripting**: DG Scripts for interactive content and complex behaviors
 - **Online Building Tools**: Comprehensive OLC system for world creation
@@ -36,7 +36,7 @@ LuminariMUD is a sophisticated text-based multiplayer online role-playing game (
 - **Advanced Systems**: Crafting, psionics, templates, missions, hunts, encounters
 
 ### Current Version
-- **LuminariMUD** (based on tbaMUD 3.64)
+- **LuminariMUD** (built on tbaMUD/CircleMUD/CWG [Circle with Goodies]/d20MUD [Stephen Squires])
 - **Language**: C (ANSI C90/C89 - NOT C99!) with C++ performance monitoring
   - **IMPORTANT**: The codebase does NOT compile with C99 mode enabled
   - **DO NOT** use C99 features like:
@@ -44,17 +44,11 @@ LuminariMUD is a sophisticated text-based multiplayer online role-playing game (
     - Mixed declarations and code
     - Variable length arrays
   - **ALWAYS** declare variables at the beginning of blocks
-- **Platform**: Linux/Unix systems, WSL/Windows compatible
+- **Platform**: Linux/Unix systems (CentOS), WSL/Windows compatible
 - **Database**: MySQL 5.0+ or MariaDB
 - **Compiler**: GCC/Clang (without -std=c99 flag)
 
 ### Recent Development Focus (2025)
-- **Performance Optimization**: Zone resets O(n²) to O(n), mobile activity caching, NPC casting efficiency
-- **Database Schema Fixes**: Resolved missing column errors (idnum in house_data, player_save_objs)
-- **NPC Safety**: Fixed PRF_FLAGGED access violations for NPCs
-- **Documentation Overhaul**: Comprehensive technical documentation system
-- **Memory Management**: Fixed leaks and improved allocation patterns
-- **Build System**: Modern compiler compatibility and automated testing
 
 ## Build Commands
 ```bash
@@ -105,12 +99,12 @@ The project includes deployment scripts for different environments:
 # Deploy to dev environment
 ./copydlbinarytodev.sh    # Dragonlance variant
 ./copyfrbinarytodev.sh    # Faerun variant
-./cpbin2dev.sh           # Generic deployment
+./cpbin2dev.sh           # LuminariMUD (default) deployment
 
 # Deploy to live environment  
 ./copydlbinarytolive.sh   # Dragonlance variant
 ./copyfrbinarytolive.sh   # Faerun variant
-./cpbin2live.sh          # Generic deployment
+./cpbin2live.sh          # LuminariMUD (default)  deployment
 ```
 
 ## Architecture Overview

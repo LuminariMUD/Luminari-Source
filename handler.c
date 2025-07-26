@@ -1012,6 +1012,10 @@ void update_msdp_affects(struct char_data *ch)
   if (!ch || !ch->desc || IS_NPC(ch))
     return;
 
+  /* Skip MSDP updates during death processing to prevent crashes */
+  if (PLR_FLAGGED(ch, PLR_NOTDEADYET))
+    return;
+
   /* Skip if client doesn't support MSDP */
   if (!ch->desc->pProtocol || !ch->desc->pProtocol->bMSDP)
     return;
