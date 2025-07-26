@@ -1478,6 +1478,8 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
 void clear_char_event_list(struct char_data *ch)
 {
   struct event *pEvent = NULL;
+  struct item_data *pItem = NULL;
+  struct item_data *pNextItem = NULL;
   struct list_data *temp_list = NULL;
 
   if (ch->events == NULL)
@@ -1489,25 +1491,34 @@ void clear_char_event_list(struct char_data *ch)
   /* Create a temporary list to hold events that need to be cancelled */
   temp_list = create_list();
 
-  /* First pass: collect all events that need cancelling */
-  simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(ch->events)) != NULL)
+  /* First pass: collect all events that need cancelling using safe iteration */
+  pItem = ch->events->pFirstItem;
+  while (pItem)
   {
+    pNextItem = pItem->pNextItem;  /* Cache next pointer before any modifications */
+    pEvent = (struct event *)pItem->pContent;
+    
     /* Here we have an issue - If we are currently executing an event, and it results in a char
      * having their events cleared (death) then we must be sure that we don't clear the executing
      * event!  Doing so will crash the event system. */
-    if (event_is_queued(pEvent))
+    if (pEvent && event_is_queued(pEvent))
       add_to_list(pEvent, temp_list);
+      
+    pItem = pNextItem;
   }
-  simple_list(NULL);
 
-  /* Second pass: cancel the collected events */
-  simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(temp_list)) != NULL)
+  /* Second pass: cancel the collected events using safe iteration */
+  pItem = temp_list->pFirstItem;
+  while (pItem)
   {
-    event_cancel(pEvent);
+    pNextItem = pItem->pNextItem;  /* Cache next pointer before event_cancel */
+    pEvent = (struct event *)pItem->pContent;
+    
+    if (pEvent)
+      event_cancel(pEvent);
+      
+    pItem = pNextItem;
   }
-  simple_list(NULL);
 
   /* Clean up the temporary list */
   free_list(temp_list);
