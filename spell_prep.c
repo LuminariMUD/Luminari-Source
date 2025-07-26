@@ -10,22 +10,43 @@
 
 /* Extra credits:  Gicker for Sorcerer Bloodlines */
 
-/** START general notes */
-/*
- *  The two major elements of the spell-preparation system include:
- *  1) preparation queue - these are spell in queue for preparation
- *  2) spell collection - these are all the spells that are prepared
- *                        ready for usage, better known as "prepared spells"
- *
- *  Terminology:
- *   innate_magic: we are calling the sorcerer/bard type system innate_magic
- *   to differentiate the language of the classes that truly prepare their
- *   spells
- *
- *  TODO:
- *    *slots assignment by feats
+/**
+ * @file spell_prep.c
+ * @brief Complete spell preparation system implementation for LuminariMUD
+ * 
+ * This file implements the entire spell preparation and management system for
+ * all spellcasting classes in LuminariMUD. It handles two distinct casting
+ * paradigms:
+ * 
+ * 1. PREPARATION-BASED CASTING (Wizard, Cleric, Druid, Ranger, Paladin, etc.)
+ *    - Must select and prepare specific spells in advance
+ *    - Spells are queued for preparation, taking real time to complete
+ *    - Once prepared, spells move to a "collection" ready to be cast
+ *    - After casting, the spell is consumed and must be prepared again
+ * 
+ * 2. SPONTANEOUS/INNATE CASTING (Sorcerer, Bard, Inquisitor, Summoner)
+ *    - Know a limited set of spells permanently
+ *    - Have spell "slots" by circle that can be used for any known spell
+ *    - Don't prepare specific spells, just recover spell slots over time
+ *    - Can cast any known spell using an available slot of that circle
+ * 
+ * KEY CONCEPTS:
+ * - Preparation Queue: Spells currently being prepared (prep time counting down)
+ * - Spell Collection: Fully prepared spells ready to cast
+ * - Innate Magic Queue: Available spell slots for spontaneous casters
+ * - Known Spells: List of spells a spontaneous caster can choose from
+ * 
+ * The system also handles:
+ * - Metamagic modifications (quicken, maximize, etc.)
+ * - Domain spells for divine casters
+ * - Bloodline spells for sorcerers
+ * - Saving/loading spell data to player files
+ * - Real-time preparation with interruption handling
+ * 
+ * TODO:
+ * - Convert spell slot system to be feat-based
+ * - Implement epic spell handling
  */
-/** END general notes */
 
 /** START header files **/
 #include "conf.h"
@@ -47,69 +68,136 @@
 
 /** START Globals **/
 
-/* toggle for debug mode
-   true = annoying messages used for debugging
-   false = normal gameplay */
+/**
+ * DEBUGMODE - Toggle for verbose debug output
+ * 
+ * When set to TRUE, various functions will send detailed debug messages
+ * to help track spell preparation flow. Should be FALSE for production.
+ */
 #define DEBUGMODE FALSE
 
 /** END Globals **/
 
-/* START linked list utility */
+/* START linked list utility - Core data structure management */
 
-/* clear a ch's spell prep queue, example ch loadup */
+/**
+ * init_spell_prep_queue - Initialize all preparation queues to NULL
+ * @ch: Character to initialize
+ * 
+ * Called during character creation or login when no saved spell data exists.
+ * Sets all class preparation queue pointers to NULL to ensure clean state.
+ * Must be called before any spell preparation operations.
+ */
 void init_spell_prep_queue(struct char_data *ch)
 {
   int ch_class = 0;
+  
+  /* Loop through all possible classes and NULL their queue pointers */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     SPELL_PREP_QUEUE(ch, ch_class) = NULL;
 }
-/* clear a ch's innate magic queue, example ch loadup */
+
+/**
+ * init_innate_magic_queue - Initialize all innate magic queues to NULL
+ * @ch: Character to initialize
+ * 
+ * Sets up empty innate magic queues for spontaneous casters.
+ * Called during character creation or when loading a character
+ * without saved innate magic data.
+ */
 void init_innate_magic_queue(struct char_data *ch)
 {
   int ch_class = 0;
+  
+  /* Initialize each class's innate magic queue */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     INNATE_MAGIC(ch, ch_class) = NULL;
 }
-/* clear a ch's spell collection, example ch loadup */
+
+/**
+ * init_collection_queue - Initialize all spell collections to NULL
+ * @ch: Character to initialize
+ * 
+ * Creates empty spell collections for all classes. The collection
+ * holds fully prepared spells ready to be cast. Called during
+ * character creation or login without saved collection data.
+ */
 void init_collection_queue(struct char_data *ch)
 {
   int ch_class = 0;
+  
+  /* Clear all class collections */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     SPELL_COLLECTION(ch, ch_class) = NULL;
 }
-/* clear a ch's spell known, example ch loadup */
+
+/**
+ * init_known_spells - Initialize all known spell lists to NULL
+ * @ch: Character to initialize
+ * 
+ * Sets up empty known spell lists for spontaneous casters.
+ * These lists track which spells the character can cast using
+ * their available spell slots.
+ */
 void init_known_spells(struct char_data *ch)
 {
   int ch_class = 0;
+  
+  /* Initialize each class's known spell list */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     KNOWN_SPELLS(ch, ch_class) = NULL;
 }
 
-/* clear prep queue by class */
+/**
+ * clear_prep_queue_by_class - Remove all spells from a class's prep queue
+ * @ch: Character whose queue to clear
+ * @ch_class: Specific class to clear
+ * 
+ * Walks through the preparation queue linked list for the specified class,
+ * freeing each node. Used when a character forgets all spells, changes
+ * classes, or needs to reset their spell preparation.
+ * 
+ * Safety: Checks for NULL character and player_specials before proceeding.
+ */
 void clear_prep_queue_by_class(struct char_data *ch, int ch_class)
 {
   struct prep_collection_spell_data *tmp, *next;
   
+  /* Safety checks - NPCs don't have player_specials */
   if (!ch || !ch->player_specials)
     return;
   
+  /* Walk the linked list, freeing each node */
   tmp = SPELL_PREP_QUEUE(ch, ch_class);
   while (tmp)
   {
-    next = tmp->next;
+    next = tmp->next;  /* Save next pointer before freeing */
     free(tmp);
     tmp = next;
   }
+  
+  /* Reset the head pointer to NULL */
   SPELL_PREP_QUEUE(ch, ch_class) = NULL;
 }
-/* clear innate magic by class */
+
+/**
+ * clear_innate_magic_by_class - Remove all spell slots for a class
+ * @ch: Character whose slots to clear
+ * @ch_class: Specific class to clear
+ * 
+ * Frees all innate magic slot entries for spontaneous casters.
+ * Used when resetting a character's available spell slots or
+ * when they lose access to a spontaneous casting class.
+ */
 void clear_innate_magic_by_class(struct char_data *ch, int ch_class)
 {
   struct innate_magic_data *tmp, *next;
   
+  /* Safety checks */
   if (!ch || !ch->player_specials)
     return;
   
+  /* Free all nodes in the innate magic list */
   tmp = INNATE_MAGIC(ch, ch_class);
   while (tmp)
   {
@@ -117,16 +205,29 @@ void clear_innate_magic_by_class(struct char_data *ch, int ch_class)
     free(tmp);
     tmp = next;
   }
+  
+  /* Clear the head pointer */
   INNATE_MAGIC(ch, ch_class) = NULL;
 }
-/* clear collection by class */
+
+/**
+ * clear_collection_by_class - Remove all prepared spells for a class
+ * @ch: Character whose collection to clear
+ * @ch_class: Specific class to clear
+ * 
+ * Empties the spell collection for a specific class, effectively
+ * "forgetting" all prepared spells. The character will need to
+ * prepare spells again from scratch.
+ */
 void clear_collection_by_class(struct char_data *ch, int ch_class)
 {
   struct prep_collection_spell_data *tmp, *next;
   
+  /* Safety checks */
   if (!ch || !ch->player_specials)
     return;
   
+  /* Walk through and free all collection entries */
   tmp = SPELL_COLLECTION(ch, ch_class);
   while (tmp)
   {
@@ -134,16 +235,29 @@ void clear_collection_by_class(struct char_data *ch, int ch_class)
     free(tmp);
     tmp = next;
   }
+  
+  /* Reset the collection to empty */
   SPELL_COLLECTION(ch, ch_class) = NULL;
 }
-/* clear known spells by class */
+
+/**
+ * clear_known_spells_by_class - Remove all known spells for a class
+ * @ch: Character whose knowledge to clear
+ * @ch_class: Specific class to clear
+ * 
+ * Removes all spells from a spontaneous caster's known spell list.
+ * This is permanent spell knowledge loss - the character will need
+ * to relearn spells through leveling or other means.
+ */
 void clear_known_spells_by_class(struct char_data *ch, int ch_class)
 {
   struct known_spell_data *tmp, *next;
   
+  /* Safety checks */
   if (!ch || !ch->player_specials)
     return;
   
+  /* Free all known spell entries */
   tmp = KNOWN_SPELLS(ch, ch_class);
   while (tmp)
   {
@@ -151,152 +265,347 @@ void clear_known_spells_by_class(struct char_data *ch, int ch_class)
     free(tmp);
     tmp = next;
   }
+  
+  /* Clear the known spells list */
   KNOWN_SPELLS(ch, ch_class) = NULL;
 }
 
-/* destroy the spell prep queue, example ch logout */
+/**
+ * destroy_spell_prep_queue - Free all preparation queues for all classes
+ * @ch: Character logging out or being destroyed
+ * 
+ * Master cleanup function called during character logout or deletion.
+ * Iterates through all classes and clears their preparation queues
+ * to prevent memory leaks. This ensures all dynamically allocated
+ * spell preparation data is properly freed.
+ */
 void destroy_spell_prep_queue(struct char_data *ch)
 {
   int ch_class;
   
+  /* Safety check - NPCs don't have spell queues */
   if (!ch || !ch->player_specials)
     return;
     
+  /* Clear prep queue for every class */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     clear_prep_queue_by_class(ch, ch_class);
 }
-/* destroy the innate magic queue, example ch logout */
+
+/**
+ * destroy_innate_magic_queue - Free all innate magic slots for all classes
+ * @ch: Character logging out or being destroyed
+ * 
+ * Cleanup function for spontaneous casters' spell slot data.
+ * Called during logout to ensure all innate magic queue memory
+ * is properly freed across all classes.
+ */
 void destroy_innate_magic_queue(struct char_data *ch)
 {
   int ch_class;
   
+  /* Safety check */
   if (!ch || !ch->player_specials)
     return;
     
+  /* Clear innate magic for every class */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     clear_innate_magic_by_class(ch, ch_class);
 }
-/* destroy the spell destroy_spell_collection, example ch logout */
+
+/**
+ * destroy_spell_collection - Free all spell collections for all classes
+ * @ch: Character logging out or being destroyed
+ * 
+ * Master cleanup for prepared spell collections. Ensures all
+ * prepared spells are removed from memory when a character
+ * logs out or is deleted. Note the typo in the old comment
+ * "destroy_spell_destroy_spell_collection" has been fixed.
+ */
 void destroy_spell_collection(struct char_data *ch)
 {
   int ch_class;
   
+  /* Safety check */
   if (!ch || !ch->player_specials)
     return;
     
+  /* Clear collection for every class */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     clear_collection_by_class(ch, ch_class);
 }
-/* destroy the known spells, example ch logout */
+
+/**
+ * destroy_known_spells - Free all known spell lists for all classes
+ * @ch: Character logging out or being destroyed
+ * 
+ * Cleanup function for spontaneous casters' spell knowledge.
+ * Frees all memory associated with known spell lists across
+ * all classes. Called during character logout/deletion.
+ */
 void destroy_known_spells(struct char_data *ch)
 {
   int ch_class;
   
+  /* Safety check */
   if (!ch || !ch->player_specials)
     return;
     
+  /* Clear known spells for every class */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     clear_known_spells_by_class(ch, ch_class);
 }
 
-/* save into ch pfile their spell-preparation queue, example ch saving */
+/**
+ * save_prep_queue_by_class - Save one class's preparation queue to file
+ * @fl: Open file handle for writing
+ * @ch: Character whose data to save
+ * @class: Specific class queue to save
+ * 
+ * Writes all spells currently being prepared for a specific class.
+ * Format per line: class spell_num metamagic prep_time domain
+ * Example: "0 123 3 45 0" = Wizard preparing fireball with quicken+empower, 45 seconds left
+ * 
+ * Called by save_spell_prep_queue() for each class.
+ */
 void save_prep_queue_by_class(FILE *fl, struct char_data *ch, int class)
 {
   struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
   struct prep_collection_spell_data *next;
+  
+  /* Walk the linked list and save each entry */
   for (; current; current = next)
   {
     next = current->next;
-    fprintf(fl, "%d %d %d %d %d\n", class, current->spell, current->metamagic,
-            current->prep_time, current->domain);
+    fprintf(fl, "%d %d %d %d %d\n", 
+            class,                /* Class number */
+            current->spell,       /* Spell number being prepared */
+            current->metamagic,   /* Metamagic flags as bitmask */
+            current->prep_time,   /* Seconds remaining to prepare */
+            current->domain);     /* Domain (for clerics) or 0 */
   }
 }
-/* save into ch pfile their innate magic queue, example ch saving */
+
+/**
+ * save_innate_magic_by_class - Save one class's innate magic slots to file
+ * @fl: Open file handle for writing
+ * @ch: Character whose data to save
+ * @class: Specific class slots to save
+ * 
+ * For spontaneous casters, saves available spell slots by circle.
+ * Format: class circle metamagic prep_time domain
+ * The circle replaces spell_num since spontaneous casters prepare slots, not spells.
+ */
 void save_innate_magic_by_class(FILE *fl, struct char_data *ch, int class)
 {
   struct innate_magic_data *current = INNATE_MAGIC(ch, class);
   struct innate_magic_data *next;
+  
+  /* Save each spell slot entry */
   for (; current; current = next)
   {
     next = current->next;
-    fprintf(fl, "%d %d %d %d %d\n", class, current->circle, current->metamagic,
-            current->prep_time, current->domain);
+    fprintf(fl, "%d %d %d %d %d\n", 
+            class,                /* Class number */
+            current->circle,      /* Spell circle (1-9) */
+            current->metamagic,   /* Pre-applied metamagic (rare) */
+            current->prep_time,   /* Time until slot is ready */
+            current->domain);     /* Domain (usually 0 for innate) */
   }
 }
-/* save into ch pfile their spell-collection, example ch saving */
+
+/**
+ * save_collection_by_class - Save one class's prepared spells to file
+ * @fl: Open file handle for writing
+ * @ch: Character whose data to save
+ * @class: Specific class collection to save
+ * 
+ * Saves all fully prepared spells ready to cast.
+ * Format matches prep queue: class spell_num metamagic prep_time domain
+ * prep_time is usually 0 for collection entries since they're ready.
+ */
 void save_collection_by_class(FILE *fl, struct char_data *ch, int class)
 {
   struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class);
   struct prep_collection_spell_data *next;
+  
+  /* Save each prepared spell */
   for (; current; current = next)
   {
     next = current->next;
-    fprintf(fl, "%d %d %d %d %d\n", class, current->spell, current->metamagic,
-            current->prep_time, current->domain);
+    fprintf(fl, "%d %d %d %d %d\n", 
+            class,                /* Class number */
+            current->spell,       /* Spell number ready to cast */
+            current->metamagic,   /* Metamagic flags applied */
+            current->prep_time,   /* Usually 0 (ready) */
+            current->domain);     /* Domain spell indicator */
   }
 }
-/* save into ch pfile their known spells, example ch saving */
+
+/**
+ * save_known_spells_by_class - Save one class's known spell list to file
+ * @fl: Open file handle for writing
+ * @ch: Character whose data to save
+ * @class: Specific class knowledge to save
+ * 
+ * For spontaneous casters, saves which spells they can cast.
+ * Format: class spell_num (simpler than other saves)
+ * No metamagic/prep_time/domain needed for spell knowledge.
+ */
 void save_known_spells_by_class(FILE *fl, struct char_data *ch, int class)
 {
   struct known_spell_data *current = KNOWN_SPELLS(ch, class);
   struct known_spell_data *next;
+  
+  /* Save each known spell */
   for (; current; current = next)
   {
     next = current->next;
-    fprintf(fl, "%d %d\n", class, current->spell);
+    fprintf(fl, "%d %d\n", 
+            class,            /* Class number */
+            current->spell);  /* Spell number known */
   }
 }
 
-/* save into ch pfile their spell-preparation queue, example ch saving */
+/**
+ * save_spell_prep_queue - Master save function for all preparation queues
+ * @fl: Open file handle for writing
+ * @ch: Character whose data to save
+ * 
+ * Saves all spell preparation queues across all classes to the player file.
+ * File format:
+ *   PrQu:                    (header identifying prep queue section)
+ *   [queue entries...]       (0 or more lines of spell data)
+ *   -1 -1 -1 -1 -1          (sentinel marking end of section)
+ * 
+ * Called during character save operations.
+ */
 void save_spell_prep_queue(FILE *fl, struct char_data *ch)
 {
   int ch_class;
+  
+  /* Write section header */
   fprintf(fl, "PrQu:\n");
+  
+  /* Save each class's prep queue */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     save_prep_queue_by_class(fl, ch, ch_class);
+    
+  /* Write sentinel to mark end of prep queue data */
   fprintf(fl, "-1 -1 -1 -1 -1\n");
 }
-/* save into ch pfile their innate magic queue, example ch saving */
+
+/**
+ * save_innate_magic_queue - Master save function for all innate magic slots
+ * @fl: Open file handle for writing
+ * @ch: Character whose data to save
+ * 
+ * Saves spell slot data for spontaneous casters across all classes.
+ * File format:
+ *   InMa:                    (header for innate magic section)
+ *   [slot entries...]        (0 or more lines of slot data)
+ *   -1 -1 -1 -1 -1          (sentinel marking end)
+ */
 void save_innate_magic_queue(FILE *fl, struct char_data *ch)
 {
   int ch_class;
+  
+  /* Write section header */
   fprintf(fl, "InMa:\n");
+  
+  /* Save each class's innate magic slots */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     save_innate_magic_by_class(fl, ch, ch_class);
+    
+  /* Write sentinel */
   fprintf(fl, "-1 -1 -1 -1 -1\n");
 }
-/* save into ch pfile their spell collection, example ch saving */
+
+/**
+ * save_spell_collection - Master save function for all prepared spells
+ * @fl: Open file handle for writing
+ * @ch: Character whose data to save
+ * 
+ * Saves all fully prepared spells ready to cast.
+ * File format:
+ *   Coll:                    (header for collection section)
+ *   [spell entries...]       (0 or more prepared spells)
+ *   -1 -1 -1 -1 -1          (sentinel)
+ */
 void save_spell_collection(FILE *fl, struct char_data *ch)
 {
   int ch_class;
+  
+  /* Write section header */
   fprintf(fl, "Coll:\n");
+  
+  /* Save each class's collection */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     save_collection_by_class(fl, ch, ch_class);
+    
+  /* Write sentinel */
   fprintf(fl, "-1 -1 -1 -1 -1\n");
 }
-/* save into ch pfile their known spells, example ch saving */
+
+/**
+ * save_known_spells - Master save function for all known spell lists
+ * @fl: Open file handle for writing
+ * @ch: Character whose data to save
+ * 
+ * Saves spell knowledge for spontaneous casters.
+ * File format:
+ *   KnSp:                    (header for known spells)
+ *   [spell entries...]       (class + spell number pairs)
+ *   -1 -1                    (sentinel - only 2 values)
+ * 
+ * Note: Sentinel is shorter because known spells only save 2 values per line.
+ */
 void save_known_spells(FILE *fl, struct char_data *ch)
 {
   int ch_class;
+  
+  /* Write section header */
   fprintf(fl, "KnSp:\n");
+  
+  /* Save each class's known spells */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
     save_known_spells_by_class(fl, ch, ch_class);
+    
+  /* Write sentinel (only 2 values for known spells) */
   fprintf(fl, "-1 -1\n");
 }
 
-/* give: ch, class, spellnum, and metamagic:
-   return: true if we found/removed, false if we didn't find */
+/**
+ * prep_queue_remove_by_class - Find and remove spell from preparation queue
+ * @ch: Character whose queue to search
+ * @class: Class to check  
+ * @spellnum: Spell number to find
+ * @metamagic: Metamagic flags that must match exactly
+ * 
+ * Searches through the preparation queue for the specified class looking
+ * for an exact match of spell number and metamagic combination. If found,
+ * removes it from the queue and frees the memory.
+ * 
+ * This is used when:
+ * - A spell finishes preparing and moves to collection
+ * - Player uses forget/blank/etc commands to cancel preparation
+ * - Character dies or loses ability to cast
+ * 
+ * Returns: TRUE if spell was found and removed, FALSE if not found
+ */
 bool prep_queue_remove_by_class(struct char_data *ch, int class, int spellnum,
                                 int metamagic)
 {
   struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
   struct prep_collection_spell_data *next;
 
+  /* Walk the linked list looking for exact match */
   for (; current; current = next)
   {
     next = current->next;
     if (current->spell == spellnum && current->metamagic == metamagic)
     {
+      /* Found it - remove from list and free */
       prep_queue_remove(ch, current, class);
       return TRUE;
     }
@@ -304,19 +613,37 @@ bool prep_queue_remove_by_class(struct char_data *ch, int class, int spellnum,
 
   return FALSE;
 }
-/* give: ch, class, spellnum, and metamagic:
-   return: true if we found/removed, false if we didn't find */
+/**
+ * innate_magic_remove_by_class - Find and remove spell slot from innate magic
+ * @ch: Character whose slots to search
+ * @class: Class to check (must be spontaneous caster)
+ * @circle: Spell circle of the slot to find
+ * @metamagic: Metamagic flags that must match
+ * 
+ * For spontaneous casters (Sorcerer, Bard, etc.), searches the innate
+ * magic queue for a slot matching the specified circle and metamagic.
+ * If found, removes it from the queue.
+ * 
+ * Used when:
+ * - A spell slot finishes recovering and becomes available
+ * - Character loses ability to cast
+ * - Slot is consumed by casting
+ * 
+ * Returns: TRUE if slot was found and removed, FALSE if not found
+ */
 bool innate_magic_remove_by_class(struct char_data *ch, int class, int circle,
                                   int metamagic)
 {
   struct innate_magic_data *current = INNATE_MAGIC(ch, class);
   struct innate_magic_data *next;
 
+  /* Search for matching circle and metamagic */
   for (; current; current = next)
   {
     next = current->next;
     if (current->circle == circle && current->metamagic == metamagic)
     {
+      /* Found matching slot - remove it */
       innate_magic_remove(ch, current, class);
       return TRUE;
     }
@@ -324,8 +651,26 @@ bool innate_magic_remove_by_class(struct char_data *ch, int class, int circle,
 
   return FALSE;
 }
-/* give: ch, class, spellnum, and metamagic:
-   return: true if we found/removed, false if we didn't find */
+/**
+ * collection_remove_by_class - Find and remove prepared spell from collection
+ * @ch: Character whose collection to search
+ * @class: Class to check
+ * @spellnum: Spell number to find
+ * @metamagic: Metamagic flags that must match exactly
+ * 
+ * Searches the spell collection (fully prepared spells) for an exact
+ * match of spell number and metamagic. If found, removes it from the
+ * collection and frees memory.
+ * 
+ * This is the primary function called when:
+ * - A spell is cast (moves from collection to prep queue)
+ * - Player uses forget/blank commands on prepared spells
+ * - Character loses casting ability
+ * 
+ * Note: Debug mode will output trace information if enabled
+ * 
+ * Returns: TRUE if spell was found and removed, FALSE if not found
+ */
 bool collection_remove_by_class(struct char_data *ch, int class, int spellnum,
                                 int metamagic)
 {
@@ -337,11 +682,13 @@ bool collection_remove_by_class(struct char_data *ch, int class, int spellnum,
     send_to_char(ch, "{entered collection_remove_by_class()}    ");
   }
 
+  /* Search collection for exact spell+metamagic match */
   for (; current; current = next)
   {
     next = current->next;
     if (current->spell == spellnum && current->metamagic == metamagic)
     {
+      /* Found it - remove from collection */
       collection_remove(ch, current, class);
       return TRUE;
     }
@@ -349,18 +696,38 @@ bool collection_remove_by_class(struct char_data *ch, int class, int spellnum,
 
   return FALSE;
 }
-/* give: ch, class, spellnum, and metamagic:
-   return: true if we found/removed, false if we didn't find */
+/**
+ * known_spells_remove_by_class - Find and remove spell from known list
+ * @ch: Character whose knowledge to modify
+ * @class: Class to check (must be spontaneous caster)
+ * @spellnum: Spell number to remove
+ * 
+ * For spontaneous casters, removes a spell from their permanent
+ * spell knowledge. This is a significant action as it means the
+ * character can no longer cast this spell at all.
+ * 
+ * Used when:
+ * - Character is retraining/respeccing
+ * - A curse or effect removes spell knowledge
+ * - Character violates class restrictions
+ * 
+ * Note: No metamagic parameter needed as spell knowledge is
+ * independent of how the spell might be cast
+ * 
+ * Returns: TRUE if spell was found and removed, FALSE if not found
+ */
 bool known_spells_remove_by_class(struct char_data *ch, int class, int spellnum)
 {
   struct known_spell_data *current = KNOWN_SPELLS(ch, class);
   struct known_spell_data *next;
 
+  /* Search for the spell in known list */
   for (; current; current = next)
   {
     next = current->next;
     if (current->spell == spellnum)
     {
+      /* Found it - remove from knowledge */
       known_spells_remove(ch, current, class);
       return TRUE;
     }
@@ -369,57 +736,98 @@ bool known_spells_remove_by_class(struct char_data *ch, int class, int spellnum)
   return FALSE;
 }
 
-/* remove a spell from a character's prep-queue(in progress) linked list */
+/**
+ * prep_queue_remove - Low-level removal of prep queue entry
+ * @ch: Character owning the queue
+ * @entry: Exact entry to remove from the list
+ * @class: Class whose queue contains the entry
+ * 
+ * Low-level function that handles the actual linked list manipulation
+ * to remove an entry from the preparation queue. This should not be
+ * called directly - use prep_queue_remove_by_class() instead.
+ * 
+ * Safety: Calls core_dump() if queue is NULL when it shouldn't be,
+ * indicating memory corruption or logic error.
+ * 
+ * Note: The REMOVE_FROM_LIST macro handles relinking the list
+ */
 void prep_queue_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
                        int class)
 {
   struct prep_collection_spell_data *temp;
 
+  /* Sanity check - queue should exist if we're removing from it */
   if (SPELL_PREP_QUEUE(ch, class) == NULL)
   {
     core_dump();
     return;
   }
+  
+  /* Remove from linked list and free memory */
   REMOVE_FROM_LIST(entry, SPELL_PREP_QUEUE(ch, class), next);
   free(entry);
 }
-/* remove a spell from a character's innate magic(in progress) linked list */
+/**
+ * innate_magic_remove - Low-level removal of innate magic entry
+ * @ch: Character owning the queue
+ * @entry: Exact slot entry to remove
+ * @class: Class whose innate magic contains the entry
+ * 
+ * Low-level function for removing spell slot entries from the
+ * innate magic queue. Used by spontaneous casters when slots
+ * finish recovering or are consumed.
+ * 
+ * Should not be called directly - use innate_magic_remove_by_class()
+ * 
+ * Safety: Calls core_dump() if queue is unexpectedly NULL
+ */
 void innate_magic_remove(struct char_data *ch, struct innate_magic_data *entry,
                          int class)
 {
   struct innate_magic_data *temp;
 
+  /* Sanity check */
   if (INNATE_MAGIC(ch, class) == NULL)
   {
     core_dump();
     return;
   }
+  
+  /* Unlink and free the slot entry */
   REMOVE_FROM_LIST(entry, INNATE_MAGIC(ch, class), next);
   free(entry);
 }
 
-/* remove a spell from a character's collection (completed) linked list */
+/**
+ * collection_remove - Low-level removal of collection entry
+ * @ch: Character owning the collection
+ * @entry: Exact spell entry to remove
+ * @class: Class whose collection contains the entry
+ * 
+ * Low-level function that removes a fully prepared spell from
+ * the collection. This happens when a spell is cast or forgotten.
+ * 
+ * The debug output shows the full spell data being removed, which
+ * is useful for tracking spell usage patterns.
+ * 
+ * Should not be called directly - use collection_remove_by_class()
+ * 
+ * Safety: Calls core_dump() if collection is unexpectedly NULL,
+ * with extra debug output in DEBUGMODE
+ */
 void collection_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
                        int class)
 {
   struct prep_collection_spell_data *temp;
 
-  /*struct prep_collection_spell_data
-  {
-      int spell;     // spellnum of this spell in the collection
-      int metamagic; // Bitvector of metamagic affecting this spell.
-      int prep_time; // Remaining time for preparing this spell.
-      int domain;    // domain info
-
-      struct prep_collection_spell_data *next; // linked-list
-  };*/
-
+  /* Debug trace if enabled */
   if (DEBUGMODE)
   {
     send_to_char(ch, "{entered collection_remove(), variables: caster: %s, spellnum: %d, domain: %d, prep-time: %d, meta-magic: %d}    ",
                  GET_NAME(ch), entry->spell, entry->domain, entry->prep_time, entry->metamagic);
   }
 
+  /* Sanity check - collection should exist */
   if (SPELL_COLLECTION(ch, class) == NULL)
   {
     if (DEBUGMODE)
@@ -429,96 +837,200 @@ void collection_remove(struct char_data *ch, struct prep_collection_spell_data *
     core_dump();
     return;
   }
+  
+  /* Remove from collection and free */
   REMOVE_FROM_LIST(entry, SPELL_COLLECTION(ch, class), next);
   free(entry);
 }
-/* remove a spell from a character's known spells linked list */
+/**
+ * known_spells_remove - Low-level removal of known spell entry
+ * @ch: Character losing spell knowledge
+ * @entry: Exact spell entry to remove
+ * @class: Class whose known spells contains the entry
+ * 
+ * Low-level function that removes a spell from a spontaneous
+ * caster's known spell list. This is permanent spell loss.
+ * 
+ * Should not be called directly - use known_spells_remove_by_class()
+ * 
+ * Safety: Calls core_dump() if list is unexpectedly NULL
+ */
 void known_spells_remove(struct char_data *ch, struct known_spell_data *entry,
                          int class)
 {
   struct known_spell_data *temp;
 
+  /* Sanity check */
   if (KNOWN_SPELLS(ch, class) == NULL)
   {
     core_dump();
     return;
   }
+  
+  /* Remove from known list and free */
   REMOVE_FROM_LIST(entry, KNOWN_SPELLS(ch, class), next);
   free(entry);
 }
 
-/* add a spell to a character's prep-queue(in progress) linked list */
+/**
+ * prep_queue_add - Add spell to preparation queue
+ * @ch: Character preparing the spell
+ * @ch_class: Class to prepare spell for
+ * @spellnum: Spell number to prepare
+ * @metamagic: Metamagic flags to apply
+ * @prep_time: Time in seconds to prepare
+ * @domain: Domain if this is a domain spell
+ * 
+ * Creates a new preparation queue entry and adds it to the head
+ * of the linked list. The spell will count down prep_time seconds
+ * before moving to the collection.
+ * 
+ * Note: Adds to head of list, so newest preparations are processed
+ * last (LIFO order allows prioritization of older spells)
+ */
 void prep_queue_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
                     int prep_time, int domain)
 {
   struct prep_collection_spell_data *entry;
 
+  /* Allocate new entry */
   CREATE(entry, struct prep_collection_spell_data, 1);
+  
+  /* Fill in spell data */
   entry->spell = spellnum;
   entry->metamagic = metamagic;
   entry->prep_time = prep_time;
   entry->domain = domain;
+  
+  /* Add to head of list */
   entry->next = SPELL_PREP_QUEUE(ch, ch_class);
   SPELL_PREP_QUEUE(ch, ch_class) = entry;
 }
-/* add a spell to a character's innate magic (in progress) linked list */
+/**
+ * innate_magic_add - Add spell slot to innate magic queue
+ * @ch: Character gaining the slot
+ * @ch_class: Class to add slot for (must be spontaneous caster)
+ * @circle: Spell circle of the slot
+ * @metamagic: Metamagic flags (rarely used for slots)
+ * @prep_time: Time until slot is ready
+ * @domain: Domain (usually DOMAIN_UNDEFINED for innate)
+ * 
+ * For spontaneous casters, adds a spell slot that's recovering.
+ * Once prep_time reaches 0, the slot becomes available for
+ * casting any known spell of that circle.
+ * 
+ * Unlike preparation casters who prepare specific spells,
+ * spontaneous casters just need available slots by circle.
+ */
 void innate_magic_add(struct char_data *ch, int ch_class, int circle, int metamagic,
                       int prep_time, int domain)
 {
   struct innate_magic_data *entry;
 
+  /* Allocate new slot entry */
   CREATE(entry, struct innate_magic_data, 1);
+  
+  /* Fill in slot data */
   entry->circle = circle;
   entry->metamagic = metamagic;
   entry->prep_time = prep_time;
   entry->domain = domain;
+  
+  /* Add to head of list */
   entry->next = INNATE_MAGIC(ch, ch_class);
   INNATE_MAGIC(ch, ch_class) = entry;
 }
-/* add a spell to a character's prep-queue(in progress) linked list */
+/**
+ * collection_add - Add prepared spell to collection
+ * @ch: Character who prepared the spell
+ * @ch_class: Class the spell is prepared for
+ * @spellnum: Spell number that's ready
+ * @metamagic: Metamagic flags applied
+ * @prep_time: Usually 0 (spell is ready)
+ * @domain: Domain if this is a domain spell
+ * 
+ * Adds a fully prepared spell to the collection, making it
+ * available for immediate casting. This is called when a spell
+ * finishes preparation or when loading from saved data.
+ * 
+ * The collection represents the character's "spell book" of
+ * ready-to-cast spells. Once cast, spells are removed from here.
+ * 
+ * Note: The comment saying "prep-queue" is incorrect - this adds
+ * to the collection, not the prep queue.
+ */
 void collection_add(struct char_data *ch, int ch_class, int spellnum, int metamagic,
                     int prep_time, int domain)
 {
   struct prep_collection_spell_data *entry;
 
+  /* Allocate new collection entry */
   CREATE(entry, struct prep_collection_spell_data, 1);
+  
+  /* Fill in prepared spell data */
   entry->spell = spellnum;
   entry->metamagic = metamagic;
-  entry->prep_time = prep_time;
+  entry->prep_time = prep_time;  /* Usually 0 for ready spells */
   entry->domain = domain;
+  
+  /* Add to head of collection */
   entry->next = SPELL_COLLECTION(ch, ch_class);
   SPELL_COLLECTION(ch, ch_class) = entry;
 }
-/* add a spell to a character's known spells linked list */
+/**
+ * known_spells_add - Add spell to spontaneous caster's known list
+ * @ch: Character learning the spell
+ * @ch_class: Class to learn spell for
+ * @spellnum: Spell number to learn
+ * @loading: TRUE if loading from file (skip validation)
+ * 
+ * For spontaneous casters (Sorcerer, Bard, etc.), adds a spell
+ * to their permanent spell knowledge. The character can then cast
+ * this spell using any available slot of the appropriate circle.
+ * 
+ * When not loading, validates that the character hasn't exceeded
+ * their maximum spells known for that circle/level. Each class
+ * has different limits based on class tables.
+ * 
+ * Note: Known spells don't store metamagic or domain info since
+ * those are applied at casting time, not learning time.
+ * 
+ * Returns: TRUE if spell was added, FALSE if at limit or invalid
+ */
 bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loading)
 {
   int circle = compute_spells_circle(ch, ch_class, spellnum, METAMAGIC_NONE, DOMAIN_UNDEFINED);
   int caster_level = CLASS_LEVEL(ch, ch_class) + BONUS_CASTER_LEVEL(ch, ch_class);
 
+  /* When not loading, check if character can learn more spells */
   if (!loading)
   {
     switch (ch_class)
     {
     case CLASS_WARLOCK:
     case CLASS_BARD:
+      /* Check against bard spells known table */
       if (bard_known[caster_level][circle] - count_known_spells_by_circle(ch, ch_class, circle) <= 0)
         return FALSE;
       break;
     case CLASS_SUMMONER:
+      /* Check against summoner spells known table */
       if (summoner_known[caster_level][circle] - count_known_spells_by_circle(ch, ch_class, circle) <= 0)
         return FALSE;
       break;
     case CLASS_INQUISITOR:
+      /* Check against inquisitor spells known table */
       if (inquisitor_known[caster_level][circle] - count_known_spells_by_circle(ch, ch_class, circle) <= 0)
         return FALSE;
       break;
     case CLASS_SORCERER:
+      /* Sorcerers use spell slots as their known spell limit */
       if (compute_slots_by_circle(ch, ch_class, circle) -
-              // sorcerer_known[caster_level][circle] -
               count_known_spells_by_circle(ch, ch_class, circle) <= 0)
         return FALSE;
       break;
     case CLASS_PSIONICIST:
+      /* Psionicists have a total power limit, not per-circle */
       if ((num_psionicist_powers_available(ch) - num_psionicist_powers_known(ch)) <= 0)
         return FALSE;
       break;
@@ -527,131 +1039,231 @@ bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loa
 
   struct known_spell_data *entry;
 
+  /* Create and initialize the known spell entry */
   CREATE(entry, struct known_spell_data, 1);
   entry->spell = spellnum;
-  entry->metamagic = METAMAGIC_NONE;
-  entry->prep_time = 0;
-  entry->domain = DOMAIN_UNDEFINED;
+  entry->metamagic = METAMAGIC_NONE;  /* Not used for known spells */
+  entry->prep_time = 0;               /* Not used for known spells */
+  entry->domain = DOMAIN_UNDEFINED;   /* Not used for known spells */
+  
+  /* Add to head of known spells list */
   entry->next = KNOWN_SPELLS(ch, ch_class);
   KNOWN_SPELLS(ch, ch_class) = entry;
 
   return TRUE;
 }
 
-/* load from pfile into ch their spell-preparation queue, example ch login */
+/**
+ * load_spell_prep_queue - Load all prep queues from file
+ * @fl: Open file pointer to read from
+ * @ch: Character to load data into
+ * 
+ * Reads preparation queue data from player file during login.
+ * Each line contains: class spell_num metamagic prep_time domain
+ * Continues reading until sentinel (-1 -1 -1 -1 -1) or MAX_MEM limit.
+ * 
+ * This restores any spells that were being prepared when the
+ * character last logged out, maintaining their preparation progress.
+ * 
+ * Note: Ideally this function belongs in players.c with other
+ * load functions, but is kept here for organizational purposes.
+ */
 void load_spell_prep_queue(FILE *fl, struct char_data *ch)
 {
   int spell_num, ch_class, metamagic, prep_time, domain, counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
+  /* Read entries until sentinel or limit reached */
   do
   {
+    /* Initialize variables for safety */
     ch_class = 0;
     spell_num = 0;
     metamagic = 0;
     prep_time = 0;
     domain = 0;
 
+    /* Read next line from file */
     get_line(fl, line);
     sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
            &domain);
 
+    /* -1 is the sentinel value marking end of section */
     if (ch_class != -1)
       prep_queue_add(ch, ch_class, spell_num, metamagic, prep_time, domain);
 
     counter++;
   } while (counter < MAX_MEM && spell_num != -1);
 }
-/* load from pfile into ch their innate magic queue, example ch login */
+/**
+ * load_innate_magic_queue - Load all innate magic slots from file
+ * @fl: Open file pointer to read from
+ * @ch: Character to load data into
+ * 
+ * Reads innate magic slot data for spontaneous casters from player file.
+ * Each line contains: class circle metamagic prep_time domain
+ * Note that circle replaces spell_num since spontaneous casters prepare
+ * slots by circle, not specific spells.
+ * 
+ * Continues until sentinel (-1 -1 -1 -1 -1) or MAX_MEM limit.
+ * Restores any spell slots that were still recovering at logout.
+ */
 void load_innate_magic_queue(FILE *fl, struct char_data *ch)
 {
   int circle, ch_class, metamagic, prep_time, domain, counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
+  /* Read entries until sentinel or limit */
   do
   {
+    /* Initialize for safety */
     ch_class = 0;
     circle = 0;
     metamagic = 0;
     prep_time = 0;
     domain = 0;
 
+    /* Read next line */
     get_line(fl, line);
     sscanf(line, "%d %d %d %d %d", &ch_class, &circle, &metamagic, &prep_time,
            &domain);
 
+    /* -1 marks end of section */
     if (ch_class != -1)
       innate_magic_add(ch, ch_class, circle, metamagic, prep_time, domain);
 
     counter++;
   } while (counter < MAX_MEM && circle != -1);
 }
-/* load from pfile into ch their spell collection, example ch login */
+/**
+ * load_spell_collection - Load all prepared spells from file
+ * @fl: Open file pointer to read from
+ * @ch: Character to load data into
+ * 
+ * Reads prepared spell collection data from player file during login.
+ * Each line contains: class spell_num metamagic prep_time domain
+ * These are fully prepared spells ready to cast immediately.
+ * 
+ * Continues until sentinel (-1 -1 -1 -1 -1) or MAX_MEM limit.
+ * Restores the character's "spell book" of ready spells.
+ */
 void load_spell_collection(FILE *fl, struct char_data *ch)
 {
   int spell_num, ch_class, metamagic, prep_time, domain, counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
+  /* Read entries until sentinel or limit */
   do
   {
+    /* Initialize for safety */
     ch_class = 0;
     spell_num = 0;
     metamagic = 0;
-    prep_time = 0;
+    prep_time = 0;    /* Usually 0 for collection */
     domain = 0;
 
+    /* Read next line */
     get_line(fl, line);
     sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
            &domain);
 
+    /* -1 marks end of section */
     if (ch_class != -1)
       collection_add(ch, ch_class, spell_num, metamagic, prep_time, domain);
 
     counter++;
   } while (counter < MAX_MEM && spell_num != -1);
 }
-/* load from pfile into ch their known spells, example ch login */
+/**
+ * load_known_spells - Load all known spell lists from file
+ * @fl: Open file pointer to read from
+ * @ch: Character to load data into
+ * 
+ * Reads known spell data for spontaneous casters from player file.
+ * Each line contains only: class spell_num (simpler than other formats)
+ * No metamagic/prep_time/domain needed for spell knowledge.
+ * 
+ * Continues until sentinel (-1 -1) or MAX_MEM limit.
+ * The TRUE parameter to known_spells_add() skips validation checks.
+ */
 void load_known_spells(FILE *fl, struct char_data *ch)
 {
   int spell_num, ch_class, counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
+  /* Read entries until sentinel or limit */
   do
   {
+    /* Initialize for safety */
     ch_class = 0;
     spell_num = 0;
 
+    /* Read next line */
     get_line(fl, line);
     sscanf(line, "%d %d", &ch_class, &spell_num);
 
+    /* -1 marks end of section */
     if (ch_class != -1)
-      known_spells_add(ch, ch_class, spell_num, TRUE);
+      known_spells_add(ch, ch_class, spell_num, TRUE);  /* TRUE = loading, skip checks */
 
     counter++;
   } while (counter < MAX_MEM && ch_class != -1);
 }
 
-/* given a circle/class, count how many items of this circle in prep queue */
+/**
+ * count_circle_prep_queue - Count spells of given circle in prep queue
+ * @ch: Character to check
+ * @class: Class to examine
+ * @circle: Spell circle to count
+ * 
+ * Counts how many spells in the preparation queue belong to the
+ * specified circle. Must calculate effective circle for each spell
+ * since metamagic can modify the base circle.
+ * 
+ * Used to determine if character has room for more spells of this
+ * circle based on their slot limits.
+ * 
+ * Returns: Number of spells of that circle being prepared
+ */
 int count_circle_prep_queue(struct char_data *ch, int class, int circle)
 {
   int this_circle = 0, counter = 0;
   struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, class);
   struct prep_collection_spell_data *next;
 
+  /* Walk the prep queue */
   for (; current; current = next)
   {
     next = current->next;
+    
+    /* Calculate effective circle including metamagic */
     this_circle = compute_spells_circle(ch, class,
                                         current->spell,
                                         current->metamagic,
                                         current->domain);
+    
+    /* Count if it matches our target circle */
     if (this_circle == circle)
       counter++;
   }
 
   return counter;
 }
-/* given a circle/class, count how many items of this circle in innate magic queue */
+/**
+ * count_circle_innate_magic - Count spell slots of given circle for spontaneous casters
+ * @ch: Character to check
+ * @class: Class to examine (should be spontaneous caster)
+ * @circle: Spell circle to count
+ * 
+ * For spontaneous casters (Sorcerer, Bard, etc.), counts how many spell
+ * slots of the specified circle are currently in the innate magic queue.
+ * These represent slots that are still recovering and not yet available.
+ * 
+ * Unlike preparation casters who track specific spells, spontaneous
+ * casters only track slots by circle level.
+ * 
+ * Returns: Number of slots of that circle still recovering
+ */
 int count_circle_innate_magic(struct char_data *ch, int class, int circle)
 {
   int counter = 0;
@@ -667,7 +1279,24 @@ int count_circle_innate_magic(struct char_data *ch, int class, int circle)
 
   return counter;
 }
-/* given a circle/class, count how many items of this circle in the collection */
+/**
+ * count_circle_collection - Count prepared spells of given circle
+ * @ch: Character to check
+ * @class: Class to examine
+ * @circle: Spell circle to count
+ * 
+ * Counts how many fully prepared spells of the specified circle
+ * are in the character's collection (ready to cast). Must calculate
+ * the effective circle for each spell since metamagic can modify it.
+ * 
+ * This is used to determine spell slot availability and whether
+ * the character has room to prepare more spells of this circle.
+ * 
+ * Note: For preparation casters only - spontaneous casters don't
+ * use collections in the same way.
+ * 
+ * Returns: Number of prepared spells of that circle
+ */
 int count_circle_collection(struct char_data *ch, int class, int circle)
 {
   int this_circle = 0, counter = 0;
@@ -687,7 +1316,26 @@ int count_circle_collection(struct char_data *ch, int class, int circle)
 
   return counter;
 }
-/* for innate magic-types:  counts how many spells you have of a given circle */
+/**
+ * count_known_spells_by_circle - Count known spells by circle for spontaneous casters
+ * @ch: Character to check
+ * @class: Spontaneous caster class (Sorcerer, Bard, etc.)
+ * @circle: Spell circle to count (1-9)
+ * 
+ * For spontaneous casters, counts how many spells they know of a
+ * specific circle. This is used to check against class tables that
+ * limit spells known per circle.
+ * 
+ * Special handling:
+ * - Sorcerers: Excludes bloodline spells (they're bonus spells)
+ * - Other classes: Simple count of spells at that circle
+ * 
+ * Each spontaneous caster class has different limits:
+ * - Sorcerers: Use spell slots as their limit
+ * - Bards/Summoners/Inquisitors: Use specific "spells known" tables
+ * 
+ * Returns: Number of non-bonus spells known at that circle
+ */
 int count_known_spells_by_circle(struct char_data *ch, int class, int circle)
 {
   int counter = 0;
@@ -722,7 +1370,22 @@ int count_known_spells_by_circle(struct char_data *ch, int class, int circle)
   return counter;
 }
 
-/* for psionicists - how many total powers do you know */
+/**
+ * num_psionicist_powers_known - Count total psionic powers known
+ * @ch: Character to check (should have psionicist levels)
+ * 
+ * Psionicists have a different system than other casters - they
+ * have a total limit on powers known across all circles, rather
+ * than per-circle limits.
+ * 
+ * Only counts valid psionic powers (between PSIONIC_POWER_START
+ * and PSIONIC_POWER_END). Other entries are ignored.
+ * 
+ * Used with num_psionicist_powers_available() to determine if
+ * the psionicist can learn more powers.
+ * 
+ * Returns: Total number of psionic powers known
+ */
 int num_psionicist_powers_known(struct char_data *ch)
 {
   int counter = 0;
@@ -743,7 +1406,25 @@ int num_psionicist_powers_known(struct char_data *ch)
   return counter;
 }
 
-/* returns the number of powers a psionicist may know in total from any and all power circles */
+/**
+ * num_psionicist_powers_available - Calculate max powers a psionicist can know
+ * @ch: Character to check
+ * 
+ * Calculates the total number of psionic powers a character can
+ * know based on their psionicist level and various bonuses.
+ * 
+ * Formula:
+ * - Base: 1 power
+ * - +2 powers per psionicist level (up to level 20)
+ * - +Intelligence bonus
+ * - +1 per rank of Expanded Knowledge feat
+ * 
+ * This represents the character's mental capacity to hold
+ * psionic knowledge. Compare with num_psionicist_powers_known()
+ * to see if they can learn more.
+ * 
+ * Returns: Maximum number of powers the psionicist can know
+ */
 int num_psionicist_powers_available(struct char_data *ch)
 {
   int i = 0, level = GET_PSIONIC_LEVEL(ch), num_powers = 1;
@@ -758,7 +1439,24 @@ int num_psionicist_powers_available(struct char_data *ch)
   return num_powers;
 }
 
-/* total # of slots consumed by circle X */
+/**
+ * count_total_slots - Count all spell slots in use for a given circle
+ * @ch: Character to check
+ * @class: Class to examine
+ * @circle: Spell circle to count
+ * 
+ * Sums up all spell slots currently allocated for a specific circle
+ * across all three spell management systems:
+ * - Collection: Fully prepared spells ready to cast
+ * - Innate Magic: Recovering spell slots (spontaneous casters)
+ * - Prep Queue: Spells currently being prepared
+ * 
+ * This total is compared against compute_slots_by_circle() to
+ * determine if the character has free slots to prepare/recover
+ * more spells of this circle.
+ * 
+ * Returns: Total slots in use for this circle
+ */
 int count_total_slots(struct char_data *ch, int class, int circle)
 {
 
@@ -770,8 +1468,26 @@ int count_total_slots(struct char_data *ch, int class, int circle)
   return total_slots;
 }
 
-/* in: ch, class, spellnum, metamagic, domain
-   out: bool - is it in our prep queue? */
+/**
+ * is_spell_in_prep_queue - Check if spell is being prepared
+ * @ch: Character to check
+ * @class: Class to check preparation for
+ * @spellnum: Spell number to find
+ * @metamagic: Metamagic flags that must match exactly
+ * 
+ * Searches the preparation queue to see if a specific spell
+ * with exact metamagic combination is currently being prepared.
+ * 
+ * Used to:
+ * - Prevent duplicate preparations
+ * - Check preparation status for display
+ * - Validate spell availability
+ * 
+ * Note: Requires exact metamagic match - a quickened fireball
+ * is different from a normal fireball.
+ * 
+ * Returns: TRUE if spell+metamagic found in prep queue, FALSE otherwise
+ */
 int is_spell_in_prep_queue(struct char_data *ch, int class, int spellnum,
                            int metamagic)
 {
@@ -787,8 +1503,26 @@ int is_spell_in_prep_queue(struct char_data *ch, int class, int spellnum,
 
   return FALSE;
 }
-/* in: ch, class, circle
-   out: bool - is (circle) in our innate magic queue? */
+/**
+ * is_in_innate_magic_queue - Check if spell slot is recovering
+ * @ch: Character to check
+ * @class: Spontaneous caster class to check
+ * @circle: Spell circle to find
+ * 
+ * For spontaneous casters, checks if any spell slot of the
+ * specified circle is currently in the recovery queue.
+ * 
+ * Unlike preparation casters who track specific spells,
+ * spontaneous casters only need to know if they have slots
+ * of a given circle recovering.
+ * 
+ * Used to:
+ * - Display slot recovery status
+ * - Prevent over-allocation of slots
+ * - Check casting availability
+ * 
+ * Returns: TRUE if any slot of that circle is recovering, FALSE otherwise
+ */
 bool is_in_innate_magic_queue(struct char_data *ch, int class, int circle)
 {
   struct innate_magic_data *current = INNATE_MAGIC(ch, class);
@@ -803,9 +1537,30 @@ bool is_in_innate_magic_queue(struct char_data *ch, int class, int circle)
 
   return FALSE;
 }
-/* in: ch, class, spellnum, metamagic, domain
- *   search mode allows a general search with ONLY spellnum
-   out: bool - is it in our collection? */
+/**
+ * is_spell_in_collection - Check if spell is prepared and ready
+ * @ch: Character to check
+ * @class: Class to check collection for
+ * @spellnum: Spell number to find
+ * @metamagic: Metamagic flags that must match exactly
+ * 
+ * Searches the spell collection to see if a specific spell with
+ * exact metamagic combination is prepared and ready to cast.
+ * 
+ * The collection holds fully prepared spells that can be cast
+ * immediately. This is the primary check used by the casting
+ * system to validate spell availability.
+ * 
+ * Used by:
+ * - spell_prep_gen_check() to validate casting
+ * - spell_prep_gen_extract() to move spell when cast
+ * - Display functions to show available spells
+ * 
+ * Note: The comment about "search mode" appears outdated - this
+ * function always requires exact metamagic match.
+ * 
+ * Returns: TRUE if spell+metamagic found in collection, FALSE otherwise
+ */
 bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
                             int metamagic)
 {
@@ -828,8 +1583,31 @@ bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
 
   return FALSE;
 }
-/* in: ch, spellnum, class (should only be bard/sorc so far)
-   out: bool, is a known spell or not */
+/**
+ * is_a_known_spell - Check if spontaneous caster knows a spell
+ * @ch: Character to check
+ * @class: Spontaneous caster class
+ * @spellnum: Spell to check for
+ * 
+ * For spontaneous casters, determines if they have permanent
+ * knowledge of a spell and can cast it using available slots.
+ * 
+ * Special cases handled:
+ * - Sorcerer bloodline spells (automatic knowledge)
+ * - Cleric/Inquisitor domain spells (bonus knowledge)
+ * - Psionicist epic powers
+ * - NPC psionicists (automatic knowledge)
+ * 
+ * This is the key difference between spontaneous and preparation
+ * casters - spontaneous casters have permanent spell knowledge
+ * and use slots flexibly, while preparation casters must prepare
+ * specific spells in advance.
+ * 
+ * Note: Missing break after CLASS_CLERIC case may cause fall-through
+ * bug where clerics check epic powers.
+ * 
+ * Returns: TRUE if character knows the spell, FALSE otherwise
+ */
 bool is_a_known_spell(struct char_data *ch, int class, int spellnum)
 {
   /*DEBUG*/ /*
@@ -856,9 +1634,11 @@ bool is_a_known_spell(struct char_data *ch, int class, int spellnum)
   case CLASS_CLERIC:
     if (is_domain_spell_of_ch(ch, spellnum))
       return TRUE;
+    break;
   case CLASS_PSIONICIST:
     if (has_epic_power(ch, spellnum))
       return TRUE;
+    break;
   default:
     break;
   }
@@ -976,22 +1756,42 @@ int get_sorc_bloodline(struct char_data *ch)
 
 /* START helper functions */
 
-/* in: spellnum, class, metamagic, domain(cleric)
- * out: the circle this spell (now) belongs, above num-circles if failed
- * given above info, compute which circle this spell belongs to
- * in addition we have metamagic that can modify the spell-circle as well */
+/**
+ * compute_spells_circle - Calculate which circle a spell belongs to
+ * @ch: Character casting/preparing the spell
+ * @char_class: Class being used to cast
+ * @spellnum: Base spell number
+ * @metamagic: Metamagic flags that modify the circle
+ * @domain: Domain for clerics (can reduce spell level)
+ * 
+ * This is one of the most important functions in the spell system.
+ * It converts from the spell level system (1-20) to spell circles (1-9).
+ * 
+ * The complexity exists because:
+ * 1. Different classes get the same spell at different levels
+ * 2. Metamagic increases the effective circle of a spell
+ * 3. Domain spells may be available at lower levels for clerics
+ * 4. Some classes (bard, ranger, etc.) have compressed spell progressions
+ * 5. Automatic metamagic feats can reduce the circle increase
+ * 
+ * Returns: Spell circle (1-9) or NUM_CIRCLES+1 if invalid/too high
+ */
 int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, int metamagic, int domain)
 {
-  int metamagic_mod = 0;
-  int spell_circle = 0;
-  int min_level = 0;
+  int metamagic_mod = 0;  /* Circle adjustment from metamagic */
+  int spell_circle = 0;   /* Final calculated circle */
+  int min_level = 0;      /* Minimum level to cast this spell */
 
-  if (char_class != CLASS_WARLOCK && char_class != CLASS_PSIONICIST && (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS))
-    return (NUM_CIRCLES + 1);
-  else if (char_class == CLASS_PSIONICIST && (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END))
-    return (NUM_CIRCLES + 1);
-  else if (char_class == CLASS_WARLOCK && (spellnum < WARLOCK_POWER_START || spellnum > WARLOCK_POWER_END))
-    return (NUM_CIRCLES + 1);
+  /* Validate spell number based on class type */
+  if (char_class != CLASS_WARLOCK && char_class != CLASS_PSIONICIST && 
+      (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS))
+    return (NUM_CIRCLES + 1);  /* Invalid spell number */
+  else if (char_class == CLASS_PSIONICIST && 
+           (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END))
+    return (NUM_CIRCLES + 1);  /* Not a valid psionic power */
+  else if (char_class == CLASS_WARLOCK && 
+           (spellnum < WARLOCK_POWER_START || spellnum > WARLOCK_POWER_END))
+    return (NUM_CIRCLES + 1);  /* Not a valid warlock invocation */
 
 #ifdef CAMPAIGN_FR
   switch (spellnum)
@@ -1368,7 +2168,7 @@ switch (spellnum)
     spell_circle = spell_info[spellnum].min_level[char_class] / 2;
     if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
     {
-        metamagic -= 4;
+        metamagic_mod -= 4;
     }
     if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
       metamagic_mod -= 1;
@@ -1386,7 +2186,7 @@ switch (spellnum)
     spell_circle = (MIN_SPELL_LVL(spellnum, char_class, domain) + 1) / 2;
     if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
     {
-        metamagic -= 3;
+        metamagic_mod -= 4;
     }
     if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
       metamagic_mod -= 1;
@@ -1402,7 +2202,7 @@ switch (spellnum)
     spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
     if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
     {
-        metamagic -= 3;
+        metamagic_mod -= 4;
     }
     if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
       metamagic_mod -= 1;
@@ -1418,7 +2218,7 @@ switch (spellnum)
     spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
     if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
     {
-        metamagic -= 3;
+        metamagic_mod -= 4;
     }
     if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
       metamagic_mod -= 1;
