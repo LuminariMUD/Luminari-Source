@@ -1,0 +1,2168 @@
+Text      Trelux Backstab~
+Body      You penetrate their back with your superb pincers. 
+~
+Name      Crezilin~
+IdNum     110
+Dated     1359825864
+Level     10
+Room      22004
+Flags     1 0 0 0
+End
+Text      Trelx Backstab~
+Body      <Target> is in torment from your superb pincers.
+~
+Name      Crezilin~
+IdNum     110
+Dated     1359827433
+Level     10
+Room      22003
+Flags     1 0 0 0
+End
+Text      acid arrow message~
+Body      yes
+idea:  Ornir says, 'Zusuk conjures an acidic arrow, launching it at $N'
+~
+Name      Zusuk~
+IdNum     1
+Dated     1360318106
+Level     34
+Room      1207
+Flags     1 0 0 0
+End
+Text      colorcodes in the ugly stick (item)~
+Body      typo submit colorcodes in the ugly stick (item)
+~
+Name      Rave~
+IdNum     862
+Dated     1411504405
+Level     8
+Room      145227
+Flags     1 0 0 0
+End
+Text      spring~
+Body      colocodes on the spring
+~
+Name      Rave~
+IdNum     862
+Dated     1411504867
+Level     8
+Room      145246
+Flags     1 0 0 0
+End
+Text      [stum!]A heavily armored guard pierces holes in the air.~
+Body      i think stum! is meant to be stun!
+[stum!]A heavily armored guard pierces holes in the air.
+~
+Name      Elegon~
+IdNum     936
+Dated     1413696006
+Level     8
+Room      6701
+Flags     1 0 0 0
+End
+Text      beach room type~
+Body      Hot grains of sand stings your face as the searing wind blows hard.
+ should be
+Hot grains of sand sting your face as the searing wind blows hard.
+~
+Name      Treyorn~
+IdNum     706
+Dated     1414895199
+Level     34
+Room      14100
+Flags     1 0 0 0
+End
+Text      hellball hellfire~
+Body      you conjures a pure ball of hellfire
+~
+Name      Ash~
+IdNum     974
+Dated     1415078983
+Level     31
+Room      145209
+Flags     0 0 0 0
+End
+Text      Human Helpfile~
+Body      Noticed that it doesn't mention the extra feat at level 1 in the helpfile. Unless my client is cutting it off
+~
+Name      Enyuu~
+IdNum     995
+Dated     1415727786
+Level     1
+Room      145200
+Flags     0 0 0 0
+End
+Text      Graven: old man quest master~
+Body      The old man speaks softly, "Graven is a fitting name isn't itsomething potential darkling presence 
+puts this small village in grave danger."
+
+should be:
+
+The old man speaks softly, "Graven is a fitting name, isn't it?  The return of the darklings puts us all in grave danger.
+~
+Name      Zendar~
+IdNum     1005
+Dated     1415886873
+Level     6
+Room      6777
+Flags     1 0 0 0
+End
+Text      armor skin spell~
+Body      Resakse says the color is bleeding.
+~
+Name      Treyorn~
+IdNum     706
+Dated     1431104754
+Level     34
+Room      1205
+Flags     0 0 0 0
+End
+Text      Crafting something else while on a craft quest...~
+Body      Shows that you are filling supply order when doing something else.
+~
+Name      Raddo~
+IdNum     1268
+Dated     1439368752
+Level     9
+Room      145210
+Flags     1 0 0 0
+End
+Text      Fire Bolt damage type~
+Body      Should be fire, does say acid in 'fire bolt' help file.
+~
+Name      Domaintest~
+IdNum     1278
+Dated     1439761960
+Level     1
+Room      14100
+Flags     0 0 0 0
+End
+Text      detect invis~
+Body      The message sent to you after casting it on another person or mobile gives you the message as if you casted it on yourself.
+~
+Name      Raddo~
+IdNum     1268
+Dated     1440871795
+Level     30
+Room      11914
+Flags     0 0 0 0
+End
+Text      affects command should be effects~
+Body      'affects' command used to view buffs/etc should be 'effects', affect is the verb, effect is the noun
+~
+Name      Fenris~
+IdNum     1320
+Dated     1445663768
+Level     2
+Room      145208
+Flags     1 0 0 0
+End
+Text      wand~
+Body      You don't seem to be using a wnad. cure blind wand
+~
+Name      Crunch~
+IdNum     1407
+Dated     1449784882
+Level     5
+Room      145269
+Flags     1 0 0 0
+End
+Text      Fighting message~
+Body      The word "balance" was misspelled:
+"It is thrown off-blance by your kick at it!"
+~
+Name      Malukus~
+IdNum     1459
+Dated     1450628441
+Level     2
+Room      145378
+Flags     1 0 0 0
+End
+Text      i'm a rogue and i gained the evasion feat at level 2, but the help files says I shouldn't gain it until level 8~
+Body      i'm a rogue and i gained the evasion feat at level 2, but the help files says I shouldn't gain it until level 8
+~
+Name      Dilirah~
+IdNum     1612
+Dated     1454550652
+Level     2
+Room      145371
+Flags     0 0 0 0
+End
+Text      Game lore typos~
+Body      There's a few typos in the game lore (upon logging in), like "prision", or "pris (new line) ner".
+~
+Name      Kimithras~
+IdNum     1625
+Dated     1454919277
+Level     1
+Room      145202
+Flags     0 0 0 0
+End
+Text      Conceal~
+Body      In the combat system when hitting a concealed enemy it says oconceal instead of conceal
+~
+Name      Wulgar~
+IdNum     1628
+Dated     1456974227
+Level     25
+Room      26902
+Flags     0 0 0 0
+End
+Text      cloudkill~
+Body      This spell conjures a large cloud of poisonous gas that followers
+the caster.  
+I Think this should be "follows" and not "followers".
+~
+Name      Telarious~
+IdNum     1069
+Dated     1457531404
+Level     31
+Room      5922
+Flags     0 0 0 0
+End
+Text      Leather things popping up as leather leather things.~
+Body      Sometimes random leather items pop up as leather leather items.
+~
+Name      Destefan~
+IdNum     1735
+Dated     1458300527
+Level     8
+Room      40409
+Flags     0 0 0 0
+End
+Text      in the back story 2 typos dscovered surive~
+Body      q
+~
+Name      Fallon~
+IdNum     763
+Dated     1458701020
+Level     1
+Room      14100
+Flags     0 0 0 0
+End
+Text      Displacement's help file~
+Body      Shows "target" when it only works only on the caster
+~
+Name      Chrom~
+IdNum     1782
+Dated     1460182415
+Level     13
+Room      24717
+Flags     0 0 0 0
+End
+Text      The desc in this room seems to end abruptly. In my client it shows as "A light source would certainly be re", with no further lines.~
+Body      The desc in this room seems to end abruptly. In my client it shows as "A light source would certainly be re", with no further lines.
+~
+Name      Dewinter~
+IdNum     1987
+Dated     1472623396
+Level     1
+Room      14110
+Flags     1 0 0 0
+End
+Text      struggle helpfile~
+Body      See also: Graple, should say Grapple :)
+~
+Name      Kordon~
+IdNum     1780
+Dated     1472670471
+Level     9
+Room      370
+Flags     0 0 0 0
+End
+Text      Waterdeep Ref~
+Body      This room and the surrounding rooms refer to Waterdeep still.
+~
+Name      Dewinter~
+IdNum     1987
+Dated     1472692949
+Level     2
+Room      103007
+Flags     0 0 0 0
+End
+Text      Stohana quest dialogue~
+Body      In the first interaction with Stohana in the quest line she say:
+She continues, "She continues, seek out the old man near the village center.  He will be able to 
+provide you with some guidance."
+~
+Name      Dewinter~
+IdNum     1987
+Dated     1472790709
+Level     5
+Room      6705
+Flags     1 0 0 0
+End
+Text      unreadable colours~
+Body      This area is pretty much unreadable on a stadnard client due to the colour being used.
+~
+Name      Dewinter~
+IdNum     1987
+Dated     1472794701
+Level     6
+Room      103221
+Flags     1 0 0 0
+End
+Text      Unreadable colour~
+Body      Maybe it is just me but these rooms on Ashenport Way are unreadable in the blue that is being used?
+~
+Name      Dewinter~
+IdNum     1987
+Dated     1472801851
+Level     6
+Room      103299
+Flags     1 0 0 0
+End
+Text      Fix Ashenport dark color palette for readability~
+Body      A couple of typos have popped up in Ashenport based on the dark color palette so readability is needed in Ashenport. Brave souls are warranted.
+~
+Name      Jordan~
+IdNum     740
+Dated     1472824781
+Level     31
+Room      1208
+Flags     0 0 0 0
+End
+Text      unreadable room~
+Body      Dark blues are unreadable here.
+~
+Name      Dewinter~
+IdNum     1987
+Dated     1472915815
+Level     7
+Room      145252
+Flags     1 0 0 0
+End
+Text      unreadable title~
+Body      Unreadable title - dark blue
+~
+Name      Dewinter~
+IdNum     1987
+Dated     1472915847
+Level     7
+Room      145251
+Flags     1 0 0 0
+End
+Text      Legability issue~
+Body      Strange use of colour and some quite dark.
+~
+Name      Dewinter~
+IdNum     1987
+Dated     1472959816
+Level     7
+Room      103225
+Flags     1 0 0 0
+End
+Text      Room overlap~
+Body      This room overlap causes the ANSI map to create what looks like a path through once this room has been opened/entered.
+~
+Name      Amir~
+IdNum     2002
+Dated     1472998744
+Level     2
+Room      145277
+Flags     1 0 0 0
+End
+Text      colour issue~
+Body      Colour missing from final word.
+~
+Name      Amir~
+IdNum     2002
+Dated     1473062193
+Level     4
+Room      145350
+Flags     0 0 0 0
+End
+Text      HELP POWERATTACK and FEAT INFO POWER ATTACK~
+Body      A couple of things related to these files, I may be misunderstanding though:
+a) Both are probably not required, HELP should direct to FEAT INFO?
+b) The syntax appears to be POWERATTACK 1? Although I have no idea what the number is for.
+c) The prereqs seem incorrect. This feat was not available to me at lvl 1 despite my str being 15.
+~
+Name      Amir~
+IdNum     2002
+Dated     1473131405
+Level     5
+Room      145293
+Flags     0 0 0 0
+End
+Text      Ornir - Suggested change~
+Body      Suggestion (passive language): It appears as if more scrub and underbrush begins to appear to the south. The trail continues to wind its way north through the gloom.     
+~
+Name      Amir~
+IdNum     2002
+Dated     1473152976
+Level     7
+Room      101708
+Flags     0 0 0 0
+End
+Text      Ornir: Suggested edit~
+Body      Final word (covering) is white. Is this on purpose?
+~
+Name      Amir~
+IdNum     2002
+Dated     1473153276
+Level     7
+Room      101709
+Flags     0 0 0 0
+End
+Text      Ornir: Colour~
+Body      bright blue is difficult to read.
+~
+Name      Amir~
+IdNum     2002
+Dated     1473156015
+Level     7
+Room      101776
+Flags     1 0 0 0
+End
+Text      helpfile for call familiar~
+Body      method used for charcter's to call, change charcter's to characters
+~
+Name      Merron~
+IdNum     2004
+Dated     1473192247
+Level     2
+Room      145206
+Flags     0 0 0 0
+End
+Text      Unreadable colour~
+Body      Unreadable colour used.
+~
+Name      Amir~
+IdNum     2002
+Dated     1473314590
+Level     9
+Room      103084
+Flags     1 0 0 0
+End
+Text      Ravanda newbie text~
+Body      In the cleric intro to spells, ravanda asks the player to PRAY ARMOR and does not specify the ' ' around the 'ARMOR'
+~
+Name      Brom~
+IdNum     2014
+Dated     1473390701
+Level     1
+Room      14104
+Flags     0 0 0 0
+End
+Text      billowing cloud helpfile~
+Body      Has a couple typos in the first paragraph of the description.
+~
+Name      Pathos~
+IdNum     124
+Dated     1473430259
+Level     31
+Room      15400
+Flags     0 0 0 0
+End
+Text      Item name typo~
+Body      a suit of sapphire leather leather armor
+~
+Name      Brom~
+IdNum     2014
+Dated     1473472577
+Level     5
+Room      5940
+Flags     1 0 0 0
+End
+Text      sign~
+Body      The sign here has the 1st letter of each line cut off, should be a T and a P.
+~
+Name      Merron~
+IdNum     2004
+Dated     1473526714
+Level     15
+Room      27703
+Flags     0 0 0 0
+End
+Text      troll king quest~
+Body      Completion message says, Go and report to Alerion and let him now of your
+worldly accomplishments, now should say know
+~
+Name      Merron~
+IdNum     2004
+Dated     1473913910
+Level     20
+Room      103011
+Flags     0 0 0 0
+End
+Text      room description~
+Body      Description totally wrong with where room is located.
+~
+Name      Merron~
+IdNum     2004
+Dated     1473919541
+Level     20
+Room      4352
+Flags     1 0 0 0
+End
+Text      room description~
+Body      This room and the other one looks like they should be reversed.
+~
+Name      Merron~
+IdNum     2004
+Dated     1473920165
+Level     20
+Room      4348
+Flags     1 0 0 0
+End
+Text      HELP BRAVERY~
+Body      HELP BRAVERY, has "and fear effects" instead of "any fear effects"
+~
+Name      Brom~
+IdNum     2014
+Dated     1474289979
+Level     7
+Room      145201
+Flags     0 0 0 0
+End
+Text      Blindbreak rest completion message~
+Body      The stories say they are many artifacts throughout Lumia created by the Luminari.
+That should be The stories say there are
+~
+Name      Conan~
+IdNum     2040
+Dated     1476145440
+Level     13
+Room      145262
+Flags     0 0 0 0
+End
+Text      sneering~
+Body      A Kobold is snearing at you. <-- sneering
+~
+Name      Deeverin~
+IdNum     2197
+Dated     1493691628
+Level     4
+Room      23435
+Flags     0 0 0 0
+End
+Text      feint help description inaccurate~
+Body      'If you are successful, the opponent will be left flat-footed' they actually just lose their dex bonus, not flatfoot
+.
+~
+Name      Serity~
+IdNum     2291
+Dated     1507537326
+Level     10
+Room      366
+Flags     0 0 0 0
+End
+Text      supplyorder reward typos~
+Body      when accepting job it says you'll earn 1000 gold, when you complete it you earn 1500. when you complete it also says you get 1 reputation instead of 1 quest point
+~
+Name      Serity~
+IdNum     2291
+Dated     1507541213
+Level     10
+Room      370
+Flags     0 0 0 0
+End
+Text      feat suprise accuracy -> surprise accuracy~
+Body      missing r in feat name
+~
+Name      Seraty~
+IdNum     2293
+Dated     1507594400
+Level     6
+Room      14100
+Flags     0 0 0 0
+End
+Text      help human says quick to master is an extra skill, not feat (its feat)~
+Body      typo submit help human says quick to master is an extra skill, not feat (its feat)
+~
+Name      Sarity~
+IdNum     2294
+Dated     1507634090
+Level     8
+Room      14100
+Flags     0 0 0 0
+End
+Text      if you added scythe to druid weapon prof you should update 'feat info weapon proficiency - druid' :p~
+Body      typo submit if you added scythe to druid weapon prof you should update 'feat info weapon proficiency - druid' :p
+~
+Name      Sarity~
+IdNum     2294
+Dated     1507674492
+Level     10
+Room      145200
+Flags     0 0 0 0
+End
+Text      A Stable Service~
+Body      Although it did not quite look like a permanent building from the outside,
+this indeed is a stable that's inhabited as well.  A gate leads to the back
+where the owner has his equipment and stable, and the front section of the
+structure was once a barn area but has now been turned into a stable.  A plastic
+counter stands here, with stalls and gear all around.  Most of the horses are an
+odd find in a small farming community and it is obvious that they are targeted
+at travelers and adventurers passing through here before heading off to their
+destination.
+
+Fixed the typo. Accidentally typed "cast 'iron skin'" in a sentence.
+~
+Name      Grunther~
+IdNum     2297
+Dated     1507915816
+Level     5
+Room      145287
+Flags     1 0 0 0
+End
+Text      a iron bar of crafting material~
+Body      Simple typo. Should be "an iron bar of crafting material".
+~
+Name      Grunther~
+IdNum     2297
+Dated     1507916121
+Level     5
+Room      145213
+Flags     0 0 0 0
+End
+Text      typo in Slippery-mind help file~
+Body      In the first line of the >Description: field, the first word Slippery- is
+missing a 'y'.
+~
+Name      Praxil~
+IdNum     2363
+Dated     1512803819
+Level     3
+Room      145201
+Flags     0 0 0 0
+End
+Text      In help epic-races it says only conders can set them...~
+Body      But it insinuates you can buy them with account exp
+when you type accexp race.
+~
+Name      Fallenleaves~
+IdNum     2344
+Dated     1513016165
+Level     9
+Room      103011
+Flags     0 0 0 0
+End
+Text      at the end of the first line in the description under feat info leap~
+Body      see title
+~
+Name      Mailg~
+IdNum     450
+Dated     1514776277
+Level     24
+Room      23875
+Flags     0 0 0 0
+End
+Text      Stohana Typo in Doorstep of the Darklings~
+Body      In the Doorstep of the Darklings quest, there is a typo in
+Stohana's dialog when you first enter her room.
+The last line of her entry dialog is:
+She continues, "She continues, seek out the old man near the village center.
+~
+Name      Cephalus~
+IdNum     2401
+Dated     1514990917
+Level     7
+Room      6705
+Flags     1 0 0 0
+End
+Text      shirker -> skirker~
+Body      In the quest completion text for the third quest, Demic says 'shirker' instead of the 'skirker' that's used everywhere else.
+~
+Name      Colla~
+IdNum     2404
+Dated     1515082355
+Level     1
+Room      14109
+Flags     1 0 0 0
+End
+Text      powerful Ringmaster~
+Body      powerfull Ringmaster should be powerful Ringmaster
+~
+Name      Kahlania~
+IdNum     2408
+Dated     1515124653
+Level     6
+Room      18729
+Flags     0 0 0 0
+End
+Text      hint message~
+Body      Once you have enough experience to advance, you can type GAIN <class choice> to level up, you can gain in any class you qualify for, up to 3 total classes.  Leveling up will result in an increase in training points for skills, more hit points, and possible more feat points, movement points, boosts, PSP points.
+
+possible should be possibly
+~
+Name      Fizban~
+IdNum     1381
+Dated     1515275835
+Level     32
+Room      1204
+Flags     0 0 0 0
+End
+Text      autocoin typo~
+Body      You can't seem to find any coins in the corpse of a wretch spider.
+You don't see any coinss here.
+The corpse of a wretch spider seems to be empty.
+You sacrifice the corpse of a wretch spider to the gods.
+~
+Name      Sylvin~
+IdNum     2403
+Dated     1515329212
+Level     16
+Room      40607
+Flags     0 0 0 0
+End
+Text      flee attempt by mob~
+Body      The woman in blue attemps to flee...
+The woman in blue leaves east.
+should be attempt
+attempts*
+~
+Name      Sylvin~
+IdNum     2403
+Dated     1515335521
+Level     20
+Room      25108
+Flags     1 0 0 0
+End
+Text      promo hint message~
+Body      MUD community on Reddit is a great way to promot us.
+PROMOT should be PROMOTE
+~
+Name      Nashak~
+IdNum     240
+Dated     1515381651
+Level     34
+Room      1204
+Flags     0 0 0 0
+End
+Text      main quest hint message~
+Body      .........Mosswood Elder, in Mossswood.
+extra S in Mossswood.
+~
+Name      Nashak~
+IdNum     240
+Dated     1515381726
+Level     34
+Room      1204
+Flags     0 0 0 0
+End
+Text      Stohana~
+Body      Stohana says, "Darklings take the form of any being.  Darklings can be human, animals, dwarves, trolls, you name it.  Graven Hollow was built in a valley that is well protected by it's geographic location."
+it's should be its
+~
+Name      Thalantyr~
+IdNum     2431
+Dated     1515384083
+Level     8
+Room      6705
+Flags     1 0 0 0
+End
+Text      Voting hint~
+Body      The "Voting keeps new players coming" hint message typos 'promote' without the e.
+~
+Name      Colla~
+IdNum     2404
+Dated     1516149565
+Level     7
+Room      369
+Flags     0 0 0 0
+End
+Text      The door that leads to 'Entrance to a Grand House' in the Dollhouse is labeled as 'oakdoor' as opposed to 'oak door'~
+Body      The door that leads to 'Entrance to a Grand House' in the Dollhouse is labeled as 'oakdoor' as opposed to 'oak door'
+~
+Name      Drapelof~
+IdNum     2481
+Dated     1516302769
+Level     13
+Room      11803
+Flags     1 0 0 0
+End
+Text      Although it did not quite look like a permanent building from outside, this cast 'iron skin' indeed a stable that is inhabited as well.~
+Body      A Stable Service ( None )
+Although it did not quite look like a permanent building from outside, this cast 'iron skin'      [,]-[,]-[,]-[.] [,]
+indeed a stable that is inhabited as well. A gate leads to the back where the owner has his        |   |   |       | 
+equipment and stable, and the front section of the structure was once a barn area but has now     [C] [,] [Y]-[,]-[,]
+been turned into a stable. A plastic counter stands here, with stalls and gear all around. Most        |           | 
+of the horses are an odd find in a small farming community and it is obvious that they are            [Y]-[&] [,]-[,]
+targeted at travelers and adventurers passing through here before heading off to their                 |       |     
+destination.             
+~
+Name      FriedPotato~
+IdNum     2534
+Dated     1516317386
+Level     2
+Room      145287
+Flags     0 0 0 0
+End
+Text      tutorial thief gender~
+Body      the tutorial thief is referred to as male in description but female in targeting responses
+'/s'
+~
+Name      Zardon~
+IdNum     2561
+Dated     1516478197
+Level     1
+Room      14116
+Flags     1 0 0 0
+End
+Text      when the faster mem time procs, there is a typo.  It should be "Your keen abilities allow you to study even faster!"~
+Body      when the faster mem time procs, there is a typo.  It should be "Your keen abilities allow you to study even faster!"
+~
+Name      Daloc~
+IdNum     2575
+Dated     1516580092
+Level     7
+Room      6737
+Flags     0 0 0 0
+End
+Text      missing description~
+Body      When I look at a hired cleric in the area "Blindbreak Rest" I don't see a description only "an undefined string"
+~
+Name      Daloc~
+IdNum     2575
+Dated     1516669971
+Level     8
+Room      40422
+Flags     1 0 0 0
+End
+Text      the hint about the ashenwood questline has a misspelling of Mosswood. It has an extra s~
+Body      the hint about the ashenwood questline has a misspelling of Mosswood. It has an extra s. It is in the first sentence
+~
+Name      Kaanos~
+IdNum     2607
+Dated     1516916571
+Level     3
+Room      145266
+Flags     0 0 0 0
+End
+Text      room id 23862~
+Body      'You walk along whap' should read 'You walk along what' and end of paragraph 'There are many small spots floating around the             |         
+portal around you.' missing an 'and'  to read 'and around you.' 
+~
+Name      Razhak~
+IdNum     2474
+Dated     1517080307
+Level     25
+Room      23862
+Flags     1 0 0 0
+End
+Text      Room ID 23870~
+Body      end of paragraph, appears to be missing "There is nothing mis'
+~
+Name      Razhak~
+IdNum     2474
+Dated     1517080514
+Level     25
+Room      23870
+Flags     0 0 0 0
+End
+Text      Vice room id 26747~
+Body      It's a gargoyle, with a large gaping mouth.  Since you shouldn't be able to
+***wee*** it, we're not going to tell you anything else. 
+~
+Name      Razhak~
+IdNum     2474
+Dated     1517163618
+Level     26
+Room      26747
+Flags     0 0 0 0
+End
+Text      typo? Cardinal Wizards~
+Body      In Cardinal Wizards room id # 17520 on the anvil there is a typo maybe in 'abcdefghijklmnopqrstuvwkyz' a 'k' instead of 'x'
+~
+Name      Razhak~
+IdNum     2474
+Dated     1517229427
+Level     26
+Room      17520
+Flags     0 0 0 0
+End
+Text      Waterdeep -> Ashenport~
+Body      There's a section of the bazaar (including the room with the bazaar itself) which is all named "The Market of Waterdeep", even though the rest of the description has been changed to "Ashenport".
+~
+Name      Colla~
+IdNum     2404
+Dated     1517337912
+Level     12
+Room      103006
+Flags     0 0 0 0
+End
+Text      'Find the Mosaic' quest text~
+Body      The text from Alerion for the "Find the Mosaic" quest text is missing lots of quote marks to indicate where he's speaking and where he isn't.
+There's also a lowercase 'i' in the second paragraph that should be capitalized.  I'm not sure the 'T' after the dash should be, but I'm not sure if it's wrong either.
+~
+Name      Colla~
+IdNum     2404
+Dated     1517592908
+Level     14
+Room      103011
+Flags     0 0 0 0
+End
+Text      shirker~
+Body      Demic, after quest 3 he sais "shirker" instead of the previously used "skirker". 
+~
+Name      Voehman~
+IdNum     2662
+Dated     1517657488
+Level     1
+Room      14109
+Flags     1 0 0 0
+End
+Text      When farmer's wife is talked to in "A Small Garden of Vegetables" she says "throught he winter!" instead of "through the winter!"~
+Body      When farmer's wife is talked to in "A Small Garden of Vegetables" she says "throught he winter!" instead of "through the winter!"
+~
+Name      Goway~
+IdNum     2688
+Dated     1517901311
+Level     8
+Room      145381
+Flags     0 0 0 0
+End
+Text      Yahgs quest line He continues, 'I am too afraid to in there for myself. ~
+Body      Yahgs quest line He continues, 'I am too afraid to in there for myself. 
+~
+Name      Treblin~
+IdNum     2723
+Dated     1517946125
+Level     4
+Room      5902
+Flags     1 0 0 0
+End
+Text      "Wrong" social is wrong~
+Body      The "wrong" social emits the following message to the user:
+> You couldn't find the right if your life depended on it.
+It's missing a word, compared to how everyone else sees it.
+~
+Name      Colla~
+IdNum     2404
+Dated     1517966750
+Level     20
+Room      24772
+Flags     1 0 0 0
+End
+Text      test~
+Body      Hmm
+~
+Name      Fizban~
+IdNum     1381
+Dated     1518505716
+Level     32
+Room      28013
+Flags     1 0 0 0
+End
+Text      Item "A bright yellow fluffy towel lies neatly folded here." repeats desc~
+Body      [Size: Medium, Material: ???] This sweet citrus-smelling towel is large and vivid yellow, beautifully soft,
+it feels fantastic to touch and to snuggle!  This sweet citrus-smelling towel is
+large and vivid yellow, beautifully soft, it looks as though it would feel
+fantastic to touch and to snuggle!  
+location: dollhouse
+~
+Name      Goway~
+IdNum     2688
+Dated     1518552524
+Level     15
+Room      11814
+Flags     1 0 0 0
+End
+Text      Wrong BAB progressions~
+Body      Warrior and Berserker list their BAB progression as 'medium' in the 'class info' command.  This should be 'High'.
+~
+Name      Colla~
+IdNum     2404
+Dated     1518644804
+Level     4
+Room      251
+Flags     1 0 0 0
+End
+Text      'clyph' before the door~
+Body      In the "Before the Door" room in the mosaic area, the 'glyph symbol' description says 'The clyph'.
+~
+Name      Colla~
+IdNum     2404
+Dated     1518729053
+Level     24
+Room      40619
+Flags     1 0 0 0
+End
+Text      Mosiac 2 description captialization~
+Body      The second stage of the new mosaic quest description (The one with fighting black creatures) capitalizes the first letter of each line, even if it's mid-sentance.
+~
+Name      Colla~
+IdNum     2404
+Dated     1518732154
+Level     23
+Room      40612
+Flags     0 0 0 0
+End
+Text      Building: 'reciept'~
+Body      The receipts for planks of wood are misspelled 'reciept'.
+~
+Name      Colla~
+IdNum     2404
+Dated     1518798675
+Level     25
+Room      374
+Flags     0 0 0 0
+End
+Text      Building: nail voucher~
+Body      The vouchers for bags of nails are called "voucher for a bag of nails sits here", which is really odd.
+~
+Name      Colla~
+IdNum     2404
+Dated     1518798710
+Level     25
+Room      374
+Flags     0 0 0 0
+End
+Text      Seagold trigger~
+Body      Seagold, the half orc blacksmith says, 'Hello Human!  There is a rumor that the Troll King can only be taken down with a.'
+
+Seagold, the half orc blacksmith says, 'I can forge this legendary weapon, but you will need to gather the correct components. Go see.'
+
+Missing text after a.
+~
+Name      Darvin~
+IdNum     2727
+Dated     1518887357
+Level     31
+Room      6769
+Flags     1 0 0 0
+End
+Text      A Stable Service~
+Body      The room desc for the Stable Service near the Wizards tower has cast 'iron skin' instead of is.  Alias left on while building?
+~
+Name      Corin~
+IdNum     2671
+Dated     1519336431
+Level     3
+Room      145287
+Flags     1 0 0 0
+End
+Text      Sunburst~
+Body      The 'sunburst' help file incorrectly specifies that it should be cast with a space in the middle ("'cast sun burst'")
+~
+Name      Colla~
+IdNum     2404
+Dated     1519411445
+Level     26
+Room      251
+Flags     0 0 0 0
+End
+Text      Quest: Fensen, the shopkeeper in Ashenport~
+Body      In the quest progress Fensen is named as Fenton.
+~
+Name      Ellyanor~
+IdNum     2739
+Dated     1519669002
+Level     23
+Room      103069
+Flags     1 0 0 0
+End
+Text      Sazzy gives 'reciept'~
+Body      Reciept should be Receipt.
+~
+Name      Ellyanor~
+IdNum     2739
+Dated     1519695300
+Level     23
+Room      374
+Flags     1 0 0 0
+End
+Text      You finish meditating for 9 circle slot.~
+Body      see title
+~
+Name      Treblin~
+IdNum     2723
+Dated     1519914639
+Level     22
+Room      145201
+Flags     0 0 0 0
+End
+Text      Grammar in 'forget' helpfile~
+Body      The blank/forget/uncommune helpfile has some oddly worded text in it.  I suggest the following replacement:
+Using these commands will first remove a spell from your prayer/memorizing list.  If the spell you request is not on those lists, it will purge it from your currently-prepared list.
+~
+Name      Colla~
+IdNum     2404
+Dated     1520015085
+Level     28
+Room      438
+Flags     0 0 0 0
+End
+Text      hallways should be hallway's, it's a possessive~
+Body      hallways should be hallway's, it's a possessive
+~
+Name      Vivienne~
+IdNum     2898
+Dated     1520197399
+Level     1
+Room      14126
+Flags     1 0 0 0
+End
+Text      Semicolons in the library~
+Body      This room (105733) has some stray semi-colons in the description for no apparent reason.
+~
+Name      Colla~
+IdNum     2404
+Dated     1520481829
+Level     29
+Room      105733
+Flags     1 0 0 0
+End
+Text      Unfinished room description~
+Body      In the room description of 'Entrance To The Dungeon' in the tutorial the last line of the description appears to be cut off.
+A light source would certainly be re
+I assume this is meant to be continued in a manner similar to 'A light source would certainly be required when venturing further'
+~
+Name      Ellim~
+IdNum     2929
+Dated     1520895779
+Level     1
+Room      14110
+Flags     1 0 0 0
+End
+Text      trigs for twigs~
+Body      trigs for twigs
+~
+Name      Ubgrath~
+IdNum     2921
+Dated     1520909595
+Level     2
+Room      145351
+Flags     1 0 0 0
+End
+Text      Carl Von Clausewitz~
+Body      Carl Von Clausewitz says, 'Failures of management and engineering are tactical
+shortcomings that can be fixed but that failures of leadership's nerve and 
+character are terminal, catastrophic.' - the second 'that' is superfluous
+~
+Name      Durakh~
+IdNum     2924
+Dated     1521334958
+Level     12
+Room      93
+Flags     1 0 0 0
+End
+Text      Sanctus Fountain~
+Body      Reading the Rumble or Ferret statues on the Sanctus fountain ends with "DO NOTE ENTER FOUNTAIN!" rather than "DO NOT ENTER FOUNTAIN!". That said, since there's a puzzle to enter the fountain this might be deliberate so feel free to ignore this!
+~
+Name      Durakh~
+IdNum     2924
+Dated     1521385315
+Level     12
+Room      251
+Flags     1 0 0 0
+End
+Text      Dollhouse description~
+Body      "independantly" should be "independently"
+~
+Name      Durakh~
+IdNum     2924
+Dated     1521472141
+Level     13
+Room      11802
+Flags     1 0 0 0
+End
+Text      Pixie Guard/Dragonspyre~
+Body      When you look at the Pixie Guards it says "They are ready to loose their life for their King."
+~
+Name      Thimblethorp~
+IdNum     2975
+Dated     1522737124
+Level     28
+Room      25000
+Flags     1 0 0 0
+End
+Text      Alerion Token Quest Speech~
+Body      After giving the token to Alerion, he has some scripted speech. In his third say, he says, "Stopping the Darkling uprise [sic] will be no easy task." I believe in this context we would want him to refer to the Darkling uprising. 
+~
+Name      Salinavi~
+IdNum     3056
+Dated     1522765733
+Level     5
+Room      103011
+Flags     1 0 0 0
+End
+Text      Sanctus Quest Room~
+Body      hereos --> heroes
+~
+Name      Ellyanor~
+IdNum     2739
+Dated     1522804853
+Level     30
+Room      113
+Flags     1 0 0 0
+End
+Text      Great Oak Quest~
+Body      During the quest in Graven Hollow with the old man who sends you to the lumberjack to get the piece of wood from the great old stump, upon giving the wood to the old man he runs through a dialogue script. In this script, on the second say (first say after his first emote) it reads, "The old[sic] winks and says, "I know more than you think, haha!" " I believe it should be "The old man..." so that it matches the rest of the text.
+~
+Name      Salinavi~
+IdNum     3056
+Dated     1522819716
+Level     7
+Room      6777
+Flags     0 0 0 0
+End
+Text      HELP MAGIC MISSILE~
+Body      cast 'magic missile <victim>' should be cast 'magic missile' <victim>
+~
+Name      Galvan~
+IdNum     3091
+Dated     1523310102
+Level     3
+Room      5902
+Flags     1 0 0 0
+End
+Text      Rhriali the gnome master-at-arms in Hardbuckler~
+Body      His second desc line says "Scars crisscross his muscular forearms where they rest across his borad chest." 
+~
+Name      Thimblethorp~
+IdNum     2975
+Dated     1523351168
+Level     30
+Room      118592
+Flags     1 0 0 0
+End
+Text      'kill elder' > Your opponents superior initiative... > opponent's~
+Body      l
+'kill elder' - Your opponents superior initiative grants the first strike! > opponent's
+~
+Name      Arcusix~
+IdNum     3160
+Dated     1524075536
+Level     1
+Room      145202
+Flags     0 0 0 0
+End
+Text      Granan~
+Body      "Granan fotells, "It is said that the Elder Dragons will rise again and attempt
+to destroy Sanctus again."" - should be 'foretells'
+~
+Name      Durakh~
+IdNum     2924
+Dated     1524169043
+Level     27
+Room      251
+Flags     1 0 0 0
+End
+Text      outter~
+Body      In 'A Group Tactics Training Room', the word 'outter' in the description should be 'outer'.
+~
+Name      Cadayria~
+IdNum     3188
+Dated     1524525409
+Level     1
+Room      14111
+Flags     1 0 0 0
+End
+Text      Sending mai~
+Body      When you send an email, it says "You have send a mail' instead of 'sent'
+~
+Name      Thimblethorp~
+IdNum     2975
+Dated     1524597498
+Level     30
+Room      100
+Flags     0 0 0 0
+End
+Text      Fensen/Fenton~
+Body      In Fensen's Supplies the 'seedy man' that gives you a quest is called Fenton, not Fensen. Fenton is also another MSL NPC in a different location.
+~
+Name      Aelfrith~
+IdNum     3172
+Dated     1524614136
+Level     20
+Room      103069
+Flags     1 0 0 0
+End
+Text      Entrance to Bard Guild~
+Body      Room description has "From above can be heard hte strains of a lyre"
+~
+Name      Aelfrith~
+IdNum     3172
+Dated     1524614774
+Level     20
+Room      103456
+Flags     1 0 0 0
+End
+Text      extra description on down exit needs to be edited to remove ansi code~
+Body      typo submit extra description on down exit needs to be edited to remove ansi code
+~
+Name      Taure~
+IdNum     1230
+Dated     1524651297
+Level     33
+Room      106291
+Flags     1 0 0 0
+End
+Text      hice~
+Body      Description of 'an old mosswood townsman', second line is written as "Hice face", which i believe should be 'His face'
+~
+Name      Cadayria~
+IdNum     3188
+Dated     1524662542
+Level     2
+Room      145205
+Flags     1 0 0 0
+End
+Text      talk and tall~
+Body      In the room description of 'great hall candlelight vigil', the word talk in "four feet talk" should be tall
+~
+Name      Cadayria~
+IdNum     3188
+Dated     1524907317
+Level     3
+Room      5913
+Flags     0 0 0 0
+End
+Text      melee training grounds~
+Body      In the room description, the word line in '...hay are line along the northern part...' should be lined
+~
+Name      Cadayria~
+IdNum     3188
+Dated     1526032235
+Level     7
+Room      6708
+Flags     0 0 0 0
+End
+Text      packed gravel path~
+Body      In the room description, the word their in '...north side of the path their is some...' should be there
+~
+Name      Cadayria~
+IdNum     3188
+Dated     1526032497
+Level     7
+Room      6721
+Flags     0 0 0 0
+End
+Text      center of the camp~
+Body      The description of the well in the room: the word clear in 'the well is made of enormous stone blocks and clear took some...' should be clearly
+~
+Name      Cadayria~
+IdNum     3188
+Dated     1526086759
+Level     7
+Room      6722
+Flags     0 0 0 0
+End
+Text      sleeping quarters~
+Body      Sleeping quarters in the graven hollow camp. The word places in '...some tables sparsely places throughout the building...' should be placed, in the room description
+~
+Name      Cadayria~
+IdNum     3188
+Dated     1526087272
+Level     7
+Room      6773
+Flags     0 0 0 0
+End
+Text      Typo in after kill report lines~
+Body      After this line: "There were 10 coins.",
+This line misspells "coins": "You don't see any coinss here."
+~
+Name      Edau~
+IdNum     3298
+Dated     1528851173
+Level     3
+Room      145336
+Flags     0 0 0 0
+End
+Text      is leads~
+Body      The room description of 'a small, older farmhouse' should have the word 'is' removed from the phrase 'see through the window that is leads to'
+~
+Name      Lywevia~
+IdNum     3309
+Dated     1529067390
+Level     2
+Room      145380
+Flags     1 0 0 0
+End
+Text      is appears~
+Body      In the room description of 'muleskull tavern', there should be no 'is' in the phrase 'the whole place is appears to be quite old'
+~
+Name      Lywevia~
+IdNum     3309
+Dated     1529123798
+Level     3
+Room      141785
+Flags     1 0 0 0
+End
+Text      wrong direction~
+Body      The room description of 'smoke-filled room' mentioned 'the only visible exit is the tavern's entrance to the east', although the exit is actually west.
+~
+Name      Lywevia~
+IdNum     3309
+Dated     1529143335
+Level     3
+Room      103096
+Flags     1 0 0 0
+End
+Text      used~
+Body      In 'eastern end of the damp passage' , the word 'used' in 'spiders have begun to used..' should be present tense 'use'
+~
+Name      Lywevia~
+IdNum     3309
+Dated     1529167451
+Level     4
+Room      5944
+Flags     1 0 0 0
+End
+Text      missing text?~
+Body      Drinking the pool in 'an altar to miekikki' gives an incomplete message of 'you drink the       .'
+~
+Name      Lywevia~
+IdNum     3309
+Dated     1529202696
+Level     6
+Room      103907
+Flags     1 0 0 0
+End
+Text      extra they~
+Body      In 'a narrow ruins passage', the they from the phrase 'while they it is not in...', can be omitted
+~
+Name      Lywevia~
+IdNum     3309
+Dated     1529409923
+Level     9
+Room      40402
+Flags     1 0 0 0
+End
+Text      Suprise accuracy~
+Body      This skill and any other mention of 'suprise' should be replaced by 'surprise'
+~
+Name      Tulev~
+IdNum     3313
+Dated     1529473072
+Level     17
+Room      1902
+Flags     0 0 0 0
+End
+Text      Irridescent descriptor~
+Body      All uses of this word should have one R.  iridescent
+~
+Name      Tulev~
+IdNum     3313
+Dated     1529473333
+Level     17
+Room      1903
+Flags     1 0 0 0
+End
+Text      When you first meet Alerion the description says, 'The pain on his face is undeniable as he takes it in, but he restrains from crying.' Shouldn't this be something along the lines of: '...but he restrains HIMSELF from crying'? Stuck out to me and I thought I'd submit this. New player here and I'm so very impressed with this mud. Loving it.~
+Body      When you first meet Alerion the description says, 'The pain on his face is undeniable as he takes it in, but he restrains from crying.' Shouldn't this be something along the lines of: '...but he restrains HIMSELF from crying'? Stuck out to me and I thought I'd submit this. New player here and I'm so very impressed with this mud. Loving it.
+~
+Name      Diggins~
+IdNum     3370
+Dated     1531387671
+Level     2
+Room      103011
+Flags     1 0 0 0
+End
+Text      Meeting Stohana for the first time~
+Body      When meeting stohana for the first time, she says...
+Stohana says, "Unfortunately it borders a cave system that is inhabited byTrolls.  The Trolls have never been a problem to the citizens here, but over the years they have become remarkably stronger and more powerful."
+There should be a space between "by" and "Trolls," in her first sentence. Also it looks like there's an extra space between the end of the first sentence and the beginning of the second. 
+~
+Name      Diggins~
+IdNum     3370
+Dated     1531810476
+Level     7
+Room      6705
+Flags     0 0 0 0
+End
+Text      Enemy Condition Yexcellent~
+Body      EC: Yexcellent . Looks like an extra y, maybe related to color shifting yellow.
+~
+Name      Hadlar~
+IdNum     3400
+Dated     1533044037
+Level     7
+Room      145201
+Flags     1 0 0 0
+End
+Text      [Stum!]~
+Body      When I stunned in combat, it said stum! instead of stun!
+~
+Name      Hadlar~
+IdNum     3400
+Dated     1533045337
+Level     7
+Room      401
+Flags     1 0 0 0
+End
+Text      disregard previous~
+Body      Disregard me thinking stum! was supposed to be stun! I misinterpretted. Realized it meant "stumble" when critical failures were rolled (1s). Used to calling that a natty 1 or crit fail intsead.
+~
+Name      Hadlar~
+IdNum     3400
+Dated     1533046272
+Level     7
+Room      6701
+Flags     1 0 0 0
+End
+Text      Elder in Mosswood~
+Body      immediate area surrounding her.  This is a fairly safe and good location
+it should read here. not her. It is when you quest join 2 from elder in Mosswood.
+~
+Name      Glyvar~
+IdNum     3489
+Dated     1536691189
+Level     2
+Room      145202
+Flags     1 0 0 0
+End
+Text      "listen carefully to the instructions (grammar)~
+Body      typo submit "listen carefully to the instructions (grammar)"
+~
+Name      Asikuri~
+IdNum     3526
+Dated     1537466304
+Level     1
+Room      14109
+Flags     0 0 0 0
+End
+Text      Mosswood~
+Body      Swideth's General Store: In the room description. "...heading off totheir destination,...", the words 'to their' is joined together.
+
+A woman walks through the village carrying some chickens in a cage: The word 'bas' in her look description "...her hair bas been braided behind her..." should be 'has'. 
+
+In front of a store with a heater sign: The word 'and' in the room description "....looks like and unlikely setting for such a store..." should be 'an'.
+
+ashenport soldier; before a large gate: The description of the soldier I believe is missing an 'in', in the phrase "It is strange to see him Mosswood Village..."
+~
+Name      Cadayria~
+IdNum     3910
+Dated     1561716031
+Level     2
+Room      1000137
+Flags     1 0 0 0
+End
+Text      Push verb failure lacking punctuation~
+Body      > push beeh
+But that is not a switch
+~
+Name      Ghaloaire~
+IdNum     4178
+Dated     1574446796
+Level     3
+Room      145255
+Flags     0 0 0 0
+End
+Text      room desc: "as if they were blow by the wind"~
+Body      As in title (blow->blown)
+~
+Name      Ghaloaire~
+IdNum     4178
+Dated     1574450562
+Level     4
+Room      5938
+Flags     1 0 0 0
+End
+Text      Superior-initiative message lacks possessive apostrophe~
+Body      Your opponents superior initiative grants the first strike!
+Should be opponent's
+~
+Name      Ghaloaire~
+IdNum     4178
+Dated     1574454138
+Level     6
+Room      5939
+Flags     0 0 0 0
+End
+Text      Controlled mispelled as "controled" in Yisca dialogue~
+Body      Charmees are non-player characters (NPCs) controled by your commands and/or by artificial intelligence
+"Controlled" has two Ls
+~
+Name      Anodyne~
+IdNum     4182
+Dated     1574705403
+Level     1
+Room      14111
+Flags     0 0 0 0
+End
+Text      Gnme in Score~
+Body      When I look at my score, it says "gnme" for my race. Since it's only missing an "o" I thought it was a typo, as opposed to a race abbreviation.
+~
+Name      Ceal~
+IdNum     4252
+Dated     1575379642
+Level     2
+Room      2808
+Flags     1 0 0 0
+End
+Text      mosswood village - room description~
+Body      Location: mosswood village; in front of a store with a heater sign
+The word AND should be spelled AN in the phrase "This small village looks like AND unlikely..."
+~
+Name      Carfeya~
+IdNum     4534
+Dated     1585401419
+Level     2
+Room      145213
+Flags     1 0 0 0
+End
+Text      Directions wrong in room desc~
+Body      Room desc says 'heart of the ruin' is north. Room layout has it south.
+~
+Name      Kel~
+IdNum     4510
+Dated     1585841997
+Level     17
+Room      101717
+Flags     0 0 0 0
+End
+Text      Directions wrong in room desc~
+Body      Room desc says tree is east, building is west. The room layout is the opposite (tree west, forge east)
+~
+Name      Kel~
+IdNum     4510
+Dated     1585842079
+Level     17
+Room      101738
+Flags     0 0 0 0
+End
+Text      supriseaccuracy should be surpriseaccuracy~
+Body      supriseaccuracy should be surpriseaccuracy
+~
+Name      Tiu~
+IdNum     4617
+Dated     1587877120
+Level     8
+Room      40401
+Flags     0 0 0 0
+End
+Text      Outter Plans in Quest List~
+Body      Outter Planes in quest list /s
+~
+Name      Taran~
+IdNum     3590
+Dated     1588280548
+Level     28
+Room      103011
+Flags     1 0 0 0
+End
+Text      alerion quest typo~
+Body      Outter Planes should just be Outer
+Outter Planes should just be Outer
+Outter Planes should just be Outer
+Outter Planes should just be Outer
+Outter Planes should just be Outer
+Outter Planes should just be Outer
+Outter Planes should just be Outer
+Outter Planes should just be Outer
+Outter Planes should just be Outer
+~
+Name      Tiu~
+IdNum     4617
+Dated     1588316479
+Level     25
+Room      103011
+Flags     1 0 0 0
+End
+Text      The chest in this room seems as if it needs properly described.~
+Body      The chest in this room seems as if it needs properly described.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588647812
+Level     1
+Room      14112
+Flags     0 0 0 0
+End
+Text      Demic should have his shortname in the room description.~
+Body      Demic should have his shortname in the room description.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588647867
+Level     1
+Room      14109
+Flags     1 0 0 0
+End
+Text      Spring object in this room has legibility problems~
+Body      Yet another colour vomit problem.  Especially bad since the dark blue is difficult to read.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588673190
+Level     3
+Room      145246
+Flags     1 0 0 0
+End
+Text      Door missing~
+Body      The barracks has a door in the east room which is not reciprocated in this room with one to the west.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588673255
+Level     3
+Room      145279
+Flags     1 0 0 0
+End
+Text      Gate missing other side~
+Body      This stretch of forest is gated off, and this room is missing the reciprocal door for the gate.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588673300
+Level     3
+Room      145284
+Flags     1 0 0 0
+End
+Text      Stone well here has legibility probs~
+Body      More blue colour that's hard to read.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588673795
+Level     3
+Room      145206
+Flags     1 0 0 0
+End
+Text      Helper text here non-diagetic~
+Body      All of the helper text outside of the newbie tutorial should be diagetic to the gameworld.  This stuff isn't.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588673905
+Level     3
+Room      145390
+Flags     0 0 0 0
+End
+Text      Sold alcohol legibility~
+Body      The alcohol sold in this tavern has legibility issues in the names.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588673937
+Level     3
+Room      145390
+Flags     0 0 0 0
+End
+Text      The echos for the greetings here could be cleaned up~
+Body      Colour issues: make consistent with player says (immersion matters!) but also more importantly pick out the keyword for the woman.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588674040
+Level     3
+Room      145200
+Flags     0 0 0 0
+End
+Text      The mosswood villager in this field has old colours~
+Body      Update this mobile with the new colour scheme.  Might be roaming in the field.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588675090
+Level     3
+Room      145273
+Flags     0 0 0 0
+End
+Text      Mosswood gate key capitalization~
+Body      "The mosswood gate key" needs Mosswood capitalized.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588675496
+Level     3
+Room      145262
+Flags     0 0 0 0
+End
+Text      Legibility in Mosswood wizard quest~
+Body      The message for the completion of getting mushrooms for the Mosswood Wizard is full of unicorn vomit.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588675529
+Level     3
+Room      145262
+Flags     0 0 0 0
+End
+Text      The echoes of the babbling idiot~
+Body      There is a wandering "babbling idiot" in ashenport, its echoes need cleaned up - lots of superfluous spaces, some bad grammar, and so on.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588676599
+Level     3
+Room      103058
+Flags     0 0 0 0
+End
+Text      HELP MISSIONS~
+Body      Some garbage at the bottom of this, looks like?
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588684785
+Level     4
+Room      103009
+Flags     0 0 0 0
+End
+Text      Riautar's description~
+Body      Something I intend to come back to - Riautar needs a much better description.
+~
+Name      Havamal~
+IdNum     3530
+Dated     1588711721
+Level     33
+Room      103058
+Flags     0 0 0 0
+End
+Text      Shop wares for Riautar~
+Body      We need to clean up the shop wares for Riautar a bit.  More selection, items that work better in terms of colour.  More interesting descriptions.
+~
+Name      Havamal~
+IdNum     3530
+Dated     1588711754
+Level     33
+Room      103058
+Flags     0 0 0 0
+End
+Text      'a young wizard' doesn't use wizard as keyword~
+Body      A young wizard in a grey hooded tunic is standing here. - can't interact with it using 'wizard'
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588782249
+Level     6
+Room      5923
+Flags     0 0 0 0
+End
+Text      The corpse of an adventurer keywords~
+Body      The corpse of an adventurer here should be restructured with better stuff for the keywords.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588892797
+Level     7
+Room      5942
+Flags     1 0 0 0
+End
+Text      Raven~
+Body      Raven should have her keywords in the description better.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588892918
+Level     7
+Room      5942
+Flags     1 0 0 0
+End
+Text      Master summoner colours~
+Body      The master summoner here needs cleaned up in turns of colour.
+~
+Name      Havamal~
+IdNum     3530
+Dated     1588916036
+Level     33
+Room      5942
+Flags     0 0 0 0
+End
+Text      Gate here~
+Body      Need to add directions to the gate here, on both sides, for easier manipulation.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588916436
+Level     12
+Room      6726
+Flags     0 0 0 0
+End
+Text      Troll vanquisher~
+Body      Troll vanquishers here have extremely illegible names
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588916478
+Level     12
+Room      6740
+Flags     0 0 0 0
+End
+Text      A professional soldier mercenary~
+Body      These should have their keywords made obvious
+~
+Name      Havamal~
+IdNum     3530
+Dated     1588917185
+Level     33
+Room      6747
+Flags     1 0 0 0
+End
+Text      Pastures in orc village~
+Body      These pastures need a colour pass.
+~
+Name      Havamal~
+IdNum     3530
+Dated     1588917333
+Level     33
+Room      6734
+Flags     0 0 0 0
+End
+Text      Cows~
+Body      The cows here need a colour pass.
+~
+Name      Havamal~
+IdNum     3530
+Dated     1588917352
+Level     33
+Room      6734
+Flags     1 0 0 0
+End
+Text      Colour in the lumberjack text~
+Body      Text in the lumberjack quest dialogue needs fixed up in terms of colour
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588918223
+Level     12
+Room      6736
+Flags     0 0 0 0
+End
+Text      Old man~
+Body      We should probably give the old half-orc a name so that he's easier to reference and is less generic.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588918318
+Level     12
+Room      6777
+Flags     0 0 0 0
+End
+Text      Half-orc quest 2~
+Body      The old winks and says, "I know more than you think, haha!" - the old .. what?  Man, presumably.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588918359
+Level     12
+Room      6777
+Flags     0 0 0 0
+End
+Text      Professional soldier mercenary size~
+Body      The professional soldier mercenary is Fine-size.  It should be small-size or medium-size, likely the latter.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588919239
+Level     12
+Room      6749
+Flags     0 0 0 0
+End
+Text      Tahgoth speech~
+Body      The colour in Tahgoth's speech needs cleaned up.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588922843
+Level     13
+Room      6778
+Flags     0 0 0 0
+End
+Text      Forging messages~
+Body      The smithing text for seagold has capitalization problems, and we should do a colour pass.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588923707
+Level     13
+Room      6769
+Flags     0 0 0 0
+End
+Text      Fire dagger desc~
+Body      Typo in fire dagger description - it's is it is, not possessive.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1588923752
+Level     13
+Room      6769
+Flags     0 0 0 0
+End
+Text      Velna boss~
+Body      This boss needs to be coloured appropriately.
+~
+Name      Eowreth~
+IdNum     4721
+Dated     1589051555
+Level     13
+Room      40426
+Flags     0 0 0 0
+End
+Text      UNUSED!-stat/undefined items in llawryn keep~
+Body      almost all of the items in this shop in llawryn have unused stat boosts or are undefined item type
+A Small-Time Fence ( None )
+The thief's guild shopkeeper [Medium Hmnd] is in excellent condition.
+~
+Name      Serity~
+IdNum     4670
+Dated     1589116541
+Level     30
+Room      119553
+Flags     0 0 0 0
+End
+Text      "...ripping of"~
+Body      ...
+~
+Name      Draca~
+IdNum     4094
+Dated     1589233875
+Level     30
+Room      25005
+Flags     0 0 0 0
+End
+Text      courteous~
+Body      ...
+~
+Name      Draca~
+IdNum     4094
+Dated     1589277608
+Level     30
+Room      23252
+Flags     0 0 0 0
+End
+Text      passed/past~
+Body      You have made it past | You have passed
+~
+Name      Draca~
+IdNum     4094
+Dated     1589278388
+Level     30
+Room      25044
+Flags     0 0 0 0
+End
+Text      "coinss'~
+Body      Autogold message after getting a kill. "You don't see any coinss here."
+~
+Name      Draca~
+IdNum     4094
+Dated     1589305324
+Level     30
+Room      28812
+Flags     0 0 0 0
+End
+Text      Wrong City :)~
+Body      "...this section of Waterdeep,"
+~
+Name      Draca~
+IdNum     4094
+Dated     1589327515
+Level     30
+Room      103224
+Flags     0 0 0 0
+End
+Text      another "Waterdeep"~
+Body      ...
+~
+Name      Draca~
+IdNum     4094
+Dated     1589327727
+Level     30
+Room      103223
+Flags     0 0 0 0
+End
+Text      Placeholder~
+Body      "...main roads in XXXX."
+~
+Name      Draca~
+IdNum     4094
+Dated     1589372369
+Level     30
+Room      25802
+Flags     0 0 0 0
+End
+Text      Jade Forest Home~
+Body      Room names are "Room 1, Room 2 ... Room 6"
+~
+Name      Draca~
+IdNum     4094
+Dated     1589375109
+Level     30
+Room      497
+Flags     0 0 0 0
+End
+Text      study menu instructions in tutorial~
+Body      Adoril says, 'Take this opportunity to also change your stats, select menu 6.' It's actually menu item 1.
+~
+Name      Jukaw~
+IdNum     4791
+Dated     1589695255
+Level     1
+Room      14105
+Flags     0 0 0 0
+End
+Text      Typo in Narrow passage TH description~
+Body      The passage is here is narrowest
+~
+Name      Olender~
+IdNum     4790
+Dated     1589714970
+Level     1
+Room      14126
+Flags     0 0 0 0
+End
+Text      checkcraft help file~
+Body      On the first line where it says on conjunction with, it should be in conjunction with
+~
+Name      Jukaw~
+IdNum     4791
+Dated     1589727862
+Level     2
+Room      145201
+Flags     0 0 0 0
+End
+Text      a plinth named plith~
+Body      goes by plinth
+~
+Name      Draca~
+IdNum     4094
+Dated     1589813389
+Level     30
+Room      28801
+Flags     0 0 0 0
+End
+Text      Frederick's New Friend~
+Body      A Human Rogue vs. A human rogue
+~
+Name      Draca~
+IdNum     4094
+Dated     1589917470
+Level     30
+Room      103489
+Flags     0 0 0 0
+End
+Text      shield armor proficiency~
+Body      "...wearing a shield will incur" what?
+~
+Name      Draca~
+IdNum     4094
+Dated     1590085896
+Level     30
+Room      5915
+Flags     0 0 0 0
+End
+Text      improved unarmed strike~
+Body      "...even when unarmed, ou do..."
+~
+Name      Draca~
+IdNum     4094
+Dated     1590086645
+Level     30
+Room      103009
+Flags     0 0 0 0
+End
+Text      alchemist achemist~
+Body      "An achemist is here..." responds to al. is otherwise an al.
+~
+Name      Draca~
+IdNum     4094
+Dated     1590087255
+Level     30
+Room      5933
+Flags     0 0 0 0
+End
+Text       down with the Darkling King quest~
+Body      in the completion message for the quest, it says Go and report to Alerion and let him now of your worldly accomplishments.
+the "now" should be "know"
+~
+Name      Jukaw~
+IdNum     4791
+Dated     1590522397
+Level     14
+Room      6705
+Flags     0 0 0 0
+End

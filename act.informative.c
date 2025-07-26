@@ -872,7 +872,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (affected_by_spell(i, PSIONIC_OAK_BODY))
       act("...$s skin is like that of an oak tree.", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, PSIONIC_BODY_OF_IRON))
-      act("...$s skin is like a sheet of think iron.", FALSE, i, 0, ch, TO_VICT);
+      act("...$s skin is like a sheet of thick iron.", FALSE, i, 0, ch, TO_VICT);
 
     return;
 
@@ -933,7 +933,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (affected_by_spell(i, PSIONIC_OAK_BODY))
       act("...$s skin is like that of an oak tree.", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, PSIONIC_BODY_OF_IRON))
-      act("...$s skin is like a sheet of think iron.", FALSE, i, 0, ch, TO_VICT);
+      act("...$s skin is like a sheet of thick iron.", FALSE, i, 0, ch, TO_VICT);
 
     return;
   }
@@ -1090,7 +1090,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   if (affected_by_spell(i, PSIONIC_OAK_BODY))
     act("...$s skin is like that of an oak tree.", FALSE, i, 0, ch, TO_VICT);
   if (affected_by_spell(i, PSIONIC_BODY_OF_IRON))
-    act("...$s skin is like a sheet of think iron.", FALSE, i, 0, ch, TO_VICT);
+    act("...$s skin is like a sheet of thick iron.", FALSE, i, 0, ch, TO_VICT);
 }
 
 /*  The CAN_SEE and CAN_INFRA macros are both going to do a hide-check

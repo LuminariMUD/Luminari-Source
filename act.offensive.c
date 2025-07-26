@@ -6653,7 +6653,7 @@ int perform_dragonbite(struct char_data *ch, struct char_data *vict)
     /* damagee! */
     damage(ch, vict, dice(diceOne, diceTwo) + GET_STR(ch) + 4, SKILL_DRAGON_BITE, DAM_FORCE, FALSE);
 
-    act("Your flesh is redned by a bite from $N!", FALSE, vict, 0, ch, TO_CHAR);
+    act("Your flesh is rended by a bite from $N!", FALSE, vict, 0, ch, TO_CHAR);
     act("$e is rended by your bite at $m!", FALSE, vict, 0, ch, TO_VICT);
     act("$n's flesh is rended by a bite from $N!", FALSE, vict, 0, ch, TO_NOTVICT);
 
