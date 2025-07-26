@@ -2449,7 +2449,7 @@ int ACTUAL_BAB(struct char_data *ch);
 /* Game Operation */
 /** Get the default mud connection port. */
 #define CONFIG_DFLT_PORT config_info.operation.DFLT_PORT
-#define CONFIG_DFLT_DEV_PORT 4001
+#define CONFIG_DFLT_DEV_PORT 4101
 /** Get the default mud ip address. */
 #define CONFIG_DFLT_IP config_info.operation.DFLT_IP
 /** Get the max number of players allowed. */
