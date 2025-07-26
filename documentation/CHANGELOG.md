@@ -21,7 +21,26 @@
 
 ### Critical Bug Fix Attempts
 
-#### Second Fix Attempt for Player Death Crash - MSDP Protocol Issue
+#### Fourth Fix Attempt for Player Death Crash - Affect Removal During Death
+- **Issue**: Server crash with malloc_consolidate error when player dies, occurring in save_char()
+- **Root Cause**: 
+  - During player death, `affect_remove()` is called to clear all affects
+  - This triggers `affect_total()` → `update_msdp_affects()` → protocol memory allocations
+  - The heap is already corrupted from the complex death processing sequence
+  - When `save_char()` tries to allocate memory for the write buffer, malloc detects corruption and aborts
+  - Previous POS_DEAD check didn't work because `update_pos()` changes position to POS_RESTING after HP is set to 1
+- **Solution Attempt**: 
+  - Changed player death to use `affect_remove_no_total()` instead of `affect_remove()`
+  - This skips the affect_total() calls that trigger MSDP updates during unstable state
+  - Added `affect_total()` calls after respawn when character is in stable state
+  - Stats are now properly recalculated after player is moved to respawn room
+- **Files Modified**: 
+  - fight.c:2028-2033 (use affect_remove_no_total for players during death)
+  - fight.c:2167 (added affect_total after arena respawn)
+  - fight.c:2206 (added affect_total after normal respawn)
+- **Impact**: Should prevent heap corruption crashes by avoiding complex operations during death processing
+
+#### Third Fix Attempt for Player Death Crash - MSDP Protocol Issue
 - **Issue**: Server still crashing during player death after initial fix, but in different location
 - **New Stack Trace**: Crash occurring in `protocol.c` during `AllocString()` call from MSDP affect updates
 - **Root Cause**: 

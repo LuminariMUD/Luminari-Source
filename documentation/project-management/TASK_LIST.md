@@ -103,8 +103,13 @@ After initial fix, crash still occurred but in a different location:
 
 **Third Fix Attempt (2025-07-26)**:
 - Added check in `update_msdp_affects()` (handler.c:1018-1019) to skip MSDP updates when `GET_POS(ch) == POS_DEAD`
-- This might work because `dam_killed_vict()` sets `GET_POS(victim) = POS_DEAD` at line 4736 BEFORE calling `die()` → `raw_kill()`
-- The death sequence: damage → dam_killed_vict (sets POS_DEAD) → die → raw_kill (removes affects) → affect_remove → update_msdp_affects
+- This didn't work because `update_pos()` changes position from POS_DEAD to POS_RESTING when HP is set to 1
+
+**Fourth Fix Attempt (2025-07-26)**:
+- Changed `raw_kill()` to use `affect_remove_no_total()` for players instead of `affect_remove()`
+- This avoids calling `affect_total()` → `update_msdp_affects()` during death processing
+- Added `affect_total()` calls after respawn to recalculate stats when character is stable
+- Root cause: Heap corruption during complex death processing manifests when save_char() allocates memory
 
 **Testing Required**:
 - Test player death in various combat scenarios
