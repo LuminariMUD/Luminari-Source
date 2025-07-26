@@ -2,9 +2,26 @@
 
 ## 2025-07-26
 
+### Critical Bug Fixes
+
+#### Fixed Shutdown Core Dump in destroy_db() - Wilderness Static Strings
+- **Issue**: Server crash (SIGABRT) during shutdown when destroying the world database
+- **Root Cause**: 
+  - Wilderness rooms use static strings for names/descriptions (e.g., "The Wilderness of Luminari")
+  - These static strings are declared in `assign_wilderness_room()` as `static char wilderness_name[]`
+  - During shutdown, `destroy_db()` attempted to `free()` these static strings, causing malloc_printerr abort
+  - Affected wilderness rooms in vnum ranges 1000000-1003999 and 1004000-1009999
+- **Solution**: 
+  - Modified `destroy_db()` to check if a room is a wilderness room using `IS_WILDERNESS_VNUM()` macro
+  - Skip freeing name/description for wilderness rooms since they use static strings
+  - Regular rooms continue to have their dynamically allocated strings freed normally
+- **Files Modified**: 
+  - db.c:768-777 (added wilderness room check in destroy_db)
+- **Impact**: Eliminates core dump during server shutdown, allowing clean server restarts
+
 ### Critical Bug Fix Attempts
 
-#### Additional Fix Attempt for Player Death Crash - MSDP Protocol Issue
+#### Second Fix Attempt for Player Death Crash - MSDP Protocol Issue
 - **Issue**: Server still crashing during player death after initial fix, but in different location
 - **New Stack Trace**: Crash occurring in `protocol.c` during `AllocString()` call from MSDP affect updates
 - **Root Cause**: 
@@ -13,11 +30,14 @@
   - MSDP protocol tries to send updates to the client during death processing
   - Character descriptor may be in unstable state during death, causing malloc errors
 - **Solution Attempt**: 
-  - Added check in `update_msdp_affects()` to skip MSDP updates when `PLR_NOTDEADYET` flag is set
-  - This prevents any protocol operations during the critical death processing phase
+  - Initially tried checking `PLR_NOTDEADYET` flag but this was incorrect - that flag is for extraction queuing
+  - Players are NEVER extracted when they die (they respawn), so PLR_NOTDEADYET doesn't apply
+  - Changed to check `GET_POS(ch) == POS_DEAD` instead
+  - This might work because `dam_killed_vict()` sets POS_DEAD before calling `die()` → `raw_kill()`
 - **Files Modified**: 
-  - handler.c:1016-1017 (added PLR_NOTDEADYET check in update_msdp_affects)
-- **Impact**: Attempts to prevent crashes by skipping MSDP protocol updates during death processing
+  - handler.c:1018-1019 (added POS_DEAD check in update_msdp_affects)
+  - fight.c:1991-2000 (added clarifying comments about player death not being extraction)
+- **Impact**: Might prevent crashes by skipping MSDP protocol updates when character position is POS_DEAD
 
 ## 2025-07-25
 

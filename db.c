@@ -765,10 +765,16 @@ void destroy_db(void)
   /* Rooms */
   for (cnt = 0; cnt <= top_of_world; cnt++)
   {
-    if (world[cnt].name)
-      free(world[cnt].name);
-    if (world[cnt].description)
-      free(world[cnt].description);
+    /* Skip freeing names/descriptions for wilderness rooms as they use static strings
+     * Wilderness rooms are identified by their vnum range */
+    if (IS_WILDERNESS_VNUM(world[cnt].number)) {
+      /* Wilderness rooms use static strings that should not be freed */
+    } else {
+      if (world[cnt].name)
+        free(world[cnt].name);
+      if (world[cnt].description)
+        free(world[cnt].description);
+    }
     free_extra_descriptions(world[cnt].ex_description);
 
     /* freeing room events */
