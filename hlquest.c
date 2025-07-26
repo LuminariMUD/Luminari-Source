@@ -984,6 +984,11 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count)
             qlast->next = qcom;
           }
           break;
+        default:
+          /* Invalid quest command type - free the allocated memory */
+          log("SYSERR: Invalid quest command type '%c' in quest file", inner[0]);
+          free(qcom);
+          break;
         }
       } while (*inner != 'S');
       break;

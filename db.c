@@ -5348,6 +5348,16 @@ void free_char(struct char_data *ch)
       destroy_innate_magic_queue(ch);
       destroy_spell_collection(ch);
       destroy_known_spells(ch);
+      
+      /* free craft data strings */
+      if (GET_CRAFT(ch).keywords)
+        free(GET_CRAFT(ch).keywords);
+      if (GET_CRAFT(ch).short_description)
+        free(GET_CRAFT(ch).short_description);
+      if (GET_CRAFT(ch).room_description)
+        free(GET_CRAFT(ch).room_description);
+      if (GET_CRAFT(ch).ex_description)
+        free(GET_CRAFT(ch).ex_description);
     }
 
     if (ch->player_specials)
