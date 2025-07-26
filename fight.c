@@ -2025,9 +2025,12 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     while (ch->affected)
       affect_remove_no_total(ch, ch->affected);
   } else {
-    /* Players remain in game and need proper stat recalculation */
+    /* For players, use affect_remove_no_total to avoid MSDP updates during death
+     * The heap can be corrupted during death processing, and MSDP protocol updates
+     * can trigger memory allocations that crash. Players will have their stats
+     * properly recalculated after respawn. */
     while (ch->affected)
-      affect_remove(ch, ch->affected);
+      affect_remove_no_total(ch, ch->affected);
   }
 
   /* Wipe character from the memory of hunters and other intelligent NPCs... */
@@ -2159,6 +2162,9 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     entry_memory_mtrigger(ch);
     greet_mtrigger(ch, -1);
     greet_memory_mtrigger(ch);
+    
+    /* Recalculate stats after respawn since we used affect_remove_no_total during death */
+    affect_total(ch);
 
     /* make sure not casting! */
     resetCastingData(ch);
@@ -2198,6 +2204,9 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     entry_memory_mtrigger(ch);
     greet_mtrigger(ch, -1);
     greet_memory_mtrigger(ch);
+    
+    /* Recalculate stats after respawn since we used affect_remove_no_total during death */
+    affect_total(ch);
 
     /* make sure not casting! */
     resetCastingData(ch);
