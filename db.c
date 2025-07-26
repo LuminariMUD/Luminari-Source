@@ -859,6 +859,16 @@ void destroy_db(void)
     while (mob_proto[cnt].affected)
       affect_remove(&mob_proto[cnt], mob_proto[cnt].affected);
 
+    /* free echo entries */
+    if (ECHO_COUNT(&mob_proto[cnt]) > 0 && ECHO_ENTRIES(&mob_proto[cnt]))
+    {
+      int j;
+      for (j = 0; j < ECHO_COUNT(&mob_proto[cnt]); j++)
+        if (ECHO_ENTRIES(&mob_proto[cnt])[j])
+          free(ECHO_ENTRIES(&mob_proto[cnt])[j]);
+      free(ECHO_ENTRIES(&mob_proto[cnt]));
+    }
+
     /* free quest data */
     free_hlquest(&mob_proto[cnt]);
   }
@@ -5331,8 +5341,20 @@ void free_char(struct char_data *ch)
       if (GET_HISTORY(ch, i))
         free_history(ch, i);
 
+    /* spell prep system - must be done before freeing player_specials */
+    if (ch && ch->player_specials)
+    {
+      destroy_spell_prep_queue(ch);
+      destroy_innate_magic_queue(ch);
+      destroy_spell_collection(ch);
+      destroy_known_spells(ch);
+    }
+
     if (ch->player_specials)
       free(ch->player_specials);
+
+    if (ch->bags)
+      free(ch->bags);
 
     /* free script proto list */
     free_proto_script(ch, MOB_TRIGGER);
@@ -5379,10 +5401,7 @@ void free_char(struct char_data *ch)
   {
     if (ch->events->iSize > 0)
     {
-      struct event *pEvent;
-
-      while ((pEvent = simple_list(ch->events)) != NULL)
-        event_cancel(pEvent);
+      clear_char_event_list(ch);
     }
     if (ch->events)
       free_list(ch->events);
@@ -5405,16 +5424,6 @@ void free_char(struct char_data *ch)
   if (CNDNSD(ch))
     free(CNDNSD(ch));
   CNDNSD(ch) = NULL;
-
-  /* spell prep system */
-  if (ch)
-    destroy_spell_prep_queue(ch);
-  if (ch)
-    destroy_innate_magic_queue(ch);
-  if (ch)
-    destroy_spell_collection(ch);
-  if (ch)
-    destroy_known_spells(ch);
 
   /* new version of free_followers take the followers pointer as arg */
   free_followers(ch->followers);

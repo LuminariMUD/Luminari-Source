@@ -2752,7 +2752,7 @@ void save_char(struct char_data *ch, int mode)
     struct damage_reduction_type *dr;
     int k = 0, x = 0;
     int max_loops = 100; /* zusuk put this here to limit the loop, we were having issues with pfiles 10/27/22 */
-    int snum[100];
+    int snum[100] = {0};  /* Initialize array to prevent uninitialized value access */
     bool found = false;
 
     BUFFER_WRITE( "DmgR:\n");

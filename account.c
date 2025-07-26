@@ -683,6 +683,7 @@ void show_account_menu(struct descriptor_data *d)
               if (PLR_FLAGGED(tch, PLR_DELETED))
               {
                 write_to_output(d, " \tR---===||DELETED||===---\tn\r\n");
+                free_char(tch);
                 return;
               }
 

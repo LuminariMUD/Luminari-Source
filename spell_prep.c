@@ -90,6 +90,9 @@ void clear_prep_queue_by_class(struct char_data *ch, int ch_class)
 {
   struct prep_collection_spell_data *tmp, *next;
   
+  if (!ch || !ch->player_specials)
+    return;
+  
   tmp = SPELL_PREP_QUEUE(ch, ch_class);
   while (tmp)
   {
@@ -103,6 +106,9 @@ void clear_prep_queue_by_class(struct char_data *ch, int ch_class)
 void clear_innate_magic_by_class(struct char_data *ch, int ch_class)
 {
   struct innate_magic_data *tmp, *next;
+  
+  if (!ch || !ch->player_specials)
+    return;
   
   tmp = INNATE_MAGIC(ch, ch_class);
   while (tmp)
@@ -118,6 +124,9 @@ void clear_collection_by_class(struct char_data *ch, int ch_class)
 {
   struct prep_collection_spell_data *tmp, *next;
   
+  if (!ch || !ch->player_specials)
+    return;
+  
   tmp = SPELL_COLLECTION(ch, ch_class);
   while (tmp)
   {
@@ -131,6 +140,9 @@ void clear_collection_by_class(struct char_data *ch, int ch_class)
 void clear_known_spells_by_class(struct char_data *ch, int ch_class)
 {
   struct known_spell_data *tmp, *next;
+  
+  if (!ch || !ch->player_specials)
+    return;
   
   tmp = KNOWN_SPELLS(ch, ch_class);
   while (tmp)
