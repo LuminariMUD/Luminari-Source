@@ -637,6 +637,17 @@ static void remove_cmd_from_list(struct reset_com **list, int pos)
     {
       newlist[l++] = (*list)[i];
     }
+    else
+    {
+      /* Free string arguments if this is a 'V' command being deleted */
+      if ((*list)[i].command == 'V')
+      {
+        if ((*list)[i].sarg1)
+          free((*list)[i].sarg1);
+        if ((*list)[i].sarg2)
+          free((*list)[i].sarg2);
+      }
+    }
   }
   /* Add the terminator, then insert the new list. */
   newlist[count - 1].command = 'S';

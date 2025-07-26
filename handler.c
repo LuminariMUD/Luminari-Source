@@ -2119,11 +2119,20 @@ struct obj_data *get_obj_in_list_num(int num, struct obj_data *list)
 /* search the entire world for an object number, and return a pointer  */
 struct obj_data *get_obj_num(obj_rnum nr)
 {
-  struct obj_data *i;
-
-  for (i = object_list; i; i = i->next)
-    if (GET_OBJ_RNUM(i) == nr)
-      return (i);
+  struct obj_data *obj;
+  int hash_key;
+  extern struct obj_rnum_hash_bucket obj_rnum_hash[];
+  
+  if (nr == NOTHING)
+    return NULL;
+    
+  /* Get the hash bucket for this rnum */
+  hash_key = nr % OBJ_RNUM_HASH_SIZE;
+  
+  /* Search only the objects in this hash bucket - O(1) average case */
+  for (obj = obj_rnum_hash[hash_key].objs; obj; obj = obj->next_in_hash)
+    if (GET_OBJ_RNUM(obj) == nr)
+      return (obj);
 
   return (NULL);
 }
@@ -2338,9 +2347,19 @@ void extract_obj(struct obj_data *obj)
     extract_obj(obj->contains);
 
   REMOVE_FROM_LIST(obj, object_list, next);
+  
+  /* Remove object from rnum hash table */
+  remove_obj_from_rnum_hash(obj);
 
-  if (GET_OBJ_RNUM(obj) != NOTHING)
-    (obj_index[GET_OBJ_RNUM(obj)].number)--;
+  if (GET_OBJ_RNUM(obj) != NOTHING) {
+    /* CRITICAL: Prevent negative object counts */
+    if (obj_index[GET_OBJ_RNUM(obj)].number > 0) {
+      (obj_index[GET_OBJ_RNUM(obj)].number)--;
+    } else {
+      log("SYSERR: Attempt to decrement object count below 0 - vnum %d, rnum %d",
+          obj_index[GET_OBJ_RNUM(obj)].vnum, GET_OBJ_RNUM(obj));
+    }
+  }
 
   if (SCRIPT(obj))
     extract_script(obj, OBJ_TRIGGER);

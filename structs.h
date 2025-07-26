@@ -247,6 +247,10 @@
 /** The total number of Room Affections */
 #define NUM_RAFF 16
 
+/* Zone reset states: Used in zone_data.reset_state */
+#define ZONE_RESET_NORMAL    0  /**< Zone is operating normally */
+#define ZONE_RESET_ACTIVE    1  /**< Zone is currently being reset */
+
 /* Zone info: Used in zone_data.zone_flags */
 #define ZONE_CLOSED 0       /**< Zone is closed - players cannot enter */
 #define ZONE_NOIMMORT 1     /**< Immortals (below LVL_GRSTAFF) cannot enter this zone */
@@ -4415,6 +4419,10 @@ struct obj_data
 
     struct obj_data *sheath_primary;     // for wielded or 2H weapon
     struct obj_data *sheath_secondary;   // for offhand weapon or shield
+    
+    /* Hash table support for fast rnum lookups */
+    struct obj_data *next_in_hash;      // Next object in hash bucket
+    struct obj_data *prev_in_hash;      // Previous object in hash bucket
 };
 
 /** Instance info for an object that gets saved to disk.
