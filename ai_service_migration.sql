@@ -62,12 +62,14 @@ ON DUPLICATE KEY UPDATE config_value = VALUES(config_value);
 -- Create stored procedure for cache cleanup
 DELIMITER $$
 
-CREATE PROCEDURE IF NOT EXISTS cleanup_ai_cache()
+DROP PROCEDURE IF EXISTS cleanup_ai_cache$$
+CREATE PROCEDURE cleanup_ai_cache()
 BEGIN
   DELETE FROM ai_cache WHERE expires_at < NOW();
 END$$
 
-CREATE PROCEDURE IF NOT EXISTS get_ai_usage_stats(IN days INT)
+DROP PROCEDURE IF EXISTS get_ai_usage_stats$$
+CREATE PROCEDURE get_ai_usage_stats(IN days INT)
 BEGIN
   SELECT 
     DATE(created_at) as usage_date,
