@@ -596,6 +596,14 @@ void create_tracks(struct char_data *ch, int dir, int flag)
     return;
   }
 
+  /* Safety check for trail_tracks */
+  if (!room->trail_tracks) {
+    log("SYSERR: Room %d has NULL trail_tracks, initializing.", room->number);
+    CREATE(room->trail_tracks, struct trail_data_list, 1);
+    room->trail_tracks->head = NULL;
+    room->trail_tracks->tail = NULL;
+  }
+
   /*
     Here we create the track structure, set the values and assign it to the room.
     At the same time, we can prune off any really old trails.  Threshold is set,

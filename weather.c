@@ -41,12 +41,14 @@ void weather_and_time(int mode)
  dailies are resetting every 6 game hours */
 void reset_dailies()
 {
-  struct char_data *ch = NULL;
+  struct char_data *ch = NULL, *next_ch = NULL;
   int changes = 0;
 
   /* reset dailies (like shapechange) */
-  for (ch = character_list; ch; ch = ch->next)
+  for (ch = character_list; ch; ch = next_ch)
   {
+    next_ch = ch->next; /* Cache next char before potential extraction */
+    
     if (!ch)
       continue;
 
