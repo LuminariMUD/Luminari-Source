@@ -3860,7 +3860,7 @@ ACMD(do_skore)
 
   // Check for section-specific display
   char arg[MAX_INPUT_LENGTH];
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   
   // Check for classic score preference
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_CLASSIC)) {
@@ -3963,11 +3963,18 @@ ACMD(do_skore)
           // Show detailed spell slots by class
           send_to_char(ch, "\tc+-- Spell Slots by Class -------------------------------------------------------+\tn\r\n");
           for (i = 0; i < MAX_CLASSES; i++) {
-            if (CLASS_LEVEL(ch, i) > 0 && class_spell_level[i][1] >= 0) {
+            if (CLASS_LEVEL(ch, i) > 0) {
+              // Check if this class has any spell slots
+              int has_spells = FALSE;
+              for (circle = 1; circle <= 9; circle++) {
+                if (compute_slots_by_circle(ch, i, circle) > 0) {
+                  has_spells = TRUE;
+                  break;
+                }
+              }
+              if (!has_spells) continue;
               send_to_char(ch, "\tc|\tn \tc%s (Level %d):\tn\r\n", 
                            class_list[i].name, CLASS_LEVEL(ch, i));
-              
-              int circle;
               for (circle = 1; circle <= 9; circle++) {
                 int total_slots = compute_slots_by_circle(ch, i, circle);
                 if (total_slots > 0) {
@@ -4010,13 +4017,13 @@ ACMD(do_skore)
       
       send_to_char(ch, "\tc+-- Ability Scores & Modifiers ------------------------------------------------+\tn\r\n");
       send_to_char(ch, "\tc|\tn \tcSTR:\tn %2d (%s%d) \tc|\tn \tcDEX:\tn %2d (%s%d) \tc|\tn \tcCON:\tn %2d (%s%d) \tc|\tn\r\n",
-                   GET_STR(ch), ability_mod_value(GET_STR(ch)) >= 0 ? "+" : "", ability_mod_value(GET_STR(ch)),
-                   GET_DEX(ch), ability_mod_value(GET_DEX(ch)) >= 0 ? "+" : "", ability_mod_value(GET_DEX(ch)),
-                   GET_CON(ch), ability_mod_value(GET_CON(ch)) >= 0 ? "+" : "", ability_mod_value(GET_CON(ch)));
+                   GET_STR(ch), GET_STR_BONUS(ch) >= 0 ? "+" : "", GET_STR_BONUS(ch),
+                   GET_DEX(ch), GET_DEX_BONUS(ch) >= 0 ? "+" : "", GET_DEX_BONUS(ch),
+                   GET_CON(ch), GET_CON_BONUS(ch) >= 0 ? "+" : "", GET_CON_BONUS(ch));
       send_to_char(ch, "\tc|\tn \tcINT:\tn %2d (%s%d) \tc|\tn \tcWIS:\tn %2d (%s%d) \tc|\tn \tcCHA:\tn %2d (%s%d) \tc|\tn\r\n",
-                   GET_INT(ch), ability_mod_value(GET_INT(ch)) >= 0 ? "+" : "", ability_mod_value(GET_INT(ch)),
-                   GET_WIS(ch), ability_mod_value(GET_WIS(ch)) >= 0 ? "+" : "", ability_mod_value(GET_WIS(ch)),
-                   GET_CHA(ch), ability_mod_value(GET_CHA(ch)) >= 0 ? "+" : "", ability_mod_value(GET_CHA(ch)));
+                   GET_INT(ch), GET_INT_BONUS(ch) >= 0 ? "+" : "", GET_INT_BONUS(ch),
+                   GET_WIS(ch), GET_WIS_BONUS(ch) >= 0 ? "+" : "", GET_WIS_BONUS(ch),
+                   GET_CHA(ch), GET_CHA_BONUS(ch) >= 0 ? "+" : "", GET_CHA_BONUS(ch));
       
       send_to_char(ch, "\tc+-- Saving Throws -------------------------------------------------------------+\tn\r\n");
       send_to_char(ch, "\tc|\tn \tcFortitude:\tn %s%-3d \tc|\tn \tcReflex:\tn %s%-3d \tc|\tn \tcWill:\tn %s%-3d                  \tc|\tn\r\n",
@@ -4220,10 +4227,19 @@ ACMD(do_skore)
       
       // Display spell slots for each casting class
       int class_idx, circle;
-      int has_slots = FALSE;
+      int slot_check;
       
       for (class_idx = 0; class_idx < MAX_CLASSES; class_idx++) {
-        if (CLASS_LEVEL(ch, class_idx) > 0 && class_spell_level[class_idx][1] >= 0) {
+        if (CLASS_LEVEL(ch, class_idx) > 0) {
+          // Check if this class has any spell slots
+          int has_slots = FALSE;
+          for (circle = 1; circle <= 9; circle++) {
+            if (compute_slots_by_circle(ch, class_idx, circle) > 0) {
+              has_slots = TRUE;
+              break;
+            }
+          }
+          if (!has_slots) continue;
           // This class can cast spells
           send_to_char(ch, "\tc|\tn \tc%s:\tn ", class_list[class_idx].name);
           

@@ -10,10 +10,15 @@ This document contains the complete documentation for the enhanced score display
 
 ## SKORE Command Documentation
 
-### Usage: skore
+### Usage: skore [section]
 
 The skore command displays an enhanced version of your character information
 with improved visual formatting, color coding, and organized information panels.
+
+You can also view specific sections in detail:
+- `skore combat` - Detailed combat statistics
+- `skore magic` - Detailed magic and psionic information  
+- `skore stats` - Detailed ability scores and saves
 
 ### FEATURES:
 
@@ -29,7 +34,7 @@ with improved visual formatting, color coding, and organized information panels.
 - Experience & Progression: Experience points, level progress, caster levels
 - Ability Scores & Saves: All six abilities with bonuses and saving throws
 - Combat Statistics: BAB, attacks, AC, damage reduction, weapon information
-- Magic & Psionics: Spell bonuses, psionic information (if applicable)
+- Magic & Psionics: Spell bonuses, spell slots by class, psionic information
 - Wealth & Achievements: Gold, bank, quest points, crafting jobs
 - Equipment Status: Key equipment and item counts (full density mode)
 
@@ -62,7 +67,16 @@ Different character classes use themed colors:
 
 ```
 skore
-  Shows your enhanced character information
+  Shows your full enhanced character information
+
+skore combat
+  Shows detailed combat statistics
+
+skore magic
+  Shows detailed magic and psionic information
+
+skore stats
+  Shows detailed ability scores and saves
 
 scoreconfig classic on
   Switches to classic score display
@@ -78,9 +92,8 @@ scoreconfig width 120
 - equipment   - Detailed equipment listing
 - affects     - Current spell effects
 
-The enhanced score display is part of the Phase 1 MVP implementation
-providing improved visual hierarchy and better information organization
-while maintaining compatibility with all MUD clients.
+The enhanced score display provides improved visual hierarchy and better
+information organization while maintaining compatibility with all MUD clients.
 
 See also: SCORE, SCORECONFIG, EQUIPMENT, AFFECTS
 

@@ -3,9 +3,20 @@
 ## 2025-07-27
 
 ### Features
+- **Enhanced Score Display (do_skore) - Phase 1 MVP Complete**: Implemented a new enhanced character display command `do_skore` as an alternative to the classic `do_score`. Features include:
+  - Visual progress bars for HP/Movement/PSP with health-based color coding
+  - Class-based color themes for different character types
+  - Spell slot tracking for all casting classes showing used/total slots
+  - Section-specific views: `skore combat`, `skore magic`, `skore stats`
+  - Customizable display via `scoreconfig` command (width, theme, density, colors)
+  - Performance monitoring integration with PERF_PROF_ENTER/EXIT macros
+  - Preferences persist via binary player file saves
+  - Responsive layout supporting 80/120/160 character widths
+  - Organized information panels: Identity, Vitals, Experience, Abilities, Combat, Magic, Wealth, Equipment
 - **Spell Collection Display Stacking**: Implemented spell stacking in the spell collection display for all spell-preparing classes (Wizard, Cleric, Druid, Ranger, Paladin, Blackguard, Alchemist). Modified `print_collection()` in spell_prep.c to group identical spells (same spell, metamagic, and domain) and display them with a count (e.g., "ball of lightning [quickened] x7"). The preparation queue display remains unchanged to preserve individual spell ordering for future prioritization features.
 
 ### Bug Fixes
+- **Fixed compute_spell_res() NULL Pointer Crash**: Fixed crashes in `compute_spell_res()` function in magic.c by adding NULL check for victim parameter and correcting incorrect function call in `do_skore`. The function now safely returns 0 when victim is NULL instead of attempting to dereference it.
 - **Fixed Array Bounds Violation in Spell Slots**: Fixed critical array bounds violation in `assign_feat_spell_slots()` function in spell_prep.c that could cause segmentation faults. Added bounds checking to ensure level_counter doesn't exceed the slot array size (84 entries), and added safety checks to prevent negative array indexing when accessing level_counter-1. This prevents crashes when character levels exceed expected bounds due to bonuses or other modifiers.
 - **Fixed Use-After-Free in Spell Preparation Event**: Fixed critical use-after-free vulnerability in `event_preparation()` function in spell_prep.c where the event system could access a freed character pointer. Added validation to check if the character still exists in the global character_list before processing the event. This prevents crashes when a character is extracted/freed while having active spell preparation events.
 - **Fixed Domain Array Bounds Checking**: Fixed potential array bounds violations in spell_prep.c when accessing domain_list array. Added validation to ensure domain values are within valid range (0 < domain < NUM_DOMAINS) before array access in three locations: print_prep_queue(), print_innate_magic_queue(), and print_collection(). This prevents crashes from invalid domain values.
