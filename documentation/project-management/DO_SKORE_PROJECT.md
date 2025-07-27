@@ -1,7 +1,7 @@
 # SKORE Phase 2-4 Coding Tasks
 
 **Phase 1 COMPLETE** - See CHANGELOG.md for details
-**Phase 2.1 & 2.2 COMPLETE** - See CHANGELOG.md for details
+**Phase 2.1, 2.2, 2.3, 2.4 & 2.5 COMPLETE** - See CHANGELOG.md for details
 
 ## Technical Requirements
 - C90 compliance (no C99)
@@ -27,26 +27,26 @@
 - [x] Add PRF_SCORE_RACE_SYMBOLS flag
 - [x] Add `scoreconfig symbols on/off` to do_scoreconfig
 
-### 2.3 New Color Themes
-- [ ] Add SCORE_THEME_HIGHCONTRAST (3) to enums
-- [ ] Add SCORE_THEME_DARK (4) to enums
-- [ ] Add SCORE_THEME_COLORBLIND (5) to enums
-- [ ] Implement theme color mappings in get_*_color() functions
-- [ ] Extend scoreconfig theme command validation
+### 2.3 New Color Themes ✅ COMPLETE
+- [x] Add SCORE_THEME_HIGHCONTRAST (3) to enums
+- [x] Add SCORE_THEME_DARK (4) to enums
+- [x] Add SCORE_THEME_COLORBLIND (5) to enums
+- [x] Implement theme color mappings in get_*_color() functions
+- [x] Extend scoreconfig theme command validation
 
-### 2.4 Context Detection
-- [ ] Add `get_display_context()` returning enum (CONTEXT_COMBAT, etc)
-- [ ] Check FIGHTING(ch) for combat mode
-- [ ] Reorder sections based on context in do_skore
-- [ ] Add context override to scoreconfig
+### 2.4 Context Detection ✅ COMPLETE
+- [x] Add `get_display_context()` returning enum (CONTEXT_COMBAT, etc)
+- [x] Check FIGHTING(ch) for combat mode
+- [x] Reorder sections based on context in do_skore
+- [ ] Add context override to scoreconfig (future enhancement)
 
-### 2.5 Active Effects Display
-- [ ] Create `display_active_effects()` function
-- [ ] Loop ch->affected list
-- [ ] Group by spell schools/types
-- [ ] Calculate ticks to time conversion
-- [ ] Use progress bar for duration display
-- [ ] Add to magic section or new section
+### 2.5 Active Effects Display ✅ COMPLETE
+- [x] Create `display_active_effects()` function
+- [x] Loop ch->affected list
+- [ ] Group by spell schools/types (future enhancement)
+- [x] Calculate ticks to time conversion
+- [x] Use progress bar for duration display
+- [x] Add to magic section or new section
 
 ### 2.6 Layout Templates
 - [ ] Add score_layout_template to player_special_data_saved

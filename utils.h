@@ -1302,6 +1302,8 @@ void char_from_furniture(struct char_data *ch);
 #define GET_SCORE_DISPLAY_WIDTH(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_display_width))
 #define GET_SCORE_COLOR_THEME(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_color_theme))
 #define GET_SCORE_INFO_DENSITY(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_info_density))
+#define GET_SCORE_LAYOUT_TEMPLATE(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_layout_template))
+#define GET_SCORE_SECTION_ORDER(ch, i) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_section_order[(i)]))
 
 /** The number of ticks until the player can perform more diplomacy. */
 #define GET_DIPTIMER(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->diplomacy_wait))

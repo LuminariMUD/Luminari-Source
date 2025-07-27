@@ -1,0 +1,86 @@
+################################################################################
+# MySQL Configuration File for LuminariMUD
+################################################################################
+#
+# This is an example configuration file for connecting LuminariMUD to MySQL.
+#
+# CRITICAL: FILE LOCATION REQUIREMENT
+# ===================================
+# The 'mysql_config' file MUST be placed in the lib/ directory!
+# The MUD looks for this file at: lib/mysql_config
+#
+# To use this file:
+#   1. Copy this file to 'lib/mysql_config' (without the _example suffix)
+#      Example: cp mysql_config_example lib/mysql_config
+#   2. Edit the values below with your actual database credentials
+#   3. Ensure the mysql_config file has appropriate permissions (chmod 600)
+#      Example: chmod 600 lib/mysql_config
+#
+# IMPORTANT: The actual 'mysql_config' file is git-ignored to protect your
+#            database credentials. Never commit real credentials to version control!
+#
+################################################################################
+
+# Database Host
+# - Use 'localhost' if MySQL is on the same server as the MUD
+# - Use an IP address (e.g., '192.168.1.100') for remote databases
+# - Use a hostname (e.g., 'db.example.com') if you have DNS configured
+# - For Docker containers, use the container name (e.g., 'mysql-container')
+mysql_host = <host here, example: localhost>
+
+# Database Name
+# - This is the name of the MySQL database that contains your MUD data
+# - Must be created before starting the MUD (see installation docs)
+# - Common naming: 'luminari', 'luminari_prod', 'luminari_dev', etc.
+mysql_database = <name of database here, example: MyMUD_DB>
+
+# Database Username
+# - The MySQL user account that the MUD will use to connect
+# - This user needs appropriate permissions (SELECT, INSERT, UPDATE, DELETE)
+# - For security, avoid using 'root' - create a dedicated MUD user
+mysql_username = <username here, example: mymud_user>
+
+# Database Password
+# - The password for the above MySQL user
+# - Use a strong password with mixed case, numbers, and special characters
+# - Avoid dictionary words and personal information
+# - Example strong password: 'Tr0ub4dor&3' (but don't use this one!)
+mysql_password = <password here, example: a$3koorPw34d>
+
+################################################################################
+# Optional Advanced Settings (uncomment to use)
+################################################################################
+
+# MySQL Port (default: 3306)
+# - Only needed if MySQL is running on a non-standard port
+# mysql_port = 3306
+
+# Connection Timeout (in seconds)
+# - How long to wait for a database connection before giving up
+# mysql_timeout = 10
+
+# Character Set (default: utf8)
+# - Determines how text is encoded in the database
+# mysql_charset = utf8
+
+################################################################################
+# Troubleshooting Tips
+################################################################################
+#
+# 1. "Access denied for user" error:
+#    - Verify username and password are correct
+#    - Ensure user has permissions: GRANT ALL ON luminari.* TO 'user'@'host';
+#
+# 2. "Can't connect to MySQL server" error:
+#    - Check if MySQL is running: systemctl status mysql
+#    - Verify host and port settings
+#    - Check firewall rules if connecting remotely
+#
+# 3. "Unknown database" error:
+#    - Create the database first: CREATE DATABASE luminari;
+#    - Verify database name spelling
+#
+# 4. For more help, see: documentation/DATABASE_INTEGRATION.md
+#
+################################################################################
+
