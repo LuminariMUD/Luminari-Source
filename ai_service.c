@@ -672,7 +672,6 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
   char prompt[MAX_STRING_LENGTH];
   char cache_key[256];
   char *cached_response;
-  char *response;
   
   if (!npc || !ch || !input || !*input) return;
   
