@@ -19,14 +19,6 @@ act.informative.o: act.informative.c conf.h sysdep.h structs.h bool.h \
  desc_engine.h crafts.h alchemy.h premadebuilds.h staff_events.h \
  missions.h spec_procs.h transport.h encounters.h deities.h treasure.h \
  roleplay.h spell_prep.h boards.h
-actionqueues.o: actionqueues.c conf.h sysdep.h structs.h bool.h \
- protocol.h lists.h campaign.h mud_options.h vnums.h utils.h db.h \
- helpers.h perfmon.h comm.h interpreter.h actionqueues.h mud_event.h \
- dg_event.h actions.h
-actions.o: actions.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
- campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
- interpreter.h screen.h modify.h handler.h spells.h mud_event.h \
- dg_event.h actions.h act.h domains_schools.h
 act.item.o: act.item.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h mud_options.h vnums.h utils.h db.h helpers.h \
  perfmon.h comm.h screen.h interpreter.h handler.h spells.h constants.h \
@@ -67,6 +59,14 @@ act.wizard.o: act.wizard.c conf.h sysdep.h structs.h bool.h protocol.h \
  spec_abilities.h wilderness.h feats.h assign_wpn_armor.h item.h \
  domains_schools.h ai_service.h crafts.h account.h alchemy.h \
  premadebuilds.h missions.h deities.h backgrounds.h kdtree.h
+actionqueues.o: actionqueues.c conf.h sysdep.h structs.h bool.h \
+ protocol.h lists.h campaign.h mud_options.h vnums.h utils.h db.h \
+ helpers.h perfmon.h comm.h interpreter.h actionqueues.h mud_event.h \
+ dg_event.h actions.h
+actions.o: actions.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
+ campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
+ interpreter.h screen.h modify.h handler.h spells.h mud_event.h \
+ dg_event.h actions.h act.h domains_schools.h
 aedit.o: aedit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h \
  interpreter.h handler.h comm.h oasis.h help.h screen.h constants.h \
@@ -315,8 +315,8 @@ grapple.o: grapple.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  assign_wpn_armor.h feats.h grapple.h evolutions.h
 handler.o: handler.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
- handler.h screen.h interpreter.h spells.h dg_scripts.h act.h class.h \
- fight.h quest.h mud_event.h dg_event.h wilderness.h actionqueues.h \
+ handler.h screen.h interpreter.h spells.h dg_scripts.h dg_event.h act.h \
+ class.h fight.h quest.h mud_event.h wilderness.h actionqueues.h \
  constants.h spec_abilities.h crafting_new.h
 hedit.o: hedit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
@@ -542,10 +542,6 @@ spec_procs.o: spec_procs.c conf.h sysdep.h structs.h bool.h protocol.h \
  domains_schools.h feats.h spell_prep.h item.h alchemy.h treasure.h \
  mobact.h evolutions.h oasis.h help.h quest.h backgrounds.h
 specs.artifacts.o: specs.artifacts.c
-spellbook_scroll.o: spellbook_scroll.c conf.h sysdep.h structs.h bool.h \
- protocol.h lists.h campaign.h mud_options.h vnums.h utils.h db.h \
- helpers.h perfmon.h interpreter.h spells.h comm.h mud_event.h dg_event.h \
- constants.h act.h handler.h spec_procs.h spell_prep.h item.h
 spell_parser.o: spell_parser.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h mud_options.h vnums.h utils.h db.h \
  helpers.h perfmon.h interpreter.h spells.h handler.h comm.h dg_scripts.h \
@@ -556,6 +552,10 @@ spell_prep.o: spell_prep.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h mud_options.h vnums.h utils.h db.h helpers.h \
  perfmon.h interpreter.h comm.h handler.h constants.h spec_procs.h \
  spells.h mud_event.h dg_event.h class.h spell_prep.h domains_schools.h
+spellbook_scroll.o: spellbook_scroll.c conf.h sysdep.h structs.h bool.h \
+ protocol.h lists.h campaign.h mud_options.h vnums.h utils.h db.h \
+ helpers.h perfmon.h interpreter.h spells.h comm.h mud_event.h dg_event.h \
+ constants.h act.h handler.h spec_procs.h spell_prep.h item.h
 spells.o: spells.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
  spells.h handler.h constants.h interpreter.h dg_scripts.h act.h fight.h \

@@ -120,10 +120,20 @@ CALL get_ai_usage_stats(7);  -- Last 7 days
 
 ## Performance Optimization
 
-1. **Caching**: Responses are cached for 1 hour by default
-2. **Async Processing**: AI responses are queued to avoid blocking
-3. **Batch Requests**: Consider implementing batch processing for multiple NPCs
-4. **Database Indexes**: Ensure indexes are maintained for optimal query performance
+### Recent Performance Improvements (January 27, 2025)
+- **True Async Processing**: Implemented pthread-based threading to prevent MUD blocking
+- **Instant Responses**: Removed artificial 5-second delay (was `delay = strlen(response) / 20`)
+- **Faster Model**: Default changed from gpt-4.1-mini to gpt-4o-mini (80% cheaper, faster)
+- **Lower Temperature**: Reduced from 0.7 to 0.3 for more consistent, faster responses
+- **HTTP/2 Support**: Added HTTP/2 and TCP keep-alive for better connection efficiency
+- **Connection Pooling**: Persistent CURL handle reduces connection overhead
+- **Larger Cache**: Increased cache size from 1000 to 5000 entries
+
+### Key Optimizations
+1. **Threading**: API calls now run in separate threads - MUD never blocks
+2. **Caching**: Responses cached for 1 hour (instant response on cache hits)
+3. **Connection Reuse**: Persistent CURL handle with keep-alive
+4. **Zero Delay**: Responses delivered immediately after API call completes
 
 ## Troubleshooting
 

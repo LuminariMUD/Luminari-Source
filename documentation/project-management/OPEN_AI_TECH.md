@@ -2,6 +2,42 @@
 
 ## Status: PARTIALLY IMPLEMENTED - January 27, 2025
 
+## Recent Performance Optimizations (January 27, 2025)
+
+### Threading Implementation (COMPLETED)
+- **Implemented pthread-based true async processing**
+  - API calls now run in separate detached threads
+  - MUD never blocks waiting for API responses
+  - Responses delivered via event queue when ready
+
+### Performance Improvements (COMPLETED)
+- **Removed artificial 5-second delay** - Was `delay = strlen(response) / 20`, now `delay = 0`
+- **Switched to faster model** - Changed from gpt-4.1-mini to gpt-4o-mini
+- **Lowered temperature** - Reduced from 0.7 to 0.3 for faster responses
+- **Added CURL optimizations**:
+  - HTTP/2 support (when available)
+  - TCP keep-alive enabled
+  - Connection pooling with persistent handle
+- **Increased cache size** - From 1000 to 5000 entries
+
+### Key Changes Made
+1. **ai_service.c**:
+   - Added pthread.h include
+   - Created ai_thread_request structure
+   - Implemented ai_thread_worker function
+   - Modified ai_npc_dialogue_async to spawn threads
+   - Added connection pooling with persistent CURL handle
+
+2. **ai_events.c**:
+   - Set delay to 0 for instant responses
+   - Removed artificial delays completely
+
+3. **act.comm.c**:
+   - Already using ai_npc_dialogue_async for non-blocking
+
+4. **Makefile.in**:
+   - Added -lpthread to LIBS
+
 ## Remaining Implementation Tasks
 
 ### 1. Missing Function Implementations

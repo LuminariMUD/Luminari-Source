@@ -28,7 +28,7 @@ BINDIR = ../bin
 CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE) 
 CXXFLAGS = $(CFLAGS) -std=c++11
 
-LIBS =  -lstdc++ -lcrypt -lgd -lm -lmysqlclient -lcurl
+LIBS =  -lstdc++ -lcrypt -lgd -lm -lmysqlclient -lcurl -ljson-c -lssl -lcrypto -lpthread
 
 SRCFILES := $(wildcard *.c)
 CPPFILES := $(wildcard *.cpp)
