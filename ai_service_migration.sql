@@ -50,13 +50,14 @@ CREATE TABLE IF NOT EXISTS ai_npc_personalities (
 -- Insert default configuration values
 INSERT INTO ai_config (config_key, config_value) VALUES 
   ('enabled', 'false'),
-  ('model', 'gpt-3.5-turbo'),
+  ('model', 'gpt-4.1-mini'),
   ('max_tokens', '500'),
   ('temperature', '0.7'),
   ('requests_per_minute', '60'),
   ('requests_per_hour', '1000'),
   ('cache_expire_seconds', '3600'),
-  ('content_filter_enabled', 'true')
+  ('content_filter_enabled', 'true'),
+  ('api_key', '')  -- Store encrypted API key here if not using file
 ON DUPLICATE KEY UPDATE config_value = VALUES(config_value);
 
 -- Create stored procedure for cache cleanup
