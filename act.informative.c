@@ -4974,7 +4974,8 @@ ACMD(do_scoreconfig)
     return;
   }
 
-  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  /* Use half_chop_c instead of two_arguments to preserve "on" as a value */
+  half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1) {
     send_to_char(ch, "\tcScore Display Configuration:\tn\r\n");
@@ -5009,10 +5010,10 @@ ACMD(do_scoreconfig)
     send_to_char(ch, "  \tcscoreconfig width <80|120|160>\tn     - Set display width\r\n");
     send_to_char(ch, "  \tcscoreconfig theme <enhanced|classic|minimal|highcontrast|dark|colorblind>\tn\r\n");
     send_to_char(ch, "  \tcscoreconfig density <full|compact|minimal>\tn - Set information density\r\n");
-    send_to_char(ch, "  \tcscoreconfig classic <on|off>\tn        - Toggle classic score display\r\n");
-    send_to_char(ch, "  \tcscoreconfig colors <on|off>\tn         - Toggle color display\r\n");
-    send_to_char(ch, "  \tcscoreconfig borders <on|off>\tn        - Toggle class-themed borders\r\n");
-    send_to_char(ch, "  \tcscoreconfig symbols <on|off>\tn        - Toggle race symbols display\r\n");
+    send_to_char(ch, "  \tcscoreconfig classic <on/yes|off/no>\tn  - Toggle classic score display\r\n");
+    send_to_char(ch, "  \tcscoreconfig colors <on/yes|off/no>\tn   - Toggle color display\r\n");
+    send_to_char(ch, "  \tcscoreconfig borders <on/yes|off/no>\tn  - Toggle class-themed borders\r\n");
+    send_to_char(ch, "  \tcscoreconfig symbols <on/yes|off/no>\tn  - Toggle race symbols display\r\n");
     send_to_char(ch, "  \tcscoreconfig template <default|combat|roleplay|explorer|caster>\tn\r\n");
     send_to_char(ch, "  \tcscoreconfig order <section> <position>\tn - Set custom section order\r\n");
     send_to_char(ch, "  \tcscoreconfig reset\tn                   - Reset to defaults\r\n");
@@ -5094,7 +5095,7 @@ ACMD(do_scoreconfig)
       REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_CLASSIC);
       send_to_char(ch, "Classic score display disabled. Enhanced display will be used.\r\n");
     } else {
-      send_to_char(ch, "Use 'on' or 'off' to toggle classic mode.\r\n");
+      send_to_char(ch, "Use 'on/yes' or 'off/no' to toggle classic mode.\r\n");
       return;
     }
     save_char(ch, 0);
@@ -5109,7 +5110,7 @@ ACMD(do_scoreconfig)
       SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_NOCOLOR);
       send_to_char(ch, "Score display colors disabled.\r\n");
     } else {
-      send_to_char(ch, "Use 'on' or 'off' to toggle colors.\r\n");
+      send_to_char(ch, "Use 'on/yes' or 'off/no' to toggle colors.\r\n");
       return;
     }
     save_char(ch, 0);
@@ -5117,6 +5118,8 @@ ACMD(do_scoreconfig)
   }
 
   if (!str_cmp(arg1, "borders")) {
+    /* DEBUG: Log what we're getting */
+    log("DEBUG scoreconfig borders: arg2='%s' len=%d", arg2, (int)strlen(arg2));
     if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes")) {
       SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_BORDERS);
       send_to_char(ch, "Class-themed borders enabled in score display.\r\n");
@@ -5124,7 +5127,7 @@ ACMD(do_scoreconfig)
       REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_BORDERS);
       send_to_char(ch, "Class-themed borders disabled in score display.\r\n");
     } else {
-      send_to_char(ch, "Use 'on' or 'off' to toggle borders.\r\n");
+      send_to_char(ch, "Use 'on/yes' or 'off/no' to toggle borders.\r\n");
       return;
     }
     save_char(ch, 0);
@@ -5139,7 +5142,7 @@ ACMD(do_scoreconfig)
       REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_RACE_SYMBOLS);
       send_to_char(ch, "Race symbols disabled in score display.\r\n");
     } else {
-      send_to_char(ch, "Use 'on' or 'off' to toggle race symbols.\r\n");
+      send_to_char(ch, "Use 'on/yes' or 'off/no' to toggle race symbols.\r\n");
       return;
     }
     save_char(ch, 0);
