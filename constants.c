@@ -1567,6 +1567,7 @@ const char *action_bits[] = {
     "Retainer",
     "Buff-Out-Of-Combat",
     "Immune-Paralysis",
+    "AI-Enabled",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);

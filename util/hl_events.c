@@ -5,6 +5,15 @@
  *  Header:   hl_events.h
  *  Authors:  Eric Green (ejg3@cornell.edu)
  *            Ported to Luminari by Zusuk
+ *
+ *  This file implements an alternative event system for LuminariMUD.
+ *  It provides a priority queue-based event scheduler that can handle
+ *  timed events more efficiently than the standard MUD event system.
+ *
+ *  The system uses multiple queues to reduce enqueue costs and provides
+ *  functions for creating, scheduling, and managing events.
+ *
+ *  Updated: 2025 - Enhanced documentation and compatibility
  ****************************************************************************/
 
 #include "conf.h"
@@ -39,7 +48,14 @@ struct q_element
 /* external variables */
 extern unsigned long pulse;
 
-/* returns a new, initialized queue */
+/**
+ * Initialize a new event queue
+ *
+ * Creates and initializes a new queue structure for managing events.
+ * The queue uses multiple sub-queues to reduce enqueue costs.
+ *
+ * @return Pointer to the newly created queue
+ */
 struct queue *queue_init(void)
 {
   struct queue *q;

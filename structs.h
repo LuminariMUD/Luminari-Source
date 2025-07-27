@@ -1170,8 +1170,9 @@
 #define MOB_RETAINER 95
 #define MOB_BUFF_OUTSIDE_COMBAT 96
 #define MOB_NOPARALYZE 97
+#define MOB_AI_ENABLED 98   /**< Mob uses AI for responses */
 /**********************/
-#define NUM_MOB_FLAGS 98
+#define NUM_MOB_FLAGS 99
 /**********************/
 /**********************/
 

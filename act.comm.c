@@ -28,6 +28,7 @@
 #include "constants.h"
 #include "spells.h"
 #include "spec_procs.h"
+#include "ai_service.h"
 #include "quest.h"
 
 ACMDU(do_rsay)
@@ -521,6 +522,16 @@ ACMD(do_tell)
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
       parse_at(buf2);
     perform_tell(ch, vict, buf2);
+    
+    /* AI Enhancement for NPCs */
+    if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_AI_ENABLED)) {
+      char *ai_response = ai_npc_dialogue(vict, ch, buf2);
+      if (ai_response) {
+        /* Queue AI response with slight delay for realism */
+        queue_ai_response(ch, vict, ai_response);
+        free(ai_response);
+      }
+    }
   }
   else
   {

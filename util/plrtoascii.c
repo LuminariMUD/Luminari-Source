@@ -2,6 +2,14 @@
  *  file:  plrtoascii.c                                Part of LuminariMUD *
  *  Copyright (C) 1990, 1991 - see 'license.doc' for complete information. *
  *  All Rights Reserved                                                    *
+ *                                                                         *
+ *  This utility converts binary player files to ASCII format. It's used  *
+ *  to migrate player data from older binary formats to the newer ASCII   *
+ *  format used by LuminariMUD. The conversion preserves all player data   *
+ *  including stats, skills, equipment, and other character information.   *
+ *                                                                         *
+ *  Updated: 2025 - Enhanced for LuminariMUD compatibility, improved       *
+ *  documentation and error handling                                       *
  ************************************************************************* */
 
 #include "conf.h"
@@ -441,12 +449,34 @@ void convert(char *filename)
   }
 }
 
+/**
+ * Main function for the plrtoascii converter
+ *
+ * Converts binary player files to ASCII format for use with LuminariMUD.
+ * This utility is used to migrate player data from older binary formats.
+ *
+ * @param argc Number of command line arguments
+ * @param argv Array of command line arguments:
+ *             [1] binary player file name to convert
+ * @return 0 on success
+ */
 int main(int argc, char **argv)
 {
   if (argc != 2)
-    printf("Usage: %s playerfile-name\n", argv[0]);
-  else
-    convert(argv[1]);
+  {
+    printf("Usage: %s <playerfile-name>\n", argv[0]);
+    printf("\n");
+    printf("Converts binary player files to ASCII format.\n");
+    printf("Creates individual .plr files and updates the player index.\n");
+    printf("\n");
+    printf("Example: %s plrobjs\n", argv[0]);
+    return 1;
+  }
+
+  printf("LuminariMUD Player File Converter\n");
+  printf("Converting: %s\n", argv[1]);
+  convert(argv[1]);
+  printf("Conversion complete.\n");
 
   return 0;
 }

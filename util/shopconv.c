@@ -2,6 +2,19 @@
  *  file:  shopconv.c                                  Part of LuminariMUD *
  *  Usage: code to convert 2.20 shop files to 3.0 shop files               *
  *  Written by Jeff Fink                                                   *
+ *                                                                         *
+ *  This utility converts shop files from the older 2.20 format to the    *
+ *  newer 3.0 format used by LuminariMUD. It processes shop definitions    *
+ *  and updates the file format while preserving all shop data.            *
+ *                                                                         *
+ *  The conversion process handles:                                        *
+ *  - Shop item lists (produced and traded items)                         *
+ *  - Price ratios and economic settings                                   *
+ *  - Shopkeeper messages and responses                                    *
+ *  - Operating hours and shop flags                                       *
+ *                                                                         *
+ *  Updated: 2025 - Enhanced for LuminariMUD compatibility, improved       *
+ *  error handling and documentation                                       *
  ************************************************************************* */
 
 #include "conf.h"
@@ -12,6 +25,14 @@
 #include "db.h"
 #include "shop.h"
 
+/**
+ * Basic logging function for the conversion utility
+ *
+ * Simple logging function that outputs messages to stdout.
+ * Used by utility functions that expect a logging interface.
+ *
+ * @param x Format string for the log message
+ */
 void basic_mud_log(const char *x, ...)
 {
   puts(x);
@@ -162,6 +183,17 @@ static int boot_the_shops_conv(FILE *shop_f, FILE *newshop_f, char *filename)
   return (0);
 }
 
+/**
+ * Main function for the shopconv utility
+ *
+ * Converts shop files from 2.20 format to 3.0 format. Processes multiple
+ * files if specified on the command line. Creates backup files and handles
+ * errors gracefully.
+ *
+ * @param argc Number of command line arguments
+ * @param argv Array of command line arguments (shop filenames)
+ * @return 0 on success
+ */
 int main(int argc, char *argv[])
 {
   FILE *sfp, *nsfp;
@@ -170,45 +202,68 @@ int main(int argc, char *argv[])
 
   if (argc < 2)
   {
-    printf("Usage: shopconv <file1> [file2] [file3] ...\n");
+    printf("Usage: %s <file1> [file2] [file3] ...\n", argv[0]);
+    printf("\n");
+    printf("Converts shop files from 2.20 format to 3.0 format.\n");
+    printf("Creates backup files (.bak) of successfully converted files.\n");
+    printf("If conversion fails, original files are restored from .tmp files.\n");
+    printf("\n");
+    printf("Example: %s shops.shp zone01.shp zone02.shp\n", argv[0]);
     exit(1);
   }
+
+  printf("LuminariMUD Shop File Converter\n");
+  printf("Converting %d file(s) from 2.20 to 3.0 format...\n\n", argc - 1);
+
   for (index = 1; index < argc; index++)
   {
     sprintf(fn, "%s", argv[index]);
+    printf("Processing: %s\n", fn);
+
+    /* Create temporary backup */
     sprintf(part, "mv %s %s.tmp", fn, fn);
-    system(part);
+    if (system(part) != 0) {
+      printf("Warning: Could not create temporary backup for %s\n", fn);
+    }
+
     sprintf(part, "%s.tmp", fn);
     sfp = fopen(part, "r");
     if (sfp == NULL)
     {
-      strcat(fn, " could not be opened");
-      perror(fn);
+      printf("Error: Could not open %s for reading\n", part);
+      perror(part);
+      continue;
+    }
+
+    if ((nsfp = fopen(fn, "w")) == NULL)
+    {
+      printf("Error: Could not open %s for writing\n", fn);
+      fclose(sfp);
+      continue;
+    }
+
+    /* Perform the conversion */
+    result = boot_the_shops_conv(sfp, nsfp, fn);
+    fclose(nsfp);
+    fclose(sfp);
+
+    if (result)
+    {
+      /* Conversion failed - restore original */
+      sprintf(part, "mv %s.tmp %s", fn, fn);
+      system(part);
+      printf("Conversion failed - original file restored\n");
     }
     else
     {
-      if ((nsfp = fopen(fn, "w")) == NULL)
-      {
-        printf("Error writing to %s.\n", fn);
-        continue;
-      }
-      printf("%s:\n", fn);
-      result = boot_the_shops_conv(sfp, nsfp, fn);
-      fclose(nsfp);
-      fclose(sfp);
-      if (result)
-      {
-        sprintf(part, "mv %s.tmp %s", fn, fn);
-        system(part);
-      }
-      else
-      {
-        sprintf(part, "mv %s.tmp %s.bak", fn, fn);
-        system(part);
-        printf("Done!\n");
-      }
+      /* Conversion succeeded - create backup */
+      sprintf(part, "mv %s.tmp %s.bak", fn, fn);
+      system(part);
+      printf("Conversion successful - backup saved as %s.bak\n", fn);
     }
+    printf("\n");
   }
 
+  printf("Shop file conversion complete.\n");
   return (0);
 }

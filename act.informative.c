@@ -48,6 +48,7 @@
 #include "encounters.h"
 #include "deities.h"
 #include "treasure.h"
+#include "roleplay.h"
 #include "spell_prep.h"
 #include "boards.h"
 #include "perfmon.h"
@@ -3407,358 +3408,623 @@ send_to_char(ch, "\tC");
   send_to_char(ch, "\tn");
 }
 
-/*
--------------------------------Score Information--------------------------------
-Name      : Leonidas             Title   : the distracted do-gooder
-Alignment : Lawful Good          Classes : 1 War / 1 Pal
-Race      : Humn                 Sex     : Male
-Age       : 18 yrs / 0 mths      Played  : 1 days / 0 hrs
-Size      : Medium               Load    : 41/920 lbs
---------------------------------------------------------------------------------
-Hit points: 38(38)    Moves: 84(84)    PSP: 100(100)
-----------------------------------Experience------------------------------------
-Level: 2                          CstrLvl : 0   DivLvl: 0   MgcLvl: 0
-Exp  : 2000                       ExpTNL  : 9000
--------------Ability Scores--------------------------Saving Throws--------------
-Str: 16[ 3]  Dex: 12[ 1]  Con: 12[ 1]  |  Fort    : 2    Will    : 2
-Int: 12[ 1]  Wis: 12[ 1]  Cha: 12[ 1]  |  Reflex  : 2
--------------------------------------Combat-------------------------------------
-ArmorClass   : 10   Spell Resist : 0   Wimpy        : 0   Position : Standing
-BAB          : 2    # of Attacks : 1   Concealment  : 0   Modes : [     ]
--------------Proficiencies------------------------------Quests------------------
-Weapon Proficiency Used :  Martial     | Quests completed : 0
-Armor Proficiency Used  :  None        | Quest points     : 0
-Shield Proficiency Used :  None        | On quest         : None
---------------------------------------------------------------------------------
-Gold: 999615                      Gold in Bank : 0
---------------------------------------------------------------------------------
+/**
+ * @file act.informative.c
+ * @brief Implementation of the 'score' command
+ * 
+ * COMMAND: score
+ * USAGE: score
+ * 
+ * The score command displays comprehensive character information including:
+ *  - Basic identity (name, title, race, class, etc)
+ *  - Vital statistics (HP, movement, speed)
+ *  - Experience and level progression
+ *  - Ability scores and saving throws
+ *  - Combat statistics (BAB, AC, position)
+ *  - Special abilities (psionics, spellcasting)
+ *  - Quest information
+ *  - Wealth (gold carried and banked)
+ *  - Class-specific information (domains, bloodlines, schools)
+ *  - Status conditions (hunger, thirst, intoxication)
+ *  - Available class-specific commands
+ * 
+ * Example output:
+ * -------------------------------Score Information--------------------------------
+ * Name      : Leonidas             Title   : the distracted do-gooder
+ * Alignment : Lawful Good          Classes : 1 War / 1 Pal
+ * Race      : Humn                 Sex     : Male
+ * Age       : 18 yrs / 0 mths      Played  : 1 days / 0 hrs
+ * Size      : Medium               Load    : 41/920 lbs
+ * --------------------------------------------------------------------------------
+ * Hit points: 38(38)    Moves: 84(84)    Speed: 30    Initiative: +1
+ * ----------------------------------Experience------------------------------------
+ * Level: 2                          CstrLvl : 0   DivLvl: 0   MgcLvl: 0
+ * Exp  : 2000                       ExpTNL  : 9000
+ * -------------Ability Scores--------------------------Saving Throws--------------
+ * Str: 16[ 3]  Dex: 12[ 1]  Con: 12[ 1]  |  Fort    : 2    Will    : 2
+ * Int: 12[ 1]  Wis: 12[ 1]  Cha: 12[ 1]  |  Reflex  : 2
+ * -------------------------------------Combat-------------------------------------
+ * BAB: 2    # of Attacks: 1    ArmorClass: 10    Wimpy: 0    Pos: Standing
+ * --------------------------------------------------------------------------------
+ * Gold: 999615                      Gold in Bank : 0
+ * --------------------------------------------------------------------------------
+ * 
+ * @param ch The character executing the command
+ * @param argument Command arguments (unused - score takes no arguments)
+ * @param cmd The command number
+ * @param subcmd Subcommand flags (unused)
  */
 ACMD(do_score)
 {
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-  struct time_info_data playing_time;
-  int calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch)), i = 0, counter = 0;
-  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
-  float height = GET_HEIGHT(ch);
-  int w_type = 0;
-  int line_length = 80;
-  char dname[SMALL_STRING] = {'\0'};
-
-  // get some initial info before score display
-  if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
+  /* ========================================================================= */
+  /* VARIABLE DECLARATIONS                                                     */
+  /* ========================================================================= */
+  
+  /* String buffers for building output */
+  char buf[MAX_INPUT_LENGTH] = {'\0'};        /* General purpose string buffer */
+  char dname[SMALL_STRING] = {'\0'};          /* Deity name buffer */
+  
+  /* Character statistics and information */
+  struct time_info_data playing_time;         /* Time played calculation */
+  struct obj_data *wielded = NULL;            /* Primary weapon equipped */
+  int calc_bab = 0;                           /* Base Attack Bonus */
+  int i = 0, counter = 0;                     /* Loop counters */
+  float height = 0.0;                         /* Character height (unused) */
+  int w_type = 0;                             /* Weapon type (unused) */
+  
+  /* Display formatting constants */
+  const int line_length = 80;                 /* Standard line width */
+  
+  /* ========================================================================= */
+  /* INITIALIZATION - Prepare data for display                                 */
+  /* ========================================================================= */
+  
+  /* Calculate Base Attack Bonus (capped at MAX_BAB) */
+  calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch));
+  
+  /* Get primary wielded weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  
+  /* Determine weapon type (currently unused but preserved for future use) */
+  if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) {
     w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
-  else
-  {
-    if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
+  } else {
+    if (IS_NPC(ch) && ch->mob_specials.attack_type != 0) {
       w_type = ch->mob_specials.attack_type + TYPE_HIT;
-    else
+    } else {
       w_type = TYPE_HIT;
+    }
   }
-
+  
+  /* Calculate total time played */
   playing_time = *real_time_passed((time(0) - ch->player.time.logon) +
-                                       ch->player.time.played,
-                                   0);
-
-  height *= 0.393700787402;
-
+                                   ch->player.time.played, 0);
+  
+  /* Convert height to inches (currently unused but preserved) */
+  height = GET_HEIGHT(ch) * 0.393700787402;
+  
+  /* ========================================================================= */
+  /* SECTION 1: BASIC IDENTITY INFORMATION                                     */
+  /* ========================================================================= */
+  
+  /* Start with cyan color and draw header */
   send_to_char(ch, "\tC");
   text_line(ch, "\tYScore Information\tC", line_length, '-', '-');
+  
+  /* Display name and title */
   send_to_char(ch, "\tcName : \tn%-20s \tcTitle   : \tn%s\r\n",
-               GET_NAME(ch), GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
-  send_to_char(ch, "\tcRace : \tn%-20s ", race_list[GET_RACE(ch)].type);
+               GET_NAME(ch), 
+               GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
+  
+  /* Display race with bounds checking */
+  send_to_char(ch, "\tcRace : \tn%-20s ", 
+               (GET_RACE(ch) >= 0 && GET_RACE(ch) < NUM_RACES) ? 
+                 race_list[GET_RACE(ch)].type : "Unknown");
 
-  /* Build the string of class names and levels */
+  /* Build class string - shows all classes for multiclass characters */
   *buf = '\0';
-  if (!IS_NPC(ch))
-  {
-    for (i = 0; i < MAX_CLASSES; i++)
-    {
-      if (CLASS_LEVEL(ch, i))
-      {
-        if (counter)
+  counter = 0;
+  
+  if (!IS_NPC(ch)) {
+    /* Player characters - check each possible class */
+    for (i = 0; i < MAX_CLASSES; i++) {
+      if (CLASS_LEVEL(ch, i)) {
+        /* Add separator for multiple classes */
+        if (counter) {
           strlcat(buf, " / ", sizeof(buf));
+        }
+        
+        /* Add class level and abbreviation */
         char res_buf[32];
-        snprintf(res_buf, sizeof(res_buf), "%d %s", CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
+        snprintf(res_buf, sizeof(res_buf), "%d %s", 
+                 CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
         strlcat(buf, res_buf, sizeof(buf));
         counter++;
       }
     }
-  }
-  else
+  } else {
+    /* NPCs - use simple class abbreviation */
     strlcpy(buf, CLASS_ABBR(ch), sizeof(buf));
-
-  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
-  {
-    snprintf(buf, sizeof(buf), "%d %s (premade build)", CLASS_LEVEL(ch, GET_PREMADE_BUILD_CLASS(ch)), class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
   }
-
-  send_to_char(ch, "\tcClass%s : \tn%s\r\n", (counter == 1 ? "  " : "es"), buf);
+  
+  /* Override with premade build if applicable */
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) {
+    snprintf(buf, sizeof(buf), "%d %s (premade build)", 
+             CLASS_LEVEL(ch, GET_PREMADE_BUILD_CLASS(ch)), 
+             class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
+  }
+  
+  /* Display classes with proper pluralization */
+  send_to_char(ch, "\tcClass%s : \tn%s\r\n", 
+               (counter == 1 ? "  " : "es"), buf);
+  
+  /* Display sex/gender */
   send_to_char(ch, "\tcSex  : \tn%-20s ",
-               (GET_SEX(ch) == SEX_MALE ? "Male" : (GET_SEX(ch) == SEX_FEMALE ? "Female" : "Neutral")));
-  ;
-  snprintf(dname, sizeof(dname), "%s", deity_list[GET_DEITY(ch)].name);
+               (GET_SEX(ch) == SEX_MALE ? "Male" : 
+                (GET_SEX(ch) == SEX_FEMALE ? "Female" : "Neutral")));
+  
+  /* Display deity with bounds checking */
+  snprintf(dname, sizeof(dname), "%s", 
+           (GET_DEITY(ch) >= 0 && GET_DEITY(ch) < NUM_DEITIES) ? 
+             deity_list[GET_DEITY(ch)].name : "None");
   send_to_char(ch, "\tcDeity: \tn%-20s ", CAP(dname));
-  send_to_char(ch, "\tcAlignment : \tn%s (%d)\r\n", get_align_by_num(GET_ALIGNMENT(ch)), GET_ALIGNMENT(ch));
+  
+  /* Display alignment with numeric value */
+  send_to_char(ch, "\tcAlignment : \tn%s (%d)\r\n", 
+               get_align_by_num(GET_ALIGNMENT(ch)), GET_ALIGNMENT(ch));
+  
+  /* Display age category and time played */
   send_to_char(ch, "\tcAge  : \tn%-10s    \tcPlayed  : \tn%d days / %d hrs\r\n",
-               character_ages[GET_CH_AGE(ch)], playing_time.day, playing_time.hours);
+               (GET_CH_AGE(ch) >= 0 && GET_CH_AGE(ch) < NUM_CHARACTER_AGES) ? 
+                 character_ages[GET_CH_AGE(ch)] : "Unknown", 
+               playing_time.day, playing_time.hours);
+  
+  /* Display size and carrying capacity */
   send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs \tcNum Items: \tn%d\tc/\tn%d \tn\r\n",
-               size_names[GET_SIZE(ch)], IS_CARRYING_W(ch), CAN_CARRY_W(ch), IS_CARRYING_N(ch), CAN_CARRY_N(ch));
+               (GET_SIZE(ch) >= 0 && GET_SIZE(ch) < NUM_SIZES) ? 
+                 size_names[GET_SIZE(ch)] : "Unknown", 
+               IS_CARRYING_W(ch), CAN_CARRY_W(ch), 
+               IS_CARRYING_N(ch), CAN_CARRY_N(ch));
 
+  /* ========================================================================= */
+  /* SECTION 2: VITAL STATISTICS                                               */
+  /* ========================================================================= */
+  
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-
+  
+  /* Display health, movement, speed, and initiative */
   send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)   \tcSpeed:\tn %-3d   \tcInitiative:\tn %s%d\r\n",
-               GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch), get_speed(ch, TRUE), get_initiative_modifier(ch) >= 0 ? "+" : "", get_initiative_modifier(ch));
-
+               GET_HIT(ch), GET_MAX_HIT(ch),           /* Current/Max HP */
+               GET_MOVE(ch), GET_MAX_MOVE(ch),         /* Current/Max Movement */
+               get_speed(ch, TRUE),                     /* Movement speed */
+               get_initiative_modifier(ch) >= 0 ? "+" : "",  /* + sign for positive */
+               get_initiative_modifier(ch));            /* Initiative modifier */
+  
+  /* ========================================================================= */
+  /* SECTION 3: EXPERIENCE AND LEVEL INFORMATION                              */
+  /* ========================================================================= */
+  
   send_to_char(ch, "\tC");
   text_line(ch, "\tyExperience\tC", line_length, '-', '-');
+  
+  /* Display character level and caster levels */
+  send_to_char(ch, "\tcLevel : \tn%-2d                       "
+               "\tcCstrLvl : \tn%-2d  \tcDivLvl : \tn%-2d  \tcMgcLvl : \tn%-2d\r\n",
+               GET_LEVEL(ch),        /* Total character level */
+               CASTER_LEVEL(ch),     /* Combined caster level */
+               DIVINE_LEVEL(ch),     /* Divine spellcaster level */
+               MAGIC_LEVEL(ch));     /* Arcane spellcaster level */
+  
+  /* Display experience points and experience to next level */
+  send_to_char(ch, "\tcExp   : \tn%-24d \tcExpTNL  : \tn%d\r\n",
+               GET_EXP(ch),          /* Current experience points */
+               (GET_LEVEL(ch) >= LVL_IMMORT ? 0 :     /* Immortals don't need XP */
+                level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch))); /* XP to next level */
+  
+  /* ========================================================================= */
+  /* SECTION 4: ABILITY SCORES AND SAVING THROWS                              */
+  /* ========================================================================= */
+  
+  send_to_char(ch, "\tC-------------\tyAbility Scores\tC--------------------------\tySaving Throws\tC--------------\r\n");
+  
+  /* Display ability scores with modifiers in brackets */
+  send_to_char(ch, "\tcStr:\tn %2d[%2d]  \tcDex:\tn %2d[%2d]  \tcCon:\tn %2d[%2d]  \tC|  \tcFort    : \tn%-2d  \tcWill    : \tn%-2d\tn\r\n",
+               GET_STR(ch), GET_STR_BONUS(ch),        /* Strength & modifier */
+               GET_DEX(ch), GET_DEX_BONUS(ch),        /* Dexterity & modifier */
+               GET_CON(ch), GET_CON_BONUS(ch),        /* Constitution & modifier */
+               compute_mag_saves(ch, SAVING_FORT, 0), /* Fortitude save */
+               compute_mag_saves(ch, SAVING_WILL, 0)); /* Will save */
+  
+  send_to_char(ch, "\tcInt:\tn %2d[%2d]  \tcWis:\tn %2d[%2d]  \tcCha:\tn %2d[%2d]  \tC|  \tcReflex  : \tn%-2d\tn\r\n",
+               GET_INT(ch), GET_INT_BONUS(ch),        /* Intelligence & modifier */
+               GET_WIS(ch), GET_WIS_BONUS(ch),        /* Wisdom & modifier */
+               GET_CHA(ch), GET_CHA_BONUS(ch),        /* Charisma & modifier */
+               compute_mag_saves(ch, SAVING_REFL, 0)); /* Reflex save */
 
-  send_to_char(ch, "\tcLevel : \tn%-2d                       \tcCstrLvl : \tn%-2d  \tcDivLvl : \tn%-2d  \tcMgcLvl : \tn%-2d\r\n"
-                   "\tcExp   : \tn%-24d \tcExpTNL  : \tn%d\r\n"
-                   "\tC-------------\tyAbility Scores\tC--------------------------\tySaving Throws\tC--------------\r\n"
-                   "\tcStr:\tn %2d[%2d]  \tcDex:\tn %2d[%2d]  \tcCon:\tn %2d[%2d]  \tC|  \tcFort    : \tn%-2d  \tcWill    : \tn%-2d\tn\r\n"
-                   "\tcInt:\tn %2d[%2d]  \tcWis:\tn %2d[%2d]  \tcCha:\tn %2d[%2d]  \tC|  \tcReflex  : \tn%-2d\tn\r\n",
-               GET_LEVEL(ch), CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch),
-               GET_EXP(ch), (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)),
-               GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch),
-               compute_mag_saves(ch, SAVING_FORT, 0), compute_mag_saves(ch, SAVING_WILL, 0),
-               GET_INT(ch), GET_INT_BONUS(ch), GET_WIS(ch), GET_WIS_BONUS(ch), GET_CHA(ch), GET_CHA_BONUS(ch), compute_mag_saves(ch, SAVING_REFL, 0));
-
+  /* ========================================================================= */
+  /* SECTION 5: COMBAT STATISTICS                                              */
+  /* ========================================================================= */
+  
   send_to_char(ch, "\tC");
   text_line(ch, "\tyCombat\tC", line_length, '-', '-');
-
-  /* Begin combat section */
-#define RETURN_NUM_ATTACKS 1
+  
+  /* Display combat statistics */
+#define RETURN_NUM_ATTACKS 1    /* Flag to get attack count instead of performing attacks */
   send_to_char(ch, "\tcBAB: \tn%-4d \tc# of Attacks: \tn%-3d \tcArmorClass: \tn%-4d \tcWimpy: \tn%-3d \tcPos: \tn",
-               calc_bab, perform_attacks(ch, RETURN_NUM_ATTACKS, 0),
-               compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL), GET_WIMP_LEV(ch));
+               calc_bab,                                              /* Base Attack Bonus */
+               perform_attacks(ch, RETURN_NUM_ATTACKS, 0),           /* Number of attacks per round */
+               compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL), /* Armor Class */
+               GET_WIMP_LEV(ch));                                    /* Wimpy level (auto-flee HP) */
 #undef RETURN_NUM_ATTACKS
-
-  if (FIGHTING(ch))
+  
+  /* Add fighting indicator if in combat */
+  if (FIGHTING(ch)) {
     send_to_char(ch, "(Fighting) - ");
-
-  switch (GET_POS(ch))
-  {
-  case POS_DEAD:
-    send_to_char(ch, "Dead\r\n");
-    break;
-  case POS_MORTALLYW:
-    send_to_char(ch, "Mortally wounded\r\n");
-    break;
-  case POS_INCAP:
-    send_to_char(ch, "Incapacitated\r\n");
-    break;
-  case POS_STUNNED:
-    send_to_char(ch, "Stunned\r\n");
-    break;
-  case POS_SLEEPING:
-    send_to_char(ch, "Sleeping\r\n");
-    break;
-  case POS_RECLINING:
-    send_to_char(ch, "Prone\r\n");
-    break;
-  case POS_RESTING:
-    send_to_char(ch, "Resting\r\n");
-    break;
-  case POS_SITTING:
-    if (!SITTING(ch))
-      send_to_char(ch, "Sitting\r\n");
-    else
-    {
-      struct obj_data *furniture = SITTING(ch);
-      send_to_char(ch, "Sitting upon %s.\r\n", furniture->short_description);
-    }
-    break;
-  case POS_FIGHTING:
-    send_to_char(ch, "Fighting\r\n");
-    break;
-  case POS_STANDING:
-    send_to_char(ch, "Standing\r\n");
-    break;
-  default:
-    send_to_char(ch, "Floating\r\n");
-    break;
+  }
+  
+  /* Display current position with descriptive text */
+  switch (GET_POS(ch)) {
+    case POS_DEAD:
+      send_to_char(ch, "Dead\r\n");
+      break;
+      
+    case POS_MORTALLYW:
+      send_to_char(ch, "Mortally wounded\r\n");
+      break;
+      
+    case POS_INCAP:
+      send_to_char(ch, "Incapacitated\r\n");
+      break;
+      
+    case POS_STUNNED:
+      send_to_char(ch, "Stunned\r\n");
+      break;
+      
+    case POS_SLEEPING:
+      send_to_char(ch, "Sleeping\r\n");
+      break;
+      
+    case POS_RECLINING:
+      send_to_char(ch, "Prone\r\n");
+      break;
+      
+    case POS_RESTING:
+      send_to_char(ch, "Resting\r\n");
+      break;
+      
+    case POS_SITTING:
+      if (!SITTING(ch)) {
+        /* Just sitting on ground */
+        send_to_char(ch, "Sitting\r\n");
+      } else {
+        /* Sitting on furniture */
+        struct obj_data *furniture = SITTING(ch);
+        if (furniture && furniture->short_description) {
+          send_to_char(ch, "Sitting upon %s.\r\n", furniture->short_description);
+        } else {
+          send_to_char(ch, "Sitting.\r\n");
+        }
+      }
+      break;
+      
+    case POS_FIGHTING:
+      send_to_char(ch, "Fighting\r\n");
+      break;
+      
+    case POS_STANDING:
+      send_to_char(ch, "Standing\r\n");
+      break;
+      
+    default:
+      send_to_char(ch, "Floating\r\n");
+      break;
   }
 
-  if (GET_PSIONIC_LEVEL(ch) > 0)
-  {
+  /* ========================================================================= */
+  /* SECTION 6: SPECIAL ABILITIES (PSIONICS AND SPELLCASTING)                  */
+  /* ========================================================================= */
+  
+  /* Display psionic information if character has psionic levels */
+  if (GET_PSIONIC_LEVEL(ch) > 0) {
     text_line(ch, "\tyPsionic Info\tC", line_length, '-', '-');
     send_to_char(ch, "\tcPower Points:\tn %d(%d)   \tcPsionic Level:\tn %d   \tcEnergy Type:\tn %s\r\n"
                      "\tcMax Augment PSP:\tn %d - power psp cost\r\n",
-                 GET_PSP(ch), GET_MAX_PSP(ch),
-                 GET_PSIONIC_LEVEL(ch),
-                 damtypes[GET_PSIONIC_ENERGY_TYPE(ch)],
-                 base_augment_psp_allowed(ch));
+                 GET_PSP(ch), GET_MAX_PSP(ch),                /* Current/Max power points */
+                 GET_PSIONIC_LEVEL(ch),                        /* Psionic manifester level */
+                 (GET_PSIONIC_ENERGY_TYPE(ch) >= 0 && 
+                  GET_PSIONIC_ENERGY_TYPE(ch) < NUM_DAM_TYPES) ? 
+                   damtypes[GET_PSIONIC_ENERGY_TYPE(ch)] : "Unknown", /* Energy specialization */
+                 base_augment_psp_allowed(ch));                /* Max PSP augmentation */
   }
-  if (IS_SPELLCASTER(ch))
-  {
+  
+  /* Display spellcasting bonuses if character is a spellcaster */
+  if (IS_SPELLCASTER(ch)) {
     text_line(ch, "\tySpellcaster Bonuses\tC", line_length, '-', '-');
     send_to_char(ch, "\tcSpell DC Bonus:\tn %d \tcSpell Potency Multiplier:\tn %d%% \tcSpell Duration Multiplier:\tn %d%%\r\n",
-                 get_spell_dc_bonus(ch), get_spell_potency_bonus(ch), get_spell_duration_bonus(ch));
+                 get_spell_dc_bonus(ch),       /* Bonus to spell difficulty class */
+                 get_spell_potency_bonus(ch),  /* Damage/healing multiplier */
+                 get_spell_duration_bonus(ch)); /* Duration multiplier */
   }
 
+  /* ========================================================================= */
+  /* SECTION 7: QUEST INFORMATION                                              */
+  /* ========================================================================= */
+  
   text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');
-
+  
+  /* Display quest statistics (NPCs always show 0) */
   send_to_char(ch, "\tcQuests completed : \tn%d\tc, Quest points     : \tn%d\r\n",
-               //  "\tcOn quest         : \tn",
-               (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
-               (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0));
-
+               (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),    /* Number of completed quests */
+               (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0));   /* Total quest points earned */
+  
+  /* NOTE: Active quest display code is commented out - preserved for future use */
   /*
     if (!IS_NPC(ch) && GET_QUEST(ch, index) != NOTHING)
-      send_to_char(ch, "%-60s\r\n", GET_QUEST(ch, index) == NOTHING ? "None" : QST_NAME(real_quest(GET_QUEST(ch, index))));
+      send_to_char(ch, "%-60s\r\n", GET_QUEST(ch, index) == NOTHING ? 
+                   "None" : QST_NAME(real_quest(GET_QUEST(ch, index))));
     else
       send_to_char(ch, "None\r\n");
   */
-
-  if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch))
+  
+  /* Display active crafting quest if any */
+  if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch)) {
     send_to_char(ch, "\tcOn Crafting Job: (\tn%d\tc) \tn%s\tc, using: \tn%s\r\n",
-                 GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
-                 material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
+                 GET_AUTOCQUEST_MAKENUM(ch),               /* Number to craft */
+                 GET_AUTOCQUEST_DESC(ch),                  /* Item description */
+                 (GET_AUTOCQUEST_MATERIAL(ch) >= 0 && 
+                  GET_AUTOCQUEST_MATERIAL(ch) < NUM_MATERIALS) ? 
+                   material_name[GET_AUTOCQUEST_MATERIAL(ch)] : "Unknown"); /* Material type */
+  }
 
+  /* ========================================================================= */
+  /* SECTION 8: WEALTH AND FINANCES                                            */
+  /* ========================================================================= */
+  
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-
+  
+  /* Display gold carried and banked */
   send_to_char(ch, "\tcGold:\tn %d                \tcGold in Bank:\tn %d\r\n",
-               GET_GOLD(ch), GET_BANK_GOLD(ch));
-
+               GET_GOLD(ch),       /* Gold coins carried */
+               GET_BANK_GOLD(ch)); /* Gold stored in bank */
+  
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
-  {
-    if (POOFIN(ch))
-      send_to_char(ch, "%sPOOFIN : %s%s %s%s\r\n", QCYN, QNRM, GET_NAME(ch), POOFIN(ch), QNRM);
-    else
-      send_to_char(ch, "%sPOOFIN : %s%s appears with an ear-splitting bang.%s\r\n", QCYN, QNRM, GET_NAME(ch), QNRM);
-    if (POOFOUT(ch))
-      send_to_char(ch, "%sPOOFOUT: %s%s %s%s\r\n", QCYN, QNRM, GET_NAME(ch), POOFOUT(ch), QNRM);
-    else
-      send_to_char(ch, "%sPOOFOUT: %s%s disappears in a puff of smoke.%s\r\n", QCYN, QNRM, GET_NAME(ch), QNRM);
-    send_to_char(ch, "\tcYour current zone:\tn %s%d%s\r\n", CCCYN(ch, C_NRM), GET_OLC_ZONE(ch), CCNRM(ch, C_NRM));
+  /* ========================================================================= */
+  /* SECTION 9: IMMORTAL-ONLY INFORMATION                                      */
+  /* ========================================================================= */
+  
+  /* Display immortal-specific information */
+  if (GET_LEVEL(ch) >= LVL_IMMORT) {
+    /* Display custom entrance message (poofin) */
+    if (POOFIN(ch)) {
+      send_to_char(ch, "%sPOOFIN : %s%s %s%s\r\n", 
+                   QCYN, QNRM, GET_NAME(ch), POOFIN(ch), QNRM);
+    } else {
+      send_to_char(ch, "%sPOOFIN : %s%s appears with an ear-splitting bang.%s\r\n", 
+                   QCYN, QNRM, GET_NAME(ch), QNRM);
+    }
+    
+    /* Display custom exit message (poofout) */
+    if (POOFOUT(ch)) {
+      send_to_char(ch, "%sPOOFOUT: %s%s %s%s\r\n", 
+                   QCYN, QNRM, GET_NAME(ch), POOFOUT(ch), QNRM);
+    } else {
+      send_to_char(ch, "%sPOOFOUT: %s%s disappears in a puff of smoke.%s\r\n", 
+                   QCYN, QNRM, GET_NAME(ch), QNRM);
+    }
+    
+    /* Display OLC (online creation) zone assignment */
+    send_to_char(ch, "\tcYour current zone:\tn %s%d%s\r\n", 
+                 CCCYN(ch, C_NRM), GET_OLC_ZONE(ch), CCNRM(ch, C_NRM));
+    
     send_to_char(ch, "\tC");
     draw_line(ch, line_length, '-', '-');
   }
 
-  if (affected_by_spell(ch, ABILITY_AFFECT_BANE_WEAPON))
-  {
+  /* ========================================================================= */
+  /* SECTION 10: CLASS-SPECIFIC FEATURES                                       */
+  /* ========================================================================= */
+  
+  /* Display Inquisitor Bane effect if active */
+  if (affected_by_spell(ch, ABILITY_AFFECT_BANE_WEAPON)) {
     send_to_char(ch, "\tcIniquisitor Bane Effect:\tn +%dd6 against %s.\r\n",
-                 HAS_REAL_FEAT(ch, FEAT_PERFECT_JUDGEMENT) ? 6 : (HAS_REAL_FEAT(ch, FEAT_GREATER_BANE) ? 4 : 2),
-                 race_family_types_plural[GET_BANE_TARGET_TYPE(ch)]);
+                 HAS_REAL_FEAT(ch, FEAT_PERFECT_JUDGEMENT) ? 6 :    /* Perfect: 6d6 */
+                 (HAS_REAL_FEAT(ch, FEAT_GREATER_BANE) ? 4 : 2),    /* Greater: 4d6, Normal: 2d6 */
+                 (GET_BANE_TARGET_TYPE(ch) >= 0 && 
+                  GET_BANE_TARGET_TYPE(ch) < NUM_RACE_TYPES) ? 
+                   race_family_types_plural[GET_BANE_TARGET_TYPE(ch)] : "Unknown");
   }
 
-  if (CLASS_LEVEL(ch, CLASS_CLERIC))
-  {
+  /* Display Cleric domains (2 domains) */
+  if (CLASS_LEVEL(ch, CLASS_CLERIC)) {
     send_to_char(ch, "\tc1st Domain: \tn%s\tc, 2nd Domain: \tn%s\tc.\r\n",
-                 domain_list[GET_1ST_DOMAIN(ch)].name,
-                 domain_list[GET_2ND_DOMAIN(ch)].name);
+                 (GET_1ST_DOMAIN(ch) >= 0 && GET_1ST_DOMAIN(ch) < NUM_DOMAINS) ? 
+                   domain_list[GET_1ST_DOMAIN(ch)].name : "None",
+                 (GET_2ND_DOMAIN(ch) >= 0 && GET_2ND_DOMAIN(ch) < NUM_DOMAINS) ? 
+                   domain_list[GET_2ND_DOMAIN(ch)].name : "None");
     draw_line(ch, line_length, '-', '-');
   }
-  else if (CLASS_LEVEL(ch, CLASS_INQUISITOR))
-  {
+  /* Display Inquisitor domain (1 domain only) */
+  else if (CLASS_LEVEL(ch, CLASS_INQUISITOR)) {
     send_to_char(ch, "\tc1st Domain: \tn%s\tc.\r\n",
-                 domain_list[GET_1ST_DOMAIN(ch)].name);
+                 (GET_1ST_DOMAIN(ch) >= 0 && GET_1ST_DOMAIN(ch) < NUM_DOMAINS) ? 
+                   domain_list[GET_1ST_DOMAIN(ch)].name : "None");
     draw_line(ch, line_length, '-', '-');
   }
 
-  if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC))
-  {
-    send_to_char(ch, "\tcSorcerer Bloodline: \tnDraconic (%s/%s).\r\n", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)), DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+  /* Display Sorcerer bloodline information */
+  if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC)) {
+    /* Draconic bloodline - shows dragon type and energy damage */
+    int subtype = GET_BLOODLINE_SUBTYPE(ch);
+    send_to_char(ch, "\tcSorcerer Bloodline: \tnDraconic (%s/%s).\r\n", 
+                 (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES) ? 
+                   DRCHRTLIST_NAME(subtype) : "Unknown",     /* Dragon type name */
+                 (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES) ? 
+                   DRCHRT_ENERGY_TYPE(subtype) : "Unknown"); /* Energy damage type */
     draw_line(ch, line_length, '-', '-');
   }
-  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
-  {
-    send_to_char(ch, "\tcSorcerer Bloodline: \tnArcane (%s magic).\r\n", spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
+  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE)) {
+    /* Arcane bloodline - shows school specialization */
+    int subtype = GET_BLOODLINE_SUBTYPE(ch);
+    send_to_char(ch, "\tcSorcerer Bloodline: \tnArcane (%s magic).\r\n", 
+                 (subtype >= 0 && subtype < NUM_SCHOOLS) ? 
+                   spell_schools_lower[subtype] : "Unknown");
     draw_line(ch, line_length, '-', '-');
   }
-  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
-  {
+  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY)) {
+    /* Fey bloodline */
     send_to_char(ch, "\tcSorcerer Bloodline: \tnFey.\r\n");
     draw_line(ch, line_length, '-', '-');
   }
-  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD))
-  {
+  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD)) {
+    /* Undead bloodline */
     send_to_char(ch, "\tcSorcerer Bloodline: \tnUndead.\r\n");
     draw_line(ch, line_length, '-', '-');
   }
 
-  if (CLASS_LEVEL(ch, CLASS_WIZARD))
-  {
+  /* Display Wizard school specialization */
+  if (CLASS_LEVEL(ch, CLASS_WIZARD)) {
+    int school = GET_SPECIALTY_SCHOOL(ch);
     send_to_char(ch, "\tcSpecialty School: \tn%s\tc, Restricted: \tn%s\tc.\r\n",
-                 school_names[GET_SPECIALTY_SCHOOL(ch)],
-                 school_names[restricted_school_reference[GET_SPECIALTY_SCHOOL(ch)]]);
+                 (school >= 0 && school < NUM_SCHOOLS) ? 
+                   school_names[school] : "None",              /* Specialized school */
+                 (school >= 0 && school < NUM_SCHOOLS && 
+                  restricted_school_reference[school] >= 0 && 
+                  restricted_school_reference[school] < NUM_SCHOOLS) ? 
+                   school_names[restricted_school_reference[school]] : "None"); /* Opposing school */
     draw_line(ch, line_length, '-', '-');
   }
 
-  if (!IS_NPC(ch))
-  {
+  /* ========================================================================= */
+  /* SECTION 11: STATUS CONDITIONS (PLAYERS ONLY)                              */
+  /* ========================================================================= */
+  
+  if (!IS_NPC(ch)) {
     send_to_char(ch, "\tc");
-    if (GET_COND(ch, DRUNK) > 10)
+    
+    /* Display intoxication status */
+    if (GET_COND(ch, DRUNK) > 10) {
       send_to_char(ch, "You are intoxicated.\r\n");
-    else
+    } else {
       send_to_char(ch, "You are sober.\r\n");
-    if (GET_COND(ch, HUNGER) == 0)
+    }
+    
+    /* Display hunger status */
+    if (GET_COND(ch, HUNGER) == 0) {
       send_to_char(ch, "You are hungry.\r\n");
-    if (GET_COND(ch, THIRST) == 0)
+    }
+    
+    /* Display thirst status */
+    if (GET_COND(ch, THIRST) == 0) {
       send_to_char(ch, "You are thirsty.\r\n");
-    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SUMMONABLE))
+    }
+    
+    /* Display summonable status */
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SUMMONABLE)) {
       send_to_char(ch, "You are summonable by other players.\r\n");
-    else
+    } else {
       send_to_char(ch, "You are NOT summonable by other players.\r\n");
-    if (MONK_TYPE(ch) && !monk_gear_ok(ch))
+    }
+    
+    /* Display monk gear restriction warning */
+    if (MONK_TYPE(ch) && !monk_gear_ok(ch)) {
       send_to_char(ch, "Your worn gear is interfering with your ki.\r\n");
-
+    }
+    
     send_to_char(ch, "\tC");
     draw_line(ch, line_length, '-', '-');
-    if (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) && GET_DRAGON_RIDER_DRAGON_TYPE(ch))
-    {
+    
+    /* Display Dragon Rider information if applicable */
+    if (CLASS_LEVEL(ch, CLASS_DRAGONRIDER) && GET_DRAGON_RIDER_DRAGON_TYPE(ch)) {
       send_to_char(ch, "\tc");
+      int dragon_type = GET_DRAGON_RIDER_DRAGON_TYPE(ch);
+      
+      /* Display dragon mount type and damage */
       send_to_char(ch, "Dragon Mount Type: %s (%s damage) ",
-        DRCHRTLIST_NAME(GET_DRAGON_RIDER_DRAGON_TYPE(ch)),
-        DRCHRT_ENERGY_TYPE(GET_DRAGON_RIDER_DRAGON_TYPE(ch)));
-      if (GET_DRAGON_BOND_TYPE(ch))
-      {
-        send_to_char(ch, "Dragon Bond Type: %s", dragon_bond_types[GET_DRAGON_BOND_TYPE(ch)]);
+        (dragon_type >= 0 && dragon_type < NUM_DRACONIC_HERITAGE_TYPES) ?
+          DRCHRTLIST_NAME(dragon_type) : "Unknown",
+        (dragon_type >= 0 && dragon_type < NUM_DRACONIC_HERITAGE_TYPES) ?
+          DRCHRT_ENERGY_TYPE(dragon_type) : "Unknown");
+      
+      /* Display dragon bond type if any */
+      if (GET_DRAGON_BOND_TYPE(ch)) {
+        int bond_type = GET_DRAGON_BOND_TYPE(ch);
+        send_to_char(ch, "Dragon Bond Type: %s", 
+                     (bond_type >= 0 && bond_type < NUM_DRAGON_BOND_TYPES) ?
+                       dragon_bond_types[bond_type] : "Unknown");
       }
+      
       send_to_char(ch, "\r\n");
       send_to_char(ch, "\tC");
       draw_line(ch, line_length, '-', '-');
     }
   }
 
+  /* ========================================================================= */
+  /* SECTION 12: AVAILABLE COMMANDS AND HELPFUL HINTS                          */
+  /* ========================================================================= */
+  
+  /* Universal combat commands */
   send_to_char(ch, "\tDType 'attacks' or 'defenses' to see your melee offense and defense\tn\r\n");
   send_to_char(ch, "\tDType 'affects' to see what you are affected by\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_WIZARD))
+  
+  /* Class-specific spell/ability interfaces */
+  if (CLASS_LEVEL(ch, CLASS_WIZARD)) {
     send_to_char(ch, "\tDType 'memorize' to see your Wizard spell interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_SORCERER))
+  }
+  
+  if (CLASS_LEVEL(ch, CLASS_SORCERER)) {
     send_to_char(ch, "\tDType 'meditate' to see your Sorcerer spell interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_PSIONICIST))
+  }
+  
+  if (CLASS_LEVEL(ch, CLASS_PSIONICIST)) {
     send_to_char(ch, "\tDType 'powers' to see your Psionicist powers, and 'manifest' to perform them.\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_INQUISITOR))
+  }
+  
+  if (CLASS_LEVEL(ch, CLASS_INQUISITOR)) {
     send_to_char(ch, "\tDType 'compel' to see your Inquisitor spell interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_CLERIC))
+  }
+  
+  if (CLASS_LEVEL(ch, CLASS_CLERIC)) {
     send_to_char(ch, "\tDType 'prayer' to see your Cleric spell interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_RANGER))
+  }
+  
+  if (CLASS_LEVEL(ch, CLASS_RANGER)) {
     send_to_char(ch, "\tDType 'adjure' to see your Ranger spell interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_BARD))
+  }
+  
+  if (CLASS_LEVEL(ch, CLASS_BARD)) {
     send_to_char(ch, "\tDType 'compose' to see your Bard spell interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_DRUID))
+  }
+  
+  if (CLASS_LEVEL(ch, CLASS_DRUID)) {
     send_to_char(ch, "\tDType 'commune' to see your Druid spell interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_PALADIN))
+  }
+  
+  if (CLASS_LEVEL(ch, CLASS_PALADIN)) {
     send_to_char(ch, "\tDType 'chant' to see your Paladin spell interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_BLACKGUARD))
+  }
+  
+  if (CLASS_LEVEL(ch, CLASS_BLACKGUARD)) {
     send_to_char(ch, "\tDType 'condemn' to see your BlackGuard spell interface\tn\r\n");
-  if (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
-  {
+  }
+  
+  if (CLASS_LEVEL(ch, CLASS_ALCHEMIST)) {
     send_to_char(ch, "\tDType 'extracts' to see your Alchemist extract interface\tn\r\n");
     send_to_char(ch, "\tDType 'imbibe' to use an extract, and 'concoct' to prepare an extract.\tn\r\n");
     send_to_char(ch, "\tDType 'discoveries' to see your alchemist discoveries.\tn\r\n");
     send_to_char(ch, "\tDType 'swallow' to use a mutagen or cognatogen (if you have cognatogen discovery).\tn\r\n");
   }
-  if (GET_FAVORED_ENEMY(ch, 0) > 0)
-  {
+  
+  /* Ranger favored enemy system */
+  if (GET_FAVORED_ENEMY(ch, 0) > 0) {
     send_to_char(ch, "\tDType 'favoredenemies' to get a list of your favored enemies.\tn\r\n");
   }
+  
+  /* End of score display */
 }
 
 /* Enhanced score command implementing Phase 1 MVP features */

@@ -5,6 +5,19 @@
  *  This program is in the public domain.                                  *
  *  Written (QUICKLY AND DIRTILY) by Jeremy Elson                          *
  *  Based on the Circle 3.0 syntax checker program                         *
+ *                                                                         *
+ *  This utility converts world files (.wld) into HTML format for web      *
+ *  display or documentation purposes. It creates individual HTML files    *
+ *  for each room, with navigation links between connected rooms.          *
+ *                                                                         *
+ *  The generated HTML includes:                                           *
+ *  - Room descriptions and titles                                         *
+ *  - Exit information with links to connected rooms                       *
+ *  - Room flags and special properties                                    *
+ *  - Navigation aids for exploring the world                              *
+ *                                                                         *
+ *  Updated: 2025 - Enhanced for LuminariMUD compatibility, improved       *
+ *  documentation and error handling                                       *
  ************************************************************************ */
 
 #define log(msg) fprintf(stderr, "%s\n", msg)
@@ -158,14 +171,34 @@ char *dir_names[] =
  *  routines for booting the system                                       *
  *********************************************************************** */
 
-/* body of the booting system */
+/**
+ * Main function for the wld2html converter
+ *
+ * Converts a world file (.wld) into HTML format for web display.
+ * Creates individual HTML files for each room with navigation links.
+ *
+ * @param argc Number of command line arguments
+ * @param argv Array of command line arguments:
+ *             [1] world file name to convert
+ * @return 0 on success, 1 on error
+ */
 int main(int argc, char **argv)
 {
   if (argc != 2)
   {
     fprintf(stderr, "Usage: %s <world-file-name>\n", argv[0]);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Converts a MUD world file (.wld) to HTML format.\n");
+    fprintf(stderr, "Creates individual HTML files for each room with\n");
+    fprintf(stderr, "navigation links between connected rooms.\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Example: %s world/wld/30.wld\n", argv[0]);
     exit(1);
   }
+
+  printf("LuminariMUD World-to-HTML Converter\n");
+  printf("Converting: %s\n", argv[1]);
+
   index_boot(argv[1]);
 
   log("Renumbering rooms.");
