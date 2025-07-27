@@ -41,10 +41,10 @@ typedef void CURL;
 #define AI_MAX_RETRIES 3
 #define AI_TIMEOUT_MS 5000
 #define AI_MAX_TOKENS 500
-#define AI_MAX_CACHE_SIZE 1000
+#define AI_MAX_CACHE_SIZE 5000  /* Increased for better performance */
 
 /* Debug mode - set to 1 to enable verbose debug logging - set to 0 to disable */
-#define AI_DEBUG_MODE 1
+#define AI_DEBUG_MODE 0
 
 /* Debug logging macro */
 #if AI_DEBUG_MODE

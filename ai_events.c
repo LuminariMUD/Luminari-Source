@@ -173,10 +173,8 @@ void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *
   AI_DEBUG("Response duplicated (length=%zu)", strlen(event_data->response));
   
   /* Calculate delay based on response length for realism */
-  /* Roughly 1 second per 20 characters, minimum 1 second, maximum 5 seconds */
-  delay = strlen(response) / 20;
-  if (delay < 1) delay = 1;
-  if (delay > 5) delay = 5;
+  /* Reduced delay for faster responses - only 1 second flat */
+  delay = 0;  /* Minimal delay to prevent spam while keeping responses fast */
   
   AI_DEBUG("Calculated delay: %d seconds (response_len=%zu)", 
            delay, strlen(response));

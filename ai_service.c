@@ -116,11 +116,11 @@ void init_ai_service(void) {
   
   /* Set default configuration */
   AI_DEBUG("Setting default configuration values");
-  strcpy(ai_state.config->model, "gpt-4.1-mini");
+  strcpy(ai_state.config->model, "gpt-4o-mini");  /* Faster model */
   AI_DEBUG("  Model: %s", ai_state.config->model);
   ai_state.config->max_tokens = AI_MAX_TOKENS;
   AI_DEBUG("  Max tokens: %d", ai_state.config->max_tokens);
-  ai_state.config->temperature = 0.7;
+  ai_state.config->temperature = 0.3;  /* Lower temperature for faster responses */
   AI_DEBUG("  Temperature: %.2f", ai_state.config->temperature);
   ai_state.config->timeout_ms = AI_TIMEOUT_MS;
   AI_DEBUG("  Timeout: %d ms", ai_state.config->timeout_ms);
@@ -162,7 +162,16 @@ void init_ai_service(void) {
   ai_state.cache_head = NULL;
   ai_state.cache_size = 0;
   AI_DEBUG("  Cache initialized: head=%p, size=%d, max_size=%d", 
-           (void*)ai_state.cache_head, ai_state.cache_size, AI_MAX_CACHE_SIZE);;
+           (void*)ai_state.cache_head, ai_state.cache_size, AI_MAX_CACHE_SIZE);
+  
+  /* Initialize persistent CURL handle for connection pooling */
+  AI_DEBUG("Initializing persistent CURL handle");
+  ai_state.curl_handle = curl_easy_init();
+  if (ai_state.curl_handle) {
+    AI_DEBUG("  Persistent CURL handle created successfully");
+  } else {
+    AI_DEBUG("  WARNING: Failed to create persistent CURL handle");
+  };
   
   /* Load configuration from database/files */
   AI_DEBUG("Loading AI configuration from .env file");
@@ -218,6 +227,13 @@ void shutdown_ai_service(void) {
              ai_state.limiter->current_hour_count, ai_state.limiter->requests_per_hour);;
     free(ai_state.limiter);
     ai_state.limiter = NULL;
+  }
+  
+  /* Cleanup persistent CURL handle */
+  if (ai_state.curl_handle) {
+    AI_DEBUG("Cleaning up persistent CURL handle");
+    curl_easy_cleanup(ai_state.curl_handle);
+    ai_state.curl_handle = NULL;
   }
   
   /* Cleanup CURL */
@@ -381,17 +397,24 @@ static char *make_api_request_single(const char *prompt) {
   AI_DEBUG("JSON content: %.200s%s", json_request, 
            strlen(json_request) > 200 ? "..." : "");;
   
-  AI_DEBUG("Initializing CURL handle");
-  curl = curl_easy_init();
-  if (!curl) {
-    log("SYSERR: Failed to initialize CURL handle in make_api_request_single");
-    AI_DEBUG("ERROR: curl_easy_init() returned NULL");
-    free(api_key);
-    /* Also free json_request which was allocated above */
-    /* Note: json_request points to static buffer, so no need to free */
-    return NULL;
+  AI_DEBUG("Getting CURL handle");
+  /* Try to use persistent handle for connection pooling */
+  if (ai_state.curl_handle) {
+    AI_DEBUG("Using persistent CURL handle for connection pooling");
+    curl = ai_state.curl_handle;
+    /* Reset the handle to clear previous request data */
+    curl_easy_reset(curl);
+  } else {
+    AI_DEBUG("Creating new CURL handle (no persistent handle available)");
+    curl = curl_easy_init();
+    if (!curl) {
+      log("SYSERR: Failed to initialize CURL handle in make_api_request_single");
+      AI_DEBUG("ERROR: curl_easy_init() returned NULL");
+      free(api_key);
+      return NULL;
+    }
   }
-  AI_DEBUG("CURL handle initialized at %p", (void*)curl);
+  AI_DEBUG("CURL handle ready at %p", (void*)curl);
   
   /* Set headers */
   AI_DEBUG("Setting up HTTP headers");
@@ -441,6 +464,13 @@ static char *make_api_request_single(const char *prompt) {
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
   AI_DEBUG("  SSL verification enabled (peer=1, host=2)");
   
+  /* Performance optimizations */
+  curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+  curl_easy_setopt(curl, CURLOPT_TCP_KEEPIDLE, 120L);
+  curl_easy_setopt(curl, CURLOPT_TCP_KEEPINTVL, 60L);
+  curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+  AI_DEBUG("  HTTP/2 and TCP keep-alive enabled");
+  
   /* Execute request */
   AI_DEBUG("Executing CURL request to API endpoint");
   res = curl_easy_perform(curl);
@@ -474,8 +504,13 @@ static char *make_api_request_single(const char *prompt) {
   
   /* Cleanup */
   AI_DEBUG("Cleaning up CURL resources");
-  curl_easy_cleanup(curl);
-  AI_DEBUG("  CURL handle cleaned up");
+  /* Only cleanup the handle if it's not the persistent one */
+  if (curl != ai_state.curl_handle) {
+    curl_easy_cleanup(curl);
+    AI_DEBUG("  CURL handle cleaned up (non-persistent)");
+  } else {
+    AI_DEBUG("  Keeping persistent CURL handle for reuse");
+  }
   curl_slist_free_all(headers);
   AI_DEBUG("  Headers freed");
   
