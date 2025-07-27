@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS ai_requests (
 
 -- AI Response Cache Table (for database-backed caching)
 CREATE TABLE IF NOT EXISTS ai_cache (
-  cache_key VARCHAR(255) PRIMARY KEY,
+  cache_key VARCHAR(191) PRIMARY KEY,
   response TEXT,
   expires_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
