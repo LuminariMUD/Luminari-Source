@@ -28,10 +28,12 @@ bool ai_moderate_content(const char *text) {
 
 ### 2. Security Enhancements
 
-#### Upgrade to AES Encryption
-- Current implementation uses basic XOR cipher
-- Need to implement proper OpenSSL AES-256 encryption
-- Complete the decrypt_api_key() function in ai_security.c
+#### ~~Upgrade to AES Encryption~~ (COMPLETED - Temporarily removed for stability)
+- ~~Current implementation uses basic XOR cipher~~
+- ~~Need to implement proper OpenSSL AES-256 encryption~~
+- ~~Complete the decrypt_api_key() function in ai_security.c~~
+- **UPDATE 2025-07-27**: Encryption temporarily disabled - API keys stored in plaintext for stability
+- TODO: Re-implement proper encryption in future update
 
 ### 3. JSON Integration
 
@@ -116,9 +118,16 @@ void load_config(void) {
 ## Priority Order
 
 1. **HIGH**: medit support (needed for builders)
-2. **HIGH**: AES encryption upgrade (security)
+2. ~~**HIGH**: AES encryption upgrade (security)~~ - Temporarily removed
 3. **MEDIUM**: ai_moderate_content() (safety)
 4. **MEDIUM**: Performance monitoring
 5. **LOW**: ai_generate_room_desc()
 6. **LOW**: Quest generation
 7. **LOW**: Async improvements
+
+## Recent Fixes (2025-07-27)
+
+1. **Fixed decrypt_api_key crash** - Function was trying to free static buffer
+2. **Removed encryption** - Temporarily disabled XOR cipher, API keys stored plaintext
+3. **Fixed secure_memset call** - Was being called on freed pointer
+4. **Important**: AI service is disabled by default - must use `ai enable` command

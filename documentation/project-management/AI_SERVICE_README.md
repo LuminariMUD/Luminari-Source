@@ -4,12 +4,16 @@
 
 The AI Service integration adds OpenAI-powered natural language processing to LuminariMUD, enabling dynamic NPC dialogue, procedural content generation, and content moderation. This implementation is designed to be secure, performant, and easy to manage.
 
+## Important Notes
+
+⚠️ **See AI_TODO.md for current implementation issues and bugs that need to be addressed.**
+
 ## Features
 
 - **Dynamic NPC Dialogue**: NPCs with the AI_ENABLED flag can respond intelligently to player messages
 - **Response Caching**: Reduces API calls and improves response times
 - **Rate Limiting**: Prevents excessive API usage and cost overruns
-- **Secure API Key Storage**: Encrypted storage of API credentials
+- **Secure API Key Storage**: Currently stores in plaintext (encryption to be implemented)
 - **Administrative Controls**: Full control over AI features through in-game commands
 - **Performance Monitoring**: Track usage statistics and response times
 
@@ -51,7 +55,7 @@ Create a file to store your encrypted API key:
 touch lib/ai_api_key.txt
 chmod 600 lib/ai_api_key.txt
 
-# Store your OpenAI API key (the system will encrypt it)
+# Store your OpenAI API key (currently stored as plaintext)
 echo "your-openai-api-key-here" > lib/ai_api_key.txt
 ```
 

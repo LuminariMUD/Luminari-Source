@@ -20,6 +20,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "ai_service.h"
+#include <errno.h>
 
 /* Simple XOR cipher key - in production, use proper encryption */
 #define CIPHER_KEY "LuminariMUD_AI_Service_2025_Secure_Key"
@@ -29,6 +30,7 @@
  */
 void secure_memset(void *ptr, int value, size_t num) {
   volatile unsigned char *p = ptr;
+  AI_DEBUG("secure_memset() called - clearing %zu bytes at %p", num, ptr);
   while (num--) {
     *p++ = value;
   }
@@ -39,25 +41,52 @@ void secure_memset(void *ptr, int value, size_t num) {
  * Encrypt API key
  */
 int encrypt_api_key(const char *plaintext, char *encrypted_out) {
-  if (!plaintext || !encrypted_out) return 0;
+  AI_DEBUG("encrypt_api_key() called");
+  
+  if (!plaintext || !encrypted_out) {
+    AI_DEBUG("ERROR: NULL plaintext or encrypted_out");
+    return 0;
+  }
+  
+  AI_DEBUG("WARNING: Using plaintext storage (no encryption)");
+  AI_DEBUG("Input length: %zu", strlen(plaintext));
   
   /* Just copy the API key as-is - no encryption */
   strlcpy(encrypted_out, plaintext, 256);
   
+  AI_DEBUG("API key stored (first 10 chars): %.10s...", encrypted_out);
   return 1;
 }
 
 /**
  * Decrypt API key
+ * Note: Caller must free() the returned string
  */
 char *decrypt_api_key(const char *encrypted) {
-  static char decrypted[256];
+  char *decrypted;
   
-  if (!encrypted || !*encrypted) return NULL;
+  AI_DEBUG("decrypt_api_key() called");
+  
+  if (!encrypted || !*encrypted) {
+    AI_DEBUG("ERROR: NULL or empty encrypted key");
+    return NULL;
+  }
+  
+  AI_DEBUG("WARNING: Using plaintext retrieval (no decryption)");
+  AI_DEBUG("Encrypted length: %zu", strlen(encrypted));
+  
+  /* Allocate memory for decrypted key */
+  CREATE(decrypted, char, 256);
+  if (!decrypted) {
+    log("SYSERR: Failed to allocate memory for decrypted API key");
+    AI_DEBUG("ERROR: Failed to allocate 256 bytes");
+    return NULL;
+  }
   
   /* Just return the API key as-is - no decryption */
-  strlcpy(decrypted, encrypted, sizeof(decrypted));
+  strlcpy(decrypted, encrypted, 256);
   
+  AI_DEBUG("API key retrieved (first 10 chars): %.10s...", decrypted);
   return decrypted;
 }
 
@@ -68,28 +97,46 @@ void load_encrypted_api_key(const char *filename) {
   FILE *fp;
   char buffer[512];
   
-  if (!filename) return;
+  AI_DEBUG("load_encrypted_api_key() called with filename='%s'",
+           filename ? filename : "(null)");
   
-  fp = fopen(filename, "r");
-  if (!fp) {
-    log("SYSERR: Cannot open API key file: %s", filename);
+  if (!filename) {
+    AI_DEBUG("ERROR: NULL filename");
     return;
   }
   
+  AI_DEBUG("Opening file: %s", filename);
+  fp = fopen(filename, "r");
+  if (!fp) {
+    log("SYSERR: Cannot open API key file: %s", filename);
+    AI_DEBUG("ERROR: fopen failed - %s", strerror(errno));
+    return;
+  }
+  AI_DEBUG("File opened successfully");
+  
   if (fgets(buffer, sizeof(buffer), fp)) {
+    AI_DEBUG("Read %zu bytes from file", strlen(buffer));
     /* Remove newline */
     buffer[strcspn(buffer, "\n")] = '\0';
+    AI_DEBUG("After newline removal: %zu bytes", strlen(buffer));
     
     /* Store in config */
     if (ai_state.config) {
+      AI_DEBUG("Storing key in config (first 10 chars): %.10s...", buffer);
       strlcpy(ai_state.config->encrypted_api_key, buffer, 
               sizeof(ai_state.config->encrypted_api_key));
+    } else {
+      AI_DEBUG("ERROR: ai_state.config is NULL");
     }
+  } else {
+    AI_DEBUG("ERROR: Failed to read from file");
   }
   
   fclose(fp);
+  AI_DEBUG("File closed");
   
   /* Clear buffer */
+  AI_DEBUG("Clearing sensitive buffer");
   secure_memset(buffer, 0, sizeof(buffer));
   
   log("API key loaded from %s", filename);
@@ -115,10 +162,16 @@ char *sanitize_ai_input(const char *input) {
     
     /* Escape special characters for JSON */
     if (*src == '"' || *src == '\\') {
-      if (len < MAX_STRING_LENGTH - 2) {
-        *dest++ = '\\';
-        len++;
+      if (len >= MAX_STRING_LENGTH - 2) {
+        break; /* No room for escape sequence */
       }
+      *dest++ = '\\';
+      len++;
+    }
+    
+    /* Check if we have room for the character */
+    if (len >= MAX_STRING_LENGTH - 1) {
+      break;
     }
     
     /* Replace newlines with spaces */
