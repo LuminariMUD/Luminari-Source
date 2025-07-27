@@ -18,7 +18,7 @@ act.informative.o: act.informative.c conf.h sysdep.h structs.h bool.h \
  wilderness.h quest.h feats.h assign_wpn_armor.h domains_schools.h \
  desc_engine.h crafts.h alchemy.h premadebuilds.h staff_events.h \
  missions.h spec_procs.h transport.h encounters.h deities.h treasure.h \
- boards.h
+ spell_prep.h boards.h
 act.item.o: act.item.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h mud_options.h vnums.h utils.h db.h helpers.h \
  perfmon.h comm.h screen.h interpreter.h handler.h spells.h constants.h \
