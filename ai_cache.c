@@ -151,10 +151,9 @@ void ai_cache_clear(void) {
   
   AI_DEBUG("ai_cache_clear() called - clearing all %d entries", ai_state.cache_size);
   
-  int cleared_count = 0;
   for (entry = ai_state.cache_head; entry; entry = next) {
     next = entry->next;
-    AI_DEBUG("  Clearing entry %d: key='%s'", cleared_count++, 
+    AI_DEBUG("  Clearing entry: key='%s'", 
              entry->key ? entry->key : "(null)");
     if (entry->key) free(entry->key);
     if (entry->response) free(entry->response);
@@ -164,7 +163,7 @@ void ai_cache_clear(void) {
   ai_state.cache_head = NULL;
   ai_state.cache_size = 0;
   
-  AI_DEBUG("Cache cleared: %d entries freed", cleared_count);
+  AI_DEBUG("Cache cleared");
   log("AI cache cleared.");
 }
 
