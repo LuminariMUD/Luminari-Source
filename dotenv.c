@@ -32,11 +32,11 @@ char *get_env_value(const char *key) {
   
   value[0] = '\0';
   
-  /* Try to open .env file in lib directory */
-  fp = fopen("lib/.env", "r");
+  /* Try to open .env file in current directory */
+  fp = fopen(".env", "r");
   if (!fp) {
-    /* Try current directory as fallback */
-    fp = fopen(".env", "r");
+    /* Try lib directory as fallback */
+    fp = fopen("lib/.env", "r");
     if (!fp) {
       return value;
     }
@@ -65,8 +65,12 @@ char *get_env_value(const char *key) {
     }
     
     /* Extract key */
-    strncpy(file_key, line_start, equals_pos - line_start);
-    file_key[equals_pos - line_start] = '\0';
+    size_t key_length = equals_pos - line_start;
+    if (key_length >= MAX_ENV_KEY) {
+      continue; /* Skip lines with keys that are too long */
+    }
+    strncpy(file_key, line_start, key_length);
+    file_key[key_length] = '\0';
     
     /* Remove trailing whitespace from key */
     while (strlen(file_key) > 0 && isspace(file_key[strlen(file_key) - 1])) {
@@ -95,9 +99,10 @@ char *get_env_value(const char *key) {
       }
       
       /* Remove quotes if present */
-      if (value[0] == '"' && value[strlen(value) - 1] == '"') {
-        memmove(value, value + 1, strlen(value) - 2);
-        value[strlen(value) - 2] = '\0';
+      size_t value_len = strlen(value);
+      if (value_len >= 2 && value[0] == '"' && value[value_len - 1] == '"') {
+        memmove(value, value + 1, value_len - 2);
+        value[value_len - 2] = '\0';
       }
       
       fclose(fp);
