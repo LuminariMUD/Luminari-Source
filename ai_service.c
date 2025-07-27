@@ -34,16 +34,16 @@ struct curl_response {
 };
 
 /* Function prototypes for static functions */
-static size_t curl_write_callback(void *contents, size_t size, size_t nmemb, void *userp);
+static size_t ai_curl_write_callback(void *contents, size_t size, size_t nmemb, void *userp);
 static char *make_api_request(const char *prompt);
 static char *build_json_request(const char *prompt);
 static char *parse_json_response(const char *json_str);
-static void derive_key_from_seed(unsigned char *key);
+/* static void derive_key_from_seed(unsigned char *key); */
 
 /**
  * CURL write callback for receiving API responses
  */
-static size_t curl_write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+static size_t ai_curl_write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
   size_t realsize = size * nmemb;
   struct curl_response *mem = (struct curl_response *)userp;
   char *ptr;
@@ -58,6 +58,21 @@ static size_t curl_write_callback(void *contents, size_t size, size_t nmemb, voi
   
   return realsize;
 }
+
+
+/**
+ * Derive encryption key from server seed
+ * NOTE: This is a placeholder - implement proper key derivation
+ */
+/*
+static void derive_key_from_seed(unsigned char *key) {
+  int i;
+  // Simple placeholder - in production, use proper KDF
+  for (i = 0; i < 32; i++) {
+    key[i] = (unsigned char)(rand() % 256);
+  }
+}
+*/
 
 /**
  * Initialize the AI service
@@ -238,7 +253,7 @@ static char *make_api_request(const char *prompt) {
     curl_easy_setopt(curl, CURLOPT_URL, OPENAI_API_ENDPOINT);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_request);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ai_curl_write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, (long)ai_state.config->timeout_ms);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
@@ -513,7 +528,7 @@ char *generate_fallback_response(const char *prompt) {
   }
   
   /* Select random response */
-  choice = number(0, num_responses - 1);
+  choice = rand_number(0, num_responses - 1);
   
   return strdup(fallback_responses[choice]);
 }
