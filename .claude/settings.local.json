@@ -26,7 +26,8 @@
       "Bash(./test_fread_fix)",
       "Bash(php:*)",
       "Bash(chmod:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(touch:*)"
     ],
     "deny": []
   }

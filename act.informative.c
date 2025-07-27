@@ -4158,7 +4158,8 @@ static const byte layout_caster[8] = {
 };
 
 /* Get the layout template for a character */
-static const byte *get_layout_template(struct char_data *ch)
+/* TODO: Hook this into the score display system */
+__attribute__((unused)) static const byte *get_layout_template(struct char_data *ch)
 {
   byte template;
   
@@ -4192,6 +4193,47 @@ static void display_combat_section(struct char_data *ch, int line_length);
 static void display_magic_section(struct char_data *ch, int line_length);
 static void display_wealth_section(struct char_data *ch, int line_length);
 static void display_equipment_section(struct char_data *ch, int line_length);
+
+/* Implementation of score section display functions - coming soon */
+static void display_identity_section(struct char_data *ch, int line_length)
+{
+  /* TODO: Implement identity section display */
+}
+
+static void display_vitals_section(struct char_data *ch, int line_length)
+{
+  /* TODO: Implement vitals section display */
+}
+
+static void display_experience_section(struct char_data *ch, int line_length)
+{
+  /* TODO: Implement experience section display */
+}
+
+static void display_abilities_section(struct char_data *ch, int line_length)
+{
+  /* TODO: Implement abilities section display */
+}
+
+static void display_combat_section(struct char_data *ch, int line_length)
+{
+  /* TODO: Implement combat section display */
+}
+
+static void display_magic_section(struct char_data *ch, int line_length)
+{
+  /* TODO: Implement magic section display */
+}
+
+static void display_wealth_section(struct char_data *ch, int line_length)
+{
+  /* TODO: Implement wealth section display */
+}
+
+static void display_equipment_section(struct char_data *ch, int line_length)
+{
+  /* TODO: Implement equipment section display */
+}
 
 /* Display active effects with duration bars */
 static void display_active_effects(struct char_data *ch)
@@ -4902,7 +4944,8 @@ ACMD(do_skore)
 }
 
 /* Display a specific score section based on section ID */
-static void display_score_section(struct char_data *ch, int section_id, int line_length)
+/* TODO: Hook this into the score display system */
+__attribute__((unused)) static void display_score_section(struct char_data *ch, int section_id, int line_length)
 {
   switch (section_id) {
     case SECTION_IDENTITY:
