@@ -41,6 +41,8 @@
 
 ### 📝 What Still Needs Work (Post-MVP):
 1. **Help System**: Help entries need to be added via hedit command in-game
+   - Complete documentation ready in `skore_system_documentation.md` (lines 11-174)
+   - User must add entries using hedit command in-game
 2. **Equipment Durability**: No durability system exists in codebase yet
 3. **Testing**: Valgrind and client compatibility testing pending
 4. **MySQL**: System uses binary saves, not MySQL for these preferences
@@ -165,8 +167,12 @@
 
 ### Remaining Tasks (Non-Critical):
 1. **Help Entries**: Need to be added via hedit command in-game
-   - Documentation ready in `skore_system_documentation.md`
+   - Documentation ready in `skore_system_documentation.md` (lines 11-174)
+   - SKORE help text: lines 11-98
+   - SCORECONFIG help text: lines 102-174
+   - User must add entries using hedit command in-game
 2. **Testing**: Valgrind and client compatibility testing
+   - Comprehensive test plan in `skore_system_documentation.md` (lines 178-444)
 3. **Equipment Durability**: Feature not available (no durability system in codebase)
 
 ---
