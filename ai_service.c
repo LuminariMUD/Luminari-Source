@@ -197,17 +197,16 @@ void shutdown_ai_service(void) {
   
   /* Clean up cache */
   AI_DEBUG("Cleaning up cache entries (size=%d)", ai_state.cache_size);
-  int freed_count = 0;
   for (entry = ai_state.cache_head; entry; entry = next) {
     next = entry->next;
-    AI_DEBUG("  Freeing cache entry %d: key='%s', response_len=%zu", 
-             freed_count++, entry->key ? entry->key : "(null)", 
+    AI_DEBUG("  Freeing cache entry: key='%s', response_len=%zu", 
+             entry->key ? entry->key : "(null)", 
              entry->response ? strlen(entry->response) : 0);;
     if (entry->key) free(entry->key);
     if (entry->response) free(entry->response);
     free(entry);
   }
-  AI_DEBUG("Freed %d cache entries", freed_count);
+  AI_DEBUG("Cache entries freed");
   
   /* Free configuration */
   if (ai_state.config) {
@@ -468,8 +467,13 @@ static char *make_api_request_single(const char *prompt) {
   curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
   curl_easy_setopt(curl, CURLOPT_TCP_KEEPIDLE, 120L);
   curl_easy_setopt(curl, CURLOPT_TCP_KEEPINTVL, 60L);
+  /* HTTP/2 support - only if available in this CURL version */
+#ifdef CURL_HTTP_VERSION_2_0
   curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
   AI_DEBUG("  HTTP/2 and TCP keep-alive enabled");
+#else
+  AI_DEBUG("  TCP keep-alive enabled (HTTP/2 not available in this CURL version)");
+#endif
   
   /* Execute request */
   AI_DEBUG("Executing CURL request to API endpoint");
