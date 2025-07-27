@@ -7337,6 +7337,16 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n is surrounded by magical armor!";
     break;
 
+    case SPELL_EFFORTLESS_ARMOR: // transmutation
+      af[0].location = APPLY_SPECIAL;
+      af[0].modifier = 1 + MIN(5, level / 5);
+      af[0].duration = 12 * level;
+      af[0].bonus_type = BONUS_TYPE_UNIVERSAL;
+      accum_duration = FALSE;
+      to_vict = "You feel the restrictiveness of your armor lessen";
+      to_room = "$n appears to be moving more fluidly.";
+      break;
+
   case SPELL_MAGIC_FANG:
 
     if (!IS_ANIMAL(victim))
