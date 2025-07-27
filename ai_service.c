@@ -822,31 +822,43 @@ static char *parse_json_response(const char *json_str) {
   content_start = strstr(json_str, "\"content\":");
   if (!content_start) {
     AI_DEBUG("ERROR: 'content' field not found in JSON");
+    AI_DEBUG("JSON snippet: %.200s", json_str);
     return NULL;
   }
   AI_DEBUG("Found 'content' field at position %ld", (long)(content_start - json_str));
+  AI_DEBUG("Context around content field: %.100s", content_start);
   
-  content_start = strchr(content_start, '"');
-  if (!content_start) {
-    AI_DEBUG("ERROR: Opening quote not found after 'content:'");
-    return NULL;
+  /* Skip past "content": and any whitespace to find the opening quote of the value */
+  content_start += strlen("\"content\":");
+  AI_DEBUG("After skipping 'content:' label, position %ld", (long)(content_start - json_str));
+  AI_DEBUG("Character at position: '%c' (ASCII %d)", *content_start, (int)*content_start);
+  
+  int whitespace_count = 0;
+  while (*content_start && (*content_start == ' ' || *content_start == '\t' || 
+         *content_start == '\n' || *content_start == '\r')) {
+    whitespace_count++;
+    content_start++;
   }
-  content_start++; /* Skip opening quote */
+  AI_DEBUG("Skipped %d whitespace characters", whitespace_count);
   
-  content_start = strchr(content_start, '"');
-  if (!content_start) {
-    AI_DEBUG("ERROR: Value quote not found");
+  if (*content_start != '"') {
+    AI_DEBUG("ERROR: Opening quote of content value not found");
+    AI_DEBUG("Expected '\"' but found '%c' (ASCII %d)", *content_start, (int)*content_start);
+    AI_DEBUG("Context: %.50s", content_start);
     return NULL;
   }
   content_start++; /* Skip opening quote of value */
   AI_DEBUG("Content value starts at position %ld", (long)(content_start - json_str));
+  AI_DEBUG("First 50 chars of content: %.50s", content_start);
   
   /* Find closing quote, handling escaped quotes */
   AI_DEBUG("Searching for closing quote with escape handling");
   content_end = content_start;
   int char_count = 0;
+  int quotes_found = 0;
   while (*content_end) {
     if (*content_end == '"') {
+      quotes_found++;
       /* Count consecutive backslashes before this quote */
       int backslash_count = 0;
       char *p = content_end - 1;
@@ -854,26 +866,37 @@ static char *parse_json_response(const char *json_str) {
         backslash_count++;
         p--;
       }
-      AI_DEBUG("  Found quote at position %d with %d preceding backslashes",
-               char_count, backslash_count);
+      AI_DEBUG("  Found quote #%d at position %d with %d preceding backslashes",
+               quotes_found, char_count, backslash_count);
       /* If even number of backslashes (or zero), quote is not escaped */
       if (backslash_count % 2 == 0) {
-        AI_DEBUG("  This is the closing quote");
+        AI_DEBUG("  This is the closing quote (unescaped)");
         break;
+      } else {
+        AI_DEBUG("  This quote is escaped, continuing search");
       }
     }
     content_end++;
     char_count++;
+    if (char_count > 10000) {
+      AI_DEBUG("ERROR: Content too long or malformed (>10000 chars)");
+      AI_DEBUG("Current position context: %.50s", content_end);
+      return NULL;
+    }
   }
   
   if (!*content_end) {
-    AI_DEBUG("ERROR: Closing quote not found");
+    AI_DEBUG("ERROR: Closing quote not found after %d characters", char_count);
+    AI_DEBUG("Last 50 chars searched: %.50s", content_end - MIN(50, char_count));
     return NULL;
   }
+  
+  AI_DEBUG("Found closing quote at position %d", char_count);
   
   /* Extract content and handle escape sequences */
   len = content_end - content_start;
   AI_DEBUG("Extracting content of length %zu", len);
+  AI_DEBUG("Raw content before unescaping: %.100s%s", content_start, len > 100 ? "..." : "");
   
   CREATE(result, char, len + 1);
   if (!result) {
@@ -881,16 +904,21 @@ static char *parse_json_response(const char *json_str) {
     AI_DEBUG("ERROR: Failed to allocate %zu bytes", len + 1);
     return NULL;
   }
+  AI_DEBUG("Allocated %zu bytes for result at %p", len + 1, result);
   
   /* Copy while unescaping */
-  AI_DEBUG("Unescaping content");
+  AI_DEBUG("Starting content unescaping process");
   char *src = content_start;
   char *dst = result;
   int escape_sequences = 0;
+  int chars_processed = 0;
   while (src < content_end) {
+    chars_processed++;
     if (*src == '\\' && src + 1 < content_end) {
       src++; /* Skip backslash */
       escape_sequences++;
+      AI_DEBUG("  Escape sequence #%d at position %d: \\%c", 
+               escape_sequences, chars_processed, *src);
       if (*src == '"') *dst++ = '"';
       else if (*src == '\\') *dst++ = '\\';
       else if (*src == 'n') *dst++ = '\n';
@@ -898,7 +926,7 @@ static char *parse_json_response(const char *json_str) {
       else if (*src == 't') *dst++ = '\t';
       else {
         /* Unknown escape, copy as-is */
-        AI_DEBUG("  Unknown escape sequence: \\%c", *src);
+        AI_DEBUG("  Unknown escape sequence: \\%c (ASCII %d)", *src, (int)*src);
         *dst++ = '\\';
         *dst++ = *src;
       }
@@ -909,9 +937,11 @@ static char *parse_json_response(const char *json_str) {
   }
   *dst = '\0';
   
-  AI_DEBUG("Content extracted successfully: %d escape sequences processed", escape_sequences);
+  AI_DEBUG("Unescaping complete: processed %d chars, found %d escape sequences", 
+           chars_processed, escape_sequences);
   AI_DEBUG("Final content length: %zu", strlen(result));
   AI_DEBUG("Content preview: %.100s%s", result, strlen(result) > 100 ? "..." : "");
+  AI_DEBUG("Full content: %s", result);
   
   return result;
 }
