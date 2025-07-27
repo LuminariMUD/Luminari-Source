@@ -11,56 +11,12 @@
 
 ---
 
-## PHASE 2: Visual Polish
-
-### 2.1 Class Borders ✅ COMPLETE
-- [x] Create `get_class_border_style()` in act.informative.c
-- [x] Add border arrays: warrior_border[], mage_border[], etc.
-- [x] Modify do_skore header section to use borders
-- [x] Add PRF_SCORE_BORDERS flag to structs.h
-- [x] Add `scoreconfig borders on/off` to do_scoreconfig
-
-### 2.2 Race Symbols ✅ COMPLETE
-- [x] Add `get_race_symbol()` function returning char*
-- [x] Define race_symbols[] array in act.informative.c
-- [x] Insert symbol in identity panel display
-- [x] Add PRF_SCORE_RACE_SYMBOLS flag
-- [x] Add `scoreconfig symbols on/off` to do_scoreconfig
-
-### 2.3 New Color Themes ✅ COMPLETE
-- [x] Add SCORE_THEME_HIGHCONTRAST (3) to enums
-- [x] Add SCORE_THEME_DARK (4) to enums
-- [x] Add SCORE_THEME_COLORBLIND (5) to enums
-- [x] Implement theme color mappings in get_*_color() functions
-- [x] Extend scoreconfig theme command validation
-
 ### 2.4 Context Detection ✅ COMPLETE
-- [x] Add `get_display_context()` returning enum (CONTEXT_COMBAT, etc)
-- [x] Check FIGHTING(ch) for combat mode
-- [x] Reorder sections based on context in do_skore
 - [ ] Add context override to scoreconfig (future enhancement)
 
 ### 2.5 Active Effects Display ✅ COMPLETE
-- [x] Create `display_active_effects()` function
-- [x] Loop ch->affected list
 - [ ] Group by spell schools/types (future enhancement)
-- [x] Calculate ticks to time conversion
-- [x] Use progress bar for duration display
-- [x] Add to magic section or new section
 
-### 2.6 Layout Templates ✅ COMPLETE
-- [x] Add score_layout_template to player_special_data_saved
-- [x] Define LAYOUT_COMBAT, LAYOUT_ROLEPLAY, LAYOUT_EXPLORER, LAYOUT_CASTER
-- [x] Create section_order[] arrays for each template
-- [x] Add `scoreconfig template <name>` command
-- [x] Modify do_skore to respect section ordering
-
-### 2.7 Section Ordering ✅ COMPLETE
-- [x] Add score_section_order[8] to player_special_data_saved
-- [x] Define SECTION_IDENTITY, SECTION_VITALS, etc enums
-- [x] Implement `scoreconfig order <section> <position>`
-- [x] Validate no duplicate positions
-- [x] Apply ordering in do_skore main display loop
 
 ---
 
