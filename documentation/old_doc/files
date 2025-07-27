@@ -1,0 +1,421 @@
+ACT.COMM.C
+    usage:
+    player communications commands
+
+    commands:
+    do_say
+    do_gsay
+    do_tell
+    do_reply
+    do_spec_comm (whisper, ask)
+    do_write [pen and paper]
+    do_page [sends sound and *NAME*]
+    do_gen_comm (gemote {socials on gossip},
+        holler, shout, gossip, auction,
+        congrats, etc.)
+    do_qcomm (quest chat)
+    
+    functions:
+    void perform_tell (ch, vict, arg)
+    int is_tell_ok (ch, vict)
+FINISHED
+
+
+
+ACT.INFORMATIVE.C
+    usage:
+    player commands to receive info
+
+    commands:
+    do_exits (shows exits)
+    do_look (home to look commands
+    do_examine (look at + look in)
+    do_gold (how many coins you got)
+    do_score (character sheet)
+    do_inventory
+    do_equipment
+    do_time
+    do_weather
+    do_help
+    do_who
+    do_gen_ps (credits, news, info, wizlist, immlist, handbook,
+        policies, motd, imotd, clear, version, whoami)
+    do_where (either immort or mort versions)
+    do_levels (experience tables)
+    do_consider
+    do_diagnose
+    do_toggle
+    do_commands (commands, socials, wizhelp)
+    do_history (history of communications)
+    do_whois
+    do_areas
+    do_scan
+
+    functions:
+    void show_obj_to_char (obj, ch, mode)
+        [shows items description]
+    void show_obj_modifiers (obj, ch)
+        [shows modifiers on items]
+    void list_obj_to_char(list, ch, mode, show)
+        [used to display a list of objects]
+    void diag_char_to_char(vict, ch)
+        [shows health condition of vict]
+    void look_at_char(vict, ch)
+        [look at a vict]
+    void list_one_char(vict, ch)
+        [show char in room]
+    void list_char_to_char(vict, ch)
+        [loops previous]
+    void do_auto_exits(ch)
+        [displays room exits]
+    void look_at_room(ch, ignore_brief)
+        [display content of room]
+    void look_in_direction(ch, dir)
+        [display exit description]
+    void look_in_obj(ch, arg)
+        [display container contents]
+    char *find_exdexc(word, list)
+        [checks whether the items has given descp keyword
+        then display]
+    void look_at_target(ch, arg)
+        [Given the argument "look at <target>", figure out what
+        object or char matches the target.]
+    void space_to_minus(string)
+        [turn spaces into minus]
+    int search_help(arg, level)
+        [tries to match argument to helptree index]
+    void perform_mortal_where(ch, arg)
+        [shows players in same zone]
+    void print_object_location(num, obj, ch, recur)
+        [shows where an item is located]
+    void perform_immort_where(ch, arg)
+        [shows all mobs/items with name]
+    void free_history(ch, type)
+        [clears all the history]
+    void add_history(ch, str, type)
+        [adds content to history buffer]
+    bool get_zone_levels(znum, buf)
+        [returns FALSE if not set, displays info about zone level]
+    void list_scanned_chars(vict, ch, distance, door)
+        [meat and potaters of do_scan]
+FINISHED
+
+
+
+ACT.ITEM.C
+    usage:
+    manipulation of game-items
+
+    commands:
+    do_put
+    do_get
+    do_drop
+    do_give
+    do_drink (sip)
+    do_eat (taste)
+    do_pour (fill)
+    do_wear
+    do_wield
+    do_grab
+    do_remove
+    do_sac
+
+    functions:
+    void perform_put(ch, obj, container)
+        [do_put]
+    int can_take_obj(ch, obj)
+        [items, weight, wear_take limits checked]
+    void get_check_money(ch, obj)
+        [translate coins item into gold on char]
+    void perform_get_from_container(ch, obj, next_obj, mode)
+        [take an item from a container]
+    void get_from_container
+        [item(s) from container]
+    static int perform_get_from_room(ch, obj)
+        [grab things from room]
+    void get_from_room(ch, arg, howmany)
+        [items(s) from room]
+    void perform_drop_gold(ch, amount, mode, RDR)
+        [drop coins, donate]
+    int perform_drop(ch, obj, mode, char, RDR)
+        [drop, donate, junk home]
+    void perform_give(ch, vict, obj)
+        [from char to char obj]
+    struct char_data *give_find_vict(ch, arg)
+        [return victim of give target]
+    void perform_give_gold(ch, vict, amount)
+        [transfer gold between ch, vict]
+    void weight_change_object(obj, weight)
+        [modify the weight of an object]
+    void name_from_drinkcon(obj)
+        [remove name of drink contents]
+    void name_to_drinkcon(obj, type)
+        [copy name of drink contents to target]
+    void wear_messages(ch, obj, where)
+        [messages when you wear something]
+    void perform_wear(ch, obj, where)
+        [can you wear this?  and where step 2]
+    int find_eq_pos(ch, obj, arg)
+        [where does the item go?]
+    void perform_remove(ch, position)
+        [remove guts]
+FINISHED
+
+
+
+ACT.MOVEMENT.C
+    usage:
+    character navigation
+
+    commands:
+    do_move
+        [maps to submd n, e, w, s]
+    do_gen_door
+        [door related subcmds]
+    do_enter
+        [move from outdoors->indoors]
+    do_leave
+        [move from indoors->outdoors]
+    do_stand
+    do_sit
+    do_rest
+    do_sleep
+    do_wake
+    do_follow
+
+
+    functions:
+    int has_boat(ch)
+    int has_flight(ch)
+    int has_scuba(ch)
+    int do_simple_move(ch, dir, specials)
+        [simple movement of an individual]
+    int perform_move(ch, dir, specials)
+        [can you move, and bring followers]
+    int find_door(ch, type, dir, cmdname)
+        [checks if there is a valid door]
+    int has_key(ch, key)
+        [has valid key?]
+    void do_doorcmd(ch, obj, door, scmd)
+        [toggles the door's state]
+    int ok_pick(ch, keynum, pickproof, scmd)
+        [pickable]
+FINISHED
+
+
+
+ACT.OFFENSIVE.C
+    usage:
+    offensive commands
+
+    commands:
+    do_assist
+    do_hit
+    do_kill
+    do_backstab
+    do_order
+    do_flee
+    do_bash
+    do_rescue
+    do_whirlwind
+    do_kick
+    
+    eventfunc:
+    event_whirlwind
+
+    functions:
+**FINISHED**
+
+
+
+ACT.OTHER.C
+    usage:
+    uncategorized <imm commands
+
+    commands:
+    do_quit
+    do_save
+    do_not_here
+        [sbcmd's special procedure]
+    do_sneak
+    do_hide
+    do_steal
+    do_practice
+    do_visible
+    do_title
+    do_group
+    do_ungroup
+    do_report
+    do_split
+    do_use
+    do_display
+    do_gen_tog
+    do_happyhour
+
+    functions:
+    int perform_group(ch, vict)
+    void print_group(ch)
+    void show_happyhour(ch)
+FINISHED
+
+
+
+ACT.SOCIAL.C
+    usage:
+    routines that handle socials
+
+    commands:
+    do_action
+    do_gmote
+
+    functions:
+    int find_action(cmd)
+    void create_command_list(void)
+    void free_command_list(void)
+    void free_social_messages(void)
+    void free_action(message)
+    int find_action(cmd)
+FINISHED
+
+
+
+ACT.WIZARD.C
+    usage:
+    imm commands
+
+    commands:
+    do_echo
+    do_send (like echo)
+    do_at
+    do_goto
+    do_trans
+    do_teleport
+    do_vnum
+    do_shutdown
+    do_snoop
+    do_switch
+    do_return
+    do_load
+    do_vstat
+    do_purge
+    do_advance
+    do_restore
+    do_invis
+    do_gecho
+    do_dc
+    do_wizlock
+    do_date
+    do_last
+    do_force
+    do_wiznet
+    do_zreset
+    do_wizutil
+        [reroll, pardon, notitle, mute, freeze,
+        thaw, unaffect]
+    do_show
+    do_set
+    do_saveall
+    do_links
+    do_zcheck
+    do_checkloadstatus (checkload)
+    do_copyover
+    do_peace
+    do_zpurge
+    do_file (read different log files)
+    do_changelog
+    do_plist
+    do_zlock
+    do_zunlock
+    do_recent
+    do_oset
+
+    functions:
+    room_rnum find_target_room(ch, roomstring)
+        [take string, return rnum]
+    int purge_room(rnum)
+    void list_zone_commands_room(ch, rvnum)
+        [what zone commands room does]
+    void do_stat_room(ch, room)
+    void do_stat_object(ch, obj)
+    void do_stat_character(ch, k)
+    void snoop_check(ch)
+        [make sure advance doesn't violate level
+        issues with snoop]
+    void stop_snooping(ch)
+    void do_cheat(ch)
+        [checks id num of char, if 1, level=imp]
+    void perform_immort_invis(ch, level)
+    void perform_immort_vis(ch)
+    void mod_llog_entry(llast, type)
+        [?]
+    void add_llog_entry(ch, type)
+        [?]
+    void clean_llog_entries(void)
+        [?]
+    void list_llog_entries(ch)
+        [?]
+    struct last_entry *find_llog_entry(punqiue, idnum)
+        [?]
+    struct char_data *is_in_game(idnum)
+    static size_t print_zone_to_buff(bufptr, left,
+                                    zone, listall)
+        [single zone printing for show zone]
+    int perform_set(ch, vict, mode, val_arg)
+    void show_set_help(ch)
+    void mob_checkload(ch, vnum)
+    void obj_checkload(ch, vnum)
+    void trg_checkload(ch, vnum)
+    bool change_player_name(ch, vict, newname)
+    static int get_max_recent(void)
+    void clear_recent(this_player)
+    struct recent_player *create_recent(void)
+    bool addRecentPlayer(charname, charhost, newplr,
+                        cpyplr)
+    void free_recent_players(void)
+FINISHED
+
+
+
+FIGHT.C
+    usage:
+    combat system
+
+    commands:
+
+    functions:
+    void appear(ch)
+    int compute_armor_class(ch)
+    void free_messages_type(msg)
+    void free_messages(void)
+    void load_messages(void)
+    void update_pos(vict)
+    void check_killer(ch, vict)
+    void set_fighting(ch, vict)
+    void stop_fighting(ch)
+    void make_corpse(ch)
+    void change_alignment(ch, vict)
+    void death_cry(ch)
+    void raw_kill(ch, killer)
+    void die(ch, killer)
+    void perform_group_gain(ch, base, victim)
+    void group_gain(ch, victim)
+    void solo_gain(ch, victim)
+    char *replace_string(str, weapon, weaponS)
+    void dam_messages(dam, ch, victim, w_type)
+    int skill_messages(dam, ch, vict, attk_type)
+    int damage(ch, victim, dam, attk_type)
+    int compute_thaco(ch, victim)
+    void hit(ch, victim, type)
+    void perform_violence(void)
+FINISHED
+
+
+
+X.X.C
+    usage:
+    routines that handle blah
+
+    commands:
+
+    functions:
+**UNFINISHED**

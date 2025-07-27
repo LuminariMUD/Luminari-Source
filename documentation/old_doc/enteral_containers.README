@@ -1,0 +1,12 @@
+This is my eternal containers patch.
+
+It allows you to set a container, either drink or normal, to be never ending,
+like an infinite bag of holding.  The weight of the container never changes,
+and it's capacity never runs out.  For drink containers, it's always full, and
+can't be poured out or filled.
+Setting the "max capacity" to -1 will initiate the infinite holding abilities
+of a container.
+
+If you use it, I'd like a mention in your credits file, thank you.
+Adam Scriven, aka DrWho
+<drwho@lore.com>

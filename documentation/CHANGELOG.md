@@ -3,6 +3,23 @@
 ## 2025-07-27
 
 ### Features
+- **Enhanced Score Display (do_skore) - Phase 2.1 & 2.2 Complete**: Extended the enhanced character display with visual polish features:
+  - **Phase 2.1 - Class Borders**: Added decorative borders themed by character class
+    - Warriors/Berserkers/Monks: Red borders (╔═══╗)
+    - Wizards/Sorcerers/Bards: Blue borders
+    - Clerics/Druids/Paladins/Rangers: Green borders
+    - Rogues: Magenta borders
+    - Other classes: Cyan borders
+    - Toggle with `scoreconfig borders on/off`
+  - **Phase 2.2 - Race Symbols**: Added unique symbols for each race
+    - Each race has a distinctive symbol (Human: ☺, Elf: ♠, Dwarf: ♦, etc.)
+    - Symbols display next to race name in identity panel
+    - Toggle with `scoreconfig symbols on/off`
+  - **Implementation Details:**
+    - Added PRF_SCORE_BORDERS (81) and PRF_SCORE_RACE_SYMBOLS (82) flags
+    - Implemented get_class_border_style() and get_race_symbol() functions
+    - Updated preference_bits array in constants.c
+    - Extended scoreconfig command with borders and symbols options
 - **Enhanced Score Display (do_skore) - Phase 1 MVP Complete**: Implemented a new enhanced character display command `do_skore` as an alternative to the classic `do_score`. Features include:
   - Visual progress bars for HP/Movement/PSP with health-based color coding
   - Class-based color themes for different character types
@@ -13,6 +30,14 @@
   - Preferences persist via binary player file saves
   - Responsive layout supporting 80/120/160 character widths
   - Organized information panels: Identity, Vitals, Experience, Abilities, Combat, Magic, Wealth, Equipment
+  - **Implementation Details:**
+    - ACMD(do_skore) implemented in act.informative.c:3848
+    - ACMD(do_scoreconfig) implemented in act.informative.c:4194
+    - Commands registered in interpreter.c:785-786
+    - Preferences stored in player_special_data_saved (4 bytes added)
+    - PRF_FLAGS added: PRF_SCORE_CLASSIC (77), PRF_SCORE_COMPACT (78), PRF_SCORE_WIDE (79), PRF_SCORE_NOCOLOR (80)
+    - Helper functions: get_health_color() and get_class_color()
+    - Development footer removed for production-ready display
 - **Spell Collection Display Stacking**: Implemented spell stacking in the spell collection display for all spell-preparing classes (Wizard, Cleric, Druid, Ranger, Paladin, Blackguard, Alchemist). Modified `print_collection()` in spell_prep.c to group identical spells (same spell, metamagic, and domain) and display them with a count (e.g., "ball of lightning [quickened] x7"). The preparation queue display remains unchanged to preserve individual spell ordering for future prioritization features.
 
 ### Bug Fixes

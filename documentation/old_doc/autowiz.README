@@ -1,0 +1,31 @@
+Autowiz for Ascii Pfiles
+Enhanced from JE's autowiz by Cathy Gore
+
+Little note: Tested on a stock+ascii pfiles CircleMUD 3.0 bpl 17, bpl 18, and bpl 19
+
+5/23/02
+I've updated the patch to fix a little bug that had been found.  Credits are contained in the autowiz.c file just above create_wizlists if you're curious.  You know who you are, thank you.
+
+So everyone likes the nice features of autowiz.  And then they put in ascii pfiles and it's broken.  The mailer code fix that's in the archives gets it working, but you no longer have the capability of checking for various PLR flags that should prevent the person from showing up in the wizlist.
+I've revamped autowiz.  It now no longer resides in the util dir and as a standalone executable, it is integrated into the main circle executable.  There's 2 versions of the patch, autowiz.patch for bpl17 and 18 (may work with previous versions, untested on them), and autowiz.bpl19.patch for bpl19.  You may keep the original autowiz.c in the util dir if you wish, but it is not necessary.
+
+Included in this zip file:
+autowiz.README: this readme file
+autowiz.patch: the patch for prior to bpl19
+autowiz.bpl19.patch: the patch for bpl19
+
+Instructions for install:
+1) Place the appropriate patch file in your src directory.
+2) Key in patch < autowiz.patch and hit return (replace autowiz.patch with autowiz.bpl19.patch for bpl19)
+3) Look for any .rej files
+   -note about the .rej files.  You will probably get a .rej for Makefile and Makefile.in.  Be sure to edit the correct ones.  The ones in /util remove the references to autowiz, the ones in src add references to autowiz.
+
+Also included in the patch is my previous wizupdate function so that you can update the wizlists at will, particularly useful for demoting imms to mortality.
+
+Enjoy!
+
+As per the standard disclaimer, I am not responsible for any damages this may do to your mud.  As always, remember to back up your files before making any changes.  If you use this, please email me and/or drop a line of credit in your credits.
+
+-Cathy Gore
+aka Cheron, Arcane Realms
+

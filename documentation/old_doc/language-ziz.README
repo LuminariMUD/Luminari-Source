@@ -1,0 +1,25 @@
+I have made a few minor changes to the spoken language snippet credited to
+Frollo (mudaholic@aol.com). Props to anyone else who helped with this code
+but is not credited.
+
+The main change in my snippet is that the garble function gets passed the
+actual spoken language, which is used to determine the garble letters.
+
+Why would you want that? So that different languages look differently
+spoken. I also had a particular need for my MUD to have a binary language,
+so the garble letters could only be 0 and 1. Code follows.
+
+Please give me props in your credits file (and Frollo too!)
+
+Note: This code has been updated so it works in the bpl21+ world! Also, it
+has been updated to correct a nasty bug where mortals could crash your
+game at will!
+
+Additional big ups to:
+Brian                   (borlick@mines.edu)
+Frollo                  (mudaholic@aol.com)
+Izham Syah Mahrome      (doomvoid@hotmail.com)
+
+
+Zizazat Lazuras (zizazat@hotmail.com)
+

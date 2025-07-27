@@ -24,7 +24,8 @@
       "Bash(echo:*)",
       "Bash(./test_event_fix)",
       "Bash(./test_fread_fix)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(chmod:*)"
     ],
     "deny": []
   }

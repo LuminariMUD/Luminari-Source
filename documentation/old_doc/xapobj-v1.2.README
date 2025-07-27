@@ -1,0 +1,9 @@
+This is xapobjs for use with circle3.0bpl17.  This should patch cleanly
+with the addition of OasisOLC2.0 as well.  Generally speaking, I'd go:
+
+	OasisOLC
+	Xapobjs
+	iedit.
+
+	This is just a compatibility patch, to see what this does, read
+the documentation with the previous versions.

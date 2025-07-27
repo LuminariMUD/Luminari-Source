@@ -1,0 +1,119 @@
+<HTML>
+<HEAD>
+  <TITLE>GenOLC Interface Routines</TITLE>
+</HEAD>
+<BODY>
+
+<H1>GenOLC Interface Routines</H1>
+
+<P>NOTE: This document is not finished in order to expedite release.</P>
+
+<H2>genwld.c</H2>
+
+<UL>
+
+<LI>room_rnum add_room(struct room_data *)
+  <UL>
+  <LI>Needs</LI>
+    <OL>
+    <LI>A pointer to the room structure to add to the world.</LI>
+    </OL>
+  </LI>
+  <LI>Returns
+    <UL>
+    <LI>Success: The real number where the room was placed or updated.</LI>
+    <LI>Failure: -1</LI>
+    </UL>
+  </LI>
+  </UL>
+</LI>
+<LI>int delete_room(room_rnum)
+  <UL>
+  <LI>Needs
+    <OL>
+    <LI>The real number of the room to delete.</LI>
+    </OL>
+  </LI>
+  <LI>Returns
+    <UL>
+    <LI>Success: TRUE</LI>
+    <LI>Failure: FALSE</LI>
+    </UL>
+  </LI>
+  <LI>Bugs
+    <UL>
+    <LI>Can't delete real room #0.</LI>
+    </UL>
+  </LI>
+  </UL>
+</LI>
+<LI>int save_rooms(zon_vnum)
+  <UL>
+  <LI>Needs
+    <OL>
+    <LI>The virtual number of the zone to save.</LI>
+    </OL>
+  </LI>
+  <LI>Returns
+    <UL>
+    <LI>Success: TRUE</LI>
+    <LI>Failure: FALSE</LI>
+    </UL>
+  </LI>
+  <LI>Bugs
+    <UL>
+    <LI>Doesn't check all error returns.</LI>
+    </UL>
+  </LI>
+  </UL>
+</LI>
+<LI>room_rnum copy_room(room_vnum, room_rnum)
+  <UL>
+  <LI>Needs
+    <OL>
+    <LI>The destination virtual number.</LI>
+    <LI>The source real number.</LI>
+    </OL>
+  </LI>
+  <LI>Returns
+    <UL>
+    <LI>Success: Real number of new copy of room.</LI>
+    <LI>Failure: -1</LI>
+    </UL>
+  </LI>
+  </UL>
+</LI>
+<LI>int copy_room_strings(struct room_data *, struct room_data *)
+  <UL>
+  <LI>Needs
+    <OL>
+    <LI>Pointer to destination of room string copy.</LI>
+    <LI>Pointer to source of room string copy.</LI>
+    </OL>
+  </LI>
+  <LI>Returns
+    <UL>
+    <LI>Success: TRUE</LI>
+    <LI>Failure: FALSE</LI>
+    </UL>
+  </LI>
+  </UL>
+</LI>
+<LI>int free_room_strings(struct room_data *)
+  <UL>
+  <LI>Needs
+    <OL>
+    <LI>Pointer to room to free strings.</LI>
+    </OL>
+  </LI>
+  <LI>Returns
+    <UL>
+    <LI>Success: TRUE</LI>
+    <LI>Failure: Crash</LI>
+    </UL>
+  </LI>
+  </UL>
+</LI>
+
+</BODY>
+</HTML>

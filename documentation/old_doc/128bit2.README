@@ -1,0 +1,77 @@
+Another 128bit patch? 
+Yeah.
+
+After making a patch that would convert a circlemud to use 128bits, I 
+often heard the following question: 'Great, my mud is running 128bits,
+now what? Er.. Could anybody send me some 128bit worldfiles?'
+So.. What I did is, create a patch that will convert your mud to use
+both 128bit worldfiles, and conventional worldfiles. 
+Internally, the mud uses 128bit architecture, but as it detects and 
+loads 'normal' worldfiles, it fills in the other bits, does some bit
+checking (No sleep, poison, etc set, no aggresive and aggressive to 
+alignment), and, optionally, saves the worldfiles back to disk, in
+the 128bit format. The implementor may also choose to just view the 
+normal worldfiles, and keep from saving them to disk. 
+So after you patched this in, what to do? First you will want to BACKUP
+ALL YOUR WORLDFILES! This patch may screw your worldfiles, mud, server,
+and, once your worldfiles are converted, there's no easy to put them 
+back. In other words, make a backup. Once you understand this, and 
+actually made a backup, you may turn the bitwarning flag in config.c to 
+FALSE. This will make your mud able to convert and load normal world-
+files. If you won't do this, your mud will be able to load 128bit files,
+but will exit with a warning when normal worldfiles are detected. If the 
+second integer, bitsavetodisk, is turned to TRUE, worldfiles are saved
+to disk. 
+Did I forget something? Oh, this supports dg_scripts and OasisOLC, and is 
+less messy as my last patch. (sorry)
+
+Ok, final remark, there will be a new version of this pretty soon since
+Mythran will release a new version of olc pretty soon (Wink wink, nudge 
+nudge to Mythran), so there will be a new version of 128bit code pretty
+soon too. If you want to bug Mythran by asking when the new OasisOLC
+will be ready, you can contact him at kip_potter@hotmail.com (I'm not 
+responsible for any broken noses he might punch when you ask that)
+
+As always, send any bugs to me (Templarviper@hotmail.com) 
+ 
+
+Original Readme document:
+
++----------------------------------------------------------------------+
+|                128 Bitvectors for CircleMUD 3.0 bpl 12               |
++----------------------------------------------------------------------+
+             Original Code by Niese-Petersen 
+               Patch by Tony Robbins 
++----------------------------------------------------------------------+
+128 Bitvectors are a way of making it so that you can exceed the normal
+limitation of 32 AFF, PRF, PLR, etc, flags in CircleMUD.  It is sugges-
+ted that you take a look at: 
+http://cspo.queensu.ca/~fletcher/Circle/Snippet/128bits.txt
+[Editor's Note: That is 'democracy.queensu.ca' now.]
+This document is the original 128 Bitvector code.
+:STANDARD DISCLAIMER:
+The code might very well destroy your MUD, turn you into a frog, and 
+blow up your server.  The frog part is doubtful.  Anything that happens 
+to your computer and code while you're using this code is your own 
+problem, and I will not take responsibility for it.
++----------------------------------------------------------------------+
+PROBLEMS:
++----------------------------------------------------------------------+
+128 Bitvectors are saved into the MOB, OBJ, and WLD files.  This means
+that your rooms, mobiles, and objects won't work with the new code.  The
+ fix?  http://cspo.queensu.ca/~fletcher/Circle/Snippet/128conv2.txt
+This gives you perl scripts to convert your files...  The only problem 
+is that the mob converter didn't work properly.
++----------------------------------------------------------------------+
+QUICK INFO:
++----------------------------------------------------------------------+
+if a standard line in your mfiles is:
+   
+then your new set up should be
+         
+ ^first 32 ^2nd 32 ^3rd....
+
+The document by Niese Petersen should contain more information.
++----------------------------------------------------------------------+
+(BTW, a li'l line in your credits for Niese Petersen and me for the 
+stuff would sure be nice...  :))

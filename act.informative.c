@@ -3845,6 +3845,137 @@ static const char *get_class_color(struct char_data *ch, int class_num)
   }
 }
 
+/* Border style arrays for different classes */
+static const char *warrior_border[] = {
+  "\tR╔════════════════════════════════════════════════════════════════════════════╗\tn",
+  "\tR║                                                                            ║\tn",
+  "\tR╚════════════════════════════════════════════════════════════════════════════╝\tn"
+};
+
+static const char *mage_border[] = {
+  "\tB╔═══════════════════════════════════════════════════════════════════════════╗\tn",
+  "\tB║                                                                            ║\tn",
+  "\tB╚═══════════════════════════════════════════════════════════════════════════╝\tn"
+};
+
+static const char *cleric_border[] = {
+  "\tG╔════════════════════════════════════════════════════════════════════════════╗\tn",
+  "\tG║                                                                            ║\tn", 
+  "\tG╚════════════════════════════════════════════════════════════════════════════╝\tn"
+};
+
+static const char *rogue_border[] = {
+  "\tM╔════════════════════════════════════════════════════════════════════════════╗\tn",
+  "\tM║                                                                            ║\tn",
+  "\tM╚════════════════════════════════════════════════════════════════════════════╝\tn"
+};
+
+static const char *default_border[] = {
+  "\tc╔════════════════════════════════════════════════════════════════════════════╗\tn",
+  "\tc║                                                                            ║\tn",
+  "\tc╚════════════════════════════════════════════════════════════════════════════╝\tn"
+};
+
+/* Get the border style for a character's primary class */
+static const char **get_class_border_style(struct char_data *ch)
+{
+  int primary_class = -1;
+  int highest_level = 0;
+  int i;
+  
+  // Check if borders are disabled
+  if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_SCORE_BORDERS)) {
+    return NULL;
+  }
+  
+  // Find the highest level class
+  for (i = 0; i < NUM_CLASSES; i++) {
+    if (CLASS_LEVEL(ch, i) > highest_level) {
+      highest_level = CLASS_LEVEL(ch, i);
+      primary_class = i;
+    }
+  }
+  
+  // If premade build, use that class
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) {
+    primary_class = GET_PREMADE_BUILD_CLASS(ch);
+  }
+  
+  // Return appropriate border style
+  switch (primary_class) {
+    case CLASS_WARRIOR:
+    case CLASS_BERSERKER:
+    case CLASS_MONK:
+      return warrior_border;
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+      return mage_border;
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+      return cleric_border;
+    case CLASS_ROGUE:
+      return rogue_border;
+    default:
+      return default_border;
+  }
+}
+
+/* Race symbol definitions */
+static const char *race_symbols[] = {
+  /* RACE_HUMAN */          "☺",
+  /* RACE_ELF */            "♠",
+  /* RACE_DWARF */          "♦",
+  /* RACE_H_TROLL */        "Ω",
+  /* RACE_CRYSTAL_DWARF */  "◊",
+  /* RACE_HALFLING */       "•",
+  /* RACE_H_ELF */          "♣",
+  /* RACE_H_ORC */          "○",
+  /* RACE_GNOME */          "♥",
+  /* RACE_TRELUX */         "∞",
+  /* RACE_ARCANA_GOLEM */   "◙",
+  /* RACE_DROW */           "▼",
+  /* RACE_DUERGAR */        "■",
+  /* RACE_HIGH_ELF */       "♀",
+  /* RACE_WOOD_ELF */       "♂",
+  /* RACE_HALF_DROW */      "▲",
+  /* RACE_TABAXI */         "♪",
+  /* RACE_TIEFLING */       "Ψ",
+  /* RACE_AASIMAR */        "☼",
+  /* RACE_WARFORGED */      "⌂",
+  /* RACE_DRAGONBORN */     "∆",
+  /* RACE_STOUT_HALFLING */ "◘",
+  /* RACE_FOREST_GNOME */   "♫",
+  /* RACE_GOLD_DWARF */     "◄",
+  /* RACE_AVARIEL */        "↑",
+  /* RACE_YUAN_TI */        "§",
+  /* RACE_CENTAUR */        "¤",
+  /* RACE_AARAKOCRA */      "↔",
+  /* RACE_H_OGRE */         "◦"
+};
+
+/* Get the symbol for a character's race */
+static const char *get_race_symbol(struct char_data *ch)
+{
+  int race;
+  
+  // Check if symbols are disabled
+  if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_SCORE_RACE_SYMBOLS)) {
+    return "";
+  }
+  
+  race = GET_RACE(ch);
+  
+  // Bounds check
+  if (race < 0 || race >= (int)(sizeof(race_symbols) / sizeof(race_symbols[0]))) {
+    return "?";
+  }
+  
+  return race_symbols[race];
+}
+
 ACMD(do_skore)
 {
   PERF_PROF_ENTER(pr_skore_, "do_skore");
@@ -4055,6 +4186,37 @@ ACMD(do_skore)
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════
+  // HEADER WITH CLASS BORDERS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  
+  const char **border_style = get_class_border_style(ch);
+  const char *class_color = "\tc";
+  
+  if (border_style) {
+    // Get the color code from the border
+    if (strstr(warrior_border[0], border_style[0])) {
+      class_color = "\tR";
+    } else if (strstr(mage_border[0], border_style[0])) {
+      class_color = "\tB";
+    } else if (strstr(cleric_border[0], border_style[0])) {
+      class_color = "\tG";
+    } else if (strstr(rogue_border[0], border_style[0])) {
+      class_color = "\tM";
+    }
+    
+    // Display top border
+    send_to_char(ch, "%s\r\n", border_style[0]);
+    
+    // Display title with border sides
+    send_to_char(ch, "%s║\tn                  \tW*** ENHANCED CHARACTER INFORMATION ***\tn                   %s║\tn\r\n", 
+                 class_color, class_color);
+    
+    // Display bottom border
+    send_to_char(ch, "%s\r\n", border_style[2]);
+    send_to_char(ch, "\r\n");
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
   // IDENTITY PANEL
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -4065,8 +4227,18 @@ ACMD(do_skore)
                GET_NAME(ch), GET_TITLE(ch) ? GET_TITLE(ch) : "None");
 
   snprintf(dname, sizeof(dname), "%s", deity_list[GET_DEITY(ch)].name);
+  
+  // Build race string with optional symbol
+  char race_display[64];
+  const char *race_symbol = get_race_symbol(ch);
+  if (race_symbol && *race_symbol) {
+    snprintf(race_display, sizeof(race_display), "%s %s", race_symbol, race_list[GET_RACE(ch)].type);
+  } else {
+    snprintf(race_display, sizeof(race_display), "%s", race_list[GET_RACE(ch)].type);
+  }
+  
   send_to_char(ch, "\tc|\tn \tcRace:\tn %-20s \tc|\tn \tcDeity:\tn %-30s \tc|\tn\r\n",
-               race_list[GET_RACE(ch)].type,
+               race_display,
                deity_list[GET_DEITY(ch)].name ? CAP(dname) : "None");
 
   // Build enhanced class display with colors
@@ -4387,6 +4559,10 @@ ACMD(do_scoreconfig)
                  PRF_FLAGGED(ch, PRF_SCORE_CLASSIC) ? "ON" : "OFF");
     send_to_char(ch, "\tc|\tn   \tcColors:\tn %-3s                                                   \tc|\tn\r\n",
                  PRF_FLAGGED(ch, PRF_SCORE_NOCOLOR) ? "OFF" : "ON");
+    send_to_char(ch, "\tc|\tn   \tcBorders:\tn %-3s                                                  \tc|\tn\r\n",
+                 PRF_FLAGGED(ch, PRF_SCORE_BORDERS) ? "ON" : "OFF");
+    send_to_char(ch, "\tc|\tn   \tcRace Symbols:\tn %-3s                                             \tc|\tn\r\n",
+                 PRF_FLAGGED(ch, PRF_SCORE_RACE_SYMBOLS) ? "ON" : "OFF");
     send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
     send_to_char(ch, "\r\n\tcUsage:\tn\r\n");
     send_to_char(ch, "  \tcscoreconfig width <80|120|160>\tn     - Set display width\r\n");
@@ -4394,6 +4570,8 @@ ACMD(do_scoreconfig)
     send_to_char(ch, "  \tcscoreconfig density <full|compact|minimal>\tn - Set information density\r\n");
     send_to_char(ch, "  \tcscoreconfig classic <on|off>\tn        - Toggle classic score display\r\n");
     send_to_char(ch, "  \tcscoreconfig colors <on|off>\tn         - Toggle color display\r\n");
+    send_to_char(ch, "  \tcscoreconfig borders <on|off>\tn        - Toggle class-themed borders\r\n");
+    send_to_char(ch, "  \tcscoreconfig symbols <on|off>\tn        - Toggle race symbols display\r\n");
     send_to_char(ch, "  \tcscoreconfig reset\tn                   - Reset to defaults\r\n");
     return;
   }
@@ -4484,6 +4662,36 @@ ACMD(do_scoreconfig)
     return;
   }
 
+  if (!str_cmp(arg1, "borders")) {
+    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes")) {
+      SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_BORDERS);
+      send_to_char(ch, "Class-themed borders enabled in score display.\r\n");
+    } else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no")) {
+      REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_BORDERS);
+      send_to_char(ch, "Class-themed borders disabled in score display.\r\n");
+    } else {
+      send_to_char(ch, "Use 'on' or 'off' to toggle borders.\r\n");
+      return;
+    }
+    save_char(ch, 0);
+    return;
+  }
+
+  if (!str_cmp(arg1, "symbols")) {
+    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes")) {
+      SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_RACE_SYMBOLS);
+      send_to_char(ch, "Race symbols enabled in score display.\r\n");
+    } else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no")) {
+      REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_RACE_SYMBOLS);
+      send_to_char(ch, "Race symbols disabled in score display.\r\n");
+    } else {
+      send_to_char(ch, "Use 'on' or 'off' to toggle race symbols.\r\n");
+      return;
+    }
+    save_char(ch, 0);
+    return;
+  }
+
   if (!str_cmp(arg1, "reset")) {
     GET_SCORE_DISPLAY_WIDTH(ch) = PFDEF_SCORE_DISPLAY_WIDTH;
     GET_SCORE_COLOR_THEME(ch) = PFDEF_SCORE_COLOR_THEME;
@@ -4491,6 +4699,8 @@ ACMD(do_scoreconfig)
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_CLASSIC);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_NOCOLOR);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_WIDE);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_BORDERS);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_RACE_SYMBOLS);
     send_to_char(ch, "Score display configuration reset to defaults.\r\n");
     save_char(ch, 0);
     return;
