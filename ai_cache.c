@@ -23,7 +23,7 @@ extern struct ai_service_state ai_state;
  * Add or update a response in the cache
  */
 void ai_cache_response(const char *key, const char *response) {
-  struct ai_cache_entry *entry, *old_entry;
+  struct ai_cache_entry *entry;
   time_t now = time(NULL);
   
   if (!key || !response) return;
