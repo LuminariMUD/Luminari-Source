@@ -1,0 +1,209 @@
+[Oct 24 2022] - Zusuk
+  added diagnol directions to the 'not break hide' list of commands
+  renamed wiz/sorc shield spell to 'mage shield'
+  trelux can now wear items on their feat and hands
+  added a sign advising that the tutorial zone is still under construction and may have missing/broken issues while we work on it :)
+[Oct 24 2022] - Gicker
+  Added new class names to the game tutorial.
+  vampire cloaks can now have color symbols in their description, using the @ key for color codes.
+[Oct 24 2022] - Zusuk
+  dropped fire giant invasion efreeti mercs hps quite a bit
+  armplates of valor for opposite alignment somewhere per requests
+  added a sign post for newbies next to the elder to point out the importance of hopping onto the main quest line :)
+  added an ooc note in the training hall quest that mosswood elder starts the main quest line
+  some reason demic wasn't giving the amulet back, he does now
+[Oct 23 2022] - Zusuk
+  duration to rage is increased to 12 + con-bonus * 3
+  shadowshield will override shield spell (same bonus type of shielding)
+  shield of faith is deflection type, so has no restrictions for stacking
+  armor spell has been rebraned as 'shield of faith!'
+  epic mage armor will override mage armor
+  bark skin can now be stacked with any protection spell
+  blur attack procs (like malevolnce and rune scimitar) are limited to 1x/6 seconds (1 round)
+  40% reduction in king guards, halved the jarl loads in fire giant invasion, and 20% reduction in efreeti mercs...  added an extra item to the treasury..  enjoy!!
+  new feat for shield specialists:  epic shield user, 10% to avoid damage from incoming attacks per rank (max 2 ranks) - this is NOT concealment and will protect from any form of incoming physical damage
+  some more layers of protection have been added to the new 'careful with pet' toggle
+  uptime command now can be accessed by anybody (used to be staff only)
+[Oct 22 2022] - Gicker
+  Sea ports working as intended now.
+[Oct 22 2022] - Zusuk
+  new toggle:  careful with pets.. this will add some dummy checks to reduce the chance of you aggroing your pet or your pet aggroing you
+[Oct 21 2022] - Gicker
+  Added Sea ports around the world map and the sail command.
+[Oct 19 2022] - Gicker
+  Added a buffing system to allow for easy self-buffing without needing to set up aliases and timers.  See HELP BUFFING for more info.
+[Oct 18 2022] - Zusuk
+  the frost giants are planning an "invasion" against the fire giants outposts...
+  fixed the mercs in underdark, they were asking for amounts in platinum
+[Oct 17 2022] - Zusuk
+  added damage taken/put out on the condensed output in combat
+  new quest added to fredrick:  finding the mercencary booth located in the duergar hometown for even more powerful mercs!
+  new quest from the owner of the house of the hired hand:  find the merc camp northeast of luskan
+  attached a mercenary camp at -308, -38
+  new quest added to fredrick (above alerion) that will send you to another place to hire mercs
+  new quest:  alerion will introduce you to fredrick and his mercenary arsenal
+  added an init call for the condensed combat data to logging into chars, this should eliminate the need to toggle it off and on when logging back in
+  more condensed gag per diel's request
+  in condensed mode, affection spell message that are sent to the room will no longer show
+  for non-aggressive weapon spells, affections from mass spells was re-casting despite the base spell being in effect.. this should be working properly now
+[Oct 16 2022] - Zusuk
+  added some condensing, start sending in recommendations what else needs to be gagged.. what info should be given etc...
+  early-in-development condensed combat mode - toggle (condensed) and prefedit added
+  early-in-development condensed combat mode - basic functionality implemented
+  early-in-development condensed combat mode framework implemented (continued)
+  early-in-development condensed combat mode framework implemented
+[Oct 15 2022] - Zusuk
+  mass enhance spell will override all forms of strength, dex, con enhancement
+  mass wisdom overrides wisdom spell now
+  mass strength overrides strength spell now
+  mass Grace overrides grace spell now
+  mass endurance overrides endurance spell now
+  mass cunning overrides cunning spell now
+  mass charisma overrides charisma spell now
+  ironskin cap (450) has been removed
+  ironskin will now override stoneskin
+  epic warding cap (700) has been removed
+  epic warding will now override ironskin/stoneskin
+  greater spell mantle will now override spell mantle
+  greater heroism will now override herosim
+  globe of invulnerability will now override minor globe of invulnerability
+  aid spell will now override bless
+  prayer spell will now override bless/aid
+  group spells when cast outside of a group will just hit the caster instead
+  new toggle and prefedit option:  nofollow - make it so PC followers no longer follow you and/or can follow you..  NOTE: this will not affect your npc followers, use dismiss for that
+  class info now includes primary attributes and suggestions for stats for all classes
+  when you are using a premade build, it will now mention you have limited options in the study main menu
+  bard songs used to use a local function for healing/restoring moves.. it now uses process_healing()
+  added handling healing psp into the process_healing() function
+  new spell, group vigorize - restores 'critical' movement to everyone in the group..  4th circle druid/ranger
+  new spell, vigorize critical - restores 'critical' movement..  5th circle inquisitor/cleric, 3rd circle druid/ranger
+  new spell, vigorize serious - restores 'serious' movement..  4th circle inquisitor/cleric, 2nd circle druid/ranger
+  new spell, vigorize light - restores movement..  2nd circle inquisitor/cleric, 1st circle druid/ranger
+  the healing amount <34> is only shown now if you have combatroll toggled on
+  added blackguard to the score information for their spell interface
+  added some dummy checks to the olist perm command
+  spiffed up the olist perm interface
+[Oct 14 2022] - Gicker
+  Added recently fed and blood starved info to affects command, and added associated help files.
+  fixed a broken desc on vampire spawn.
+  Increased amount of sun damage received by vampires when in sunny conditions (outside, during day, sky is not clouded over) -- time and weather commands.
+  Vampires who perform a successful slam attack and resulting level drain can now use the corpse of the slammed/energy drained victim to create spawn.
+  Attempted bug fix for incorporeal forms not halving damage made and received.  Note that the reduction should only occur on physical, non magical attacks.
+  Added blood drain toggle to the prefedit more toggles menu.
+  Converted vampiric DR over from spell-like DR to stackable DR
+  Fixed an error with checking for sunlight conditions for vampire damage
+  fixed an error with vampiric domination
+[Oct 14 2022] - Zusuk
+  new staff olist submenu:  olist perm <perm #>, typing olist perm with no additional argument will give you the flag # list
+  fixed the door in 'The Room of Revenge'
+  the demonscale sleeves in 'A Secluded Treasure Hoard' load once per boot, the boots remain a rareload
+  new quest reward type:  follower - you can now get a pet/follower/merc as a quest reward
+  congrats to both the 2nd and 3rd players to complete the vampire quest!! (khell & gargar)
+  when completing a gold return/give quest, it will remove that gold from the quest giver so you can't rob 'em!
+  new quest type:  return/give gold
+  added a note in the final step of the vampire quest reminding the player not to be following/followed/etc
+  when you complete an autoquest that involves giving an object to the quest mob, the object will be destroyed so you can't rob the quest giver by gunpoint to get the object back
+[Oct 13 2022] - Gicker
+  Added HELP VAMPIRE CLOAK
+[Oct 13 2022] - Zusuk
+  you can no longer teleport/portal to 'powerful beings'
+  the city of arabel has been attached, see 'survey' in the wilderness for location
+  new lich proc assigned to 13 mobiles!  3nj0y!
+  note the spec proc for liches is for NPCs
+  new lich spec proc
+[Oct 13 2022] - Gicker
+  Added the ability to restring vampire cloaks.
+[Oct 13 2022] - Zusuk
+  fixed some bogus ansi characters in some of the proc messaging :)
+  6 mobiles that are clearly dracoliches have been assigned the dracolich mob spec
+  new dracolich procs, its a toned down version of what the prisoner uses
+  new trelux ability 3x/day:  insectbeing - will ==greatly== enhance your stats based on level
+  trelux can now wear items on their head/legs
+  bumped the duration on crystalfist and crystalbody
+  trelux and crystal dwarf xp charts have been improved (more favorable)
+  no race is restricted in multi-classing anymore
+  fixed a crash bug in stat quest related to the new race-conversion code
+  vampire get a slight boost to con bonus
+  congrats to melow - our first player to finish the vampire epic race quest
+  with the release of vampires, liches aren't quite as physically dominanant as before
+  powerful being clerics/paladins when successfully turning will do damage with their turn undead ability when successful
+  cleric and paladin npcs will try to turn undead now
+  that previously mentioned bonus is +2 per level above 30, reaching a cap of 65
+[Oct 12 2022] - Zusuk
+  under the new powerful being system, mobs will get +2 bonus attack bonus that WILL go above the normal 55 limit if (and only if) their target is not affected by iron skin or epic warding
+  powerful beings now get a bonus ac point per level above 30
+  "powerful beings" have a boost per level cumulative 10% hitpoints
+  fixed the broken keys in 'temple in the sky'
+  fixed the broken keys in 'soubar underhalls'
+  fixed the broken keys in 'soubar'
+  fixed a broken key in miens of tugrahk gol
+  fixed all the broken keys in beregost
+  fixed the broken keys in 'flaming tower' zone
+  cleared some of the news file, it was overfilled
+  18 quests added for new race:  vampire
+  3 zones attached right next to beregost :)  check it out if you have any sort of interest in vampires *wink*
+[Oct 11 2022] - Gicker
+  added autohit toggle.
+  Vampires now get bonuses and penalties to certain stats based on how long it's been since they last fed.  Affected stats are: hitroll, damroll, CMB, CMD, skills, saves, save dcs, spell/power damage and healing amount.
+[Oct 11 2022] - Zusuk
+  fixed all the key vnum issues in luskan southbank
+  map update is posted, thanks to kaez it includes swiftpaths as well!  https://luminarimud.com/new-revised-worldmap-eat-your-heart-out/
+  .pdn and .png maps are updated to reflect all the new zone attachments
+  new zone attached: temple in the sky
+  new zone attached: flaming tower
+  new zone attached: crypt of darekoth
+  new zone attached: forest of wyverns
+  fixed statue quest in orc ruins, thanks melaw for reporting
+  fixed a crash bug for summoning messages
+  missing saving throw type for success/fail messages has been added
+[Oct 10 2022] - Zusuk
+  new addition to mobile spec proc vampires - slaughter a drained minion, then turn it into a vampire spawn
+  new addition to mobile spec proc vampires - children of the night summon
+  new function to create arbitrary corpses
+  new autoquest type added:  find wilderness room by coordinate
+[Oct 09 2022] - Zusuk
+  new mob spec proc:  vampire, will do a powerful poison bite, vampire drain (per new mechanic), bonus attacks, and regen procs
+  pulled out the guts of the vampire drain and plopped it into an independent function
+  new zone attached via an existing related zone: soubar underhalls
+  new zone attached via an existing related zone: the luskan outpost
+  new zone attached, please use 'survey' to find location in wilderness:  lost city of thunderholme
+  new zone attached, please use 'survey' to find location in wilderness:  dagger falls
+  new zone attached, please use 'survey' to find location in wilderness:  soubar
+  new zone attached, please use 'survey' to find location in wilderness:  zhent graveyard
+[Oct 08 2022] - Zusuk
+  archmage's spellbook (has nearly every spell pre-scribed) added to quest shop for 15k questpoints
+  fixed castle references in the moor that wasn't valid
+[Oct 07 2022] - Zusuk
+  New Zone attached at -413, -585:  Dawn Pass & Lonely Moor
+  per Hibbidy request, 2 rooms were added to Luskan Southbank:  extended the muddy road into the zone...  congrats to Hibbidy for adding 2 rooms of mud to the MUD!
+[Oct 06 2022] - Zusuk
+  new zone attachment:  luskan outpost to luskan southbank
+  luskan southbank attached at -357 -183 and -359 -139 in the wilderness
+[Oct 06 2022] - Gicker
+  Added setcloak timer to cooldowns
+  Fixed output for identifying food and drink items.
+  Food and drink items can now have specific bonuses Ie. feats and skills
+  Added misc cooldowns to be reset with unaffects command. Ie. pixie form abilities, vampire setcloak timer.
+  Added ANTI_VAMPIRE and VAMPIRE_ONLY object flags.
+  Added an attemnpted fix for followers attacking masters in the wilderness map.
+  Added setcloak command for vampires setting their vampire cloak bonuses.
+  Added a define for the vampire cloak object vnum.
+  Added the following functions: clear_misc_cooldowns(), get_vampire_cloak_bonus(), valid_vampire_cloak_apply().
+  Added the following special procedure: vampire_cloak.
+  The is_covered function now checks for wind_wall, grapple and if wearing a vampire cloak.
+  Added a number of new epic psionic abilities: epic augmenting, epic psionics, master of the mind.
+  Added some epic psionic powers: epic psionic ward, impale mind, razor storm and psychokinetic thrashing.
+  Added the mastermind command for activating the master of the mind benefit.
+  Epic spells now require the ability to cast 9th level spells.
+  Updated crystal body and crystal fist to use a spell effect instead of an event.  Increased duration as well.
+[Oct 03 2022] - Zusuk
+  set up beginning of framework for the vampire quest line
+  started auditting zones for the vampire quest!
+  fixed 'a rock bracelet'
+[Oct 01 2022] - Zusuk
+  vampires get hardy/vital feats now
+  quest edit OLC now supports race change code
+  new code added to support race change in the auto-quest system
+  expanded the save/load functions for quest files to support either 3 (original) or 7 (new variable + 3 expansion slots) variables on the final line of saved variables
+  added another dummy check to mag_unaffect() to try and address potential crash issue
+  noticed when you dismiss your pets were still coming back from the save_char_pet() code... just added an update in the dismiss code to address the issue

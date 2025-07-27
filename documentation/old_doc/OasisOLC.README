@@ -1,0 +1,346 @@
+NOTE: Read OasisOLC.html instead.  This is only here for historical interest.
+	-gg 4/16/99
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+                           - OasisOLC - 
+                Rv's Circle 3 On-Line Creation System
+		Harvey Gilpin	v1.2 (12/5/96) release
+		George Greer	v1.5 (10/5/97) release
+                George Greer    v1.6  11/16/1997 release
+                George Greer    v1.6a 11/17/1997 release
+                George Greer    v1.6b  2/17/1998 release
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Contents:
+
+   1  -  Introduction
+   2  -  What is OasisOLC?
+   3  -  Conditions of use
+   4  -  Installing OasisOLC
+   5  -  Upgrading to v1.2
+   5.5-  Upgrading to v1.5
+   6  -  Configuring OasisOLC
+   7  -  Using OasisOLC
+   8  -  Fixed bugs since v1.0
+   9  -  Known bugs
+   10 -  Credits
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+1  -  Introduction
+
+	Congratulations on reading this.  If you are anything like me then
+you've got hold of your new toy and the last thing you want to do is read
+through heaps of junk telling you how to get it working.  However most of
+the information in this file is important so I urge you to read it all
+before installing anything.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+2  -  What is OasisOLC?
+
+First off, the three big "it's" :
+
+  It's written by Rv, a.k.a. Harvey Gilpin.
+
+  It's a menu based OnLine Creation system for CircleMUD 3.0.
+  CircleMUD was created and is maintained by Jermey Elson.
+
+  It is based on an earlier OLC system that just included 'iedit' and
+  'redit'.  I have been informed the original author goes by the
+  handle of "Levork".
+
+Rv cleaned up and semi-reorganised the redit/iedit code, renamed iedit
+to oedit and wrote the medit/zedit/sedit and olc modules.  
+
+The code was futher cleaned up and debugged by George Greer
+(greerga@circlemud.org) and a group of helpful volunteers from the CircleMUD
+mailing list (see credits).
+
+IMPORTANT: It is not intended as an all singing, all dancing OLC, but
+rather as a very good starting point.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+3  -  Conditions of use
+
+1)  If you use this code you must e-mail me to let me know at:
+
+    rv@twylite.demon.co.uk
+
+    (It's not asking much is it?  I'd like to know how many
+     people use it)
+
+    Just a quick message saying: "It's crap!  You suck!"
+    would do.
+
+2)  You must not use the code to make a profit in ANY way.
+    Refer to the CircleMUD license for more detail.
+
+3)  Any derivative works must give credit to the original author, 
+    Levork, and are subject to the same conditions of use.
+
+4)  You accept any damage caused by the use of this software to be
+    your own fault. (i.e. Don't sue me :) 
+
+Harvey Gilpin
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+4  -  Installing OasisOLC
+
+Although desgined in Circle3.0pl9, this version has been released to
+work with pl10 and I've been told it works fine with pl11.  Beyond that,
+who can tell?  Anyways, here's how you install it:
+
+OasisOLC version 1.5 was based on CircleMUD bpl11.
+OasisOLC version 2.0 is based on CircleMUD bpl13.
+
+FIRST BACK UP YOUR WORLD FILES !  - This system (like all others)  WILL
+have bugs and WILL destroy your world files from time to time.  Be ready
+for it.  Although the v1.5 edition of Oasis will write to a temporary file
+before removing the old world file, there is still a minute possibility
+that your world files could be damaged.
+
+To backup your world files go into the 'lib' directory and type:
+ tar cvf world.tar world
+To restore them again, go into the 'lib' directory and type:
+ tar xvf world.tar
+It is also recommended to gzip your 'tar' file as such:
+ gzip -9 world.tar
+
+Most of the code for the OLC system is held in files seperate files
+but some circle files do need modifying so that the MUD knows that
+it has the OLC attached to it.  Basically, you just untar the files
+into your 'src' directory and then apply the patch files by doing this:
+
+patch < OasisOLC.patch
+
+These are some of the files the patch will affect:
+  Makefile, structs.h, comm.c, modify.c, interpreter.h, interpreter.c,
+  act.wizard.c, constants.c, shop.h & shop.c 
+
+IMPORTANT: All the changes made to the code are required by the OLC
+engine, so if any of them do not work automatically, you will have
+to look through the rejected files and change the code manually.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+5  -  Upgrading to v1.2
+
+This is just a bugfix version; there are no new features.  So if  you are
+upgrading to it from the earlier version of Oasis, all you need do is copy
+the new files over the old.  The patch file hasn't changed (much) so you
+can more or less ignore that.
+
+However, if you have changed a lot of the original Oasis code and don't
+want to write over them with this version, then at least go through the
+bugfix list found later in this file so you know what needs fixing.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+5.1 -  Upgrading to v1.5
+
+This version is a reformat and bug fix release.  The new features will
+wait until version 2.0.  There is an upgrade patch from v1.3 to v1.5 at
+http://www.van.ml.org/CircleMUD/OasisOLC/.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+6  -  Configuring OasisOLC
+
+Rv have tried to make this system as reliant as possible on the tables that
+already exist in the Circle code,  so that when the mud changes, the OLC
+will be able to deal with it.  However, the system does need to know some
+information about the tables sizes, and those that are not already defined
+in structs.h have been placed in olc.h.
+
+If you want the OLC to react to changes you make to tables within your mud
+you must update the defines in the top of olc.h.
+
+Also, the system uses colours for the menus, if the player has a colour level
+of 'normal' or 'complete'.  If you don't like the colour scheme used,
+you can edit the function get_char_cols() in olc.c, and this will
+change the colours for the entire OLC system.
+
+If you want to add new features to the OLC, for pointers on how to go about
+it, look at the commented out code for object level flags in oedit.c.
+
+There is a new flag called CLEAR_SCREEN in olc.h, if you don't like Oasis
+clearing your screen, go look there to change it. 
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+7  -  Using OasisOLC
+
+To understand what all the fields in the menus mean, refer to the 
+building.doc file that is found in the 'doc' directory of the 
+Circle3.0 distribution.
+
+Here's how all the commands for the OLC system are used:
+
+redit				- edit the room you are standing in
+redit <virtual room num>	- edit/create room
+redit save <zone>		- save all the rooms in zone to disk
+
+zedit				- edit the zone info for the room you are
+				   standing in
+zedit <virtual room num>	- edit the zone info for that room
+zedit save <zone>		- save all the zone info for that zone to disk
+zedit new <one>			- IMPLs only - create a new zone.
+
+oedit <virtual obj num>		- edit/create object
+oedit save <zone>		- save all the objects in zone to disk
+
+medit <virtual mob num>		- edit/create mobile
+medit save <zone>		- save all the mobiles in zone to disk
+
+sedit <virtual shop num>	- edit/create shop
+sedit save <zone>		- save all shops in zone to disk.
+
+set <player name> olc <zone>	- IMPLs only - allow player to edit zone.
+
+olc				- List all the things that have been edited
+				   but not yet saved.
+
+WARNING:  This OLC will let you set values to values that shouldn't be
+set.  For example, it'll let you set a mobile with a GROUP flag.  This
+is good in the sense that it allows you to test anything you please,
+but bad in the sense that builders can crash the mud with ease.
+(Hey, that rymes!).  In short: only allow builders you trust to use it.
+
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+8  -  Fixed bugs since v1.0
+
+The original release was pretty stable, and only has a few major bugs.
+Most of the fixes are just sanity checks, but for those that are
+interested, here's what's been changed:
+
+Major bug fixes:
+
+o  ALL the save_internally routines had a fence post bug in that goes
+   one step to far each time, and corrupts memory at the end of the
+   new table it is creating.  On strict systems this caused protection
+   faults, and no doubt caused weired errors on others.  This fix missed
+   the medit_save_internally function, unfortunately.
+
+o  medit_save_internally didn't check to see if the chars in the
+   character_list it was updating were mobiles.  Hence, the IMPL
+   could get overwritten with Puff's strings.  *snicker*
+
+o  ALL the save_to_disk functions needed to check for NULL values
+   in all the strings the saved but somehow it didn't. :)
+
+Minor bug fixes:
+
+o  Default position for mobs defaults to 'standing'.
+
+o  sedit, types list needed to be extended to 15 characters make room
+   for LIQ_CONTAINER flag name.
+
+o  zedit, changing 'top' of zone did not flag the zone as being changed.
+
+o  ALL string edits that use more than one line didn't flag what was
+   being edited as being changed.
+
+o  sedit, the compact rooms list would not return to the long rooms list.
+
+o  zedit_disp_arg3, type of 'container'
+
+o  zedit, pressing command after choosing 'New Command' bailed  out.
+
+o  sedit, namelist for buy types was screwy for non-Linux systems.
+
+o  oedit, object values needed clearing before editing as old values
+   from previous edits were being left there.
+
+o  oedit, scrolls an potions didn't allow NULL spells.
+
+o  Added a LVL_BUILDER setting for easy configuration.
+
+o  zedit_disp_menu function needed to check for a NULL zone name.
+
+o  Changed strdup() to use Circle's own str_dup throughout
+
+o  Changed "== IMPL" comparisons to ">= IMPL" for muds with more levels
+   than just IMPL.
+
+o  Changed the typo of "db.c" to "db.h" in the Makefile for the *edit.c
+   dependencies.
+
+o  olc.c, strip_string() optimised.
+
+o  Some other stuff I never bothered to write down...
+
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+9  -  Known bugs.
+
+Like most software, this system has bugs.
+Here are those that I know of:
+
+
+Access to zone 0 bug
+
+Initially, all your GODs will have edit access to zone 0 (limbo).
+You may want to set thier olc flags to -1 by default.
+
+
+Extended mob bug.
+
+Due to the way Extended mobs are implemented it is impossible to
+know what individual MUDs do with them.  So when medit writes the
+mob files out to disk it can only deal with those it knows about.
+Any other one that were there get _erased_.  If you want to use extended
+mobs in your mud you MUST edit the medit_save_to_disk() function in
+medit.c so that it knows how to save them.
+
+
+Zone header info
+
+If two builders change the zone header information (zone name,
+reset type, etc) at the same time, one of the changes will be lost.
+No big deal.
+
+
+Object weight:
+
+Objects that have there weight changed will mess up with the weight that
+players currently in the game owning that object can carry, until they
+rent.
+
+
+Add new zone:
+
+This seems to be buggy for some users, but I can't find what's wrong with
+it.  Also, it doesn't check to see if it will overwrite any existing
+files, only that the zone does not already exist in -MEMORY-.  Be careful
+with this command.  The memory problem is fixed in version 1.5. 
+
+Flying monitor bug:
+
+Throwing your monitor out of the window while using Oasis will break it,
+unless you are on the ground floor and have several matresses carefully
+positioned outside the window.
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+10 -  Credits
+
+Finally, thanks to the following for their bug reports, ideas and
+feedback: 
+
+  Adam Days
+  Chris A. Epler
+  Edward Almasy
+  Paul Jones
+  Con (a.k.a Rasmus)
+  Sean P. Mouncastle
+  Trevor Man
+  Ryan A. J. Biggs
+  Andrew Helm
+  Desmond Daignault
+  Robert Sinland
+  Patrick J. Dughi
+  Spooge
+  Adam Beytin
+  David Klasinc
+  Crimson Wizard
+  
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

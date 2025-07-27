@@ -1,0 +1,24 @@
+There are a bunch of race snippets on the ftp site, but none of them
+are complete.  I've pieced them together here into one file, and added
+a few additional things on top of that.  It may still be missing
+things even so, so let me know if you find anything missing.  One
+thing that should be added in the future is languages.  But not for
+now :p
+
+ -ejg
+
+Snippets included were by:
+Carlos Myers <DHStranger@Hotmail.com>
+Brian Williams <bmw@efn.org>
+Henrik Stuart <hstuart@geocities.com>
+TOOIE <Zyrenthian@home.com>
+
+Additional credits to Brett Helgeson, Nick C. and Jon Barrett.
+
+ This distribution includes a patch file for a stock CircleMUD
+ 3.0bpl21. It is a code snippet with instructions on how to install
+ races by hand.  There is no patch, there are no drop in files, you're
+ simply going to have to do it by hand.  If you are serious about
+ being an imp, it is best you know what is going on and that means
+ looking at the code :p
+

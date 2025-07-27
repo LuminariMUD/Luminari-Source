@@ -1,0 +1,969 @@
+
+DONE - (recent updates) past week tasks completed
+ARCHIVES - tasks completed since port to TBA base, below DONE
+
+
+{DONE - this past week}
+  -added beta goal list of crafting molds/patterns
+  -added a large assortment of new crafting material
+  -created a craft.h file and exported header info from utils.h
+  -imported random harvest node code from d20 codebase (thanks Gicker)
+  -started framework for do_harvest command
+  -race help files added to char creation
+  -drinks can now cast spells (nashak)
+  -food can now cast spells (nashak)
+  -fixed color bleed on unconscious, prompt issue
+  -removed extra MXP tag (nashak)
+  -cursed items now will not enter containers (nashak)
+  -new affect type for AC for dnd3.5 system (nashak)
+  -barkskin spell minor bug fix
+  -minor bug with staff eatting objects with obj_value (nashak)
+  -set_wait has_wait, new wait_state system framework started (nashak)
+  -CORE UPDATE:  tbaMUD 3.63 -> 3.64
+  -Room Events are now in!
+  -Reorganized mag_affects spells (Nashak)
+  -Did some file reformatting
+  -Added cooldown for drinking/eatting magical items (Nashak)
+  -Added regen bonus to char who sits in furniture (Nashak)
+  -Added MEDIUM_STRING in structs.h to replace 256 in char[] arrays
+  -Added HELPFILES - Spells Cleric:
+CLERIC-MASTER-SPELL-LIST
+
+==Spell Circle Level 9==
+*sunburst
+*energy drain         
+*group heal           
+*summon creature ix
+*plane shift
+*storm of vengeance
+*implode
+*death shield
+*command
+*air walker
+*refuge
+*group summon
+
+==Spell Circle Level 8==
+*sanctuary            
+*destruction          
+*summon creature viii
+*spell mantle
+*true seeing
+*word of faith
+*greater animation
+*earthquake           
+*anti-magic field
+*dimensional lock
+*salvation
+*spring of life
+
+==Spell Circle Level 7==
+*call lightning       
+*control weather [incomplete]
+*summon               
+*word of recall       
+*summon creature vii
+*mass cure crit
+*greater dispelling
+*mass enhance
+*blade barrier
+*battletide
+*spell resistance
+*sense life           
+
+Spell Circle Level 6
+*dispel evil          
+*harm                 
+*heal                 
+*dispel good     
+*summon creature vi
+*mass cure serious
+*eyebite
+*prayer
+*mass wisdom
+*mass charisma
+*mass cunning
+*remove disease
+
+==Spell Circle Level 5==
+*poison               
+*remove poison        
+*protection from evil 
+*group armor          
+*flame strike         
+*protection from good 
+*mass cure moderate
+*summon creature v
+*waterbreath
+*waterwalk
+*regeneration
+*free movement
+*strengthen bone
+
+==Spell Circle Level 4==
+*cure critic          
+*remove curse         
+*infravision          
+*cause critical wounds 
+*summon creature iv 
+*circle against evil 
+*circle against good 
+*curse 
+*daylight 
+*mass cure light 
+*aid
+*bravery
+
+==Spell Circle Level 3==
+*bless                
+*cure blind           
+*detect alignment     
+*cause serious wounds 
+*cure serious wounds 
+*summon creature iii 
+*blindness            
+*deafness 
+*cure deafness 
+*cunning 
+*dispel magic 
+*animate dead 
+*faerie fog 
+
+==Spell Circle Level 2==
+*create food          
+*create water         
+*detect poison        
+*cause moderate wounds 
+*cure moderate wounds 
+*scare 
+*summon creature ii 
+*detect magic 
+*darkness 
+*resist energy 
+*wisdom 
+*charisma 
+
+==Spell Circle Level 1==
+*armor                
+*cure light           
+*endurance            
+*cause light wounds   
+*negative energy ray 
+*endure elements 
+*protect from evil 
+*protect from good 
+*summon creature i 
+*strength 
+*grace 
+*remove fear 
+
+  -Added New Spells Druid:
+    *
+  [Above is Week Ending 03/08/2013]
+
+
+{ARCHIVES}
+  -mobiles now have edittable walkin/walkout messages (Nashak)
+  -capitilization issues with color codes resolved (Nashak)
+  -new channel formatting with capitalization and sentence formatting (Nashak)
+  -resolved problem with cooldown message with layonhands (Nashak)
+  -fixed color parsing on create/restring
+  -Added New Spells Cleric:
+CLERIC-MASTER-SPELL-LIST
+
+==Spell Circle Level 9==
+*sunburst
+*energy drain         
+*group heal           
+*summon creature ix
+*plane shift
+*storm of vengeance
+*implode
+*death shield [incomplete]
+*command [incomplete]
+*air walker [incomplete]
+*refuge
+*group summon
+
+==Spell Circle Level 8==
+*sanctuary            
+*destruction          
+*summon creature viii
+*spell mantle
+*true seeing
+*word of faith
+*greater animation
+*earthquake           
+*anti-magic field
+*dimensional lock
+*salvation
+*spring of life
+
+==Spell Circle Level 7==
+*call lightning       
+*control weather [incomplete]
+*summon               
+*word of recall       
+*summon creature vii
+*mass cure crit
+*greater dispelling
+*mass enhance
+*blade barrier
+*battletide
+*spell resistance
+*sense life           
+
+Spell Circle Level 6
+*dispel evil          
+*harm                 
+*heal                 
+*dispel good     
+*summon creature vi
+*mass cure serious
+*eyebite
+*prayer
+*mass wisdom
+*mass charisma
+*mass cunning
+*remove disease
+
+==Spell Circle Level 5==
+*poison               
+*remove poison        
+*protection from evil 
+*group armor          
+*flame strike         
+*protection from good 
+*mass cure moderate
+*summon creature v
+*waterbreath
+*waterwalk
+*regeneration
+*free movement
+*strengthen bone
+
+==Spell Circle Level 4==
+*cure critic          
+*remove curse         
+*infravision          
+*cause critical wounds 
+*summon creature iv 
+*circle against evil 
+*circle against good 
+*curse 
+*daylight 
+*mass cure light 
+*aid
+*bravery
+
+==Spell Circle Level 3==
+*bless                
+*cure blind           
+*detect alignment     
+*cause serious wounds 
+*cure serious wounds 
+*summon creature iii 
+*blindness            
+*deafness 
+*cure deafness 
+*cunning 
+*dispel magic 
+*animate dead 
+*faerie fog 
+
+==Spell Circle Level 2==
+*create food          
+*create water         
+*detect poison        
+*cause moderate wounds 
+*cure moderate wounds 
+*scare 
+*summon creature ii 
+*detect magic 
+*darkness 
+*resist energy 
+*wisdom 
+*charisma 
+
+==Spell Circle Level 1==
+*armor                
+*cure light           
+*endurance            
+*cause light wounds   
+*negative energy ray 
+*endure elements 
+*protect from evil 
+*protect from good 
+*summon creature i 
+*strength 
+*grace 
+*remove fear 
+
+  -Added New Spells Druid:
+    *
+  [Above is Week Ending 03/01/2013]
+  -'history chat' now works like it should (Nashak)
+  -flee now has a short wait_state (Nashak)
+  -new wizard/sorcerer spells
+    *Spell Circle Level 9
+			/* evocation */
+    *meteor swarm
+    *blade of disaster
+                        /* conjuration */
+    *summon monster ix
+    *gate
+			/* necromancy */
+    *energy drain
+    *wail of the banshee
+			/* enchantment */
+    *power word kill
+    *enfeeblement
+			/* illusion */
+    *weird
+    *shadow shield
+			/* divination */
+    *prismatic sphere
+    *implode
+			/* abjuration */
+    *timestop
+    *greater spell mantle
+			/* transmutation */
+    *mass enhance
+    *polymorph
+  -new helpfiles (8th/9th circle)
+    *chain lightning
+    *clenched fist
+    *incendiary cloud
+    *summon creature viii 
+    *horrid wilting  
+    *greater animation
+    *irresistible dance
+    *mass domination
+    *scint pattern
+    *refuge
+    *banish
+    *sun burst
+    *spell turning
+    *mind blank
+    *iron skin
+    *portal
+    *meteor swarm
+    *blade of disaster
+    *summon monster ix
+    *gate
+    *energy drain
+    *wail of the banshee
+    *power word kill
+    *enfeeblement
+    *weird
+    *shadow shield
+    *prismatic sphere
+    *implode
+    *timestop
+    *greater spell mantle
+    *mass enhance
+    *polymorph
+    * bards
+    * bardic knowledge
+    * compose
+    * perform
+  -smite evil now works as it should (Nashak)
+  -changes to memorize system to adapt bard
+  -added bard menus to study.c
+  -added bard class
+  -properly flagged mobiles charmees will fade after pc death/quit
+  -selected a list of spells for bards, more coming soon
+  -added compose, bardic knowledge, perform to bards
+  [Above is Week Ending 02/22/2013]
+
+  -new wizard/sorcerer spells
+    Spell Circle Level 8
+    *chain lightning
+    *clenched fist
+    *incendiary cloud
+    *summon creature viii 
+    *horrid wilting  
+    *greater animation
+    *irresistible dance
+    *mass domination
+    *scint pattern
+    *refuge
+    *banish
+    *sun burst
+    *spell turning
+    *mind blank
+    *iron skin
+    *portal
+  [Above is Week Ending 02/15/2013]
+
+  -discovered small bug with memorize in calculating slots
+  -added [stum!] for stumbles to line it up with other rolls
+  -added [crit!] for criticals to ilne it up with other rolls
+  -added [down!] for auto-hit incapacitated, to line it up with other rolls
+  -added some more protection to prompt length (because of added strcats)
+  -decreased max_prompt_size from 512->400
+  -prompts were displaying exits even if you couldn't see them (thanks ambanya)
+  -added another builder-resource link for trigedit to the 'link' section of the website
+  -study command now supports rangers, wizards
+  -added menu for selecting 'favored enemies' for rangers
+  -updated load_prayX() in players.c so paladins/rangers and in the future bards will save spell mem list at quit
+  -added menu for selecting 'animal companion' for rangers
+  -added a small list of animal companions to choose from
+  -uncommented code that was preventing clearing of events upon death of PCs (thanks Ripley)
+  -added 'call' command and framework for special companions 
+ -new skills
+    *animal companion
+    *paladin mount
+    *dismiss (updated)
+    *call familiar
+  -new helpfiles
+    *animal companion
+    *paladin mount
+    *dismiss (updated)
+    *favored enemy
+    *call familiar
+    *teleport (actually remake of old spell)
+    *holy sword (paladin only, 4th circle)
+    *detect poison
+    *missile storm
+    *grasping hand
+    *summon creature vii
+    *power word blind
+    *waves of exhaustion
+    *mass hold person
+    *mass fly
+    *displacement
+    *prismatic spray
+    *power word stun
+    *protection from spells
+    *thunderclap
+    *spell mantle
+    *mass wisdom
+    *mass charisma
+    *mass cunning
+  -added new study menu's:
+    *wizards (for familiars)
+    *sorcerer (for familiars)
+    *ranger (for favored enemy and animal companion)
+  -added new spells
+    *teleport (actually remake of old spell)
+    *holy sword (paladin only, 4th circle)
+    *missile storm
+    *grasping hand
+    *summon creature vii
+    *power word blind
+    *waves of exhaustion
+    *mass hold person
+    *mass fly
+    *displacement
+    *prismatic spray
+    *power word stun
+    *protection from spells
+    *thunderclap
+    *spell mantle
+    *mass wisdom
+    *mass charisma
+    *mass cunning
+  -changed paladin's 'petition' command to 'chant'
+  -added ripley's change_event_duration() function
+  -dismiss with no argument will clear charmies not in room, with argument for in-room targets
+  -you will reduce your cooldown to 90 seconds or less if you dismiss your in-room companion
+  -you can now call mount (companion) if its not in same room as you for free teleportation
+  -added utility function to spells.c/spells.h:  valid_mortal_tele_dest(char_data, room rnum)
+    *replaced teleport checks with this function
+    *replaced do_enter checks (portals) with this function
+  -you can't teleport to nosummon flagged mobs
+  -created template for elementals, vnums 51, 52, 53, 54
+  -gave elemental race, that has subraces different elemental reistance/vulnerability
+    *water:  weak electric, immune water
+    *air:    immune air
+    *fire:   weak ice, immune fire
+    *earth:  immune earth, resist acid
+  - made seperate macros for identify race of mobiles and players, will return undefined if mess up
+    *default GET_RACE() is for PC's
+    *new GET_NPC_RACE() is for NPC's
+  -added a few more shape-change descriptions curtesy of Ripley
+  -added to_char and to_room for mag_group
+  -added some cheesy messages for mag_groups for starters
+  -spell concentration check gets +50% chance bonus if not in combat
+  -rangers were not being included in BAB calculations, fixed
+  -added new char-var field:  has_class(class-name), see:  HELP HAS_CLASS
+  -added holy sword object (thanks ambanya) and set it to 1) dispel evil, 2) dispel magic
+  [Above is Week Ending 02/07/2013]
+
+  -changed all references in code of mage/magic-user to wizard
+  -changed all references in code of thief to rogue
+  -added some utility functions for checking alignment in utils.c/act.other.c for new system
+  -added alignment restrictions to current classes
+  -added new constants menu/structs.h reference to alignment by new types
+  -added set_align function for conversion between systems (new and stock align code)
+  -added convert_align function for converting old->new align system
+  -add alignment selection to char creation
+  -added alignment restrictions to char creation
+  -added alignment restrictions to respec/gain commands
+  -modified 'group list' command
+  -added some slight restrictions in staff-kill command to prevent harassment of those who
+don't want to deal with vaprak (tog your nohas on to avoid being insta-killed by the 'kill'
+command)
+  -the 'gain' command can be used while resting now (ambanya request)
+  -sorted some of the forum content (ideas)
+  -money can now be taken even with full inventory
+  -added can_hear_sneaking() function to utils.c as part of sneak-system upgrade
+  -fixed crash bug in gain_condition function (possible to send NULL ch)
+  -fixed crash bug in houses (thanks Vatiken)
+  -added 'stealthy' skill and gave it to rogues level 2+ for free (in place of the innate +4 bonus)
+  -divided sneak-project into 2 major projects and 3 minor within each of those for 6 total jobs
+    *leaving room = DONE
+      +riding = DONE
+      +being ridden = DONE
+      +on foot = DONE
+    *entering room = DONE
+      +riding = DONE
+      +being ridden = DONE
+      +on foot = DONE
+    *just need to playtest it to look for any flaws!
+  -added a mount check in the game loop to dismount those who have somehow seperated from their mount
+  -added some messages if 1) mount moves you, or 2) if you are being moved by a rider
+  -added a slight fix to multi-class memorization
+  -added the 'autodiagnose' to prompts (will eventually make toggable)
+  -added some experimental color to successful melee attacks to differentiate attackers/victims/observers
+  -now parsing complete prompt with color for ease of adjusting its colors
+  -added another parameter to save_char() for special saves cases
+    **this was not needed in the end
+  -changed the roll display to be simpler as ambanya requested (thanks ripley for formatting)
+  -Formatted damage to take a reserved amount of space for uniformity (ambanya idea)
+  -Criticals now match length of Rolls for uniformity
+  -Made some more aesthetic adjustments to new auto-diagnose
+  -Switched stock DIKU condition messages to ambanya's suggestion from forum
+    *note only on auto-diagnose on prompt, nowhere else in the code
+  -Swapped Vatiken's fix for old whirlwind bug, back to my fix (helped save events)
+  -added framework for ranger casting:  adjure/unadjure
+  -added bare-bones ranger class to the game
+  -added 'listen-mode' for new sneak system
+  - EVENTS NOW SAVE!!!!!!!!!!!!!!!!!!
+  -added some more damage messages to dam_messages
+  -Welcome New Class:  RANGER!!
+  -New SKILLS:
+    *dual weapons
+    *natures step
+  -New HELP files:
+    *ranger
+    *natures step
+    *dual weapons
+  [Above is Week Ending 02/02/2013]
+
+  -did even more tweaks with possible memory issues, having record uptimes since initial issues
+  -cleared a couple of small color bleeds
+  -transferred ideas to web forum for discussion, resolved a few critical ones
+  -cleaned typo and bug queue
+  -you now see when someone finishes posting a idea/bug/typo (thanks ambanya)
+  -also added some other OLC logs that were missing
+  -clan code has been split into two files and reformatted/reorganized
+  -added perform_shapechange for sharing mechanic between spell and druid skill
+  -nofight mobs don't show up as fighting when you look at the room (orme request)
+  -nofight mobs shouldn't hit under any circumstance now (orme request)
+  -added a char struct in race.c for cool polymorph messages (ripley idea)
+    *added dragon shapechange message (thanks Ripley)
+  -added new skills:
+    *use magic
+    *evasion
+    *improved evasion
+    *crippling strike
+    *slippery mind
+    *defensive roll
+    *recharge
+    *divine grace
+    *divine health
+    *courage
+    *smite
+    *purify
+    *lay on hands
+  -added new wizard/sorc spells:
+    *clone
+    *locate object        
+    *waterwalk           
+    *freezing sphere    
+    *acid fog           
+    *summon creature vi   
+    *transformation      
+    *eyebite             
+    *mass haste          
+    *greater heroism      
+    *anti magic field    
+    *greater mirror image 
+    *true seeing         
+    *globe of invuln     
+    *greater dispelling   
+  -added new helpfiles:
+    *use magic
+    *evasion
+    *improved evasion
+    *crippling strike
+    *slippery mind
+    *defensive roll
+    *prerequisite
+    *trial-room
+    *report-example
+    *advertising
+    *divine grace
+    *divine health
+    *courage
+    *smite
+    *purify
+    *lay on hands
+    *clone
+    *locate object        
+    *waterwalk           
+    *freezing sphere    
+    *acid fog           
+    *summon creature vi   
+    *transformation      
+    *eyebite             
+    *mass haste          
+    *greater heroism      
+    *anti magic field    
+    *greater mirror image 
+    *true seeing         
+    *globe of invuln     
+    *greater dispelling   
+  -modified rooms/help files related to tutorial zone
+  -added ambanya's building-rules to help files
+  -added ambanya's building-rules and stylistics help files to tutorial
+  -added some builder rerefence links to the 'link' page on the website
+  -changed 'sorc' command to 'meditate'
+  -new class:  PALADIN!
+  -added some minor new mem mechanics for paladins
+  -added new commands for paladins memming:  petition/omit
+  -added new affect:  disease
+    *initial temporary disease mechanic:  you can't go above 60% health
+  -modulized perform_affects so the 'stat' and 'affect' commands can share it
+  -turned report into greport (group only) and added new report command for sharing status to room
+  -fixed color in room names in prompt (thanks Ripley)
+  -made exits show up last in prompt (if you have them on)
+  -your hit points on your prompt will now change colors based on health percent
+  -added a conversion system for alignment, so now it resembles DnD
+  -added alignment changes to medit as requested by ambanya
+  -changed mlist as requested by ambanya
+  -for rooms requiring climbing, flight qualifies you
+  -fixed mag_summon messages, they were off by an index
+  -added summong messages that the caster can see too
+  -made sure a respec character un-toggles any staff flags
+  -made sure immort_vis got rid of greater invis
+  -changed MAGIC-USER/MAGE into WIZARD in help files (thanks ambanya)
+  -changed THIEF into ROGUE in help files (thanks ambanya)
+  -mob no-fight flag wasn't called fightmtrigger(), fixed that (thanks orme)
+  -added restrictions to portal destinations:
+    *private rooms
+    *death rooms
+    *godroom
+    *zone - closed
+    *zone - noastral
+  [Above is Week Ending 01/25/2013]
+
+  SPLIT WORKLIST, old worklist (news and changelog) is archived now
+  bug in group system fixed (thanks Vatiken)
+  added sorcedit.c for spells known for sorcerers
+  added a strip_colors() function to modify.c
+  added parse_tab() to comm.c make_prompt until i fix it right
+  changed lots of functions in memorize.c to accomodate sorcerer-type memorization system
+  undid bakarus changes to do_affects, you can view a victims affects with 'stat aff' command
+  made sure resistances were checking that proper race of ch, and not mistaking it for pc
+  had some crash issues, added some buffer-limit-checks to the prompt code to try and prevent it
+  added some more inits to init_char function in db.c
+  updated some missing constants in constants.c
+  added a few more utility macros to util.h
+  spent a lot of time trying to find memory leaks and other issues
+  added a new function perform_help which is callable by a non-char
+  added class help files to char creation process
+  added a few more NUM_x and MAX_x in structs.h (mostly unused so far)
+  hand-patched kavir's protocol code version 6 -> 8
+  added some more colors for AT-SIGN support
+  updated help file for ansi/color
+  added 'sorc' command for sorcerer spell interface
+  we now have linked help assistance if you get the keyword wrong
+  got rid of the 'regen' event
+  replaced regen event with with regen_update in limits.c
+  welcome the newest class to the game!!  SORCERER!!
+  changed 'sorcedit' command to 'study'
+  added a check in lists.c as recommended by Ripley, thanks!
+  added portal object patch, thanks Jamdog
+  added 'decay' flag, exclusive for portals to add a timer
+  added some more (free) mud advertisements, check out our links page
+  added new spell based on new portal mechanic:  portal, 8th circle mage/sorc spell
+  [Above is Week Ending 01/18/2013]
+
+  HAND-PATCHED TBA3.63 Revision 312 -=-> Revision 354
+  http://tbamud.com/websvn/filedetails.php?repname=tbaMUD&path=%2Fchangelog
+  new mob-flag "classless" in case you want the mob not to perform class-related skills
+  fixed stunning fist bug in peace rooms (thanks miran)
+  Finished porting over msgedit, seems to test fine
+  added help MSGEDIT
+  increased default tick damage for poison to 1d4
+  added dire spider mob for summon creature iv (thanks Orme)
+  modified animate dead mob:  zombie (vnum 11)
+  Tweaked all animate dead mobiles (11, 35, 36, 37)
+  Finished Spell(s) 4th circle mage (sorry about redundancy):
+    fire shield
+    cold shield
+    wizard eye
+    stone skin
+    remove curse
+    infravision
+    ice storm
+    curse
+    poison
+    animate dead
+    greater invis
+    rainbow pattern
+    summon creature iv
+    minor globe
+    billowing cloud
+    locate creature
+    shrink person
+    enlarge person
+  Finished Spell(s) 5th circle mage:
+    acid sheath
+    interposing hand
+    wall of force
+    ball of lightning
+    cloudkill
+    summon creature v
+    waves of fatigue
+    symbol of pain
+    dominate person
+    feeblemind
+    nightmare
+    mind fog
+    faithful hound
+    dismissal
+    cone of cold
+    telekinesis
+    firebrand
+  Added help files:
+    MSGEDIT
+    FIRE-SHIELD
+    COLD-SHIELD
+    WIZARD-EYE
+    STONE-SKIN
+    REMOVE-CURSE
+    INFRAVISION
+    ICE-STORM
+    CURSE
+    POISON
+    ANIMATE-DEAD
+    GREATER-INVISIBILITY
+    RAINBOW-PATTERN
+    SUMMON-CREATURE-IV
+    MINOR-GLOBE
+    BILLOWING-CLOUD
+    acid sheath
+    interposing hand
+    wall of force
+    ball of lightning
+    cloudkill
+    summon creature v
+    waves of fatigue
+    symbol of pain
+    dominate person
+    feeblemind
+    nightmare
+    mind fog
+    faithful hound
+    dismissal
+    cone of cold
+    telekinesis
+    firebrand
+  rewrote the code for list_spells to include paging
+  the "spells" command with no argument defaults to a char's current class (per ambanya request)
+  the "spelllist" command with no argument defaults to a char's current class (per ambanya request)
+  reformatted who list to add an extra space for elves
+  object 3098, room 1204 bulletin board officially designated as 'help' board
+  IS_RED_DRAGON converted to IS_DRAGON
+  IS_BADGER converted to IS_ANIMAL
+  added IS_UNDEAD macro for "halt undead" spell
+  added the mechanic for billowing cloud in comm.c
+  added room affections to "look" command, its next to the room title ()
+  found/fixed a small bug if you were too high level to be affected with stinking cloud, it would send you spam
+  disabled 'acid splash'
+  disabled 'ray of frost'
+  added 'does-not-fight' flag for mobiles, mobile won't do melee attacks
+  added mechanic for cloudkill spell
+  added mechanic for magical walls (blocking exit)
+  added "Fatigued" effect:  -2 hit/dam/armor-class, no movement regen
+  Added "regenning" effect:  double regeneration of hps/moves/mana
+  Added "regenning" room flag:  doubles regen in room
+  gnomes now get +2 save bonus versus illusion damage saves (in addition to effects)
+  added mechanics for faithful hound
+  added dismissal mechanic
+  [Above is Week Ending 01/11/2013]
+
+  updated some help files relfecting changes to trigs/scripting:
+    help saving
+    help self
+  stunning fist will now interrupt casting (and STUN affects)
+  display/prompt commands:  when you select "all" or "none" it will automatically disable "auto" mode if its on
+  fixed some colors in a prefedit menu
+  added some more checks in combat to stop fighting where its appropriate
+  *added default DnD race-types:
+    HUMANOID
+    UNDEAD
+    ANIMAL
+    DRAGON
+    GIANT
+    ABERRATION
+    CONSTRUCT
+    ELEMENTAL
+    FEY
+    MAG_BEAST	 // magical beast
+    MONSTER_HMN	 // monsterous humanoid
+    OOZE
+    OUTSIDER
+    PLANT
+    VERMIN
+    (behaviour NOT coded yet)
+  got rid of annoying NPC race messages
+  added class-array to whois command
+  added racial-morph-check to whois command
+  if you have new mail, it'll show (mail) on your prompt
+  added 3 sub-race slots in medit
+  added sub-races
+    Air
+    Angel
+    Aquatic
+    Archon
+    Augmented
+    Chaotic
+    Cold
+    Earth
+    Evil
+    Extraplanar
+    Fire
+    Goblinoid
+    Good
+    Incorporeal
+    Lawful
+    Native
+    Reptilian
+    Shapechanger
+    Swarm
+    Water
+    (behaviour NOT coded yet)
+  Well sick again, brain is too fried to code so well, so added luminari listings:
+    mudstats.com
+    topmudsites.com
+    mudconnector.com
+    mudbytes.net
+    mudverse.com
+    *added these links to our website if anyone wants to view or vote:
+    http://luminarimud.com/links/
+  According to Vatiken's Recommendations and our code, marked "Internal" zones <*>
+    0
+    1
+    2
+    3
+    8
+    12
+    13
+    14
+    30
+    31
+    32
+  Added notification in zlist of this new information, and help file:  RESERVED
+  [Above is Week Ending 01/04/2013]
+
+  new updated helpfiles content taken/inspired from neverwinter nights manual:
+    human
+    dwarf
+    elf
+    gnome
+    half-elf
+    half-orc
+    halfling
+    warrior
+    magic user
+    cleric
+    thief
+    monk
+    berserker
+  updated help file influenced by toril:
+    troll
+  added a little info and updated some of the help files on the epic races
+  trolls are classified now as advanced races and require 2x exp
+  trolls are now vulnerable to acid, but resistant to poison and disease
+  fixed duplicate info in 'innates' command with trolls
+  half elf gained 'half-blood' innate
+  halfling gained 'shadow hopper' innate
+  halfling gained 'lucky' innate
+  gnome gained 'illusion affinity' innate
+  gnome gained 'tinker focus' innate
+  fixed typo with poison
+  fixed conflict with poison and trelux leap
+  fixed typo in leap
+  made it so trelux attack with both pincers now (they suffer dual wield penalties)
+  made it so you can double backstab with pincers now
+  added a 'dismiss' command that gets rid of all followers not in the same room as you
+  see HELP DISMISS
+  added skill-improvement system framework
+  you can now, through usage, increase skills from learned to mastered (75 -> 99)
+  if fighting in room, should show "... fighting X."  a change in code by me got rid of this
+  applied different check in act.informative to address "... fighting X."
+  transferred all the relevant old forum content to the new one
+  restored zone 248 due to error issues
+  fixed peace command when dealing with npc casters
+  updated switch opponents to deal with new position code, fixing a bug in the process
+  added some help files:
+    armor apply
+    land
+    riding
+    taming
+    save-death
+    attributes
+    donating/donation
+    ooc
+    ic
+    newbie
+    feats
+    casting-class
+    sanctus/midgaard/midgen
+    crafting
+    augment
+    convert
+    restring
+    supplyorder
+    resize
+    craftcheck
+    create
+    crafting-kit
+    *and many others i simply don't remember now
+  added new zone:  QUAGMIRE, thanks to Vaprak
+  QUAGMIRE is now a valid teleport target
+  help zones now shows QUAGMIRE
+  added carrier return to do_scan as per ambanya request
+  SENSE_LIFE now only allows you to sense hidden things, not fully see them
+    (list_char_to_char)
+  rewrote the utility function in utils.h to handle DnD type hide checks
+  hide system hasa been redone, its now a spot check versus hide
+  added a 'spot-mode' to actively attempt to find hidden mobs/players
+  backstab gets a small bonus if hidden/sneaking when attempted
+  allowing a small list of commands performable while hidden:
+    *it also requires you are sneaking before you attempt to hide
+    look
+    (move any direction)
+    get/take
+    gtell/gsay (for scouting)
+    consider
+    backstab
+    group
+    hit/kill
+    trip
+    sit
+    stand
+    scan
+  moved hide/invis appear() in damage() down towards bottom of function
+    *keep an eye on this for ok behaviour
+  POS_FIGHTING became deprecated with the new position system
+      so replaced POS_FIGHTING with FIGHTING() macro
+  spellbook framework begun, taking it from CWG (see CREDITS)
+  [Above is Week Ending 12/28/2012]
+
+** NOTE:  Older updates have been archived to the doc/ folder of the MUD

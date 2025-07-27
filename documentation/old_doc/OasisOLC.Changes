@@ -1,0 +1,65 @@
+        --==** OasisOLC Version 2.0.5 For CircleMUD Version 3.1 **==-
+
+* Maintenance Release 2.0.5:
+  Upped version number to 2.0.5
+  Now can_edit_zone() works as advertised--reversed TRUE/FALSE
+  Rlist no longer displays exits to rooms that don't exist
+  Rlist shows exits even if low/high arguments aren't provided
+  Merged in some can_edit_zone() checks from DG Scripts
+  Combined ACMD(do_oasis_[morsz]list) into ACMD(do_oasis_list)
+  Made unaffect work when an object has been edited then removed
+  Added a links command for displaying exits from a zone
+  Added checks for CONFIG_AUTO_SAVE in [morsz]edit_parse()
+  Turn on smash_tilde() by default
+  Added smash_tilde() calls in MEDIT_(ALIAS|S_DESC|L_DESC) cases
+  REMOVE_BIT AFF_(CHARM|POISON|GROUP|SLEEP) in MEDIT_AFF_FLAGS case
+  Added an abort option to oedit
+  Fixed bounds checking in the OEDIT_TYPE case
+  Limit oedit weapon modifiers to +/-50 and dice to 50
+  Check more out of range oedit values for scrolls and potions
+  Don't allow assigning shop_keeper specproc in sedit_parse()
+  Call zedit_save_to_disk() from zedit_new_zone()
+  Various int to rnum fixes throughout gen(mob|obj|wld).c
+  Cedit no longer accumulates MENU WELC_MESSG START_MESSG newlines
+* Maintenance Release 2.0.4:
+  Upped version number to 2.0.4
+  Added empty builder field to lib/world/zon/*.zon
+  Moved Oasis docfiles into doc/
+  Fixed missing/skewed menu items in cedit
+  Text editor cedit items now clean up properly on exit
+  Repaired cosmetic bug in munged circlemud_version string
+  Kludged around a chicken and egg problem in load_config()
+  Repaired a bunch of potential format string exploits
+  Added missing can_edit check to zedit
+  Fixed free_strings() crash for rooms with multiple ex_description
+* Alterations by Welcor:
+  Upped version number to 2.0.3 (I think the new additions warrant it)
+  oasis-ified tedit (a bit) and made d->olc a struct oasis_olc_data *
+    instead of void *
+  All olc files: Dependency on global buffers removed.
+  All olc files: ->in_room -> IN_ROOM() change.
+  All files (olc files + comm.c): update to circle 3.1
+  All olc files: removed some buffers, changed to write_to_output and
+    send_to_char
+  db.c, db.h: Changed config_info to a static variable (to save some
+    malloc/free'ing)
+  structs.h: Embedded substructs in config_data struct instead of using
+    pointers (same reason)
+  utils.h: Added macros to configure options.
+  All olc files: Removed some outdated comments.
+  oasis_copy.c: Fixed serious buffer size error in do_dig and cleaned the
+    code up.
+  All olc files: Added support for unsigned IDXTYPE by removing checks for
+    <0 and ==-1
+  comm.c: Added support for auto prompt. (hey, the bit was there...)
+* BugFix zedit.
+    Modified the message to the user from "Zone create successfully\r\n" to
+    "Zone created successfully.\r\n".
+* BugFix (Not really) save
+    Added a check to make sure the zone is in the save_list before calling
+    remove_from_save_list.  This was a problem because everytime a builder
+    saved his/her zone, but it wasn't in the save list, an error was sent
+    to the log file, erraneous.
+* RLIST command.  Lists all rooms in a given zone.
+* (D) command in redit.  Allows the builder to delete the room from memory.
+* Added a builders list for zones.

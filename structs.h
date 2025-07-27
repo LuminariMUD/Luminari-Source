@@ -1354,9 +1354,11 @@
 #define PRF_SCORE_COMPACT 78          /**< Use compact score layout */
 #define PRF_SCORE_WIDE 79             /**< Use wide score layout (120+ chars) */
 #define PRF_SCORE_NOCOLOR 80          /**< Disable colors in score display */
+#define PRF_SCORE_BORDERS 81          /**< Display class-themed borders in score */
+#define PRF_SCORE_RACE_SYMBOLS 82     /**< Display race symbols in score */
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 81
+#define NUM_PRF_FLAGS 83
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */

@@ -1,0 +1,6 @@
+- Add Player Configuration (pedit.c)
+/ Finish Game Configuration (cedit.c)
+- Add Buildwalk
+/ Finish documentation (Important!)
+- Add Espec support.
+- make color scheme configureable

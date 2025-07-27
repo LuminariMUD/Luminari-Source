@@ -1,0 +1,100 @@
+Assemblies.README
+
+This project was initially tossed up as a way to give to players the
+appearance that they were assembling items to create a new item.
+After many tries I (Del) was able to get a working model of the code
+but it lacked flexibility and any ability to add, delete, or modify
+any assembly online.
+
+After contacting Geoff Davis (azrael@laker.net) he took the code and
+completely rewrote it, giving it the flexibility to handle additional
+commands, options, etc. Also, routines where provided to create, edit,
+and delete creatable items online. This did not include an interface
+with OasisOLC, so this I created, fitting into Oasis 1.6. After George
+put out Oasis 2.0 and BPL17 came out, I updated it for those as well.
+To modify for earlier versions, put oasis.x code in olc.x files and
+there was one change I can not remember exactly. Email me if you have
+any problems compiling and it might trigger my memory.
+
+A non-loading item is recommended for use as the "made" item. Set aside
+a zone that you might want to use for quest items, assembled items,
+rooms, etc.
+
+*Geoff comments: This is the recommended approach, but one could just as
+ easily use any item, regardless of it's usage in the game. One should
+ be careful, though, not to use items which are limited in number.
+
+The player is required to have the items in either their inventory or in
+the room, depending on the item to be assembled and how it has been
+described to the assemblies system. Each component item may be required
+to be in one or the other place, and may be configured to be extracted
+from the game when the item is assembled, or left for future uses. This
+enables players to use what appear to be tools to create the new item.
+
+Each assembled item can only be put together using the command you
+specify. It would be dumb to fletch a cake, or bake a sword. So, for the
+sake of simplicity, only one command may be used per assembled item. If
+your game requires that multiple commands to be used, this addition should
+be quite simple, and require little or no change to the existing
+assemblies file.
+
+The basic commands for players are assemble, bake, brew, craft, fletch,
+knit, make, mix, thatch, and weave. These are performed thusly:
+
+        <command> <name of new item>
+
+For staff players with the appropriate permission level, creation of new
+items can be performed with the following command:
+
+        assedit new <vnum of existing object>
+
+It is important to note that at the time this command is executed, the
+creatable object must already exist in the database. If the object does
+not, but you manage to get it into the assemblies editor, it will be
+rejected the next time the game is restarted, and will not load as a
+creatable object.
+
+On the reverse side, to delete an item:
+
+        assedit delete <vnum of existing assembly item>
+
+Once created you use the command:
+
+        assedit <vnum of existing assembly item>
+
+This pulls up the menu (based from OasisOLC) and gives you
+the short name of the assembled item. From there, you add, remove, and
+change component parts, set the assembly type, etc.
+
+As mentioned before, the items that are required to be present in order
+to create an item. Items can be removed from the game, or not when the
+player assembles the item. You wouldn't want to remove a stove if you 
+bake a cake, only the ingredients should be removed. The items can also
+be required to be in inventory or in the room that the player is in when
+the assembled item command is used.
+
+Entering "show assemblies" at the MUD prompt will list all the items
+that are capable of being made, command used, and specifications for
+component objects, including whether or not to extract the item and
+where the item must be in order to satisfy the required components of
+the creatable item.
+
+Don't forget to add Help entries for each type of assembly command.
+
+Please credit Geoff Davis (azrael@laker.net) for the assemblies
+code, and the remaining OLC portions to Del Minturn
+(caminturn@earthlink.net). Also, please do drop a note to both of us
+should you decide to use this patch in your game. We would like to
+hear what people think about our endeavor.
+
+
+Example of assembly file (lib\etc\assemblies):
+Vnum                #0 bake
+Component           #1 0 1
+Vnum                #99 weave
+Component           #2 0 1
+Component           #3001 0 1
+Vnum                #3008 assemble
+Component           #3037 1 0
+Component           #3116 1 0
+Component           #5439 1 0

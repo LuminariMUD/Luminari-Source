@@ -1,0 +1,202 @@
+
+From greerga@bacon.van.ml.org Mon Nov 10 16:52:35 1997
+Date: Mon, 10 Nov 1997 14:42:20 -0500 (EST)
+From: George <greerga@bacon.van.ml.org>
+To: greerga@circlemud.org
+Subject: [CIRCLE] [CODE] olc mod espec editing (fwd)
+
+---------- Forwarded message ----------
+Date: Mon, 10 Nov 1997 09:47:47 +0100
+From: Andy Hubbard <hub@LEICESTER.AC.UK>
+Reply-To: Circle Discussion List <CIRCLE@post.queensu.ca>
+To: CIRCLE@post.queensu.ca
+Subject: [CIRCLE] [CODE] olc mod espec editing
+
+Hi all.
+ I haven't seen a snippet anywhere so as to make olc handle the editing
+of mobile e-specs.  If this is old ground, then ignore!
+ First off, I use olc ver1.5 (sorta!) and the e-epecs are what you get
+with stock.  Note that I also use Georges buffer patch, so some of the
+release_buffer calls may be irrelevant to you, just change to get back
+to stock buffers.  This is not a patch file!
+
+in olc.h.
+in Submodes of MEDIT connectedness.
+add :
+
+#define MEDIT_ESPECS         33  /* or whatever number your at */
+#define MEDIT_STR            34
+#define MEDIT_STRADD         35
+#define MEDIT_DEX            36
+#define MEDIT_INT            37
+#define MEDIT_WIS            38
+#define MEDIT_CON            39
+#define MEDIT_CHA            40
+
+in medit.c
+in void medit_disp_menu
+change :
+
+  sprintbit(AFF_FLAGS(mob), affected_bits, buf2);
+  if (GET_STR(mob) != 11)
+  sprintf(buf3, "%sStr: %d, ", buf3, GET_STR(mob));
+  if (GET_ADD(mob) != 0)
+  sprintf(buf3, "%sStrAdd: %d, ", buf3, GET_ADD(mob));
+  if (GET_DEX(mob) != 11)
+  sprintf(buf3, "%sDex: %d, ", buf3, GET_DEX(mob));
+  if (GET_INT(mob) != 11)
+  sprintf(buf3, "%sInt: %d, ", buf3, GET_INT(mob));
+  if (GET_WIS(mob) != 11)
+  sprintf(buf3, "%sWis: %d, ", buf3, GET_WIS(mob));
+  if (GET_CON(mob) !=11)
+  sprintf(buf3, "%sCon: %d, ", buf3, GET_CON(mob));
+  if (GET_CHA(mob) != 11)
+  sprintf(buf3, "%sCha: %d, ", buf3, GET_CHA(mob));
+/*
+ * Add more e-specs here
+ */
+  sprintf(buf,
+   "%sI%s) Position  : %s%s\r\n"
+   "%sJ%s) Default   : %s%s\r\n"
+   "%sK%s) Attack    : %s%s\r\n"
+   "%sL%s) NPC Flags : %s%s\r\n"
+   "%sM%s) AFF Flags : %s%s\r\n"
+#if defined(OASIS_MPROG)
+   "%sP%s) Mob Progs : %s%s\r\n"
+#endif
+  "%sQ%s) E-Specs   : %s%s\r\n"
+   "%sR%s) Quit\r\n"
+   "Enter choice : ",
+   grn, nrm, yel, position_types[(int)GET_POS(mob)],
+   grn, nrm, yel, position_types[(int)GET_DEFAULT_POS(mob)],
+   grn, nrm, yel, attack_hit_text[GET_ATTACK(mob)].singular,
+   grn, nrm, cyn, buf1,
+   grn, nrm, cyn, buf2,
+#if defined(OASIS_MPROG)
+   grn, nrm, cyn, (OLC_MPROGL(d) ? "Set." : "Not Set."),
+#endif
+  grn, nrm, cyn, buf3,
+  grn, nrm
+  );
+  send_to_char(buf, d->character);
+
+in void medit_parse
+after case 'p' (mobprogs) add :
+
+    case 'q':
+    case 'Q':
+      OLC_MODE(d) = MEDIT_ESPECS;
+   medit_disp_especs(d);
+   release_buffer(buf);  /* George's buffer patch */
+      return;
+
+then further down
+after MEDIT_ALIGNMENT add
+
+ case MEDIT_ESPECS:
+    if ((i = atoi(arg)) == 0)
+      medit_disp_menu(d);
+    else if ((i = atoi(arg)) == 1) {
+   send_to_char("\r\nEnter new value : ", d->character);
+   OLC_MODE(d) = MEDIT_STR;
+   release_buffer(buf);
+   return;
+    } else if ((i = atoi(arg)) == 2) {
+   send_to_char("\r\nEnter new value : ", d->character);
+   OLC_MODE(d) = MEDIT_STRADD;
+   release_buffer(buf);
+   return;
+    } else if ((i = atoi(arg)) == 3) {
+   send_to_char("\r\nEnter new value : ", d->character);
+   OLC_MODE(d) = MEDIT_DEX;
+   release_buffer(buf);
+   return;
+    } else if ((i = atoi(arg)) == 4) {
+   send_to_char("\r\nEnter new value : ", d->character);
+   OLC_MODE(d) = MEDIT_INT;
+   release_buffer(buf);
+   return;
+    } else if ((i = atoi(arg)) == 5) {
+   send_to_char("\r\nEnter new value : ", d->character);
+   OLC_MODE(d) = MEDIT_WIS;
+   release_buffer(buf);
+   return;
+    } else if ((i = atoi(arg)) == 6) {
+   send_to_char("\r\nEnter new value : ", d->character);
+   OLC_MODE(d) = MEDIT_CON;
+   release_buffer(buf);
+   return;
+    } else if ((i = atoi(arg)) == 7) {
+   send_to_char("\r\nEnter new value : ", d->character);
+   OLC_MODE(d) = MEDIT_CHA;
+   release_buffer(buf);
+   return;
+    } else
+      medit_disp_menu(d);
+  release_buffer(buf);
+    return;
+/*
+ * Add more e-specs here
+ */
+
+ case MEDIT_STR:
+    GET_STR(OLC_MOB(d)) = MAX(1, MIN(25, atoi(arg)));
+    break;
+ case MEDIT_STRADD:
+    GET_ADD(OLC_MOB(d)) = MAX(1, MIN(25, atoi(arg)));
+    break;
+ case MEDIT_DEX:
+    GET_DEX(OLC_MOB(d)) = MAX(1, MIN(25, atoi(arg)));
+    break;
+ case MEDIT_INT:
+    GET_INT(OLC_MOB(d)) = MAX(1, MIN(25, atoi(arg)));
+    break;
+ case MEDIT_WIS:
+    GET_WIS(OLC_MOB(d)) = MAX(1, MIN(25, atoi(arg)));
+    break;
+ case MEDIT_CON:
+    GET_CON(OLC_MOB(d)) = MAX(1, MIN(25, atoi(arg)));
+    break;
+ case MEDIT_CHA:
+    GET_CHA(OLC_MOB(d)) = MAX(1, MIN(25, atoi(arg)));
+    break;
+/*
+ * Add more e-specs here
+ */
+
+and after Display affection flags menu add
+
+/*
+* Display e-specs menu.
+*/
+void medit_disp_especs(struct descriptor_data *d)
+{
+  char *buf = get_buffer(MAX_STRING_LENGTH); /*George's buffer patch*/
+
+ get_char_cols(d->character);
+#if defined(CLEAR_SCREEN)
+  send_to_char("=[H=[J", d->character);
+#endif0
+  sprintf(buf,  "1) Str\r\n"
+        "2) StrAdd\r\n"
+        "3) Dex\r\n"
+        "4) Int\r\n"
+        "5) Wis\r\n"
+        "6) Con\r\n"
+        "7) Cha\r\n"
+  "Enter number to edit [0 to exit]:  ");
+  send_to_char(buf, d->character);
+OLC_MODE(d) = MEDIT_ESPECS;
+release_buffer(buf); /* George's buffer patch */
+}
+
+and that should get you adding e-specs in using olc :)
+
+Andy
+'Dreamscapes'  winnt.cmht.le.ac.uk 4000
+
+
+     +------------------------------------------------------------+
+     | Ensure that you have read the CircleMUD Mailing List FAQ:  |
+     | http://democracy.queensu.ca/~fletcher/Circle/list-faq.html |
+     +------------------------------------------------------------+

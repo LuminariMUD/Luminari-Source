@@ -1,0 +1,14 @@
+This is an updated object stacking function for bpl 21/22.
+
+The original was done by Brian Willaims <bmw@efn.org>, I merely updated it
+slightly.  As is, you merely drop the function in act.informative.c
+replacing your old list_obj_to_char.
+
+Items will then appear as:
+( 2) a corroded pipe is lying here
+( 4) a piece of moldy cheese has been left on the ground here
+
+That is all there is to it!
+
+-Mathew Earle Reuther (aka Corwynn)
+

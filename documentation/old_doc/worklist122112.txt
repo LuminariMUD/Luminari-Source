@@ -1,0 +1,576 @@
+
+  New Epic Race:  Trelux (idea from Crez)
+    new mechanic:  natural weapons
+    fly ability
+    land (gets rid of fly)
+    trelux leap
+  wizard eye spell mechanics implemented
+  added some more dummy checks to perform_attacks
+  fixed some stock zone problems (thanks eleusis)
+  cleaned out the idea que
+  cleaned out the bug que
+  cleaned out the typo que
+  fixed some reported typos
+  the pc racial indicator has been moved to before the chars name
+  zone level recommendations will only be given to newbies (6th or lower)
+  display command is deprecated, so added that notice to prompt/display command
+  help display notes deprecation of the command
+  adding more info to scan by request (thanks ambanya)
+  got rid of some weather messages to stop annoying ambanya so much
+  did some clean up in skill_messages() function
+  moved todo list from on here to the forum
+  simplified stock title system:  no longer sex-dependent
+  Add new titles for:
+    Fighter
+    Berserker
+    Rogue
+    Monk
+    Cleric
+    Druid
+  added a facebook page:  https://www.facebook.com/LuminariMud
+  created framework for damage-shields (like fireshield)
+  about halfway done with 4th circle mage spells
+  removed empty zones:
+    10
+    24
+    29
+    58
+    59
+  [Above is Week Ending 12/21/2012]
+
+  added affects to mag_areas
+  added affects to mag_masses
+  added support to PULSE_LUMINARI for room affects
+  added room-casting support to PULSE_LUMINARI
+  2nd circle magic user spells helpfiles completed
+  coded protection from alignment
+  added a couple of missing helpfiles for 1st circle magic user spells
+  changed newbie equipment to match size of race
+  newbies now start with crafting kits
+  increased dam_message limit to 120
+  went through ALL the help entries and adjusted the minimum level to
+     appropriate levels
+  New mage SPELLS and Help-Files for:
+    phantom steed
+    summon creature 3
+    deathly heroism
+    hold person
+    invisibility sphere
+    clairvoyance
+    haste
+    dispel magic
+    circle against good
+    circle against evil
+    wisdom
+    cunning
+    charisma
+    water breathe
+    stinking cloud
+    halt undead
+    vampiric touch
+    deep slumber
+    daylight
+    non detection
+    slow
+  treat injury doesn't overheal anymore
+  some more mob tweaks to sanctus
+  the newbie guide in sanctus can now train new players
+  [Above is Week Ending 12/14/2012]
+
+  making sure all new characters are getting teleporters now
+  added an assortment of new helpfiles
+  Pathos is now working on helpfiles as well
+  increased max prompt length by 4x to prep for prompt changes
+  added 4 new prefedit values for prompt:  exp, exits, room, and memorization
+  added to display command ability to toggle the 4 new prompt toggles
+  some minor tweaks to the mount code and movement
+  mounts have to be at least one size class bigger than their rider
+  mounts can't be more than two size classes bigger than their rider
+  initializing autocraft data at character creation now
+  created all our base crafting material items
+  created a shop to sell base crafting material items
+  alchemal silver can't be bought, must be converted
+  cold iron can't be bought, must be converted
+  added messages to-room for healing spells
+  added a new section to sanctus for crafting (down from recall)
+  added a supplyorder office
+  trimmed a lot of fat from memorize.c
+  added a lot of expandability to memorize.c
+  fixed touch of idiocy spell
+  bakarus is doing cleanup on some non-theme material in sanctus
+  [Above is Week Ending 12/07/2012]
+
+  rearranged spells in all their locations in the code to be uniform
+  purged a buggy sanctus quest
+  fixed the 'speaker' in sanctus
+  bakarus changed xp loss for those under 15th level
+  fixed some poor color choices in OLC
+  spells, mage 2nd circle:
+    scorching ray (done)
+    continual flame (done)
+    acid arrow (almost done)
+    false life (done)
+    daze monster (done)
+    hideous laughter (done)
+    touch of idiocy
+    resist energy (done)
+    energy sphere (done)
+    strength (done)
+    grace (done)
+  shortened the message for looking in a direction that doesn't exist
+  scan also does 'look in direction' as well
+  added stun help file (for the affect 'stun')
+  we're on mudstats.com now
+    http://mudstats.com/World/LuminariMUD
+  we're ranked 172 of all MUDs last time i checked mudconnector.com
+    http://www.mudconnect.com/mud-bin/adv_search.cgi?Mode=MUD&mud=LuminariMUD
+  [Above is Week Ending 11/30/2012]
+
+  added berserker class (like barbarian)
+  made compact mode more compact with the prompt/combat (thanks Dyanangam)
+  bakarus added weapon types to identify/lore
+  added skills:
+    great fortitude
+    lightning reflexes
+    iron will
+    epic fortitude
+    epic reflexes
+    epic will
+    shield specialist (warrior only)
+    weapon specialist (warrior only)
+    luck of heroes
+  added autoscan toggle (thanks Nupe)
+  you can now 'exam' while restin (thanks Nupe)
+  added 'impress' social (thanks Kordon)
+  fixed a bug with a custom weapon (sorry Nupe)
+  fixed some false information in one of the newbie areas (thanks everyone)
+  Targets that are too big can't be tripped or bashed (thanks Kordon)
+  Targets that are too small can't be tripped or bashed (thanks Kordon)
+  flying targets can't be targetted by trip (thanks Kordon)
+  staff can now look <direction> and see the room in that direction (thanks Vaprak)
+  added monk titles, 1-30 (thanks Kordon)
+  added cleric titles, 20-30 (thanks Kordon)
+  added all current racial innates to the 'innates' command
+  added reference to innates by character race
+  'innate' command, added troll innates to list
+  added crystal dwarf epic race, only unlocked via request
+  added ability 'crystal fist' for crystal dwarves
+  added ability 'crystal body' for crystal dwarves
+  gave dwarves and elves infravision
+  gave halfling, gnome infra
+  gave half-orc ultravision
+  updated all the racial innates
+  trolls have ultravision for now (can see without any light)
+  elves have 'basic weapon proficiency' for free
+  elves have immunity to sleep now
+  add notification of 'identify' in shop list command
+  added framework to restrict epic races from multi-classing
+  crystal dwarves cannot multiclass
+  dwarves get +2 poison resistance saves (added to spell_poison calculations)
+  crystal dwarves get +2 poison resistance saves (added to spell_poison calculations)
+  dwarf-type races now get +4 resistance roll vs bash/trip (stability innate)
+  fixed bug where saves were calculated from the attacker instead of the victim
+  dwarf-types now have 'combat training vs. larger opponents', size bonus +1
+  halfling/gnomes have 'combat training vs' large opponents'
+  modified size damage/armor calculations
+  elves/half-elves have +2 resistance to echantments now
+  gnomes have +2 resistance to illusions now
+  elves get +2 to listen/spot checks
+  added spells:
+    scorching ray (need dam mess)
+    hideous laughter
+    daze monster
+    false life
+  added postmaster to newbie zone 'Newbie School'
+  updated a few help files (mostly spells)
+  [Above is Week Ending 11/16/2012]
+
+  fixed some newbie area typos
+  level notification wasn't showing to group_gain, fixed that
+  took out height, now just using char size in score sheet
+  epic spell penetrate was available to non casters, fixed it
+  fixed bug with xp that i created *hangs head in shame*
+  weapon spells bug fixed, added object call to call magic to identify that its a weapon spell
+  i put a semi-cap on xp gain based on level, needs testing
+  more adjustments to newbie area
+  adjusted 'kind soul'
+  changed xp tables to be more uniform
+  newbies get 100% xp bonus 1st 5 levels
+  fixed leak in colors with happy hour
+  fixed some typos in newbie areas
+  added stunning fist skill to monks (level 2) - might need some tweaking
+  moved pick locks/steal to abililties instead of skills
+  realized i messed up my mob intelligence casting framework with multiclassing and fixed it
+  ported Vaprak's area:  quagmire
+  Vaprak has been made Head Builder, Bakarus has been switched to Head Admin
+  [Above is Week Ending 11/09/2012]
+
+  Special thanks to Kordon and our other new players for idea/bug input
+  rewrote gain function
+  rewrote respec function
+  rewrote d20mud's crafting functions
+  did a variety of adjustments to midgaard for new players
+  made a qupdate script, for quick src updates  
+  reformatted the listing of spells with the 'spells' command
+  reformatted the listing of skills with the 'prac' command
+  the amount of followers you can get was equal to your charisma bonus, so
+   if you had no charisma bonus, any summoning spells you cast would turn on you.
+   changed the code so you could have at least one follower reglardess of charisma
+   but anything more will turn on you
+  fixed a small bug with double backstab
+  added a message to remind backstabbers you need a peircing weapon
+  do_clan command, added a message indicating that a staff member needs to set up new clans
+  added new 'stat' command:  stat aff <target mobile/player>
+    this will show affects/resisstances/cooldowns of target
+  updated the help files for stat
+  reformatted and added a little bit of color to 'boost' command
+  staff can now set 'boost' sessions
+  added a little more info to the memorization system
+  [Above is Week Ending 11/02/2012]  
+
+  Modified saving values for pfiles
+  more modifications to the website
+  added a simply forum to the website
+  configured protocol.c to transmit mssp data for any crawlers
+  registered luminariMUD at mudbytes
+  made a profile on mudconnector
+  *turned on protocol negotiation back on
+  Designed an icon for LuminariMUD
+  Designed a linux script to juggle all 3 port file sorting/updating/backups
+  [Above is Week Ending 10/26/2012]
+
+  More map tweaking
+  Threw up Gicker’s d20 code on port 4105
+  Added more room types:
+    -Desert
+    -Ocean
+    -Marsh
+    -High Mountain 
+  Also modified current sector types colors/symbols
+  [Above is Week Ending 10/19/2012]
+
+  Major backend upgrades to website.
+  Added two major feature packages to website.
+  [Above is Week Ending 10/12/2012]
+
+  Added new region:  South Midgen 
+  http://luminarimud.com/the-worldmap-of-luminari/region-south-midgen/
+  [Above is Week Ending 10/05/2012]
+
+  Added new region:  Midgen
+  http://luminarimud.com/the-worldmap-of-luminari/region-north-midgen/
+  [Above is Week Ending 09/29/2012]
+
+  The Development focus has switched to world development temporarily to establish a testing ground for mechanic changes.
+  Preliminary changes include:
+    -Changes in act.informative.c and asciimap.c to implement a ‘overworld’ or ‘worldmap’ interface for navigating the realm
+    -Added new sector type:  Zone Entry, for finding zones on the worldmap
+    -Added new sector type: Roads -North/South for easier/safer travel on worldmap
+    -Added new sector type: Roads – East/West
+    -Added new sector type: Roads – Intersection
+  Also a variety of bug fixes were applied this week to clan code
+  [Above is Week Ending 09/22/2012]
+
+  CLANS HAVE BEEN ADDED (Bakarus), thanks Jamdog for the code contribution
+  fixed a bug with saving descriptions in clan.c
+  fixed a bug with new staff-who list
+  when automap is togged, WORLDMAP now will not display room descrip
+  fixed a bug in db.c initializing quests properly for new chars
+  added a little more quest info to stat_char
+  [Above is Week Ending 14/09/2012]
+
+  added a bunch more help files
+    PROFICIENCY ARMOR-PROF
+    MOB-SIZE OBJECT-SIZE PLAYER-SIZE
+    SIZE-CLASS
+    TWOHANDED-WEAPONS TWO-HANDED-WEAPONS
+    AC AC-APPLY ARMOR-CLASS ARMOR-RATING ARMORCLASS
+    MOUNT
+    UNCOMMUNE
+    COMMUNE
+    TAME
+    BUCK
+    DISMOUNT
+  proficiency of items now saves
+  added proficiency checks to handler.c (invalid_prof())
+  added respective skills to proficiencies
+  added default race sizes
+  rewrote spec_procs:  list_spells, list_skills, list_abilities
+    no longer page-strings and buffers, all just send_to_char()
+  changed the look of list_spells
+  changed the look of list_skills
+  changed the look of list_abilities
+  changed the look of "practicing"
+  mount, riding, taming now accounted for compute_ability
+  in qedit, a new setup was defining the quest type as -1, then displaying types based on that value
+    fixed it now to check first to make sure its a valid array value before displaying
+    suprised this isn't an issue for other people
+  made lots of changes to presentation of:
+    script_stat
+    do_sstat_character
+    do_stat_character
+  added some missing info to do_stat_character
+  changed void sprintbitarray() to output a CR every 5 BITS
+  added mount target to stat_character
+  added ridden_by to stat_character
+  added cooldowns to stat_char
+  added damtype resist to stat_char
+  added energy absorption to stat_char
+  added concealment / DR to stat_char
+  added multiclass array to stat_char
+  [Above is Week Ending 07/09/2012]
+
+  fixed missing constants.c label
+  changed some more contants.c labels
+  added "Can Be Worn on" to identify/lore (Bakarus idea)
+  recharge added (code: David A. Carver <DCARVER[at]cougar.colstate.cc.oh.us>) (Bakarus idea)
+  uploaded, compiled and have running on port 4103 a copy of DOOM (CWG)
+  defined sizes based on DnD 3.5 (thanks CWG project)
+  added size to object_data and char_data
+  added macros:  GET_OBJ_SIZE(obj) and GET_SIZE(ch)
+  compute_armor_class now accepting the attacker for calculating size bonus/penalty
+  added medit/oedit size menu
+  made sure to add full credits to CWG to be extra strict about credits (see credits)
+  added CWG docs to our collection for licensing purposes, credits, etc
+  made sure sizes save to objects/mobs/chars and in the process discovered another memorize bug
+  !!!! **** ==== PWIPE ==== **** !!!!
+  Had to pwipe once again to fix my memorize bug, was initializing incorrectly in certain scenarios
+  size is now viewable in stat obj/char and score
+  size can now be set via 'set' command
+  new 'set' command options to set multiclass:
+    mage                God    PC    NUMBER  {magic user}
+    cleric              God    PC    NUMBER
+    rogue               God    PC    NUMBER  {thief}
+    warrior             God    PC    NUMBER
+    monk                God    PC    NUMBER
+    druid               God    PC    NUMBER
+  added quick help file 'mob-size'
+  when you look at a mob/pc it'll show its size
+  made MAX_BAB / MAX_AC defines, and threw them in structs.h
+  adjusted calculation for "hitroll" in do_score to account for staff-stats
+  added WEAR_WIELD_2H for two handed weapons, and made "hands_needed" function to deal with it
+  changed combat calculations and coded in 2h weapons, also added 50% strength bonus with 2h weapons
+  disabled armor factoring, now all AC-APPLY values, regardless of eq-position is a 1 for 1 value
+  added a new toggle in zone edit:  show weather; this will determine whether your zone sees the weather/time messages
+  remade db.c handling of reading the file to accomodate 11 zone values
+  made all other zone values have default weather of 1
+  there are no longer two types of zone-saves (4 or 10) now just just 11
+  added two more messages to give visual cues to time outdoors
+  added two more messages to give visual cues to weather outdoors
+  capped concealment:  50% MAX_CONCEAL
+  capped damage reduction:  20 MAX_DAM_REDUC
+  capped energy absorbption:  20 MAX_ENERGY_ABSORB
+  added a little more character to weather
+  added proficiencies (I have NOT added the code to save these yet):
+    "Simple Weapon Proficiency"
+    "Elf Weapon Proficiency"
+    "Druid Weapon Proficiency"
+    "Martial Weapon Proficiency"
+    "Exotic Weapon Proficiency"
+    "Light Armor Proficiency"
+    "Medium Armor Proficiency"
+    "Heavy Armor Proficiency"
+    "Shield Proficiency"
+    "Tower Shield Proficiency"
+  [Above is Week Ending 31/08/2012]
+
+  spell darkness, and room affection engine for darkness made via utils.c (YAY room affections!)
+  spaced utils.h a little different so its easier for me to see the utilities defined
+  setup framework for infravision/ultraivison differences in utils.h
+  added some detail-work to infravision
+  you can now attack in darkness with infravision (idea:  make x.shape targetable)
+  MOVED SERVERS!  we are now luminarimud.com 4100 / 4101
+  PolicyPort set to 4124
+  Made (setup) a new webpage, much nicer framework for expansion
+  HMUD is WORKING!
+  FMud is back online, and seems to be working with more browsers than just IE
+  Framework for weaponspells added (thanks Mike Stilson <stilson[at]earthlink.net>)
+  added the ability for weapons to cast spells on you
+  added PULSE_LUMINARI for various activities i want updated
+  added the ability for weapons to act even out of combat
+  moved regeneration into PULSE_LUMINARI
+  BAKARUS HAS JOINED THE STAFF!
+  added mud connection info to the website
+  added some more widgets to the website, and added footer info
+  added contact-us and sitemap pages to website
+  added AFF_GRAPPLED, help grappled
+  spell-class now passes with casting time
+  concentration check added to casting-time event
+  put another port for Bakarus 4102
+  posted two concept maps to website
+  worldmap concept finalized (Bakarus)
+  Started Mount port from LuminariOld->LuminariNew (Thanks Daniel Koepke: dkoepke<at>california.com)
+  made sure to check if mount is flying
+  made sure to not allow mounted peeps to enter a tunnel
+  added related abilities:
+    tame
+    mount
+    dismount
+  *NOTE* Maybe some conflict between mounts and furniture, have to test more (act.informative.c)
+  *NOTE* Need to test different sneak scenarios between mount/rider/umounted (act.movement.c)  
+  *NOTE* Need to check for flight, etc (act.other.c)
+  changed some more visual tags in act.other.c to lowercase instead of capital
+  New Mage Spells:
+    conjuration:  
+      summon monster ii*+
+      web*+
+    necromancy:
+      deafness*+ 
+  [Above is Week Ending 24/08/2012]
+
+  !PWIPE!
+  Added tons of helpfiles, everything I could think of new I added now has a helpfile
+  Found a sneaky bug in memorize
+  Did a GET_CLASS scan for multi-class code to check for missed adjustments, and made them
+  Added server-startup / shutdown scripts
+  Did a memorize.c revamp in prep for more caster classes
+  Found a nasty crash bug in houses, with Vatiken's helped it is now fixed
+  Replaced (only) in-game references to tbaMud with LuminariMUD
+  Added a total of 4 slots to PRAYing arrays, for expansion to cleric/druid/paladin/ranger casting
+  Modified save/load functions to handle the array in pfiles
+  Modified memorize.c to handle expansion of new classes
+  Made Druid class
+  Added framework for damtypes (like elemental damage)
+  changed all the defines of saving throws to new counterparts:  fort, reflex, save.. also added two fillers, poison and death
+  To fill the gap in espec loading, added old saving throws and translate them to new ones
+  Added some more info to do_score
+  Realigned spells in mem lists, added a little color
+  Spell affects are now measured in round increments instead of game hours (ticks)
+  Converted current spell affects to new system
+  Spell levels were level dependent, regardless of what levels you have multi-classed, now only "caster" levels will make your spells more powerful
+  Got rid of sort_spells in db.c (at least temporarily), not compatible with how i'm sorting spells
+  finished display for damtypes (affects)
+  started some changes in constants.c to move away from capital letters (thanks Bakarus)
+  got rid of NOBITS (now:  None)
+  added AFF_DEAF .. although it may be a little too harsh right now
+  added AFF_FEAR
+  added AFF_STUN - can attack, but can't enter commands (affets mobact too)
+  added AFF_PARALYZED  same as stun, but also can't attack
+  spell polymorph (mostly just framework, probably should share functions with shapechange)
+  changed spell color-spray
+  spell endure elements
+  spell expteditious retreat
+  spell grease
+  spell horizikauls boom
+  spell ice dagger
+  spell iron guts
+  spell mage armor
+  spell negative energy ray
+  spell ray of enfeeblement
+  spell scare
+  spell shelgarns blade
+  spell shield
+  spell summon creatre 1
+  spell true strike
+  charmee's will now autoassist (even if not groupped) and autorescue if they are a warrior > level 5
+  expanded player structs in plrtoascii, expanded max_skills to 600 (400 spells / 200 skills)
+  max_types increased to 800
+  renumbered all skills and everything after, renumbered lib->messages too
+  found out that expanding the struct in plrtoascii destroys mud, so undid it :P
+  consolidated the various caster arrays, freeing up space in pfiles
+  made a warding array to save stoneskin/mirror image and the sorts
+  made a spec_abil array to save x-per-day use skills
+  added framework for rage skill
+  went and adjusted all the save-types for all spells
+  added room-affections framework, thanks to: The Arrow <pt94jpi@student.hk-r.se>
+  [Above is Week Ending 17/08/2012]
+
+  With Vatiken's help, fixed minor bug where sometimes people would respawn exactly where they die (due to copyover).
+  Fixed big MEMORY bug, only last mobile who hit you was getting his memory cleared
+  Death is different, no longer sent to menu, no longer any PC corpses
+  Added NPC Classes:  Cleric / Magic-User, they only behave in combat so far
+  Shapechange framework added, see help file - available to everyone for now for testing purposes
+  Added NPC Races:  Red Dragon, innates added:  tailsweep, breathe, frightful
+  Fixed a bug I created with do_flee wimpy
+  Got rid of exclusive "god-only" messages
+  Violent AoE got a completely revamp due to charmie-need
+  Fixed parry: had a slight bug if someone started combat again you and you parried the first attack that would cause issues with HUNTING()
+  Added Damage Reduction and Concealment ratings to do_score
+  Fixed minor bug in medit.c, miscounted # of AFF_FLAGS
+  Added commands:  boost, gain and respec - see respective help files
+  Added MULTICLASSing !!  See help file
+  Switched cleric "memming" to "praying"
+  Hacked up memorization code to allow for multi-class memming/praying
+  Implemented Vatiken's new group-system, help GROUP for more info
+  Added framework for website:  luminari.genesismuds.com
+  Help file update
+  [Above is Week Ending 10/08/2012]
+
+  [Below is Changes TBA->Luminari Port]
+     *mobiles (general) - decreased pulse_mobile, i.e. faster mob reaction,
+for charmees, # is now maxed out at GET_CHA_BONUS, if you go over the bonus
+extra mobiles will rebel
+
+     *NPC races - added framework, mobs will identify their race right now
+for debugging purposes
+
+     *NPC classes - added framework, mages will now behave at least semi-smart
+with their new code
+
+     *stats - constitution / hp - redid the system so gear/spells/leveling
+work correctly, increased max-stat limit to 50, changed bonus system to reflect
+3.5ed, added aliases to calculate bonus [GET_<stat name>_BONUS()], character
+starting stats are fixed and have increases according to 3.5ed (not selected though),
+compartmentalized a lot of vitals like compute_armor
+
+     *aesthetics - weather.c added a little color, skill_messages have more color
+now, do_who a little more color, login screen colors
+
+     *train/ability - resemble skills in 3rd ED  [new abilities] listen, spot,
+tumble, hide, sneak, treat injury, taunt, concentration, spellcraft, appraise,
+discipline, parry, lore
+
+     *combat changes - multiple attacks, perform_attacks, multiple changes
+to the whole combat systme, parry, compute_thaco now is like 3.5ed system,
+compute_armor now is calculated like 3.5ed, dual-wield, initiative (limited
+implementation), switch opponents (AoO penalty), auto-diagnose added, taking
+things out of bags in combat imposes penalty (vs Tumble DC 15), completely
+rewrote do_flee also don't lose xp for fleeing, dam_messages now % based,
+dual-wield (multiple hands), max. damage per damage() call now 999
+
+     *other char vitals - spell resistance added, regen changed from tick
+system to being called very 3 real seconds, advance_level and do_start redone
+completely
+
+     *information changes - do_score redone  [new commands] affects, attacks
+
+     *races - dwarf, human, elf, troll; troll regen added, racial bonuses added
+for all the classes, human skill/ability bonuses implemented
+
+     *class - monk, bare-hand damage, attacks and level armor bonuses added,
+wisdom armor bonus added, lay on hands ability added
+
+     *world modifications - newbie eq resembles old Luminari (added special   
+mode to perform_remove), some stock world bug fixes that were showing up in syslog,
+shop.c appraise changes
+
+     *prac/skill:  one practice per skill = 75 proficiency, bash behaves much  
+different now (similar to Toril)
+
+     *prac/skill:     [new skills] quickchant, ambidexterity, dirty fighting, dodge, 
+improved critical(2), mobility, spring attack, toughness, two weapon fighting(2),
+finesse, armor skin, blinding speed, damage reduction(3), tougness(2),
+self-concealment(3), trip(2), improved bash, improved whirlwind, spell
+penetration(3), spell resistance(5), initiative, power attack, combat expertise,
+epic skills needed for spells
+
+     *spells: casting time, say_spell at beginning of casting and finish
+of spell, heavy damage increase, added some color to say_spell, npc's that cast
+AoE's will not hit their fellow npc's
+
+     *spells:     [new spells] stoneskin, blur, mirror image,
+ice storm, ball of lightning, missile storm, chain lightning, meteor swarm, 
+flame strike, destruction, cause light wounds, cause serious wounds, cause moderate
+wounds, cause critical wounds, mummy dust, dragon knight, greater ruin, hellball,
+epic mage armor, epic warding, protection from good
+
+     *memorization: implemented, initial testing passed, a lot more to do
+
+     *color code:  added parse_at to all q, and to nanny check (for race/class new
+character selection), also disabled mpx because the potential security risk
+
+  [Above is Changes TBA->Luminari Port]
+
+
+** PLEASE SEE TBAMUD.COM FOR CHANGES CircleMUD -> tbaMUD **
+** PLEASE SEE CIRCLEMUD.ORG FOR CHANGES DikuMUD -> CircleMUD **

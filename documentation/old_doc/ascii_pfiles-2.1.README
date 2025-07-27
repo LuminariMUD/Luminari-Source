@@ -1,0 +1,34 @@
+Ascii Pfiles Version 2.1
+
+Version 2.1 is based on stock circle 3.0 bpl 17 and may patch cleanly
+to other versions.  This release is mainly intended to fix bugs and
+improve portability.
+
+If you're not familiar with ascii pfile conversions, this mod will
+convert circle from using a single binary player file to one ascii
+file per player.  This makes the player files much easier to edit
+and maintain.  It also saves a lot of disk space by only saving
+the data needed to load the player.  This release has the capability
+to convert an existing binary player file to the new ascii files.
+It also has the ability to automatically remove players who have
+not logged in for a specified time.  By default it wil remove
+players just like purgeplay.c normally would, but will do so at
+each mud boot.
+
+This distribution includes windows and non-windows patch files,
+utility batch files, some simple instructions in the doc directory,
+and the full modified source files in case you have a totally
+stock mud and want to just copy the files into your circle src
+directory.
+
+If you're running under windows, read doc/install_win.txt.  Otherwise
+read doc/install_unix.txt.  Read doc/using.txt for information on
+setting up the available options (such as automatic maintenence).
+
+WARNING:  Windows users, please rename the included patch.bat file
+to patchsrc.bat.  It won't work correctly as is.
+
+Direct questions, comments, and contributions to samedi@ticnet.com or
+samedi1971@yahoo.com.  If you have a problem you want help with, please
+provide as much information on your setup and the problem if you
+want a prompt response. 

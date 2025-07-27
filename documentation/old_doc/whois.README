@@ -1,0 +1,22 @@
+: Updated WhoIS
+
+A few changes, lesser code.....
+It also makes it easier if you decide to add more levels
+
+This nifty little command will show a offline/online players level,
+class and title. If it is an imm (or higher) it will display the rank.
+It is based on an older version from Primacy <jmrobins@wired.uvm.edu>
+with bug fixes from Ron Hensley <ron@peace.dmv.com>.  This version has
+been reworked by Hugor <hugor@freebox.com>
+
+Level 1 Wa - Player the Swordpupil
+[Implementor] - Implementor the Implementor
+----------------------------------------------------------------------
+Do whatever you want with this piece of code.
+Enjoy it, hate it, smash it, remake it......
+
+If you decide to use it, please send me a mail, including the address
+to your mud. A line in your credit file is of course also appreciated
+
+/ Hugor (hugor@freebox.com)
+

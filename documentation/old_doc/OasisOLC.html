@@ -1,0 +1,165 @@
+<HTML>
+<HEAD>
+  <TITLE>OasisOLC v2.0.5</TITLE>
+</HEAD>
+<BODY>
+
+<H1>OasisOLC</H1>
+
+<H2>A little history to begin.</H2>
+
+<P>Welcome to OasisOLC, one of the most popular online creation (OLC) systems
+for the CircleMUD code base.  The package originated as a room editor (redit)
+and item editor (iedit) written by Levork.  Harvey Gilpin then took the
+package and cleaned it up in a new 1996 release called OasisOLC.  He renamed
+iedit to oedit, created a zone editor (zedit), wrote the shop editor (sedit),
+and crafted the mobile editor (medit).  He also created a generic 'olc' module
+to handle the similiar code of the various editors.  It was quite an ambitious
+undertaking and after its release, including the improved editor, many people
+reported problems when saving mobiles to memory or when creating a new zone.
+Various unofficial fixes and feature enhancements to OasisOLC surfaced on <A
+HREF="ftp://ftp.circlemud.org/">ftp.circlemud.org</A>, but still the crashes
+remained.  Harvey did not have the time to find these bugs.  Around September
+of 1997, <A HREF="mailto:greerga@circlemud.org">George Greer</A> became sick
+of the repeated messages to the CircleMUD mailing list and decided to fix it,
+not knowing that he would be hacking on it much more than just for fixing
+bugs. He may one day (most likely around version 2.0) turn the entire project
+over to someone who will take it further.</P>
+
+<P><B>N</B>ow, that one day has come. Kip Potter, (aka Mythran), has taken over 
+  the project.</P>
+
+<H2>What is planned for version 2.0.</H2>
+
+<P>Originally based on CircleMUD bpl9, OasisOLC relies on a menuing system for
+all changes.  The other popular OLC system for CircleMUD is the OBuild package
+by <A HREF="mailto:samedi@dhc.net">Sammy</A> which uses a command line system.  
+There have been many debates about which is better.  In my own experience, it
+is a chore to make them both coexist happily.  Therefore, OasisOLC v2.0 will
+rely on a library of functions called <I>GenOLC v1.0</I> which will present a
+non-OLC-specific way to add to the world. This wacky concept will be extended
+to OBuild when mostly finished adding all of the various other Oasis editors
+to the distribution.  Then with OBuild and OasisOLC both using the same
+routines to manipulate the world, nothing will be out of sync and builders may
+freely switch between the two of them.  Someone could feasibly create the room
+in OasisOLC and then fix typos, adjust room flags, or add exits later with
+OBuild, or vice versa.  While v2.0 will not integrate OBuild and OasisOLC, it
+is planned for a future minor revision.</P>
+
+<P>Another project would be loadable OasisOLC modules for editing various
+things without having to rewrite the menu system.  Theoretically it would
+allow such things as customizable menus for all your builders or to plug-in
+MobProgs or Death's Gate Scripts much easier.  However, this project will not
+make the v2.0 release.</P>
+
+<P>Don't forget you have to mail <A HREF="mailto:rv@twylite.demon.co.uk">Rv</A>
+(Harvey Gilpin) if you use the package.  A simple message, something like
+"It's crap! You suck!" would do, or so he says.  Many people find it to be a
+very useful online creation system. There are also a few restrictions on the
+use of this code placed by him:
+
+<OL>
+<LI>"You must not use the code to make a profit in ANY way."</LI>
+<LI>"Any derivative works must give credit to the original author, Levork, and are subject to the same conditions of use."</LI>
+<LI>"You accept any damage caused by the use of this software to be your own fault. (i.e. Don't sue me :)"</LI>
+</OL>
+
+<P>Don't forget to credit <A HREF="mailto:rv@twylite.demon.co.uk">Harvey
+Gilpin</A> and <A HREF="mailto:greerga@circlemud.org">George Greer</A>
+also.</P>
+
+<P>Lately a new addition 'cedit' (for Configuration EDITor) has been launched. 
+  All of the info currently settable from config.c is read from a file (lib/etc/config) 
+  on bootup, if it exist. If not, the default values are used.</P>
+<P><B>Please remember to back up your world files!</B> Any software package may 
+  (will) have bugs and could potentially cause a loss of data, world files, or 
+  your sanity. A backup of your world may be accomplished in Linux or other related 
+  operating systems by doing the below:</P>
+
+<PRE>
+To back it up:
+  tar -cvf backup.tar lib/world/
+To restore it:
+  tar -xvf backup.tar
+You should also compress your backup:
+  gzip -9 backup.tar
+And to decompress it later:
+  gzip -d backup.tar
+</PRE>
+
+
+<H2>Configuration</H2>
+
+<P>Rv has tried to make this system as reliant as possible on the tables that 
+  already exist in the Circle code, so that when the mud changes, the OLC will 
+  be able to deal with it. However, the system does need to know some information 
+  about the tables sizes, and those that are not already defined in structs.h 
+  have been placed in oasis.h.</P>
+
+<P>If you want the OLC to react to changes you make to tables within your mud 
+  you must update the defines in the top of oasis.h.</P>
+
+<P>Version 2.0 of OasisOLC will allow user-definable colors.  However, since I
+haven't released this yet I'm going to delay it until a future minor
+release.</P>
+
+<P>If you want to add new features to the OLC, for pointers on how to go about
+it, look at the commented out code for object level flags in oedit.c.</P>
+
+<P>There is a user-definable toggle, PRF_CLS, for whether OasisOLC should
+clear the screen on menus.</P>
+
+
+<H2>Known bugs or gotchas.</H2>
+
+<P>Due to the way Extended mobs are implemented it is impossible to know what
+individual MUDs do with them.  So when medit writes the mob files out to disk
+it can only deal with those it knows about.  Any other one that were there get
+<I>erased</I>.  <B>If you want to use extended mobs in your mud, you MUST edit
+the save_mobiles() function in genmob.c so that it knows how to save
+them.</B></P>
+
+<HR>
+
+<H2>Documentation (on how to use the darn thing).</H2>
+
+<P>There are numerous better documents on how to use OasisOLC.  Please check
+the <A HREF="http://developer.circlemud.org/">CircleMUD developer site</A> and
+the <A HREF="http://www.circlemud.org/pub/CircleMUD/">CircleMUD FTP site</A>
+for more documentation.</P>
+
+<HR>
+
+<H2>Credits</H2>
+
+<P>Finally, thanks to the following for their bug reports, ideas and feedback:
+
+<UL>
+  <LI>Adam Days</LI>
+  <LI>Chris A. Epler</LI>
+  <LI>Edward Almasy</LI>
+  <LI>Paul Jones</LI>
+  <LI>Con (a.k.a Rasmus)</LI>
+  <LI>Sean P. Mouncastle</LI>
+  <LI>Trevor Man</LI>
+  <LI>Ryan A. J. Biggs</LI>
+  <LI>Andrew Helm</LI>
+  <LI>Desmond Daignault</LI>
+  <LI>Robert Sinland</LI>
+  <LI>Patrick J. Dughi</LI>
+  <LI>Spooge</LI>
+  <LI>Adam Beytin</LI>
+  <LI>David Klasinc</LI>
+  <LI>Crimson Wizard</LI>
+  <LI>christopher john raehl (raehl@students.uiuc.edu) -- Checking for STRING_TERMINATOR</LI>
+  <LI>Julian Buckley (s348266@student.uq.edu.au) -- Permanent affects and minimum 
+    levels</LI>
+  <LI>Thomas Arp (welcor) for cleaning up the global buffers etc.</LI>
+  <LI>and probably more.</LI>
+</UL>
+<p></P>
+
+<P>George Greer can be contacted at <A HREF="mailto:greerga@circlemud.org">greerga@circlemud.org</A>.<br>
+  Mythran is avaiable on <a href="mailto:kip_potter@hotmail.com">kip_potter@hotmail.com</a>.</P>
+</BODY>
+</HTML>

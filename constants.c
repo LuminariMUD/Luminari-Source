@@ -1656,6 +1656,8 @@ const char *preference_bits[] = {
     "Score-Compact",
     "Score-Wide",
     "Score-NoColor",
+    "Score-Borders",
+    "Score-RaceSymbols",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
