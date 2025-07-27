@@ -19,6 +19,7 @@
 #include "interpreter.h"
 #include "spells.h"
 #include "dg_scripts.h"
+#include "dg_event.h"
 #include "act.h"
 #include "class.h"
 #include "fight.h"
@@ -2591,6 +2592,20 @@ void extract_char_final(struct char_data *ch)
     save_char(ch, 0);
 
     Crash_delete_crashfile(ch);
+  }
+
+  /* Cancel all events associated with this character */
+  if (ch->events != NULL)
+  {
+    if (ch->events->iSize > 0)
+    {
+      struct event *pEvent;
+
+      while ((pEvent = simple_list(ch->events)) != NULL)
+        event_cancel(pEvent);
+    }
+    free_list(ch->events);
+    ch->events = NULL;
   }
 
   /* If there's a descriptor, they're in the menu now. */

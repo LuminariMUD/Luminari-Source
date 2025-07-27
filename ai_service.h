@@ -43,6 +43,18 @@ typedef void CURL;
 #define AI_MAX_TOKENS 500
 #define AI_MAX_CACHE_SIZE 1000
 
+/* Debug mode - set to 1 to enable verbose debug logging - set to 0 to disable */
+#define AI_DEBUG_MODE 1
+
+/* Debug logging macro */
+#if AI_DEBUG_MODE
+#define AI_DEBUG(fmt, ...) do { \
+  log("AI_DEBUG [%s:%d in %s()]: " fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__); \
+} while(0)
+#else
+#define AI_DEBUG(fmt, ...) /* Debug mode disabled */
+#endif
+
 /* Request types for logging and rate limiting */
 enum ai_request_type {
   AI_REQUEST_TEST = 0,
@@ -103,6 +115,7 @@ bool is_ai_enabled(void);
 /* API Request Functions */
 char *ai_generate_response(const char *prompt, int request_type);
 char *ai_npc_dialogue(struct char_data *npc, struct char_data *ch, const char *input);
+void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const char *input);
 char *ai_generate_room_desc(int room_vnum, int sector_type);
 bool ai_moderate_content(const char *text);
 
@@ -131,5 +144,10 @@ char *generate_fallback_response(const char *prompt);
 
 /* Event Functions (defined in ai_events.c) */
 void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response);
+void queue_ai_request_retry(const char *prompt, int request_type, int retry_count, 
+                           struct char_data *ch, struct char_data *npc);
+
+/* Async API Functions */
+char *ai_generate_response_async(const char *prompt, int request_type, int retry_count);
 
 #endif /* AI_SERVICE_H */
