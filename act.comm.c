@@ -525,12 +525,8 @@ ACMD(do_tell)
     
     /* AI Enhancement for NPCs */
     if (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_AI_ENABLED)) {
-      char *ai_response = ai_npc_dialogue(vict, ch, buf2);
-      if (ai_response) {
-        /* Queue AI response with slight delay for realism */
-        queue_ai_response(ch, vict, ai_response);
-        free(ai_response);
-      }
+      /* Use async version to prevent blocking the game */
+      ai_npc_dialogue_async(vict, ch, buf2);
     }
   }
   else
