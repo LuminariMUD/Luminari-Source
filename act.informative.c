@@ -48,7 +48,9 @@
 #include "encounters.h"
 #include "deities.h"
 #include "treasure.h"
+#include "spell_prep.h"
 #include "boards.h"
+#include "perfmon.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -3845,6 +3847,8 @@ static const char *get_class_color(struct char_data *ch, int class_num)
 
 ACMD(do_skore)
 {
+  PERF_PROF_ENTER(pr_skore_, "do_skore");
+  
   char class_buf[MAX_STRING_LENGTH] = {'\0'};
   struct time_info_data playing_time;
   int calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch)), i = 0, counter = 0;
@@ -3854,8 +3858,13 @@ ACMD(do_skore)
   int line_length = 80;
   char dname[SMALL_STRING] = {'\0'};
 
+  // Check for section-specific display
+  char arg[MAX_INPUT_LENGTH];
+  one_argument(argument, arg);
+  
   // Check for classic score preference
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_CLASSIC)) {
+    PERF_PROF_EXIT(pr_skore_);
     do_score(ch, argument, cmd, subcmd);
     return;
   }
@@ -3888,6 +3897,154 @@ ACMD(do_skore)
                                    0);
 
   height *= 0.393700787402;
+
+  // Handle section-specific displays
+  if (*arg) {
+    if (!str_cmp(arg, "combat")) {
+      // Show detailed combat information
+      skore_section_header(ch, "\tR*** DETAILED COMBAT STATISTICS ***\tC", line_length, "\tC");
+      
+      // Calculate detailed combat stats
+      int armor_class = compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
+      int num_attacks = 1 + MAX(0, (calc_bab - 1) / 5);
+      
+      send_to_char(ch, "\tc+-- Basic Combat Stats ---------------------------------------------------------+\tn\r\n");
+      send_to_char(ch, "\tc|\tn \tcBase Attack Bonus:\tn %-4d                                              \tc|\tn\r\n", calc_bab);
+      send_to_char(ch, "\tc|\tn \tcNumber of Attacks:\tn %-3d                                               \tc|\tn\r\n", num_attacks);
+      send_to_char(ch, "\tc|\tn \tcArmor Class:\tn %-3d                                                      \tc|\tn\r\n", armor_class);
+      send_to_char(ch, "\tc|\tn \tcHitroll:\tn %s%-3d \tc|\tn \tcDamroll:\tn %s%-3d                                    \tc|\tn\r\n",
+                   GET_HITROLL(ch) >= 0 ? "+" : "", GET_HITROLL(ch),
+                   GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
+      
+      send_to_char(ch, "\tc+-- Damage Reduction & Resistance ----------------------------------------------+\tn\r\n");
+      send_to_char(ch, "\tc|\tn \tcDamage Reduction:\tn %-3d                                                  \tc|\tn\r\n",
+                   compute_damage_reduction(ch, DAM_RESERVED_DBC));
+      send_to_char(ch, "\tc|\tn \tcSpell Resistance:\tn %-3d                                                  \tc|\tn\r\n",
+                   compute_spell_res(NULL, ch, 0));
+      
+      send_to_char(ch, "\tc+-- Weapon Information ---------------------------------------------------------+\tn\r\n");
+      if (wielded) {
+        send_to_char(ch, "\tc|\tn \tcWeapon:\tn %-54s \tc|\tn\r\n", wielded->short_description);
+        send_to_char(ch, "\tc|\tn \tcDamage:\tn %dd%d%s%d                                                     \tc|\tn\r\n",
+                     GET_OBJ_VAL(wielded, 1), GET_OBJ_VAL(wielded, 2),
+                     GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
+        send_to_char(ch, "\tc|\tn \tcDamage Type:\tn %-20s                                      \tc|\tn\r\n",
+                     attack_hit_text[w_type - TYPE_HIT].singular);
+      } else {
+        send_to_char(ch, "\tc|\tn \tcWeapon:\tn Unarmed                                                      \tc|\tn\r\n");
+        send_to_char(ch, "\tc|\tn \tcDamage:\tn 1d3%s%d                                                       \tc|\tn\r\n",
+                     GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
+      }
+      
+      send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+      send_to_char(ch, "\tC");
+      draw_line(ch, line_length, '=', '=');
+      send_to_char(ch, "\tn");
+      
+      PERF_PROF_EXIT(pr_skore_);
+      return;
+    }
+    else if (!str_cmp(arg, "magic")) {
+      // Show detailed magic information
+      skore_section_header(ch, "\tB*** DETAILED MAGIC & PSIONICS ***\tC", line_length, "\tC");
+      
+      if (!IS_SPELLCASTER(ch) && GET_PSIONIC_LEVEL(ch) <= 0) {
+        send_to_char(ch, "\tcYou have no magical or psionic abilities.\tn\r\n");
+      } else {
+        if (IS_SPELLCASTER(ch)) {
+          send_to_char(ch, "\tc+-- Spellcasting Details -------------------------------------------------------+\tn\r\n");
+          send_to_char(ch, "\tc|\tn \tcSpell DC Bonus:\tn %-3d                                                    \tc|\tn\r\n",
+                       get_spell_dc_bonus(ch));
+          send_to_char(ch, "\tc|\tn \tcSpell Potency:\tn %-3d%%                                                    \tc|\tn\r\n",
+                       get_spell_potency_bonus(ch));
+          send_to_char(ch, "\tc|\tn \tcSpell Duration:\tn %-3d%%                                                   \tc|\tn\r\n",
+                       get_spell_duration_bonus(ch));
+          
+          // Show detailed spell slots by class
+          send_to_char(ch, "\tc+-- Spell Slots by Class -------------------------------------------------------+\tn\r\n");
+          for (i = 0; i < MAX_CLASSES; i++) {
+            if (CLASS_LEVEL(ch, i) > 0 && class_spell_level[i][1] >= 0) {
+              send_to_char(ch, "\tc|\tn \tc%s (Level %d):\tn\r\n", 
+                           class_list[i].name, CLASS_LEVEL(ch, i));
+              
+              int circle;
+              for (circle = 1; circle <= 9; circle++) {
+                int total_slots = compute_slots_by_circle(ch, i, circle);
+                if (total_slots > 0) {
+                  int used_slots = count_circle_collection(ch, i, circle) +
+                                  count_circle_innate_magic(ch, i, circle) +
+                                  count_circle_prep_queue(ch, i, circle);
+                  int remaining = total_slots - used_slots;
+                  
+                  send_to_char(ch, "\tc|\tn   Circle %d: %d/%d slots available                                           \tc|\tn\r\n",
+                               circle, remaining, total_slots);
+                }
+              }
+            }
+          }
+          send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+        }
+        
+        if (GET_PSIONIC_LEVEL(ch) > 0) {
+          send_to_char(ch, "\tc+-- Psionic Details ------------------------------------------------------------+\tn\r\n");
+          send_to_char(ch, "\tc|\tn \tcPsionic Level:\tn %-3d                                                     \tc|\tn\r\n",
+                       GET_PSIONIC_LEVEL(ch));
+          send_to_char(ch, "\tc|\tn \tcEnergy Type:\tn %-20s                                      \tc|\tn\r\n",
+                       damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
+          send_to_char(ch, "\tc|\tn \tcMax Augment PSP:\tn %-3d per power                                         \tc|\tn\r\n",
+                       base_augment_psp_allowed(ch));
+          send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+        }
+      }
+      
+      send_to_char(ch, "\tC");
+      draw_line(ch, line_length, '=', '=');
+      send_to_char(ch, "\tn");
+      
+      PERF_PROF_EXIT(pr_skore_);
+      return;
+    }
+    else if (!str_cmp(arg, "stats")) {
+      // Show detailed ability scores and saves
+      skore_section_header(ch, "\tG*** DETAILED ABILITIES & SAVES ***\tC", line_length, "\tC");
+      
+      send_to_char(ch, "\tc+-- Ability Scores & Modifiers ------------------------------------------------+\tn\r\n");
+      send_to_char(ch, "\tc|\tn \tcSTR:\tn %2d (%s%d) \tc|\tn \tcDEX:\tn %2d (%s%d) \tc|\tn \tcCON:\tn %2d (%s%d) \tc|\tn\r\n",
+                   GET_STR(ch), ability_mod_value(GET_STR(ch)) >= 0 ? "+" : "", ability_mod_value(GET_STR(ch)),
+                   GET_DEX(ch), ability_mod_value(GET_DEX(ch)) >= 0 ? "+" : "", ability_mod_value(GET_DEX(ch)),
+                   GET_CON(ch), ability_mod_value(GET_CON(ch)) >= 0 ? "+" : "", ability_mod_value(GET_CON(ch)));
+      send_to_char(ch, "\tc|\tn \tcINT:\tn %2d (%s%d) \tc|\tn \tcWIS:\tn %2d (%s%d) \tc|\tn \tcCHA:\tn %2d (%s%d) \tc|\tn\r\n",
+                   GET_INT(ch), ability_mod_value(GET_INT(ch)) >= 0 ? "+" : "", ability_mod_value(GET_INT(ch)),
+                   GET_WIS(ch), ability_mod_value(GET_WIS(ch)) >= 0 ? "+" : "", ability_mod_value(GET_WIS(ch)),
+                   GET_CHA(ch), ability_mod_value(GET_CHA(ch)) >= 0 ? "+" : "", ability_mod_value(GET_CHA(ch)));
+      
+      send_to_char(ch, "\tc+-- Saving Throws -------------------------------------------------------------+\tn\r\n");
+      send_to_char(ch, "\tc|\tn \tcFortitude:\tn %s%-3d \tc|\tn \tcReflex:\tn %s%-3d \tc|\tn \tcWill:\tn %s%-3d                  \tc|\tn\r\n",
+                   compute_mag_saves(ch, SAVING_FORT, 0) >= 0 ? "+" : "", compute_mag_saves(ch, SAVING_FORT, 0),
+                   compute_mag_saves(ch, SAVING_REFL, 0) >= 0 ? "+" : "", compute_mag_saves(ch, SAVING_REFL, 0),
+                   compute_mag_saves(ch, SAVING_WILL, 0) >= 0 ? "+" : "", compute_mag_saves(ch, SAVING_WILL, 0));
+      
+      send_to_char(ch, "\tc+-- Skill Points & Languages --------------------------------------------------+\tn\r\n");
+      send_to_char(ch, "\tc|\tn \tcAvailable Skill Points:\tn %-3d                                            \tc|\tn\r\n",
+                   GET_PRACTICES(ch));
+      send_to_char(ch, "\tc|\tn \tcLanguages Known:\tn %-3d                                                   \tc|\tn\r\n",
+                   GET_SKILL(ch, SKILL_LANG_COMMON) ? 1 : 0); // This is simplified - would need more work
+      
+      send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+      send_to_char(ch, "\tC");
+      draw_line(ch, line_length, '=', '=');
+      send_to_char(ch, "\tn");
+      
+      PERF_PROF_EXIT(pr_skore_);
+      return;
+    }
+    else {
+      send_to_char(ch, "Valid sections are: combat, magic, stats\r\n");
+      send_to_char(ch, "Use 'skore' without arguments for the full display.\r\n");
+      PERF_PROF_EXIT(pr_skore_);
+      return;
+    }
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════════
   // IDENTITY PANEL
@@ -4034,7 +4191,7 @@ ACMD(do_skore)
                GET_HITROLL(ch) >= 0 ? "+" : "", GET_HITROLL(ch),
                GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch),
                compute_damage_reduction(ch, DAM_RESERVED_DBC),
-               compute_spell_res(ch, NULL, 0));
+               compute_spell_res(NULL, ch, 0));
 
   // Weapon information
   if (wielded) {
@@ -4059,6 +4216,40 @@ ACMD(do_skore)
       send_to_char(ch, "\tc+-- Spellcaster Bonuses --------------------------------------------------------+\tn\r\n");
       send_to_char(ch, "\tc|\tn \tcSpell DC Bonus:\tn %-3d \tc|\tn \tcPotency:\tn %-3d%% \tc|\tn \tcDuration:\tn %-3d%% \tc|\tn\r\n",
                    get_spell_dc_bonus(ch), get_spell_potency_bonus(ch), get_spell_duration_bonus(ch));
+      send_to_char(ch, "\tc+-- Spell Slots ----------------------------------------------------------------+\tn\r\n");
+      
+      // Display spell slots for each casting class
+      int class_idx, circle;
+      int has_slots = FALSE;
+      
+      for (class_idx = 0; class_idx < MAX_CLASSES; class_idx++) {
+        if (CLASS_LEVEL(ch, class_idx) > 0 && class_spell_level[class_idx][1] >= 0) {
+          // This class can cast spells
+          send_to_char(ch, "\tc|\tn \tc%s:\tn ", class_list[class_idx].name);
+          
+          for (circle = 1; circle <= 9; circle++) {
+            int total_slots = compute_slots_by_circle(ch, class_idx, circle);
+            if (total_slots > 0) {
+              int used_slots = count_circle_collection(ch, class_idx, circle) +
+                              count_circle_innate_magic(ch, class_idx, circle) +
+                              count_circle_prep_queue(ch, class_idx, circle);
+              int remaining = total_slots - used_slots;
+              
+              // Color code based on remaining slots
+              const char *color = "\tg"; // Green if slots available
+              if (remaining == 0) color = "\tr"; // Red if no slots
+              else if (remaining <= total_slots / 3) color = "\ty"; // Yellow if low
+              
+              send_to_char(ch, "%s[%d: %d/%d]\tn ", color, circle, remaining, total_slots);
+              has_slots = TRUE;
+            }
+          }
+          if (has_slots) {
+            send_to_char(ch, "\tc|\tn\r\n");
+          }
+        }
+      }
+      
       send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
     }
 
@@ -4144,16 +4335,12 @@ ACMD(do_skore)
   // FOOTER
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  skore_section_header(ch, "\tC*** ENHANCED SKORE v1.0 - Phase 1 MVP ***\tC", line_length, "\tC");
-  send_to_char(ch, "\tcThis enhanced score display features:\tn\r\n");
-  send_to_char(ch, "\tc- Visual progress bars for HP/Movement/PSP\tn\r\n");
-  send_to_char(ch, "\tc- Health-based color coding\tn\r\n");
-  send_to_char(ch, "\tc- Class-based color themes\tn\r\n");
-  send_to_char(ch, "\tc- Organized information panels\tn\r\n");
-  send_to_char(ch, "\tc- Enhanced visual hierarchy\tn\r\n");
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '=', '=');
   send_to_char(ch, "\tn");
+  send_to_char(ch, "\tcUse 'scoreconfig' to customize your display settings.\tn\r\n");
+  
+  PERF_PROF_EXIT(pr_skore_);
 }
 
 /* Score configuration command */
