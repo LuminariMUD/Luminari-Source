@@ -5,6 +5,9 @@
  * SECURITY NOTICE:
  * This tool generates C code and should be heavily restricted.
  * Only authorized developers should have access to this tool.
+ * 
+ * @see ../documentation/PHP_TOOLS_README.md for comprehensive security audit,
+ *      deployment guide, and security best practices for all PHP tools.
  */
 
 // Security: Start session for authentication and CSRF protection
@@ -377,7 +380,7 @@ function copyCode() {
     </div>
     <div class="row">
         <div><br /></div>
-        <div class="col-sm-12"><button class="btn btn-warning w-100" onclick="window.location='/enter_encounter.php';">Go Back to Form</button></div>
+        <div class="col-sm-12"><button class="btn btn-warning w-100" onclick="window.location='/util/enter_encounter.php';">Go Back to Form</button></div>
     </div>
 </div>
 <?php

@@ -1652,6 +1652,10 @@ const char *preference_bits[] = {
     "Brief-Post-Combat-Text",
     "Auto-Eldritch-Blast",
     "No-Craft-Progress",
+    "Score-Classic",
+    "Score-Compact",
+    "Score-Wide",
+    "Score-NoColor",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 

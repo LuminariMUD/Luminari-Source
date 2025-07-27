@@ -38,6 +38,20 @@
  * 3. Spell added to prep queue with calculated preparation time
  * 4. Preparation event fires every second, reducing prep time
  * 5. When prep time reaches 0, spell moves to collection/becomes available
+ * 
+ * THREAD SAFETY AND CONCURRENCY:
+ * ================================
+ * LuminariMUD is a SINGLE-THREADED application. All game logic, including
+ * spell preparation, runs sequentially in the main game_loop(). This means:
+ * 
+ * - NO race conditions or concurrency issues with spell queues
+ * - NO need for locks, mutexes, or synchronization primitives
+ * - All spell queue modifications are atomic from the game's perspective
+ * - Only ONE preparation event can exist per character at any time
+ * 
+ * The event system (mud_event.c) runs in the same thread and guarantees
+ * sequential execution of all events, making the spell preparation system
+ * inherently thread-safe without any special handling required.
  */
 
 #pragma once
@@ -1063,6 +1077,12 @@ extern "C"
 /* SEARCH MODES - For spell lookup functions */
 #define SPREP_SEARCH_NORMAL 0  /* Normal search (exact match) */
 #define SPREP_SEARCH_ALL 1     /* Search all matches (typo in define name) */
+
+/* QUEUE SIZE LIMITS - Prevent denial of service attacks */
+#define MAX_PREP_QUEUE_SIZE 125    /* Maximum spells in preparation queue per class */
+#define MAX_COLLECTION_SIZE 250    /* Maximum spells in collection per class */
+#define MAX_INNATE_QUEUE_SIZE 125  /* Maximum spell slots in recovery per class */
+#define MAX_KNOWN_SPELLS 250       /* Maximum known spells per class */
 
 /* MACRO DEFINITIONS
  * These macros provide quick access to spell preparation data structures.

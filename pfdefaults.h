@@ -118,4 +118,9 @@
 #define PFDEF_PSP_REGEN 0
 #define PFDEF_SETCLOAK_TIMER 0
 
+/* Score display preference defaults */
+#define PFDEF_SCORE_DISPLAY_WIDTH 80
+#define PFDEF_SCORE_COLOR_THEME 0
+#define PFDEF_SCORE_INFO_DENSITY 0
+
 #endif /* _PFDEFAULTS_H_ */

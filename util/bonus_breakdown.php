@@ -5,6 +5,9 @@
  * SECURITY NOTICE:
  * This tool contains sensitive game data and should be protected with authentication.
  * Ensure proper access controls are in place before deploying to production.
+ * 
+ * @see ../documentation/PHP_TOOLS_README.md for comprehensive security audit,
+ *      deployment guide, and security best practices for all PHP tools.
  */
 
 // Define tool identifier for security

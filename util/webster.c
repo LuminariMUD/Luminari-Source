@@ -30,7 +30,10 @@ int main(int argc, char **argv)
            "lynx -accept_all_cookies -source http://www.thefreedictionary.com/%s"
            " >webster.html",
            argv[1]);
-  system(buf);
+  if (system(buf) != 0) {
+    /* If system call fails, we'll still try to parse what we have */
+    log("Warning: Failed to execute lynx command");
+  }
 
   parse_webster_html(argv[1]);
 

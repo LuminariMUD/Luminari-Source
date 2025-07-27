@@ -5,6 +5,9 @@
  * SECURITY NOTICE:
  * This tool contains sensitive game data and should be protected with authentication.
  * Ensure proper access controls are in place before deploying to production.
+ * 
+ * @see ../documentation/PHP_TOOLS_README.md for comprehensive security audit,
+ *      deployment guide, and security best practices for all PHP tools.
  */
 
 // Security: Start session for authentication
@@ -412,7 +415,7 @@ foreach ($wear_slots as $slot) {
     // Security: URL encode the slot parameter and escape HTML output
     $encoded_slot = urlencode($slot);
     $escaped_slot = htmlspecialchars($slot, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    echo "<th><a href=\"/objectdb/bonus_breakdown.php?slot={$encoded_slot}\" target=\"_blank\">{$escaped_slot}</a></th>";
+    echo "<th><a href=\"/util/bonus_breakdown.php?slot={$encoded_slot}\" target=\"_blank\">{$escaped_slot}</a></th>";
 }
 echo "</tr>";
 

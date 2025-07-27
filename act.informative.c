@@ -18,6 +18,7 @@
 #include "db.h"
 #include "spells.h"
 #include "screen.h"
+#include "pfdefaults.h"
 #include "constants.h"
 #include "dg_scripts.h"
 #include "mud_event.h"
@@ -3756,6 +3757,543 @@ ACMD(do_score)
   {
     send_to_char(ch, "\tDType 'favoredenemies' to get a list of your favored enemies.\tn\r\n");
   }
+}
+
+/* Enhanced score command implementing Phase 1 MVP features */
+
+/* Enhanced formatting utility functions */
+static void skore_progress_bar(struct char_data *ch, const char *label, int current, int max, const char *color)
+{
+  char bar[21] = {'\0'}; // 20 chars + null terminator
+  int filled = 0;
+  int percentage = 0;
+
+  if (max > 0) {
+    percentage = (current * 100) / max;
+    filled = (current * 20) / max;
+    if (filled > 20) filled = 20;
+  }
+
+  // Build the progress bar
+  int i;
+  for (i = 0; i < 20; i++) {
+    if (i < filled) {
+      bar[i] = '='; // Use = for compatibility
+    } else {
+      bar[i] = '-'; // Use - for compatibility
+    }
+  }
+  bar[20] = '\0';
+
+  send_to_char(ch, "\tc%-12s\tn %s[%s%s\tn] \tc%d/%d \tn(\tc%d%%\tn)\r\n",
+               label, color, color, bar, current, max, percentage);
+}
+
+static void skore_section_header(struct char_data *ch, const char *title, int width, const char *color)
+{
+  send_to_char(ch, "%s", color);
+  text_line(ch, title, width, '=', '=');
+  send_to_char(ch, "\tn");
+}
+
+/* Removed unused function skore_subsection_header */
+
+static const char *get_health_color(struct char_data *ch, int current, int max)
+{
+  if (max <= 0) return "\tn";
+
+  // Check if colors are disabled
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_NOCOLOR)) {
+    return "\tn";
+  }
+
+  int percentage = (current * 100) / max;
+  if (percentage >= 75) return "\tG"; // Green for healthy
+  if (percentage >= 50) return "\tY"; // Yellow for wounded
+  if (percentage >= 25) return "\tO"; // Orange for badly wounded
+  return "\tR"; // Red for critical
+}
+
+static const char *get_class_color(struct char_data *ch, int class_num)
+{
+  // Check if colors are disabled
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_NOCOLOR)) {
+    return "\tn";
+  }
+
+  // Color classes based on their type
+  switch (class_num) {
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+      return "\tB"; // Blue for arcane casters
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+      return "\tG"; // Green for divine casters
+    case CLASS_WARRIOR:
+    case CLASS_BERSERKER:
+    case CLASS_MONK:
+      return "\tR"; // Red for martial classes
+    case CLASS_ROGUE:
+      return "\tM"; // Magenta for skill-based
+    default:
+      return "\tc"; // Cyan for others
+  }
+}
+
+ACMD(do_skore)
+{
+  char class_buf[MAX_STRING_LENGTH] = {'\0'};
+  struct time_info_data playing_time;
+  int calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch)), i = 0, counter = 0;
+  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
+  float height = GET_HEIGHT(ch);
+  int w_type = 0;
+  int line_length = 80;
+  char dname[SMALL_STRING] = {'\0'};
+
+  // Check for classic score preference
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_CLASSIC)) {
+    do_score(ch, argument, cmd, subcmd);
+    return;
+  }
+
+  // Determine display width based on preferences
+  if (!IS_NPC(ch)) {
+    int pref_width = GET_SCORE_DISPLAY_WIDTH(ch);
+    if (pref_width == 120 || PRF_FLAGGED(ch, PRF_SCORE_WIDE)) {
+      line_length = 120;
+    } else if (pref_width == 160) {
+      line_length = 160;
+    } else {
+      line_length = 80; // Default
+    }
+  }
+
+  // get some initial info before score display
+  if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
+    w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
+  else
+  {
+    if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
+      w_type = ch->mob_specials.attack_type + TYPE_HIT;
+    else
+      w_type = TYPE_HIT;
+  }
+
+  playing_time = *real_time_passed((time(0) - ch->player.time.logon) +
+                                       ch->player.time.played,
+                                   0);
+
+  height *= 0.393700787402;
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // IDENTITY PANEL
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  skore_section_header(ch, "\tY*** CHARACTER IDENTITY ***\tC", line_length, "\tC");
+
+  send_to_char(ch, "\tc+-- Personal Information -------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcName:\tn %-20s \tc|\tn \tcTitle:\tn %-30s \tc|\tn\r\n",
+               GET_NAME(ch), GET_TITLE(ch) ? GET_TITLE(ch) : "None");
+
+  snprintf(dname, sizeof(dname), "%s", deity_list[GET_DEITY(ch)].name);
+  send_to_char(ch, "\tc|\tn \tcRace:\tn %-20s \tc|\tn \tcDeity:\tn %-30s \tc|\tn\r\n",
+               race_list[GET_RACE(ch)].type,
+               deity_list[GET_DEITY(ch)].name ? CAP(dname) : "None");
+
+  // Build enhanced class display with colors
+  *class_buf = '\0';
+  if (!IS_NPC(ch))
+  {
+    for (i = 0; i < MAX_CLASSES; i++)
+    {
+      if (CLASS_LEVEL(ch, i))
+      {
+        if (counter > 0)
+          strlcat(class_buf, " \tc/\tn ", sizeof(class_buf));
+
+        char temp_buf[64];
+        snprintf(temp_buf, sizeof(temp_buf), "%s%d %s\tn",
+                get_class_color(ch, i), CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
+        strlcat(class_buf, temp_buf, sizeof(class_buf));
+        counter++;
+      }
+    }
+  }
+  else
+    strlcpy(class_buf, CLASS_ABBR(ch), sizeof(class_buf));
+
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+  {
+    snprintf(class_buf, sizeof(class_buf), "%s%d %s (premade build)\tn",
+             get_class_color(ch, GET_PREMADE_BUILD_CLASS(ch)),
+             CLASS_LEVEL(ch, GET_PREMADE_BUILD_CLASS(ch)),
+             class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
+  }
+
+  send_to_char(ch, "\tc|\tn \tcClass%s:\tn %-50s \tc|\tn\r\n",
+               (counter == 1 ? "" : "es"), class_buf);
+
+  send_to_char(ch, "\tc|\tn \tcAlignment:\tn %-15s \tc|\tn \tcAge:\tn %-8s \tc|\tn \tcSize:\tn %-12s \tc|\tn\r\n",
+               get_align_by_num(GET_ALIGNMENT(ch)),
+               character_ages[GET_CH_AGE(ch)],
+               size_names[GET_SIZE(ch)]);
+
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // VITALS PANEL
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  skore_section_header(ch, "\tR*** VITALS & CONDITION ***\tC", line_length, "\tC");
+
+  // Health-based color for vitals
+  const char *hp_color = get_health_color(ch, GET_HIT(ch), GET_MAX_HIT(ch));
+  const char *mv_color = get_health_color(ch, GET_MOVE(ch), GET_MAX_MOVE(ch));
+
+  skore_progress_bar(ch, "Hit Points", GET_HIT(ch), GET_MAX_HIT(ch), hp_color);
+  skore_progress_bar(ch, "Movement", GET_MOVE(ch), GET_MAX_MOVE(ch), mv_color);
+
+  // PSP for psionicists
+  if (GET_MAX_PSP(ch) > 0) {
+    const char *psp_color = get_health_color(ch, GET_PSP(ch), GET_MAX_PSP(ch));
+    skore_progress_bar(ch, "PSP", GET_PSP(ch), GET_MAX_PSP(ch), psp_color);
+  }
+
+  send_to_char(ch, "\r\n\tc+-- Physical Status ------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcHeight:\tn %5.1f inches \tc|\tn \tcWeight:\tn %4d lbs \tc|\tn \tcSpeed:\tn %3d \tc|\tn \tcInit:\tn %s%d \tc|\tn\r\n",
+               height, GET_WEIGHT(ch), get_speed(ch, TRUE),
+               get_initiative_modifier(ch) >= 0 ? "+" : "", get_initiative_modifier(ch));
+
+  send_to_char(ch, "\tc|\tn \tcCarrying:\tn %d/%d lbs \tc|\tn \tcItems:\tn %d/%d \tc|\tn \tcPlayed:\tn %dd %dh \tc|\tn\r\n",
+               IS_CARRYING_W(ch), CAN_CARRY_W(ch), IS_CARRYING_N(ch), CAN_CARRY_N(ch),
+               playing_time.day, playing_time.hours);
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // EXPERIENCE & PROGRESSION PANEL
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  skore_section_header(ch, "\tY*** EXPERIENCE & PROGRESSION ***\tC", line_length, "\tC");
+
+  // Experience progress bar
+  int exp_needed = (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
+  int exp_current = (GET_LEVEL(ch) >= LVL_IMMORT ? 1 : GET_EXP(ch) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
+  int exp_total = (GET_LEVEL(ch) >= LVL_IMMORT ? 1 : level_exp(ch, GET_LEVEL(ch) + 1) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
+
+  if (GET_LEVEL(ch) < LVL_IMMORT) {
+    skore_progress_bar(ch, "Experience", exp_current, exp_total, "\tY");
+    send_to_char(ch, "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcNeeded:\tn %s \tc|\tn \tcLevel:\tn %d \tn\r\n",
+                 add_commas(GET_EXP(ch)), add_commas(exp_needed), GET_LEVEL(ch));
+  } else {
+    send_to_char(ch, "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcLevel:\tn %d (IMMORTAL) \tn\r\n",
+                 add_commas(GET_EXP(ch)), GET_LEVEL(ch));
+  }
+
+  send_to_char(ch, "\r\n\tc+-- Caster Levels --------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcCaster Level:\tn %-3d \tc|\tn \tcDivine Level:\tn %-3d \tc|\tn \tcMagic Level:\tn %-3d \tc|\tn\r\n",
+               CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch));
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ABILITY SCORES & SAVES PANEL
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  skore_section_header(ch, "\tG*** ABILITY SCORES & SAVES ***\tC", line_length, "\tC");
+
+  send_to_char(ch, "\tc+-- Ability Scores -------------------------+-- Saving Throws ---------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcStr:\tn %2d[%2d] \tcDex:\tn %2d[%2d] \tcCon:\tn %2d[%2d] \tc|\tn \tcFort:\tn %-3d \tcWill:\tn %-3d \tc|\tn\r\n",
+               GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch),
+               compute_mag_saves(ch, SAVING_FORT, 0), compute_mag_saves(ch, SAVING_WILL, 0));
+  send_to_char(ch, "\tc|\tn \tcInt:\tn %2d[%2d] \tcWis:\tn %2d[%2d] \tcCha:\tn %2d[%2d] \tc|\tn \tcReflex:\tn %-3d       \tc|\tn\r\n",
+               GET_INT(ch), GET_INT_BONUS(ch), GET_WIS(ch), GET_WIS_BONUS(ch), GET_CHA(ch), GET_CHA_BONUS(ch),
+               compute_mag_saves(ch, SAVING_REFL, 0));
+  send_to_char(ch, "\tc+--------------------------------------------+--------------------------------+\tn\r\n");
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // COMBAT PANEL
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  skore_section_header(ch, "\tR*** COMBAT STATISTICS ***\tC", line_length, "\tC");
+
+#define RETURN_NUM_ATTACKS 1
+  int num_attacks = perform_attacks(ch, RETURN_NUM_ATTACKS, 0);
+  int armor_class = compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
+#undef RETURN_NUM_ATTACKS
+
+  send_to_char(ch, "\tc+-- Combat Stats ---------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcBAB:\tn %-4d \tc|\tn \tcAttacks:\tn %-3d \tc|\tn \tcAC:\tn %-3d \tc|\tn \tcWimpy:\tn %-3d \tc|\tn \tcPos:\tn %-10s \tc|\tn\r\n",
+               calc_bab, num_attacks, armor_class, GET_WIMP_LEV(ch),
+               FIGHTING(ch) ? "Fighting" : position_types[GET_POS(ch)]);
+
+  send_to_char(ch, "\tc|\tn \tcHitroll:\tn %s%-3d \tc|\tn \tcDamroll:\tn %s%-3d \tc|\tn \tcDR:\tn %-3d \tc|\tn \tcSR:\tn %-3d \tc|\tn\r\n",
+               GET_HITROLL(ch) >= 0 ? "+" : "", GET_HITROLL(ch),
+               GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch),
+               compute_damage_reduction(ch, DAM_RESERVED_DBC),
+               compute_spell_res(ch, NULL, 0));
+
+  // Weapon information
+  if (wielded) {
+    send_to_char(ch, "\tc|\tn \tcWeapon:\tn %-30s \tc|\tn \tcDamage:\tn %dd%d%s%d \tc|\tn\r\n",
+                 wielded->short_description,
+                 GET_OBJ_VAL(wielded, 1), GET_OBJ_VAL(wielded, 2),
+                 GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
+  } else {
+    send_to_char(ch, "\tc|\tn \tcWeapon:\tn %-30s \tc|\tn \tcDamage:\tn %dd%d%s%d \tc|\tn\r\n",
+                 "Unarmed", 1, 3, GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
+  }
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // MAGIC & PSIONICS PANEL
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  if (IS_SPELLCASTER(ch) || GET_PSIONIC_LEVEL(ch) > 0) {
+    skore_section_header(ch, "\tB*** MAGIC & PSIONICS ***\tC", line_length, "\tC");
+
+    if (IS_SPELLCASTER(ch)) {
+      send_to_char(ch, "\tc+-- Spellcaster Bonuses --------------------------------------------------------+\tn\r\n");
+      send_to_char(ch, "\tc|\tn \tcSpell DC Bonus:\tn %-3d \tc|\tn \tcPotency:\tn %-3d%% \tc|\tn \tcDuration:\tn %-3d%% \tc|\tn\r\n",
+                   get_spell_dc_bonus(ch), get_spell_potency_bonus(ch), get_spell_duration_bonus(ch));
+      send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+    }
+
+    if (GET_PSIONIC_LEVEL(ch) > 0) {
+      send_to_char(ch, "\tc+-- Psionic Information --------------------------------------------------------+\tn\r\n");
+      send_to_char(ch, "\tc|\tn \tcPsionic Level:\tn %-3d \tc|\tn \tcEnergy Type:\tn %-15s \tc|\tn\r\n",
+                   GET_PSIONIC_LEVEL(ch), damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
+      send_to_char(ch, "\tc|\tn \tcMax Augment PSP:\tn %-3d (power psp cost) \tc|\tn\r\n",
+                   base_augment_psp_allowed(ch));
+      send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // WEALTH & QUESTS PANEL
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  skore_section_header(ch, "\tY*** WEALTH & ACHIEVEMENTS ***\tC", line_length, "\tC");
+
+  send_to_char(ch, "\tc+-- Wealth ---------------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcGold:\tn %-20s \tc|\tn \tcBank:\tn %-20s \tc|\tn\r\n",
+               add_commas(GET_GOLD(ch)), add_commas(GET_BANK_GOLD(ch)));
+  send_to_char(ch, "\tc+-- Quests & Achievements ------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcQuests Completed:\tn %-6d \tc|\tn \tcQuest Points:\tn %-6d \tc|\tn\r\n",
+               (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
+               (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0));
+
+  if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch)) {
+    send_to_char(ch, "\tc|\tn \tcCrafting Job:\tn (%d) %s, using: %s \tc|\tn\r\n",
+                 GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
+                 material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
+  }
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // EQUIPMENT STATUS PANEL (if not compact mode)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  if (IS_NPC(ch) || GET_SCORE_INFO_DENSITY(ch) == 0) { // Full density only
+    skore_section_header(ch, "\tM*** EQUIPMENT STATUS ***\tC", line_length, "\tC");
+
+    send_to_char(ch, "\tc+-- Key Equipment --------------------------------------------------------------+\tn\r\n");
+
+    // Show main weapon
+    if (GET_EQ(ch, WEAR_WIELD_1)) {
+      struct obj_data *weapon = GET_EQ(ch, WEAR_WIELD_1);
+      send_to_char(ch, "\tc|\tn \tcMain Weapon:\tn %-45s \tc|\tn\r\n",
+                   weapon->short_description);
+    } else {
+      send_to_char(ch, "\tc|\tn \tcMain Weapon:\tn %-45s \tc|\tn\r\n", "None (unarmed)");
+    }
+
+    // Show armor
+    if (GET_EQ(ch, WEAR_BODY)) {
+      struct obj_data *armor = GET_EQ(ch, WEAR_BODY);
+      send_to_char(ch, "\tc|\tn \tcBody Armor:\tn %-46s \tc|\tn\r\n",
+                   armor->short_description);
+    } else {
+      send_to_char(ch, "\tc|\tn \tcBody Armor:\tn %-46s \tc|\tn\r\n", "None");
+    }
+
+    // Show shield
+    if (GET_EQ(ch, WEAR_SHIELD)) {
+      struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
+      send_to_char(ch, "\tc|\tn \tcShield:\tn %-50s \tc|\tn\r\n",
+                   shield->short_description);
+    } else {
+      send_to_char(ch, "\tc|\tn \tcShield:\tn %-50s \tc|\tn\r\n", "None");
+    }
+
+    // Equipment condition summary
+    int equipped_items = 0;
+    for (i = 0; i < NUM_WEARS; i++) {
+      if (GET_EQ(ch, i)) equipped_items++;
+    }
+
+    send_to_char(ch, "\tc|\tn \tcEquipped Items:\tn %-3d / %d slots                                  \tc|\tn\r\n",
+                 equipped_items, NUM_WEARS);
+    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // FOOTER
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  skore_section_header(ch, "\tC*** ENHANCED SKORE v1.0 - Phase 1 MVP ***\tC", line_length, "\tC");
+  send_to_char(ch, "\tcThis enhanced score display features:\tn\r\n");
+  send_to_char(ch, "\tc- Visual progress bars for HP/Movement/PSP\tn\r\n");
+  send_to_char(ch, "\tc- Health-based color coding\tn\r\n");
+  send_to_char(ch, "\tc- Class-based color themes\tn\r\n");
+  send_to_char(ch, "\tc- Organized information panels\tn\r\n");
+  send_to_char(ch, "\tc- Enhanced visual hierarchy\tn\r\n");
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '=', '=');
+  send_to_char(ch, "\tn");
+}
+
+/* Score configuration command */
+ACMD(do_scoreconfig)
+{
+  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+
+  if (IS_NPC(ch)) {
+    send_to_char(ch, "NPCs cannot configure score display.\r\n");
+    return;
+  }
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1) {
+    send_to_char(ch, "\tcScore Display Configuration:\tn\r\n");
+    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "\tc|\tn \tcCurrent Settings:\tn                                                     \tc|\tn\r\n");
+    send_to_char(ch, "\tc|\tn   \tcWidth:\tn %-3d characters                                           \tc|\tn\r\n",
+                 GET_SCORE_DISPLAY_WIDTH(ch) ? GET_SCORE_DISPLAY_WIDTH(ch) : 80);
+    send_to_char(ch, "\tc|\tn   \tcTheme:\tn %-15s                                           \tc|\tn\r\n",
+                 GET_SCORE_COLOR_THEME(ch) == 1 ? "Classic" :
+                 GET_SCORE_COLOR_THEME(ch) == 2 ? "Minimal" : "Enhanced");
+    send_to_char(ch, "\tc|\tn   \tcDensity:\tn %-15s                                         \tc|\tn\r\n",
+                 GET_SCORE_INFO_DENSITY(ch) == 1 ? "Compact" :
+                 GET_SCORE_INFO_DENSITY(ch) == 2 ? "Minimal" : "Full");
+    send_to_char(ch, "\tc|\tn   \tcClassic Mode:\tn %-3s                                              \tc|\tn\r\n",
+                 PRF_FLAGGED(ch, PRF_SCORE_CLASSIC) ? "ON" : "OFF");
+    send_to_char(ch, "\tc|\tn   \tcColors:\tn %-3s                                                   \tc|\tn\r\n",
+                 PRF_FLAGGED(ch, PRF_SCORE_NOCOLOR) ? "OFF" : "ON");
+    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "\r\n\tcUsage:\tn\r\n");
+    send_to_char(ch, "  \tcscoreconfig width <80|120|160>\tn     - Set display width\r\n");
+    send_to_char(ch, "  \tcscoreconfig theme <enhanced|classic|minimal>\tn - Set color theme\r\n");
+    send_to_char(ch, "  \tcscoreconfig density <full|compact|minimal>\tn - Set information density\r\n");
+    send_to_char(ch, "  \tcscoreconfig classic <on|off>\tn        - Toggle classic score display\r\n");
+    send_to_char(ch, "  \tcscoreconfig colors <on|off>\tn         - Toggle color display\r\n");
+    send_to_char(ch, "  \tcscoreconfig reset\tn                   - Reset to defaults\r\n");
+    return;
+  }
+
+  if (!str_cmp(arg1, "width")) {
+    int width = atoi(arg2);
+    if (width != 80 && width != 120 && width != 160) {
+      send_to_char(ch, "Valid widths are: 80, 120, or 160 characters.\r\n");
+      return;
+    }
+    GET_SCORE_DISPLAY_WIDTH(ch) = width;
+
+    // Update preference flags for compatibility
+    if (width == 120 || width == 160) {
+      SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_WIDE);
+    } else {
+      REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_WIDE);
+    }
+
+    send_to_char(ch, "Score display width set to %d characters.\r\n", width);
+    save_char(ch, 0);
+    return;
+  }
+
+  if (!str_cmp(arg1, "theme")) {
+    if (!str_cmp(arg2, "enhanced") || !str_cmp(arg2, "default")) {
+      GET_SCORE_COLOR_THEME(ch) = 0;
+      send_to_char(ch, "Score color theme set to Enhanced.\r\n");
+    } else if (!str_cmp(arg2, "classic")) {
+      GET_SCORE_COLOR_THEME(ch) = 1;
+      send_to_char(ch, "Score color theme set to Classic.\r\n");
+    } else if (!str_cmp(arg2, "minimal")) {
+      GET_SCORE_COLOR_THEME(ch) = 2;
+      send_to_char(ch, "Score color theme set to Minimal.\r\n");
+    } else {
+      send_to_char(ch, "Valid themes are: enhanced, classic, or minimal.\r\n");
+      return;
+    }
+    save_char(ch, 0);
+    return;
+  }
+
+  if (!str_cmp(arg1, "density")) {
+    if (!str_cmp(arg2, "full") || !str_cmp(arg2, "default")) {
+      GET_SCORE_INFO_DENSITY(ch) = 0;
+      send_to_char(ch, "Score information density set to Full.\r\n");
+    } else if (!str_cmp(arg2, "compact")) {
+      GET_SCORE_INFO_DENSITY(ch) = 1;
+      send_to_char(ch, "Score information density set to Compact.\r\n");
+    } else if (!str_cmp(arg2, "minimal")) {
+      GET_SCORE_INFO_DENSITY(ch) = 2;
+      send_to_char(ch, "Score information density set to Minimal.\r\n");
+    } else {
+      send_to_char(ch, "Valid densities are: full, compact, or minimal.\r\n");
+      return;
+    }
+    save_char(ch, 0);
+    return;
+  }
+
+  if (!str_cmp(arg1, "classic")) {
+    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes")) {
+      SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_CLASSIC);
+      send_to_char(ch, "Classic score display enabled. Use 'score' for classic display.\r\n");
+    } else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no")) {
+      REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_CLASSIC);
+      send_to_char(ch, "Classic score display disabled. Enhanced display will be used.\r\n");
+    } else {
+      send_to_char(ch, "Use 'on' or 'off' to toggle classic mode.\r\n");
+      return;
+    }
+    save_char(ch, 0);
+    return;
+  }
+
+  if (!str_cmp(arg1, "colors")) {
+    if (!str_cmp(arg2, "on") || !str_cmp(arg2, "yes")) {
+      REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_NOCOLOR);
+      send_to_char(ch, "Score display colors enabled.\r\n");
+    } else if (!str_cmp(arg2, "off") || !str_cmp(arg2, "no")) {
+      SET_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_NOCOLOR);
+      send_to_char(ch, "Score display colors disabled.\r\n");
+    } else {
+      send_to_char(ch, "Use 'on' or 'off' to toggle colors.\r\n");
+      return;
+    }
+    save_char(ch, 0);
+    return;
+  }
+
+  if (!str_cmp(arg1, "reset")) {
+    GET_SCORE_DISPLAY_WIDTH(ch) = PFDEF_SCORE_DISPLAY_WIDTH;
+    GET_SCORE_COLOR_THEME(ch) = PFDEF_SCORE_COLOR_THEME;
+    GET_SCORE_INFO_DENSITY(ch) = PFDEF_SCORE_INFO_DENSITY;
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_CLASSIC);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_NOCOLOR);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_WIDE);
+    send_to_char(ch, "Score display configuration reset to defaults.\r\n");
+    save_char(ch, 0);
+    return;
+  }
+
+  send_to_char(ch, "Unknown option. Use 'scoreconfig' without arguments for help.\r\n");
 }
 
 ACMD(do_inventory)

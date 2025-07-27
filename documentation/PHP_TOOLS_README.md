@@ -4,13 +4,33 @@
 
 This document provides a comprehensive security audit report and deployment guide for the LuminariMUD PHP tools. These tools have been thoroughly audited and improved to meet modern security standards.
 
-## Files Audited
+**Current Status**: All PHP tools have been relocated to the `util/` directory and updated with proper documentation references. Internal paths have been adjusted to maintain functionality.
 
-1. **bonus_breakdown.php** - Item bonus analysis tool (wear slot breakdown)
-2. **bonuses.php** - Item bonus cross-reference matrix tool
-3. **enter_encounter.php** - Random encounter generator tool
-4. **enter_hunt.php** - Hunt system creator tool
-5. **enter_spell_help.php** - Spell/power help file generator
+## PHP Tools Overview
+
+All PHP tools are now located in the `util/` directory for better organization.
+
+### Main Tools
+
+1. **util/bonus_breakdown.php** - Item bonus analysis tool (wear slot breakdown)
+2. **util/bonuses.php** - Item bonus cross-reference matrix tool
+3. **util/enter_encounter.php** - Random encounter generator tool
+4. **util/enter_hunt.php** - Hunt system creator tool
+5. **util/enter_spell_help.php** - Spell/power help file generator
+
+### Supporting Files
+
+6. **util/config.php** - Shared configuration and security utilities
+7. **util/autoload.php** - PSR-4 compliant autoloader for PHP classes
+
+### Accessing the Tools
+
+When deployed on a web server, the tools can be accessed at:
+- `/util/bonus_breakdown.php` - Item bonus analysis by wear slot
+- `/util/bonuses.php` - Item bonus cross-reference matrix
+- `/util/enter_encounter.php` - Create new random encounters
+- `/util/enter_hunt.php` - Create new hunt mobs
+- `/util/enter_spell_help.php` - Generate spell/power help entries
 
 ## Security Improvements Implemented
 
@@ -90,9 +110,14 @@ This document provides a comprehensive security audit report and deployment guid
 
 ### Installation Steps
 
-1. **Environment Setup**
+1. **Navigate to PHP Tools Directory**
    ```bash
-   # Copy environment configuration
+   cd util/
+   ```
+
+2. **Environment Setup**
+   ```bash
+   # Copy environment configuration (if using .env)
    cp .env.example .env
    
    # Edit .env with your actual configuration
@@ -109,16 +134,18 @@ This document provides a comprehensive security audit report and deployment guid
 
 3. **File Permissions**
    ```bash
-   # Set proper file permissions
+   # Set proper file permissions (from util/ directory)
    chmod 644 *.php
    chmod 600 .env
+   # Create and set permissions for cache/logs if needed
+   mkdir -p cache logs
    chmod 755 cache/
    chmod 755 logs/
    ```
 
 4. **Web Server Configuration**
    
-   **Apache (.htaccess)**
+   **Apache (.htaccess in util/ directory)**
    ```apache
    # Deny access to sensitive files
    <Files ".env">
@@ -126,6 +153,10 @@ This document provides a comprehensive security audit report and deployment guid
    </Files>
    
    <Files "config.php">
+       Require all denied
+   </Files>
+   
+   <Files "autoload.php">
        Require all denied
    </Files>
    
@@ -137,12 +168,12 @@ This document provides a comprehensive security audit report and deployment guid
 
    **Nginx**
    ```nginx
-   # Deny access to sensitive files
-   location ~ /\.(env|git) {
+   # Deny access to sensitive files in util/ directory
+   location ~ /util/\.(env|git) {
        deny all;
    }
    
-   location ~ config\.php$ {
+   location ~ /util/(config|autoload)\.php$ {
        deny all;
    }
    
@@ -179,9 +210,10 @@ This document provides a comprehensive security audit report and deployment guid
    - Configure proper authentication
 
 2. **Enable Authentication**
-   - Uncomment authentication checks in code
-   - Implement user management system
-   - Configure role-based access
+   - Authentication checks are present but may need to be activated
+   - The tools check for $_SESSION['authenticated'] and role-based access
+   - Implement a user management system to set these session variables
+   - Configure role-based access (developer, content_creator, admin, data_analyst)
 
 3. **SSL/TLS Configuration**
    - Ensure HTTPS is properly configured
@@ -228,8 +260,23 @@ For questions about this security audit or deployment:
 - Development Team: dev@luminari.org
 - Documentation: https://docs.luminari.org
 
+## Important Notes
+
+### Internal References
+- The tools contain self-referencing URLs in "Go Back to Form" buttons that now point to `/util/` paths
+- `bonuses.php` links to `bonus_breakdown.php` using the updated `/util/` path
+- All PHP files now include a reference to this documentation file
+
+### File Dependencies
+- `bonus_breakdown.php` requires `config.php` (both in same directory)
+- All code generation tools implement CSRF protection
+- Session management is used across all tools
+
 ## Changelog
 
+- **2025-01-27**: Relocated all PHP tools to util/ directory for better organization
+- **2025-01-27**: Updated all internal references and paths
+- **2025-01-27**: Added documentation references to all PHP files
 - **2025-01-24**: Initial security audit and improvements
 - **2025-01-24**: Code quality refactoring and modernization
 - **2025-01-24**: Performance optimizations and caching implementation

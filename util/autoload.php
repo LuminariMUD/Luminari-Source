@@ -5,6 +5,9 @@
  * This file provides PSR-4 compliant autoloading for the LuminariMUD tools.
  * It follows modern PHP standards and best practices.
  * 
+ * @see ../documentation/PHP_TOOLS_README.md for comprehensive security audit,
+ *      deployment guide, and security best practices for all PHP tools.
+ * 
  * @author LuminariMUD Development Team
  * @version 1.0
  * @since 2025-01-24
