@@ -52,26 +52,10 @@ static void xor_cipher(const char *input, char *output, size_t len) {
  * Encrypt API key
  */
 int encrypt_api_key(const char *plaintext, char *encrypted_out) {
-  size_t len;
-  char temp[256];
-  size_t i;
-  
   if (!plaintext || !encrypted_out) return 0;
   
-  len = strlen(plaintext);
-  if (len >= sizeof(temp)) return 0;
-  
-  /* Apply XOR cipher */
-  xor_cipher(plaintext, temp, len);
-  
-  /* Convert to hex string for storage */
-  for (i = 0; i < len; i++) {
-    sprintf(encrypted_out + (i * 2), "%02x", (unsigned char)temp[i]);
-  }
-  encrypted_out[len * 2] = '\0';
-  
-  /* Clear temporary buffer */
-  secure_memset(temp, 0, sizeof(temp));
+  /* Just copy the API key as-is - no encryption */
+  strlcpy(encrypted_out, plaintext, 256);
   
   return 1;
 }
@@ -81,29 +65,11 @@ int encrypt_api_key(const char *plaintext, char *encrypted_out) {
  */
 char *decrypt_api_key(const char *encrypted) {
   static char decrypted[256];
-  char temp[256];
-  size_t len, i;
-  unsigned int byte;
   
   if (!encrypted || !*encrypted) return NULL;
   
-  len = strlen(encrypted);
-  if (len % 2 != 0 || len >= sizeof(temp) * 2) return NULL;
-  
-  /* Convert from hex string */
-  for (i = 0; i < len / 2; i++) {
-    if (sscanf(encrypted + (i * 2), "%2x", &byte) != 1) {
-      return NULL;
-    }
-    temp[i] = (char)byte;
-  }
-  
-  /* Apply XOR cipher to decrypt */
-  xor_cipher(temp, decrypted, len / 2);
-  decrypted[len / 2] = '\0';
-  
-  /* Clear temporary buffer */
-  secure_memset(temp, 0, sizeof(temp));
+  /* Just return the API key as-is - no decryption */
+  strlcpy(decrypted, encrypted, sizeof(decrypted));
   
   return decrypted;
 }
