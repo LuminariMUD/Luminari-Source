@@ -5,21 +5,26 @@
 ### Features
 - **Enhanced Score Display (do_skore) - Phase 2.6 & 2.7 Complete**: Implemented layout templates and custom section ordering for the enhanced character display:
   - **Phase 2.6 - Layout Templates**: Added predefined layouts optimized for different playstyles
-    - Added `score_layout_template` field to player_special_data_saved
+    - Fields already existed in player_special_data_saved: `score_layout_template` and `score_section_order[8]`
     - Defined 5 layout templates: Default, Combat, Roleplay, Explorer, Caster
-    - Each template reorders sections to prioritize relevant information
-    - Implemented `scoreconfig template <name>` command
-    - Added `get_layout_template()` function with template section arrays
-  - **Phase 2.7 - Section Ordering**: Added custom section ordering capability
-    - Added `score_section_order[8]` array to player_special_data_saved
-    - Defined SECTION_* enums for all 8 display sections
-    - Implemented `scoreconfig order <section> <position>` command
-    - Added section order initialization in db.c for new characters
-    - Reset command now restores both template and custom ordering
+    - Each template reorders sections to prioritize relevant information:
+      - Combat: Combat → Vitals → Abilities → Equipment → Magic → Identity → Experience → Wealth
+      - Roleplay: Identity → Abilities → Wealth → Equipment → Vitals → Experience → Magic → Combat
+      - Explorer: Vitals → Abilities → Equipment → Identity → Experience → Wealth → Magic → Combat  
+      - Caster: Magic → Vitals → Abilities → Identity → Experience → Equipment → Combat → Wealth
+    - Template selection integrated with existing scoreconfig command
+    - Added `get_template_section_order()` function to retrieve template arrays
+  - **Phase 2.7 - Section Ordering**: Custom section ordering fully implemented
+    - SECTION_* enums already defined in structs.h for all 8 display sections
+    - `scoreconfig order <section> <position>` command implemented with swap logic
+    - Section names supported: identity, vitals, experience, abilities, combat, magic, wealth, equipment
+    - Position validation ensures 1-8 range with automatic swap handling
+    - Custom ordering persists and overrides template selection when modified
   - **Implementation Details:**
-    - All preferences persist via binary player file saves
-    - Custom ordering overrides template selection when modified
-    - Infrastructure in place for future dynamic section reordering
+    - Modified do_skore to use dynamic section ordering based on template or custom preferences
+    - Context-aware ordering still applies when no custom order or template is set
+    - All 8 section display functions extracted for modular rendering
+    - Section visibility rules preserved (magic only for casters, equipment density-aware)
 - **Enhanced Score Display (do_skore) - Phase 2.4 & 2.5 Complete**: Extended the enhanced character display with context detection and active effects display:
   - **Phase 2.4 - Context Detection**: Added automatic context awareness to reorder sections based on character activity
     - Implemented `get_display_context()` function detecting combat, exploring, roleplay, and shopping contexts

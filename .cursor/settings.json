@@ -1,0 +1,38 @@
+{
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.trimAutoWhitespace": true,
+  "editor.rulers": [80],
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  
+  "C_Cpp.default.cStandard": "c99",
+  "C_Cpp.default.compilerPath": "/usr/bin/gcc",
+  "C_Cpp.default.intelliSenseMode": "gcc-x64",
+  "C_Cpp.errorSquiggles": "enabled",
+  "C_Cpp.autocomplete": "default",
+  "C_Cpp.formatting": "clangFormat",
+  
+  "files.associations": {
+    "*.h": "c",
+    "*.c": "c",
+    "Makefile*": "makefile"
+  },
+  
+  "search.exclude": {
+    "**/*.o": true,
+    "**/*.a": true,
+    "**/core": true,
+    "**/*.log": true,
+    "**/lib/**": true,
+    "**/data/**": true,
+    "**/mysql/**": true
+  },
+  
+  "editor.semanticHighlighting.enabled": true,
+  "breadcrumbs.enabled": true,
+  "outline.showFunctions": true,
+  "outline.showVariables": true
+} 
