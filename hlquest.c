@@ -967,28 +967,37 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count)
           qcom->type = QUEST_COMMAND_CAST_SPELL;
           break;
         }
-        switch (inner[0])
+        /* Check if we've hit the terminator before processing direction */
+        if (*inner != 'S')
         {
-        case 'I':
-          qcom->next = quest->in;
-          quest->in = qcom;
-          break;
-        case 'O':
-          if (quest->out == 0)
-            quest->out = qcom;
-          else
+          switch (inner[0])
           {
-            qlast = quest->out;
-            while (qlast->next != 0)
-              qlast = qlast->next;
-            qlast->next = qcom;
+          case 'I':
+            qcom->next = quest->in;
+            quest->in = qcom;
+            break;
+          case 'O':
+            if (quest->out == 0)
+              quest->out = qcom;
+            else
+            {
+              qlast = quest->out;
+              while (qlast->next != 0)
+                qlast = qlast->next;
+              qlast->next = qcom;
+            }
+            break;
+          default:
+            /* Invalid quest command type - free the allocated memory */
+            log("SYSERR: Invalid quest command type '%c' in quest file", inner[0]);
+            free(qcom);
+            break;
           }
-          break;
-        default:
-          /* Invalid quest command type - free the allocated memory */
-          log("SYSERR: Invalid quest command type '%c' in quest file", inner[0]);
+        }
+        else
+        {
+          /* Hit the terminator 'S' - free the command as it won't be used */
           free(qcom);
-          break;
         }
       } while (*inner != 'S');
       break;

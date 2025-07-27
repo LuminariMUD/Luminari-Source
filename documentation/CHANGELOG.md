@@ -2,72 +2,47 @@
 
 ## 2025-07-27
 
-### Major Feature: OpenAI Integration
+### Critical Bug Fixes
+- **Fixed use-after-free in DG Script triggers** (dg_triggers.c)
+  - Issue: `greet_mtrigger()` was accessing freed memory when iterating through triggers after `script_driver()` call
+  - Root cause: `script_driver()` can free the script and its triggers, invalidating the loop iterator
+  - Fix: Cache `t->next` before calling `script_driver()` to ensure safe iteration
+  - Impact: Prevents potential crashes during NPC greet trigger execution
 
-**Implemented complete OpenAI integration for dynamic NPC dialogue**
+- **Fixed potential use-after-free in weather system** (weather.c)
+  - Issue: `reset_dailies()` was iterating through character_list without caching next pointer
+  - Root cause: `send_to_char()` could trigger character extraction during iteration
+  - Fix: Cache `ch->next` before operations that could remove characters
+  - Impact: Prevents crashes during daily reset operations (every 6 game hours)
 
-#### Core Implementation
-- Added `ai_service.c/h` - Main AI service module with CURL integration
-- Added `ai_cache.c` - In-memory response caching with LRU eviction
-- Added `ai_security.c` - API key encryption and input sanitization
-- Added `ai_events.c` - Event system integration for delayed responses
-- Added `dotenv.c/h` - Environment variable parser for configuration
-- Modified `act.comm.c` - Enhanced do_tell to support AI-powered NPCs
-- Modified `act.wizard.c` - Added 'ai' admin command for service management
-- Modified `interpreter.c` - Registered new 'ai' command
-- Modified `structs.h` - Added MOB_AI_ENABLED flag (bit 98)
-- Modified `constants.c` - Added "AI-Enabled" to action_bits array
-- Modified `Makefile.in` - Added AI service compilation rules
+- **Fixed object use-after-free during combat looting** (act.item.c)
+  - Issue: Money objects were being accessed after extraction in `perform_get_from_container()` and `perform_get_from_room()`
+  - Root cause: `get_check_money()` extracts money objects, but code continued to use the freed object pointer
+  - Fix: Check if object is money before extraction, skip further object operations if it was money
+  - Impact: Prevents crashes during corpse looting and picking up money
 
-#### Configuration
-- Created `.env.example` - Configuration template with detailed documentation
-- Environment variables loaded from `lib/.env` file
-- Supports multiple OpenAI models (gpt-4.1-mini default)
-- Configurable rate limiting and caching
+- **Fixed invalid read during shutdown** (db.c)
+  - Issue: Craft list traversal was corrupted during game shutdown
+  - Root cause: Using `simple_list()` while removing items corrupts its static iterator
+  - Fix: Use proper iterator pattern instead of `simple_list()` during list cleanup
+  - Impact: Prevents crashes during game shutdown when cleaning up craft data
 
-#### Database Changes
-- Added `ai_config` table for configuration storage
-- Added `ai_requests` table for usage logging
-- Added `ai_cache` table for persistent caching option
-- Added `ai_npc_personalities` table for NPC customization
-- Created stored procedures for cache cleanup and usage statistics
+- **Fixed uninitialized memory in event queue** (dg_event.c)
+  - Issue: Queue element pointers not explicitly initialized, causing valgrind warnings
+  - Root cause: Although `CREATE` uses `calloc()`, valgrind still reported uninitialized values
+  - Fix: Explicitly set `prev` and `next` pointers to NULL in `queue_enq()`
+  - Impact: Eliminates valgrind warnings about uninitialized memory in event system
 
-#### Security Features
-- API keys stored encrypted (XOR cipher, AES recommended for production)
-- Input sanitization for all prompts
-- Secure memory handling for sensitive data
-- Rate limiting to prevent API abuse
+- **Fixed multiple character list use-after-free bugs** (quest.c, dg_scripts.c)
+  - Issue: Several functions iterating character_list without caching next pointer
+  - Locations: `check_timed_quests()`, `check_trigger()`, `check_time_triggers()`
+  - Root cause: Functions that send messages or execute scripts could extract characters
+  - Fix: Cache `ch->next` before operations that could remove characters
+  - Impact: Prevents crashes during quest timeouts and script trigger execution
 
-#### Performance Optimizations
-- Response caching with 1-hour default TTL
-- LRU cache eviction when size exceeds limit
-- Event-based delayed responses for natural conversation flow
-- Retry logic with exponential backoff
-
-#### Documentation
-- Created `AI_SERVICE_README.md` - Complete setup and usage guide
-- Updated `OPEN_AI.md` - Marked as IMPLEMENTED with usage instructions
-- Updated `OPEN_AI_TECH.md` - Added implementation notes and actual code
-- Created `ai_service_migration.sql` - Database migration script
-
-#### Known Limitations
-- XOR encryption is basic (upgrade to AES for production)
-- Simplified JSON parsing (full json-c integration optional)
-- medit support for AI flag not yet implemented
-
-#### Usage
-```
-# Enable AI service
-ai enable
-
-# Test connectivity
-ai test
-
-# Enable AI for an NPC (set MOB_AI_ENABLED flag)
-# Then: tell <npc_name> Hello!
-```
-
-#### Cost Considerations
-- Default model gpt-4.1-mini is 83% cheaper than gpt-4o
-- Alternative gpt-4o-mini at $0.15/1M input tokens
-- Aggressive caching reduces API calls by ~70%
+- **Fixed hlquest parser bug causing 500+ false errors** (hlquest.c)
+  - Issue: "Invalid quest command type 'S' in quest file" logged 500+ times during boot
+  - Root cause: 'S' was used both as QUEST_COMMAND_CAST_SPELL and as a loop terminator
+  - Details: Parser would create CAST_SPELL command then try to process 'S' as direction (I/O)
+  - Fix: Check if we've hit the terminator 'S' before processing command direction
+  - Impact: Eliminates 500+ false error messages during server startup
