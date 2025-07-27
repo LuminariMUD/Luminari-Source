@@ -24,9 +24,20 @@
 #include "dotenv.h"
 #include <curl/curl.h>
 #include <unistd.h>
+#include <pthread.h>
 
 /* Global AI Service State */
 struct ai_service_state ai_state = {0};
+
+/* Thread request structure */
+struct ai_thread_request {
+  char *prompt;
+  char *cache_key;
+  struct char_data *ch;
+  struct char_data *npc;
+  int request_type;
+  pthread_t thread_id;
+};
 
 /* CURL Response Buffer */
 struct curl_response {
@@ -39,6 +50,7 @@ static size_t ai_curl_write_callback(void *contents, size_t size, size_t nmemb, 
 static char *make_api_request(const char *prompt);
 static char *build_json_request(const char *prompt);
 static char *parse_json_response(const char *json_str);
+static void *ai_thread_worker(void *arg);
 /* static void derive_key_from_seed(unsigned char *key); */
 
 /**
@@ -688,17 +700,37 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
     "Player says: \"%s\"",
     GET_NAME(npc) ? GET_NAME(npc) : "someone", input);
   
-  /* Try to get immediate response */
-  response = ai_generate_response_async(prompt, AI_REQUEST_NPC_DIALOGUE, 0);
-  
-  if (response) {
-    /* Got immediate response, queue it */
-    queue_ai_response(ch, npc, response);
-    free(response);
-  } else {
-    /* Need to retry, queue retry event */
-    queue_ai_request_retry(prompt, AI_REQUEST_NPC_DIALOGUE, 0, ch, npc);
+  /* Create thread request */
+  struct ai_thread_request *req;
+  CREATE(req, struct ai_thread_request, 1);
+  if (!req) {
+    log("SYSERR: Failed to allocate thread request");
+    return;
   }
+  
+  req->prompt = strdup(prompt);
+  req->cache_key = strdup(cache_key);
+  req->ch = ch;
+  req->npc = npc;
+  req->request_type = AI_REQUEST_NPC_DIALOGUE;
+  
+  /* Create detached thread to handle the request */
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+  
+  if (pthread_create(&req->thread_id, &attr, ai_thread_worker, req) != 0) {
+    log("SYSERR: Failed to create AI thread");
+    /* Fall back to event system */
+    free(req->prompt);
+    free(req->cache_key);
+    free(req);
+    queue_ai_request_retry(prompt, AI_REQUEST_NPC_DIALOGUE, 0, ch, npc);
+  } else {
+    AI_DEBUG("Created thread for AI request");
+  }
+  
+  pthread_attr_destroy(&attr);
 }
 
 /**
@@ -1111,4 +1143,39 @@ char *ai_generate_response_async(const char *prompt, int request_type, int retry
   }
   
   return response;
+}
+
+/**
+ * Thread worker function for async API calls
+ */
+static void *ai_thread_worker(void *arg) {
+  struct ai_thread_request *req = (struct ai_thread_request *)arg;
+  char *response;
+  
+  AI_DEBUG("Thread worker started for request type %d", req->request_type);
+  
+  /* Make the blocking API call in this thread */
+  response = make_api_request(req->prompt);
+  
+  if (response) {
+    /* Cache the response */
+    if (req->cache_key) {
+      ai_cache_response(req->cache_key, response);
+    }
+    
+    /* Queue the response to be delivered in main thread */
+    queue_ai_response(req->ch, req->npc, response);
+    free(response);
+    
+    AI_DEBUG("Thread worker completed successfully");
+  } else {
+    AI_DEBUG("Thread worker failed to get response");
+  }
+  
+  /* Cleanup */
+  if (req->prompt) free(req->prompt);
+  if (req->cache_key) free(req->cache_key);
+  free(req);
+  
+  return NULL;
 }
