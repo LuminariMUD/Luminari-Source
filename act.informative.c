@@ -3966,6 +3966,7 @@ ACMD(do_skore)
             if (CLASS_LEVEL(ch, i) > 0) {
               // Check if this class has any spell slots
               int has_spells = FALSE;
+              int circle;
               for (circle = 1; circle <= 9; circle++) {
                 if (compute_slots_by_circle(ch, i, circle) > 0) {
                   has_spells = TRUE;
@@ -4227,7 +4228,6 @@ ACMD(do_skore)
       
       // Display spell slots for each casting class
       int class_idx, circle;
-      int slot_check;
       
       for (class_idx = 0; class_idx < MAX_CLASSES; class_idx++) {
         if (CLASS_LEVEL(ch, class_idx) > 0) {
