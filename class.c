@@ -6164,7 +6164,7 @@ void load_class_list(void)
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Con for survivability, Str for combat",
          /*descrip*/ "Blackguards, also referred to as antipaladins, are the quintessential "
-                     "champions of evil in Faerun. They lead armies of dread forces such as undead, "
+                     "champions of evil. They lead armies of dread forces such as undead, "
                      "fiends, and other extra-planar beings, often in the name of the more malevolent "
                      "deities. These individuals had the reputation as some of most reviled villains. "
                      "They are just as equally feared as they are despised by the free folk of the "
