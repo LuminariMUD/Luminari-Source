@@ -2606,7 +2606,7 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
     send_to_char(ch, "\tMYou have respec'd!\tn\r\n");
     if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
       send_to_char(ch, "\tMYou have chosen a premade %s build\tn\r\n", class_list[class].name);
-    send_to_char(ch, "\tDType 'gain' to regain your level(s)...\tn\r\n");
+    send_to_char(ch, "\tDUse 'gain' and 'study' to regain your level(s)...\tn\r\n");
   }
 
   save_char(ch, 1);

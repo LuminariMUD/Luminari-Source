@@ -3706,7 +3706,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_UNHOLY_CHAMPION, "unholy champion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "When using corrupting touch or channel energy, the healing amount on undead is maximized, or otherwise the damage is maximized.",
         "When using corrupting touch or channel energy, the healing amount on undead is maximized, or otherwise the damage is maximized. "
-        "Additionally the blackguard's damage reduction is increased by 2/-. This stacks with aura of depravity, and holy warrior. "
+        "Additionally the blackguard's damage reduction is increased by 2/-. This stacks with aura of depravity, and unholy warrior. "
         "Finally, anytime smite good is used on a good outsider, the outsider has a chance to be banished.  This may not work on boss-type mobs.");
 
   /* Rogue */
@@ -5074,7 +5074,9 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_EXTRA_RAGE, "extra rage", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
 
   /* fighter */
-  feato(FEAT_WEAPON_FLURRY, "weapon flurry", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action", "2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action");
+  feato(FEAT_WEAPON_FLURRY, "weapon flurry", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, 
+    "2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action", 
+    "2nd attack at -5 to hit with standard action or extra attack at full bonus with full round action");
   feato(FEAT_WEAPON_SUPREMACY, "weapon supremacy", FALSE, TRUE, TRUE, FEAT_TYPE_COMBAT, "+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon", "+4 to resist disarm, ignore grapples, add +5 to hit roll when miss by 5 or less, can take 10 on attack rolls, +1 bonus to AC when wielding weapon");
 
   /* rogue (make talent or advanced talent?) */
