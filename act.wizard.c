@@ -6286,7 +6286,7 @@ ACMD(do_ai)
   char arg1[MAX_INPUT_LENGTH];
   char arg2[MAX_INPUT_LENGTH];
   
-  two_arguments(argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   
   if (!*arg1) {
     send_to_char(ch, "AI Service Status:\r\n");

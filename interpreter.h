@@ -72,6 +72,7 @@ void show_character_background_archtype_menu(struct descriptor_data *d);
 bool command_can_be_used_while_casting(int cmd);
 
 ACMD_DECL(do_account);
+ACMD_DECL(do_ai);
 
 /* ACMDs available through interpreter.c */
 ACMD_DECL(do_alias);
