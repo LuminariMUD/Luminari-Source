@@ -34,19 +34,6 @@ void secure_memset(void *ptr, int value, size_t num) {
   }
 }
 
-/**
- * Simple XOR encryption (NOT cryptographically secure - for demonstration only)
- * In production, use OpenSSL or similar library
- */
-static void xor_cipher(const char *input, char *output, size_t len) {
-  const char *key = CIPHER_KEY;
-  size_t key_len = strlen(key);
-  size_t i;
-  
-  for (i = 0; i < len; i++) {
-    output[i] = input[i] ^ key[i % key_len];
-  }
-}
 
 /**
  * Encrypt API key
