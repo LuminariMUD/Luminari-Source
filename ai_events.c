@@ -308,9 +308,14 @@ void queue_ai_request_retry(const char *prompt, int request_type, int retry_coun
   event_data->npc = npc;
   AI_DEBUG("  Characters: ch=%p, npc=%p", (void*)ch, (void*)npc);
   
-  /* Calculate exponential backoff delay: 2^retry_count seconds */
-  delay = 1 << retry_count;
-  AI_DEBUG("Calculated exponential backoff: %d seconds (2^%d)", delay, retry_count);
+  /* Minimal initial delay to avoid blocking immediately */
+  if (retry_count == 0) {
+    delay = 1;  /* 0.1 seconds for first attempt */
+  } else {
+    /* Calculate exponential backoff delay for retries: 2^retry_count seconds */
+    delay = 1 << retry_count;
+  }
+  AI_DEBUG("Calculated delay: %d pulses (retry_count=%d)", delay, retry_count);
   
   if (delay > 16) {
     delay = 16; /* Cap at 16 seconds */
