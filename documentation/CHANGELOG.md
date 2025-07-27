@@ -42,6 +42,7 @@
 
 ### Documentation
 - **Added Thread Safety Documentation**: Added comprehensive comments to spell_prep.c and spell_prep.h clarifying that LuminariMUD is single-threaded and the spell preparation system has no concurrency issues. Added comments at `event_preparation()`, event creation check, and in the header file overview to prevent future confusion about race conditions. This addresses audit issue #6 which was incorrectly identified as a potential race condition.
+- **Enhanced compute_spell_res() Documentation**: Added comprehensive in-code documentation to the `compute_spell_res()` function in magic.c to improve code readability for new developers. Added detailed function header explaining spell resistance mechanics in D&D/Pathfinder, clarified the dual purpose of the 'ch' parameter (combat caster vs informational viewer), organized spell resistance sources into clear sections (feat-based, evolution-based, creature type, spell effects), documented each SR calculation with formulas and game mechanics context, added notes about conditional SR (Holy Aura vs evil casters), and explained the MAX() vs addition logic for different SR sources. This makes the complex spell resistance system much more understandable for developers unfamiliar with the codebase or D&D mechanics.
 
 ## 2025-07-26
 

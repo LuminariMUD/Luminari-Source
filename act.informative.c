@@ -2271,7 +2271,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
   send_to_char(ch, "\r\n\tC");
   text_line(ch, "\tYSpell Resistance\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
-  send_to_char(ch, "Spell Resist: %d\r\n", compute_spell_res(NULL, k, 0));
+  send_to_char(ch, "Spell Resist: %d\r\n", compute_spell_res(k, k, 0));
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tYConcealment\tC", 80, '-', '-');
@@ -3920,7 +3920,7 @@ ACMD(do_skore)
       send_to_char(ch, "\tc|\tn \tcDamage Reduction:\tn %-3d                                                  \tc|\tn\r\n",
                    compute_damage_reduction(ch, DAM_RESERVED_DBC));
       send_to_char(ch, "\tc|\tn \tcSpell Resistance:\tn %-3d                                                  \tc|\tn\r\n",
-                   compute_spell_res(NULL, ch, 0));
+                   compute_spell_res(ch, ch, 0));
       
       send_to_char(ch, "\tc+-- Weapon Information ---------------------------------------------------------+\tn\r\n");
       if (wielded) {
@@ -4198,7 +4198,7 @@ ACMD(do_skore)
                GET_HITROLL(ch) >= 0 ? "+" : "", GET_HITROLL(ch),
                GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch),
                compute_damage_reduction(ch, DAM_RESERVED_DBC),
-               compute_spell_res(NULL, ch, 0));
+               compute_spell_res(ch, ch, 0));
 
   // Weapon information
   if (wielded) {

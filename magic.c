@@ -49,26 +49,67 @@ static void perform_mag_groups(int level, struct char_data *ch,
                                struct char_data *tch, struct obj_data *obj, int spellnum,
                                int savetype, int casttype);
 
-// Magic Resistance, ch is challenger, vict is resistor, modifier applys to vict
-
+/**
+ * compute_spell_res() - Calculate a character's total spell resistance value
+ * 
+ * This function computes the spell resistance (SR) value for a character.
+ * Spell resistance is a special defensive ability that allows a character to
+ * avoid the effects of spells and spell-like abilities. When a spell is cast
+ * on a character with SR, the caster must make a caster level check (1d20 + 
+ * caster level) to overcome the SR value.
+ * 
+ * @param ch       The caster attempting to overcome SR, OR the viewer for informational purposes
+ *                 - In combat: The spellcaster trying to affect vict
+ *                 - In stat/score commands: The person viewing the information (often same as vict)
+ *                 - Currently only affects calculation for SPELL_HOLY_AURA (vs evil casters)
+ * @param vict     The character whose spell resistance we're calculating  
+ * @param modifier Additional modifier to be added to the final SR value
+ * 
+ * @return         The total spell resistance value (0-99)
+ * 
+ * HOW SPELL RESISTANCE WORKS IN D&D/PATHFINDER:
+ * - SR is expressed as a number (e.g., SR 25)
+ * - To affect a creature with SR, caster rolls: 1d20 + caster level
+ * - If the roll equals or exceeds the SR value, the spell works normally
+ * - If the roll is less than SR, the spell has no effect on that creature
+ * - SR does NOT affect all spells - some spells bypass SR entirely
+ */
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier)
 {
   int resist = 0;
   
-  // NULL check - return 0 if no victim
+  /* Safety check: If there's no victim, there's no spell resistance to calculate */
   if (!vict)
     return 0;
     
+  /* Start with the character's base spell resistance value
+   * This could come from race, class features, or equipment */
   resist = GET_SPELL_RES(vict);
+  
+  /* NOTE: The 'ch' parameter serves dual purposes:
+   * 1. In combat - represents the caster trying to overcome this SR
+   * 2. In informational commands - represents the viewer (often staff or the character themselves)
+   * 
+   * Currently, 'ch' only affects the calculation for SPELL_HOLY_AURA (grants SR vs evil casters).
+   * When ch is NULL or when viewing for information only, Holy Aura won't provide its bonus.
+   * This could be expanded for other conditional SR (e.g., SR vs specific classes/races) */
 
-  // additional adjustmenets
-
+  /* === FEAT-BASED SPELL RESISTANCE === */
+  
+  /* Diamond Soul (Monk ability): Grants SR equal to 10 + monk level
+   * This represents the monk's ki-enhanced spiritual defenses */
   if (HAS_FEAT(vict, FEAT_DIAMOND_SOUL))
     resist = MAX(resist, 10 + MONK_TYPE(vict));
 
+  /* Drow Spell Resistance: Full drow get SR = 10 + character level
+   * This is a racial ability of the drow (dark elves) */
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_DROW_SPELL_RESISTANCE))
     resist = MAX(resist, 10 + GET_LEVEL(vict));
 
+  /* Half-Drow Spell Resistance: Weaker version that scales with level
+   * - Levels 1-19:  SR = 5 + (level/2)
+   * - Levels 20-29: SR = 10 + (level/2)
+   * - Level 30+:    SR = 15 + (level/2) */
   if (HAS_FEAT(vict, FEAT_HALF_DROW_SPELL_RESISTANCE))
   {
     if (GET_LEVEL(vict) >= 30)
@@ -79,14 +120,20 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
       resist = MAX(resist, 5 + GET_LEVEL(vict) / 2);
   }
 
+  /* === EVOLUTION-BASED SPELL RESISTANCE (Summoner Eidolon abilities) === */
+  
+  /* Basic Evolution Spell Resistance
+   * If the eidolon also has celestial/fiendish appearance, it gets stronger SR */
   if (HAS_EVOLUTION(vict, EVOLUTION_SPELL_RESISTANCE))
   {
     if (HAS_EVOLUTION(vict, EVOLUTION_FIENDISH_APPEARANCE) || HAS_EVOLUTION(vict, EVOLUTION_CELESTIAL_APPEARANCE))
-      resist = MAX(resist, 15 + GET_LEVEL(vict));
+      resist = MAX(resist, 15 + GET_LEVEL(vict));  /* Enhanced SR for outsider-type eidolons */
     else
-      resist = MAX(resist, 10 + GET_LEVEL(vict));
+      resist = MAX(resist, 10 + GET_LEVEL(vict));  /* Standard SR for basic eidolons */
   }
 
+  /* Celestial/Fiendish Appearance grants additional SR based on eidolon level
+   * Higher level eidolons (12+) get better base SR */
   if (HAS_EVOLUTION(vict, EVOLUTION_CELESTIAL_APPEARANCE) || HAS_EVOLUTION(vict, EVOLUTION_FIENDISH_APPEARANCE))
   {
     if (GET_CALL_EIDOLON_LEVEL(vict) >= 12)
@@ -95,44 +142,69 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
       resist = MAX(resist, 5 + GET_CALL_EIDOLON_LEVEL(vict));
   }
 
+  /* === CREATURE TYPE SPELL RESISTANCE === */
+  
+  /* Liches are powerful undead with strong spell resistance */
   if (IS_LICH(vict))
     resist = MAX(resist, 15 + GET_LEVEL(vict));
 
-  if (HAS_FEAT(vict, FEAT_DRACONIC_RESISTANCE))
-    resist = MAX(resist, 5 + GET_LEVEL(vict));
-
-  if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE))
-    resist = MAX(resist, 2 * HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE));
-
-  if (affected_by_spell(vict, SPELL_PROTECT_FROM_SPELLS))
-    resist += 10;
-
-  if (affected_by_spell(vict, SKILL_INNER_FIRE))
-    resist = MAX(resist, 25);
-
-  if (affected_by_spell(vict, SPELL_HOLY_AURA) && ch && IS_EVIL(ch))
-    resist = MAX(resist, 25);
-
-  if (IS_AFFECTED(vict, AFF_SPELL_RESISTANT))
-    resist = MAX(resist, 12 + GET_LEVEL(vict));
-
-  if (!IS_NPC(vict) && GET_EQ(vict, WEAR_SHIELD) && HAS_FEAT(vict, FEAT_ARMOR_MASTERY_2))
-    resist = MAX(resist, 25);
-
-  if (HAS_FEAT(vict, FEAT_FAE_RESISTANCE))
-    resist = MAX(resist, 15 + GET_LEVEL(vict));
-  else if (IS_PIXIE(vict))
-    resist = MAX(resist, 15);
-
+  /* Dragons naturally have spell resistance
+   * Base dragon SR is a flat 25 (powerful but doesn't scale) */
   if (IS_DRAGON(vict))
     resist = MAX(resist, 25);
 
+  /* Draconic heritage provides weaker scaling SR */
+  if (HAS_FEAT(vict, FEAT_DRACONIC_RESISTANCE))
+    resist = MAX(resist, 5 + GET_LEVEL(vict));
+
+  /* Draconians (dragon-blooded humanoids) get moderate SR */
   if (HAS_FEAT(vict, FEAT_DRACONIAN_SPELL_RESISTANCE))
     resist = MAX(resist, 10 + GET_LEVEL(vict));
 
-  // adjustments passed to mag_resistance
+  /* Fae creatures (faeries, pixies) have natural magical resistance */
+  if (HAS_FEAT(vict, FEAT_FAE_RESISTANCE))
+    resist = MAX(resist, 15 + GET_LEVEL(vict));
+  else if (IS_PIXIE(vict))
+    resist = MAX(resist, 15);  /* Base pixie SR doesn't scale */
+
+  /* === FEAT AND ABILITY ENHANCEMENTS === */
+  
+  /* Improved Spell Resistance feat: Each rank gives +2 SR
+   * This feat can be taken multiple times */
+  if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE))
+    resist = MAX(resist, 2 * HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE));
+
+  /* Armor Mastery with shield: Defensive fighting style grants SR 25 */
+  if (!IS_NPC(vict) && GET_EQ(vict, WEAR_SHIELD) && HAS_FEAT(vict, FEAT_ARMOR_MASTERY_2))
+    resist = MAX(resist, 25);
+
+  /* === SPELL AND EFFECT BONUSES === */
+  
+  /* Protect from Spells: Abjuration spell that adds flat +10 SR */
+  if (affected_by_spell(vict, SPELL_PROTECT_FROM_SPELLS))
+    resist += 10;  /* Note: This ADDS rather than using MAX */
+
+  /* Inner Fire: Psionic ability granting moderate SR */
+  if (affected_by_spell(vict, SKILL_INNER_FIRE))
+    resist = MAX(resist, 25);
+
+  /* Holy Aura: Protects good creatures from evil casters
+   * Only provides SR against evil-aligned spellcasters
+   * NOTE: This is where the 'ch' parameter is used - to check if the caster is evil */
+  if (affected_by_spell(vict, SPELL_HOLY_AURA) && ch && IS_EVIL(ch))
+    resist = MAX(resist, 25);
+
+  /* General spell resistance affect (could be from items or temporary effects) */
+  if (IS_AFFECTED(vict, AFF_SPELL_RESISTANT))
+    resist = MAX(resist, 12 + GET_LEVEL(vict));
+
+  /* Apply any external modifier passed to the function
+   * This allows spells or abilities to temporarily adjust SR */
   resist += modifier;
 
+  /* Cap the result between 0 and 99
+   * SR can never be negative, and 99 is the system maximum
+   * (SR 99 means only natural 20s can penetrate it) */
   return MIN(99, MAX(0, resist));
 }
 
