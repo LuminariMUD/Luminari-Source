@@ -2206,22 +2206,28 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
         snprintf(buf, sizeof(buf), "$n gets $p from %s.", cont->short_description);
         act(buf, TRUE, ch, obj, tch, TO_VICT);
       }
+      /* Check if it's money before calling get_check_money */
+      bool was_money = (GET_OBJ_TYPE(obj) == ITEM_MONEY);
       get_check_money(ch, obj);
-      if (cont->carried_by != ch)
+      
+      /* If it was money, obj has been extracted, so don't use it anymore */
+      if (!was_money)
       {
-        if (IS_OBJ_CONSUMABLE(obj) && !IS_NPC(ch) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
-          auto_store_obj(ch, obj);
-        else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_SORT))
-          auto_sort_obj(ch, obj);
+        if (cont->carried_by != ch)
+        {
+          if (IS_OBJ_CONSUMABLE(obj) && !IS_NPC(ch) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
+            auto_store_obj(ch, obj);
+          else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_SORT))
+            auto_sort_obj(ch, obj);
+        }
+        /* in case you get a light from your container */
+        check_room_lighting_special(IN_ROOM(ch), ch, obj, TRUE);
       }
       if (ct > 0)
         do_clan_tax_losses(ch, ct);
       // delay for taking items out in combat (and fail tumble check)
     }
   }
-
-  /* in case you get a light from your container */
-  check_room_lighting_special(IN_ROOM(ch), ch, obj, TRUE);
 }
 
 void get_from_container(struct char_data *ch, struct obj_data *cont,
@@ -2300,10 +2306,18 @@ static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
     obj_to_char(obj, ch);
     act("You get $p.", FALSE, ch, obj, 0, TO_CHAR);
     act("$n gets $p.", TRUE, ch, obj, 0, TO_ROOM);
-    if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
-      auto_store_obj(ch, obj);
-    else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_SORT))
-      auto_sort_obj(ch, obj);
+    
+    /* Check if it's money before calling get_check_money */
+    bool was_money = (GET_OBJ_TYPE(obj) == ITEM_MONEY);
+    
+    if (!was_money)
+    {
+      if (IS_OBJ_CONSUMABLE(obj) && PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
+        auto_store_obj(ch, obj);
+      else if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_SORT))
+        auto_sort_obj(ch, obj);
+    }
+    
     get_check_money(ch, obj);
 
     /* this is necessary because of disarm */

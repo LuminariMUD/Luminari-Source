@@ -698,8 +698,11 @@ void script_trigger_check(void)
   int nr;
   struct script_data *sc;
 
-  for (ch = character_list; ch; ch = ch->next)
+  char_data *next_ch;
+  for (ch = character_list; ch; ch = next_ch)
   {
+    next_ch = ch->next; /* Cache next char before potential script extraction */
+    
     if (SCRIPT(ch))
     {
       sc = SCRIPT(ch);
@@ -739,14 +742,16 @@ void script_trigger_check(void)
 
 void check_time_triggers(void)
 {
-  char_data *ch;
+  char_data *ch, *next_ch;
   obj_data *obj;
   struct room_data *room = NULL;
   int nr;
   struct script_data *sc;
 
-  for (ch = character_list; ch; ch = ch->next)
+  for (ch = character_list; ch; ch = next_ch)
   {
+    next_ch = ch->next; /* Cache next char before potential script extraction */
+    
     if (SCRIPT(ch))
     {
       sc = SCRIPT(ch);

@@ -216,7 +216,7 @@ void greet_memory_mtrigger(char_data *actor)
 
 int greet_mtrigger(char_data *actor, int dir)
 {
-  trig_data *t = NULL;
+  trig_data *t = NULL, *next_t = NULL;
   char_data *ch = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int intermediate = 0, final = TRUE;
@@ -231,8 +231,9 @@ int greet_mtrigger(char_data *actor, int dir)
         AFF_FLAGGED(ch, AFF_CHARM))
       continue;
 
-    for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next)
+    for (t = TRIGGERS(SCRIPT(ch)); t; t = next_t)
     {
+      next_t = t->next; /* Cache next trigger before potential script extraction */
       if (((IS_SET(GET_TRIG_TYPE(t), MTRIG_GREET) && CAN_SEE(ch, actor)) ||
            IS_SET(GET_TRIG_TYPE(t), MTRIG_GREET_ALL)) &&
           !GET_TRIG_DEPTH(t) && (rand_number(1, 100) <= GET_TRIG_NARG(t)))

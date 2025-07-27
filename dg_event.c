@@ -209,6 +209,8 @@ struct q_element *queue_enq(struct dg_queue *q, void *data, long key)
   CREATE(qe, struct q_element, 1);
   qe->data = data;
   qe->key = key;
+  qe->prev = NULL;  /* Explicitly initialize to prevent valgrind warnings */
+  qe->next = NULL;  /* Explicitly initialize to prevent valgrind warnings */
 
   bucket = key % NUM_EVENT_QUEUES; /* which queue does this go in */
 
