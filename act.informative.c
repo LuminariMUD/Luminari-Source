@@ -3802,6 +3802,8 @@ static void skore_section_header(struct char_data *ch, const char *title, int wi
 
 static const char *get_health_color(struct char_data *ch, int current, int max)
 {
+  int theme, percentage;
+  
   if (max <= 0) return "\tn";
 
   // Check if colors are disabled
@@ -3809,39 +3811,162 @@ static const char *get_health_color(struct char_data *ch, int current, int max)
     return "\tn";
   }
 
-  int percentage = (current * 100) / max;
-  if (percentage >= 75) return "\tG"; // Green for healthy
-  if (percentage >= 50) return "\tY"; // Yellow for wounded
-  if (percentage >= 25) return "\tO"; // Orange for badly wounded
-  return "\tR"; // Red for critical
+  percentage = (current * 100) / max;
+  theme = !IS_NPC(ch) ? GET_SCORE_COLOR_THEME(ch) : SCORE_THEME_ENHANCED;
+
+  switch (theme) {
+    case SCORE_THEME_CLASSIC:
+      // Classic: Simple red when critical, white otherwise
+      return (percentage < 25) ? "\tR" : "\tn";
+      
+    case SCORE_THEME_MINIMAL:
+      // Minimal: Only two states
+      return (percentage < 50) ? "\tR" : "\tG";
+      
+    case SCORE_THEME_HIGHCONTRAST:
+      // High contrast: Bold colors
+      if (percentage >= 75) return "\tW"; // Bright white for healthy
+      if (percentage >= 50) return "\tY"; // Yellow for wounded
+      if (percentage >= 25) return "\tM"; // Magenta for badly wounded
+      return "\tR"; // Red for critical
+      
+    case SCORE_THEME_DARK:
+      // Dark theme: Muted colors
+      if (percentage >= 75) return "\tc"; // Cyan for healthy
+      if (percentage >= 50) return "\ty"; // Dark yellow for wounded
+      if (percentage >= 25) return "\tr"; // Dark red for badly wounded
+      return "\tR"; // Bright red for critical
+      
+    case SCORE_THEME_COLORBLIND:
+      // Colorblind-friendly: Avoid red-green
+      if (percentage >= 75) return "\tB"; // Blue for healthy
+      if (percentage >= 50) return "\tW"; // White for wounded
+      if (percentage >= 25) return "\tY"; // Yellow for badly wounded
+      return "\tM"; // Magenta for critical
+      
+    case SCORE_THEME_ENHANCED:
+    default:
+      // Enhanced: Full color gradient
+      if (percentage >= 75) return "\tG"; // Green for healthy
+      if (percentage >= 50) return "\tY"; // Yellow for wounded
+      if (percentage >= 25) return "\tO"; // Orange for badly wounded
+      return "\tR"; // Red for critical
+  }
 }
 
 static const char *get_class_color(struct char_data *ch, int class_num)
 {
+  int theme;
+  
   // Check if colors are disabled
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_NOCOLOR)) {
     return "\tn";
   }
 
-  // Color classes based on their type
-  switch (class_num) {
-    case CLASS_WIZARD:
-    case CLASS_SORCERER:
-    case CLASS_BARD:
-      return "\tB"; // Blue for arcane casters
-    case CLASS_CLERIC:
-    case CLASS_DRUID:
-    case CLASS_PALADIN:
-    case CLASS_RANGER:
-      return "\tG"; // Green for divine casters
-    case CLASS_WARRIOR:
-    case CLASS_BERSERKER:
-    case CLASS_MONK:
-      return "\tR"; // Red for martial classes
-    case CLASS_ROGUE:
-      return "\tM"; // Magenta for skill-based
+  theme = !IS_NPC(ch) ? GET_SCORE_COLOR_THEME(ch) : SCORE_THEME_ENHANCED;
+
+  switch (theme) {
+    case SCORE_THEME_CLASSIC:
+      // Classic: Minimal coloring
+      return "\tn";
+      
+    case SCORE_THEME_MINIMAL:
+      // Minimal: Simple two-tone
+      switch (class_num) {
+        case CLASS_WIZARD:
+        case CLASS_SORCERER:
+        case CLASS_CLERIC:
+        case CLASS_DRUID:
+        case CLASS_BARD:
+          return "\tB"; // Blue for casters
+        default:
+          return "\tR"; // Red for non-casters
+      }
+      
+    case SCORE_THEME_HIGHCONTRAST:
+      // High contrast: Bold distinct colors
+      switch (class_num) {
+        case CLASS_WIZARD:
+        case CLASS_SORCERER:
+          return "\tW"; // White for arcane
+        case CLASS_CLERIC:
+        case CLASS_DRUID:
+          return "\tY"; // Yellow for divine
+        case CLASS_WARRIOR:
+        case CLASS_BERSERKER:
+          return "\tR"; // Red for warriors
+        case CLASS_ROGUE:
+          return "\tM"; // Magenta for rogues
+        default:
+          return "\tC"; // Bright cyan for others
+      }
+      
+    case SCORE_THEME_DARK:
+      // Dark theme: Muted colors
+      switch (class_num) {
+        case CLASS_WIZARD:
+        case CLASS_SORCERER:
+        case CLASS_BARD:
+          return "\tb"; // Dark blue for arcane
+        case CLASS_CLERIC:
+        case CLASS_DRUID:
+        case CLASS_PALADIN:
+        case CLASS_RANGER:
+          return "\tg"; // Dark green for divine
+        case CLASS_WARRIOR:
+        case CLASS_BERSERKER:
+        case CLASS_MONK:
+          return "\tr"; // Dark red for martial
+        case CLASS_ROGUE:
+          return "\tm"; // Dark magenta for skill-based
+        default:
+          return "\tc"; // Dark cyan for others
+      }
+      
+    case SCORE_THEME_COLORBLIND:
+      // Colorblind-friendly: Avoid problematic combos
+      switch (class_num) {
+        case CLASS_WIZARD:
+        case CLASS_SORCERER:
+        case CLASS_BARD:
+          return "\tB"; // Blue for arcane
+        case CLASS_CLERIC:
+        case CLASS_DRUID:
+        case CLASS_PALADIN:
+        case CLASS_RANGER:
+          return "\tW"; // White for divine
+        case CLASS_WARRIOR:
+        case CLASS_BERSERKER:
+        case CLASS_MONK:
+          return "\tY"; // Yellow for martial
+        case CLASS_ROGUE:
+          return "\tC"; // Cyan for skill-based
+        default:
+          return "\tM"; // Magenta for others
+      }
+      
+    case SCORE_THEME_ENHANCED:
     default:
-      return "\tc"; // Cyan for others
+      // Enhanced: Original full colors
+      switch (class_num) {
+        case CLASS_WIZARD:
+        case CLASS_SORCERER:
+        case CLASS_BARD:
+          return "\tB"; // Blue for arcane casters
+        case CLASS_CLERIC:
+        case CLASS_DRUID:
+        case CLASS_PALADIN:
+        case CLASS_RANGER:
+          return "\tG"; // Green for divine casters
+        case CLASS_WARRIOR:
+        case CLASS_BERSERKER:
+        case CLASS_MONK:
+          return "\tR"; // Red for martial classes
+        case CLASS_ROGUE:
+          return "\tM"; // Magenta for skill-based
+        default:
+          return "\tc"; // Cyan for others
+      }
   }
 }
 
@@ -3974,6 +4099,191 @@ static const char *get_race_symbol(struct char_data *ch)
   }
   
   return race_symbols[race];
+}
+
+/* Layout template section order definitions */
+static const byte layout_default[8] = {
+  SECTION_IDENTITY,     /* 0 */
+  SECTION_VITALS,       /* 1 */
+  SECTION_EXPERIENCE,   /* 2 */
+  SECTION_ABILITIES,    /* 3 */
+  SECTION_COMBAT,       /* 4 */
+  SECTION_MAGIC,        /* 5 */
+  SECTION_WEALTH,       /* 6 */
+  SECTION_EQUIPMENT     /* 7 */
+};
+
+static const byte layout_combat[8] = {
+  SECTION_COMBAT,       /* 0 - Combat stats first */
+  SECTION_VITALS,       /* 1 - HP/Move next */
+  SECTION_ABILITIES,    /* 2 - Stats matter in combat */
+  SECTION_EQUIPMENT,    /* 3 - What gear you have */
+  SECTION_MAGIC,        /* 4 - Spells/abilities */
+  SECTION_IDENTITY,     /* 5 - Who you are */
+  SECTION_EXPERIENCE,   /* 6 - Level info */
+  SECTION_WEALTH        /* 7 - Gold last */
+};
+
+static const byte layout_roleplay[8] = {
+  SECTION_IDENTITY,     /* 0 - Who you are matters most */
+  SECTION_ABILITIES,    /* 2 - Your capabilities */
+  SECTION_WEALTH,       /* 3 - Your resources */
+  SECTION_EQUIPMENT,    /* 4 - What you carry */
+  SECTION_VITALS,       /* 5 - Basic health */
+  SECTION_EXPERIENCE,   /* 6 - Progress */
+  SECTION_MAGIC,        /* 7 - Magic abilities */
+  SECTION_COMBAT        /* 8 - Combat stats last */
+};
+
+static const byte layout_explorer[8] = {
+  SECTION_VITALS,       /* 0 - Health/movement primary */
+  SECTION_ABILITIES,    /* 1 - Physical stats important */
+  SECTION_EQUIPMENT,    /* 2 - Gear for exploring */
+  SECTION_IDENTITY,     /* 3 - Who you are */
+  SECTION_EXPERIENCE,   /* 4 - Progress tracking */
+  SECTION_WEALTH,       /* 5 - Resources */
+  SECTION_MAGIC,        /* 6 - Magic abilities */
+  SECTION_COMBAT        /* 7 - Combat less important */
+};
+
+static const byte layout_caster[8] = {
+  SECTION_MAGIC,        /* 0 - Spells/PSP first */
+  SECTION_VITALS,       /* 1 - HP/Mana next */
+  SECTION_ABILITIES,    /* 2 - Mental stats important */
+  SECTION_IDENTITY,     /* 3 - Character info */
+  SECTION_EXPERIENCE,   /* 4 - Level progression */
+  SECTION_EQUIPMENT,    /* 5 - Magic items */
+  SECTION_COMBAT,       /* 6 - Combat secondary */
+  SECTION_WEALTH        /* 7 - Gold last */
+};
+
+/* Get the layout template for a character */
+static const byte *get_layout_template(struct char_data *ch)
+{
+  byte template;
+  
+  if (IS_NPC(ch)) {
+    return layout_default;
+  }
+  
+  template = GET_SCORE_LAYOUT_TEMPLATE(ch);
+  
+  switch (template) {
+    case LAYOUT_COMBAT:
+      return layout_combat;
+    case LAYOUT_ROLEPLAY:
+      return layout_roleplay;
+    case LAYOUT_EXPLORER:
+      return layout_explorer;
+    case LAYOUT_CASTER:
+      return layout_caster;
+    case LAYOUT_DEFAULT:
+    default:
+      return layout_default;
+  }
+}
+
+/* Display individual score sections */
+static void display_identity_section(struct char_data *ch, int line_length);
+static void display_vitals_section(struct char_data *ch, int line_length);
+static void display_experience_section(struct char_data *ch, int line_length);
+static void display_abilities_section(struct char_data *ch, int line_length);
+static void display_combat_section(struct char_data *ch, int line_length);
+static void display_magic_section(struct char_data *ch, int line_length);
+static void display_wealth_section(struct char_data *ch, int line_length);
+static void display_equipment_section(struct char_data *ch, int line_length);
+
+/* Display active effects with duration bars */
+static void display_active_effects(struct char_data *ch)
+{
+  struct affected_type *aff;
+  int count = 0;
+  const char *color;
+  int bar_length = 20; // Length of progress bar
+  int filled_length;
+  int i;
+  
+  send_to_char(ch, "\tc+-- Active Effects -------------------------------------------------------------+\tn\r\n");
+  
+  if (!ch->affected) {
+    send_to_char(ch, "\tc|\tn \tcNo active effects\tn                                                     \tc|\tn\r\n");
+    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+    return;
+  }
+  
+  for (aff = ch->affected; aff; aff = aff->next) {
+    if (aff->spell <= 0) continue;
+    
+    count++;
+    
+    // For now, just show spell number - can be enhanced later
+    char spell_name[32];
+    snprintf(spell_name, sizeof(spell_name), "Spell #%d", aff->spell);
+    
+    // Calculate progress bar based on duration
+    if (aff->duration < 0) {
+      // Permanent effect
+      send_to_char(ch, "\tc|\tn \tc%-20s:\tn \tc[\tW====================\tc]\tn Permanent \tc|\tn\r\n", spell_name);
+    } else if (aff->duration == 0) {
+      // About to expire
+      send_to_char(ch, "\tc|\tn \tc%-20s:\tn \tc[\tr!                  \tc]\tn Expiring! \tc|\tn\r\n", spell_name);
+    } else {
+      // Calculate filled portion of bar
+      // Assume max duration is 24 hours (24 * 60 = 1440 ticks)
+      int max_duration = 1440;
+      filled_length = (aff->duration * bar_length) / max_duration;
+      if (filled_length > bar_length) filled_length = bar_length;
+      if (filled_length < 1 && aff->duration > 0) filled_length = 1;
+      
+      // Determine color based on remaining time
+      if (aff->duration > 60) {
+        color = "\tG"; // Green for > 1 hour
+      } else if (aff->duration > 10) {
+        color = "\tY"; // Yellow for > 10 minutes
+      } else {
+        color = "\tR"; // Red for <= 10 minutes
+      }
+      
+      // Build progress bar
+      send_to_char(ch, "\tc|\tn \tc%-20s:\tn \tc[%s", spell_name, color);
+      for (i = 0; i < filled_length; i++) {
+        send_to_char(ch, "=");
+      }
+      send_to_char(ch, "\tn");
+      for (i = filled_length; i < bar_length; i++) {
+        send_to_char(ch, " ");
+      }
+      send_to_char(ch, "\tc]\tn %3d min \tc|\tn\r\n", aff->duration);
+    }
+  }
+  
+  if (count == 0) {
+    send_to_char(ch, "\tc|\tn \tcNo active effects\tn                                                     \tc|\tn\r\n");
+  }
+  
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+}
+
+/* Get the current display context for a character */
+static int get_display_context(struct char_data *ch)
+{
+  /* Combat takes highest priority */
+  if (ch->char_specials.fighting) {
+    return CONTEXT_COMBAT;
+  }
+  
+  /* Check if character is moving/exploring */
+  if (AFF_FLAGGED(ch, AFF_SNEAK) || AFF_FLAGGED(ch, AFF_HIDE)) {
+    return CONTEXT_EXPLORING;
+  }
+  
+  /* Check for roleplay mode - preference flag */
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_RP)) {
+    return CONTEXT_ROLEPLAY;
+  }
+  
+  /* Default context */
+  return CONTEXT_NORMAL;
 }
 
 ACMD(do_skore)
@@ -4183,6 +4493,63 @@ ACMD(do_skore)
       PERF_PROF_EXIT(pr_skore_);
       return;
     }
+  }
+
+  // Get display context for section ordering
+  int context = get_display_context(ch);
+  
+  // Section ordering based on context
+  // Define section identifiers
+  #define SKORE_SECTION_IDENTITY  0
+  #define SKORE_SECTION_VITALS    1
+  #define SKORE_SECTION_XP        2
+  #define SKORE_SECTION_ABILITIES 3
+  #define SKORE_SECTION_COMBAT    4
+  #define SKORE_SECTION_MAGIC     5
+  #define SKORE_SECTION_WEALTH    6
+  #define SKORE_SECTION_EQUIPMENT 7
+  #define SKORE_NUM_SECTIONS      8
+  
+  // Default section order
+  int section_order[SKORE_NUM_SECTIONS];
+  int section_idx;
+  
+  // Initialize default order
+  for (section_idx = 0; section_idx < SKORE_NUM_SECTIONS; section_idx++) {
+    section_order[section_idx] = section_idx;
+  }
+  
+  // Reorder based on context
+  if (context == CONTEXT_COMBAT) {
+    // Combat context: prioritize combat, vitals, abilities
+    section_order[0] = SKORE_SECTION_COMBAT;     // Combat first
+    section_order[1] = SKORE_SECTION_VITALS;     // Vitals second
+    section_order[2] = SKORE_SECTION_ABILITIES;   // Abilities third
+    section_order[3] = SKORE_SECTION_IDENTITY;    // Identity fourth
+    section_order[4] = SKORE_SECTION_MAGIC;       // Magic fifth
+    section_order[5] = SKORE_SECTION_XP;          // XP sixth
+    section_order[6] = SKORE_SECTION_EQUIPMENT;   // Equipment seventh
+    section_order[7] = SKORE_SECTION_WEALTH;      // Wealth last
+  } else if (context == CONTEXT_SHOPPING) {
+    // Shopping context: prioritize wealth, equipment, identity
+    section_order[0] = SKORE_SECTION_WEALTH;      // Wealth first
+    section_order[1] = SKORE_SECTION_EQUIPMENT;   // Equipment second
+    section_order[2] = SKORE_SECTION_IDENTITY;    // Identity third
+    section_order[3] = SKORE_SECTION_VITALS;      // Then the rest in normal order
+    section_order[4] = SKORE_SECTION_XP;
+    section_order[5] = SKORE_SECTION_ABILITIES;
+    section_order[6] = SKORE_SECTION_COMBAT;
+    section_order[7] = SKORE_SECTION_MAGIC;
+  } else if (context == CONTEXT_EXPLORING) {
+    // Exploring context: prioritize vitals, abilities, equipment
+    section_order[0] = SKORE_SECTION_VITALS;      // Vitals first
+    section_order[1] = SKORE_SECTION_ABILITIES;   // Abilities second
+    section_order[2] = SKORE_SECTION_EQUIPMENT;   // Equipment third
+    section_order[3] = SKORE_SECTION_IDENTITY;    // Then the rest
+    section_order[4] = SKORE_SECTION_XP;
+    section_order[5] = SKORE_SECTION_COMBAT;
+    section_order[6] = SKORE_SECTION_MAGIC;
+    section_order[7] = SKORE_SECTION_WEALTH;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -4449,6 +4816,9 @@ ACMD(do_skore)
                    base_augment_psp_allowed(ch));
       send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
     }
+    
+    // Display active effects
+    display_active_effects(ch);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -4531,6 +4901,41 @@ ACMD(do_skore)
   PERF_PROF_EXIT(pr_skore_);
 }
 
+/* Display a specific score section based on section ID */
+static void display_score_section(struct char_data *ch, int section_id, int line_length)
+{
+  switch (section_id) {
+    case SECTION_IDENTITY:
+      display_identity_section(ch, line_length);
+      break;
+    case SECTION_VITALS:
+      display_vitals_section(ch, line_length);
+      break;
+    case SECTION_EXPERIENCE:
+      display_experience_section(ch, line_length);
+      break;
+    case SECTION_ABILITIES:
+      display_abilities_section(ch, line_length);
+      break;
+    case SECTION_COMBAT:
+      display_combat_section(ch, line_length);
+      break;
+    case SECTION_MAGIC:
+      if (IS_SPELLCASTER(ch) || GET_PSIONIC_LEVEL(ch) > 0) {
+        display_magic_section(ch, line_length);
+      }
+      break;
+    case SECTION_WEALTH:
+      display_wealth_section(ch, line_length);
+      break;
+    case SECTION_EQUIPMENT:
+      if (IS_NPC(ch) || GET_SCORE_INFO_DENSITY(ch) == 0) { // Full density only
+        display_equipment_section(ch, line_length);
+      }
+      break;
+  }
+}
+
 /* Score configuration command */
 ACMD(do_scoreconfig)
 {
@@ -4550,8 +4955,11 @@ ACMD(do_scoreconfig)
     send_to_char(ch, "\tc|\tn   \tcWidth:\tn %-3d characters                                           \tc|\tn\r\n",
                  GET_SCORE_DISPLAY_WIDTH(ch) ? GET_SCORE_DISPLAY_WIDTH(ch) : 80);
     send_to_char(ch, "\tc|\tn   \tcTheme:\tn %-15s                                           \tc|\tn\r\n",
-                 GET_SCORE_COLOR_THEME(ch) == 1 ? "Classic" :
-                 GET_SCORE_COLOR_THEME(ch) == 2 ? "Minimal" : "Enhanced");
+                 GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_CLASSIC ? "Classic" :
+                 GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_MINIMAL ? "Minimal" :
+                 GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_HIGHCONTRAST ? "High Contrast" :
+                 GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_DARK ? "Dark" :
+                 GET_SCORE_COLOR_THEME(ch) == SCORE_THEME_COLORBLIND ? "Colorblind" : "Enhanced");
     send_to_char(ch, "\tc|\tn   \tcDensity:\tn %-15s                                         \tc|\tn\r\n",
                  GET_SCORE_INFO_DENSITY(ch) == 1 ? "Compact" :
                  GET_SCORE_INFO_DENSITY(ch) == 2 ? "Minimal" : "Full");
@@ -4563,16 +4971,25 @@ ACMD(do_scoreconfig)
                  PRF_FLAGGED(ch, PRF_SCORE_BORDERS) ? "ON" : "OFF");
     send_to_char(ch, "\tc|\tn   \tcRace Symbols:\tn %-3s                                             \tc|\tn\r\n",
                  PRF_FLAGGED(ch, PRF_SCORE_RACE_SYMBOLS) ? "ON" : "OFF");
+    send_to_char(ch, "\tc|\tn   \tcLayout Template:\tn %-15s                                     \tc|\tn\r\n",
+                 GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_COMBAT ? "Combat" :
+                 GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_ROLEPLAY ? "Roleplay" :
+                 GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_EXPLORER ? "Explorer" :
+                 GET_SCORE_LAYOUT_TEMPLATE(ch) == LAYOUT_CASTER ? "Caster" : "Default");
     send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
     send_to_char(ch, "\r\n\tcUsage:\tn\r\n");
     send_to_char(ch, "  \tcscoreconfig width <80|120|160>\tn     - Set display width\r\n");
-    send_to_char(ch, "  \tcscoreconfig theme <enhanced|classic|minimal>\tn - Set color theme\r\n");
+    send_to_char(ch, "  \tcscoreconfig theme <enhanced|classic|minimal|highcontrast|dark|colorblind>\tn\r\n");
     send_to_char(ch, "  \tcscoreconfig density <full|compact|minimal>\tn - Set information density\r\n");
     send_to_char(ch, "  \tcscoreconfig classic <on|off>\tn        - Toggle classic score display\r\n");
     send_to_char(ch, "  \tcscoreconfig colors <on|off>\tn         - Toggle color display\r\n");
     send_to_char(ch, "  \tcscoreconfig borders <on|off>\tn        - Toggle class-themed borders\r\n");
     send_to_char(ch, "  \tcscoreconfig symbols <on|off>\tn        - Toggle race symbols display\r\n");
+    send_to_char(ch, "  \tcscoreconfig template <default|combat|roleplay|explorer|caster>\tn\r\n");
+    send_to_char(ch, "  \tcscoreconfig order <section> <position>\tn - Set custom section order\r\n");
     send_to_char(ch, "  \tcscoreconfig reset\tn                   - Reset to defaults\r\n");
+    send_to_char(ch, "\r\n\tcSection names:\tn identity, vitals, experience, abilities, combat, magic, wealth, equipment\r\n");
+    send_to_char(ch, "\tcPositions:\tn 1-8 (1 = first displayed, 8 = last displayed)\r\n");
     return;
   }
 
@@ -4598,16 +5015,25 @@ ACMD(do_scoreconfig)
 
   if (!str_cmp(arg1, "theme")) {
     if (!str_cmp(arg2, "enhanced") || !str_cmp(arg2, "default")) {
-      GET_SCORE_COLOR_THEME(ch) = 0;
+      GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_ENHANCED;
       send_to_char(ch, "Score color theme set to Enhanced.\r\n");
     } else if (!str_cmp(arg2, "classic")) {
-      GET_SCORE_COLOR_THEME(ch) = 1;
+      GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_CLASSIC;
       send_to_char(ch, "Score color theme set to Classic.\r\n");
     } else if (!str_cmp(arg2, "minimal")) {
-      GET_SCORE_COLOR_THEME(ch) = 2;
+      GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_MINIMAL;
       send_to_char(ch, "Score color theme set to Minimal.\r\n");
+    } else if (!str_cmp(arg2, "highcontrast") || !str_cmp(arg2, "high-contrast")) {
+      GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_HIGHCONTRAST;
+      send_to_char(ch, "Score color theme set to High Contrast.\r\n");
+    } else if (!str_cmp(arg2, "dark")) {
+      GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_DARK;
+      send_to_char(ch, "Score color theme set to Dark.\r\n");
+    } else if (!str_cmp(arg2, "colorblind") || !str_cmp(arg2, "color-blind")) {
+      GET_SCORE_COLOR_THEME(ch) = SCORE_THEME_COLORBLIND;
+      send_to_char(ch, "Score color theme set to Colorblind.\r\n");
     } else {
-      send_to_char(ch, "Valid themes are: enhanced, classic, or minimal.\r\n");
+      send_to_char(ch, "Valid themes are: enhanced, classic, minimal, highcontrast, dark, or colorblind.\r\n");
       return;
     }
     save_char(ch, 0);
@@ -4692,10 +5118,107 @@ ACMD(do_scoreconfig)
     return;
   }
 
+  if (!str_cmp(arg1, "template")) {
+    if (!str_cmp(arg2, "default")) {
+      GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_DEFAULT;
+      send_to_char(ch, "Score layout template set to Default.\r\n");
+    } else if (!str_cmp(arg2, "combat")) {
+      GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_COMBAT;
+      send_to_char(ch, "Score layout template set to Combat (prioritizes combat stats).\r\n");
+    } else if (!str_cmp(arg2, "roleplay") || !str_cmp(arg2, "rp")) {
+      GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_ROLEPLAY;
+      send_to_char(ch, "Score layout template set to Roleplay (prioritizes identity).\r\n");
+    } else if (!str_cmp(arg2, "explorer") || !str_cmp(arg2, "explore")) {
+      GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_EXPLORER;
+      send_to_char(ch, "Score layout template set to Explorer (prioritizes movement).\r\n");
+    } else if (!str_cmp(arg2, "caster") || !str_cmp(arg2, "magic")) {
+      GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_CASTER;
+      send_to_char(ch, "Score layout template set to Caster (prioritizes magic).\r\n");
+    } else {
+      send_to_char(ch, "Valid templates are: default, combat, roleplay, explorer, or caster.\r\n");
+      return;
+    }
+    save_char(ch, 0);
+    return;
+  }
+
+  if (!str_cmp(arg1, "order")) {
+    char arg3[MAX_INPUT_LENGTH];
+    int section_id = -1;
+    int position, old_position;
+    int i;
+    
+    /* Get third argument */
+    half_chop(arg2, arg2, arg3);
+    
+    if (!*arg2 || !*arg3) {
+      send_to_char(ch, "Usage: scoreconfig order <section> <position>\r\n");
+      send_to_char(ch, "Sections: identity, vitals, experience, abilities, combat, magic, wealth, equipment\r\n");
+      send_to_char(ch, "Positions: 1-8\r\n");
+      return;
+    }
+    
+    /* Parse section name */
+    if (!str_cmp(arg2, "identity")) section_id = SECTION_IDENTITY;
+    else if (!str_cmp(arg2, "vitals")) section_id = SECTION_VITALS;
+    else if (!str_cmp(arg2, "experience") || !str_cmp(arg2, "exp")) section_id = SECTION_EXPERIENCE;
+    else if (!str_cmp(arg2, "abilities") || !str_cmp(arg2, "stats")) section_id = SECTION_ABILITIES;
+    else if (!str_cmp(arg2, "combat")) section_id = SECTION_COMBAT;
+    else if (!str_cmp(arg2, "magic") || !str_cmp(arg2, "spells")) section_id = SECTION_MAGIC;
+    else if (!str_cmp(arg2, "wealth") || !str_cmp(arg2, "gold")) section_id = SECTION_WEALTH;
+    else if (!str_cmp(arg2, "equipment") || !str_cmp(arg2, "gear")) section_id = SECTION_EQUIPMENT;
+    else {
+      send_to_char(ch, "Invalid section name. Valid sections: identity, vitals, experience, abilities, combat, magic, wealth, equipment\r\n");
+      return;
+    }
+    
+    /* Parse position */
+    position = atoi(arg3);
+    if (position < 1 || position > 8) {
+      send_to_char(ch, "Position must be between 1 and 8.\r\n");
+      return;
+    }
+    position--; /* Convert to 0-based */
+    
+    /* Find current position of this section */
+    old_position = -1;
+    for (i = 0; i < 8; i++) {
+      if (GET_SCORE_SECTION_ORDER(ch, i) == section_id) {
+        old_position = i;
+        break;
+      }
+    }
+    
+    /* If section not found in current order, initialize order first */
+    if (old_position == -1) {
+      for (i = 0; i < 8; i++) {
+        GET_SCORE_SECTION_ORDER(ch, i) = i;
+      }
+      old_position = section_id;
+    }
+    
+    /* Swap positions */
+    if (old_position != position) {
+      byte temp = GET_SCORE_SECTION_ORDER(ch, position);
+      GET_SCORE_SECTION_ORDER(ch, position) = section_id;
+      GET_SCORE_SECTION_ORDER(ch, old_position) = temp;
+    }
+    
+    send_to_char(ch, "Section '%s' moved to position %d.\r\n", arg2, position + 1);
+    save_char(ch, 0);
+    return;
+  }
+
   if (!str_cmp(arg1, "reset")) {
+    int i;
     GET_SCORE_DISPLAY_WIDTH(ch) = PFDEF_SCORE_DISPLAY_WIDTH;
     GET_SCORE_COLOR_THEME(ch) = PFDEF_SCORE_COLOR_THEME;
     GET_SCORE_INFO_DENSITY(ch) = PFDEF_SCORE_INFO_DENSITY;
+    GET_SCORE_LAYOUT_TEMPLATE(ch) = LAYOUT_DEFAULT;
+    /* Reset custom section order to default */
+    for (i = 0; i < 8; i++) {
+      GET_SCORE_SECTION_ORDER(ch, i) = i;
+    }
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_CLASSIC);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_NOCOLOR);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_WIDE);

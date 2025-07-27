@@ -25,7 +25,8 @@
       "Bash(./test_event_fix)",
       "Bash(./test_fread_fix)",
       "Bash(php:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(git check-ignore:*)"
     ],
     "deny": []
   }

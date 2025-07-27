@@ -6024,6 +6024,11 @@ void init_char(struct char_data *ch)
 
   if (ch->bags == NULL)
     CREATE(ch->bags, struct bag_data, 1);
+  
+  /* Initialize score section order to default */
+  for (i = 0; i < 8; i++) {
+    ch->player_specials->saved.score_section_order[i] = i;
+  }
 
   /* If this is our first player make him IMPL. */
   if (top_of_p_table == 0)
@@ -6997,6 +7002,12 @@ struct char_data *new_char()
   /* Set all required NULL pointers and variables */
   ch->player_specials->saved.completed_quests = NULL;
   ch->player_specials->saved.num_completed_quests = 0;
+  
+  /* Initialize score section order to default */
+  int i;
+  for (i = 0; i < 8; i++) {
+    ch->player_specials->saved.score_section_order[i] = i;
+  }
 
   return ch;
 }

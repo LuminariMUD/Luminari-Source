@@ -26,42 +26,87 @@ void after_world_load()
 {
 }
 
+/**
+ * Establishes connection to MySQL database using configuration from mysql_config file
+ * 
+ * This function reads database connection parameters from the 'mysql_config' file
+ * located in the lib/ directory. The configuration file should contain:
+ *   - mysql_host = <hostname or IP>
+ *   - mysql_database = <database name>
+ *   - mysql_username = <MySQL username>
+ *   - mysql_password = <MySQL password>
+ * 
+ * The function creates three MySQL connections (conn, conn2, conn3) to handle
+ * nested queries and concurrent database operations.
+ * 
+ * Configuration file format:
+ *   - Lines starting with '#' are treated as comments
+ *   - Empty lines are ignored
+ *   - Parameters use the format: key = value
+ * 
+ * IMPORTANT: The mysql_config file MUST be located in the lib/ directory
+ *            relative to where the MUD is executed from.
+ * 
+ * @note Exits the program if connection fails or config file is missing
+ */
 void connect_to_mysql()
 {
   char host[128], database[128], username[128], password[128];
   char line[128], key[128], val[128];
   FILE *file;
 
-  /* Read the mysql configuration file */
+  /* Read the mysql configuration file from lib/ directory */
   if (!(file = fopen("mysql_config", "r")))
   {
-    log("SYSERR: Unable to read MySQL configuration.");
+    log("SYSERR: Unable to read MySQL configuration from 'mysql_config'.");
+    log("SYSERR: Make sure the file exists in the lib/ directory!");
+    log("SYSERR: Current working directory when looking for mysql_config:");
+    log("SYSERR: If running from bin/, the file should be at: ../lib/mysql_config");
+    log("SYSERR: Copy mysql_config_example to lib/mysql_config and edit it.");
     exit(1);
   }
 
-  /* fgets includes newline character */
+  /* Parse configuration file line by line
+   * Format: key = value
+   * Comments start with '#'
+   * Empty lines are ignored
+   */
   while (!feof(file) && fgets(line, 127, file))
   {
+    /* Skip comments (lines starting with #) and empty lines */
     if (*line == '#' || strlen(line) <= 1)
-      continue; /* comment or empty line */
+      continue;
+    
+    /* Parse key = value pairs */
     else if (sscanf(line, "%s = %s", key, val) == 2)
     {
+      /* Host configuration (e.g., localhost, 192.168.1.100, db.example.com) */
       if (!str_cmp(key, "mysql_host"))
         strlcpy(host, val, sizeof(host));
+      
+      /* Database name configuration */
       else if (!str_cmp(key, "mysql_database"))
         strlcpy(database, val, sizeof(database));
+      
+      /* Username configuration */
       else if (!str_cmp(key, "mysql_username"))
         strlcpy(username, val, sizeof(username));
+      
+      /* Password configuration */
       else if (!str_cmp(key, "mysql_password"))
         strlcpy(password, val, sizeof(password));
+      
+      /* Unknown configuration parameter */
       else
       {
-        log("SYSERR: Unknown line in MySQL configuration: %s", line);
+        log("SYSERR: Unknown parameter '%s' in MySQL configuration", key);
+        log("SYSERR: Valid parameters: mysql_host, mysql_database, mysql_username, mysql_password");
       }
     }
     else
     {
-      log("SYSERR: Unknown line in MySQL configuration: %s", line);
+      log("SYSERR: Malformed line in MySQL configuration: %s", line);
+      log("SYSERR: Expected format: parameter = value");
       exit(1);
     }
   }
@@ -125,7 +170,9 @@ void connect_to_mysql()
     exit(1);
   }
   
+  /* Log successful connection - password is intentionally not logged for security */
   log("SUCCESS: Connected to MySQL database '%s' on host '%s' as user '%s'", database, host, username);
+  log("INFO: MySQL configuration loaded from lib/mysql_config");
 }
 
 void disconnect_from_mysql()

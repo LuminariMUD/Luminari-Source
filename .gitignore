@@ -4,6 +4,7 @@
 
 # Special Files
 campaign.h
+mysql_config
 
 # Prerequisites
 *.d

@@ -3,6 +3,56 @@
 ## 2025-07-27
 
 ### Features
+- **Enhanced Score Display (do_skore) - Phase 2.6 & 2.7 Complete**: Implemented layout templates and custom section ordering for the enhanced character display:
+  - **Phase 2.6 - Layout Templates**: Added predefined layouts optimized for different playstyles
+    - Added `score_layout_template` field to player_special_data_saved
+    - Defined 5 layout templates: Default, Combat, Roleplay, Explorer, Caster
+    - Each template reorders sections to prioritize relevant information
+    - Implemented `scoreconfig template <name>` command
+    - Added `get_layout_template()` function with template section arrays
+  - **Phase 2.7 - Section Ordering**: Added custom section ordering capability
+    - Added `score_section_order[8]` array to player_special_data_saved
+    - Defined SECTION_* enums for all 8 display sections
+    - Implemented `scoreconfig order <section> <position>` command
+    - Added section order initialization in db.c for new characters
+    - Reset command now restores both template and custom ordering
+  - **Implementation Details:**
+    - All preferences persist via binary player file saves
+    - Custom ordering overrides template selection when modified
+    - Infrastructure in place for future dynamic section reordering
+- **Enhanced Score Display (do_skore) - Phase 2.4 & 2.5 Complete**: Extended the enhanced character display with context detection and active effects display:
+  - **Phase 2.4 - Context Detection**: Added automatic context awareness to reorder sections based on character activity
+    - Implemented `get_display_context()` function detecting combat, exploring, roleplay, and shopping contexts
+    - Combat context prioritizes combat stats, vitals, and abilities at the top
+    - Shopping context (future) prioritizes wealth and equipment sections
+    - Exploring context (sneaking/hiding) prioritizes vitals and abilities
+    - Added context constants to structs.h: CONTEXT_NORMAL, CONTEXT_COMBAT, CONTEXT_ROLEPLAY, CONTEXT_EXPLORING, CONTEXT_SHOPPING, CONTEXT_CRAFTING
+    - Section reordering logic implemented with section_order[] array manipulation
+  - **Phase 2.5 - Active Effects Display**: Added visual spell effect tracking to magic section
+    - Implemented `display_active_effects()` function showing all active spell affects
+    - Duration progress bars with color coding: green (>1hr), yellow (10-60min), red (<10min)
+    - Permanent effects display with full white bar
+    - Expiring effects show warning indicator
+    - Integrated into magic section after spell slots and psionic information
+    - Shows spell number and remaining duration in minutes
+  - **Implementation Details:**
+    - Context detection uses ch->char_specials.fighting for combat detection
+    - Active effects use ch->affected linked list traversal
+    - Progress bars scale based on 24-hour maximum duration
+    - All features maintain C90 compliance with proper variable declarations
+- **Enhanced Score Display (do_skore) - Phase 2.3 Complete**: Added new color themes to the enhanced character display system:
+  - **Phase 2.3 - New Color Themes**: Implemented three additional color themes for accessibility and preference
+    - **High Contrast**: Bold distinct colors for improved visibility
+    - **Dark**: Muted color palette for reduced eye strain
+    - **Colorblind**: Carefully selected colors avoiding red-green combinations
+    - Color themes now include: Enhanced (default), Classic, Minimal, High Contrast, Dark, Colorblind
+    - Updated `get_health_color()` and `get_class_color()` functions with theme-specific mappings
+    - Extended `scoreconfig theme` command to support all six themes
+    - Toggle with `scoreconfig theme <enhanced|classic|minimal|highcontrast|dark|colorblind>`
+  - **Implementation Details:**
+    - Added theme constants SCORE_THEME_HIGHCONTRAST (3), SCORE_THEME_DARK (4), SCORE_THEME_COLORBLIND (5) to structs.h
+    - Updated theme-aware color functions in act.informative.c
+    - Enhanced scoreconfig validation and display for new themes
 - **Enhanced Score Display (do_skore) - Phase 2.1 & 2.2 Complete**: Extended the enhanced character display with visual polish features:
   - **Phase 2.1 - Class Borders**: Added decorative borders themed by character class
     - Warriors/Berserkers/Monks: Red borders (╔═══╗)
@@ -66,6 +116,13 @@
 - **Added Queue Size Limits**: Implemented denial-of-service protection in spell_prep.c by adding queue size limits. Defined constants MAX_PREP_QUEUE_SIZE (125), MAX_COLLECTION_SIZE (250), MAX_INNATE_QUEUE_SIZE (125), and MAX_KNOWN_SPELLS (250) in spell_prep.h. Originally set to 50/100/50/100, but increased by 250% to better accommodate high-level gameplay where casters may need extensive spell repertoires. Added runtime size checking to `prep_queue_add()`, `innate_magic_add()`, `collection_add()`, and `known_spells_add()` functions that count current queue sizes and reject additions when limits are exceeded. Also protected save file loading functions (`load_spell_prep_queue()`, `load_innate_magic_queue()`, `load_spell_collection()`, `load_known_spells()`) to prevent malicious save files from creating oversized queues. All limit violations are logged with SYSERR prefix including character name and class. This prevents memory exhaustion attacks through excessive spell queue manipulation.
 
 ### Documentation
+- **Enhanced MySQL Configuration Documentation**: Improved mysql_config setup documentation and error handling
+  - Updated mysql_config_example with prominent notice about lib/ directory requirement
+  - Added clear setup instructions with example commands (cp, chmod)
+  - Enhanced connect_to_mysql() function documentation in mysql.c
+  - Added detailed error messages when mysql_config file is missing
+  - Improved inline comments explaining configuration parameters
+  - Added .gitignore entry for mysql_config to protect credentials
 - **Added Thread Safety Documentation**: Added comprehensive comments to spell_prep.c and spell_prep.h clarifying that LuminariMUD is single-threaded and the spell preparation system has no concurrency issues. Added comments at `event_preparation()`, event creation check, and in the header file overview to prevent future confusion about race conditions. This addresses audit issue #6 which was incorrectly identified as a potential race condition.
 - **Enhanced compute_spell_res() Documentation**: Added comprehensive in-code documentation to the `compute_spell_res()` function in magic.c to improve code readability for new developers. Added detailed function header explaining spell resistance mechanics in D&D/Pathfinder, clarified the dual purpose of the 'ch' parameter (combat caster vs informational viewer), organized spell resistance sources into clear sections (feat-based, evolution-based, creature type, spell effects), documented each SR calculation with formulas and game mechanics context, added notes about conditional SR (Holy Aura vs evil casters), and explained the MAX() vs addition logic for different SR sources. This makes the complex spell resistance system much more understandable for developers unfamiliar with the codebase or D&D mechanics.
 

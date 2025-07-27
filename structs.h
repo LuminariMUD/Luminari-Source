@@ -1360,6 +1360,39 @@
 /** Total number of available PRF flags */
 #define NUM_PRF_FLAGS 83
 
+/* Score Color Theme constants */
+#define SCORE_THEME_ENHANCED     0    /**< Enhanced theme with rich colors */
+#define SCORE_THEME_CLASSIC      1    /**< Classic minimal coloring theme */
+#define SCORE_THEME_MINIMAL      2    /**< Minimal color theme */
+#define SCORE_THEME_HIGHCONTRAST 3    /**< High contrast theme for visibility */
+#define SCORE_THEME_DARK         4    /**< Dark theme with muted colors */
+#define SCORE_THEME_COLORBLIND   5    /**< Colorblind-friendly theme */
+
+/* Score Display Context constants */
+#define CONTEXT_NORMAL      0    /**< Normal gameplay context */
+#define CONTEXT_COMBAT      1    /**< Character is in combat */
+#define CONTEXT_ROLEPLAY    2    /**< Character is in roleplay mode */
+
+/* Score Layout Template constants */
+#define LAYOUT_DEFAULT      0    /**< Default layout ordering */
+#define LAYOUT_COMBAT       1    /**< Combat-focused layout */
+#define LAYOUT_ROLEPLAY     2    /**< Roleplay-focused layout */
+#define LAYOUT_EXPLORER     3    /**< Exploration-focused layout */
+#define LAYOUT_CASTER       4    /**< Magic-user focused layout */
+
+/* Score Section constants for ordering */
+#define SECTION_IDENTITY    0    /**< Character identity section */
+#define SECTION_VITALS      1    /**< HP/Move/PSP section */
+#define SECTION_EXPERIENCE  2    /**< Level and experience section */
+#define SECTION_ABILITIES   3    /**< Stats and saves section */
+#define SECTION_COMBAT      4    /**< Combat stats section */
+#define SECTION_MAGIC       5    /**< Magic/PSP section */
+#define SECTION_WEALTH      6    /**< Gold and wealth section */
+#define SECTION_EQUIPMENT   7    /**< Equipment summary section */
+#define CONTEXT_EXPLORING   3    /**< Character is exploring/moving */
+#define CONTEXT_SHOPPING    4    /**< Character is shopping */
+#define CONTEXT_CRAFTING    5    /**< Character is crafting */
+
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
 #define AFF_DONTUSE 0              /**< DON'T USE! */
@@ -5135,9 +5168,10 @@ struct player_special_data_saved
 
     /* Score display preferences */
     byte score_display_width;     /**< Preferred score display width (80, 120, 160) */
-    byte score_color_theme;       /**< Color theme preference (0=default, 1=classic, 2=minimal) */
+    byte score_color_theme;       /**< Color theme preference (0=enhanced, 1=classic, 2=minimal, 3=highcontrast, 4=dark, 5=colorblind) */
     byte score_info_density;      /**< Information density (0=full, 1=compact, 2=minimal) */
-    byte score_spare;             /**< Spare byte for future score preferences */
+    byte score_layout_template;   /**< Layout template (0=default, 1=combat, 2=roleplay, 3=explorer, 4=caster) */
+    byte score_section_order[8];  /**< Custom section ordering for score display */
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
