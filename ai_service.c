@@ -21,6 +21,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "ai_service.h"
+#include "dotenv.h"
 #include <curl/curl.h>
 
 /* Global AI Service State */
@@ -69,7 +70,7 @@ void init_ai_service(void) {
   CREATE(ai_state.config, struct ai_config, 1);
   
   /* Set default configuration */
-  strcpy(ai_state.config->model, "gpt-3.5-turbo");
+  strcpy(ai_state.config->model, "gpt-4.1-mini");
   ai_state.config->max_tokens = AI_MAX_TOKENS;
   ai_state.config->temperature = 0.7;
   ai_state.config->timeout_ms = AI_TIMEOUT_MS;
@@ -144,9 +145,43 @@ bool is_ai_enabled(void) {
  * Load AI configuration from database/files
  */
 void load_ai_config(void) {
-  /* This would load from database or config file */
-  /* For now, using defaults set in init_ai_service */
-  log("AI configuration loaded.");
+  char *api_key;
+  char *model;
+  
+  if (!ai_state.config) {
+    log("SYSERR: AI config not allocated");
+    return;
+  }
+  
+  /* Load API key from .env */
+  api_key = get_env_value("OPENAI_API_KEY");
+  if (api_key && *api_key) {
+    /* Encrypt and store the API key */
+    encrypt_api_key(api_key, ai_state.config->encrypted_api_key);
+    log("AI Service: API key loaded from .env file");
+  } else {
+    log("AI Service: No API key found in .env file (OPENAI_API_KEY)");
+  }
+  
+  /* Load model configuration */
+  model = get_env_value("AI_MODEL");
+  if (model && *model) {
+    strlcpy(ai_state.config->model, model, sizeof(ai_state.config->model));
+  }
+  
+  /* Load numeric configurations */
+  ai_state.config->max_tokens = get_env_int("AI_MAX_TOKENS", AI_MAX_TOKENS);
+  ai_state.config->temperature = (float)get_env_int("AI_TEMPERATURE", 7) / 10.0;
+  ai_state.config->timeout_ms = get_env_int("AI_TIMEOUT_MS", AI_TIMEOUT_MS);
+  ai_state.config->content_filter_enabled = get_env_bool("AI_CONTENT_FILTER_ENABLED", TRUE);
+  
+  /* Load rate limits */
+  if (ai_state.limiter) {
+    ai_state.limiter->requests_per_minute = get_env_int("AI_REQUESTS_PER_MINUTE", 60);
+    ai_state.limiter->requests_per_hour = get_env_int("AI_REQUESTS_PER_HOUR", 1000);
+  }
+  
+  log("AI configuration loaded from .env");
 }
 
 /**

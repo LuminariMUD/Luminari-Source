@@ -1,5 +1,7 @@
 # OpenAI Integration Plan for LuminariMUD
 
+**Status: IMPLEMENTED** - January 27, 2025
+
 ## Table of Contents
 
 1. [Executive Summary](#executive-summary)
@@ -7,6 +9,7 @@
 3. [Implementation Roadmap](#implementation-roadmap)
 4. [Risk Assessment & Mitigation](#risk-assessment--mitigation)
 5. [Appendices](#appendices)
+6. [Implementation Status](#implementation-status)
 
 ---
 
@@ -448,8 +451,9 @@ Reduced Monthly Cost: $243
 
 | Provider | Model | Input Cost | Output Cost | Latency | Features |
 |----------|-------|------------|-------------|---------|----------|
-| OpenAI | GPT-4 | $0.03/1K | $0.06/1K | 2-5s | Best quality, function calling |
-| OpenAI | GPT-3.5 | $0.001/1K | $0.002/1K | 1-2s | Good quality, cost-effective |
+| OpenAI | GPT-4.1 | $0.03/1K | $0.06/1K | 2-5s | Best quality, 1M context window |
+| OpenAI | GPT-4.1-mini | $0.005/1K | $0.02/1K | 1-2s | 83% cheaper than GPT-4o |
+| OpenAI | GPT-4o-mini | $0.00015/1K | $0.0006/1K | 1-2s | Most cost-effective |
 | Anthropic | Claude 3 | $0.015/1K | $0.075/1K | 2-4s | Strong reasoning, safety |
 | Google | Gemini Pro | $0.0005/1K | $0.0015/1K | 1-3s | Multimodal, competitive pricing |
 | Cohere | Command | $0.0004/1K | $0.0004/1K | 1-2s | Specialized models available |
@@ -698,6 +702,106 @@ Success will be measured not just in technical metrics but in player engagement,
 
 ---
 
-*Document Version: 1.0*  
-*Last Updated: January 2025*  
+## Implementation Status
+
+### Completed (January 27, 2025)
+
+#### Core Implementation
+✅ **AI Service Module** (ai_service.c/h)
+- Full CURL integration for API calls
+- C90/C89 compliant code
+- Retry logic with exponential backoff
+- Response caching system
+
+✅ **Security Layer** (ai_security.c)
+- API key encryption (XOR cipher - upgrade to AES recommended)
+- Input sanitization
+- Secure memory operations
+
+✅ **Cache System** (ai_cache.c)
+- In-memory response caching
+- Configurable TTL (default 1 hour)
+- LRU eviction policy
+
+✅ **Event Integration** (ai_events.c)
+- Delayed response system for natural conversation flow
+- Integration with MUD event system
+
+✅ **Configuration System**
+- .env file support in lib/ directory
+- Environment variable configuration
+- Database schema for persistent settings
+
+✅ **Build System Updates**
+- Makefile.in updated with dependencies
+- Automatic compilation of AI modules
+
+✅ **Game Integration**
+- do_tell command enhanced for AI NPCs
+- MOB_AI_ENABLED flag (bit 98)
+- Admin command 'ai' for management
+
+#### Documentation
+✅ AI_SERVICE_README.md - Complete setup and usage guide
+✅ .env.example - Configuration template
+✅ ai_service_migration.sql - Database schema
+
+### Implementation Differences from Plan
+
+1. **Model Selection**: Using GPT-4.1-mini as default (more cost-effective than GPT-4)
+2. **Configuration**: Using .env file instead of database for API key storage
+3. **JSON Parsing**: Simplified JSON handling (full json-c integration optional)
+4. **Security**: Basic XOR encryption implemented (OpenSSL AES recommended for production)
+
+### Next Steps
+
+1. **Production Hardening**
+   - Upgrade to AES encryption for API keys
+   - Implement full json-c library integration
+   - Add comprehensive error logging
+
+2. **Feature Expansion**
+   - Room description generation
+   - Quest generation assistance
+   - Content moderation system
+
+3. **Performance Optimization**
+   - Database-backed caching option
+   - Batch request processing
+   - Async request queue
+
+### Usage Instructions
+
+1. Install dependencies:
+   ```bash
+   sudo apt-get install libcurl4-openssl-dev libjson-c-dev libssl-dev
+   ```
+
+2. Configure API key:
+   ```bash
+   cp .env.example lib/.env
+   # Edit lib/.env and add: OPENAI_API_KEY=your-key-here
+   ```
+
+3. Compile:
+   ```bash
+   make clean && make
+   ```
+
+4. Run database migration:
+   ```bash
+   mysql -u user -p database < ai_service_migration.sql
+   ```
+
+5. In-game setup:
+   ```
+   ai enable
+   ai reload
+   ai test
+   ```
+
+---
+
+*Document Version: 1.1*  
+*Last Updated: January 27, 2025*  
 *Next Review: February 2025*
