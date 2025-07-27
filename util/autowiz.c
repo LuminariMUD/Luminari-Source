@@ -4,6 +4,14 @@
  *  Written by Jeremy Elson                                                *
  *  All Rights Reserved                                                    *
  *  Copyright (C) 1993 The Trustees of The Johns Hopkins University        *
+ *                                                                         *
+ *  This utility automatically generates wizard and immortal lists by      *
+ *  reading the player index file and extracting characters above a        *
+ *  specified level threshold. It creates formatted lists that can be      *
+ *  displayed in-game or on websites.                                      *
+ *                                                                         *
+ *  Updated: 2025 - Enhanced for LuminariMUD compatibility, improved       *
+ *  error handling, and fixed compiler warnings                           *
  ************************************************************************* */
 
 #include "conf.h"
@@ -50,6 +58,12 @@ struct control_rec level_params[] =
 
 struct level_rec *levels = 0;
 
+/**
+ * Initialize the level structure from the level_params array
+ *
+ * Creates a linked list of level records based on the static level_params
+ * array, setting up the data structures needed for wizard list generation.
+ */
 void initialize(void)
 {
   struct level_rec *tmp;
@@ -58,6 +72,10 @@ void initialize(void)
   while (level_params[i].level > 0)
   {
     tmp = (struct level_rec *)malloc(sizeof(struct level_rec));
+    if (!tmp) {
+      fprintf(stderr, "Error: Failed to allocate memory for level record\n");
+      exit(1);
+    }
     tmp->names = 0;
     tmp->params = &(level_params[i++]);
     tmp->next = levels;
@@ -105,29 +123,49 @@ void read_file(void)
   fclose(fl);
 }
 
+/**
+ * Add a player name to the appropriate level list
+ *
+ * Validates the name (must be all alphabetic characters) and adds it
+ * to the linked list for the appropriate level category.
+ *
+ * @param level The player's level
+ * @param name The player's name (must be all alphabetic)
+ */
 void add_name(byte level, char *name)
 {
   struct name_rec *tmp;
   struct level_rec *curr_level;
   char *ptr;
 
-  if (!*name)
+  if (!name || !*name)
     return;
 
+  /* Validate name contains only alphabetic characters */
   for (ptr = name; *ptr; ptr++)
     if (!isalpha(*ptr))
       return;
 
   tmp = (struct name_rec *)malloc(sizeof(struct name_rec));
+  if (!tmp) {
+    fprintf(stderr, "Error: Failed to allocate memory for name record\n");
+    return;
+  }
   strcpy(tmp->name, name);
   tmp->next = 0;
 
+  /* Find the appropriate level list */
   curr_level = levels;
-  while (curr_level->params->level > level)
+  while (curr_level && curr_level->params->level > level)
     curr_level = curr_level->next;
 
-  tmp->next = curr_level->names;
-  curr_level->names = tmp;
+  if (curr_level) {
+    tmp->next = curr_level->names;
+    curr_level->names = tmp;
+  } else {
+    /* No appropriate level found, free the allocated memory */
+    free(tmp);
+  }
 }
 
 void sort_names(void)
@@ -227,6 +265,21 @@ void write_wizlist(FILE *out, int minlev, int maxlev)
   }
 }
 
+/**
+ * Main function for the autowiz utility
+ *
+ * Generates wizard and immortal lists by reading the player index file
+ * and extracting characters above specified level thresholds.
+ *
+ * @param argc Number of command line arguments
+ * @param argv Array of command line arguments:
+ *             [1] wizard level threshold
+ *             [2] wizard list output file
+ *             [3] immortal level threshold
+ *             [4] immortal list output file
+ *             [5] optional PID to signal (unused)
+ * @return 0 on success, exits on error
+ */
 int main(int argc, char **argv)
 {
   int wizlevel, immlevel;
@@ -236,6 +289,11 @@ int main(int argc, char **argv)
   {
     printf("Format: %s wizlev wizlistfile immlev immlistfile [pid to signal]\n",
            argv[0]);
+    printf("\n");
+    printf("Generates wizard and immortal lists from player index file.\n");
+    printf("wizlev    - minimum level for wizard list\n");
+    printf("immlev    - minimum level for immortal list\n");
+    printf("Example: %s 31 wizlist.txt 34 immlist.txt\n", argv[0]);
     exit(0);
   }
   wizlevel = atoi(argv[1]);
@@ -277,20 +335,34 @@ char *CAP(char *txt)
  * character is removed from the input.  Lines which begin with '*' are
  * considered to be comments. Returns the number of lines advanced in the
  * file. */
+/**
+ * Read a line from file, skipping comments and blank lines
+ *
+ * @param fl File pointer to read from
+ * @param buf Buffer to store the line (must be at least MEDIUM_STRING size)
+ * @return Number of lines read, or 0 on EOF/error
+ */
 int get_line(FILE *fl, char *buf)
 {
-  char temp[MEDIUM_STRING] = {'\0'}; //, *buf2 = NULL;
+  char temp[MEDIUM_STRING] = {'\0'};
   int lines = 0;
 
   do
   {
-    fgets(temp, MEDIUM_STRING, fl);
-    if (feof(fl))
+    if (!fgets(temp, MEDIUM_STRING, fl)) {
+      if (feof(fl))
+        return (0);
+      /* Handle error case */
+      *buf = '\0';
       return (0);
+    }
     lines++;
   } while (*temp == '*' || *temp == '\n');
 
-  temp[strlen(temp) - 1] = '\0';
+  /* Remove trailing newline if present */
+  if (strlen(temp) > 0 && temp[strlen(temp) - 1] == '\n') {
+    temp[strlen(temp) - 1] = '\0';
+  }
   strcpy(buf, temp);
   return (lines);
 }

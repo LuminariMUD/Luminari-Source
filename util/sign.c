@@ -3,6 +3,17 @@
 *  Usage: A program to present text on a TCP port.                        *
 *         sign <port> <filename | port>                                   *
 *  Written by Jeremy Elson                                                *
+*                                                                         *
+*  This utility creates a simple TCP server that serves text content      *
+*  to connecting clients. It's useful for displaying information like     *
+*  server status, news, or other text-based content that can be accessed  *
+*  via telnet or similar tools.                                           *
+*                                                                         *
+*  The server forks for each connection to handle multiple clients        *
+*  simultaneously. Text can be read from a file or from stdin.            *
+*                                                                         *
+*  Updated: 2025 - Enhanced for LuminariMUD compatibility, improved       *
+*  error handling and documentation                                       *
 ************************************************************************* */
 
 #define MAX_FILESIZE 8192
@@ -11,26 +22,26 @@
 #include "conf.h"
 #include "sysdep.h"
 
-/*
- * init_socket sets up the mother descriptor - creates the socket, sets
- * its options up, binds it, and listens.
+/* Function prototypes */
+int init_socket(int port);
+char *get_text(char *fname);
+RETSIGTYPE reap(int sig);
+
+/**
+ * Initialize and configure the server socket
+ *
+ * Creates a TCP socket, sets socket options for reuse, binds it to the
+ * specified port, and starts listening for connections.
+ *
+ * @param port Port number to bind to (must be >= 1024 for non-root users)
+ * @return Socket file descriptor
  */
 int init_socket(int port)
 {
   int s, opt;
   struct sockaddr_in sa;
 
-  /*
-   * Should the first argument to socket() be AF_INET or PF_INET?  I don't
-   * know, take your pick.  PF_INET seems to be more widely adopted, and
-   * Comer (_Internetworking with TCP/IP_) even makes a point to say that
-   * people erroneously use AF_INET with socket() when they should be using
-   * PF_INET.  However, the man pages of some systems indicate that AF_INET
-   * is correct; some such as ConvexOS even say that you can use either one.
-   * All implementations I've seen define AF_INET and PF_INET to be the same
-   * number anyway, so ths point is (hopefully) moot.
-   */
-
+  /* Create TCP socket */
   if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0)
   {
     perror("Create socket");
@@ -73,6 +84,16 @@ int init_socket(int port)
   return (s);
 }
 
+/**
+ * Read text content from file or stdin
+ *
+ * Reads text content that will be served to connecting clients.
+ * Can read from a specified file or from stdin if "-" is given.
+ * Adds carriage returns for proper telnet display.
+ *
+ * @param fname Filename to read from, or "-" for stdin
+ * @return Pointer to static buffer containing the text
+ */
 char *get_text(char *fname)
 {
   static char t[MAX_FILESIZE];
@@ -99,44 +120,104 @@ char *get_text(char *fname)
   while (fgets(tmp, LINEBUF_SIZE, fl))
   {
     if (strlen(tmp) + strlen(t) < MAX_FILESIZE - 1)
-      strcat(t, strcat(tmp, "\r"));
+    {
+      strcat(t, tmp);
+      /* Add carriage return for telnet compatibility */
+      if (tmp[strlen(tmp) - 1] == '\n')
+      {
+        t[strlen(t) - 1] = '\0';  /* Remove \n */
+        strcat(t, "\r\n");        /* Add \r\n */
+      }
+    }
     else
     {
-      fprintf(stderr, "String too long.  Truncated.\n");
+      fprintf(stderr, "Warning: Text content too long, truncated at %d bytes.\n", MAX_FILESIZE);
       break;
     }
   }
 
+  if (fl != stdin)
+    fclose(fl);
+
   return (t);
 }
 
-/* clean up our zombie kids to avoid defunct processes */
+/**
+ * Signal handler to clean up zombie child processes
+ *
+ * Called when a child process terminates. Reaps all available
+ * zombie processes to prevent them from becoming defunct.
+ *
+ * @param sig Signal number (SIGCHLD)
+ */
 RETSIGTYPE reap(int sig)
 {
+  /* Reap all available zombie children */
   while (waitpid(-1, NULL, WNOHANG) > 0)
     ;
 
+  /* Reinstall signal handler */
   signal(SIGCHLD, reap);
 }
 
+/**
+ * Main function for the sign TCP server
+ *
+ * Creates a TCP server that serves text content to connecting clients.
+ * The server forks into the background and handles multiple connections
+ * by forking a child process for each client.
+ *
+ * @param argc Number of command line arguments
+ * @param argv Array of command line arguments:
+ *             [1] port number (must be >= 1024)
+ *             [2] filename to serve, or "-" for stdin
+ * @return 0 on success, 1 on error
+ */
 int main(int argc, char *argv[])
 {
   char *txt;
   int desc, remaining, bytes_written, len, s, port, child;
 
-  if (argc != 3 || (port = atoi(argv[1])) < 1024)
+  if (argc != 3)
   {
-    fprintf(stderr, "usage: %s <portnum> <\"-\" | filename>\n", argv[0]);
+    fprintf(stderr, "Usage: %s <portnum> <filename | \"-\">\n", argv[0]);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Creates a TCP server that serves text content.\n");
+    fprintf(stderr, "portnum  - TCP port to listen on (must be >= 1024)\n");
+    fprintf(stderr, "filename - file to serve, or \"-\" to read from stdin\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Example: %s 8080 welcome.txt\n", argv[0]);
+    fprintf(stderr, "Example: %s 8080 - < message.txt\n", argv[0]);
     exit(1);
   }
-  s = init_socket(port);
-  len = strlen(txt = get_text(argv[2]));
 
+  port = atoi(argv[1]);
+  if (port < 1024)
+  {
+    fprintf(stderr, "Error: Port number must be >= 1024\n");
+    exit(1);
+  }
+
+  /* Initialize socket and get text content */
+  s = init_socket(port);
+  txt = get_text(argv[2]);
+  len = strlen(txt);
+
+  if (len == 0)
+  {
+    fprintf(stderr, "Warning: No text content to serve\n");
+  }
+
+  /* Fork into background */
   if ((child = fork()) > 0)
   {
-    fprintf(stderr, "Sign started on port %d (pid %d).\n", port, child);
+    fprintf(stderr, "Sign server started on port %d (pid %d).\n", port, child);
+    fprintf(stderr, "Serving %d bytes of text content.\n", len);
+    fprintf(stderr, "Connect with: telnet localhost %d\n", port);
     exit(0);
   }
+
+  /* Set up signal handler for child processes */
   signal(SIGCHLD, reap);
 
   for (;;)

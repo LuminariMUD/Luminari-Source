@@ -48,6 +48,7 @@
 #include "item.h"
 #include "feats.h"
 #include "domains_schools.h"
+#include "ai_service.h"
 #include "crafts.h" /* NewCraft */
 #include "account.h"
 #include "alchemy.h"
@@ -6276,6 +6277,79 @@ ACMD(do_peace)
 
     if (IS_NPC(vict))
       clearMemory(vict);
+  }
+}
+
+/* AI service management command */
+ACMD(do_ai)
+{
+  char arg1[MAX_INPUT_LENGTH];
+  char arg2[MAX_INPUT_LENGTH];
+  
+  two_arguments(argument, arg1, arg2);
+  
+  if (!*arg1) {
+    send_to_char(ch, "AI Service Status:\r\n");
+    send_to_char(ch, "  Enabled: %s\r\n", is_ai_enabled() ? "YES" : "NO");
+    if (ai_state.initialized && ai_state.config) {
+      send_to_char(ch, "  Model: %s\r\n", ai_state.config->model);
+      send_to_char(ch, "  Cache Size: %d entries\r\n", get_cache_size());
+      if (ai_state.limiter) {
+        send_to_char(ch, "  Requests (minute/hour): %d/%d\r\n",
+                     ai_state.limiter->current_minute_count,
+                     ai_state.limiter->current_hour_count);
+      }
+    }
+    send_to_char(ch, "\r\nUsage: ai <enable|disable|cache|test|reload>\r\n");
+    return;
+  }
+  
+  if (!strcasecmp(arg1, "enable")) {
+    if (!ai_state.initialized) {
+      init_ai_service();
+    }
+    if (ai_state.config) {
+      ai_state.config->enabled = TRUE;
+    }
+    send_to_char(ch, "AI Service enabled.\r\n");
+    mudlog(BRF, LVL_IMMORT, TRUE, "%s enabled AI service.", GET_NAME(ch));
+  } else if (!strcasecmp(arg1, "disable")) {
+    if (ai_state.config) {
+      ai_state.config->enabled = FALSE;
+    }
+    send_to_char(ch, "AI Service disabled.\r\n");
+    mudlog(BRF, LVL_IMMORT, TRUE, "%s disabled AI service.", GET_NAME(ch));
+  } else if (!strcasecmp(arg1, "cache")) {
+    if (!strcasecmp(arg2, "clear")) {
+      ai_cache_clear();
+      send_to_char(ch, "AI cache cleared.\r\n");
+    } else if (!strcasecmp(arg2, "cleanup")) {
+      ai_cache_cleanup();
+      send_to_char(ch, "AI cache cleaned up.\r\n");
+    } else {
+      send_to_char(ch, "Usage: ai cache <clear|cleanup>\r\n");
+    }
+  } else if (!strcasecmp(arg1, "test")) {
+    char *response;
+    if (!is_ai_enabled()) {
+      send_to_char(ch, "AI service is not enabled.\r\n");
+      return;
+    }
+    response = ai_generate_response("Hello, how are you?", AI_REQUEST_TEST);
+    if (response) {
+      send_to_char(ch, "AI Response: %s\r\n", response);
+      free(response);
+    } else {
+      send_to_char(ch, "AI test failed.\r\n");
+    }
+  } else if (!strcasecmp(arg1, "reload")) {
+    load_ai_config();
+    send_to_char(ch, "AI configuration reloaded.\r\n");
+  } else if (!strcasecmp(arg1, "reset")) {
+    ai_reset_rate_limits();
+    send_to_char(ch, "AI rate limits reset.\r\n");
+  } else {
+    send_to_char(ch, "Unknown AI command. Use: enable, disable, cache, test, reload, reset\r\n");
   }
 }
 

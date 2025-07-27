@@ -2,6 +2,14 @@
 *  file:  rebuildMailIndex.c                          Part of LuminariMUD *
 *  Copyright (C) 1990, 2010 - see 'license.doc' for complete information. *
 *  All Rights Reserved                                                    *
+*                                                                         *
+*  This utility rebuilds the mail index file by scanning all .ml files   *
+*  in the mail directory and extracting mail information such as ID,      *
+*  sender, recipient, flags, timestamp, and subject. The index is used    *
+*  by the MUD server for efficient mail system operations.               *
+*                                                                         *
+*  Updated: 2025 - Enhanced for LuminariMUD compatibility, improved       *
+*  documentation and error handling                                       *
 ************************************************************************* */
 
 #include <stdio.h>
@@ -59,14 +67,34 @@ int get_line(FILE *fl, char *buf);
 long asciiflag_conv(char *flag);
 int sprintascii(char *out, long bits);
 
+/**
+ * Main function for the rebuildMailIndex utility
+ *
+ * Rebuilds the mail index file by scanning all .ml files in the current
+ * directory and subdirectories, extracting mail information and writing
+ * it to the specified index file in the format expected by the MUD server.
+ *
+ * @param argc Number of command line arguments
+ * @param argv Array of command line arguments:
+ *             [1] output index file name
+ * @return 0 on success, 1 on error
+ */
 int main(int argc, char **argv)
 {
   FILE *index_file;
+
   if (argc == 1)
   {
-    printf("Usage: %s indexfile\n", argv[0]);
+    printf("Usage: %s <indexfile>\n", argv[0]);
+    printf("\n");
+    printf("Rebuilds mail index by scanning .ml files.\n");
+    printf("The index file will contain mail ID, flags, sender ID,\n");
+    printf("recipient ID, timestamp, and subject information.\n");
+    printf("\n");
+    printf("Example: %s mail_index\n", argv[0]);
     return 0;
   }
+
   if (!(index_file = fopen(argv[1], "w")))
   {
     perror("error opening index file");
@@ -77,14 +105,24 @@ int main(int argc, char **argv)
   fprintf(index_file, "# Format: <ID> <flags> <sender ID/vnum> <recipient ID> <time> <subject>\n");
   fprintf(index_file, "# For 'No Subject', use (null)\n");
 
+  printf("Scanning mail files and rebuilding index...\n");
   walkdir(index_file, ".");
 
   fprintf(index_file, "~\n");
   fclose(index_file);
+  printf("Mail index rebuild complete.\n");
   return 0;
 }
 
-/* check that filename is a valid mail file, else return NULL */
+/**
+ * Parse mail filename and validate it's a .ml file
+ *
+ * Checks if the filename has a .ml extension and returns the base name
+ * without the extension if valid.
+ *
+ * @param filename The filename to parse
+ * @return Base filename without extension, or NULL if not a .ml file
+ */
 char *parsefilename(char *filename)
 {
   static char copy[1024];
@@ -212,23 +250,34 @@ long parselast(FILE *plr_file)
   return atol(findLine(plr_file, "Last:"));
 }
 
+/**
+ * Recursively walk directory tree and process .ml files
+ *
+ * Scans the specified directory and all subdirectories for .ml files,
+ * extracts mail information from each file, and writes it to the index.
+ *
+ * @param index_file Output file for the index
+ * @param dir Directory to scan
+ */
 void walkdir(FILE *index_file, char *dir)
 {
   char filename_qfd[1000], *subject, bits[65];
   struct dirent *dp;
+  struct stat stbuf;
   long id, sender, recipient, sent_time;
   int flags;
   DIR *dfd;
   FILE *mail_file;
+  char *name;
 
   if ((dfd = opendir(dir)) == NULL)
   {
     fprintf(stderr, "Can't open %s\n", dir);
     return;
   }
+
   while ((dp = readdir(dfd)) != NULL)
   {
-    struct stat stbuf;
     sprintf(filename_qfd, "%s/%s", dir, dp->d_name);
 
     if (stat(filename_qfd, &stbuf) == -1)
@@ -246,12 +295,16 @@ void walkdir(FILE *index_file, char *dir)
     }
     else
     {
-      char *name = parsefilename(dp->d_name);
+      name = parsefilename(dp->d_name);
 
       if (name != NULL)
       {
-        /* Grab the data from the mail file and throw it in the index */
+        /* Extract data from the mail file and add to index */
         mail_file = fopen(filename_qfd, "r");
+        if (!mail_file) {
+          fprintf(stderr, "Warning: Could not open mail file %s\n", filename_qfd);
+          continue;
+        }
 
         id = parse_mailid(mail_file);
         sender = parse_sender(mail_file);
@@ -268,6 +321,7 @@ void walkdir(FILE *index_file, char *dir)
       }
     }
   }
+  closedir(dfd);
 }
 
 int get_line(FILE *fl, char *buf)
