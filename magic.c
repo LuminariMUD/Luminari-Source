@@ -53,7 +53,13 @@ static void perform_mag_groups(int level, struct char_data *ch,
 
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier)
 {
-  int resist = GET_SPELL_RES(vict);
+  int resist = 0;
+  
+  // NULL check - return 0 if no victim
+  if (!vict)
+    return 0;
+    
+  resist = GET_SPELL_RES(vict);
 
   // additional adjustmenets
 
