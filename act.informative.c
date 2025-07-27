@@ -4157,6 +4157,24 @@ static const byte layout_caster[8] = {
   SECTION_WEALTH        /* 7 - Gold last */
 };
 
+/* Get template section order based on layout template */
+static const byte *get_template_section_order(int template)
+{
+  switch (template) {
+    case LAYOUT_COMBAT:
+      return layout_combat;
+    case LAYOUT_ROLEPLAY:
+      return layout_roleplay;
+    case LAYOUT_EXPLORER:
+      return layout_explorer;
+    case LAYOUT_CASTER:
+      return layout_caster;
+    case LAYOUT_DEFAULT:
+    default:
+      return layout_default;
+  }
+}
+
 /* Get the layout template for a character */
 /* TODO: Hook this into the score display system */
 __attribute__((unused)) static const byte *get_layout_template(struct char_data *ch)
@@ -4193,46 +4211,329 @@ static void display_combat_section(struct char_data *ch, int line_length);
 static void display_magic_section(struct char_data *ch, int line_length);
 static void display_wealth_section(struct char_data *ch, int line_length);
 static void display_equipment_section(struct char_data *ch, int line_length);
+static void display_active_effects(struct char_data *ch);
+static void display_score_section(struct char_data *ch, int section_id, int line_length);
 
-/* Implementation of score section display functions - coming soon */
+/* Implementation of score section display functions */
 static void display_identity_section(struct char_data *ch, int line_length)
 {
-  /* TODO: Implement identity section display */
+  char class_buf[MAX_STRING_LENGTH] = {'\0'};
+  char dname[SMALL_STRING] = {'\0'};
+  int i = 0, counter = 0;
+  
+  skore_section_header(ch, "\tY*** CHARACTER IDENTITY ***\tC", line_length, "\tC");
+
+  send_to_char(ch, "\tc+-- Personal Information -------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcName:\tn %-20s \tc|\tn \tcTitle:\tn %-30s \tc|\tn\r\n",
+               GET_NAME(ch), GET_TITLE(ch) ? GET_TITLE(ch) : "None");
+
+  snprintf(dname, sizeof(dname), "%s", deity_list[GET_DEITY(ch)].name);
+  
+  /* Build race string with optional symbol */
+  char race_display[64];
+  const char *race_symbol = get_race_symbol(ch);
+  if (race_symbol && *race_symbol) {
+    snprintf(race_display, sizeof(race_display), "%s %s", race_symbol, race_list[GET_RACE(ch)].type);
+  } else {
+    snprintf(race_display, sizeof(race_display), "%s", race_list[GET_RACE(ch)].type);
+  }
+  
+  send_to_char(ch, "\tc|\tn \tcRace:\tn %-20s \tc|\tn \tcDeity:\tn %-30s \tc|\tn\r\n",
+               race_display,
+               deity_list[GET_DEITY(ch)].name ? CAP(dname) : "None");
+
+  /* Build enhanced class display with colors */
+  *class_buf = '\0';
+  if (!IS_NPC(ch))
+  {
+    for (i = 0; i < MAX_CLASSES; i++)
+    {
+      if (CLASS_LEVEL(ch, i))
+      {
+        if (counter > 0)
+          strlcat(class_buf, " \tc/\tn ", sizeof(class_buf));
+
+        char temp_buf[64];
+        snprintf(temp_buf, sizeof(temp_buf), "%s%d %s\tn",
+                get_class_color(ch, i), CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
+        strlcat(class_buf, temp_buf, sizeof(class_buf));
+        counter++;
+      }
+    }
+  }
+  else
+    strlcpy(class_buf, CLASS_ABBR(ch), sizeof(class_buf));
+
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+  {
+    snprintf(class_buf, sizeof(class_buf), "%s%d %s (premade build)\tn",
+             get_class_color(ch, GET_PREMADE_BUILD_CLASS(ch)),
+             CLASS_LEVEL(ch, GET_PREMADE_BUILD_CLASS(ch)),
+             class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
+  }
+
+  send_to_char(ch, "\tc|\tn \tcClass%s:\tn %-50s \tc|\tn\r\n",
+               (counter == 1 ? "" : "es"), class_buf);
+
+  send_to_char(ch, "\tc|\tn \tcAlignment:\tn %-15s \tc|\tn \tcAge:\tn %-8s \tc|\tn \tcSize:\tn %-12s \tc|\tn\r\n",
+               get_align_by_num(GET_ALIGNMENT(ch)),
+               character_ages[GET_CH_AGE(ch)],
+               size_names[GET_SIZE(ch)]);
+
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 static void display_vitals_section(struct char_data *ch, int line_length)
 {
-  /* TODO: Implement vitals section display */
+  struct time_info_data playing_time;
+  float height = GET_HEIGHT(ch);
+  
+  skore_section_header(ch, "\tR*** VITALS & CONDITION ***\tC", line_length, "\tC");
+
+  /* Health-based color for vitals */
+  const char *hp_color = get_health_color(ch, GET_HIT(ch), GET_MAX_HIT(ch));
+  const char *mv_color = get_health_color(ch, GET_MOVE(ch), GET_MAX_MOVE(ch));
+
+  skore_progress_bar(ch, "Hit Points", GET_HIT(ch), GET_MAX_HIT(ch), hp_color);
+  skore_progress_bar(ch, "Movement", GET_MOVE(ch), GET_MAX_MOVE(ch), mv_color);
+
+  /* PSP for psionicists */
+  if (GET_MAX_PSP(ch) > 0) {
+    const char *psp_color = get_health_color(ch, GET_PSP(ch), GET_MAX_PSP(ch));
+    skore_progress_bar(ch, "PSP", GET_PSP(ch), GET_MAX_PSP(ch), psp_color);
+  }
+
+  playing_time = *real_time_passed((time(0) - ch->player.time.logon) +
+                                       ch->player.time.played,
+                                   0);
+  height *= 0.393700787402;
+
+  send_to_char(ch, "\r\n\tc+-- Physical Status ------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcHeight:\tn %5.1f inches \tc|\tn \tcWeight:\tn %4d lbs \tc|\tn \tcSpeed:\tn %3d \tc|\tn \tcInit:\tn %s%d \tc|\tn\r\n",
+               height, GET_WEIGHT(ch), get_speed(ch, TRUE),
+               get_initiative_modifier(ch) >= 0 ? "+" : "", get_initiative_modifier(ch));
+
+  send_to_char(ch, "\tc|\tn \tcCarrying:\tn %d/%d lbs \tc|\tn \tcItems:\tn %d/%d \tc|\tn \tcPlayed:\tn %dd %dh \tc|\tn\r\n",
+               IS_CARRYING_W(ch), CAN_CARRY_W(ch), IS_CARRYING_N(ch), CAN_CARRY_N(ch),
+               playing_time.day, playing_time.hours);
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 static void display_experience_section(struct char_data *ch, int line_length)
 {
-  /* TODO: Implement experience section display */
+  skore_section_header(ch, "\tY*** EXPERIENCE & PROGRESSION ***\tC", line_length, "\tC");
+
+  /* Experience progress bar */
+  int exp_needed = (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
+  int exp_current = (GET_LEVEL(ch) >= LVL_IMMORT ? 1 : GET_EXP(ch) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
+  int exp_total = (GET_LEVEL(ch) >= LVL_IMMORT ? 1 : level_exp(ch, GET_LEVEL(ch) + 1) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
+
+  if (GET_LEVEL(ch) < LVL_IMMORT) {
+    skore_progress_bar(ch, "Experience", exp_current, exp_total, "\tY");
+    send_to_char(ch, "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcNeeded:\tn %s \tc|\tn \tcLevel:\tn %d \tn\r\n",
+                 add_commas(GET_EXP(ch)), add_commas(exp_needed), GET_LEVEL(ch));
+  } else {
+    send_to_char(ch, "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcLevel:\tn %d (IMMORTAL) \tn\r\n",
+                 add_commas(GET_EXP(ch)), GET_LEVEL(ch));
+  }
+
+  send_to_char(ch, "\r\n\tc+-- Caster Levels --------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcCaster Level:\tn %-3d \tc|\tn \tcDivine Level:\tn %-3d \tc|\tn \tcMagic Level:\tn %-3d \tc|\tn\r\n",
+               CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch));
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 static void display_abilities_section(struct char_data *ch, int line_length)
 {
-  /* TODO: Implement abilities section display */
+  skore_section_header(ch, "\tG*** ABILITY SCORES & SAVES ***\tC", line_length, "\tC");
+
+  send_to_char(ch, "\tc+-- Ability Scores -------------------------+-- Saving Throws ---------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcStr:\tn %2d[%2d] \tcDex:\tn %2d[%2d] \tcCon:\tn %2d[%2d] \tc|\tn \tcFort:\tn %-3d \tcWill:\tn %-3d \tc|\tn\r\n",
+               GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch),
+               compute_mag_saves(ch, SAVING_FORT, 0), compute_mag_saves(ch, SAVING_WILL, 0));
+  send_to_char(ch, "\tc|\tn \tcInt:\tn %2d[%2d] \tcWis:\tn %2d[%2d] \tcCha:\tn %2d[%2d] \tc|\tn \tcReflex:\tn %-3d       \tc|\tn\r\n",
+               GET_INT(ch), GET_INT_BONUS(ch), GET_WIS(ch), GET_WIS_BONUS(ch), GET_CHA(ch), GET_CHA_BONUS(ch),
+               compute_mag_saves(ch, SAVING_REFL, 0));
+  send_to_char(ch, "\tc+--------------------------------------------+--------------------------------+\tn\r\n");
 }
 
 static void display_combat_section(struct char_data *ch, int line_length)
 {
-  /* TODO: Implement combat section display */
+  int calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch));
+  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
+  int w_type = 0;
+  
+  if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
+    w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
+  else
+  {
+    if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
+      w_type = ch->mob_specials.attack_type + TYPE_HIT;
+    else
+      w_type = TYPE_HIT;
+  }
+  
+  skore_section_header(ch, "\tR*** COMBAT STATISTICS ***\tC", line_length, "\tC");
+
+#define RETURN_NUM_ATTACKS 1
+  int num_attacks = perform_attacks(ch, RETURN_NUM_ATTACKS, 0);
+  int armor_class = compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
+#undef RETURN_NUM_ATTACKS
+
+  send_to_char(ch, "\tc+-- Combat Stats ---------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcBAB:\tn %-4d \tc|\tn \tcAttacks:\tn %-3d \tc|\tn \tcAC:\tn %-3d \tc|\tn \tcWimpy:\tn %-3d \tc|\tn \tcPos:\tn %-10s \tc|\tn\r\n",
+               calc_bab, num_attacks, armor_class, GET_WIMP_LEV(ch),
+               FIGHTING(ch) ? "Fighting" : position_types[GET_POS(ch)]);
+
+  send_to_char(ch, "\tc|\tn \tcHitroll:\tn %s%-3d \tc|\tn \tcDamroll:\tn %s%-3d \tc|\tn \tcDR:\tn %-3d \tc|\tn \tcSR:\tn %-3d \tc|\tn\r\n",
+               GET_HITROLL(ch) >= 0 ? "+" : "", GET_HITROLL(ch),
+               GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch),
+               compute_damage_reduction(ch, DAM_RESERVED_DBC),
+               compute_spell_res(ch, ch, 0));
+
+  /* Weapon information */
+  if (wielded) {
+    send_to_char(ch, "\tc|\tn \tcWeapon:\tn %-30s \tc|\tn \tcDamage:\tn %dd%d%s%d \tc|\tn\r\n",
+                 wielded->short_description,
+                 GET_OBJ_VAL(wielded, 1), GET_OBJ_VAL(wielded, 2),
+                 GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
+  } else {
+    send_to_char(ch, "\tc|\tn \tcWeapon:\tn %-30s \tc|\tn \tcDamage:\tn %dd%d%s%d \tc|\tn\r\n",
+                 "Unarmed", 1, 3, GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
+  }
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 static void display_magic_section(struct char_data *ch, int line_length)
 {
-  /* TODO: Implement magic section display */
+  
+  skore_section_header(ch, "\tB*** MAGIC & PSIONICS ***\tC", line_length, "\tC");
+
+  if (IS_SPELLCASTER(ch)) {
+    send_to_char(ch, "\tc+-- Spellcaster Bonuses --------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "\tc|\tn \tcSpell DC Bonus:\tn %-3d \tc|\tn \tcPotency:\tn %-3d%% \tc|\tn \tcDuration:\tn %-3d%% \tc|\tn\r\n",
+                 get_spell_dc_bonus(ch), get_spell_potency_bonus(ch), get_spell_duration_bonus(ch));
+    send_to_char(ch, "\tc+-- Spell Slots ----------------------------------------------------------------+\tn\r\n");
+    
+    /* Display spell slots for each casting class */
+    int class_idx, circle;
+    
+    for (class_idx = 0; class_idx < MAX_CLASSES; class_idx++) {
+      if (CLASS_LEVEL(ch, class_idx) > 0) {
+        /* Check if this class has any spell slots */
+        int has_slots = FALSE;
+        for (circle = 1; circle <= 9; circle++) {
+          if (compute_slots_by_circle(ch, class_idx, circle) > 0) {
+            has_slots = TRUE;
+            break;
+          }
+        }
+        if (!has_slots) continue;
+        /* This class can cast spells */
+        send_to_char(ch, "\tc|\tn \tc%s:\tn ", class_list[class_idx].name);
+        
+        for (circle = 1; circle <= 9; circle++) {
+          int total_slots = compute_slots_by_circle(ch, class_idx, circle);
+          if (total_slots > 0) {
+            int used_slots = count_circle_collection(ch, class_idx, circle) +
+                            count_circle_innate_magic(ch, class_idx, circle) +
+                            count_circle_prep_queue(ch, class_idx, circle);
+            int remaining = total_slots - used_slots;
+            
+            /* Color code based on remaining slots */
+            const char *color = "\tg"; /* Green if slots available */
+            if (remaining == 0) color = "\tr"; /* Red if no slots */
+            else if (remaining <= total_slots / 3) color = "\ty"; /* Yellow if low */
+            
+            send_to_char(ch, "%s[%d: %d/%d]\tn ", color, circle, remaining, total_slots);
+            has_slots = TRUE;
+          }
+        }
+        if (has_slots) {
+          send_to_char(ch, "\tc|\tn\r\n");
+        }
+      }
+    }
+    
+    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+  }
+
+  if (GET_PSIONIC_LEVEL(ch) > 0) {
+    send_to_char(ch, "\tc+-- Psionic Information --------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "\tc|\tn \tcPsionic Level:\tn %-3d \tc|\tn \tcEnergy Type:\tn %-15s \tc|\tn\r\n",
+                 GET_PSIONIC_LEVEL(ch), damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
+    send_to_char(ch, "\tc|\tn \tcMax Augment PSP:\tn %-3d (power psp cost) \tc|\tn\r\n",
+                 base_augment_psp_allowed(ch));
+    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+  }
+  
+  /* Display active effects */
+  display_active_effects(ch);
 }
 
 static void display_wealth_section(struct char_data *ch, int line_length)
 {
-  /* TODO: Implement wealth section display */
+  skore_section_header(ch, "\tY*** WEALTH & ACHIEVEMENTS ***\tC", line_length, "\tC");
+
+  send_to_char(ch, "\tc+-- Wealth ---------------------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcGold:\tn %-20s \tc|\tn \tcBank:\tn %-20s \tc|\tn\r\n",
+               add_commas(GET_GOLD(ch)), add_commas(GET_BANK_GOLD(ch)));
+  send_to_char(ch, "\tc+-- Quests & Achievements ------------------------------------------------------+\tn\r\n");
+  send_to_char(ch, "\tc|\tn \tcQuests Completed:\tn %-6d \tc|\tn \tcQuest Points:\tn %-6d \tc|\tn\r\n",
+               (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
+               (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0));
+
+  if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch)) {
+    send_to_char(ch, "\tc|\tn \tcCrafting Job:\tn (%d) %s, using: %s \tc|\tn\r\n",
+                 GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
+                 material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
+  }
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 static void display_equipment_section(struct char_data *ch, int line_length)
 {
-  /* TODO: Implement equipment section display */
+  int i, equipped_items = 0;
+  
+  skore_section_header(ch, "\tM*** EQUIPMENT STATUS ***\tC", line_length, "\tC");
+
+  send_to_char(ch, "\tc+-- Key Equipment --------------------------------------------------------------+\tn\r\n");
+
+  /* Show main weapon */
+  if (GET_EQ(ch, WEAR_WIELD_1)) {
+    struct obj_data *weapon = GET_EQ(ch, WEAR_WIELD_1);
+    send_to_char(ch, "\tc|\tn \tcMain Weapon:\tn %-45s \tc|\tn\r\n",
+                 weapon->short_description);
+  } else {
+    send_to_char(ch, "\tc|\tn \tcMain Weapon:\tn %-45s \tc|\tn\r\n", "None (unarmed)");
+  }
+
+  /* Show armor */
+  if (GET_EQ(ch, WEAR_BODY)) {
+    struct obj_data *armor = GET_EQ(ch, WEAR_BODY);
+    send_to_char(ch, "\tc|\tn \tcBody Armor:\tn %-46s \tc|\tn\r\n",
+                 armor->short_description);
+  } else {
+    send_to_char(ch, "\tc|\tn \tcBody Armor:\tn %-46s \tc|\tn\r\n", "None");
+  }
+
+  /* Show shield */
+  if (GET_EQ(ch, WEAR_SHIELD)) {
+    struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
+    send_to_char(ch, "\tc|\tn \tcShield:\tn %-50s \tc|\tn\r\n",
+                 shield->short_description);
+  } else {
+    send_to_char(ch, "\tc|\tn \tcShield:\tn %-50s \tc|\tn\r\n", "None");
+  }
+
+  /* Equipment condition summary */
+  for (i = 0; i < NUM_WEARS; i++) {
+    if (GET_EQ(ch, i)) equipped_items++;
+  }
+
+  send_to_char(ch, "\tc|\tn \tcEquipped Items:\tn %-3d / %d slots                                  \tc|\tn\r\n",
+               equipped_items, NUM_WEARS);
+  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
 }
 
 /* Display active effects with duration bars */
@@ -4332,27 +4633,21 @@ ACMD(do_skore)
 {
   PERF_PROF_ENTER(pr_skore_, "do_skore");
   
-  char class_buf[MAX_STRING_LENGTH] = {'\0'};
-  struct time_info_data playing_time;
-  int calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch)), i = 0, counter = 0;
-  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
-  float height = GET_HEIGHT(ch);
-  int w_type = 0;
   int line_length = 80;
-  char dname[SMALL_STRING] = {'\0'};
+  int i = 0;
 
-  // Check for section-specific display
+  /* Check for section-specific display */
   char arg[MAX_INPUT_LENGTH];
   one_argument(argument, arg, sizeof(arg));
   
-  // Check for classic score preference
+  /* Check for classic score preference */
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SCORE_CLASSIC)) {
     PERF_PROF_EXIT(pr_skore_);
     do_score(ch, argument, cmd, subcmd);
     return;
   }
 
-  // Determine display width based on preferences
+  /* Determine display width based on preferences */
   if (!IS_NPC(ch)) {
     int pref_width = GET_SCORE_DISPLAY_WIDTH(ch);
     if (pref_width == 120 || PRF_FLAGGED(ch, PRF_SCORE_WIDE)) {
@@ -4360,34 +4655,30 @@ ACMD(do_skore)
     } else if (pref_width == 160) {
       line_length = 160;
     } else {
-      line_length = 80; // Default
+      line_length = 80; /* Default */
     }
   }
 
-  // get some initial info before score display
-  if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
-    w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
-  else
-  {
-    if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
-      w_type = ch->mob_specials.attack_type + TYPE_HIT;
-    else
-      w_type = TYPE_HIT;
-  }
-
-  playing_time = *real_time_passed((time(0) - ch->player.time.logon) +
-                                       ch->player.time.played,
-                                   0);
-
-  height *= 0.393700787402;
-
-  // Handle section-specific displays
+  /* Handle section-specific displays */
   if (*arg) {
     if (!str_cmp(arg, "combat")) {
-      // Show detailed combat information
+      /* Show detailed combat information */
+      int calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch));
+      struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
+      int w_type = 0;
+      
+      if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
+        w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
+      else {
+        if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
+          w_type = ch->mob_specials.attack_type + TYPE_HIT;
+        else
+          w_type = TYPE_HIT;
+      }
+      
       skore_section_header(ch, "\tR*** DETAILED COMBAT STATISTICS ***\tC", line_length, "\tC");
       
-      // Calculate detailed combat stats
+      /* Calculate detailed combat stats */
       int armor_class = compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
       int num_attacks = 1 + MAX(0, (calc_bab - 1) / 5);
       
@@ -4537,62 +4828,7 @@ ACMD(do_skore)
     }
   }
 
-  // Get display context for section ordering
-  int context = get_display_context(ch);
-  
-  // Section ordering based on context
-  // Define section identifiers
-  #define SKORE_SECTION_IDENTITY  0
-  #define SKORE_SECTION_VITALS    1
-  #define SKORE_SECTION_XP        2
-  #define SKORE_SECTION_ABILITIES 3
-  #define SKORE_SECTION_COMBAT    4
-  #define SKORE_SECTION_MAGIC     5
-  #define SKORE_SECTION_WEALTH    6
-  #define SKORE_SECTION_EQUIPMENT 7
-  #define SKORE_NUM_SECTIONS      8
-  
-  // Default section order
-  int section_order[SKORE_NUM_SECTIONS];
-  int section_idx;
-  
-  // Initialize default order
-  for (section_idx = 0; section_idx < SKORE_NUM_SECTIONS; section_idx++) {
-    section_order[section_idx] = section_idx;
-  }
-  
-  // Reorder based on context
-  if (context == CONTEXT_COMBAT) {
-    // Combat context: prioritize combat, vitals, abilities
-    section_order[0] = SKORE_SECTION_COMBAT;     // Combat first
-    section_order[1] = SKORE_SECTION_VITALS;     // Vitals second
-    section_order[2] = SKORE_SECTION_ABILITIES;   // Abilities third
-    section_order[3] = SKORE_SECTION_IDENTITY;    // Identity fourth
-    section_order[4] = SKORE_SECTION_MAGIC;       // Magic fifth
-    section_order[5] = SKORE_SECTION_XP;          // XP sixth
-    section_order[6] = SKORE_SECTION_EQUIPMENT;   // Equipment seventh
-    section_order[7] = SKORE_SECTION_WEALTH;      // Wealth last
-  } else if (context == CONTEXT_SHOPPING) {
-    // Shopping context: prioritize wealth, equipment, identity
-    section_order[0] = SKORE_SECTION_WEALTH;      // Wealth first
-    section_order[1] = SKORE_SECTION_EQUIPMENT;   // Equipment second
-    section_order[2] = SKORE_SECTION_IDENTITY;    // Identity third
-    section_order[3] = SKORE_SECTION_VITALS;      // Then the rest in normal order
-    section_order[4] = SKORE_SECTION_XP;
-    section_order[5] = SKORE_SECTION_ABILITIES;
-    section_order[6] = SKORE_SECTION_COMBAT;
-    section_order[7] = SKORE_SECTION_MAGIC;
-  } else if (context == CONTEXT_EXPLORING) {
-    // Exploring context: prioritize vitals, abilities, equipment
-    section_order[0] = SKORE_SECTION_VITALS;      // Vitals first
-    section_order[1] = SKORE_SECTION_ABILITIES;   // Abilities second
-    section_order[2] = SKORE_SECTION_EQUIPMENT;   // Equipment third
-    section_order[3] = SKORE_SECTION_IDENTITY;    // Then the rest
-    section_order[4] = SKORE_SECTION_XP;
-    section_order[5] = SKORE_SECTION_COMBAT;
-    section_order[6] = SKORE_SECTION_MAGIC;
-    section_order[7] = SKORE_SECTION_WEALTH;
-  }
+  /* Empty - section ordering handled below */
 
   // ═══════════════════════════════════════════════════════════════════════════════
   // HEADER WITH CLASS BORDERS
@@ -4625,310 +4861,60 @@ ACMD(do_skore)
     send_to_char(ch, "\r\n");
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // IDENTITY PANEL
-  // ═══════════════════════════════════════════════════════════════════════════════
-
-  skore_section_header(ch, "\tY*** CHARACTER IDENTITY ***\tC", line_length, "\tC");
-
-  send_to_char(ch, "\tc+-- Personal Information -------------------------------------------------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcName:\tn %-20s \tc|\tn \tcTitle:\tn %-30s \tc|\tn\r\n",
-               GET_NAME(ch), GET_TITLE(ch) ? GET_TITLE(ch) : "None");
-
-  snprintf(dname, sizeof(dname), "%s", deity_list[GET_DEITY(ch)].name);
+  /* Display sections based on layout ordering */
+  const byte *section_order;
+  int section_idx;
   
-  // Build race string with optional symbol
-  char race_display[64];
-  const char *race_symbol = get_race_symbol(ch);
-  if (race_symbol && *race_symbol) {
-    snprintf(race_display, sizeof(race_display), "%s %s", race_symbol, race_list[GET_RACE(ch)].type);
-  } else {
-    snprintf(race_display, sizeof(race_display), "%s", race_list[GET_RACE(ch)].type);
-  }
-  
-  send_to_char(ch, "\tc|\tn \tcRace:\tn %-20s \tc|\tn \tcDeity:\tn %-30s \tc|\tn\r\n",
-               race_display,
-               deity_list[GET_DEITY(ch)].name ? CAP(dname) : "None");
-
-  // Build enhanced class display with colors
-  *class_buf = '\0';
-  if (!IS_NPC(ch))
-  {
-    for (i = 0; i < MAX_CLASSES; i++)
-    {
-      if (CLASS_LEVEL(ch, i))
-      {
-        if (counter > 0)
-          strlcat(class_buf, " \tc/\tn ", sizeof(class_buf));
-
-        char temp_buf[64];
-        snprintf(temp_buf, sizeof(temp_buf), "%s%d %s\tn",
-                get_class_color(ch, i), CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
-        strlcat(class_buf, temp_buf, sizeof(class_buf));
-        counter++;
+  /* Get section order based on player's preferences or context */
+  if (!IS_NPC(ch)) {
+    /* Check if player has custom section order set */
+    bool has_custom_order = FALSE;
+    for (i = 0; i < 8; i++) {
+      if (GET_SCORE_SECTION_ORDER(ch, i) != i) {
+        has_custom_order = TRUE;
+        break;
       }
-    }
-  }
-  else
-    strlcpy(class_buf, CLASS_ABBR(ch), sizeof(class_buf));
-
-  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
-  {
-    snprintf(class_buf, sizeof(class_buf), "%s%d %s (premade build)\tn",
-             get_class_color(ch, GET_PREMADE_BUILD_CLASS(ch)),
-             CLASS_LEVEL(ch, GET_PREMADE_BUILD_CLASS(ch)),
-             class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
-  }
-
-  send_to_char(ch, "\tc|\tn \tcClass%s:\tn %-50s \tc|\tn\r\n",
-               (counter == 1 ? "" : "es"), class_buf);
-
-  send_to_char(ch, "\tc|\tn \tcAlignment:\tn %-15s \tc|\tn \tcAge:\tn %-8s \tc|\tn \tcSize:\tn %-12s \tc|\tn\r\n",
-               get_align_by_num(GET_ALIGNMENT(ch)),
-               character_ages[GET_CH_AGE(ch)],
-               size_names[GET_SIZE(ch)]);
-
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // VITALS PANEL
-  // ═══════════════════════════════════════════════════════════════════════════════
-
-  skore_section_header(ch, "\tR*** VITALS & CONDITION ***\tC", line_length, "\tC");
-
-  // Health-based color for vitals
-  const char *hp_color = get_health_color(ch, GET_HIT(ch), GET_MAX_HIT(ch));
-  const char *mv_color = get_health_color(ch, GET_MOVE(ch), GET_MAX_MOVE(ch));
-
-  skore_progress_bar(ch, "Hit Points", GET_HIT(ch), GET_MAX_HIT(ch), hp_color);
-  skore_progress_bar(ch, "Movement", GET_MOVE(ch), GET_MAX_MOVE(ch), mv_color);
-
-  // PSP for psionicists
-  if (GET_MAX_PSP(ch) > 0) {
-    const char *psp_color = get_health_color(ch, GET_PSP(ch), GET_MAX_PSP(ch));
-    skore_progress_bar(ch, "PSP", GET_PSP(ch), GET_MAX_PSP(ch), psp_color);
-  }
-
-  send_to_char(ch, "\r\n\tc+-- Physical Status ------------------------------------------------------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcHeight:\tn %5.1f inches \tc|\tn \tcWeight:\tn %4d lbs \tc|\tn \tcSpeed:\tn %3d \tc|\tn \tcInit:\tn %s%d \tc|\tn\r\n",
-               height, GET_WEIGHT(ch), get_speed(ch, TRUE),
-               get_initiative_modifier(ch) >= 0 ? "+" : "", get_initiative_modifier(ch));
-
-  send_to_char(ch, "\tc|\tn \tcCarrying:\tn %d/%d lbs \tc|\tn \tcItems:\tn %d/%d \tc|\tn \tcPlayed:\tn %dd %dh \tc|\tn\r\n",
-               IS_CARRYING_W(ch), CAN_CARRY_W(ch), IS_CARRYING_N(ch), CAN_CARRY_N(ch),
-               playing_time.day, playing_time.hours);
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
-
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // EXPERIENCE & PROGRESSION PANEL
-  // ═══════════════════════════════════════════════════════════════════════════════
-
-  skore_section_header(ch, "\tY*** EXPERIENCE & PROGRESSION ***\tC", line_length, "\tC");
-
-  // Experience progress bar
-  int exp_needed = (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
-  int exp_current = (GET_LEVEL(ch) >= LVL_IMMORT ? 1 : GET_EXP(ch) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
-  int exp_total = (GET_LEVEL(ch) >= LVL_IMMORT ? 1 : level_exp(ch, GET_LEVEL(ch) + 1) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
-
-  if (GET_LEVEL(ch) < LVL_IMMORT) {
-    skore_progress_bar(ch, "Experience", exp_current, exp_total, "\tY");
-    send_to_char(ch, "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcNeeded:\tn %s \tc|\tn \tcLevel:\tn %d \tn\r\n",
-                 add_commas(GET_EXP(ch)), add_commas(exp_needed), GET_LEVEL(ch));
-  } else {
-    send_to_char(ch, "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcLevel:\tn %d (IMMORTAL) \tn\r\n",
-                 add_commas(GET_EXP(ch)), GET_LEVEL(ch));
-  }
-
-  send_to_char(ch, "\r\n\tc+-- Caster Levels --------------------------------------------------------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcCaster Level:\tn %-3d \tc|\tn \tcDivine Level:\tn %-3d \tc|\tn \tcMagic Level:\tn %-3d \tc|\tn\r\n",
-               CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch));
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // ABILITY SCORES & SAVES PANEL
-  // ═══════════════════════════════════════════════════════════════════════════════
-
-  skore_section_header(ch, "\tG*** ABILITY SCORES & SAVES ***\tC", line_length, "\tC");
-
-  send_to_char(ch, "\tc+-- Ability Scores -------------------------+-- Saving Throws ---------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcStr:\tn %2d[%2d] \tcDex:\tn %2d[%2d] \tcCon:\tn %2d[%2d] \tc|\tn \tcFort:\tn %-3d \tcWill:\tn %-3d \tc|\tn\r\n",
-               GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch),
-               compute_mag_saves(ch, SAVING_FORT, 0), compute_mag_saves(ch, SAVING_WILL, 0));
-  send_to_char(ch, "\tc|\tn \tcInt:\tn %2d[%2d] \tcWis:\tn %2d[%2d] \tcCha:\tn %2d[%2d] \tc|\tn \tcReflex:\tn %-3d       \tc|\tn\r\n",
-               GET_INT(ch), GET_INT_BONUS(ch), GET_WIS(ch), GET_WIS_BONUS(ch), GET_CHA(ch), GET_CHA_BONUS(ch),
-               compute_mag_saves(ch, SAVING_REFL, 0));
-  send_to_char(ch, "\tc+--------------------------------------------+--------------------------------+\tn\r\n");
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // COMBAT PANEL
-  // ═══════════════════════════════════════════════════════════════════════════════
-
-  skore_section_header(ch, "\tR*** COMBAT STATISTICS ***\tC", line_length, "\tC");
-
-#define RETURN_NUM_ATTACKS 1
-  int num_attacks = perform_attacks(ch, RETURN_NUM_ATTACKS, 0);
-  int armor_class = compute_armor_class(NULL, ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
-#undef RETURN_NUM_ATTACKS
-
-  send_to_char(ch, "\tc+-- Combat Stats ---------------------------------------------------------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcBAB:\tn %-4d \tc|\tn \tcAttacks:\tn %-3d \tc|\tn \tcAC:\tn %-3d \tc|\tn \tcWimpy:\tn %-3d \tc|\tn \tcPos:\tn %-10s \tc|\tn\r\n",
-               calc_bab, num_attacks, armor_class, GET_WIMP_LEV(ch),
-               FIGHTING(ch) ? "Fighting" : position_types[GET_POS(ch)]);
-
-  send_to_char(ch, "\tc|\tn \tcHitroll:\tn %s%-3d \tc|\tn \tcDamroll:\tn %s%-3d \tc|\tn \tcDR:\tn %-3d \tc|\tn \tcSR:\tn %-3d \tc|\tn\r\n",
-               GET_HITROLL(ch) >= 0 ? "+" : "", GET_HITROLL(ch),
-               GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch),
-               compute_damage_reduction(ch, DAM_RESERVED_DBC),
-               compute_spell_res(ch, ch, 0));
-
-  // Weapon information
-  if (wielded) {
-    send_to_char(ch, "\tc|\tn \tcWeapon:\tn %-30s \tc|\tn \tcDamage:\tn %dd%d%s%d \tc|\tn\r\n",
-                 wielded->short_description,
-                 GET_OBJ_VAL(wielded, 1), GET_OBJ_VAL(wielded, 2),
-                 GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
-  } else {
-    send_to_char(ch, "\tc|\tn \tcWeapon:\tn %-30s \tc|\tn \tcDamage:\tn %dd%d%s%d \tc|\tn\r\n",
-                 "Unarmed", 1, 3, GET_DAMROLL(ch) >= 0 ? "+" : "", GET_DAMROLL(ch));
-  }
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // MAGIC & PSIONICS PANEL
-  // ═══════════════════════════════════════════════════════════════════════════════
-
-  if (IS_SPELLCASTER(ch) || GET_PSIONIC_LEVEL(ch) > 0) {
-    skore_section_header(ch, "\tB*** MAGIC & PSIONICS ***\tC", line_length, "\tC");
-
-    if (IS_SPELLCASTER(ch)) {
-      send_to_char(ch, "\tc+-- Spellcaster Bonuses --------------------------------------------------------+\tn\r\n");
-      send_to_char(ch, "\tc|\tn \tcSpell DC Bonus:\tn %-3d \tc|\tn \tcPotency:\tn %-3d%% \tc|\tn \tcDuration:\tn %-3d%% \tc|\tn\r\n",
-                   get_spell_dc_bonus(ch), get_spell_potency_bonus(ch), get_spell_duration_bonus(ch));
-      send_to_char(ch, "\tc+-- Spell Slots ----------------------------------------------------------------+\tn\r\n");
-      
-      // Display spell slots for each casting class
-      int class_idx, circle;
-      
-      for (class_idx = 0; class_idx < MAX_CLASSES; class_idx++) {
-        if (CLASS_LEVEL(ch, class_idx) > 0) {
-          // Check if this class has any spell slots
-          int has_slots = FALSE;
-          for (circle = 1; circle <= 9; circle++) {
-            if (compute_slots_by_circle(ch, class_idx, circle) > 0) {
-              has_slots = TRUE;
-              break;
-            }
-          }
-          if (!has_slots) continue;
-          // This class can cast spells
-          send_to_char(ch, "\tc|\tn \tc%s:\tn ", class_list[class_idx].name);
-          
-          for (circle = 1; circle <= 9; circle++) {
-            int total_slots = compute_slots_by_circle(ch, class_idx, circle);
-            if (total_slots > 0) {
-              int used_slots = count_circle_collection(ch, class_idx, circle) +
-                              count_circle_innate_magic(ch, class_idx, circle) +
-                              count_circle_prep_queue(ch, class_idx, circle);
-              int remaining = total_slots - used_slots;
-              
-              // Color code based on remaining slots
-              const char *color = "\tg"; // Green if slots available
-              if (remaining == 0) color = "\tr"; // Red if no slots
-              else if (remaining <= total_slots / 3) color = "\ty"; // Yellow if low
-              
-              send_to_char(ch, "%s[%d: %d/%d]\tn ", color, circle, remaining, total_slots);
-              has_slots = TRUE;
-            }
-          }
-          if (has_slots) {
-            send_to_char(ch, "\tc|\tn\r\n");
-          }
-        }
-      }
-      
-      send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
-    }
-
-    if (GET_PSIONIC_LEVEL(ch) > 0) {
-      send_to_char(ch, "\tc+-- Psionic Information --------------------------------------------------------+\tn\r\n");
-      send_to_char(ch, "\tc|\tn \tcPsionic Level:\tn %-3d \tc|\tn \tcEnergy Type:\tn %-15s \tc|\tn\r\n",
-                   GET_PSIONIC_LEVEL(ch), damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
-      send_to_char(ch, "\tc|\tn \tcMax Augment PSP:\tn %-3d (power psp cost) \tc|\tn\r\n",
-                   base_augment_psp_allowed(ch));
-      send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
     }
     
-    // Display active effects
-    display_active_effects(ch);
+    if (has_custom_order) {
+      /* Use custom section order */
+      section_order = ch->player_specials->saved.score_section_order;
+    } else {
+      /* Use template order based on layout or context */
+      int context = get_display_context(ch);
+      
+      /* Check if player has set a layout template */
+      if (GET_SCORE_LAYOUT_TEMPLATE(ch) != LAYOUT_DEFAULT) {
+        section_order = get_template_section_order(GET_SCORE_LAYOUT_TEMPLATE(ch));
+      } else {
+        /* Use context-based ordering */
+        switch (context) {
+          case CONTEXT_COMBAT:
+            section_order = layout_combat;
+            break;
+          case CONTEXT_SHOPPING:
+            section_order = layout_roleplay;
+            break;
+          case CONTEXT_EXPLORING:
+            section_order = layout_explorer;
+            break;
+          case CONTEXT_ROLEPLAY:
+            section_order = layout_roleplay;
+            break;
+          default:
+            section_order = layout_default;
+            break;
+        }
+      }
+    }
+  } else {
+    /* NPCs use default ordering */
+    section_order = layout_default;
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // WEALTH & QUESTS PANEL
-  // ═══════════════════════════════════════════════════════════════════════════════
-
-  skore_section_header(ch, "\tY*** WEALTH & ACHIEVEMENTS ***\tC", line_length, "\tC");
-
-  send_to_char(ch, "\tc+-- Wealth ---------------------------------------------------------------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcGold:\tn %-20s \tc|\tn \tcBank:\tn %-20s \tc|\tn\r\n",
-               add_commas(GET_GOLD(ch)), add_commas(GET_BANK_GOLD(ch)));
-  send_to_char(ch, "\tc+-- Quests & Achievements ------------------------------------------------------+\tn\r\n");
-  send_to_char(ch, "\tc|\tn \tcQuests Completed:\tn %-6d \tc|\tn \tcQuest Points:\tn %-6d \tc|\tn\r\n",
-               (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
-               (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0));
-
-  if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch)) {
-    send_to_char(ch, "\tc|\tn \tcCrafting Job:\tn (%d) %s, using: %s \tc|\tn\r\n",
-                 GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_DESC(ch),
-                 material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
-  }
-  send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // EQUIPMENT STATUS PANEL (if not compact mode)
-  // ═══════════════════════════════════════════════════════════════════════════════
-
-  if (IS_NPC(ch) || GET_SCORE_INFO_DENSITY(ch) == 0) { // Full density only
-    skore_section_header(ch, "\tM*** EQUIPMENT STATUS ***\tC", line_length, "\tC");
-
-    send_to_char(ch, "\tc+-- Key Equipment --------------------------------------------------------------+\tn\r\n");
-
-    // Show main weapon
-    if (GET_EQ(ch, WEAR_WIELD_1)) {
-      struct obj_data *weapon = GET_EQ(ch, WEAR_WIELD_1);
-      send_to_char(ch, "\tc|\tn \tcMain Weapon:\tn %-45s \tc|\tn\r\n",
-                   weapon->short_description);
-    } else {
-      send_to_char(ch, "\tc|\tn \tcMain Weapon:\tn %-45s \tc|\tn\r\n", "None (unarmed)");
-    }
-
-    // Show armor
-    if (GET_EQ(ch, WEAR_BODY)) {
-      struct obj_data *armor = GET_EQ(ch, WEAR_BODY);
-      send_to_char(ch, "\tc|\tn \tcBody Armor:\tn %-46s \tc|\tn\r\n",
-                   armor->short_description);
-    } else {
-      send_to_char(ch, "\tc|\tn \tcBody Armor:\tn %-46s \tc|\tn\r\n", "None");
-    }
-
-    // Show shield
-    if (GET_EQ(ch, WEAR_SHIELD)) {
-      struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
-      send_to_char(ch, "\tc|\tn \tcShield:\tn %-50s \tc|\tn\r\n",
-                   shield->short_description);
-    } else {
-      send_to_char(ch, "\tc|\tn \tcShield:\tn %-50s \tc|\tn\r\n", "None");
-    }
-
-    // Equipment condition summary
-    int equipped_items = 0;
-    for (i = 0; i < NUM_WEARS; i++) {
-      if (GET_EQ(ch, i)) equipped_items++;
-    }
-
-    send_to_char(ch, "\tc|\tn \tcEquipped Items:\tn %-3d / %d slots                                  \tc|\tn\r\n",
-                 equipped_items, NUM_WEARS);
-    send_to_char(ch, "\tc+----------------------------------------------------------------------------+\tn\r\n");
+  
+  /* Display each section in the specified order */
+  for (section_idx = 0; section_idx < 8; section_idx++) {
+    display_score_section(ch, section_order[section_idx], line_length);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -4944,8 +4930,7 @@ ACMD(do_skore)
 }
 
 /* Display a specific score section based on section ID */
-/* TODO: Hook this into the score display system */
-__attribute__((unused)) static void display_score_section(struct char_data *ch, int section_id, int line_length)
+static void display_score_section(struct char_data *ch, int section_id, int line_length)
 {
   switch (section_id) {
     case SECTION_IDENTITY:
@@ -4972,7 +4957,7 @@ __attribute__((unused)) static void display_score_section(struct char_data *ch, 
       display_wealth_section(ch, line_length);
       break;
     case SECTION_EQUIPMENT:
-      if (IS_NPC(ch) || GET_SCORE_INFO_DENSITY(ch) == 0) { // Full density only
+      if (IS_NPC(ch) || GET_SCORE_INFO_DENSITY(ch) == 0) { /* Full density only */
         display_equipment_section(ch, line_length);
       }
       break;

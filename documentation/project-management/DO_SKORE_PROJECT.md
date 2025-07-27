@@ -48,19 +48,19 @@
 - [x] Use progress bar for duration display
 - [x] Add to magic section or new section
 
-### 2.6 Layout Templates
-- [ ] Add score_layout_template to player_special_data_saved
-- [ ] Define LAYOUT_COMBAT, LAYOUT_ROLEPLAY, LAYOUT_EXPLORER, LAYOUT_CASTER
-- [ ] Create section_order[] arrays for each template
-- [ ] Add `scoreconfig template <name>` command
-- [ ] Modify do_skore to respect section ordering
+### 2.6 Layout Templates ✅ COMPLETE
+- [x] Add score_layout_template to player_special_data_saved
+- [x] Define LAYOUT_COMBAT, LAYOUT_ROLEPLAY, LAYOUT_EXPLORER, LAYOUT_CASTER
+- [x] Create section_order[] arrays for each template
+- [x] Add `scoreconfig template <name>` command
+- [x] Modify do_skore to respect section ordering
 
-### 2.7 Section Ordering
-- [ ] Add score_section_order[8] to player_special_data_saved
-- [ ] Define SECTION_IDENTITY, SECTION_VITALS, etc enums
-- [ ] Implement `scoreconfig order <section> <position>`
-- [ ] Validate no duplicate positions
-- [ ] Apply ordering in do_skore main display loop
+### 2.7 Section Ordering ✅ COMPLETE
+- [x] Add score_section_order[8] to player_special_data_saved
+- [x] Define SECTION_IDENTITY, SECTION_VITALS, etc enums
+- [x] Implement `scoreconfig order <section> <position>`
+- [x] Validate no duplicate positions
+- [x] Apply ordering in do_skore main display loop
 
 ---
 
