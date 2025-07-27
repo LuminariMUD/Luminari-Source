@@ -23,7 +23,8 @@
       "Bash(awk:*)",
       "Bash(echo:*)",
       "Bash(./test_event_fix)",
-      "Bash(./test_fread_fix)"
+      "Bash(./test_fread_fix)",
+      "Bash(php:*)"
     ],
     "deny": []
   }

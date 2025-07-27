@@ -9,6 +9,9 @@
  * - Error handling
  * - Authentication helpers
  * 
+ * @see ../documentation/PHP_TOOLS_README.md for comprehensive security audit,
+ *      deployment guide, and security best practices for all PHP tools.
+ * 
  * @author LuminariMUD Development Team
  * @version 1.0
  * @since 2025-01-24

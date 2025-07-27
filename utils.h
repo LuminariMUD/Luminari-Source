@@ -1298,6 +1298,11 @@ void char_from_furniture(struct char_data *ch);
 /** Get unique session id for ch. */
 #define GET_PREF(ch) ((ch)->pref)
 
+/** Score display preference accessors */
+#define GET_SCORE_DISPLAY_WIDTH(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_display_width))
+#define GET_SCORE_COLOR_THEME(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_color_theme))
+#define GET_SCORE_INFO_DENSITY(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.score_info_density))
+
 /** The number of ticks until the player can perform more diplomacy. */
 #define GET_DIPTIMER(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->diplomacy_wait))
 

@@ -1350,9 +1350,13 @@
 #define PRF_POST_COMBAT_BRIEF 74
 #define PRF_AUTOBLAST 75
 #define PRF_NO_CRAFT_PROGRESS 76
+#define PRF_SCORE_CLASSIC 77          /**< Use classic score display instead of enhanced */
+#define PRF_SCORE_COMPACT 78          /**< Use compact score layout */
+#define PRF_SCORE_WIDE 79             /**< Use wide score layout (120+ chars) */
+#define PRF_SCORE_NOCOLOR 80          /**< Disable colors in score display */
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 77
+#define NUM_PRF_FLAGS 81
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -5126,6 +5130,12 @@ struct player_special_data_saved
 
     int new_supply_num_made;
     int new_supply_cooldown;
+
+    /* Score display preferences */
+    byte score_display_width;     /**< Preferred score display width (80, 120, 160) */
+    byte score_color_theme;       /**< Color theme preference (0=default, 1=classic, 2=minimal) */
+    byte score_info_density;      /**< Information density (0=full, 1=compact, 2=minimal) */
+    byte score_spare;             /**< Spare byte for future score preferences */
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

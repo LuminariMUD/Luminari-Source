@@ -782,6 +782,8 @@ cpp_extern const struct command_info cmd_info[] = {
 #endif
     {"sail", "sail", POS_RECLINING, do_sail, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"score", "sc", POS_DEAD, do_score, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"scoreconfig", "scoreconfig", POS_DEAD, do_scoreconfig, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"skore", "sk", POS_DEAD, do_skore, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"scan", "sca", POS_RECLINING, do_scan, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"scopy", "scopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_SEDIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"scribe", "scribe", POS_RESTING, do_scribe, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

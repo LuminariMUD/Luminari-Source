@@ -64,6 +64,7 @@
 #include "spells.h"
 #include "spell_prep.h"
 #include "domains_schools.h"
+#include <limits.h> /* For INT_MAX overflow checks */
 /** END header files **/
 
 /** START Globals **/
@@ -76,7 +77,27 @@
  */
 #define DEBUGMODE FALSE
 
+/**
+ * Magic Number Constants - Replacing hardcoded values for maintainability
+ */
+#define METAMAGIC_STR_SIZE   256  /* Buffer size for metamagic string building */
+#define INVALID_PREP_TIME    99   /* Initial/invalid preparation time value */
+#define PREP_QUEUE_SENTINEL  "-1 -1 -1 -1 -1"  /* Save file section terminator */
+#define KNOWN_SPELLS_SENTINEL "-1 -1"          /* Known spells section terminator */
+
 /** END Globals **/
+
+/* Macro to check if a skill number is actually a spell */
+#define IS_SPELL(spellnum) ((spellnum) > 0 && (spellnum) < TOP_SPELL_DEFINE && (spellnum) < SKILL_BACKSTAB)
+
+/* Spell counting structure for stacking display */
+struct spell_count_data {
+  int spell;
+  int metamagic;
+  int domain;
+  int count;
+  struct spell_count_data *next;
+};
 
 /* START linked list utility - Core data structure management */
 
@@ -492,7 +513,7 @@ void save_spell_prep_queue(FILE *fl, struct char_data *ch)
     save_prep_queue_by_class(fl, ch, ch_class);
     
   /* Write sentinel to mark end of prep queue data */
-  fprintf(fl, "-1 -1 -1 -1 -1\n");
+  fprintf(fl, "%s\n", PREP_QUEUE_SENTINEL);
 }
 
 /**
@@ -518,7 +539,7 @@ void save_innate_magic_queue(FILE *fl, struct char_data *ch)
     save_innate_magic_by_class(fl, ch, ch_class);
     
   /* Write sentinel */
-  fprintf(fl, "-1 -1 -1 -1 -1\n");
+  fprintf(fl, "%s\n", PREP_QUEUE_SENTINEL);
 }
 
 /**
@@ -544,7 +565,7 @@ void save_spell_collection(FILE *fl, struct char_data *ch)
     save_collection_by_class(fl, ch, ch_class);
     
   /* Write sentinel */
-  fprintf(fl, "-1 -1 -1 -1 -1\n");
+  fprintf(fl, "%s\n", PREP_QUEUE_SENTINEL);
 }
 
 /**
@@ -572,7 +593,7 @@ void save_known_spells(FILE *fl, struct char_data *ch)
     save_known_spells_by_class(fl, ch, ch_class);
     
   /* Write sentinel (only 2 values for known spells) */
-  fprintf(fl, "-1 -1\n");
+  fprintf(fl, "%s\n", KNOWN_SPELLS_SENTINEL);
 }
 
 /**
@@ -892,9 +913,27 @@ void prep_queue_add(struct char_data *ch, int ch_class, int spellnum, int metama
                     int prep_time, int domain)
 {
   struct prep_collection_spell_data *entry;
+  struct prep_collection_spell_data *current;
+  int queue_size = 0;
+
+  /* Count current queue size to prevent DoS */
+  for (current = SPELL_PREP_QUEUE(ch, ch_class); current; current = current->next) {
+    queue_size++;
+    if (queue_size >= MAX_PREP_QUEUE_SIZE) {
+      send_to_char(ch, "Your preparation queue is full! You cannot add more spells.\r\n");
+      log("SYSERR: Character %s attempted to exceed MAX_PREP_QUEUE_SIZE (%d) for class %d",
+          GET_NAME(ch), MAX_PREP_QUEUE_SIZE, ch_class);
+      return;
+    }
+  }
 
   /* Allocate new entry */
   CREATE(entry, struct prep_collection_spell_data, 1);
+  /* Defensive NULL check after allocation */
+  if (!entry) {
+    log("SYSERR: Failed to allocate memory for prep queue entry");
+    return;
+  }
   
   /* Fill in spell data */
   entry->spell = spellnum;
@@ -926,9 +965,27 @@ void innate_magic_add(struct char_data *ch, int ch_class, int circle, int metama
                       int prep_time, int domain)
 {
   struct innate_magic_data *entry;
+  struct innate_magic_data *current;
+  int queue_size = 0;
+
+  /* Count current queue size to prevent DoS */
+  for (current = INNATE_MAGIC(ch, ch_class); current; current = current->next) {
+    queue_size++;
+    if (queue_size >= MAX_INNATE_QUEUE_SIZE) {
+      send_to_char(ch, "Your spell slot recovery queue is full!\r\n");
+      log("SYSERR: Character %s attempted to exceed MAX_INNATE_QUEUE_SIZE (%d) for class %d",
+          GET_NAME(ch), MAX_INNATE_QUEUE_SIZE, ch_class);
+      return;
+    }
+  }
 
   /* Allocate new slot entry */
   CREATE(entry, struct innate_magic_data, 1);
+  /* Defensive NULL check after allocation */
+  if (!entry) {
+    log("SYSERR: Failed to allocate memory for innate magic entry");
+    return;
+  }
   
   /* Fill in slot data */
   entry->circle = circle;
@@ -963,9 +1020,27 @@ void collection_add(struct char_data *ch, int ch_class, int spellnum, int metama
                     int prep_time, int domain)
 {
   struct prep_collection_spell_data *entry;
+  struct prep_collection_spell_data *current;
+  int collection_size = 0;
+
+  /* Count current collection size to prevent DoS */
+  for (current = SPELL_COLLECTION(ch, ch_class); current; current = current->next) {
+    collection_size++;
+    if (collection_size >= MAX_COLLECTION_SIZE) {
+      send_to_char(ch, "Your spell collection is full! You cannot prepare more spells.\r\n");
+      log("SYSERR: Character %s attempted to exceed MAX_COLLECTION_SIZE (%d) for class %d",
+          GET_NAME(ch), MAX_COLLECTION_SIZE, ch_class);
+      return;
+    }
+  }
 
   /* Allocate new collection entry */
   CREATE(entry, struct prep_collection_spell_data, 1);
+  /* Defensive NULL check after allocation */
+  if (!entry) {
+    log("SYSERR: Failed to allocate memory for spell collection entry");
+    return;
+  }
   
   /* Fill in prepared spell data */
   entry->spell = spellnum;
@@ -1000,7 +1075,38 @@ void collection_add(struct char_data *ch, int ch_class, int spellnum, int metama
 bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loading)
 {
   int circle = compute_spells_circle(ch, ch_class, spellnum, METAMAGIC_NONE, DOMAIN_UNDEFINED);
-  int caster_level = CLASS_LEVEL(ch, ch_class) + BONUS_CASTER_LEVEL(ch, ch_class);
+  int base_level = CLASS_LEVEL(ch, ch_class);
+  int bonus_level = BONUS_CASTER_LEVEL(ch, ch_class);
+  int caster_level;
+  struct known_spell_data *current;
+  int known_count = 0;
+  
+  /* Count current known spells to prevent DoS */
+  for (current = KNOWN_SPELLS(ch, ch_class); current; current = current->next) {
+    known_count++;
+    if (known_count >= MAX_KNOWN_SPELLS) {
+      if (!loading) {
+        send_to_char(ch, "You have reached the maximum number of known spells!\r\n");
+        log("SYSERR: Character %s attempted to exceed MAX_KNOWN_SPELLS (%d) for class %d",
+            GET_NAME(ch), MAX_KNOWN_SPELLS, ch_class);
+      }
+      return FALSE;
+    }
+  }
+  
+  /* Prevent integer overflow and cap at reasonable maximum
+   * Arrays typically have ~65 entries, so cap at 65 to be safe */
+  if (base_level > 65 || bonus_level > 65 || base_level + bonus_level > 65) {
+    caster_level = 65;
+  } else {
+    caster_level = base_level + bonus_level;
+  }
+  
+  /* Additional safety check */
+  if (caster_level < 0) {
+    log("SYSERR: known_spells_add() called with negative caster level for %s", GET_NAME(ch));
+    return FALSE;
+  }
 
   /* When not loading, check if character can learn more spells */
   if (!loading)
@@ -1041,6 +1147,11 @@ bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loa
 
   /* Create and initialize the known spell entry */
   CREATE(entry, struct known_spell_data, 1);
+  /* Defensive NULL check after allocation */
+  if (!entry) {
+    log("SYSERR: Failed to allocate memory for known spell entry");
+    return FALSE;
+  }
   entry->spell = spellnum;
   entry->metamagic = METAMAGIC_NONE;  /* Not used for known spells */
   entry->prep_time = 0;               /* Not used for known spells */
@@ -1085,15 +1196,26 @@ void load_spell_prep_queue(FILE *fl, struct char_data *ch)
 
     /* Read next line from file */
     get_line(fl, line);
-    sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
-           &domain);
+    /* Validate that all 5 values were successfully read */
+    if (sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
+               &domain) != 5) {
+      log("SYSERR: Invalid spell prep queue data in player file: %s", line);
+      continue;  /* Skip malformed line */
+    }
 
     /* -1 is the sentinel value marking end of section */
-    if (ch_class != -1)
-      prep_queue_add(ch, ch_class, spell_num, metamagic, prep_time, domain);
+    if (ch_class != -1) {
+      /* Additional safety check - don't exceed queue limits even when loading */
+      if (counter < MAX_PREP_QUEUE_SIZE) {
+        prep_queue_add(ch, ch_class, spell_num, metamagic, prep_time, domain);
+      } else {
+        log("SYSERR: Player file for %s contains too many prep queue entries (max %d)",
+            GET_NAME(ch), MAX_PREP_QUEUE_SIZE);
+      }
+    }
 
     counter++;
-  } while (counter < MAX_MEM && spell_num != -1);
+  } while (counter < MAX_MEM && counter < MAX_PREP_QUEUE_SIZE && spell_num != -1);
 }
 /**
  * load_innate_magic_queue - Load all innate magic slots from file
@@ -1125,15 +1247,26 @@ void load_innate_magic_queue(FILE *fl, struct char_data *ch)
 
     /* Read next line */
     get_line(fl, line);
-    sscanf(line, "%d %d %d %d %d", &ch_class, &circle, &metamagic, &prep_time,
-           &domain);
+    /* Validate that all 5 values were successfully read */
+    if (sscanf(line, "%d %d %d %d %d", &ch_class, &circle, &metamagic, &prep_time,
+               &domain) != 5) {
+      log("SYSERR: Invalid innate magic queue data in player file: %s", line);
+      continue;  /* Skip malformed line */
+    }
 
     /* -1 marks end of section */
-    if (ch_class != -1)
-      innate_magic_add(ch, ch_class, circle, metamagic, prep_time, domain);
+    if (ch_class != -1) {
+      /* Additional safety check - don't exceed queue limits even when loading */
+      if (counter < MAX_INNATE_QUEUE_SIZE) {
+        innate_magic_add(ch, ch_class, circle, metamagic, prep_time, domain);
+      } else {
+        log("SYSERR: Player file for %s contains too many innate queue entries (max %d)",
+            GET_NAME(ch), MAX_INNATE_QUEUE_SIZE);
+      }
+    }
 
     counter++;
-  } while (counter < MAX_MEM && circle != -1);
+  } while (counter < MAX_MEM && counter < MAX_INNATE_QUEUE_SIZE && circle != -1);
 }
 /**
  * load_spell_collection - Load all prepared spells from file
@@ -1164,15 +1297,26 @@ void load_spell_collection(FILE *fl, struct char_data *ch)
 
     /* Read next line */
     get_line(fl, line);
-    sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
-           &domain);
+    /* Validate that all 5 values were successfully read */
+    if (sscanf(line, "%d %d %d %d %d", &ch_class, &spell_num, &metamagic, &prep_time,
+               &domain) != 5) {
+      log("SYSERR: Invalid spell collection data in player file: %s", line);
+      continue;  /* Skip malformed line */
+    }
 
     /* -1 marks end of section */
-    if (ch_class != -1)
-      collection_add(ch, ch_class, spell_num, metamagic, prep_time, domain);
+    if (ch_class != -1) {
+      /* Additional safety check - don't exceed collection limits even when loading */
+      if (counter < MAX_COLLECTION_SIZE) {
+        collection_add(ch, ch_class, spell_num, metamagic, prep_time, domain);
+      } else {
+        log("SYSERR: Player file for %s contains too many collection entries (max %d)",
+            GET_NAME(ch), MAX_COLLECTION_SIZE);
+      }
+    }
 
     counter++;
-  } while (counter < MAX_MEM && spell_num != -1);
+  } while (counter < MAX_MEM && counter < MAX_COLLECTION_SIZE && spell_num != -1);
 }
 /**
  * load_known_spells - Load all known spell lists from file
@@ -1200,14 +1344,18 @@ void load_known_spells(FILE *fl, struct char_data *ch)
 
     /* Read next line */
     get_line(fl, line);
-    sscanf(line, "%d %d", &ch_class, &spell_num);
+    /* Validate that both values were successfully read */
+    if (sscanf(line, "%d %d", &ch_class, &spell_num) != 2) {
+      log("SYSERR: Invalid known spells data in player file: %s", line);
+      continue;  /* Skip malformed line */
+    }
 
     /* -1 marks end of section */
     if (ch_class != -1)
       known_spells_add(ch, ch_class, spell_num, TRUE);  /* TRUE = loading, skip checks */
 
     counter++;
-  } while (counter < MAX_MEM && ch_class != -1);
+  } while (counter < MAX_MEM && counter < MAX_KNOWN_SPELLS && ch_class != -1);
 }
 
 /**
@@ -1660,6 +1808,214 @@ bool is_a_known_spell(struct char_data *ch, int class, int spellnum)
 
 /* END linked list utility */
 
+/* START helper functions for compute_spells_circle() */
+
+/**
+ * validate_spell_for_class - Check if spell number is valid for the given class
+ * @char_class: Character class to check
+ * @spellnum: Spell number to validate
+ * 
+ * Different classes have different valid spell ranges:
+ * - Standard casters: Normal spell range
+ * - Psionicists: Psionic power range
+ * - Warlocks: Invocation range
+ * 
+ * Returns: TRUE if spell is valid for class, FALSE otherwise
+ */
+static bool validate_spell_for_class(int char_class, int spellnum)
+{
+  if (char_class != CLASS_WARLOCK && char_class != CLASS_PSIONICIST && 
+      (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS))
+    return FALSE;  /* Invalid spell number */
+  else if (char_class == CLASS_PSIONICIST && 
+           (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END))
+    return FALSE;  /* Not a valid psionic power */
+  else if (char_class == CLASS_WARLOCK && 
+           (spellnum < WARLOCK_POWER_START || spellnum > WARLOCK_POWER_END))
+    return FALSE;  /* Not a valid warlock invocation */
+  
+  return TRUE;
+}
+
+/**
+ * calculate_metamagic_modifier - Calculate total circle adjustment from metamagic
+ * @metamagic: Bitvector of metamagic flags
+ * 
+ * Each metamagic feat increases the effective spell circle:
+ * - Quicken: +4 circles (cast as swift action)
+ * - Maximize: +3 circles (maximize variable numeric effects)
+ * - Empower: +2 circles (increase variable effects by 50%)
+ * - Extend: +1 circle (double duration)
+ * - Still: +1 circle (no somatic components)
+ * - Silent: +1 circle (no verbal components)
+ * 
+ * Returns: Total circle adjustment from metamagic
+ */
+static int calculate_metamagic_modifier(int metamagic)
+{
+  int metamagic_mod = 0;
+  
+  /* Add overflow protection to prevent issues with extreme metamagic stacking */
+  if (IS_SET(metamagic, METAMAGIC_QUICKEN)) {
+    if (metamagic_mod > INT_MAX - 4) {
+      log("SYSERR: Integer overflow in metamagic_mod (quicken)");
+      metamagic_mod = 20; /* Set to high but safe value */
+    } else {
+      metamagic_mod += 4;
+    }
+  }
+  if (IS_SET(metamagic, METAMAGIC_MAXIMIZE)) {
+    if (metamagic_mod > INT_MAX - 3) {
+      log("SYSERR: Integer overflow in metamagic_mod (maximize)");
+      metamagic_mod = 20;
+    } else {
+      metamagic_mod += 3;
+    }
+  }
+  if (IS_SET(metamagic, METAMAGIC_EMPOWER)) {
+    if (metamagic_mod > INT_MAX - 2) {
+      log("SYSERR: Integer overflow in metamagic_mod (empower)");
+      metamagic_mod = 20;
+    } else {
+      metamagic_mod += 2;
+    }
+  }
+  if (IS_SET(metamagic, METAMAGIC_EXTEND)) {
+    if (metamagic_mod > INT_MAX - 1) {
+      log("SYSERR: Integer overflow in metamagic_mod (extend)");
+      metamagic_mod = 20;
+    } else {
+      metamagic_mod += 1;
+    }
+  }
+  if (IS_SET(metamagic, METAMAGIC_STILL)) {
+    if (metamagic_mod > INT_MAX - 1) {
+      log("SYSERR: Integer overflow in metamagic_mod (still)");
+      metamagic_mod = 20;
+    } else {
+      metamagic_mod += 1;
+    }
+  }
+  if (IS_SET(metamagic, METAMAGIC_SILENT)) {
+    if (metamagic_mod > INT_MAX - 1) {
+      log("SYSERR: Integer overflow in metamagic_mod (silent)");
+      metamagic_mod = 20;
+    } else {
+      metamagic_mod += 1;
+    }
+  }
+  
+  return metamagic_mod;
+}
+
+/**
+ * apply_automatic_metamagic_reduction - Reduce metamagic cost for automatic feats
+ * @ch: Character to check feats for
+ * @metamagic: Metamagic flags applied to spell
+ * @metamagic_mod: Current metamagic modifier
+ * @spell_circle: Base circle of the spell
+ * @max_auto_circle: Maximum circle for automatic metamagic (usually 3)
+ * 
+ * Automatic metamagic feats allow casting with metamagic at no extra cost
+ * for low-level spells. This function reduces the metamagic modifier
+ * appropriately.
+ * 
+ * Returns: Adjusted metamagic modifier
+ */
+static int apply_automatic_metamagic_reduction(struct char_data *ch, int metamagic, 
+                                               int metamagic_mod, int spell_circle,
+                                               int max_auto_circle)
+{
+  if (spell_circle > max_auto_circle)
+    return metamagic_mod;
+    
+  if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
+    metamagic_mod -= 4;
+  if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
+    metamagic_mod -= 1;
+  if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
+    metamagic_mod -= 1;
+    
+  return metamagic_mod;
+}
+
+/**
+ * level_to_circle_conversion - Convert character level to spell circle
+ * @min_level: Minimum level to cast the spell
+ * @caster_type: Type of caster (full, three-quarter, half)
+ * 
+ * Different caster types have different progressions:
+ * - Full casters: New spell level every 2 character levels
+ * - 3/4 casters: Slower progression, max 6th circle
+ * - Half casters: Very slow, max 4th circle
+ * 
+ * Returns: Base spell circle (before metamagic)
+ */
+static int level_to_circle_conversion(int min_level, int caster_type)
+{
+  switch (caster_type) {
+    case 0:  /* Full caster (Wizard, Cleric, Druid, Sorcerer) */
+      return (min_level + 1) / 2;
+      
+    case 1:  /* 3/4 caster (Bard, Alchemist, etc) - detailed progression */
+      if (min_level <= 3) return 1;
+      else if (min_level <= 6) return 2;
+      else if (min_level <= 9) return 3;
+      else if (min_level <= 12) return 4;
+      else if (min_level <= 15) return 5;
+      else if (min_level <= 20) return 6;
+      else return (NUM_CIRCLES + 1);
+      
+    case 2:  /* Half caster (Paladin, Ranger, etc) */
+      if (min_level <= 9) return 1;
+      else if (min_level <= 11) return 2;
+      else if (min_level <= 14) return 3;
+      else if (min_level <= 20) return 4;
+      else return (NUM_CIRCLES + 1);
+      
+    default:
+      return (NUM_CIRCLES + 1);
+  }
+}
+
+/**
+ * check_campaign_spell_override - Check for campaign-specific spell circles
+ * @spellnum: Spell to check
+ * 
+ * Some campaigns override normal spell circle calculations for
+ * specific spells. This centralizes those overrides.
+ * 
+ * Returns: Override circle or 0 if no override
+ */
+static int check_campaign_spell_override(int spellnum)
+{
+#ifdef CAMPAIGN_FR
+  switch (spellnum) {
+    case SPELL_LUSKAN_RECALL:
+    case SPELL_MIRABAR_RECALL:
+    case SPELL_TRIBOAR_RECALL:
+    case SPELL_SILVERYMOON_RECALL:
+      return 5;
+  }
+#elif defined(CAMPAIGN_DL)
+  switch (spellnum) {
+    case SPELL_PALANTHAS_RECALL:
+    case SPELL_SANCTION_RECALL:
+    case SPELL_SOLACE_RECALL:
+      return 5;
+    case SPELL_MINOR_RAPID_BUFF:
+      return 3;
+    case SPELL_RAPID_BUFF:
+      return 5;
+    case SPELL_GREATER_RAPID_BUFF:
+      return 7;
+  }
+#endif
+  return 0;  /* No override */
+}
+
+/* END helper functions for compute_spells_circle() */
+
 /* START bloodline code */
 
 /**
@@ -1807,509 +2163,152 @@ int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, in
   int metamagic_mod = 0;  /* Circle adjustment from metamagic */
   int spell_circle = 0;   /* Final calculated circle */
   int min_level = 0;      /* Minimum level to cast this spell */
+  int campaign_override = 0;
 
-  /* Validate spell number based on class type 
-   * Different classes have different spell number ranges:
-   * - Standard casters: Use normal spell range (SPELL_RESERVED_DBC to NUM_SPELLS)
-   * - Psionicists: Use psionic power range (PSIONIC_POWER_START to PSIONIC_POWER_END)
-   * - Warlocks: Use invocation range (WARLOCK_POWER_START to WARLOCK_POWER_END)
-   * 
-   * Return NUM_CIRCLES+1 (invalid) if spell is outside valid range for the class
-   */
-  if (char_class != CLASS_WARLOCK && char_class != CLASS_PSIONICIST && 
-      (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS))
-    return (NUM_CIRCLES + 1);  /* Invalid spell number */
-  else if (char_class == CLASS_PSIONICIST && 
-           (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END))
-    return (NUM_CIRCLES + 1);  /* Not a valid psionic power */
-  else if (char_class == CLASS_WARLOCK && 
-           (spellnum < WARLOCK_POWER_START || spellnum > WARLOCK_POWER_END))
-    return (NUM_CIRCLES + 1);  /* Not a valid warlock invocation */
+  /* Validate spell number for class */
+  if (!validate_spell_for_class(char_class, spellnum))
+    return (NUM_CIRCLES + 1);
 
-#ifdef CAMPAIGN_FR
-  switch (spellnum)
-  {
-  case SPELL_LUSKAN_RECALL:
-  case SPELL_MIRABAR_RECALL:
-  case SPELL_TRIBOAR_RECALL:
-  case SPELL_SILVERYMOON_RECALL:
-    return 5;
-  }
-#elif defined(CAMPAIGN_DL)
-switch (spellnum)
-  {
-  case SPELL_PALANTHAS_RECALL:
-  case SPELL_SANCTION_RECALL:
-  case SPELL_SOLACE_RECALL:
-    return 5;
-  case SPELL_MINOR_RAPID_BUFF:
-    return 3;
-  case SPELL_RAPID_BUFF:
-    return 5;
-  case SPELL_GREATER_RAPID_BUFF:
-    return 7;
-  }
-#endif
+  /* Check for campaign-specific overrides */
+  campaign_override = check_campaign_spell_override(spellnum);
+  if (campaign_override > 0)
+    return campaign_override;
 
-  /* Calculate total metamagic circle adjustments
-   * Each metamagic feat increases the effective spell circle:
-   * - Quicken: +4 circles (cast as swift action - very powerful)
-   * - Maximize: +3 circles (all variable numeric effects maximized)
-   * - Empower: +2 circles (all variable numeric effects increased by 50%)
-   * - Extend: +1 circle (doubles duration of spells)
-   * - Still: +1 circle (cast without somatic components)
-   * - Silent: +1 circle (cast without verbal components)
-   * 
-   * Multiple metamagics stack, so a quickened, maximized fireball would
-   * be +7 circles (3rd circle base + 4 + 3 = 10th circle - impossible!)
-   */
-  if (IS_SET(metamagic, METAMAGIC_QUICKEN))
-    metamagic_mod += 4;
-  if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
-    metamagic_mod += 3;
-  if (IS_SET(metamagic, METAMAGIC_EMPOWER))
-    metamagic_mod += 2;
-  if (IS_SET(metamagic, METAMAGIC_EXTEND))
-    metamagic_mod += 1;
-  if (IS_SET(metamagic, METAMAGIC_STILL))
-    metamagic_mod += 1;
-  if (IS_SET(metamagic, METAMAGIC_SILENT))
-    metamagic_mod += 1;
+  /* Calculate metamagic modifiers */
+  metamagic_mod = calculate_metamagic_modifier(metamagic);
 
-  /* Class-specific spell level to circle conversions
-   * Each class has different spell progression rates:
-   * - Full casters (Wizard, Cleric, Druid): Get new spell levels every 2 character levels
-   * - 3/4 casters (Bard, Alchemist): Slower progression, max 6th circle
-   * - Half casters (Paladin, Ranger): Very slow, max 4th circle
-   * - Spontaneous casters may have different progressions than prepared
-   */
+  /* Class-specific spell level to circle conversions */
   switch (char_class)
   {
   case CLASS_ALCHEMIST:
-    /* Alchemists are 3/4 casters with max 6th circle extracts
-     * Level progression: 1-3 = 1st, 4-6 = 2nd, 7-9 = 3rd, etc.
-     * Automatic metamagic feats reduce the circle increase for low-level spells
-     */
-    switch (spell_info[spellnum].min_level[char_class])
-    {
-    case 1:
-    case 2:
-    case 3:
-      /* First circle spells - automatic metamagic applies */
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 1 + metamagic_mod;
-    case 4:
-    case 5:
-    case 6:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 2 + metamagic_mod;
-    case 7:
-    case 8:
-    case 9:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 3 + metamagic_mod;
-    case 10:
-    case 11:
-    case 12:
-      return 4 + metamagic_mod;
-    case 13:
-    case 14:
-    case 15:
-      return 5 + metamagic_mod;
-    case 16:
-    case 17:
-    case 18:
-    case 19:
-    case 20:
-      return 6 + metamagic_mod;
-    /* level 20 reserved for epic spells */
-    default:
-      return (NUM_CIRCLES + 1);
+    /* Alchemists are 3/4 casters with max 6th circle extracts */
+    min_level = spell_info[spellnum].min_level[char_class];
+    spell_circle = level_to_circle_conversion(min_level, 1);
+    if (spell_circle <= 3) {
+      metamagic_mod = apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
     }
-    break;
+    return (spell_circle <= NUM_CIRCLES) ? spell_circle + metamagic_mod : (NUM_CIRCLES + 1);
   case CLASS_BARD:
-    switch (spell_info[spellnum].min_level[char_class])
-    {
-    case 1:
-    case 2:
-    case 3:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 1 + metamagic_mod;
-    case 4:
-    case 5:
-    case 6:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 2 + metamagic_mod;
-    case 7:
-    case 8:
-    case 9:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 3 + metamagic_mod;
-    case 10:
-    case 11:
-    case 12:
-      return 4 + metamagic_mod;
-    case 13:
-    case 14:
-    case 15:
-      return 5 + metamagic_mod;
-    case 16:
-    case 17:
-    case 18:
-    case 19:
-      return 6 + metamagic_mod;
-    /* level 20 reserved for epic spells */
-    default:
-      return (NUM_CIRCLES + 1);
+    /* Bards are 3/4 spontaneous casters with max 6th circle */
+    min_level = spell_info[spellnum].min_level[char_class];
+    spell_circle = level_to_circle_conversion(min_level, 1);
+    if (spell_circle <= 3) {
+      metamagic_mod = apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
     }
-    break;
+    return (spell_circle <= NUM_CIRCLES) ? spell_circle + metamagic_mod : (NUM_CIRCLES + 1);
   case CLASS_INQUISITOR:
+    /* Inquisitors are 3/4 divine spontaneous casters */
     min_level = MIN_SPELL_LVL(spellnum, char_class, domain);
-    switch (min_level)
-    {
-    case 1:
-    case 2:
-    case 3:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 1 + metamagic_mod;
-    case 4:
-    case 5:
-    case 6:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 2 + metamagic_mod;
-    case 7:
-    case 8:
-    case 9:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 3 + metamagic_mod;
-    case 10:
-    case 11:
-    case 12:
-      return 4 + metamagic_mod;
-    case 13:
-    case 14:
-    case 15:
-      return 5 + metamagic_mod;
-    case 16:
-    case 17:
-    case 18:
-    case 19:
-      return 6 + metamagic_mod;
-    /* level 20 reserved for epic spells */
-    default:
-      return (NUM_CIRCLES + 1);
+    spell_circle = level_to_circle_conversion(min_level, 1);
+    if (spell_circle <= 3) {
+      metamagic_mod = apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
     }
-    break;
+    return (spell_circle <= NUM_CIRCLES) ? spell_circle + metamagic_mod : (NUM_CIRCLES + 1);
   case CLASS_SUMMONER:
+    /* Summoners are 3/4 spontaneous casters specializing in summon spells */
     min_level = MIN_SPELL_LVL(spellnum, char_class, domain);
-    switch (min_level)
-    {
-    case 1:
-    case 2:
-    case 3:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 1 + metamagic_mod;
-    case 4:
-    case 5:
-    case 6:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 2 + metamagic_mod;
-    case 7:
-    case 8:
-    case 9:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 3 + metamagic_mod;
-    case 10:
-    case 11:
-    case 12:
-      return 4 + metamagic_mod;
-    case 13:
-    case 14:
-    case 15:
-      return 5 + metamagic_mod;
-    case 16:
-    case 17:
-    case 18:
-    case 19:
-      return 6 + metamagic_mod;
-    /* level 20 reserved for epic spells */
-    default:
-      return (NUM_CIRCLES + 1);
+    spell_circle = level_to_circle_conversion(min_level, 1);
+    if (spell_circle <= 3) {
+      metamagic_mod = apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
     }
-    break;
+    return (spell_circle <= NUM_CIRCLES) ? spell_circle + metamagic_mod : (NUM_CIRCLES + 1);
   case CLASS_PALADIN:
   case CLASS_BLACKGUARD:
-    /* Paladins and Blackguards are half-casters (max 4th circle)
-     * They don't get spells until 6th level, then progress slowly:
-     * Levels 6-9 = 1st circle, 10-11 = 2nd, 12-14 = 3rd, 15+ = 4th
-     * This reflects their martial focus with divine magic support
-     */
-    switch (spell_info[spellnum].min_level[char_class])
-    {
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-      /* 1st circle spells - gained at 6th level */
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 1 + metamagic_mod;
-    case 10:
-    case 11:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 2 + metamagic_mod;
-    case 12:
-    case 13:
-    case 14:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 3 + metamagic_mod;
-    case 15:
-    case 16:
-    case 17:
-    case 18:
-    case 19:
-    case 20:
-      return 4 + metamagic_mod;
-    default:
+    /* Paladins and Blackguards are half-casters (max 4th circle) */
+    min_level = spell_info[spellnum].min_level[char_class];
+    if (min_level < 6)  /* No spells before 6th level */
       return (NUM_CIRCLES + 1);
+    spell_circle = level_to_circle_conversion(min_level, 2);
+    if (spell_circle <= 3) {
+      metamagic_mod = apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
     }
-    break;
+    return (spell_circle <= NUM_CIRCLES) ? spell_circle + metamagic_mod : (NUM_CIRCLES + 1);
   case CLASS_RANGER:
-    switch (spell_info[spellnum].min_level[char_class])
-    {
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 1 + metamagic_mod;
-    case 10:
-    case 11:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 2 + metamagic_mod;
-    case 12:
-    case 13:
-    case 14:
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 3 + metamagic_mod;
-    case 15:
-    case 16:
-    case 17:
-    case 18:
-    case 19:
-    case 20:
-      return 4 + metamagic_mod;
-    default:
+    /* Rangers are half-casters with nature magic (max 4th circle) */
+    min_level = spell_info[spellnum].min_level[char_class];
+    if (min_level < 6)  /* No spells before 6th level */
       return (NUM_CIRCLES + 1);
+    spell_circle = level_to_circle_conversion(min_level, 2);
+    if (spell_circle <= 3) {
+      metamagic_mod = apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
     }
-    break;
+    return (spell_circle <= NUM_CIRCLES) ? spell_circle + metamagic_mod : (NUM_CIRCLES + 1);
   case CLASS_WARLOCK:
-    spell_circle = spell_info[spellnum].min_level[char_class];
-    if (spell_circle <= 5)
-    {
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 1;
-    }
-      
-    else if (spell_circle <= 10)
-    {
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 2;
-    }
-    else if (spell_circle <= 15)
-    {
-      if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
-        metamagic_mod -= 4;
-      if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL))
-        metamagic_mod -= 1;
-      if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL))
-        metamagic_mod -= 1;
-      return 3;
-    }
-    return 4;
+    /* Warlocks use invocations with unusual level progression */
+    min_level = spell_info[spellnum].min_level[char_class];
+    if (min_level <= 5) spell_circle = 1;
+    else if (min_level <= 10) spell_circle = 2;
+    else if (min_level <= 15) spell_circle = 3;
+    else spell_circle = 4;
+    
+    /* Apply automatic metamagic reduction for all warlock invocations */
+    metamagic_mod = apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 4);
+    return spell_circle + metamagic_mod;
   case CLASS_SORCERER:
-    /* Sorcerers are full spontaneous arcane casters
-     * Simple formula: spell level / 2 = circle (rounded down)
-     * They get spells one level later than wizards but cast spontaneously
-     * Example: 1st level spells at char level 2 (2/2 = 1st circle)
-     */
+    /* Sorcerers are full spontaneous arcane casters */
     spell_circle = spell_info[spellnum].min_level[char_class] / 2;
-    /* Automatic metamagic only applies to spells of 3rd circle or lower */
-    if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
-    {
-        metamagic_mod -= 4;
-    }
-    if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
-      metamagic_mod -= 1;
-    if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) && spell_circle <= 3)
-      metamagic_mod -= 1;
-    spell_circle += metamagic_mod;
-    /* Check if metamagic pushed spell beyond 9th circle */
-    if (spell_circle > TOP_CIRCLE)
-    {
+    metamagic_mod = apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
+    
+    /* Check for overflow before adding metamagic_mod */
+    if (spell_circle > INT_MAX - metamagic_mod) {
+      log("SYSERR: Integer overflow in spell_circle calculation");
       return (NUM_CIRCLES + 1);
     }
-    return (MAX(1, spell_circle));
+    spell_circle += metamagic_mod;
+    
+    return (spell_circle > TOP_CIRCLE) ? (NUM_CIRCLES + 1) : MAX(1, spell_circle);
   case CLASS_CLERIC:
-    /* Clerics are full divine prepared casters with domain spells
-     * Formula: (spell level + 1) / 2 = circle
-     * Domain spells may be available at lower levels than normal
-     * MIN_SPELL_LVL checks both normal and domain spell levels
-     */
+    /* Clerics are full divine prepared casters with domain spells */
     spell_circle = (MIN_SPELL_LVL(spellnum, char_class, domain) + 1) / 2;
-    if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
-    {
-        metamagic_mod -= 4;
-    }
-    if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
-      metamagic_mod -= 1;
-    if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) && spell_circle <= 3)
-      metamagic_mod -= 1;
-    spell_circle += metamagic_mod;
-    if (spell_circle > TOP_CIRCLE)
-    {
+    metamagic_mod = apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
+    
+    /* Check for overflow before adding metamagic_mod */
+    if (spell_circle > INT_MAX - metamagic_mod) {
+      log("SYSERR: Integer overflow in spell_circle calculation");
       return (NUM_CIRCLES + 1);
     }
-    return (MAX(1, spell_circle));
+    spell_circle += metamagic_mod;
+    
+    return (spell_circle > TOP_CIRCLE) ? (NUM_CIRCLES + 1) : MAX(1, spell_circle);
   case CLASS_WIZARD:
+    /* Wizards are full arcane prepared casters */
     spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
-    if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
-    {
-        metamagic_mod -= 4;
-    }
-    if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
-      metamagic_mod -= 1;
-    if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) && spell_circle <= 3)
-      metamagic_mod -= 1;
-    spell_circle += metamagic_mod;
-    if (spell_circle > TOP_CIRCLE)
-    {
+    metamagic_mod = apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
+    
+    /* Check for overflow before adding metamagic_mod */
+    if (spell_circle > INT_MAX - metamagic_mod) {
+      log("SYSERR: Integer overflow in spell_circle calculation");
       return (NUM_CIRCLES + 1);
     }
-    return (MAX(1, spell_circle));
+    spell_circle += metamagic_mod;
+    
+    return (spell_circle > TOP_CIRCLE) ? (NUM_CIRCLES + 1) : MAX(1, spell_circle);
   case CLASS_DRUID:
+    /* Druids are full divine prepared casters with nature magic */
     spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
-    if (IS_SET(metamagic, METAMAGIC_QUICKEN) && HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL) && spell_circle <= 3)
-    {
-        metamagic_mod -= 4;
-    }
-    if (IS_SET(metamagic, METAMAGIC_STILL) && HAS_FEAT(ch, FEAT_AUTOMATIC_STILL_SPELL) && spell_circle <= 3)
-      metamagic_mod -= 1;
-    if (IS_SET(metamagic, METAMAGIC_SILENT) && HAS_FEAT(ch, FEAT_AUTOMATIC_SILENT_SPELL) && spell_circle <= 3)
-      metamagic_mod -= 1;
-    spell_circle += metamagic_mod;
-    if (spell_circle > TOP_CIRCLE)
-    {
+    metamagic_mod = apply_automatic_metamagic_reduction(ch, metamagic, metamagic_mod, spell_circle, 3);
+    
+    /* Check for overflow before adding metamagic_mod */
+    if (spell_circle > INT_MAX - metamagic_mod) {
+      log("SYSERR: Integer overflow in spell_circle calculation");
       return (NUM_CIRCLES + 1);
     }
-    return (MAX(1, spell_circle));
+    spell_circle += metamagic_mod;
+    
+    return (spell_circle > TOP_CIRCLE) ? (NUM_CIRCLES + 1) : MAX(1, spell_circle);
   case CLASS_PSIONICIST:
+    /* Psionicists are full casters using psionic powers */
     spell_circle = (spell_info[spellnum].min_level[char_class] + 1) / 2;
-    spell_circle += metamagic_mod;
-    if (spell_circle > TOP_CIRCLE)
-    {
+    /* Note: Psionicists don't get automatic metamagic reduction */
+    
+    /* Check for overflow before adding metamagic_mod */
+    if (spell_circle > INT_MAX - metamagic_mod) {
+      log("SYSERR: Integer overflow in spell_circle calculation");
       return (NUM_CIRCLES + 1);
     }
-    return (MAX(1, spell_circle));
+    spell_circle += metamagic_mod;
+    
+    return (spell_circle > TOP_CIRCLE) ? (NUM_CIRCLES + 1) : MAX(1, spell_circle);
   default:
     return (NUM_CIRCLES + 1);
   }
@@ -2340,6 +2339,11 @@ int compute_powers_circle(int class, int spellnum, int metamagic)
   {
   case CLASS_PSIONICIST:
     spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
+    /* Check for overflow before adding metamagic_mod */
+    if (spell_circle > INT_MAX - metamagic_mod) {
+      log("SYSERR: Integer overflow in spell_circle calculation");
+      return (NUM_CIRCLES + 1); /* Invalid circle */
+    }
     spell_circle += metamagic_mod;
     if (spell_circle > TOP_CIRCLE)
     {
@@ -2562,6 +2566,10 @@ void start_prep_event(struct char_data *ch, int class)
     break;
   }
   set_preparing_state(ch, class, TRUE);
+  /* THREAD SAFETY: This check ensures only ONE preparation event exists per character
+   * at any time. Since LuminariMUD is single-threaded, there's no race condition
+   * where two events could be created between the check and the NEW_EVENT call.
+   * The event system guarantees atomic event creation in the main game loop. */
   if (!char_has_mud_event(ch, ePREPARATION))
   {
     snprintf(buf, sizeof(buf), "%d", class); /* carry our class as the svar */
@@ -2813,15 +2821,25 @@ void assign_feat_spell_slots(int ch_class)
     feat_index = INQ_SLT_0;
     break;
   default:
-    log("Error in assign_feat_spell_slots(), index default case for class.");
+    log("SYSERR: assign_feat_spell_slots() - invalid class in index switch statement");
     break;
   }
 
   /* ENGINE */
+  
+  /* Define maximum array size - all slot arrays have at least 65 entries based on constants.c */
+  #define MAX_SLOT_ARRAY_SIZE 65
 
   /* traverse level aspect of chart */
   for (level_counter = 1; level_counter < LVL_IMMORT; level_counter++)
   {
+    /* Safety check: ensure we don't exceed array bounds */
+    if (level_counter >= MAX_SLOT_ARRAY_SIZE) {
+      log("SYSERR: assign_feat_spell_slots() level_counter %d exceeds slot array size %d", 
+          level_counter, MAX_SLOT_ARRAY_SIZE);
+      break;
+    }
+    
     /* traverse circle aspect of chart */
     for (circle_counter = 1; circle_counter < NUM_CIRCLES; circle_counter++)
     {
@@ -2830,47 +2848,57 @@ void assign_feat_spell_slots(int ch_class)
       {
       case CLASS_WIZARD:
         slots_have[circle_counter] = wizard_slots[level_counter][circle_counter];
-        slots_had[circle_counter] = wizard_slots[level_counter - 1][circle_counter];
+        if (level_counter > 0)
+          slots_had[circle_counter] = wizard_slots[level_counter - 1][circle_counter];
         break;
       case CLASS_SORCERER:
         slots_have[circle_counter] = sorcerer_slots[level_counter][circle_counter];
-        slots_had[circle_counter] = sorcerer_slots[level_counter - 1][circle_counter];
+        if (level_counter > 0)
+          slots_had[circle_counter] = sorcerer_slots[level_counter - 1][circle_counter];
         break;
       case CLASS_BARD:
         slots_have[circle_counter] = bard_slots[level_counter][circle_counter];
-        slots_had[circle_counter] = bard_slots[level_counter - 1][circle_counter];
+        if (level_counter > 0)
+          slots_had[circle_counter] = bard_slots[level_counter - 1][circle_counter];
         break;
       case CLASS_INQUISITOR:
         slots_have[circle_counter] = inquisitor_slots[level_counter][circle_counter];
-        slots_had[circle_counter] = inquisitor_slots[level_counter - 1][circle_counter];
+        if (level_counter > 0)
+          slots_had[circle_counter] = inquisitor_slots[level_counter - 1][circle_counter];
         break;
       case CLASS_CLERIC:
         slots_have[circle_counter] = cleric_slots[level_counter][circle_counter];
-        slots_had[circle_counter] = cleric_slots[level_counter - 1][circle_counter];
+        if (level_counter > 0)
+          slots_had[circle_counter] = cleric_slots[level_counter - 1][circle_counter];
         break;
       case CLASS_DRUID:
         slots_have[circle_counter] = druid_slots[level_counter][circle_counter];
-        slots_had[circle_counter] = druid_slots[level_counter - 1][circle_counter];
+        if (level_counter > 0)
+          slots_had[circle_counter] = druid_slots[level_counter - 1][circle_counter];
         break;
       case CLASS_RANGER:
         slots_have[circle_counter] = ranger_slots[level_counter][circle_counter];
-        slots_had[circle_counter] = ranger_slots[level_counter - 1][circle_counter];
+        if (level_counter > 0)
+          slots_had[circle_counter] = ranger_slots[level_counter - 1][circle_counter];
         break;
       case CLASS_PALADIN:
       case CLASS_BLACKGUARD:
         slots_have[circle_counter] = paladin_slots[level_counter][circle_counter];
-        slots_had[circle_counter] = paladin_slots[level_counter - 1][circle_counter];
+        if (level_counter > 0)
+          slots_had[circle_counter] = paladin_slots[level_counter - 1][circle_counter];
         break;
       case CLASS_ALCHEMIST:
         slots_have[circle_counter] = alchemist_slots[level_counter][circle_counter];
-        slots_had[circle_counter] = alchemist_slots[level_counter - 1][circle_counter];
+        if (level_counter > 0)
+          slots_had[circle_counter] = alchemist_slots[level_counter - 1][circle_counter];
         break;
       case CLASS_SUMMONER:
         slots_have[circle_counter] = summoner_slots[level_counter][circle_counter];
-        slots_had[circle_counter] = summoner_slots[level_counter - 1][circle_counter];
+        if (level_counter > 0)
+          slots_had[circle_counter] = summoner_slots[level_counter - 1][circle_counter];
         break;
       default:
-        log("Error in assign_feat_spell_slots(), slots_have default case for class.");
+        log("SYSERR: assign_feat_spell_slots() - invalid class in slots_have switch statement");
         break;
       }
 
@@ -2889,6 +2917,8 @@ void assign_feat_spell_slots(int ch_class)
   }   /* level counter */
 
   /* all done! */
+  
+  #undef MAX_SLOT_ARRAY_SIZE
 }
 /**** END CONSTRUCTION ZONE *****/
 
@@ -2921,7 +2951,7 @@ void assign_feat_spell_slots(int ch_class)
  */
 int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
 {
-  int ch_class = CLASS_UNDEFINED, prep_time = 99,
+  int ch_class = CLASS_UNDEFINED, prep_time = INVALID_PREP_TIME,
       circle = TOP_CIRCLE + 1, is_domain = FALSE;
 
   if (DEBUGMODE)
@@ -3093,7 +3123,7 @@ void print_prep_queue(struct char_data *ch, int ch_class)
                  (IS_SET(current->metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextendeded\tc]\tn" : ""),
                  (IS_SET(current->metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
                  (IS_SET(current->metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
-                 (current->domain ? domain_list[current->domain].name : ""));
+                 (current->domain > 0 && current->domain < NUM_DOMAINS ? domain_list[current->domain].name : ""));
   } /* end transverse */
 
   /* build a nice closing */
@@ -3156,7 +3186,7 @@ void print_innate_magic_queue(struct char_data *ch, int ch_class)
                  (IS_SET(current->metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextended\tc]\tn" : ""),
                  (IS_SET(current->metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
                  (IS_SET(current->metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
-                 (current->domain ? domain_list[current->domain].name : ""));
+                 (current->domain > 0 && current->domain < NUM_DOMAINS ? domain_list[current->domain].name : ""));
 
   } /* end transverse */
 
@@ -3171,22 +3201,178 @@ void print_innate_magic_queue(struct char_data *ch, int ch_class)
   return;
 }
 
+/* Helper function to find or create a spell count entry */
+static struct spell_count_data *find_or_create_spell_count(struct spell_count_data **spell_counts, 
+                                                           int circle, int spell, int metamagic, int domain)
+{
+  struct spell_count_data *count_entry = spell_counts[circle];
+  
+  /* Search for existing entry */
+  while (count_entry) {
+    if (count_entry->spell == spell &&
+        count_entry->metamagic == metamagic &&
+        count_entry->domain == domain) {
+      count_entry->count++;
+      return count_entry;
+    }
+    count_entry = count_entry->next;
+  }
+  
+  /* Create new entry if not found */
+  struct spell_count_data *new_count;
+  CREATE(new_count, struct spell_count_data, 1);
+  if (!new_count) {
+    log("SYSERR: Failed to allocate memory for spell count entry");
+    return NULL;
+  }
+  
+  new_count->spell = spell;
+  new_count->metamagic = metamagic;
+  new_count->domain = domain;
+  new_count->count = 1;
+  new_count->next = spell_counts[circle];
+  spell_counts[circle] = new_count;
+  
+  return new_count;
+}
+
+/* Helper function to build metamagic string */
+static void build_metamagic_string(char *buffer, size_t buffer_size, int metamagic, int domain)
+{
+  char *ptr = buffer;
+  size_t remaining = buffer_size - 1;
+  
+  /* Helper macro to safely append to buffer */
+  #define SAFE_APPEND(str) do { \
+    int written = snprintf(ptr, remaining, "%s", str); \
+    if (written > 0 && (size_t)written < remaining) { \
+      ptr += written; \
+      remaining -= written; \
+    } \
+  } while(0)
+  
+  buffer[0] = '\0';  /* Initialize as empty string */
+  
+  if (IS_SET(metamagic, METAMAGIC_QUICKEN))
+    SAFE_APPEND(" [quickened]");
+  if (IS_SET(metamagic, METAMAGIC_EMPOWER))
+    SAFE_APPEND(" [empowered]");
+  if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
+    SAFE_APPEND(" [maximized]");
+  if (IS_SET(metamagic, METAMAGIC_EXTEND))
+    SAFE_APPEND(" [extended]");
+  if (IS_SET(metamagic, METAMAGIC_SILENT))
+    SAFE_APPEND(" [silent]");
+  if (IS_SET(metamagic, METAMAGIC_STILL))
+    SAFE_APPEND(" [still]");
+  
+  if (domain > 0 && domain < NUM_DOMAINS) {
+    char domain_str[64];
+    snprintf(domain_str, sizeof(domain_str), " [%s]", domain_list[domain].name);
+    SAFE_APPEND(domain_str);
+  }
+  
+  #undef SAFE_APPEND
+}
+
+/* Helper function to append count to metamagic string */
+static void append_count_to_string(char *metamagic_str, size_t buffer_size, int count)
+{
+  if (count > 1) {
+    char count_str[32];
+    snprintf(count_str, sizeof(count_str), " \tYx%d\tn", count);
+    size_t current_len = strlen(metamagic_str);
+    if (current_len < buffer_size - 1) {
+      snprintf(metamagic_str + current_len, buffer_size - current_len, "%s", count_str);
+    }
+  }
+}
+
+/* Helper function to format circle ordinal suffix */
+static const char *get_ordinal_suffix(int number)
+{
+  switch (number) {
+    case 1: return "st";
+    case 2: return "nd";
+    case 3: return "rd";
+    default: return "th";
+  }
+}
+
+/* Helper function to count spells in collection */
+static void count_collection_spells(struct char_data *ch, int ch_class, 
+                                   struct spell_count_data **spell_counts)
+{
+  struct prep_collection_spell_data *current;
+  int this_circle;
+  
+  for (current = SPELL_COLLECTION(ch, ch_class); current; current = current->next) {
+    this_circle = compute_spells_circle(ch, ch_class, current->spell, 
+                                       current->metamagic, current->domain);
+    if (this_circle >= 0 && this_circle < NUM_CIRCLES) {
+      find_or_create_spell_count(spell_counts, this_circle, current->spell,
+                                current->metamagic, current->domain);
+    }
+  }
+}
+
+/* Helper function to display spells for one circle */
+static void display_circle_spells(struct char_data *ch, int circle, 
+                                 struct spell_count_data *spell_list)
+{
+  struct spell_count_data *count_entry = spell_list;
+  char metamagic_str[METAMAGIC_STR_SIZE];
+  int counter = 0;
+  
+  while (count_entry) {
+    counter++;
+    
+    /* Build the metamagic and count string */
+    build_metamagic_string(metamagic_str, sizeof(metamagic_str), 
+                          count_entry->metamagic, count_entry->domain);
+    append_count_to_string(metamagic_str, sizeof(metamagic_str), count_entry->count);
+    
+    /* Display with proper formatting */
+    if (counter == 1) {
+      send_to_char(ch, "\tY%d%s:\tn    \tW%s\tn%s\r\n",
+                   circle, get_ordinal_suffix(circle),
+                   spell_info[count_entry->spell].name,
+                   metamagic_str);
+    } else {
+      send_to_char(ch, "%8s\tW%s\tn%s\r\n",
+                   "    ",
+                   spell_info[count_entry->spell].name,
+                   metamagic_str);
+    }
+    
+    count_entry = count_entry->next;
+  }
+}
+
+/* Helper function to clean up spell count data */
+static void cleanup_spell_counts(struct spell_count_data **spell_counts, int num_circles)
+{
+  int i;
+  for (i = 0; i < num_circles; i++) {
+    struct spell_count_data *count_entry = spell_counts[i];
+    struct spell_count_data *next_count;
+    
+    while (count_entry) {
+      next_count = count_entry->next;
+      free(count_entry);
+      count_entry = next_count;
+    }
+    
+    spell_counts[i] = NULL;
+  }
+}
+
 /* our display for our prepared spells aka collection, the level of complexity
    of our output will determine how complex this function is ;p */
 void print_collection(struct char_data *ch, int ch_class)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int line_length = 80, high_circle = get_class_highest_circle(ch, ch_class);
-  int counter = 0, this_circle = 0;
-  
-  /* Spell counting structure for stacking */
-  struct spell_count_data {
-    int spell;
-    int metamagic;
-    int domain;
-    int count;
-    struct spell_count_data *next;
-  };
   struct spell_count_data *spell_counts[NUM_CIRCLES];
   int i;
 
@@ -3209,113 +3395,18 @@ void print_collection(struct char_data *ch, int ch_class)
     return;
   }
 
-  /* First pass: count all spells by circle and identity */
-  struct prep_collection_spell_data *current;
-  for (current = SPELL_COLLECTION(ch, ch_class); current; current = current->next)
-  {
-    this_circle = compute_spells_circle(ch, ch_class, current->spell, 
-                                      current->metamagic, current->domain);
-    if (this_circle >= 0 && this_circle < NUM_CIRCLES)
-    {
-      /* Look for existing entry with same spell/metamagic/domain */
-      struct spell_count_data *count_entry = spell_counts[this_circle];
-      struct spell_count_data *prev = NULL;
-      int found = 0;
-      
-      while (count_entry)
-      {
-        if (count_entry->spell == current->spell &&
-            count_entry->metamagic == current->metamagic &&
-            count_entry->domain == current->domain)
-        {
-          count_entry->count++;
-          found = 1;
-          break;
-        }
-        prev = count_entry;
-        count_entry = count_entry->next;
-      }
-      
-      if (!found)
-      {
-        /* Create new count entry */
-        struct spell_count_data *new_count;
-        CREATE(new_count, struct spell_count_data, 1);
-        new_count->spell = current->spell;
-        new_count->metamagic = current->metamagic;
-        new_count->domain = current->domain;
-        new_count->count = 1;
-        new_count->next = spell_counts[this_circle];
-        spell_counts[this_circle] = new_count;
-      }
-    }
-  }
+  /* Count all spells by circle and identity */
+  count_collection_spells(ch, ch_class, spell_counts);
 
-  /* Second pass: display counted spells by circle */
-  for (high_circle; high_circle >= 0; high_circle--)
-  {
-    counter = 0;
-    struct spell_count_data *count_entry = spell_counts[high_circle];
-    
-    while (count_entry)
-    {
-      counter++;
-      /* Build the metamagic string */
-      char metamagic_str[256] = "";
-      if (IS_SET(count_entry->metamagic, METAMAGIC_QUICKEN))
-        strcat(metamagic_str, " [quickened]");
-      if (IS_SET(count_entry->metamagic, METAMAGIC_EMPOWER))
-        strcat(metamagic_str, " [empowered]");
-      if (IS_SET(count_entry->metamagic, METAMAGIC_MAXIMIZE))
-        strcat(metamagic_str, " [maximized]");
-      if (IS_SET(count_entry->metamagic, METAMAGIC_EXTEND))
-        strcat(metamagic_str, " [extended]");
-      if (IS_SET(count_entry->metamagic, METAMAGIC_SILENT))
-        strcat(metamagic_str, " [silent]");
-      if (IS_SET(count_entry->metamagic, METAMAGIC_STILL))
-        strcat(metamagic_str, " [still]");
-      if (count_entry->domain)
-        sprintf(metamagic_str + strlen(metamagic_str), " [%s]", domain_list[count_entry->domain].name);
-      
-      /* Add count if more than 1 */
-      if (count_entry->count > 1)
-        sprintf(metamagic_str + strlen(metamagic_str), " \tYx%d\tn", count_entry->count);
-      
-      if (counter == 1)
-      {
-        send_to_char(ch, "\tY%d%s:\tn    \tW%s\tn%s\r\n",
-                     high_circle,
-                     (high_circle == 1) ? "st" : (high_circle == 2) ? "nd"
-                                             : (high_circle == 3)   ? "rd"
-                                                                    : "th",
-                     spell_info[count_entry->spell].name,
-                     metamagic_str);
-      }
-      else
-      {
-        send_to_char(ch, "%8s\tW%s\tn%s\r\n",
-                     "    ",
-                     spell_info[count_entry->spell].name,
-                     metamagic_str);
-      }
-      
-      count_entry = count_entry->next;
+  /* Display counted spells by circle (from highest to lowest) */
+  for (; high_circle >= 0; high_circle--) {
+    if (spell_counts[high_circle]) {
+      display_circle_spells(ch, high_circle, spell_counts[high_circle]);
     }
   }
 
   /* Clean up allocated memory */
-  for (i = 0; i < NUM_CIRCLES; i++)
-  {
-    struct spell_count_data *count_entry = spell_counts[i];
-    struct spell_count_data *next_count;
-    
-    while (count_entry)
-    {
-      next_count = count_entry->next;
-      free(count_entry);
-      count_entry = next_count;
-    }
-  }
+  cleanup_spell_counts(spell_counts, NUM_CIRCLES);
 }
 
 /* display avaialble slots based on what is in the queue/collection, and other
@@ -3466,15 +3557,33 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   int stat_bonus = 0;
   int level_bonus = 0;
 
+  /* Input validation to prevent overflow */
+  if (circle < 1 || circle > TOP_CIRCLE) {
+    log("SYSERR: compute_spells_prep_time() called with invalid circle %d", circle);
+    return 1; /* Minimum prep time */
+  }
+
   /* Base prep time: 5 seconds + 5 seconds per circle above 1st */
-  prep_time = BASE_PREP_TIME + (PREP_TIME_INTERVALS * (circle - 1));
+  /* Check for potential overflow: BASE_PREP_TIME + (PREP_TIME_INTERVALS * (circle - 1)) */
+  if (circle > 1 && PREP_TIME_INTERVALS > (INT_MAX - BASE_PREP_TIME) / (circle - 1)) {
+    log("SYSERR: Integer overflow detected in prep time calculation");
+    prep_time = INT_MAX / 10; /* Set to a large but safe value */
+  } else {
+    prep_time = BASE_PREP_TIME + (PREP_TIME_INTERVALS * (circle - 1));
+  }
 
   /* Domain spells take slightly longer (1 extra second) - shows divine focus */
   if (domain)
     prep_time++;
 
   /* Calculate level bonus - higher level characters prepare faster */
-  level_bonus = CLASS_LEVEL(ch, class) / 2;
+  /* Protect against overflow - class level should never exceed 100 realistically */
+  if (CLASS_LEVEL(ch, class) > 200) {
+    log("SYSERR: Excessive class level %d in prep time calculation", CLASS_LEVEL(ch, class));
+    level_bonus = 100; /* Cap at reasonable max */
+  } else {
+    level_bonus = CLASS_LEVEL(ch, class) / 2;
+  }
   
   /* Apply class-specific multipliers and determine relevant ability bonus
    * Each class has different preparation speeds based on their magical tradition
@@ -3527,19 +3636,42 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   /** Calculate time reductions from various sources **/
   
   /* Level bonus - experienced casters prepare faster */
-  bonus_time += level_bonus;
+  /* Check overflow before adding */
+  if (level_bonus > INT_MAX - bonus_time) {
+    log("SYSERR: Integer overflow in bonus_time (level_bonus)");
+    bonus_time = INT_MAX / 2;
+  } else {
+    bonus_time += level_bonus;
+  }
   
   /* Ability score bonus - mental acuity speeds preparation
    * Formula: 2/3 of ability bonus (so +6 INT = 4 seconds faster)
+   * Cap stat_bonus to prevent overflow in multiplication
    */
-  bonus_time += stat_bonus / 3 * 2;
+  if (stat_bonus > 300 || stat_bonus < -300) {
+    log("SYSERR: Excessive stat bonus %d in prep time calculation", stat_bonus);
+    stat_bonus = (stat_bonus > 0) ? 300 : -300;
+  }
+  int stat_reduction = stat_bonus / 3 * 2;
+  if (stat_reduction > INT_MAX - bonus_time) {
+    log("SYSERR: Integer overflow in bonus_time (stat_bonus)");
+    bonus_time = INT_MAX / 2;
+  } else {
+    bonus_time += stat_reduction;
+  }
   
   /* Concentration skill - focused mind speeds memorization
    * Each 4 ranks = 1 second reduction
    */
   if (!IS_NPC(ch) && GET_ABILITY(ch, ABILITY_CONCENTRATION))
   {
-    bonus_time += compute_ability(ch, ABILITY_CONCENTRATION) / 4;
+    int conc_bonus = compute_ability(ch, ABILITY_CONCENTRATION) / 4;
+    if (conc_bonus > INT_MAX - bonus_time) {
+      log("SYSERR: Integer overflow in bonus_time (concentration)");
+      bonus_time = INT_MAX / 2;
+    } else {
+      bonus_time += conc_bonus;
+    }
   }
   
   /* FEAT: Wizard Memorization - reduces prep time by 1/6 (16.7%)
@@ -3547,7 +3679,13 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
    */
   if (HAS_FEAT(ch, FEAT_WIZ_MEMORIZATION))
   {
-    bonus_time += prep_time / 6;
+    int feat_bonus = prep_time / 6;
+    if (feat_bonus > INT_MAX - bonus_time) {
+      log("SYSERR: Integer overflow in bonus_time (wiz memorization)");
+      bonus_time = INT_MAX / 2;
+    } else {
+      bonus_time += feat_bonus;
+    }
   }
   
   /* FEAT: Faster Memorization - reduces prep time by 1/4 (25%)
@@ -3555,14 +3693,27 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
    */
   if (HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION))
   {
-    bonus_time += prep_time / 4;
+    int feat_bonus = prep_time / 4;
+    if (feat_bonus > INT_MAX - bonus_time) {
+      log("SYSERR: Integer overflow in bonus_time (faster memorization)");
+      bonus_time = INT_MAX / 2;
+    } else {
+      bonus_time += feat_bonus;
+    }
   }
   
   /* Regeneration rooms (usually taverns) provide a calm environment
    * Reduces prep time by 25% - encourages social gathering spots
    */
-  if (IN_ROOM(ch) != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
-    bonus_time += prep_time / 4;
+  if (IN_ROOM(ch) != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_REGEN)) {
+    int room_bonus = prep_time / 4;
+    if (room_bonus > INT_MAX - bonus_time) {
+      log("SYSERR: Integer overflow in bonus_time (regen room)");
+      bonus_time = INT_MAX / 2;
+    } else {
+      bonus_time += room_bonus;
+    }
+  }
     
   /* Note: Song of Focused Mind is handled elsewhere in the event system
    * It would halve prep time but needs to be checked each pulse
@@ -3584,7 +3735,16 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   case CLASS_BARD:
   case CLASS_SUMMONER:
     /* Arcane casters - affected by CONFIG_ARCANE_PREP_TIME */
-    prep_time = prep_time * CONFIG_ARCANE_PREP_TIME / 100;
+    /* Validate CONFIG value to prevent overflow */
+    if (CONFIG_ARCANE_PREP_TIME < 0 || CONFIG_ARCANE_PREP_TIME > 1000) {
+      log("SYSERR: Invalid CONFIG_ARCANE_PREP_TIME %d", CONFIG_ARCANE_PREP_TIME);
+      prep_time = prep_time; /* No change */
+    } else if (prep_time > INT_MAX / CONFIG_ARCANE_PREP_TIME) {
+      log("SYSERR: Integer overflow in arcane prep time calculation");
+      prep_time = INT_MAX / 100;
+    } else {
+      prep_time = prep_time * CONFIG_ARCANE_PREP_TIME / 100;
+    }
     break;
 
   case CLASS_CLERIC:
@@ -3594,7 +3754,16 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   case CLASS_BLACKGUARD:
   case CLASS_INQUISITOR:
     /* Divine casters - affected by CONFIG_DIVINE_PREP_TIME */
-    prep_time = prep_time * CONFIG_DIVINE_PREP_TIME / 100;
+    /* Validate CONFIG value to prevent overflow */
+    if (CONFIG_DIVINE_PREP_TIME < 0 || CONFIG_DIVINE_PREP_TIME > 1000) {
+      log("SYSERR: Invalid CONFIG_DIVINE_PREP_TIME %d", CONFIG_DIVINE_PREP_TIME);
+      prep_time = prep_time; /* No change */
+    } else if (prep_time > INT_MAX / CONFIG_DIVINE_PREP_TIME) {
+      log("SYSERR: Integer overflow in divine prep time calculation");
+      prep_time = INT_MAX / 100;
+    } else {
+      prep_time = prep_time * CONFIG_DIVINE_PREP_TIME / 100;
+    }
     break;
 
   case CLASS_PSIONICIST:
@@ -3603,7 +3772,16 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
 
   case CLASS_ALCHEMIST:
     /* Alchemists - affected by CONFIG_ALCHEMY_PREP_TIME */
-    prep_time = prep_time * CONFIG_ALCHEMY_PREP_TIME / 100;
+    /* Validate CONFIG value to prevent overflow */
+    if (CONFIG_ALCHEMY_PREP_TIME < 0 || CONFIG_ALCHEMY_PREP_TIME > 1000) {
+      log("SYSERR: Invalid CONFIG_ALCHEMY_PREP_TIME %d", CONFIG_ALCHEMY_PREP_TIME);
+      prep_time = prep_time; /* No change */
+    } else if (prep_time > INT_MAX / CONFIG_ALCHEMY_PREP_TIME) {
+      log("SYSERR: Integer overflow in alchemy prep time calculation");
+      prep_time = INT_MAX / 100;
+    } else {
+      prep_time = prep_time * CONFIG_ALCHEMY_PREP_TIME / 100;
+    }
     break;
   }
 
@@ -3657,45 +3835,86 @@ int free_arcana_slots(struct char_data *ch)
   return MAX(0, num_slots);
 }
 
-#define LOOP_MAX 1000
+#define LOOP_MAX 100  /* Reduced from 1000 for performance */
 #define PROC_NUM 5
+#define MAX_EMPTY_ITERATIONS 10  /* Exit early if no spells found */
+
 /* this is a custom function we wrote that will, on firing, randomly restore spells from the queue -zusuk */
 // if num_times is 0, there is no limit to how many spells can be restored. Otherwise it will limit it to
 // the num_times spell slots
 int star_circlet_proc(struct char_data *ch, int num_times)
 {
   int class = 0, proc_count = 0, loop_count = 0, proc_max = 0;
-  int which_class = 0, num_classes = 0, cur_class = 0;
+  int which_class = 0, num_classes = 0;
+  int empty_iterations = 0;  /* Track iterations with no spells found */
+  int classes_with_spells = 0;  /* Track how many classes have spells queued */
+  
+  /* Performance monitoring variables */
+  struct timeval start_time, end_time;
+  long elapsed_microsecs = 0;
+  
+  if (DEBUGMODE) {
+    gettimeofday(&start_time, NULL);
+  }
 
   if (num_times == 0)
     proc_max = rand_number(1, PROC_NUM);
   else
-    proc_max = 1;
+    proc_max = MIN(num_times, PROC_NUM);  /* Cap proc_max to reasonable limit */
 
   if (!ch)
     return 0;
 
+  /* First, check if any class has spells in queue - early exit if none */
+  for (class = CLASS_WIZARD; class < NUM_CLASSES; class++) {
+    if (CLASS_LEVEL(ch, class) > 0) {
+      num_classes++;
+      /* Check if this class has anything to process */
+      switch (class) {
+        case CLASS_BARD:
+        case CLASS_SORCERER:
+        case CLASS_INQUISITOR:
+        case CLASS_SUMMONER:
+          if (INNATE_MAGIC(ch, class))
+            classes_with_spells++;
+          break;
+        default:
+          if (SPELL_PREP_QUEUE(ch, class))
+            classes_with_spells++;
+          break;
+      }
+    }
+  }
+  
+  /* Early exit if no classes have spells to process */
+  if (classes_with_spells == 0) {
+    if (DEBUGMODE) {
+      send_to_char(ch, "DEBUG: star_circlet_proc - No spells in any queue.\r\n");
+    }
+    return 0;
+  }
+
+  /* Check if character has any classes before proceeding */
+  if (num_classes <= 0) {
+    return 0;
+  }
+
   /* arbitrary do loop, while controls how much it will run */
   do
   {
-
-    for (class = CLASS_WIZARD; class < NUM_CLASSES; class++)
-    {
-      if (CLASS_LEVEL(ch, class) > 0)
-        num_classes++;
-    }
-
-    if (class < NUM_CLASSES)
-      which_class = dice(1, num_classes);
-
-    num_classes = 0;
-
+    int found_spell_this_iteration = 0;
+    
+    /* Select a random class with levels */
+    which_class = dice(1, num_classes);
+    
+    /* Find the nth class with levels */
+    int class_counter = 0;
     for (class = CLASS_WIZARD; class < NUM_CLASSES; class++)
     {
       if (CLASS_LEVEL(ch, class) > 0)
       {
-        num_classes++;
-        if (num_classes == which_class)
+        class_counter++;
+        if (class_counter == which_class)
         {
           which_class = class;
           break;
@@ -3706,14 +3925,11 @@ int star_circlet_proc(struct char_data *ch, int num_times)
     if (which_class < 0 || which_class >= NUM_CLASSES)
       which_class = -1;
 
-    /* class loop */
-    for (cur_class = 0; cur_class < NUM_CLASSES; cur_class++)
-    {
-      if (which_class == -1)
-        class = cur_class;
-      else
-        class = which_class;
-
+    /* Process only the selected class (not all classes) unless which_class == -1 */
+    if (which_class != -1) {
+      /* Process single selected class */
+      class = which_class;
+      
       switch (class)
       {
       case CLASS_BARD:
@@ -3733,6 +3949,7 @@ int star_circlet_proc(struct char_data *ch, int num_times)
                        INNATE_MAGIC(ch, class)->circle);
           innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->circle, INNATE_MAGIC(ch, class)->metamagic);
           proc_count++;
+          found_spell_this_iteration = 1;
         }
         break;
       default:
@@ -3754,13 +3971,48 @@ int star_circlet_proc(struct char_data *ch, int num_times)
           prep_queue_remove_by_class(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
                                      SPELL_PREP_QUEUE(ch, class)->metamagic);
           proc_count++;
+          found_spell_this_iteration = 1;
         }
         break;
       }
     }
+    
+    /* Track empty iterations for early exit */
+    if (!found_spell_this_iteration) {
+      empty_iterations++;
+      if (empty_iterations >= MAX_EMPTY_ITERATIONS) {
+        if (DEBUGMODE) {
+          send_to_char(ch, "DEBUG: star_circlet_proc - Exiting early after %d empty iterations.\r\n", 
+                       empty_iterations);
+        }
+        break;  /* Exit early if we've had too many iterations without finding spells */
+      }
+    } else {
+      empty_iterations = 0;  /* Reset counter when we find a spell */
+    }
 
     loop_count++;
+    
+    /* Additional safety check - exit if we've processed enough */
+    if (proc_count >= proc_max) {
+      break;
+    }
+    
   } while (loop_count < LOOP_MAX && proc_count < proc_max);
+
+  /* Performance monitoring */
+  if (DEBUGMODE) {
+    gettimeofday(&end_time, NULL);
+    elapsed_microsecs = (end_time.tv_sec - start_time.tv_sec) * 1000000L +
+                       (end_time.tv_usec - start_time.tv_usec);
+    send_to_char(ch, "DEBUG: star_circlet_proc completed in %ld microseconds (%d iterations, %d spells processed).\r\n",
+                 elapsed_microsecs, loop_count, proc_count);
+  }
+  
+  /* Log warning if function took too long */
+  if (loop_count >= LOOP_MAX) {
+    log("SYSERR: star_circlet_proc() hit LOOP_MAX limit for character %s", GET_NAME(ch));
+  }
 
   if (proc_count >= 1)
     return 1;
@@ -3769,8 +4021,234 @@ int star_circlet_proc(struct char_data *ch, int num_times)
 }
 #undef LOOP_MAX
 #undef PROC_NUM
+#undef MAX_EMPTY_ITERATIONS
 
 /* END helper functions */
+
+/* START helper functions for event_preparation() */
+
+/**
+ * validate_event_character - Validate character pointer from event data
+ * @prepare_event: The mud event data structure
+ * 
+ * Validates that the character pointer in the event is still valid by
+ * checking the global character list. This prevents use-after-free if
+ * the character was extracted/freed while the event was queued.
+ * 
+ * Returns: Valid character pointer or NULL if invalid
+ */
+static struct char_data *validate_event_character(struct mud_event_data *prepare_event)
+{
+  struct char_data *ch = NULL;
+  struct char_data *temp = NULL;
+  bool char_found = FALSE;
+  
+  if (!prepare_event)
+    return NULL;
+    
+  ch = (struct char_data *)prepare_event->pStruct;
+  if (!ch)
+    return NULL;
+  
+  /* Validate that the character pointer is still valid */
+  for (temp = character_list; temp; temp = temp->next) {
+    if (temp == ch) {
+      char_found = TRUE;
+      break;
+    }
+  }
+  
+  if (!char_found) {
+    log("SYSERR: event_preparation() called with invalid character pointer - character was freed");
+    return NULL;
+  }
+  
+  if (!ch->player_specials) {
+    log("SYSERR: event_preparation() called with character missing player_specials");
+    return NULL;
+  }
+  
+  return ch;
+}
+
+/**
+ * validate_preparation_queue - Check if character has spells/slots to prepare
+ * @ch: Character to check
+ * @class: Class to check preparation for
+ * 
+ * Verifies the character has something in their preparation queue.
+ * Spontaneous casters use INNATE_MAGIC for spell slots.
+ * Prepared casters use SPELL_PREP_QUEUE for specific spells.
+ * 
+ * Returns: TRUE if queue has items, FALSE if empty
+ */
+static bool validate_preparation_queue(struct char_data *ch, int class)
+{
+  switch (class) {
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+    case CLASS_INQUISITOR:
+    case CLASS_SUMMONER:
+      /* Spontaneous casters - check for recovering spell slots */
+      if (!INNATE_MAGIC(ch, class)) {
+        send_to_char(ch, "Your preparations are aborted!  You do not seem to have anything in your queue!\r\n");
+        return FALSE;
+      }
+      break;
+    default:
+      /* Prepared casters - check for spells being memorized */
+      if (!SPELL_PREP_QUEUE(ch, class)) {
+        send_to_char(ch, "Your preparations are aborted!  You do not seem to have anything in your queue!\r\n");
+        return FALSE;
+      }
+      break;
+  }
+  return TRUE;
+}
+
+/**
+ * process_spontaneous_caster_prep - Handle spell slot recovery for spontaneous casters
+ * @ch: Character preparing spells
+ * @class: Spontaneous caster class
+ * 
+ * Decrements prep_time for the first spell slot in recovery queue.
+ * When prep_time reaches 0, the slot becomes available for casting.
+ * 
+ * Returns: Event continuation time (PASSES_PER_SEC) or 0 if done
+ */
+static int process_spontaneous_caster_prep(struct char_data *ch, int class)
+{
+  /* Decrement preparation time for the first slot */
+  INNATE_MAGIC(ch, class)->prep_time--;
+  
+  /* Check if this spell slot has finished recovering */
+  if (INNATE_MAGIC(ch, class)->prep_time <= 0) {
+    /* Slot is ready! Announce completion with any metamagic info */
+    send_to_char(ch, "You finish %s for %s%s%s%s%s%s%d circle slot.\r\n",
+                 spell_prep_dict[class][1],  /* "meditation", "composition", etc. */
+                 (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+                 (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_EMPOWER) ? "empowered " : ""),
+                 (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                 (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_EXTEND) ? "extended " : ""),
+                 (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_SILENT) ? "silent " : ""),
+                 (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_STILL) ? "still " : ""),
+                 INNATE_MAGIC(ch, class)->circle);
+                 
+    /* Remove the completed slot from recovery queue */
+    innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->circle,
+                                 INNATE_MAGIC(ch, class)->metamagic);
+                                 
+    /* Check if more slots need recovery */
+    if (INNATE_MAGIC(ch, class)) {
+      /* Reset timer for next slot and continue */
+      reset_preparation_time(ch, class);
+      
+      /* Song of Focused Mind doubles preparation speed */
+      if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND)) {
+        return ((1 * PASSES_PER_SEC) / 2);  /* 0.5 second pulses */
+      }
+      return (1 * PASSES_PER_SEC);  /* Normal 1 second pulses */
+    }
+  }
+  
+  return -1;  /* Continue with normal flow */
+}
+
+/**
+ * process_prepared_caster_prep - Handle spell memorization for prepared casters
+ * @ch: Character preparing spells
+ * @class: Prepared caster class
+ * 
+ * Decrements prep_time for the first spell in preparation queue.
+ * When prep_time reaches 0, moves spell to collection (ready to cast).
+ * 
+ * Returns: Event continuation time (PASSES_PER_SEC) or 0 if done
+ */
+static int process_prepared_caster_prep(struct char_data *ch, int class)
+{
+  /* Decrement preparation time for the first spell */
+  SPELL_PREP_QUEUE(ch, class)->prep_time--;
+  
+  /* Check if this spell has finished preparing */
+  if (SPELL_PREP_QUEUE(ch, class)->prep_time <= 0) {
+    /* Spell is ready! Announce completion with spell name and metamagic */
+    send_to_char(ch, "You finish %s for %s%s%s%s%s%s%s.\r\n",
+                 spell_prep_dict[class][1],  /* "memorizing", "praying", etc. */
+                 (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+                 (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_EMPOWER) ? "empowered " : ""),
+                 (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                 (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_EXTEND) ? "extended " : ""),
+                 (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_SILENT) ? "silent " : ""),
+                 (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_STILL) ? "still " : ""),
+                 spell_info[SPELL_PREP_QUEUE(ch, class)->spell].name);
+                 
+    /* Move the prepared spell from queue to collection */
+    collection_add(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
+                   SPELL_PREP_QUEUE(ch, class)->metamagic,
+                   SPELL_PREP_QUEUE(ch, class)->prep_time,
+                   SPELL_PREP_QUEUE(ch, class)->domain);
+                   
+    /* Remove the spell from preparation queue */
+    prep_queue_remove_by_class(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
+                               SPELL_PREP_QUEUE(ch, class)->metamagic);
+                               
+    /* Check if more spells need preparation */
+    if (SPELL_PREP_QUEUE(ch, class)) {
+      /* Reset timer for next spell and continue */
+      reset_preparation_time(ch, class);
+      
+      /* Song of Focused Mind doubles preparation speed */
+      if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND)) {
+        return ((1 * PASSES_PER_SEC) / 2);  /* 0.5 second pulses */
+      }
+      return (1 * PASSES_PER_SEC);  /* Normal 1 second pulses */
+    }
+  }
+  
+  return -1;  /* Continue with normal flow */
+}
+
+/**
+ * check_preparation_complete - Check if all preparation is done and cleanup
+ * @ch: Character preparing spells
+ * @class: Class being prepared
+ * 
+ * Checks if the preparation queue is empty. If so, announces completion
+ * and clears the preparation state.
+ * 
+ * Returns: TRUE if preparation complete, FALSE if more to do
+ */
+static bool check_preparation_complete(struct char_data *ch, int class)
+{
+  char buf[MAX_STRING_LENGTH];
+  bool queue_empty = FALSE;
+  
+  /* Check queue based on caster type */
+  switch (class) {
+    case CLASS_BARD:
+    case CLASS_SORCERER:
+    case CLASS_INQUISITOR:
+    case CLASS_SUMMONER:
+      queue_empty = (INNATE_MAGIC(ch, class) == NULL);
+      break;
+    default:
+      queue_empty = (SPELL_PREP_QUEUE(ch, class) == NULL);
+      break;
+  }
+  
+  if (queue_empty) {
+    /* Announce completion */
+    send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
+    snprintf(buf, sizeof(buf), "$n completes $s %s.", spell_prep_dict[class][3]);
+    act(buf, FALSE, ch, 0, 0, TO_ROOM);
+    set_preparing_state(ch, class, FALSE);
+    return TRUE;
+  }
+  
+  return FALSE;
+}
+
+/* END helper functions for event_preparation() */
 
 /* START event-related */
 
@@ -3793,6 +4271,11 @@ int star_circlet_proc(struct char_data *ch, int num_times)
  * which class's queue to process. This allows multiclass characters to
  * prepare spells for different classes separately.
  * 
+ * THREAD SAFETY: LuminariMUD is single-threaded. All events run sequentially
+ * in the main game_loop(), so there are NO race conditions or concurrency
+ * issues. Character spell queues can be safely modified without locks or
+ * synchronization mechanisms.
+ * 
  * RETURN VALUES:
  * - 0: Event terminates (preparation complete or interrupted)
  * - PASSES_PER_SEC: Event continues next second
@@ -3803,196 +4286,59 @@ EVENTFUNC(event_preparation)
   int class = 0;
   struct char_data *ch = NULL;
   struct mud_event_data *prepare_event = NULL;
-  char buf[MAX_STRING_LENGTH] = {'\0'};
+  int result = 0;
 
   /* Initialize and validate event data */
-  *buf = '\0';
   if (event_obj == NULL)
     return 0;
   prepare_event = (struct mud_event_data *)event_obj;
-  ch = (struct char_data *)prepare_event->pStruct;
+  
+  /* Validate character is still valid */
+  ch = validate_event_character(prepare_event);
   if (!ch)
     return 0;
+  
   /* Extract the class from event variables (stored as string) */
   class = atoi((char *)prepare_event->sVariables);
 
-  /* Verify the character has something to prepare
-   * Spontaneous casters use INNATE_MAGIC queue for spell slots
-   * Prepared casters use SPELL_PREP_QUEUE for specific spells
-   */
-  switch (class)
-  {
-  case CLASS_SORCERER:
-  case CLASS_BARD:
-  case CLASS_INQUISITOR:
-  case CLASS_SUMMONER:
-    /* Spontaneous casters - check for recovering spell slots */
-    if (!INNATE_MAGIC(ch, class))
-    {
-      send_to_char(ch, "Your preparations are aborted!  You do not seem to have anything in your queue!\r\n");
-      return 0;
-    }
-    break;
-  default:
-    /* Prepared casters - check for spells being memorized */
-    if (!SPELL_PREP_QUEUE(ch, class))
-    {
-      send_to_char(ch, "Your preparations are aborted!  You do not seem to have anything in your queue!\r\n");
-      return 0;
-    }
-    break;
-  }
+  /* Verify the character has something to prepare */
+  if (!validate_preparation_queue(ch, class))
+    return 0;
 
-  /* Validate character can continue preparing
-   * ready_to_prep_spells() checks: position, fighting, debuffs, spellbook
-   * is_preparing() checks: preparation state flag
-   * If either fails, preparation is interrupted
-   */
-  if (!ready_to_prep_spells(ch, class) ||
-      !is_preparing(ch))
-  {
+  /* Validate character can continue preparing */
+  if (!ready_to_prep_spells(ch, class) || !is_preparing(ch)) {
     send_to_char(ch, "You are not able to finish your spell preparations!\r\n");
     stop_prep_event(ch, class);
     return 0;
   }
 
   /* Main preparation processing - different for spontaneous vs prepared casters */
-  switch (class)
-  {
-  case CLASS_BARD:
-  case CLASS_SORCERER:
-  case CLASS_INQUISITOR:
-  case CLASS_SUMMONER:
-    /* SPONTANEOUS CASTERS: Process spell slot recovery
-     * Each second, decrement the prep_time of the first slot in queue
-     */
-    INNATE_MAGIC(ch, class)->prep_time--;
-    
-    /* Check if this spell slot has finished recovering */
-    if ((INNATE_MAGIC(ch, class)->prep_time) <= 0)
-    {
-      /* Slot is ready! Announce completion with any metamagic info */
-      send_to_char(ch, "You finish %s for %s%s%s%s%s%s%d circle slot.\r\n",
-                   spell_prep_dict[class][1],  /* "meditation", "composition", etc. */
-                   (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
-                   (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_EMPOWER) ? "empowered " : ""),
-                   (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
-                   (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_EXTEND) ? "extended " : ""),
-                   (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_SILENT) ? "silent " : ""),
-                   (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_STILL) ? "still " : ""),
-                   INNATE_MAGIC(ch, class)->circle);
-                   
-      /* Remove the completed slot from recovery queue
-       * The slot is now available for casting any known spell of that circle
-       */
-      innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->circle,
-                                   INNATE_MAGIC(ch, class)->metamagic);
-                                   
-      /* Check if more slots need recovery */
-      if (INNATE_MAGIC(ch, class))
-      {
-        /* Reset timer for next slot and continue */
-        reset_preparation_time(ch, class);
-
-        /* Song of Focused Mind doubles preparation speed */
-        if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
-        {
-          return ((1 * PASSES_PER_SEC) / 2);  /* 0.5 second pulses */
-        }
-
-        return (1 * PASSES_PER_SEC);  /* Normal 1 second pulses */
-      }
-    }
-    break;
-  default:
-    /* PREPARED CASTERS: Process specific spell memorization
-     * Each second, decrement the prep_time of the first spell in queue
-     */
-    SPELL_PREP_QUEUE(ch, class)->prep_time--;
-    
-    /* Check if this spell has finished preparing */
-    if ((SPELL_PREP_QUEUE(ch, class)->prep_time) <= 0)
-    {
-      /* Spell is ready! Announce completion with spell name and metamagic */
-      send_to_char(ch, "You finish %s for %s%s%s%s%s%s%s.\r\n",
-                   spell_prep_dict[class][1],  /* "memorizing", "praying", etc. */
-                   (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
-                   (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_EMPOWER) ? "empowered " : ""),
-                   (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
-                   (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_EXTEND) ? "extended " : ""),
-                   (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_SILENT) ? "silent " : ""),
-                   (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_STILL) ? "still " : ""),
-                   spell_info[SPELL_PREP_QUEUE(ch, class)->spell].name);
-                   
-      /* Move the prepared spell from queue to collection
-       * Collection holds fully prepared spells ready to cast
-       */
-      collection_add(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
-                     SPELL_PREP_QUEUE(ch, class)->metamagic,
-                     SPELL_PREP_QUEUE(ch, class)->prep_time,
-                     SPELL_PREP_QUEUE(ch, class)->domain);
-                     
-      /* Remove the spell from preparation queue */
-      prep_queue_remove_by_class(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
-                                 SPELL_PREP_QUEUE(ch, class)->metamagic);
-                                 
-      /* Check if more spells need preparation */
-      if (SPELL_PREP_QUEUE(ch, class))
-      {
-        /* Reset timer for next spell and continue */
-        reset_preparation_time(ch, class);
-
-        /* Song of Focused Mind doubles preparation speed */
-        if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
-        {
-          return ((1 * PASSES_PER_SEC) / 2);  /* 0.5 second pulses */
-        }
-
-        return (1 * PASSES_PER_SEC);  /* Normal 1 second pulses */
-      }
-    }
-    break;
+  switch (class) {
+    case CLASS_BARD:
+    case CLASS_SORCERER:
+    case CLASS_INQUISITOR:
+    case CLASS_SUMMONER:
+      /* Process spontaneous caster preparation */
+      result = process_spontaneous_caster_prep(ch, class);
+      if (result != -1)
+        return result;
+      break;
+      
+    default:
+      /* Process prepared caster preparation */
+      result = process_prepared_caster_prep(ch, class);
+      if (result != -1)
+        return result;
+      break;
   }
 
-  /* Check if all preparation is complete
-   * If the queue is empty, end the preparation state
-   */
-  switch (class)
-  {
-  case CLASS_BARD:
-  case CLASS_SORCERER:
-  case CLASS_INQUISITOR:
-  case CLASS_SUMMONER:
-    /* Spontaneous casters - check if all slots are recovered */
-    if (!INNATE_MAGIC(ch, class))
-    {
-      *buf = '\0';
-      send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
-      snprintf(buf, sizeof(buf), "$n completes $s %s.", spell_prep_dict[class][3]);
-      act(buf, FALSE, ch, 0, 0, TO_ROOM);
-      set_preparing_state(ch, class, FALSE);
-      return 0;  /* Event terminates - all slots recovered */
-    }
-    break;
-  default:
-    /* Prepared casters - check if all spells are memorized */
-    if (!SPELL_PREP_QUEUE(ch, class))
-    {
-      *buf = '\0';
-      send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
-      snprintf(buf, sizeof(buf), "$n completes $s %s.", spell_prep_dict[class][3]);
-      act(buf, FALSE, ch, 0, 0, TO_ROOM);
-      set_preparing_state(ch, class, FALSE);
-      return 0;  /* Event terminates - all spells prepared */
-    }
-    break;
-  }
+  /* Check if all preparation is complete */
+  if (check_preparation_complete(ch, class))
+    return 0;  /* Event terminates */
 
   /* Continue preparation - check for speed bonus from bard song */
   if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
-  {
     return ((1 * PASSES_PER_SEC) / 2);  /* Double speed preparation */
-  }
 
   return (1 * PASSES_PER_SEC);  /* Normal speed - continue next second */
 }
@@ -4040,6 +4386,16 @@ ACMDU(do_consign_to_oblivion)
   /* innate-magic casters such as sorc / bard, do not use this command */
   default:
     send_to_char(ch, "Invalid command!\r\n");
+    log("SYSERR: do_consign_to_oblivion() called with invalid subcmd %d by %s", 
+        subcmd, GET_NAME(ch));
+    return;
+  }
+  
+  /* Validate class is within bounds - security check */
+  if (class < 0 || class >= NUM_CLASSES) {
+    send_to_char(ch, "Invalid class detected!\r\n");
+    log("SYSERR: do_consign_to_oblivion() calculated invalid class %d for subcmd %d by %s", 
+        class, subcmd, GET_NAME(ch));
     return;
   }
 
@@ -4158,6 +4514,28 @@ ACMDU(do_consign_to_oblivion)
   {
     send_to_char(ch, "You never knew that %s to begin with!\r\n", class == CLASS_ALCHEMIST ? "extract" : "spell");
     return;
+  }
+  
+  /* Additional security: ensure spell is actually a spell, not a skill */
+  if (!IS_SPELL(spellnum))
+  {
+    send_to_char(ch, "That is not a %s!\r\n", class == CLASS_ALCHEMIST ? "extract" : "spell");
+    log("SYSERR: do_consign_to_oblivion() - %s tried to forget non-spell %d (%s)",
+        GET_NAME(ch), spellnum, spell_info[spellnum].name);
+    return;
+  }
+  
+  /* Validate metamagic flags - same as in preparation command */
+  if (metamagic != 0) {
+    int valid_metamagic = METAMAGIC_QUICKEN | METAMAGIC_MAXIMIZE | METAMAGIC_EMPOWER |
+                         METAMAGIC_EXTEND | METAMAGIC_SILENT | METAMAGIC_STILL;
+    
+    if (metamagic & ~valid_metamagic) {
+      send_to_char(ch, "Invalid metamagic combination!\r\n");
+      log("SYSERR: do_consign_to_oblivion() - %s used invalid metamagic flags %d", 
+          GET_NAME(ch), metamagic);
+      return;
+    }
   }
 
   /* check preparation queue for spell, if found, remove and exit */
@@ -4283,6 +4661,16 @@ ACMDU(do_gen_preparation)
     break;
   default:
     send_to_char(ch, "Invalid command!\r\n");
+    log("SYSERR: do_gen_preparation() called with invalid subcmd %d by %s", 
+        subcmd, GET_NAME(ch));
+    return;
+  }
+  
+  /* Validate class is within bounds - security check */
+  if (class < 0 || class >= NUM_CLASSES) {
+    send_to_char(ch, "Invalid class detected!\r\n");
+    log("SYSERR: do_gen_preparation() calculated invalid class %d for subcmd %d by %s", 
+        class, subcmd, GET_NAME(ch));
     return;
   }
 
@@ -4333,9 +4721,27 @@ ACMDU(do_gen_preparation)
   }
 
   spellnum = find_skill_num(spell_arg);
+  
+  /* Comprehensive spell validation */
   if (spellnum < 1 || spellnum > MAX_SPELLS)
   {
     send_to_char(ch, "Prepare which spell?\r\n");
+    return;
+  }
+  
+  /* Additional security: ensure spell is actually a spell, not a skill */
+  if (!IS_SPELL(spellnum))
+  {
+    send_to_char(ch, "That is not a spell!\r\n");
+    log("SYSERR: do_gen_preparation() - %s tried to prepare non-spell %d (%s)",
+        GET_NAME(ch), spellnum, spell_info[spellnum].name);
+    return;
+  }
+  
+  /* Validate spell is not disabled or undefined */
+  if (spell_info[spellnum].min_position == POS_DEAD)
+  {
+    send_to_char(ch, "That spell is not available!\r\n");
     return;
   }
 
@@ -4437,6 +4843,31 @@ ACMDU(do_gen_preparation)
       return;
     }
   }
+  
+  /* Validate metamagic combinations */
+  if (metamagic != 0) {
+    /* Check for valid metamagic flags only - prevent arbitrary bit manipulation */
+    int valid_metamagic = METAMAGIC_QUICKEN | METAMAGIC_MAXIMIZE | METAMAGIC_EMPOWER |
+                         METAMAGIC_EXTEND | METAMAGIC_SILENT | METAMAGIC_STILL;
+    
+    if (metamagic & ~valid_metamagic) {
+      send_to_char(ch, "Invalid metamagic combination detected!\r\n");
+      log("SYSERR: do_gen_preparation() - %s used invalid metamagic flags %d", 
+          GET_NAME(ch), metamagic);
+      return;
+    }
+    
+    /* Some spells cannot have certain metamagic */
+    if (IS_SET(metamagic, METAMAGIC_EMPOWER) && !can_spell_be_empowered(spellnum)) {
+      send_to_char(ch, "This spell cannot be empowered.\r\n");
+      return;
+    }
+    
+    if (IS_SET(metamagic, METAMAGIC_EXTEND) && !can_spell_be_extended(spellnum)) {
+      send_to_char(ch, "This spell cannot be extended.\r\n");
+      return;
+    }
+  }
 
   if (!is_min_level_for_spell(ch, class, spellnum))
   { /* checks domain eligibility */
@@ -4447,6 +4878,12 @@ ACMDU(do_gen_preparation)
   circle_for_spell = /* checks domain spells */
       MIN(compute_spells_circle(ch, class, spellnum, metamagic, domain_1st),
           compute_spells_circle(ch, class, spellnum, metamagic, domain_2nd));
+  
+  /* Validate circle is within bounds */
+  if (circle_for_spell < 1 || circle_for_spell > TOP_CIRCLE) {
+    send_to_char(ch, "That spell's circle is beyond your capabilities!\r\n");
+    return;
+  }
 
   num_slots_by_circle = compute_slots_by_circle(ch, class, circle_for_spell);
 
