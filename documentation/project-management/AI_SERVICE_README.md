@@ -23,10 +23,10 @@ The AI Service integration adds OpenAI-powered natural language processing to Lu
 
 ```bash
 # Ubuntu/Debian
-sudo apt-get install libcurl4-openssl-dev libjson-c-dev libssl-dev
+sudo apt-get install libcurl4-openssl-dev libssl-dev
 
 # CentOS/RHEL
-sudo yum install libcurl-devel json-c-devel openssl-devel
+sudo yum install libcurl-devel openssl-devel
 ```
 
 ### 2. Compile the MUD
