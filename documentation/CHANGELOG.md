@@ -42,9 +42,15 @@
   - Impact: Higher cache hit rate = more instant responses
 
 #### Build System Updates
-- **Added pthread support** (Makefile.in)
+- **Added pthread support** (Makefile.in, Makefile)
   - Added -lpthread to LIBS for thread support
   - Required for new async implementation
+  - Note: json-c library not required (AI service uses built-in JSON parsing)
+
+#### Compilation Fixes
+- **Fixed unused variable warning** (ai_service.c)
+  - Removed unused 'response' variable in ai_npc_dialogue_async()
+  - Clean compilation without warnings
 
 ## 2025-07-27
 

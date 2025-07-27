@@ -18,7 +18,7 @@ BINDIR = ../bin
 
 CFLAGS = @CFLAGS@ $(MYFLAGS) $(PROFILE)
 
-LIBS = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcurl -ljson-c -lssl -lcrypto -lpthread
+LIBS = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcurl -lssl -lcrypto -lpthread
 
 SRCFILES := $(wildcard *.c)
 OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))  
