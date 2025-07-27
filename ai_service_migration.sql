@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS ai_cache (
 -- NPC AI Personality Configuration
 CREATE TABLE IF NOT EXISTS ai_npc_personalities (
   mob_vnum INT PRIMARY KEY,
-  personality JSON COMMENT 'JSON object with personality traits, background, speech patterns',
+  personality TEXT COMMENT 'JSON object with personality traits, background, speech patterns',
   enabled BOOLEAN DEFAULT TRUE,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_enabled (enabled)
