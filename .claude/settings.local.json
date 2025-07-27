@@ -27,7 +27,8 @@
       "Bash(php:*)",
       "Bash(chmod:*)",
       "Bash(git check-ignore:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(mysql:*)"
     ],
     "deny": []
   }
