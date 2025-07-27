@@ -942,11 +942,13 @@ void quest_timeout(struct char_data *ch, int index)
 /* tick processing - decrement timers on all the in-game quests, if it reaches zero (0) then call quest_timeout() */
 void check_timed_quests(void)
 {
-  struct char_data *ch;
+  struct char_data *ch, *next_ch;
   int index = 0;
 
-  for (ch = character_list; ch; ch = ch->next)
+  for (ch = character_list; ch; ch = next_ch)
   {
+    next_ch = ch->next; /* Cache next char before potential extraction */
+    
     for (index = 0; index < MAX_CURRENT_QUESTS; index++)
     { /* loop through all the character's quest slots */
       if (!IS_NPC(ch) && (GET_QUEST(ch, index) != NOTHING) && (GET_QUEST_TIME(ch, index) != -1))

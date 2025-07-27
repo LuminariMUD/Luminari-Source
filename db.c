@@ -977,15 +977,25 @@ void destroy_db(void)
   free(trig_index);
 
   /* Craft Cleanup */
+  /* Clear craft list - must be done safely without using simple_list during removal */
   if (global_craft_list->iSize > 0)
   {
     struct craft_data *craft;
-
-    while ((craft = (struct craft_data *)simple_list(global_craft_list)) != NULL)
+    struct iterator_data iter;
+    
+    /* Reset simple_list state before manual iteration */
+    simple_list(NULL);
+    
+    /* Use iterator directly to avoid corruption */
+    craft = (struct craft_data *)merge_iterator(&iter, global_craft_list);
+    while (craft != NULL)
     {
+      struct craft_data *next_craft = (struct craft_data *)next_in_list(&iter);
       remove_from_list(craft, global_craft_list);
       free_craft(craft);
+      craft = next_craft;
     }
+    remove_iterator(&iter);
   }
   free_list(global_craft_list);
 
@@ -4619,7 +4629,7 @@ void reset_zone(zone_rnum zone)
       }
       else {
         /* Add logging for debugging */
-        if (obj_index[ZCMD.arg1].number >= ZCMD.arg2 && ZCMD.arg2 > 0) {
+        if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
           log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'P' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
               obj_index[ZCMD.arg1].number, ZCMD.arg2);
@@ -4688,7 +4698,7 @@ void reset_zone(zone_rnum zone)
       }
       else {
         /* Add logging for debugging */
-        if (obj_index[ZCMD.arg1].number >= ZCMD.arg2 && ZCMD.arg2 > 0) {
+        if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
           log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'G' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
               obj_index[ZCMD.arg1].number, ZCMD.arg2);
@@ -4830,7 +4840,7 @@ void reset_zone(zone_rnum zone)
       }
       else {
         /* Add logging for debugging */
-        if (obj_index[ZCMD.arg1].number >= ZCMD.arg2 && ZCMD.arg2 > 0) {
+        if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
           log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'E' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
               obj_index[ZCMD.arg1].number, ZCMD.arg2);
