@@ -101,7 +101,7 @@ void init_ai_service(void) {
     AI_DEBUG("ERROR: curl_global_init failed");
     return;
   }
-  AI_DEBUG("CURL library initialized successfully")
+  AI_DEBUG("CURL library initialized successfully");
   
   /* Allocate configuration structure */
   AI_DEBUG("Allocating AI configuration structure (size=%zu)", sizeof(struct ai_config));
@@ -112,7 +112,7 @@ void init_ai_service(void) {
     curl_global_cleanup();
     return;
   }
-  AI_DEBUG("AI configuration allocated at %p", (void*)ai_state.config)
+  AI_DEBUG("AI configuration allocated at %p", (void*)ai_state.config);
   
   /* Set default configuration */
   AI_DEBUG("Setting default configuration values");
@@ -127,7 +127,7 @@ void init_ai_service(void) {
   ai_state.config->content_filter_enabled = TRUE;
   AI_DEBUG("  Content filter: %s", ai_state.config->content_filter_enabled ? "ENABLED" : "DISABLED");
   ai_state.config->enabled = FALSE;  /* Disabled by default */
-  AI_DEBUG("  Service enabled: %s", ai_state.config->enabled ? "YES" : "NO")
+  AI_DEBUG("  Service enabled: %s", ai_state.config->enabled ? "YES" : "NO");
   
   /* Allocate rate limiter */
   AI_DEBUG("Allocating rate limiter structure (size=%zu)", sizeof(struct rate_limiter));
@@ -140,7 +140,7 @@ void init_ai_service(void) {
     curl_global_cleanup();
     return;
   }
-  AI_DEBUG("Rate limiter allocated at %p", (void*)ai_state.limiter)
+  AI_DEBUG("Rate limiter allocated at %p", (void*)ai_state.limiter);
   
   /* Initialize rate limiter */
   AI_DEBUG("Initializing rate limiter with default values");
@@ -155,14 +155,14 @@ void init_ai_service(void) {
   ai_state.limiter->current_minute_count = 0;
   ai_state.limiter->current_hour_count = 0;
   AI_DEBUG("  Current counts: minute=%d, hour=%d", 
-           ai_state.limiter->current_minute_count, ai_state.limiter->current_hour_count)
+           ai_state.limiter->current_minute_count, ai_state.limiter->current_hour_count);;
   
   /* Initialize cache */
   AI_DEBUG("Initializing AI response cache");
   ai_state.cache_head = NULL;
   ai_state.cache_size = 0;
   AI_DEBUG("  Cache initialized: head=%p, size=%d, max_size=%d", 
-           (void*)ai_state.cache_head, ai_state.cache_size, AI_MAX_CACHE_SIZE);
+           (void*)ai_state.cache_head, ai_state.cache_size, AI_MAX_CACHE_SIZE);;
   
   /* Load configuration from database/files */
   AI_DEBUG("Loading AI configuration from .env file");
@@ -193,12 +193,12 @@ void shutdown_ai_service(void) {
     next = entry->next;
     AI_DEBUG("  Freeing cache entry %d: key='%s', response_len=%zu", 
              freed_count++, entry->key ? entry->key : "(null)", 
-             entry->response ? strlen(entry->response) : 0);
+             entry->response ? strlen(entry->response) : 0);;
     if (entry->key) free(entry->key);
     if (entry->response) free(entry->response);
     free(entry);
   }
-  AI_DEBUG("Freed %d cache entries", freed_count)
+  AI_DEBUG("Freed %d cache entries", freed_count);
   
   /* Free configuration */
   if (ai_state.config) {
@@ -215,7 +215,7 @@ void shutdown_ai_service(void) {
     AI_DEBUG("Freeing rate limiter at %p", (void*)ai_state.limiter);
     AI_DEBUG("  Final stats: minute_count=%d/%d, hour_count=%d/%d",
              ai_state.limiter->current_minute_count, ai_state.limiter->requests_per_minute,
-             ai_state.limiter->current_hour_count, ai_state.limiter->requests_per_hour);
+             ai_state.limiter->current_hour_count, ai_state.limiter->requests_per_hour);;
     free(ai_state.limiter);
     ai_state.limiter = NULL;
   }
@@ -308,7 +308,7 @@ void load_ai_config(void) {
   ai_state.config->content_filter_enabled = get_env_bool("AI_CONTENT_FILTER_ENABLED", TRUE);
   AI_DEBUG("  Content filter: %s (env: %s)", 
            ai_state.config->content_filter_enabled ? "ENABLED" : "DISABLED",
-           get_env_value("AI_CONTENT_FILTER_ENABLED") ? "set" : "default")
+           get_env_value("AI_CONTENT_FILTER_ENABLED") ? "set" : "default");;
   
   /* Load rate limits */
   if (ai_state.limiter) {
@@ -342,7 +342,7 @@ static char *make_api_request_single(const char *prompt) {
   long http_code;
   
   AI_DEBUG("make_api_request_single() called with prompt: '%.50s%s'",
-           prompt, strlen(prompt) > 50 ? "..." : "");
+           prompt, strlen(prompt) > 50 ? "..." : "");;
   
   if (!ai_state.initialized) {
     log("SYSERR: AI Service not initialized");
@@ -357,7 +357,7 @@ static char *make_api_request_single(const char *prompt) {
     AI_DEBUG("Rate limit exceeded - request blocked");
     return NULL;
   }
-  AI_DEBUG("Rate limit check passed")
+  AI_DEBUG("Rate limit check passed");
   
   /* Decrypt API key */
   AI_DEBUG("Decrypting API key");
@@ -379,7 +379,7 @@ static char *make_api_request_single(const char *prompt) {
   }
   AI_DEBUG("JSON request built (length=%zu)", strlen(json_request));
   AI_DEBUG("JSON content: %.200s%s", json_request, 
-           strlen(json_request) > 200 ? "..." : "")
+           strlen(json_request) > 200 ? "..." : "");;
   
   AI_DEBUG("Initializing CURL handle");
   curl = curl_easy_init();
@@ -415,7 +415,7 @@ static char *make_api_request_single(const char *prompt) {
     free(api_key);
     return NULL;
   }
-  AI_DEBUG("  Content-Type header added successfully")
+  AI_DEBUG("  Content-Type header added successfully");
   
   /* Configure CURL */
   AI_DEBUG("Configuring CURL options");
@@ -439,7 +439,7 @@ static char *make_api_request_single(const char *prompt) {
   
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
-  AI_DEBUG("  SSL verification enabled (peer=1, host=2)")
+  AI_DEBUG("  SSL verification enabled (peer=1, host=2)");
   
   /* Execute request */
   AI_DEBUG("Executing CURL request to API endpoint");
@@ -768,7 +768,7 @@ static char *build_json_request(const char *prompt) {
   }
   *dest = '\0';
   AI_DEBUG("Escaping complete: %d characters escaped, final length: %zu",
-           escape_count, strlen(escaped_prompt))
+           escape_count, strlen(escaped_prompt));;
   
   /* Build JSON request */
   AI_DEBUG("Building JSON request structure");
