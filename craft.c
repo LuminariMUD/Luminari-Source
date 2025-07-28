@@ -752,6 +752,7 @@ void reset_harvesting_rooms(void)
         }
         else
           foresting_nodes++;
+        break;
       case MATERIAL_HEMP:
       case MATERIAL_COTTON:
       case MATERIAL_WOOL:
