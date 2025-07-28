@@ -406,6 +406,9 @@ void free_object_strings(struct obj_data *obj)
     free(obj->action_description);
   if (obj->ex_description)
     free_ex_descriptions(obj->ex_description);
+  /* Free corpse-specific fields */
+  if (obj->char_sdesc)
+    free(obj->char_sdesc);
 }
 
 /* For object instances that are not the prototype. */
@@ -449,6 +452,9 @@ void free_object_strings_proto(struct obj_data *obj)
         free(thised);
     }
   }
+  /* Free corpse-specific fields - corpses should never have prototypes */
+  if (obj->char_sdesc)
+    free(obj->char_sdesc);
 }
 
 static void copy_object_strings(struct obj_data *to, struct obj_data *from)

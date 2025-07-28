@@ -260,21 +260,30 @@ void House_crashsave(room_vnum vnum)
   {
     log("SYSERR: Unable to delete house data: %s",
         mysql_error(conn));
+    mysql_query(conn, "rollback;");
     return;
   }
 
   if ((rnum = real_room(vnum)) == NOWHERE)
+  {
+    mysql_query(conn, "rollback;");
     return;
+  }
   if (!House_get_filename(vnum, buf, sizeof(buf)))
+  {
+    mysql_query(conn, "rollback;");
     return;
+  }
   if (!(fp = fopen(buf, "wb")))
   {
     perror("SYSERR: Error saving house file");
+    mysql_query(conn, "rollback;");
     return;
   }
   if (!House_save(world[rnum].contents, vnum, fp, 0))
   {
     fclose(fp);
+    mysql_query(conn, "rollback;");
     return;
   }
   fclose(fp);
@@ -285,6 +294,7 @@ void House_crashsave(room_vnum vnum)
   {
     log("SYSERR: Unable to commit transaction for saving of house data: %s",
         mysql_error(conn));
+    mysql_query(conn, "rollback;");
     return;
   }
 

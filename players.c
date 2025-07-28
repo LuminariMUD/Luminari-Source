@@ -145,18 +145,15 @@ void build_player_index(void)
 
   CREATE(player_table, struct player_index_element, rec_count);
 
-  /* zusuk was here - trying to init the player index, probably not smart/necessary  */
-  /*
+  /* Initialize all fields to prevent uninitialized value access */
   for (i = 0; i < rec_count; i++) {
-    player_table[i].name = "NoName";
+    player_table[i].name = NULL;
     player_table[i].id = 0;
-    player_table[i].level = 1;
+    player_table[i].level = 0;
     player_table[i].flags = 0;
     player_table[i].last = 0;
     player_table[i].clan = NO_CLAN;
   }
-   */
-  /**/
 
   for (i = 0; i < rec_count; i++)
   {
@@ -211,6 +208,11 @@ int create_entry(char *name)
   /* clear the bitflag and clan in case we have garbage data */
   player_table[pos].flags = 0;
   player_table[pos].clan = NO_CLAN;
+  
+  /* Initialize all fields to prevent uninitialized value access */
+  player_table[pos].id = 0;
+  player_table[pos].level = 0;
+  player_table[pos].last = 0;
 
   return (pos);
 }
@@ -267,7 +269,7 @@ void save_player_index(void)
   }
 
   for (i = 0; i <= top_of_p_table; i++)
-    if (*player_table[i].name)
+    if (player_table[i].name && *player_table[i].name)
     {
       sprintascii(bits, player_table[i].flags);
       if (player_table[i].clan == NO_CLAN)
@@ -868,13 +870,29 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "CrDu"))
           GET_CRAFT(ch).craft_duration = atoi(line);
         else if (!strcmp(tag, "CrKy"))
+        {
+          if (GET_CRAFT(ch).keywords)
+            free(GET_CRAFT(ch).keywords);
           GET_CRAFT(ch).keywords = strdup(line);
+        }
         else if (!strcmp(tag, "CrSD"))
+        {
+          if (GET_CRAFT(ch).short_description)
+            free(GET_CRAFT(ch).short_description);
           GET_CRAFT(ch).short_description = strdup(line);
+        }
         else if (!strcmp(tag, "CrRD"))
+        {
+          if (GET_CRAFT(ch).room_description)
+            free(GET_CRAFT(ch).room_description);
           GET_CRAFT(ch).room_description = strdup(line);
+        }
         else if (!strcmp(tag, "CrEx"))
+        {
+          if (GET_CRAFT(ch).ex_description)
+            free(GET_CRAFT(ch).ex_description);
           GET_CRAFT(ch).ex_description = strdup(line);
+        }
         else if (!strcmp(tag, "CrOL"))
           GET_CRAFT(ch).obj_level = atoi(line);
         else if (!strcmp(tag, "CrLA"))
@@ -2838,7 +2856,12 @@ void save_char(struct char_data *ch, int mode)
     }
 
     if (i != MAX_CHARS_PER_ACCOUNT && !IS_SET_AR(PLR_FLAGS(ch), PLR_DELETED))
+    {
+      /* Free existing string to prevent memory leak */
+      if (ch->desc->account->character_names[i] != NULL)
+        free(ch->desc->account->character_names[i]);
       ch->desc->account->character_names[i] = strdup(GET_NAME(ch));
+    }
     save_account(ch->desc->account);
   }
 

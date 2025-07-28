@@ -177,19 +177,34 @@ void connect_to_mysql()
 
 void disconnect_from_mysql()
 {
-  mysql_close(conn);
-  mysql_library_end();
+  if (conn) {
+    mysql_close(conn);
+    conn = NULL;
+  }
 }
 
 void disconnect_from_mysql2()
 {
-  mysql_close(conn2);
-  mysql_library_end();
+  if (conn2) {
+    mysql_close(conn2);
+    conn2 = NULL;
+  }
 }
 
 void disconnect_from_mysql3()
 {
-  mysql_close(conn3);
+  if (conn3) {
+    mysql_close(conn3);
+    conn3 = NULL;
+  }
+}
+
+/* Call this once at program termination */
+void cleanup_mysql_library()
+{
+  disconnect_from_mysql();
+  disconnect_from_mysql2();
+  disconnect_from_mysql3();
   mysql_library_end();
 }
 

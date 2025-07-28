@@ -410,6 +410,7 @@ int is_evaporating_key(struct char_data *ch, obj_vnum key);
 int has_key(struct char_data *ch, obj_vnum key);
 void extract_key(struct char_data *ch, obj_vnum key);
 bool can_stand(struct char_data *ch);
+void cleanup_all_trails(void);
 ACMD_DECL(do_pick_lock);
 
 /* Functions with subcommands */

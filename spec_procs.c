@@ -5574,10 +5574,13 @@ SPECIAL(emporium) {
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_UNIQUE_SAVE);
     char buf[200] = {'\0'};
     snprintf(buf, sizeof(buf), "%s +%d %s", obj->short_description, bonus, get_bonus_type(arg3));
+    if (obj->short_description) free(obj->short_description);
     obj->short_description = strdup(buf);
+    if (obj->name) free(obj->name);
     obj->name = strdup(buf);
     snprintf(buf, sizeof(buf), "%s +%d %s lies here.", CAP(obj->short_description), bonus,
             get_bonus_type(arg3));
+    if (obj->description) free(obj->description);
     obj->description = strdup(buf);
 
     obj_to_char(obj, ch);
@@ -10395,12 +10398,15 @@ void set_masterwork_obj_name(struct obj_data *obj)
   char buf[200];
 
   snprintf(buf, sizeof(buf), "%s (masterwork)", obj->short_description);
+  if (obj->short_description) free(obj->short_description);
   obj->short_description = strdup(buf);
 
   snprintf(buf, sizeof(buf), "%s (masterwork)", obj->description);
+  if (obj->description) free(obj->description);
   obj->description = strdup(buf);
 
   snprintf(buf, sizeof(buf), "%s masterwork", obj->name);
+  if (obj->name) free(obj->name);
   obj->name = strdup(buf);
 }
 
@@ -10411,9 +10417,11 @@ void set_magical_obj_name(struct obj_data *obj, int level)
   int i = 0;
 
   snprintf(buf, sizeof(buf), "%s (+%d)", obj->short_description, level);
+  if (obj->short_description) free(obj->short_description);
   obj->short_description = strdup(buf);
 
   snprintf(buf, sizeof(buf), "%s (+%d)", obj->description, level);
+  if (obj->description) free(obj->description);
   obj->description = strdup(buf);
 
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
@@ -10430,6 +10438,7 @@ void set_magical_obj_name(struct obj_data *obj, int level)
   {
     snprintf(buf, sizeof(buf), "%s +%d", obj->name, level);
   }
+  if (obj->name) free(obj->name);
   obj->name = strdup(buf);
 }
 

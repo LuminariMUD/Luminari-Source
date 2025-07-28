@@ -28,7 +28,8 @@
       "Bash(chmod:*)",
       "Bash(git check-ignore:*)",
       "Bash(touch:*)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(./configure)"
     ],
     "deny": []
   }

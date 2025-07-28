@@ -72,7 +72,9 @@ void zmalloc_init(void)
   for (i = 0; i < NUM_ZBUCKETS; i++)
     memlist[i] = NULL;
 
-  zfd = fopen("zmalloc.log", "w+");
+  if (!zfd) {
+    zfd = fopen("zmalloc.log", "w+");
+  }
 }
 
 void zdump(meminfo *m)

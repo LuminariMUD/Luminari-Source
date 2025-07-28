@@ -17,6 +17,7 @@
 #include "genzon.h"
 #include "dg_olc.h"
 #include "spells.h"
+#include "actionqueues.h"
 
 /* local functions */
 static void extract_mobile_all(mob_vnum vnum);
@@ -343,6 +344,12 @@ int free_mobile(struct char_data *mob)
   /* free any assigned scripts */
   if (SCRIPT(mob))
     extract_script(mob, MOB_TRIGGER);
+
+  /* Free the action queues */
+  if (GET_QUEUE(mob))
+    free_action_queue(GET_QUEUE(mob));
+  if (GET_ATTACK_QUEUE(mob))
+    free_attack_queue(GET_ATTACK_QUEUE(mob));
 
   free(mob);
   return TRUE;

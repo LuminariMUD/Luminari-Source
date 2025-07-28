@@ -744,6 +744,14 @@ static void trigedit_create_index(int znum, const char *type)
 void dg_olc_script_copy(struct descriptor_data *d)
 {
   struct trig_proto_list *origscript, *editscript;
+  struct trig_proto_list *temp, *next_temp;
+
+  /* Free any existing OLC_SCRIPT list to prevent memory leaks */
+  for (temp = OLC_SCRIPT(d); temp; temp = next_temp) {
+    next_temp = temp->next;
+    free(temp);
+  }
+  OLC_SCRIPT(d) = NULL;
 
   if (OLC_ITEM_TYPE(d) == MOB_TRIGGER)
     origscript = OLC_MOB(d)->proto_script;

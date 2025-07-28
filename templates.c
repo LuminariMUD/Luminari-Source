@@ -50,7 +50,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
              template_db_names[t_type], level);
     if (mysql_query(conn, query))
         log("%s", query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         if ((row = mysql_fetch_row(res)) != NULL)
@@ -70,7 +70,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
              level_id);
     if (mysql_query(conn, query))
         log("%s", query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         while ((row = mysql_fetch_row(res)) != NULL)
@@ -86,7 +86,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
              level_id);
     if (mysql_query(conn, query))
         log("%s", query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         while ((row = mysql_fetch_row(res)) != NULL)
@@ -125,7 +125,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
              level_id);
     if (mysql_query(conn, query))
         log("%s", query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         while ((row = mysql_fetch_row(res)) != NULL)
@@ -152,7 +152,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
     LEVELUP(d->character) = NULL;
     send_to_char(ch, "@n");
 
-    mysql_close(conn);
+    // mysql_close(conn);  // REMOVED - don't close global connection
 }
 
 SPECIAL(select_templates)
@@ -232,7 +232,7 @@ void show_level_history(struct char_data *ch, int level)
              GET_NAME(ch), level);
     if (mysql_query(conn, query))
         log("%s", query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         if ((row = mysql_fetch_row(res)) != NULL)
@@ -250,7 +250,7 @@ void show_level_history(struct char_data *ch, int level)
              level_id);
     if (mysql_query(conn, query))
         log("%s", query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         while ((row = mysql_fetch_row(res)) != NULL)
@@ -315,7 +315,7 @@ void show_level_history(struct char_data *ch, int level)
     if (len != 0)
         send_to_char(ch, "\r\n");
 
-    mysql_close(conn);
+    // mysql_close(conn);  // REMOVED - don't close global connection
 }
 
 ACMD(do_templates)
@@ -414,7 +414,7 @@ long get_level_id_by_level_num(int level_num, char *chname)
 
     snprintf(query, sizeof(query), "SELECT level_id from player_levelups WHERE character_name='%s' AND level_number='%d'", chname, level_num);
     mysql_query(conn, query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         if ((row = mysql_fetch_row(res)) != NULL)
@@ -425,7 +425,7 @@ long get_level_id_by_level_num(int level_num, char *chname)
 
     mysql_free_result(res);
 
-    mysql_close(conn);
+    // mysql_close(conn);  // REMOVED - don't close global connection
 
     return level_id;
 }
@@ -460,7 +460,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
 
     if (mysql_query(conn, query))
         log("NO_LEVEL_INFO QUERY: %s\n", query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         if ((row = mysql_fetch_row(res)) != NULL)
@@ -477,7 +477,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
             ch,
             "We're sorry, but there is no level information for your character %s with level_id %d.\r\nQ: %s\r\n", chname, level_num, query);
         send_to_char(ch, "\r\n%s\r\n", LEVELINFO_SYNTAX);
-        mysql_close(conn);
+        // mysql_close(conn);  // REMOVED - don't close global connection
         return;
     }
 
@@ -495,7 +495,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
              "SELECT feat_num, subfeat FROM player_levelup_feats WHERE level_id='%ld'",
              level_id);
     mysql_query(conn, query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         while ((row = mysql_fetch_row(res)) != NULL)
@@ -511,7 +511,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
              "SELECT skill_num, skill_ranks FROM player_levelup_skills WHERE level_id='%ld'",
              level_id);
     mysql_query(conn, query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         while ((row = mysql_fetch_row(res)) != NULL)
@@ -530,7 +530,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
              "SELECT skill_num FROM player_levelup_skills WHERE level_id='%ld'",
              level_id);
     mysql_query(conn, query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         while ((row = mysql_fetch_row(res)) != NULL)
@@ -549,7 +549,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
              "SELECT ability_score FROM player_levelup_ability_scores WHERE level_id='%ld'",
              level_id);
     mysql_query(conn, query);
-    res = mysql_use_result(conn);
+    res = mysql_store_result(conn);
     if (res != NULL)
     {
         while ((row = mysql_fetch_row(res)) != NULL)
@@ -560,7 +560,7 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
     mysql_free_result(res);
     send_to_char(ch, "\r\n");
 
-    mysql_close(conn);
+    // mysql_close(conn);  // REMOVED - don't close global connection
 }
 
 ACMD(do_levelinfo)
@@ -592,7 +592,7 @@ ACMD(do_levelinfo)
                  "SELECT level_id, level_number, class_number FROM player_levelups WHERE character_name='%s' ORDER BY level_number DESC",
                  GET_NAME(ch));
         mysql_query(conn, query);
-        res = mysql_use_result(conn);
+        res = mysql_store_result(conn);
         if (res != NULL)
         {
             while ((row = mysql_fetch_row(res)) != NULL)
@@ -616,7 +616,7 @@ ACMD(do_levelinfo)
                     "You need to specify whether you are searching for a feat, skill (or language), or an ability score,\r\n"
                     "As well as which feat/skill/language/ability score you are searching for.\r\n");
                 send_to_char(ch, "\r\n%s\r\n", LEVELINFO_SYNTAX);
-                mysql_close(conn);
+                // mysql_close(conn);  // REMOVED - don't close global connection
                 return;
             }
             half_chop(arg2, arg3, arg4);
@@ -627,7 +627,7 @@ ACMD(do_levelinfo)
                     ch,
                     "You need to specify whether you are searching for a feat, skill, language, or an ability score.\r\n");
                 send_to_char(ch, "\r\n%s\r\n", LEVELINFO_SYNTAX);
-                mysql_close(conn);
+                // mysql_close(conn);  // REMOVED - don't close global connection
                 return;
             }
             if (!*arg4)
@@ -636,25 +636,25 @@ ACMD(do_levelinfo)
                     ch,
                     "You need to specify which feat/skill/language/ability score you are searching for.\r\n");
                 send_to_char(ch, "\r\n%s\r\n", LEVELINFO_SYNTAX);
-                mysql_close(conn);
+                // mysql_close(conn);  // REMOVED - don't close global connection
                 return;
             }
 
             if (is_abbrev(arg3, "feat"))
             {
-                levelinfo_search(ch, 1, strdup(arg4));
+                levelinfo_search(ch, 1, arg4);
             }
             else if (is_abbrev(arg3, "skill"))
             {
-                levelinfo_search(ch, 2, strdup(arg4));
+                levelinfo_search(ch, 2, arg4);
             }
             else if (is_abbrev(arg3, "language"))
             {
-                levelinfo_search(ch, 3, strdup(arg4));
+                levelinfo_search(ch, 3, arg4);
             }
             else if (is_abbrev(arg3, "ability score"))
             {
-                levelinfo_search(ch, 4, strdup(arg4));
+                levelinfo_search(ch, 4, arg4);
             }
             else
             {
@@ -662,7 +662,7 @@ ACMD(do_levelinfo)
                     ch,
                     "You need to specify whether you are searching for a feat, skill (or language), or an ability score.\r\n");
                 send_to_char(ch, "\r\n%s\r\n", LEVELINFO_SYNTAX);
-                mysql_close(conn);
+                // mysql_close(conn);  // REMOVED - don't close global connection
                 return;
             }
         }
@@ -676,11 +676,11 @@ ACMD(do_levelinfo)
         {
             send_to_char(ch, "%s", LEVELINFO_SYNTAX);
             if (conn)
-                mysql_close(conn);
+                // mysql_close(conn);  // REMOVED - don't close global connection
             return;
         }
     }
-    mysql_close(conn);
+    // mysql_close(conn);  // REMOVED - don't close global connection
 }
 
 void display_levelinfo_feats(struct char_data *ch, int feat_num, int subfeat)
@@ -777,7 +777,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
             send_to_char(
                 ch,
                 "We are sorry, but there is no feat by that name. Please try again.\r\n");
-            mysql_close(conn);
+            // mysql_close(conn);  // REMOVED - don't close global connection
             return;
         }
 
@@ -790,7 +790,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
                  GET_NAME(ch), i);
         // log("%s", query);
         mysql_query(conn, query);
-        res = mysql_use_result(conn);
+        res = mysql_store_result(conn);
         if (res != NULL)
         {
             while ((row = mysql_fetch_row(res)) != NULL)
@@ -818,7 +818,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
             send_to_char(
                 ch,
                 "We are sorry, but there is no skill by that name. Please try again.\r\n");
-            mysql_close(conn);
+            // mysql_close(conn);  // REMOVED - don't close global connection
             return;
         }
 
@@ -831,7 +831,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
                  GET_NAME(ch), i);
         // log("%s", query);
         mysql_query(conn, query);
-        res = mysql_use_result(conn);
+        res = mysql_store_result(conn);
         if (res != NULL)
         {
             while ((row = mysql_fetch_row(res)) != NULL)
@@ -862,7 +862,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
             send_to_char(
                 ch,
                 "Were sorry, but there is no language by that name. Please try again.\r\n");
-            mysql_close(conn);
+            // mysql_close(conn);  // REMOVED - don't close global connection
             return;
         }
 
@@ -876,7 +876,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
                  GET_NAME(ch), i);
         // log("%s", query);
         mysql_query(conn, query);
-        res = mysql_use_result(conn);
+        res = mysql_store_result(conn);
         if (res != NULL)
         {
             while ((row = mysql_fetch_row(res)) != NULL)
@@ -905,7 +905,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
             send_to_char(
                 ch,
                 "We are sorry, but there is no ability score by that name.\r\n");
-            mysql_close(conn);
+            // mysql_close(conn);  // REMOVED - don't close global connection
             return;
         }
 
@@ -919,7 +919,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
                  GET_NAME(ch), i);
         // log("%s", query);
         mysql_query(conn, query);
-        res = mysql_use_result(conn);
+        res = mysql_store_result(conn);
         if (res != NULL)
         {
             while ((row = mysql_fetch_row(res)) != NULL)
@@ -935,7 +935,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
         mysql_free_result(res);
     }
 
-    mysql_close(conn);
+    // mysql_close(conn);  // REMOVED - don't close global connection
 }
 
 void erase_levelup_info(struct char_data *ch)
@@ -963,7 +963,7 @@ void erase_levelup_info(struct char_data *ch)
                  GET_NAME(ch));
         //    log("%s", query);
         mysql_query(conn, query);
-        res = mysql_use_result(conn);
+        res = mysql_store_result(conn);
         if (res != NULL)
         {
             if ((row = mysql_fetch_row(res)) != NULL)
@@ -997,7 +997,7 @@ void erase_levelup_info(struct char_data *ch)
             mysql_query(conn, query);
         }
     }
-    mysql_close(conn);
+    // mysql_close(conn);  // REMOVED - don't close global connection
 }
 
 const char *const template_types[NUM_TEMPLATES] = {
