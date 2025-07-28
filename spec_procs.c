@@ -1227,6 +1227,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += 4;
     return value;
   case ABILITY_LORE: /* NOT SRD! */
+  case ABILITY_HISTORY:
+  case ABILITY_RELIGION:
     if (HAS_FEAT(ch, FEAT_INVESTIGATOR))
       value += 2;
     if (HAS_FEAT(ch, FEAT_ARTIFICERS_LORE))
@@ -1416,6 +1418,9 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_PERFORM:
     value += GET_CHA_BONUS(ch);
+    return value;
+
+  case ABILITY_LINGUISTICS:
     return value;
 
     // Crafting Skills

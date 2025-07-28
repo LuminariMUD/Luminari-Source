@@ -3516,10 +3516,17 @@ ACMD(do_score)
                GET_NAME(ch), 
                GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
   
+#if defined(CAMPAIGN_DL)
+  /* Display race with bounds checking */
+  send_to_char(ch, "\tcRace : \tn%-20s ", 
+               (GET_RACE(ch) >= DL_RACE_START && GET_RACE(ch) < DL_RACE_END) ? 
+                 race_list[GET_RACE(ch)].type : "Unknown");
+#else
   /* Display race with bounds checking */
   send_to_char(ch, "\tcRace : \tn%-20s ", 
                (GET_RACE(ch) >= 0 && GET_RACE(ch) < NUM_RACES) ? 
                  race_list[GET_RACE(ch)].type : "Unknown");
+#endif
 
   /* Build class string - shows all classes for multiclass characters */
   *buf = '\0';
