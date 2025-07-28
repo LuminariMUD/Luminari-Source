@@ -722,6 +722,15 @@ void reset_harvesting_rooms(void)
       obj = read_object(HARVESTING_NODE, VIRTUAL);
       if (!obj)
         continue;
+      
+      /* Duplicate strings from prototype to avoid double-free */
+      if (obj->name)
+        obj->name = strdup(obj->name);
+      if (obj->short_description)
+        obj->short_description = strdup(obj->short_description);
+      if (obj->description)
+        obj->description = strdup(obj->description);
+      
       GET_OBJ_MATERIAL(obj) = random_node_material(nodes_allowed);
       switch (GET_OBJ_MATERIAL(obj))
       {
