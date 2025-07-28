@@ -312,6 +312,7 @@ int main(int argc, char **argv)
     case 'C': /* -C<socket number> - recover from copyover, this is the control socket */
       fCopyOver = TRUE;
       mother_desc = atoi(argv[pos] + 2);
+      log("INFO: Detected copyover mode (-C%d)", mother_desc);
       break;
     case 'd':
       if (*(argv[pos] + 2))
@@ -458,7 +459,7 @@ void copyover_recover()
   char name[MAX_INPUT_LENGTH] = {'\0'};
   long pref;
 
-  log("Copyover recovery initiated");
+  log("INFO: copyover_recover: Starting copyover recovery process");
 
   fp = fopen(COPYOVER_FILE, "r");
   /* there are some descriptors open which will hang forever then ? */
@@ -471,6 +472,7 @@ void copyover_recover()
   }
 
   /* read boot_time - first line in file */
+  log("INFO: copyover_recover: Reading boot time from copyover file");
   i = fscanf(fp, "%ld\n", (long *)&boot_time);
 
   if (i != 1)
@@ -479,13 +481,19 @@ void copyover_recover()
     fclose(fp);
     exit(1);
   }
+  
+  log("INFO: copyover_recover: Boot time read successfully: %ld", (long)boot_time);
 
+  log("INFO: copyover_recover: Beginning descriptor recovery loop");
   for (;;)
   {
     fOld = TRUE;
     i = fscanf(fp, "%d %ld %s %s %s\n", &desc, &pref, name, host, guiopt);
     if (desc == -1)
+    {
+      log("INFO: copyover_recover: Found end marker (-1), finishing recovery");
       break;
+    }
     
     if (i != 5)
     {
@@ -620,7 +628,10 @@ static void init_game(ush_int local_port)
   remove(KILLSCRIPT_FILE);
 
   if (fCopyOver) /* reload players */
+  {
+    log("INFO: init_game: fCopyOver is true, calling copyover_recover()");
     copyover_recover();
+  }
 
   log("Entering game loop.");
 
