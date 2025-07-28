@@ -5921,16 +5921,16 @@ static bool validate_copyover_environment()
   }
   
   /* Check if the binary exists in parent directory */
-  if (stat(".." EXE_FILE, &st) != 0)
+  if (stat("../" EXE_FILE, &st) != 0)
   {
-    log("SYSERR: copyover: Cannot find executable at ..%s: %s", EXE_FILE, strerror(errno));
+    log("SYSERR: copyover: Cannot find executable at ../%s: %s", EXE_FILE, strerror(errno));
     return FALSE;
   }
   
   /* Check if binary is executable */
   if (!(st.st_mode & S_IXUSR))
   {
-    log("SYSERR: copyover: Binary ..%s is not executable", EXE_FILE);
+    log("SYSERR: copyover: Binary ../%s is not executable", EXE_FILE);
     return FALSE;
   }
   
