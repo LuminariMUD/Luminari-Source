@@ -22,6 +22,11 @@ MYSQL *conn = NULL;
 MYSQL *conn2 = NULL;
 MYSQL *conn3 = NULL;
 
+/* MySQL connection mutexes for thread safety */
+pthread_mutex_t mysql_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mysql_mutex2 = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mysql_mutex3 = PTHREAD_MUTEX_INITIALIZER;
+
 void after_world_load()
 {
 }
@@ -206,6 +211,111 @@ void cleanup_mysql_library()
   disconnect_from_mysql2();
   disconnect_from_mysql3();
   mysql_library_end();
+}
+
+/**
+ * Thread-safe wrapper for mysql_query()
+ * Automatically selects the correct mutex based on connection
+ * 
+ * @param mysql_conn The MySQL connection to use (conn, conn2, or conn3)
+ * @param query The SQL query to execute
+ * @return 0 on success, non-zero on error (same as mysql_query)
+ */
+int mysql_query_safe(MYSQL *mysql_conn, const char *query)
+{
+  pthread_mutex_t *mutex;
+  int result;
+  
+  /* Select appropriate mutex based on connection */
+  if (mysql_conn == conn)
+    mutex = &mysql_mutex;
+  else if (mysql_conn == conn2)
+    mutex = &mysql_mutex2;
+  else if (mysql_conn == conn3)
+    mutex = &mysql_mutex3;
+  else {
+    log("SYSERR: mysql_query_safe called with unknown connection");
+    return -1;
+  }
+  
+  MYSQL_LOCK(*mutex);
+  result = mysql_query(mysql_conn, query);
+  MYSQL_UNLOCK(*mutex);
+  
+  return result;
+}
+
+/**
+ * Thread-safe wrapper for mysql_store_result()
+ * Must be called AFTER mysql_query_safe() while still holding the lock
+ * 
+ * @param mysql_conn The MySQL connection to use (conn, conn2, or conn3)
+ * @return MYSQL_RES pointer on success, NULL on error
+ */
+MYSQL_RES *mysql_store_result_safe(MYSQL *mysql_conn)
+{
+  pthread_mutex_t *mutex;
+  MYSQL_RES *result;
+  
+  /* Select appropriate mutex based on connection */
+  if (mysql_conn == conn)
+    mutex = &mysql_mutex;
+  else if (mysql_conn == conn2)
+    mutex = &mysql_mutex2;
+  else if (mysql_conn == conn3)
+    mutex = &mysql_mutex3;
+  else {
+    log("SYSERR: mysql_store_result_safe called with unknown connection");
+    return NULL;
+  }
+  
+  MYSQL_LOCK(*mutex);
+  result = mysql_store_result(mysql_conn);
+  MYSQL_UNLOCK(*mutex);
+  
+  return result;
+}
+
+/**
+ * Escape a string for safe use in MySQL queries
+ * Allocates memory that must be freed by caller
+ * 
+ * @param mysql_conn The MySQL connection to use
+ * @param str The string to escape
+ * @return Newly allocated escaped string (must be freed), or NULL on error
+ */
+char *mysql_escape_string_alloc(MYSQL *mysql_conn, const char *str)
+{
+  char *escaped;
+  size_t len;
+  pthread_mutex_t *mutex;
+  
+  if (!str || !mysql_conn)
+    return NULL;
+    
+  /* Allocate worst-case space: each char could be escaped to 2 chars, plus null */
+  len = strlen(str);
+  CREATE(escaped, char, (len * 2) + 1);
+  
+  /* Select appropriate mutex based on connection */
+  if (mysql_conn == conn)
+    mutex = &mysql_mutex;
+  else if (mysql_conn == conn2)
+    mutex = &mysql_mutex2;
+  else if (mysql_conn == conn3)
+    mutex = &mysql_mutex3;
+  else {
+    log("SYSERR: mysql_escape_string_alloc called with unknown connection");
+    free(escaped);
+    return NULL;
+  }
+  
+  /* Lock and escape */
+  MYSQL_LOCK(*mutex);
+  mysql_real_escape_string(mysql_conn, escaped, str, len);
+  MYSQL_UNLOCK(*mutex);
+  
+  return escaped;
 }
 
 /* Load the wilderness data for the specified zone. */
@@ -1139,18 +1249,26 @@ void who_to_mysql()
     else
       buf2[0] = '\0';
 
+    /* Escape player name */
+    char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(tch));
+    if (!escaped_name) {
+      log("SYSERR: Failed to escape player name in write_who_to_mysql");
+      continue;
+    }
+
     /* Hide level for anonymous players */
     if (!IS_NPC(ch) && PRF_FLAGGED(tch, PRF_ANON))
     {
       snprintf(buf, sizeof(buf), "INSERT INTO who (player, title, killer, thief) VALUES ('%s', '%s', %d, %d)",
-               GET_NAME(tch), buf2, PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
+               escaped_name, buf2, PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
     }
     else
     {
       snprintf(buf, sizeof(buf), "INSERT INTO who (player, level, title, killer, thief) VALUES ('%s', %d, '%s', %d, %d)",
-               GET_NAME(tch), GET_LEVEL(tch), buf2,
+               escaped_name, GET_LEVEL(tch), buf2,
                PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
     }
+    free(escaped_name);
 
     if (mysql_query(conn, buf))
     {

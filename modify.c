@@ -1003,6 +1003,14 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
 
       int last_id = 0;
 
+      // TODO: When clans are enabled, uncomment and use cptr->name with proper escaping
+      // char *escaped_clan = mysql_escape_string_alloc(conn2, cptr->name);
+      // if (!escaped_clan) {
+      //   log("SYSERR: Failed to escape clan name in string_add");
+      //   return;
+      // }
+      // snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE clan='%s'", escaped_clan);
+      // free(escaped_clan);
       snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE clan='%s'", "WE WANT THIS TO FAIL TILL WE HAVE CLANS" /*cptr->name // no clans right now */);
       //    send_to_char(ch, "%s\r\n", query);
 
@@ -1041,10 +1049,16 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
 
           if (last_id > 0 && strcmp(row[0], GET_NAME(ch)))
           {
-            snprintf(query, sizeof(query), "INSERT INTO player_mail_deleted (player_name, mail_id) VALUES('%s','%d')", GET_NAME(ch), last_id);
-            if (mysql_query(conn, query))
-            {
-              log("Unable to add deleted flag to mail in database for %s query='%s'.", GET_NAME(ch), query);
+            char *escaped_name_del = mysql_escape_string_alloc(conn, GET_NAME(ch));
+            if (!escaped_name_del) {
+              log("SYSERR: Failed to escape player name in modify mail_deleted insert");
+            } else {
+              snprintf(query, sizeof(query), "INSERT INTO player_mail_deleted (player_name, mail_id) VALUES('%s','%d')", escaped_name_del, last_id);
+              free(escaped_name_del);
+              if (mysql_query(conn, query))
+              {
+                log("Unable to add deleted flag to mail in database for %s query='%s'.", GET_NAME(ch), query);
+              }
             }
           }
 

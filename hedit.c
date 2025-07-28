@@ -137,11 +137,17 @@ static void hedit_save_to_db(struct descriptor_data *d)
   mysql_real_escape_string(conn, buf2, buf1, strlen(buf1));
   //  mysql_real_escape_string(conn, buf1, OLC_HELP(d)->keywords, strlen(OLC_HELP(d)->keywords));
 
+  char *escaped_tag = mysql_escape_string_alloc(conn, OLC_HELP(d)->tag);
+  if (!escaped_tag) {
+    log("SYSERR: Failed to escape help tag in hedit_save_to_disk");
+    return;
+  }
   snprintf(buf, sizeof(buf), "INSERT INTO help_entries (tag, entry, min_level) VALUES (lower('%s'), '%s', %d)"
                              " on duplicate key update"
                              "  min_level = values(min_level),"
                              "  entry = values(entry);",
-           OLC_HELP(d)->tag, buf2, help_table[i].min_level);
+           escaped_tag, buf2, help_table[i].min_level);
+  free(escaped_tag);
 
   if (mysql_query(conn, buf))
   {
@@ -158,7 +164,17 @@ static void hedit_save_to_db(struct descriptor_data *d)
   /* Insert the new keywords.  */
   for (keyword = OLC_HELP(d)->keyword_list; keyword != NULL; keyword = keyword->next)
   {
-    snprintf(buf, sizeof(buf), "INSERT INTO help_keywords (help_tag, keyword) VALUES (lower('%s'), '%s')", OLC_HELP(d)->tag, keyword->keyword);
+    char *escaped_tag2 = mysql_escape_string_alloc(conn, OLC_HELP(d)->tag);
+    char *escaped_keyword = mysql_escape_string_alloc(conn, keyword->keyword);
+    if (!escaped_tag2 || !escaped_keyword) {
+      log("SYSERR: Failed to escape strings in hedit_save_to_disk keywords");
+      if (escaped_tag2) free(escaped_tag2);
+      if (escaped_keyword) free(escaped_keyword);
+      continue;
+    }
+    snprintf(buf, sizeof(buf), "INSERT INTO help_keywords (help_tag, keyword) VALUES (lower('%s'), '%s')", escaped_tag2, escaped_keyword);
+    free(escaped_tag2);
+    free(escaped_keyword);
 
     if (mysql_query(conn, buf))
     {

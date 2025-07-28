@@ -9784,7 +9784,13 @@ ACMD(do_resetpassword)
 
   arg1[0] = toupper(arg1[0]);
 
-  snprintf(query, sizeof(query), "SELECT name from account_data WHERE name='%s'", arg1);
+  char *escaped_name = mysql_escape_string_alloc(conn, arg1);
+  if (!escaped_name) {
+    log("SYSERR: Failed to escape account name in do_accountpw");
+    return;
+  }
+  snprintf(query, sizeof(query), "SELECT name from account_data WHERE name='%s'", escaped_name);
+  free(escaped_name);
   mysql_query(conn, query);
   res = mysql_use_result(conn);
   if (res != NULL)
@@ -9804,7 +9810,17 @@ ACMD(do_resetpassword)
 
   snprintf(password, sizeof(password), "%s", CRYPT(arg2, arg1));
 
-  snprintf(query, sizeof(query), "UPDATE account_data SET password='%s' WHERE name='%s'", password, arg1);
+  char *escaped_name_update = mysql_escape_string_alloc(conn, arg1);
+  char *escaped_password = mysql_escape_string_alloc(conn, password);
+  if (!escaped_name_update || !escaped_password) {
+    log("SYSERR: Failed to escape strings in do_accountpw update");
+    if (escaped_name_update) free(escaped_name_update);
+    if (escaped_password) free(escaped_password);
+    return;
+  }
+  snprintf(query, sizeof(query), "UPDATE account_data SET password='%s' WHERE name='%s'", escaped_password, escaped_name_update);
+  free(escaped_name_update);
+  free(escaped_password);
   if (!mysql_query(conn, query))
   {
     send_to_char(ch, "You have updated account %s's password to '%s'.\r\n", arg1, arg2);

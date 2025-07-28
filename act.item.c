@@ -4812,9 +4812,15 @@ ACMD(do_loot)
     /* Check the connection, reconnect if necessary. */
     //	mysql_ping(conn);
 
+    char *escaped_name_select = mysql_escape_string_alloc(conn, GET_NAME(ch));
+    if (!escaped_name_select) {
+      log("SYSERR: Failed to escape character name in loot chest select");
+      return;
+    }
     snprintf(query, sizeof(query), "SELECT last_loot, DATE_ADD(last_loot, INTERVAL 4 HOUR) as curr_time, DATE_ADD(last_loot, INTERVAL 4 HOUR) as reloot "
                                   "FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s' AND DATE_ADD(last_loot, INTERVAL 4 HOUR) > NOW()",
-            vnum, GET_NAME(ch));
+            vnum, escaped_name_select);
+    free(escaped_name_select);
 
     mysql_query(conn, query);
     res = mysql_use_result(conn);
@@ -4845,10 +4851,16 @@ ACMD(do_loot)
       return;
     }
 
-    snprintf(query, sizeof(query), "DELETE FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s'", vnum, GET_NAME(ch));
+    char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+    if (!escaped_name) {
+      log("SYSERR: Failed to escape character name in loot chest delete");
+      return;
+    }
+    snprintf(query, sizeof(query), "DELETE FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s'", vnum, escaped_name);
     mysql_query(conn, query);
 
-    snprintf(query, sizeof(query), "INSERT INTO loot_chests (loot_id, chest_vnum, character_name, last_loot) VALUES(NULL,'%d','%s',NOW())", vnum, GET_NAME(ch));
+    snprintf(query, sizeof(query), "INSERT INTO loot_chests (loot_id, chest_vnum, character_name, last_loot) VALUES(NULL,'%d','%s',NOW())", vnum, escaped_name);
+    free(escaped_name);
     mysql_query(conn, query);
 
   }
