@@ -3020,7 +3020,7 @@ return;
       subcmd != SCMD_CAST_SHADOW && !canCastAtWill(ch, spellnum))
   {
     /* For prepared casters, verify they have the exact spell+metamagic combination */
-    int available_class = spell_consented(ch, spellnum, metamagic);
+    int available_class = spell_prep_gen_check(ch, spellnum, metamagic);
     if (available_class == CLASS_UNDEFINED)
     {
       /* Log attempted exploit */
