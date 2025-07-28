@@ -315,8 +315,8 @@ grapple.o: grapple.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  assign_wpn_armor.h feats.h grapple.h evolutions.h
 handler.o: handler.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
- handler.h screen.h interpreter.h spells.h dg_scripts.h act.h class.h \
- fight.h quest.h mud_event.h dg_event.h wilderness.h actionqueues.h \
+ handler.h screen.h interpreter.h spells.h dg_scripts.h dg_event.h act.h \
+ class.h fight.h quest.h mud_event.h wilderness.h actionqueues.h \
  constants.h spec_abilities.h crafting_new.h
 hedit.o: hedit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
