@@ -409,10 +409,20 @@ long get_level_id_by_level_num(int level_num, char *chname)
     MYSQL_RES *res = NULL;
     MYSQL_ROW row = NULL;
     long level_id = 0;
+    char *escaped_chname;
 
     mysql_ping(conn);
 
-    snprintf(query, sizeof(query), "SELECT level_id from player_levelups WHERE character_name='%s' AND level_number='%d'", chname, level_num);
+    /* Escape character name to prevent SQL injection */
+    escaped_chname = mysql_escape_string_alloc(conn, chname);
+    if (!escaped_chname) {
+        log("SYSERR: Failed to escape character name in levelinfo_search");
+        return 0;
+    }
+
+    snprintf(query, sizeof(query), "SELECT level_id from player_levelups WHERE character_name='%s' AND level_number='%d'", escaped_chname, level_num);
+    free(escaped_chname);
+    
     mysql_query(conn, query);
     res = mysql_store_result(conn);
     if (res != NULL)

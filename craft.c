@@ -3545,7 +3545,13 @@ int get_mysql_supply_orders_available(struct char_data *ch)
   
   mysql_ping(conn);
 
-  snprintf(buf, sizeof(buf), "SELECT supply_orders_available FROM player_supply_orders WHERE player_name='%s'", GET_NAME(ch));
+  char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_name) {
+    log("SYSERR: Failed to escape player name in get_avail_supply_orders");
+    return -1;
+  }
+  snprintf(buf, sizeof(buf), "SELECT supply_orders_available FROM player_supply_orders WHERE player_name='%s'", escaped_name);
+  free(escaped_name);
 
   if (mysql_query(conn, buf))
   {
@@ -3575,12 +3581,18 @@ void put_mysql_supply_orders_available(struct char_data *ch, int avail)
   
   mysql_ping(conn);
 
-  snprintf(buf, sizeof(buf), "DELETE FROM supply_orders_available WHERE player_name='%s'", GET_NAME(ch));
+  char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_name) {
+    log("SYSERR: Failed to escape player name in put_mysql_supply_orders_available");
+    return;
+  }
+  snprintf(buf, sizeof(buf), "DELETE FROM supply_orders_available WHERE player_name='%s'", escaped_name);
 
   mysql_query(conn, buf);
 
   snprintf(buf, sizeof(buf), "INSERT INTO supply_orders_available (idnum, player_name, supply_orders_available) VALUES(NULL, '%s', '%d')",
-          GET_NAME(ch), avail);
+          escaped_name, avail);
+  free(escaped_name);
 
   if (mysql_query(conn, buf))
   {

@@ -670,7 +670,13 @@ void show_account_menu(struct descriptor_data *d)
         xtch = NULL;
 
         write_to_output(d, " \tW%-3d\tn \tC|\tn \tW%-20s\tn\tC|\tn", i + 1, d->account->character_names[i]);
-        snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE lower(name)=lower('%s')", d->account->character_names[i]);
+        char *escaped_name = mysql_escape_string_alloc(conn, d->account->character_names[i]);
+        if (!escaped_name) {
+          log("SYSERR: Failed to escape character name in display_account_menu");
+          continue;
+        }
+        snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE lower(name)=lower('%s')", escaped_name);
+        free(escaped_name);
 
         if (mysql_query(conn, query))
         {

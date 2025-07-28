@@ -4039,14 +4039,30 @@ void update_player_last_on(void)
       snprintf(char_info, sizeof(char_info), "[%2d %s] ", GET_LEVEL(ch), GET_IMM_TITLE(ch));
     }
 
-    snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW(), character_info='%s' WHERE name = '%s';", char_info, GET_NAME(d->character));
-    if (mysql_query(conn, buf))
-    {
-      /* Try without character_info column for compatibility */
-      snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW() WHERE name = '%s';", GET_NAME(d->character));
+    char *escaped_char_info = mysql_escape_string_alloc(conn, char_info);
+    char *escaped_name_update = mysql_escape_string_alloc(conn, GET_NAME(d->character));
+    if (!escaped_char_info || !escaped_name_update) {
+      log("SYSERR: Failed to escape strings in save_char mysql update");
+      if (escaped_char_info) free(escaped_char_info);
+      if (escaped_name_update) free(escaped_name_update);
+    } else {
+      snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW(), character_info='%s' WHERE name = '%s';", escaped_char_info, escaped_name_update);
+      free(escaped_char_info);
+      free(escaped_name_update);
       if (mysql_query(conn, buf))
       {
-        log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));
+        /* Try without character_info column for compatibility */
+        char *escaped_name_update2 = mysql_escape_string_alloc(conn, GET_NAME(d->character));
+        if (!escaped_name_update2) {
+          log("SYSERR: Failed to escape character name in save_char mysql fallback");
+        } else {
+          snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW() WHERE name = '%s';", escaped_name_update2);
+          free(escaped_name_update2);
+          if (mysql_query(conn, buf))
+          {
+            log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));
+          }
+        }
       }
     }
   }
@@ -4205,7 +4221,13 @@ void load_char_pets(struct char_data *ch)
 
   mysql_ping(conn);
 
-  snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, pet_data_id FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
+  char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_name) {
+    log("SYSERR: Failed to escape player name in load_pet_data");
+    return;
+  }
+  snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, pet_data_id FROM pet_data WHERE owner_name='%s'", escaped_name);
+  free(escaped_name);
 
   if (mysql_query(conn, query))
   {
@@ -4332,7 +4354,13 @@ void save_eidolon_descs(struct char_data *ch)
   if (!GET_EIDOLON_SHORT_DESCRIPTION(ch) || !GET_EIDOLON_LONG_DESCRIPTION(ch))
     return;
 
-  snprintf(query, sizeof(query), "DELETE FROM player_eidolons WHERE owner='%s'", GET_NAME(ch));
+  char *escaped_name_del = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_name_del) {
+    log("SYSERR: Failed to escape player name in save_eidolon_data delete");
+    return;
+  }
+  snprintf(query, sizeof(query), "DELETE FROM player_eidolons WHERE owner='%s'", escaped_name_del);
+  free(escaped_name_del);
 
   if (mysql_query(conn, query))
   {
@@ -4388,7 +4416,13 @@ void set_eidolon_descs(struct char_data *ch)
   MYSQL_ROW row;
   char query[200];
 
-  snprintf(query, sizeof(query), "SELECT * FROM player_eidolons WHERE owner='%s'", GET_NAME(ch));
+  char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_name) {
+    log("SYSERR: Failed to escape player name in load_eidolon_data");
+    return;
+  }
+  snprintf(query, sizeof(query), "SELECT * FROM player_eidolons WHERE owner='%s'", escaped_name);
+  free(escaped_name);
 
   if (mysql_query(conn, query))
   {
