@@ -5964,6 +5964,8 @@ void perform_do_copyover()
   char temp_file[256];
   int playing_count = 0, total_count = 0;
   
+  log("INFO: perform_do_copyover() CALLED - STARTING COPYOVER PROCESS");
+  
   /* Check if copyover is already in progress */
   if (copyover_status != COPYOVER_NONE)
   {
