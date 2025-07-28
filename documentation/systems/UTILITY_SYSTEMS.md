@@ -561,69 +561,6 @@ ACMD(do_write_board) {
 }
 ```
 
-## Clan System
-
-### Clan Structure
-```c
-struct clan_data {
-  int id;                      // Clan ID
-  char *name;                  // Clan name
-  char *description;           // Clan description
-  char *leader;                // Clan leader name
-  int members;                 // Number of members
-  int power;                   // Clan power/influence
-  int treasury;                // Clan treasury
-  room_vnum hall;              // Clan hall room
-  bitvector_t flags;           // Clan flags
-  struct clan_member *member_list; // Member list
-};
-
-struct clan_member {
-  long player_id;              // Player ID
-  char *name;                  // Player name
-  int rank;                    // Clan rank
-  time_t joined;               // When joined
-  struct clan_member *next;    // Next member
-};
-```
-
-### Clan Operations
-```c
-// Join clan
-ACMD(do_clan_join) {
-  struct clan_data *clan;
-  char clan_name[MAX_INPUT_LENGTH];
-  
-  one_argument(argument, clan_name);
-  
-  if (GET_CLAN(ch) != CLAN_NONE) {
-    send_to_char(ch, "You are already in a clan.\r\n");
-    return;
-  }
-  
-  clan = find_clan_by_name(clan_name);
-  if (!clan) {
-    send_to_char(ch, "That clan doesn't exist.\r\n");
-    return;
-  }
-  
-  // Check if clan is accepting members
-  if (IS_SET(clan->flags, CLAN_CLOSED)) {
-    send_to_char(ch, "That clan is not accepting new members.\r\n");
-    return;
-  }
-  
-  // Add player to clan
-  add_clan_member(clan, GET_IDNUM(ch), GET_NAME(ch), CLAN_RANK_MEMBER);
-  GET_CLAN(ch) = clan->id;
-  GET_CLAN_RANK(ch) = CLAN_RANK_MEMBER;
-  
-  send_to_char(ch, "You have joined %s!\r\n", clan->name);
-  
-  // Notify clan members
-  clan_echo(clan, "%s has joined the clan!", GET_NAME(ch));
-}
-```
 
 ## Utility Commands
 
