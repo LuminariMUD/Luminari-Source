@@ -2006,6 +2006,7 @@ ACMD(do_put)
   }
   else
   {
+    obj_dotmode = find_all_dots(arg1);
     thecont = strdup(arg2);
     theobj = strdup(arg1);
     generic_find((const char *) thecont, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &cont);
