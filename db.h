@@ -420,7 +420,8 @@ extern struct room_data *world;
 extern room_rnum top_of_world;
 
 /* Bounds checking macros for world array access */
-#define VALID_ROOM_RNUM(rnum) ((rnum) >= 0 && (rnum) <= top_of_world)
+// #define VALID_ROOM_RNUM(rnum) ((rnum) >= 0 && (rnum) <= top_of_world)
+
 #define GET_ROOM(rnum) (VALID_ROOM_RNUM(rnum) ? &world[rnum] : NULL)
 
 extern struct zone_data *zone_table;
