@@ -55,6 +55,13 @@ struct event *event_create(EVENTFUNC(*func), void *event_obj, long when)
 {
   struct event *new_event = NULL;
 
+  /* Safety check: ensure event_q is initialized */
+  if (!event_q)
+  {
+    log("SYSERR: event_create called before event_init()");
+    return NULL;
+  }
+
   if (when < 1) /* make sure its in the future */
     when = 1;
 
@@ -112,6 +119,13 @@ void event_process(void)
 {
   struct event *the_event = NULL;
   long new_time = 0;
+
+  /* Safety check: ensure event_q is initialized */
+  if (!event_q)
+  {
+    log("SYSERR: event_process called before event_init()");
+    return;
+  }
 
   while ((long)pulse >= queue_key(event_q))
   {
@@ -185,8 +199,16 @@ int event_is_queued(struct event *event)
 struct dg_queue *queue_init(void)
 {
   struct dg_queue *q = NULL;
+  int i;
 
   CREATE(q, struct dg_queue, 1);
+  
+  /* Initialize all head and tail pointers to NULL to prevent valgrind warnings */
+  for (i = 0; i < NUM_EVENT_QUEUES; i++)
+  {
+    q->head[i] = NULL;
+    q->tail[i] = NULL;
+  }
 
   return q;
 }
@@ -205,6 +227,13 @@ struct q_element *queue_enq(struct dg_queue *q, void *data, long key)
 {
   struct q_element *qe = NULL, *i = NULL;
   int bucket = 0;
+
+  /* Safety check for NULL queue */
+  if (!q)
+  {
+    log("SYSERR: queue_enq called with NULL queue");
+    return NULL;
+  }
 
   CREATE(qe, struct q_element, 1);
   qe->data = data;
@@ -264,6 +293,13 @@ void queue_deq(struct dg_queue *q, struct q_element *qe)
 
   assert(qe);
 
+  /* Safety check for NULL queue */
+  if (!q)
+  {
+    log("SYSERR: queue_deq called with NULL queue");
+    return;
+  }
+
   i = qe->key % NUM_EVENT_QUEUES;
 
   if (qe->prev == NULL)
@@ -291,6 +327,10 @@ void *queue_head(struct dg_queue *q)
   void *dg_data = NULL;
   int i = 0;
 
+  /* Safety check for NULL queue */
+  if (!q)
+    return NULL;
+
   i = pulse % NUM_EVENT_QUEUES;
 
   if (!q->head[i])
@@ -310,6 +350,10 @@ void *queue_head(struct dg_queue *q)
 long queue_key(struct dg_queue *q)
 {
   int i = 0;
+
+  /* Safety check for NULL queue */
+  if (!q)
+    return LONG_MAX;
 
   i = pulse % NUM_EVENT_QUEUES;
 

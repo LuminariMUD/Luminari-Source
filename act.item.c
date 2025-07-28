@@ -2016,9 +2016,13 @@ ACMD(do_put)
       if (bagnum <= 0 || bagnum > 10)
       {
         send_to_char(ch, "Please specify a bag from bag1 to bag10 or specify a physical container to put the item into.\r\n");
+        free(thecont);
+        free(theobj);
         return;
       }
       sort_object_bag(ch, arg1, SCMD_SORTTO, bagnum);
+      free(thecont);
+      free(theobj);
       return;
     }
     else if (GET_OBJ_TYPE(cont) != ITEM_CONTAINER &&
@@ -2079,6 +2083,9 @@ ACMD(do_put)
         }
       }
     }
+    /* Free allocated strings before function exit */
+    free(thecont);
+    free(theobj);
   }
 }
 

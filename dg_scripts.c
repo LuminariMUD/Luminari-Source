@@ -1853,8 +1853,8 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'}, *arg;
   struct wait_event_data *wait_event_obj;
-  long when, hr, min, ntime;
-  char c;
+  long when = 0, hr = 0, min = 0, ntime = 0;
+  char c = '\0';
 
   char cmd_local[MAX_INPUT_LENGTH] = {'\0'};
   strlcpy(cmd_local, cmd_in, sizeof(cmd_local));
@@ -1876,8 +1876,13 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
     /* valid forms of time are 14:30 and 1430 */
     if (sscanf(arg, "until %ld:%ld", &hr, &min) == 2)
       min += (hr * 60);
-    else
+    else if (sscanf(arg, "until %ld", &hr) == 1)
       min = (hr % 100) + ((hr / 100) * 60);
+    else {
+      script_log("Trigger: %s, VNum %d. wait until with invalid time format: '%s'",
+                 GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), arg);
+      return;
+    }
 
     /* calculate the pulse of the day of "until" time */
     ntime = (min * SECS_PER_MUD_HOUR * PASSES_PER_SEC) / 60;

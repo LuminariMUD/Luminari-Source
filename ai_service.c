@@ -9,6 +9,17 @@
  * - Error handling and retries
  * - Rate limiting
  * 
+ * COMPONENT INTERACTIONS:
+ * - DEPENDS ON: ai_security.c for input sanitization and API key handling
+ * - DEPENDS ON: ai_cache.c for response caching to reduce API calls
+ * - DEPENDS ON: ai_events.c for async response delivery
+ * - USED BY: act.comm.c (do_tell command) when NPCs have AI_ENABLED flag
+ * 
+ * THREADING MODEL:
+ * - Main thread: Handles immediate cache hits and fallback responses
+ * - Worker threads: Created for API calls to prevent blocking
+ * - Event system: Delivers responses after minimal delay
+ * 
  * Part of the LuminariMUD distribution.
  */
 
@@ -26,17 +37,28 @@
 #include <unistd.h>
 #include <pthread.h>
 
-/* Global AI Service State */
+/* Global AI Service State
+ * This global state is shared across all AI components:
+ * - ai_security.c accesses config for API key storage
+ * - ai_cache.c directly manipulates cache_head and cache_size
+ * - ai_events.c validates character pointers against this state
+ * - All components check initialized flag before operations
+ */
 struct ai_service_state ai_state = {0};
 
-/* Thread request structure */
+/* Thread request structure
+ * Used for communication between main thread and worker threads.
+ * Created in ai_npc_dialogue_async() and processed in ai_thread_worker().
+ * Character pointers must be validated before AND after thread execution
+ * as characters may be freed during async operation.
+ */
 struct ai_thread_request {
-  char *prompt;
-  char *cache_key;
-  struct char_data *ch;
-  struct char_data *npc;
-  int request_type;
-  pthread_t thread_id;
+  char *prompt;        /* Sanitized prompt to send to API */
+  char *cache_key;     /* Key for storing response in cache */
+  struct char_data *ch;   /* Player character (must validate) */
+  struct char_data *npc;  /* NPC character (must validate) */
+  int request_type;    /* AI_REQUEST_* constant for logging */
+  pthread_t thread_id; /* Thread ID for debugging */
 };
 
 /* CURL Response Buffer */
@@ -100,6 +122,18 @@ static void derive_key_from_seed(unsigned char *key) {
 
 /**
  * Initialize the AI service
+ * 
+ * Called from comm.c during MUD startup. Sets up all AI subsystems:
+ * 1. Initializes CURL library for HTTP requests
+ * 2. Allocates configuration structure with defaults
+ * 3. Sets up rate limiter to prevent API abuse
+ * 4. Initializes cache system (empty at start)
+ * 5. Creates persistent CURL handle for connection pooling
+ * 6. Loads configuration from .env file
+ * 
+ * IMPORTANT: This must be called before any other AI functions.
+ * Other components (ai_cache.c, ai_security.c, ai_events.c) rely on
+ * the initialized state and allocated structures.
  */
 void init_ai_service(void) {
   AI_DEBUG("Starting AI service initialization");
@@ -258,6 +292,15 @@ void shutdown_ai_service(void) {
 
 /**
  * Check if AI service is enabled
+ * 
+ * Central check used by all AI components and act.comm.c to determine
+ * if AI features should be active. Returns true only if:
+ * 1. Service is initialized (init_ai_service was called)
+ * 2. Configuration is allocated
+ * 3. Service is explicitly enabled (via 'ai enable' command)
+ * 
+ * This prevents any AI operations when service is disabled or
+ * improperly configured, providing a single point of control.
  */
 bool is_ai_enabled(void) {
   bool result = ai_state.initialized && ai_state.config && ai_state.config->enabled;
@@ -269,6 +312,19 @@ bool is_ai_enabled(void) {
 
 /**
  * Load AI configuration from database/files
+ * 
+ * Loads configuration from .env file via dotenv.c. This function:
+ * 1. Retrieves API key and calls ai_security.c encrypt_api_key()
+ * 2. Sets model, temperature, timeout, and other parameters
+ * 3. Configures rate limiting thresholds
+ * 
+ * Called by:
+ * - init_ai_service() during startup
+ * - 'ai reload' admin command to refresh settings
+ * 
+ * Interacts with:
+ * - dotenv.c: get_env_value() for reading .env file
+ * - ai_security.c: encrypt_api_key() for secure storage
  */
 void load_ai_config(void) {
   char *api_key;
@@ -356,6 +412,21 @@ void load_ai_config(void) {
 
 /**
  * Make an API request to OpenAI (internal - no retries)
+ * 
+ * Low-level function that makes a single API request attempt.
+ * 
+ * Flow:
+ * 1. Check rate limits via ai_check_rate_limit()
+ * 2. Decrypt API key via ai_security.c decrypt_api_key()
+ * 3. Build JSON request with sanitized prompt
+ * 4. Execute CURL request (uses persistent handle if available)
+ * 5. Parse JSON response and return content
+ * 
+ * Rate limiting: Updates limiter counters on each request
+ * Connection pooling: Reuses ai_state.curl_handle when possible
+ * 
+ * Called by: make_api_request() which adds retry logic
+ * Returns: Allocated response string or NULL on failure
  */
 static char *make_api_request_single(const char *prompt) {
   CURL *curl;
@@ -545,6 +616,16 @@ static char *make_api_request_single(const char *prompt) {
 
 /**
  * Make an API request to OpenAI with retries (blocking version)
+ * 
+ * This is the high-level request function that handles retries.
+ * It calls make_api_request_single() up to AI_MAX_RETRIES times
+ * with exponential backoff between attempts.
+ * 
+ * Used by:
+ * - ai_generate_response() for synchronous requests
+ * - ai_thread_worker() for async requests in worker threads
+ * 
+ * Returns: Allocated string with response (caller must free) or NULL
  */
 static char *make_api_request(const char *prompt) {
   char *result = NULL;
@@ -575,6 +656,23 @@ static char *make_api_request(const char *prompt) {
 
 /**
  * Generate an AI response for a given prompt
+ * 
+ * High-level function that generates AI responses with fallback.
+ * 
+ * Flow:
+ * 1. Validate input and check if service enabled
+ * 2. Sanitize prompt via ai_security.c sanitize_ai_input()
+ * 3. Make API request via make_api_request()
+ * 4. Return fallback response if request fails
+ * 
+ * This is the main entry point for synchronous AI requests.
+ * For async requests, use ai_generate_response_async() instead.
+ * 
+ * Called by:
+ * - ai_npc_dialogue() for NPC conversations
+ * - Future: quest generation, room descriptions, etc.
+ * 
+ * Returns: Allocated response string (never NULL)
  */
 char *ai_generate_response(const char *prompt, int request_type) {
   char sanitized_prompt[MAX_STRING_LENGTH];
@@ -617,7 +715,20 @@ char *ai_generate_response(const char *prompt, int request_type) {
 }
 
 /**
- * Generate AI dialogue for an NPC
+ * Generate AI dialogue for an NPC (BLOCKING VERSION)
+ * 
+ * Synchronous version that blocks until response is received.
+ * Flow:
+ * 1. Build cache key from NPC vnum and input
+ * 2. Check cache via ai_cache_get() for existing response
+ * 3. If miss, build prompt and call ai_generate_response()
+ * 4. Store successful response in cache via ai_cache_response()
+ * 
+ * NOTE: This function blocks the game loop! Only use for testing.
+ * Production code should use ai_npc_dialogue_async() instead.
+ * 
+ * Called by: act.comm.c when AI_ENABLED NPCs receive tells
+ * Returns: Allocated response string (caller must free) or NULL
  */
 char *ai_npc_dialogue(struct char_data *npc, struct char_data *ch, const char *input) {
   char prompt[MAX_STRING_LENGTH];
@@ -642,6 +753,7 @@ char *ai_npc_dialogue(struct char_data *npc, struct char_data *ch, const char *i
     char *result = strdup(cached_response);
     if (!result) {
       log("SYSERR: Failed to allocate memory for cached AI response");
+      return NULL;
     }
     return result;
   }
@@ -667,6 +779,21 @@ char *ai_npc_dialogue(struct char_data *npc, struct char_data *ch, const char *i
 
 /**
  * Async NPC dialogue - returns immediately, response delivered via event
+ * 
+ * NON-BLOCKING version that creates a worker thread for API calls.
+ * This is the primary function used in production.
+ * 
+ * Flow:
+ * 1. Check cache first (immediate response if hit)
+ * 2. If cache miss, create ai_thread_request structure
+ * 3. Spawn detached pthread with ai_thread_worker()
+ * 4. Worker thread makes blocking API call
+ * 5. Response delivered via ai_events.c queue_ai_response()
+ * 
+ * Thread safety: Character pointers are validated in the event
+ * handler since characters may be freed during async operation.
+ * 
+ * Called by: act.comm.c for AI-enabled NPC interactions
  */
 void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const char *input) {
   char prompt[MAX_STRING_LENGTH];
@@ -708,7 +835,20 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
   }
   
   req->prompt = strdup(prompt);
+  if (!req->prompt) {
+    log("SYSERR: Failed to allocate prompt copy");
+    free(req);
+    return;
+  }
+  
   req->cache_key = strdup(cache_key);
+  if (!req->cache_key) {
+    log("SYSERR: Failed to allocate cache key copy");
+    free(req->prompt);
+    free(req);
+    return;
+  }
+  
   req->ch = ch;
   req->npc = npc;
   req->request_type = AI_REQUEST_NPC_DIALOGUE;
@@ -734,6 +874,18 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
 
 /**
  * Check rate limiting
+ * 
+ * Enforces per-minute and per-hour request limits to prevent
+ * API abuse and control costs. Uses sliding window approach:
+ * - Minute window: 60 requests (default)
+ * - Hour window: 1000 requests (default)
+ * 
+ * Called by:
+ * - make_api_request_single() before each API request
+ * - Admin commands to display current usage
+ * 
+ * Interacts with: ai_state.limiter for shared counter state
+ * Thread-safe: No (assumes single-threaded rate check)
  */
 bool ai_check_rate_limit(void) {
   time_t now = time(NULL);
@@ -1065,6 +1217,7 @@ char *generate_fallback_response(const char *prompt) {
   char *result = strdup(fallback_responses[choice]);
   if (!result) {
     log("SYSERR: Failed to allocate memory for fallback response");
+    return NULL;
   }
   return result;
 }
@@ -1096,6 +1249,20 @@ int get_cache_size(void) {
  * Generate an AI response asynchronously (non-blocking)
  * This version attempts once and returns NULL on failure
  * The caller should use the event system to retry if needed
+ * 
+ * Used by ai_events.c ai_request_retry_event() for retry logic.
+ * Unlike ai_generate_response(), this:
+ * 1. Makes only ONE attempt (no internal retries)
+ * 2. Returns NULL on failure (no fallback)
+ * 3. Expects caller to handle retries via event system
+ * 
+ * Flow:
+ * 1. Sanitize input via ai_security.c
+ * 2. Check cache first via ai_cache_get()
+ * 3. Make single API request attempt
+ * 4. Cache successful responses
+ * 
+ * Returns: Response string or NULL (caller handles retries)
  */
 char *ai_generate_response_async(const char *prompt, int request_type, int retry_count) {
   char sanitized_prompt[MAX_STRING_LENGTH];
@@ -1121,6 +1288,7 @@ char *ai_generate_response_async(const char *prompt, int request_type, int retry
     char *result = strdup(response);
     if (!result) {
       log("SYSERR: Failed to allocate memory for cached AI response");
+      return NULL;
     }
     return result;
   }
@@ -1146,6 +1314,19 @@ char *ai_generate_response_async(const char *prompt, int request_type, int retry
 
 /**
  * Thread worker function for async API calls
+ * 
+ * Runs in a detached pthread to make blocking API calls without
+ * freezing the game. This function:
+ * 1. Makes the blocking API request via make_api_request()
+ * 2. Caches successful responses via ai_cache_response()
+ * 3. Queues response for delivery via queue_ai_response()
+ * 4. Cleans up all allocated memory
+ * 
+ * IMPORTANT: This runs in a separate thread! Character pointers
+ * may become invalid during execution. The event system in
+ * ai_events.c handles validation before delivery.
+ * 
+ * Thread lifecycle: Created detached, self-destructs on completion
  */
 static void *ai_thread_worker(void *arg) {
   struct ai_thread_request *req = (struct ai_thread_request *)arg;

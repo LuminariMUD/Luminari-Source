@@ -135,10 +135,17 @@
  */
 #define RACE_ALLOW_VAMPIRE
 
-// The landmarks system allows players to automatically walk to certain zones.
-// If you'd like to use the landmarks that cover the whole world, uncomment the following line.
-#define USE_WALKTO_LANDMARKS
-// Otherwise if you want to use city landmarks only, uncomment the following line.
-// #define USE_CITY_LANDMARKS_ONLY
+/**
+ * WalkTo - Enabling either:
+ *   Landmarks - walk across the world (non-wilderness system)
+ *   City landmarks - walk within a city (wilderness system)
+ * 
+ * You should only have one enabled!
+ */
+
+/* for non-wilderness system uncomment this and make sure to comment out the other*/
+// #define USE_WALKTO_LANDMARKS
+/* Otherwise if you want to use city landmarks only, uncomment the following line and make sure to comment out above */
+#define USE_CITY_LANDMARKS_ONLY
 
 #endif /* _MUD_OPTIONS_H_ */

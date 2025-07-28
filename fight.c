@@ -1525,7 +1525,7 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   }
 
   /* start the combat loop, making sure we begin with phase "1" */
-  attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, strdup("1")), delay);
+  attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, "1"), delay);
 
   HAS_PERFORMED_DEMORALIZING_STRIKE(ch) = FALSE;
 
@@ -1552,6 +1552,16 @@ void stop_fighting(struct char_data *ch)
   if (char_has_mud_event(ch, eCOMBAT_ROUND))
   {
     event_cancel_specific(ch, eCOMBAT_ROUND);
+  }
+
+  /* Cancel other combat-related events to prevent memory leaks */
+  if (char_has_mud_event(ch, eSMASH_DEFENSE))
+  {
+    event_cancel_specific(ch, eSMASH_DEFENSE);
+  }
+  if (char_has_mud_event(ch, eSTUNNED))
+  {
+    event_cancel_specific(ch, eSTUNNED);
   }
 
   /* Reset the combat data */
@@ -7191,7 +7201,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         }
         else
         { /* no event, so make one */
-          pMudEvent = new_mud_event(eCRIPPLING_CRITICAL, victim, strdup("1"));
+          pMudEvent = new_mud_event(eCRIPPLING_CRITICAL, victim, "1");
           /* create and attach new event, apply the first effect */
           attach_mud_event(pMudEvent, 60 * PASSES_PER_SEC);
         }
@@ -12666,7 +12676,10 @@ void handle_smash_defense(struct char_data *ch)
   perform_knockdown(ch, vict, SKILL_BASH, true, true);
 
   /* tag with event to make sure this only happens once per round! */
-  attach_mud_event(new_mud_event(eSMASH_DEFENSE, ch, NULL), 6 * PASSES_PER_SEC);
+  if (!char_has_mud_event(ch, eSMASH_DEFENSE))
+  {
+    attach_mud_event(new_mud_event(eSMASH_DEFENSE, ch, NULL), 6 * PASSES_PER_SEC);
+  }
 
   return;
 }

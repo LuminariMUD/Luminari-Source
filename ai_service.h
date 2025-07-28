@@ -9,6 +9,23 @@
  * - Content moderation
  * - Quest/mission generation assistance
  * 
+ * PUBLIC API INTERFACE:
+ * This header defines the public interface between AI components
+ * and the rest of the MUD. Components interact as follows:
+ * 
+ * INITIALIZATION:
+ * - init_ai_service() - Called once from comm.c at startup
+ * - shutdown_ai_service() - Called on MUD shutdown
+ * 
+ * CORE FUNCTIONALITY:
+ * - ai_npc_dialogue_async() - Primary interface from act.comm.c
+ * - is_ai_enabled() - Global enable check
+ * 
+ * ADMIN INTERFACE:
+ * - load_ai_config() - Reload configuration
+ * - ai_cache_clear() - Clear response cache
+ * - ai_reset_rate_limits() - Reset API limits
+ * 
  * Part of the LuminariMUD distribution.
  */
 
@@ -64,14 +81,20 @@ enum ai_request_type {
   AI_REQUEST_MODERATION = 4
 };
 
-/* AI Service State */
+/* AI Service State
+ * GLOBAL STATE shared across all AI components:
+ * - ai_service.c: Owns and manages this state
+ * - ai_cache.c: Directly accesses cache_head and cache_size
+ * - ai_security.c: Accesses config for API key operations
+ * - ai_events.c: Reads state for validation
+ */
 struct ai_service_state {
-  bool initialized;
-  CURL *curl_handle;
-  struct ai_config *config;
-  struct ai_cache_entry *cache_head;
-  int cache_size;
-  struct rate_limiter *limiter;
+  bool initialized;            /* Service ready flag */
+  CURL *curl_handle;          /* Persistent connection pooling */
+  struct ai_config *config;    /* Runtime configuration */
+  struct ai_cache_entry *cache_head;  /* Response cache list */
+  int cache_size;             /* Current cache entries */
+  struct rate_limiter *limiter;  /* API rate limiting */
 };
 
 /* AI Configuration */
@@ -106,48 +129,61 @@ struct rate_limiter {
 /* Global AI state - extern declaration */
 extern struct ai_service_state ai_state;
 
-/* Core Service Functions */
-void init_ai_service(void);
-void shutdown_ai_service(void);
-void load_ai_config(void);
-bool is_ai_enabled(void);
+/* Core Service Functions
+ * PRIMARY INTERFACE - Called by main MUD systems
+ */
+void init_ai_service(void);      /* Initialize at startup (comm.c) */
+void shutdown_ai_service(void);  /* Cleanup at shutdown */
+void load_ai_config(void);       /* Reload from .env file */
+bool is_ai_enabled(void);        /* Global enable check (all components) */
 
-/* API Request Functions */
-char *ai_generate_response(const char *prompt, int request_type);
-char *ai_npc_dialogue(struct char_data *npc, struct char_data *ch, const char *input);
-void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const char *input);
-char *ai_generate_room_desc(int room_vnum, int sector_type);
-bool ai_moderate_content(const char *text);
+/* API Request Functions
+ * MAIN FUNCTIONALITY - Called by game systems
+ */
+char *ai_generate_response(const char *prompt, int request_type);  /* Generic AI request */
+char *ai_npc_dialogue(struct char_data *npc, struct char_data *ch, const char *input);  /* BLOCKING (testing only) */
+void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const char *input);  /* PRIMARY: Non-blocking NPC dialogue */
+char *ai_generate_room_desc(int room_vnum, int sector_type);  /* TODO: Not implemented */
+bool ai_moderate_content(const char *text);  /* TODO: Not implemented */
 
-/* Cache Management */
-void ai_cache_response(const char *key, const char *response);
-char *ai_cache_get(const char *key);
-void ai_cache_clear(void);
-void ai_cache_cleanup(void);
-int get_cache_size(void);
+/* Cache Management
+ * PERFORMANCE OPTIMIZATION - Reduces API calls
+ * Implemented in ai_cache.c, called by ai_service.c
+ */
+void ai_cache_response(const char *key, const char *response);  /* Store response */
+char *ai_cache_get(const char *key);  /* Retrieve (returns ptr, don't free) */
+void ai_cache_clear(void);  /* Admin command: clear all */
+void ai_cache_cleanup(void);  /* Remove expired/excess entries */
+int get_cache_size(void);  /* Current cache size */
 
 /* Rate Limiting */
 bool ai_check_rate_limit(void);
 void ai_reset_rate_limits(void);
 
-/* Security Functions (defined in ai_security.c) */
-char *decrypt_api_key(const char *encrypted);
-int encrypt_api_key(const char *plaintext, char *encrypted_out);
-void load_encrypted_api_key(const char *filename);
-char *sanitize_ai_input(const char *input);
-void secure_memset(void *ptr, int value, size_t num);
+/* Security Functions (defined in ai_security.c)
+ * CRITICAL SECURITY - All API keys and user input pass through here
+ */
+char *decrypt_api_key(const char *encrypted);  /* Returns allocated string (caller frees) */
+int encrypt_api_key(const char *plaintext, char *encrypted_out);  /* Store API key */
+void load_encrypted_api_key(const char *filename);  /* Load from file (unused) */
+char *sanitize_ai_input(const char *input);  /* CRITICAL: Prevent prompt injection */
+void secure_memset(void *ptr, int value, size_t num);  /* Clear sensitive memory */
 
 /* Utility Functions */
 void log_ai_error(const char *function, const char *error);
 void log_ai_interaction(struct char_data *ch, struct char_data *npc, const char *response);
 char *generate_fallback_response(const char *prompt);
 
-/* Event Functions (defined in ai_events.c) */
-void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response);
-void queue_ai_request_retry(const char *prompt, int request_type, int retry_count, 
+/* Event Functions (defined in ai_events.c)
+ * ASYNC DELIVERY - Thread-safe response handling
+ */
+void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response);  /* Queue response for delivery */
+void queue_ai_request_retry(const char *prompt, int request_type, int retry_count,  /* Retry with backoff */
                            struct char_data *ch, struct char_data *npc);
 
-/* Async API Functions */
-char *ai_generate_response_async(const char *prompt, int request_type, int retry_count);
+/* Async API Functions
+ * INTERNAL USE - Called by retry system
+ */
+char *ai_generate_response_async(const char *prompt, int request_type, int retry_count);  /* Single attempt, no retry */
 
 #endif /* AI_SERVICE_H */
