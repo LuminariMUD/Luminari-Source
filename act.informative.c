@@ -5153,11 +5153,51 @@ ACMD(do_skore)
   /* Display sections based on layout ordering */
   const byte *section_order;
   int section_idx;
+  bool needs_init = TRUE;
+  bool has_custom_order = FALSE;
+  byte section_count[8] = {0};
+  int j, section;
   
   /* Get section order based on player's preferences or context */
   if (!IS_NPC(ch)) {
+    /* First, check if section order is properly initialized */
+    for (i = 0; i < 8; i++) {
+      if (GET_SCORE_SECTION_ORDER(ch, i) >= 0 && GET_SCORE_SECTION_ORDER(ch, i) < 8) {
+        needs_init = FALSE;
+        break;
+      }
+    }
+    
+    /* Initialize if needed - this handles legacy players */
+    if (needs_init) {
+      for (i = 0; i < 8; i++) {
+        GET_SCORE_SECTION_ORDER(ch, i) = i;
+      }
+    }
+    
+    /* Additional validation: ensure all sections are present and unique */
+    for (i = 0; i < 8; i++) {
+      section_count[i] = 0;
+    }
+    for (i = 0; i < 8; i++) {
+      section = GET_SCORE_SECTION_ORDER(ch, i);
+      if (section >= 0 && section < 8) {
+        section_count[section]++;
+      }
+    }
+    
+    /* If any section is missing or duplicated, reset to default */
+    for (i = 0; i < 8; i++) {
+      if (section_count[i] != 1) {
+        /* Reset to default order */
+        for (j = 0; j < 8; j++) {
+          GET_SCORE_SECTION_ORDER(ch, j) = j;
+        }
+        break;
+      }
+    }
+    
     /* Check if player has custom section order set */
-    bool has_custom_order = FALSE;
     for (i = 0; i < 8; i++) {
       if (GET_SCORE_SECTION_ORDER(ch, i) != i) {
         has_custom_order = TRUE;
