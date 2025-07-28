@@ -1064,7 +1064,11 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case 'i':
     case 'I':
-      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOBLAST);
+      if (!HAS_FEAT(d->character, FEAT_ELDRITCH_BLAST)) {
+        send_to_char(d->character, "You need the Eldritch Blast feat to toggle autoblast.\r\n");
+      } else {
+        TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOBLAST);
+      }
       break;
 
     case 'j':
