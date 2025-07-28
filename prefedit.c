@@ -356,7 +356,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                              "%s5%s) Autoassist   %s[%s%3s%s]    %sE%s) Gratz      %s[%s%3s%s]\r\n"
                              "                             - More Toggles -                   \r\n"
                              "%s6%s) Autosplit    %s[%s%3s%s]    %sS%s) AutoScan   %s[%s%3s%s]\r\n"
-                             "%s0%s) Hint Display %s[%s%3s%s]    %sW%s) AutoCollect%s[%s%3s%s]\r\n",
+                             "%s0%s) Hint Display %s[%s%3s%s]    %sW%s) AutoCollect %s[%s%3s%s]\r\n",
                /* Line 1 - autoexits and gossip */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOEXIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
                ONOFF(PREFEDIT_FLAGGED(PRF_AUTOEXIT)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),

@@ -464,19 +464,21 @@ void copyover_recover()
   /* there are some descriptors open which will hang forever then ? */
   if (!fp)
   {
-    perror("copyover_recover:fopen");
-    log("Copyover file not found. Exitting.\n\r");
+    log("SYSERR: copyover_recover: fopen(%s) failed - %s (errno %d)", 
+        COPYOVER_FILE, strerror(errno), errno);
+    log("SYSERR: Copyover file not found. Exiting.");
     exit(1);
   }
-
-  /* In case something crashes - doesn't prevent reading  */
-  unlink(COPYOVER_FILE);
 
   /* read boot_time - first line in file */
   i = fscanf(fp, "%ld\n", (long *)&boot_time);
 
   if (i != 1)
-    log("SYSERR: Error reading boot time.");
+  {
+    log("SYSERR: copyover_recover: Error reading boot time from copyover file (read %d values, expected 1)", i);
+    fclose(fp);
+    exit(1);
+  }
 
   for (;;)
   {
@@ -484,10 +486,17 @@ void copyover_recover()
     i = fscanf(fp, "%d %ld %s %s %s\n", &desc, &pref, name, host, guiopt);
     if (desc == -1)
       break;
+    
+    if (i != 5)
+    {
+      log("SYSERR: copyover_recover: Invalid line format in copyover file (read %d values, expected 5)", i);
+      continue;
+    }
 
     /* Write something, and check if it goes error-free */
     if (write_to_descriptor(desc, "\n\rRestoring from copyover...\n\r") < 0)
     {
+      log("SYSERR: copyover_recover: Failed to write to descriptor %d for player %s", desc, name);
       close(desc); /* nope */
       continue;
     }
@@ -534,6 +543,8 @@ void copyover_recover()
     /* Player file not found?! */
     if (!fOld)
     {
+      log("SYSERR: copyover_recover: Character '%s' could not be loaded (player_i=%d, deleted=%d)", 
+          name, player_i, (player_i >= 0 && PLR_FLAGGED(d->character, PLR_DELETED)) ? 1 : 0);
       write_to_descriptor(desc, "\n\rSomehow, your character was lost in the copyover. Sorry.\n\r");
       close_socket(d);
     }
@@ -556,9 +567,23 @@ void copyover_recover()
       {
         mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "Failure to AddRecentPlayer (returned FALSE).");
       }
+      
+      log("INFO: copyover_recover: Successfully restored player %s on descriptor %d", GET_NAME(d->character), desc);
     }
   }
   fclose(fp);
+  
+  /* Delete the copyover file after successfully reading all data */
+  if (unlink(COPYOVER_FILE) != 0)
+  {
+    log("SYSERR: copyover_recover: Failed to delete copyover file: %s", strerror(errno));
+  }
+  else
+  {
+    log("INFO: copyover_recover: Successfully deleted copyover file");
+  }
+  
+  log("INFO: copyover_recover: Copyover recovery complete");
 }
 
 /* Init sockets, run game, and cleanup sockets */
