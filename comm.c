@@ -1287,6 +1287,10 @@ void heartbeat(int heart_pulse)
     point_update();
     check_timed_quests();
     check_diplomacy(); /* Reduce the diplomacy pause for online players */
+    
+    /* Clean up old trails once per mud hour */
+    cleanup_all_trails();
+    
     PERF_PROF_EXIT(pr_ost_);
   }
 

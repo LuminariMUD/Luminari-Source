@@ -392,7 +392,10 @@ int load_account(char *name, struct account_data *account)
   }
 
   if (!(row = mysql_fetch_row(result)))
+  {
+    mysql_free_result(result);
     return -1; /* Account not found. */
+  }
 
   account->id = atoi(row[0]);
   account->name = strdup(row[1]);
@@ -436,7 +439,7 @@ void load_account_characters(struct account_data *account)
   }
 
   i = 0;
-  while ((row = mysql_fetch_row(result)))
+  while ((row = mysql_fetch_row(result)) && i < MAX_CHARS_PER_ACCOUNT)
   {
     account->character_names[i] = strdup(row[0]);
     i++;
@@ -474,6 +477,7 @@ void load_account_unlocks(struct account_data *account)
     account->classes[i] = atoi(row[0]);
     i++;
   }
+  mysql_free_result(result);
 
   /* load locked races */
   snprintf(buf, sizeof(buf), "SELECT race_id from unlocked_races "
@@ -521,7 +525,11 @@ char *get_char_account_name(char *name)
     return NULL;
   }
   while ((row = mysql_fetch_row(result)))
+  {
+    if (acct_name)
+      free(acct_name);  /* Free previous allocation if multiple rows */
     acct_name = (row[0] ? strdup(row[0]) : NULL);
+  }
   mysql_free_result(result);
   return acct_name;
 }

@@ -6,6 +6,24 @@
  * Implements a simple LRU cache for AI responses to reduce API calls
  * and improve response times for frequently asked questions.
  * 
+ * COMPONENT INTERACTIONS:
+ * - DIRECTLY ACCESSES: ai_state global from ai_service.c
+ * - CALLED BY: ai_service.c for all cache operations
+ * - CRITICAL FOR: Performance and cost reduction
+ * 
+ * CACHE STRATEGY:
+ * - Type: Time-based expiration (not true LRU)
+ * - Size: 5000 entries maximum (AI_MAX_CACHE_SIZE)
+ * - TTL: 1 hour per entry (AI_CACHE_EXPIRE_TIME)
+ * - Storage: In-memory linked list (lost on reboot)
+ * - Key format: "npc_<vnum>_<input>" for NPC dialogue
+ * 
+ * PERFORMANCE IMPACT:
+ * - Cache hits: ~0ms response time
+ * - Cache misses: 1-2 second API call
+ * - Target hit rate: 70%+ for common queries
+ * - Cost savings: ~$0.0007 per cache hit
+ * 
  * Part of the LuminariMUD distribution.
  */
 
@@ -16,11 +34,36 @@
 #include "comm.h"
 #include "ai_service.h"
 
-/* External reference to global AI state */
+/* External reference to global AI state
+ * IMPORTANT: This component directly manipulates the global state
+ * from ai_service.c, specifically:
+ * - ai_state.cache_head: Head of cache linked list
+ * - ai_state.cache_size: Current number of cached entries
+ * 
+ * This tight coupling is intentional for performance.
+ */
 extern struct ai_service_state ai_state;
 
 /**
  * Add or update a response in the cache
+ * 
+ * Stores AI responses for future reuse. If key exists, updates
+ * the response and expiration time. Otherwise, adds new entry.
+ * 
+ * Called by:
+ * - ai_npc_dialogue() after successful API response
+ * - ai_thread_worker() from worker threads
+ * - ai_generate_response_async() after API success
+ * 
+ * Cache maintenance:
+ * - New entries added to head of list (most recent first)
+ * - Calls ai_cache_cleanup() when size exceeds limit
+ * - Updates expiration time on existing entries
+ * 
+ * Thread safety: NOT thread-safe. Assumes single-threaded
+ * cache access (main thread only processes completions).
+ * 
+ * Memory: Duplicates both key and response strings
  */
 void ai_cache_response(const char *key, const char *response) {
   struct ai_cache_entry *entry;
@@ -107,6 +150,22 @@ void ai_cache_response(const char *key, const char *response) {
 
 /**
  * Retrieve a response from the cache
+ * 
+ * Looks up cached response by key. Returns NULL if not found
+ * or if entry has expired. Does NOT remove expired entries
+ * (cleanup happens separately).
+ * 
+ * Called by:
+ * - ai_npc_dialogue() before making API request
+ * - ai_npc_dialogue_async() for immediate response
+ * - ai_generate_response_async() to check cache first
+ * 
+ * Performance: O(n) linear search through cache
+ * Could be optimized with hash table for large caches.
+ * 
+ * Returns: Pointer to cached response (do NOT free) or NULL
+ * The returned pointer is valid until cache entry expires
+ * or is removed. Caller should strdup() if keeping reference.
  */
 char *ai_cache_get(const char *key) {
   struct ai_cache_entry *entry;
@@ -145,6 +204,21 @@ char *ai_cache_get(const char *key) {
 
 /**
  * Clear all cache entries
+ * 
+ * Removes all cached responses immediately. Used by admin
+ * commands to force fresh AI responses.
+ * 
+ * Called by:
+ * - 'ai cache clear' admin command
+ * - shutdown_ai_service() during cleanup
+ * 
+ * Frees all memory associated with cache entries including
+ * keys and responses. Resets cache to empty state.
+ * 
+ * Use cases:
+ * - Testing new AI prompts
+ * - Clearing inappropriate cached responses
+ * - Memory pressure situations
  */
 void ai_cache_clear(void) {
   struct ai_cache_entry *entry, *next;
@@ -169,6 +243,24 @@ void ai_cache_clear(void) {
 
 /**
  * Remove expired entries and enforce size limits
+ * 
+ * Two-phase cleanup process:
+ * 1. Remove all expired entries (past TTL)
+ * 2. If still over limit, remove oldest entries
+ * 
+ * Called by:
+ * - ai_cache_response() when size exceeds AI_MAX_CACHE_SIZE
+ * - 'ai cache cleanup' admin command
+ * - Could be called periodically by event system (not implemented)
+ * 
+ * Cleanup strategy:
+ * - Phase 1: O(n) scan removing expired entries
+ * - Phase 2: Sort by expiration time, remove oldest
+ * - Maintains AI_MAX_CACHE_SIZE entries maximum
+ * 
+ * Performance consideration: Cleanup can be expensive with
+ * large caches due to sorting. Consider background cleanup
+ * or more efficient data structures for production.
  */
 void ai_cache_cleanup(void) {
   struct ai_cache_entry *entry, *next, *prev = NULL;

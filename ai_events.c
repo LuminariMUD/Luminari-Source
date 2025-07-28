@@ -6,6 +6,22 @@
  * Handles event-driven AI responses with delays for more natural
  * conversation flow.
  * 
+ * COMPONENT INTERACTIONS:
+ * - INTEGRATES WITH: mud_event.c event system
+ * - CALLED BY: ai_service.c worker threads and async functions
+ * - VALIDATES: Character pointers before response delivery
+ * - CRITICAL FOR: Thread safety and async response handling
+ * 
+ * THREAD SAFETY MODEL:
+ * - Worker threads queue events via queue_ai_response()
+ * - Main thread processes events via ai_response_event()
+ * - Character validation prevents crashes from freed memory
+ * - Events self-destruct if characters no longer exist
+ * 
+ * EVENT TYPES:
+ * 1. ai_response_event - Delivers AI responses to players
+ * 2. ai_request_retry_event - Retries failed API requests
+ * 
  * Part of the LuminariMUD distribution.
  */
 
@@ -20,20 +36,28 @@
 #include "dg_event.h"
 #include "mud_event.h"
 
-/* AI Response Event Data */
+/* AI Response Event Data
+ * Passed from worker threads to main thread via event system.
+ * Character pointers may become invalid between creation and execution,
+ * so validation is CRITICAL in the event handler.
+ */
 struct ai_response_event {
-  struct char_data *ch;
-  struct char_data *npc;
-  char *response;
+  struct char_data *ch;   /* Player who initiated conversation */
+  struct char_data *npc;  /* NPC providing response */
+  char *response;         /* AI-generated response text */
 };
 
-/* AI Request Retry Event Data */
+/* AI Request Retry Event Data
+ * Used for exponential backoff retry logic when API requests fail.
+ * Retry events are chained - each failure creates a new retry event
+ * with incremented retry_count until AI_MAX_RETRIES is reached.
+ */
 struct ai_request_retry_event {
-  char *prompt;
-  int request_type;
-  int retry_count;
-  struct char_data *ch;
-  struct char_data *npc;
+  char *prompt;         /* Original prompt to retry */
+  int request_type;     /* AI_REQUEST_* constant */
+  int retry_count;      /* Current retry attempt number */
+  struct char_data *ch;   /* Optional: player character */
+  struct char_data *npc;  /* Optional: NPC character */
 };
 
 /* Event function prototypes */
@@ -42,6 +66,24 @@ EVENTFUNC(ai_request_retry_event);
 
 /**
  * AI Response Event Handler
+ * 
+ * Delivers AI-generated responses to players after validation.
+ * This runs in the MAIN THREAD after worker thread completes.
+ * 
+ * CRITICAL VALIDATION STEPS:
+ * 1. Verify event data exists and is complete
+ * 2. Check both characters still exist in character_list
+ * 3. Verify characters are in same room
+ * 4. Only then deliver the response
+ * 
+ * This extensive validation prevents crashes when characters
+ * are freed during the async AI operation. Common scenarios:
+ * - Player disconnects while waiting for response
+ * - NPC is purged/killed during API call
+ * - Characters move to different rooms
+ * 
+ * Called by: MUD event system (event_process() in mud_event.c)
+ * Returns: 0 (event completes and self-destructs)
  */
 EVENTFUNC(ai_response_event) {
   struct ai_response_event *data = (struct ai_response_event *)event_obj;
@@ -119,6 +161,26 @@ EVENTFUNC(ai_response_event) {
 
 /**
  * Queue an AI response with a delay
+ * 
+ * Thread-safe function to queue AI responses for delivery.
+ * Can be called from worker threads or main thread.
+ * 
+ * Flow:
+ * 1. Validate character pointers are currently valid
+ * 2. Create event data structure with response
+ * 3. Calculate realistic delay (currently minimal)
+ * 4. Queue event for main thread processing
+ * 
+ * Called by:
+ * - ai_thread_worker() from worker threads
+ * - ai_npc_dialogue_async() when cache hit (main thread)
+ * - ai_request_retry_event() after successful retry
+ * 
+ * Thread safety: Character validation here is a snapshot.
+ * The event handler must re-validate before delivery.
+ * 
+ * Delay: Currently 0 seconds for instant responses.
+ * Can be adjusted based on response length for realism.
  */
 void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response) {
   struct ai_response_event *event_data;
@@ -188,6 +250,25 @@ void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *
 
 /**
  * AI Request Retry Event Handler
+ * 
+ * Implements exponential backoff retry logic for failed API requests.
+ * This provides resilience against temporary API failures.
+ * 
+ * Retry strategy:
+ * - Initial attempt: No delay
+ * - Retry 1: 1 second delay
+ * - Retry 2: 2 seconds delay
+ * - Retry 3: 4 seconds delay
+ * - Maximum delay capped at 16 seconds
+ * 
+ * Flow:
+ * 1. Validate event data and optional character pointers
+ * 2. Call ai_generate_response_async() for single attempt
+ * 3. If successful, queue response via queue_ai_response()
+ * 4. If failed and retries remain, caller creates new retry event
+ * 
+ * Called by: MUD event system after retry delay
+ * Interacts with: ai_service.c for API calls
  */
 EVENTFUNC(ai_request_retry_event) {
   struct ai_request_retry_event *data = (struct ai_request_retry_event *)event_obj;
@@ -266,6 +347,26 @@ EVENTFUNC(ai_request_retry_event) {
 
 /**
  * Queue an AI request with retry support
+ * 
+ * Creates a retry event for failed AI requests with exponential backoff.
+ * This is the entry point for the retry system.
+ * 
+ * Called by:
+ * - ai_npc_dialogue_async() when thread creation fails
+ * - ai_request_retry_event() to chain retry attempts
+ * - Future: Any async AI operation needing retry logic
+ * 
+ * Delay calculation:
+ * - retry_count 0: 0.1 seconds (immediate first attempt)
+ * - retry_count n: 2^n seconds (exponential backoff)
+ * - Maximum delay: 16 seconds
+ * 
+ * The retry event will:
+ * 1. Make one API attempt via ai_generate_response_async()
+ * 2. Deliver response if successful
+ * 3. Let caller handle further retries if needed
+ * 
+ * Thread safety: Can be called from any thread
  */
 void queue_ai_request_retry(const char *prompt, int request_type, int retry_count, 
                            struct char_data *ch, struct char_data *npc) {
