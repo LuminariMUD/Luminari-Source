@@ -99,6 +99,7 @@
 #include "hunts.h"
 #include "bardic_performance.h" /* for the bard performance pulse */
 #include "crafting_new.h"
+#include "ai_service.h" /* for shutdown_ai_service() */
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -425,6 +426,8 @@ int main(int argc, char **argv)
     free_strings(&config_info, OASIS_CFG); /* oasis_delete.c */
     free_ibt_lists();                      /* ibt.c */
     free_recent_players();                 /* act.informative.c */
+    shutdown_ai_service();                 /* ai_service.c */
+    cleanup_lookup_table();                /* dg_scripts.c */
     free_list(world_events);               /* free up our global lists */
     free_list(global_lists);
   }
@@ -2948,19 +2951,22 @@ void close_socket(struct descriptor_data *d)
   ProtocolDestroy(d->pProtocol);
 
   /* Mud Events */
-  if (d->events->iSize > 0)
+  if (d->events != NULL)
   {
-    struct event *pEvent;
-
-    /* Use safe iteration - get first item directly to avoid iterator issues */
-    while (d->events->iSize > 0 && d->events->pFirstItem)
+    if (d->events->iSize > 0)
     {
-      pEvent = (struct event *)d->events->pFirstItem->pContent;
-      event_cancel(pEvent);
-    }
-  }
+      struct event *pEvent;
 
-  free_list(d->events);
+      /* Use safe iteration - get first item directly to avoid iterator issues */
+      while (d->events->iSize > 0 && d->events->pFirstItem)
+      {
+        pEvent = (struct event *)d->events->pFirstItem->pContent;
+        event_cancel(pEvent);
+      }
+    }
+    free_list(d->events);
+    d->events = NULL;
+  }
 
   /*. Kill any OLC stuff .*/
   switch (d->connected)
@@ -3732,6 +3738,8 @@ static void setup_log(const char *filename, int fd)
   if (filename == NULL || *filename == '\0')
   {
     /* No filename, set us up with the descriptor we just opened. */
+    if (logfile && logfile != stderr && logfile != stdout)
+      fclose(logfile);
     logfile = s_fp;
     puts("Using file descriptor for logging.");
     return;

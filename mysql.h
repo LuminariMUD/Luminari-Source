@@ -16,6 +16,7 @@ void connect_to_mysql();
 void disconnect_from_mysql();
 void disconnect_from_mysql2();
 void disconnect_from_mysql3();
+void cleanup_mysql_library();
 
 /* Wilderness */
 struct wilderness_data *load_wilderness(zone_vnum zone);

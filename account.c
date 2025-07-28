@@ -363,16 +363,23 @@ int load_account(char *name, struct account_data *account)
   char buf[2048];
 
   /* Check if the account has data, if so, clear it. */
-  /*   if (account != NULL) {
-      if (account->name != NULL)
-        free(account->name);
-      if (account->email != NULL)
-        free(account->email);
-      for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
-        if (account->character_names[i] != NULL)
-          free(account->character_names[i]);
+  if (account != NULL) {
+    int i;
+    if (account->name != NULL) {
+      free(account->name);
+      account->name = NULL;
     }
-   */
+    if (account->email != NULL) {
+      free(account->email);
+      account->email = NULL;
+    }
+    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+      if (account->character_names[i] != NULL) {
+        free(account->character_names[i]);
+        account->character_names[i] = NULL;
+      }
+    }
+  }
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
 
@@ -445,8 +452,7 @@ void load_account_characters(struct account_data *account)
     i++;
   }
 
-  if (result)
-    mysql_free_result(result);
+  mysql_free_result(result);
   return;
 }
 

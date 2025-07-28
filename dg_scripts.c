@@ -3393,6 +3393,29 @@ void init_lookup_table(void)
   }
 }
 
+void cleanup_lookup_table(void)
+{
+  int i;
+  struct lookup_table_t *lt, *next;
+  
+  for (i = 0; i < BUCKET_COUNT; i++)
+  {
+    /* Free all entries in the linked list for this bucket */
+    lt = lookup_table[i].next;
+    while (lt)
+    {
+      next = lt->next;
+      free(lt);
+      lt = next;
+    }
+    
+    /* Reset the static bucket entry */
+    lookup_table[i].uid = UID_OUT_OF_RANGE;
+    lookup_table[i].c = NULL;
+    lookup_table[i].next = NULL;
+  }
+}
+
 static struct char_data *find_char_by_uid_in_lookup_table(long uid)
 {
   int bucket = (int)(uid & (BUCKET_COUNT - 1));
@@ -3450,24 +3473,48 @@ void add_to_lookup_table(long uid, void *c)
 void remove_from_lookup_table(long uid)
 {
   int bucket = (int)(uid & (BUCKET_COUNT - 1));
-  struct lookup_table_t *lt = &lookup_table[bucket], *flt = NULL;
+  struct lookup_table_t *lt = &lookup_table[bucket], *prev = NULL;
 
   /* This is not supposed to happen. UID 0 is not used. However, while I'm
    * debugging the issue, let's just return right away. - Welcor */
   if (uid == 0)
     return;
 
-  for (; lt; lt = lt->next)
-    if (lt->uid == uid)
-      flt = lt;
-
-  if (flt)
+  /* Special case: if the uid is in the static bucket entry */
+  if (lt->uid == uid)
   {
-    for (lt = &lookup_table[bucket]; lt->next != flt; lt = lt->next)
-      ;
-    lt->next = flt->next;
-    free(flt);
+    /* If there's a next entry, copy it to the static bucket and free the next */
+    if (lt->next)
+    {
+      struct lookup_table_t *temp = lt->next;
+      lt->uid = temp->uid;
+      lt->c = temp->c;
+      lt->next = temp->next;
+      free(temp);
+    }
+    else
+    {
+      /* No next entry, just mark the bucket as empty */
+      lt->uid = UID_OUT_OF_RANGE;
+      lt->c = NULL;
+    }
     return;
+  }
+
+  /* Search the linked list for the uid */
+  prev = lt;
+  lt = lt->next;
+  
+  while (lt)
+  {
+    if (lt->uid == uid)
+    {
+      prev->next = lt->next;
+      free(lt);
+      return;
+    }
+    prev = lt;
+    lt = lt->next;
   }
 
   log("remove_from_lookup. UID %ld not found.", uid);

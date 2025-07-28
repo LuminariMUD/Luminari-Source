@@ -1402,14 +1402,37 @@ int castingCheckOk(struct char_data *ch)
   }
 
   /* target character available? can add long ranged spells here like lightning bolt */
-  if (CASTING_TCH(ch) && CASTING_TCH(ch)->in_room != ch->in_room &&
-      !IS_SET(SINFO.targets, TAR_CHAR_WORLD))
-  {
-    act("$n is unable to continue $s spell!", FALSE, ch, 0, 0,
-        TO_ROOM);
-    send_to_char(ch, "You are unable to find the target for your spell! (spell aborted)\r\n");
-    resetCastingData(ch);
-    return 0;
+  if (CASTING_TCH(ch)) {
+    /* Validate the target character still exists in the character list */
+    struct char_data *temp;
+    int found = FALSE;
+    
+    for (temp = character_list; temp; temp = temp->next) {
+      if (temp == CASTING_TCH(ch)) {
+        found = TRUE;
+        break;
+      }
+    }
+    
+    if (!found) {
+      /* Target was extracted - clear the pointer and abort */
+      act("$n is unable to continue $s spell!", FALSE, ch, 0, 0,
+          TO_ROOM);
+      send_to_char(ch, "Your target has vanished! (spell aborted)\r\n");
+      resetCastingData(ch);
+      return 0;
+    }
+    
+    /* Now safe to check the room */
+    if (CASTING_TCH(ch)->in_room != ch->in_room &&
+        !IS_SET(SINFO.targets, TAR_CHAR_WORLD))
+    {
+      act("$n is unable to continue $s spell!", FALSE, ch, 0, 0,
+          TO_ROOM);
+      send_to_char(ch, "You are unable to find the target for your spell! (spell aborted)\r\n");
+      resetCastingData(ch);
+      return 0;
+    }
   }
 
   if (AFF_FLAGGED(ch, AFF_NAUSEATED) && !still_spell)
@@ -1997,8 +2020,13 @@ will be using for casting this spell */
           {
             if (ch_class == CLASS_UNDEFINED)
             {
-              send_to_char(ch, "ERR:  Report BUG770 to an IMM!\r\n");
-              log("spell_prep_gen_extract() failed in cast_spell()");
+              /* Additional safeguard: Log if metamagic spell extraction failed */
+              if (metamagic > 0)
+              {
+                log("METAMAGIC_SAFEGUARD: %s failed to extract spell %d (%s) with metamagic %d in cast_spell()",
+                    GET_NAME(ch), spellnum, spell_name(spellnum), metamagic);
+              }
+              send_to_char(ch, "You don't have that spell prepared.\r\n");
               return 0;
             }
             /* level to cast this particular spell as */
@@ -2985,6 +3013,27 @@ return;
   {
     
     GET_WEAPON_TOUCH_SPELL(ch) = spellnum;
+  }
+
+  /* METAMAGIC BUG FIX: Check spell availability with exact metamagic BEFORE casting */
+  if (!IS_NPC(ch) && GET_LEVEL(ch) < LVL_IMMORT && 
+      subcmd != SCMD_CAST_SHADOW && !canCastAtWill(ch, spellnum))
+  {
+    /* For prepared casters, verify they have the exact spell+metamagic combination */
+    int available_class = spell_consented(ch, spellnum, metamagic);
+    if (available_class == CLASS_UNDEFINED)
+    {
+      /* Log attempted exploit */
+      if (metamagic > 0)
+      {
+        log("METAMAGIC_EXPLOIT: %s attempted to cast %s (spell %d) with metamagic %d but doesn't have it prepared",
+            GET_NAME(ch), spell_name(spellnum), spellnum, metamagic);
+      }
+      
+      send_to_char(ch, "You don't have that %s prepared with those metamagic options.\r\n",
+                   do_cast_types[subcmd][2]);
+      return;
+    }
   }
 
   cast_spell(ch, tch, tobj, spellnum, metamagic);

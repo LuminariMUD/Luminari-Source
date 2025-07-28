@@ -128,6 +128,12 @@ ACMDU(do_rsay)
   /* Trigger check. */
   speech_mtrigger(ch, arg2);
   speech_wtrigger(ch, arg2);
+  
+  /* Free allocated memory */
+  if (arg2) {
+    free(arg2);
+    arg2 = NULL;
+  }
 }
 
 ACMDU(do_say)
@@ -216,6 +222,12 @@ ACMDU(do_say)
   /* Trigger check. */
   speech_mtrigger(ch, arg2);
   speech_wtrigger(ch, arg2);
+  
+  /* Free allocated memory */
+  if (arg2) {
+    free(arg2);
+    arg2 = NULL;
+  }
 }
 
 ACMDU(do_osay)
@@ -292,6 +304,12 @@ ACMDU(do_osay)
   /* Trigger check. */
   speech_mtrigger(ch, arg2);
   speech_wtrigger(ch, arg2);
+  
+  /* Free allocated memory */
+  if (arg2) {
+    free(arg2);
+    arg2 = NULL;
+  }
 }
 
 ACMDU(do_speak)

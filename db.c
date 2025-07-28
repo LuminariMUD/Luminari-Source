@@ -32,6 +32,7 @@
 #include "genzon.h"
 #include "genolc.h"
 #include "genobj.h" /* for free_object_strings */
+#include "genwld.h" /* for free_trail_data_list */
 #include "config.h" /* for the default config values. */
 #include "fight.h"
 #include "modify.h"
@@ -805,6 +806,10 @@ void destroy_db(void)
         free(world[cnt].description);
     }
     free_extra_descriptions(world[cnt].ex_description);
+
+    /* free trail data */
+    if (world[cnt].trail_tracks != NULL)
+      free_trail_data_list(world[cnt].trail_tracks);
 
     /* freeing room events */
     if (world[cnt].events != NULL)

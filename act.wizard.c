@@ -2450,7 +2450,10 @@ struct last_entry *find_llog_entry(int punique, long idnum)
   {
     fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
     if (fread(&mlast, sizeof(struct last_entry), 1, fp) != 1)
+    {
+      fclose(fp);
       return NULL;
+    }
     /*another one to keep that stepback */
     fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
 
@@ -2622,6 +2625,7 @@ void list_llog_entries(struct char_data *ch)
   {
     log("bad things.");
     send_to_char(ch, "Error! - no last log");
+    return;
   }
   send_to_char(ch, "Last log\r\n");
   i = fread(&llast, sizeof(struct last_entry), 1, fp);
@@ -2632,6 +2636,7 @@ void list_llog_entries(struct char_data *ch)
                  last_array[llast.close_type], ctime(&llast.time));
     i = fread(&llast, sizeof(struct last_entry), 1, fp);
   }
+  fclose(fp);
 }
 
 // Gicker - 22/10/27 - Not needed right now as we're not using
@@ -2760,6 +2765,7 @@ ACMDU(do_last)
     if ((GET_LEVEL(vict) > GET_LEVEL(ch)) && (GET_LEVEL(ch) < LVL_IMPL))
     {
       send_to_char(ch, "You are not sufficiently godly for that!\r\n");
+      free_char(vict);
       return;
     }
 
@@ -3373,7 +3379,8 @@ ACMD(do_show)
       {
         if (*value)
         {
-          buf2 = strtok(strdup(zone_table[zrn].builders), " ");
+          char *builders_copy = strdup(zone_table[zrn].builders);
+          buf2 = strtok(builders_copy, " ");
           while (buf2)
           {
             if (!str_cmp(buf2, value))
@@ -3384,6 +3391,7 @@ ACMD(do_show)
             }
             buf2 = strtok(NULL, " ");
           }
+          free(builders_copy);
           if (!buf2)
             continue;
         }
@@ -6248,7 +6256,7 @@ ACMD(do_copyover)
                timer);
 
   snprintf(buf, sizeof(buf), "%d", timer); /* sVariable */
-  NEW_EVENT(eCOPYOVER, ch, strdup(buf), (1 * PASSES_PER_SEC));
+  NEW_EVENT(eCOPYOVER, ch, buf, (1 * PASSES_PER_SEC));
 }
 
 /* stop combat in the room you are in */
@@ -9583,6 +9591,8 @@ ACMDU(do_setroomname)
     return;
   }
 
+  if (world[IN_ROOM(ch)].name)
+    free(world[IN_ROOM(ch)].name);
   world[IN_ROOM(ch)].name = strdup(argument);
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
 
@@ -9616,6 +9626,8 @@ ACMDU(do_setroomdesc)
 
   snprintf(buf, sizeof(buf), "%s\n", argument);
 
+  if (world[IN_ROOM(ch)].description)
+    free(world[IN_ROOM(ch)].description);
   world[IN_ROOM(ch)].description = strdup(buf);
 
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);

@@ -1282,6 +1282,8 @@ void look_at_room(struct char_data *ch, int ignore_brief)
 
     if (ch->player_specials->travel_type == TRAVEL_CARRIAGE)
     {
+      if (rm->name)
+        free(rm->name);
       rm->name = strdup("A Horse-Drawn Carriage");
       snprintf(buf, sizeof(buf), "This small carriage is pulled by two brown draft horses, led by a weathered old man smoking a pipe and wearing a long, brown overcoat.\r\n"
                                  "The inside of the carriage is big enough for about 6 people, with benches on either side, and a small table in the middle.  An oil based lantern\r\n"
@@ -1289,10 +1291,14 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                                  "Judging by how far you've gone so far, you have about you have \r\n"
                                  "about %d minutes and %d seconds to go until you get to %s.\r\n",
                ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, carriage_locales[ch->player_specials->travel_locale][0]);
+      if (rm->description)
+        free(rm->description);
       rm->description = strdup(buf);
     }
     else if (ch->player_specials->travel_type == TRAVEL_SAILING)
     {
+      if (rm->name)
+        free(rm->name);
       rm->name = strdup("A Large Caravel");
       snprintf(buf, sizeof(buf),
                "This large passenger ship has been built with reasonably good comforts given the limited space on board.\r\n"
@@ -1300,10 +1306,14 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                "and rhythmic, and you find you sea legs quickly.  Judging by how far you've gone so far you should arrive in\r\n"
                "about %d minutes and %d seconds to your destination: %s.\r\n",
                ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, sailing_locales[ch->player_specials->travel_locale][0]);
+      if (rm->description)
+        free(rm->description);
       rm->description = strdup(buf);
     }
     else if (ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT)
     {
+      if (rm->name)
+        free(rm->name);
       rm->name = strdup("Flying High Above in the Sky");
       snprintf(buf, sizeof(buf),
                "Soaring through the air, high above in the sky, the landscape below stretches\r\n"
@@ -1319,10 +1329,14 @@ void look_at_room(struct char_data *ch, int ignore_brief)
 #else
                carriage_locales[ch->player_specials->travel_locale][0]);
 #endif
+      if (rm->description)
+        free(rm->description);
       rm->description = strdup(buf);
     }
     else if (ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT_SAIL)
     {
+      if (rm->name)
+        free(rm->name);
       rm->name = strdup("Flying High Above in the Sky");
       snprintf(buf, sizeof(buf),
                "Soaring through the air, high above in the sky, the landscape below stretches\r\n"
@@ -1338,6 +1352,8 @@ void look_at_room(struct char_data *ch, int ignore_brief)
 #else
                carriage_locales[ch->player_specials->travel_locale][0]);
 #endif
+      if (rm->description)
+        free(rm->description);
       rm->description = strdup(buf);
     }
   }
@@ -8289,7 +8305,8 @@ EVENTFUNC(event_tracks)
     track_age--; /* Age the track. */
 
   /* Now change the age in the sVariables, and resubmit the tracks. */
-  //  free(pMudEvent->sVariables);
+  if (pMudEvent->sVariables)
+    free(pMudEvent->sVariables);
   snprintf(buf, sizeof(buf), "%d \"%s\" \"%s\" %s", track_age, creator_race, creator_name, track_dir);
   pMudEvent->sVariables = strdup(buf);
 

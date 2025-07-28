@@ -317,6 +317,7 @@ void process_eval(void *go, struct script_data *sc, trig_data *trig,
 void read_saved_vars(struct char_data *ch);
 void save_char_vars(struct char_data *ch);
 void init_lookup_table(void);
+void cleanup_lookup_table(void);
 void add_to_lookup_table(long uid, void *c);
 void remove_from_lookup_table(long uid);
 

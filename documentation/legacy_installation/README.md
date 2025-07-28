@@ -3,6 +3,8 @@
 # Assembled by Zusuk
 # Last Updated: July 27, 2025
 
+# Note @LEGACY_README.md as well
+
 ## Table of Contents
 
 1. [Overview](#overview)
