@@ -11723,7 +11723,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     mileage out of striking-type casters. In this case we assume if the player
     is blasting they are using ranged. Otherwise if they're blasting and using
     hideous blow, they are doing melee. */
-  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOBLAST) && GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOBLAST) && HAS_FEAT(ch, FEAT_ELDRITCH_BLAST) && 
+      GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
   {
     ranged_attacks += bonus_mainhand_attacks;
     if (is_tanking(ch))
@@ -11736,6 +11737,23 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     {
       if (!HAS_FEAT(ch, FEAT_MOUNTED_ARCHERY))
         penalty -= 4;
+    }
+
+    /* Display Modes, not actually firing */
+    if (mode == RETURN_NUM_ATTACKS)
+    {
+      return ranged_attacks;
+    }
+    else if (mode == DISPLAY_ROUTINE_POTENTIAL)
+    {
+      for (i = 0; i <= ranged_attacks; i++)
+      {
+        send_to_char(ch, "Eldritch Blast #%d, Attack Bonus: %d; Damage: %dd6\r\n",
+                     i + 1, 
+                     compute_attack_bonus(ch, ch, ATTACK_TYPE_RANGED) + penalty,
+                     HAS_FEAT(ch, FEAT_ELDRITCH_BLAST) + HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_BLAST));
+      }
+      return ranged_attacks;
     }
 
     /** BEGIN ELDRITCH BLAST COMBAT EXECUTION ROUTINE **/

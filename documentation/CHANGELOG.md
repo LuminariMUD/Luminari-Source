@@ -2,6 +2,10 @@
 
 ## 2025-07-28
 
+### Combat System Fixes
+- **Autoblast in Safe Rooms**: Fixed eldritch blast spam in peaceful rooms during score command - added display mode checks in perform_attacks() (fight.c:11742-11756)
+- **Autoblast Feat Requirements**: Added proper feat validation for autoblast toggle in prefedit and combat execution (prefedit.c:1067, fight.c:11726)
+
 ### MySQL Resource Management Fixes
 - **templates.c**: Removed 17 incorrect mysql_close() calls on global connection that were breaking database connectivity
 - **templates.c**: Changed all mysql_use_result() to mysql_store_result() for proper result set handling

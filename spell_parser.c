@@ -3017,7 +3017,7 @@ return;
 
   /* METAMAGIC BUG FIX: Check spell availability with exact metamagic BEFORE casting */
   if (!IS_NPC(ch) && GET_LEVEL(ch) < LVL_IMMORT && 
-      subcmd != SCMD_CAST_SHADOW && !canCastAtWill(ch, spellnum))
+      subcmd != SCMD_CAST_SHADOW && !canCastAtWill(ch, spellnum) && !isEpicSpell(spellnum))
   {
     /* For prepared casters, verify they have the exact spell+metamagic combination */
     int available_class = spell_prep_gen_check(ch, spellnum, metamagic);
