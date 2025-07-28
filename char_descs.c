@@ -413,29 +413,29 @@ char *current_short_desc(struct char_data *ch)
 
 char * current_morphed_desc(struct char_data *ch)
 {
-    char desc[200];
+    static char desc[200];
 
     snprintf(desc, sizeof(desc), "%s (morphed)", current_short_desc(ch));
 
-    return strdup(desc);
+    return desc;
 }
 
 char *current_wildshape_desc(struct char_data *ch)
 {
-    char desc[200];
+    static char desc[200];
 
     snprintf(desc, sizeof(desc), "%s (wildshaped)", current_short_desc(ch));
 
-    return strdup(desc);
+    return desc;
 }
     
 char *current_disguise_desc(struct char_data *ch)
 {
-    char desc[200];
+    static char desc[200];
 
     snprintf(desc, sizeof(desc), "%s (disguised)", current_short_desc(ch));
 
-    return strdup(desc);
+    return desc;
 }
 
 void short_desc_descriptors_menu(struct char_data *ch)
@@ -900,8 +900,10 @@ void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg
 
 char *show_pers(struct char_data *ch, struct char_data *vict)
 {
+    static char someone_buf[] = "someone";
+    
     if (!CAN_SEE(vict, ch))
-        return strdup("someone");
+        return someone_buf;
     else
     {
         if (has_intro(vict, ch))

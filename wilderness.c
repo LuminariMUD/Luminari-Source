@@ -670,6 +670,8 @@ void assign_wilderness_room(room_rnum room, int x, int y)
     switch (region_table[curr_region->rnum].region_type)
     {
     case REGION_GEOGRAPHIC:
+      if (world[room].name)
+        free(world[room].name);
       world[room].name = strdup(region_table[curr_region->rnum].name);
       break;
     case REGION_SECTOR:
@@ -695,6 +697,8 @@ void assign_wilderness_room(room_rnum room, int x, int y)
       case PATH_ROAD:
       case PATH_DIRT_ROAD:
       case PATH_RIVER:
+        if (world[room].name)
+          free(world[room].name);
         world[room].name = strdup(path_table[curr_path->rnum].name);
         world[room].sector_type = path_table[curr_path->rnum].path_props;
         break;

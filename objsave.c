@@ -1069,6 +1069,7 @@ void Crash_crashsave(struct char_data *ch)
   {
     log("SYSERR: Unable to start transaction for saving of player object data: %s",
         mysql_error(conn));
+    fclose(fp);
     return;
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
@@ -1077,13 +1078,21 @@ void Crash_crashsave(struct char_data *ch)
   {
     log("SYSERR: Unable to delete player object save data: %s",
         mysql_error(conn));
+    mysql_query(conn, "rollback;");
+    fclose(fp);
     return;
   }
 #endif
 
   /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
   if (!objsave_write_rentcode(fp, RENT_CRASH, 0, ch))
+  {
+#ifdef OBJSAVE_DB
+    mysql_query(conn, "rollback;");
+#endif
+    fclose(fp);
     return;
+  }
 
   for (j = 0; j < NUM_WEARS; j++)
     if (GET_EQ(ch, j))
@@ -1092,6 +1101,9 @@ void Crash_crashsave(struct char_data *ch)
       if (!Crash_save(GET_EQ(ch, j), ch, fp, j + 1))
       {
         fclose(fp);
+#ifdef OBJSAVE_DB
+        mysql_query(conn, "rollback;");
+#endif
         return;
       }
       /* makes sure containers have proper weight for carrying objects with weight value */
@@ -1114,6 +1126,9 @@ void Crash_crashsave(struct char_data *ch)
   if (!Crash_save(ch->carrying, ch, fp, 0))
   {
     fclose(fp);
+#ifdef OBJSAVE_DB
+    mysql_query(conn, "rollback;");
+#endif
     return;
   }
 
@@ -1128,6 +1143,7 @@ void Crash_crashsave(struct char_data *ch)
   {
     log("SYSERR: Unable to commit transaction for saving of player object data: %s",
         mysql_error(conn));
+    mysql_query(conn, "rollback;");
     return;
   }
 #endif
@@ -1157,6 +1173,7 @@ void Crash_idlesave(struct char_data *ch)
   {
     log("SYSERR: Unable to start transaction for saving of player object data: %s",
         mysql_error(conn));
+    fclose(fp);
     return;
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
@@ -1165,6 +1182,8 @@ void Crash_idlesave(struct char_data *ch)
   {
     log("SYSERR: Unable to delete player object save data: %s",
         mysql_error(conn));
+    mysql_query(conn, "rollback;");
+    fclose(fp);
     return;
   }
 #endif
@@ -1205,13 +1224,22 @@ void Crash_idlesave(struct char_data *ch)
     { /* No equipment or inventory. */
       fclose(fp);
       Crash_delete_file(GET_NAME(ch));
+#ifdef OBJSAVE_DB
+      mysql_query(conn, "rollback;");
+#endif
       return;
     }
   }
 
   /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
   if (!objsave_write_rentcode(fp, RENT_TIMEDOUT, cost, ch))
+  {
+#ifdef OBJSAVE_DB
+    mysql_query(conn, "rollback;");
+#endif
+    fclose(fp);
     return;
+  }
 
   for (j = 0; j < NUM_WEARS; j++)
   {
@@ -1221,6 +1249,9 @@ void Crash_idlesave(struct char_data *ch)
       if (!Crash_save(GET_EQ(ch, j), ch, fp, j + 1))
       {
         fclose(fp);
+#ifdef OBJSAVE_DB
+        mysql_query(conn, "rollback;");
+#endif
         return;
       }
       /* makes sure containers have proper weight for carrying objects with weight value */
@@ -1246,6 +1277,9 @@ void Crash_idlesave(struct char_data *ch)
   if (!Crash_save(ch->carrying, ch, fp, 0))
   {
     fclose(fp);
+#ifdef OBJSAVE_DB
+    mysql_query(conn, "rollback;");
+#endif
     return;
   }
   fprintf(fp, "$~\n");
@@ -1277,6 +1311,7 @@ void Crash_rentsave(struct char_data *ch, int cost)
   if (mysql_query(conn, "start transaction;"))
   {
     log("SYSERR: Unable to start transaction for saving of player object data: %s", mysql_error(conn));
+    fclose(fp);
     return;
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
@@ -1284,6 +1319,8 @@ void Crash_rentsave(struct char_data *ch, int cost)
   if (mysql_query(conn, del_buf))
   {
     log("SYSERR: Unable to delete player object save data: %s", mysql_error(conn));
+    mysql_query(conn, "rollback;");
+    fclose(fp);
     return;
   }
 #endif
@@ -1294,7 +1331,13 @@ void Crash_rentsave(struct char_data *ch, int cost)
 
   /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
   if (!objsave_write_rentcode(fp, RENT_RENTED, cost, ch))
+  {
+#ifdef OBJSAVE_DB
+    mysql_query(conn, "rollback;");
+#endif
+    fclose(fp);
     return;
+  }
 
   /* go through all equipment worn and save */
   for (j = 0; j < NUM_WEARS; j++)
@@ -1305,6 +1348,9 @@ void Crash_rentsave(struct char_data *ch, int cost)
       if (!Crash_save(GET_EQ(ch, j), ch, fp, j + 1))
       {
         fclose(fp);
+#ifdef OBJSAVE_DB
+        mysql_query(conn, "rollback;");
+#endif
         return;
       }
       /* makes sure containers have proper weight for carrying objects with weight value */
@@ -1330,6 +1376,9 @@ void Crash_rentsave(struct char_data *ch, int cost)
   if (!Crash_save(ch->carrying, ch, fp, 0))
   {
     fclose(fp);
+#ifdef OBJSAVE_DB
+    mysql_query(conn, "rollback;");
+#endif
     return;
   }
 
@@ -1341,6 +1390,7 @@ void Crash_rentsave(struct char_data *ch, int cost)
   if (mysql_query(conn, "commit;"))
   {
     log("SYSERR: Unable to commit transaction for saving of player object data: %s", mysql_error(conn));
+    mysql_query(conn, "rollback;");
     return;
   }
 #endif
@@ -1705,12 +1755,12 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         }
         else
         {
-          while (tempsave)
+          while (tempsave && tempsave->next != current)
           {
-            if (tempsave->next == current)
-              tempsave->next = NULL;
             tempsave = tempsave->next;
           }
+          if (tempsave)
+            tempsave->next = NULL;
           free(current);
         }
       }

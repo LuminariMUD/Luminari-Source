@@ -396,7 +396,7 @@ ACMD(do_perform)
         char buf[128];
         snprintf(buf, sizeof(buf), "%d", i); /* Build the effect string */
 
-        NEW_EVENT(eBARDIC_PERFORMANCE, ch, strdup(buf), 4 * PASSES_PER_SEC);
+        NEW_EVENT(eBARDIC_PERFORMANCE, ch, buf, 4 * PASSES_PER_SEC);
 #else
         IS_PERFORMING(ch) = TRUE;
         GET_PERFORMING(ch) = performance_num;

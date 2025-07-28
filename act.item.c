@@ -6963,8 +6963,11 @@ bool setup_outfit_item(struct char_data *ch, struct obj_data *obj)
     CAP(GET_OUTFIT_DESC(ch));
     snprintf(descC, sizeof(descC), "%s lies here.\r\n", GET_OUTFIT_DESC(ch));
   }
+  if (obj->name) free(obj->name);
   obj->name = strdup(descA);
+  if (obj->short_description) free(obj->short_description);
   obj->short_description = strdup(descB);
+  if (obj->description) free(obj->description);
   obj->description = strdup(descC);
 
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)

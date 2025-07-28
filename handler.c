@@ -2238,6 +2238,16 @@ void obj_to_obj(struct obj_data *obj, struct obj_data *obj_to)
     return;
   }
 
+  /* Check for circular containment - prevent object from being placed in its own container hierarchy */
+  for (tmp_obj = obj_to; tmp_obj; tmp_obj = tmp_obj->in_obj) {
+    if (tmp_obj == obj) {
+      log("SYSERR: Circular containment detected! Object %s (#%d) would contain itself.",
+          obj->short_description ? obj->short_description : "UNDEFINED",
+          GET_OBJ_VNUM(obj));
+      return;
+    }
+  }
+
   obj->next_content = obj_to->contains;
   obj_to->contains = obj;
   obj->in_obj = obj_to;

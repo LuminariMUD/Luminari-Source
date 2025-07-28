@@ -724,7 +724,7 @@ ACMDU(do_craft)
   }
 
   /* Activate the Event */
-  NEW_EVENT(eCRAFT, ch, strdup(CRAFT_NAME(craft)), CRAFT_TIMER(craft) * PASSES_PER_SEC);
+  NEW_EVENT(eCRAFT, ch, CRAFT_NAME(craft), CRAFT_TIMER(craft) * PASSES_PER_SEC);
   act("You begin attempting to craft.", TRUE, ch, 0, 0, TO_CHAR);
   act("$n is attempting to craft.", TRUE, ch, 0, 0, TO_NOTVICT);
 }

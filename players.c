@@ -145,18 +145,15 @@ void build_player_index(void)
 
   CREATE(player_table, struct player_index_element, rec_count);
 
-  /* zusuk was here - trying to init the player index, probably not smart/necessary  */
-  /*
+  /* Initialize all fields to prevent uninitialized value access */
   for (i = 0; i < rec_count; i++) {
-    player_table[i].name = "NoName";
+    player_table[i].name = NULL;
     player_table[i].id = 0;
-    player_table[i].level = 1;
+    player_table[i].level = 0;
     player_table[i].flags = 0;
     player_table[i].last = 0;
     player_table[i].clan = NO_CLAN;
   }
-   */
-  /**/
 
   for (i = 0; i < rec_count; i++)
   {
@@ -211,6 +208,11 @@ int create_entry(char *name)
   /* clear the bitflag and clan in case we have garbage data */
   player_table[pos].flags = 0;
   player_table[pos].clan = NO_CLAN;
+  
+  /* Initialize all fields to prevent uninitialized value access */
+  player_table[pos].id = 0;
+  player_table[pos].level = 0;
+  player_table[pos].last = 0;
 
   return (pos);
 }
@@ -267,7 +269,7 @@ void save_player_index(void)
   }
 
   for (i = 0; i <= top_of_p_table; i++)
-    if (*player_table[i].name)
+    if (player_table[i].name && *player_table[i].name)
     {
       sprintascii(bits, player_table[i].flags);
       if (player_table[i].clan == NO_CLAN)

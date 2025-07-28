@@ -823,6 +823,8 @@ ACMDU(do_forgeas)
     return;
   }
 
+  if (ch->player_specials->forge_as_signature)
+    free(ch->player_specials->forge_as_signature);
   ch->player_specials->forge_as_signature = strdup(argument);
   ch->player_specials->forge_check = d20(ch) + compute_ability(ch, ABILITY_LINGUISTICS);
   send_to_char(ch, "The next note you write or relay will be forged as if signed by, \"%s\".\r\n", argument);

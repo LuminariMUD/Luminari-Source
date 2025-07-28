@@ -1732,7 +1732,7 @@ static void make_corpse(struct char_data *ch)
         {
           money = create_money(GET_GOLD(ch));
           obj_to_room(money, IN_ROOM(ch));
-          obj_to_obj(money, corpse);
+          /* Note: corpse is NULL here - don't try to add money to it */
         }
         GET_GOLD(ch) = 0;
       }
