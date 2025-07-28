@@ -312,7 +312,6 @@ int main(int argc, char **argv)
     case 'C': /* -C<socket number> - recover from copyover, this is the control socket */
       fCopyOver = TRUE;
       mother_desc = atoi(argv[pos] + 2);
-      log("INFO: Detected copyover mode (-C%d)", mother_desc);
       break;
     case 'd':
       if (*(argv[pos] + 2))
@@ -397,6 +396,9 @@ int main(int argc, char **argv)
     exit(1);
   }
   log("Using %s as data directory.", dir);
+  
+  if (fCopyOver)
+    log("INFO: Copyover mode detected, mother_desc=%d", mother_desc);
 
   if (scheck)
     boot_world();
