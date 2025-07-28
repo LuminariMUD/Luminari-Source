@@ -6377,12 +6377,19 @@ break;
 
   /* Close reserve and other always-open files and release other resources */
   
-  /* Close log files to ensure everything is flushed */
+  /* DO NOT close the logfile during copyover - it needs to stay open
+   * for the new process to use. The file descriptor will be inherited
+   * by the exec'd process and logging will continue to work properly.
+   * Closing it here causes a SIGPIPE crash when the new process tries
+   * to log during boot_db().
+   */
   if (logfile)
   {
+    /* Just flush to ensure all pending data is written */
     fflush(logfile);
-    fclose(logfile);
-    logfile = NULL;
+    /* DO NOT CLOSE - let the new process inherit the file descriptor */
+    /* fclose(logfile); */
+    /* logfile = NULL; */
   }
   
   /* Close the mother descriptor - it will be recreated on startup */
