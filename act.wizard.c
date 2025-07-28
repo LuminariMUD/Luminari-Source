@@ -28,6 +28,8 @@
 #include "genzon.h" /* for real_zone_by_thing */
 #include "class.h"
 #include "genolc.h"
+#include <sys/stat.h>
+#include <unistd.h>
 #include "genobj.h"
 #include "race.h"
 #include "fight.h"
@@ -5872,22 +5874,183 @@ ACMD(do_checkloadstatus)
 /* Zone Checker code above. */
 
 /* copyover engine */
+
+/* Copyover state tracking */
+enum copyover_state {
+  COPYOVER_NONE,
+  COPYOVER_PREPARING,
+  COPYOVER_WRITING,
+  COPYOVER_EXECUTING,
+  COPYOVER_FAILED
+};
+
+static enum copyover_state copyover_status = COPYOVER_NONE;
+
+/* Get copyover state for diagnostic purposes */
+const char *get_copyover_state_string(void)
+{
+  switch (copyover_status)
+  {
+    case COPYOVER_NONE: return "none";
+    case COPYOVER_PREPARING: return "preparing";
+    case COPYOVER_WRITING: return "writing";
+    case COPYOVER_EXECUTING: return "executing";
+    case COPYOVER_FAILED: return "failed";
+    default: return "unknown";
+  }
+}
+
+/* Validate environment before attempting copyover */
+static bool validate_copyover_environment()
+{
+  char current_dir[256];
+  struct stat st;
+  
+  /* Check if we can get current directory */
+  if (!getcwd(current_dir, sizeof(current_dir)))
+  {
+    log("SYSERR: copyover: Cannot determine current directory: %s", strerror(errno));
+    return FALSE;
+  }
+  
+  /* Verify we're in the lib directory */
+  if (!strstr(current_dir, "/lib") && !strstr(current_dir, "\\lib"))
+  {
+    log("SYSERR: copyover: Not in lib directory (current: %s)", current_dir);
+    return FALSE;
+  }
+  
+  /* Check if the binary exists in parent directory */
+  if (stat(".." EXE_FILE, &st) != 0)
+  {
+    log("SYSERR: copyover: Cannot find executable at ..%s: %s", EXE_FILE, strerror(errno));
+    return FALSE;
+  }
+  
+  /* Check if binary is executable */
+  if (!(st.st_mode & S_IXUSR))
+  {
+    log("SYSERR: copyover: Binary ..%s is not executable", EXE_FILE);
+    return FALSE;
+  }
+  
+  /* Check if we can create files in current directory */
+  FILE *test = fopen("copyover.test", "w");
+  if (!test)
+  {
+    log("SYSERR: copyover: Cannot create files in current directory: %s", strerror(errno));
+    return FALSE;
+  }
+  fclose(test);
+  unlink("copyover.test");
+  
+  /* Check database connection */
+  extern MYSQL *conn;
+  if (mysql_ping(conn) != 0)
+  {
+    log("SYSERR: copyover: Database connection is not active: %s", mysql_error(conn));
+    return FALSE;
+  }
+  
+  log("INFO: copyover: Environment validation passed");
+  return TRUE;
+}
+
 void perform_do_copyover()
 {
   FILE *fp;
   struct descriptor_data *d, *d_next;
   char buf[100], buf2[100];
-  int i;
+  char temp_file[256];
+  int playing_count = 0, total_count = 0;
+  
+  /* Check if copyover is already in progress */
+  if (copyover_status != COPYOVER_NONE)
+  {
+    log("SYSERR: copyover: Copyover already in progress (state=%d)", copyover_status);
+    /* Notify all players */
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+      {
+        write_to_descriptor(d->descriptor, "\n\r*** COPYOVER FAILED: Copyover already in progress. ***\n\r");
+      }
+    }
+    return;
+  }
+  
+  /* Set state to preparing */
+  copyover_status = COPYOVER_PREPARING;
+  
+  /* Validate environment before proceeding */
+  if (!validate_copyover_environment())
+  {
+    copyover_status = COPYOVER_FAILED;
+    /* Notify all players of failure */
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+      {
+        write_to_descriptor(d->descriptor, "\n\r*** COPYOVER FAILED: Environment validation failed. Game continues normally. ***\n\r");
+      }
+    }
+    copyover_status = COPYOVER_NONE;
+    return;
+  }
+  
+  /* First, count descriptors and validate state */
+  for (d = descriptor_list; d; d = d->next)
+  {
+    total_count++;
+    if (d->character && d->connected == CON_PLAYING)
+      playing_count++;
+  }
+  
+  log("INFO: copyover: Starting copyover with %d total descriptors (%d playing)", 
+      total_count, playing_count);
 
-  fp = fopen(COPYOVER_FILE, "w");
+  /* Use atomic file writing with temporary file */
+  snprintf(temp_file, sizeof(temp_file), "%s.tmp", COPYOVER_FILE);
+  
+  /* Update state to writing */
+  copyover_status = COPYOVER_WRITING;
+  
+  fp = fopen(temp_file, "w");
   if (!fp)
   {
-    log("Copyover file not writeable, aborted.\n\r");
+    log("SYSERR: Copyover temp file not writeable: %s", strerror(errno));
+    copyover_status = COPYOVER_FAILED;
+    
+    /* Notify all players of failure */
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+      {
+        write_to_descriptor(d->descriptor, "\n\r*** COPYOVER FAILED: Unable to create temporary file. Game continues normally. ***\n\r");
+      }
+    }
+    copyover_status = COPYOVER_NONE;
     return;
   }
 
   /* write boot_time as first line in file */
-  fprintf(fp, "%ld\n", (long)boot_time);
+  if (fprintf(fp, "%ld\n", (long)boot_time) < 0)
+  {
+    log("SYSERR: Failed to write boot time to copyover file");
+    fclose(fp);
+    copyover_status = COPYOVER_FAILED;
+    
+    /* Notify all players of failure */
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+      {
+        write_to_descriptor(d->descriptor, "\n\r*** COPYOVER FAILED: Unable to write to file. Game continues normally. ***\n\r");
+      }
+    }
+    copyover_status = COPYOVER_NONE;
+    return;
+  }
 
   /* For each playing descriptor, save its state */
   for (d = descriptor_list; d; d = d_next)
@@ -5896,10 +6059,34 @@ void perform_do_copyover()
     /* We delete from the list , so need to save this */
     d_next = d->next;
 
-    /* drop those logging on */
+    /* Handle non-playing descriptors */
     if (!d->character || d->connected > CON_PLAYING)
     {
-      write_to_descriptor(d->descriptor, "\n\rSorry, we are rebooting. Come back in a few minutes.\n\r");
+      /* Log why we're dropping this descriptor */
+      if (!d->character)
+      {
+        log("INFO: copyover: Dropping descriptor %d (no character attached)", d->descriptor);
+      }
+      else
+      {
+        log("INFO: copyover: Dropping descriptor %d for %s (state=%d, not playing)", 
+            d->descriptor, GET_NAME(d->character), d->connected);
+      }
+      
+      /* Provide appropriate message based on state */
+      if (d->connected == CON_MENU)
+      {
+        write_to_descriptor(d->descriptor, "\n\rSorry, we are rebooting. Your character has been saved.\n\r");
+      }
+      else if (d->connected >= CON_OEDIT && d->connected <= CON_TRIGEDIT)
+      {
+        write_to_descriptor(d->descriptor, "\n\rSorry, we are rebooting. Your OLC changes have been lost.\n\r");
+      }
+      else
+      {
+        write_to_descriptor(d->descriptor, "\n\rSorry, we are rebooting. Come back in a few minutes.\n\r");
+      }
+      
       close_socket(d); /* throw'em out */
     }
     else
@@ -6041,32 +6228,216 @@ break;
 
       /* end special handling */
 
-      fprintf(fp, "%d %ld %s %s %s\n", d->descriptor, GET_PREF(och), GET_NAME(och), d->host, CopyoverGet(d));
-      /* save och */
+      if (fprintf(fp, "%d %ld %s %s %s\n", d->descriptor, GET_PREF(och), GET_NAME(och), d->host, CopyoverGet(d)) < 0)
+      {
+        log("SYSERR: Failed to write player data for %s", GET_NAME(och));
+        fclose(fp);
+        copyover_status = COPYOVER_FAILED;
+        
+        /* Notify all players of failure */
+        for (d = descriptor_list; d; d = d->next)
+        {
+          if (d->character && STATE(d) == CON_PLAYING)
+          {
+            write_to_descriptor(d->descriptor, "\n\r*** COPYOVER FAILED: Unable to save player data. Game continues normally. ***\n\r");
+          }
+        }
+        copyover_status = COPYOVER_NONE;
+        return;
+      }
+      /* validate and save och */
+      if (!VALID_ROOM_RNUM(IN_ROOM(och)))
+      {
+        log("SYSERR: copyover: Player %s has invalid room %d, moving to void", 
+            GET_NAME(och), IN_ROOM(och));
+        char_from_room(och);
+        char_to_room(och, 0); /* Move to void/room 0 */
+      }
+      
       GET_LOADROOM(och) = GET_ROOM_VNUM(IN_ROOM(och));
       Crash_rentsave(och, 0);
       save_char(och, 0);
+      
+      log("INFO: copyover: Saved player %s (room %d, desc %d)", 
+          GET_NAME(och), GET_ROOM_VNUM(IN_ROOM(och)), d->descriptor);
     }
   } /* end descriptor loop */
 
-  fprintf(fp, "-1\n");
+  if (fprintf(fp, "-1\n") < 0)
+  {
+    log("SYSERR: Failed to write end marker to copyover file");
+    fclose(fp);
+    copyover_status = COPYOVER_FAILED;
+    
+    /* Notify all players of failure */
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+      {
+        write_to_descriptor(d->descriptor, "\n\r*** COPYOVER FAILED: Unable to complete file write. Game continues normally. ***\n\r");
+      }
+    }
+    copyover_status = COPYOVER_NONE;
+    return;
+  }
+  
+  /* Ensure all data is written to disk */
+  if (fflush(fp) != 0 || fsync(fileno(fp)) != 0)
+  {
+    log("SYSERR: Failed to flush copyover file to disk: %s", strerror(errno));
+    fclose(fp);
+    copyover_status = COPYOVER_FAILED;
+    
+    /* Notify all players of failure */
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+      {
+        write_to_descriptor(d->descriptor, "\n\r*** COPYOVER FAILED: Unable to save data to disk. Game continues normally. ***\n\r");
+      }
+    }
+    copyover_status = COPYOVER_NONE;
+    return;
+  }
+  
   fclose(fp);
+  
+  /* Atomically rename temp file to actual copyover file */
+  if (rename(temp_file, COPYOVER_FILE) != 0)
+  {
+    log("SYSERR: Failed to rename temp file to copyover file: %s", strerror(errno));
+    unlink(temp_file);  /* Clean up temp file */
+    copyover_status = COPYOVER_FAILED;
+    
+    /* Notify all players of failure */
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+      {
+        write_to_descriptor(d->descriptor, "\n\r*** COPYOVER FAILED: Unable to finalize save file. Game continues normally. ***\n\r");
+      }
+    }
+    copyover_status = COPYOVER_NONE;
+    return;
+  }
 
   /* exec - descriptors are inherited */
   snprintf(buf, sizeof(buf), "%d", port);
   snprintf(buf2, sizeof(buf2), "-C%d", mother_desc);
 
   /* Ugh, seems it is expected we are 1 step above lib - this may be dangerous! */
-  i = chdir("..");
+  if (chdir("..") != 0)
+  {
+    log("SYSERR: Copyover failed - unable to change directory: %s", strerror(errno));
+    copyover_status = COPYOVER_FAILED;
+    
+    /* Notify all players of failure */
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+      {
+        write_to_descriptor(d->descriptor, "\n\r*** COPYOVER FAILED: Unable to change directory. Game continues normally. ***\n\r");
+      }
+    }
+    
+    /* Try to remove the copyover file since we're not using it */
+    unlink(COPYOVER_FILE);
+    copyover_status = COPYOVER_NONE;
+    return;  /* Don't exit, allow game to continue */
+  }
+
+  /* Check if binary exists and is executable before attempting execl */
+  if (access(EXE_FILE, X_OK) != 0)
+  {
+    log("SYSERR: Copyover failed - binary not found or not executable: %s (error: %s)", EXE_FILE, strerror(errno));
+    copyover_status = COPYOVER_FAILED;
+    
+    /* Try to change back to lib directory */
+    if (chdir("lib") != 0)
+    {
+      log("SYSERR: Failed to change back to lib directory: %s", strerror(errno));
+    }
+    
+    /* Notify all players of failure */
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+      {
+        write_to_descriptor(d->descriptor, "\n\r*** COPYOVER FAILED: Game binary not found. Game continues normally. ***\n\r");
+      }
+    }
+    
+    /* Remove the copyover file */
+    unlink(COPYOVER_FILE);
+    copyover_status = COPYOVER_NONE;
+    return;
+  }
 
   /* Close reserve and other always-open files and release other resources */
+  
+  /* Close log files to ensure everything is flushed */
+  if (logfile)
+  {
+    fflush(logfile);
+    fclose(logfile);
+    logfile = NULL;
+  }
+  
+  /* Close the mother descriptor - it will be recreated on startup */
+  extern socket_t mother_desc;
+  if (mother_desc >= 0)
+  {
+    CLOSE_SOCKET(mother_desc);
+  }
+  
+  /* Close database connections */
+  extern void disconnect_from_mysql(void);
+  extern void disconnect_from_mysql2(void);
+  extern void disconnect_from_mysql3(void);
+  disconnect_from_mysql();
+  disconnect_from_mysql2();
+  disconnect_from_mysql3();
+  
+  /* Flush any pending output */
+  fflush(stdout);
+  fflush(stderr);
+  
+  /* Update state to executing */
+  copyover_status = COPYOVER_EXECUTING;
+  log("INFO: copyover: Executing new binary %s", EXE_FILE);
+  
+  /* Now execute the new binary */
   execl(EXE_FILE, "circle", buf2, buf, (char *)NULL);
 
   /* Failed - successful exec will not return */
-  perror("do_copyover: execl");
-  log("Copyover FAILED!\n\r");
-
-  exit(1); /* too much trouble to try to recover! */
+  copyover_status = COPYOVER_FAILED;
+  log("SYSERR: do_copyover: execl() failed - %s (errno %d)", strerror(errno), errno);
+  log("SYSERR: Attempted to execute: %s with args: circle %s %s", EXE_FILE, buf2, buf);
+  
+  /* Try to change back to lib directory for recovery attempt */
+  if (chdir("lib") != 0)
+  {
+    log("SYSERR: Failed to change back to lib directory: %s", strerror(errno));
+  }
+  
+  /* Notify all players of failure */
+  for (d = descriptor_list; d; d = d->next)
+  {
+    if (d->character && STATE(d) == CON_PLAYING)
+    {
+      write_to_descriptor(d->descriptor, "\n\r*** COPYOVER FAILED: Unable to restart server. Game continues normally. ***\n\r");
+    }
+  }
+  
+  /* Remove the copyover file */
+  unlink(COPYOVER_FILE);
+  
+  /* Reset state back to none */
+  copyover_status = COPYOVER_NONE;
+  
+  /* Don't exit - try to keep the game running */
+  log("Attempting to continue after copyover failure...");
+  return;
 }
 
 EVENTFUNC(event_copyover)

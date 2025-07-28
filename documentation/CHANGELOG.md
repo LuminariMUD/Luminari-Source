@@ -2,9 +2,50 @@
 
 ## 2025-07-28
 
+### Copyover System Critical Fixes
+- **Fixed Silent Failures**: Added comprehensive error handling throughout copyover process
+  - **chdir() Error Handling**: Now checks return value and notifies players on failure (act.wizard.c:6120)
+  - **Binary Path Validation**: Added access() check before execl() to verify binary exists (act.wizard.c:6139)
+  - **Write Verification**: All fprintf() operations now check return values (act.wizard.c:5903,6058,6080)
+  - **Atomic File Writing**: Implemented temp file + rename pattern to prevent partial writes (act.wizard.c:5884,6129)
+  - **Player Notifications**: Players now receive clear error messages when copyover fails
+  - **Race Condition Fix**: Moved file deletion to after all data is read (comm.c:561)
+- **Graceful Failure**: Game now continues running instead of exiting when copyover fails
+- **Error Logging**: Enhanced error messages with errno details for debugging
+
+### Copyover System Comprehensive Improvements
+- **Enhanced Error Logging**: Replaced all perror() calls with proper log() functions throughout copyover system
+  - Added detailed error messages with errno information for all failure points
+  - Added success logging for player restoration and file operations
+  - Enhanced recovery logging showing player count and connection states
+- **Descriptor State Validation**: Improved handling of non-playing connections
+  - Added comprehensive state logging when dropping connections
+  - Provide appropriate messages based on connection state (menu, OLC, etc.)
+  - Added validation for room validity before saving players
+  - Added player count tracking and reporting
+- **Resource Cleanup**: Added proper resource cleanup before execl()
+  - Close and flush log files to ensure all data is written
+  - Close mother descriptor socket
+  - Disconnect database connections
+  - Flush stdout/stderr streams
+- **Pre-Copyover Environment Validation**: Added validate_copyover_environment() function
+  - Verify current working directory is in lib/
+  - Check binary exists and is executable before attempting copyover
+  - Test file creation permissions in current directory
+  - Validate database connection is active
+  - All checks performed before any destructive operations
+- **Copyover State Tracking**: Implemented state machine to prevent race conditions
+  - Added copyover_state enum (NONE, PREPARING, WRITING, EXECUTING, FAILED)
+  - Prevents multiple simultaneous copyover attempts
+  - Proper state cleanup on all error paths
+  - Added get_copyover_state_string() diagnostic function
+
 ### Combat System Fixes
 - **Autoblast in Safe Rooms**: Fixed eldritch blast spam in peaceful rooms during score command - added display mode checks in perform_attacks() (fight.c:11742-11756)
 - **Autoblast Feat Requirements**: Added proper feat validation for autoblast toggle in prefedit and combat execution (prefedit.c:1067, fight.c:11726)
+
+### UI Fixes
+- **Prefedit Menu Display**: Fixed inconsistent spacing for AutoCollect option - added missing space before bracket to match other menu items (prefedit.c:359)
 
 ### MySQL Resource Management Fixes
 - **templates.c**: Removed 17 incorrect mysql_close() calls on global connection that were breaking database connectivity
