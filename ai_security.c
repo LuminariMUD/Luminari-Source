@@ -8,8 +8,20 @@
  * - Input sanitization
  * - Secure memory operations
  * 
+ * COMPONENT INTERACTIONS:
+ * - USED BY: ai_service.c for all security operations
+ * - ACCESSES: ai_state.config for API key storage
+ * - CRITICAL: All API keys pass through this component
+ * 
+ * SECURITY MODEL:
+ * - API keys stored in ai_state.config->encrypted_api_key
+ * - Input sanitization prevents prompt injection
+ * - Secure memory clearing prevents key leakage
+ * 
  * Note: This is a simplified implementation. Production systems should use
  * proper key management services and stronger encryption.
+ * 
+ * TODO: Implement AES-256 encryption for API keys
  * 
  * Part of the LuminariMUD distribution.
  */
@@ -27,6 +39,18 @@
 
 /**
  * Secure memory clearing
+ * 
+ * Prevents compiler optimization from removing memory clearing operations.
+ * Uses volatile pointer to ensure memory is actually overwritten.
+ * 
+ * Used by:
+ * - load_encrypted_api_key() to clear file buffers
+ * - shutdown_ai_service() to clear API keys on shutdown
+ * - Any function handling sensitive data
+ * 
+ * IMPORTANT: Standard memset() may be optimized away if the compiler
+ * determines the memory won't be read again. This function prevents
+ * that optimization for security-critical memory clearing.
  */
 void secure_memset(void *ptr, int value, size_t num) {
   volatile unsigned char *p = ptr;
@@ -39,6 +63,22 @@ void secure_memset(void *ptr, int value, size_t num) {
 
 /**
  * Encrypt API key
+ * 
+ * Currently stores API key in plaintext (NO ENCRYPTION).
+ * This is a security vulnerability that needs addressing.
+ * 
+ * Called by:
+ * - load_ai_config() when loading API key from .env
+ * - Admin commands when updating API key
+ * 
+ * Stores in: ai_state.config->encrypted_api_key (256 bytes max)
+ * 
+ * TODO: Implement proper encryption:
+ * 1. Use AES-256-CBC with server-specific key
+ * 2. Store initialization vector with encrypted data
+ * 3. Use PBKDF2 for key derivation from server seed
+ * 
+ * Returns: 1 on success, 0 on failure
  */
 int encrypt_api_key(const char *plaintext, char *encrypted_out) {
   AI_DEBUG("encrypt_api_key() called");
@@ -61,6 +101,20 @@ int encrypt_api_key(const char *plaintext, char *encrypted_out) {
 /**
  * Decrypt API key
  * Note: Caller must free() the returned string
+ * 
+ * Currently returns API key as-is (NO DECRYPTION).
+ * Must be updated when encryption is implemented.
+ * 
+ * Called by:
+ * - make_api_request_single() for each API request
+ * 
+ * SECURITY CONSIDERATIONS:
+ * - Returned key is in plaintext memory
+ * - Caller MUST free() the returned string
+ * - Caller should clear memory after use
+ * 
+ * Memory: Allocates 256 bytes for decrypted key
+ * Returns: Allocated string with API key or NULL on error
  */
 char *decrypt_api_key(const char *encrypted) {
   char *decrypted;
@@ -92,6 +146,21 @@ char *decrypt_api_key(const char *encrypted) {
 
 /**
  * Load encrypted API key from file
+ * 
+ * Reads API key from file and stores in global config.
+ * Uses secure_memset() to clear file buffer after reading.
+ * 
+ * Called by:
+ * - Manual configuration (not currently used)
+ * - Could be used for file-based key storage
+ * 
+ * Security measures:
+ * 1. Clears file buffer after reading
+ * 2. Removes newlines from key
+ * 3. Validates file access
+ * 
+ * File format: Single line with API key
+ * Storage: ai_state.config->encrypted_api_key
  */
 void load_encrypted_api_key(const char *filename) {
   FILE *fp;
@@ -144,6 +213,25 @@ void load_encrypted_api_key(const char *filename) {
 
 /**
  * Sanitize user input for AI prompts
+ * 
+ * Critical security function that prevents prompt injection attacks.
+ * Sanitizes user input before sending to OpenAI API.
+ * 
+ * Called by:
+ * - ai_generate_response() for all AI requests
+ * - ai_generate_response_async() for async requests
+ * 
+ * Security measures:
+ * 1. Removes control characters (except newlines)
+ * 2. Escapes quotes and backslashes for JSON
+ * 3. Replaces newlines with spaces
+ * 4. Enforces MAX_STRING_LENGTH limit
+ * 5. Trims trailing spaces
+ * 
+ * IMPORTANT: This is the primary defense against prompt injection.
+ * All user input MUST pass through this function.
+ * 
+ * Returns: Static buffer with sanitized input (not thread-safe)
  */
 char *sanitize_ai_input(const char *input) {
   static char cleaned[MAX_STRING_LENGTH];

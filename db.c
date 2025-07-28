@@ -32,6 +32,7 @@
 #include "genzon.h"
 #include "genolc.h"
 #include "genobj.h" /* for free_object_strings */
+#include "genwld.h" /* for free_trail_data_list */
 #include "config.h" /* for the default config values. */
 #include "fight.h"
 #include "modify.h"
@@ -805,6 +806,10 @@ void destroy_db(void)
         free(world[cnt].description);
     }
     free_extra_descriptions(world[cnt].ex_description);
+
+    /* free trail data */
+    if (world[cnt].trail_tracks != NULL)
+      free_trail_data_list(world[cnt].trail_tracks);
 
     /* freeing room events */
     if (world[cnt].events != NULL)
@@ -5617,6 +5622,12 @@ void free_char(struct char_data *ch)
   int i = 0;
   struct alias_data *a = NULL;
 
+  /* Free the action queues for ALL characters, not just those with player_specials */
+  if (GET_QUEUE(ch))
+    free_action_queue(GET_QUEUE(ch));
+  if (GET_ATTACK_QUEUE(ch))
+    free_attack_queue(GET_ATTACK_QUEUE(ch));
+
   if (ch->player_specials != NULL && ch->player_specials != &dummy_mob)
   {
     while ((a = GET_ALIASES(ch)) != NULL)
@@ -5624,12 +5635,6 @@ void free_char(struct char_data *ch)
       GET_ALIASES(ch) = (GET_ALIASES(ch))->next;
       free_alias(a);
     }
-
-    /* Free the action queue */
-    if (GET_QUEUE(ch))
-      free_action_queue(GET_QUEUE(ch));
-    if (GET_ATTACK_QUEUE(ch))
-      free_attack_queue(GET_ATTACK_QUEUE(ch));
 
     if (ch->player_specials->poofin)
       free(ch->player_specials->poofin);

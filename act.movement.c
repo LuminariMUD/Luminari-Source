@@ -629,13 +629,20 @@ void create_tracks(struct char_data *ch, int dir, int flag)
   room->trail_tracks->head = new_trail;
 
   prev = NULL;
-  for (cur = room->trail_tracks->head; cur != NULL; cur = cur->next)
+  for (cur = room->trail_tracks->head; cur != NULL; )
   {
+    struct trail_data *next = cur->next;
     if (time(NULL) - cur->age >= TRAIL_PRUNING_THRESHOLD)
     {
+      /* Free the trail data */
+      if (cur->name)
+        free(cur->name);
+      if (cur->race)
+        free(cur->race);
+      
+      /* Unlink from list */
       if (prev != NULL)
       {
-        // if (prev->next != NULL) DISPOSE(prev->next);
         prev->next = cur->next;
         if (cur->next != NULL)
         {
@@ -647,18 +654,89 @@ void create_tracks(struct char_data *ch, int dir, int flag)
         room->trail_tracks->head = cur->next;
         if (cur->next != NULL)
         {
-          // if (cur->next->prev != NULL) DISPOSE(cur->next->prev);
           cur->next->prev = NULL;
         }
       }
+      
+      /* Update tail if needed */
+      if (room->trail_tracks->tail == cur)
+      {
+        room->trail_tracks->tail = prev;
+      }
+      
+      /* Free the structure */
+      free(cur);
     }
-    prev = cur;
+    else
+    {
+      prev = cur;
+    }
+    cur = next;
   }
 
   /*
     struct trail_data_list *trail_scent;
     struct trail_data_list *trail_blood;
 */
+}
+
+/* Clean up old trails in all rooms - called periodically */
+void cleanup_all_trails(void)
+{
+  room_rnum room;
+  struct trail_data *cur, *next, *prev;
+  time_t current_time = time(NULL);
+  int cleaned = 0;
+  
+  for (room = 0; room <= top_of_world; room++)
+  {
+    if (!world[room].trail_tracks || !world[room].trail_tracks->head)
+      continue;
+      
+    prev = NULL;
+    for (cur = world[room].trail_tracks->head; cur != NULL; )
+    {
+      next = cur->next;
+      if (current_time - cur->age >= TRAIL_PRUNING_THRESHOLD)
+      {
+        /* Free the trail data */
+        if (cur->name)
+          free(cur->name);
+        if (cur->race)
+          free(cur->race);
+        
+        /* Unlink from list */
+        if (prev != NULL)
+        {
+          prev->next = cur->next;
+          if (cur->next != NULL)
+            cur->next->prev = prev;
+        }
+        else
+        {
+          world[room].trail_tracks->head = cur->next;
+          if (cur->next != NULL)
+            cur->next->prev = NULL;
+        }
+        
+        /* Update tail if needed */
+        if (world[room].trail_tracks->tail == cur)
+          world[room].trail_tracks->tail = prev;
+        
+        /* Free the structure */
+        free(cur);
+        cleaned++;
+      }
+      else
+      {
+        prev = cur;
+      }
+      cur = next;
+    }
+  }
+  
+  if (cleaned > 0)
+    log("Trail cleanup: Removed %d old trail entries.", cleaned);
 }
 
 /** Move a PC/NPC character from their current location to a new location. This

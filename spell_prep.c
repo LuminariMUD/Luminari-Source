@@ -2573,7 +2573,7 @@ void start_prep_event(struct char_data *ch, int class)
   if (!char_has_mud_event(ch, ePREPARATION))
   {
     snprintf(buf, sizeof(buf), "%d", class); /* carry our class as the svar */
-    NEW_EVENT(ePREPARATION, ch, strdup(buf), (1 * PASSES_PER_SEC));
+    NEW_EVENT(ePREPARATION, ch, buf, (1 * PASSES_PER_SEC));
   }
 }
 
@@ -2957,6 +2957,13 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
   if (DEBUGMODE)
   {
     send_to_char(ch, "{entered spell_prep_gen_extract()}    ");
+  }
+
+  /* Debug logging for metamagic exploit tracking */
+  if (metamagic > 0 && !IS_NPC(ch))
+  {
+    log("METAMAGIC_DEBUG: %s extracting spell %d (%s) with metamagic %d",
+        GET_NAME(ch), spellnum, spell_name(spellnum), metamagic);
   }
 
   /* FIRST: Check all prepared spell collections */

@@ -9,6 +9,17 @@
  * - Error handling and retries
  * - Rate limiting
  * 
+ * COMPONENT INTERACTIONS:
+ * - DEPENDS ON: ai_security.c for input sanitization and API key handling
+ * - DEPENDS ON: ai_cache.c for response caching to reduce API calls
+ * - DEPENDS ON: ai_events.c for async response delivery
+ * - USED BY: act.comm.c (do_tell command) when NPCs have AI_ENABLED flag
+ * 
+ * THREADING MODEL:
+ * - Main thread: Handles immediate cache hits and fallback responses
+ * - Worker threads: Created for API calls to prevent blocking
+ * - Event system: Delivers responses after minimal delay
+ * 
  * Part of the LuminariMUD distribution.
  */
 
@@ -24,9 +35,31 @@
 #include "dotenv.h"
 #include <curl/curl.h>
 #include <unistd.h>
+#include <pthread.h>
 
-/* Global AI Service State */
+/* Global AI Service State
+ * This global state is shared across all AI components:
+ * - ai_security.c accesses config for API key storage
+ * - ai_cache.c directly manipulates cache_head and cache_size
+ * - ai_events.c validates character pointers against this state
+ * - All components check initialized flag before operations
+ */
 struct ai_service_state ai_state = {0};
+
+/* Thread request structure
+ * Used for communication between main thread and worker threads.
+ * Created in ai_npc_dialogue_async() and processed in ai_thread_worker().
+ * Character pointers must be validated before AND after thread execution
+ * as characters may be freed during async operation.
+ */
+struct ai_thread_request {
+  char *prompt;        /* Sanitized prompt to send to API */
+  char *cache_key;     /* Key for storing response in cache */
+  struct char_data *ch;   /* Player character (must validate) */
+  struct char_data *npc;  /* NPC character (must validate) */
+  int request_type;    /* AI_REQUEST_* constant for logging */
+  pthread_t thread_id; /* Thread ID for debugging */
+};
 
 /* CURL Response Buffer */
 struct curl_response {
@@ -39,6 +72,7 @@ static size_t ai_curl_write_callback(void *contents, size_t size, size_t nmemb, 
 static char *make_api_request(const char *prompt);
 static char *build_json_request(const char *prompt);
 static char *parse_json_response(const char *json_str);
+static void *ai_thread_worker(void *arg);
 /* static void derive_key_from_seed(unsigned char *key); */
 
 /**
@@ -88,6 +122,18 @@ static void derive_key_from_seed(unsigned char *key) {
 
 /**
  * Initialize the AI service
+ * 
+ * Called from comm.c during MUD startup. Sets up all AI subsystems:
+ * 1. Initializes CURL library for HTTP requests
+ * 2. Allocates configuration structure with defaults
+ * 3. Sets up rate limiter to prevent API abuse
+ * 4. Initializes cache system (empty at start)
+ * 5. Creates persistent CURL handle for connection pooling
+ * 6. Loads configuration from .env file
+ * 
+ * IMPORTANT: This must be called before any other AI functions.
+ * Other components (ai_cache.c, ai_security.c, ai_events.c) rely on
+ * the initialized state and allocated structures.
  */
 void init_ai_service(void) {
   AI_DEBUG("Starting AI service initialization");
@@ -116,11 +162,11 @@ void init_ai_service(void) {
   
   /* Set default configuration */
   AI_DEBUG("Setting default configuration values");
-  strcpy(ai_state.config->model, "gpt-4.1-mini");
+  strcpy(ai_state.config->model, "gpt-4o-mini");  /* Faster model */
   AI_DEBUG("  Model: %s", ai_state.config->model);
   ai_state.config->max_tokens = AI_MAX_TOKENS;
   AI_DEBUG("  Max tokens: %d", ai_state.config->max_tokens);
-  ai_state.config->temperature = 0.7;
+  ai_state.config->temperature = 0.3;  /* Lower temperature for faster responses */
   AI_DEBUG("  Temperature: %.2f", ai_state.config->temperature);
   ai_state.config->timeout_ms = AI_TIMEOUT_MS;
   AI_DEBUG("  Timeout: %d ms", ai_state.config->timeout_ms);
@@ -162,7 +208,16 @@ void init_ai_service(void) {
   ai_state.cache_head = NULL;
   ai_state.cache_size = 0;
   AI_DEBUG("  Cache initialized: head=%p, size=%d, max_size=%d", 
-           (void*)ai_state.cache_head, ai_state.cache_size, AI_MAX_CACHE_SIZE);;
+           (void*)ai_state.cache_head, ai_state.cache_size, AI_MAX_CACHE_SIZE);
+  
+  /* Initialize persistent CURL handle for connection pooling */
+  AI_DEBUG("Initializing persistent CURL handle");
+  ai_state.curl_handle = curl_easy_init();
+  if (ai_state.curl_handle) {
+    AI_DEBUG("  Persistent CURL handle created successfully");
+  } else {
+    AI_DEBUG("  WARNING: Failed to create persistent CURL handle");
+  };
   
   /* Load configuration from database/files */
   AI_DEBUG("Loading AI configuration from .env file");
@@ -188,17 +243,16 @@ void shutdown_ai_service(void) {
   
   /* Clean up cache */
   AI_DEBUG("Cleaning up cache entries (size=%d)", ai_state.cache_size);
-  int freed_count = 0;
   for (entry = ai_state.cache_head; entry; entry = next) {
     next = entry->next;
-    AI_DEBUG("  Freeing cache entry %d: key='%s', response_len=%zu", 
-             freed_count++, entry->key ? entry->key : "(null)", 
+    AI_DEBUG("  Freeing cache entry: key='%s', response_len=%zu", 
+             entry->key ? entry->key : "(null)", 
              entry->response ? strlen(entry->response) : 0);;
     if (entry->key) free(entry->key);
     if (entry->response) free(entry->response);
     free(entry);
   }
-  AI_DEBUG("Freed %d cache entries", freed_count);
+  AI_DEBUG("Cache entries freed");
   
   /* Free configuration */
   if (ai_state.config) {
@@ -220,6 +274,13 @@ void shutdown_ai_service(void) {
     ai_state.limiter = NULL;
   }
   
+  /* Cleanup persistent CURL handle */
+  if (ai_state.curl_handle) {
+    AI_DEBUG("Cleaning up persistent CURL handle");
+    curl_easy_cleanup(ai_state.curl_handle);
+    ai_state.curl_handle = NULL;
+  }
+  
   /* Cleanup CURL */
   AI_DEBUG("Cleaning up CURL library");
   curl_global_cleanup();
@@ -231,6 +292,15 @@ void shutdown_ai_service(void) {
 
 /**
  * Check if AI service is enabled
+ * 
+ * Central check used by all AI components and act.comm.c to determine
+ * if AI features should be active. Returns true only if:
+ * 1. Service is initialized (init_ai_service was called)
+ * 2. Configuration is allocated
+ * 3. Service is explicitly enabled (via 'ai enable' command)
+ * 
+ * This prevents any AI operations when service is disabled or
+ * improperly configured, providing a single point of control.
  */
 bool is_ai_enabled(void) {
   bool result = ai_state.initialized && ai_state.config && ai_state.config->enabled;
@@ -242,6 +312,19 @@ bool is_ai_enabled(void) {
 
 /**
  * Load AI configuration from database/files
+ * 
+ * Loads configuration from .env file via dotenv.c. This function:
+ * 1. Retrieves API key and calls ai_security.c encrypt_api_key()
+ * 2. Sets model, temperature, timeout, and other parameters
+ * 3. Configures rate limiting thresholds
+ * 
+ * Called by:
+ * - init_ai_service() during startup
+ * - 'ai reload' admin command to refresh settings
+ * 
+ * Interacts with:
+ * - dotenv.c: get_env_value() for reading .env file
+ * - ai_security.c: encrypt_api_key() for secure storage
  */
 void load_ai_config(void) {
   char *api_key;
@@ -329,6 +412,21 @@ void load_ai_config(void) {
 
 /**
  * Make an API request to OpenAI (internal - no retries)
+ * 
+ * Low-level function that makes a single API request attempt.
+ * 
+ * Flow:
+ * 1. Check rate limits via ai_check_rate_limit()
+ * 2. Decrypt API key via ai_security.c decrypt_api_key()
+ * 3. Build JSON request with sanitized prompt
+ * 4. Execute CURL request (uses persistent handle if available)
+ * 5. Parse JSON response and return content
+ * 
+ * Rate limiting: Updates limiter counters on each request
+ * Connection pooling: Reuses ai_state.curl_handle when possible
+ * 
+ * Called by: make_api_request() which adds retry logic
+ * Returns: Allocated response string or NULL on failure
  */
 static char *make_api_request_single(const char *prompt) {
   CURL *curl;
@@ -381,17 +479,24 @@ static char *make_api_request_single(const char *prompt) {
   AI_DEBUG("JSON content: %.200s%s", json_request, 
            strlen(json_request) > 200 ? "..." : "");;
   
-  AI_DEBUG("Initializing CURL handle");
-  curl = curl_easy_init();
-  if (!curl) {
-    log("SYSERR: Failed to initialize CURL handle in make_api_request_single");
-    AI_DEBUG("ERROR: curl_easy_init() returned NULL");
-    free(api_key);
-    /* Also free json_request which was allocated above */
-    /* Note: json_request points to static buffer, so no need to free */
-    return NULL;
+  AI_DEBUG("Getting CURL handle");
+  /* Try to use persistent handle for connection pooling */
+  if (ai_state.curl_handle) {
+    AI_DEBUG("Using persistent CURL handle for connection pooling");
+    curl = ai_state.curl_handle;
+    /* Reset the handle to clear previous request data */
+    curl_easy_reset(curl);
+  } else {
+    AI_DEBUG("Creating new CURL handle (no persistent handle available)");
+    curl = curl_easy_init();
+    if (!curl) {
+      log("SYSERR: Failed to initialize CURL handle in make_api_request_single");
+      AI_DEBUG("ERROR: curl_easy_init() returned NULL");
+      free(api_key);
+      return NULL;
+    }
   }
-  AI_DEBUG("CURL handle initialized at %p", (void*)curl);
+  AI_DEBUG("CURL handle ready at %p", (void*)curl);
   
   /* Set headers */
   AI_DEBUG("Setting up HTTP headers");
@@ -441,6 +546,18 @@ static char *make_api_request_single(const char *prompt) {
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
   AI_DEBUG("  SSL verification enabled (peer=1, host=2)");
   
+  /* Performance optimizations */
+  curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+  curl_easy_setopt(curl, CURLOPT_TCP_KEEPIDLE, 120L);
+  curl_easy_setopt(curl, CURLOPT_TCP_KEEPINTVL, 60L);
+  /* HTTP/2 support - only if available in this CURL version */
+#ifdef CURL_HTTP_VERSION_2_0
+  curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+  AI_DEBUG("  HTTP/2 and TCP keep-alive enabled");
+#else
+  AI_DEBUG("  TCP keep-alive enabled (HTTP/2 not available in this CURL version)");
+#endif
+  
   /* Execute request */
   AI_DEBUG("Executing CURL request to API endpoint");
   res = curl_easy_perform(curl);
@@ -474,8 +591,13 @@ static char *make_api_request_single(const char *prompt) {
   
   /* Cleanup */
   AI_DEBUG("Cleaning up CURL resources");
-  curl_easy_cleanup(curl);
-  AI_DEBUG("  CURL handle cleaned up");
+  /* Only cleanup the handle if it's not the persistent one */
+  if (curl != ai_state.curl_handle) {
+    curl_easy_cleanup(curl);
+    AI_DEBUG("  CURL handle cleaned up (non-persistent)");
+  } else {
+    AI_DEBUG("  Keeping persistent CURL handle for reuse");
+  }
   curl_slist_free_all(headers);
   AI_DEBUG("  Headers freed");
   
@@ -494,6 +616,16 @@ static char *make_api_request_single(const char *prompt) {
 
 /**
  * Make an API request to OpenAI with retries (blocking version)
+ * 
+ * This is the high-level request function that handles retries.
+ * It calls make_api_request_single() up to AI_MAX_RETRIES times
+ * with exponential backoff between attempts.
+ * 
+ * Used by:
+ * - ai_generate_response() for synchronous requests
+ * - ai_thread_worker() for async requests in worker threads
+ * 
+ * Returns: Allocated string with response (caller must free) or NULL
  */
 static char *make_api_request(const char *prompt) {
   char *result = NULL;
@@ -524,6 +656,23 @@ static char *make_api_request(const char *prompt) {
 
 /**
  * Generate an AI response for a given prompt
+ * 
+ * High-level function that generates AI responses with fallback.
+ * 
+ * Flow:
+ * 1. Validate input and check if service enabled
+ * 2. Sanitize prompt via ai_security.c sanitize_ai_input()
+ * 3. Make API request via make_api_request()
+ * 4. Return fallback response if request fails
+ * 
+ * This is the main entry point for synchronous AI requests.
+ * For async requests, use ai_generate_response_async() instead.
+ * 
+ * Called by:
+ * - ai_npc_dialogue() for NPC conversations
+ * - Future: quest generation, room descriptions, etc.
+ * 
+ * Returns: Allocated response string (never NULL)
  */
 char *ai_generate_response(const char *prompt, int request_type) {
   char sanitized_prompt[MAX_STRING_LENGTH];
@@ -566,7 +715,20 @@ char *ai_generate_response(const char *prompt, int request_type) {
 }
 
 /**
- * Generate AI dialogue for an NPC
+ * Generate AI dialogue for an NPC (BLOCKING VERSION)
+ * 
+ * Synchronous version that blocks until response is received.
+ * Flow:
+ * 1. Build cache key from NPC vnum and input
+ * 2. Check cache via ai_cache_get() for existing response
+ * 3. If miss, build prompt and call ai_generate_response()
+ * 4. Store successful response in cache via ai_cache_response()
+ * 
+ * NOTE: This function blocks the game loop! Only use for testing.
+ * Production code should use ai_npc_dialogue_async() instead.
+ * 
+ * Called by: act.comm.c when AI_ENABLED NPCs receive tells
+ * Returns: Allocated response string (caller must free) or NULL
  */
 char *ai_npc_dialogue(struct char_data *npc, struct char_data *ch, const char *input) {
   char prompt[MAX_STRING_LENGTH];
@@ -591,6 +753,7 @@ char *ai_npc_dialogue(struct char_data *npc, struct char_data *ch, const char *i
     char *result = strdup(cached_response);
     if (!result) {
       log("SYSERR: Failed to allocate memory for cached AI response");
+      return NULL;
     }
     return result;
   }
@@ -616,12 +779,26 @@ char *ai_npc_dialogue(struct char_data *npc, struct char_data *ch, const char *i
 
 /**
  * Async NPC dialogue - returns immediately, response delivered via event
+ * 
+ * NON-BLOCKING version that creates a worker thread for API calls.
+ * This is the primary function used in production.
+ * 
+ * Flow:
+ * 1. Check cache first (immediate response if hit)
+ * 2. If cache miss, create ai_thread_request structure
+ * 3. Spawn detached pthread with ai_thread_worker()
+ * 4. Worker thread makes blocking API call
+ * 5. Response delivered via ai_events.c queue_ai_response()
+ * 
+ * Thread safety: Character pointers are validated in the event
+ * handler since characters may be freed during async operation.
+ * 
+ * Called by: act.comm.c for AI-enabled NPC interactions
  */
 void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const char *input) {
   char prompt[MAX_STRING_LENGTH];
   char cache_key[256];
   char *cached_response;
-  char *response;
   
   if (!npc || !ch || !input || !*input) return;
   
@@ -649,21 +826,66 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
     "Player says: \"%s\"",
     GET_NAME(npc) ? GET_NAME(npc) : "someone", input);
   
-  /* Try to get immediate response */
-  response = ai_generate_response_async(prompt, AI_REQUEST_NPC_DIALOGUE, 0);
-  
-  if (response) {
-    /* Got immediate response, queue it */
-    queue_ai_response(ch, npc, response);
-    free(response);
-  } else {
-    /* Need to retry, queue retry event */
-    queue_ai_request_retry(prompt, AI_REQUEST_NPC_DIALOGUE, 0, ch, npc);
+  /* Create thread request */
+  struct ai_thread_request *req;
+  CREATE(req, struct ai_thread_request, 1);
+  if (!req) {
+    log("SYSERR: Failed to allocate thread request");
+    return;
   }
+  
+  req->prompt = strdup(prompt);
+  if (!req->prompt) {
+    log("SYSERR: Failed to allocate prompt copy");
+    free(req);
+    return;
+  }
+  
+  req->cache_key = strdup(cache_key);
+  if (!req->cache_key) {
+    log("SYSERR: Failed to allocate cache key copy");
+    free(req->prompt);
+    free(req);
+    return;
+  }
+  
+  req->ch = ch;
+  req->npc = npc;
+  req->request_type = AI_REQUEST_NPC_DIALOGUE;
+  
+  /* Create detached thread to handle the request */
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+  
+  if (pthread_create(&req->thread_id, &attr, ai_thread_worker, req) != 0) {
+    log("SYSERR: Failed to create AI thread");
+    /* Fall back to event system */
+    free(req->prompt);
+    free(req->cache_key);
+    free(req);
+    queue_ai_request_retry(prompt, AI_REQUEST_NPC_DIALOGUE, 0, ch, npc);
+  } else {
+    AI_DEBUG("Created thread for AI request");
+  }
+  
+  pthread_attr_destroy(&attr);
 }
 
 /**
  * Check rate limiting
+ * 
+ * Enforces per-minute and per-hour request limits to prevent
+ * API abuse and control costs. Uses sliding window approach:
+ * - Minute window: 60 requests (default)
+ * - Hour window: 1000 requests (default)
+ * 
+ * Called by:
+ * - make_api_request_single() before each API request
+ * - Admin commands to display current usage
+ * 
+ * Interacts with: ai_state.limiter for shared counter state
+ * Thread-safe: No (assumes single-threaded rate check)
  */
 bool ai_check_rate_limit(void) {
   time_t now = time(NULL);
@@ -822,31 +1044,43 @@ static char *parse_json_response(const char *json_str) {
   content_start = strstr(json_str, "\"content\":");
   if (!content_start) {
     AI_DEBUG("ERROR: 'content' field not found in JSON");
+    AI_DEBUG("JSON snippet: %.200s", json_str);
     return NULL;
   }
   AI_DEBUG("Found 'content' field at position %ld", (long)(content_start - json_str));
+  AI_DEBUG("Context around content field: %.100s", content_start);
   
-  content_start = strchr(content_start, '"');
-  if (!content_start) {
-    AI_DEBUG("ERROR: Opening quote not found after 'content:'");
-    return NULL;
+  /* Skip past "content": and any whitespace to find the opening quote of the value */
+  content_start += strlen("\"content\":");
+  AI_DEBUG("After skipping 'content:' label, position %ld", (long)(content_start - json_str));
+  AI_DEBUG("Character at position: '%c' (ASCII %d)", *content_start, (int)*content_start);
+  
+  int whitespace_count = 0;
+  while (*content_start && (*content_start == ' ' || *content_start == '\t' || 
+         *content_start == '\n' || *content_start == '\r')) {
+    whitespace_count++;
+    content_start++;
   }
-  content_start++; /* Skip opening quote */
+  AI_DEBUG("Skipped %d whitespace characters", whitespace_count);
   
-  content_start = strchr(content_start, '"');
-  if (!content_start) {
-    AI_DEBUG("ERROR: Value quote not found");
+  if (*content_start != '"') {
+    AI_DEBUG("ERROR: Opening quote of content value not found");
+    AI_DEBUG("Expected '\"' but found '%c' (ASCII %d)", *content_start, (int)*content_start);
+    AI_DEBUG("Context: %.50s", content_start);
     return NULL;
   }
   content_start++; /* Skip opening quote of value */
   AI_DEBUG("Content value starts at position %ld", (long)(content_start - json_str));
+  AI_DEBUG("First 50 chars of content: %.50s", content_start);
   
   /* Find closing quote, handling escaped quotes */
   AI_DEBUG("Searching for closing quote with escape handling");
   content_end = content_start;
   int char_count = 0;
+  int quotes_found = 0;
   while (*content_end) {
     if (*content_end == '"') {
+      quotes_found++;
       /* Count consecutive backslashes before this quote */
       int backslash_count = 0;
       char *p = content_end - 1;
@@ -854,26 +1088,37 @@ static char *parse_json_response(const char *json_str) {
         backslash_count++;
         p--;
       }
-      AI_DEBUG("  Found quote at position %d with %d preceding backslashes",
-               char_count, backslash_count);
+      AI_DEBUG("  Found quote #%d at position %d with %d preceding backslashes",
+               quotes_found, char_count, backslash_count);
       /* If even number of backslashes (or zero), quote is not escaped */
       if (backslash_count % 2 == 0) {
-        AI_DEBUG("  This is the closing quote");
+        AI_DEBUG("  This is the closing quote (unescaped)");
         break;
+      } else {
+        AI_DEBUG("  This quote is escaped, continuing search");
       }
     }
     content_end++;
     char_count++;
+    if (char_count > 10000) {
+      AI_DEBUG("ERROR: Content too long or malformed (>10000 chars)");
+      AI_DEBUG("Current position context: %.50s", content_end);
+      return NULL;
+    }
   }
   
   if (!*content_end) {
-    AI_DEBUG("ERROR: Closing quote not found");
+    AI_DEBUG("ERROR: Closing quote not found after %d characters", char_count);
+    AI_DEBUG("Last 50 chars searched: %.50s", content_end - MIN(50, char_count));
     return NULL;
   }
+  
+  AI_DEBUG("Found closing quote at position %d", char_count);
   
   /* Extract content and handle escape sequences */
   len = content_end - content_start;
   AI_DEBUG("Extracting content of length %zu", len);
+  AI_DEBUG("Raw content before unescaping: %.100s%s", content_start, len > 100 ? "..." : "");
   
   CREATE(result, char, len + 1);
   if (!result) {
@@ -881,16 +1126,21 @@ static char *parse_json_response(const char *json_str) {
     AI_DEBUG("ERROR: Failed to allocate %zu bytes", len + 1);
     return NULL;
   }
+  AI_DEBUG("Allocated %zu bytes for result at %p", len + 1, result);
   
   /* Copy while unescaping */
-  AI_DEBUG("Unescaping content");
+  AI_DEBUG("Starting content unescaping process");
   char *src = content_start;
   char *dst = result;
   int escape_sequences = 0;
+  int chars_processed = 0;
   while (src < content_end) {
+    chars_processed++;
     if (*src == '\\' && src + 1 < content_end) {
       src++; /* Skip backslash */
       escape_sequences++;
+      AI_DEBUG("  Escape sequence #%d at position %d: \\%c", 
+               escape_sequences, chars_processed, *src);
       if (*src == '"') *dst++ = '"';
       else if (*src == '\\') *dst++ = '\\';
       else if (*src == 'n') *dst++ = '\n';
@@ -898,7 +1148,7 @@ static char *parse_json_response(const char *json_str) {
       else if (*src == 't') *dst++ = '\t';
       else {
         /* Unknown escape, copy as-is */
-        AI_DEBUG("  Unknown escape sequence: \\%c", *src);
+        AI_DEBUG("  Unknown escape sequence: \\%c (ASCII %d)", *src, (int)*src);
         *dst++ = '\\';
         *dst++ = *src;
       }
@@ -909,9 +1159,11 @@ static char *parse_json_response(const char *json_str) {
   }
   *dst = '\0';
   
-  AI_DEBUG("Content extracted successfully: %d escape sequences processed", escape_sequences);
+  AI_DEBUG("Unescaping complete: processed %d chars, found %d escape sequences", 
+           chars_processed, escape_sequences);
   AI_DEBUG("Final content length: %zu", strlen(result));
   AI_DEBUG("Content preview: %.100s%s", result, strlen(result) > 100 ? "..." : "");
+  AI_DEBUG("Full content: %s", result);
   
   return result;
 }
@@ -965,6 +1217,7 @@ char *generate_fallback_response(const char *prompt) {
   char *result = strdup(fallback_responses[choice]);
   if (!result) {
     log("SYSERR: Failed to allocate memory for fallback response");
+    return NULL;
   }
   return result;
 }
@@ -996,6 +1249,20 @@ int get_cache_size(void) {
  * Generate an AI response asynchronously (non-blocking)
  * This version attempts once and returns NULL on failure
  * The caller should use the event system to retry if needed
+ * 
+ * Used by ai_events.c ai_request_retry_event() for retry logic.
+ * Unlike ai_generate_response(), this:
+ * 1. Makes only ONE attempt (no internal retries)
+ * 2. Returns NULL on failure (no fallback)
+ * 3. Expects caller to handle retries via event system
+ * 
+ * Flow:
+ * 1. Sanitize input via ai_security.c
+ * 2. Check cache first via ai_cache_get()
+ * 3. Make single API request attempt
+ * 4. Cache successful responses
+ * 
+ * Returns: Response string or NULL (caller handles retries)
  */
 char *ai_generate_response_async(const char *prompt, int request_type, int retry_count) {
   char sanitized_prompt[MAX_STRING_LENGTH];
@@ -1021,6 +1288,7 @@ char *ai_generate_response_async(const char *prompt, int request_type, int retry
     char *result = strdup(response);
     if (!result) {
       log("SYSERR: Failed to allocate memory for cached AI response");
+      return NULL;
     }
     return result;
   }
@@ -1042,4 +1310,52 @@ char *ai_generate_response_async(const char *prompt, int request_type, int retry
   }
   
   return response;
+}
+
+/**
+ * Thread worker function for async API calls
+ * 
+ * Runs in a detached pthread to make blocking API calls without
+ * freezing the game. This function:
+ * 1. Makes the blocking API request via make_api_request()
+ * 2. Caches successful responses via ai_cache_response()
+ * 3. Queues response for delivery via queue_ai_response()
+ * 4. Cleans up all allocated memory
+ * 
+ * IMPORTANT: This runs in a separate thread! Character pointers
+ * may become invalid during execution. The event system in
+ * ai_events.c handles validation before delivery.
+ * 
+ * Thread lifecycle: Created detached, self-destructs on completion
+ */
+static void *ai_thread_worker(void *arg) {
+  struct ai_thread_request *req = (struct ai_thread_request *)arg;
+  char *response;
+  
+  AI_DEBUG("Thread worker started for request type %d", req->request_type);
+  
+  /* Make the blocking API call in this thread */
+  response = make_api_request(req->prompt);
+  
+  if (response) {
+    /* Cache the response */
+    if (req->cache_key) {
+      ai_cache_response(req->cache_key, response);
+    }
+    
+    /* Queue the response to be delivered in main thread */
+    queue_ai_response(req->ch, req->npc, response);
+    free(response);
+    
+    AI_DEBUG("Thread worker completed successfully");
+  } else {
+    AI_DEBUG("Thread worker failed to get response");
+  }
+  
+  /* Cleanup */
+  if (req->prompt) free(req->prompt);
+  if (req->cache_key) free(req->cache_key);
+  free(req);
+  
+  return NULL;
 }

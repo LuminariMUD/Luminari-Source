@@ -368,6 +368,9 @@ void free_trail_data_list(struct trail_data_list *trail)
       free(cur->race);
     free(cur);
   }
+  
+  /* Free the list structure itself */
+  free(trail);
 }
 
 void free_room(struct room_data *room)

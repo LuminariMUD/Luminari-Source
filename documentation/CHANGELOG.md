@@ -1,231 +1,72 @@
 # CHANGELOG
 
-## 2025-07-27
+## 2025-07-28
 
-### AI Service Critical Fixes (Part 2)
-- **Fixed missing include for sleep()** (ai_service.c)
-  - Issue: ai_service.c uses sleep() but didn't include unistd.h
-  - Fix: Added #include <unistd.h> to properly declare sleep() function
-  - Impact: Prevents compilation warnings/errors on strict compilers
+### MySQL Resource Management Fixes
+- **templates.c**: Removed 17 incorrect mysql_close() calls on global connection that were breaking database connectivity
+- **templates.c**: Changed all mysql_use_result() to mysql_store_result() for proper result set handling
+- **mysql.c**: Fixed disconnect functions to not call mysql_library_end() (should only be called once at program end)
+- **mysql.c**: Added cleanup_mysql_library() function for proper shutdown sequence
+- **mysql.h**: Added cleanup_mysql_library() declaration
+- **Transaction Handling**: Fixed missing rollback on errors in house.c and objsave.c - all transactions now properly rollback on failure
+- **house.c**: Added mysql_query(conn, "rollback;") calls on all error paths during transaction (lines 250-299)
+- **objsave.c**: Fixed transaction handling in Crash_crashsave(), Crash_idlesave(), and Crash_rentsave() - added rollback calls and proper file cleanup
+- **account.c**: Removed redundant NULL check before mysql_free_result() (line 455)
 
-- **Fixed thread safety issue in decrypt_api_key()** (ai_security.c, ai_service.c)
-  - Issue: decrypt_api_key() returned static buffer that could be overwritten in multi-threaded scenarios
-  - Fix: Modified to dynamically allocate memory that caller must free()
-  - Updated ai_service.c to properly free the allocated memory
-  - Impact: Prevents potential data corruption in concurrent API requests
+### Critical Fixes
 
-- **Implemented event cancellation for extracted characters** (handler.c, ai_events.c)
-  - Issue: Events (including AI response events) could fire after character extraction, causing crashes
-  - Fix: Added event cancellation to extract_char_final() similar to object extraction
-  - Details: Cancel all pending events and free event list when character is removed from game
-  - Impact: Prevents crashes when AI responses arrive after character logout/death
+#### Memory Access & Crash Prevention
+- **Spell Casting System**: Fixed invalid memory access in `castingCheckOk()` - validates target still exists before accessing (spell_parser.c:1405)
+- **Player Save System**: Fixed uninitialized values in `create_entry()` preventing save file corruption (players.c:2920,2925)
+- **Player Index Operations**: Fixed uninitialized memory access in `build_player_index()` and `save_player_index()` (players.c:275)
+- **DG Event Queue**: Added NULL queue safety checks to prevent crashes from uninitialized pointers
+- **Corpse Money Bug**: Fixed NULL container crash in fight.c:1735 - money from incorporeal creatures now drops to room only
+- **Metamagic Exploit**: Fixed spell stacking exploit - players can no longer cast metamagic spells using regular spell slots
 
-### AI Service Non-Blocking Improvements
-- **Replaced blocking sleep() with event-based retry mechanism** (ai_service.c, ai_events.c)
-  - Issue: AI service used blocking sleep() during retries, freezing entire MUD server
-  - Fix: Implemented asynchronous retry system using MUD's event queue
-  - Details:
-    - Split make_api_request() into single-attempt and retry versions
-    - Added ai_generate_response_async() for non-blocking requests
-    - Added ai_request_retry_event handler with exponential backoff
-    - Added ai_npc_dialogue_async() for asynchronous NPC responses
-    - Retry delays use event system instead of sleep()
-  - Impact: Server remains responsive during AI API failures/retries
+#### Major Memory Leaks
+- **DG Scripts Lookup Table**: Fixed unbounded growth - added proper removal from static bucket heads and shutdown cleanup
+- **AI Service**: Added missing `shutdown_ai_service()` call to free cache, config, rate limiter, and CURL handles
+- **Event System**: Fixed redundant `strdup()` calls in `new_mud_event()` usage across multiple files
+- **Track System**: Added proper cleanup in `destroy_db()` - fixes 6 bytes leaked per movement at shutdown
 
-- **Fixed CURLOPT_TIMEOUT_MS integer overflow issue** (ai_service.c)
-  - Issue: Direct cast of int to long for CURLOPT_TIMEOUT_MS could overflow with invalid values
-  - Fix: Added validation and clamping of timeout values
-  - Details:
-    - Validate timeout_ms during configuration loading
-    - Clamp values to safe range (1ms to 300000ms/5 minutes)
-    - Log warnings when invalid values are corrected
-    - Safely convert to long before passing to CURL
-  - Impact: Prevents potential crashes or hangs from invalid timeout values
+### File Handle Leaks
+- **zmalloc.c:75**: Fixed debug log file reopening without checking if already open
+- **comm.c:3741**: Added proper logfile cleanup before reassignment
+- **act.wizard.c**: Fixed missing `fclose()` in `list_llog_entries()` (line 2639) and `find_llog_entry()` (line 2453)
 
-### AI Service Defensive Programming
-- **Added NULL pointer checks in critical paths** (ai_service.c)
-  - Issue: Several functions accessed pointers without validation, risking crashes
-  - Fix: Added comprehensive NULL checks throughout AI service
-  - Details:
-    - Added NULL checks for prompt parameters in ai_generate_response functions
-    - Added NULL validation in build_json_request and parse_json_response
-    - Protected GET_NAME() macro usage with NULL checks
-    - Added defensive checks in log_ai_error function
-  - Locations fixed:
-    - ai_generate_response() - validate prompt parameter
-    - ai_generate_response_async() - validate prompt parameter
-    - build_json_request() - validate prompt parameter
-    - parse_json_response() - validate json_str parameter
-    - log_ai_error() - provide defaults for NULL parameters
-    - log_ai_interaction() - protect GET_NAME() calls
-    - ai_npc_dialogue() - protect GET_NAME() in prompt building
-    - ai_npc_dialogue_async() - protect GET_NAME() in prompt building
-  - Impact: Prevents crashes from NULL pointer dereferences in AI service
+### String Memory Leaks
 
-- **Added consistent memory allocation error handling** (ai_service.c, ai_events.c, ai_cache.c, ai_security.c)
-  - Issue: Memory allocation failures were not consistently handled, risking crashes
-  - Fix: Added error checking for all CREATE(), strdup(), and realloc() calls
-  - Details:
-    - Check return values of all memory allocations
-    - Log appropriate error messages on allocation failures
-    - Properly clean up partial allocations on failure
-    - Return gracefully instead of crashing
-  - Files and functions updated:
-    - ai_service.c: init_ai_service(), parse_json_response(), ai_npc_dialogue(), generate_fallback_response(), ai_generate_response_async()
-    - ai_events.c: queue_ai_response(), queue_ai_request_retry()
-    - ai_cache.c: ai_cache_response(), ai_cache_cleanup()
-    - ai_security.c: decrypt_api_key()
-  - Impact: Prevents crashes and undefined behavior when system runs low on memory
+#### Object/Room String Operations
+- **Wilderness**: Fixed room name leaks in wilderness.c (673,698) and desc_engine.c (145,149)
+- **Crafting**: Fixed string leaks in craft.c during object restringing and mold creation
+- **Item Enhancement**: Fixed leaks in `spec_procs.c` masterwork/magical name functions
+- **Room Commands**: Fixed leaks in `do_setroomname()` and `do_setroomdesc()`
 
-- **Added CURL initialization error handling** (ai_service.c)
-  - Issue: curl_easy_init() and curl_slist_append() failures were not properly handled
-  - Fix: Added validation for CURL handle and header list initialization
-  - Details:
-    - Check curl_easy_init() return value and clean up on failure
-    - Check curl_slist_append() return values for both auth and content-type headers
-    - Properly clean up allocated resources (CURL handle, API key) on failure
-    - Log descriptive error messages for each failure case
-  - Impact: Prevents crashes when CURL initialization fails due to resource constraints
+#### Character/Communication
+- **Corpse System**: Added missing `free()` for char_sdesc field in genobj.c
+- **Character Descriptions**: Changed to static buffers in char_descs.c functions
+- **Communication**: Fixed `buf3` leak in whisper/ask commands (act.comm.do_spec_comm.c)
+- **Speech Triggers**: Fixed `strdup()` leaks in trigger processing (act.comm.c:59,158,234)
 
-- **Added comprehensive debug logging with AI_DEBUG_MODE** (ai_service.h, ai_service.c, ai_cache.c, ai_security.c, ai_events.c)
-  - Issue: Difficult to troubleshoot AI service issues without detailed logging
-  - Enhancement: Added AI_DEBUG_MODE define and AI_DEBUG macro for verbose logging
-  - Details:
-    - AI_DEBUG_MODE in ai_service.h controls debug output (0=off, 1=on)
-    - AI_DEBUG macro includes file, line, and function information
-    - Added debug logging at every critical point:
-      - Service initialization and shutdown
-      - Configuration loading with all values
-      - API request building and response parsing
-      - CURL operations and callbacks
-      - Cache operations (add, get, cleanup)
-      - Security operations (encrypt/decrypt)
-      - Event queue operations
-      - Rate limiting checks
-      - Memory allocations and deallocations
-      - Character validation
-      - Error conditions with detailed context
-    - Debug output includes:
-      - Function entry/exit points
-      - Parameter values and validation results
-      - Buffer sizes and memory addresses
-      - Timing information (delays, expiration times)
-      - JSON request/response previews
-      - Cache hit/miss statistics
-      - Character and room validation
-  - Usage: Set AI_DEBUG_MODE to 1 in ai_service.h to enable
-  - Impact: Dramatically improves ability to diagnose AI service issues
+#### System Operations
+- **Account Loading**: Fixed leaks in `load_account()` - now frees name/email/character_names
+- **Character Saving**: Fixed leak in `save_char()` when overwriting account character names
+- **Crafting Loads**: Fixed craft description string overwrites without freeing in players.c
+- **MySQL Operations**: Added missing `mysql_free_result()` in account.c:394
 
-### AI Service Security Fixes
-- **Fixed buffer overflow in JSON escaping** (ai_service.c)
-  - Issue: JSON escape sequence could overflow buffer when near MAX_STRING_LENGTH
-  - Fix: Added proper bounds checking for escape sequences and characters
-  - Impact: Prevents potential buffer overflow attacks via malicious prompts
+### Safety Improvements
+- **Circular References**: Added detection in `obj_to_obj()` to prevent infinite loops
+- **Bounds Checking**: Added `VALID_ROOM_RNUM()` and `GET_ROOM()` macros for safe array access
+- **Descriptor Cleanup**: Added NULL check for `d->events` in `close_socket()`
+- **Account Loading**: Added bounds check for MAX_CHARS_PER_ACCOUNT
 
-- **Fixed buffer overflow in input sanitization** (ai_security.c)
-  - Issue: Escape character handling could overflow buffer without proper checks
-  - Fix: Added explicit bounds checking before writing escape sequences
-  - Impact: Prevents buffer overflow in AI input sanitization
+### Bug Fixes
+- **Object Save Chain**: Fixed premature exit in `objsave_parse_objects()` cleanup loop
+- **DG Scripts Wait**: Fixed uninitialized variables in `process_wait()` time parsing
+- **Combat Events**: Fixed duplicate `eSMASH_DEFENSE` event creation and added cleanup in `stop_fighting()`
+- **Put Command**: Fixed `strdup()` leaks for `thecont` and `theobj` strings
+- **Action Queues**: Moved cleanup outside player_specials check in `free_char()`
+- **OLC Scripts**: Fixed proto list leak in `dg_olc_script_copy()`
+- **Template System**: Removed unnecessary `strdup()` in levelinfo_search calls
+- **Forge Command**: Fixed forge_as_signature leak in backgrounds.c:826
 
-- **Fixed cache key buffer overflow** (ai_service.c)
-  - Issue: Long input strings could overflow cache_key buffer in snprintf
-  - Fix: Limit input string to 200 characters when building cache keys
-  - Impact: Prevents buffer overflow with extremely long user inputs
-
-### AI Service Memory and Logic Fixes
-- **Fixed character use-after-free in AI events** (ai_events.c)
-  - Issue: AI response events could access freed character pointers
-  - Fix: Added validation to check characters still exist in character_list
-  - Impact: Prevents crashes when characters are freed before AI response
-
-- **Fixed memory leak in build_json_request** (ai_service.c)
-  - Issue: Unnecessary strdup() of static buffer causing memory leak
-  - Fix: Return static buffer directly without allocation
-  - Impact: Eliminates memory leak on every AI request
-
-- **Fixed JSON parsing for escaped characters** (ai_service.c)
-  - Issue: parse_json_response didn't properly handle escaped quotes and backslashes
-  - Fix: Implemented proper escape sequence handling with backslash counting
-  - Impact: AI responses with quotes and special characters now parse correctly
-
-### AI Service Performance and Error Handling
-- **Optimized cache cleanup algorithm** (ai_cache.c)
-  - Issue: Cache cleanup was O(n²) - scanning entire list for each removal
-  - Fix: Sort entries by expiration time once, then remove in O(n) time
-  - Impact: Significantly faster cache cleanup for large caches (1000+ entries)
-
-- **Added CURL initialization error handling** (ai_service.c)
-  - Issue: curl_global_init() return value was not checked
-  - Fix: Check return value and abort initialization on failure
-  - Impact: Prevents undefined behavior if CURL fails to initialize
-
-## 2025-07-27
-
-### Critical Bug Fixes
-- **Fixed use-after-free in DG Script triggers** (dg_triggers.c)
-  - Issue: `greet_mtrigger()` was accessing freed memory when iterating through triggers after `script_driver()` call
-  - Root cause: `script_driver()` can free the script and its triggers, invalidating the loop iterator
-  - Fix: Cache `t->next` before calling `script_driver()` to ensure safe iteration
-  - Impact: Prevents potential crashes during NPC greet trigger execution
-
-- **Fixed potential use-after-free in weather system** (weather.c)
-  - Issue: `reset_dailies()` was iterating through character_list without caching next pointer
-  - Root cause: `send_to_char()` could trigger character extraction during iteration
-  - Fix: Cache `ch->next` before operations that could remove characters
-  - Impact: Prevents crashes during daily reset operations (every 6 game hours)
-
-- **Fixed object use-after-free during combat looting** (act.item.c)
-  - Issue: Money objects were being accessed after extraction in `perform_get_from_container()` and `perform_get_from_room()`
-  - Root cause: `get_check_money()` extracts money objects, but code continued to use the freed object pointer
-  - Fix: Check if object is money before extraction, skip further object operations if it was money
-  - Impact: Prevents crashes during corpse looting and picking up money
-
-- **Fixed invalid read during shutdown** (db.c)
-  - Issue: Craft list traversal was corrupted during game shutdown
-  - Root cause: Using `simple_list()` while removing items corrupts its static iterator
-  - Fix: Use proper iterator pattern instead of `simple_list()` during list cleanup
-  - Impact: Prevents crashes during game shutdown when cleaning up craft data
-
-- **Fixed uninitialized memory in event queue** (dg_event.c)
-  - Issue: Queue element pointers not explicitly initialized, causing valgrind warnings
-  - Root cause: Although `CREATE` uses `calloc()`, valgrind still reported uninitialized values
-  - Fix: Explicitly set `prev` and `next` pointers to NULL in `queue_enq()`
-  - Impact: Eliminates valgrind warnings about uninitialized memory in event system
-
-- **Fixed multiple character list use-after-free bugs** (quest.c, dg_scripts.c)
-  - Issue: Several functions iterating character_list without caching next pointer
-  - Locations: `check_timed_quests()`, `check_trigger()`, `check_time_triggers()`
-  - Root cause: Functions that send messages or execute scripts could extract characters
-  - Fix: Cache `ch->next` before operations that could remove characters
-  - Impact: Prevents crashes during quest timeouts and script trigger execution
-
-- **Fixed hlquest parser bug causing 500+ false errors** (hlquest.c)
-  - Issue: "Invalid quest command type 'S' in quest file" logged 500+ times during boot
-  - Root cause: 'S' was used both as QUEST_COMMAND_CAST_SPELL and as a loop terminator
-  - Details: Parser would create CAST_SPELL command then try to process 'S' as direction (I/O)
-  - Fix: Check if we've hit the terminator 'S' before processing command direction
-  - Impact: Eliminates 500+ false error messages during server startup
-
-### AI Service Fixes
-- **Fixed critical crash in AI service** (ai_service.c, ai_security.c)
-  - Issue: decrypt_api_key() was returning static buffer but code was trying to free it
-  - Root cause: Mismatch between static allocation and dynamic free
-  - Fix: Remove free() call for api_key pointer in make_api_request()
-  - Impact: Prevents immediate crash when AI service processes requests
-
-- **Temporarily disabled API key encryption** (ai_security.c)
-  - Issue: XOR cipher implementation was causing "Failed to decrypt API key" errors
-  - Root cause: Complex encryption/decryption logic causing stability issues
-  - Fix: Modified encrypt_api_key() and decrypt_api_key() to store/retrieve plaintext
-  - Impact: AI service now functional but with reduced security (temporary fix)
-  - TODO: Re-implement proper AES-256 encryption in future update
-
-- **Removed unused xor_cipher function** (ai_security.c)
-  - Issue: Compiler warning for unused static function
-  - Fix: Removed the function entirely since encryption is temporarily disabled
-  - Impact: Clean compilation without warnings
-
-- **Documentation updates**
-  - Updated AI_SERVICE_README.md to note plaintext storage and disabled-by-default status
-  - Updated OPEN_AI_TECH.md to reflect encryption removal and recent fixes
-  - Added reminder that AI service must be enabled with `ai enable` command

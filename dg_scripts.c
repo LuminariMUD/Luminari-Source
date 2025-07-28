@@ -1853,8 +1853,8 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'}, *arg;
   struct wait_event_data *wait_event_obj;
-  long when, hr, min, ntime;
-  char c;
+  long when = 0, hr = 0, min = 0, ntime = 0;
+  char c = '\0';
 
   char cmd_local[MAX_INPUT_LENGTH] = {'\0'};
   strlcpy(cmd_local, cmd_in, sizeof(cmd_local));
@@ -1876,8 +1876,13 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
     /* valid forms of time are 14:30 and 1430 */
     if (sscanf(arg, "until %ld:%ld", &hr, &min) == 2)
       min += (hr * 60);
-    else
+    else if (sscanf(arg, "until %ld", &hr) == 1)
       min = (hr % 100) + ((hr / 100) * 60);
+    else {
+      script_log("Trigger: %s, VNum %d. wait until with invalid time format: '%s'",
+                 GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), arg);
+      return;
+    }
 
     /* calculate the pulse of the day of "until" time */
     ntime = (min * SECS_PER_MUD_HOUR * PASSES_PER_SEC) / 60;
@@ -3388,6 +3393,29 @@ void init_lookup_table(void)
   }
 }
 
+void cleanup_lookup_table(void)
+{
+  int i;
+  struct lookup_table_t *lt, *next;
+  
+  for (i = 0; i < BUCKET_COUNT; i++)
+  {
+    /* Free all entries in the linked list for this bucket */
+    lt = lookup_table[i].next;
+    while (lt)
+    {
+      next = lt->next;
+      free(lt);
+      lt = next;
+    }
+    
+    /* Reset the static bucket entry */
+    lookup_table[i].uid = UID_OUT_OF_RANGE;
+    lookup_table[i].c = NULL;
+    lookup_table[i].next = NULL;
+  }
+}
+
 static struct char_data *find_char_by_uid_in_lookup_table(long uid)
 {
   int bucket = (int)(uid & (BUCKET_COUNT - 1));
@@ -3445,24 +3473,48 @@ void add_to_lookup_table(long uid, void *c)
 void remove_from_lookup_table(long uid)
 {
   int bucket = (int)(uid & (BUCKET_COUNT - 1));
-  struct lookup_table_t *lt = &lookup_table[bucket], *flt = NULL;
+  struct lookup_table_t *lt = &lookup_table[bucket], *prev = NULL;
 
   /* This is not supposed to happen. UID 0 is not used. However, while I'm
    * debugging the issue, let's just return right away. - Welcor */
   if (uid == 0)
     return;
 
-  for (; lt; lt = lt->next)
-    if (lt->uid == uid)
-      flt = lt;
-
-  if (flt)
+  /* Special case: if the uid is in the static bucket entry */
+  if (lt->uid == uid)
   {
-    for (lt = &lookup_table[bucket]; lt->next != flt; lt = lt->next)
-      ;
-    lt->next = flt->next;
-    free(flt);
+    /* If there's a next entry, copy it to the static bucket and free the next */
+    if (lt->next)
+    {
+      struct lookup_table_t *temp = lt->next;
+      lt->uid = temp->uid;
+      lt->c = temp->c;
+      lt->next = temp->next;
+      free(temp);
+    }
+    else
+    {
+      /* No next entry, just mark the bucket as empty */
+      lt->uid = UID_OUT_OF_RANGE;
+      lt->c = NULL;
+    }
     return;
+  }
+
+  /* Search the linked list for the uid */
+  prev = lt;
+  lt = lt->next;
+  
+  while (lt)
+  {
+    if (lt->uid == uid)
+    {
+      prev->next = lt->next;
+      free(lt);
+      return;
+    }
+    prev = lt;
+    lt = lt->next;
   }
 
   log("remove_from_lookup. UID %ld not found.", uid);

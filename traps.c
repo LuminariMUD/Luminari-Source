@@ -54,7 +54,7 @@ void set_off_trap(struct char_data *ch, struct obj_data *trap)
   snprintf(buf, sizeof(buf), "%d", GET_OBJ_VAL(trap, 2));
 
   /* Add the event to the character.*/
-  NEW_EVENT(eTRAPTRIGGERED, ch, strdup(buf), 1);
+  NEW_EVENT(eTRAPTRIGGERED, ch, buf, 1);
 }
 
 /* checks the 5th value (4) to see if its set (which indicates detection) */

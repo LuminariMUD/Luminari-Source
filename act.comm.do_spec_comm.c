@@ -84,5 +84,9 @@ ACMD(do_spec_comm)
 
     if (subcmd == SCMD_ASK)
       quest_ask(ch, vict, buf3);
+      
+    /* Free the duplicated string */
+    if (buf3)
+      free(buf3);
   }
 }

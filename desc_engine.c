@@ -142,10 +142,14 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 			{
 			case REGION_POS_CENTER:
 				snprintf(buf, sizeof(buf), "The Center of %s\r\n", region_table[curr_region->rnum].name);
+				if (world[room].name)
+					free(world[room].name);
 				world[room].name = strdup(buf);
 				break;
 			case REGION_POS_EDGE:
 				snprintf(buf, sizeof(buf), "The Edge of %s\r\n", region_table[curr_region->rnum].name);
+				if (world[room].name)
+					free(world[room].name);
 				world[room].name = strdup(buf);
 				break;
 			default:
