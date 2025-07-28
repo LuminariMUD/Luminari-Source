@@ -411,7 +411,7 @@ modify.o: modify.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  interpreter.h handler.h comm.h spells.h mail.h boards.h improved-edit.h \
  oasis.h help.h class.h dg_scripts.h modify.h quest.h ibt.h constants.h \
  mysql/mysql.h mysql/mysql_version.h mysql/mysql_com.h mysql/mysql_time.h \
- mysql/typelib.h mysql/my_alloc.h mysql/my_list.h feats.h
+ mysql/typelib.h mysql/my_alloc.h mysql/my_list.h mysql.h feats.h
 msgedit.o: msgedit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
  screen.h spells.h msgedit.h oasis.h help.h genolc.h interpreter.h \

@@ -28,6 +28,7 @@
 #include "ibt.h"
 #include "constants.h"
 #include "mysql/mysql.h" // We add this for additional mysql functions such as mysql_insert_id, etc.
+#include "mysql.h"        // For mysql_escape_string_alloc
 #include "feats.h"
 
 /* local (file scope) function prototpyes  */
