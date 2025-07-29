@@ -6,7 +6,29 @@ The DG (DikuMUD Scripting) system in LuminariMUD provides a powerful, event-driv
 
 ## Introduction to DG Scripts
 
-DG Scripts (DikuMUD Scripting) allow builders to create interactive, dynamic content without programming knowledge. This system enables the creation of complex behaviors, quests, puzzles, and environmental effects that respond to player actions.
+DG Scripts (DikuMUD Scripting) are the primary mechanism through which builders—the creative staff responsible for designing the game's areas, non-player characters (NPCs), and items—can create a dynamic, interactive, and responsive virtual world. This system enables the creation of complex behaviors, quests, puzzles, and environmental effects that respond to player actions.
+
+The fundamental purpose of DG Scripts is to allow world builders to define complex behaviors for game elements without requiring them to be programmers proficient in the MUD's core language, C. This separation of concerns is critical; it empowers the individuals focused on narrative, game design, and world atmosphere to implement their ideas directly. The Builder Academy (TBA), a MUD dedicated to training builders, features extensive tutorials and help files on DG Scripts, positioning them as a key competency for anyone aspiring to create content for this family of MUDs.
+
+### DG Scripts vs. MobProgs: An Evolutionary Leap
+
+The development of DG Scripts represents a significant evolutionary step beyond older NPC scripting systems like MobProgs. While MobProgs were a revolutionary feature in their own right, DG Scripts expanded upon the concept in several critical ways, as detailed in historical MUD development discussions.
+
+The key differentiators are:
+
+- **Expanded Scope**: MobProgs were designed exclusively for "mobiles," or NPCs. DG Scripts dramatically broadened this scope, allowing scripts to be attached not only to mobiles but also to objects and rooms (often referred to as "world" or "wld" scripts). This enhancement unlocked a vast new potential for interactive design, enabling builders to create objects with unique behaviors (e.g., a magical portal that teleports a player when used) or rooms with environmental effects (e.g., a chamber that seals itself shut when a player enters).
+- **Enhanced Functionality**: DG Scripts introduced a more sophisticated command set, including support for local and global variables, conditional logic (if/else), and looping (while). Perhaps the most crucial addition was the wait command, which allows a script to pause between actions. MobProgs, in contrast, executed their command lists instantaneously and in a strictly linear fashion. The ability to add delays is fundamental for creating believable interactions, timed events, and complex sequences.
+- **Designed Coexistence**: The DG Script system was written with a new set of functions, allowing it to be installed and run alongside an existing MobProg system. This provided a practical migration path for established MUDs, which could adopt the more powerful DG Scripts for new content without needing to convert their entire library of existing MobProgs.
+
+This evolution from MobProgs to DG Scripts marked a fundamental shift in MUD development philosophy. Previously, any complex behavior that fell outside the scope of MobProgs—such as a timed puzzle, an object with a unique function, or a room with special properties—required a C programmer to write a hard-coded "special procedure" (spec_proc) and recompile the MUD server. DG Scripts moved a significant amount of this power from the low-level C code into the hands of the builders. This democratization of complex world-building broke a major development bottleneck, fostering a more rapid and creative design process by empowering the content creators directly.
+
+### The Anatomy of a DG Script
+
+Every DG Script is composed of three fundamental components:
+
+- **Triggers**: The specific in-game event that causes a script to execute. Each trigger is defined by its type (e.g., a player speaking, giving money to a mob), a numeric argument (NArg), and a text argument (Arg).
+- **Commands**: The list of actions the script performs when triggered. This is a small program that can include standard MUD commands, script-specific commands, and flow control commands.
+- **Variables**: The variable system allows scripts to store, retrieve, and manipulate data, enabling them to be stateful and intelligent.
 
 **Script Types:**
 - **Mobile Scripts:** Attached to NPCs
@@ -67,6 +89,41 @@ DG Scripts (DikuMUD Scripting) allow builders to create interactive, dynamic con
 - **Login:** When character logs into MUD
 - **Time:** Trigger based on game hour
 
+## Trigger Reference: NArg and Argument Meanings
+
+Understanding trigger mechanics is crucial. The function of Numeric Argument (NArg) and Text Argument (Arg) fields changes based on the trigger type:
+
+| Trigger Name | Attachable To | Firing Condition | NArg Meaning | Argument Meaning |
+|--------------|---------------|------------------|--------------|------------------|
+| Act | Mob | Sees a social message or action text in the room | 0 for phrase match, 100 for substring match | The text/phrase to match |
+| Bribe | Mob | A player gives money to the mob | The minimum amount of gold to fire the trigger | Not used |
+| Command | Obj, Wld | A player types a specific command | Not used | The command to trigger on |
+| Death | Mob | The mob is killed | Percent chance to fire (0-100) | Not used |
+| Drop | Wld | A player drops an item in the room | The VNUM of the specific item to trigger on (0 for any) | Not used |
+| Enter | Wld | A player enters the room | Percent chance to fire (0-100) | Not used |
+| Fight | Mob | The mob is engaged in combat (checked each round) | Percent chance to fire (0-100) | Not used |
+| Get | Obj | A player picks up the object | Percent chance to fire (0-100) | Not used |
+| Give | Obj | A player gives the object to a mob | Percent chance to fire (0-100) | Not used |
+| Greet | Mob | A player enters the room where the mob is | Percent chance to fire (0-100) | Not used |
+| Greet-All | Mob | Any character enters the room (including appearing) | Percent chance to fire (0-100) | Not used |
+| HitPrcnt | Mob | The mob's health drops below a certain percentage | The hit point percentage threshold | Not used |
+| Leave | Wld | A player leaves the room | The VNUM of the room the player is going to (0 for any) | Not used |
+| Leave-All | Wld | Any character leaves the room (including being extracted/purged) | Similar to Leave trigger | Not used |
+| Entry | Mob | The mob is loaded/enters a room | Percent chance to fire (0-100) | Not used |
+| Memory | Mob | Mob sees someone it remembers | Percent chance to fire (0-100) | Not used |
+| Cast | Mob, Obj, Wld | Entity is targeted by a spell | Not used | Not used |
+| Load | Mob, Obj | Entity is loaded into the game | Percent chance to fire (0-100) | Not used |
+| Zone Reset | Wld | Zone containing the room resets | Not used | Not used |
+| Random | Mob, Wld | Fires periodically (approx. every 13-15 seconds) | Percent chance to fire (0-100) | Not used |
+| Receive | Mob | A player gives an item to the mob | The VNUM of the specific item to trigger on (0 for any) | Not used |
+| Speech | Mob, Wld | A player says something in the room | Not used | A list of keywords to listen for |
+| Timer | Obj | Fires periodically when the object is on the ground | The number of MUD ticks between firings | Not used |
+| Use | Obj | A player uses the 'use' command on the object | Not used | The name of the tool being used on the object |
+| Wear | Obj | A player wears the object | Percent chance to fire (0-100) | Not used |
+| Remove | Obj | A player removes the object | Percent chance to fire (0-100) | Not used |
+| Give | Obj, Mob | A player gives the object/item to mob | Percent chance to fire (0-100) | Not used |
+| Time | Mob, Obj, Wld | Trigger based on game hour | Not used | Not used |
+
 ## Basic Scripting Examples
 
 ### Simple Greeting Script
@@ -90,6 +147,81 @@ else
   say The sword glows with magical power!
 end
 ```
+
+### Gate Guard Example (Complete Tutorial)
+
+This example demonstrates core scripting concepts through a functional gate guard:
+
+**Scenario**: We will create a gate guard for a walled town. The town's ruler has imposed a toll. The guard's responsibilities are:
+- Notify travelers of the 10-coin entry fee upon their arrival
+- Collect the money from travelers
+- If the correct amount is paid, open the gate to allow entry
+- If an incorrect amount is paid, inform the traveler and return the money
+- Close the gate after a traveler has passed through or after a set amount of time
+
+**Trigger Selection and Configuration**
+
+Next, we translate these desired behaviors into specific DG Script triggers and configure their arguments:
+
+- **Behavior 1 (Notify traveler)**: This is a reaction to a character entering the room. The appropriate trigger is a Greet Trigger. We want it to fire every time, so its NArg (percent chance) will be set to 100.
+- **Behavior 2, 3, 4 (Collect money)**: This involves a character giving money to the guard. The Bribe Trigger is designed for this. We will need two separate bribe triggers to handle the success and failure cases:
+  - **Success Case**: To open the gate, the trigger must fire when 10 or more coins are given. The NArg (minimum amount) will be set to 10.
+  - **Failure Case**: To return insufficient payment, the trigger must fire when any amount less than 10 is given. To catch all insufficient payments, its NArg will be set to 1. The script logic will ensure this only runs for amounts less than 10.
+- **Behavior 5 (Close gate)**: This involves reacting to a character's actions or the passage of time:
+  - To react to a character passing through the gate (e.g., "leaves south"), we will use an Act Trigger. Its Argument will be the text to match, such as "leaves south", and its NArg will be 0, which is used for phrase matching.
+  - To close the gate automatically after it's been opened, we can add a timed wait command to the successful bribe trigger.
+
+**Greet Trigger (NArg = 100)**
+```
+* Check if they came from outside the city
+if %direction% == north
+  wait 1
+  emote snaps to attention as you approach.
+  wait 1
+  say Admittance to the city is 10 coins.
+end
+```
+
+**Explanation**: The script uses the built-in %direction% variable, which is automatically set by a Greet trigger. The wait 1 commands are crucial; Greet triggers are checked before the character's arrival is displayed to them. These slight pauses ensure the guard's emote and speech appear after the character's "arrival" text, creating a logical sequence of events.
+
+**Bribe Trigger Success (NArg = 10)**
+```
+wait 1
+unlock gate
+open gate
+wait 20 s
+close gate
+lock gate
+```
+
+**Explanation**: The script unlocks and opens the gate. The command wait 20 s causes the script to pause for 20 real-world seconds before proceeding to close and lock the gate. The s suffix denotes real time, as opposed to game "pulses". This creates a self-resetting mechanism.
+
+**Bribe Trigger Failure (NArg = 1)**
+```
+if %amount% < 10
+  wait 1
+  say This is not enough!
+  give %amount% coins %actor%
+end
+```
+
+**Explanation**: The if %amount% < 10 check is essential. Without it, this trigger would fire even when 10+ coins are given. The script uses the %amount% and %actor% variables, which are automatically populated by a Bribe trigger with the amount of gold and the character who gave it, respectively. The guard then returns the exact amount of coins to the character.
+
+**Act Trigger (Argument = "leaves south", NArg = 0)**
+```
+wait 1
+close gate
+lock gate
+```
+
+**Explanation**: This script reacts to seeing the text "leaves south" in the room. The wait 1 provides a brief delay to avoid the visual of the gate slamming shut on the character as they are leaving.
+
+Key points demonstrated:
+- The %direction% variable is automatically set by Greet triggers
+- The wait commands ensure proper timing of messages
+- Bribe triggers automatically populate %amount% and %actor%
+- Multiple triggers can work together for complex behaviors
+- The NArg for Act triggers (0 for phrase match, 100 for substring match) determines matching behavior
 
 ## Core Architecture
 
@@ -325,6 +457,59 @@ wait 30 sec
 
 ## Script Commands
 
+The DG Script command set provides powerful tools for world interaction. Commands can be categorized by their function and the type of script they're used in.
+
+### Script Flow and Logic Commands
+
+These commands control the execution path of the script itself:
+
+- **if/else/end**: Standard conditional logic. The script evaluates an expression, and if true, executes the following block of commands until an else or end is reached.
+- **while/done**: Creates a loop that continues as long as the specified condition is true.
+- **switch/case/break/default/done**: A multi-way branching structure that compares a variable against multiple case values.
+- **wait**: Pauses the script's execution. wait <num> pauses for <num> game pulses (approx. 0.1 seconds each). wait <num> s pauses for <num> real-world seconds.
+- **eval**: Evaluates a mathematical or logical expression and assigns the result to a local script variable. Example: eval foobar 15 - 5.
+- **set/global/context**: set assigns a value to a local variable. global makes that variable accessible to other scripts. context assigns a numerical context to a global variable, allowing a single script to manage states for multiple entities simultaneously.
+- **remote**: Writes the value of a local variable to a global variable stored on a specific player character, identified by their ID. This is the modern method for managing persistent player-specific data.
+- **break**: Immediately exits the current while or switch block.
+
+### World and Game State Commands
+
+These commands directly alter the state of the MUD world:
+
+- **%load% <obj|mob> <vnum> [target][location]**: Loads an instance of an object or mobile into the game. It can be loaded into the room, a player's inventory, or even equipped directly.
+- **%purge% [target]**: Permanently removes a mob or object from the game. If no target is specified, it purges the entity the script is attached to. It is critical to use this command at the end of a script, as purging an entity makes its variables inaccessible.
+- **%teleport% <target> <location_vnum>**: Instantly moves a character or all characters in the room ('all') to a new room.
+- **%damage% <target> <amount>**: Inflicts damage on a target. A negative amount will heal the target.
+- **%door% <room_vnum> <dir> <field> [value]**: A powerful command to manipulate a room's exits. It can create or purge exits, change their flags (e.g., closed, locked), set a key, or change the destination room.
+- **%at% <location_vnum> <command>**: Executes a command in a different room from where the script is running.
+
+### Mobile-Specific Commands
+
+These commands are typically used in scripts attached to mobiles:
+
+- **%force% <target> <command>**: Forces a character to perform a command as if they had typed it themselves.
+- **%mfollow% <target>**: Causes the mob to begin following the target character without the standard "starts following you" message.
+- **%mtransform% <vnum>**: Permanently transforms the mob into a different mob specified by <vnum>. The new mob retains the hit points and script of the original.
+
+### Object-Specific Commands
+
+These commands are used in scripts attached to objects:
+
+- **%otransform% <vnum>**: Permanently transforms the object into a different one specified by <vnum>, retaining the original script.
+- **%opurge%**: A specific alias for purging the object the script is attached to.
+
+### Communication Commands
+
+These commands allow scripts to communicate with players:
+
+- **%echo% <message>**: Sends a message to all characters in the room.
+- **%send% <target> <message>**: Sends a private message to a single target character.
+- **%echoaround% <target> <message>**: Sends a message to everyone in the room except the specified target.
+- **%asound% <message>**: Sends a message to all adjacent rooms, typically as an ambient sound (e.g., "You hear a scream from the north.").
+- **%zoneecho% <room_vnum> <message>**: Sends a message to every room in the zone that contains the specified room vnum.
+
+A critical and often frustrating issue for new scripters involves pronoun substitution. In echo and send commands, the tilde character (~) is used as a placeholder for pronouns (e.g., ~actor% might expand to "he", "she", or "it" depending on the actor's gender). However, historical versions of the script loader and various text editors could not properly handle the ~ character, leading to script errors or garbage output. Some codebases have modified this to use a different character, such as #. Builders should be aware of this potential pitfall and verify which character their specific MUD version uses for pronoun substitution.
+
 ### Basic Commands
 
 #### Output Commands
@@ -338,11 +523,13 @@ wait 30 sec
 %recho% <message>                - Send message to room (no self)
 ```
 
+**Note on Pronoun Substitution**: In echo and send commands, the tilde character (~) is used as a placeholder for pronouns (e.g., ~actor% might expand to "he", "she", or "it" depending on the actor's gender). However, some codebases have modified this to use a different character, such as #. Builders should verify which character their specific MUD version uses.
+
 #### Character Manipulation
 ```
 %teleport% <target> <room>       - Move character to room
 %force% <target> <command>       - Force character to execute command
-%damage% <target> <amount>       - Deal damage to character
+%damage% <target> <amount>       - Deal damage to character (negative heals)
 %follow% <target>                - Make mobile follow target
 %hunt% <target>                  - Make mobile hunt target
 %remember% <target>              - Remember target for memory triggers
@@ -362,21 +549,29 @@ wait 30 sec
 
 #### Object Manipulation
 ```
-%load% obj <vnum>                - Load object to room/inventory
+%load% obj <vnum> [target][location] - Load object to room/inventory/equipment
 %load% mob <vnum>                - Load mobile to room
-%purge% <target>                 - Remove object/mobile
+%purge% [target]                 - Remove object/mobile (if no target, purges self)
 %give% <object> <target>         - Give object to character (not direct command)
 %junk% <object>                  - Destroy object in mobile's inventory
 %transform% <vnum>               - Transform object into another
 %timer% <ticks>                  - Set object timer
 ```
 
+**Critical Note on %purge%**: Always place %purge% commands at the very end of a script. Purging an entity immediately removes it and all its associated variables from the game, which can cause subsequent commands in the same script to fail if they try to reference the purged entity.
+
 #### Room Manipulation
 ```
-%door% <room> <direction> <flags> - Modify door flags
-%at% <room> <command>             - Execute command at different room
-%move% <object> <room>            - Move object to different room
+%door% <room> <direction> <field> [value] - Manipulate room exits
+%at% <location> <command>        - Execute command at different room
+%move% <object> <room>           - Move object to different room
 ```
+
+The %door% command is particularly powerful, allowing scripts to:
+- Create or purge exits
+- Change exit flags (e.g., closed, locked)
+- Set key requirements
+- Change destination rooms
 
 ### Control Flow
 
@@ -415,6 +610,16 @@ switch <variable>
     <commands>
     break
 done
+```
+
+#### Flow Control Commands
+```
+wait <time>                      - Pause script execution
+wait until <time>                - Wait until specific game time
+halt                             - Stop script execution immediately
+break                            - Exit current loop or switch block
+nop                              - No operation (comment)
+return                           - Exit from current script execution
 ```
 
 ### Variables and Context
@@ -476,6 +681,15 @@ extract <variable> <string> <field> - Extract field from string
 makeuid <variable> <target>      - Create unique ID for target
 ```
 
+#### Expression Operators
+
+Expressions are used in if and eval statements to make decisions and perform calculations:
+
+- **Logical**: || (or), && (and), ! (not)
+- **Comparison**: == (equal, case-insensitive for strings), != (not equal), <, >, <=, >=
+- **Substring**: /= (returns true if the right operand is a substring of the left)
+- **Arithmetic**: + (add), - (subtract), * (multiply), / (divide)
+
 #### Advanced Commands
 ```
 wait <time>                      - Pause script execution
@@ -488,67 +702,95 @@ dg_affect <target> <spell> <duration> - Apply spell effect
 
 #### Context Variables
 
-**Character Variables:**
+The variable system allows scripts to read game data, make decisions, and manipulate the world state. All variables in DG Scripts are referenced by enclosing their name in percent signs (e.g., %actor%). To access specific pieces of information about a variable, a field is appended using a dot (.). 
+
+Fields can be read-only (e.g., %actor.name%) or assignable. Assignable fields are used to change a value and are typically denoted with parentheses, which may contain an argument.
+
+**Character Variables (%actor%, %self%, %victim%, %random%, etc.):**
+
+| Field | Description | Assignable? | Example |
+|-------|-------------|-------------|---------|
+| .name | The character's name | No | %actor.name% |
+| .vnum | The character's virtual number (-1 for players) | No | if %self.vnum(1234)% |
+| .level | The character's level | Yes | %actor.level(10)% |
+| .class | The character's class as a string | Yes | if %actor.class% == Warrior |
+| .race | The character's race | Yes | %actor.race% |
+| .room | Character's current room VNUM | No | %actor.room% |
+| .hitp() | The character's current hit points | Yes | %self.hitp(50)% (heals 50) |
+| .maxhitp() | The character's maximum hit points | Yes | eval newmax %self.maxhitp% |
+| .mana() | Current mana points | Yes | %actor.mana(-10)% |
+| .maxmana() | Maximum mana points | Yes | %actor.maxmana% |
+| .move() | Current movement points | Yes | %actor.move% |
+| .maxmove() | Maximum movement points | Yes | %actor.maxmove% |
+| .str | Strength score | No | %actor.str% |
+| .int | Intelligence score | No | %actor.int% |
+| .wis | Wisdom score | No | %actor.wis% |
+| .dex | Dexterity score | No | %actor.dex% |
+| .con | Constitution score | No | %actor.con% |
+| .cha | Charisma score | No | %actor.cha% |
+| .exp() | Experience points | Yes | %actor.exp% += 5000 |
+| .gold() | Gold amount | Yes | %actor.gold(-100)% (takes 100) |
+| .id | Unique character ID | No | %actor.id% |
+| .fighting | ID of character this character is fighting | No | if !%self.fighting% |
+| .affect() | Checks if character has a specific spell effect | No | if %actor.affect(bless)% |
+| .inventory() | Gets first item, or specific item by vnum, from inventory | No | %purge% %actor.inventory(3010)% |
+| .eq() | Gets item equipped in a specific slot | No | if %actor.eq(wield)% |
+| .skillset() | Sets a character's proficiency in a skill | Yes | %actor.skillset("bash" 95)% |
+| .is_pc | Returns true if the character is a player | No | if %actor.is_pc% |
+| .varexists() | Checks if a global variable exists on the character | No | if %actor.varexists(questvar)% |
+
+**Advanced Variable Chaining**: A powerful technique is the chaining of variables to traverse the MUD's data structure. For instance, %object.worn_by.skillset("magic missile" 95)% first identifies an object, then finds the character wearing that object, and finally modifies that character's skill.
+
+**Object Variables (%obj%, %container%, etc.):**
+
+| Field | Description | Assignable? | Example |
+|-------|-------------|-------------|---------|
+| .name | Object's name | No | %obj.name% |
+| .vnum | Object's virtual number | No | %obj.vnum% |
+| .cost() | Object's cost | Yes | %obj.cost(100)% |
+| .weight() | Object's weight | Yes | %obj.weight(5)% |
+| .worn_by | Character variable of person wearing object | No | %obj.worn_by% |
+| .carried_by | Character carrying object | No | %obj.carried_by% |
+| .contains | First object inside this object (if container) | No | %container.contains% |
+| .id | Object's unique ID | No | %obj.id% |
+| .type | Object's type | No | %obj.type% |
+| .shortdesc | Object's short description | No | %obj.shortdesc% |
+| .val0 to .val3 | Object values 0-3 | No | %obj.val0% |
+| .timer | Object's timer | No | %obj.timer% |
+| .room | Room containing object | No | %obj.room% |
+
+**Room Variables (%room%):**
+
+| Field | Description | Assignable? | Example |
+|-------|-------------|-------------|---------|
+| .name | Room's name | No | %room.name% |
+| .vnum | Room's virtual number | No | %room.vnum% |
+| .people | First character in the room | No | %room.people% |
+| .contents | First object in the room | No | %room.contents% |
+| .<direction>(field) | Inspect exits | No | %room.north(vnum)% |
+
+The direction fields are particularly powerful - %room.north(vnum)% returns the VNUM of the room to the north, while %room.south(bits)% returns the flag state (e.g., "DOOR CLOSED LOCKED") of the southern exit.
+
+**Special and Text Variables:**
 ```
-%actor.name%     - Actor's name
-%actor.level%    - Actor's level
-%actor.class%    - Actor's class
-%actor.race%     - Actor's race
-%actor.room%     - Actor's current room
-%actor.hitp%     - Actor's current hit points
-%actor.maxhitp%  - Actor's maximum hit points
-%actor.mana%     - Actor's current mana
-%actor.maxmana%  - Actor's maximum mana
-%actor.move%     - Actor's current movement
-%actor.maxmove%  - Actor's maximum movement
-%actor.str%      - Actor's strength
-%actor.int%      - Actor's intelligence
-%actor.wis%      - Actor's wisdom
-%actor.dex%      - Actor's dexterity
-%actor.con%      - Actor's constitution
-%actor.cha%      - Actor's charisma
-%actor.exp%      - Actor's experience points
-%actor.gold%     - Actor's gold
-%actor.id%       - Actor's unique ID
-%actor.fighting% - Who actor is fighting
-%actor.eq(<pos>)% - Equipment at position
-%actor.inventory(<vnum>)% - Object in inventory
+%random.<N>%     - Random integer between 1 and N
+%time.hour%      - Current in-game hour (0-23)
+%time.day%       - Current game day
+%time.month%     - Current game month
+%time.year%      - Current game year
+%text.car%       - First word of a string (LISP-style)
+%text.cdr%       - Rest of string after first word
+
 ```
 
-**Object Variables:**
-```
-%self.name%      - Object's name
-%self.shortdesc% - Object's short description
-%self.id%        - Object's unique ID
-%self.type%      - Object's type
-%self.vnum%      - Object's virtual number
-%self.val0%      - Object value 0
-%self.val1%      - Object value 1
-%self.val2%      - Object value 2
-%self.val3%      - Object value 3
-%self.timer%     - Object's timer
-%self.weight%    - Object's weight
-%self.cost%      - Object's cost
-%self.room%      - Room containing object
-%self.carried_by% - Character carrying object
-%self.worn_by%   - Character wearing object
-```
+### Using Expressions: Logical and Arithmetic Operators
 
-**Room Variables:**
-```
-%self.name%      - Room's name
-%self.id%        - Room's unique ID
-%self.vnum%      - Room's virtual number
-%self.sector%    - Room's sector type
-%self.north%     - Room to the north
-%self.south%     - Room to the south
-%self.east%      - Room to the east
-%self.west%      - Room to the west
-%self.up%        - Room above
-%self.down%      - Room below
-%self.people%    - List of people in room
-%self.contents%  - List of objects in room
-```
+Expressions are used in if and eval statements to make decisions and perform calculations. The following operators are supported:
+
+- **Logical**: || (or), && (and), ! (not)
+- **Comparison**: == (equal, case-insensitive for strings), != (not equal), <, >, <=, >=
+- **Substring**: /= (returns true if the right operand is a substring of the left)
+- **Arithmetic**: + (add), - (subtract), * (multiply), / (divide)
 
 ## Advanced Scripting Techniques
 
@@ -626,15 +868,116 @@ if %global.lever1_pulled% && %global.lever2_pulled% && %global.lever3_pulled%
 end
 ```
 
+### Complex State-Aware NPCs
+
+#### Self-Healing Cleric
+This mob uses combat state to decide which heal to cast:
+```
+Trigger: HitPrcnt, NArg = 80
+Commands:
+* Check if the mob is NOT fighting anyone
+if !%self.fighting%
+  * If not in combat, cast a slow, powerful heal
+  dg_cast 'heal' %self%
+else
+  * If in combat, cast a faster, less powerful heal
+  dg_cast 'cure critical' %self.fighting%
+end
+```
+
+#### Time-Based Event
+Using Random trigger and global variable for regular intervals:
+```
+Trigger: Random, NArg = 100
+Commands:
+* Increment a counter variable each time the trigger fires
+eval counter %counter% + 1
+global counter
+
+* Assuming random triggers fire every 15 seconds, and a MUD hour is 75 seconds.
+* The event should fire every 5 triggers (75 / 15 = 5).
+if %counter% >= 5
+  zoneecho 1200 The town crier yells, 'It is now %time.hour% o'clock!'
+  * Reset the counter
+  eval counter 0
+  global counter
+end
+```
+
+### Dynamic Objects and Environments
+
+#### One-Way Portal
+An object that teleports the user and is consumed:
+```
+Object: A glowing rune
+Trigger: Command, Argument = 'touch rune'
+Commands:
+%send% %actor% The rune flares with brilliant light!
+%teleport% %actor% 3001
+%purge% %self%
+```
+
+#### Room Trap
+A room that seals itself and spawns a monster:
+```
+Trigger: Enter, NArg = 100
+Commands:
+%echo% The stone door slams shut behind you!
+%door% %room.vnum% north flags b
+%load% mob 1234
+```
+
+### Interacting with Players: Remote Variables
+
+The modern solution for tracking player progress uses remote variables stored directly on the player character object. This is the key to creating any non-trivial quest system.
+
+#### Quest Giver Interaction
+```
+* Script on a quest mob, triggered by speech 'I will help'
+
+* Check if the player has already accepted this quest
+if %actor.varexists(quest_accepted)%
+  say You are already on this quest!
+else
+  say Thank you, brave adventurer!
+  * Set the variable on the player.
+  * First, set a local variable with the value 1 (true).
+  set quest_accepted 1
+  * Then, write that local variable to the remote variable on the player.
+  remote quest_accepted %actor.id%
+end
+```
+
 ## Debugging and Testing
 
 ### Debug Commands
 ```
 halt                            - Stop script execution immediately
 nop <comment>                   - No operation (for comments)
+%log% <message>                 - Write to immortal-visible system log
 ```
 
-**Note:** There is no `%debug%` command in the actual implementation. Use regular MUD logging or `%echo%` for debugging output.
+The %log% command is an indispensable debugging tool. It allows a builder to write custom messages to the immortal-visible system log file. This can be used to trace a script's execution path, check the values of variables at different points in the script, and confirm whether specific conditions are being met. For example:
+```
+%log% Bribe trigger fired for %actor.name% with %amount% coins.
+```
+
+### Testing and Debugging Strategies
+
+Thorough testing is vital to prevent faulty scripts from causing game crashes or unintended behavior.
+
+#### Live Testing with attach/detach
+
+Before permanently adding a script to a mob or object via its OLC editor, builders should use the attach command. This command applies a trigger to a single instance of an entity temporarily. It allows for safe, live testing in a controlled environment. If the script is flawed, it can be corrected without affecting the permanent world files. The corresponding detach command removes the temporary script.
+
+```
+attach mob 1234 5678    - Attach trigger 5678 to mob instance 1234
+detach mob 1234 5678    - Remove trigger 5678 from mob instance 1234
+```
+
+#### Debugging with %log%
+
+The %log% command is an indispensable debugging tool. It allows a builder to write custom messages to the immortal-visible system log file. This can be used to trace a script's execution path, check the values of variables at different points in the script, and confirm whether specific conditions are being met. For example, one could add %log% Bribe trigger fired for %actor.name% with %amount% coins. to the bribe script to monitor its activation.
 
 ### Error Handling
 ```
@@ -669,6 +1012,20 @@ end
 
 remote quest_state started
 ```
+
+### Debugging Best Practices
+
+1. **Comment your code extensively** using lines that start with *. This is invaluable for future maintenance by yourself or other builders.
+
+2. **Use the %log% command liberally** during development to trace execution and variable states.
+
+3. **Test with different player levels** and character types to ensure scripts work correctly for all situations.
+
+4. **Test edge cases** such as no arguments, invalid targets, or unexpected player actions.
+
+5. **Verify script interactions** with other systems (combat, spells, etc.).
+
+6. **Use temporary echo statements** for debugging but remember to remove them before finalizing.
 
 ### Script Memory System
 DG Scripts support a memory system for mobiles to remember interactions:
@@ -1082,6 +1439,28 @@ if !%room.mob(1234)%
 end
 ```
 
+### Common Script Errors to Avoid
+
+1. **Pronoun Substitution Issues**: Historical versions of the script loader and various text editors could not properly handle the ~ character used for pronoun substitution in echo and send commands. Some codebases have modified this to use #. Verify which character your MUD uses.
+
+2. **Purge Command Placement**: Always place %purge% commands at the very end of a script. Purging an entity immediately removes it and all its associated variables from the game.
+
+3. **Context Sensitivity**: Remember that NArg and Arg fields have different meanings for different trigger types. Always verify the correct usage for your specific trigger.
+
+4. **Script Depth Limits**: Scripts have a maximum recursion depth of 10 levels to prevent infinite loops and stack overflow.
+
+5. **Charmed Mobile Restrictions**: Charmed mobiles (those under player control) cannot execute most script commands for security reasons.
+
+### Understanding Trigger Mechanics: Type, NArg, and Argument
+
+A frequent source of confusion for new scripters is the generic nature of the "Numeric Arg" (NArg) and "Arguments" (Arg) fields in the trigedit interface. The function of these arguments is not fixed; it is entirely dependent on the Trigger Type selected.
+
+- **Trigger Type**: This is a bitvector that defines the specific in-game event(s) that will activate the script.
+- **Numeric Argument (NArg)**: A number whose meaning changes based on the trigger type. For a Greet trigger, it is a percentage chance (0-100) that the trigger will fire. For a Bribe trigger, it is the minimum amount of gold required to activate it. For a HitPrcnt trigger, it is the health percentage threshold below which the mob's script will fire.
+- **Text Argument (Arg)**: A string whose meaning also changes. For a Speech trigger, it is a list of keywords the script should listen for. For an Act trigger, it is a social message or action text to react to. For most other triggers, it is not used.
+
+Understanding this context-sensitivity is fundamental to correctly configuring triggers.
+
 ## Script File Format and OLC Integration
 
 ### Script File Structure
@@ -1120,14 +1499,47 @@ end
 
 ### OLC (Online Creation) Integration
 
+Scripts are created and managed within the game itself using OasisOLC (On-Line Creation), an integrated suite of editors that is a hallmark of the tbaMUD codebase.
+
 #### Creating Scripts with TRIGEDIT
+
+The primary tool for script creation is trigedit, the dedicated trigger editor. A builder uses the command trigedit <vnum> to create a new script or edit an existing one.
+
 ```
 trigedit <vnum>                  - Create/edit trigger
 trigedit <vnum> copy <source>    - Copy existing trigger
 trigedit <vnum> delete           - Delete trigger
 ```
 
-#### Attaching Scripts to Entities
+The trigedit interface presents several fields:
+- **Name**: A descriptive name for the trigger (e.g., 'guard shout for help')
+- **Intended for**: The type of entity the script is designed for: Mobiles, Objects, or Rooms
+- **Trigger types**: A bitvector specifying which events will activate the script (e.g., Greet, Bribe, Command). This is the most critical setting.
+- **Numeric Arg**: A numerical value whose meaning depends on the selected trigger type
+- **Arguments**: A text string whose meaning also depends on the trigger type
+- **Commands**: The list of commands to be executed
+
+#### Attaching Scripts: An Overview of trigedit and In-Game Editors
+
+Scripts are created and managed within the game itself using OasisOLC (On-Line Creation), an integrated suite of editors that is a hallmark of the tbaMUD codebase.
+
+The primary tool for script creation is trigedit, the dedicated trigger editor. A builder uses the command trigedit <vnum> to create a new script or edit an existing one. The trigedit interface presents several fields:
+
+- **Name**: A descriptive name for the trigger (e.g., 'guard shout for help'). Intended for builders.
+- **Intended for**: The type of entity the script is designed for: Mobiles, Objects, or Rooms
+- **Trigger types**: A bitvector specifying which events will activate the script (e.g., Greet, Bribe, Command). This is the most critical setting.
+- **Numeric Arg**: A numerical value whose meaning depends on the selected trigger type
+- **Arguments**: A text string whose meaning also depends on the trigger type
+- **Commands**: The list of commands to be executed
+
+Associated utility commands include:
+- **tlist** - for listing triggers within a zone
+- **tstat** - for viewing the detailed configuration of a specific trigger
+
+### Attaching Scripts to Entities
+
+Once a trigger is created and saved with trigedit, it is attached to a specific mobile, object, or room using their respective OLC editors:
+
 ```
 * Mobile Scripts
 medit <vnum>
@@ -1146,6 +1558,8 @@ script <trigger_vnum>            - Attach trigger to room
 ```
 vstat trig <vnum>                - View trigger details
 tstat <entity>                   - View entity's attached scripts
+tlist                            - List triggers in current zone
+tlist <zone>                     - List triggers in specific zone
 ```
 
 ### Integration with Game Systems
@@ -1175,6 +1589,18 @@ Scripts can manage quest states and progression:
 * Coordinate between multiple NPCs and objects
 * Implement complex quest chains
 ```
+
+## Debugging and Best Practices
+
+### Adhering to Best Practices
+
+Adhering to best practices ensures stable and maintainable scripts:
+
+1. **Use the attach/detach workflow** for safely testing new scripts before making them permanent.
+2. **Use the %log% command liberally** during development to trace execution and variable states.
+3. **Comment your code extensively** using lines that start with *. This is invaluable for future maintenance by yourself or other builders.
+4. **Always place %purge% commands at the very end of a script**. Purging an entity immediately removes it and all its associated variables from the game, which can cause subsequent commands in the same script to fail if they try to reference the purged entity.
+5. **Be aware of common pitfalls**, such as the tilde (~) character issue in communication commands, and verify the correct syntax for your MUD's specific codebase.
 
 ---
 

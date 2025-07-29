@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 2025-01-29 (Part 6)
+### Fixed
+- **Clan Edit System (clan_edit.c)**:
+  - Fixed incorrect privilege display in `clanedit_priv_menu()` - was using CP_BALANCE instead of CP_CLAIM on line 1141
+  - Fixed wrong mode being set in privilege menu - was setting CP_TITLE instead of CP_DESC for description editing on line 1660
+  - Fixed missing return statements in all CLANEDIT_CP_* switch cases causing potential fall-through bugs
+  - Added proper OLC_VAL modification flags for rank editing operations
+  - Improved memory safety in `duplicate_clan_data()` function
+
+### Added
+- **Comprehensive Documentation for clan_edit.c**:
+  - Added detailed file header documentation explaining the clan editor system
+  - Added Doxygen-style function documentation for all major functions
+  - Added parameter and return value documentation
+  - Added inline comments for static function declarations
+  - Improved all code block comments for better clarity
+  - Enhanced comment consistency throughout the file
+
 ## 2025-01-29 (Part 5)
 ### Fixed
 - **Build Errors and Warnings**:
