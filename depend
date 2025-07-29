@@ -126,7 +126,7 @@ char_descs.o: char_descs.c conf.h sysdep.h structs.h bool.h protocol.h \
 clan.o: clan.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
  interpreter.h handler.h screen.h improved-edit.h spells.h clan.h \
- mudlim.h
+ mudlim.h oasis.h help.h
 clan_edit.o: clan_edit.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h mud_options.h vnums.h utils.h db.h helpers.h \
  perfmon.h screen.h genolc.h oasis.h help.h improved-edit.h comm.h \

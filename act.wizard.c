@@ -6392,12 +6392,16 @@ break;
     /* logfile = NULL; */
   }
   
-  /* Close the mother descriptor - it will be recreated on startup */
-  extern socket_t mother_desc;
-  if (mother_desc >= 0)
-  {
-    CLOSE_SOCKET(mother_desc);
-  }
+  /* DO NOT close the mother descriptor during copyover!
+   * The mother_desc needs to be inherited by the new process
+   * so that new connections can still be accepted.
+   * The -C parameter passes this descriptor to the new process.
+   */
+  /* extern socket_t mother_desc; */
+  /* if (mother_desc >= 0) */
+  /* { */
+  /*   CLOSE_SOCKET(mother_desc); */
+  /* } */
   
   /* Close database connections */
   extern void disconnect_from_mysql(void);

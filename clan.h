@@ -42,8 +42,6 @@ Clan Header File
 #define MAX_CLANS 25
 /**< The maximum number of ranks per clan (do not exceed 16) */
 #define MAX_CLANRANKS 15
-/**< The maximum number of clan spells per clan (do not exceed 5) */
-#define MAX_CLANSPELLS 5
 /**< The maximum string length for clan names */
 #define MAX_CLAN_NAME 60
 /**< The maximum popularity value             */
@@ -132,18 +130,40 @@ struct clan_data
        zone_vnum hall;                  /**< The zone for the clan's hall   */
        int at_war[MAX_CLANS];           /**< TRUE if at war                 */
        int allies[MAX_CLANS];           /**< TRUE if allied                 */
-       int spells[MAX_CLANSPELLS];      /**< Five skills known by all members */
        long treasure;                   /**< The clan's bank account        */
        int pk_win;                      /**< How many PK's have been won    */
        int pk_lose;                     /**< How many PK's have been lost   */
        int raided;                      /**< How many times been raided */
        char *abrev;                     /**< Abbreviation for the clan      */
+       
+       /* Performance optimization: cached values */
+       int cached_member_count;         /**< Cached member count (updated periodically) */
+       int cached_member_power;         /**< Cached total member levels */
+       time_t cache_timestamp;          /**< When cache was last updated */
+       
+       /* Activity tracking */
+       time_t last_activity;            /**< Timestamp of last clan activity */
+       
+       /* Member limits */
+       int max_members;                 /**< Maximum allowed members (0 = unlimited) */
+       
+       /* Optimization flags */
+       bool modified;                   /**< TRUE if clan needs to be saved */
 };
 
 /* globals */
 extern struct clan_data *clan_list;
 extern struct claim_data *claim_list;
 extern int num_of_clans;
+
+/* Hash table for fast clan lookups */
+#define CLAN_HASH_SIZE 127  /* Prime number for better distribution */
+struct clan_hash_entry {
+  clan_vnum vnum;
+  clan_rnum rnum;
+  struct clan_hash_entry *next;
+};
+extern struct clan_hash_entry *clan_hash_table[CLAN_HASH_SIZE];
 
 int find_clan_by_id(int clan_id);
 clan_rnum real_clan(clan_vnum c);
@@ -162,6 +182,8 @@ bool is_a_clan_leader(struct char_data *ch);
 void clear_clan_vals(struct clan_data *cl);
 void load_clans(void);
 void save_clans(void);
+void save_single_clan(clan_rnum c);
+void mark_clan_modified(clan_rnum c);
 bool can_edit_clan(struct char_data *ch, clan_vnum c);
 void duplicate_clan_data(struct clan_data *to_clan,
                          struct clan_data *from_clan);
@@ -188,6 +210,9 @@ ACMD_DECL(do_clanwhere);
 ACMD_DECL(do_clanwithdraw);
 ACMD_DECL(do_clanunclaim);
 ACMD_DECL(do_clanleave);
+ACMD_DECL(do_clanally);
+ACMD_DECL(do_clanwar);
+ACMD_DECL(do_clanlog);
 
 ACMD_DECL(do_clanset);
 ACMD_DECL(do_clantalk);
@@ -196,6 +221,7 @@ zone_vnum get_clanhall_by_char(struct char_data *ch);
 int get_clan_taxrate(struct char_data *ch);
 bool check_clanpriv(struct char_data *ch, int p);
 void do_clan_tax_losses(struct char_data *ch, int amount);
+void update_clans(void);
 
 /* Claiming functions */
 struct claim_data *new_claim(void);
@@ -222,6 +248,17 @@ void show_zone_popularities(struct char_data *ch,
 void show_clan_popularities(struct char_data *ch, clan_vnum c_v);
 void show_popularity(struct char_data *ch, char *arg);
 void check_diplomacy(void);
+void update_clan_member_cache(clan_rnum c);
+void update_all_clan_caches(void);
+void update_clan_activity(clan_vnum c);
+void log_clan_activity(clan_vnum c, const char *format, ...);
+
+/* Hash table functions */
+void init_clan_hash(void);
+void add_clan_to_hash(clan_vnum vnum, clan_rnum rnum);
+void remove_clan_from_hash(clan_vnum vnum);
+void rebuild_clan_hash(void);
+void free_clan_hash(void);
 
 /* clan edit OLC Functions */
 void clanedit_parse(struct descriptor_data *d, char *arg);
