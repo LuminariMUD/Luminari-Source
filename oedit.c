@@ -1737,6 +1737,9 @@ static void oedit_disp_menu(struct descriptor_data *d)
     if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHEATH))
       len += snprintf(buf3 + len, sizeof(buf3) - len,
                       "[wear-sheath:NONE] ");
+    if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_INSTRUMENT))
+      len += snprintf(buf3 + len, sizeof(buf3) - len,
+                      "[wear-instrument:NONE] ");
   }
   /* end eq-wear suggestions */
 

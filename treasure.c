@@ -182,6 +182,10 @@ int determine_rnd_misc_cat()
     /* anklet */
     category = TRS_SLOT_ANKLET;
     break;
+  case 20:
+    /* instrument */
+    category = TRS_SLOT_INSTRUMENT;
+    break;
   }
 
   return category;
@@ -3713,7 +3717,8 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
 {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE;
-  int level = 0;
+  int level = 0, i;
+  int instrument_type = INSTRUMENT_LYRE;
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'}, buf[MEDIUM_STRING] = {'\0'};
   char desc2[SHORT_STRING] = {'\0'}, desc3[SHORT_STRING] = {'\0'};
@@ -3817,6 +3822,17 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     vnum = ANKLET_MOLD;
     material = MATERIAL_COPPER;
     snprintf(armor_name, MEDIUM_STRING, "%s", ankle_descs[rand_number(0, NUM_A_ANKLET_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    break;
+  case 15: // Instrument
+    vnum = INSTRUMENT_PROTO;
+    material = MATERIAL_WOOD;
+    instrument_type = dice(1, MAX_INSTRUMENTS) - 1;
+    snprintf(armor_name, MEDIUM_STRING, "%s", instrument_names[instrument_type]);
+    for (i = 0; i < strlen(armor_name); i++)
+    {
+      armor_name[i] = LOWER(armor_name[i]);
+    }
     snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
     break;
   }
@@ -3949,6 +3965,11 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
   case 9: /* monk gloves */
     GET_OBJ_VAL(obj, 0) = grade;
     break;
+  case 15: /* instrument */
+    GET_OBJ_VAL(obj, 0) = instrument_type;
+    GET_OBJ_VAL(obj, 1) = dice(1, level) + 5; // quality
+    GET_OBJ_VAL(obj, 2) = dice(1, (level+5) / 5); // effectiveness
+    GET_OBJ_VAL(obj, 3) = dice(1, level) / 5; // breakability
   default:
     break;
   }
@@ -3966,6 +3987,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
   case ANKLET_MOLD:
   case EYES_MOLD:
   case FACE_MOLD:
+  case INSTRUMENT_PROTO:
     snprintf(keywords, MEDIUM_STRING, "%s %s set with %s gemstone",
              armor_name, material_name[material], desc2);
     obj->name = strdup(keywords);
@@ -4284,12 +4306,12 @@ ACMD(do_loadmagicspecific)
   if (!*arg1)
   {
     send_to_char(ch, "Syntax: lms [mundane|minor|typical|medium|major|superior] "
-                     "[weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|scroll|potion|wand|staff] <AMOUNT>\r\n");
+                     "[weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|face|shoulders|ears|ankles|instrument|scroll|potion|wand|staff] <AMOUNT>\r\n");
     return;
   }
   if (!*arg2)
   {
-    send_to_char(ch, "2nd argument must be: [weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|scroll|potion|wand|staff]\r\n");
+    send_to_char(ch, "2nd argument must be: [weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|face|shoulders|ears|ankles|instrument|scroll|potion|wand|staff]\r\n");
     return;
   }
 
@@ -4323,7 +4345,7 @@ ACMD(do_loadmagicspecific)
   else
   {
     send_to_char(ch, "Syntax: lms [mundane|minor|typical|medium|major|superior] "
-                     "[weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|scroll|potion|wand|staff]\r\n");
+                     "[weapon|shield|body|legs|arms|head|crystal|ammo|finger|neck|wrist|feet|monk|hand|about|waist|held|face|shoulders|ears|ankles|instrument|scroll|potion|wand|staff]\r\n");
     return;
   }
 
@@ -4373,6 +4395,8 @@ ACMD(do_loadmagicspecific)
       award_misc_magic_item(ch, TRS_SLOT_ANKLET, grade);
     else if (is_abbrev(arg2, "eyes"))
       award_misc_magic_item(ch, TRS_SLOT_EYES, grade);
+    else if (is_abbrev(arg2, "instrument"))
+      award_misc_magic_item(ch, TRS_SLOT_INSTRUMENT, grade);
     else if (is_abbrev(arg2, "scroll"))
       award_expendable_item(ch, grade, TYPE_SCROLL);
     else if (is_abbrev(arg2, "potion"))
@@ -5174,7 +5198,6 @@ bool is_bonus_valid_for_item_type(int bonus, int item_type)
   {
     // weapons can have everything
     case ITEM_WEAPON:
-    case ITEM_INSTRUMENT:
       return true;
     case ITEM_LIGHT:
       if (is_resist_magic_apply(bonus)) return true;

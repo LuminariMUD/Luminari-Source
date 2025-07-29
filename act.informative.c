@@ -120,6 +120,7 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_HOLD_2,        //<wielding/held slots>
     WEAR_WIELD_2H,      //<wielding/held slots>
     WEAR_HOLD_2H,       //<wielding/held slots>
+    WEAR_INSTRUMENT,    //<worn as instrument>
     WEAR_SHIELD,        //<worn as shield>
     WEAR_LEGS,          //<worn on legs>
     WEAR_ANKLE_R,       //<worn on ankle>

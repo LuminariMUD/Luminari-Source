@@ -1696,8 +1696,9 @@
 #define WEAR_ANKLE_R 29
 #define WEAR_ANKLE_L 30
 #define WEAR_SHEATH 31
+#define WEAR_INSTRUMENT 32
 /** Total number of available equipment lcoations */
-#define NUM_WEARS 32
+#define NUM_WEARS 33
 /**/
 
 /* ranged combat */
