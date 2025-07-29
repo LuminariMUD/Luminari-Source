@@ -4,6 +4,14 @@
  *  Usage:    clan-related olc features, and saving/loading of clans
  *  Header:   clan.h
  *  Authors:  Jamdog (ported to Luminari by Bakarus and Zusuk)
+ *  
+ *  This file contains the online clan editor (OLC) system for creating,
+ *  modifying, and managing clans in the game. It handles:
+ *  - Saving/loading clan data to/from disk
+ *  - Online editing interface for clan properties
+ *  - Clan privilege and rank management
+ *  - Alliance and war status tracking
+ *  - Clan statistics and activity tracking
  ****************************************************************************/
 
 #include "conf.h"
@@ -22,19 +30,25 @@
 #include "clan.h"
 
 /* Static internal (only used in clan_edit.c) functions */
-static void clanedit_setup(struct descriptor_data *d);
-static void clanedit_save(struct descriptor_data *d);
-static void clanedit_disp_menu(struct descriptor_data *d);
-static void clanedit_ranks_menu(struct descriptor_data *d);
-static void clanedit_priv_menu(struct descriptor_data *d);
-static void clanedit_clans_menu(struct descriptor_data *d, int player_clan);
-static void get_priv_string(struct descriptor_data *d, char *t, int p);
+static void clanedit_setup(struct descriptor_data *d);           /* Initialize clan editor for a descriptor */
+static void clanedit_save(struct descriptor_data *d);            /* Save edited clan data to memory */
+static void clanedit_disp_menu(struct descriptor_data *d);       /* Display main clan edit menu */
+static void clanedit_ranks_menu(struct descriptor_data *d);      /* Display clan ranks editing menu */
+static void clanedit_priv_menu(struct descriptor_data *d);       /* Display clan privileges menu */
+static void clanedit_clans_menu(struct descriptor_data *d, int player_clan); /* Display clan selection menu */
+static void get_priv_string(struct descriptor_data *d, char *t, int p);      /* Get privilege string representation */
 
 /*============================================*/
 /*======        Saving of Clans       ========*/
 /*============================================*/
 
-/* Write clans to the lib/etc/clans file */
+/**
+ * save_clans - Write all clans to the lib/etc/clans file
+ * 
+ * This function saves all clan data to disk in a text format.
+ * It includes all clan properties, ranks, privileges, and statistics.
+ * The file format is designed to be human-readable and editable.
+ */
 void save_clans(void)
 {
   FILE *fl;
@@ -155,7 +169,18 @@ void save_clans(void)
   }
 }
 
-/* Save a single clan to a temporary file, then merge with existing clan file */
+/**
+ * save_single_clan - Save a single clan without rewriting the entire file
+ * @c: Real number (index) of the clan to save
+ * 
+ * This function efficiently saves a single clan by:
+ * 1. Creating a temporary file
+ * 2. Copying all clans except the modified one from the original file
+ * 3. Writing the modified clan with updated data
+ * 4. Replacing the original file with the temporary file
+ * 
+ * This approach is more efficient than rewriting all clans when only one changes.
+ */
 void save_single_clan(clan_rnum c)
 {
   FILE *fl, *new_fl;
@@ -358,7 +383,14 @@ void save_single_clan(clan_rnum c)
   clan_list[c].modified = FALSE;
 }
 
-/* Mark a clan as needing to be saved */
+/**
+ * mark_clan_modified - Flag a clan as having unsaved changes
+ * @c: Real number (index) of the clan to mark
+ * 
+ * This function sets the modified flag for a clan, indicating that
+ * it has changes that need to be saved to disk. The actual save
+ * operation can be deferred until a convenient time.
+ */
 void mark_clan_modified(clan_rnum c)
 {
   if (c >= 0 && c < num_of_clans)
@@ -367,7 +399,17 @@ void mark_clan_modified(clan_rnum c)
   }
 }
 
-/* Read clans from the lib/etc/clans file */
+/**
+ * load_clans - Load all clan data from disk
+ * 
+ * This function reads the clan file and populates the in-memory
+ * clan list. It handles:
+ * - Parsing the text file format
+ * - Creating clan structures
+ * - Loading all clan properties, ranks, and privileges
+ * - Initializing the clan hash table for fast lookups
+ * - Creating a new file if none exists
+ */
 void load_clans(void)
 {
   FILE *fl;
@@ -641,6 +683,16 @@ void load_clans(void)
   } /* end else */
 }
 
+/**
+ * save_claims - Save clan zone claim data to disk
+ * 
+ * This function saves all zone claim information, including:
+ * - Which clan currently controls each zone
+ * - Who initiated the claim
+ * - Popularity ratings for each clan in the zone
+ * 
+ * @return TRUE on success, FALSE on failure
+ */
 bool save_claims(void)
 {
   FILE *fl;
@@ -676,6 +728,13 @@ bool save_claims(void)
   return TRUE;
 }
 
+/**
+ * load_claims - Load clan zone claim data from disk
+ * 
+ * This function reads the claims file and populates the in-memory
+ * claim list. Each claim represents a zone that can be controlled
+ * by a clan, along with popularity ratings that determine control.
+ */
 void load_claims(void)
 {
   FILE *fl;
@@ -800,7 +859,16 @@ void load_claims(void)
 /*======       Clan Editting (olc)    ========*/
 /*============================================*/
 
-/* The OLC for clan leaders or members with permissions and Imps only */
+/**
+ * do_clanedit - Command handler for the clan edit OLC interface
+ * 
+ * This command allows clan leaders, authorized clan members, and
+ * implementors to edit clan properties through an online menu system.
+ * 
+ * Usage: clanedit [clan_id]
+ * - Clan members edit their own clan (if authorized)
+ * - Implementors can edit any clan by specifying the ID
+ */
 ACMD(do_clanedit)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -811,8 +879,8 @@ ACMD(do_clanedit)
   one_argument(argument, arg, sizeof(arg));
 
   /***************************************************************************/
-  /** Work out which clan is being edited.                                  **/
-  /***************************************************************************/
+  /** Determine which clan is being edited based on user's status           **/
+  /****************************************************************************/
   if ((!IS_IN_CLAN(ch)) || GET_CLANRANK(ch) == NO_CLANRANK)
   {
     /* No clan set, only Imps can edit, and they MUST specify a clan ID */
@@ -860,8 +928,8 @@ ACMD(do_clanedit)
   }
 
   /***************************************************************************/
-  /** Check that the clan isn't already being edited.                       **/
-  /***************************************************************************/
+  /** Prevent multiple simultaneous edits of the same clan                  **/
+  /****************************************************************************/
   for (d = descriptor_list; d; d = d->next)
   {
     if (STATE(d) == CON_CLANEDIT)
@@ -876,13 +944,13 @@ ACMD(do_clanedit)
   }
 
   /***************************************************************************/
-  /** Point d to the editor's descriptor.                                   **/
-  /***************************************************************************/
+  /** Set up the descriptor for editing                                     **/
+  /****************************************************************************/
   d = ch->desc;
 
   /***************************************************************************/
-  /** Give the descriptor an OLC structure.                                 **/
-  /***************************************************************************/
+  /** Allocate and initialize the OLC structure                             **/
+  /****************************************************************************/
   if (d->olc)
   {
     mudlog(BRF, LVL_IMMORT, TRUE,
@@ -893,14 +961,14 @@ ACMD(do_clanedit)
   CREATE(d->olc, struct oasis_olc_data, 1);
 
   /***************************************************************************/
-  /** Check player has edit permissions for this clan, or is an IMPL        **/
-  /***************************************************************************/
+  /** Verify edit permissions (clan privilege or implementor status)        **/
+  /****************************************************************************/
   if (!can_edit_clan(ch, c_id))
   {
     send_to_char(ch, "You do not have permission to edit this clan.\r\n");
 
     /*************************************************************************/
-    /** Free the OLC structure.                                             **/
+    /** Clean up - free the allocated OLC structure                         **/
     /*************************************************************************/
     free(d->olc);
     d->olc = NULL;
@@ -909,7 +977,7 @@ ACMD(do_clanedit)
 
   OLC_NUM(d) = c_id;
 
-  /* Only existing clan can be edited, so no setup_new/setup_existing */
+  /* Initialize the clan editor with the selected clan's data */
   clanedit_setup(d);
 
   STATE(d) = CON_CLANEDIT;
@@ -925,6 +993,16 @@ ACMD(do_clanedit)
 /****************************************************************************
  End of Claim Popularity code - Start of Clan Edit OLC code
  ***************************************************************************/
+
+/**
+ * clanedit_setup - Initialize the clan editor for a descriptor
+ * @d: The descriptor (connection) entering clan edit mode
+ * 
+ * This function:
+ * - Creates a working copy of the clan data
+ * - Initializes the OLC structure
+ * - Displays the main menu
+ */
 static void clanedit_setup(struct descriptor_data *d)
 {
   struct clan_data *nw_cln;
@@ -941,10 +1019,17 @@ static void clanedit_setup(struct descriptor_data *d)
   OLC_CLAN(d)->vnum = OLC_NUM(d);
   OLC_VAL(d) = 0;
 
-  /* Show the main clan edit menu                              */
+  /* Display the main clan editing menu to start the edit session */
   clanedit_disp_menu(d);
 }
 
+/**
+ * clanedit_save - Save edited clan data back to the main clan list
+ * @d: The descriptor containing the edited clan data
+ * 
+ * This function copies the edited clan data from the OLC structure
+ * back to the main clan list and marks it for saving to disk.
+ */
 static void clanedit_save(struct descriptor_data *d)
 {
   clan_rnum cr;
@@ -963,6 +1048,15 @@ static void clanedit_save(struct descriptor_data *d)
   save_single_clan(cr);
 }
 
+/**
+ * get_priv_string - Format a privilege level for display
+ * @d: The descriptor with clan data
+ * @t: Output buffer for the formatted string
+ * @p: The privilege type to format
+ * 
+ * Converts a privilege rank requirement to a display string.
+ * Shows the minimum rank number, or "Leader Only" if restricted.
+ */
 static void get_priv_string(struct descriptor_data *d, char *t, int p)
 {
   if (OLC_CLAN(d)->privilege[p] > 0)
@@ -973,8 +1067,13 @@ static void get_priv_string(struct descriptor_data *d, char *t, int p)
 
 /*-------------------------------------------------------------------*/
 
-/*. Display main menu . */
-
+/**
+ * clanedit_disp_menu - Display the main clan editing menu
+ * @d: The descriptor to display the menu to
+ * 
+ * Shows all editable clan properties based on the user's privileges.
+ * Only displays options the user has permission to modify.
+ */
 static void clanedit_disp_menu(struct descriptor_data *d)
 {
   int x, xcount = 0;
@@ -1030,7 +1129,10 @@ static void clanedit_disp_menu(struct descriptor_data *d)
           continue;
         if (xcount > 0)
           write_to_output(d, ", ");
-        write_to_output(d, "%s", clan_list[x].clan_name ? clan_list[x].clan_name : "<Unnamed>");
+        if (x < num_of_clans)
+          write_to_output(d, "%s", clan_list[x].clan_name ? clan_list[x].clan_name : "<Unnamed>");
+        else
+          write_to_output(d, "<Invalid Clan #%d>", x);
         xcount++;
       }
       if (xcount == 0)
@@ -1048,7 +1150,10 @@ static void clanedit_disp_menu(struct descriptor_data *d)
           continue;
         if (xcount > 0)
           write_to_output(d, ", ");
-        write_to_output(d, "%s", clan_list[x].clan_name ? clan_list[x].clan_name : "<Unnamed>");
+        if (x < num_of_clans)
+          write_to_output(d, "%s", clan_list[x].clan_name ? clan_list[x].clan_name : "<Unnamed>");
+        else
+          write_to_output(d, "<Invalid Clan #%d>", x);
         xcount++;
       }
       if (xcount == 0)
@@ -1078,8 +1183,14 @@ static void clanedit_disp_menu(struct descriptor_data *d)
 
 /*-------------------------------------------------------------------*/
 
-/*. Display ranks menu . */
-
+/**
+ * clanedit_ranks_menu - Display the clan ranks editing menu
+ * @d: The descriptor to display the menu to
+ * 
+ * Allows editing of:
+ * - Number of ranks in the clan
+ * - Title/name for each rank
+ */
 static void clanedit_ranks_menu(struct descriptor_data *d)
 {
   int i;
@@ -1110,8 +1221,14 @@ static void clanedit_ranks_menu(struct descriptor_data *d)
 
 /*-------------------------------------------------------------------*/
 
-/*. Display privileges menu . */
-
+/**
+ * clanedit_priv_menu - Display the clan privileges editing menu
+ * @d: The descriptor to display the menu to
+ * 
+ * Shows all clan privileges and their current rank requirements.
+ * Privileges control which ranks can use specific clan commands
+ * and modify clan settings.
+ */
 static void clanedit_priv_menu(struct descriptor_data *d)
 {
   char buf1[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
@@ -1132,12 +1249,13 @@ static void clanedit_priv_menu(struct descriptor_data *d)
                   cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
 
   get_priv_string(d, buf1, CP_CLAIM);
-  get_priv_string(d, buf1, CP_BALANCE);
   get_priv_string(d, buf2, CP_DESC);
 
   write_to_output(d, "%s2%s) Claim   : %s[%s%11s%s]      "
                      "B%s) Set Desc     : %s[%s%11s%s]\r\n",
                   cyn, nrm, cyn, yel, buf1, cyn, nrm, cyn, yel, buf2, cyn);
+  
+  get_priv_string(d, buf1, CP_BALANCE);
 
   get_priv_string(d, buf1, CP_ENROL);
   get_priv_string(d, buf2, CP_APPFEE);
@@ -1203,8 +1321,14 @@ static void clanedit_priv_menu(struct descriptor_data *d)
 
 /*-------------------------------------------------------------------*/
 
-/*. Display privileges menu . */
-
+/**
+ * clanedit_clans_menu - Display a list of all clans for selection
+ * @d: The descriptor to display the menu to
+ * @player_clan: The current player's clan (for highlighting)
+ * 
+ * Used for selecting allies or enemies. Shows all clans with
+ * their current relationship status (allied/at war).
+ */
 static void clanedit_clans_menu(struct descriptor_data *d, int player_clan)
 {
   int i;
@@ -1225,7 +1349,15 @@ static void clanedit_clans_menu(struct descriptor_data *d, int player_clan)
 
 /*-------------------------------------------------------------------*/
 
-/* main clanedit parser function... interpreter throws all input to here. */
+/**
+ * clanedit_parse - Main parser for clan editor input
+ * @d: The descriptor in clan edit mode
+ * @arg: The input string from the user
+ * 
+ * This function handles all user input while in clan edit mode.
+ * It processes menu selections and data entry based on the current
+ * edit mode (OLC_MODE).
+ */
 void clanedit_parse(struct descriptor_data *d, char *arg)
 {
   int i, number = atoi(arg), x = 0, pclan = 0;
@@ -1651,7 +1783,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Enter the mimimum rank that can set the clan "
                            "description (0-%d) : ",
                         OLC_CLAN(d)->ranks);
-        OLC_MODE(d) = CLANEDIT_CP_TITLE;
+        OLC_MODE(d) = CLANEDIT_CP_DESC;
       }
       else
       {
@@ -2012,7 +2144,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_CLAIM] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_BALANCE:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2025,7 +2157,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_BALANCE] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_DEMOTE:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2038,7 +2170,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_DEMOTE] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_DEPOSIT:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2051,7 +2183,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_DEPOSIT] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_CLANEDIT:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2064,7 +2196,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_CLANEDIT] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_ENROL:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2077,7 +2209,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_ENROL] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_EXPEL:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2090,7 +2222,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_EXPEL] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_OWNER:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2103,7 +2235,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_OWNER] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_PROMOTE:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2116,7 +2248,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_PROMOTE] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_WHERE:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2129,7 +2261,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_WHERE] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_WITHDRAW:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2142,7 +2274,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_WITHDRAW] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_ALLIED:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2155,7 +2287,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_ALLIED] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_APPFEE:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2168,7 +2300,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_APPFEE] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_APPLEV:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2181,7 +2313,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_APPLEV] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_DESC:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2194,7 +2326,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_DESC] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_TAXRATE:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2207,7 +2339,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_TAXRATE] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_RANKS:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2220,7 +2352,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_RANKS] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_TITLE:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2233,7 +2365,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_TITLE] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_ATWAR:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2246,7 +2378,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     OLC_CLAN(d)->privilege[CP_ATWAR] = number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_CP_SETPRIVS:
     if (number < 0 || number > OLC_CLAN(d)->ranks)
@@ -2280,8 +2412,9 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
         OLC_CLAN(d)->rank_name[i] = NULL;
       }
     }
+    OLC_VAL(d) = 1;
     clanedit_ranks_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   case CLANEDIT_RANK_NAME:
     /* We use the OLC_ZNUM as a placeholder for the rank number -get it back */
@@ -2298,8 +2431,9 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     { /* No arg, remove title! */
       OLC_CLAN(d)->rank_name[number] = strdup(arg);
     }
+    OLC_VAL(d) = 1;
     clanedit_ranks_menu(d);
-    break;
+    return;
     /*-------------------------------------------------------------------*/
   default:
     mudlog(BRF, LVL_BUILDER, TRUE,
@@ -2310,6 +2444,14 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
   }
 }
 
+/**
+ * clanedit_string_cleanup - Handle completion of string editing
+ * @d: The descriptor that was editing a string
+ * @terminator: How the string edit was terminated
+ * 
+ * Called when the user finishes editing a multi-line string
+ * (like clan description). Returns to the appropriate menu.
+ */
 void clanedit_string_cleanup(struct descriptor_data *d, int terminator)
 {
   switch (OLC_MODE(d))
@@ -2322,8 +2464,21 @@ void clanedit_string_cleanup(struct descriptor_data *d, int terminator)
   }
 }
 
-/* Copies a clan's information.
- * NOTE: Allocates memory for DUPLICATED strings */
+/**
+ * duplicate_clan_data - Create a complete copy of clan data
+ * @to_clan: Destination clan structure
+ * @from_clan: Source clan structure
+ * 
+ * This function creates a deep copy of clan data, including:
+ * - All numeric values and arrays
+ * - Duplicated copies of all string data
+ * 
+ * IMPORTANT: This function allocates new memory for strings.
+ * The destination clan's existing strings are freed first to
+ * prevent memory leaks.
+ * 
+ * NOTE: Allocates memory for DUPLICATED strings
+ */
 void duplicate_clan_data(struct clan_data *to_clan,
                          struct clan_data *from_clan)
 {
