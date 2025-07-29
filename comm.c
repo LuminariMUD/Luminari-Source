@@ -613,6 +613,13 @@ static void init_game(ush_int local_port)
     log("Opening mother connection.");
     mother_desc = init_socket(local_port);
   }
+  else
+  {
+    /* During copyover, mother_desc was passed as a parameter and should be valid.
+     * However, we need to ensure it's set to non-blocking mode again. */
+    log("Copyover: Using existing mother descriptor %d", mother_desc);
+    nonblock(mother_desc);
+  }
 
   event_init();
 
@@ -1328,6 +1335,7 @@ void heartbeat(int heart_pulse)
     point_update();
     check_timed_quests();
     check_diplomacy(); /* Reduce the diplomacy pause for online players */
+    update_clans();    /* Update clan war timers and other periodic clan tasks */
     
     /* Clean up old trails once per mud hour */
     cleanup_all_trails();

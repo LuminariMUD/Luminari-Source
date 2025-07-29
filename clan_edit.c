@@ -95,6 +95,10 @@ void save_clans(void)
       fprintf(fl, "PLos: %d\n", clan_list[i].pk_lose);
     if (clan_list[i].raided != 0)
       fprintf(fl, "Raid: %d\n", clan_list[i].raided);
+    if (clan_list[i].last_activity != 0)
+      fprintf(fl, "LAct: %ld\n", (long)clan_list[i].last_activity);
+    if (clan_list[i].max_members != 50)  /* Only save if not default */
+      fprintf(fl, "MaxM: %d\n", clan_list[i].max_members);
 
     /* Save the rank names */
     if (clan_list[i].ranks > 0)
@@ -117,6 +121,198 @@ void save_clans(void)
   }
   fprintf(fl, "$\n");
   fclose(fl);
+  
+  /* Clear all modified flags after successful save */
+  for (i = 0; i < num_of_clans; i++)
+  {
+    clan_list[i].modified = FALSE;
+  }
+}
+
+/* Save a single clan to a temporary file, then merge with existing clan file */
+void save_single_clan(clan_rnum c)
+{
+  FILE *fl, *new_fl;
+  char tmpname[256], backup[256];
+  char line[MAX_INPUT_LENGTH + 1];  /* tag[6] unused in this function */
+  int j, x, gl, current_clan = -1;
+  bool clan_written = FALSE;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  
+  if (c < 0 || c >= num_of_clans)
+  {
+    log("SYSERR: save_single_clan called with invalid clan rnum %d", c);
+    return;
+  }
+  
+  if (!clan_list[c].modified)
+    return; /* No need to save if not modified */
+  
+  /* Create temporary file name */
+  snprintf(tmpname, sizeof(tmpname), "%s.tmp", CLAN_FILE);
+  snprintf(backup, sizeof(backup), "%s.bak", CLAN_FILE);
+  
+  /* Open original file for reading */
+  if (!(fl = fopen(CLAN_FILE, "r")))
+  {
+    /* If original doesn't exist, do a full save */
+    save_clans();
+    return;
+  }
+  
+  /* Open temporary file for writing */
+  if (!(new_fl = fopen(tmpname, "w")))
+  {
+    fclose(fl);
+    log("SYSERR: Unable to open temporary clan file for writing");
+    return;
+  }
+  
+  /* Copy header */
+  fprintf(new_fl, "* Clans File\n");
+  fprintf(new_fl, "* Number of clans: %d\n", num_of_clans);
+  
+  /* Read and copy clans, replacing the modified one */
+  while ((gl = get_line(fl, line)) && *line != '$')
+  {
+    /* Skip comment lines */
+    if (*line == '*')
+      continue;
+      
+    if (*line == '#')
+    {
+      current_clan = atoi(line + 1);
+      
+      /* Check if this is the clan we're updating */
+      if (current_clan == clan_list[c].vnum)
+      {
+        /* Write the updated clan data */
+        fprintf(new_fl, "#%d\n", clan_list[c].vnum);
+        fprintf(new_fl, "Name: %s\n", clan_list[c].clan_name);
+        fprintf(new_fl, "Init: %s\n", clan_list[c].abrev);
+
+        if (clan_list[c].description && *clan_list[c].description)
+        {
+          strlcpy(buf, clan_list[c].description, sizeof(buf));
+          strip_cr(buf);
+          fprintf(new_fl, "Desc:\n%s~\n", buf);
+        }
+
+        fprintf(new_fl, "Lder: %ld\n", clan_list[c].leader);
+
+        if (clan_list[c].applev != 0)
+          fprintf(new_fl, "AppL: %d\n", clan_list[c].applev);
+        if (clan_list[c].appfee != 0)
+          fprintf(new_fl, "AppF: %d\n", clan_list[c].appfee);
+        if (clan_list[c].taxrate != 0)
+          fprintf(new_fl, "Tax : %d\n", clan_list[c].taxrate);
+        if (clan_list[c].hall != 0)
+          fprintf(new_fl, "Hall: %d\n", clan_list[c].hall);
+        if (clan_list[c].treasure != 0)
+          fprintf(new_fl, "Bank: %ld\n", clan_list[c].treasure);
+          
+        fprintf(new_fl, "Ally:");
+        for (x = 0; x < MAX_CLANS; x++)
+          fprintf(new_fl, " %d", clan_list[c].allies[x]);
+        fprintf(new_fl, "\n");
+        
+        fprintf(new_fl, "War :");
+        for (x = 0; x < MAX_CLANS; x++)
+          fprintf(new_fl, " %d", clan_list[c].at_war[x]);
+        fprintf(new_fl, "\n");
+        
+        if (clan_list[c].war_timer != 0)
+          fprintf(new_fl, "WarT: %d\n", clan_list[c].war_timer);
+        if (clan_list[c].pk_win != 0)
+          fprintf(new_fl, "PWin: %d\n", clan_list[c].pk_win);
+        if (clan_list[c].pk_lose != 0)
+          fprintf(new_fl, "PLos: %d\n", clan_list[c].pk_lose);
+        if (clan_list[c].raided != 0)
+          fprintf(new_fl, "Raid: %d\n", clan_list[c].raided);
+        if (clan_list[c].last_activity != 0)
+          fprintf(new_fl, "LAct: %ld\n", (long)clan_list[c].last_activity);
+        if (clan_list[c].max_members != 50)
+          fprintf(new_fl, "MaxM: %d\n", clan_list[c].max_members);
+
+        /* Save the rank names */
+        if (clan_list[c].ranks > 0)
+        {
+          fprintf(new_fl, "Rank:\n");
+          for (j = 0; j < clan_list[c].ranks; j++)
+            fprintf(new_fl, "%s\n", clan_list[c].rank_name[j]);
+          fprintf(new_fl, "~\n");
+        }
+
+        /* Save the Privilege Levels */
+        fprintf(new_fl, "Priv:\n");
+        for (j = 0; j < NUM_CLAN_PRIVS; j++)
+          fprintf(new_fl, "%d %d\n", j, clan_list[c].privilege[j]);
+        fprintf(new_fl, "~\n");
+        
+        clan_written = TRUE;
+        
+        /* Skip the rest of this clan in the original file */
+        while ((gl = get_line(fl, line)) && *line != '#' && *line != '$')
+        {
+          /* Skip until we find the next clan or end of file */
+        }
+        
+        /* If we found another clan, we need to process it */
+        if (*line == '#')
+        {
+          fprintf(new_fl, "%s\n", line);
+          current_clan = atoi(line + 1);
+        }
+        else if (*line == '$')
+        {
+          /* End of file marker */
+          break;
+        }
+      }
+      else
+      {
+        /* Copy this clan as-is */
+        fprintf(new_fl, "%s\n", line);
+      }
+    }
+    else
+    {
+      /* Copy other lines as-is */
+      fprintf(new_fl, "%s\n", line);
+    }
+  }
+  
+  fprintf(new_fl, "$\n");
+  
+  fclose(fl);
+  fclose(new_fl);
+  
+  /* Now replace the original file with the new one */
+  /* First, backup the original */
+  remove(backup);
+  rename(CLAN_FILE, backup);
+  
+  /* Then rename the temporary file */
+  if (rename(tmpname, CLAN_FILE) != 0)
+  {
+    log("SYSERR: Couldn't rename temporary clan file, restoring backup");
+    rename(backup, CLAN_FILE);
+    remove(tmpname);
+    return;
+  }
+  
+  /* Success - remove backup and clear modified flag */
+  remove(backup);
+  clan_list[c].modified = FALSE;
+}
+
+/* Mark a clan as needing to be saved */
+void mark_clan_modified(clan_rnum c)
+{
+  if (c >= 0 && c < num_of_clans)
+  {
+    clan_list[c].modified = TRUE;
+  }
 }
 
 /* Read clans from the lib/etc/clans file */
@@ -129,6 +325,7 @@ void load_clans(void)
 
   c.vnum = 0;
   free_clan_list();
+  init_clan_hash();  /* Initialize hash table for fast lookups */
   clear_clan_vals(&c);
 
   if (!(fl = fopen(CLAN_FILE, "r")))
@@ -201,7 +398,6 @@ void load_clans(void)
               free(c.description);
             }
             c.description = fread_string(fl, buf);
-            // c.description = strdup(buf);
           }
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
@@ -230,6 +426,15 @@ void load_clans(void)
         case 'L':
           if (!strcmp(tag, "Lder"))
             c.leader = atol(line);
+          else if (!strcmp(tag, "LAct"))
+            c.last_activity = (time_t)atol(line);
+          else
+            log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
+          break;
+
+        case 'M':
+          if (!strcmp(tag, "MaxM"))
+            c.max_members = atoi(line);
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
@@ -671,7 +876,8 @@ static void clanedit_save(struct descriptor_data *d)
   /* Overwrite old clan's data */
   duplicate_clan_data(&(clan_list[cr]), OLC_CLAN(d));
 
-  save_clans();
+  mark_clan_modified(cr);
+  save_single_clan(cr);
 }
 
 static void get_priv_string(struct descriptor_data *d, char *t, int p)
@@ -704,7 +910,7 @@ static void clanedit_disp_menu(struct descriptor_data *d)
   if (CHK_CP(CP_TITLE))
   {
     write_to_output(d, "%s2%s) Abbreviation: %s\r\n",
-                    cyn, nrm, OLC_CLAN(d)->clan_name);
+                    cyn, nrm, OLC_CLAN(d)->abrev ? OLC_CLAN(d)->abrev : "<Not Set>");
   }
 
   if (CHK_CP(CP_DESC))
@@ -741,7 +947,7 @@ static void clanedit_disp_menu(struct descriptor_data *d)
           continue;
         if (xcount > 0)
           write_to_output(d, ", ");
-        write_to_output(d, "%s", clan_list[x].clan_name);
+        write_to_output(d, "%s", clan_list[x].clan_name ? clan_list[x].clan_name : "<Unnamed>");
         xcount++;
       }
       if (xcount == 0)
@@ -759,7 +965,7 @@ static void clanedit_disp_menu(struct descriptor_data *d)
           continue;
         if (xcount > 0)
           write_to_output(d, ", ");
-        write_to_output(d, "%s", clan_list[x].clan_name);
+        write_to_output(d, "%s", clan_list[x].clan_name ? clan_list[x].clan_name : "<Unnamed>");
         xcount++;
       }
       if (xcount == 0)

@@ -31,7 +31,7 @@ struct clan_data {
     char *rank_name[MAX_CLANRANKS];  // Customizable rank names
     ubyte privilege[NUM_CLAN_PRIVS]; // Minimum rank for each privilege
     int applev;                      // Min level to apply to clan
-    int appfee;                      // Cost when application accepted
+    int appfee;                      // Application fee (paid immediately)
     int taxrate;                     // Tax rate for transactions
     int war_timer;                   // Ticks left for current war
     zone_vnum hall;                  // The zone for the clan's hall
@@ -105,7 +105,7 @@ The clan system uses a sophisticated privilege system with 21 different permissi
 - **`clan`** - Display available clan commands
 - **`clan apply <clan>`** - Apply to join a clan
 - **`clan info [clan]`** - View clan information
-- **`clan list`** - List all clans
+- **`clan list`** - List all clans (alias for 'clan info')
 - **`clan status`** - Show your clan status
 - **`clan who`** - List your clan members
 - **`clan leave`** - Leave current clan (requires confirmation code)
@@ -114,7 +114,7 @@ The clan system uses a sophisticated privilege system with 21 different permissi
 - **`clantalk <message>`** / **`ct <message>`** - Send message to clan channel
 
 #### Officer Commands (Rank-based permissions)
-- **`clan award <player> <points>`** - Award clan points (costs 10 gold per point)
+- **`clan award <player> <points>`** - Award clan points (costs 10 coins per point from clan treasury)
 - **`clan balance`** - Check clan bank balance
 - **`clan claim`** - Claim current zone for clan
 - **`clan demote <player>`** - Demote a member
@@ -138,16 +138,20 @@ The clan system uses a sophisticated privilege system with 21 different permissi
 ## Clan Ranks System
 
 ### Default Rank Structure
-1. **Rank 1**: Leader (highest)
-2. **Ranks 2-4**: Officer ranks
-3. **Rank 5**: Member
-4. **Ranks 6+**: Lower ranks (configurable)
+When a clan is created, it starts with 6 ranks:
+1. **Rank 1**: Duke (Leader - highest rank)
+2. **Rank 2**: Count (Officer)
+3. **Rank 3**: Baron (Officer)
+4. **Rank 4**: Lord (Officer)
+5. **Rank 5**: Member
+6. **Rank 6**: Recruit (lowest rank)
 
 ### Rank Features
 - Customizable rank names per clan
 - Each privilege has a minimum rank requirement
 - Leaders (rank 1) always have full access
 - Rank 0 is reserved for "leader only" privileges
+- Lower rank numbers have higher authority (1 = highest, 6 = lowest)
 
 ## Zone Claiming System
 
@@ -156,6 +160,8 @@ The clan system uses a sophisticated privilege system with 21 different permissi
 - Claims tracked in `lib/etc/claims` file
 - Popularity system tracks clan influence per zone
 - Zone ownership provides benefits to clan members
+- Requires minimum popularity threshold to claim
+- Zones with ZONE_NOCLAIM flag cannot be claimed
 
 ### Claim Data
 - Zone VNUM being claimed
@@ -194,6 +200,7 @@ IS_IN_CLAN(ch)     // Check if character is in a clan
 - Requires typing a 6-character confirmation code
 - Prevents accidental clan departures
 - Code regenerated each attempt
+- Code stored in player_specials->clan_leave_code
 
 ### Auto-Leadership Succession
 - Automatic promotion of highest-ranking officer
@@ -203,7 +210,8 @@ IS_IN_CLAN(ch)     // Check if character is in a clan
 ### War and Alliance System
 - Clans can declare war or form alliances
 - Affects PvP interactions between members
-- War timer limits duration of conflicts
+- War status stored in at_war[] array
+- Alliance status stored in allies[] array
 
 ### Clan Spells (Not Fully Implemented)
 - Framework for 5 clan-specific skills
@@ -271,6 +279,8 @@ Pop: <25 popularity values>
 - Clan communication channel
 - Alliance and war declarations
 - Online clan editing (OLC)
+- Default privilege settings for new clans
+- Automatic leadership succession
 
 ### Limitations
 - No MySQL integration (file-based only)
@@ -278,10 +288,27 @@ Pop: <25 popularity values>
 - No automated clan events
 - Limited inter-clan mechanics
 
-### Known Issues
-- War timer not actively used
-- Raid counter incremented but not displayed
-- Some privilege checks may be inverted
+### Clanset Subcommands (Immortal Use)
+- `clanset player <name> <field> <value>` - Modify player clan data
+- `clanset ranks <clan> <number>` - Set number of ranks
+- `clanset applev <clan> <level>` - Set minimum application level
+- `clanset appfee <clan> <amount>` - Set application fee
+- `clanset plan <clan> <description>` - Set clan description
+- `clanset abrev <clan> <abbreviation>` - Set clan abbreviation
+- `clanset leader <clan> <player>` - Change clan leadership
+
+### Default Privilege Settings
+When a new clan is created, the following privileges are leader-only:
+- CP_AWARD - Award clan points
+- CP_OWNER - Transfer ownership
+- CP_CLANEDIT - Access clan editor
+- CP_RANKS - Configure ranks
+- CP_TITLE - Set clan name
+- CP_DESC - Set description
+- CP_SETPRIVS - Configure privileges
+- CP_CLAIM - Claim zones
+
+All other privileges default to rank 1 (available to all members)
 
 ## Usage Examples
 
@@ -296,7 +323,8 @@ Clan added successfully.
 ```
 > clan apply Knights
 You apply to join Knights of Valor.
-Application fee is 1000 gold coins, paid upon acceptance.
+Application fee of 1000 coins has been deducted.
+You will need a clan member with enrollment privileges to approve your application.
 ```
 
 ### Clan Communication
@@ -308,10 +336,10 @@ Application fee is 1000 gold coins, paid upon acceptance.
 ### Managing Members
 ```
 > clan promote Frodo
-Frodo has been promoted to Officer!
+Frodo has been promoted to Lord!
 
 > clan demote Gollum  
-Gollum has been demoted to Member!
+Gollum has been demoted to Recruit!
 ```
 
 ## Best Practices
@@ -342,4 +370,4 @@ Gollum has been demoted to Member!
 
 ---
 
-*This documentation reflects the current implementation as of the latest code audit. The clan system is mature and fully functional, providing robust player organization features for LuminariMUD.*
+*This documentation reflects the intended design and functionality of the clan system. The clan system provides comprehensive player organization features for LuminariMUD, including hierarchical ranks, zone control, treasury management, and inter-clan diplomacy.*
