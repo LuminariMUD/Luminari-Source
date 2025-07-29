@@ -34,6 +34,31 @@ Clan Header File
 
 #define NUM_CLAN_PRIVS 21
 
+/* Standard clan error messages */
+#define CLAN_ERR_NOT_IN_CLAN "You are not a member of any clan.\r\n"
+#define CLAN_ERR_NOT_ENROLLED "You haven't been enrolled into your clan yet.\r\n"
+#define CLAN_ERR_NO_PERMISSION "You don't have sufficient clan privileges for that.\r\n"
+#define CLAN_ERR_INVALID_CLAN "Invalid clan specified.\r\n"
+#define CLAN_ERR_PLAYER_NOT_FOUND "That player could not be found.\r\n"
+#define CLAN_ERR_NOT_IN_YOUR_CLAN "That player is not in your clan.\r\n"
+#define CLAN_ERR_INVALID_AMOUNT "Invalid amount specified.\r\n"
+#define CLAN_ERR_INSUFFICIENT_FUNDS "Insufficient funds for that transaction.\r\n"
+#define CLAN_ERR_BANK_FULL "The clan bank is at maximum capacity.\r\n"
+#define CLAN_ERR_BANK_EMPTY "The clan bank is empty.\r\n"
+#define CLAN_ERR_ALREADY_IN_CLAN "You already belong to a clan.\r\n"
+#define CLAN_ERR_PENDING_APPLICATION "You already have a pending clan application.\r\n"
+#define CLAN_ERR_LEVEL_TOO_LOW "You are not high enough level to join this clan.\r\n"
+#define CLAN_ERR_CANNOT_AFFORD "You cannot afford the application fee.\r\n"
+#define CLAN_ERR_MAX_MEMBERS "This clan has reached its maximum member limit.\r\n"
+#define CLAN_ERR_IMMORTAL_RESTRICTION "Immortals cannot join clans.\r\n"
+#define CLAN_ERR_ZONE_ALREADY_CLAIMED "This zone is already claimed by your clan.\r\n"
+#define CLAN_ERR_ZONE_CANNOT_CLAIM "This zone cannot be claimed.\r\n"
+#define CLAN_ERR_INSUFFICIENT_POPULARITY "Your clan lacks sufficient popularity to claim this zone.\r\n"
+#define CLAN_ERR_ALREADY_ALLIED "Your clans are already allied.\r\n"
+#define CLAN_ERR_ALREADY_AT_WAR "Your clans are already at war.\r\n"
+#define CLAN_ERR_CANNOT_SELF_TARGET "You cannot target your own clan.\r\n"
+#define CLAN_ERR_DATA_CORRUPTION "Clan data corruption detected. Please contact an administrator.\r\n"
+
 #define NO_CLAN ((IDXTYPE)~0) /**< Sets to ush_int_MAX, or 65,535 */
 #define NO_CLANRANK 0         /**< A non-ranking value            */
 #define RANK_LEADERONLY 0     /**< For clan privs, 0 is higher than top rank */
@@ -50,6 +75,18 @@ Clan Header File
 #define MAX_CLAN_DESC 2048
 //letters of abreviation
 #define MAX_CLAN_ABREV 5
+
+/* Default clan values */
+#define DEFAULT_CLAN_RANKS 6        /**< Default number of ranks in a new clan */
+#define DEFAULT_MAX_MEMBERS 50      /**< Default maximum members (0 = unlimited) */
+#define DEFAULT_WAR_DURATION 1440   /**< Default war duration in ticks (48 hours) */
+#define DEFAULT_CACHE_TIMEOUT 300   /**< Default cache timeout in seconds (5 minutes) */
+#define CLAN_LOCK_DURATION 60       /**< Lock duration in seconds (1 minute) */
+#define MIN_CLAN_NAME_LENGTH 3      /**< Minimum length for clan names */
+#define MAX_CLAN_LOG_LINES 100      /**< Maximum lines to show from clan log */
+#define CLAN_LOG_DIR "lib/etc/clan_logs/"  /**< Directory for clan log files */
+#define CLAN_POINTS_PER_COIN 10     /**< Gold cost per clan point awarded */
+#define RANDOM_CODE_LENGTH 6        /**< Length of random code for clan leave confirmation */
 
 #define CLAN_NAME(c) (clan_list[c].clan_name)
 #define CLAN_LEADER(c) (clan_list[c].leader)
@@ -149,6 +186,24 @@ struct clan_data
        
        /* Optimization flags */
        bool modified;                   /**< TRUE if clan needs to be saved */
+       
+       /* Locking mechanism */
+       time_t locked_until;             /**< Timestamp when lock expires */
+       long locked_by;                  /**< ID of player holding lock */
+       
+       /* Clan Statistics */
+       long total_deposits;             /**< Total gold deposited */
+       long total_withdrawals;          /**< Total gold withdrawn */
+       int total_members_joined;        /**< Total members who have joined */
+       int total_members_left;          /**< Total members who have left */
+       int total_zones_claimed;         /**< Total zones ever claimed */
+       int current_zones_owned;         /**< Current number of zones owned */
+       time_t date_founded;             /**< When the clan was created */
+       int highest_member_count;        /**< Peak member count */
+       long total_taxes_collected;      /**< Total taxes collected from members */
+       int total_wars_won;              /**< Total wars won */
+       int total_wars_lost;             /**< Total wars lost */
+       int total_alliances_formed;      /**< Total alliances formed */
 };
 
 /* globals */
@@ -178,7 +233,7 @@ void free_clan_list(void);
 bool set_clan(struct char_data *ch, clan_vnum c_v);
 void copy_clan_data(struct clan_data *to_clan, struct clan_data *from_clan);
 bool auto_appoint_new_clan_leader(clan_rnum c_n);
-bool is_a_clan_leader(struct char_data *ch);
+bool check_clan_leader(struct char_data *ch);
 void clear_clan_vals(struct clan_data *cl);
 void load_clans(void);
 void save_clans(void);
@@ -213,9 +268,13 @@ ACMD_DECL(do_clanleave);
 ACMD_DECL(do_clanally);
 ACMD_DECL(do_clanwar);
 ACMD_DECL(do_clanlog);
+ACMD_DECL(do_clanstats);
+ACMD_DECL(do_clanfix);
+ACMD_DECL(do_clanbenefits);
 
 ACMD_DECL(do_clanset);
 ACMD_DECL(do_clantalk);
+ACMD_DECL(do_claninvest);
 clan_vnum zone_is_clanhall(zone_vnum z);
 zone_vnum get_clanhall_by_char(struct char_data *ch);
 int get_clan_taxrate(struct char_data *ch);
@@ -252,6 +311,13 @@ void update_clan_member_cache(clan_rnum c);
 void update_all_clan_caches(void);
 void update_clan_activity(clan_vnum c);
 void log_clan_activity(clan_vnum c, const char *format, ...);
+void log_clan_error(const char *function, const char *format, ...) __attribute__((format(printf, 2, 3)));
+
+/* Data validation and recovery functions */
+bool validate_clan_data(struct clan_data *clan, bool fix_errors);
+bool validate_all_clans(bool fix_errors);
+bool validate_clan_membership(bool fix_errors);
+void clan_data_integrity_check(void);
 
 /* Hash table functions */
 void init_clan_hash(void);
@@ -259,6 +325,13 @@ void add_clan_to_hash(clan_vnum vnum, clan_rnum rnum);
 void remove_clan_from_hash(clan_vnum vnum);
 void rebuild_clan_hash(void);
 void free_clan_hash(void);
+
+/* Locking functions */
+bool acquire_clan_lock(clan_rnum c, struct char_data *ch);
+bool release_clan_lock(clan_rnum c, struct char_data *ch);
+bool is_clan_locked(clan_rnum c);
+bool can_modify_clan(clan_rnum c, struct char_data *ch);
+void check_clan_locks(void);
 
 /* clan edit OLC Functions */
 void clanedit_parse(struct descriptor_data *d, char *arg);

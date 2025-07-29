@@ -97,8 +97,34 @@ void save_clans(void)
       fprintf(fl, "Raid: %d\n", clan_list[i].raided);
     if (clan_list[i].last_activity != 0)
       fprintf(fl, "LAct: %ld\n", (long)clan_list[i].last_activity);
-    if (clan_list[i].max_members != 50)  /* Only save if not default */
+    if (clan_list[i].max_members != DEFAULT_MAX_MEMBERS)  /* Only save if not default */
       fprintf(fl, "MaxM: %d\n", clan_list[i].max_members);
+      
+    /* Save clan statistics */
+    if (clan_list[i].total_deposits != 0)
+      fprintf(fl, "TDep: %ld\n", clan_list[i].total_deposits);
+    if (clan_list[i].total_withdrawals != 0)
+      fprintf(fl, "TWit: %ld\n", clan_list[i].total_withdrawals);
+    if (clan_list[i].total_members_joined != 0)
+      fprintf(fl, "TMJn: %d\n", clan_list[i].total_members_joined);
+    if (clan_list[i].total_members_left != 0)
+      fprintf(fl, "TMLf: %d\n", clan_list[i].total_members_left);
+    if (clan_list[i].total_zones_claimed != 0)
+      fprintf(fl, "TZCl: %d\n", clan_list[i].total_zones_claimed);
+    if (clan_list[i].current_zones_owned != 0)
+      fprintf(fl, "CZOw: %d\n", clan_list[i].current_zones_owned);
+    if (clan_list[i].date_founded != 0)
+      fprintf(fl, "DFnd: %ld\n", (long)clan_list[i].date_founded);
+    if (clan_list[i].highest_member_count != 0)
+      fprintf(fl, "HiMC: %d\n", clan_list[i].highest_member_count);
+    if (clan_list[i].total_taxes_collected != 0)
+      fprintf(fl, "TTax: %ld\n", clan_list[i].total_taxes_collected);
+    if (clan_list[i].total_wars_won != 0)
+      fprintf(fl, "TWWn: %d\n", clan_list[i].total_wars_won);
+    if (clan_list[i].total_wars_lost != 0)
+      fprintf(fl, "TWLs: %d\n", clan_list[i].total_wars_lost);
+    if (clan_list[i].total_alliances_formed != 0)
+      fprintf(fl, "TAFm: %d\n", clan_list[i].total_alliances_formed);
 
     /* Save the rank names */
     if (clan_list[i].ranks > 0)
@@ -231,8 +257,34 @@ void save_single_clan(clan_rnum c)
           fprintf(new_fl, "Raid: %d\n", clan_list[c].raided);
         if (clan_list[c].last_activity != 0)
           fprintf(new_fl, "LAct: %ld\n", (long)clan_list[c].last_activity);
-        if (clan_list[c].max_members != 50)
+        if (clan_list[c].max_members != DEFAULT_MAX_MEMBERS)
           fprintf(new_fl, "MaxM: %d\n", clan_list[c].max_members);
+          
+        /* Save clan statistics */
+        if (clan_list[c].total_deposits != 0)
+          fprintf(new_fl, "TDep: %ld\n", clan_list[c].total_deposits);
+        if (clan_list[c].total_withdrawals != 0)
+          fprintf(new_fl, "TWit: %ld\n", clan_list[c].total_withdrawals);
+        if (clan_list[c].total_members_joined != 0)
+          fprintf(new_fl, "TMJn: %d\n", clan_list[c].total_members_joined);
+        if (clan_list[c].total_members_left != 0)
+          fprintf(new_fl, "TMLf: %d\n", clan_list[c].total_members_left);
+        if (clan_list[c].total_zones_claimed != 0)
+          fprintf(new_fl, "TZCl: %d\n", clan_list[c].total_zones_claimed);
+        if (clan_list[c].current_zones_owned != 0)
+          fprintf(new_fl, "CZOw: %d\n", clan_list[c].current_zones_owned);
+        if (clan_list[c].date_founded != 0)
+          fprintf(new_fl, "DFnd: %ld\n", (long)clan_list[c].date_founded);
+        if (clan_list[c].highest_member_count != 0)
+          fprintf(new_fl, "HiMC: %d\n", clan_list[c].highest_member_count);
+        if (clan_list[c].total_taxes_collected != 0)
+          fprintf(new_fl, "TTax: %ld\n", clan_list[c].total_taxes_collected);
+        if (clan_list[c].total_wars_won != 0)
+          fprintf(new_fl, "TWWn: %d\n", clan_list[c].total_wars_won);
+        if (clan_list[c].total_wars_lost != 0)
+          fprintf(new_fl, "TWLs: %d\n", clan_list[c].total_wars_lost);
+        if (clan_list[c].total_alliances_formed != 0)
+          fprintf(new_fl, "TAFm: %d\n", clan_list[c].total_alliances_formed);
 
         /* Save the rank names */
         if (clan_list[c].ranks > 0)
@@ -390,6 +442,13 @@ void load_clans(void)
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
 
+        case 'C':
+          if (!strcmp(tag, "CZOw"))
+            c.current_zones_owned = atoi(line);
+          else
+            log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
+          break;
+
         case 'D':
           if (!strcmp(tag, "Desc"))
           {
@@ -399,6 +458,8 @@ void load_clans(void)
             }
             c.description = fread_string(fl, buf);
           }
+          else if (!strcmp(tag, "DFnd"))
+            c.date_founded = (time_t)atol(line);
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
@@ -419,6 +480,8 @@ void load_clans(void)
         case 'H':
           if (!strcmp(tag, "Hall"))
             c.hall = atoi(line);
+          else if (!strcmp(tag, "HiMC"))
+            c.highest_member_count = atoi(line);
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
@@ -524,6 +587,26 @@ void load_clans(void)
         case 'T':
           if (!strcmp(tag, "Tax "))
             c.taxrate = atoi(line);
+          else if (!strcmp(tag, "TDep"))
+            c.total_deposits = atol(line);
+          else if (!strcmp(tag, "TWit"))
+            c.total_withdrawals = atol(line);
+          else if (!strcmp(tag, "TMJn"))
+            c.total_members_joined = atoi(line);
+          else if (!strcmp(tag, "TMLf"))
+            c.total_members_left = atoi(line);
+          else if (!strcmp(tag, "TZCl"))
+            c.total_zones_claimed = atoi(line);
+          else if (!strcmp(tag, "TTax"))
+            c.total_taxes_collected = atol(line);
+          else if (!strcmp(tag, "TWWn"))
+            c.total_wars_won = atoi(line);
+          else if (!strcmp(tag, "TWLs"))
+            c.total_wars_lost = atoi(line);
+          else if (!strcmp(tag, "TAFm"))
+            c.total_alliances_formed = atoi(line);
+          else
+            log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
           break;
 
         case 'W':
@@ -2264,6 +2347,14 @@ void duplicate_clan_data(struct clan_data *to_clan,
   copy_clan_data(to_clan, from_clan);
 
   /* And re-duplicate the strings */
+  /* IMPORTANT: Set pointers to NULL first to avoid using stale pointers from copy_clan_data */
+  to_clan->clan_name = NULL;
+  to_clan->abrev = NULL;
+  to_clan->description = NULL;
+  for (i = 0; i < MAX_CLANRANKS; i++)
+    to_clan->rank_name[i] = NULL;
+    
+  /* Now safely duplicate the strings */
   if (from_clan->clan_name)
     to_clan->clan_name = strdup(from_clan->clan_name);
 

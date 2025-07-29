@@ -1,0 +1,49 @@
+# Makefile for test_clan.c
+# LuminariMUD clan system unit tests
+
+CC = gcc
+CFLAGS = -g -Wall -I.. -I../.. -DTEST_BUILD
+LDFLAGS = 
+LIBS = 
+
+# Source files
+TEST_SRCS = test_clan.c CuTest/CuTest.c
+CLAN_SRCS = ../clan.c
+MOCK_SRCS = mocks.c
+
+# Required function implementations
+IMPL_SRCS = ../utils.c ../random.c ../db.c ../comm.c
+
+# Object files
+TEST_OBJS = $(TEST_SRCS:.c=.o)
+CLAN_OBJS = $(CLAN_SRCS:.c=.o)
+MOCK_OBJS = $(MOCK_SRCS:.c=.o)
+IMPL_OBJS = $(IMPL_SRCS:.c=.o)
+
+# Target executable
+TARGET = test_clan
+
+# Default target
+all: $(TARGET)
+
+# Link the test executable
+$(TARGET): $(TEST_OBJS) clan_test.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+# Special rule for clan.c to avoid main() conflict
+clan_test.o: ../clan.c
+	$(CC) $(CFLAGS) -DTEST_BUILD -c -o $@ $<
+
+# Compile test files
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Clean up
+clean:
+	rm -f $(TEST_OBJS) clan_test.o $(TARGET)
+
+# Run the tests
+test: $(TARGET)
+	./$(TARGET)
+
+.PHONY: all clean test

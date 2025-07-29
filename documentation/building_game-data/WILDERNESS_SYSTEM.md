@@ -1053,7 +1053,7 @@ if (mysql_query(conn, query)) {
 #define WILD_DYNAMIC_ROOM_VNUM_END 1009999   // Dynamic room pool end
 
 // Terrain thresholds
-#define WATERLINE 138                      // Default waterline (can be modified via wild_waterline)
+#define WATERLINE 138                      // Used in temperature calculation (runtime waterline is wild_waterline = 128)
 #define SHALLOW_WATER_THRESHOLD 20         // Shallow vs deep water
 #define COASTLINE_THRESHOLD 5              // Beach/coastline threshold
 #define PLAINS_THRESHOLD 35                // Plains elevation threshold

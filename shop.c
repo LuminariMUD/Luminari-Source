@@ -31,6 +31,7 @@
 #include "mudlim.h"
 #include "item.h"
 #include "backgrounds.h"
+#include "clan_economy.h"
 
 /* Global variables definitions used externally */
 /* Constant list for printing out who we sell to */
@@ -547,6 +548,9 @@ static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *seller
   price *= (float)SHOP_BUYPROFIT(shop_nr);
 
   price = MAX(1, price);
+  
+  /* Apply clan discount if applicable */
+  price = apply_clan_shop_discount((int)price, buyer, shop_nr);
 
   return ((int)price);
 }
@@ -730,8 +734,11 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
 
       charged = buy_price(obj, shop_nr, keeper, ch);
       goldamt += charged;
-      if (!IS_STAFF(ch))
+      if (!IS_STAFF(ch)) {
         decrease_gold(ch, charged);
+        /* Collect clan transaction tax */
+        collect_clan_transaction_tax(ch, charged, TRANS_SHOP_BUY);
+      }
 
       /* this is the homeland pet code, it basically converts
          an object to a living mobile upon purchase */
@@ -988,6 +995,9 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
     do_tell(keeper, buf, cmd_tell, 0);
   }
   increase_gold(ch, goldamt);
+  
+  /* Collect clan transaction tax on the sale */
+  collect_clan_transaction_tax(ch, goldamt, TRANS_SHOP_SELL);
 
   strlcpy(tempstr, times_message(0, name, sold), sizeof(tempstr));
   snprintf(tempbuf, sizeof(tempbuf), "$n sells %s.", objname);

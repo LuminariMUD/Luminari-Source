@@ -253,6 +253,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"clans", "cla", POS_DEAD, do_clan, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"clanset", "clans", POS_DEAD, do_clanset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"clantalk", "cl", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"claninvest", "clani", POS_RESTING, do_claninvest, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"clear", "cle", POS_DEAD, do_gen_ps, 0, SCMD_CLEAR, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"cls", "cls", POS_DEAD, do_gen_ps, 0, SCMD_CLEAR, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"consider", "con", POS_RECLINING, do_consider, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -1031,6 +1032,12 @@ const struct mob_script_command_t mob_script_commands[] = {
     {"mtransform", do_mtransform, 0},
     {"mzoneecho", do_mzoneecho, 0},
     {"mfollow", do_mfollow, 0},
+    /* Clan DG Script commands */
+    {"mclanset", do_mclanset, 0},
+    {"mclanrank", do_mclanrank, 0},
+    {"mclangold", do_mclangold, 0},
+    {"mclanwar", do_mclanwar, 0},
+    {"mclanally", do_mclanally, 0},
     {"\n", do_not_here, 0}};
 
 int script_command_interpreter(struct char_data *ch, char *arg)

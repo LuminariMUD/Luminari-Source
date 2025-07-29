@@ -84,6 +84,7 @@
 #include "ibt.h" /* for free_ibt_lists */
 #include "mud_event.h"
 #include "clan.h"
+#include "clan_economy.h"
 #include "class.h"    /* needed for level_exp for prompt */
 #include "mail.h"     /* has_mail() */
 #include "new_mail.h" /* new mail system on prompt */
@@ -1341,6 +1342,13 @@ void heartbeat(int heart_pulse)
     cleanup_all_trails();
     
     PERF_PROF_EXIT(pr_ost_);
+  }
+  
+  /* Process clan investments once per mud day (24 mud hours) */
+  if (!(heart_pulse % (SECS_PER_MUD_HOUR * 24 * PASSES_PER_SEC)))
+  {
+    process_clan_investments();
+    save_clan_investments();
   }
 
   if (CONFIG_AUTO_SAVE && !(heart_pulse % PULSE_AUTOSAVE))

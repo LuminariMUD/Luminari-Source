@@ -1,5 +1,125 @@
 # CHANGELOG
 
+## 2025-01-29 (Part 5)
+### Fixed
+- **Build Errors and Warnings**:
+  - Fixed missing CLAMP macro in clan.c by replacing with MAX/MIN
+  - Fixed incorrect level constant LVL_GRGOD with LVL_GRSTAFF
+  - Fixed implicit declaration of ABS macro in dg_mobcmd.c
+  - Fixed improper assignment of const char* from two_arguments()
+  - Added forward declarations for transaction system functions
+  - Added ACMD_DECL(do_claninvest) to clan.h
+  - Commented out references to non-existent player_index_element.clanrank field
+  - Fixed unused variable warnings
+  - All compilation errors and warnings resolved - system builds completely clean with no warnings
+
+## 2025-01-29 (Part 4)
+### Added
+- **DG Scripts Clan Integration**:
+  - Added `mclanset` command to set character clan affiliation via scripts
+  - Added `mclanrank` command to modify character clan rank via scripts  
+  - Added `mclangold` command to add/remove gold from clan treasury via scripts
+  - Added `mclanwar` command to set war status between clans via scripts
+  - Added `mclanally` command to set alliance status between clans via scripts
+  - New character variables: `%actor.clanname%`, `%actor.is_clan_leader%`, `%actor.clan_gold%`
+  
+- **Clan Economy System** (clan_economy.c/h):
+  - Integrated clan shops with zone-based discounts (5-20% based on rank)
+  - Automatic transaction tax collection for clan members
+  - Clan investment system with 4 types: shops, caravans, mines, farms
+  - Added `claninvest` command for managing clan investments
+  - Daily investment returns with risk/reward mechanics
+  - Shop discounts for allied clans in controlled zones
+  
+- **Clan Locking Mechanism**:
+  - Added time-based locks to prevent concurrent modifications
+  - Lock duration of 60 seconds with automatic expiration
+  - Functions: `acquire_clan_lock()`, `release_clan_lock()`, `is_clan_locked()`, `can_modify_clan()`
+  - Integrated locks into deposit/withdraw operations
+  - Periodic cleanup of expired locks in `update_clans()`
+  
+- **Clan Transaction System** (clan_transactions.c/h):
+  - Atomic operations with rollback capability
+  - Transaction types for treasury, membership, ranks, wars, alliances
+  - Automatic rollback for failed operations
+  - Transaction logging and timeout handling
+  - Example integration in clan deposit function
+
+### Fixed
+- Updated outdated code comments in clan system
+- Changed TODO comment for clan spells to indicate deprecated functionality
+- Improved error handling with transaction rollbacks
+
+### Changed
+- Modified shop prices to apply clan discounts automatically
+- Updated clan deposit/withdraw to use locking mechanism
+- Enhanced transaction handling for atomic operations
+
+## 2025-01-29 (Part 3)
+### Fixed
+- Renamed `is_a_clan_leader()` to `check_clan_leader()` for consistent function naming with `check_clanpriv()`
+- Added detailed error logging to clan functions via new `log_clan_error()` function
+  - Logs to both system log and dedicated clan_errors.log file
+  - Includes function name, error details, and timestamps
+  - Updated key functions to use detailed error logging instead of generic returns
+
+### Added
+- Comprehensive unit test suite for clan system functions (test_clan.c)
+  - Tests for core functions: clear_clan_vals, real_clan, add_clan, remove_clan
+  - Tests for privilege checking: check_clan_leader, check_clanpriv
+  - Tests for utility functions: get_clan_by_name, are_clans_allied, are_clans_at_war
+  - Tests for hash table performance optimization
+- Data validation and recovery system for clan data
+  - `validate_clan_data()` - Validates single clan with optional auto-fix
+  - `validate_all_clans()` - Validates all clans in system
+  - `validate_clan_membership()` - Validates player clan memberships
+  - `clan_data_integrity_check()` - Comprehensive integrity check
+  - New immortal command: `clanfix <check|fix>` - Run integrity checks and repairs
+- Meaningful zone control benefits system
+  - Created clan_benefits.h defining 12 different zone control benefits
+  - HP/Mana/Move regeneration bonuses (+2/+2/+5 per tick)
+  - Experience and gold bonuses (+10%/+15%)
+  - Combat bonuses (skill +2, saves +1, damage +1, AC +1)
+  - No death penalty in controlled zones
+  - Fast travel (20% movement cost reduction)
+  - Shop discounts (10% off)
+  - Allied clans receive partial benefits (regen and movement only)
+  - New command: `clan benefits` - Display zone control benefits
+
+### Performance
+- Implemented zone benefit application functions for integration with game systems
+  - `apply_zone_regen_bonus()` - Apply to regeneration tick
+  - `apply_zone_exp_bonus()` - Apply to experience gains
+  - `apply_zone_gold_bonus()` - Apply to gold drops
+  - `apply_zone_skill_bonus()` - Apply to skill checks
+  - `apply_zone_damage_bonus()` - Apply to damage rolls
+  - `apply_zone_shop_price()` - Apply shop discounts
+
+## 2025-01-29 (Part 2)
+### Added
+- Comprehensive clan statistics tracking system:
+  - Tracks total deposits, withdrawals, members joined/left, zones claimed
+  - Records combat statistics: wars won/lost, alliances formed
+  - Maintains historical data: date founded, highest member count
+  - Added `clan stats` command to view all statistics with formatted display
+  - Statistics persist across reboots via enhanced save/load functions
+- Standardized clan error messages:
+  - Defined 23 standard error message constants in clan.h
+  - Replaced all hardcoded error strings with consistent messages
+  - Improves user experience with uniform error reporting
+- Replaced magic numbers with named constants:
+  - DEFAULT_CLAN_RANKS (6)
+  - DEFAULT_MAX_MEMBERS (50)
+  - DEFAULT_WAR_DURATION (1440 ticks)
+  - DEFAULT_CACHE_TIMEOUT (300 seconds)
+  - CLAN_LOG_DIR, MAX_CLAN_LOG_LINES, etc.
+  - Improves code maintainability and configuration
+
+### Fixed
+- Updated clan member tracking to increment statistics when members join/leave
+- Enhanced clan financial tracking to record all deposits and withdrawals
+- Updated zone claiming to track total zones claimed and current ownership
+
 ## 2025-01-29
 ### Performance
 - Implemented incremental save system for clans:

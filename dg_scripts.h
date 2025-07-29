@@ -392,6 +392,12 @@ ACMD_DECL(do_msend);
 ACMD_DECL(do_mteleport);
 ACMD_DECL(do_mtransform);
 ACMD_DECL(do_mzoneecho);
+/* Clan DG Script commands */
+ACMD_DECL(do_mclanset);
+ACMD_DECL(do_mclanrank);
+ACMD_DECL(do_mclangold);
+ACMD_DECL(do_mclanwar);
+ACMD_DECL(do_mclanally);
 
 /* from dg_olc.c... thinking these should be moved to oasis.h */
 void trigedit_save(struct descriptor_data *d);
