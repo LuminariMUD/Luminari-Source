@@ -6666,6 +6666,10 @@ int d20(struct char_data *ch)
     }
   }
 
+  // a roll should always be between 1 and 20.
+  roll = MIN(20, roll);
+  roll = MAX(1, roll);
+
   return roll;
 }
 
