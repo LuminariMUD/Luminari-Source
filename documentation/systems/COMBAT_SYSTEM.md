@@ -2,138 +2,106 @@
 
 ## Overview
 
-LuminariMUD implements a sophisticated combat system based on Pathfinder/D&D 3.5 rules, featuring turn-based combat with initiative, multiple attack types, complex damage calculations, and tactical combat maneuvers. The system handles everything from basic melee attacks to advanced combat techniques and special abilities.
+LuminariMUD implements a sophisticated combat system inspired by Pathfinder/D&D 3.5/d20 rules. The system uses an **event-driven architecture** for combat rounds, multiple attack types, complex damage calculations, and tactical combat maneuvers. Combat features range from basic melee attacks to advanced techniques including grappling, combat modes, special abilities, and evolution-based attacks.
+
+**Key Architecture Features:**
+- Event-driven combat rounds (not pulse-based)
+- Action-based system with standard/move/swift actions
+- Condensed combat mode for streamlined output
+- Multiple simultaneous combat tracking
+- Comprehensive damage reduction and resistance systems
 
 ## Core Combat Architecture
 
-### 1. Combat Initialization (`set_fighting()`)
+### 1. Combat Initialization
 
-Combat begins when characters engage each other:
+Combat initialization is handled through the damage system. When damage is dealt between two characters, the system automatically establishes combat relationships:
 
 ```c
-bool set_fighting(struct char_data *ch, struct char_data *vict) {
-    // Prevent self-targeting and duplicate combat states
-    if (ch == vict || FIGHTING(ch)) return FALSE;
+// From damage() function in fight.c
+if (victim != ch) {
+    /* Only auto engage if both parties are unengaged. */
+    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL) && 
+        (FIGHTING(victim) == NULL) && !is_wall_spell(w_type))
+        set_fighting(ch, victim);
     
-    // Prevent multiple combat events
-    if (char_has_mud_event(ch, eCOMBAT_ROUND)) return FALSE;
+    if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL) && 
+        !is_wall_spell(w_type))
+        set_fighting(victim, ch);
     
-    // Roll initiative for combat order
-    GET_INITIATIVE(ch) = roll_initiative(ch);
-    
-    // Add to combat list with initiative-based ordering
-    if (combat_list == NULL) {
-        ch->next_fighting = combat_list;
-        combat_list = ch;
-    } else {
-        // Insert based on initiative order
-        struct char_data *current = combat_list;
-        struct char_data *previous = NULL;
-        
-        while (current && GET_INITIATIVE(current) >= GET_INITIATIVE(ch)) {
-            previous = current;
-            current = current->next_fighting;
-        }
-        
-        if (previous == NULL) {
-            ch->next_fighting = combat_list;
-            combat_list = ch;
-        } else {
-            ch->next_fighting = current;
-            previous->next_fighting = ch;
-        }
-    }
-    
-    // Set fighting relationship
-    FIGHTING(ch) = vict;
-    GET_POS(ch) = POS_FIGHTING;
-    
-    // Start combat round event system
-    int delay = (10 - GET_INITIATIVE(ch)) * PULSE_VIOLENCE / 10;
-    attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, strdup("1")), delay);
-    
-    return TRUE;
+    victim->last_attacker = ch;
 }
 ```
+
+**Note:** The `set_fighting()` function implementation details are encapsulated, but it manages:
+- Combat list management (linked list of combatants)
+- Initiative tracking
+- Combat event scheduling
+- Position updates
 
 ### 2. Initiative System
 
-Initiative determines combat order and action timing:
+The initiative system determines combat order:
 
 ```c
-int roll_initiative(struct char_data *ch) {
-    int initiative = dice(1, 20) + get_initiative_modifier(ch);
-    return MAX(1, MIN(initiative, 20));
-}
-
-int get_initiative_modifier(struct char_data *ch) {
-    int modifier = GET_DEX_BONUS(ch);
-    
-    // Feat bonuses
-    if (HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE))
-        modifier += 4;
-    
-    // Class bonuses
-    if (GET_CLASS(ch) == CLASS_RANGER)
-        modifier += 2;
-    
-    // Size modifiers
-    modifier += size_modifiers[GET_SIZE(ch)].initiative;
-    
-    return modifier;
-}
+// Function declaration from fight.h
+int get_initiative_modifier(struct char_data *ch);
 ```
 
-**Initiative Order:**
-- Higher initiative acts first
-- Ties broken by dexterity modifier
-- Initiative determines delay before first action
-- Combat rounds proceed in initiative order
+**Initiative Features:**
+- d20 roll + modifiers (DEX bonus, feats, etc.)
+- Combat list maintains initiative order
+- Event-driven timing based on initiative
+- Multiple combat phases for complex action resolution
+
+**Known Modifiers:**
+- Dexterity bonus
+- Improved Initiative feat (+4)
+- Class-specific bonuses
+- Size modifiers
+- Equipment effects
 
 ### 3. Combat Round System
 
-Combat uses an event-driven round system:
+Combat uses an event-driven system with multiple phases:
 
 ```c
-// Combat round event handler
-EVENTFUNC(event_combat_round) {
-    struct char_data *ch = (struct char_data *)event_obj;
-    int phase = atoi((char *)info);
-    
-    if (!ch || !FIGHTING(ch)) {
-        return 0; // End combat
-    }
-    
-    // Perform character's actions for this phase
-    perform_violence(ch, phase);
-    
-    // Schedule next combat round
-    attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, strdup("1")), 
-                     PULSE_VIOLENCE);
-    
-    return 0;
-}
-
+// perform_violence() is the core combat execution function
 void perform_violence(struct char_data *ch, int phase) {
-    // Check if character can act
-    if (!valid_fight_cond(ch, FALSE)) return;
+    // Handle confused/feared states
+    if (AFF_FLAGGED(ch, AFF_CONFUSED)) { /* confusion logic */ }
+    if (AFF_FLAGGED(ch, AFF_FEAR)) { /* fear logic */ }
     
-    // Perform attacks based on character's attack routine
-    perform_attacks(ch, MODE_NORMAL_HIT, phase);
+    // Group auto-assist logic
+    if (GROUP(ch)) { /* auto-assist code */ }
     
-    // Handle special abilities and reactions
-    process_combat_specials(ch);
+    // Main combat execution
+    if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE) && 
+        !(AFF_FLAGGED(ch, AFF_GRAPPLED) && /* grapple restrictions */)) {
+        // Execute attack routine
+        perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
+        
+        // Handle cleave attacks
+        if (phase == 1 && HAS_FEAT(ch, FEAT_CLEAVE))
+            handle_cleave(ch);
+    }
 }
 ```
+
+**Combat Phases:**
+- PHASE_0: Full round actions
+- PHASE_1: Primary attacks
+- PHASE_2: Off-hand attacks
+- PHASE_3: Haste/extra attacks
 
 ## Attack System
 
 ### 1. Attack Types
 
-The system supports multiple attack types:
+The system supports numerous attack types:
 
 ```c
-// Attack type constants
+// Core attack types
 #define ATTACK_TYPE_PRIMARY       0    // Primary hand weapon
 #define ATTACK_TYPE_OFFHAND       1    // Off-hand weapon  
 #define ATTACK_TYPE_RANGED        2    // Ranged weapon
@@ -142,421 +110,360 @@ The system supports multiple attack types:
 #define ATTACK_TYPE_BOMB_TOSS     5    // Alchemist bombs
 #define ATTACK_TYPE_PRIMARY_SNEAK 6    // Sneak attack primary
 #define ATTACK_TYPE_OFFHAND_SNEAK 7    // Sneak attack off-hand
+
+// Evolution-based attacks (Eidolon/Summoner system)
+#define ATTACK_TYPE_PRIMARY_EVO_BITE     12
+#define ATTACK_TYPE_PRIMARY_EVO_CLAWS    13
+#define ATTACK_TYPE_PRIMARY_EVO_HOOVES   14
+#define ATTACK_TYPE_PRIMARY_EVO_PINCERS  15
+#define ATTACK_TYPE_PRIMARY_EVO_STING    16
+#define ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP 17
+#define ATTACK_TYPE_PRIMARY_EVO_TENTACLE 18
+#define ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET 19
+#define ATTACK_TYPE_PRIMARY_EVO_GORE     20
+#define ATTACK_TYPE_PRIMARY_EVO_RAKE     21
+#define ATTACK_TYPE_PRIMARY_EVO_REND     22
+#define ATTACK_TYPE_PRIMARY_EVO_TRAMPLE  23
 ```
 
-### 2. Attack Resolution (`attack_roll()`)
+### 2. Attack Resolution
 
-Attack success is determined by comparing attack roll to armor class:
+Attack resolution is handled through multiple functions:
 
 ```c
+// Main attack functions from fight.h
 int attack_roll(struct char_data *ch, struct char_data *victim, 
-                int attack_type, int is_touch, int attack_number) {
-    
-    // Calculate attack bonus
-    int attack_bonus = compute_attack_bonus(ch, victim, attack_type);
-    
-    // Calculate target's armor class
-    int victim_ac = compute_armor_class(ch, victim, is_touch, 
-                                       MODE_ARMOR_CLASS_NORMAL);
-    
-    // Roll d20 and apply modifiers
-    int diceroll = d20(ch);
-    int result = (attack_bonus + diceroll) - victim_ac;
-    
-    return result; // Positive = hit, negative = miss
-}
+                int attack_type, int is_touch, int attack_number);
+int attack_roll_with_critical(struct char_data *ch, struct char_data *victim, 
+                              int attack_type, int is_touch, int attack_number, 
+                              int threat_range);
+int compute_attack_bonus(struct char_data *ch, struct char_data *victim, 
+                        int attack_type);
+int compute_attack_bonus_full(struct char_data *ch, struct char_data *victim, 
+                             int attack_type, bool display);
 ```
+
+**Attack Resolution Process:**
+1. Calculate attack bonus (BAB + modifiers)
+2. Calculate target AC (base 10 + modifiers)
+3. Roll d20 + attack bonus
+4. Compare to AC for hit/miss
+5. Check for critical threats and confirmation
 
 ### 3. Attack Bonus Calculation
 
-Attack bonuses combine multiple factors:
+Attack bonuses combine multiple factors (actual implementation in fight.c):
 
-```c
-int compute_attack_bonus(struct char_data *ch, struct char_data *victim, 
-                        int attack_type) {
-    int bonus = 0;
-    
-    // Base attack bonus from class levels
-    bonus += GET_BAB(ch);
-    
-    // Ability modifier (STR for melee, DEX for ranged)
-    if (attack_type == ATTACK_TYPE_RANGED) {
-        bonus += GET_DEX_BONUS(ch);
-    } else {
-        bonus += GET_STR_BONUS(ch);
-    }
-    
-    // Size modifier
-    bonus += size_modifiers[GET_SIZE(ch)].attack;
-    
-    // Weapon enhancement bonus
-    struct obj_data *weapon = get_wielded(ch, attack_type);
-    if (weapon) {
-        bonus += GET_OBJ_VAL(weapon, 4); // Enhancement bonus
-    }
-    
-    // Feat bonuses
-    if (HAS_FEAT(ch, FEAT_WEAPON_FOCUS) && weapon_focus_applies(ch, weapon))
-        bonus += 1;
-    if (HAS_FEAT(ch, FEAT_GREATER_WEAPON_FOCUS) && weapon_focus_applies(ch, weapon))
-        bonus += 1;
-    
-    // Situational modifiers
-    if (is_flanked(ch, victim))
-        bonus += 2; // Flanking bonus
-    
-    // Dual wielding penalties
-    if (is_dual_wielding(ch)) {
-        bonus += dual_wielding_penalty(ch, 
-                 (attack_type == ATTACK_TYPE_OFFHAND));
-    }
-    
-    return bonus;
-}
-```
+**Base Components:**
+- Base Attack Bonus (BAB) from class levels
+- Ability modifiers:
+  - STR for melee attacks
+  - DEX for ranged attacks
+  - DEX for finesse/agile weapons
+- Size modifiers
+
+**Equipment Bonuses:**
+- Weapon enhancement bonuses
+- Magic weapon properties
+- Agile weapon property (use DEX instead of STR)
+
+**Feat Bonuses:**
+- Weapon Focus (+1)
+- Greater Weapon Focus (+1)
+- Point Blank Shot (+1 ranged within same room)
+- Various class-specific feats
+
+**Situational Modifiers:**
+- Flanking (+2)
+- Dual wielding penalties:
+  - Primary: -6 (or -4 with light weapon)
+  - Off-hand: -10 (or -8 with light weapon)  
+  - Reduced by Two-Weapon Fighting feats
+- Combat modes (Power Attack, Combat Expertise)
+- Conditions (prone, grappled, etc.)
 
 ### 4. Armor Class Calculation
 
-Armor Class determines how difficult a character is to hit:
+Armor Class is calculated with multiple modes:
 
 ```c
+// AC calculation modes from fight.h
+#define MODE_ARMOR_CLASS_NORMAL 0
+#define MODE_ARMOR_CLASS_COMBAT_MANEUVER_DEFENSE 1
+#define MODE_ARMOR_CLASS_PENALTIES 2
+#define MODE_ARMOR_CLASS_DISPLAY 3
+#define MODE_ARMOR_CLASS_TOUCH 4
+
 int compute_armor_class(struct char_data *attacker, struct char_data *ch, 
-                       int is_touch, int mode) {
-    int ac = 10; // Base AC
-    
-    if (!is_touch) {
-        // Armor bonus
-        ac += GET_AC_ARMOR(ch);
-        
-        // Shield bonus  
-        ac += GET_AC_SHIELD(ch);
-        
-        // Natural armor
-        ac += GET_AC_NATURAL(ch);
-    }
-    
-    // Dexterity bonus (if applicable)
-    if (has_dex_bonus_to_ac(attacker, ch)) {
-        ac += GET_DEX_BONUS(ch);
-    }
-    
-    // Size modifier
-    ac += size_modifiers[GET_SIZE(ch)].ac;
-    
-    // Deflection bonus (always applies)
-    ac += GET_AC_DEFLECTION(ch);
-    
-    // Dodge bonus (if not flat-footed)
-    if (!AFF_FLAGGED(ch, AFF_FLAT_FOOTED)) {
-        ac += GET_AC_DODGE(ch);
-    }
-    
-    // Enhancement bonuses
-    ac += GET_AC_ENHANCEMENT(ch);
-    
-    return ac;
-}
+                       int is_touch, int mode);
 ```
+
+**AC Components:**
+- Base AC: 10
+- Armor bonus (not vs touch)
+- Shield bonus (not vs touch)
+- Natural armor (not vs touch)
+- Dexterity bonus (if not denied)
+- Size modifiers
+- Deflection bonus (always applies)
+- Dodge bonus (lost when flat-footed)
+- Enhancement bonuses
+- Insight bonuses
+- Sacred/Profane bonuses
+
+**Special Conditions:**
+- Flat-footed: Lose DEX and dodge bonuses
+- Touch attacks: Ignore armor, shield, natural
+- Combat Expertise mode: Trade attack for AC
+- Fighting defensively: +2 AC, -4 attack
+- Total defense: +4 AC, no attacks
 
 ## Damage System
 
-### 1. Damage Calculation (`compute_hit_damage()`)
+### 1. Damage Calculation
 
-Damage combines weapon damage, ability modifiers, and various bonuses:
+Damage calculation is complex and involves multiple functions:
 
 ```c
 int compute_hit_damage(struct char_data *ch, struct char_data *victim,
                       int w_type, int diceroll, int mode, 
-                      bool is_critical, int attack_type, int dam_type) {
-    int dam = 0;
-    struct obj_data *weapon = get_wielded(ch, attack_type);
-    
-    // Base weapon damage
-    if (weapon) {
-        int num_dice = GET_OBJ_VAL(weapon, 1);
-        int die_size = GET_OBJ_VAL(weapon, 2);
-        dam = dice(num_dice, die_size);
-        
-        // Critical hit multiplier
-        if (is_critical) {
-            int crit_mult = GET_OBJ_VAL(weapon, 3);
-            dam *= crit_mult;
-        }
-    } else {
-        // Unarmed damage
-        int dice_one, dice_two;
-        compute_barehand_dam_dice(ch, &dice_one, &dice_two);
-        dam = dice(dice_one, dice_two);
-    }
-    
-    // Ability modifier
-    int ability_mod = (attack_type == ATTACK_TYPE_RANGED) ? 
-                      GET_DEX_BONUS(ch) : GET_STR_BONUS(ch);
-    
-    // Two-handed weapons get 1.5x STR bonus
-    if (attack_type == ATTACK_TYPE_TWOHAND) {
-        ability_mod = (GET_STR_BONUS(ch) * 3) / 2;
-    }
-    // Off-hand weapons get 0.5x STR bonus
-    else if (attack_type == ATTACK_TYPE_OFFHAND) {
-        ability_mod = GET_STR_BONUS(ch) / 2;
-    }
-    
-    dam += ability_mod;
-    
-    // Enhancement bonus
-    if (weapon) {
-        dam += GET_OBJ_VAL(weapon, 4);
-    }
-    
-    // Feat bonuses
-    dam += compute_damage_bonus(ch, victim, weapon, attack_type, 
-                               ability_mod, mode, attack_type);
-    
-    return MAX(1, dam); // Minimum 1 damage
-}
+                      bool is_critical, int attack_type, int dam_type);
+
+int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
+                        struct obj_data *wielded, int w_type, int mod, 
+                        int mode, int attack_type);
 ```
+
+**Base Damage Components:**
+- Weapon damage dice (e.g., 1d8 for longsword)
+- Ability modifiers:
+  - Full STR for primary
+  - 1.5x STR for two-handed
+  - 0.5x STR for off-hand
+  - STR penalty (but not bonus) for ranged
+  - Special: Composite bows add limited STR
+- Enhancement bonuses
+- Critical multipliers (x2, x3, x4)
+
+**Bonus Damage Sources:**
+- Damroll (from gear/spells)
+- Feat bonuses (Weapon Specialization, etc.)
+- Class features (Favored Enemy, Smite, etc.)
+- Rage bonuses
+- Sneak attack dice
+- Elemental damage (flaming, frost, etc.)
+- Evolution bonuses (Eidolon system)
 
 ### 2. Damage Processing (`damage()`)
 
-All damage goes through the central damage function:
+The central damage function in fight.c handles all damage:
 
 ```c
 int damage(struct char_data *ch, struct char_data *victim, int dam,
-          int w_type, int dam_type, int offhand) {
-
-    // Validate parameters
-    if (!ch || !victim || dam < 0) return 0;
-
-    // Process damage reductions and resistances
-    dam = damage_handling(ch, victim, dam, w_type, dam_type);
-    if (dam <= 0) return 0;
-
-    // Apply damage to hit points
-    GET_HIT(victim) -= dam;
-
-    // Update position based on hit points
-    update_pos(victim);
-
-    // Handle death
-    if (GET_POS(victim) == POS_DEAD) {
-        if (ch != victim) {
-            die(victim, ch);
-        } else {
-            die(victim, NULL);
-        }
-        return -1; // Victim died
-    }
-
-    // Trigger combat if not already fighting
-    if (!FIGHTING(victim) && ch != victim) {
-        set_fighting(victim, ch);
-    }
-
-    return dam;
-}
+          int w_type, int dam_type, int offhand);
 ```
+
+**Damage Processing Steps:**
+1. **Validation**: Check valid targets, protected mobs, peaceful rooms
+2. **Combat Initialization**: Auto-engage combatants if not fighting
+3. **Damage Reduction**: Apply damage_handling() for resistances
+4. **Apply Damage**: Subtract from hit points
+5. **Update Status**: Call update_pos() for condition changes
+6. **Death Handling**: Process death if HP <= 0
+
+**Special Cases:**
+- Self-damage (TYPE_SUFFERING)
+- Pet protection (PRF_CAREFUL_PET)
+- Immortal protection
+- Arena combat
+- Mission mob restrictions
 
 ### 3. Damage Reduction and Resistance
 
-The system implements comprehensive damage mitigation:
+The damage_handling() function implements comprehensive mitigation:
 
-```c
-int damage_handling(struct char_data *ch, struct char_data *victim,
-                   int dam, int attacktype, int dam_type) {
+**Avoidance Mechanics:**
+- **Concealment** (20-50%, can exceed with Vanish)
+  - Displacement (50%)
+  - Blur/Blinking (20%)
+  - Invisibility (50% if can't see)
+  - Shadow Blend evolution
+- **Racial Abilities**
+  - Trelux dodge (25% chance)
+  - Stalwart Defender (10% with Last Word)
 
-    // Damage reduction (DR)
-    int dr_reduction = apply_damage_reduction(ch, victim,
-                                            get_wielded(ch, ATTACK_TYPE_PRIMARY),
-                                            dam, FALSE);
-    dam -= dr_reduction;
+**Damage Reduction:**
+- **DR Types**: DR X/material (e.g., DR 10/magic)
+- **Sources**: 
+  - Class features (Barbarian, etc.)
+  - Racial (Warforged, etc.)
+  - Spells (Stoneskin)
+  - Equipment (Adamantine armor)
+- **Maximum**: 20 for players
 
-    // Energy resistance
-    int resistance = compute_damtype_reduction(victim, dam_type);
-    dam -= resistance;
+**Energy Resistance/Immunity:**
+- **Types**: Fire, Cold, Acid, Electric, Sonic
+- **Resistance**: Flat reduction (e.g., Resist 10)
+- **Percentage**: % based reduction
+- **Immunity**: 100% reduction
+- **Vulnerability**: Negative resistance (extra damage)
 
-    // Energy absorption (converts damage to healing)
-    int absorption = compute_energy_absorb(victim, dam_type);
-    if (absorption > 0) {
-        GET_HIT(victim) += absorption;
-        dam = 0;
-    }
-
-    // Defensive abilities
-    if (HAS_FEAT(victim, FEAT_DEFENSIVE_ROLL) &&
-        (GET_HIT(victim) - dam) <= 0 &&
-        !char_has_mud_event(victim, eD_ROLL)) {
-        // Defensive roll avoids lethal damage
-        attach_mud_event(new_mud_event(eD_ROLL, victim, NULL),
-                        (2 * SECS_PER_MUD_DAY));
-        return 0;
-    }
-
-    return MAX(0, dam);
-}
-```
+**Special Defenses:**
+- Incorporeal (50% from non-magical)
+- Defensive Roll (avoid death 1/day)
+- Inertial Barrier (PSP absorption)
+- Warding effects
 
 ## Combat Maneuvers
 
-### 1. Combat Maneuver System
+### 1. Grappling System (grapple.c)
 
-Combat maneuvers provide tactical options beyond basic attacks:
+The grappling system is fully implemented with detailed mechanics:
 
 ```c
-int combat_maneuver_check(struct char_data *ch, struct char_data *vict,
-                         int combat_maneuver_type, int attacker_bonus) {
-
-    int attack_roll = d20(ch);
-    int cm_bonus = attacker_bonus;
-    int cm_defense = 0;
-
-    // Calculate Combat Maneuver Bonus (CMB)
-    cm_bonus += compute_cmb(ch, combat_maneuver_type);
-
-    // Calculate Combat Maneuver Defense (CMD)
-    cm_defense = compute_cmd(vict, combat_maneuver_type);
-
-    // Apply situational modifiers
-    switch (combat_maneuver_type) {
-        case COMBAT_MANEUVER_TYPE_REVERSAL:
-            cm_defense += 5; // Grappler gets bonus to maintain
-            break;
-        case COMBAT_MANEUVER_TYPE_BULL_RUSH:
-            if (GET_SIZE(ch) > GET_SIZE(vict))
-                cm_bonus += (GET_SIZE(ch) - GET_SIZE(vict)) * 4;
-            break;
-        case COMBAT_MANEUVER_TYPE_TRIP:
-            if (GET_SIZE(ch) > GET_SIZE(vict))
-                cm_bonus += (GET_SIZE(ch) - GET_SIZE(vict)) * 2;
-            break;
-    }
-
-    int result = cm_bonus - cm_defense;
-
-    // Natural 20 is always success, natural 1 is always failure
-    if (attack_roll == 20) {
-        return (result > 1) ? result : 1;
-    } else if (attack_roll == 1) {
-        return (result < 0) ? result : 0;
-    }
-
-    return result;
-}
+// Core grapple functions
+void set_grapple(struct char_data *ch, struct char_data *vict);
+void clear_grapple(struct char_data *ch, struct char_data *vict);
+bool valid_grapple_cond(struct char_data *ch);
+void perform_grapple(struct char_data *ch, char *argument);
 ```
 
-**Combat Maneuver Types:**
-- **Bull Rush:** Push opponent backward
-- **Disarm:** Remove opponent's weapon
-- **Grapple:** Grab and hold opponent
-- **Overrun:** Move through opponent's space
-- **Sunder:** Destroy opponent's equipment
-- **Trip:** Knock opponent prone
+**Grapple Mechanics:**
+- Both participants gain AFF_GRAPPLED
+- Grappler has dominant position (GRAPPLE_TARGET)
+- Victim is grappled (GRAPPLE_ATTACKER)
+- Actions while grappled:
+  - **Move**: Half speed with opponent
+  - **Damage**: Unarmed/light weapon damage
+  - **Pin**: Apply pinned condition
+  - **Tie Up**: Bind with ropes (DC 20 + CMB)
+  - **Escape**: Break free or reverse grapple
+
+**Restrictions:**
+- Need free hands (-4 without two free)
+- Limited to light weapons or unarmed
+- Provokes AoO without Improved Grapple
+
+### 2. Other Combat Maneuvers
+
+**Implemented Maneuvers:**
+- **Trip** (act.offensive.c): Knock prone
+- **Bash** (act.offensive.c): Shield bash
+- **Charge** (act.offensive.c): +2 attack, -2 AC
+- **Bull Rush**: Push opponent
+- **Disarm**: Remove weapon
+- **Sunder**: Damage equipment
+
+**CMB/CMD System:**
+- CMB = BAB + STR + size + misc
+- CMD = 10 + BAB + STR + DEX + size + misc
+- d20 + CMB vs CMD for success
 
 ### 2. Attacks of Opportunity
 
-The system implements attacks of opportunity for tactical positioning:
+Attacks of opportunity provide battlefield control:
 
 ```c
 int attack_of_opportunity(struct char_data *ch, struct char_data *victim,
-                         int penalty) {
-
-    // Check if character can make AoO
-    if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED) &&
-        !HAS_FEAT(ch, FEAT_COMBAT_REFLEXES))
-        return 0;
-
-    if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
-        return 0;
-
-    // Check AoO limit
-    int max_aoo = HAS_FEAT(ch, FEAT_COMBAT_REFLEXES) ?
-                  GET_DEX_BONUS(ch) : 1;
-
-    if (GET_TOTAL_AOO(ch) < max_aoo) {
-        GET_TOTAL_AOO(ch)++;
-        return hit(ch, victim, TYPE_ATTACK_OF_OPPORTUNITY,
-                  DAM_RESERVED_DBC, penalty, FALSE);
-    }
-
-    return 0;
-}
+                         int penalty);
+void attacks_of_opportunity(struct char_data *victim, int penalty);
+void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty, 
+                                   int featnum);
 ```
 
-**AoO Triggers:**
-- Moving out of threatened squares
-- Casting spells in combat
-- Using ranged weapons in melee
-- Standing up from prone
-- Retrieving dropped items
+**AoO Limits:**
+- Normal: 1 per round
+- Combat Reflexes: 1 + DEX bonus per round
+- Cannot make while flat-footed (unless Combat Reflexes)
+- Cannot make while grappled/entangled
+
+**Common AoO Triggers:**
+- Movement out of threatened area
+- Casting spells (unless defensive)
+- Ranged attacks in melee
+- Standing from prone
+- Retrieving items
+- Combat maneuvers (without Improved feats)
+- Unarmed attacks (without Improved Unarmed)
+
+**Teamwork AoOs:**
+- Coordinated attacks with allies
+- Requires shared teamwork feats
+- Additional tactical options
 
 ## Special Combat Abilities
 
 ### 1. Critical Hits
 
-Critical hits deal extra damage and may have special effects:
+Critical hit system with threat ranges and confirmation:
 
-```c
-bool is_critical_hit(struct char_data *ch, struct obj_data *weapon,
-                    int diceroll, int attack_bonus, int victim_ac) {
+**Critical Mechanics:**
+- **Threat Range**: Usually 20, improved by:
+  - Keen weapons (doubles range)
+  - Improved Critical feat (doubles range)
+  - Weapon properties (18-20, 19-20)
+- **Confirmation**: Second attack roll to confirm
+- **Multipliers**: x2, x3, or x4 damage
+- **Special Effects**:
+  - Exploit Weakness (Alchemist)
+  - Shadow Blind (Shadow Dancer)
+  - Spell Critical (automatic spell proc)
 
-    int threat_range = weapon ? GET_OBJ_VAL(weapon, 3) : 20;
-
-    // Check if roll threatens critical
-    if (diceroll < threat_range) return FALSE;
-
-    // Confirm critical hit with second attack roll
-    int confirm_roll = d20(ch) + attack_bonus;
-    return (confirm_roll >= victim_ac);
-}
-```
+**Weapon Critical Properties:**
+- Longsword: 19-20/x2
+- Rapier: 18-20/x2
+- Greataxe: 20/x3
+- Scythe: 20/x4
 
 ### 2. Sneak Attack
 
-Sneak attacks deal extra damage when conditions are met:
+Sneak attack provides precision damage:
 
-```c
-int calculate_sneak_attack_damage(struct char_data *ch, struct char_data *victim) {
+**Sneak Attack Conditions:**
+- Target is flanked
+- Target is flat-footed
+- Target denied DEX bonus
+- Attacker is invisible/hidden
+- Target is blinded
 
-    if (!HAS_FEAT(ch, FEAT_SNEAK_ATTACK)) return 0;
+**Damage Progression:**
+- Rogue: +1d6 per 2 levels
+- Ninja: Similar progression
+- Arcane Trickster: Stacks with base
+- Slayer: Limited progression
 
-    // Check sneak attack conditions
-    if (!is_flanked(ch, victim) &&
-        !AFF_FLAGGED(victim, AFF_FLAT_FOOTED) &&
-        has_dex_bonus_to_ac(ch, victim)) {
-        return 0;
-    }
+**Restrictions:**
+- Must be within 30 feet (ranged)
+- Target must have discernible anatomy
+- Immune: Constructs, Oozes, some Undead
+- Precision damage - not multiplied on crits
 
-    // Calculate sneak attack dice
-    int sneak_dice = HAS_FEAT(ch, FEAT_SNEAK_ATTACK);
-    return dice(sneak_dice, 6);
-}
-```
+### 3. Special Attack Abilities
 
-### 3. Spell Combat Integration
+**Implemented Special Attacks:**
 
-The combat system integrates with the spell system:
+**Monk Abilities:**
+- **Stunning Fist**: Save or stunned 1 round
+- **Quivering Palm**: Death attack, Fort save
+- **Flurry of Blows**: Extra attacks, -2 penalty
 
-```c
-void cast_spell_in_combat(struct char_data *ch, struct char_data *victim,
-                         int spellnum) {
+**Ranger/Arcane Archer:**
+- **Death Arrow**: Instant death ranged attack
+- **Imbued Arrows**: Spell-storing ammunition
 
-    // Trigger attacks of opportunity
-    attacks_of_opportunity(ch, 0);
+**Rage Powers (Berserker):**
+- **Surprise Accuracy**: Auto-hit next attack
+- **Powerful Blow**: Extra damage
+- **Come and Get Me**: Enemies get +4 to hit/damage
 
-    // Concentration check if damaged
-    if (GET_HIT(ch) < GET_MAX_HIT(ch)) {
-        int dc = 10 + spell_info[spellnum].min_level[GET_CLASS(ch)];
-        if (!concentration_check(ch, dc)) {
-            send_to_char(ch, "You lose concentration!\r\n");
-            return;
-        }
-    }
+**Alchemist:**
+- **Bomb Toss**: Splash damage attacks
+- **Exploit Weakness**: Analyze for weak points
 
-    // Cast the spell
-    call_magic(ch, victim, NULL, spellnum,
-              GET_LEVEL(ch), CAST_SPELL);
-}
-```
+**Evolution Attacks (Eidolon):**
+- Multiple natural attacks
+- Special properties (grab, poison, bleed)
+- Combination attacks (rend, rake)
 
 ## Combat States and Conditions
 
@@ -567,59 +474,104 @@ Character positions affect combat capabilities:
 ```c
 // Position constants
 #define POS_DEAD       0    // Character is dead
-#define POS_MORTALLYW  1    // Mortally wounded
-#define POS_INCAP      2    // Incapacitated
-#define POS_STUNNED    3    // Stunned
+#define POS_MORTALLYW  1    // Mortally wounded (-10 to -6 hp)
+#define POS_INCAP      2    // Incapacitated (-5 to -3 hp)
+#define POS_STUNNED    3    // Stunned (-2 to -1 hp)
 #define POS_SLEEPING   4    // Sleeping
 #define POS_RESTING    5    // Resting
 #define POS_SITTING    6    // Sitting
 #define POS_FIGHTING   7    // Fighting
 #define POS_STANDING   8    // Standing
-
-void update_pos(struct char_data *victim) {
-    if (GET_HIT(victim) > 0) {
-        GET_POS(victim) = POS_STANDING;
-    } else if (GET_HIT(victim) <= -11) {
-        GET_POS(victim) = POS_DEAD;
-    } else if (GET_HIT(victim) <= -6) {
-        GET_POS(victim) = POS_MORTALLYW;
-    } else if (GET_HIT(victim) <= -3) {
-        GET_POS(victim) = POS_INCAP;
-    } else {
-        GET_POS(victim) = POS_STUNNED;
-    }
-}
 ```
 
 ### 2. Combat Conditions
 
-Various conditions affect combat performance:
+**Major Combat Conditions:**
 
-**Condition Effects:**
-- **Flat-footed:** Lose dex bonus to AC, can't make AoOs
-- **Flanked:** -2 AC against flanking attackers
-- **Grappled:** Limited actions, -4 to most rolls
-- **Prone:** -4 to melee attacks, +4 AC vs ranged
-- **Stunned:** Lose dex bonus, can't act
-- **Entangled:** -2 attack, -4 dex, move at half speed
+**Movement/Position:**
+- **Prone**: -4 melee attack, +4 AC vs ranged, -4 AC vs melee
+- **Grappled**: -2 attack/AC, no move, limited actions
+- **Pinned**: More severe than grappled, nearly helpless
+- **Entangled**: -2 attack, -4 DEX, half speed
 
-## Performance and Balance
+**Awareness:**
+- **Flat-footed**: No DEX to AC, no AoOs, vulnerable to sneak
+- **Blinded**: -2 AC, lose DEX to AC, 50% miss in melee
+- **Invisible**: +2 attack, deny opponent DEX
 
-### 1. Combat Optimization
+**Mental States:**
+- **Stunned**: Drop items, -2 AC, lose DEX, no actions
+- **Confused**: Random actions, may attack allies
+- **Fear**: Shaken (-2), Frightened (flee), Panicked (drop items)
+- **Paralyzed**: Helpless, coup de grace possible
 
-The combat system includes several optimizations:
+**Status Effects:**
+- **Sickened**: -2 attack/damage/saves/skills
+- **Nauseated**: Move action only
+- **Exhausted**: -6 STR/DEX, half speed
+- **Fatigued**: -2 STR/DEX, no run/charge
 
-- **Event-driven rounds:** Reduces CPU overhead
-- **Cached calculations:** Attack bonuses computed once per round
-- **Efficient data structures:** Combat list for active participants
-- **Lazy evaluation:** Complex calculations only when needed
+## Combat Modes (combat_modes.c)
 
-### 2. Balance Mechanisms
+### Mode Groups
 
-- **Action economy:** Limits on attacks per round
-- **Resource management:** Spell slots, special abilities
-- **Tactical positioning:** Flanking, attacks of opportunity
-- **Risk/reward:** High-damage abilities with drawbacks
+Combat modes are organized into exclusive groups:
 
-This combat system provides deep tactical gameplay while maintaining the fast-paced action expected in a MUD environment, with careful attention to both mechanical complexity and performance optimization.
-```
+**Group 1 (Modify Attacks):**
+- **Power Attack**: Trade attack for damage
+- **Combat Expertise**: Trade attack for AC
+- **Spellbattle**: Caster combat mode
+- **Total Defense**: +4 AC, no attacks
+
+**Group 2 (Add Attacks):**
+- **Dual Wield**: Use two weapons
+- **Flurry of Blows**: Monk rapid attacks
+- **Rapid Shot**: Extra ranged attack
+
+**Group 3 (Modify Casting):**
+- **Counterspell**: Ready to counter
+- **Defensive Casting**: Avoid AoOs
+
+**No Group:**
+- **Whirlwind Attack**: Attack all adjacent
+- **Deadly Aim**: Ranged power attack
+
+## Performance Features
+
+### 1. Condensed Combat Mode
+
+Streamlines combat output for reduced spam:
+- Accumulates attack/damage info
+- Single-line combat summaries
+- Configurable via PRF_CONDENSED
+- Tracked via CNDNSD() structure
+
+### 2. Combat Optimizations
+
+- **Event-driven**: No pulse-based overhead
+- **Linked list**: Efficient combat_list management  
+- **Cached values**: Reuse calculations
+- **Phase system**: Distributed action resolution
+- **Lazy evaluation**: On-demand computation
+
+### 3. Balance Mechanisms
+
+**Action Economy:**
+- Standard/Move/Swift action system
+- Attack progression limits
+- Daily ability uses
+- Cooldown timers
+
+**Resource Management:**
+- Rage rounds
+- Ki points  
+- Spell slots
+- Power points (psionics)
+
+**Risk vs Reward:**
+- Power Attack: -attack/+damage
+- Reckless Attack: enemies +4 to hit
+- Charge: +2 attack/-2 AC
+- Total Defense: No attacks allowed
+
+This combat system provides deep tactical gameplay while maintaining performance suitable for real-time MUD combat with potentially hundreds of simultaneous battles.
