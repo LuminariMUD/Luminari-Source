@@ -809,6 +809,43 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
             snprintf(str, slen, "%d", NO_CLANRANK); /* Mobs have no clan */
           }
         }
+        else if (!str_cmp(field, "clanname"))
+        {
+          if (!IS_NPC(c) && GET_CLAN(c) != NO_CLAN)
+          {
+            clan_rnum cr = real_clan(GET_CLAN(c));
+            if (cr != NO_CLAN)
+              snprintf(str, slen, "%s", clan_list[cr].clan_name);
+            else
+              strcpy(str, "None");
+          }
+          else
+          {
+            strcpy(str, "None");
+          }
+        }
+        else if (!str_cmp(field, "is_clan_leader"))
+        {
+          if (!IS_NPC(c) && check_clan_leader(c))
+            snprintf(str, slen, "1");
+          else
+            snprintf(str, slen, "0");
+        }
+        else if (!str_cmp(field, "clan_gold"))
+        {
+          if (!IS_NPC(c) && GET_CLAN(c) != NO_CLAN)
+          {
+            clan_rnum cr = real_clan(GET_CLAN(c));
+            if (cr != NO_CLAN)
+              snprintf(str, slen, "%ld", clan_list[cr].treasure);
+            else
+              snprintf(str, slen, "0");
+          }
+          else
+          {
+            snprintf(str, slen, "0");
+          }
+        }
         else if (!str_cmp(field, "class"))
         {
           if (subfield && *subfield)

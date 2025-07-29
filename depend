@@ -126,11 +126,18 @@ char_descs.o: char_descs.c conf.h sysdep.h structs.h bool.h protocol.h \
 clan.o: clan.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
  interpreter.h handler.h screen.h improved-edit.h spells.h clan.h \
- mudlim.h oasis.h help.h
+ clan_benefits.h mudlim.h oasis.h help.h clan_transactions.h
+clan_economy.o: clan_economy.c conf.h sysdep.h structs.h bool.h \
+ protocol.h lists.h campaign.h mud_options.h vnums.h utils.h db.h \
+ helpers.h perfmon.h comm.h handler.h interpreter.h clan.h shop.h \
+ constants.h
 clan_edit.o: clan_edit.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h mud_options.h vnums.h utils.h db.h helpers.h \
  perfmon.h screen.h genolc.h oasis.h help.h improved-edit.h comm.h \
  interpreter.h modify.h ibt.h clan.h
+clan_transactions.o: clan_transactions.c conf.h sysdep.h structs.h bool.h \
+ protocol.h lists.h campaign.h mud_options.h vnums.h utils.h db.h \
+ helpers.h perfmon.h comm.h handler.h interpreter.h clan.h
 class.o: class.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h \
  spells.h interpreter.h constants.h act.h handler.h comm.h mud_event.h \
@@ -145,10 +152,10 @@ comm.o: comm.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
  interpreter.h handler.h house.h oasis.h help.h genolc.h dg_scripts.h \
  dg_event.h screen.h constants.h boards.h act.h ban.h msgedit.h fight.h \
- spells.h modify.h quest.h ibt.h mud_event.h clan.h class.h mail.h \
- new_mail.h mudlim.h actions.h actionqueues.h assign_wpn_armor.h \
- wilderness.h spell_prep.h transport.h hunts.h bardic_performance.h \
- crafting_new.h ai_service.h
+ spells.h modify.h quest.h ibt.h mud_event.h clan.h clan_economy.h \
+ class.h mail.h new_mail.h mudlim.h actions.h actionqueues.h \
+ assign_wpn_armor.h wilderness.h spell_prep.h transport.h hunts.h \
+ bardic_performance.h crafting_new.h ai_service.h
 config.o: config.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h \
  interpreter.h config.h asciimap.h
@@ -182,11 +189,11 @@ db.o: db.c conf.h sysdep.h structs.h bool.h protocol.h lists.h campaign.h \
  spells.h mail.h interpreter.h house.h constants.h oasis.h help.h \
  dg_scripts.h dg_event.h act.h ban.h treasure.h spec_procs.h genzon.h \
  genolc.h genobj.h genwld.h config.h fight.h modify.h shop.h quest.h \
- ibt.h mud_event.h class.h clan.h msgedit.h craft.h hlquest.h mudlim.h \
- spec_abilities.h perlin.h wilderness.h mysql.h feats.h actionqueues.h \
- domains_schools.h grapple.h race.h spell_prep.h crafts.h trails.h \
- premadebuilds.h encounters.h hunts.h evolutions.h assign_wpn_armor.h \
- backgrounds.h crafting_new.h crafting_recipes.h
+ ibt.h mud_event.h class.h clan.h clan_economy.h msgedit.h craft.h \
+ hlquest.h mudlim.h spec_abilities.h perlin.h wilderness.h mysql.h \
+ feats.h actionqueues.h domains_schools.h grapple.h race.h spell_prep.h \
+ crafts.h trails.h premadebuilds.h encounters.h hunts.h evolutions.h \
+ assign_wpn_armor.h backgrounds.h crafting_new.h crafting_recipes.h
 deities.o: deities.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h \
  spells.h interpreter.h deities.h
@@ -214,7 +221,7 @@ dg_misc.o: dg_misc.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 dg_mobcmd.o: dg_mobcmd.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h mud_options.h vnums.h utils.h db.h helpers.h \
  perfmon.h screen.h dg_scripts.h handler.h interpreter.h comm.h spells.h \
- constants.h genzon.h act.h fight.h shop.h
+ constants.h genzon.h act.h fight.h shop.h clan.h
 dg_objcmd.o: dg_objcmd.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h mud_options.h vnums.h screen.h dg_scripts.h utils.h \
  db.h helpers.h perfmon.h comm.h interpreter.h handler.h constants.h \
@@ -524,7 +531,8 @@ sedit.o: sedit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 shop.o: shop.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h mud_options.h vnums.h utils.h db.h helpers.h perfmon.h comm.h \
  handler.h interpreter.h shop.h genshp.h constants.h act.h modify.h \
- spells.h screen.h race.h spec_procs.h mudlim.h item.h backgrounds.h
+ spells.h screen.h race.h spec_procs.h mudlim.h item.h backgrounds.h \
+ clan_economy.h
 spec_abilities.o: spec_abilities.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h mud_options.h vnums.h utils.h db.h \
  helpers.h perfmon.h comm.h dg_event.h spells.h handler.h interpreter.h \

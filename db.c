@@ -42,6 +42,7 @@
 #include "mud_event.h"
 #include "class.h"
 #include "clan.h"
+#include "clan_economy.h"
 #include "msgedit.h"
 #include "craft.h"
 #include "hlquest.h"
@@ -1006,6 +1007,9 @@ void destroy_db(void)
 
   /* Events */
   event_free_all();
+  
+  /* Clan economy system */
+  shutdown_clan_economy();
 }
 
 /* body of the booting system */
@@ -1148,6 +1152,10 @@ void boot_db(void)
 
     log("Booting clans.");
     load_clans();
+    
+    log("Initializing clan economy system.");
+    init_clan_economy();
+    load_clan_investments();
 
     log("Loading clan zone claim info.");
     load_claims();

@@ -792,64 +792,30 @@ Create descriptions that change based on conditions:
 
 ## Scripting and Triggers
 
-### Introduction to DG Scripts
+The DG (DikuMUD Scripting) system allows builders to create interactive, dynamic content through event-driven scripts. Scripts can be attached to mobiles (NPCs), objects, and rooms to respond to player actions and create complex behaviors.
 
-DG Scripts (DikuMUD Scripting) allow builders to create interactive, dynamic content without programming knowledge.
+**For complete DG scripting documentation, including:**
+- Detailed trigger types and examples
+- Script command reference
+- Advanced scripting techniques
+- Performance optimization
+- Debugging and testing procedures
 
-**Script Types:**
-- **Mobile Scripts:** Attached to NPCs
-- **Object Scripts:** Attached to items
-- **Room Scripts:** Attached to rooms
-- **Global Scripts:** System-wide effects
+**See:** [DG Scripting System Documentation](../systems/SCRIPTING_SYSTEM_DG.md)
 
-### Common Trigger Types
+### Quick Reference
 
-**Mobile Triggers:**
-- **Greet:** When player enters room
-- **Speech:** When specific words are spoken
-- **Act:** When specific actions occur
-- **Fight:** During combat
-- **Death:** When mobile dies
-- **Random:** Periodic random actions
+**Basic Script Types:**
+- **Mobile Scripts:** NPC behaviors and interactions
+- **Object Scripts:** Item-specific functionality
+- **Room Scripts:** Environmental effects and puzzles
 
-**Object Triggers:**
-- **Get:** When object is picked up
-- **Drop:** When object is dropped
-- **Give:** When object is given
-- **Wear:** When object is equipped
-- **Remove:** When object is removed
-- **Command:** When specific command is used
-
-**Room Triggers:**
-- **Enter:** When player enters room
-- **Leave:** When player leaves room
-- **Command:** When command is used in room
-- **Speech:** When something is said in room
-- **Reset:** When zone resets
-
-### Basic Scripting Examples
-
-**Simple Greeting Script:**
-```
-Name: 'Friendly Shopkeeper Greeting'
-Trigger: Greet
-Commands:
-say Welcome to my shop, %actor.name%!
-say I have the finest goods in the land!
-```
-
-**Quest Item Script:**
-```
-Name: 'Magic Sword Recognition'
-Trigger: Get
-Commands:
-if %actor.level% < 20
-  say This weapon is too powerful for you!
-  drop %self%
-else
-  say The sword glows with magical power!
-end
-```
+**Common Triggers:**
+- **Command:** Respond to specific player commands
+- **Speech:** React to spoken words
+- **Enter/Leave:** Activate when players move
+- **Get/Drop/Wear:** Object interaction events
+- **Fight:** Combat-related triggers
 
 ---
 
@@ -999,7 +965,7 @@ Remember that building is an iterative process - your first areas may not be per
 ### Documentation References
 - **Administrator's Guide:** Server management and policies
 - **Developer's Guide:** Code modification and programming
-- **Scripting Reference:** Advanced DG Scripts documentation
+- **[DG Scripting System](../systems/SCRIPTING_SYSTEM_DG.md):** Complete DG Scripts documentation
 - **File Format Specifications:** Technical file format details
 
 ### Community Resources

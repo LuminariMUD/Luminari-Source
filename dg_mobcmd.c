@@ -23,6 +23,7 @@
 #include "act.h"
 #include "fight.h"
 #include "shop.h" /* shop keepers and mhunt */
+#include "clan.h"   /* clan system */
 
 /* Local file scope functions. */
 static void mob_log(char_data *mob, const char *format, ...);
@@ -689,7 +690,7 @@ ACMD(do_mteleport)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  argument = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1 || !*arg2)
   {
@@ -1426,4 +1427,364 @@ ACMD(do_mrecho)
     mob_log(ch, "mrecho called with too few args");
   else
     send_to_range(atoi(start), atoi(finish), "%s\r\n", msg);
+}
+
+/* Clan-related DG Script commands */
+
+/* mclanset - Set a character's clan affiliation */
+ACMDU(do_mclanset)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char_data *victim;
+  clan_vnum clan_num;
+  clan_rnum clan_r;
+  
+  if (!MOB_OR_IMPL(ch)) {
+    send_to_char(ch, "Huh?!?\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+    return;
+  
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  
+  if (!*arg1 || !*arg2) {
+    mob_log(ch, "mclanset: too few arguments");
+    return;
+  }
+  
+  if ((victim = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM)) == NULL) {
+    mob_log(ch, "mclanset: victim not found");
+    return;
+  }
+  
+  if (IS_NPC(victim)) {
+    mob_log(ch, "mclanset: cannot set clan on NPCs");
+    return;
+  }
+  
+  if (!str_cmp(arg2, "none") || !str_cmp(arg2, "0")) {
+    /* Remove from clan */
+    if (GET_CLAN(victim) != NO_CLAN) {
+      GET_CLAN(victim) = NO_CLAN;
+      GET_CLANRANK(victim) = NO_CLANRANK;
+      save_char(victim, 0);
+      mob_log(ch, "mclanset: removed %s from clan", GET_NAME(victim));
+    }
+    return;
+  }
+  
+  if (is_number(arg2)) {
+    clan_num = atoi(arg2);
+  } else {
+    clan_r = get_clan_by_name(arg2);
+    if (clan_r == NO_CLAN) {
+      mob_log(ch, "mclanset: clan '%s' not found", arg2);
+      return;
+    }
+    clan_num = clan_list[clan_r].vnum;
+  }
+  
+  clan_r = real_clan(clan_num);
+  if (clan_r == NO_CLAN) {
+    mob_log(ch, "mclanset: clan vnum %d not found", clan_num);
+    return;
+  }
+  
+  GET_CLAN(victim) = clan_num;
+  GET_CLANRANK(victim) = clan_list[clan_r].ranks; /* Set to lowest rank */
+  save_char(victim, 0);
+  mob_log(ch, "mclanset: set %s to clan %s", GET_NAME(victim), clan_list[clan_r].clan_name);
+}
+
+/* mclanrank - Set a character's clan rank */
+ACMDU(do_mclanrank)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char_data *victim;
+  clan_rnum clan_r;
+  int rank;
+  
+  if (!MOB_OR_IMPL(ch)) {
+    send_to_char(ch, "Huh?!?\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+    return;
+  
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  
+  if (!*arg1 || !*arg2) {
+    mob_log(ch, "mclanrank: too few arguments");
+    return;
+  }
+  
+  if ((victim = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM)) == NULL) {
+    mob_log(ch, "mclanrank: victim not found");
+    return;
+  }
+  
+  if (IS_NPC(victim)) {
+    mob_log(ch, "mclanrank: cannot set clan rank on NPCs");
+    return;
+  }
+  
+  if (GET_CLAN(victim) == NO_CLAN) {
+    mob_log(ch, "mclanrank: %s is not in a clan", GET_NAME(victim));
+    return;
+  }
+  
+  clan_r = real_clan(GET_CLAN(victim));
+  if (clan_r == NO_CLAN) {
+    mob_log(ch, "mclanrank: %s's clan not found", GET_NAME(victim));
+    return;
+  }
+  
+  rank = atoi(arg2);
+  if (rank < 1 || rank > clan_list[clan_r].ranks) {
+    mob_log(ch, "mclanrank: invalid rank %d (valid: 1-%d)", rank, clan_list[clan_r].ranks);
+    return;
+  }
+  
+  GET_CLANRANK(victim) = rank;
+  save_char(victim, 0);
+  mob_log(ch, "mclanrank: set %s to rank %d (%s)", GET_NAME(victim), rank, 
+          clan_list[clan_r].rank_name[rank-1]);
+}
+
+/* mclangold - Add/remove gold from clan treasury */
+ACMDU(do_mclangold)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
+  clan_rnum clan_r;
+  clan_vnum clan_num;
+  int amount;
+  
+  if (!MOB_OR_IMPL(ch)) {
+    send_to_char(ch, "Huh?!?\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+    return;
+  
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  
+  if (!*arg1 || !*arg2) {
+    mob_log(ch, "mclangold: too few arguments");
+    return;
+  }
+  
+  /* Find clan by name or vnum */
+  if (is_number(arg1)) {
+    clan_num = atoi(arg1);
+    clan_r = real_clan(clan_num);
+  } else {
+    clan_r = get_clan_by_name(arg1);
+    if (clan_r != NO_CLAN)
+      clan_num = clan_list[clan_r].vnum;
+  }
+  
+  if (clan_r == NO_CLAN) {
+    mob_log(ch, "mclangold: clan '%s' not found", arg1);
+    return;
+  }
+  
+  amount = atoi(arg2);
+  if (amount == 0) {
+    mob_log(ch, "mclangold: invalid amount %s", arg2);
+    return;
+  }
+  
+  if (amount < 0 && clan_list[clan_r].treasure < -amount) {
+    mob_log(ch, "mclangold: clan %s has insufficient funds (%ld < %d)",
+            clan_list[clan_r].clan_name, clan_list[clan_r].treasure, -amount);
+    return;
+  }
+  
+  clan_list[clan_r].treasure += amount;
+  mark_clan_modified(clan_r);
+  mob_log(ch, "mclangold: %s %d gold %s clan %s (new balance: %ld)",
+          amount > 0 ? "added" : "removed", (amount > 0 ? amount : -amount), 
+          amount > 0 ? "to" : "from", clan_list[clan_r].clan_name,
+          clan_list[clan_r].treasure);
+}
+
+/* mclanwar - Set war status between clans */
+ACMDU(do_mclanwar)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'}, arg3[MAX_INPUT_LENGTH] = {'\0'};
+  clan_rnum clan1_r, clan2_r;
+  clan_vnum clan1_num, clan2_num;
+  int status;
+  
+  if (!MOB_OR_IMPL(ch)) {
+    send_to_char(ch, "Huh?!?\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+    return;
+  
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  one_argument(argument, arg3, sizeof(arg3));
+  
+  if (!*arg1 || !*arg2 || !*arg3) {
+    mob_log(ch, "mclanwar: too few arguments");
+    return;
+  }
+  
+  /* Find first clan */
+  if (is_number(arg1)) {
+    clan1_num = atoi(arg1);
+    clan1_r = real_clan(clan1_num);
+  } else {
+    clan1_r = get_clan_by_name(arg1);
+    if (clan1_r != NO_CLAN)
+      clan1_num = clan_list[clan1_r].vnum;
+  }
+  
+  if (clan1_r == NO_CLAN) {
+    mob_log(ch, "mclanwar: clan '%s' not found", arg1);
+    return;
+  }
+  
+  /* Find second clan */
+  if (is_number(arg2)) {
+    clan2_num = atoi(arg2);
+    clan2_r = real_clan(clan2_num);
+  } else {
+    clan2_r = get_clan_by_name(arg2);
+    if (clan2_r != NO_CLAN)
+      clan2_num = clan_list[clan2_r].vnum;
+  }
+  
+  if (clan2_r == NO_CLAN) {
+    mob_log(ch, "mclanwar: clan '%s' not found", arg2);
+    return;
+  }
+  
+  if (clan1_r == clan2_r) {
+    mob_log(ch, "mclanwar: cannot set war status with same clan");
+    return;
+  }
+  
+  /* Parse status */
+  if (!str_cmp(arg3, "true") || !str_cmp(arg3, "yes") || !str_cmp(arg3, "1"))
+    status = 1;
+  else if (!str_cmp(arg3, "false") || !str_cmp(arg3, "no") || !str_cmp(arg3, "0"))
+    status = 0;
+  else {
+    mob_log(ch, "mclanwar: invalid status '%s' (use true/false)", arg3);
+    return;
+  }
+  
+  /* Set war status */
+  clan_list[clan1_r].at_war[clan2_r] = status;
+  clan_list[clan2_r].at_war[clan1_r] = status;
+  
+  if (status) {
+    /* Remove alliance if setting to war */
+    clan_list[clan1_r].allies[clan2_r] = 0;
+    clan_list[clan2_r].allies[clan1_r] = 0;
+    /* Set war timer */
+    clan_list[clan1_r].war_timer = DEFAULT_WAR_DURATION;
+    clan_list[clan2_r].war_timer = DEFAULT_WAR_DURATION;
+  }
+  
+  mark_clan_modified(clan1_r);
+  mark_clan_modified(clan2_r);
+  
+  mob_log(ch, "mclanwar: %s war between %s and %s",
+          status ? "declared" : "ended", clan_list[clan1_r].clan_name,
+          clan_list[clan2_r].clan_name);
+}
+
+/* mclanally - Set alliance status between clans */
+ACMDU(do_mclanally)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'}, arg3[MAX_INPUT_LENGTH] = {'\0'};
+  clan_rnum clan1_r, clan2_r;
+  clan_vnum clan1_num, clan2_num;
+  int status;
+  
+  if (!MOB_OR_IMPL(ch)) {
+    send_to_char(ch, "Huh?!?\r\n");
+    return;
+  }
+  
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+    return;
+  
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  one_argument(argument, arg3, sizeof(arg3));
+  
+  if (!*arg1 || !*arg2 || !*arg3) {
+    mob_log(ch, "mclanally: too few arguments");
+    return;
+  }
+  
+  /* Find first clan */
+  if (is_number(arg1)) {
+    clan1_num = atoi(arg1);
+    clan1_r = real_clan(clan1_num);
+  } else {
+    clan1_r = get_clan_by_name(arg1);
+    if (clan1_r != NO_CLAN)
+      clan1_num = clan_list[clan1_r].vnum;
+  }
+  
+  if (clan1_r == NO_CLAN) {
+    mob_log(ch, "mclanally: clan '%s' not found", arg1);
+    return;
+  }
+  
+  /* Find second clan */
+  if (is_number(arg2)) {
+    clan2_num = atoi(arg2);
+    clan2_r = real_clan(clan2_num);
+  } else {
+    clan2_r = get_clan_by_name(arg2);
+    if (clan2_r != NO_CLAN)
+      clan2_num = clan_list[clan2_r].vnum;
+  }
+  
+  if (clan2_r == NO_CLAN) {
+    mob_log(ch, "mclanally: clan '%s' not found", arg2);
+    return;
+  }
+  
+  if (clan1_r == clan2_r) {
+    mob_log(ch, "mclanally: cannot set alliance status with same clan");
+    return;
+  }
+  
+  /* Parse status */
+  if (!str_cmp(arg3, "true") || !str_cmp(arg3, "yes") || !str_cmp(arg3, "1"))
+    status = 1;
+  else if (!str_cmp(arg3, "false") || !str_cmp(arg3, "no") || !str_cmp(arg3, "0"))
+    status = 0;
+  else {
+    mob_log(ch, "mclanally: invalid status '%s' (use true/false)", arg3);
+    return;
+  }
+  
+  /* Set alliance status */
+  clan_list[clan1_r].allies[clan2_r] = status;
+  clan_list[clan2_r].allies[clan1_r] = status;
+  
+  if (status) {
+    /* Remove war if setting alliance */
+    clan_list[clan1_r].at_war[clan2_r] = 0;
+    clan_list[clan2_r].at_war[clan1_r] = 0;
+  }
+  
+  mark_clan_modified(clan1_r);
+  mark_clan_modified(clan2_r);
+  
+  mob_log(ch, "mclanally: %s alliance between %s and %s",
+          status ? "formed" : "broke", clan_list[clan1_r].clan_name,
+          clan_list[clan2_r].clan_name);
 }
