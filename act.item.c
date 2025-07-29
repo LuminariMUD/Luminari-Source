@@ -906,14 +906,14 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   case ITEM_INSTRUMENT: /* 38 */
     if (mode == ITEM_STAT_MODE_G_LORE)
       send_to_group(NULL, GROUP(ch), "Instrument class: %s\r\n"
-                                     "Difficulty:       %d\r\n"
-                                     "Level:            %d\r\n"
+                                     "Quality:          %d\r\n"
+                                     "Effextiveness:    %d\r\n"
                                      "Breakability:     %d\r\n",
                     instrument_names[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
     else
       send_to_char(ch, "Instrument class: %s\r\n"
-                       "Difficulty:       %d\r\n"
-                       "Level:            %d\r\n"
+                       "Quality:          %d\r\n"
+                       "Effextiveness:    %d\r\n"
                        "Breakability:     %d\r\n",
                    instrument_names[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
 
@@ -3824,7 +3824,8 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where)
       {"$n straps $p on as $s sheath.",
        "You strap $p on as your sheath."},
 
-
+       {"$n picks up $p as $s instrument.",
+       "You pick up $p as your instrument."},
   };
 
   /* extinguished light! */
@@ -3961,8 +3962,9 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       ITEM_WEAR_ABOUT, ITEM_WEAR_WAIST, ITEM_WEAR_WRIST, ITEM_WEAR_WRIST,
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_WIELD, ITEM_WEAR_TAKE,
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_FACE, ITEM_WEAR_AMMO_POUCH,
-      ITEM_WEAR_EAR, ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE,
-      ITEM_WEAR_SHOULDERS, ITEM_WEAR_ANKLE, ITEM_WEAR_ANKLE, ITEM_WEAR_SHEATH};
+      ITEM_WEAR_EAR, ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE, 
+      ITEM_WEAR_SHOULDERS, ITEM_WEAR_ANKLE, ITEM_WEAR_ANKLE, ITEM_WEAR_SHEATH,
+      ITEM_WEAR_INSTRUMENT};
 
   const char *const already_wearing[NUM_WEARS] = {
       "You're already using a light.\r\n",                                  // 0
@@ -3990,13 +3992,14 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       "You are already wearing something on your face.\r\n",
       "You are already wearing an ammo pouch.\r\n",
       "YOU SHOULD NEVER SEE THIS MESSAGE.  PLEASE REPORT.\r\n",
-      "You are already wearing an item on each ear.\r\n", // 25
+      "You are already wearing an item on each ear.\r\n",                   // 25
       "You are already wearing something on your eyes.\r\n",
       "You are already wearing a badge.\r\n",
       "You are already wearing something on your shoulders.\r\n",
       "YOU SHOULD NEVER SEE THIS MESSAGE.  PLEASE REPORT.\r\n",
-      "You're already wearing something on both of your ankles.\r\n",     
+      "You're already wearing something on both of your ankles.\r\n",       // 30
       "You are already wearing a sheath.\r\n",
+      "You already have an instrument equipped.\r\n",
   };
 
   /* we are looking for some quick exits */
@@ -4248,6 +4251,8 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
       where = WEAR_ANKLE_R;
     if (CAN_WEAR(obj, ITEM_WEAR_SHEATH))
       where = WEAR_SHEATH;
+    if (CAN_WEAR(obj, ITEM_WEAR_INSTRUMENT))
+      where = WEAR_INSTRUMENT;
 
     /* this means we have an argument, does it match our keywords-array ?*/
   }

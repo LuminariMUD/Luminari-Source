@@ -148,4 +148,15 @@
 /* Otherwise if you want to use city landmarks only, uncomment the following line and make sure to comment out above */
 #define USE_CITY_LANDMARKS_ONLY
 
+/* ************************************************************************
+ * Random Object Guidelines Configuration
+ * 
+ * Define which random object guidelines to use.
+ * 
+ * WARNING: ONE AND ONLY ONE of the following two options MUST be defined.
+ * Defining both or neither will cause compilation errors.
+ * ************************************************************************ */
+// #define USE_NEW_RANDOM_OBJECT_GUIDELINES
+#define USE_ORIGINAL_RANDOM_OBJECT_GUIDELINES
+
 #endif /* _MUD_OPTIONS_H_ */

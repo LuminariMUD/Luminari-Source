@@ -40,8 +40,9 @@
 #define TRS_SLOT_FACE 12
 #define TRS_SLOT_EARS 13
 #define TRS_SLOT_ANKLET 14
+#define TRS_SLOT_INSTRUMENT 15
 /* for random miscellaneous items, this is the number of categories */
-#define NUM_MISC_CATEGORIES 14 /* match last value above */
+#define NUM_MISC_CATEGORIES 16 /* match last value above */
 
 /* Ornir CP System Defines, CP = creation points*/
 /* we manually add +X to cp_max_bonus in the code */
