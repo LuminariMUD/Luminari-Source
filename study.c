@@ -424,6 +424,7 @@ void finalize_study(struct descriptor_data *d)
         GET_REAL_MAX_PSP(ch) += 50;
         break;
       case FEAT_DAMAGE_REDUCTION:
+        {
         /* Create the DR structure and attach it to the player. */
         struct damage_reduction_type *next_dr;
         for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
@@ -449,6 +450,7 @@ void finalize_study(struct descriptor_data *d)
         dr->bypass_val[2] = 0; /* Unused. */
         dr->next = GET_DR(ch);
         GET_DR(ch) = dr;
+        }
         break;
       case FEAT_SORCERER_BLOODLINE_DRACONIC:
         SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS, 1);
