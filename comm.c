@@ -1338,8 +1338,10 @@ void heartbeat(int heart_pulse)
     check_diplomacy(); /* Reduce the diplomacy pause for online players */
     update_clans();    /* Update clan war timers and other periodic clan tasks */
     
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     /* Clean up old trails once per mud hour */
     cleanup_all_trails();
+#endif
     
     PERF_PROF_EXIT(pr_ost_);
   }
