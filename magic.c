@@ -4523,11 +4523,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_EPIC_PSIONIC_WARD:
 
     // Remove the dr.
-    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+    struct damage_reduction_type *next_dr;
+    for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
     {
+      next_dr = dr->next;  /* Save next pointer before potential removal */
       if (dr->spell == spellnum)
       {
         REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+        free(dr);  /* Free the damage reduction structure */
       }
     }
 
@@ -8299,11 +8302,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case RACIAL_ABILITY_CRYSTAL_BODY:
 
   /* Remove the dr. */
-  for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+  struct damage_reduction_type *next_dr;
+  for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
   {
+    next_dr = dr->next;  /* Save next pointer before potential removal */
     if (dr->spell == spellnum)
     {
       REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+      free(dr);  /* Free the damage reduction structure */
     }
   }
 

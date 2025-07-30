@@ -425,12 +425,15 @@ void finalize_study(struct descriptor_data *d)
         break;
       case FEAT_DAMAGE_REDUCTION:
         /* Create the DR structure and attach it to the player. */
-        for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+        struct damage_reduction_type *next_dr;
+        for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
         {
+          next_dr = dr->next;  /* Save next pointer before potential removal */
           if (dr->feat == FEAT_DAMAGE_REDUCTION)
           {
             struct damage_reduction_type *temp;
             REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+            free(dr);  /* Free the damage reduction structure */
           }
         }
         CREATE(dr, struct damage_reduction_type, 1);

@@ -170,8 +170,10 @@ void load_crafts(void)
           if (!strcmp(tag, "Req "))
           {
             requirement = create_requirement();
-            if (sscanf(line, "%d %d %d\n", (int *)&requirement->req_vnum, &requirement->req_amount, &requirement->req_flags) != 3)
+            if (sscanf(line, "%d %d %d\n", (int *)&requirement->req_vnum, &requirement->req_amount, &requirement->req_flags) != 3) {
               log("SYSERR: Format error in Requirement");
+              free(requirement);  /* Free the requirement if parsing failed */
+            }
             else
               add_to_list(requirement, craft->requirements);
           }
@@ -200,6 +202,13 @@ void load_crafts(void)
         log("SYSERR: Error in the crafts file.");
     }
   }
+  
+  /* Clean up any incomplete craft that wasn't added to the list */
+  if (in_craft && craft) {
+    log("SYSERR: Craft file ended with incomplete craft definition!");
+    free_craft(craft);
+  }
+  
   fclose(fp);
 }
 
