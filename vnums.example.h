@@ -41,6 +41,7 @@
 #define NOOB_GEAR_CLER_HEAD         160013
 #define NOOB_GEAR_CLER_LEGS         160014
 #define NOOB_GEAR_CLER_ARMS         160015
+#define NOOB_GEAR_CLER_SHIELD       160034
 */
 
 /* Rogue Starting Gear */
@@ -59,6 +60,8 @@
 #define NOOB_GEAR_FIGHT_HEAD        160013
 #define NOOB_GEAR_FIGHT_LEGS        160014
 #define NOOB_GEAR_FIGHT_ARMS        160015
+#define NOOB_GEAR_FIGHT_SHIELD      160038
+#define NOOB_GEAR_FIGHT_WEAPON2     160037
 */
 
 /* Monk Starting Gear */
@@ -95,6 +98,7 @@
 #define NOOB_GEAR_PALAD_HEAD        160013
 #define NOOB_GEAR_PALAD_LEGS        160014
 #define NOOB_GEAR_PALAD_ARMS        160015
+#define NOOB_GEAR_PALAD_SHIELD      160035
 */
 
 /* Ranger Starting Gear */
@@ -123,6 +127,7 @@
 #define NOOB_GEAR_BLKG_HEAD         160013
 #define NOOB_GEAR_BLKG_LEGS         160014
 #define NOOB_GEAR_BLKG_ARMS         160015
+#define NOOB_GEAR_BLKG_SHIELD       160036
 */
 
 /* Psionicist Starting Gear */
