@@ -50,51 +50,51 @@ int wild_waterline = 128;
 /* \t= changes a color to be BACKGROUND. */
 struct wild_map_info_type wild_map_info[] = {
     /* 0 */
-    {SECT_INSIDE, "\tn\t[u65294/.]\tn", {NULL}},
-    {SECT_CITY, "\tw\t[u127984/C]\tn", {NULL}},
-    {SECT_FIELD, "\tg\t[u65292],\tn", {"\t[F120]\t[u65292],\tn", "\t[F121]\t[u65292],\tn", "\t[F130]\t[u65292],\tn", "\t[F131]\t[u65292],\tn"}},
-    {SECT_FOREST, "\tG\t[u127795/Y]\tn", {"\t[f020]\t[u127795/Y]\tn", "\t[f030]\t[u127795/Y]\tn", "\t[f040]\t[u127795/Y]\tn", "\t[f050]\t[u127795/Y]\tn"}},
-    {SECT_HILLS, "\ty\t[u65358]\t[u65358/n]\tn", {NULL}},
+    {SECT_INSIDE, ".", "\tn\t[u65294/.]\tn", {NULL}, {NULL}},
+    {SECT_CITY, "C", "\tw\t[u127984/C]\tn", {NULL}, {NULL}},
+    {SECT_FIELD, ",", "\tg\t[u65292],\tn", {NULL}, {"\t[F120]\t[u65292],\tn", "\t[F121]\t[u65292],\tn", "\t[F130]\t[u65292],\tn", "\t[F131]\t[u65292],\tn"}},
+    {SECT_FOREST, "Y", "\tG\t[u127795/Y]\tn", {NULL}, {"\t[f020]\t[u127795/Y]\tn", "\t[f030]\t[u127795/Y]\tn", "\t[f040]\t[u127795/Y]\tn", "\t[f050]\t[u127795/Y]\tn"}},
+    {SECT_HILLS, "n", "\ty\t[u65358]\t[u65358/n]\tn", {NULL}, {NULL}},
     /* 5 */
-    {SECT_MOUNTAIN, "\tw\t[u127956/^]\tn", {NULL}},
-    {SECT_WATER_SWIM, "\tB\t[u65374/~]\tn", {NULL}},
-    {SECT_WATER_NOSWIM, "\tb\t[u65309/=]\tn", {NULL}},
-    {SECT_FLYING, "\tC\t[u65342/^]\tn", {NULL}},
-    {SECT_UNDERWATER, "\tb\t[u65333/U]\tn", {NULL}},
+    {SECT_MOUNTAIN, "^", "\tw\t[u127956/^]\tn", {NULL}, {NULL}},
+    {SECT_WATER_SWIM, "~", "\tB\t[u65374/~]\tn", {NULL}, {NULL}},
+    {SECT_WATER_NOSWIM, "=", "\tb\t[u65309/=]\tn", {NULL}, {NULL}},
+    {SECT_FLYING, "^", "\tC\t[u65342/^]\tn", {NULL}, {NULL}},
+    {SECT_UNDERWATER, "U", "\tb\t[u65333/U]\tn", {NULL}, {NULL}},
     /* 10 */
-    {SECT_ZONE_START, "\tR\t[u65336/X]\tn", {NULL}},
-    {SECT_ROAD_NS, "\tD\t[u65372]\t[u65372/|]\tn", {NULL}},  /* This is somewhat obsolete. */
-    {SECT_ROAD_EW, "\tD\t[u65293]\t[u65293/-]\tn", {NULL}},  /* This is somewhat obsolete. */
-    {SECT_ROAD_INT, "\tD\t[u65291]\t[u65291/+]\tn", {NULL}}, /* This is somewhat obsolete. */
-    {SECT_DESERT, "\tY\t[u65294]\t[u65294/.]\tn", {NULL}},
+    {SECT_ZONE_START, "X", "\tR\t[u65336/X]\tn", {NULL}, {NULL}},
+    {SECT_ROAD_NS, "|", "\tD\t[u65372]\t[u65372/|]\tn", {NULL}, {NULL}},  /* This is somewhat obsolete. */
+    {SECT_ROAD_EW, "-", "\tD\t[u65293]\t[u65293/-]\tn", {NULL}, {NULL}},  /* This is somewhat obsolete. */
+    {SECT_ROAD_INT, "+", "\tD\t[u65291]\t[u65291/+]\tn", {NULL}, {NULL}}, /* This is somewhat obsolete. */
+    {SECT_DESERT, ".", "\tY\t[u65294]\t[u65294/.]\tn", {NULL}, {NULL}},
     /* 15 */
-    {SECT_OCEAN, "\tb\t[u65374/~]\tn", {NULL}},
-    {SECT_MARSHLAND, "\tM\t[u65292]\t[u65292/,]\tn", {NULL}},
-    {SECT_HIGH_MOUNTAIN, "\tW\t[u127956/^]\tn", {NULL}},
-    {SECT_PLANES, "\tM\t[u65294/.]\tn", {NULL}},
-    {SECT_UD_WILD, "\tM\t[u65337/Y]\tn", {NULL}},
+    {SECT_OCEAN, "~", "\tb\t[u65374/~]\tn", {NULL}, {NULL}},
+    {SECT_MARSHLAND, ",", "\tM\t[u65292]\t[u65292/,]\tn", {NULL}, {NULL}},
+    {SECT_HIGH_MOUNTAIN, "^", "\tW\t[u127956/^]\tn", {NULL}, {NULL}},
+    {SECT_PLANES, ".", "\tM\t[u65294/.]\tn", {NULL}, {NULL}},
+    {SECT_UD_WILD, "Y", "\tM\t[u65337/Y]\tn", {NULL}, {NULL}},
     /* 20 */
-    {SECT_UD_CITY, "\tm\t[u65315/C]\tn", {NULL}},
-    {SECT_UD_INSIDE, "\tm\t[u65294/.]\tn", {NULL}},
-    {SECT_UD_WATER, "\tm\t[u65374/~]\tn", {NULL}},
-    {SECT_UD_NOSWIM, "\tM\t[u65309/=]\tn", {NULL}},
-    {SECT_UD_NOGROUND, "\tm\t[u65342/^]\tn", {NULL}},
+    {SECT_UD_CITY, "C", "\tm\t[u65315/C]\tn", {NULL}, {NULL}},
+    {SECT_UD_INSIDE, ".", "\tm\t[u65294/.]\tn", {NULL}, {NULL}},
+    {SECT_UD_WATER, "~", "\tm\t[u65374/~]\tn", {NULL}, {NULL}},
+    {SECT_UD_NOSWIM, "=", "\tM\t[u65309/=]\tn", {NULL}, {NULL}},
+    {SECT_UD_NOGROUND, "^", "\tm\t[u65342/^]\tn", {NULL}, {NULL}},
     /* 25 */
-    {SECT_LAVA, "\tR\t[u65294]\t[u65294/.]\tn", {NULL}},
-    {SECT_D_ROAD_NS, "\ty\t[u65372]\t[u65372/|]\tn", {NULL}},  /* This is somewhat obsolete. */
-    {SECT_D_ROAD_EW, "\ty\t[u65293]\t[u65293/-]\tn", {NULL}},  /* This is somewhat obsolete. */
-    {SECT_D_ROAD_INT, "\ty\t[u65291]\t[u65291/+]\tn", {NULL}}, /* This is somewhat obsolete. */
-    {SECT_CAVE, "\tD\t[u65315]\t[u65315/C]\tn", {NULL}},
+    {SECT_LAVA, ".", "\tR\t[u65294]\t[u65294/.]\tn", {NULL}, {NULL}},
+    {SECT_D_ROAD_NS, "|", "\ty\t[u65372]\t[u65372/|]\tn", {NULL}, {NULL}},  /* This is somewhat obsolete. */
+    {SECT_D_ROAD_EW, "-", "\ty\t[u65293]\t[u65293/-]\tn", {NULL}, {NULL}},  /* This is somewhat obsolete. */
+    {SECT_D_ROAD_INT, "+", "\ty\t[u65291]\t[u65291/+]\tn", {NULL}, {NULL}}, /* This is somewhat obsolete. */
+    {SECT_CAVE, "C", "\tD\t[u65315]\t[u65315/C]\tn", {NULL}, {NULL}},
     /* 30 */
-    {SECT_JUNGLE, "\tg\t[u127796/&]\tn", {NULL}},
-    {SECT_TUNDRA, "\tW\t[u65294/.]\tn", {NULL}},
-    {SECT_TAIGA, "\tg\t[u127794/A]\tn", {NULL}},
-    {SECT_BEACH, "\ty\t[u65306]\t[u65306/:]\tn", {NULL}},
-    {SECT_SEAPORT, "\tR\t[u65336/S]\tn", {NULL}},
-    {SECT_INSIDE_ROOM, "\ty\t[u65306]\t[u65306/*]\tn", {NULL}},
-    {SECT_RIVER, "\tB\t[u65374/~]\tn", {NULL}},
+    {SECT_JUNGLE, "&", "\tg\t[u127796/&]\tn", {NULL}, {NULL}},
+    {SECT_TUNDRA, ".", "\tW\t[u65294/.]\tn", {NULL}, {NULL}},
+    {SECT_TAIGA, "A", "\tg\t[u127794/A]\tn", {NULL}, {NULL}},
+    {SECT_BEACH, ":", "\ty\t[u65306]\t[u65306/:]\tn", {NULL}, {NULL}},
+    {SECT_SEAPORT, "S", "\tR\t[u65336/S]\tn", {NULL}, {NULL}},
+    {SECT_INSIDE_ROOM, "*", "\ty\t[u65306]\t[u65306/*]\tn", {NULL}, {NULL}},
+    {SECT_RIVER, "~", "\tB\t[u65374/~]\tn", {NULL}, {NULL}},
 
-    {-1, "", {NULL}}, /* RESERVED, NUM_ROOM_SECTORS */
+    {-1, "", "", {NULL}, {NULL}}, /* RESERVED, NUM_ROOM_SECTORS */
 };
 
 /* Initialize the kd-tree that indexes the static rooms of the wilderness.
@@ -949,7 +949,7 @@ static char *wilderness_map_to_string(struct wild_map_tile **map, int size, int 
               (map_type == MAP_TYPE_WEATHER && map[x][y].weather < 178))
           {
             /* Force ASCII-only for wilderness maps to guarantee alignment */
-            char *symbol_to_use;
+            const char *symbol_to_use;
             if (map[x][y].vis == 0) {
               symbol_to_use = " ";
             } else if (map[x][y].glyph != NULL) {
