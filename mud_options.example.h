@@ -115,7 +115,7 @@
  * RACE_ALLOW_KENDER - Enable Kender race
  * 
  * Kender are a unique race from the Dragonlance setting, known for their
- * curiosity, fearlessness, and "borrowing" habits.
+ * curiosity, fearlessness, and "borrowin//g" habits.
  */
 #define RACE_ALLOW_KENDER
 
@@ -158,5 +158,8 @@
  * ************************************************************************ */
 // #define USE_NEW_RANDOM_OBJECT_GUIDELINES
 #define USE_ORIGINAL_RANDOM_OBJECT_GUIDELINES
+
+// Uncomment this line if you want to allow restrngs. Note that currently this is incomaptible with the new cratfing system
+// #define ALLOW_OBJECT_RETSRINGS_BY_PLAYERS
 
 #endif /* _MUD_OPTIONS_H_ */
