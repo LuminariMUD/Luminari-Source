@@ -301,6 +301,10 @@ protocol_t *ProtocolCreate(void)
   }
 
   pProtocol = (protocol_t *)malloc(sizeof(protocol_t));
+  if (!pProtocol) {
+    ReportBug("ProtocolCreate: Out of memory");
+    return NULL;
+  }
   pProtocol->WriteOOB = 0;
   for (i = eNEGOTIATED_TTYPE; i < eNEGOTIATED_MAX; ++i)
     pProtocol->Negotiated[i] = false;
@@ -325,10 +329,25 @@ protocol_t *ProtocolCreate(void)
   pProtocol->pMXPVersion = AllocString("Unknown");
   pProtocol->pLastTTYPE = NULL;
   pProtocol->pVariables = (MSDP_t **)malloc(sizeof(MSDP_t *) * eMSDP_MAX);
+  if (!pProtocol->pVariables) {
+    ReportBug("ProtocolCreate: Out of memory for MSDP variables array");
+    free(pProtocol);
+    return NULL;
+  }
 
   for (i = eMSDP_NONE + 1; i < eMSDP_MAX; ++i)
   {
     pProtocol->pVariables[i] = (MSDP_t *)malloc(sizeof(MSDP_t));
+    if (!pProtocol->pVariables[i]) {
+      ReportBug("ProtocolCreate: Out of memory for MSDP variable");
+      /* Clean up previously allocated variables */
+      while (--i > eMSDP_NONE) {
+        free(pProtocol->pVariables[i]);
+      }
+      free(pProtocol->pVariables);
+      free(pProtocol);
+      return NULL;
+    }
     pProtocol->pVariables[i]->bReport = false;
     pProtocol->pVariables[i]->bDirty = false;
     pProtocol->pVariables[i]->ValueInt = 0;
@@ -358,9 +377,12 @@ void ProtocolDestroy(protocol_t *apProtocol)
 
   for (i = eMSDP_NONE + 1; i < eMSDP_MAX; ++i)
   {
-    if (apProtocol->pVariables[i]->pValueString)
+    if (apProtocol->pVariables[i]->pValueString) {
       free(apProtocol->pVariables[i]->pValueString);
+      apProtocol->pVariables[i]->pValueString = NULL;
+    }
     free(apProtocol->pVariables[i]);
+    apProtocol->pVariables[i] = NULL;
   }
 
   free(apProtocol->pVariables);
@@ -370,22 +392,238 @@ void ProtocolDestroy(protocol_t *apProtocol)
   free(apProtocol);
 }
 
+/* Common color code handling function to eliminate duplication */
+static const char *GetColorCode(descriptor_t *apDescriptor, char color_char)
+{
+  switch (color_char)
+  {
+  case 'n':
+    return s_Clean;
+  case 'd': /* dark grey / black */
+    return ColourRGB(apDescriptor, "F000");
+  case 'D': /* light grey */
+    return ColourRGB(apDescriptor, "F111");
+  case '1':
+    return ColourRGB(apDescriptor, RGBone);
+  case '2':
+    return ColourRGB(apDescriptor, RGBtwo);
+  case '3':
+    return ColourRGB(apDescriptor, RGBthree);
+  case 'r': /* dark red */
+    return ColourRGB(apDescriptor, "F200");
+  case 'R': /* light red */
+    return ColourRGB(apDescriptor, "F500");
+  case 'g': /* dark green */
+    return ColourRGB(apDescriptor, "F020");
+  case 'G': /* light green */
+    return ColourRGB(apDescriptor, "F050");
+  case 'y': /* dark yellow */
+    return ColourRGB(apDescriptor, "F220");
+  case 'Y': /* light yellow */
+    return ColourRGB(apDescriptor, "F550");
+  case 'b': /* dark blue */
+    return ColourRGB(apDescriptor, "F002");
+  case 'B': /* light blue */
+    return ColourRGB(apDescriptor, "F005");
+  case 'm': /* dark magenta */
+    return ColourRGB(apDescriptor, "F202");
+  case 'M': /* light magenta */
+    return ColourRGB(apDescriptor, "F505");
+  case 'c': /* dark cyan */
+    return ColourRGB(apDescriptor, "F022");
+  case 'C': /* light cyan */
+    return ColourRGB(apDescriptor, "F055");
+  case 'w': /* dark white */
+    return ColourRGB(apDescriptor, "F222");
+  case 'W': /* light white */
+    return ColourRGB(apDescriptor, "F555");
+  case 'a': /* dark azure */
+    return ColourRGB(apDescriptor, "F014");
+  case 'A': /* light azure */
+    return ColourRGB(apDescriptor, "F025");
+  case 'j': /* dark jade */
+    return ColourRGB(apDescriptor, "F031");
+  case 'J': /* light jade */
+    return ColourRGB(apDescriptor, "F142");
+  case 'l': /* dark lime */
+    return ColourRGB(apDescriptor, "F140");
+  case 'L': /* light lime */
+    return ColourRGB(apDescriptor, "F250");
+  case 'o': /* dark orange */
+    return ColourRGB(apDescriptor, "F520");
+  case 'O': /* light orange */
+    return ColourRGB(apDescriptor, "F530");
+  case 'p': /* dark pink */
+    return ColourRGB(apDescriptor, "F301");
+  case 'P': /* light pink */
+    return ColourRGB(apDescriptor, "F413");
+  case 's': /* dark silver */
+    return ColourRGB(apDescriptor, "F300");
+  case 'S': /* light silver */
+    return ColourRGB(apDescriptor, "F411");
+  case 't': /* dark tan */
+    return ColourRGB(apDescriptor, "F320");
+  case 'T': /* light tan */
+    return ColourRGB(apDescriptor, "F431");
+  case 'v': /* dark violet */
+    return ColourRGB(apDescriptor, "F104");
+  case 'V': /* light violet */
+    return ColourRGB(apDescriptor, "F215");
+  case '_':
+    return "\x1B[4m"; /* Underline */
+  case '+':
+    return "\x1B[1m"; /* Bold */
+  case '-':
+    return "\x1B[5m"; /* Blinking */
+  case '=':
+    return "\x1B[7m"; /* Reverse */
+  case '*':
+    return "@"; /* At symbol workaround */
+  default:
+    return NULL;
+  }
+}
+
+/* Comprehensive MSDP input validation function */
+static protocol_error_t ValidateMSDPValue(variable_t var, const char *value)
+{
+  if (!value)
+    return PROTOCOL_ERROR_NULL_POINTER;
+    
+  if (var < 0 || var >= eMSDP_MAX)
+    return PROTOCOL_ERROR_INVALID_INPUT;
+    
+  /* Check string length constraints */
+  size_t value_len = strlen(value);
+  if (VariableNameTable[var].bString)
+  {
+    if (value_len < (size_t)VariableNameTable[var].Min || 
+        value_len > (size_t)VariableNameTable[var].Max)
+      return PROTOCOL_ERROR_INVALID_INPUT;
+  }
+  else
+  {
+    /* For numeric values, check if it's a valid number */
+    char *endptr;
+    long num_value = strtol(value, &endptr, 10);
+    
+    /* Check if conversion was successful */
+    if (*endptr != '\0')
+      return PROTOCOL_ERROR_INVALID_INPUT;
+      
+    /* Check numeric range constraints */
+    if (num_value < VariableNameTable[var].Min || 
+        num_value > VariableNameTable[var].Max)
+      return PROTOCOL_ERROR_INVALID_INPUT;
+  }
+  
+  return PROTOCOL_SUCCESS;
+}
+
+/* MSDP variable hash table for O(1) lookups */
+typedef struct msdp_hash_entry_s
+{
+  const char *name;
+  variable_t variable;
+  struct msdp_hash_entry_s *next;
+} msdp_hash_entry_t;
+
+static msdp_hash_entry_t *msdp_hash_table[MSDP_HASH_TABLE_SIZE];
+static bool_t msdp_hash_initialized = bool_t_false;
+
+/* Simple hash function for string keys */
+static unsigned int msdp_hash_string(const char *str)
+{
+  unsigned int hash = 5381;
+  int c;
+  
+  while ((c = *str++))
+    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    
+  return hash % MSDP_HASH_TABLE_SIZE;
+}
+
+/* Initialize the MSDP variable hash table for fast lookups */
+static void msdp_hash_init(void)
+{
+  int i;
+  
+  if (msdp_hash_initialized)
+    return;
+    
+  /* Clear the hash table */
+  for (i = 0; i < MSDP_HASH_TABLE_SIZE; i++)
+    msdp_hash_table[i] = NULL;
+    
+  /* Populate hash table with all MSDP variables */
+  for (i = eMSDP_NONE + 1; i < eMSDP_MAX; i++)
+  {
+    unsigned int hash = msdp_hash_string(VariableNameTable[i].pName);
+    msdp_hash_entry_t *entry = malloc(sizeof(msdp_hash_entry_t));
+    
+    if (entry)
+    {
+      entry->name = VariableNameTable[i].pName;
+      entry->variable = (variable_t)i;
+      entry->next = msdp_hash_table[hash];
+      msdp_hash_table[hash] = entry;
+    }
+  }
+  
+  msdp_hash_initialized = bool_t_true;
+}
+
+/* Fast MSDP variable lookup using hash table */
+static variable_t msdp_hash_lookup(const char *name)
+{
+  unsigned int hash;
+  msdp_hash_entry_t *entry;
+  
+  if (!msdp_hash_initialized)
+    msdp_hash_init();
+    
+  hash = msdp_hash_string(name);
+  entry = msdp_hash_table[hash];
+  
+  while (entry)
+  {
+    if (MatchString(name, entry->name))
+      return entry->variable;
+    entry = entry->next;
+  }
+  
+  return eMSDP_NONE;
+}
+
 ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char *apOut)
 {
-  static char CmdBuf[MAX_PROTOCOL_BUFFER + 1];
-  static char IacBuf[MAX_PROTOCOL_BUFFER + 1];
   ssize_t CmdIndex = 0;
   ssize_t IacIndex = 0;
   ssize_t Index;
+  char *CmdBuf;
+  char *IacBuf;
 
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
+  
+  if (pProtocol == NULL)
+  {
+    /* Fallback to copying input directly if no protocol structure */
+    if (strlen(apOut) + aSize + 1 < MAX_PROTOCOL_BUFFER) {
+      strncat(apOut, apData, aSize);
+    }
+    return aSize;
+  }
+  
+  /* Use per-descriptor buffers */
+  CmdBuf = pProtocol->CmdBuf;
+  IacBuf = pProtocol->IacBuf;
 
   for (Index = 0; Index < aSize; ++Index)
   {
     /* If we'd overflow the buffer, we just ignore the input */
-    if (CmdIndex >= MAX_PROTOCOL_BUFFER || IacIndex >= MAX_PROTOCOL_BUFFER)
+    if (CmdIndex >= MAX_PROTOCOL_BUFFER - 1 || IacIndex >= MAX_PROTOCOL_BUFFER - 1)
     {
-      ReportBug("ProtocolInput: Too much incoming data to store in the buffer.\n");
+      ReportBug("ProtocolInput: Buffer limit reached, dropping connection\n");
       return (-1);
     }
 
@@ -422,9 +660,13 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
 
       Index += 4; /* Skip to the start of the MXP sequence. */
 
-      while (Index < aSize && apData[Index] != '>' && i < 1000)
+      while (Index < aSize && apData[Index] != '>' && i < sizeof(MXPBuffer) - 2)
       {
         MXPBuffer[i++] = apData[Index++];
+      }
+      if (i >= sizeof(MXPBuffer) - 2) {
+        ReportBug("MXP buffer overflow prevented");
+        return (-1);
       }
       MXPBuffer[i++] = '>';
       MXPBuffer[i] = '\0';
@@ -432,8 +674,12 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
       if ((pMXPTag = GetMxpTag("CLIENT=", MXPBuffer)) != NULL)
       {
         /* Overwrite the previous client name - this is harder to fake */
-        free(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
-        pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString = AllocString(pMXPTag);
+        char *new_string = AllocString(pMXPTag);
+        if (new_string) {
+          char *old_string = pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString;
+          pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString = new_string;
+          if (old_string) free(old_string);
+        }
       }
 
       if ((pMXPTag = GetMxpTag("VERSION=", MXPBuffer)) != NULL)
@@ -442,8 +688,12 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
 
         InfoMessage(apDescriptor, "Receiving MXP Version From Client.\r\n");
 
-        free(pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString);
-        pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString = AllocString(pMXPTag);
+        char *new_version_string = AllocString(pMXPTag);
+        if (new_version_string) {
+          char *old_version_string = pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString;
+          pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString = new_version_string;
+          if (old_version_string) free(old_version_string);
+        }
 
         if (MatchString("MUSHCLIENT", pClientName))
         {
@@ -531,7 +781,11 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
   CmdBuf[CmdIndex] = '\0';
 
   /* Copy the input buffer back to the player. */
-  strcat(apOut, CmdBuf);
+  if (strlen(apOut) + strlen(CmdBuf) + 1 < MAX_PROTOCOL_BUFFER) {
+    strcat(apOut, CmdBuf);
+  } else {
+    ReportBug("ProtocolInput: Output buffer would overflow");
+  }
   return (CmdIndex);
 }
 
@@ -570,129 +824,6 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
       {
       case '\t': /* Two tabs in a row will display an actual tab */
         pCopyFrom = Tab;
-        break;
-      case 'n':
-        pCopyFrom = s_Clean;
-        break;
-        /* trying to save confusion by putting unique codes from stock here */
-      case 'd': /* dark grey / black */
-        pCopyFrom = ColourRGB(apDescriptor, "F000");
-        break;
-      case 'D': /* light grey */
-        pCopyFrom = ColourRGB(apDescriptor, "F111");
-        break;
-      case '_':
-        pCopyFrom = "\x1B[4m"; /* Underline... if supported */
-        break;
-      case '+':
-        pCopyFrom = "\x1B[1m"; /* Bold... if supported */
-        break;
-      case '-':
-        pCopyFrom = "\x1B[5m"; /* Blinking... if supported */
-        break;
-      case '=':
-        pCopyFrom = "\x1B[7m"; /* Reverse... if supported */
-        break;
-      case '*':
-        pCopyFrom = "@"; /* The At Symbol... I don't really like this, but it seems like
-                                   a simple way to allow for the @ symbol while maintain portability
-                                   between pre-ProtocolOutput() muds and post ProtocolOutput() muds.*/
-        break;
-        /* 1,2,3 to be used a MUD's base colour palette. Just to maintain
-         * some sort of common colouring scheme amongst coders/builders */
-      case '1':
-        pCopyFrom = ColourRGB(apDescriptor, RGBone);
-        break;
-      case '2':
-        pCopyFrom = ColourRGB(apDescriptor, RGBtwo);
-        break;
-      case '3':
-        pCopyFrom = ColourRGB(apDescriptor, RGBthree);
-        break;
-        /***************/
-      case 'r': /* dark red */
-        pCopyFrom = ColourRGB(apDescriptor, "F200");
-        break;
-      case 'R': /* light red */
-        pCopyFrom = ColourRGB(apDescriptor, "F500");
-        break;
-      case 'g': /* dark green */
-        pCopyFrom = ColourRGB(apDescriptor, "F020");
-        break;
-      case 'G': /* light green */
-        pCopyFrom = ColourRGB(apDescriptor, "F050");
-        break;
-      case 'y': /* dark yellow */
-        pCopyFrom = ColourRGB(apDescriptor, "F220");
-        break;
-      case 'Y': /* light yellow */
-        pCopyFrom = ColourRGB(apDescriptor, "F550");
-        break;
-      case 'b': /* dark blue */
-        pCopyFrom = ColourRGB(apDescriptor, "F002");
-        break;
-      case 'B': /* light blue */
-        pCopyFrom = ColourRGB(apDescriptor, "F005");
-        break;
-      case 'm': /* dark magenta */
-        pCopyFrom = ColourRGB(apDescriptor, "F202");
-        break;
-      case 'M': /* light magenta */
-        pCopyFrom = ColourRGB(apDescriptor, "F505");
-        break;
-      case 'c': /* dark cyan */
-        pCopyFrom = ColourRGB(apDescriptor, "F022");
-        break;
-      case 'C': /* light cyan */
-        pCopyFrom = ColourRGB(apDescriptor, "F055");
-        break;
-      case 'w': /* dark white */
-        pCopyFrom = ColourRGB(apDescriptor, "F222");
-        break;
-      case 'W': /* light white */
-        pCopyFrom = ColourRGB(apDescriptor, "F555");
-        break;
-      case 'a': /* dark azure */
-        pCopyFrom = ColourRGB(apDescriptor, "F014");
-        break;
-      case 'A': /* light azure */
-        pCopyFrom = ColourRGB(apDescriptor, "F025");
-        break;
-      case 'j': /* dark jade */
-        pCopyFrom = ColourRGB(apDescriptor, "F031");
-        break;
-      case 'J': /* light jade */
-        pCopyFrom = ColourRGB(apDescriptor, "F052");
-        break;
-      case 'l': /* dark lime */
-        pCopyFrom = ColourRGB(apDescriptor, "F140");
-        break;
-      case 'L': /* light lime */
-        pCopyFrom = ColourRGB(apDescriptor, "F250");
-        break;
-      case 'o': /* dark orange */
-        pCopyFrom = ColourRGB(apDescriptor, "F520");
-        break;
-      case 'O': /* light orange */
-        pCopyFrom = ColourRGB(apDescriptor, "F530");
-        break;
-      case 'p': /* dark pink */
-        pCopyFrom = ColourRGB(apDescriptor, "F301");
-        break;
-      case 'P': /* light pink */
-        pCopyFrom = ColourRGB(apDescriptor, "F502");
-        break;
-      case 't': /* dark tan */
-        pCopyFrom = ColourRGB(apDescriptor, "F210");
-        break;
-      case 'T': /* light tan */
-        pCopyFrom = ColourRGB(apDescriptor, "F321");
-        break;
-      case 'v': /* dark violet */
-        pCopyFrom = ColourRGB(apDescriptor, "F104");
-        break;
-      case 'V': /* light violet */
-        pCopyFrom = ColourRGB(apDescriptor, "F205");
         break;
       case '(': /* MXP link */
         if (!pProtocol->bBlockMXP && pProtocol->pVariables[eMSDP_MXP]->ValueInt)
@@ -865,6 +996,8 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
         bTerminate = true;
         break;
       default:
+        /* Use common color handling function for all color codes */
+        pCopyFrom = GetColorCode(apDescriptor, apData[j]);
         break;
       }
 
@@ -886,127 +1019,46 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
       case COLOUR_CHAR: /* Two in a row display the actual character */
         pCopyFrom = ColourChar;
         break;
-      case 'n':
-        pCopyFrom = s_Clean;
-        break;
-      case 'r': /* dark red */
-        pCopyFrom = ColourRGB(apDescriptor, "F200");
-        break;
-      case 'R': /* light red */
-        pCopyFrom = ColourRGB(apDescriptor, "F500");
-        break;
-      case 'g': /* dark green */
-        pCopyFrom = ColourRGB(apDescriptor, "F020");
-        break;
-      case 'G': /* light green */
-        pCopyFrom = ColourRGB(apDescriptor, "F050");
-        break;
-      case 'y': /* dark yellow */
-        pCopyFrom = ColourRGB(apDescriptor, "F220");
-        break;
-      case 'Y': /* light yellow */
-        pCopyFrom = ColourRGB(apDescriptor, "F550");
-        break;
-      case 'b': /* dark blue */
-        pCopyFrom = ColourRGB(apDescriptor, "F002");
-        break;
-      case 'B': /* light blue */
-        pCopyFrom = ColourRGB(apDescriptor, "F005");
-        break;
-      case 'm': /* dark magenta */
-        pCopyFrom = ColourRGB(apDescriptor, "F202");
-        break;
-      case 'M': /* light magenta */
-        pCopyFrom = ColourRGB(apDescriptor, "F505");
-        break;
-      case 'c': /* dark cyan */
-        pCopyFrom = ColourRGB(apDescriptor, "F022");
-        break;
-      case 'C': /* light cyan */
-        pCopyFrom = ColourRGB(apDescriptor, "F055");
-        break;
-      case 'w': /* dark white */
-        pCopyFrom = ColourRGB(apDescriptor, "F222");
-        break;
-      case 'W': /* light white */
-        pCopyFrom = ColourRGB(apDescriptor, "F555");
-        break;
-      case 'a': /* dark azure */
-        pCopyFrom = ColourRGB(apDescriptor, "F014");
-        break;
-      case 'A': /* light azure */
-        pCopyFrom = ColourRGB(apDescriptor, "F025");
-        break;
-      case 'j': /* dark jade */
-        pCopyFrom = ColourRGB(apDescriptor, "F031");
-        break;
-      case 'J': /* light jade */
-        pCopyFrom = ColourRGB(apDescriptor, "F052");
-        break;
-      case 'l': /* dark lime */
-        pCopyFrom = ColourRGB(apDescriptor, "F140");
-        break;
-      case 'L': /* light lime */
-        pCopyFrom = ColourRGB(apDescriptor, "F250");
-        break;
-      case 'o': /* dark orange */
-        pCopyFrom = ColourRGB(apDescriptor, "F520");
-        break;
-      case 'O': /* light orange */
-        pCopyFrom = ColourRGB(apDescriptor, "F530");
-        break;
-      case 'p': /* dark pink */
-        pCopyFrom = ColourRGB(apDescriptor, "F301");
-        break;
-      case 'P': /* light pink */
-        pCopyFrom = ColourRGB(apDescriptor, "F502");
-        break;
-      case 't': /* dark tan */
-        pCopyFrom = ColourRGB(apDescriptor, "F210");
-        break;
-      case 'T': /* light tan */
-        pCopyFrom = ColourRGB(apDescriptor, "F321");
-        break;
-      case 'v': /* dark violet */
-        pCopyFrom = ColourRGB(apDescriptor, "F104");
-        break;
-      case 'V': /* light violet */
-        pCopyFrom = ColourRGB(apDescriptor, "F205");
-        break;
       case '\0':
         bTerminate = true;
         break;
-#ifdef EXTENDED_COLOUR
-      case '[':
-        if (tolower(apData[++j]) == 'f' || tolower(apData[j]) == 'b')
-        {
-          char Buffer[8] = {'\0'};
-          int Index = 0;
-          bool_t bDone = false, bValid = true;
-
-          /* Copy the 'f' (foreground) or 'b' (background) */
-          Buffer[Index++] = apData[j++];
-
-          while (apData[j] != '\0' && !bDone && bValid)
-          {
-            if (apData[j] == ']')
-              bDone = true;
-            else if (Index < 4)
-              Buffer[Index++] = apData[j++];
-            else /* It's too long, so drop out - the colour code may still be valid */
-              bValid = false;
-          }
-
-          if (bDone && bValid && IsValidColour(Buffer))
-            pCopyFrom = ColourRGB(apDescriptor, Buffer);
-        }
-        break;
-#endif /* EXTENDED_COLOUR */
       default:
+        /* Use common color handling function for all color codes */
+        pCopyFrom = GetColorCode(apDescriptor, apData[j]);
+        if (pCopyFrom == NULL)
+        {
+#ifdef EXTENDED_COLOUR
+          /* Handle extended color codes */
+          if (apData[j] == '[' && (tolower(apData[j+1]) == 'f' || tolower(apData[j+1]) == 'b'))
+          {
+            char Buffer[MAX_COLOR_CODE_LENGTH] = {'\0'};
+            int Index = 0;
+            bool_t bDone = false, bValid = true;
+
+            j++; /* Skip the '[' */
+            /* Copy the 'f' (foreground) or 'b' (background) */
+            Buffer[Index++] = apData[j++];
+
+            while (apData[j] != '\0' && !bDone && bValid && Index < MAX_COLOR_CODE_LENGTH - 1)
+            {
+              if (apData[j] == ']')
+                bDone = true;
+              else
+                Buffer[Index++] = apData[j++];
+            }
+
+            if (bDone && bValid && IsValidColour(Buffer))
+              pCopyFrom = ColourRGB(apDescriptor, Buffer);
+          }
+          else
+#endif /* EXTENDED_COLOUR */
+          {
 #ifdef DISPLAY_INVALID_COLOUR_CODES
-        Result[i++] = COLOUR_CHAR;
-        Result[i++] = apData[j];
+            Result[i++] = COLOUR_CHAR;
+            Result[i++] = apData[j];
 #endif /* DISPLAY_INVALID_COLOUR_CODES */
+          }
+        }
         break;
       }
 
@@ -1283,7 +1335,7 @@ void MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP)
 
       if (RequiredBuffer >= MAX_VARIABLE_LENGTH)
       {
-        sprintf(MSDPBuffer,
+        snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1,
                 "MSDPSend: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
                 VariableNameTable[aMSDP].pName, RequiredBuffer,
                 MAX_VARIABLE_LENGTH);
@@ -1292,34 +1344,50 @@ void MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP)
       }
       else if (pProtocol->bMSDP)
       {
-        sprintf(MSDPBuffer, "%c%c%c%c%s%c%s%c%c",
+        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%s%c%c",
                 IAC, SB, TELOPT_MSDP, MSDP_VAR,
                 VariableNameTable[aMSDP].pName, MSDP_VAL,
                 pProtocol->pVariables[aMSDP]->pValueString, IAC, SE);
+        if (ret >= MAX_VARIABLE_LENGTH + 1) {
+          ReportBug("MSDPSend: Buffer overflow prevented");
+          return;
+        }
       }
       else if (pProtocol->bGMCP)
       {
-        sprintf(MSDPBuffer, "%c%c%cMSDP.%s %s%c%c",
+        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %s%c%c",
                 IAC, SB, TELOPT_GMCP,
                 VariableNameTable[aMSDP].pName,
                 pProtocol->pVariables[aMSDP]->pValueString, IAC, SE);
+        if (ret >= MAX_VARIABLE_LENGTH + 1) {
+          ReportBug("MSDPSend: Buffer overflow prevented for GMCP string variable");
+          return;
+        }
       }
     }
     else /* It's an integer, not a string */
     {
       if (pProtocol->bMSDP)
       {
-        sprintf(MSDPBuffer, "%c%c%c%c%s%c%d%c%c",
+        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%d%c%c",
                 IAC, SB, TELOPT_MSDP, MSDP_VAR,
                 VariableNameTable[aMSDP].pName, MSDP_VAL,
                 pProtocol->pVariables[aMSDP]->ValueInt, IAC, SE);
+        if (ret >= MAX_VARIABLE_LENGTH + 1) {
+          ReportBug("MSDPSend: Buffer overflow prevented for MSDP integer variable");
+          return;
+        }
       }
       else if (pProtocol->bGMCP)
       {
-        sprintf(MSDPBuffer, "%c%c%cMSDP.%s %d%c%c",
+        int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %d%c%c",
                 IAC, SB, TELOPT_GMCP,
                 VariableNameTable[aMSDP].pName,
                 pProtocol->pVariables[aMSDP]->ValueInt, IAC, SE);
+        if (ret >= MAX_VARIABLE_LENGTH + 1) {
+          ReportBug("MSDPSend: Buffer overflow prevented for GMCP integer variable");
+          return;
+        }
       }
     }
 
@@ -1344,13 +1412,13 @@ void MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable, const char
     {
       if (RequiredBuffer - strlen(apValue) < MAX_VARIABLE_LENGTH)
       {
-        sprintf(MSDPBuffer,
+        snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1,
                 "MSDPSendPair: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
                 apVariable, RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
       else /* The variable name itself is too long */
       {
-        sprintf(MSDPBuffer,
+        snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1,
                 "MSDPSendPair: Variable name has a length of %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
                 RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
@@ -1360,14 +1428,22 @@ void MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable, const char
     }
     else if (pProtocol->bMSDP)
     {
-      sprintf(MSDPBuffer, "%c%c%c%c%s%c%s%c%c",
+      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%s%c%c",
               IAC, SB, TELOPT_MSDP, MSDP_VAR, apVariable, MSDP_VAL,
               apValue, IAC, SE);
+      if (ret >= MAX_VARIABLE_LENGTH + 1) {
+        ReportBug("MSDPSendPair: Buffer overflow prevented for MSDP");
+        return;
+      }
     }
     else if (pProtocol->bGMCP)
     {
-      sprintf(MSDPBuffer, "%c%c%cMSDP.%s %s%c%c",
+      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %s%c%c",
               IAC, SB, TELOPT_GMCP, apVariable, apValue, IAC, SE);
+      if (ret >= MAX_VARIABLE_LENGTH + 1) {
+        ReportBug("GMCP Buffer overflow prevented");
+        return;
+      }
     }
 
     /* Just in case someone calls this function without checking MSDP/GMCP */
@@ -1391,13 +1467,13 @@ void MSDPSendList(descriptor_t *apDescriptor, const char *apVariable, const char
     {
       if (RequiredBuffer - strlen(apValue) < MAX_VARIABLE_LENGTH)
       {
-        sprintf(MSDPBuffer,
+        snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1,
                 "MSDPSendList: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
                 apVariable, RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
       else /* The variable name itself is too long */
       {
-        sprintf(MSDPBuffer,
+        snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1,
                 "MSDPSendList: Variable name has a length of %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
                 RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
@@ -1408,9 +1484,13 @@ void MSDPSendList(descriptor_t *apDescriptor, const char *apVariable, const char
     else if (pProtocol->bMSDP)
     {
       int i; /* Loop counter */
-      sprintf(MSDPBuffer, "%c%c%c%c%s%c%c%c%s%c%c%c",
+      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%c%c%s%c%c%c%s%c%c%c",
               IAC, SB, TELOPT_MSDP, MSDP_VAR, apVariable, MSDP_VAL,
               MSDP_ARRAY_OPEN, MSDP_VAL, apValue, MSDP_ARRAY_CLOSE, IAC, SE);
+      if (ret >= MAX_VARIABLE_LENGTH + 1) {
+        ReportBug("MSDPSendList: Buffer overflow prevented for MSDP");
+        return;
+      }
 
       /* Convert the spaces to MSDP_VAL */
       for (i = 0; MSDPBuffer[i] != '\0'; ++i)
@@ -1421,8 +1501,12 @@ void MSDPSendList(descriptor_t *apDescriptor, const char *apVariable, const char
     }
     else if (pProtocol->bGMCP)
     {
-      sprintf(MSDPBuffer, "%c%c%cMSDP.%s %s%c%c",
+      int ret = snprintf(MSDPBuffer, MAX_VARIABLE_LENGTH + 1, "%c%c%cMSDP.%s %s%c%c",
               IAC, SB, TELOPT_GMCP, apVariable, apValue, IAC, SE);
+      if (ret >= MAX_VARIABLE_LENGTH + 1) {
+        ReportBug("GMCP Buffer overflow prevented");
+        return;
+      }
     }
 
     /* Just in case someone calls this function without checking MSDP/GMCP */
@@ -1458,9 +1542,13 @@ void MSDPSetString(descriptor_t *apDescriptor, variable_t aMSDP, const char *apV
     {
       if (strcmp(pProtocol->pVariables[aMSDP]->pValueString, apValue))
       {
-        free(pProtocol->pVariables[aMSDP]->pValueString);
-        pProtocol->pVariables[aMSDP]->pValueString = AllocString(apValue);
-        pProtocol->pVariables[aMSDP]->bDirty = true;
+        char *new_string = AllocString(apValue);
+        if (new_string) {
+          char *old_string = pProtocol->pVariables[aMSDP]->pValueString;
+          pProtocol->pVariables[aMSDP]->pValueString = new_string;
+          if (old_string) free(old_string);
+          pProtocol->pVariables[aMSDP]->bDirty = true;
+        }
       }
     }
   }
@@ -1479,14 +1567,23 @@ void MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, const char *apVa
     }
     else if (VariableNameTable[aMSDP].bString)
     {
-      const char MsdpTableStart[] = {(char)MSDP_TABLE_OPEN, '\0'};
-      const char MsdpTableStop[] = {(char)MSDP_TABLE_CLOSE, '\0'};
+      const char MsdpTableStart = (char)MSDP_TABLE_OPEN;
+      const char MsdpTableStop = (char)MSDP_TABLE_CLOSE;
+      size_t value_len = strlen(apValue);
+      char *pTable;
+      
+      /* Allocate buffer for optimized single-pass construction */
+      pTable = (char *)malloc(value_len + 3); /* 3: START, STOP, NUL */
+      if (!pTable) {
+        ReportBug("MSDPSetTable: Out of memory");
+        return;
+      }
 
-      char *pTable = (char *)malloc(strlen(apValue) + 3); /* 3: START, STOP, NUL */
-
-      strcpy(pTable, MsdpTableStart);
-      strcat(pTable, apValue);
-      strcat(pTable, MsdpTableStop);
+      /* Optimized single-pass string construction */
+      pTable[0] = MsdpTableStart;
+      memcpy(pTable + 1, apValue, value_len);
+      pTable[value_len + 1] = MsdpTableStop;
+      pTable[value_len + 2] = '\0';
 
       if (strcmp(pProtocol->pVariables[aMSDP]->pValueString, pTable))
       {
@@ -1515,14 +1612,23 @@ void MSDPSetArray(descriptor_t *apDescriptor, variable_t aMSDP, const char *apVa
     }
     else if (VariableNameTable[aMSDP].bString)
     {
-      const char MsdpArrayStart[] = {(char)MSDP_ARRAY_OPEN, '\0'};
-      const char MsdpArrayStop[] = {(char)MSDP_ARRAY_CLOSE, '\0'};
+      const char MsdpArrayStart = (char)MSDP_ARRAY_OPEN;
+      const char MsdpArrayStop = (char)MSDP_ARRAY_CLOSE;
+      size_t value_len = strlen(apValue);
+      char *pArray;
+      
+      /* Allocate buffer for optimized single-pass construction */
+      pArray = (char *)malloc(value_len + 3); /* 3: START, STOP, NUL */
+      if (!pArray) {
+        ReportBug("MSDPSetArray: Out of memory");
+        return;
+      }
 
-      char *pArray = (char *)malloc(strlen(apValue) + 3); /* 3: START, STOP, NUL */
-
-      strcpy(pArray, MsdpArrayStart);
-      strcat(pArray, apValue);
-      strcat(pArray, MsdpArrayStop);
+      /* Optimized single-pass string construction */
+      pArray[0] = MsdpArrayStart;
+      memcpy(pArray + 1, apValue, value_len);
+      pArray[value_len + 1] = MsdpArrayStop;
+      pArray[value_len + 2] = '\0';
 
       if (strcmp(pProtocol->pVariables[aMSDP]->pValueString, pArray))
       {
@@ -2349,8 +2455,12 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
       /* Store the first TTYPE as the client name */
       if (!strcmp(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString, "Unknown"))
       {
-        free(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
-        pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString = AllocString(pClientName);
+        char *new_client_string = AllocString(pClientName);
+        if (new_client_string) {
+          char *old_client_string = pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString;
+          pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString = new_client_string;
+          if (old_client_string) free(old_client_string);
+        }
 
         /* This is a bit nasty, but using cyclic TTYPE on windows telnet
          * causes it to lock up.  None of the clients we need to cycle
@@ -2712,10 +2822,14 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
           if (!VariableNameTable[i].bGUI)
           {
             /* Add the separator between variables */
-            strcat(MSDPCommands, " ");
-
-            /* Add the variable to the list */
-            strcat(MSDPCommands, VariableNameTable[i].pName);
+            if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 < sizeof(MSDPCommands)) {
+              strcat(MSDPCommands, " ");
+              /* Add the variable to the list */
+              strcat(MSDPCommands, VariableNameTable[i].pName);
+            } else {
+              ReportBug("MSDPCommands buffer would overflow in SENDABLE_VARIABLES");
+              break;
+            }
           }
         }
 
@@ -2731,11 +2845,23 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
           if (apDescriptor->pProtocol->pVariables[i]->bReport)
           {
             /* Add the separator between variables */
-            if (MSDPCommands[0] != '\0')
-              strcat(MSDPCommands, " ");
-
-            /* Add the variable to the list */
-            strcat(MSDPCommands, VariableNameTable[i].pName);
+            if (MSDPCommands[0] != '\0') {
+              if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 < sizeof(MSDPCommands)) {
+                strcat(MSDPCommands, " ");
+                /* Add the variable to the list */
+                strcat(MSDPCommands, VariableNameTable[i].pName);
+              } else {
+                ReportBug("MSDPCommands buffer would overflow in REPORTED_VARIABLES");
+                break;
+              }
+            } else {
+              if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands)) {
+                strcat(MSDPCommands, VariableNameTable[i].pName);
+              } else {
+                ReportBug("MSDPCommands buffer would overflow in REPORTED_VARIABLES");
+                break;
+              }
+            }
           }
         }
 
@@ -2751,11 +2877,23 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
           if (VariableNameTable[i].bConfigurable)
           {
             /* Add the separator between variables */
-            if (MSDPCommands[0] != '\0')
-              strcat(MSDPCommands, " ");
-
-            /* Add the variable to the list */
-            strcat(MSDPCommands, VariableNameTable[i].pName);
+            if (MSDPCommands[0] != '\0') {
+              if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 < sizeof(MSDPCommands)) {
+                strcat(MSDPCommands, " ");
+                /* Add the variable to the list */
+                strcat(MSDPCommands, VariableNameTable[i].pName);
+              } else {
+                ReportBug("MSDPCommands buffer would overflow in CONFIGURABLE_VARIABLES");
+                break;
+              }
+            } else {
+              if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands)) {
+                strcat(MSDPCommands, VariableNameTable[i].pName);
+              } else {
+                ReportBug("MSDPCommands buffer would overflow in CONFIGURABLE_VARIABLES");
+                break;
+              }
+            }
           }
         }
 
@@ -2771,11 +2909,23 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
           if (VariableNameTable[i].bGUI)
           {
             /* Add the separator between variables */
-            if (MSDPCommands[0] != '\0')
-              strcat(MSDPCommands, " ");
-
-            /* Add the variable to the list */
-            strcat(MSDPCommands, VariableNameTable[i].pName);
+            if (MSDPCommands[0] != '\0') {
+              if (strlen(MSDPCommands) + strlen(VariableNameTable[i].pName) + 2 < sizeof(MSDPCommands)) {
+                strcat(MSDPCommands, " ");
+                /* Add the variable to the list */
+                strcat(MSDPCommands, VariableNameTable[i].pName);
+              } else {
+                ReportBug("MSDPCommands buffer would overflow in GUI_VARIABLES");
+                break;
+              }
+            } else {
+              if (strlen(VariableNameTable[i].pName) + 1 < sizeof(MSDPCommands)) {
+                strcat(MSDPCommands, VariableNameTable[i].pName);
+              } else {
+                ReportBug("MSDPCommands buffer would overflow in GUI_VARIABLES");
+                break;
+              }
+            }
           }
         }
 
@@ -2784,59 +2934,65 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
     }
     else /* Set any configurable variables */
     {
-      int i; /* Loop counter */
-
-      for (i = eMSDP_NONE + 1; i < eMSDP_MAX; ++i)
+      variable_t var = msdp_hash_lookup(apVariable);
+      
+      if (var != eMSDP_NONE && VariableNameTable[var].bConfigurable)
       {
-        if (VariableNameTable[i].bConfigurable)
+        if (VariableNameTable[var].bString)
         {
-          if (MatchString(apVariable, VariableNameTable[i].pName))
+          /* A write-once variable can only be set if the value
+           * is "Unknown".  This is for things like client name,
+           * where we don't really want the player overwriting a
+           * proper client name with junk - but on the other hand,
+           * its possible a client may choose to use MSDP to
+           * identify itself.
+           */
+          if (!VariableNameTable[var].bWriteOnce ||
+              !strcmp(apDescriptor->pProtocol->pVariables[var]->pValueString, "Unknown"))
           {
-            if (VariableNameTable[i].bString)
+            /* Store the new value if it's valid */
+            char *pBuffer = alloca(VariableNameTable[var].Max + 1);
+            int j; /* Loop counter */
+
+            for (j = 0; j < VariableNameTable[var].Max && *apValue != '\0'; ++apValue)
             {
-              /* A write-once variable can only be set if the value
-               * is "Unknown".  This is for things like client name,
-               * where we don't really want the player overwriting a
-               * proper client name with junk - but on the other hand,
-               * its possible a client may choose to use MSDP to
-               * identify itself.
-               */
-              if (!VariableNameTable[i].bWriteOnce ||
-                  !strcmp(apDescriptor->pProtocol->pVariables[i]->pValueString, "Unknown"))
+              if (isprint(*apValue))
+                pBuffer[j++] = *apValue;
+            }
+            pBuffer[j++] = '\0';
+
+            if (j >= VariableNameTable[var].Min)
+            {
+              /* Validate the MSDP value before setting */
+              if (ValidateMSDPValue(var, pBuffer) == PROTOCOL_SUCCESS)
               {
-                /* Store the new value if it's valid */
-                char *pBuffer = alloca(VariableNameTable[i].Max + 1);
-                int j; /* Loop counter */
-
-                for (j = 0; j < VariableNameTable[i].Max && *apValue != '\0'; ++apValue)
-                {
-                  if (isprint(*apValue))
-                    pBuffer[j++] = *apValue;
-                }
-                pBuffer[j++] = '\0';
-
-                if (j >= VariableNameTable[i].Min)
-                {
-                  free(apDescriptor->pProtocol->pVariables[i]->pValueString);
-                  apDescriptor->pProtocol->pVariables[i]->pValueString = AllocString(pBuffer);
-                }
+                free(apDescriptor->pProtocol->pVariables[var]->pValueString);
+                apDescriptor->pProtocol->pVariables[var]->pValueString = AllocString(pBuffer);
+              }
+              else
+              {
+                ReportBug("ExecuteMSDPPair: Invalid MSDP string value rejected");
               }
             }
-            else /* This variable only accepts numeric values */
-            {
-              /* Strip any leading spaces */
-              while (*apValue == ' ')
-                ++apValue;
+          }
+        }
+        else /* This variable only accepts numeric values */
+        {
+          /* Strip any leading spaces */
+          while (*apValue == ' ')
+            ++apValue;
 
-              if (*apValue != '\0' && IsNumber(apValue))
-              {
-                int Value = atoi(apValue);
-                if (Value >= VariableNameTable[i].Min &&
-                    Value <= VariableNameTable[i].Max)
-                {
-                  apDescriptor->pProtocol->pVariables[i]->ValueInt = Value;
-                }
-              }
+          if (*apValue != '\0' && IsNumber(apValue))
+          {
+            /* Validate the MSDP value before setting */
+            if (ValidateMSDPValue(var, apValue) == PROTOCOL_SUCCESS)
+            {
+              int Value = atoi(apValue);
+              apDescriptor->pProtocol->pVariables[var]->ValueInt = Value;
+            }
+            else
+            {
+              ReportBug("ExecuteMSDPPair: Invalid MSDP numeric value rejected");
             }
           }
         }
@@ -2901,13 +3057,13 @@ static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const c
     {
       if (RequiredBuffer - strlen(apValue) < MAX_VARIABLE_LENGTH)
       {
-        sprintf(GMCPBuffer,
+        snprintf(GMCPBuffer, sizeof(GMCPBuffer),
                 "SendGMCP: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
                 apVariable, RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
       else /* The variable name itself is too long */
       {
-        sprintf(GMCPBuffer,
+        snprintf(GMCPBuffer, sizeof(GMCPBuffer),
                 "SendGMCP: Variable name has a length of %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
                 RequiredBuffer, MAX_VARIABLE_LENGTH);
       }
@@ -2917,8 +3073,12 @@ static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const c
     }
     else if (pProtocol->bGMCP)
     {
-      sprintf(GMCPBuffer, "%c%c%c%s %s%c%c",
+      int ret = snprintf(GMCPBuffer, sizeof(GMCPBuffer), "%c%c%c%s %s%c%c",
               IAC, SB, TELOPT_GMCP, apVariable, apValue, IAC, SE);
+      if (ret >= sizeof(GMCPBuffer)) {
+        ReportBug("SendGMCP: Buffer overflow prevented");
+        return;
+      }
     }
 
     /* Just in case someone calls this function without checking GMCP */
@@ -3249,14 +3409,23 @@ static void SendMSSP(descriptor_t *apDescriptor)
     SizePair = strlen(MSSPPair);
     if (SizePair + SizeBuffer < MAX_MSSP_BUFFER - 4)
     {
-      strcat(MSSPBuffer, MSSPPair);
-      SizeBuffer += SizePair;
+      if (strlen(MSSPBuffer) + SizePair + 1 < sizeof(MSSPBuffer)) {
+        strcat(MSSPBuffer, MSSPPair);
+        SizeBuffer += SizePair;
+      } else {
+        ReportBug("MSSP Buffer would overflow");
+        break;
+      }
     }
   }
 
   /* End the subnegotiation sequence */
   sprintf(MSSPPair, "%c%c", IAC, SE);
-  strcat(MSSPBuffer, MSSPPair);
+  if (strlen(MSSPBuffer) + strlen(MSSPPair) + 1 < sizeof(MSSPBuffer)) {
+    strcat(MSSPBuffer, MSSPPair);
+  } else {
+    ReportBug("MSSP Buffer would overflow adding termination sequence");
+  }
 
   /* Send the sequence */
   Write(apDescriptor, MSSPBuffer);
@@ -3405,8 +3574,12 @@ static char *AllocString(const char *apString)
   {
     int Size = strlen(apString);
     pResult = (char *)malloc(Size + 1);
-    if (pResult != NULL)
-      strcpy(pResult, apString);
+    if (pResult != NULL) {
+      memcpy(pResult, apString, Size);
+      pResult[Size] = '\0';
+    } else {
+      ReportBug("AllocString: malloc failed");
+    }
   }
 
   return pResult;
