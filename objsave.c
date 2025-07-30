@@ -3120,6 +3120,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
   char buf[1024];
   char *serialized_obj;
   int locate;
+  int obj_db_idnum = 0;
 
   char **lines; /* Storage for tokenized serialization */
   char **line;  /* Token iterator */
@@ -3776,6 +3777,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
   char buf[1024];
   char *serialized_obj;
   int locate;
+  int obj_db_idnum = 0;
 
   char **lines; /* Storage for tokenized serialization */
   char **line;  /* Token iterator */
