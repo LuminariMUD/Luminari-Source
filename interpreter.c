@@ -752,7 +752,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"resize", "resize", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"redesc", "redesc", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#if defined(ALLOW_OBJECT_RETSRINGS_BY_PLAYERS)    
     {"restring", "restring", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"rage", "rage", POS_FIGHTING, do_rage, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_rage},
     {"recline", "recline", POS_SLEEPING, do_recline, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"renewedvigor", "renewedvigor", POS_RECLINING, do_renewedvigor, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_renewedvigor},
