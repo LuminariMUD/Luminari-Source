@@ -1342,20 +1342,30 @@ log("Dynamic rooms in use: %d/%d", used_rooms,
 
 **5. Map Display Problems**
 
-*Symptoms:* Maps show incorrectly, missing colors/symbols
+*Symptoms:* Maps show incorrectly, missing colors/symbols, misaligned display
 
 *Solutions:*
-- Verify Unicode support in client
-- Check color code compatibility with client
+- **Note**: Wilderness maps now force ASCII-only display to guarantee alignment
+- Check color code compatibility with client  
 - Confirm GUI mode settings for XML tags
 - Test with different terminal/client software
 
 *Map Debug:*
 ```c
-// Test map generation
+// Test map generation (now uses ASCII-only symbols)
 char *map_str = gen_ascii_wilderness_map(21, x, y, MAP_TYPE_NORMAL);
 send_to_char(ch, "Raw map data:\r\n%s\r\n", map_str);
 ```
+
+**ASCII-Only Map Display (2025 Update):**
+
+The wilderness map system has been updated to force ASCII-only symbol display to guarantee perfect alignment across all terminal types, fonts, and operating systems. This resolves UTF-8 character width inconsistencies that caused map misalignment.
+
+*Technical Details:*
+- All wilderness maps now use single-character ASCII symbols (Y, ^, ~, etc.)
+- Color codes are preserved for visual distinction
+- UTF-8 protocol symbols are bypassed for wilderness display only
+- Perfect alignment guaranteed regardless of client capabilities
 
 **6. Wilderness Navigation Crashes (Memory Issues)**
 

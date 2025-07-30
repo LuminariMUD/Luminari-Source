@@ -855,6 +855,54 @@ void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2)
   }
 }
 
+/* Get ASCII-only wilderness symbol with color codes for guaranteed alignment */
+static char *get_ascii_wilderness_symbol(int sector_type) {
+  static char ascii_buffer[16];
+  
+  switch(sector_type) {
+    case SECT_INSIDE:        strcpy(ascii_buffer, "\tn.\tn"); break;
+    case SECT_CITY:          strcpy(ascii_buffer, "\twC\tn"); break;
+    case SECT_FIELD:         strcpy(ascii_buffer, "\tg,\tn"); break;
+    case SECT_FOREST:        strcpy(ascii_buffer, "\tGY\tn"); break;
+    case SECT_HILLS:         strcpy(ascii_buffer, "\tyn\tn"); break;
+    case SECT_MOUNTAIN:      strcpy(ascii_buffer, "\tw^\tn"); break;
+    case SECT_WATER_SWIM:    strcpy(ascii_buffer, "\tB~\tn"); break;
+    case SECT_WATER_NOSWIM:  strcpy(ascii_buffer, "\tb=\tn"); break;
+    case SECT_FLYING:        strcpy(ascii_buffer, "\tC^\tn"); break;
+    case SECT_UNDERWATER:    strcpy(ascii_buffer, "\tbU\tn"); break;
+    case SECT_ZONE_START:    strcpy(ascii_buffer, "\tRX\tn"); break;
+    case SECT_ROAD_NS:       strcpy(ascii_buffer, "\tD|\tn"); break;
+    case SECT_ROAD_EW:       strcpy(ascii_buffer, "\tD-\tn"); break;
+    case SECT_ROAD_INT:      strcpy(ascii_buffer, "\tD+\tn"); break;
+    case SECT_DESERT:        strcpy(ascii_buffer, "\tY.\tn"); break;
+    case SECT_OCEAN:         strcpy(ascii_buffer, "\tb~\tn"); break;
+    case SECT_MARSHLAND:     strcpy(ascii_buffer, "\tM,\tn"); break;
+    case SECT_HIGH_MOUNTAIN: strcpy(ascii_buffer, "\tW^\tn"); break;
+    case SECT_PLANES:        strcpy(ascii_buffer, "\tM.\tn"); break;
+    case SECT_UD_WILD:       strcpy(ascii_buffer, "\tMY\tn"); break;
+    case SECT_UD_CITY:       strcpy(ascii_buffer, "\tmC\tn"); break;
+    case SECT_UD_INSIDE:     strcpy(ascii_buffer, "\tm.\tn"); break;
+    case SECT_UD_WATER:      strcpy(ascii_buffer, "\tm~\tn"); break;
+    case SECT_UD_NOSWIM:     strcpy(ascii_buffer, "\tM=\tn"); break;
+    case SECT_UD_NOGROUND:   strcpy(ascii_buffer, "\tm^\tn"); break;
+    case SECT_LAVA:          strcpy(ascii_buffer, "\tR.\tn"); break;
+    case SECT_D_ROAD_NS:     strcpy(ascii_buffer, "\ty|\tn"); break;
+    case SECT_D_ROAD_EW:     strcpy(ascii_buffer, "\ty-\tn"); break;
+    case SECT_D_ROAD_INT:    strcpy(ascii_buffer, "\ty+\tn"); break;
+    case SECT_CAVE:          strcpy(ascii_buffer, "\tDC\tn"); break;
+    case SECT_JUNGLE:        strcpy(ascii_buffer, "\tg&\tn"); break;
+    case SECT_TUNDRA:        strcpy(ascii_buffer, "\tW.\tn"); break;
+    case SECT_TAIGA:         strcpy(ascii_buffer, "\tgA\tn"); break;
+    case SECT_BEACH:         strcpy(ascii_buffer, "\ty:\tn"); break;
+    case SECT_SEAPORT:       strcpy(ascii_buffer, "\tRS\tn"); break;
+    case SECT_INSIDE_ROOM:   strcpy(ascii_buffer, "\ty*\tn"); break;
+    case SECT_RIVER:         strcpy(ascii_buffer, "\tB~\tn"); break;
+    default:                 strcpy(ascii_buffer, "\tr?\tn"); break;
+  }
+  
+  return ascii_buffer;
+}
+
 static char *wilderness_map_to_string(struct wild_map_tile **map, int size, int shape, int map_type)
 {
   static char strmap[32768];
@@ -877,8 +925,9 @@ static char *wilderness_map_to_string(struct wild_map_tile **map, int size, int 
       {
         if ((x == centerx) && (y == centery))
         {
-          strcpy(mp, "\tM\t[u128946/*]\tn");
-          mp += strlen("\tMt[u128946/*]\tn");
+          /* Force ASCII-only for player marker to maintain alignment */
+          strcpy(mp, "\tM*\tn");
+          mp += strlen("\tM*\tn");
         }
         else
         {
@@ -899,8 +948,18 @@ static char *wilderness_map_to_string(struct wild_map_tile **map, int size, int 
           if ((map_type == MAP_TYPE_NORMAL) ||
               (map_type == MAP_TYPE_WEATHER && map[x][y].weather < 178))
           {
-            strcpy(mp, (map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
-            mp += strlen((map[x][y].vis == 0 ? " " : (map[x][y].glyph == NULL ? wild_map_info[map[x][y].sector_type].disp : map[x][y].glyph)));
+            /* Force ASCII-only for wilderness maps to guarantee alignment */
+            char *symbol_to_use;
+            if (map[x][y].vis == 0) {
+              symbol_to_use = " ";
+            } else if (map[x][y].glyph != NULL) {
+              symbol_to_use = map[x][y].glyph;
+            } else {
+              /* Get ASCII-only symbol to avoid UTF-8 alignment issues */
+              symbol_to_use = get_ascii_wilderness_symbol(map[x][y].sector_type);
+            }
+            strcpy(mp, symbol_to_use);
+            mp += strlen(symbol_to_use);
           }
 
           /* Check the map_type - if this is a weather map then overlay weather glyphs on the map */
