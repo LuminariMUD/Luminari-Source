@@ -903,26 +903,119 @@ struct kdtree *kd_wilderness_rooms;
 
 ### Memory Management
 
-**Static Data:**
-- Region and path data loaded at startup
-- KD-Tree rebuilt when wilderness zones change
-- Persistent coordinate storage
+#### Critical Memory Safety Pattern (2025 Update)
 
-**Dynamic Data:**
-- Room descriptions generated as needed
-- Temporary room assignments
-- Automatic cleanup of unused dynamic rooms
+The wilderness system implements a sophisticated memory management pattern that prevents both memory leaks and double-free crashes. This pattern was developed after resolving critical memory issues in the `goto` wilderness navigation system.
 
-**Memory Allocation:**
+**Core Memory Safety Principles:**
+
+1. **Static String Defaults**: Room names and descriptions start as pointers to static strings
+2. **Dynamic Overrides**: Regions and paths can replace these with dynamically allocated strings
+3. **Safe Free Checks**: Always verify pointer != static_string before calling `free()`
+4. **Leak Prevention**: Previous dynamic strings are freed before replacement
+5. **Crash Prevention**: Static strings are never freed
+6. **Recycling Safety**: Room cleanup doesn't free strings (handled on reuse)
+
+**Implementation Pattern:**
+
 ```c
-// Dynamic room pool allocation
-for (i = WILD_DYNAMIC_ROOM_VNUM_START; i <= WILD_DYNAMIC_ROOM_VNUM_END; i++) {
-    if (real_room(i) == NOWHERE) {
-        // Room available for allocation
-        return real_room(i);
+/* Static string constants - NEVER free these */
+static char wilderness_name[] = "The Wilderness of Luminari";
+static char wilderness_desc[] = "The wilderness extends in all directions.";
+
+/* Safe memory management in assign_wilderness_room() */
+void assign_wilderness_room(room_rnum room, int x, int y) {
+    /* Step 1: Safe cleanup of existing strings */
+    if (world[room].name && world[room].name != wilderness_name)
+        free(world[room].name);
+    if (world[room].description && world[room].description != wilderness_desc)
+        free(world[room].description);
+    
+    /* Step 2: Assign static defaults */
+    world[room].name = wilderness_name;
+    world[room].description = wilderness_desc;
+    
+    /* Step 3: Dynamic overrides (regions/paths) */
+    if (region_overrides_name) {
+        if (world[room].name && world[room].name != wilderness_name)
+            free(world[room].name);  // Safe: only frees dynamic strings
+        world[room].name = strdup(region_name);  // New allocation
     }
 }
 ```
+
+**Memory Lifecycle:**
+
+1. **Room Creation**: Pointers set to static strings (no allocation)
+2. **Region Override**: Static pointer replaced with `strdup()` allocation
+3. **Path Override**: Previous allocation freed, new `strdup()` allocation
+4. **Room Recycling**: Strings remain (cleaned up on next assignment)
+5. **Room Reuse**: Safe cleanup pattern repeated
+
+**Critical Safety Checks:**
+
+```c
+/* CORRECT - Safe pattern used throughout wilderness system */
+if (world[room].name && world[room].name != wilderness_name)
+    free(world[room].name);
+
+/* INCORRECT - Would crash when freeing static strings */
+if (world[room].name)
+    free(world[room].name);  // CRASH: Cannot free static memory
+```
+
+**Historical Context (2025):**
+
+The wilderness system previously crashed during `goto` coordinate navigation due to attempts to free static strings. The memory audit fixes implemented this safety pattern to prevent such crashes while maintaining proper cleanup of dynamic allocations.
+
+**Static Data Management:**
+- Region and path data loaded at startup
+- KD-Tree rebuilt when wilderness zones change
+- Persistent coordinate storage
+- Static string constants never freed
+
+**Dynamic Data Management:**
+- Room strings managed with safe allocation/deallocation pattern
+- Temporary room assignments with automatic recycling
+- Dynamic room pool with occupation flag management
+
+**Memory Pool Allocation:**
+```c
+// Dynamic room pool management
+for (i = WILD_DYNAMIC_ROOM_VNUM_START; i <= WILD_DYNAMIC_ROOM_VNUM_END; i++) {
+    if (real_room(i) != NOWHERE && !ROOM_FLAGGED(real_room(i), ROOM_OCCUPIED)) {
+        SET_BIT_AR(ROOM_FLAGS(real_room(i)), ROOM_OCCUPIED);
+        return real_room(i);  // Room allocated and marked occupied
+    }
+}
+```
+
+**Memory Audit Guidelines:**
+
+For future memory leak audits, follow these guidelines to avoid breaking the wilderness system:
+
+1. **Never modify** the static string pointer checks
+2. **Always preserve** the pattern: `if (ptr && ptr != static_string) free(ptr)`
+3. **Understand** that room recycling intentionally doesn't free strings
+4. **Recognize** that static pointers are not memory leaks
+5. **Test thoroughly** any memory management changes with wilderness navigation
+
+**Debug Memory Issues:**
+
+```c
+// Memory debugging for wilderness rooms
+void debug_wilderness_memory(room_rnum room) {
+    log("DEBUG: Room %d name ptr: %p (static: %p)", 
+        room, world[room].name, wilderness_name);
+    log("DEBUG: Room %d desc ptr: %p (static: %p)", 
+        room, world[room].description, wilderness_desc);
+    log("DEBUG: Name is %s: '%s'", 
+        (world[room].name == wilderness_name) ? "STATIC" : "DYNAMIC",
+        world[room].name ? world[room].name : "NULL");
+}
+```
+
+This memory management pattern ensures system stability while maintaining performance and preventing resource leaks.
 
 ### Database Schema
 
@@ -1263,6 +1356,32 @@ log("Dynamic rooms in use: %d/%d", used_rooms,
 char *map_str = gen_ascii_wilderness_map(21, x, y, MAP_TYPE_NORMAL);
 send_to_char(ch, "Raw map data:\r\n%s\r\n", map_str);
 ```
+
+**6. Wilderness Navigation Crashes (Memory Issues)**
+
+*Symptoms:* Server crashes with SIGABRT when using `goto X Y` coordinates, typically with malloc_printerr in assign_wilderness_room()
+
+*Root Cause:* Attempting to free static string pointers during room assignment
+
+*Solution Pattern:* Always use safe memory checks before freeing room strings:
+
+```c
+// CORRECT - Safe pattern
+if (world[room].name && world[room].name != wilderness_name)
+    free(world[room].name);
+
+// INCORRECT - Causes crashes  
+if (world[room].name)
+    free(world[room].name);  // CRASH: Frees static strings
+```
+
+*Prevention:*
+- Never modify the static string pointer checks in assign_wilderness_room()
+- Always test wilderness navigation after memory management changes
+- Use the debug_wilderness_memory() function to trace pointer states
+- Remember that static pointers are not memory leaks in this context
+
+*Fixed in:* 2025 memory audit - wilderness.c contains comprehensive safety comments
 
 ### Debug Commands
 

@@ -433,7 +433,11 @@ ACMD(do_goto)
       }
       else
       {
-        /* Must set the coords, etc in the going_to room. */
+        /* MEMORY MANAGEMENT: assign_wilderness_room() safely handles room strings
+         * Room name/description will be set to static strings by default,
+         * with safe dynamic allocation for region/path overrides.
+         * No memory leaks or crashes from this call.
+         */
         assign_wilderness_room(location, atoi(arg), atoi(arg2));
       }
     }

@@ -1504,7 +1504,11 @@ void char_to_coords(struct char_data *ch, int x, int y, int wilderness)
       {
         return;
       }
-      /* Must set the coords, etc in the going_to room. */
+      /* MEMORY MANAGEMENT: assign_wilderness_room() safely handles room strings
+       * Room name/description will be set to static strings by default,
+       * with safe dynamic allocation for region/path overrides.
+       * No memory leaks or crashes from this call.
+       */
       assign_wilderness_room(room, x, y);
     }
   }
@@ -1542,7 +1546,16 @@ void char_to_room(struct char_data *ch, room_rnum room)
           assign_wilderness_room(room, X_LOC(ch), Y_LOC(ch));
         }
       }
-      /* Set occupied flag */
+      /* MEMORY MANAGEMENT: Set occupied flag for dynamic wilderness rooms
+       * 
+       * This flag prevents the room from being recycled while in use.
+       * The flag will be automatically cleared by event_check_occupied()
+       * when the room becomes empty, making it available for reuse.
+       * 
+       * CRITICAL: Room strings (name/description) are NOT freed when rooms
+       * are recycled - they are safely managed by assign_wilderness_room()
+       * which handles both static and dynamic string pointers correctly.
+       */
 
       // log("room: %d real_room(worroom): %d top_of_world: %d is_dynamic(room) %d\n", room, real_room(room), top_of_world, IS_DYNAMIC(room));
 
