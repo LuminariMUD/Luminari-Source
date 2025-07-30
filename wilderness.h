@@ -101,8 +101,10 @@ extern struct kdtree *kd_wilderness_rooms;
 struct wild_map_info_type
 {
   int sector_type;
-  char disp[50];
-  const char *variant_disp[NUM_VARIANT_GLYPHS];
+  char disp[50];                                      /* ASCII display string */
+  char utf8_disp[50];                                 /* UTF-8 display string for awesome visuals */
+  const char *variant_disp[NUM_VARIANT_GLYPHS];      /* ASCII variants */
+  const char *utf8_variant_disp[NUM_VARIANT_GLYPHS]; /* UTF-8 variants */
 };
 
 extern struct wild_map_info_type wild_map_info[];
