@@ -666,6 +666,7 @@ void show_account_menu(struct descriptor_data *d)
 
       if (d->account->character_names[i] != NULL && load_char(d->account->character_names[i], xtch) > -1)
       {
+        /* Character loaded successfully, we're done with xtch */
         free_char(xtch);
         xtch = NULL;
 
@@ -705,7 +706,8 @@ void show_account_menu(struct descriptor_data *d)
               {
                 write_to_output(d, " \tR---===||DELETED||===---\tn\r\n");
                 free_char(tch);
-                return;
+                mysql_free_result(res);
+                continue;
               }
 
               write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch), race_list[GET_REAL_RACE(tch)].abbrev_color);
@@ -741,6 +743,12 @@ void show_account_menu(struct descriptor_data *d)
         }
         mysql_free_result(res);
         write_to_output(d, "\r\n");
+      }
+      else
+      {
+        /* Load failed or character name was NULL - free the allocated memory */
+        free_char(xtch);
+        xtch = NULL;
       }
     }
   }

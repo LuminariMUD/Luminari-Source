@@ -1183,12 +1183,14 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
   if (af->location == APPLY_DR)
   {
     /* Remove the dr. */
-    struct damage_reduction_type *temp, *dr; /* Used by REMOVE_FROM_LIST */
-    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+    struct damage_reduction_type *temp, *dr, *next_dr; /* Used by REMOVE_FROM_LIST */
+    for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
     {
+      next_dr = dr->next;  /* Save next pointer before potential removal */
       if (dr->spell == af->spell)
       {
         REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+        free(dr);  /* Free the damage reduction structure */
       }
     }
   }
@@ -1236,12 +1238,14 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   if (af->location == APPLY_DR)
   {
     /* Remove the dr. */
-    struct damage_reduction_type *temp, *dr; /* Used by REMOVE_FROM_LIST */
-    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+    struct damage_reduction_type *temp, *dr, *next_dr; /* Used by REMOVE_FROM_LIST */
+    for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
     {
+      next_dr = dr->next;  /* Save next pointer before potential removal */
       if (dr->spell == af->spell)
       {
         REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+        free(dr);  /* Free the damage reduction structure */
       }
     }
   }
@@ -2616,6 +2620,13 @@ void extract_char_final(struct char_data *ch)
     }
     free_list(ch->events);
     ch->events = NULL;
+  }
+
+  /* CRITICAL FIX: Clean up affects for players going to menu to prevent memory leaks */
+  if (!IS_NPC(ch) && ch->desc) {
+    /* Player with descriptor going to menu - clean up affects but don't free character */
+    while (ch->affected)
+      affect_remove_no_total(ch, ch->affected);
   }
 
   /* If there's a descriptor, they're in the menu now. */

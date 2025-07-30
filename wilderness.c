@@ -90,6 +90,9 @@ void initialize_wilderness_lists()
     kd_free(kd_wilderness_rooms);
 
   kd_wilderness_rooms = kd_create(2);
+  
+  /* Set destructor to free the room_rnum pointers when the tree is destroyed */
+  kd_data_destructor(kd_wilderness_rooms, free);
 
   /* The +1 for the initializer is so that the 'magic' room is not
    * included in the index. */
@@ -558,8 +561,10 @@ room_rnum find_static_room_by_coordinates(int x, int y)
   while (!kd_res_end(set))
   {
     room = (room_rnum *)kd_res_item(set, pos);
+    kd_res_free(set);  /* Free the result set before returning */
     return *room;
   }
+  kd_res_free(set);  /* Free the result set if no results found */
   return NOWHERE;
 }
 

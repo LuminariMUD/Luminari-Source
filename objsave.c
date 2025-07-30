@@ -2208,11 +2208,38 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           if (real_object(nr) == NOTHING && nr != NOTHING)
           {
             log("SYSERR: Prevented loading of non-existant item #%d.", nr);
+            /* CRITICAL FIX: Free any existing temp object before continuing */
+            if (temp) {
+              extract_obj(temp);
+              temp = NULL;
+            }
             continue;
           }
         }
         else
           continue;
+
+        /* If we already have a temp object, we need to handle it before creating a new one */
+        if (temp)
+        {
+          /* Add the existing object to the list before creating a new one */
+          CREATE(tempsave, obj_save_data, 1);
+          tempsave->obj = temp;
+          tempsave->locate = locate;
+          tempsave->db_idnum = obj_db_idnum;
+
+          if (current == NULL)
+          {
+            head = tempsave;
+            current = head;
+          }
+          else
+          {
+            current->next = tempsave;
+            current = current->next;
+          }
+          temp = NULL;
+        }
 
         /* we have the number, check it, load obj. */
         if (nr == NOTHING)
@@ -2222,6 +2249,11 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         }
         else if (nr < 0)
         {
+          /* CRITICAL FIX: Free any existing temp object before continuing */
+          if (temp) {
+            extract_obj(temp);
+            temp = NULL;
+          }
           continue;
         }
         else
@@ -2364,7 +2396,6 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           GET_OBJ_PERM(temp)
           [3] = asciiflag_conv(f4);
         }
-        break;
         if (!strcmp(tag, "Prof"))
           GET_OBJ_PROF(temp) = num;
         break;
@@ -2482,6 +2513,13 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         current->next = tempsave;
         current = current->next;
       }
+      temp = NULL;
+    }
+
+    /* CRITICAL FIX: Ensure temp is handled before processing next row */
+    if (temp) {
+      log("SYSERR: objsave_parse_objects_db: Unhandled object at end of row parsing - extracting");
+      extract_obj(temp);
       temp = NULL;
     }
 
@@ -3145,11 +3183,38 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
           if (real_object(nr) == NOTHING && nr != NOTHING)
           {
             log("SYSERR: Prevented loading of non-existant item #%d.", nr);
+            /* CRITICAL FIX: Free any existing temp object before continuing */
+            if (temp) {
+              extract_obj(temp);
+              temp = NULL;
+            }
             continue;
           }
         }
         else
           continue;
+
+        /* If we already have a temp object, we need to handle it before creating a new one */
+        if (temp)
+        {
+          /* Add the existing object to the list before creating a new one */
+          CREATE(tempsave, obj_save_data, 1);
+          tempsave->obj = temp;
+          tempsave->locate = locate;
+          tempsave->db_idnum = obj_db_idnum;
+
+          if (current == NULL)
+          {
+            head = tempsave;
+            current = head;
+          }
+          else
+          {
+            current->next = tempsave;
+            current = current->next;
+          }
+          temp = NULL;
+        }
 
         /* we have the number, check it, load obj. */
         if (nr == NOTHING)
@@ -3159,6 +3224,11 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         }
         else if (nr < 0)
         {
+          /* CRITICAL FIX: Free any existing temp object before continuing */
+          if (temp) {
+            extract_obj(temp);
+            temp = NULL;
+          }
           continue;
         }
         else
@@ -3301,7 +3371,6 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
           GET_OBJ_PERM(temp)
           [3] = asciiflag_conv(f4);
         }
-        break;
         if (!strcmp(tag, "Prof"))
           GET_OBJ_PROF(temp) = num;
         break;
@@ -3770,11 +3839,38 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
           if (real_object(nr) == NOTHING && nr != NOTHING)
           {
             log("SYSERR: Prevented loading of non-existant item #%d.", nr);
+            /* CRITICAL FIX: Free any existing temp object before continuing */
+            if (temp) {
+              extract_obj(temp);
+              temp = NULL;
+            }
             continue;
           }
         }
         else
           continue;
+
+        /* If we already have a temp object, we need to handle it before creating a new one */
+        if (temp)
+        {
+          /* Add the existing object to the list before creating a new one */
+          CREATE(tempsave, obj_save_data, 1);
+          tempsave->obj = temp;
+          tempsave->locate = locate;
+          tempsave->db_idnum = obj_db_idnum;
+
+          if (current == NULL)
+          {
+            head = tempsave;
+            current = head;
+          }
+          else
+          {
+            current->next = tempsave;
+            current = current->next;
+          }
+          temp = NULL;
+        }
 
         /* we have the number, check it, load obj. */
         if (nr == NOTHING)
@@ -3784,6 +3880,11 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         }
         else if (nr < 0)
         {
+          /* CRITICAL FIX: Free any existing temp object before continuing */
+          if (temp) {
+            extract_obj(temp);
+            temp = NULL;
+          }
           continue;
         }
         else
@@ -3926,7 +4027,6 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
           GET_OBJ_PERM(temp)
           [3] = asciiflag_conv(f4);
         }
-        break;
         if (!strcmp(tag, "Prof"))
           GET_OBJ_PROF(temp) = num;
         break;

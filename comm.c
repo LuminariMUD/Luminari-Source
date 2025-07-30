@@ -3050,6 +3050,27 @@ void close_socket(struct descriptor_data *d)
   //  if (d->host)
   //    free(d->host);
 
+  /* Free account data if present */
+  if (d->account) {
+    int i;
+    if (d->account->name) {
+      free(d->account->name);
+      d->account->name = NULL;
+    }
+    if (d->account->email) {
+      free(d->account->email);
+      d->account->email = NULL;
+    }
+    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+      if (d->account->character_names[i]) {
+        free(d->account->character_names[i]);
+        d->account->character_names[i] = NULL;
+      }
+    }
+    free(d->account);
+    d->account = NULL;
+  }
+
   free(d);
 }
 

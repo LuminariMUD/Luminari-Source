@@ -6019,25 +6019,14 @@ void assign_weighted_bonuses(void)
   int i, j, k;
   int apply;
 
-    for (j = 0; j < top_of_objt; j++)
+  // initialize first (moved outside the loop)
+  for (i = 0; i < NUM_ITEM_WEARS; i++)
+  {
+    for (k = 0; k < NUM_APPLIES; k++)
     {
-      // we have issues with obj vnums above this number.
-      // all zones that are made should be below these vnums anyway.
-      if (obj_index[j].vnum >= 60000) continue;
-
-      obj = read_object(obj_index[j].vnum, VIRTUAL);
-
-      if (!obj) continue;
-
-      // initialize first
-      for (i = 0; i < NUM_ITEM_WEARS; i++)
-      {
-        for (k = 0; k < NUM_APPLIES; k++)
-        {
-          weighted_object_bonuses[i][k] = 0;
-        }
-      }
+      weighted_object_bonuses[i][k] = 0;
     }
+  }
 
   for (j = 0; j < top_of_objt; j++)
   {
@@ -6062,6 +6051,9 @@ void assign_weighted_bonuses(void)
         }
       }
     }
+    
+    /* Free the temporary object we created */
+    extract_obj(obj);
   }
 }
 

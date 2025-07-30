@@ -864,6 +864,10 @@ void destroy_db(void)
     if (obj_proto[cnt].special_abilities)
       free_obj_special_abilities(obj_proto[cnt].special_abilities);
 
+    /* CRITICAL FIX: free spellbook info to prevent memory leak */
+    if (obj_proto[cnt].sbinfo)
+      free(obj_proto[cnt].sbinfo);
+
     /* free script proto list */
     free_proto_script(&obj_proto[cnt], OBJ_TRIGGER);
   }
@@ -1712,12 +1716,26 @@ void parse_room(FILE *fl, int virtual_nr)
   {
     log("SYSERR: Expecting roomflags/sector type of room #%d but file ended!",
         virtual_nr);
+    /* CRITICAL FIX: Free allocated memory before exit to prevent memory leak */
+    if (world[room_nr].name)
+      free(world[room_nr].name);
+    if (world[room_nr].description)
+      free(world[room_nr].description);
+    if (world[room_nr].trail_tracks)
+      free(world[room_nr].trail_tracks);
     exit(1);
   }
 
   if (((retval = sscanf(line, " %d %s %s %s %s %d ", t, flags, flags2, flags3, flags4, t + 2)) == 3) && (bitwarning == TRUE))
   {
     log("WARNING: Conventional world files detected. See config.c.");
+    /* CRITICAL FIX: Free allocated memory before exit to prevent memory leak */
+    if (world[room_nr].name)
+      free(world[room_nr].name);
+    if (world[room_nr].description)
+      free(world[room_nr].description);
+    if (world[room_nr].trail_tracks)
+      free(world[room_nr].trail_tracks);
     exit(1);
   }
   else if ((retval == 3) && (bitwarning == FALSE))
@@ -1770,6 +1788,13 @@ void parse_room(FILE *fl, int virtual_nr)
   else
   {
     log("SYSERR: Format error in roomflags/sector type of room #%d", virtual_nr);
+    /* CRITICAL FIX: Free allocated memory before exit to prevent memory leak */
+    if (world[room_nr].name)
+      free(world[room_nr].name);
+    if (world[room_nr].description)
+      free(world[room_nr].description);
+    if (world[room_nr].trail_tracks)
+      free(world[room_nr].trail_tracks);
     exit(1);
   }
 
@@ -1794,6 +1819,15 @@ void parse_room(FILE *fl, int virtual_nr)
     if (!get_line(fl, line))
     {
       log("%s", buf);
+      /* CRITICAL FIX: Free allocated memory before exit to prevent memory leak */
+      if (world[room_nr].name)
+        free(world[room_nr].name);
+      if (world[room_nr].description)
+        free(world[room_nr].description);
+      if (world[room_nr].trail_tracks)
+        free(world[room_nr].trail_tracks);
+      /* Also free any extra descriptions allocated in this loop */
+      free_extra_descriptions(world[room_nr].ex_description);
       exit(1);
     }
     switch (*line)
@@ -1842,6 +1876,15 @@ void parse_room(FILE *fl, int virtual_nr)
       return;
     default:
       log("%s", buf);
+      /* CRITICAL FIX: Free allocated memory before exit to prevent memory leak */
+      if (world[room_nr].name)
+        free(world[room_nr].name);
+      if (world[room_nr].description)
+        free(world[room_nr].description);
+      if (world[room_nr].trail_tracks)
+        free(world[room_nr].trail_tracks);
+      /* Also free any extra descriptions allocated in this loop */
+      free_extra_descriptions(world[room_nr].ex_description);
       exit(1);
     }
   }
@@ -4581,17 +4624,52 @@ void reset_zone(zone_rnum zone)
         }
         else
         {
-          obj = read_object(ZCMD.arg1, REAL);
-          /* CRITICAL FIX: Check for NULL object before use */
-          if (!obj) {
-            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d (no room)", 
+          /* CRITICAL FIX: Don't create objects with NOWHERE room unless needed for triggers/vars */
+          /* Check if next commands will use this object */
+          bool obj_will_be_used = false;
+          int check_cmd;
+          
+          for (check_cmd = cmd_no + 1; check_cmd < zone_table[zone].num_cmds; check_cmd++) {
+            if (zone_table[zone].cmd[check_cmd].if_flag && result_queue.head == NULL) {
+              /* Next command depends on this one but we haven't pushed success yet */
+              break;
+            }
+            /* Check if next command uses the current object (T or V with arg1 == 1) */
+            if ((zone_table[zone].cmd[check_cmd].command == 'T' || 
+                 zone_table[zone].cmd[check_cmd].command == 'V') &&
+                zone_table[zone].cmd[check_cmd].arg1 == OBJ_TRIGGER) {
+              obj_will_be_used = true;
+              break;
+            }
+            /* Stop checking if we hit a command that resets tobj */
+            if (zone_table[zone].cmd[check_cmd].command == 'O' ||
+                zone_table[zone].cmd[check_cmd].command == 'P' ||
+                zone_table[zone].cmd[check_cmd].command == 'G' ||
+                zone_table[zone].cmd[check_cmd].command == 'E' ||
+                zone_table[zone].cmd[check_cmd].command == 'R') {
+              break;
+            }
+          }
+          
+          if (!obj_will_be_used) {
+            /* Don't create the object if it won't be used */
+            log("SYSERR: Zone %d cmd %d: Skipping orphaned object %d with NOWHERE room",
                 zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
             push_result(0);
-            break;
+            tobj = NULL;
+          } else {
+            obj = read_object(ZCMD.arg1, REAL);
+            /* CRITICAL FIX: Check for NULL object before use */
+            if (!obj) {
+              log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d (no room)", 
+                  zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
+              push_result(0);
+              break;
+            }
+            IN_ROOM(obj) = NOWHERE;
+            push_result(1);
+            tobj = obj;
           }
-          IN_ROOM(obj) = NOWHERE;
-          push_result(1);
-          tobj = obj;
         }
       }
       tmob = NULL;
@@ -5182,6 +5260,16 @@ void reset_zone(zone_rnum zone)
   /* CRITICAL: Clear zone reset state */
   zone_table[zone].reset_state = ZONE_RESET_NORMAL;
   zone_table[zone].reset_start = 0;
+  
+  /* CRITICAL FIX: Clean up any orphaned objects created with NOWHERE room
+   * that were never attached to anything via T or V commands */
+  if (tobj && IN_ROOM(tobj) == NOWHERE && tobj->in_obj == NULL && 
+      tobj->carried_by == NULL && tobj->worn_by == NULL) {
+    /* Object was created but never used - extract it to prevent memory leak */
+    log("SYSERR: Zone %d: Cleaning up orphaned object %d [%s] that was never attached",
+        zone_table[zone].number, GET_OBJ_VNUM(tobj), tobj->short_description);
+    extract_obj(tobj);
+  }
 }
 
 /* for use in reset_zone; return TRUE if zone 'nr' is free of PC's  */
@@ -5660,6 +5748,15 @@ void free_char(struct char_data *ch)
       free(ch->player.goals);
     if (GET_HOST(ch))
       free(GET_HOST(ch));
+    
+    /* CRITICAL FIX: Free bag names to prevent memory leaks */
+    for (i = 0; i <= MAX_BAGS; i++) {
+      if (ch->player_specials->saved.bag_names[i]) {
+        free(ch->player_specials->saved.bag_names[i]);
+        ch->player_specials->saved.bag_names[i] = NULL;
+      }
+    }
+    
     if (IS_NPC(ch))
       log("SYSERR: Mob %s (#%d) had player_specials allocated!", GET_NAME(ch), GET_MOB_VNUM(ch));
   }
@@ -5681,10 +5778,32 @@ void free_char(struct char_data *ch)
       free(ch->player.walkin);
     if (ch->player.walkout)
       free(ch->player.walkout);
+    if (ch->player.imm_title)
+      free(ch->player.imm_title);
+    if (ch->player.eidolon_shortdescription)
+      free(ch->player.eidolon_shortdescription);
+    if (ch->player.eidolon_longdescription)
+      free(ch->player.eidolon_longdescription);
+    if (ch->player.eidolon_detaildescription)
+      free(ch->player.eidolon_detaildescription);
 
     for (i = 0; i < NUM_HIST; i++)
       if (GET_HISTORY(ch, i))
         free_history(ch, i);
+
+    /* free todo list - must be done before freeing player_specials */
+    if (ch && ch->player_specials && GET_TODO(ch))
+    {
+      struct txt_block *tmp = GET_TODO(ch), *ftmp;
+      while ((ftmp = tmp))
+      {
+        tmp = tmp->next;
+        if (ftmp->text)
+          free(ftmp->text);
+        free(ftmp);
+      }
+      GET_TODO(ch) = NULL;
+    }
 
     /* spell prep system - must be done before freeing player_specials */
     if (ch && ch->player_specials)
