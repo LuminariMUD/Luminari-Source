@@ -2965,7 +2965,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   int i, j, x, spell_school = NOSCHOOL, dc_mod = 0;
   int enchantment_bonus = 0, illusion_bonus = 0, paralysis_bonus = 0, success = 0, misc_bonus = 0;
   bool is_mind_affect = FALSE;
-  struct damage_reduction_type *new_dr = NULL, *dr = NULL, *temp = NULL;
+  struct damage_reduction_type *new_dr = NULL, *dr = NULL, *temp = NULL, *next_dr = NULL;
   bool is_immune_sleep = FALSE;
   bool is_immune_to_ability_drain = FALSE;
 
@@ -4523,7 +4523,6 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_EPIC_PSIONIC_WARD:
 
     // Remove the dr.
-    struct damage_reduction_type *next_dr;
     for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
     {
       next_dr = dr->next;  /* Save next pointer before potential removal */
@@ -8302,7 +8301,6 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case RACIAL_ABILITY_CRYSTAL_BODY:
 
   /* Remove the dr. */
-  struct damage_reduction_type *next_dr;
   for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
   {
     next_dr = dr->next;  /* Save next pointer before potential removal */

@@ -4629,8 +4629,8 @@ void reset_zone(zone_rnum zone)
           bool obj_will_be_used = false;
           int check_cmd;
           
-          for (check_cmd = cmd_no + 1; check_cmd < zone_table[zone].num_cmds; check_cmd++) {
-            if (zone_table[zone].cmd[check_cmd].if_flag && result_queue.head == NULL) {
+          for (check_cmd = cmd_no + 1; zone_table[zone].cmd[check_cmd].command != 'S'; check_cmd++) {
+            if (zone_table[zone].cmd[check_cmd].if_flag && result_q.size == 0) {
               /* Next command depends on this one but we haven't pushed success yet */
               break;
             }
