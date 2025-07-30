@@ -415,7 +415,11 @@ ACMD(do_goto)
       send_to_char(ch, "That is an invalid goto location. Please use:\r\n"
                       "goto (room vnum)          eg. goto 200\r\n"
                       "goto (mob or player name) eg. goto gicker or goto cave-troll\r\n"
-                      "goto (zone name)          eg. goto lusken\r\n");
+                      "goto (zone name)          eg. goto lusken\r\n"
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+                      "goto (x y coordinates)    eg. goto 1 3\r\n"
+#endif
+                      );
       return;
     }
     if ((location = find_target_room(ch, argument)) == NOWHERE)
@@ -443,19 +447,6 @@ ACMD(do_goto)
     }
   }
 #endif
-
-    for (i = 1; i < strlen(argument); i++)
-    {
-      if (isspace(argument[i])) has_space = true;
-    }
-    if (has_space)
-    {
-      send_to_char(ch, "That is an invalid goto location. Please use:\r\n"
-                      "goto (room vnum)          eg. goto 200\r\n"
-                      "goto (mob or player name) eg. goto gicker or goto cave-troll\r\n"
-                      "goto (zone name)          eg. goto lusken\r\n");
-      return;
-    }
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_NOIMMORT) && (GET_LEVEL(ch) >= LVL_IMMORT) && (GET_LEVEL(ch) < LVL_GRSTAFF))
   {
