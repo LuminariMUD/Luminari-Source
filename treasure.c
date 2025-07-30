@@ -1542,9 +1542,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 {
   int bonus_value = enchantment_grade, bonus_location = APPLY_NONE;
   bool has_enhancement = FALSE;
-#if defined(USE_NEW_RANDOM_OBJECT_GUIDELINES)
   int feat_num = FEAT_UNDEFINED;
-#endif
 
   /* items that will only get an enhancement bonus */
   if (CAN_WEAR(obj, ITEM_WEAR_WIELD) || CAN_WEAR(obj, ITEM_WEAR_SHIELD) ||
@@ -1557,11 +1555,6 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
     has_enhancement = TRUE;
   }
   else if (cp_type == CP_TYPE_CRYSTAL)
-  {
-    bonus_location = random_apply_value();
-  }
-#if defined(USE_ORIGINAL_RANDOM_OBJECT_GUIDELINES)
-  else
   {
     bonus_location = random_apply_value();
   }
@@ -1596,6 +1589,10 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   else if (CAN_WEAR(obj, ITEM_WEAR_HOLD))
   {
     bonus_location = determine_stat_apply(WEAR_HOLD_1);
+  }
+  else
+  {
+    bonus_location = random_apply_value();
   }
 
   if (!has_enhancement)
@@ -1643,7 +1640,6 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
       break;
     }
   }
-  #endif
 
   /* lets modify this ammo's breakability (base 30%) */
   if (cp_type == CP_TYPE_AMMO)
