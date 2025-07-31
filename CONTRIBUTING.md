@@ -16,7 +16,7 @@ We welcome contributions from developers, builders, and community members! This 
 ## Getting Started
 
 ### Prerequisites
-- **Development Environment**: Set up according to the [Setup and Build Guide](documentation/SETUP_AND_BUILD_GUIDE.md)
+- **Development Environment**: Set up according to the [Setup and Build Guide](docs/SETUP_AND_BUILD_GUIDE.md)
 - **Git Knowledge**: Basic understanding of Git and GitHub workflows
 - **C Programming**: Familiarity with C programming language (C99 standard)
 - **MUD Knowledge**: Understanding of MUD concepts and tbaMUD/CircleMUD architecture
@@ -26,7 +26,7 @@ We welcome contributions from developers, builders, and community members! This 
 2. **Clone Your Fork** locally
 3. **Set Up Development Environment** following our setup guide
 4. **Join Our Community** on [Discord](https://discord.gg/Me3Tuu4)
-5. **Read the Documentation** starting with the [Technical Documentation Master Index](documentation/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)
+5. **Read the Documentation** starting with the [Technical Documentation Master Index](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)
 
 ## Types of Contributions
 
@@ -109,7 +109,7 @@ git push origin feature/your-feature-name
 ## Coding Standards
 
 ### Code Style
-Follow the guidelines in our [Developer Guide](documentation/DEVELOPER_GUIDE_AND_API.md):
+Follow the guidelines in our [Developer Guide](docs/DEVELOPER_GUIDE_AND_API.md):
 
 ```c
 // Function naming: lowercase with underscores
@@ -316,9 +316,9 @@ clang-format -i *.c *.h
 ```
 
 ### Important Links
-- **[Technical Documentation](documentation/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**
-- **[Developer Guide](documentation/DEVELOPER_GUIDE_AND_API.md)**
-- **[Setup Guide](documentation/SETUP_AND_BUILD_GUIDE.md)**
+- **[Technical Documentation](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**
+- **[Developer Guide](docs/DEVELOPER_GUIDE_AND_API.md)**
+- **[Setup Guide](docs/SETUP_AND_BUILD_GUIDE.md)**
 - **[AI Assistant Guide](CLAUDE.md)** - Comprehensive guide for AI-assisted development
 - **[Discord Community](https://discord.gg/Me3Tuu4)**
 - **[GitHub Repository](https://github.com/LuminariMUD/Luminari-Source)**

@@ -222,4 +222,4 @@ This document is provided for informational purposes. For legal advice regarding
 
 **Last Updated**: 2025-07-27
 **Document Version**: 1.0
-**Consolidated From**: LICENSE, documentation/old_doc/license.txt, documentation/old_doc/license.doc
+**Consolidated From**: LICENSE, docs/old_doc/license.txt, docs/old_doc/license.doc

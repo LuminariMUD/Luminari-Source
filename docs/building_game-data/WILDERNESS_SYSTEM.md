@@ -1683,10 +1683,10 @@ char *path_glyphs[3] = {
 ## Additional Resources
 
 ### Related Documentation
-- `documentation/building_game-data/attaching_zones_wilderness.md` - Builder guide for zone attachment
-- `documentation/systems/COMBAT_SYSTEM.md` - Combat system integration
-- `documentation/systems/SCRIPTING_SYSTEM_DG.md` - DG Scripts integration
-- `documentation/systems/OLC_ONLINE_CREATION_SYSTEM.md` - OLC system documentation
+- `docs/building_game-data/attaching_zones_wilderness.md` - Builder guide for zone attachment
+- `docs/systems/COMBAT_SYSTEM.md` - Combat system integration
+- `docs/systems/SCRIPTING_SYSTEM_DG.md` - DG Scripts integration
+- `docs/systems/OLC_ONLINE_CREATION_SYSTEM.md` - OLC system documentation
 
 ### Source Code Files
 - `wilderness.c/h` - Main wilderness implementation

@@ -199,7 +199,7 @@ nohup ../bin/circle &
 
 #### For Builders
 - Use in-game OLC (Online Level Creation) commands
-- Access building documentation in `/documentation/`
+- Access building documentation in `/docs/`
 - Follow building standards and guidelines
 
 #### For Developers
@@ -210,25 +210,25 @@ nohup ../bin/circle &
 ## Documentation
 
 ### Quick Access
-- **[📚 Complete Documentation Index](documentation/DOCUMENTATION_INDEX.md)**: Navigate all documentation by audience and topic
-- **[🔧 Technical Master Index](documentation/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**: Complete technical documentation overview
+- **[📚 Complete Documentation Index](docs/DOCUMENTATION_INDEX.md)**: Navigate all documentation by audience and topic
+- **[🔧 Technical Master Index](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**: Complete technical documentation overview
 
 ### Technical Documentation
-- **[Architecture](documentation/CORE_SERVER_ARCHITECTURE.md)**: Server architecture and design patterns
-- **[Setup Guide](documentation/guides/SETUP_AND_BUILD_GUIDE.md)**: Detailed installation and configuration
-- **[Developer Guide](documentation/guides/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
+- **[Architecture](docs/CORE_SERVER_ARCHITECTURE.md)**: Server architecture and design patterns
+- **[Setup Guide](docs/guides/SETUP_AND_BUILD_GUIDE.md)**: Detailed installation and configuration
+- **[Developer Guide](docs/guides/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
 
 ### Game Documentation
-- **[Combat System](documentation/systems/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
-- **[Player Management](documentation/systems/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
-- **[World Simulation](documentation/systems/WORLD_SIMULATION_SYSTEM.md)**: World systems and mechanics
+- **[Combat System](docs/systems/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
+- **[Player Management](docs/systems/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
+- **[World Simulation](docs/systems/WORLD_SIMULATION_SYSTEM.md)**: World systems and mechanics
 
 ### Additional Resources
-- **[Testing Guide](documentation/guides/TESTING_GUIDE.md)**: Quality assurance and testing procedures
-- **[Troubleshooting](documentation/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
-- **[PHP Tools Guide](documentation/PHP_TOOLS_README.md)**: Web tools security audit and deployment
-- **[Ultimate Writing Guide](documentation/guides/ultimate-mud-writing-guide.md)**: Zone building and content creation
-- **[AI Assistant Guide](documentation/development/CLAUDE.md)**: Comprehensive guide for AI-assisted development
+- **[Testing Guide](docs/guides/TESTING_GUIDE.md)**: Quality assurance and testing procedures
+- **[Troubleshooting](docs/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
+- **[PHP Tools Guide](docs/PHP_TOOLS_README.md)**: Web tools security audit and deployment
+- **[Ultimate Writing Guide](docs/guides/ultimate-mud-writing-guide.md)**: Zone building and content creation
+- **[AI Assistant Guide](docs/development/CLAUDE.md)**: Comprehensive guide for AI-assisted development
 ## Contributing
 
 We welcome contributions from developers, builders, and community members! Please read our guidelines before contributing.
@@ -248,7 +248,7 @@ We welcome contributions from developers, builders, and community members! Pleas
    ```
 
 3. **Make Your Changes**
-   - Follow our coding standards (see [Developer Guide](documentation/guides/DEVELOPER_GUIDE_AND_API.md))
+   - Follow our coding standards (see [Developer Guide](docs/guides/DEVELOPER_GUIDE_AND_API.md))
    - Add tests for new functionality
    - Update documentation as needed
 
@@ -359,7 +359,7 @@ netstat -tulpn | grep :4000
 - Ensure database credentials are correct
 
 ### Getting Support
-1. Check the [Troubleshooting Guide](documentation/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)
+1. Check the [Troubleshooting Guide](docs/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)
 2. Search existing GitHub Issues
 3. Ask on Discord for community support
 4. Create a GitHub Issue for bugs or feature requests
@@ -402,4 +402,4 @@ For complete license details, see the [LICENSE](LICENSE) file.
 
 **Remember**: *The work itself is the reward. Focus on creating something meaningful for the community.*
 
-For more information, visit our [technical documentation](documentation/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) or join our [Discord community](https://discord.gg/Me3Tuu4).
+For more information, visit our [technical documentation](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) or join our [Discord community](https://discord.gg/Me3Tuu4).

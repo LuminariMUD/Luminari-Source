@@ -30,7 +30,9 @@
       "Bash(touch:*)",
       "Bash(mysql:*)",
       "Bash(./configure)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(git mv:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }
