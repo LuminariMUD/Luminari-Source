@@ -9,6 +9,14 @@ mysql_config
 # Prerequisites
 *.d
 
+# Backup files
+*.bak
+*.old
+*.backup
+*~
+*.swp
+*.swo
+
 # Object files
 *.o
 *.ko
@@ -85,6 +93,10 @@ cache/
 logs/
 *.log
 
+# MUD Log files
+log/*
+!log/.gitkeep
+
 # PHP Tools - Temporary Files
 tmp/
 temp/
@@ -102,3 +114,93 @@ backups/
 # PHP Tools - Composer Dependencies (if added later)
 vendor/
 composer.lock
+
+# MUD Runtime Data - Should never be committed
+# Player files
+lib/plrfiles/**/*.plr
+lib/plrobjs/**/*.objs
+
+# But keep the directory structure
+!lib/plrfiles/.gitkeep
+!lib/plrfiles/*/.gitkeep
+!lib/plrfiles/*/00
+!lib/plrobjs/.gitkeep
+!lib/plrobjs/*/.gitkeep
+!lib/plrobjs/*/00
+
+# House files
+lib/house/*.house
+
+# Runtime configuration and state
+lib/etc/badsites
+lib/etc/board.*
+lib/etc/clans
+lib/etc/config
+lib/etc/crafts
+lib/etc/hcontrol
+lib/etc/last
+lib/etc/plrmail
+lib/etc/time
+
+# User-generated content
+lib/misc/bugs
+lib/misc/ideas
+lib/misc/messages
+lib/misc/socials
+lib/misc/socials.new
+lib/misc/typos
+lib/misc/xnames
+
+# Mail system
+lib/mudmail/*/
+lib/mudmail/index
+
+# Quest files
+lib/world/hlq/*.hlq
+
+# World files (edited in-game via OLC)
+lib/world/mob/*.mob
+lib/world/obj/*.obj
+lib/world/wld/*.wld
+lib/world/zon/*.zon
+lib/world/shp/*.shp
+lib/world/trg/*.trg
+lib/world/qst/*.qst
+
+# World index files (generated)
+lib/world/*/index
+lib/world/*/index.mini
+lib/world/*/index.backup
+
+# Text files (edited in-game via tedit)
+lib/text/credits
+lib/text/news
+lib/text/motd
+lib/text/imotd
+lib/text/greetings
+lib/text/info
+lib/text/background
+lib/text/handbook
+lib/text/policies
+lib/text/wizlist
+lib/text/immlist
+lib/text/oldnews
+
+# Help files (legacy - now stored in MySQL via hedit)
+lib/text/help/*
+!lib/text/help/README
+!lib/text/help/.gitkeep
+
+# Keep the base .gitkeep files
+!lib/etc/.gitkeep
+!lib/house/.gitkeep
+!lib/misc/.gitkeep
+!lib/mudmail/.gitkeep
+!lib/world/hlq/.gitkeep
+!lib/world/mob/.gitkeep
+!lib/world/obj/.gitkeep
+!lib/world/wld/.gitkeep
+!lib/world/zon/.gitkeep
+!lib/world/shp/.gitkeep
+!lib/world/trg/.gitkeep
+!lib/world/qst/.gitkeep
