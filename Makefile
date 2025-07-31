@@ -74,7 +74,7 @@ clean:
 # gcc -MM)
 
 depend:
-	$(CC) -MM src/*.c | sed "s|^([^:]*).o:|src/\1.o:|" > depend
+	$(CC) -MM src/*.c | sed "s|^\([^:]*\)\.o:|src/\1.o:|" > depend
 
 -include depend
 
