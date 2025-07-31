@@ -32,8 +32,13 @@ mkdir -p src
 echo "Moving C source files..."
 for file in *.c; do
     if [ -f "$file" ]; then
-        echo "  Moving $file"
-        git mv "$file" src/
+        # Check if file is ignored by git
+        if git check-ignore "$file" > /dev/null 2>&1; then
+            echo "  Skipping $file (in .gitignore)"
+        else
+            echo "  Moving $file"
+            git mv "$file" src/
+        fi
     fi
 done
 
@@ -41,8 +46,13 @@ done
 echo "Moving header files..."
 for file in *.h; do
     if [ -f "$file" ]; then
-        echo "  Moving $file"
-        git mv "$file" src/
+        # Check if file is ignored by git
+        if git check-ignore "$file" > /dev/null 2>&1; then
+            echo "  Skipping $file (in .gitignore)"
+        else
+            echo "  Moving $file"
+            git mv "$file" src/
+        fi
     fi
 done
 
@@ -50,8 +60,13 @@ done
 echo "Moving C++ source files..."
 for file in *.cpp; do
     if [ -f "$file" ]; then
-        echo "  Moving $file"
-        git mv "$file" src/
+        # Check if file is ignored by git
+        if git check-ignore "$file" > /dev/null 2>&1; then
+            echo "  Skipping $file (in .gitignore)"
+        else
+            echo "  Moving $file"
+            git mv "$file" src/
+        fi
     fi
 done
 
