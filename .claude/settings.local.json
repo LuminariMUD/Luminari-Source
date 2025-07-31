@@ -32,7 +32,8 @@
       "Bash(./configure)",
       "Bash(test:*)",
       "Bash(git mv:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(dos2unix:*)"
     ],
     "deny": []
   }
