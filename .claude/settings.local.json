@@ -33,7 +33,23 @@
       "Bash(test:*)",
       "Bash(git mv:*)",
       "Bash(git commit:*)",
-      "Bash(dos2unix:*)"
+      "Bash(dos2unix:*)",
+      "Bash(for f in .* *)",
+      "Bash(do if [ -f \"$f\" ])",
+      "Bash(then git ls-files --error-unmatch \"$f\")",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(git reset:*)",
+      "Bash(for dir in A-E F-J K-O P-T U-Z ZZZ)",
+      "Bash(do touch lib/plrfiles/$dir/.gitkeep)",
+      "Bash(do if [ -f \"lib/plrfiles/$dir/00\" ])",
+      "Bash(then git add \"lib/plrfiles/$dir/00\")",
+      "Bash(do touch lib/plrobjs/$dir/.gitkeep)",
+      "Bash(do if [ -f \"lib/plrobjs/$dir/00\" ])",
+      "Bash(then git add \"lib/plrobjs/$dir/00\")",
+      "Bash(mkdir:*)",
+      "Bash(for dir in hlq mob obj qst shp trg wld zon)",
+      "Bash(do touch lib/world/$dir/.gitkeep)"
     ],
     "deny": []
   }

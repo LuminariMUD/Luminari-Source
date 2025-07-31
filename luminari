@@ -1,0 +1,8 @@
+ulimit -c unlimited
+cd /home/luminari/public_html/hmud/
+nohup ./policyd &
+cd /home/luminari/public_html/FMud/
+nohup ./flashpolicyd.py --file=/path/to/flashpolicy.xml --port=843 &
+cd /home/luminari/mud
+nohup ./checkmud.sh &
+
