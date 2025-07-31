@@ -2,17 +2,17 @@
 # LuminariMUD clan system unit tests
 
 CC = gcc
-CFLAGS = -g -Wall -I.. -I../.. -DTEST_BUILD
+CFLAGS = -g -Wall -I../src -I../.. -DTEST_BUILD
 LDFLAGS = 
 LIBS = 
 
 # Source files
 TEST_SRCS = test_clan.c CuTest/CuTest.c
-CLAN_SRCS = ../clan.c
+CLAN_SRCS = ../src/clan.c
 MOCK_SRCS = mocks.c
 
 # Required function implementations
-IMPL_SRCS = ../utils.c ../random.c ../db.c ../comm.c
+IMPL_SRCS = ../src/utils.c ../src/random.c ../src/db.c ../src/comm.c
 
 # Object files
 TEST_OBJS = $(TEST_SRCS:.c=.o)
@@ -31,7 +31,7 @@ $(TARGET): $(TEST_OBJS) clan_test.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 # Special rule for clan.c to avoid main() conflict
-clan_test.o: ../clan.c
+clan_test.o: ../src/clan.c
 	$(CC) $(CFLAGS) -DTEST_BUILD -c -o $@ $<
 
 # Compile test files

@@ -25,14 +25,14 @@ PARENT	:= \""$(shell git rev-parse HEAD)"\"
 
 BINDIR = ../bin
 
-CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE) 
+CFLAGS = -g -O2 -Isrc $(MYFLAGS) $(PROFILE) 
 CXXFLAGS = $(CFLAGS) -std=c++11
 
 LIBS =  -lstdc++ -lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread
 
-SRCFILES := $(wildcard *.c)
-CPPFILES := $(wildcard *.cpp)
-OBJFILES := $(patsubst %.c,%.o,$(SRCFILES)) $(CPPFILES:%.cpp=%.o)
+SRCFILES := $(wildcard src/*.c)
+CPPFILES := $(wildcard src/*.cpp)
+OBJFILES := $(SRCFILES:src/%.c=src/%.o) $(CPPFILES:src/%.cpp=src/%.o)
 
 default: circle
 
@@ -50,10 +50,10 @@ $(BINDIR)/circle : $(OBJFILES)
 	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
 
 # Always rebuild constants.c with other files so that luminari_build is updated
-constants.c: $(filter-out constants.c,$(SRCFILES))
-	touch constants.c
+src/constants.c: $(filter-out src/constants.c,$(SRCFILES))
+	touch src/constants.c
 
-constants.o: CFLAGS += -DMKTIME=$(MKTIME) -DMKUSER=$(MKUSER) -DMKHOST=$(MKHOST) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+src/constants.o: CFLAGS += -DMKTIME=$(MKTIME) -DMKUSER=$(MKUSER) -DMKHOST=$(MKHOST) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 
 SRCSCUTEST := $(filter-out unittests/CuTest/AllTests.c,$(wildcard unittests/CuTest/*.c)) unittests/CuTest/CuTest.c
 OBJSCUTEST := $(SRCSCUTEST:%.c=%.o) $(OBJFILES)
@@ -68,13 +68,13 @@ $(BINDIR)/cutest: $(OBJSCUTEST) unittests/CuTest/AllTests.o
 	$(CC) -o $@ $(PROFILE) $^ $(LIBS) && $@
 
 clean:
-	rm -f *.o depend
+	rm -f src/*.o depend
 
 # Dependencies for the object files (automagically generated with
 # gcc -MM)
 
 depend:
-	$(CC) -MM *.c > depend
+	$(CC) -MM src/*.c | sed "s|^([^:]*).o:|src/\1.o:|" > depend
 
 -include depend
 

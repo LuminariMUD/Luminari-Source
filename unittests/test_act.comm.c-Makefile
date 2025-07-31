@@ -4,7 +4,7 @@
 test: obj/test_act.comm
 	./$^
 
-obj/test_act.comm: obj/test_act.comm.o ../act.comm.do_spec_comm.c ../helpers.c mocks.c
+obj/test_act.comm: obj/test_act.comm.o ../src/act.comm.do_spec_comm.c ../src/helpers.c mocks.c
 	$(BUILD) $^
 
 include Makefile-common
