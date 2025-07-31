@@ -21,7 +21,7 @@ PROFILE =
 # binary destination directory
 BINDIR = ../../bin
 # location of Circle include files
-INCDIR = ..
+INCDIR = ../src
 
 CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE) -I$(INCDIR)
 
