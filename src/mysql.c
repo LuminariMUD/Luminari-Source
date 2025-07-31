@@ -134,8 +134,8 @@ void connect_to_mysql()
     exit(1);
   }
 
-  _Bool reconnect = 1;
-  mysql_options(conn, MYSQL_OPT_RECONNECT, &reconnect);
+  my_bool reconnect = 1;
+  mysql_options(conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
 
   if (!mysql_real_connect(conn, host, username, password, database, 0, NULL, 0))
   {
@@ -151,7 +151,7 @@ void connect_to_mysql()
   }
 
   reconnect = 1;
-  mysql_options(conn2, MYSQL_OPT_RECONNECT, &reconnect);
+  mysql_options(conn2, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
 
   if (!mysql_real_connect(conn2, host, username, password, database, 0, NULL, 0))
   {
@@ -167,7 +167,7 @@ void connect_to_mysql()
   }
 
   reconnect = 1;
-  mysql_options(conn3, MYSQL_OPT_RECONNECT, &reconnect);
+  mysql_options(conn3, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
 
   if (!mysql_real_connect(conn3, host, username, password, database, 0, NULL, 0))
   {
