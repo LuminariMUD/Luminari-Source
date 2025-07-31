@@ -215,10 +215,10 @@ git diff -U0 --no-color | clang-format-diff -i
 
 ### Understanding the Codebase
 1. **Read Documentation First**: Key documentation files:
-   - [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](documentation/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) - Complete index
-   - [ARCHITECTURE.md](documentation/ARCHITECTURE.md) - System design
-   - [DEVELOPER_GUIDE_AND_API.md](documentation/DEVELOPER_GUIDE_AND_API.md) - API reference
-   - [TESTING_GUIDE.md](documentation/TESTING_GUIDE.md) - Testing practices
+   - [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) - Complete index
+   - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - System design
+   - [DEVELOPER_GUIDE_AND_API.md](docs/DEVELOPER_GUIDE_AND_API.md) - API reference
+   - [TESTING_GUIDE.md](docs/TESTING_GUIDE.md) - Testing practices
 2. **Follow Existing Patterns**: Study similar functions before implementing
 3. **Respect Architecture**: Maintain modular design and separation of concerns
 4. **Consider Performance**: Real-time system with strict performance requirements
@@ -671,16 +671,16 @@ See also: REST, SLEEP, HEAL
 ## Additional Resources
 
 ### Documentation Files
-- **Setup**: [SETUP_AND_BUILD_GUIDE.md](documentation/SETUP_AND_BUILD_GUIDE.md)
-- **Architecture**: [ARCHITECTURE.md](documentation/ARCHITECTURE.md), [CORE_SERVER_ARCHITECTURE.md](documentation/CORE_SERVER_ARCHITECTURE.md)
-- **Systems**: [GAME_MECHANICS_SYSTEMS.md](documentation/GAME_MECHANICS_SYSTEMS.md), [COMBAT_SYSTEM.md](documentation/COMBAT_SYSTEM.md)
-- **Scripting**: [SCRIPTING_SYSTEM_DG.md](documentation/SCRIPTING_SYSTEM_DG.md)
-- **OLC**: [OLC_ONLINE_CREATION_SYSTEM.md](documentation/OLC_ONLINE_CREATION_SYSTEM.md)
-- **Database**: [DATABASE_INTEGRATION.md](documentation/DATABASE_INTEGRATION.md)
-- **Testing**: [TESTING_GUIDE.md](documentation/TESTING_GUIDE.md)
-- **Troubleshooting**: [TROUBLESHOOTING_AND_MAINTENANCE.md](documentation/TROUBLESHOOTING_AND_MAINTENANCE.md)
+- **Setup**: [SETUP_AND_BUILD_GUIDE.md](docs/SETUP_AND_BUILD_GUIDE.md)
+- **Architecture**: [ARCHITECTURE.md](docs/ARCHITECTURE.md), [CORE_SERVER_ARCHITECTURE.md](docs/CORE_SERVER_ARCHITECTURE.md)
+- **Systems**: [GAME_MECHANICS_SYSTEMS.md](docs/GAME_MECHANICS_SYSTEMS.md), [COMBAT_SYSTEM.md](docs/COMBAT_SYSTEM.md)
+- **Scripting**: [SCRIPTING_SYSTEM_DG.md](docs/SCRIPTING_SYSTEM_DG.md)
+- **OLC**: [OLC_ONLINE_CREATION_SYSTEM.md](docs/OLC_ONLINE_CREATION_SYSTEM.md)
+- **Database**: [DATABASE_INTEGRATION.md](docs/DATABASE_INTEGRATION.md)
+- **Testing**: [TESTING_GUIDE.md](docs/TESTING_GUIDE.md)
+- **Troubleshooting**: [TROUBLESHOOTING_AND_MAINTENANCE.md](docs/TROUBLESHOOTING_AND_MAINTENANCE.md)
 
 ### Support Files
-- **CHANGELOG**: [documentation/CHANGELOG.md](documentation/CHANGELOG.md) - Recent changes
+- **CHANGELOG**: [docs/CHANGELOG.md](docs/CHANGELOG.md) - Recent changes
 - **TODO**: [TASK_LIST.md](TASK_LIST.md) - Development roadmap
 - **Errors**: [SYSLOG_ERRORS.md](SYSLOG_ERRORS.md) - Common error patterns

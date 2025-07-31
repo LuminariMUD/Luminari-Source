@@ -1604,4 +1604,4 @@ Adhering to best practices ensures stable and maintainable scripts:
 
 ---
 
-*This documentation covers the complete DG scripting system implementation in LuminariMUD. For builder-specific guides and world creation examples, refer to the building documentation in the `documentation/building_game-data/` directory.*
+*This documentation covers the complete DG scripting system implementation in LuminariMUD. For builder-specific guides and world creation examples, refer to the building documentation in the `docs/building_game-data/` directory.*

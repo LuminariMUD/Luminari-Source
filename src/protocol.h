@@ -2299,7 +2299,7 @@ void UnicodeAdd(char **apString, int aValue);
  * - Protocol data is properly escaped
  * 
  * For more information, see:
- * - documentation/systems/PROTOCOL_SYSTEMS.md
+ * - docs/systems/PROTOCOL_SYSTEMS.md
  * - KaVir's Protocol Snippet documentation
  * - MSDP, GMCP, and MXP protocol specifications
  *****************************************************************************/

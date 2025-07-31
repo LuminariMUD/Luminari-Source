@@ -4,7 +4,7 @@ This directory contains historical documentation files that have been preserved 
 
 ## Documentation Status
 
-✅ **CONSOLIDATED** - All relevant documentation has been consolidated into the modern documentation structure at `documentation/consolidated/`
+✅ **CONSOLIDATED** - All relevant documentation has been consolidated into the modern documentation structure at `docs/consolidated/`
 
 ## What Was Consolidated
 
@@ -54,9 +54,9 @@ The following files remain for historical reference or because they contain plat
 
 **For current documentation, use the consolidated documentation:**
 
-- **Main Hub**: [documentation/consolidated/README.md](../consolidated/README.md)
-- **Quick Navigation**: [documentation/consolidated/NAVIGATION.md](../consolidated/NAVIGATION.md)
-- **Comprehensive Index**: [documentation/consolidated/INDEX.md](../consolidated/INDEX.md)
+- **Main Hub**: [docs/consolidated/README.md](../consolidated/README.md)
+- **Quick Navigation**: [docs/consolidated/NAVIGATION.md](../consolidated/NAVIGATION.md)
+- **Comprehensive Index**: [docs/consolidated/INDEX.md](../consolidated/INDEX.md)
 
 ### By Topic
 - **Administration**: [admin/README.md](../consolidated/admin/README.md)
