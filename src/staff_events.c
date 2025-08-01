@@ -909,6 +909,10 @@ void staff_event_tick()
     {
 
     case JACKALOPE_HUNT:
+    {
+      int easy_count = 0, med_count = 0, hard_count = 0;
+      int easy_deficit = 0, med_deficit = 0, hard_deficit = 0;
+      
       /*
        * JACKALOPE HUNT TICK OPERATIONS
        * Maintain optimal Jackalope population across all three tiers.
@@ -925,8 +929,6 @@ void staff_event_tick()
        * Uses single-pass counting to fix critical performance issue (C001).
        * Replaces 6 character list traversals per tick with 1.
        */
-      int easy_count = 0, med_count = 0, hard_count = 0;
-      int easy_deficit = 0, med_deficit = 0, hard_deficit = 0;
       
       /* Single efficient count of all Jackalope types */
       count_jackalope_mobs(&easy_count, &med_count, &hard_count);
@@ -949,8 +951,8 @@ void staff_event_tick()
 
       /* Hard Jackalope Population Maintenance (Levels 21+) */
       spawn_jackalope_batch(HARD_JACKALOPE, hard_deficit);
-
-      break;
+    }
+    break;
 
     case THE_PRISONER_EVENT:
       /*
@@ -1346,6 +1348,9 @@ event_result_t end_staff_event(int event_num)
     break;
 
   case THE_PRISONER_EVENT:
+  {
+    struct obj_data *obj_next = NULL;  /* Safe iteration pointer */
+    
     /*
      * THE PRISONER EVENT CLEANUP:
      * Remove the temporary portal that provides access to the raid zone.
@@ -1358,7 +1363,6 @@ event_result_t end_staff_event(int event_num)
      * the object list during traversal. Store next pointer before
      * potential extraction to avoid accessing freed memory.
      */
-    struct obj_data *obj_next = NULL;  /* Safe iteration pointer */
     
     for (obj = world[real_room(TP_PORTAL_L_ROOM)].contents; obj; obj = obj_next)
     {
@@ -1372,7 +1376,8 @@ event_result_t end_staff_event(int event_num)
         extract_obj(obj); /* Remove portal from game - safe since we stored next pointer */
       }
     }
-    break;
+  }
+  break;
 
   /*
    * Future events: Add cleanup code here
