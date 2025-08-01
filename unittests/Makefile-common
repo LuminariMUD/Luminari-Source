@@ -9,7 +9,7 @@ MAKEFLAGS += --no-builtin-rules
 
 OBJDIR := obj
 CC ?= gcc
-CFLAGS ?= -g -O0 -Wall
+CFLAGS ?= -g -O0 -Wall -std=gnu90
 SRCFILES := $(wildcard *.c)
 OBJFILES := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCFILES))
 
