@@ -9,7 +9,7 @@
 CC = gcc
 
 # Any special flags you want to pass to the compiler
-MYFLAGS = -Wall -Wno-char-subscripts -DCIRCLE_UTIL
+MYFLAGS = -Wall -DCIRCLE_UTIL
 
 #flags for profiling (see hacker.doc for more information)
 PROFILE = 
