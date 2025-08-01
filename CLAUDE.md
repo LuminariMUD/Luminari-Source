@@ -1,6 +1,14 @@
-# CLAUDE.md - AI Assistant Development Guide
+# CLAUDE.md
 
-This file provides comprehensive guidance for AI assistants (Claude, GPT, etc.) when working with the LuminariMUD codebase. It contains essential context, patterns, and best practices for effective code assistance.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Critical Must-Know Patterns
+
+1. **C90/C89 Compliance Only** - NO C99 features (no `for(int i=0;...)`, no mixed declarations)
+2. **NPC Safety** - ALWAYS check `IS_NPC(ch)` before accessing player-only data like PRF_FLAGS
+3. **Memory Safety** - Cache `next` pointers when iterating lists that may change
+4. **String Management** - Use explicit strdup/free patterns, no automatic management
+5. **Performance Critical** - This is a real-time game server, optimize hot paths
 
 ## Quick Start for Common Tasks
 
@@ -49,6 +57,24 @@ LuminariMUD is a sophisticated text-based multiplayer online role-playing game (
 - **Compiler**: GCC/Clang (without -std=c99 flag)
 
 ### Recent Development Focus (2025)
+- Performance optimizations in zone reset and mobile activity
+- Staff event system implementation with atmospheric events
+- Critical bug fixes for NPC/player data access patterns
+- Memory safety improvements and leak prevention
+
+## Initial Setup Requirements
+
+Before building, you MUST create these configuration files from their examples:
+```bash
+# Required configuration files (not tracked in git)
+cp src/campaign.example.h src/campaign.h     # Set CAMPAIGN_DL or CAMPAIGN_FR
+cp src/mud_options.example.h src/mud_options.h
+cp src/vnums.example.h src/vnums.h
+
+# Configure MySQL connection
+cp lib/mysql_config_example lib/mysql_config
+# Edit lib/mysql_config with your database credentials
+```
 
 ## Build Commands
 ```bash
@@ -83,14 +109,36 @@ make -f test_perfmon.mk
 # Run the game server (from the bin directory)
 ./circle
 
-# Run unit tests
+# Run all unit tests
 ../bin/cutest
+
+# Run a single test file (compile test module separately)
+gcc -g -O2 -std=gnu90 -Isrc -DLUMINARI_CUTEST -c unittests/test_staff_events.c -o unittests/test_staff_events.o
+gcc -o bin/test_single unittests/test_staff_events.o src/*.o -lstdc++ -lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread
+./bin/test_single
 
 # Run with valgrind for memory debugging
 valgrind --leak-check=full ../bin/circle
 
 # Generate profiling data
 gprof ../bin/circle gmon.out > profile.txt
+```
+
+## Linting and Type Checking
+```bash
+# No built-in lint command - use external tools
+# For C static analysis
+cppcheck --enable=all --suppress=missingIncludeSystem src/
+
+# For code formatting (using project's .clang-format)
+clang-format -i src/*.c src/*.h
+
+# Check formatting without modifying
+clang-format -n src/*.c src/*.h
+
+# The project uses -Wall compiler flag for warnings
+# To check for warnings without building:
+gcc -Wall -Wno-unused-but-set-variable -c src/myfile.c -o /dev/null
 ```
 
 ## Deployment
@@ -107,7 +155,63 @@ The project includes deployment scripts for different environments:
 ./cpbin2live.sh          # LuminariMUD (default)  deployment
 ```
 
-## Architecture Overview
+## High-Level Architecture Overview
+
+### Core Architecture Pattern
+LuminariMUD follows a single-threaded, event-driven architecture with a central game loop:
+
+1. **Main Game Loop** (comm.c):
+   - Handles all network I/O through select()
+   - Processes player commands via command queue
+   - Executes timed events (heartbeat, violence, mobile activity)
+   - Updates game world state each pulse (0.1 seconds)
+
+2. **Character/Object Management**:
+   - Global linked lists for characters (`character_list`) and objects (`object_list`)
+   - Room-based lists for local entities (`room->people`, `room->contents`)
+   - Reference counting and extraction patterns prevent dangling pointers
+   - Critical: Always cache `next` pointers when iterating lists that may change
+
+3. **Memory Architecture**:
+   - Custom allocation macros (`CREATE`, `RECREATE`) wrap malloc/realloc
+   - String management requires explicit strdup/free patterns
+   - Object pools for frequently allocated structures (descriptors, events)
+   - Zone reset creates/destroys many objects - performance critical
+
+4. **Command Processing Flow**:
+   ```
+   Player Input → Command Queue → Interpreter → ACMD Function → Game State Update
+                                      ↓
+                                cmd_info[] table lookup
+   ```
+
+5. **Event System Architecture**:
+   - Delayed events managed by priority queue (mud_event.c)
+   - Action queues for multi-round actions (actionqueues.c)
+   - Pulse-based timing (10 pulses = 1 second)
+   - Events attached to characters/objects/rooms
+
+### Critical Architectural Patterns
+
+#### NPC vs Player Separation
+- NPCs and PCs share `struct char_data` but have different valid fields
+- **ALWAYS** check `IS_NPC(ch)` before accessing player-specific data
+- Player preferences (`PRF_FLAGS`) will crash if accessed on NPCs
+- NPCs use `mob_proto[]` array, players have unique instances
+
+#### World State Management
+- World divided into zones, each with rooms, objects, and mobiles
+- Zone resets restore initial state periodically
+- Virtual numbers (vnums) identify prototypes
+- Real numbers (rnums) are array indices after sorting
+
+#### Database Integration
+- MySQL stores persistent data (players, accounts, mail, etc.)
+- World data loaded from text files at boot
+- Player saves trigger database updates
+- Connection pooling prevents connection exhaustion
+
+### Module Communication
 The codebase follows a modular MUD architecture:
 
 ### Core Engine
@@ -165,16 +269,19 @@ These files must be created from examples and are `.gitignore`d:
 - **mud_options.h** - Copy from `mud_options.example.h` for MUD-specific options
 - **vnums.h** - Copy from `vnums.example.h` for zone virtual number assignments
 
-### Code Style
+### Code Style & Conventions
 - **C90/C89 COMPLIANCE REQUIRED**: 
   - Declare ALL variables at the beginning of blocks
   - NO variable declarations in for loops
   - NO mixed declarations and code
   - NO C99/C11 features
-- Follow existing indentation and brace style in each file
-- Use the existing utility functions and macros defined in utils.h
-- When adding new commands, register them in interpreter.c
-- Use the existing logging macros (log(), mudlog()) for debugging
+- K&R C style with 2-space indentation
+- Function names use snake_case (e.g., `do_command`, `char_from_room`)
+- Constants/macros use SCREAMING_SNAKE_CASE
+- Command handlers: `ACMD(do_command_name)`
+- Special procedures: `SPECIAL(proc_name)`
+- Use existing utility functions and macros from utils.h
+- Use CircleMUD's built-in memory functions when available
 
 ### Code Formatting
 The project includes a `.clang-format` configuration file for consistent code formatting:
@@ -302,88 +409,7 @@ if (!argument || !*argument) {
 - **Memory Testing**: Check for leaks with valgrind
 - **Performance Testing**: Ensure changes don't degrade performance
 
-### Key Files and Their Purposes
 
-#### Core Engine Files
-- **`comm.c`** - Main game loop, networking, player connections
-- **`interpreter.c`** - Command parsing and execution
-- **`db.c`** - World data loading, database operations
-- **`handler.c`** - Core object/character manipulation
-- **`utils.c`** - Utility functions used throughout codebase
-
-#### Game Systems
-- **`fight.c`** - Combat mechanics and damage calculation
-- **`magic.c`** - Spell casting and magical effects
-- **`spells.c`** - Individual spell implementations
-- **`class.c`** - Character class definitions and abilities
-- **`race.c`** - Character race definitions and bonuses
-- **`feats.c`** - Feat system implementation
-
-#### Player Actions
-- **`act.comm.c`** - Communication commands (say, tell, channels)
-- **`act.informative.c`** - Information commands (look, examine, who)
-- **`act.movement.c`** - Movement commands and mechanics
-- **`act.offensive.c`** - Combat commands and actions
-- **`act.other.c`** - Miscellaneous player commands
-- **`act.wizard.c`** - Administrative and immortal commands
-
-#### Building and Scripting
-- **`dg_scripts.c`** - DG scripting engine
-- **`dg_triggers.c`** - Script trigger system
-- **`*edit.c`** - OLC (Online Level Creation) editors
-- **`genolc.c`** - Generic OLC functions
-
-#### Specialized Systems
-- **`mysql.c`** - Database integration
-- **`mud_event.c`** - Event system for timed actions
-- **`actionqueues.c`** - Action queue management
-- **`protocol.c`** - Telnet and MUD protocol handling
-
-### Common Debugging Scenarios
-
-#### Memory Issues
-```c
-// Check for NULL pointers before use
-if (!ptr) {
-  log("SYSERR: Unexpected NULL pointer in %s", __func__);
-  return ERROR_CODE;
-}
-
-// Use valgrind for memory leak detection
-// valgrind --leak-check=full ../bin/circle
-```
-
-#### Performance Problems
-```c
-// Profile with gprof
-// make PROFILE=-pg
-// gprof ../bin/circle gmon.out > profile.txt
-
-// Log performance-critical sections
-struct timeval start, end;
-gettimeofday(&start, NULL);
-// ... code to profile ...
-gettimeofday(&end, NULL);
-long diff = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
-if (diff > 1000) { // Log if > 1ms
-  log("PERFORMANCE: %s took %ld microseconds", __func__, diff);
-}
-```
-
-#### Database Issues
-```c
-// Always check MySQL connection
-mysql_ping(conn);
-
-// Use proper error handling
-if (mysql_query(conn, query)) {
-  log("SYSERR: MySQL query failed: %s", mysql_error(conn));
-  return FALSE;
-}
-
-// Free result sets
-mysql_free_result(result);
-```
 
 ### Integration Points to Consider
 
@@ -408,109 +434,7 @@ mysql_free_result(result);
 4. **Consider Persistence**: How changes affect saved data
 5. **Test Edge Cases**: Empty lists, maximum values, etc.
 
-### Security Considerations
 
-#### Input Validation
-```c
-// Always validate user input
-void sanitize_input(char *input) {
-  // Remove control characters
-  // Limit length
-  // Escape special characters
-}
-
-// Check permissions before actions
-if (GET_LEVEL(ch) < LVL_IMMORT) {
-  send_to_char(ch, "You don't have permission for that.\r\n");
-  return;
-}
-```
-
-#### SQL Injection Prevention
-```c
-// Use mysql_real_escape_string()
-char escaped_name[MAX_NAME_LENGTH * 2 + 1];
-mysql_real_escape_string(conn, escaped_name, player_name, strlen(player_name));
-
-// Or use prepared statements for complex queries
-```
-
-### Performance Best Practices
-
-#### Efficient Loops
-```c
-// Cache frequently accessed values
-struct char_data *next_ch;
-for (ch = character_list; ch; ch = next_ch) {
-  next_ch = ch->next; // Cache before potential removal
-  // ... process character ...
-}
-```
-
-#### Memory Optimization
-```c
-// Use object pools for frequently allocated structures
-// Minimize string operations in tight loops
-// Cache expensive calculations
-```
-
-#### Database Optimization
-```c
-// Batch database operations when possible
-// Use indexes on frequently queried columns
-// Limit result sets with appropriate WHERE clauses
-```
-
-### Testing and Quality Assurance
-
-#### Unit Testing
-```c
-// Use CuTest framework for unit tests
-void test_combat_damage_calculation(CuTest *tc) {
-  struct char_data *attacker = create_test_character();
-  struct char_data *victim = create_test_character();
-
-  int damage = calculate_damage(attacker, victim, NULL);
-
-  CuAssertTrue(tc, damage >= 1); // Minimum damage
-  CuAssertTrue(tc, damage <= 100); // Maximum reasonable damage
-
-  cleanup_test_character(attacker);
-  cleanup_test_character(victim);
-}
-```
-
-#### Integration Testing
-- Test with existing world data
-- Verify compatibility with saved player files
-- Check interaction with other systems
-- Test under load conditions
-
-### Documentation Standards
-
-#### Function Documentation
-```c
-/**
- * Calculate initiative for combat ordering
- *
- * @param ch The character rolling initiative
- * @return Initiative value (1d20 + modifiers)
- */
-int calculate_initiative(struct char_data *ch) {
-  // Implementation...
-}
-```
-
-#### Code Comments
-```c
-// Single line for simple explanations
-int damage = roll_damage(weapon);
-
-/* Multi-line for complex logic
- * This section handles the interaction between
- * multiple combat modifiers and special cases
- */
-```
 
 ### Useful Macros and Functions
 

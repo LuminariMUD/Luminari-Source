@@ -83,7 +83,12 @@
       "Bash(git rm:*)",
       "Bash(comm:*)",
       "Bash(git ls-tree:*)",
-      "Bash(clang-tidy:*)"
+      "Bash(clang-tidy:*)",
+      "Bash(./circle)",
+      "Bash(../bin/circle)",
+      "Bash(bin/circle:*)",
+      "Bash(../bin/circle:*)",
+      "Bash(git config:*)"
     ],
     "deny": []
   }
