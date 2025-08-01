@@ -619,7 +619,8 @@ bool validate_room_data(struct room_data *room) {
   }
   
   // Validate exits
-  for (int dir = 0; dir < NUM_OF_DIRS; dir++) {
+  int dir;
+  for (dir = 0; dir < NUM_OF_DIRS; dir++) {
     if (room->dir_option[dir]) {
       if (room->dir_option[dir]->to_room == NOWHERE) {
         return FALSE;

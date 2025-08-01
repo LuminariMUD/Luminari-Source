@@ -704,4 +704,4 @@ grep "database.*error\|connection.*failed" /var/log/php_errors.log
 
 ---
 
-*This troubleshooting guide covers the most common issues and maintenance procedures. For specific technical details, refer to the [Technical Documentation Master Index](TECHNICAL_DOCUMENTATION_MASTER_INDEX.md).*
+*This troubleshooting guide covers the most common issues and maintenance procedures. For specific technical details, refer to the [Technical Documentation Master Index](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md).*

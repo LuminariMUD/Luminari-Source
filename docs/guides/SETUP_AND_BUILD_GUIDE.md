@@ -11,7 +11,7 @@ This comprehensive guide covers the complete process of setting up, building, co
 - **Memory**: 512MB RAM (2GB+ recommended for production)
 - **Storage**: 1GB+ free disk space
 - **Network**: TCP/IP networking capability
-- **Compiler**: GCC 4.8+ with C99 support
+- **Compiler**: GCC 4.8+ with ANSI C90/C89 support (NOT C99!)
 
 ### Recommended Requirements
 - **Operating System**: Ubuntu 20.04+ LTS or CentOS 8+
@@ -369,7 +369,7 @@ chmod 666 ../log/syslog
 
 After successful installation:
 
-1. **Read Documentation**: Review the [Technical Documentation Master Index](TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)
+1. **Read Documentation**: Review the [Technical Documentation Master Index](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)
 2. **Configure Game Settings**: Customize game mechanics in configuration files
 3. **Set Up World Data**: Import or create world content
 4. **Configure Scripting**: Set up DG Scripts for dynamic content
@@ -379,7 +379,7 @@ After successful installation:
 ## Additional Resources
 
 - **[Developer Guide](DEVELOPER_GUIDE_AND_API.md)**: For code development
-- **[Database Integration](DATABASE_INTEGRATION.md)**: Detailed database setup
+- **[Database Integration](../systems/DATABASE_INTEGRATION.md)**: Detailed database setup
 - **[Troubleshooting Guide](TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
 - **[Testing Guide](TESTING_GUIDE.md)**: Quality assurance procedures
 

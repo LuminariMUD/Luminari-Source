@@ -4,7 +4,7 @@ This directory contains historical documentation files that have been preserved 
 
 ## Documentation Status
 
-✅ **CONSOLIDATED** - All relevant documentation has been consolidated into the modern documentation structure at `docs/consolidated/`
+✅ **CONSOLIDATED** - All relevant documentation has been consolidated into the modern documentation structure under various `docs/` subdirectories
 
 ## What Was Consolidated
 
@@ -12,19 +12,19 @@ The following types of documentation have been successfully consolidated:
 
 ### Removed Files (Consolidated)
 - **License Documentation** - `license.txt`, `license.doc`, `license.pdf`, `license.tex`
-  - Consolidated into: [legal/README.md](../consolidated/legal/README.md)
+  - Consolidated into: [legal/README.md](../legal/README.md)
 - **Administrator Guides** - `admin.pdf`, `admin.tex`, `running.doc`, `UnixShellAdminGuide.pdf`
-  - Consolidated into: [admin/README.md](../consolidated/admin/README.md)
+  - Consolidated into: [admin/README.md](../admin/README.md)
 - **Building Documentation** - `building.pdf`, `building.tex`, `socials.*`, `shop.doc`, etc.
-  - Consolidated into: [building/README.md](../consolidated/building/README.md)
+  - Consolidated into: [building_game-data/README.md](../building_game-data/README.md)
 - **Developer Documentation** - `coding.pdf`, `coding.tex`, `hacker.*`, `database.doc`, etc.
-  - Consolidated into: [development/README.md](../consolidated/development/README.md)
+  - Consolidated into: [development/README.md](../development/README.md)
 - **Installation Guides** - `porting.pdf`, `porting.tex`, various platform-specific files
-  - Consolidated into: [installation/README.md](../consolidated/installation/README.md)
+  - Consolidated into: [guides/SETUP_AND_BUILD_GUIDE.md](../guides/SETUP_AND_BUILD_GUIDE.md)
 - **Utilities Documentation** - `utils.pdf`, `utils.tex`, `utils.doc`
-  - Consolidated into: [utilities/README.md](../consolidated/utilities/README.md)
+  - Consolidated into: [utilities/README.md](../utilities/README.md)
 - **General Documentation** - `README*`, `FAQ.*`, `files.*`, `wizhelp.*`
-  - Consolidated into: [consolidated/README.md](../consolidated/README.md)
+  - Consolidated into: [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)
 
 ## Remaining Files
 
@@ -54,18 +54,18 @@ The following files remain for historical reference or because they contain plat
 
 **For current documentation, use the consolidated documentation:**
 
-- **Main Hub**: [docs/consolidated/README.md](../consolidated/README.md)
-- **Quick Navigation**: [docs/consolidated/NAVIGATION.md](../consolidated/NAVIGATION.md)
-- **Comprehensive Index**: [docs/consolidated/INDEX.md](../consolidated/INDEX.md)
+- **Main Hub**: [docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)
+- **Quick Start**: [README.md](../../README.md)
+- **Comprehensive Index**: [docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)
 
 ### By Topic
-- **Administration**: [admin/README.md](../consolidated/admin/README.md)
-- **Building**: [building/README.md](../consolidated/building/README.md)
-- **Development**: [development/README.md](../consolidated/development/README.md)
-- **Installation**: [installation/README.md](../consolidated/installation/README.md)
-- **Utilities**: [utilities/README.md](../consolidated/utilities/README.md)
-- **Legal**: [legal/README.md](../consolidated/legal/README.md)
-- **History**: [history/README.md](../consolidated/history/README.md)
+- **Administration**: [admin/README.md](../admin/README.md)
+- **Building**: [building_game-data/README.md](../building_game-data/README.md)
+- **Development**: [development/README.md](../development/README.md)
+- **Installation**: [guides/SETUP_AND_BUILD_GUIDE.md](../guides/SETUP_AND_BUILD_GUIDE.md)
+- **Utilities**: [utilities/README.md](../utilities/README.md)
+- **Legal**: [legal/README.md](../legal/README.md)
+- **Systems**: [systems/](../systems/)
 
 ## Historical Context
 
@@ -105,4 +105,4 @@ These remaining files are preserved for:
 
 **Legacy Directory Status**: Cleaned and Documented  
 **Consolidation Date**: 2025-07-27  
-**Primary Documentation**: [../consolidated/README.md](../consolidated/README.md)
+**Primary Documentation**: [../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)

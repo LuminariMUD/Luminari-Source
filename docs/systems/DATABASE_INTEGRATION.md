@@ -293,6 +293,12 @@ void check_database_version() {
 }
 ```
 
+### Recent Schema Changes (2025)
+Several tables have been updated to include missing `idnum` columns for proper foreign key relationships:
+- Added `idnum` column to various player-related tables for consistent referencing
+- Ensures all player data can be properly linked via player ID
+- Fixes issues with orphaned records in related tables
+
 ## Performance Optimization
 
 ### Connection Pooling
@@ -302,7 +308,8 @@ MYSQL *connection_pool[MAX_DB_CONNECTIONS];
 bool connection_in_use[MAX_DB_CONNECTIONS];
 
 MYSQL *get_db_connection() {
-    for (int i = 0; i < MAX_DB_CONNECTIONS; i++) {
+    int i;
+    for (i = 0; i < MAX_DB_CONNECTIONS; i++) {
         if (!connection_in_use[i]) {
             connection_in_use[i] = TRUE;
             mysql_ping(connection_pool[i]);
@@ -313,7 +320,8 @@ MYSQL *get_db_connection() {
 }
 
 void release_db_connection(MYSQL *conn) {
-    for (int i = 0; i < MAX_DB_CONNECTIONS; i++) {
+    int i;
+    for (i = 0; i < MAX_DB_CONNECTIONS; i++) {
         if (connection_pool[i] == conn) {
             connection_in_use[i] = FALSE;
             break;
@@ -356,9 +364,10 @@ void batch_save_players() {
 ### Transaction Management
 ```c
 bool execute_transaction(const char **queries, int count) {
+    int i;
     mysql_autocommit(conn, 0); // Start transaction
     
-    for (int i = 0; i < count; i++) {
+    for (i = 0; i < count; i++) {
         if (mysql_query(conn, queries[i])) {
             log("SYSERR: Transaction query %d failed: %s", i, mysql_error(conn));
             mysql_rollback(conn);

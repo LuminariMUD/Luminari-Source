@@ -18,7 +18,7 @@ We welcome contributions from developers, builders, and community members! This 
 ### Prerequisites
 - **Development Environment**: Set up according to the [Setup and Build Guide](docs/SETUP_AND_BUILD_GUIDE.md)
 - **Git Knowledge**: Basic understanding of Git and GitHub workflows
-- **C Programming**: Familiarity with C programming language (C99 standard)
+- **C Programming**: Familiarity with C programming language (ANSI C90/C89 standard)
 - **MUD Knowledge**: Understanding of MUD concepts and tbaMUD/CircleMUD architecture
 
 ### First Steps
