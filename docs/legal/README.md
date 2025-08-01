@@ -24,7 +24,7 @@ DikuMUD (1990-1991)
     ↓
 CircleMUD (1994-2001)
     ↓
-tbaMUD (2001-present)
+tbaMUD (2001-present) + CWG + d20MUD [CWG & d20MUD share same license as tbaMUD]
     ↓
 Luminari MUD (2010-present)
 ```
