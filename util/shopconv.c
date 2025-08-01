@@ -91,8 +91,14 @@ void do_list(FILE *shop_f, FILE *newshop_f, int max)
 
   for (count = 0; count < max; count++)
   {
-    fscanf(shop_f, "%d", &temp);
-    fgets(buf, MAX_STRING_LENGTH - 1, shop_f);
+    if (fscanf(shop_f, "%d", &temp) != 1) {
+      fprintf(stderr, "Error reading shop data\n");
+      exit(1);
+    }
+    if (!fgets(buf, MAX_STRING_LENGTH - 1, shop_f)) {
+      fprintf(stderr, "Error reading shop string\n");
+      exit(1);
+    }
     if (temp > 0)
       fprintf(newshop_f, "%d%s", temp, buf);
   }
@@ -105,7 +111,10 @@ void do_float(FILE *shop_f, FILE *newshop_f)
   float f;
   char str[20];
 
-  fscanf(shop_f, "%f \n", &f);
+  if (fscanf(shop_f, "%f \n", &f) != 1) {
+    fprintf(stderr, "Error reading float value\n");
+    exit(1);
+  }
 
   sprintf(str, "%f", f);
   while ((str[strlen(str) - 1] == '0') && (str[strlen(str) - 2] != '.'))
@@ -117,7 +126,10 @@ void do_int(FILE *shop_f, FILE *newshop_f)
 {
   int i;
 
-  fscanf(shop_f, "%d \n", &i);
+  if (fscanf(shop_f, "%d \n", &i) != 1) {
+    fprintf(stderr, "Error reading int value\n");
+    exit(1);
+  }
   fprintf(newshop_f, "%d \n", i);
 }
 
@@ -251,14 +263,18 @@ int main(int argc, char *argv[])
     {
       /* Conversion failed - restore original */
       sprintf(part, "mv %s.tmp %s", fn, fn);
-      system(part);
+      if (system(part) != 0) {
+        fprintf(stderr, "Warning: system command failed: %s\n", part);
+      }
       printf("Conversion failed - original file restored\n");
     }
     else
     {
       /* Conversion succeeded - create backup */
       sprintf(part, "mv %s.tmp %s.bak", fn, fn);
-      system(part);
+      if (system(part) != 0) {
+        fprintf(stderr, "Warning: system command failed: %s\n", part);
+      }
       printf("Conversion successful - backup saved as %s.bak\n", fn);
     }
     printf("\n");
