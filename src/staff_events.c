@@ -156,7 +156,7 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
  * - Victim must be an NPC (IS_NPC check)
  * - Event-specific logic determines actual reward eligibility
  */
-void check_event_drops(struct char_data *killer, const struct char_data *victim)
+void check_event_drops(struct char_data *killer, struct char_data *victim)
 {
   /* Preliminary validation checks */
   /*
@@ -864,9 +864,7 @@ void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
  */
 void staff_event_tick()
 {
-  int x_coord = 0;                     /* Random X coordinate for mob spawning */
-  int y_coord = 0;                     /* Random Y coordinate for mob spawning */
-  int mob_count = 0;                   /* Counter for mob spawning loops */
+  /* Variables removed - unused in current implementation */
   struct descriptor_data *pt = NULL;   /* Iterator for player connections */
   struct obj_data *obj = NULL;         /* Object pointer for portal management */
   bool found = FALSE;                  /* Flag for portal existence check */
@@ -1100,10 +1098,7 @@ void staff_event_tick()
 event_result_t start_staff_event(int event_num)
 {
   struct descriptor_data *pt = NULL;    /* Iterator for player connections */
-  int counter = 0;                      /* Loop counter for mob spawning */
-  /* Event-specific variables for coordinate generation */
-  int x_coord = 0;                      /* Random X coordinate for spawning */
-  int y_coord = 0;                      /* Random Y coordinate for spawning */
+  /* Variables removed - unused in current implementation */
 
   /*
    * INPUT VALIDATION (Enhanced for H002: Event Data Integrity)
@@ -2583,7 +2578,7 @@ ACMD(do_testevent)
     return;
   }
   
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   
   if (!*arg)
   {

@@ -552,7 +552,12 @@ int get_line(FILE *fl, char *buf)
 
   do
   {
-    fgets(temp, MEDIUM_STRING, fl);
+    if (!fgets(temp, MEDIUM_STRING, fl)) {
+      if (feof(fl))
+        break;
+      fprintf(stderr, "Error reading from file\n");
+      exit(1);
+    }
     if (*temp)
       temp[strlen(temp) - 1] = '\0';
   } while (!feof(fl) && (*temp == '*' || !*temp));

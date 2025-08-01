@@ -19,7 +19,7 @@ PROFILE =
 ##############################################################################
 
 # binary destination directory
-BINDIR = ../../bin
+BINDIR = ../bin
 # location of Circle include files
 INCDIR = ../src
 
