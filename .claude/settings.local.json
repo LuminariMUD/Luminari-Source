@@ -70,7 +70,20 @@
       "Bash(/tmp/check_tables.sh:*)",
       "Bash(bash:*)",
       "Bash(./verify_database_import.sh:*)",
-      "Bash(export *)"
+      "Bash(export *)",
+      "Bash(git remote add:*)",
+      "Bash(git fetch:*)",
+      "Bash(./import-tbamud-docs.sh:*)",
+      "Bash(git checkout:*)",
+      "Bash(for file in asciipasswd.c autowiz.c plrtoascii.c rebuildAsciiIndex.c rebuildMailIndex.c shopconv.c sign.c split.c wld2html.c)",
+      "Bash(do [ ! -f \"$file\" ])",
+      "Bash(for:*)",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then mv \"$file\" docs/legacy_installation/)",
+      "Bash(git rm:*)",
+      "Bash(comm:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(clang-tidy:*)"
     ],
     "deny": []
   }
