@@ -362,6 +362,11 @@ int load_account(char *name, struct account_data *account)
   MYSQL_ROW row;
   char buf[2048];
 
+  /* Check if MySQL is available */
+  if (!mysql_available || !conn) {
+    return -1;  /* Account not found - no MySQL */
+  }
+
   /* Check if the account has data, if so, clear it. */
   if (account != NULL) {
     int i;
