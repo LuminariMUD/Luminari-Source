@@ -16,7 +16,7 @@ PROFILE =
 
 BINDIR = ../bin
 
-CFLAGS = @CFLAGS@ $(MYFLAGS) $(PROFILE)
+CFLAGS = @CFLAGS@ -std=gnu90 $(MYFLAGS) $(PROFILE)
 
 LIBS = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcurl -lssl -lcrypto -lpthread
 

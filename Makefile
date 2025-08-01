@@ -25,7 +25,7 @@ PARENT	:= \""$(shell git rev-parse HEAD)"\"
 
 BINDIR = bin
 
-CFLAGS = -g -O2 -Isrc $(MYFLAGS) $(PROFILE) 
+CFLAGS = -g -O2 -std=gnu90 -Isrc $(MYFLAGS) $(PROFILE) 
 CXXFLAGS = $(CFLAGS) -std=c++11
 
 LIBS =  -lstdc++ -lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread

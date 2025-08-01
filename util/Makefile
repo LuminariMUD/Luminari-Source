@@ -23,7 +23,7 @@ BINDIR = ../bin
 # location of Circle include files
 INCDIR = ../src
 
-CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE) -I$(INCDIR)
+CFLAGS = -g -O2 -std=gnu90 $(MYFLAGS) $(PROFILE) -I$(INCDIR)
 
 default: all
 
