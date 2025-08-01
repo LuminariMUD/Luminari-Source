@@ -135,6 +135,13 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 
 	for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
 	{
+		/* Bounds check to prevent segfault */
+		if (!region_table || curr_region->rnum < 0 || curr_region->rnum > top_of_region_table) {
+			log("SYSERR: Invalid region rnum %d in gen_room_description for room %d", 
+			    curr_region->rnum, world[room].number);
+			continue;
+		}
+		
 		switch (region_table[curr_region->rnum].region_type)
 		{
 		case REGION_GEOGRAPHIC:

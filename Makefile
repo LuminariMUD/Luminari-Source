@@ -23,7 +23,7 @@ MKHOST  := \""$(HOSTNAME)"\"
 BRANCH	:= \""$(shell git branch)"\"
 PARENT	:= \""$(shell git rev-parse HEAD)"\"
 
-BINDIR = ../bin
+BINDIR = bin
 
 CFLAGS = -g -O2 -Isrc $(MYFLAGS) $(PROFILE) 
 CXXFLAGS = $(CFLAGS) -std=c++11
