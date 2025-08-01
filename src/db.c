@@ -6502,6 +6502,10 @@ region_rnum real_region(region_vnum vnum)
 {
   region_rnum bot, top, mid;
 
+  /* Check if region_table is NULL or empty */
+  if (!region_table || top_of_region_table < 0)
+    return (NOWHERE);
+
   bot = 0;
   top = top_of_region_table;
 

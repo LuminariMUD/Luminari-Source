@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(grep:*)",
@@ -49,7 +50,27 @@
       "Bash(then git add \"lib/plrobjs/$dir/00\")",
       "Bash(mkdir:*)",
       "Bash(for dir in hlq mob obj qst shp trg wld zon)",
-      "Bash(do touch lib/world/$dir/.gitkeep)"
+      "Bash(do touch lib/world/$dir/.gitkeep)",
+      "Bash(systemctl status:*)",
+      "Bash(service mysql:*)",
+      "Bash(ss:*)",
+      "Bash(dpkg:*)",
+      "Bash(sudo mysql:*)",
+      "Bash(sudo -n mysql -u root -e \"SELECT @@hostname, @@version_comment;\")",
+      "Bash(telnet:*)",
+      "Bash(pkill:*)",
+      "Bash(gdb:*)",
+      "Bash(/tmp/mysql_cmd.sh:*)",
+      "Bash(timeout:*)",
+      "Bash(od:*)",
+      "Bash(./luminari.sh:*)",
+      "Bash(pgrep:*)",
+      "Bash(./checkmud.sh:*)",
+      "Bash(true)",
+      "Bash(/tmp/check_tables.sh:*)",
+      "Bash(bash:*)",
+      "Bash(./verify_database_import.sh:*)",
+      "Bash(export *)"
     ],
     "deny": []
   }

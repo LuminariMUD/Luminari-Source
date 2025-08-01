@@ -357,6 +357,13 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
           map[x][y].num_regions++;
         }
 
+        /* Check if region_table is valid and rnum is within bounds */
+        if (!region_table || curr_region->rnum < 0 || curr_region->rnum > top_of_region_table)
+        {
+          log("SYSERR: Invalid region rnum %d in get_map_elev", curr_region->rnum);
+          continue;
+        }
+        
         switch (region_table[curr_region->rnum].region_type)
         {
         case REGION_SECTOR:
@@ -526,6 +533,13 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
   /* Override default values with region-based values. */
   for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
   {
+    /* Check if region_table is valid and rnum is within bounds */
+    if (!region_table || curr_region->rnum < 0 || curr_region->rnum > top_of_region_table)
+    {
+      log("SYSERR: Invalid region rnum %d in assign_wilderness_room", curr_region->rnum);
+      continue;
+    }
+    
     log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type);
     switch (region_table[curr_region->rnum].region_type)
     {
@@ -721,6 +735,13 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   /* Override default values with region-based values. */
   for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
   {
+    /* Check if region_table is valid and rnum is within bounds */
+    if (!region_table || curr_region->rnum < 0 || curr_region->rnum > top_of_region_table)
+    {
+      log("SYSERR: Invalid region rnum %d in assign_wilderness_room", curr_region->rnum);
+      continue;
+    }
+    
     log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type);
     switch (region_table[curr_region->rnum].region_type)
     {
@@ -1319,6 +1340,13 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
       /* Override default values with region-based values. */
       for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
       {
+        /* Check if region_table is valid and rnum is within bounds */
+        if (!region_table || curr_region->rnum < 0 || curr_region->rnum > top_of_region_table)
+        {
+          log("SYSERR: Invalid region rnum %d in wilderness function", curr_region->rnum);
+          continue;
+        }
+        
         switch (region_table[curr_region->rnum].region_type)
         {
         case REGION_SECTOR:

@@ -1,9 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 #
-# CircleMUD 3.0 autorun script
+# LuminariMUD Autorun Script
+# Originally based on CircleMUD 3.0 autorun script
 # Contributions by Fred Merkel, Stuart Lamble, and Jeremy Elson
 # New log rotating code contributed by Peter Ajamian
 # Copyright (c) 1996 The Trustees of The Johns Hopkins University
+# Copyright (c) 2025 LuminariMUD
 # All Rights Reserved
 # See license.doc for more information
 #
@@ -32,8 +34,7 @@
 # script.  Type "shutdown pause" from within the MUD to activate this feature.
 #
 
-# This line was causing errors, so I commented it out -Zusuk
-#ulimit -c unlimited
+# Note: ulimit -c unlimited is set by the parent scripts (luminari.sh/checkmud.sh)
 
 # The port on which to run the MUD
 PORT=4100
@@ -84,9 +85,12 @@ proc_syslog () {
   # Return if there's no syslog
   if ! [ -s syslog ]; then return; fi
 
+  # Create log directory if it doesn't exist
+  [ -d log ] || mkdir -p log
+
   # Create the crashlog
-  if [ -n "$LEN_CRASHLOG" -a "$LEN_CRASHLOG" -gt 0 ]; then
-    tail -n $LEN_CRASHLOG syslog > syslog.CRASH
+  if [ -n "$LEN_CRASHLOG" ] && [ "$LEN_CRASHLOG" -gt 0 ]; then
+    tail -n "$LEN_CRASHLOG" syslog > syslog.CRASH
   fi
 
   # Append to the specialty logfiles and truncate to maximum length if
@@ -95,35 +99,37 @@ proc_syslog () {
   IFS='
 '
   for rec in $LOGFILES; do
-    name=log/`echo $rec|cut -f 1 -d:`
-    len=`echo $rec|cut -f 2 -d:`
-    pattern=`echo $rec|cut -f 3- -d:`
+    name=log/$(echo "$rec" | cut -f 1 -d:)
+    len=$(echo "$rec" | cut -f 2 -d:)
+    pattern=$(echo "$rec" | cut -f 3- -d:)
 
-    fgrep $pattern syslog >> $name
-    if [ $len -gt 0 ]; then
-      temp=`mktemp $name.XXXXXX`
-      tail -n $len $name > $temp
-      mv -f $temp $name
+    # Use grep -F instead of deprecated fgrep
+    grep -F "$pattern" syslog >> "$name"
+    if [ "$len" -gt 0 ]; then
+      # Create temp file in log directory for safety
+      temp=$(mktemp "log/.tmp.XXXXXX")
+      tail -n "$len" "$name" > "$temp"
+      mv -f "$temp" "$name"
     fi
   done
   IFS=$OLD_IFS
 
   # Find the # to set the new log file to.
-  if [ -s log/syslog.$BACKLOGS ]; then
-    newlog=$(expr $BACKLOGS + 1)
+  if [ -s "log/syslog.$BACKLOGS" ]; then
+    newlog=$((BACKLOGS + 1))
   else
     newlog=1 
-    while [ -s log/syslog.$newlog ]; do newlog=$(expr $newlog + 1); done 
+    while [ -s "log/syslog.$newlog" ]; do newlog=$((newlog + 1)); done 
   fi
 
   # Rotate the logs.
   y=2
   while [ $y -lt $newlog ]; do
-    x=$(expr $y - 1)
-    mv -f log/syslog.$y log/syslog.$x
-    y=$(expr $y + 1)
+    x=$((y - 1))
+    mv -f "log/syslog.$y" "log/syslog.$x"
+    y=$((y + 1))
   done
-  mv -f syslog log/syslog.$newlog
+  mv -f syslog "log/syslog.$newlog"
 }
 
 ########
@@ -133,14 +139,14 @@ proc_syslog () {
 # Check to see if there is a syslog which would indicate that autorun
 # was improperly killed (ie maybe the system was rebooted or ?).
 if [ -s syslog ]; then
-  echo Improper shutdown of autorun detected, rotating syslogs before startup. >> syslog
+  echo "Improper shutdown of autorun detected, rotating syslogs before startup." >> syslog
   proc_syslog
 fi
 
 # The main loop
-while ( : ) do
+while true; do
 
-  DATE=`date`
+  DATE=$(date)
   echo "autorun starting game $DATE" > syslog
   echo "running bin/circle $FLAGS $PORT" >> syslog
 
@@ -149,25 +155,34 @@ while ( : ) do
   nohup bin/circle $FLAGS $PORT >> syslog 2>&1
 
   if [ -r .killscript ]; then
-    DATE=`date`;
-    echo "autoscript terminated $DATE"  >> syslog
+    DATE=$(date)
+    echo "autoscript terminated $DATE" >> syslog
     rm .killscript
     proc_syslog
     exit
   fi
 
-#  if [ ! -r .fastboot ]; then
-#    sleep 60 
-#  else
-#    rm .fastboot
-#  fi
+  # Check for fastboot mode
+  if [ ! -r .fastboot ]; then
+    sleep 60 
+  else
+    rm .fastboot
+    sleep 5
+  fi
 
+  # Wait while pause file exists
   while [ -r pause ]; do
     sleep 60 
   done
 
-  if [ -s lib/core ]; then 
-    gdb bin/circle lib/core -command gdb.tmp >lib/backtrace.$(date +%d.%m.%Y.%T)
+  # Generate backtrace if core dump exists
+  if [ -s lib/core ]; then
+    # Create default gdb commands if gdb.tmp doesn't exist
+    if [ ! -f gdb.tmp ]; then
+      echo "bt" > gdb.tmp
+      echo "quit" >> gdb.tmp
+    fi
+    gdb bin/circle lib/core -batch -command gdb.tmp > "lib/backtrace.$(date +%d.%m.%Y.%T)" 2>&1
   fi
 
   proc_syslog
