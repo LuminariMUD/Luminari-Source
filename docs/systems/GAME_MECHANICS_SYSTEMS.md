@@ -38,9 +38,10 @@ race_list[RACE_HUMAN] = {
 // Apply racial bonuses during character creation
 void apply_racial_bonuses(struct char_data *ch) {
   int race = GET_RACE(ch);
+  int i;
   
   // Apply ability score modifiers
-  for (int i = 0; i < NUM_ABILITIES; i++) {
+  for (i = 0; i < NUM_ABILITIES; i++) {
     GET_REAL_ABILITY(ch, i) += race_list[race].ability_mods[i];
   }
   
@@ -54,7 +55,7 @@ void apply_racial_bonuses(struct char_data *ch) {
   }
   
   // Set racial languages
-  for (int i = 0; race_list[race].languages[i] != -1; i++) {
+  for (i = 0; race_list[race].languages[i] != -1; i++) {
     SET_BIT(GET_LANGUAGES(ch), race_list[race].languages[i]);
   }
 }
@@ -706,4 +707,4 @@ bool make_saving_throw(struct char_data *ch, int save_type, int difficulty) {
 
 ---
 
-*This documentation covers the core game mechanics systems. For specific implementation details and advanced mechanics, refer to the individual source files and the [Developer Guide](DEVELOPER_GUIDE_AND_API.md).*
+*This documentation covers the core game mechanics systems. For specific implementation details and advanced mechanics, refer to the individual source files and the [Developer Guide](../guides/DEVELOPER_GUIDE_AND_API.md).*

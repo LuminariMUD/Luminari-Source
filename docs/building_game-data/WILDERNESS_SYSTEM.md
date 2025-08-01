@@ -735,7 +735,8 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
     int move_dir = dir;
 
     // Generate meandering path based on elevation
-    for (int i = 0; i < 500; i++) { // Max 500 segments
+    int i;
+    for (i = 0; i < 500; i++) { // Max 500 segments
         vertices[num_vertices].x = x;
         vertices[num_vertices].y = y;
         num_vertices++;

@@ -60,7 +60,7 @@ This project embodies commitment, self-motivation, and perseverance through chal
 
 ### Prerequisites
 - **Operating System**: Linux or Unix-like system
-- **Compiler**: GCC with C99 support
+- **Compiler**: GCC (ANSI C90/C89 standard)
 - **Database**: MySQL 5.0+ or MariaDB
 - **Libraries**: libcrypt, libgd, libm, libmysqlclient
 
@@ -215,20 +215,20 @@ nohup ../bin/circle &
 
 ### Technical Documentation
 - **[Architecture](docs/CORE_SERVER_ARCHITECTURE.md)**: Server architecture and design patterns
-- **[Setup Guide](docs/guides/SETUP_AND_BUILD_GUIDE.md)**: Detailed installation and configuration
-- **[Developer Guide](docs/guides/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
+- **[Setup Guide](docs/SETUP_AND_BUILD_GUIDE.md)**: Detailed installation and configuration
+- **[Developer Guide](docs/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
 
 ### Game Documentation
-- **[Combat System](docs/systems/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
-- **[Player Management](docs/systems/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
-- **[World Simulation](docs/systems/WORLD_SIMULATION_SYSTEM.md)**: World systems and mechanics
+- **[Combat System](docs/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
+- **[Player Management](docs/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
+- **[World Simulation](docs/WORLD_SIMULATION_SYSTEM.md)**: World systems and mechanics
 
 ### Additional Resources
-- **[Testing Guide](docs/guides/TESTING_GUIDE.md)**: Quality assurance and testing procedures
-- **[Troubleshooting](docs/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
-- **[PHP Tools Guide](docs/PHP_TOOLS_README.md)**: Web tools security audit and deployment
-- **[Ultimate Writing Guide](docs/guides/ultimate-mud-writing-guide.md)**: Zone building and content creation
-- **[AI Assistant Guide](docs/development/CLAUDE.md)**: Comprehensive guide for AI-assisted development
+- **[Testing Guide](docs/TESTING_GUIDE.md)**: Quality assurance and testing procedures
+- **[Troubleshooting](docs/TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
+- **[PHP Tools Guide](docs/utilities/PHP_TOOLS_README.md)**: Web tools security audit and deployment
+- **[Ultimate Writing Guide](docs/ultimate-mud-writing-guide.md)**: Zone building and content creation
+- **[AI Assistant Guide](CLAUDE.md)**: Comprehensive guide for AI-assisted development
 ## Contributing
 
 We welcome contributions from developers, builders, and community members! Please read our guidelines before contributing.
@@ -395,7 +395,7 @@ For complete license details, see the [LICENSE](LICENSE) file.
 - **Current Version**: LuminariMUD 2.4839 (tbaMUD 3.64)
 - **Repository**: https://github.com/LuminariMUD/Luminari-Source
 - **Created**: July 16, 2019
-- **Language**: C (C99 standard) with C++11 performance monitoring
+- **Language**: C (ANSI C90/C89 standard) with C++11 performance monitoring
 - **Last Updated**: January 2025
 
 ---

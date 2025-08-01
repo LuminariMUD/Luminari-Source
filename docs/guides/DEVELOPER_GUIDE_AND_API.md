@@ -7,7 +7,7 @@ This guide provides comprehensive information for developers working on Luminari
 ## Development Environment Setup
 
 ### Required Tools
-- **GCC 9.0+** or **Clang 10.0+** - C compiler with C99 support
+- **GCC 9.0+** or **Clang 10.0+** - C compiler (ANSI C90/C89 standard)
 - **Git** - Version control system
 - **GDB** - Debugger for troubleshooting
 - **Valgrind** - Memory leak detection (Linux) - Essential for development
@@ -45,7 +45,7 @@ sudo dnf install gcc gdb valgrind doxygen graphviz cppcheck \
                 "CIRCLE_MYSQL"
             ],
             "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c99",
+            "cStandard": "c90",
             "intelliSenseMode": "linux-gcc-x64"
         }
     ]
@@ -697,4 +697,4 @@ GRANT SELECT ON luminari_db.* TO 'luminari_tools'@'localhost';
 
 ---
 
-*This guide covers the essential development practices for LuminariMUD. For specific system documentation, refer to the [Technical Documentation Master Index](TECHNICAL_DOCUMENTATION_MASTER_INDEX.md).*
+*This guide covers the essential development practices for LuminariMUD. For specific system documentation, refer to the [Technical Documentation Master Index](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md).*
