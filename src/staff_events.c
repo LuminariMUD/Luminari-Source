@@ -1177,17 +1177,24 @@ event_result_t start_staff_event(int event_num)
   {
     if (IS_PLAYING(pt) && pt->character)
     {
-      /* Event start notification with title */
-      send_to_char(pt->character, "\tR[\tWInfo\tR]\tn A Staff Ran Event (\tn%s\tn) is Starting!\r\n\r\n",
-                   staff_events_list[event_num][EVENT_TITLE]);
-      
-      /* Detailed event information and instructions */
-      send_to_char(pt->character, "\tn%s\tn\r\n\r\n",
-                   staff_events_list[event_num][EVENT_DETAIL]);
+      /* Eye-catching event start notification */
+      send_to_char(pt->character, "\r\n\tY╔═══════════════════════════════════════════════════════════════════════════╗\tn\r\n");
+      send_to_char(pt->character, "\tY║                       \tR\t=STAFF EVENT STARTING!\tY                            ║\tn\r\n");
+      send_to_char(pt->character, "\tY╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+      send_to_char(pt->character, "\tY║ \tWEvent:\tn %-67s \tY║\tn\r\n", staff_events_list[event_num][EVENT_TITLE]);
+      send_to_char(pt->character, "\tY╚═══════════════════════════════════════════════════════════════════════════╝\tn\r\n\r\n");
       
       /* Event-specific start message */
-      send_to_char(pt->character, "\r\n\tn%s\tn\r\n\r\n",
-                   staff_events_list[event_num][EVENT_BEGIN]);
+      send_to_char(pt->character, "%s\r\n\r\n", staff_events_list[event_num][EVENT_BEGIN]);
+      
+      /* Detailed event information box */
+      send_to_char(pt->character, "\tC┌───────────────────────────────────────────────────────────────────────────┐\tn\r\n");
+      send_to_char(pt->character, "\tC│                           \tWEVENT INFORMATION                               \tC│\tn\r\n");
+      send_to_char(pt->character, "\tC├───────────────────────────────────────────────────────────────────────────┤\tn\r\n");
+      send_to_char(pt->character, "\tC│\tn\r\n");
+      send_to_char(pt->character, "%s", staff_events_list[event_num][EVENT_DETAIL]);
+      send_to_char(pt->character, "\tC│\tn\r\n");
+      send_to_char(pt->character, "\tC└───────────────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     }
   }
 
@@ -1305,17 +1312,24 @@ event_result_t end_staff_event(int event_num)
   {
     if (IS_PLAYING(pt) && pt->character)
     {
-      /* Event end notification */
-      send_to_char(pt->character, "\tR[\tWInfo\tR]\tn A Staff Ran Event (\tn%s\tn) has ended.\r\n\r\n",
-                   staff_events_list[event_num][EVENT_TITLE]);
-      
-      /* Event summary and final instructions */
-      send_to_char(pt->character, "\tn%s\tn\r\n\r\n",
-                   staff_events_list[event_num][EVENT_SUMMARY]);
+      /* Eye-catching event end notification */
+      send_to_char(pt->character, "\r\n\tR╔═══════════════════════════════════════════════════════════════════════════╗\tn\r\n");
+      send_to_char(pt->character, "\tR║                        \tY\t=STAFF EVENT ENDING!\tR                             ║\tn\r\n");
+      send_to_char(pt->character, "\tR╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+      send_to_char(pt->character, "\tR║ \tWEvent:\tn %-67s \tR║\tn\r\n", staff_events_list[event_num][EVENT_TITLE]);
+      send_to_char(pt->character, "\tR╚═══════════════════════════════════════════════════════════════════════════╝\tn\r\n\r\n");
       
       /* Event-specific end message */
-      send_to_char(pt->character, "\r\n\tn%s\tn\r\n\r\n",
-                   staff_events_list[event_num][EVENT_END]);
+      send_to_char(pt->character, "%s\r\n\r\n", staff_events_list[event_num][EVENT_END]);
+      
+      /* Event summary box */
+      send_to_char(pt->character, "\tG┌───────────────────────────────────────────────────────────────────────────┐\tn\r\n");
+      send_to_char(pt->character, "\tG│                         \tWEVENT CONCLUSION                                  \tG│\tn\r\n");
+      send_to_char(pt->character, "\tG├───────────────────────────────────────────────────────────────────────────┤\tn\r\n");
+      send_to_char(pt->character, "\tG│\tn\r\n");
+      send_to_char(pt->character, "%s", staff_events_list[event_num][EVENT_SUMMARY]);
+      send_to_char(pt->character, "\tG│\tn\r\n");
+      send_to_char(pt->character, "\tG└───────────────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     }
   }
 
@@ -1445,9 +1459,41 @@ void staff_event_info(struct char_data *ch, const int event_num)
 
   int event_field = 0;        /* Iterator for event message fields */
   int secs_left = 0;          /* Calculated seconds remaining in event */
+  int hours = 0, mins = 0, secs = 0;  /* Time breakdown */
+  const char *status_color = "\tG";  /* Color for status display */
+  const char *status_text = "ACTIVE";  /* Status text */
 
-  send_to_char(ch, "\r\n\tgDetails about \tn%s\tn (%d)\tg:\tn\r\n",
-               staff_events_list[event_num][EVENT_TITLE], event_num);
+  /* Header with decorative border */
+  send_to_char(ch, "\r\n\tC╔═══════════════════════════════════════════════════════════════════════════╗\tn\r\n");
+  send_to_char(ch, "\tC║                          \tYSTAFF EVENT INFORMATION                           \tC║\tn\r\n");
+  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  
+  /* Event Title and Index */
+  send_to_char(ch, "\tC║ \tWEvent:\tn %-62s \tC║\tn\r\n", staff_events_list[event_num][EVENT_TITLE]);
+  send_to_char(ch, "\tC║ \tWIndex:\tn \tG%-61d\tn \tC║\tn\r\n", event_num);
+  
+  /* Current Status */
+  if (IS_STAFF_EVENT && STAFF_EVENT_NUM == event_num)
+  {
+    if (STAFF_EVENT_TIME <= 60) /* Less than 10 minutes */
+    {
+      status_color = "\tR";
+      status_text = "ENDING SOON";
+    }
+    else if (STAFF_EVENT_TIME <= 300) /* Less than 50 minutes */
+    {
+      status_color = "\tY";
+      status_text = "ACTIVE";
+    }
+  }
+  else
+  {
+    status_color = "\tw";
+    status_text = "INACTIVE";
+  }
+  
+  send_to_char(ch, "\tC║ \tWStatus:\tn %s%-60s\tn \tC║\tn\r\n", status_color, status_text);
+  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
 
   /*
    * ENHANCED EVENT FIELD VALIDATION (Addresses M008)
@@ -1462,7 +1508,7 @@ void staff_event_info(struct char_data *ch, const int event_num)
       log("SYSERR: Missing event field %d for event %d", event_field, event_num);
       if (GET_LEVEL(ch) >= LVL_STAFF)
       {
-        send_to_char(ch, "\tR[ERROR: Missing field %d - contact administrators]\tn\r\n", event_field);
+        send_to_char(ch, "\tC║ \tR[ERROR: Missing field %d - contact administrators]                          \tC║\tn\r\n", event_field);
       }
       continue; /* Skip this field and continue with others */
     }
@@ -1473,7 +1519,7 @@ void staff_event_info(struct char_data *ch, const int event_num)
       log("SYSERR: Empty event field %d for event %d", event_field, event_num);
       if (GET_LEVEL(ch) >= LVL_STAFF)
       {
-        send_to_char(ch, "\tR[ERROR: Empty field %d - contact administrators]\tn\r\n", event_field);
+        send_to_char(ch, "\tC║ \tR[ERROR: Empty field %d - contact administrators]                            \tC║\tn\r\n", event_field);
       }
       continue; /* Skip this field and continue with others */
     }
@@ -1482,18 +1528,27 @@ void staff_event_info(struct char_data *ch, const int event_num)
     {
 
     case EVENT_BEGIN:
-      send_to_char(ch, "Event begin message to world: \tn%s\tn\r\n", staff_events_list[event_num][EVENT_BEGIN]);
+      send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
+      send_to_char(ch, "\tC║ \tWStart Announcement:\tn                                                       \tC║\tn\r\n");
+      send_to_char(ch, "\tC║ \tw━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\tn \tC║\tn\r\n");
+      send_to_char(ch, "\tC║\tn %s\r\n", staff_events_list[event_num][EVENT_BEGIN]);
       break;
 
     case EVENT_END:
       if (GET_LEVEL(ch) >= LVL_STAFF)
       {
-        send_to_char(ch, "Event end message to world: \tn%s\tn\r\n", staff_events_list[event_num][EVENT_END]);
+        send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
+        send_to_char(ch, "\tC║ \tWEnd Announcement:\tn                                                         \tC║\tn\r\n");
+        send_to_char(ch, "\tC║ \tw━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\tn \tC║\tn\r\n");
+        send_to_char(ch, "\tC║\tn %s\r\n", staff_events_list[event_num][EVENT_END]);
       }
       break;
 
     case EVENT_DETAIL:
-      send_to_char(ch, "Event info:\r\n\tn");
+      send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
+      send_to_char(ch, "\tC║ \tWEvent Details:\tn                                                            \tC║\tn\r\n");
+      send_to_char(ch, "\tC║ \tw━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\tn \tC║\tn\r\n");
+      send_to_char(ch, "\tC║\tn\r\n");
       send_to_char(ch, "%s", staff_events_list[event_num][EVENT_DETAIL]);
       send_to_char(ch, "\tn");
       break;
@@ -1505,37 +1560,106 @@ void staff_event_info(struct char_data *ch, const int event_num)
     }
   } /*end for*/
 
+  /* Event-specific statistics section */
+  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  send_to_char(ch, "\tC║                            \tYEVENT STATISTICS                               \tC║\tn\r\n");
+  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  
   /* here is our custom output relevant to each event */
   switch (event_num)
   {
   case JACKALOPE_HUNT:
-    send_to_char(ch, "Number of elusive Jackalope: %d, mature Jackalope: %d and alpha Jackalope: %d.\r\n",
-                 mob_ingame_count(EASY_JACKALOPE),
-                 mob_ingame_count(MED_JACKALOPE),
-                 mob_ingame_count(HARD_JACKALOPE));
+  {
+    int easy_count = 0, med_count = 0, hard_count = 0;
+    
+    /* Use optimized counting function */
+    count_jackalope_mobs(&easy_count, &med_count, &hard_count);
+    
+    send_to_char(ch, "\tC║ \tWJackalope Population:\tn                                                     \tC║\tn\r\n");
+    send_to_char(ch, "\tC║   \tw• Elusive (Lvl 1-10):\tn  \tG%-47d\tn \tC║\tn\r\n", easy_count);
+    send_to_char(ch, "\tC║   \tw• Mature (Lvl 11-20):\tn   \tY%-47d\tn \tC║\tn\r\n", med_count);
+    send_to_char(ch, "\tC║   \tw• Alpha (Lvl 21+):\tn      \tR%-47d\tn \tC║\tn\r\n", hard_count);
+    send_to_char(ch, "\tC║   \tw• Total Active:\tn         \tW%-47d\tn \tC║\tn\r\n", easy_count + med_count + hard_count);
+  }
+  break;
+
+  case THE_PRISONER_EVENT:
+    send_to_char(ch, "\tC║ \tWEvent Features:\tn                                                           \tC║\tn\r\n");
+    send_to_char(ch, "\tC║   \tw• Portal Status:\tn        \tGActive at Mosswood Elder\tn                   \tC║\tn\r\n");
+    send_to_char(ch, "\tC║   \tw• Death Penalty:\tn        \tRDisabled during event\tn                      \tC║\tn\r\n");
+    send_to_char(ch, "\tC║   \tw• Treasure Drops:\tn       \tYMaximized for The Prisoner\tn                 \tC║\tn\r\n");
     break;
 
   default:
+    send_to_char(ch, "\tC║ \twNo specific statistics available for this event.\tn                         \tC║\tn\r\n");
     break;
   }
 
-  if (STAFF_EVENT_TIME)
+  /* Time Information Section */
+  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  send_to_char(ch, "\tC║                            \tYTIME INFORMATION                               \tC║\tn\r\n");
+  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  
+  if (STAFF_EVENT_TIME && IS_STAFF_EVENT && STAFF_EVENT_NUM == event_num)
+  {
     secs_left = ((STAFF_EVENT_TIME - 1) * SECS_PER_MUD_HOUR) + next_tick;
+    hours = secs_left / 3600;
+    mins = (secs_left % 3600) / 60;
+    secs = secs_left % 60;
+    
+    /* Color-coded time display based on urgency */
+    const char *time_color = "\tG";
+    if (hours == 0 && mins < 10)
+      time_color = "\tR\t="; /* Flashing red for last 10 minutes */
+    else if (hours == 0 && mins < 30)
+      time_color = "\tR";
+    else if (hours < 2)
+      time_color = "\tY";
+    
+    send_to_char(ch, "\tC║ \tWTime Remaining:\tn %s%02d:%02d:%02d\tn                                               \tC║\tn\r\n",
+                 time_color, hours, mins, secs);
+    
+    /* Progress bar */
+    int total_duration = 1200; /* Default event duration */
+    int elapsed = total_duration - STAFF_EVENT_TIME;
+    int progress = (elapsed * 50) / total_duration; /* 50 character bar */
+    int i = 0;
+    
+    send_to_char(ch, "\tC║ \tWProgress:\tn       [");
+    for (i = 0; i < 50; i++)
+    {
+      if (i < progress)
+        send_to_char(ch, "\tG=\tn");
+      else
+        send_to_char(ch, "\tw-\tn");
+    }
+    send_to_char(ch, "] \tC║\tn\r\n");
+  }
   else
-    secs_left = 0;
+  {
+    send_to_char(ch, "\tC║ \tWTime Remaining:\tn \twEvent not currently active\tn                            \tC║\tn\r\n");
+  }
+  
+  /* Inter-event delay information */
+  if (STAFF_EVENT_DELAY > 0)
+  {
+    send_to_char(ch, "\tC║ \tWCleanup Delay:\tn  \tY%-57d ticks\tn \tC║\tn\r\n", STAFF_EVENT_DELAY);
+  }
 
-  send_to_char(ch, "Event Time Remaining: %s%d%s hours %s%d%s mins %s%d%s secs\r\n",
-               CCYEL(ch, C_NRM), (secs_left / 3600), CCNRM(ch, C_NRM),
-               CCYEL(ch, C_NRM), (secs_left % 3600) / 60, CCNRM(ch, C_NRM),
-               CCYEL(ch, C_NRM), (secs_left % 60), CCNRM(ch, C_NRM));
-
-  send_to_char(ch, "Delay Timer Remaining Between Events: %s%d%s ticks.\r\n",
-               CCYEL(ch, C_NRM), STAFF_EVENT_DELAY, CCNRM(ch, C_NRM));
-
+  /* Footer section */
   if (GET_LEVEL(ch) >= LVL_STAFF)
   {
-    send_to_char(ch, "\r\nUsage: staffevents [start|end|info] [index # above]\r\n\r\n");
+    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(ch, "\tC║                            \tYSTAFF COMMANDS                                 \tC║\tn\r\n");
+    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(ch, "\tC║ \twUsage: \tWstaffevents\tn \tw[start|end|info] [event_number]\tn                     \tC║\tn\r\n");
+    send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
+    send_to_char(ch, "\tC║ \tw• \tGstart\tn \tw- Begin a new event (requires no active event)\tn               \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tw• \tRend\tn   \tw- Terminate the current event immediately\tn                   \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tw• \tCinfo\tn  \tw- Display detailed information about an event\tn               \tC║\tn\r\n");
   }
+  
+  send_to_char(ch, "\tC╚═══════════════════════════════════════════════════════════════════════════╝\tn\r\n\r\n");
 
   return;
 }
@@ -1568,34 +1692,130 @@ void staff_event_info(struct char_data *ch, const int event_num)
 void list_staff_events(struct char_data *ch)
 {
   int i = 0;    /* Iterator for event list */
+  const char *event_status = NULL;  /* Status indicator for each event */
+  const char *status_color = NULL;  /* Color for status display */
 
   /*
    * HEADER DISPLAY:
-   * Present a clear, colorized header to identify the listing
+   * Present a professional header with decorative borders
    */
-  send_to_char(ch, "\r\n\tCA Listing of Staff Ran Events:\tn\r\n\r\n");
+  send_to_char(ch, "\r\n\tC╔═══════════════════════════════════════════════════════════════════════════╗\tn\r\n");
+  send_to_char(ch, "\tC║                        \tYAVAILABLE STAFF EVENTS                            \tC║\tn\r\n");
+  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  send_to_char(ch, "\tC║ \twID\tn   \tWEvent Name                                          \twStatus\tn        \tC║\tn\r\n");
+  send_to_char(ch, "\tC║ \tw───  ──────────────────────────────────────────────  ─────────────\tn      \tC║\tn\r\n");
 
   /*
    * EVENT LIST DISPLAY:
    * Iterate through all configured events and display their
-   * index numbers and titles for reference.
+   * index numbers, titles, and current status.
    */
   for (i = 0; i < NUM_STAFF_EVENTS; i++)
   {
+    /* Determine event status */
+    if (IS_STAFF_EVENT && STAFF_EVENT_NUM == i)
+    {
+      event_status = "ACTIVE NOW";
+      status_color = "\tG\t=";  /* Flashing green */
+    }
+    else if (STAFF_EVENT_DELAY > 0)
+    {
+      event_status = "COOLDOWN";
+      status_color = "\tY";
+    }
+    else
+    {
+      event_status = "AVAILABLE";
+      status_color = "\tw";
+    }
+    
+    /* Special status for The Prisoner if already defeated */
+    if (i == THE_PRISONER_EVENT && prisoner_heads == -2)
+    {
+      event_status = "COMPLETED";
+      status_color = "\tR";
+    }
+    
     /*
      * Event Entry Format:
-     * - Green index number for easy reference
-     * - Event title from the EVENT_TITLE field (staff_events_list[i][0])
+     * - Formatted ID number
+     * - Event title with proper spacing
+     * - Color-coded status indicator
      */
-    send_to_char(ch, "\tG%d)\tn %s\r\n", i, staff_events_list[i][0]);
+    send_to_char(ch, "\tC║ \tG[%d]\tn  %-50s  %s%-13s\tn \tC║\tn\r\n", 
+                 i, 
+                 staff_events_list[i][EVENT_TITLE], 
+                 status_color,
+                 event_status);
+    
+    /* Add descriptive subtitle for each event */
+    switch (i)
+    {
+    case JACKALOPE_HUNT:
+      send_to_char(ch, "\tC║      \tw└─ Hunt magical jackalopes across the Hardbuckler wilderness\tn       \tC║\tn\r\n");
+      break;
+    case THE_PRISONER_EVENT:
+      send_to_char(ch, "\tC║      \tw└─ Assault The Prisoner through a portal to Avernus\tn              \tC║\tn\r\n");
+      break;
+    default:
+      break;
+    }
+    
+    /* Add spacing between events */
+    if (i < NUM_STAFF_EVENTS - 1)
+      send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
+  }
+
+  /*
+   * CURRENT STATUS SECTION
+   */
+  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  send_to_char(ch, "\tC║                           \tYCURRENT STATUS                                 \tC║\tn\r\n");
+  send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+  
+  if (IS_STAFF_EVENT)
+  {
+    int secs_left = ((STAFF_EVENT_TIME - 1) * SECS_PER_MUD_HOUR) + next_tick;
+    int hours = secs_left / 3600;
+    int mins = (secs_left % 3600) / 60;
+    
+    send_to_char(ch, "\tC║ \tWActive Event:\tn %-59s \tC║\tn\r\n", 
+                 staff_events_list[STAFF_EVENT_NUM][EVENT_TITLE]);
+    send_to_char(ch, "\tC║ \tWTime Left:\tn    \tY%d hours, %d minutes\tn                                    \tC║\tn\r\n", 
+                 hours, mins);
+  }
+  else if (STAFF_EVENT_DELAY > 0)
+  {
+    send_to_char(ch, "\tC║ \twNo events active - System in cleanup mode\tn                                \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tWCooldown:\tn     \tY%d ticks remaining\tn                                        \tC║\tn\r\n", 
+                 STAFF_EVENT_DELAY);
+  }
+  else
+  {
+    send_to_char(ch, "\tC║ \tGSystem ready - No events currently active\tn                                 \tC║\tn\r\n");
   }
 
   /*
    * USAGE INSTRUCTIONS:
-   * Provide command syntax help for the staffevents command
-   * using the index numbers displayed above.
+   * Provide command syntax help based on user's access level
    */
-  send_to_char(ch, "\r\n\r\nUsage: staffevents [start|end|info] [index # above]\r\n");
+  if (GET_LEVEL(ch) >= LVL_STAFF)
+  {
+    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(ch, "\tC║                            \tYCOMMAND USAGE                                  \tC║\tn\r\n");
+    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(ch, "\tC║ \tWstaffevents\tn                  - Show this list                             \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tWstaffevents start\tn \tw[ID]\tn       - Start an event                            \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tWstaffevents end\tn \tw[ID]\tn         - End an active event                        \tC║\tn\r\n");
+    send_to_char(ch, "\tC║ \tWstaffevents info\tn \tw[ID]\tn        - View detailed event information            \tC║\tn\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(ch, "\tC║ \twUse '\tWstaffevents\tw' to view current event information\tn                     \tC║\tn\r\n");
+  }
+  
+  send_to_char(ch, "\tC╚═══════════════════════════════════════════════════════════════════════════╝\tn\r\n\r\n");
 
   return;
 }
@@ -1615,8 +1835,17 @@ static void handle_player_event_access(struct char_data *ch)
   }
   else
   {
-    /* No active event - inform player */
-    send_to_char(ch, "There is no staff ran event currently!\r\n");
+    /* No active event - display a nice message box */
+    send_to_char(ch, "\r\n\tC╔═══════════════════════════════════════════════════════════════════════════╗\tn\r\n");
+    send_to_char(ch, "\tC║                           \tYSTAFF EVENT STATUS                             \tC║\tn\r\n");
+    send_to_char(ch, "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
+    send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
+    send_to_char(ch, "\tC║                    \twNo staff events are currently active\tn                   \tC║\tn\r\n");
+    send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
+    send_to_char(ch, "\tC║   \twStaff events are special limited-time activities that offer unique\tn      \tC║\tn\r\n");
+    send_to_char(ch, "\tC║   \twrewards and experiences. Keep an eye out for announcements!\tn             \tC║\tn\r\n");
+    send_to_char(ch, "\tC║                                                                           ║\tn\r\n");
+    send_to_char(ch, "\tC╚═══════════════════════════════════════════════════════════════════════════╝\tn\r\n\r\n");
   }
 }
 
@@ -1659,16 +1888,28 @@ static int parse_and_validate_event_num(struct char_data *ch, const char *arg2)
   else
   {
     /* Invalid event number format */
+    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tR│                   \tYINVALID EVENT NUMBER                          \tR│\tn\r\n");
+    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tR│ \twEvent number must be a digit, not '\tY%s\tw'\tn                        \tR│\tn\r\n", arg2);
+    send_to_char(ch, "\tR│                                                                 │\tn\r\n");
+    send_to_char(ch, "\tR│ \twPlease specify the event ID number from the list below.\tn        \tR│\tn\r\n");
+    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     list_staff_events(ch);
-    send_to_char(ch, "Requires a digit (the event number) for the second argument!\r\n");
     return -1;
   }
 
   /* Validate event number bounds */
   if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
   {
+    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tR│                   \tYEVENT NUMBER OUT OF RANGE                     \tR│\tn\r\n");
+    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tR│ \twEvent \tY%d\tw does not exist.\tn                                       \tR│\tn\r\n", event_num);
+    send_to_char(ch, "\tR│                                                                 │\tn\r\n");
+    send_to_char(ch, "\tR│ \twValid event IDs are \tG0\tw to \tG%d\tw.\tn                                  \tR│\tn\r\n", NUM_STAFF_EVENTS - 1);
+    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     list_staff_events(ch);
-    send_to_char(ch, "Invalid event #!\r\n");
     return -1;
   }
   
@@ -1694,14 +1935,26 @@ static void handle_start_event_command(struct char_data *ch, const int event_num
   else if (get_event_delay())
   {
     /* Inter-event cleanup delay still active */
-    send_to_char(ch, "There is a delay of approximately %d more ticks between events for cleanup.\r\n",
+    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tR│                      \tYCLEANUP IN PROGRESS                       \tR│\tn\r\n");
+    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tR│ \twThe system is currently in cleanup mode between events.\tn        \tR│\tn\r\n");
+    send_to_char(ch, "\tR│ \twPlease wait \tY%d\tw more ticks before starting a new event.\tn        \tR│\tn\r\n",
                  get_event_delay());
+    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     return;
   }
   else
   {
     /* Another event is already running */
-    send_to_char(ch, "There is already an event running!\r\n");
+    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tR│                       \tYEVENT CONFLICT                           \tR│\tn\r\n");
+    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tR│ \twAnother event is already active:\tn                               \tR│\tn\r\n");
+    send_to_char(ch, "\tR│ \tW%-63s\tn \tR│\tn\r\n", staff_events_list[get_active_event()][EVENT_TITLE]);
+    send_to_char(ch, "\tR│                                                                 │\tn\r\n");
+    send_to_char(ch, "\tR│ \twUse '\tWstaffevents end %d\tw' to stop the current event.\tn           \tR│\tn\r\n", get_active_event());
+    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     return;
   }
 
@@ -1712,29 +1965,58 @@ static void handle_start_event_command(struct char_data *ch, const int event_num
     /* Event-specific precondition not met */
     if (event_num == THE_PRISONER_EVENT)
     {
-      send_to_char(ch, "The Prisoner has already been defeated this boot!\r\n");
+      send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+      send_to_char(ch, "\tR│                    \tYEVENT UNAVAILABLE                           \tR│\tn\r\n");
+      send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+      send_to_char(ch, "\tR│ \twThe Prisoner has already been defeated this boot cycle.\tn        \tR│\tn\r\n");
+      send_to_char(ch, "\tR│ \twThis event cannot be run again until the next reboot.\tn          \tR│\tn\r\n");
+      send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     }
     else
     {
-      send_to_char(ch, "Event preconditions not met. Cannot start this event.\r\n");
+      send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+      send_to_char(ch, "\tR│                  \tYPRECONDITION FAILED                          \tR│\tn\r\n");
+      send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+      send_to_char(ch, "\tR│ \twEvent preconditions not met. Cannot start this event.\tn          \tR│\tn\r\n");
+      send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     }
     break;
     
   case EVENT_ERROR_INVALID_NUM:
-    send_to_char(ch, "Invalid event number specified.\r\n");
+    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tR│                      \tYINVALID EVENT                            \tR│\tn\r\n");
+    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tR│ \twThe specified event number is invalid.\tn                         \tR│\tn\r\n");
+    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
     
   case EVENT_ERROR_INVALID_DATA:
-    send_to_char(ch, "Event data is corrupted or incomplete. Contact administrators.\r\n");
+    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tR│                    \tYCORRUPTED EVENT DATA                        \tR│\tn\r\n");
+    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tR│ \twEvent data is corrupted or incomplete.\tn                         \tR│\tn\r\n");
+    send_to_char(ch, "\tR│ \twPlease contact the administrators immediately.\tn                 \tR│\tn\r\n");
+    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
     
   case EVENT_SUCCESS:
-    /* Success - no error message needed */
+    /* Success - display a nice confirmation */
+    send_to_char(ch, "\r\n\tG┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tG│                    \tYEVENT STARTED SUCCESSFULLY                  \tG│\tn\r\n");
+    send_to_char(ch, "\tG├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tG│ \tWEvent:\tn %-57s \tG│\tn\r\n", staff_events_list[event_num][EVENT_TITLE]);
+    send_to_char(ch, "\tG│ \twThe event has been activated and announced to all players.\tn      \tG│\tn\r\n");
+    send_to_char(ch, "\tG└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
     
   default:
     /* Unhandled error code */
-    send_to_char(ch, "An unexpected error occurred while starting the event.\r\n");
+    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tR│                     \tYUNEXPECTED ERROR                           \tR│\tn\r\n");
+    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tR│ \twAn unexpected error occurred while starting the event.\tn          \tR│\tn\r\n");
+    send_to_char(ch, "\tR│ \twError code: %d\tn                                                  \tR│\tn\r\n", result);
+    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
   }
 }
@@ -1752,7 +2034,29 @@ static void handle_end_event_command(struct char_data *ch, const int event_num)
   if (!is_event_active())
   {
     /* No active event to end */
-    send_to_char(ch, "There is no event active right now...\r\n");
+    send_to_char(ch, "\r\n\tY┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tY│                      \tWNO ACTIVE EVENT                            \tY│\tn\r\n");
+    send_to_char(ch, "\tY├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tY│ \twThere is no event currently running to end.\tn                     \tY│\tn\r\n");
+    send_to_char(ch, "\tY│                                                                 │\tn\r\n");
+    send_to_char(ch, "\tY│ \twUse '\tWstaffevents\tw' to see available events.\tn                     \tY│\tn\r\n");
+    send_to_char(ch, "\tY└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    return;
+  }
+
+  /* Check if they're trying to end the wrong event */
+  if (event_num != get_active_event())
+  {
+    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tR│                    \tYWRONG EVENT NUMBER                           \tR│\tn\r\n");
+    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tR│ \twYou specified event \tY%d\tw, but the active event is:\tn              \tR│\tn\r\n", event_num);
+    send_to_char(ch, "\tR│ \tW[%d] %-58s\tn \tR│\tn\r\n", 
+                 get_active_event(), 
+                 staff_events_list[get_active_event()][EVENT_TITLE]);
+    send_to_char(ch, "\tR│                                                                 │\tn\r\n");
+    send_to_char(ch, "\tR│ \twUse '\tWstaffevents end %d\tw' to end the current event.\tn            \tR│\tn\r\n", get_active_event());
+    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     return;
   }
 
@@ -1763,16 +2067,33 @@ static void handle_end_event_command(struct char_data *ch, const int event_num)
   switch (result)
   {
   case EVENT_ERROR_INVALID_NUM:
-    send_to_char(ch, "Invalid event number specified.\r\n");
+    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tR│                      \tYINVALID EVENT                            \tR│\tn\r\n");
+    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tR│ \twThe specified event number is invalid.\tn                         \tR│\tn\r\n");
+    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
     
   case EVENT_SUCCESS:
-    /* Success - no error message needed */
+    /* Success - display confirmation */
+    send_to_char(ch, "\r\n\tG┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tG│                     \tYEVENT ENDED SUCCESSFULLY                   \tG│\tn\r\n");
+    send_to_char(ch, "\tG├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tG│ \tWEvent:\tn %-57s \tG│\tn\r\n", staff_events_list[event_num][EVENT_TITLE]);
+    send_to_char(ch, "\tG│ \twThe event has been terminated and cleanup is in progress.\tn       \tG│\tn\r\n");
+    send_to_char(ch, "\tG│                                                                 │\tn\r\n");
+    send_to_char(ch, "\tG│ \twA cleanup delay of \tY%d ticks\tw has been initiated.\tn               \tG│\tn\r\n", STAFF_EVENT_DELAY_CNST);
+    send_to_char(ch, "\tG└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
     
   default:
     /* Unhandled error code */
-    send_to_char(ch, "An unexpected error occurred while ending the event.\r\n");
+    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tR│                     \tYUNEXPECTED ERROR                           \tR│\tn\r\n");
+    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tR│ \twAn unexpected error occurred while ending the event.\tn            \tR│\tn\r\n");
+    send_to_char(ch, "\tR│ \twError code: %d\tn                                                  \tR│\tn\r\n", result);
+    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
     break;
   }
 }
@@ -1862,8 +2183,19 @@ ACMD(do_staffevents)
   else
   {
     /* Invalid command action */
+    send_to_char(ch, "\r\n\tR┌─────────────────────────────────────────────────────────────────┐\tn\r\n");
+    send_to_char(ch, "\tR│                    \tYINVALID COMMAND SYNTAX                        \tR│\tn\r\n");
+    send_to_char(ch, "\tR├─────────────────────────────────────────────────────────────────┤\tn\r\n");
+    send_to_char(ch, "\tR│ \twUnrecognized action: '\tY%s\tw'\tn                                     \tR│\tn\r\n", arg);
+    send_to_char(ch, "\tR│                                                                 │\tn\r\n");
+    send_to_char(ch, "\tR│ \twValid actions are:\tn                                              \tR│\tn\r\n");
+    send_to_char(ch, "\tR│   \tw• \tGstart\tn  \tw- Begin a new event\tn                               \tR│\tn\r\n");
+    send_to_char(ch, "\tR│   \tw• \tRend\tn    \tw- Terminate an active event\tn                       \tR│\tn\r\n");
+    send_to_char(ch, "\tR│   \tw• \tCinfo\tn   \tw- Display detailed event information\tn              \tR│\tn\r\n");
+    send_to_char(ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    
+    /* Show available events */
     list_staff_events(ch);
-    send_to_char(ch, "Invalid argument!\r\n");
   }
 }
 
