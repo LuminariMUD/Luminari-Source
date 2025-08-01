@@ -942,6 +942,11 @@ void load_paths()
   char **it;     /* Token iterator */
 
   log("INFO: Loading path data from MySQL");
+  
+  if (!mysql_available) {
+    log("INFO: Skipping path loading - MySQL not available.");
+    return;
+  }
 
   snprintf(buf, sizeof(buf), "SELECT p.vnum, "
                              "p.zone_vnum, "

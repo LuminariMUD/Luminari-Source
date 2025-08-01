@@ -191,6 +191,91 @@ Aug  1 19:24:45 :: SYSERR: Room 3001 is outside of any zone.
 
 **Progress**: The MUD is now attempting to load world files and getting further in the boot process.
 
+## 13. Zone File Format Error
+**Issue**: Zone file format was incorrect. The zone loader expects a specific format with 3 lines:
+1. Zone number (e.g., `#0`)
+2. Builder names ending with `~` (e.g., `None.~`)
+3. Zone name ending with `~` (e.g., `The Void~`)
+4. Numeric line with at least 4 values: bottom_room top_room lifespan reset_mode
+
+**Error**: "SYSERR: Format error in numeric constant line of world/zon/0.zon, attempting to fix."
+
+**Solution**: Fixed zone file format from:
+```
+#0
+The Void~
+0 3099 30 0 0 0
+```
+To:
+```
+#0
+None.~
+The Void~
+3000 3099 30 2
+```
+
+**Explanation**: 
+- Added builder line (`None.~`)
+- Changed numeric line to have exactly 4 values
+- Changed bottom room from 0 to 3000 to include room 3001
+- Changed reset mode from 0 to 2 (standard reset mode)
+
+## 14. Room File Format Error
+**Issue**: Room file had incorrect terminator causing "Room #0 is below zone" error
+**Error**: "SYSERR: (parse_room) Room #0 is below zone 0 (bot=3000, top=3099)."
+**Solution**: Removed the `#0` line from room file. Room files should end with `$` not `#0`.
+
+## 15. Missing MySQL Check in load_paths()
+**Issue**: The `load_paths()` function in mysql.c was causing segmentation fault when MySQL wasn't available
+**Error**: Segmentation fault after "Loading paths. (MySQL)"
+**Solution**: Added MySQL availability check at the beginning of `load_paths()`:
+```c
+if (!mysql_available) {
+  log("INFO: Skipping path loading - MySQL not available.");
+  return;
+}
+```
+
+## 16. Creating Minimal Mob File
+**Issue**: MUD requires at least one mob file to boot
+**Error**: "SYSERR: boot error - 0 records counted in world/mob//index."
+**Solution**: Created minimal mob file `lib/world/mob/0.mob` with a simple mob (#3001) and updated mob index
+
+## 17. Object File Format Error
+**Issue**: Object file had incorrect terminator like room file
+**Error**: "SYSERR: fread_string: format error at or near object #0"
+**Solution**: Removed the `#0` line from object file. Object files should end with `$` not `#0`.
+
+## 18. Zone Reset Command Error
+**Issue**: Zone file reset command references invalid vnums
+**Error**: "SYSERR: zone file: Invalid vnum 1, cmd disabled"
+**Details**: The zone reset command `O 0 3001 3001 1` has incorrect format - the last parameter (1) is being interpreted as a vnum
+
+## 19. Missing Quest Index File
+**Issue**: Quest system expects index file
+**Error**: "SYSERR: opening index file 'world/qst/index': No such file or directory"
+**Status**: Need to create `lib/world/qst/index` with just `$`
+
+## Current Progress
+**Latest test output shows**:
+- MySQL bypass working correctly
+- Zone, room, mob, and object files loading (with warnings)
+- Game progressing much further in boot sequence
+- Still encountering missing files but no longer crashing immediately
+
+**Files successfully created and fixed**:
+- Zone file with correct format
+- Room file without #0 terminator
+- Mob file (with some unrecognized keywords)
+- Object file without #0 terminator
+- Various text files in lib/text/
+
+**Next steps needed**:
+- Create quest index file
+- Fix zone reset commands
+- Address start room warnings
+- Continue until full boot achieved
+
 ## Summary
 A fresh install requires significant manual setup that isn't documented in a clear "Quick Start" guide. The main barriers are:
 1. Configuration files that must be manually created
