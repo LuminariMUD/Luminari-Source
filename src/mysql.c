@@ -54,21 +54,25 @@ void after_world_load()
  * 
  * @note Exits the program if connection fails or config file is missing
  */
+/* Global flag to track MySQL availability */
+bool mysql_available = FALSE;
+
 void connect_to_mysql()
 {
   char host[128], database[128], username[128], password[128];
   char line[128], key[128], val[128];
   FILE *file;
 
+  /* Initialize to indicate MySQL not available */
+  mysql_available = FALSE;
+
   /* Read the mysql configuration file from lib/ directory */
   if (!(file = fopen("mysql_config", "r")))
   {
-    log("SYSERR: Unable to read MySQL configuration from 'mysql_config'.");
-    log("SYSERR: Make sure the file exists in the lib/ directory!");
-    log("SYSERR: Current working directory when looking for mysql_config:");
-    log("SYSERR: If running from bin/, the file should be at: ../lib/mysql_config");
-    log("SYSERR: Copy mysql_config_example to lib/mysql_config and edit it.");
-    exit(1);
+    log("WARNING: Unable to read MySQL configuration from 'mysql_config'.");
+    log("WARNING: Running without MySQL support - some features will be disabled.");
+    log("WARNING: To enable MySQL: Copy mysql_config_example to lib/mysql_config and edit it.");
+    return;
   }
 
   /* Parse configuration file line by line
@@ -110,28 +114,29 @@ void connect_to_mysql()
     }
     else
     {
-      log("SYSERR: Malformed line in MySQL configuration: %s", line);
-      log("SYSERR: Expected format: parameter = value");
-      exit(1);
+      log("WARNING: Malformed line in MySQL configuration: %s", line);
+      log("WARNING: Expected format: parameter = value");
+      fclose(file);
+      return;
     }
   }
 
   if (fclose(file))
   {
-    log("SYSERR: Unable to read MySQL configuration.");
-    exit(1);
+    log("WARNING: Unable to read MySQL configuration.");
+    return;
   }
 
   if (mysql_library_init(0, NULL, NULL))
   {
-    log("SYSERR: Unable to initialize MySQL library.");
-    exit(1);
+    log("WARNING: Unable to initialize MySQL library.");
+    return;
   }
 
   if (!(conn = mysql_init(NULL)))
   {
-    log("SYSERR: Unable to initialize MySQL connection.");
-    exit(1);
+    log("WARNING: Unable to initialize MySQL connection.");
+    return;
   }
 
   my_bool reconnect = 1;
@@ -139,15 +144,19 @@ void connect_to_mysql()
 
   if (!mysql_real_connect(conn, host, username, password, database, 0, NULL, 0))
   {
-    log("SYSERR: Unable to connect to MySQL: %s", mysql_error(conn));
-    exit(1);
+    log("WARNING: Unable to connect to MySQL: %s", mysql_error(conn));
+    mysql_close(conn);
+    conn = NULL;
+    return;
   }
 
   // 2nd conn for queries within other query loops
   if (!(conn2 = mysql_init(NULL)))
   {
-    log("SYSERR: Unable to initialize MySQL connection 2.");
-    exit(1);
+    log("WARNING: Unable to initialize MySQL connection 2.");
+    mysql_close(conn);
+    conn = NULL;
+    return;
   }
 
   reconnect = 1;
@@ -155,15 +164,23 @@ void connect_to_mysql()
 
   if (!mysql_real_connect(conn2, host, username, password, database, 0, NULL, 0))
   {
-    log("SYSERR: Unable to connect to MySQL2: %s", mysql_error(conn2));
-    exit(1);
+    log("WARNING: Unable to connect to MySQL2: %s", mysql_error(conn2));
+    mysql_close(conn);
+    mysql_close(conn2);
+    conn = NULL;
+    conn2 = NULL;
+    return;
   }
 
   // 3rd conn for queries within other query loops
   if (!(conn3 = mysql_init(NULL)))
   {
-    log("SYSERR: Unable to initialize MySQL connection 3.");
-    exit(1);
+    log("WARNING: Unable to initialize MySQL connection 3.");
+    mysql_close(conn);
+    mysql_close(conn2);
+    conn = NULL;
+    conn2 = NULL;
+    return;
   }
 
   reconnect = 1;
@@ -171,9 +188,18 @@ void connect_to_mysql()
 
   if (!mysql_real_connect(conn3, host, username, password, database, 0, NULL, 0))
   {
-    log("SYSERR: Unable to connect to MySQL3: %s", mysql_error(conn3));
-    exit(1);
+    log("WARNING: Unable to connect to MySQL3: %s", mysql_error(conn3));
+    mysql_close(conn);
+    mysql_close(conn2);
+    mysql_close(conn3);
+    conn = NULL;
+    conn2 = NULL;
+    conn3 = NULL;
+    return;
   }
+  
+  /* If we got here, MySQL is successfully initialized */
+  mysql_available = TRUE;
   
   /* Log successful connection - password is intentionally not logged for security */
   log("SUCCESS: Connected to MySQL database '%s' on host '%s' as user '%s'", database, host, username);
@@ -225,6 +251,11 @@ int mysql_query_safe(MYSQL *mysql_conn, const char *query)
 {
   pthread_mutex_t *mutex;
   int result;
+  
+  /* Check if MySQL is available */
+  if (!mysql_available || !mysql_conn) {
+    return -1;
+  }
   
   /* Select appropriate mutex based on connection */
   if (mysql_conn == conn)
@@ -536,6 +567,12 @@ void load_regions()
   char buf2[MAX_STRING_LENGTH] = {'\0'};
 
   char **tokens; /* Storage for tokenized linestring points */
+
+  /* Check if MySQL is available */
+  if (!mysql_available || !conn) {
+    log("INFO: Skipping region loading - MySQL not available.");
+    return;
+  }
   char **it;     /* Token iterator */
 
   log("INFO: Loading region data from MySQL");
@@ -905,6 +942,11 @@ void load_paths()
   char **it;     /* Token iterator */
 
   log("INFO: Loading path data from MySQL");
+  
+  if (!mysql_available) {
+    log("INFO: Skipping path loading - MySQL not available.");
+    return;
+  }
 
   snprintf(buf, sizeof(buf), "SELECT p.vnum, "
                              "p.zone_vnum, "
