@@ -5702,7 +5702,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"src/Makefile src/util/Makefile"}
+CONFIG_FILES=\${CONFIG_FILES-"Makefile util/Makefile"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
@@ -5778,7 +5778,7 @@ ac_eD='%g'
 if test "${CONFIG_HEADERS+set}" != set; then
 EOF
 cat >> $CONFIG_STATUS <<EOF
-  CONFIG_HEADERS="src/conf.h"
+  CONFIG_HEADERS="conf.h"
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 fi
@@ -5876,4 +5876,4 @@ rm -fr confdefs* $ac_clean_files
 test "$no_create" = yes || ${CONFIG_SHELL-/bin/sh} $CONFIG_STATUS || exit 1
 
 #
-echo "Configuration completed.  To compile, type:  cd src; make"
+echo "Configuration completed.  To compile, type:  make"
