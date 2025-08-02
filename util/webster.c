@@ -21,6 +21,8 @@
 #include "conf.h"
 #include "sysdep.h"
 
+#include <signal.h>
+
 #define MEM_USE 10000
 char buf[MEM_USE];
 

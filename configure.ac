@@ -99,12 +99,13 @@ AC_CHECK_HEADERS(memory.h crypt.h assert.h arpa/telnet.h arpa/inet.h)
 AC_CHECK_HEADERS(sys/stat.h sys/socket.h sys/resource.h netinet/in.h netdb.h)
 AC_CHECK_HEADERS(signal.h sys/uio.h mcheck.h)
 
-AC_UNSAFE_CRYPT
+dnl AC_UNSAFE_CRYPT removed - was a custom macro
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
+AC_TYPE_SIGNAL
 AC_CHECK_TYPE(ssize_t, int)
 AC_CHECK_HEADERS([time.h sys/time.h])
 AC_CHECK_DECLS([struct timeval],,,[#include <sys/time.h>])
@@ -155,63 +156,8 @@ LIBS="$LIBS $NETLIB"
 AC_CHECK_FUNCS(inet_addr inet_aton)
 LIBS=$ORIGLIBS
 
-dnl Check for prototypes
-AC_CHECK_PROTO(accept)
-AC_CHECK_PROTO(atoi)
-AC_CHECK_PROTO(atol)
-AC_CHECK_PROTO(bind)
-AC_CHECK_PROTO(bzero)
-AC_CHECK_PROTO(chdir)
-AC_CHECK_PROTO(close)
-AC_CHECK_PROTO(crypt)
-AC_CHECK_PROTO(fclose)
-AC_CHECK_PROTO(fcntl)
-AC_CHECK_PROTO(fflush)
-AC_CHECK_PROTO(fprintf)
-AC_CHECK_PROTO(fputc)
-AC_CHECK_PROTO(fputs)
-AC_CHECK_PROTO(fread)
-AC_CHECK_PROTO(fscanf)
-AC_CHECK_PROTO(fseek)
-AC_CHECK_PROTO(fwrite)
-AC_CHECK_PROTO(getpeername)
-AC_CHECK_PROTO(getpid)
-AC_CHECK_PROTO(getrlimit)
-AC_CHECK_PROTO(getsockname)
-AC_CHECK_PROTO(gettimeofday)
-AC_CHECK_PROTO(htonl)
-AC_CHECK_PROTO(htons)
-AC_CHECK_PROTO(inet_addr)
-AC_CHECK_PROTO(inet_aton)
-AC_CHECK_PROTO(inet_ntoa)
-AC_CHECK_PROTO(listen)
-AC_CHECK_PROTO(ntohl)
-AC_CHECK_PROTO(perror)
-AC_CHECK_PROTO(printf)
-AC_CHECK_PROTO(qsort)
-AC_CHECK_PROTO(read)
-AC_CHECK_PROTO(remove)
-AC_CHECK_PROTO(rewind)
-AC_CHECK_PROTO(select)
-AC_CHECK_PROTO(setitimer)
-AC_CHECK_PROTO(setrlimit)
-AC_CHECK_PROTO(setsockopt)
-AC_CHECK_PROTO(snprintf)
-AC_CHECK_PROTO(socket)
-AC_CHECK_PROTO(sprintf)
-AC_CHECK_PROTO(sscanf)
-AC_CHECK_PROTO(strcasecmp)
-AC_CHECK_PROTO(strdup)
-AC_CHECK_PROTO(strerror)
-AC_CHECK_PROTO(stricmp)
-AC_CHECK_PROTO(strlcpy)
-AC_CHECK_PROTO(strncasecmp)
-AC_CHECK_PROTO(strnicmp)
-AC_CHECK_PROTO(system)
-AC_CHECK_PROTO(time)
-AC_CHECK_PROTO(unlink)
-AC_CHECK_PROTO(vsnprintf)
-AC_CHECK_PROTO(write)
+dnl Check for prototypes - removed custom AC_CHECK_PROTO macros
+dnl Modern compilers have standard prototypes for these functions
 
 AC_CONFIG_FILES([Makefile util/Makefile])
 AC_OUTPUT

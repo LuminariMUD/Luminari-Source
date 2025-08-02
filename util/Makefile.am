@@ -1,10 +1,12 @@
 # Makefile.am for LuminariMUD utilities
 
-# These are utility programs, not installed by default
-noinst_PROGRAMS = \
+# Custom binary directory
+bindir = $(top_builddir)/bin
+
+# These are utility programs, installed to ../bin
+bin_PROGRAMS = \
 	asciipasswd \
 	autowiz \
-	hl_events \
 	plrtoascii \
 	rebuildAsciiIndex \
 	rebuildMailIndex \
@@ -20,7 +22,6 @@ AM_CFLAGS = -I../src
 # Source files for each utility
 asciipasswd_SOURCES = asciipasswd.c
 autowiz_SOURCES = autowiz.c
-hl_events_SOURCES = hl_events.c
 plrtoascii_SOURCES = plrtoascii.c
 rebuildAsciiIndex_SOURCES = rebuildAsciiIndex.c
 rebuildMailIndex_SOURCES = rebuildMailIndex.c

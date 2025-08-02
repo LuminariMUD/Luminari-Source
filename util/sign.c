@@ -22,6 +22,14 @@
 #include "conf.h"
 #include "sysdep.h"
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
+#include <signal.h>
+#include <errno.h>
+
 /* Function prototypes */
 int init_socket(int port);
 char *get_text(char *fname);
