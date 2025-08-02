@@ -83,7 +83,10 @@
       "Bash(git rm:*)",
       "Bash(comm:*)",
       "Bash(git ls-tree:*)",
-      "Bash(clang-tidy:*)"
+      "Bash(clang-tidy:*)",
+      "Bash(./config.status)",
+      "Bash(strace:*)",
+      "Bash(/dev/null)"
     ],
     "deny": []
   }

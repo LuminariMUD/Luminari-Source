@@ -57,22 +57,39 @@ mysql_password = <password here, example: a$3koorPw34d>
 **Error**: "No etc/config file, using defaults: No such file or directory"
 **Impact**: Game uses default configuration values.
 
-## 5. Autorun Script Has Windows Line Endings
-**Issue**: The `autorun.sh` script has Windows-style line endings (CRLF) causing bash errors.
-**Error**: Multiple "command not found" errors for `$'\r'`
-**Impact**: Cannot use the autorun script on Linux/WSL without converting line endings.
-**Solution**: Run `dos2unix` on all script files:
+## 5. Multiple Scripts Have Windows Line Endings
+**Issue**: Multiple critical scripts have Windows-style line endings (CRLF) causing bash errors.
+**Affected files**:
+- `configure` - Build configuration script
+- `Makefile.in` - Makefile template
+- `autorun` - Server autorun script
+- `autorun.sh` - Alternative autorun script
+- `luminari.sh` - Server management script
+- Various other shell scripts throughout the codebase
+
+**Error**: Multiple "command not found" errors for `$'\r'`, syntax errors
+**Example error from configure**:
+```
+configure: line 2: $'\r': command not found
+configure: line 58: syntax error near unexpected token `$'do\r''
+```
+
+**Impact**: Cannot run configure, autorun, or other scripts on Linux/WSL without converting line endings.
+**Solution**: Run `dos2unix` on all affected files:
 ```bash
 # Install dos2unix if not already installed
 sudo apt-get install dos2unix  # On Debian/Ubuntu
 # or
 sudo yum install dos2unix       # On RHEL/CentOS
 
+# Convert critical files first
+dos2unix configure Makefile.in autorun luminari.sh
+
 # Convert all shell scripts
-dos2unix autorun.sh
-dos2unix autorun
-dos2unix *.sh
-dos2unix **/*.sh
+find . -name "*.sh" -type f -exec dos2unix {} \;
+
+# Also check other potentially affected files
+dos2unix autorun.* checkmud.sh vgrind*.sh
 ```
 
 ## 6. No Clear Documentation on Running the Game
@@ -287,6 +304,12 @@ if (!mysql_available) {
 - Address start room warnings
 - Continue until full boot achieved
 
+## 20. Configure Script Minor Error
+**Issue**: The configure script displays an error at the very end: `cat: ./src/conf.h.in: No such file or directory`
+**Details**: The configure script completes successfully and creates all necessary files, but has a final command that looks for conf.h.in in the wrong location (it's in the root directory, not src/)
+**Impact**: Harmless - the configure script has already completed its work successfully. This is just a cosmetic issue.
+**Status**: Can be ignored, does not affect build process
+
 ## Summary
 A fresh install requires significant manual setup that isn't documented in a clear "Quick Start" guide. The main barriers are:
 1. Configuration files that must be manually created
@@ -294,6 +317,7 @@ A fresh install requires significant manual setup that isn't documented in a cle
 3. Missing text files
 4. Missing world data files
 5. Unclear startup process
+6. Scripts with Windows line endings that need conversion
 
 ## Recommendations
 1. Add a `QUICKSTART.md` with step-by-step instructions
