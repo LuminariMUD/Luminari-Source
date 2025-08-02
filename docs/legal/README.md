@@ -1,6 +1,8 @@
 # Legal Documentation
 
-This document consolidates all licensing information for Luminari MUD, including its heritage from DikuMUD, CircleMUD, and tbaMUD.
+This document provides comprehensive licensing details for Luminari MUD.
+
+**Quick Reference**: See [`LICENSE.md`](../../LICENSE.md) in the root directory for the summary.
 
 ## Table of Contents
 

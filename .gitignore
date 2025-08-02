@@ -127,6 +127,17 @@ cnf/configure
 cnf/conf.h.in
 configure
 conf.h.in
+.deps/
+*.Po
+*.Tpo
+Makefile.in
+aclocal.m4
+missing
+install-sh
+depcomp
+compile
+.dirstamp
+stamp-h1
 
 ####################
 # MUD Configuration Files

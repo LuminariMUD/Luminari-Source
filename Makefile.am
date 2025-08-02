@@ -9,11 +9,11 @@ AM_CFLAGS = -std=gnu90 -Isrc @MYFLAGS@
 AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11
 
 # Build timestamp information
-MKTIME := \"$(shell date)\"
-MKUSER := \"$(USER)\"
-MKHOST := \"$(HOSTNAME)\"
-BRANCH := \"$(shell git branch | grep '*' | cut -d' ' -f2)\"
-PARENT := \"$(shell git rev-parse HEAD)\"
+MKTIME = $(shell date +%s)
+MKUSER = $(USER)
+MKHOST = $(HOSTNAME)
+BRANCH = $(shell git branch 2>/dev/null | grep '*' | cut -d' ' -f2 || echo "unknown")
+PARENT = $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
 
 # Main program
 bin_PROGRAMS = circle
@@ -169,7 +169,7 @@ circle_SOURCES = \
 circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcurl -lssl -lcrypto -lpthread
 
 # Special flags for constants.c to include build information
-src/constants.$(OBJEXT): AM_CFLAGS += -DMKTIME=$(MKTIME) -DMKUSER=$(MKUSER) -DMKHOST=$(MKHOST) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+src/constants.$(OBJEXT): AM_CFLAGS += -DMKTIME='"$(MKTIME)"' -DMKUSER='"$(MKUSER)"' -DMKHOST='"$(MKHOST)"' -DBRANCH='"$(BRANCH)"' -DPARENT='"$(PARENT)"'
 
 # Unit testing with CuTest
 check_PROGRAMS = cutest
@@ -198,8 +198,8 @@ BUILT_SOURCES = unittests/CuTest/AllTests.c
 # Clean up generated files
 CLEANFILES = unittests/CuTest/AllTests.c
 
-# Install to bin directory
-bindir = $(prefix)/bin
+# Install to local bin directory
+bindir = $(top_builddir)/bin
 
 # Ensure constants.c is rebuilt when other sources change
 src/constants.c: $(filter-out src/constants.c,$(circle_SOURCES))
