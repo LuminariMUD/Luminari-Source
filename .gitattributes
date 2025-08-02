@@ -1,0 +1,48 @@
+# Set default behavior to automatically normalize line endings to LF
+* text=auto eol=lf
+
+# Explicitly declare text files you want to always be normalized and converted to LF
+*.c text eol=lf
+*.h text eol=lf
+*.cpp text eol=lf
+*.cc text eol=lf
+*.cxx text eol=lf
+*.hpp text eol=lf
+*.hh text eol=lf
+*.hxx text eol=lf
+*.in text eol=lf
+*.ac text eol=lf
+*.am text eol=lf
+*.m4 text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.sh text eol=lf
+*.pl text eol=lf
+*.py text eol=lf
+Makefile text eol=lf
+makefile text eol=lf
+MAKEFILE text eol=lf
+configure text eol=lf
+
+# Denote all files that are truly binary and should not be modified
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.exe binary
+*.dll binary
+*.so binary
+*.a binary
+*.lib binary
+*.o binary
+*.obj binary
+*.pch binary
+*.pdb binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.tgz binary

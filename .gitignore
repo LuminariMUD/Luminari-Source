@@ -117,6 +117,14 @@ config.status
 config.cache
 config.log
 
+# Autoconf/automake generated files
+autom4te.cache/
+cnf/autom4te.cache/
+cnf/configure
+cnf/conf.h.in
+configure
+conf.h.in
+
 ####################
 # MUD Configuration Files
 ####################
