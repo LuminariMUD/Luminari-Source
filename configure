@@ -5778,7 +5778,7 @@ ac_eD='%g'
 if test "${CONFIG_HEADERS+set}" != set; then
 EOF
 cat >> $CONFIG_STATUS <<EOF
-  CONFIG_HEADERS="conf.h"
+  CONFIG_HEADERS="src/conf.h"
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 fi
