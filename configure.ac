@@ -1,6 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT([LuminariMUD], [1.0], [bugs@luminarimud.com])
 AC_CONFIG_SRCDIR([src/act.comm.c])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_SUBST(MYFLAGS)
 AC_SUBST(NETLIB)
 AC_SUBST(CRYPTLIB)
@@ -13,6 +14,7 @@ AC_CHECK_PROGS(MORE, less most more cat)
 
 dnl Checks for programs.
 AC_PROG_CC
+AC_PROG_CXX
 
 dnl If we're using gcc, use gcc options.
 dnl If not, test for various common switches to make a 'cc' compiler

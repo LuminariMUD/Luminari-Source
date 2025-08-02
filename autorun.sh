@@ -35,6 +35,8 @@
 #
 
 # Note: ulimit -c unlimited is set by the parent scripts (luminari.sh/checkmud.sh)
+# Setting it here as well as a safety measure
+ulimit -c unlimited
 
 # The port on which to run the MUD
 PORT=4100

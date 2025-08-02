@@ -2,4 +2,4 @@
 #
 # Debugging Script for Valingrad
 #
-valgrind --leak-check=yes bin/circle -q 4001
+valgrind --leak-check=yes bin/circle -q 4101
