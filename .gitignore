@@ -8,6 +8,8 @@
 
 # Prerequisites and dependencies
 *.d
+depend
+*/depend
 
 # Object files
 *.o
@@ -86,6 +88,7 @@ bin/wld2html
 .vscode/
 .idea/
 .cursor/
+.editorconfig
 *.swp
 *.swo
 *~
