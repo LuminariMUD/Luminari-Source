@@ -13,6 +13,9 @@
 
 extern MYSQL *conn;
 
+/* Global flag to track MySQL availability */
+extern bool mysql_available;
+
 /* MySQL connection mutexes for thread safety */
 extern pthread_mutex_t mysql_mutex;
 extern pthread_mutex_t mysql_mutex2;
