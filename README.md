@@ -74,85 +74,31 @@ cd Luminari-Source
 make
 
 # Run the server (after configuration)
-../bin/circle
+bin/circle
+
+# Or use the autorun script for automatic restarts
+./autorun
 ```
 
 ## Installation
 
-### System Requirements
-- **Memory**: Minimum 512MB RAM (2GB+ recommended for production)
-- **Storage**: 1GB+ free disk space
-- **Network**: TCP/IP networking capability
-- **Compiler**: GCC 4.8+ or compatible C compiler
+For detailed installation instructions including system requirements, dependencies, database setup, and configuration, please see the **[Setup and Build Guide](docs/guides/SETUP_AND_BUILD_GUIDE.md)**.
 
-### Dependencies
-
-#### Ubuntu/Debian
+### Quick Start
 ```bash
-sudo apt-get update
-sudo apt-get install build-essential mysql-server libmysqlclient-dev libgd-dev \
-                     libcrypt-dev git make autoconf
+# Clone the repository
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+
+# Build the server
+make
+
+# Run the server (after configuration)
+bin/circle
+
+# Or use the autorun script for automatic restarts
+./autorun
 ```
-
-#### CentOS/RHEL/Fedora
-```bash
-# For CentOS 7/RHEL 7
-sudo yum install gcc make mysql-server mysql-devel gd-devel libcrypt-devel git autoconf
-
-# For newer versions (CentOS 8+/Fedora)
-sudo dnf install gcc make mysql-server mysql-devel gd-devel libcrypt-devel git autoconf
-```
-
-### Detailed Installation Steps
-
-1. **Install Dependencies** (see above for your distribution)
-
-2. **Clone and Build**
-   ```bash
-   git clone https://github.com/LuminariMUD/Luminari-Source.git
-   cd Luminari-Source
-
-   # Generate build configuration
-   ./configure
-
-   # Build the main executable
-   make
-
-   # Build utilities (optional)
-   make utils
-   ```
-
-3. **Database Setup**
-   ```bash
-   # Create MySQL database
-   mysql -u root -p
-   CREATE DATABASE luminari;
-   CREATE USER 'luminari'@'localhost' IDENTIFIED BY 'your_password';
-   GRANT ALL PRIVILEGES ON luminari.* TO 'luminari'@'localhost';
-   FLUSH PRIVILEGES;
-   EXIT;
-   ```
-
-4. **Configuration**
-   ```bash
-   # Copy example configuration files
-   cp campaign.example.h campaign.h
-   cp mud_options.example.h mud_options.h
-   cp vnums.example.h vnums.h
-
-   # Edit configuration files as needed
-   nano campaign.h
-   nano mud_options.h
-   ```
-
-5. **First Run**
-   ```bash
-   # Create bin directory if it doesn't exist
-   mkdir -p ../bin
-
-   # Run the server
-   ../bin/circle
-   ```
 
 ## Usage
 
@@ -175,14 +121,17 @@ make depend
 
 #### Server Management
 ```bash
-# Start the server
-../bin/circle
+# Start the server directly
+bin/circle
 
 # Start with specific port
-../bin/circle -p 4000
+bin/circle -p 4000
+
+# Run with autorun script (recommended for production)
+./autorun
 
 # Run in background
-nohup ../bin/circle &
+nohup bin/circle &
 ```
 
 ### Configuration Files
@@ -215,7 +164,7 @@ nohup ../bin/circle &
 
 ### Technical Documentation
 - **[Architecture](docs/CORE_SERVER_ARCHITECTURE.md)**: Server architecture and design patterns
-- **[Setup Guide](docs/SETUP_AND_BUILD_GUIDE.md)**: Detailed installation and configuration
+- **[Setup Guide](docs/guides/SETUP_AND_BUILD_GUIDE.md)**: Detailed installation and configuration
 - **[Developer Guide](docs/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
 
 ### Game Documentation
