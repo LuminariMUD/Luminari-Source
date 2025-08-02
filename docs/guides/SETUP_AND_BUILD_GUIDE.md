@@ -86,13 +86,13 @@ ls -la Makefile
 ### 3. Create Required Directories
 ```bash
 # Create binary directory
-mkdir -p ../bin
+mkdir -p bin
 
-# Create log directory (optional)
-mkdir -p ../log
+# Create log directory
+mkdir -p log
 
 # Verify directory structure
-ls -la ../
+ls -la
 ```
 
 ## Database Setup
@@ -204,19 +204,19 @@ make all
 make utils
 
 # Verify utilities were built
-ls -la ../bin/
+ls -la bin/
 ```
 
 ### 4. Verify Build Success
 ```bash
 # Check that main executable exists
-ls -la ../bin/circle
+ls -la bin/circle
 
 # Check file permissions
-chmod +x ../bin/circle
+chmod +x bin/circle
 
 # Verify executable works
-../bin/circle --help
+bin/circle --help
 ```
 
 ## Initial Server Setup
@@ -237,45 +237,59 @@ The first character created will automatically be granted administrator privileg
 ### 3. Test Server Startup
 ```bash
 # Test server startup (syntax check mode)
-../bin/circle -s
+bin/circle -s
 
 # If syntax check passes, start server normally
-../bin/circle
+bin/circle
 ```
 
 ## Running the Server
 
-### 1. Basic Server Startup
+### 1. Using the Autorun Script (Recommended)
+The `autorun` script handles automatic restarts and log rotation:
+
+```bash
+# Start server with autorun script
+./autorun
+
+# Run autorun in background
+nohup ./autorun &
+
+# The autorun script will:
+# - Automatically restart the server if it crashes
+# - Rotate logs in the log/ directory
+# - Handle shutdown commands from within the game
+```
+
+### 2. Direct Server Startup
 ```bash
 # Start server on default port (4000)
-../bin/circle
+bin/circle
 
 # Start server on specific port
-../bin/circle -p 4000
+bin/circle -p 4000
 
 # Start server with specific configuration
-../bin/circle -f campaign.h -o ../log/syslog
+bin/circle -f campaign.h -o log/syslog
+
+# Run server directly in background
+nohup bin/circle > log/server.log 2>&1 &
 ```
 
-### 2. Background Operation
+### 3. Server Management
 ```bash
-# Run server in background
-nohup ../bin/circle > ../log/server.log 2>&1 &
-
-# Check server is running
+# Check if server is running
 ps aux | grep circle
 netstat -tulpn | grep :4000
-```
 
-### 3. Server Management Scripts
-Create management scripts for easier operation:
+# View server logs
+tail -f log/syslog
 
-```bash
-#!/bin/bash
-# start_server.sh
-cd /path/to/Luminari-Source
-nohup ../bin/circle > ../log/server.log 2>&1 &
-echo "Server started. PID: $!"
+# Stop the autorun script
+touch .killscript
+
+# Pause server restarts
+touch pause
 ```
 
 ## Testing the Installation
@@ -331,7 +345,8 @@ make 2>&1 | grep -i error
 ```bash
 # Fix executable permissions
 chmod +x configure
-chmod +x ../bin/circle
+chmod +x autorun
+chmod +x bin/circle
 
 # Fix directory permissions
 chmod 755 lib/
@@ -361,8 +376,8 @@ chmod -R 644 lib/world/
 chmod 755 lib/world/
 
 # Fix log file permissions
-touch ../log/syslog
-chmod 666 ../log/syslog
+touch log/syslog
+chmod 666 log/syslog
 ```
 
 ## Next Steps
