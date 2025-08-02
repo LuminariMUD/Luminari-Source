@@ -84,9 +84,15 @@
       "Bash(comm:*)",
       "Bash(git ls-tree:*)",
       "Bash(clang-tidy:*)",
+<<<<<<< Updated upstream
       "Bash(./config.status)",
       "Bash(strace:*)",
       "Bash(/dev/null)"
+=======
+      "Bash(autoconf:*)",
+      "Bash(autoheader)",
+      "Bash(git config:*)"
+>>>>>>> Stashed changes
     ],
     "deny": []
   }
