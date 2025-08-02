@@ -4,7 +4,7 @@ AC_SUBST(MYFLAGS)
 AC_SUBST(NETLIB)
 AC_SUBST(CRYPTLIB)
 
-AC_CONFIG_HEADER(src/conf.h)
+AC_CONFIG_HEADER(src/conf.h:conf.h.in)
 AC_DEFINE(CIRCLE_UNIX)
 
 dnl Find the 'more' program
