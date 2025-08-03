@@ -113,6 +113,7 @@ CLAUDE.md
 *.bak
 *.old
 *.backup
+bak/
 
 ####################
 # Configure-Generated Files
