@@ -70,17 +70,22 @@ dkms.conf
 ####################
 # MUD Executables
 ####################
-bin/circle
-bin/autowiz
-bin/asciipasswd
-bin/plrtoascii
-bin/rebuildIndex
-bin/rebuildMailIndex
-bin/shopconv
-bin/sign
-bin/split
-bin/webster
-bin/wld2html
+# Ignore everything in bin directory
+bin/*
+# But keep the directory itself
+!bin/.gitkeep
+
+# Also ignore utility executables if they're built in util/
+util/asciipasswd
+util/autowiz
+util/plrtoascii
+util/rebuildAsciiIndex
+util/rebuildMailIndex
+util/shopconv
+util/sign
+util/split
+util/webster
+util/wld2html
 
 ####################
 # IDE and Editor Files
@@ -138,6 +143,8 @@ depcomp
 compile
 .dirstamp
 stamp-h1
+# Temporary configure directories
+confor*/
 
 ####################
 # MUD Configuration Files

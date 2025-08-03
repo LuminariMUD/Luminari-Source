@@ -166,7 +166,7 @@ circle_SOURCES = \
 	src/perfmon.cpp
 
 # Libraries to link
-circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcurl -lssl -lcrypto -lpthread
+circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lstdc++ -lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread
 
 # Special flags for constants.c to include build information
 src/constants.$(OBJEXT): AM_CFLAGS += -DMKTIME='"$(MKTIME)"' -DMKUSER='"$(MKUSER)"' -DMKHOST='"$(MKHOST)"' -DBRANCH='"$(BRANCH)"' -DPARENT='"$(PARENT)"'
@@ -198,8 +198,12 @@ BUILT_SOURCES = unittests/CuTest/AllTests.c
 # Clean up generated files
 CLEANFILES = unittests/CuTest/AllTests.c
 
-# Install to local bin directory
-bindir = $(top_builddir)/bin
+# Install to parent bin directory
+bindir = $(top_builddir)/../bin
+
+# After installation, remove the executable from the source directory
+install-exec-hook:
+	rm -f $(bin_PROGRAMS)
 
 # Ensure constants.c is rebuilt when other sources change
 src/constants.c: $(filter-out src/constants.c,$(circle_SOURCES))
