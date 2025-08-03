@@ -27,6 +27,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)** - Community guidelines and expectations
 
 ### Configuration & Installation
+- **[CMAKE_BUILD_GUIDE.md](CMAKE_BUILD_GUIDE.md)** - Alternative build system using CMake
 - **[IMPORT_DB.md](guides/IMPORT_DB.md)** - Database import procedures
 - **[LEGACY_README.md](legacy_installation/LEGACY_README.md)** - Historical installation notes
 - **[README_HISTORY.md](legacy_installation/README_HISTORY.md)** - Evolution of setup procedures

@@ -29,7 +29,9 @@ This comprehensive guide covers the complete process of setting up, building, co
 - **libgd-dev** - GD graphics library for map generation
 - **libcrypt-dev** - Cryptographic functions library
 - **git** - Version control system
-- **autoconf** - Build configuration tool
+- **autoconf** - GNU Autoconf for build configuration
+- **automake** - GNU Automake for Makefile generation
+- **libtool** - Generic library support script (optional)
 - **valgrind** - Memory debugging tool (recommended)
 
 ### Ubuntu/Debian Installation
@@ -39,7 +41,7 @@ sudo apt-get update
 
 # Install core dependencies
 sudo apt-get install -y build-essential mysql-server libmysqlclient-dev \
-                        libgd-dev libcrypt-dev git make autoconf
+                        libgd-dev libcrypt-dev git make autoconf automake libtool
 
 # Install additional development tools (recommended)
 sudo apt-get install -y gdb valgrind doxygen graphviz cppcheck clang-format
@@ -49,11 +51,11 @@ sudo apt-get install -y gdb valgrind doxygen graphviz cppcheck clang-format
 ```bash
 # For CentOS 7/RHEL 7
 sudo yum install -y gcc make mysql-server mysql-devel gd-devel \
-                    libcrypt-devel git autoconf
+                    libcrypt-devel git autoconf automake libtool
 
 # For CentOS 8+/RHEL 8+/Fedora
 sudo dnf install -y gcc make mysql-server mysql-devel gd-devel \
-                    libcrypt-devel git autoconf
+                    libcrypt-devel git autoconf automake libtool
 
 # Install additional development tools (optional)
 sudo dnf install -y gdb valgrind doxygen graphviz
@@ -73,6 +75,10 @@ ls -la
 
 ### 2. Configure Build Environment
 ```bash
+# If configure script doesn't exist or you modified configure.ac, regenerate it:
+# (This step uses GNU Autotools - autoconf, automake, etc.)
+autoreconf -fvi
+
 # Make configure script executable (if needed)
 chmod +x configure
 
@@ -144,14 +150,19 @@ ls -la *.h | grep -E "(campaign|mud_options|vnums)\.h"
 ```
 
 ### 2. Configure Database Connection
-Edit `campaign.h` to set database connection parameters:
+The database connection is configured in `lib/mysql_config` file:
 
-```c
-/* Database Configuration */
-#define MYSQL_SERVER "localhost"
-#define MYSQL_USER "luminari"
-#define MYSQL_PASSWD "your_secure_password"
-#define MYSQL_DB "luminari"
+```bash
+# Create or edit the MySQL configuration file
+cat > lib/mysql_config << EOF
+mysql_host = localhost
+mysql_database = luminari
+mysql_username = luminari
+mysql_password = your_secure_password
+EOF
+
+# Set appropriate permissions
+chmod 600 lib/mysql_config
 ```
 
 ### 3. Configure Server Options
@@ -341,6 +352,18 @@ make
 make 2>&1 | grep -i error
 ```
 
+#### Missing configure Script
+```bash
+# If configure script is missing or outdated
+autoreconf -fvi
+
+# If autoreconf fails with missing macros
+aclocal
+autoheader
+automake --add-missing
+autoconf
+```
+
 #### Permission Issues
 ```bash
 # Fix executable permissions
@@ -356,9 +379,10 @@ chmod 755 lib/
 
 #### Database Connection Problems
 1. Verify MySQL service is running
-2. Check database credentials in `campaign.h`
+2. Check database credentials in `lib/mysql_config`
 3. Test database connection manually
 4. Check MySQL error logs
+5. Verify mysql_config file permissions (should be 600)
 
 #### Port Binding Issues
 ```bash

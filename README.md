@@ -70,7 +70,14 @@ This project embodies commitment, self-motivation, and perseverance through chal
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 
-# Build the server
+# Option 1: Traditional build with Autotools
+autoreconf -fvi  # Only if configure script missing
+./configure
+make
+
+# Option 2: Build with CMake (alternative)
+mkdir build && cd build
+cmake ..
 make
 
 # Run the server (after configuration)
@@ -84,21 +91,6 @@ bin/circle
 
 For detailed installation instructions including system requirements, dependencies, database setup, and configuration, please see the **[Setup and Build Guide](docs/guides/SETUP_AND_BUILD_GUIDE.md)**.
 
-### Quick Start
-```bash
-# Clone the repository
-git clone https://github.com/LuminariMUD/Luminari-Source.git
-cd Luminari-Source
-
-# Build the server
-make
-
-# Run the server (after configuration)
-bin/circle
-
-# Or use the autorun script for automatic restarts
-./autorun
-```
 
 ## Usage
 
