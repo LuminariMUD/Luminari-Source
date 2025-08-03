@@ -894,7 +894,8 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
                              "       region_data as rd "
                              "  where ri.vnum = rd.vnum and"
                              "        rd.region_type = 1 and"
-                             "        ST_GeometryType(ri.region_polygon) IN ('POLYGON', 'MULTIPOLYGON') "
+                             "        ST_GeometryType(ri.region_polygon) IN ('POLYGON', 'MULTIPOLYGON') and"
+                             "        ST_GeometryType(ri.region_polygon) NOT LIKE '%%COLLECTION%%' "
                              "  order by ST_Distance(ri.region_polygon, ST_GeomFromText('Point(%d %d)')) desc " // GEOGRAPHIC regions only.
                              " ) nearby_regions "
                              "  where ((n > 0) or (ne > 0) or (e > 0) or (se > 0) or (s > 0) or (sw > 0) or (w > 0) or (nw > 0));",
@@ -923,13 +924,15 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
-    exit(1);
+    log("SYSERR: get_nearby_regions failed for zone %d, coords (%d,%d)", zone, x, y);
+    return NULL;  /* Return empty region list on error */
   }
 
   if (!(result = mysql_store_result(conn)))
   {
     log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
-    exit(1);
+    log("SYSERR: get_nearby_regions failed to store result for zone %d, coords (%d,%d)", zone, x, y);
+    return NULL;  /* Return empty region list on error */
   }
 
   while ((row = mysql_fetch_row(result)))
