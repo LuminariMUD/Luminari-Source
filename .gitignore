@@ -97,6 +97,7 @@ util/wld2html
 *.swp
 *.swo
 *~
+*.code-workspace
 
 ####################
 # AI Assistant Files

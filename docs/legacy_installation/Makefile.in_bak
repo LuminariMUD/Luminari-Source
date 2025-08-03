@@ -1,0 +1,75 @@
+# LuminariMUD Makefile.in - Makefile template used by 'configure'
+# Clean-up provided by seqwith.
+
+# C compiler to use
+CC = @CC@
+
+# Any special flags you want to pass to the compiler
+MYFLAGS = @MYFLAGS@
+
+#flags for profiling (see hacker.doc for more information)
+PROFILE = 
+
+##############################################################################
+# Do Not Modify Anything Below This Line (unless you know what you're doing) #
+##############################################################################
+MKTIME	:= \""$(shell date)\""
+MKUSER  := \""$(USER)\""
+MKHOST  := \""$(HOSTNAME)\""
+BRANCH	:= \""$(shell git branch)\""
+PARENT	:= \""$(shell git rev-parse HEAD)\""
+
+BINDIR = bin
+
+CFLAGS = @CFLAGS@ -std=gnu90 -Isrc $(MYFLAGS) $(PROFILE)
+CXXFLAGS = $(CFLAGS) -std=c++11
+
+LIBS = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcurl -lssl -lcrypto -lpthread
+
+SRCFILES := $(wildcard src/*.c)
+CPPFILES := $(wildcard src/*.cpp)
+OBJFILES := $(SRCFILES:src/%.c=src/%.o) $(CPPFILES:src/%.cpp=src/%.o)  
+
+default: circle
+
+all:
+	$(MAKE) $(BINDIR)/circle
+	$(MAKE) utils
+
+utils:
+	(cd util; $(MAKE) all)
+
+circle:
+	$(MAKE) $(BINDIR)/circle
+
+$(BINDIR)/circle : $(OBJFILES)
+	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
+
+# Always rebuild constants.c with other files so that luminari_build is updated
+src/constants.c: $(filter-out src/constants.c,$(SRCFILES))
+	touch src/constants.c
+
+src/constants.o: CFLAGS += -DMKTIME=$(MKTIME) -DMKUSER=$(MKUSER) -DMKHOST=$(MKHOST) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+
+SRCSCUTEST := $(filter-out unittests/CuTest/AllTests.c,$(wildcard unittests/CuTest/*.c)) unittests/CuTest/CuTest.c
+OBJSCUTEST := $(SRCSCUTEST:%.c=%.o) $(OBJFILES)
+
+unittests/CuTest/AllTests.c: $(SRCSCUTEST)
+	unittests/CuTest/make-tests.sh unittests/CuTest/*.c > $@
+
+.PHONY: cutest
+cutest: $(BINDIR)/cutest
+$(BINDIR)/cutest: CFLAGS += -DLUMINARI_CUTEST
+$(BINDIR)/cutest: $(OBJSCUTEST) unittests/CuTest/AllTests.o
+	$(CC) -o $@ $(PROFILE) $^ $(LIBS) && $@
+
+clean:
+	rm -f src/*.o depend
+
+# Dependencies for the object files (automagically generated with
+# gcc -MM)
+
+depend:
+	$(CC) -MM src/*.c | sed "s|^\([^:]*\)\.o:|src/\1.o:|" > depend
+
+-include depend
