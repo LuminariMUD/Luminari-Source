@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
-project(TbaMUD C)
+project(LuminariMUD C CXX)
 
-set(CMAKE_C_STANDARD 99)
+# IMPORTANT: LuminariMUD uses ANSI C90/C89 standard, NOT C99!
+set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 11)  # For performance monitoring (perfmon.cpp)
 
 # Include checker modules
 include(CheckFunctionExists)
@@ -11,12 +14,23 @@ include(CheckStructHasMember)
 include(CheckSymbolExists)
 include(CheckCSourceCompiles)
 
-# Output paths
-set(BIN_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin)
+# Output paths - LuminariMUD uses ../bin/circle convention
+set(BIN_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/../bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
 
 # Include source and build paths
 include_directories(src ${CMAKE_BINARY_DIR})
+
+# Check for required configuration headers
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/campaign.h)
+    message(FATAL_ERROR "campaign.h not found! Copy campaign.example.h to campaign.h and configure it.")
+endif()
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/mud_options.h)
+    message(FATAL_ERROR "mud_options.h not found! Copy mud_options.example.h to mud_options.h and configure it.")
+endif()
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/vnums.h)
+    message(FATAL_ERROR "vnums.h not found! Copy vnums.example.h to vnums.h and configure it.")
+endif()
 
 # ========== Compiler flags ==========
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -185,6 +199,51 @@ endif()
 # ========== Struct checks ==========
 if (HAVE_NETINET_IN_H)
     check_struct_has_member("struct in_addr" s_addr netinet/in.h HAVE_STRUCT_IN_ADDR)
+endif()
+
+# ========== MySQL/MariaDB support ==========
+find_package(PkgConfig)
+if (PkgConfig_FOUND)
+    pkg_check_modules(MYSQL mysqlclient)
+    if (MYSQL_FOUND)
+        message(STATUS "Found MySQL: ${MYSQL_LIBRARIES}")
+        list(APPEND EXTRA_LIBS ${MYSQL_LIBRARIES})
+        include_directories(${MYSQL_INCLUDE_DIRS})
+        set(CIRCLE_MYSQL 1)
+    else()
+        # Try manual search
+        find_path(MYSQL_INCLUDE_DIR mysql.h
+            PATHS /usr/include/mysql /usr/local/include/mysql
+            PATH_SUFFIXES mysql)
+        find_library(MYSQL_LIBRARY mysqlclient
+            PATHS /usr/lib /usr/local/lib
+            PATH_SUFFIXES mysql)
+        if (MYSQL_INCLUDE_DIR AND MYSQL_LIBRARY)
+            message(STATUS "Found MySQL manually: ${MYSQL_LIBRARY}")
+            list(APPEND EXTRA_LIBS ${MYSQL_LIBRARY})
+            include_directories(${MYSQL_INCLUDE_DIR})
+            set(CIRCLE_MYSQL 1)
+        else()
+            message(WARNING "MySQL not found. MySQL support will be disabled.")
+        endif()
+    endif()
+endif()
+
+# ========== GD Graphics Library ==========
+find_package(PkgConfig)
+if (PkgConfig_FOUND)
+    pkg_check_modules(GD gdlib)
+    if (GD_FOUND)
+        message(STATUS "Found GD: ${GD_LIBRARIES}")
+        list(APPEND EXTRA_LIBS ${GD_LIBRARIES})
+        include_directories(${GD_INCLUDE_DIRS})
+    else()
+        find_library(GD_LIBRARY gd)
+        if (GD_LIBRARY)
+            message(STATUS "Found GD manually: ${GD_LIBRARY}")
+            list(APPEND EXTRA_LIBS ${GD_LIBRARY})
+        endif()
+    endif()
 endif()
 
 # ========== crypt()/libcrypt ==========
@@ -392,16 +451,101 @@ configure_file(
 
 
 
-# ========== Source-filer ==========
-file(GLOB SRC_FILES src/*.c)
+# ========== Source files ==========
+# Main C source files
+file(GLOB SRC_C_FILES src/*.c)
 
-# ========== Bygg kjørbar ==========
+# C++ performance monitoring (if enabled)
+if (EXISTS ${CMAKE_SOURCE_DIR}/src/perfmon.cpp)
+    list(APPEND SRC_FILES ${CMAKE_SOURCE_DIR}/src/perfmon.cpp)
+    set(HAVE_PERFMON 1)
+endif()
+
+# Exclude utility programs from main build
+list(REMOVE_ITEM SRC_C_FILES 
+    ${CMAKE_SOURCE_DIR}/src/autowiz.c
+    ${CMAKE_SOURCE_DIR}/src/asciipasswd.c
+    ${CMAKE_SOURCE_DIR}/src/plrtoascii.c
+    ${CMAKE_SOURCE_DIR}/src/rebuildAsciiIndex.c
+    ${CMAKE_SOURCE_DIR}/src/rebuildMailIndex.c
+    ${CMAKE_SOURCE_DIR}/src/shopconv.c
+    ${CMAKE_SOURCE_DIR}/src/sign.c
+    ${CMAKE_SOURCE_DIR}/src/split.c
+    ${CMAKE_SOURCE_DIR}/src/wld2html.c
+)
+
+set(SRC_FILES ${SRC_C_FILES})
+
+# ========== Build main executable ==========
 add_executable(circle ${SRC_FILES})
-target_link_libraries(circle ${EXTRA_LIBS})
+target_link_libraries(circle ${EXTRA_LIBS} m)  # Always link math library
 
-add_subdirectory(src/util)
+# ========== Build utilities ==========
+if (BUILD_UTILS)
+    add_executable(autowiz src/autowiz.c)
+    add_executable(asciipasswd src/asciipasswd.c)
+    add_executable(plrtoascii src/plrtoascii.c)
+    add_executable(rebuildAsciiIndex src/rebuildAsciiIndex.c)
+    add_executable(rebuildMailIndex src/rebuildMailIndex.c)
+    add_executable(shopconv src/shopconv.c)
+    add_executable(sign src/sign.c)
+    add_executable(split src/split.c)
+    add_executable(wld2html src/wld2html.c)
+    
+    # Set output directory for utilities
+    set_target_properties(autowiz asciipasswd plrtoascii rebuildAsciiIndex
+                          rebuildMailIndex shopconv sign split wld2html
+                          PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
+endif()
 
+# ========== Build unit tests ==========
+if (BUILD_TESTS)
+    file(GLOB TEST_FILES unittests/CuTest/*.c)
+    add_executable(cutest ${TEST_FILES})
+    set_target_properties(cutest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
+endif()
+
+# ========== Compiler warnings and options ==========
+if (CMAKE_COMPILER_IS_GNUCC)
+    # Ensure C90 compliance
+    target_compile_options(circle PRIVATE -std=c90 -pedantic)
+    
+    # Additional warnings for development
+    if (DEVELOPER_MODE)
+        target_compile_options(circle PRIVATE -Wextra -Wshadow -Wcast-qual 
+                               -Wwrite-strings -Wconversion -Wunreachable-code)
+    endif()
+endif()
+
+# ========== Feature toggles ==========
 if (MEMORY_DEBUG)
-    message(STATUS "MEMORY_DEBUG is activated, setting up zmalloc")
+    message(STATUS "MEMORY_DEBUG is activated")
     target_compile_definitions(circle PRIVATE MEMORY_DEBUG)
 endif()
+
+if (DMALLOC)
+    message(STATUS "DMALLOC is activated")
+    target_compile_definitions(circle PRIVATE DMALLOC)
+    find_library(DMALLOC_LIBRARY dmalloc)
+    if (DMALLOC_LIBRARY)
+        target_link_libraries(circle ${DMALLOC_LIBRARY})
+    endif()
+endif()
+
+# ========== Installation ==========
+install(TARGETS circle DESTINATION ${BIN_OUTPUT_DIR})
+if (BUILD_UTILS)
+    install(TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
+                    rebuildMailIndex shopconv sign split wld2html
+            DESTINATION ${BIN_OUTPUT_DIR})
+endif()
+
+# ========== Summary ==========
+message(STATUS "========================================")
+message(STATUS "LuminariMUD CMake Configuration Summary:")
+message(STATUS "  C Standard: C90/C89 (ANSI C)")
+message(STATUS "  MySQL Support: ${CIRCLE_MYSQL}")
+message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "  Install Prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "  Binary Output: ${BIN_OUTPUT_DIR}")
+message(STATUS "========================================")

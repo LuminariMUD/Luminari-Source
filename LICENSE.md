@@ -1,1 +1,1 @@
-See LICENSE.md for licensing information.
+See LICENSE.md for licensing information and docs/legal/.
