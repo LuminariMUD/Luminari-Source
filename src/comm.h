@@ -13,6 +13,11 @@
 #ifndef _COMM_H_
 #define _COMM_H_
 
+/* Define RETSIGTYPE if not already defined */
+#ifndef RETSIGTYPE
+#define RETSIGTYPE void
+#endif
+
 #define NUM_RESERVED_DESCS 8
 #define COPYOVER_FILE "copyover.dat"
 
