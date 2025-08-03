@@ -1,0 +1,7 @@
+set pagination off
+set logging on
+set logging file gdb_debug.log
+set print pretty on
+catch throw
+break main
+run -q 4100

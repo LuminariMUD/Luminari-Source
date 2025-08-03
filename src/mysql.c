@@ -581,8 +581,8 @@ void load_regions()
                              "zone_vnum, "
                              "name, "
                              "region_type, "
-                             "ST_NumPoints(ST_ExteriorRing(`region_polygon`)), "
-                             "ST_AsText(ST_ExteriorRing(region_polygon)), "
+                             "IFNULL(ST_NumPoints(ST_ExteriorRing(`region_polygon`)), 0), "
+                             "IFNULL(ST_AsText(ST_ExteriorRing(region_polygon)), ''), "
                              "region_props, "
                              "region_reset_data, "
                              "region_reset_time "
@@ -611,6 +611,8 @@ void load_regions()
       {
         free(region_table[j].name);
         free(region_table[j].vertices);
+        if (region_table[j].reset_data)
+          free(region_table[j].reset_data);
         clear_region_event_list(&region_table[j]);
       }
       free(region_table);
@@ -621,6 +623,12 @@ void load_regions()
 
   while ((row = mysql_fetch_row(result)))
   {
+    /* Skip rows with NULL values in required fields (except row[5] which can be empty for regions without polygons) */
+    if (!row[0] || !row[1] || !row[2] || !row[3] || !row[4] || !row[6]) {
+      log("SYSERR: NULL value in region row, skipping");
+      continue;
+    }
+    
     region_table[i].vnum = atoi(row[0]);
     region_table[i].rnum = i;
     region_table[i].zone = real_zone(atoi(row[1]));
@@ -628,45 +636,70 @@ void load_regions()
     region_table[i].region_type = atoi(row[3]);
     region_table[i].num_vertices = atoi(row[4]);
     region_table[i].region_props = atoi(row[6]);
+    region_table[i].reset_time = 0;
+    region_table[i].reset_data = NULL;
 
-    /* Parse the polygon text data to get the vertices, etc.
-       eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
-    sscanf(row[5], "LINESTRING(%[^)])", buf2);
-    tokens = tokenize(buf2, ",");
-    if (!tokens) {
-      log("SYSERR: tokenize() failed in load_regions for region %s", row[2]);
-      /* Clean up this region entry */
-      if (region_table[i].name) free(region_table[i].name);
-      /* Skip to next region */
-      continue;
+    /* Check if we have polygon data */
+    if (region_table[i].num_vertices == 0 || !row[5] || strlen(row[5]) == 0) {
+      /* No polygon data - create empty region */
+      region_table[i].vertices = NULL;
+      log("INFO: Region %d (%s) has no polygon data", region_table[i].vnum, region_table[i].name);
+    } else {
+      /* Parse the polygon text data to get the vertices, etc.
+         eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
+      sscanf(row[5], "LINESTRING(%[^)])", buf2);
+      tokens = tokenize(buf2, ",");
+      if (!tokens) {
+        log("SYSERR: tokenize() failed in load_regions for region %s", row[2]);
+        /* Clean up this region entry */
+        if (region_table[i].name) free(region_table[i].name);
+        /* Skip to next region */
+        continue;
+      }
+
+      CREATE(region_table[i].vertices, struct vertex, region_table[i].num_vertices);
+
+      vtx = 0;
+
+      for (it = tokens; it && *it; ++it)
+      {
+        sscanf(*it, "%d %d", &(region_table[i].vertices[vtx].x), &(region_table[i].vertices[vtx].y));
+        vtx++;
+      }
+      free_tokens(tokens);
     }
 
-    CREATE(region_table[i].vertices, struct vertex, region_table[i].num_vertices);
-
-    vtx = 0;
-
-    for (it = tokens; it && *it; ++it)
-    {
-      sscanf(*it, "%d %d", &(region_table[i].vertices[vtx].x), &(region_table[i].vertices[vtx].y));
-      vtx++;
-    }
-    free_tokens(tokens);
-
-    /* Add a reset event if this is an encounter region */
+    /* Store event data for later creation */
     if (region_table[i].region_type == REGION_ENCOUNTER &&
-        atoi(row[8]) > 0)
+        row[8] && atoi(row[8]) > 0)
     {
-      log(" adding event for vnum %d", region_table[i].vnum);
-      NEW_EVENT(eENCOUNTER_REG_RESET, &(region_table[i].vnum), row[7], atoi(row[8]) RL_SEC);
+      region_table[i].reset_time = atoi(row[8]);
+      if (row[7])
+        region_table[i].reset_data = strdup(row[7]);
+      else
+        region_table[i].reset_data = strdup("");
     }
     i++;
   }
 
   /* Set top_of_region_table to the last valid index */
-  if (i > 0)
+  if (i > 0) {
     top_of_region_table = i - 1;
-  else
+    log("INFO: Loaded %d regions, top_of_region_table set to %d", i, top_of_region_table);
+    
+    /* Now create events after top_of_region_table is set */
+    for (j = 0; j <= top_of_region_table; j++) {
+      if (region_table[j].region_type == REGION_ENCOUNTER &&
+          region_table[j].reset_time > 0)
+      {
+        log(" adding event for vnum %d", region_table[j].vnum);
+        NEW_EVENT(eENCOUNTER_REG_RESET, &(region_table[j].vnum), region_table[j].reset_data, region_table[j].reset_time RL_SEC);
+      }
+    }
+  } else {
     top_of_region_table = -1;
+    log("INFO: No regions loaded, top_of_region_table set to -1");
+  }
 
   mysql_free_result(result);
 }

@@ -131,6 +131,10 @@ struct region_data
   int num_vertices;        /* The number of vertices. */
 
   struct list_data *events; /* Used for region events */
+  
+  /* Encounter region reset data */
+  int reset_time;     /* Time in seconds for encounter reset */
+  char *reset_data;   /* Data for encounter reset */
 };
 
 struct path_data
