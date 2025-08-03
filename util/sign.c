@@ -30,6 +30,11 @@
 #include <signal.h>
 #include <errno.h>
 
+/* Define RETSIGTYPE if not already defined */
+#ifndef RETSIGTYPE
+#define RETSIGTYPE void
+#endif
+
 /* Function prototypes */
 int init_socket(int port);
 char *get_text(char *fname);
