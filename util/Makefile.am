@@ -1,7 +1,7 @@
 # Makefile.am for LuminariMUD utilities
 
-# Custom binary directory
-bindir = $(top_builddir)/bin
+# Custom binary directory - install to parent bin
+bindir = $(top_builddir)/../bin
 
 # These are utility programs, installed to ../bin
 bin_PROGRAMS = \
@@ -34,6 +34,13 @@ wld2html_SOURCES = wld2html.c
 # Libraries needed by some utilities
 asciipasswd_LDADD = @CRYPTLIB@
 
+# Don't build in source directory
+AUTOMAKE_OPTIONS = subdir-objects
+
+# After installation, remove the executables from the source directory
+install-exec-hook:
+	rm -f $(bin_PROGRAMS)
+
 # Clean target
 clean-local:
-	rm -f *.o
+	rm -f *.o $(bin_PROGRAMS)
