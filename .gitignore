@@ -175,6 +175,16 @@ syslog.*
 syslog.CRASH
 
 ####################
+# Debug Files
+####################
+gdb.txt
+.gdbcommands
+.gdbinit_mud
+core
+core.*
+vgcore.*
+
+####################
 # PHP Tools
 ####################
 # Cache and temporary directories
