@@ -1,0 +1,52 @@
+Summary of attempts to fix all compilation warnings:
+
+1. Created a todo list to track the tasks:
+   - Run make clean to remove all build artifacts
+   - Run make all to build everything
+   - Fix any compilation warnings that appear
+
+2. Successfully ran 'make clean' to clean the build directory
+
+3. Attempted to run 'make all' and capture warnings:
+   - First attempt: make all 2>&1 | tee build_output.txt
+   - Tried to grep for warnings but the output was truncated
+
+4. Attempted to search for warnings in the build output:
+   - grep -E "(warning:|error:)" build_output.txt | head -50
+   - This returned no output
+
+5. Tried to rebuild and capture warnings more directly:
+   - make clean && make all 2>&1 | grep -i "warning" | head -50
+   - This showed many warnings but output was truncated
+
+6. Attempted to count total warnings:
+   - make clean && make all 2>&1 | grep -i "warning" | wc -l
+   - This showed the warnings in the terminal but the count showed as 0
+
+7. Tried to save warnings to a file:
+   - make clean && make all 2>&1 | grep -i "warning:" > warnings.txt
+   - The warnings.txt file was created but remained empty (0 bytes)
+
+8. Final attempt to build and count warnings:
+   - make all 2>&1 | tee build_full.log | grep -c "warning:"
+   - This was interrupted by the user
+
+Issues encountered:
+- Output redirection wasn't capturing the warnings properly
+- The grep commands weren't saving to files as expected
+- The build output was very long and kept getting truncated
+
+The build process clearly shows many warnings including:
+- Unused variables
+- Implicit function declarations (missing #include <time.h> in many files)
+- Type conversion warnings
+- Unused but set variables
+- Statement with no effect warnings
+- Array bounds warnings in crafting_new.c
+
+To properly fix all warnings, I would need to:
+1. Address missing includes (especially <time.h>)
+2. Remove or use unused variables
+3. Fix type conversions and casts
+4. Fix array bounds issues
+5. Remove statements with no effect
