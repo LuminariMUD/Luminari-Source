@@ -1,44 +1,42 @@
 /* ************************************************************************
  *      File:   vessels.h                            Part of LuminariMUD  *
- *   Purpose:   Unified Vessel/Vehicle system header                      *
- *  Systems:    CWG Vehicles, Outcast Ships, Greyhawk Ships               *
- * ************************************************************************ */
+ *   Purpose:   Vessel/Vehicle system for transportation                  *
+ * Servicing:   vessels.c                                                 *
+ *    Author:   [Future Development]                                      *
+ *             CWG Vehicle System integration from CircleMUD              *
+ ************************************************************************ */
+
+/*
+ * This file is currently disabled for compilation.
+ * Remove the '#if 0' and '#endif' lines when ready to implement.
+ *
+ * USAGE NOTES:
+ * - Create objects with ITEM_VEHICLE type to represent vehicles
+ * - Create objects with ITEM_CONTROL type that control vehicles
+ * - Create objects with ITEM_HATCH type for exits from vehicles
+ * - Rooms that vehicles can enter need ROOM_VEHICLE flag
+ * - Use 'drive <direction>' to move vehicles
+ * - Use 'drive into <vehicle>' to drive into another vehicle
+ * - Use 'drive outside' to drive out of a vehicle
+ *
+ * OBJECT VALUE SETUP:
+ * - ITEM_VEHICLE: value[0] = room vnum where vehicle interior leads
+ * - ITEM_CONTROL: value[0] = vnum of ITEM_VEHICLE object this controls
+ * - ITEM_HATCH: value[0] = vnum of ITEM_VEHICLE object this exits from
+ *
+ * QUICK NAVIGATION:
+ * - Item/Room Definitions: Lines 38-87
+ * - Future System Functions: Lines 89-104  
+ * - CWG System Functions: Lines 106-119
+ * - Commands: Lines 121-132
+ */
+#if 0
 
 #ifndef _VESSELS_H_
 #define _VESSELS_H_
 
-/*
- * Feature toggles
- * Enable subsystems incrementally to reduce initial compile/link risk.
- * Default: CWG enabled, Outcast and Greyhawk disabled.
- */
-#ifndef VESSELS_ENABLE_CWG
-#define VESSELS_ENABLE_CWG 1
-#endif
-
-#ifndef VESSELS_ENABLE_OUTCAST
-#define VESSELS_ENABLE_OUTCAST 0
-#endif
-
-#ifndef VESSELS_ENABLE_GREYHAWK
-#define VESSELS_ENABLE_GREYHAWK 0
-#endif
-
-#include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
-#include "oasis.h"
-#include "screen.h"
-#include "interpreter.h"
-#include "modify.h"
-#include "handler.h"
-#include "constants.h"
-
 /* ========================================================================= */
-/* ITEM TYPES FOR VESSEL SYSTEM                                              */
+/* ITEM TYPES FOR VESSEL SYSTEM                                             */
 /* ========================================================================= */
 
 #define ITEM_VEHICLE                53  /* Vehicle object - represents the actual vehicle */
@@ -46,15 +44,15 @@
 #define ITEM_HATCH                  55  /* Exit/entry point - doorway out of vehicle */
 
 /* ========================================================================= */
-/* ROOM FLAGS FOR VESSEL SYSTEM                                              */
+/* ROOM FLAGS FOR VESSEL SYSTEM                                             */
 /* ========================================================================= */
 
 #define ROOM_VEHICLE                40  /* Room that vehicles can move through */
 
 /* ========================================================================= */
-/* FUTURE ADVANCED VESSEL SYSTEM CONSTANTS                                   */
+/* FUTURE ADVANCED VESSEL SYSTEM CONSTANTS                                  */
 /* ========================================================================= */
-/* These constants are for the advanced vessel system, not the CWG system    */
+/* These constants are for the advanced vessel system, not the CWG system   */
 
 /* Vessel Types */
 #define VESSEL_TYPE_SAILING_SHIP    1   /* Ocean-going ships */
@@ -84,42 +82,16 @@
 #endif
 
 /* ========================================================================= */
-/* UNIFIED FACADE API                                                        */
+/* FUNCTION PROTOTYPES - FUTURE ADVANCED VESSEL SYSTEM                     */
 /* ========================================================================= */
+/* These functions are placeholders for a future advanced vessel system     */
 
-enum vessel_command {
-  VESSEL_CMD_NONE = 0,
-  VESSEL_CMD_DRIVE,          /* CWG drive */
-  VESSEL_CMD_SAIL_MOVE,      /* Outcast move */
-  VESSEL_CMD_SAIL_SPEED,     /* Outcast speed */
-  VESSEL_CMD_GH_TACTICAL,    /* Greyhawk tactical */
-  VESSEL_CMD_GH_STATUS,      /* Greyhawk status */
-};
-
-struct vessel_result {
-  int success;               /* boolean */
-  int error_code;            /* 0 success */
-  char message[256];
-  void *result_data;
-};
-
-/* Initialization entry point to be called at boot */
-void vessel_init_all(void);
-
-/* Unified command executor (optional facade) */
-struct vessel_result vessel_execute_command(struct char_data *actor,
-                                            enum vessel_command cmd,
-                                            const char *argument);
-
-/* ========================================================================= */
-/* FUNCTION PROTOTYPES - FUTURE ADVANCED VESSEL SYSTEM                       */
-/* ========================================================================= */
-/* These functions are placeholders for a future advanced vessel system      */
-
+/* Data Management Functions */
 void load_vessels(void);                                /* Load vessel data from storage */
 void save_vessels(void);                                /* Save vessel data to storage */
-struct vessel_data *find_vessel_by_id(int vessel_id);   /* Find vessel by unique ID */
+struct vessel_data *find_vessel_by_id(int vessel_id);  /* Find vessel by unique ID */
 
+/* Movement and Control Functions */
 void vessel_movement_tick(void);                        /* Process vessel movement each tick */
 void enter_vessel(struct char_data *ch, struct vessel_data *vessel);  /* Board a vessel */
 void exit_vessel(struct char_data *ch);                 /* Leave a vessel */
@@ -127,9 +99,9 @@ int can_pilot_vessel(struct char_data *ch, struct vessel_data *vessel); /* Check
 void pilot_vessel(struct char_data *ch, int direction); /* Pilot vessel in direction */
 
 /* ========================================================================= */
-/* FUNCTION PROTOTYPES - CWG VEHICLE SYSTEM (READY TO USE)                   */
+/* FUNCTION PROTOTYPES - CWG VEHICLE SYSTEM (READY TO USE)                 */
 /* ========================================================================= */
-#if VESSELS_ENABLE_CWG
+/* These functions implement the CWG vehicle system from CircleMUD          */
 
 /* Object Finding Functions */
 struct obj_data *find_vehicle_by_vnum(int vnum);       /* Find vehicle object by vnum */
@@ -141,15 +113,10 @@ void drive_into_vehicle(struct char_data *ch, struct obj_data *vehicle, char *ar
 void drive_outof_vehicle(struct char_data *ch, struct obj_data *vehicle);          /* Drive out of vehicle */
 void drive_in_direction(struct char_data *ch, struct obj_data *vehicle, int dir);  /* Drive in a direction */
 
-/* CWG System Commands (Ready to Use) */
-ACMD(do_drive);         /* Drive a vehicle - main command for CWG system */
-
-#endif /* VESSELS_ENABLE_CWG */
-
 /* ========================================================================= */
-/* OUTCAST SHIP SYSTEM CONSTANTS AND STRUCTURES                              */
+/* OUTCAST SHIP SYSTEM CONSTANTS AND STRUCTURES                            */
 /* ========================================================================= */
-#if VESSELS_ENABLE_OUTCAST
+/* Integrated from Outcast MUD ship system - fully functional              */
 
 #ifndef MAX_NUM_SHIPS
 #define MAX_NUM_SHIPS               50  /* Maximum number of ships in game */
@@ -169,23 +136,23 @@ struct outcast_ship_data {
   int speed;                            /* max speed */
   int capacity;                         /* max number of characters in ship */
   int damage;                           /* amount of damage (for firing) */
-
+  
   int size;                             /* size of the vehicle (for ramming) */
   int velocity;                         /* current velocity */
-
+  
   struct obj_data *obj;                 /* vehicle object */
   int obj_num;                          /* vehicle object number */
-
+  
   int timer;                            /* timer for ship action other than moving */
   int move_timer;                       /* timer for ship movement */
   int lastdir;                          /* last direction for the ship */
   int repeat;                           /* autopilot */
-
+  
   int in_room;                          /* room containing this ship */
   int entrance_room;                    /* room to enter/exit ship */
   int num_room;                         /* number of rooms in this vehicle */
   int room_list[MAX_NUM_ROOMS + 1];     /* room numbers in this vehicle */
-
+  
   int dock_vehicle;                     /* docked to another ship: -1 is not docked */
 };
 
@@ -203,7 +170,11 @@ struct outcast_navigation_data {
   int freq;                             /* ship sail once every 'freq' hours */
 };
 
-/* FUNCTION PROTOTYPES - OUTCAST SHIP SYSTEM */
+/* ========================================================================= */
+/* FUNCTION PROTOTYPES - OUTCAST SHIP SYSTEM                               */
+/* ========================================================================= */
+
+/* Core Ship Management */
 void initialize_outcast_ships(void);
 void outcast_ship_activity(void);
 int find_outcast_ship(struct obj_data *obj);
@@ -211,19 +182,21 @@ bool is_outcast_ship_docked(int t_ship);
 bool is_valid_outcast_ship(int t_ship);
 int in_which_outcast_ship(struct char_data *ch);
 void sink_outcast_ship(int t_ship);
+
+/* Ship Movement and Control */
 bool move_outcast_ship(int t_ship, int dir, struct char_data *ch);
 int outcast_navigation(struct char_data *ch, int mob, int t_ship);
+
+/* Special Procedures */
 int outcast_ship_proc(struct obj_data *obj, struct char_data *ch, int cmd, char *arg);
 int outcast_control_panel(struct obj_data *obj, struct char_data *ch, int cmd, char *argument);
 int outcast_ship_exit_room(int room, struct char_data *ch, int cmd, char *arg);
 int outcast_ship_look_out_room(int room, struct char_data *ch, int cmd, char *arg);
 
-#endif /* VESSELS_ENABLE_OUTCAST */
-
 /* ========================================================================= */
-/* GREYHAWK SHIP SYSTEM CONSTANTS AND STRUCTURES                             */
+/* GREYHAWK SHIP SYSTEM CONSTANTS AND STRUCTURES                           */
 /* ========================================================================= */
-#if VESSELS_ENABLE_GREYHAWK
+/* Integrated from Greyhawk MUD - advanced naval combat and navigation     */
 
 #ifndef GREYHAWK_MAXSHIPS
 #define GREYHAWK_MAXSHIPS           500  /* Maximum number of ships in game */
@@ -275,47 +248,47 @@ struct greyhawk_ship_data {
   unsigned char rarmor, rinternal;      /* Rear armor/internal current */
   unsigned char sarmor, sinternal;      /* Starboard armor/internal current */
   unsigned char parmor, pinternal;      /* Port armor/internal current */
-
+  
   /* Ship Performance */
   unsigned char maxturnrate, turnrate;  /* Maximum/current turn rate */
   unsigned char mainsail, maxmainsail;  /* Main sail HP/condition */
   unsigned char hullweight;             /* Weight of hull (in thousands) */
   unsigned char maxslots;               /* Maximum number of equipment slots */
-
+  
   /* Position and Movement */
   float x, y, z;                        /* Current coordinates */
   float dx, dy, dz;                     /* Delta movement vectors */
-
+  
   /* Crew */
   struct greyhawk_ship_crew sailcrew;   /* Sailing crew */
   struct greyhawk_ship_crew guncrew;    /* Gunnery crew */
-
+  
   /* Equipment */
   struct greyhawk_ship_slot slot[GREYHAWK_MAXSLOTS]; /* Equipment slots */
-
+  
   /* Identification */
   char owner[64];                       /* Ship owner name */
   struct obj_data *shipobj;             /* Associated ship object */
   char name[128];                       /* Ship name */
   char id[3];                           /* Ship ID designation (AA-ZZ) */
-
+  
   /* Location and Status */
   int dock;                             /* Docked room number */
   int shiproom;                         /* Ship interior room vnum */
   int shipnum;                          /* Ship index number */
   int location;                         /* Current world location */
-
+  
   /* Navigation */
   short int heading;                    /* Current heading (0-360) */
   short int setheading;                 /* Set heading (target) */
   short int minspeed, maxspeed;         /* Speed range */
   short int speed, setspeed;            /* Current and target speed */
-
+  
   /* Events */
   struct event *action;                 /* Ship action event */
 };
 
-/* Greyhawk Contact Data Structure */
+/* Greyhawk Contact Data Structure (for radar/sensors) */
 struct greyhawk_contact_data {
   int shipnum;                          /* Ship number being tracked */
   int x, y, z;                          /* Contact coordinates */
@@ -334,7 +307,12 @@ struct greyhawk_ship_map {
   char map[10];                         /* Map symbol representation */
 };
 
-/* GREYHAWK SHIP SYSTEM MACROS (subset used by implementation) */
+/* ========================================================================= */
+/* GREYHAWK SHIP SYSTEM MACROS                                             */
+/* ========================================================================= */
+/* Convenience macros for accessing ship data via room number              */
+
+/* Armor Access Macros */
 #define GREYHAWK_SHIPMAXFARMOR(in_room)    world[(in_room)].ship->maxfarmor
 #define GREYHAWK_SHIPMAXRARMOR(in_room)    world[(in_room)].ship->maxrarmor
 #define GREYHAWK_SHIPMAXPARMOR(in_room)    world[(in_room)].ship->maxparmor
@@ -346,6 +324,7 @@ struct greyhawk_ship_map {
 #define GREYHAWK_SHIPMAINSAIL(in_room)     world[(in_room)].ship->mainsail
 #define GREYHAWK_SHIPMAXMAINSAIL(in_room)  world[(in_room)].ship->maxmainsail
 
+/* Internal Structure Access Macros */
 #define GREYHAWK_SHIPMAXRINTERNAL(in_room) world[(in_room)].ship->maxrinternal
 #define GREYHAWK_SHIPMAXFINTERNAL(in_room) world[(in_room)].ship->maxfinternal
 #define GREYHAWK_SHIPMAXPINTERNAL(in_room) world[(in_room)].ship->maxpinternal
@@ -357,62 +336,198 @@ struct greyhawk_ship_map {
 #define GREYHAWK_SHIPHULLWEIGHT(in_room)   world[(in_room)].ship->hullweight
 #define GREYHAWK_SHIPMAXSLOTS(in_room)     world[(in_room)].ship->maxslots
 
+/* Crew Access Macros */
 #define GREYHAWK_SHIPSAILNAME(in_room)     world[(in_room)].ship->sailcrew.crewname
+#define GREYHAWK_SHIPSAILSPEED(in_room)    world[(in_room)].ship->sailcrew.speedadjust
+#define GREYHAWK_SHIPSAILGUN(in_room)      world[(in_room)].ship->sailcrew.gunadjust
+#define GREYHAWK_SHIPSAILREPAIR(in_room)   world[(in_room)].ship->sailcrew.repairspeed
 #define GREYHAWK_SHIPGUNNAME(in_room)      world[(in_room)].ship->guncrew.crewname
+#define GREYHAWK_SHIPGUNSPEED(in_room)     world[(in_room)].ship->guncrew.speedadjust
+#define GREYHAWK_SHIPGUNGUN(in_room)       world[(in_room)].ship->guncrew.gunadjust
+#define GREYHAWK_SHIPGUNREPAIR(in_room)    world[(in_room)].ship->guncrew.repairspeed
 #define GREYHAWK_SHIPSLOT(in_room)         world[(in_room)].ship->slot
 
+/* Identification Access Macros */
 #define GREYHAWK_SHIPID(in_room)           world[(in_room)].ship->id
 #define GREYHAWK_SHIPOWNER(in_room)        world[(in_room)].ship->owner
 #define GREYHAWK_SHIPNAME(in_room)         world[(in_room)].ship->name
 #define GREYHAWK_SHIPNUM(in_room)          world[(in_room)].ship->shipnum
 #define GREYHAWK_SHIPOBJ(in_room)          world[(in_room)].ship->shipobj
 
+/* Movement and Navigation Access Macros */
 #define GREYHAWK_SHIPX(in_room)            world[(in_room)].ship->x
 #define GREYHAWK_SHIPY(in_room)            world[(in_room)].ship->y
 #define GREYHAWK_SHIPZ(in_room)            world[(in_room)].ship->z
+#define GREYHAWK_SHIPDX(in_room)           world[(in_room)].ship->dx
+#define GREYHAWK_SHIPDY(in_room)           world[(in_room)].ship->dy
+#define GREYHAWK_SHIPDZ(in_room)           world[(in_room)].ship->dz
 #define GREYHAWK_SHIPHEADING(in_room)      world[(in_room)].ship->heading
 #define GREYHAWK_SHIPSETHEADING(in_room)   world[(in_room)].ship->setheading
 #define GREYHAWK_SHIPSPEED(in_room)        world[(in_room)].ship->speed
 #define GREYHAWK_SHIPSETSPEED(in_room)     world[(in_room)].ship->setspeed
 #define GREYHAWK_SHIPMAXSPEED(in_room)     world[(in_room)].ship->maxspeed
+#define GREYHAWK_SHIPMAXTURNRATE(in_room)  world[(in_room)].ship->maxturnrate
+#define GREYHAWK_SHIPTURNRATE(in_room)     world[(in_room)].ship->turnrate
+#define GREYHAWK_SHIPDOCK(in_room)         world[(in_room)].ship->dock
+#define GREYHAWK_SHIPROOM(in_room)         world[(in_room)].ship->shiproom
 #define GREYHAWK_SHIPLOCATION(in_room)     world[(in_room)].ship->location
 #define GREYHAWK_SHIPMINSPEED(in_room)     world[(in_room)].ship->minspeed
 
-/* FUNCTION PROTOTYPES - GREYHAWK SHIP SYSTEM */
+/* Event Access Macros */
+#define GREYHAWK_GET_SHIP_ACTION(shipnum)  greyhawk_ships[(shipnum)].action
+
+/* ========================================================================= */
+/* FUNCTION PROTOTYPES - GREYHAWK SHIP SYSTEM                              */
+/* ========================================================================= */
+
+/* Core Ship Management Functions */
 void greyhawk_initialize_ships(void);
 int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_cord, short int z_cord);
 void greyhawk_nameship(char *name, int shipnum);
 bool greyhawk_setsail(int class, int shipnum);
 
+/* Ship Status and Information Functions */
 void greyhawk_getstatus(int slot, int rnum);
 void greyhawk_getposition(int slot, int rnum);
 void greyhawk_dispweapon(int slot, int rnum);
 
+/* Navigation and Movement Functions */
 int greyhawk_bearing(float x1, float y1, float x2, float y2);
 float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2);
 int greyhawk_weaprange(int shipnum, int slot, char range);
 
+/* Contact and Radar Functions */
 void greyhawk_dispcontact(int i);
 int greyhawk_getcontacts(int shipnum);
 void greyhawk_setcontact(int i, struct obj_data *obj, int shipnum, int xoffset, int yoffset);
 int greyhawk_getarc(int ship1, int ship2);
 
+/* Tactical Map Functions */
 void greyhawk_getmap(int shipnum);
 void greyhawk_setsymbol(int x, int y, int symbol);
 
-/* Greyhawk specials exposed as plain functions for Luminari SPECIAL binding */
+/* Special Procedures */
 int greyhawk_ship_commands(struct obj_data *obj, struct char_data *ch, int cmd, char *argument);
 int greyhawk_ship_object(struct obj_data *obj, struct char_data *ch, int cmd, char *argument);
 int greyhawk_ship_loader(struct obj_data *obj, struct char_data *ch, int cmd, char *argument);
 
-#endif /* VESSELS_ENABLE_GREYHAWK */
+/* ========================================================================= */
+/* COMMAND PROTOTYPES                                                        */
+/* ========================================================================= */
 
-/* ========================================================================= */
-/* COMMAND PROTOTYPES (ADVANCED PLACEHOLDERS)                                */
-/* ========================================================================= */
+/* Future Advanced System Commands */
 ACMD(do_board);         /* Board a vessel */
 ACMD(do_disembark);     /* Leave a vessel */
 ACMD(do_pilot);         /* Pilot a vessel */
 ACMD(do_vessel_status); /* Show vessel status */
 
+/* CWG System Commands (Ready to Use) */
+ACMD(do_drive);         /* Drive a vehicle - main command for CWG system */
+
+/* Outcast System Commands (Ready to Use) */
+ACMD(do_enter_ship);    /* Enter a ship (handled by ship special procedure) */
+ACMD(do_order_ship);    /* Order ship commands (handled by control panel) */
+
+/* Greyhawk System Commands (Ready to Use) */
+ACMD(do_greyhawk_tactical);    /* Display tactical map */
+ACMD(do_greyhawk_contacts);    /* Show ship contacts/radar */
+ACMD(do_greyhawk_weaponspec);  /* Show weapon specifications */
+ACMD(do_greyhawk_status);      /* Show detailed ship status */
+ACMD(do_greyhawk_speed);       /* Control ship speed */
+ACMD(do_greyhawk_heading);     /* Set ship heading/direction */
+ACMD(do_greyhawk_disembark);   /* Leave ship */
+ACMD(do_greyhawk_shipload);    /* Admin: Load a new ship */
+ACMD(do_greyhawk_setsail);     /* Admin: Set ship sail configuration */
+
+/* ========================================================================= */
+/* INTEGRATION SUMMARY AND USAGE NOTES                                      */
+/* ========================================================================= */
+
+/*
+ * VESSEL SYSTEMS INTEGRATION COMPLETE
+ * ====================================
+ * 
+ * Three independent ship/vessel systems have been integrated into vessels.c/h:
+ * 1. OUTCAST SHIP SYSTEM - Multi-room ships with combat and autopilot
+ * 2. CWG VEHICLE SYSTEM - Object-based vehicles with simple drive mechanics
+ * 3. GREYHAWK SHIP SYSTEM - Advanced naval combat with tactical displays
+ * 
+ * All systems maintain strict backward compatibility and use prefixed naming.
+ * 
+ * OUTCAST SHIP SYSTEM FEATURES:
+ * - Multi-room ships with automatic room discovery
+ * - Ship-to-ship docking and boarding
+ * - Automated navigation with NPC pilots
+ * - Ship combat (firing cannons, ramming)
+ * - Speed control and autopilot functionality
+ * 
+ * CWG VEHICLE SYSTEM FEATURES:
+ * - Object-based vehicles using ITEM_VEHICLE type
+ * - Simple drive commands in compass directions
+ * - Vehicle-in-vehicle support (cars on ferries)
+ * - Requires ROOM_VEHICLE flag for movement
+ * 
+ * GREYHAWK SHIP SYSTEM FEATURES:
+ * - Advanced naval combat with detailed ship status
+ * - Tactical map display with contact tracking
+ * - Weapon systems with multiple firing arcs
+ * - Detailed armor and internal damage modeling
+ * - Crew management (sail crew, gunnery crew)
+ * - Equipment slot system for weapons and upgrades
+ * - Coordinate-based movement with heading/speed control
+ * - Real-time tactical display with ASCII ship diagrams
+ * 
+ * GREYHAWK SETUP REQUIREMENTS:
+ * 1. Create GREYHAWK_ITEM_SHIP objects (type 57) with values:
+ *    value[0] = ship interior room vnum
+ *    value[1] = ship index number
+ * 
+ * 2. Add ship structure to world data:
+ *    - Rooms need world[room].ship pointer to greyhawk_ship_data
+ *    - Ships need coordinate system integration
+ * 
+ * 3. Assign special procedures:
+ *    - Ship objects: greyhawk_ship_object (for entering)
+ *    - Control rooms: greyhawk_ship_commands (for ship commands)
+ *    - Admin rooms: greyhawk_ship_loader (for ship creation)
+ * 
+ * 4. Initialize ships:
+ *    - Call greyhawk_initialize_ships() during boot
+ *    - Use greyhawk_loadship() to create new ships
+ *    - Configure tactical map system
+ * 
+ * GREYHAWK PLAYER COMMANDS:
+ * - "tactical [x] [y]" - Display tactical map
+ * - "contacts" - Show detected ships
+ * - "weaponspec" - Show weapon specifications
+ * - "status" - Show detailed ship status with ASCII diagram
+ * - "speed [value]" - Set ship speed
+ * - "heading [degrees]" - Set ship heading (0-360)
+ * - "disembark" - Leave ship
+ * 
+ * GREYHAWK ADMIN COMMANDS:
+ * - "shipload <template>" - Create new ship from template
+ * - "setsail <class>" - Configure ship sail system
+ * - "mapload" - Initialize tactical map
+ * 
+ * NAMING CONFLICTS RESOLVED:
+ * - Outcast functions: "outcast_" prefix
+ * - CWG functions: no prefix (standard CircleMUD)
+ * - Greyhawk functions: "greyhawk_" prefix
+ * - Item types: ITEM_SHIP(56), GREYHAWK_ITEM_SHIP(57), ITEM_VEHICLE(53)
+ * - All constants and macros appropriately prefixed
+ * 
+ * INTEGRATION NOTES:
+ * - All systems disabled by #if 0 blocks for safety
+ * - Compatible with existing Luminari codebase patterns
+ * - Memory allocation uses appropriate Luminari patterns
+ * - API calls updated for Luminari compatibility
+ * - Follows Luminari naming conventions and K&R style
+ * 
+ * TO ENABLE ANY SYSTEM:
+ * Remove the #if 0 and #endif lines from both vessels.c and vessels.h
+ */
+
 #endif /* _VESSELS_H_ */
+
+#endif /* Disabled compilation block */
