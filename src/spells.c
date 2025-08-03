@@ -4066,7 +4066,7 @@ ASPELL(spell_spiritual_weapon)
   level = MAX(1, DIVINE_LEVEL(ch));
 
   bab = BAB(ch);
-  for (bab; bab > 0; bab -= 5)
+  for (; bab > 0; bab -= 5)
   {
     for (i = level; i > 0; i--)
       NEW_EVENT(eSPIRITUALWEAPON, ch, NULL, ((i * 6) * PASSES_PER_SEC));
@@ -4166,7 +4166,7 @@ ASPELL(spell_dancing_weapon)
   level = MAX(1, ARCANE_LEVEL(ch));
 
   bab = BAB(ch);
-  for (bab; bab > 0; bab -= 5)
+  for (; bab > 0; bab -= 5)
   {
     for (i = level; i > 0; i--)
       NEW_EVENT(eDANCINGWEAPON, ch, NULL, ((i * 6) * PASSES_PER_SEC));

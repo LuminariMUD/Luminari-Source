@@ -2706,7 +2706,6 @@ void basic_mud_vlog(const char *format, va_list args)
   time_t ct = time(0);
   struct tm *tm_info;
   char *time_s;
-  char time_buf[128];
 
   if (logfile == NULL)
   {
@@ -6626,7 +6625,7 @@ int d20(struct char_data *ch)
 
   int roll = dice(1, 20);
   int roll2 = 0;
-  int low = 0, high = 0;
+  int high = 0;
 
   // critical failure always returns a roll of one
   if (roll == 1) return 1;
@@ -6641,9 +6640,8 @@ int d20(struct char_data *ch)
       roll2 = dice(1, 20);
       if (roll != roll2)
       {
-        low = MIN(roll, roll2);
         roll = high = MAX(roll, roll2);
-        // send_to_char(ch, "\tY[Fortune of the Many Reroll! %d to %d]\tn\r\n", low, high);
+        // send_to_char(ch, "\tY[Fortune of the Many Reroll! %d to %d]\tn\r\n", MIN(roll2, roll), high);
       }
     }
   }
@@ -9164,11 +9162,10 @@ void send_combat_roll_info(struct char_data *ch, const char *messg, ...)
   {
     if (ch->desc && messg && *messg)
     {
-      size_t left;
       va_list args;
 
       va_start(args, messg);
-      left = vwrite_to_output(ch->desc, messg, args);
+      vwrite_to_output(ch->desc, messg, args);
       va_end(args);
     }
   }
@@ -9176,11 +9173,10 @@ void send_combat_roll_info(struct char_data *ch, const char *messg, ...)
   {
     if (ch->master->desc && messg && *messg)
     {
-      size_t left;
       va_list args;
 
       va_start(args, messg);
-      left = vwrite_to_output(ch->master->desc, messg, args);
+      vwrite_to_output(ch->master->desc, messg, args);
       va_end(args);
     }
   } 
@@ -9970,16 +9966,12 @@ int get_bonus_spells_by_circle_and_class(struct char_data *ch, int ch_class, int
   int i = 0, j = 0;
   int bonus_circles = 0;
   int max_value[NUM_BONUS_TYPES];
-  int max_val_spell[NUM_BONUS_TYPES];
-  int max_val_worn_slot[NUM_BONUS_TYPES];
   struct obj_data *obj = NULL;
   struct affected_type *aff = NULL;
 
   for (i = 0; i < NUM_BONUS_TYPES; i++)
   {
     max_value[i] = 0;
-    max_val_spell[i] = -1;
-    max_val_worn_slot[i] = -1;
   }
 
   // We'll do spells then gear.  We want to make sure that bonus
@@ -10004,8 +9996,6 @@ int get_bonus_spells_by_circle_and_class(struct char_data *ch, int ch_class, int
       else if (aff->modifier > max_value[aff->bonus_type])
       {
         max_value[aff->bonus_type] = aff->modifier;
-        max_val_spell[aff->bonus_type] = aff->spell;
-        max_val_worn_slot[aff->bonus_type] = -1;
       }
     }
   }
@@ -10033,8 +10023,6 @@ int get_bonus_spells_by_circle_and_class(struct char_data *ch, int ch_class, int
         else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
         {
           max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
-          max_val_spell[obj->affected[j].bonus_type] = -1;
-          max_val_worn_slot[obj->affected[j].bonus_type] = i;
         }
       }
     }
@@ -10059,16 +10047,12 @@ int get_spell_potency_bonus(struct char_data *ch)
   int i = 0, j = 0;
   int potency_bonus = 100;
   int max_value[NUM_BONUS_TYPES];
-  int max_val_spell[NUM_BONUS_TYPES];
-  int max_val_worn_slot[NUM_BONUS_TYPES];
   struct obj_data *obj = NULL;
   struct affected_type *aff = NULL;
 
   for (i = 0; i < NUM_BONUS_TYPES; i++)
   {
     max_value[i] = 0;
-    max_val_spell[i] = -1;
-    max_val_worn_slot[i] = -1;
   }
 
   // We'll do spells then gear.  We want to make sure that bonus
@@ -10093,8 +10077,6 @@ int get_spell_potency_bonus(struct char_data *ch)
       else if (aff->modifier > max_value[aff->bonus_type])
       {
         max_value[aff->bonus_type] = aff->modifier;
-        max_val_spell[aff->bonus_type] = aff->spell;
-        max_val_worn_slot[aff->bonus_type] = -1;
       }
     }
   }
@@ -10122,8 +10104,6 @@ int get_spell_potency_bonus(struct char_data *ch)
         else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
         {
           max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
-          max_val_spell[obj->affected[j].bonus_type] = -1;
-          max_val_worn_slot[obj->affected[j].bonus_type] = i;
         }
       }
     }
@@ -10148,16 +10128,12 @@ int get_spell_dc_bonus(struct char_data *ch)
   int i = 0, j = 0;
   int dc_bonus = 0;
   int max_value[NUM_BONUS_TYPES];
-  int max_val_spell[NUM_BONUS_TYPES];
-  int max_val_worn_slot[NUM_BONUS_TYPES];
   struct obj_data *obj = NULL;
   struct affected_type *aff = NULL;
 
   for (i = 0; i < NUM_BONUS_TYPES; i++)
   {
     max_value[i] = 0;
-    max_val_spell[i] = -1;
-    max_val_worn_slot[i] = -1;
   }
 
   // We'll do spells then gear.  We want to make sure that bonus
@@ -10182,8 +10158,6 @@ int get_spell_dc_bonus(struct char_data *ch)
       else if (aff->modifier > max_value[aff->bonus_type])
       {
         max_value[aff->bonus_type] = aff->modifier;
-        max_val_spell[aff->bonus_type] = aff->spell;
-        max_val_worn_slot[aff->bonus_type] = -1;
       }
     }
   }
@@ -10211,8 +10185,6 @@ int get_spell_dc_bonus(struct char_data *ch)
         else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
         {
           max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
-          max_val_spell[obj->affected[j].bonus_type] = -1;
-          max_val_worn_slot[obj->affected[j].bonus_type] = i;
         }
       }
     }
@@ -10237,16 +10209,12 @@ int get_spell_penetration_bonus(struct char_data *ch)
   int i = 0, j = 0;
   int penetration_bonus = 0;
   int max_value[NUM_BONUS_TYPES];
-  int max_val_spell[NUM_BONUS_TYPES];
-  int max_val_worn_slot[NUM_BONUS_TYPES];
   struct obj_data *obj = NULL;
   struct affected_type *aff = NULL;
 
   for (i = 0; i < NUM_BONUS_TYPES; i++)
   {
     max_value[i] = 0;
-    max_val_spell[i] = -1;
-    max_val_worn_slot[i] = -1;
   }
 
   // We'll do spells then gear.  We want to make sure that bonus
@@ -10271,8 +10239,6 @@ int get_spell_penetration_bonus(struct char_data *ch)
       else if (aff->modifier > max_value[aff->bonus_type])
       {
         max_value[aff->bonus_type] = aff->modifier;
-        max_val_spell[aff->bonus_type] = aff->spell;
-        max_val_worn_slot[aff->bonus_type] = -1;
       }
     }
   }
@@ -10300,8 +10266,6 @@ int get_spell_penetration_bonus(struct char_data *ch)
         else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
         {
           max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
-          max_val_spell[obj->affected[j].bonus_type] = -1;
-          max_val_worn_slot[obj->affected[j].bonus_type] = i;
         }
       }
     }
@@ -10326,16 +10290,12 @@ int get_spell_duration_bonus(struct char_data *ch)
   int i = 0, j = 0;
   int duration_bonus = 100;
   int max_value[NUM_BONUS_TYPES];
-  int max_val_spell[NUM_BONUS_TYPES];
-  int max_val_worn_slot[NUM_BONUS_TYPES];
   struct obj_data *obj = NULL;
   struct affected_type *aff = NULL;
 
   for (i = 0; i < NUM_BONUS_TYPES; i++)
   {
     max_value[i] = 0;
-    max_val_spell[i] = -1;
-    max_val_worn_slot[i] = -1;
   }
 
   // We'll do spells then gear.  We want to make sure that bonus
@@ -10360,8 +10320,6 @@ int get_spell_duration_bonus(struct char_data *ch)
       else if (aff->modifier > max_value[aff->bonus_type])
       {
         max_value[aff->bonus_type] = aff->modifier;
-        max_val_spell[aff->bonus_type] = aff->spell;
-        max_val_worn_slot[aff->bonus_type] = -1;
       }
     }
   }
@@ -10389,8 +10347,6 @@ int get_spell_duration_bonus(struct char_data *ch)
         else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
         {
           max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
-          max_val_spell[obj->affected[j].bonus_type] = -1;
-          max_val_worn_slot[obj->affected[j].bonus_type] = i;
         }
       }
     }

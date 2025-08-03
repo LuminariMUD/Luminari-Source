@@ -1251,9 +1251,9 @@ void check_random_encounter(struct char_data *ch)
         {
           // set mob details
           GET_REAL_RACE(mob) = encounter_table[j].race_type;
-          GET_SUBRACE(mob, 0) - encounter_table[j].subrace[0];
-          GET_SUBRACE(mob, 1) - encounter_table[j].subrace[1];
-          GET_SUBRACE(mob, 2) - encounter_table[j].subrace[2];
+          GET_SUBRACE(mob, 0) = encounter_table[j].subrace[0];
+          GET_SUBRACE(mob, 1) = encounter_table[j].subrace[1];
+          GET_SUBRACE(mob, 2) = encounter_table[j].subrace[2];
           mob->mob_specials.hostile = encounter_table[j].hostile;
           if (mob->mob_specials.hostile)
             mob->mob_specials.aggro_timer = 5;

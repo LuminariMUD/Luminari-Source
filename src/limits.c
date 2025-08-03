@@ -10,6 +10,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <time.h>
 #include "structs.h"
 #include "utils.h"
 #include "spells.h"
@@ -294,13 +295,6 @@ void mount_cleanup(struct char_data *ch)
  * falling/drowning/lava/etc */
 void hazard_tick(struct char_data *ch)
 {
-  bool flying = FALSE;
-
-  flying = FALSE;
-  if (is_flying(ch))
-    flying = TRUE;
-  if (RIDING(ch) && is_flying(RIDING(ch)))
-    flying = TRUE;
 
   /* falling */
   if (char_should_fall(ch, TRUE) && !char_has_mud_event(ch, eFALLING))
@@ -983,8 +977,6 @@ void run_autowiz(void)
   {
     size_t res;
     char buf[1024];
-    int i;
-
 #if defined(CIRCLE_UNIX)
     res = snprintf(buf, sizeof(buf), "nice ../bin/autowiz %d %s %d %s %d &",
                    CONFIG_MIN_WIZLIST_LEV, WIZLIST_FILE, LVL_IMMORT, IMMLIST_FILE, (int)getpid());
@@ -997,7 +989,9 @@ void run_autowiz(void)
     if (res < sizeof(buf))
     {
       mudlog(CMP, LVL_IMMORT, FALSE, "Initiating autowiz.");
-      i = system(buf);
+      if (system(buf) == -1) {
+        log("SYSERR: Failed to run autowiz command");
+      }
       reboot_wizlists();
     }
     else

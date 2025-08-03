@@ -236,8 +236,8 @@ EVENTFUNC(event_countdown)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
-  struct room_data *room = NULL;
-  struct obj_data *obj = NULL;
+  /* struct room_data *room = NULL; */ /* Unused variable */
+  /* struct obj_data *obj = NULL; */   /* Unused variable */
   room_vnum *rvnum = NULL;
   room_rnum rnum = NOWHERE;
   region_vnum *regvnum = NULL;
@@ -263,14 +263,14 @@ EVENTFUNC(event_countdown)
     ch = (struct char_data *)pMudEvent->pStruct;
     break;
   case EVENT_OBJECT:
-    obj = (struct obj_data *)pMudEvent->pStruct;
+    /* obj = (struct obj_data *)pMudEvent->pStruct; */ /* Unused assignment */
     // obj_rnum = real_obj(*obj_vnum);
     // obj = &obj[real_obj(obj_rnum)];
     break;
   case EVENT_ROOM:
     rvnum = (room_vnum *)pMudEvent->pStruct;
     rnum = real_room(*rvnum);
-    room = &world[real_room(rnum)];
+    /* room = &world[real_room(rnum)]; */ /* Unused assignment */
     break;
   case EVENT_REGION:
     regvnum = (region_vnum *)pMudEvent->pStruct;
@@ -653,7 +653,7 @@ EVENTFUNC(event_daily_use_cooldown)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
-  struct obj_data *obj = NULL;
+  /* struct obj_data *obj = NULL; */ /* Unused variable */
   int cooldown = 0;
   int uses = 0;
   int nonfeat_daily_uses = 0;
@@ -674,7 +674,7 @@ EVENTFUNC(event_daily_use_cooldown)
     ch = (struct char_data *)pMudEvent->pStruct;
     break;
   case EVENT_OBJECT:
-    obj = (struct obj_data *)pMudEvent->pStruct;
+    /* obj = (struct obj_data *)pMudEvent->pStruct; */ /* Unused assignment */
     break;
   default:
     return 0;

@@ -28,7 +28,6 @@ char *get_env_value(const char *key) {
   char *equals_pos;
   char *line_start;
   char *value_start;
-  size_t key_len;
   
   value[0] = '\0';
   
@@ -42,7 +41,6 @@ char *get_env_value(const char *key) {
     }
   }
   
-  key_len = strlen(key);
   
   /* Read each line */
   while (fgets(line, sizeof(line), fp)) {

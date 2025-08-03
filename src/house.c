@@ -154,15 +154,10 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum, int locate, s
 static int House_load(room_vnum vnum)
 {
   FILE *fl;
-  int i = 0;
   // int num_objs = 0;
   char filename[MAX_STRING_LENGTH] = {'\0'};
   obj_save_data *loaded, *current;
-  struct obj_data *cont_row[MAX_BAG_ROWS];
   room_rnum rnum;
-
-  for (i = 0; i < MAX_BAG_ROWS; i++)
-    cont_row[i] = NULL;
 
   if ((rnum = real_room(vnum)) == NOWHERE)
     return (0);

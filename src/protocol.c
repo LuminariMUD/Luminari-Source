@@ -8,6 +8,7 @@
  ******************************************************************************/
 #include <arpa/telnet.h>
 #include <sys/types.h>
+#include <time.h>
 #include "protocol.h"
 #include "conf.h"
 #include "sysdep.h"

@@ -2474,7 +2474,7 @@ static void mod_llog_entry(struct last_entry *llast, int type)
 {
   FILE *fp;
   struct last_entry mlast;
-  int size, recs, tmp, i, j;
+  int size, recs, tmp;
 
   if (!(fp = fopen(LAST_FILE, "r+")))
   {
@@ -2492,7 +2492,7 @@ static void mod_llog_entry(struct last_entry *llast, int type)
   for (tmp = recs; tmp > 0; tmp--)
   {
     fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
-    i = fread(&mlast, sizeof(struct last_entry), 1, fp);
+    (void)fread(&mlast, sizeof(struct last_entry), 1, fp);
     /* Another one to keep that stepback. */
     fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
 
@@ -2509,7 +2509,7 @@ static void mod_llog_entry(struct last_entry *llast, int type)
       }
       mlast.close_time = time(0);
       /*write it, and we're done!*/
-      j = fwrite(&mlast, sizeof(struct last_entry), 1, fp);
+      (void)fwrite(&mlast, sizeof(struct last_entry), 1, fp);
       fclose(fp);
       return;
     }
@@ -2528,7 +2528,6 @@ void add_llog_entry(struct char_data *ch, int type)
 
   FILE *fp;
   struct last_entry *llast;
-  int i;
 
   /* so if a char enteres a name, but bad password, otherwise loses link before
    * he gets a pref assinged, we won't record it */
@@ -2558,7 +2557,7 @@ void add_llog_entry(struct char_data *ch, int type)
       free(llast);
       return;
     }
-    i = fwrite(llast, sizeof(struct last_entry), 1, fp);
+    (void)fwrite(llast, sizeof(struct last_entry), 1, fp);
     fclose(fp);
   }
   else
@@ -2573,7 +2572,7 @@ void clean_llog_entries(void)
 {
   FILE *ofp, *nfp;
   struct last_entry mlast;
-  int recs, i, j;
+  int recs;
 
   if (!(ofp = fopen(LAST_FILE, "r")))
     return; /* no file, no gripe */
@@ -2601,8 +2600,11 @@ void clean_llog_entries(void)
   /* copy the rest */
   while (!feof(ofp))
   {
-    i = fread(&mlast, sizeof(struct last_entry), 1, ofp);
-    j = fwrite(&mlast, sizeof(struct last_entry), 1, nfp);
+    if (fread(&mlast, sizeof(struct last_entry), 1, ofp) != 1 && !feof(ofp)) {
+      log("SYSERR: Failed to read from last file");
+      break;
+    }
+    (void)fwrite(&mlast, sizeof(struct last_entry), 1, nfp);
   }
   fclose(ofp);
   fclose(nfp);
@@ -2616,7 +2618,6 @@ void list_llog_entries(struct char_data *ch)
 {
   FILE *fp;
   struct last_entry llast;
-  int i;
 
   if (!(fp = fopen(LAST_FILE, "r")))
   {
@@ -2625,13 +2626,20 @@ void list_llog_entries(struct char_data *ch)
     return;
   }
   send_to_char(ch, "Last log\r\n");
-  i = fread(&llast, sizeof(struct last_entry), 1, fp);
+  if (fread(&llast, sizeof(struct last_entry), 1, fp) != 1) {
+    log("SYSERR: Failed to read initial entry from last file");
+    fclose(fp);
+    return;
+  }
 
   while (!feof(fp))
   {
     send_to_char(ch, "%10s     %d     %s     %s", llast.username, llast.punique,
                  last_array[llast.close_type], ctime(&llast.time));
-    i = fread(&llast, sizeof(struct last_entry), 1, fp);
+    if (fread(&llast, sizeof(struct last_entry), 1, fp) != 1 && !feof(fp)) {
+      log("SYSERR: Failed to read from last file");
+      break;
+    }
   }
   fclose(fp);
 }
@@ -6815,7 +6823,7 @@ ACMD(do_file)
   int req_file_lines = 0;                /* Number of total lines in file to be read. */
   int lines_read = 0;                    /* Counts total number of lines read from the file. */
   int req_lines = 0;                     /* Number of lines requested to be displayed. */
-  int i, j;                              /* Generic loop counters. */
+  int i;                                 /* Generic loop counter. */
   int l;                                 /* Marks choice of file in fields array. */
   char field[MAX_INPUT_LENGTH] = {'\0'}; /* Holds users choice of file to be read. */
   char value[MAX_INPUT_LENGTH] = {'\0'}; /* Holds # lines to be read, if requested. */
@@ -6861,7 +6869,7 @@ ACMD(do_file)
   if (!*argument)
   {
     send_to_char(ch, "USAGE: file <filename> <num lines>\r\n\r\nFile options:\r\n");
-    for (j = 0, i = 0; fields[i].level; i++)
+    for (i = 0; fields[i].level; i++)
       if (fields[i].level <= GET_LEVEL(ch))
         send_to_char(ch, "%-15s%s\r\n", fields[i].cmd, fields[i].file);
     return;
@@ -7151,7 +7159,7 @@ ACMD(do_wizupdate)
 bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_name)
 {
   struct char_data *temp_ch = NULL;
-  int plr_i = 0, i, j, k;
+  int plr_i = 0, i, k;
   char old_name[MAX_NAME_LENGTH], old_pfile[50], new_pfile[50], buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (!ch)
@@ -7234,7 +7242,9 @@ bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_
 
   /* Rename the player's pfile */
   snprintf(buf, sizeof(buf), "mv %s %s", old_pfile, new_pfile);
-  j = system(buf);
+  if (system(buf) == -1) {
+    log("SYSERR: Failed to rename player file from %s to %s", old_pfile, new_pfile);
+  }
 
   /* Save the changed player index - the pfile is saved by perform_set */
   save_player_index();
@@ -8186,13 +8196,13 @@ ACMD(do_oconvert)
 
   send_to_char(ch, "%d %s\r\n", iarg, arg2);
 
-  const char *weapon_type_keywords[NUM_WEAPON_TYPES];
+  /* const char *weapon_type_keywords[NUM_WEAPON_TYPES]; */
 
   /* Initialize the weapon keyword array. */
-  for (i = 0; i < NUM_WEAPON_TYPES; i++)
+  /* for (i = 0; i < NUM_WEAPON_TYPES; i++)
     weapon_type_keywords[i] = NULL;
 
-  weapon_type_keywords[WEAPON_TYPE_DAGGER] = "dagger";
+  weapon_type_keywords[WEAPON_TYPE_DAGGER] = "dagger"; */
 
   //  for (i = 0; i < NUM_WEAPON_TYPES; i++) {
   /* Skip weapon types for which we have no keywords. */

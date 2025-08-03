@@ -49,7 +49,6 @@ ACMD(do_oasis_sedit)
   int number = NOWHERE, save = 0;
   shop_rnum real_num;
   struct descriptor_data *d;
-  const char *buf3;
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
@@ -58,7 +57,7 @@ ACMD(do_oasis_sedit)
     return;
 
   /* Parse any arguments. */
-  buf3 = two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
+  two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   if (!*buf1)
   {
@@ -381,10 +380,8 @@ static void sedit_no_trade_menu(struct descriptor_data *d)
 
 static void sedit_types_menu(struct descriptor_data *d)
 {
-  struct shop_data *shop;
   int i, count = 0;
 
-  shop = OLC_SHOP(d);
   get_char_colors(d->character);
 
   clear_screen(d);

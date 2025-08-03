@@ -267,10 +267,12 @@ sbyte test_result(sbyte offset)
 char *fread_action(FILE *fl, int nr)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  char *buf1 = NULL;
   int i = 0;
 
-  buf1 = fgets(buf, MAX_STRING_LENGTH, fl);
+  if (!fgets(buf, MAX_STRING_LENGTH, fl)) {
+    log("SYSERR: Failed to read from social file");
+    return NULL;
+  }
   if (feof(fl))
   {
     log("SYSERR: fread_action: unexpected EOF near action #%d", nr);
@@ -299,8 +301,8 @@ char *fread_action(FILE *fl, int nr)
 void boot_social_messages(void)
 {
   FILE *fl;
-  int nr = 0, hide, min_char_pos, min_pos, min_lvl, curr_soc = -1, i;
-  char next_soc[MAX_STRING_LENGTH] = {'\0'}, sorted[MAX_INPUT_LENGTH] = {'\0'}, *buf;
+  int nr = 0, hide, min_char_pos, min_pos, min_lvl, curr_soc = -1;
+  char next_soc[MAX_STRING_LENGTH] = {'\0'}, sorted[MAX_INPUT_LENGTH] = {'\0'};
 
   if (CONFIG_NEW_SOCIALS == TRUE)
   {
@@ -317,7 +319,8 @@ void boot_social_messages(void)
     *next_soc = '\0';
     while (!feof(fl))
     {
-      buf = fgets(next_soc, MAX_STRING_LENGTH, fl);
+      if (!fgets(next_soc, MAX_STRING_LENGTH, fl))
+        break;
       if (*next_soc == '~')
         top_of_socialt++;
     }
@@ -337,7 +340,8 @@ void boot_social_messages(void)
     /* count socials */
     while (!feof(fl))
     {
-      buf = fgets(next_soc, MAX_STRING_LENGTH, fl);
+      if (!fgets(next_soc, MAX_STRING_LENGTH, fl))
+        break;
       if (*next_soc == '\n' || *next_soc == '\r')
         top_of_socialt++; /* all socials are followed by a blank line */
     }
@@ -351,7 +355,10 @@ void boot_social_messages(void)
   /* now read 'em */
   for (;;)
   {
-    i = fscanf(fl, " %s ", next_soc);
+    if (fscanf(fl, " %s ", next_soc) != 1) {
+      log("SYSERR: Failed to read social command");
+      break;
+    }
     if (*next_soc == '$')
       break;
     if (CONFIG_NEW_SOCIALS == TRUE)
@@ -1240,13 +1247,15 @@ static void reset_time(void)
 {
   time_t beginning_of_time = 0;
   FILE *bgtime;
-  int i;
 
   if ((bgtime = fopen(TIME_FILE, "r")) == NULL)
     log("No time file '%s' starting from the beginning.", TIME_FILE);
   else
   {
-    i = fscanf(bgtime, "%ld\n", (long *)&beginning_of_time);
+    if (fscanf(bgtime, "%ld\n", (long *)&beginning_of_time) != 1) {
+      log("SYSERR: Failed to read time from time file");
+      beginning_of_time = 0;
+    }
     fclose(bgtime);
   }
 
@@ -1363,7 +1372,7 @@ void index_boot(int mode)
 {
   const char *index_filename, *prefix = NULL; /* NULL or egcs 1.1 complains */
   FILE *db_index, *db_file;
-  int rec_count = 0, size[2] = {0, 0}, i = 0;
+  int rec_count = 0, size[2] = {0, 0};
   char buf2[MAX_PATH] = {'\0'};
   char buf1[MAX_STRING_LENGTH] = {'\0'};
 
@@ -1414,7 +1423,10 @@ void index_boot(int mode)
   }
 
   /* first, count the number of records in the file so we can malloc */
-  i = fscanf(db_index, "%s\n", buf1);
+  if (fscanf(db_index, "%s\n", buf1) != 1) {
+    log("SYSERR: Failed to read from index file '%s'", buf2);
+    exit(1);
+  }
   while (*buf1 != '$')
   {
     snprintf(buf2, sizeof(buf2), "%s%s", prefix, buf1);
@@ -1422,7 +1434,8 @@ void index_boot(int mode)
     {
       log("SYSERR: File '%s' listed in '%s/%s': %s", buf2, prefix,
           index_filename, strerror(errno));
-      i = fscanf(db_index, "%s\n", buf1);
+      if (fscanf(db_index, "%s\n", buf1) != 1)
+        break;
       continue;
     }
     else
@@ -1436,7 +1449,8 @@ void index_boot(int mode)
     }
 
     fclose(db_file);
-    i = fscanf(db_index, "%s\n", buf1);
+    if (fscanf(db_index, "%s\n", buf1) != 1)
+      break;
   }
 
   /* Exit if 0 records, unless this is shops */
@@ -1492,7 +1506,11 @@ void index_boot(int mode)
   }
 
   rewind(db_index);
-  i = fscanf(db_index, "%s\n", buf1);
+  if (fscanf(db_index, "%s\n", buf1) != 1) {
+    log("SYSERR: Failed to reread from index file");
+    fclose(db_index);
+    return;
+  }
   while (*buf1 != '$')
   {
     snprintf(buf2, sizeof(buf2), "%s%s", prefix, buf1);
@@ -1525,7 +1543,8 @@ void index_boot(int mode)
     }
 
     fclose(db_file);
-    i = fscanf(db_index, "%s\n", buf1);
+    if (fscanf(db_index, "%s\n", buf1) != 1)
+      break;
   }
   fclose(db_index);
 

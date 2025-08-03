@@ -136,7 +136,6 @@ double get_radial_gradient(int x, int y)
 {
   int cx, cy;
   int xsize = WILD_X_SIZE;
-  int ysize = WILD_Y_SIZE;
   int xdist, ydist;
   double dist = WILD_X_SIZE;
   double distrec = WILD_X_SIZE;
@@ -160,7 +159,7 @@ double get_radial_gradient(int x, int y)
     {
       /* We are within this bounding box. */
       xsize = (bounding_boxes[box][2] - bounding_boxes[box][0]);
-      ysize = (bounding_boxes[box][3] - bounding_boxes[box][1]);
+      /* bounding box height calculation omitted */
 
       /* Get distance to the edges of the bounding box. */
       xdist = MIN(x - bounding_boxes[box][0], bounding_boxes[box][2] - x);
@@ -1254,7 +1253,7 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
 {
   gdImagePtr im; //declaration of the image
   FILE *out;     //output file
-  int white, black, blue, gray[255];
+  int gray[255];
   int i, x, y;
   int color_by_sector[NUM_ROOM_SECTORS];
   int sector_type;
@@ -1264,9 +1263,7 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
 
   im = gdImageCreate(xsize, ysize); //create an image
 
-  white = gdImageColorAllocate(im, 255, 255, 255);
-  black = gdImageColorAllocate(im, 0, 0, 0);
-  blue = gdImageColorAllocate(im, 0, 0, 255);
+  /* gray scale color allocation */
 
   //#define SECT_PLANES          18  // non-prime (no effect yet)
   //#define SECT_UD_WILD         19  // the outdoors of the underdark
@@ -1411,7 +1408,7 @@ void save_noise_to_file(int idx, const char *fn, int xsize, int ysize, int zoom)
 
   gdImagePtr im; //declaration of the image
   FILE *out;     //output file
-  int white, black, gray[255];
+  int gray[255];
   int i, x, y;
   double pixel;
   //  double dist;
@@ -1424,8 +1421,7 @@ void save_noise_to_file(int idx, const char *fn, int xsize, int ysize, int zoom)
 
   im = gdImageCreate(canvas_x, canvas_y); //create an image
 
-  white = gdImageColorAllocate(im, 255, 255, 255);
-  black = gdImageColorAllocate(im, 0, 0, 0);
+  /* color allocation for gray scale */
 
   for (i = 0; i < 255; i++)
   {

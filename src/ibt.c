@@ -11,6 +11,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <time.h>
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
@@ -117,7 +118,7 @@ static IBT_DATA *read_ibt(char *filename, FILE *fp)
   const char *word = NULL;
   char *id_num = NULL, *dated = NULL;
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  bool fMatch = FALSE, flgCheck = FALSE;
+  bool fMatch = FALSE;
   char letter = '\0';
 
   do
@@ -177,7 +178,10 @@ static IBT_DATA *read_ibt(char *filename, FILE *fp)
       break;
 
     case 'F':
-      KEY("Flags", flgCheck, fread_flags(fp, ibtData->flags, IBT_ARRAY_MAX));
+      if (!str_cmp(word, "Flags")) {
+        fread_flags(fp, ibtData->flags, IBT_ARRAY_MAX);
+        fMatch = TRUE;
+      }
       break;
 
     case 'I':
@@ -301,7 +305,7 @@ void load_ibt_file(int mode)
 
 void save_ibt_file(int mode)
 {
-  IBT_DATA *ibtData, *first_ibt, *last_ibt;
+  IBT_DATA *ibtData, *first_ibt;
   FILE *fp;
   char filename[MEDIUM_STRING] = {'\0'};
 
@@ -310,17 +314,14 @@ void save_ibt_file(int mode)
   case SCMD_BUG:
     snprintf(filename, sizeof(filename), "%s", BUGS_FILE);
     first_ibt = first_bug;
-    last_ibt = last_bug;
     break;
   case SCMD_IDEA:
     snprintf(filename, sizeof(filename), "%s", IDEAS_FILE);
     first_ibt = first_idea;
-    last_ibt = last_idea;
     break;
   case SCMD_TYPO:
     snprintf(filename, sizeof(filename), "%s", TYPOS_FILE);
     first_ibt = first_typo;
-    last_ibt = last_typo;
     break;
   default:
     log("SYSERR: Invalid mode (%d) in save_ibt_file", mode);
@@ -502,7 +503,7 @@ ACMD(do_ibt)
   char buf[MAX_STRING_LENGTH] = {'\0'}, imp[30];
   const char *arg_text;
   int i, num_res, num_unres;
-  IBT_DATA *ibtData, *first_ibt, *last_ibt;
+  IBT_DATA *ibtData, *first_ibt;
   int ano = 0;
 
   if (IS_NPC(ch))
@@ -512,7 +513,6 @@ ACMD(do_ibt)
   argument = two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   first_ibt = get_first_ibt(subcmd);
-  last_ibt = get_last_ibt(subcmd);
 
   if ((!*arg))
   {
@@ -884,14 +884,13 @@ ACMD(do_oasis_ibtedit)
   int number = NOTHING;
   struct descriptor_data *d;
   char buf1[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
-  const char *buf3;
 
   /* No editing as a mob or while being forced. */
   if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)
     return;
 
   /* Parse any arguments */
-  buf3 = two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
+  two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   if (!*buf1)
   {

@@ -214,9 +214,6 @@ EVENTFUNC(event_trap_triggered)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
-  struct room_data *room = NULL;
-  room_vnum *rvnum;
-  room_rnum rnum = NOWHERE;
 
   /* Non-event related variables.*/
   int effect;
@@ -244,9 +241,7 @@ EVENTFUNC(event_trap_triggered)
     ch = (struct char_data *)pMudEvent->pStruct;
     break;
   case EVENT_ROOM:
-    rvnum = (room_vnum *)pMudEvent->pStruct;
-    rnum = real_room(*rvnum);
-    room = &world[real_room(rnum)];
+    /* Room-based traps not yet implemented */
     break;
   default:
     break;

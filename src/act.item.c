@@ -3250,7 +3250,6 @@ ACMD(do_drink_old)
   struct obj_data *temp;
   // struct affected_type af;
   int amount, weight;
-  int on_ground = 0;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
@@ -3293,7 +3292,9 @@ ACMD(do_drink_old)
       return;
     }
     else
-      on_ground = 1;
+    {
+      /* on_ground = 1; */
+    }
   }
 
   if ((GET_OBJ_TYPE(temp) != ITEM_DRINKCON) &&

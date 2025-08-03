@@ -138,7 +138,6 @@ room_rnum add_room(struct room_data *room)
 
 int delete_room(room_rnum rnum)
 {
-  bool is_wilderness = FALSE;
   room_rnum i;
   int j;
   struct char_data *ppl, *next_ppl;
@@ -146,10 +145,6 @@ int delete_room(room_rnum rnum)
   struct room_data *room;
 
   /* Is this is a wilderness room? */
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(rnum), ZONE_WILDERNESS))
-  {
-    is_wilderness = TRUE;
-  }
 
   if (rnum <= 0 || rnum > top_of_world) /* Can't delete void yet. */
     return FALSE;

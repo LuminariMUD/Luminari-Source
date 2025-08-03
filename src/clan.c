@@ -11,6 +11,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <time.h>
 
 #include "structs.h"
 #include "utils.h"

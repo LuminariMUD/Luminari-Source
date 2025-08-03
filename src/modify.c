@@ -596,7 +596,7 @@ ACMDU(do_abilityset)
   struct char_data *vict;
   char name[MAX_INPUT_LENGTH] = {'\0'};
   char buf[MAX_INPUT_LENGTH] = {'\0'}, helpbuf[MAX_STRING_LENGTH] = {'\0'};
-  int skill, value, i, qend, pc, pl;
+  int skill, value, i, qend;
 
   argument = one_argument_u(argument, name);
 
@@ -621,8 +621,8 @@ ACMDU(do_abilityset)
     return;
   }
   skip_spaces(&argument);
-  pc = GET_CLASS(vict);
-  pl = GET_LEVEL(vict);
+  /* pc = GET_CLASS(vict); */ /* Unused variable */
+  /* pl = GET_LEVEL(vict); */ /* Unused variable */
 
   /* If there is no chars in argument */
   if (!*argument)

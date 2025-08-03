@@ -481,7 +481,6 @@ static int is_tell_ok(struct char_data *ch, struct char_data *vict)
  * called frequently, and should IMHO be kept as tight as possible. */
 ACMD(do_tell)
 {
-  int i = 0;
   struct char_data *vict = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
   const char *msg = NULL;
@@ -496,7 +495,6 @@ ACMD(do_tell)
     /* getpid() is not portable */
     send_to_char(ch, "Sorry, that is not available in the windows port.\r\n");
 #else  /* all other configurations */
-    // int i;
     char word[MAX_INPUT_LENGTH] = {'\0'}, *p, *q;
 
     if (last_webster_teller != -1L)
@@ -526,7 +524,9 @@ ACMD(do_tell)
       return;
     }
     snprintf(buf, sizeof(buf), "../bin/webster %s %d &", word, (int)getpid());
-    i = system(buf);
+    if (system(buf) == -1) {
+      log("SYSERR: Failed to execute webster command");
+    }
     last_webster_teller = GET_IDNUM(ch);
     send_to_char(ch, "You look up '%s' in Merriam-Webster.\r\n", word);
 #endif /* platform specific part */

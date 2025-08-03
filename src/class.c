@@ -3984,7 +3984,7 @@ void advance_level(struct char_data *ch, int class)
   }
   if (class == CLASS_NECROMANCER && (CLASS_LEVEL(ch, CLASS_NECROMANCER) == 1))
   {
-    KNOWS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE);
+    KNOWS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE) = TRUE;
   }
 
   if (GET_LEVEL(ch) >= 21)

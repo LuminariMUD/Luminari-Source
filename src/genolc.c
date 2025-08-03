@@ -361,9 +361,6 @@ ACMD(do_export_zone)
   char zone_name[MAX_INPUT_LENGTH] = {'\0'};
   const char *f;
   int success;
-  int i;
-
-  i = 0;
 
   /* system command locations are relative to
    * where the binary IS, not where it was run
@@ -396,7 +393,9 @@ ACMD(do_export_zone)
   if (!export_info_file(zrnum))
   {
     snprintf(sysbuf, sizeof(sysbuf), "mkdir %s", path);
-    i = system(sysbuf);
+    if (system(sysbuf) == -1) {
+      log("SYSERR: Failed to create directory %s", path);
+    }
   }
 
   if (!(success = export_info_file(zrnum)))
@@ -430,15 +429,21 @@ ACMD(do_export_zone)
 
   /* Remove the old copy. */
   snprintf(sysbuf, sizeof(sysbuf), "rm %s%s.tar.gz", path, f);
-  i = system(sysbuf);
+  if (system(sysbuf) == -1) {
+    log("SYSERR: Failed to remove old tar file");
+  }
 
   /* Tar the new copy. */
   snprintf(sysbuf, sizeof(sysbuf), "tar -cf %s%s.tar %sqq.info %sqq.wld %sqq.zon %sqq.mob %sqq.obj %sqq.trg %sqq.shp", path, f, path, path, path, path, path, path, path);
-  i = system(sysbuf);
+  if (system(sysbuf) == -1) {
+    log("SYSERR: Failed to create tar file");
+  }
 
   /* Gzip it. */
   snprintf(sysbuf, sizeof(sysbuf), "gzip %s%s.tar", path, f);
-  i = system(sysbuf);
+  if (system(sysbuf) == -1) {
+    log("SYSERR: Failed to gzip tar file");
+  }
 
   send_to_char(ch, "Files tar'ed to \"%s%s.tar.gz\"\r\n", path, f);
 }

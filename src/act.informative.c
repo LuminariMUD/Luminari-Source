@@ -10,6 +10,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <time.h>
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
@@ -3483,11 +3484,8 @@ ACMD(do_score)
   
   /* Character statistics and information */
   struct time_info_data playing_time;         /* Time played calculation */
-  struct obj_data *wielded = NULL;            /* Primary weapon equipped */
   int calc_bab = 0;                           /* Base Attack Bonus */
   int i = 0, counter = 0;                     /* Loop counters */
-  float height = 0.0;                         /* Character height (unused) */
-  int w_type = 0;                             /* Weapon type (unused) */
   
   /* Display formatting constants */
   const int line_length = 80;                 /* Standard line width */
@@ -3499,11 +3497,11 @@ ACMD(do_score)
   /* Calculate Base Attack Bonus (capped at MAX_BAB) */
   calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch));
   
-  /* Get primary wielded weapon */
-  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  /* Get primary wielded weapon (moved to local scope where needed) */
+  /* wielded = GET_EQ(ch, WEAR_WIELD_1); */
   
-  /* Determine weapon type (currently unused but preserved for future use) */
-  if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) {
+  /* Determine weapon type (moved to local scope where needed) */
+  /* if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON) {
     w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
   } else {
     if (IS_NPC(ch) && ch->mob_specials.attack_type != 0) {
@@ -3511,14 +3509,14 @@ ACMD(do_score)
     } else {
       w_type = TYPE_HIT;
     }
-  }
+  } */
   
   /* Calculate total time played */
   playing_time = *real_time_passed((time(0) - ch->player.time.logon) +
                                    ch->player.time.played, 0);
   
-  /* Convert height to inches (currently unused but preserved) */
-  height = GET_HEIGHT(ch) * 0.393700787402;
+  /* Convert height to inches (moved to display_vitals_section) */
+  /* height = GET_HEIGHT(ch) * 0.393700787402; */
   
   /* ========================================================================= */
   /* SECTION 1: BASIC IDENTITY INFORMATION                                     */
@@ -4651,17 +4649,6 @@ static void display_combat_section(struct char_data *ch, int line_length)
 {
   int calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch));
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
-  int w_type = 0;
-  
-  if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
-    w_type = GET_OBJ_VAL(wielded, 3) + TYPE_HIT;
-  else
-  {
-    if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
-      w_type = ch->mob_specials.attack_type + TYPE_HIT;
-    else
-      w_type = TYPE_HIT;
-  }
   
   skore_section_header(ch, "\tR*** COMBAT STATISTICS ***\tC", line_length, "\tC");
 
@@ -7757,7 +7744,7 @@ ACMD(do_areas)
   int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, tmp_len = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'}, *second, lev_str[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
   //  char zvn[MAX_INPUT_LENGTH] = {'\0'};
-  bool show_zone = FALSE, overlap = FALSE, overlap_shown = FALSE, show_popularity = FALSE;
+  bool show_zone = FALSE, overlap = FALSE, overlap_shown = FALSE;
   //  float pop;
   //  clan_rnum ocr;
   int num_areas = 0;
@@ -7812,7 +7799,7 @@ ACMD(do_areas)
   {
     if (real_clan(GET_CLAN(ch)) != NO_CLAN)
     {
-      show_popularity = TRUE;
+      /* show_popularity = TRUE; */
     }
   }
 
@@ -8322,8 +8309,6 @@ ACMD(do_track) {
 EVENTFUNC(event_tracks)
 {
   struct mud_event_data *pMudEvent = NULL;
-  struct room_data *room = NULL;
-  room_rnum rnum = NOWHERE;
   char buf[128];
 
   char creator_race[20]; /* The RACE of what created the tracks. */
@@ -8340,8 +8325,7 @@ EVENTFUNC(event_tracks)
   if (!pMudEvent->iId)
     return 0;
 
-  room = (struct room_data *)pMudEvent->pStruct;
-  rnum = real_room(room->number);
+  /* room = (struct room_data *)pMudEvent->pStruct; */
 
   /* Get the track information from the sVariables. */
   if (pMudEvent->sVariables)
