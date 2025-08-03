@@ -6803,9 +6803,6 @@ ACMD(do_use)
         }
       }
 
-      int i;
-      i = MIN_SPELL_LVL(spell, CLASS_CLERIC, DOMAIN_AIR);
-
       /* 2.b. Check the spell is on class spell list */
       if (!(((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
             ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||

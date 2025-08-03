@@ -3420,7 +3420,7 @@ void print_collection(struct char_data *ch, int ch_class)
    variables */
 void display_available_slots(struct char_data *ch, int class)
 {
-  int slot, num_circles = 0, slot_array[NUM_CIRCLES], last_slot = 0,
+  int slot, num_circles = 0, slot_array[NUM_CIRCLES],
             highest_circle = get_class_highest_circle(ch, class),
             line_length = 80;
   bool printed = FALSE, found_slot = FALSE;
@@ -3437,7 +3437,7 @@ void display_available_slots(struct char_data *ch, int class)
 
     if (found_slot)
     {
-      last_slot = slot; /* how do we punctuate the end */
+      /* slot tracking for circle printing */
       num_circles++;    /* keep track # circles we need to print */
     }
   }
@@ -4358,7 +4358,7 @@ EVENTFUNC(event_preparation)
  *   "un" prepare spells */
 ACMDU(do_consign_to_oblivion)
 {
-  int domain_1st = 0, domain_2nd = 0, class = CLASS_UNDEFINED;
+  int class = CLASS_UNDEFINED;
   char *spell_arg, *metamagic_arg, arg[MAX_INPUT_LENGTH] = {'\0'};
   int spellnum = 0, metamagic = 0;
   bool consign_all = FALSE;
@@ -4369,8 +4369,6 @@ ACMDU(do_consign_to_oblivion)
   {
   case SCMD_BLANK:
     class = CLASS_CLERIC;
-    domain_1st = GET_1ST_DOMAIN(ch);
-    domain_2nd = GET_2ND_DOMAIN(ch);
     break;
   case SCMD_FORGET:
     class = CLASS_WIZARD;

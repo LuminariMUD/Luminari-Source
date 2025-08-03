@@ -2964,7 +2964,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   const char *to_vict = NULL, *to_room = NULL;
   int i, j, x, spell_school = NOSCHOOL, dc_mod = 0;
   int enchantment_bonus = 0, illusion_bonus = 0, paralysis_bonus = 0, success = 0, misc_bonus = 0;
-  bool is_mind_affect = FALSE;
+  /* bool is_mind_affect = FALSE; */ /* Unused variable - only assigned, never read */
   struct damage_reduction_type *new_dr = NULL, *dr = NULL, *temp = NULL, *next_dr = NULL;
   bool is_immune_sleep = FALSE;
   bool is_immune_to_ability_drain = FALSE;
@@ -4706,7 +4706,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       {
         return;
       }
-      is_mind_affect = TRUE;
+      /* is_mind_affect = TRUE; */ /* Variable removed - was unused */
 
       af[0].spell = WARLOCK_FRIGHTFUL_BLAST;
       SET_BIT_AR(af[0].bitvector, AFF_SHAKEN);
@@ -6307,7 +6307,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    is_mind_affect = TRUE;
+    /* is_mind_affect = TRUE; */ /* Variable removed - was unused */
 
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     af[0].duration = dice(1, 3);
@@ -6614,7 +6614,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    is_mind_affect = TRUE;
+    /* is_mind_affect = TRUE; */ /* Variable removed - was unused */
 
     af[0].location = APPLY_INT;
     af[0].duration = level;
@@ -7002,7 +7002,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    is_mind_affect = TRUE;
+    /* is_mind_affect = TRUE; */ /* Variable removed - was unused */
 
     SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
     af[0].duration = dice(1, 4);
@@ -7563,7 +7563,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    is_mind_affect = TRUE;
+    /* is_mind_affect = TRUE; */ /* Variable removed - was unused */
 
     af[0].location = APPLY_SAVING_WILL;
     af[0].duration = 10 + level;
@@ -7663,7 +7663,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    is_mind_affect = TRUE;
+    /* is_mind_affect = TRUE; */ /* Variable removed - was unused */
 
     SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
     GET_MOVE(victim) -= level;
@@ -7898,7 +7898,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    is_mind_affect = TRUE;
+    /* is_mind_affect = TRUE; */ /* Variable removed - was unused */
 
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     af[0].duration = dice(1, 4) + 2;
@@ -7959,7 +7959,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     {
       return;
     }
-    is_mind_affect = TRUE;
+    /* is_mind_affect = TRUE; */ /* Variable removed - was unused */
 
     if (GET_LEVEL(victim) >= 10)
     {
@@ -7984,7 +7984,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     {
       return;
     }
-    is_mind_affect = TRUE;
+    /* is_mind_affect = TRUE; */ /* Variable removed - was unused */
 
     SET_BIT_AR(af[0].bitvector, AFF_FEAR);
     af[0].duration = dice(2, 6);
@@ -8642,7 +8642,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    is_mind_affect = TRUE;
+    /* is_mind_affect = TRUE; */ /* Variable removed - was unused */
 
     af[0].location = APPLY_INT;
     af[0].duration = 25 + (level * 12);
@@ -8704,7 +8704,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    is_mind_affect = TRUE;
+    /* is_mind_affect = TRUE; */ /* Variable removed - was unused */
 
     SET_BIT_AR(af[0].bitvector, AFF_FEAR);
     af[0].duration = dice(2, 6);

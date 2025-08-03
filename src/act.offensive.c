@@ -9732,7 +9732,7 @@ ACMDU(do_vampiric_dominate)
 /* slam engine */
 void perform_slam(struct char_data *ch, struct char_data *vict)
 {
-  int discipline_bonus = 0, dc = 0, diceOne = 0, diceTwo = 0;
+  int discipline_bonus = 0, diceOne = 0, diceTwo = 0;
   struct affected_type af;
 
   if (vict == ch)
@@ -9765,8 +9765,8 @@ void perform_slam(struct char_data *ch, struct char_data *vict)
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     discipline_bonus -= compute_ability(vict, ABILITY_DISCIPLINE);
 
-  /* saving throw dc */
-  dc = GET_LEVEL(ch) / 2 + GET_STR_BONUS(ch);
+  /* saving throw dc - unused for slam */
+  /* dc = GET_LEVEL(ch) / 2 + GET_STR_BONUS(ch); */
 
   /* monk damage? */
   compute_barehand_dam_dice(ch, &diceOne, &diceTwo);

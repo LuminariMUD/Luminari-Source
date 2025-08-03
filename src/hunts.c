@@ -414,9 +414,9 @@ void create_hunt_mob(room_rnum room, int which_hunt)
 
   // set mob details
   GET_REAL_RACE(mob) = hunt_table[which_hunt].race_type;
-  GET_SUBRACE(mob, 0) - hunt_table[which_hunt].subrace[0];
-  GET_SUBRACE(mob, 1) - hunt_table[which_hunt].subrace[1];
-  GET_SUBRACE(mob, 2) - hunt_table[which_hunt].subrace[2];
+  GET_SUBRACE(mob, 0) = hunt_table[which_hunt].subrace[0];
+  GET_SUBRACE(mob, 1) = hunt_table[which_hunt].subrace[1];
+  GET_SUBRACE(mob, 2) = hunt_table[which_hunt].subrace[2];
   mob->mob_specials.hunt_cooldown = -1;
   mob->mob_specials.hunt_type = which_hunt;
 

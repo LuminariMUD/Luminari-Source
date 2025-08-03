@@ -1411,14 +1411,13 @@ ACMD(do_oasis_prefedit)
 {
   struct descriptor_data *d;
   struct char_data *vict;
-  const char *buf3;
   char buf1[MAX_STRING_LENGTH] = {'\0'};
   char buf2[MAX_STRING_LENGTH] = {'\0'};
 
   /****************************************************************************/
   /** Parse any arguments.                                                   **/
   /****************************************************************************/
-  buf3 = two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
+  two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   /****************************************************************************/
   /** If there aren't any arguments...well...they can only modify their      **/

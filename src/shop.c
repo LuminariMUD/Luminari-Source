@@ -1332,14 +1332,14 @@ static int read_type_list(FILE *shop_f, struct shop_buy_data *list,
                           int new_format, int max)
 {
   int tindex, num, len = 0, error = 0;
-  char *ptr, buf[MAX_STRING_LENGTH] = {'\0'}, *buf1 = NULL;
+  char *ptr, buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (!new_format)
     return (read_list(shop_f, list, 0, max, LIST_TRADE));
 
   do
   {
-    buf1 = fgets(buf, sizeof(buf), shop_f);
+    if (!fgets(buf, sizeof(buf), shop_f)) break;
     if ((ptr = strchr(buf, ';')) != NULL)
       *ptr = '\0';
     else

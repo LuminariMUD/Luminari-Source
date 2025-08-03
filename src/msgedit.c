@@ -89,7 +89,7 @@ void load_messages(void)
   FILE *fl;
   int i, type;
   struct message_type *messages;
-  char chk[128], *buf;
+  char chk[128];
 
   if (!(fl = fopen(MESS_FILE, "r")))
   {
@@ -106,13 +106,13 @@ void load_messages(void)
 
   while (!feof(fl))
   {
-    buf = fgets(chk, 128, fl);
+    if (!fgets(chk, 128, fl)) break;
     while (!feof(fl) && (*chk == '\n' || *chk == '*'))
-      buf = fgets(chk, 128, fl);
+      if (!fgets(chk, 128, fl)) break;
 
     while (*chk == 'M')
     {
-      buf = fgets(chk, 128, fl);
+      if (!fgets(chk, 128, fl)) break;
       sscanf(chk, " %d\n", &type);
       for (i = 0; (i < MAX_MESSAGES) && (fight_messages[i].a_type != type) &&
                   (fight_messages[i].a_type);
@@ -141,9 +141,9 @@ void load_messages(void)
       messages->god_msg.attacker_msg = fread_action(fl, i);
       messages->god_msg.victim_msg = fread_action(fl, i);
       messages->god_msg.room_msg = fread_action(fl, i);
-      buf = fgets(chk, 128, fl);
+      if (!fgets(chk, 128, fl)) break;
       while (!feof(fl) && (*chk == '\n' || *chk == '*'))
-        buf = fgets(chk, 128, fl);
+        if (!fgets(chk, 128, fl)) break;
     }
   }
   fclose(fl);

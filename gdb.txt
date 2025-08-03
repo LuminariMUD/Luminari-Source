@@ -1,9 +1,55 @@
-Catchpoint 1 (throw)
-Breakpoint 2 at 0x50070: file src/comm.c, line 240.
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Signal        Stop	Print	Pass to program	Description
+SIGPIPE       No	No	Yes		Broken pipe
+Signal        Stop	Print	Pass to program	Description
+SIGUSR1       No	No	Yes		User defined signal 1
+Signal        Stop	Print	Pass to program	Description
+SIGUSR2       No	No	Yes		User defined signal 2
+Breakpoint 1 at 0x3f34b0: file src/utils.c, line 2705.
+Function "log" not defined.
+Make breakpoint pending on future shared library load? (y or [n]) [answered N; input not from terminal]
+Breakpoint 2 at 0x3f6b80: file src/utils.c, line 2788.
+Breakpoint 3 at 0x3f7af0: file src/utils.c, line 3383.
+Function "assert_fail" not defined.
+Make breakpoint pending on future shared library load? (y or [n]) [answered N; input not from terminal]
+
+=== GDB Ready - Type 'run -q 4100' to start ===
+(gdb) warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Signal        Stop	Print	Pass to program	Description
+SIGPIPE       No	No	Yes		Broken pipe
+Signal        Stop	Print	Pass to program	Description
+SIGUSR1       No	No	Yes		User defined signal 1
+Signal        Stop	Print	Pass to program	Description
+SIGUSR2       No	No	Yes		User defined signal 2
+Breakpoint 1 at 0x3f34b0: file src/utils.c, line 2705.
+Function "log" not defined.
+Make breakpoint pending on future shared library load? (y or [n]) [answered N; input not from terminal]
+Breakpoint 2 at 0x3f6b80: file src/utils.c, line 2788.
+Breakpoint 3 at 0x3f7af0: file src/utils.c, line 3383.
+Function "assert_fail" not defined.
+Make breakpoint pending on future shared library load? (y or [n]) [answered N; input not from terminal]
+
+=== GDB Ready - Type 'run -q 4100' to start ===
+(gdb) warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Signal        Stop	Print	Pass to program	Description
+SIGPIPE       No	No	Yes		Broken pipe
+Signal        Stop	Print	Pass to program	Description
+SIGUSR1       No	No	Yes		User defined signal 1
+Signal        Stop	Print	Pass to program	Description
+SIGUSR2       No	No	Yes		User defined signal 2
+Breakpoint 1 at 0x3f34b0: file src/utils.c, line 2705.
+Function "log" not defined.
+Make breakpoint pending on future shared library load? (y or [n]) [answered N; input not from terminal]
+Breakpoint 2 at 0x3f6b80: file src/utils.c, line 2788.
+Breakpoint 3 at 0x3f7af0: file src/utils.c, line 3383.
+Function "assert_fail" not defined.
+Make breakpoint pending on future shared library load? (y or [n]) [answered N; input not from terminal]
+
+=== GDB Ready - Type 'run -q 4100' to start ===
+(gdb) Starting program: /mnt/c/Projects/bin/circle -q 4100
 
 This GDB supports auto-downloading debuginfo from the following URLs:
   <https://debuginfod.ubuntu.com>
-Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
 Debuginfod has been disabled.
 To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
 [Thread debugging using libthread_db enabled]
@@ -12,10 +58,269 @@ warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/liblb
 warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlidec.so.1
 warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlicommon.so.1
 
-Breakpoint 2, main (argc=3, argv=0x7fffffffdb88) at src/comm.c:240
-240	{
-(gdb) A debugging session is active.
+Breakpoint 1, basic_mud_vlog (format=0x555555a9aa6d "Loading configuration.", args=args@entry=0x7fffffffd700) at src/utils.c:2705
+2705	{
+(gdb) warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Signal        Stop	Print	Pass to program	Description
+SIGPIPE       No	No	Yes		Broken pipe
+Signal        Stop	Print	Pass to program	Description
+SIGUSR1       No	No	Yes		User defined signal 1
+Signal        Stop	Print	Pass to program	Description
+SIGUSR2       No	No	Yes		User defined signal 2
+Breakpoint 1 at 0x3f34b0: file src/utils.c, line 2705.
+Function "log" not defined.
+Breakpoint 2 (log) pending.
+Breakpoint 3 at 0x3f6b80: file src/utils.c, line 2788.
+Breakpoint 4 at 0x3f7af0: file src/utils.c, line 3383.
+Function "assert_fail" not defined.
+Breakpoint 5 (assert_fail) pending.
 
-	Inferior 1 [process 53742] will be killed.
+=== GDB Ready - Type 'run -q 4100' to start ===
+Starting program: /mnt/c/Projects/bin/circle -q 4100
 
-Quit anyway? (y or n) [answered Y; input not from terminal]
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/liblber.so.2
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlidec.so.1
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlicommon.so.1
+
+Breakpoint 1, basic_mud_vlog (format=0x555555a9aa6d "Loading configuration.", args=args@entry=0x7fffffffd7b0) at src/utils.c:2705
+2705	{
+#0  basic_mud_vlog (format=0x555555a9aa6d "Loading configuration.", args=args@entry=0x7fffffffd7b0) at src/utils.c:2705
+#1  0x000055555594765d in basic_mud_log (format=format@entry=0x555555a9aa6d "Loading configuration.") at src/utils.c:2751
+#2  0x00005555555a4214 in main (argc=3, argv=0x7fffffffdc38) at src/comm.c:392
+#0  basic_mud_vlog (format=0x555555a9aa6d "Loading configuration.", args=args@entry=0x7fffffffd7b0) at src/utils.c:2705
+#1  0x000055555594765d in basic_mud_log (format=format@entry=0x555555a9aa6d "Loading configuration.") at src/utils.c:2751
+#2  0x00005555555a4214 in main (argc=3, argv=0x7fffffffdc38) at src/comm.c:392
+#0  basic_mud_vlog (format=0x555555a9aa6d "Loading configuration.", args=args@entry=0x7fffffffd7b0) at src/utils.c:2705
+#1  0x000055555594765d in basic_mud_log (format=format@entry=0x555555a9aa6d "Loading configuration.") at src/utils.c:2751
+#2  0x00005555555a4214 in main (argc=3, argv=0x7fffffffdc38) at src/comm.c:392
+#0  basic_mud_vlog (format=0x555555a9aa6d "Loading configuration.", args=args@entry=0x7fffffffd7b0) at src/utils.c:2705
+#1  0x000055555594765d in basic_mud_log (format=format@entry=0x555555a9aa6d "Loading configuration.") at src/utils.c:2751
+#2  0x00005555555a4214 in main (argc=3, argv=0x7fffffffdc38) at src/comm.c:392
+#0  basic_mud_vlog (format=0x555555a9aa6d "Loading configuration.", args=args@entry=0x7fffffffd7b0) at src/utils.c:2705
+#1  0x000055555594765d in basic_mud_log (format=format@entry=0x555555a9aa6d "Loading configuration.") at src/utils.c:2751
+#2  0x00005555555a4214 in main (argc=3, argv=0x7fffffffdc38) at src/comm.c:392
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Signal        Stop	Print	Pass to program	Description
+SIGPIPE       No	No	Yes		Broken pipe
+Signal        Stop	Print	Pass to program	Description
+SIGUSR1       No	No	Yes		User defined signal 1
+Signal        Stop	Print	Pass to program	Description
+SIGUSR2       No	No	Yes		User defined signal 2
+Breakpoint 1 at 0x3f7af0: file src/utils.c, line 3383.
+Function "assert_fail" not defined.
+Breakpoint 2 (assert_fail) pending.
+Breakpoint 3 at 0x4e260
+Breakpoint 4 at 0x4dd70
+A syntax error in expression, near `!= 0'.
+
+=== GDB Ready - Type 'run -q 4100' to start ===
+Undefined command: "y".  Try "help".
+Starting program: /mnt/c/Projects/bin/circle -q 4100
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/liblber.so.2
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlidec.so.1
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlicommon.so.1
+
+Program received signal SIGINT, Interrupt.
+0x00007ffff7126c3e in __GI___select (nfds=nfds@entry=4, readfds=readfds@entry=0x7fffffff12c0, writefds=writefds@entry=0x0, exceptfds=exceptfds@entry=0x0, timeout=timeout@entry=0x0) at ../sysdeps/unix/sysv/linux/select.c:69
+warning: 69	../sysdeps/unix/sysv/linux/select.c: No such file or directory
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Signal        Stop	Print	Pass to program	Description
+SIGPIPE       No	No	Yes		Broken pipe
+Signal        Stop	Print	Pass to program	Description
+SIGUSR1       No	No	Yes		User defined signal 1
+Signal        Stop	Print	Pass to program	Description
+SIGUSR2       No	No	Yes		User defined signal 2
+Breakpoint 1 at 0x3f7af0: file src/utils.c, line 3383.
+Function "assert_fail" not defined.
+Make breakpoint pending on future shared library load? (y or [n]) [answered N; input not from terminal]
+Breakpoint 2 at 0x4e260
+Breakpoint 3 at 0x4dd70
+A syntax error in expression, near `!= 0'.
+
+=== GDB Ready - Type 'run -q 4100' to start ===
+(gdb) warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Signal        Stop	Print	Pass to program	Description
+SIGPIPE       No	No	Yes		Broken pipe
+Signal        Stop	Print	Pass to program	Description
+SIGUSR1       No	No	Yes		User defined signal 1
+Signal        Stop	Print	Pass to program	Description
+SIGUSR2       No	No	Yes		User defined signal 2
+Breakpoint 1 at 0x3f7af0: file src/utils.c, line 3383.
+Function "assert_fail" not defined.
+Make breakpoint pending on future shared library load? (y or [n]) [answered N; input not from terminal]
+Breakpoint 2 at 0x4e260
+Breakpoint 3 at 0x4dd70
+A syntax error in expression, near `!= 0'.
+
+=== GDB Starting game on port 4100 ===
+Starting program: /mnt/c/Projects/bin/circle -q 4100
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/liblber.so.2
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlidec.so.1
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlicommon.so.1
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Signal        Stop	Print	Pass to program	Description
+SIGPIPE       No	No	Yes		Broken pipe
+Signal        Stop	Print	Pass to program	Description
+SIGUSR1       No	No	Yes		User defined signal 1
+Signal        Stop	Print	Pass to program	Description
+SIGUSR2       No	No	Yes		User defined signal 2
+Breakpoint 1 at 0x3f7af0: file src/utils.c, line 3383.
+Function "assert_fail" not defined.
+Quit
+Breakpoint 2 at 0x4e260
+Breakpoint 3 at 0x4dd70
+A syntax error in expression, near `!= 0'.
+
+=== GDB Starting game on port 4100 ===
+Starting program: /mnt/c/Projects/bin/circle -q 4100
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/liblber.so.2
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlidec.so.1
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlicommon.so.1
+
+Program received signal SIGINT, Interrupt.
+0x00007ffff711ba61 in __GI___libc_read (fd=8, buf=0x5555560b0ac0, nbytes=4096) at ../sysdeps/unix/sysv/linux/read.c:26
+warning: 26	../sysdeps/unix/sysv/linux/read.c: No such file or directory
+Quit
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Signal        Stop	Print	Pass to program	Description
+SIGPIPE       No	No	Yes		Broken pipe
+Signal        Stop	Print	Pass to program	Description
+SIGUSR1       No	No	Yes		User defined signal 1
+Signal        Stop	Print	Pass to program	Description
+SIGUSR2       No	No	Yes		User defined signal 2
+Breakpoint 1 at 0x3f7af0: file src/utils.c, line 3383.
+Breakpoint 2 at 0x4e260
+Breakpoint 3 at 0x4dd70
+A syntax error in expression, near `!= 0'.
+
+=== GDB Starting game on port 4100 ===
+Starting program: /mnt/c/Projects/bin/circle -q 4100
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/liblber.so.2
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlidec.so.1
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlicommon.so.1
+[Inferior 1 (process 111502) exited with code 01]
+No stack.
+227	  millisec = (int)((float)TickCount() * 1000.0 / 60.0);
+228	#endif
+229	
+230	  t->tv_sec = (int)(millisec / 1000);
+231	  t->tv_usec = (millisec % 1000) * 1000;
+232	}
+233	
+234	#endif /* CIRCLE_WINDOWS || CIRCLE_MACINTOSH */
+235	
+236	#if defined(LUMINARI_CUTEST)
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Breakpoint 1 at 0x3f7af0: file src/utils.c, line 3383.
+Breakpoint 2 at 0x4e260
+Breakpoint 3 at 0x4dd70
+Breakpoint 4 at 0x4e1a0
+
+=== GDB Starting LuminariMUD ===
+Loading MUD-specific debugging commands...
+MUD debugging extensions loaded. Type 'mudhelp' for commands.
+
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/liblber.so.2
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlidec.so.1
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlicommon.so.1
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Breakpoint 1 at 0x3f7af0: file src/utils.c, line 3383.
+Breakpoint 2 at 0x4e260
+Breakpoint 3 at 0x4dd70
+Breakpoint 4 at 0x4e1a0
+
+=== GDB Starting LuminariMUD ===
+Loading MUD-specific debugging commands...
+MUD debugging extensions loaded. Type 'mudhelp' for commands.
+
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/liblber.so.2
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlidec.so.1
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlicommon.so.1
+Error in testing condition for breakpoint 4:
+Invalid type combination in equality test.
+
+Breakpoint 4, __GI_exit (status=status@entry=1) at ./stdlib/exit.c:137
+warning: 137	./stdlib/exit.c: No such file or directory
+#0  __GI_exit (status=status@entry=1) at ./stdlib/exit.c:137
+#1  0x000055555581d630 in get_nearby_regions (zone=zone@entry=513, x=<optimized out>, y=<optimized out>, r=r@entry=5) at src/mysql.c:923
+#2  0x00005555557264c2 in gen_room_description (ch=ch@entry=0x55557c08e230, room=<optimized out>) at src/desc_engine.c:285
+#3  0x000055555595c15d in show_wilderness_map (ch=ch@entry=0x55557c08e230, size=size@entry=21, x=1, y=3) at src/wilderness.c:1069
+#4  0x00005555555c8413 in look_at_room (ch=ch@entry=0x55557c08e230, ignore_brief=<optimized out>, ignore_brief@entry=0) at src/act.informative.c:1458
+#5  0x0000555555650931 in impl_do_goto_ (ch=ch@entry=0x55557c08e230, argument=argument@entry=0x7fffffff1444 " 1 3", subcmd=<optimized out>, cmd=<optimized out>) at src/act.wizard.c:474
+#6  0x0000555555650d3a in do_goto (ch=0x55557c08e230, argument=0x7fffffff1444 " 1 3", cmd=<optimized out>, subcmd=<optimized out>) at src/act.wizard.c:397
+#7  0x00005555557e34f2 in command_interpreter (ch=0x55557c08e230, argument=<optimized out>, argument@entry=0x7fffffff1440 "goto 1 3") at src/interpreter.c:1487
+#8  0x00005555556f6df0 in game_loop (local_mother_desc=3) at src/comm.c:1069
+#9  0x00005555555a4969 in init_game (local_port=<optimized out>) at src/comm.c:649
+#10 main (argc=<optimized out>, argv=<optimized out>) at src/comm.c:410
+132	in ./stdlib/exit.c
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+warning: Currently logging to gdb.txt.  Turn the logging off and on to make the new setting effective.
+Breakpoint 1 at 0x3f7af0: file src/utils.c, line 3383.
+Breakpoint 2 at 0x4e260
+Breakpoint 3 at 0x4dd70
+Breakpoint 4 at 0x4e1a0
+
+=== GDB Starting LuminariMUD ===
+Loading MUD-specific debugging commands...
+MUD debugging extensions loaded. Type 'mudhelp' for commands.
+
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/liblber.so.2
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlidec.so.1
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlicommon.so.1
+Error in testing condition for breakpoint 4:
+Invalid type combination in equality test.
+
+Breakpoint 4, __GI_exit (status=status@entry=1) at ./stdlib/exit.c:137
+warning: 137	./stdlib/exit.c: No such file or directory

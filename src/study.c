@@ -1681,7 +1681,7 @@ static void set_bloodline_arcane(struct descriptor_data *d)
   write_to_output(d, "with the 'school power' bloodline feat.\r\n");
   write_to_output(d, "\r\n");
   int i = 1;
-  for (i; i < NUM_SCHOOLS; i++)
+  for (; i < NUM_SCHOOLS; i++)
     write_to_output(d, "%d) %s\r\n", i, spell_schools[i]);
   write_to_output(d, "\r\n");
   write_to_output(d, "\r\n%sSelect the arcane school type for your arcane bloodline : ", nrm);
@@ -2406,7 +2406,7 @@ static void main_skills_disp_menu(struct descriptor_data *d)
 static void display_study_feats(struct descriptor_data *d)
 {
   struct char_data *ch = d->character;
-  int i = 0, j = 0, feat_marker = 0, feat_counter = 0, sortpos = 0;
+  int i = 0, sortpos = 0;
   int count = 0;
   bool class_feat = FALSE;
   struct class_feat_assign *feat_assign = NULL;
@@ -2417,8 +2417,7 @@ static void display_study_feats(struct descriptor_data *d)
   {
     /* i = the feat we are now handling */
     i = feat_sort_info[sortpos];
-    feat_marker = 1;    /* using this to mark the class feat list */
-    feat_counter = 0;   /* counter used for traversing class-feats list */
+    /* class feat checking section */
     class_feat = FALSE; /* is this a class feat? */
 
     /* we now traverse the class's list of class-feats to see if 'i' matches */
@@ -2436,7 +2435,6 @@ static void display_study_feats(struct descriptor_data *d)
       }
     }
 
-    j = 0;
 
     if (((feat_list[i].feat_type == LEVELUP(ch)->feat_type) &&
          feat_is_available(ch, i, 0, NULL) &&

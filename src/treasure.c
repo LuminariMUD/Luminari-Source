@@ -1850,7 +1850,6 @@ void award_magic_ammo(struct char_data *ch, int grade)
   int armor_desc_rollA = 0;
   int armor_desc_rollB = 0;
   int rare_grade = RARE_GRADE_NORMAL;
-  int level = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char desc1[MEDIUM_STRING] = {'\0'};
   char desc2[MEDIUM_STRING] = {'\0'};
@@ -1887,29 +1886,6 @@ void award_magic_ammo(struct char_data *ch, int grade)
   /* set the object material, check for upgrade */
   GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
   GET_OBJ_MATERIAL(obj2) = GET_OBJ_MATERIAL(obj3) = GET_OBJ_MATERIAL(obj4) = GET_OBJ_MATERIAL(obj);
-
-  /* determine level */
-  switch (grade)
-  {
-  case GRADE_MUNDANE:
-    level = rand_number(1, 5);
-    break;
-  case GRADE_MINOR:
-    level = rand_number(2, 10);
-    break;
-  case GRADE_TYPICAL:
-    level = rand_number(3, 15);
-    break;
-  case GRADE_MEDIUM:
-    level = rand_number(5, 20);
-    break;
-  case GRADE_MAJOR:
-    level = rand_number(8, 25);
-    break;
-  default: // superior grade
-    level = rand_number(12, 30);
-    break;
-  }
 
   /* BEGIN DESCRIPTION SECTION */
 
@@ -1985,7 +1961,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
 {
   struct obj_data *obj = NULL;
   int roll = 0, armor_desc_roll = 0, crest_num = 0;
-  int color1 = 0, color2 = 0, level = 0;
+  int color1 = 0, color2 = 0;
   char desc[LONG_STRING] = {'\0'};
   char keywords[LONG_STRING] = {'\0'};
   int dcount = 0, kcount = 0;
@@ -2026,30 +2002,6 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
 
   /* set the object material, check for upgrade */
   GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), enchantment);
-
-  /* determine level */
-  switch (enchantment)
-  {
-  case 0:
-  case 1:
-    level = 0;
-    break;
-  case 2:
-    level = 5;
-    break;
-  case 3:
-    level = 10;
-    break;
-  case 4:
-    level = 15;
-    break;
-  case 5:
-    level = 20;
-    break;
-  default: /*6*/
-    level = 25;
-    break;
-  }
 
   /* BEGIN DESCRIPTION SECTION */
 
@@ -2171,7 +2123,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
 {
   struct obj_data *obj = NULL;
   int roll = 0, armor_desc_roll = 0, crest_num = 0;
-  int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
+  int rare_grade = 0, color1 = 0, color2 = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
 
@@ -2214,29 +2166,6 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
 
   /* set the object material, check for upgrade */
   GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
-
-  /* determine level */
-  switch (grade)
-  {
-  case GRADE_MUNDANE:
-    level = rand_number(1, 5);
-    break;
-  case GRADE_MINOR:
-    level = rand_number(2, 10);
-    break;
-  case GRADE_TYPICAL:
-    level = rand_number(3, 15);
-    break;
-  case GRADE_MEDIUM:
-    level = rand_number(5, 20);
-    break;
-  case GRADE_MAJOR:
-    level = rand_number(8, 25);
-    break;
-  default: // superior grade
-    level = rand_number(12, 30);
-    break;
-  }
 
   /* BEGIN DESCRIPTION SECTION */
 
@@ -2338,7 +2267,7 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
 {
   struct obj_data *head = NULL, *body = NULL, *arms = NULL, *legs = NULL;
   int roll = 0, armor_desc_roll = 0, crest_num = 0;
-  int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
+  int rare_grade = 0, color1 = 0, color2 = 0;
   char descb[MEDIUM_STRING] = {'\0'};
   char desch[MEDIUM_STRING] = {'\0'};
   char desca[MEDIUM_STRING] = {'\0'};
@@ -2387,28 +2316,7 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
   GET_OBJ_MATERIAL(body) = possible_material_upgrade(GET_OBJ_MATERIAL(body), grade);
   GET_OBJ_MATERIAL(head) = GET_OBJ_MATERIAL(arms) = GET_OBJ_MATERIAL(legs) = GET_OBJ_MATERIAL(body);
 
-  /* determine level */
-  switch (grade)
-  {
-  case GRADE_MUNDANE:
-    level = rand_number(1, 5);
-    break;
-  case GRADE_MINOR:
-    level = rand_number(2, 10);
-    break;
-  case GRADE_TYPICAL:
-    level = rand_number(3, 15);
-    break;
-  case GRADE_MEDIUM:
-    level = rand_number(5, 20);
-    break;
-  case GRADE_MAJOR:
-    level = rand_number(8, 25);
-    break;
-  default: // superior grade
-    level = rand_number(12, 30);
-    break;
-  }
+  /* grade-based processing complete */
 
   /* BEGIN DESCRIPTION SECTION */
 
@@ -2887,7 +2795,7 @@ void award_magic_weapon(struct char_data *ch, int grade)
 {
   struct obj_data *obj = NULL;
   int roll = 0;
-  int rare_grade = 0, color1 = 0, color2 = 0, level = 0, roll2 = 0, roll3 = 0;
+  int rare_grade = 0, color1 = 0, color2 = 0, roll2 = 0, roll3 = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char hilt_color[SHORT_STRING] = {'\0'}, head_color[SHORT_STRING] = {'\0'};
   char special[SHORT_STRING] = {'\0'};
@@ -2920,28 +2828,7 @@ void award_magic_weapon(struct char_data *ch, int grade)
   GET_OBJ_MATERIAL(obj) =
       possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
 
-  /* determine level */
-  switch (grade)
-  {
-  case GRADE_MUNDANE:
-    level = rand_number(1, 5);
-    break;
-  case GRADE_MINOR:
-    level = rand_number(2, 10);
-    break;
-  case GRADE_TYPICAL:
-    level = rand_number(3, 15);
-    break;
-  case GRADE_MEDIUM:
-    level = rand_number(5, 20);
-    break;
-  case GRADE_MAJOR:
-    level = rand_number(8, 25);
-    break;
-  default: // superior grade
-    level = rand_number(12, 30);
-    break;
-  }
+  /* grade-based processing complete */
 
   // pick a pair of random colors for usage
   /* first assign two random colors for usage */
@@ -3138,7 +3025,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
 {
   struct obj_data *obj = NULL;
   int roll = 0;
-  int color1 = 0, color2 = 0, level = 0, roll2 = 0, roll3 = 0;
+  int color1 = 0, color2 = 0, roll2 = 0, roll3 = 0;
   char desc[MEDIUM_STRING] = {'\0'};
   char hilt_color[SHORT_STRING] = {'\0'}, head_color[SHORT_STRING] = {'\0'};
   char special[SHORT_STRING] = {'\0'};
@@ -3159,29 +3046,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
   GET_OBJ_MATERIAL(obj) =
       possible_material_upgrade(GET_OBJ_MATERIAL(obj), enchantment);
 
-  /* determine level */
-  switch (enchantment)
-  {
-  case 0:
-  case 1:
-    level = 0;
-    break;
-  case 2:
-    level = 5;
-    break;
-  case 3:
-    level = 10;
-    break;
-  case 4:
-    level = 15;
-    break;
-  case 5:
-    level = 20;
-    break;
-  default: /*6*/
-    level = 25;
-    break;
-  }
+  /* enchantment-based processing complete */
 
   // pick a pair of random colors for usage
   /* first assign two random colors for usage */
@@ -3383,7 +3248,6 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
 {
   struct obj_data *obj = NULL;
   int vnum = -1, material = MATERIAL_BRONZE;
-  int level = 0;
   char desc[MEDIUM_STRING] = {'\0'}, armor_name[MEDIUM_STRING] = {'\0'};
   char keywords[MEDIUM_STRING] = {'\0'};
   char desc2[SHORT_STRING] = {'\0'}, desc3[SHORT_STRING] = {'\0'};
@@ -3578,29 +3442,7 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
     break; /*end onyx*/
   }
 
-  /* determine level */
-  switch (enchantment)
-  {
-  case 0:
-  case 1:
-    level = 0;
-    break;
-  case 2:
-    level = 5;
-    break;
-  case 3:
-    level = 10;
-    break;
-  case 4:
-    level = 15;
-    break;
-  case 5:
-    level = 20;
-    break;
-  default: /*6*/
-    level = 25;
-    break;
-  }
+  /* enchantment-based processing complete */
 
   /* ok load object */
   if ((obj = read_object(vnum, VIRTUAL)) == NULL)
@@ -3924,29 +3766,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     break; /*end onyx*/
   }
 
-  /* determine level */
-  switch (grade)
-  {
-  case 0:
-  case 1:
-    level = 0;
-    break;
-  case 2:
-    level = 5;
-    break;
-  case 3:
-    level = 10;
-    break;
-  case 4:
-    level = 15;
-    break;
-  case 5:
-    level = 20;
-    break;
-  default: /*6*/
-    level = 25;
-    break;
-  }
+  /* grade-based processing complete */
 
   /* ok load object */
   if ((obj = read_object(vnum, VIRTUAL)) == NULL)

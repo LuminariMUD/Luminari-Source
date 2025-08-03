@@ -187,7 +187,6 @@ void save_single_clan(clan_rnum c)
   char tmpname[256], backup[256];
   char line[MAX_INPUT_LENGTH + 1];  /* tag[6] unused in this function */
   int j, x, gl, current_clan = -1;
-  bool clan_written = FALSE;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   
   if (c < 0 || c >= num_of_clans)
@@ -326,7 +325,6 @@ void save_single_clan(clan_rnum c)
           fprintf(new_fl, "%d %d\n", j, clan_list[c].privilege[j]);
         fprintf(new_fl, "~\n");
         
-        clan_written = TRUE;
         
         /* Skip the rest of this clan in the original file */
         while ((gl = get_line(fl, line)) && *line != '#' && *line != '$')

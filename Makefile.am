@@ -6,7 +6,7 @@ SUBDIRS = util
 
 # Additional compiler flags
 AM_CFLAGS = -std=gnu90 -Isrc @MYFLAGS@
-AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11
+AM_CXXFLAGS = -Isrc @MYFLAGS@ -std=c++11
 
 # Build timestamp information
 MKTIME = $(shell date +%s)

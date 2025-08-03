@@ -12,6 +12,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <time.h>
 
 /* Begin conf.h dependent includes */
 
@@ -1685,14 +1686,10 @@ static char *make_prompt(struct descriptor_data *d)
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sEX:",
                          CCYEL(d->character, C_NRM));
 
-        int isDark = 0, canSee = 0, canInfra = 0, seesExits = 1;
+        int isDark = 0, seesExits = 1;
 
         if (IS_DARK(IN_ROOM(ch)))
           isDark = 1;
-        if ((isDark && CAN_SEE_IN_DARK(ch)) || !isDark)
-          canSee = 1;
-        if (isDark && !canSee && CAN_INFRA_IN_DARK(ch))
-          canInfra = 1;
 
         if (isDark && !CAN_SEE_IN_DARK(ch) && !CAN_INFRA_IN_DARK(ch))
         {

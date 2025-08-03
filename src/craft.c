@@ -1325,7 +1325,7 @@ int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
 /* autocraft - crafting quest command */
 int autocraft(struct obj_data *kit, struct char_data *ch)
 {
-  int material, obj_vnum, num_mats = 0, material_level = 1;
+  int material, obj_vnum, num_mats = 0;
   struct obj_data *obj = NULL;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
@@ -1368,7 +1368,6 @@ int autocraft(struct obj_data *kit, struct char_data *ch)
                        material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
           return 1;
         }
-        material_level = GET_OBJ_LEVEL(obj); // material level affects gold
         obj_vnum = GET_OBJ_VNUM(obj);
         num_mats++; /* we found matching material */
         if (num_mats > SUPPLYORDER_MATS)

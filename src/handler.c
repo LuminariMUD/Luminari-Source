@@ -501,7 +501,7 @@ void reset_char_points(struct char_data *ch)
 #define SPELL_RESIST_CAP 75
 void compute_char_cap(struct char_data *ch, int mode)
 {
-  int hp_cap, psp_cap, move_cap, hit_cap, dam_cap, ac_cap,
+  int psp_cap, move_cap, hit_cap, dam_cap,
       spell_resist_cap, class, class_level = 0;
   int save_fort_cap, save_rflx_cap, save_will_cap, save_psn_cap, save_dth_cap;
   int str_cap, dex_cap, con_cap, wis_cap, int_cap, cha_cap;
@@ -527,7 +527,6 @@ void compute_char_cap(struct char_data *ch, int mode)
   int_cap = BASE_STAT_CAP + GET_REAL_INT(ch);
   cha_cap = BASE_STAT_CAP + GET_REAL_CHA(ch);
 
-  hp_cap = HP_CAP + GET_REAL_MAX_HIT(ch);
   psp_cap = PSP_CAP + GET_REAL_MAX_PSP(ch);
   move_cap = MOVE_CAP + GET_REAL_MAX_MOVE(ch);
 
@@ -535,7 +534,6 @@ void compute_char_cap(struct char_data *ch, int mode)
 
   hit_cap = HITDAM_CAP + GET_REAL_HITROLL(ch);
   dam_cap = HITDAM_CAP + GET_REAL_DAMROLL(ch);
-  ac_cap = AC_CAP;
 
   save_fort_cap = GET_REAL_SAVE(ch, SAVING_FORT) + SAVE_CAP;
   save_rflx_cap = GET_REAL_SAVE(ch, SAVING_REFL) + SAVE_CAP;
@@ -853,10 +851,6 @@ int affect_total_sub(struct char_data *ch)
   struct affected_type *af;
   int i, j, at_armor = 100;
   int modifier = 0, temp_mod = 0;
-  int empty_bits[AF_ARRAY_MAX];
-
-  for (i = 0; i > AF_ARRAY_MAX; i++)
-    empty_bits[i] = 0;
 
   /* subtract affects with gear */
   for (i = 0; i < NUM_WEARS; i++)
@@ -921,11 +915,7 @@ void affect_total_plus(struct char_data *ch, int at_armor)
 {
   struct affected_type *af;
   int i, j, temp_mod;
-  int empty_bits[AF_ARRAY_MAX];
   int modifier = 0;
-
-  for (i = 0; i > AF_ARRAY_MAX; i++)
-    empty_bits[i] = 0;
 
   /* restore stored stats */
   if (!(IS_NPC(ch)))
@@ -1004,7 +994,6 @@ void update_msdp_affects(struct char_data *ch)
 {
   char msdp_buffer[MAX_STRING_LENGTH] = {'\0'};
   struct affected_type *af, *next;
-  bool first = TRUE;
   int i = 0;
 
   /* MSDP */
@@ -1077,7 +1066,6 @@ void update_msdp_affects(struct char_data *ch)
                (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration,
                (char)MSDP_TABLE_CLOSE);
     strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
-    first = FALSE;
   }
   snprintf(buf2, sizeof(buf2), "%c"
                                  "%c",
@@ -1115,12 +1103,7 @@ void affect_total(struct char_data *ch)
  * appropriate bits and apply's */
 void affect_to_char(struct char_data *ch, struct affected_type *af)
 {
-  int i;
   struct affected_type *affected_alloc;
-  int empty_bits[AF_ARRAY_MAX];
-
-  for (i = 0; i > AF_ARRAY_MAX; i++)
-    empty_bits[i] = 0;
 
   CREATE(affected_alloc, struct affected_type, 1);
 
@@ -1152,12 +1135,7 @@ void affect_to_char(struct char_data *ch, struct affected_type *af)
 /* Remove an affect without recalculating totals - used during character cleanup */
 void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
 {
-  int i = 0;
   struct affected_type *temp = NULL;
-  int empty_bits[AF_ARRAY_MAX];
-
-  for (i = 0; i > AF_ARRAY_MAX; i++)
-    empty_bits[i] = 0;
 
   if (ch->affected == NULL)
   {
@@ -1201,13 +1179,8 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
 
 void affect_remove(struct char_data *ch, struct affected_type *af)
 {
-  int i = 0;
   struct affected_type *temp = NULL;
-  int empty_bits[AF_ARRAY_MAX];
   // bool is_ac_new = false;
-
-  for (i = 0; i > AF_ARRAY_MAX; i++)
-    empty_bits[i] = 0;
 
   if (ch->affected == NULL)
   {
@@ -1937,12 +1910,8 @@ int invalid_prof(struct char_data *ch, struct obj_data *obj)
 
 void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
 {
-  int i, j;
-  int empty_bits[AF_ARRAY_MAX];
+  int j;
   room_rnum r_rnum = NOWHERE;
-
-  for (i = 0; i > AF_ARRAY_MAX; i++)
-    empty_bits[i] = 0;
 
   if (pos < 0 || pos >= NUM_WEARS)
   {
@@ -2035,12 +2004,8 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
 
 struct obj_data *unequip_char(struct char_data *ch, int pos)
 {
-  int i, j;
+  int j;
   struct obj_data *obj;
-  int empty_bits[AF_ARRAY_MAX];
-
-  for (i = 0; i > AF_ARRAY_MAX; i++)
-    empty_bits[i] = 0;
 
   if ((pos < 0 || pos >= NUM_WEARS) || GET_EQ(ch, pos) == NULL)
   {

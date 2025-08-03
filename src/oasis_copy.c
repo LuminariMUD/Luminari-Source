@@ -342,19 +342,16 @@ ACMD(do_dig)
 static room_vnum redit_find_new_vnum(zone_rnum zone)
 {
   room_vnum vnum;
-  room_vnum top;
   room_rnum rnum;
 
   /* Handle wilderness limits differently. */
   if (ZONE_FLAGGED(zone, ZONE_WILDERNESS))
   {
     vnum = WILD_ROOM_VNUM_START;
-    top = WILD_ROOM_VNUM_END;
   }
   else
   {
     vnum = genolc_zone_bottom(zone);
-    top = zone_table[zone].top;
   }
 
   rnum = real_room(vnum);

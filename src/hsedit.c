@@ -10,6 +10,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <time.h>
 #include "structs.h"
 #include "comm.h"
 #include "utils.h"
@@ -1071,14 +1072,13 @@ ACMD(do_oasis_hsedit)
   int number = NOWHERE, save = 0;
   house_rnum real_num;
   struct descriptor_data *d;
-  const char *buf3;
   char buf1[MAX_STRING_LENGTH] = {'\0'};
   char buf2[MAX_STRING_LENGTH] = {'\0'};
 
   /****************************************************************************/
   /** Parse any arguments.                                                   **/
   /****************************************************************************/
-  buf3 = two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
+  two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   /****************************************************************************/
   /** If there aren't any arguments...grab the number of the current room... **/

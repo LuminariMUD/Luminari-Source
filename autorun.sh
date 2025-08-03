@@ -150,11 +150,11 @@ while true; do
 
   DATE=$(date)
   echo "autorun starting game $DATE" > syslog
-  echo "running bin/circle $FLAGS $PORT" >> syslog
+  echo "running ../bin/circle $FLAGS $PORT" >> syslog
 
   # On Cygwin, you may need to precede this next line with './' for
   # './bin/circle' as the command.
-  nohup bin/circle $FLAGS $PORT >> syslog 2>&1
+  nohup ../bin/circle $FLAGS $PORT >> syslog 2>&1
 
   if [ -r .killscript ]; then
     DATE=$(date)
@@ -184,7 +184,7 @@ while true; do
       echo "bt" > gdb.tmp
       echo "quit" >> gdb.tmp
     fi
-    gdb bin/circle lib/core -batch -command gdb.tmp > "lib/backtrace.$(date +%d.%m.%Y.%T)" 2>&1
+    gdb ../bin/circle lib/core -batch -command gdb.tmp > "lib/backtrace.$(date +%d.%m.%Y.%T)" 2>&1
   fi
 
   proc_syslog

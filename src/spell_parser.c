@@ -1672,9 +1672,12 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   }
 
   int position = GET_POS(ch);
-  int ch_class = CLASS_WIZARD, clevel = 0;
+  int ch_class = CLASS_WIZARD;
   int casting_time = 0;
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
   bool quickened = FALSE;
+#endif
+  int clevel = 0;
 
   if (spellnum < 0 || spellnum > TOP_SPELL_DEFINE)
   {
@@ -1852,13 +1855,18 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     if (IS_SET(metamagic, METAMAGIC_QUICKEN))
     {
       casting_time = 0;
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
       quickened = TRUE;
+#endif
     }
     else if (HAS_FEAT(ch, FEAT_AUTOMATIC_QUICKEN_SPELL))
     {
       if (compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3)
       {
+        casting_time = 0;
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
         quickened = true;
+#endif
       }
     }
     if ((ch_class == CLASS_SORCERER || ch_class == CLASS_BARD) &&
@@ -1877,20 +1885,27 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 
   if (GET_WEAPON_TOUCH_SPELL(ch) != 0)
   {
+    casting_time = 0;
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     quickened = TRUE;
+#endif
   }
 
   if (!IS_NPC(ch) && HAS_ELDRITCH_SPELL_CRIT(ch))
   {
     HAS_ELDRITCH_SPELL_CRIT(ch) = false;
     casting_time = 0;
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     quickened = TRUE;
+#endif
   }
 
   if (spellnum == PSIONIC_MIND_TRAP)
   {
     casting_time = 0;
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     quickened = TRUE;
+#endif
   }
 
 #if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
@@ -1925,7 +1940,9 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     if (GET_AUGMENT_PSP(ch) >= 4)
     {
       casting_time = 1;
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
       quickened = TRUE;
+#endif
     }
   }
 
@@ -2074,7 +2091,7 @@ will be using for casting this spell */
     USE_MOVE_ACTION(ch);
 #endif
 
-    return (call_magic(ch, tch, tobj, spellnum, metamagic, CASTER_LEVEL(ch), CAST_SPELL));
+    return (call_magic(ch, tch, tobj, spellnum, metamagic, clevel, CAST_SPELL));
   }
   else
   {

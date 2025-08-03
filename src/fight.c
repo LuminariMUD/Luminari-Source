@@ -274,7 +274,7 @@ void guard_check(struct char_data *ch, struct char_data *vict)
 void perform_flee(struct char_data *ch)
 {
   int i, found = 0, fleeOptions[DIR_COUNT];
-  struct char_data *was_fighting, *k, *temp;
+  struct char_data *k, *temp;
 
   /* disqualifications? */
   if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_DAZED) ||
@@ -352,7 +352,6 @@ void perform_flee(struct char_data *ch)
     GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
 
     // ok beat all odds, fleeing
-    was_fighting = FIGHTING(ch);
 
     // pick a random direction
     if (do_simple_move(ch, fleeOptions[rand_number(0, found - 1)], 3))
@@ -2770,8 +2769,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
 
     /* damage message to observers (to room) */
     buf = replace_string(dam_weapons[msgnum].to_room,
-                         attack_hit_text[w_type].singular, attack_hit_text[w_type].plural),
-    dam;
+                         attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
     GUI_CMBT_NOTVICT_OPEN(ch, victim);
     /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
          for condensed combat mode handling -zusuk */
@@ -3021,7 +3019,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
           {
             CNDNSD(vict)->num_times_others_attack_you++;
-            CNDNSD(vict)->num_times_shieldblock;
+            CNDNSD(vict)->num_times_shieldblock++;
           }
           else
           {

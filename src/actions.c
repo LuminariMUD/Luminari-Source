@@ -52,9 +52,6 @@ void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
 void update_msdp_actions(struct char_data *ch)
 {
   char msdp_buffer[MAX_STRING_LENGTH] = {'\0'};
-  struct affected_type *af, *next;
-  bool first = TRUE;
-
   /* MSDP */
 
   msdp_buffer[0] = '\0';
@@ -64,8 +61,6 @@ void update_msdp_actions(struct char_data *ch)
     // const char MsdpArrayStop[] = {(char) MSDP_ARRAY_CLOSE, '\0'};
 
     char buf[4000]; // Buffer for building the actions table for MSDP
-
-    next = af->next;
     snprintf(buf, sizeof(buf), "%c%s%c%d"
                                "%c%s%c%d"
                                "%c%s%c%d",
@@ -74,7 +69,6 @@ void update_msdp_actions(struct char_data *ch)
              (char)MSDP_VAR, "SWIFT_ACTION", (char)MSDP_VAL, is_action_available(ch, atSWIFT, FALSE));
 
     strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
-    first = FALSE;
 
     MSDPSetTable(ch->desc, eMSDP_ACTIONS, msdp_buffer);
     MSDPFlush(ch->desc, eMSDP_ACTIONS);

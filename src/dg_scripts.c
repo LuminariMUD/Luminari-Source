@@ -2429,8 +2429,6 @@ static void process_remote(struct script_data *sc, trig_data *trig, char *cmd)
   else if ((mob = find_char(uid)))
   {
     sc_remote = SCRIPT(mob);
-    if (!IS_NPC(mob))
-      context = 0;
   }
   else if ((obj = find_obj(uid)))
   {
@@ -2457,7 +2455,7 @@ ACMD(do_vdelete)
   struct script_data *sc_remote = NULL;
   char *var, *uid_p;
   char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
-  long uid, context;
+  long uid;
   room_data *room;
   char_data *mob;
   obj_data *obj;
@@ -2489,8 +2487,6 @@ ACMD(do_vdelete)
   else if ((mob = find_char(uid)))
   {
     sc_remote = SCRIPT(mob);
-    if (!IS_NPC(mob))
-      context = 0;
   }
   else if ((obj = find_obj(uid)))
   {
@@ -2582,7 +2578,7 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
   struct script_data *sc_remote = NULL;
   char *line, *var, *uid_p;
   char arg[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
-  long uid, context;
+  long uid;
   room_data *room;
   char_data *mob;
   obj_data *obj;
@@ -2617,8 +2613,6 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
   else if ((mob = find_char(uid)))
   {
     sc_remote = SCRIPT(mob);
-    if (!IS_NPC(mob))
-      context = 0;
   }
   else if ((obj = find_obj(uid)))
   {

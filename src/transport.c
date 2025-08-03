@@ -551,7 +551,7 @@ int valid_sailing_travel(int here, int i)
 
 void enter_transport(struct char_data *ch, int locale, int type, int here)
 {
-  int cnt = 0, found = false;
+  int cnt = 0;
   char air[200], car[200];
 
   for (cnt = 0; cnt <= top_of_world; cnt++)
@@ -560,18 +560,11 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
       continue;
     if (world[cnt].people)
       continue;
-    found = false;
+    /* found available transport room */
     break;
   }
 
-  int speed = 0;
-
-  switch (type)
-  {
-    case TRAVEL_CARRIAGE: speed = 3; break;
-    case TRAVEL_SAILING: speed = 5; break;
-    default: speed = 2; break;
-  }
+  /* transport type handling */
 
   room_rnum to_room = NOWHERE;
 

@@ -1364,7 +1364,7 @@ void npc_spellup(struct char_data *ch)
 void npc_psionic_powerup(struct char_data *ch)
 {
 
-  int level = 0, powernum = 0, i = 0;
+  int powernum = 0, i = 0;
   bool found = false;
   int buff_count = 0;
 
@@ -1389,12 +1389,6 @@ void npc_psionic_powerup(struct char_data *ch)
     if (rand_number(0, 3)) /* 75% chance to skip buffing */
       return;
   }
-
-  /* capping */
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
-    level = LVL_IMMORT - 1;
-  else
-    level = GET_LEVEL(ch);
 
   // we'll max out at 20 tries just to avoid any potential infinite loops
   while (!found && i < 20)

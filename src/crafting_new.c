@@ -1073,7 +1073,7 @@ int get_enhancement_mote_type(struct char_data *ch, int type, int spec)
                 case ARMOR_TYPE_SHIELD: return CRAFTING_MOTE_WATER;
                 case ARMOR_TYPE_TOWER_SHIELD: return CRAFTING_MOTE_AIR;
                 case ARMOR_TYPE_NONE: return  CRAFTING_MOTE_ICE;
-                default: CRAFTING_MOTE_NONE;
+                default: return CRAFTING_MOTE_NONE;
             }
             break;
         default:
@@ -1988,7 +1988,6 @@ void show_current_craft(struct char_data *ch)
     {
         base_group = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[0][GET_CRAFT(ch).craft_variant][0];
         base_amount = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[0][GET_CRAFT(ch).craft_variant][1];
-        project_material = GET_CRAFT(ch).materials[base_group][0];
         project_amount = GET_CRAFT(ch).materials[base_group][1];
         if (base_group != CRAFT_GROUP_NONE)
         {
@@ -1998,7 +1997,6 @@ void show_current_craft(struct char_data *ch)
         }
         base_group = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[1][GET_CRAFT(ch).craft_variant][0];
         base_amount = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[1][GET_CRAFT(ch).craft_variant][1];
-        project_material = GET_CRAFT(ch).materials[base_group][0];
         project_amount = GET_CRAFT(ch).materials[base_group][1];
         if (base_group != CRAFT_GROUP_NONE)
         {
@@ -2008,7 +2006,6 @@ void show_current_craft(struct char_data *ch)
         }
         base_group = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[2][GET_CRAFT(ch).craft_variant][0];
         base_amount = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[2][GET_CRAFT(ch).craft_variant][1];
-        project_material = GET_CRAFT(ch).materials[base_group][0];
         project_amount = GET_CRAFT(ch).materials[base_group][1];
         if (base_group != CRAFT_GROUP_NONE)
         {
@@ -2362,7 +2359,7 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
     int i = 0;
     int required = 0;;
     int location = 0, modifier = 0, bonus_type = 0, specific = 0;
-    int base_group, base_amount, project_material, project_amount;
+    int base_group, base_amount, project_amount;
 
     if (verbose)
         send_to_char(ch, "\r\n");
@@ -2407,7 +2404,6 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
     {
         base_group = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[0][GET_CRAFT(ch).craft_variant][0];
         base_amount = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[0][GET_CRAFT(ch).craft_variant][1];
-        project_material = GET_CRAFT(ch).materials[base_group][0];
         project_amount = GET_CRAFT(ch).materials[base_group][1];
         if (base_group != CRAFT_GROUP_NONE)
         {
@@ -2421,7 +2417,6 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
         }
         base_group = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[1][GET_CRAFT(ch).craft_variant][0];
         base_amount = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[1][GET_CRAFT(ch).craft_variant][1];
-        project_material = GET_CRAFT(ch).materials[base_group][0];
         project_amount = GET_CRAFT(ch).materials[base_group][1];
         if (base_group != CRAFT_GROUP_NONE)
         {
@@ -2435,7 +2430,6 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
         }
         base_group = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[2][GET_CRAFT(ch).craft_variant][0];
         base_amount = crafting_recipes[GET_CRAFT(ch).crafting_recipe].materials[2][GET_CRAFT(ch).craft_variant][1];
-        project_material = GET_CRAFT(ch).materials[base_group][0];
         project_amount = GET_CRAFT(ch).materials[base_group][1];
         if (base_group != CRAFT_GROUP_NONE)
         {
@@ -3426,9 +3420,9 @@ void show_craft_score(struct char_data *ch, const char *arg2)
     draw_line(ch, 90, '-', '-');
     send_to_char(ch, "\tn");
 
-    for (i = START_CRAFT_ABILITIES; i <= END_HARVEST_ABILITIES; i++)
+    for (i = START_CRAFT_ABILITIES; i < END_HARVEST_ABILITIES; i++)
     {
-        abil = craft_skills_alphabetic[i-START_CRAFT_ABILITIES+1];
+        abil = craft_skills_alphabetic[i-START_CRAFT_ABILITIES];
         if (crafting_skill_type(abil) != CRAFT_SKILL_TYPE_CRAFT) continue;
         send_to_char(ch, "%-25s %-10s %-4d %-6d %-6d\r\n",
                     ability_names[abil], crafting_skill_type(abil) == CRAFT_SKILL_TYPE_CRAFT ? "Craft" : "Harvest", get_craft_skill_value(ch, abil),
@@ -3439,9 +3433,9 @@ void show_craft_score(struct char_data *ch, const char *arg2)
     draw_line(ch, 90, '-', '-');
     send_to_char(ch, "\tn");
 
-    for (i = START_CRAFT_ABILITIES; i <= END_HARVEST_ABILITIES; i++)
+    for (i = START_CRAFT_ABILITIES; i < END_HARVEST_ABILITIES; i++)
     {
-        abil = craft_skills_alphabetic[i-START_CRAFT_ABILITIES+1];
+        abil = craft_skills_alphabetic[i-START_CRAFT_ABILITIES];
         if (crafting_skill_type(abil) != CRAFT_SKILL_TYPE_HARVEST) continue;
         send_to_char(ch, "%-25s %-10s %-4d %-6d %-6d\r\n",
                     ability_names[abil], crafting_skill_type(abil) == CRAFT_SKILL_TYPE_CRAFT ? "Craft" : "Harvest", get_craft_skill_value(ch, abil),
@@ -4607,7 +4601,7 @@ ACMD(do_list_craft_materials)
     text_line(ch, "HARD METALS", 80, '-', '-');
     send_to_char(ch, "\tn");
     
-    for (i = 2; i < NUM_CRAFT_MATS+1; i++)
+    for (i = 2; i < NUM_CRAFT_MATS; i++)
     {
         mat = materials_sort_info[i];
         if (craft_group_by_material(mat) != CRAFT_GROUP_HARD_METALS) continue;
@@ -4625,7 +4619,7 @@ ACMD(do_list_craft_materials)
     text_line(ch, "SOFT METALS", 80, '-', '-');
     send_to_char(ch, "\tn");
     
-    for (i = 2; i < NUM_CRAFT_MATS+1; i++)
+    for (i = 2; i < NUM_CRAFT_MATS; i++)
     {
         mat = materials_sort_info[i];
         if (craft_group_by_material(mat) != CRAFT_GROUP_SOFT_METALS) continue;
@@ -4644,7 +4638,7 @@ ACMD(do_list_craft_materials)
     text_line(ch, "HIDES", 80, '-', '-');
     send_to_char(ch, "\tn");
     
-    for (i = 2; i < NUM_CRAFT_MATS+1; i++)
+    for (i = 2; i < NUM_CRAFT_MATS; i++)
     {
         mat = materials_sort_info[i];
         if (craft_group_by_material(mat) != CRAFT_GROUP_HIDES) continue;
@@ -4663,7 +4657,7 @@ ACMD(do_list_craft_materials)
     text_line(ch, "WOOD", 80, '-', '-');
     send_to_char(ch, "\tn");
     
-    for (i = 2; i < NUM_CRAFT_MATS+1; i++)
+    for (i = 2; i < NUM_CRAFT_MATS; i++)
     {
         mat = materials_sort_info[i];
         if (craft_group_by_material(mat) != CRAFT_GROUP_WOOD) continue;
@@ -4681,7 +4675,7 @@ ACMD(do_list_craft_materials)
     text_line(ch, "CLOTH", 80, '-', '-');
     send_to_char(ch, "\tn");
     
-    for (i = 2; i < NUM_CRAFT_MATS+1; i++)
+    for (i = 2; i < NUM_CRAFT_MATS; i++)
     {
         mat = materials_sort_info[i];
         if (craft_group_by_material(mat) != CRAFT_GROUP_CLOTH) continue;
@@ -4700,7 +4694,7 @@ ACMD(do_list_craft_materials)
     text_line(ch, "REFINING MATERIALS", 80, '-', '-');
     send_to_char(ch, "\tn");
     
-    for (i = 2; i < NUM_CRAFT_MATS+1; i++)
+    for (i = 2; i < NUM_CRAFT_MATS; i++)
     {
         mat = materials_sort_info[i];
         if (craft_group_by_material(mat) != CRAFT_GROUP_REFINING) continue;
@@ -5012,7 +5006,7 @@ struct obj_data *find_obj_rnum_in_inventory(struct char_data *ch, obj_rnum obj_r
 
 void craft_resize_complete(struct char_data *ch)
 {
-    int skill, skill_rank, mat, cmat, size, dc;
+    int skill, cmat, size, dc;
     struct obj_data *obj = find_obj_rnum_in_inventory(ch, GET_CRAFT(ch).craft_obj_rnum);
 
     if (!obj)
@@ -5022,10 +5016,8 @@ void craft_resize_complete(struct char_data *ch)
     }
 
     cmat = GET_CRAFT(ch).resize_mat_type;
-    mat = craft_material_to_obj_material(cmat);
     size = GET_CRAFT(ch).new_size;
     skill = harvesting_skill_by_material(cmat);
-    skill_rank = get_craft_skill_value(ch, skill);
 
     dc = MAX(RESIZE_BASE_DC, GET_OBJ_LEVEL(obj));
 

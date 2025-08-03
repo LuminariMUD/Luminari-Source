@@ -74,7 +74,6 @@ ACMD(do_oasis_oedit)
 {
   int number = NOWHERE, save = 0, real_num;
   struct descriptor_data *d;
-  const char *buf3;
   char buf1[MAX_STRING_LENGTH] = {'\0'};
   char buf2[MAX_STRING_LENGTH] = {'\0'};
 
@@ -83,7 +82,7 @@ ACMD(do_oasis_oedit)
     return;
 
   /* Parse any arguments. */
-  buf3 = two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
+  two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   /* If there aren't any arguments they can't modify anything. */
   if (!*buf1)
@@ -1607,14 +1606,12 @@ bool remove_special_ability(struct obj_data *obj, int number)
 struct obj_special_ability *get_specab_by_position(struct obj_data *obj, int position)
 {
   int i;
-  struct obj_special_ability *specab, *prev_specab;
+  struct obj_special_ability *specab;
 
   specab = obj->special_abilities;
-  prev_specab = NULL;
 
   for (i = 1; (i < position) && (specab != NULL); i++)
   {
-    prev_specab = specab;
     specab = specab->next;
   }
 
