@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([LuminariMUD], [1.0], [bugs@luminarimud.com])
+AC_INIT([LuminariMUD],[1.0],[bugs@luminarimud.com])
 AC_CONFIG_SRCDIR([src/act.comm.c])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_SUBST(MYFLAGS)
@@ -105,7 +105,6 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_TYPE_SIGNAL
 AC_CHECK_TYPE(ssize_t, int)
 AC_CHECK_HEADERS([time.h sys/time.h])
 AC_CHECK_DECLS([struct timeval],,,[#include <sys/time.h>])
