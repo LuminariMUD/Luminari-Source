@@ -95,7 +95,7 @@ struct zone_data *zone_table = NULL; /* zone table      */
 zone_rnum top_of_zone_table = 0;     /* top element of zone tab   */
 
 struct region_data *region_table = NULL; /* Region table */
-region_rnum top_of_region_table = 0;     /* top element of region tab */
+region_rnum top_of_region_table = -1;     /* top element of region tab */
 
 struct path_data *path_table = NULL; /* Path table */
 path_rnum top_of_path_table = 0;     /* top element of path tab */

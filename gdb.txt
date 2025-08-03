@@ -1,0 +1,21 @@
+Catchpoint 1 (throw)
+Breakpoint 2 at 0x50070: file src/comm.c, line 240.
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/liblber.so.2
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlidec.so.1
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libbrotlicommon.so.1
+
+Breakpoint 2, main (argc=3, argv=0x7fffffffdb88) at src/comm.c:240
+240	{
+(gdb) A debugging session is active.
+
+	Inferior 1 [process 53742] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

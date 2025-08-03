@@ -43,6 +43,7 @@
 #include "backgrounds.h"
 #include "char_descs.h"
 #include "treasure.h"
+#include <time.h>
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -2703,7 +2704,9 @@ int strn_cmp(const char *arg1, const char *arg2, int n)
 void basic_mud_vlog(const char *format, va_list args)
 {
   time_t ct = time(0);
-  char *time_s = asctime(localtime(&ct));
+  struct tm *tm_info;
+  char *time_s;
+  char time_buf[128];
 
   if (logfile == NULL)
   {
@@ -2714,9 +2717,21 @@ void basic_mud_vlog(const char *format, va_list args)
   if (format == NULL)
     format = "SYSERR: log() received a NULL format.";
 
-  time_s[strlen(time_s) - 1] = '\0';
+  tm_info = localtime(&ct);
+  if (tm_info == NULL) {
+    /* Fallback if localtime fails */
+    fprintf(logfile, "%-15.15s :: ", "??? ?? ??:??:??");
+  } else {
+    time_s = asctime(tm_info);
+    if (time_s == NULL) {
+      /* Fallback if asctime fails */
+      fprintf(logfile, "%-15.15s :: ", "??? ?? ??:??:??");
+    } else {
+      time_s[strlen(time_s) - 1] = '\0';
+      fprintf(logfile, "%-15.15s :: ", time_s + 4);
+    }
+  }
 
-  fprintf(logfile, "%-15.15s :: ", time_s + 4);
   vfprintf(logfile, format, args);
   fputc('\n', logfile);
   fflush(logfile);
