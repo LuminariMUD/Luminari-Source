@@ -199,8 +199,8 @@ BUILT_SOURCES = unittests/CuTest/AllTests.c
 # Clean up generated files
 CLEANFILES = unittests/CuTest/AllTests.c
 
-# Install to parent bin directory
-bindir = $(top_builddir)/../bin
+# Install to local bin directory
+bindir = $(top_builddir)/bin
 
 # After installation, remove the executable from the source directory
 install-exec-hook:

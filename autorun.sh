@@ -40,7 +40,7 @@ readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # MUD Configuration (can be overridden by environment variables)
 readonly MUD_PORT="${MUD_PORT:-4100}"
 readonly MUD_BINARY="${MUD_BINARY:-circle}"
-readonly BIN_DIR="${BIN_DIR:-../bin}"
+readonly BIN_DIR="${BIN_DIR:-bin}"
 readonly LIB_DIR="${LIB_DIR:-lib}"
 readonly LOG_DIR="${LOG_DIR:-log}"
 readonly DUMPS_DIR="${DUMPS_DIR:-dumps}"
