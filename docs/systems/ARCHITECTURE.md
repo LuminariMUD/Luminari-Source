@@ -11,7 +11,7 @@ LuminariMUD is a sophisticated text-based multiplayer online role-playing game (
 
 ### Language and Standards
 - **Primary Language**: ANSI C90/C89 (NOT C99!)
-- **Performance Monitoring**: C++ (perfmon.cpp)
+- **Performance Monitoring**: C (perfmon.c)
 - **Compiler Compliance**: GCC/Clang without -std=c99 flag
 - **Platform Support**: Linux/Unix systems (CentOS), WSL/Windows compatible
 
@@ -149,7 +149,7 @@ mysql.c         - Database integration
 mud_event.c     - Event system
 actionqueues.c  - Action queuing
 protocol.c      - Client protocols
-perfmon.cpp     - Performance monitoring
+perfmon.c       - Performance monitoring
 ```
 
 ## Data Flow
@@ -205,7 +205,7 @@ clear_object(obj);
 
 ### Profiling Tools
 - **gprof**: Function-level profiling
-- **perfmon.cpp**: Custom C++ profiler
+- **perfmon.c**: Custom performance profiler
 - **valgrind**: Memory leak detection
 - **System monitoring**: CPU and memory usage
 

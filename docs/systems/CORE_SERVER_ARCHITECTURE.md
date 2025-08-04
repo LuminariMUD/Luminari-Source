@@ -269,7 +269,7 @@ void boot_world(void)
 
 ## Performance Monitoring
 
-The server includes built-in performance profiling through the `perfmon.cpp` system:
+The server includes built-in performance profiling through the `perfmon.c` system:
 
 ```c
 // Performance tracking macros
@@ -343,7 +343,7 @@ The performance monitoring system underwent comprehensive refactoring to address
 - Enhanced circular buffer efficiency
 
 **Testing:**
-- Comprehensive unit test suite (`test_perfmon.cpp`)
+- Comprehensive unit test suite (`test_perfmon.c`)
 - Memory leak verification
 - Buffer safety validation
 - Performance regression testing

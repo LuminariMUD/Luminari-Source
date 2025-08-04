@@ -13,7 +13,7 @@ This guide provides comprehensive information for developers working on Luminari
 - **Valgrind** - Memory leak detection (Linux) - Essential for development
 - **Doxygen** - Documentation generation (optional)
 - **Text Editor/IDE** - VS Code, Vim, Emacs, or CLion
-- **Performance Tools** - Built-in C++ performance monitoring available
+- **Performance Tools** - Built-in performance monitoring available
 
 ### Development Dependencies
 ```bash

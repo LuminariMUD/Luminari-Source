@@ -47,10 +47,9 @@ Individual modules may have their own specialized test suites.
 
 ### Performance Monitor Testing
 
-The performance monitoring system (`perfmon.cpp`) includes a comprehensive test suite:
+The performance monitoring system (`perfmon.c`) includes a comprehensive test suite:
 
-**Test File:** `test_perfmon.cpp`
-**Build File:** `test_perfmon.mk`
+**Test File:** `test_perfmon.c`
 
 **Test Coverage:**
 - Basic PerfIntvlData operations
@@ -66,10 +65,10 @@ The performance monitoring system (`perfmon.cpp`) includes a comprehensive test 
 **Running Tests:**
 ```bash
 # Build and run perfmon tests
-make -f test_perfmon.mk test-perfmon
+make test-perfmon
 
 # Clean test artifacts
-make -f test_perfmon.mk clean-test-perfmon
+make clean-test-perfmon
 ```
 
 **Test Categories:**
@@ -83,7 +82,7 @@ make -f test_perfmon.mk clean-test-perfmon
 ### Individual Test Suites
 ```bash
 # Performance monitor tests
-make -f test_perfmon.mk test-perfmon
+make test-perfmon
 
 # CuTest framework tests
 cd unittests/CuTest
