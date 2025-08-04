@@ -223,6 +223,13 @@ lib/etc/last
 lib/etc/plrmail
 lib/etc/time
 
+# Autorun control files (should never be committed)
+.killscript
+.fastboot
+pause
+.websocket_policy.pid
+.flash_policy.pid
+
 # User-generated content
 lib/misc/bugs
 lib/misc/ideas
