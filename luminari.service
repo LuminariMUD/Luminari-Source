@@ -7,10 +7,15 @@ Type=forking
 User=luminari
 Group=luminari
 WorkingDirectory=/home/luminari/luminarimud
+# autorun.sh now defaults to daemon mode, no arguments needed
 ExecStart=/home/luminari/luminarimud/autorun.sh
-ExecStop=/bin/touch /home/luminari/luminarimud/.killscript
+# Use the built-in stop command instead of .killscript
+ExecStop=/home/luminari/luminarimud/autorun.sh stop
 Restart=always
 RestartSec=60
+# Environment variables
+Environment="MUD_PORT=4100"
+Environment="MUD_FLAGS=-q"
 
 # Security settings
 NoNewPrivileges=true
