@@ -179,6 +179,7 @@ syslog.CRASH
 # Debug Files
 ####################
 gdb.txt
+log/gdb.txt
 .gdbcommands
 .gdbinit_mud
 core

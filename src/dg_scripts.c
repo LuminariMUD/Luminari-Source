@@ -3074,7 +3074,12 @@ int script_driver(void *go_adress, trig_data *trig, int type, int mode)
     break;
   }
   if (sc)
+  {
     free_varlist(GET_TRIG_VARS(trig));
+    /* Clean up any context-specific global variables created by this trigger */
+    if (sc->context != 0)
+      free_context_vars(sc, sc->context);
+  }
   GET_TRIG_VARS(trig) = NULL;
   GET_TRIG_DEPTH(trig) = 0;
 

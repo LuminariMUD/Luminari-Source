@@ -344,6 +344,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
 /* From dg_handler.c */
 void free_var_el(struct trig_var_data *var);
 void free_varlist(struct trig_var_data *vd);
+void free_context_vars(struct script_data *sc, long context);
 int remove_var(struct trig_var_data **var_list, char *name);
 void free_trigger(trig_data *trig);
 void extract_trigger(struct trig_data *trig);

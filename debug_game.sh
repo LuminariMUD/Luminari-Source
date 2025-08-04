@@ -34,7 +34,7 @@ echo "  show_char <ptr> - Display character info"
 echo "  show_obj <ptr>  - Display object info"
 echo "  show_room <num> - Display room info"
 echo ""
-echo "Log file: gdb_debug.log"
+echo "Log file: log/gdb_debug.log"
 echo ""
 echo "Starting GDB..."
 
@@ -145,7 +145,7 @@ set print pretty on
 set print array on
 set print array-indexes on
 set logging enabled on
-set logging file gdb_debug.log
+set logging file log/gdb_debug.log
 set logging overwrite on
 set logging debugredirect on
 handle SIGPIPE nostop noprint pass
