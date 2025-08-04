@@ -230,6 +230,7 @@ lib/etc/time
 pause
 .websocket_policy.pid
 .flash_policy.pid
+.autorun.lock
 
 # User-generated content
 lib/misc/bugs

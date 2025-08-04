@@ -214,7 +214,7 @@ typedef struct descriptor_data descriptor_t;
  * @note Dragonlance and Forgotten Realms campaigns use different/no GUIs
  */
 #if !defined(CAMPAIGN_DL)
-#define MUDLET_PACKAGE "4\nhttp://luminarimud.com/download/LuminariGUI.mpackage"
+#define MUDLET_PACKAGE "4\nhttps://luminarimud.com/download/LuminariGUI-v2.0.4.015.mpackage"
 #endif
 
 /******************************************************************************
