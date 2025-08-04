@@ -592,22 +592,11 @@ else
                 exit 1
             fi
             
-            # Double fork to properly daemonize
-            (
-                # First fork
-                (
-                    # Second fork - this fully detaches from terminal
-                    # Redirect all output
-                    exec </dev/null
-                    exec >/dev/null 2>&1
-                    
-                    # Start a new session
-                    setsid
-                    
-                    # Run the autorun script in daemonized mode
-                    "$0" foreground
-                ) &
-            ) &
+            # Simple daemonization using nohup
+            nohup "$0" foreground > /dev/null 2>&1 &
+            
+            # Disown the process to detach from shell
+            disown
             
             echo "LuminariMUD daemon started"
             echo "Use '$SCRIPT_NAME status' to check status"
