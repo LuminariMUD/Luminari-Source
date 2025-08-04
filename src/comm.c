@@ -2212,9 +2212,14 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
 
   buf_switches++;
 
-  /* if the pool has a buffer in it, grab it */
-  if (bufpool != NULL)
+  /* Check if we already have a large buffer allocated */
+  if (t->large_outbuf)
   {
+    /* We already have a large buffer, just use it */
+  }
+  else if (bufpool != NULL)
+  {
+    /* if the pool has a buffer in it, grab it */
     t->large_outbuf = bufpool;
     bufpool = bufpool->next;
   }

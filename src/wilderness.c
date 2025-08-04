@@ -407,6 +407,10 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
         else
           map[x][y].glyph = wild_map_info[map[x][y].sector_type].variant_disp[get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x + x_offset, y + y_offset) % NUM_VARIANT_GLYPHS];
       }
+      
+      /* Free the region and path lists after use */
+      free_region_list(regions);
+      free_path_list(paths);
     }
   }
 
@@ -578,6 +582,11 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
       }
     }
   }
+  
+  /* Free the region and path lists before returning */
+  free_region_list(regions);
+  free_path_list(paths);
+  
   return sector_type;
 }
 
@@ -799,6 +808,10 @@ void assign_wilderness_room(room_rnum room, int x, int y)
    * memory management with static pointer checks like wilderness_name.
    */
   world[room].description = wilderness_desc;
+  
+  /* Free the region and path lists after use */
+  free_region_list(regions);
+  free_path_list(paths);
 }
 
 void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2)
@@ -1394,6 +1407,10 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
         gdImageSetPixel(im, x + xsize / 2, ysize / 2 + y, gray[get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, -y)]);
       else
         gdImageSetPixel(im, x + xsize / 2, ysize / 2 + y, color_by_sector[sector_type]);
+      
+      /* Free the region and path lists after use */
+      free_region_list(regions);
+      free_path_list(paths);
     }
   }
 
@@ -1651,6 +1668,10 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
       kd_res_next(set);
     }
     kd_res_free(set);
+    
+    /* Free the region and path lists after use */
+    free_region_list(regions);
+    free_path_list(paths);
   }
 
   /* Create the structure for the path */

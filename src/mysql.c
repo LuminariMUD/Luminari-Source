@@ -823,6 +823,30 @@ struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y)
   return regions;
 }
 
+/* Free a region list created by get_enclosing_regions() */
+void free_region_list(struct region_list *regions)
+{
+  struct region_list *temp;
+  
+  while (regions) {
+    temp = regions;
+    regions = regions->next;
+    free(temp);
+  }
+}
+
+/* Free a path list created by get_enclosing_paths() */
+void free_path_list(struct path_list *paths)
+{
+  struct path_list *temp;
+  
+  while (paths) {
+    temp = paths;
+    paths = paths->next;
+    free(temp);
+  }
+}
+
 #define ROUND(num) (num < 0 ? num - 0.5 : num + 0.5)
 
 /* Move this out to another file... */

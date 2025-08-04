@@ -354,6 +354,9 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 		buf[0] = '\0';
 	}
 
+	/* Free the region list before returning */
+	free_region_list(regions);
+	
 	return strdup(rdesc);
 }
 
