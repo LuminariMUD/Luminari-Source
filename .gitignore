@@ -232,6 +232,9 @@ pause
 .flash_policy.pid
 .autorun.lock
 
+# Copyover/hotboot files (should never be committed)
+lib/copyover.dat
+
 # User-generated content
 lib/misc/bugs
 lib/misc/ideas
