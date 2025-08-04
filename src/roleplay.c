@@ -1284,7 +1284,7 @@ void HandleStateCharacterFactionParseMenuChoice(struct descriptor_data *d, char 
       GET_CLAN(ch) = clan;
       if (clan == 0)
       {
-        if ((v_id = get_ptable_by_name(strdup(GET_NAME(ch)))) < 0)
+        if ((v_id = get_ptable_by_name(GET_NAME(ch))) < 0)
         {
           send_to_char(ch, "There was an error setting your faction as adventurer. Please inform staff ERRCHMNFC001.\r\n");
           return;

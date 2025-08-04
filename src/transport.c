@@ -522,7 +522,7 @@ ACMDU(do_sail)
           }
           room_rnum to_room = NOWHERE;
           snprintf(buf, sizeof(buf), "%s", sailing_locales[i][1]);
-          if ((to_room = find_target_room(ch, strdup(buf))) == NOWHERE)
+          if ((to_room = find_target_room(ch, buf)) == NOWHERE)
           {
             send_to_char(ch, "There is an error with that destination.  Please report to staff.\r\n");
             return;
@@ -593,7 +593,7 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
 #endif
   }
 
-  if ((to_room = find_target_room(ch, (type == TRAVEL_SAILING) ? strdup(air) : strdup(car))) == NOWHERE)
+  if ((to_room = find_target_room(ch, (type == TRAVEL_SAILING) ? air : car)) == NOWHERE)
   {
     send_to_char(ch, "There is an error with that destination.  Please report on the to a staff member. ERRENTCAR001\r\n");
     return;

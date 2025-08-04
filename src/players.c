@@ -4375,7 +4375,7 @@ void save_eidolon_descs(struct char_data *ch)
   *end2++ = '\'';
   *end2++ = ',';
 
-  if (valid_pet_name(strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch))))
+  if (valid_pet_name(GET_EIDOLON_SHORT_DESCRIPTION(ch)))
   {
     *end2++ = '\'';
     end2 += mysql_real_escape_string(conn, end2, GET_EIDOLON_SHORT_DESCRIPTION(ch), strlen(GET_EIDOLON_SHORT_DESCRIPTION(ch)));
@@ -4387,7 +4387,7 @@ void save_eidolon_descs(struct char_data *ch)
     *end2++ = '\'';
   }
   *end2++ = ',';
-  if (valid_pet_name(strdup(GET_EIDOLON_LONG_DESCRIPTION(ch))))
+  if (valid_pet_name(GET_EIDOLON_LONG_DESCRIPTION(ch)))
   {
     *end2++ = '\'';
     end2 += mysql_real_escape_string(conn, end2, GET_EIDOLON_LONG_DESCRIPTION(ch), strlen(GET_EIDOLON_LONG_DESCRIPTION(ch)));
