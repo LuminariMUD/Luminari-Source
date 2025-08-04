@@ -7,7 +7,6 @@ SUBDIRS = util
 # Additional compiler flags
 # Revert to project defaults: do NOT force global feature defines here.
 AM_CFLAGS = -std=gnu90 -Isrc @MYFLAGS@
-AM_CXXFLAGS = -Isrc @MYFLAGS@ -std=c++11
 
 # Build timestamp information
 MKTIME = $(shell date +%s)
@@ -124,7 +123,7 @@ circle_SOURCES = \
 	src/oasis_list.c \
 	src/objsave.c \
 	src/oedit.c \
-	src/perfmon_optimized.c \
+	src/perfmon.c \
 	src/perlin.c \
 	src/players.c \
 	src/prefedit.c \
@@ -163,11 +162,10 @@ circle_SOURCES = \
 	src/wilderness.c \
 	src/zedit.c \
 	src/zmalloc.c \
-	src/zone_procs.c \
-	src/perfmon.cpp
+	src/zone_procs.c
 
 # Libraries to link
-circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lstdc++ -lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread
+circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread
 
 # Special flags for constants.c to include build information
 src/constants.$(OBJEXT): AM_CFLAGS += -DMKTIME='"$(MKTIME)"' -DMKUSER='"$(MKUSER)"' -DMKHOST='"$(MKHOST)"' -DBRANCH='"$(BRANCH)"' -DPARENT='"$(PARENT)"'

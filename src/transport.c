@@ -691,7 +691,7 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
 
   char_from_room(ch);
   char_to_room(ch, taxi);
-  char_pets_to_char_loc(tch);
+  char_pets_to_char_loc(ch);
   ch->player_specials->destination = to_room;
   ch->player_specials->travel_timer = get_travel_time(ch, 10, locale, here, type);
   ch->player_specials->travel_type = type;
