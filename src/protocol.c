@@ -2210,30 +2210,49 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
   case (char)TELOPT_GMCP:
     if (aCmd == (char)WILL)
     {
+      log("DEBUG: GMCP WILL received. Current state: bMSDP=%d, bGMCP=%d, CLIENT_ID=%s", 
+          pProtocol->bMSDP, pProtocol->bGMCP, 
+          pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
+      
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_GMCP, true, true);
 
       /* If we don't support MSDP, fake it with GMCP */
       if (!pProtocol->bMSDP && !pProtocol->bGMCP)
       {
+        log("DEBUG: Enabling GMCP because MSDP is not supported");
         pProtocol->bGMCP = true;
 
         /* Identify the mud to the client. */
         MSDPSendPair(apDescriptor, "SERVER_ID", MUD_NAME);
       }
+      else
+      {
+        log("DEBUG: NOT enabling GMCP - bMSDP=%d, bGMCP=%d", pProtocol->bMSDP, pProtocol->bGMCP);
+      }
       
       /* Always allow GMCP for Mudlet package delivery */
       if (!pProtocol->bGMCP)
       {
+        log("DEBUG: Force-enabling GMCP for Mudlet package delivery");
         pProtocol->bGMCP = true;
       }
 
 #ifdef MUDLET_PACKAGE
+      log("DEBUG: MUDLET_PACKAGE defined as: %s", MUDLET_PACKAGE);
       /* Send the Mudlet GUI package to the user. */
       if (MatchString("Mudlet",
                       pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
       {
+        log("DEBUG: Mudlet client detected! Sending package via GMCP");
         SendGMCP(apDescriptor, "Client.GUI", MUDLET_PACKAGE);
       }
+      else
+      {
+        log("DEBUG: Client '%s' is not Mudlet, not sending package", 
+            pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
+      }
+#else
+      log("DEBUG: MUDLET_PACKAGE not defined!");
 #endif /* MUDLET_PACKAGE */
     }
     else if (aCmd == (char)WONT)
@@ -2407,9 +2426,14 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
       case (char)TELOPT_GMCP:
          if ( aCmd == (char)WILL )
          {
+            log("DEBUG: [DUPLICATE] GMCP WILL received. bMSDP=%d, bGMCP=%d, CLIENT_ID=%s", 
+                pProtocol->bMSDP, pProtocol->bGMCP, 
+                pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
+                
             // If we don't support MSDP, fake it with GMCP
             if ( !pProtocol->bMSDP )
             {
+               log("DEBUG: [DUPLICATE] Enabling GMCP (no MSDP)");
                pProtocol->bGMCP = true;
 
                // Identify the mud to the client.
@@ -2419,15 +2443,23 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
             // Always allow GMCP for Mudlet package delivery
             if ( !pProtocol->bGMCP )
             {
+               log("DEBUG: [DUPLICATE] Force-enabling GMCP for package");
                pProtocol->bGMCP = true;
             }
 
 #ifdef MUDLET_PACKAGE
+            log("DEBUG: [DUPLICATE] Checking for Mudlet client...");
             // Send the Mudlet GUI package to the user.
             if ( MatchString( "Mudlet",
                pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString ) )
             {
+               log("DEBUG: [DUPLICATE] Mudlet detected! Sending package");
                SendGMCP( apDescriptor, "Client.GUI", MUDLET_PACKAGE );
+            }
+            else
+            {
+               log("DEBUG: [DUPLICATE] Client '%s' is not Mudlet", 
+                   pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
             }
 #endif // MUDLET_PACKAGE
          }
@@ -2474,6 +2506,17 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
           pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString = new_client_string;
           if (old_client_string) free(old_client_string);
         }
+        
+        log("DEBUG: TTYPE identified client as '%s'", pClientName);
+        
+#ifdef MUDLET_PACKAGE
+        /* Check if this is Mudlet and we have GMCP enabled but haven't sent the package yet */
+        if (MatchString("Mudlet", pClientName) && pProtocol->bGMCP)
+        {
+          log("DEBUG: Mudlet identified via TTYPE, sending package now via GMCP");
+          SendGMCP(apDescriptor, "Client.GUI", MUDLET_PACKAGE);
+        }
+#endif /* MUDLET_PACKAGE */
 
         /* This is a bit nasty, but using cyclic TTYPE on windows telnet
          * causes it to lock up.  None of the clients we need to cycle
@@ -3058,6 +3101,8 @@ static void ParseGMCP(descriptor_t *apDescriptor, const char *apData)
 static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const char *apValue)
 {
   char GMCPBuffer[MAX_VARIABLE_LENGTH + 1] = {'\0'};
+  
+  log("DEBUG: SendGMCP called with variable='%s', value='%s'", apVariable, apValue);
 
   if (apVariable != NULL && apValue != NULL)
   {
