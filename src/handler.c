@@ -28,6 +28,7 @@
 #include "wilderness.h"
 #include "actionqueues.h"
 #include "constants.h"
+#include "lists.h"
 #include "spec_abilities.h"
 #include "crafting_new.h"
 
@@ -2591,10 +2592,42 @@ void extract_char_final(struct char_data *ch)
   {
     if (ch->events->iSize > 0)
     {
-      struct event *pEvent;
+      struct event *pEvent = NULL;
+      struct item_data *pItem = NULL;
+      struct item_data *pNextItem = NULL;
+      struct list_data *temp_list = NULL;
 
-      while ((pEvent = simple_list(ch->events)) != NULL)
-        event_cancel(pEvent);
+      /* Create a temporary list to hold events that need to be cancelled */
+      temp_list = create_list();
+
+      /* First pass: collect all events into temporary list */
+      pItem = ch->events->pFirstItem;
+      while (pItem)
+      {
+        pNextItem = pItem->pNextItem;  /* Cache next pointer */
+        pEvent = (struct event *)pItem->pContent;
+        
+        if (pEvent && event_is_queued(pEvent))
+          add_to_list(pEvent, temp_list);
+          
+        pItem = pNextItem;
+      }
+
+      /* Second pass: cancel the collected events using safe iteration */
+      pItem = temp_list->pFirstItem;
+      while (pItem)
+      {
+        pNextItem = pItem->pNextItem;  /* Cache next pointer before event_cancel */
+        pEvent = (struct event *)pItem->pContent;
+        
+        if (pEvent)
+          event_cancel(pEvent);
+          
+        pItem = pNextItem;
+      }
+
+      /* Clean up the temporary list */
+      free_list(temp_list);
     }
     free_list(ch->events);
     ch->events = NULL;

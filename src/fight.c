@@ -7761,10 +7761,16 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
         /* Validate spell number before using it to prevent crashes */
         if (dr->spell >= 0 && dr->spell < TOP_SPELL_DEFINE)
         {
-          affect_from_char(victim, dr->spell);
-
-          if (get_wearoff(dr->spell))
-            send_to_char(victim, "%s\r\n", get_wearoff(dr->spell));
+          /* Cache the spell number and wearoff message before removing the affect,
+           * as affect_from_char may free the dr structure if it has APPLY_DR */
+          int spell_num = dr->spell;
+          const char *wearoff_msg = get_wearoff(spell_num);
+          
+          affect_from_char(victim, spell_num);
+          
+          /* Use cached values instead of dr-> which may be freed */
+          if (wearoff_msg)
+            send_to_char(victim, "%s\r\n", wearoff_msg);
         }
       }
     }
