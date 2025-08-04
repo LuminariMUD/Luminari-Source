@@ -7927,7 +7927,7 @@ int teamwork_best_stealth(struct char_data *ch, int featnum)
     return 0;
 
   struct char_data *k = NULL;
-  int stealth = compute_ability_full(ch, ABILITY_STEALTH, FALSE);
+  int stealth = compute_ability_full(ch, ABILITY_STEALTH, TRUE);
 
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
   {
