@@ -520,56 +520,113 @@ trap handle_sigint SIGINT
 # Main Script
 #############################################################################
 
-# Parse command line arguments
-case "${1:-}" in
-    status)
-        show_status
-        exit 0
-        ;;
-    stop)
-        log_info "Stopping autorun"
-        touch .killscript
-        
-        # Find and kill any running autorun processes
-        autorun_pids=$(pgrep -f "bash.*${SCRIPT_NAME}" | grep -v "$$" | grep -v grep)
-        if [[ -n "$autorun_pids" ]]; then
-            log_info "Found running autorun process(es): $autorun_pids"
-            echo "$autorun_pids" | xargs kill 2>/dev/null || true
-            log_info "Sent termination signal to autorun process(es)"
-        else
-            log_info "No running autorun process found"
-        fi
-        
-        # Also try to stop the MUD server gracefully
-        if is_mud_running; then
-            mud_pid=$(get_mud_pid)
-            log_info "Stopping MUD server (PID: $mud_pid)"
-            kill -TERM "$mud_pid" 2>/dev/null || true
-        fi
-        
-        exit 0
-        ;;
-    help|--help|-h)
-        echo "Usage: $SCRIPT_NAME [status|stop|help]"
-        echo ""
-        echo "Control files:"
-        echo "  .fastboot   - Quick restart (5 seconds)"
-        echo "  .killscript - Stop autorun"
-        echo "  pause       - Pause autorun"
-        echo ""
-        echo "Environment variables:"
-        echo "  MUD_PORT    - Port number (default: 4100)"
-        echo "  MUD_FLAGS   - Server flags (default: -q)"
-        echo "  ENABLE_WEBSOCKET - Enable websocket policy (default: false)"
-        echo "  ENABLE_FLASH     - Enable flash policy (default: false)"
-        exit 0
-        ;;
-esac
+# Check if we're already daemonized (no controlling terminal)
+if [[ ! -t 0 ]] && [[ ! -t 1 ]] && [[ ! -t 2 ]] && [[ "${1:-}" != "foreground" ]]; then
+    # We're already daemonized, skip to main execution
+    :
+else
+    # Parse command line arguments
+    case "${1:-}" in
+        status)
+            show_status
+            exit 0
+            ;;
+        stop)
+            log_info "Stopping autorun"
+            touch .killscript
+            
+            # Find and kill any running autorun processes
+            autorun_pids=$(pgrep -f "bash.*${SCRIPT_NAME}" | grep -v "$$" | grep -v grep)
+            if [[ -n "$autorun_pids" ]]; then
+                log_info "Found running autorun process(es): $autorun_pids"
+                echo "$autorun_pids" | xargs kill 2>/dev/null || true
+                log_info "Sent termination signal to autorun process(es)"
+            else
+                log_info "No running autorun process found"
+            fi
+            
+            # Also try to stop the MUD server gracefully
+            if is_mud_running; then
+                mud_pid=$(get_mud_pid)
+                log_info "Stopping MUD server (PID: $mud_pid)"
+                kill -TERM "$mud_pid" 2>/dev/null || true
+            fi
+            
+            exit 0
+            ;;
+        foreground|fg)
+            # Run in foreground mode - skip daemonization
+            log_info "Running in foreground mode"
+            ;;
+        help|--help|-h)
+            echo "Usage: $SCRIPT_NAME [foreground|status|stop|help]"
+            echo ""
+            echo "By default, autorun starts in daemon mode (detached from terminal)"
+            echo ""
+            echo "Commands:"
+            echo "  (no args)   - Start in daemon mode (default)"
+            echo "  foreground  - Run in foreground (attached to terminal)"
+            echo "  status      - Show current status"
+            echo "  stop        - Stop the autorun and MUD server"
+            echo "  help        - Show this help"
+            echo ""
+            echo "Control files:"
+            echo "  .fastboot   - Quick restart (5 seconds)"
+            echo "  .killscript - Stop autorun"
+            echo "  pause       - Pause autorun"
+            echo ""
+            echo "Environment variables:"
+            echo "  MUD_PORT    - Port number (default: 4100)"
+            echo "  MUD_FLAGS   - Server flags (default: -q)"
+            echo "  ENABLE_WEBSOCKET - Enable websocket policy (default: false)"
+            echo "  ENABLE_FLASH     - Enable flash policy (default: false)"
+            exit 0
+            ;;
+        *)
+            # DEFAULT BEHAVIOR: Daemonize when no arguments or unrecognized argument
+            log_info "Starting in daemon mode (default)"
+            
+            # Check if already running
+            if is_mud_running; then
+                log_error "MUD already running on port $MUD_PORT"
+                exit 1
+            fi
+            
+            # Double fork to properly daemonize
+            (
+                # First fork
+                (
+                    # Second fork - this fully detaches from terminal
+                    # Redirect all output
+                    exec </dev/null
+                    exec >/dev/null 2>&1
+                    
+                    # Start a new session
+                    setsid
+                    
+                    # Run the autorun script in daemonized mode
+                    "$0" foreground
+                ) &
+            ) &
+            
+            echo "LuminariMUD daemon started"
+            echo "Use '$SCRIPT_NAME status' to check status"
+            echo "Use '$SCRIPT_NAME stop' to stop"
+            exit 0
+            ;;
+    esac
+fi
 
 # Initial setup
 log_info "========================================" 
 log_info "LuminariMUD Enhanced Autorun Starting"
 log_info "========================================"
+
+# Clean up any leftover control files from previous runs
+if [[ -f .killscript ]]; then
+    log_info "Removing leftover .killscript from previous run"
+    rm -f .killscript
+fi
 
 # Set core dump size to unlimited
 ulimit -c unlimited
