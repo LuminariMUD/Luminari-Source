@@ -110,8 +110,8 @@ case $CAMPAIGN in
 esac
 
 # Check if source binary exists
-if [[ ! -f "../bin/circle" ]]; then
-    echo "Error: Source binary '../bin/circle' not found!"
+if [[ ! -f "bin/circle" ]]; then
+    echo "Error: Source binary 'bin/circle' not found!"
     exit 1
 fi
 
@@ -139,7 +139,7 @@ fi
 
 # Copy new binary
 echo "Copying new binary..."
-cp "../bin/circle" "$BASE_PATH/bin/"
+cp "bin/circle" "$BASE_PATH/bin/"
 echo "Copied binary to $DESCRIPTION"
 
 # Copy changelog to news file

@@ -1,7 +1,7 @@
 # Makefile.am for LuminariMUD utilities
 
-# Custom binary directory - install to parent bin
-bindir = $(top_builddir)/../bin
+# Custom binary directory - install to project bin
+bindir = $(top_builddir)/bin
 
 # These are utility programs, installed to ../bin
 bin_PROGRAMS = \
