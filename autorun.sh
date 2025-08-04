@@ -26,8 +26,8 @@
 #
 #############################################################################
 
-# Enable strict error handling for debugging
-set -euo pipefail
+# Enable error handling without -e flag which causes premature exits
+set -uo pipefail
 
 #############################################################################
 # Configuration Section
@@ -36,6 +36,12 @@ set -euo pipefail
 # Script identification
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# CRITICAL: Change to script directory to ensure all relative paths work correctly
+cd "$SCRIPT_DIR" || {
+    echo "ERROR: Failed to change to script directory: $SCRIPT_DIR" >&2
+    exit 1
+}
 
 # MUD Configuration (can be overridden by environment variables)
 readonly MUD_PORT="${MUD_PORT:-4100}"
@@ -59,6 +65,8 @@ readonly FLASH_POLICY_FILE="${FLASH_POLICY_FILE:-${SCRIPT_DIR}/flashpolicy.xml}"
 # Logging configuration
 readonly BACKLOGS="${BACKLOGS:-6}"
 readonly LEN_CRASHLOG="${LEN_CRASHLOG:-30}"
+readonly MAX_LOG_SIZE_MB="${MAX_LOG_SIZE_MB:-100}"  # Max size before rotation
+readonly LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-30}"  # Keep logs for 30 days
 
 # Date format patterns
 readonly DATE_FORMAT_LOG="%Y-%m-%d %H:%M:%S"
@@ -135,15 +143,24 @@ check_directory() {
 
 # Check if the MUD process is running
 is_mud_running() {
-    # More robust process detection
-    local count
-    count=$(ps auxwww | grep -E "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" | grep -v grep | wc -l)
-    [[ $count -gt 0 ]]
+    # More robust process detection using pgrep if available
+    if command -v pgrep >/dev/null 2>&1; then
+        pgrep -f "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" >/dev/null 2>&1
+    else
+        # Fallback to ps if pgrep not available
+        local count
+        count=$(ps auxwww | grep -E "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" | grep -v grep | wc -l)
+        [[ $count -gt 0 ]]
+    fi
 }
 
 # Get MUD process PID
 get_mud_pid() {
-    ps auxwww | grep -E "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" | grep -v grep | awk '{print $2}' | head -1
+    if command -v pgrep >/dev/null 2>&1; then
+        pgrep -f "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" | head -1
+    else
+        ps auxwww | grep -E "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" | grep -v grep | awk '{print $2}' | head -1
+    fi
 }
 
 #############################################################################
@@ -152,9 +169,18 @@ get_mud_pid() {
 
 # Archive core dump file with timestamp and generate backtrace
 archive_core_dump() {
-    local core_file="${LIB_DIR}/core"
+    # Check multiple possible core file locations
+    local core_file=""
+    local possible_cores=("${LIB_DIR}/core" "core" "${BIN_DIR}/core")
     
-    if [[ ! -f "$core_file" ]]; then
+    for cf in "${possible_cores[@]}"; do
+        if [[ -f "$cf" ]]; then
+            core_file="$cf"
+            break
+        fi
+    done
+    
+    if [[ -z "$core_file" ]]; then
         return 0
     fi
     
@@ -262,6 +288,9 @@ proc_syslog() {
     
     # Rotate main syslog files
     rotate_syslogs
+    
+    # Clean up old logs
+    cleanup_old_logs
 }
 
 # Rotate syslog files with proper numbering
@@ -297,6 +326,22 @@ rotate_syslogs() {
     log_info "Syslog rotated to ${LOG_DIR}/syslog.${newlog}"
 }
 
+# Clean up old log files
+cleanup_old_logs() {
+    if [[ -z "$LOG_RETENTION_DAYS" ]] || [[ "$LOG_RETENTION_DAYS" -le 0 ]]; then
+        return
+    fi
+    
+    log_info "Cleaning up logs older than $LOG_RETENTION_DAYS days"
+    
+    # Find and remove old log files
+    if command -v find >/dev/null 2>&1; then
+        find "$LOG_DIR" -name "syslog.*" -type f -mtime +$LOG_RETENTION_DAYS -delete 2>/dev/null || true
+        find "$DUMPS_DIR" -name "core.*" -type f -mtime +$LOG_RETENTION_DAYS -delete 2>/dev/null || true
+        find "$DUMPS_DIR" -name "backtrace.*" -type f -mtime +$LOG_RETENTION_DAYS -delete 2>/dev/null || true
+    fi
+}
+
 #############################################################################
 # Auxiliary Services Management
 #############################################################################
@@ -324,7 +369,10 @@ start_websocket_policy() {
         log_warn "WebSocket policyd not found or not executable"
     fi
     
-    cd "$current_dir"
+    cd "$current_dir" || {
+        log_error "Failed to return to original directory: $current_dir"
+        exit 1
+    }
 }
 
 # Start flash policy daemon
@@ -354,15 +402,19 @@ start_flash_policy() {
         log_warn "Flash policyd not found or not executable"
     fi
     
-    cd "$current_dir"
+    cd "$current_dir" || {
+        log_error "Failed to return to original directory: $current_dir"
+        exit 1
+    }
 }
 
 # Stop auxiliary services
 stop_auxiliary_services() {
     # Stop websocket policy daemon
     if [[ -f "${SCRIPT_DIR}/.websocket_policy.pid" ]]; then
-        local pid=$(cat "${SCRIPT_DIR}/.websocket_policy.pid")
-        if kill -0 "$pid" 2>/dev/null; then
+        local pid
+        pid=$(cat "${SCRIPT_DIR}/.websocket_policy.pid" 2>/dev/null || echo "")
+        if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
             log_info "Stopping WebSocket policy daemon (PID: $pid)"
             kill "$pid" 2>/dev/null || true
         fi
@@ -371,8 +423,9 @@ stop_auxiliary_services() {
     
     # Stop flash policy daemon
     if [[ -f "${SCRIPT_DIR}/.flash_policy.pid" ]]; then
-        local pid=$(cat "${SCRIPT_DIR}/.flash_policy.pid")
-        if kill -0 "$pid" 2>/dev/null; then
+        local pid
+        pid=$(cat "${SCRIPT_DIR}/.flash_policy.pid" 2>/dev/null || echo "")
+        if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
             log_info "Stopping Flash policy daemon (PID: $pid)"
             kill "$pid" 2>/dev/null || true
         fi
@@ -400,12 +453,25 @@ cleanup_processes() {
 verify_mud_binary() {
     local binary_path="${BIN_DIR}/${MUD_BINARY}"
     
+    # Security check: ensure paths don't contain shell metacharacters
+    if [[ "$binary_path" =~ [';|&<>$`'] ]]; then
+        die "Invalid characters in binary path: $binary_path" 2
+    fi
+    
     if [[ ! -f "$binary_path" ]]; then
         die "MUD binary not found: $binary_path" 2
     fi
     
     if [[ ! -x "$binary_path" ]]; then
         die "MUD binary not executable: $binary_path" 2
+    fi
+    
+    # Verify it's a regular file (not symlink to dangerous location)
+    if [[ ! -f "$binary_path" ]] || [[ -L "$binary_path" ]]; then
+        local real_path=$(readlink -f "$binary_path" 2>/dev/null || echo "")
+        if [[ -z "$real_path" ]] || [[ ! -f "$real_path" ]]; then
+            die "MUD binary is not a regular file or broken symlink: $binary_path" 2
+        fi
     fi
     
     return 0
@@ -434,8 +500,11 @@ start_mud() {
     log_info "Command: ${BIN_DIR}/${MUD_BINARY} ${FLAGS} ${MUD_PORT}"
     
     # Start the MUD and capture its exit code
+    # We temporarily disable -e to handle crashes gracefully
+    set +e
     "${BIN_DIR}/${MUD_BINARY}" ${FLAGS} ${MUD_PORT} >> syslog 2>&1
     local exit_code=$?
+    set -e
     
     log_info "MUD server exited with code $exit_code"
     
@@ -531,7 +600,8 @@ case "${1:-}" in
         touch .killscript
         
         # Find and kill any running autorun processes
-        autorun_pids=$(pgrep -f "bash.*${SCRIPT_NAME}" | grep -v "$$" | grep -v grep)
+        local autorun_pids
+        autorun_pids=$(pgrep -f "bash.*${SCRIPT_NAME}" 2>/dev/null | grep -v "$$" | grep -v grep || true)
         if [[ -n "$autorun_pids" ]]; then
             log_info "Found running autorun process(es): $autorun_pids"
             echo "$autorun_pids" | xargs kill 2>/dev/null || true
@@ -542,9 +612,12 @@ case "${1:-}" in
         
         # Also try to stop the MUD server gracefully
         if is_mud_running; then
+            local mud_pid
             mud_pid=$(get_mud_pid)
-            log_info "Stopping MUD server (PID: $mud_pid)"
-            kill -TERM "$mud_pid" 2>/dev/null || true
+            if [[ -n "$mud_pid" ]]; then
+                log_info "Stopping MUD server (PID: $mud_pid)"
+                kill -TERM "$mud_pid" 2>/dev/null || true
+            fi
         fi
         
         exit 0
@@ -585,8 +658,32 @@ case "${1:-}" in
             exit 1
         fi
         
-        # Simple daemonization using nohup
+        # Proper daemonization with lock file to prevent multiple instances
+        local lockfile="${SCRIPT_DIR}/.autorun.lock"
+        
+        # Check for stale lock file
+        if [[ -f "$lockfile" ]]; then
+            local old_pid
+            old_pid=$(cat "$lockfile" 2>/dev/null || echo "")
+            if [[ -n "$old_pid" ]] && ! kill -0 "$old_pid" 2>/dev/null; then
+                log_warn "Removing stale lock file (PID: $old_pid)"
+                rm -f "$lockfile"
+            fi
+        fi
+        
+        # Use flock for atomic lock acquisition
+        exec 200>"$lockfile"
+        if ! flock -n 200; then
+            log_error "Another autorun instance is already running"
+            exit 1
+        fi
+        
+        # Fork to background
         nohup "$0" foreground > /dev/null 2>&1 &
+        local daemon_pid=$!
+        
+        # Write PID to lock file
+        echo "$daemon_pid" > "$lockfile"
         
         # Disown the process to detach from shell
         disown
@@ -609,6 +706,21 @@ if [[ -f .killscript ]]; then
     rm -f .killscript
 fi
 
+# Clean up stale PID files from previous runs
+cleanup_stale_pidfiles() {
+    local pidfile old_pid
+    for pidfile in .websocket_policy.pid .flash_policy.pid; do
+        if [[ -f "$pidfile" ]]; then
+            old_pid=$(cat "$pidfile" 2>/dev/null || echo "")
+            if [[ -n "$old_pid" ]] && ! kill -0 "$old_pid" 2>/dev/null; then
+                log_info "Removing stale PID file: $pidfile (PID: $old_pid)"
+                rm -f "$pidfile"
+            fi
+        fi
+    done
+}
+cleanup_stale_pidfiles
+
 # Set core dump size to unlimited
 ulimit -c unlimited
 log_info "Core dump size set to unlimited"
@@ -619,12 +731,47 @@ verify_mud_binary
 # Create required directories
 mkdir -p "$LOG_DIR" "$DUMPS_DIR"
 
+# Check disk space
+check_disk_space() {
+    local min_space_mb=1000  # Require at least 1GB free
+    local available_mb
+    
+    if command -v df >/dev/null 2>&1; then
+        available_mb=$(df -m . | awk 'NR==2 {print $4}')
+        if [[ $available_mb -lt $min_space_mb ]]; then
+            log_error "CRITICAL: Low disk space! Only ${available_mb}MB available (minimum: ${min_space_mb}MB)"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+# Initial disk space check
+if ! check_disk_space; then
+    log_error "Insufficient disk space to start MUD"
+    exit 1
+fi
+
 # Check for improper shutdown
 check_improper_shutdown
 
 # Start auxiliary services
 start_websocket_policy
 start_flash_policy
+
+# Production monitoring
+CRASH_COUNT=0
+CRASH_WINDOW_START=$(date +%s)
+MAX_CRASHES_PER_HOUR=10
+MAX_UPTIME_HOURS="${MAX_UPTIME_HOURS:-168}"  # Default: restart after 7 days
+
+# Clean up on exit
+cleanup() {
+    log_info "Performing cleanup..."
+    stop_auxiliary_services
+    rm -f "${SCRIPT_DIR}/.autorun.lock" 2>/dev/null || true
+}
+trap cleanup EXIT
 
 # Main loop
 while true; do
@@ -640,14 +787,69 @@ while true; do
     echo "autorun starting game $(date)" > syslog
     echo "running ${BIN_DIR}/${MUD_BINARY} ${FLAGS} ${MUD_PORT}" >> syslog
     
+    # Crash loop detection
+    current_time=$(date +%s)
+    time_since_window_start=$((current_time - CRASH_WINDOW_START))
+    
+    # Reset crash counter if we've been stable for an hour
+    if [[ $time_since_window_start -gt 3600 ]]; then
+        CRASH_COUNT=0
+        CRASH_WINDOW_START=$current_time
+    fi
+    
+    # Track MUD start time
+    local mud_start_time=$(date +%s)
+    
     # Start the MUD
     start_mud
+    local mud_exit_code=$?
+    
+    # Calculate MUD uptime
+    local mud_end_time=$(date +%s)
+    local mud_uptime=$((mud_end_time - mud_start_time))
+    local mud_uptime_hours=$((mud_uptime / 3600))
+    
+    # Log exit status for monitoring
+    log_info "MUD ran for $mud_uptime seconds ($mud_uptime_hours hours)"
+    
+    if [[ $mud_exit_code -eq 0 ]]; then
+        log_info "MUD exited cleanly"
+    elif [[ $mud_exit_code -eq 139 ]]; then
+        log_error "MUD crashed with segmentation fault (SIGSEGV)"
+        CRASH_COUNT=$((CRASH_COUNT + 1))
+    elif [[ $mud_exit_code -eq 134 ]]; then
+        log_error "MUD aborted (SIGABRT)"
+        CRASH_COUNT=$((CRASH_COUNT + 1))
+    else
+        log_error "MUD exited with unexpected code: $mud_exit_code"
+        CRASH_COUNT=$((CRASH_COUNT + 1))
+    fi
+    
+    # Check if we're in a crash loop
+    if [[ $CRASH_COUNT -ge $MAX_CRASHES_PER_HOUR ]]; then
+        log_error "CRITICAL: MUD crashed $CRASH_COUNT times in the last hour!"
+        log_error "Entering emergency cooldown mode (30 minutes)"
+        
+        # Optional: Send alert (uncomment and configure as needed)
+        # echo "MUD crash loop detected on $(hostname)" | mail -s "MUD CRITICAL" admin@example.com
+        
+        sleep 1800  # 30 minute cooldown
+        CRASH_COUNT=0
+        CRASH_WINDOW_START=$(date +%s)
+    fi
     
     # Archive any core dump
     archive_core_dump
     
     # Process logs
     proc_syslog
+    
+    # Periodic disk space check
+    if ! check_disk_space; then
+        log_error "Disk space critically low - pausing operations"
+        sleep 300  # Wait 5 minutes before checking again
+        continue
+    fi
     
     # Handle shutdown/restart
     handle_shutdown
