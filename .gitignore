@@ -314,3 +314,8 @@ lib/text/help/*
 !lib/world/trg/.gitkeep
 !lib/world/qst/.gitkeep
 circle
+
+# Ignore tar and gz files in root
+/*.tar
+/*.gz
+/*.tar.gz
