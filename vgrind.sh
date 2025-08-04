@@ -7,11 +7,11 @@ mkdir -p log
 
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
-echo "🎯 Running focused valgrind - 5 minute timeout to catch the big leaks..."
+echo "🎯 Running focused valgrind - 20 minute timeout to catch the big leaks..."
 
-# 5-minute timeout prevents memory explosion
+# 20-minute timeout to allow full game loading in valgrind
 # Focus on definite leaks and errors that matter
-timeout 5m valgrind \
+timeout 20m valgrind \
     --leak-check=full \
     --show-leak-kinds=definite \
     --track-origins=yes \
@@ -24,7 +24,7 @@ timeout 5m valgrind \
     bin/circle -q 4100
 
 echo ""
-echo "Analysis complete! Found the big problems in 5 minutes."
+echo "Analysis complete! Found the big problems in up to 20 minutes."
 echo "Valgrind report: log/valgrind_focused_${TIMESTAMP}.log"
 echo ""
 echo "Focus on the DEFINITE leaks first - ignore 'possibly lost' for now ☕"
