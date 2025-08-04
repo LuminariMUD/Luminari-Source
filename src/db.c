@@ -5970,6 +5970,12 @@ void free_obj(struct obj_data *obj)
   if (obj->special_abilities)
     free_obj_special_abilities(obj->special_abilities);
 
+  /* free spellbook info */
+  if (obj->sbinfo) {
+    free(obj->sbinfo);
+    obj->sbinfo = NULL;
+  }
+
   /* find_obj helper */
   remove_from_lookup_table(GET_ID(obj));
 

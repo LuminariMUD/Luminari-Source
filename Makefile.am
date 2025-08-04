@@ -177,11 +177,14 @@ check_PROGRAMS = cutest
 cutest_SOURCES = \
 	unittests/CuTest/CuTest.c \
 	unittests/CuTest/test_alignment.c \
+	unittests/CuTest/test_bounds_checking.c \
 	unittests/CuTest/test_char_cache.c \
 	unittests/CuTest/test_char_skills.c \
 	unittests/CuTest/test_random.c \
 	unittests/CuTest/test_treasure.c \
 	unittests/CuTest/test_utils.c \
+	unittests/CuTest/test.helpers.c \
+	unittests/CuTest/test.interpreter.c \
 	unittests/CuTest/AllTests.c \
 	$(circle_SOURCES)
 

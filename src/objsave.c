@@ -1827,7 +1827,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         if (real_object(nr) != NOTHING)
         {
           temp = read_object(nr, VIRTUAL);
-          /* Go read next line - nothing more to see here. */
+          /* Object created - continue to parse its properties */
         }
         else
         {
@@ -1838,8 +1838,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       /* Reset the counter for spellbooks. */
       j = 0;
 
-      /* go read next line - nothing more to see here. */
-      continue;
+      /* Continue processing the object properties - do NOT skip */
     }
 
     /* If "temp" is NULL, we are most likely progressing through
@@ -2261,7 +2260,10 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           if (real_object(nr) != NOTHING)
           {
             temp = read_object(nr, VIRTUAL);
-            /* Go read next line - nothing more to see here. */
+            if (!temp) {
+              log("SYSERR: read_object failed for vnum %d in rent file", nr);
+            }
+            /* Object successfully created - properties will be parsed in subsequent lines */
           }
           else
           {
@@ -2272,7 +2274,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         /* Reset the counter for spellbooks. */
         j = 0;
 
-        /* go read next line - nothing more to see here. */
+        /* Skip to next line after creating object - properties follow on subsequent lines */
         continue;
       }
 
@@ -3237,7 +3239,10 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
           if (real_object(nr) != NOTHING)
           {
             temp = read_object(nr, VIRTUAL);
-            /* Go read next line - nothing more to see here. */
+            if (!temp) {
+              log("SYSERR: read_object failed for vnum %d in rent file", nr);
+            }
+            /* Object successfully created - properties will be parsed in subsequent lines */
           }
           else
           {
@@ -3248,7 +3253,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         /* Reset the counter for spellbooks. */
         j = 0;
 
-        /* go read next line - nothing more to see here. */
+        /* Skip to next line after creating object - properties follow on subsequent lines */
         continue;
       }
 
@@ -3894,7 +3899,10 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
           if (real_object(nr) != NOTHING)
           {
             temp = read_object(nr, VIRTUAL);
-            /* Go read next line - nothing more to see here. */
+            if (!temp) {
+              log("SYSERR: read_object failed for vnum %d in rent file", nr);
+            }
+            /* Object successfully created - properties will be parsed in subsequent lines */
           }
           else
           {
@@ -3905,7 +3913,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         /* Reset the counter for spellbooks. */
         j = 0;
 
-        /* go read next line - nothing more to see here. */
+        /* Skip to next line after creating object - properties follow on subsequent lines */
         continue;
       }
 
