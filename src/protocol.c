@@ -2217,18 +2217,24 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
       {
         pProtocol->bGMCP = true;
 
-#ifdef MUDLET_PACKAGE
-        /* Send the Mudlet GUI package to the user. */
-        if (MatchString("Mudlet",
-                        pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
-        {
-          SendGMCP(apDescriptor, "Client.GUI", MUDLET_PACKAGE);
-        }
-#endif /* MUDLET_PACKAGE */
-
         /* Identify the mud to the client. */
         MSDPSendPair(apDescriptor, "SERVER_ID", MUD_NAME);
       }
+      
+      /* Always allow GMCP for Mudlet package delivery */
+      if (!pProtocol->bGMCP)
+      {
+        pProtocol->bGMCP = true;
+      }
+
+#ifdef MUDLET_PACKAGE
+      /* Send the Mudlet GUI package to the user. */
+      if (MatchString("Mudlet",
+                      pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
+      {
+        SendGMCP(apDescriptor, "Client.GUI", MUDLET_PACKAGE);
+      }
+#endif /* MUDLET_PACKAGE */
     }
     else if (aCmd == (char)WONT)
     {
@@ -2406,18 +2412,24 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
             {
                pProtocol->bGMCP = true;
 
-#ifdef MUDLET_PACKAGE
-               // Send the Mudlet GUI package to the user.
-               if ( MatchString( "Mudlet",
-                  pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString ) )
-               {
-                  SendGMCP( apDescriptor, "Client.GUI", MUDLET_PACKAGE );
-               }
-#endif // MUDLET_PACKAGE
-
                // Identify the mud to the client.
                MSDPSendPair( apDescriptor, "SERVER_ID", MUD_NAME );
             }
+            
+            // Always allow GMCP for Mudlet package delivery
+            if ( !pProtocol->bGMCP )
+            {
+               pProtocol->bGMCP = true;
+            }
+
+#ifdef MUDLET_PACKAGE
+            // Send the Mudlet GUI package to the user.
+            if ( MatchString( "Mudlet",
+               pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString ) )
+            {
+               SendGMCP( apDescriptor, "Client.GUI", MUDLET_PACKAGE );
+            }
+#endif // MUDLET_PACKAGE
          }
          else if ( aCmd == (char)WONT )
             pProtocol->bGMCP = false;
