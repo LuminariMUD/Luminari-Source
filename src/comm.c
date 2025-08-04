@@ -863,6 +863,10 @@ void game_loop(socket_t local_mother_desc)
   struct descriptor_data *d = NULL, *next_d = NULL;
   int missed_pulses = 0, maxdesc = 0, aliased = 0;
   long int perf_high_water_mark = 0;
+  static time_t last_moderate_log_time = 0;
+  static time_t last_severe_log_time = 0;
+  static time_t last_critical_log_time = 0;
+  static int perf_log_suppressed = 0;
 
   /* initialize various time values */
   null_time.tv_sec = 0;
@@ -925,13 +929,68 @@ void game_loop(socket_t local_mother_desc)
       double usage_pcnt = 100 * ((double)total_usec / OPT_USEC);
       PERF_log_pulse(usage_pcnt);
 
+      /* Tiered logging system for different severity levels */
       if (total_usec > perf_high_water_mark)
       {
         perf_high_water_mark = total_usec;
-        char buf[MAX_STRING_LENGTH] = {'\0'};
-        PERF_prof_repr_pulse(buf, sizeof(buf));
-        log("Pulse usage new high water mark [%.2f%%, %ld usec]. Trace info: \n%s",
-            usage_pcnt, total_usec, buf);
+        time_t current_time = time(NULL);
+        int should_log = 0;
+        const char *severity = "";
+        
+        /* Determine severity and rate limit based on usage percentage */
+        if (usage_pcnt > 1000.0)
+        {
+          /* CRITICAL: Over 1000% - log at most once per minute */
+          if (current_time - last_critical_log_time >= 60)
+          {
+            should_log = 1;
+            severity = "CRITICAL";
+            last_critical_log_time = current_time;
+          }
+        }
+        else if (usage_pcnt > 500.0)
+        {
+          /* SEVERE: 500-1000% - log at most once per 10 minutes */
+          if (current_time - last_severe_log_time >= 600)
+          {
+            should_log = 1;
+            severity = "SEVERE";
+            last_severe_log_time = current_time;
+          }
+        }
+        else if (usage_pcnt > 200.0)
+        {
+          /* MODERATE: 200-500% - log at most once per hour */
+          if (current_time - last_moderate_log_time >= 3600)
+          {
+            should_log = 1;
+            severity = "MODERATE";
+            last_moderate_log_time = current_time;
+          }
+        }
+        
+        if (should_log)
+        {
+          char buf[MAX_STRING_LENGTH] = {'\0'};
+          PERF_prof_repr_pulse(buf, sizeof(buf));
+          
+          if (perf_log_suppressed > 0)
+          {
+            log("PERFMON [%s]: Pulse usage new high water mark [%.2f%%, %ld usec]. (%d similar messages suppressed). Trace info: \n%s",
+                severity, usage_pcnt, total_usec, perf_log_suppressed, buf);
+          }
+          else
+          {
+            log("PERFMON [%s]: Pulse usage new high water mark [%.2f%%, %ld usec]. Trace info: \n%s",
+                severity, usage_pcnt, total_usec, buf);
+          }
+          
+          perf_log_suppressed = 0;
+        }
+        else
+        {
+          perf_log_suppressed++;
+        }
       }
     }
 

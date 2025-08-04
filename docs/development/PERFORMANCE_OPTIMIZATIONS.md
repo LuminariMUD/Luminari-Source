@@ -59,8 +59,8 @@ if (update_count % 100 == 0) {
 }
 ```
 
-#### C++ Performance Tools
-- Built-in performance monitoring with C++11 support
+#### Performance Tools
+- Built-in performance monitoring system
 - Real-time profiling capabilities
 - Memory usage tracking
 

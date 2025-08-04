@@ -202,7 +202,7 @@ oasis_delete.c
 oasis_list.c
 objsave.c
 oedit.c
-perfmon.cpp
+perfmon.c
 perfmon.h
 perlin.c
 perlin.h
