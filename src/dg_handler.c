@@ -47,6 +47,35 @@ void free_varlist(struct trig_var_data *vd)
   }
 }
 
+/* Free context-specific global variables from a script */
+void free_context_vars(struct script_data *sc, long context)
+{
+  struct trig_var_data *vd, *vd_prev = NULL, *vd_next;
+  
+  if (!sc || !sc->global_vars || context == 0)
+    return;
+    
+  for (vd = sc->global_vars; vd; vd = vd_next)
+  {
+    vd_next = vd->next;
+    
+    /* Remove variables that match this context */
+    if (vd->context == context)
+    {
+      if (vd_prev)
+        vd_prev->next = vd->next;
+      else
+        sc->global_vars = vd->next;
+        
+      free_var_el(vd);
+    }
+    else
+    {
+      vd_prev = vd;
+    }
+  }
+}
+
 /* Remove var name from var_list. Returns 1 if found, else 0. */
 int remove_var(struct trig_var_data **var_list, char *name)
 {
