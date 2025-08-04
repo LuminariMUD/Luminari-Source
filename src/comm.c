@@ -2116,8 +2116,29 @@ static void flush_queues(struct descriptor_data *d)
 {
   if (d->large_outbuf)
   {
-    d->large_outbuf->next = bufpool;
-    bufpool = d->large_outbuf;
+    /* Count how many buffers are already in the pool */
+    int pool_count = 0;
+    struct txt_block *tmp = bufpool;
+    while (tmp)
+    {
+      pool_count++;
+      tmp = tmp->next;
+    }
+    
+    /* If we have too many buffers in the pool, free this one instead */
+    if (pool_count >= 5)  /* Keep max 5 buffers in pool */
+    {
+      if (d->large_outbuf->text)
+        free(d->large_outbuf->text);
+      free(d->large_outbuf);
+      buf_largecount--;
+    }
+    else
+    {
+      /* Add to pool for reuse */
+      d->large_outbuf->next = bufpool;
+      bufpool = d->large_outbuf;
+    }
   }
   while (d->input.head)
   {
@@ -2510,8 +2531,29 @@ static int process_output(struct descriptor_data *t)
      * and switch back to the small one. */
     if (t->large_outbuf)
     {
-      t->large_outbuf->next = bufpool;
-      bufpool = t->large_outbuf;
+      /* Count how many buffers are already in the pool */
+      int pool_count = 0;
+      struct txt_block *tmp = bufpool;
+      while (tmp)
+      {
+        pool_count++;
+        tmp = tmp->next;
+      }
+      
+      /* If we have too many buffers in the pool, free this one instead */
+      if (pool_count >= 5)  /* Keep max 5 buffers in pool */
+      {
+        if (t->large_outbuf->text)
+          free(t->large_outbuf->text);
+        free(t->large_outbuf);
+        buf_largecount--;
+      }
+      else
+      {
+        /* Add to pool for reuse */
+        t->large_outbuf->next = bufpool;
+        bufpool = t->large_outbuf;
+      }
       t->large_outbuf = NULL;
       t->output = t->small_outbuf;
     }

@@ -6688,6 +6688,10 @@ int d20(struct char_data *ch)
 
 const char *get_wearoff(int abilnum)
 {
+  /* Validate bounds before accessing spell_info array to prevent crashes */
+  if (abilnum < 0 || abilnum >= TOP_SPELL_DEFINE)
+    return NULL;
+
   if (spell_info[abilnum].schoolOfMagic != NOSCHOOL)
     return (const char *)spell_info[abilnum].wear_off_msg;
 

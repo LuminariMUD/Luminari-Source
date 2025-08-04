@@ -7758,10 +7758,14 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
       /* The DR was destroyed!*/
       if (affected_by_spell(victim, dr->spell))
       {
-        affect_from_char(victim, dr->spell);
+        /* Validate spell number before using it to prevent crashes */
+        if (dr->spell >= 0 && dr->spell < TOP_SPELL_DEFINE)
+        {
+          affect_from_char(victim, dr->spell);
 
-        if (get_wearoff(dr->spell))
-          send_to_char(victim, "%s\r\n", get_wearoff(dr->spell));
+          if (get_wearoff(dr->spell))
+            send_to_char(victim, "%s\r\n", get_wearoff(dr->spell));
+        }
       }
     }
   }

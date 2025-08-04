@@ -1,6 +1,6 @@
 #include "CuTest.h"
 
-#include "../../helpers.h"
+#include "../../src/helpers.h"
 
 #include <stdio.h>
 
