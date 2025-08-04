@@ -552,7 +552,7 @@ show_status() {
     echo "MUD Binary: ${BIN_DIR}/${MUD_BINARY}"
     
     if is_mud_running; then
-        local pid=$(get_mud_pid)
+        pid=$(get_mud_pid)
         echo "MUD Status: RUNNING (PID: $pid)"
     else
         echo "MUD Status: NOT RUNNING"
@@ -600,7 +600,6 @@ case "${1:-}" in
         touch .killscript
         
         # Find and kill any running autorun processes
-        local autorun_pids
         autorun_pids=$(pgrep -f "bash.*${SCRIPT_NAME}" 2>/dev/null | grep -v "$$" | grep -v grep || true)
         if [[ -n "$autorun_pids" ]]; then
             log_info "Found running autorun process(es): $autorun_pids"
@@ -612,7 +611,6 @@ case "${1:-}" in
         
         # Also try to stop the MUD server gracefully
         if is_mud_running; then
-            local mud_pid
             mud_pid=$(get_mud_pid)
             if [[ -n "$mud_pid" ]]; then
                 log_info "Stopping MUD server (PID: $mud_pid)"
@@ -659,11 +657,10 @@ case "${1:-}" in
         fi
         
         # Proper daemonization with lock file to prevent multiple instances
-        local lockfile="${SCRIPT_DIR}/.autorun.lock"
+        lockfile="${SCRIPT_DIR}/.autorun.lock"
         
         # Check for stale lock file
         if [[ -f "$lockfile" ]]; then
-            local old_pid
             old_pid=$(cat "$lockfile" 2>/dev/null || echo "")
             if [[ -n "$old_pid" ]] && ! kill -0 "$old_pid" 2>/dev/null; then
                 log_warn "Removing stale lock file (PID: $old_pid)"
@@ -680,7 +677,7 @@ case "${1:-}" in
         
         # Fork to background
         nohup "$0" foreground > /dev/null 2>&1 &
-        local daemon_pid=$!
+        daemon_pid=$!
         
         # Write PID to lock file
         echo "$daemon_pid" > "$lockfile"
