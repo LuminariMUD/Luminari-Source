@@ -308,3 +308,304 @@ None - All medium priority issues have been resolved
 ### Remaining Low Priority:
 1. **Memory leaks in object loading** - Need to review objsave_parse_objects_db() and ensure proper cleanup on errors
 2. **Memory leaks in strdup calls** - Need to audit all strdup() calls for matching free() calls
+
+## Valgrind Testing System
+
+### Overview
+A comprehensive testing system has been created in the `bin/` directory to facilitate memory leak detection and testing. This system includes scripts for automated testing, command extraction, and valgrind execution.
+
+### Test Scripts Created
+
+#### 1. **`run_valgrind_test.sh`** - Main Valgrind Runner
+```bash
+cd bin
+./run_valgrind_test.sh
+```
+- Runs the MUD under valgrind with optimal memory leak detection settings
+- Creates timestamped log files in the `log/` directory
+- **IMPORTANT**: Allow at least 10-15 minutes for the MUD to fully load under valgrind
+- Default timeout should be increased from 120 to 900 seconds (15 minutes)
+
+#### 2. **`extract_testable_commands.sh`** - Command Extractor
+```bash
+./extract_testable_commands.sh
+```
+- Extracts all non-menu commands from interpreter.c
+- Groups commands by category (movement, info, combat, etc.)
+- Outputs to `testable_commands.txt`
+
+#### 3. **`valgrind_test_script.txt`** - Manual Test Commands
+- A comprehensive list of commands to test manually
+- Organized by safety and memory impact
+- Copy/paste these while connected to the MUD
+
+#### 4. **`memory_stress_test_commands.txt`** - Memory Stress Tests
+- Commands specifically designed to stress test memory allocation
+- Focuses on output buffer management and string operations
+- Tests the fixes implemented in this session
+
+#### 5. **`automated_valgrind_test.sh`** - Automated Tester
+```bash
+./automated_valgrind_test.sh
+```
+- Connects via telnet and runs commands automatically
+- Requires telnet to be installed: `sudo apt install telnet`
+- Edit the script to set correct login credentials
+
+### Running a Complete Valgrind Test
+
+1. **Start the MUD under valgrind** (in terminal 1):
+```bash
+cd /mnt/c/Projects/Luminari-Source
+mkdir -p log  # Create log directory if needed
+
+# Run with extended timeout (15 minutes)
+timeout 900 valgrind --leak-check=full --show-leak-kinds=all \
+    --track-origins=yes --log-file=log/valgrind_$(date +%Y%m%d_%H%M%S).log \
+    bin/circle -q 4100 &
+
+# Or run without timeout if you want to control when to stop:
+valgrind --leak-check=full --show-leak-kinds=all \
+    --track-origins=yes --log-file=log/valgrind_$(date +%Y%m%d_%H%M%S).log \
+    bin/circle -q 4100 > log/mud_output.log 2>&1 &
+```
+
+2. **Wait for the MUD to load** (important!):
+- Under valgrind, the MUD takes 10-15 minutes to fully load
+- You can check progress with: `tail -f log/mud_output.log`
+- Look for "Boot db -- DONE" to know it's ready
+- The server is ready when you see no more loading messages
+
+3. **Run tests** (in terminal 2):
+```bash
+# Option A: Manual testing with new character
+telnet localhost 4100
+# Select: 1 (Create new character)
+# Name: testval
+# Confirm: y
+# Sex: m
+# Race: human
+# Class: fighter
+# Confirm: y
+# Stats: s (strength)
+# Password: TestPass123
+# Confirm: TestPass123
+# Email: test@example.com
+# Then run test commands from valgrind_test_script.txt
+
+# Option B: Quick automated test for new character
+cd /mnt/c/Projects/Luminari-Source/bin
+chmod +x quick_test.sh
+./quick_test.sh
+```
+
+4. **Analyze results**:
+```bash
+# Find the latest log file
+ls -la ../log/valgrind*.log
+
+# Check for memory leaks
+grep -E "definitely lost|indirectly lost|ERROR SUMMARY" ../log/valgrind_*.log
+
+# View detailed leak information
+grep -A10 "definitely lost" ../log/valgrind_*.log
+```
+
+### Key Commands for Memory Testing
+
+#### Output Buffer Stress Tests
+```
+say AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+gossip Testing very long messages to trigger large buffer allocation
+who full
+commands
+spells
+skills
+```
+
+#### String Manipulation Tests
+```
+title Test Title One
+title Test Title Two With Longer Text
+alias t tell
+alias g gossip
+unalias t
+```
+
+#### Error Condition Tests
+```
+tell nonexistentplayer test
+get nonexistentobject
+cast nonexistentspell
+```
+
+### Expected Results (After Fixes)
+- **Definitely lost**: 0 bytes
+- **Indirectly lost**: 0 bytes
+- **Possibly lost**: < 100KB (usually from system libraries)
+- **Still reachable**: 300-400MB (normal for loaded MUD data)
+
+### Troubleshooting
+
+1. **If valgrind runs too slowly**:
+   - Use `--leak-check=summary` instead of `full` for faster execution
+   - Reduce the timeout if just doing quick tests
+
+2. **If telnet is not available**:
+   - Install with: `sudo apt install telnet`
+   - Or use nc (netcat): `nc localhost 4100`
+
+3. **If the MUD crashes under valgrind**:
+   - Check the valgrind log for the exact error
+   - Look for "Invalid read/write" messages before the crash
+
+### Quick Test Command
+For a rapid test of the output buffer fix:
+```bash
+# Terminal 1: Start server under valgrind
+cd /mnt/c/Projects/Luminari-Source
+valgrind --leak-check=summary --log-file=log/valgrind_quick.log \
+    bin/circle -q 4100 > log/mud_output.log 2>&1 &
+
+# Wait for server to load (check with: tail -f log/mud_output.log)
+# Look for "Boot db -- DONE" (takes 10-15 minutes under valgrind)
+
+# Terminal 2: Run quick test with telnet
+cd /mnt/c/Projects/Luminari-Source/bin
+./quick_test.sh
+
+# Or manually with telnet:
+telnet localhost 4100
+# Then: 1, testval, y, m, human, fighter, y, s, TestPass123, TestPass123, test@example.com
+# Once in game: say AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+# Then: quit, y
+
+# Terminal 1: Stop the server (after tests complete)
+pkill -TERM circle
+
+# Check results:
+grep "definitely lost" log/valgrind_quick.log
+```
+
+### Killing the Valgrind Process
+If you need to stop valgrind and get the memory report:
+```bash
+# Find the process
+ps aux | grep valgrind
+
+# Send SIGTERM for clean shutdown with leak report
+kill -TERM <valgrind_pid>
+
+# Or kill the circle process directly
+pkill -TERM circle
+```
+
+
+---
+
+# Memory Leak Fixes Summary
+
+## Date: 2025-08-04
+
+### Overview
+This document summarizes all memory leak fixes applied to the LuminariMUD codebase based on valgrind analysis.
+
+## Fixes Applied
+
+### 1. CRITICAL SEGFAULT - Fixed ✅
+**File**: src/handler.c (lines 2589-2633)
+**Issue**: Use-after-free in event list traversal causing server crashes
+**Fix**: Implemented safe two-pass event cancellation pattern in `extract_char_final()`
+- First pass: Collect events into temporary list
+- Second pass: Cancel events using safe iteration
+- Prevents iterator corruption when events are cancelled during traversal
+
+### 2. Use-After-Free in Combat - Fixed ✅
+**File**: src/fight.c (lines 7764-7773)
+**Issue**: Accessing damage reduction structure after it was freed by `affect_from_char()`
+**Fix**: Cache spell number and wearoff message before calling `affect_from_char()`
+```c
+int spell_num = dr->spell;
+const char *wearoff_msg = get_wearoff(spell_num);
+affect_from_char(victim, spell_num);
+// Use cached values instead of dr-> which may be freed
+```
+
+### 3. Memory Leaks in Wilderness/Regions - Fixed ✅
+**File**: src/mysql.c (lines 827-848)
+**Issue**: Region and path lists allocated but never freed
+**Fix**: Added cleanup functions:
+- `free_region_list()` - Frees region list structures
+- `free_path_list()` - Frees path list structures
+- Updated all callers in wilderness.c and desc_engine.c to free lists after use
+
+### 4. Memory Leaks in Output Buffers - Fixed ✅
+**File**: src/comm.c (lines 2215-2231)
+**Issue**: Large output buffers allocated multiple times without checking existing allocation
+**Fix**: Check if `t->large_outbuf` already exists before allocating new buffer
+```c
+if (t->large_outbuf) {
+    /* We already have a large buffer, just use it */
+}
+```
+
+### 5. Memory Leaks in Object Loading - Already Fixed ✅
+**File**: src/objsave.c (multiple locations)
+**Issue**: Objects created but not properly cleaned up in error paths
+**Status**: Found existing fixes with "CRITICAL FIX" comments that extract objects before continuing
+
+### 6. strdup() Memory Leaks - Fixed ✅
+**Fixed the following unnecessary strdup() calls:**
+
+#### src/players.c
+- Line 4378: `valid_pet_name(strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch)))` → `valid_pet_name(GET_EIDOLON_SHORT_DESCRIPTION(ch))`
+- Line 4390: `valid_pet_name(strdup(GET_EIDOLON_LONG_DESCRIPTION(ch)))` → `valid_pet_name(GET_EIDOLON_LONG_DESCRIPTION(ch))`
+
+#### src/roleplay.c
+- Line 1287: `get_ptable_by_name(strdup(GET_NAME(ch)))` → `get_ptable_by_name(GET_NAME(ch))`
+
+#### src/transport.c
+- Line 525: `find_target_room(ch, strdup(buf))` → `find_target_room(ch, buf)`
+- Line 596: `find_target_room(ch, (type == TRAVEL_SAILING) ? strdup(air) : strdup(car))` → `find_target_room(ch, (type == TRAVEL_SAILING) ? air : car)`
+
+## Testing
+
+### Valgrind Test Scripts Available
+The following test scripts have been created in the `bin/` directory:
+- `run_valgrind_test.sh` - Main valgrind runner
+- `extract_testable_commands.sh` - Command extractor
+- `quick_test.sh` - Automated test for common commands
+- `valgrind_test_script.txt` - Manual test commands
+- `memory_stress_test_commands.txt` - Memory stress tests
+
+### Running Tests
+```bash
+# Start server under valgrind (allow 10-15 minutes for startup)
+cd /mnt/c/Projects/Luminari-Source
+valgrind --leak-check=full --show-leak-kinds=all \
+    --track-origins=yes --log-file=log/valgrind_$(date +%Y%m%d_%H%M%S).log \
+    bin/circle -q 4100 > log/mud_output.log 2>&1 &
+
+# Wait for "Boot db -- DONE" in log/mud_output.log
+
+# Run quick test
+cd bin
+./quick_test.sh
+
+# Stop server and get leak report
+pkill -TERM circle
+
+# Check results
+grep "definitely lost" ../log/valgrind_*.log
+```
+
+## Results
+All critical and high-priority memory leaks have been fixed:
+- **SEGFAULT**: Eliminated
+- **Use-after-free errors**: Fixed
+- **Region/path leaks**: 2,992 bytes saved per session
+- **Output buffer leaks**: 217,152 bytes saved
+- **strdup() leaks**: 5 definite leaks plugged
+
+## Remaining Work
+All high and medium priority issues have been resolved. The codebase should now run without critical memory issues.
