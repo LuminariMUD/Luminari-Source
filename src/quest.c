@@ -311,29 +311,29 @@ int parse_quest(FILE *quest_f, int nr)
   {
     if (!get_line(quest_f, line))
     {
-      log("Format error in %s\n", line);
-      exit(1);
+      log("SYSERR: Quest #%d: Format error at end of quest\n", nr);
+      return 0;  /* Error but don't exit */
     }
 
     switch (*line)
     {
     case 'S':
       total_quests = ++i;
-      return;
+      return 1;  /* Success */
       break;
     case 'D':
       if (!get_line(quest_f, line))
       {
-        log("SYSERR: Format error in 'D' field, %s\n"
-            "...expecting numeric constant but file ended!", buf2);
-        exit(1);
+        log("SYSERR: Quest #%d: Format error in 'D' field\n"
+            "...expecting numeric constant but file ended!", nr);
+        return 0;  /* Error but don't exit */
       }
       if (sscanf(line, "%d %d %d %d", t, t + 1, t + 2, t + 3) != 4)
       {
-        log("SYSERR: Format error in 'D' field, %s\n"
+        log("SYSERR: Quest #%d: Format error in 'D' field\n"
             "...expecting numeric argument\n"
-            "...offending line: '%s'", buf2, line);
-        exit(1);
+            "...offending line: '%s'", nr, line);
+        return 0;  /* Error but don't exit */
       }
       aquest_table[i].diplomacy_dc = t[0];
       aquest_table[i].intimidate_dc = t[1];
