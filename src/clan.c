@@ -1859,8 +1859,8 @@ ACMD(do_clancreate)
   new_clan.treasure = 0;
   for (i = 0; i < MAX_CLANS; i++)
   {
-    new_clan.allies[i] = NO_CLAN;
-    new_clan.at_war[i] = NO_CLAN;
+    new_clan.allies[i] = FALSE;
+    new_clan.at_war[i] = FALSE;
   }
   new_clan.description = NULL;
   new_clan.abrev = NULL;
