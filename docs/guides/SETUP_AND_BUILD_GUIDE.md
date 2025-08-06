@@ -191,6 +191,24 @@ Edit `vnums.h` to set virtual number ranges:
 
 ## Building the Server
 
+### Build System Overview
+LuminariMUD uses GNU Autotools (autoconf/automake) for its build system:
+- **Source files**: `configure.ac`, `Makefile.am`
+- **Generated files**: `configure`, `Makefile.in`, `Makefile`
+- **Build artifacts**: Object files (`.o`), executables
+
+### Cleaning Options
+```bash
+# Clean object files and executables only
+make clean
+
+# Clean autotools auxiliary files (keeps Makefile & config.h for daily builds)
+make scrub
+
+# Full clean - removes everything (requires autoreconf to rebuild)
+make distclean
+```
+
 ### 1. Clean Build
 ```bash
 # Clean any previous build artifacts
@@ -362,6 +380,19 @@ aclocal
 autoheader
 automake --add-missing
 autoconf
+```
+
+#### Rebuilding from Scratch
+```bash
+# Complete rebuild process
+make distclean              # Remove everything
+autoreconf -fiv             # Regenerate all autotools files
+./configure                 # Create Makefile and config.h
+make all                    # Build everything
+make install                # Install binaries
+
+# Quick cleanup (keeps build capability)
+make scrub                  # Removes autotools auxiliary files only
 ```
 
 #### Permission Issues
