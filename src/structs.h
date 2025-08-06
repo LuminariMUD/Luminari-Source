@@ -5306,7 +5306,7 @@ struct mob_special_data
     int hunt_type;              // for hunts, used to track which hunt entry it is on the huhnt table
     int hunt_cooldown;          // for hunts, when hunt expires, this is set to 5 minutes, at which point it will be extracted
     int temp_feat;
-    int spells_known[MAX_SPELLS];
+    byte spells_known[MAX_SPELLS];  /* Changed from int to byte - saves 6KB per mob! */
 };
 
 /** An affect structure. */
