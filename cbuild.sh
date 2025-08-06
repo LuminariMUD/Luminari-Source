@@ -40,7 +40,22 @@ echo -e "${GREEN}▶ Building... (output → build/build.log)${NC}"
 echo ""
 
 # Use cmake's built-in progress and redirect verbose output
-cmake --build build/ -j$(nproc) > build/build_raw.log 2>&1 &
+# Detect if running in WSL and be more conservative with resources
+CORES=$(nproc)
+if grep -qi microsoft /proc/version; then
+    # WSL detected - use 1/3 of cores for better system responsiveness
+    JOBS=$((CORES / 3))
+    echo -e "${YELLOW}WSL detected - using conservative parallelism${NC}"
+else
+    # Native Linux - use half the cores
+    JOBS=$((CORES / 2))
+fi
+# Ensure at least 2 jobs
+if [ $JOBS -lt 2 ]; then
+    JOBS=2
+fi
+echo -e "${BLUE}Building with $JOBS parallel jobs (out of $CORES cores)${NC}"
+cmake --build build/ -j$JOBS > build/build_raw.log 2>&1 &
 BUILD_PID=$!
 
 # Monitor the build progress
