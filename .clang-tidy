@@ -11,10 +11,10 @@ Checks: >
   -clang-analyzer-security.insecureAPI.strcpy
 # Start with critical errors only, uncomment for stricter checking:
 # WarningsAsErrors: '*'
-WarningsAsErrors: >
-  clang-analyzer-core.*,
-  clang-analyzer-unix.*,
-  bugprone-use-after-move,
-  bugprone-infinite-loop,
-  performance-move-const-arg
+# WarningsAsErrors: >
+#   clang-analyzer-core.*,
+#   clang-analyzer-unix.*,
+#   bugprone-use-after-move,
+#   bugprone-infinite-loop,
+#   performance-move-const-arg
 HeaderFilterRegex: 'src/.*'

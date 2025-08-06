@@ -48,6 +48,9 @@ if (CMAKE_COMPILER_IS_GNUCC)
     endif()
 endif()
 
+# Static analysis with clang-tidy (enabled by default if available)
+option(STATIC_ANALYSIS "Enable static analysis with clang-tidy" ON)
+
 # clang-tidy if available
 find_program(CLANG_TIDY_EXE NAMES clang-tidy)
 
@@ -55,8 +58,8 @@ if(CLANG_TIDY_EXE AND STATIC_ANALYSIS)
     message(STATUS "clang-tidy enabled: ${CLANG_TIDY_EXE}")
     set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_EXE}")
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-else()
-    message(WARNING "clang-tidy not found. Static analysis disabled.")
+elseif(STATIC_ANALYSIS)
+    message(WARNING "STATIC_ANALYSIS requested but clang-tidy not found")
 endif()
 
 # ========== Header checks ==========
@@ -597,7 +600,7 @@ set(SRC_C_FILES
 
 set(SRC_FILES ${SRC_C_FILES})
 
-# ========== Build main executable ==========
+# ========== Build main executable FIRST ==========
 add_executable(circle ${SRC_FILES})
 
 # Add compile definitions based on detected features
@@ -693,7 +696,34 @@ if (CRYPTO_LIBRARY)
     target_link_libraries(circle ${CRYPTO_LIBRARY})
 endif()
 
-# ========== Build utilities ==========
+# ========== Compiler warnings and options ==========
+if (CMAKE_COMPILER_IS_GNUCC)
+    # Use C90 but allow C++ style comments for pragmatic reasons
+    target_compile_options(circle PRIVATE -std=gnu90)
+    
+    # Additional warnings for development
+    if (DEVELOPER_MODE)
+        target_compile_options(circle PRIVATE -Wextra -Wshadow -Wcast-qual 
+                               -Wwrite-strings -Wconversion -Wunreachable-code)
+    endif()
+endif()
+
+# ========== Feature toggles ==========
+if (MEMORY_DEBUG)
+    message(STATUS "MEMORY_DEBUG is activated")
+    target_compile_definitions(circle PRIVATE MEMORY_DEBUG)
+endif()
+
+if (DMALLOC)
+    message(STATUS "DMALLOC is activated")
+    target_compile_definitions(circle PRIVATE DMALLOC)
+    find_library(DMALLOC_LIBRARY dmalloc)
+    if (DMALLOC_LIBRARY)
+        target_link_libraries(circle ${DMALLOC_LIBRARY})
+    endif()
+endif()
+
+# ========== Build utilities AFTER main executable ==========
 # Build utilities by default (can be disabled with -DBUILD_UTILS=OFF)
 option(BUILD_UTILS "Build utility programs" ON)
 
@@ -723,7 +753,7 @@ if (BUILD_UTILS)
     target_link_libraries(asciipasswd ${CRYPT_LIBRARY})
 endif()
 
-# ========== Build unit tests ==========
+# ========== Build unit tests AFTER main executable ==========
 # Build tests by default (can be disabled with -DBUILD_TESTS=OFF)
 option(BUILD_TESTS "Build unit tests" ON)
 
@@ -761,33 +791,6 @@ if (BUILD_TESTS)
     # Output directory for test executables
     # set_target_properties(test_act_comm test_clan test_staff_events
     #                       PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
-endif()
-
-# ========== Compiler warnings and options ==========
-if (CMAKE_COMPILER_IS_GNUCC)
-    # Use C90 but allow C++ style comments for pragmatic reasons
-    target_compile_options(circle PRIVATE -std=gnu90)
-    
-    # Additional warnings for development
-    if (DEVELOPER_MODE)
-        target_compile_options(circle PRIVATE -Wextra -Wshadow -Wcast-qual 
-                               -Wwrite-strings -Wconversion -Wunreachable-code)
-    endif()
-endif()
-
-# ========== Feature toggles ==========
-if (MEMORY_DEBUG)
-    message(STATUS "MEMORY_DEBUG is activated")
-    target_compile_definitions(circle PRIVATE MEMORY_DEBUG)
-endif()
-
-if (DMALLOC)
-    message(STATUS "DMALLOC is activated")
-    target_compile_definitions(circle PRIVATE DMALLOC)
-    find_library(DMALLOC_LIBRARY dmalloc)
-    if (DMALLOC_LIBRARY)
-        target_link_libraries(circle ${DMALLOC_LIBRARY})
-    endif()
 endif()
 
 # ========== Installation ==========
