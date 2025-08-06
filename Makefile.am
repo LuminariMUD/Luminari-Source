@@ -229,11 +229,26 @@ distclean-local:
 	rm -f configure~ configure.ac~ conf.h.in~ conf.h.in aclocal.m4
 	rm -f config.status config.log configure
 	rm -rf autom4te.cache/
+	rm -rf src/.deps/ src/.dirstamp src/stamp-h1
+	rm -f stamp-h1 .dirstamp
+	rm -rf util/.deps/ util/.dirstamp
+	rm -f config.cache
 
 # Custom clean target that removes build files but keeps Makefile and config.h
 # KEEPS: Everything needed to avoid triggering autoreconf during make clean
 scrub: clean
-	rm -f gdb.txt valgrind.log WORK.md
+	rm -f gdb.txt valgrind.log WORK.md CODEBASE_SCOPE.md
 	rm -f configure~ configure.ac~ conf.h.in~
 	rm -f config.log
 	rm -rf autom4te.cache/
+	rm -f log/*.log
+	rm -f *.orig *.rej *.patch
+	rm -f .killscript .fastboot pause .autorun.lock
+	rm -f .websocket_policy.pid .flash_policy.pid
+	rm -f lib/copyover.dat
+	rm -f core core.* vgcore.*
+	rm -f lib/core lib/core.* lib/vgcore.*
+	rm -f *~ *.swp *.swo
+	rm -f src/*~ src/*.swp src/*.swo
+	rm -f *.tmp *.temp
+	rm -f test_*.out test_*.log

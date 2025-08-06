@@ -68,6 +68,10 @@ readonly LEN_CRASHLOG="${LEN_CRASHLOG:-30}"
 readonly MAX_LOG_SIZE_MB="${MAX_LOG_SIZE_MB:-100}"  # Max size before rotation
 readonly LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-30}"  # Keep logs for 30 days
 
+# Runtime control options (can be overridden by environment variables)
+readonly IGNORE_DISK_SPACE="${IGNORE_DISK_SPACE:-false}"  # Continue even with low disk space
+readonly DISABLE_CRASH_PROTECTION="${DISABLE_CRASH_PROTECTION:-false}"  # Disable crash loop protection
+
 # Date format patterns
 readonly DATE_FORMAT_LOG="%Y-%m-%d %H:%M:%S"
 readonly DATE_FORMAT_SYSLOG="%Y%m%d"
@@ -143,14 +147,31 @@ check_directory() {
 
 # Check if the MUD process is running
 is_mud_running() {
-    # More robust process detection using pgrep if available
-    if command -v pgrep >/dev/null 2>&1; then
-        pgrep -f "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" >/dev/null 2>&1
+    # First check if something is actually listening on the MUD port
+    # This avoids false positives from zombie processes or similar names
+    if command -v ss >/dev/null 2>&1; then
+        # Use ss to check for listening socket (most reliable)
+        ss -tlnp 2>/dev/null | grep -q ":${MUD_PORT} "
+        return $?
+    elif command -v netstat >/dev/null 2>&1; then
+        # Fallback to netstat if ss not available
+        netstat -tlnp 2>/dev/null | grep -q ":${MUD_PORT} "
+        return $?
+    elif command -v lsof >/dev/null 2>&1; then
+        # Another fallback using lsof
+        lsof -i :${MUD_PORT} >/dev/null 2>&1
+        return $?
     else
-        # Fallback to ps if pgrep not available
-        local count
-        count=$(ps auxwww | grep -E "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" | grep -v grep | wc -l)
-        [[ $count -gt 0 ]]
+        # Last resort: check for process (original method)
+        # More robust process detection using pgrep if available
+        if command -v pgrep >/dev/null 2>&1; then
+            pgrep -f "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" >/dev/null 2>&1
+        else
+            # Fallback to ps if pgrep not available
+            local count
+            count=$(ps auxwww | grep -E "${BIN_DIR}/${MUD_BINARY}.*${MUD_PORT}" | grep -v grep | wc -l)
+            [[ $count -gt 0 ]]
+        fi
     fi
 }
 
@@ -447,6 +468,37 @@ cleanup_processes() {
         log_info "Killing autorun-related sleep processes"
         echo "$autorun_pids" | xargs kill 2>/dev/null || true
     fi
+    
+    # Clean up any zombie MUD processes
+    cleanup_zombie_processes
+}
+
+# Clean up zombie or defunct MUD processes
+cleanup_zombie_processes() {
+    # Find zombie/defunct MUD processes
+    local zombies=$(ps aux | grep "${MUD_BINARY}" | grep "<defunct>" | awk '{print $2}')
+    if [[ -n "$zombies" ]]; then
+        log_warn "Found zombie MUD processes, cleaning up: $zombies"
+        echo "$zombies" | xargs kill -9 2>/dev/null || true
+    fi
+    
+    # Also check for stuck MUD processes that aren't listening
+    if ! is_mud_running; then
+        # No listening socket, but check for stuck processes
+        local stuck_pids=$(pgrep -f "${BIN_DIR}/${MUD_BINARY}" 2>/dev/null || true)
+        if [[ -n "$stuck_pids" ]]; then
+            log_warn "Found stuck MUD processes not listening on port, cleaning up: $stuck_pids"
+            echo "$stuck_pids" | xargs kill -TERM 2>/dev/null || true
+            sleep 2
+            # Force kill if still running
+            for pid in $stuck_pids; do
+                if kill -0 "$pid" 2>/dev/null; then
+                    log_warn "Force killing stuck process: $pid"
+                    kill -9 "$pid" 2>/dev/null || true
+                fi
+            done
+        fi
+    fi
 }
 
 # Verify MUD binary exists and is executable
@@ -504,7 +556,8 @@ start_mud() {
     set +e
     "${BIN_DIR}/${MUD_BINARY}" ${FLAGS} ${MUD_PORT} >> syslog 2>&1
     local exit_code=$?
-    set -e
+    # DO NOT re-enable set -e here - it causes script to exit on any error!
+    # The script should continue running even if subsequent commands fail
     
     log_info "MUD server exited with code $exit_code"
     
@@ -659,11 +712,20 @@ case "${1:-}" in
         # Proper daemonization with lock file to prevent multiple instances
         lockfile="${SCRIPT_DIR}/.autorun.lock"
         
-        # Check for stale lock file
+        # Check for stale lock file - more robust handling
         if [[ -f "$lockfile" ]]; then
             old_pid=$(cat "$lockfile" 2>/dev/null || echo "")
-            if [[ -n "$old_pid" ]] && ! kill -0 "$old_pid" 2>/dev/null; then
+            if [[ -z "$old_pid" ]]; then
+                # Empty lock file - remove it
+                log_warn "Removing empty lock file"
+                rm -f "$lockfile"
+            elif ! kill -0 "$old_pid" 2>/dev/null; then
+                # Process doesn't exist - remove stale lock
                 log_warn "Removing stale lock file (PID: $old_pid)"
+                rm -f "$lockfile"
+            elif ! pgrep -f "bash.*${SCRIPT_NAME}.*foreground" >/dev/null 2>&1; then
+                # Lock file exists but no autorun process found
+                log_warn "Lock file exists but no autorun process found - removing"
                 rm -f "$lockfile"
             fi
         fi
@@ -730,6 +792,11 @@ mkdir -p "$LOG_DIR" "$DUMPS_DIR"
 
 # Check disk space
 check_disk_space() {
+    # Skip disk space check if configured to ignore
+    if [[ "$IGNORE_DISK_SPACE" == "true" ]]; then
+        return 0
+    fi
+    
     local min_space_mb=1000  # Require at least 1GB free
     local available_mb
     
@@ -737,6 +804,7 @@ check_disk_space() {
         available_mb=$(df -m . | awk 'NR==2 {print $4}')
         if [[ $available_mb -lt $min_space_mb ]]; then
             log_error "CRITICAL: Low disk space! Only ${available_mb}MB available (minimum: ${min_space_mb}MB)"
+            log_info "Set IGNORE_DISK_SPACE=true to continue anyway"
             return 1
         fi
     fi
@@ -772,6 +840,9 @@ trap cleanup EXIT
 
 # Main loop
 while true; do
+    # Clean up any zombie processes before checking if MUD is running
+    cleanup_zombie_processes
+    
     # Check if MUD is already running
     if is_mud_running; then
         log_warn "MUD already running on port $MUD_PORT - waiting..."
@@ -822,10 +893,11 @@ while true; do
         CRASH_COUNT=$((CRASH_COUNT + 1))
     fi
     
-    # Check if we're in a crash loop
-    if [[ $CRASH_COUNT -ge $MAX_CRASHES_PER_HOUR ]]; then
+    # Check if we're in a crash loop (unless protection is disabled)
+    if [[ "$DISABLE_CRASH_PROTECTION" != "true" ]] && [[ $CRASH_COUNT -ge $MAX_CRASHES_PER_HOUR ]]; then
         log_error "CRITICAL: MUD crashed $CRASH_COUNT times in the last hour!"
         log_error "Entering emergency cooldown mode (30 minutes)"
+        log_info "Set DISABLE_CRASH_PROTECTION=true to bypass this protection"
         
         # Optional: Send alert (uncomment and configure as needed)
         # echo "MUD crash loop detected on $(hostname)" | mail -s "MUD CRITICAL" admin@example.com
@@ -833,6 +905,8 @@ while true; do
         sleep 1800  # 30 minute cooldown
         CRASH_COUNT=0
         CRASH_WINDOW_START=$(date +%s)
+    elif [[ "$DISABLE_CRASH_PROTECTION" == "true" ]] && [[ $CRASH_COUNT -ge $MAX_CRASHES_PER_HOUR ]]; then
+        log_warn "Crash protection disabled - continuing despite $CRASH_COUNT crashes"
     fi
     
     # Archive any core dump
