@@ -221,3 +221,18 @@ EXTRA_DIST = \
 # Run unit tests
 test: check
 	./cutest
+
+# Additional cleanup for distclean
+# Removes autotools-generated files and build artifacts
+distclean-local:
+	rm -f Makefile.in install-sh gdb.txt depcomp compile missing
+	rm -f configure~ configure.ac~ conf.h.in~ conf.h.in aclocal.m4
+	rm -f config.status config.log configure
+	rm -rf autom4te.cache/
+
+# Custom clean target that removes build files but keeps Makefile and config.h
+scrub:
+	rm -f Makefile.in install-sh gdb.txt depcomp compile missing
+	rm -f configure~ configure.ac~ conf.h.in~ conf.h.in aclocal.m4
+	rm -f config.status config.log configure
+	rm -rf autom4te.cache/
