@@ -231,8 +231,9 @@ distclean-local:
 	rm -rf autom4te.cache/
 
 # Custom clean target that removes build files but keeps Makefile and config.h
-scrub:
-	rm -f Makefile.in install-sh gdb.txt depcomp compile missing
-	rm -f configure~ configure.ac~ conf.h.in~ conf.h.in aclocal.m4
-	rm -f config.status config.log configure
+# KEEPS: Everything needed to avoid triggering autoreconf during make clean
+scrub: clean
+	rm -f gdb.txt valgrind.log WORK.md
+	rm -f configure~ configure.ac~ conf.h.in~
+	rm -f config.log
 	rm -rf autom4te.cache/

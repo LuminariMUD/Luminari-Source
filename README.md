@@ -104,11 +104,20 @@ make all
 # Clean build artifacts
 make clean
 
+# Clean autotools files (keeps Makefile & config.h)
+make scrub
+
+# Full clean (removes everything, requires autoreconf)
+make distclean
+
 # Run unit tests
 make cutest
 
 # Generate dependencies
 make depend
+
+# Rebuild from scratch
+autoreconf -fiv && ./configure && make all
 ```
 
 #### Server Management

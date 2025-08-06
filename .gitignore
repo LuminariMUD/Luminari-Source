@@ -107,6 +107,7 @@ CLAUDE.md
 .claude/
 .cursorrules
 .cursorignore
+WORK.md
 
 ####################
 # Backup Files
@@ -217,6 +218,7 @@ lib/etc/badsites
 lib/etc/board.*
 lib/etc/clans
 lib/etc/clan_investments
+lib/etc/claims
 lib/etc/config
 lib/etc/crafts
 lib/etc/hcontrol

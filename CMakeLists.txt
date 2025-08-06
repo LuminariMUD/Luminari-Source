@@ -14,8 +14,8 @@ include(CheckStructHasMember)
 include(CheckSymbolExists)
 include(CheckCSourceCompiles)
 
-# Output paths - LuminariMUD uses ../bin/circle convention
-set(BIN_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/../bin)
+# Output paths - LuminariMUD uses bin/circle convention
+set(BIN_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
 
 # Include source and build paths
@@ -452,33 +452,176 @@ configure_file(
 
 
 # ========== Source files ==========
-# Main C source files
-file(GLOB SRC_C_FILES src/*.c)
-
-# C++ performance monitoring (if enabled)
-if (EXISTS ${CMAKE_SOURCE_DIR}/src/perfmon.cpp)
-    list(APPEND SRC_FILES ${CMAKE_SOURCE_DIR}/src/perfmon.cpp)
-    set(HAVE_PERFMON 1)
-endif()
-
-# Exclude utility programs from main build
-list(REMOVE_ITEM SRC_C_FILES 
-    ${CMAKE_SOURCE_DIR}/src/autowiz.c
-    ${CMAKE_SOURCE_DIR}/src/asciipasswd.c
-    ${CMAKE_SOURCE_DIR}/src/plrtoascii.c
-    ${CMAKE_SOURCE_DIR}/src/rebuildAsciiIndex.c
-    ${CMAKE_SOURCE_DIR}/src/rebuildMailIndex.c
-    ${CMAKE_SOURCE_DIR}/src/shopconv.c
-    ${CMAKE_SOURCE_DIR}/src/sign.c
-    ${CMAKE_SOURCE_DIR}/src/split.c
-    ${CMAKE_SOURCE_DIR}/src/wld2html.c
+# Main C source files - matching Makefile.am circle_SOURCES
+set(SRC_C_FILES
+    src/account.c
+    src/act.comm.c
+    src/act.comm.do_spec_comm.c
+    src/act.informative.c
+    src/act.item.c
+    src/act.movement.c
+    src/act.offensive.c
+    src/act.other.c
+    src/act.social.c
+    src/act.wizard.c
+    src/actionqueues.c
+    src/actions.c
+    src/aedit.c
+    src/ai_cache.c
+    src/ai_events.c
+    src/ai_security.c
+    src/ai_service.c
+    src/alchemy.c
+    src/asciimap.c
+    src/assign_wpn_armor.c
+    src/backgrounds.c
+    src/ban.c
+    src/bardic_performance.c
+    src/boards.c
+    src/bsd-snprintf.c
+    src/cedit.c
+    src/char_descs.c
+    src/clan.c
+    src/clan_economy.c
+    src/clan_edit.c
+    src/clan_transactions.c
+    src/class.c
+    src/combat_modes.c
+    src/comm.c
+    src/config.c
+    src/constants.c
+    src/craft.c
+    src/crafting_new.c
+    src/crafting_recipes.c
+    src/crafts.c
+    src/db.c
+    src/deities.c
+    src/desc_engine.c
+    src/dg_comm.c
+    src/dg_db_scripts.c
+    src/dg_event.c
+    src/dg_handler.c
+    src/dg_misc.c
+    src/dg_mobcmd.c
+    src/dg_objcmd.c
+    src/dg_olc.c
+    src/dg_scripts.c
+    src/dg_triggers.c
+    src/dg_variables.c
+    src/dg_wldcmd.c
+    src/domain_powers.c
+    src/domains_schools.c
+    src/dotenv.c
+    src/encounters.c
+    src/evolutions.c
+    src/feats.c
+    src/fight.c
+    src/gain.c
+    src/genmob.c
+    src/genobj.c
+    src/genolc.c
+    src/genqst.c
+    src/genshp.c
+    src/genwld.c
+    src/genzon.c
+    src/graph.c
+    src/grapple.c
+    src/handler.c
+    src/hedit.c
+    src/help.c
+    src/helpers.c
+    src/hlqedit.c
+    src/hlquest.c
+    src/house.c
+    src/hsedit.c
+    src/hunts.c
+    src/ibt.c
+    src/improved-edit.c
+    src/interpreter.c
+    src/kdtree.c
+    src/limits.c
+    src/lists.c
+    src/magic.c
+    src/mail.c
+    src/medit.c
+    src/missions.c
+    src/mobact.c
+    src/modify.c
+    src/msgedit.c
+    src/mud_event.c
+    src/mysql.c
+    src/new_mail.c
+    src/oasis.c
+    src/oasis_copy.c
+    src/oasis_delete.c
+    src/oasis_list.c
+    src/objsave.c
+    src/oedit.c
+    src/perfmon.c
+    src/perlin.c
+    src/players.c
+    src/prefedit.c
+    src/premadebuilds.c
+    src/protocol.c
+    src/psionics.c
+    src/qedit.c
+    src/quest.c
+    src/race.c
+    src/random.c
+    src/random_names.c
+    src/rank.c
+    src/redit.c
+    src/roleplay.c
+    src/sedit.c
+    src/shop.c
+    src/spec_abilities.c
+    src/spec_assign.c
+    src/spec_procs.c
+    src/specs.artifacts.c
+    src/spell_parser.c
+    src/spell_prep.c
+    src/spellbook_scroll.c
+    src/spells.c
+    src/staff_events.c
+    src/study.c
+    src/tedit.c
+    src/templates.c
+    src/trade.c
+    src/transport.c
+    src/traps.c
+    src/treasure.c
+    src/treasure_const.c
+    src/utils.c
+    src/weather.c
+    src/wilderness.c
+    src/zedit.c
+    src/zmalloc.c
+    src/zone_procs.c
 )
 
 set(SRC_FILES ${SRC_C_FILES})
 
 # ========== Build main executable ==========
 add_executable(circle ${SRC_FILES})
-target_link_libraries(circle ${EXTRA_LIBS} m)  # Always link math library
+
+# Link libraries matching Makefile.am: -lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread
+target_link_libraries(circle ${EXTRA_LIBS} m pthread)
+
+# Find and link additional libraries
+find_library(CURL_LIBRARY curl)
+if (CURL_LIBRARY)
+    target_link_libraries(circle ${CURL_LIBRARY})
+endif()
+
+find_library(SSL_LIBRARY ssl)
+if (SSL_LIBRARY)
+    target_link_libraries(circle ${SSL_LIBRARY})
+endif()
+
+find_library(CRYPTO_LIBRARY crypto)
+if (CRYPTO_LIBRARY)
+    target_link_libraries(circle ${CRYPTO_LIBRARY})
+endif()
 
 # ========== Build utilities ==========
 if (BUILD_UTILS)
