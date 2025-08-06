@@ -694,28 +694,73 @@ if (CRYPTO_LIBRARY)
 endif()
 
 # ========== Build utilities ==========
+# Build utilities by default (can be disabled with -DBUILD_UTILS=OFF)
+option(BUILD_UTILS "Build utility programs" ON)
+
 if (BUILD_UTILS)
-    add_executable(autowiz src/autowiz.c)
-    add_executable(asciipasswd src/asciipasswd.c)
-    add_executable(plrtoascii src/plrtoascii.c)
-    add_executable(rebuildAsciiIndex src/rebuildAsciiIndex.c)
-    add_executable(rebuildMailIndex src/rebuildMailIndex.c)
-    add_executable(shopconv src/shopconv.c)
-    add_executable(sign src/sign.c)
-    add_executable(split src/split.c)
-    add_executable(wld2html src/wld2html.c)
+    # Utilities from util/ directory
+    add_executable(autowiz util/autowiz.c)
+    add_executable(asciipasswd util/asciipasswd.c)
+    add_executable(plrtoascii util/plrtoascii.c)
+    add_executable(rebuildAsciiIndex util/rebuildAsciiIndex.c)
+    add_executable(rebuildMailIndex util/rebuildMailIndex.c)
+    add_executable(shopconv util/shopconv.c)
+    add_executable(sign util/sign.c)
+    add_executable(split util/split.c)
+    add_executable(wld2html util/wld2html.c)
+    add_executable(webster util/webster.c)
+    
+    # hl_events utility has both .c and .h files
+    add_executable(hl_events util/hl_events.c)
     
     # Set output directory for utilities
     set_target_properties(autowiz asciipasswd plrtoascii rebuildAsciiIndex
                           rebuildMailIndex shopconv sign split wld2html
+                          webster hl_events
                           PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
+    
+    # Link libraries for utilities that need them
+    target_link_libraries(asciipasswd ${CRYPT_LIBRARY})
 endif()
 
 # ========== Build unit tests ==========
+# Build tests by default (can be disabled with -DBUILD_TESTS=OFF)
+option(BUILD_TESTS "Build unit tests" ON)
+
 if (BUILD_TESTS)
-    file(GLOB TEST_FILES unittests/CuTest/*.c)
-    add_executable(cutest ${TEST_FILES})
+    # CuTest framework tests
+    set(CUTEST_FILES
+        unittests/CuTest/CuTest.c
+        unittests/CuTest/test.helpers.c
+        unittests/CuTest/test.interpreter.c
+        unittests/CuTest/test_alignment.c
+        unittests/CuTest/test_bounds_checking.c
+        unittests/CuTest/test_char_cache.c
+        unittests/CuTest/test_char_skills.c
+        unittests/CuTest/test_random.c
+        unittests/CuTest/test_treasure.c
+        unittests/CuTest/test_utils.c
+    )
+    
+    add_executable(cutest ${CUTEST_FILES})
+    target_include_directories(cutest PRIVATE src unittests/CuTest)
     set_target_properties(cutest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
+    
+    # Individual test executables from unittests/ root
+    # Note: These tests have hardcoded relative paths and may need adjustment
+    # Commenting out for now as they need proper refactoring
+    # add_executable(test_act_comm unittests/test_act.comm.c unittests/mocks.c)
+    # add_executable(test_clan unittests/test_clan.c unittests/mocks.c)
+    # add_executable(test_staff_events unittests/test_staff_events.c unittests/mocks.c)
+    
+    # Include directories for individual tests
+    # target_include_directories(test_act_comm PRIVATE src unittests)
+    # target_include_directories(test_clan PRIVATE src unittests)
+    # target_include_directories(test_staff_events PRIVATE src unittests)
+    
+    # Output directory for test executables
+    # set_target_properties(test_act_comm test_clan test_staff_events
+    #                       PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
 endif()
 
 # ========== Compiler warnings and options ==========
@@ -750,15 +795,22 @@ install(TARGETS circle DESTINATION ${BIN_OUTPUT_DIR})
 if (BUILD_UTILS)
     install(TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
                     rebuildMailIndex shopconv sign split wld2html
+                    webster hl_events
+            DESTINATION ${BIN_OUTPUT_DIR})
+endif()
+if (BUILD_TESTS)
+    install(TARGETS cutest
             DESTINATION ${BIN_OUTPUT_DIR})
 endif()
 
 # ========== Summary ==========
 message(STATUS "========================================")
 message(STATUS "LuminariMUD CMake Configuration Summary:")
-message(STATUS "  C Standard: C90/C89 (ANSI C)")
+message(STATUS "  C Standard: GNU C90 (C89 with GNU extensions)")
 message(STATUS "  MySQL Support: ${CIRCLE_MYSQL}")
 message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "  Build Utilities: ${BUILD_UTILS}")
+message(STATUS "  Build Tests: ${BUILD_TESTS}")
 message(STATUS "  Install Prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "  Binary Output: ${BIN_OUTPUT_DIR}")
 message(STATUS "========================================")
