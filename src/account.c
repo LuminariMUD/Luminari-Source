@@ -587,6 +587,78 @@ int load_account(char *name, struct account_data *account)
 }
 
 /*
+  cleanup_duplicate_characters(struct account_data *account)
+  Purpose: Remove duplicate character entries from player_data for this account.
+  Parameters:
+    - account: account to clean up
+  Behavior:
+    - For each character name, keeps only the oldest entry (lowest id)
+    - Deletes all duplicate rows
+  Notes:
+    - Should be called before load_account_characters when duplicates are detected
+*/
+void cleanup_duplicate_characters(struct account_data *account)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char buf[2048];
+  
+  if (!account || account->id <= 0)
+    return;
+    
+  /* First, get list of duplicate character names for this account */
+  snprintf(buf, sizeof(buf), 
+    "SELECT name, COUNT(*) as cnt, MIN(id) as keep_id "
+    "FROM player_data "
+    "WHERE account_id = %d "
+    "GROUP BY name "
+    "HAVING cnt > 1", account->id);
+    
+  if (mysql_query(conn, buf))
+  {
+    log("SYSERR: Unable to check for duplicate characters: %s", mysql_error(conn));
+    return;
+  }
+  
+  if (!(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: Unable to store duplicate check results: %s", mysql_error(conn));
+    return;
+  }
+  
+  /* Process each duplicate character */
+  while ((row = mysql_fetch_row(result)))
+  {
+    char *name = row[0];
+    int keep_id = atoi(row[2]);
+    
+    /* Escape character name */
+    char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
+    mysql_real_escape_string(conn, escaped_name, name, strlen(name));
+    
+    /* Delete all except the one with keep_id */
+    snprintf(buf, sizeof(buf),
+      "DELETE FROM player_data "
+      "WHERE account_id = %d "
+      "AND lower(name) = lower('%s') "
+      "AND id != %d",
+      account->id, escaped_name, keep_id);
+      
+    if (mysql_query(conn, buf))
+    {
+      log("SYSERR: Unable to delete duplicate character %s: %s", name, mysql_error(conn));
+    }
+    else
+    {
+      log("INFO: Cleaned up %ld duplicate(s) of character %s for account %s",
+        (long)mysql_affected_rows(conn), name, account->name);
+    }
+  }
+  
+  mysql_free_result(result);
+}
+
+/*
   load_account_characters(struct account_data *account)
   Purpose: Populate account->character_names[] with names belonging to this account.
   Parameters:
@@ -595,6 +667,7 @@ int load_account(char *name, struct account_data *account)
     - Clears/free any existing strings in character_names[].
     - SELECT name FROM player_data WHERE account_id = account->id
     - Copies up to MAX_CHARS_PER_ACCOUNT results using strdup.
+    - Now includes duplicate cleanup if needed
 */
 void load_account_characters(struct account_data *account)
 {
@@ -611,6 +684,40 @@ void load_account_characters(struct account_data *account)
       account->character_names[i] = NULL;
     }
 
+  /* First check if we need to clean up duplicates */
+  snprintf(buf, sizeof(buf), 
+    "SELECT COUNT(*) as total, COUNT(DISTINCT name) as unique_names "
+    "FROM player_data WHERE account_id = %d", account->id);
+    
+  if (mysql_query(conn, buf))
+  {
+    log("SYSERR: Unable to check for duplicates: %s", mysql_error(conn));
+  }
+  else if ((result = mysql_store_result(conn)))
+  {
+    if ((row = mysql_fetch_row(result)))
+    {
+      int total = atoi(row[0]);
+      int unique_count = atoi(row[1]);
+      if (total > unique_count)
+      {
+        log("INFO: Detected %d duplicate character entries for account %s, cleaning up...", 
+            total - unique_count, account->name);
+        mysql_free_result(result);
+        cleanup_duplicate_characters(account);
+      }
+      else
+      {
+        mysql_free_result(result);
+      }
+    }
+    else
+    {
+      mysql_free_result(result);
+    }
+  }
+
+  /* Now load the character names (duplicates have been cleaned) */
   snprintf(buf, sizeof(buf), "select name from player_data where account_id = %d", account->id);
 
   if (mysql_query(conn, buf))
