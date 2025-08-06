@@ -1611,7 +1611,7 @@ void discrete_load(FILE *fl, int mode, char *filename)
         break;
       case DB_BOOT_QST:
         if (!parse_quest(fl, nr)) {
-          log("SYSERR: Failed to load quest #%d, continuing with next quest", nr);
+          log("SYSERR: Failed to load quest #%d, skipping", nr);
         }
         break;
       case DB_BOOT_HLQST:
@@ -5319,71 +5319,122 @@ int is_empty(zone_rnum zone_nr)
 
 /* Functions of a general utility nature. */
 
-/* read and allocate space for a '~'-terminated string from a given file */
+/* read and allocate space for a '~'-terminated string from a given file 
+ * This function reads multi-line text from a file until it finds a '~' character.
+ * The '~' acts as an end-of-text marker in Luminari data files. */
 char *fread_string(FILE *fl, const char *error)
 {
+  /* buf will store our complete final string (up to MAX_STRING_LENGTH)
+   * tmp is a smaller buffer for reading one line at a time (512 chars + null terminator) */
   char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[513] = {'\0'};
-  char *point = NULL;
-  int done = 0, length = 0, templength = 0;
+  char *point = NULL;  /* pointer used to navigate through the tmp buffer */
+  int done = 0;        /* flag: becomes 1 when we find the '~' terminator */
+  int length = 0;      /* current total length of string we've built so far */
+  int templength = 0;  /* length of the current line we just read */
 
+  /* Keep reading lines from the file until we find our '~' terminator */
   do
   {
+    /* Clear the temporary buffer to all zeros - ensures clean slate for each line */
     memset(tmp, '\0', 513);
+    
+    /* Read up to 512 characters (one line) from the file into tmp buffer
+     * fgets() stops at newline or after 512 chars, whichever comes first */
     if (!fgets(tmp, 512, fl))
     {
+      /* If we can't read from file (unexpected end), it's a fatal error */
       log("SYSERR: fread_string: format error at or near %s", error);
-      exit(1);
+      exit(1);  /* Kill the whole MUD - data files are corrupted */
     }
+    
     /* If there is a '~', end the string; else put an "\r\n" over the '\n'. */
     /* now only removes trailing ~'s -- Welcor */
 
+    /* strchr(tmp, '\0') finds the null terminator at the end of the string
+     * This gives us a pointer to the END of what we just read */
     point = strchr(tmp, '\0');
     if (point == NULL)
     {
+      /* This should never happen - every C string must have a null terminator */
       log("SYSERR: freed_string: end of string not found (db.c)");
       log("String: %s", tmp);
       exit(1);
     }
 
+    /* Move backwards from the end of string, skipping any trailing newlines/carriage returns
+     * We want to find the last "real" character that isn't whitespace */
     /* Ensure we don't go before the beginning of tmp array */
     if (point > tmp) {
+      /* Start from the character BEFORE the null terminator and go backwards
+       * Skip over any '\r' (carriage return) or '\n' (newline) characters 
+       * The loop continues while BOTH conditions are true:
+       *   1. point >= tmp (we haven't gone before the start of array)
+       *   2. character is '\r' or '\n' (it's whitespace to skip) */
       for (point--; (point >= tmp && (*point == '\r' || *point == '\n')); point--)
-        ;
+        ;  /* Empty loop body - just moving the pointer backwards */
     }
 
+    /* Check if the last non-whitespace character is our '~' terminator 
+     * point >= tmp ensures we have a valid position (not before array start) */
     if (point >= tmp && *point == '~')
     {
+      /* Found the terminator! Replace '~' with null terminator to end the string */
       *point = '\0';
-      done = 1;
+      done = 1;  /* Set flag to exit the main loop after this iteration */
     }
     else
     {
-      /* Move back to the last valid position if we went too far */
+      /* No '~' found, so this is a continuing line of text
+       * We need to add proper line endings and continue reading */
+      
+      /* Handle edge case: if the line was ALL newlines/carriage returns,
+       * point might now be before tmp (point < tmp). In this case, we need
+       * to position it so the next increments will write to valid locations.
+       * Setting point = tmp - 1 means the first ++point will make it tmp[0] */
       if (point < tmp)
-        point = tmp - 1;
-      *(++point) = '\r';
-      *(++point) = '\n';
-      *(++point) = '\0';
+        point = tmp - 1;  /* Set to one position before buffer start */
+      
+      /* Add Windows-style line ending: \r\n (carriage return + line feed)
+       * This preserves line breaks in the final string
+       * Note: ++point increments FIRST, then assigns the value
+       * So from tmp-1: ++point goes to tmp[0], then tmp[1], then tmp[2] */
+      *(++point) = '\r';  /* Move pointer forward to valid position, add carriage return */
+      *(++point) = '\n';  /* Move pointer forward, add newline */
+      *(++point) = '\0';  /* Move pointer forward, add null terminator */
     }
 
+    /* Calculate how many characters we're adding from this line
+     * point - tmp gives us the distance from start to current position */
     templength = point - tmp;
 
+    /* Safety check: make sure we don't overflow our main buffer */
     if (length + templength >= MAX_STRING_LENGTH)
     {
+      /* String is too long - fatal error to prevent buffer overflow */
       log("SYSERR: fread_string: string too large (db.c)");
       log("%s", error);
-      exit(1);
+      exit(1);  /* Kill the MUD rather than risk memory corruption */
     }
     else
     {
+      /* Append this line to our main buffer
+       * buf + length points to where we left off in the main buffer
+       * strcat adds tmp starting at that position */
       strcat(buf + length, tmp); /* strcat: OK (size checked above) */
-      length += templength;
+      length += templength;  /* Update our total length counter */
     }
-  } while (!done);
+  } while (!done);  /* Keep looping until we find the '~' terminator */
 
+  /* parse_at() converts @ symbols in the text:
+   * - Single @ becomes a tab character (\t)
+   * - Double @@ becomes a single @ (escape sequence)
+   * This is MUD-specific formatting */
   parse_at(buf);
 
-  /* allocate space for the new string and copy it */
+  /* allocate space for the new string and copy it 
+   * strlen(buf) checks if we have any content
+   * strdup() allocates new memory and copies the string there
+   * Returns NULL if the string is empty, otherwise returns pointer to new string */
   return (strlen(buf) ? strdup(buf) : NULL);
 }
 
