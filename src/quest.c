@@ -177,9 +177,11 @@ int count_quests(qst_vnum low, qst_vnum high)
   return j;
 }
 
-/* read quest from file and load it into memory */
-/* Returns 1 on success, 0 on error (but continues loading) */
-int parse_quest(FILE *quest_f, int nr)
+/* read quest from file and load it into memory
+     called by discrete_load() in db.c - briefly discrete_load() is terminated by a $ (offical end of file) */
+     /* IMPORTANT - this function is handling two different file formats --
+          CAMPAIGN_DL will have an extra tilde-terminated string for kill list */
+void parse_quest(FILE *quest_f, int nr)
 {
   static char line[MEDIUM_STRING] = {'\0'};
   static int i = 0, j;
@@ -187,7 +189,6 @@ int parse_quest(FILE *quest_f, int nr)
   char f1[128], buf2[MAX_STRING_LENGTH] = {'\0'};
 
   /* init some vars */
-  aquest_table[i].vnum = nr;
   aquest_table[i].qm = NOBODY;
   aquest_table[i].name = NULL;
   aquest_table[i].desc = NULL;
@@ -218,34 +219,40 @@ int parse_quest(FILE *quest_f, int nr)
   aquest_table[i].intimidate_dc = -1;
   aquest_table[i].bluff_dc = -1;
   aquest_table[i].dialogue_alternative_quest = NOTHING;
-
   /* end init */
 
-  /* begin to parse the data */
-  aquest_table[i].name = fread_string(quest_f, buf2);
-  aquest_table[i].desc = fread_string(quest_f, buf2);
-  aquest_table[i].info = fread_string(quest_f, buf2);
-  aquest_table[i].done = fread_string(quest_f, buf2);
-  aquest_table[i].quit = fread_string(quest_f, buf2);
+  /* START -- begin to parse the data
+       fread_string() will accept a blurb of text until terminator of ~ */
+  aquest_table[i].vnum = nr; /* quest vnum, not read from file here, rather brought into function */
+
+  /* from discrete_load() the pointer should be at the beginning of the line after the quest vnum in the file*/
+  aquest_table[i].name = fread_string(quest_f, buf2); /* quest short name */
+  aquest_table[i].desc = fread_string(quest_f, buf2); /* quest description */
+  aquest_table[i].info = fread_string(quest_f, buf2); /* quest accept message (info) */
+  aquest_table[i].done = fread_string(quest_f, buf2); /* quest completed message (done) */
+  aquest_table[i].quit = fread_string(quest_f, buf2); /* quest abandoned message (quit) */
+
+  /* Dragonlance Campaign has a tilde-terminated string for mobile kill list that is comma separated and ends with ~ 
+       ex.  201,202,203,204,205,206,207,208,209,210,211~ */
 #if defined(CAMPAIGN_DL)  
   aquest_table[i].kill_list = fread_string(quest_f, buf2);
 #endif
 
-  /* parse the first line of ints */
+  /**** */
+  /* now reading in LINES not tilde-terminated strings*/
+  /***** */
+
+  /* parse value line (2nd if Dragonlance Campaign) */
   if (!get_line(quest_f, line) ||
       (retval = sscanf(line, " %d %d %s %d %d %d %d",
                        t, t + 1, f1, t + 2, t + 3, t + 4, t + 5)) != 7)
   {
-    log("SYSERR: Quest #%d: Format error in numeric line 1 (expected 7, got %d), line: '%s'",
-        nr, retval, line);
-    log("SYSERR: Skipping malformed quest #%d", nr);
-    /* Skip to end of quest entry */
-    while (get_line(quest_f, line)) {
-      if (!strcmp(line, "S"))
-        break;
-    }
-    return 0;  /* Return error but don't exit */
+    log("Format error in numeric line 1 (expected 7, got %d), %s\n",
+        retval, line);
+    exit(1);
   }
+
+  /* now assign the values to the quest table */
   aquest_table[i].type = t[0];
   aquest_table[i].qm = (real_mobile(t[1]) == NOBODY) ? NOBODY : t[1];
   aquest_table[i].flags = asciiflag_conv(f1);
@@ -254,25 +261,21 @@ int parse_quest(FILE *quest_f, int nr)
   aquest_table[i].next_quest = (t[4] == -1) ? NOTHING : t[4];
   aquest_table[i].prereq = (t[5] == -1) ? NOTHING : t[5];
 
-  /* parse the second line of ints */
+  /* parse the next line of values */
   if (!get_line(quest_f, line) ||
       (retval = sscanf(line, " %d %d %d %d %d %d %d",
                        t, t + 1, t + 2, t + 3, t + 4, t + 5, t + 6)) != 7)
   {
-    log("SYSERR: Quest #%d: Format error in numeric line 2 (expected 7, got %d), line: '%s'",
-        nr, retval, line);
-    log("SYSERR: Skipping malformed quest #%d", nr);
-    /* Skip to end of quest entry */
-    while (get_line(quest_f, line)) {
-      if (!strcmp(line, "S"))
-        break;
-    }
-    return 0;  /* Return error but don't exit */
+    log("Format error in numeric line 2 (expected 7, got %d), %s\n",
+        retval, line);
+    exit(1); /* harsh but defensive -> game won't start */
   }
+
+  /* assign the values to the quest table */
   for (j = 0; j < 7; j++)
     aquest_table[i].value[j] = t[j];
 
-  /* parse the third line of ints
+  /* parse the next line of values
        re-wrote this to handle the old 3 values or new 7 values -zusuk */
   if (!get_line(quest_f, line) ||
       (retval = sscanf(line, " %d %d %d %d %d %d %d",
@@ -280,22 +283,18 @@ int parse_quest(FILE *quest_f, int nr)
   {
     if (retval != 3 && retval != 7)
     {
-      log("SYSERR: Quest #%d: Format error in numeric line 3 (expected 3 or 7, got %d), line: '%s'",
-          nr, retval, line);
-      log("SYSERR: Skipping malformed quest #%d", nr);
-      /* Skip to end of quest entry */
-      while (get_line(quest_f, line)) {
-        if (!strcmp(line, "S"))
-          break;
-      }
-      return 0;  /* Return error but don't exit */
+      log("Format error in numeric line 3 (expected 3 or 7, got %d), %s\n",
+          retval, line);
+      exit(1); /* harsh but defensive -> game won't start */
     }
   }
 
+  /* assign for 3 values */
   aquest_table[i].gold_reward = t[0];
   aquest_table[i].exp_reward = t[1];
   aquest_table[i].obj_reward = (t[2] == -1) ? NOTHING : t[2];
 
+  /* if 7 values, finish the last 4 assigns */
   if (retval == 7)
   {
     aquest_table[i].race_reward = t[3];
@@ -306,44 +305,54 @@ int parse_quest(FILE *quest_f, int nr)
     aquest_table[i].follower_reward = t[6];
   }
 
-  /* finish 'er up! */
+  /* IMPORTANT - */
+  /* finish 'er up!  last 1 or 2 lines of this quest entry; new fields could be added here*/
   for (;;)
   {
+    /* skip blank lines, comments (lines that start with *) -- fails on EoF or error */
     if (!get_line(quest_f, line))
     {
-      log("SYSERR: Quest #%d: Format error at end of quest\n", nr);
-      return 0;  /* Error but don't exit */
+      log("Format error in %s\n", line);
+      exit(1); /* harsh but defensive -> game won't start */
     }
 
     switch (*line)
     {
-    case 'S':
-      total_quests = ++i;
-      return 1;  /* Success */
-      break;
+
+      /* Diplomacy and Dialogue Quest System */
     case 'D':
       if (!get_line(quest_f, line))
       {
-        log("SYSERR: Quest #%d: Format error in 'D' field\n"
-            "...expecting numeric constant but file ended!", nr);
-        return 0;  /* Error but don't exit */
+        /* skip blank lines, comments (lines that start with *) -- fails on EoF or error */
+        log("SYSERR: Format error in 'D' field, %s\n"
+            "...expecting numeric constant but file ended!", buf2);
+        exit(1); /* harsh but defensive -> game won't start */
       }
+
       if (sscanf(line, "%d %d %d %d", t, t + 1, t + 2, t + 3) != 4)
       {
-        log("SYSERR: Quest #%d: Format error in 'D' field\n"
-            "...expecting numeric argument\n"
-            "...offending line: '%s'", nr, line);
-        return 0;  /* Error but don't exit */
+        log("SYSERR: Format error in 'D' field, %s\n"
+            "...expecting 4 numeric arguments\n"
+            "...offending line: '%s'", buf2, line);
+        exit(1);
       }
+
+      /* assign the values to the quest table */
       aquest_table[i].diplomacy_dc = t[0];
       aquest_table[i].intimidate_dc = t[1];
       aquest_table[i].bluff_dc = t[2];
       aquest_table[i].dialogue_alternative_quest = t[3];
+
       break;
+
+    case 'S':
+      total_quests = ++i;
+      return;
+
     }
   }
-  return 1;  /* Success */
-} /* end parse_quest */
+}
+/* end parse_quest */
 
 /* assign the quests to their questmasters */
 void assign_the_quests(void)
