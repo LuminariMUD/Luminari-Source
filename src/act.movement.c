@@ -583,7 +583,6 @@ void create_tracks(struct char_data *ch, int dir, int flag)
 {
   struct room_data *room = NULL;
   struct trail_data *cur = NULL;
-  struct trail_data *prev = NULL;
   struct trail_data *new_trail = NULL;
 
   if (IN_ROOM(ch) != NOWHERE)
@@ -625,10 +624,15 @@ void create_tracks(struct char_data *ch, int dir, int flag)
   {
     room->trail_tracks->head->prev = new_trail;
   }
+  else
+  {
+    /* If this is the first node, set tail as well */
+    room->trail_tracks->tail = new_trail;
+  }
 
   room->trail_tracks->head = new_trail;
 
-  prev = NULL;
+  /* Prune old trails from the list */
   for (cur = room->trail_tracks->head; cur != NULL; )
   {
     struct trail_data *next = cur->next;
@@ -641,35 +645,28 @@ void create_tracks(struct char_data *ch, int dir, int flag)
         free(cur->race);
       
       /* Unlink from list */
-      if (prev != NULL)
+      if (cur->prev != NULL)
       {
-        prev->next = cur->next;
-        if (cur->next != NULL)
-        {
-          cur->next->prev = prev;
-        }
+        cur->prev->next = cur->next;
       }
       else
       {
         room->trail_tracks->head = cur->next;
-        if (cur->next != NULL)
-        {
-          cur->next->prev = NULL;
-        }
       }
       
-      /* Update tail if needed */
-      if (room->trail_tracks->tail == cur)
+      if (cur->next != NULL)
       {
-        room->trail_tracks->tail = prev;
+        cur->next->prev = cur->prev;
       }
+      else
+      {
+        room->trail_tracks->tail = cur->prev;
+      }
+      
+      /* Node was removed, don't update any tracking pointer */
       
       /* Free the structure */
       free(cur);
-    }
-    else
-    {
-      prev = cur;
     }
     cur = next;
   }
@@ -684,7 +681,7 @@ void create_tracks(struct char_data *ch, int dir, int flag)
 void cleanup_all_trails(void)
 {
   room_rnum room;
-  struct trail_data *cur, *next, *prev;
+  struct trail_data *cur, *next;
   time_t current_time = time(NULL);
   int cleaned = 0;
   
@@ -693,7 +690,6 @@ void cleanup_all_trails(void)
     if (!world[room].trail_tracks || !world[room].trail_tracks->head)
       continue;
       
-    prev = NULL;
     for (cur = world[room].trail_tracks->head; cur != NULL; )
     {
       next = cur->next;
@@ -705,31 +701,29 @@ void cleanup_all_trails(void)
         if (cur->race)
           free(cur->race);
         
-        /* Unlink from list */
-        if (prev != NULL)
+        /* Unlink from list using doubly-linked list operations */
+        if (cur->prev != NULL)
         {
-          prev->next = cur->next;
-          if (cur->next != NULL)
-            cur->next->prev = prev;
+          cur->prev->next = cur->next;
         }
         else
         {
           world[room].trail_tracks->head = cur->next;
-          if (cur->next != NULL)
-            cur->next->prev = NULL;
         }
         
-        /* Update tail if needed */
-        if (world[room].trail_tracks->tail == cur)
-          world[room].trail_tracks->tail = prev;
+        if (cur->next != NULL)
+        {
+          cur->next->prev = cur->prev;
+        }
+        else
+        {
+          world[room].trail_tracks->tail = cur->prev;
+        }
         
         /* Free the structure */
         free(cur);
         cleaned++;
-      }
-      else
-      {
-        prev = cur;
+        /* Node was removed, don't update any tracking pointer */
       }
       cur = next;
     }
@@ -1767,7 +1761,10 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
                                    GET_NAME(ch),
                                    dirs[dir]);
       */
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+    /* Only create tracks for default LuminariMUD campaign */
     create_tracks(ch, dir, TRACKS_OUT);
+#endif
   }
 
   /* the actual technical moving of the char */
