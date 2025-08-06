@@ -140,7 +140,7 @@ struct aq_data
 /* Implemented in quest.c */
 void destroy_quests(void);
 void assign_the_quests(void);
-int parse_quest(FILE *quest_f, int nr);
+void parse_quest(FILE *quest_f, int nr);
 int count_quests(qst_vnum low, qst_vnum high);
 void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum vmax);
 void set_quest(struct char_data *ch, qst_rnum rnum, int index);

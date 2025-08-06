@@ -1610,9 +1610,7 @@ void discrete_load(FILE *fl, int mode, char *filename)
         strlcpy(line, parse_object(fl, nr), sizeof(line));
         break;
       case DB_BOOT_QST:
-        if (!parse_quest(fl, nr)) {
-          log("SYSERR: Failed to load quest #%d, skipping", nr);
-        }
+        parse_quest(fl, nr);
         break;
       case DB_BOOT_HLQST:
         /* nothing is done here right now */
