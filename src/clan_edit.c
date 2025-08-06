@@ -750,8 +750,8 @@ void load_claims(void)
 
   if (!(fl = fopen(CLAIMS_FILE, "r")))
   {
-    log("   Clan file does not exist. Will create a new one");
-    save_clans();
+    log("   Claims file does not exist. Will create a new one");
+    save_claims();
     return;
   }
   else
