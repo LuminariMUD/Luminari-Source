@@ -18,18 +18,18 @@ include(CheckCSourceCompiles)
 set(BIN_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
 
-# Include source and build paths
-include_directories(src ${CMAKE_BINARY_DIR})
+# Include source paths
+include_directories(src)
 
 # Check for required configuration headers
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/campaign.h)
-    message(FATAL_ERROR "campaign.h not found! Copy campaign.example.h to campaign.h and configure it.")
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/campaign.h)
+    message(FATAL_ERROR "campaign.h not found! Copy src/campaign.example.h to src/campaign.h and configure it.")
 endif()
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/mud_options.h)
-    message(FATAL_ERROR "mud_options.h not found! Copy mud_options.example.h to mud_options.h and configure it.")
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/mud_options.h)
+    message(FATAL_ERROR "mud_options.h not found! Copy src/mud_options.example.h to src/mud_options.h and configure it.")
 endif()
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/vnums.h)
-    message(FATAL_ERROR "vnums.h not found! Copy vnums.example.h to vnums.h and configure it.")
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/vnums.h)
+    message(FATAL_ERROR "vnums.h not found! Copy src/vnums.example.h to src/vnums.h and configure it.")
 endif()
 
 # ========== Compiler flags ==========
@@ -407,17 +407,15 @@ set(PROTO_FUNCTIONS
         socket
 )
 
-configure_file(
-        ${CMAKE_SOURCE_DIR}/src/conf.h.cmake.in
-        ${CMAKE_BINARY_DIR}/tmp_conf.h
-)
+# Removed conf.h generation - using target compile definitions instead
 
+set(PROTO_DEFINITIONS "")
 macro(check_function_prototype FUNCTION)
     set(_code "
 #define NO_LIBRARY_PROTOTYPES
 #define __COMM_C__
 #define __ACT_OTHER_C__
-#include \"${CMAKE_BINARY_DIR}/tmp_conf.h\"
+/* Skip including conf.h for prototype checks */
 #include \"${CMAKE_SOURCE_DIR}/src/sysdep.h\"
 #ifdef ${FUNCTION}
   error - already defined!
@@ -432,6 +430,7 @@ int main() {
     check_c_source_compiles("${_code}" NEED_${_upper_name}_PROTO FAIL_REGEX ".*incompatible pointer type.*")
     if (NEED_${_upper_name}_PROTO)
         message(STATUS "${FUNCTION}() has no prototype, NEED_${_upper_name}_PROTO set!")
+        list(APPEND PROTO_DEFINITIONS "NEED_${_upper_name}_PROTO")
     else()
         message(STATUS "${FUNCTION}() has a prototype, not setting NEED_${_upper_name}_PROTO")
     endif()
@@ -444,15 +443,12 @@ endforeach()
 
 
 # ========== Generate conf.h ==========
-configure_file(
-        ${CMAKE_SOURCE_DIR}/src/conf.h.cmake.in
-        ${CMAKE_BINARY_DIR}/conf.h
-)
+# Using target compile definitions instead of conf.h
 
 
 
 # ========== Source files ==========
-# Main C source files - matching Makefile.am circle_SOURCES
+# Main C source files
 set(SRC_C_FILES
     src/account.c
     src/act.comm.c
@@ -604,7 +600,81 @@ set(SRC_FILES ${SRC_C_FILES})
 # ========== Build main executable ==========
 add_executable(circle ${SRC_FILES})
 
-# Link libraries matching Makefile.am: -lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread
+# Add compile definitions based on detected features
+target_compile_definitions(circle PRIVATE
+    $<$<BOOL:${CIRCLE_MYSQL}>:CIRCLE_MYSQL>
+    $<$<BOOL:${CIRCLE_UNIX}>:CIRCLE_UNIX>
+    $<$<BOOL:${CIRCLE_CRYPT}>:CIRCLE_CRYPT>
+    $<$<BOOL:${HAVE_FCNTL_H}>:HAVE_FCNTL_H>
+    $<$<BOOL:${HAVE_ERRNO_H}>:HAVE_ERRNO_H>
+    $<$<BOOL:${HAVE_STRING_H}>:HAVE_STRING_H>
+    $<$<BOOL:${HAVE_STRINGS_H}>:HAVE_STRINGS_H>
+    $<$<BOOL:${HAVE_LIMITS_H}>:HAVE_LIMITS_H>
+    $<$<BOOL:${HAVE_SYS_SELECT_H}>:HAVE_SYS_SELECT_H>
+    $<$<BOOL:${HAVE_SYS_WAIT_H}>:HAVE_SYS_WAIT_H>
+    $<$<BOOL:${HAVE_SYS_TYPES_H}>:HAVE_SYS_TYPES_H>
+    $<$<BOOL:${HAVE_UNISTD_H}>:HAVE_UNISTD_H>
+    $<$<BOOL:${HAVE_MEMORY_H}>:HAVE_MEMORY_H>
+    $<$<BOOL:${HAVE_ASSERT_H}>:HAVE_ASSERT_H>
+    $<$<BOOL:${HAVE_ARPA_TELNET_H}>:HAVE_ARPA_TELNET_H>
+    $<$<BOOL:${HAVE_ARPA_INET_H}>:HAVE_ARPA_INET_H>
+    $<$<BOOL:${HAVE_SYS_STAT_H}>:HAVE_SYS_STAT_H>
+    $<$<BOOL:${HAVE_SYS_SOCKET_H}>:HAVE_SYS_SOCKET_H>
+    $<$<BOOL:${HAVE_SYS_RESOURCE_H}>:HAVE_SYS_RESOURCE_H>
+    $<$<BOOL:${HAVE_NETINET_IN_H}>:HAVE_NETINET_IN_H>
+    $<$<BOOL:${HAVE_NETDB_H}>:HAVE_NETDB_H>
+    $<$<BOOL:${HAVE_SIGNAL_H}>:HAVE_SIGNAL_H>
+    $<$<BOOL:${HAVE_SYS_UIO_H}>:HAVE_SYS_UIO_H>
+    $<$<BOOL:${HAVE_MCHECK_H}>:HAVE_MCHECK_H>
+    $<$<BOOL:${HAVE_STDLIB_H}>:HAVE_STDLIB_H>
+    $<$<BOOL:${HAVE_STDARG_H}>:HAVE_STDARG_H>
+    $<$<BOOL:${HAVE_FLOAT_H}>:HAVE_FLOAT_H>
+    $<$<BOOL:${HAVE_SYS_TIME_H}>:HAVE_SYS_TIME_H>
+    $<$<BOOL:${HAVE_TIME_H}>:HAVE_TIME_H>
+    $<$<BOOL:${HAVE_CRYPT_H}>:HAVE_CRYPT_H>
+    $<$<BOOL:${STDC_HEADERS}>:STDC_HEADERS>
+    $<$<BOOL:${TIME_WITH_SYS_TIME}>:TIME_WITH_SYS_TIME>
+    $<$<BOOL:${HAVE_GETTIMEOFDAY}>:HAVE_GETTIMEOFDAY>
+    $<$<BOOL:${HAVE_SELECT}>:HAVE_SELECT>
+    $<$<BOOL:${HAVE_SNPRINTF}>:HAVE_SNPRINTF>
+    $<$<BOOL:${HAVE_STRCASECMP}>:HAVE_STRCASECMP>
+    $<$<BOOL:${HAVE_STRDUP}>:HAVE_STRDUP>
+    $<$<BOOL:${HAVE_STRERROR}>:HAVE_STRERROR>
+    $<$<BOOL:${HAVE_STRICMP}>:HAVE_STRICMP>
+    $<$<BOOL:${HAVE_STRLCPY}>:HAVE_STRLCPY>
+    $<$<BOOL:${HAVE_STRNCASECMP}>:HAVE_STRNCASECMP>
+    $<$<BOOL:${HAVE_STRNICMP}>:HAVE_STRNICMP>
+    $<$<BOOL:${HAVE_STRSTR}>:HAVE_STRSTR>
+    $<$<BOOL:${HAVE_VSNPRINTF}>:HAVE_VSNPRINTF>
+    $<$<BOOL:${HAVE_VPRINTF}>:HAVE_VPRINTF>
+    $<$<BOOL:${HAVE_INET_ADDR}>:HAVE_INET_ADDR>
+    $<$<BOOL:${HAVE_INET_ATON}>:HAVE_INET_ATON>
+    $<$<BOOL:${HAVE_STRUCT_IN_ADDR}>:HAVE_STRUCT_IN_ADDR>
+    $<$<BOOL:${HAVE_CONST}>:HAVE_CONST>
+    $<$<BOOL:${HAVE_UNSAFE_CRYPT}>:HAVE_UNSAFE_CRYPT>
+    RETSIGTYPE=${RETSIGTYPE}
+)
+
+# Add type definitions if needed
+if (NOT HAVE_PID_T)
+    target_compile_definitions(circle PRIVATE pid_t=int)
+endif()
+if (NOT HAVE_SIZE_T)
+    target_compile_definitions(circle PRIVATE size_t=unsigned)
+endif()
+if (NOT HAVE_SSIZE_T)
+    target_compile_definitions(circle PRIVATE ssize_t=int)
+endif()
+if (NOT HAVE_SOCKLEN_T)
+    target_compile_definitions(circle PRIVATE socklen_t=int)
+endif()
+
+# Add function prototype definitions
+if (PROTO_DEFINITIONS)
+    target_compile_definitions(circle PRIVATE ${PROTO_DEFINITIONS})
+endif()
+
+# Link required libraries
 target_link_libraries(circle ${EXTRA_LIBS} m pthread)
 
 # Find and link additional libraries
@@ -650,8 +720,8 @@ endif()
 
 # ========== Compiler warnings and options ==========
 if (CMAKE_COMPILER_IS_GNUCC)
-    # Ensure C90 compliance
-    target_compile_options(circle PRIVATE -std=c90 -pedantic)
+    # Use C90 but allow C++ style comments for pragmatic reasons
+    target_compile_options(circle PRIVATE -std=gnu90)
     
     # Additional warnings for development
     if (DEVELOPER_MODE)

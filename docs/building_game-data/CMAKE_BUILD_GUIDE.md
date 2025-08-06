@@ -2,9 +2,9 @@
 
 ## Overview
 
-This guide covers building LuminariMUD using CMake as an alternative to the traditional Makefile approach. CMake provides cross-platform build configuration and better IDE integration.
+This guide covers building LuminariMUD using CMake as an alternative to the traditional Autotools approach. CMake provides cross-platform build configuration, better IDE integration, and modern build system features.
 
-**IMPORTANT**: LuminariMUD uses ANSI C90/C89 standard, NOT C99. The CMake configuration enforces this requirement.
+**IMPORTANT**: LuminariMUD uses C90/C89 standard with GNU extensions. The CMake configuration uses `-std=gnu90` to allow C++ style comments while maintaining C90 compatibility.
 
 ## Prerequisites
 
@@ -16,18 +16,17 @@ This guide covers building LuminariMUD using CMake as an alternative to the trad
 ## Quick Start
 
 ```bash
-# Create build directory
-mkdir build
-cd build
+# Configure required headers (one-time setup)
+cp src/campaign.example.h src/campaign.h
+cp src/mud_options.example.h src/mud_options.h
+cp src/vnums.example.h src/vnums.h
 
-# Configure with CMake
-cmake ..
+# Configure and build with CMake
+cmake -S . -B build/
+cmake --build build/ -j$(nproc)
 
-# Build
-make -j4
-
-# Install to ../bin
-make install
+# The binary will be created at: bin/circle
+ls -la bin/circle
 ```
 
 ## Configuration Options
@@ -81,19 +80,23 @@ cmake -DGD_LIBRARY=/usr/lib/libgd.so ..
 
 ```bash
 # Build main server
-make circle
+cmake --build build/ --target circle
 
-# Build specific utility
-make autowiz
+# Build specific utility (if enabled)
+cmake --build build/ --target autowiz
 
 # Build all utilities
-cmake -DBUILD_UTILS=ON .. && make
+cmake -S . -B build/ -DBUILD_UTILS=ON
+cmake --build build/
 
 # Build unit tests
-cmake -DBUILD_TESTS=ON .. && make cutest
+cmake -S . -B build/ -DBUILD_TESTS=ON
+cmake --build build/ --target cutest
 
 # Clean build
-make clean
+cmake --build build/ --target clean
+# Or simply:
+rm -rf build/*
 ```
 
 ## IDE Integration
@@ -129,13 +132,9 @@ cmake -G"Eclipse CDT4 - Unix Makefiles" ..
 
 ## Troubleshooting
 
-### C99 Features Error
+### C++ Style Comments Note
 
-If you get errors about C99 features:
-```bash
-# Ensure C90 standard is enforced
-cmake -DCMAKE_C_STANDARD=90 -DCMAKE_C_STANDARD_REQUIRED=ON ..
-```
+The codebase uses C++ style comments (`//`) throughout. The CMake configuration uses GNU C90 (`-std=gnu90`) which allows these comments while maintaining C90 compatibility. This is intentional and correct.
 
 ### Missing MySQL
 
@@ -159,9 +158,9 @@ CMake Error: campaign.h not found!
 
 Solution:
 ```bash
-cp campaign.example.h campaign.h
-cp mud_options.example.h mud_options.h
-cp vnums.example.h vnums.h
+cp src/campaign.example.h src/campaign.h
+cp src/mud_options.example.h src/mud_options.h
+cp src/vnums.example.h src/vnums.h
 # Edit files as needed, then re-run cmake
 ```
 
@@ -208,10 +207,12 @@ make -j4
 
 ## Notes
 
-1. The CMake build is an alternative to the Autotools build, not a replacement
-2. Both build systems produce the same `circle` executable in `../bin/`
-3. CMake enforces C90 standard compliance more strictly
-4. MySQL configuration still uses `lib/mysql_config` file
+1. CMake is now the recommended build system for LuminariMUD
+2. Both CMake and Autotools produce the same `circle` executable in `bin/`
+3. CMake uses GNU C90 (`-std=gnu90`) to allow C++ comments while maintaining C90 base
+4. The build configuration no longer generates `conf.h` - all defines are passed directly to the compiler
+5. MySQL configuration still uses `lib/mysql_config` file
+6. Build artifacts are cleanly separated in the `build/` directory
 
 ## See Also
 
