@@ -801,17 +801,22 @@ void save_account(struct account_data *account)
   if (account->id == 0) /* This is a new account! */
     account->id = mysql_insert_id(conn);
 
+  /* Update account_id for characters belonging to this account
+   * We only UPDATE, not INSERT - characters already exist in player_data from creation */
   for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (account->character_names[i] != NULL); i++)
   {
     buf[0] = '\0';
-    snprintf(buf, sizeof(buf), "INSERT into player_data (name, account_id) "
-                               "VALUES('%s', %d) "
-                               "on duplicate key update account_id = VALUES(account_id);",
-             account->character_names[i], account->id);
+    /* Escape character name to prevent SQL injection */
+    char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
+    mysql_real_escape_string(conn, escaped_name, account->character_names[i], strlen(account->character_names[i]));
+    
+    snprintf(buf, sizeof(buf), "UPDATE player_data SET account_id = %d "
+                               "WHERE lower(name) = lower('%s');",
+             account->id, escaped_name);
     if (mysql_query(conn, buf))
     {
-      log("SYSERR: Unable to UPSERT player_data: %s", mysql_error(conn));
-      return;
+      /* Log error but continue - don't abort for single character update failure */
+      log("SYSERR: Unable to UPDATE player_data for %s: %s", account->character_names[i], mysql_error(conn));
     }
   }
 
