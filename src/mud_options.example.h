@@ -29,11 +29,9 @@
 /**
  * USE_CONTAINER_OBJECTS - Traditional container object system
  * 
- * If defined, the game will use container objects. This is NOT recommended
- * as the container system has a bug that causes contents to be deleted.
- * This bug has not been fixed yet.
+ * If defined, the game will use container objects. 
  * 
- * Status: NOT RECOMMENDED - Known bugs
+ * Status: RECOMMENDED
  */
 #define USE_CONTAINER_OBJECTS
 
@@ -46,7 +44,7 @@
  * 
  * See HELP BAGS in game for more information.
  * 
- * Status: RECOMMENDED - Stable and bug-free
+ * Status: Up to you!
  */
 /* #define USE_VIRTUAL_BAGS_ONLY */
 
@@ -143,8 +141,9 @@
  * You should only have one enabled!
  */
 
-/* for non-wilderness system uncomment this and make sure to comment out the other*/
-// #define USE_WALKTO_LANDMARKS
+/* for non-wilderness system uncomment this and make sure to comment out the other */
+/* #define USE_WALKTO_LANDMARKS */
+
 /* Otherwise if you want to use city landmarks only, uncomment the following line and make sure to comment out above */
 #define USE_CITY_LANDMARKS_ONLY
 
@@ -156,10 +155,10 @@
  * WARNING: ONE AND ONLY ONE of the following two options MUST be defined.
  * Defining both or neither will cause compilation errors.
  * ************************************************************************ */
-// #define USE_NEW_RANDOM_OBJECT_GUIDELINES
+/* #define USE_NEW_RANDOM_OBJECT_GUIDELINES */
 #define USE_ORIGINAL_RANDOM_OBJECT_GUIDELINES
 
-// Uncomment this line if you want to allow restrngs. Note that currently this is incomaptible with the new cratfing system
-// #define ALLOW_OBJECT_RETSRINGS_BY_PLAYERS
+/* Uncomment this line if you want to allow restrngs. Note that currently this is incomaptible with the new cratfing system */
+/* #define ALLOW_OBJECT_RETSRINGS_BY_PLAYERS */
 
 #endif /* _MUD_OPTIONS_H_ */
