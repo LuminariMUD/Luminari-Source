@@ -1636,8 +1636,12 @@ void mobile_activity(void)
       
       if (spec_func == NULL)
       {
-        log("SYSERR: %s (#%d): Attempting to call non-existing mob function.",
+        log("MOB ERROR: Mobile '%s' (vnum #%d) has the SPEC flag set but no special procedure assigned.",
             GET_NAME(ch), GET_MOB_VNUM(ch));
+        log("MOB FIX: Either remove the SPEC flag from this mob in medit, OR assign a special procedure in the code (spec_assign.c).");
+        log("MOB FIX: Common spec procs: shop_keeper, guild_guard, snake, cityguard, receptionist, cryogenicist, postmaster, bank.");
+        log("MOB NOTE: The SPEC flag has been automatically removed to prevent further errors. Use 'medit %d' and check 'mob flags'.",
+            GET_MOB_VNUM(ch));
         REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_SPEC);
       }
       else
