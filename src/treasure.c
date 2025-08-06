@@ -5850,7 +5850,7 @@ void assign_weighted_bonuses(void)
     // all zones that are made should be below these vnums anyway.
     if (obj_index[j].vnum >= 60000) continue;
 
-    obj = read_object(obj_index[j].vnum, VIRTUAL);
+    obj = read_object(j, REAL);
 
     if (!obj) continue;
 

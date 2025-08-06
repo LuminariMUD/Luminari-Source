@@ -912,8 +912,8 @@ void affect_update(void)
       rem_room_aff(raff);
   }
 
-  /* Log performance metrics every 100 updates (10 minutes) */
-  if (update_count % 100 == 0)
+  /* Log performance metrics every 100 updates (10 minutes) only if affects processed is high */
+  if (update_count % 100 == 0 && processed_affects > 150000)
   {
     log("PERF: affect_update() - Total: %d chars (%d NPCs, %d PCs), Affected: %d, Affects processed: %d",
         char_count, npc_count, pc_count, affected_chars, processed_affects);

@@ -1154,7 +1154,10 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     *regvnum = *((region_vnum *)pMudEvent->pStruct);
     pMudEvent->pStruct = regvnum;
 
-    log("TEST DEBUG REGION EVENTS: vnum %d rnum %d", *((region_vnum *)pMudEvent->pStruct), real_region(*regvnum));
+    /* Debug logging for region events - comment out when not debugging */
+    /* log("Region event attached: vnum %d (rnum %d) for event %s", 
+        *((region_vnum *)pMudEvent->pStruct), real_region(*regvnum), 
+        event_name(pMudEvent->iId)); */
 
     if (real_region(*regvnum) == NOWHERE)
     {

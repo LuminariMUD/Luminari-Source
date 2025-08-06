@@ -692,7 +692,8 @@ void load_regions()
       if (region_table[j].region_type == REGION_ENCOUNTER &&
           region_table[j].reset_time > 0)
       {
-        log(" adding event for vnum %d", region_table[j].vnum);
+        log("Creating encounter reset event for region #%d (%s) - resets every %d seconds", 
+            region_table[j].vnum, region_table[j].name, region_table[j].reset_time);
         NEW_EVENT(eENCOUNTER_REG_RESET, &(region_table[j].vnum), region_table[j].reset_data, region_table[j].reset_time RL_SEC);
       }
     }
@@ -1065,7 +1066,7 @@ void load_paths()
   char **tokens; /* Storage for tokenized linestring points */
   char **it;     /* Token iterator */
 
-  log("INFO: Loading path data from MySQL");
+  log("INFO: Loading wilderness roads and path definitions from MySQL database");
   
   if (!mysql_available) {
     log("INFO: Skipping path loading - MySQL not available.");

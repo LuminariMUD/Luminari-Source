@@ -2953,8 +2953,8 @@ void save_char(struct char_data *ch, int mode)
                       (end_time.tv_usec - start_time.tv_usec);
   long elapsed_ms = elapsed_usec / 1000;
   
-  /* Log if save took more than 50ms (previously was taking 257ms) */
-  if (elapsed_ms > 50) {
+  /* Log if save took more than 260ms */
+  if (elapsed_ms > 260) {
     log("PERF: save_char(%s) took %ldms (buffer: %zu bytes)", 
         GET_NAME(ch), elapsed_ms, buffer_used);
   }

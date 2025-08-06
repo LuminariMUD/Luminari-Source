@@ -246,11 +246,24 @@ void push_result(byte result)
  * usage: TRUE should mean execute the command
  *        FALSE should mean don't execute the command
  * NOTE: Uses the ZONE_ERROR macro defined for reset_zone */
-sbyte test_result(sbyte offset)
+sbyte test_result(sbyte offset, zone_rnum zone, int cmd_no)
 {
   if (abs(offset) > result_q.size)
   {
-    log("ERR: out of bounds if-value in zone reset [offset:%d > result_size:%d]", abs(offset), result_q.size);
+    log("ZONE ERROR: Zone #%d, Line %d, Command #%d ('%c'): if_flag %d references command #%d back, but only %d commands have executed so far.",
+        zone_table[zone].number,
+        zone_table[zone].cmd[cmd_no].line,
+        cmd_no + 1,
+        zone_table[zone].cmd[cmd_no].command,
+        offset,
+        abs(offset),
+        result_q.size);
+    log("ZONE FIX: Change the if_flag from %d to 0 (always execute) or to a smaller value (1-%d) that references an existing previous command.",
+        offset,
+        result_q.size > 0 ? result_q.size : 1);
+    if (cmd_no == 0) {
+      log("ZONE FIX: This is the FIRST command in the zone - it cannot depend on previous commands! Set if_flag to 0.");
+    }
     return FALSE;
   }
 
@@ -611,7 +624,7 @@ ACMD(do_reboot)
 void boot_world(void)
 {
 
-  /* Initialize the db connection. */
+  log("Initializing MySQL database connection.");
   connect_to_mysql();
 
   log("Loading zone table.");
@@ -626,7 +639,7 @@ void boot_world(void)
   log("Loading regions. (MySQL)");
   load_regions();
 
-  log("Loading paths. (MySQL)");
+  log("Loading wilderness paths and roads (MySQL)");
   load_paths();
 
   log("Renumbering rooms.");
@@ -664,10 +677,13 @@ void boot_world(void)
   }
 
 #if defined(CAMPAIGN_DL)
-  // assigning new crafting system harvesting nodes.
+  log("Assigning crafting system harvesting nodes (DragonLance).");
   assign_harvest_materials_to_word();
+  log("Populating crafting recipes.");
   populate_crafting_recipes();
+  log("Populating refining recipes.");
   populate_refining_recipes();
+  log("Sorting crafting materials.");
   sort_materials();
 #endif
 
@@ -677,7 +693,7 @@ void boot_world(void)
   log("Loading Homeland quests.");
   index_boot(DB_BOOT_HLQST);
 
-  log("Loading Deities");
+  log("Loading Deities.");
   assign_deities();
 
   log("Loading Domains.");
@@ -689,35 +705,32 @@ void boot_world(void)
   log("Loading Armor.");
   load_armor();
 
-  log("Loading Extended Races");
+  log("Loading Extended Races.");
   assign_races();
 
-  /* this use to be partially dependent on classo() we had
-     to modify it so there is no dependence due to inability to
-     load two things at the same time :p */
   log("Loading feats.");
   assign_feats();
+  log("Sorting feats.");
   sort_feats();
 
-  /* this HAS to come after loading feats, we need feat info
-     in order to handle the class list (prereqs) */
-  log("Loading Class List");
+  log("Loading Class List (requires feats to be loaded first).");
   load_class_list();
 
   log("Loading evolutions.");
   assign_evolutions();
 
-  // we'll sort races alphabetically
+  log("Sorting races alphabetically.");
   sort_races();
 
-  // assign backgrounds
+  log("Loading character backgrounds.");
   assign_backgrounds();
+  log("Sorting backgrounds.");
   sort_backgrounds();
 
-  // assign object bonuses table
+  log("Calculating weighted object bonuses for treasure generation.");
   assign_weighted_bonuses();
 
-  log("Initializing perlin noise generator.");
+  log("Initializing perlin noise generators (elevation, moisture, distance, weather).");
   init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_MOISTURE, NOISE_MATERIAL_PLANE_MOISTURE_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
@@ -1887,7 +1900,7 @@ void parse_room(FILE *fl, int virtual_nr)
       ungetc(letter, fl);
       while (letter == 'T')
       {
-        dg_read_trigger(fl, &world[room_nr], WLD_TRIGGER);
+        dg_read_trigger(fl, &world[room_nr], WLD_TRIGGER, virtual_nr);
         letter = fread_letter(fl);
         ungetc(letter, fl);
       }
@@ -2248,8 +2261,10 @@ static void renum_zone_table(void)
         a = real_object(ZCMD.arg1);
         /* CRITICAL: Validate object vnum at parse time */
         if (a == NOTHING) {
-          log("SYSERR: Zone %d cmd %d: Object vnum %d does not exist (O command)", 
-              zone_table[zone].number, cmd_no, olda);
+          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist", 
+              zone_table[zone].number, ZCMD.line, olda);
+          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this O command from 'zedit %d'",
+              olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
         } else {
@@ -2262,8 +2277,10 @@ static void renum_zone_table(void)
         a = real_object(ZCMD.arg1);
         /* CRITICAL: Validate object vnum at parse time */
         if (a == NOTHING) {
-          log("SYSERR: Zone %d cmd %d: Object vnum %d does not exist (G command)", 
-              zone_table[zone].number, cmd_no, olda);
+          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (G = Give to mob)", 
+              zone_table[zone].number, ZCMD.line, olda);
+          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this G command from 'zedit %d'",
+              olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
         } else {
@@ -2274,8 +2291,10 @@ static void renum_zone_table(void)
         a = real_object(ZCMD.arg1);
         /* CRITICAL: Validate object vnum at parse time */
         if (a == NOTHING) {
-          log("SYSERR: Zone %d cmd %d: Object vnum %d does not exist (E command)", 
-              zone_table[zone].number, cmd_no, olda);
+          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (E = Equip on mob)", 
+              zone_table[zone].number, ZCMD.line, olda);
+          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this E command from 'zedit %d'",
+              olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
         } else {
@@ -2286,8 +2305,10 @@ static void renum_zone_table(void)
         a = real_object(ZCMD.arg1);
         /* CRITICAL: Validate object vnum at parse time */
         if (a == NOTHING) {
-          log("SYSERR: Zone %d cmd %d: Object vnum %d does not exist (P command)", 
-              zone_table[zone].number, cmd_no, olda);
+          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (P = Put in container)", 
+              zone_table[zone].number, ZCMD.line, olda);
+          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this P command from 'zedit %d'",
+              olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
         } else {
@@ -2295,8 +2316,10 @@ static void renum_zone_table(void)
         }
         c = real_object(ZCMD.arg3);
         if (c == NOTHING) {
-          log("SYSERR: Zone %d cmd %d: Container object vnum %d does not exist (P command)", 
-              zone_table[zone].number, cmd_no, oldc);
+          log("ZONE ERROR: Zone #%d, Line %d: Container vnum #%d does not exist (P = target container)", 
+              zone_table[zone].number, ZCMD.line, oldc);
+          log("ZONE FIX: Create container #%d with 'oedit %d' OR change/remove this P command in 'zedit %d'",
+              oldc, oldc, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg3 = NOTHING;
         } else {
@@ -2311,8 +2334,10 @@ static void renum_zone_table(void)
         b = real_object(ZCMD.arg2);
         /* CRITICAL: Validate object vnum at parse time */
         if (b == NOTHING) {
-          log("SYSERR: Zone %d cmd %d: Object vnum %d does not exist (R command)", 
-              zone_table[zone].number, cmd_no, oldb);
+          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (R = Remove from room)", 
+              zone_table[zone].number, ZCMD.line, oldb);
+          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this R command from 'zedit %d'",
+              oldb, oldb, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg2 = NOTHING;
         } else {
@@ -2330,8 +2355,10 @@ static void renum_zone_table(void)
         c = real_object(ZCMD.arg3);
         /* CRITICAL: Validate container object vnum at parse time */
         if (c == NOTHING) {
-          log("SYSERR: Zone %d cmd %d: Container object vnum %d does not exist (L command)", 
-              zone_table[zone].number, cmd_no, oldc);
+          log("ZONE ERROR: Zone #%d, Line %d: Container vnum #%d does not exist (L = Load treasure)", 
+              zone_table[zone].number, ZCMD.line, oldc);
+          log("ZONE FIX: Create container #%d with 'oedit %d' OR remove this L command from 'zedit %d'",
+              oldc, oldc, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg3 = NOTHING;
         } else {
@@ -2343,10 +2370,14 @@ static void renum_zone_table(void)
       {
         if (!mini_mud)
         {
-          snprintf(buf, sizeof(buf), "Invalid vnum %d, cmd disabled",
-                   a == NOWHERE ? olda : b == NOWHERE ? oldb
-                                                      : oldc);
+          int bad_vnum = a == NOWHERE ? olda : b == NOWHERE ? oldb : oldc;
+          const char *vnum_type = a == NOWHERE ? "mob/room" : b == NOWHERE ? "mob/obj/trigger" : "room/obj";
+          
+          snprintf(buf, sizeof(buf), "Vnum #%d (%s) does not exist - command disabled",
+                   bad_vnum, vnum_type);
           log_zone_error(zone, cmd_no, buf);
+          mudlog(CMP, LVL_STAFF, TRUE, "ZONE HELP: Create the missing %s using appropriate editor (medit/oedit/redit/trigedit)",
+                 vnum_type);
         }
         ZCMD.command = '*';
       }
@@ -3091,7 +3122,7 @@ void parse_mobile(FILE *mob_f, int nr)
   ungetc(letter, mob_f);
   while (letter == 'T')
   {
-    dg_read_trigger(mob_f, &mob_proto[i], MOB_TRIGGER);
+    dg_read_trigger(mob_f, &mob_proto[i], MOB_TRIGGER, nr);
     letter = fread_letter(mob_f);
     ungetc(letter, mob_f);
   }
@@ -3594,7 +3625,7 @@ const char *parse_object(FILE *obj_f, int nr)
       wsplnum++;
       break;
     case 'T': /* DG triggers */
-      dg_obj_trigger(line, &obj_proto[i]);
+      dg_obj_trigger(line, &obj_proto[i], nr);
       break;
     case '$':
     case '#':
@@ -4085,7 +4116,9 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   {
     if ((i = real_mobile(nr)) == NOBODY)
     {
-      log("WARNING: Mobile vnum %d does not exist in database.", nr);
+      log("MOB ERROR: Mobile vnum #%d doesn't exist in the world files!", nr);
+      log("MOB FIX: Create this mobile with 'medit %d', OR remove references to it from zone commands", nr);
+      log("MOB NOTE: Use 'vnum mob <keyword>' to search for existing mobs, 'mlist' to see zone mobs");
       return (NULL);
     }
   }
@@ -4277,7 +4310,11 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
 
   if (i == NOTHING || i > top_of_objt)
   {
-    log("Object (%c) %d does not exist in database.", type == VIRTUAL ? 'V' : 'R', nr);
+    log("OBJECT ERROR: Object vnum #%d doesn't exist or isn't loaded!", nr);
+    log("OBJECT CONTEXT: During boot this can mean: wrong VIRTUAL/REAL flag, disabled zone, or loading order issue");
+    log("OBJECT FIX: Create this object with 'oedit %d', OR fix the code calling read_object()", nr);
+    log("OBJECT NOTE: Common sources: weighted bonuses calc, treasure tables, zone commands, mob equipment, special procs");
+    log("OBJECT HELP: Use 'vnum obj <keyword>' to search, 'olist' for zone objects, check zone index files");
     return (NULL);
   }
 
@@ -4511,8 +4548,48 @@ int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
 
 static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
 {
-  mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: zone file: %s", message);
-  mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: ...offending cmd: '%c' cmd in zone #%d, line %d", ZCMD.command, zone_table[zone].number, ZCMD.line);
+  char cmd_explain[256];
+  
+  /* Explain what each command type does */
+  switch (ZCMD.command) {
+    case 'M':
+      snprintf(cmd_explain, sizeof(cmd_explain), "M = Load Mobile/NPC");
+      break;
+    case 'O':
+      snprintf(cmd_explain, sizeof(cmd_explain), "O = Load Object in room");
+      break;
+    case 'P':
+      snprintf(cmd_explain, sizeof(cmd_explain), "P = Put object inside container");
+      break;
+    case 'G':
+      snprintf(cmd_explain, sizeof(cmd_explain), "G = Give object to mobile");
+      break;
+    case 'E':
+      snprintf(cmd_explain, sizeof(cmd_explain), "E = Equip object on mobile");
+      break;
+    case 'D':
+      snprintf(cmd_explain, sizeof(cmd_explain), "D = Set door state");
+      break;
+    case 'T':
+      snprintf(cmd_explain, sizeof(cmd_explain), "T = Attach trigger");
+      break;
+    case 'V':
+      snprintf(cmd_explain, sizeof(cmd_explain), "V = Set variable");
+      break;
+    case 'L':
+      snprintf(cmd_explain, sizeof(cmd_explain), "L = Load treasure in container");
+      break;
+    default:
+      snprintf(cmd_explain, sizeof(cmd_explain), "%c = Unknown command", ZCMD.command);
+      break;
+  }
+  
+  mudlog(CMP, LVL_STAFF, TRUE, "ZONE ERROR: Zone #%d, Line %d: %s", 
+         zone_table[zone].number, ZCMD.line, message);
+  mudlog(CMP, LVL_STAFF, TRUE, "ZONE INFO: Command '%c' (%s) at position #%d in zone file",
+         ZCMD.command, cmd_explain, cmd_no);
+  mudlog(CMP, LVL_STAFF, TRUE, "ZONE FIX: Edit the zone file with 'zedit %d' and check line %d",
+         zone_table[zone].number, ZCMD.line);
 }
 
 /*
@@ -4560,7 +4637,7 @@ void reset_zone(zone_rnum zone)
     }
 
     /* checking our if_flag if we need to jump around */
-    if (!test_result(ZCMD.if_flag))
+    if (!test_result(ZCMD.if_flag, zone, cmd_no))
     {
       push_result(0);
       continue;
@@ -4740,9 +4817,9 @@ void reset_zone(zone_rnum zone)
       else {
         /* Add logging for debugging */
         if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
-          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'P' command",
+          /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'P' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
-              obj_index[ZCMD.arg1].number, ZCMD.arg2);
+              obj_index[ZCMD.arg1].number, ZCMD.arg2); */
         } else if (rand_number(1, 100) > ZCMD.arg4) {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'P' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg4); */

@@ -134,7 +134,7 @@ void trig_data_copy(trig_data *this_data, const trig_data *trg)
 }
 
 /* for mobs and rooms: */
-void dg_read_trigger(FILE *fp, void *proto, int type)
+void dg_read_trigger(FILE *fp, void *proto, int type, int proto_vnum)
 {
   char line[READ_SIZE];
   char junk[8];
@@ -160,17 +160,30 @@ void dg_read_trigger(FILE *fp, void *proto, int type)
     {
     case MOB_TRIGGER:
       mudlog(BRF, LVL_BUILDER, TRUE,
-             "SYSERR: dg_read_trigger: Trigger vnum #%d asked for but non-existant! (mob: %s - %d)",
-             vnum, GET_NAME((char_data *)proto), GET_MOB_VNUM((char_data *)proto));
+             "TRIGGER ERROR: Mobile '%s' (vnum #%d) has trigger #%d attached, but that trigger doesn't exist!",
+             GET_NAME((char_data *)proto), proto_vnum, vnum);
+      mudlog(BRF, LVL_BUILDER, TRUE,
+             "TRIGGER FIX: Either create trigger #%d with 'trigedit %d', OR remove it from 'medit %d' (check 'attach')",
+             vnum, vnum, proto_vnum);
+      mudlog(BRF, LVL_BUILDER, TRUE,
+             "TRIGGER NOTE: Use 'tlist' to see existing triggers, 'vnum trigger <keyword>' to search");
       break;
     case WLD_TRIGGER:
       mudlog(BRF, LVL_BUILDER, TRUE,
-             "SYSERR: dg_read_trigger: Trigger vnum #%d asked for but non-existant! (room:%d)",
-             vnum, GET_ROOM_VNUM(((room_data *)proto)->number));
+             "TRIGGER ERROR: Room #%d has trigger #%d attached, but that trigger doesn't exist!",
+             proto_vnum, vnum);
+      mudlog(BRF, LVL_BUILDER, TRUE,
+             "TRIGGER FIX: Either create trigger #%d with 'trigedit %d', OR remove it from 'redit %d' (check 'scripts')",
+             vnum, vnum, proto_vnum);
+      mudlog(BRF, LVL_BUILDER, TRUE,
+             "TRIGGER NOTE: Use 'tlist' to see existing triggers, 'vnum trigger <keyword>' to search");
       break;
     default:
       mudlog(BRF, LVL_BUILDER, TRUE,
-             "SYSERR: dg_read_trigger: Trigger vnum #%d asked for but non-existant! (?)", vnum);
+             "TRIGGER ERROR: Trigger #%d doesn't exist (unknown attachment type)", vnum);
+      mudlog(BRF, LVL_BUILDER, TRUE,
+             "TRIGGER FIX: Create trigger #%d with 'trigedit %d' or find where it's attached",
+             vnum, vnum);
       break;
     }
     return;
@@ -222,8 +235,11 @@ void dg_read_trigger(FILE *fp, void *proto, int type)
     else
     {
       mudlog(BRF, LVL_BUILDER, TRUE,
-             "SYSERR: non-existant trigger #%d assigned to room #%d",
-             vnum, room->number);
+             "TRIGGER ERROR: Room #%d has non-existent trigger #%d assigned during zone reset",
+             room->number, vnum);
+      mudlog(BRF, LVL_BUILDER, TRUE,
+             "TRIGGER FIX: Check 'zedit' for zone containing room #%d and remove/fix T commands",
+             room->number);
     }
     break;
   default:
@@ -232,7 +248,7 @@ void dg_read_trigger(FILE *fp, void *proto, int type)
   }
 }
 
-void dg_obj_trigger(char *line, struct obj_data *obj)
+void dg_obj_trigger(char *line, struct obj_data *obj, int obj_vnum)
 {
   char junk[8];
   int vnum, rnum, count;
@@ -251,8 +267,13 @@ void dg_obj_trigger(char *line, struct obj_data *obj)
   if (rnum == NOTHING)
   {
     mudlog(BRF, LVL_BUILDER, TRUE,
-           "SYSERR: Trigger vnum #%d asked for but non-existant! (Object: %s - %d)",
-           vnum, obj->short_description, GET_OBJ_VNUM(obj));
+           "TRIGGER ERROR: Object '%s' (vnum #%d) has trigger #%d attached, but that trigger doesn't exist!",
+           obj->short_description ? obj->short_description : "UNNAMED", obj_vnum, vnum);
+    mudlog(BRF, LVL_BUILDER, TRUE,
+           "TRIGGER FIX: Either create trigger #%d with 'trigedit %d', OR remove it from 'oedit %d' (check 'scripts')",
+           vnum, vnum, obj_vnum);
+    mudlog(BRF, LVL_BUILDER, TRUE,
+           "TRIGGER NOTE: Use 'tlist' to see existing triggers, 'vnum trigger <keyword>' to search");
     return;
   }
 
@@ -292,8 +313,13 @@ void assign_triggers(void *i, int type)
       if (rnum == NOTHING)
       {
         mudlog(BRF, LVL_BUILDER, TRUE,
-               "SYSERR: trigger #%d non-existant, for mob #%d",
+               "TRIGGER ERROR: Mobile #%d has non-existent trigger #%d assigned!",
+               mob_index[mob->nr].vnum, trg_proto->vnum);
+        mudlog(BRF, LVL_BUILDER, TRUE,
+               "TRIGGER FIX: Create trigger with 'trigedit %d' OR remove from 'medit %d'",
                trg_proto->vnum, mob_index[mob->nr].vnum);
+        mudlog(BRF, LVL_BUILDER, TRUE,
+               "TRIGGER HELP: Use 'tlist' to see triggers, 'attach' in medit to manage");
       }
       else
       {
@@ -312,8 +338,14 @@ void assign_triggers(void *i, int type)
       rnum = real_trigger(trg_proto->vnum);
       if (rnum == NOTHING)
       {
-        log("SYSERR: trigger #%d non-existant, for obj #%d",
-            trg_proto->vnum, obj_index[obj->item_number].vnum);
+        mudlog(BRF, LVL_BUILDER, TRUE,
+               "TRIGGER ERROR: Object #%d has non-existent trigger #%d assigned!",
+               obj_index[obj->item_number].vnum, trg_proto->vnum);
+        mudlog(BRF, LVL_BUILDER, TRUE,
+               "TRIGGER FIX: Create trigger with 'trigedit %d' OR remove from 'oedit %d'",
+               trg_proto->vnum, obj_index[obj->item_number].vnum);
+        mudlog(BRF, LVL_BUILDER, TRUE,
+               "TRIGGER HELP: Use 'tlist' to see triggers, 'scripts' in oedit to manage");
       }
       else
       {
@@ -333,8 +365,13 @@ void assign_triggers(void *i, int type)
       if (rnum == NOTHING)
       {
         mudlog(BRF, LVL_BUILDER, TRUE,
-               "SYSERR: trigger #%d non-existant, for room #%d",
+               "TRIGGER ERROR: Room #%d has non-existent trigger #%d assigned!",
+               room->number, trg_proto->vnum);
+        mudlog(BRF, LVL_BUILDER, TRUE,
+               "TRIGGER FIX: Create trigger with 'trigedit %d' OR remove from 'redit %d'",
                trg_proto->vnum, room->number);
+        mudlog(BRF, LVL_BUILDER, TRUE,
+               "TRIGGER HELP: Use 'tlist' to see triggers, 'scripts' in redit to manage");
       }
       else
       {
@@ -347,7 +384,9 @@ void assign_triggers(void *i, int type)
     break;
   default:
     mudlog(BRF, LVL_BUILDER, TRUE,
-           "SYSERR: unknown type for assign_triggers()");
+           "TRIGGER ERROR: Unknown type passed to assign_triggers() function!");
+    mudlog(BRF, LVL_BUILDER, TRUE,
+           "TRIGGER FIX: This is a code bug - report to developers");
     break;
   }
 }

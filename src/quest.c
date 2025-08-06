@@ -367,17 +367,32 @@ void assign_the_quests(void)
     if (QST_MASTER(rnum) == NOBODY ||
         QST_MASTER(rnum) <= 0)
     {
-      log("SYSERR: Quest #%d has no questmaster specified.", QST_NUM(rnum));
+      log("QUEST ERROR: Quest #%d '%s' has no questmaster mob assigned.",
+          QST_NUM(rnum), QST_NAME(rnum) ? QST_NAME(rnum) : "UNNAMED");
+      log("QUEST FIX: Use 'qedit %d' and set a questmaster mob vnum (the NPC who gives this quest).",
+          QST_NUM(rnum));
+      log("QUEST FIX: Common questmaster vnums: Check 'vnum mob questmaster' or create a new NPC.");
+      if (QST_MINLEVEL(rnum) > 0 || QST_MAXLEVEL(rnum) > 0) {
+        log("QUEST NOTE: This quest is for levels %d-%d but won't work without a questmaster.",
+            QST_MINLEVEL(rnum), QST_MAXLEVEL(rnum));
+      }
       continue;
     }
     if ((mrnum = real_mobile(QST_MASTER(rnum))) == NOBODY)
     {
-      log("SYSERR: Quest #%d has an invalid questmaster.", QST_NUM(rnum));
+      log("QUEST ERROR: Quest #%d '%s' has questmaster mob vnum #%d which doesn't exist.",
+          QST_NUM(rnum), QST_NAME(rnum) ? QST_NAME(rnum) : "UNNAMED", QST_MASTER(rnum));
+      log("QUEST FIX: Either create mob #%d using 'medit %d', OR change the questmaster in 'qedit %d'.",
+          QST_MASTER(rnum), QST_MASTER(rnum), QST_NUM(rnum));
+      log("QUEST FIX: Use 'vnum mob questmaster' to find existing questmaster mobs.");
       continue;
     }
     if (mrnum <= 0)
     {
-      log("SYSERR: Quest #%d has an invalid questmaster [2nd check].", QST_NUM(rnum));
+      log("QUEST ERROR: Quest #%d '%s' has an invalid questmaster mob (negative rnum).",
+          QST_NUM(rnum), QST_NAME(rnum) ? QST_NAME(rnum) : "UNNAMED");
+      log("QUEST FIX: This is a data corruption issue. Use 'qedit %d' to reassign the questmaster.",
+          QST_NUM(rnum));
       continue;
     }
     if (mob_index[(mrnum)].func &&
