@@ -26,8 +26,10 @@
 #
 #############################################################################
 
-# Enable error handling without -e flag which causes premature exits
-set -uo pipefail
+# CRITICAL: Do NOT use set -e or set -o errexit anywhere in this script!
+# The script MUST continue running even if commands fail
+# Only use set -u to catch undefined variables
+set -u
 
 #############################################################################
 # Configuration Section
@@ -69,8 +71,7 @@ readonly MAX_LOG_SIZE_MB="${MAX_LOG_SIZE_MB:-100}"  # Max size before rotation
 readonly LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-30}"  # Keep logs for 30 days
 
 # Runtime control options (can be overridden by environment variables)
-readonly IGNORE_DISK_SPACE="${IGNORE_DISK_SPACE:-false}"  # Continue even with low disk space
-readonly DISABLE_CRASH_PROTECTION="${DISABLE_CRASH_PROTECTION:-false}"  # Disable crash loop protection
+readonly IGNORE_DISK_SPACE="${IGNORE_DISK_SPACE:-true}"  # Default: keep running even with low disk space
 
 # Date format patterns
 readonly DATE_FORMAT_LOG="%Y-%m-%d %H:%M:%S"
@@ -552,16 +553,26 @@ start_mud() {
     log_info "Command: ${BIN_DIR}/${MUD_BINARY} ${FLAGS} ${MUD_PORT}"
     
     # Start the MUD and capture its exit code
-    # We temporarily disable -e to handle crashes gracefully
+    # CRITICAL: We must handle ALL possible failures gracefully
     set +e
+    
+    # Check if binary still exists before starting
+    if [[ ! -x "${BIN_DIR}/${MUD_BINARY}" ]]; then
+        log_error "MUD binary not found or not executable: ${BIN_DIR}/${MUD_BINARY}"
+        return 1
+    fi
+    
+    # Start the MUD - this may crash, segfault, or exit in any way
     "${BIN_DIR}/${MUD_BINARY}" ${FLAGS} ${MUD_PORT} >> syslog 2>&1
     local exit_code=$?
-    # DO NOT re-enable set -e here - it causes script to exit on any error!
-    # The script should continue running even if subsequent commands fail
+    
+    # NO MATTER WHAT HAPPENS, WE CONTINUE!
+    # The script should continue running even if the MUD explodes spectacularly
     
     log_info "MUD server exited with code $exit_code"
     
-    return $exit_code
+    # Always return the exit code but NEVER let it stop the script
+    return $exit_code || true
 }
 
 # Handle shutdown based on control files
@@ -622,21 +633,33 @@ show_status() {
 
 # Handle SIGTERM gracefully
 handle_sigterm() {
-    log_info "Received SIGTERM - initiating graceful shutdown"
-    touch .killscript
-    exit 0
+    log_info "Received SIGTERM - for MUD crash, ignoring signal to keep autorun alive"
+    # DO NOT EXIT! The MUD crashed but autorun must continue
+    # Only create killscript if explicitly requested by user via 'autorun.sh stop'
+    return 0
 }
 
 # Handle SIGINT (Ctrl+C)
 handle_sigint() {
-    log_info "Received SIGINT - initiating graceful shutdown"
+    log_info "Received SIGINT - user interrupt"
     touch .killscript
-    exit 0
+    # Only exit in interactive mode when user presses Ctrl+C
+    if [[ -t 0 ]]; then
+        exit 0
+    fi
+    return 0
 }
 
 # Set up signal handlers
-trap handle_sigterm SIGTERM
+# CRITICAL: We only trap SIGINT for user interrupts
+# We do NOT trap SIGTERM because when the MUD crashes with SIGSEGV,
+# the shell may receive SIGTERM and we want to IGNORE it completely
 trap handle_sigint SIGINT
+
+# CRITICAL: Ignore signals that could kill us
+trap '' HUP    # Don't die when terminal closes
+trap '' PIPE   # Don't die on broken pipes  
+trap '' TERM   # IGNORE SIGTERM COMPLETELY - the MUD crashing should NOT stop us!
 
 #############################################################################
 # Main Script
@@ -737,15 +760,28 @@ case "${1:-}" in
             exit 1
         fi
         
-        # Fork to background
-        nohup "$0" foreground > /dev/null 2>&1 &
-        daemon_pid=$!
+        # Fork to background with MAXIMUM resilience
+        # Create a subshell that will NEVER die
+        (
+            # Detach from terminal completely
+            exec </dev/null >/dev/null 2>&1
+            
+            # Ignore ALL signals that could kill us
+            trap '' HUP TERM QUIT PIPE
+            
+            # Use nohup for extra protection
+            nohup bash -c "
+                # Ignore signals in the inner shell too
+                trap '' HUP TERM QUIT PIPE
+                # Change to new process group to avoid signal propagation
+                set -m
+                # Run autorun in foreground mode
+                exec '$0' foreground
+            " &
+        ) &
         
-        # Write PID to lock file
-        echo "$daemon_pid" > "$lockfile"
-        
-        # Disown the process to detach from shell
-        disown
+        # Give it a moment to start
+        sleep 1
         
         echo "LuminariMUD daemon started"
         echo "Use '$SCRIPT_NAME status' to check status"
@@ -838,8 +874,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Main loop
+# Main loop - THIS MUST NEVER EXIT!
+# Even if everything fails, keep trying
 while true; do
+    # Trap any errors in the loop itself and continue
+    set +e  # Disable error exit for the entire loop
     # Clean up any zombie processes before checking if MUD is running
     cleanup_zombie_processes
     
@@ -866,16 +905,16 @@ while true; do
     fi
     
     # Track MUD start time
-    local mud_start_time=$(date +%s)
+    mud_start_time=$(date +%s)
     
     # Start the MUD
     start_mud
-    local mud_exit_code=$?
+    mud_exit_code=$?
     
     # Calculate MUD uptime
-    local mud_end_time=$(date +%s)
-    local mud_uptime=$((mud_end_time - mud_start_time))
-    local mud_uptime_hours=$((mud_uptime / 3600))
+    mud_end_time=$(date +%s)
+    mud_uptime=$((mud_end_time - mud_start_time))
+    mud_uptime_hours=$((mud_uptime / 3600))
     
     # Log exit status for monitoring
     log_info "MUD ran for $mud_uptime seconds ($mud_uptime_hours hours)"
@@ -893,20 +932,11 @@ while true; do
         CRASH_COUNT=$((CRASH_COUNT + 1))
     fi
     
-    # Check if we're in a crash loop (unless protection is disabled)
-    if [[ "$DISABLE_CRASH_PROTECTION" != "true" ]] && [[ $CRASH_COUNT -ge $MAX_CRASHES_PER_HOUR ]]; then
-        log_error "CRITICAL: MUD crashed $CRASH_COUNT times in the last hour!"
-        log_error "Entering emergency cooldown mode (30 minutes)"
-        log_info "Set DISABLE_CRASH_PROTECTION=true to bypass this protection"
-        
+    # Log crash count but NEVER stop restarting
+    if [[ $CRASH_COUNT -ge $MAX_CRASHES_PER_HOUR ]]; then
+        log_warn "MUD has crashed $CRASH_COUNT times in the last hour - continuing anyway!"
         # Optional: Send alert (uncomment and configure as needed)
         # echo "MUD crash loop detected on $(hostname)" | mail -s "MUD CRITICAL" admin@example.com
-        
-        sleep 1800  # 30 minute cooldown
-        CRASH_COUNT=0
-        CRASH_WINDOW_START=$(date +%s)
-    elif [[ "$DISABLE_CRASH_PROTECTION" == "true" ]] && [[ $CRASH_COUNT -ge $MAX_CRASHES_PER_HOUR ]]; then
-        log_warn "Crash protection disabled - continuing despite $CRASH_COUNT crashes"
     fi
     
     # Archive any core dump
@@ -926,5 +956,13 @@ while true; do
     handle_shutdown
     
     # Brief pause before next iteration
-    sleep 2
+    sleep 2 || true  # Even if sleep fails, continue!
+    
+    # FAILSAFE: If we somehow get here with an error, continue anyway
+    true
 done
+
+# THIS SHOULD NEVER BE REACHED!
+# If we somehow exit the loop, restart it
+log_error "CRITICAL: Main loop exited unexpectedly! Restarting..."
+exec "$0" "$@"
