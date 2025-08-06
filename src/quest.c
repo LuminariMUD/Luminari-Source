@@ -178,7 +178,8 @@ int count_quests(qst_vnum low, qst_vnum high)
 }
 
 /* read quest from file and load it into memory */
-void parse_quest(FILE *quest_f, int nr)
+/* Returns 1 on success, 0 on error (but continues loading) */
+int parse_quest(FILE *quest_f, int nr)
 {
   static char line[MEDIUM_STRING] = {'\0'};
   static int i = 0, j;
@@ -235,9 +236,15 @@ void parse_quest(FILE *quest_f, int nr)
       (retval = sscanf(line, " %d %d %s %d %d %d %d",
                        t, t + 1, f1, t + 2, t + 3, t + 4, t + 5)) != 7)
   {
-    log("Format error in numeric line 1 (expected 7, got %d), %s\n",
-        retval, line);
-    exit(1);
+    log("SYSERR: Quest #%d: Format error in numeric line 1 (expected 7, got %d), line: '%s'",
+        nr, retval, line);
+    log("SYSERR: Skipping malformed quest #%d", nr);
+    /* Skip to end of quest entry */
+    while (get_line(quest_f, line)) {
+      if (!strcmp(line, "S"))
+        break;
+    }
+    return 0;  /* Return error but don't exit */
   }
   aquest_table[i].type = t[0];
   aquest_table[i].qm = (real_mobile(t[1]) == NOBODY) ? NOBODY : t[1];
@@ -252,9 +259,15 @@ void parse_quest(FILE *quest_f, int nr)
       (retval = sscanf(line, " %d %d %d %d %d %d %d",
                        t, t + 1, t + 2, t + 3, t + 4, t + 5, t + 6)) != 7)
   {
-    log("Format error in numeric line 2 (expected 7, got %d), %s\n",
-        retval, line);
-    exit(1);
+    log("SYSERR: Quest #%d: Format error in numeric line 2 (expected 7, got %d), line: '%s'",
+        nr, retval, line);
+    log("SYSERR: Skipping malformed quest #%d", nr);
+    /* Skip to end of quest entry */
+    while (get_line(quest_f, line)) {
+      if (!strcmp(line, "S"))
+        break;
+    }
+    return 0;  /* Return error but don't exit */
   }
   for (j = 0; j < 7; j++)
     aquest_table[i].value[j] = t[j];
@@ -267,9 +280,15 @@ void parse_quest(FILE *quest_f, int nr)
   {
     if (retval != 3 && retval != 7)
     {
-      log("Format error in numeric line 3 (expected 3 or 7, got %d), %s\n",
-          retval, line);
-      exit(1);
+      log("SYSERR: Quest #%d: Format error in numeric line 3 (expected 3 or 7, got %d), line: '%s'",
+          nr, retval, line);
+      log("SYSERR: Skipping malformed quest #%d", nr);
+      /* Skip to end of quest entry */
+      while (get_line(quest_f, line)) {
+        if (!strcmp(line, "S"))
+          break;
+      }
+      return 0;  /* Return error but don't exit */
     }
   }
 
@@ -323,6 +342,7 @@ void parse_quest(FILE *quest_f, int nr)
       break;
     }
   }
+  return 1;  /* Success */
 } /* end parse_quest */
 
 /* assign the quests to their questmasters */
