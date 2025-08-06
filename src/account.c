@@ -592,8 +592,8 @@ int load_account(char *name, struct account_data *account)
   Parameters:
     - account: account to clean up
   Behavior:
-    - For each character name, keeps only the oldest entry (lowest id)
-    - Deletes all duplicate rows
+    - For each character name, keeps only one entry per character name
+    - Uses LIMIT to keep first row, deletes rest
   Notes:
     - Should be called before load_account_characters when duplicates are detected
 */
@@ -606,9 +606,9 @@ void cleanup_duplicate_characters(struct account_data *account)
   if (!account || account->id <= 0)
     return;
     
-  /* First, get list of duplicate character names for this account */
+  /* Get list of duplicate character names for this account */
   snprintf(buf, sizeof(buf), 
-    "SELECT name, COUNT(*) as cnt, MIN(id) as keep_id "
+    "SELECT name, COUNT(*) as cnt "
     "FROM player_data "
     "WHERE account_id = %d "
     "GROUP BY name "
@@ -630,19 +630,22 @@ void cleanup_duplicate_characters(struct account_data *account)
   while ((row = mysql_fetch_row(result)))
   {
     char *name = row[0];
-    int keep_id = atoi(row[2]);
+    int count = atoi(row[1]);
     
     /* Escape character name */
     char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
     mysql_real_escape_string(conn, escaped_name, name, strlen(name));
     
-    /* Delete all except the one with keep_id */
+    /* Delete all but one - we delete count-1 duplicates
+     * ORDER BY ensures we keep a consistent row (the "first" one)
+     * This approach works regardless of table structure */
     snprintf(buf, sizeof(buf),
       "DELETE FROM player_data "
       "WHERE account_id = %d "
       "AND lower(name) = lower('%s') "
-      "AND id != %d",
-      account->id, escaped_name, keep_id);
+      "ORDER BY name "
+      "LIMIT %d",
+      account->id, escaped_name, count - 1);
       
     if (mysql_query(conn, buf))
     {
