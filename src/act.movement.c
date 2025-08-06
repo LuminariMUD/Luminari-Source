@@ -43,6 +43,13 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd);
 static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int door);
 
+/* create_tracks()*/
+#define TRACKS_UNDEFINED 0
+#define TRACKS_IN 1
+#define TRACKS_OUT 2
+#define DIR_NONE -1
+
+
 #define DOOR_IS_OPENABLE(ch, obj, door) ((obj) ? (((GET_OBJ_TYPE(obj) ==                    \
                                                     ITEM_CONTAINER) ||                      \
                                                    GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) && \
@@ -574,10 +581,13 @@ int can_climb(struct char_data *ch)
 /** Leave tracks in the current room
  * */
 
+
+ /*   Reference
 #define TRACKS_UNDEFINED 0
 #define TRACKS_IN 1
 #define TRACKS_OUT 2
 #define DIR_NONE -1
+*/
 
 void create_tracks(struct char_data *ch, int dir, int flag)
 {
@@ -4398,5 +4408,9 @@ ACMD(do_lastroom)
 #undef PRISONER_KEY_1
 #undef PRISONER_KEY_2
 #undef PRISONER_KEY_3
+#undef TRACKS_UNDEFINED
+#undef TRACKS_IN
+#undef TRACKS_OUT
+#undef DIR_NONE
 
 /*EOF*/

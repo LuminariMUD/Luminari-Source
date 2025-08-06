@@ -422,7 +422,7 @@ void load_clans(void)
 
   if (!(fl = fopen(CLAN_FILE, "r")))
   {
-    log("   Clan file does not exist. Will create a new one");
+    log("   Clan file '%s' does not exist. Will create a new one", CLAN_FILE);
     save_clans();
     return;
   }
@@ -1377,6 +1377,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       break;
     case 'n':
     case 'N':
+      write_to_output(d, "Clan not saved.\r\n");
       cleanup_olc(d, CLEANUP_ALL);
       break;
     case 'a': /* abort quit */
@@ -1991,16 +1992,11 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
 
     /*-------------------------------------------------------------------*/
   case CLANEDIT_DESC:
-    /*
-     * We should never get here.
+    /* We get here after the string editor completes.
+     * Just return to the main menu. The string has already been saved
+     * to OLC_CLAN(d)->description by string_write.
      */
-    clanedit_save(d);
-    write_to_output(d, "Clan saved.\r\n");
-    cleanup_olc(d, CLEANUP_ALL);
-    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: clanedit_parse(): Reached"
-                                   "CLANEDIT_DESC case!");
-    write_to_output(d, "Oops (still some work to do here -Zusuk)...\r\n");
-
+    clanedit_disp_menu(d);
     return;
 
     /*-------------------------------------------------------------------*/

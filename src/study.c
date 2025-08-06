@@ -3092,7 +3092,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       do_start(ch);
       HAS_SET_STATS_STUDY(ch) = FALSE;
       GET_EXP(ch) = tempXP;
-      send_to_char(ch, "You have reset your  character and can begin choosing stats, skills and feats anew.\r\n");
+      send_to_char(ch, "You have reset your character and can begin choosing stats, skills and feats anew.\r\n");
       save_char(d->character, 0);
       cleanup_olc(d, CLEANUP_ALL);
       free(LEVELUP(d->character));

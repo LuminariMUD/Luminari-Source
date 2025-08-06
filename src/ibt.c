@@ -1157,11 +1157,13 @@ void ibtedit_parse(struct descriptor_data *d, char *arg)
       mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
              "OLC: %s edits %s %d", GET_NAME(d->character),
              IBT_TYPE, OLC_NUM(d));
+      write_to_output(d, "%s saved.\r\n", IBT_TYPE);
       cleanup_olc(d, CLEANUP_ALL);
       return;
     case 'n':
     case 'N':
       /* If not saving, we must free the OLC memory. */
+      write_to_output(d, "%s not saved.\r\n", IBT_TYPE);
       cleanup_olc(d, CLEANUP_ALL);
       return;
     default:

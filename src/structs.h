@@ -5586,6 +5586,7 @@ struct char_data
     long int confuser_idnum;
     bool preserve_organs_procced;
     bool mute_equip_messages;
+
 };
 
 /** descriptor-related structures */
