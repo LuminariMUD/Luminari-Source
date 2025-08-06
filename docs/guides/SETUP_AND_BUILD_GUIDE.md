@@ -18,19 +18,23 @@ This comprehensive guide covers the complete process of setting up, building, co
 - **Memory**: 4GB+ RAM for development, 2GB+ for production
 - **Storage**: 5GB+ free disk space
 - **Compiler**: GCC 9.0+ or Clang 10.0+
+- **Build System**: CMake 3.12+ (recommended) or Autotools
 - **Database**: MySQL 8.0+ or MariaDB 10.3+
 
 ## Dependencies
 
 ### Core Dependencies
 - **build-essential** - GCC compiler and build tools
+- **cmake** - Cross-platform build system (3.12+ required for CMake builds)
 - **mysql-server** - MySQL database server (5.0+ or MariaDB 10.3+)
 - **libmysqlclient-dev** - MySQL client development libraries
 - **libgd-dev** - GD graphics library for map generation
 - **libcrypt-dev** - Cryptographic functions library
+- **libcurl-dev** - URL transfer library
+- **libssl-dev** - SSL/TLS library
 - **git** - Version control system
-- **autoconf** - GNU Autoconf for build configuration
-- **automake** - GNU Automake for Makefile generation
+- **autoconf** - GNU Autoconf for build configuration (for Autotools builds)
+- **automake** - GNU Automake for Makefile generation (for Autotools builds)
 - **libtool** - Generic library support script (optional)
 - **valgrind** - Memory debugging tool (recommended)
 
@@ -39,9 +43,12 @@ This comprehensive guide covers the complete process of setting up, building, co
 # Update package list
 sudo apt-get update
 
-# Install core dependencies
-sudo apt-get install -y build-essential mysql-server libmysqlclient-dev \
-                        libgd-dev libcrypt-dev git make autoconf automake libtool
+# Install core dependencies for CMake build
+sudo apt-get install -y build-essential cmake mysql-server libmysqlclient-dev \
+                        libgd-dev libcrypt-dev libcurl4-openssl-dev libssl-dev git make
+
+# Additional dependencies for Autotools build (if using)
+sudo apt-get install -y autoconf automake libtool
 
 # Install additional development tools (recommended)
 sudo apt-get install -y gdb valgrind doxygen graphviz cppcheck clang-format
@@ -73,10 +80,37 @@ cd Luminari-Source
 ls -la
 ```
 
-### 2. Configure Build Environment
+### 2. Configure Required Headers
+```bash
+# Copy and configure required header files (one-time setup)
+cp src/campaign.example.h src/campaign.h
+cp src/mud_options.example.h src/mud_options.h
+cp src/vnums.example.h src/vnums.h
+
+# Edit configuration headers as needed
+# These files contain game-specific settings and must not be in version control
+vi src/campaign.h      # Campaign settings (default, DragonLance, Forgotten Realms)
+vi src/mud_options.h   # MUD feature toggles and options
+vi src/vnums.h         # Virtual number assignments for zones/objects
+```
+
+### 3. Build the MUD
+
+#### Option A: Build with CMake (Recommended)
+```bash
+# Configure the build
+cmake -S . -B build/
+
+# Build the project (using all available cores)
+cmake --build build/ -j$(nproc)
+
+# The binary will be created at: bin/circle
+ls -la bin/circle
+```
+
+#### Option B: Build with Autotools (Traditional)
 ```bash
 # If configure script doesn't exist or you modified configure.ac, regenerate it:
-# (This step uses GNU Autotools - autoconf, automake, etc.)
 autoreconf -fvi
 
 # Make configure script executable (if needed)
@@ -85,11 +119,14 @@ chmod +x configure
 # Run configure script to generate Makefile
 ./configure
 
-# Verify Makefile was created
-ls -la Makefile
+# Build the project
+make -j$(nproc)
+
+# The binary will be created at: bin/circle
+ls -la bin/circle
 ```
 
-### 3. Create Required Directories
+### 4. Create Required Directories
 ```bash
 # Create binary directory
 mkdir -p bin

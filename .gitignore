@@ -122,8 +122,11 @@ bak/
 ####################
 # Ignore everything in build directory
 build/*
-# But keep the directory itself
+# But keep the directory structure
 !build/.gitkeep
+!build/CMakeFiles/
+build/CMakeFiles/*
+!build/CMakeFiles/.gitkeep
 
 ####################
 # Configure-Generated Files

@@ -60,9 +60,10 @@ This project embodies commitment, self-motivation, and perseverance through chal
 
 ### Prerequisites
 - **Operating System**: Linux or Unix-like system
-- **Compiler**: GCC (ANSI C90/C89 standard)
+- **Compiler**: GCC or Clang (C90/C89 with GNU extensions)
+- **Build System**: CMake 3.12+ or Autotools
 - **Database**: MySQL 5.0+ or MariaDB
-- **Libraries**: libcrypt, libgd, libm, libmysqlclient
+- **Libraries**: libcrypt, libgd, libm, libmysqlclient, libcurl, libssl, libcrypto
 
 ### Build and Run
 ```bash
@@ -70,14 +71,19 @@ This project embodies commitment, self-motivation, and perseverance through chal
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 
-# Option 1: Traditional build with Autotools
+# Configure required headers (one-time setup)
+cp src/campaign.example.h src/campaign.h
+cp src/mud_options.example.h src/mud_options.h
+cp src/vnums.example.h src/vnums.h
+# Edit these files as needed for your configuration
+
+# Option 1: Build with CMake (recommended)
+cmake -S . -B build/
+cmake --build build/ -j$(nproc)
+
+# Option 2: Traditional build with Autotools
 autoreconf -fvi  # Only if configure script missing
 ./configure
-make
-
-# Option 2: Build with CMake (alternative)
-mkdir build && cd build
-cmake ..
 make
 
 # Run the server (after configuration)
