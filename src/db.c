@@ -4176,7 +4176,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
 #if defined(CAMPAIGN_DL)
   if (!MOB_FLAGGED(mob, MOB_CUSTOM_GOLD))
     autoroll_mob(mob, FALSE, FALSE);
-    GET_HIT(mob) = GET_MAX_HIT(mob);
+  GET_HIT(mob) = GET_MAX_HIT(mob);
 #endif
 
   if (MOB_FLAGGED(mob, MOB_MOUNTABLE))
