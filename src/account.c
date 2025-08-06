@@ -3,10 +3,51 @@
 /  Luminari Account System, Inspired by D20mud's Account System
 /  Created By: Ornir
 \
-/  using act.h as the header file currently
-\         todo: move header stuff into account.h
+/  This file includes both act.h and account.h for header definitions
+\         Note: account.h contains external function declarations
 /
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
+
+/*
+  File overview (beginner friendly):
+
+  This module implements the "account" layer for the Luminari MUD. An "account"
+  groups one or more player characters and stores cross-character data such as:
+    - Account name, password (string copied from DB), email
+    - Account "experience" points (a separate currency used for unlocks)
+    - Which races/classes have been unlocked for this account
+    - The list of character names that belong to the account
+
+  The module interacts with a MySQL database (via MYSQL* conn declared elsewhere)
+  and provides functions to:
+    - Load an account and its related data from the DB
+    - Save (upsert) account data back to the DB
+    - Load a list of character names for an account
+    - Load unlocked races/classes for an account
+    - Remove a character from an account
+    - Check and use account experience to unlock races/classes or adjust alignment
+    - Display an account menu and basic account information
+
+  Important conventions and constraints used here (derived from code only):
+    - Many limits come from macros defined in headers, for example:
+        MAX_CHARS_PER_ACCOUNT, MAX_UNLOCKED_RACES, MAX_UNLOCKED_CLASSES,
+        NUM_RACES, NUM_CLASSES, MAX_PWD_LENGTH, etc.
+      These determine array sizes and validation ranges.
+    - The global 'conn' must point to a valid MySQL connection. This file assumes
+      other code initializes it and sets mysql_available, descriptor_list, etc.
+    - Many helpers/macros/functions come from other headers (e.g., send_to_char,
+      write_to_output, GET_ALIGNMENT, CLSLIST_LOCK, race_list, etc.). This file
+      uses those but does not define them.
+
+  Safety notes:
+    - All DB reads are followed by mysql_store_result/mysql_free_result.
+    - strdup allocations are freed when reloading account data or character lists.
+    - Account experience is clamped between 0 and 100,000,000 by change_account_xp.
+    - Alignment is clamped to [-1000, 1000] after purchases in do_accexp.
+    - SQL injection protection via mysql_real_escape_string for user input in queries.
+
+  This file adds explanatory comments without changing behavior.
+*/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -29,20 +70,43 @@
 
 extern MYSQL *conn;
 
-/* Forward reference */
+/* Forward reference: helper loaders for attached structures on an account */
 void load_account_characters(struct account_data *account);
 void load_account_unlocks(struct account_data *account);
 
+/* Simple aliases for boolean-like flags used in this file. */
 #define Y TRUE
 #define N FALSE
 
 /* start functions! */
 
+/*
+  locked_race_cost(int race)
+  Purpose: Return the account-experience cost to unlock a given race index.
+  Parameters:
+    - race: index into race_list (assumed valid by the caller).
+  Return:
+    - Integer cost stored in race_list[race].unlock_cost.
+  Side effects: None (pure lookup).
+  Notes:
+    - No bounds checking here; callers should ensure 'race' is in range.
+*/
 int locked_race_cost(int race)
 {
   return (race_list[race].unlock_cost);
 }
 
+/*
+  is_locked_race(int race)
+  Purpose: Determine if a race requires unlocking.
+  Parameters:
+    - race: index into race_list.
+  Return:
+    - TRUE if race_list[race].unlock_cost > 0, otherwise FALSE.
+  Side effects: None.
+  Notes:
+    - A race with unlock_cost 0 is considered always available.
+*/
 bool is_locked_race(int race)
 {
   if (race_list[race].unlock_cost > 0)
@@ -51,6 +115,20 @@ bool is_locked_race(int race)
   return FALSE;
 }
 
+/*
+  change_account_xp(struct char_data *ch, int change_val)
+  Purpose: Adjust the account experience for the account tied to a character.
+  Parameters:
+    - ch: character whose descriptor/account will be updated
+    - change_val: positive or negative delta to apply
+  Return:
+    - The resulting account experience after clamping.
+  Behavior and constraints:
+    - Clamps experience to [0, 100000000].
+    - Persists the updated account via save_account(ch->desc->account).
+  Requirements:
+    - ch->desc and ch->desc->account must be valid (assumed by callers here).
+*/
 int change_account_xp(struct char_data *ch, int change_val)
 {
   GET_ACCEXP_DESC(ch) += change_val;
@@ -61,20 +139,37 @@ int change_account_xp(struct char_data *ch, int change_val)
   if (GET_ACCEXP_DESC(ch) > 100000000)
     GET_ACCEXP_DESC(ch) = 100000000;
 
+  /* Persist to DB and update other descriptors that share this account */
   save_account(ch->desc->account);
 
   return GET_ACCEXP_DESC(ch);
 }
 
+/*
+  has_unlocked_race(struct char_data *ch, int race)
+  Purpose: Check if the account associated with 'ch' has unlocked a race.
+  Parameters:
+    - ch: character providing access to descriptor/account
+    - race: race index
+  Return:
+    - TRUE if the race is not locked, or if it appears in account->races[]
+    - FALSE otherwise or if preconditions fail (e.g., no descriptor/account)
+  Conditional compilation:
+    - For some campaigns (FR/DL), fewer constraints are checked here.
+  Notes:
+    - The loop searches up to MAX_UNLOCKED_RACES for an exact match.
+*/
 int has_unlocked_race(struct char_data *ch, int race)
 {
 #if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
   if (!ch || !ch->desc || !ch->desc->account)
 #else
+  /* In non-FR/DL builds, LICH and VAMPIRE races are always locked out here. */
   if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH || race == RACE_VAMPIRE)
 #endif
     return FALSE;
 
+  /* If a race isn't locked, it's available by default. */
   if (!is_locked_race(race))
     return TRUE;
 
@@ -87,11 +182,23 @@ int has_unlocked_race(struct char_data *ch, int race)
   return FALSE;
 }
 
+/*
+  has_unlocked_class(struct char_data *ch, int class)
+  Purpose: Check if the account associated with 'ch' has unlocked a class.
+  Parameters:
+    - ch: character with an attached account
+    - class: class index
+  Return:
+    - TRUE if the class is not flagged as locked (CLSLIST_LOCK false)
+      or if the account has that class in account->classes[]
+    - FALSE otherwise or if the account/descriptor is missing.
+*/
 int has_unlocked_class(struct char_data *ch, int class)
 {
   if (!ch || !ch->desc || !ch->desc->account)
     return FALSE;
 
+  /* If the class isn't locked by design, it's available. */
   if (!CLSLIST_LOCK(class))
     return TRUE;
 
@@ -104,7 +211,30 @@ int has_unlocked_class(struct char_data *ch, int class)
   return FALSE;
 }
 
+/* Fixed cost per alignment-change purchase via 'accexp align ...' */
 #define ALIGN_COST 2000
+
+/*
+  do_accexp (command)
+  Purpose: Player command handler to spend account experience on:
+    - Alignment adjustments (good/evil), or
+    - Unlocking races, or
+    - Unlocking classes
+  Input format:
+    accexp [class | race | align] [name-of-class | name-of-race | good|evil]
+  Behavior:
+    - For align changes: costs ALIGN_COST and shifts alignment +/- 100 with clamps.
+    - For races: lists lockable races or purchases one if affordable and slot available.
+    - For classes: lists lockable classes or purchases one if affordable and slot available.
+  Side effects:
+    - May adjust GET_ALIGNMENT(ch) with clamping [-1000, 1000].
+    - Deducts account experience (change_account_xp).
+    - Writes user feedback via send_to_char.
+    - For race/class unlocks, writes into account arrays and saves account.
+  Safety:
+    - Performs null checks for descriptor/account presence.
+    - Bounds: loops limited by MAX_* macros; name matching via is_abbrev.
+*/
 ACMD(do_accexp)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
@@ -121,6 +251,7 @@ ACMD(do_accexp)
     return;
   }
 
+  /* Alignment purchase branch */
   if (is_abbrev(arg, "align"))
   {
 
@@ -148,7 +279,8 @@ ACMD(do_accexp)
 
     if (ch->desc && ch->desc->account)
     {
-      if ((GET_ALIGNMENT(ch) + align_change) > 1099 || (GET_ALIGNMENT(ch) + align_change) < -1099)
+      /* Hard bounds check on resulting alignment to prevent exceeding ±1000 */
+      if ((GET_ALIGNMENT(ch) + align_change) > 1000 || (GET_ALIGNMENT(ch) + align_change) < -1000)
       {
         send_to_char(ch, "You have the maximum alignment already!\r\n");
         return;
@@ -161,6 +293,7 @@ ACMD(do_accexp)
 
         GET_ALIGNMENT(ch) += align_change;
 
+        /* Final clamp to the game-legal range [-1000, 1000]. */
         if (GET_ALIGNMENT(ch) > 1000)
         {
           GET_ALIGNMENT(ch) = 1000;
@@ -192,6 +325,7 @@ ACMD(do_accexp)
   /* try to unlock a race */
   else if (is_abbrev(arg, "race"))
   {
+    /* No argument: list lockable races that are not yet unlocked */
     if (!*arg2)
     {
       send_to_char(ch, "Please choose from the following races:\r\n");
@@ -207,10 +341,13 @@ ACMD(do_accexp)
           continue;
 
         cost = locked_race_cost(i);
+        /* race_list[i].type is used for display name */
         send_to_char(ch, "%s (%d account experience)\r\n", race_list[i].type, cost);
       }
       return;
     }
+
+    /* Identify the intended race to unlock by name abbreviation */
 #ifdef CAMPAIGN_FR
     for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
 #elif defined(CAMPAIGN_DL)
@@ -239,9 +376,10 @@ ACMD(do_accexp)
       }
     if (ch->desc && ch->desc->account)
     {
+      /* Find an empty slot in account->races array */
       for (j = 0; j < MAX_UNLOCKED_RACES; j++)
       {
-        if (ch->desc->account->races[j] == 0) /* race 0 is human, never locked */
+        if (ch->desc->account->races[j] == 0) /* 0 means empty slot */
           break;
       }
       if (j >= MAX_UNLOCKED_RACES)
@@ -278,6 +416,7 @@ ACMD(do_accexp)
   }
   else if (is_abbrev(arg, "class"))
   {
+    /* No argument: list lockable classes that are not yet unlocked */
     if (!*arg2)
     {
       send_to_char(ch, "Please choose from the following classes:\r\n");
@@ -294,6 +433,7 @@ ACMD(do_accexp)
       }
       return;
     }
+    /* Identify class to unlock by name abbreviation */
     for (i = 0; i < NUM_CLASSES; i++)
     {
       if (is_abbrev(arg2, CLSLIST_NAME(i)) && !has_unlocked_class(ch, i) &&
@@ -315,9 +455,10 @@ ACMD(do_accexp)
     }
     if (ch->desc && ch->desc->account)
     {
+      /* Find empty slot in account->classes array */
       for (j = 0; j < MAX_UNLOCKED_CLASSES; j++)
       {
-        if (ch->desc->account->classes[j] == 0) /* class 0 = wizard, never locked */
+        if (ch->desc->account->classes[j] == 0) /* 0 means empty slot */
           break;
       }
       if (j >= MAX_UNLOCKED_CLASSES)
@@ -356,6 +497,23 @@ ACMD(do_accexp)
   }
 }
 
+/*
+  load_account(char *name, struct account_data *account)
+  Purpose: Load an account record (and then its characters/unlocks) from the DB by account name.
+  Parameters:
+    - name: account name to look up (case-insensitive)
+    - account: pointer to a pre-allocated struct account_data to populate
+  Return codes:
+    - 0 on success
+    - -1 on failure (DB unavailable, query error, or account not found)
+  Behavior:
+    - Frees any pre-existing owned memory inside 'account' (name, email, character_names[]).
+    - Reads id, name, password, experience, email from 'account_data'.
+    - Ensures password is null-terminated at MAX_PWD_LENGTH.
+    - Calls load_account_characters() and load_account_unlocks() to populate arrays.
+  Notes:
+    - Uses mysql_ping(conn) before querying to ensure connection is alive.
+*/
 int load_account(char *name, struct account_data *account)
 {
   MYSQL_RES *result;
@@ -388,8 +546,13 @@ int load_account(char *name, struct account_data *account)
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
 
+  /* Escape the account name to prevent SQL injection */
+  char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
+  mysql_real_escape_string(conn, escaped_name, name, strlen(name));
+  
+  /* Case-insensitive match on the escaped account name */
   snprintf(buf, sizeof(buf), "SELECT id, name, password, experience, email from account_data where lower(name) = lower('%s')",
-           name);
+           escaped_name);
 
   if (mysql_query(conn, buf))
   {
@@ -423,6 +586,16 @@ int load_account(char *name, struct account_data *account)
   return (0);
 }
 
+/*
+  load_account_characters(struct account_data *account)
+  Purpose: Populate account->character_names[] with names belonging to this account.
+  Parameters:
+    - account: account whose 'id' is already set.
+  Behavior:
+    - Clears/free any existing strings in character_names[].
+    - SELECT name FROM player_data WHERE account_id = account->id
+    - Copies up to MAX_CHARS_PER_ACCOUNT results using strdup.
+*/
 void load_account_characters(struct account_data *account)
 {
   MYSQL_RES *result;
@@ -430,6 +603,7 @@ void load_account_characters(struct account_data *account)
   char buf[2048];
   int i = 0;
 
+  /* Free existing names to avoid leaks on reload */
   for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
     if (account->character_names[i] != NULL)
     {
@@ -461,6 +635,18 @@ void load_account_characters(struct account_data *account)
   return;
 }
 
+/*
+  load_account_unlocks(struct account_data *account)
+  Purpose: Populate account->classes[] and account->races[] with unlocked IDs.
+  Parameters:
+    - account: account whose 'id' is set.
+  Behavior:
+    - SELECT class_id FROM unlocked_classes WHERE account_id = ...
+    - SELECT race_id FROM unlocked_races WHERE account_id = ...
+    - Fills arrays up to their max sizes.
+  Notes:
+    - Existing values in arrays are overwritten in order.
+*/
 void load_account_unlocks(struct account_data *account)
 {
   MYSQL_RES *result;
@@ -472,18 +658,22 @@ void load_account_unlocks(struct account_data *account)
   snprintf(buf, sizeof(buf), "SELECT class_id from unlocked_classes "
                              "WHERE account_id = %d",
            account->id);
+
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to SELECT from unlocked_classes: %s", mysql_error(conn));
     return;
   }
+
   if (!(result = mysql_store_result(conn)))
   {
     log("SYSERR: Unable to SELECT from unlocked_classes: %s", mysql_error(conn));
     return;
   }
+
   i = 0;
-  while ((row = mysql_fetch_row(result)))
+  
+  while ((row = mysql_fetch_row(result)) && i < MAX_UNLOCKED_CLASSES)
   {
     account->classes[i] = atoi(row[0]);
     i++;
@@ -505,7 +695,7 @@ void load_account_unlocks(struct account_data *account)
     return;
   }
   i = 0;
-  while ((row = mysql_fetch_row(result)))
+  while ((row = mysql_fetch_row(result)) && i < MAX_UNLOCKED_RACES)
   {
     account->races[i] = atoi(row[0]);
     i++;
@@ -516,6 +706,19 @@ void load_account_unlocks(struct account_data *account)
   return;
 }
 
+/*
+  get_char_account_name(char *name)
+  Purpose: Given a character name, return a newly-allocated string with the
+           owning account name, or NULL if not found.
+  Parameters:
+    - name: exact character name (matched in SQL with quoted literal)
+  Return:
+    - char* allocated with strdup, caller must free, or NULL on error/not found.
+  Behavior:
+    - Joins account_data and player_data to find account name by character.
+    - Uses proper SQL escaping to prevent injection.
+    - If multiple rows are returned, it frees the previous copy and keeps the last.
+*/
 char *get_char_account_name(char *name)
 {
   MYSQL_RES *result;
@@ -523,7 +726,11 @@ char *get_char_account_name(char *name)
   char buf[2048];
   char *acct_name = NULL;
 
-  snprintf(buf, sizeof(buf), "select a.name from account_data a, player_data p where p.account_id = a.id and p.name = '%s'", name);
+  /* Escape character name to prevent SQL injection */
+  char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
+  mysql_real_escape_string(conn, escaped_name, name, strlen(name));
+  
+  snprintf(buf, sizeof(buf), "select a.name from account_data a, player_data p where p.account_id = a.id and p.name = '%s'", escaped_name);
 
   if (mysql_query(conn, buf))
   {
@@ -545,6 +752,22 @@ char *get_char_account_name(char *name)
   return acct_name;
 }
 
+/*
+  save_account(struct account_data *account)
+  Purpose: Upsert account data and associated arrays (characters, races, classes) into DB.
+  Parameters:
+    - account: pointer to populated account (id may be 0 for new)
+  Behavior:
+    1) Upserts into account_data (id, name, password, experience, email).
+       - If id is 0 (new), retrieves auto-generated id via mysql_insert_id.
+    2) Upserts each character name in player_data with account_id.
+    3) Upserts each entry in unlocked_races and unlocked_classes.
+    4) Iterates descriptor_list so that all active descriptors sharing this account id
+       get their unlock lists refreshed and their displayed account experience updated.
+  Safety:
+    - Checks for NULL account and logs error.
+    - Uses VALUES(...) UPSERT pattern.
+*/
 void save_account(struct account_data *account)
 {
   char buf[2048];
@@ -623,7 +846,8 @@ void save_account(struct account_data *account)
   }
 
   /* what happens if you have multiple characters logged on at the same time?
-     We need to update all characters in game with this account id */
+     We need to update all characters in game with this account id
+     so that they reflect new unlocks/experience immediately. */
   for (j = descriptor_list; j; j = next_desc)
   {
     next_desc = j->next;
@@ -632,6 +856,7 @@ void save_account(struct account_data *account)
     {
       if (j->account->id == account->id)
       {
+        /* Reload unlock arrays from DB to keep them in sync */
         load_account_unlocks(j->account);
         if (IS_PLAYING(j))
           GET_ACCEXP_DESC(j->character) = account->experience;
@@ -640,6 +865,23 @@ void save_account(struct account_data *account)
   }
 }
 
+/*
+  show_account_menu(struct descriptor_data *d)
+  Purpose: Display a menu of characters on the descriptor's account with summary info.
+  Parameters:
+    - d: active descriptor with d->account set
+  Behavior:
+    - Renders a table header
+    - Iterates through account->character_names[], for each:
+        * Attempts to load character data to read level, race abbrev, and class list
+        * Skips deleted characters
+        * Prints staff title if level >= LVL_IMMORT, otherwise prints composed class list
+    - Prints footer and available menu choices
+    - Sets the descriptor state to CON_ACCOUNT_MENU
+  Notes:
+    - Uses temporary char_data allocations (xtch and tch) to safely load player data.
+    - Escapes character names before querying player_data to avoid SQL issues.
+*/
 void show_account_menu(struct descriptor_data *d)
 {
   int i = 0;
@@ -663,7 +905,7 @@ void show_account_menu(struct descriptor_data *d)
   {
     for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
     {
-      /* trying: Initialize a place for the player data to temporarially reside. -zusuk */
+      /* Initialize a place for the player data to temporarily reside. */
       CREATE(xtch, struct char_data, 1);
       clear_char(xtch);
       CREATE(xtch->player_specials, struct player_special_data, 1);
@@ -698,7 +940,7 @@ void show_account_menu(struct descriptor_data *d)
         {
           if ((row = mysql_fetch_row(res)) != NULL)
           {
-            /* Initialize a place for the player data to temporarially reside. */
+            /* Initialize another temporary char to format line output. */
             CREATE(tch, struct char_data, 1);
             clear_char(tch);
             CREATE(tch->player_specials, struct player_special_data, 1);
@@ -715,6 +957,7 @@ void show_account_menu(struct descriptor_data *d)
                 continue;
               }
 
+              /* Level and race abbreviation with color formatting */
               write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch), race_list[GET_REAL_RACE(tch)].abbrev_color);
 
               if (GET_LEVEL(tch) >= LVL_IMMORT)
@@ -724,8 +967,7 @@ void show_account_menu(struct descriptor_data *d)
               }
               else
               {
-                /* Mortal */
-
+                /* Mortal: build a slash-separated class abbreviation string */
                 int inc, classCount = 0;
                 buf[0] = '\0';
                 len = 0;
@@ -789,7 +1031,17 @@ void combine_accounts(void) {
 }
  */
 
-/* engine for ACMDU(do_account) */
+/*
+  perform_do_account(struct char_data *ch, struct char_data *vict)
+  Purpose: Core logic to display account information for 'vict' to 'ch'.
+  Parameters:
+    - ch: viewer (may be same as vict)
+    - vict: the character whose account info to display
+  Behavior:
+    - Validates that 'vict' is a player with a descriptor and account.
+    - Prints email (or Not Set), experience, character list, unlocked races/classes.
+    - Adds a tip if 'ch == vict' about the 'accexp' command.
+*/
 void perform_do_account(struct char_data *ch, struct char_data *vict)
 {
   bool found = FALSE;
@@ -859,12 +1111,30 @@ void perform_do_account(struct char_data *ch, struct char_data *vict)
   draw_line(ch, 80, '-', '-');
 }
 
+/*
+  do_account (command)
+  Purpose: Player command to show account information for themselves.
+  Behavior:
+    - Thin wrapper that calls perform_do_account(ch, ch).
+*/
 ACMD(do_account)
 {
   perform_do_account(ch, ch);
 }
 
-/* Remove the player from the database, so that accounts do not reference it. */
+/*
+  remove_char_from_account(struct char_data *ch, struct account_data *account)
+  Purpose: Detach a character from an account at the database level.
+  Parameters:
+    - ch: character to remove
+    - account: account from which to remove the character
+  Behavior:
+    - DELETE row in player_data where lower(name)=lower(GET_NAME(ch)) and account_id matches.
+    - Calls load_account_characters(account) to refresh character_names[].
+    - Logs the action.
+  Safety:
+    - Checks for NULL ch/account and logs errors.
+*/
 void remove_char_from_account(struct char_data *ch, struct account_data *account)
 {
   char buf[2048];
@@ -880,8 +1150,12 @@ void remove_char_from_account(struct char_data *ch, struct account_data *account
     return;
   }
 
+  /* Escape character name to prevent SQL injection */
+  char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
+  mysql_real_escape_string(conn, escaped_name, GET_NAME(ch), strlen(GET_NAME(ch)));
+  
   snprintf(buf, sizeof(buf), "DELETE from player_data where lower(name) = lower('%s') and account_id = %d;",
-           GET_NAME(ch), account->id);
+           escaped_name, account->id);
 
   if (mysql_query(conn, buf))
   {
