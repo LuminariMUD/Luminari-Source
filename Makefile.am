@@ -115,6 +115,7 @@ circle_SOURCES = \
 	src/modify.c \
 	src/msgedit.c \
 	src/mud_event.c \
+	src/mud_event_list.c \
 	src/mysql.c \
 	src/new_mail.c \
 	src/oasis.c \
