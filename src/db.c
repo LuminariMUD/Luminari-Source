@@ -606,7 +606,7 @@ ACMD(do_reboot)
   }
   else if (!str_cmp(arg, "paths"))
   {
-    /* Reload wilderness regions */
+    /* Reload wilderness paths */
     load_paths();
   }
   else
