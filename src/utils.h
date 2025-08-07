@@ -2558,6 +2558,9 @@ int ACTUAL_BAB(struct char_data *ch);
 /** This is the modified percentage of experience lost when a player dies */
 #define CONFIG_DEATH_EXP_LOSS config_info.player_config.death_exp_loss_penalty
 
+// extra game data
+#define CONFIG_CAMPAIGN config_info.extra.campaign
+
 /* Action queues */
 #define GET_QUEUE(ch) ((ch)->char_specials.action_queue)
 #define GET_ATTACK_QUEUE(ch) ((ch)->char_specials.attack_queue)

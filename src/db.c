@@ -7032,6 +7032,8 @@ void load_config(void)
     case 'c':
       if (!str_cmp(tag, "crash_file_timeout"))
         CONFIG_CRASH_TIMEOUT = num;
+      if (!str_cmp(tag, "campaign_setting"))
+        CONFIG_CAMPAIGN = num;
       break;
 
     case 'd':
