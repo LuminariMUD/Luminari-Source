@@ -606,12 +606,18 @@ void load_regions()
   {
     if (region_table != NULL)
     {
-      /* Clear it */
+      /* CRITICAL: Clear all region events FIRST before any memory operations.
+       * This prevents use-after-free when events try to access region_table 
+       * during cancellation. We must clear events for ALL regions before
+       * freeing ANY region memory. */
       for (j = 0; j <= top_of_region_table; j++)
       {
-        /* Cancel any events for this region BEFORE freeing memory */
         clear_region_event_list(&region_table[j]);
-        
+      }
+      
+      /* Now it's safe to free region memory */
+      for (j = 0; j <= top_of_region_table; j++)
+      {
         free(region_table[j].name);
         free(region_table[j].vertices);
         if (region_table[j].reset_data)
