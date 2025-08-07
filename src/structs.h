@@ -23,6 +23,11 @@
 // for the campaign that you can use to disable luminari code you don't want in
 // and add theme-specific code. This is mainly used for the Faerun codebase.
 #include "campaign.h"
+#define CAMPAIGN_LUMINARI           0
+#define CAMPAIGN_DRAGONLANCE        1
+#define CAMPAIGN_FORGOTTEN_REALMS   2
+
+#define NUM_CAMPAIGN_SETTINGS       3
 
 // You will need to add a mud_options.h file that contains the various
 // options which must be defined in the code to work properly. This will
@@ -5990,6 +5995,11 @@ struct player_config_data
     int death_exp_loss_penalty;
 };
 
+struct extra_game_data
+{
+    int campaign;
+};
+
 /**
  Main Game Configuration Structure.
  Global variables that can be changed within the game are held within this
@@ -6017,6 +6027,8 @@ struct config_data
     struct happy_hour_data happy_hour;
     /** player stat config data */
     struct player_config_data player_config;
+    /** additonal game options */
+    struct extra_game_data extra;
 };
 
 #ifdef MEMORY_DEBUG

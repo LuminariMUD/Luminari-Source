@@ -184,6 +184,9 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->player_config.level_21_30_summon_hit_and_dam = CONFIG_SUMMON_LEVEL_21_30_HIT_DAM;
   OLC_CONFIG(d)->player_config.level_21_30_summon_ac = CONFIG_SUMMON_LEVEL_21_30_AC;
 
+  // Extra game data
+  OLC_CONFIG(d)->extra.campaign = CONFIG_CAMPAIGN;
+
   /* Allocate space for the strings. */
   OLC_CONFIG(d)->play.OK = str_udup(CONFIG_OK);
   OLC_CONFIG(d)->play.NOPERSON = str_udup(CONFIG_NOPERSON);
@@ -315,6 +318,9 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_SUMMON_LEVEL_21_30_HP = OLC_CONFIG(d)->player_config.level_21_30_summon_hp;
   CONFIG_SUMMON_LEVEL_21_30_HIT_DAM = OLC_CONFIG(d)->player_config.level_21_30_summon_hit_and_dam;
   CONFIG_SUMMON_LEVEL_21_30_AC = OLC_CONFIG(d)->player_config.level_21_30_summon_ac;
+
+  // extra game data
+  CONFIG_CAMPAIGN = OLC_CONFIG(d)->extra.campaign;
 
   /* Allocate space for the strings. */
   if (CONFIG_OK)
@@ -764,6 +770,11 @@ int save_config(IDXTYPE nowhere)
               "summon_21_30_ac = %d\n\n",
           CONFIG_SUMMON_LEVEL_21_30_AC);
 
+  // extra game data
+  fprintf(fl, "* Which campaign does the game use? Note that changing this without the proper support files in place could cause the game to break\n"
+              "campaign_setting = %d\n\n",
+          CONFIG_CAMPAIGN);
+
   fclose(fl);
 
   if (in_save_list(NOWHERE, SL_CFG))
@@ -783,6 +794,7 @@ static void cedit_disp_menu(struct descriptor_data *d)
   write_to_output(d,
                   "OasisOLC MUD Configuration Editor\r\n"
                   "%sG%s) Game Play Options\r\n"
+                  "%sE%s) Extra Game Play Options\r\n"
                   "%sC%s) Crashsave/Rent Options\r\n"
                   "%sR%s) Room Numbers\r\n"
                   "%sO%s) Operation Options\r\n"
@@ -792,6 +804,7 @@ static void cedit_disp_menu(struct descriptor_data *d)
                   "%sQ%s) Quit\r\n"
                   "Enter your choice : ",
 
+                  grn, nrm,
                   grn, nrm,
                   grn, nrm,
                   grn, nrm,
@@ -969,6 +982,24 @@ static void cedit_disp_game_play_options(struct descriptor_data *d)
   OLC_MODE(d) = CEDIT_GAME_OPTIONS_MENU;
 }
 
+static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d, "\r\n\r\n"
+                     "%sA%s) Campaign Setting               : %s%s\r\n"
+
+                     "%sQ%s) Exit To The Main Menu\r\n"
+                     "Enter your choice : ",
+
+                  grn, nrm, cyn, campaigns[OLC_CONFIG(d)->extra.campaign],
+
+                  grn, nrm);
+
+  OLC_MODE(d) = CEDIT_EXTRA_GAME_OPTIONS_MENU;
+}
+
 static void cedit_disp_crash_save_options(struct descriptor_data *d)
 {
   get_char_colors(d->character);
@@ -1094,6 +1125,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
 {
   char *oldtext = NULL;
   float f_num;
+  int i;
 
   switch (OLC_MODE(d))
   {
@@ -1132,6 +1164,12 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     case 'G':
       cedit_disp_game_play_options(d);
       OLC_MODE(d) = CEDIT_GAME_OPTIONS_MENU;
+      break;
+
+    case 'e':
+    case 'E':
+      cedit_disp_extra_game_play_options(d);
+      OLC_MODE(d) = CEDIT_EXTRA_GAME_OPTIONS_MENU;
       break;
 
     case 'h':
@@ -1481,6 +1519,31 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
 
     cedit_disp_game_play_options(d);
+    return;
+
+  case CEDIT_EXTRA_GAME_OPTIONS_MENU:
+    switch (*arg)
+    {
+      case 'a':
+      case 'A':
+        write_to_output(d, "Enter the desired campaign setting for the MUD Note that you should not change this unless you know what you're doing as it could break the MUD:\r\n");
+        for (i = 0; i < NUM_CAMPAIGN_SETTINGS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, campaigns[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_CAMPAIGN;
+        return;
+
+      case 'q':
+      case 'Q':
+        cedit_disp_menu(d);
+        return;
+
+      default:
+        write_to_output(d, "\r\nThat is an invalid choice!\r\n");
+        cedit_disp_extra_game_play_options(d);
+    }
+    cedit_disp_extra_game_play_options(d);
     return;
 
   case CEDIT_CRASHSAVE_OPTIONS_MENU:
@@ -2603,6 +2666,15 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     sscanf(arg, "%f", &f_num);
     OLC_CONFIG(d)->play.min_pop_to_claim = FLOATMIN(FLOATMAX(f_num, 0.0), 100.0);
     cedit_disp_game_play_options(d);
+    break;
+
+  case CEDIT_SET_CAMPAIGN:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.campaign = (MIN(NUM_CAMPAIGN_SETTINGS, MAX(1, atoi(arg))) - 1);
+      write_to_output(d, "Op: %d", atoi(arg));
+     }
+    cedit_disp_extra_game_play_options(d);
     break;
 
   default: /* We should never get here, but just in case... */
