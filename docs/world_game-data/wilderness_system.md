@@ -100,7 +100,8 @@ The system uses multiple Perlin noise layers:
 3. **Elevation Distortion** (`NOISE_MATERIAL_PLANE_ELEV_DIST`)
    - Seed: 74233
    - Adds variation to elevation patterns
-   - Creates more natural terrain features
+   - Creates island-like terrain features
+   - Used to modulate base elevation with radial gradient
 
 4. **Temperature** (calculated from latitude and elevation)
    - Gradient based on distance from equator (Y=0)
@@ -185,15 +186,15 @@ int get_sector_type(int elevation, int temperature, int moisture) {
     }
 
     // High mountain peaks (impassable)
-    else if (elevation > 255 - HIGH_MOUNTAIN_THRESHOLD) // 200
+    else if (elevation > 255 - HIGH_MOUNTAIN_THRESHOLD) // > 200
         return SECT_HIGH_MOUNTAIN;
 
     // Mountain ranges
-    else if (elevation > 255 - MOUNTAIN_THRESHOLD) // 185
+    else if (elevation > 255 - MOUNTAIN_THRESHOLD) // > 185
         return SECT_MOUNTAIN;
 
     // Hills and elevated terrain
-    else if (elevation > 255 - HILL_THRESHOLD) { // 175
+    else if (elevation > 255 - HILL_THRESHOLD) { // > 175
         if ((temperature < 10) && (moisture > 128))
             return SECT_TAIGA;
         else
@@ -454,116 +455,19 @@ Regions and paths are stored in MySQL database:
 
 ## Weather System
 
-### Wilderness Weather
+**3D Perlin:** Location + time component for dynamic weather (0-255 scale)
 
-The wilderness has its own weather system separate from zone-based weather:
+**Integration:** Per-tile weather, map overlay mode, excluded from zone weather
 
-```c
-int get_weather(int x, int y) {
-    double trans_x, trans_y, result, time_base;
-    time_t now;
-
-    // Get current time for dynamic weather changes
-    now = time(NULL);
-    time_base = (now % 100000) / 100000.0;
-
-    // Transform coordinates for noise sampling
-    trans_x = x / (double)(WILD_X_SIZE / 1.0);
-    trans_y = y / (double)(WILD_Y_SIZE / 1.0);
-
-    // Use 3D Perlin noise with time component for dynamic weather
-    result = PerlinNoise3D(NOISE_WEATHER, trans_x * 50.0, trans_y * 50.0,
-                          time_base * 100, 2.0, 2.0, 8);
-
-    // Normalize result to 0-255 range
-    result = (result + 1) / 2.0;
-    return 255 * result;
-}
-```
-
-### Weather Integration
-
-- Each wilderness tile has its own weather value based on coordinates and time
-- Weather changes dynamically over time using 3D Perlin noise
-- Weather values range from 0-255 representing different conditions
-- Time-based component ensures weather patterns evolve naturally
-- Weather affects visibility and movement in some implementations
-- Integrated with map display system for weather overlay mode
-- Displayed in room descriptions and maps
-
-### Weather Exclusion
-
-```c
-if (ZONE_FLAGGED(world[IN_ROOM(character)].zone, ZONE_WILDERNESS))
-    continue; /* Wilderness weather is handled elsewhere */
-```
-
-Standard weather messages don't apply to wilderness zones.
-
-### Campaign-Specific Behavior
-
-**Forgotten Realms Campaign (`CAMPAIGN_FR`):**
-- Wilderness system is completely disabled
-- `find_room_by_coordinates()` returns `NOWHERE`
-- `IS_DYNAMIC()` macro always returns `FALSE`
-- No dynamic room allocation or wilderness movement
+**Campaign FR:** Wilderness completely disabled
 
 ## Player Experience
 
-### Movement
+**Movement:** Standard directions (±1 coordinate), auto room creation
 
-Players move through wilderness using standard directional commands:
-- `north`, `south`, `east`, `west`
-- Each movement changes coordinates by ±1
-- Automatic room creation/assignment
-- Seamless transition between static and dynamic areas
+**Map:** 21x21 automap, ASCII-only symbols (2025 fix for alignment), line-of-sight, weather overlay
 
-### Mapping
-
-**Automatic Mapping:**
-```c
-if (PRF_FLAGGED(ch, PRF_AUTOMAP)) {
-    show_wilderness_map(ch, 21, ch->coords[0], ch->coords[1]);
-}
-```
-
-**Map Display:**
-- 21x21 grid centered on player
-- Color-coded terrain types
-- Unicode symbols for terrain
-- GUI mode support with XML tags
-
-**Map Features:**
-- Line-of-sight calculations using `line_vis()` function
-- Terrain-appropriate symbols with Unicode support
-- Player position indicator (\tM\t[u128946/*]\tn)
-- Region and path overlays with color coding
-- Weather overlay mode (`MAP_TYPE_WEATHER`)
-- Circular or rectangular map shapes
-- GUI mode support with XML tags
-
-### Line-of-Sight System
-
-```c
-void line_vis(struct wild_map_tile **map, int x0, int y0, int x1, int y1) {
-    // Bresenham's line algorithm implementation
-    // Sets visibility flags for tiles along line of sight
-    // Used to create realistic vision limitations
-}
-```
-
-The system calculates visibility from the player's position to map edges, creating realistic sight lines that can be blocked by terrain features.
-
-### Navigation
-
-**Coordinate Display:**
-Players can see their current coordinates and use them for navigation.
-
-**Landmarks:**
-Static rooms serve as permanent landmarks and reference points.
-
-**Paths:**
-Roads and rivers provide guided travel routes between locations.
+**Navigation:** Coordinate display, static landmarks, path guidance
 
 ## Builder Tools
 
@@ -576,66 +480,9 @@ OLC_ROOM(d)->coords[0] = x_coordinate;
 OLC_ROOM(d)->coords[1] = y_coordinate;
 ```
 
-**Buildwalk Support:**
-- `PRF_BUILDWALK` flag enables building while walking
-- Automatic coordinate calculation for wilderness zones
-- Permission checking for zone editing with `can_edit_zone()`
-- Integration with existing OLC commands
-- Special wilderness buildwalk handling in `perform_move()`
+**Buildwalk Support:** `PRF_BUILDWALK` flag, auto coordinates, permission checks, OLC integration
 
-### Wilderness Buildwalk Implementation
-
-```c
-int buildwalk(struct char_data *ch, int dir) {
-    if (!PRF_FLAGGED(ch, PRF_BUILDWALK) || GET_LEVEL(ch) < LVL_BUILDER)
-        return 0;
-
-    // Special handling for wilderness zones
-    if (ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS)) {
-        int new_x = X_LOC(ch), new_y = Y_LOC(ch);
-
-        // Calculate new coordinates based on direction
-        switch (dir) {
-            case NORTH: new_y++; break;
-            case SOUTH: new_y--; break;
-            case EAST:  new_x++; break;
-            case WEST:  new_x--; break;
-            default:
-                send_to_char(ch, "Invalid direction for wilderness buildwalk.\r\n");
-                return 0;
-        }
-
-        // Check build permissions
-        if (!can_edit_zone(ch, world[IN_ROOM(ch)].zone)) {
-            send_to_char(ch, "You do not have build permissions in this zone.\r\n");
-            return 0;
-        }
-
-        // Create new room at coordinates
-        room_rnum new_room = create_wilderness_room(new_x, new_y);
-        if (new_room != NOWHERE) {
-            // Set buildwalk properties if configured
-            if (GET_BUILDWALK_SECTOR(ch) != SECT_INSIDE)
-                world[new_room].sector_type = GET_BUILDWALK_SECTOR(ch);
-            if (GET_BUILDWALK_NAME(ch))
-                world[new_room].name = strdup(GET_BUILDWALK_NAME(ch));
-            if (GET_BUILDWALK_DESC(ch))
-                world[new_room].description = strdup(GET_BUILDWALK_DESC(ch));
-        }
-    }
-
-    return 1;
-}
-```
-
-**Buildwalk Configuration Commands:**
-```
-buildwalk                    // Toggle buildwalk on/off
-buildwalk reset              // Reset all buildwalk settings
-buildwalk sector <type>      // Set default sector type
-buildwalk name <name>        // Set default room name
-buildwalk desc <description> // Set default room description
-```
+**Commands:** `buildwalk` (toggle), `buildwalk reset`, `buildwalk sector/name/desc <value>`
 
 ### Attaching Zones to Wilderness
 
@@ -884,27 +731,13 @@ The wilderness system supports various forms of dynamic content generation:
 
 ### Performance Optimizations
 
-**KD-Tree Indexing:**
-```c
-struct kdtree *kd_wilderness_rooms;
-// O(log n) lookup for static rooms
-// Spatial indexing for coordinate-based queries
-```
-
-**Dynamic Room Pooling:**
-- Fixed pool of 6000 dynamic rooms
-- Automatic recycling of unused rooms
-- `ROOM_OCCUPIED` flag management
-- Memory-efficient room reuse
-
-**Lazy Loading:**
-- Rooms created only when accessed
-- Terrain generated on-demand
-- Database queries optimized with spatial indexes
+**KD-Tree:** O(log n) static room lookup
+**Room Pool:** 6000 dynamic rooms, auto-recycling, `ROOM_OCCUPIED` flag
+**Lazy Loading:** On-demand creation, spatial DB indexes
 
 ### Memory Management
 
-#### Critical Memory Safety Pattern (2025 Update)
+#### Critical Memory Safety Pattern
 
 The wilderness system implements a sophisticated memory management pattern that prevents both memory leaks and double-free crashes. This pattern was developed after resolving critical memory issues in the `goto` wilderness navigation system.
 
@@ -965,9 +798,9 @@ if (world[room].name)
     free(world[room].name);  // CRASH: Cannot free static memory
 ```
 
-**Historical Context (2025):**
+**Historical Context:**
 
-The wilderness system previously crashed during `goto` coordinate navigation due to attempts to free static strings. The memory audit fixes implemented this safety pattern to prevent such crashes while maintaining proper cleanup of dynamic allocations.
+The wilderness system previously crashed during `goto` coordinate navigation due to attempts to free static strings. Memory audit fixes implemented this safety pattern to prevent such crashes while maintaining proper cleanup of dynamic allocations.
 
 **Static Data Management:**
 - Region and path data loaded at startup
@@ -1020,112 +853,13 @@ This memory management pattern ensures system stability while maintaining perfor
 
 ### Database Schema
 
-**Region Data:**
-```sql
-CREATE TABLE region_data (
-    vnum INT PRIMARY KEY,
-    zone_vnum INT,
-    name VARCHAR(255),
-    region_type INT,
-    region_polygon GEOMETRY,
-    region_props INT,
-    region_reset_data TEXT,
-    region_reset_time INT,
-    SPATIAL INDEX(region_polygon)
-);
+**Tables:** `region_data`, `region_index`, `path_data`, `path_index`, `path_types`
 
--- Optimized spatial index table for faster queries
-CREATE TABLE region_index (
-    vnum INT PRIMARY KEY,
-    zone_vnum INT,
-    region_polygon GEOMETRY,
-    SPATIAL INDEX(region_polygon),
-    FOREIGN KEY (vnum) REFERENCES region_data(vnum)
-);
-```
-
-**Path Data:**
-```sql
-CREATE TABLE path_data (
-    vnum INT PRIMARY KEY,
-    zone_vnum INT,
-    name VARCHAR(255),
-    path_type INT,
-    path_linestring GEOMETRY,
-    path_props INT,
-    SPATIAL INDEX(path_linestring)
-);
-
--- Optimized spatial index table for faster path queries
-CREATE TABLE path_index (
-    vnum INT PRIMARY KEY,
-    zone_vnum INT,
-    path_linestring GEOMETRY,
-    SPATIAL INDEX(path_linestring),
-    FOREIGN KEY (vnum) REFERENCES path_data(vnum)
-);
-
--- Path type definitions with display glyphs
-CREATE TABLE path_types (
-    path_type INT PRIMARY KEY,
-    glyph_ns VARCHAR(50),    -- North-South glyph
-    glyph_ew VARCHAR(50),    -- East-West glyph
-    glyph_int VARCHAR(50)    -- Intersection glyph
-);
-```
-
-**Spatial Queries:**
-```sql
--- Find regions containing a point (actual query used)
-SELECT vnum,
-  CASE
-    WHEN ST_Within(GeomFromText('POINT(x y)'), region_polygon) THEN
-    CASE
-      WHEN (GeomFromText('POINT(x y)') = Centroid(region_polygon)) THEN '1'
-      WHEN (ST_Distance(GeomFromText('POINT(x y)'), ExteriorRing(region_polygon)) >
-            ST_Distance(GeomFromText('POINT(x y)'), Centroid(region_polygon))/2) THEN '2'
-      ELSE '3'
-    END
-    ELSE NULL
-  END as location_type
-FROM region_index
-WHERE zone_vnum = ? AND ST_Within(GeomFromText('POINT(x y)'), region_polygon);
-
--- Find paths containing a point
-SELECT vnum,
-  CASE WHEN (ST_Within(GeomFromText('POINT(x y)'), path_linestring) AND
-             ST_Within(GeomFromText('POINT(x y-1)'), path_linestring)) THEN 0  -- NS glyph
-    WHEN (ST_Within(GeomFromText('POINT(x-1 y)'), path_linestring) AND
-          ST_Within(GeomFromText('POINT(x+1 y)'), path_linestring)) THEN 1     -- EW glyph
-    ELSE 2                                                                     -- Intersection glyph
-  END AS glyph_type
-FROM path_index
-WHERE zone_vnum = ? AND ST_Within(GeomFromText('POINT(x y)'), path_linestring);
-```
+**Key Features:** GEOMETRY columns, SPATIAL INDEX, ST_Within() queries, glyph definitions
 
 ### Error Handling
 
-**Coordinate Validation:**
-```c
-if (x < -WILD_X_SIZE/2 || x > WILD_X_SIZE/2 ||
-    y < -WILD_Y_SIZE/2 || y > WILD_Y_SIZE/2) {
-    log("SYSERR: Invalid wilderness coordinates (%d, %d)", x, y);
-    return NOWHERE;
-}
-```
-
-**Room Allocation:**
-- Fallback when dynamic room pool exhausted
-- Error recovery for failed room assignments
-- Comprehensive error logging
-
-**Database Error Handling:**
-```c
-if (mysql_query(conn, query)) {
-    log("SYSERR: MySQL query failed: %s", mysql_error(conn));
-    return NULL;
-}
-```
+**Validation:** Coordinate bounds checking, room allocation fallback, MySQL error logging
 
 ## Configuration
 
@@ -1147,13 +881,14 @@ if (mysql_query(conn, query)) {
 #define WILD_DYNAMIC_ROOM_VNUM_END 1009999   // Dynamic room pool end
 
 // Terrain thresholds
-#define WATERLINE 138                      // Used in temperature calculation (runtime waterline is wild_waterline = 128)
+#define WATERLINE 138                      // Used in temperature calculation only
+int wild_waterline = 128;                  // Runtime waterline for actual terrain generation
 #define SHALLOW_WATER_THRESHOLD 20         // Shallow vs deep water
 #define COASTLINE_THRESHOLD 5              // Beach/coastline threshold
 #define PLAINS_THRESHOLD 35                // Plains elevation threshold
-#define HIGH_MOUNTAIN_THRESHOLD 55         // High mountain threshold (used as 255 - 55 = 200)
-#define MOUNTAIN_THRESHOLD 70              // Mountain threshold (used as 255 - 70 = 185)
-#define HILL_THRESHOLD 80                  // Hill threshold (used as 255 - 80 = 175)
+#define HIGH_MOUNTAIN_THRESHOLD 55         // High mountain threshold (elevation > 255 - 55 = 200)
+#define MOUNTAIN_THRESHOLD 70              // Mountain threshold (elevation > 255 - 70 = 185)
+#define HILL_THRESHOLD 80                  // Hill threshold (elevation > 255 - 80 = 175)
 
 // Map display
 #define MAP_TYPE_NORMAL 0                  // Normal terrain map
@@ -1190,596 +925,66 @@ if (mysql_query(conn, query)) {
 - Modify size constants for larger/smaller wilderness
 - Adjust noise parameters for different terrain characteristics
 
-### Sector Mapping
-
-Terrain generation can be customized by modifying sector thresholds:
-
-```c
-struct sector_limits sector_map[NUM_ROOM_SECTORS][3];
-// [sector_type][elevation/moisture/temperature] = {min, max}
-```
-
-**Example Configuration:**
-```c
-// Mountains at high elevation
-sector_map[SECT_MOUNTAIN][0] = {200, 255};  // elevation
-sector_map[SECT_MOUNTAIN][1] = {0, 255};    // moisture (any)
-sector_map[SECT_MOUNTAIN][2] = {0, 100};    // temperature (cold)
-
-// Forests in moderate elevation with high moisture
-sector_map[SECT_FOREST][0] = {50, 150};     // elevation
-sector_map[SECT_FOREST][1] = {150, 255};    // moisture (high)
-sector_map[SECT_FOREST][2] = {100, 200};    // temperature (moderate)
-```
-
 ### Database Configuration
 
-**MySQL Connection:**
-- Configure connection parameters in mysql.c
-- Ensure spatial extensions are enabled
-- Create appropriate indexes for performance
-
-**Required MySQL Extensions:**
-- Spatial data types (GEOMETRY, POINT, POLYGON, LINESTRING)
-- Spatial functions (ST_Within, ST_Distance, GeomFromText, AsText, NumPoints, Centroid, ExteriorRing)
-- Spatial indexing support with SPATIAL INDEX
-- MySQL version 5.7+ recommended for full spatial function support
+**MySQL Requirements:** 5.7+, spatial extensions (GEOMETRY, ST_Within, GeomFromText), SPATIAL INDEX support
 
 ### Perlin Noise Configuration
 
-**Noise Parameters:**
-```c
-// Elevation noise - creates mountain ranges
-result = PerlinNoise2D(NOISE_MATERIAL_PLANE_ELEV,
-                       trans_x, trans_y,
-                       2.0,    // frequency
-                       2.0,    // lacunarity
-                       16);    // octaves
-
-// Compress data for better mountain formation
-result = (result > .8 ? .8 : result);
-result = (result < -.8 ? -.8 : result);
-
-// Normalize between -1 and 1
-result = result / .8;
-
-// Use ridged multifractal for realistic mountains
-result = 1 - (result < 0 ? -result : result);
-
-// Apply attenuation for sharper peaks
-result *= result;
-result *= result;
-```
-
-**Customizable Parameters:**
-- Frequency: Controls terrain feature size
-- Lacunarity: Controls detail level
-- Octaves: Controls noise complexity
-- Attenuation: Controls mountain sharpness
+**Parameters:** Frequency(2.0), Lacunarity(2.0), Octaves(16)
+**Techniques:** Ridged multifractal, attenuation for sharp peaks
 
 ## Troubleshooting
 
-### Common Issues
+**Movement Fails:** Check `ZONE_WILDERNESS` flag, exits to room 1000000, coordinates set
 
-**1. Wilderness Movement Fails**
+**No Terrain Variation:** Verify noise seeds, test with `get_elevation()`, `get_moisture()`, `get_temperature()`
 
-*Symptoms:* Players can't move in wilderness, get "You can't go that way" messages
+**Regions/Paths Missing:** Check MySQL spatial data, test `ST_Within()` queries
 
-*Solutions:*
-- Check zone has `ZONE_WILDERNESS` flag set
-- Verify exits point to room 1000000 (navigation room)
-- Ensure coordinates are properly set in room data
-- Check that wilderness zone exists and is loaded
+**Performance:** Monitor room pool usage (<80%), rebuild KD-Tree if slow
 
-*Debug Commands:*
-```
-stat room        // Check current room flags and coordinates
-goto 1000000     // Test navigation room accessibility
-```
+**Map Misalignment:** Fixed 2025 - ASCII-only symbols now (Y,^,~,=)
 
-**2. Terrain Not Generating Properly**
-
-*Symptoms:* All wilderness shows same terrain type, no variation
-
-*Solutions:*
-- Verify Perlin noise initialization with correct seeds
-- Check noise seed values in wilderness.h
-- Confirm sector mapping configuration
-- Test noise generation functions
-
-*Debug Steps:*
-```c
-// Test noise generation
-int elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
-int moist = get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y);
-int temp = get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y);
-int sector = get_sector_type(elev, temp, moist);
-log("Coordinates (%d,%d): elev=%d, temp=%d, moist=%d, sector=%d",
-    x, y, elev, temp, moist, sector);
-```
-
-**3. Regions/Paths Not Working**
-
-*Symptoms:* Regions don't affect terrain, paths don't display
-
-*Solutions:*
-- Check MySQL connection and database accessibility
-- Verify spatial data exists in region_data/path_data tables
-- Confirm geometry functions are available in MySQL
-- Test spatial queries manually
-
-*Database Tests:*
-```sql
--- Test region data
-SELECT COUNT(*) FROM region_data;
-SELECT * FROM region_data WHERE zone_vnum = your_zone;
-
--- Test spatial functions
-SELECT ST_Within(GeomFromText('POINT(0 0)'), region_polygon)
-FROM region_data LIMIT 1;
-```
-
-**4. Performance Issues**
-
-*Symptoms:* Slow wilderness movement, lag when exploring
-
-*Solutions:*
-- Monitor KD-Tree performance and rebuild if needed
-- Check dynamic room pool usage and increase if necessary
-- Optimize database queries with proper indexes
-- Profile memory usage patterns
-
-*Performance Monitoring:*
-```c
-// Check dynamic room pool usage
-int used_rooms = 0;
-for (i = WILD_DYNAMIC_ROOM_VNUM_START; i <= WILD_DYNAMIC_ROOM_VNUM_END; i++) {
-    if (real_room(i) != NOWHERE && ROOM_FLAGGED(real_room(i), ROOM_OCCUPIED))
-        used_rooms++;
-}
-log("Dynamic rooms in use: %d/%d", used_rooms,
-    WILD_DYNAMIC_ROOM_VNUM_END - WILD_DYNAMIC_ROOM_VNUM_START + 1);
-```
-
-**5. Map Display Problems**
-
-*Symptoms:* Maps show incorrectly, missing colors/symbols, misaligned display
-
-*Solutions:*
-- **Note**: Wilderness maps now force ASCII-only display to guarantee alignment
-- Check color code compatibility with client  
-- Confirm GUI mode settings for XML tags
-- Test with different terminal/client software
-
-*Map Debug:*
-```c
-// Test map generation (now uses ASCII-only symbols)
-char *map_str = gen_ascii_wilderness_map(21, x, y, MAP_TYPE_NORMAL);
-send_to_char(ch, "Raw map data:\r\n%s\r\n", map_str);
-```
-
-**ASCII-Only Map Display (2025 Update):**
-
-The wilderness map system has been updated to force ASCII-only symbol display to guarantee perfect alignment across all terminal types, fonts, and operating systems. This resolves UTF-8 character width inconsistencies that caused map misalignment.
-
-*Technical Details:*
-- All wilderness maps now use single-character ASCII symbols (Y, ^, ~, etc.)
-- Color codes are preserved for visual distinction
-- UTF-8 protocol symbols are bypassed for wilderness display only
-- Perfect alignment guaranteed regardless of client capabilities
-
-**6. Wilderness Navigation Crashes (Memory Issues)**
-
-*Symptoms:* Server crashes with SIGABRT when using `goto X Y` coordinates, typically with malloc_printerr in assign_wilderness_room()
-
-*Root Cause:* Attempting to free static string pointers during room assignment
-
-*Solution Pattern:* Always use safe memory checks before freeing room strings:
-
-```c
-// CORRECT - Safe pattern
-if (world[room].name && world[room].name != wilderness_name)
-    free(world[room].name);
-
-// INCORRECT - Causes crashes  
-if (world[room].name)
-    free(world[room].name);  // CRASH: Frees static strings
-```
-
-*Prevention:*
-- Never modify the static string pointer checks in assign_wilderness_room()
-- Always test wilderness navigation after memory management changes
-- Use the debug_wilderness_memory() function to trace pointer states
-- Remember that static pointers are not memory leaks in this context
-
-*Fixed in:* 2025 memory audit - wilderness.c contains comprehensive safety comments
+**Memory Crashes:** Use pattern `if (ptr && ptr != static_string) free(ptr)` - never free static strings
 
 ### Debug Commands
 
-**Wilderness Information Commands:**
-```
-stat room                    // Show current room info including coordinates
-goto 1000000                 // Go to wilderness navigation room
-goto <room_vnum>             // Go to specific room by vnum
-genmap <size> <filename>     // Generate PNG map file for debugging
-genriver <dir> <vnum> <name> // Create procedural river
-save_map_to_file <filename> <xsize> <ysize> // Save wilderness map as PNG
-save_noise_to_file <idx> <filename> <xsize> <ysize> <zoom> // Save noise layer
-```
+**Info:** `stat room`, `goto 1000000`, `genriver <dir> <vnum> <name>`, `genmap`
+**Build:** `buildwalk` (toggle/reset/sector/name/desc)
 
-**Wilderness-Specific Commands:**
-```
-buildwalk                    // Toggle wilderness buildwalk mode
-buildwalk reset              // Reset buildwalk settings
-buildwalk sector <type>      // Set default sector for new rooms
-buildwalk name <name>        // Set default name for new rooms
-buildwalk desc <description> // Set default description for new rooms
-```
+### Maintenance
 
-**Database Debugging:**
-```sql
--- Check region coverage
-SELECT r.name, COUNT(*) as rooms_affected
-FROM region_data r
-JOIN wilderness_rooms w ON ST_Within(w.point, r.region_polygon)
-GROUP BY r.vnum;
-
--- Verify path data
-SELECT name, path_type, ST_AsText(path_linestring)
-FROM path_data
-WHERE zone_vnum = your_zone;
-```
-
-### Log Messages
-
-The system provides comprehensive logging for debugging:
-
-**Room Management:**
-```
-INFO: Assigning wilderness room %d to coordinates (%d, %d)
-SYSERR: Attempted to assign NOWHERE as wilderness location at (%d, %d)
-SYSERR: Wilderness movement failed from (%d, %d) to (%d, %d)
-SYSERR: Illegal value(s) passed to char_to_room. (Room: %d/%d Ch: %p)
-```
-
-**Database Operations:**
-```
-INFO: Loading wilderness data for zone: %d
-INFO: Loading region data from MySQL
-INFO: Loading path data from MySQL
-SYSERR: Unable to SELECT from wilderness_data: %s
-SYSERR: Unable to SELECT from region_data: %s
-SYSERR: Unable to SELECT from path_data: %s
-INFO: Deleting Path [%d] from MySQL
-SYSERR: Unable to delete from path_data: %s
-```
-
-**Initialization Messages:**
-```
-Loading regions. (MySQL)
-Loading paths. (MySQL)
-Indexing wilderness rooms.
-Writing wilderness map image.
-```
-
-**Performance Warnings:**
-```
-WARNING: Dynamic room pool nearly exhausted (%d/%d used)
-WARNING: KD-Tree lookup taking longer than expected
-```
-
-### Performance Monitoring
-
-**Key Metrics to Monitor:**
-
-1. **Dynamic Room Pool Utilization**
-   - Target: < 80% usage during peak times
-   - Alert: > 90% usage indicates need for pool expansion
-
-2. **KD-Tree Query Performance**
-   - Target: < 1ms average lookup time
-   - Alert: > 10ms indicates need for tree rebuild
-
-3. **Database Response Times**
-   - Target: < 100ms for region/path queries
-   - Alert: > 500ms indicates indexing issues
-
-4. **Memory Usage Patterns**
-   - Monitor for memory leaks in dynamic room allocation
-   - Check for proper cleanup of unused rooms
-
-**Monitoring Commands:**
-```c
-// Add to periodic maintenance
-void wilderness_performance_check() {
-    // Check room pool usage
-    // Monitor KD-tree performance
-    // Test database connectivity
-    // Report metrics to logs
-}
-```
-
-### Maintenance Tasks
-
-**Regular Maintenance:**
-- Rebuild KD-Tree indexes when static rooms change
-- Clean up orphaned dynamic rooms
-- Optimize database indexes
-- Monitor and rotate log files
-
-**Database Maintenance:**
-```sql
--- Optimize spatial indexes
-OPTIMIZE TABLE region_data;
-OPTIMIZE TABLE path_data;
-
--- Check for data integrity
-SELECT COUNT(*) FROM region_data WHERE region_polygon IS NULL;
-SELECT COUNT(*) FROM path_data WHERE path_linestring IS NULL;
-```
+**Monitor:** Room pool <80%, KD-Tree <1ms, DB queries <100ms
+**Tasks:** Rebuild KD-Tree, clean orphaned rooms, optimize DB indexes
 
 ---
 
 ## System Integration
 
-The wilderness system integrates with multiple other game systems:
-
-### Combat System Integration
-- **Battlegrounds**: Wilderness provides diverse tactical environments for combat
-- **Terrain Effects**: Different sector types affect movement, visibility, and combat mechanics
-- **Cover and Concealment**: Forest and mountain terrain provide tactical advantages
-- **Environmental Hazards**: Weather and terrain can affect combat outcomes
-
-### Quest System Integration
-- **Quest Locations**: Static wilderness rooms serve as quest destinations
-- **Dynamic Objectives**: Procedural content can generate quest targets
-- **Region-Based Quests**: Regions can trigger specific quest content
-- **Exploration Rewards**: Discovery of new areas can provide quest completion
-
-### Scripting System Integration
-- **Room Triggers**: Wilderness rooms support DG Script triggers
-- **Region Events**: Regions can execute scripts when players enter/exit
-- **Path Interactions**: Roads and rivers can have associated script events
-- **Weather Scripts**: Weather changes can trigger environmental scripts
-
-### Player System Integration
-- **Movement Handling**: Seamless integration with standard movement commands
-- **Coordinate Tracking**: Player positions tracked in wilderness coordinate system
-- **Mapping Integration**: Automatic map display and navigation assistance
-- **Preference System**: Player preferences for automap, GUI mode, etc.
-
-### Event System Integration
-- **Timed Events**: Wilderness areas can host scheduled events
-- **Seasonal Changes**: Environmental changes based on game calendar
-- **Dynamic Spawning**: Event-driven NPC and object spawning
-- **Weather Events**: Integration with global weather patterns
-
-### Database Integration
-- **Spatial Queries**: MySQL spatial functions for region and path management
-- **Performance Optimization**: Indexed spatial data for fast lookups
-- **Data Persistence**: Region and path data stored permanently
-- **Real-time Updates**: Dynamic updates to wilderness features
-
-This comprehensive integration creates a dynamic, living wilderness environment that responds to player actions while maintaining consistent game world rules and behaviors.
+**Combat:** Terrain modifiers, cover/concealment, environmental hazards
+**Quests:** Static destinations, region triggers, exploration rewards
+**Scripts:** DG triggers, region events, weather scripts
+**Players:** Movement, coordinate tracking, automap
+**Events:** Timed events, seasonal changes, dynamic spawning
+**Database:** MySQL spatial queries, indexed lookups, persistent data
 
 ---
 
 ## Advanced Features
 
-### Dynamic Content Generation
+**Dynamic Content:** Terrain-based encounters, weather effects, resource respawning, loot tables
 
-The wilderness system supports various forms of dynamic content beyond basic terrain:
+**Performance:** Room pool recycling at 90%, KD-Tree O(log n) lookups, spatial DB indexes
 
-**Environmental Spawning:**
-- Random encounters based on terrain type and regions
-- Dynamic weather effects that vary by location and time
-- Seasonal changes affecting terrain appearance
-- Time-based lighting and visibility modifications
+**Customization:** Add sector types via wild_map_info[], region scripts, custom path types
 
-**Resource Generation:**
-- Harvestable resources that respawn based on biome
-- Dynamic treasure spawning in appropriate terrain
-- Region-specific loot tables and spawn rates
-- Environmental hazards and special features
+## Resources
 
-### Performance Optimization Details
+**Files:** wilderness.c/h, perlin.c/h, mysql.c/h, act.movement.c, act.wizard.c
 
-**Memory Management:**
-```c
-// Dynamic room pool management
-#define DYNAMIC_ROOM_POOL_SIZE (WILD_DYNAMIC_ROOM_VNUM_END - WILD_DYNAMIC_ROOM_VNUM_START + 1)
-
-// Room recycling when pool approaches capacity
-if (used_rooms > (DYNAMIC_ROOM_POOL_SIZE * 0.9)) {
-    cleanup_unused_wilderness_rooms();
-}
-```
-
-**KD-Tree Performance:**
-- O(log n) lookup time for static room queries
-- Automatic rebuilding when static rooms are added/removed
-- Spatial indexing optimized for 2D coordinate queries
-- Memory-efficient storage of room references
-
-**Database Query Optimization:**
-- Spatial indexes on region_polygon and path_linestring columns
-- Prepared statements for frequent queries
-- Connection pooling and automatic reconnection
-- Batch operations for bulk data loading
-
-### Integration with Other Systems
-
-**Combat System Integration:**
-```c
-// Terrain affects combat mechanics
-int get_terrain_combat_modifier(int sector_type) {
-    switch (sector_type) {
-        case SECT_FOREST:
-            return COMBAT_COVER_BONUS;
-        case SECT_MOUNTAIN:
-            return COMBAT_HIGH_GROUND_BONUS;
-        case SECT_WATER_SWIM:
-            return COMBAT_MOVEMENT_PENALTY;
-        default:
-            return 0;
-    }
-}
-```
-
-**Quest System Integration:**
-- Dynamic quest objectives based on wilderness exploration
-- Region-based quest triggers and completion
-- Procedural quest generation using terrain features
-- Discovery rewards for finding new areas
-
-**Scripting System (DG Scripts) Integration:**
-- Room triggers that activate based on coordinates
-- Region entry/exit script execution
-- Weather-based script triggers
-- Time-of-day wilderness events
-
-### Advanced Configuration
-
-**Custom Terrain Types:**
-```c
-// Adding new sector types requires:
-// 1. Define new SECT_* constant
-// 2. Add to wild_map_info[] array with display glyph
-// 3. Update get_sector_type() logic
-// 4. Add to sector_map configuration
-
-struct wild_map_info_type custom_terrain = {
-    SECT_CUSTOM_SWAMP,
-    "\tg\t[u127807/S]\tn",  // Green swamp symbol
-    {variant_glyphs}         // Optional variants
-};
-```
-
-**Region Scripting:**
-```c
-// Regions can execute scripts on entry/exit
-struct region_data {
-    // ... existing fields ...
-    struct list_data *events;  // Script events
-    char *entry_script;        // Script on region entry
-    char *exit_script;         // Script on region exit
-    int script_flags;          // Script execution flags
-};
-```
-
-**Path Customization:**
-```c
-// Custom path types with special properties
-#define PATH_CUSTOM_BRIDGE 7
-#define PATH_CUSTOM_TUNNEL 8
-
-// Path glyphs for different orientations
-char *path_glyphs[3] = {
-    "\tY|\tn",    // North-South glyph
-    "\tY-\tn",    // East-West glyph
-    "\tY+\tn"     // Intersection glyph
-};
-```
-
-## Additional Resources
-
-### Related Documentation
-- `docs/building_game-data/attaching_zones_wilderness.md` - Builder guide for zone attachment
-- `docs/systems/COMBAT_SYSTEM.md` - Combat system integration
-- `docs/systems/SCRIPTING_SYSTEM_DG.md` - DG Scripts integration
-- `docs/systems/OLC_ONLINE_CREATION_SYSTEM.md` - OLC system documentation
-
-### Source Code Files
-- `wilderness.c/h` - Main wilderness implementation
-- `perlin.c/h` - Noise generation algorithms
-- `mysql.c/h` - Database integration
-- `act.movement.c` - Movement handling and buildwalk
-- `act.wizard.c` - Administrative commands (genriver, genmap)
-- `oasis_copy.c` - Buildwalk implementation
-- `handler.c` - Character placement and room management
-- `db.c` - World loading and wilderness initialization
-
-### Database Schema Files
-```sql
--- Core wilderness tables
-CREATE TABLE wilderness_data (
-    id INT PRIMARY KEY,
-    zone_vnum INT,
-    nav_vnum INT,
-    dynamic_vnum_pool_start INT,
-    dynamic_vnum_pool_end INT,
-    x_size INT,
-    y_size INT,
-    elevation_seed INT,
-    distortion_seed INT,
-    moisture_seed INT,
-    min_temp INT,
-    max_temp INT
-);
-
-CREATE TABLE region_data (
-    vnum INT PRIMARY KEY,
-    zone_vnum INT,
-    name VARCHAR(255),
-    region_type INT,
-    region_polygon GEOMETRY,
-    region_props INT,
-    region_reset_data TEXT,
-    region_reset_time INT,
-    SPATIAL INDEX(region_polygon)
-);
-
-CREATE TABLE path_data (
-    vnum INT PRIMARY KEY,
-    zone_vnum INT,
-    name VARCHAR(255),
-    path_type INT,
-    path_linestring GEOMETRY,
-    path_props INT,
-    SPATIAL INDEX(path_linestring)
-);
-
-CREATE TABLE path_types (
-    path_type INT PRIMARY KEY,
-    glyph_ns VARCHAR(50),
-    glyph_ew VARCHAR(50),
-    glyph_int VARCHAR(50)
-);
-```
-
-### Development Guidelines
-
-**Adding New Features:**
-1. Consider impact on existing wilderness areas
-2. Test with both static and dynamic rooms
-3. Verify database schema changes are backward compatible
-4. Update documentation and builder guides
-5. Test performance impact with large coordinate ranges
-
-**Debugging Workflow:**
-1. Check log files for wilderness-related errors
-2. Verify database connectivity and spatial functions
-3. Test noise generation with known coordinates
-4. Validate KD-tree indexing with stat commands
-5. Monitor dynamic room pool usage
-
-**Performance Monitoring:**
-```c
-// Add to periodic maintenance routine
-void wilderness_health_check() {
-    int static_rooms = count_static_wilderness_rooms();
-    int dynamic_used = count_occupied_dynamic_rooms();
-    double kd_tree_efficiency = measure_kd_tree_performance();
-
-    log("Wilderness Health: Static=%d, Dynamic=%d/%d, KD-Tree=%.2fms",
-        static_rooms, dynamic_used, DYNAMIC_ROOM_POOL_SIZE, kd_tree_efficiency);
-
-    if (dynamic_used > (DYNAMIC_ROOM_POOL_SIZE * 0.8)) {
-        log("WARNING: Dynamic room pool approaching capacity");
-    }
-}
-```
+**Tables:** wilderness_data, region_data, path_data, path_types (all with spatial indexes)
 
 ---
 
-*This comprehensive documentation covers all aspects of the Luminari MUD Wilderness System. The system is designed to be extensible and performant, supporting both small-scale wilderness areas and large procedural worlds. For specific implementation details, advanced customization, or troubleshooting complex issues, refer to the source code and consult with the development team.*
+*Wilderness system supporting 2048x2048 procedural terrain with dynamic rooms, regions, paths, and weather. See source code for implementation details.*
