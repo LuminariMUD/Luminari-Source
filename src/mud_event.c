@@ -1255,17 +1255,30 @@ void free_mud_event(struct mud_event_data *pMudEvent)
     break;
   case EVENT_REGION:
     regvnum = (region_vnum *)pMudEvent->pStruct;
-
-    region = &region_table[real_region(*regvnum)];
-
+    
+    /* CRITICAL: Check if region still exists before accessing region_table.
+     * During reload, regions may be removed or reordered, causing real_region
+     * to return NOWHERE (-1), which would cause memory corruption. */
+    region_rnum rnum = real_region(*regvnum);
+    
     free(pMudEvent->pStruct);
+    
+    if (rnum != NOWHERE)
+    {
+      region = &region_table[rnum];
+      remove_from_list(pMudEvent->pEvent, region->events);
 
-    remove_from_list(pMudEvent->pEvent, region->events);
-
-    if (region->events && region->events->iSize == 0)
-    { /* Added the null check here. - Ornir*/
-      free_list(region->events);
-      region->events = NULL;
+      if (region->events && region->events->iSize == 0)
+      { /* Added the null check here. - Ornir*/
+        free_list(region->events);
+        region->events = NULL;
+      }
+    }
+    else
+    {
+      /* Region no longer exists - this can happen during reload.
+       * Just log it for debugging purposes. */
+      log("INFO: Event for region vnum %d cancelled, but region no longer exists", *regvnum);
     }
     break;
   }
