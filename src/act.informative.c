@@ -5922,6 +5922,7 @@ ACMD(do_who)
   int i, num_can_see = 0;
 #if !defined(CAMPAIGN_DL)  
   int class_len = 0;
+  size_t len = 0;
 #else
   char clan_name[MAX_CLAN_NAME] = {'\0'}; /* Currently unused */
   int length = 0, padding = 0;
@@ -5934,7 +5935,6 @@ ACMD(do_who)
   int showrace = 0;
   int mortals = 0, staff = 0;
   clan_rnum c_n;
-  size_t len = 0;
   /* char clan_name[50]; */ /* Currently unused */
   /* int length = 0; */ /* Currently unused */
   /* int padding = 0; */ /* Currently unused */
@@ -6130,7 +6130,9 @@ ACMD(do_who)
     for (d = descriptor_list; d; d = d->next)
     {
       *classes_list = '\0';
+#if !defined(CAMPAIGN_DL)
       len = 0;
+#endif
       if (d->original)
         tch = d->original;
       else if (!(tch = d->character))
@@ -6190,10 +6192,14 @@ ACMD(do_who)
           clan_name[28] = ' ';
       }
       if (GET_LEVEL(tch) >= LVL_IMMORT)
+      {
         send_to_char(ch, "\tW[\tC%28.28s \tW]\tn %s", clan_name, GET_TITLE(tch));
+      }
       else
+      {
         send_to_char(ch, "\tW[ \tC%2d %-4.4s %-20.20s \tW]\tn %s", GET_LEVEL(tch), race_list[GET_REAL_RACE(tch)].abbrev,
         ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0) ? CLAN_NAME(c_n) : "Adventurer", GET_TITLE(tch));
+      }
 
         // num_can_see++;
         if (GET_LEVEL(tch) >= LVL_IMMORT)
