@@ -208,6 +208,12 @@ struct mud_event_list
   const char *event_name;
   EVENTFUNC(*func);
   int iEvent_Type;
+  
+  /* Extended fields for centralized handling */
+  const char *completion_msg;      /* Message when countdown completes */
+  const char *recovery_msg;         /* Message for daily use recovery */
+  int feat_num;                     /* Associated feat (FEAT_UNDEFINED if none) */
+  int daily_uses;                   /* Non-feat daily uses (0 if feat-based) */
 };
 
 struct mud_event_data
