@@ -646,6 +646,7 @@ void load_regions()
       region_table[i].region_props = 0;
       region_table[i].reset_time = 0;
       region_table[i].reset_data = NULL;
+      region_table[i].events = NULL;  /* CRITICAL: Initialize events list to NULL */
       i++;
       continue;
     }
@@ -659,6 +660,7 @@ void load_regions()
     region_table[i].region_props = atoi(row[6]);
     region_table[i].reset_time = 0;
     region_table[i].reset_data = NULL;
+    region_table[i].events = NULL;  /* CRITICAL: Initialize events list to NULL */
 
     /* Validate num_vertices is within reasonable bounds */
     if (region_table[i].num_vertices < 0 || region_table[i].num_vertices > 1024) {

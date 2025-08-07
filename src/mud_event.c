@@ -1578,7 +1578,6 @@ void clear_room_event_list(struct room_data *rm)
 void clear_region_event_list(struct region_data *reg)
 {
   struct event *pEvent = NULL;
-  struct list_data *temp_list = NULL;
 
   if (reg->events == NULL)
     return;
@@ -1586,28 +1585,47 @@ void clear_region_event_list(struct region_data *reg)
   if (reg->events->iSize == 0)
     return;
 
-  /* Create a temporary list to hold events that need to be cancelled */
-  temp_list = create_list();
-
-  /* First pass: collect all events that need cancelling */
-  simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(reg->events)) != NULL)
+  /* Cancel all events. Each cancellation will remove the event from reg->events,
+   * so we keep taking the first item until the list is empty.
+   * This avoids double-free issues that can occur when using a temp_list. */
+  while (reg->events && reg->events->iSize > 0)
   {
-    if (event_is_queued(pEvent))
-      add_to_list(pEvent, temp_list);
+    /* Get the first event from the list */
+    pEvent = (struct event *)reg->events->pFirstItem->pContent;
+    
+    if (pEvent && event_is_queued(pEvent))
+    {
+      /* event_cancel will call free_mud_event which removes the event from reg->events */
+      event_cancel(pEvent);
+    }
+    else
+    {
+      /* If event is not queued, we still need to remove it from the list */
+      if (pEvent)
+      {
+        remove_from_list(pEvent, reg->events);
+      }
+      else
+      {
+        /* Corrupted list item - remove it manually */
+        struct item_data *pItem = reg->events->pFirstItem;
+        reg->events->pFirstItem = pItem->pNextItem;
+        if (reg->events->pFirstItem)
+          reg->events->pFirstItem->pPrevItem = NULL;
+        else
+          reg->events->pLastItem = NULL;
+        reg->events->iSize--;
+        free(pItem);
+      }
+    }
   }
-  simple_list(NULL);
-
-  /* Second pass: cancel the collected events */
-  simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(temp_list)) != NULL)
+  
+  /* Clean up the empty list if it still exists */
+  if (reg->events && reg->events->iSize == 0)
   {
-    event_cancel(pEvent);
+    free_list(reg->events);
+    reg->events = NULL;
   }
-  simple_list(NULL);
-
-  /* Clean up the temporary list */
-  free_list(temp_list);
 }
 
 /* ripley's version of change_event_duration
