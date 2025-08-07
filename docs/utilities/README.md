@@ -1,20 +1,21 @@
 # Luminari MUD Utilities and Tools Guide
 
 # Assembled by Zusuk
-# Last Updated: July 27, 2025
+# Last Updated: January 27, 2025
 
 ## Table of Contents
 
 1. [Introduction](#introduction)
 2. [Utility Programs](#utility-programs)
-3. [Social Commands System](#social-commands-system)
-4. [Color System](#color-system)
-5. [Automation Scripts](#automation-scripts)
-6. [Maintenance Tools](#maintenance-tools)
-7. [Development Utilities](#development-utilities)
-8. [System Integration](#system-integration)
-9. [Advanced Features](#advanced-features)
-10. [Troubleshooting](#troubleshooting)
+3. [PHP Web Tools](#php-web-tools)
+4. [Social Commands System](#social-commands-system)
+5. [Color System](#color-system)
+6. [Automation Scripts](#automation-scripts)
+7. [Maintenance Tools](#maintenance-tools)
+8. [Development Utilities](#development-utilities)
+9. [System Integration](#system-integration)
+10. [Advanced Features](#advanced-features)
+11. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -33,6 +34,11 @@ Luminari MUD comes with a comprehensive set of utility programs, tools, and syst
 - Player file management
 - Database maintenance
 - System cleanup tools
+
+**Web-Based Tools:**
+- PHP tools for item analysis
+- Encounter and hunt creation
+- Spell help generation
 
 **Informational Utilities:**
 - Data analysis tools
@@ -195,6 +201,168 @@ Edit the autowiz configuration in your MUD's source code to customize:
 - Ranking criteria
 - Output format
 - Update frequency
+
+---
+
+## PHP Web Tools
+
+All PHP tools are located in the `util/` directory and provide web-based interfaces for game administration.
+
+### Overview
+
+**Current Status**: All PHP tools have been relocated to the `util/` directory and updated with security improvements and proper documentation.
+
+### Main Tools
+
+1. **util/bonus_breakdown.php** - Item bonus analysis tool (wear slot breakdown)
+2. **util/bonuses.php** - Item bonus cross-reference matrix tool
+3. **util/enter_encounter.php** - Random encounter generator tool
+4. **util/enter_hunt.php** - Hunt system creator tool
+5. **util/enter_spell_help.php** - Spell/power help file generator
+
+### Supporting Files
+
+6. **util/config.php** - Shared configuration and security utilities
+7. **util/autoload.php** - PSR-4 compliant autoloader for PHP classes
+
+### Accessing the Tools
+
+When deployed on a web server, the tools can be accessed at:
+- `/util/bonus_breakdown.php` - Item bonus analysis by wear slot
+- `/util/bonuses.php` - Item bonus cross-reference matrix
+- `/util/enter_encounter.php` - Create new random encounters
+- `/util/enter_hunt.php` - Create new hunt mobs
+- `/util/enter_spell_help.php` - Generate spell/power help entries
+
+### Security Features
+
+#### Critical Security Improvements
+1. **SQL Injection Prevention**
+   - Parameterized queries with proper validation
+   - Input whitelisting for all user inputs
+   - Enhanced PDO configuration with security options
+
+2. **Cross-Site Scripting (XSS) Prevention**
+   - Proper HTML escaping for all output
+   - Content Security Policy headers
+   - Sanitized user inputs before processing
+
+3. **Authentication & Authorization**
+   - Session-based authentication system
+   - Role-based access control
+   - Authentication logging and monitoring
+
+4. **CSRF Protection**
+   - CSRF tokens for all forms
+   - Token validation for form submissions
+   - Secure token generation using cryptographically secure methods
+
+5. **Input Validation**
+   - Comprehensive input validation for all parameters
+   - Whitelist-based validation for dropdown selections
+   - Length limits and character restrictions
+
+### Deployment Instructions
+
+#### Prerequisites
+- PHP 7.4 or higher (PHP 8.1+ recommended)
+- MySQL 5.7 or higher
+- Web server (Apache/Nginx) with HTTPS enabled
+- Composer (for dependency management)
+
+#### Installation Steps
+
+1. **Navigate to PHP Tools Directory**
+   ```bash
+   cd util/
+   ```
+
+2. **Environment Setup**
+   ```bash
+   # Copy environment configuration (if using .env)
+   cp .env.example .env
+   
+   # Edit .env with your actual configuration
+   nano .env
+   ```
+
+3. **Database Configuration**
+   ```sql
+   -- Create database user with limited privileges
+   CREATE USER 'luminari_tools'@'localhost' IDENTIFIED BY 'secure_password';
+   GRANT SELECT ON luminari_db.* TO 'luminari_tools'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
+
+4. **File Permissions**
+   ```bash
+   # Set proper file permissions (from util/ directory)
+   chmod 644 *.php
+   chmod 600 .env
+   # Create and set permissions for cache/logs if needed
+   mkdir -p cache logs
+   chmod 755 cache/
+   chmod 755 logs/
+   ```
+
+5. **Web Server Configuration**
+   
+   **Apache (.htaccess in util/ directory)**
+   ```apache
+   # Deny access to sensitive files
+   <Files ".env">
+       Require all denied
+   </Files>
+   
+   <Files "config.php">
+       Require all denied
+   </Files>
+   
+   <Files "autoload.php">
+       Require all denied
+   </Files>
+   
+   # Force HTTPS
+   RewriteEngine On
+   RewriteCond %{HTTPS} off
+   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+   ```
+
+   **Nginx**
+   ```nginx
+   # Deny access to sensitive files in util/ directory
+   location ~ /util/\.(env|git) {
+       deny all;
+   }
+   
+   location ~ /util/(config|autoload)\.php$ {
+       deny all;
+   }
+   
+   # Force HTTPS
+   if ($scheme != "https") {
+       return 301 https://$server_name$request_uri;
+   }
+   ```
+
+### Security Recommendations
+
+#### Immediate Actions Required
+1. **Change Default Credentials**
+   - Update all default passwords
+   - Generate secure API keys
+   - Configure proper authentication
+
+2. **Enable Authentication**
+   - Authentication checks are present but may need to be activated
+   - The tools check for $_SESSION['authenticated'] and role-based access
+   - Implement a user management system to set these session variables
+   - Configure role-based access (developer, content_creator, admin, data_analyst)
+
+3. **SSL/TLS Configuration**
+   - Ensure HTTPS is properly configured
+   - Use strong SSL/TLS ciphers
+   - Implement HSTS headers
 
 ---
 
@@ -867,6 +1035,20 @@ file input_file
 head -n 10 input_file
 ```
 
+### PHP Tool Issues
+
+**Authentication not working:**
+- Check session configuration in PHP
+- Verify session directory is writable
+- Ensure cookies are enabled
+- Check authentication implementation
+
+**Database connection errors:**
+- Verify database credentials in config
+- Check MySQL/MariaDB is running
+- Ensure database user has proper permissions
+- Test connection manually
+
 ### Social System Issues
 
 **Socials not working:**
@@ -913,7 +1095,7 @@ head -n 10 input_file
 
 ## Conclusion
 
-The utilities and tools provided with Luminari MUD form a comprehensive ecosystem for managing, maintaining, and enhancing your MUD server. From basic file conversion to advanced automation systems, these tools are designed to reduce administrative overhead and improve the overall experience for both administrators and players.
+The utilities and tools provided with Luminari MUD form a comprehensive ecosystem for managing, maintaining, and enhancing your MUD server. From basic file conversion to advanced automation systems and web-based administration tools, these utilities are designed to reduce administrative overhead and improve the overall experience for both administrators and players.
 
 ### Key Takeaways
 
@@ -922,6 +1104,12 @@ The utilities and tools provided with Luminari MUD form a comprehensive ecosyste
 - Always backup data before running conversion utilities
 - Test utilities in a development environment first
 - Keep utilities updated with your MUD version
+
+**Web Tools Security:**
+- Implement proper authentication before deployment
+- Use HTTPS for all web interfaces
+- Keep PHP and dependencies updated
+- Follow security best practices
 
 **Automation Benefits:**
 - Reduces manual administrative tasks
@@ -948,6 +1136,12 @@ The utilities and tools provided with Luminari MUD form a comprehensive ecosyste
 - Monitor system performance regularly
 - Keep detailed logs of administrative actions
 - Plan for disaster recovery scenarios
+
+**Security:**
+- Regular security audits
+- Keep all software updated
+- Implement proper access controls
+- Monitor for suspicious activity
 
 **Community:**
 - Share useful utilities with the MUD community
@@ -977,8 +1171,14 @@ The utilities and tools provided with Luminari MUD form a comprehensive ecosyste
 - **Database Documentation:** Integration guides
 - **System Administration:** Unix/Linux administration guides
 
+### Contact Information
+For questions about utilities or deployment:
+- Security Team: security@luminari.org
+- Development Team: dev@luminari.org
+- Documentation: https://docs.luminari.org
+
 ---
 
-*This utilities guide consolidates information from utils.txt, socials.txt, color.txt, and numerous utility README files, updated and expanded for modern MUD administration and development.*
+*This utilities guide consolidates information from all utility documentation, including web tools, social systems, color systems, and maintenance utilities, providing a comprehensive reference for modern MUD administration and development.*
 
-*Last updated: July 27, 2025*
+*Last updated: January 27, 2025*
