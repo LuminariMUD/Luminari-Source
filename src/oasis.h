@@ -469,6 +469,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define CEDIT_MENU 14
 #define CEDIT_WELC_MESSG 15
 #define CEDIT_START_MESSG 16
+#define CEDIT_EXTRA_GAME_OPTIONS_MENU 17
 
 /* Numerical responses. */
 #define CEDIT_NUMERICAL_RESPONSE 20
@@ -538,6 +539,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define CEDIT_PLAYER_OPTIONS_SUMMON_30_HITDAM 84
 #define CEDIT_PLAYER_OPTIONS_SUMMON_30_AC 85
 #define CEDIT_PLAYER_OPTIONS_ALCHEMY_PREP_TIME 86
+#define CEDIT_SET_CAMPAIGN 87
 
 /* Hedit Submodes of connectedness. */
 #define HEDIT_CONFIRM_SAVESTRING 0
