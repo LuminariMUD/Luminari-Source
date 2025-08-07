@@ -7498,7 +7498,7 @@ void save_objects_to_database(struct char_data *ch)
                                    zone_num,                                      // N
                                    zone_name,                                     // O
                                    notes,                                         // P
-                                   GET_ENHANCEMENT_BONUS(obj)                     // Q
+                                     GET_ENHANCEMENT_BONUS(obj)                     // Q
     );
     if (mysql_query(conn, query))
     {
@@ -7549,10 +7549,12 @@ void save_objects_to_database(struct char_data *ch)
             switch (obj->affected[i].location)
             {
               case APPLY_FEAT:
-                snprintf(bonus, sizeof(bonus), "%s", feat_list[obj->affected[i].modifier].name);
+                if (obj->affected[i].modifier >= 0 && obj->affected[i].modifier < FEAT_LAST_FEAT)
+                  snprintf(bonus, sizeof(bonus), "%s", feat_list[obj->affected[i].modifier].name);
                 break;
               case APPLY_SKILL:
-                snprintf(bonus, sizeof(bonus), "%s", ability_names[obj->affected[i].specific]);
+                if (obj->affected[i].modifier >= 0 && obj->affected[i].modifier <= (NUM_ABILITIES - START_GENERAL_ABILITIES + 3))
+                  snprintf(bonus, sizeof(bonus), "%s", ability_names[obj->affected[i].specific]);
                 break;
               case APPLY_SPELL_CIRCLE_1:
               case APPLY_SPELL_CIRCLE_2:
@@ -7563,7 +7565,8 @@ void save_objects_to_database(struct char_data *ch)
               case APPLY_SPELL_CIRCLE_7:
               case APPLY_SPELL_CIRCLE_8:
               case APPLY_SPELL_CIRCLE_9:
-                snprintf(bonus, sizeof(bonus), "%s", class_names[obj->affected[i].specific]);
+                if (obj->affected[i].modifier >= 0 && obj->affected[i].modifier < NUM_CLASSES)
+                  snprintf(bonus, sizeof(bonus), "%s", class_names[obj->affected[i].specific]);
                 break;
               default:
                 bonus[0] = '\0';
