@@ -5270,6 +5270,77 @@ void text_line(struct char_data *ch, const char *text, int length, char first, c
   send_to_char(ch, "%s", text_line_string(text, length, first, second));
 }
 
+/* Time formatting helpers */
+const char *format_time_ymd_hms(time_t when)
+{
+  static char buf[20]; /* YYYY-MM-DD HH:MM:SS -> 19 + NUL */
+  struct tm *tm_info = localtime(&when);
+  if (tm_info == NULL)
+  {
+    /* Fallback */
+    strlcpy(buf, "1970-01-01 00:00:00", sizeof(buf));
+    return buf;
+  }
+  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", tm_info);
+  return buf;
+}
+
+/* Directory creation helper */
+#ifdef _WIN32
+#include <direct.h>
+#define MKDIR(path) _mkdir(path)
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#define MKDIR(path) mkdir(path, 0775)
+#endif
+
+bool ensure_dir_exists(const char *path)
+{
+  if (path == NULL || *path == '\0')
+    return false;
+
+  /* Work on a mutable copy */
+  char tmp[MAX_INPUT_LENGTH];
+  strlcpy(tmp, path, sizeof(tmp));
+
+  size_t len = strlen(tmp);
+  if (len == 0)
+    return false;
+
+  /* Remove trailing slash to avoid creating empty segment */
+  if (tmp[len - 1] == '/' || tmp[len - 1] == '\\')
+    tmp[len - 1] = '\0';
+
+  char *p = tmp;
+  /* For absolute paths starting with '/', skip initial slash */
+  if (*p == '/')
+    p++;
+
+  for (; *p; ++p)
+  {
+    if (*p == '/' || *p == '\\')
+    {
+      *p = '\0';
+      if (strlen(tmp) > 0)
+      {
+        if (MKDIR(tmp) != 0)
+        {
+          /* Ignore if already exists */
+          /* On POSIX, EEXIST; on Windows, errno also set */
+        }
+      }
+      *p = '/';
+    }
+  }
+  /* Create full path */
+  if (MKDIR(tmp) != 0)
+  {
+    /* Ignore if already exists */
+  }
+  return true;
+}
+
 /* Name:   calculate_cp
  * Author: Ornir
  * Param:  Object to calculate cp for

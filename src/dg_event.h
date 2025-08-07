@@ -43,8 +43,34 @@ struct event
 /**************************************************************************
  * Begin priority queue structures and defines.
  **************************************************************************/
-/** Number of buckets available in each queue. Reduces enqueue cost. */
+/** Number of buckets available in each queue. Reduces enqueue cost.
+ * 
+ * TECHNICAL EXPLANATION FOR BEGINNERS:
+ * Instead of having one giant queue for all events, we use multiple
+ * smaller queues (buckets). Events are distributed across these buckets
+ * based on their scheduled time (using modulo/remainder operation).
+ * 
+ * WHY USE MULTIPLE BUCKETS?
+ * - Faster insertion: Searching for the right position in a smaller list
+ *   is faster than searching in one huge list.
+ * - Better cache performance: Smaller lists fit better in CPU cache.
+ * - Distributed processing: Each pulse only checks one bucket.
+ * 
+ * The value 10 was chosen as a good balance between:
+ * - Memory usage (more buckets = more memory)
+ * - Performance (more buckets = smaller lists to search)
+ * - Even distribution (10 divides evenly into many common timer values)
+ */
 #define NUM_EVENT_QUEUES 10
+
+/** Maximum number of events allowed in the system at once.
+ * This prevents resource exhaustion attacks where someone could
+ * create millions of events and crash the server.
+ * 
+ * BEGINNERS NOTE: This is a safety limit. Normal gameplay should
+ * never reach this limit. If it does, either there's a bug creating
+ * too many events, or this limit needs to be increased. */
+#define MAX_EVENTS 10000
 
 /** The priority queue. */
 struct dg_queue
