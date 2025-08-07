@@ -987,4 +987,116 @@ int wild_waterline = 128;                  // Runtime waterline for actual terra
 
 ---
 
+## Region Reload System Architecture
+
+### Overview
+The `reloadimm regions` command reloads wilderness regions from the MySQL database without requiring a server restart. This involves multiple interconnected systems that must be carefully coordinated to prevent memory corruption and crashes.
+
+### Systems Involved
+
+#### 1. MUD Event System (mud_event.c/h)
+- **new_mud_event()** - Creates event data structures with strdup'd variables
+- **attach_mud_event()** - Attaches events to the global event queue
+- **free_mud_event()** - Frees events and removes from associated lists
+- **clear_region_event_list()** - Safely cancels all events for a region
+- **EVENT_REGION** type events for encounter resets
+
+#### 2. DG Event Queue System (dg_event.c/h)
+- **event_create()** - Creates events and enqueues them
+- **event_cancel()** - Dequeues and frees events (calls cleanup_event_obj)
+- **queue_enq() / queue_deq()** - Queue management functions
+- **event_q** - The global event queue (static queue pointer)
+- **cleanup_event_obj()** - Calls free_mud_event for mud events
+
+#### 3. Custom List System (lists.c/h)
+- **create_list()** - Creates linked lists for event management
+- **add_to_list()** - Adds items to lists
+- **remove_from_list()** - Removes items from lists  
+- **free_list()** - Frees entire lists
+- **simple_list()** - Safe iterator for lists
+- Each region has an `events` list field
+
+#### 4. MySQL Database System (mysql.c)
+- **load_regions()** - Main function that loads region data
+- Queries `region_data` table for polygon geometry
+- Handles encounter region reset data and timers
+- Creates encounter reset events for regions
+
+#### 5. Region/Wilderness System (wilderness.h, db.c)
+- **region_table** - Global array of struct region_data
+- **struct region_data** - Contains events list, reset_data, reset_time
+- **real_region()** - Converts vnum to rnum (returns NOWHERE if not found)
+- **REGION_ENCOUNTER** type regions with reset functionality
+
+#### 6. Memory Management
+- **CREATE macro** - Wrapper around calloc for zeroed allocation
+- **strdup()** - String duplication for dynamic strings
+- Manual **free()** calls for cleanup sequences
+- Critical initialization of NULL pointers
+
+### Critical Issues and Fixes
+
+#### Issue 1: Uninitialized Events Field
+**Problem:** The `events` field in struct region_data was not explicitly initialized to NULL after CREATE allocation, leading to heap corruption.
+
+**Fix:** Explicitly initialize all pointer fields:
+```c
+region_table[i].events = NULL;  /* CRITICAL: Initialize events list to NULL */
+```
+
+#### Issue 2: Double Free in Event Cleanup
+**Problem:** The original clear_region_event_list used a temp_list approach that caused double-free errors because event_cancel removes events from the region's list.
+
+**Fix:** Process events directly from the region's list one at a time:
+```c
+while (reg->events && reg->events->iSize > 0) {
+    pEvent = (struct event *)reg->events->pFirstItem->pContent;
+    if (pEvent && event_is_queued(pEvent))
+        event_cancel(pEvent);  /* This removes event from reg->events */
+}
+```
+
+#### Issue 3: NOWHERE Check in free_mud_event
+**Problem:** During reload, real_region() may return NOWHERE (-1) causing buffer underflow when accessing region_table[-1].
+
+**Fix:** Check for NOWHERE before accessing region_table:
+```c
+region_rnum rnum = real_region(*regvnum);
+if (rnum != NOWHERE) {
+    region = &region_table[rnum];
+    remove_from_list(pMudEvent->pEvent, region->events);
+}
+```
+
+### Event Lifecycle During Reload
+
+1. **Clear Phase:** All existing region events are cancelled
+   - clear_region_event_list() called for each region
+   - event_cancel() → cleanup_event_obj() → free_mud_event()
+   - Events removed from both event_q and region->events
+
+2. **Free Phase:** Region memory is freed
+   - Region names, vertices, reset_data freed
+   - Old region_table freed
+
+3. **Load Phase:** New regions loaded from database
+   - New region_table allocated with CREATE
+   - All fields explicitly initialized including events = NULL
+   - Region data populated from MySQL
+
+4. **Event Creation Phase:** New events created
+   - For REGION_ENCOUNTER types with reset_time > 0
+   - NEW_EVENT macro creates and attaches events
+   - Events added to both event_q and region->events
+
+### Memory Safety Patterns
+
+- Always check pointers before freeing
+- Initialize all pointer fields explicitly
+- Process lists carefully when items self-remove
+- Separate event cleanup from memory cleanup phases
+- Use NOWHERE checks when converting vnums to rnums
+
+---
+
 *Wilderness system supporting 2048x2048 procedural terrain with dynamic rooms, regions, paths, and weather. See source code for implementation details.*
