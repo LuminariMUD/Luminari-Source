@@ -1246,7 +1246,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
 }
 /* End of Kel's look_at_room_number function */
 
-/* look at a room */
+/* Main function to display room information when a player looks around */
 void look_at_room(struct char_data *ch, int ignore_brief)
 {
   trig_data *t;
@@ -1257,31 +1257,35 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char *generated_desc = NULL;
 
+  /* Player must have active connection to see anything */
   if (!ch->desc)
     return;
 
+  /* Get current location info */
   target_room = IN_ROOM(ch);
   zn = GET_ROOM_ZONE(target_room);
 
-  /* set up variables to establish light/dark situation */
+  /* Check if room is dark (magical darkness or normal darkness) */
   if (ROOM_FLAGGED(target_room, ROOM_MAGICDARK) || IS_DARK(target_room))
     room_dark = TRUE;
 
+  /* Override darkness if player has special vision abilities */
   if (room_dark)
   {
-    if (CAN_SEE_IN_DARK(ch))
+    if (CAN_SEE_IN_DARK(ch))  /* Has darkvision or similar */
       room_dark = FALSE;
-    else if (CAN_INFRA_IN_DARK(ch))
+    else if (CAN_INFRA_IN_DARK(ch))  /* Has infravision (heat vision) */
     {
       room_dark = FALSE;
       can_infra_in_dark = TRUE;
-      ignore_brief = FALSE;
+      ignore_brief = FALSE;  /* Force showing limited description */
     }
   }
 
+  /* Special room range (66700-66799) for travel transitions */
   if (rm->number >= 66700 && rm->number <= 66799)
   {
-
+    /* Dynamically generate room description based on travel type */
     if (ch->player_specials->travel_type == TRAVEL_CARRIAGE)
     {
       if (rm->name)
@@ -1421,51 +1425,46 @@ void look_at_room(struct char_data *ch, int ignore_brief)
     }
   }
 
-  /* display some extra info about the room (special flags) */
-  send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM)); // CR
+  /* === SPECIAL ROOM FLAGS DISPLAY === */
+  send_to_char(ch, "%s\r\n", CCNRM(ch, C_NRM)); /* End line and reset color */
+  
+  /* Show fog effect */
   if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG))
     send_to_char(ch, "\tDA hazy \tWfog\tD enshrouds the area.\tn\r\n");
+  /* Show underwater air bubbles */
   if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_AIRY))
     send_to_char(ch, "\tBLarge bubbles of air float through the water\tn\r\n");
 
-  /* worldmap room/zone? */
-  //  if (ROOM_FLAGGED(target_room, ROOM_WORLDMAP) ||
-  //          ZONE_FLAGGED(zn, ZONE_WORLDMAP)) {
-  //    world_map = TRUE;
+  /* Check if this is a wilderness zone (shows special map) */
   if (ZONE_FLAGGED(zn, ZONE_WILDERNESS))
   {
     world_map = TRUE;
-    /* if you want clear screen, uncomment this */
-    //    send_to_char(ch, "\033[H\033[J");
+    /* Optional: clear screen for map display */
+    /* send_to_char(ch, "\033[H\033[J"); */
   }
 
-  /* scenarios:
-     1)  worldmap,                               see worldmap
-     2)  worldmap infra,                         can't see anything
-     3)  normal-room not-brief no-map,           see full descrip
-     4)  normal-room not-brief no-map infra,     can't see anything
-     3)  normal-room not-brief automap,          see full descrip & sidemap
-     4)  normal-room not-brief automap infra,    can't see anything
-     4)  brief'd room, can't see it
-     4)  brief'd room, can't see it
-     4)  brief'd room, can't see it
+  /* === ROOM DESCRIPTION DISPLAY LOGIC === */
+  /* Different display modes based on:
+   * - worldmap vs normal room
+   * - brief mode on/off  
+   * - automap preference
+   * - vision type (normal/infravision)
    */
 
-  /* if we are on the worldmap (and can actually see it), then show it */
+  /* Show wilderness map if in wilderness zone with automap enabled */
   if ((!room_dark || can_infra_in_dark) && world_map && PRF_FLAGGED(ch, PRF_AUTOMAP))
   {
-    //    perform_map(ch, "", show_worldmap(ch));
     show_wilderness_map(ch, 21, ch->coords[0], ch->coords[1]);
-
-    /* we are not looking at worldmap, or we can't see the worldmap */
   }
+  /* Show full room description if: not brief mode, forced to show, or death room */
   else if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF) && !can_infra_in_dark) || ignore_brief || ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH))
   {
+    /* Player wants automap alongside description */
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) && can_see_map(ch))
     {
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE))
-      { // GUI mode!
-        // Send tags, then map.
+      { 
+        /* GUI mode: send map with XML tags */
         send_to_char(ch,
                      "<ROOM_MAP>\n"
                      "%s"
@@ -1476,25 +1475,32 @@ void look_at_room(struct char_data *ch, int ignore_brief)
       }
       else
       {
+        /* Display description with map on the side */
         str_and_map(world[target_room].description, ch, target_room);
       }
     }
+    /* Wilderness without automap: generate dynamic description */
     else if (world_map && !PRF_FLAGGED(ch, PRF_AUTOMAP))
     {
       generated_desc = gen_room_description(ch, IN_ROOM(ch));
       send_to_char(ch, "%s", generated_desc);
       free(generated_desc);
     }
+    /* Standard room description */
     else
     {
       send_to_char(ch, "%s", world[IN_ROOM(ch)].description);
     }
   }
+  /* Limited vision with infravision only */
   else if (can_infra_in_dark)
   {
     send_to_char(ch, "\tDIt is hard to make out too much detail with just \trinfravision\tD.\r\n");
   }
 
+  /* === SPECIAL LOCATION NOTIFICATIONS === */
+  
+  /* Check if room is a carriage stop */
   int i = 0;
   while (atoi(carriage_locales[i][1]) != 0)
   {
@@ -1505,6 +1511,8 @@ void look_at_room(struct char_data *ch, int ignore_brief)
     }
     i++;
   }
+  
+  /* Check if room is a ferry dock */
   i = 0;
   while (atoi(sailing_locales[i][1]) != 0)
   {
@@ -1516,24 +1524,28 @@ void look_at_room(struct char_data *ch, int ignore_brief)
     i++;
   }
 
+  /* Notify if random encounter spawned */
   if (in_encounter_room(ch))
   {
     send_to_char(ch, "\r\nYou have spawned a random encounter. See \tYHELP ENCOUNTER\tn for more information.\r\n");
   }
 
-  /* autoexits */
+  /* Show available exits (unless fog blocks view) */
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOEXIT) &&
       (!IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG) || GET_LEVEL(ch) >= LVL_IMMORT))
     do_auto_exits(ch);
 
+  /* Special hazard: acid pool (blocks seeing contents) */
   if (ROOM_AFFECTED(ch->in_room, RAFF_KAPAK_ACID))
   {
     send_to_char(ch, "\tMA pool of acid covers the area.\tn\r\n");
     return;
   }
 
-  /* now list characters & objects */
+  /* === LIST ROOM CONTENTS === */
+  /* Show all objects on the ground */
   list_obj_to_char(world[IN_ROOM(ch)].contents, ch, SHOW_OBJ_LONG, FALSE, 0);
+  /* Show all characters/NPCs in room */
   list_char_to_char(world[IN_ROOM(ch)].people, ch);
 }
 
