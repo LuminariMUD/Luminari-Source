@@ -611,7 +611,28 @@ ACMD(do_reboot)
   }
   else
   {
-    send_to_char(ch, "Unknown reload option.\r\n");
+    if (*arg)
+      send_to_char(ch, "Unknown reload option: %s\r\n", arg);
+    
+    send_to_char(ch, "Usage: reload <option>\r\n");
+    send_to_char(ch, "\r\nAvailable options:\r\n");
+    send_to_char(ch, "  all/*       - Reload all text files and help\r\n");
+    send_to_char(ch, "  background  - Reload background story file\r\n");
+    send_to_char(ch, "  credits     - Reload credits file\r\n");
+    send_to_char(ch, "  greetings   - Reload login greetings screen\r\n");
+    send_to_char(ch, "  handbook    - Reload player handbook\r\n");
+    send_to_char(ch, "  help        - Reload help front page\r\n");
+    send_to_char(ch, "  ihelp       - Reload immortal help front page\r\n");
+    send_to_char(ch, "  immlist     - Reload immortal list\r\n");
+    send_to_char(ch, "  imotd       - Reload immortal MOTD\r\n");
+    send_to_char(ch, "  info        - Reload info file\r\n");
+    send_to_char(ch, "  motd        - Reload message of the day\r\n");
+    send_to_char(ch, "  news        - Reload news file\r\n");
+    send_to_char(ch, "  paths       - Reload wilderness paths (MySQL)\r\n");
+    send_to_char(ch, "  policy      - Reload policies file\r\n");
+    send_to_char(ch, "  regions     - Reload wilderness regions (MySQL)\r\n");
+    send_to_char(ch, "  wizlist     - Reload wizard list\r\n");
+    send_to_char(ch, "  xhelp       - Reload help table index\r\n");
     return;
   }
 

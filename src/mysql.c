@@ -609,13 +609,16 @@ void load_regions()
       /* Clear it */
       for (j = 0; j <= top_of_region_table; j++)
       {
+        /* Cancel any events for this region BEFORE freeing memory */
+        clear_region_event_list(&region_table[j]);
+        
         free(region_table[j].name);
         free(region_table[j].vertices);
         if (region_table[j].reset_data)
           free(region_table[j].reset_data);
-        clear_region_event_list(&region_table[j]);
       }
       free(region_table);
+      region_table = NULL;
     }
     /* Allocate memory for all of the region data. */
     CREATE(region_table, struct region_data, numrows);
@@ -626,6 +629,18 @@ void load_regions()
     /* Skip rows with NULL values in required fields (except row[5] which can be empty for regions without polygons) */
     if (!row[0] || !row[1] || !row[2] || !row[3] || !row[4] || !row[6]) {
       log("SYSERR: NULL value in region row, skipping");
+      /* Initialize empty region to avoid uninitialized memory */
+      region_table[i].vnum = -1;
+      region_table[i].rnum = i;
+      region_table[i].zone = NOWHERE;
+      region_table[i].name = strdup("INVALID");
+      region_table[i].region_type = 0;
+      region_table[i].num_vertices = 0;
+      region_table[i].vertices = NULL;
+      region_table[i].region_props = 0;
+      region_table[i].reset_time = 0;
+      region_table[i].reset_data = NULL;
+      i++;
       continue;
     }
     
@@ -639,8 +654,15 @@ void load_regions()
     region_table[i].reset_time = 0;
     region_table[i].reset_data = NULL;
 
+    /* Validate num_vertices is within reasonable bounds */
+    if (region_table[i].num_vertices < 0 || region_table[i].num_vertices > 1024) {
+      log("SYSERR: Invalid num_vertices (%d) for region %s (vnum %d), setting to 0",
+          region_table[i].num_vertices, row[2], region_table[i].vnum);
+      region_table[i].num_vertices = 0;
+      region_table[i].vertices = NULL;
+    }
     /* Check if we have polygon data */
-    if (region_table[i].num_vertices == 0 || !row[5] || strlen(row[5]) == 0) {
+    else if (region_table[i].num_vertices == 0 || !row[5] || strlen(row[5]) == 0) {
       /* No polygon data - create empty region */
       region_table[i].vertices = NULL;
       log("INFO: Region %d (%s) has no polygon data", region_table[i].vnum, region_table[i].name);
@@ -651,22 +673,22 @@ void load_regions()
       tokens = tokenize(buf2, ",");
       if (!tokens) {
         log("SYSERR: tokenize() failed in load_regions for region %s", row[2]);
-        /* Clean up this region entry */
-        if (region_table[i].name) free(region_table[i].name);
-        /* Skip to next region */
-        continue;
-      }
+        /* Set vertices to NULL but keep the region entry */
+        region_table[i].num_vertices = 0;
+        region_table[i].vertices = NULL;
+      } else {
 
       CREATE(region_table[i].vertices, struct vertex, region_table[i].num_vertices);
 
       vtx = 0;
 
-      for (it = tokens; it && *it; ++it)
+      for (it = tokens; it && *it && vtx < region_table[i].num_vertices; ++it)
       {
         sscanf(*it, "%d %d", &(region_table[i].vertices[vtx].x), &(region_table[i].vertices[vtx].y));
         vtx++;
       }
       free_tokens(tokens);
+      }
     }
 
     /* Store event data for later creation */
@@ -692,9 +714,13 @@ void load_regions()
       if (region_table[j].region_type == REGION_ENCOUNTER &&
           region_table[j].reset_time > 0)
       {
+        region_vnum *vnum_ptr = NULL;
+        CREATE(vnum_ptr, region_vnum, 1);
+        *vnum_ptr = region_table[j].vnum;
+        
         log("Creating encounter reset event for region #%d (%s) - resets every %d seconds", 
             region_table[j].vnum, region_table[j].name, region_table[j].reset_time);
-        NEW_EVENT(eENCOUNTER_REG_RESET, &(region_table[j].vnum), region_table[j].reset_data, region_table[j].reset_time RL_SEC);
+        NEW_EVENT(eENCOUNTER_REG_RESET, vnum_ptr, region_table[j].reset_data, region_table[j].reset_time RL_SEC);
       }
     }
   } else {
@@ -1138,31 +1164,42 @@ void load_paths()
     parse_at(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
     parse_at(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
 
+    /* Validate num_vertices is within reasonable bounds */
+    if (path_table[i].num_vertices < 0 || path_table[i].num_vertices > 1024) {
+      log("SYSERR: Invalid num_vertices (%d) for path %s (vnum %d), setting to 0",
+          path_table[i].num_vertices, row[2], path_table[i].vnum);
+      path_table[i].num_vertices = 0;
+      path_table[i].vertices = NULL;
+    }
+    /* Check if we have valid polygon data */
+    else if (path_table[i].num_vertices == 0) {
+      /* No polygon data - create empty path */
+      path_table[i].vertices = NULL;
+      log("INFO: Path %d (%s) has no polygon data", path_table[i].vnum, path_table[i].name);
+    } else {
     /* Parse the polygon text data to get the vertices, etc.
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
     sscanf(row[5], "LINESTRING(%[^)])", buf2);
     tokens = tokenize(buf2, ",");
     if (!tokens) {
       log("SYSERR: tokenize() failed in load_paths for path %s", row[2]);
-      /* Clean up this path entry */
-      if (path_table[i].name) free(path_table[i].name);
-      if (path_table[i].glyphs[GLYPH_TYPE_PATH_NS]) free(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
-      if (path_table[i].glyphs[GLYPH_TYPE_PATH_EW]) free(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
-      if (path_table[i].glyphs[GLYPH_TYPE_PATH_INT]) free(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
-      /* Skip to next path */
-      continue;
-    }
+      /* Set vertices to NULL but keep the path entry */
+      path_table[i].num_vertices = 0;
+      path_table[i].vertices = NULL;
+    } else {
 
     CREATE(path_table[i].vertices, struct vertex, path_table[i].num_vertices);
 
     vtx = 0;
 
-    for (it = tokens; it && *it; ++it)
+    for (it = tokens; it && *it && vtx < path_table[i].num_vertices; ++it)
     {
       sscanf(*it, "%d %d", &(path_table[i].vertices[vtx].x), &(path_table[i].vertices[vtx].y));
       vtx++;
     }
     free_tokens(tokens);
+    }
+    }
 
     top_of_path_table = i;
     i++;
