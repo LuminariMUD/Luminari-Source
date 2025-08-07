@@ -31,6 +31,8 @@
 /* file scope variables */
 /** The mud specific queue of events. */
 static struct dg_queue *event_q = NULL;
+/** Flag to track if we're currently processing events (prevents dangerous operations) */
+static int processing_events = 0;
 
 /** Initializes the main event queue event_q.
  * @post The main event queue, event_q, has been created and initialized.
@@ -85,12 +87,47 @@ void event_cancel(struct event *event)
     return;
   }
 
+  /* CRITICAL FIX: Double-free prevention
+   * 
+   * PROBLEM EXPLAINED FOR BEGINNERS:
+   * When event_process() runs an event, it sets q_el to NULL (line ~142) 
+   * BEFORE calling the event's function. This tells us the event is 
+   * currently being processed.
+   * 
+   * If an event tries to cancel ITSELF while running (calls event_cancel 
+   * on itself), we must NOT free it here because event_process() will 
+   * free it when the event function returns (line ~153).
+   * 
+   * Freeing the same memory twice (double-free) causes crashes and 
+   * memory corruption!
+   * 
+   * SOLUTION: 
+   * If q_el is NULL, the event is being processed right now.
+   * We only clean up the event_obj but do NOT free the event structure.
+   * event_process() will handle freeing it when done.
+   */
   if (!event->q_el)
   {
-    log("SYSERR:  Attempted to cancel a non-NULL unqueued event, freeing anyway");
+    /* Event is currently being processed - DO NOT free the event structure! */
+    log("WARNING: Attempted to cancel an event during its execution.");
+    
+    /* IMPORTANT: We only handle mud events here. For non-mud events,
+     * the event function itself is responsible for freeing event_obj.
+     * We just need to prevent event_process() from double-freeing mud events. */
+    if (event->isMudEvent && event->event_obj)
+    {
+      /* For mud events, we free the data and set to NULL to prevent 
+       * event_process() from trying to free it again */
+      cleanup_event_obj(event);
+      event->event_obj = NULL;
+    }
+    /* For non-mud events, do NOT touch event_obj - the event function handles it */
+    
+    return; /* DO NOT free the event structure - event_process() will do it */
   }
-  else
-    queue_deq(event_q, event->q_el);
+  
+  /* Event is in the queue and not currently running - safe to fully cancel */
+  queue_deq(event_q, event->q_el);
 
   if (event->event_obj)
     cleanup_event_obj(event);
@@ -98,22 +135,52 @@ void event_cancel(struct event *event)
   free(event);
 }
 
-/* The memory freeing routine tied into the mud event system */
+/* The memory freeing routine tied into the mud event system.
+ * 
+ * IMPORTANT FOR BEGINNERS:
+ * This function cleans up the data associated with an event when the event
+ * is being removed from the system. There are two types of events:
+ * 1. Mud Events: Complex events with structured data (freed via free_mud_event)
+ * 2. Simple Events: Basic events with malloc'd data (freed via free)
+ * 
+ * CRITICAL DESIGN NOTE:
+ * For non-mud events, we assume event_obj was dynamically allocated (malloc'd).
+ * If event_obj points to static or stack memory, calling free() will crash!
+ * Currently, ALL non-mud events in the codebase use malloc'd memory, so this
+ * is safe. If this changes in the future, we'd need a new flag or callback
+ * to handle different memory ownership models.
+ */
 void cleanup_event_obj(struct event *event)
 {
   struct mud_event_data *mud_event = NULL;
 
+  /* Safety check - don't try to free NULL pointers */
+  if (!event || !event->event_obj)
+    return;
+
   if (event->isMudEvent)
   {
+    /* Mud events have their own cleanup function that knows
+     * how to properly free all the complex data structures */
     mud_event = (struct mud_event_data *)event->event_obj;
     free_mud_event(mud_event);
   }
   else
+  {
+    /* ASSUMPTION: Non-mud events always have malloc'd event_obj.
+     * This is currently true for all uses in the codebase.
+     * If this assumption changes, we'd need additional flags to
+     * track memory ownership (e.g., event->owns_memory flag). */
     free(event->event_obj);
+  }
 }
 
 /** Process any events whose time has come. Should be called from, and at, every
  * pulse of heartbeat. Re-enqueues multi-use events.
+ * 
+ * BEGINNERS NOTE: This function runs every game pulse (1/10th second) and
+ * executes any events that are scheduled to run now. Events can reschedule
+ * themselves by returning a positive value (the delay until next run).
  */
 void event_process(void)
 {
@@ -124,8 +191,12 @@ void event_process(void)
   if (!event_q)
   {
     log("SYSERR: event_process called before event_init()");
-    return;
+    return;  /* No need to clear processing_events - it was never set */
   }
+  
+  /* Set flag to indicate we're processing events.
+   * This prevents dangerous operations like queue_free() during processing. */
+  processing_events = 1;
 
   while ((long)pulse >= queue_key(event_q))
   {
@@ -133,12 +204,19 @@ void event_process(void)
     if (!(the_event = (struct event *)queue_head(event_q)))
     {
       log("SYSERR: Attempt to get a NULL event");
+      processing_events = 0;  /* CRITICAL: Must clear flag before returning! */
       return;
     }
 
     /* Set the_event->q_el to NULL so that any functions called beneath 
      * event_process can tell if they're being called beneath the actual
-     * event function. */
+     * event function. 
+     * 
+     * IMPORTANT FOR BEGINNERS:
+     * Setting q_el to NULL serves as a flag that this event is currently
+     * being processed. If event_cancel() is called on this event while
+     * it's running, it will see q_el is NULL and know NOT to free the
+     * event structure (to prevent double-free). */
     the_event->q_el = NULL;
 
     /* call event func, reenqueue event if retval > 0 */
@@ -146,6 +224,10 @@ void event_process(void)
       the_event->q_el = queue_enq(event_q, the_event, new_time + pulse);
     else
     {
+      /* CLEANUP NOTE FOR BEGINNERS:
+       * If the event canceled itself during execution, event_cancel() will
+       * have set event_obj to NULL to prevent double-free. We check for NULL
+       * before trying to free mud events. */
       if (the_event->isMudEvent && the_event->event_obj != NULL)
         free_mud_event((struct mud_event_data *)the_event->event_obj);
 
@@ -153,6 +235,9 @@ void event_process(void)
       free(the_event);
     }
   }
+  
+  /* Clear the processing flag - safe to do bulk operations again */
+  processing_events = 0;
 }
 
 /** Returns the time remaining before the event as how many pulses from now. 
@@ -167,9 +252,26 @@ long event_time(struct event *event)
   return (when - pulse);
 }
 
-/** Frees all events from event_q. */
+/** Frees all events from event_q. 
+ * WARNING: This function should NEVER be called while event_process() is running!
+ * Doing so would cause double-free crashes and memory corruption.
+ * 
+ * BEGINNERS NOTE: This function is typically only called during shutdown or
+ * when completely resetting the event system. During normal gameplay, use
+ * event_cancel() to remove individual events safely.
+ */
 void event_free_all(void)
 {
+  /* CRITICAL SAFETY CHECK:
+   * We must ensure event_process() is not currently running.
+   * If it is, we risk freeing events that are being processed,
+   * causing crashes when event_process() tries to access them.
+   */
+  if (processing_events) {
+    log("SYSERR: event_free_all() called while events are being processed! Aborting to prevent crash.");
+    return;
+  }
+  
   queue_free(event_q);
 }
 
@@ -291,7 +393,20 @@ void queue_deq(struct dg_queue *q, struct q_element *qe)
 {
   int i = 0;
 
-  assert(qe);
+  /* CRITICAL SAFETY CHECK:
+   * Replace assert with proper NULL check for production safety.
+   * Assert only works in debug builds - in production (with NDEBUG),
+   * the assert disappears and we'd crash on NULL pointer access!
+   * 
+   * BEGINNERS NOTE: 
+   * An 'assert' is a debug-only check that disappears in release builds.
+   * We need real error checking that works in all builds.
+   */
+  if (!qe)
+  {
+    log("SYSERR: queue_deq called with NULL q_element");
+    return;
+  }
 
   /* Safety check for NULL queue */
   if (!q)
@@ -365,38 +480,90 @@ long queue_key(struct dg_queue *q)
 
 /** Returns the key of queue element qe.
  * @param qe Pointer to the keyed q_element. 
- * @retval long Key of qe. */
+ * @retval long Key of qe, or LONG_MAX if qe is NULL.
+ * 
+ * BEGINNERS NOTE: The 'key' represents when this event should fire,
+ * measured in game pulses. Lower keys fire sooner.
+ */
 long queue_elmt_key(struct q_element *qe)
 {
+  /* Safety check to prevent NULL pointer dereference */
+  if (!qe) {
+    log("WARNING: queue_elmt_key called with NULL q_element");
+    return LONG_MAX;  /* Return max value to indicate error */
+  }
   return qe->key;
 }
 
 /** Free q and all contents.
  * @pre Function requires definition of struct event.
- * @post All items associeated qith q, including non-abstract data, are freed.
+ * @post All items associated with q, including non-abstract data, are freed.
  * @param q The priority queue to free.
+ * 
+ * CRITICAL WARNING FOR BEGINNERS:
+ * This function frees ALL events in ALL queue buckets. It should NEVER be
+ * called while event_process() is running, as that would cause double-free
+ * crashes when event_process() tries to access already-freed memory.
+ * 
+ * This is typically only called during shutdown or complete system reset.
+ * For removing individual events during gameplay, use event_cancel() instead.
  */
 void queue_free(struct dg_queue *q)
 {
   int i = 0;
   struct q_element *qe = NULL, *next_qe = NULL;
   struct event *event = NULL;
+  
+  /* Safety check for NULL queue */
+  if (!q) {
+    log("WARNING: queue_free called with NULL queue");
+    return;
+  }
+  
+  /* CRITICAL: Check if we're processing events right now */
+  if (processing_events) {
+    log("SYSERR: queue_free() called while event_process() is active! This would cause crashes!");
+    log("SYSERR: Stack trace or debugging needed - this should never happen!");
+    /* We could abort here but that might lose player data. Log and hope for the best. */
+    return;
+  }
 
+  /* IMPORTANT: We iterate through all queue buckets (0 to NUM_EVENT_QUEUES-1)
+   * Events are distributed across buckets based on their scheduled time
+   * to improve performance (reduces search time for insertion). */
   for (i = 0; i < NUM_EVENT_QUEUES; i++)
   {
+    /* Process each event in this bucket's linked list */
     for (qe = q->head[i]; qe; qe = next_qe)
     {
+      /* Save the next pointer BEFORE freeing current element
+       * (once freed, qe->next would be invalid memory!) */
       next_qe = qe->next;
+      
+      /* Extract the event from this queue element */
       if ((event = (struct event *)qe->data) != NULL)
       {
+        /* DOUBLE-FREE PREVENTION CHECK:
+         * If q_el is NULL, this event might be currently processing.
+         * However, since queue_free() should NEVER be called during
+         * event_process(), we log an error if we detect this situation. */
+        if (!event->q_el) {
+          log("SYSERR: queue_free() found event with NULL q_el - possible concurrent processing!");
+          /* Continue anyway as we're likely shutting down */
+        }
+        
+        /* Free any associated data with this event */
         if (event->event_obj)
           cleanup_event_obj(event);
 
+        /* Free the event structure itself */
         free(event);
       }
+      /* Free the queue element that held this event */
       free(qe);
     }
   }
 
+  /* Finally, free the queue structure itself */
   free(q);
 }

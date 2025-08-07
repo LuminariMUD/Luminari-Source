@@ -369,7 +369,7 @@ EVENTFUNC(event_daily_use_cooldown)
        * Math explanation for beginners:
        * - SECS_PER_MUD_DAY = 24 * 75 = 1800 (MUD seconds in a MUD day)
        * - PASSES_PER_SEC = 10 (game ticks per real second)
-       * - If nonfeat_daily_uses is 1: 1800 * 10 = 18000 (1.8 real seconds)
+       * - If nonfeat_daily_uses is 1: 1800 * 10 = 18000 pulses = 1800 real seconds (30 minutes)
        * - This converts MUD time to real-time ticks
        */
       long temp_cooldown = ((long)SECS_PER_MUD_DAY / nonfeat_daily_uses) RL_SEC;
