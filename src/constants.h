@@ -211,4 +211,5 @@ extern const char *craft_flags[];
 extern const char *requirement_flags[];
 extern const char *crafting_motes [];
 
+extern const char *campaigns [];
 #endif /* _CONSTANTS_H_ */

@@ -6777,6 +6777,13 @@ const char *crafting_methods_short [] = {
     "\n"
 };
 
+const char *campaigns [] = {
+    "Default (Luminari)",
+    "Dragonlance",
+    "Forgotten Realms",
+    "\n"
+};
+
 /* --- End of constants arrays. --- */
 
 /* Various arrays we count so we can check the world files.  These
