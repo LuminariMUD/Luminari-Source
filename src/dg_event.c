@@ -24,6 +24,7 @@
 #include "constants.h"
 #include "comm.h" /* For access to the game pulse */
 #include "mud_event.h"
+#include <limits.h> /* For LONG_MAX used in overflow checks */
 
 /***************************************************************************
  * Begin mud specific event queue functions
@@ -33,6 +34,8 @@
 static struct dg_queue *event_q = NULL;
 /** Flag to track if we're currently processing events (prevents dangerous operations) */
 static int processing_events = 0;
+/** Counter to track total number of events in the system (resource exhaustion protection) */
+static int total_events = 0;
 
 /** Initializes the main event queue event_q.
  * @post The main event queue, event_q, has been created and initialized.
@@ -51,11 +54,12 @@ void event_init(void)
  * event fires. It is func's job to cast event_obj. If event_obj is not needed,
  * pass in NULL.
  * @param when Number of pulses between firing(s) of this event.
- * @retval event * Returns a pointer to the newly created event.
+ * @retval event * Returns a pointer to the newly created event, or NULL on error.
  * */
 struct event *event_create(EVENTFUNC(*func), void *event_obj, long when)
 {
   struct event *new_event = NULL;
+  unsigned long target_time;
 
   /* Safety check: ensure event_q is initialized */
   if (!event_q)
@@ -64,14 +68,59 @@ struct event *event_create(EVENTFUNC(*func), void *event_obj, long when)
     return NULL;
   }
 
+  /* CRITICAL: Validate function pointer to prevent crashes.
+   * 
+   * BEGINNERS NOTE: A NULL function pointer would crash the game when
+   * event_process() tries to call it. We must catch this error early! */
+  if (!func)
+  {
+    log("SYSERR: event_create called with NULL function pointer");
+    return NULL;
+  }
+
+  /* RESOURCE EXHAUSTION PROTECTION:
+   * 
+   * PROBLEM: A malicious user or buggy code could create millions of events,
+   * using up all server memory and causing a crash.
+   * 
+   * SOLUTION: Limit the total number of events that can exist at once.
+   * If we hit the limit, refuse to create new events and log a warning. */
+  if (total_events >= MAX_EVENTS)
+  {
+    log("SYSERR: Maximum number of events (%d) reached! Refusing to create new event.", MAX_EVENTS);
+    log("SYSERR: This usually indicates a bug creating too many events.");
+    return NULL;
+  }
+
   if (when < 1) /* make sure its in the future */
     when = 1;
+
+  /* FIX FOR INTEGER OVERFLOW:
+   * 
+   * PROBLEM: If 'when' and 'pulse' are both very large, adding them
+   * could overflow and wrap around to a small or negative number.
+   * This would cause the event to fire at the wrong time!
+   * 
+   * SOLUTION: Check for overflow before doing the addition.
+   * If overflow would occur, cap at maximum safe value. */
+  if (when > (LONG_MAX - pulse))
+  {
+    log("WARNING: event_create overflow prevented. Event scheduled for maximum future time.");
+    target_time = LONG_MAX;
+  }
+  else
+  {
+    target_time = when + pulse;
+  }
 
   CREATE(new_event, struct event, 1);
   new_event->func = func;
   new_event->event_obj = event_obj;
-  new_event->q_el = queue_enq(event_q, new_event, when + pulse);
+  new_event->q_el = queue_enq(event_q, new_event, target_time);
   new_event->isMudEvent = FALSE;
+
+  /* Increment our event counter for resource tracking */
+  total_events++;
 
   return new_event;
 }
@@ -117,8 +166,13 @@ void event_cancel(struct event *event)
     if (event->isMudEvent && event->event_obj)
     {
       /* For mud events, we free the data and set to NULL to prevent 
-       * event_process() from trying to free it again */
-      cleanup_event_obj(event);
+       * event_process() from trying to free it again.
+       * 
+       * CRITICAL: We must free mud_event_data directly here, NOT call
+       * cleanup_event_obj(), because cleanup_event_obj() would also
+       * free non-mud events which we must NOT do during processing! */
+      struct mud_event_data *mud_event = (struct mud_event_data *)event->event_obj;
+      free_mud_event(mud_event);
       event->event_obj = NULL;
     }
     /* For non-mud events, do NOT touch event_obj - the event function handles it */
@@ -133,6 +187,14 @@ void event_cancel(struct event *event)
     cleanup_event_obj(event);
 
   free(event);
+  
+  /* Decrement event counter since we freed an event */
+  total_events--;
+  if (total_events < 0)
+  {
+    log("SYSERR: Event counter went negative! This indicates a serious bug.");
+    total_events = 0;  /* Reset to prevent further issues */
+  }
 }
 
 /* The memory freeing routine tied into the mud event system.
@@ -186,6 +248,7 @@ void event_process(void)
 {
   struct event *the_event = NULL;
   long new_time = 0;
+  unsigned long target_time;
 
   /* Safety check: ensure event_q is initialized */
   if (!event_q)
@@ -219,9 +282,47 @@ void event_process(void)
      * event structure (to prevent double-free). */
     the_event->q_el = NULL;
 
+    /* CRITICAL: Validate function pointer before calling.
+     * 
+     * BEGINNERS NOTE: Even though we check func in event_create(), we
+     * double-check here for safety. Memory corruption or bugs elsewhere
+     * could potentially null out the function pointer. Better safe than
+     * crashing the entire game! */
+    if (!the_event->func)
+    {
+      log("SYSERR: Event with NULL function pointer detected in event_process!");
+      /* Clean up the broken event */
+      if (the_event->isMudEvent && the_event->event_obj != NULL)
+        free_mud_event((struct mud_event_data *)the_event->event_obj);
+      free(the_event);
+      
+      /* Decrement event counter since we freed a broken event */
+      total_events--;
+      if (total_events < 0)
+      {
+        log("SYSERR: Event counter went negative (broken event)! This indicates a serious bug.");
+        total_events = 0;  /* Reset to prevent further issues */
+      }
+      
+      continue;  /* Skip to next event */
+    }
+
     /* call event func, reenqueue event if retval > 0 */
     if ((new_time = (the_event->func)(the_event->event_obj)) > 0)
-      the_event->q_el = queue_enq(event_q, the_event, new_time + pulse);
+    {
+      /* FIX FOR INTEGER OVERFLOW when re-queueing:
+       * Same overflow check as in event_create() */
+      if (new_time > (LONG_MAX - pulse))
+      {
+        log("WARNING: event re-queue overflow prevented. Event scheduled for maximum future time.");
+        target_time = LONG_MAX;
+      }
+      else
+      {
+        target_time = new_time + pulse;
+      }
+      the_event->q_el = queue_enq(event_q, the_event, target_time);
+    }
     else
     {
       /* CLEANUP NOTE FOR BEGINNERS:
@@ -233,6 +334,14 @@ void event_process(void)
 
       /* It is assumed that the_event will already have freed ->event_obj. */
       free(the_event);
+      
+      /* Decrement event counter since we freed an event */
+      total_events--;
+      if (total_events < 0)
+      {
+        log("SYSERR: Event counter went negative in event_process! This indicates a serious bug.");
+        total_events = 0;  /* Reset to prevent further issues */
+      }
     }
   }
   
@@ -343,6 +452,16 @@ struct q_element *queue_enq(struct dg_queue *q, void *data, long key)
   qe->prev = NULL;  /* Explicitly initialize to prevent valgrind warnings */
   qe->next = NULL;  /* Explicitly initialize to prevent valgrind warnings */
 
+  /* BUCKETING STRATEGY EXPLAINED FOR BEGINNERS:
+   * 
+   * We use the modulo operator (%) to distribute events across buckets.
+   * For example, if NUM_EVENT_QUEUES is 10:
+   * - Event at pulse 103 goes in bucket 3 (103 % 10 = 3)
+   * - Event at pulse 217 goes in bucket 7 (217 % 10 = 7)
+   * - Event at pulse 1000 goes in bucket 0 (1000 % 10 = 0)
+   * 
+   * This distributes events evenly and reduces the time needed to find
+   * the right insertion point, since we only search within one bucket. */
   bucket = key % NUM_EVENT_QUEUES; /* which queue does this go in */
 
   if (!q->head[bucket])
@@ -558,6 +677,9 @@ void queue_free(struct dg_queue *q)
 
         /* Free the event structure itself */
         free(event);
+        
+        /* Decrement event counter since we freed an event during shutdown */
+        total_events--;
       }
       /* Free the queue element that held this event */
       free(qe);
@@ -566,4 +688,11 @@ void queue_free(struct dg_queue *q)
 
   /* Finally, free the queue structure itself */
   free(q);
+  
+  /* Reset event counter since we freed all events */
+  if (total_events != 0)
+  {
+    log("WARNING: Event counter was %d after freeing all events. Resetting to 0.", total_events);
+    total_events = 0;
+  }
 }

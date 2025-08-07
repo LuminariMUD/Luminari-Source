@@ -500,18 +500,20 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
 
     if (house_control[i].built_on)
     {
-      timestr = asctime(localtime(&(house_control[i].built_on)));
-      *(timestr + 10) = '\0';
+      timestr = (char *)format_time_ymd_hms(house_control[i].built_on);
+      /* Copy only YYYY-MM-DD */
       strlcpy(built_on, timestr, sizeof(built_on));
+      built_on[10] = '\0';
     }
     else
       strlcpy(built_on, "Unknown", sizeof(built_on)); /* strcpy: OK (for 'strlen("Unknown") < 128') */
 
     if (house_control[i].last_payment)
     {
-      timestr = asctime(localtime(&(house_control[i].last_payment)));
-      *(timestr + 10) = '\0';
+      timestr = (char *)format_time_ymd_hms(house_control[i].last_payment);
+      /* Copy only YYYY-MM-DD */
       strlcpy(last_pay, timestr, sizeof(last_pay));
+      last_pay[10] = '\0';
     }
     else
       strlcpy(last_pay, "None", sizeof(last_pay)); /* strcpy: OK (for 'strlen("None") < 128') */

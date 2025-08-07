@@ -9396,9 +9396,10 @@ ACMDU(do_plist) {
     if (time_away.hours > high_hr || time_away.hours < low_hr)
       continue;
 
-    strcpy(time_str, asctime(localtime(&player_table[i].last)));
-
-    time_str[strlen(time_str) - 1] = '\0';
+    {
+      const char *fmt = format_time_ymd_hms(player_table[i].last);
+      strlcpy(time_str, fmt, sizeof(time_str));
+    }
 
     // Fix string memory leak - CAP modifies the string in-place, but strdup creates a leak
     temp_name = strdup(player_table[i].name);
