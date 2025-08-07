@@ -49,8 +49,8 @@ EVENTFUNC(event_countdown)
   room_rnum rnum = NOWHERE;
   region_vnum *regvnum = NULL;
   region_rnum regrnum = NOWHERE;
-  // obj_vnum *obj_vnum = NULL;
-  // obj_rnum obj_rnum = NOWHERE;
+  /* obj_vnum *obj_vnum = NULL; */
+  /* obj_rnum obj_rnum = NOWHERE; */
   int index = 0, qvnum = NOTHING;
 
   char **tokens; /* Storage for tokenized encounter room vnums */
@@ -64,6 +64,7 @@ EVENTFUNC(event_countdown)
   if (!pMudEvent->iId)
     return 0;
 
+  /* Determine what type of entity this event is attached to */
   switch (mud_event_index[pMudEvent->iId].iEvent_Type)
   {
   case EVENT_CHAR:
@@ -71,8 +72,8 @@ EVENTFUNC(event_countdown)
     break;
   case EVENT_OBJECT:
     /* obj = (struct obj_data *)pMudEvent->pStruct; */ /* Unused assignment */
-    // obj_rnum = real_obj(*obj_vnum);
-    // obj = &obj[real_obj(obj_rnum)];
+    /* obj_rnum = real_obj(*obj_vnum); */
+    /* obj = &obj[real_obj(obj_rnum)]; */
     break;
   case EVENT_ROOM:
     rvnum = (room_vnum *)pMudEvent->pStruct;
@@ -82,7 +83,7 @@ EVENTFUNC(event_countdown)
   case EVENT_REGION:
     regvnum = (region_vnum *)pMudEvent->pStruct;
     regrnum = real_region(*regvnum);
-    //log("LOG: EVENT_REGION case in EVENTFUNC(event_countdown): Region VNum %d, RNum %d", *regvnum, regrnum);
+    /* log("LOG: EVENT_REGION case in EVENTFUNC(event_countdown): Region VNum %d, RNum %d", *regvnum, regrnum); */
     break;
   default:
     break;
@@ -144,7 +145,7 @@ EVENTFUNC(event_countdown)
       log("SYSERR: event_countdown for eENCOUNTER_REG_RESET, region out of bounds.");
       break;
     }
-    // log("Encounter Region '%s' with vnum: %d reset.", region_table[regrnum].name, region_table[regrnum].vnum);
+    /* log("Encounter Region '%s' with vnum: %d reset.", region_table[regrnum].name, region_table[regrnum].vnum); */
 
     if (pMudEvent->sVariables == NULL)
     {
@@ -168,8 +169,8 @@ EVENTFUNC(event_countdown)
 
         sscanf(*it, "%d", &eroom_vnum);
         eroom_rnum = real_room(eroom_vnum);
-        // This log is causing lots of spam in our syslog.  Removing it.
-        //log("LOG: Processing encounter room vnum: %d", eroom_vnum);
+        /* This log is causing lots of spam in our syslog.  Removing it. */
+        /* log("LOG: Processing encounter room vnum: %d", eroom_vnum); */
 
         if (eroom_rnum == NOWHERE)
         {
@@ -205,7 +206,7 @@ EVENTFUNC(event_countdown)
         } while (++ctr < 128);
 
         /* Build the room. */
-        // assign_wilderness_room(eroom_rnum, x, y);
+        /* assign_wilderness_room(eroom_rnum, x, y); */
         world[eroom_rnum].coords[0] = x;
         world[eroom_rnum].coords[1] = y;
       }
@@ -242,6 +243,7 @@ EVENTFUNC(event_daily_use_cooldown)
   if (!pMudEvent->iId)
     return 0;
 
+  /* Get the entity this event is attached to */
   switch (mud_event_index[pMudEvent->iId].iEvent_Type)
   {
   case EVENT_CHAR:
@@ -331,6 +333,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
   pEvent->isMudEvent = TRUE;
   pMudEvent->pEvent = pEvent;
 
+  /* Add event to appropriate list based on entity type */
   switch (mud_event_index[pMudEvent->iId].iEvent_Type)
   {
   case EVENT_WORLD:
@@ -363,7 +366,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     pMudEvent->pStruct = rvnum;
     room = &world[real_room(*rvnum)];
 
-    //      log("[DEBUG] Adding Event %s to room %d",mud_event_index[pMudEvent->iId].event_name, room->number);
+    /* log("[DEBUG] Adding Event %s to room %d",mud_event_index[pMudEvent->iId].event_name, room->number); */
 
     if (room->events == NULL)
       room->events = create_list();
@@ -424,6 +427,7 @@ void free_mud_event(struct mud_event_data *pMudEvent)
   room_vnum *rvnum = NULL;
   region_vnum *regvnum = NULL;
 
+  /* Remove event from appropriate list based on entity type */
   switch (mud_event_index[pMudEvent->iId].iEvent_Type)
   {
   case EVENT_WORLD:
@@ -462,7 +466,7 @@ void free_mud_event(struct mud_event_data *pMudEvent)
 
     room = &world[real_room(*rvnum)];
 
-    //      log("[DEBUG] Removing Event %s from room %d, which has %d events.",mud_event_index[pMudEvent->iId].event_name, room->number, (room->events == NULL ? 0 : room->events->iSize));
+    /* log("[DEBUG] Removing Event %s from room %d, which has %d events.",mud_event_index[pMudEvent->iId].event_name, room->number, (room->events == NULL ? 0 : room->events->iSize)); */
 
     free(pMudEvent->pStruct);
 
@@ -656,15 +660,15 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
 
   if (ch->events == NULL)
   {
-    // act("ch->events == NULL, for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
-    // send_to_char(ch, "ch->events == NULL.\r\n");
+    /* act("ch->events == NULL, for $n.", FALSE, ch, NULL, NULL, TO_ROOM); */
+    /* send_to_char(ch, "ch->events == NULL.\r\n"); */
     return;
   }
 
   if (ch->events->iSize == 0)
   {
-    // act("ch->events->iSize == 0, for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
-    // send_to_char(ch, "ch->events->iSize == 0.\r\n");
+    /* act("ch->events->iSize == 0, for $n.", FALSE, ch, NULL, NULL, TO_ROOM); */
+    /* send_to_char(ch, "ch->events->iSize == 0.\r\n"); */
     return;
   }
 
@@ -685,15 +689,15 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
 
   if (found)
   {
-    // act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM);
-    // send_to_char(ch, "Event found: %d.\r\n", iId);
+    /* act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM); */
+    /* send_to_char(ch, "Event found: %d.\r\n", iId); */
     if (event_is_queued(pEvent))
       event_cancel(pEvent);
   }
   else
   {
-    // act("event_cancel_specific did not find an event for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
-    // send_to_char(ch, "event_cancel_specific did not find an event.\r\n");
+    /* act("event_cancel_specific did not find an event for $n.", FALSE, ch, NULL, NULL, TO_ROOM); */
+    /* send_to_char(ch, "event_cancel_specific did not find an event.\r\n"); */
   }
 
   return;
@@ -712,7 +716,8 @@ void clear_char_event_list(struct char_data *ch)
   if (ch->events->iSize == 0)
     return;
 
-  /* Create a temporary list to hold events that need to be cancelled */
+  /* Create a temporary list to collect events for cancellation.
+   * This avoids modifying the list while iterating. */
   temp_list = create_list();
 
   /* First pass: collect all events that need cancelling using safe iteration */
@@ -759,7 +764,8 @@ void clear_room_event_list(struct room_data *rm)
   if (rm->events->iSize == 0)
     return;
 
-  /* Create a temporary list to hold events that need to be cancelled */
+  /* Create a temporary list to collect events for cancellation.
+   * This avoids modifying the list while iterating. */
   temp_list = create_list();
 
   /* First pass: collect all events that need cancelling */
