@@ -48,6 +48,7 @@
 #include "encounters.h"
 #include "deities.h"
 #include "treasure.h"
+#include "resource_system.h"
 #include "roleplay.h"
 #include "spell_prep.h"
 #include "boards.h"
@@ -8091,17 +8092,20 @@ ACMD(do_survey)
 
 #else
 
-/* survey - get information on zone locations and current position, a ?temporary?
-            solution for screen readers, etc
-            ToDo:  limit to a certain distance based on perception maybe?
+/* survey - get information on zone locations, current position, and natural resources
+            Enhanced version that focuses on wilderness resource surveying
             -Zusuk */
 ACMD(do_survey)
 {
   zone_rnum zrnum;
   zone_vnum zvnum;
   room_rnum nr, to_room;
-  int first, last, j;
+  int first, last, j, x, y, i;
+  float resource_level;
   struct room_data *target_room = NULL;
+  char arg[MAX_INPUT_LENGTH];
+
+  one_argument(argument, arg, sizeof(arg));
 
   zrnum = world[IN_ROOM(ch)].zone;
   zvnum = zone_table[zrnum].number;
@@ -8137,34 +8141,189 @@ ACMD(do_survey)
     return;
   }
 
-  last = zone_table[zrnum].top;
-  first = zone_table[zrnum].bot;
+  /* Get current coordinates */
+  x = world[IN_ROOM(ch)].coords[0];
+  y = world[IN_ROOM(ch)].coords[1];
 
-  send_to_char(ch, "You survey the wilderness:\r\n\r\n");
+  /* Enhanced survey with resource information */
+  if (!*arg || is_abbrev(arg, "basic")) {
+    /* Basic survey - location and nearby zones */
+    last = zone_table[zrnum].top;
+    first = zone_table[zrnum].bot;
 
-  for (nr = 0; nr <= top_of_world && (GET_ROOM_VNUM(nr) <= last); nr++)
-  {
-    if (GET_ROOM_VNUM(nr) >= first)
+    send_to_char(ch, "You survey the wilderness:\r\n");
+    send_to_char(ch, "=======================\r\n\r\n");
+
+    /* Show nearby zones */
+    for (nr = 0; nr <= top_of_world && (GET_ROOM_VNUM(nr) <= last); nr++)
     {
-      for (j = 0; j < DIR_COUNT; j++)
+      if (GET_ROOM_VNUM(nr) >= first)
       {
-        if (world[nr].dir_option[j])
+        for (j = 0; j < DIR_COUNT; j++)
         {
-          target_room = &world[nr];
-          to_room = world[nr].dir_option[j]->to_room;
-
-          if (to_room != NOWHERE && (zrnum != world[to_room].zone) && target_room)
+          if (world[nr].dir_option[j])
           {
-            send_to_char(ch, "%s at (\tC%d\tn, \tC%d\tn) to the [%s]\r\n",
-                         zone_table[world[to_room].zone].name,
-                         target_room->coords[0], target_room->coords[1], dirs[j]);
+            target_room = &world[nr];
+            to_room = world[nr].dir_option[j]->to_room;
+
+            if (to_room != NOWHERE && (zrnum != world[to_room].zone) && target_room)
+            {
+              send_to_char(ch, "%s at (\tC%d\tn, \tC%d\tn) to the [%s]\r\n",
+                           zone_table[world[to_room].zone].name,
+                           target_room->coords[0], target_room->coords[1], dirs[j]);
+            }
           }
         }
       }
     }
-  }
 
-  send_to_char(ch, "\r\nYour Current Location : (\tC%d\tn, \tC%d\tn)\r\n", ch->coords[0], ch->coords[1]);
+    send_to_char(ch, "\r\nYour Current Location: (\tC%d\tn, \tC%d\tn)\r\n", x, y);
+    send_to_char(ch, "Terrain Type: %s\r\n", sector_types[SECT(IN_ROOM(ch))]);
+    send_to_char(ch, "Elevation: %d\r\n\r\n", get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+    
+    send_to_char(ch, "Use '\tCsurvey resources\tn' to scan for natural resources.\r\n");
+    send_to_char(ch, "Use '\tCsurvey terrain\tn' for detailed terrain analysis.\r\n");
+  }
+  else if (is_abbrev(arg, "resources")) {
+    /* Resource survey - main new functionality */
+    send_to_char(ch, "You carefully examine the area for natural resources...\r\n\r\n");
+    
+    send_to_char(ch, "Resource Survey for (\tC%d\tn, \tC%d\tn):\r\n", x, y);
+    send_to_char(ch, "=====================================\r\n");
+    
+    /* Show current terrain context */
+    send_to_char(ch, "Terrain: %s | Elevation: %d\r\n\r\n", 
+                 sector_types[SECT(IN_ROOM(ch))], get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+    
+    /* Show resource levels */
+    send_to_char(ch, "Available Resources:\r\n");
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+      resource_level = calculate_current_resource_level(i, x, y);
+      if (resource_level > 0.05) { /* Only show resources with meaningful levels */
+        send_to_char(ch, "  \tG%-12s\tn: %s\r\n", 
+                     resource_names[i], 
+                     get_abundance_description(resource_level));
+      }
+    }
+    
+    /* Show which skills would be useful */
+    send_to_char(ch, "\r\nRelevant Skills:\r\n");
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+      resource_level = calculate_current_resource_level(i, x, y);
+      if (resource_level > 0.1) {
+        send_to_char(ch, "  %s: %s\r\n", 
+                     resource_names[i],
+                     resource_configs[i].description);
+      }
+    }
+  }
+  else if (is_abbrev(arg, "terrain")) {
+    /* Detailed terrain analysis */
+    show_terrain_survey(ch);
+  }
+  else if (is_abbrev(arg, "map")) {
+    /* Resource minimap */
+    char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
+    int resource_type = -1, radius = 7, i;
+    
+    /* Skip past "map" and get the resource type and radius */
+    argument = one_argument(argument, arg, sizeof(arg)); /* Skip "map" */
+    argument = one_argument(argument, arg2, sizeof(arg2)); /* Get resource type */
+    one_argument(argument, arg3, sizeof(arg3)); /* Get radius */
+    
+    if (!*arg2) {
+      send_to_char(ch, "Available resource types for mapping:\r\n");
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        send_to_char(ch, "  %d. %s\r\n", i, resource_names[i]);
+      }
+      send_to_char(ch, "\r\nUsage: survey map <resource_type> [radius]\r\n");
+      send_to_char(ch, "Example: survey map vegetation 10\r\n");
+      return;
+    }
+    
+    /* Parse resource type */
+    if (is_number(arg2)) {
+      resource_type = atoi(arg2);
+    } else {
+      /* Try to match by name */
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        if (is_abbrev(arg2, resource_names[i])) {
+          resource_type = i;
+          break;
+        }
+      }
+    }
+    
+    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES) {
+      send_to_char(ch, "Invalid resource type. Use 'survey map' to see available types.\r\n");
+      return;
+    }
+    
+    /* Parse radius */
+    if (*arg3) {
+      radius = atoi(arg3);
+      if (radius < 3) radius = 3;
+      if (radius > 15) radius = 15;
+    }
+    
+    show_resource_map(ch, resource_type, radius);
+  }
+  else if (is_abbrev(arg, "detail")) {
+    /* Detailed resource analysis */
+    char arg2[MAX_INPUT_LENGTH];
+    int resource_type = -1, i;
+    
+    /* Skip past "detail" and get the resource type */
+    argument = one_argument(argument, arg, sizeof(arg)); /* Skip "detail" */
+    one_argument(argument, arg2, sizeof(arg2));
+    
+    if (!*arg2) {
+      send_to_char(ch, "Available resource types for detailed analysis:\r\n");
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        send_to_char(ch, "  %d. %s\r\n", i, resource_names[i]);
+      }
+      send_to_char(ch, "\r\nUsage: survey detail <resource_type>\r\n");
+      send_to_char(ch, "Example: survey detail minerals\r\n");
+      return;
+    }
+    
+    /* Parse resource type */
+    if (is_number(arg2)) {
+      resource_type = atoi(arg2);
+    } else {
+      /* Try to match by name */
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        if (is_abbrev(arg2, resource_names[i])) {
+          resource_type = i;
+          break;
+        }
+      }
+    }
+    
+    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES) {
+      send_to_char(ch, "Invalid resource type. Use 'survey detail' to see available types.\r\n");
+      return;
+    }
+    
+    show_resource_detail(ch, resource_type);
+  }
+  else if (is_abbrev(arg, "debug") && GET_LEVEL(ch) >= LVL_IMMORT) {
+    /* Debug information for admins */
+    show_debug_survey(ch);
+  }
+  else {
+    send_to_char(ch, "Survey options:\r\n");
+    send_to_char(ch, "  survey [basic]         - Basic area survey (default)\r\n");
+    send_to_char(ch, "  survey resources       - Scan for natural resources\r\n");
+    send_to_char(ch, "  survey terrain         - Detailed terrain analysis\r\n");
+    send_to_char(ch, "  survey map <type> [r]  - Resource minimap (radius 3-15)\r\n");
+    send_to_char(ch, "  survey detail <type>   - Detailed resource analysis\r\n");
+    if (GET_LEVEL(ch) >= LVL_IMMORT) {
+      send_to_char(ch, "  survey debug           - Debug information\r\n");
+    }
+    send_to_char(ch, "\r\nResource types: vegetation, minerals, water, herbs, game,\r\n");
+    send_to_char(ch, "                wood, stone, crystal, clay, salt\r\n");
+  }
 }
 
 #endif

@@ -733,6 +733,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"rescue", "resc", POS_FIGHTING, do_rescue, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_rescue},
     {"resistances", "res", POS_DEAD, do_affects, 0, SCMD_RESISTANCES, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"restore", "resto", POS_DEAD, do_restore, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"resourceadmin", "resadmin", POS_DEAD, do_resourceadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"retainer", "retainer", POS_DEAD, do_retainer, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"return", "retu", POS_DEAD, do_return, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"redit", "redit", POS_DEAD, do_oasis_redit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
