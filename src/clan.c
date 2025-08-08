@@ -855,10 +855,8 @@ void log_clan_activity(clan_vnum c, const char *format, ...)
   if (!(fl = fopen(filename, "a")))
   {
     /* Try to create the directory if it doesn't exist */
-    char mkdir_cmd[256];
-    snprintf(mkdir_cmd, sizeof(mkdir_cmd), "mkdir -p %s", CLAN_LOG_DIR);
-    if (system(mkdir_cmd) != 0) {
-      log("SYSERR: Failed to create clan_logs directory");
+    if (!ensure_dir_exists(CLAN_LOG_DIR)) {
+      log("SYSERR: Failed to ensure clan_logs directory exists");
     }
     if (!(fl = fopen(filename, "a")))
     {
@@ -869,8 +867,7 @@ void log_clan_activity(clan_vnum c, const char *format, ...)
   
   /* Get current time */
   ct = time(0);
-  tmstr = asctime(localtime(&ct));
-  *(tmstr + strlen(tmstr) - 1) = '\0'; /* Remove newline */
+  tmstr = (char *)format_time_ymd_hms(ct);
   
   /* Format the message */
   va_start(args, format);
