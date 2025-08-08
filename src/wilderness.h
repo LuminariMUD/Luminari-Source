@@ -246,9 +246,11 @@ struct region_list
 struct region_proximity_list
 {
   region_rnum rnum;
+  int pos;       /* Position relative to region: REGION_POS_CENTER, REGION_POS_INSIDE, REGION_POS_EDGE */
 
   double dirs[8];
   double dist;
+  bool is_inside;  /* TRUE if player is inside the region, FALSE if just nearby */
 
   struct region_proximity_list *next;
 };
