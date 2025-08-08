@@ -135,6 +135,9 @@ struct list_data *shuffled = randomize_list(monsters);
 
 `randomize_list` repeatedly picks a random element and moves it into a fresh list, frees the original container, and returns the new list.
 
+Edge cases:
+- If the input list is empty (`iSize == 0`), `randomize_list` returns NULL and does not free the original list pointer. Callers should handle NULL and free the original list if needed.
+
 ---
 
 ## Semantics and Invariants
@@ -155,6 +158,7 @@ The implementation uses the standard MUD logging (`mudlog`, `log`) with staff le
 
 - Merging or iterating on a NULL/empty list → warning via `mudlog`.
 - Removing an element not present in the list → warning via `log`.
+- Detaching an iterator that is already detached (NULL list on the iterator) → warning via `mudlog`.
 
 These are runtime diagnostics; they do not abort execution. Treat them as correctness signals during development.
 
@@ -179,7 +183,7 @@ Guidance:
 
 - The list owns only the node wrappers (`struct item_data`) and the container (`struct list_data`).
 - Callers own `pContent`. Neither `remove_from_list` nor `free_list` will free your objects.
-- `free_list` clears the list by removing all items, then frees the container. It attempts a safe internal iteration pattern that caches `next` pointers before removal.
+- `free_list` clears the list by removing all items, then frees the container. It attempts a safe internal iteration pattern that caches `next` pointers before removal. Passing `NULL` to `free_list` is a no-op and safe.
 
 Checklist:
 - Free or recycle your `pContent` explicitly when removing from the list, if appropriate.

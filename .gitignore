@@ -337,3 +337,21 @@ circle
 /*.tar
 /*.gz
 /*.tar.gz
+
+####################
+# Aider AI Assistant
+####################
+# Aider virtual environment
+aider-env/
+
+# Aider-generated files (history, chat logs, etc.)
+.aider*
+.aider.input.history
+.aider.chat.history.md
+.aider.llm.history
+.aider.conf.yml  # Only if you want to keep API keys local
+
+# Python virtual environments in general
+*-env/
+venv/
+.venv/
