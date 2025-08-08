@@ -38,21 +38,37 @@ This comprehensive guide covers the complete process of setting up, building, co
 - **libtool** - Generic library support script (optional)
 - **valgrind** - Memory debugging tool (recommended)
 
-### Ubuntu/Debian Installation
+### Ubuntu/Debian Installation (including WSL2)
+
+#### Required Libraries (from Makefile.am line 170)
+The project links against these libraries: `-lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread`
+
 ```bash
 # Update package list
 sudo apt-get update
 
-# Install core dependencies for CMake build
-sudo apt-get install -y build-essential cmake mysql-server libmysqlclient-dev \
-                        libgd-dev libcrypt-dev libcurl4-openssl-dev libssl-dev git make
+# Install REQUIRED dependencies (these match the libraries in Makefile.am)
+sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmysqlclient-dev \
+                        libcurl4-openssl-dev libssl-dev mysql-server git make
 
-# Additional dependencies for Autotools build (if using)
+# For CMake builds (recommended)
+sudo apt-get install -y cmake
+
+# For Autotools builds (traditional)
 sudo apt-get install -y autoconf automake libtool
 
-# Install additional development tools (recommended)
+# Optional but recommended development tools
 sudo apt-get install -y gdb valgrind doxygen graphviz cppcheck clang-format
 ```
+
+**WSL2 Specific Note**: All the above packages work perfectly on WSL2 Ubuntu. The libraries map as follows:
+- `-lcrypt` → `libcrypt-dev`
+- `-lgd` → `libgd-dev` (for map generation)
+- `-lm` → included in `build-essential` (math library)
+- `-lmysqlclient` → `libmysqlclient-dev`
+- `-lcurl` → `libcurl4-openssl-dev`
+- `-lssl -lcrypto` → `libssl-dev`
+- `-lpthread` → included in standard libc
 
 ### CentOS/RHEL/Fedora Installation
 ```bash
