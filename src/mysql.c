@@ -894,143 +894,53 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
   struct region_proximity_list *new_node = NULL;
 
   int i = 0;
+  char buf[8192];  /* Increased buffer size for large query */
 
-  char buf[6000];
-
-  /* Need an ORDER BY here, since we can have multiple regions. */
-  snprintf(buf, sizeof(buf), "select * from (select "
-                             "  ri.vnum, "
-                             "  case "
-                             "    when ST_Intersects(ri.region_polygon, "
-                             "                       ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-                             "    then "
-                             "      CASE "
-                             "        WHEN ST_GeometryType(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) = 'GEOMETRYCOLLECTION' "
-                             "        THEN COALESCE(ST_Area(ST_GeometryN(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')), 1)), 0.0) "
-                             "        ELSE ST_Area(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) "
-                             "      END "
-                             "    else 0.0 end as n, "
-                             "  case "
-                             "    when ST_Intersects(ri.region_polygon, "
-                             "                       ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-                             "    then "
-                             "      CASE "
-                             "        WHEN ST_GeometryType(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) = 'GEOMETRYCOLLECTION' "
-                             "        THEN COALESCE(ST_Area(ST_GeometryN(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')), 1)), 0.0) "
-                             "        ELSE ST_Area(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) "
-                             "      END "
-                             "    else 0.0 end as ne, "
-                             "  case "
-                             "    when ST_Intersects(ri.region_polygon, "
-                             "                       ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-                             "    then "
-                             "      CASE "
-                             "        WHEN ST_GeometryType(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) = 'GEOMETRYCOLLECTION' "
-                             "        THEN COALESCE(ST_Area(ST_GeometryN(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')), 1)), 0.0) "
-                             "        ELSE ST_Area(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) "
-                             "      END "
-                             "    else 0.0 end as e, "
-                             "  case "
-                             "    when ST_Intersects(ri.region_polygon, "
-                             "                       ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-                             "    then "
-                             "      CASE "
-                             "        WHEN ST_GeometryType(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) = 'GEOMETRYCOLLECTION' "
-                             "        THEN COALESCE(ST_Area(ST_GeometryN(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')), 1)), 0.0) "
-                             "        ELSE ST_Area(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) "
-                             "      END "
-                             "    else 0.0 end as se, "
-                             "  case "
-                             "    when ST_Intersects(ri.region_polygon, "
-                             "                       ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-                             "    then "
-                             "      CASE "
-                             "        WHEN ST_GeometryType(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) = 'GEOMETRYCOLLECTION' "
-                             "        THEN COALESCE(ST_Area(ST_GeometryN(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')), 1)), 0.0) "
-                             "        ELSE ST_Area(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) "
-                             "      END "
-                             "    else 0.0 end as s, "
-                             "  case "
-                             "    when ST_Intersects(ri.region_polygon, "
-                             "                       ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-                             "    then "
-                             "      CASE "
-                             "        WHEN ST_GeometryType(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) = 'GEOMETRYCOLLECTION' "
-                             "        THEN COALESCE(ST_Area(ST_GeometryN(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')), 1)), 0.0) "
-                             "        ELSE ST_Area(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) "
-                             "      END "
-                             "    else 0.0 end as sw, "
-                             "  case "
-                             "    when ST_Intersects(ri.region_polygon, "
-                             "                       ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-                             "    then "
-                             "      CASE "
-                             "        WHEN ST_GeometryType(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) = 'GEOMETRYCOLLECTION' "
-                             "        THEN COALESCE(ST_Area(ST_GeometryN(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')), 1)), 0.0) "
-                             "        ELSE ST_Area(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) "
-                             "      END "
-                             "    else 0.0 end as w, "
-                             "  case "
-                             "    when ST_Intersects(ri.region_polygon, "
-                             "                       ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-                             "    then "
-                             "      CASE "
-                             "        WHEN ST_GeometryType(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) = 'GEOMETRYCOLLECTION' "
-                             "        THEN COALESCE(ST_Area(ST_GeometryN(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))')), 1)), 0.0) "
-                             "        ELSE ST_Area(ST_Intersection(ri.region_polygon, ST_GeomFromText('polygon((%d %d, %f %f, %f %f, %d %d))'))) "
-                             "      END "
-                             "    else 0.0 end as nw, "
-                             "  ST_Distance(ri.region_polygon, ST_GeomFromText('Point(%d %d)')) as dist "
-                             "  from region_index as ri, "
-                             "       region_data as rd "
-                             "  where ri.vnum = rd.vnum and"
-                             "        rd.region_type = 1 "
-                             "  order by ST_Distance(ri.region_polygon, ST_GeomFromText('Point(%d %d)')) desc " // GEOGRAPHIC regions only.
-                             " ) nearby_regions "
-                             "  where ((n > 0) or (ne > 0) or (e > 0) or (se > 0) or (s > 0) or (sw > 0) or (w > 0) or (nw > 0));",
-           /* n - 4 polygons */
-           x, y, (r * -.5 + x), (r * .87 + y), (r * .5 + x), (r * .87 + y), x, y,
-           x, y, (r * -.5 + x), (r * .87 + y), (r * .5 + x), (r * .87 + y), x, y,
-           x, y, (r * -.5 + x), (r * .87 + y), (r * .5 + x), (r * .87 + y), x, y,
-           x, y, (r * -.5 + x), (r * .87 + y), (r * .5 + x), (r * .87 + y), x, y,
-           /* ne - 4 polygons */
-           x, y, (r * .5 + x), (r * .87 + y), (r * .87 + x), (r * .5 + y), x, y,
-           x, y, (r * .5 + x), (r * .87 + y), (r * .87 + x), (r * .5 + y), x, y,
-           x, y, (r * .5 + x), (r * .87 + y), (r * .87 + x), (r * .5 + y), x, y,
-           x, y, (r * .5 + x), (r * .87 + y), (r * .87 + x), (r * .5 + y), x, y,
-           /* e - 4 polygons */
-           x, y, (r * .87 + x), (r * .5 + y), (r * .87 + x), (r * -.5 + y), x, y,
-           x, y, (r * .87 + x), (r * .5 + y), (r * .87 + x), (r * -.5 + y), x, y,
-           x, y, (r * .87 + x), (r * .5 + y), (r * .87 + x), (r * -.5 + y), x, y,
-           x, y, (r * .87 + x), (r * .5 + y), (r * .87 + x), (r * -.5 + y), x, y,
-           /* se - 4 polygons */
-           x, y, (r * .87 + x), (r * -.5 + y), (r * .5 + x), (r * -.87 + y), x, y,
-           x, y, (r * .87 + x), (r * -.5 + y), (r * .5 + x), (r * -.87 + y), x, y,
-           x, y, (r * .87 + x), (r * -.5 + y), (r * .5 + x), (r * -.87 + y), x, y,
-           x, y, (r * .87 + x), (r * -.5 + y), (r * .5 + x), (r * -.87 + y), x, y,
-           /* s - 4 polygons */
-           x, y, (r * .5 + x), (r * -.87 + y), (r * -.5 + x), (r * -.87 + y), x, y,
-           x, y, (r * .5 + x), (r * -.87 + y), (r * -.5 + x), (r * -.87 + y), x, y,
-           x, y, (r * .5 + x), (r * -.87 + y), (r * -.5 + x), (r * -.87 + y), x, y,
-           x, y, (r * .5 + x), (r * -.87 + y), (r * -.5 + x), (r * -.87 + y), x, y,
-           /* sw - 4 polygons */
-           x, y, (r * -.5 + x), (r * -.87 + y), (r * -.87 + x), (r * -.5 + y), x, y,
-           x, y, (r * -.5 + x), (r * -.87 + y), (r * -.87 + x), (r * -.5 + y), x, y,
-           x, y, (r * -.5 + x), (r * -.87 + y), (r * -.87 + x), (r * -.5 + y), x, y,
-           x, y, (r * -.5 + x), (r * -.87 + y), (r * -.87 + x), (r * -.5 + y), x, y,
-           /* w - 4 polygons */
-           x, y, (r * -.87 + x), (r * -.5 + y), (r * -.87 + x), (r * .5 + y), x, y,
-           x, y, (r * -.87 + x), (r * -.5 + y), (r * -.87 + x), (r * .5 + y), x, y,
-           x, y, (r * -.87 + x), (r * -.5 + y), (r * -.87 + x), (r * .5 + y), x, y,
-           x, y, (r * -.87 + x), (r * -.5 + y), (r * -.87 + x), (r * .5 + y), x, y,
-           /* nw - 4 polygons */
-           x, y, (r * -.87 + x), (r * .5 + y), (r * -.5 + x), (r * .87 + y), x, y,
-           x, y, (r * -.87 + x), (r * .5 + y), (r * -.5 + x), (r * .87 + y), x, y,
-           x, y, (r * -.87 + x), (r * .5 + y), (r * -.5 + x), (r * .87 + y), x, y,
-           x, y, (r * -.87 + x), (r * .5 + y), (r * -.5 + x), (r * .87 + y), x, y,
-           /* Points for distance calculations */
-           x, y,
-           x, y);
+  /* Polygon-based approach: Check which directional sectors each region intersects */
+  /* Uses simpler logic to avoid geometry type issues */
+  /* Use non-overlapping rectangular sectors to avoid invalid geometry issues */
+  snprintf(buf, sizeof(buf), 
+           "SELECT ri.vnum, "
+           "       rd.name, "
+           "       CASE "
+           "         WHEN ST_Within(ST_GeomFromText('POINT(%d %d)'), ri.region_polygon) THEN 'INSIDE' "
+           "         WHEN ST_Distance(ri.region_polygon, ST_GeomFromText('POINT(%d %d)')) = 0 THEN 'EDGE' "
+           "         ELSE 'NEARBY' "
+           "       END AS position, "
+           "       ST_Distance(ri.region_polygon, ST_GeomFromText('POINT(%d %d)')) AS distance, "
+           "       CASE WHEN ST_Intersects(ri.region_polygon, ST_GeomFromText('POLYGON((%d %d, %d %d, %d %d, %d %d, %d %d))')) THEN 1 ELSE 0 END AS n, "
+           "       CASE WHEN ST_Intersects(ri.region_polygon, ST_GeomFromText('POLYGON((%d %d, %d %d, %d %d, %d %d, %d %d))')) THEN 1 ELSE 0 END AS ne, "
+           "       CASE WHEN ST_Intersects(ri.region_polygon, ST_GeomFromText('POLYGON((%d %d, %d %d, %d %d, %d %d, %d %d))')) THEN 1 ELSE 0 END AS e, "
+           "       CASE WHEN ST_Intersects(ri.region_polygon, ST_GeomFromText('POLYGON((%d %d, %d %d, %d %d, %d %d, %d %d))')) THEN 1 ELSE 0 END AS se, "
+           "       CASE WHEN ST_Intersects(ri.region_polygon, ST_GeomFromText('POLYGON((%d %d, %d %d, %d %d, %d %d, %d %d))')) THEN 1 ELSE 0 END AS s, "
+           "       CASE WHEN ST_Intersects(ri.region_polygon, ST_GeomFromText('POLYGON((%d %d, %d %d, %d %d, %d %d, %d %d))')) THEN 1 ELSE 0 END AS sw, "
+           "       CASE WHEN ST_Intersects(ri.region_polygon, ST_GeomFromText('POLYGON((%d %d, %d %d, %d %d, %d %d, %d %d))')) THEN 1 ELSE 0 END AS w, "
+           "       CASE WHEN ST_Intersects(ri.region_polygon, ST_GeomFromText('POLYGON((%d %d, %d %d, %d %d, %d %d, %d %d))')) THEN 1 ELSE 0 END AS nw "
+           "FROM region_index ri "
+           "JOIN region_data rd ON ri.vnum = rd.vnum "
+           "WHERE rd.region_type = 1 "
+           "  AND (ST_Within(ST_GeomFromText('POINT(%d %d)'), ri.region_polygon) "
+           "       OR ST_Distance(ri.region_polygon, ST_GeomFromText('POINT(%d %d)')) <= %d) "
+           "ORDER BY distance ASC",
+           x, y, x, y, x, y,
+           /* N: Rectangle directly north */
+           x-1, y+1, x+1, y+1, x+1, y+r, x-1, y+r, x-1, y+1,
+           /* NE: Rectangle northeast */
+           x+1, y+1, x+r, y+1, x+r, y+r, x+1, y+r, x+1, y+1,
+           /* E: Rectangle directly east */
+           x+1, y-1, x+r, y-1, x+r, y+1, x+1, y+1, x+1, y-1,
+           /* SE: Rectangle southeast */
+           x+1, y-r, x+r, y-r, x+r, y-1, x+1, y-1, x+1, y-r,
+           /* S: Rectangle directly south */
+           x-1, y-r, x+1, y-r, x+1, y-1, x-1, y-1, x-1, y-r,
+           /* SW: Rectangle southwest */
+           x-r, y-r, x-1, y-r, x-1, y-1, x-r, y-1, x-r, y-r,
+           /* W: Rectangle directly west */
+           x-r, y-1, x-1, y-1, x-1, y+1, x-r, y+1, x-r, y-1,
+           /* NW: Rectangle northwest */
+           x-r, y+1, x-1, y+1, x-1, y+r, x-r, y+r, x-r, y+1,
+           /* WHERE clause coordinates */
+           x, y, x, y, r);
 
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
@@ -1062,12 +972,40 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
     /* Allocate memory for the region data. */
     CREATE(new_node, struct region_proximity_list, 1);
     new_node->rnum = rnum;
+    new_node->dist = atof(row[3]);  /* Distance from query */
 
-    for (i = 0; i < 8; i++)
-    {
-      new_node->dirs[i] = atof(row[i + 1]);
+    /* Check position - inside, edge, or nearby the region */
+    bool is_inside = (strcmp(row[2], "INSIDE") == 0);
+    bool is_edge = (strcmp(row[2], "EDGE") == 0);
+    new_node->is_inside = is_inside || is_edge;  /* Treat edge as "inside" for positioning */
+    
+    /* Set the position constant for room descriptions */
+    if (is_inside) {
+      new_node->pos = REGION_POS_INSIDE;
+    } else if (is_edge) {
+      new_node->pos = REGION_POS_EDGE;
+    } else {
+      new_node->pos = REGION_POS_UNDEFINED;  /* This is for nearby regions */
     }
-    new_node->dist = atof(row[9]);
+    
+    if (is_inside || is_edge) {
+      /* When inside or on edge of a region, set all directions to indicate we're surrounded */
+      for (i = 0; i < 8; i++) {
+        new_node->dirs[i] = 100.0;  /* Maximum strength for all directions */
+      }
+    } else {
+      /* Process the directional flags from the query (rows 4-11: n, ne, e, se, s, sw, w, nw) */
+      for (i = 0; i < 8; i++) {
+        int intersects = atoi(row[i + 4]);  /* 1 if region intersects this direction, 0 if not */
+        if (intersects) {
+          /* Use inverse distance as strength - closer regions have higher influence */
+          double strength = (new_node->dist > 0) ? (100.0 / (1.0 + new_node->dist)) : 100.0;
+          new_node->dirs[i] = strength;
+        } else {
+          new_node->dirs[i] = 0.0;
+        }
+      }
+    }
 
     new_node->next = regions;
     regions = new_node;
