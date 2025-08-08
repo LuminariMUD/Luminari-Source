@@ -48,6 +48,7 @@
 #include "feats.h"
 #include "assign_wpn_armor.h"
 #include "item.h"
+#include "resource_system.h"
 #include "feats.h"
 #include "domains_schools.h"
 #include "ai_service.h"
@@ -10330,6 +10331,244 @@ ACMD(do_objcheck)
     mudlog(BRF, LVL_IMMORT, TRUE, "OBJCHECK: %s found and fixed %d object count errors",
            GET_NAME(ch), errors);
   }
+}
+
+/* Resource System Admin Command */
+ACMD(do_resourceadmin)
+{
+  char arg[MAX_INPUT_LENGTH];
+  int x, y, i;
+  float resource_level;
+  
+  one_argument(argument, arg, sizeof(arg));
+  
+  if (!*arg) {
+    send_to_char(ch, "Resource System Admin Commands:\r\n");
+    send_to_char(ch, "==============================\r\n");
+    send_to_char(ch, "resourceadmin status    - Show system status\r\n");
+    send_to_char(ch, "resourceadmin here      - Show resources at current location\r\n");
+    send_to_char(ch, "resourceadmin coords <x> <y> - Show resources at coordinates\r\n");
+    send_to_char(ch, "resourceadmin map <type> [radius] - Show resource minimap\r\n");
+    send_to_char(ch, "resourceadmin debug     - Show debug survey at current location\r\n");
+    send_to_char(ch, "resourceadmin cache     - Show cache statistics and management\r\n");
+    send_to_char(ch, "resourceadmin cleanup   - Force cleanup of old resource nodes\r\n");
+    return;
+  }
+  
+  if (is_abbrev(arg, "status")) {
+    send_to_char(ch, "Resource System Status:\r\n");
+    send_to_char(ch, "======================\r\n");
+    
+    /* Check if resource system is initialized */
+    if (resource_configs[0].noise_layer >= 0) {
+      send_to_char(ch, "Status: \tcONLINE\tn\r\n");
+      send_to_char(ch, "Resource types configured: %d\r\n", NUM_RESOURCE_TYPES);
+      
+      /* Show Perlin noise layer assignments */
+      send_to_char(ch, "\r\nPerlin Noise Layer Assignments:\r\n");
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        send_to_char(ch, "  %s: Layer %d\r\n", 
+                     resource_names[i], resource_configs[i].noise_layer);
+      }
+      
+      /* Show cache statistics */
+      {
+        int total_nodes, expired_nodes;
+        cache_get_stats(&total_nodes, &expired_nodes);
+        send_to_char(ch, "\r\nSpatial Cache (Phase 3):\r\n");
+        send_to_char(ch, "  Total cached nodes: %d\r\n", total_nodes);
+        send_to_char(ch, "  Expired nodes: %d\r\n", expired_nodes);
+        send_to_char(ch, "  Cache grid size: %d coordinates\r\n", RESOURCE_CACHE_GRID_SIZE);
+        send_to_char(ch, "  Cache lifetime: %d seconds\r\n", RESOURCE_CACHE_LIFETIME);
+        send_to_char(ch, "  Max cache nodes: %d\r\n", RESOURCE_CACHE_MAX_NODES);
+      }
+      
+    } else {
+      send_to_char(ch, "Status: \trOFFLINE\tn (System not initialized)\r\n");
+    }
+    
+    return;
+  }
+  
+  if (is_abbrev(arg, "here")) {
+    zone_rnum zrnum = world[IN_ROOM(ch)].zone;
+    if (!ZONE_FLAGGED(zrnum, ZONE_WILDERNESS)) {
+      send_to_char(ch, "This command can only be used in the wilderness.\r\n");
+      return;
+    }
+    
+    /* Get coordinates */
+    x = world[IN_ROOM(ch)].coords[0];
+    y = world[IN_ROOM(ch)].coords[1];
+    
+    send_to_char(ch, "Resource Analysis for (%d, %d):\r\n", x, y);
+    send_to_char(ch, "================================\r\n");
+    
+    /* Show all resource levels */
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+      resource_level = calculate_current_resource_level(i, x, y);
+      send_to_char(ch, "%-15s: %6.2f%% (%s)\r\n", 
+                   resource_names[i], 
+                   resource_level * 100.0f,
+                   get_abundance_description(resource_level));
+    }
+    
+    /* Show environmental factors */
+    send_to_char(ch, "\r\nEnvironmental Factors:\r\n");
+    send_to_char(ch, "Terrain: %s\r\n", sector_types[SECT(IN_ROOM(ch))]);
+    send_to_char(ch, "Elevation: %d\r\n", get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+    
+    return;
+  }
+  
+  if (is_abbrev(arg, "coords")) {
+    char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
+    
+    argument = two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
+    one_argument(argument, arg3, sizeof(arg3));
+    
+    if (!*arg2 || !*arg3) {
+      send_to_char(ch, "Usage: resourceadmin coords <x> <y>\r\n");
+      return;
+    }
+    
+    x = atoi(arg2);
+    y = atoi(arg3);
+    
+    /* Validate coordinates */
+    if (x < -1024 || x > 1024 || y < -1024 || y > 1024) {
+      send_to_char(ch, "Coordinates must be between -1024 and 1024.\r\n");
+      return;
+    }
+    
+    send_to_char(ch, "Resource Analysis for (%d, %d):\r\n", x, y);
+    send_to_char(ch, "================================\r\n");
+    
+    /* Show all resource levels */
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+      resource_level = calculate_current_resource_level(i, x, y);
+      send_to_char(ch, "%-15s: %6.2f%% (%s)\r\n", 
+                   resource_names[i], 
+                   resource_level * 100.0f,
+                   get_abundance_description(resource_level));
+    }
+    
+    return;
+  }
+  
+  if (is_abbrev(arg, "map")) {
+    char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
+    int resource_type = -1, radius = 7;
+    zone_rnum zrnum = world[IN_ROOM(ch)].zone;
+    
+    if (!ZONE_FLAGGED(zrnum, ZONE_WILDERNESS)) {
+      send_to_char(ch, "This command can only be used in the wilderness.\r\n");
+      return;
+    }
+    
+    argument = two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
+    one_argument(argument, arg3, sizeof(arg3));
+    
+    if (!*arg2) {
+      send_to_char(ch, "Usage: resourceadmin map <resource_type> [radius]\r\n");
+      send_to_char(ch, "Resource types: 0-9 or vegetation, minerals, water, etc.\r\n");
+      return;
+    }
+    
+    /* Parse resource type */
+    if (is_number(arg2)) {
+      resource_type = atoi(arg2);
+    } else {
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        if (is_abbrev(arg2, resource_names[i])) {
+          resource_type = i;
+          break;
+        }
+      }
+    }
+    
+    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES) {
+      send_to_char(ch, "Invalid resource type.\r\n");
+      return;
+    }
+    
+    if (*arg3) {
+      radius = atoi(arg3);
+      if (radius < 3) radius = 3;
+      if (radius > 20) radius = 20; /* Admins can use larger radius */
+    }
+    
+    show_resource_map(ch, resource_type, radius);
+    return;
+  }
+  
+  if (is_abbrev(arg, "debug")) {
+    zone_rnum zrnum = world[IN_ROOM(ch)].zone;
+    if (!ZONE_FLAGGED(zrnum, ZONE_WILDERNESS)) {
+      send_to_char(ch, "This command can only be used in the wilderness.\r\n");
+      return;
+    }
+    
+    show_debug_survey(ch);
+    return;
+  }
+  
+  if (is_abbrev(arg, "cleanup")) {
+    send_to_char(ch, "Forcing cleanup of old resource nodes...\r\n");
+    cleanup_old_resource_nodes();
+    send_to_char(ch, "Cleanup complete.\r\n");
+    mudlog(NRM, LVL_IMMORT, TRUE, "%s forced resource system cleanup", GET_NAME(ch));
+    return;
+  }
+  
+  if (is_abbrev(arg, "cache")) {
+    char arg2[MAX_INPUT_LENGTH];
+    int total_nodes, expired_nodes;
+    
+    one_argument(argument, arg2, sizeof(arg2));
+    
+    if (!*arg2) {
+      /* Show cache statistics */
+      cache_get_stats(&total_nodes, &expired_nodes);
+      
+      send_to_char(ch, "Resource System Cache Statistics:\r\n");
+      send_to_char(ch, "=================================\r\n");
+      send_to_char(ch, "Total cached nodes: %d\r\n", total_nodes);
+      send_to_char(ch, "Expired nodes: %d\r\n", expired_nodes);
+      send_to_char(ch, "Valid nodes: %d\r\n", total_nodes - expired_nodes);
+      send_to_char(ch, "Cache grid size: %d coordinates\r\n", RESOURCE_CACHE_GRID_SIZE);
+      send_to_char(ch, "Cache lifetime: %d seconds\r\n", RESOURCE_CACHE_LIFETIME);
+      send_to_char(ch, "Max cache nodes: %d\r\n", RESOURCE_CACHE_MAX_NODES);
+      send_to_char(ch, "\r\nCommands:\r\n");
+      send_to_char(ch, "  resourceadmin cache cleanup  - Remove expired cache entries\r\n");
+      send_to_char(ch, "  resourceadmin cache clear    - Clear all cache entries\r\n");
+      return;
+    }
+    
+    if (is_abbrev(arg2, "cleanup")) {
+      send_to_char(ch, "Cleaning up expired cache entries...\r\n");
+      cache_get_stats(&total_nodes, &expired_nodes);
+      cache_cleanup_expired();
+      send_to_char(ch, "Removed %d expired cache entries.\r\n", expired_nodes);
+      mudlog(NRM, LVL_IMMORT, TRUE, "%s cleaned up resource cache (%d entries removed)", 
+             GET_NAME(ch), expired_nodes);
+      return;
+    }
+    
+    if (is_abbrev(arg2, "clear")) {
+      cache_get_stats(&total_nodes, &expired_nodes);
+      cache_clear_all();
+      send_to_char(ch, "Cleared all %d cache entries.\r\n", total_nodes);
+      mudlog(NRM, LVL_IMMORT, TRUE, "%s cleared resource cache (%d entries removed)", 
+             GET_NAME(ch), total_nodes);
+      return;
+    }
+    
+    send_to_char(ch, "Unknown cache command. Use 'resourceadmin cache' for help.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "Unknown resourceadmin option. Type 'resourceadmin' for help.\r\n");
 }
 
 /* EOF */

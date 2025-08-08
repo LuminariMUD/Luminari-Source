@@ -50,6 +50,7 @@
 #include "spec_abilities.h"
 #include "perlin.h"
 #include "wilderness.h"
+#include "resource_system.h"
 #include "mysql.h"
 #include "feats.h"
 #include "actionqueues.h"
@@ -751,15 +752,27 @@ void boot_world(void)
   log("Calculating weighted object bonuses for treasure generation.");
   assign_weighted_bonuses();
 
-  log("Initializing perlin noise generators (elevation, moisture, distance, weather).");
+  log("Initializing perlin noise generators (elevation, moisture, distance, weather, resources).");
   init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_MOISTURE, NOISE_MATERIAL_PLANE_MOISTURE_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
   init_perlin(NOISE_WEATHER, NOISE_WEATHER_SEED);
+  /* Initialize resource system noise layers */
+  init_perlin(NOISE_VEGETATION, NOISE_VEGETATION_SEED);
+  init_perlin(NOISE_MINERALS, NOISE_MINERALS_SEED);
+  init_perlin(NOISE_WATER_RESOURCE, NOISE_WATER_RESOURCE_SEED);
+  init_perlin(NOISE_HERBS, NOISE_HERBS_SEED);
+  init_perlin(NOISE_GAME, NOISE_GAME_SEED);
+  init_perlin(NOISE_WOOD, NOISE_WOOD_SEED);
+  init_perlin(NOISE_STONE, NOISE_STONE_SEED);
+  init_perlin(NOISE_CRYSTAL, NOISE_CRYSTAL_SEED);
 
 #if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   log("Indexing wilderness rooms.");
   initialize_wilderness_lists();
+
+  log("Initializing resource system.");
+  init_resource_system();
 
   log("Writing wilderness map image.");
   // save_map_to_file("luminari_wilderness.png", WILD_X_SIZE, WILD_Y_SIZE);
