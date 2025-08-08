@@ -73,6 +73,9 @@ sudo apt-get update
 sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmysqlclient-dev \
                         libcurl4-openssl-dev libssl-dev mysql-server git make cmake \
                         autoconf automake libtool
+
+# HIGHLY RECOMMENDED: Install debugging tools (used by debug_game.sh and vgrind.sh)
+sudo apt-get install -y gdb valgrind
 ```
 
 ### Build and Run

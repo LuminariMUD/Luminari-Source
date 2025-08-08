@@ -57,8 +57,11 @@ sudo apt-get install -y cmake
 # For Autotools builds (traditional)
 sudo apt-get install -y autoconf automake libtool
 
-# Optional but recommended development tools
-sudo apt-get install -y gdb valgrind doxygen graphviz cppcheck clang-format
+# HIGHLY RECOMMENDED: Debugging tools (used by debug_game.sh and vgrind.sh scripts)
+sudo apt-get install -y gdb valgrind
+
+# Optional development tools
+sudo apt-get install -y doxygen graphviz cppcheck clang-format
 ```
 
 **WSL2 Specific Note**: All the above packages work perfectly on WSL2 Ubuntu. The libraries map as follows:
