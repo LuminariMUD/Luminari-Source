@@ -544,6 +544,8 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define CEDIT_SET_CRAFTING_SYSTEM 89
 #define CEDIT_SET_LANDMARK_SYSTEM 90
 #define CEDIT_SET_NEW_PLAYER_GEAR 91
+#define CEDIT_SET_ALLOW_CEXCHANGE 92
+#define CEDIT_SET_WILDERNESS_SYSTEM 93
 
 /* Hedit Submodes of connectedness. */
 #define HEDIT_CONFIRM_SAVESTRING 0
@@ -699,6 +701,8 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define NUM_CRAFTING_SYSTEMS 3
 #define NUM_LANDMARK_SYSTEMS 3
 #define NUM_NEW_PLAYER_GEAR_OPTIONS 2
+#define NUM_ALLOW_CEXCHANGE_OPTIONS 2
+#define NUM_WILDERNESS_SYSTEM_OPTIONS 3
 
 int save_config(IDXTYPE nowhere);
 

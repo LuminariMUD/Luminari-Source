@@ -7027,6 +7027,8 @@ void load_config(void)
         CONFIG_ARCANE_PREP_TIME = num;
       else if (!str_cmp(tag, "alchemy_mem_times"))
         CONFIG_ALCHEMY_PREP_TIME = num;
+      else if (!str_cmp(tag, "allow_cexchange"))
+        CONFIG_ALLOW_CEXCHANGE = num;
       break;
 
     case 'b':
@@ -7311,6 +7313,8 @@ void load_config(void)
           free(CONFIG_WELC_MESSG);
         CONFIG_WELC_MESSG = fread_string(fl, buf);
       }
+      else if (!str_cmp(tag, "wilderness_system"))
+        CONFIG_WILDERNESS_SYSTEM = num;
       break;
 
     default:

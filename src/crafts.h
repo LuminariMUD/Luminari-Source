@@ -79,6 +79,7 @@ struct craft_data *get_craft_from_arg(char *arg);
 struct craft_data *get_craft_from_id(int id);
 
 ACMD_DECL(do_craft);
+ACMD_DECL(do_craft_with_kits);
 
 /* Craftedit */
 extern struct list_data *global_craft_list;

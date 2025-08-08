@@ -2573,6 +2573,8 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_CRAFTING_SYSTEM config_info.extra.crafting_system
 #define CONFIG_LANDMARK_SYSTEM config_info.extra.landmarks_system
 #define CONFIG_NEW_PLAYER_GEAR config_info.extra.new_player_gear
+#define CONFIG_ALLOW_CEXCHANGE config_info.extra.allow_cexchange
+#define CONFIG_WILDERNESS_SYSTEM config_info.extra.wilderness_system
 
 #define LANDMARK_SYSTEM_NONE    0
 #define LANDMARK_SYSTEM_CITIES  1
@@ -2587,6 +2589,13 @@ int ACTUAL_BAB(struct char_data *ch);
 
 #define NEW_PLAYER_GEAR_SHARED  0
 #define NEW_PLAYER_GEAR_UNIQUE  1
+
+#define CEXCHANGE_DENY  0
+#define CEXCHANGE_ALLOW 1
+
+#define WILDERNESS_SYSTEM_NONE      0
+#define WILDERNESS_SYSTEM_MANUAL    1
+#define WILDERNESS_SYSTEM_WILDEDIT  2
 
 /* Action queues */
 #define GET_QUEUE(ch) ((ch)->char_specials.action_queue)

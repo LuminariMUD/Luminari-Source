@@ -285,15 +285,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"charge", "charge", POS_FIGHTING, do_charge, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_charge},
     {"circle", "circle", POS_FIGHTING, do_circle, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_circle},
     {"collect", "collect", POS_STANDING, do_collect, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
-#if defined(CAMPAIGN_DL) // && FALSE // (for testing)
-    {"craft", "craft", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_CREATE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"craft", "craft", POS_STANDING, do_craft, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
+    {"crafting", "crafting", POS_STANDING, do_craft_with_kits, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"craftscore", "craftsc", POS_STANDING, do_craft_score, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#else
-    /* we are just using the old do_practice function for crafting for now */
-    {"craft", "craft", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    /* newer crafting system */
-    {"crafting", "crafting", POS_STANDING, do_craft, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
-  #endif
     {"craftedit", "crafte", POS_DEAD, do_oasis_craftedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"comeandgetme", "comeandgetme", POS_FIGHTING, do_comeandgetme, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_comeandgetme},
     {"curingtouch", "curingtouch", POS_STANDING, do_curingtouch, 0, 0, FALSE, ACTION_SWIFT, {6, 0}, NULL},
@@ -304,7 +298,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"combatroll", "combatroll", POS_DEAD, do_gen_tog, 0, SCMD_COMBATROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
 #if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
 #else
-    {"coordconvince", "coordconvert", POS_SLEEPING, do_coordconvert, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"coordconvert", "coordconvert", POS_SLEEPING, do_coordconvert, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"cmdlev", "cmdlev", POS_DEAD, do_cmdlev, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #if !defined(CAMPAIGN_DL)

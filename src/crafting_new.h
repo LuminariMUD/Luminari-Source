@@ -241,6 +241,7 @@ ACMD_DECL(do_list_craft_materials);
 ACMD_DECL(do_craftbonuses);
 ACMD_DECL(do_craft_score);
 ACMD_DECL(do_motes);
+ACMD_DECL(do_craft_score_new);
 
 extern int materials_sort_info[NUM_CRAFT_MATS];
 
