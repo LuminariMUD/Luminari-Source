@@ -540,6 +540,10 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define CEDIT_PLAYER_OPTIONS_SUMMON_30_AC 85
 #define CEDIT_PLAYER_OPTIONS_ALCHEMY_PREP_TIME 86
 #define CEDIT_SET_CAMPAIGN 87
+#define CEDIT_SET_BAG_SYSTEM 88
+#define CEDIT_SET_CRAFTING_SYSTEM 89
+#define CEDIT_SET_LANDMARK_SYSTEM 90
+#define CEDIT_SET_NEW_PLAYER_GEAR 91
 
 /* Hedit Submodes of connectedness. */
 #define HEDIT_CONFIRM_SAVESTRING 0
@@ -690,6 +694,11 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define STUDY_DRAGON_RIDER_DRAGON_TYPE_CONFIRM 77
 #define STUDY_DRAGON_RIDER_BOND_TYPE_CONFIRM 78
 
+
+#define NUM_BAG_SYSTEMS 2
+#define NUM_CRAFTING_SYSTEMS 3
+#define NUM_LANDMARK_SYSTEMS 3
+#define NUM_NEW_PLAYER_GEAR_OPTIONS 2
 
 int save_config(IDXTYPE nowhere);
 
