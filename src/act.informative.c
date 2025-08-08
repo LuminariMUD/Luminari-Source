@@ -30,7 +30,6 @@
 #include "fight.h"
 #include "modify.h"
 #include "asciimap.h"
-#include "spells.h"
 #include "clan.h"
 #include "craft.h" // auto crafting quest
 #include "wilderness.h"
@@ -6475,8 +6474,9 @@ ACMD(do_users)
     else
       strlcpy(classname, "   -    ", sizeof(classname));
 
-    timeptr = asctime(localtime(&d->login_time));
-    timeptr += 11;
+    /* Show only HH:MM:SS from formatted time */
+    timeptr = (char *)format_time_ymd_hms(d->login_time);
+    timeptr += 11; /* Skip YYYY-MM-DD  */
     *(timeptr + 8) = '\0';
 
     if (STATE(d) == CON_PLAYING && d->original)

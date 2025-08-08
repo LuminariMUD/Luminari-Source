@@ -406,6 +406,15 @@ const char *text_line_string(const char *text, int length, char first, char seco
 void draw_line(struct char_data *ch, int length, char first, char second);
 void text_line(struct char_data *ch, const char *text, int length, char first, char second);
 
+/* Time formatting */
+/* Formats a time_t into a thread-unsafe static buffer in the form "YYYY-MM-DD HH:MM:SS".
+ * Returns a pointer to a static buffer that will be overwritten on subsequent calls. */
+const char *format_time_ymd_hms(time_t when);
+
+/* Filesystem helpers */
+/* Ensures that a directory path exists, creating intermediate directories as needed. */
+bool ensure_dir_exists(const char *path);
+
 /* Saving Throws */
 int savingthrow(struct char_data *ch, int save, int modifier, int dc);
 
