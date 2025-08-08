@@ -7029,11 +7029,18 @@ void load_config(void)
         CONFIG_ALCHEMY_PREP_TIME = num;
       break;
 
+    case 'b':
+      if (!str_cmp(tag, "bag_system"))
+        CONFIG_BAG_SYSTEM = num;
+      break;
+
     case 'c':
       if (!str_cmp(tag, "crash_file_timeout"))
         CONFIG_CRASH_TIMEOUT = num;
       if (!str_cmp(tag, "campaign_setting"))
         CONFIG_CAMPAIGN = num;
+      if (!str_cmp(tag, "crafting_system"))
+        CONFIG_CRAFTING_SYSTEM = num;
       break;
 
     case 'd':
@@ -7137,6 +7144,8 @@ void load_config(void)
       break;
 
     case 'l':
+    if (!str_cmp(tag, "landmark_system"))
+        CONFIG_LANDMARK_SYSTEM = num;
       if (!str_cmp(tag, "level_can_shout"))
         CONFIG_LEVEL_CAN_SHOUT = num;
       else if (!str_cmp(tag, "load_into_inventory"))
@@ -7194,6 +7203,8 @@ void load_config(void)
     case 'n':
       if (!str_cmp(tag, "nameserver_is_slow"))
         CONFIG_NS_IS_SLOW = num;
+      if (!str_cmp(tag, "new_player_gear"))
+        CONFIG_NEW_PLAYER_GEAR = num;
       else if (!str_cmp(tag, "no_mort_to_immort"))
         CONFIG_NO_MORT_TO_IMMORT = num;
       else if (!str_cmp(tag, "noperson"))

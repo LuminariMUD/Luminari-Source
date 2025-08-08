@@ -5997,7 +5997,11 @@ struct player_config_data
 
 struct extra_game_data
 {
-    int campaign;
+    ubyte campaign;
+    ubyte bag_system;
+    ubyte new_player_gear;
+    ubyte crafting_system;
+    ubyte landmarks_system;
 };
 
 /**
