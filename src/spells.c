@@ -37,6 +37,7 @@
 #include "transport.h"
 #include "evolutions.h"
 #include "feats.h"
+#include "routing.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
@@ -1574,11 +1575,8 @@ ASPELL(spell_detect_poison)
 // Or to any zone entrance if on Faerun.
 ASPELL(spell_overland_flight)
 {
-
   if (IN_ROOM(ch) == NOWHERE)
     return;
-
-  int i = 0;
 
   char *zone = cast_arg3 + 1;
 
@@ -1588,97 +1586,23 @@ ASPELL(spell_overland_flight)
     return;
   }
 
-#if defined(CAMPAIGN_FR)
-
-  if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_WORLDMAP))
+  if (IS_CAMPAIGN_FR)
   {
-    send_to_char(ch, "You can only use this spell on the world map.\n\r");
-    return;
+    start_fr_flight_to_zone(ch, zone);
   }
-
-  for (i = 0; i < NUM_ZONE_ENTRANCES; i++)
+  else if (IS_CAMPAIGN_DL)
   {
-    if (is_abbrev(zone, zone_entrances[i][0]))
-      break;
+    start_flight_to_zone_dl(ch, zone);
   }
-
-  if (i >= NUM_ZONE_ENTRANCES)
+  else if (IS_CAMPAIGN_LUMINARI)
   {
-    send_to_char(ch, "Please specify a valid area you'd like to fly to.  Type flightlist for a list.\r\n");
-    return;
-  }
-
-  send_to_char(ch, "You begin flying to %s.\r\n", zone_entrances[i][0]);
-
-  enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT, GET_ROOM_VNUM(IN_ROOM(ch)));
-#elif defined(CAMPAIGN_DL)
-
-  if (!OUTSIDE(ch))
-  {
-    send_to_char(ch, "That spell only functions outside.\r\n");
-    return;
-  }
-
-  while (atoi(carriage_locales[i][1]) != 0)
-  {
-    if (is_abbrev(zone, carriage_locales[i][0]))
-      break;
-    i++;
-  }
-
-  if (atoi(carriage_locales[i][1]) == 0)
-  {
-    i = 0;
-    while (atoi(sailing_locales[i][1]) != 0)
-    {
-      if (is_abbrev(zone, sailing_locales[i][0]))
-        break;
-      i++;
-    }
-    if (atoi(sailing_locales[i][1]) == 0)
-    {
-      send_to_char(ch, "Please specify a valid area you'd like to fly to.  Type flightlist for a list.\r\n");
-      return;
-    }
-    else
-    {
-      send_to_char(ch, "You begin flying to %s.\r\n", sailing_locales[i][0]);
-      enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT_SAIL, GET_ROOM_VNUM(IN_ROOM(ch)));
-    }
+    start_flight_to_destination_luminari(ch, zone);
   }
   else
   {
-    send_to_char(ch, "You begin flying to %s.\r\n", carriage_locales[i][0]);
-    enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT, GET_ROOM_VNUM(IN_ROOM(ch)));
-  }
-
-#else
-
-  if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
-  {
-    send_to_char(ch, "You can only use this spell in the wilderness.\n\r");
+    send_to_char(ch, "This spell is not available right now.\n\r");
     return;
   }
-
-  while (atoi(carriage_locales[i][1]) != 0)
-  {
-      if (is_abbrev(zone, carriage_locales[i][0]))
-        break;
-      i++;
-  }
-
-  if (atoi(carriage_locales[i][1]) == 0)
-  {
-    send_to_char(ch, "Please specify a valid area you'd like to fly to.  Type flightlist for a list.\r\n");
-    return;
-  }
-
-  send_to_char(ch, "You begin flying to %s.\r\n", carriage_locales[i][0]);
-
-  enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT, GET_ROOM_VNUM(IN_ROOM(ch)));
-
-#endif
-
 }
 
 ASPELL(spell_dismissal)

@@ -139,6 +139,7 @@ circle_SOURCES = \
 	src/rank.c \
 	src/redit.c \
 	src/roleplay.c \
+	src/routing.c \
 	src/sedit.c \
 	src/shop.c \
 	src/spec_abilities.c \
