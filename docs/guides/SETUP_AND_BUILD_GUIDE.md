@@ -73,6 +73,30 @@ sudo apt-get install -y doxygen graphviz cppcheck clang-format
 - `-lssl -lcrypto` → `libssl-dev`
 - `-lpthread` → included in standard libc
 
+## Auto-WSL integration (Windows)
+
+For Windows users who prefer working in WSL for this project, you can control an Auto-WSL helper from PowerShell to ensure you always enter a specific WSL distribution when opening this repository, or to temporarily disable it.
+
+- Reload your PowerShell profile to ensure functions/variables are available:
+  ```powershell
+  . $PROFILE
+  ```
+
+- Force a specific WSL distribution (after reloading your profile):
+  ```powershell
+  $global:LuminariAutoWslConfig.Distro = 'Ubuntu-22.04'
+  ```
+
+- Temporarily disable or re-enable the Auto-WSL behavior without editing your profile:
+  ```powershell
+  Disable-LuminariAutoWsl
+  Enable-LuminariAutoWsl
+  ```
+
+Notes:
+- The exact function/variable names assume you have the Auto-WSL helper installed in your PowerShell profile for this repository.
+- Changes to the global variable affect new PowerShell sessions (reload your profile or open a new terminal).
+
 ### CentOS/RHEL/Fedora Installation
 ```bash
 # For CentOS 7/RHEL 7
