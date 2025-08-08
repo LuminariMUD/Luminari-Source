@@ -6002,6 +6002,8 @@ struct extra_game_data
     ubyte new_player_gear;
     ubyte crafting_system;
     ubyte landmarks_system;
+    ubyte allow_cexchange;
+    ubyte wilderness_system;
 };
 
 /**

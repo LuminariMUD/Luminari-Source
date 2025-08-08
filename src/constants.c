@@ -6810,6 +6810,19 @@ const char * new_player_gear_options [] = {
     "\n"
 };
 
+const char * allow_cexchange_options [] = {
+    "No",
+    "Yes",
+    "\n"
+};
+
+const char * wilderness_system_options [] = {
+    "No Wilderness (ROads only)",
+    "Manually Created",
+    "Algorithm-Created (WildEdit Tool)",
+    "\n"
+};
+
 /* --- End of constants arrays. --- */
 
 /* Various arrays we count so we can check the world files.  These

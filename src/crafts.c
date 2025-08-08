@@ -25,6 +25,8 @@
 #include "mud_event.h"
 #include "crafts.h"
 #include "item.h"
+#include "crafting_new.h"
+
 
 /* Statics */
 static void craftedit_disp_menu(struct descriptor_data *d);
@@ -685,6 +687,22 @@ EVENTFUNC(event_craft)
 }
 
 ACMDU(do_craft)
+{
+  switch (CONFIG_CRAFTING_SYSTEM)
+  {
+    case CRAFTING_SYSTEM_KITS:
+      do_practice(ch, argument, cmd, subcmd);
+      break;
+    case CRAFTING_SYSTEM_MOTES:
+      do_newcraft(ch, argument, cmd, SCMD_NEWCRAFT_CREATE);
+      break;
+    default:
+      send_to_char(ch, "There is no crafting system implemented right now.\r\n");
+      break;
+  }
+}
+
+ACMDU(do_craft_with_kits)
 {
   struct craft_data *craft;
   struct obj_data *obj;

@@ -190,6 +190,8 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->extra.crafting_system = CONFIG_CRAFTING_SYSTEM;
   OLC_CONFIG(d)->extra.landmarks_system = CONFIG_LANDMARK_SYSTEM;
   OLC_CONFIG(d)->extra.new_player_gear = CONFIG_NEW_PLAYER_GEAR;
+  OLC_CONFIG(d)->extra.allow_cexchange = CONFIG_ALLOW_CEXCHANGE;
+  OLC_CONFIG(d)->extra.wilderness_system = CONFIG_WILDERNESS_SYSTEM;
 
   /* Allocate space for the strings. */
   OLC_CONFIG(d)->play.OK = str_udup(CONFIG_OK);
@@ -329,6 +331,8 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_CRAFTING_SYSTEM  = OLC_CONFIG(d)->extra.crafting_system;
   CONFIG_LANDMARK_SYSTEM  = OLC_CONFIG(d)->extra.landmarks_system;
   CONFIG_NEW_PLAYER_GEAR  = OLC_CONFIG(d)->extra.new_player_gear;
+  CONFIG_ALLOW_CEXCHANGE  = OLC_CONFIG(d)->extra.allow_cexchange;
+  CONFIG_WILDERNESS_SYSTEM  = OLC_CONFIG(d)->extra.wilderness_system;
 
   /* Allocate space for the strings. */
   if (CONFIG_OK)
@@ -794,6 +798,12 @@ int save_config(IDXTYPE nowhere)
   fprintf(fl, "* Which new player gear do you want?\n"
               "new_player_gear = %d\n\n",
           CONFIG_NEW_PLAYER_GEAR);
+  fprintf(fl, "* Do you want to allow exchange of currency (gold to exp, exp to qp, etc.)\n"
+              "allow_cexchange = %d\n\n",
+          CONFIG_ALLOW_CEXCHANGE);
+  fprintf(fl, "* What kind of wilderness system do you use?\n"
+              "wilderness_system = %d\n\n",
+          CONFIG_ALLOW_CEXCHANGE);
 
   fclose(fl);
 
@@ -1013,6 +1023,8 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                      "%sC%s) Choose Crafting System         : %s%s\r\n"
                      "%sD%s) Choose Walkto System           : %s%s\r\n"
                      "%sE%s) Choose New Player Gear         : %s%s\r\n"
+                     "%sF%s) Allow CExchange Command?       : %s%s\r\n"
+                     "%sG%s) Wilderness System              : %s%s\r\n"
 
                      "%sQ%s) Exit To The Main Menu\r\n"
                      "Enter your choice : ",
@@ -1022,6 +1034,8 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                   grn, nrm, cyn, crafting_system_options[OLC_CONFIG(d)->extra.crafting_system],
                   grn, nrm, cyn, landmark_system_options[OLC_CONFIG(d)->extra.landmarks_system],
                   grn, nrm, cyn, new_player_gear_options[OLC_CONFIG(d)->extra.new_player_gear],
+                  grn, nrm, cyn, allow_cexchange_options[OLC_CONFIG(d)->extra.allow_cexchange],
+                  grn, nrm, cyn, wilderness_system_options[OLC_CONFIG(d)->extra.wilderness_system],
 
                   grn, nrm);
 
@@ -1608,6 +1622,30 @@ void cedit_parse(struct descriptor_data *d, char *arg)
           write_to_output(d, "%d) %s\n", i+1, new_player_gear_options[i]);
         }
         OLC_MODE(d) = CEDIT_SET_NEW_PLAYER_GEAR;
+        return;
+
+      case 'f':
+      case 'F':
+        write_to_output(d, "Do you wish to allow the cexchab=nge command?\r\n");
+        write_to_output(d, "Cexhcnage allows a playere to convert experience, gold, quest points, etc between each other. So exp for gold, gold for qp, etc.\r\n");
+        for (i = 0; i < NUM_ALLOW_CEXCHANGE_OPTIONS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, allow_cexchange_options[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_ALLOW_CEXCHANGE;
+        return;
+
+      case 'g':
+      case 'G':
+        write_to_output(d, "What kind of wilderness system do you use??\r\n");
+        write_to_output(d, "None/Roads only means you have no grid-like, ASCII wilderness system, and connect zones by roads.\r\n");
+        write_to_output(d, "Manual means you do have a grid-based ASCII wilderness, but it is manually created by hand.\r\n");
+        write_to_output(d, "Algorithm-based wilderness is created using the built-in algorithm+noise and also uses the wildedit tool.\r\n");
+        for (i = 0; i < NUM_WILDERNESS_SYSTEM_OPTIONS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, wilderness_system_options[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_WILDERNESS_SYSTEM;
         return;
 
       case 'q':
@@ -2780,6 +2818,22 @@ void cedit_parse(struct descriptor_data *d, char *arg)
      if (*arg)
      {
       OLC_CONFIG(d)->extra.new_player_gear = (MIN(NUM_NEW_PLAYER_GEAR_OPTIONS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_ALLOW_CEXCHANGE:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.allow_cexchange = (MIN(NUM_ALLOW_CEXCHANGE_OPTIONS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_WILDERNESS_SYSTEM:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.wilderness_system = (MIN(NUM_WILDERNESS_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
      }
     cedit_disp_extra_game_play_options(d);
     break;
