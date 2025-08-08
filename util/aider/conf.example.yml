@@ -1,0 +1,29 @@
+# Aider Configuration File
+# https://aider.chat/docs/config.html
+
+# Copy this file to root directory of Aider work named as .aider.conf.yml then adjust the values
+
+# OpenRouter API Configuration
+# OpenRouter provides access to multiple AI models through a single API
+openai-api-base: https://openrouter.ai/api/v1
+
+# API Key Configuration
+# Format: openrouter=YOUR_API_KEY
+# Get your key at: https://openrouter.ai/keys
+api-key: openrouter=sk-or-v1-YOUR_KEY_HERE
+
+# Model Selection
+# Free models available:
+#   - openrouter/moonshotai/kimi-k2:free (Current - Excellent for code)
+#   - openrouter/deepseek/deepseek-r1:free (Strong reasoning)
+#   - openrouter/deepseek/deepseek-chat:free (Great for coding)
+#   - openrouter/google/gemini-2.0-flash-exp:free (Fast and capable)
+#   - openrouter/qwen/qwen-2.5-coder-32b-instruct (Specialized for code)
+model: openrouter/moonshotai/kimi-k2:free
+
+# Optional Configuration (uncomment to use)
+# dark-mode: true
+# auto-commits: false
+# show-diffs: true
+# git: true
+# voice-language: en
