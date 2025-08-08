@@ -53,6 +53,7 @@
 #include "spell_prep.h"
 #include "boards.h"
 #include "perfmon.h"
+#include "routing.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -1296,7 +1297,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                                  "hangs overhead, supplying light, and windows are real glass, and able to be opened or closed, with small rain canopies keeping the weather out for the most part.\r\n"
                                  "Judging by how far you've gone so far, you have about you have \r\n"
                                  "about %d minutes and %d seconds to go until you get to %s.\r\n",
-               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, carriage_locales[ch->player_specials->travel_locale][0]);
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, get_transport_carriage_name(ch->player_specials->travel_locale));
       if (rm->description)
         free(rm->description);
       rm->description = strdup(buf);
@@ -1311,7 +1312,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                "The wind fills the sails as it pushes the vessel along to your destination. The sway of the sea is steady\r\n"
                "and rhythmic, and you find you sea legs quickly.  Judging by how far you've gone so far you should arrive in\r\n"
                "about %d minutes and %d seconds to your destination: %s.\r\n",
-               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, sailing_locales[ch->player_specials->travel_locale][0]);
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, get_transport_sailing_name(ch->player_specials->travel_locale));
       if (rm->description)
         free(rm->description);
       rm->description = strdup(buf);
@@ -1328,13 +1329,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                "Judging by how far you've gone so far you should arrive in\r\n"
                "about %d minutes and %d seconds to your destination: %s.\r\n",
                ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
-#ifdef CAMPAIGN_FR
-               zone_entrances[ch->player_specials->travel_locale][0]);
-#elif defined(CAMPAIGN_DL)
-               zone_entrances[ch->player_specials->travel_locale][0]);
-#else
-               carriage_locales[ch->player_specials->travel_locale][0]);
-#endif
+               get_transport_zone_entrance_name(ch->player_specials->travel_locale, TRAVEL_OVERLAND_FLIGHT));
       if (rm->description)
         free(rm->description);
       rm->description = strdup(buf);
@@ -1350,14 +1345,8 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                "In the distance, your destination beckons forward, a faint outline on the horizon.\r\n"
                "Judging by how far you've gone so far you should arrive in\r\n"
                "about %d minutes and %d seconds to your destination: %s.\r\n",
-               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
-#ifdef CAMPAIGN_FR
-               zone_entrances[ch->player_specials->travel_locale][0]);
-#elif defined(CAMPAIGN_DL)
-               sailing_locales[ch->player_specials->travel_locale][0]);
-#else
-               carriage_locales[ch->player_specials->travel_locale][0]);
-#endif
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, 
+               get_transport_zone_entrance_name(ch->player_specials->travel_locale, TRAVEL_OVERLAND_FLIGHT_SAIL));
       if (rm->description)
         free(rm->description);
       rm->description = strdup(buf);
@@ -1502,9 +1491,9 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   
   /* Check if room is a carriage stop */
   int i = 0;
-  while (atoi(carriage_locales[i][1]) != 0)
+  while (get_carriage_locale_vnum(i) != 0)
   {
-    if (GET_ROOM_VNUM(IN_ROOM(ch)) == atoi(carriage_locales[i][1]))
+    if (GET_ROOM_VNUM(IN_ROOM(ch)) == get_carriage_locale_vnum(i))
     {
       send_to_char(ch, "\r\nThis room is a carriage stop.  Use the \tYcarriage\tn command to see options.\r\n");
       break;
@@ -1514,9 +1503,9 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   
   /* Check if room is a ferry dock */
   i = 0;
-  while (atoi(sailing_locales[i][1]) != 0)
+  while (get_sailing_locale_vnum(i) != 0)
   {
-    if (GET_ROOM_VNUM(IN_ROOM(ch)) == atoi(sailing_locales[i][1]))
+    if (GET_ROOM_VNUM(IN_ROOM(ch)) == get_sailing_locale_vnum(i))
     {
       send_to_char(ch, "\r\nThis room is a ferry dock.  Use the \tYsail\tn command to see options.\r\n");
       break;
@@ -9212,10 +9201,10 @@ ACMD(do_flightlist)
     text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
     #if defined(CAMPAIGN_DL)
     text_line(ch, "\tYCarriage Stops:\tC", 80, '-', '-');
-#endif
-    while (atoi(carriage_locales[i][1]) != 0)
+    #endif
+    while (get_carriage_locale_vnum(i) != 0)
     {
-      send_to_char(ch, "%-39s ", carriage_locales[i][0]);
+      send_to_char(ch, "%-39s ", get_transport_carriage_name(i));
       if ((i % 2) == 1)
         send_to_char(ch, "\r\n");
       i++;
@@ -9226,9 +9215,9 @@ ACMD(do_flightlist)
     i = 0;
     #if defined(CAMPAIGN_DL)
     text_line(ch, "\tYSailing Ports\tC", 80, '-', '-');
-    while (atoi(sailing_locales[i][1]) != 0)
+    while (get_sailing_locale_vnum(i) != 0)
     {
-      send_to_char(ch, "%-39s ", sailing_locales[i][0]);
+      send_to_char(ch, "%-39s ", get_transport_sailing_name(i));
       if ((i % 2) == 1)
         send_to_char(ch, "\r\n");
       i++;

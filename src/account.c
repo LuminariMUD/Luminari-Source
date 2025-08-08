@@ -67,6 +67,7 @@
 #include "class.h"
 #include "act.h"
 #include "account.h"
+#include "routing.h"
 
 extern MYSQL *conn;
 
@@ -161,13 +162,19 @@ int change_account_xp(struct char_data *ch, int change_val)
 */
 int has_unlocked_race(struct char_data *ch, int race)
 {
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-  if (!ch || !ch->desc || !ch->desc->account)
-#else
-  /* In non-FR/DL builds, LICH and VAMPIRE races are always locked out here. */
-  if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH || race == RACE_VAMPIRE)
-#endif
-    return FALSE;
+
+  if (IS_CAMPAIGN_DL || IS_CAMPAIGN_FR)
+  {
+    // In FR/DL campaigns, we allow LICH and Vampire
+    if (!ch || !ch->desc || !ch->desc->account)
+      return FALSE;
+  }
+  else
+  {
+    // In non-FR/DL builds, LICH and VAMPIRE races are always locked out here.
+    if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH || race == RACE_VAMPIRE)
+      return FALSE;
+  }
 
   /* If a race isn't locked, it's available by default. */
   if (!is_locked_race(race))
@@ -325,50 +332,50 @@ ACMD(do_accexp)
   /* try to unlock a race */
   else if (is_abbrev(arg, "race"))
   {
+    int start = 0;
+    int end = 0;
+
+    if (IS_CAMPAIGN_FR) {
+      start = 0;
+      end = NUM_EXTENDED_PC_RACES;
+    } else if (IS_CAMPAIGN_DL) {
+      start = DL_RACE_START;
+      end = DL_RACE_END;
+    } else {
+      start = 0;
+      end = NUM_RACES;
+    }
+
     /* No argument: list lockable races that are not yet unlocked */
     if (!*arg2)
     {
       send_to_char(ch, "Please choose from the following races:\r\n");
-#ifdef CAMPAIGN_FR
-      for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
-#elif defined(CAMPAIGN_DL)
-  for (i = DL_RACE_START; i < DL_RACE_END; i++)
-#else
-      for (i = 0; i < NUM_RACES; i++)
-#endif
-      {
+
+      for (i = start; i < end; i++) {
         if (!is_locked_race(i) || has_unlocked_race(ch, i))
           continue;
 
-        cost = locked_race_cost(i);
-        /* race_list[i].type is used for display name */
+        int cost = locked_race_cost(i);
         send_to_char(ch, "%s (%d account experience)\r\n", race_list[i].type, cost);
       }
-      return;
     }
 
     /* Identify the intended race to unlock by name abbreviation */
-#ifdef CAMPAIGN_FR
-    for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
-#elif defined(CAMPAIGN_DL)
-  for (i = DL_RACE_START; i < DL_RACE_END; i++)
-#else
-    for (i = 0; i < NUM_RACES; i++)
-#endif
-    {
-      if (race_list[i].is_pc && is_abbrev(arg2, race_list[i].type) && is_locked_race(i) && !has_unlocked_race(ch, i))
-      {
-        cost = locked_race_cost(i);
-        break;
-      }
+  for (i = start; i < end; i++) {
+    if (race_list[i].is_pc &&
+        is_abbrev(arg2, race_list[i].type) &&
+        is_locked_race(i) &&
+        !has_unlocked_race(ch, i)) {
+      cost = locked_race_cost(i);
+      break;
     }
-#ifdef CAMPAIGN_FR
-    if (i >= NUM_EXTENDED_PC_RACES)
-#elif defined(CAMPAIGN_DL)
-    if (i >= DL_RACE_END)
-#else
-    if (i >= NUM_RACES)
-#endif
+  }
+
+  if (i >= end) {
+    send_to_char(ch, "Either that race does not exist, is not an advanced race, "
+                     "is not available for players, or you've already unlocked it.\r\n");
+    return;
+  }
       {
         send_to_char(ch, "Either that race does not exist, is not an advanced race, "
                          "is not available for players, or you've already unlocked it.\r\n");
@@ -424,11 +431,10 @@ ACMD(do_accexp)
       {
         if (has_unlocked_class(ch, i) || !CLSLIST_LOCK(i))
           continue;
-#if defined(CAMPAIGN_DL)
-        cost = CLSLIST_COST(i) / 10;
-#else
-        cost = CLSLIST_COST(i);
-#endif
+        if (IS_CAMPAIGN_DL)
+          cost = CLSLIST_COST(i) / 10;
+        else
+          cost = CLSLIST_COST(i);
         send_to_char(ch, "%s (%d account experience)\r\n", CLSLIST_NAME(i), cost);
       }
       return;
@@ -439,11 +445,10 @@ ACMD(do_accexp)
       if (is_abbrev(arg2, CLSLIST_NAME(i)) && !has_unlocked_class(ch, i) &&
           CLSLIST_LOCK(i))
       {
-#if defined(CAMPAIGN_DL)
-        cost = CLSLIST_COST(i) / 10;
-#else
-        cost = CLSLIST_COST(i);
-#endif
+        if (IS_CAMPAIGN_DL)
+          cost = CLSLIST_COST(i) / 10;
+        else
+          cost = CLSLIST_COST(i);
         break;
       }
     }

@@ -6149,7 +6149,7 @@ const char *goto_zones_display[NUM_GOTO_ZONES + 1][2] = {
     {"", "-1"} // always last
 };
 
-const char *zone_entrances[NUM_ZONE_ENTRANCES + 1][3] = {
+const char *zone_entrances_fr[NUM_ZONE_ENTRANCES + 1][3] = {
     {"boat to chult", "closed", "616076"},
     {"crypt of shadow", "open", "605650"},
     {"earth cult camp", "open", "605998"},

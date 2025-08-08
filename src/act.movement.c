@@ -37,6 +37,7 @@
 #include "hunts.h"
 #include "class.h"
 #include "transport.h"
+#include "routing.h"
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir, const char *cmdname);
@@ -1037,7 +1038,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       send_to_char(ch, "You need a boat to go there.\r\n");
       if (GET_WALKTO_LOC(ch))
       {
-        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
         GET_WALKTO_LOC(ch) = 0;
       }
       return (0);
@@ -1094,7 +1095,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       send_to_char(ch, "You need to be able to climb to go there!\r\n");
       if (GET_WALKTO_LOC(ch))
       {
-        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
         GET_WALKTO_LOC(ch) = 0;
       }
       return (0);
@@ -1285,7 +1286,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     act("$n tries to leave the room, but $N blocks $m from travelling in their direction.", FALSE, ch, 0, mob, TO_ROOM);
     if (GET_WALKTO_LOC(ch))
     {
-      send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+      send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
       GET_WALKTO_LOC(ch) = 0;
     }
     
@@ -1431,7 +1432,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
       if (GET_WALKTO_LOC(ch))
       {
-        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
         GET_WALKTO_LOC(ch) = 0;
       }
 
@@ -2856,7 +2857,7 @@ ACMD(do_gen_door)
       send_to_char(ch, "It is locked, and you do not have the key!\r\n");
       if (GET_WALKTO_LOC(ch))
       {
-        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
         GET_WALKTO_LOC(ch) = 0;
       }
     }
