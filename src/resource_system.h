@@ -126,6 +126,36 @@ enum game_subtypes {
     NUM_GAME_SUBTYPES
 };
 
+/* Water subtypes - liquid resources */
+enum water_subtypes {
+    WATER_SPRING = 0,           /* Fresh spring water */
+    WATER_MINERAL,              /* Mineral-rich water */
+    WATER_PURE,                 /* Pure distilled water */
+    WATER_BLESSED,              /* Holy water sources */
+    WATER_ENCHANTED,            /* Magically charged water */
+    NUM_WATER_SUBTYPES
+};
+
+/* Clay subtypes - crafting materials */
+enum clay_subtypes {
+    CLAY_COMMON = 0,            /* Basic pottery clay */
+    CLAY_FIRE,                  /* Fire-resistant clay */
+    CLAY_PORCELAIN,             /* Fine porcelain clay */
+    CLAY_MAGIC,                 /* Magically infused clay */
+    CLAY_CRYSTAL,               /* Crystal-embedded clay */
+    NUM_CLAY_SUBTYPES
+};
+
+/* Salt subtypes - preservation materials */
+enum salt_subtypes {
+    SALT_COMMON = 0,            /* Basic table salt */
+    SALT_SEA,                   /* Sea salt */
+    SALT_ROCK,                  /* Rock salt deposits */
+    SALT_ALCHEMICAL,            /* Alchemical salts */
+    SALT_PRESERVING,            /* Food preservation salt */
+    NUM_SALT_SUBTYPES
+};
+
 /* Maximum subtype values for bounds checking */
 #define MAX_HERB_SUBTYPES      NUM_HERB_SUBTYPES
 #define MAX_CRYSTAL_SUBTYPES   NUM_CRYSTAL_SUBTYPES
@@ -134,6 +164,9 @@ enum game_subtypes {
 #define MAX_VEG_SUBTYPES       NUM_VEGETATION_SUBTYPES
 #define MAX_STONE_SUBTYPES     NUM_STONE_SUBTYPES
 #define MAX_GAME_SUBTYPES      NUM_GAME_SUBTYPES
+#define MAX_WATER_SUBTYPES     NUM_WATER_SUBTYPES
+#define MAX_CLAY_SUBTYPES      NUM_CLAY_SUBTYPES
+#define MAX_SALT_SUBTYPES      NUM_SALT_SUBTYPES
 
 /* Resource quality tiers */
 #define RESOURCE_QUALITY_POOR      1
@@ -313,12 +346,16 @@ int add_material_to_storage(struct char_data *ch, int category, int subtype, int
 int remove_material_from_storage(struct char_data *ch, int category, int subtype, int quality, int quantity);
 int get_material_quantity(struct char_data *ch, int category, int subtype, int quality);
 void show_material_storage(struct char_data *ch);
+void show_enhanced_material_storage(struct char_data *ch);
+void show_basic_material_storage(struct char_data *ch);
 
 /* Material name and description functions */
 const char *get_material_subtype_name(int category, int subtype);
 const char *get_material_quality_name(int quality);
 const char *get_full_material_name(int category, int subtype, int quality);
 const char *get_material_description(int category, int subtype, int quality);
+const char *get_material_applications(int category);
+const char *get_quality_bonus_description(int quality);
 
 /* Material conversion and validation */
 int validate_material_data(int category, int subtype, int quality);

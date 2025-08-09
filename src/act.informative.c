@@ -9600,19 +9600,41 @@ ACMDU(do_wearapplies)
 /* Phase 4.5: Materials storage display command */
 ACMD(do_materials)
 {
+    char arg[MAX_INPUT_LENGTH];
+    bool show_details = false;
+    
     if (IS_NPC(ch)) {
         send_to_char(ch, "NPCs don't store materials.\r\n");
         return;
     }
     
-#ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
-    /* Enhanced materials display for LuminariMUD */
-    send_to_char(ch, "\\cW=== Enhanced Wilderness Materials (LuminariMUD) ===\\cn\r\n");
-    send_to_char(ch, "Your materials are preserved with their full hierarchy and quality.\r\n");
-    send_to_char(ch, "These materials can be used in enhanced LuminariMUD crafting recipes.\r\n\r\n");
-#endif
+    one_argument(argument, arg, sizeof(arg));
     
-    show_material_storage(ch);
+    if (*arg && !str_cmp(arg, "details")) {
+        show_details = true;
+    } else if (*arg) {
+        send_to_char(ch, "Usage: materials [details]\r\n");
+        send_to_char(ch, "  materials        - Show basic materials list\r\n");
+        send_to_char(ch, "  materials details - Show detailed crafting information\r\n");
+        return;
+    }
+    
+    /* Show basic materials by default, enhanced with 'details' */
+    if (show_details) {
+#ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
+        /* Enhanced materials display for LuminariMUD */
+        send_to_char(ch, "\\cW=== Enhanced Wilderness Materials (LuminariMUD) ===\\cn\r\n");
+        send_to_char(ch, "Your materials are preserved with their full hierarchy and quality.\r\n");
+        send_to_char(ch, "These materials can be used in enhanced LuminariMUD crafting recipes.\r\n\r\n");
+        show_enhanced_material_storage(ch);
+#else
+        send_to_char(ch, "Enhanced crafting integration not available in this campaign.\r\n");
+        show_basic_material_storage(ch);
+#endif
+    } else {
+        /* Always show basic display for regular 'materials' command */
+        show_basic_material_storage(ch);
+    }
 }
 
 /*EOF*/
