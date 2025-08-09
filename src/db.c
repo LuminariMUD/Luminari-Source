@@ -48,6 +48,7 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
+#include "resource_system.h"
 #include "perlin.h"
 #include "wilderness.h"
 #include "resource_system.h"
@@ -6395,6 +6396,9 @@ void init_char(struct char_data *ch)
   /* Create the action queues */
   GET_QUEUE(ch) = create_action_queue();
   GET_ATTACK_QUEUE(ch) = create_attack_queue();
+
+  /* Initialize material storage for Phase 4.5 */
+  init_material_storage(ch);
 
   /* create the preparation / collection lists */
   /*
