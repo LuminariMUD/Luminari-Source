@@ -3,52 +3,183 @@
 **Character:** ornir  
 **Date:** August 10, 2025  
 **Testing:** Phase 4.5 Enhanced Wilderness-Crafting Integration  
+**Status:** ⚠️ **Phase 5 Harvesting Commands NOT YET IMPLEMENTED**
 
 ---
 
-## 🎯 **Quick Integration Test (5 minutes)**
+## 🚨 **Important Discovery**
 
-### **Step 1: Verify Current Campaign**
-```
-whereis
-```
-**Expected:** Should show you're in default LuminariMUD campaign (not DL/FR)
+**Current Status:**
+- ✅ **Phase 4.5**: Enhanced integration system implemented and ready
+- ❌ **Phase 5**: Material harvesting commands **NOT IMPLEMENTED**
 
-### **Step 2: Check Enhanced Materials Display**
-```
-materials
-```
-**Expected Results:**
-- **If Enhanced Integration Active:** Shows enhanced display with crafting integration info
-- **If Basic System Only:** Shows simple material list without crafting details
+**Issue:** The wilderness system can survey and display resources, but there are **no actual commands** to harvest/collect those resources into storage. Commands like `gather`, `mine`, `collect` for wilderness materials don't exist yet.
 
-### **Step 3: Enter Wilderness for Testing**
-```
-goto 12000
-```
-**(Replace 12000 with your wilderness zone number)**
-**Expected:** You enter a wilderness area
+**Available Commands Currently:**
+- `survey resources` - Shows resource availability 
+- `materials` - Shows stored materials (will show enhanced integration when materials exist)
+- Admin commands: `addmaterial` - Can manually add materials for testing
 
-### **Step 4: Test Material Harvesting**
-```
-gather herbs
-mine metals
-collect wood
-```
-**Expected Results:**
-- Each command harvests materials based on location
-- Messages show material type, quality (poor/common/uncommon/rare/legendary)
-- Materials automatically added to storage
+**Missing Commands (Phase 5):**
+- `harvest [resource_type]` - Harvest wilderness materials
+- `gather [resource_type]` - Gather wilderness resources  
+- `mine [resource_type]` - Extract mineral resources
+- `collect [resource_type]` - Collect various resources
 
-### **Step 5: Verify Enhanced Integration**
+---
+
+## 🔧 **Current Testing Options**
+
+### **Option 1: Test Integration with Admin Commands**
+
+If you have admin access, you can test the enhanced integration by manually adding materials:
+
+#### **Step 1: Add Test Materials**
+```
+addmaterial ornir 3 1 3 5
+```
+**(Adds 5 uncommon kingfoil herbs)**
+
+```
+addmaterial ornir 1 2 4 3  
+```
+**(Adds 3 rare mithril ore)**
+
+```
+addmaterial ornir 5 1 5 1
+```
+**(Adds 1 legendary oak wood)**
+
+#### **Step 2: Test Enhanced Integration Display**
 ```
 materials
 ```
 **Expected Enhanced Results:**
-- Materials show with enhanced descriptions
-- Crafting applications mentioned for each material
-- Quality levels show crafting values
-- Enhanced material IDs (1000+ range) if debug info available
+- Shows materials with enhanced descriptions
+- Includes crafting applications and values
+- Quality levels show different crafting bonuses
+- Enhanced material IDs (1000+ range)
+
+#### **Step 3: Verify Campaign Safety**
+If other campaigns available:
+```
+campaign dl     # Switch to DragonLance  
+materials       # Should show basic display only
+
+campaign luminari   # Return to LuminariMUD
+materials          # Should show enhanced display
+```
+
+### **Option 2: Test Survey System (Available Now)**
+
+#### **Enter Wilderness Area:**
+```
+goto <wilderness_zone_number>
+```
+
+#### **Test Resource Surveying:**
+```
+survey resources
+```
+**Expected:** Shows 10 resource types with availability percentages
+
+```
+survey map vegetation 10
+```
+**Expected:** ASCII minimap showing vegetation distribution
+
+```
+survey detail herbs
+```
+**Expected:** Detailed analysis of herb resources in area
+
+#### **Test Terrain Analysis:**
+```
+survey terrain
+```
+**Expected:** Detailed terrain information affecting resources
+
+---
+
+## 📋 **Integration Testing Results**
+
+### **What Works Now:**
+- ✅ Enhanced materials display (when materials exist)
+- ✅ Campaign-safe integration flags
+- ✅ Resource surveying and mapping
+- ✅ Enhanced material ID system (1000+)
+- ✅ Quality-based crafting values
+- ✅ Integration hooks ready for harvesting
+
+### **What's Missing (Phase 5):**
+- ❌ `harvest` command for gathering materials
+- ❌ `gather` command for collecting resources
+- ❌ `mine` command for extracting minerals
+- ❌ `collect` command for various resources
+- ❌ Skill-based harvesting success
+- ❌ Tool requirements for harvesting
+- ❌ Resource depletion and regeneration
+
+---
+
+## 🚀 **Next Steps**
+
+### **Phase 5 Implementation Needed:**
+
+1. **Implement Harvesting Commands:**
+   - `harvest [resource_type]` - Primary harvesting command
+   - `gather [resource_type]` - General gathering command
+   - `mine [resource_type]` - Mineral extraction
+   - `collect [resource_type]` - Various resource collection
+
+2. **Add Skill Integration:**
+   - Use existing skills: ABILITY_SURVIVAL, SKILL_MINING, etc.
+   - Success rates based on skill levels
+   - Skill checks for harvest attempts
+
+3. **Implement Resource Mechanics:**
+   - Resource depletion when harvested
+   - Regeneration over time
+   - Quality determination based on skill/location
+
+### **Testing Phase 5 Implementation:**
+
+Once Phase 5 is implemented, the testing flow will be:
+
+```
+# Enter wilderness
+goto <wilderness_zone>
+
+# Survey resources  
+survey resources
+
+# Harvest materials (Phase 5 commands)
+harvest herbs
+mine metals  
+collect wood
+
+# Check enhanced integration
+materials
+```
+
+---
+
+## ✅ **Current Integration Status**
+
+**Phase 4.5 Enhanced Integration: COMPLETE**
+- ✅ Campaign-safe implementation
+- ✅ Enhanced material constants and IDs
+- ✅ Integration functions ready
+- ✅ Enhanced materials display
+- ✅ Quality-based crafting values
+
+**Phase 5 Material Harvesting: PENDING**
+- ⏳ Harvest commands need implementation
+- ⏳ Skill-based success system
+- ⏳ Resource depletion mechanics
+- ⏳ Tool and equipment integration
+
+**Ready for Phase 5 Implementation!** The integration infrastructure is complete and waiting for the harvesting commands.
 
 ---
 
