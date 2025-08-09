@@ -59,11 +59,20 @@ mine minerals
 ```
 materials
 ```
-**Expected Enhanced Results:**
+**Expected Basic Results:**
+- Simple list of materials with quantities
+- Script-friendly format
+- Works in all campaigns
+
+```
+materials details
+```
+**Expected Enhanced Results (LuminariMUD only):**
 - Materials show with enhanced descriptions
 - Crafting applications mentioned for each material
 - Quality levels (poor → legendary) show different crafting values
 - Enhanced material IDs (1000+ range)
+- **Proper color formatting** (white headers, yellow categories, normal text)
 
 ---
 
@@ -124,6 +133,8 @@ harvest salt
 - **Failure:** "You fail to harvest any usable [resource_type]."
 - **Insufficient:** "There are insufficient [resource_type] resources here to harvest."
 
+**Note:** All 10 resource types now fully supported (fixed water/clay/salt "storage full" bug)
+
 #### **Specialized Commands:**
 ```
 gather herbs
@@ -151,21 +162,41 @@ mine herbs
 ```
 materials
 ```
-**Expected Enhanced Display:**
+**Expected Basic Display:**
 ```
-=== Enhanced Wilderness Materials Storage ===
+Your Wilderness Material Storage:
+=====================================
+  5 x legendary spring water
+  4 x rare common clay
+ 13 x legendary sea salt
+  4 x legendary starlily
+  6 x legendary light bloom
+  6 x legendary dragonhide
+  6 x legendary star steel
+  6 x legendary marble
+Storage: 8/100 slots used
+```
 
-Herb Materials:
-- Common Silverleaf (ID: 1004) - Qty: 2
-  Crafting Applications: Alchemy potions, healing items
-  Crafting Value: 150 (quality bonus: +50%)
+```
+materials details
+```
+**Expected Enhanced Display (LuminariMUD only):**
+```
+=== Enhanced Wilderness Materials (LuminariMUD) ===
+Your materials are preserved with their full hierarchy and quality.
+These materials can be used in enhanced LuminariMUD crafting recipes.
 
-Wood Materials:
-- Rare Oak Heartwood (ID: 1045) - Qty: 1
-  Crafting Applications: Masterwork items, magical staves  
-  Crafting Value: 600 (quality bonus: +500%)
+Water Materials:
+- Legendary Spring Water (ID: 1200) - Qty: 5
+  Crafting Applications: Alchemy, food preparation
+  Crafting Value: 800 (quality bonus: legendary quality (+500%))
 
-Total Materials: 3 units
+Clay Materials:
+- Rare Common Clay (ID: 1300) - Qty: 4
+  Crafting Applications: Pottery, containers, building
+  Crafting Value: 300 (quality bonus: rare quality (+200%))
+
+Total Materials: 50 units
 Enhanced Integration: ACTIVE
 ```
 
@@ -338,37 +369,45 @@ materials
 ```
 **Expected After Each Harvest:**
 - Material count increases
-- **Enhanced System:** Shows crafting integration info
-- **Basic System:** Shows simple material list
+- **Basic System:** Shows simple material list (all campaigns)
+- **Enhanced System:** Use `materials details` for crafting integration info
+
+```
+materials details
+```
+**Expected Enhanced Results (LuminariMUD only):**
+- Detailed crafting applications for each material
+- Quality-based crafting values
+- Enhanced material IDs
 
 ### **Enhanced Display Testing**
 
 #### **Material List Commands:**
 ```
-materials list
+materials
 ```
-**Expected Enhanced:** Detailed list with crafting applications
+**Expected:** Basic list format (script-friendly)
+
+```
+materials details
+```
+**Expected Enhanced (LuminariMUD only):** Detailed list with crafting applications
 
 ```
 materials list herbs
 ```
-**Expected Enhanced:** Herb materials with enhanced descriptions
-
-```
-materials list metals
-```
-**Expected Enhanced:** Metal materials with crafting values
+**Note:** `list`, `search`, `detail` subcommands not yet implemented
 
 #### **Material Search/Detail:**
 ```
 materials search iron
 ```
-**Expected Enhanced:** Iron materials with quality-based crafting info
+**Note:** Search functionality not yet implemented
 
 ```
 materials detail oak
 ```
-**Expected Enhanced:** Oak wood details with crafting applications
+**Note:** Individual material detail not yet implemented
 
 ### **Quality System Testing**
 
@@ -384,14 +423,14 @@ gather herbs
 
 #### **Compare Quality Levels:**
 ```
-materials list herbs
+materials details
 ```
 **Expected Enhanced Results:**
-- Poor herbs: Lower crafting value
-- Common herbs: Standard crafting value  
-- Uncommon herbs: Enhanced crafting value
-- Rare herbs: High crafting value
-- Legendary herbs: Maximum crafting value
+- Poor materials: Lower crafting value (poor quality -25%)
+- Common materials: Standard crafting value (common quality +0%)  
+- Uncommon materials: Enhanced crafting value (uncommon quality +50%)
+- Rare materials: High crafting value (rare quality +200%)
+- Legendary materials: Maximum crafting value (legendary quality +500%)
 
 ---
 
@@ -428,30 +467,46 @@ materials
 ```
 materials
 ```
-**Should Show:**
+**Should Show (Basic Format):**
 ```
-=== Enhanced Wilderness Materials Storage ===
+Your Wilderness Material Storage:
+=====================================
+  3 x common silverleaf
+  1 x rare bloodmoss
+  5 x uncommon iron ore
+  1 x legendary oak heartwood
+Storage: 4/100 slots used
+```
+
+```
+materials details
+```
+**Should Show (Enhanced Format):**
+```
+=== Enhanced Wilderness Materials (LuminariMUD) ===
+Your materials are preserved with their full hierarchy and quality.
+These materials can be used in enhanced LuminariMUD crafting recipes.
 
 Herb Materials:
 - Common Silverleaf (ID: 1001) - Qty: 3
   Crafting Applications: Alchemy potions, healing items
-  Crafting Value: 150 (quality bonus: +50%)
+  Crafting Value: 150 (quality bonus: common quality (+0%))
 
 - Rare Bloodmoss (ID: 1003) - Qty: 1  
-  Crafting Applications: High-grade alchemy, enchanting
-  Crafting Value: 400 (quality bonus: +300%)
+  Crafting Applications: Alchemy potions, healing items
+  Crafting Value: 400 (quality bonus: rare quality (+200%))
 
-Metal Materials:
+Mineral Materials:
 - Uncommon Iron Ore (ID: 1021) - Qty: 5
   Crafting Applications: Weapons, armor, tools
-  Crafting Value: 200 (quality bonus: +100%)
+  Crafting Value: 200 (quality bonus: uncommon quality (+50%))
 
 Wood Materials:
 - Legendary Oak Heartwood (ID: 1041) - Qty: 1
-  Crafting Applications: Masterwork items, magical staves
-  Crafting Value: 800 (quality bonus: +700%)
+  Crafting Applications: Crafted items, magical staves
+  Crafting Value: 800 (quality bonus: legendary quality (+500%))
 
-Total Materials: 10 types, 45 units
+Total Materials: 10 units
 Enhanced Integration: ACTIVE
 ```
 

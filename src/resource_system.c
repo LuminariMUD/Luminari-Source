@@ -997,6 +997,18 @@ const char *game_subtype_names[NUM_GAME_SUBTYPES] = {
     "winterwool", "spirit silk", "voidhide", "starfur"
 };
 
+const char *water_subtype_names[NUM_WATER_SUBTYPES] = {
+    "spring water", "mineral water", "pure water", "blessed water", "enchanted water"
+};
+
+const char *clay_subtype_names[NUM_CLAY_SUBTYPES] = {
+    "common clay", "fire clay", "porcelain clay", "magic clay", "crystal clay"
+};
+
+const char *salt_subtype_names[NUM_SALT_SUBTYPES] = {
+    "common salt", "sea salt", "rock salt", "alchemical salt", "preserving salt"
+};
+
 const char *quality_names[6] = {
     "unknown", "poor", "common", "uncommon", "rare", "legendary"
 };
@@ -1022,11 +1034,7 @@ int add_material_to_storage(struct char_data *ch, int category, int subtype, int
             
             ch->player_specials->saved.stored_materials[i].quantity += quantity;
             
-#ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
-            /* Enhanced LuminariMUD integration - materials are available for enhanced crafting */
-            /* Trigger integration notification for enhanced system */
-            integrate_wilderness_harvest_with_crafting(ch, category, subtype, quality, quantity);
-#endif
+            /* Note: Integration notification happens at harvest time, not storage time */
             return quantity;
         }
     }
@@ -1040,11 +1048,7 @@ int add_material_to_storage(struct char_data *ch, int category, int subtype, int
         ch->player_specials->saved.stored_materials[i].quantity = quantity;
         ch->player_specials->saved.stored_material_count++;
         
-#ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
-        /* Enhanced LuminariMUD integration - materials are available for enhanced crafting */
-        /* Trigger integration notification for enhanced system */
-        integrate_wilderness_harvest_with_crafting(ch, category, subtype, quality, quantity);
-#endif
+        /* Note: Integration notification happens at harvest time, not storage time */
         return quantity;
     }
     
@@ -1105,6 +1109,109 @@ int get_material_quantity(struct char_data *ch, int category, int subtype, int q
 }
 
 void show_material_storage(struct char_data *ch) {
+    if (!ch || IS_NPC(ch)) {
+        return;
+    }
+
+#ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
+    /* Enhanced materials display for LuminariMUD */
+    show_enhanced_material_storage(ch);
+#else
+    /* Basic materials display for other campaigns */
+    show_basic_material_storage(ch);
+#endif
+}
+
+/* Helper functions for enhanced materials display */
+const char *get_material_applications(int category) {
+    switch (category) {
+        case RESOURCE_HERBS: return "Alchemy potions, healing items";
+        case RESOURCE_CRYSTAL: return "Magical items, enchanting";
+        case RESOURCE_MINERALS: return "Weapons, armor, tools";
+        case RESOURCE_WOOD: return "Crafted items, magical staves";
+        case RESOURCE_VEGETATION: return "Textiles, rope, magical components";
+        case RESOURCE_STONE: return "Building materials, tools";
+        case RESOURCE_GAME: return "Leather armor, clothing";
+        case RESOURCE_WATER: return "Alchemy, food preparation";
+        case RESOURCE_CLAY: return "Pottery, containers, building";
+        case RESOURCE_SALT: return "Food preservation, alchemy";
+        default: return "Various crafting applications";
+    }
+}
+
+const char *get_quality_bonus_description(int quality) {
+    switch (quality) {
+        case 1: return "poor quality (-25%)";
+        case 2: return "common quality (+0%)";
+        case 3: return "uncommon quality (+50%)";
+        case 4: return "rare quality (+200%)";
+        case 5: return "legendary quality (+500%)";
+        default: return "unknown quality";
+    }
+}
+
+/* Enhanced materials display with crafting integration */
+void show_enhanced_material_storage(struct char_data *ch) {
+    int i;
+    int category_counts[NUM_RESOURCE_TYPES] = {0};
+    int total_materials = 0;
+    
+    if (!ch || IS_NPC(ch)) {
+        return;
+    }
+    
+    send_to_char(ch, "%s=== Enhanced Wilderness Materials (LuminariMUD) ===%s\r\n", 
+                 CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "Your materials are preserved with their full hierarchy and quality.\r\n");
+    send_to_char(ch, "These materials can be used in enhanced LuminariMUD crafting recipes.\r\n\r\n");
+    
+    if (ch->player_specials->saved.stored_material_count == 0) {
+        send_to_char(ch, "You have no wilderness materials stored.\r\n");
+        send_to_char(ch, "%sEnhanced Integration: ACTIVE%s\r\n", 
+                     CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+        return;
+    }
+    
+    /* Group materials by category */
+    for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
+        struct material_storage *mat = &ch->player_specials->saved.stored_materials[i];
+        category_counts[mat->category]++;
+        total_materials += mat->quantity;
+    }
+    
+    /* Display materials by category */
+    int cat;
+    for (cat = 0; cat < NUM_RESOURCE_TYPES; cat++) {
+        if (category_counts[cat] == 0) continue;
+        
+        /* Category header */
+        const char *category_name = get_resource_name(cat);
+        send_to_char(ch, "%s%s Materials:%s\r\n", 
+                     CCYEL(ch, C_NRM), category_name, CCNRM(ch, C_NRM));
+        
+        /* Show materials in this category */
+        for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
+            struct material_storage *mat = &ch->player_specials->saved.stored_materials[i];
+            if (mat->category != cat) continue;
+            
+            const char *enhanced_name = get_enhanced_material_name(mat->category, mat->subtype, mat->quality);
+            int enhanced_id = get_enhanced_wilderness_material_id(mat->category, mat->subtype);
+            int crafting_value = get_enhanced_material_crafting_value(mat->category, mat->subtype, mat->quality);
+            
+            send_to_char(ch, "- %s (ID: %d) - Qty: %d\r\n", enhanced_name, enhanced_id, mat->quantity);
+            send_to_char(ch, "  Crafting Applications: %s\r\n", get_material_applications(mat->category));
+            send_to_char(ch, "  Crafting Value: %d (quality bonus: %s)\r\n\r\n", 
+                        crafting_value, get_quality_bonus_description(mat->quality));
+        }
+    }
+    
+    send_to_char(ch, "Total Materials: %d units\r\n", total_materials);
+    send_to_char(ch, "%sEnhanced Integration: ACTIVE%s\r\n", 
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+}
+
+/* Basic materials display for campaigns without enhanced integration */
+void show_basic_material_storage(struct char_data *ch) {
     int i;
     
     if (!ch || IS_NPC(ch)) {
@@ -1162,6 +1269,18 @@ const char *get_material_subtype_name(int category, int subtype) {
             if (subtype >= 0 && subtype < NUM_GAME_SUBTYPES)
                 return game_subtype_names[subtype];
             break;
+        case RESOURCE_WATER:
+            if (subtype >= 0 && subtype < NUM_WATER_SUBTYPES)
+                return water_subtype_names[subtype];
+            break;
+        case RESOURCE_CLAY:
+            if (subtype >= 0 && subtype < NUM_CLAY_SUBTYPES)
+                return clay_subtype_names[subtype];
+            break;
+        case RESOURCE_SALT:
+            if (subtype >= 0 && subtype < NUM_SALT_SUBTYPES)
+                return salt_subtype_names[subtype];
+            break;
     }
     return "unknown";
 }
@@ -1209,6 +1328,9 @@ int get_max_subtypes_for_category(int category) {
         case RESOURCE_VEGETATION: return NUM_VEGETATION_SUBTYPES;
         case RESOURCE_STONE: return NUM_STONE_SUBTYPES;
         case RESOURCE_GAME: return NUM_GAME_SUBTYPES;
+        case RESOURCE_WATER: return NUM_WATER_SUBTYPES;
+        case RESOURCE_CLAY: return NUM_CLAY_SUBTYPES;
+        case RESOURCE_SALT: return NUM_SALT_SUBTYPES;
         default: return 0;
     }
 }
@@ -1341,6 +1463,18 @@ int get_enhanced_wilderness_material_id(int category, int subtype) {
             if (subtype >= 0 && subtype < NUM_GAME_SUBTYPES)
                 return WILDERNESS_CRAFT_MAT_WOOD_BASE + 200 + subtype; /* Unique offset for leather */
             break;
+        case RESOURCE_WATER:
+            if (subtype >= 0 && subtype < NUM_WATER_SUBTYPES)
+                return WILDERNESS_CRAFT_MAT_HERB_BASE + 200 + subtype; /* Water offset */
+            break;
+        case RESOURCE_CLAY:
+            if (subtype >= 0 && subtype < NUM_CLAY_SUBTYPES)
+                return WILDERNESS_CRAFT_MAT_ORE_BASE + 200 + subtype; /* Clay offset */
+            break;
+        case RESOURCE_SALT:
+            if (subtype >= 0 && subtype < NUM_SALT_SUBTYPES)
+                return WILDERNESS_CRAFT_MAT_ORE_BASE + 300 + subtype; /* Salt offset */
+            break;
     }
     return WILDERNESS_CRAFT_MAT_NONE;
 }
@@ -1461,6 +1595,7 @@ void integrate_wilderness_harvest_with_crafting(struct char_data *ch, int catego
     
     /* Get the enhanced material ID */
     enhanced_material_id = get_enhanced_wilderness_material_id(category, subtype);
+    
     if (enhanced_material_id == WILDERNESS_CRAFT_MAT_NONE) {
         return;
     }
