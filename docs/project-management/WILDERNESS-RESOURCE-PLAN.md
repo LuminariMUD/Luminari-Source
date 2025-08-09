@@ -1,9 +1,9 @@
 # Wilderness Resource System Implementation Plan
 
-**Document Version:** 2.0  
+**Document Version:** 3.0  
 **Date:** August 8, 2025  
 **Author:** Implementation Team  
-**Status:** ✅ **Phases 1-3 COMPLETED** - Ready for Testing  
+**Status:** ✅ **Phases 1-4 COMPLETED** - Region Integration Complete  
 
 ## 📋 **Executive Summary**
 
@@ -13,7 +13,7 @@ This document outlines the implementation plan for a dynamic resource system in 
 - ✅ **Phase 1**: Core Infrastructure (COMPLETED)
 - ✅ **Phase 2**: Enhanced Survey Commands (COMPLETED)  
 - ✅ **Phase 3**: Spatial Caching System (COMPLETED)
-- 🔲 **Phase 4**: Region Integration (PLANNED)
+- ✅ **Phase 4**: Region Integration (COMPLETED)
 - 🔲 **Phase 5**: Harvesting Mechanics (PLANNED)
 
 ### **Key Design Principles**
@@ -77,6 +77,40 @@ This document outlines the implementation plan for a dynamic resource system in 
 - `src/act.wizard.c` - Added resourceadmin command with cache management
 - `src/interpreter.c` - Registered resourceadmin command
 
+### **✅ Phase 4: Region Integration (COMPLETED)**
+
+**Region Resource System Features Implemented:**
+- ✅ Database integration for region-specific resource modifiers
+- ✅ Region resource effects table with multipliers and bonuses
+- ✅ Automatic region detection and modifier application
+- ✅ Multiple region support with cumulative effects
+- ✅ Enhanced debug survey showing region effects
+
+**Database Schema Implemented:**
+- ✅ **New**: `region_effects` table with flexible effect definitions using JSON parameters
+- ✅ **New**: `region_effect_assignments` table for foreign key-based region targeting
+- ✅ Example effects for resource multipliers, seasonal modifiers, and environmental factors
+- ✅ Proper indexing for performance optimization
+
+**Admin Commands Added:**
+- ✅ `resourceadmin effects list` - List all available region effects
+- ✅ `resourceadmin effects show <effect_id>` - Show detailed effect information
+- ✅ `resourceadmin effects assign <region_vnum> <effect_id> <intensity>` - Assign effect to region
+- ✅ `resourceadmin effects unassign <region_vnum> <effect_id>` - Remove effect from region
+- ✅ `resourceadmin effects region <region_vnum>` - Show all effects for a region
+
+**Region Effect Examples:**
+- **Forest Effects**: Enhanced vegetation growth (1.5x), abundant herbs (1.8x), rich wood sources (2.0x), reduced minerals (0.3x)
+- **Mountain Effects**: Rich mineral deposits (2.5x), abundant stone (3.0x), crystal formations (2.0x), sparse vegetation (0.4x)
+- **Seasonal Effects**: Spring growth bonuses, winter penalties, wet season flooding
+- **Environmental Effects**: Drought conditions, magical enhancement, cursed lands
+
+**Files Modified:**
+- `src/resource_system.h` - Added flexible region effects function prototypes
+- `src/resource_system.c` - Implemented JSON-based effects processing and region integration
+- `src/act.wizard.c` - Added comprehensive effects management subcommands to resourceadmin
+- `lib/region_effects_system.sql` - **New flexible database schema** with JSON parameters
+
 ---
 
 ## 🧪 **TESTING GUIDE**
@@ -139,6 +173,24 @@ This document outlines the implementation plan for a dynamic resource system in 
    resourceadmin cache      # Show cache statistics and commands
    resourceadmin cache cleanup  # Remove expired cache entries
    resourceadmin cache clear    # Clear all cache entries
+   ```
+
+5. **Region Effects System Testing** *(Phase 4 - Updated)*
+   ```
+   # Install the flexible region effects database schema:
+   mysql -u username -p database_name < lib/region_effects_system.sql
+   
+   # Test effects management
+   resourceadmin effects list                    # Show all available effects
+   resourceadmin effects show 1                  # Show details for effect ID 1
+   
+   # Test region effect assignments
+   resourceadmin effects assign 1001 1 1.5       # Assign effect 1 to region 1001 with intensity 1.5
+   resourceadmin effects region 1001             # Show all effects for region 1001
+   resourceadmin effects unassign 1001 1         # Remove effect 1 from region 1001
+   
+   # Enhanced debug with region analysis
+   resourceadmin debug                 # Now includes region modifier breakdown
    ```
 
 ### **Performance Testing**

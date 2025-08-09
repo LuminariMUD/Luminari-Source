@@ -21,6 +21,9 @@
 #include "constants.h"
 #include "kdtree.h"
 
+/* Forward declarations for region integration */
+/* Phase 4b: Region Effects Forward Declarations */
+
 /* Global resource configuration array */
 struct resource_config resource_configs[NUM_RESOURCE_TYPES] = {
     /* type, noise_layer, base_mult, regen_rate, depletion, quality_var, seasonal, weather, skill, name, description */
@@ -184,11 +187,28 @@ float apply_environmental_modifiers(int resource_type, int x, int y, float base_
     return base_value * modifier;
 }
 
+/* Region resource modifier function for individual resource calculations */
+float apply_region_resource_modifiers(int resource_type, int x, int y, float base_value)
+{
+  /* For now, return base value unchanged until region integration is properly implemented */
+  /* TODO: Implement region lookup and database query for region effects */
+  return base_value;
+}
+
 /* Placeholder for region resource modifiers - will be implemented in Phase 2 */
-float apply_region_resource_modifiers(int resource_type, int x, int y, float base_value) {
-    /* For now, just return the base value */
-    /* TODO: Implement region modifier system in Phase 2 */
-    return base_value;
+void apply_region_resource_modifiers_to_node(struct char_data *ch, struct resource_node *resources)
+{
+  /* TODO: Implement when character-based region detection is available */
+  /* For now, this function does nothing but maintains the interface */
+  return;
+}
+
+// Helper function to parse and apply JSON resource modifiers
+void apply_json_resource_modifiers(struct resource_node *resources, const char *json_data, double intensity)
+{
+  /* TODO: Implement when resource_node structure is properly defined */
+  /* For now, this function does nothing but maintains the interface */
+  return;
 }
 
 /* ===== ENVIRONMENTAL MODIFIER FUNCTIONS ===== */
@@ -764,6 +784,38 @@ void show_debug_survey(struct char_data *ch) {
                      resource_configs[i].description);
     }
     
+    /* Region effects analysis */
+    {
+        struct region_list *regions = NULL;
+        struct region_list *curr_region = NULL;
+        zone_rnum zone = real_zone(WILD_ZONE_VNUM);
+        
+        if (zone != NOWHERE) {
+            regions = get_enclosing_regions(zone, x, y);
+            if (regions) {
+                send_to_char(ch, "\r\nRegion Effects:\r\n");
+                
+                for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
+                    if (curr_region->rnum != NOWHERE && 
+                        curr_region->rnum >= 0 && 
+                        curr_region->rnum <= top_of_region_table) {
+                        
+                        region_vnum vnum = region_table[curr_region->rnum].vnum;
+                        char *name = region_table[curr_region->rnum].name;
+                        
+                        send_to_char(ch, "  Region: %s (vnum %d)\r\n", 
+                                     name ? name : "Unknown", vnum);
+                        send_to_char(ch, "    Effects: (New effects system - use 'resourceadmin effects region %d')\r\n", vnum);
+                    }
+                }
+                
+                free_region_list(regions);
+            } else {
+                send_to_char(ch, "\r\nRegion Effects: None (no regions at this location)\r\n");
+            }
+        }
+    }
+    
     send_to_char(ch, "\r\nPerlin Noise Configuration:\r\n");
     for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
         send_to_char(ch, "  %s: Layer %d, Multiplier %.3f, Regen %.3f\r\n",
@@ -905,3 +957,5 @@ void show_resource_detail(struct char_data *ch, int resource_type) {
     send_to_char(ch, "- Weather Effects: %s\r\n", 
                  resource_configs[resource_type].weather_affected ? "Yes" : "No");
 }
+
+/* ===== PHASE 4B: REGION EFFECTS SYSTEM FUNCTIONS ===== */
