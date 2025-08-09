@@ -141,4 +141,17 @@ extern int resource_cache_count;
 /* Resource name array for display */
 extern const char *resource_names[NUM_RESOURCE_TYPES];
 
+/* Phase 4: Region integration functions */
+/* Phase 4b: Region Effects System Functions */
+float apply_region_resource_modifiers(int resource_type, int x, int y, float base_value);
+void apply_region_resource_modifiers_to_node(struct char_data *ch, struct resource_node *resources);
+
+/* Region Effects Admin Functions */
+void resourceadmin_effects_list(struct char_data *ch);
+void resourceadmin_effects_show(struct char_data *ch, int effect_id);
+void resourceadmin_effects_assign(struct char_data *ch, int region_vnum, int effect_id, double intensity);
+void resourceadmin_effects_unassign(struct char_data *ch, int region_vnum, int effect_id);
+void resourceadmin_effects_region(struct char_data *ch, int region_vnum);
+void apply_json_resource_modifiers(struct resource_node *resources, const char *json_data, double intensity);
+
 #endif /* _RESOURCE_SYSTEM_H_ */

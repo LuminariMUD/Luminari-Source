@@ -10351,6 +10351,7 @@ ACMD(do_resourceadmin)
     send_to_char(ch, "resourceadmin map <type> [radius] - Show resource minimap\r\n");
     send_to_char(ch, "resourceadmin debug     - Show debug survey at current location\r\n");
     send_to_char(ch, "resourceadmin cache     - Show cache statistics and management\r\n");
+    send_to_char(ch, "resourceadmin effects   - Manage region effects system\r\n");
     send_to_char(ch, "resourceadmin cleanup   - Force cleanup of old resource nodes\r\n");
     return;
   }
@@ -10568,7 +10569,288 @@ ACMD(do_resourceadmin)
     return;
   }
   
+  /* Phase 4b: Region Effects System Commands */
+  if (is_abbrev(arg, "effects")) {
+    char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH], arg4[MAX_INPUT_LENGTH], arg5[MAX_INPUT_LENGTH];
+    
+    argument = one_argument(argument, arg, sizeof(arg)); /* Skip "effects" */
+    argument = one_argument(argument, arg2, sizeof(arg2)); /* Get subcommand */
+    
+    if (!*arg2) {
+      send_to_char(ch, "Region Effects System Management:\r\n");
+      send_to_char(ch, "  resourceadmin effects list\r\n");
+      send_to_char(ch, "  resourceadmin effects show <effect_id>\r\n");
+      send_to_char(ch, "  resourceadmin effects assign <region_vnum> <effect_id> [intensity]\r\n");
+      send_to_char(ch, "  resourceadmin effects unassign <region_vnum> <effect_id>\r\n");
+      send_to_char(ch, "  resourceadmin effects region <region_vnum>\r\n");
+      send_to_char(ch, "\r\nThis system allows flexible assignment of various effects to regions.\r\n");
+      return;
+    }
+    
+    if (is_abbrev(arg2, "list")) {
+      resourceadmin_effects_list(ch);
+      return;
+    }
+    
+    if (is_abbrev(arg2, "show")) {
+      argument = one_argument(argument, arg3, sizeof(arg3)); /* effect_id */
+      
+      if (!*arg3) {
+        send_to_char(ch, "Usage: resourceadmin effects show <effect_id>\r\n");
+        return;
+      }
+      
+      resourceadmin_effects_show(ch, atoi(arg3));
+      return;
+    }
+    
+    if (is_abbrev(arg2, "assign")) {
+      argument = one_argument(argument, arg3, sizeof(arg3)); /* region_vnum */
+      argument = one_argument(argument, arg4, sizeof(arg4)); /* effect_id */
+      argument = one_argument(argument, arg5, sizeof(arg5)); /* intensity */
+      
+      if (!*arg3 || !*arg4) {
+        send_to_char(ch, "Usage: resourceadmin effects assign <region_vnum> <effect_id> [intensity]\r\n");
+        return;
+      }
+      
+      double intensity = *arg5 ? atof(arg5) : 1.0;
+      resourceadmin_effects_assign(ch, atoi(arg3), atoi(arg4), intensity);
+      return;
+    }
+    
+    if (is_abbrev(arg2, "unassign")) {
+      argument = one_argument(argument, arg3, sizeof(arg3)); /* region_vnum */
+      one_argument(argument, arg4, sizeof(arg4)); /* effect_id */
+      
+      if (!*arg3 || !*arg4) {
+        send_to_char(ch, "Usage: resourceadmin effects unassign <region_vnum> <effect_id>\r\n");
+        return;
+      }
+      
+      resourceadmin_effects_unassign(ch, atoi(arg3), atoi(arg4));
+      return;
+    }
+    
+    if (is_abbrev(arg2, "region")) {
+      one_argument(argument, arg3, sizeof(arg3)); /* region_vnum */
+      
+      if (!*arg3) {
+        send_to_char(ch, "Usage: resourceadmin effects region <region_vnum>\r\n");
+        return;
+      }
+      
+      resourceadmin_effects_region(ch, atoi(arg3));
+      return;
+    }
+    
+    send_to_char(ch, "Unknown effects command. Use 'resourceadmin effects' for help.\r\n");
+    return;
+  }
+  
   send_to_char(ch, "Unknown resourceadmin option. Type 'resourceadmin' for help.\r\n");
+}
+
+/* Region Effects System Helper Functions */
+
+void resourceadmin_effects_list(struct char_data *ch) {
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    char query[512];
+    
+    snprintf(query, sizeof(query), 
+             "SELECT effect_id, effect_name, effect_type, effect_description, is_active "
+             "FROM region_effects ORDER BY effect_type, effect_name");
+    
+    if (mysql_query(conn, query) != 0) {
+        send_to_char(ch, "Database query failed: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    result = mysql_store_result(conn);
+    if (!result) {
+        send_to_char(ch, "Failed to retrieve results: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    send_to_char(ch, "\tcAvailable Region Effects:\tn\r\n");
+    send_to_char(ch, "ID | Name              | Type      | Active | Description\r\n");
+    send_to_char(ch, "---+------------------+----------+--------+------------------------\r\n");
+    
+    while ((row = mysql_fetch_row(result)) != NULL) {
+        const char *active = (atoi(row[4]) == 1) ? "Yes" : "No";
+        send_to_char(ch, "%2s | %-16s | %-8s | %-6s | %.50s\r\n",
+                     row[0], row[1], row[2], active, row[3] ? row[3] : "");
+    }
+    
+    mysql_free_result(result);
+}
+
+void resourceadmin_effects_show(struct char_data *ch, int effect_id) {
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    char query[512];
+    
+    snprintf(query, sizeof(query), 
+             "SELECT effect_name, effect_type, effect_description, effect_data, is_active "
+             "FROM region_effects WHERE effect_id = %d",
+             effect_id);
+    
+    if (mysql_query(conn, query) != 0) {
+        send_to_char(ch, "Database query failed: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    result = mysql_store_result(conn);
+    if (!result) {
+        send_to_char(ch, "Failed to retrieve results: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    row = mysql_fetch_row(result);
+    if (!row) {
+        send_to_char(ch, "Effect ID %d not found.\r\n", effect_id);
+        mysql_free_result(result);
+        return;
+    }
+    
+    send_to_char(ch, "\tcEffect ID %d Details:\tn\r\n", effect_id);
+    send_to_char(ch, "Name: %s\r\n", row[0]);
+    send_to_char(ch, "Type: %s\r\n", row[1]);
+    send_to_char(ch, "Active: %s\r\n", (atoi(row[4]) == 1) ? "Yes" : "No");
+    send_to_char(ch, "Description: %s\r\n", row[2] ? row[2] : "None");
+    send_to_char(ch, "Effect Data: %s\r\n", row[3] ? row[3] : "None");
+    
+    mysql_free_result(result);
+    
+    // Show regions that have this effect assigned
+    snprintf(query, sizeof(query), 
+             "SELECT region_vnum, intensity, is_active, assigned_at, expires_at "
+             "FROM region_effect_assignments WHERE effect_id = %d ORDER BY region_vnum",
+             effect_id);
+    
+    if (mysql_query(conn, query) == 0) {
+        result = mysql_store_result(conn);
+        if (result) {
+            send_to_char(ch, "\r\n\tcAssigned to Regions:\tn\r\n");
+            send_to_char(ch, "Region | Intensity | Active | Assigned       | Expires\r\n");
+            send_to_char(ch, "-------+----------+--------+---------------+-----------\r\n");
+            
+            while ((row = mysql_fetch_row(result)) != NULL) {
+                const char *active = (atoi(row[2]) == 1) ? "Yes" : "No";
+                const char *expires = row[4] ? row[4] : "Never";
+                send_to_char(ch, "%6s | %8s | %-6s | %-13s | %s\r\n",
+                             row[0], row[1], active, row[3], expires);
+            }
+            mysql_free_result(result);
+        }
+    }
+}
+
+void resourceadmin_effects_assign(struct char_data *ch, int region_vnum, int effect_id, double intensity) {
+    char query[1024];
+    
+    // First verify the effect exists and is active
+    snprintf(query, sizeof(query),
+             "SELECT effect_name FROM region_effects WHERE effect_id = %d AND is_active = 1",
+             effect_id);
+    
+    if (mysql_query(conn, query) != 0) {
+        send_to_char(ch, "Database query failed: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (!result) {
+        send_to_char(ch, "Failed to retrieve results: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (!row) {
+        send_to_char(ch, "Effect ID %d not found or not active.\r\n", effect_id);
+        mysql_free_result(result);
+        return;
+    }
+    
+    const char *effect_name = row[0];
+    mysql_free_result(result);
+    
+    // Assign the effect to the region
+    snprintf(query, sizeof(query),
+             "INSERT INTO region_effect_assignments (region_vnum, effect_id, intensity) "
+             "VALUES (%d, %d, %.2f) "
+             "ON DUPLICATE KEY UPDATE intensity = %.2f, is_active = 1, assigned_at = NOW()",
+             region_vnum, effect_id, intensity, intensity);
+    
+    if (mysql_query(conn, query) == 0) {
+        send_to_char(ch, "Effect '%s' (ID: %d) assigned to region %d with intensity %.2f\r\n",
+                     effect_name, effect_id, region_vnum, intensity);
+    } else {
+        send_to_char(ch, "Failed to assign effect: %s\r\n", mysql_error(conn));
+    }
+}
+
+void resourceadmin_effects_unassign(struct char_data *ch, int region_vnum, int effect_id) {
+    char query[512];
+    
+    snprintf(query, sizeof(query),
+             "DELETE FROM region_effect_assignments WHERE region_vnum = %d AND effect_id = %d",
+             region_vnum, effect_id);
+    
+    if (mysql_query(conn, query) == 0) {
+        if (mysql_affected_rows(conn) > 0) {
+            send_to_char(ch, "Effect ID %d unassigned from region %d\r\n", effect_id, region_vnum);
+        } else {
+            send_to_char(ch, "No assignment found for effect ID %d on region %d.\r\n", effect_id, region_vnum);
+        }
+    } else {
+        send_to_char(ch, "Failed to unassign effect: %s\r\n", mysql_error(conn));
+    }
+}
+
+void resourceadmin_effects_region(struct char_data *ch, int region_vnum) {
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    char query[1024];
+    
+    snprintf(query, sizeof(query), 
+             "SELECT re.effect_id, re.effect_name, re.effect_type, rea.intensity, "
+             "rea.is_active, rea.assigned_at, rea.expires_at "
+             "FROM region_effects re "
+             "JOIN region_effect_assignments rea ON re.effect_id = rea.effect_id "
+             "WHERE rea.region_vnum = %d ORDER BY re.effect_type, re.effect_name",
+             region_vnum);
+    
+    if (mysql_query(conn, query) != 0) {
+        send_to_char(ch, "Database query failed: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    result = mysql_store_result(conn);
+    if (!result) {
+        send_to_char(ch, "Failed to retrieve results: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    send_to_char(ch, "\tcEffects assigned to Region %d:\tn\r\n", region_vnum);
+    send_to_char(ch, "ID | Name              | Type      | Intensity | Active | Assigned       | Expires\r\n");
+    send_to_char(ch, "---+------------------+----------+----------+--------+---------------+-----------\r\n");
+    
+    int count = 0;
+    while ((row = mysql_fetch_row(result)) != NULL) {
+        const char *active = (atoi(row[4]) == 1) ? "Yes" : "No";
+        const char *expires = row[6] ? row[6] : "Never";
+        send_to_char(ch, "%2s | %-16s | %-8s | %8s | %-6s | %-13s | %s\r\n",
+                     row[0], row[1], row[2], row[3], active, row[5], expires);
+        count++;
+    }
+    
+    if (count == 0) {
+        send_to_char(ch, "No effects assigned to this region.\r\n");
+    }
+    
+    mysql_free_result(result);
 }
 
 /* EOF */
