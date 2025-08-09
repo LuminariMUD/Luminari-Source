@@ -4956,6 +4956,24 @@ struct innate_magic_data
 };
 /***/
 
+/* Phase 4.5: Material storage structure for wilderness harvesting */
+/* Maximum materials a player can store - reasonable limit */
+#define MAX_STORED_MATERIALS 100
+
+/* Quality level constants for clarity */
+#define MATERIAL_QUALITY_POOR      1
+#define MATERIAL_QUALITY_COMMON    2  
+#define MATERIAL_QUALITY_UNCOMMON  3
+#define MATERIAL_QUALITY_RARE      4
+#define MATERIAL_QUALITY_LEGENDARY 5
+
+struct material_storage {
+    int category;               /* Resource category (RESOURCE_HERBS, etc) */
+    int subtype;                /* Specific material (HERB_MARJORAM, etc) */
+    int quality;                /* Quality level (1-5) */
+    int quantity;               /* Amount stored */
+};
+
 /** Data only needed by PCs, and needs to be saved to disk. */
 struct player_special_data_saved
 {
@@ -5168,6 +5186,11 @@ struct player_special_data_saved
 
     int craft_mats_owned[NUM_CRAFT_MATS];
     int craft_motes_owned[NUM_CRAFT_MOTES]; 
+    
+    /* Phase 4.5: Material subtype storage system */
+    /* Stores wilderness materials with (category, subtype, quality) structure */
+    int stored_material_count;                         /* Number of different materials stored */
+    struct material_storage stored_materials[MAX_STORED_MATERIALS];  /* Material storage array */ 
     int ability_exp[MAX_ABILITIES + 1];               // abilities
 
     int new_supply_num_made;

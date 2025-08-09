@@ -9597,4 +9597,22 @@ ACMDU(do_wearapplies)
 #undef WPT_DWARF
 #undef WPT_DUERGAR
 
+/* Phase 4.5: Materials storage display command */
+ACMD(do_materials)
+{
+    if (IS_NPC(ch)) {
+        send_to_char(ch, "NPCs don't store materials.\r\n");
+        return;
+    }
+    
+#ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
+    /* Enhanced materials display for LuminariMUD */
+    send_to_char(ch, "\\cW=== Enhanced Wilderness Materials (LuminariMUD) ===\\cn\r\n");
+    send_to_char(ch, "Your materials are preserved with their full hierarchy and quality.\r\n");
+    send_to_char(ch, "These materials can be used in enhanced LuminariMUD crafting recipes.\r\n\r\n");
+#endif
+    
+    show_material_storage(ch);
+}
+
 /*EOF*/

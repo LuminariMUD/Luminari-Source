@@ -444,11 +444,38 @@ survey debug              - Show detailed calculation breakdown
 3. Environmental factor application
 4. Dynamic modifier system
 
-### **Phase 5: Harvest Integration**
-1. Resource-based harvest modifications
-2. Quality tier determination system
-3. Skill-based yield calculations
-4. Material conversion and rewards
+### **Phase 5: Player Harvesting Mechanics** *(DESIGN COMPLETE)*
+**Comprehensive technical design completed - ready for implementation**
+
+**Key Integration Decisions:**
+1. **Enhanced Virtual Storage**: Extend current `crafting_new.c` material system
+2. **Quality-Based Resources**: Five-tier quality system (Poor → Masterwork)  
+3. **Tool Integration**: Leverage existing object system with harvesting specialization
+4. **Seamless Crafting**: Direct integration with existing `crafting_recipes` system
+
+**Technical Implementation Ready:**
+- ✅ Data structure specifications for wilderness material inventory
+- ✅ Quality determination algorithms with skill/tool/region factors
+- ✅ Material conversion tables for crafting system compatibility
+- ✅ Tool effectiveness and durability calculation systems
+- ✅ Database schema extensions for player data and tool definitions
+- ✅ Event system integration for time-based harvesting mechanics
+
+**Risk Mitigation Planned:**
+- ✅ Legacy system compatibility strategies and migration procedures
+- ✅ Database performance optimization and caching approaches  
+- ✅ Economic balance protection and adjustment mechanisms
+- ✅ Complete rollback contingency plans for safe deployment
+
+**Documentation Complete:**
+- See `PHASE_5_DESIGN.md` for complete technical specifications
+- See `COMMAND_SEPARATION_SUMMARY.md` for architecture improvements
+
+**Implementation Focus:**
+1. Resource consumption during player harvesting
+2. Quality tier determination system with skill/tool integration
+3. Virtual material inventory with quality tracking
+4. Seamless conversion to existing crafting material types
 
 ### **Phase 6: Dynamic Description Enhancement**
 1. Resource-aware description generation

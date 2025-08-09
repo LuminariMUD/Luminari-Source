@@ -20,6 +20,7 @@
 #include "genolc.h"
 #include "constants.h"
 #include "kdtree.h"
+#include "screen.h"
 
 /* Forward declarations for region integration */
 /* Phase 4b: Region Effects Forward Declarations */
@@ -958,4 +959,523 @@ void show_resource_detail(struct char_data *ch, int resource_type) {
                  resource_configs[resource_type].weather_affected ? "Yes" : "No");
 }
 
-/* ===== PHASE 4B: REGION EFFECTS SYSTEM FUNCTIONS ===== */
+/* ===== PHASE 4.5: MATERIAL SUBTYPE MANAGEMENT SYSTEM ===== */
+
+/* Material subtype name arrays */
+const char *herb_subtype_names[NUM_HERB_SUBTYPES] = {
+    "marjoram", "kingfoil", "starlily", "wolfsbane", 
+    "silverleaf", "moonbell", "thornweed", "brightroot"
+};
+
+const char *crystal_subtype_names[NUM_CRYSTAL_SUBTYPES] = {
+    "arcanite", "nethermote", "sunstone", "voidshards",
+    "dreamquartz", "bloodstone", "frostgem", "stormcrystal"
+};
+
+const char *ore_subtype_names[NUM_ORE_SUBTYPES] = {
+    "mithril", "adamantine", "cold iron", "star steel",
+    "deep silver", "dragonsteel", "voidmetal", "brightcopper"
+};
+
+const char *wood_subtype_names[NUM_WOOD_SUBTYPES] = {
+    "ironwood", "silverbirch", "shadowbark", "brightoak",
+    "thornvine", "moonweave", "darkwillow", "starwood"
+};
+
+const char *vegetation_subtype_names[NUM_VEGETATION_SUBTYPES] = {
+    "cotton", "silk moss", "hemp vine", "spirit grass",
+    "flame flower", "ice lichen", "shadow fern", "light bloom"
+};
+
+const char *stone_subtype_names[NUM_STONE_SUBTYPES] = {
+    "granite", "marble", "obsidian", "moonstone",
+    "dragonbone", "voidrock", "starstone", "shadowslate"
+};
+
+const char *game_subtype_names[NUM_GAME_SUBTYPES] = {
+    "leather", "dragonhide", "shadowpelt", "brightfur",
+    "winterwool", "spirit silk", "voidhide", "starfur"
+};
+
+const char *quality_names[6] = {
+    "unknown", "poor", "common", "uncommon", "rare", "legendary"
+};
+
+/* Material storage functions */
+int add_material_to_storage(struct char_data *ch, int category, int subtype, int quality, int quantity) {
+    int i;
+    
+    if (!ch || IS_NPC(ch)) {
+        return 0;
+    }
+    
+    /* Validate material data */
+    if (!validate_material_data(category, subtype, quality) || quantity <= 0) {
+        return 0;
+    }
+    
+    /* Find existing entry */
+    for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
+        if (ch->player_specials->saved.stored_materials[i].category == category &&
+            ch->player_specials->saved.stored_materials[i].subtype == subtype &&
+            ch->player_specials->saved.stored_materials[i].quality == quality) {
+            
+            ch->player_specials->saved.stored_materials[i].quantity += quantity;
+            
+#ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
+            /* Enhanced LuminariMUD integration - materials are available for enhanced crafting */
+            /* Trigger integration notification for enhanced system */
+            integrate_wilderness_harvest_with_crafting(ch, category, subtype, quality, quantity);
+#endif
+            return quantity;
+        }
+    }
+    
+    /* Add new entry if we have space */
+    if (ch->player_specials->saved.stored_material_count < MAX_STORED_MATERIALS) {
+        i = ch->player_specials->saved.stored_material_count;
+        ch->player_specials->saved.stored_materials[i].category = category;
+        ch->player_specials->saved.stored_materials[i].subtype = subtype;
+        ch->player_specials->saved.stored_materials[i].quality = quality;
+        ch->player_specials->saved.stored_materials[i].quantity = quantity;
+        ch->player_specials->saved.stored_material_count++;
+        
+#ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
+        /* Enhanced LuminariMUD integration - materials are available for enhanced crafting */
+        /* Trigger integration notification for enhanced system */
+        integrate_wilderness_harvest_with_crafting(ch, category, subtype, quality, quantity);
+#endif
+        return quantity;
+    }
+    
+    /* Storage full */
+    return 0;
+}
+
+int remove_material_from_storage(struct char_data *ch, int category, int subtype, int quality, int quantity) {
+    int i, removed = 0;
+    
+    if (!ch || IS_NPC(ch)) {
+        return 0;
+    }
+    
+    /* Find entry */
+    for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
+        if (ch->player_specials->saved.stored_materials[i].category == category &&
+            ch->player_specials->saved.stored_materials[i].subtype == subtype &&
+            ch->player_specials->saved.stored_materials[i].quality == quality) {
+            
+            removed = MIN(quantity, ch->player_specials->saved.stored_materials[i].quantity);
+            ch->player_specials->saved.stored_materials[i].quantity -= removed;
+            
+            /* Remove entry if empty */
+            if (ch->player_specials->saved.stored_materials[i].quantity <= 0) {
+                /* Shift array down */
+                int j;
+                for (j = i; j < ch->player_specials->saved.stored_material_count - 1; j++) {
+                    ch->player_specials->saved.stored_materials[j] = 
+                        ch->player_specials->saved.stored_materials[j + 1];
+                }
+                ch->player_specials->saved.stored_material_count--;
+            }
+            return removed;
+        }
+    }
+    
+    return 0;
+}
+
+int get_material_quantity(struct char_data *ch, int category, int subtype, int quality) {
+    int i;
+    
+    if (!ch || IS_NPC(ch)) {
+        return 0;
+    }
+    
+    for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
+        if (ch->player_specials->saved.stored_materials[i].category == category &&
+            ch->player_specials->saved.stored_materials[i].subtype == subtype &&
+            ch->player_specials->saved.stored_materials[i].quality == quality) {
+            
+            return ch->player_specials->saved.stored_materials[i].quantity;
+        }
+    }
+    
+    return 0;
+}
+
+void show_material_storage(struct char_data *ch) {
+    int i;
+    
+    if (!ch || IS_NPC(ch)) {
+        return;
+    }
+    
+    send_to_char(ch, "\tcYour Wilderness Material Storage:\tn\r\n");
+    send_to_char(ch, "=====================================\r\n");
+    
+    if (ch->player_specials->saved.stored_material_count == 0) {
+        send_to_char(ch, "You have no wilderness materials stored.\r\n");
+        return;
+    }
+    
+    for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
+        struct material_storage *mat = &ch->player_specials->saved.stored_materials[i];
+        const char *full_name = get_full_material_name(mat->category, mat->subtype, mat->quality);
+        
+        send_to_char(ch, "%s%3d%s x %s\r\n", 
+                     CCYEL(ch, C_NRM), mat->quantity, CCNRM(ch, C_NRM), full_name);
+    }
+    
+    send_to_char(ch, "\r\nStorage: %d/%d slots used\r\n", 
+                 ch->player_specials->saved.stored_material_count, MAX_STORED_MATERIALS);
+}
+
+/* Material name and description functions */
+const char *get_material_subtype_name(int category, int subtype) {
+    switch (category) {
+        case RESOURCE_HERBS:
+            if (subtype >= 0 && subtype < NUM_HERB_SUBTYPES)
+                return herb_subtype_names[subtype];
+            break;
+        case RESOURCE_CRYSTAL:
+            if (subtype >= 0 && subtype < NUM_CRYSTAL_SUBTYPES)
+                return crystal_subtype_names[subtype];
+            break;
+        case RESOURCE_MINERALS:
+            if (subtype >= 0 && subtype < NUM_ORE_SUBTYPES)
+                return ore_subtype_names[subtype];
+            break;
+        case RESOURCE_WOOD:
+            if (subtype >= 0 && subtype < NUM_WOOD_SUBTYPES)
+                return wood_subtype_names[subtype];
+            break;
+        case RESOURCE_VEGETATION:
+            if (subtype >= 0 && subtype < NUM_VEGETATION_SUBTYPES)
+                return vegetation_subtype_names[subtype];
+            break;
+        case RESOURCE_STONE:
+            if (subtype >= 0 && subtype < NUM_STONE_SUBTYPES)
+                return stone_subtype_names[subtype];
+            break;
+        case RESOURCE_GAME:
+            if (subtype >= 0 && subtype < NUM_GAME_SUBTYPES)
+                return game_subtype_names[subtype];
+            break;
+    }
+    return "unknown";
+}
+
+const char *get_material_quality_name(int quality) {
+    if (quality >= 1 && quality <= 5)
+        return quality_names[quality];
+    return quality_names[0];
+}
+
+const char *get_full_material_name(int category, int subtype, int quality) {
+    static char name_buf[256];
+    const char *subtype_name = get_material_subtype_name(category, subtype);
+    const char *quality_name = get_material_quality_name(quality);
+    
+    snprintf(name_buf, sizeof(name_buf), "%s %s", quality_name, subtype_name);
+    return name_buf;
+}
+
+const char *get_material_description(int category, int subtype, int quality) {
+    static char desc_buf[512];
+    const char *full_name = get_full_material_name(category, subtype, quality);
+    
+    snprintf(desc_buf, sizeof(desc_buf), "A sample of %s, harvested from the wilderness.", full_name);
+    return desc_buf;
+}
+
+/* Material validation and utility functions */
+int validate_material_data(int category, int subtype, int quality) {
+    if (quality < 1 || quality > 5)
+        return 0;
+        
+    if (category < 0 || category >= NUM_RESOURCE_TYPES)
+        return 0;
+        
+    return (subtype >= 0 && subtype < get_max_subtypes_for_category(category));
+}
+
+int get_max_subtypes_for_category(int category) {
+    switch (category) {
+        case RESOURCE_HERBS: return NUM_HERB_SUBTYPES;
+        case RESOURCE_CRYSTAL: return NUM_CRYSTAL_SUBTYPES;
+        case RESOURCE_MINERALS: return NUM_ORE_SUBTYPES;
+        case RESOURCE_WOOD: return NUM_WOOD_SUBTYPES;
+        case RESOURCE_VEGETATION: return NUM_VEGETATION_SUBTYPES;
+        case RESOURCE_STONE: return NUM_STONE_SUBTYPES;
+        case RESOURCE_GAME: return NUM_GAME_SUBTYPES;
+        default: return 0;
+    }
+}
+
+bool is_wilderness_only_material(int category, int subtype) {
+    /* All Phase 4.5 materials are wilderness-only for now */
+    /* TODO: Phase 5 may add some materials that can be found in zones */
+    return true;
+}
+
+/* Material harvesting functions */
+int determine_harvested_material_subtype(int resource_type, int x, int y, float level) {
+    /* Use coordinates and level to determine subtype */
+    /* Higher quality/rare areas produce better materials */
+    int subtype_count = get_max_subtypes_for_category(resource_type);
+    if (subtype_count <= 0) return 0;
+    
+    /* Simple algorithm: use noise to determine subtype */
+    /* High quality areas (level > 0.7) have chance for rare materials */
+    unsigned int seed = x * 31 + y * 17 + resource_type;
+    srand(seed);
+    
+    if (level > 0.8) {
+        /* Legendary level - chance for rarest materials */
+        return rand() % subtype_count;
+    } else if (level > 0.6) {
+        /* High level - middle to high-tier materials */
+        return rand() % MAX(1, subtype_count - 2);
+    } else {
+        /* Lower level - common materials only */
+        return rand() % MAX(1, subtype_count / 2);
+    }
+}
+
+int calculate_material_quality_from_resource(int resource_type, int x, int y, float level) {
+    /* Map resource level to quality tiers */
+    if (level >= 0.9) return MATERIAL_QUALITY_LEGENDARY;
+    if (level >= 0.7) return MATERIAL_QUALITY_RARE;
+    if (level >= 0.5) return MATERIAL_QUALITY_UNCOMMON;
+    if (level >= 0.3) return MATERIAL_QUALITY_COMMON;
+    return MATERIAL_QUALITY_POOR;
+}
+
+/* Material storage initialization and maintenance */
+void init_material_storage(struct char_data *ch) {
+    if (!ch || IS_NPC(ch)) {
+        return;
+    }
+    
+    ch->player_specials->saved.stored_material_count = 0;
+    memset(ch->player_specials->saved.stored_materials, 0, 
+           sizeof(struct material_storage) * MAX_STORED_MATERIALS);
+}
+
+void cleanup_material_storage(struct char_data *ch) {
+    /* Remove empty entries and consolidate */
+    if (!ch || IS_NPC(ch)) {
+        return;
+    }
+    
+    compact_material_storage(ch);
+}
+
+int compact_material_storage(struct char_data *ch) {
+    int read_pos = 0, write_pos = 0, removed = 0;
+    
+    if (!ch || IS_NPC(ch)) {
+        return 0;
+    }
+    
+    /* Compact array by removing empty entries */
+    for (read_pos = 0; read_pos < ch->player_specials->saved.stored_material_count; read_pos++) {
+        if (ch->player_specials->saved.stored_materials[read_pos].quantity > 0) {
+            if (read_pos != write_pos) {
+                ch->player_specials->saved.stored_materials[write_pos] = 
+                    ch->player_specials->saved.stored_materials[read_pos];
+            }
+            write_pos++;
+        } else {
+            removed++;
+        }
+    }
+    
+    ch->player_specials->saved.stored_material_count = write_pos;
+    
+    /* Clear remaining slots */
+    {
+        int i;
+        for (i = write_pos; i < MAX_STORED_MATERIALS; i++) {
+            memset(&ch->player_specials->saved.stored_materials[i], 0, sizeof(struct material_storage));
+        }
+    }
+    
+    return removed;
+}
+
+#ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
+/* ======================================================================== */
+/* Phase 4.75: Enhanced Wilderness-Crafting Integration (LuminariMUD only) */
+/* ======================================================================== */
+
+/* Get enhanced wilderness material ID from category and subtype */
+int get_enhanced_wilderness_material_id(int category, int subtype) {
+    switch (category) {
+        case RESOURCE_HERBS:
+            if (subtype >= 0 && subtype < NUM_HERB_SUBTYPES)
+                return WILDERNESS_CRAFT_MAT_HERB_BASE + subtype;
+            break;
+        case RESOURCE_CRYSTAL:
+            if (subtype >= 0 && subtype < NUM_CRYSTAL_SUBTYPES)
+                return WILDERNESS_CRAFT_MAT_CRYSTAL_BASE + subtype;
+            break;
+        case RESOURCE_MINERALS:
+            if (subtype >= 0 && subtype < NUM_ORE_SUBTYPES)
+                return WILDERNESS_CRAFT_MAT_ORE_BASE + subtype;
+            break;
+        case RESOURCE_WOOD:
+            if (subtype >= 0 && subtype < NUM_WOOD_SUBTYPES)
+                return WILDERNESS_CRAFT_MAT_WOOD_BASE + subtype;
+            break;
+        case RESOURCE_VEGETATION:
+            if (subtype >= 0 && subtype < NUM_VEGETATION_SUBTYPES)
+                return WILDERNESS_CRAFT_MAT_WOOD_BASE + 100 + subtype; /* Offset to avoid conflicts */
+            break;
+        case RESOURCE_STONE:
+            if (subtype >= 0 && subtype < NUM_STONE_SUBTYPES)
+                return WILDERNESS_CRAFT_MAT_ORE_BASE + 100 + subtype; /* Stone works like minerals */
+            break;
+        case RESOURCE_GAME:
+            if (subtype >= 0 && subtype < NUM_GAME_SUBTYPES)
+                return WILDERNESS_CRAFT_MAT_WOOD_BASE + 200 + subtype; /* Unique offset for leather */
+            break;
+    }
+    return WILDERNESS_CRAFT_MAT_NONE;
+}
+
+/* Check if a material ID is an enhanced wilderness material */
+bool is_enhanced_wilderness_material(int material_id) {
+    return (material_id >= WILDERNESS_CRAFT_MAT_HERB_BASE && 
+            material_id < WILDERNESS_CRAFT_MAT_HERB_BASE + NUM_ENHANCED_WILDERNESS_MATERIALS);
+}
+
+/* Get enhanced material name (preserves lore names) */
+const char *get_enhanced_material_name(int category, int subtype, int quality) {
+    static char enhanced_name_buf[256];
+    const char *base_name = get_material_subtype_name(category, subtype);
+    const char *quality_name = get_material_quality_name(quality);
+    
+    /* For LuminariMUD, use descriptive quality + base name format */
+    snprintf(enhanced_name_buf, sizeof(enhanced_name_buf), "%s %s", quality_name, base_name);
+    return enhanced_name_buf;
+}
+
+/* Get crafting value based on quality (affects item power) */
+int get_enhanced_material_crafting_value(int category, int subtype, int quality) {
+    int base_value = 1;
+    
+    /* Base value varies by material rarity */
+    switch (category) {
+        case RESOURCE_HERBS:
+            base_value = 5 + subtype; /* Herbs: 5-12 */
+            break;
+        case RESOURCE_CRYSTAL:
+            base_value = 15 + (subtype * 2); /* Crystals: 15-29 */
+            break;
+        case RESOURCE_MINERALS:
+            base_value = 10 + (subtype * 3); /* Ores: 10-31 */
+            break;
+        case RESOURCE_WOOD:
+            base_value = 8 + (subtype * 2); /* Wood: 8-22 */
+            break;
+        case RESOURCE_VEGETATION:
+            base_value = 3 + subtype; /* Vegetation: 3-10 */
+            break;
+        case RESOURCE_STONE:
+            base_value = 12 + (subtype * 2); /* Stone: 12-26 */
+            break;
+        case RESOURCE_GAME:
+            base_value = 7 + (subtype * 2); /* Leather: 7-21 */
+            break;
+    }
+    
+    /* Quality multiplier enhances the base value */
+    switch (quality) {
+        case RESOURCE_QUALITY_POOR:
+            return base_value * 1; /* 100% */
+        case RESOURCE_QUALITY_COMMON:
+            return (base_value * 12) / 10; /* 120% */
+        case RESOURCE_QUALITY_UNCOMMON:
+            return (base_value * 15) / 10; /* 150% */
+        case RESOURCE_QUALITY_RARE:
+            return base_value * 2; /* 200% */
+        case RESOURCE_QUALITY_LEGENDARY:
+            return (base_value * 25) / 10; /* 250% */
+        default:
+            return base_value;
+    }
+}
+
+/* Enhanced material description with crafting uses */
+const char *get_enhanced_material_description(int category, int subtype, int quality) {
+    static char enhanced_desc_buf[512];
+    const char *material_name = get_enhanced_material_name(category, subtype, quality);
+    const char *crafting_use = "";
+    
+    /* Determine crafting applications */
+    switch (category) {
+        case RESOURCE_HERBS:
+            crafting_use = "alchemical brewing and enchantment";
+            break;
+        case RESOURCE_CRYSTAL:
+            crafting_use = "magical item enhancement and spell focusing";
+            break;
+        case RESOURCE_MINERALS:
+            crafting_use = "weapon and armor smithing";
+            break;
+        case RESOURCE_WOOD:
+            crafting_use = "weapon hafts, shields, and magical staves";
+            break;
+        case RESOURCE_VEGETATION:
+            crafting_use = "rope, cloth, and textile crafting";
+            break;
+        case RESOURCE_STONE:
+            crafting_use = "structural components and tool making";
+            break;
+        case RESOURCE_GAME:
+            crafting_use = "leather armor and protective equipment";
+            break;
+        default:
+            crafting_use = "general crafting purposes";
+            break;
+    }
+    
+    snprintf(enhanced_desc_buf, sizeof(enhanced_desc_buf), 
+             "A sample of %s, carefully harvested from the wilderness. "
+             "This material is prized for %s and retains its natural potency.",
+             material_name, crafting_use);
+    
+    return enhanced_desc_buf;
+}
+
+/* Integrate wilderness harvest with crafting system */
+void integrate_wilderness_harvest_with_crafting(struct char_data *ch, int category, int subtype, int quality, int amount) {
+    int enhanced_material_id;
+    int crafting_value;
+    
+    if (!ch || IS_NPC(ch)) {
+        return;
+    }
+    
+    /* Get the enhanced material ID */
+    enhanced_material_id = get_enhanced_wilderness_material_id(category, subtype);
+    if (enhanced_material_id == WILDERNESS_CRAFT_MAT_NONE) {
+        return;
+    }
+    
+    /* Calculate crafting value */
+    crafting_value = get_enhanced_material_crafting_value(category, subtype, quality);
+    
+    /* Store in wilderness material system (preserves hierarchy) */
+    add_material_to_storage(ch, category, subtype, quality, amount);
+    
+    /* Also add crafting value to show integration */
+    const char *material_name = get_enhanced_material_name(category, subtype, quality);
+    send_to_char(ch, "\\cY[Enhanced Crafting]\\cn The %s has a crafting value of %d and can be used "
+                     "in advanced LuminariMUD recipes.\\r\\n", 
+                     material_name, crafting_value);
+}
+
+#endif /* ENABLE_WILDERNESS_CRAFTING_INTEGRATION */

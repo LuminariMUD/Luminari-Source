@@ -142,6 +142,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"activate", "activate", POS_FIGHTING, do_activate, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"at", "at", POS_DEAD, do_at, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"advance", "adv", POS_DEAD, do_advance, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"materialadmin", "matadmin", POS_DEAD, do_materialadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"aedit", "aed", POS_DEAD, do_oasis_aedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"ai", "ai", POS_DEAD, do_ai, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"alias", "ali", POS_DEAD, do_alias, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -288,6 +289,7 @@ cpp_extern const struct command_info cmd_info[] = {
 #if defined(CAMPAIGN_DL) // && FALSE // (for testing)
     {"craft", "craft", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_CREATE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"craftscore", "craftsc", POS_STANDING, do_craft_score, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"craftmaterials", "craftmat", POS_DEAD, do_list_craft_materials, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #else
     /* we are just using the old do_practice function for crafting for now */
     {"craft", "craft", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -582,7 +584,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"map", "map", POS_STANDING, do_map, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mark", "mark", POS_STANDING, do_mark, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mastermind", "mastermind", POS_FIGHTING, do_mastermind, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_mastermind},
-    {"materials", "materials", POS_DEAD, do_list_craft_materials, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"materials", "materials", POS_DEAD, do_materials, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"maxhp", "maxhp", POS_DEAD, do_maxhp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -734,6 +736,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"resistances", "res", POS_DEAD, do_affects, 0, SCMD_RESISTANCES, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"restore", "resto", POS_DEAD, do_restore, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"resourceadmin", "resadmin", POS_DEAD, do_resourceadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"effectsadmin", "effadmin", POS_DEAD, do_effectsadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"retainer", "retainer", POS_DEAD, do_retainer, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"return", "retu", POS_DEAD, do_return, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"redit", "redit", POS_DEAD, do_oasis_redit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -876,6 +879,7 @@ cpp_extern const struct command_info cmd_info[] = {
 #else
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
+    {"materials", "materials", POS_RECLINING, do_materials, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sacredflames", "sacredflames", POS_FIGHTING, do_sacredflames, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"staffevents", "staffevents", POS_SLEEPING, do_staffevents, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"summon", "summon", POS_RECLINING, do_summon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

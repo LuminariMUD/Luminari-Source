@@ -49,6 +49,7 @@
 #include "assign_wpn_armor.h"
 #include "item.h"
 #include "resource_system.h"
+#include "resource_system.h"
 #include "feats.h"
 #include "domains_schools.h"
 #include "ai_service.h"
@@ -10351,8 +10352,8 @@ ACMD(do_resourceadmin)
     send_to_char(ch, "resourceadmin map <type> [radius] - Show resource minimap\r\n");
     send_to_char(ch, "resourceadmin debug     - Show debug survey at current location\r\n");
     send_to_char(ch, "resourceadmin cache     - Show cache statistics and management\r\n");
-    send_to_char(ch, "resourceadmin effects   - Manage region effects system\r\n");
     send_to_char(ch, "resourceadmin cleanup   - Force cleanup of old resource nodes\r\n");
+    send_to_char(ch, "\r\nFor region effects management, use the 'effectsadmin' command.\r\n");
     return;
   }
   
@@ -10569,85 +10570,6 @@ ACMD(do_resourceadmin)
     return;
   }
   
-  /* Phase 4b: Region Effects System Commands */
-  if (is_abbrev(arg, "effects")) {
-    char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH], arg4[MAX_INPUT_LENGTH], arg5[MAX_INPUT_LENGTH];
-    
-    argument = one_argument(argument, arg, sizeof(arg)); /* Skip "effects" */
-    argument = one_argument(argument, arg2, sizeof(arg2)); /* Get subcommand */
-    
-    if (!*arg2) {
-      send_to_char(ch, "Region Effects System Management:\r\n");
-      send_to_char(ch, "  resourceadmin effects list\r\n");
-      send_to_char(ch, "  resourceadmin effects show <effect_id>\r\n");
-      send_to_char(ch, "  resourceadmin effects assign <region_vnum> <effect_id> [intensity]\r\n");
-      send_to_char(ch, "  resourceadmin effects unassign <region_vnum> <effect_id>\r\n");
-      send_to_char(ch, "  resourceadmin effects region <region_vnum>\r\n");
-      send_to_char(ch, "\r\nThis system allows flexible assignment of various effects to regions.\r\n");
-      return;
-    }
-    
-    if (is_abbrev(arg2, "list")) {
-      resourceadmin_effects_list(ch);
-      return;
-    }
-    
-    if (is_abbrev(arg2, "show")) {
-      argument = one_argument(argument, arg3, sizeof(arg3)); /* effect_id */
-      
-      if (!*arg3) {
-        send_to_char(ch, "Usage: resourceadmin effects show <effect_id>\r\n");
-        return;
-      }
-      
-      resourceadmin_effects_show(ch, atoi(arg3));
-      return;
-    }
-    
-    if (is_abbrev(arg2, "assign")) {
-      argument = one_argument(argument, arg3, sizeof(arg3)); /* region_vnum */
-      argument = one_argument(argument, arg4, sizeof(arg4)); /* effect_id */
-      argument = one_argument(argument, arg5, sizeof(arg5)); /* intensity */
-      
-      if (!*arg3 || !*arg4) {
-        send_to_char(ch, "Usage: resourceadmin effects assign <region_vnum> <effect_id> [intensity]\r\n");
-        return;
-      }
-      
-      double intensity = *arg5 ? atof(arg5) : 1.0;
-      resourceadmin_effects_assign(ch, atoi(arg3), atoi(arg4), intensity);
-      return;
-    }
-    
-    if (is_abbrev(arg2, "unassign")) {
-      argument = one_argument(argument, arg3, sizeof(arg3)); /* region_vnum */
-      one_argument(argument, arg4, sizeof(arg4)); /* effect_id */
-      
-      if (!*arg3 || !*arg4) {
-        send_to_char(ch, "Usage: resourceadmin effects unassign <region_vnum> <effect_id>\r\n");
-        return;
-      }
-      
-      resourceadmin_effects_unassign(ch, atoi(arg3), atoi(arg4));
-      return;
-    }
-    
-    if (is_abbrev(arg2, "region")) {
-      one_argument(argument, arg3, sizeof(arg3)); /* region_vnum */
-      
-      if (!*arg3) {
-        send_to_char(ch, "Usage: resourceadmin effects region <region_vnum>\r\n");
-        return;
-      }
-      
-      resourceadmin_effects_region(ch, atoi(arg3));
-      return;
-    }
-    
-    send_to_char(ch, "Unknown effects command. Use 'resourceadmin effects' for help.\r\n");
-    return;
-  }
-  
   send_to_char(ch, "Unknown resourceadmin option. Type 'resourceadmin' for help.\r\n");
 }
 
@@ -10851,6 +10773,239 @@ void resourceadmin_effects_region(struct char_data *ch, int region_vnum) {
     }
     
     mysql_free_result(result);
+}
+
+/* ===== REGION EFFECTS SYSTEM ADMIN COMMAND ===== */
+
+/* Independent admin command for the flexible region effects system */
+ACMD(do_effectsadmin) {
+    char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH], arg4[MAX_INPUT_LENGTH];
+    
+    if (!conn) {
+        send_to_char(ch, "Database connection error.\r\n");
+        return;
+    }
+    
+    mysql_ping(conn);
+    
+    argument = one_argument(argument, arg, sizeof(arg));
+    
+    if (!*arg) {
+        send_to_char(ch, "\tcRegion Effects System Administration\tn\r\n");
+        send_to_char(ch, "====================================\r\n");
+        send_to_char(ch, "The region effects system provides flexible assignment of various\r\n");
+        send_to_char(ch, "effects to regions using JSON parameters and intensity controls.\r\n\r\n");
+        send_to_char(ch, "Available Commands:\r\n");
+        send_to_char(ch, "  effectsadmin list                        - List all available effects\r\n");
+        send_to_char(ch, "  effectsadmin show <effect_id>            - Show detailed effect information\r\n");
+        send_to_char(ch, "  effectsadmin assign <region> <id> [int]  - Assign effect to region\r\n");
+        send_to_char(ch, "  effectsadmin unassign <region> <id>      - Remove effect from region\r\n");
+        send_to_char(ch, "  effectsadmin region <region_vnum>        - Show all effects for region\r\n");
+        send_to_char(ch, "  effectsadmin create <name> <type>        - Create new effect (future)\r\n");
+        send_to_char(ch, "  effectsadmin modify <id> <params>        - Modify effect (future)\r\n");
+        send_to_char(ch, "\r\nThis system can be used for resource modifiers, environmental effects,\r\n");
+        send_to_char(ch, "seasonal changes, magical influences, and any other region-based effects.\r\n");
+        return;
+    }
+    
+    if (is_abbrev(arg, "list")) {
+        resourceadmin_effects_list(ch);
+        return;
+    }
+    
+    if (is_abbrev(arg, "show")) {
+        argument = one_argument(argument, arg2, sizeof(arg2)); /* effect_id */
+        
+        if (!*arg2) {
+            send_to_char(ch, "Usage: effectsadmin show <effect_id>\r\n");
+            return;
+        }
+        
+        resourceadmin_effects_show(ch, atoi(arg2));
+        return;
+    }
+    
+    if (is_abbrev(arg, "assign")) {
+        argument = one_argument(argument, arg2, sizeof(arg2)); /* region_vnum */
+        argument = one_argument(argument, arg3, sizeof(arg3)); /* effect_id */
+        argument = one_argument(argument, arg4, sizeof(arg4)); /* intensity */
+        
+        if (!*arg2 || !*arg3) {
+            send_to_char(ch, "Usage: effectsadmin assign <region_vnum> <effect_id> [intensity]\r\n");
+            send_to_char(ch, "Intensity defaults to 1.0 if not specified.\r\n");
+            return;
+        }
+        
+        double intensity = *arg4 ? atof(arg4) : 1.0;
+        resourceadmin_effects_assign(ch, atoi(arg2), atoi(arg3), intensity);
+        return;
+    }
+    
+    if (is_abbrev(arg, "unassign")) {
+        argument = one_argument(argument, arg2, sizeof(arg2)); /* region_vnum */
+        one_argument(argument, arg3, sizeof(arg3)); /* effect_id */
+        
+        if (!*arg2 || !*arg3) {
+            send_to_char(ch, "Usage: effectsadmin unassign <region_vnum> <effect_id>\r\n");
+            return;
+        }
+        
+        resourceadmin_effects_unassign(ch, atoi(arg2), atoi(arg3));
+        return;
+    }
+    
+    if (is_abbrev(arg, "region")) {
+        one_argument(argument, arg2, sizeof(arg2)); /* region_vnum */
+        
+        if (!*arg2) {
+            send_to_char(ch, "Usage: effectsadmin region <region_vnum>\r\n");
+            return;
+        }
+        
+        resourceadmin_effects_region(ch, atoi(arg2));
+        return;
+    }
+    
+    if (is_abbrev(arg, "create")) {
+        send_to_char(ch, "Effect creation will be implemented in a future update.\r\n");
+        send_to_char(ch, "For now, effects must be created directly in the database.\r\n");
+        return;
+    }
+    
+    if (is_abbrev(arg, "modify")) {
+        send_to_char(ch, "Effect modification will be implemented in a future update.\r\n");
+        send_to_char(ch, "For now, effects must be modified directly in the database.\r\n");
+        return;
+    }
+    
+    send_to_char(ch, "Unknown command. Type 'effectsadmin' for help.\r\n");
+}
+
+/* Phase 4.5: Admin command to add materials for testing */
+ACMD(do_materialadmin)
+{
+    char subcommand[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH], category_arg[MAX_INPUT_LENGTH];
+    char subtype_arg[MAX_INPUT_LENGTH], quality_arg[MAX_INPUT_LENGTH], quantity_arg[MAX_INPUT_LENGTH];
+    struct char_data *victim;
+    int category, subtype, quality, quantity, result;
+    
+    argument = one_argument(argument, subcommand, sizeof(subcommand));
+    
+    if (!*subcommand) {
+        send_to_char(ch, "Material Storage Admin Commands:\r\n");
+        send_to_char(ch, "===============================\r\n");
+        send_to_char(ch, "materialadmin add <player> <category> <subtype> <quality> <quantity>\r\n");
+        send_to_char(ch, "materialadmin remove <player> <category> <subtype> <quality> <quantity>\r\n");
+        send_to_char(ch, "materialadmin remove <player> all\r\n");
+        send_to_char(ch, "\r\nCategories: herbs, crystal, minerals, wood, vegetation, stone, game\r\n");
+        send_to_char(ch, "Subtypes: 0-7 (varies by category)\r\n");
+        send_to_char(ch, "Qualities: 1=poor, 2=common, 3=uncommon, 4=rare, 5=legendary\r\n");
+        return;
+    }
+    
+    argument = four_arguments(argument, name, sizeof(name), category_arg, sizeof(category_arg), 
+                             subtype_arg, sizeof(subtype_arg), quality_arg, sizeof(quality_arg));
+    one_argument(argument, quantity_arg, sizeof(quantity_arg));
+    
+    /* Handle "remove all" special case */
+    if (is_abbrev(subcommand, "remove") && is_abbrev(name, "all")) {
+        send_to_char(ch, "Usage: materialadmin remove <player> all\r\n");
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "remove") && is_abbrev(category_arg, "all")) {
+        /* Find the player */
+        if (!(victim = get_char_vis(ch, name, NULL, FIND_CHAR_WORLD))) {
+            send_to_char(ch, "%s", CONFIG_NOPERSON);
+            return;
+        }
+        
+        if (IS_NPC(victim)) {
+            send_to_char(ch, "NPCs don't store materials.\r\n");
+            return;
+        }
+        
+        /* Clear all materials */
+        init_material_storage(victim);
+        send_to_char(ch, "Cleared all materials from %s's storage.\r\n", GET_NAME(victim));
+        send_to_char(victim, "An immortal has cleared all materials from your storage.\r\n");
+        return;
+    }
+    
+    if (!*name || !*category_arg || !*subtype_arg || !*quality_arg || !*quantity_arg) {
+        send_to_char(ch, "Usage: materialadmin %s <player> <category> <subtype> <quality> <quantity>\r\n", subcommand);
+        send_to_char(ch, "   or: materialadmin remove <player> all\r\n");
+        send_to_char(ch, "Categories: herbs, crystal, minerals, wood, vegetation, stone, game\r\n");
+        send_to_char(ch, "Qualities: 1=poor, 2=common, 3=uncommon, 4=rare, 5=legendary\r\n");
+        return;
+    }
+    
+    /* Find the player */
+    if (!(victim = get_char_vis(ch, name, NULL, FIND_CHAR_WORLD))) {
+        send_to_char(ch, "%s", CONFIG_NOPERSON);
+        return;
+    }
+    
+    if (IS_NPC(victim)) {
+        send_to_char(ch, "NPCs don't store materials.\r\n");
+        return;
+    }
+    
+    /* Parse category */
+    if (is_abbrev(category_arg, "herbs")) category = RESOURCE_HERBS;
+    else if (is_abbrev(category_arg, "crystal")) category = RESOURCE_CRYSTAL;
+    else if (is_abbrev(category_arg, "minerals")) category = RESOURCE_MINERALS;
+    else if (is_abbrev(category_arg, "wood")) category = RESOURCE_WOOD;
+    else if (is_abbrev(category_arg, "vegetation")) category = RESOURCE_VEGETATION;
+    else if (is_abbrev(category_arg, "stone")) category = RESOURCE_STONE;
+    else if (is_abbrev(category_arg, "game")) category = RESOURCE_GAME;
+    else {
+        send_to_char(ch, "Invalid category. Valid: herbs, crystal, minerals, wood, vegetation, stone, game\r\n");
+        return;
+    }
+    
+    subtype = atoi(subtype_arg);
+    quality = atoi(quality_arg);
+    quantity = atoi(quantity_arg);
+    
+    /* Validate input */
+    if (!validate_material_data(category, subtype, quality)) {
+        send_to_char(ch, "Invalid material data. Check subtype (0-%d for this category) and quality (1-5).\r\n", 
+                     get_max_subtypes_for_category(category) - 1);
+        return;
+    }
+    
+    if (quantity <= 0 || quantity > 1000) {
+        send_to_char(ch, "Quantity must be between 1 and 1000.\r\n");
+        return;
+    }
+    
+    /* Execute the subcommand */
+    if (is_abbrev(subcommand, "add")) {
+        result = add_material_to_storage(victim, category, subtype, quality, quantity);
+        
+        if (result > 0) {
+            const char *material_name = get_full_material_name(category, subtype, quality);
+            send_to_char(ch, "Added %d %s to %s's storage.\r\n", result, material_name, GET_NAME(victim));
+            send_to_char(victim, "An immortal has granted you %d %s.\r\n", result, material_name);
+        } else {
+            send_to_char(ch, "Failed to add material. Storage may be full.\r\n");
+        }
+    }
+    else if (is_abbrev(subcommand, "remove")) {
+        result = remove_material_from_storage(victim, category, subtype, quality, quantity);
+        
+        if (result > 0) {
+            const char *material_name = get_full_material_name(category, subtype, quality);
+            send_to_char(ch, "Removed %d %s from %s's storage.\r\n", result, material_name, GET_NAME(victim));
+            send_to_char(victim, "An immortal has removed %d %s from your storage.\r\n", result, material_name);
+        } else {
+            send_to_char(ch, "No matching materials found to remove.\r\n");
+        }
+    }
+    else {
+        send_to_char(ch, "Invalid subcommand. Use 'add' or 'remove'.\r\n");
+    }
 }
 
 /* EOF */
