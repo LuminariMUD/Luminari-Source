@@ -1479,3 +1479,273 @@ void integrate_wilderness_harvest_with_crafting(struct char_data *ch, int catego
 }
 
 #endif /* ENABLE_WILDERNESS_CRAFTING_INTEGRATION */
+
+/* ========================================================================== */
+/* Phase 5: Player Harvesting Commands Implementation                        */
+/* ========================================================================== */
+
+/* Primary wilderness harvesting command */
+ACMD(do_wilderness_harvest) {
+    char arg[MAX_INPUT_LENGTH];
+    int resource_type = -1;
+    
+    one_argument(argument, arg, sizeof(arg));
+    
+    /* Validate wilderness location */
+    if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS)) {
+        send_to_char(ch, "You can only harvest materials in the wilderness.\r\n");
+        return;
+    }
+    
+    /* Show available resources if no argument */
+    if (!*arg) {
+        show_harvestable_resources(ch);
+        return;
+    }
+    
+    /* Parse resource type */
+    resource_type = parse_resource_type(arg);
+    if (resource_type < 0) {
+        send_to_char(ch, "Invalid resource type. Use 'harvest' to see available options.\r\n");
+        return;
+    }
+    
+    /* Attempt harvest */
+    attempt_wilderness_harvest(ch, resource_type);
+}
+
+/* Specialized gathering command - focuses on herbs, vegetation, game */
+ACMD(do_wilderness_gather) {
+    char arg[MAX_INPUT_LENGTH];
+    int resource_type = -1;
+    
+    one_argument(argument, arg, sizeof(arg));
+    
+    /* Validate wilderness location */
+    if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS)) {
+        send_to_char(ch, "You can only gather materials in the wilderness.\r\n");
+        return;
+    }
+    
+    if (!*arg) {
+        send_to_char(ch, "Gather what? Try: herbs, vegetation, game\r\n");
+        return;
+    }
+    
+    /* Parse resource type - restrict to gathering-appropriate types */
+    resource_type = parse_resource_type(arg);
+    if (resource_type < 0 || (resource_type != RESOURCE_HERBS && 
+                              resource_type != RESOURCE_VEGETATION && 
+                              resource_type != RESOURCE_GAME)) {
+        send_to_char(ch, "You can only gather: herbs, vegetation, or game materials.\r\n");
+        return;
+    }
+    
+    /* Attempt harvest */
+    attempt_wilderness_harvest(ch, resource_type);
+}
+
+/* Specialized mining command - focuses on minerals, crystals, metals */
+ACMD(do_wilderness_mine) {
+    char arg[MAX_INPUT_LENGTH];
+    int resource_type = -1;
+    
+    one_argument(argument, arg, sizeof(arg));
+    
+    /* Validate wilderness location */
+    if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS)) {
+        send_to_char(ch, "You can only mine materials in the wilderness.\r\n");
+        return;
+    }
+    
+    if (!*arg) {
+        send_to_char(ch, "Mine what? Try: minerals, crystal, stone\r\n");
+        return;
+    }
+    
+    /* Parse resource type - restrict to mining-appropriate types */
+    resource_type = parse_resource_type(arg);
+    if (resource_type < 0 || (resource_type != RESOURCE_MINERALS && 
+                              resource_type != RESOURCE_CRYSTAL && 
+                              resource_type != RESOURCE_STONE &&
+                              resource_type != RESOURCE_SALT)) {
+        send_to_char(ch, "You can only mine: minerals, crystal, stone, or salt.\r\n");
+        return;
+    }
+    
+    /* Attempt harvest */
+    attempt_wilderness_harvest(ch, resource_type);
+}
+
+/* Core harvesting logic */
+int attempt_wilderness_harvest(struct char_data *ch, int resource_type) {
+    int x, y, skill_level, success_roll;
+    int category, subtype, quality, quantity;
+    float resource_level;
+    
+    /* Get location coordinates */
+    x = world[IN_ROOM(ch)].coords[0];
+    y = world[IN_ROOM(ch)].coords[1];
+    
+    /* Check resource availability */
+    resource_level = calculate_current_resource_level(resource_type, x, y);
+    if (resource_level < 0.1) {
+        send_to_char(ch, "There are insufficient %s resources here to harvest.\r\n", 
+                     resource_names[resource_type]);
+        return 0;
+    }
+    
+    /* Get relevant skill */
+    skill_level = get_harvest_skill_level(ch, resource_type);
+    
+    /* Calculate success */
+    success_roll = dice(1, 100) + skill_level;
+    int difficulty = get_harvest_difficulty(resource_type, resource_level);
+    
+    if (success_roll < difficulty) {
+        send_to_char(ch, "You fail to harvest any usable %s.\r\n", 
+                     resource_names[resource_type]);
+        /* TODO: Add skill improvement when function is available */
+        /* improve_skill(ch, get_harvest_skill(resource_type)); */
+        return 0;
+    }
+    
+    /* Determine what was harvested */
+    category = resource_type;
+    subtype = determine_harvested_material_subtype(resource_type, x, y, resource_level);
+    quality = calculate_harvest_quality(ch, resource_type, success_roll, skill_level);
+    quantity = calculate_harvest_quantity(ch, resource_type, success_roll, skill_level);
+    
+    /* Add to storage (triggers Phase 4.5 integration) */
+    int added = add_material_to_storage(ch, category, subtype, quality, quantity);
+    
+    if (added > 0) {
+        const char *material_name = get_full_material_name(category, subtype, quality);
+        send_to_char(ch, "You successfully harvest %d units of %s.\r\n", 
+                     added, material_name);
+        
+        /* TODO: Add skill improvement when function is available */
+        /* improve_skill(ch, get_harvest_skill(resource_type)); */
+        
+        /* Resource depletion (Phase 5 future enhancement) */
+        /* deplete_local_resource(x, y, resource_type, added); */
+    } else {
+        send_to_char(ch, "Your material storage is full.\r\n");
+    }
+    
+    return added;
+}
+
+/* Support Functions */
+
+int get_harvest_skill_level(struct char_data *ch, int resource_type) {
+    int skill = get_harvest_skill(resource_type);
+    return GET_SKILL(ch, skill);
+}
+
+int get_harvest_skill(int resource_type) {
+    switch (resource_type) {
+        case RESOURCE_HERBS:
+        case RESOURCE_VEGETATION:
+            return ABILITY_HARVEST_GATHERING;
+        case RESOURCE_MINERALS:
+        case RESOURCE_CRYSTAL:
+        case RESOURCE_STONE:
+        case RESOURCE_SALT:
+            return SKILL_MINING;
+        case RESOURCE_WOOD:
+            return ABILITY_HARVEST_FORESTRY;
+        case RESOURCE_GAME:
+            return ABILITY_HARVEST_HUNTING;
+        case RESOURCE_WATER:
+        default:
+            return ABILITY_SURVIVAL;
+    }
+}
+
+int get_harvest_difficulty(int resource_type, float resource_level) {
+    /* Base difficulty varies by resource type */
+    int base_difficulty = 50;
+    
+    switch (resource_type) {
+        case RESOURCE_HERBS:
+            base_difficulty = 30; /* Easier */
+            break;
+        case RESOURCE_VEGETATION:
+            base_difficulty = 25; /* Easiest */
+            break;
+        case RESOURCE_WOOD:
+            base_difficulty = 40;
+            break;
+        case RESOURCE_GAME:
+            base_difficulty = 60; /* Harder */
+            break;
+        case RESOURCE_MINERALS:
+            base_difficulty = 55;
+            break;
+        case RESOURCE_CRYSTAL:
+            base_difficulty = 75; /* Hardest */
+            break;
+        case RESOURCE_STONE:
+            base_difficulty = 45;
+            break;
+        case RESOURCE_SALT:
+            base_difficulty = 35;
+            break;
+        case RESOURCE_WATER:
+            base_difficulty = 20; /* Very easy */
+            break;
+    }
+    
+    /* Modify by resource availability */
+    if (resource_level > 0.8) base_difficulty -= 10;      /* Abundant */
+    else if (resource_level > 0.6) base_difficulty -= 5;  /* Good */
+    else if (resource_level < 0.3) base_difficulty += 10; /* Scarce */
+    else if (resource_level < 0.2) base_difficulty += 20; /* Very scarce */
+    
+    return base_difficulty;
+}
+
+int calculate_harvest_quality(struct char_data *ch, int resource_type, int success_roll, int skill_level) {
+    /* Quality determination based on skill and success */
+    int quality_roll = dice(1, 100) + (skill_level / 2) + (success_roll - 50);
+    
+    if (quality_roll >= 150) return MATERIAL_QUALITY_LEGENDARY;
+    if (quality_roll >= 120) return MATERIAL_QUALITY_RARE;
+    if (quality_roll >= 90)  return MATERIAL_QUALITY_UNCOMMON;
+    if (quality_roll >= 60)  return MATERIAL_QUALITY_COMMON;
+    return MATERIAL_QUALITY_POOR;
+}
+
+int calculate_harvest_quantity(struct char_data *ch, int resource_type, int success_roll, int skill_level) {
+    /* Base quantity with skill and success modifiers */
+    int base_quantity = 1;
+    int skill_bonus = MAX(0, (skill_level - 50) / 25); /* +1 per 25 skill over 50 */
+    int success_bonus = MAX(0, (success_roll - 75) / 25); /* +1 per 25 over 75 */
+    
+    return base_quantity + skill_bonus + success_bonus;
+}
+
+void show_harvestable_resources(struct char_data *ch) {
+    int x, y, i;
+    float resource_level;
+    
+    x = world[IN_ROOM(ch)].coords[0];
+    y = world[IN_ROOM(ch)].coords[1];
+    
+    send_to_char(ch, "Harvestable resources at this location:\r\n");
+    send_to_char(ch, "=====================================\r\n");
+    
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        resource_level = calculate_current_resource_level(i, x, y);
+        if (resource_level > 0.1) { /* Only show harvestable resources */
+            send_to_char(ch, "  \tG%-12s\tn: %s (harvest %s)\r\n", 
+                         resource_names[i], 
+                         get_abundance_description(resource_level),
+                         resource_names[i]);
+        }
+    }
+    
+    send_to_char(ch, "\r\nUsage: harvest <resource_type>\r\n");
+    send_to_char(ch, "Specialized commands: gather <type>, mine <type>\r\n");
+}

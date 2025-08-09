@@ -349,4 +349,18 @@ bool is_enhanced_wilderness_material(int material_id);
 const char *get_enhanced_material_description(int category, int subtype, int quality);
 #endif /* ENABLE_WILDERNESS_CRAFTING_INTEGRATION */
 
+/* Phase 5: Player Harvesting Commands */
+void do_wilderness_harvest(struct char_data *ch, const char *argument, int cmd, int subcmd);
+void do_wilderness_gather(struct char_data *ch, const char *argument, int cmd, int subcmd);
+void do_wilderness_mine(struct char_data *ch, const char *argument, int cmd, int subcmd);
+
+/* Phase 5: Harvesting Support Functions */
+int attempt_wilderness_harvest(struct char_data *ch, int resource_type);
+int get_harvest_skill_level(struct char_data *ch, int resource_type);
+int get_harvest_skill(int resource_type);
+int get_harvest_difficulty(int resource_type, float resource_level);
+int calculate_harvest_quality(struct char_data *ch, int resource_type, int success_roll, int skill_level);
+int calculate_harvest_quantity(struct char_data *ch, int resource_type, int success_roll, int skill_level);
+void show_harvestable_resources(struct char_data *ch);
+
 #endif /* _RESOURCE_SYSTEM_H_ */
