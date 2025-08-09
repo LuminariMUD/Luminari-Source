@@ -2,86 +2,80 @@
 
 **Character:** ornir  
 **Date:** August 10, 2025  
-**Testing:** Phase 4.5 Enhanced Wilderness-Crafting Integration  
-**Status:** ⚠️ **Phase 5 Harvesting Commands NOT YET IMPLEMENTED**
+**Testing:** Phase 5 Wilderness Harvesting Commands + Phase 4.5 Enhanced Integration  
+**Status:** ✅ **READY FOR TESTING** - Harvesting commands implemented!
 
 ---
 
-## 🚨 **Important Discovery**
+## 🎉 **Phase 5 Implementation Complete!**
 
-**Current Status:**
+**Status Update:**
 - ✅ **Phase 4.5**: Enhanced integration system implemented and ready
-- ❌ **Phase 5**: Material harvesting commands **NOT IMPLEMENTED**
+- ✅ **Phase 5**: Material harvesting commands **NOW IMPLEMENTED**
 
-**Issue:** The wilderness system can survey and display resources, but there are **no actual commands** to harvest/collect those resources into storage. Commands like `gather`, `mine`, `collect` for wilderness materials don't exist yet.
-
-**Available Commands Currently:**
-- `survey resources` - Shows resource availability 
-- `materials` - Shows stored materials (will show enhanced integration when materials exist)
-- Admin commands: `addmaterial` - Can manually add materials for testing
-
-**Missing Commands (Phase 5):**
-- `harvest [resource_type]` - Harvest wilderness materials
-- `gather [resource_type]` - Gather wilderness resources  
-- `mine [resource_type]` - Extract mineral resources
-- `collect [resource_type]` - Collect various resources
+**New Commands Available:**
+- `harvest [resource_type]` - Primary harvesting command
+- `gather [resource_type]` - Specialized for herbs, vegetation, game  
+- `mine [resource_type]` - Specialized for minerals, crystal, stone
 
 ---
 
-## 🔧 **Current Testing Options**
+## 🚀 **Quick 5-Minute Test (Now Functional!)**
 
-### **Option 1: Test Integration with Admin Commands**
-
-If you have admin access, you can test the enhanced integration by manually adding materials:
-
-#### **Step 1: Add Test Materials**
-```
-addmaterial ornir 3 1 3 5
-```
-**(Adds 5 uncommon kingfoil herbs)**
-
-```
-addmaterial ornir 1 2 4 3  
-```
-**(Adds 3 rare mithril ore)**
-
-```
-addmaterial ornir 5 1 5 1
-```
-**(Adds 1 legendary oak wood)**
-
-#### **Step 2: Test Enhanced Integration Display**
-```
-materials
-```
-**Expected Enhanced Results:**
-- Shows materials with enhanced descriptions
-- Includes crafting applications and values
-- Quality levels show different crafting bonuses
-- Enhanced material IDs (1000+ range)
-
-#### **Step 3: Verify Campaign Safety**
-If other campaigns available:
-```
-campaign dl     # Switch to DragonLance  
-materials       # Should show basic display only
-
-campaign luminari   # Return to LuminariMUD
-materials          # Should show enhanced display
-```
-
-### **Option 2: Test Survey System (Available Now)**
-
-#### **Enter Wilderness Area:**
+### **Step 1: Enter Wilderness Area**
 ```
 goto <wilderness_zone_number>
 ```
+**Expected:** You enter a wilderness area
 
-#### **Test Resource Surveying:**
+### **Step 2: Survey Available Resources**
 ```
 survey resources
 ```
 **Expected:** Shows 10 resource types with availability percentages
+
+### **Step 3: Test New Harvesting Commands**
+```
+harvest
+```
+**Expected:** Shows harvestable resources and usage instructions
+
+```
+harvest herbs
+```
+**Expected:** Attempts to harvest herb materials, success based on availability
+
+```
+gather herbs
+```
+**Expected:** Specialized herb gathering (same as harvest herbs)
+
+```
+mine minerals
+```
+**Expected:** Attempts to mine mineral resources
+
+### **Step 4: Check Enhanced Integration**
+```
+materials
+```
+**Expected Enhanced Results:**
+- Materials show with enhanced descriptions
+- Crafting applications mentioned for each material
+- Quality levels (poor → legendary) show different crafting values
+- Enhanced material IDs (1000+ range)
+
+---
+
+## 🔬 **Detailed Testing Commands**
+
+### **Resource Surveying (Pre-Harvest)**
+
+#### **Check Resource Availability:**
+```
+survey resources
+```
+**Expected:** List of 10 resource types with abundance levels
 
 ```
 survey map vegetation 10
@@ -91,95 +85,213 @@ survey map vegetation 10
 ```
 survey detail herbs
 ```
-**Expected:** Detailed analysis of herb resources in area
+**Expected:** Detailed herb resource analysis for current location
 
-#### **Test Terrain Analysis:**
+### **Harvesting Commands Testing**
+
+#### **Primary Harvest Command:**
 ```
-survey terrain
+harvest
 ```
-**Expected:** Detailed terrain information affecting resources
-
----
-
-## 📋 **Integration Testing Results**
-
-### **What Works Now:**
-- ✅ Enhanced materials display (when materials exist)
-- ✅ Campaign-safe integration flags
-- ✅ Resource surveying and mapping
-- ✅ Enhanced material ID system (1000+)
-- ✅ Quality-based crafting values
-- ✅ Integration hooks ready for harvesting
-
-### **What's Missing (Phase 5):**
-- ❌ `harvest` command for gathering materials
-- ❌ `gather` command for collecting resources
-- ❌ `mine` command for extracting minerals
-- ❌ `collect` command for various resources
-- ❌ Skill-based harvesting success
-- ❌ Tool requirements for harvesting
-- ❌ Resource depletion and regeneration
-
----
-
-## 🚀 **Next Steps**
-
-### **Phase 5 Implementation Needed:**
-
-1. **Implement Harvesting Commands:**
-   - `harvest [resource_type]` - Primary harvesting command
-   - `gather [resource_type]` - General gathering command
-   - `mine [resource_type]` - Mineral extraction
-   - `collect [resource_type]` - Various resource collection
-
-2. **Add Skill Integration:**
-   - Use existing skills: ABILITY_SURVIVAL, SKILL_MINING, etc.
-   - Success rates based on skill levels
-   - Skill checks for harvest attempts
-
-3. **Implement Resource Mechanics:**
-   - Resource depletion when harvested
-   - Regeneration over time
-   - Quality determination based on skill/location
-
-### **Testing Phase 5 Implementation:**
-
-Once Phase 5 is implemented, the testing flow will be:
-
+**Expected:** 
 ```
-# Enter wilderness
-goto <wilderness_zone>
+Harvestable resources at this location:
+=====================================
+  Vegetation  : abundant (harvest vegetation)
+  Herbs       : moderate (harvest herbs)
+  Wood        : scarce (harvest wood)
+  ...
 
-# Survey resources  
-survey resources
+Usage: harvest <resource_type>
+Specialized commands: gather <type>, mine <type>
+```
 
-# Harvest materials (Phase 5 commands)
+#### **Test Each Resource Type:**
+```
 harvest herbs
-mine metals  
-collect wood
+harvest vegetation  
+harvest minerals
+harvest wood
+harvest stone
+harvest crystal
+harvest game
+harvest water
+harvest clay
+harvest salt
+```
+**Expected Results:**
+- **Success:** "You successfully harvest X units of [quality] [material_name]."
+- **Failure:** "You fail to harvest any usable [resource_type]."
+- **Insufficient:** "There are insufficient [resource_type] resources here to harvest."
 
-# Check enhanced integration
+#### **Specialized Commands:**
+```
+gather herbs
+gather vegetation
+gather game
+```
+**Expected:** Works for herbs, vegetation, game only
+
+```
+mine minerals
+mine crystal  
+mine stone
+mine salt
+```
+**Expected:** Works for minerals, crystal, stone, salt only
+
+```
+mine herbs
+```
+**Expected:** "You can only mine: minerals, crystal, stone, or salt."
+
+### **Integration Verification**
+
+#### **After Each Harvest:**
+```
 materials
 ```
+**Expected Enhanced Display:**
+```
+=== Enhanced Wilderness Materials Storage ===
+
+Herb Materials:
+- Common Silverleaf (ID: 1004) - Qty: 2
+  Crafting Applications: Alchemy potions, healing items
+  Crafting Value: 150 (quality bonus: +50%)
+
+Wood Materials:
+- Rare Oak Heartwood (ID: 1045) - Qty: 1
+  Crafting Applications: Masterwork items, magical staves  
+  Crafting Value: 600 (quality bonus: +500%)
+
+Total Materials: 3 units
+Enhanced Integration: ACTIVE
+```
 
 ---
 
-## ✅ **Current Integration Status**
+## 🧪 **Advanced Testing Scenarios**
 
-**Phase 4.5 Enhanced Integration: COMPLETE**
+### **Skill and Success Testing**
+
+#### **Test Success Rates:**
+```
+# Try harvesting same resource multiple times
+harvest herbs
+harvest herbs  
+harvest herbs
+```
+**Expected:** Success rate varies, skill affects outcomes
+
+#### **Test Different Locations:**
+```
+# Move to different wilderness coordinates
+survey resources  # Note differences
+harvest herbs     # Compare success/materials
+```
+
+### **Quality and Material Variation**
+
+#### **Test Quality Distribution:**
+```
+# Harvest same resource type multiple times
+harvest herbs
+harvest herbs
+harvest herbs
+materials list herbs
+```
+**Expected:** Different quality levels (poor, common, uncommon, rare, legendary)
+
+#### **Test Material Subtypes:**
+```
+# Multiple harvests should yield different herb subtypes
+harvest herbs (multiple times)
+materials
+```
+**Expected:** Different herb types: marjoram, kingfoil, starlily, etc.
+
+### **Error Condition Testing**
+
+#### **Test Invalid Commands:**
+```
+harvest
+harvest invalidtype
+harvest
+```
+**Expected:** Appropriate error messages
+
+#### **Test Outside Wilderness:**
+```
+# Go to non-wilderness room
+goto <city_room>
+harvest herbs
+```
+**Expected:** "You can only harvest materials in the wilderness."
+
+#### **Test Resource Exhaustion:**
+```
+# Try harvesting in area with no resources
+goto <barren_wilderness>
+survey resources  # Should show low/no resources
+harvest herbs
+```
+**Expected:** "There are insufficient herbs resources here to harvest."
+
+---
+
+## 📊 **Expected Success Indicators**
+
+### ✅ **Harvesting Working Correctly:**
+- `harvest` command available and functional
+- `gather` and `mine` commands work with appropriate restrictions
+- Success/failure messages appropriate to resource availability
+- Materials automatically added to storage
+- Enhanced integration triggers for each harvest
+
+### ✅ **Integration Working Correctly:**
+- Harvested materials appear in enhanced materials display
+- Materials show enhanced descriptions with crafting info
+- Quality levels affect crafting values appropriately
+- Enhanced material IDs in 1000+ range
+- Campaign safety maintained (basic display in DL/FR if available)
+
+### ✅ **System Stability:**
+- No crashes during harvesting
+- Commands respond appropriately to invalid input
+- Wilderness location checking works correctly
+- Material storage limits respected
+
+---
+
+## 🐛 **Potential Issues to Watch For**
+
+### **If Commands Don't Work:**
+1. **Command not found:** Verify you're using LuminariMUD campaign (not DL/FR)
+2. **Wrong location:** Ensure you're in a wilderness zone
+3. **No resources:** Use `survey resources` to verify availability
+
+### **If Integration Doesn't Show:**
+1. **Basic display only:** Check campaign setting
+2. **No enhanced features:** Verify Phase 4.5 integration compiled correctly
+3. **Empty storage:** Ensure harvesting is actually adding materials
+
+---
+
+## 🎯 **Testing Summary**
+
+**Phase 5 Implementation Status:**
+- ✅ Basic harvesting commands (`harvest`, `gather`, `mine`)
+- ✅ Resource availability checking
+- ✅ Skill-based success calculation  
+- ✅ Quality and subtype determination
+- ✅ Automatic storage integration
+- ✅ Enhanced crafting integration triggers
 - ✅ Campaign-safe implementation
-- ✅ Enhanced material constants and IDs
-- ✅ Integration functions ready
-- ✅ Enhanced materials display
-- ✅ Quality-based crafting values
+- ⏳ Skill improvement system (commented out for now)
+- ⏳ Resource depletion/regeneration (future enhancement)
 
-**Phase 5 Material Harvesting: PENDING**
-- ⏳ Harvest commands need implementation
-- ⏳ Skill-based success system
-- ⏳ Resource depletion mechanics
-- ⏳ Tool and equipment integration
-
-**Ready for Phase 5 Implementation!** The integration infrastructure is complete and waiting for the harvesting commands.
+**Ready for full testing with `ornir`!** 🚀
 
 ---
 

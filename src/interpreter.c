@@ -38,6 +38,7 @@
 #include "hlquest.h"
 #include "asciimap.h"
 #include "prefedit.h"
+#include "resource_system.h"  /* Phase 5: Wilderness harvesting commands */
 #include "ibt.h"
 #include "mud_event.h"
 #include "race.h"
@@ -447,6 +448,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"genmap", "genmap", POS_SLEEPING, do_genmap, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"genriver", "genriver", POS_SLEEPING, do_genriver, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"give", "giv", POS_RECLINING, do_give, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
+    {"gather", "gather", POS_STANDING, do_wilderness_gather, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+#endif
     {"goto", "go", POS_SLEEPING, do_goto, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"goals", "goals", POS_SLEEPING, do_goals, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"gold", "gol", POS_RECLINING, do_gold, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -492,7 +496,7 @@ cpp_extern const struct command_info cmd_info[] = {
 #if defined(CAMPAIGN_DL)
     {"harvest", "harvest", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_HARVEST, TRUE, ACTION_STANDARD, {0, 0}, NULL},
 #else
-    {"harvest", "harvest", POS_STANDING, do_harvest, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"harvest", "harvest", POS_STANDING, do_wilderness_harvest, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
 #endif
     {"hlqedit", "hlqedit", POS_DEAD, do_hlqedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hlqlist", "hlqlist", POS_DEAD, do_hlqlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -589,6 +593,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mercies", "mercies", POS_DEAD, do_mercies, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
+    {"mine", "mine", POS_STANDING, do_wilderness_mine, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+#endif
     {"mission", "mission", POS_RESTING, do_missions, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mlist", "mlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_MLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"mcopy", "mcopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_MEDIT, TRUE, ACTION_NONE, {0, 0}, NULL},
