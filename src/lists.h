@@ -50,5 +50,5 @@ void remove_from_list(void *pContent, struct list_data *pList);
 struct item_data *find_in_list(void *pContent, struct list_data *pList);
 void *simple_list(struct list_data *pList);
 void free_list(struct list_data *pList);
-void clear_simple_list(void);
+/* clear_simple_list() - DEPRECATED: Use simple_list(NULL) instead */
 #endif
