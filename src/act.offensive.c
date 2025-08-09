@@ -3228,6 +3228,12 @@ ACMD(do_order)
       /* resetting the variable, really isn't actually necessary :) */
       vict = NULL;
 
+      /* Beginner's Note: Reset simple_list iterator before use to prevent
+       * cross-contamination from previous iterations. Without this reset,
+       * if simple_list was used elsewhere and not completed, it would
+       * continue from where it left off instead of starting fresh. */
+      simple_list(NULL);
+      
       /* SHOULD have a clean nice list, now lets loop through it with redundancy
          due to our silly crash issues from earlier */
       while ((vict = (struct char_data *)simple_list(room_list)) != NULL)
@@ -3759,6 +3765,12 @@ ACMD(do_blast)
   /* if target is group member, we presume you meant to assist */
   if (GROUP(ch) && room == IN_ROOM(ch))
   {
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
            NULL)
     {
@@ -4002,6 +4014,12 @@ ACMD(do_frightful)
     /* Check to see if the victim is affected by an AURA OF COURAGE */
     if (GROUP(ch) != NULL)
     {
+      /* Beginner's Note: Reset simple_list iterator before use to prevent
+       * cross-contamination from previous iterations. Without this reset,
+       * if simple_list was used elsewhere and not completed, it would
+       * continue from where it left off instead of starting fresh. */
+      simple_list(NULL);
+      
       while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
       {
         if (IN_ROOM(tch) != IN_ROOM(ch))
@@ -7783,6 +7801,12 @@ ACMD(do_fire)
   /* if target is group member, we presume you meant to assist */
   if (GROUP(ch) && room == IN_ROOM(ch))
   {
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
            NULL)
     {
@@ -7873,6 +7897,12 @@ ACMD(do_assistblast)
   if (IN_ROOM(vict) == NOWHERE)
     return;
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL)
   {
     if (IN_ROOM(tch) != IN_ROOM(vict))
@@ -7941,6 +7971,12 @@ ACMD(do_autofire)
 
   vict = get_char_room_vis(ch, arg, NULL);
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
          NULL)
   {

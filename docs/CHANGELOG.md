@@ -1,5 +1,72 @@
 # CHANGELOG
 
+## 2025-08-08 (Lists System - Session 3 - Iterator Safety Fix)
+### Fixed
+- **Lists System Critical Iterator Safety Issue**:
+  - **Fixed missing simple_list() resets**: Added `simple_list(NULL)` calls before all while loops
+    - Fixed 30+ instances across 11 files where iterator wasn't reset before use
+    - Prevents cross-contamination between iterations that could cause infinite loops or skipped items
+    - Files fixed: act.other.c, act.offensive.c, domain_powers.c, fight.c, bardic_performance.c, 
+      comm.c, crafts.c, magic.c, utils.c, handler.c, db.c
+  - **Added comprehensive beginner documentation**: Each fix includes detailed comments explaining
+    why the reset is needed and what problems it prevents
+
+### Summary
+- Eliminated a severe bug that could cause gameplay issues through iterator state contamination
+- Improved code reliability by ensuring clean iterator state for every list traversal
+- Enhanced maintainability with clear documentation for future developers
+
+## 2025-08-08 (Lists System - Session 2 - Critical Safety Fixes)
+### Fixed
+- **Lists System Critical Safety Issues**:
+  - **Added NULL pointer checks in all public API functions**: Prevents crashes when NULL list pointers are passed
+    - `add_to_list()` - Added NULL list check with warning log
+    - `remove_from_list()` - Added NULL list check with warning log
+    - `random_from_list()` - Added NULL list check with warning log
+    - `randomize_list()` - Added NULL list check with warning log
+  - **Fixed memory leak in randomize_list()**: Empty lists are now properly freed instead of leaked
+  - **Resolved clear_simple_list() API confusion**: Marked as deprecated in header with guidance to use simple_list(NULL)
+
+### Added
+- **Enhanced Beginner Documentation**:
+  - Added detailed comments explaining safety checks and their importance
+  - Documented memory ownership model for randomize_list()
+  - Clarified edge cases and error conditions
+
+### Summary
+- Fixed most severe crash-causing issues in lists system
+- Eliminated potential memory leaks
+- Improved API consistency and safety
+- System now robust against NULL pointer errors
+
+## 2025-08-08 (Lists System - Session 1 - Critical Fixes and Documentation)
+### Fixed
+- **Lists System Critical Issues**:
+  - **Fixed remove_iterator() warning spam**: The function was incorrectly logging warnings when called with NULL list pointer, which is a normal condition (e.g., after merge_iterator fails). Now returns silently, matching the legacy implementation behavior.
+  - **Added safety check in next_in_list()**: Added proper NULL pointer check for pItem before dereferencing to prevent potential crashes when iterator reaches end of list or is improperly initialized.
+  - **Improved simple_list() reset behavior**: Enhanced the reset logic to properly clean up iterators when switching between lists, preventing potential iterator leaks and ensuring clean state transitions.
+
+### Added
+- **Comprehensive Documentation**:
+  - Added detailed beginner-friendly comments throughout lists.c explaining:
+    - Core data structure relationships (lists, items, iterators)
+    - Memory ownership model (list owns nodes, not content)
+    - Iterator lifecycle and cleanup requirements
+    - Common usage patterns and pitfalls
+    - Non-reentrancy limitations of simple_list()
+  - Comments use clear analogies (trains, bookmarks) to explain concepts
+  - Each function now has detailed explanations of its purpose and behavior
+
+### Performance
+- **Reduced Log Spam**: Eliminating unnecessary warning logs improves performance during normal operations
+- **Iterator Safety**: Proper cleanup prevents memory leaks from abandoned iterators
+
+### Summary
+- Fixed most severe issues identified in lists system audit
+- Significantly improved code documentation for maintainability
+- Enhanced stability by adding defensive programming checks
+- System now more robust against edge cases and improper usage
+
 ## 2025-08-01 (Staff Event System - Critical Issues Resolved)
 ### Fixed
 - **Staff Event System Critical Performance Issue (C001)**:

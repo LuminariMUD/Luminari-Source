@@ -116,13 +116,16 @@ Avoid removing the current element before advancing; doing so can leave the iter
 
 ```c
 struct char_data *member = NULL;
+simple_list(NULL);  // Reset before use (recommended)
 while ((member = simple_list(group_list))) {
   // use member
 }
-// Do not nest simple_list loops. To force-reset: simple_list(NULL);
+simple_list(NULL);  // Clean up after use (recommended)
 ```
 
-`simple_list` stores static state and is not reentrant. Use it only for a single, flat loop. If you must early-return from the loop and plan to reuse `simple_list` soon after, call `simple_list(NULL)` first to reset the internal state.
+`simple_list` stores static state and is not reentrant. Use it only for a single, flat loop. **NEVER nest `simple_list` loops** - this will cause the inner loop to reset the outer loop's state. 
+
+Best practice is to always call `simple_list(NULL)` before and after your loop to ensure clean state. The function will automatically reset when switching between different lists, but explicit resets prevent subtle bugs.
 
 ### Random selection and shuffling
 
@@ -158,7 +161,8 @@ The implementation uses the standard MUD logging (`mudlog`, `log`) with staff le
 
 - Merging or iterating on a NULL/empty list → warning via `mudlog`.
 - Removing an element not present in the list → warning via `log`.
-- Detaching an iterator that is already detached (NULL list on the iterator) → warning via `mudlog`.
+- ~~Detaching an iterator that is already detached (NULL list on the iterator) → warning via `mudlog`.~~ **FIXED (2025-08-08)**: Now returns silently as this is a normal condition.
+- `simple_list` forced to reset itself when switching lists without proper cleanup → warning via `mudlog`.
 
 These are runtime diagnostics; they do not abort execution. Treat them as correctness signals during development.
 
@@ -208,11 +212,12 @@ Checklist:
 
 ## Common Pitfalls
 
-- Removing the current element without advancing the iterator first — can leave the iterator pointing to freed memory. Use the advance-first pattern.
-- Assuming ownership: the list will not free your `pContent`.
-- Forgetting `remove_iterator` — leaves `iIterators` inflated and may complicate debugging.
-- Nesting `simple_list` or using it in parallel contexts — it uses static state and will reset itself with a warning if misused.
-- Relying on value equality — lookups compare pointer equality only.
+- **Removing during iteration**: Removing the current element without advancing the iterator first can leave the iterator pointing to freed memory. Always use the advance-first pattern shown in examples.
+- **Memory ownership confusion**: The list will NEVER free your `pContent`. You must free it separately if needed.
+- **Iterator leaks**: Forgetting `remove_iterator` leaves `iIterators` inflated. While not critical after recent fixes, it's still good practice.
+- **Nesting `simple_list`**: NEVER nest `simple_list` loops or call functions that use `simple_list` from within a `simple_list` loop. It uses static state and will corrupt the outer loop.
+- **Pointer vs value equality**: All lookups use pointer equality only, not value comparison.
+- **NULL safety**: After recent fixes (2025-08-08), the API is more robust against NULL inputs, but you should still check return values.
 
 ---
 
@@ -243,9 +248,13 @@ free_list(players);
 
 ## Notes on tbaMUD vs Luminari Adjustments
 
-- The original file retains a legacy implementation under a compile-time guard. Luminari’s active implementation:
+- The original file retains a legacy implementation under a compile-time guard. Luminari's active implementation:
   - Uses `simple_list(NULL)` to reset the static convenience iterator.
-  - Strengthens some safety checks and logging in `next_in_list` and iterator attachment/removal.
+  - **2025-08-08 Updates**:
+    - `remove_iterator()` now silently handles NULL list (no warning spam)
+    - `next_in_list()` has additional NULL safety checks for `pItem`
+    - `simple_list()` properly cleans up iterators when resetting
+    - Comprehensive beginner-friendly comments added throughout
   - Keeps `clear_simple_list` declared for compatibility, but typical code paths should prefer `simple_list(NULL)` to reset.
 
 ---
@@ -262,12 +271,35 @@ If you need frequent membership tests or large-scale lookups, consider augmentin
 
 ## Quick Reference
 
-- Create: `list = create_list();`
-- Add: `add_to_list(ptr, list);`
-- Iterate: `merge_iterator` → loop `next_in_list` → `remove_iterator`
-- Convenience iterate: `while ((x = simple_list(list))) { ... }`
-- Remove: `remove_from_list(ptr, list);` (does not free `ptr`)
-- Random pick: `random_from_list(list);`
-- Shuffle (consumes original): `list = randomize_list(list);`
-- Reset `simple_list`: `simple_list(NULL);`
+- **Create**: `list = create_list();`
+- **Add**: `add_to_list(ptr, list);`
+- **Iterate (explicit)**:
+  ```c
+  struct iterator_data it;
+  void *item = merge_iterator(&it, list);
+  while (item) {
+    // use item
+    item = next_in_list(&it);
+  }
+  remove_iterator(&it);
+  ```
+- **Iterate (simple)**:
+  ```c
+  simple_list(NULL);  // Reset first
+  while ((x = simple_list(list))) { 
+    // use x
+  }
+  simple_list(NULL);  // Clean up after
+  ```
+- **Remove**: `remove_from_list(ptr, list);` (does NOT free `ptr`)
+- **Random pick**: `random_from_list(list);` (check for NULL return)
+- **Shuffle** (consumes original): `list = randomize_list(list);`
+- **Free list**: `free_list(list);` (does NOT free contents)
+- **Reset simple iterator**: `simple_list(NULL);`
+
+### Critical Rules
+- NEVER nest `simple_list()` loops
+- ALWAYS advance iterator before removing current item
+- ALWAYS call `remove_iterator()` when done with explicit iterator
+- ALWAYS free your content separately - lists only manage nodes
 
