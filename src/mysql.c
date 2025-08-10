@@ -202,8 +202,8 @@ void connect_to_mysql()
   mysql_available = TRUE;
   
   /* Log successful connection - password is intentionally not logged for security */
-  log("SUCCESS: Connected to MySQL database '%s' on host '%s' as user '%s'", database, host, username);
-  log("INFO: MySQL configuration loaded from lib/mysql_config");
+  log("Success: Connected to MySQL database '%s' on host '%s' as user '%s'", database, host, username);
+  log("Info: MySQL configuration loaded from lib/mysql_config");
 }
 
 void disconnect_from_mysql()
@@ -359,7 +359,7 @@ struct wilderness_data *load_wilderness(zone_vnum zone)
 
   struct wilderness_data *wild = NULL;
 
-  log("INFO: Loading wilderness data for zone: %d", zone);
+  log("Info: Loading wilderness data for zone: %d", zone);
 
   snprintf(buf, sizeof(buf), "SELECT f.id, f.nav_vnum, f.dynamic_vnum_pool_start, f.dynamic_vnum_pool_end, f.x_size, f.y_size, f.elevation_seed, f.distortion_seed, f.moisture_seed, f.min_temp, f.max_temp from wilderness_data as f where f.zone_vnum = %d", zone);
 
@@ -570,12 +570,12 @@ void load_regions()
 
   /* Check if MySQL is available */
   if (!mysql_available || !conn) {
-    log("INFO: Skipping region loading - MySQL not available.");
+    log("Info: Skipping region loading - MySQL not available.");
     return;
   }
   char **it;     /* Token iterator */
 
-  log("INFO: Loading region data from MySQL");
+  log("Info: Loading region data from MySQL");
 
   snprintf(buf, sizeof(buf), "SELECT vnum, "
                              "zone_vnum, "
@@ -673,7 +673,7 @@ void load_regions()
     else if (region_table[i].num_vertices == 0 || !row[5] || strlen(row[5]) == 0) {
       /* No polygon data - create empty region */
       region_table[i].vertices = NULL;
-      log("INFO: Region %d (%s) has no polygon data", region_table[i].vnum, region_table[i].name);
+      log("Info: Region %d (%s) has no polygon data", region_table[i].vnum, region_table[i].name);
     } else {
       /* Parse the polygon text data to get the vertices, etc.
          eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
@@ -715,7 +715,7 @@ void load_regions()
   /* Set top_of_region_table to the last valid index */
   if (i > 0) {
     top_of_region_table = i - 1;
-    log("INFO: Loaded %d regions, top_of_region_table set to %d", i, top_of_region_table);
+    log("Info: Loaded %d regions, top_of_region_table set to %d", i, top_of_region_table);
     
     /* Now create events after top_of_region_table is set */
     for (j = 0; j <= top_of_region_table; j++) {
@@ -733,7 +733,7 @@ void load_regions()
     }
   } else {
     top_of_region_table = -1;
-    log("INFO: No regions loaded, top_of_region_table set to -1");
+    log("Info: No regions loaded, top_of_region_table set to -1");
   }
 
   mysql_free_result(result);
@@ -1100,10 +1100,10 @@ void load_paths()
   char **tokens; /* Storage for tokenized linestring points */
   char **it;     /* Token iterator */
 
-  log("INFO: Loading wilderness roads and path definitions from MySQL database");
+  log("Info: Loading wilderness roads and path definitions from MySQL database");
   
   if (!mysql_available) {
-    log("INFO: Skipping path loading - MySQL not available.");
+    log("Info: Skipping path loading - MySQL not available.");
     return;
   }
 
@@ -1183,7 +1183,7 @@ void load_paths()
     else if (path_table[i].num_vertices == 0) {
       /* No polygon data - create empty path */
       path_table[i].vertices = NULL;
-      log("INFO: Path %d (%s) has no polygon data", path_table[i].vnum, path_table[i].name);
+      log("Info: Path %d (%s) has no polygon data", path_table[i].vnum, path_table[i].name);
     } else {
     /* Parse the polygon text data to get the vertices, etc.
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
@@ -1232,7 +1232,7 @@ void insert_path(struct path_data *path)
     strlcat(linestring, buf2, sizeof(linestring));
   }
 
-  log("INFO: Inserting Path [%d] '%s' into MySQL:", (int)path->vnum, path->name);
+  log("Info: Inserting Path [%d] '%s' into MySQL:", (int)path->vnum, path->name);
   snprintf(buf, sizeof(buf), "insert into path_data "
                              "(vnum, "
                              "zone_vnum, "
@@ -1266,7 +1266,7 @@ bool delete_path(region_vnum vnum)
   /* path_data* path_table */
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  log("INFO: Deleting Path [%d] from MySQL:", (int)vnum);
+  log("Info: Deleting Path [%d] from MySQL:", (int)vnum);
   snprintf(buf, sizeof(buf), "delete from path_data "
                              "where vnum = %d;",
            (int)vnum);

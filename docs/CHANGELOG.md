@@ -1,5 +1,68 @@
 # CHANGELOG
 
+## 2025-08-10 (Memory Leak Fix - NPC Memory Records)
+### Fixed
+- **NPC Memory Record Leak (16 bytes per record)**:
+  - **Fixed memory leak in free_char() (db.c:6050-6075)**:
+    - NPCs can remember who attacked them via the remember() function in mobact.c
+    - Memory records are allocated as a linked list during combat
+    - When NPCs were freed via free_char() (used in clan/player loading), their memory wasn't cleared
+    - Only NPCs going through extract_char_final() had their memory properly freed
+    - Added clearMemory() call in free_char() for NPCs to prevent the leak
+    - Valgrind reported this leak at mobact.c:635 in remember()
+  - **Impact**: Prevented accumulating memory leaks during player/clan operations
+  - **Added comprehensive beginner-friendly comments explaining the fix**
+
+## 2025-08-10 (Memory Leak Fix - Object Loading)
+### Fixed
+- **Object Memory Leaks During Player/House Loading (4.9KB per incident)**:
+  - **Fixed memory leak in objsave_parse_objects_db() (objsave.c:2258-2272, 3237-3251, 3897-3911)**:
+    - When loading player or house objects from database/files
+    - Objects created with read_object() were leaked when:
+      - A non-existent object vnum was encountered
+      - read_object() failed and returned NULL
+      - Parsing encountered a new object before finishing the previous one
+    - Added cleanup checks before creating new objects
+    - Added cleanup when skipping non-existent objects
+  - **Fixed similar leak in objsave_parse_objects() (objsave.c:1796-1850)**:
+    - Same issue in file-based object loading
+    - Additional fixes for:
+      - Cleanup when encountering non-existent items (line 1799)
+      - Cleanup when encountering negative vnums (line 1826)
+      - Cleanup before creating unique objects (line 1821)
+    - Now properly frees orphaned objects in all error paths
+  - **Impact**: Prevented 54-4850 byte leaks per player login and house loading
+  - **Added comprehensive comments explaining the memory leak scenarios**
+
+## 2025-08-10 (Memory Leak Fix - Signal Handler Cleanup)
+### Fixed
+- **Critical Memory Leak on Signal-based Shutdown (300KB+)**:
+  - **Fixed improper exit in signal handler (comm.c:3348-3361)**:
+    - Signal handler was calling exit(1) directly on SIGINT/SIGTERM/SIGHUP
+    - This bypassed all cleanup code including destroy_db()
+    - Caused 300,674 bytes of memory leaks (room names/descriptions)
+    - Now sets shutdown_requested flag for graceful shutdown
+  - **Modified main game loop to check shutdown flag**:
+    - Game loop now checks both circle_shutdown and shutdown_requested
+    - Ensures proper cleanup always occurs before exit
+  - **Added comprehensive beginner-friendly comments**:
+    - Explained signal handling and memory cleanup
+    - Documented the importance of graceful shutdown
+    - Added notes about volatile sig_atomic_t for signal safety
+
+## 2025-08-10 (Memory Safety - Critical Buffer Overlap Fix)
+### Fixed
+- **Critical Memory Corruption in vwrite_to_output()**:
+  - **Fixed strcpy buffer overlap in comm.c:2244**:
+    - Added check to skip unnecessary copy when source and destination are the same
+    - Issue occurred when reusing large output buffers where t->output already pointed to t->large_outbuf->text
+    - Valgrind reported: "Source and destination overlap in strcpy"
+    - Could cause undefined behavior, crashes, or data corruption
+  - **Added comprehensive code comments**:
+    - Explained the overlap scenario for future maintainers
+    - Documented why the pointer equality check is necessary
+    - Added beginner-friendly explanations of the buffer management
+
 ## 2025-08-10 (Lists System - Session 8 - Error Handling & Documentation)
 ### Fixed
 - **Lists System Error Handling Standardization**:

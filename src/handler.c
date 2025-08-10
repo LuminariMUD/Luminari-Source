@@ -2678,10 +2678,28 @@ void extract_char(struct char_data *ch)
      side effect of my solution is this:  saving events becomes a lot
      easier task */
 
+  /* PROTECTION: Check if this character is already marked for extraction
+   * This prevents double-extraction which would mess up the counter */
   if (IS_NPC(ch))
+  {
+    if (MOB_FLAGGED(ch, MOB_NOTDEADYET))
+    {
+      log("WARNING: extract_char() called on mob %s (vnum %d) already marked for extraction", 
+          GET_NAME(ch), GET_MOB_VNUM(ch));
+      return;  /* Already pending extraction, don't double-count */
+    }
     SET_BIT_AR(MOB_FLAGS(ch), MOB_NOTDEADYET);
+  }
   else
+  {
+    if (PLR_FLAGGED(ch, PLR_NOTDEADYET))
+    {
+      log("WARNING: extract_char() called on player %s already marked for extraction", 
+          GET_NAME(ch));
+      return;  /* Already pending extraction, don't double-count */
+    }
     SET_BIT_AR(PLR_FLAGS(ch), PLR_NOTDEADYET);
+  }
 
   extractions_pending++;
 }
@@ -2722,7 +2740,37 @@ void extract_pending_chars(void)
   }
 
   if (extractions_pending > 0)
-    log("SYSERR: Couldn't find %d extractions as counted.", extractions_pending);
+  {
+    /* Enhanced error message with debugging information */
+    log("SYSERR: extract_pending_chars() - %d extraction(s) still pending after processing character_list.", 
+        extractions_pending);
+    
+    /* Let's count how many actually have the NOTDEADYET flag to help debug */
+    int mob_count = 0, plr_count = 0, total_chars = 0;
+    for (vict = character_list; vict; vict = vict->next)
+    {
+      total_chars++;
+      if (MOB_FLAGGED(vict, MOB_NOTDEADYET))
+      {
+        mob_count++;
+        log("  DEBUG: Found MOB with NOTDEADYET still set: %s (vnum %d, room %d)", 
+            GET_NAME(vict), GET_MOB_VNUM(vict), IN_ROOM(vict));
+      }
+      else if (PLR_FLAGGED(vict, PLR_NOTDEADYET))
+      {
+        plr_count++;
+        log("  DEBUG: Found PLAYER with NOTDEADYET still set: %s (room %d)", 
+            GET_NAME(vict), IN_ROOM(vict));
+      }
+    }
+    
+    log("  Summary: %d chars in list, %d mobs flagged, %d players flagged, %d expected", 
+        total_chars, mob_count, plr_count, extractions_pending);
+    
+    /* This might indicate a race condition where extract_char() was called
+     * multiple times on the same character, or the flag was cleared elsewhere
+     * without decrementing extractions_pending */
+  }
 
   extractions_pending = 0;
 }
