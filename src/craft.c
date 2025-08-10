@@ -2410,6 +2410,23 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 
 SPECIAL(crafting_kit)
 {
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This is a crafting kit. You can use the following commands:\r\n");
+    send_to_char(ch, "  resize      - Resize armor or weapons\r\n");
+    send_to_char(ch, "  create      - Create new items from materials\r\n");
+    send_to_char(ch, "  checkcraft  - Check your crafting progress\r\n");
+    send_to_char(ch, "  restring    - Change an item's short description\r\n");
+    send_to_char(ch, "  redesc      - Change an item's long description\r\n");
+    send_to_char(ch, "  augment     - Enhance items with crystals\r\n");
+    send_to_char(ch, "  convert     - Convert items to crafting materials\r\n");
+    send_to_char(ch, "  autocraft   - Automatically craft items\r\n");
+    send_to_char(ch, "  disenchant  - Remove enchantments from items\r\n");
+    send_to_char(ch, "  bonearmor   - Create bone armor\r\n");
+    send_to_char(ch, "  reforge     - Reforge weapons\r\n");
+    return TRUE;
+  }
+
   if (!CMD_IS("resize") && !CMD_IS("create") && !CMD_IS("checkcraft") &&
       !CMD_IS("restring") && !CMD_IS("redesc") && !CMD_IS("augment") && !CMD_IS("convert") &&
       !CMD_IS("autocraft") && !CMD_IS("disenchant") && !CMD_IS("bonearmor") &&

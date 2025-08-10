@@ -6784,6 +6784,45 @@ const char *campaigns [] = {
     "\n"
 };
 
+const char * bag_system_options [] = {
+    "Use container objects",
+    "Use virtual bags",
+    "\n"
+};
+
+const char * crafting_system_options [] = {
+    "None",
+    "Use crystals and crafting kits",
+    "Use elemental motes and crafting menu",
+    "\n"
+};
+
+const char * landmark_system_options [] = {
+    "None",
+    "City landmarks only",
+    "World map landmarks",
+    "\n"
+};
+
+const char * new_player_gear_options [] = {
+    "Luminari style with generic items and crafting kit + teleporter",
+    "Different items for each class",
+    "\n"
+};
+
+const char * allow_cexchange_options [] = {
+    "No",
+    "Yes",
+    "\n"
+};
+
+const char * wilderness_system_options [] = {
+    "No Wilderness (ROads only)",
+    "Manually Created",
+    "Algorithm-Created (WildEdit Tool)",
+    "\n"
+};
+
 /* --- End of constants arrays. --- */
 
 /* Various arrays we count so we can check the world files.  These

@@ -12,7 +12,9 @@
 * was created by the following people:                                      
 * $Author: Mark A. Heilpern/egreen/Welcor $                              
 * $Date: 2004/10/11 12:07:00$                                            
-* $Revision: 1.0.14 $                                                    
+* $Revision: 1.0.14 $               
+*
+* Re-written by LuminariMUD staff to fix the original code.
 */
 
 #include "conf.h"

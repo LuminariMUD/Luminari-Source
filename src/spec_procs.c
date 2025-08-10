@@ -102,6 +102,11 @@ void sort_spells(void)
 
 SPECIAL(warbow)
 {
+  if (!cmd && argument && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This is a special warbow.\r\n");
+    return TRUE;
+  }
   return 0;
 }
 
@@ -3867,13 +3872,13 @@ SPECIAL(dracolich_mob)
     /* added a way to reduce the effectiveness of this attack -zusuk */
     if (AFF_FLAGGED(vict, AFF_DEATH_WARD) && !rand_number(0, 2))
     {
-      hitpoints = damage(ch, vict, rand_number(100, GET_LEVEL(ch) * 20), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+      hitpoints = damage(ch, vict, rand_number(100, MAX(100, GET_LEVEL(ch) * 20)), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
     }
     else
     {
       if (GET_HIT(vict) <= 20)
       {                                                                                            /* try to finish the victim */
-        hitpoints = damage(ch, vict, rand_number(100, GET_LEVEL(ch) * 20), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+        hitpoints = damage(ch, vict, rand_number(100, MAX(100, GET_LEVEL(ch) * 20)), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
       }
       else
       {
@@ -3983,7 +3988,7 @@ SPECIAL(vampire_mob)
       act("$n sinks $s fangs into $N!", 1, ch, 0, vict, TO_NOTVICT);
       act("$n sinks $s fangs into you!", 1, ch, 0, vict, TO_VICT);
       call_magic(ch, vict, 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_INNATE);
-      damage(ch, vict, rand_number(GET_LEVEL(ch), 6), -1, DAM_POISON, FALSE);
+      damage(ch, vict, rand_number(6, MAX(6, GET_LEVEL(ch))), -1, DAM_POISON, FALSE);
 
       return 1;
     }
@@ -11048,6 +11053,13 @@ SPECIAL(buymolds)
 
 SPECIAL(vampire_cloak)
 {
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This vampire cloak can be customized using the 'setcloak' command.\r\n");
+    send_to_char(ch, "Type 'setcloak' while wearing the cloak to see available options.\r\n");
+    return TRUE;
+  }
+
   if (!CMD_IS("setcloak"))
   {
     return 0;

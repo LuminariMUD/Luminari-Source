@@ -9208,6 +9208,12 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   if (to_room != NULL)
     act(to_room, FALSE, ch, 0, 0, TO_ROOM);
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
          NULL)
   {

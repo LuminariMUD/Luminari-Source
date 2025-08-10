@@ -186,6 +186,12 @@ static void cedit_setup(struct descriptor_data *d)
 
   // Extra game data
   OLC_CONFIG(d)->extra.campaign = CONFIG_CAMPAIGN;
+  OLC_CONFIG(d)->extra.bag_system = CONFIG_BAG_SYSTEM;
+  OLC_CONFIG(d)->extra.crafting_system = CONFIG_CRAFTING_SYSTEM;
+  OLC_CONFIG(d)->extra.landmarks_system = CONFIG_LANDMARK_SYSTEM;
+  OLC_CONFIG(d)->extra.new_player_gear = CONFIG_NEW_PLAYER_GEAR;
+  OLC_CONFIG(d)->extra.allow_cexchange = CONFIG_ALLOW_CEXCHANGE;
+  OLC_CONFIG(d)->extra.wilderness_system = CONFIG_WILDERNESS_SYSTEM;
 
   /* Allocate space for the strings. */
   OLC_CONFIG(d)->play.OK = str_udup(CONFIG_OK);
@@ -320,7 +326,13 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_SUMMON_LEVEL_21_30_AC = OLC_CONFIG(d)->player_config.level_21_30_summon_ac;
 
   // extra game data
-  CONFIG_CAMPAIGN = OLC_CONFIG(d)->extra.campaign;
+  CONFIG_CAMPAIGN         = OLC_CONFIG(d)->extra.campaign;
+  CONFIG_BAG_SYSTEM       = OLC_CONFIG(d)->extra.bag_system;
+  CONFIG_CRAFTING_SYSTEM  = OLC_CONFIG(d)->extra.crafting_system;
+  CONFIG_LANDMARK_SYSTEM  = OLC_CONFIG(d)->extra.landmarks_system;
+  CONFIG_NEW_PLAYER_GEAR  = OLC_CONFIG(d)->extra.new_player_gear;
+  CONFIG_ALLOW_CEXCHANGE  = OLC_CONFIG(d)->extra.allow_cexchange;
+  CONFIG_WILDERNESS_SYSTEM  = OLC_CONFIG(d)->extra.wilderness_system;
 
   /* Allocate space for the strings. */
   if (CONFIG_OK)
@@ -774,6 +786,24 @@ int save_config(IDXTYPE nowhere)
   fprintf(fl, "* Which campaign does the game use? Note that changing this without the proper support files in place could cause the game to break\n"
               "campaign_setting = %d\n\n",
           CONFIG_CAMPAIGN);
+  fprintf(fl, "* Which bag system do you want to use?\n"
+              "bag_system = %d\n\n",
+          CONFIG_BAG_SYSTEM);
+  fprintf(fl, "* Which crafting system do you want to use?\n"
+              "crafting_system = %d\n\n",
+          CONFIG_CRAFTING_SYSTEM);
+  fprintf(fl, "* Which landmark system to use?\n"
+              "landmark_system = %d\n\n",
+          CONFIG_LANDMARK_SYSTEM);
+  fprintf(fl, "* Which new player gear do you want?\n"
+              "new_player_gear = %d\n\n",
+          CONFIG_NEW_PLAYER_GEAR);
+  fprintf(fl, "* Do you want to allow exchange of currency (gold to exp, exp to qp, etc.)\n"
+              "allow_cexchange = %d\n\n",
+          CONFIG_ALLOW_CEXCHANGE);
+  fprintf(fl, "* What kind of wilderness system do you use?\n"
+              "wilderness_system = %d\n\n",
+          CONFIG_ALLOW_CEXCHANGE);
 
   fclose(fl);
 
@@ -989,11 +1019,23 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
 
   write_to_output(d, "\r\n\r\n"
                      "%sA%s) Campaign Setting               : %s%s\r\n"
+                     "%sB%s) Choose Bag System              : %s%s\r\n"
+                     "%sC%s) Choose Crafting System         : %s%s\r\n"
+                     "%sD%s) Choose Walkto System           : %s%s\r\n"
+                     "%sE%s) Choose New Player Gear         : %s%s\r\n"
+                     "%sF%s) Allow CExchange Command?       : %s%s\r\n"
+                     "%sG%s) Wilderness System              : %s%s\r\n"
 
                      "%sQ%s) Exit To The Main Menu\r\n"
                      "Enter your choice : ",
 
                   grn, nrm, cyn, campaigns[OLC_CONFIG(d)->extra.campaign],
+                  grn, nrm, cyn, bag_system_options[OLC_CONFIG(d)->extra.bag_system],
+                  grn, nrm, cyn, crafting_system_options[OLC_CONFIG(d)->extra.crafting_system],
+                  grn, nrm, cyn, landmark_system_options[OLC_CONFIG(d)->extra.landmarks_system],
+                  grn, nrm, cyn, new_player_gear_options[OLC_CONFIG(d)->extra.new_player_gear],
+                  grn, nrm, cyn, allow_cexchange_options[OLC_CONFIG(d)->extra.allow_cexchange],
+                  grn, nrm, cyn, wilderness_system_options[OLC_CONFIG(d)->extra.wilderness_system],
 
                   grn, nrm);
 
@@ -1532,6 +1574,78 @@ void cedit_parse(struct descriptor_data *d, char *arg)
           write_to_output(d, "%d) %s\n", i+1, campaigns[i]);
         }
         OLC_MODE(d) = CEDIT_SET_CAMPAIGN;
+        return;
+
+      case 'b':
+      case 'B':
+        write_to_output(d, "Enter the desired bag system:\r\n");
+        write_to_output(d, "Containers use physical objects to put other objects into.\r\n");
+        write_to_output(d, "Virtual bags essentially give players 10 additonal inventories to sort and store their items.\r\n");
+        for (i = 0; i < NUM_BAG_SYSTEMS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, bag_system_options[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_BAG_SYSTEM;
+        return;
+
+      case 'c':
+      case 'C':
+        write_to_output(d, "Enter the desired crafting system:\r\n");
+        write_to_output(d, "Crafting kits are a physical item which molds, materials and a crystal must be put into. Stats are limited to what is tied to the crystal.\r\n");
+        write_to_output(d, "Elemental motes and crafting menu allows you to harvest materials and elemental motes. Stats can be customised based on the type & number of elemental mote you're using.\r\n");
+        for (i = 0; i < NUM_CRAFTING_SYSTEMS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, crafting_system_options[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_CRAFTING_SYSTEM;
+        return;
+
+      case 'd':
+      case 'D':
+        write_to_output(d, "Enter the desired walkto/landmark system:\r\n");
+        write_to_output(d, "Cities only limits walkto to go to landmarks within supporting citites.\r\n");
+        write_to_output(d, "World map landmarks can have locations anyway and works best with a road system over wilderness map.\r\n");
+        for (i = 0; i < NUM_LANDMARK_SYSTEMS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, landmark_system_options[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_LANDMARK_SYSTEM;
+        return;
+
+      case 'e':
+      case 'E':
+        write_to_output(d, "Enter the desired new player gear option:\r\n");
+        write_to_output(d, "Luminari style adds a teleporter and crafting kit, plus uses shared items and limited armor.\r\n");
+        write_to_output(d, "Different items for each class has a unique weapon and armor piece for each armor slot for every class.\r\n");
+        for (i = 0; i < NUM_NEW_PLAYER_GEAR_OPTIONS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, new_player_gear_options[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_NEW_PLAYER_GEAR;
+        return;
+
+      case 'f':
+      case 'F':
+        write_to_output(d, "Do you wish to allow the cexchab=nge command?\r\n");
+        write_to_output(d, "Cexhcnage allows a playere to convert experience, gold, quest points, etc between each other. So exp for gold, gold for qp, etc.\r\n");
+        for (i = 0; i < NUM_ALLOW_CEXCHANGE_OPTIONS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, allow_cexchange_options[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_ALLOW_CEXCHANGE;
+        return;
+
+      case 'g':
+      case 'G':
+        write_to_output(d, "What kind of wilderness system do you use??\r\n");
+        write_to_output(d, "None/Roads only means you have no grid-like, ASCII wilderness system, and connect zones by roads.\r\n");
+        write_to_output(d, "Manual means you do have a grid-based ASCII wilderness, but it is manually created by hand.\r\n");
+        write_to_output(d, "Algorithm-based wilderness is created using the built-in algorithm+noise and also uses the wildedit tool.\r\n");
+        for (i = 0; i < NUM_WILDERNESS_SYSTEM_OPTIONS; i++)
+        {
+          write_to_output(d, "%d) %s\n", i+1, wilderness_system_options[i]);
+        }
+        OLC_MODE(d) = CEDIT_SET_WILDERNESS_SYSTEM;
         return;
 
       case 'q':
@@ -2672,7 +2786,54 @@ void cedit_parse(struct descriptor_data *d, char *arg)
      if (*arg)
      {
       OLC_CONFIG(d)->extra.campaign = (MIN(NUM_CAMPAIGN_SETTINGS, MAX(1, atoi(arg))) - 1);
-      write_to_output(d, "Op: %d", atoi(arg));
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_BAG_SYSTEM:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.bag_system = (MIN(NUM_BAG_SYSTEMS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+  
+  case CEDIT_SET_CRAFTING_SYSTEM:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.crafting_system = (MIN(NUM_CRAFTING_SYSTEMS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_LANDMARK_SYSTEM:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.landmarks_system = (MIN(NUM_LANDMARK_SYSTEMS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+  
+  case CEDIT_SET_NEW_PLAYER_GEAR:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.new_player_gear = (MIN(NUM_NEW_PLAYER_GEAR_OPTIONS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_ALLOW_CEXCHANGE:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.allow_cexchange = (MIN(NUM_ALLOW_CEXCHANGE_OPTIONS, MAX(1, atoi(arg))) - 1);
+     }
+    cedit_disp_extra_game_play_options(d);
+    break;
+
+  case CEDIT_SET_WILDERNESS_SYSTEM:
+     if (*arg)
+     {
+      OLC_CONFIG(d)->extra.wilderness_system = (MIN(NUM_WILDERNESS_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
      }
     cedit_disp_extra_game_play_options(d);
     break;

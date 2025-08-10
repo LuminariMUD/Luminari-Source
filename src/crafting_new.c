@@ -31,6 +31,8 @@
 #include "vnums.h"
 #include "crafting_recipes.h"
 
+ACMD_DECL(do_practice);
+
 int copy_object(struct obj_data *to, struct obj_data *from);
 
 int materials_sort_info[NUM_CRAFT_MATS];
@@ -4988,6 +4990,22 @@ ACMD(do_craftbonuses)
 }
 
 ACMD(do_craft_score)
+{
+    switch (CONFIG_CRAFTING_SYSTEM)
+    {
+        case CRAFTING_SYSTEM_KITS:
+            do_practice(ch, argument, cmd, subcmd);
+            break;
+        case CRAFTING_SYSTEM_MOTES:
+            do_craft_score_new(ch, argument, cmd, subcmd);
+            break;
+        default:
+            send_to_char(ch, "There is no crafting system implemented right now.\r\n");
+            break;
+    }
+}
+
+ACMD(do_craft_score_new)
 {
     show_craft_score(ch, argument);
 }
