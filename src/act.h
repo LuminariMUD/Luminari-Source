@@ -223,6 +223,7 @@ ACMD_DECL(do_masterlist);
 ACMD_DECL(do_areas);
 ACMD_DECL(do_attacks);
 ACMD_DECL(do_consider);
+ACMD_DECL(do_conservation);
 ACMD_DECL(do_defenses);
 ACMD_DECL(do_damage);
 ACMD_DECL(do_diagnose);
