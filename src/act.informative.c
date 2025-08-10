@@ -9724,7 +9724,7 @@ ACMD(do_conservation) {
         int count = 0;
         
         for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
-            float score = get_player_conservation_score(ch, i);
+            float score = get_player_conservation_score(ch);
             const char *status = get_conservation_status_name(score);
             
             send_to_char(ch, "  %-12s: %s%s%s (%.1f/5.0)\r\n", 
@@ -9765,7 +9765,7 @@ ACMD(do_conservation) {
         int count = 0;
         
         for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
-            float score = get_player_conservation_score(ch, i);
+            float score = get_player_conservation_score(ch);
             total_score += score;
             count++;
         }

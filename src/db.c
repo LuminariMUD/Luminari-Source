@@ -49,6 +49,7 @@
 #include "mudlim.h"
 #include "spec_abilities.h"
 #include "resource_system.h"
+#include "resource_depletion.h"
 #include "perlin.h"
 #include "wilderness.h"
 #include "resource_system.h"
@@ -771,6 +772,9 @@ void boot_world(void)
 #if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   log("Indexing wilderness rooms.");
   initialize_wilderness_lists();
+
+  log("Initializing resource depletion database (Phase 6).");
+  init_resource_depletion_database();
 
   log("Initializing resource system.");
   init_resource_system();
