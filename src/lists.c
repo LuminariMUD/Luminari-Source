@@ -3,6 +3,7 @@
  *  Usage: Handling of in-game lists                                       *
  *                                                                         *
  *  By Vatiken. Copyright 2012 by Joseph Arnusch                           *
+ *  Re-written by LuminariMUD staff to fix the original code.              *
  **************************************************************************/
 
 #include "conf.h"
@@ -38,7 +39,25 @@ struct list_data *create_list(void)
 
   /* Add to global lists, primarily for debugging purposes.
    * The first list created becomes the global_lists itself,
-   * all others are added to it for tracking. */
+   * all others are added to it for tracking.
+   * 
+   * GLOBAL_LISTS EXPLAINED FOR BEGINNERS:
+   * The global_lists is a special "list of lists" used for debugging.
+   * It keeps track of all lists created in the game so developers can
+   * monitor memory usage and find list-related bugs.
+   * 
+   * HOW IT WORKS:
+   * 1. The VERY FIRST list created becomes global_lists itself
+   * 2. All subsequent lists are added as items to global_lists
+   * 3. This avoids circular reference (global_lists containing itself)
+   * 
+   * WHY THIS PATTERN?
+   * - We need a list to store all lists
+   * - But that list itself is also a list
+   * - So we make the first list special - it IS the registry
+   * - This is called "bootstrapping" - using the first instance to track all others
+   * 
+   * NOTE: global_lists is mainly for debugging and is not critical for gameplay */
   if (first_list == FALSE)
     add_to_list(pNewList, global_lists);
   else
@@ -70,32 +89,51 @@ void free_list(struct list_data *pList)
    * Think of it like dismantling a train:
    * - We unhook and scrap each train car (item nodes)
    * - But the cargo in each car is NOT destroyed (content pointers)
-   * - Finally we scrap the engine/tracks (the list structure itself) */
+   * - Finally we scrap the engine/tracks (the list structure itself)
+   * 
+   * Performance Note (2025-08-09): This function was optimized from O(n²) to O(n).
+   * Previously it called remove_from_list() for each item, which did an O(n) search.
+   * Now we directly traverse and free the nodes since we're destroying the entire list. */
   
   struct item_data *pItem, *pNext;
 
-  /* Reset simple_list in case it was iterating this list */
+  /* Safety check: Can't free a NULL list */
+  if (pList == NULL)
+    return;
+
+  /* CRITICAL: Reset simple_list if it's iterating THIS specific list
+   * This prevents use-after-free bugs where simple_list would try to
+   * continue iterating through freed memory.
+   * 
+   * Beginner's Note: This is a defensive programming technique.
+   * Since simple_list uses static variables that persist between calls,
+   * we must ensure it's not pointing to the list we're about to destroy. */
   simple_list(NULL);
 
-  /* Remove all items from the list safely.
-   * We cache the next pointer before removing because remove_from_list
-   * will free the current item, making pItem->pNextItem invalid. */
-  if (pList && pList->iSize) {
-    pItem = pList->pFirstItem;
-    while (pItem) {
-      pNext = pItem->pNextItem;  /* Save next before current is freed */
-      remove_from_list(pItem->pContent, pList);
-      pItem = pNext;  /* Move to the saved next item */
-    }
+  /* Free all item nodes directly - O(n) instead of O(n²).
+   * Since we're destroying the entire list, we don't need to maintain
+   * the list's integrity during removal - we can just free the nodes directly. */
+  pItem = pList->pFirstItem;
+  while (pItem) {
+    pNext = pItem->pNextItem;  /* Save next before current is freed */
+    /* Beginner's Note: We only free the item NODE here, not pItem->pContent!
+     * The content is owned by whoever created it and they must free it separately. */
+    free(pItem);  /* Free the list node structure only */
+    pItem = pNext;  /* Move to the saved next item */
   }
 
+  /* Clear the list structure's pointers and size for safety */
+  pList->pFirstItem = NULL;
+  pList->pLastItem = NULL;
+  pList->iSize = 0;
+  pList->iIterators = 0;
+
   /* Remove this list from the global list registry (unless it IS global_lists) */
-  if (pList != NULL && pList != global_lists)
+  if (pList != global_lists)
     remove_from_list(pList, global_lists);
   
   /* Finally, free the list container structure itself */
-  if (pList != NULL)
-    free(pList);
+  free(pList);
 }
 
 void add_to_list(void *pContent, struct list_data *pList)
@@ -115,7 +153,9 @@ void add_to_list(void *pContent, struct list_data *pList)
    * A NULL list means we have nowhere to add the content. */
   if (pList == NULL)
   {
-    log("WARNING: add_to_list() called with NULL list pointer.");
+    /* ERROR HANDLING POLICY: NULL list pointers are programming errors.
+     * Log at SYSERR level since this indicates a bug that needs fixing. */
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: add_to_list() called with NULL list pointer.");
     return;
   }
 
@@ -163,14 +203,18 @@ void remove_from_list(void *pContent, struct list_data *pList)
    * Can't remove from a list that doesn't exist! */
   if (pList == NULL)
   {
-    log("WARNING: remove_from_list() called with NULL list pointer.");
+    /* ERROR HANDLING POLICY: NULL list pointers are programming errors.
+     * Log at SYSERR level since this indicates a bug that needs fixing. */
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: remove_from_list() called with NULL list pointer.");
     return;
   }
 
   /* First, find the item node that contains this content */
   if ((pRemovedItem = find_in_list(pContent, pList)) == NULL)
   {
-    log("WARNING: Attempting to remove contents that don't exist in list.");
+    /* ERROR HANDLING POLICY: Removing non-existent items is a logic error.
+     * Log at NRM level as this might happen in normal gameplay scenarios. */
+    mudlog(NRM, LVL_STAFF, TRUE, "WARNING: Attempting to remove contents that don't exist in list.");
     return;
   }
 
@@ -217,6 +261,26 @@ void *merge_iterator(struct iterator_data *pIterator, struct list_data *pList)
    * 
    * IMPORTANT: Always call remove_iterator() when done to clean up!
    * 
+   * ITERATOR PATTERN EXPLAINED:
+   * Think of an iterator like reading a book:
+   * 1. merge_iterator() = Open the book to page 1
+   * 2. next_in_list() = Turn to the next page
+   * 3. remove_iterator() = Close the book and put it away
+   * 
+   * WHY USE ITERATORS INSTEAD OF simple_list()?
+   * - Iterators can be nested (you can read multiple books at once)
+   * - Each iterator maintains its own position independently
+   * - Safer for complex operations like removing items while iterating
+   * 
+   * TYPICAL USAGE PATTERN:
+   *   struct iterator_data it;
+   *   struct char_data *ch = merge_iterator(&it, character_list);
+   *   while (ch) {
+   *     // Process ch here
+   *     ch = next_in_list(&it);
+   *   }
+   *   remove_iterator(&it);  // DON'T FORGET THIS!
+   * 
    * Returns: The content of the first item, or NULL if list is empty */
   
   void *pContent = NULL;
@@ -224,7 +288,9 @@ void *merge_iterator(struct iterator_data *pIterator, struct list_data *pList)
   /* Safety check: Can't iterate a NULL list */
   if (pList == NULL)
   {
-    mudlog(NRM, LVL_STAFF, TRUE, "WARNING: Attempting to merge iterator to NULL list.");
+    /* ERROR HANDLING POLICY: NULL list in iterator is a programming error.
+     * Log at SYSERR level since this indicates incorrect API usage. */
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: Attempting to merge iterator to NULL list.");
     pIterator->pList = NULL;
     pIterator->pItem = NULL;
     return NULL;
@@ -233,6 +299,8 @@ void *merge_iterator(struct iterator_data *pIterator, struct list_data *pList)
   /* Safety check: Can't iterate an empty list */
   if (pList->pFirstItem == NULL)
   {
+    /* ERROR HANDLING POLICY: Empty list is a normal condition.
+     * Log at NRM level as this can happen in normal operation. */
     mudlog(NRM, LVL_STAFF, TRUE, "WARNING: Attempting to merge iterator to empty list.");
     pIterator->pList = NULL;
     pIterator->pItem = NULL;
@@ -290,7 +358,9 @@ void *next_in_list(struct iterator_data *pIterator)
   if (pIterator->pList == NULL)
   {
     /* This shouldn't happen in normal operation but we check anyway */
-    mudlog(NRM, LVL_STAFF, TRUE, "WARNING: Attempting to get content from iterator with NULL list.");
+    /* ERROR HANDLING POLICY: Iterator with NULL list is a programming error.
+     * Log at SYSERR level since this indicates incorrect API usage. */
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: Attempting to get content from iterator with NULL list.");
     return NULL;
   }
 
@@ -387,6 +457,29 @@ void *simple_list(struct list_data *pList)
    * 2. Each subsequent call returns the next item
    * 3. When done, returns NULL and resets itself
    * 4. Call with NULL to manually reset at any time
+   * 
+   * CRITICAL WARNING - NESTING IS FORBIDDEN:
+   * Because this uses static variables (variables that keep their value between
+   * function calls), you CANNOT nest simple_list loops! For example, this is WRONG:
+   *   while ((obj1 = simple_list(list1))) {
+   *     while ((obj2 = simple_list(list2))) {  // WRONG! This breaks the outer loop!
+   *       ...
+   *     }
+   *   }
+   * The inner loop will corrupt the outer loop's state. Use explicit iterators instead.
+   * 
+   * BEST PRACTICE - ALWAYS RESET:
+   * Always call simple_list(NULL) before starting a loop to ensure clean state:
+   *   simple_list(NULL);  // Reset any previous state
+   *   while ((item = simple_list(my_list))) {
+   *     // Process item
+   *   }
+   *   simple_list(NULL);  // Clean up when done (optional but recommended)
+   * 
+   * USE-AFTER-FREE PROTECTION:
+   * This function includes protection against use-after-free bugs. If a list
+   * is freed while we're iterating it, we try to detect this and reset safely.
+   * However, this protection isn't perfect - always reset before switching lists!
    */
   
   static struct iterator_data Iterator;  /* Static = remembers state between calls */
@@ -414,11 +507,38 @@ void *simple_list(struct list_data *pList)
     if (loop && pLastList != pList)
       mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: simple_list() forced to reset itself.");
 
-    /* Clean up any previous iteration state before starting new one */
+    /* CRITICAL BUG FIX (2025-08-09): Prevent use-after-free
+     * 
+     * PROBLEM: If the old list (pLastList) was freed while we were iterating it,
+     * calling remove_iterator() would access freed memory and crash the MUD!
+     * 
+     * SOLUTION: Only clean up the iterator if it still has a valid list pointer.
+     * If Iterator.pList is NULL, it means either:
+     * 1. The iterator was already cleaned up (safe)
+     * 2. We never successfully started iterating (safe)
+     * 
+     * SCENARIO THIS FIXES:
+     * 1. Start iterating list1 with simple_list(list1)
+     * 2. Something frees list1 (e.g., randomize_list or free_list)
+     * 3. Call simple_list(list2) - would crash trying to decrement freed list's counter
+     * 
+     * NOTE: This doesn't prevent ALL use-after-free bugs (if list is freed but
+     * memory not zeroed, we might still have issues), but it prevents the most
+     * common case and makes the code much safer. */
     if (loop)
     {
-      remove_iterator(&Iterator);
-      loop = FALSE;
+      if (Iterator.pList != NULL)
+      {
+        /* Normal case: iterator still has valid list pointer, clean it up properly */
+        remove_iterator(&Iterator);
+      }
+      else
+      {
+        /* Iterator was already cleaned up (e.g., by free_list calling simple_list(NULL))
+         * Just reset our state variables without calling remove_iterator */
+        Iterator.pItem = NULL;  /* Ensure it's fully clean */
+      }
+      loop = FALSE;  /* Either way, we're no longer looping */
     }
 
     /* Start iterating the new list from the beginning */
@@ -468,7 +588,9 @@ void *random_from_list(struct list_data *pList)
    * Can't pick from a list that doesn't exist! */
   if (pList == NULL)
   {
-    log("WARNING: random_from_list() called with NULL list pointer.");
+    /* ERROR HANDLING POLICY: NULL list pointers are programming errors.
+     * Log at SYSERR level since this indicates a bug that needs fixing. */
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: random_from_list() called with NULL list pointer.");
     return NULL;
   }
 
@@ -521,16 +643,28 @@ struct list_data *randomize_list(struct list_data *pList)
    * Can't randomize a list that doesn't exist! */
   if (pList == NULL)
   {
-    log("WARNING: randomize_list() called with NULL list pointer.");
+    /* ERROR HANDLING POLICY: NULL list pointers are programming errors.
+     * Log at SYSERR level since this indicates a bug that needs fixing. */
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: randomize_list() called with NULL list pointer.");
     return NULL;
   }
 
-  /* Can't randomize an empty list - return NULL but also free the empty list
-   * to avoid memory leak since the caller expects us to consume the list */
+  /* IMPORTANT: Handle empty list case
+   * Even though there's nothing to randomize, we MUST free the original list!
+   * This function ALWAYS consumes (destroys) the input list, even if empty.
+   * This prevents memory leaks since callers expect the old list to be gone.
+   * 
+   * CALLER RESPONSIBILITY:
+   * After calling randomize_list(), NEVER use the original list pointer again!
+   * It has been freed and is now invalid memory. Only use the returned list.
+   * Example:
+   *   list = randomize_list(list);  // OK - replaces old pointer with new
+   *   // The original list memory is now freed, use only the new list
+   */
   if (pList->iSize == 0)
   {
-    free_list(pList);  /* Free the empty list to prevent memory leak */
-    return NULL;
+    free_list(pList);  /* Free the empty list - caller expects us to consume it */
+    return NULL;       /* Nothing to randomize, return NULL for empty result */
   }
 
   newList = create_list();
