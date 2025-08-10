@@ -7912,6 +7912,12 @@ int has_teamwork_feat(struct char_data *ch, int featnum)
   struct char_data *k = NULL;
   int num_with_feat = 0;
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
   {
     if (IN_ROOM(k) != IN_ROOM(ch))
@@ -7942,6 +7948,12 @@ int teamwork_using_shield(struct char_data *ch, int featnum)
   if (!GROUP(ch))
     return 0;
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
   {
     if (IN_ROOM(k) != IN_ROOM(ch))
@@ -7979,6 +7991,12 @@ int num_fighting(struct char_data *ch)
     }
     else
     {
+      /* Beginner's Note: Reset simple_list iterator before use to prevent
+       * cross-contamination from previous iterations. Without this reset,
+       * if simple_list was used elsewhere and not completed, it would
+       * continue from where it left off instead of starting fresh. */
+      simple_list(NULL);
+      
       while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
         if (tch == FIGHTING(k) || k == FIGHTING(tch))
           count++;

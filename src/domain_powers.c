@@ -499,6 +499,12 @@ void perform_auraofprotection(struct char_data *ch)
   act("$n glows with a \tWwhite\tn aura!!", FALSE, ch, NULL, NULL, TO_ROOM);
   act("You activate your protective aura!!", FALSE, ch, NULL, NULL, TO_CHAR);
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
          NULL)
   {
@@ -654,6 +660,12 @@ void perform_destructiveaura(struct char_data *ch)
   act("$n glows with a ominous \trred\tn aura!!", FALSE, ch, NULL, NULL, TO_ROOM);
   act("You activate your destructive aura!!", FALSE, ch, NULL, NULL, TO_CHAR);
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
          NULL)
   {

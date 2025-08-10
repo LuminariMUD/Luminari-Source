@@ -1796,6 +1796,11 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         if (real_object(nr) == NOTHING && nr != NOTHING)
         {
           log("SYSERR: Prevented loading of non-existant item #%d.", nr);
+          /* MEMORY LEAK FIX: Free any existing temp object before continuing */
+          if (temp) {
+            extract_obj(temp);
+            temp = NULL;
+          }
           continue;
         }
 
@@ -1815,23 +1820,49 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       /* we have the number, check it, load obj. */
       if (nr == NOTHING)
       { /* then it is unique */
+        /* MEMORY LEAK FIX: Free any existing temp object before creating unique object */
+        if (temp) {
+          log("SYSERR: Orphaned object found before creating unique object - extracting");
+          extract_obj(temp);
+          temp = NULL;
+        }
         temp = create_obj();
         temp->item_number = NOTHING;
       }
       else if (nr < 0)
       {
+        /* MEMORY LEAK FIX: Free any existing temp object before skipping invalid vnums */
+        if (temp) {
+          log("SYSERR: Orphaned object found before invalid vnum %d - extracting", nr);
+          extract_obj(temp);
+          temp = NULL;
+        }
         continue;
       }
       else
       {
         if (real_object(nr) != NOTHING)
         {
+          /* MEMORY LEAK FIX: Before creating a new object, free any orphaned temp object
+           * This can happen when parsing malformed save files where properties are missing */
+          if (temp) {
+            log("SYSERR: Orphaned object found before loading vnum %d - extracting", nr);
+            extract_obj(temp);
+            temp = NULL;
+          }
+          
           temp = read_object(nr, VIRTUAL);
           /* Object created - continue to parse its properties */
         }
         else
         {
           log("Nonexistent object %d found in rent file.", nr);
+          /* MEMORY LEAK FIX: Free any existing temp object before continuing
+           * When an object doesn't exist, we skip it but must clean up first */
+          if (temp) {
+            extract_obj(temp);
+            temp = NULL;
+          }
         }
       }
 
@@ -2259,15 +2290,31 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         {
           if (real_object(nr) != NOTHING)
           {
+            /* MEMORY LEAK FIX: Before creating a new object, free any orphaned temp object
+             * This can happen when parsing malformed save files where properties are missing */
+            if (temp) {
+              log("SYSERR: Orphaned object found before loading vnum %d - extracting", nr);
+              extract_obj(temp);
+              temp = NULL;
+            }
+            
+            /* Now create the new object */
             temp = read_object(nr, VIRTUAL);
             if (!temp) {
               log("SYSERR: read_object failed for vnum %d in rent file", nr);
+              /* No cleanup needed here as read_object returned NULL */
             }
             /* Object successfully created - properties will be parsed in subsequent lines */
           }
           else
           {
             log("Nonexistent object %d found in rent file.", nr);
+            /* MEMORY LEAK FIX: Free any existing temp object before continuing
+             * When an object doesn't exist, we skip it but must clean up first */
+            if (temp) {
+              extract_obj(temp);
+              temp = NULL;
+            }
           }
         }
 
@@ -3238,15 +3285,31 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         {
           if (real_object(nr) != NOTHING)
           {
+            /* MEMORY LEAK FIX: Before creating a new object, free any orphaned temp object
+             * This can happen when parsing malformed save files where properties are missing */
+            if (temp) {
+              log("SYSERR: Orphaned object found before loading vnum %d - extracting", nr);
+              extract_obj(temp);
+              temp = NULL;
+            }
+            
+            /* Now create the new object */
             temp = read_object(nr, VIRTUAL);
             if (!temp) {
               log("SYSERR: read_object failed for vnum %d in rent file", nr);
+              /* No cleanup needed here as read_object returned NULL */
             }
             /* Object successfully created - properties will be parsed in subsequent lines */
           }
           else
           {
             log("Nonexistent object %d found in rent file.", nr);
+            /* MEMORY LEAK FIX: Free any existing temp object before continuing
+             * When an object doesn't exist, we skip it but must clean up first */
+            if (temp) {
+              extract_obj(temp);
+              temp = NULL;
+            }
           }
         }
 
@@ -3898,15 +3961,31 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         {
           if (real_object(nr) != NOTHING)
           {
+            /* MEMORY LEAK FIX: Before creating a new object, free any orphaned temp object
+             * This can happen when parsing malformed save files where properties are missing */
+            if (temp) {
+              log("SYSERR: Orphaned object found before loading vnum %d - extracting", nr);
+              extract_obj(temp);
+              temp = NULL;
+            }
+            
+            /* Now create the new object */
             temp = read_object(nr, VIRTUAL);
             if (!temp) {
               log("SYSERR: read_object failed for vnum %d in rent file", nr);
+              /* No cleanup needed here as read_object returned NULL */
             }
             /* Object successfully created - properties will be parsed in subsequent lines */
           }
           else
           {
             log("Nonexistent object %d found in rent file.", nr);
+            /* MEMORY LEAK FIX: Free any existing temp object before continuing
+             * When an object doesn't exist, we skip it but must clean up first */
+            if (temp) {
+              extract_obj(temp);
+              temp = NULL;
+            }
           }
         }
 
