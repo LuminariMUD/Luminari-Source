@@ -38,21 +38,64 @@ This comprehensive guide covers the complete process of setting up, building, co
 - **libtool** - Generic library support script (optional)
 - **valgrind** - Memory debugging tool (recommended)
 
-### Ubuntu/Debian Installation
+### Ubuntu/Debian Installation (including WSL2)
+
+#### Required Libraries (from Makefile.am line 170)
+The project links against these libraries: `-lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread`
+
 ```bash
 # Update package list
 sudo apt-get update
 
-# Install core dependencies for CMake build
-sudo apt-get install -y build-essential cmake mysql-server libmysqlclient-dev \
-                        libgd-dev libcrypt-dev libcurl4-openssl-dev libssl-dev git make
+# Install REQUIRED dependencies (these match the libraries in Makefile.am)
+sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmysqlclient-dev \
+                        libcurl4-openssl-dev libssl-dev mysql-server git make
 
-# Additional dependencies for Autotools build (if using)
+# For CMake builds (recommended)
+sudo apt-get install -y cmake
+
+# For Autotools builds (traditional)
 sudo apt-get install -y autoconf automake libtool
 
-# Install additional development tools (recommended)
-sudo apt-get install -y gdb valgrind doxygen graphviz cppcheck clang-format
+# HIGHLY RECOMMENDED: Debugging tools (used by debug_game.sh and vgrind.sh scripts)
+sudo apt-get install -y gdb valgrind
+
+# Optional development tools
+sudo apt-get install -y doxygen graphviz cppcheck clang-format
 ```
+
+**WSL2 Specific Note**: All the above packages work perfectly on WSL2 Ubuntu. The libraries map as follows:
+- `-lcrypt` → `libcrypt-dev`
+- `-lgd` → `libgd-dev` (for map generation)
+- `-lm` → included in `build-essential` (math library)
+- `-lmysqlclient` → `libmysqlclient-dev`
+- `-lcurl` → `libcurl4-openssl-dev`
+- `-lssl -lcrypto` → `libssl-dev`
+- `-lpthread` → included in standard libc
+
+## Auto-WSL integration (Windows)
+
+For Windows users who prefer working in WSL for this project, you can control an Auto-WSL helper from PowerShell to ensure you always enter a specific WSL distribution when opening this repository, or to temporarily disable it.
+
+- Reload your PowerShell profile to ensure functions/variables are available:
+  ```powershell
+  . $PROFILE
+  ```
+
+- Force a specific WSL distribution (after reloading your profile):
+  ```powershell
+  $global:LuminariAutoWslConfig.Distro = 'Ubuntu-22.04'
+  ```
+
+- Temporarily disable or re-enable the Auto-WSL behavior without editing your profile:
+  ```powershell
+  Disable-LuminariAutoWsl
+  Enable-LuminariAutoWsl
+  ```
+
+Notes:
+- The exact function/variable names assume you have the Auto-WSL helper installed in your PowerShell profile for this repository.
+- Changes to the global variable affect new PowerShell sessions (reload your profile or open a new terminal).
 
 ### CentOS/RHEL/Fedora Installation
 ```bash

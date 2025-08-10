@@ -934,15 +934,12 @@ int get_travel_time(struct char_data *ch, int speed, int locale, int here, int t
 
 ACMDU(do_walkto)
 {
-  switch (CONFIG_CAMPAIGN)
+  switch (CONFIG_LANDMARK_SYSTEM)
   {
-    case CAMPAIGN_DRAGONLANCE:
+    case LANDMARK_SYSTEM_WORLD:
       do_walkto_full(ch, argument, cmd, subcmd);
       break;
-    case CAMPAIGN_FORGOTTEN_REALMS:
-      send_to_char(ch, "This command is not implemented yet.\r\n");
-      break;
-    case CAMPAIGN_LUMINARI:
+    case LANDMARK_SYSTEM_CITIES:
       do_walkto_city(ch, argument, cmd, subcmd);
       break;
     default:
@@ -953,15 +950,12 @@ ACMDU(do_walkto)
 
 ACMDU(do_landmarks)
 {
-  switch (CONFIG_CAMPAIGN)
+  switch (CONFIG_LANDMARK_SYSTEM)
   {
-    case CAMPAIGN_DRAGONLANCE:
+    case LANDMARK_SYSTEM_WORLD:
       do_landmarks_full(ch, argument, cmd, subcmd);
       break;
-    case CAMPAIGN_FORGOTTEN_REALMS:
-      send_to_char(ch, "This command is not implemented yet.\r\n");
-      break;
-    case CAMPAIGN_LUMINARI:
+    case LANDMARK_SYSTEM_CITIES:
       do_landmarks_city(ch, argument, cmd, subcmd);
       break;
     default:

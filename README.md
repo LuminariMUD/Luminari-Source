@@ -59,11 +59,24 @@ This project embodies commitment, self-motivation, and perseverance through chal
 ## Quick Start
 
 ### Prerequisites
-- **Operating System**: Linux or Unix-like system
+- **Operating System**: Linux or Unix-like system (including WSL2 Ubuntu)
 - **Compiler**: GCC or Clang (C90/C89 with GNU extensions)
 - **Build System**: CMake 3.12+ or Autotools
 - **Database**: MySQL 5.0+ or MariaDB
-- **Libraries**: libcrypt, libgd, libm, libmysqlclient, libcurl, libssl, libcrypto
+- **Libraries** (from Makefile.am line 170): 
+  - libcrypt, libgd, libm, libmysqlclient, libcurl, libssl, libcrypto, libpthread
+
+#### Quick Install for Ubuntu/WSL2:
+```bash
+# Install all required dependencies based on Makefile.am requirements
+sudo apt-get update
+sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmysqlclient-dev \
+                        libcurl4-openssl-dev libssl-dev mysql-server git make cmake \
+                        autoconf automake libtool
+
+# HIGHLY RECOMMENDED: Install debugging tools (used by debug_game.sh and vgrind.sh)
+sudo apt-get install -y gdb valgrind
+```
 
 ### Build and Run
 ```bash
@@ -96,6 +109,8 @@ bin/circle
 ## Installation
 
 For detailed installation instructions including system requirements, dependencies, database setup, and configuration, please see the **[Setup and Build Guide](docs/guides/SETUP_AND_BUILD_GUIDE.md)**.
+
+Windows users (WSL): See the "Auto-WSL integration (Windows)" section in the Setup and Build Guide for targeting a specific WSL distro and for temporarily disabling or re-enabling the Auto-WSL behavior.
 
 
 ## Usage

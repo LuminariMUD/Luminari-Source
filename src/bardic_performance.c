@@ -851,6 +851,11 @@ int process_performance(struct char_data *ch, int performance_num, int effective
     }
     else
     {
+      /* Beginner's Note: Reset simple_list iterator before use to prevent
+       * cross-contamination from previous iterations. Without this reset,
+       * if simple_list was used elsewhere and not completed, it would
+       * continue from where it left off instead of starting fresh. */
+      simple_list(NULL);
 
       while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
              NULL)

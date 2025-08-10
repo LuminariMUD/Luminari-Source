@@ -2568,7 +2568,34 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_DEATH_EXP_LOSS config_info.player_config.death_exp_loss_penalty
 
 // extra game data
-#define CONFIG_CAMPAIGN config_info.extra.campaign
+#define CONFIG_CAMPAIGN        config_info.extra.campaign
+#define CONFIG_BAG_SYSTEM      config_info.extra.bag_system
+#define CONFIG_CRAFTING_SYSTEM config_info.extra.crafting_system
+#define CONFIG_LANDMARK_SYSTEM config_info.extra.landmarks_system
+#define CONFIG_NEW_PLAYER_GEAR config_info.extra.new_player_gear
+#define CONFIG_ALLOW_CEXCHANGE config_info.extra.allow_cexchange
+#define CONFIG_WILDERNESS_SYSTEM config_info.extra.wilderness_system
+
+#define LANDMARK_SYSTEM_NONE    0
+#define LANDMARK_SYSTEM_CITIES  1
+#define LANDMARK_SYSTEM_WORLD   2
+
+#define BAG_SYSTEM_PHYSICAL 0
+#define BAG_SYSTEM_VIRTUAL  1
+
+#define CRAFTING_SYSTEM_NONE    0
+#define CRAFTING_SYSTEM_KITS    1
+#define CRAFTING_SYSTEM_MOTES   2
+
+#define NEW_PLAYER_GEAR_SHARED  0
+#define NEW_PLAYER_GEAR_UNIQUE  1
+
+#define CEXCHANGE_DENY  0
+#define CEXCHANGE_ALLOW 1
+
+#define WILDERNESS_SYSTEM_NONE      0
+#define WILDERNESS_SYSTEM_MANUAL    1
+#define WILDERNESS_SYSTEM_WILDEDIT  2
 
 /* Action queues */
 #define GET_QUEUE(ch) ((ch)->char_specials.action_queue)

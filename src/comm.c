@@ -117,6 +117,7 @@ int buf_overflows = 0;                          /* # of overflows of output */
 int buf_switches = 0;                           /* # of switches from small to large buf */
 int circle_shutdown = 0;                        /* clean shutdown */
 int circle_reboot = 0;                          /* reboot the game after a shutdown */
+static volatile sig_atomic_t shutdown_requested = 0; /* flag for signal-triggered shutdown */
 int no_specials = 0;                            /* Suppress ass. of special routines */
 int scheck = 0;                                 /* for syntax checking mode */
 FILE *logfile = NULL;                           /* Where to send the log messages. */
@@ -667,6 +668,14 @@ static void init_game(ush_int local_port)
     log("Rebooting.");
     exit(52); /* what's so great about HHGTTG, anyhow? */
   }
+  /* Beginner's Note: If we got here from a signal (Ctrl+C, kill, etc.),
+   * convert the flag to the normal shutdown flag so the rest of the
+   * cleanup code works properly. */
+  if (shutdown_requested) {
+    circle_shutdown = 1;
+    log("Shutdown initiated by signal - performing cleanup...");
+  }
+  
   log("Normal termination of game.");
 }
 
@@ -878,7 +887,12 @@ void game_loop(socket_t local_mother_desc)
   gettimeofday(&last_time, (struct timezone *)0);
 
   /* The Main Loop.  The Big Cheese.  The Top Dog.  The Head Honcho.  The.. */
-  while (!circle_shutdown)
+  /* Beginner's Note: Main game loop runs until shutdown is requested.
+   * Shutdown can be triggered by:
+   * 1. In-game 'shutdown' command (sets circle_shutdown)
+   * 2. Signal from OS like Ctrl+C (sets shutdown_requested)
+   * Checking both ensures clean exit in all cases. */
+  while (!circle_shutdown && !shutdown_requested)
   {
 
     /* Sleep if we don't have any connections */
@@ -2216,6 +2230,10 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
   if (t->large_outbuf)
   {
     /* We already have a large buffer, just use it */
+    /* IMPORTANT: When reusing an existing large buffer, t->output might already
+     * point to t->large_outbuf->text from a previous buffer switch. This means
+     * the source and destination of the copy operation below could overlap.
+     * We must handle this case carefully to avoid undefined behavior. */
   }
   else if (bufpool != NULL)
   {
@@ -2230,7 +2248,20 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
     buf_largecount++;
   }
 
-  strcpy(t->large_outbuf->text, t->output); /* strcpy: OK (size checked previously) */
+  /* CRITICAL FIX: Check if source and destination are the same to avoid overlap.
+   * When a large buffer is reused, t->output may already point to t->large_outbuf->text,
+   * causing source and destination to overlap. In this case, we don't need to copy
+   * at all since the data is already in the right place.
+   * 
+   * This fixes a critical memory corruption issue detected by Valgrind where
+   * "Source and destination overlap in strcpy" was reported. */
+  if (t->output != t->large_outbuf->text)
+  {
+    /* Source and destination are different - safe to use strcpy */
+    strcpy(t->large_outbuf->text, t->output); /* strcpy: OK (no overlap) */
+  }
+  /* else: source and destination are the same - no copy needed, data already there */
+  
   t->output = t->large_outbuf->text;        /* make big buffer primary */
   strcat(t->output, txt);                   /* strcat: OK (size checked) */
 
@@ -3310,10 +3341,24 @@ static RETSIGTYPE checkpointing(int sig)
 }
 
 /* Dying anyway... */
+/* Global flag to signal that shutdown was requested by signal handler.
+ * When set to 1, the main game loop will exit gracefully, allowing
+ * proper cleanup of all allocated memory (rooms, objects, characters, etc.) */
+/* Variable moved to top of file with other globals */
+
 static RETSIGTYPE hupsig(int sig)
 {
-  log("SYSERR: Received SIGHUP, SIGINT, or SIGTERM [%d].  Shutting down...", sig);
-  exit(1); /* perhaps something more elegant should substituted */
+  /* Beginner's Note: Signal handlers should do minimal work to avoid race conditions.
+   * We just set a flag here that the main game loop checks. This ensures all
+   * cleanup code in destroy_db() runs before exit, preventing memory leaks.
+   * 
+   * The 'volatile sig_atomic_t' type ensures the variable can be safely
+   * modified in a signal handler and read in the main program. */
+  log("SYSERR: Received SIGHUP, SIGINT, or SIGTERM [%d].  Initiating graceful shutdown...", sig);
+  shutdown_requested = 1;  /* Set flag for main loop to check */
+  
+  /* Do NOT call exit() here! That would skip all cleanup code and leak memory.
+   * The main game loop will detect shutdown_requested and exit cleanly. */
 }
 
 #endif /* CIRCLE_UNIX */
@@ -3552,6 +3597,12 @@ void send_to_group(struct char_data *ch, struct group_data *group, const char *m
   if (msg == NULL)
     return;
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((tch = (struct char_data *)simple_list(group->members)) != NULL)
   {
     if (tch != ch && !IS_NPC(tch) && tch->desc && STATE(tch->desc) == CON_PLAYING)
