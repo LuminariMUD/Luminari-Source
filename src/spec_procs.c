@@ -102,6 +102,11 @@ void sort_spells(void)
 
 SPECIAL(warbow)
 {
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This is a special warbow.\r\n");
+    return TRUE;
+  }
   return 0;
 }
 
@@ -11048,6 +11053,13 @@ SPECIAL(buymolds)
 
 SPECIAL(vampire_cloak)
 {
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This vampire cloak can be customized using the 'setcloak' command.\r\n");
+    send_to_char(ch, "Type 'setcloak' while wearing the cloak to see available options.\r\n");
+    return TRUE;
+  }
+
   if (!CMD_IS("setcloak"))
   {
     return 0;
