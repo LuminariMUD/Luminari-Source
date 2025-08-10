@@ -15,6 +15,7 @@
 #include "wilderness.h"
 #include "perlin.h"
 #include "resource_system.h"
+#include "resource_depletion.h"  /* Phase 6: Add depletion system */
 #include "mysql.h"
 #include "spells.h"
 #include "genolc.h"
@@ -1722,7 +1723,14 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type) {
     x = world[IN_ROOM(ch)].coords[0];
     y = world[IN_ROOM(ch)].coords[1];
     
-    /* Check resource availability */
+    /* Check if resources are too depleted */
+    if (should_harvest_fail_due_to_depletion(IN_ROOM(ch), resource_type)) {
+        send_to_char(ch, "This area has been over-harvested. The %s resources are too depleted to yield anything.\r\n", 
+                     resource_names[resource_type]);
+        return 0;
+    }
+    
+    /* Check basic resource availability */
     resource_level = calculate_current_resource_level(resource_type, x, y);
     if (resource_level < 0.1) {
         send_to_char(ch, "There are insufficient %s resources here to harvest.\r\n", 
@@ -1733,13 +1741,19 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type) {
     /* Get relevant skill */
     skill_level = get_harvest_skill_level(ch, resource_type);
     
-    /* Calculate success */
+    /* Calculate success with depletion modifier */
     success_roll = dice(1, 100) + skill_level;
     int difficulty = get_harvest_difficulty(resource_type, resource_level);
+    
+    /* Phase 6: Apply depletion penalty to success */
+    float depletion_modifier = get_harvest_success_modifier(IN_ROOM(ch), resource_type);
+    success_roll = (int)(success_roll * depletion_modifier);
     
     if (success_roll < difficulty) {
         send_to_char(ch, "You fail to harvest any usable %s.\r\n", 
                      resource_names[resource_type]);
+        /* Phase 6: Still apply small depletion on failed attempts */
+        apply_harvest_depletion(IN_ROOM(ch), resource_type, 1);
         /* TODO: Add skill improvement when function is available */
         /* improve_skill(ch, get_harvest_skill(resource_type)); */
         return 0;
@@ -1759,11 +1773,28 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type) {
         send_to_char(ch, "You successfully harvest %d units of %s.\r\n", 
                      added, material_name);
         
+        /* Phase 6: Apply depletion for successful harvest */
+        apply_harvest_depletion(IN_ROOM(ch), resource_type, added);
+        
+        /* Phase 6: Provide feedback on resource condition */
+        float new_depletion = get_resource_depletion_level(IN_ROOM(ch), resource_type);
+        if (new_depletion < 0.3) {
+            send_to_char(ch, "\trThis area's %s resources are becoming severely depleted.\tn\r\n", 
+                         resource_names[resource_type]);
+        } else if (new_depletion < 0.6) {
+            send_to_char(ch, "\tyThis area's %s resources are showing signs of depletion.\tn\r\n", 
+                         resource_names[resource_type]);
+        }
+        
+        /* Phase 6: Update conservation score (sustainable if took small amount) */
+        bool sustainable_harvest = (added <= 2);  /* Taking 1-2 units is sustainable */
+        update_conservation_score(ch, resource_type, sustainable_harvest);
+        if (!sustainable_harvest) {
+            send_to_char(ch, "\tc(Your conservation score is affected by large-scale harvesting.)\tn\r\n");
+        }
+        
         /* TODO: Add skill improvement when function is available */
         /* improve_skill(ch, get_harvest_skill(resource_type)); */
-        
-        /* Resource depletion (Phase 5 future enhancement) */
-        /* deplete_local_resource(x, y, resource_type, added); */
     } else {
         send_to_char(ch, "Your material storage is full.\r\n");
     }
