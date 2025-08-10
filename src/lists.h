@@ -34,6 +34,38 @@ struct iterator_data
   struct item_data *pItem;
 };
 
+/* ERROR HANDLING POLICY FOR LISTS SYSTEM
+ * ========================================
+ * 
+ * Log Levels:
+ * - SYSERR (CMP, LVL_GRSTAFF): Programming errors that indicate bugs
+ *   - NULL list pointers passed to functions
+ *   - Iterator operations on NULL iterators
+ *   - API misuse that should never happen in correct code
+ * 
+ * - WARNING (NRM, LVL_STAFF): Normal but noteworthy conditions
+ *   - Attempting to iterate empty lists
+ *   - Removing items not in list (might be gameplay logic)
+ *   - simple_list() forced resets (indicates missing cleanup)
+ * 
+ * Return Values:
+ * - Functions return NULL on error when they return pointers
+ * - Void functions silently return on NULL input after logging
+ * - No functions abort/crash - all errors are recoverable
+ * 
+ * Edge Case Behaviors:
+ * - NULL list operations: Log error and return safely
+ * - Empty list operations: Return NULL/0 without error
+ * - Double-remove: Log warning but continue safely
+ * - Iterator on freed list: Reset safely if detected
+ * 
+ * Best Practices:
+ * - Always check return values from create_list()
+ * - Call simple_list(NULL) before and after loops
+ * - Use explicit iterators for nested operations
+ * - Free content separately from lists
+ */
+
 /* Externals */
 extern struct list_data *global_lists;
 extern struct list_data *group_list;
@@ -51,4 +83,43 @@ struct item_data *find_in_list(void *pContent, struct list_data *pList);
 void *simple_list(struct list_data *pList);
 void free_list(struct list_data *pList);
 /* clear_simple_list() - DEPRECATED: Use simple_list(NULL) instead */
+
+/* Beginner's Note: Helper macros for safer and more convenient list iteration.
+ * These macros provide safer alternatives to manual simple_list() usage.
+ * 
+ * NOTE: Due to C89/C90 compatibility requirements, the SIMPLE_LIST_FOREACH macro
+ * cannot be implemented as originally intended (would require C99 for-loop declarations).
+ * Instead, we provide helper macros for common patterns.
+ * 
+ * SAFE_REMOVE_FROM_LIST: Safe removal with NULL checks
+ * - Checks both item and list for NULL before attempting removal
+ * - Prevents crashes from NULL pointers
+ * 
+ * Usage example:
+ * SAFE_REMOVE_FROM_LIST(item, my_list);  // Won't crash on NULL
+ * 
+ * For iteration, continue using the traditional pattern:
+ * struct char_data *ch;
+ * simple_list(NULL);  // Reset before use
+ * while ((ch = (struct char_data *)simple_list(group_list))) {
+ *   // Process ch
+ * }
+ * simple_list(NULL);  // Clean up after use (if needed)
+ */
+
+/* Cleanup macro to reset the simple_list iterator
+ * Use this before starting iteration and after early exits
+ */
+#define SIMPLE_LIST_CLEANUP() simple_list(NULL)
+
+/* Safe removal macro with NULL checks
+ * Prevents crashes when item or list is NULL
+ */
+#define SAFE_REMOVE_FROM_LIST(item, list) \
+  do { \
+    if ((item) != NULL && (list) != NULL) { \
+      remove_from_list((item), (list)); \
+    } \
+  } while(0)
+
 #endif
