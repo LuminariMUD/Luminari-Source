@@ -1619,6 +1619,12 @@ void perform_perform(struct char_data *ch)
     return;
   }
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
          NULL)
   {
@@ -5988,6 +5994,12 @@ static void print_group(struct char_data *ch)
 
   send_to_char(ch, "Your group consists of:\r\n");
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
   {
     hp_pct = ((float)GET_HIT(k)) / ((float)GET_MAX_HIT(k)) * 100.00;
@@ -6071,6 +6083,12 @@ void update_msdp_group(struct char_data *ch)
   {
     if (ch->group)
     {
+      /* Beginner's Note: Reset simple_list iterator before use to prevent
+       * cross-contamination from previous iterations. Without this reset,
+       * if simple_list was used elsewhere and not completed, it would
+       * continue from where it left off instead of starting fresh. */
+      simple_list(NULL);
+      
       while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
       {
         char buf[4000]; // Buffer for building the group table for MSDP
@@ -6170,6 +6188,12 @@ static void display_group_list(struct char_data *ch)
                  "#   Group Leader     # of Mem  Open?  In Zone\r\n"
                  "-------------------------------------------------------------------\r\n");
 
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((group = (struct group_data *)simple_list(group_list)) != NULL)
     {
       /* we don't display npc groups */
@@ -6539,9 +6563,17 @@ ACMD(do_split)
     }
 
     if (GROUP(ch))
+    {
+      /* Beginner's Note: Reset simple_list iterator before use to prevent
+       * cross-contamination from previous iterations. Without this reset,
+       * if simple_list was used elsewhere and not completed, it would
+       * continue from where it left off instead of starting fresh. */
+      simple_list(NULL);
+      
       while ((k = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
         if (IN_ROOM(ch) == IN_ROOM(k) && !IS_NPC(k))
           num++;
+    }
 
     if (num && GROUP(ch))
     {
@@ -6565,6 +6597,12 @@ ACMD(do_split)
                (rest == 1) ? "" : "s", (rest == 1) ? "was" : "were", GET_NAME(ch));
     }
 
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((k = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
     {
       if (k != ch && IN_ROOM(ch) == IN_ROOM(k) && !IS_NPC(k))
