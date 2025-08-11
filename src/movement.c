@@ -39,37 +39,8 @@
 #include "transport.h"
 #include "routing.h"
 
-/* Include movement module headers */
-#include "movement_validation.h"
-#include "movement_cost.h"
-#include "movement_position.h"
-#include "movement_doors.h"
-#include "movement_falling.h"
-
-/* create_tracks()*/
-#define TRACKS_UNDEFINED 0
-#define TRACKS_IN 1
-#define TRACKS_OUT 2
-#define DIR_NONE -1
-
-#define DOOR_IS_OPENABLE(ch, obj, door) ((obj) ? (((GET_OBJ_TYPE(obj) ==                    \
-                                                    ITEM_CONTAINER) ||                      \
-                                                   GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) && \
-                                                  OBJVAL_FLAGGED(obj, CONT_CLOSEABLE))      \
-                                               : (EXIT_FLAGGED(EXIT(ch, door), EX_ISDOOR)))
-#define DOOR_IS_OPEN(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,          \
-                                                              CONT_CLOSED)) \
-                                           : (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)))
-#define DOOR_IS_UNLOCKED(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,                                                                         \
-                                                                  CONT_LOCKED))                                                                \
-                                               : (!EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED) && !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_EASY) && \
-                                                  !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_MEDIUM) && !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_HARD)))
-#define DOOR_IS_PICKPROOF(ch, obj, door) ((obj) ? (OBJVAL_FLAGGED(obj,             \
-                                                                  CONT_PICKPROOF)) \
-                                                : (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF)))
-#define DOOR_IS_CLOSED(ch, obj, door) (!(DOOR_IS_OPEN(ch, obj, door)))
-#define DOOR_IS_LOCKED(ch, obj, door) (!(DOOR_IS_UNLOCKED(ch, obj, door)))
-#define DOOR_KEY(ch, obj, door) ((obj) ? ((GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST) ? 0 : GET_OBJ_VAL(obj, 2)) : (EXIT(ch, door)->key))
+/* Include movement system header */
+#include "movement.h"
 
 /***** start file body *****/
 
@@ -183,24 +154,15 @@ struct char_data *get_char_ahead_of_me(struct char_data *ch, int dir)
   return ch->next_in_room;
 }
 
-/* falling system */
-
-/*  END falling system */
-
-/* simple function to determine if char can walk on water (or swim through it )*/
-
 #define ZONE_MINLVL(rnum) (zone_table[(rnum)].min_level)
 
-/** Leave tracks in the current room
- * */
-
+/** Leave tracks in the current room **/
  /*   Reference
 #define TRACKS_UNDEFINED 0
 #define TRACKS_IN 1
 #define TRACKS_OUT 2
 #define DIR_NONE -1
 */
-
 void create_tracks(struct char_data *ch, int dir, int flag)
 {
   struct room_data *room = NULL;
@@ -293,10 +255,6 @@ void create_tracks(struct char_data *ch, int dir, int flag)
     cur = next;
   }
 
-  /*
-    struct trail_data_list *trail_scent;
-    struct trail_data_list *trail_blood;
-*/
 }
 
 /* Clean up old trails in all rooms - called periodically */
