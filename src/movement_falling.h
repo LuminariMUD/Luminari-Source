@@ -15,4 +15,7 @@
 bool obj_should_fall(struct obj_data *obj);
 bool char_should_fall(struct char_data *ch, bool silent);
 
+/* Event function declaration */
+EVENTFUNC(event_falling);
+
 #endif /* MOVEMENT_FALLING_H */
