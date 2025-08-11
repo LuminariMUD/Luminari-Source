@@ -25,7 +25,7 @@ circle_SOURCES = \
 	src/act.comm.do_spec_comm.c \
 	src/act.informative.c \
 	src/act.item.c \
-	src/act.movement.c \
+	src/movement.c \
 	src/act.offensive.c \
 	src/act.other.c \
 	src/act.social.c \

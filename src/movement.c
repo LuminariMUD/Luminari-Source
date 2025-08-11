@@ -1,5 +1,5 @@
 /**************************************************************************
- *  File: act.movement.c                               Part of LuminariMUD *
+ *  File: movement.c                                   Part of LuminariMUD *
  *  Usage: Movement commands, door handling, & sleep/rest/etc state.       *
  *                                                                         *
  *  All rights reserved.  See license complete information.                *
