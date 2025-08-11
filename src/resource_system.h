@@ -346,7 +346,6 @@ int add_material_to_storage(struct char_data *ch, int category, int subtype, int
 int remove_material_from_storage(struct char_data *ch, int category, int subtype, int quality, int quantity);
 int get_material_quantity(struct char_data *ch, int category, int subtype, int quality);
 void show_material_storage(struct char_data *ch);
-void show_enhanced_material_storage(struct char_data *ch);
 void show_basic_material_storage(struct char_data *ch);
 
 /* Material name and description functions */
@@ -384,6 +383,7 @@ int get_enhanced_material_crafting_value(int category, int subtype, int quality)
 void integrate_wilderness_harvest_with_crafting(struct char_data *ch, int category, int subtype, int quality, int amount);
 bool is_enhanced_wilderness_material(int material_id);
 const char *get_enhanced_material_description(int category, int subtype, int quality);
+void show_enhanced_material_storage(struct char_data *ch);
 #endif /* ENABLE_WILDERNESS_CRAFTING_INTEGRATION */
 
 /* Phase 5: Player Harvesting Commands */

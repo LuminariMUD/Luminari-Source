@@ -1156,66 +1156,6 @@ const char *get_quality_bonus_description(int quality) {
     }
 }
 
-/* Enhanced materials display with crafting integration */
-void show_enhanced_material_storage(struct char_data *ch) {
-    int i;
-    int category_counts[NUM_RESOURCE_TYPES] = {0};
-    int total_materials = 0;
-    
-    if (!ch || IS_NPC(ch)) {
-        return;
-    }
-    
-    send_to_char(ch, "%s=== Enhanced Wilderness Materials (LuminariMUD) ===%s\r\n", 
-                 CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
-    send_to_char(ch, "Your materials are preserved with their full hierarchy and quality.\r\n");
-    send_to_char(ch, "These materials can be used in enhanced LuminariMUD crafting recipes.\r\n\r\n");
-    
-    if (ch->player_specials->saved.stored_material_count == 0) {
-        send_to_char(ch, "You have no wilderness materials stored.\r\n");
-        send_to_char(ch, "%sEnhanced Integration: ACTIVE%s\r\n", 
-                     CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
-        return;
-    }
-    
-    /* Group materials by category */
-    for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
-        struct material_storage *mat = &ch->player_specials->saved.stored_materials[i];
-        category_counts[mat->category]++;
-        total_materials += mat->quantity;
-    }
-    
-    /* Display materials by category */
-    int cat;
-    for (cat = 0; cat < NUM_RESOURCE_TYPES; cat++) {
-        if (category_counts[cat] == 0) continue;
-        
-        /* Category header */
-        const char *category_name = get_resource_name(cat);
-        send_to_char(ch, "%s%s Materials:%s\r\n", 
-                     CCYEL(ch, C_NRM), category_name, CCNRM(ch, C_NRM));
-        
-        /* Show materials in this category */
-        for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
-            struct material_storage *mat = &ch->player_specials->saved.stored_materials[i];
-            if (mat->category != cat) continue;
-            
-            const char *enhanced_name = get_enhanced_material_name(mat->category, mat->subtype, mat->quality);
-            int enhanced_id = get_enhanced_wilderness_material_id(mat->category, mat->subtype);
-            int crafting_value = get_enhanced_material_crafting_value(mat->category, mat->subtype, mat->quality);
-            
-            send_to_char(ch, "- %s (ID: %d) - Qty: %d\r\n", enhanced_name, enhanced_id, mat->quantity);
-            send_to_char(ch, "  Crafting Applications: %s\r\n", get_material_applications(mat->category));
-            send_to_char(ch, "  Crafting Value: %d (quality bonus: %s)\r\n\r\n", 
-                        crafting_value, get_quality_bonus_description(mat->quality));
-        }
-    }
-    
-    send_to_char(ch, "Total Materials: %d units\r\n", total_materials);
-    send_to_char(ch, "%sEnhanced Integration: ACTIVE%s\r\n", 
-                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
-}
-
 /* Basic materials display for campaigns without enhanced integration */
 void show_basic_material_storage(struct char_data *ch) {
     int i;
@@ -1617,6 +1557,66 @@ void integrate_wilderness_harvest_with_crafting(struct char_data *ch, int catego
     send_to_char(ch, "\\cY[Enhanced Crafting]\\cn The %s has a crafting value of %d and can be used "
                      "in advanced LuminariMUD recipes.\\r\\n", 
                      material_name, crafting_value);
+}
+
+/* Enhanced materials display with crafting integration */
+void show_enhanced_material_storage(struct char_data *ch) {
+    int i;
+    int category_counts[NUM_RESOURCE_TYPES] = {0};
+    int total_materials = 0;
+    
+    if (!ch || IS_NPC(ch)) {
+        return;
+    }
+    
+    send_to_char(ch, "%s=== Enhanced Wilderness Materials (LuminariMUD) ===%s\r\n", 
+                 CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "Your materials are preserved with their full hierarchy and quality.\r\n");
+    send_to_char(ch, "These materials can be used in enhanced LuminariMUD crafting recipes.\r\n\r\n");
+    
+    if (ch->player_specials->saved.stored_material_count == 0) {
+        send_to_char(ch, "You have no wilderness materials stored.\r\n");
+        send_to_char(ch, "%sEnhanced Integration: ACTIVE%s\r\n", 
+                     CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+        return;
+    }
+    
+    /* Group materials by category */
+    for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
+        struct material_storage *mat = &ch->player_specials->saved.stored_materials[i];
+        category_counts[mat->category]++;
+        total_materials += mat->quantity;
+    }
+    
+    /* Display materials by category */
+    int cat;
+    for (cat = 0; cat < NUM_RESOURCE_TYPES; cat++) {
+        if (category_counts[cat] == 0) continue;
+        
+        /* Category header */
+        const char *category_name = get_resource_name(cat);
+        send_to_char(ch, "%s%s Materials:%s\r\n", 
+                     CCYEL(ch, C_NRM), category_name, CCNRM(ch, C_NRM));
+        
+        /* Show materials in this category */
+        for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
+            struct material_storage *mat = &ch->player_specials->saved.stored_materials[i];
+            if (mat->category != cat) continue;
+            
+            const char *enhanced_name = get_enhanced_material_name(mat->category, mat->subtype, mat->quality);
+            int enhanced_id = get_enhanced_wilderness_material_id(mat->category, mat->subtype);
+            int crafting_value = get_enhanced_material_crafting_value(mat->category, mat->subtype, mat->quality);
+            
+            send_to_char(ch, "- %s (ID: %d) - Qty: %d\r\n", enhanced_name, enhanced_id, mat->quantity);
+            send_to_char(ch, "  Crafting Applications: %s\r\n", get_material_applications(mat->category));
+            send_to_char(ch, "  Crafting Value: %d (quality bonus: %s)\r\n\r\n", 
+                        crafting_value, get_quality_bonus_description(mat->quality));
+        }
+    }
+    
+    send_to_char(ch, "Total Materials: %d units\r\n", total_materials);
+    send_to_char(ch, "%sEnhanced Integration: ACTIVE%s\r\n", 
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
 }
 
 #endif /* ENABLE_WILDERNESS_CRAFTING_INTEGRATION */
