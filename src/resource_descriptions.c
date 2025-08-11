@@ -89,6 +89,44 @@ static const char *plains_sparse[] = {
     "The plains show signs of drought and neglect"
 };
 
+/* Water terrain descriptions */
+static const char *water_abundant[] = {
+    "Crystal-clear waters sparkle with vibrant aquatic life",
+    "The pristine waters reveal a thriving underwater ecosystem",
+    "Deep, clear waters teem with fish and aquatic vegetation"
+};
+
+static const char *water_moderate[] = {
+    "The calm waters reflect the sky with gentle ripples",
+    "Clear waters flow peacefully with a moderate current",
+    "Tranquil waters stretch across the aquatic landscape"
+};
+
+static const char *water_sparse[] = {
+    "The murky waters show little sign of life",
+    "Dark, stagnant waters reflect the gloomy atmosphere",
+    "Shallow, clouded waters reveal a struggling ecosystem"
+};
+
+/* Underwater terrain descriptions */
+static const char *underwater_abundant[] = {
+    "Dense kelp forests and coral formations create an underwater jungle",
+    "Vibrant coral reefs teem with colorful marine life",
+    "Lush underwater gardens flourish in the crystal-clear depths"
+};
+
+static const char *underwater_moderate[] = {
+    "Scattered sea plants and coral provide habitat for marine life",
+    "Modest coral formations dot the sandy ocean floor",
+    "Gentle underwater currents carry nutrients through the depths"
+};
+
+static const char *underwater_sparse[] = {
+    "The barren seafloor stretches into the murky depths",
+    "Rocky underwater terrain shows little sign of marine life",
+    "The dim underwater landscape appears mostly lifeless"
+};
+
 /* ===== TERRAIN TEMPLATE ARRAYS ===== */
 
 /* Base terrain descriptions by vegetation level */
@@ -125,12 +163,25 @@ char *generate_resource_aware_description(struct char_data *ch, room_rnum room)
     
     strcpy(description, base_desc);
     
-    /* Add layered details */
-    add_vegetation_details(description, &state, &context);
-    add_geological_details(description, &state, &context);
-    add_water_features(description, &state, &context);
-    add_temporal_atmosphere(description, &context);
-    add_wildlife_presence(description, &state, &context);
+    /* Add layered details - avoid redundant water descriptions for water terrains */
+    if (context.terrain_type != SECT_WATER_SWIM && 
+        context.terrain_type != SECT_WATER_NOSWIM && 
+        context.terrain_type != SECT_OCEAN && 
+        context.terrain_type != SECT_UNDERWATER) {
+        
+        add_vegetation_details(description, &state, &context);
+        add_geological_details(description, &state, &context);
+        add_water_features(description, &state, &context);
+        add_temporal_atmosphere(description, &context);
+        add_wildlife_presence(description, &state, &context);
+    } else {
+        /* Water terrains: add aquatic vegetation and geological features, skip redundant water descriptions */
+        add_vegetation_details(description, &state, &context);  /* Aquatic plants, seaweed, coral */
+        add_geological_details(description, &state, &context); /* Underwater rocks, seafloor */
+        /* Skip add_water_features() to avoid "waters move with currents" redundancy */
+        add_temporal_atmosphere(description, &context);
+        add_wildlife_presence(description, &state, &context);  /* Aquatic wildlife */
+    }
     
     /* Ensure proper ending */
     if (description[strlen(description) - 1] != '.') {
@@ -441,29 +492,32 @@ char *get_terrain_base_description(room_rnum room, struct resource_state *state,
         case SECT_WATER_SWIM:
         case SECT_WATER_NOSWIM:
         case SECT_OCEAN:
-            /* Water terrain - completely different descriptions */
+            /* Water terrain - use template-based descriptions */
             if (state->vegetation_level >= RESOURCE_ABUNDANT_THRESHOLD) {
-                /* Rich aquatic life */
-                snprintf(base_desc, sizeof(base_desc), "The clear, deep waters teem with aquatic life");
+                templates = water_abundant;
+                template_count = sizeof(water_abundant) / sizeof(water_abundant[0]);
             } else if (state->vegetation_level >= RESOURCE_MODERATE_THRESHOLD) {
-                /* Moderate aquatic environment */
-                snprintf(base_desc, sizeof(base_desc), "The waters flow with gentle currents and moderate clarity");
+                templates = water_moderate;
+                template_count = sizeof(water_moderate) / sizeof(water_moderate[0]);
             } else {
-                /* Sparse aquatic environment */
-                snprintf(base_desc, sizeof(base_desc), "The murky waters show little sign of life");
+                templates = water_sparse;
+                template_count = sizeof(water_sparse) / sizeof(water_sparse[0]);
             }
-            return strdup(base_desc);
+            break;
             
         case SECT_UNDERWATER:
-            /* Underwater terrain */
+            /* Underwater terrain - use template-based descriptions */
             if (state->vegetation_level >= RESOURCE_ABUNDANT_THRESHOLD) {
-                snprintf(base_desc, sizeof(base_desc), "Dense kelp forests and coral formations create an underwater jungle");
+                templates = underwater_abundant;
+                template_count = sizeof(underwater_abundant) / sizeof(underwater_abundant[0]);
             } else if (state->vegetation_level >= RESOURCE_MODERATE_THRESHOLD) {
-                snprintf(base_desc, sizeof(base_desc), "Scattered sea plants and coral provide habitat for marine life");
+                templates = underwater_moderate;
+                template_count = sizeof(underwater_moderate) / sizeof(underwater_moderate[0]);
             } else {
-                snprintf(base_desc, sizeof(base_desc), "The barren seafloor stretches into the murky depths");
+                templates = underwater_sparse;
+                template_count = sizeof(underwater_sparse) / sizeof(underwater_sparse[0]);
             }
-            return strdup(base_desc);
+            break;
             
         case SECT_BEACH:
             /* Beach terrain */
@@ -558,12 +612,29 @@ void add_vegetation_details(char *desc, struct resource_state *state,
 {
     if (!desc || !state || !context) return;
     
-    /* Skip vegetation descriptions for water terrain where they don't make sense */
+    /* Handle aquatic vegetation separately */
     if (context->terrain_type == SECT_WATER_SWIM || 
         context->terrain_type == SECT_WATER_NOSWIM ||
         context->terrain_type == SECT_UNDERWATER ||
         context->terrain_type == SECT_OCEAN) {
-        return; /* No vegetation descriptions for open water areas */
+        
+        /* Add aquatic vegetation based on vegetation levels */
+        if (state->vegetation_level >= RESOURCE_ABUNDANT_THRESHOLD) {
+            if (context->terrain_type == SECT_UNDERWATER) {
+                strcat(desc, ". Swaying kelp forests and colorful coral formations create an underwater garden");
+            } else if (context->terrain_type == SECT_OCEAN) {
+                strcat(desc, ". Patches of floating seaweed drift across the surface");
+            } else {
+                strcat(desc, ". Aquatic plants and reeds line the water's edge");
+            }
+        } else if (state->vegetation_level >= RESOURCE_MODERATE_THRESHOLD) {
+            if (context->terrain_type == SECT_UNDERWATER) {
+                strcat(desc, ". Scattered sea plants and small coral formations dot the seafloor");
+            } else {
+                strcat(desc, ". Sparse aquatic vegetation breaks the water's surface");
+            }
+        }
+        return; /* Done with aquatic vegetation */
     }
     
     /* Add seasonal vegetation details - terrain-aware for appropriate plant types */
@@ -1077,31 +1148,68 @@ void add_wildlife_presence(char *desc, struct resource_state *state,
 {
     if (!desc || !state || !context) return;
     
+    /* Check if this is an aquatic environment */
+    bool is_aquatic = (context->terrain_type == SECT_WATER_SWIM || 
+                       context->terrain_type == SECT_WATER_NOSWIM || 
+                       context->terrain_type == SECT_OCEAN || 
+                       context->terrain_type == SECT_UNDERWATER);
+    
     /* Add wildlife based on vegetation and game levels */
     if (state->vegetation_level >= RESOURCE_MODERATE_THRESHOLD && 
         state->game_level >= RESOURCE_MODERATE_THRESHOLD) {
         
-        switch (context->time_of_day) {
-            case SUN_RISE:
-            case SUN_SET:
-                strcat(desc, ". Small creatures can be heard moving through the underbrush");
-                break;
-            case SUN_LIGHT:
-                /* Different wildlife sounds based on time within daylight hours */
-                if (time_info.hours >= 6 && time_info.hours < 12) {
-                    strcat(desc, ". Birdsong echoes from the canopy above");
-                } else if (time_info.hours >= 12 && time_info.hours < 18) {
-                    strcat(desc, ". The quiet rustle of leaves hints at hidden wildlife");
-                } else {
-                    strcat(desc, ". Evening wildlife begins to stir in the shadows");
-                }
-                break;
-            case SUN_DARK:
-                strcat(desc, ". Night sounds drift through the darkness");
-                break;
+        if (is_aquatic) {
+            /* Aquatic wildlife descriptions */
+            switch (context->time_of_day) {
+                case SUN_RISE:
+                case SUN_SET:
+                    if (context->terrain_type == SECT_UNDERWATER) {
+                        strcat(desc, ". Shadowy fish move through the changing light");
+                    } else {
+                        strcat(desc, ". Fish leap from the water's surface in the changing light");
+                    }
+                    break;
+                case SUN_LIGHT:
+                    if (time_info.hours >= 6 && time_info.hours < 12) {
+                        strcat(desc, ". Schools of fish glimmer beneath the surface");
+                    } else if (time_info.hours >= 12 && time_info.hours < 18) {
+                        strcat(desc, ". Aquatic life moves gracefully through the depths");
+                    } else {
+                        strcat(desc, ". Evening feeders stir in the deeper waters");
+                    }
+                    break;
+                case SUN_DARK:
+                    strcat(desc, ". Nocturnal marine life becomes active in the darkness");
+                    break;
+            }
+        } else {
+            /* Terrestrial wildlife descriptions */
+            switch (context->time_of_day) {
+                case SUN_RISE:
+                case SUN_SET:
+                    strcat(desc, ". Small creatures can be heard moving through the underbrush");
+                    break;
+                case SUN_LIGHT:
+                    /* Different wildlife sounds based on time within daylight hours */
+                    if (time_info.hours >= 6 && time_info.hours < 12) {
+                        strcat(desc, ". Birdsong echoes from the canopy above");
+                    } else if (time_info.hours >= 12 && time_info.hours < 18) {
+                        strcat(desc, ". The quiet rustle of leaves hints at hidden wildlife");
+                    } else {
+                        strcat(desc, ". Evening wildlife begins to stir in the shadows");
+                    }
+                    break;
+                case SUN_DARK:
+                    strcat(desc, ". Night sounds drift through the darkness");
+                    break;
+            }
         }
     } else if (state->vegetation_level >= RESOURCE_SPARSE_THRESHOLD) {
-        strcat(desc, ". The area rests in peaceful solitude");
+        if (is_aquatic) {
+            strcat(desc, ". The waters rest in serene tranquility");
+        } else {
+            strcat(desc, ". The area rests in peaceful solitude");
+        }
     }
 }
 
