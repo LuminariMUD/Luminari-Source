@@ -56,6 +56,11 @@
 #include "perfmon.h"
 #include "routing.h"
 
+/* Phase 7: Cascade system integration */
+#ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM
+/* #include "resource_cascade.h" */  /* Phase 7: Ecological cascade system - disabled for simple implementation */
+#endif
+
 /* prototypes of local functions */
 /* do_diagnose utility functions */
 static void diag_char_to_char(struct char_data *i, struct char_data *ch);
@@ -8203,6 +8208,9 @@ ACMD(do_survey)
     send_to_char(ch, "\r\nUse '\tCsurvey resources\tn' to scan for natural resources.\r\n");
     send_to_char(ch, "Use '\tCsurvey terrain\tn' for detailed terrain analysis.\r\n");
     send_to_char(ch, "Use '\tCsurvey conservation\tn' for resource depletion status.\r\n");
+    send_to_char(ch, "Use '\tCsurvey ecosystem\tn' for ecosystem health analysis.\r\n");
+    send_to_char(ch, "Use '\tCsurvey impact\tn' to see your conservation impact.\r\n");
+    send_to_char(ch, "Use '\tCsurvey cascade <resource>\tn' to preview ecological impact.\r\n");
   }
   else if (is_abbrev(arg, "resources")) {
     /* Resource survey - main new functionality */
@@ -8365,6 +8373,55 @@ ACMD(do_survey)
     y = world[IN_ROOM(ch)].coords[1];
     show_regeneration_analysis(ch, x, y);
   }
+  else if (is_abbrev(arg, "ecosystem")) {
+    /* Phase 7: Ecosystem health analysis */
+    show_ecosystem_analysis(ch, IN_ROOM(ch));
+  }
+  else if (is_abbrev(arg, "impact")) {
+    /* Phase 7: Player conservation impact analysis */
+#ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM
+    show_conservation_impact(ch);
+#else
+    send_to_char(ch, "Conservation impact tracking is not available.\r\n");
+#endif
+  }
+  else if (is_abbrev(arg, "cascade")) {
+    /* Phase 7: Cascade effect preview */
+    char arg2[MAX_INPUT_LENGTH];
+    int resource_type = -1, i;
+    
+    /* Get resource type argument */
+    argument = one_argument(argument, arg, sizeof(arg)); /* Skip "cascade" */
+    one_argument(argument, arg2, sizeof(arg2)); /* Get resource type */
+    
+    if (!*arg2) {
+      send_to_char(ch, "Usage: survey cascade <resource_type>\r\n");
+      send_to_char(ch, "Available resources: ");
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        send_to_char(ch, "%s%s", resource_names[i], i < NUM_RESOURCE_TYPES - 1 ? ", " : "\r\n");
+      }
+      return;
+    }
+    
+    /* Parse resource type */
+    if (is_number(arg2)) {
+      resource_type = atoi(arg2);
+    } else {
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        if (is_abbrev(arg2, resource_names[i])) {
+          resource_type = i;
+          break;
+        }
+      }
+    }
+    
+    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES) {
+      send_to_char(ch, "Invalid resource type '%s'.\r\n", arg2);
+      return;
+    }
+    
+    show_cascade_preview(ch, IN_ROOM(ch), resource_type);
+  }
   else if (is_abbrev(arg, "debug") && GET_LEVEL(ch) >= LVL_IMMORT) {
     /* Debug information for admins */
     show_debug_survey(ch);
@@ -8380,15 +8437,21 @@ ACMD(do_survey)
                  CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "  %ssurvey regeneration%s     - Resource regeneration analysis\r\n",
                  CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey ecosystem%s        - Ecosystem health analysis\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey impact%s           - Your conservation impact and environmental score\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey cascade <type>%s   - Preview ecological impact of harvesting\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
     if (GET_LEVEL(ch) >= LVL_IMMORT) {
       send_to_char(ch, "  survey debug           - Debug information\r\n");
     }
     send_to_char(ch, "\r\nResource types: vegetation, minerals, water, herbs, game,\r\n");
     send_to_char(ch, "                wood, stone, crystal, clay, salt\r\n");
-    send_to_char(ch, "\r\n%sPhase 6 Conservation Features:%s\r\n", 
+    send_to_char(ch, "\r\n%sPhase 7 Ecological Interdependencies:%s\r\n", 
                  CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
-    send_to_char(ch, "Resources now deplete with harvesting and regenerate over time.\r\n");
-    send_to_char(ch, "Conservation surveys help track environmental health.\r\n");
+    send_to_char(ch, "Harvesting one resource now affects related resources!\r\n");
+    send_to_char(ch, "Use cascade preview to understand ecological impacts before harvesting.\r\n");
   }
 }
 
