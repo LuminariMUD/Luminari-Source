@@ -924,6 +924,8 @@ ACMD_DECL(do_setworldsect);
 ACMD_DECL(do_setroomname);
 ACMD_DECL(do_setroomdesc);
 ACMD_DECL(do_setroomflag);
+ACMD_DECL(do_settime);
+ACMD_DECL(do_setweather);
 ACMD_DECL(do_hlqlist);
 ACMD_DECL(do_advance);
 ACMD_DECL(do_objlist);
