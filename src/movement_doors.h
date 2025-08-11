@@ -35,8 +35,12 @@
 int is_evaporating_key(struct char_data *ch, obj_vnum key);
 int has_key(struct char_data *ch, obj_vnum key);
 void extract_key(struct char_data *ch, obj_vnum key);
+int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int door);
 
 /* ACMD declaration for door command */
 ACMD_DECL(do_gen_door);
+
+/* External variables */
+extern const char *const cmd_door[];
 
 #endif /* MOVEMENT_DOORS_H */

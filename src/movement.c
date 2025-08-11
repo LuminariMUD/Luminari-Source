@@ -46,11 +46,16 @@
 #ifdef MOVEMENT_COST_SEPARATE
 #include "movement_cost.h"
 #endif
+#ifdef MOVEMENT_POSITION_SEPARATE
+#include "movement_position.h"
+#endif
 
 /* do_gen_door utility functions */
+#ifndef MOVEMENT_DOORS_SEPARATE
 static int find_door(struct char_data *ch, const char *type, char *dir, const char *cmdname);
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd);
 static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int door);
+#endif
 
 /* create_tracks()*/
 #define TRACKS_UNDEFINED 0
@@ -196,6 +201,7 @@ struct char_data *get_char_ahead_of_me(struct char_data *ch, int dir)
 
 /* falling system */
 
+#ifndef MOVEMENT_FALLING_SEPARATE
 /* TODO objects */
 
 /* this function will check whether a obj should fall or not based on
@@ -219,7 +225,9 @@ bool obj_should_fall(struct obj_data *obj)
 
   return falling;
 }
+#endif /* !MOVEMENT_FALLING_SEPARATE */
 
+#ifndef MOVEMENT_FALLING_SEPARATE
 /* this function will check whether a char should fall or not based on
    circumstances and whether the ch is flying / levitate */
 bool char_should_fall(struct char_data *ch, bool silent)
@@ -258,7 +266,9 @@ bool char_should_fall(struct char_data *ch, bool silent)
 
   return falling;
 }
+#endif /* !MOVEMENT_FALLING_SEPARATE */
 
+#ifndef MOVEMENT_FALLING_SEPARATE
 EVENTFUNC(event_falling)
 {
   struct mud_event_data *pMudEvent = NULL;
@@ -387,6 +397,7 @@ EVENTFUNC(event_falling)
 
   return 0;
 }
+#endif /* !MOVEMENT_FALLING_SEPARATE */
 /*  END falling system */
 
 /* simple function to determine if char can walk on water (or swim through it )*/
@@ -2283,6 +2294,7 @@ ACMD(do_move)
   perform_move(ch, subcmd, 0);
 }
 
+#ifndef MOVEMENT_DOORS_SEPARATE
 static int find_door(struct char_data *ch, const char *type, char *dir, const char *cmdname)
 {
   int door;
@@ -2391,10 +2403,15 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
     return (-1);
   }
 }
+#endif /* !MOVEMENT_DOORS_SEPARATE */
 
+#ifndef MOVEMENT_DOORS_SEPARATE
 #define PRISONER_KEY_1 132130
 #define PRISONER_KEY_2 132129
 #define PRISONER_KEY_3 132150
+#endif /* !MOVEMENT_DOORS_SEPARATE */
+
+#ifndef MOVEMENT_DOORS_SEPARATE
 /* this function will destroy the keyvnums that go through it so they can't be horded, called by has_key() */
 int is_evaporating_key(struct char_data *ch, obj_vnum key)
 {
@@ -2438,7 +2455,9 @@ int is_evaporating_key(struct char_data *ch, obj_vnum key)
 
   return FALSE;
 }
+#endif /* !MOVEMENT_DOORS_SEPARATE */
 
+#ifndef MOVEMENT_DOORS_SEPARATE
 /* this function checks that ch has in inventory or held an object with matching vnum as the door-key value
      note - added a check for NOTHING or -1 vnum key value so corpses can't be used to open these doors -zusuk */
 int has_key(struct char_data *ch, obj_vnum key)
@@ -2486,7 +2505,9 @@ int has_key(struct char_data *ch, obj_vnum key)
 
   return (0);
 }
+#endif /* !MOVEMENT_DOORS_SEPARATE */
 
+#ifndef MOVEMENT_DOORS_SEPARATE
 // This will attempt to remove the key from the character
 // if the key is found and the key is flagged EXTRACT_ON_USE
 void extract_key(struct char_data *ch, obj_vnum key)
@@ -2529,7 +2550,9 @@ void extract_key(struct char_data *ch, obj_vnum key)
     }
 
 }
+#endif /* !MOVEMENT_DOORS_SEPARATE */
 
+#ifndef MOVEMENT_DOORS_SEPARATE
 #define NEED_OPEN (1 << 0)
 #define NEED_CLOSED (1 << 1)
 #define NEED_UNLOCKED (1 << 2)
@@ -2549,7 +2572,9 @@ static const int flags_door[] = {
     NEED_CLOSED | NEED_LOCKED,
     NEED_CLOSED | NEED_UNLOCKED,
     NEED_CLOSED | NEED_LOCKED};
+#endif /* !MOVEMENT_DOORS_SEPARATE */
 
+#ifndef MOVEMENT_DOORS_SEPARATE
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -2699,7 +2724,9 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
   /* Door actions are a move action. */
   USE_MOVE_ACTION(ch);
 }
+#endif /* !MOVEMENT_DOORS_SEPARATE */
 
+#ifndef MOVEMENT_DOORS_SEPARATE
 int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int door)
 {
   int skill_lvl, roll;
@@ -2790,7 +2817,9 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
   USE_MOVE_ACTION(ch);
   return (0);
 }
+#endif /* !MOVEMENT_DOORS_SEPARATE */
 
+#ifndef MOVEMENT_DOORS_SEPARATE
 ACMD(do_gen_door)
 {
   int door = -1;
@@ -2894,6 +2923,7 @@ ACMD(do_gen_door)
   }
   return;
 }
+#endif /* !MOVEMENT_DOORS_SEPARATE */
 
 ACMD(do_enter)
 {
@@ -3212,6 +3242,7 @@ ACMD(do_leave)
 }
 
 /* put together a simple check to see if someone can stand, at time of writing its for AUTO_STAND */
+#ifndef MOVEMENT_POSITION_SEPARATE
 bool can_stand(struct char_data *ch)
 {
 
@@ -3249,7 +3280,9 @@ bool can_stand(struct char_data *ch)
   /* how did we get here? */
   return FALSE;
 }
+#endif /* MOVEMENT_POSITION_SEPARATE */
 
+#ifndef MOVEMENT_POSITION_SEPARATE
 /* Stand - Standing costs a move action. */
 ACMD(do_stand)
 {
@@ -3314,7 +3347,9 @@ ACMD(do_stand)
     break;
   }
 }
+#endif /* !MOVEMENT_POSITION_SEPARATE */
 
+#ifndef MOVEMENT_POSITION_SEPARATE
 ACMD(do_sit)
 {
   char arg[MAX_STRING_LENGTH] = {'\0'};
@@ -3405,7 +3440,9 @@ ACMD(do_sit)
     break;
   }
 }
+#endif /* !MOVEMENT_POSITION_SEPARATE */
 
+#ifndef MOVEMENT_POSITION_SEPARATE
 ACMD(do_rest)
 {
 
@@ -3461,7 +3498,9 @@ ACMD(do_rest)
   // }
 
 }
+#endif /* !MOVEMENT_POSITION_SEPARATE */
 
+#ifndef MOVEMENT_POSITION_SEPARATE
 ACMD(do_recline)
 {
   switch (GET_POS(ch))
@@ -3498,7 +3537,9 @@ ACMD(do_recline)
     break;
   }
 }
+#endif /* !MOVEMENT_POSITION_SEPARATE */
 
+#ifndef MOVEMENT_POSITION_SEPARATE
 ACMD(do_sleep)
 {
 
@@ -3532,7 +3573,9 @@ ACMD(do_sleep)
     break;
   }
 }
+#endif /* !MOVEMENT_POSITION_SEPARATE */
 
+#ifndef MOVEMENT_POSITION_SEPARATE
 ACMD(do_wake)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -3574,6 +3617,7 @@ ACMD(do_wake)
     change_position(ch, POS_RECLINING);
   }
 }
+#endif /* !MOVEMENT_POSITION_SEPARATE */
 
 ACMD(do_follow)
 {
@@ -3701,6 +3745,7 @@ ACMD(do_unlead)
               maneuver TRIP, which would change your position from POS_STANDING to
               POS_SITTING, if the victim is casting, then they should be -immediately-
               interrupted.  */
+#ifndef MOVEMENT_POSITION_SEPARATE
 int change_position(struct char_data *ch, int new_position)
 {
   if (!ch)
@@ -4027,6 +4072,7 @@ int change_position(struct char_data *ch, int new_position)
   else
     return 1;
 }
+#endif /* MOVEMENT_POSITION_SEPARATE */
 
 ACMD(do_sorcerer_draconic_wings)
 {
