@@ -6,7 +6,8 @@ SUBDIRS = util
 
 # Additional compiler flags
 # Revert to project defaults: do NOT force global feature defines here.
-AM_CFLAGS = -std=gnu90 -Isrc @MYFLAGS@
+# Enable separate movement modules during refactoring
+AM_CFLAGS = -std=gnu90 -Isrc @MYFLAGS@ -DMOVEMENT_VALIDATION_SEPARATE -DMOVEMENT_COST_SEPARATE
 
 # Build timestamp information
 MKTIME = $(shell date +%s)
@@ -26,6 +27,11 @@ circle_SOURCES = \
 	src/act.informative.c \
 	src/act.item.c \
 	src/movement.c \
+	src/movement_validation.c \
+	src/movement_cost.c \
+	src/movement_position.c \
+	src/movement_doors.c \
+	src/movement_falling.c \
 	src/act.offensive.c \
 	src/act.other.c \
 	src/act.social.c \

@@ -39,6 +39,14 @@
 #include "transport.h"
 #include "routing.h"
 
+/* Include movement module headers when using separate modules */
+#ifdef MOVEMENT_VALIDATION_SEPARATE
+#include "movement_validation.h"
+#endif
+#ifdef MOVEMENT_COST_SEPARATE
+#include "movement_cost.h"
+#endif
+
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir, const char *cmdname);
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd);
@@ -382,6 +390,7 @@ EVENTFUNC(event_falling)
 /*  END falling system */
 
 /* simple function to determine if char can walk on water (or swim through it )*/
+#ifndef MOVEMENT_VALIDATION_SEPARATE
 int has_boat(struct char_data *ch, room_rnum going_to)
 {
   struct obj_data *obj;
@@ -436,7 +445,9 @@ int has_boat(struct char_data *ch, room_rnum going_to)
 
   return (0);
 }
+#endif /* MOVEMENT_VALIDATION_SEPARATE */
 
+#ifndef MOVEMENT_VALIDATION_SEPARATE
 /* Simple function to determine if char can fly. */
 int has_flight(struct char_data *ch)
 {
@@ -461,7 +472,9 @@ int has_flight(struct char_data *ch)
 
   return (0);
 }
+#endif /* MOVEMENT_VALIDATION_SEPARATE */
 
+#ifndef MOVEMENT_VALIDATION_SEPARATE
 /* Simple function to determine if char can scuba. */
 int has_scuba(struct char_data *ch, room_rnum destination)
 {
@@ -489,8 +502,10 @@ int has_scuba(struct char_data *ch, room_rnum destination)
 
   return (0);
 }
+#endif /* MOVEMENT_VALIDATION_SEPARATE */
 
 #define ZONE_MINLVL(rnum) (zone_table[(rnum)].min_level)
+#ifndef MOVEMENT_VALIDATION_SEPARATE
 /* Simple function to determine if char can climb */
 int can_climb(struct char_data *ch)
 {
@@ -578,6 +593,7 @@ int can_climb(struct char_data *ch)
 
   return (0);
 }
+#endif /* MOVEMENT_VALIDATION_SEPARATE */
 
 /** Leave tracks in the current room
  * */
@@ -4139,6 +4155,7 @@ ACMD(do_pullswitch)
     send_to_room(ch->in_room, "*ka-ching*\r\n");
 }
 
+#ifndef MOVEMENT_COST_SEPARATE
 int get_speed(struct char_data *ch, sbyte to_display)
 {
 
@@ -4219,6 +4236,7 @@ int get_speed(struct char_data *ch, sbyte to_display)
 
   return speed;
 }
+#endif /* MOVEMENT_COST_SEPARATE */
 
 ACMD(do_transposition)
 {
