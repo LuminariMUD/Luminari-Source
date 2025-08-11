@@ -102,7 +102,7 @@ void sort_spells(void)
 
 SPECIAL(warbow)
 {
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This is a special warbow.\r\n");
     return TRUE;
