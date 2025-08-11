@@ -204,9 +204,9 @@ void apply_lazy_regeneration(room_rnum room, int resource_type)
             float new_depletion = current_depletion + regeneration;
             if (new_depletion > 1.0) new_depletion = 1.0; /* Cap at fully available */
             
-            /* Update the database with regenerated amount */
+            /* Update the database with regenerated amount - DON'T update last_harvest timestamp! */
             snprintf(update_query, sizeof(update_query),
-                "UPDATE resource_depletion SET depletion_level = %.3f, last_harvest = CURRENT_TIMESTAMP "
+                "UPDATE resource_depletion SET depletion_level = %.3f "
                 "WHERE zone_vnum = %d AND x_coord = %d AND y_coord = %d AND resource_type = %d",
                 new_depletion, zone_vnum, x, y, resource_type);
             
@@ -331,6 +331,393 @@ void apply_harvest_depletion(room_rnum room, int resource_type, int quantity)
     
     if (mysql_query_safe(conn, query)) {
         log("SYSERR: Error updating resource depletion: %s", mysql_error(conn));
+    }
+}
+
+/* Enhanced depletion with cascade effects - Phase 7 */
+void apply_harvest_depletion_with_cascades(room_rnum room, int resource_type, int quantity)
+{
+    /* Apply normal depletion first */
+    apply_harvest_depletion(room, resource_type, quantity);
+    
+    /* Then apply cascade effects */
+    apply_cascade_effects(room, resource_type, quantity);
+}
+
+/* ===== PHASE 7: ECOLOGICAL CASCADE EFFECTS ===== */
+
+/* Apply cascade effects based on the ecological relationship matrix */
+void apply_cascade_effects(room_rnum room, int source_resource, int quantity)
+{
+    float cascade_amount;
+    
+    if (room == NOWHERE || source_resource < 0 || source_resource >= NUM_RESOURCE_TYPES || quantity <= 0)
+        return;
+    
+    /* If MySQL not available, skip cascade effects */
+    if (!mysql_available || !conn) {
+        return;
+    }
+    
+    /* Apply cascade effects based on the ecological relationship matrix */
+    switch (source_resource) {
+        case RESOURCE_VEGETATION:
+            /* VEGETATION → HERBS (-), GAME (-), CLAY (+) */
+            cascade_amount = quantity * 0.03f; /* -3% effect */
+            apply_single_cascade_effect(room, RESOURCE_HERBS, -cascade_amount, "vegetation harvesting damages herb root systems");
+            
+            cascade_amount = quantity * 0.02f; /* -2% effect */
+            apply_single_cascade_effect(room, RESOURCE_GAME, -cascade_amount, "vegetation removal disrupts game habitats");
+            
+            cascade_amount = quantity * 0.01f; /* +1% effect */
+            apply_single_cascade_effect(room, RESOURCE_CLAY, cascade_amount, "plant removal exposes clay deposits");
+            break;
+            
+        case RESOURCE_HERBS:
+            /* HERBS → VEGETATION (-), GAME (-) */
+            cascade_amount = quantity * 0.02f; /* -2% effect */
+            apply_single_cascade_effect(room, RESOURCE_VEGETATION, -cascade_amount, "herb harvesting damages vegetation root networks");
+            
+            cascade_amount = quantity * 0.01f; /* -1% effect */
+            apply_single_cascade_effect(room, RESOURCE_GAME, -cascade_amount, "herb harvesting reduces game food sources");
+            break;
+            
+        case RESOURCE_MINERALS:
+            /* MINERALS → CRYSTAL (--), WATER (-), STONE (+) */
+            cascade_amount = quantity * 0.08f; /* -8% strong effect */
+            apply_single_cascade_effect(room, RESOURCE_CRYSTAL, -cascade_amount, "heavy mining operations destroy crystal formations");
+            
+            cascade_amount = quantity * 0.03f; /* -3% effect */
+            apply_single_cascade_effect(room, RESOURCE_WATER, -cascade_amount, "mining disrupts groundwater systems");
+            
+            cascade_amount = quantity * 0.02f; /* +2% effect */
+            apply_single_cascade_effect(room, RESOURCE_STONE, cascade_amount, "mining exposes stone deposits");
+            break;
+            
+        case RESOURCE_CRYSTAL:
+            /* CRYSTAL → MINERALS (-), STONE (-) */
+            cascade_amount = quantity * 0.04f; /* -4% effect */
+            apply_single_cascade_effect(room, RESOURCE_MINERALS, -cascade_amount, "crystal extraction affects mineral ore veins");
+            
+            cascade_amount = quantity * 0.02f; /* -2% effect */
+            apply_single_cascade_effect(room, RESOURCE_STONE, -cascade_amount, "precision crystal mining weakens stone integrity");
+            break;
+            
+        case RESOURCE_WOOD:
+            /* WOOD → VEGETATION (-), HERBS (-), GAME (-) */
+            cascade_amount = quantity * 0.05f; /* -5% effect */
+            apply_single_cascade_effect(room, RESOURCE_VEGETATION, -cascade_amount, "tree removal changes canopy and sunlight patterns");
+            
+            cascade_amount = quantity * 0.04f; /* -4% effect */
+            apply_single_cascade_effect(room, RESOURCE_HERBS, -cascade_amount, "deforestation disrupts herb microclimates");
+            
+            cascade_amount = quantity * 0.06f; /* -6% effect */
+            apply_single_cascade_effect(room, RESOURCE_GAME, -cascade_amount, "tree removal destroys game habitats");
+            break;
+            
+        case RESOURCE_GAME:
+            /* GAME → VEGETATION (+), HERBS (+) */
+            cascade_amount = quantity * 0.03f; /* +3% effect */
+            apply_single_cascade_effect(room, RESOURCE_VEGETATION, cascade_amount, "reduced game population decreases grazing pressure");
+            
+            cascade_amount = quantity * 0.02f; /* +2% effect */
+            apply_single_cascade_effect(room, RESOURCE_HERBS, cascade_amount, "less wildlife reduces herb trampling");
+            break;
+            
+        case RESOURCE_STONE:
+            /* STONE → MINERALS (-), CRYSTAL (-), CLAY (+) */
+            cascade_amount = quantity * 0.03f; /* -3% effect */
+            apply_single_cascade_effect(room, RESOURCE_MINERALS, -cascade_amount, "quarrying operations disrupt mineral ore seams");
+            
+            cascade_amount = quantity * 0.05f; /* -5% effect */
+            apply_single_cascade_effect(room, RESOURCE_CRYSTAL, -cascade_amount, "stone quarrying vibrations shatter crystal formations");
+            
+            cascade_amount = quantity * 0.03f; /* +3% effect */
+            apply_single_cascade_effect(room, RESOURCE_CLAY, cascade_amount, "quarrying exposes sediment layers containing clay");
+            break;
+            
+        case RESOURCE_WATER:
+            /* WATER → CLAY (+), VEGETATION (+), HERBS (+) */
+            cascade_amount = quantity * 0.04f; /* +4% effect */
+            apply_single_cascade_effect(room, RESOURCE_CLAY, cascade_amount, "water harvesting exposes lakebed clay deposits");
+            
+            cascade_amount = quantity * 0.02f; /* +2% effect */
+            apply_single_cascade_effect(room, RESOURCE_VEGETATION, cascade_amount, "irrigation effect from water use");
+            
+            cascade_amount = quantity * 0.03f; /* +3% effect */
+            apply_single_cascade_effect(room, RESOURCE_HERBS, cascade_amount, "medicinal plants benefit from water irrigation");
+            break;
+            
+        case RESOURCE_CLAY:
+            /* CLAY → WATER (-), VEGETATION (-) */
+            cascade_amount = quantity * 0.025f; /* -2.5% effect */
+            apply_single_cascade_effect(room, RESOURCE_WATER, -cascade_amount, "clay extraction diverts water from natural systems");
+            
+            cascade_amount = quantity * 0.015f; /* -1.5% effect */
+            apply_single_cascade_effect(room, RESOURCE_VEGETATION, -cascade_amount, "clay harvesting disturbs vegetation root systems");
+            break;
+            
+        case RESOURCE_SALT:
+            /* SALT → WATER (-), VEGETATION (--) */
+            cascade_amount = quantity * 0.06f; /* -6% effect */
+            apply_single_cascade_effect(room, RESOURCE_WATER, -cascade_amount, "salt harvesting depletes brine pools and water sources");
+            
+            cascade_amount = quantity * 0.08f; /* -8% strong effect */
+            apply_single_cascade_effect(room, RESOURCE_VEGETATION, -cascade_amount, "salt extraction causes soil salinization");
+            break;
+            
+        default:
+            /* No cascade effects for this resource type */
+            break;
+    }
+}
+
+/* Apply a single cascade effect to a target resource */
+void apply_single_cascade_effect(room_rnum room, int target_resource, float effect_magnitude, const char *description)
+{
+    char query[MAX_STRING_LENGTH];
+    int x, y, zone_vnum;
+    float current_depletion, new_depletion;
+    
+    if (room == NOWHERE || target_resource < 0 || target_resource >= NUM_RESOURCE_TYPES)
+        return;
+    
+    if (!mysql_available || !conn)
+        return;
+    
+    /* Get coordinates and zone */
+    x = world[room].coords[0];
+    y = world[room].coords[1];
+    zone_vnum = zone_table[world[room].zone].number;
+    
+    /* Get current depletion level */
+    current_depletion = get_resource_depletion_level(room, target_resource);
+    
+    /* Apply cascade effect */
+    if (effect_magnitude < 0.0) {
+        /* Negative effect - deplete target resource */
+        float depletion_amount = (effect_magnitude < 0.0) ? -effect_magnitude : effect_magnitude;
+        if (depletion_amount > 0.25) depletion_amount = 0.25; /* Cap cascade effects */
+        
+        new_depletion = current_depletion - depletion_amount;
+        if (new_depletion < 0.0) new_depletion = 0.0;
+        
+        /* Update database with cascade depletion */
+        snprintf(query, sizeof(query),
+            "INSERT INTO resource_depletion "
+            "(zone_vnum, x_coord, y_coord, resource_type, depletion_level, cascade_effects) "
+            "VALUES (%d, %d, %d, %d, %.3f, '%s') "
+            "ON DUPLICATE KEY UPDATE "
+            "depletion_level = GREATEST(0.0, depletion_level - %.3f), "
+            "cascade_effects = CONCAT(IFNULL(cascade_effects, ''), '; %s'), "
+            "last_harvest = CURRENT_TIMESTAMP",
+            zone_vnum, x, y, target_resource, new_depletion, description,
+            depletion_amount, description);
+            
+    } else if (effect_magnitude > 0.0) {
+        /* Positive effect - enhance target resource */
+        float enhancement_amount = effect_magnitude;
+        if (enhancement_amount > 0.25) enhancement_amount = 0.25; /* Cap cascade effects */
+        
+        new_depletion = current_depletion + enhancement_amount;
+        if (new_depletion > 1.0) new_depletion = 1.0;
+        
+        /* Update database with cascade enhancement */
+        snprintf(query, sizeof(query),
+            "INSERT INTO resource_depletion "
+            "(zone_vnum, x_coord, y_coord, resource_type, depletion_level, cascade_effects) "
+            "VALUES (%d, %d, %d, %d, %.3f, '%s') "
+            "ON DUPLICATE KEY UPDATE "
+            "depletion_level = LEAST(1.0, depletion_level + %.3f), "
+            "cascade_effects = CONCAT(IFNULL(cascade_effects, ''), '; %s'), "
+            "last_harvest = CURRENT_TIMESTAMP",
+            zone_vnum, x, y, target_resource, new_depletion, description,
+            enhancement_amount, description);
+    } else {
+        /* No effect */
+        return;
+    }
+    
+    if (mysql_query_safe(conn, query)) {
+        log("SYSERR: Error applying cascade effect: %s", mysql_error(conn));
+    } else {
+        /* Log cascade effect for debugging */
+        log("CASCADE: %s affecting %s at (%d,%d): %.3f", 
+            description, resource_names[target_resource], x, y, effect_magnitude);
+    }
+}
+
+/* ===== PHASE 7: CASCADE PREVIEW AND ANALYSIS ===== */
+
+/* Show what cascade effects harvesting a resource will have */
+void show_cascade_preview(struct char_data *ch, room_rnum room, int resource_type)
+{
+    if (!ch || room == NOWHERE || resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES)
+        return;
+    
+    send_to_char(ch, "\tcEcological Impact Preview - Harvesting %s:\tn\r\n", resource_names[resource_type]);
+    send_to_char(ch, "===========================================\r\n");
+    
+    /* Show cascade effects based on the relationship matrix */
+    switch (resource_type) {
+        case RESOURCE_VEGETATION:
+            send_to_char(ch, "\tr↓ Herbs\tn: -3%% (root system damage)\r\n");
+            send_to_char(ch, "\tr↓ Game\tn: -2%% (habitat disruption)\r\n");
+            send_to_char(ch, "\tg↑ Clay\tn: +1%% (exposed soil)\r\n");
+            break;
+            
+        case RESOURCE_HERBS:
+            send_to_char(ch, "\tr↓ Vegetation\tn: -2%% (root network damage)\r\n");
+            send_to_char(ch, "\tr↓ Game\tn: -1%% (food source reduction)\r\n");
+            break;
+            
+        case RESOURCE_MINERALS:
+            send_to_char(ch, "\tR↓ Crystal\tn: -8%% \tr(SEVERE - mining destroys formations)\tn\r\n");
+            send_to_char(ch, "\tr↓ Water\tn: -3%% (groundwater disruption)\r\n");
+            send_to_char(ch, "\tg↑ Stone\tn: +2%% (exposed stone deposits)\r\n");
+            break;
+            
+        case RESOURCE_CRYSTAL:
+            send_to_char(ch, "\tr↓ Minerals\tn: -4%% (affects ore veins)\r\n");
+            send_to_char(ch, "\tr↓ Stone\tn: -2%% (weakens stone integrity)\r\n");
+            break;
+            
+        case RESOURCE_WOOD:
+            send_to_char(ch, "\tr↓ Vegetation\tn: -5%% (canopy loss)\r\n");
+            send_to_char(ch, "\tr↓ Herbs\tn: -4%% (microclimate disruption)\r\n");
+            send_to_char(ch, "\tr↓ Game\tn: -6%% (habitat destruction)\r\n");
+            send_to_char(ch, "\tyWarning: Deforestation affects entire ecosystem!\tn\r\n");
+            break;
+            
+        case RESOURCE_GAME:
+            send_to_char(ch, "\tg↑ Vegetation\tn: +3%% (reduced grazing pressure)\r\n");
+            send_to_char(ch, "\tg↑ Herbs\tn: +2%% (reduced trampling)\r\n");
+            break;
+            
+        case RESOURCE_STONE:
+            send_to_char(ch, "\tr↓ Minerals\tn: -3%% (quarrying disrupts ore seams)\r\n");
+            send_to_char(ch, "\tr↓ Crystal\tn: -5%% (vibrations shatter formations)\r\n");
+            send_to_char(ch, "\tg↑ Clay\tn: +3%% (exposed sediment layers)\r\n");
+            break;
+            
+        case RESOURCE_WATER:
+            send_to_char(ch, "\tg↑ Clay\tn: +4%% (exposed lakebed deposits)\r\n");
+            send_to_char(ch, "\tg↑ Vegetation\tn: +2%% (irrigation effect)\r\n");
+            send_to_char(ch, "\tg↑ Herbs\tn: +3%% (medicinal plants benefit)\r\n");
+            break;
+            
+        case RESOURCE_CLAY:
+            send_to_char(ch, "\tr↓ Water\tn: -2.5%% (diverts water systems)\r\n");
+            send_to_char(ch, "\tr↓ Vegetation\tn: -1.5%% (root system disturbance)\r\n");
+            break;
+            
+        case RESOURCE_SALT:
+            send_to_char(ch, "\tr↓ Water\tn: -6%% (brine pool depletion)\r\n");
+            send_to_char(ch, "\tR↓ Vegetation\tn: -8%% \tr(SEVERE - soil salinization)\tn\r\n");
+            send_to_char(ch, "\tyWarning: Salt extraction causes severe environmental damage!\tn\r\n");
+            break;
+            
+        default:
+            send_to_char(ch, "No significant ecological interactions found.\r\n");
+            break;
+    }
+    
+    send_to_char(ch, "\r\n\tcLegend: \tg↑\tn enhances, \tr↓\tn depletes, \tR↓\tn severe depletion\r\n");
+}
+
+/* ===== PHASE 7: ECOSYSTEM HEALTH TRACKING ===== */
+
+/* Ecosystem health states */
+const char *ecosystem_state_names[] = {
+    "Pristine", "Healthy", "Stressed", "Degraded", "Collapsed", "\n"
+};
+
+/* Calculate ecosystem health based on average resource levels */
+int get_ecosystem_state(room_rnum room)
+{
+    float total_health = 0.0;
+    int resource_count = 0;
+    int i;
+    
+    if (room == NOWHERE)
+        return 1; /* Default to healthy */
+    
+    /* Calculate average resource depletion level */
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        float depletion_level = get_resource_depletion_level(room, i);
+        total_health += depletion_level;
+        resource_count++;
+    }
+    
+    if (resource_count == 0)
+        return 1; /* Default to healthy if no data */
+    
+    float average_health = total_health / resource_count;
+    
+    /* Determine ecosystem state based on average health */
+    if (average_health >= 0.80) return 0; /* Pristine */
+    if (average_health >= 0.60) return 1; /* Healthy */
+    if (average_health >= 0.40) return 2; /* Stressed */
+    if (average_health >= 0.20) return 3; /* Degraded */
+    return 4; /* Collapsed */
+}
+
+/* Show basic ecosystem analysis */
+void show_ecosystem_analysis(struct char_data *ch, room_rnum room)
+{
+    int ecosystem_state, x, y, i;
+    float total_health = 0.0;
+    int critical_resources = 0;
+    
+    if (!ch || room == NOWHERE)
+        return;
+    
+    x = world[room].coords[0];
+    y = world[room].coords[1];
+    ecosystem_state = get_ecosystem_state(room);
+    
+    send_to_char(ch, "\tcEcosystem Health Analysis for (%d, %d):\tn\r\n", x, y);
+    send_to_char(ch, "=====================================\r\n");
+    
+    /* Overall ecosystem health */
+    const char *health_color = ecosystem_state <= 1 ? "\tG" : 
+                              ecosystem_state == 2 ? "\tY" : "\tR";
+    send_to_char(ch, "Overall Health: %s%s\tn\r\n", 
+                 health_color, ecosystem_state_names[ecosystem_state]);
+    
+    /* Resource status summary */
+    send_to_char(ch, "\r\n\tcResource Status:\tn\r\n");
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        float level = get_resource_depletion_level(room, i);
+        total_health += level;
+        
+        const char *status_color = level > 0.6 ? "\tG" : level > 0.3 ? "\tY" : "\tR";
+        const char *status_desc = level > 0.8 ? "excellent" : 
+                                 level > 0.6 ? "good" : 
+                                 level > 0.3 ? "stressed" : 
+                                 level > 0.1 ? "depleted" : "critical";
+        
+        if (level <= 0.3) critical_resources++;
+        
+        send_to_char(ch, "  %s%-12s\tn: %s%s\tn (%.0f%%)\r\n",
+                     status_color, resource_names[i], status_color, status_desc, level * 100);
+    }
+    
+    /* Ecosystem warnings and recommendations */
+    if (critical_resources > 0) {
+        send_to_char(ch, "\r\n\trEcosystem Warning:\tn %d resource(s) in critical condition\r\n", critical_resources);
+        
+        send_to_char(ch, "\r\n\tcRecommendations:\tn\r\n");
+        send_to_char(ch, "• Reduce harvesting frequency in this area\r\n");
+        send_to_char(ch, "• Focus on less depleted resource types\r\n");
+        send_to_char(ch, "• Allow 1-2 days for ecosystem recovery\r\n");
+        send_to_char(ch, "• Use 'survey cascade <resource>' to check impact before harvesting\r\n");
+    } else if (ecosystem_state >= 2) {
+        send_to_char(ch, "\r\n\tyConservation Notice:\tn This area shows signs of stress\r\n");
+        send_to_char(ch, "Consider using sustainable harvesting practices.\r\n");
+    } else {
+        send_to_char(ch, "\r\n\tgEcosystem Status:\tn Healthy and sustainable\r\n");
+        send_to_char(ch, "Current harvesting practices are maintaining ecological balance.\r\n");
     }
 }
 
@@ -590,4 +977,48 @@ void show_depletion_stats(struct char_data *ch)
     send_to_char(ch, "  Ores:  78%% (Good)\r\n");
     send_to_char(ch, "  Wood:  92%% (Excellent)\r\n");
     send_to_char(ch, "\r\n\twNote: These are mock statistics for Phase 6 basic implementation.\tn\r\n");
+}
+
+/* Show conservation impact for a player (for survey impact command) */
+void show_conservation_impact(struct char_data *ch)
+{
+    double conservation_score;
+    char score_desc[256];
+    char impact_desc[512];
+    
+    if (!ch) return;
+    
+    conservation_score = get_player_conservation_score(ch);
+    
+    /* Determine score description */
+    if (conservation_score >= 90.0) {
+        strcpy(score_desc, "\tGExcellent\tn");
+        strcpy(impact_desc, "Your sustainable harvesting practices have had a \tGpositive impact\tn on the local ecosystem.");
+    } else if (conservation_score >= 75.0) {
+        strcpy(score_desc, "\tYGood\tn");
+        strcpy(impact_desc, "Your harvesting practices are \tYgenerally sustainable\tn with minor environmental impact.");
+    } else if (conservation_score >= 50.0) {
+        strcpy(score_desc, "\tyFair\tn");
+        strcpy(impact_desc, "Your harvesting practices show \tymoderate environmental impact\tn. Consider more sustainable methods.");
+    } else if (conservation_score >= 25.0) {
+        strcpy(score_desc, "\tOPoor\tn");
+        strcpy(impact_desc, "Your harvesting practices have caused \tOnotable environmental damage\tn. Immediate conservation efforts needed.");
+    } else {
+        strcpy(score_desc, "\tRVery Poor\tn");
+        strcpy(impact_desc, "Your harvesting practices have caused \tRsignificant environmental damage\tn. Critical conservation action required.");
+    }
+    
+    send_to_char(ch, "\tc=== Conservation Impact Report ===\tn\r\n");
+    send_to_char(ch, "Your Conservation Score: \tw%.1f/100\tn (%s)\r\n", conservation_score, score_desc);
+    send_to_char(ch, "\r\n%s\r\n", impact_desc);
+    
+    /* Additional guidance based on score */
+    if (conservation_score < 75.0) {
+        send_to_char(ch, "\r\n\tyConservation Tips:\tn\r\n");
+        send_to_char(ch, "- Allow harvested areas time to regenerate\r\n");
+        send_to_char(ch, "- Harvest from different locations to spread impact\r\n");
+        send_to_char(ch, "- Consider using 'survey regen' to check area recovery\r\n");
+    }
+    
+    send_to_char(ch, "\r\n\twNote: Conservation scores improve over time with sustainable practices.\tn\r\n");
 }

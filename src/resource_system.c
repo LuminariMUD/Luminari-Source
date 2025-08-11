@@ -1773,8 +1773,8 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type) {
         send_to_char(ch, "You successfully harvest %d units of %s.\r\n", 
                      added, material_name);
         
-        /* Phase 6: Apply depletion for successful harvest */
-        apply_harvest_depletion(IN_ROOM(ch), resource_type, added);
+        /* Phase 7: Apply depletion WITH cascade effects */
+        apply_harvest_depletion_with_cascades(IN_ROOM(ch), resource_type, added);
         
         /* Phase 6: Provide feedback on resource condition */
         float new_depletion = get_resource_depletion_level(IN_ROOM(ch), resource_type);
