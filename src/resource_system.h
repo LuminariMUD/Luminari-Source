@@ -394,6 +394,7 @@ void do_wilderness_mine(struct char_data *ch, const char *argument, int cmd, int
 
 /* Phase 5: Harvesting Support Functions */
 int attempt_wilderness_harvest(struct char_data *ch, int resource_type);
+int can_harvest_resource_in_terrain(int resource_type, int sector_type);
 int get_harvest_skill_level(struct char_data *ch, int resource_type);
 int get_harvest_skill(int resource_type);
 int get_harvest_difficulty(int resource_type, float resource_level);

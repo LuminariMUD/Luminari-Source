@@ -1891,6 +1891,23 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type) {
     x = world[IN_ROOM(ch)].coords[0];
     y = world[IN_ROOM(ch)].coords[1];
     
+    /* Check terrain suitability for this resource type */
+    int sector_type = get_modified_sector_type(world[IN_ROOM(ch)].zone, x, y);
+    if (!can_harvest_resource_in_terrain(resource_type, sector_type)) {
+        const char *terrain_names[] = {
+            "indoors", "city", "field", "forest", "hills", "mountain", 
+            "shallow water", "deep water", "flying", "underwater", "zone start",
+            "north-south road", "east-west road", "road intersection", "desert",
+            "ocean", "marshland", "high mountain", "planes", "underdark"
+        };
+        const char *terrain_name = (sector_type >= 0 && sector_type < 20) ? 
+                                   terrain_names[sector_type] : "unknown terrain";
+        
+        send_to_char(ch, "You cannot harvest %s in %s.\r\n", 
+                     resource_names[resource_type], terrain_name);
+        return 0;
+    }
+    
     /* Check if resources are too depleted */
     if (should_harvest_fail_due_to_depletion(IN_ROOM(ch), resource_type)) {
         send_to_char(ch, "This area has been over-harvested. The %s resources are too depleted to yield anything.\r\n", 
@@ -1970,6 +1987,203 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type) {
     }
     
     return added;
+}
+
+/* Check if a resource type can be harvested in the current terrain */
+int can_harvest_resource_in_terrain(int resource_type, int sector_type) {
+    switch (resource_type) {
+        case RESOURCE_VEGETATION:
+            /* Can harvest vegetation in most terrestrial areas */
+            switch (sector_type) {
+                case SECT_FOREST:
+                case SECT_FIELD: 
+                case SECT_HILLS:
+                case SECT_MARSHLAND:
+                case SECT_DESERT:  /* Desert vegetation like cacti */
+                    return 1;
+                case SECT_WATER_SWIM:
+                case SECT_WATER_NOSWIM:
+                case SECT_UNDERWATER:
+                case SECT_OCEAN:
+                case SECT_FLYING:
+                case SECT_HIGH_MOUNTAIN:  /* Too harsh for vegetation */
+                    return 0;
+                default:
+                    return 1; /* Most other terrains allow some vegetation */
+            }
+            
+        case RESOURCE_HERBS:
+            /* Herbs need specific terrestrial environments */
+            switch (sector_type) {
+                case SECT_FOREST:
+                case SECT_FIELD:
+                case SECT_HILLS:
+                case SECT_MARSHLAND:
+                    return 1;
+                case SECT_WATER_SWIM:
+                case SECT_WATER_NOSWIM:
+                case SECT_UNDERWATER:
+                case SECT_OCEAN:
+                case SECT_FLYING:
+                case SECT_HIGH_MOUNTAIN:
+                case SECT_DESERT:  /* Too harsh for most herbs */
+                    return 0;
+                default:
+                    return 1;
+            }
+            
+        case RESOURCE_WOOD:
+            /* Wood only from areas with trees */
+            switch (sector_type) {
+                case SECT_FOREST:
+                    return 1;
+                case SECT_FIELD:
+                case SECT_HILLS:
+                    return 1; /* Scattered trees */
+                case SECT_WATER_SWIM:
+                case SECT_WATER_NOSWIM:
+                case SECT_UNDERWATER:
+                case SECT_OCEAN:
+                case SECT_FLYING:
+                case SECT_DESERT:
+                case SECT_HIGH_MOUNTAIN:
+                case SECT_MARSHLAND:  /* Dead wood maybe, but not living trees */
+                    return 0;
+                default:
+                    return 0; /* Conservative - only specific areas have wood */
+            }
+            
+        case RESOURCE_GAME:
+            /* Animals in various terrestrial environments */
+            switch (sector_type) {
+                case SECT_FOREST:
+                case SECT_FIELD:
+                case SECT_HILLS:
+                case SECT_MARSHLAND:
+                case SECT_DESERT:
+                    return 1;
+                case SECT_WATER_SWIM:  /* Some aquatic game */
+                    return 1;
+                case SECT_WATER_NOSWIM:
+                case SECT_UNDERWATER:
+                case SECT_OCEAN:
+                case SECT_FLYING:
+                case SECT_HIGH_MOUNTAIN:  /* Too harsh for most game */
+                    return 0;
+                default:
+                    return 1;
+            }
+            
+        case RESOURCE_MINERALS:
+        case RESOURCE_CRYSTAL:
+            /* Minerals and crystals from rocky/underground areas */
+            switch (sector_type) {
+                case SECT_MOUNTAIN:
+                case SECT_HIGH_MOUNTAIN:
+                case SECT_HILLS:
+                case SECT_DESERT:  /* Desert minerals */
+                    return 1;
+                case SECT_WATER_SWIM:
+                case SECT_WATER_NOSWIM:
+                case SECT_UNDERWATER:
+                case SECT_OCEAN:
+                case SECT_FLYING:
+                case SECT_FOREST:  /* Soil, not bedrock */
+                case SECT_FIELD:   /* Soil, not bedrock */
+                case SECT_MARSHLAND:  /* Mud and water */
+                    return 0;
+                default:
+                    return 1;
+            }
+            
+        case RESOURCE_STONE:
+            /* Stone from rocky areas */
+            switch (sector_type) {
+                case SECT_MOUNTAIN:
+                case SECT_HIGH_MOUNTAIN:
+                case SECT_HILLS:
+                    return 1;
+                case SECT_WATER_SWIM:
+                case SECT_WATER_NOSWIM:
+                case SECT_UNDERWATER:
+                case SECT_OCEAN:
+                case SECT_FLYING:
+                case SECT_FOREST:
+                case SECT_FIELD:
+                case SECT_MARSHLAND:
+                case SECT_DESERT:  /* Sand, not stone */
+                    return 0;
+                default:
+                    return 0; /* Conservative - only rocky areas have stone */
+            }
+            
+        case RESOURCE_SALT:
+            /* Salt from desert, coastal, or evaporated areas */
+            switch (sector_type) {
+                case SECT_DESERT:
+                case SECT_MARSHLAND:  /* Salt marshes */
+                    return 1;
+                case SECT_WATER_SWIM:
+                case SECT_WATER_NOSWIM:
+                case SECT_UNDERWATER:
+                case SECT_OCEAN:
+                case SECT_FLYING:
+                case SECT_FOREST:
+                case SECT_FIELD:
+                case SECT_HILLS:
+                case SECT_MOUNTAIN:
+                case SECT_HIGH_MOUNTAIN:
+                    return 0;
+                default:
+                    return 0;
+            }
+            
+        case RESOURCE_WATER:
+            /* Water from various sources */
+            switch (sector_type) {
+                case SECT_WATER_SWIM:
+                case SECT_WATER_NOSWIM:
+                case SECT_OCEAN:
+                case SECT_MARSHLAND:
+                    return 1;
+                case SECT_FOREST:
+                case SECT_HILLS:
+                case SECT_MOUNTAIN:  /* Springs */
+                    return 1;
+                case SECT_UNDERWATER:
+                case SECT_FLYING:
+                case SECT_DESERT:  /* Rare water sources */
+                case SECT_HIGH_MOUNTAIN:
+                case SECT_FIELD:
+                    return 0;
+                default:
+                    return 1;
+            }
+            
+        case RESOURCE_CLAY:
+            /* Clay from marshy or riverbank areas */
+            switch (sector_type) {
+                case SECT_MARSHLAND:
+                case SECT_FIELD:  /* Near rivers */
+                    return 1;
+                case SECT_WATER_SWIM:
+                case SECT_WATER_NOSWIM:
+                case SECT_UNDERWATER:
+                case SECT_OCEAN:
+                case SECT_FLYING:
+                case SECT_FOREST:
+                case SECT_HILLS:
+                case SECT_MOUNTAIN:
+                case SECT_HIGH_MOUNTAIN:
+                case SECT_DESERT:
+                    return 0;
+                default:
+                    return 0;
+            }
+            
+        default:
+            return 1; /* Unknown resource types default to allowed */
+    }
 }
 
 /* Support Functions */
