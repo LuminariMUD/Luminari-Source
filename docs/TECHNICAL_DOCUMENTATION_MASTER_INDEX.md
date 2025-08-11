@@ -68,6 +68,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[RESOURCE_SYSTEM_TECHNICAL.md](systems/RESOURCE_SYSTEM_TECHNICAL.md)** - 🆕 Wilderness resource system with flexible region effects
 - **[RESOURCE_REGENERATION_SYSTEM.md](systems/RESOURCE_REGENERATION_SYSTEM.md)** - 🆕 Resource regeneration with seasonal and weather effects
 - **[RESOURCE_REGENERATION_QUICK_REFERENCE.md](systems/RESOURCE_REGENERATION_QUICK_REFERENCE.md)** - 🆕 Quick reference for resource regeneration system
+- **[DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md](systems/DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md)** - 🆕 Dynamic environment descriptions based on resource state
 - **[AI_SERVICE_README.md](systems/AI_SERVICE_README.md)** - AI service integration
 - **[skore_system_documentation.md](systems/skore_system_documentation.md)** - Skore achievement system
 
