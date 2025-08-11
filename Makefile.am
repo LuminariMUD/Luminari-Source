@@ -143,6 +143,9 @@ circle_SOURCES = \
 	src/random_names.c \
 	src/rank.c \
 	src/redit.c \
+	src/resource_system.c \
+	src/resource_depletion.c \
+	src/resource_descriptions.c \
 	src/roleplay.c \
 	src/routing.c \
 	src/sedit.c \

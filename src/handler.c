@@ -31,6 +31,9 @@
 #include "lists.h"
 #include "spec_abilities.h"
 #include "crafting_new.h"
+#include "resource_system.h"
+#include "resource_depletion.h"
+#include "resource_depletion.h"
 
 /* local file scope variables */
 static int extractions_pending = 0;
@@ -1549,6 +1552,15 @@ void char_to_room(struct char_data *ch, room_rnum room)
     ch->next_in_room = world[room].people;
     world[room].people = ch;
     IN_ROOM(ch) = room;
+
+    /* Trigger lazy regeneration for wilderness rooms (Phase 6) */
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_WILDERNESS) && !IS_NPC(ch)) {
+        /* Apply lazy regeneration for all resource types when player enters */
+        int resource_type;
+        for (resource_type = 0; resource_type < NUM_RESOURCE_TYPES; resource_type++) {
+            apply_lazy_regeneration(room, resource_type);
+        }
+    }
 
     /* autoquest system check point -Zusuk */
     autoquest_trigger_check(ch, 0, 0, 0, AQ_ROOM_FIND);

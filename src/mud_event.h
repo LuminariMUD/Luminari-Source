@@ -196,6 +196,7 @@ typedef enum
   eCOSMICUNDERSTANDING,             // foretell and prescience abilites
   eDRAGOONPOINTS,                   // dragoon points
   eC_DRAGONMOUNT,                   // call dragon mount
+  eREGENERATION,                    // resource regeneration event
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
