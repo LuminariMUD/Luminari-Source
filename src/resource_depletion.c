@@ -102,6 +102,123 @@ void init_resource_depletion_database(void)
     log("Resource depletion database tables initialized successfully");
 }
 
+/* ===== REGENERATION FUNCTIONS ===== */
+
+/* Get resource-specific regeneration rate per hour */
+float get_resource_regeneration_rate(int resource_type)
+{
+    float base_rate;
+    
+    /* Base regeneration rates per hour */
+    switch (resource_type) {
+        case RESOURCE_VEGETATION:  base_rate = 0.12;  break; /* Fast growing - 12% per hour */
+        case RESOURCE_HERBS:       base_rate = 0.08;  break; /* Moderate regeneration - 8% per hour */
+        case RESOURCE_WATER:       base_rate = 0.20;  break; /* Seasonal/weather dependent - 20% per hour when conditions right */
+        case RESOURCE_GAME:        base_rate = 0.06;  break; /* Animals move in - 6% per hour */
+        case RESOURCE_WOOD:        base_rate = 0.02;  break; /* Very slow regeneration - 2% per hour */
+        case RESOURCE_CLAY:        base_rate = 0.10;  break; /* Weather dependent - 10% per hour */
+        case RESOURCE_STONE:       base_rate = 0.005; break; /* Extremely slow - 0.5% per hour */
+        case RESOURCE_MINERALS:    base_rate = 0.001; break; /* Nearly non-renewable - 0.1% per hour */
+        case RESOURCE_CRYSTAL:     base_rate = 0.0005; break; /* Magical regeneration - 0.05% per hour */
+        case RESOURCE_SALT:        base_rate = 0.01;  break; /* Slow but steady - 1% per hour */
+        default:                   base_rate = 0.05;  break; /* Default moderate regeneration */
+    }
+    
+    return base_rate;
+}
+
+/* Get resource regeneration rate with seasonal and weather modifiers applied */
+float get_modified_regeneration_rate(int resource_type, int x, int y)
+{
+    float base_rate = get_resource_regeneration_rate(resource_type);
+    float seasonal_modifier = get_seasonal_modifier(resource_type);
+    float weather_modifier = get_weather_modifier(resource_type, get_weather(x, y));
+    
+    return base_rate * seasonal_modifier * weather_modifier;
+}
+
+/* Calculate regeneration based on time passed since last harvest with seasonal/weather modifiers */
+float calculate_regeneration_amount(int resource_type, time_t last_harvest_time, int x, int y)
+{
+    time_t current_time = time(NULL);
+    double hours_passed = difftime(current_time, last_harvest_time) / 3600.0; /* Convert seconds to hours */
+    
+    if (hours_passed <= 0) return 0.0;
+    
+    float regen_rate = get_modified_regeneration_rate(resource_type, x, y);
+    float regeneration = hours_passed * regen_rate;
+    
+    /* Cap regeneration to prevent overflow */
+    if (regeneration > 1.0) regeneration = 1.0;
+    
+    return regeneration;
+}
+
+/* Apply lazy regeneration - called when resource level is checked */
+void apply_lazy_regeneration(room_rnum room, int resource_type)
+{
+    char query[MAX_STRING_LENGTH];
+    char update_query[MAX_STRING_LENGTH];
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    int x, y, zone_vnum;
+    float current_depletion = 1.0;
+    time_t last_harvest_time = 0;
+    
+    if (room == NOWHERE || resource_type < 0)
+        return;
+        
+    /* If MySQL not available, skip */
+    if (!mysql_available || !conn) {
+        return;
+    }
+    
+    /* Get coordinates and zone */
+    x = world[room].coords[0];
+    y = world[room].coords[1];
+    zone_vnum = zone_table[world[room].zone].number;
+    
+    /* Check if this location has depletion data */
+    snprintf(query, sizeof(query),
+        "SELECT depletion_level, UNIX_TIMESTAMP(last_harvest) FROM resource_depletion "
+        "WHERE zone_vnum = %d AND x_coord = %d AND y_coord = %d AND resource_type = %d",
+        zone_vnum, x, y, resource_type);
+    
+    if (mysql_query_safe(conn, query)) {
+        return; /* Fail silently on error */
+    }
+    
+    result = mysql_store_result_safe(conn);
+    if (!result) {
+        return; /* No data exists, nothing to regenerate */
+    }
+    
+    if ((row = mysql_fetch_row(result))) {
+        current_depletion = atof(row[0]);
+        last_harvest_time = (time_t)atol(row[1]);
+        
+        /* Calculate regeneration with seasonal and weather modifiers */
+        float regeneration = calculate_regeneration_amount(resource_type, last_harvest_time, x, y);
+        
+        if (regeneration > 0.0) {
+            float new_depletion = current_depletion + regeneration;
+            if (new_depletion > 1.0) new_depletion = 1.0; /* Cap at fully available */
+            
+            /* Update the database with regenerated amount */
+            snprintf(update_query, sizeof(update_query),
+                "UPDATE resource_depletion SET depletion_level = %.3f, last_harvest = CURRENT_TIMESTAMP "
+                "WHERE zone_vnum = %d AND x_coord = %d AND y_coord = %d AND resource_type = %d",
+                new_depletion, zone_vnum, x, y, resource_type);
+            
+            if (mysql_query_safe(conn, update_query)) {
+                log("SYSERR: Error updating regeneration: %s", mysql_error(conn));
+            }
+        }
+    }
+    
+    mysql_free_result(result);
+}
+
 /* ===== BASIC DEPLETION FUNCTIONS ===== */
 
 /* Get resource-specific depletion rate based on resource type */
@@ -142,6 +259,9 @@ float get_resource_depletion_level(room_rnum room, int resource_type)
         if (base_depletion > 1.0) base_depletion = 1.0;
         return 1.0 - base_depletion;
     }
+    
+    /* Apply lazy regeneration first */
+    apply_lazy_regeneration(room, resource_type);
     
     /* Get coordinates and zone */
     x = world[room].coords[0];
@@ -396,17 +516,61 @@ void show_resource_conservation_status(struct char_data *ch, int x, int y)
 /* Show regeneration analysis for a location */
 void show_regeneration_analysis(struct char_data *ch, int x, int y)
 {
+    char query[MAX_STRING_LENGTH];
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    time_t current_time = time(NULL);
+    int zone_vnum = zone_table[world[IN_ROOM(ch)].zone].number;
+    
     if (!ch)
         return;
     
-    send_to_char(ch, "\tWResource Regeneration Analysis:\tn\r\n");
-    send_to_char(ch, "\tc===============================\tn\r\n");
+    if (!mysql_available || !conn) {
+        send_to_char(ch, "Database not available for regeneration analysis.\r\n");
+        return;
+    }
     
-    /* For now, show placeholder information */
-    send_to_char(ch, "\tGNatural Regeneration:\tn Resources in this area regenerate slowly over time.\r\n");
-    send_to_char(ch, "\tYSeasonal Factors:\tn Current season affects regeneration rates.\r\n");
-    send_to_char(ch, "\tCEnvironmental Health:\tn Ecosystem health influences resource recovery.\r\n");
-    send_to_char(ch, "\r\n\twNote: Detailed regeneration tracking will be available in the full Phase 6 implementation.\tn\r\n");
+    send_to_char(ch, "\tCResource Regeneration Analysis for (%d, %d):\tn\r\n", x, y);
+    send_to_char(ch, "Resource Type     | Current | Regen Rate | Hours Since Harvest\r\n");
+    send_to_char(ch, "------------------|---------|------------|--------------------\r\n");
+    
+    /* Query all resource types for this location */
+    snprintf(query, sizeof(query),
+        "SELECT resource_type, depletion_level, UNIX_TIMESTAMP(last_harvest) FROM resource_depletion "
+        "WHERE zone_vnum = %d AND x_coord = %d AND y_coord = %d ORDER BY resource_type",
+        zone_vnum, x, y);
+    
+    if (mysql_query_safe(conn, query)) {
+        send_to_char(ch, "Error querying regeneration data.\r\n");
+        return;
+    }
+    
+    result = mysql_store_result_safe(conn);
+    if (!result) {
+        send_to_char(ch, "No depletion data found for this location.\r\n");
+        return;
+    }
+    
+    const char *resource_names[] = {
+        "Vegetation", "Minerals", "Water", "Herbs", "Game",
+        "Wood", "Stone", "Crystal", "Clay", "Salt"
+    };
+    
+    while ((row = mysql_fetch_row(result))) {
+        int resource_type = atoi(row[0]);
+        float depletion_level = atof(row[1]);
+        time_t last_harvest = (time_t)atol(row[2]);
+        double hours_since = difftime(current_time, last_harvest) / 3600.0;
+        float regen_rate = get_resource_regeneration_rate(resource_type);
+        
+        send_to_char(ch, "%-17s | %6.1f%% | %9.1f%% | %18.1f\r\n",
+            resource_names[resource_type],
+            depletion_level * 100.0,
+            regen_rate * 100.0,
+            hours_since);
+    }
+    
+    mysql_free_result(result);
 }
 
 /* ===== ADMIN/DEBUG FUNCTIONS ===== */

@@ -66,6 +66,8 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[STAFF_EVENT_SYSTEM.md](systems/STAFF_EVENT_SYSTEM.md)** - Staff-managed game events
 - **[WILDERNESS_SYSTEM.md](building_game-data/WILDERNESS_SYSTEM.md)** - Dynamic wilderness generation
 - **[RESOURCE_SYSTEM_TECHNICAL.md](systems/RESOURCE_SYSTEM_TECHNICAL.md)** - 🆕 Wilderness resource system with flexible region effects
+- **[RESOURCE_REGENERATION_SYSTEM.md](systems/RESOURCE_REGENERATION_SYSTEM.md)** - 🆕 Resource regeneration with seasonal and weather effects
+- **[RESOURCE_REGENERATION_QUICK_REFERENCE.md](systems/RESOURCE_REGENERATION_QUICK_REFERENCE.md)** - 🆕 Quick reference for resource regeneration system
 - **[AI_SERVICE_README.md](systems/AI_SERVICE_README.md)** - AI service integration
 - **[skore_system_documentation.md](systems/skore_system_documentation.md)** - Skore achievement system
 
@@ -83,6 +85,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ### Core Development
 - **[DEVELOPER_GUIDE_AND_API.md](guides/DEVELOPER_GUIDE_AND_API.md)** - Comprehensive developer reference
 - **[RESOURCE_SYSTEM_REFERENCE.md](guides/RESOURCE_SYSTEM_REFERENCE.md)** - 🆕 Resource system player/admin reference
+- **[RESOURCE_REGENERATION_API.md](development/RESOURCE_REGENERATION_API.md)** - 🆕 Resource regeneration API for developers
 - **[PHASE_4_INSTALLATION.md](guides/PHASE_4_INSTALLATION.md)** - 🆕 Phase 4 region effects system setup and testing guide
 - **[CLAUDE.md](../CLAUDE.md)** - AI assistant guidelines and codebase patterns
 - **[TESTING_GUIDE.md](guides/TESTING_GUIDE.md)** - Testing procedures and frameworks

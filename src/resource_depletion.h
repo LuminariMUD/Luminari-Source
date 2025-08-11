@@ -18,6 +18,12 @@ void init_resource_depletion_database(void);
 float get_resource_depletion_rate(int resource_type);
 float get_resource_depletion_level(room_rnum room, int resource_type);
 void apply_harvest_depletion(room_rnum room, int resource_type, int quantity);
+
+/* Regeneration functions */
+float get_resource_regeneration_rate(int resource_type);
+float get_modified_regeneration_rate(int resource_type, int x, int y);
+float calculate_regeneration_amount(int resource_type, time_t last_harvest_time, int x, int y);
+void apply_lazy_regeneration(room_rnum room, int resource_type);
 bool should_harvest_fail_due_to_depletion(room_rnum room, int resource_type);
 float get_harvest_success_modifier(room_rnum room, int resource_type);
 const char *get_depletion_level_name(float resource_level);
