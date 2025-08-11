@@ -26,6 +26,11 @@
 /* Forward declarations for region integration */
 /* Phase 4b: Region Effects Forward Declarations */
 
+/* Forward declarations for enhanced material functions */
+int get_enhanced_wilderness_material_id(int category, int subtype);
+const char *get_enhanced_material_name(int category, int subtype, int quality);
+int get_enhanced_material_crafting_value(int category, int subtype, int quality);
+
 /* Global resource configuration array */
 struct resource_config resource_configs[NUM_RESOURCE_TYPES] = {
     /* type, noise_layer, base_mult, regen_rate, depletion, quality_var, seasonal, weather, skill, name, description */
