@@ -54,12 +54,30 @@
 #define NOISE_MATERIAL_PLANE_ELEV_DIST 1
 #define NOISE_MATERIAL_PLANE_MOISTURE 2
 #define NOISE_WEATHER 3
-#define NUM_NOISE 4 /* Always < MAX_GENERATED_NOISE (24) in perlin.h */
+/* Resource system noise layers */
+#define NOISE_VEGETATION 4
+#define NOISE_MINERALS 5
+#define NOISE_WATER_RESOURCE 6
+#define NOISE_HERBS 7
+#define NOISE_GAME 8
+#define NOISE_WOOD 9
+#define NOISE_STONE 10
+#define NOISE_CRYSTAL 11
+#define NUM_NOISE 12 /* Always < MAX_GENERATED_NOISE (24) in perlin.h */
 
 #define NOISE_MATERIAL_PLANE_ELEV_SEED 822344     //113//3193//300 //242423 //Yang //3743
 #define NOISE_MATERIAL_PLANE_MOISTURE_SEED 834    //133//3//6737
 #define NOISE_MATERIAL_PLANE_ELEV_DIST_SEED 74233 //8301
 #define NOISE_WEATHER_SEED 43425
+/* Resource system noise seeds */
+#define NOISE_VEGETATION_SEED 198374
+#define NOISE_MINERALS_SEED 45892
+#define NOISE_WATER_RESOURCE_SEED 73456
+#define NOISE_HERBS_SEED 91234
+#define NOISE_GAME_SEED 56789
+#define NOISE_WOOD_SEED 87432
+#define NOISE_STONE_SEED 65321
+#define NOISE_CRYSTAL_SEED 43210
 
 /* Regions*/
 #define REGION_GEOGRAPHIC 1
@@ -186,6 +204,7 @@ struct wilderness_data
   struct sector_limits sector_map[NUM_ROOM_SECTORS][3]; /* Elevation, moisture, temp mappings to sectors. */
 
   struct kdtree *kd_wilderness_rooms; /* KDTree of the static rooms, for speed. */
+  struct kdtree *kd_resource_nodes;   /* KDTree of resource harvest data, for efficiency. */
 
   /* Regarding Regions - First I am going to try to leverage the use of an index-table in the
    * database, using MyIsam and the spatial extensions that allows for very very quick spatial
@@ -206,6 +225,7 @@ struct wild_map_tile
 };
 
 void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_tile **map);
+int get_elevation(int map, int x, int y);
 int get_sector_type(int elevation, int temperature, int moisture);
 int get_weather(int x, int y);
 void show_wilderness_map(struct char_data *ch, int size, int x, int y);
@@ -246,9 +266,11 @@ struct region_list
 struct region_proximity_list
 {
   region_rnum rnum;
+  int pos;       /* Position relative to region: REGION_POS_CENTER, REGION_POS_INSIDE, REGION_POS_EDGE */
 
   double dirs[8];
   double dist;
+  bool is_inside;  /* TRUE if player is inside the region, FALSE if just nearby */
 
   struct region_proximity_list *next;
 };
