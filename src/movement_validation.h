@@ -17,4 +17,8 @@ int has_flight(struct char_data *ch);
 int has_scuba(struct char_data *ch, room_rnum destination);
 int can_climb(struct char_data *ch);
 
+/* Single-file room functions */
+bool is_top_of_room_for_singlefile(struct char_data *ch, int dir);
+struct char_data *get_char_ahead_of_me(struct char_data *ch, int dir);
+
 #endif /* MOVEMENT_VALIDATION_H */

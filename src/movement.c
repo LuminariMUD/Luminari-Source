@@ -31,7 +31,7 @@
 #include "actions.h"
 #include "traps.h" /* for check_traps() */
 #include "spell_prep.h"
-#include "trails.h"
+/* trails.h merged into movement_tracks.h */
 #include "assign_wpn_armor.h"
 #include "encounters.h"
 #include "hunts.h"
@@ -116,207 +116,7 @@ ACMD(do_doorbash) {
 }
  */
 
-/* checks if target ch is first-in-line in singlefile room */
-bool is_top_of_room_for_singlefile(struct char_data *ch, int dir)
-{
-  bool exit = FALSE;
-  int i;
-
-  for (i = 0; i < 6; i++)
-  {
-    if (EXIT(ch, i))
-    {
-      if (exit == FALSE && dir == i)
-        return TRUE;
-      exit = TRUE;
-    }
-  }
-  return FALSE;
-}
-
-/* function to find which char is ahead of the next
-   in a singlefile room */
-struct char_data *get_char_ahead_of_me(struct char_data *ch, int dir)
-{
-  struct char_data *tmp;
-
-  if (is_top_of_room_for_singlefile(ch, dir))
-  {
-    tmp = world[ch->in_room].people;
-    while (tmp)
-    {
-      if (tmp->next_in_room == ch)
-        return tmp;
-      tmp = tmp->next_in_room;
-    }
-    return 0;
-  }
-  return ch->next_in_room;
-}
-
 #define ZONE_MINLVL(rnum) (zone_table[(rnum)].min_level)
-
-/** Leave tracks in the current room **/
- /*   Reference
-#define TRACKS_UNDEFINED 0
-#define TRACKS_IN 1
-#define TRACKS_OUT 2
-#define DIR_NONE -1
-*/
-void create_tracks(struct char_data *ch, int dir, int flag)
-{
-  struct room_data *room = NULL;
-  struct trail_data *cur = NULL;
-  struct trail_data *new_trail = NULL;
-
-  if (IN_ROOM(ch) != NOWHERE)
-  {
-    room = &world[ch->in_room];
-  }
-  else
-  {
-    log("SYSERR: Char at location NOWHERE trying to create tracks.");
-    return;
-  }
-
-  /* Safety check for trail_tracks */
-  if (!room->trail_tracks) {
-    log("SYSERR: Room %d has NULL trail_tracks, initializing.", room->number);
-    CREATE(room->trail_tracks, struct trail_data_list, 1);
-    room->trail_tracks->head = NULL;
-    room->trail_tracks->tail = NULL;
-  }
-
-  /*
-    Here we create the track structure, set the values and assign it to the room.
-    At the same time, we can prune off any really old trails.  Threshold is set,
-    in seconds, in trails.h.  Eventually this cna be adjusted based on weather -
-    rain/show/wind can all obscure trails.
-  */
-
-  CREATE(new_trail, struct trail_data, 1);
-  new_trail->name = strdup(GET_NAME(ch));
-  new_trail->race = (IS_NPC(ch) ? strdup(race_family_types[GET_NPC_RACE(ch)]) : strdup(race_list[GET_RACE(ch)].name));
-  new_trail->from = (flag == TRACKS_IN ? dir : DIR_NONE);
-  new_trail->to = (flag == TRACKS_OUT ? dir : DIR_NONE);
-  new_trail->age = time(NULL);
-
-  new_trail->next = room->trail_tracks->head;
-  new_trail->prev = NULL;
-
-  if (new_trail->next != NULL)
-  {
-    room->trail_tracks->head->prev = new_trail;
-  }
-  else
-  {
-    /* If this is the first node, set tail as well */
-    room->trail_tracks->tail = new_trail;
-  }
-
-  room->trail_tracks->head = new_trail;
-
-  /* Prune old trails from the list */
-  for (cur = room->trail_tracks->head; cur != NULL; )
-  {
-    struct trail_data *next = cur->next;
-    if (time(NULL) - cur->age >= TRAIL_PRUNING_THRESHOLD)
-    {
-      /* Free the trail data */
-      if (cur->name)
-        free(cur->name);
-      if (cur->race)
-        free(cur->race);
-      
-      /* Unlink from list */
-      if (cur->prev != NULL)
-      {
-        cur->prev->next = cur->next;
-      }
-      else
-      {
-        room->trail_tracks->head = cur->next;
-      }
-      
-      if (cur->next != NULL)
-      {
-        cur->next->prev = cur->prev;
-      }
-      else
-      {
-        room->trail_tracks->tail = cur->prev;
-      }
-      
-      /* Node was removed, don't update any tracking pointer */
-      
-      /* Free the structure */
-      free(cur);
-    }
-    cur = next;
-  }
-
-}
-
-/* Clean up old trails in all rooms - called periodically */
-void cleanup_all_trails(void)
-{
-  room_rnum room;
-  struct trail_data *cur, *next;
-  time_t current_time = time(NULL);
-  int cleaned = 0;
-  
-  for (room = 0; room <= top_of_world; room++)
-  {
-    if (!world[room].trail_tracks || !world[room].trail_tracks->head)
-      continue;
-      
-    for (cur = world[room].trail_tracks->head; cur != NULL; )
-    {
-      next = cur->next;
-      if (current_time - cur->age >= TRAIL_PRUNING_THRESHOLD)
-      {
-        /* Free the trail data */
-        if (cur->name)
-          free(cur->name);
-        if (cur->race)
-          free(cur->race);
-        
-        /* Unlink from list using doubly-linked list operations */
-        if (cur->prev != NULL)
-        {
-          cur->prev->next = cur->next;
-        }
-        else
-        {
-          world[room].trail_tracks->head = cur->next;
-        }
-        
-        if (cur->next != NULL)
-        {
-          cur->next->prev = cur->prev;
-        }
-        else
-        {
-          world[room].trail_tracks->tail = cur->prev;
-        }
-        
-        /* Free the structure */
-        free(cur);
-        cleaned++;
-        /* Node was removed, use next which was saved before freeing */
-        cur = next;
-      }
-      else
-      {
-        /* Node was not removed, advance to next node */
-        cur = next;
-      }
-    }
-  }
-  
-  if (cleaned > 0)
-    log("Trail cleanup: Removed %d old trail entries.", cleaned);
-}
 
 /** Move a PC/NPC character from their current location to a new location. This
  * is the standard movement locomotion function that all normal walking
@@ -778,8 +578,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     }
   }
 
-  /* check for traps (leave room) */
-  check_trap(ch, TRAP_TYPE_LEAVE_ROOM, ch->in_room, 0, 0);
+  /* Check for leave traps using modular function */
+  process_leave_traps(ch);
 
   /* check for magical walls, such as wall of force (also death from wall damage) */
   if (check_wall(ch, dir)) /* true = wall stopped ch somehow */
@@ -1347,8 +1147,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
                                    dirs[dir]);
       */
 #if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
-    /* Only create tracks for default LuminariMUD campaign */
-    create_tracks(ch, dir, TRACKS_OUT);
+    /* Create tracks using new modular function */
+    if (should_create_tracks(ch))
+      create_movement_tracks(ch, dir, TRACKS_OUT);
 #endif
   }
 

@@ -17,6 +17,9 @@
 #include "movement_position.h"
 #include "movement_doors.h"
 #include "movement_falling.h"
+#include "movement_messages.h"
+#include "movement_tracks.h"
+#include "movement_events.h"
 
 /* Track system constants */
 #define TRACKS_UNDEFINED 0

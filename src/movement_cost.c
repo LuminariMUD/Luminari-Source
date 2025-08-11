@@ -107,3 +107,133 @@ int get_speed(struct char_data *ch, sbyte to_display)
 
   return speed;
 }
+
+/**
+ * Calculate the movement point cost for moving from one room to another
+ * 
+ * @param ch Character who is moving
+ * @param from_room Room moving from
+ * @param to_room Room moving to
+ * @param riding TRUE if character is mounted
+ * @return Movement point cost
+ */
+int calculate_movement_cost(struct char_data *ch, room_rnum from_room, room_rnum to_room, int riding)
+{
+  int need_movement;
+  
+  /* Special case: woodland stride reduces outdoor movement to 1 */
+  if (OUTDOORS(ch) && HAS_FEAT(riding ? RIDING(ch) : ch, FEAT_WOODLAND_STRIDE))
+  {
+    need_movement = 1;
+  }
+  else
+  {
+    /* Average movement cost between source and destination */
+    need_movement = (movement_loss[SECT(from_room)] + movement_loss[SECT(to_room)]) / 2;
+  }
+
+  /* Fast movement feat reduces cost */
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
+    need_movement--;
+
+  /* Roads reduce movement cost */
+  if (ROOM_FLAGGED(from_room, ROOM_ROAD))
+    need_movement--;
+
+  /* Difficult terrain doubles cost */
+  if (ROOM_AFFECTED(to_room, RAFF_DIFFICULT_TERRAIN))
+    need_movement *= 2;
+    
+  /* Spot mode doubles cost */
+  if (AFF_FLAGGED(ch, AFF_SPOT))
+    need_movement *= 2;
+    
+  /* Listen mode doubles cost */
+  if (AFF_FLAGGED(ch, AFF_LISTEN))
+    need_movement *= 2;
+    
+  /* Reclining quadruples cost */
+  if (GET_POS(ch) <= POS_RECLINING)
+    need_movement *= 4;
+
+  /* New movement system multiplier */
+  need_movement *= 10;
+
+  /* Skill-based reduction */
+  int skill_bonus = skill_roll(ch, riding ? MAX(ABILITY_RIDE, ABILITY_SURVIVAL) : ABILITY_SURVIVAL);
+  if (SECT(to_room) == SECT_HILLS || SECT(to_room) == SECT_MOUNTAIN || SECT(to_room) == SECT_HIGH_MOUNTAIN)
+    skill_bonus += skill_roll(ch, ABILITY_CLIMB) / 2;
+
+  need_movement -= skill_bonus;
+
+  /* Speed modification */
+  int speed_mod = get_speed(riding ? RIDING(ch) : ch, FALSE);
+  speed_mod = speed_mod - 30;
+  need_movement -= speed_mod;
+
+  /* Minimum movement cost */
+  if (affected_by_spell(riding ? RIDING(ch) : ch, SPELL_SHADOW_WALK))
+    need_movement = MAX(1, need_movement);
+  else
+    need_movement = MAX(5, need_movement);
+
+  return need_movement;
+}
+
+/**
+ * Check if character has enough movement points
+ * 
+ * @param ch Character to check
+ * @param need_movement Required movement points
+ * @param riding TRUE if mounted
+ * @param following TRUE if following someone
+ * @return TRUE if has enough movement, FALSE otherwise
+ */
+bool check_movement_points(struct char_data *ch, int need_movement, int riding, int following)
+{
+  if (riding)
+  {
+    /* Mounts currently don't use movement points */
+    return TRUE;
+  }
+  else
+  {
+    if (GET_MOVE(ch) < need_movement && !IS_NPC(ch))
+    {
+      if (following && ch->master)
+        send_to_char(ch, "You are too exhausted to follow.\r\n");
+      else
+        send_to_char(ch, "You are too exhausted.\r\n");
+
+      if (GET_WALKTO_LOC(ch))
+      {
+        send_to_char(ch, "You stop walking to the '%s' landmark.\r\n", 
+                     get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+        GET_WALKTO_LOC(ch) = 0;
+      }
+
+      return FALSE;
+    }
+  }
+  
+  return TRUE;
+}
+
+/**
+ * Deduct movement points from character
+ * 
+ * @param ch Character to deduct from
+ * @param need_movement Amount to deduct
+ * @param riding TRUE if mounted
+ * @param ridden_by TRUE if being ridden
+ */
+void deduct_movement_points(struct char_data *ch, int need_movement, int riding, int ridden_by)
+{
+  if (GET_LEVEL(ch) < LVL_IMMORT && !IS_NPC(ch) && !(riding || ridden_by))
+    GET_MOVE(ch) -= need_movement;
+  /* Artificial inflation of mount movement points */
+  else if (riding && !rand_number(0, 9))
+    GET_MOVE(RIDING(ch)) -= need_movement;
+  else if (ridden_by)
+    GET_MOVE(RIDDEN_BY(ch)) -= need_movement;
+}
