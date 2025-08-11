@@ -17,6 +17,7 @@ void init_resource_depletion_database(void);
 /* Basic depletion functions */
 float get_resource_depletion_rate(int resource_type);
 float get_resource_depletion_level(room_rnum room, int resource_type);
+float get_resource_depletion_level_by_coords(int x, int y, int zone_vnum, int resource_type);
 void apply_harvest_depletion(room_rnum room, int resource_type, int quantity);
 
 /* Phase 7: Enhanced depletion with cascade effects */

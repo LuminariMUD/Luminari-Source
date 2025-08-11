@@ -23,6 +23,15 @@
 #include "kdtree.h"
 #include "screen.h"
 
+/* Simple absolute value function to avoid math.h conflicts */
+static float simple_fabs(float value) {
+    return (value < 0) ? -value : value;
+}
+
+/* Forward declarations for wilderness functions not in headers */
+extern int get_temperature(int map, int x, int y);
+extern int get_moisture(int map, int x, int y);
+
 /* Forward declarations for region integration */
 /* Phase 4b: Region Effects Forward Declarations */
 
@@ -125,15 +134,134 @@ float get_base_resource_value(int resource_type, int x, int y) {
     
     struct resource_config *config = &resource_configs[resource_type];
     
-    /* Calculate normalized coordinates */
-    double norm_x = x / (double)(WILD_X_SIZE / 4.0);
-    double norm_y = y / (double)(WILD_Y_SIZE / 4.0);
+    /* Get environmental data for realistic resource distribution */
+    int elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);          /* 0-255 range */
+    int temperature = get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y);      /* Temperature */
+    int moisture = get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y);        /* Moisture level */
     
-    /* Get Perlin noise for this resource type */
-    double noise_value = PerlinNoise2D(config->noise_layer, norm_x, norm_y, 2.0, 2.0, 8);
+    /* Normalize environmental factors to 0.0-1.0 range */
+    float norm_elevation = elevation / 255.0f;
+    float norm_temperature = temperature / 255.0f;  
+    float norm_moisture = moisture / 255.0f;
     
-    /* Normalize to 0.0-1.0 and apply base multiplier */
-    float normalized = ((noise_value + 1.0) / 2.0) * config->base_multiplier;
+    float final_value = 0.0f;
+    
+    /* Apply resource-specific distribution logic */
+    switch(resource_type) {
+        case RESOURCE_VEGETATION:
+            /* Primarily environmental with subtle natural variation */
+            {
+                float elevation_factor = 1.0f - ((norm_elevation - 0.4f) * (norm_elevation - 0.4f)) * 2.5f;
+                if (elevation_factor < 0.1f) elevation_factor = 0.1f;
+                float environmental = (elevation_factor * 0.4f) + (norm_moisture * 0.4f) + 
+                                    (1.0f - simple_fabs(norm_temperature - 0.5f) * 0.2f);
+                
+                /* Add subtle natural variation (10% influence) */
+                double norm_x = x / (double)(WILD_X_SIZE / 16.0);
+                double norm_y = y / (double)(WILD_Y_SIZE / 16.0);
+                double micro_noise = PerlinNoise2D(config->noise_layer, norm_x, norm_y, 3.0, 2.0, 4);
+                float micro_factor = (micro_noise + 1.0f) / 2.0f;
+                
+                final_value = (environmental * 0.9f) + (micro_factor * 0.1f);
+            }
+            break;
+            
+        case RESOURCE_WATER:
+            /* Pure environmental - water flows to low elevations, higher in moist areas */
+            final_value = (1.0f - norm_elevation * 0.8f) + (norm_moisture * 0.5f);
+            break;
+            
+        case RESOURCE_HERBS:
+            /* Primarily environmental with subtle natural variation */
+            {
+                float environmental = (norm_moisture * 0.3f) + (norm_temperature * 0.3f) + 
+                                    ((1.0f - norm_elevation) * 0.4f);
+                
+                /* Add subtle natural variation (15% influence) */
+                double norm_x = x / (double)(WILD_X_SIZE / 12.0);
+                double norm_y = y / (double)(WILD_Y_SIZE / 12.0);
+                double micro_noise = PerlinNoise2D(config->noise_layer + 1, norm_x, norm_y, 2.5, 2.0, 3);
+                float micro_factor = (micro_noise + 1.0f) / 2.0f;
+                
+                final_value = (environmental * 0.85f) + (micro_factor * 0.15f);
+            }
+            break;
+            
+        case RESOURCE_GAME:
+            /* Primarily environmental with natural variation for animal movement patterns */
+            {
+                float vegetation_proxy = (norm_moisture * 0.4f) + ((1.0f - norm_elevation) * 0.3f);
+                float water_proxy = (1.0f - norm_elevation * 0.6f) + (norm_moisture * 0.3f);
+                float environmental = (vegetation_proxy * 0.6f) + (water_proxy * 0.4f);
+                
+                /* Add natural variation for animal movement (20% influence) */
+                double norm_x = x / (double)(WILD_X_SIZE / 8.0);
+                double norm_y = y / (double)(WILD_Y_SIZE / 8.0);
+                double animal_noise = PerlinNoise2D(config->noise_layer + 2, norm_x, norm_y, 2.0, 2.2, 5);
+                float animal_factor = (animal_noise + 1.0f) / 2.0f;
+                
+                final_value = (environmental * 0.8f) + (animal_factor * 0.2f);
+            }
+            break;
+            
+        case RESOURCE_WOOD:
+            /* Primarily environmental with natural forest variation */
+            {
+                float tree_elevation = 1.0f - ((norm_elevation - 0.5f) * (norm_elevation - 0.5f)) * 3.0f;
+                if (tree_elevation < 0.1f) tree_elevation = 0.1f;
+                float environmental = (tree_elevation * 0.5f) + (norm_moisture * 0.3f) + 
+                                    (norm_temperature * 0.2f);
+                
+                /* Add natural forest variation (15% influence) */
+                double norm_x = x / (double)(WILD_X_SIZE / 10.0);
+                double norm_y = y / (double)(WILD_Y_SIZE / 10.0);
+                double forest_noise = PerlinNoise2D(config->noise_layer + 3, norm_x, norm_y, 2.8, 2.0, 4);
+                float forest_factor = (forest_noise + 1.0f) / 2.0f;
+                
+                final_value = (environmental * 0.85f) + (forest_factor * 0.15f);
+            }
+            break;
+            
+        case RESOURCE_MINERALS:
+        case RESOURCE_CRYSTAL:
+        case RESOURCE_STONE:
+            /* Geological resources - use Perlin noise for mineral veins and formations */
+            {
+                double norm_x = x / (double)(WILD_X_SIZE / 4.0);
+                double norm_y = y / (double)(WILD_Y_SIZE / 4.0);
+                double geological_noise = PerlinNoise2D(config->noise_layer, norm_x, norm_y, 2.0, 2.0, 8);
+                float geological_factor = (geological_noise + 1.0f) / 2.0f;
+                
+                /* Combine geological formations with elevation preference for minerals */
+                float environmental_factor = norm_elevation * 0.6f + 0.2f; /* Higher at elevation */
+                final_value = (geological_factor * 0.7f) + (environmental_factor * 0.3f);
+            }
+            break;
+            
+        case RESOURCE_CLAY:
+        case RESOURCE_SALT:
+            /* Geological resources - specific formations, often near water */
+            {
+                double norm_x = x / (double)(WILD_X_SIZE / 4.0);
+                double norm_y = y / (double)(WILD_Y_SIZE / 4.0);
+                double geological_noise = PerlinNoise2D(config->noise_layer, norm_x, norm_y, 2.0, 2.0, 8);
+                float geological_factor = (geological_noise + 1.0f) / 2.0f;
+                
+                /* Clay and salt form in specific geological + environmental conditions */
+                float environmental_factor = (norm_moisture * 0.4f) + ((1.0f - norm_elevation) * 0.6f);
+                final_value = (geological_factor * 0.5f) + (environmental_factor * 0.5f);
+            }
+            break;
+            
+        default:
+            /* Fallback - balanced environmental factors */
+            final_value = (norm_moisture * 0.4f) + (norm_temperature * 0.3f) + 
+                         ((1.0f - norm_elevation) * 0.3f);
+            break;
+    }
+    
+    /* Apply base multiplier and clamp to valid range */
+    float normalized = final_value * config->base_multiplier;
     
     /* Use manual limit to avoid MIN/MAX macro issues */
     if (normalized < 0.0) return 0.0;
@@ -418,22 +546,42 @@ int parse_resource_type(const char *arg) {
 
 /* ===== RESOURCE MAPPING AND DISPLAY ===== */
 
+char get_resource_map_symbol_with_coords(float level, int x, int y) {
+    /* Use coordinate-based micro-variation to soften boundaries */
+    /* This creates more natural transitions without randomness */
+    float micro_noise = ((x * 7 + y * 13) % 100) / 2000.0;  /* ±0.025 variation */
+    float adjusted_level = level + micro_noise;
+    
+    /* Clamp to valid range */
+    if (adjusted_level < 0.0) adjusted_level = 0.0;
+    if (adjusted_level > 1.0) adjusted_level = 1.0;
+    
+    /* Use softer, overlapping thresholds for natural boundaries */
+    if (adjusted_level >= 0.75) return '#';      /* Very rich */
+    if (adjusted_level >= 0.55) return '*';      /* Rich */  
+    if (adjusted_level >= 0.35) return '+';      /* Moderate */
+    if (adjusted_level >= 0.15) return '.';      /* Poor */
+    if (adjusted_level >= 0.03) return ',';      /* Trace */
+    return ' ';                                  /* None */
+}
+
 char get_resource_map_symbol(float level) {
+    /* Fallback for calls without coordinates */
     if (level >= 0.8) return '#';      /* Very rich */
     if (level >= 0.6) return '*';      /* Rich */  
     if (level >= 0.4) return '+';      /* Moderate */
     if (level >= 0.2) return '.';      /* Poor */
-    if (level >= 0.05) return '_';     /* Trace */
+    if (level >= 0.05) return ',';     /* Trace */
     return ' ';                        /* None */
 }
 
 const char *get_resource_color(float level) {
-    if (level >= 0.8) return "\t[f046]";      /* Bright green */
-    if (level >= 0.6) return "\t[f034]";      /* Green */
-    if (level >= 0.4) return "\t[f226]";      /* Yellow */
-    if (level >= 0.2) return "\t[f208]";      /* Orange */
-    if (level >= 0.05) return "\t[f240]";     /* Gray */
-    return "\t[f236]";                        /* Dark gray */
+    if (level >= 0.8) return "\tG";      /* Green - Very High */
+    if (level >= 0.6) return "\tY";      /* Yellow - High */
+    if (level >= 0.4) return "\ty";      /* Light yellow - Moderate */
+    if (level >= 0.2) return "\tR";      /* Red - Low */
+    if (level >= 0.05) return "\tr";     /* Dark red - Traces */
+    return "\tL";                        /* Black/dark - None */
 }
 
 /* ===== RESOURCE CACHING SYSTEM ===== */
@@ -887,33 +1035,48 @@ void show_resource_map(struct char_data *ch, int resource_type, int radius) {
     
     /* Draw the map */
     for (map_y = -radius; map_y <= radius; map_y++) {
-        send_to_char(ch, " ");
+        char line_buffer[MAX_STRING_LENGTH] = "";
+        strcat(line_buffer, " "); /* Leading space for each line */
+        
         for (map_x = -radius; map_x <= radius; map_x++) {
             x = center_x + map_x;
             y = center_y + map_y;
             
             /* Check if this is the player's position */
             if (map_x == 0 && map_y == 0) {
-                send_to_char(ch, "\tW@\tn"); /* Player position */
+                strcat(line_buffer, "\tW@\tn"); /* Player position */
             } else {
-                resource_level = calculate_current_resource_level(resource_type, x, y);
-                symbol = get_resource_map_symbol(resource_level);
+                float base_level = calculate_current_resource_level(resource_type, x, y);
+                /* Get depletion level directly by coordinates - much more accurate! */
+                zone_rnum zrnum = world[IN_ROOM(ch)].zone;
+                int zone_vnum = zone_table[zrnum].number;
+                float depletion_level = get_resource_depletion_level_by_coords(x, y, zone_vnum, resource_type);
+                resource_level = base_level * depletion_level;
+                
+                symbol = get_resource_map_symbol_with_coords(resource_level, x, y);
                 color = get_resource_color(resource_level);
-                send_to_char(ch, "%s%c\tn", color, symbol);
+                char symbol_str[20];
+                snprintf(symbol_str, sizeof(symbol_str), "%s%c\tn", color, symbol);
+                strcat(line_buffer, symbol_str);
             }
         }
-        send_to_char(ch, "\r\n");
+        strcat(line_buffer, "\r\n");
+        send_to_char(ch, "%s", line_buffer); /* Send entire line at once */
     }
     
     send_to_char(ch, "========================================\r\n");
     send_to_char(ch, "Current location (\tW@\tn): (%d, %d)\r\n", center_x, center_y);
     
-    /* Show resource level at current location */
-    resource_level = calculate_current_resource_level(resource_type, center_x, center_y);
-    send_to_char(ch, "Current %s level: %s (%.1f%%)\r\n", 
+    /* Show resource level at current location - with depletion adjustment */
+    float base_level = calculate_current_resource_level(resource_type, center_x, center_y);
+    float depletion_level = get_resource_depletion_level(IN_ROOM(ch), resource_type);
+    resource_level = base_level * depletion_level;
+    
+    send_to_char(ch, "Current %s level: %s (%.1f%% effective, %.1f%% base)\r\n", 
                  resource_names[resource_type],
                  get_abundance_description(resource_level),
-                 resource_level * 100.0f);
+                 resource_level * 100.0f,
+                 base_level * 100.0f);
 }
 
 void show_resource_detail(struct char_data *ch, int resource_type) {
@@ -1783,6 +1946,8 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type) {
         
         /* Phase 6: Provide feedback on resource condition */
         float new_depletion = get_resource_depletion_level(IN_ROOM(ch), resource_type);
+        log("DEBUG: Resource %s - depletion level: %.3f, thresholds: severe<0.3, warning<0.6", 
+            resource_names[resource_type], new_depletion);
         if (new_depletion < 0.3) {
             send_to_char(ch, "\trThis area's %s resources are becoming severely depleted.\tn\r\n", 
                          resource_names[resource_type]);
@@ -1910,9 +2075,11 @@ void show_harvestable_resources(struct char_data *ch) {
     for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
         resource_level = calculate_current_resource_level(i, x, y);
         if (resource_level > 0.1) { /* Only show harvestable resources */
+            float depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
+            float effective_level = resource_level * depletion_level; /* Calculate true available amount */
             send_to_char(ch, "  \tG%-12s\tn: %s (harvest %s)\r\n", 
                          resource_names[i], 
-                         get_abundance_description(resource_level),
+                         get_abundance_description(effective_level), /* Use effective level, not base level */
                          resource_names[i]);
         }
     }

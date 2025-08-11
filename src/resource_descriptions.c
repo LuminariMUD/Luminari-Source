@@ -828,9 +828,9 @@ void add_geological_details(char *desc, struct resource_state *state,
                 break;
             case SECT_HILLS:
                 if (context->time_of_day == SUN_DARK && context->has_light_sources) {
-                    strcat(desc, ". The hillsides reveal mineral wealth that gleams in the flickering light");
+                    strcat(desc, ". Exposed rock faces reveal mineral wealth that gleams in the flickering light");
                 } else {
-                    strcat(desc, ". The rolling terrain is enriched with exposed seams of precious metals");
+                    strcat(desc, ". Weathered outcroppings show exposed seams of precious metals");
                 }
                 break;
             case SECT_DESERT:

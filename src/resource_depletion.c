@@ -293,6 +293,51 @@ float get_resource_depletion_level(room_rnum room, int resource_type)
     return depletion_level;
 }
 
+/* Get the current depletion level for a resource at specific coordinates (0.0-1.0) */
+float get_resource_depletion_level_by_coords(int x, int y, int zone_vnum, int resource_type)
+{
+    char query[MAX_STRING_LENGTH];
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    float depletion_level = 1.0; /* Default to fully available */
+    
+    if (resource_type < 0)
+        return 1.0;
+    
+    /* If MySQL not available, use mock data */
+    if (!mysql_available || !conn) {
+        /* Simple mock depletion based on coordinates for testing */
+        float base_depletion = ((x + y) % 100) / 1000.0; /* 0.0-0.099 */
+        if (base_depletion < 0.0) base_depletion = 0.0;
+        if (base_depletion > 1.0) base_depletion = 1.0;
+        return 1.0 - base_depletion;
+    }
+    
+    /* Query database for depletion level using coordinates directly */
+    snprintf(query, sizeof(query),
+        "SELECT depletion_level FROM resource_depletion "
+        "WHERE zone_vnum = %d AND x_coord = %d AND y_coord = %d AND resource_type = %d",
+        zone_vnum, x, y, resource_type);
+    
+    if (mysql_query_safe(conn, query)) {
+        log("SYSERR: Error querying resource depletion by coords: %s", mysql_error(conn));
+        return 1.0; /* Default to fully available on error */
+    }
+    
+    result = mysql_store_result_safe(conn);
+    
+    if (result) {
+        if ((row = mysql_fetch_row(result))) {
+            depletion_level = atof(row[0]);
+            if (depletion_level < 0.0) depletion_level = 0.0;
+            if (depletion_level > 1.0) depletion_level = 1.0;
+        }
+        mysql_free_result(result);
+    }
+    
+    return depletion_level;
+}
+
 /* Apply depletion when resources are harvested */
 void apply_harvest_depletion(room_rnum room, int resource_type, int quantity)
 {

@@ -302,6 +302,7 @@ int parse_resource_type(const char *arg);
 
 /* Resource mapping and display */
 char get_resource_map_symbol(float level);
+char get_resource_map_symbol_with_coords(float level, int x, int y);
 const char *get_resource_color(float level);
 
 /* Resource caching functions */
