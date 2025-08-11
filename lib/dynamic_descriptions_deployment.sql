@@ -480,9 +480,9 @@ INSERT IGNORE INTO material_categories (category_id, category_name, category_des
 
 -- Additional performance indexes
 CREATE INDEX IF NOT EXISTS idx_depletion_zone_resource ON resource_depletion (zone_vnum, resource_type);
-CREATE INDEX IF NOT EXISTS idx_depletion_critical ON resource_depletion (depletion_level) WHERE depletion_level < 0.2;
-CREATE INDEX IF NOT EXISTS idx_conservation_excellent ON player_conservation (conservation_score) WHERE conservation_score > 0.8;
-CREATE INDEX IF NOT EXISTS idx_recent_harvest ON resource_depletion (last_harvest) WHERE last_harvest > DATE_SUB(NOW(), INTERVAL 24 HOUR);
+CREATE INDEX IF NOT EXISTS idx_depletion_critical ON resource_depletion (depletion_level);
+CREATE INDEX IF NOT EXISTS idx_conservation_excellent ON player_conservation (conservation_score);
+CREATE INDEX IF NOT EXISTS idx_recent_harvest ON resource_depletion (last_harvest);
 
 -- =====================================================================
 -- PART 11: CLEANUP AND MAINTENANCE PROCEDURES
