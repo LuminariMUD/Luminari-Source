@@ -10338,7 +10338,7 @@ ACMD(do_objcheck)
 ACMD(do_resourceadmin)
 {
   char arg[MAX_INPUT_LENGTH];
-  char *remaining_args;
+  const char *remaining_args;
   int x, y, i;
   float resource_level;
   
