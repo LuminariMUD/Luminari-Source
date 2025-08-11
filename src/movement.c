@@ -303,9 +303,14 @@ void cleanup_all_trails(void)
         /* Free the structure */
         free(cur);
         cleaned++;
-        /* Node was removed, don't update any tracking pointer */
+        /* Node was removed, use next which was saved before freeing */
+        cur = next;
       }
-      cur = next;
+      else
+      {
+        /* Node was not removed, advance to next node */
+        cur = next;
+      }
     }
   }
   
