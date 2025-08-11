@@ -21,31 +21,10 @@
 #include "movement_tracks.h"
 #include "movement_events.h"
 
-/* Track system constants */
-#define TRACKS_UNDEFINED 0
-#define TRACKS_IN 1
-#define TRACKS_OUT 2
-#define DIR_NONE -1
-
-/* Door macros - Used by external modules */
-#define DOOR_IS_OPENABLE(ch, obj, door) ((obj) ? (((GET_OBJ_TYPE(obj) ==                    \
-                                                    ITEM_CONTAINER) ||                      \
-                                                   GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) && \
-                                                  OBJVAL_FLAGGED(obj, CONT_CLOSEABLE))      \
-                                               : (EXIT_FLAGGED(EXIT(ch, door), EX_ISDOOR)))
-#define DOOR_IS_OPEN(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,          \
-                                                              CONT_CLOSED)) \
-                                           : (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)))
-#define DOOR_IS_UNLOCKED(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,                                                                         \
-                                                                  CONT_LOCKED))                                                                \
-                                               : (!EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED) && !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_EASY) && \
-                                                  !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_MEDIUM) && !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_HARD)))
-#define DOOR_IS_PICKPROOF(ch, obj, door) ((obj) ? (OBJVAL_FLAGGED(obj,             \
-                                                                  CONT_PICKPROOF)) \
-                                                : (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF)))
-#define DOOR_IS_CLOSED(ch, obj, door) (!(DOOR_IS_OPEN(ch, obj, door)))
-#define DOOR_IS_LOCKED(ch, obj, door) (!(DOOR_IS_UNLOCKED(ch, obj, door)))
-#define DOOR_KEY(ch, obj, door) ((obj) ? ((GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST) ? 0 : GET_OBJ_VAL(obj, 2)) : (EXIT(ch, door)->key))
+/* Track system constants and door macros are defined in their respective sub-modules:
+ * - Track constants: see movement_tracks.h
+ * - Door macros: see movement_doors.h
+ */
 
 /* Core movement functions */
 int do_simple_move(struct char_data *ch, int dir, int need_specials_check);
