@@ -101,7 +101,10 @@ char *generate_resource_aware_description(struct char_data *ch, room_rnum room)
     struct environmental_context context;
     char *base_desc;
     
+    log("DEBUG: generate_resource_aware_description called for room %d", GET_ROOM_VNUM(room));
+    
     if (!ch || room == NOWHERE) {
+        log("DEBUG: Invalid parameters - ch=%p, room=%d", ch, room);
         return NULL;
     }
     
@@ -109,11 +112,16 @@ char *generate_resource_aware_description(struct char_data *ch, room_rnum room)
     get_resource_state(room, &state);
     get_environmental_context(room, &context);
     
+    log("DEBUG: Got resource state and environmental context");
+    
     /* Generate base terrain description */
     base_desc = get_terrain_base_description(room, &state, &context);
     if (!base_desc) {
+        log("DEBUG: get_terrain_base_description returned NULL");
         return NULL;
     }
+    
+    log("DEBUG: Base description generated: %.100s...", base_desc);
     
     strcpy(description, base_desc);
     
