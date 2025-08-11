@@ -50,12 +50,19 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 #if defined(ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS) && defined(WILDERNESS_RESOURCE_DEPLETION_SYSTEM)
 	/* Use new resource-aware descriptions for Luminari campaign */
 	if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))) {
+		log("DEBUG: Generating dynamic description for wilderness room %d", GET_ROOM_VNUM(room));
 		char *resource_desc = generate_resource_aware_description(ch, room);
 		if (resource_desc) {
+			log("DEBUG: Dynamic description generated successfully");
 			return resource_desc;
 		}
+		log("DEBUG: Dynamic description generation failed, falling back to original");
 		/* Fall through to original system if resource description fails */
+	} else {
+		log("DEBUG: Room %d not detected as wilderness, using original descriptions", GET_ROOM_VNUM(room));
 	}
+#else
+	log("DEBUG: Dynamic descriptions not enabled, using original system");
 #endif
 
 	/* Original description system */
