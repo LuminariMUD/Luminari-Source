@@ -161,6 +161,16 @@ SPECIAL(gen_board)
   /* These were originally globals for some unknown reason. */
   int ACMD_READ, ACMD_LOOK, ACMD_EXAMINE, ACMD_WRITE, ACMD_REMOVE;
 
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This is a bulletin board. You can use the following commands:\r\n");
+    send_to_char(ch, "  read <num>    - Read a specific message\r\n");
+    send_to_char(ch, "  write         - Write a new message\r\n");
+    send_to_char(ch, "  remove <num>  - Remove a message (if allowed)\r\n");
+    send_to_char(ch, "  look board    - List all messages\r\n");
+    return TRUE;
+  }
+
   if (!loaded)
   {
     init_boards();

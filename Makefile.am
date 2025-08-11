@@ -25,7 +25,12 @@ circle_SOURCES = \
 	src/act.comm.do_spec_comm.c \
 	src/act.informative.c \
 	src/act.item.c \
-	src/act.movement.c \
+	src/movement.c \
+	src/movement_validation.c \
+	src/movement_cost.c \
+	src/movement_position.c \
+	src/movement_doors.c \
+	src/movement_falling.c \
 	src/act.offensive.c \
 	src/act.other.c \
 	src/act.social.c \
@@ -138,6 +143,9 @@ circle_SOURCES = \
 	src/random_names.c \
 	src/rank.c \
 	src/redit.c \
+	src/resource_system.c \
+	src/resource_depletion.c \
+	src/resource_descriptions.c \
 	src/roleplay.c \
 	src/routing.c \
 	src/sedit.c \

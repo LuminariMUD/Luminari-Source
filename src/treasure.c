@@ -125,7 +125,7 @@ int cp_convert_grade_enchantment(int grade)
 /* determine a random category for misc treasure */
 int determine_rnd_misc_cat()
 {
-  int diceroll = dice(1, 19);
+  int diceroll = dice(1, 20);  /* Fixed: was dice(1,19) but case 20 exists for instruments */
   int category = 0;
 
   switch (diceroll)
@@ -185,6 +185,11 @@ int determine_rnd_misc_cat()
   case 20:
     /* instrument */
     category = TRS_SLOT_INSTRUMENT;
+    break;
+  default:
+    /* This should never happen with dice(1,20), but safety first */
+    log("SYSERR: determine_rnd_misc_cat() rolled impossible value %d, defaulting to ring", diceroll);
+    category = TRS_SLOT_FINGER;
     break;
   }
 
@@ -3673,6 +3678,14 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     }
     snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
     break;
+  default:
+    /* Invalid category - log error and return safe default */
+    log("SYSERR: award_misc_magic_item() received invalid category %d from caller, defaulting to ring", category);
+    vnum = RING_MOLD;
+    material = MATERIAL_COPPER;
+    snprintf(armor_name, MEDIUM_STRING, "%s", ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    break;
   }
 
   /* we already determined 'base' material, now
@@ -3771,7 +3784,12 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
   /* ok load object */
   if ((obj = read_object(vnum, VIRTUAL)) == NULL)
   {
-    log("SYSERR: award_misc_magic_item created NULL object");
+    log("SYSERR: award_misc_magic_item() failed to create object - category: %d, vnum: %d, grade: %d, "
+        "material: %d (%s), rare_grade: %d (%s), recipient: %s",
+        category, vnum, grade, 
+        material, (material >= 0 && material < NUM_MATERIALS) ? material_name[material] : "INVALID",
+        rare_grade, label_rare_grade(rare_grade),
+        ch ? GET_NAME(ch) : "NULL");
     return;
   }
 
