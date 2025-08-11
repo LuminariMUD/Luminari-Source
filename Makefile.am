@@ -6,8 +6,7 @@ SUBDIRS = util
 
 # Additional compiler flags
 # Revert to project defaults: do NOT force global feature defines here.
-# Enable separate movement modules during refactoring
-AM_CFLAGS = -std=gnu90 -Isrc @MYFLAGS@ -DMOVEMENT_VALIDATION_SEPARATE -DMOVEMENT_COST_SEPARATE -DMOVEMENT_POSITION_SEPARATE -DMOVEMENT_DOORS_SEPARATE -DMOVEMENT_FALLING_SEPARATE
+AM_CFLAGS = -std=gnu90 -Isrc @MYFLAGS@
 
 # Build timestamp information
 MKTIME = $(shell date +%s)
