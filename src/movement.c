@@ -1738,6 +1738,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
   return (1);
 }
+/* END do_simple_move()*/
 
 int perform_move(struct char_data *ch, int dir, int need_specials_check)
 {
@@ -2257,29 +2258,6 @@ ACMD(do_unlead)
   act("You are no longer following $n.", TRUE, ch, 0, follower, TO_VICT);
   act("$N stops following $n.", TRUE, ch, 0, follower, TO_NOTVICT);
 }
-
-/* I put this here for reference for below - Zusuk */
-/*
-#define POS_DEAD       0	 //Position = dead
-#define POS_MORTALLYW  1	 //Position = mortally wounded
-#define POS_INCAP      2	 //Position = incapacitated
-#define POS_STUNNED    3	 //Position = stunned
-#define POS_SLEEPING   4	 //Position = sleeping
-#define POS_RECLINING  5	 //Position = reclining
-#define POS_RESTING    6	 //Position = resting
-#define POS_SITTING    7	 //Position = sitting
-#define POS_FIGHTING   8	 //Position = fighting
-#define POS_STANDING   9	 //Position = standing
- */
-
-/* in: character, position change
-   out: as of this writing, nothing yet
-   function:  changing a position use to be just GET_POS(ch) = POS_X, but
-              that did not account for dynamic changes that would be connected
-              to the change in position..  the classic example is the combat
-              maneuver TRIP, which would change your position from POS_STANDING to
-              POS_SITTING, if the victim is casting, then they should be -immediately-
-              interrupted.  */
 
 ACMD(do_sorcerer_draconic_wings)
 {
