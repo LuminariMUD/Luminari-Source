@@ -226,3 +226,41 @@ int can_climb(struct char_data *ch)
 
   return (0);
 }
+
+/* checks if target ch is first-in-line in singlefile room */
+bool is_top_of_room_for_singlefile(struct char_data *ch, int dir)
+{
+  bool exit = FALSE;
+  int i;
+
+  for (i = 0; i < 6; i++)
+  {
+    if (EXIT(ch, i))
+    {
+      if (exit == FALSE && dir == i)
+        return TRUE;
+      exit = TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/* function to find which char is ahead of the next
+   in a singlefile room */
+struct char_data *get_char_ahead_of_me(struct char_data *ch, int dir)
+{
+  struct char_data *tmp;
+
+  if (is_top_of_room_for_singlefile(ch, dir))
+  {
+    tmp = world[ch->in_room].people;
+    while (tmp)
+    {
+      if (tmp->next_in_room == ch)
+        return tmp;
+      tmp = tmp->next_in_room;
+    }
+    return 0;
+  }
+  return ch->next_in_room;
+}

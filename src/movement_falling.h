@@ -11,6 +11,9 @@
 #ifndef MOVEMENT_FALLING_H
 #define MOVEMENT_FALLING_H
 
+/* Include for EVENTFUNC macro */
+#include "dg_event.h"
+
 /* Function declarations for falling mechanics */
 bool obj_should_fall(struct obj_data *obj);
 bool char_should_fall(struct char_data *ch, bool silent);
