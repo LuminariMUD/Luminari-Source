@@ -11008,4 +11008,145 @@ ACMD(do_materialadmin)
     }
 }
 
+/* Settime command for testing dynamic descriptions and time-based features */
+ACMD(do_settime)
+{
+    char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
+    int new_hour = -1, new_day = -1, new_month = -1;
+    
+    three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
+    
+    if (!*arg1) {
+        send_to_char(ch, "Usage: settime <hour> [day] [month]\r\n");
+        send_to_char(ch, "  hour: 0-23 (game time)\r\n");
+        send_to_char(ch, "  day: 1-35 (optional, current: %d)\r\n", time_info.day + 1);
+        send_to_char(ch, "  month: 0-11 (optional, current: %d - %s)\r\n", 
+                     time_info.month, month_name[time_info.month]);
+        send_to_char(ch, "\r\nCurrent time: %d o'clock on day %d of %s, year %d\r\n",
+                     time_info.hours, time_info.day + 1, 
+                     month_name[time_info.month], time_info.year);
+        return;
+    }
+    
+    /* Parse hour */
+    new_hour = atoi(arg1);
+    if (new_hour < 0 || new_hour > 23) {
+        send_to_char(ch, "Hour must be between 0 and 23.\r\n");
+        return;
+    }
+    
+    /* Parse day if provided */
+    if (*arg2) {
+        new_day = atoi(arg2);
+        if (new_day < 1 || new_day > 35) {
+            send_to_char(ch, "Day must be between 1 and 35.\r\n");
+            return;
+        }
+        new_day--; /* Convert to 0-34 internal format */
+    }
+    
+    /* Parse month if provided */
+    if (*arg3) {
+        new_month = atoi(arg3);
+        if (new_month < 0 || new_month > 11) {
+            send_to_char(ch, "Month must be between 0 and 11.\r\n");
+            return;
+        }
+    }
+    
+    /* Apply changes */
+    time_info.hours = new_hour;
+    if (new_day >= 0) time_info.day = new_day;
+    if (new_month >= 0) time_info.month = new_month;
+    
+    /* Update sunlight based on new hour */
+    if (time_info.hours >= 5 && time_info.hours < 6)
+        weather_info.sunlight = SUN_RISE;
+    else if (time_info.hours >= 6 && time_info.hours < 21)
+        weather_info.sunlight = SUN_LIGHT;
+    else if (time_info.hours >= 21 && time_info.hours < 22)
+        weather_info.sunlight = SUN_SET;
+    else
+        weather_info.sunlight = SUN_DARK;
+    
+    /* Inform the user */
+    send_to_char(ch, "Time set to: %d o'clock on day %d of %s, year %d\r\n",
+                 time_info.hours, time_info.day + 1,
+                 month_name[time_info.month], time_info.year);
+    
+    send_to_char(ch, "Sunlight state: %s\r\n",
+                 weather_info.sunlight == SUN_DARK ? "Dark" :
+                 weather_info.sunlight == SUN_RISE ? "Dawn" :
+                 weather_info.sunlight == SUN_LIGHT ? "Daylight" : "Dusk");
+    
+    /* Log the change */
+    mudlog(BRF, LVL_IMMORT, TRUE, "(GC) %s set game time to %d:%02d, day %d, month %s",
+           GET_NAME(ch), time_info.hours, 0, time_info.day + 1, month_name[time_info.month]);
+}
+
+ACMD(do_setweather)
+{
+  char arg[MAX_INPUT_LENGTH];
+  int new_weather;
+  room_rnum room = IN_ROOM(ch);
+  
+  one_argument(argument, arg, sizeof(arg));
+  
+  if (!*arg) {
+    send_to_char(ch, "Usage: setweather <0-4>\r\n"
+                     "Weather types:\r\n"
+                     "  0 - Clear/Cloudless\r\n"
+                     "  1 - Cloudy\r\n"
+                     "  2 - Rainy\r\n"
+                     "  3 - Stormy\r\n"
+                     "  4 - Lightning\r\n\r\n"
+                     "Note: In wilderness areas, weather is coordinate-based and cannot be changed.\r\n"
+                     "This command only affects non-wilderness areas using global weather.\r\n");
+    return;
+  }
+  
+  new_weather = atoi(arg);
+  if (new_weather < 0 || new_weather > 4) {
+    send_to_char(ch, "Weather type must be between 0 and 4.\r\n");
+    return;
+  }
+  
+  /* Check if we're in a wilderness area */
+  if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))) {
+    int x = world[room].coords[0];
+    int y = world[room].coords[1];
+    int wilderness_weather = get_weather(x, y);
+    
+    send_to_char(ch, "You are in a wilderness area (coords: %d, %d).\r\n"
+                     "Wilderness weather is coordinate-based using Perlin noise: %d\r\n"
+                     "This translates to weather type: %s\r\n"
+                     "Wilderness weather cannot be manually changed.\r\n",
+                     x, y, wilderness_weather,
+                     wilderness_weather >= 225 ? "Lightning" :
+                     wilderness_weather >= 200 ? "Stormy" :
+                     wilderness_weather >= 178 ? "Rainy" :
+                     wilderness_weather > 127 ? "Cloudy" : "Clear");
+    return;
+  }
+  
+  /* Set global weather for non-wilderness areas */
+  switch (new_weather) {
+    case 0: weather_info.sky = SKY_CLOUDLESS; break;
+    case 1: weather_info.sky = SKY_CLOUDY; break;
+    case 2: weather_info.sky = SKY_RAINING; break;
+    case 3: weather_info.sky = SKY_RAINING; break;  /* Stormy = heavy rain */
+    case 4: weather_info.sky = SKY_LIGHTNING; break;
+  }
+  
+  send_to_char(ch, "Global weather changed to: %s\r\n"
+                   "This affects all non-wilderness areas.\r\n",
+                   weather_info.sky == SKY_CLOUDLESS ? "Clear" :
+                   weather_info.sky == SKY_CLOUDY ? "Cloudy" :
+                   weather_info.sky == SKY_RAINING ? "Rainy" :
+                   weather_info.sky == SKY_LIGHTNING ? "Lightning" : "Unknown");
+  
+  /* Inform other immortals */
+  mudlog(BRF, LVL_IMMORT, TRUE, "%s changed global weather to %d", GET_NAME(ch), new_weather);
+}
+
 /* EOF */

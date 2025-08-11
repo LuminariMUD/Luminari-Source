@@ -8247,26 +8247,6 @@ ACMD(do_survey)
       }
     }
     
-    /* Show which skills would be useful */
-    send_to_char(ch, "\r\n\tWHarvesting Information:\tn\r\n");
-    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
-      resource_level = calculate_current_resource_level(i, x, y);
-      if (resource_level > 0.1) {
-        float depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
-        send_to_char(ch, "  %s: %s", 
-                     resource_names[i],
-                     resource_configs[i].description);
-        
-        /* Add harvest success information */
-        if (should_harvest_fail_due_to_depletion(IN_ROOM(ch), i)) {
-          send_to_char(ch, " \tr(depletion may cause failures)\tn");
-        } else if (depletion_level < 0.7) {
-          send_to_char(ch, " \ty(reduced harvest rates)\tn");
-        }
-        send_to_char(ch, "\r\n");
-      }
-    }
-    
     /* Phase 6: Add conservation tip */
     send_to_char(ch, "\r\n\tcTip:\tn Sustainable harvesting practices improve your conservation score\r\n");
     send_to_char(ch, "and help maintain resource availability for future use.\r\n");
@@ -8422,6 +8402,51 @@ ACMD(do_survey)
     
     show_cascade_preview(ch, IN_ROOM(ch), resource_type);
   }
+  else if (is_abbrev(arg, "help")) {
+    /* Help information including harvesting details */
+    send_to_char(ch, "Survey Command Help:\r\n");
+    send_to_char(ch, "===================\r\n\r\n");
+    
+    send_to_char(ch, "Survey options:\r\n");
+    send_to_char(ch, "  survey [basic]         - Basic area survey (default)\r\n");
+    send_to_char(ch, "  survey resources       - Scan for natural resources\r\n");
+    send_to_char(ch, "  survey terrain         - Detailed terrain analysis\r\n");
+    send_to_char(ch, "  survey map <type> [r]  - Resource minimap (radius 3-15)\r\n");
+    send_to_char(ch, "  survey detail <type>   - Detailed resource analysis\r\n");
+    send_to_char(ch, "  %ssurvey conservation%s     - Resource depletion and conservation status\r\n",
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey regeneration%s     - Resource regeneration analysis\r\n",
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey ecosystem%s        - Ecosystem health analysis\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey impact%s           - Your conservation impact and environmental score\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey cascade <type>%s   - Preview ecological impact of harvesting\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  survey help            - This help information\r\n");
+    if (GET_LEVEL(ch) >= LVL_IMMORT) {
+      send_to_char(ch, "  survey debug           - Debug information\r\n");
+    }
+    
+    send_to_char(ch, "\r\nResource types: vegetation, minerals, water, herbs, game,\r\n");
+    send_to_char(ch, "                wood, stone, crystal, clay, salt\r\n");
+    
+    /* Harvesting Information */
+    send_to_char(ch, "\r\n\tWHarvesting Information:\tn\r\n");
+    send_to_char(ch, "  vegetation: General plant life and foliage\r\n");
+    send_to_char(ch, "  minerals: Ores, metals, and mineral deposits\r\n");
+    send_to_char(ch, "  water: Fresh water sources and springs\r\n");
+    send_to_char(ch, "  herbs: Medicinal and magical plants\r\n");
+    send_to_char(ch, "  game: Wildlife and huntable animals\r\n");
+    send_to_char(ch, "  wood: Harvestable timber and lumber\r\n");
+    send_to_char(ch, "  stone: Building stone and quarry materials\r\n");
+    send_to_char(ch, "  crystal: Rare magical components\r\n");
+    send_to_char(ch, "  clay: Clay deposits for pottery and crafting\r\n");
+    send_to_char(ch, "  salt: Salt deposits and brine pools\r\n");
+    
+    send_to_char(ch, "\r\n\tcTip:\tn Sustainable harvesting practices improve your conservation score\r\n");
+    send_to_char(ch, "and help maintain resource availability for future use.\r\n");
+  }
   else if (is_abbrev(arg, "debug") && GET_LEVEL(ch) >= LVL_IMMORT) {
     /* Debug information for admins */
     show_debug_survey(ch);
@@ -8443,11 +8468,11 @@ ACMD(do_survey)
                  CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "  %ssurvey cascade <type>%s   - Preview ecological impact of harvesting\r\n",
                  CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  survey help            - Detailed help and resource information\r\n");
     if (GET_LEVEL(ch) >= LVL_IMMORT) {
       send_to_char(ch, "  survey debug           - Debug information\r\n");
     }
-    send_to_char(ch, "\r\nResource types: vegetation, minerals, water, herbs, game,\r\n");
-    send_to_char(ch, "                wood, stone, crystal, clay, salt\r\n");
+    send_to_char(ch, "\r\nUse 'survey help' for detailed information about resource types and harvesting.\r\n");
     send_to_char(ch, "\r\n%sPhase 7 Ecological Interdependencies:%s\r\n", 
                  CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "Harvesting one resource now affects related resources!\r\n");
