@@ -42,6 +42,9 @@
 /* Include movement system header */
 #include "movement.h"
 
+#define ZONE_MINLVL(rnum) (zone_table[(rnum)].min_level)
+
+
 /***** start file body *****/
 
 /* doorbash - unfinished */
@@ -116,7 +119,6 @@ ACMD(do_doorbash) {
 }
  */
 
-#define ZONE_MINLVL(rnum) (zone_table[(rnum)].min_level)
 
 /** Move a PC/NPC character from their current location to a new location. This
  * is the standard movement locomotion function that all normal walking
@@ -148,13 +150,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* How many movement points are required to travel from was_in to going_to.
    * We redefine this later when we need it. */
   int need_movement = 0;
-  /* used for looping the room for sneak-checks */
-  struct char_data *tch = NULL, *next_tch = NULL;
+  /* NOTE: tch, next_tch, and buf2 were used in old message code - now handled in movement_messages.c */
   // for mount code
   int same_room = 0, riding = 0, ridden_by = 0;
-  /* extra buffers */
-  char buf2[MAX_STRING_LENGTH] = {'\0'};
-  //  char buf3[MAX_STRING_LENGTH] = {'\0'};
   /* singlefile variables */
   struct char_data *other;
   struct char_data **prev;
@@ -667,49 +665,6 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     return 0;
   }
 
-  // acrobatics check
-
-  /* for now acrobatics check disabled */
-  /*************************************
-  int cantFlee = 0;
-
-  if (affected_by_spell(ch, SPELL_EXPEDITIOUS_RETREAT))
-    cantFlee--;
-  if (affected_by_spell(ch, SPELL_GREASE))
-    cantFlee++;
-
-  if (need_specials_check == 3 &&
-          GET_POS(ch) > POS_DEAD && FIGHTING(ch) &&
-          IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)) && cantFlee >= 0) {
-
-    //able to flee away with acrobatics check?
-    if (!IS_NPC(ch)) { //player
-      if (((HAS_FEAT(ch, FEAT_MOBILITY)) || (HAS_FEAT(ch, FEAT_ENHANCED_MOBILITY)) ||
-              dice(1, 20) + compute_ability(ch, ABILITY_ACROBATICS) > 15) &&
-              cantFlee <= 0) {
-        send_to_char(ch, "\tW*Acrobatics Success\tn*");
-        send_to_char(FIGHTING(ch), "\tR*Opp Acrobatics Success*\tn");
-      } else {
-        // failed
-        send_to_char(ch, "\tR*Acrobatics Fail\tn*");
-        send_to_char(FIGHTING(ch), "\tW*Opp Acrobatics Fail*\tn");
-        return 0;
-      }
-      //npc
-    } else {
-      if (dice(1, 20) > 10 && cantFlee <= 0) {
-        send_to_char(ch, "\tW*Acrobatics Success\tn*");
-        send_to_char(FIGHTING(ch), "\tR*Opp Acrobatics Success*\tn");
-      } else {
-        // failed
-        send_to_char(ch, "\tR*Acrobatics Fail\tn*");
-        send_to_char(FIGHTING(ch), "\tW*Opp Acrobatics Fail*\tn");
-        return 0;
-      }
-    }
-  }
-
-   *****************************/
 
   /* fleeing: no retreat feat offers free AOO */
   if (need_specials_check == 3 && GET_POS(ch) > POS_DEAD)
@@ -789,11 +744,6 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     /* do NOT touch this until we re-evaluate the movement system and NPC movements points
        -zusuk */
     need_movement = 0;
-    /*if (GET_MOVE(RIDING(ch)) < need_movement)
-    {
-      send_to_char(ch, "Your mount is too exhausted.\r\n");
-      return 0;
-    }*/
   }
   else
   {
@@ -843,315 +793,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   else if (ridden_by)
     GET_MOVE(RIDDEN_BY(ch)) -= need_movement;
 
-  /*****/
-  /* Generate the leave message(s) and display to others in the was_in room. */
-  /*****/
+  /* Display leave messages using modular function */
+  display_leave_messages(ch, dir, riding, ridden_by);
 
-  /* silly to keep people reclining when they leave a room */
-  /* actually this mechanic is a necessary one, single file room code, sorry folks -zusuk */
-  /*
-  if (GET_POS(ch) == POS_RECLINING) {
-    send_to_char(ch, "You move from a crawling position to standing as you leave the area.\r\n");
-    change_position(ch, POS_STANDING);
-  }
-   */
 
-  /* scenario:  mounted char */
-  if (riding)
-  {
-
-    /* riding, mount is -not- attempting to sneak */
-    if (!IS_AFFECTED(RIDING(ch), AFF_SNEAK))
-    {
-      /* character is attempting to sneak (mount is not) */
-      if (IS_AFFECTED(ch, AFF_SNEAK))
-      {
-        /* we know the player is trying to sneak, we have to do the
-           sneak-check with all the observers in the room */
-        for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
-        {
-          next_tch = tch->next_in_room;
-
-          /* skip self and mount of course */
-          if (tch == ch || tch == RIDING(ch))
-            continue;
-
-          /* sneak versus listen check */
-          if (!can_hear_sneaking(tch, ch))
-          {
-            /* message:  mount not sneaking, rider is sneaking */
-            snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
-            act(buf2, TRUE, RIDING(ch), 0, tch, TO_VICT);
-          }
-          else
-          {
-            /* rider detected ! */
-            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
-                     GET_NAME(RIDING(ch)), dirs[dir]);
-            act(buf2, TRUE, ch, 0, tch, TO_VICT);
-          }
-        }
-
-        /* character is -not- attempting to sneak (mount not too) */
-      }
-      else
-      {
-        snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
-        act(buf2, TRUE, ch, 0, RIDING(ch), TO_NOTVICT);
-      }
-    } /* riding, mount -is- attempting to sneak, if succesful, the whole
-       * "package" is sneaking, if not ch might be able to sneak still */
-    else
-    {
-      if (!IS_AFFECTED(ch, AFF_SNEAK))
-      {
-        /* we know the mount (and not ch) is trying to sneak, we have to do the
-           sneak-check with all the observers in the room */
-        for (tch = world[IN_ROOM(RIDING(ch))].people; tch; tch = next_tch)
-        {
-          next_tch = tch->next_in_room;
-
-          /* skip self (mount) of course and ch */
-          if (tch == RIDING(ch) || tch == ch)
-            continue;
-
-          /* sneak versus listen check */
-          if (can_hear_sneaking(tch, RIDING(ch)))
-          {
-            /* mount detected! */
-            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
-                     GET_NAME(RIDING(ch)), dirs[dir]);
-            act(buf2, TRUE, ch, 0, tch, TO_VICT);
-          } /* if we pass this check, the rider/mount are both sneaking */
-        }
-      } /* ch is still trying to sneak (mount too) */
-      else
-      {
-        /* we know the mount (and ch) is trying to sneak, we have to do the
-           sneak-check with all the observers in the room, mount
-         * success in this case is free pass for sneak */
-        for (tch = world[IN_ROOM(RIDING(ch))].people; tch; tch = next_tch)
-        {
-          next_tch = tch->next_in_room;
-
-          /* skip self (mount) of course, skipping ch too */
-          if (tch == RIDING(ch) || tch == ch)
-            continue;
-
-          /* sneak versus listen check */
-          if (!can_hear_sneaking(tch, RIDING(ch)))
-          {
-            /* mount success!  "package" is sneaking */
-          }
-          else if (!can_hear_sneaking(tch, ch))
-          {
-            /* mount failed, player succeeded */
-            /* message:  mount not sneaking, rider is sneaking */
-            snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
-            act(buf2, TRUE, RIDING(ch), 0, tch, TO_VICT);
-          }
-          else
-          {
-            /* mount failed, player failed */
-            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
-                     GET_NAME(RIDING(ch)), dirs[dir]);
-            act(buf2, TRUE, ch, 0, tch, TO_VICT);
-          }
-        }
-      }
-    }
-    /* message to self */
-    send_to_char(ch, "You ride %s %s.\r\n", GET_NAME(RIDING(ch)), dirs[dir]);
-    /* message to mount */
-    send_to_char(RIDING(ch), "You carry %s %s.\r\n",
-                 GET_NAME(ch), dirs[dir]);
-  } /* end:  mounted char */
-
-  /* scenario:  char is mount */
-  else if (ridden_by)
-  {
-
-    /* ridden and mount-char is -not- attempting to sneak
-       will either see whole 'package' move or just the mounted-char */
-    if (!IS_AFFECTED(ch, AFF_SNEAK))
-    {
-
-      /* char's rider is attempting to sneak (mount-char is not)
-         either going to see mount or 'package' move */
-      if (IS_AFFECTED(RIDDEN_BY(ch), AFF_SNEAK))
-      {
-        /* we know the rider is trying to sneak, we have to do the
-           sneak-check with all the observers in the room */
-        for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
-        {
-          next_tch = tch->next_in_room;
-
-          /* skip self and rider of course */
-          if (tch == ch || tch == RIDDEN_BY(ch))
-            continue;
-
-          /* sneak versus listen check */
-          if (!can_hear_sneaking(tch, RIDDEN_BY(ch)))
-          {
-            /* message:  mount not sneaking, rider is sneaking */
-            snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
-            act(buf2, TRUE, ch, 0, tch, TO_VICT);
-          }
-          else
-          {
-            /* rider detected ! */
-            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
-                     GET_NAME(ch), dirs[dir]);
-            act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
-          }
-        }
-
-        /* rider is -not- attempting to sneak (mount-char not too) */
-      }
-      else
-      {
-        snprintf(buf2, sizeof(buf2), "$n rides $N %s.", dirs[dir]);
-        act(buf2, TRUE, RIDDEN_BY(ch), 0, ch, TO_NOTVICT);
-      }
-    } /* ridden and mount-char -is- attempting to sneak */
-    else
-    {
-
-      /* both are attempt to sneak */
-      if (IS_AFFECTED(RIDDEN_BY(ch), AFF_SNEAK))
-      {
-        /* we know the mount and rider is trying to sneak, we have to do the
-           sneak-check with all the observers in the room, mount (ch)
-         * success in this case is free pass for sneak */
-        for (tch = world[IN_ROOM(RIDDEN_BY(ch))].people; tch; tch = next_tch)
-        {
-          next_tch = tch->next_in_room;
-
-          /* skip rider of course, skipping mount-ch too */
-          if (tch == RIDDEN_BY(ch) || tch == ch)
-            continue;
-
-          /* sneak versus listen check */
-          if (!can_hear_sneaking(tch, ch))
-          {
-            /* mount success!  "package" is sneaking */
-          }
-          else if (!can_hear_sneaking(tch, RIDDEN_BY(ch)))
-          {
-            /* mount failed, rider succeeded */
-            /* message:  mount not sneaking, rider is sneaking */
-            snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
-            act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
-          }
-          else
-          {
-            /* mount failed, rider failed */
-            /* 3.23.18 Ornir Bugfix. */
-            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
-                     GET_NAME(RIDING(ch)), dirs[dir]);
-            act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
-          }
-        }
-
-        /* ridden and mount-char -is- attempt to sneak, rider -not- */
-      }
-      else
-      {
-        /* we know the mount (rider no) is trying to sneak, we have to do the
-           sneak-check with all the observers in the room */
-        for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
-        {
-          next_tch = tch->next_in_room;
-
-          /* skip self (mount) and rider */
-          if (tch == RIDDEN_BY(ch) || tch == ch)
-            continue;
-
-          /* sneak versus listen check */
-          if (can_hear_sneaking(tch, ch))
-          {
-            /* mount detected! */
-            snprintf(buf2, sizeof(buf2), "$n rides %s %s.",
-                     GET_NAME(RIDING(ch)), dirs[dir]);
-            act(buf2, TRUE, ch, 0, tch, TO_VICT);
-          } /* if we pass this check, the rider/mount are both sneaking */
-        }
-      }
-    }
-    /* message to self */
-    send_to_char(ch, "You carry %s %s.\r\n",
-                 GET_NAME(RIDDEN_BY(ch)), dirs[dir]);
-    /* message to rider */
-    send_to_char(RIDDEN_BY(ch), "You are carried %s by %s.\r\n",
-                 dirs[dir], GET_NAME(ch));
-  } /* end char is mounted */
-
-  /* ch is on foot */
-  else if (IS_AFFECTED(ch, AFF_SNEAK))
-  {
-    /* sneak attempt vs the room content */
-    for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
-    {
-      next_tch = tch->next_in_room;
-
-      /* skip self */
-      if (tch == ch)
-        continue;
-
-      /* sneak versus listen check */
-      if (can_hear_sneaking(tch, ch))
-      {
-        /* detected! */
-        if (IS_NPC(ch) && (ch->player.walkout != NULL))
-        {
-          // if they have a walk-out message, display that instead of the boring default one
-          snprintf(buf2, sizeof(buf2), "%s %s.", ch->player.walkout, dirs[dir]);
-          act(buf2, TRUE, ch, 0, tch, TO_VICT);
-        }
-        else
-        {
-          snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
-          act(buf2, TRUE, ch, 0, tch, TO_VICT);
-        }
-      } /* if we pass this check, we are sneaking */
-    }
-    /* message to self */
-    send_to_char(ch, "You sneak %s.\r\n", dirs[dir]);
-  } /* not attempting to sneak */
-  else if (!IS_AFFECTED(ch, AFF_SNEAK))
-  {
-    if (IS_NPC(ch) && (ch->player.walkout != NULL))
-    {
-      // if they have a walk-out message, display that instead of the boring default one
-      snprintf(buf2, sizeof(buf2), "%s %s.", ch->player.walkout, dirs[dir]);
-      act(buf2, TRUE, ch, 0, tch, TO_ROOM);
-    }
-    else
-    {
-      snprintf(buf2, sizeof(buf2), "$n leaves %s.", dirs[dir]);
-      act(buf2, TRUE, ch, 0, 0, TO_ROOM);
-    }
-    /* message to self */
-    send_to_char(ch, "You leave %s.\r\n", dirs[dir]);
-  }
-  /*****/
-  /* end leave-room message code */
-  /*****/
-
-  /* Leave tracks, if not riding. */
-  if (!riding && (IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_NOHASSLE)))
-  {
-    /*snprintf(buf3, sizeof(buf3), "%d \"%s\" \"%s\" %s", 6,
-                                   (IS_NPC(ch) ? race_family_types[GET_NPC_RACE(ch)] : race_list[GET_RACE(ch)].type),
-                                   GET_NAME(ch),
-                                   dirs[dir]);
-      */
 #if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
-    /* Create tracks using new modular function */
-    if (should_create_tracks(ch))
-      create_movement_tracks(ch, dir, TRACKS_OUT);
+  /* Create tracks using new modular function */
+  if (should_create_tracks(ch))
+    create_movement_tracks(ch, dir, TRACKS_OUT);
 #endif
-  }
 
   /* the actual technical moving of the char */
   char_from_room(ch);
@@ -1160,6 +810,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   Y_LOC(ch) = new_y;
 
   char_to_room(ch, going_to);
+  /* end the actual technical moving of the char */
 
   /* move the mount too */
   if (riding && same_room && RIDING(ch)->in_room != ch->in_room)
@@ -1266,281 +917,18 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     }
   }
 
-  /*****/
-  /* Generate the enter message(s) and display to others in the arrive room. */
-  /* This changes stock behavior: it doesn't work                            *
-   *          with in/out/enter/exit as dirs                                 */
-  /*****/
-  if (!riding && !ridden_by)
+  /* Display enter messages using modular function */
+  display_enter_messages(ch, dir, riding, ridden_by);
+
+
+  /* Process all post-movement events (walls, damage, triggers, etc) */
+  if (!process_movement_events(ch, was_in, going_to, dir))
   {
-    /* simplest case, not riding or being ridden-by */
-    for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
-    {
-      next_tch = tch->next_in_room;
-
-      /* skip self */
-      if (tch == RIDDEN_BY(ch) || tch == ch)
-        continue;
-
-      /* sneak versus listen check */
-      if (can_hear_sneaking(tch, ch))
-      {
-        /* failed sneak attempt (if valid) */
-        if (IS_NPC(ch) && ch->player.walkin)
-        {
-          snprintf(buf2, sizeof(buf2), "%s %s%s.", ch->player.walkin,
-                   ((dir == UP || dir == DOWN) ? "" : "the "),
-                   (dir == UP ? "below" : dir == DOWN ? "above"
-                                                      : dirs[rev_dir[dir]]));
-        }
-        else
-        {
-          snprintf(buf2, sizeof(buf2), "$n arrives from %s%s.",
-                   ((dir == UP || dir == DOWN) ? "" : "the "),
-                   (dir == UP ? "below" : dir == DOWN ? "above"
-                                                      : dirs[rev_dir[dir]]));
-        }
-        act(buf2, TRUE, ch, 0, tch, TO_VICT);
-      }
-    }
-  }
-  else if (riding)
-  {
-    for (tch = world[IN_ROOM(RIDING(ch))].people; tch; tch = next_tch)
-    {
-      next_tch = tch->next_in_room;
-
-      /* skip rider of course, and mount */
-      if (tch == RIDING(ch) || tch == ch)
-        continue;
-
-      /* sneak versus listen check */
-      if (!can_hear_sneaking(tch, RIDING(ch)))
-      {
-        /* mount success!  "package" is sneaking */
-      }
-      else if (!can_hear_sneaking(tch, ch))
-      {
-        /* mount failed, rider succeeded */
-        /* message:  mount not sneaking, rider is sneaking */
-        snprintf(buf2, sizeof(buf2), "$n arrives from %s%s.",
-                 ((dir == UP || dir == DOWN) ? "" : "the "),
-                 (dir == UP ? "below" : dir == DOWN ? "above"
-                                                    : dirs[rev_dir[dir]]));
-        act(buf2, TRUE, RIDING(ch), 0, tch, TO_VICT);
-      }
-      else
-      {
-        /* mount failed, rider failed */
-        snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, riding %s.",
-                 ((dir == UP || dir == DOWN) ? "" : "the "),
-                 (dir == UP ? "below" : dir == DOWN ? "above"
-                                                    : dirs[rev_dir[dir]]),
-                 GET_NAME(RIDING(ch)));
-        act(buf2, TRUE, ch, 0, tch, TO_VICT);
-      }
-    }
-  }
-  else if (ridden_by)
-  {
-    for (tch = world[IN_ROOM(RIDDEN_BY(ch))].people; tch; tch = next_tch)
-    {
-      next_tch = tch->next_in_room;
-
-      /* skip rider of course, and mount */
-      if (tch == RIDDEN_BY(ch) || tch == ch)
-        continue;
-
-      /* sneak versus listen check, remember ch = mount right now  */
-      if (!can_hear_sneaking(tch, ch))
-      {
-        /* mount success!  "package" is sneaking */
-      }
-      else if (!can_hear_sneaking(tch, RIDDEN_BY(ch)))
-      {
-        /* mount failed, rider succeeded */
-        /* message:  mount not sneaking, rider is sneaking */
-        snprintf(buf2, sizeof(buf2), "$n arrives from %s%s.",
-                 ((dir == UP || dir == DOWN) ? "" : "the "),
-                 (dir == UP ? "below" : dir == DOWN ? "above"
-                                                    : dirs[rev_dir[dir]]));
-        act(buf2, TRUE, ch, 0, tch, TO_VICT);
-      }
-      else
-      {
-        /* mount failed, rider failed */
-        snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, ridden by %s.",
-                 ((dir == UP || dir == DOWN) ? "" : "the "),
-                 (dir == UP ? "below" : dir == DOWN ? "above"
-                                                    : dirs[rev_dir[dir]]),
-                 GET_NAME(RIDDEN_BY(ch)));
-        act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
-      }
-    }
-  }
-
-  /*****/
-  /* end enter-room message code */
-  /*****/
-
-  /* Maybe a wall will stop them? */
-  if (check_wall(ch, rev_dir[dir]))
-  {
-    /* send them back! */
-    char_from_room(ch);
-    char_to_room(ch, was_in);
+    /* Event prevented movement */
     return 0;
   }
 
-  /* spike growth damages upon entering the room */
-  if (ROOM_AFFECTED(going_to, RAFF_SPIKE_STONES))
-  {
-    /* only damage the character if they're not mounted (mount takes damage) */
-    if (riding && same_room)
-    {
-      // mount will take the damage, don't hurt rider
-      /* damage characters upon entering spike growth room */
-      damage(RIDING(ch), RIDING(ch), dice(4, 4), SPELL_SPIKE_STONES, DAM_EARTH, FALSE);
-      send_to_char(RIDING(ch), "You are impaled by large stone spikes as you enter the room.\r\n");
-    }
-    else
-    {
-      // mount is not there, or not mounted
-      damage(ch, ch, dice(4, 4), SPELL_SPIKE_STONES, DAM_EARTH, FALSE);
-      send_to_char(ch, "You are impaled by large stone spikes as you enter the room.\r\n");
-    }
-  }
-  if (ROOM_AFFECTED(going_to, RAFF_SPIKE_GROWTH))
-  {
-    /* only damage the character if they're not mounted (mount takes damage) */
-    if (riding && same_room)
-    {
-      // mount will take the damage, don't hurt rider
-      /* damage characters upon entering spike growth room */
-      damage(RIDING(ch), RIDING(ch), dice(2, 4), SPELL_SPIKE_GROWTH, DAM_EARTH, FALSE);
-      send_to_char(RIDING(ch), "You are impaled by large spikes as you enter the room.\r\n");
-    }
-    else
-    {
-      // mount is not there, or not mounted
-      damage(ch, ch, dice(2, 4), SPELL_SPIKE_GROWTH, DAM_EARTH, FALSE);
-      send_to_char(ch, "You are impaled by large spikes as you enter the room.\r\n");
-    }
-  }
-
-  /************Death traps have been taken out*************/
-  /* ... and Kill the player if the room is a death trap.
-  if (ROOM_FLAGGED(going_to, ROOM_DEATH)) {
-    if (GET_LEVEL(ch) < LVL_IMMORT) {
-      mudlog(BRF, LVL_IMMORT, TRUE, "%s hit death trap #%d (%s)",
-   * GET_NAME(ch), GET_ROOM_VNUM(going_to), world[going_to].name);
-      death_cry(ch);
-      extract_char(ch);
-    }
-
-    if (riding && GET_LEVEL(RIDING(ch)) < LVL_IMMORT) {
-      mudlog(BRF, LVL_IMMORT, TRUE, "%s hit death trap #%d (%s)",
-     GET_NAME(RIDING(ch)), GET_ROOM_VNUM(going_to), world[going_to].name);
-      death_cry(RIDING(ch));
-      extract_char(RIDING(ch));
-    }
-
-    if (ridden_by && GET_LEVEL(RIDDEN_BY(ch)) < LVL_IMMORT) {
-      mudlog(BRF, LVL_IMMORT, TRUE, "%s hit death trap #%d (%s)",
-     GET_NAME(RIDDEN_BY(ch)), GET_ROOM_VNUM(going_to), world[going_to].name);
-      death_cry(RIDDEN_BY(ch));
-      extract_char(RIDDEN_BY(ch));
-    }
-    return (0);
-  }
-   ************end death trap code**********/
-
   /* At this point, the character is safe and in the room. */
-
-  /* Fire memory and greet triggers, check and see if the greet trigger
-   * prevents movement, and if so, move the player back to the previous room. */
-  entry_memory_mtrigger(ch);
-
-  if (!greet_mtrigger(ch, dir))
-  {
-    char_from_room(ch);
-
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(was_in), ZONE_WILDERNESS))
-    {
-      X_LOC(ch) = world[was_in].coords[0];
-      Y_LOC(ch) = world[was_in].coords[1];
-    }
-
-    char_to_room(ch, was_in);
-    look_at_room(ch, 0);
-
-    /* Failed move, return a failure */
-    return (0);
-  }
-  else
-    greet_memory_mtrigger(ch);
-  /*---------------------------------------------------------------------*/
-  /* End: Post-move operations. */
-
-  /* Only here is the move successful *and* complete. Return success for
-   * calling functions to handle post move operations. */
-
-  /* homeland-port */
-  if (IS_NPC(ch))
-    quest_room(ch);
-
-  /* trap sense will allow a rogue/berserker to auto detect traps if they
-   make a successful check vs DC xx (defined right below ) */
-  bool sensed_trap = FALSE;
-  if (!IS_NPC(ch))
-  {
-    int trap_check = 0;
-    int dc = 21;
-    if ((trap_check = HAS_FEAT(ch, FEAT_TRAP_SENSE)))
-    {
-      if (skill_check(ch, ABILITY_PERCEPTION, (dc - trap_check)))
-        sensed_trap = perform_detecttrap(ch, TRUE); /* silent */
-    }
-  }
-
-  /* check for traps (enter room) */
-  if (!sensed_trap)
-    check_trap(ch, TRAP_TYPE_ENTER_ROOM, ch->in_room, 0, 0);
-
-  if (!ch->master)
-  {
-    // set cooldown timer on old room
-    if (was_in != NOWHERE && ZONE_FLAGGED(GET_ROOM_ZONE(was_in), ZONE_WILDERNESS))
-    {
-      set_expire_cooldown(was_in);
-    }
-#if defined(CAMPAIGN_DL)
-    if (is_road_room(ch->in_room, 2))
-      check_hunt_room(ch->in_room);
-    if (is_road_room(ch->in_room, 3))
-       check_random_encounter(ch);
-#else
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
-    {
-      check_random_encounter(ch);
-      reset_expire_cooldown(ch->in_room);
-      check_hunt_room(ch->in_room);
-    }
-#endif
-  }
-
-  if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT &&
-      !affected_by_spell(ch, AFFECT_RECENTLY_DIED) && !affected_by_spell(ch, AFFECT_RECENTLY_RESPECED))
-  {
-    if (IN_SUNLIGHT(ch) && !is_covered(ch))
-    {
-      damage(ch, ch, dice(1, 6), TYPE_SUN_DAMAGE, DAM_SUNLIGHT, FALSE);
-    }
-    if (IN_MOVING_WATER(ch))
-    {
-      damage(ch, ch, GET_MAX_HIT(ch) / 3, TYPE_MOVING_WATER, DAM_MOVING_WATER, FALSE);
-    }
-  }
 
   return (1);
 }
