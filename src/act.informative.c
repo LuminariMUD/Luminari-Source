@@ -48,11 +48,18 @@
 #include "encounters.h"
 #include "deities.h"
 #include "treasure.h"
+#include "resource_depletion.h"  /* Phase 6: Conservation system */
+#include "resource_system.h"
 #include "roleplay.h"
 #include "spell_prep.h"
 #include "boards.h"
 #include "perfmon.h"
 #include "routing.h"
+
+/* Phase 7: Cascade system integration */
+#ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM
+/* #include "resource_cascade.h" */  /* Phase 7: Ecological cascade system - disabled for simple implementation */
+#endif
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -8091,17 +8098,20 @@ ACMD(do_survey)
 
 #else
 
-/* survey - get information on zone locations and current position, a ?temporary?
-            solution for screen readers, etc
-            ToDo:  limit to a certain distance based on perception maybe?
+/* survey - get information on zone locations, current position, and natural resources
+            Enhanced version that focuses on wilderness resource surveying
             -Zusuk */
 ACMD(do_survey)
 {
   zone_rnum zrnum;
   zone_vnum zvnum;
   room_rnum nr, to_room;
-  int first, last, j;
+  int first, last, j, x, y, i;
+  float resource_level;
   struct room_data *target_room = NULL;
+  char arg[MAX_INPUT_LENGTH];
+
+  one_argument(argument, arg, sizeof(arg));
 
   zrnum = world[IN_ROOM(ch)].zone;
   zvnum = zone_table[zrnum].number;
@@ -8137,34 +8147,337 @@ ACMD(do_survey)
     return;
   }
 
-  last = zone_table[zrnum].top;
-  first = zone_table[zrnum].bot;
+  /* Get current coordinates */
+  x = world[IN_ROOM(ch)].coords[0];
+  y = world[IN_ROOM(ch)].coords[1];
 
-  send_to_char(ch, "You survey the wilderness:\r\n\r\n");
+  /* Enhanced survey with resource information */
+  if (!*arg || is_abbrev(arg, "basic")) {
+    /* Basic survey - location and nearby zones */
+    last = zone_table[zrnum].top;
+    first = zone_table[zrnum].bot;
 
-  for (nr = 0; nr <= top_of_world && (GET_ROOM_VNUM(nr) <= last); nr++)
-  {
-    if (GET_ROOM_VNUM(nr) >= first)
+    send_to_char(ch, "You survey the wilderness:\r\n");
+    send_to_char(ch, "=======================\r\n\r\n");
+
+    /* Show nearby zones */
+    for (nr = 0; nr <= top_of_world && (GET_ROOM_VNUM(nr) <= last); nr++)
     {
-      for (j = 0; j < DIR_COUNT; j++)
+      if (GET_ROOM_VNUM(nr) >= first)
       {
-        if (world[nr].dir_option[j])
+        for (j = 0; j < DIR_COUNT; j++)
         {
-          target_room = &world[nr];
-          to_room = world[nr].dir_option[j]->to_room;
-
-          if (to_room != NOWHERE && (zrnum != world[to_room].zone) && target_room)
+          if (world[nr].dir_option[j])
           {
-            send_to_char(ch, "%s at (\tC%d\tn, \tC%d\tn) to the [%s]\r\n",
-                         zone_table[world[to_room].zone].name,
-                         target_room->coords[0], target_room->coords[1], dirs[j]);
+            target_room = &world[nr];
+            to_room = world[nr].dir_option[j]->to_room;
+
+            if (to_room != NOWHERE && (zrnum != world[to_room].zone) && target_room)
+            {
+              send_to_char(ch, "%s at (\tC%d\tn, \tC%d\tn) to the [%s]\r\n",
+                           zone_table[world[to_room].zone].name,
+                           target_room->coords[0], target_room->coords[1], dirs[j]);
+            }
           }
         }
       }
     }
-  }
 
-  send_to_char(ch, "\r\nYour Current Location : (\tC%d\tn, \tC%d\tn)\r\n", ch->coords[0], ch->coords[1]);
+    send_to_char(ch, "\r\nYour Current Location: (\tC%d\tn, \tC%d\tn)\r\n", x, y);
+    send_to_char(ch, "Terrain Type: %s\r\n", sector_types[SECT(IN_ROOM(ch))]);
+    send_to_char(ch, "Elevation: %d\r\n", get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+    
+    /* Phase 6: Add basic resource conservation summary */
+    float avg_depletion = 0.0;
+    int depletion_count = 0;
+    for (i = 0; i < 3; i++) { /* Check major resources: herbs, minerals, wood */
+      int resource_types[] = {RESOURCE_HERBS, RESOURCE_MINERALS, RESOURCE_WOOD};
+      float depletion = get_resource_depletion_level(IN_ROOM(ch), resource_types[i]);
+      avg_depletion += depletion;
+      depletion_count++;
+    }
+    if (depletion_count > 0) {
+      avg_depletion /= depletion_count;
+      send_to_char(ch, "Resource Condition: %s", get_depletion_level_name(avg_depletion));
+      if (avg_depletion < 0.8) {
+        send_to_char(ch, " \tc(harvest efficiency reduced)\tn");
+      }
+      send_to_char(ch, "\r\n");
+    }
+    
+    send_to_char(ch, "\r\nUse '\tCsurvey resources\tn' to scan for natural resources.\r\n");
+    send_to_char(ch, "Use '\tCsurvey terrain\tn' for detailed terrain analysis.\r\n");
+    send_to_char(ch, "Use '\tCsurvey conservation\tn' for resource depletion status.\r\n");
+    send_to_char(ch, "Use '\tCsurvey ecosystem\tn' for ecosystem health analysis.\r\n");
+    send_to_char(ch, "Use '\tCsurvey impact\tn' to see your conservation impact.\r\n");
+    send_to_char(ch, "Use '\tCsurvey cascade <resource>\tn' to preview ecological impact.\r\n");
+  }
+  else if (is_abbrev(arg, "resources")) {
+    /* Resource survey - main new functionality */
+    send_to_char(ch, "You carefully examine the area for natural resources...\r\n\r\n");
+    
+    send_to_char(ch, "Resource Survey for (\tC%d\tn, \tC%d\tn):\r\n", x, y);
+    send_to_char(ch, "=====================================\r\n");
+    
+    /* Show current terrain context */
+    send_to_char(ch, "Terrain: %s | Elevation: %d\r\n\r\n", 
+                 sector_types[SECT(IN_ROOM(ch))], get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+    
+    /* Show resource levels with depletion information */
+    send_to_char(ch, "Available Resources:\r\n");
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+      resource_level = calculate_current_resource_level(i, x, y);
+      if (resource_level > 0.05) { /* Only show resources with meaningful levels */
+        float depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
+        float harvest_modifier = get_harvest_success_modifier(IN_ROOM(ch), i);
+        
+        send_to_char(ch, "  \tG%-12s\tn: %s", 
+                     resource_names[i], 
+                     get_abundance_description(resource_level));
+        
+        /* Add depletion status - Phase 6 enhancement */
+        if (depletion_level < 1.0) {
+          send_to_char(ch, " \tc[\tn%s\tc - %.0f%% harvest efficiency\tn]", 
+                       get_depletion_level_name(depletion_level),
+                       harvest_modifier * 100);
+        } else {
+          send_to_char(ch, " \tG[pristine condition]\tn");
+        }
+        send_to_char(ch, "\r\n");
+      }
+    }
+    
+    /* Phase 6: Add conservation tip */
+    send_to_char(ch, "\r\n\tcTip:\tn Sustainable harvesting practices improve your conservation score\r\n");
+    send_to_char(ch, "and help maintain resource availability for future use.\r\n");
+  }
+  else if (is_abbrev(arg, "terrain")) {
+    /* Detailed terrain analysis */
+    show_terrain_survey(ch);
+  }
+  else if (is_abbrev(arg, "map")) {
+    /* Resource minimap */
+    char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
+    int resource_type = -1, radius = 7, i;
+    
+    /* Skip past "map" and get the resource type and radius */
+    argument = one_argument(argument, arg, sizeof(arg)); /* Skip "map" */
+    argument = one_argument(argument, arg2, sizeof(arg2)); /* Get resource type */
+    one_argument(argument, arg3, sizeof(arg3)); /* Get radius */
+    
+    if (!*arg2) {
+      send_to_char(ch, "Available resource types for mapping:\r\n");
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        send_to_char(ch, "  %d. %s\r\n", i, resource_names[i]);
+      }
+      send_to_char(ch, "\r\nUsage: survey map <resource_type> [radius]\r\n");
+      send_to_char(ch, "Example: survey map vegetation 10\r\n");
+      return;
+    }
+    
+    /* Parse resource type */
+    if (is_number(arg2)) {
+      resource_type = atoi(arg2);
+    } else {
+      /* Try to match by name */
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        if (is_abbrev(arg2, resource_names[i])) {
+          resource_type = i;
+          break;
+        }
+      }
+    }
+    
+    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES) {
+      send_to_char(ch, "Invalid resource type. Use 'survey map' to see available types.\r\n");
+      return;
+    }
+    
+    /* Parse radius */
+    if (*arg3) {
+      radius = atoi(arg3);
+      if (radius < 3) radius = 3;
+      if (radius > 15) radius = 15;
+    }
+    
+    show_resource_map(ch, resource_type, radius);
+  }
+  else if (is_abbrev(arg, "detail")) {
+    /* Detailed resource analysis */
+    char arg2[MAX_INPUT_LENGTH];
+    int resource_type = -1, i;
+    
+    /* Skip past "detail" and get the resource type */
+    argument = one_argument(argument, arg, sizeof(arg)); /* Skip "detail" */
+    one_argument(argument, arg2, sizeof(arg2));
+    
+    if (!*arg2) {
+      send_to_char(ch, "Available resource types for detailed analysis:\r\n");
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        send_to_char(ch, "  %d. %s\r\n", i, resource_names[i]);
+      }
+      send_to_char(ch, "\r\nUsage: survey detail <resource_type>\r\n");
+      send_to_char(ch, "Example: survey detail minerals\r\n");
+      return;
+    }
+    
+    /* Parse resource type */
+    if (is_number(arg2)) {
+      resource_type = atoi(arg2);
+    } else {
+      /* Try to match by name */
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        if (is_abbrev(arg2, resource_names[i])) {
+          resource_type = i;
+          break;
+        }
+      }
+    }
+    
+    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES) {
+      send_to_char(ch, "Invalid resource type. Use 'survey detail' to see available types.\r\n");
+      return;
+    }
+    
+    show_resource_detail(ch, resource_type);
+  }
+  else if (is_abbrev(arg, "conservation")) {
+    /* Phase 6: Conservation status analysis */
+    x = world[IN_ROOM(ch)].coords[0];
+    y = world[IN_ROOM(ch)].coords[1];
+    show_resource_conservation_status(ch, x, y);
+  }
+  else if (is_abbrev(arg, "regeneration")) {
+    /* Phase 6: Regeneration analysis */
+    x = world[IN_ROOM(ch)].coords[0];
+    y = world[IN_ROOM(ch)].coords[1];
+    show_regeneration_analysis(ch, x, y);
+  }
+  else if (is_abbrev(arg, "ecosystem")) {
+    /* Phase 7: Ecosystem health analysis */
+    show_ecosystem_analysis(ch, IN_ROOM(ch));
+  }
+  else if (is_abbrev(arg, "impact")) {
+    /* Phase 7: Player conservation impact analysis */
+#ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM
+    show_conservation_impact(ch);
+#else
+    send_to_char(ch, "Conservation impact tracking is not available.\r\n");
+#endif
+  }
+  else if (is_abbrev(arg, "cascade")) {
+    /* Phase 7: Cascade effect preview */
+    char arg2[MAX_INPUT_LENGTH];
+    int resource_type = -1, i;
+    
+    /* Get resource type argument */
+    argument = one_argument(argument, arg, sizeof(arg)); /* Skip "cascade" */
+    one_argument(argument, arg2, sizeof(arg2)); /* Get resource type */
+    
+    if (!*arg2) {
+      send_to_char(ch, "Usage: survey cascade <resource_type>\r\n");
+      send_to_char(ch, "Available resources: ");
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        send_to_char(ch, "%s%s", resource_names[i], i < NUM_RESOURCE_TYPES - 1 ? ", " : "\r\n");
+      }
+      return;
+    }
+    
+    /* Parse resource type */
+    if (is_number(arg2)) {
+      resource_type = atoi(arg2);
+    } else {
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        if (is_abbrev(arg2, resource_names[i])) {
+          resource_type = i;
+          break;
+        }
+      }
+    }
+    
+    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES) {
+      send_to_char(ch, "Invalid resource type '%s'.\r\n", arg2);
+      return;
+    }
+    
+    show_cascade_preview(ch, IN_ROOM(ch), resource_type);
+  }
+  else if (is_abbrev(arg, "help")) {
+    /* Help information including harvesting details */
+    send_to_char(ch, "Survey Command Help:\r\n");
+    send_to_char(ch, "===================\r\n\r\n");
+    
+    send_to_char(ch, "Survey options:\r\n");
+    send_to_char(ch, "  survey [basic]         - Basic area survey (default)\r\n");
+    send_to_char(ch, "  survey resources       - Scan for natural resources\r\n");
+    send_to_char(ch, "  survey terrain         - Detailed terrain analysis\r\n");
+    send_to_char(ch, "  survey map <type> [r]  - Resource minimap (radius 3-15)\r\n");
+    send_to_char(ch, "  survey detail <type>   - Detailed resource analysis\r\n");
+    send_to_char(ch, "  %ssurvey conservation%s     - Resource depletion and conservation status\r\n",
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey regeneration%s     - Resource regeneration analysis\r\n",
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey ecosystem%s        - Ecosystem health analysis\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey impact%s           - Your conservation impact and environmental score\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey cascade <type>%s   - Preview ecological impact of harvesting\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  survey help            - This help information\r\n");
+    if (GET_LEVEL(ch) >= LVL_IMMORT) {
+      send_to_char(ch, "  survey debug           - Debug information\r\n");
+    }
+    
+    send_to_char(ch, "\r\nResource types: vegetation, minerals, water, herbs, game,\r\n");
+    send_to_char(ch, "                wood, stone, crystal, clay, salt\r\n");
+    
+    /* Harvesting Information */
+    send_to_char(ch, "\r\n\tWHarvesting Information:\tn\r\n");
+    send_to_char(ch, "  vegetation: General plant life and foliage\r\n");
+    send_to_char(ch, "  minerals: Ores, metals, and mineral deposits\r\n");
+    send_to_char(ch, "  water: Fresh water sources and springs\r\n");
+    send_to_char(ch, "  herbs: Medicinal and magical plants\r\n");
+    send_to_char(ch, "  game: Wildlife and huntable animals\r\n");
+    send_to_char(ch, "  wood: Harvestable timber and lumber\r\n");
+    send_to_char(ch, "  stone: Building stone and quarry materials\r\n");
+    send_to_char(ch, "  crystal: Rare magical components\r\n");
+    send_to_char(ch, "  clay: Clay deposits for pottery and crafting\r\n");
+    send_to_char(ch, "  salt: Salt deposits and brine pools\r\n");
+    
+    send_to_char(ch, "\r\n\tcTip:\tn Sustainable harvesting practices improve your conservation score\r\n");
+    send_to_char(ch, "and help maintain resource availability for future use.\r\n");
+  }
+  else if (is_abbrev(arg, "debug") && GET_LEVEL(ch) >= LVL_IMMORT) {
+    /* Debug information for admins */
+    show_debug_survey(ch);
+  }
+  else {
+    send_to_char(ch, "Survey options:\r\n");
+    send_to_char(ch, "  survey [basic]         - Basic area survey (default)\r\n");
+    send_to_char(ch, "  survey resources       - Scan for natural resources\r\n");
+    send_to_char(ch, "  survey terrain         - Detailed terrain analysis\r\n");
+    send_to_char(ch, "  survey map <type> [r]  - Resource minimap (radius 3-15)\r\n");
+    send_to_char(ch, "  survey detail <type>   - Detailed resource analysis\r\n");
+    send_to_char(ch, "  %ssurvey conservation%s     - Resource depletion and conservation status\r\n",
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey regeneration%s     - Resource regeneration analysis\r\n",
+                 CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey ecosystem%s        - Ecosystem health analysis\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey impact%s           - Your conservation impact and environmental score\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  %ssurvey cascade <type>%s   - Preview ecological impact of harvesting\r\n",
+                 CCGRN(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "  survey help            - Detailed help and resource information\r\n");
+    if (GET_LEVEL(ch) >= LVL_IMMORT) {
+      send_to_char(ch, "  survey debug           - Debug information\r\n");
+    }
+    send_to_char(ch, "\r\nUse 'survey help' for detailed information about resource types and harvesting.\r\n");
+    send_to_char(ch, "\r\n%sPhase 7 Ecological Interdependencies:%s\r\n", 
+                 CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
+    send_to_char(ch, "Harvesting one resource now affects related resources!\r\n");
+    send_to_char(ch, "Use cascade preview to understand ecological impacts before harvesting.\r\n");
+  }
 }
 
 #endif
@@ -9437,5 +9750,127 @@ ACMDU(do_wearapplies)
 #undef WPT_ELF
 #undef WPT_DWARF
 #undef WPT_DUERGAR
+
+/* Phase 4.5: Materials storage display command */
+ACMD(do_materials)
+{
+    char arg[MAX_INPUT_LENGTH];
+    bool show_details = false;
+    
+    if (IS_NPC(ch)) {
+        send_to_char(ch, "NPCs don't store materials.\r\n");
+        return;
+    }
+    
+    one_argument(argument, arg, sizeof(arg));
+    
+    if (*arg && !str_cmp(arg, "details")) {
+        show_details = true;
+    } else if (*arg) {
+        send_to_char(ch, "Usage: materials [details]\r\n");
+        send_to_char(ch, "  materials        - Show basic materials list\r\n");
+        send_to_char(ch, "  materials details - Show detailed crafting information\r\n");
+        return;
+    }
+    
+    /* Show basic materials by default, enhanced with 'details' */
+    if (show_details) {
+#ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
+        /* Enhanced materials display for LuminariMUD */
+        send_to_char(ch, "\\cW=== Enhanced Wilderness Materials (LuminariMUD) ===\\cn\r\n");
+        send_to_char(ch, "Your materials are preserved with their full hierarchy and quality.\r\n");
+        send_to_char(ch, "These materials can be used in enhanced LuminariMUD crafting recipes.\r\n\r\n");
+        show_enhanced_material_storage(ch);
+#else
+        send_to_char(ch, "Enhanced crafting integration not available in this campaign.\r\n");
+        show_basic_material_storage(ch);
+#endif
+    } else {
+        /* Always show basic display for regular 'materials' command */
+        show_basic_material_storage(ch);
+    }
+}
+
+/* Phase 6: Conservation statistics command */
+ACMD(do_conservation) {
+    char arg[MAX_INPUT_LENGTH];
+    int i;
+    
+    if (!ch || IS_NPC(ch)) {
+        return;
+    }
+    
+    one_argument(argument, arg, sizeof(arg));
+    
+    if (*arg && is_abbrev(arg, "stats")) {
+        /* Show detailed conservation statistics */
+        send_to_char(ch, "%s=== Your Conservation Statistics ===%s\r\n", 
+                     CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
+        send_to_char(ch, "Your sustainable harvesting practices across resource types:\r\n\r\n");
+        
+        float total_score = 0.0;
+        int count = 0;
+        
+        for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+            float score = get_player_conservation_score(ch);
+            const char *status = get_conservation_status_name(score);
+            
+            send_to_char(ch, "  %-12s: %s%s%s (%.1f/5.0)\r\n", 
+                         get_resource_name(i), 
+                         CCYEL(ch, C_NRM), status, CCNRM(ch, C_NRM), score);
+            
+            total_score += score;
+            count++;
+        }
+        
+        if (count > 0) {
+            float avg_score = total_score / count;
+            const char *overall_status = get_conservation_status_name(avg_score);
+            
+            send_to_char(ch, "\r\n%sOverall Rating: %s%s %s(%.1f/5.0)%s\r\n", 
+                         CCWHT(ch, C_NRM), CCNRM(ch, C_NRM),
+                         overall_status, CCYEL(ch, C_NRM), avg_score, CCNRM(ch, C_NRM));
+            
+            send_to_char(ch, "\r\n%sConservation Guide:%s\r\n", 
+                         CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
+            send_to_char(ch, "- Harvest 1-2 units at a time for sustainable practices\r\n");
+            send_to_char(ch, "- Allow areas to regenerate between harvests\r\n");
+            send_to_char(ch, "- Check 'survey conservation' to see area health\r\n");
+            send_to_char(ch, "- Higher conservation scores may yield future benefits\r\n");
+        }
+    }
+    else if (*arg && is_abbrev(arg, "leaderboard")) {
+        /* TODO: Implement server-wide conservation leaderboard */
+        send_to_char(ch, "Conservation leaderboard feature coming soon!\r\n");
+    }
+    else {
+        /* Show basic conservation status */
+        send_to_char(ch, "%sConservation Status%s\r\n", 
+                     CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
+        send_to_char(ch, "==================\r\n");
+        
+        float total_score = 0.0;
+        int count = 0;
+        
+        for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+            float score = get_player_conservation_score(ch);
+            total_score += score;
+            count++;
+        }
+        
+        if (count > 0) {
+            float avg_score = total_score / count;
+            const char *status = get_conservation_status_name(avg_score);
+            
+            send_to_char(ch, "Your overall conservation rating: %s%s%s (%.1f/5.0)\r\n", 
+                         CCYEL(ch, C_NRM), status, CCNRM(ch, C_NRM), avg_score);
+        }
+        
+        send_to_char(ch, "\r\nCommands:\r\n");
+        send_to_char(ch, "  conservation stats     - Detailed statistics by resource type\r\n");
+        send_to_char(ch, "  survey conservation    - Check area resource health\r\n");
+        send_to_char(ch, "  survey regeneration    - Analyze regeneration rates\r\n");
+    }
+}
 
 /*EOF*/

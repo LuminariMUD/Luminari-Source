@@ -1,5 +1,257 @@
 # CHANGELOG
 
+## 2025-08-10 (Memory Leak Fix - NPC Memory Records)
+### Fixed
+- **NPC Memory Record Leak (16 bytes per record)**:
+  - **Fixed memory leak in free_char() (db.c:6050-6075)**:
+    - NPCs can remember who attacked them via the remember() function in mobact.c
+    - Memory records are allocated as a linked list during combat
+    - When NPCs were freed via free_char() (used in clan/player loading), their memory wasn't cleared
+    - Only NPCs going through extract_char_final() had their memory properly freed
+    - Added clearMemory() call in free_char() for NPCs to prevent the leak
+    - Valgrind reported this leak at mobact.c:635 in remember()
+  - **Impact**: Prevented accumulating memory leaks during player/clan operations
+  - **Added comprehensive beginner-friendly comments explaining the fix**
+
+## 2025-08-10 (Memory Leak Fix - Object Loading)
+### Fixed
+- **Object Memory Leaks During Player/House Loading (4.9KB per incident)**:
+  - **Fixed memory leak in objsave_parse_objects_db() (objsave.c:2258-2272, 3237-3251, 3897-3911)**:
+    - When loading player or house objects from database/files
+    - Objects created with read_object() were leaked when:
+      - A non-existent object vnum was encountered
+      - read_object() failed and returned NULL
+      - Parsing encountered a new object before finishing the previous one
+    - Added cleanup checks before creating new objects
+    - Added cleanup when skipping non-existent objects
+  - **Fixed similar leak in objsave_parse_objects() (objsave.c:1796-1850)**:
+    - Same issue in file-based object loading
+    - Additional fixes for:
+      - Cleanup when encountering non-existent items (line 1799)
+      - Cleanup when encountering negative vnums (line 1826)
+      - Cleanup before creating unique objects (line 1821)
+    - Now properly frees orphaned objects in all error paths
+  - **Impact**: Prevented 54-4850 byte leaks per player login and house loading
+  - **Added comprehensive comments explaining the memory leak scenarios**
+
+## 2025-08-10 (Memory Leak Fix - Signal Handler Cleanup)
+### Fixed
+- **Critical Memory Leak on Signal-based Shutdown (300KB+)**:
+  - **Fixed improper exit in signal handler (comm.c:3348-3361)**:
+    - Signal handler was calling exit(1) directly on SIGINT/SIGTERM/SIGHUP
+    - This bypassed all cleanup code including destroy_db()
+    - Caused 300,674 bytes of memory leaks (room names/descriptions)
+    - Now sets shutdown_requested flag for graceful shutdown
+  - **Modified main game loop to check shutdown flag**:
+    - Game loop now checks both circle_shutdown and shutdown_requested
+    - Ensures proper cleanup always occurs before exit
+  - **Added comprehensive beginner-friendly comments**:
+    - Explained signal handling and memory cleanup
+    - Documented the importance of graceful shutdown
+    - Added notes about volatile sig_atomic_t for signal safety
+
+## 2025-08-10 (Memory Safety - Critical Buffer Overlap Fix)
+### Fixed
+- **Critical Memory Corruption in vwrite_to_output()**:
+  - **Fixed strcpy buffer overlap in comm.c:2244**:
+    - Added check to skip unnecessary copy when source and destination are the same
+    - Issue occurred when reusing large output buffers where t->output already pointed to t->large_outbuf->text
+    - Valgrind reported: "Source and destination overlap in strcpy"
+    - Could cause undefined behavior, crashes, or data corruption
+  - **Added comprehensive code comments**:
+    - Explained the overlap scenario for future maintainers
+    - Documented why the pointer equality check is necessary
+    - Added beginner-friendly explanations of the buffer management
+
+## 2025-08-10 (Lists System - Session 8 - Error Handling & Documentation)
+### Fixed
+- **Lists System Error Handling Standardization**:
+  - **Standardized error reporting with consistent log levels**:
+    - SYSERR (CMP, LVL_GRSTAFF) for programming errors (NULL pointers, API misuse)
+    - WARNING (NRM, LVL_STAFF) for normal conditions (empty lists, missing items)
+    - Added detailed error handling policy comments in code
+  - **Added comprehensive error handling policy in lists.h**:
+    - Documented log levels, return values, and edge case behaviors
+    - Provided best practices for error handling
+
+### Added
+- **Lists System Documentation Enhancements**:
+  - **Added prominent warning about nesting simple_list() loops**:
+    - Placed at top of LISTS.md with clear examples
+    - Shows correct alternative using explicit iterators
+  - **Added Iterator Lifecycle Management section**:
+    - Detailed iterator states and lifecycle rules
+    - Safety features and best practices
+  - **Added 7 comprehensive code pattern examples**:
+    - Processing groups, finding matches, counting items
+    - Building filtered lists, safe removal during iteration
+    - Nested iteration, transferring between lists
+  - **Added Troubleshooting section**:
+    - Common problems with solutions
+    - Debug techniques for infinite loops
+    - Memory leak prevention
+
+### Summary
+- Completed all remaining items from lists-system-audit.md
+- Significantly improved documentation for maintainability
+- Made error handling consistent and predictable
+- Provided extensive examples to prevent common mistakes
+
+## 2025-08-09 (Lists System - Session 7 - Critical Use-After-Free Fix)
+### Fixed
+- **Lists System Critical Bug Fix**:
+  - **Fixed use-after-free vulnerability in simple_list()**:
+    - When switching between lists, iterator cleanup could access freed memory
+    - Added NULL check before calling remove_iterator() 
+    - Prevents MUD crashes when a list is freed while being iterated
+    - Example crash scenario: Start iterating list1, list1 gets freed, switch to list2
+  - **Enhanced memory safety documentation**:
+    - Added detailed comments explaining the use-after-free protection
+    - Documented defensive programming techniques in free_list()
+    - Added comprehensive beginner notes about static variable dangers
+
+### Summary  
+- Fixed critical crash bug that could bring down the entire MUD
+- Improved memory safety in list iteration
+- Made the code more robust against programming errors
+
+## 2025-08-09 (Lists System - Session 6 - Documentation Fix)
+### Fixed
+- **Lists System Documentation**:
+  - **Fixed critical documentation error for randomize_list()**: 
+    - Documentation incorrectly stated empty lists weren't freed
+    - Could cause memory leaks if developers relied on incorrect docs
+    - Updated LISTS.md to correctly state that empty lists ARE freed
+    - Added comprehensive warning comments in randomize_list() function
+    - Emphasized that the function ALWAYS consumes the input list
+    - Added clear caller responsibility notes about invalid pointers
+
+### Summary
+- Fixed documentation that could lead to memory leaks
+- Enhanced code comments for better understanding of memory ownership
+- Prevented potential bugs from incorrect documentation
+
+## 2025-08-09 (Lists System - Session 5 - Performance Optimization)
+### Fixed
+- **Lists System Performance Optimization**:
+  - **Fixed O(n²) performance issue in free_list()**: Function now runs in O(n) time
+    - Previously used remove_from_list() which performed O(n) search for each item
+    - Now directly traverses and frees nodes without searching
+    - Significant performance improvement when freeing large lists
+    - Added performance note in code explaining the optimization
+  
+### Added
+- **Enhanced Beginner Documentation in lists.c**:
+  - **simple_list() documentation**: Added detailed explanation of static state management
+    - Clear warning about nesting prohibition with examples
+    - Best practices for reset before and after loops
+  - **merge_iterator() documentation**: Added iterator pattern explanation
+    - Book-reading analogy to help beginners understand iterators
+    - Comparison with simple_list() to explain when to use each
+  - **global_lists documentation**: Added bootstrapping explanation
+    - Clear explanation of why first list becomes global_lists itself
+    - Helps beginners understand the self-referential pattern
+  - **free_list() documentation**: Added performance optimization note
+    - Explains the O(n²) to O(n) improvement for future maintainers
+
+### Summary
+- Eliminated performance bottleneck in list cleanup operations
+- Significantly improved code documentation for beginners
+- Made the codebase more maintainable and understandable
+
+## 2025-01-09 (Lists System - Session 4 - Helper Macros)
+### Added
+- **Lists System Helper Macros for Safer Operations**:
+  - **SIMPLE_LIST_CLEANUP()**: Manual cleanup macro for iterator reset
+    - Use before iteration and when breaking/returning early from loops
+    - Ensures iterator is properly reset to prevent contamination
+  - **SAFE_REMOVE_FROM_LIST(item, list)**: NULL-safe removal macro
+    - Checks both item and list for NULL before attempting removal
+    - Prevents crashes from NULL pointers
+  
+### Not Implemented
+- **SIMPLE_LIST_FOREACH macro**: Cannot be implemented due to C89/C90 standard restrictions
+  - The codebase requires C89/C90 compatibility
+  - For-loop variable declarations are not allowed in C89
+  - Continue using traditional while-loop pattern with explicit resets
+  
+### Documentation
+- Updated LISTS.md with C89 compatibility note and traditional pattern examples
+- Added comprehensive beginner-friendly comments in lists.h
+- Documented the C89 limitation and provided alternative patterns
+
+### Summary
+- Implemented helper macros where possible within C89 constraints
+- Improved NULL safety for list removal operations
+- Provided clearer guidance on proper iterator management
+
+## 2025-08-08 (Lists System - Session 3 - Iterator Safety Fix)
+### Fixed
+- **Lists System Critical Iterator Safety Issue**:
+  - **Fixed missing simple_list() resets**: Added `simple_list(NULL)` calls before all while loops
+    - Fixed 30+ instances across 11 files where iterator wasn't reset before use
+    - Prevents cross-contamination between iterations that could cause infinite loops or skipped items
+    - Files fixed: act.other.c, act.offensive.c, domain_powers.c, fight.c, bardic_performance.c, 
+      comm.c, crafts.c, magic.c, utils.c, handler.c, db.c
+  - **Added comprehensive beginner documentation**: Each fix includes detailed comments explaining
+    why the reset is needed and what problems it prevents
+
+### Summary
+- Eliminated a severe bug that could cause gameplay issues through iterator state contamination
+- Improved code reliability by ensuring clean iterator state for every list traversal
+- Enhanced maintainability with clear documentation for future developers
+
+## 2025-08-08 (Lists System - Session 2 - Critical Safety Fixes)
+### Fixed
+- **Lists System Critical Safety Issues**:
+  - **Added NULL pointer checks in all public API functions**: Prevents crashes when NULL list pointers are passed
+    - `add_to_list()` - Added NULL list check with warning log
+    - `remove_from_list()` - Added NULL list check with warning log
+    - `random_from_list()` - Added NULL list check with warning log
+    - `randomize_list()` - Added NULL list check with warning log
+  - **Fixed memory leak in randomize_list()**: Empty lists are now properly freed instead of leaked
+  - **Resolved clear_simple_list() API confusion**: Marked as deprecated in header with guidance to use simple_list(NULL)
+
+### Added
+- **Enhanced Beginner Documentation**:
+  - Added detailed comments explaining safety checks and their importance
+  - Documented memory ownership model for randomize_list()
+  - Clarified edge cases and error conditions
+
+### Summary
+- Fixed most severe crash-causing issues in lists system
+- Eliminated potential memory leaks
+- Improved API consistency and safety
+- System now robust against NULL pointer errors
+
+## 2025-08-08 (Lists System - Session 1 - Critical Fixes and Documentation)
+### Fixed
+- **Lists System Critical Issues**:
+  - **Fixed remove_iterator() warning spam**: The function was incorrectly logging warnings when called with NULL list pointer, which is a normal condition (e.g., after merge_iterator fails). Now returns silently, matching the legacy implementation behavior.
+  - **Added safety check in next_in_list()**: Added proper NULL pointer check for pItem before dereferencing to prevent potential crashes when iterator reaches end of list or is improperly initialized.
+  - **Improved simple_list() reset behavior**: Enhanced the reset logic to properly clean up iterators when switching between lists, preventing potential iterator leaks and ensuring clean state transitions.
+
+### Added
+- **Comprehensive Documentation**:
+  - Added detailed beginner-friendly comments throughout lists.c explaining:
+    - Core data structure relationships (lists, items, iterators)
+    - Memory ownership model (list owns nodes, not content)
+    - Iterator lifecycle and cleanup requirements
+    - Common usage patterns and pitfalls
+    - Non-reentrancy limitations of simple_list()
+  - Comments use clear analogies (trains, bookmarks) to explain concepts
+  - Each function now has detailed explanations of its purpose and behavior
+
+### Performance
+- **Reduced Log Spam**: Eliminating unnecessary warning logs improves performance during normal operations
+- **Iterator Safety**: Proper cleanup prevents memory leaks from abandoned iterators
+
+### Summary
+- Fixed most severe issues identified in lists system audit
+- Significantly improved code documentation for maintainability
+- Enhanced stability by adding defensive programming checks
+- System now more robust against edge cases and improper usage
+
 ## 2025-08-01 (Staff Event System - Critical Issues Resolved)
 ### Fixed
 - **Staff Event System Critical Performance Issue (C001)**:

@@ -18,6 +18,7 @@
 #include "mysql.h"
 #include "desc_engine.h"
 #include "wilderness.h"
+#include "resource_descriptions.h"
 
 /*
  * Luminari Description Engine
@@ -46,6 +47,18 @@
 
 char *gen_room_description(struct char_data *ch, room_rnum room)
 {
+#if defined(ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS) && defined(WILDERNESS_RESOURCE_DEPLETION_SYSTEM)
+	/* Use new resource-aware descriptions for Luminari campaign */
+	if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))) {
+		char *resource_desc = generate_resource_aware_description(ch, room);
+		if (resource_desc) {
+			return resource_desc;
+		}
+		/* Fall through to original system if resource description fails */
+	}
+#endif
+
+	/* Original description system */
 	/* Buffers to hold the description*/
 	char buf[MAX_STRING_LENGTH] = {'\0'};
 	char weather_buf[MAX_STRING_LENGTH] = {'\0'};

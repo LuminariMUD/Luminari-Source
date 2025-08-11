@@ -25,6 +25,8 @@
 #include "mud_event.h"
 #include "crafts.h"
 #include "item.h"
+#include "crafting_new.h"
+
 
 /* Statics */
 static void craftedit_disp_menu(struct descriptor_data *d);
@@ -241,6 +243,12 @@ static void save_crafts_to_disk(void)
     fprintf(fp, "Mslf: %s\n", CRAFT_MSG_SELF(c));
     fprintf(fp, "Mroo: %s\n", CRAFT_MSG_ROOM(c));
 
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((r = (struct requirement_data *)simple_list(c->requirements)) != NULL)
       fprintf(fp, "Req : %d %d %d\n",
               r->req_vnum, r->req_amount, r->req_flags);
@@ -478,6 +486,12 @@ void list_all_crafts(struct char_data *ch)
     send_to_char(ch, "\t1Crafts:\r\n"
                      "\t2ID  ) Name                       VNUM   Item Name\tn\r\n");
 
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((craft = (struct craft_data *)simple_list(global_craft_list)) != NULL)
     {
       send_to_char(ch, "\t2%-4d)\t3 %-22s -> \t1[\t2%-4d\t1] [\t2%s\t1]\tn\r\n", CRAFT_ID(craft), CRAFT_NAME(craft), CRAFT_OBJVNUM(craft),
@@ -497,6 +511,12 @@ void list_available_crafts(struct char_data *ch)
 
   if (global_craft_list->iSize > 0)
   {
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((craft = (struct craft_data *)simple_list(global_craft_list)) != NULL)
     {
       if (IS_SET(CRAFT_FLAGS(craft), CRAFT_RECIPE))
@@ -541,6 +561,12 @@ void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
     else
       send_to_char(ch, "Time: %d\r\n", CRAFT_TIMER(craft));
 
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((req = (struct requirement_data *)simple_list(craft->requirements)) != NULL)
     {
       if ((rnum = real_object(req->req_vnum)) == NOWHERE)
@@ -588,6 +614,12 @@ void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
     else
       send_to_char(ch, "Gazing at the requirements list, you envision what you need:\r\n");
 
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((req = (struct requirement_data *)simple_list(craft->requirements)) != NULL)
     {
       if ((rnum = real_object(req->req_vnum)) == NOWHERE)
@@ -685,6 +717,22 @@ EVENTFUNC(event_craft)
 }
 
 ACMDU(do_craft)
+{
+  switch (CONFIG_CRAFTING_SYSTEM)
+  {
+    case CRAFTING_SYSTEM_KITS:
+      do_practice(ch, argument, cmd, subcmd);
+      break;
+    case CRAFTING_SYSTEM_MOTES:
+      do_newcraft(ch, argument, cmd, SCMD_NEWCRAFT_CREATE);
+      break;
+    default:
+      send_to_char(ch, "There is no crafting system implemented right now.\r\n");
+      break;
+  }
+}
+
+ACMDU(do_craft_with_kits)
 {
   struct craft_data *craft;
   struct obj_data *obj;
@@ -952,6 +1000,12 @@ static void craftedit_requirement_menu(struct descriptor_data *d)
 
   if (c->requirements->iSize)
   {
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((r = (struct requirement_data *)simple_list(c->requirements)) != NULL)
     {
       sprintbit(r->req_flags, requirement_flags, buf, sizeof(buf));
@@ -995,6 +1049,12 @@ static void craftedit_disp_menu(struct descriptor_data *d)
 
   if (c->requirements->iSize)
   {
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((r = (struct requirement_data *)simple_list(c->requirements)) != NULL)
     {
       sprintbit(r->req_flags, requirement_flags, buf, sizeof(buf));

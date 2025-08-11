@@ -1,28 +1,11 @@
 /* ************************************************************************
  *      File:   vessels.h                            Part of LuminariMUD  *
  *   Purpose:   Unified Vessel/Vehicle system header                      *
- *  Systems:    CWG Vehicles, Outcast Ships, Greyhawk Ships               *
- * ************************************************************************ */
+ *  Author:     Zusuk                                                     *
+ * ********************************************************************** */
 
 #ifndef _VESSELS_H_
 #define _VESSELS_H_
-
-/*
- * Feature toggles
- * Enable subsystems incrementally to reduce initial compile/link risk.
- * Default: CWG enabled, Outcast and Greyhawk disabled.
- */
-#ifndef VESSELS_ENABLE_CWG
-#define VESSELS_ENABLE_CWG 1
-#endif
-
-#ifndef VESSELS_ENABLE_OUTCAST
-#define VESSELS_ENABLE_OUTCAST 0
-#endif
-
-#ifndef VESSELS_ENABLE_GREYHAWK
-#define VESSELS_ENABLE_GREYHAWK 0
-#endif
 
 #include "conf.h"
 #include "sysdep.h"

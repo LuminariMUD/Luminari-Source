@@ -48,8 +48,11 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
+#include "resource_system.h"
+#include "resource_depletion.h"
 #include "perlin.h"
 #include "wilderness.h"
+#include "resource_system.h"
 #include "mysql.h"
 #include "feats.h"
 #include "actionqueues.h"
@@ -751,15 +754,30 @@ void boot_world(void)
   log("Calculating weighted object bonuses for treasure generation.");
   assign_weighted_bonuses();
 
-  log("Initializing perlin noise generators (elevation, moisture, distance, weather).");
+  log("Initializing perlin noise generators (elevation, moisture, distance, weather, resources).");
   init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_MOISTURE, NOISE_MATERIAL_PLANE_MOISTURE_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
   init_perlin(NOISE_WEATHER, NOISE_WEATHER_SEED);
+  /* Initialize resource system noise layers */
+  init_perlin(NOISE_VEGETATION, NOISE_VEGETATION_SEED);
+  init_perlin(NOISE_MINERALS, NOISE_MINERALS_SEED);
+  init_perlin(NOISE_WATER_RESOURCE, NOISE_WATER_RESOURCE_SEED);
+  init_perlin(NOISE_HERBS, NOISE_HERBS_SEED);
+  init_perlin(NOISE_GAME, NOISE_GAME_SEED);
+  init_perlin(NOISE_WOOD, NOISE_WOOD_SEED);
+  init_perlin(NOISE_STONE, NOISE_STONE_SEED);
+  init_perlin(NOISE_CRYSTAL, NOISE_CRYSTAL_SEED);
 
 #if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   log("Indexing wilderness rooms.");
   initialize_wilderness_lists();
+
+  log("Initializing resource depletion database (Phase 6).");
+  init_resource_depletion_database();
+
+  log("Initializing resource system.");
+  init_resource_system();
 
   log("Writing wilderness map image.");
   // save_map_to_file("luminari_wilderness.png", WILD_X_SIZE, WILD_Y_SIZE);
@@ -860,6 +878,12 @@ void destroy_db(void)
       {
         struct event *pEvent;
 
+        /* Beginner's Note: Reset simple_list iterator before use to prevent
+         * cross-contamination from previous iterations. Without this reset,
+         * if simple_list was used elsewhere and not completed, it would
+         * continue from where it left off instead of starting fresh. */
+        simple_list(NULL);
+        
         while ((pEvent = simple_list(world[cnt].events)) != NULL)
           event_cancel(pEvent);
       }
@@ -1063,7 +1087,7 @@ void boot_db(void)
   zone_rnum i = 0;
   char buf1[MAX_INPUT_LENGTH] = {'\0'}; /* strip color off zone names */
 
-  log("Boot db -- BEGIN.");
+  log("Boot db -- Starting.");
 
   log("Resetting the game time:");
   reset_time();
@@ -1632,7 +1656,7 @@ void discrete_load(FILE *fl, int mode, char *filename)
       switch (mode)
       {
       case DB_BOOT_WLD:
-        parse_room(fl, nr);
+        parse_room(fl, nr, filename);
         break;
       case DB_BOOT_MOB:
         parse_mobile(fl, nr);
@@ -1720,7 +1744,7 @@ static bitvector_t asciiflag_conv_aff(char *flag)
 }
 
 /* load the rooms */
-void parse_room(FILE *fl, int virtual_nr)
+void parse_room(FILE *fl, int virtual_nr, const char *filename)
 {
   static int room_nr = 0, zone = 0;
   int t[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -1740,13 +1764,23 @@ void parse_room(FILE *fl, int virtual_nr)
 
   if (virtual_nr < zone_table[zone].bot)
   {
-    log("SYSERR: (parse_room) Room #%d is below zone %d (bot=%d, top=%d).", virtual_nr, zone_table[zone].number, zone_table[zone].bot, zone_table[zone].top);
+    log("SYSERR: (parse_room) Room #%d in file '%s' is below zone %d's range (expected: %d-%d, got: %d).\n"
+        "       This room number must be between %d and %d to belong to zone %d.\n"
+        "       Please renumber the room or move it to the correct zone file.",
+        virtual_nr, filename ? filename : "unknown", zone_table[zone].number, 
+        zone_table[zone].bot, zone_table[zone].top, virtual_nr,
+        zone_table[zone].bot, zone_table[zone].top, zone_table[zone].number);
     exit(1);
   }
   while (virtual_nr > zone_table[zone].top)
     if (++zone > top_of_zone_table)
     {
-      log("SYSERR: Room %d is outside of any zone.", virtual_nr);
+      log("SYSERR: Room #%d in file '%s' is outside of any zone's range.\n"
+          "       The highest zone (%d) has range %d-%d.\n"
+          "       Either create a new zone for this room or renumber it to fit an existing zone.",
+          virtual_nr, filename ? filename : "unknown",
+          zone_table[top_of_zone_table].number,
+          zone_table[top_of_zone_table].bot, zone_table[top_of_zone_table].top);
       exit(1);
     }
   world[room_nr].zone = zone;
@@ -4907,9 +4941,9 @@ void reset_zone(zone_rnum zone)
       else {
         /* Add logging for debugging */
         if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
-          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'G' command",
+          /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'G' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
-              obj_index[ZCMD.arg1].number, ZCMD.arg2);
+              obj_index[ZCMD.arg1].number, ZCMD.arg2); */
         } else if (rand_number(1, 100) > ZCMD.arg3) {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'G' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg3); */
@@ -5049,9 +5083,9 @@ void reset_zone(zone_rnum zone)
       else {
         /* Add logging for debugging */
         if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
-          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'E' command",
+          /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'E' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
-              obj_index[ZCMD.arg1].number, ZCMD.arg2);
+              obj_index[ZCMD.arg1].number, ZCMD.arg2); */
         } else if (rand_number(1, 100) > ZCMD.arg4) {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'E' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg4); */
@@ -6034,6 +6068,26 @@ void free_char(struct char_data *ch)
   while (ch->affected)
     affect_remove_no_total(ch, ch->affected);
 
+  /* CRITICAL FIX: Free mob memory records to prevent memory leaks
+   * NPCs (mobs) can have memory of who attacked them via the remember() function.
+   * This memory is stored as a linked list of memory_rec structures.
+   * 
+   * The clearMemory() function properly frees all memory records in the list.
+   * This fix ensures that NPCs freed via free_char() have their memory cleared,
+   * not just those going through extract_char_final().
+   * 
+   * Without this fix, when NPCs are freed during player/clan loading operations
+   * (via free_char), their memory records would be leaked, causing a 16-byte
+   * leak per memory record as reported by valgrind at mobact.c:635.
+   * 
+   * Note: We only call clearMemory for NPCs because PCs should never have
+   * memory records (the remember() function returns early for non-NPCs).
+   */
+  if (IS_NPC(ch)) {
+    /* clearMemory() is defined in mobact.c and frees the entire memory list */
+    clearMemory(ch);
+  }
+
   /* free any assigned scripts */
   if (SCRIPT(ch))
     extract_script(ch, MOB_TRIGGER);
@@ -6382,6 +6436,9 @@ void init_char(struct char_data *ch)
   /* Create the action queues */
   GET_QUEUE(ch) = create_action_queue();
   GET_ATTACK_QUEUE(ch) = create_attack_queue();
+
+  /* Initialize material storage for Phase 4.5 */
+  init_material_storage(ch);
 
   /* create the preparation / collection lists */
   /*
@@ -7027,6 +7084,13 @@ void load_config(void)
         CONFIG_ARCANE_PREP_TIME = num;
       else if (!str_cmp(tag, "alchemy_mem_times"))
         CONFIG_ALCHEMY_PREP_TIME = num;
+      else if (!str_cmp(tag, "allow_cexchange"))
+        CONFIG_ALLOW_CEXCHANGE = num;
+      break;
+
+    case 'b':
+      if (!str_cmp(tag, "bag_system"))
+        CONFIG_BAG_SYSTEM = num;
       break;
 
     case 'c':
@@ -7034,6 +7098,8 @@ void load_config(void)
         CONFIG_CRASH_TIMEOUT = num;
       if (!str_cmp(tag, "campaign_setting"))
         CONFIG_CAMPAIGN = num;
+      if (!str_cmp(tag, "crafting_system"))
+        CONFIG_CRAFTING_SYSTEM = num;
       break;
 
     case 'd':
@@ -7137,6 +7203,8 @@ void load_config(void)
       break;
 
     case 'l':
+    if (!str_cmp(tag, "landmark_system"))
+        CONFIG_LANDMARK_SYSTEM = num;
       if (!str_cmp(tag, "level_can_shout"))
         CONFIG_LEVEL_CAN_SHOUT = num;
       else if (!str_cmp(tag, "load_into_inventory"))
@@ -7194,6 +7262,8 @@ void load_config(void)
     case 'n':
       if (!str_cmp(tag, "nameserver_is_slow"))
         CONFIG_NS_IS_SLOW = num;
+      if (!str_cmp(tag, "new_player_gear"))
+        CONFIG_NEW_PLAYER_GEAR = num;
       else if (!str_cmp(tag, "no_mort_to_immort"))
         CONFIG_NO_MORT_TO_IMMORT = num;
       else if (!str_cmp(tag, "noperson"))
@@ -7300,6 +7370,8 @@ void load_config(void)
           free(CONFIG_WELC_MESSG);
         CONFIG_WELC_MESSG = fread_string(fl, buf);
       }
+      else if (!str_cmp(tag, "wilderness_system"))
+        CONFIG_WILDERNESS_SYSTEM = num;
       break;
 
     default:
