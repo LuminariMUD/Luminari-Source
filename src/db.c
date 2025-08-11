@@ -4923,9 +4923,9 @@ void reset_zone(zone_rnum zone)
       else {
         /* Add logging for debugging */
         if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
-          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'G' command",
+          /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'G' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
-              obj_index[ZCMD.arg1].number, ZCMD.arg2);
+              obj_index[ZCMD.arg1].number, ZCMD.arg2); */
         } else if (rand_number(1, 100) > ZCMD.arg3) {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'G' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg3); */
@@ -5065,9 +5065,9 @@ void reset_zone(zone_rnum zone)
       else {
         /* Add logging for debugging */
         if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
-          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'E' command",
+          /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'E' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
-              obj_index[ZCMD.arg1].number, ZCMD.arg2);
+              obj_index[ZCMD.arg1].number, ZCMD.arg2); */
         } else if (rand_number(1, 100) > ZCMD.arg4) {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'E' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg4); */
