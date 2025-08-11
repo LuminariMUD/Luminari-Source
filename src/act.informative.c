@@ -8229,11 +8229,12 @@ ACMD(do_survey)
       resource_level = calculate_current_resource_level(i, x, y);
       if (resource_level > 0.05) { /* Only show resources with meaningful levels */
         float depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
+        float effective_level = resource_level * depletion_level; /* Calculate true available amount */
         float harvest_modifier = get_harvest_success_modifier(IN_ROOM(ch), i);
         
         send_to_char(ch, "  \tG%-12s\tn: %s", 
                      resource_names[i], 
-                     get_abundance_description(resource_level));
+                     get_abundance_description(effective_level)); /* Use effective level, not base level */
         
         /* Add depletion status - Phase 6 enhancement */
         if (depletion_level < 1.0) {

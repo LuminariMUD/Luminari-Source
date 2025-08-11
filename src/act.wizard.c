@@ -10338,10 +10338,11 @@ ACMD(do_objcheck)
 ACMD(do_resourceadmin)
 {
   char arg[MAX_INPUT_LENGTH];
+  char *remaining_args;
   int x, y, i;
   float resource_level;
   
-  one_argument(argument, arg, sizeof(arg));
+  remaining_args = one_argument(argument, arg, sizeof(arg));
   
   if (!*arg) {
     send_to_char(ch, "Resource System Admin Commands:\r\n");
@@ -10426,8 +10427,7 @@ ACMD(do_resourceadmin)
   if (is_abbrev(arg, "coords")) {
     char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
     
-    argument = two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
-    one_argument(argument, arg3, sizeof(arg3));
+    remaining_args = two_arguments(remaining_args, arg2, sizeof(arg2), arg3, sizeof(arg3));
     
     if (!*arg2 || !*arg3) {
       send_to_char(ch, "Usage: resourceadmin coords <x> <y>\r\n");
@@ -10468,8 +10468,7 @@ ACMD(do_resourceadmin)
       return;
     }
     
-    argument = two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
-    one_argument(argument, arg3, sizeof(arg3));
+    remaining_args = two_arguments(remaining_args, arg2, sizeof(arg2), arg3, sizeof(arg3));
     
     if (!*arg2) {
       send_to_char(ch, "Usage: resourceadmin map <resource_type> [radius]\r\n");
@@ -10527,7 +10526,7 @@ ACMD(do_resourceadmin)
     char arg2[MAX_INPUT_LENGTH];
     int total_nodes, expired_nodes;
     
-    one_argument(argument, arg2, sizeof(arg2));
+    one_argument(remaining_args, arg2, sizeof(arg2));
     
     if (!*arg2) {
       /* Show cache statistics */
