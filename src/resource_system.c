@@ -16,6 +16,7 @@
 #include "perlin.h"
 #include "resource_system.h"
 #include "resource_depletion.h"  /* Phase 6: Add depletion system */
+#include "resource_descriptions.h"  /* For elevation functions */
 #include "mysql.h"
 #include "spells.h"
 #include "genolc.h"
@@ -135,7 +136,7 @@ float get_base_resource_value(int resource_type, int x, int y) {
     struct resource_config *config = &resource_configs[resource_type];
     
     /* Get environmental data for realistic resource distribution */
-    int elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);          /* 0-255 range */
+    int elevation = get_modified_elevation(x, y);                           /* 0-255 range with region mods */
     int temperature = get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y);      /* Temperature */
     int moisture = get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y);        /* Moisture level */
     
@@ -811,7 +812,7 @@ void show_resource_survey(struct char_data *ch) {
     send_to_char(ch, "===================================\r\n\r\n");
     
     send_to_char(ch, "Terrain: %s | Elevation: %d\r\n\r\n", 
-                 sector_types[SECT(IN_ROOM(ch))], get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+                 sector_types[SECT(IN_ROOM(ch))], get_modified_elevation(x, y));
     
     /* Show all resources with meaningful levels */
     send_to_char(ch, "Available Resources:\r\n");
@@ -842,7 +843,7 @@ void show_terrain_survey(struct char_data *ch) {
     
     x = world[IN_ROOM(ch)].coords[0];
     y = world[IN_ROOM(ch)].coords[1];
-    elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
+    elevation = get_modified_elevation(x, y);
     terrain_type = SECT(IN_ROOM(ch));
     
     send_to_char(ch, "Detailed Terrain Analysis for (\tC%d\tn, \tC%d\tn):\r\n", x, y);
@@ -918,7 +919,7 @@ void show_debug_survey(struct char_data *ch) {
     
     send_to_char(ch, "Terrain: %s (Type: %d)\r\n", 
                  sector_types[SECT(IN_ROOM(ch))], SECT(IN_ROOM(ch)));
-    send_to_char(ch, "Elevation: %d\r\n", get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+    send_to_char(ch, "Elevation: %d\r\n", get_modified_elevation(x, y));
     
     send_to_char(ch, "\r\nResource Details:\r\n");
     send_to_char(ch, "%-12s | %-8s | %-8s | %-8s | %-5s | %s\r\n",
@@ -1106,7 +1107,7 @@ void show_resource_detail(struct char_data *ch, int resource_type) {
     send_to_char(ch, "==========================================\r\n");
     send_to_char(ch, "Location: (%d, %d)\r\n", x, y);
     send_to_char(ch, "Terrain: %s\r\n", sector_types[SECT(IN_ROOM(ch))]);
-    send_to_char(ch, "Elevation: %d\r\n", get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+    send_to_char(ch, "Elevation: %d\r\n", get_modified_elevation(x, y));
     
     resource_level = calculate_current_resource_level(resource_type, x, y);
     send_to_char(ch, "\r\nResource Level: %s (%.2f%%)\r\n", 
