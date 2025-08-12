@@ -13,7 +13,6 @@ The MySQL implementation in LuminariMUD has critical issues with prepared statem
 ### Files Under Review
 - **src/mysql.c** (2,269 lines) - Main MySQL implementation
 - **src/mysql.h** (120 lines) - Header with function declarations
-- **src/mysql/** - MySQL client library headers (appears to be MySQL 5.x era)
 
 ### Known Issues
 
