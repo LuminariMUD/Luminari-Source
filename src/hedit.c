@@ -299,8 +299,11 @@ static void hedit_save_to_disk(struct descriptor_data *d)
 
 static void hedit_save_to_db(struct descriptor_data *d)
 {
-  char buf1[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'}; /* Buffers for DML query. */
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
   struct help_keyword_list *keyword;
+  PREPARED_STMT *pstmt;
+  char tag_lower[MAX_HELP_TAG_LENGTH + 1];
+  int i;
 
   if (OLC_HELP(d) == NULL)
     return;
@@ -329,61 +332,112 @@ static void hedit_save_to_db(struct descriptor_data *d)
     }
   }
 
+  /* Prepare help entry content */
   strncpy(buf1, OLC_HELP(d)->entry ? OLC_HELP(d)->entry : "Empty\r\n", sizeof(buf1) - 1);
   strip_cr(buf1);
-  mysql_real_escape_string(conn, buf2, buf1, strlen(buf1));
-  //  mysql_real_escape_string(conn, buf1, OLC_HELP(d)->keywords, strlen(OLC_HELP(d)->keywords));
 
-  char *escaped_tag = mysql_escape_string_alloc(conn, OLC_HELP(d)->tag);
-  if (!escaped_tag) {
-    log("SYSERR: Failed to escape help tag in hedit_save_to_disk");
+  /* Convert tag to lowercase for storage */
+  for (i = 0; OLC_HELP(d)->tag[i] && i < MAX_HELP_TAG_LENGTH; i++) {
+    tag_lower[i] = LOWER(OLC_HELP(d)->tag[i]);
+  }
+  tag_lower[i] = '\0';
+
+  /* === INSERT/UPDATE HELP ENTRY === */
+  /* Use prepared statement for UPSERT - completely SQL injection safe */
+  pstmt = mysql_stmt_create(conn);
+  if (!pstmt) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to create prepared statement for help entry save");
     return;
   }
-  snprintf(buf, sizeof(buf), "INSERT INTO help_entries (tag, entry, min_level) VALUES (lower('%s'), '%s', %d)"
-                             " on duplicate key update"
-                             "  min_level = values(min_level),"
-                             "  entry = values(entry);",
-           escaped_tag, buf2, OLC_HELP(d)->min_level);
-  free(escaped_tag);
 
-  if (mysql_query(conn, buf))
-  {
-    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to UPSERT into help_entries: %s", mysql_error(conn));
-  }
-  /* Clear out the old keywords. */
-  char *escaped_tag_del = mysql_escape_string_alloc(conn, OLC_HELP(d)->tag);
-  if (!escaped_tag_del) {
-    log("SYSERR: Failed to escape help tag for keyword deletion in hedit_save_to_db");
+  /* Prepare UPSERT query with parameters */
+  if (!mysql_stmt_prepare_query(pstmt,
+      "INSERT INTO help_entries (tag, entry, min_level) VALUES (?, ?, ?) "
+      "ON DUPLICATE KEY UPDATE "
+      "min_level = VALUES(min_level), "
+      "entry = VALUES(entry)")) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to prepare help entry UPSERT query");
+    mysql_stmt_cleanup(pstmt);
     return;
   }
-  snprintf(buf, sizeof(buf), "DELETE from help_keywords where lower(help_tag) = lower('%s')", escaped_tag_del);
-  free(escaped_tag_del);
 
-  if (mysql_query(conn, buf))
-  {
-    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to DELETE from help_keywords: %s", mysql_error(conn));
+  /* Bind parameters for the UPSERT */
+  if (!mysql_stmt_bind_param_string(pstmt, 0, tag_lower) ||
+      !mysql_stmt_bind_param_string(pstmt, 1, buf1) ||
+      !mysql_stmt_bind_param_int(pstmt, 2, OLC_HELP(d)->min_level)) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to bind parameters for help entry UPSERT");
+    mysql_stmt_cleanup(pstmt);
+    return;
   }
 
-  /* Insert the new keywords.  */
-  for (keyword = OLC_HELP(d)->keyword_list; keyword != NULL; keyword = keyword->next)
-  {
-    char *escaped_tag2 = mysql_escape_string_alloc(conn, OLC_HELP(d)->tag);
-    char *escaped_keyword = mysql_escape_string_alloc(conn, keyword->keyword);
-    if (!escaped_tag2 || !escaped_keyword) {
-      log("SYSERR: Failed to escape strings in hedit_save_to_disk keywords");
-      if (escaped_tag2) free(escaped_tag2);
-      if (escaped_keyword) free(escaped_keyword);
+  /* Execute the UPSERT */
+  if (!mysql_stmt_execute_prepared(pstmt)) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to execute help entry UPSERT");
+  }
+
+  mysql_stmt_cleanup(pstmt);
+
+  /* === DELETE OLD KEYWORDS === */
+  pstmt = mysql_stmt_create(conn);
+  if (!pstmt) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to create prepared statement for keyword deletion");
+    return;
+  }
+
+  /* Prepare DELETE query with parameter */
+  if (!mysql_stmt_prepare_query(pstmt,
+      "DELETE FROM help_keywords WHERE LOWER(help_tag) = ?")) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to prepare keyword deletion query");
+    mysql_stmt_cleanup(pstmt);
+    return;
+  }
+
+  /* Bind the tag parameter */
+  if (!mysql_stmt_bind_param_string(pstmt, 0, tag_lower)) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to bind parameter for keyword deletion");
+    mysql_stmt_cleanup(pstmt);
+    return;
+  }
+
+  /* Execute the DELETE */
+  if (!mysql_stmt_execute_prepared(pstmt)) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to execute keyword deletion");
+  }
+
+  mysql_stmt_cleanup(pstmt);
+
+  /* === INSERT NEW KEYWORDS === */
+  /* Create one prepared statement and reuse it for all keywords */
+  pstmt = mysql_stmt_create(conn);
+  if (!pstmt) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to create prepared statement for keyword insertion");
+    return;
+  }
+
+  /* Prepare INSERT query with parameters */
+  if (!mysql_stmt_prepare_query(pstmt,
+      "INSERT INTO help_keywords (help_tag, keyword) VALUES (?, ?)")) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to prepare keyword insertion query");
+    mysql_stmt_cleanup(pstmt);
+    return;
+  }
+
+  /* Insert each keyword using the same prepared statement */
+  for (keyword = OLC_HELP(d)->keyword_list; keyword != NULL; keyword = keyword->next) {
+    /* Bind parameters for this keyword */
+    if (!mysql_stmt_bind_param_string(pstmt, 0, tag_lower) ||
+        !mysql_stmt_bind_param_string(pstmt, 1, keyword->keyword)) {
+      mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to bind parameters for keyword '%s'", keyword->keyword);
       continue;
     }
-    snprintf(buf, sizeof(buf), "INSERT INTO help_keywords (help_tag, keyword) VALUES (lower('%s'), '%s')", escaped_tag2, escaped_keyword);
-    free(escaped_tag2);
-    free(escaped_keyword);
 
-    if (mysql_query(conn, buf))
-    {
-      mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to INSERT into help_keywords: %s", mysql_error(conn));
+    /* Execute the INSERT */
+    if (!mysql_stmt_execute_prepared(pstmt)) {
+      mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to insert keyword '%s'", keyword->keyword);
     }
   }
+
+  mysql_stmt_cleanup(pstmt);
 }
 
 /* The main menu. */
