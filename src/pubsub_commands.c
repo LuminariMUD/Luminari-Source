@@ -266,4 +266,71 @@ ACMD(do_pubsub_admin) {
     send_to_char(ch, "  pubsubstat           - Show system statistics\r\n");
     send_to_char(ch, "  pubsubtopic create   - Create a new topic\r\n");
     send_to_char(ch, "  pubsubcache          - Cache management (Phase 2)\r\n");
+    send_to_char(ch, "  pubsubqueue          - Queue management (Phase 2A)\r\n");
+}
+
+/*
+ * Queue management command (Phase 2A)
+ */
+ACMD(do_pubsubqueue) {
+    char subcommand[MAX_INPUT_LENGTH];
+    int processed;
+    
+    if (GET_LEVEL(ch) < LVL_IMMORT) {
+        send_to_char(ch, "You do not have permission to use this command.\r\n");
+        return;
+    }
+    
+    if (!pubsub_system_enabled) {
+        send_to_char(ch, "The PubSub system is currently disabled.\r\n");
+        return;
+    }
+    
+    one_argument(argument, subcommand, sizeof(subcommand));
+    
+    if (!*subcommand || !strcasecmp(subcommand, "status")) {
+        send_to_char(ch, "Message Queue Status:\r\n");
+        send_to_char(ch, "====================\r\n");
+        send_to_char(ch, "Queue Processing: %s\r\n", 
+                    pubsub_queue_processing ? "ENABLED" : "DISABLED");
+        send_to_char(ch, "Total Queued: %d messages\r\n", pubsub_queue_get_size());
+        send_to_char(ch, "Critical: %d, Urgent: %d, High: %d, Normal: %d, Low: %d\r\n",
+                    pubsub_queue_get_priority_count(PUBSUB_PRIORITY_CRITICAL),
+                    pubsub_queue_get_priority_count(PUBSUB_PRIORITY_URGENT),
+                    pubsub_queue_get_priority_count(PUBSUB_PRIORITY_HIGH),
+                    pubsub_queue_get_priority_count(PUBSUB_PRIORITY_NORMAL),
+                    pubsub_queue_get_priority_count(PUBSUB_PRIORITY_LOW));
+        send_to_char(ch, "Processed: C:%lld U:%lld H:%lld N:%lld L:%lld\r\n",
+                    pubsub_stats.queue_critical_processed,
+                    pubsub_stats.queue_urgent_processed,
+                    pubsub_stats.queue_high_processed,
+                    pubsub_stats.queue_normal_processed,
+                    pubsub_stats.queue_low_processed);
+        send_to_char(ch, "Batch Operations: %lld\r\n", pubsub_stats.queue_batch_operations);
+        send_to_char(ch, "Avg Processing Time: %.2f ms\r\n", pubsub_stats.avg_processing_time_ms);
+    } else if (!strcasecmp(subcommand, "process")) {
+        processed = pubsub_queue_process_all();
+        send_to_char(ch, "Processed %d messages from queue.\r\n", processed);
+    } else if (!strcasecmp(subcommand, "start")) {
+        pubsub_queue_start_processing();
+        send_to_char(ch, "Queue processing started.\r\n");
+    } else if (!strcasecmp(subcommand, "stop")) {
+        pubsub_queue_stop_processing();
+        send_to_char(ch, "Queue processing stopped.\r\n");
+    } else if (!strcasecmp(subcommand, "test")) {
+        /* Test command to create sample messages */
+        if (pubsub_publish(1, GET_NAME(ch), "Test message for queue system", 
+                          PUBSUB_MESSAGE_TEXT, PUBSUB_PRIORITY_NORMAL) == PUBSUB_SUCCESS) {
+            send_to_char(ch, "Test message published and queued.\r\n");
+        } else {
+            send_to_char(ch, "Failed to publish test message.\r\n");
+        }
+    } else {
+        send_to_char(ch, "Usage: pubsubqueue [status|process|start|stop|test]\r\n");
+        send_to_char(ch, "  status  - Show queue status and statistics\r\n");
+        send_to_char(ch, "  process - Process all queued messages\r\n");
+        send_to_char(ch, "  start   - Start queue processing\r\n");
+        send_to_char(ch, "  stop    - Stop queue processing\r\n");
+        send_to_char(ch, "  test    - Send a test message to queue\r\n");
+    }
 }

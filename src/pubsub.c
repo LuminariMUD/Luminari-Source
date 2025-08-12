@@ -52,7 +52,13 @@ int pubsub_init(void) {
         subscription_cache[i] = NULL;
     }
     
-    /* Create database tables if they don't exist */
+#if PUBSUB_DEVELOPMENT_MODE
+    /* Drop existing tables to ensure clean schema (development mode only) */
+    pubsub_info("Development mode: Dropping existing tables for clean schema");
+    pubsub_db_drop_tables();
+#endif
+    
+    /* Create database tables with updated schema */
     if (pubsub_db_create_tables() != PUBSUB_SUCCESS) {
         pubsub_error("Failed to create database tables");
         return PUBSUB_ERROR_DATABASE;
@@ -76,6 +82,12 @@ int pubsub_init(void) {
         return PUBSUB_ERROR_DATABASE;
     }
     
+    /* Initialize message queue system */
+    if (pubsub_queue_init() != PUBSUB_SUCCESS) {
+        pubsub_error("Failed to initialize message queue system");
+        return PUBSUB_ERROR_QUEUE_INIT;
+    }
+    
     /* System is now ready */
     pubsub_system_enabled = TRUE;
     pubsub_info("PubSub system initialized successfully");
@@ -93,6 +105,9 @@ void pubsub_shutdown(void) {
     pubsub_info("Shutting down PubSub system...");
     
     pubsub_system_enabled = FALSE;
+    
+    /* Shutdown message queue system */
+    pubsub_queue_shutdown();
     
     /* Free topic list */
     for (topic = topic_list; topic; topic = next_topic) {
@@ -114,6 +129,41 @@ void pubsub_shutdown(void) {
     pubsub_cleanup_cache();
     
     pubsub_info("PubSub system shutdown complete");
+}
+
+/*
+ * Drop existing PubSub tables (for schema updates)
+ * WARNING: This function destroys all PubSub data!
+ * Only used in development mode when PUBSUB_DEVELOPMENT_MODE is enabled.
+ */
+int pubsub_db_drop_tables(void) {
+    char query[MAX_STRING_LENGTH];
+    
+    pubsub_info("Dropping existing PubSub database tables...");
+    
+    if (!conn) {
+        pubsub_error("Database connection not available");
+        return PUBSUB_ERROR_DATABASE;
+    }
+    
+    /* Drop tables in reverse order due to foreign key constraints */
+    snprintf(query, sizeof(query), "DROP TABLE IF EXISTS pubsub_messages");
+    if (mysql_query(conn, query)) {
+        pubsub_error("Failed to drop pubsub_messages table: %s", mysql_error(conn));
+    }
+    
+    snprintf(query, sizeof(query), "DROP TABLE IF EXISTS pubsub_subscriptions");
+    if (mysql_query(conn, query)) {
+        pubsub_error("Failed to drop pubsub_subscriptions table: %s", mysql_error(conn));
+    }
+    
+    snprintf(query, sizeof(query), "DROP TABLE IF EXISTS pubsub_topics");
+    if (mysql_query(conn, query)) {
+        pubsub_error("Failed to drop pubsub_topics table: %s", mysql_error(conn));
+    }
+    
+    pubsub_info("Existing PubSub tables dropped successfully");
+    return PUBSUB_SUCCESS;
 }
 
 /*
@@ -151,8 +201,7 @@ int pubsub_db_create_tables(void) {
         "INDEX idx_category (category),"
         "INDEX idx_access_type (access_type),"
         "INDEX idx_creator (creator_name),"
-        "INDEX idx_active (is_active),"
-        "FOREIGN KEY (creator_name) REFERENCES player_data(name) ON DELETE SET NULL"
+        "INDEX idx_active (is_active)"
         ")");
     
     if (mysql_query(conn, query)) {
@@ -173,8 +222,7 @@ int pubsub_db_create_tables(void) {
         "INDEX idx_topic (topic_id),"
         "INDEX idx_player (player_name),"
         "INDEX idx_status (status),"
-        "FOREIGN KEY (topic_id) REFERENCES pubsub_topics(topic_id) ON DELETE CASCADE,"
-        "FOREIGN KEY (player_name) REFERENCES player_data(name) ON DELETE CASCADE"
+        "FOREIGN KEY (topic_id) REFERENCES pubsub_topics(topic_id) ON DELETE CASCADE"
         ")");
     
     if (mysql_query(conn, query)) {
@@ -197,8 +245,7 @@ int pubsub_db_create_tables(void) {
         "INDEX idx_sender (sender_name),"
         "INDEX idx_sent_at (sent_at),"
         "INDEX idx_expires_at (expires_at),"
-        "FOREIGN KEY (topic_id) REFERENCES pubsub_topics(topic_id) ON DELETE CASCADE,"
-        "FOREIGN KEY (sender_name) REFERENCES player_data(name) ON DELETE SET NULL"
+        "FOREIGN KEY (topic_id) REFERENCES pubsub_topics(topic_id) ON DELETE CASCADE"
         ")");
     
     if (mysql_query(conn, query)) {
@@ -210,13 +257,12 @@ int pubsub_db_create_tables(void) {
     snprintf(query, sizeof(query),
         "CREATE TABLE IF NOT EXISTS pubsub_player_settings ("
         "setting_id INT AUTO_INCREMENT PRIMARY KEY,"
-        "player_name VARCHAR(20) NOT NULL,"
+        "player_name VARCHAR(30) NOT NULL,"
         "max_subscriptions INT DEFAULT 50,"
         "default_handler VARCHAR(64) DEFAULT 'send_text',"
         "auto_subscribe_categories TEXT,"
         "notification_settings TEXT,"
-        "INDEX idx_player (player_name),"
-        "FOREIGN KEY (player_name) REFERENCES player_data(name) ON DELETE CASCADE"
+        "INDEX idx_player (player_name)"
         ")");
     
     if (mysql_query(conn, query)) {
@@ -462,6 +508,80 @@ int pubsub_subscribe(struct char_data *ch, int topic_id, const char *handler) {
 }
 
 /*
+ * Publish a message to a topic (Phase 2A - uses message queue)
+ */
+int pubsub_publish(int topic_id, const char *sender_name, const char *content, 
+                  int message_type, int priority) {
+    struct pubsub_topic *topic;
+    struct pubsub_message *msg;
+    struct char_data *target;
+    int processed = 0;
+    
+    if (!sender_name || !content || topic_id <= 0) {
+        return PUBSUB_ERROR_INVALID_PARAM;
+    }
+    
+    if (!pubsub_system_enabled) {
+        return PUBSUB_ERROR_PERMISSION;
+    }
+    
+    /* Find the topic */
+    topic = pubsub_find_topic_by_id(topic_id);
+    if (!topic || !topic->is_active) {
+        return PUBSUB_ERROR_NOT_FOUND;
+    }
+    
+    /* Create message structure */
+    msg = PUBSUB_CREATE_MESSAGE();
+    if (!msg) {
+        return PUBSUB_ERROR_MEMORY;
+    }
+    
+    msg->message_id = 0; /* Will be assigned by database if needed */
+    msg->topic_id = topic_id;
+    msg->sender_name = strdup(sender_name);
+    msg->content = strdup(content);
+    msg->message_type = message_type;
+    msg->priority = priority;
+    msg->created_at = time(NULL);
+    msg->expires_at = msg->created_at + topic->message_ttl;
+    msg->delivery_attempts = 0;
+    msg->metadata = NULL;
+    msg->spatial_data = NULL;
+    
+    /* Queue message for all subscribers */
+    /* Note: In a full implementation, we'd query the database for subscribers
+     * For now, we'll iterate through online players and check subscriptions */
+    
+    for (target = character_list; target; target = target->next) {
+        if (IS_NPC(target) || !target->desc) continue;
+        
+        /* Check if player is subscribed to this topic */
+        if (pubsub_is_subscribed(GET_NAME(target), topic_id)) {
+            /* Get the player's preferred handler for this topic
+             * For now, we'll use the default "send_text" handler */
+            int result = pubsub_queue_message(msg, target, "send_text");
+            if (result == PUBSUB_SUCCESS) {
+                processed++;
+            }
+        }
+    }
+    
+    /* Update statistics */
+    pubsub_stats.total_messages_published++;
+    topic->total_messages++;
+    topic->last_message_at = time(NULL);
+    
+    pubsub_info("Published message to topic '%s' (ID: %d), queued for %d players", 
+                topic->name, topic_id, processed);
+    
+    /* Clean up message structure (queue makes copies) */
+    PUBSUB_FREE_MESSAGE(msg);
+    
+    return processed > 0 ? PUBSUB_SUCCESS : PUBSUB_ERROR_NOT_FOUND;
+}
+
+/*
  * Register a message handler
  */
 int pubsub_register_handler(const char *name, const char *description, 
@@ -513,6 +633,46 @@ struct pubsub_handler *pubsub_find_handler(const char *name) {
     }
     
     return NULL;
+}
+
+/*
+ * Call a message handler by name
+ */
+int pubsub_call_handler(struct char_data *ch, struct pubsub_message *msg, 
+                       const char *handler_name) {
+    struct pubsub_handler *handler;
+    int result;
+    
+    if (!ch || !msg || !handler_name) {
+        return PUBSUB_ERROR_INVALID_PARAM;
+    }
+    
+    /* Find the handler */
+    handler = pubsub_find_handler(handler_name);
+    if (!handler) {
+        pubsub_error("Handler '%s' not found", handler_name);
+        return PUBSUB_ERROR_HANDLER_NOT_FOUND;
+    }
+    
+    if (!handler->is_enabled) {
+        pubsub_debug("Handler '%s' is disabled", handler_name);
+        return PUBSUB_ERROR_HANDLER_NOT_FOUND;
+    }
+    
+    /* Call the handler function */
+    result = handler->func(ch, msg);
+    
+    /* Update handler statistics */
+    if (result == PUBSUB_SUCCESS) {
+        handler->usage_count++;
+        pubsub_debug("Handler '%s' executed successfully for player %s", 
+                    handler_name, GET_NAME(ch));
+    } else {
+        pubsub_error("Handler '%s' failed for player %s: %s", 
+                    handler_name, GET_NAME(ch), pubsub_error_string(result));
+    }
+    
+    return result;
 }
 
 /*
@@ -610,6 +770,10 @@ const char *pubsub_error_string(int error_code) {
         case PUBSUB_ERROR_TOPIC_FULL:         return "Topic at subscriber limit";
         case PUBSUB_ERROR_HANDLER_NOT_FOUND:  return "Handler not found";
         case PUBSUB_ERROR_INVALID_MESSAGE:    return "Invalid message";
+        case PUBSUB_ERROR_QUEUE_INIT:         return "Queue initialization failed";
+        case PUBSUB_ERROR_QUEUE_FULL:         return "Message queue is full";
+        case PUBSUB_ERROR_QUEUE_DISABLED:     return "Queue processing disabled";
+        case PUBSUB_ERROR_INVALID_PARAMETER:  return "Invalid parameter";
         default:                              return "Unknown error";
     }
 }
