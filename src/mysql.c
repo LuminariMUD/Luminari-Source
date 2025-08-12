@@ -18,13 +18,17 @@
 #include "wilderness.h"
 #include "mud_event.h"
 
-#define MYSQL_DEBUG 1
+#define MYSQL_DEBUG 0
 
+/* Global connection pool */
+MYSQL_POOL *mysql_pool = NULL;
+
+/* Legacy connections - maintained for backwards compatibility */
 MYSQL *conn = NULL;
 MYSQL *conn2 = NULL;
 MYSQL *conn3 = NULL;
 
-/* MySQL connection mutexes for thread safety */
+/* MySQL connection mutexes for thread safety (legacy) */
 pthread_mutex_t mysql_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mysql_mutex2 = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mysql_mutex3 = PTHREAD_MUTEX_INITIALIZER;
@@ -32,6 +36,556 @@ pthread_mutex_t mysql_mutex3 = PTHREAD_MUTEX_INITIALIZER;
 void after_world_load()
 {
 }
+
+/* ========================================================================== */
+/* MySQL Connection Pool Implementation                                       */
+/* ========================================================================== */
+/* The connection pool manages multiple MySQL connections efficiently,        */
+/* reusing connections instead of creating new ones for each query.          */
+/* This improves performance and reduces connection overhead.                */
+
+/**
+ * Initialize the MySQL connection pool.
+ * Creates the initial set of connections and sets up pool management.
+ * 
+ * This function allocates the global mysql_pool structure and creates
+ * MYSQL_POOL_MIN_SIZE connections. Each connection is configured with
+ * auto-reconnect enabled for resilience.
+ */
+void mysql_pool_init(void)
+{
+  int i;
+  MYSQL_POOL_CONN *pc, *prev = NULL;
+  
+  /* Check if already initialized */
+  if (mysql_pool && mysql_pool->initialized) {
+    log("WARNING: Connection pool already initialized");
+    return;
+  }
+  
+  /* Check pool exists with configuration */
+  if (!mysql_pool) {
+    log("ERROR: Pool structure not allocated before mysql_pool_init");
+    return;
+  }
+  
+  /* Create initial connections */
+  for (i = 0; i < MYSQL_POOL_MIN_SIZE; i++) {
+    CREATE(pc, MYSQL_POOL_CONN, 1);
+    pc->id = i;
+    pc->state = CONN_STATE_FREE;
+    pc->last_used = time(NULL);
+    pc->created = time(NULL);
+    pc->conn = NULL;
+    pc->thread_id = 0;
+    pc->next = NULL;
+    pthread_mutex_init(&pc->mutex, NULL);
+    
+    /* Initialize MySQL connection */
+    pc->conn = mysql_init(NULL);
+    if (!pc->conn) {
+      log("ERROR: Failed to initialize MySQL connection %d in pool", i);
+      free(pc);
+      continue;
+    }
+    
+    /* Set connection options */
+    my_bool reconnect = 1;
+    mysql_options(pc->conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
+    
+    /* Connect to database */
+    if (!mysql_real_connect(pc->conn, mysql_pool->host, mysql_pool->username,
+                           mysql_pool->password, mysql_pool->database,
+                           0, NULL, 0)) {
+      log("ERROR: Failed to connect MySQL connection %d: %s", 
+          i, mysql_error(pc->conn));
+      mysql_close(pc->conn);
+      free(pc);
+      continue;
+    }
+    
+    /* Get thread ID for this connection */
+    pc->thread_id = mysql_thread_id(pc->conn);
+    
+    /* Add to pool linked list */
+    if (!mysql_pool->connections) {
+      mysql_pool->connections = pc;
+    } else {
+      prev->next = pc;
+    }
+    prev = pc;
+    mysql_pool->current_size++;
+    
+    log("INFO: Created pool connection %d (thread_id: %lu)", i, pc->thread_id);
+  }
+  
+  if (mysql_pool->current_size > 0) {
+    mysql_pool->initialized = TRUE;
+    mysql_available = TRUE;
+    log("Success: MySQL connection pool initialized with %d connections", 
+        mysql_pool->current_size);
+  } else {
+    log("ERROR: Failed to create any connections in pool");
+  }
+}
+
+/**
+ * Destroy the connection pool and free all resources.
+ * Closes all MySQL connections and deallocates memory.
+ */
+void mysql_pool_destroy(void)
+{
+  MYSQL_POOL_CONN *pc, *next;
+  
+  if (!mysql_pool) {
+    return;
+  }
+  
+  /* Lock the pool */
+  pthread_mutex_lock(&mysql_pool->pool_mutex);
+  
+  /* Close all connections */
+  pc = mysql_pool->connections;
+  while (pc) {
+    next = pc->next;
+    
+    /* Close MySQL connection */
+    if (pc->conn) {
+      mysql_close(pc->conn);
+    }
+    
+    /* Destroy connection mutex */
+    pthread_mutex_destroy(&pc->mutex);
+    
+    /* Free connection structure */
+    free(pc);
+    pc = next;
+  }
+  
+  mysql_pool->initialized = FALSE;
+  mysql_available = FALSE;
+  
+  pthread_mutex_unlock(&mysql_pool->pool_mutex);
+  
+  /* Destroy pool mutex and condition variable */
+  pthread_mutex_destroy(&mysql_pool->pool_mutex);
+  pthread_cond_destroy(&mysql_pool->pool_cond);
+  
+  /* Free pool structure */
+  free(mysql_pool);
+  mysql_pool = NULL;
+  
+  log("Info: MySQL connection pool destroyed");
+}
+
+/**
+ * Acquire a connection from the pool.
+ * Returns an available connection or waits if all are in use.
+ * 
+ * @return Pointer to acquired connection, or NULL on error
+ */
+MYSQL_POOL_CONN *mysql_pool_acquire(void)
+{
+  MYSQL_POOL_CONN *pc;
+  time_t now;
+  
+  if (!mysql_pool || !mysql_pool->initialized) {
+    log("ERROR: Connection pool not initialized");
+    return NULL;
+  }
+  
+  pthread_mutex_lock(&mysql_pool->pool_mutex);
+  
+  mysql_pool->total_requests++;
+  
+  /* Find a free connection */
+  while (1) {
+    now = time(NULL);
+    
+    /* Check for available connection */
+    for (pc = mysql_pool->connections; pc; pc = pc->next) {
+      if (pc->state == CONN_STATE_FREE) {
+        /* Check if connection needs refresh */
+        if (now - pc->last_used > MYSQL_POOL_TIMEOUT) {
+          /* Ping to check if still alive */
+          if (mysql_ping(pc->conn) != 0) {
+            log("INFO: Refreshing stale connection %d", pc->id);
+            mysql_close(pc->conn);
+            
+            /* Reconnect */
+            pc->conn = mysql_init(NULL);
+            if (pc->conn) {
+              my_bool reconnect = 1;
+              mysql_options(pc->conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
+              
+              if (!mysql_real_connect(pc->conn, mysql_pool->host,
+                                     mysql_pool->username, mysql_pool->password,
+                                     mysql_pool->database, 0, NULL, 0)) {
+                log("ERROR: Failed to reconnect connection %d: %s",
+                    pc->id, mysql_error(pc->conn));
+                pc->state = CONN_STATE_ERROR;
+                mysql_pool->error_count++;
+                continue;
+              }
+              pc->thread_id = mysql_thread_id(pc->conn);
+            }
+          }
+        }
+        
+        /* Mark as in use and return */
+        pc->state = CONN_STATE_IN_USE;
+        pc->last_used = now;
+        mysql_pool->active_count++;
+        
+        pthread_mutex_unlock(&mysql_pool->pool_mutex);
+        
+        if (MYSQL_DEBUG) {
+          log("DEBUG: Acquired connection %d from pool (active: %d/%d)",
+              pc->id, mysql_pool->active_count, mysql_pool->current_size);
+        }
+        
+        return pc;
+      }
+    }
+    
+    /* No free connections - check if we can expand pool */
+    if (mysql_pool->current_size < MYSQL_POOL_MAX_SIZE) {
+      pthread_mutex_unlock(&mysql_pool->pool_mutex);
+      mysql_pool_expand();
+      pthread_mutex_lock(&mysql_pool->pool_mutex);
+      continue;
+    }
+    
+    /* Wait for a connection to become available */
+    mysql_pool->wait_count++;
+    if (MYSQL_DEBUG) {
+      log("DEBUG: Waiting for connection (all %d in use)", mysql_pool->current_size);
+    }
+    
+    pthread_cond_wait(&mysql_pool->pool_cond, &mysql_pool->pool_mutex);
+  }
+  
+  /* Should never reach here */
+  pthread_mutex_unlock(&mysql_pool->pool_mutex);
+  return NULL;
+}
+
+/**
+ * Release a connection back to the pool.
+ * Makes the connection available for other requests.
+ * 
+ * @param pc Connection to release
+ */
+void mysql_pool_release(MYSQL_POOL_CONN *pc)
+{
+  if (!pc || !mysql_pool) {
+    return;
+  }
+  
+  pthread_mutex_lock(&mysql_pool->pool_mutex);
+  
+  /* Mark as free */
+  pc->state = CONN_STATE_FREE;
+  pc->last_used = time(NULL);
+  mysql_pool->active_count--;
+  
+  if (MYSQL_DEBUG) {
+    log("DEBUG: Released connection %d to pool (active: %d/%d)",
+        pc->id, mysql_pool->active_count, mysql_pool->current_size);
+  }
+  
+  /* Signal waiting threads */
+  pthread_cond_signal(&mysql_pool->pool_cond);
+  
+  pthread_mutex_unlock(&mysql_pool->pool_mutex);
+}
+
+/**
+ * Perform health checks on all connections in the pool.
+ * Removes dead connections and creates replacements.
+ */
+void mysql_pool_health_check(void)
+{
+  MYSQL_POOL_CONN *pc;
+  time_t now;
+  int errors = 0;
+  
+  if (!mysql_pool || !mysql_pool->initialized) {
+    return;
+  }
+  
+  now = time(NULL);
+  
+  /* Check if it's time for health check */
+  if (now - mysql_pool->last_health_check < MYSQL_HEALTH_CHECK_INTERVAL) {
+    return;
+  }
+  
+  pthread_mutex_lock(&mysql_pool->pool_mutex);
+  
+  mysql_pool->last_health_check = now;
+  
+  /* Check each connection */
+  for (pc = mysql_pool->connections; pc; pc = pc->next) {
+    if (pc->state == CONN_STATE_FREE) {
+      /* Ping the connection */
+      if (mysql_ping(pc->conn) != 0) {
+        log("WARNING: Connection %d failed health check: %s",
+            pc->id, mysql_error(pc->conn));
+        pc->state = CONN_STATE_ERROR;
+        errors++;
+        
+        /* Try to reconnect */
+        mysql_close(pc->conn);
+        pc->conn = mysql_init(NULL);
+        
+        if (pc->conn) {
+          my_bool reconnect = 1;
+          mysql_options(pc->conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
+          
+          if (mysql_real_connect(pc->conn, mysql_pool->host,
+                               mysql_pool->username, mysql_pool->password,
+                               mysql_pool->database, 0, NULL, 0)) {
+            pc->state = CONN_STATE_FREE;
+            pc->thread_id = mysql_thread_id(pc->conn);
+            pc->created = now;
+            log("INFO: Reconnected connection %d during health check", pc->id);
+            errors--;
+          }
+        }
+      }
+    }
+  }
+  
+  if (errors > 0) {
+    log("WARNING: %d connections failed health check", errors);
+  }
+  
+  pthread_mutex_unlock(&mysql_pool->pool_mutex);
+  
+  /* Shrink pool if too many idle connections */
+  mysql_pool_shrink();
+}
+
+/**
+ * Expand the connection pool by adding new connections.
+ * Called when pool is exhausted and below maximum size.
+ */
+void mysql_pool_expand(void)
+{
+  MYSQL_POOL_CONN *pc, *last;
+  int new_id;
+  
+  if (!mysql_pool || mysql_pool->current_size >= MYSQL_POOL_MAX_SIZE) {
+    return;
+  }
+  
+  pthread_mutex_lock(&mysql_pool->pool_mutex);
+  
+  /* Find last connection in list */
+  last = mysql_pool->connections;
+  while (last && last->next) {
+    last = last->next;
+  }
+  
+  new_id = mysql_pool->current_size;
+  
+  /* Create new connection */
+  CREATE(pc, MYSQL_POOL_CONN, 1);
+  pc->id = new_id;
+  pc->state = CONN_STATE_FREE;
+  pc->last_used = time(NULL);
+  pc->created = time(NULL);
+  pc->conn = NULL;
+  pc->thread_id = 0;
+  pc->next = NULL;
+  pthread_mutex_init(&pc->mutex, NULL);
+  
+  /* Initialize MySQL connection */
+  pc->conn = mysql_init(NULL);
+  if (!pc->conn) {
+    log("ERROR: Failed to initialize new connection %d", new_id);
+    free(pc);
+    pthread_mutex_unlock(&mysql_pool->pool_mutex);
+    return;
+  }
+  
+  /* Set options */
+  my_bool reconnect = 1;
+  mysql_options(pc->conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
+  
+  /* Connect */
+  if (!mysql_real_connect(pc->conn, mysql_pool->host, mysql_pool->username,
+                         mysql_pool->password, mysql_pool->database,
+                         0, NULL, 0)) {
+    log("ERROR: Failed to connect new connection %d: %s",
+        new_id, mysql_error(pc->conn));
+    mysql_close(pc->conn);
+    free(pc);
+    pthread_mutex_unlock(&mysql_pool->pool_mutex);
+    return;
+  }
+  
+  pc->thread_id = mysql_thread_id(pc->conn);
+  
+  /* Add to pool */
+  if (last) {
+    last->next = pc;
+  } else {
+    mysql_pool->connections = pc;
+  }
+  
+  mysql_pool->current_size++;
+  
+  log("INFO: Expanded pool to %d connections", mysql_pool->current_size);
+  
+  pthread_mutex_unlock(&mysql_pool->pool_mutex);
+}
+
+/**
+ * Shrink the pool by removing idle connections.
+ * Maintains at least MYSQL_POOL_MIN_SIZE connections.
+ */
+void mysql_pool_shrink(void)
+{
+  MYSQL_POOL_CONN *pc, *prev, *to_remove;
+  time_t now;
+  int removed = 0;
+  
+  if (!mysql_pool || mysql_pool->current_size <= MYSQL_POOL_MIN_SIZE) {
+    return;
+  }
+  
+  now = time(NULL);
+  
+  pthread_mutex_lock(&mysql_pool->pool_mutex);
+  
+  prev = NULL;
+  pc = mysql_pool->connections;
+  
+  while (pc && mysql_pool->current_size > MYSQL_POOL_MIN_SIZE) {
+    /* Check if connection is idle and old */
+    if (pc->state == CONN_STATE_FREE &&
+        (now - pc->last_used) > (MYSQL_POOL_TIMEOUT * 2)) {
+      
+      /* Remove this connection */
+      to_remove = pc;
+      
+      if (prev) {
+        prev->next = pc->next;
+      } else {
+        mysql_pool->connections = pc->next;
+      }
+      
+      pc = pc->next;
+      
+      /* Close and free the connection */
+      if (to_remove->conn) {
+        mysql_close(to_remove->conn);
+      }
+      pthread_mutex_destroy(&to_remove->mutex);
+      free(to_remove);
+      
+      mysql_pool->current_size--;
+      removed++;
+    } else {
+      prev = pc;
+      pc = pc->next;
+    }
+  }
+  
+  if (removed > 0) {
+    log("INFO: Shrunk pool by %d connections (now %d)",
+        removed, mysql_pool->current_size);
+  }
+  
+  pthread_mutex_unlock(&mysql_pool->pool_mutex);
+}
+
+/**
+ * Get statistics about the connection pool.
+ * 
+ * @param buf Buffer to write statistics
+ * @param size Size of buffer
+ */
+void mysql_pool_stats(char *buf, size_t size)
+{
+  if (!mysql_pool) {
+    snprintf(buf, size, "Connection pool not initialized");
+    return;
+  }
+  
+  pthread_mutex_lock(&mysql_pool->pool_mutex);
+  
+  snprintf(buf, size,
+          "Pool Statistics:\n"
+          "  Current Size: %d\n"
+          "  Active Connections: %d\n"
+          "  Total Requests: %lu\n"
+          "  Wait Count: %lu\n"
+          "  Error Count: %lu\n"
+          "  Uptime: %ld seconds",
+          mysql_pool->current_size,
+          mysql_pool->active_count,
+          mysql_pool->total_requests,
+          mysql_pool->wait_count,
+          mysql_pool->error_count,
+          mysql_pool->connections ? time(NULL) - mysql_pool->connections->created : 0);
+  
+  pthread_mutex_unlock(&mysql_pool->pool_mutex);
+}
+
+/**
+ * Pool-aware query function that automatically manages connections.
+ * 
+ * @param query SQL query to execute
+ * @param result Pointer to store result set (can be NULL for non-SELECT)
+ * @return 0 on success, non-zero on error
+ */
+int mysql_pool_query(const char *query, MYSQL_RES **result)
+{
+  MYSQL_POOL_CONN *pc;
+  int ret;
+  
+  /* Acquire connection from pool */
+  pc = mysql_pool_acquire();
+  if (!pc) {
+    log("ERROR: Failed to acquire connection from pool");
+    return -1;
+  }
+  
+  /* Execute query */
+  pthread_mutex_lock(&pc->mutex);
+  ret = mysql_query(pc->conn, query);
+  
+  if (ret == 0 && result) {
+    /* Store result if requested */
+    *result = mysql_store_result(pc->conn);
+  }
+  
+  pthread_mutex_unlock(&pc->mutex);
+  
+  /* Release connection back to pool */
+  mysql_pool_release(pc);
+  
+  return ret;
+}
+
+/**
+ * Free a result set obtained from mysql_pool_query.
+ * 
+ * @param result Result set to free
+ */
+void mysql_pool_free_result(MYSQL_RES *result)
+{
+  if (result) {
+    mysql_free_result(result);
+  }
+}
+
+/* ========================================================================== */
+/* End of Connection Pool Implementation                                      */
+/* ========================================================================== */
 
 /**
  * Establishes connection to MySQL database using configuration from mysql_config file
@@ -68,12 +622,27 @@ void connect_to_mysql()
   /* Initialize to indicate MySQL not available */
   mysql_available = FALSE;
 
+  /* Initialize connection pool structure first */
+  if (!mysql_pool) {
+    CREATE(mysql_pool, MYSQL_POOL, 1);
+    mysql_pool->connections = NULL;
+    mysql_pool->current_size = 0;
+    mysql_pool->active_count = 0;
+    mysql_pool->initialized = FALSE;
+    mysql_pool->total_requests = 0;
+    mysql_pool->wait_count = 0;
+    mysql_pool->error_count = 0;
+    mysql_pool->last_health_check = time(NULL);
+    pthread_mutex_init(&mysql_pool->pool_mutex, NULL);
+    pthread_cond_init(&mysql_pool->pool_cond, NULL);
+  }
+  
   /* Read the mysql configuration file from lib/ directory */
   if (!(file = fopen("mysql_config", "r")))
   {
-    log("WARNING: Unable to read MySQL configuration from 'mysql_config'.");
+    log("WARNING: Unable to read MySQL configuration from 'lib/mysql_config'.");
     log("WARNING: Running without MySQL support - some features will be disabled.");
-    log("WARNING: To enable MySQL: Copy mysql_config_example to lib/mysql_config and edit it.");
+    log("WARNING: To enable MySQL: Copy lib/mysql_config_example to lib/mysql_config and edit it.");
     return;
   }
 
@@ -92,20 +661,25 @@ void connect_to_mysql()
     else if (sscanf(line, "%s = %s", key, val) == 2)
     {
       /* Host configuration (e.g., localhost, 192.168.1.100, db.example.com) */
-      if (!str_cmp(key, "mysql_host"))
+      if (!str_cmp(key, "mysql_host")) {
         strlcpy(host, val, sizeof(host));
-      
+        strlcpy(mysql_pool->host, val, sizeof(mysql_pool->host));
+      }
       /* Database name configuration */
-      else if (!str_cmp(key, "mysql_database"))
+      else if (!str_cmp(key, "mysql_database")) {
         strlcpy(database, val, sizeof(database));
-      
+        strlcpy(mysql_pool->database, val, sizeof(mysql_pool->database));
+      }
       /* Username configuration */
-      else if (!str_cmp(key, "mysql_username"))
+      else if (!str_cmp(key, "mysql_username")) {
         strlcpy(username, val, sizeof(username));
-      
+        strlcpy(mysql_pool->username, val, sizeof(mysql_pool->username));
+      }
       /* Password configuration */
-      else if (!str_cmp(key, "mysql_password"))
+      else if (!str_cmp(key, "mysql_password")) {
         strlcpy(password, val, sizeof(password));
+        strlcpy(mysql_pool->password, val, sizeof(mysql_pool->password));
+      }
       
       /* Unknown configuration parameter */
       else
@@ -135,109 +709,75 @@ void connect_to_mysql()
     return;
   }
 
-  if (!(conn = mysql_init(NULL)))
-  {
-    log("WARNING: Unable to initialize MySQL connection.");
-    return;
-  }
-
-  my_bool reconnect = 1;
-  mysql_options(conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
-
-  if (!mysql_real_connect(conn, host, username, password, database, 0, NULL, 0))
-  {
-    log("WARNING: Unable to connect to MySQL: %s", mysql_error(conn));
-    mysql_close(conn);
-    conn = NULL;
-    return;
-  }
-
-  // 2nd conn for queries within other query loops
-  if (!(conn2 = mysql_init(NULL)))
-  {
-    log("WARNING: Unable to initialize MySQL connection 2.");
-    mysql_close(conn);
-    conn = NULL;
-    return;
-  }
-
-  reconnect = 1;
-  mysql_options(conn2, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
-
-  if (!mysql_real_connect(conn2, host, username, password, database, 0, NULL, 0))
-  {
-    log("WARNING: Unable to connect to MySQL2: %s", mysql_error(conn2));
-    mysql_close(conn);
-    mysql_close(conn2);
-    conn = NULL;
-    conn2 = NULL;
-    return;
-  }
-
-  // 3rd conn for queries within other query loops
-  if (!(conn3 = mysql_init(NULL)))
-  {
-    log("WARNING: Unable to initialize MySQL connection 3.");
-    mysql_close(conn);
-    mysql_close(conn2);
-    conn = NULL;
-    conn2 = NULL;
-    return;
-  }
-
-  reconnect = 1;
-  mysql_options(conn3, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
-
-  if (!mysql_real_connect(conn3, host, username, password, database, 0, NULL, 0))
-  {
-    log("WARNING: Unable to connect to MySQL3: %s", mysql_error(conn3));
-    mysql_close(conn);
-    mysql_close(conn2);
-    mysql_close(conn3);
-    conn = NULL;
-    conn2 = NULL;
-    conn3 = NULL;
-    return;
-  }
+  /* Initialize the connection pool with configuration already loaded */
+  mysql_pool_init();
   
-  /* If we got here, MySQL is successfully initialized */
-  mysql_available = TRUE;
-  
-  /* Log successful connection - password is intentionally not logged for security */
-  log("Success: Connected to MySQL database '%s' on host '%s' as user '%s'", database, host, username);
-  log("Info: MySQL configuration loaded from lib/mysql_config");
+  /* If pool initialization succeeded, set up legacy connections for compatibility */
+  if (mysql_pool && mysql_pool->initialized) {
+    /* Set up legacy connection pointers for backward compatibility */
+    /* These point to the first three connections in the pool */
+    if (mysql_pool->connections) {
+      conn = mysql_pool->connections->conn;
+      if (mysql_pool->connections->next) {
+        conn2 = mysql_pool->connections->next->conn;
+        if (mysql_pool->connections->next->next) {
+          conn3 = mysql_pool->connections->next->next->conn;
+        }
+      }
+    }
+    
+    /* Log successful connection - password is intentionally not logged for security */
+    log("Success: Connected to MySQL database '%s' on host '%s' as user '%s'", 
+        mysql_pool->database, mysql_pool->host, mysql_pool->username);
+    log("Info: MySQL configuration loaded from lib/mysql_config");
+    log("Info: Using connection pool with %d connections", mysql_pool->current_size);
+  } else {
+    log("WARNING: Failed to initialize MySQL connection pool");
+    mysql_available = FALSE;
+  }
 }
 
 void disconnect_from_mysql()
 {
-  if (conn) {
-    mysql_close(conn);
-    conn = NULL;
+  /* Destroy the connection pool */
+  if (mysql_pool) {
+    mysql_pool_destroy();
   }
+  
+  /* Clear legacy pointers */
+  conn = NULL;
+  conn2 = NULL;
+  conn3 = NULL;
 }
 
 void disconnect_from_mysql2()
 {
-  if (conn2) {
-    mysql_close(conn2);
-    conn2 = NULL;
-  }
+  /* Legacy function - connections now managed by pool */
+  /* conn2 is just a pointer into the pool, not owned separately */
+  conn2 = NULL;
 }
 
 void disconnect_from_mysql3()
 {
-  if (conn3) {
-    mysql_close(conn3);
-    conn3 = NULL;
-  }
+  /* Legacy function - connections now managed by pool */
+  /* conn3 is just a pointer into the pool, not owned separately */
+  conn3 = NULL;
 }
 
 /* Call this once at program termination */
 void cleanup_mysql_library()
 {
-  disconnect_from_mysql();
-  disconnect_from_mysql2();
-  disconnect_from_mysql3();
+  /* Destroy connection pool */
+  if (mysql_pool) {
+    mysql_pool_destroy();
+  }
+  
+  /* Clear legacy pointers */
+  conn = NULL;
+  conn2 = NULL;
+  conn3 = NULL;
+  
+  /* End MySQL library */
   mysql_library_end();
 }
 
@@ -590,6 +1130,50 @@ bool mysql_stmt_bind_param_int(PREPARED_STMT *pstmt, int param_index, int value)
 }
 
 /**
+ * Binds a long parameter to a prepared statement.
+ * 
+ * @param pstmt The prepared statement structure
+ * @param param_index The parameter index (0-based)
+ * @param value The long value to bind
+ * @return TRUE on success, FALSE on error
+ */
+bool mysql_stmt_bind_param_long(PREPARED_STMT *pstmt, int param_index, long value)
+{
+  long *buffer;
+  my_bool *is_null;
+  
+  if (!pstmt || !pstmt->params || param_index < 0 || param_index >= pstmt->param_count) {
+    log("SYSERR: mysql_stmt_bind_param_long called with invalid parameters");
+    return FALSE;
+  }
+  
+  /* Free any previously allocated buffer */
+  if (pstmt->params[param_index].buffer) {
+    free(pstmt->params[param_index].buffer);
+  }
+  if (pstmt->params[param_index].is_null) {
+    free(pstmt->params[param_index].is_null);
+  }
+  
+  /* CRITICAL: Clear the entire binding structure to prevent garbage values */
+  memset(&pstmt->params[param_index], 0, sizeof(MYSQL_BIND));
+  
+  /* Allocate buffer for long */
+  CREATE(buffer, long, 1);
+  *buffer = value;
+  CREATE(is_null, my_bool, 1);
+  *is_null = 0;
+  
+  pstmt->params[param_index].buffer_type = MYSQL_TYPE_LONGLONG;
+  pstmt->params[param_index].buffer = buffer;
+  pstmt->params[param_index].buffer_length = sizeof(long);
+  pstmt->params[param_index].is_null = is_null;
+  pstmt->params[param_index].length = 0;
+  
+  return TRUE;
+}
+
+/**
  * Executes a prepared statement with bound parameters.
  * 
  * @param pstmt The prepared statement structure
@@ -604,6 +1188,12 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
   
   if (!pstmt || !pstmt->stmt) {
     log("SYSERR: mysql_stmt_execute_prepared called with invalid statement");
+    return FALSE;
+  }
+  
+  /* Check if MySQL is available */
+  if (!mysql_available || !pstmt->connection) {
+    log("SYSERR: mysql_stmt_execute_prepared called but MySQL not available");
     return FALSE;
   }
   
@@ -642,24 +1232,13 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
   }
   
   /* For SELECT queries, prepare result bindings */
-  if (MYSQL_DEBUG) {
-    log("DEBUG: mysql_stmt_execute_prepared: metadata=%p, result_count=%d", 
-        pstmt->metadata, pstmt->result_count);
-  }
   if (pstmt->metadata && pstmt->result_count > 0) {
     MYSQL_FIELD *field;
-    
-    if (MYSQL_DEBUG) log("DEBUG: mysql_stmt_execute_prepared: Preparing result bindings for %d columns", pstmt->result_count);
     
     /* Set up result bindings based on field types */
     mysql_field_seek(pstmt->metadata, 0);
     for (i = 0; i < pstmt->result_count; i++) {
       field = mysql_fetch_field(pstmt->metadata);
-      
-      if (MYSQL_DEBUG) {
-        log("DEBUG: mysql_stmt_execute_prepared: Column %d: name='%s', type=%d, length=%lu", 
-            i, field->name, field->type, field->length);
-      }
       
       /* Free existing buffers if any (in case statement is being reused) */
       if (pstmt->results[i].buffer) {
@@ -780,16 +1359,11 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
     }
     
     /* Store result set for SELECT queries */
-    if (MYSQL_DEBUG) log("DEBUG: mysql_stmt_execute_prepared: Calling mysql_stmt_store_result");
     if (mysql_stmt_store_result(pstmt->stmt)) {
       log("SYSERR: mysql_stmt_store_result failed: %s (Error: %u)", 
           mysql_stmt_error(pstmt->stmt), mysql_stmt_errno(pstmt->stmt));
       MYSQL_UNLOCK(*mutex);
       return FALSE;
-    }
-    if (MYSQL_DEBUG) {
-      my_ulonglong num_rows = mysql_stmt_num_rows(pstmt->stmt);
-      log("DEBUG: mysql_stmt_execute_prepared: Stored %llu rows", num_rows);
     }
   }
   
@@ -963,6 +1537,9 @@ void mysql_stmt_cleanup(PREPARED_STMT *pstmt)
       if (pstmt->results[i].is_null) {
         free(pstmt->results[i].is_null);
       }
+      if (pstmt->results[i].error) {
+        free(pstmt->results[i].error);
+      }
     }
     free(pstmt->results);
   }
@@ -985,6 +1562,68 @@ void mysql_stmt_cleanup(PREPARED_STMT *pstmt)
   
   /* Free the structure itself */
   free(pstmt);
+}
+
+/* Debug function to help diagnose prepared statement issues */
+void debug_prepared_stmt(PREPARED_STMT *pstmt) {
+  if (!pstmt) {
+    log("DEBUG: PREPARED_STMT is NULL");
+    return;
+  }
+  
+  log("=== PREPARED STATEMENT DEBUG ===");
+  log("  stmt: %p", pstmt->stmt);
+  log("  connection: %p", pstmt->connection);
+  log("  param_count: %d", pstmt->param_count);
+  log("  result_count: %d", pstmt->result_count);
+  log("  metadata: %p", pstmt->metadata);
+  
+  if (pstmt->stmt) {
+    log("  stmt_errno: %u", mysql_stmt_errno(pstmt->stmt));
+    log("  stmt_error: %s", mysql_stmt_error(pstmt->stmt));
+    log("  stmt_sqlstate: %s", mysql_stmt_sqlstate(pstmt->stmt));
+    log("  stmt_field_count: %u", mysql_stmt_field_count(pstmt->stmt));
+    log("  stmt_param_count: %lu", mysql_stmt_param_count(pstmt->stmt));
+    log("  stmt_num_rows: %llu", mysql_stmt_num_rows(pstmt->stmt));
+  }
+}
+
+/* Test function for direct query execution to compare with prepared statements */
+void test_direct_query(const char *query) {
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  unsigned int num_fields;
+  unsigned int i;
+  
+  if (!conn || !query) {
+    log("ERROR: test_direct_query called with invalid parameters");
+    return;
+  }
+  
+  log("=== DIRECT QUERY TEST ===");
+  log("Query: %s", query);
+  
+  if (mysql_query(conn, query)) {
+    log("ERROR: %s", mysql_error(conn));
+    return;
+  }
+  
+  result = mysql_store_result(conn);
+  if (!result) {
+    log("No result set or error: %s", mysql_error(conn));
+    return;
+  }
+  
+  num_fields = mysql_num_fields(result);
+  log("Fields: %u, Rows: %llu", num_fields, mysql_num_rows(result));
+  
+  while ((row = mysql_fetch_row(result))) {
+    for (i = 0; i < num_fields; i++) {
+      log("  [%u]: %s", i, row[i] ? row[i] : "NULL");
+    }
+  }
+  
+  mysql_free_result(result);
 }
 
 /* Load the wilderness data for the specified zone. */
@@ -2063,7 +2702,7 @@ void who_to_mysql()
     }
 
     /* Hide level for anonymous players */
-    if (!IS_NPC(ch) && PRF_FLAGGED(tch, PRF_ANON))
+    if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_ANON))
     {
       snprintf(buf, sizeof(buf), "INSERT INTO who (player, title, killer, thief) VALUES ('%s', '%s', %d, %d)",
                escaped_name, buf2, PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
