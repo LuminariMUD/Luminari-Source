@@ -2821,8 +2821,6 @@ int script_driver(struct script_call_args *args)
    * called with WLD_TRIGGER type instead of OBJ_TRIGGER, making %self.room% fail */
   if (trig) {
     int expected_type = -1;
-    const char *expected_type_name = "UNKNOWN";
-    const char *actual_type_name = "UNKNOWN";
     
     /* Determine what type this trigger SHOULD be based on its flags */
     if (GET_TRIG_TYPE(trig) & (OTRIG_GLOBAL | OTRIG_RANDOM | OTRIG_COMMAND | OTRIG_TIMER | 
@@ -2830,7 +2828,6 @@ int script_driver(struct script_call_args *args)
                                 OTRIG_REMOVE | OTRIG_LOAD | OTRIG_CAST | OTRIG_LEAVE | 
                                 OTRIG_CONSUME | OTRIG_TIME)) {
       expected_type = OBJ_TRIGGER;
-      expected_type_name = "OBJ_TRIGGER";
     } else if (GET_TRIG_TYPE(trig) & (MTRIG_GLOBAL | MTRIG_RANDOM | MTRIG_COMMAND | 
                                        MTRIG_SPEECH | MTRIG_ACT | MTRIG_DEATH | 
                                        MTRIG_GREET | MTRIG_GREET_ALL | MTRIG_ENTRY | 
@@ -2838,24 +2835,33 @@ int script_driver(struct script_call_args *args)
                                        MTRIG_BRIBE | MTRIG_LOAD | MTRIG_MEMORY | 
                                        MTRIG_CAST | MTRIG_LEAVE | MTRIG_DOOR | MTRIG_TIME)) {
       expected_type = MOB_TRIGGER;
-      expected_type_name = "MOB_TRIGGER";
     } else if (GET_TRIG_TYPE(trig) & (WTRIG_GLOBAL | WTRIG_RANDOM | WTRIG_COMMAND | 
                                        WTRIG_SPEECH | WTRIG_RESET | WTRIG_ENTER | 
                                        WTRIG_DROP | WTRIG_CAST | WTRIG_LEAVE | 
                                        WTRIG_DOOR | WTRIG_TIME | WTRIG_LOGIN)) {
       expected_type = WLD_TRIGGER;
-      expected_type_name = "WLD_TRIGGER";
-    }
-    
-    /* Get actual type name for error message */
-    switch (type) {
-      case MOB_TRIGGER: actual_type_name = "MOB_TRIGGER"; break;
-      case OBJ_TRIGGER: actual_type_name = "OBJ_TRIGGER"; break;
-      case WLD_TRIGGER: actual_type_name = "WLD_TRIGGER"; break;
     }
     
     /* Check for type mismatch - this is a CRITICAL configuration error */
     if (expected_type != -1 && expected_type != type) {
+#ifdef SCRIPT_DEBUG
+      const char *expected_type_name = "UNKNOWN";
+      const char *actual_type_name = "UNKNOWN";
+      
+      /* Set expected type name */
+      switch (expected_type) {
+        case MOB_TRIGGER: expected_type_name = "MOB_TRIGGER"; break;
+        case OBJ_TRIGGER: expected_type_name = "OBJ_TRIGGER"; break;
+        case WLD_TRIGGER: expected_type_name = "WLD_TRIGGER"; break;
+      }
+      
+      /* Get actual type name for error message */
+      switch (type) {
+        case MOB_TRIGGER: actual_type_name = "MOB_TRIGGER"; break;
+        case OBJ_TRIGGER: actual_type_name = "OBJ_TRIGGER"; break;
+        case WLD_TRIGGER: actual_type_name = "WLD_TRIGGER"; break;
+      }
+      
       script_log("CRITICAL ERROR: Trigger %d (%s) is a %s trigger but is being called as %s!",
                  GET_TRIG_VNUM(trig), GET_TRIG_NAME(trig), expected_type_name, actual_type_name);
       script_log("  This usually means the trigger is attached to the wrong entity type.");
@@ -2888,6 +2894,7 @@ int script_driver(struct script_call_args *args)
       
       /* Don't execute the trigger - it will likely fail with confusing errors */
       script_log("  ABORTING trigger execution to prevent cascade errors.");
+#endif
       return 0;
     }
   }
