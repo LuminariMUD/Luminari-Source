@@ -103,6 +103,7 @@
 #include "bardic_performance.h" /* for the bard performance pulse */
 #include "crafting_new.h"
 #include "ai_service.h" /* for shutdown_ai_service() */
+#include "pubsub.h"     /* for automatic queue processing */
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -1300,6 +1301,8 @@ void heartbeat(int heart_pulse)
     travel_tickdown();
     self_buffing();
     craft_update();
+    /* Process PubSub message queue automatically */
+    pubsub_process_message_queue();
   }
 
   if (!(heart_pulse % (PASSES_PER_SEC * 5)))
