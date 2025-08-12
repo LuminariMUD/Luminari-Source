@@ -17,6 +17,7 @@
 
 /* PubSub System Configuration */
 #define PUBSUB_VERSION                  1
+#define PUBSUB_DEVELOPMENT_MODE         0   /* Set to 0 for production to disable table drops */
 #define PUBSUB_MAX_TOPIC_NAME_LENGTH    255
 #define PUBSUB_MAX_HANDLER_NAME_LENGTH  64
 #define PUBSUB_MAX_MESSAGE_LENGTH       8192
@@ -25,6 +26,14 @@
 #define PUBSUB_DEFAULT_MESSAGE_TTL      3600
 #define SUBSCRIPTION_CACHE_SIZE         1024
 #define CACHE_TIMEOUT                   300
+
+/* Message Queue Configuration */
+#define PUBSUB_QUEUE_MAX_SIZE           10000
+#define PUBSUB_QUEUE_BATCH_SIZE         50
+#define PUBSUB_QUEUE_PROCESS_INTERVAL   100    /* milliseconds */
+#define PUBSUB_QUEUE_MAX_RETRIES        3
+#define PUBSUB_QUEUE_RETRY_DELAY        1000   /* milliseconds */
+#define PUBSUB_QUEUE_THROTTLE_LIMIT     100    /* messages per second per player */
 
 /* PubSub Error Codes */
 #define PUBSUB_SUCCESS                  0
@@ -38,6 +47,14 @@
 #define PUBSUB_ERROR_TOPIC_FULL         -8
 #define PUBSUB_ERROR_HANDLER_NOT_FOUND  -9
 #define PUBSUB_ERROR_INVALID_MESSAGE    -10
+#define PUBSUB_ERROR_QUEUE_INIT         -11
+#define PUBSUB_ERROR_QUEUE_FULL         -12
+#define PUBSUB_ERROR_QUEUE_DISABLED     -13
+#define PUBSUB_ERROR_INVALID_PARAMETER  -14
+#define PUBSUB_ERROR_QUEUE_INIT         -11
+#define PUBSUB_ERROR_QUEUE_FULL         -12
+#define PUBSUB_ERROR_QUEUE_DISABLED     -13
+#define PUBSUB_ERROR_INVALID_PARAMETER  -14
 
 /* Topic Categories */
 #define PUBSUB_CATEGORY_GENERAL         0
@@ -152,6 +169,7 @@ struct pubsub_statistics {
     long long total_subscriptions;
     long long active_subscriptions;
     long long total_messages_sent;
+    long long total_messages_published;
     long long total_messages_delivered;
     long long total_messages_failed;
     int current_queue_size;
@@ -159,6 +177,47 @@ struct pubsub_statistics {
     int topics_allocated;
     int messages_allocated;
     int subscriptions_allocated;
+    /* Queue-specific statistics */
+    long long queue_critical_processed;
+    long long queue_urgent_processed;
+    long long queue_high_processed;
+    long long queue_normal_processed;
+    long long queue_low_processed;
+    long long queue_batch_operations;
+    double avg_processing_time_ms;
+    time_t last_queue_flush;
+};
+
+/* Message Queue Node Structure */
+struct pubsub_queue_node {
+    struct pubsub_message *message;
+    struct char_data *target_player;
+    char *handler_name;
+    time_t queued_at;
+    int retry_count;
+    struct pubsub_queue_node *next;
+};
+
+/* Priority Message Queue Structure */
+struct pubsub_message_queue {
+    struct pubsub_queue_node *critical_head;
+    struct pubsub_queue_node *critical_tail;
+    struct pubsub_queue_node *urgent_head;
+    struct pubsub_queue_node *urgent_tail;
+    struct pubsub_queue_node *high_head;
+    struct pubsub_queue_node *high_tail;
+    struct pubsub_queue_node *normal_head;
+    struct pubsub_queue_node *normal_tail;
+    struct pubsub_queue_node *low_head;
+    struct pubsub_queue_node *low_tail;
+    int total_queued;
+    int critical_count;
+    int urgent_count;
+    int high_count;
+    int normal_count;
+    int low_count;
+    bool processing_active;
+    time_t last_processed;
 };
 
 /* PubSub Handler Function Type */
@@ -189,11 +248,14 @@ extern struct pubsub_topic *topic_list;
 extern struct pubsub_handler *handler_list;
 extern struct pubsub_player_cache *subscription_cache[];
 extern struct pubsub_statistics pubsub_stats;
+extern struct pubsub_message_queue message_queue;
 extern bool pubsub_system_enabled;
+extern bool pubsub_queue_processing;
 
 /* Core API Functions */
 int pubsub_init(void);
 void pubsub_shutdown(void);
+int pubsub_db_drop_tables(void);
 int pubsub_db_create_tables(void);
 
 /* Topic Management */
@@ -222,6 +284,21 @@ int pubsub_publish_to_subscribers(struct pubsub_message *msg);
 /* Message Processing */
 void pubsub_process_message_queue(void);
 int pubsub_deliver_message(struct char_data *ch, struct pubsub_message *msg);
+
+/* Message Queue Management */
+int pubsub_queue_init(void);
+void pubsub_queue_shutdown(void);
+int pubsub_queue_message(struct pubsub_message *msg, struct char_data *target, 
+                        const char *handler_name);
+int pubsub_queue_process_all(void);
+int pubsub_queue_process_priority(int priority);
+int pubsub_queue_process_batch(int max_messages);
+void pubsub_queue_cleanup_expired(void);
+bool pubsub_queue_is_full(void);
+int pubsub_queue_get_size(void);
+int pubsub_queue_get_priority_count(int priority);
+void pubsub_queue_start_processing(void);
+void pubsub_queue_stop_processing(void);
 
 /* Handler Management */
 int pubsub_register_handler(const char *name, const char *description, 
@@ -293,5 +370,6 @@ ACMD_DECL(do_pubsub);
 ACMD_DECL(do_subscribe);
 ACMD_DECL(do_topics);
 ACMD_DECL(do_pubsubtopic);
+ACMD_DECL(do_pubsubqueue);
 
 #endif /* _PUBSUB_H_ */
