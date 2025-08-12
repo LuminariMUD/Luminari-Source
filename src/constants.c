@@ -37,25 +37,6 @@
  * works correctly with C compilers (at least in my Experience)
  * Jeremy Osborne 1/28/2008 */
 cpp_extern const char *const luminari_version = "LuminariMUD 2.4839 (tbaMUD 3.64)";
-cpp_extern const char *const luminari_build =
-#if defined(MKTIME)
-    "Make time: " MKTIME "\r\n"
-#endif
-#if defined(MKUSER)
-    "Make user: " MKUSER "\r\n"
-#endif
-#if defined(MKHOST)
-    "Make host: " MKHOST "\r\n"
-#endif
-#if defined(BRANCH)
-    "Branch: " BRANCH "\r\n"
-#endif
-#if defined(PARENT)
-    "Parent: " PARENT "\r\n"
-#endif
-"";
-
-;
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 

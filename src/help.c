@@ -57,7 +57,10 @@ static void purge_old_cache_entries(void);
  * - Cache hits/misses
  * - Fallback to file-based help
  */
-#define HELP_DEBUG 1
+#define HELP_DEBUG 0
+
+/* Global flag to track if partial help was displayed in current do_help call */
+static int g_partial_help_displayed = 0;
 
 /* puts -'s instead of spaces */
 void space_to_minus(char *str)
@@ -361,14 +364,31 @@ struct help_keyword_list *soundex_search_help_keywords(const char *argument, int
   if (HELP_DEBUG) log("DEBUG: soundex_search_help_keywords: Created prepared statement");
 
   /* Prepare parameterized query for soundex (sounds like) search
-   * This helps users find help entries when they don't know exact spelling */
+   * This helps users find help entries when they don't know exact spelling
+   * Enhanced query:
+   * 1. First tries SOUNDS LIKE for phonetic matching
+   * 2. Also includes keywords that start with the search term
+   * 3. Also includes keywords where search term appears anywhere (for typos)
+   * Results are scored by relevance */
   if (!mysql_stmt_prepare_query(pstmt,
-      "SELECT hk.help_tag, hk.keyword "
+      "SELECT DISTINCT hk.help_tag, hk.keyword, "
+      "CASE "
+      "  WHEN LOWER(hk.keyword) = LOWER(?) THEN 1 "  /* Exact match (shouldn't happen but just in case) */
+      "  WHEN hk.keyword SOUNDS LIKE ? THEN 2 "      /* Soundex match */
+      "  WHEN LOWER(hk.keyword) LIKE LOWER(CONCAT(?, '%%')) THEN 3 " /* Starts with */
+      "  WHEN LOWER(hk.keyword) LIKE LOWER(CONCAT('%%', ?, '%%')) THEN 4 " /* Contains */
+      "  ELSE 5 "
+      "END as relevance "
       "FROM help_entries he, help_keywords hk "
       "WHERE he.tag = hk.help_tag "
-      "AND hk.keyword SOUNDS LIKE ? "
       "AND he.min_level <= ? "
-      "ORDER BY LENGTH(hk.keyword) ASC")) {
+      "AND ( "
+      "  hk.keyword SOUNDS LIKE ? OR "
+      "  LOWER(hk.keyword) LIKE LOWER(CONCAT(?, '%%')) OR "
+      "  (LENGTH(?) >= 4 AND LOWER(hk.keyword) LIKE LOWER(CONCAT('%%', ?, '%%'))) " /* Only do contains search for 4+ chars */
+      ") "
+      "ORDER BY relevance ASC, LENGTH(hk.keyword) ASC "
+      "LIMIT 10")) {  /* Limit to 10 suggestions */
     log("SYSERR: Failed to prepare soundex search query");
     if (HELP_DEBUG) log("DEBUG: soundex_search_help_keywords: Failed to prepare query");
     mysql_stmt_cleanup(pstmt);
@@ -376,15 +396,23 @@ struct help_keyword_list *soundex_search_help_keywords(const char *argument, int
   }
   if (HELP_DEBUG) log("DEBUG: soundex_search_help_keywords: Query prepared successfully");
 
-  /* Bind parameters - SQL injection safe */
-  if (!mysql_stmt_bind_param_string(pstmt, 0, argument) ||
-      !mysql_stmt_bind_param_int(pstmt, 1, level)) {
+  /* Bind parameters - SQL injection safe
+   * We need to bind the same argument multiple times for different comparisons */
+  if (!mysql_stmt_bind_param_string(pstmt, 0, argument) ||  /* For exact match case */
+      !mysql_stmt_bind_param_string(pstmt, 1, argument) ||  /* For SOUNDS LIKE case */
+      !mysql_stmt_bind_param_string(pstmt, 2, argument) ||  /* For starts with case */
+      !mysql_stmt_bind_param_string(pstmt, 3, argument) ||  /* For contains case */
+      !mysql_stmt_bind_param_int(pstmt, 4, level) ||       /* Level check */
+      !mysql_stmt_bind_param_string(pstmt, 5, argument) ||  /* For SOUNDS LIKE in WHERE */
+      !mysql_stmt_bind_param_string(pstmt, 6, argument) ||  /* For starts with in WHERE */
+      !mysql_stmt_bind_param_string(pstmt, 7, argument) ||  /* For LENGTH check */
+      !mysql_stmt_bind_param_string(pstmt, 8, argument)) {  /* For contains in WHERE */
     log("SYSERR: Failed to bind parameters for soundex search");
     if (HELP_DEBUG) log("DEBUG: soundex_search_help_keywords: Failed to bind parameters (argument='%s', level=%d)", argument, level);
     mysql_stmt_cleanup(pstmt);
     return NULL;
   }
-  if (HELP_DEBUG) log("DEBUG: soundex_search_help_keywords: Parameters bound (argument='%s', level=%d)", argument, level);
+  if (HELP_DEBUG) log("DEBUG: soundex_search_help_keywords: All parameters bound (argument='%s', level=%d)", argument, level);
 
   /* Execute the prepared statement */
   if (!mysql_stmt_execute_prepared(pstmt)) {
@@ -554,18 +582,85 @@ void cleanup_help_handlers(void) {
 /**
  * Handler for database/file-based help entries.
  * This is the primary handler for authored help content.
+ * 
+ * Enhanced to distinguish between exact and partial matches:
+ * - Exact match: Display help and stop chain (return 1)
+ * - Partial match only: Display help but continue to soundex (return 0)
+ * This ensures users get "did you mean" suggestions for typos even when
+ * partial matches exist.
  */
 int handle_database_help(struct char_data *ch, const char *argument, const char *raw_argument) {
     struct help_entry_list *entries = NULL, *tmp = NULL;
     struct help_keyword_list *tmp_keyword = NULL;
     char help_entry_buffer[MAX_STRING_LENGTH] = {'\0'};
     char immo_data_buffer[1024];
+    int exact_match_found = 0;
+    int partial_match_displayed = 0;
     
     /* Search database for help entry */
     if ((entries = search_help(argument, GET_LEVEL(ch))) == NULL) {
         /* Debug: log when database help doesn't find anything */
         if (HELP_DEBUG) log("DEBUG: handle_database_help found no entry for '%s'", argument);
         return 0; /* Not found, let next handler try */
+    }
+    
+    /* Check if any of the keywords is an exact match (case-insensitive) */
+    if (HELP_DEBUG) log("DEBUG: handle_database_help: Checking for exact match among keywords");
+    for (tmp_keyword = entries->keyword_list; tmp_keyword; tmp_keyword = tmp_keyword->next) {
+        if (HELP_DEBUG) log("DEBUG: handle_database_help: Comparing '%s' with keyword '%s'", 
+                           argument, tmp_keyword->keyword);
+        if (strcasecmp(tmp_keyword->keyword, argument) == 0 ||
+            strcasecmp(tmp_keyword->keyword, raw_argument) == 0) {
+            exact_match_found = 1;
+            if (HELP_DEBUG) log("DEBUG: handle_database_help: EXACT MATCH found for '%s' -> '%s'", 
+                               argument, tmp_keyword->keyword);
+            break;
+        }
+    }
+    if (!exact_match_found && HELP_DEBUG) {
+        log("DEBUG: handle_database_help: No exact match found, only partial matches");
+    }
+    
+    /* If no exact match, check if this is really what user wanted */
+    if (!exact_match_found) {
+        /* Check if the first keyword is reasonably close to what was typed */
+        /* If the search term is very short (1-2 chars), be more strict */
+        if (strlen(argument) <= 2) {
+            /* For very short searches, only show if it's a strong prefix match */
+            int is_strong_match = 0;
+            for (tmp_keyword = entries->keyword_list; tmp_keyword; tmp_keyword = tmp_keyword->next) {
+                if (strncasecmp(tmp_keyword->keyword, argument, strlen(argument)) == 0) {
+                    /* Check if the match is reasonable (not too long) */
+                    if (strlen(tmp_keyword->keyword) <= strlen(argument) + 3) {
+                        is_strong_match = 1;
+                        break;
+                    }
+                }
+            }
+            if (!is_strong_match) {
+                if (HELP_DEBUG) log("DEBUG: Weak partial match for short search '%s', continuing to soundex", argument);
+                /* Clean up and let soundex handle it */
+                while (entries != NULL) {
+                    tmp = entries;
+                    entries = entries->next;
+                    if (tmp->tag) free(tmp->tag);
+                    if (tmp->entry) free(tmp->entry);
+                    if (tmp->keywords) free(tmp->keywords);
+                    if (tmp->last_updated) free(tmp->last_updated);
+                    while (tmp->keyword_list != NULL) {
+                        tmp_keyword = tmp->keyword_list->next;
+                        if (tmp->keyword_list->tag) free(tmp->keyword_list->tag);
+                        if (tmp->keyword_list->keyword) free(tmp->keyword_list->keyword);
+                        free(tmp->keyword_list);
+                        tmp->keyword_list = tmp_keyword;
+                    }
+                    free(tmp);
+                }
+                return 0;
+            }
+        }
+        partial_match_displayed = 1;
+        if (HELP_DEBUG) log("DEBUG: Only partial match found for '%s', will show help but continue to soundex", argument);
     }
     
     /* Format and display the help entry */
@@ -610,7 +705,21 @@ int handle_database_help(struct char_data *ch, const char *argument, const char 
         free(tmp);
     }
     
-    return 1; /* Handled successfully */
+    /* Return based on match type:
+     * - Exact match: return 1 (stop chain, we found exactly what user wanted)
+     * - Partial match: return 0 (continue chain to show soundex suggestions)
+     * This ensures soundex suggestions appear for typos even when partial matches exist
+     */
+    if (exact_match_found) {
+        if (HELP_DEBUG) log("DEBUG: Exact match handled, stopping chain for '%s'", argument);
+        return 1; /* Exact match - stop chain */
+    } else if (partial_match_displayed) {
+        if (HELP_DEBUG) log("DEBUG: Partial match displayed, continuing to soundex for '%s'", argument);
+        /* Set global flag for soundex handler to know partial help was displayed */
+        g_partial_help_displayed = 1;
+        return 0; /* Partial match - continue to soundex for suggestions */
+    }
+    return 1; /* Should not reach here, but default to handled */
 }
 
 /**
@@ -819,18 +928,34 @@ int handle_race_help(struct char_data *ch, const char *argument, const char *raw
 /**
  * Handler for soundex suggestions - always last in chain.
  * This is the fallback when no exact match is found.
+ * Enhanced to work with partial matches from database handler.
  */
 int handle_soundex_suggestions(struct char_data *ch, const char *argument, const char *raw_argument) {
     struct help_keyword_list *keywords = NULL, *tmp_keyword = NULL;
+    int soundex_matches_found = 0;
     
-    /* Log failed help request */
-    send_to_char(ch, "There is no help on that word.\r\n");
-    mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
-          "%s tried to get help on %s", GET_NAME(ch), raw_argument);
+    /* Check if database handler already displayed partial match help */
+    if (!g_partial_help_displayed) {
+        /* No partial match was shown, display the standard "not found" message */
+        send_to_char(ch, "There is no help on that word.\r\n");
+        mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
+              "%s tried to get help on %s", GET_NAME(ch), raw_argument);
+    } else {
+        /* Partial match was shown, add a note about it */
+        send_to_char(ch, "\r\n\tcNote: Showing closest partial match above.\tn\r\n");
+        if (HELP_DEBUG) log("DEBUG: Partial help was displayed, adding soundex suggestions for '%s'", raw_argument);
+    }
     
     /* Try soundex search for suggestions - use raw_argument not modified argument */
     if ((keywords = soundex_search_help_keywords(raw_argument, GET_LEVEL(ch))) != NULL) {
-        send_to_char(ch, "\r\nDid you mean:\r\n");
+        soundex_matches_found = 1;
+        if (g_partial_help_displayed) {
+            /* If we showed partial match, phrase differently */
+            send_to_char(ch, "\r\nPerhaps you meant one of these:\r\n");
+        } else {
+            /* Standard "did you mean" for no matches at all */
+            send_to_char(ch, "\r\nDid you mean:\r\n");
+        }
         tmp_keyword = keywords;
         while (tmp_keyword != NULL) {
             send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
@@ -851,6 +976,20 @@ int handle_soundex_suggestions(struct char_data *ch, const char *argument, const
         }
     }
     
+    /* Log soundex results for debugging */
+    if (HELP_DEBUG) {
+        if (soundex_matches_found) {
+            log("DEBUG: handle_soundex_suggestions: Found soundex matches for '%s'", raw_argument);
+        } else {
+            log("DEBUG: handle_soundex_suggestions: No soundex suggestions found for '%s'", raw_argument);
+        }
+        log("DEBUG: handle_soundex_suggestions: Partial help was %sdisplayed", 
+            g_partial_help_displayed ? "" : "NOT ");
+    }
+    
+    /* Reset the global flag for next call */
+    g_partial_help_displayed = 0;
+    
     return 1; /* Always returns handled as this is the final fallback */
 }
 
@@ -868,6 +1007,8 @@ int handle_soundex_suggestions(struct char_data *ch, const char *argument, const
  */
 ACMDU(do_help)
 {
+  /* Reset global flag at start of each help command */
+  g_partial_help_displayed = 0;
   struct help_handler *handler;
   char *raw_argument;
   char argument_copy[MAX_INPUT_LENGTH];
@@ -900,14 +1041,17 @@ ACMDU(do_help)
   /* Process through handler chain until one handles the request */
   for (handler = help_handler_chain; handler; handler = handler->next) {
     /* Debug logging to trace handler execution */
-    if (HELP_DEBUG) log("DEBUG: Trying handler '%s' for '%s'", handler->name, argument_copy);
+    if (HELP_DEBUG) log("DEBUG: do_help: Trying handler '%s' for '%s' (raw: '%s')", 
+                       handler->name, argument_copy, raw_argument);
     if (handler->handler(ch, argument_copy, raw_argument)) {
       /* Handler processed the request successfully */
-      if (HELP_DEBUG) log("DEBUG: Handler '%s' handled request for '%s'", handler->name, argument_copy);
+      if (HELP_DEBUG) log("DEBUG: do_help: Handler '%s' HANDLED request for '%s' - stopping chain", 
+                         handler->name, argument_copy);
       free(raw_argument);
       return;
     }
-    if (HELP_DEBUG) log("DEBUG: Handler '%s' did not handle '%s'", handler->name, argument_copy);
+    if (HELP_DEBUG) log("DEBUG: do_help: Handler '%s' DID NOT HANDLE '%s' - continuing chain", 
+                       handler->name, argument_copy);
   }
   
   /* This should never happen as soundex handler always returns 1 */

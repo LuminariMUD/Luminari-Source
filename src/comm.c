@@ -241,9 +241,9 @@ int luminari_main(int argc, char **argv)
 int main(int argc, char **argv)
 #endif
 {
-  /* Copy to stack memory to ensure the build info is embedded in core dumps */
-  char embed_version_build[512];
-  snprintf(embed_version_build, sizeof(embed_version_build), "%s\r\n%s", luminari_version, luminari_build);
+  /* Copy to stack memory to ensure the version is embedded in core dumps */
+  char embed_version[256];
+  snprintf(embed_version, sizeof(embed_version), "%s", luminari_version);
 
   int pos = 1;
   const char *dir = NULL;
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
   /* Moved here to distinguish command line options and to show up
    * in the log if stderr is redirected to a file. */
   log("Loading configuration.");
-  log("%s\r\n%s", luminari_version, luminari_build);
+  log("%s", luminari_version);
 
   if (chdir(dir) < 0)
   {

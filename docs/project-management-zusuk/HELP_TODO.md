@@ -1,9 +1,11 @@
 # Help System TODO and Implementation Checklist
 
 **Created:** January 2025  
-**Last Updated:** December 2025  
+**Last Updated:** January 2025  
 **Priority Levels:** CRITICAL | HIGH | MEDIUM | LOW  
 **Status:** ⬜ Not Started | 🔄 In Progress | ✅ Complete | 🔒 Blocked
+
+---
 
 # Database Connection & Structure
 
@@ -84,24 +86,55 @@ help_keywords (3,143 rows)
 
 # Work / ToDo / Task Lists
 
-## HIGH PRIORITY - This Sprint (Complete within 1 week)
+# SOUNDEX BUG ANALYSIS - January 2025
 
-### Connection Pooling - ✅ COMPLETED (January 2025)
-- [x] **Implement MySQL connection pooling**
-  - [x] Design connection pool manager
-  - [x] Implement connection reuse logic
-  - [x] Add connection health checks
-  - [x] Create pool size configuration
-  
-**Implementation Details:**
-- Created robust connection pool manager with configurable min/max connections (3-10)
-- Automatic connection health checks with 60-second intervals
-- Connection reuse with automatic refresh of stale connections (30-second timeout)
-- Dynamic pool expansion/shrinking based on demand
-- Thread-safe operations with per-connection mutexes
-- Backward compatibility maintained with legacy conn/conn2/conn3 pointers
-- Pool statistics tracking (requests, waits, errors)
-- Files modified: src/mysql.c, src/mysql.h
+## FIX ATTEMPTED AND FAILED
+
+## Problem Summary
+The help system's soundex (fuzzy matching) feature is being bypassed due to overly broad prefix matching in the database handler. When users misspell commands, they get unintended partial matches instead of helpful "did you mean" suggestions.
+
+## Root Cause Theory
+The help system uses a handler chain pattern where handlers are executed in order:
+1. Database handler (`handle_database_help`) - src/help.c:558
+2. Various specialized handlers (feat, class, race, etc.)
+3. Soundex handler (`handle_soundex_suggestions`) - src/help.c:823 (ALWAYS LAST)
+
+**The Issue Theory:** When `handle_database_help` finds ANY match (even a poor prefix match), it returns 1 and stops the chain, preventing soundex from running.
+
+## How It Breaks
+**Example scenario:**
+- User types: `help comand` (misspelled "command")
+- Database query: `WHERE LOWER(keyword) LIKE 'comand%'`
+- Finds: Any keyword starting with "comand" (e.g., "comandos", "comand-line")
+- Returns first match and exits
+- Soundex never runs to suggest "command"
+
+## Code Locations
+- **Entry point:** src/help.c:869 (`do_help`)
+- **Handler chain loop:** src/help.c:901-911
+- **Database handler returns:** src/help.c:613 (stops chain when ANY match found)
+- **Database search:** src/help.c:139 (`search_help`)
+- **Prefix matching:** src/help.c:199 (database), src/help.c:98 (file-based)
+- **Soundex function:** src/help.c:333 (`soundex_search_help_keywords`)
+
+## Fix Approach (Easy-Medium Difficulty)
+Modify `handle_database_help` to distinguish between exact and partial matches:
+
+1. **Check for exact match:** Compare search term with returned keywords
+2. **If exact match found:** Display help and return 1 (stop chain)
+3. **If only partial matches:** Display help but return 0 (continue to soundex)
+4. **Update soundex handler:** Check if help was already displayed, add suggestions without duplicating output
+
+**Estimated changes:** ~15-20 lines of code in `handle_database_help`, minor adjustments to `handle_soundex_suggestions`
+
+## Testing Requirements
+- Exact matches work as before (e.g., `help score`)
+- Misspellings show soundex suggestions (e.g., `help scor`, `help comand`)
+- Partial matches show both help AND suggestions
+- No duplicate output or memory leaks
+
+---
+
 
 ## MEDIUM PRIORITY - Next Release (Complete within 2-4 weeks)
 

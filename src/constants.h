@@ -70,7 +70,6 @@ extern const int size_modifiers_inverse[];
 extern const int grapple_size_modifiers[];
 extern const char *room_affections[];
 extern const char * const luminari_version;
-extern const char * const luminari_build;
 extern const char *damtype_display[];
 extern const char *dirs[];
 extern const char *dirs_short[];
