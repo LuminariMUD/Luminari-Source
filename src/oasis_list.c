@@ -1400,8 +1400,8 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
   }
 
   len = strlcpy(buf,
-                "Index VNum    #  D Object Name                                              Object Type        Cost     [Bonus] + Specific Type\r\n"
-                "----- ------- -- - -------------------------------------------------------- -----------------  -------- -------------------------\r\n",
+                "VNum    #  D Object Name                  Type         [B] + Specific\r\n"
+                "------- -- - ---------------------------- ------------ ----------------\r\n",
                 sizeof(buf));
 
   if (!top_of_objt)
@@ -1435,13 +1435,12 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
         }
       }
 
-      len += snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s%-7d%s %2d %s %s%-*s %s[%-14s]%s %8d [%d] %s%-25s%s %s ",
-                      QGRN, counter, QNRM, QGRN, obj_index[i].vnum, QNRM, num_found,
+      len += snprintf(buf + len, sizeof(buf) - len, "%s%-7d%s %2d %s %s%-*s %s%-12s%s [%d] %s%-16s%s %s ",
+                      QGRN, obj_index[i].vnum, QNRM, num_found,
                       (!obj_proto[i].ex_description ? "\tRN\tn" : "\tWY\tn"),
-                      QCYN, count_color_chars(obj_proto[i].short_description) + 58,
+                      QCYN, count_color_chars(obj_proto[i].short_description) + 28,
                       obj_proto[i].short_description, QYEL,
                       item_types[obj_proto[i].obj_flags.type_flag], QNRM,
-                      obj_proto[i].obj_flags.cost, 
                       (obj_proto[i].obj_flags.type_flag == ITEM_ARMOR || obj_proto[i].obj_flags.type_flag == ITEM_WEAPON) ? obj_proto[i].obj_flags.value[4] : 0,
                       QYEL,
                       obj_proto[i].obj_flags.type_flag == ITEM_WORN ? wears_text : (obj_proto[i].obj_flags.type_flag == ITEM_ARMOR ? armor_list[obj_proto[i].obj_flags.value[1]].name : (obj_proto[i].obj_flags.type_flag == ITEM_WEAPON ? weapon_list[obj_proto[i].obj_flags.value[0]].name : "")),
