@@ -438,8 +438,8 @@ int verify_wilderness_resource_tables(void)
     char *tables[] = {
         "region_data", "path_data", "region_index", "path_index",
         "resource_types", "resource_depletion", "resource_regeneration_log",
-        "material_categories", "material_qualities", "region_resource_effects", 
-        "resource_relationships"
+        "material_categories", "material_qualities", "region_effects", 
+        "region_effect_assignments", "resource_relationships"
     };
     int num_tables = sizeof(tables) / sizeof(tables[0]);
     char query[1024];
