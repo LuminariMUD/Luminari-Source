@@ -1,13 +1,4 @@
-/* ******#include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
-#include "utils.h"
-#include "comm.h"
-#include "db.h"
-#include "wilderness.h"
-#include "weather.h"
-#include "resource_depletion.h"
-#include "resource_descriptions.h"**********************************************************
+/***************************************************************************
  *   File: resource_descriptions.c             Part of LuminariMUD        *
  *  Usage: Dynamic resource-based descriptions implementation              *
  * Author: Dynamic Descriptions Implementation                             *
@@ -18,6 +9,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <string.h>
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
@@ -894,6 +886,9 @@ char *generate_resource_aware_description(struct char_data *ch, room_rnum room)
     struct environmental_context context;
     char *base_desc;
     
+    /* Initialize the static buffer to prevent corruption */
+    memset(description, 0, sizeof(description));
+    
     log("DEBUG: generate_resource_aware_description called for room %d", GET_ROOM_VNUM(room));
     
     if (!ch || room == NOWHERE) {
@@ -1231,10 +1226,17 @@ void get_environmental_context(room_rnum room, struct environmental_context *con
 
 /* Safe string concatenation helper */
 void safe_strcat(char *dest, const char *src) {
-    int dest_len = strlen(dest);
+    if (!dest || !src) return;
+    
+    /* Ensure dest is null-terminated and within bounds */
+    dest[MAX_STRING_LENGTH - 1] = '\0';
+    
+    int dest_len = strnlen(dest, MAX_STRING_LENGTH - 1);
     int remaining = MAX_STRING_LENGTH - dest_len - 1;
-    if (remaining > 0) {
+    
+    if (remaining > 0 && dest_len < MAX_STRING_LENGTH - 1) {
         strncat(dest, src, remaining);
+        dest[MAX_STRING_LENGTH - 1] = '\0'; /* Ensure null termination */
     }
 }
 

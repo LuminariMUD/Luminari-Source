@@ -144,6 +144,9 @@ int pubsub_queue_message(struct pubsub_message *msg, struct char_data *target,
         return PUBSUB_ERROR_MEMORY;
     }
     
+    /* Increment reference count for this message */
+    msg->reference_count++;
+    
     /* Get message priority */
     priority = get_priority_from_message(msg);
     
@@ -398,6 +401,15 @@ static struct pubsub_queue_node *create_queue_node(struct pubsub_message *msg,
 
 static void free_queue_node(struct pubsub_queue_node *node) {
     if (node) {
+        /* Decrement reference count on the message */
+        if (node->message) {
+            node->message->reference_count--;
+            /* If no more references, free the message */
+            if (node->message->reference_count <= 0) {
+                PUBSUB_FREE_MESSAGE(node->message);
+            }
+        }
+        
         if (node->handler_name) {
             free(node->handler_name);
         }

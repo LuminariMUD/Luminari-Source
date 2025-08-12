@@ -23,6 +23,7 @@
 #include "screen.h"
 #include "constants.h"
 #include "mysql.h"
+#include "wilderness.h"
 #include "pubsub.h"
 
 /* Global Variables */
@@ -622,10 +623,22 @@ int pubsub_publish_wilderness_audio(int source_x, int source_y, int source_z,
     msg->message_id = 0;
     msg->topic_id = 0; /* Special topic for spatial audio */
     msg->sender_name = strdup(sender_name);
+    if (!msg->sender_name) {
+        PUBSUB_FREE_MESSAGE(msg);
+        return PUBSUB_ERROR_MEMORY;
+    }
     msg->content = strdup(content);
+    if (!msg->content) {
+        PUBSUB_FREE_MESSAGE(msg);
+        return PUBSUB_ERROR_MEMORY;
+    }
     msg->message_type = PUBSUB_MESSAGE_SPATIAL;
     msg->priority = priority;
     msg->spatial_data = strdup(spatial_data);
+    if (!msg->spatial_data) {
+        PUBSUB_FREE_MESSAGE(msg);
+        return PUBSUB_ERROR_MEMORY;
+    }
     msg->created_at = time(NULL);
     msg->expires_at = msg->created_at + 300; /* 5 minute TTL */
     msg->delivery_attempts = 0;
@@ -640,9 +653,11 @@ int pubsub_publish_wilderness_audio(int source_x, int source_y, int source_z,
             continue;
         }
         
-        /* Calculate distance to audio source */
+        /* Calculate distance to audio source (3D) */
+        int target_z = get_modified_elevation(X_LOC(target), Y_LOC(target));
         distance = sqrt(pow(X_LOC(target) - source_x, 2) + 
-                       pow(Y_LOC(target) - source_y, 2));
+                       pow(Y_LOC(target) - source_y, 2) +
+                       pow((target_z - source_z) / 4.0, 2)); /* Weight elevation less */
         
         /* Check if within hearing range */
         if (distance <= max_distance) {
@@ -650,7 +665,12 @@ int pubsub_publish_wilderness_audio(int source_x, int source_y, int source_z,
             int result = pubsub_queue_message(msg, target, "wilderness_spatial");
             if (result == PUBSUB_SUCCESS) {
                 processed++;
+                pubsub_debug("Queued spatial audio for %s at distance %.1f", GET_NAME(target), distance);
+            } else {
+                pubsub_error("Failed to queue spatial audio for %s: error %d", GET_NAME(target), result);
             }
+        } else {
+            pubsub_debug("Player %s at distance %.1f (too far from max %d)", GET_NAME(target), distance, max_distance);
         }
     }
     
@@ -660,8 +680,8 @@ int pubsub_publish_wilderness_audio(int source_x, int source_y, int source_z,
     pubsub_info("Published wilderness audio from (%d,%d,%d), delivered to %d players",
                 source_x, source_y, source_z, processed);
     
-    /* Clean up message structure */
-    PUBSUB_FREE_MESSAGE(msg);
+    /* NOTE: Don't free message here - it's still referenced by queued nodes
+     * Message will be freed when queue processing completes */
     
     return PUBSUB_SUCCESS;
 }
