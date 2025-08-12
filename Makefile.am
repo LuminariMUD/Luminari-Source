@@ -143,6 +143,10 @@ circle_SOURCES = \
 	src/premadebuilds.c \
 	src/protocol.c \
 	src/psionics.c \
+	src/pubsub.c \
+	src/pubsub_handlers.c \
+	src/pubsub_db.c \
+	src/pubsub_commands.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \

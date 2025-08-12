@@ -48,6 +48,7 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
+#include "pubsub.h"
 #include "resource_system.h"
 #include "resource_depletion.h"
 #include "perlin.h"
@@ -1233,6 +1234,9 @@ void boot_db(void)
     log("Loading clan zone claim info.");
     load_claims();
   }
+
+  log("Initializing PubSub system.");
+  pubsub_init();
 
   log("Cleaning up last log.");
   clean_llog_entries();
