@@ -449,7 +449,9 @@ bool mysql_stmt_prepare_query(PREPARED_STMT *pstmt, const char *query)
   /* Prepare the statement */
   MYSQL_LOCK(*mutex);
   if (mysql_stmt_prepare(pstmt->stmt, query, strlen(query))) {
-    log("SYSERR: mysql_stmt_prepare failed: %s", mysql_stmt_error(pstmt->stmt));
+    log("SYSERR: mysql_stmt_prepare failed: %s (Error: %u)", 
+        mysql_stmt_error(pstmt->stmt), mysql_stmt_errno(pstmt->stmt));
+    log("  Query was: %.200s%s", query, strlen(query) > 200 ? "..." : "");
     MYSQL_UNLOCK(*mutex);
     return FALSE;
   }
@@ -493,6 +495,7 @@ bool mysql_stmt_bind_param_string(PREPARED_STMT *pstmt, int param_index, const c
 {
   unsigned long *length;
   char *buffer;
+  my_bool *is_null;
   
   if (!pstmt || !pstmt->params || param_index < 0 || param_index >= pstmt->param_count) {
     log("SYSERR: mysql_stmt_bind_param_string called with invalid parameters");
@@ -506,6 +509,9 @@ bool mysql_stmt_bind_param_string(PREPARED_STMT *pstmt, int param_index, const c
   if (pstmt->params[param_index].length) {
     free(pstmt->params[param_index].length);
   }
+  if (pstmt->params[param_index].is_null) {
+    free(pstmt->params[param_index].is_null);
+  }
   
   /* Allocate and set up the binding */
   if (value) {
@@ -513,17 +519,22 @@ bool mysql_stmt_bind_param_string(PREPARED_STMT *pstmt, int param_index, const c
     buffer = strdup(value);
     CREATE(length, unsigned long, 1);
     *length = strlen(value);
+    CREATE(is_null, my_bool, 1);
+    *is_null = 0;
     
     pstmt->params[param_index].buffer_type = MYSQL_TYPE_STRING;
     pstmt->params[param_index].buffer = buffer;
     pstmt->params[param_index].buffer_length = *length + 1;
     pstmt->params[param_index].length = length;
-    pstmt->params[param_index].is_null = 0;
+    pstmt->params[param_index].is_null = is_null;
   } else {
     /* Handle NULL value */
+    CREATE(is_null, my_bool, 1);
+    *is_null = 1;
+    
     pstmt->params[param_index].buffer_type = MYSQL_TYPE_NULL;
     pstmt->params[param_index].buffer = NULL;
-    pstmt->params[param_index].is_null = (my_bool*)1;
+    pstmt->params[param_index].is_null = is_null;
   }
   
   return TRUE;
@@ -540,6 +551,7 @@ bool mysql_stmt_bind_param_string(PREPARED_STMT *pstmt, int param_index, const c
 bool mysql_stmt_bind_param_int(PREPARED_STMT *pstmt, int param_index, int value)
 {
   int *buffer;
+  my_bool *is_null;
   
   if (!pstmt || !pstmt->params || param_index < 0 || param_index >= pstmt->param_count) {
     log("SYSERR: mysql_stmt_bind_param_int called with invalid parameters");
@@ -550,15 +562,20 @@ bool mysql_stmt_bind_param_int(PREPARED_STMT *pstmt, int param_index, int value)
   if (pstmt->params[param_index].buffer) {
     free(pstmt->params[param_index].buffer);
   }
+  if (pstmt->params[param_index].is_null) {
+    free(pstmt->params[param_index].is_null);
+  }
   
   /* Allocate buffer for integer */
   CREATE(buffer, int, 1);
   *buffer = value;
+  CREATE(is_null, my_bool, 1);
+  *is_null = 0;
   
   pstmt->params[param_index].buffer_type = MYSQL_TYPE_LONG;
   pstmt->params[param_index].buffer = buffer;
   pstmt->params[param_index].buffer_length = sizeof(int);
-  pstmt->params[param_index].is_null = 0;
+  pstmt->params[param_index].is_null = is_null;
   pstmt->params[param_index].length = 0;
   
   return TRUE;
@@ -599,7 +616,8 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
   /* Bind parameters if any */
   if (pstmt->param_count > 0 && pstmt->params) {
     if (mysql_stmt_bind_param(pstmt->stmt, pstmt->params)) {
-      log("SYSERR: mysql_stmt_bind_param failed: %s", mysql_stmt_error(pstmt->stmt));
+      log("SYSERR: mysql_stmt_bind_param failed: %s (Error: %u)", 
+          mysql_stmt_error(pstmt->stmt), mysql_stmt_errno(pstmt->stmt));
       MYSQL_UNLOCK(*mutex);
       return FALSE;
     }
@@ -607,7 +625,10 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
   
   /* Execute the statement */
   if (mysql_stmt_execute(pstmt->stmt)) {
-    log("SYSERR: mysql_stmt_execute failed: %s", mysql_stmt_error(pstmt->stmt));
+    log("SYSERR: mysql_stmt_execute failed: %s (Error: %u, SQLState: %s)", 
+        mysql_stmt_error(pstmt->stmt), 
+        mysql_stmt_errno(pstmt->stmt),
+        mysql_stmt_sqlstate(pstmt->stmt));
     MYSQL_UNLOCK(*mutex);
     return FALSE;
   }
@@ -629,12 +650,21 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
         case MYSQL_TYPE_TINY_BLOB:
         case MYSQL_TYPE_MEDIUM_BLOB:
         case MYSQL_TYPE_LONG_BLOB:
-          /* Allocate buffer for string data */
-          CREATE(pstmt->results[i].buffer, char, field->length + 1);
-          pstmt->results[i].buffer_type = MYSQL_TYPE_STRING;
-          pstmt->results[i].buffer_length = field->length + 1;
-          CREATE(pstmt->results[i].length, unsigned long, 1);
-          CREATE(pstmt->results[i].is_null, my_bool, 1);
+          /* Allocate buffer for string data
+           * Use larger buffer for GROUP_CONCAT and other potentially large results
+           * field->length may be 0 or too small for aggregated results */
+          {
+            unsigned long buffer_size = field->length > 0 ? field->length : 4096;
+            /* Ensure minimum size for GROUP_CONCAT and other aggregate functions */
+            if (buffer_size < 4096) {
+              buffer_size = 4096;
+            }
+            CREATE(pstmt->results[i].buffer, char, buffer_size + 1);
+            pstmt->results[i].buffer_type = MYSQL_TYPE_STRING;
+            pstmt->results[i].buffer_length = buffer_size + 1;
+            CREATE(pstmt->results[i].length, unsigned long, 1);
+            CREATE(pstmt->results[i].is_null, my_bool, 1);
+          }
           break;
           
         case MYSQL_TYPE_LONG:
@@ -649,10 +679,10 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
           break;
           
         default:
-          /* Default to string for other types */
-          CREATE(pstmt->results[i].buffer, char, 256);
+          /* Default to string for other types - use larger buffer */
+          CREATE(pstmt->results[i].buffer, char, 4096);
           pstmt->results[i].buffer_type = MYSQL_TYPE_STRING;
-          pstmt->results[i].buffer_length = 256;
+          pstmt->results[i].buffer_length = 4096;
           CREATE(pstmt->results[i].length, unsigned long, 1);
           CREATE(pstmt->results[i].is_null, my_bool, 1);
           break;
@@ -661,14 +691,21 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
     
     /* Bind the result buffers */
     if (mysql_stmt_bind_result(pstmt->stmt, pstmt->results)) {
-      log("SYSERR: mysql_stmt_bind_result failed: %s", mysql_stmt_error(pstmt->stmt));
+      log("SYSERR: mysql_stmt_bind_result failed: %s (Error: %u)", 
+          mysql_stmt_error(pstmt->stmt), mysql_stmt_errno(pstmt->stmt));
+      /* Log buffer details for debugging */
+      for (i = 0; i < pstmt->result_count; i++) {
+        log("  Column %d: type=%d, buffer_length=%lu", 
+            i, pstmt->results[i].buffer_type, pstmt->results[i].buffer_length);
+      }
       MYSQL_UNLOCK(*mutex);
       return FALSE;
     }
     
     /* Store result set for SELECT queries */
     if (mysql_stmt_store_result(pstmt->stmt)) {
-      log("SYSERR: mysql_stmt_store_result failed: %s", mysql_stmt_error(pstmt->stmt));
+      log("SYSERR: mysql_stmt_store_result failed: %s (Error: %u)", 
+          mysql_stmt_error(pstmt->stmt), mysql_stmt_errno(pstmt->stmt));
       MYSQL_UNLOCK(*mutex);
       return FALSE;
     }
@@ -802,6 +839,9 @@ void mysql_stmt_cleanup(PREPARED_STMT *pstmt)
       }
       if (pstmt->params[i].length) {
         free(pstmt->params[i].length);
+      }
+      if (pstmt->params[i].is_null) {
+        free(pstmt->params[i].is_null);
       }
     }
     free(pstmt->params);

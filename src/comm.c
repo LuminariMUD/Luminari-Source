@@ -97,6 +97,7 @@
 #include "wilderness.h"
 #include "spell_prep.h"
 #include "perfmon.h"
+#include "help.h"
 #include "transport.h"
 #include "hunts.h"
 #include "bardic_performance.h" /* for the bard performance pulse */
@@ -427,6 +428,7 @@ int main(int argc, char **argv)
     free_command_list();                   /* act.informative.c */
     free_social_messages();                /* act.social.c */
     free_help_table();                     /* db.c */
+    cleanup_help_handlers();               /* help.c - cleanup handler chain */
     free_invalid_list();                   /* ban.c */
     free_save_list();                      /* genolc.c */
     free_strings(&config_info, OASIS_CFG); /* oasis_delete.c */
