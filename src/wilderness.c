@@ -235,6 +235,73 @@ int get_elevation(int map, int x, int y)
   return 255 * result;
 }
 
+/* Get elevation with region modifications but maintaining wilderness scale (0-255) */
+int get_modified_elevation(int x, int y)
+{
+    /* Get base elevation from noise layer (0-255 scale) */
+    int base_elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
+    
+    /* Apply region elevation modifiers if regions are loaded */
+    #ifdef REGION_EFFECTS_ENABLED
+    if (region_table) {
+        int region_id = get_region_id(x, y);
+        if (region_id > 0 && region_id < top_of_region_table) {
+            struct region_data *region = &region_table[region_id];
+            if (region && region->elevation_modifier != 0) {
+                base_elevation += region->elevation_modifier;
+                
+                /* Clamp to wilderness scale bounds */
+                if (base_elevation > 255) base_elevation = 255;
+                if (base_elevation < 0) base_elevation = 0;
+            }
+        }
+    }
+    #endif
+    
+    /* Future: Apply region effects that might modify elevation */
+    /* This is a placeholder for the upcoming region effects system */
+    #ifdef FUTURE_REGION_EFFECTS
+    int region_elevation_effect = get_region_elevation_effects(x, y);
+    if (region_elevation_effect != 0) {
+        base_elevation += region_elevation_effect;
+        
+        /* Clamp to wilderness scale bounds */
+        if (base_elevation > 255) base_elevation = 255;
+        if (base_elevation < 0) base_elevation = 0;
+    }
+    #endif
+    
+    return base_elevation;
+}
+
+/* Get elevation in meters relative to wilderness sea level */
+float get_elevation_relative_sea_level(int x, int y)
+{
+    /* Get modified elevation in wilderness scale */
+    int wilderness_elevation = get_modified_elevation(x, y);
+    
+    /* Use the actual waterline from wilderness system as sea level reference */
+    int sea_level = wild_waterline;  /* Usually 128, but configurable */
+    
+    /* Calculate elevation relative to sea level */
+    int elevation_above_sea_level = wilderness_elevation - sea_level;
+    
+    /* Convert to approximate meters */
+    /* Assuming the wilderness scale represents reasonable elevation ranges */
+    /* Scale factor: each unit above sea level = ~8 meters (gives ~1000m max height) */
+    float meters_above_sea_level = (float)elevation_above_sea_level * 8.0f;
+    
+    /* Below sea level areas are treated as 0-5m (coastal/underwater) */
+    if (meters_above_sea_level < 0.0f) {
+        /* Scale underwater areas to 0-5m depth */
+        float depth_ratio = (float)(-elevation_above_sea_level) / (float)sea_level;
+        if (depth_ratio > 1.0f) depth_ratio = 1.0f;
+        return depth_ratio * 5.0f;  /* 0-5m above sea level for underwater/coastal */
+    }
+    
+    return meters_above_sea_level;
+}
+
 int get_weather(int x, int y)
 {
   double trans_x;
@@ -298,6 +365,75 @@ int get_temperature(int map, int x, int y)
   temp = (max_temp - (max_temp - min_temp) * pct) - (MAX(1.5 * get_elevation(map, x, y) - WATERLINE, 0)) / 10;
 
   return temp;
+}
+
+/* 
+ * Get comprehensive elevation that accounts for base noise layer,
+ * region modifications, and future region effects.
+ * This is the authoritative elevation function for all systems.
+ */
+int get_comprehensive_elevation(int x, int y, zone_rnum zone)
+{
+    int base_elevation, modified_elevation;
+    struct region_list *regions = NULL;
+    struct region_list *curr_region = NULL;
+    
+    /* Get base elevation from noise layer */
+    base_elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
+    modified_elevation = base_elevation;
+    
+    /* Only check for region modifications if we have a valid zone */
+    if (zone != NOWHERE) {
+        /* Get enclosing regions to check for elevation modifications */
+        regions = get_enclosing_regions(zone, x, y);
+        
+        /* Apply region-based elevation modifications */
+        for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next) {
+            /* Check if region_table is valid and rnum is within bounds */
+            if (region_table && curr_region->rnum >= 0 && curr_region->rnum <= top_of_region_table) {
+                switch (region_table[curr_region->rnum].region_type) {
+                    case REGION_SECTOR_TRANSFORM:
+                        /* This type of region modifies elevation directly */
+                        modified_elevation += region_table[curr_region->rnum].region_props;
+                        log("COMPREHENSIVE ELEVATION: Adjusting elevation at (%d, %d) by %d (region: %s)", 
+                            x, y, region_table[curr_region->rnum].region_props, 
+                            region_table[curr_region->rnum].name ? region_table[curr_region->rnum].name : "Unknown");
+                        break;
+                    case REGION_GEOGRAPHIC:
+                    case REGION_ENCOUNTER:
+                    case REGION_SECTOR:
+                    default:
+                        /* These region types don't directly modify elevation (yet) */
+                        /* Future enhancement: Add REGION_ELEVATION type for direct elevation effects */
+                        break;
+                }
+                
+                /* Future enhancement: Check for database-driven region effects on elevation */
+                /* This could include things like:
+                 * - Magical elevation alterations
+                 * - Tectonic activity zones  
+                 * - Sea level changes in coastal regions
+                 * - Volcanic activity affecting terrain height
+                 */
+            }
+        }
+        
+        /* Free the region list */
+        if (regions) {
+            struct region_list *temp;
+            while (regions) {
+                temp = regions;
+                regions = regions->next;
+                free(temp);
+            }
+        }
+    }
+    
+    /* Ensure elevation stays within valid bounds */
+    if (modified_elevation < 0) modified_elevation = 0;
+    if (modified_elevation > 255) modified_elevation = 255;
+    
+    return modified_elevation;
 }
 
 /* 

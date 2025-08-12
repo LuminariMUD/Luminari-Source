@@ -226,6 +226,9 @@ struct wild_map_tile
 
 void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_tile **map);
 int get_elevation(int map, int x, int y);
+int get_comprehensive_elevation(int x, int y, zone_rnum zone);
+int get_modified_elevation(int x, int y);
+float get_elevation_relative_sea_level(int x, int y);
 int get_sector_type(int elevation, int temperature, int moisture);
 int get_weather(int x, int y);
 void show_wilderness_map(struct char_data *ch, int size, int x, int y);

@@ -16,6 +16,7 @@
 #include "perlin.h"
 #include "resource_system.h"
 #include "resource_depletion.h"  /* Phase 6: Add depletion system */
+#include "resource_descriptions.h"  /* For elevation functions */
 #include "mysql.h"
 #include "spells.h"
 #include "genolc.h"
@@ -135,7 +136,7 @@ float get_base_resource_value(int resource_type, int x, int y) {
     struct resource_config *config = &resource_configs[resource_type];
     
     /* Get environmental data for realistic resource distribution */
-    int elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);          /* 0-255 range */
+    int elevation = get_modified_elevation(x, y);                           /* 0-255 range with region mods */
     int temperature = get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y);      /* Temperature */
     int moisture = get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y);        /* Moisture level */
     
@@ -167,8 +168,25 @@ float get_base_resource_value(int resource_type, int x, int y) {
             break;
             
         case RESOURCE_WATER:
-            /* Pure environmental - water flows to low elevations, higher in moist areas */
+            /* Environmental water distribution with terrain-specific modifiers */
             final_value = (1.0f - norm_elevation * 0.8f) + (norm_moisture * 0.5f);
+            
+            /* Desert terrain penalty - severely limit water in arid regions */
+            /* Desert conditions: temperature > 25°C (98/255 = ~0.38) and moisture < 80 (80/255 = ~0.31) */
+            if (temperature > 25 && moisture < 80) {
+                /* Severe desert penalty - reduce water to 5-15% of normal */
+                final_value *= 0.10f;  /* 90% reduction */
+                
+                /* Ultra-arid conditions get even less water */
+                if (moisture < 40) {  /* Extremely dry desert */
+                    final_value *= 0.5f;  /* Additional 50% reduction (total ~5% of normal) */
+                }
+            }
+            /* Semi-arid conditions - moderate penalty */
+            else if (temperature > 20 && moisture < 120) {
+                /* Semi-desert conditions - reduce water by 40% */
+                final_value *= 0.6f;
+            }
             break;
             
         case RESOURCE_HERBS:
@@ -811,7 +829,7 @@ void show_resource_survey(struct char_data *ch) {
     send_to_char(ch, "===================================\r\n\r\n");
     
     send_to_char(ch, "Terrain: %s | Elevation: %d\r\n\r\n", 
-                 sector_types[SECT(IN_ROOM(ch))], get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+                 sector_types[SECT(IN_ROOM(ch))], get_modified_elevation(x, y));
     
     /* Show all resources with meaningful levels */
     send_to_char(ch, "Available Resources:\r\n");
@@ -842,7 +860,7 @@ void show_terrain_survey(struct char_data *ch) {
     
     x = world[IN_ROOM(ch)].coords[0];
     y = world[IN_ROOM(ch)].coords[1];
-    elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
+    elevation = get_modified_elevation(x, y);
     terrain_type = SECT(IN_ROOM(ch));
     
     send_to_char(ch, "Detailed Terrain Analysis for (\tC%d\tn, \tC%d\tn):\r\n", x, y);
@@ -876,8 +894,9 @@ void show_terrain_survey(struct char_data *ch) {
             send_to_char(ch, "  Favorable for: water resources, clay, salt\r\n");
             break;
         case SECT_DESERT:
-            send_to_char(ch, "  Arid desert environment with limited vegetation.\r\n");
-            send_to_char(ch, "  Favorable for: minerals, crystals (sparse vegetation)\r\n");
+            send_to_char(ch, "  Arid desert environment with extremely scarce water resources.\r\n");
+            send_to_char(ch, "  Water is almost never found except in rare oases or ephemeral springs.\r\n");
+            send_to_char(ch, "  Favorable for: minerals, crystals (very sparse vegetation)\r\n");
             break;
         default:
             send_to_char(ch, "  Standard terrain with mixed characteristics.\r\n");
@@ -918,7 +937,7 @@ void show_debug_survey(struct char_data *ch) {
     
     send_to_char(ch, "Terrain: %s (Type: %d)\r\n", 
                  sector_types[SECT(IN_ROOM(ch))], SECT(IN_ROOM(ch)));
-    send_to_char(ch, "Elevation: %d\r\n", get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+    send_to_char(ch, "Elevation: %d\r\n", get_modified_elevation(x, y));
     
     send_to_char(ch, "\r\nResource Details:\r\n");
     send_to_char(ch, "%-12s | %-8s | %-8s | %-8s | %-5s | %s\r\n",
@@ -1106,7 +1125,7 @@ void show_resource_detail(struct char_data *ch, int resource_type) {
     send_to_char(ch, "==========================================\r\n");
     send_to_char(ch, "Location: (%d, %d)\r\n", x, y);
     send_to_char(ch, "Terrain: %s\r\n", sector_types[SECT(IN_ROOM(ch))]);
-    send_to_char(ch, "Elevation: %d\r\n", get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+    send_to_char(ch, "Elevation: %d\r\n", get_modified_elevation(x, y));
     
     resource_level = calculate_current_resource_level(resource_type, x, y);
     send_to_char(ch, "\r\nResource Level: %s (%.2f%%)\r\n", 
@@ -2150,9 +2169,10 @@ int can_harvest_resource_in_terrain(int resource_type, int sector_type) {
                 case SECT_HILLS:
                 case SECT_MOUNTAIN:  /* Springs */
                     return 1;
+                case SECT_DESERT:  /* Rare oases and underground springs */
+                    return 1;  /* Allow harvesting but with severe resource penalties */
                 case SECT_UNDERWATER:
                 case SECT_FLYING:
-                case SECT_DESERT:  /* Rare water sources */
                 case SECT_HIGH_MOUNTAIN:
                 case SECT_FIELD:
                     return 0;
