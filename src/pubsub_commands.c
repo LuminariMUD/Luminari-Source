@@ -20,6 +20,7 @@
 #include "db.h"
 #include "screen.h"
 #include "constants.h"
+#include "wilderness.h"
 #include "pubsub.h"
 
 /*
@@ -325,12 +326,28 @@ ACMD(do_pubsubqueue) {
         } else {
             send_to_char(ch, "Failed to publish test message.\r\n");
         }
+    } else if (!strcasecmp(subcommand, "spatial")) {
+        /* Test wilderness spatial audio */
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+            int result = pubsub_publish_wilderness_audio(X_LOC(ch), Y_LOC(ch), 
+                                                        get_elevation(NOISE_MATERIAL_PLANE_ELEV, X_LOC(ch), Y_LOC(ch)),
+                                                        GET_NAME(ch), "A mysterious sound echoes across the wilderness",
+                                                        25, PUBSUB_PRIORITY_NORMAL);
+            if (result == PUBSUB_SUCCESS) {
+                send_to_char(ch, "Wilderness spatial audio test sent.\r\n");
+            } else {
+                send_to_char(ch, "Failed to send wilderness spatial audio test.\r\n");
+            }
+        } else {
+            send_to_char(ch, "You must be in the wilderness to test spatial audio.\r\n");
+        }
     } else {
-        send_to_char(ch, "Usage: pubsubqueue [status|process|start|stop|test]\r\n");
+        send_to_char(ch, "Usage: pubsubqueue [status|process|start|stop|test|spatial]\r\n");
         send_to_char(ch, "  status  - Show queue status and statistics\r\n");
         send_to_char(ch, "  process - Process all queued messages\r\n");
         send_to_char(ch, "  start   - Start queue processing\r\n");
         send_to_char(ch, "  stop    - Stop queue processing\r\n");
         send_to_char(ch, "  test    - Send a test message to queue\r\n");
+        send_to_char(ch, "  spatial - Test wilderness spatial audio (wilderness only)\r\n");
     }
 }

@@ -12,6 +12,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <math.h>
 
 #include "structs.h"
 #include "utils.h"
@@ -71,6 +72,10 @@ int pubsub_init(void) {
                            pubsub_handler_send_formatted);
     pubsub_register_handler("spatial_audio", "Process spatial audio events with distance",
                            pubsub_handler_spatial_audio);
+    pubsub_register_handler("wilderness_spatial", "Enhanced 3D spatial audio for wilderness",
+                           pubsub_handler_wilderness_spatial_audio);
+    pubsub_register_handler("audio_mixing", "Multiple simultaneous audio source mixing",
+                           pubsub_handler_audio_mixing);
     pubsub_register_handler("personal_message", "Handle personal tell-style messages",
                            pubsub_handler_personal_message);
     pubsub_register_handler("system_announcement", "Handle system-wide announcements",
@@ -108,6 +113,9 @@ void pubsub_shutdown(void) {
     
     /* Shutdown message queue system */
     pubsub_queue_shutdown();
+    
+    /* Cleanup spatial audio system */
+    pubsub_spatial_cleanup();
     
     /* Free topic list */
     for (topic = topic_list; topic; topic = next_topic) {
@@ -579,6 +587,83 @@ int pubsub_publish(int topic_id, const char *sender_name, const char *content,
     PUBSUB_FREE_MESSAGE(msg);
     
     return processed > 0 ? PUBSUB_SUCCESS : PUBSUB_ERROR_NOT_FOUND;
+}
+
+/*
+ * Publish a spatial audio message to wilderness (Phase 2B)
+ */
+int pubsub_publish_wilderness_audio(int source_x, int source_y, int source_z,
+                                   const char *sender_name, const char *content,
+                                   int max_distance, int priority) {
+    struct pubsub_message *msg;
+    struct char_data *target;
+    char spatial_data[256];
+    int processed = 0;
+    float distance;
+    
+    if (!sender_name || !content) {
+        return PUBSUB_ERROR_INVALID_PARAM;
+    }
+    
+    if (!pubsub_system_enabled) {
+        return PUBSUB_ERROR_PERMISSION;
+    }
+    
+    /* Create spatial data string */
+    snprintf(spatial_data, sizeof(spatial_data), "%d,%d,%d,%d",
+             source_x, source_y, source_z, max_distance);
+    
+    /* Create message structure */
+    msg = PUBSUB_CREATE_MESSAGE();
+    if (!msg) {
+        return PUBSUB_ERROR_MEMORY;
+    }
+    
+    msg->message_id = 0;
+    msg->topic_id = 0; /* Special topic for spatial audio */
+    msg->sender_name = strdup(sender_name);
+    msg->content = strdup(content);
+    msg->message_type = PUBSUB_MESSAGE_SPATIAL;
+    msg->priority = priority;
+    msg->spatial_data = strdup(spatial_data);
+    msg->created_at = time(NULL);
+    msg->expires_at = msg->created_at + 300; /* 5 minute TTL */
+    msg->delivery_attempts = 0;
+    msg->metadata = NULL;
+    
+    /* Find all players in wilderness within range */
+    for (target = character_list; target; target = target->next) {
+        if (IS_NPC(target) || !target->desc) continue;
+        
+        /* Check if player is in wilderness */
+        if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(target)), ZONE_WILDERNESS)) {
+            continue;
+        }
+        
+        /* Calculate distance to audio source */
+        distance = sqrt(pow(X_LOC(target) - source_x, 2) + 
+                       pow(Y_LOC(target) - source_y, 2));
+        
+        /* Check if within hearing range */
+        if (distance <= max_distance) {
+            /* Queue message with appropriate handler */
+            int result = pubsub_queue_message(msg, target, "wilderness_spatial");
+            if (result == PUBSUB_SUCCESS) {
+                processed++;
+            }
+        }
+    }
+    
+    /* Update statistics */
+    pubsub_stats.total_messages_published++;
+    
+    pubsub_info("Published wilderness audio from (%d,%d,%d), delivered to %d players",
+                source_x, source_y, source_z, processed);
+    
+    /* Clean up message structure */
+    PUBSUB_FREE_MESSAGE(msg);
+    
+    return PUBSUB_SUCCESS;
 }
 
 /*
