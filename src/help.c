@@ -55,6 +55,66 @@ void space_to_minus(char *str)
     *str = '-';
 }
 
+/* Search the file-based help_table for matching entries
+ * This is used as a fallback when database search returns nothing
+ * Returns a help_entry_list structure compatible with database results
+ */
+static struct help_entry_list *search_help_table(const char *argument, int level)
+{
+  extern struct help_index_element *help_table;
+  extern int top_of_helpt;
+  struct help_entry_list *help_entries = NULL, *new_entry = NULL, *cur = NULL;
+  int i;
+  
+  /* No file-based help loaded */
+  if (!help_table || top_of_helpt <= 0) {
+    return NULL;
+  }
+  
+  /* Search through file-based help entries */
+  for (i = 0; i < top_of_helpt; i++) {
+    /* Check if user has access level for this entry */
+    if (help_table[i].min_level > level) {
+      continue;
+    }
+    
+    /* Check if keywords match (prefix match) */
+    if (!help_table[i].keywords) {
+      continue;
+    }
+    
+    /* Case-insensitive prefix match */
+    if (strn_cmp(argument, help_table[i].keywords, strlen(argument)) == 0) {
+      /* Found a match - convert to help_entry_list format */
+      CREATE(new_entry, struct help_entry_list, 1);
+      
+      /* Set entry data from file-based help */
+      new_entry->tag = strdup(help_table[i].keywords);
+      new_entry->entry = strdup(help_table[i].entry ? help_table[i].entry : "No help available.\r\n");
+      new_entry->min_level = help_table[i].min_level;
+      new_entry->last_updated = strdup("File-based");
+      new_entry->keywords = strdup(help_table[i].keywords);
+      new_entry->keyword_list = NULL;
+      new_entry->next = NULL;
+      
+      /* Add to linked list */
+      if (help_entries == NULL) {
+        help_entries = new_entry;
+        cur = new_entry;
+      } else {
+        cur->next = new_entry;
+        cur = new_entry;
+      }
+      
+      /* For file-based help, return after first match
+       * (traditional behavior - one entry per keyword) */
+      break;
+    }
+  }
+  
+  return help_entries;
+}
+
 /* Name: search_help
  * Author: Ornir (Jamie McLaughlin)
  *
@@ -68,6 +128,9 @@ void space_to_minus(char *str)
 struct help_entry_list *search_help(const char *argument, int level)
 {
   struct help_entry_list *cached_result;
+  PREPARED_STMT *pstmt;
+  struct help_entry_list *help_entries = NULL, *new_help_entry = NULL, *cur = NULL;
+  char search_pattern[MAX_STRING_LENGTH];
   
   /* Check cache first to avoid database query */
   cached_result = get_cached_help(argument, level);
@@ -75,184 +138,214 @@ struct help_entry_list *search_help(const char *argument, int level)
     return cached_result;  /* Return deep copy from cache */
   }
 
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-
-  struct help_entry_list *help_entries = NULL, *new_help_entry = NULL, *cur = NULL;
-
-  char buf[1024], escaped_arg[MAX_STRING_LENGTH] = {'\0'};
-
-  /*  Check the connection, reconnect if necessary. */
+  /* Check the connection, reconnect if necessary */
   mysql_ping(conn);
 
-  mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
-
-  /* Optimized query - eliminates Cartesian product by using proper JOINs
-   * First finds matching help entries, then gets all keywords in one query */
-  snprintf(buf, sizeof(buf), "SELECT distinct he.tag, he.entry, he.min_level, he.last_updated, group_concat(distinct CONCAT(UCASE(LEFT(hk2.keyword, 1)), LCASE(SUBSTRING(hk2.keyword, 2))) separator ', ')"
-                             " FROM `help_entries` he"
-                             " INNER JOIN `help_keywords` hk ON he.tag = hk.help_tag"
-                             " LEFT JOIN `help_keywords` hk2 ON he.tag = hk2.help_tag"
-                             " WHERE lower(hk.keyword) like '%s%%' and he.min_level <= %d"
-                             " group by he.tag, he.entry, he.min_level, he.last_updated ORDER BY length(hk.keyword) asc",
-           escaped_arg, level);
-
-  if (mysql_query(conn, buf))
-  {
-    log("SYSERR: Unable to SELECT from help_entries: %s", mysql_error(conn));
+  /* Create prepared statement for secure query execution */
+  pstmt = mysql_stmt_create(conn);
+  if (!pstmt) {
+    log("SYSERR: Failed to create prepared statement for help search");
     return NULL;
   }
 
-  if (!(result = mysql_store_result(conn)))
-  {
-    log("SYSERR: Unable to SELECT from help_entries: %s", mysql_error(conn));
+  /* Prepare the parameterized query - ? placeholders prevent SQL injection
+   * This query finds matching help entries with all their keywords */
+  if (!mysql_stmt_prepare_query(pstmt, 
+      "SELECT DISTINCT he.tag, he.entry, he.min_level, he.last_updated, "
+      "GROUP_CONCAT(DISTINCT CONCAT(UCASE(LEFT(hk2.keyword, 1)), LCASE(SUBSTRING(hk2.keyword, 2))) SEPARATOR ', ') "
+      "FROM help_entries he "
+      "INNER JOIN help_keywords hk ON he.tag = hk.help_tag "
+      "LEFT JOIN help_keywords hk2 ON he.tag = hk2.help_tag "
+      "WHERE LOWER(hk.keyword) LIKE ? AND he.min_level <= ? "
+      "GROUP BY he.tag, he.entry, he.min_level, he.last_updated "
+      "ORDER BY LENGTH(hk.keyword) ASC")) {
+    log("SYSERR: Failed to prepare help search query");
+    mysql_stmt_cleanup(pstmt);
     return NULL;
   }
 
-  while ((row = mysql_fetch_row(result)))
-  {
+  /* Build search pattern for LIKE clause (add % for prefix matching) */
+  snprintf(search_pattern, sizeof(search_pattern), "%s%%", argument);
+  
+  /* Bind parameters - completely safe from SQL injection */
+  if (!mysql_stmt_bind_param_string(pstmt, 0, search_pattern) ||
+      !mysql_stmt_bind_param_int(pstmt, 1, level)) {
+    log("SYSERR: Failed to bind parameters for help search");
+    mysql_stmt_cleanup(pstmt);
+    return NULL;
+  }
 
-    /* Allocate memory for the help entry data. */
+  /* Execute the prepared statement */
+  if (!mysql_stmt_execute_prepared(pstmt)) {
+    log("SYSERR: Failed to execute help search query");
+    mysql_stmt_cleanup(pstmt);
+    return NULL;
+  }
+
+  /* Fetch results row by row */
+  while (mysql_stmt_fetch_row(pstmt)) {
+    /* Allocate memory for the help entry data */
     CREATE(new_help_entry, struct help_entry_list, 1);
-    new_help_entry->tag = strdup(row[0]);
-    new_help_entry->entry = strdup(row[1]);
-    new_help_entry->min_level = atoi(row[2]);
-    new_help_entry->last_updated = strdup(row[3]);
-    new_help_entry->keywords = strdup(row[4]);
+    
+    /* Get column values safely from prepared statement results */
+    new_help_entry->tag = strdup(mysql_stmt_get_string(pstmt, 0) ? mysql_stmt_get_string(pstmt, 0) : "");
+    new_help_entry->entry = strdup(mysql_stmt_get_string(pstmt, 1) ? mysql_stmt_get_string(pstmt, 1) : "");
+    new_help_entry->min_level = mysql_stmt_get_int(pstmt, 2);
+    new_help_entry->last_updated = strdup(mysql_stmt_get_string(pstmt, 3) ? mysql_stmt_get_string(pstmt, 3) : "");
+    new_help_entry->keywords = strdup(mysql_stmt_get_string(pstmt, 4) ? mysql_stmt_get_string(pstmt, 4) : "");
 
     /* N+1 query optimization: keywords already fetched in main query,
      * only fetch keyword_list if actually needed elsewhere.
      * For now, set to NULL to avoid redundant query */
     new_help_entry->keyword_list = NULL;
+    new_help_entry->next = NULL;
 
-    if (help_entries == NULL)
-    {
+    /* Add to linked list */
+    if (help_entries == NULL) {
       help_entries = new_help_entry;
       cur = new_help_entry;
-    }
-    else
-    {
+    } else {
       cur->next = new_help_entry;
       cur = new_help_entry;
     }
     new_help_entry = NULL;
   }
 
-  mysql_free_result(result);
+  /* Clean up prepared statement */
+  mysql_stmt_cleanup(pstmt);
 
-  /* Add result to cache if found */
-  if (help_entries != NULL) {
+  /* If database returned no results, try file-based help as fallback */
+  if (help_entries == NULL) {
+    help_entries = search_help_table(argument, level);
+    /* Don't cache file-based results - they're already in memory */
+  } else {
+    /* Add database results to cache */
     add_to_help_cache(argument, level, help_entries);
   }
 
-  return help_entries
+  return help_entries;
 }
 
 struct help_keyword_list *get_help_keywords(const char *tag)
 {
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-
+  PREPARED_STMT *pstmt;
   struct help_keyword_list *keywords = NULL, *new_keyword = NULL, *cur = NULL;
 
-  char buf[MAX_STRING_LENGTH * 2 + 200]; /* Large enough for escaped_tag plus SQL query */
-  char escaped_tag[MAX_STRING_LENGTH * 2 + 1];
+  /* Create prepared statement for secure query execution */
+  pstmt = mysql_stmt_create(conn);
+  if (!pstmt) {
+    log("SYSERR: Failed to create prepared statement for get_help_keywords");
+    return NULL;
+  }
 
-  /* Get keywords for this entry. */
-  mysql_real_escape_string(conn, escaped_tag, tag, strlen(tag));
-  snprintf(buf, sizeof(buf), "select help_tag, CONCAT(UCASE(LEFT(keyword, 1)), LCASE(SUBSTRING(keyword, 2))) from help_keywords where help_tag = '%s'", escaped_tag);
-  if (mysql_query(conn, buf))
-  {
-    log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
+  /* Prepare parameterized query to get keywords for a help tag */
+  if (!mysql_stmt_prepare_query(pstmt,
+      "SELECT help_tag, CONCAT(UCASE(LEFT(keyword, 1)), LCASE(SUBSTRING(keyword, 2))) "
+      "FROM help_keywords WHERE help_tag = ?")) {
+    log("SYSERR: Failed to prepare get_help_keywords query");
+    mysql_stmt_cleanup(pstmt);
     return NULL;
   }
-  if (!(result = mysql_store_result(conn)))
-  {
-    log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
+
+  /* Bind the tag parameter - SQL injection safe */
+  if (!mysql_stmt_bind_param_string(pstmt, 0, tag)) {
+    log("SYSERR: Failed to bind tag parameter for get_help_keywords");
+    mysql_stmt_cleanup(pstmt);
     return NULL;
   }
-  while ((row = mysql_fetch_row(result)))
-  {
+
+  /* Execute the prepared statement */
+  if (!mysql_stmt_execute_prepared(pstmt)) {
+    log("SYSERR: Failed to execute get_help_keywords query");
+    mysql_stmt_cleanup(pstmt);
+    return NULL;
+  }
+
+  /* Fetch results row by row */
+  while (mysql_stmt_fetch_row(pstmt)) {
     CREATE(new_keyword, struct help_keyword_list, 1);
-    new_keyword->tag = strdup(row[0]);
-    new_keyword->keyword = strdup(row[1]);
+    new_keyword->tag = strdup(mysql_stmt_get_string(pstmt, 0) ? mysql_stmt_get_string(pstmt, 0) : "");
+    new_keyword->keyword = strdup(mysql_stmt_get_string(pstmt, 1) ? mysql_stmt_get_string(pstmt, 1) : "");
     new_keyword->next = NULL;
 
-    if (keywords == NULL)
-    {
+    if (keywords == NULL) {
       keywords = new_keyword;
       cur = new_keyword;
-    }
-    else
-    {
+    } else {
       cur->next = new_keyword;
       cur = new_keyword;
     }
   }
 
-  mysql_free_result(result);
+  /* Clean up prepared statement */
+  mysql_stmt_cleanup(pstmt);
   return keywords;
 }
 
 struct help_keyword_list *soundex_search_help_keywords(const char *argument, int level)
 {
-
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-
+  PREPARED_STMT *pstmt;
   struct help_keyword_list *keywords = NULL, *new_keyword = NULL, *cur = NULL;
 
-  char buf[1024], escaped_arg[MAX_STRING_LENGTH] = {'\0'};
-
-  /*   Check the connection, reconnect if necessary. */
+  /* Check the connection, reconnect if necessary */
   mysql_ping(conn);
 
-  mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
-
-  snprintf(buf, sizeof(buf), "SELECT hk.help_tag, "
-                             "       hk.keyword "
-                             "FROM help_entries he, "
-                             "     help_keywords hk "
-                             "WHERE he.tag = hk.help_tag "
-                             "  and hk.keyword sounds like '%s' "
-                             "  and he.min_level <= %d "
-                             "ORDER BY length(hk.keyword) asc",
-           escaped_arg, level);
-
-  if (mysql_query(conn, buf))
-  {
-    log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
+  /* Create prepared statement for secure soundex search */
+  pstmt = mysql_stmt_create(conn);
+  if (!pstmt) {
+    log("SYSERR: Failed to create prepared statement for soundex search");
     return NULL;
   }
 
-  if (!(result = mysql_store_result(conn)))
-  {
-    log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
+  /* Prepare parameterized query for soundex (sounds like) search
+   * This helps users find help entries when they don't know exact spelling */
+  if (!mysql_stmt_prepare_query(pstmt,
+      "SELECT hk.help_tag, hk.keyword "
+      "FROM help_entries he, help_keywords hk "
+      "WHERE he.tag = hk.help_tag "
+      "AND hk.keyword SOUNDS LIKE ? "
+      "AND he.min_level <= ? "
+      "ORDER BY LENGTH(hk.keyword) ASC")) {
+    log("SYSERR: Failed to prepare soundex search query");
+    mysql_stmt_cleanup(pstmt);
     return NULL;
   }
 
-  while ((row = mysql_fetch_row(result)))
-  {
+  /* Bind parameters - SQL injection safe */
+  if (!mysql_stmt_bind_param_string(pstmt, 0, argument) ||
+      !mysql_stmt_bind_param_int(pstmt, 1, level)) {
+    log("SYSERR: Failed to bind parameters for soundex search");
+    mysql_stmt_cleanup(pstmt);
+    return NULL;
+  }
 
-    /* Allocate memory for the help entry data. */
+  /* Execute the prepared statement */
+  if (!mysql_stmt_execute_prepared(pstmt)) {
+    log("SYSERR: Failed to execute soundex search query");
+    mysql_stmt_cleanup(pstmt);
+    return NULL;
+  }
+
+  /* Fetch results row by row */
+  while (mysql_stmt_fetch_row(pstmt)) {
+    /* Allocate memory for the keyword data */
     CREATE(new_keyword, struct help_keyword_list, 1);
-    new_keyword->tag = strdup(row[0]);
-    new_keyword->keyword = strdup(row[1]);
+    new_keyword->tag = strdup(mysql_stmt_get_string(pstmt, 0) ? mysql_stmt_get_string(pstmt, 0) : "");
+    new_keyword->keyword = strdup(mysql_stmt_get_string(pstmt, 1) ? mysql_stmt_get_string(pstmt, 1) : "");
+    new_keyword->next = NULL;
 
-    if (keywords == NULL)
-    {
+    if (keywords == NULL) {
       keywords = new_keyword;
       cur = new_keyword;
-    }
-    else
-    {
+    } else {
       cur->next = new_keyword;
       cur = new_keyword;
     }
     new_keyword = NULL;
   }
 
-  mysql_free_result(result);
+  /* Clean up prepared statement */
+  mysql_stmt_cleanup(pstmt);
 
   return keywords;
 }
@@ -567,7 +660,7 @@ static struct help_entry_list *get_cached_help(const char *argument, int level)
 static void add_to_help_cache(const char *argument, int level, 
                               struct help_entry_list *result)
 {
-  struct help_cache_entry *new_entry, *entry, *prev, *oldest;
+  struct help_cache_entry *new_entry, *entry, *oldest;
   time_t oldest_time;
   
   /* Don't cache NULL results */
@@ -589,7 +682,6 @@ static void add_to_help_cache(const char *argument, int level,
   if (help_cache_count >= HELP_CACHE_SIZE) {
     oldest = help_cache;
     oldest_time = help_cache->timestamp;
-    prev = NULL;
     
     /* Find oldest entry */
     for (entry = help_cache; entry != NULL; entry = entry->next) {

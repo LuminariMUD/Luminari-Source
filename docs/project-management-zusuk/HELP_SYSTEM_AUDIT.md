@@ -250,7 +250,69 @@ WHERE lower(hk.keyword) like '%s%%' and he.min_level <= %d
 
 ## 5. Functional Issues
 
-### 5.1 Inconsistencies
+### 5.1 Dynamic Help Generation System (Updated December 12, 2024)
+
+The help system includes a sophisticated **interception and fallback mechanism** that dynamically generates help for game content not stored in the database or files. This system is implemented in `do_help()` in help.c.
+
+#### Order of Operations:
+
+1. **Empty Argument Check** - Shows default help screen (mortal or immortal)
+2. **Deity Interception** - Checks deity_list[] and calls do_devote() for deity info
+3. **Region Processing** - Capitalizes input and checks regions[] array
+4. **Background Check** - Matches against background_list[] for character backgrounds
+5. **Database/File Search** - Standard help lookup via search_help()
+6. **Dynamic Content Fallbacks** (if database/file returns NULL):
+   - **Alchemist Discoveries** - `display_discovery_info()` from alchemy.c
+   - **Grand Discoveries** - `display_grand_discovery_info()` from alchemy.c
+   - **Bomb Types** - `display_bomb_types()` from alchemy.c
+   - **Discovery Types** - `display_discovery_types()` from alchemy.c
+   - **Feats** - `display_feat_info()` from feats.c
+   - **Evolutions** - `display_evolution_info()` from evolutions.c
+   - **Weapons** - `display_weapon_info()` from class.c
+   - **Armor** - `display_armor_info()` from class.c
+   - **Classes** - `display_class_info()` from class.c
+   - **Races** - `display_race_info()` from race.c
+7. **Soundex Suggestions** - If all else fails, suggests similar keywords
+
+#### Dynamic Content Functions:
+
+These functions generate help content on-the-fly from game data structures:
+
+```c
+// From various header files:
+bool display_feat_info(struct char_data *ch, const char *featname);        // feats.h
+bool display_class_info(struct char_data *ch, const char *classname);      // class.h
+bool display_race_info(struct char_data *ch, const char *racename);        // race.h
+bool display_weapon_info(struct char_data *ch, const char *weapon);        // class.h
+bool display_armor_info(struct char_data *ch, const char *armor);          // class.h
+bool display_discovery_info(struct char_data *ch, char *discoveryname);    // alchemy.h
+bool display_evolution_info(struct char_data *ch, const char *evoname);    // evolutions.h
+bool display_region_info(struct char_data *ch, int region);               // class.h
+void show_background_help(struct char_data *ch, int background);           // backgrounds.h
+```
+
+#### Benefits of This System:
+
+1. **Always Current** - Help content reflects actual game data
+2. **No Duplication** - Single source of truth for game mechanics
+3. **Automatic Updates** - Changes to feats/classes/etc instantly reflected
+4. **Memory Efficient** - No need to store duplicate help entries
+5. **Comprehensive Coverage** - Every feat, class, race, etc. has help
+
+#### Example Flow:
+
+```
+Player types: "help fireball"
+1. Check if empty → No
+2. Check deity list → No match
+3. Check regions → No match  
+4. Check backgrounds → No match
+5. Search database/file → Found? Return it
+6. If not found, check feat list → Is "fireball" a feat? Show feat info
+7. Still not found? Check soundex → Suggest "firewall" if similar
+```
+
+### 5.2 Inconsistencies
 
 1. **Dual System Confusion:**
    - File system used for initial load
@@ -262,7 +324,7 @@ WHERE lower(hk.keyword) like '%s%%' and he.min_level <= %d
    - ~~`hindex` command uses legacy help_table~~ [FIXED - now uses MySQL]
    - Main help system uses MySQL
 
-### 5.2 Missing Features
+### 5.3 Missing Features
 
 1. **No Category System:**
    - Help entries lack categorization

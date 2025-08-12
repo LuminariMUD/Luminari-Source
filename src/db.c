@@ -1561,10 +1561,11 @@ void index_boot(int mode)
     log("   %d zones, %d bytes.", rec_count, size[0]);
     break;
   case DB_BOOT_HLP:
-    /* Legacy help table allocation removed - help is now database-driven */
-    /* CREATE(help_table, struct help_index_element, rec_count); */
-    size[0] = 0; /* No memory allocated for file-based help */
-    log("   Help system using MySQL database (file loading skipped)");
+    /* Allocate help table for file-based help entries
+     * System operates in dual mode: file + database */
+    CREATE(help_table, struct help_index_element, rec_count);
+    size[0] = sizeof(struct help_index_element) * rec_count;
+    log("   %d help entries, %d bytes (dual mode: file + database).", rec_count, size[0]);
     break;
   case DB_BOOT_QST:
     CREATE(aquest_table, struct aq_data, rec_count);
@@ -1616,10 +1617,11 @@ void index_boot(int mode)
   }
   fclose(db_index);
 
-  /* Legacy help sorting removed - help is now database-driven and sorted via SQL */
+  /* Sort the help index for file-based help entries */
   if (mode == DB_BOOT_HLP)
   {
-    /* No sorting needed - help entries are queried from database with ORDER BY */
+    qsort(help_table, top_of_helpt, sizeof(struct help_index_element), help_sort);
+    log("   Sorted %d help entries from file.", top_of_helpt);
   }
 }
 
@@ -3992,21 +3994,85 @@ void free_help_table(void)
 
 void load_help(FILE *fl, char *name)
 {
-  /* Legacy function - help is now loaded from MySQL database at runtime.
-   * This function is retained to prevent build errors but performs no operations.
-   * All help queries now go directly to the database via search_help() in help.c */
-  char line[READ_SIZE + 1];
-  
-  /* Skip the entire help file - we don't use file-based help anymore */
-  if (fl) {
-    while (fgets(line, sizeof(line), fl) != NULL) {
-      if (*line == '$')
-        break;
+  char key[READ_SIZE + 1], next_key[READ_SIZE + 1], entry[32384];
+  size_t entrylen;
+  char line[READ_SIZE + 1], hname[READ_SIZE + 1], *scan;
+  struct help_index_element el;
+
+  /* IMPORTANT: This function loads help from file (help.hlp) into memory.
+   * The help system currently operates in DUAL MODE:
+   * 1. File-based help loaded here at boot time (for backward compatibility)
+   * 2. Database-based help accessed via search_help() in help.c
+   * 
+   * TODO: Future migration task - import all help.hlp content to database
+   * and then disable this file loading. See HELP_TODO.md for details.
+   */
+
+  strlcpy(hname, name, sizeof(hname));
+
+  get_one_line(fl, key);
+  while (*key != '$')
+  {
+    strlcat(key, "\r\n", sizeof(key)); /* strcat: OK (READ_SIZE - "\n"  "\r\n" == READ_SIZE  1) */
+    entrylen = strlcpy(entry, key, sizeof(entry));
+
+    /* Read in the corresponding help entry. */
+    get_one_line(fl, line);
+    while (*line != '#' && entrylen < sizeof(entry) - 1)
+    {
+      entrylen += strlcpy(entry + entrylen, line, sizeof(entry) - entrylen);
+
+      if (entrylen + 2 < sizeof(entry) - 1)
+      {
+        strcpy(entry + entrylen, "\r\n"); /* strcpy: OK (size checked above) */
+        entrylen += 2;
+      }
+      get_one_line(fl, line);
     }
+
+    if (entrylen >= sizeof(entry) - 1)
+    {
+      int keysize;
+      const char *truncmsg = "\r\n*TRUNCATED*\r\n";
+
+      strcpy(entry + sizeof(entry) - strlen(truncmsg) - 1, truncmsg); /* strcpy: OK (assuming sane 'entry' size) */
+
+      keysize = strlen(key) - 2;
+      log("SYSERR: Help entry exceeded buffer space: %.*s", keysize, key);
+
+      /* If we ran out of buffer space, eat the rest of the entry. */
+      while (*line != '#')
+        get_one_line(fl, line);
+    }
+
+    if (*line == '#')
+    {
+      if (sscanf(line, "#%d", &el.min_level) != 1)
+      {
+        log("SYSERR: Help entry does not have a min level. %s", key);
+        el.min_level = 0;
+      }
+    }
+
+    el.duplicate = 0;
+    el.entry = strdup(entry);
+    parse_at(el.entry);
+    scan = one_word(key, next_key);
+
+    while (*next_key)
+    {
+      el.keywords = strdup(next_key);
+      help_table[top_of_helpt++] = el;
+      el.duplicate++;
+      scan = one_word(scan, next_key);
+    }
+    get_one_line(fl, key);
   }
 }
 
-/* Legacy help sorting function - no longer needed with database-driven help system */
+/* Help sorting function for file-based help entries
+ * Still needed while we support dual-mode (file + database) help system
+ */
 static int help_sort(const void *a, const void *b)
 {
   const struct help_index_element *a1, *b1;

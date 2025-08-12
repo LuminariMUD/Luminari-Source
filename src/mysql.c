@@ -349,6 +349,500 @@ char *mysql_escape_string_alloc(MYSQL *mysql_conn, const char *str)
   return escaped;
 }
 
+/* ========================================================================== */
+/* Prepared Statement Implementation for Enhanced SQL Security                */
+/* ========================================================================== */
+/* These functions provide a secure way to execute parameterized SQL queries,
+ * completely preventing SQL injection attacks by separating SQL logic from data.
+ * 
+ * Prepared statements compile the SQL query once and execute it multiple times
+ * with different parameters, providing both security and performance benefits.
+ */
+
+/**
+ * Creates and initializes a new prepared statement structure.
+ * 
+ * @param mysql_conn The MySQL connection to use (conn, conn2, or conn3)
+ * @return Pointer to new PREPARED_STMT structure, or NULL on error
+ * 
+ * @note The returned structure must be freed with mysql_stmt_cleanup()
+ */
+PREPARED_STMT *mysql_stmt_create(MYSQL *mysql_conn)
+{
+  PREPARED_STMT *pstmt;
+  pthread_mutex_t *mutex;
+  
+  /* Validate connection */
+  if (!mysql_conn || !mysql_available) {
+    log("SYSERR: mysql_stmt_create called with invalid connection");
+    return NULL;
+  }
+  
+  /* Allocate prepared statement structure */
+  CREATE(pstmt, PREPARED_STMT, 1);
+  pstmt->connection = mysql_conn;
+  pstmt->params = NULL;
+  pstmt->results = NULL;
+  pstmt->param_count = 0;
+  pstmt->result_count = 0;
+  pstmt->metadata = NULL;
+  
+  /* Select appropriate mutex based on connection */
+  if (mysql_conn == conn)
+    mutex = &mysql_mutex;
+  else if (mysql_conn == conn2)
+    mutex = &mysql_mutex2;
+  else if (mysql_conn == conn3)
+    mutex = &mysql_mutex3;
+  else {
+    log("SYSERR: mysql_stmt_create called with unknown connection");
+    free(pstmt);
+    return NULL;
+  }
+  
+  /* Initialize MySQL statement handle */
+  MYSQL_LOCK(*mutex);
+  pstmt->stmt = mysql_stmt_init(mysql_conn);
+  MYSQL_UNLOCK(*mutex);
+  
+  if (!pstmt->stmt) {
+    log("SYSERR: mysql_stmt_init failed: %s", mysql_error(mysql_conn));
+    free(pstmt);
+    return NULL;
+  }
+  
+  return pstmt;
+}
+
+/**
+ * Prepares a SQL query with parameter placeholders for execution.
+ * 
+ * @param pstmt The prepared statement structure
+ * @param query The SQL query with ? placeholders for parameters
+ * @return TRUE on success, FALSE on error
+ * 
+ * @example
+ *   mysql_stmt_prepare_query(pstmt, "SELECT * FROM help_entries WHERE tag = ? AND min_level <= ?");
+ */
+bool mysql_stmt_prepare_query(PREPARED_STMT *pstmt, const char *query)
+{
+  pthread_mutex_t *mutex;
+  int i;
+  
+  if (!pstmt || !pstmt->stmt || !query) {
+    log("SYSERR: mysql_stmt_prepare_query called with invalid parameters");
+    return FALSE;
+  }
+  
+  /* Select appropriate mutex */
+  if (pstmt->connection == conn)
+    mutex = &mysql_mutex;
+  else if (pstmt->connection == conn2)
+    mutex = &mysql_mutex2;
+  else if (pstmt->connection == conn3)
+    mutex = &mysql_mutex3;
+  else {
+    log("SYSERR: mysql_stmt_prepare_query called with unknown connection");
+    return FALSE;
+  }
+  
+  /* Prepare the statement */
+  MYSQL_LOCK(*mutex);
+  if (mysql_stmt_prepare(pstmt->stmt, query, strlen(query))) {
+    log("SYSERR: mysql_stmt_prepare failed: %s", mysql_stmt_error(pstmt->stmt));
+    MYSQL_UNLOCK(*mutex);
+    return FALSE;
+  }
+  
+  /* Get parameter count and allocate bindings */
+  pstmt->param_count = mysql_stmt_param_count(pstmt->stmt);
+  if (pstmt->param_count > 0) {
+    CREATE(pstmt->params, MYSQL_BIND, pstmt->param_count);
+    /* Initialize all parameter bindings to prevent undefined behavior */
+    for (i = 0; i < pstmt->param_count; i++) {
+      memset(&pstmt->params[i], 0, sizeof(MYSQL_BIND));
+    }
+  }
+  
+  /* Get result metadata and prepare result bindings */
+  pstmt->metadata = mysql_stmt_result_metadata(pstmt->stmt);
+  if (pstmt->metadata) {
+    pstmt->result_count = mysql_num_fields(pstmt->metadata);
+    CREATE(pstmt->results, MYSQL_BIND, pstmt->result_count);
+    /* Initialize all result bindings */
+    for (i = 0; i < pstmt->result_count; i++) {
+      memset(&pstmt->results[i], 0, sizeof(MYSQL_BIND));
+    }
+  }
+  
+  MYSQL_UNLOCK(*mutex);
+  return TRUE;
+}
+
+/**
+ * Binds a string parameter to a prepared statement.
+ * 
+ * @param pstmt The prepared statement structure
+ * @param param_index The parameter index (0-based)
+ * @param value The string value to bind (can be NULL)
+ * @return TRUE on success, FALSE on error
+ * 
+ * @note The string value is copied and managed internally
+ */
+bool mysql_stmt_bind_param_string(PREPARED_STMT *pstmt, int param_index, const char *value)
+{
+  unsigned long *length;
+  char *buffer;
+  
+  if (!pstmt || !pstmt->params || param_index < 0 || param_index >= pstmt->param_count) {
+    log("SYSERR: mysql_stmt_bind_param_string called with invalid parameters");
+    return FALSE;
+  }
+  
+  /* Free any previously allocated buffer for this parameter */
+  if (pstmt->params[param_index].buffer) {
+    free(pstmt->params[param_index].buffer);
+  }
+  if (pstmt->params[param_index].length) {
+    free(pstmt->params[param_index].length);
+  }
+  
+  /* Allocate and set up the binding */
+  if (value) {
+    /* Allocate buffer and copy string */
+    buffer = strdup(value);
+    CREATE(length, unsigned long, 1);
+    *length = strlen(value);
+    
+    pstmt->params[param_index].buffer_type = MYSQL_TYPE_STRING;
+    pstmt->params[param_index].buffer = buffer;
+    pstmt->params[param_index].buffer_length = *length + 1;
+    pstmt->params[param_index].length = length;
+    pstmt->params[param_index].is_null = 0;
+  } else {
+    /* Handle NULL value */
+    pstmt->params[param_index].buffer_type = MYSQL_TYPE_NULL;
+    pstmt->params[param_index].buffer = NULL;
+    pstmt->params[param_index].is_null = (my_bool*)1;
+  }
+  
+  return TRUE;
+}
+
+/**
+ * Binds an integer parameter to a prepared statement.
+ * 
+ * @param pstmt The prepared statement structure
+ * @param param_index The parameter index (0-based)
+ * @param value The integer value to bind
+ * @return TRUE on success, FALSE on error
+ */
+bool mysql_stmt_bind_param_int(PREPARED_STMT *pstmt, int param_index, int value)
+{
+  int *buffer;
+  
+  if (!pstmt || !pstmt->params || param_index < 0 || param_index >= pstmt->param_count) {
+    log("SYSERR: mysql_stmt_bind_param_int called with invalid parameters");
+    return FALSE;
+  }
+  
+  /* Free any previously allocated buffer */
+  if (pstmt->params[param_index].buffer) {
+    free(pstmt->params[param_index].buffer);
+  }
+  
+  /* Allocate buffer for integer */
+  CREATE(buffer, int, 1);
+  *buffer = value;
+  
+  pstmt->params[param_index].buffer_type = MYSQL_TYPE_LONG;
+  pstmt->params[param_index].buffer = buffer;
+  pstmt->params[param_index].buffer_length = sizeof(int);
+  pstmt->params[param_index].is_null = 0;
+  pstmt->params[param_index].length = 0;
+  
+  return TRUE;
+}
+
+/**
+ * Executes a prepared statement with bound parameters.
+ * 
+ * @param pstmt The prepared statement structure
+ * @return TRUE on success, FALSE on error
+ * 
+ * @note Parameters must be bound before calling this function
+ */
+bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
+{
+  pthread_mutex_t *mutex;
+  int i;
+  
+  if (!pstmt || !pstmt->stmt) {
+    log("SYSERR: mysql_stmt_execute_prepared called with invalid statement");
+    return FALSE;
+  }
+  
+  /* Select appropriate mutex */
+  if (pstmt->connection == conn)
+    mutex = &mysql_mutex;
+  else if (pstmt->connection == conn2)
+    mutex = &mysql_mutex2;
+  else if (pstmt->connection == conn3)
+    mutex = &mysql_mutex3;
+  else {
+    log("SYSERR: mysql_stmt_execute_prepared called with unknown connection");
+    return FALSE;
+  }
+  
+  MYSQL_LOCK(*mutex);
+  
+  /* Bind parameters if any */
+  if (pstmt->param_count > 0 && pstmt->params) {
+    if (mysql_stmt_bind_param(pstmt->stmt, pstmt->params)) {
+      log("SYSERR: mysql_stmt_bind_param failed: %s", mysql_stmt_error(pstmt->stmt));
+      MYSQL_UNLOCK(*mutex);
+      return FALSE;
+    }
+  }
+  
+  /* Execute the statement */
+  if (mysql_stmt_execute(pstmt->stmt)) {
+    log("SYSERR: mysql_stmt_execute failed: %s", mysql_stmt_error(pstmt->stmt));
+    MYSQL_UNLOCK(*mutex);
+    return FALSE;
+  }
+  
+  /* For SELECT queries, prepare result bindings */
+  if (pstmt->metadata && pstmt->result_count > 0) {
+    MYSQL_FIELD *field;
+    
+    /* Set up result bindings based on field types */
+    mysql_field_seek(pstmt->metadata, 0);
+    for (i = 0; i < pstmt->result_count; i++) {
+      field = mysql_fetch_field(pstmt->metadata);
+      
+      /* Allocate buffer based on field type */
+      switch (field->type) {
+        case MYSQL_TYPE_STRING:
+        case MYSQL_TYPE_VAR_STRING:
+        case MYSQL_TYPE_BLOB:
+        case MYSQL_TYPE_TINY_BLOB:
+        case MYSQL_TYPE_MEDIUM_BLOB:
+        case MYSQL_TYPE_LONG_BLOB:
+          /* Allocate buffer for string data */
+          CREATE(pstmt->results[i].buffer, char, field->length + 1);
+          pstmt->results[i].buffer_type = MYSQL_TYPE_STRING;
+          pstmt->results[i].buffer_length = field->length + 1;
+          CREATE(pstmt->results[i].length, unsigned long, 1);
+          CREATE(pstmt->results[i].is_null, my_bool, 1);
+          break;
+          
+        case MYSQL_TYPE_LONG:
+        case MYSQL_TYPE_INT24:
+        case MYSQL_TYPE_SHORT:
+        case MYSQL_TYPE_TINY:
+          /* Allocate buffer for integer data */
+          CREATE(pstmt->results[i].buffer, int, 1);
+          pstmt->results[i].buffer_type = MYSQL_TYPE_LONG;
+          pstmt->results[i].buffer_length = sizeof(int);
+          CREATE(pstmt->results[i].is_null, my_bool, 1);
+          break;
+          
+        default:
+          /* Default to string for other types */
+          CREATE(pstmt->results[i].buffer, char, 256);
+          pstmt->results[i].buffer_type = MYSQL_TYPE_STRING;
+          pstmt->results[i].buffer_length = 256;
+          CREATE(pstmt->results[i].length, unsigned long, 1);
+          CREATE(pstmt->results[i].is_null, my_bool, 1);
+          break;
+      }
+    }
+    
+    /* Bind the result buffers */
+    if (mysql_stmt_bind_result(pstmt->stmt, pstmt->results)) {
+      log("SYSERR: mysql_stmt_bind_result failed: %s", mysql_stmt_error(pstmt->stmt));
+      MYSQL_UNLOCK(*mutex);
+      return FALSE;
+    }
+    
+    /* Store result set for SELECT queries */
+    if (mysql_stmt_store_result(pstmt->stmt)) {
+      log("SYSERR: mysql_stmt_store_result failed: %s", mysql_stmt_error(pstmt->stmt));
+      MYSQL_UNLOCK(*mutex);
+      return FALSE;
+    }
+  }
+  
+  MYSQL_UNLOCK(*mutex);
+  return TRUE;
+}
+
+/**
+ * Fetches the next row from a prepared statement result set.
+ * 
+ * @param pstmt The prepared statement structure
+ * @return TRUE if a row was fetched, FALSE if no more rows or error
+ */
+bool mysql_stmt_fetch_row(PREPARED_STMT *pstmt)
+{
+  pthread_mutex_t *mutex;
+  int result;
+  
+  if (!pstmt || !pstmt->stmt) {
+    return FALSE;
+  }
+  
+  /* Select appropriate mutex */
+  if (pstmt->connection == conn)
+    mutex = &mysql_mutex;
+  else if (pstmt->connection == conn2)
+    mutex = &mysql_mutex2;
+  else if (pstmt->connection == conn3)
+    mutex = &mysql_mutex3;
+  else {
+    return FALSE;
+  }
+  
+  MYSQL_LOCK(*mutex);
+  result = mysql_stmt_fetch(pstmt->stmt);
+  MYSQL_UNLOCK(*mutex);
+  
+  /* mysql_stmt_fetch returns 0 on success, MYSQL_NO_DATA when no more rows */
+  return (result == 0);
+}
+
+/**
+ * Gets a string value from the current result row.
+ * 
+ * @param pstmt The prepared statement structure
+ * @param col_index The column index (0-based)
+ * @return String value (do not free), or NULL if column is NULL
+ */
+char *mysql_stmt_get_string(PREPARED_STMT *pstmt, int col_index)
+{
+  if (!pstmt || !pstmt->results || col_index < 0 || col_index >= pstmt->result_count) {
+    return NULL;
+  }
+  
+  if (*pstmt->results[col_index].is_null) {
+    return NULL;
+  }
+  
+  return (char *)pstmt->results[col_index].buffer;
+}
+
+/**
+ * Gets an integer value from the current result row.
+ * 
+ * @param pstmt The prepared statement structure
+ * @param col_index The column index (0-based)
+ * @return Integer value, or 0 if column is NULL or error
+ */
+int mysql_stmt_get_int(PREPARED_STMT *pstmt, int col_index)
+{
+  if (!pstmt || !pstmt->results || col_index < 0 || col_index >= pstmt->result_count) {
+    return 0;
+  }
+  
+  if (*pstmt->results[col_index].is_null) {
+    return 0;
+  }
+  
+  return *(int *)pstmt->results[col_index].buffer;
+}
+
+/**
+ * Gets the number of rows affected by the last INSERT, UPDATE, or DELETE.
+ * 
+ * @param pstmt The prepared statement structure
+ * @return Number of affected rows, or 0 on error
+ */
+my_ulonglong mysql_stmt_affected_rows_count(PREPARED_STMT *pstmt)
+{
+  if (!pstmt || !pstmt->stmt) {
+    return 0;
+  }
+  
+  return mysql_stmt_affected_rows(pstmt->stmt);
+}
+
+/**
+ * Cleans up and frees a prepared statement structure.
+ * 
+ * @param pstmt The prepared statement structure to free
+ * 
+ * @note This function frees all associated memory and closes the statement
+ */
+void mysql_stmt_cleanup(PREPARED_STMT *pstmt)
+{
+  pthread_mutex_t *mutex;
+  int i;
+  
+  if (!pstmt) {
+    return;
+  }
+  
+  /* Select appropriate mutex */
+  if (pstmt->connection == conn)
+    mutex = &mysql_mutex;
+  else if (pstmt->connection == conn2)
+    mutex = &mysql_mutex2;
+  else if (pstmt->connection == conn3)
+    mutex = &mysql_mutex3;
+  else {
+    mutex = NULL;
+  }
+  
+  /* Free parameter buffers */
+  if (pstmt->params) {
+    for (i = 0; i < pstmt->param_count; i++) {
+      if (pstmt->params[i].buffer) {
+        free(pstmt->params[i].buffer);
+      }
+      if (pstmt->params[i].length) {
+        free(pstmt->params[i].length);
+      }
+    }
+    free(pstmt->params);
+  }
+  
+  /* Free result buffers */
+  if (pstmt->results) {
+    for (i = 0; i < pstmt->result_count; i++) {
+      if (pstmt->results[i].buffer) {
+        free(pstmt->results[i].buffer);
+      }
+      if (pstmt->results[i].length) {
+        free(pstmt->results[i].length);
+      }
+      if (pstmt->results[i].is_null) {
+        free(pstmt->results[i].is_null);
+      }
+    }
+    free(pstmt->results);
+  }
+  
+  /* Free metadata */
+  if (pstmt->metadata) {
+    mysql_free_result(pstmt->metadata);
+  }
+  
+  /* Close the statement */
+  if (pstmt->stmt) {
+    if (mutex) {
+      MYSQL_LOCK(*mutex);
+      mysql_stmt_close(pstmt->stmt);
+      MYSQL_UNLOCK(*mutex);
+    } else {
+      mysql_stmt_close(pstmt->stmt);
+    }
+  }
+  
+  /* Free the structure itself */
+  free(pstmt);
+}
+
 /* Load the wilderness data for the specified zone. */
 struct wilderness_data *load_wilderness(zone_vnum zone)
 {
