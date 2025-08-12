@@ -22,7 +22,7 @@
 #include "constants.h"
 #include "modify.h"
 #include "wilderness.h"
-#include "trails.h"
+#include "movement_tracks.h"  /* includes trail data structures */
 
 /* local functions */
 static void redit_setup_new(struct descriptor_data *d);

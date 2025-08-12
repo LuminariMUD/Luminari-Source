@@ -14,4 +14,13 @@
 /* Function declarations for movement cost/speed */
 int get_speed(struct char_data *ch, sbyte to_display);
 
+/* Movement cost calculation functions */
+int calculate_movement_cost(struct char_data *ch, room_rnum from_room, room_rnum to_room, int riding);
+bool check_movement_points(struct char_data *ch, int need_movement, int riding, int following);
+void deduct_movement_points(struct char_data *ch, int need_movement, int riding, int ridden_by);
+
+/* External functions needed */
+extern const char *get_walkto_landmark_name(int index);
+extern int walkto_vnum_to_list_row(int vnum);
+
 #endif /* MOVEMENT_COST_H */
