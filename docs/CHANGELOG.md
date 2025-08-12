@@ -26,6 +26,96 @@ Each entry follows the format:
 
 ### January 2025
 
+#### DG Script Trigger Type Mismatch Protection
+
+**Date:** January 2025  
+**Developer:** AI Assistant  
+**Status:** COMPLETED  
+**Priority:** CRITICAL  
+
+**Summary:**
+Added comprehensive protection against triggers being attached to wrong entity types, preventing hours of debugging confusion. Discovered that trigger 7705 (object trigger) was incorrectly attached to room 7771, causing cryptic errors.
+
+**Problem Discovered:**
+- Trigger 7705 was attached to both object 7703 (correct) and room 7771 (incorrect)
+- When room executed the trigger, it passed WLD_TRIGGER type instead of OBJ_TRIGGER
+- Script tried to access `%self.room%` which failed (rooms don't have .room field)
+- Error message was cryptic: "Unknown room field 'room'"
+
+**Protection Implemented:**
+- **Runtime Validation** (src/dg_scripts.c:2818-2893)
+  - Detects when trigger flags don't match execution type
+  - Logs CRITICAL ERROR with exact problem description
+  - Identifies which entity has the wrong trigger attached
+  - Provides specific fix instructions (e.g., "Remove 'T 7705' from room definition")
+  - ABORTS execution to prevent cascade errors
+
+**Example Error Output:**
+```
+CRITICAL ERROR: Trigger 7705 (Teleport Charged Key Holder and all in room) is a OBJ_TRIGGER trigger but is being called as WLD_TRIGGER!
+  This usually means the trigger is attached to the wrong entity type.
+  Check: grep '#7705' lib/world/*/*.* to find where it's attached.
+  Object trigger 7705 is incorrectly attached to room 7771
+  FIX: Remove 'T 7705' from room definition in world files
+  ABORTING trigger execution to prevent cascade errors.
+```
+
+**Files Modified:**
+- src/dg_scripts.c - Added trigger type validation
+- src/dg_scripts.h - Retained struct refactoring from earlier fix
+- src/dg_triggers.c - Debug logging infrastructure
+- lib/world/wld/77.wld - Removed incorrect trigger attachment
+
+#### DG Script Driver Stack Corruption Fix
+
+**Date:** January 2025  
+**Developer:** AI Assistant  
+**Status:** COMPLETED  
+**Priority:** CRITICAL  
+
+**Summary:**
+Fixed critical stack corruption bug in DG Scripts trigger system where parameter values were being corrupted between function call and execution. The `type` parameter in `script_driver()` was changing from OBJ_TRIGGER (1) to WLD_TRIGGER (2) at the assembly/stack level.
+
+**Bug Details:**
+- **Root Cause:** Stack corruption in ANSI C90 environment causing parameter corruption
+- **Symptom:** OBJ_TRIGGER value (1) corrupted to WLD_TRIGGER value (2) between call and function entry
+- **Impact:** Object triggers would execute incorrectly as world triggers
+- **Discovery:** Debug output showed type=1 at call site but type=2 inside function
+
+**Fix Implementation:**
+- **Refactored Parameter Passing** (src/dg_scripts.h:314-323)
+  - Created `script_call_args` struct to encapsulate all parameters
+  - Changed `script_driver()` to accept struct pointer instead of multiple arguments
+  - Eliminates stack corruption by passing single pointer
+  
+- **Updated Function Signature** (src/dg_scripts.c)
+  - Modified `script_driver()` to extract parameters from struct
+  - Maintains all original functionality with safer parameter passing
+  
+- **Updated All Call Sites**
+  - Modified 42 calls in dg_triggers.c
+  - Modified 1 recursive call in dg_scripts.c
+  - Each call now creates local struct and passes pointer
+
+**Technical Details:**
+- Added struct definition:
+  ```c
+  struct script_call_args {
+      void *go_adress;
+      trig_data *trig;
+      int type;
+      int mode;
+  };
+  ```
+- Maintains ANSI C90 compatibility (no C99 features)
+- No compiler upgrade required
+- Zero performance impact
+
+**Files Modified:**
+- src/dg_scripts.h - Added struct and updated prototype
+- src/dg_scripts.c - Modified function to use struct
+- src/dg_triggers.c - Updated all 42 call sites
+
 #### Help System Soundex Bug Fix
 
 **Date:** January 2025  
