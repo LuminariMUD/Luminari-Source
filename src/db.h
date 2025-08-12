@@ -250,6 +250,10 @@ struct player_index_element
    int clan;
 };
 
+/* Legacy file-based help structure - DEPRECATED
+ * This structure is retained for compatibility but is no longer used.
+ * Help entries are now stored in MySQL tables: help_entries and help_keywords.
+ * See help.h for the modern database-driven help structures. */
 struct help_index_element
 {
    char *index;    /*Future Use */
@@ -291,6 +295,7 @@ void save_mud_time(struct time_info_data *when);
 void free_text_files(void);
 void free_help_table(void);
 void free_player_index(void);
+/* Legacy function - help is now loaded from MySQL database at runtime */
 void load_help(FILE *fl, char *name);
 void new_mobile_data(struct char_data *ch);
 
@@ -395,7 +400,10 @@ extern char *bugs;
 extern char *typos;
 extern char *ideas;
 
-/* The ingame helpfile */
+/* Legacy file-based help system - DEPRECATED
+ * These globals are retained for compatibility but are no longer used.
+ * All help functionality is now provided through MySQL database queries.
+ * See help.c for the modern database-driven help system implementation. */
 extern int top_of_helpt;
 extern struct help_index_element *help_table;
 

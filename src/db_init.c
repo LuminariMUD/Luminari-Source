@@ -886,13 +886,13 @@ void init_help_system_tables(void)
     const char *create_help_entries = 
         "CREATE TABLE IF NOT EXISTS help_entries ("
         "id INT AUTO_INCREMENT PRIMARY KEY, "
-        "help_tag VARCHAR(50) UNIQUE NOT NULL, "
-        "help_text LONGTEXT NOT NULL, "
+        "tag VARCHAR(50) UNIQUE NOT NULL, "
+        "entry LONGTEXT NOT NULL, "
         "min_level INT DEFAULT 0, "
         "max_level INT DEFAULT 1000, "
         "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
-        "INDEX idx_help_tag (help_tag), "
+        "INDEX idx_help_tag (tag), "
         "INDEX idx_min_level (min_level)"
         ")";
 
@@ -907,7 +907,7 @@ void init_help_system_tables(void)
         "id INT AUTO_INCREMENT PRIMARY KEY, "
         "help_tag VARCHAR(50) NOT NULL, "
         "keyword VARCHAR(100) NOT NULL, "
-        "FOREIGN KEY (help_tag) REFERENCES help_entries(help_tag) ON DELETE CASCADE, "
+        "FOREIGN KEY (help_tag) REFERENCES help_entries(tag) ON DELETE CASCADE, "
         "INDEX idx_keyword (keyword), "
         "INDEX idx_help_tag (help_tag), "
         "UNIQUE KEY unique_tag_keyword (help_tag, keyword)"
@@ -919,6 +919,33 @@ void init_help_system_tables(void)
     }
 
     log("INFO: Help system tables initialized successfully");
+    
+    /* Add performance optimization indexes
+     * These indexes improve query performance for common help system operations
+     * The IF NOT EXISTS clause prevents errors if indexes already exist */
+    
+    /* Composite index for JOIN operations - most queries join on help_tag and filter by keyword */
+    const char *add_composite_index = 
+        "ALTER TABLE help_keywords ADD INDEX IF NOT EXISTS idx_help_keywords_composite (help_tag, keyword)";
+    
+    if (mysql_query_safe(conn, add_composite_index)) {
+        log("WARNING: Could not add composite index to help_keywords: %s", mysql_error(conn));
+        /* Non-critical error - continue execution */
+    }
+    
+    /* Add FULLTEXT index for future full-text search capabilities
+     * This enables MATCH...AGAINST queries for better search functionality
+     * Note: Requires InnoDB with MySQL 5.6+ or MyISAM */
+    const char *add_fulltext_index = 
+        "ALTER TABLE help_entries ADD FULLTEXT INDEX IF NOT EXISTS idx_help_entries_fulltext (entry)";
+    
+    if (mysql_query_safe(conn, add_fulltext_index)) {
+        log("WARNING: Could not add FULLTEXT index to help_entries: %s", mysql_error(conn));
+        log("         Full-text search features will not be available");
+        /* Non-critical error - continue execution */
+    }
+    
+    log("INFO: Help system optimization indexes added");
 }
 
 /* ===== DATABASE PROCEDURES AND FUNCTIONS ===== */
