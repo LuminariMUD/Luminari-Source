@@ -8,12 +8,6 @@ SUBDIRS = util
 # Revert to project defaults: do NOT force global feature defines here.
 AM_CFLAGS = -std=gnu90 -Isrc @MYFLAGS@
 
-# Build timestamp information
-MKTIME = $(shell date +%s)
-MKUSER = $(USER)
-MKHOST = $(HOSTNAME)
-BRANCH = $(shell git branch 2>/dev/null | grep '*' | cut -d' ' -f2 || echo "unknown")
-PARENT = $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
 
 # Main program
 bin_PROGRAMS = circle
@@ -185,8 +179,6 @@ circle_SOURCES = \
 # Libraries to link
 circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread
 
-# Special flags for constants.c to include build information
-src/constants.$(OBJEXT): AM_CFLAGS += -DMKTIME='"$(MKTIME)"' -DMKUSER='"$(MKUSER)"' -DMKHOST='"$(MKHOST)"' -DBRANCH='"$(BRANCH)"' -DPARENT='"$(PARENT)"'
 
 # Unit testing with CuTest
 check_PROGRAMS = cutest

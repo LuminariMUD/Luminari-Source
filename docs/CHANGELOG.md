@@ -26,6 +26,56 @@ Each entry follows the format:
 
 ### January 2025
 
+#### Help System Soundex Bug Fix
+
+**Date:** January 2025  
+**Developer:** AI Assistant  
+**Status:** COMPLETED  
+**Priority:** HIGH  
+
+**Summary:**
+Fixed critical bug where the help system's soundex (fuzzy matching) feature was being bypassed due to overly broad prefix matching in the database handler. Users were getting unintended partial matches instead of helpful "did you mean" suggestions for misspelled commands.
+
+**Bug Details:**
+- **Root Cause:** The database handler (`handle_database_help`) was returning success on ANY prefix match, stopping the handler chain before soundex could run
+- **Example:** Typing "help dragonrr" would find no matches but soundex wouldn't suggest "dragonrider"
+- **Impact:** Users couldn't get spelling suggestions for typos, reducing help system usability
+
+**Fix Implementation:**
+- **Enhanced Database Handler** (src/help.c:558-675)
+  - Now distinguishes between exact matches and partial matches
+  - Exact matches stop the handler chain (return 1)
+  - Partial matches show help but continue to soundex (return 0)
+  - Added stricter matching for very short searches (1-2 characters)
+  
+- **Improved Soundex Handler** (src/help.c:895-960)
+  - Coordinates with database handler using global flag
+  - Shows different messages for partial matches vs no matches
+  - Provides "Perhaps you meant" suggestions when partial help is shown
+  
+- **Enhanced Soundex Query** (src/help.c:363-390)
+  - Improved SQL query with multiple matching strategies:
+    - SOUNDS LIKE for phonetic matching
+    - Prefix matching for common typos
+    - Contains matching for longer search terms (4+ chars)
+  - Results ordered by relevance score
+  - Limited to 10 suggestions for clarity
+
+**Technical Details:**
+- Added global flag `g_partial_help_displayed` for handler coordination
+- Enhanced debug logging throughout handler chain
+- Fixed prepared statement parameter binding for complex soundex query
+- Maintains backward compatibility with existing help system
+
+**User Experience Improvements:**
+- **Exact match** (e.g., "help score"): Shows help immediately, no suggestions
+- **Partial match** (e.g., "help scor"): Shows best match + "Perhaps you meant" suggestions
+- **Misspelling** (e.g., "help comand"): Shows "no help" + "Did you mean" suggestions
+- **The "dragonrr" case**: Now correctly suggests "dragonrider" and similar keywords
+
+**Files Modified:**
+- src/help.c - Core handler logic, soundex improvements, debug logging
+
 #### MySQL Connection Pool Implementation
 
 **Date:** January 2025  
