@@ -2,13 +2,15 @@
 
 ## Overview
 
-LuminariMUD uses MySQL as its primary database system for persistent storage of player data, world state, and game statistics. The database integration provides robust data persistence, player authentication, and advanced querying capabilities for game mechanics.
+LuminariMUD uses MariaDB (or MySQL) as its primary database system for persistent storage of player data, world state, and game statistics. The database integration provides robust data persistence, player authentication, and advanced querying capabilities for game mechanics.
+
+**Note**: As of January 2025, the codebase has been upgraded to use MariaDB client libraries (libmariadb-dev) for improved compatibility and security. The system remains fully compatible with both MariaDB and MySQL servers.
 
 ## Database Architecture
 
 ### Connection Management
 
-The database connection is managed through a global MySQL connection handle:
+The database connection is managed through a global MariaDB/MySQL connection handle:
 
 ```c
 MYSQL *conn;  // Global database connection

@@ -24,6 +24,38 @@ Each entry follows the format:
 
 ## Recent Updates
 
+### January 2025
+
+#### MariaDB Client Library Migration
+
+**Date:** January 12, 2025  
+**Developer:** AI Assistant  
+**Status:** COMPLETED  
+**Priority:** HIGH  
+
+**Summary:**
+Migrated from outdated local MySQL 5.0.51a headers (2008) to modern system-installed MariaDB client libraries for improved security, compatibility, and maintenance.
+
+**Changes Made:**
+- Removed local MySQL headers directory (`src/mysql/`) containing 16-year-old headers
+- Updated all includes from `"mysql/mysql.h"` to `<mariadb/mysql.h>`
+- Modified build systems to use pkg-config for MariaDB:
+  - Updated Makefile.am to use `-lmariadb` instead of `-lmysqlclient`
+  - Enhanced CMakeLists.txt to prioritize MariaDB over MySQL
+- Updated all utility programs in `util/` to use MariaDB headers
+- Fixed type compatibility issues (removed redundant `typedef bool my_bool`)
+
+**Benefits:**
+- **Security**: 16+ years of security patches now available
+- **Compatibility**: Full support for modern MariaDB servers
+- **Maintenance**: Automatic updates via package manager
+- **Performance**: Access to optimizations and bug fixes
+
+**Migration Notes:**
+- Requires `libmariadb-dev` package installation
+- Fully backward compatible with MySQL protocol
+- No changes required to database server (works with both MariaDB and MySQL)
+
 ### December 2024
 
 #### Help System File Loading Restoration

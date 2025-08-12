@@ -183,7 +183,7 @@ circle_SOURCES = \
 	src/zone_procs.c
 
 # Libraries to link
-circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread
+circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread
 
 # Special flags for constants.c to include build information
 src/constants.$(OBJEXT): AM_CFLAGS += -DMKTIME='"$(MKTIME)"' -DMKUSER='"$(MKUSER)"' -DMKHOST='"$(MKHOST)"' -DBRANCH='"$(BRANCH)"' -DPARENT='"$(PARENT)"'

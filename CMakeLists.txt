@@ -207,27 +207,38 @@ endif()
 # ========== MySQL/MariaDB support ==========
 find_package(PkgConfig)
 if (PkgConfig_FOUND)
-    pkg_check_modules(MYSQL mysqlclient)
-    if (MYSQL_FOUND)
-        message(STATUS "Found MySQL: ${MYSQL_LIBRARIES}")
-        list(APPEND EXTRA_LIBS ${MYSQL_LIBRARIES})
-        include_directories(${MYSQL_INCLUDE_DIRS})
+    # Try MariaDB first (preferred)
+    pkg_check_modules(MARIADB mariadb)
+    if (MARIADB_FOUND)
+        message(STATUS "Found MariaDB: ${MARIADB_LIBRARIES}")
+        list(APPEND EXTRA_LIBS ${MARIADB_LIBRARIES})
+        include_directories(${MARIADB_INCLUDE_DIRS})
         set(CIRCLE_MYSQL 1)
     else()
-        # Try manual search
-        find_path(MYSQL_INCLUDE_DIR mysql.h
-            PATHS /usr/include/mysql /usr/local/include/mysql
-            PATH_SUFFIXES mysql)
-        find_library(MYSQL_LIBRARY mysqlclient
-            PATHS /usr/lib /usr/local/lib
-            PATH_SUFFIXES mysql)
-        if (MYSQL_INCLUDE_DIR AND MYSQL_LIBRARY)
-            message(STATUS "Found MySQL manually: ${MYSQL_LIBRARY}")
-            list(APPEND EXTRA_LIBS ${MYSQL_LIBRARY})
-            include_directories(${MYSQL_INCLUDE_DIR})
+        # Fall back to MySQL
+        pkg_check_modules(MYSQL mysqlclient)
+        if (MYSQL_FOUND)
+            message(STATUS "Found MySQL: ${MYSQL_LIBRARIES}")
+            list(APPEND EXTRA_LIBS ${MYSQL_LIBRARIES})
+            include_directories(${MYSQL_INCLUDE_DIRS})
             set(CIRCLE_MYSQL 1)
         else()
-            message(WARNING "MySQL not found. MySQL support will be disabled.")
+            # Try manual search for MariaDB/MySQL
+            find_path(MYSQL_INCLUDE_DIR mysql.h
+                PATHS /usr/include/mariadb /usr/include/mysql /usr/local/include/mariadb /usr/local/include/mysql
+                PATH_SUFFIXES mariadb mysql)
+            find_library(MYSQL_LIBRARY 
+                NAMES mariadb mysqlclient
+                PATHS /usr/lib /usr/local/lib
+                PATH_SUFFIXES mariadb mysql)
+            if (MYSQL_INCLUDE_DIR AND MYSQL_LIBRARY)
+                message(STATUS "Found MariaDB/MySQL manually: ${MYSQL_LIBRARY}")
+                list(APPEND EXTRA_LIBS ${MYSQL_LIBRARY})
+                include_directories(${MYSQL_INCLUDE_DIR})
+                set(CIRCLE_MYSQL 1)
+            else()
+                message(WARNING "MariaDB/MySQL not found. Database support will be disabled.")
+            endif()
         endif()
     endif()
 endif()
