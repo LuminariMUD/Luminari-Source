@@ -18,6 +18,8 @@
 #include "wilderness.h"
 #include "mud_event.h"
 
+#define MYSQL_DEBUG 1
+
 MYSQL *conn = NULL;
 MYSQL *conn2 = NULL;
 MYSQL *conn3 = NULL;
@@ -513,6 +515,9 @@ bool mysql_stmt_bind_param_string(PREPARED_STMT *pstmt, int param_index, const c
     free(pstmt->params[param_index].is_null);
   }
   
+  /* CRITICAL: Clear the entire binding structure to prevent garbage values */
+  memset(&pstmt->params[param_index], 0, sizeof(MYSQL_BIND));
+  
   /* Allocate and set up the binding */
   if (value) {
     /* Allocate buffer and copy string */
@@ -565,6 +570,9 @@ bool mysql_stmt_bind_param_int(PREPARED_STMT *pstmt, int param_index, int value)
   if (pstmt->params[param_index].is_null) {
     free(pstmt->params[param_index].is_null);
   }
+  
+  /* CRITICAL: Clear the entire binding structure to prevent garbage values */
+  memset(&pstmt->params[param_index], 0, sizeof(MYSQL_BIND));
   
   /* Allocate buffer for integer */
   CREATE(buffer, int, 1);
@@ -634,13 +642,41 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
   }
   
   /* For SELECT queries, prepare result bindings */
+  if (MYSQL_DEBUG) {
+    log("DEBUG: mysql_stmt_execute_prepared: metadata=%p, result_count=%d", 
+        pstmt->metadata, pstmt->result_count);
+  }
   if (pstmt->metadata && pstmt->result_count > 0) {
     MYSQL_FIELD *field;
+    
+    if (MYSQL_DEBUG) log("DEBUG: mysql_stmt_execute_prepared: Preparing result bindings for %d columns", pstmt->result_count);
     
     /* Set up result bindings based on field types */
     mysql_field_seek(pstmt->metadata, 0);
     for (i = 0; i < pstmt->result_count; i++) {
       field = mysql_fetch_field(pstmt->metadata);
+      
+      if (MYSQL_DEBUG) {
+        log("DEBUG: mysql_stmt_execute_prepared: Column %d: name='%s', type=%d, length=%lu", 
+            i, field->name, field->type, field->length);
+      }
+      
+      /* Free existing buffers if any (in case statement is being reused) */
+      if (pstmt->results[i].buffer) {
+        free(pstmt->results[i].buffer);
+      }
+      if (pstmt->results[i].length) {
+        free(pstmt->results[i].length);
+      }
+      if (pstmt->results[i].is_null) {
+        free(pstmt->results[i].is_null);
+      }
+      if (pstmt->results[i].error) {
+        free(pstmt->results[i].error);
+      }
+      
+      /* CRITICAL: Completely reinitialize the binding structure */
+      memset(&pstmt->results[i], 0, sizeof(MYSQL_BIND));
       
       /* Allocate buffer based on field type */
       switch (field->type) {
@@ -654,16 +690,32 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
            * Use larger buffer for GROUP_CONCAT and other potentially large results
            * field->length may be 0 or too small for aggregated results */
           {
-            unsigned long buffer_size = field->length > 0 ? field->length : 4096;
-            /* Ensure minimum size for GROUP_CONCAT and other aggregate functions */
-            if (buffer_size < 4096) {
+            unsigned long buffer_size;
+            
+            /* Check if this looks like a GROUP_CONCAT result (huge field->length) 
+             * GROUP_CONCAT max_length defaults to 67108864 (64MB) in MySQL
+             * We don't need that much - cap at a reasonable size */
+            if (field->length > 1000000) {
+              /* GROUP_CONCAT or similar aggregate - use reasonable buffer */
+              buffer_size = 65536; /* 64KB should be enough for any help keyword list */
+            } else if (field->length > 0) {
+              /* Use field length but ensure minimum size */
+              buffer_size = field->length < 256 ? 256 : field->length;
+            } else {
+              /* Default for unknown length */
               buffer_size = 4096;
             }
+            
             CREATE(pstmt->results[i].buffer, char, buffer_size + 1);
             pstmt->results[i].buffer_type = MYSQL_TYPE_STRING;
             pstmt->results[i].buffer_length = buffer_size + 1;
             CREATE(pstmt->results[i].length, unsigned long, 1);
             CREATE(pstmt->results[i].is_null, my_bool, 1);
+            CREATE(pstmt->results[i].error, my_bool, 1);
+            /* CRITICAL: Initialize the length value */
+            *pstmt->results[i].length = 0;
+            /* Initialize error flag */
+            *pstmt->results[i].error = 0;
           }
           break;
           
@@ -676,6 +728,27 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
           pstmt->results[i].buffer_type = MYSQL_TYPE_LONG;
           pstmt->results[i].buffer_length = sizeof(int);
           CREATE(pstmt->results[i].is_null, my_bool, 1);
+          CREATE(pstmt->results[i].error, my_bool, 1);
+          /* Initialize error flag */
+          *pstmt->results[i].error = 0;
+          /* Integer types don't need length pointer */
+          pstmt->results[i].length = NULL;
+          break;
+          
+        case MYSQL_TYPE_DATETIME:
+        case MYSQL_TYPE_DATE:
+        case MYSQL_TYPE_TIME:
+        case MYSQL_TYPE_TIMESTAMP:
+          /* Allocate buffer for datetime as string */
+          CREATE(pstmt->results[i].buffer, char, 64);
+          pstmt->results[i].buffer_type = MYSQL_TYPE_STRING;
+          pstmt->results[i].buffer_length = 64;
+          CREATE(pstmt->results[i].length, unsigned long, 1);
+          CREATE(pstmt->results[i].is_null, my_bool, 1);
+          CREATE(pstmt->results[i].error, my_bool, 1);
+          /* Initialize values */
+          *pstmt->results[i].length = 0;
+          *pstmt->results[i].error = 0;
           break;
           
         default:
@@ -685,6 +758,10 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
           pstmt->results[i].buffer_length = 4096;
           CREATE(pstmt->results[i].length, unsigned long, 1);
           CREATE(pstmt->results[i].is_null, my_bool, 1);
+          CREATE(pstmt->results[i].error, my_bool, 1);
+          /* Initialize values */
+          *pstmt->results[i].length = 0;
+          *pstmt->results[i].error = 0;
           break;
       }
     }
@@ -703,11 +780,16 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
     }
     
     /* Store result set for SELECT queries */
+    if (MYSQL_DEBUG) log("DEBUG: mysql_stmt_execute_prepared: Calling mysql_stmt_store_result");
     if (mysql_stmt_store_result(pstmt->stmt)) {
       log("SYSERR: mysql_stmt_store_result failed: %s (Error: %u)", 
           mysql_stmt_error(pstmt->stmt), mysql_stmt_errno(pstmt->stmt));
       MYSQL_UNLOCK(*mutex);
       return FALSE;
+    }
+    if (MYSQL_DEBUG) {
+      my_ulonglong num_rows = mysql_stmt_num_rows(pstmt->stmt);
+      log("DEBUG: mysql_stmt_execute_prepared: Stored %llu rows", num_rows);
     }
   }
   
@@ -743,10 +825,32 @@ bool mysql_stmt_fetch_row(PREPARED_STMT *pstmt)
   
   MYSQL_LOCK(*mutex);
   result = mysql_stmt_fetch(pstmt->stmt);
+  if (MYSQL_DEBUG) {
+    if (result == 0) {
+      log("DEBUG: mysql_stmt_fetch successfully fetched a row");
+    } else if (result == MYSQL_NO_DATA) {
+      log("DEBUG: mysql_stmt_fetch returned MYSQL_NO_DATA (no more rows)");
+    } else if (result == MYSQL_DATA_TRUNCATED) {
+      int i;
+      log("DEBUG: mysql_stmt_fetch returned MYSQL_DATA_TRUNCATED - checking which columns truncated");
+      /* Check which columns were truncated */
+      for (i = 0; i < pstmt->result_count; i++) {
+        if (pstmt->results[i].error && *pstmt->results[i].error) {
+          log("DEBUG:   Column %d was truncated (buffer_length=%lu, actual_length=%lu)", 
+              i, pstmt->results[i].buffer_length, 
+              pstmt->results[i].length ? *pstmt->results[i].length : 0);
+        }
+      }
+    } else {
+      log("DEBUG: mysql_stmt_fetch returned error %d: %s", 
+          result, mysql_stmt_error(pstmt->stmt));
+    }
+  }
   MYSQL_UNLOCK(*mutex);
   
-  /* mysql_stmt_fetch returns 0 on success, MYSQL_NO_DATA when no more rows */
-  return (result == 0);
+  /* mysql_stmt_fetch returns 0 on success, MYSQL_NO_DATA when no more rows
+   * MYSQL_DATA_TRUNCATED is also a successful fetch - data is usable even if truncated */
+  return (result == 0 || result == MYSQL_DATA_TRUNCATED);
 }
 
 /**

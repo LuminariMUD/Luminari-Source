@@ -110,16 +110,36 @@ Fixed critical issues preventing database help from working properly:
 
 ## IMMEDIATE - Active Issues
 
-### ✅ Database Help Not Loading (Fixed December 2025)
-- **Problem:** Help entries showing "File-based" instead of database timestamps
-- **Root Cause:** Search pattern wasn't being lowercased for LOWER(hk.keyword) comparison
-- **Solution:** Added lowercase conversion for search pattern
-- **Testing:** Enable HELP_DEBUG=1 to verify database queries are working
+### 🔄 MySQL Prepared Statements Fix - December 2025 (AWAITING TEST)
+**STATUS:** Fix complete in source code, awaiting compilation and testing
 
-### 🔄 Soundex Suggestions Not Working
-- **Problem:** Misspelled help queries (skore, sscore) not showing suggestions
-- **Status:** Debug logging added to trace handler chain execution
-- **Next Steps:** Test with HELP_DEBUG=1 to identify where chain breaks
+**THE PROBLEM FOUND:** 
+- MySQL prepared statements were returning 0 rows for database help queries
+- Soundex queries were getting MYSQL_DATA_TRUNCATED errors
+- Database had the data, but prepared statements couldn't fetch it
+
+**ROOT CAUSES IDENTIFIED:**
+1. **MYSQL_BIND not cleared**: Parameter binding structures had garbage values
+2. **Query mismatch**: Used `LOWER(column) LIKE pattern` instead of `LOWER(column) LIKE LOWER(?)`
+3. **Buffer size issues**: GROUP_CONCAT results needed larger buffers (was 4KB, needed 64KB)
+4. **Truncation handling**: Code rejected MYSQL_DATA_TRUNCATED instead of accepting it as valid
+
+**FIXES APPLIED TO SOURCE (December 2025):**
+1. **mysql.c line 519, 575**: Added `memset(&pstmt->params[param_index], 0, sizeof(MYSQL_BIND))` 
+2. **mysql.c line 694**: Increased GROUP_CONCAT buffer from 4KB to 64KB
+3. **mysql.c line 826**: Accept MYSQL_DATA_TRUNCATED as successful fetch
+4. **mysql.c lines 710-712, 728-729, 746-747**: Initialize error flags properly
+5. **help.c line 186**: Changed to `WHERE LOWER(hk.keyword) LIKE LOWER(?)`
+6. **help.c lines 196-200**: Removed manual lowercasing of search pattern
+
+**TEST PROGRAMS CREATED:**
+- `util/test_mysql_prepared_statements.py` - Proves queries work in Python
+- `util/test_exact_replication.c` - Proves fixes work when compiled fresh
+
+### AWAITING COMPILE & TEST:
+1. **`help score`** - Should show database content with timestamp (not "File-based")
+2. **`help sscore`** - Should show "Did you mean: score?" suggestions
+3. Both should pull from database, not fall back to file-based help
 
 ## HIGH PRIORITY - This Sprint (Complete within 1 week)
 

@@ -8,7 +8,7 @@
 #ifndef _MYSQL_H
 #define _MYSQL_H
 
-#include <mysql/mysql.h> /* System headerfile for mysql. */
+#include <mariadb/mysql.h> /* System headerfile for MariaDB/MySQL. */
 #include <pthread.h>
 
 extern MYSQL *conn;
