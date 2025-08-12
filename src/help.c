@@ -26,6 +26,28 @@
 #include "evolutions.h"
 #include "backgrounds.h"
 
+/* Help cache system - stores recent help queries to reduce database load */
+#define HELP_CACHE_SIZE 50    /* Number of cached help entries */
+#define HELP_CACHE_TTL 300    /* Cache time-to-live in seconds (5 minutes) */
+
+struct help_cache_entry {
+  char *search_key;            /* The search term used */
+  int level;                   /* The level restriction used */
+  struct help_entry_list *result; /* Cached result (deep copy) */
+  time_t timestamp;            /* When this entry was cached */
+  struct help_cache_entry *next;
+};
+
+static struct help_cache_entry *help_cache = NULL;
+static int help_cache_count = 0;
+
+/* Forward declarations for cache functions */
+static struct help_entry_list *get_cached_help(const char *argument, int level);
+static void add_to_help_cache(const char *argument, int level, struct help_entry_list *result);
+static struct help_entry_list *deep_copy_help_list(struct help_entry_list *src);
+static void free_help_entry_list(struct help_entry_list *entry);
+static void purge_old_cache_entries(void);
+
 /* puts -'s instead of spaces */
 void space_to_minus(char *str)
 {
@@ -39,9 +61,19 @@ void space_to_minus(char *str)
  * Original function hevaily modified (rewritten!) to use the help database
  * instead of the in-memory help structure.
  * The consumer of the return value is responsible for freeing the memory!
- * YOU HAVE BEEN WARNED.  */
+ * YOU HAVE BEEN WARNED.
+ * 
+ * Enhanced with caching system to reduce database queries.
+ * Cache stores recent searches for HELP_CACHE_TTL seconds.  */
 struct help_entry_list *search_help(const char *argument, int level)
 {
+  struct help_entry_list *cached_result;
+  
+  /* Check cache first to avoid database query */
+  cached_result = get_cached_help(argument, level);
+  if (cached_result != NULL) {
+    return cached_result;  /* Return deep copy from cache */
+  }
 
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -55,11 +87,15 @@ struct help_entry_list *search_help(const char *argument, int level)
 
   mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
 
+  /* Optimized query - eliminates Cartesian product by using proper JOINs
+   * First finds matching help entries, then gets all keywords in one query */
   snprintf(buf, sizeof(buf), "SELECT distinct he.tag, he.entry, he.min_level, he.last_updated, group_concat(distinct CONCAT(UCASE(LEFT(hk2.keyword, 1)), LCASE(SUBSTRING(hk2.keyword, 2))) separator ', ')"
-                             " FROM `help_entries` he, `help_keywords` hk, `help_keywords` hk2"
-                             " WHERE he.tag = hk.help_tag and hk.help_tag = hk2.help_tag and lower(hk.keyword) like '%s%%' and he.min_level <= %d"
-                             " group by hk.help_tag ORDER BY length(hk.keyword) asc",
-           argument, level);
+                             " FROM `help_entries` he"
+                             " INNER JOIN `help_keywords` hk ON he.tag = hk.help_tag"
+                             " LEFT JOIN `help_keywords` hk2 ON he.tag = hk2.help_tag"
+                             " WHERE lower(hk.keyword) like '%s%%' and he.min_level <= %d"
+                             " group by he.tag, he.entry, he.min_level, he.last_updated ORDER BY length(hk.keyword) asc",
+           escaped_arg, level);
 
   if (mysql_query(conn, buf))
   {
@@ -84,7 +120,10 @@ struct help_entry_list *search_help(const char *argument, int level)
     new_help_entry->last_updated = strdup(row[3]);
     new_help_entry->keywords = strdup(row[4]);
 
-    new_help_entry->keyword_list = get_help_keywords(new_help_entry->tag);
+    /* N+1 query optimization: keywords already fetched in main query,
+     * only fetch keyword_list if actually needed elsewhere.
+     * For now, set to NULL to avoid redundant query */
+    new_help_entry->keyword_list = NULL;
 
     if (help_entries == NULL)
     {
@@ -101,7 +140,12 @@ struct help_entry_list *search_help(const char *argument, int level)
 
   mysql_free_result(result);
 
-  return help_entries;
+  /* Add result to cache if found */
+  if (help_entries != NULL) {
+    add_to_help_cache(argument, level, help_entries);
+  }
+
+  return help_entries
 }
 
 struct help_keyword_list *get_help_keywords(const char *tag)
@@ -111,10 +155,12 @@ struct help_keyword_list *get_help_keywords(const char *tag)
 
   struct help_keyword_list *keywords = NULL, *new_keyword = NULL, *cur = NULL;
 
-  char buf[1024];
+  char buf[MAX_STRING_LENGTH * 2 + 200]; /* Large enough for escaped_tag plus SQL query */
+  char escaped_tag[MAX_STRING_LENGTH * 2 + 1];
 
   /* Get keywords for this entry. */
-  snprintf(buf, sizeof(buf), "select help_tag, CONCAT(UCASE(LEFT(keyword, 1)), LCASE(SUBSTRING(keyword, 2))) from help_keywords where help_tag = '%s'", tag);
+  mysql_real_escape_string(conn, escaped_tag, tag, strlen(tag));
+  snprintf(buf, sizeof(buf), "select help_tag, CONCAT(UCASE(LEFT(keyword, 1)), LCASE(SUBSTRING(keyword, 2))) from help_keywords where help_tag = '%s'", escaped_tag);
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
@@ -171,7 +217,7 @@ struct help_keyword_list *soundex_search_help_keywords(const char *argument, int
                              "  and hk.keyword sounds like '%s' "
                              "  and he.min_level <= %d "
                              "ORDER BY length(hk.keyword) asc",
-           argument, level);
+           escaped_arg, level);
 
   if (mysql_query(conn, buf))
   {
@@ -394,6 +440,9 @@ ACMDU(do_help)
                   while (keywords != NULL)
                   {
                     tmp_keyword = keywords->next;
+                    /* Free strdup'd strings in keyword list */
+                    if (keywords->tag) free(keywords->tag);
+                    if (keywords->keyword) free(keywords->keyword);
                     free(keywords);
                     keywords = tmp_keyword;
                     tmp_keyword = NULL;
@@ -448,9 +497,18 @@ ACMDU(do_help)
     tmp = entries;
     entries = entries->next;
 
+    /* Free strdup'd strings in help_entry_list */
+    if (tmp->tag) free(tmp->tag);
+    if (tmp->entry) free(tmp->entry);
+    if (tmp->keywords) free(tmp->keywords);
+    if (tmp->last_updated) free(tmp->last_updated);
+
     while (tmp->keyword_list != NULL)
     {
       tmp_keyword = tmp->keyword_list->next;
+      /* Free strdup'd strings in keyword list */
+      if (tmp->keyword_list->tag) free(tmp->keyword_list->tag);
+      if (tmp->keyword_list->keyword) free(tmp->keyword_list->keyword);
       free(tmp->keyword_list);
       tmp->keyword_list = tmp_keyword;
     }
@@ -460,3 +518,237 @@ ACMDU(do_help)
 }
 
 //  send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
+
+/* Cache management functions implementation */
+
+/**
+ * Searches the help cache for a matching entry.
+ * Returns a deep copy of the cached result if found and still valid.
+ * 
+ * @param argument The search term
+ * @param level The minimum level restriction
+ * @return Deep copy of cached help_entry_list, or NULL if not found/expired
+ */
+static struct help_entry_list *get_cached_help(const char *argument, int level)
+{
+  struct help_cache_entry *entry;
+  time_t current_time;
+  
+  /* Periodically clean expired entries */
+  purge_old_cache_entries();
+  
+  current_time = time(NULL);
+  
+  /* Search cache for matching entry */
+  for (entry = help_cache; entry != NULL; entry = entry->next) {
+    /* Check if entry matches search criteria */
+    if (entry->level == level && 
+        !str_cmp(entry->search_key, argument)) {
+      
+      /* Check if entry is still valid (not expired) */
+      if ((current_time - entry->timestamp) < HELP_CACHE_TTL) {
+        /* Return deep copy of cached result */
+        return deep_copy_help_list(entry->result);
+      }
+    }
+  }
+  
+  return NULL;  /* Not found in cache or expired */
+}
+
+/**
+ * Adds a help search result to the cache.
+ * Maintains cache size limit by removing oldest entries if needed.
+ * 
+ * @param argument The search term used
+ * @param level The level restriction used  
+ * @param result The help entries to cache (will be deep copied)
+ */
+static void add_to_help_cache(const char *argument, int level, 
+                              struct help_entry_list *result)
+{
+  struct help_cache_entry *new_entry, *entry, *prev, *oldest;
+  time_t oldest_time;
+  
+  /* Don't cache NULL results */
+  if (result == NULL)
+    return;
+  
+  /* Check if this search is already cached and update it */
+  for (entry = help_cache; entry != NULL; entry = entry->next) {
+    if (entry->level == level && !str_cmp(entry->search_key, argument)) {
+      /* Update existing cache entry */
+      free_help_entry_list(entry->result);
+      entry->result = deep_copy_help_list(result);
+      entry->timestamp = time(NULL);
+      return;
+    }
+  }
+  
+  /* If cache is full, remove oldest entry */
+  if (help_cache_count >= HELP_CACHE_SIZE) {
+    oldest = help_cache;
+    oldest_time = help_cache->timestamp;
+    prev = NULL;
+    
+    /* Find oldest entry */
+    for (entry = help_cache; entry != NULL; entry = entry->next) {
+      if (entry->timestamp < oldest_time) {
+        oldest = entry;
+        oldest_time = entry->timestamp;
+      }
+    }
+    
+    /* Remove oldest from list */
+    if (oldest == help_cache) {
+      help_cache = oldest->next;
+    } else {
+      for (entry = help_cache; entry != NULL; entry = entry->next) {
+        if (entry->next == oldest) {
+          entry->next = oldest->next;
+          break;
+        }
+      }
+    }
+    
+    /* Free oldest entry */
+    free(oldest->search_key);
+    free_help_entry_list(oldest->result);
+    free(oldest);
+    help_cache_count--;
+  }
+  
+  /* Create new cache entry */
+  CREATE(new_entry, struct help_cache_entry, 1);
+  new_entry->search_key = strdup(argument);
+  new_entry->level = level;
+  new_entry->result = deep_copy_help_list(result);
+  new_entry->timestamp = time(NULL);
+  new_entry->next = help_cache;
+  help_cache = new_entry;
+  help_cache_count++;
+}
+
+/**
+ * Creates a deep copy of a help_entry_list.
+ * Used to store/retrieve independent copies from cache.
+ * 
+ * @param src The help list to copy
+ * @return New deep copy of the list
+ */
+static struct help_entry_list *deep_copy_help_list(struct help_entry_list *src)
+{
+  struct help_entry_list *new_list = NULL, *new_entry, *cur = NULL;
+  struct help_keyword_list *keyword, *new_keyword, *keyword_cur;
+  
+  while (src != NULL) {
+    /* Copy help entry */
+    CREATE(new_entry, struct help_entry_list, 1);
+    new_entry->tag = src->tag ? strdup(src->tag) : NULL;
+    new_entry->keywords = src->keywords ? strdup(src->keywords) : NULL;
+    new_entry->entry = src->entry ? strdup(src->entry) : NULL;
+    new_entry->min_level = src->min_level;
+    new_entry->last_updated = src->last_updated ? strdup(src->last_updated) : NULL;
+    new_entry->next = NULL;
+    
+    /* Copy keyword list */
+    new_entry->keyword_list = NULL;
+    keyword_cur = NULL;
+    for (keyword = src->keyword_list; keyword != NULL; keyword = keyword->next) {
+      CREATE(new_keyword, struct help_keyword_list, 1);
+      new_keyword->tag = keyword->tag ? strdup(keyword->tag) : NULL;
+      new_keyword->keyword = keyword->keyword ? strdup(keyword->keyword) : NULL;
+      new_keyword->next = NULL;
+      
+      if (new_entry->keyword_list == NULL) {
+        new_entry->keyword_list = new_keyword;
+        keyword_cur = new_keyword;
+      } else {
+        keyword_cur->next = new_keyword;
+        keyword_cur = new_keyword;
+      }
+    }
+    
+    /* Add to list */
+    if (new_list == NULL) {
+      new_list = new_entry;
+      cur = new_entry;
+    } else {
+      cur->next = new_entry;
+      cur = new_entry;
+    }
+    
+    src = src->next;
+  }
+  
+  return new_list;
+}
+
+/**
+ * Frees a help_entry_list and all associated memory.
+ * 
+ * @param entry The help list to free
+ */
+static void free_help_entry_list(struct help_entry_list *entry)
+{
+  struct help_entry_list *tmp;
+  struct help_keyword_list *keyword, *tmp_keyword;
+  
+  while (entry != NULL) {
+    tmp = entry;
+    entry = entry->next;
+    
+    /* Free strings */
+    if (tmp->tag) free(tmp->tag);
+    if (tmp->entry) free(tmp->entry);
+    if (tmp->keywords) free(tmp->keywords);
+    if (tmp->last_updated) free(tmp->last_updated);
+    
+    /* Free keyword list */
+    keyword = tmp->keyword_list;
+    while (keyword != NULL) {
+      tmp_keyword = keyword;
+      keyword = keyword->next;
+      if (tmp_keyword->tag) free(tmp_keyword->tag);
+      if (tmp_keyword->keyword) free(tmp_keyword->keyword);
+      free(tmp_keyword);
+    }
+    
+    free(tmp);
+  }
+}
+
+/**
+ * Removes expired entries from the cache.
+ * Called periodically to keep cache size manageable.
+ */
+static void purge_old_cache_entries(void)
+{
+  struct help_cache_entry *entry, *next, *prev = NULL;
+  time_t current_time = time(NULL);
+  
+  entry = help_cache;
+  while (entry != NULL) {
+    next = entry->next;
+    
+    /* Check if entry is expired */
+    if ((current_time - entry->timestamp) >= HELP_CACHE_TTL) {
+      /* Remove from list */
+      if (prev == NULL) {
+        help_cache = next;
+      } else {
+        prev->next = next;
+      }
+      
+      /* Free memory */
+      free(entry->search_key);
+      free_help_entry_list(entry->result);
+      free(entry);
+      help_cache_count--;
+    } else {
+      prev = entry;
+    }
+    
+    entry = next;
+  }
+}

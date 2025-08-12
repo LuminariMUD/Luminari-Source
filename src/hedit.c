@@ -27,12 +27,186 @@
 #include "help.h"
 #include "mysql.h"
 
+/* Constants for validation */
+#define MAX_HELP_TAG_LENGTH 50      /* Maximum length for help tags */
+#define MAX_HELP_KEYWORD_LENGTH 50  /* Maximum length for keywords */
+#define MIN_TAG_LENGTH 2            /* Minimum length for help tags */
+#define MIN_KEYWORD_LENGTH 2        /* Minimum length for keywords */
+
 /* local functions */
 static void hedit_disp_menu(struct descriptor_data *);
 static void hedit_setup_new(struct descriptor_data *);
 static void hedit_save_to_disk(struct descriptor_data *);
 static void hedit_save_to_db(struct descriptor_data *);
 static void hedit_save_internally(struct descriptor_data *);
+static bool validate_help_tag(const char *tag, struct descriptor_data *d);
+static bool validate_help_keyword(const char *keyword, struct descriptor_data *d);
+static bool validate_help_content(const char *content, struct descriptor_data *d);
+static bool validate_min_level(int level, struct descriptor_data *d);
+
+/**
+ * Validates a help tag for security and format requirements.
+ * 
+ * @param tag The tag to validate
+ * @param d The descriptor for sending error messages
+ * @return TRUE if valid, FALSE otherwise
+ * 
+ * Validation checks:
+ * - Non-empty and within length limits (2-50 characters)
+ * - Contains only alphanumeric, spaces, hyphens, underscores
+ * - Does not contain SQL injection patterns
+ * - Not a SQL reserved word
+ */
+static bool validate_help_tag(const char *tag, struct descriptor_data *d)
+{
+  int len;
+  const char *p;
+  
+  /* Check for NULL or empty */
+  if (!tag || !*tag) {
+    write_to_output(d, "Help tag cannot be empty.\r\n");
+    return FALSE;
+  }
+  
+  /* Check length boundaries */
+  len = strlen(tag);
+  if (len < MIN_TAG_LENGTH) {
+    write_to_output(d, "Help tag too short (minimum %d characters).\r\n", MIN_TAG_LENGTH);
+    return FALSE;
+  }
+  if (len > MAX_HELP_TAG_LENGTH) {
+    write_to_output(d, "Help tag too long (maximum %d characters).\r\n", MAX_HELP_TAG_LENGTH);
+    return FALSE;
+  }
+  
+  /* Validate characters - alphanumeric, spaces, hyphens, underscores only */
+  for (p = tag; *p; p++) {
+    if (!isalnum(*p) && *p != ' ' && *p != '-' && *p != '_') {
+      write_to_output(d, "Invalid character '%c' in help tag. Use only letters, numbers, spaces, hyphens, and underscores.\r\n", *p);
+      return FALSE;
+    }
+  }
+  
+  /* Check for SQL injection patterns */
+  if (strstr(tag, "--") || strchr(tag, ';') || strchr(tag, '\'') || strchr(tag, '\"')) {
+    write_to_output(d, "Invalid characters detected in help tag.\r\n");
+    return FALSE;
+  }
+  
+  /* Check for SQL reserved words (basic set) */
+  if (!str_cmp(tag, "DROP") || !str_cmp(tag, "DELETE") || !str_cmp(tag, "INSERT") ||
+      !str_cmp(tag, "UPDATE") || !str_cmp(tag, "SELECT") || !str_cmp(tag, "ALTER")) {
+    write_to_output(d, "Cannot use SQL reserved words as help tags.\r\n");
+    return FALSE;
+  }
+  
+  return TRUE;
+}
+
+/**
+ * Validates a help keyword for security and format requirements.
+ * 
+ * @param keyword The keyword to validate
+ * @param d The descriptor for sending error messages  
+ * @return TRUE if valid, FALSE otherwise
+ * 
+ * Similar validation to tags but allows for search-friendly keywords
+ */
+static bool validate_help_keyword(const char *keyword, struct descriptor_data *d)
+{
+  int len;
+  const char *p;
+  
+  /* Check for NULL or empty */
+  if (!keyword || !*keyword) {
+    write_to_output(d, "Keyword cannot be empty.\r\n");
+    return FALSE;
+  }
+  
+  /* Check length boundaries */
+  len = strlen(keyword);
+  if (len < MIN_KEYWORD_LENGTH) {
+    write_to_output(d, "Keyword too short (minimum %d characters).\r\n", MIN_KEYWORD_LENGTH);
+    return FALSE;
+  }
+  if (len > MAX_HELP_KEYWORD_LENGTH) {
+    write_to_output(d, "Keyword too long (maximum %d characters).\r\n", MAX_HELP_KEYWORD_LENGTH);
+    return FALSE;
+  }
+  
+  /* Validate characters - alphanumeric, spaces, hyphens, underscores, apostrophes (for contractions) */
+  for (p = keyword; *p; p++) {
+    if (!isalnum(*p) && *p != ' ' && *p != '-' && *p != '_' && *p != '\'') {
+      write_to_output(d, "Invalid character '%c' in keyword.\r\n", *p);
+      return FALSE;
+    }
+  }
+  
+  /* Check for SQL injection patterns (but allow single apostrophe for contractions) */
+  if (strstr(keyword, "--") || strchr(keyword, ';') || strstr(keyword, "''")) {
+    write_to_output(d, "Invalid character sequence in keyword.\r\n");
+    return FALSE;
+  }
+  
+  return TRUE;
+}
+
+/**
+ * Validates help content for security and size requirements.
+ * 
+ * @param content The help content to validate
+ * @param d The descriptor for sending error messages
+ * @return TRUE if valid, FALSE otherwise
+ * 
+ * Checks for dangerous content and size limits
+ */
+static bool validate_help_content(const char *content, struct descriptor_data *d)
+{
+  int len;
+  
+  /* Allow empty content (will be filled later) */
+  if (!content) {
+    return TRUE;
+  }
+  
+  /* Check length */
+  len = strlen(content);
+  if (len > MAX_STRING_LENGTH) {
+    write_to_output(d, "Help content too long (maximum %d characters).\r\n", MAX_STRING_LENGTH);
+    return FALSE;
+  }
+  
+  /* Check for script/HTML injection attempts */
+  if (strstr(content, "<script") || strstr(content, "<iframe") || 
+      strstr(content, "javascript:") || strstr(content, "onclick")) {
+    write_to_output(d, "HTML/Script tags are not allowed in help content.\r\n");
+    return FALSE;
+  }
+  
+  return TRUE;
+}
+
+/**
+ * Validates minimum level requirement for help entries.
+ * 
+ * @param level The minimum level to validate
+ * @param d The descriptor for sending error messages
+ * @return TRUE if valid, FALSE otherwise
+ */
+static bool validate_min_level(int level, struct descriptor_data *d)
+{
+  /* Check range - 0 to LVL_IMPL (typically 36) */
+  if (level < 0) {
+    write_to_output(d, "Minimum level cannot be negative.\r\n");
+    return FALSE;
+  }
+  if (level > LVL_IMPL) {
+    write_to_output(d, "Minimum level cannot exceed %d.\r\n", LVL_IMPL);
+    return FALSE;
+  }
+  
+  return TRUE;
+}
 
 ACMD(do_oasis_hedit)
 {
@@ -53,7 +227,7 @@ ACMD(do_oasis_hedit)
   {
     if (STATE(d) == CON_HEDIT)
     {
-      send_to_char(ch, "Sorry, only one can person can edit help files at a time.\r\n");
+      send_to_char(ch, "Sorry, only one person can edit help files at a time.\r\n");
       return;
     }
   }
@@ -126,11 +300,34 @@ static void hedit_save_to_disk(struct descriptor_data *d)
 static void hedit_save_to_db(struct descriptor_data *d)
 {
   char buf1[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'}; /* Buffers for DML query. */
-  int i = 0;
   struct help_keyword_list *keyword;
 
   if (OLC_HELP(d) == NULL)
     return;
+
+  /* Validate all data before attempting to save to database */
+  if (!validate_help_tag(OLC_HELP(d)->tag, d)) {
+    write_to_output(d, "Cannot save: Invalid help tag.\r\n");
+    return;
+  }
+  
+  if (!validate_help_content(OLC_HELP(d)->entry, d)) {
+    write_to_output(d, "Cannot save: Invalid help content.\r\n");
+    return;
+  }
+  
+  if (!validate_min_level(OLC_HELP(d)->min_level, d)) {
+    write_to_output(d, "Cannot save: Invalid minimum level.\r\n");
+    return;
+  }
+  
+  /* Validate all keywords */
+  for (keyword = OLC_HELP(d)->keyword_list; keyword != NULL; keyword = keyword->next) {
+    if (!validate_help_keyword(keyword->keyword, d)) {
+      write_to_output(d, "Cannot save: Invalid keyword '%s'.\r\n", keyword->keyword);
+      return;
+    }
+  }
 
   strncpy(buf1, OLC_HELP(d)->entry ? OLC_HELP(d)->entry : "Empty\r\n", sizeof(buf1) - 1);
   strip_cr(buf1);
@@ -146,7 +343,7 @@ static void hedit_save_to_db(struct descriptor_data *d)
                              " on duplicate key update"
                              "  min_level = values(min_level),"
                              "  entry = values(entry);",
-           escaped_tag, buf2, help_table[i].min_level);
+           escaped_tag, buf2, OLC_HELP(d)->min_level);
   free(escaped_tag);
 
   if (mysql_query(conn, buf))
@@ -154,7 +351,13 @@ static void hedit_save_to_db(struct descriptor_data *d)
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to UPSERT into help_entries: %s", mysql_error(conn));
   }
   /* Clear out the old keywords. */
-  snprintf(buf, sizeof(buf), "DELETE from help_keywords where lower(help_tag) = lower('%s')", OLC_HELP(d)->tag);
+  char *escaped_tag_del = mysql_escape_string_alloc(conn, OLC_HELP(d)->tag);
+  if (!escaped_tag_del) {
+    log("SYSERR: Failed to escape help tag for keyword deletion in hedit_save_to_db");
+    return;
+  }
+  snprintf(buf, sizeof(buf), "DELETE from help_keywords where lower(help_tag) = lower('%s')", escaped_tag_del);
+  free(escaped_tag_del);
 
   if (mysql_query(conn, buf))
   {
@@ -295,8 +498,14 @@ bool hedit_delete_entry(struct help_entry_list *entry)
   while (hedit_delete_keyword(entry, 1))
     ;
 
-  snprintf(buf, sizeof(buf), "delete from help_entries where lower(tag) = lower('%s')", entry->tag);
+  char *escaped_tag = mysql_escape_string_alloc(conn, entry->tag);
+  if (!escaped_tag) {
+    log("SYSERR: Failed to escape help tag in hedit_delete_entry");
+    return FALSE;
+  }
+  snprintf(buf, sizeof(buf), "delete from help_entries where lower(tag) = lower('%s')", escaped_tag);
   mudlog(NRM, LVL_STAFF, TRUE, "%s", buf);
+  free(escaped_tag);
 
   if (mysql_query(conn, buf))
   {
@@ -484,9 +693,14 @@ void hedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case HEDIT_TAG:
+    strip_cr(arg);
+    /* Validate the tag before accepting it */
+    if (!validate_help_tag(arg, d)) {
+      write_to_output(d, "Enter help entry tag : ");
+      return;
+    }
     if (OLC_HELP(d)->tag)
       free(OLC_HELP(d)->tag);
-    strip_cr(arg);
     OLC_HELP(d)->tag = str_udup(arg);
     break;
 
@@ -515,6 +729,12 @@ void hedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case HEDIT_NEW_KEYWORD:
+    strip_cr(arg);
+    /* Validate the keyword before accepting it */
+    if (!validate_help_keyword(arg, d)) {
+      write_to_output(d, "Enter new keyword : ");
+      return;
+    }
     CREATE(new_keyword, struct help_keyword_list, 1);
     new_keyword->tag = strdup(OLC_HELP(d)->tag);
     new_keyword->keyword = str_udup(arg);
@@ -549,12 +769,12 @@ void hedit_parse(struct descriptor_data *d, char *arg)
 
   case HEDIT_MIN_LEVEL:
     number = atoi(arg);
-    if ((number < 0) || (number > LVL_IMPL))
-      write_to_output(d, "That is not a valid choice!\r\nEnter min level:-\r\n] ");
-    else
-    {
-      OLC_HELP(d)->min_level = number;
+    /* Use validation function for consistency and better error messages */
+    if (!validate_min_level(number, d)) {
+      write_to_output(d, "Enter min level : ");
+      return;
     }
+    OLC_HELP(d)->min_level = number;
     break;
 
   default:
@@ -616,8 +836,16 @@ ACMD(do_helpcheck)
 
 ACMD(do_hindex)
 {
+  /* This command now uses MySQL database instead of legacy help_table
+   * It queries help_keywords table to find all keywords matching the search pattern
+   * Two types of matches: keywords beginning with pattern, and keywords containing pattern */
+  
   char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
-  int i = 0, count = 0, count2 = 0, len = 0, len2 = 0;
+  char query[MAX_STRING_LENGTH];
+  char *escaped_arg;
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int count = 0, count2 = 0, len = 0, len2 = 0, total_entries = 0;
 
   skip_spaces_c(&argument);
 
@@ -627,19 +855,85 @@ ACMD(do_hindex)
     return;
   }
 
+  /* Escape the search argument to prevent SQL injection */
+  escaped_arg = (char *)malloc(strlen(argument) * 2 + 1);
+  if (!escaped_arg) {
+    send_to_char(ch, "Memory allocation error.\r\n");
+    return;
+  }
+  mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
+
   len = snprintf(buf, sizeof(buf), "\t1Help index entries beginning with '%s':\t2\r\n", argument);
   len2 = snprintf(buf2, sizeof(buf2), "\t1Help index entries containing '%s':\t2\r\n", argument);
-  for (i = 0; i < top_of_helpt; i++)
-  {
-    if (is_abbrev(argument, help_table[i].keywords) && (GET_LEVEL(ch) >= help_table[i].min_level))
-      len +=
-          snprintf(buf + len, sizeof(buf) - len, "%-20.20s%s", help_table[i].keywords,
-                   (++count % 3 ? "" : "\r\n"));
-    else if (strstr(help_table[i].keywords, argument) && (GET_LEVEL(ch) >= help_table[i].min_level))
-      len2 +=
-          snprintf(buf2 + len2, sizeof(buf2) - len2, "%-20.20s%s", help_table[i].keywords,
-                   (++count2 % 3 ? "" : "\r\n"));
+
+  /* Query 1: Find keywords beginning with the search pattern */
+  snprintf(query, sizeof(query),
+    "SELECT DISTINCT hk.keyword "
+    "FROM help_keywords hk "
+    "JOIN help_entries he ON hk.help_tag = he.tag "
+    "WHERE LOWER(hk.keyword) LIKE LOWER('%s%%') "
+    "AND he.min_level <= %d "
+    "ORDER BY hk.keyword",
+    escaped_arg, GET_LEVEL(ch));
+
+  if (mysql_query(conn, query) == 0) {
+    result = mysql_store_result(conn);
+    if (result) {
+      while ((row = mysql_fetch_row(result))) {
+        if (row[0]) {
+          len += snprintf(buf + len, sizeof(buf) - len, "%-20.20s%s", 
+                         row[0], (++count % 3 ? "" : "\r\n"));
+        }
+      }
+      mysql_free_result(result);
+    }
   }
+
+  /* Query 2: Find keywords containing the search pattern (but not beginning with it) */
+  snprintf(query, sizeof(query),
+    "SELECT DISTINCT hk.keyword "
+    "FROM help_keywords hk "
+    "JOIN help_entries he ON hk.help_tag = he.tag "
+    "WHERE LOWER(hk.keyword) LIKE LOWER('%%_%s%%') "  /* Use %%_ to exclude beginning matches */
+    "AND LOWER(hk.keyword) NOT LIKE LOWER('%s%%') "   /* Exclude already found entries */
+    "AND he.min_level <= %d "
+    "ORDER BY hk.keyword",
+    escaped_arg, escaped_arg, GET_LEVEL(ch));
+
+  if (mysql_query(conn, query) == 0) {
+    result = mysql_store_result(conn);
+    if (result) {
+      while ((row = mysql_fetch_row(result))) {
+        if (row[0]) {
+          len2 += snprintf(buf2 + len2, sizeof(buf2) - len2, "%-20.20s%s",
+                          row[0], (++count2 % 3 ? "" : "\r\n"));
+        }
+      }
+      mysql_free_result(result);
+    }
+  }
+
+  /* Get total count of help entries accessible to this player */
+  snprintf(query, sizeof(query),
+    "SELECT COUNT(DISTINCT he.tag) "
+    "FROM help_entries he "
+    "WHERE he.min_level <= %d",
+    GET_LEVEL(ch));
+
+  if (mysql_query(conn, query) == 0) {
+    result = mysql_store_result(conn);
+    if (result) {
+      row = mysql_fetch_row(result);
+      if (row && row[0]) {
+        total_entries = atoi(row[0]);
+      }
+      mysql_free_result(result);
+    }
+  }
+
+  free(escaped_arg);
+
+  /* Format the output */
   if (count % 3)
     len += snprintf(buf + len, sizeof(buf) - len, "\r\n");
   if (count2 % 3)
@@ -650,12 +944,12 @@ ACMD(do_hindex)
   if (!count2)
     len2 += snprintf(buf2 + len2, sizeof(buf2) - len2, "  None.\r\n");
 
-  // Join the two strings
+  /* Join the two strings */
   len += snprintf(buf + len, sizeof(buf) - len, "%s", buf2);
 
   len += snprintf(buf + len, sizeof(buf) - len, "\t1Applicable Index Entries: \t3%d\r\n"
                                                 "\t1Total Index Entries: \t3%d\tn\r\n",
-                  count + count2, top_of_helpt);
+                  count + count2, total_entries);
 
   page_string(ch->desc, buf, TRUE);
 }
