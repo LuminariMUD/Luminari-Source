@@ -916,7 +916,9 @@ char *generate_resource_aware_description(struct char_data *ch, room_rnum room)
     
     log("DEBUG: Base description generated: %.100s...", base_desc);
     
-    strcpy(description, base_desc);
+    /* Initialize description buffer safely */
+    description[0] = '\0';
+    strncat(description, base_desc, MAX_STRING_LENGTH - 1);
     
     /* Add layered details - avoid redundant water descriptions for water terrains */
     if (context.terrain_type != SECT_WATER_SWIM && 
@@ -941,10 +943,16 @@ char *generate_resource_aware_description(struct char_data *ch, room_rnum room)
     }
     
     /* Ensure proper ending */
-    if (description[strlen(description) - 1] != '.') {
-        strcat(description, ".");
+    int len = strlen(description);
+    if (len > 0 && description[len - 1] != '.') {
+        if (len < MAX_STRING_LENGTH - 2) {
+            strncat(description, ".", MAX_STRING_LENGTH - len - 1);
+        }
     }
-    strcat(description, "\r\n");
+    len = strlen(description);
+    if (len < MAX_STRING_LENGTH - 3) {
+        strncat(description, "\r\n", MAX_STRING_LENGTH - len - 1);
+    }
     
     return strdup(description);
 }
@@ -1221,6 +1229,15 @@ void get_environmental_context(room_rnum room, struct environmental_context *con
 
 /* ===== DESCRIPTION COMPONENT GENERATORS ===== */
 
+/* Safe string concatenation helper */
+void safe_strcat(char *dest, const char *src) {
+    int dest_len = strlen(dest);
+    int remaining = MAX_STRING_LENGTH - dest_len - 1;
+    if (remaining > 0) {
+        strncat(dest, src, remaining);
+    }
+}
+
 char *get_terrain_base_description(room_rnum room, struct resource_state *state, 
                                   struct environmental_context *context)
 {
@@ -1450,17 +1467,17 @@ void add_vegetation_details(char *desc, struct resource_state *state,
         /* Add aquatic vegetation based on vegetation levels */
         if (state->vegetation_level >= RESOURCE_ABUNDANT_THRESHOLD) {
             if (context->terrain_type == SECT_UNDERWATER) {
-                strcat(desc, ". Swaying kelp forests and colorful coral formations create an underwater garden");
+                safe_strcat(desc, ". Swaying kelp forests and colorful coral formations create an underwater garden");
             } else if (context->terrain_type == SECT_OCEAN) {
-                strcat(desc, ". Patches of floating seaweed drift across the surface");
+                safe_strcat(desc, ". Patches of floating seaweed drift across the surface");
             } else {
-                strcat(desc, ". Aquatic plants and reeds line the water's edge");
+                safe_strcat(desc, ". Aquatic plants and reeds line the water's edge");
             }
         } else if (state->vegetation_level >= RESOURCE_MODERATE_THRESHOLD) {
             if (context->terrain_type == SECT_UNDERWATER) {
-                strcat(desc, ". Scattered sea plants and small coral formations dot the seafloor");
+                safe_strcat(desc, ". Scattered sea plants and small coral formations dot the seafloor");
             } else {
-                strcat(desc, ". Sparse aquatic vegetation breaks the water's surface");
+                safe_strcat(desc, ". Sparse aquatic vegetation breaks the water's surface");
             }
         }
         return; /* Done with aquatic vegetation */
@@ -1471,30 +1488,30 @@ void add_vegetation_details(char *desc, struct resource_state *state,
         switch (context->season) {
             case SEASON_SPRING:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    strcat(desc, ", their branches alive with new growth and emerging buds");
+                    safe_strcat(desc, ", their branches alive with new growth and emerging buds");
                 } else {
-                    strcat(desc, ", where lush grasses and vibrant wildflowers bloom in abundance");
+                    safe_strcat(desc, ", where lush grasses and vibrant wildflowers bloom in abundance");
                 }
                 break;
             case SEASON_SUMMER:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    strcat(desc, ", their emerald canopy dense with lush foliage");
+                    safe_strcat(desc, ", their emerald canopy dense with lush foliage");
                 } else {
-                    strcat(desc, ", where thick carpets of grass wave gently in the breeze");
+                    safe_strcat(desc, ", where thick carpets of grass wave gently in the breeze");
                 }
                 break;
             case SEASON_AUTUMN:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    strcat(desc, ", their leaves a brilliant tapestry of gold and crimson");
+                    safe_strcat(desc, ", their leaves a brilliant tapestry of gold and crimson");
                 } else {
-                    strcat(desc, ", where golden grasses and late-season flowers create a warm mosaic");
+                    safe_strcat(desc, ", where golden grasses and late-season flowers create a warm mosaic");
                 }
                 break;
             case SEASON_WINTER:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    strcat(desc, ", their bare branches creating intricate patterns against the sky");
+                    safe_strcat(desc, ", their bare branches creating intricate patterns against the sky");
                 } else {
-                    strcat(desc, ", where hardy winter grasses persist despite the cold");
+                    safe_strcat(desc, ", where hardy winter grasses persist despite the cold");
                 }
                 break;
         }
@@ -1502,9 +1519,9 @@ void add_vegetation_details(char *desc, struct resource_state *state,
         switch (context->season) {
             case SEASON_SPRING:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    strcat(desc, ", showing the first signs of spring's awakening");
+                    safe_strcat(desc, ", showing the first signs of spring's awakening");
                 } else {
-                    strcat(desc, ", where patches of new grass emerge among scattered wildflowers");
+                    safe_strcat(desc, ", where patches of new grass emerge among scattered wildflowers");
                 }
                 break;
             case SEASON_SUMMER:
@@ -1513,22 +1530,22 @@ void add_vegetation_details(char *desc, struct resource_state *state,
                     if (context->time_of_day == SUN_DARK) {
                         if (context->has_light_sources) {
                             if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                                strcat(desc, ", their healthy canopy heavy with rain, droplets glistening in the flickering light");
+                                safe_strcat(desc, ", their healthy canopy heavy with rain, droplets glistening in the flickering light");
                             } else {
-                                strcat(desc, ", their healthy canopy creating dancing shadows in the flickering light");
+                                safe_strcat(desc, ", their healthy canopy creating dancing shadows in the flickering light");
                             }
                         } else {
                             if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                                strcat(desc, ", their rain-soaked canopy rustling softly in the darkness");
+                                safe_strcat(desc, ", their rain-soaked canopy rustling softly in the darkness");
                             } else {
-                                strcat(desc, ", their healthy canopy rustling softly in the night breeze");
+                                safe_strcat(desc, ", their healthy canopy rustling softly in the night breeze");
                             }
                         }
                     } else {
                         if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                            strcat(desc, ", their healthy canopy dripping steadily from the ongoing rain");
+                            safe_strcat(desc, ", their healthy canopy dripping steadily from the ongoing rain");
                         } else {
-                            strcat(desc, ", their healthy canopy providing pleasant shade");
+                            safe_strcat(desc, ", their healthy canopy providing pleasant shade");
                         }
                     }
                 } else {
@@ -1536,38 +1553,38 @@ void add_vegetation_details(char *desc, struct resource_state *state,
                     if (context->time_of_day == SUN_DARK) {
                         if (context->has_light_sources) {
                             if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                                strcat(desc, ", the rain-laden grasses and flowers bending under the weight of water in the artificial light");
+                                safe_strcat(desc, ", the rain-laden grasses and flowers bending under the weight of water in the artificial light");
                             } else {
-                                strcat(desc, ", the grasses and flowers swaying gently in the artificial light");
+                                safe_strcat(desc, ", the grasses and flowers swaying gently in the artificial light");
                             }
                         } else {
                             if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                                strcat(desc, ", the vegetation heavy with rainwater rustling quietly in the darkness");
+                                safe_strcat(desc, ", the vegetation heavy with rainwater rustling quietly in the darkness");
                             } else {
-                                strcat(desc, ", the vegetation rustling quietly in the darkness");
+                                safe_strcat(desc, ", the vegetation rustling quietly in the darkness");
                             }
                         }
                     } else {
                         if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                            strcat(desc, ", where grasses and scattered flowers glisten with fresh raindrops");
+                            safe_strcat(desc, ", where grasses and scattered flowers glisten with fresh raindrops");
                         } else {
-                            strcat(desc, ", creating a pleasant meadow dotted with colorful blooms");
+                            safe_strcat(desc, ", creating a pleasant meadow dotted with colorful blooms");
                         }
                     }
                 }
                 break;
             case SEASON_AUTUMN:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    strcat(desc, ", touched with the colors of the changing season");
+                    safe_strcat(desc, ", touched with the colors of the changing season");
                 } else {
-                    strcat(desc, ", where autumn grasses turn golden and seed heads catch the wind");
+                    safe_strcat(desc, ", where autumn grasses turn golden and seed heads catch the wind");
                 }
                 break;
             case SEASON_WINTER:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    strcat(desc, ", standing quiet and still in winter's embrace");
+                    safe_strcat(desc, ", standing quiet and still in winter's embrace");
                 } else {
-                    strcat(desc, ", where frost-touched grasses create a sparse but resilient ground cover");
+                    safe_strcat(desc, ", where frost-touched grasses create a sparse but resilient ground cover");
                 }
                 break;
         }
@@ -1575,9 +1592,9 @@ void add_vegetation_details(char *desc, struct resource_state *state,
         switch (context->season) {
             case SEASON_SPRING:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    strcat(desc, ", where tender new shoots push through the soil");
+                    safe_strcat(desc, ", where tender new shoots push through the soil");
                 } else {
-                    strcat(desc, ", where scattered shoots of grass emerge from the earth");
+                    safe_strcat(desc, ", where scattered shoots of grass emerge from the earth");
                 }
                 break;
             case SEASON_SUMMER:
@@ -1585,37 +1602,37 @@ void add_vegetation_details(char *desc, struct resource_state *state,
                 if (context->time_of_day == SUN_DARK) {
                     if (context->has_light_sources) {
                         if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                            strcat(desc, ", their sparse forms casting twisted shadows in the artificial light");
+                            safe_strcat(desc, ", their sparse forms casting twisted shadows in the artificial light");
                         } else {
-                            strcat(desc, ", where sparse patches of vegetation are highlighted by the flickering light");
+                            safe_strcat(desc, ", where sparse patches of vegetation are highlighted by the flickering light");
                         }
                     } else {
                         if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                            strcat(desc, ", their sparse forms barely visible in the darkness");
+                            safe_strcat(desc, ", their sparse forms barely visible in the darkness");
                         } else {
-                            strcat(desc, ", where scattered vegetation fades into the night");
+                            safe_strcat(desc, ", where scattered vegetation fades into the night");
                         }
                     }
                 } else {
                     if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                        strcat(desc, ", creating patches of shade in the open landscape");
+                        safe_strcat(desc, ", creating patches of shade in the open landscape");
                     } else {
-                        strcat(desc, ", where scattered wildflowers add splashes of color to the grassland");
+                        safe_strcat(desc, ", where scattered wildflowers add splashes of color to the grassland");
                     }
                 }
                 break;
             case SEASON_AUTUMN:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    strcat(desc, ", their sparse foliage rustling in the breeze");
+                    safe_strcat(desc, ", their sparse foliage rustling in the breeze");
                 } else {
-                    strcat(desc, ", where dry grasses and fading wildflowers bend in the autumn wind");
+                    safe_strcat(desc, ", where dry grasses and fading wildflowers bend in the autumn wind");
                 }
                 break;
             case SEASON_WINTER:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    strcat(desc, ", stark and beautiful against the winter landscape");
+                    safe_strcat(desc, ", stark and beautiful against the winter landscape");
                 } else {
-                    strcat(desc, ", where only the hardiest grasses survive the winter cold");
+                    safe_strcat(desc, ", where only the hardiest grasses survive the winter cold");
                 }
                 break;
         }
@@ -1655,7 +1672,7 @@ void add_geological_details(char *desc, struct resource_state *state,
     
     /* Choose a random template for variety */
     int choice = rand() % template_count;
-    strcat(desc, templates[choice]);
+    safe_strcat(desc, templates[choice]);
 }
 
 void add_water_features(char *desc, struct resource_state *state, 
@@ -1673,101 +1690,101 @@ void add_water_features(char *desc, struct resource_state *state,
         if (state->water_level >= RESOURCE_ABUNDANT_THRESHOLD) {
             /* Abundant water - terrain-specific descriptions */
             if (use_template) {
-                strcat(desc, water_details_abundant[rand() % 20]);
+                safe_strcat(desc, water_details_abundant[rand() % 20]);
             } else {
                 switch (context->terrain_type) {
                     case SECT_WATER_SWIM:
                     case SECT_WATER_NOSWIM:
                     case SECT_OCEAN:
-                        strcat(desc, ". The clear waters reflect the sky above");
+                        safe_strcat(desc, ". The clear waters reflect the sky above");
                         break;
                     case SECT_UNDERWATER:
-                        strcat(desc, ". The underwater currents flow gently through the aquatic environment");
+                        safe_strcat(desc, ". The underwater currents flow gently through the aquatic environment");
                         break;
                     case SECT_BEACH:
-                        strcat(desc, ". Waves wash rhythmically against the sandy shore");
+                        safe_strcat(desc, ". Waves wash rhythmically against the sandy shore");
                         break;
                     case SECT_MARSHLAND:
-                        strcat(desc, ". Meandering waterways wind through the marshy terrain");
+                        safe_strcat(desc, ". Meandering waterways wind through the marshy terrain");
                         break;
                     case SECT_MOUNTAIN:
-                        strcat(desc, ". A mountain spring bubbles forth from rocky clefts");
+                        safe_strcat(desc, ". A mountain spring bubbles forth from rocky clefts");
                         break;
                     case SECT_FOREST:
-                        strcat(desc, ". A crystal-clear brook winds between moss-covered boulders");
+                        safe_strcat(desc, ". A crystal-clear brook winds between moss-covered boulders");
                         break;
                     case SECT_FIELD:
-                        strcat(desc, ". A lively creek dances through the meadow over smooth stones");
+                        safe_strcat(desc, ". A lively creek dances through the meadow over smooth stones");
                         break;
                     case SECT_HILLS:
-                        strcat(desc, ". Sparkling streams cascade down the hillsides");
+                        safe_strcat(desc, ". Sparkling streams cascade down the hillsides");
                         break;
                     case SECT_DESERT:
-                        strcat(desc, ". A rare oasis provides life-giving water in the arid landscape");
+                        safe_strcat(desc, ". A rare oasis provides life-giving water in the arid landscape");
                         break;
                     default:
-                        strcat(desc, ". Abundant fresh water flows through the area");
+                        safe_strcat(desc, ". Abundant fresh water flows through the area");
                         break;
                 }
             }
         } else if (state->water_level >= RESOURCE_MODERATE_THRESHOLD) {
             /* Moderate water - terrain-specific descriptions */
             if (use_template) {
-                strcat(desc, water_details_moderate[rand() % 20]);
+                safe_strcat(desc, water_details_moderate[rand() % 20]);
             } else {
                 switch (context->terrain_type) {
                     case SECT_WATER_SWIM:
                     case SECT_WATER_NOSWIM:
                     case SECT_OCEAN:
-                        strcat(desc, ". The waters move with steady currents");
+                        safe_strcat(desc, ". The waters move with steady currents");
                         break;
                     case SECT_BEACH:
-                        strcat(desc, ". Gentle waves lap against the shoreline");
+                        safe_strcat(desc, ". Gentle waves lap against the shoreline");
                         break;
                     case SECT_MARSHLAND:
-                        strcat(desc, ". Shallow channels weave through the wetland");
+                        safe_strcat(desc, ". Shallow channels weave through the wetland");
                         break;
                     case SECT_MOUNTAIN:
-                        strcat(desc, ". A steady mountain stream flows over rocky terrain");
+                        safe_strcat(desc, ". A steady mountain stream flows over rocky terrain");
                         break;
                     case SECT_FOREST:
                     case SECT_FIELD:
                     case SECT_HILLS:
-                        strcat(desc, ". A steady stream flows over smooth stones");
+                        safe_strcat(desc, ". A steady stream flows over smooth stones");
                         break;
                     case SECT_DESERT:
-                        strcat(desc, ". A small spring provides precious water in the dry landscape");
+                        safe_strcat(desc, ". A small spring provides precious water in the dry landscape");
                         break;
                     default:
-                        strcat(desc, ". Water flows quietly through the terrain");
+                        safe_strcat(desc, ". Water flows quietly through the terrain");
                         break;
                 }
             }
         } else {
             /* Sparse water - terrain-specific descriptions */
             if (use_template) {
-                strcat(desc, water_details_sparse[rand() % 20]);
+                safe_strcat(desc, water_details_sparse[rand() % 20]);
             } else {
                 switch (context->terrain_type) {
                     case SECT_BEACH:
-                        strcat(desc, ". Occasional tide pools collect seawater among the rocks");
+                        safe_strcat(desc, ". Occasional tide pools collect seawater among the rocks");
                         break;
                     case SECT_MARSHLAND:
-                        strcat(desc, ". Shallow puddles dot the boggy ground");
+                        safe_strcat(desc, ". Shallow puddles dot the boggy ground");
                         break;
                     case SECT_MOUNTAIN:
-                        strcat(desc, ". A thin trickle of water seeps from cracks in the stone");
+                        safe_strcat(desc, ". A thin trickle of water seeps from cracks in the stone");
                         break;
                     case SECT_DESERT:
-                        strcat(desc, ". Rare pools reflect the sky where water briefly collects");
+                        safe_strcat(desc, ". Rare pools reflect the sky where water briefly collects");
                         break;
                     case SECT_FOREST:
                     case SECT_FIELD:
                     case SECT_HILLS:
-                        strcat(desc, ". Small pools reflect the sky where water once flowed freely");
+                        safe_strcat(desc, ". Small pools reflect the sky where water once flowed freely");
                         break;
                     default:
-                        strcat(desc, ". Traces of water hint at hidden springs");
+                        safe_strcat(desc, ". Traces of water hint at hidden springs");
                         break;
                 }
             }
@@ -1790,37 +1807,37 @@ void add_temporal_atmosphere(char *desc, struct environmental_context *context)
                 /* Use time-appropriate atmosphere arrays for clear weather */
                 switch (context->time_of_day) {
                     case SUN_RISE:
-                        strcat(desc, atmosphere_dawn[rand() % 20]);
+                        safe_strcat(desc, atmosphere_dawn[rand() % 20]);
                         break;
                     case SUN_LIGHT:
-                        strcat(desc, atmosphere_day[rand() % 20]);
+                        safe_strcat(desc, atmosphere_day[rand() % 20]);
                         break;
                     case SUN_SET:
-                        strcat(desc, atmosphere_dusk[rand() % 20]);
+                        safe_strcat(desc, atmosphere_dusk[rand() % 20]);
                         break;
                     case SUN_DARK:
-                        strcat(desc, atmosphere_night[rand() % 20]);
+                        safe_strcat(desc, atmosphere_night[rand() % 20]);
                         break;
                 }
             }
             break;
         case WEATHER_CLOUDY:
             if (atmosphere_choice == 0) {
-                strcat(desc, " under a canopy of gray clouds");
+                safe_strcat(desc, " under a canopy of gray clouds");
             } else {
                 /* Use atmospheric variety for cloudy weather */
                 switch (context->time_of_day) {
                     case SUN_RISE:
-                        strcat(desc, atmosphere_dawn[rand() % 20]);
+                        safe_strcat(desc, atmosphere_dawn[rand() % 20]);
                         break;
                     case SUN_LIGHT:
-                        strcat(desc, atmosphere_day[rand() % 20]);
+                        safe_strcat(desc, atmosphere_day[rand() % 20]);
                         break;
                     case SUN_SET:
-                        strcat(desc, atmosphere_dusk[rand() % 20]);
+                        safe_strcat(desc, atmosphere_dusk[rand() % 20]);
                         break;
                     case SUN_DARK:
-                        strcat(desc, atmosphere_night[rand() % 20]);
+                        safe_strcat(desc, atmosphere_night[rand() % 20]);
                         break;
                 }
             }
@@ -1829,26 +1846,26 @@ void add_temporal_atmosphere(char *desc, struct environmental_context *context)
             switch (context->time_of_day) {
                 case SUN_DARK:
                     if (atmosphere_choice == 0) {
-                        strcat(desc, " as gentle rain patters softly in the darkness");
+                        safe_strcat(desc, " as gentle rain patters softly in the darkness");
                     } else {
-                        strcat(desc, atmosphere_night[rand() % 20]);
+                        safe_strcat(desc, atmosphere_night[rand() % 20]);
                     }
                     break;
                 case SUN_RISE:
                 case SUN_SET:
                     if (atmosphere_choice == 0) {
-                        strcat(desc, " where light rain creates a misty veil over the landscape");
+                        safe_strcat(desc, " where light rain creates a misty veil over the landscape");
                     } else if (context->time_of_day == SUN_RISE) {
-                        strcat(desc, atmosphere_dawn[rand() % 20]);
+                        safe_strcat(desc, atmosphere_dawn[rand() % 20]);
                     } else {
-                        strcat(desc, atmosphere_dusk[rand() % 20]);
+                        safe_strcat(desc, atmosphere_dusk[rand() % 20]);
                     }
                     break;
                 default:
                     if (atmosphere_choice == 0) {
-                        strcat(desc, " as steady rain drums against the earth");
+                        safe_strcat(desc, " as steady rain drums against the earth");
                     } else {
-                        strcat(desc, atmosphere_day[rand() % 20]);
+                        safe_strcat(desc, atmosphere_day[rand() % 20]);
                     }
                     break;
             }
@@ -1856,24 +1873,24 @@ void add_temporal_atmosphere(char *desc, struct environmental_context *context)
         case WEATHER_STORMY:
             if (context->time_of_day == SUN_DARK) {
                 if (atmosphere_choice == 0) {
-                    strcat(desc, " while heavy rain pounds the ground through the night");
+                    safe_strcat(desc, " while heavy rain pounds the ground through the night");
                 } else {
-                    strcat(desc, atmosphere_night[rand() % 20]);
+                    safe_strcat(desc, atmosphere_night[rand() % 20]);
                 }
             } else {
                 if (atmosphere_choice == 0) {
-                    strcat(desc, " as sheets of rain sweep across the terrain");
+                    safe_strcat(desc, " as sheets of rain sweep across the terrain");
                 } else {
                     /* Use time-appropriate atmosphere for stormy weather */
                     switch (context->time_of_day) {
                         case SUN_RISE:
-                            strcat(desc, atmosphere_dawn[rand() % 20]);
+                            safe_strcat(desc, atmosphere_dawn[rand() % 20]);
                             break;
                         case SUN_SET:
-                            strcat(desc, atmosphere_dusk[rand() % 20]);
+                            safe_strcat(desc, atmosphere_dusk[rand() % 20]);
                             break;
                         default:
-                            strcat(desc, atmosphere_day[rand() % 20]);
+                            safe_strcat(desc, atmosphere_day[rand() % 20]);
                             break;
                     }
                 }
@@ -1882,24 +1899,24 @@ void add_temporal_atmosphere(char *desc, struct environmental_context *context)
         case WEATHER_LIGHTNING:
             if (context->time_of_day == SUN_DARK) {
                 if (atmosphere_choice == 0) {
-                    strcat(desc, " as lightning tears through the storm-darkened sky, briefly illuminating the rain-soaked landscape");
+                    safe_strcat(desc, " as lightning tears through the storm-darkened sky, briefly illuminating the rain-soaked landscape");
                 } else {
-                    strcat(desc, atmosphere_night[rand() % 20]);
+                    safe_strcat(desc, atmosphere_night[rand() % 20]);
                 }
             } else {
                 if (atmosphere_choice == 0) {
-                    strcat(desc, " where lightning splits the turbulent sky above the storm-lashed terrain");
+                    safe_strcat(desc, " where lightning splits the turbulent sky above the storm-lashed terrain");
                 } else {
                     /* Use time-appropriate atmosphere for lightning weather */
                     switch (context->time_of_day) {
                         case SUN_RISE:
-                            strcat(desc, atmosphere_dawn[rand() % 20]);
+                            safe_strcat(desc, atmosphere_dawn[rand() % 20]);
                             break;
                         case SUN_SET:
-                            strcat(desc, atmosphere_dusk[rand() % 20]);
+                            safe_strcat(desc, atmosphere_dusk[rand() % 20]);
                             break;
                         default:
-                            strcat(desc, atmosphere_day[rand() % 20]);
+                            safe_strcat(desc, atmosphere_day[rand() % 20]);
                             break;
                     }
                 }
@@ -1913,41 +1930,41 @@ void add_temporal_atmosphere(char *desc, struct environmental_context *context)
         switch (context->time_of_day) {
             case SUN_RISE: /* Hours 5-6 */
                 if (context->has_light_sources) {
-                    strcat(desc, " as the first light of dawn mingles with the warm glow of torchlight");
+                    safe_strcat(desc, " as the first light of dawn mingles with the warm glow of torchlight");
                 } else {
-                    strcat(desc, " as the first light of dawn filters through the landscape");
+                    safe_strcat(desc, " as the first light of dawn filters through the landscape");
                 }
                 break;
             case SUN_LIGHT: /* Hours 6-21 */
                 /* More specific descriptions based on likely time periods */
                 if (time_info.hours >= 6 && time_info.hours < 10) {
-                    strcat(desc, " in the gentle light of morning");
+                    safe_strcat(desc, " in the gentle light of morning");
                 } else if (time_info.hours >= 10 && time_info.hours < 14) {
-                    strcat(desc, " under the bright midday sun");
+                    safe_strcat(desc, " under the bright midday sun");
                 } else if (time_info.hours >= 14 && time_info.hours < 18) {
-                    strcat(desc, " in the warm afternoon light");
+                    safe_strcat(desc, " in the warm afternoon light");
                 } else {
-                    strcat(desc, " in the fading daylight of evening");
+                    safe_strcat(desc, " in the fading daylight of evening");
                 }
                 break;
             case SUN_SET: /* Hours 21-22 */
                 if (context->has_light_sources) {
-                    strcat(desc, " as twilight deepens and artificial light begins to push back the gathering darkness");
+                    safe_strcat(desc, " as twilight deepens and artificial light begins to push back the gathering darkness");
                 } else {
-                    strcat(desc, " as twilight casts long shadows across the terrain");
+                    safe_strcat(desc, " as twilight casts long shadows across the terrain");
                 }
                 break;
             case SUN_DARK: /* Hours 22-5 */
                 if (context->has_light_sources) {
                     if (context->artificial_light >= 50) {
-                        strcat(desc, " illuminated by the warm glow of torchlight dancing across the landscape");
+                        safe_strcat(desc, " illuminated by the warm glow of torchlight dancing across the landscape");
                     } else if (context->artificial_light >= 20) {
-                        strcat(desc, " where flickering light creates shifting patterns of illumination and shadow");
+                        safe_strcat(desc, " where flickering light creates shifting patterns of illumination and shadow");
                     } else {
-                        strcat(desc, " where a faint light source barely pierces the encompassing darkness");
+                        safe_strcat(desc, " where a faint light source barely pierces the encompassing darkness");
                     }
                 } else {
-                    strcat(desc, " under the pale light of moon and stars");
+                    safe_strcat(desc, " under the pale light of moon and stars");
                 }
                 break;
         }
@@ -1975,22 +1992,22 @@ void add_wildlife_presence(char *desc, struct resource_state *state,
                 case SUN_RISE:
                 case SUN_SET:
                     if (context->terrain_type == SECT_UNDERWATER) {
-                        strcat(desc, ". Shadowy fish move through the changing light");
+                        safe_strcat(desc, ". Shadowy fish move through the changing light");
                     } else {
-                        strcat(desc, ". Fish leap from the water's surface in the changing light");
+                        safe_strcat(desc, ". Fish leap from the water's surface in the changing light");
                     }
                     break;
                 case SUN_LIGHT:
                     if (time_info.hours >= 6 && time_info.hours < 12) {
-                        strcat(desc, ". Schools of fish glimmer beneath the surface");
+                        safe_strcat(desc, ". Schools of fish glimmer beneath the surface");
                     } else if (time_info.hours >= 12 && time_info.hours < 18) {
-                        strcat(desc, ". Aquatic life moves gracefully through the depths");
+                        safe_strcat(desc, ". Aquatic life moves gracefully through the depths");
                     } else {
-                        strcat(desc, ". Evening feeders stir in the deeper waters");
+                        safe_strcat(desc, ". Evening feeders stir in the deeper waters");
                     }
                     break;
                 case SUN_DARK:
-                    strcat(desc, ". Nocturnal marine life becomes active in the darkness");
+                    safe_strcat(desc, ". Nocturnal marine life becomes active in the darkness");
                     break;
             }
         } else {
@@ -1998,28 +2015,28 @@ void add_wildlife_presence(char *desc, struct resource_state *state,
             switch (context->time_of_day) {
                 case SUN_RISE:
                 case SUN_SET:
-                    strcat(desc, ". Small creatures can be heard moving through the underbrush");
+                    safe_strcat(desc, ". Small creatures can be heard moving through the underbrush");
                     break;
                 case SUN_LIGHT:
                     /* Different wildlife sounds based on time within daylight hours */
                     if (time_info.hours >= 6 && time_info.hours < 12) {
-                        strcat(desc, ". Birdsong echoes from the canopy above");
+                        safe_strcat(desc, ". Birdsong echoes from the canopy above");
                     } else if (time_info.hours >= 12 && time_info.hours < 18) {
-                        strcat(desc, ". The quiet rustle of leaves hints at hidden wildlife");
+                        safe_strcat(desc, ". The quiet rustle of leaves hints at hidden wildlife");
                     } else {
-                        strcat(desc, ". Evening wildlife begins to stir in the shadows");
+                        safe_strcat(desc, ". Evening wildlife begins to stir in the shadows");
                     }
                     break;
                 case SUN_DARK:
-                    strcat(desc, ". Night sounds drift through the darkness");
+                    safe_strcat(desc, ". Night sounds drift through the darkness");
                     break;
             }
         }
     } else if (state->vegetation_level >= RESOURCE_SPARSE_THRESHOLD) {
         if (is_aquatic) {
-            strcat(desc, ". The waters rest in serene tranquility");
+            safe_strcat(desc, ". The waters rest in serene tranquility");
         } else {
-            strcat(desc, ". The area rests in peaceful solitude");
+            safe_strcat(desc, ". The area rests in peaceful solitude");
         }
     }
 }
@@ -2036,19 +2053,19 @@ void add_elevation_details(char *desc, struct environmental_context *context)
         /* Choose elevation template based on actual elevation in meters */
         if (elevation_meters <= 5.0f) {
             /* Sea level and very low elevations (0-5m) */
-            strcat(desc, elevation_sea_level[rand() % 20]);
+            safe_strcat(desc, elevation_sea_level[rand() % 20]);
         } else if (elevation_meters <= 50.0f) {
             /* Lowlands (5-50m) */
-            strcat(desc, elevation_lowlands[rand() % 20]);
+            safe_strcat(desc, elevation_lowlands[rand() % 20]);
         } else if (elevation_meters <= 200.0f) {
             /* Hills (50-200m) */
-            strcat(desc, elevation_hills[rand() % 20]);
+            safe_strcat(desc, elevation_hills[rand() % 20]);
         } else if (elevation_meters <= 500.0f) {
             /* Mountains (200-500m) */
-            strcat(desc, elevation_mountains[rand() % 20]);
+            safe_strcat(desc, elevation_mountains[rand() % 20]);
         } else {
             /* High peaks (500m+) */
-            strcat(desc, elevation_peaks[rand() % 20]);
+            safe_strcat(desc, elevation_peaks[rand() % 20]);
         }
     }
 }

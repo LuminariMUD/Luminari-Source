@@ -168,8 +168,25 @@ float get_base_resource_value(int resource_type, int x, int y) {
             break;
             
         case RESOURCE_WATER:
-            /* Pure environmental - water flows to low elevations, higher in moist areas */
+            /* Environmental water distribution with terrain-specific modifiers */
             final_value = (1.0f - norm_elevation * 0.8f) + (norm_moisture * 0.5f);
+            
+            /* Desert terrain penalty - severely limit water in arid regions */
+            /* Desert conditions: temperature > 25°C (98/255 = ~0.38) and moisture < 80 (80/255 = ~0.31) */
+            if (temperature > 25 && moisture < 80) {
+                /* Severe desert penalty - reduce water to 5-15% of normal */
+                final_value *= 0.10f;  /* 90% reduction */
+                
+                /* Ultra-arid conditions get even less water */
+                if (moisture < 40) {  /* Extremely dry desert */
+                    final_value *= 0.5f;  /* Additional 50% reduction (total ~5% of normal) */
+                }
+            }
+            /* Semi-arid conditions - moderate penalty */
+            else if (temperature > 20 && moisture < 120) {
+                /* Semi-desert conditions - reduce water by 40% */
+                final_value *= 0.6f;
+            }
             break;
             
         case RESOURCE_HERBS:
@@ -877,8 +894,9 @@ void show_terrain_survey(struct char_data *ch) {
             send_to_char(ch, "  Favorable for: water resources, clay, salt\r\n");
             break;
         case SECT_DESERT:
-            send_to_char(ch, "  Arid desert environment with limited vegetation.\r\n");
-            send_to_char(ch, "  Favorable for: minerals, crystals (sparse vegetation)\r\n");
+            send_to_char(ch, "  Arid desert environment with extremely scarce water resources.\r\n");
+            send_to_char(ch, "  Water is almost never found except in rare oases or ephemeral springs.\r\n");
+            send_to_char(ch, "  Favorable for: minerals, crystals (very sparse vegetation)\r\n");
             break;
         default:
             send_to_char(ch, "  Standard terrain with mixed characteristics.\r\n");
@@ -2151,9 +2169,10 @@ int can_harvest_resource_in_terrain(int resource_type, int sector_type) {
                 case SECT_HILLS:
                 case SECT_MOUNTAIN:  /* Springs */
                     return 1;
+                case SECT_DESERT:  /* Rare oases and underground springs */
+                    return 1;  /* Allow harvesting but with severe resource penalties */
                 case SECT_UNDERWATER:
                 case SECT_FLYING:
-                case SECT_DESERT:  /* Rare water sources */
                 case SECT_HIGH_MOUNTAIN:
                 case SECT_FIELD:
                     return 0;
