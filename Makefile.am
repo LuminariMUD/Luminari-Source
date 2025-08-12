@@ -31,6 +31,9 @@ circle_SOURCES = \
 	src/movement_position.c \
 	src/movement_doors.c \
 	src/movement_falling.c \
+	src/movement_messages.c \
+	src/movement_tracks.c \
+	src/movement_events.c \
 	src/act.offensive.c \
 	src/act.other.c \
 	src/act.social.c \
