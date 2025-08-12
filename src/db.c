@@ -60,6 +60,7 @@
 #include "domains_schools.h"
 #include "grapple.h"
 #include "race.h"
+#include "vessels.h"
 #include "spell_prep.h"
 #include "crafts.h" /* NewCraft */
 #include <sys/stat.h>
@@ -1206,6 +1207,9 @@ void boot_db(void)
   load_hunts();
   log("Spawning hunts for the first time this boot.");
   create_hunts();
+  
+  log("Initializing Greyhawk ship systems...");
+  greyhawk_initialize_ships();
 
   if (!no_rent_check)
   {

@@ -60,6 +60,7 @@
 #include "alchemy.h"
 #include "helpers.h"
 #include "staff_events.h"
+#include "vessels.h"
 #include "premadebuilds.h"
 #include "missions.h"
 #include "transport.h"
@@ -792,6 +793,15 @@ cpp_extern const struct command_info cmd_info[] = {
     {"say", "s", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"sail", "sail", POS_RECLINING, do_sail, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    /* Greyhawk Ship System Commands */
+    {"tactical", "tact", POS_STANDING, do_greyhawk_tactical, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"shipstatus", "shipstat", POS_STANDING, do_greyhawk_status, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"speed", "speed", POS_STANDING, do_greyhawk_speed, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"heading", "heading", POS_STANDING, do_greyhawk_heading, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"contacts", "contacts", POS_STANDING, do_greyhawk_contacts, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"disembark", "disembark", POS_STANDING, do_greyhawk_disembark, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"shipload", "shipload", POS_DEAD, do_greyhawk_shipload, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setsail", "setsail", POS_DEAD, do_greyhawk_setsail, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"score", "sc", POS_DEAD, do_score, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"scoreconfig", "scoreconfig", POS_DEAD, do_scoreconfig, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"skore", "sk", POS_DEAD, do_skore, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

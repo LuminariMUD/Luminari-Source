@@ -175,6 +175,7 @@ circle_SOURCES = \
 	src/treasure.c \
 	src/treasure_const.c \
 	src/utils.c \
+	src/vessels.c \
 	src/weather.c \
 	src/wilderness.c \
 	src/zedit.c \
