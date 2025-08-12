@@ -15,6 +15,8 @@ This deployment script creates all necessary database structures for:
 - Database user with CREATE, INSERT, UPDATE, DELETE privileges
 - Existing Luminari MUD database
 
+**Note**: The script is optimized for MariaDB/MySQL compatibility and avoids PostgreSQL-specific syntax.
+
 ## Installation Steps
 
 ### 1. Update Database Name
@@ -170,6 +172,7 @@ VALUES ('Ancient Forest', 'resource', 'Mystical wood bonuses',
 1. **Foreign key errors**: Ensure you're using the correct database name
 2. **Permission errors**: Database user needs CREATE/ALTER privileges  
 3. **JSON support**: Requires MySQL 5.7+ or MariaDB 10.2+
+4. **Partial index errors**: The script uses standard indexes compatible with MariaDB/MySQL (no WHERE clauses in CREATE INDEX)
 
 ### Verification Queries
 ```sql
