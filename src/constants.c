@@ -4212,6 +4212,14 @@ CHECK_TABLE_SIZE(languages, SKILL_LANG_HIGH - SKILL_LANG_LOW + 1);
     const char *pantheons[] = {
         "",
         "All",
+        "Luminari Core",
+        "Luminari Dwarven",
+        "Luminari Elven",
+        "Luminari Halfling",
+        "Luminari Orcish",
+        "Luminari Seafolk",
+        "Luminari Dark Courts",
+        "Luminari Primarchs",
         "\n"
     };
     CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);

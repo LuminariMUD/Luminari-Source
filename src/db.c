@@ -48,6 +48,7 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
+#include "help.h"
 #include "resource_system.h"
 #include "resource_depletion.h"
 #include "perlin.h"
@@ -1135,6 +1136,10 @@ void boot_db(void)
 
   log("Loading help entries.");
   index_boot(DB_BOOT_HLP);
+  
+  /* Initialize help handler chain for refactored help system */
+  log("Initializing help handler chain.");
+  init_help_handlers();
 
   log("Generating player index.");
   build_player_index();
