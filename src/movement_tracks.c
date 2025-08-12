@@ -18,6 +18,7 @@
 #include "db.h"
 #include "spells.h"
 #include "constants.h"
+#include <stdint.h>
 #include "act.h"
 #include "class.h"
 #include "race.h"
@@ -165,9 +166,30 @@ void cleanup_all_trails(void)
   {
     if (!world[room].trail_tracks || !world[room].trail_tracks->head)
       continue;
+    
+    /* Validate the head pointer is in a reasonable memory range */
+    if ((uintptr_t)world[room].trail_tracks->head < 0x1000 || 
+        (uintptr_t)world[room].trail_tracks->head > (uintptr_t)-0x1000)
+    {
+      log("SYSERR: Room %d has corrupted trail_tracks->head pointer (%p), clearing trails", 
+          room, world[room].trail_tracks->head);
+      world[room].trail_tracks->head = NULL;
+      world[room].trail_tracks->tail = NULL;
+      continue;
+    }
       
     for (cur = world[room].trail_tracks->head; cur != NULL; )
     {
+      /* Validate cur pointer before dereferencing */
+      if ((uintptr_t)cur < 0x1000 || (uintptr_t)cur > (uintptr_t)-0x1000)
+      {
+        log("SYSERR: Room %d has corrupted trail node pointer (%p), stopping cleanup", room, cur);
+        /* Clear the entire list as it's corrupted */
+        world[room].trail_tracks->head = NULL;
+        world[room].trail_tracks->tail = NULL;
+        break;
+      }
+      
       next = cur->next;
       if (current_time - cur->age >= TRAIL_PRUNING_THRESHOLD)
       {
