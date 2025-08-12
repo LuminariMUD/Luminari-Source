@@ -882,3 +882,31 @@ const char *pubsub_error_string(int error_code) {
         default:                              return "Unknown error";
     }
 }
+
+/*
+ * Automatic message queue processing (called from heartbeat)
+ */
+void pubsub_process_message_queue(void) {
+    static int pulse_count = 0;
+    int processed = 0;
+    
+    /* Only process if system is enabled and queue processing is active */
+    if (!pubsub_system_enabled || !pubsub_queue_processing) {
+        return;
+    }
+    
+    /* Process queue every few pulses to avoid overloading */
+    pulse_count++;
+    if (pulse_count < 3) {  /* Process every 3 pulses (~0.75 seconds) */
+        return;
+    }
+    pulse_count = 0;
+    
+    /* Process a batch of messages */
+    processed = pubsub_queue_process_batch(PUBSUB_QUEUE_BATCH_SIZE);
+    
+    /* Update statistics */
+    if (processed > 0) {
+        pubsub_debug("Auto-processed %d messages from queue", processed);
+    }
+}
