@@ -279,6 +279,9 @@ int pubsub_publish(int topic_id, const char *sender_name, const char *content,
                   int message_type, int priority);
 int pubsub_publish_spatial(int topic_id, const char *sender_name, const char *content,
                           int world_x, int world_y, int max_distance);
+int pubsub_publish_wilderness_audio(int source_x, int source_y, int source_z,
+                                   const char *sender_name, const char *content,
+                                   int max_distance, int priority);
 int pubsub_publish_to_subscribers(struct pubsub_message *msg);
 
 /* Message Processing */
@@ -338,6 +341,11 @@ int pubsub_handler_send_formatted(struct char_data *ch, struct pubsub_message *m
 int pubsub_handler_spatial_audio(struct char_data *ch, struct pubsub_message *msg);
 int pubsub_handler_personal_message(struct char_data *ch, struct pubsub_message *msg);
 int pubsub_handler_system_announcement(struct char_data *ch, struct pubsub_message *msg);
+
+/* Enhanced Spatial Audio Handlers (Phase 2B) */
+int pubsub_handler_wilderness_spatial_audio(struct char_data *ch, struct pubsub_message *msg);
+int pubsub_handler_audio_mixing(struct char_data *ch, struct pubsub_message *msg);
+void pubsub_spatial_cleanup(void);
 
 /* Memory Management Macros */
 #define PUBSUB_CREATE_TOPIC()        ((struct pubsub_topic *)calloc(1, sizeof(struct pubsub_topic)))
