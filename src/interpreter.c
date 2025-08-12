@@ -698,6 +698,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"subscribe", "sub", POS_DEAD, do_subscribe, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"topics", "topics", POS_DEAD, do_topics, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"pubsubtopic", "pubsubt", POS_DEAD, do_pubsubtopic, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"pubsubqueue", "pubsubq", POS_DEAD, do_pubsubqueue, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 

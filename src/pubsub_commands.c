@@ -330,7 +330,7 @@ ACMD(do_pubsubqueue) {
         /* Test wilderness spatial audio */
         if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
             int result = pubsub_publish_wilderness_audio(X_LOC(ch), Y_LOC(ch), 
-                                                        get_elevation(NOISE_MATERIAL_PLANE_ELEV, X_LOC(ch), Y_LOC(ch)),
+                                                        get_modified_elevation(X_LOC(ch), Y_LOC(ch)),
                                                         GET_NAME(ch), "A mysterious sound echoes across the wilderness",
                                                         25, PUBSUB_PRIORITY_NORMAL);
             if (result == PUBSUB_SUCCESS) {

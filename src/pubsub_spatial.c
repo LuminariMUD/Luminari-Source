@@ -14,6 +14,7 @@
 #include "sysdep.h"
 #include <math.h>
 #include <time.h>
+#include <string.h>
 
 #include "structs.h"
 #include "utils.h"
@@ -82,7 +83,17 @@ int pubsub_handler_wilderness_spatial_audio(struct char_data *ch, struct pubsub_
     float distance_3d, volume_modifier, terrain_modifier, elevation_effect;
     char spatial_msg[MAX_STRING_LENGTH];
     
-    if (!ch || !msg || !msg->content) {
+    /* Initialize buffer to prevent garbage data */
+    memset(spatial_msg, 0, sizeof(spatial_msg));
+    
+    if (!ch || !msg || !msg->content || !msg->sender_name) {
+        pubsub_error("Invalid parameters in wilderness spatial audio handler");
+        return PUBSUB_ERROR_INVALID_PARAM;
+    }
+    
+    /* Validate content string */
+    if (strlen(msg->content) == 0 || strlen(msg->content) > 1000) {
+        pubsub_error("Invalid content length in spatial audio message");
         return PUBSUB_ERROR_INVALID_PARAM;
     }
     
@@ -93,13 +104,15 @@ int pubsub_handler_wilderness_spatial_audio(struct char_data *ch, struct pubsub_
     }
     
     /* Parse spatial data */
-    if (msg->spatial_data) {
+    if (msg->spatial_data && strlen(msg->spatial_data) > 0) {
         if (sscanf(msg->spatial_data, "%d,%d,%d,%d", 
                   &spatial.world_x, &spatial.world_y, 
                   &spatial.world_z, &spatial.max_distance) != 4) {
+            pubsub_error("Failed to parse spatial data: '%s'", msg->spatial_data);
             return pubsub_handler_send_text(ch, msg);
         }
     } else {
+        pubsub_error("Missing or empty spatial data in wilderness spatial audio message");
         return pubsub_handler_send_text(ch, msg);
     }
     
@@ -107,7 +120,7 @@ int pubsub_handler_wilderness_spatial_audio(struct char_data *ch, struct pubsub_
     listener_x = X_LOC(ch);
     listener_y = Y_LOC(ch);
     /* For now, wilderness Z is elevation-based */
-    listener_z = get_elevation(NOISE_MATERIAL_PLANE_ELEV, listener_x, listener_y);
+    listener_z = get_modified_elevation(listener_x, listener_y);
     
     /* Calculate 3D distance */
     distance_3d = calculate_distance_3d(listener_x, listener_y, listener_z,
@@ -132,8 +145,7 @@ int pubsub_handler_wilderness_spatial_audio(struct char_data *ch, struct pubsub_
         /* Sound is blocked by terrain */
         volume_modifier = 0.1f; /* Heavily muffled */
         snprintf(spatial_msg, sizeof(spatial_msg),
-                "You hear the distant, muffled sound of %s%s%s.\r\n",
-                KBLK, msg->content, KNRM);
+                "You hear the distant, muffled sound of a mysterious sound.\r\n");
     } else {
         /* Calculate base volume modifier */
         volume_modifier = 1.0f - (distance_3d / (float)max_range);
@@ -149,33 +161,27 @@ int pubsub_handler_wilderness_spatial_audio(struct char_data *ch, struct pubsub_
         if (volume_modifier > 0.9f) {
             /* Right at source or very close */
             snprintf(spatial_msg, sizeof(spatial_msg),
-                    "%s%s%s echoes powerfully across the wilderness.\r\n",
-                    KRED, msg->content, KNRM);
+                    "A mysterious sound echoes powerfully across the wilderness.\r\n");
         } else if (volume_modifier > 0.7f) {
             /* Close */
             snprintf(spatial_msg, sizeof(spatial_msg),
-                    "You clearly hear %s%s%s nearby.\r\n",
-                    KYEL, msg->content, KNRM);
+                    "You clearly hear a mysterious sound nearby.\r\n");
         } else if (volume_modifier > 0.5f) {
             /* Moderate distance */
             snprintf(spatial_msg, sizeof(spatial_msg),
-                    "You hear %s%s%s carried on the wind.\r\n",
-                    KCYN, msg->content, KNRM);
+                    "You hear a mysterious sound carried on the wind.\r\n");
         } else if (volume_modifier > 0.3f) {
             /* Far */
             snprintf(spatial_msg, sizeof(spatial_msg),
-                    "You hear %s%s%s faintly in the distance.\r\n",
-                    KBLU, msg->content, KNRM);
+                    "You hear a mysterious sound faintly in the distance.\r\n");
         } else if (volume_modifier > 0.1f) {
             /* Very far */
             snprintf(spatial_msg, sizeof(spatial_msg),
-                    "You barely make out %s%s%s from far away.\r\n",
-                    KBLU, msg->content, KNRM);
+                    "You barely make out a mysterious sound from far away.\r\n");
         } else {
             /* Almost inaudible */
             snprintf(spatial_msg, sizeof(spatial_msg),
-                    "You think you hear something that might be %s%s%s.\r\n",
-                    KBLK, msg->content, KNRM);
+                    "You think you hear something that might be a mysterious sound.\r\n");
         }
     }
     
@@ -204,16 +210,25 @@ int pubsub_handler_wilderness_spatial_audio(struct char_data *ch, struct pubsub_
         }
         
         snprintf(direction_info, sizeof(direction_info),
-                " The sound comes from %s%s%s.",
-                KWHT, direction, KNRM);
+                " The sound comes from %s.", direction);
         
         /* Append direction if there's room */
         if (strlen(spatial_msg) + strlen(direction_info) < sizeof(spatial_msg) - 10) {
-            /* Remove the \r\n from spatial_msg and add direction */
+            /* Remove the \r\n from spatial_msg and add direction safely */
             char *end = strstr(spatial_msg, "\r\n");
             if (end) {
-                strcpy(end, direction_info);
-                strcat(spatial_msg, "\r\n");
+                /* Calculate available space */
+                size_t remaining = sizeof(spatial_msg) - (end - spatial_msg) - 1;
+                size_t needed = strlen(direction_info) + 2; /* +2 for \r\n */
+                
+                if (needed < remaining) {
+                    /* Safe to copy */
+                    strcpy(end, direction_info);
+                    strcat(end, "\r\n");
+                } else {
+                    /* Not enough space, keep original message */
+                    pubsub_debug("Not enough space for direction info");
+                }
             }
         }
     }
@@ -223,7 +238,15 @@ int pubsub_handler_wilderness_spatial_audio(struct char_data *ch, struct pubsub_
                     msg->content, msg->sender_name ? msg->sender_name : "unknown",
                     msg->priority, volume_modifier, 30); /* 30 second duration */
     
-    send_to_char(ch, "%s", spatial_msg);
+    /* Safety check before sending */
+    if (strlen(spatial_msg) > 0 && strlen(spatial_msg) < MAX_STRING_LENGTH - 1) {
+        send_to_char(ch, "%s", spatial_msg);
+        pubsub_debug("Sent spatial audio to %s: %s", GET_NAME(ch), spatial_msg);
+    } else {
+        pubsub_error("Corrupted spatial message buffer, using fallback");
+        send_to_char(ch, "You hear %s in the wilderness.\r\n", msg->content);
+    }
+    
     return PUBSUB_SUCCESS;
 }
 
@@ -306,8 +329,8 @@ static float get_sector_audio_modifier(int sector_type) {
 }
 
 static float calculate_elevation_effect(int listener_x, int listener_y, int source_x, int source_y) {
-    int listener_elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, listener_x, listener_y);
-    int source_elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, source_x, source_y);
+    int listener_elev = get_modified_elevation(listener_x, listener_y);
+    int source_elev = get_modified_elevation(source_x, source_y);
     
     int elevation_diff = abs(source_elev - listener_elev);
     
@@ -341,15 +364,15 @@ static bool has_line_of_sound(int listener_x, int listener_y, int source_x, int 
         x = listener_x + (step_x * i);
         y = listener_y + (step_y * i);
         
-        int elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y);
+        int elev = get_modified_elevation(x, y);
         if (elev > max_elevation) {
             max_elevation = elev;
         }
     }
     
     /* Check if there's a significant elevation barrier */
-    int listener_elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, listener_x, listener_y);
-    int source_elev = get_elevation(NOISE_MATERIAL_PLANE_ELEV, source_x, source_y);
+    int listener_elev = get_modified_elevation(listener_x, listener_y);
+    int source_elev = get_modified_elevation(source_x, source_y);
     
     int barrier_height = max_elevation - MAX(listener_elev, source_elev);
     

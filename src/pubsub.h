@@ -150,6 +150,7 @@ struct pubsub_message {
     int failed_deliveries;
     bool is_processed;
     time_t processed_at;
+    int reference_count;     /* Number of queue nodes referencing this message */
     struct pubsub_message *next;
 };
 
@@ -360,6 +361,7 @@ void pubsub_spatial_cleanup(void);
                                      } } while(0)
 
 #define PUBSUB_FREE_MESSAGE(m)       do { if (m) { \
+                                        if ((m)->sender_name) free((m)->sender_name); \
                                         if ((m)->content) free((m)->content); \
                                         if ((m)->metadata) free((m)->metadata); \
                                         if ((m)->spatial_data) free((m)->spatial_data); \
