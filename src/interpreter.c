@@ -318,6 +318,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"damage", "damage", POS_DEAD, do_damage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"damagereduction", "damager", POS_DEAD, do_affects, 0, SCMD_DAMAGE_REDUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"database", "database", POS_DEAD, do_database, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"db_init_system", "db_init", POS_DEAD, do_db_init_system, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deletepath", "deletepath", POS_DEAD, do_deletepath, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
