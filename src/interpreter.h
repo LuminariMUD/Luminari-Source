@@ -74,6 +74,10 @@ bool command_can_be_used_while_casting(int cmd);
 ACMD_DECL(do_account);
 ACMD_DECL(do_ai);
 
+/* Database administration commands */
+ACMD_DECL(do_database);
+ACMD_DECL(do_db_init_system);
+
 /* ACMDs available through interpreter.c */
 ACMD_DECL(do_alias);
 

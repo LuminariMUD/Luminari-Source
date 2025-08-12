@@ -54,6 +54,7 @@
 #include "wilderness.h"
 #include "resource_system.h"
 #include "mysql.h"
+#include "db_init.h"
 #include "feats.h"
 #include "actionqueues.h"
 #include "domains_schools.h"
@@ -650,6 +651,9 @@ void boot_world(void)
 
   log("Initializing MySQL database connection.");
   connect_to_mysql();
+
+  log("Initializing database tables and procedures.");
+  startup_database_init();
 
   log("Loading zone table.");
   index_boot(DB_BOOT_ZON);

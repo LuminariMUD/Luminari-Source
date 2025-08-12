@@ -66,6 +66,10 @@ circle_SOURCES = \
 	src/crafting_recipes.c \
 	src/crafts.c \
 	src/db.c \
+	src/db_init.c \
+	src/db_init_data.c \
+	src/db_startup_init.c \
+	src/db_admin_commands.c \
 	src/deities.c \
 	src/desc_engine.c \
 	src/dg_comm.c \
