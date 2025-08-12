@@ -4578,6 +4578,9 @@ struct room_data
 
     int harvest_material;
     int harvest_material_amount;
+    
+    /* Greyhawk ship system - pointer to ship data if room is a ship */
+    struct greyhawk_ship_data *ship;
 };
 
 /* char-related structures */

@@ -458,7 +458,6 @@ set(SRC_C_FILES
     src/act.comm.do_spec_comm.c
     src/act.informative.c
     src/act.item.c
-    src/act.movement.c
     src/act.offensive.c
     src/act.other.c
     src/act.social.c
@@ -592,6 +591,7 @@ set(SRC_C_FILES
     src/treasure.c
     src/treasure_const.c
     src/utils.c
+    src/vessels.c
     src/weather.c
     src/wilderness.c
     src/zedit.c
