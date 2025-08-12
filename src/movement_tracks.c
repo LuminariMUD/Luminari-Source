@@ -63,29 +63,7 @@ void create_tracks(struct char_data *ch, int dir, int flag)
     rain/snow/wind can all obscure trails.
   */
 
-  CREATE(new_trail, struct trail_data, 1);
-  new_trail->name = strdup(GET_NAME(ch));
-  new_trail->race = (IS_NPC(ch) ? strdup(race_family_types[GET_NPC_RACE(ch)]) : strdup(race_list[GET_RACE(ch)].name));
-  new_trail->from = (flag == TRACKS_IN ? dir : DIR_NONE);
-  new_trail->to = (flag == TRACKS_OUT ? dir : DIR_NONE);
-  new_trail->age = time(NULL);
-
-  new_trail->next = room->trail_tracks->head;
-  new_trail->prev = NULL;
-
-  if (new_trail->next != NULL)
-  {
-    room->trail_tracks->head->prev = new_trail;
-  }
-  else
-  {
-    /* If this is the first node, set tail as well */
-    room->trail_tracks->tail = new_trail;
-  }
-
-  room->trail_tracks->head = new_trail;
-
-  /* Prune old trails from the list */
+  /* First, prune old trails from the list BEFORE adding new ones to avoid corruption */
   for (cur = room->trail_tracks->head; cur != NULL; )
   {
     struct trail_data *next = cur->next;
@@ -116,13 +94,60 @@ void create_tracks(struct char_data *ch, int dir, int flag)
         room->trail_tracks->tail = cur->prev;
       }
       
-      /* Node was removed, don't update any tracking pointer */
-      
       /* Free the structure */
       free(cur);
     }
+    /* Always advance to next, whether we removed the current node or not */
     cur = next;
   }
+
+  /* Now create and add the new trail to the cleaned list */
+  CREATE(new_trail, struct trail_data, 1);
+  
+  /* Safely set name with NULL check */
+  if (GET_NAME(ch))
+    new_trail->name = strdup(GET_NAME(ch));
+  else
+    new_trail->name = strdup("unknown");
+  
+  /* Safely set race with bounds and NULL checks */
+  if (IS_NPC(ch))
+  {
+    int race_idx = GET_NPC_RACE(ch);
+    if (race_idx >= 0 && race_idx <= NUM_RACE_TYPES && race_family_types[race_idx])
+      new_trail->race = strdup(race_family_types[race_idx]);
+    else
+      new_trail->race = strdup("unknown");
+  }
+  else
+  {
+    int race_idx = GET_RACE(ch);
+    if (race_idx >= 0 && race_idx < NUM_RACES && race_list[race_idx].name)
+      new_trail->race = strdup(race_list[race_idx].name);
+    else  
+      new_trail->race = strdup("unknown");
+  }
+  
+  new_trail->from = (flag == TRACKS_IN ? dir : DIR_NONE);
+  new_trail->to = (flag == TRACKS_OUT ? dir : DIR_NONE);
+  new_trail->age = time(NULL);
+
+  /* Insert at head of list with proper NULL checks */
+  new_trail->next = room->trail_tracks->head;
+  new_trail->prev = NULL;
+
+  if (room->trail_tracks->head != NULL)
+  {
+    /* Only access head->prev if head is not NULL */
+    room->trail_tracks->head->prev = new_trail;
+  }
+  else
+  {
+    /* If this is the first node, set tail as well */
+    room->trail_tracks->tail = new_trail;
+  }
+
+  room->trail_tracks->head = new_trail;
 }
 
 /**
