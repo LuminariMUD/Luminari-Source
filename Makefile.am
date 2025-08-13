@@ -143,6 +143,7 @@ circle_SOURCES = \
 	src/pubsub_commands.c \
 	src/pubsub_queue.c \
 	src/pubsub_spatial.c \
+	src/pubsub_event_handlers.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \
