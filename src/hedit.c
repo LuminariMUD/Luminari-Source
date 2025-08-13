@@ -32,6 +32,7 @@
 #define MAX_HELP_KEYWORD_LENGTH 50  /* Maximum length for keywords */
 #define MIN_TAG_LENGTH 2            /* Minimum length for help tags */
 #define MIN_KEYWORD_LENGTH 2        /* Minimum length for keywords */
+#define MAX_KEYWORDS_PER_ENTRY 20   /* Maximum keywords per help entry to prevent memory exhaustion */
 
 /* local functions */
 static void hedit_disp_menu(struct descriptor_data *);
@@ -43,6 +44,12 @@ static bool validate_help_tag(const char *tag, struct descriptor_data *d);
 static bool validate_help_keyword(const char *keyword, struct descriptor_data *d);
 static bool validate_help_content(const char *content, struct descriptor_data *d);
 static bool validate_min_level(int level, struct descriptor_data *d);
+
+/* Import functionality */
+static int import_help_hlp_file(struct char_data *ch, const char *mode);
+static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level);
+static int import_entry_with_resolution(struct char_data *ch, struct help_entry_list *entry, int min_level, const char *mode);
+static void free_help_entry(struct help_entry_list *entry);
 
 /**
  * Validates a help tag for security and format requirements.
@@ -223,15 +230,6 @@ ACMD(do_oasis_hedit)
     return;
   }
 
-  for (d = descriptor_list; d; d = d->next)
-  {
-    if (STATE(d) == CON_HEDIT)
-    {
-      send_to_char(ch, "Sorry, only one person can edit help files at a time.\r\n");
-      return;
-    }
-  }
-
   one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
@@ -251,7 +249,35 @@ ACMD(do_oasis_hedit)
 
   CREATE(d->olc, struct oasis_olc_data, 1);
   OLC_NUM(d) = 0;
+  
+  /* Immediately set state to CON_HEDIT to claim the lock atomically */
+  struct descriptor_data *other_d;
+  
+  STATE(d) = CON_HEDIT;
+  
+  /* Now check if another editor is already active (besides us) */
+  for (other_d = descriptor_list; other_d; other_d = other_d->next)
+  {
+    if (other_d != d && STATE(other_d) == CON_HEDIT)
+    {
+      /* Another editor is active, release our lock and cleanup */
+      STATE(d) = CON_PLAYING;
+      free(d->olc);
+      d->olc = NULL;
+      send_to_char(ch, "Sorry, only one person can edit help files at a time.\r\n");
+      return;
+    }
+  }
+  
   OLC_STORAGE(d) = strdup(arg);
+  if (!OLC_STORAGE(d)) {
+    log("SYSERR: do_oasis_hedit: strdup failed for OLC_STORAGE");
+    STATE(d) = CON_PLAYING;  /* Release lock on error */
+    free(d->olc);
+    d->olc = NULL;
+    send_to_char(ch, "Memory allocation error. Please try again.\r\n");
+    return;
+  }
 
   OLC_HELP(d) = search_help(OLC_STORAGE(d), LVL_IMPL);
 
@@ -267,7 +293,7 @@ ACMD(do_oasis_hedit)
     OLC_MODE(d) = HEDIT_CONFIRM_EDIT;
   }
 
-  STATE(d) = CON_HEDIT;
+  /* STATE already set to CON_HEDIT above for atomic lock acquisition */
   act("$n starts editing help files.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
   mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing help files.", GET_NAME(d->character));
@@ -278,8 +304,21 @@ static void hedit_setup_new(struct descriptor_data *d)
   CREATE(OLC_HELP(d), struct help_entry_list, 1);
 
   OLC_HELP(d)->tag = strdup(OLC_STORAGE(d));
+  if (!OLC_HELP(d)->tag) {
+    log("SYSERR: hedit_setup_new: strdup failed for tag");
+    cleanup_olc(d, CLEANUP_ALL);
+    return;
+  }
+  
   OLC_HELP(d)->keywords = NULL;
   OLC_HELP(d)->entry = strdup("This help file is unfinished.\r\n");
+  if (!OLC_HELP(d)->entry) {
+    log("SYSERR: hedit_setup_new: strdup failed for entry");
+    free(OLC_HELP(d)->tag);
+    cleanup_olc(d, CLEANUP_ALL);
+    return;
+  }
+  
   OLC_HELP(d)->min_level = 0;
   OLC_HELP(d)->last_updated = NULL;
   OLC_VAL(d) = 0;
@@ -300,10 +339,11 @@ static void hedit_save_to_disk(struct descriptor_data *d)
 static void hedit_save_to_db(struct descriptor_data *d)
 {
   char buf1[MAX_STRING_LENGTH] = {'\0'};
-  struct help_keyword_list *keyword;
+  struct help_keyword_list *keyword, *existing_keywords = NULL, *temp_keyword;
   PREPARED_STMT *pstmt;
   char tag_lower[MAX_HELP_TAG_LENGTH + 1];
-  int i;
+  int i, transaction_started = 0, error_occurred = 0;
+  int keyword_count = 0;
 
   if (OLC_HELP(d) == NULL)
     return;
@@ -324,10 +364,15 @@ static void hedit_save_to_db(struct descriptor_data *d)
     return;
   }
   
-  /* Validate all keywords */
+  /* Validate and count all keywords */
   for (keyword = OLC_HELP(d)->keyword_list; keyword != NULL; keyword = keyword->next) {
     if (!validate_help_keyword(keyword->keyword, d)) {
       write_to_output(d, "Cannot save: Invalid keyword '%s'.\r\n", keyword->keyword);
+      return;
+    }
+    keyword_count++;
+    if (keyword_count > MAX_KEYWORDS_PER_ENTRY) {
+      write_to_output(d, "Cannot save: Too many keywords (maximum %d).\r\n", MAX_KEYWORDS_PER_ENTRY);
       return;
     }
   }
@@ -342,12 +387,49 @@ static void hedit_save_to_db(struct descriptor_data *d)
   }
   tag_lower[i] = '\0';
 
+  /* START TRANSACTION - All database operations must succeed or all will be rolled back */
+  if (mysql_query(conn, "START TRANSACTION")) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to start transaction for help save: %s", mysql_error(conn));
+    write_to_output(d, "Database error: Failed to start transaction. Help entry not saved.\r\n");
+    return;
+  }
+  transaction_started = 1;
+
+  /* === SAVE CURRENT VERSION TO HISTORY (if entry exists) === */
+  /* First, check if the entry exists and save current version to history */
+  pstmt = mysql_stmt_create(conn);
+  if (!pstmt) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to create prepared statement for version history");
+    write_to_output(d, "Database error: Failed to prepare version history.\r\n");
+    error_occurred = 1;
+    goto cleanup;
+  }
+  
+  /* Archive current version if it exists */
+  if (!mysql_stmt_prepare_query(pstmt,
+      "INSERT INTO help_versions (tag, entry, min_level, saved_by, version_date) "
+      "SELECT tag, entry, min_level, ?, last_updated "
+      "FROM help_entries WHERE tag = ?")) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to prepare version history query");
+    /* Don't fail the save, just log the error - versioning is optional */
+  } else {
+    char *editor_name = GET_NAME(d->character) ? GET_NAME(d->character) : "Unknown";
+    if (mysql_stmt_bind_param_string(pstmt, 0, editor_name) &&
+        mysql_stmt_bind_param_string(pstmt, 1, tag_lower)) {
+      mysql_stmt_execute_prepared(pstmt);
+      /* Don't check for errors - it's ok if versioning fails */
+    }
+  }
+  mysql_stmt_cleanup(pstmt);
+  
   /* === INSERT/UPDATE HELP ENTRY === */
   /* Use prepared statement for UPSERT - completely SQL injection safe */
   pstmt = mysql_stmt_create(conn);
   if (!pstmt) {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to create prepared statement for help entry save");
-    return;
+    write_to_output(d, "Database error: Failed to prepare save operation.\r\n");
+    error_occurred = 1;
+    goto cleanup;
   }
 
   /* Prepare UPSERT query with parameters */
@@ -357,8 +439,10 @@ static void hedit_save_to_db(struct descriptor_data *d)
       "min_level = VALUES(min_level), "
       "entry = VALUES(entry)")) {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to prepare help entry UPSERT query");
+    write_to_output(d, "Database error: Failed to prepare help entry update.\r\n");
     mysql_stmt_cleanup(pstmt);
-    return;
+    error_occurred = 1;
+    goto cleanup;
   }
 
   /* Bind parameters for the UPSERT */
@@ -366,60 +450,117 @@ static void hedit_save_to_db(struct descriptor_data *d)
       !mysql_stmt_bind_param_string(pstmt, 1, buf1) ||
       !mysql_stmt_bind_param_int(pstmt, 2, OLC_HELP(d)->min_level)) {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to bind parameters for help entry UPSERT");
+    write_to_output(d, "Database error: Failed to bind parameters.\r\n");
     mysql_stmt_cleanup(pstmt);
-    return;
+    error_occurred = 1;
+    goto cleanup;
   }
 
   /* Execute the UPSERT */
   if (!mysql_stmt_execute_prepared(pstmt)) {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to execute help entry UPSERT");
+    write_to_output(d, "Database error: Failed to save help entry.\r\n");
+    mysql_stmt_cleanup(pstmt);
+    error_occurred = 1;
+    goto cleanup;
   }
 
   mysql_stmt_cleanup(pstmt);
 
-  /* === DELETE OLD KEYWORDS === */
+  /* === DIFFERENTIAL KEYWORD UPDATE === */
+  /* First, get existing keywords for this help entry using prepared statement */
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  
   pstmt = mysql_stmt_create(conn);
   if (!pstmt) {
-    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to create prepared statement for keyword deletion");
-    return;
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to create prepared statement for keyword fetch");
+    error_occurred = 1;
+    goto cleanup;
   }
-
-  /* Prepare DELETE query with parameter */
-  if (!mysql_stmt_prepare_query(pstmt,
-      "DELETE FROM help_keywords WHERE LOWER(help_tag) = ?")) {
-    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to prepare keyword deletion query");
+  
+  if (!mysql_stmt_prepare_query(pstmt, "SELECT keyword FROM help_keywords WHERE LOWER(help_tag) = ?")) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to prepare keyword fetch query");
     mysql_stmt_cleanup(pstmt);
-    return;
+    error_occurred = 1;
+    goto cleanup;
   }
-
-  /* Bind the tag parameter */
+  
   if (!mysql_stmt_bind_param_string(pstmt, 0, tag_lower)) {
-    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to bind parameter for keyword deletion");
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to bind parameter for keyword fetch");
     mysql_stmt_cleanup(pstmt);
-    return;
+    error_occurred = 1;
+    goto cleanup;
   }
-
-  /* Execute the DELETE */
+  
   if (!mysql_stmt_execute_prepared(pstmt)) {
-    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to execute keyword deletion");
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to execute keyword fetch");
+    mysql_stmt_cleanup(pstmt);
+    error_occurred = 1;
+    goto cleanup;
+  }
+  
+  mysql_stmt_cleanup(pstmt);
+  
+  result = mysql_store_result(conn);
+  if (result) {
+    while ((row = mysql_fetch_row(result))) {
+      CREATE(temp_keyword, struct help_keyword_list, 1);
+      CREATE(temp_keyword->keyword, char, strlen(row[0]) + 1);
+      strcpy(temp_keyword->keyword, row[0]);
+      temp_keyword->next = existing_keywords;
+      existing_keywords = temp_keyword;
+    }
+    mysql_free_result(result);
   }
 
-  mysql_stmt_cleanup(pstmt);
+  /* Delete keywords that are no longer in the list */
+  pstmt = mysql_stmt_create(conn);
+  if (pstmt) {
+    if (mysql_stmt_prepare_query(pstmt,
+        "DELETE FROM help_keywords WHERE LOWER(help_tag) = ? AND keyword = ?")) {
+      mysql_stmt_cleanup(pstmt);
+      pstmt = NULL;
+    }
+  }
+  
+  if (pstmt) {
+    for (temp_keyword = existing_keywords; temp_keyword; temp_keyword = temp_keyword->next) {
+      int found = 0;
+      for (keyword = OLC_HELP(d)->keyword_list; keyword; keyword = keyword->next) {
+        if (!strcmp(temp_keyword->keyword, keyword->keyword)) {
+          found = 1;
+          break;
+        }
+      }
+      if (!found) {
+        /* This keyword should be deleted */
+        if (mysql_stmt_bind_param_string(pstmt, 0, tag_lower) &&
+            mysql_stmt_bind_param_string(pstmt, 1, temp_keyword->keyword)) {
+          mysql_stmt_execute_prepared(pstmt);
+        }
+      }
+    }
+    mysql_stmt_cleanup(pstmt);
+  }
 
-  /* === INSERT NEW KEYWORDS === */
-  /* Create one prepared statement and reuse it for all keywords */
+  /* Insert only new keywords */
   pstmt = mysql_stmt_create(conn);
   if (!pstmt) {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to create prepared statement for keyword insertion");
-    return;
+    write_to_output(d, "Database error: Failed to prepare keyword update.\r\n");
+    error_occurred = 1;
+    goto cleanup;
   }
 
-  /* Prepare INSERT query with parameters */
+  /* Use INSERT IGNORE to avoid duplicates efficiently */
   if (!mysql_stmt_prepare_query(pstmt,
-      "INSERT INTO help_keywords (help_tag, keyword) VALUES (?, ?)")) {
+      "INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES (?, ?)")) {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to prepare keyword insertion query");
+    write_to_output(d, "Database error: Failed to prepare keyword insertion.\r\n");
     mysql_stmt_cleanup(pstmt);
-    return;
+    error_occurred = 1;
+    goto cleanup;
   }
 
   /* Insert each keyword using the same prepared statement */
@@ -428,16 +569,52 @@ static void hedit_save_to_db(struct descriptor_data *d)
     if (!mysql_stmt_bind_param_string(pstmt, 0, tag_lower) ||
         !mysql_stmt_bind_param_string(pstmt, 1, keyword->keyword)) {
       mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to bind parameters for keyword '%s'", keyword->keyword);
-      continue;
+      write_to_output(d, "Warning: Failed to save keyword '%s'.\r\n", keyword->keyword);
+      error_occurred = 1;
+      mysql_stmt_cleanup(pstmt);
+      goto cleanup;
     }
 
     /* Execute the INSERT */
     if (!mysql_stmt_execute_prepared(pstmt)) {
       mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to insert keyword '%s'", keyword->keyword);
+      write_to_output(d, "Warning: Failed to save keyword '%s'.\r\n", keyword->keyword);
+      error_occurred = 1;
+      mysql_stmt_cleanup(pstmt);
+      goto cleanup;
     }
   }
 
   mysql_stmt_cleanup(pstmt);
+
+cleanup:
+  /* Free existing keywords list */
+  while (existing_keywords) {
+    temp_keyword = existing_keywords;
+    existing_keywords = existing_keywords->next;
+    if (temp_keyword->keyword)
+      free(temp_keyword->keyword);
+    free(temp_keyword);
+  }
+
+  /* COMMIT or ROLLBACK transaction based on error status */
+  if (transaction_started) {
+    if (error_occurred) {
+      if (mysql_query(conn, "ROLLBACK")) {
+        mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to rollback transaction: %s", mysql_error(conn));
+      }
+      write_to_output(d, "Database transaction failed. All changes have been rolled back.\r\n");
+    } else {
+      if (mysql_query(conn, "COMMIT")) {
+        mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to commit transaction: %s", mysql_error(conn));
+        write_to_output(d, "Database error: Failed to commit changes.\r\n");
+        /* Try to rollback */
+        mysql_query(conn, "ROLLBACK");
+      } else {
+        write_to_output(d, "Help entry '%s' saved successfully to database.\r\n", OLC_HELP(d)->tag);
+      }
+    }
+  }
 }
 
 /* The main menu. */
@@ -542,7 +719,6 @@ bool hedit_delete_keyword(struct help_entry_list *entry, int num)
 
 bool hedit_delete_entry(struct help_entry_list *entry)
 {
-  char buf[MAX_STRING_LENGTH] = {'\0'}; /* Buffer for DML query. */
   bool retval = TRUE;
 
   if (entry == NULL)
@@ -552,20 +728,38 @@ bool hedit_delete_entry(struct help_entry_list *entry)
   while (hedit_delete_keyword(entry, 1))
     ;
 
-  char *escaped_tag = mysql_escape_string_alloc(conn, entry->tag);
-  if (!escaped_tag) {
-    log("SYSERR: Failed to escape help tag in hedit_delete_entry");
+  /* Use prepared statement for safe deletion */
+  PREPARED_STMT *pstmt = mysql_stmt_create(conn);
+  if (!pstmt) {
+    log("SYSERR: Failed to create prepared statement for help entry deletion");
     return FALSE;
   }
-  snprintf(buf, sizeof(buf), "delete from help_entries where lower(tag) = lower('%s')", escaped_tag);
-  mudlog(NRM, LVL_STAFF, TRUE, "%s", buf);
-  free(escaped_tag);
 
-  if (mysql_query(conn, buf))
-  {
-    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to delete from help_entries: %s", mysql_error(conn));
-    retval = FALSE;
+  /* Prepare DELETE query with parameter */
+  if (!mysql_stmt_prepare_query(pstmt,
+      "DELETE FROM help_entries WHERE LOWER(tag) = LOWER(?)")) {
+    log("SYSERR: Failed to prepare help entry deletion query");
+    mysql_stmt_cleanup(pstmt);
+    return FALSE;
   }
+
+  /* Bind the tag parameter */
+  if (!mysql_stmt_bind_param_string(pstmt, 0, entry->tag)) {
+    log("SYSERR: Failed to bind tag parameter for help entry deletion");
+    mysql_stmt_cleanup(pstmt);
+    return FALSE;
+  }
+
+  /* Execute the delete */
+  if (!mysql_stmt_execute_prepared(pstmt)) {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to delete from help_entries");
+    mysql_stmt_cleanup(pstmt);
+    retval = FALSE;
+  } else {
+    mudlog(NRM, LVL_STAFF, TRUE, "Deleted help entry: %s", entry->tag);
+  }
+
+  mysql_stmt_cleanup(pstmt);
   return retval;
 }
 
@@ -731,6 +925,11 @@ void hedit_parse(struct descriptor_data *d, char *arg)
       {
         write_to_output(d, "%s", OLC_HELP(d)->entry);
         oldtext = strdup(OLC_HELP(d)->entry);
+        if (!oldtext) {
+          write_to_output(d, "Memory allocation error. Aborting.\r\n");
+          cleanup_olc(d, CLEANUP_ALL);
+          return;
+        }
       }
       string_write(d, &OLC_HELP(d)->entry, MAX_MESSAGE_LENGTH, 0, oldtext);
       OLC_VAL(d) = 1;
@@ -789,9 +988,38 @@ void hedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Enter new keyword : ");
       return;
     }
+    
+    /* Count existing keywords to prevent memory exhaustion */
+    {
+      int keyword_count = 0;
+      struct help_keyword_list *temp_kw;
+      for (temp_kw = OLC_HELP(d)->keyword_list; temp_kw; temp_kw = temp_kw->next) {
+        keyword_count++;
+      }
+      if (keyword_count >= MAX_KEYWORDS_PER_ENTRY) {
+        write_to_output(d, "Maximum number of keywords (%d) reached. Delete some keywords first.\r\n", 
+                        MAX_KEYWORDS_PER_ENTRY);
+        hedit_disp_keywords_menu(d);
+        return;
+      }
+    }
+    
     CREATE(new_keyword, struct help_keyword_list, 1);
     new_keyword->tag = strdup(OLC_HELP(d)->tag);
+    if (!new_keyword->tag) {
+      write_to_output(d, "Memory allocation error. Keyword not added.\r\n");
+      free(new_keyword);
+      hedit_disp_menu(d);
+      return;
+    }
     new_keyword->keyword = str_udup(arg);
+    if (!new_keyword->keyword) {
+      write_to_output(d, "Memory allocation error. Keyword not added.\r\n");
+      free(new_keyword->tag);
+      free(new_keyword);
+      hedit_disp_menu(d);
+      return;
+    }
     new_keyword->next = OLC_HELP(d)->keyword_list;
     OLC_HELP(d)->keyword_list = new_keyword;
     OLC_VAL(d) = 1;
@@ -895,10 +1123,8 @@ ACMD(do_hindex)
    * Two types of matches: keywords beginning with pattern, and keywords containing pattern */
   
   char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
-  char query[MAX_STRING_LENGTH];
-  char *escaped_arg;
-  MYSQL_RES *result;
-  MYSQL_ROW row;
+  char search_pattern[MAX_INPUT_LENGTH + 2];
+  PREPARED_STMT *pstmt;
   int count = 0, count2 = 0, len = 0, len2 = 0, total_entries = 0;
 
   skip_spaces_c(&argument);
@@ -909,83 +1135,119 @@ ACMD(do_hindex)
     return;
   }
 
-  /* Escape the search argument to prevent SQL injection */
-  escaped_arg = (char *)malloc(strlen(argument) * 2 + 1);
-  if (!escaped_arg) {
-    send_to_char(ch, "Memory allocation error.\r\n");
-    return;
-  }
-  mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
+  /* No need for manual escaping - will use prepared statements */
 
   len = snprintf(buf, sizeof(buf), "\t1Help index entries beginning with '%s':\t2\r\n", argument);
   len2 = snprintf(buf2, sizeof(buf2), "\t1Help index entries containing '%s':\t2\r\n", argument);
 
-  /* Query 1: Find keywords beginning with the search pattern */
-  snprintf(query, sizeof(query),
-    "SELECT DISTINCT hk.keyword "
-    "FROM help_keywords hk "
-    "JOIN help_entries he ON hk.help_tag = he.tag "
-    "WHERE LOWER(hk.keyword) LIKE LOWER('%s%%') "
-    "AND he.min_level <= %d "
-    "ORDER BY hk.keyword",
-    escaped_arg, GET_LEVEL(ch));
+  /* Query 1: Find keywords beginning with the search pattern - use prepared statement */
+  pstmt = mysql_stmt_create(conn);
+  if (!pstmt) {
+    send_to_char(ch, "Database error - unable to create statement.\r\n");
+    return;
+  }
 
-  if (mysql_query(conn, query) == 0) {
-    result = mysql_store_result(conn);
-    if (result) {
-      while ((row = mysql_fetch_row(result))) {
-        if (row[0]) {
-          len += snprintf(buf + len, sizeof(buf) - len, "%-20.20s%s", 
-                         row[0], (++count % 3 ? "" : "\r\n"));
-        }
-      }
-      mysql_free_result(result);
+  /* Prepare query with LIKE pattern */
+  if (!mysql_stmt_prepare_query(pstmt,
+      "SELECT DISTINCT hk.keyword "
+      "FROM help_keywords hk "
+      "JOIN help_entries he ON hk.help_tag = he.tag "
+      "WHERE LOWER(hk.keyword) LIKE LOWER(?) "
+      "AND he.min_level <= ? "
+      "ORDER BY hk.keyword")) {
+    send_to_char(ch, "Database error - unable to prepare query.\r\n");
+    mysql_stmt_cleanup(pstmt);
+    return;
+  }
+
+  /* Create search pattern with % for LIKE */
+  snprintf(search_pattern, sizeof(search_pattern), "%s%%", argument);
+
+  /* Bind parameters */
+  if (!mysql_stmt_bind_param_string(pstmt, 0, search_pattern) ||
+      !mysql_stmt_bind_param_int(pstmt, 1, GET_LEVEL(ch))) {
+    send_to_char(ch, "Database error - unable to bind parameters.\r\n");
+    mysql_stmt_cleanup(pstmt);
+    return;
+  }
+
+  /* Execute and fetch results */
+  if (!mysql_stmt_execute_prepared(pstmt)) {
+    send_to_char(ch, "Database error - unable to execute query.\r\n");
+    mysql_stmt_cleanup(pstmt);
+    return;
+  }
+  
+  /* Fetch rows using prepared statement API */
+  while (mysql_stmt_fetch_row(pstmt)) {
+    char *tag = mysql_stmt_get_string(pstmt, 0);
+    if (tag) {
+      len += snprintf(buf + len, sizeof(buf) - len, "%-20.20s%s", 
+                     tag, (++count % 3 ? "" : "\r\n"));
     }
   }
 
-  /* Query 2: Find keywords containing the search pattern (but not beginning with it) */
-  snprintf(query, sizeof(query),
-    "SELECT DISTINCT hk.keyword "
-    "FROM help_keywords hk "
-    "JOIN help_entries he ON hk.help_tag = he.tag "
-    "WHERE LOWER(hk.keyword) LIKE LOWER('%%_%s%%') "  /* Use %%_ to exclude beginning matches */
-    "AND LOWER(hk.keyword) NOT LIKE LOWER('%s%%') "   /* Exclude already found entries */
-    "AND he.min_level <= %d "
-    "ORDER BY hk.keyword",
-    escaped_arg, escaped_arg, GET_LEVEL(ch));
+  mysql_stmt_cleanup(pstmt);
 
-  if (mysql_query(conn, query) == 0) {
-    result = mysql_store_result(conn);
-    if (result) {
-      while ((row = mysql_fetch_row(result))) {
-        if (row[0]) {
-          len2 += snprintf(buf2 + len2, sizeof(buf2) - len2, "%-20.20s%s",
-                          row[0], (++count2 % 3 ? "" : "\r\n"));
+  /* Query 2: Find keywords containing the search pattern (but not beginning with it) */
+  pstmt = mysql_stmt_create(conn);
+  if (pstmt) {  /* Don't fail entirely if second query fails */
+    if (mysql_stmt_prepare_query(pstmt,
+        "SELECT DISTINCT hk.keyword "
+        "FROM help_keywords hk "
+        "JOIN help_entries he ON hk.help_tag = he.tag "
+        "WHERE LOWER(hk.keyword) LIKE LOWER(?) "
+        "AND LOWER(hk.keyword) NOT LIKE LOWER(?) "
+        "AND he.min_level <= ? "
+        "ORDER BY hk.keyword")) {
+      
+      /* Create search patterns for contains and not-begins-with */
+      char contains_pattern[MAX_INPUT_LENGTH + 4];
+      snprintf(contains_pattern, sizeof(contains_pattern), "%%_%s%%", argument);
+      snprintf(search_pattern, sizeof(search_pattern), "%s%%", argument);
+      
+      /* Bind parameters */
+      if (mysql_stmt_bind_param_string(pstmt, 0, contains_pattern) &&
+          mysql_stmt_bind_param_string(pstmt, 1, search_pattern) &&
+          mysql_stmt_bind_param_int(pstmt, 2, GET_LEVEL(ch))) {
+        
+        /* Execute and fetch results */
+        if (mysql_stmt_execute_prepared(pstmt)) {
+          /* Fetch rows using prepared statement API */
+          while (mysql_stmt_fetch_row(pstmt)) {
+            char *tag = mysql_stmt_get_string(pstmt, 0);
+            if (tag) {
+              len2 += snprintf(buf2 + len2, sizeof(buf2) - len2, "%-20.20s%s",
+                              tag, (++count2 % 3 ? "" : "\r\n"));
+            }
+          }
         }
       }
-      mysql_free_result(result);
     }
+    mysql_stmt_cleanup(pstmt);
   }
 
   /* Get total count of help entries accessible to this player */
-  snprintf(query, sizeof(query),
-    "SELECT COUNT(DISTINCT he.tag) "
-    "FROM help_entries he "
-    "WHERE he.min_level <= %d",
-    GET_LEVEL(ch));
-
-  if (mysql_query(conn, query) == 0) {
-    result = mysql_store_result(conn);
-    if (result) {
-      row = mysql_fetch_row(result);
-      if (row && row[0]) {
-        total_entries = atoi(row[0]);
+  pstmt = mysql_stmt_create(conn);
+  if (pstmt) {
+    if (mysql_stmt_prepare_query(pstmt,
+        "SELECT COUNT(DISTINCT he.tag) "
+        "FROM help_entries he "
+        "WHERE he.min_level <= ?")) {
+      
+      if (mysql_stmt_bind_param_int(pstmt, 0, GET_LEVEL(ch))) {
+        
+        /* Execute and fetch count */
+        if (mysql_stmt_execute_prepared(pstmt)) {
+          /* Fetch single row using prepared statement API */
+          if (mysql_stmt_fetch_row(pstmt)) {
+            total_entries = mysql_stmt_get_int(pstmt, 0);
+          }
+        }
       }
-      mysql_free_result(result);
     }
+    mysql_stmt_cleanup(pstmt);
   }
-
-  free(escaped_arg);
 
   /* Format the output */
   if (count % 3)
@@ -1231,6 +1493,10 @@ static int generate_help_entry(struct char_data *ch, int cmd_index, bool force_o
   
   /* Check if entry already exists */
   escaped_tag = (char *)malloc(strlen(tag) * 2 + 1);
+  if (!escaped_tag) {
+    log("SYSERR: generate_help_entry: malloc failed for escaped_tag");
+    return -1;
+  }
   mysql_real_escape_string(conn, escaped_tag, tag, strlen(tag));
   
   snprintf(query, sizeof(query),
@@ -1338,7 +1604,20 @@ static int generate_help_entry(struct char_data *ch, int cmd_index, bool force_o
   
   /* Prepare escaped strings */
   escaped_keywords = (char *)malloc(strlen(keywords) * 2 + 1);
+  if (!escaped_keywords) {
+    log("SYSERR: generate_help_entry: malloc failed for escaped_keywords");
+    free(escaped_tag);
+    return -1;
+  }
+  
   escaped_help = (char *)malloc(strlen(help_text) * 2 + 1);
+  if (!escaped_help) {
+    log("SYSERR: generate_help_entry: malloc failed for escaped_help");
+    free(escaped_tag);
+    free(escaped_keywords);
+    return -1;
+  }
+  
   mysql_real_escape_string(conn, escaped_keywords, keywords, strlen(keywords));
   mysql_real_escape_string(conn, escaped_help, help_text, strlen(help_text));
   
@@ -1379,28 +1658,39 @@ static int generate_help_entry(struct char_data *ch, int cmd_index, bool force_o
   if (!exists || force_overwrite) {
     char *token, *rest, *keyword_copy;
     keyword_copy = strdup(keywords);
-    token = strtok_r(keyword_copy, " ", &rest);
-    
-    while (token) {
-      /* Skip very short keywords unless they're the command itself */
-      if (strlen(token) < 2 && strcmp(token, cmd->command) != 0) {
+    if (!keyword_copy) {
+      /* Log error but continue - keywords are optional */
+      log("SYSERR: generate_help_entry: strdup failed for keywords");
+    } else {
+      token = strtok_r(keyword_copy, " ", &rest);
+      
+      while (token) {
+        /* Skip very short keywords unless they're the command itself */
+        if (strlen(token) < 2 && strcmp(token, cmd->command) != 0) {
+          token = strtok_r(NULL, " ", &rest);
+          continue;
+        }
+        
+        char *escaped_keyword = (char *)malloc(strlen(token) * 2 + 1);
+        if (!escaped_keyword) {
+          log("SYSERR: generate_help_entry: malloc failed for escaped_keyword");
+          /* Continue with other keywords */
+          token = strtok_r(NULL, " ", &rest);
+          continue;
+        }
+        mysql_real_escape_string(conn, escaped_keyword, token, strlen(token));
+        
+        snprintf(query, sizeof(query),
+          "INSERT IGNORE INTO help_keywords (help_tag, keyword) "
+          "VALUES ('%s', '%s')",
+          escaped_tag, escaped_keyword);
+        
+        mysql_query(conn, query);
+        free(escaped_keyword);
         token = strtok_r(NULL, " ", &rest);
-        continue;
       }
-      
-      char *escaped_keyword = (char *)malloc(strlen(token) * 2 + 1);
-      mysql_real_escape_string(conn, escaped_keyword, token, strlen(token));
-      
-      snprintf(query, sizeof(query),
-        "INSERT IGNORE INTO help_keywords (help_tag, keyword) "
-        "VALUES ('%s', '%s')",
-        escaped_tag, escaped_keyword);
-      
-      mysql_query(conn, query);
-      free(escaped_keyword);
-      token = strtok_r(NULL, " ", &rest);
+      free(keyword_copy);
     }
-    free(keyword_copy);
   }
   
   free(escaped_tag);
@@ -1424,11 +1714,16 @@ ACMD(do_helpgen) {
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   
   if (!*arg1) {
-    send_to_char(ch, "Usage: helpgen <missing|all|list|clean|command> [force]\r\n"
+    send_to_char(ch, "Usage: helpgen <missing|all|list|clean|repair|import|command> [force|preview|merge]\r\n"
                      "  missing - Generate help for commands without entries\r\n"
                      "  all     - Generate help for all commands\r\n"
                      "  list    - List all auto-generated help entries\r\n"
                      "  clean   - Delete all auto-generated help entries\r\n"
+                     "  repair  - Fix orphaned keywords and entries without keywords\r\n"
+                     "  import  - Import legacy help.hlp file into database\r\n"
+                     "          Options: preview (show what would be imported)\r\n"
+                     "                   force (overwrite existing entries)\r\n"
+                     "                   merge (intelligently merge duplicates - default)\r\n"
                      "  command - Generate help for specific command\r\n"
                      "  force   - Overwrite existing entries\r\n");
     return;
@@ -1548,6 +1843,143 @@ ACMD(do_helpgen) {
       }
     }
     
+  } else if (!str_cmp(arg1, "repair")) {
+    /* Repair database - fix orphaned keywords and entries without keywords */
+    char query[MAX_STRING_LENGTH * 2];
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    int orphaned_keywords = 0, missing_keywords = 0, fixed = 0;
+    
+    send_to_char(ch, "Starting help database repair...\r\n\r\n");
+    
+    /* Step 1: Find and remove orphaned keywords (keywords pointing to non-existent help entries) */
+    send_to_char(ch, "Step 1: Checking for orphaned keywords...\r\n");
+    
+    snprintf(query, sizeof(query),
+      "SELECT hk.keyword, hk.help_tag "
+      "FROM help_keywords hk "
+      "LEFT JOIN help_entries he ON hk.help_tag = he.tag "
+      "WHERE he.tag IS NULL");
+    
+    if (mysql_query(conn, query) == 0) {
+      result = mysql_store_result(conn);
+      if (result) {
+        while ((row = mysql_fetch_row(result))) {
+          send_to_char(ch, "  Found orphaned keyword '%s' -> '%s'\r\n", 
+                       row[0] ? row[0] : "(null)", 
+                       row[1] ? row[1] : "(null)");
+          orphaned_keywords++;
+        }
+        mysql_free_result(result);
+      }
+    }
+    
+    if (orphaned_keywords > 0) {
+      if (!force) {
+        send_to_char(ch, "\r\nFound %d orphaned keywords. Use 'helpgen repair force' to delete them.\r\n", 
+                     orphaned_keywords);
+      } else {
+        /* Delete orphaned keywords */
+        snprintf(query, sizeof(query),
+          "DELETE hk FROM help_keywords hk "
+          "LEFT JOIN help_entries he ON hk.help_tag = he.tag "
+          "WHERE he.tag IS NULL");
+        
+        if (mysql_query(conn, query) == 0) {
+          int deleted = mysql_affected_rows(conn);
+          send_to_char(ch, "  Deleted %d orphaned keywords.\r\n", deleted);
+          fixed += deleted;
+        } else {
+          send_to_char(ch, "  Error deleting orphaned keywords: %s\r\n", mysql_error(conn));
+        }
+      }
+    } else {
+      send_to_char(ch, "  No orphaned keywords found.\r\n");
+    }
+    
+    /* Step 2: Find help entries without any keywords */
+    send_to_char(ch, "\r\nStep 2: Checking for help entries without keywords...\r\n");
+    
+    snprintf(query, sizeof(query),
+      "SELECT he.tag, he.min_level "
+      "FROM help_entries he "
+      "LEFT JOIN help_keywords hk ON he.tag = hk.help_tag "
+      "WHERE hk.help_tag IS NULL");
+    
+    if (mysql_query(conn, query) == 0) {
+      result = mysql_store_result(conn);
+      if (result) {
+        while ((row = mysql_fetch_row(result))) {
+          send_to_char(ch, "  Found entry without keywords: '%s' (level %s)\r\n", 
+                       row[0] ? row[0] : "(null)",
+                       row[1] ? row[1] : "0");
+          missing_keywords++;
+          
+          if (force && row[0]) {
+            /* Add the tag itself as a keyword */
+            char *escaped_tag = (char *)malloc(strlen(row[0]) * 2 + 1);
+            if (escaped_tag) {
+              mysql_real_escape_string(conn, escaped_tag, row[0], strlen(row[0]));
+              
+              snprintf(query, sizeof(query),
+                "INSERT INTO help_keywords (help_tag, keyword) VALUES ('%s', '%s')",
+                escaped_tag, escaped_tag);
+              
+              if (mysql_query(conn, query) == 0) {
+                send_to_char(ch, "    Added keyword '%s' for entry '%s'\r\n", row[0], row[0]);
+                fixed++;
+              } else {
+                send_to_char(ch, "    Error adding keyword: %s\r\n", mysql_error(conn));
+              }
+              
+              free(escaped_tag);
+            }
+          }
+        }
+        mysql_free_result(result);
+      }
+    }
+    
+    if (missing_keywords > 0 && !force) {
+      send_to_char(ch, "\r\nFound %d entries without keywords. Use 'helpgen repair force' to add keywords.\r\n", 
+                   missing_keywords);
+    }
+    
+    /* Step 3: Summary */
+    send_to_char(ch, "\r\n--- Repair Summary ---\r\n");
+    send_to_char(ch, "Orphaned keywords found: %d\r\n", orphaned_keywords);
+    send_to_char(ch, "Entries without keywords found: %d\r\n", missing_keywords);
+    
+    if (force) {
+      send_to_char(ch, "Issues fixed: %d\r\n", fixed);
+      send_to_char(ch, "\r\nDatabase repair complete.\r\n");
+    } else {
+      send_to_char(ch, "\r\nUse 'helpgen repair force' to fix these issues.\r\n");
+    }
+    
+    return;
+    
+  } else if (!str_cmp(arg1, "import")) {
+    /* Import legacy help.hlp file */
+    const char *mode = "merge"; /* Default mode */
+    
+    if (*arg2) {
+      if (!str_cmp(arg2, "preview") || !str_cmp(arg2, "force") || !str_cmp(arg2, "merge")) {
+        mode = arg2;
+      } else {
+        send_to_char(ch, "Invalid import mode. Use: preview, force, or merge (default)\r\n");
+        return;
+      }
+    }
+    
+    send_to_char(ch, "Starting help.hlp import (%s mode)...\r\n\r\n", mode);
+    int result = import_help_hlp_file(ch, mode);
+    
+    if (result < 0) {
+      send_to_char(ch, "Import failed. Check logs for details.\r\n");
+    }
+    return;
+    
   } else {
     /* Generate for specific command */
     cmd_num = find_command(arg1);
@@ -1582,4 +2014,365 @@ ACMD(do_helpgen) {
   if (generated > 0) {
     send_to_char(ch, "\r\nUse 'helpcheck' to see remaining commands without help.\r\n");
   }
+}
+
+/* Import functionality implementations */
+
+/**
+ * Free a help_entry_list structure and its allocated memory
+ */
+static void free_help_entry(struct help_entry_list *entry) {
+  if (!entry) return;
+  
+  if (entry->tag) free(entry->tag);
+  if (entry->keywords) free(entry->keywords);
+  if (entry->entry) free(entry->entry);
+  free(entry);
+}
+
+/**
+ * Parse a single help entry from the help.hlp file
+ * Format:
+ * KEYWORD1 KEYWORD2 KEYWORD3
+ * Help text content
+ * Multiple lines...
+ * #<min_level>
+ */
+static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level) {
+  char line[MAX_STRING_LENGTH];
+  char keywords[MAX_STRING_LENGTH];
+  char content[MAX_STRING_LENGTH * 8];
+  struct help_entry_list *entry = NULL;
+  int content_len = 0;
+  
+  *min_level = 0;
+  keywords[0] = '\0';
+  content[0] = '\0';
+  
+  /* Read the keywords line */
+  if (!fgets(line, sizeof(line), fp)) {
+    return NULL;
+  }
+  
+  /* Skip empty lines */
+  while (line[0] == '\n' || line[0] == '\r') {
+    if (!fgets(line, sizeof(line), fp)) {
+      return NULL;
+    }
+  }
+  
+  /* Check if this is a level marker (start of next entry) */
+  if (line[0] == '#') {
+    return NULL;
+  }
+  
+  /* Copy keywords, removing newline */
+  strlcpy(keywords, line, sizeof(keywords));
+  char *newline = strchr(keywords, '\n');
+  if (newline) *newline = '\0';
+  newline = strchr(keywords, '\r');
+  if (newline) *newline = '\0';
+  
+  /* Skip the blank line after keywords */
+  if (!fgets(line, sizeof(line), fp)) {
+    return NULL;
+  }
+  
+  /* Read content until we hit #<level> */
+  while (fgets(line, sizeof(line), fp)) {
+    if (line[0] == '#') {
+      /* Parse the level */
+      *min_level = atoi(line + 1);
+      break;
+    }
+    
+    /* Add line to content */
+    int line_len = strlen(line);
+    if (content_len + line_len < sizeof(content) - 1) {
+      strcat(content, line);
+      content_len += line_len;
+    }
+  }
+  
+  /* Create the help entry structure */
+  CREATE(entry, struct help_entry_list, 1);
+  entry->keywords = strdup(keywords);
+  entry->entry = strdup(content);
+  entry->min_level = *min_level;
+  entry->next = NULL;
+  
+  /* Generate tag from first keyword */
+  char *first_keyword = strdup(keywords);
+  char *space = strchr(first_keyword, ' ');
+  char *p;
+  if (space) *space = '\0';
+  
+  /* Convert to lowercase for tag */
+  for (p = first_keyword; *p; p++) {
+    *p = LOWER(*p);
+  }
+  entry->tag = first_keyword;
+  
+  return entry;
+}
+
+/**
+ * Import a single entry with conflict resolution
+ * Modes: "preview" = don't save, "force" = overwrite, "merge" = intelligent merge
+ */
+static int import_entry_with_resolution(struct char_data *ch, struct help_entry_list *entry, 
+                                       int min_level, const char *mode) {
+  char *query = NULL;
+  char escaped_tag[MAX_STRING_LENGTH];
+  char *escaped_entry = NULL;
+  char escaped_keyword[MAX_STRING_LENGTH];
+  MYSQL_RES *result;
+  int tag_exists = 0;
+  size_t query_size, entry_len;
+  
+  if (!entry || !entry->tag) return -1;
+  
+  /* Escape tag for SQL */
+  mysql_real_escape_string(conn, escaped_tag, entry->tag, strlen(entry->tag));
+  
+  /* Check if tag already exists */
+  query_size = strlen("SELECT tag FROM help_entries WHERE tag = ''") + strlen(escaped_tag) + 1;
+  CREATE(query, char, query_size);
+  snprintf(query, query_size,
+    "SELECT tag FROM help_entries WHERE tag = '%s'", escaped_tag);
+  
+  if (mysql_query(conn, query) == 0) {
+    result = mysql_store_result(conn);
+    if (result) {
+      tag_exists = (mysql_num_rows(result) > 0);
+      mysql_free_result(result);
+    }
+  }
+  free(query);
+  
+  /* Preview mode - just report what would happen */
+  if (!str_cmp(mode, "preview")) {
+    if (tag_exists) {
+      send_to_char(ch, "  [EXISTS] %s - would skip/merge\r\n", entry->tag);
+      return 0;
+    } else {
+      send_to_char(ch, "  [NEW] %s - would import\r\n", entry->tag);
+      return 1;
+    }
+  }
+  
+  /* Handle existing entries based on mode */
+  if (tag_exists) {
+    if (!str_cmp(mode, "force")) {
+      /* Delete existing entry and its keywords */
+      query_size = strlen("DELETE FROM help_keywords WHERE help_tag = ''") + strlen(escaped_tag) + 1;
+      CREATE(query, char, query_size);
+      snprintf(query, query_size,
+        "DELETE FROM help_keywords WHERE help_tag = '%s'", escaped_tag);
+      mysql_query(conn, query);
+      free(query);
+      
+      query_size = strlen("DELETE FROM help_entries WHERE tag = ''") + strlen(escaped_tag) + 1;
+      CREATE(query, char, query_size);
+      snprintf(query, query_size,
+        "DELETE FROM help_entries WHERE tag = '%s'", escaped_tag);
+      mysql_query(conn, query);
+      free(query);
+      
+      send_to_char(ch, "  [REPLACED] %s\r\n", entry->tag);
+    } else if (!str_cmp(mode, "merge")) {
+      /* Create a new tag with suffix */
+      char new_tag[MAX_STRING_LENGTH];
+      int suffix = 2;
+      
+      do {
+        snprintf(new_tag, sizeof(new_tag), "%s_%d", entry->tag, suffix);
+        mysql_real_escape_string(conn, escaped_tag, new_tag, strlen(new_tag));
+        
+        query_size = strlen("SELECT tag FROM help_entries WHERE tag = ''") + strlen(escaped_tag) + 1;
+        CREATE(query, char, query_size);
+        snprintf(query, query_size,
+          "SELECT tag FROM help_entries WHERE tag = '%s'", escaped_tag);
+        
+        tag_exists = 0;
+        if (mysql_query(conn, query) == 0) {
+          result = mysql_store_result(conn);
+          if (result) {
+            tag_exists = (mysql_num_rows(result) > 0);
+            mysql_free_result(result);
+          }
+        }
+        free(query);
+        suffix++;
+      } while (tag_exists && suffix < 100);
+      
+      free(entry->tag);
+      entry->tag = strdup(new_tag);
+      send_to_char(ch, "  [MERGED] %s (as %s)\r\n", entry->keywords, new_tag);
+    } else {
+      send_to_char(ch, "  [SKIPPED] %s - already exists\r\n", entry->tag);
+      return 0;
+    }
+  } else {
+    send_to_char(ch, "  [IMPORTED] %s\r\n", entry->tag);
+  }
+  
+  /* Insert the help entry */
+  mysql_real_escape_string(conn, escaped_tag, entry->tag, strlen(entry->tag));
+  
+  /* Allocate escaped_entry buffer dynamically based on entry size */
+  entry_len = strlen(entry->entry);
+  CREATE(escaped_entry, char, (entry_len * 2 + 1));
+  mysql_real_escape_string(conn, escaped_entry, entry->entry, entry_len);
+  
+  /* Allocate query buffer dynamically */
+  query_size = strlen("INSERT INTO help_entries (tag, entry, min_level, auto_generated) VALUES ('', '', , FALSE)") 
+               + strlen(escaped_tag) + strlen(escaped_entry) + 20;
+  CREATE(query, char, query_size);
+  snprintf(query, query_size,
+    "INSERT INTO help_entries (tag, entry, min_level, auto_generated) "
+    "VALUES ('%s', '%s', %d, FALSE)",
+    escaped_tag, escaped_entry, min_level);
+  
+  if (mysql_query(conn, query) != 0) {
+    send_to_char(ch, "    ERROR: Failed to insert entry: %s\r\n", mysql_error(conn));
+    free(escaped_entry);
+    free(query);
+    return -1;
+  }
+  free(escaped_entry);
+  free(query);
+  
+  /* Insert keywords */
+  char keyword_copy[MAX_STRING_LENGTH];
+  char *token, *rest;
+  
+  strlcpy(keyword_copy, entry->keywords, sizeof(keyword_copy));
+  token = strtok_r(keyword_copy, " ", &rest);
+  
+  while (token) {
+    mysql_real_escape_string(conn, escaped_keyword, token, strlen(token));
+    
+    query_size = strlen("INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('', '')") 
+                 + strlen(escaped_tag) + strlen(escaped_keyword) + 1;
+    CREATE(query, char, query_size);
+    snprintf(query, query_size,
+      "INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('%s', '%s')",
+      escaped_tag, escaped_keyword);
+    
+    mysql_query(conn, query); /* Ignore errors for duplicate keywords */
+    free(query);
+    
+    token = strtok_r(NULL, " ", &rest);
+  }
+  
+  return 1;
+}
+
+/**
+ * Main import function - reads help.hlp and imports to database
+ */
+static int import_help_hlp_file(struct char_data *ch, const char *mode) {
+  FILE *fp;
+  struct help_entry_list *entry;
+  int min_level;
+  int total_entries = 0;
+  int imported = 0;
+  int skipped = 0;
+  int errors = 0;
+  char filename[256];
+  
+  /* Open the help.hlp file */
+  snprintf(filename, sizeof(filename), "text/help/help.hlp");
+  
+  if (!(fp = fopen(filename, "r"))) {
+    send_to_char(ch, "ERROR: Cannot open help.hlp file: %s\r\n", filename);
+    mudlog(NRM, LVL_IMPL, TRUE, "HELP IMPORT: Failed to open %s", filename);
+    return -1;
+  }
+  
+  send_to_char(ch, "Reading help.hlp file from: %s\r\n", filename);
+  
+  /* Start transaction for non-preview modes */
+  if (str_cmp(mode, "preview")) {
+    if (mysql_query(conn, "START TRANSACTION") != 0) {
+      send_to_char(ch, "ERROR: Failed to start transaction: %s\r\n", mysql_error(conn));
+      fclose(fp);
+      return -1;
+    }
+  }
+  
+  /* Process each entry in the file */
+  while ((entry = parse_help_entry(fp, &min_level)) != NULL) {
+    total_entries++;
+    
+    /* Show progress every 50 entries */
+    if (total_entries % 50 == 0) {
+      send_to_char(ch, "Processing entry %d...\r\n", total_entries);
+    }
+    
+    /* Check for duplicates and import based on mode */
+    int result = import_entry_with_resolution(ch, entry, min_level, mode);
+    
+    if (result > 0) {
+      imported++;
+    } else if (result == 0) {
+      skipped++;
+    } else {
+      errors++;
+    }
+    
+    /* Free the entry */
+    free_help_entry(entry);
+    
+    /* In preview mode, limit output */
+    if (!str_cmp(mode, "preview") && total_entries >= 100) {
+      send_to_char(ch, "\r\n... Preview limited to first 100 entries ...\r\n");
+      break;
+    }
+  }
+  
+  fclose(fp);
+  
+  /* Commit or rollback transaction */
+  if (str_cmp(mode, "preview")) {
+    if (errors > 0) {
+      mysql_query(conn, "ROLLBACK");
+      send_to_char(ch, "\r\nTransaction rolled back due to errors.\r\n");
+    } else {
+      if (mysql_query(conn, "COMMIT") != 0) {
+        send_to_char(ch, "ERROR: Failed to commit transaction: %s\r\n", mysql_error(conn));
+        mysql_query(conn, "ROLLBACK");
+        return -1;
+      }
+      send_to_char(ch, "\r\nTransaction committed successfully.\r\n");
+    }
+  }
+  
+  /* Report summary */
+  send_to_char(ch, "\r\n=== Import Summary ===\r\n");
+  send_to_char(ch, "Total entries processed: %d\r\n", total_entries);
+  
+  if (!str_cmp(mode, "preview")) {
+    send_to_char(ch, "Would import: %d\r\n", imported);
+    send_to_char(ch, "Would skip: %d\r\n", skipped);
+    send_to_char(ch, "\r\nThis was a PREVIEW. No changes were made.\r\n");
+    send_to_char(ch, "Use 'helpgen import force' or 'helpgen import merge' to actually import.\r\n");
+  } else {
+    send_to_char(ch, "Successfully imported: %d\r\n", imported);
+    send_to_char(ch, "Skipped (duplicates): %d\r\n", skipped);
+    send_to_char(ch, "Errors: %d\r\n", errors);
+    
+    if (imported > 0) {
+      /* Clear the help cache */
+      extern void clear_help_cache(void);
+      clear_help_cache();
+      send_to_char(ch, "\r\nHelp cache cleared. New entries are now available.\r\n");
+    }
+  }
+  
+  mudlog(NRM, LVL_IMPL, TRUE, "HELP IMPORT: %s imported %d entries from help.hlp (%s mode)",
+    GET_NAME(ch), imported, mode);
+  
+  return imported;
 }

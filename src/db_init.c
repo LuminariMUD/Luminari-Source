@@ -873,6 +873,135 @@ void init_housing_system_tables(void)
 
 /* ===== HELP SYSTEM TABLES ===== */
 
+/* Database Migration System */
+void init_database_migrations(void)
+{
+    const char *create_migrations_table = 
+        "CREATE TABLE IF NOT EXISTS schema_migrations ("
+        "  version INT NOT NULL PRIMARY KEY COMMENT 'Schema version number',"
+        "  description VARCHAR(255) NOT NULL COMMENT 'Description of migration',"
+        "  applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'When migration was applied',"
+        "  INDEX idx_version (version)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
+        "COMMENT='Tracks database schema migrations'";
+    
+    if (mysql_query_safe(conn, create_migrations_table)) {
+        log("SYSERR: Failed to create schema_migrations table: %s", mysql_error(conn));
+        return;
+    }
+    
+    log("INFO: Schema migrations table initialized");
+}
+
+/* Apply a migration if not already applied */
+int apply_migration(int version, const char *description, const char *sql)
+{
+    char query[MAX_STRING_LENGTH];
+    MYSQL_RES *result;
+    int already_applied = 0;
+    
+    /* Check if migration already applied */
+    snprintf(query, sizeof(query), 
+        "SELECT version FROM schema_migrations WHERE version = %d", version);
+    
+    if (!mysql_query_safe(conn, query)) {
+        result = mysql_store_result(conn);
+        if (result) {
+            if (mysql_num_rows(result) > 0) {
+                already_applied = 1;
+            }
+            mysql_free_result(result);
+        }
+    }
+    
+    if (already_applied) {
+        return 1; /* Success - already applied */
+    }
+    
+    /* Apply the migration */
+    log("INFO: Applying migration %d: %s", version, description);
+    
+    if (mysql_query_safe(conn, sql)) {
+        log("SYSERR: Failed to apply migration %d: %s", version, mysql_error(conn));
+        return 0;
+    }
+    
+    /* Record the migration */
+    snprintf(query, sizeof(query),
+        "INSERT INTO schema_migrations (version, description) VALUES (%d, '%s')",
+        version, description);
+    
+    if (mysql_query_safe(conn, query)) {
+        log("SYSERR: Failed to record migration %d: %s", version, mysql_error(conn));
+        return 0;
+    }
+    
+    log("INFO: Migration %d applied successfully", version);
+    return 1;
+}
+
+/* Run all pending migrations */
+void run_database_migrations(void)
+{
+    if (!mysql_available || !conn) {
+        log("MySQL not available, skipping database migrations");
+        return;
+    }
+    
+    /* Initialize migrations table */
+    init_database_migrations();
+    
+    /* Migration 1: Add help_versions table for version control */
+    apply_migration(1, "Add help_versions table for version history",
+        "CREATE TABLE IF NOT EXISTS help_versions ("
+        "  id INT AUTO_INCREMENT PRIMARY KEY,"
+        "  tag VARCHAR(50) NOT NULL,"
+        "  entry TEXT,"
+        "  min_level INT DEFAULT 0,"
+        "  changed_by VARCHAR(50),"
+        "  change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+        "  change_type ENUM('CREATE', 'UPDATE', 'DELETE') DEFAULT 'UPDATE',"
+        "  INDEX idx_tag_date (tag, change_date)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
+        "COMMENT='Version history for help entries'");
+    
+    /* Migration 2: Add help_search_history table */
+    apply_migration(2, "Add help_search_history table for analytics",
+        "CREATE TABLE IF NOT EXISTS help_search_history ("
+        "  id INT AUTO_INCREMENT PRIMARY KEY,"
+        "  search_term VARCHAR(200) NOT NULL,"
+        "  searcher_name VARCHAR(50),"
+        "  searcher_level INT,"
+        "  results_count INT DEFAULT 0,"
+        "  search_type ENUM('keyword', 'fulltext', 'soundex') DEFAULT 'keyword',"
+        "  search_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+        "  INDEX idx_search_term (search_term),"
+        "  INDEX idx_search_date (search_date)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
+        "COMMENT='Tracks help searches for analytics'");
+    
+    /* Migration 3: Add categories to help entries */
+    apply_migration(3, "Add category support to help entries",
+        "ALTER TABLE help_entries "
+        "ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'general' "
+        "COMMENT 'Help category for browsing' AFTER tag, "
+        "ADD INDEX IF NOT EXISTS idx_category (category)");
+    
+    /* Migration 4: Add related_topics table */
+    apply_migration(4, "Add related_topics table for help linking",
+        "CREATE TABLE IF NOT EXISTS help_related_topics ("
+        "  source_tag VARCHAR(50) NOT NULL,"
+        "  related_tag VARCHAR(50) NOT NULL,"
+        "  relevance_score FLOAT DEFAULT 1.0,"
+        "  PRIMARY KEY (source_tag, related_tag),"
+        "  INDEX idx_source (source_tag),"
+        "  INDEX idx_related (related_tag)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
+        "COMMENT='Links between related help topics'");
+    
+    log("INFO: Database migrations completed");
+}
+
 void init_help_system_tables(void)
 {
     if (!mysql_available || !conn) {
@@ -970,6 +1099,9 @@ void init_help_system_tables(void)
     }
     
     log("INFO: Help system optimization indexes added");
+    
+    /* Run database migrations for new features */
+    run_database_migrations();
 }
 
 /* ===== DATABASE PROCEDURES AND FUNCTIONS ===== */
