@@ -1668,5 +1668,10 @@ void HandleStateCharacterRPDecideParseMenuChoice(struct descriptor_data *d, char
       break;
   }
   
+  /* Save character after roleplay decision */
+  if (ch && changeStateTo != STATE(d)) {
+    save_char(ch, 0);
+  }
+  
   STATE(d) = changeStateTo;
 }

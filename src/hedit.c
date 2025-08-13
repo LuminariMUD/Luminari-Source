@@ -2517,7 +2517,10 @@ static int import_entry_with_resolution(struct char_data *ch, struct help_entry_
   char *escaped_entry = NULL;
   char escaped_keyword[MAX_STRING_LENGTH];
   MYSQL_RES *result;
+  MYSQL_ROW row;
   int tag_exists = 0;
+  int keyword_exists = 0;
+  char *existing_help_tag = NULL;
   size_t query_size, entry_len;
   
   if (!entry || !entry->tag) return -1;
@@ -2540,13 +2543,89 @@ static int import_entry_with_resolution(struct char_data *ch, struct help_entry_
   }
   free(query);
   
+  /* For skip mode and preview, also check if any keywords already exist in the database */
+  if ((!str_cmp(mode, "skip") || !str_cmp(mode, "preview")) && !tag_exists) {
+    char keyword_copy[MAX_STRING_LENGTH];
+    char *token, *rest;
+    char *escaped_keywords = NULL;
+    size_t escaped_size = 0;
+    size_t escaped_len = 0;
+    int first_keyword = 1;
+    
+    /* Build a list of escaped keywords for the IN clause */
+    strlcpy(keyword_copy, entry->keywords, sizeof(keyword_copy));
+    token = strtok_r(keyword_copy, " ", &rest);
+    
+    /* Allocate initial buffer for escaped keywords */
+    escaped_size = MAX_STRING_LENGTH * 4;
+    CREATE(escaped_keywords, char, escaped_size);
+    escaped_keywords[0] = '\0';
+    
+    while (token) {
+      mysql_real_escape_string(conn, escaped_keyword, token, strlen(token));
+      
+      /* Add comma if not first keyword */
+      if (!first_keyword) {
+        /* Check if we need to expand buffer */
+        if (escaped_len + 3 > escaped_size - 1) {
+          escaped_size *= 2;
+          RECREATE(escaped_keywords, char, escaped_size);
+        }
+        escaped_len += snprintf(escaped_keywords + escaped_len, escaped_size - escaped_len, ", ");
+      }
+      first_keyword = 0;
+      
+      /* Add the escaped keyword in quotes */
+      size_t keyword_len = strlen(escaped_keyword) + 3; /* For quotes and null */
+      if (escaped_len + keyword_len > escaped_size - 1) {
+        escaped_size *= 2;
+        RECREATE(escaped_keywords, char, escaped_size);
+      }
+      escaped_len += snprintf(escaped_keywords + escaped_len, escaped_size - escaped_len, "'%s'", escaped_keyword);
+      
+      token = strtok_r(NULL, " ", &rest);
+    }
+    
+    /* Check if any of these keywords already exist */
+    if (escaped_len > 0) {
+      query_size = strlen("SELECT DISTINCT help_tag FROM help_keywords WHERE keyword IN ()") + escaped_len + 1;
+      CREATE(query, char, query_size);
+      snprintf(query, query_size,
+        "SELECT DISTINCT help_tag FROM help_keywords WHERE keyword IN (%s)", escaped_keywords);
+      
+      if (mysql_query(conn, query) == 0) {
+        result = mysql_store_result(conn);
+        if (result) {
+          if (mysql_num_rows(result) > 0) {
+            keyword_exists = 1;
+            /* Get the first existing help tag for reporting */
+            row = mysql_fetch_row(result);
+            if (row && row[0]) {
+              existing_help_tag = strdup(row[0]);
+            }
+          }
+          mysql_free_result(result);
+        }
+      }
+      free(query);
+    }
+    free(escaped_keywords);
+  }
+  
   /* Preview mode - just report what would happen */
   if (!str_cmp(mode, "preview")) {
     if (tag_exists) {
-      snprintf(msg_buf, msg_size, "  [EXISTS] %s - would skip/merge/force depending on mode\r\n", entry->tag);
+      snprintf(msg_buf, msg_size, "  [TAG EXISTS] %s - would skip/merge/force depending on mode\r\n", entry->tag);
+      if (existing_help_tag) free(existing_help_tag);
+      return 0;
+    } else if (keyword_exists) {
+      snprintf(msg_buf, msg_size, "  [KEYWORD EXISTS] %s - keywords already mapped to %s (would skip in skip mode)\r\n", 
+               entry->tag, existing_help_tag ? existing_help_tag : "another entry");
+      if (existing_help_tag) free(existing_help_tag);
       return 0;
     } else {
       snprintf(msg_buf, msg_size, "  [NEW] %s - would import\r\n", entry->tag);
+      if (existing_help_tag) free(existing_help_tag);
       return 1;
     }
   }
@@ -2601,16 +2680,26 @@ static int import_entry_with_resolution(struct char_data *ch, struct help_entry_
       snprintf(msg_buf, msg_size, "  [MERGED] %s (as %s)\r\n", entry->keywords, new_tag);
     } else if (!str_cmp(mode, "skip")) {
       /* Skip mode - explicitly skip existing entries */
-      snprintf(msg_buf, msg_size, "  [SKIPPED] %s - already exists\r\n", entry->tag);
+      snprintf(msg_buf, msg_size, "  [SKIPPED] %s - tag already exists\r\n", entry->tag);
+      if (existing_help_tag) free(existing_help_tag);
       return 0;
     } else {
       /* Unknown mode - should not happen but skip for safety */
       snprintf(msg_buf, msg_size, "  [ERROR] %s - unknown mode '%s'\r\n", entry->tag, mode);
+      if (existing_help_tag) free(existing_help_tag);
       return -1;
     }
+  } else if (keyword_exists && !str_cmp(mode, "skip")) {
+    /* Skip entries where keywords already exist (skip mode only) */
+    snprintf(msg_buf, msg_size, "  [SKIPPED] %s - keywords already mapped to %s\r\n", 
+             entry->tag, existing_help_tag ? existing_help_tag : "another entry");
+    if (existing_help_tag) free(existing_help_tag);
+    return 0;
   } else {
     snprintf(msg_buf, msg_size, "  [IMPORTED] %s\r\n", entry->tag);
   }
+  
+  if (existing_help_tag) free(existing_help_tag);
   
   /* Insert the help entry */
   mysql_real_escape_string(conn, escaped_tag, entry->tag, strlen(entry->tag));
