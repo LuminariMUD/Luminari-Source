@@ -174,6 +174,12 @@ void disconnect_from_mysql2();
 void disconnect_from_mysql3();
 void cleanup_mysql_library();
 
+/* MySQL connection health check with auto-reconnect */
+bool ensure_mysql_connection(MYSQL *mysql_conn, const char *caller_func);
+
+/* Convenience macro for connection checking with automatic function name */
+#define MYSQL_PING_CONN(conn) ensure_mysql_connection(conn, __func__)
+
 /* Wilderness */
 struct wilderness_data *load_wilderness(zone_vnum zone);
 void load_regions();

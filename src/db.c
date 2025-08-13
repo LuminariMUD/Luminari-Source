@@ -7438,7 +7438,11 @@ void set_db_happy_hour(int status)
 
   char query[LONG_STRING] = {'\0'};
 
-  mysql_ping(conn);
+  /* Ensure database connection is active before happy hour operations */
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return;
+  }
 
   snprintf(query, sizeof(query), "DELETE FROM happy_hour_info");
 
@@ -7475,7 +7479,11 @@ void save_objects_to_database(struct char_data *ch)
   char notes[LONG_STRING] = {'\0'};
   char zone_name[255] =  {'\0'};
 
-  mysql_ping(conn);
+  /* Ensure database connection is active before object database operations */
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return;
+  }
 
   snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_items");
   if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_items: %s", mysql_error(conn));

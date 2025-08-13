@@ -43,7 +43,10 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
     long int level_id = -1;
 
     // Check the connection, reconnect if necessary.
-    mysql_ping(conn);
+    if (!MYSQL_PING_CONN(conn)) {
+        log("SYSERR: %s: Database connection failed", __func__);
+        return;
+    }
 
     snprintf(query, sizeof(query),
              "SELECT level_id, class_number FROM player_levelups WHERE character_name='%s' AND level_number='%d'",
@@ -225,7 +228,11 @@ void show_level_history(struct char_data *ch, int level)
     char query[1000];
     long int level_id = -1;
 
-    mysql_ping(conn);
+    /* Ensure database connection is active */
+    if (!MYSQL_PING_CONN(conn)) {
+        log("SYSERR: %s: Database connection failed", __func__);
+        return -1;
+    }
 
     snprintf(query, sizeof(query),
              "SELECT * FROM player_levels WHERE char_name=\"%s\" AND char_level='%d'",
@@ -411,7 +418,11 @@ long get_level_id_by_level_num(int level_num, char *chname)
     long level_id = 0;
     char *escaped_chname;
 
-    mysql_ping(conn);
+    /* Ensure database connection is active */
+    if (!MYSQL_PING_CONN(conn)) {
+        log("SYSERR: %s: Database connection failed", __func__);
+        return;
+    }
 
     /* Escape character name to prevent SQL injection */
     escaped_chname = mysql_escape_string_alloc(conn, chname);
@@ -462,7 +473,11 @@ void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char
         }
     }
 
-    mysql_ping(conn);
+    /* Ensure database connection is active */
+    if (!MYSQL_PING_CONN(conn)) {
+        log("SYSERR: %s: Database connection failed", __func__);
+        return;
+    }
 
     snprintf(query, sizeof(query),
              "SELECT level_number, class_number FROM player_levelups WHERE level_id='%ld' AND character_name='%s'",
@@ -584,7 +599,12 @@ ACMD(do_levelinfo)
 
     half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
-    mysql_ping(conn);
+    /* Ensure database connection is active */
+    if (!MYSQL_PING_CONN(conn)) {
+        log("SYSERR: %s: Database connection failed", __func__);
+        send_to_char(ch, "Database connection error.\r\n");
+        return;
+    }
 
     if (!*arg1)
     {
@@ -766,7 +786,12 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
 
     int i = 0;
 
-    mysql_ping(conn);
+    /* Ensure database connection is active */
+    if (!MYSQL_PING_CONN(conn)) {
+        log("SYSERR: %s: Database connection failed", __func__);
+        send_to_char(ch, "Database connection error.\r\n");
+        return;
+    }
 
     MYSQL_RES *res = NULL;
     MYSQL_ROW row = NULL;
@@ -958,7 +983,11 @@ void erase_levelup_info(struct char_data *ch)
     MYSQL_RES *res = NULL;
     MYSQL_ROW row = NULL;
 
-    mysql_ping(conn);
+    /* Ensure database connection is active */
+    if (!MYSQL_PING_CONN(conn)) {
+        log("SYSERR: %s: Database connection failed", __func__);
+        return false;
+    }
 
     int found = true;
 

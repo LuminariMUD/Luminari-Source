@@ -964,7 +964,10 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
     extern MYSQL *conn;
 
     /* Check the connection, reconnect if necessary. */
-    mysql_ping(conn);
+    if (!MYSQL_PING_CONN(conn)) {
+      write_to_output(d, "Database connection failed. Mail could not be sent.\r\n");
+      return;
+    }
 
     int found = FALSE;
     /*  No clan functionality atm
@@ -991,7 +994,10 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
       extern MYSQL *conn2;
 
       /* Check the connection, reconnect if necessary. */
-      mysql_ping(conn2);
+      if (!MYSQL_PING_CONN(conn2)) {
+        write_to_output(d, "Database connection failed. Mail could not be sent.\r\n");
+        return;
+      }
 
       MYSQL_RES *res = NULL;
       MYSQL_ROW row = NULL;
@@ -1083,8 +1089,13 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
 
       if (!conn)
       {
-        /* Check the connection, reconnect if necessary. */
-        mysql_ping(conn);
+        write_to_output(d, "Database connection not available. Mail could not be sent.\r\n");
+        return;
+      }
+      /* Check the connection, reconnect if necessary. */
+      if (!MYSQL_PING_CONN(conn)) {
+        write_to_output(d, "Database connection failed. Mail could not be sent.\r\n");
+        return;
       }
 
       char query[MAX_STRING_LENGTH] = {'\0'};

@@ -93,6 +93,15 @@ void mysql_pool_init(void)
     my_bool reconnect = 1;
     mysql_options(pc->conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
     
+    /* Set connection timeouts to prevent "Lost connection" errors */
+    /* These should be higher than typical query execution times */
+    unsigned int connect_timeout = 60;  /* 60 seconds for initial connection */
+    unsigned int read_timeout = 300;    /* 5 minutes for read operations */
+    unsigned int write_timeout = 300;   /* 5 minutes for write operations */
+    mysql_options(pc->conn, MYSQL_OPT_CONNECT_TIMEOUT, (const char *)&connect_timeout);
+    mysql_options(pc->conn, MYSQL_OPT_READ_TIMEOUT, (const char *)&read_timeout);
+    mysql_options(pc->conn, MYSQL_OPT_WRITE_TIMEOUT, (const char *)&write_timeout);
+    
     /* Connect to database */
     if (!mysql_real_connect(pc->conn, mysql_pool->host, mysql_pool->username,
                            mysql_pool->password, mysql_pool->database,
@@ -217,6 +226,14 @@ MYSQL_POOL_CONN *mysql_pool_acquire(void)
             if (pc->conn) {
               my_bool reconnect = 1;
               mysql_options(pc->conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
+              
+              /* Set connection timeouts for reconnection */
+              unsigned int connect_timeout = 60;
+              unsigned int read_timeout = 300;
+              unsigned int write_timeout = 300;
+              mysql_options(pc->conn, MYSQL_OPT_CONNECT_TIMEOUT, (const char *)&connect_timeout);
+              mysql_options(pc->conn, MYSQL_OPT_READ_TIMEOUT, (const char *)&read_timeout);
+              mysql_options(pc->conn, MYSQL_OPT_WRITE_TIMEOUT, (const char *)&write_timeout);
               
               if (!mysql_real_connect(pc->conn, mysql_pool->host,
                                      mysql_pool->username, mysql_pool->password,
@@ -343,6 +360,14 @@ void mysql_pool_health_check(void)
           my_bool reconnect = 1;
           mysql_options(pc->conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
           
+          /* Set connection timeouts for reconnection */
+          unsigned int connect_timeout = 60;
+          unsigned int read_timeout = 300;
+          unsigned int write_timeout = 300;
+          mysql_options(pc->conn, MYSQL_OPT_CONNECT_TIMEOUT, (const char *)&connect_timeout);
+          mysql_options(pc->conn, MYSQL_OPT_READ_TIMEOUT, (const char *)&read_timeout);
+          mysql_options(pc->conn, MYSQL_OPT_WRITE_TIMEOUT, (const char *)&write_timeout);
+          
           if (mysql_real_connect(pc->conn, mysql_pool->host,
                                mysql_pool->username, mysql_pool->password,
                                mysql_pool->database, 0, NULL, 0)) {
@@ -413,6 +438,14 @@ void mysql_pool_expand(void)
   /* Set options */
   my_bool reconnect = 1;
   mysql_options(pc->conn, MYSQL_OPT_RECONNECT, (const char *)&reconnect);
+  
+  /* Set connection timeouts for new connection */
+  unsigned int connect_timeout = 60;
+  unsigned int read_timeout = 300;
+  unsigned int write_timeout = 300;
+  mysql_options(pc->conn, MYSQL_OPT_CONNECT_TIMEOUT, (const char *)&connect_timeout);
+  mysql_options(pc->conn, MYSQL_OPT_READ_TIMEOUT, (const char *)&read_timeout);
+  mysql_options(pc->conn, MYSQL_OPT_WRITE_TIMEOUT, (const char *)&write_timeout);
   
   /* Connect */
   if (!mysql_real_connect(pc->conn, mysql_pool->host, mysql_pool->username,
@@ -612,6 +645,41 @@ void mysql_pool_free_result(MYSQL_RES *result)
  */
 /* Global flag to track MySQL availability */
 bool mysql_available = FALSE;
+
+/**
+ * Ensures MySQL connection is active and attempts reconnection if needed.
+ * This is a centralized helper to replace bare mysql_ping() calls.
+ * 
+ * @param mysql_conn The MySQL connection to check (conn, conn2, or conn3)
+ * @param caller_func Name of the calling function for logging purposes
+ * @return true if connection is good or successfully reconnected, false otherwise
+ */
+bool ensure_mysql_connection(MYSQL *mysql_conn, const char *caller_func)
+{
+  /* If no connection provided, fail */
+  if (!mysql_conn) {
+    log("SYSERR: %s: NULL MySQL connection provided", caller_func ? caller_func : "Unknown");
+    return false;
+  }
+  
+  /* mysql_ping returns 0 on success, non-zero if connection was lost */
+  if (mysql_ping(mysql_conn) != 0) {
+    log("WARNING: %s: MySQL connection lost, attempting reconnect: %s", 
+        caller_func ? caller_func : "Unknown", mysql_error(mysql_conn));
+    
+    /* The mysql_ping() should auto-reconnect if MYSQL_OPT_RECONNECT is set */
+    /* Try the ping again to verify reconnection */
+    if (mysql_ping(mysql_conn) != 0) {
+      log("SYSERR: %s: Unable to reconnect to MySQL: %s", 
+          caller_func ? caller_func : "Unknown", mysql_error(mysql_conn));
+      return false;
+    }
+    
+    log("INFO: %s: Successfully reconnected to MySQL", caller_func ? caller_func : "Unknown");
+  }
+  
+  return true;
+}
 
 void connect_to_mysql()
 {
@@ -2034,7 +2102,10 @@ bool is_point_within_region(region_vnum region, int x, int y)
            x, y);
 
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return false;
+  }
 
   if (mysql_query(conn, buf))
   {
@@ -2091,7 +2162,10 @@ struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y)
            x, y);
 
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return false;
+  }
 
   if (mysql_query(conn, buf))
   {
@@ -2220,7 +2294,10 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
            x, y, x, y, r);
 
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return false;
+  }
 
   if (mysql_query(conn, buf))
   {
@@ -2467,7 +2544,10 @@ void insert_path(struct path_data *path)
   log("QUERY: %s", buf);
 
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return false;
+  }
 
   if (mysql_query(conn, buf))
   {
@@ -2489,7 +2569,10 @@ bool delete_path(region_vnum vnum)
   log("QUERY: %s", buf);
 
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return false;
+  }
 
   if (mysql_query(conn, buf))
   {
@@ -2526,7 +2609,10 @@ struct path_list *get_enclosing_paths(zone_rnum zone, int x, int y)
            x, y - 1, x, y + 1, GLYPH_TYPE_PATH_NS, x - 1, y, x + 1, y, GLYPH_TYPE_PATH_EW, GLYPH_TYPE_PATH_INT, zone_table[zone].number, x, y);
 
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return false;
+  }
 
   if (mysql_query(conn, buf))
   {
@@ -2594,7 +2680,10 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
            region);
 
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return false;
+  }
 
   if (mysql_query(conn, buf))
   {

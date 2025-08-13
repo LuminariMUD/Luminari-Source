@@ -3559,7 +3559,11 @@ int get_mysql_supply_orders_available(struct char_data *ch)
   char buf[MAX_STRING_LENGTH];
   int avail = 0;
   
-  mysql_ping(conn);
+  /* Ensure database connection is active */
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return 0;
+  }
 
   char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
   if (!escaped_name) {
@@ -3595,7 +3599,11 @@ void put_mysql_supply_orders_available(struct char_data *ch, int avail)
 {
   char buf[MAX_STRING_LENGTH];
   
-  mysql_ping(conn);
+  /* Ensure database connection is active */
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return;
+  }
 
   char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
   if (!escaped_name) {

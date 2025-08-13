@@ -549,7 +549,10 @@ int load_account(char *name, struct account_data *account)
     }
   }
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return -1;
+  }
 
   /* Escape the account name to prevent SQL injection */
   char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
@@ -1014,7 +1017,10 @@ void show_account_menu(struct descriptor_data *d)
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
 
   /*  Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: save_account: Database connection failed");
+    return;
+  }
 
   MYSQL_RES *res = NULL;
   MYSQL_ROW row = NULL;
