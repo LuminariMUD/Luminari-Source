@@ -890,10 +890,12 @@ void init_help_system_tables(void)
         "entry LONGTEXT NOT NULL, "
         "min_level INT DEFAULT 0, "
         "max_level INT DEFAULT 1000, "
+        "auto_generated BOOLEAN DEFAULT FALSE COMMENT 'TRUE if auto-generated, FALSE if manual', "
         "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
         "INDEX idx_help_tag (tag), "
-        "INDEX idx_min_level (min_level)"
+        "INDEX idx_min_level (min_level), "
+        "INDEX idx_auto_generated (auto_generated)"
         ")";
 
     if (mysql_query_safe(conn, create_help_entries)) {
@@ -919,6 +921,28 @@ void init_help_system_tables(void)
     }
 
     log("INFO: Help system tables initialized successfully");
+    
+    /* Add auto_generated column if it doesn't exist (for migration) */
+    const char *add_auto_generated_column = 
+        "ALTER TABLE help_entries "
+        "ADD COLUMN IF NOT EXISTS auto_generated BOOLEAN DEFAULT FALSE "
+        "COMMENT 'TRUE if auto-generated, FALSE if manual' "
+        "AFTER max_level";
+    
+    if (mysql_query_safe(conn, add_auto_generated_column)) {
+        log("INFO: Could not add auto_generated column (may already exist): %s", mysql_error(conn));
+        /* Non-critical - column may already exist */
+    }
+    
+    /* Add index on auto_generated column for fast queries */
+    const char *add_auto_generated_index = 
+        "ALTER TABLE help_entries "
+        "ADD INDEX IF NOT EXISTS idx_auto_generated (auto_generated)";
+    
+    if (mysql_query_safe(conn, add_auto_generated_index)) {
+        log("INFO: Could not add auto_generated index (may already exist): %s", mysql_error(conn));
+        /* Non-critical - index may already exist */
+    }
     
     /* Add performance optimization indexes
      * These indexes improve query performance for common help system operations

@@ -1007,3 +1007,579 @@ ACMD(do_hindex)
 
   page_string(ch->desc, buf, TRUE);
 }
+
+/* Helper function to get position name */
+static const char *get_position_name(int position) {
+  switch (position) {
+    case POS_DEAD:      return "Dead";
+    case POS_MORTALLYW: return "Mortally Wounded";
+    case POS_INCAP:     return "Incapacitated";
+    case POS_STUNNED:   return "Stunned";
+    case POS_SLEEPING:  return "Sleeping";
+    case POS_RECLINING: return "Reclining";
+    case POS_RESTING:   return "Resting";
+    case POS_SITTING:   return "Sitting";
+    case POS_FIGHTING:  return "Fighting";
+    case POS_STANDING:  return "Standing";
+    default:            return "Any";
+  }
+}
+
+/* Helper function to get level name */
+static const char *get_level_name(int level) {
+  static char buf[32];
+  
+  if (level <= 0)
+    return "Everyone";
+  else if (level == LVL_IMMORT)
+    return "Immortal";
+  else if (level == LVL_STAFF)
+    return "Staff";
+  else if (level == LVL_GRSTAFF)
+    return "Greater Staff";
+  else if (level == LVL_GRSTAFF)
+    return "Greater Staff";
+  else if (level == LVL_IMPL)
+    return "Implementor";
+  else if (level > 0 && level < LVL_IMMORT) {
+    snprintf(buf, sizeof(buf), "Level %d", level);
+    return buf;
+  }
+  else {
+    return "Unknown";
+  }
+}
+
+/* Forward declarations for command functions used in categorization */
+ACMD_DECL(do_move);
+ACMD_DECL(do_action);
+ACMD_DECL(do_gen_cast);
+ACMD_DECL(do_gen_comm);
+ACMD_DECL(do_gen_door);
+ACMD_DECL(do_gen_ps);
+ACMD_DECL(do_gen_tog);
+ACMD_DECL(do_write);
+ACMD_DECL(do_activate);
+
+/* Get command category based on function pointer and name patterns */
+static const char *get_command_category(struct command_info *cmd) {
+  /* Check by function pointer first */
+  if (cmd->command_pointer == do_move) return "Movement";
+  if (cmd->command_pointer == do_action) return "Social";
+  if (cmd->command_pointer == do_gen_cast) return "Magic";
+  if (cmd->command_pointer == do_gen_comm) return "Communication";
+  if (cmd->command_pointer == do_gen_door) return "Interaction";
+  if (cmd->command_pointer == do_gen_ps) return "Communication";
+  if (cmd->command_pointer == do_gen_tog) return "Settings";
+  if (cmd->command_pointer == do_write) return "Communication";
+  if (cmd->command_pointer == do_activate) return "Magic";
+  
+  /* Check by command name patterns */
+  if (strstr(cmd->command, "cast") || strstr(cmd->command, "spell") || 
+      strstr(cmd->command, "memorize") || strstr(cmd->command, "forget") ||
+      strstr(cmd->command, "activate")) return "Magic";
+  if (strstr(cmd->command, "attack") || strstr(cmd->command, "kill") || 
+      strstr(cmd->command, "hit") || strstr(cmd->command, "bash") ||
+      strstr(cmd->command, "kick") || strstr(cmd->command, "trip")) return "Combat";
+  if (strstr(cmd->command, "get") || strstr(cmd->command, "drop") || 
+      strstr(cmd->command, "put") || strstr(cmd->command, "wear") ||
+      strstr(cmd->command, "remove") || strstr(cmd->command, "wield")) return "Items";
+  if (strstr(cmd->command, "say") || strstr(cmd->command, "tell") || 
+      strstr(cmd->command, "whisper") || strstr(cmd->command, "shout")) return "Communication";
+  if (strstr(cmd->command, "look") || strstr(cmd->command, "examine") || 
+      strstr(cmd->command, "score") || strstr(cmd->command, "who") ||
+      strstr(cmd->command, "where")) return "Information";
+  if (strstr(cmd->command, "save") || strstr(cmd->command, "quit") || 
+      strstr(cmd->command, "config") || strstr(cmd->command, "toggle")) return "System";
+  
+  /* Admin commands */
+  if (cmd->minimum_level >= LVL_IMMORT) return "Administration";
+  
+  return "General";
+}
+
+/* Get action type description */
+static const char *get_action_type_desc(int action_type) {
+  /* Handle combined action flags */
+  if (action_type & ACTION_STANDARD && action_type & ACTION_MOVE)
+    return "Requires both standard and move actions";
+  if (action_type & ACTION_STANDARD)
+    return "Requires a standard action";
+  if (action_type & ACTION_MOVE)
+    return "Requires a move action";
+  if (action_type & ACTION_SWIFT)
+    return "Requires a swift action";
+  if (action_type == ACTION_NONE)
+    return "No action required";
+  
+  return "";
+}
+
+/* Generate contextual description based on command properties */
+static void generate_command_description(struct command_info *cmd, char *desc, size_t desc_size) {
+  const char *category = get_command_category(cmd);
+  
+  /* Special handling for specific commands */
+  if (strcmp(cmd->command, "activate") == 0) {
+    snprintf(desc, desc_size,
+      "Activates a spell stored in a magic item you are wearing or holding.\r\n"
+      "\r\n"
+      "Magic items such as wands, staves, and some equipment can store spells "
+      "that can be activated during combat. This uses the item's charges rather "
+      "than your own spell slots.");
+    return;
+  }
+  
+  if (cmd->command_pointer == do_move) {
+    snprintf(desc, desc_size,
+      "Moves you %s from your current location.\r\n"
+      "\r\n"
+      "Movement commands allow you to explore the world. You must be at least "
+      "reclining to move. Some exits may be hidden or require special conditions "
+      "to use.", cmd->command);
+    return;
+  }
+  
+  /* Generate generic description based on category */
+  if (strcmp(category, "Combat") == 0) {
+    snprintf(desc, desc_size,
+      "A combat command used during battle.\r\n"
+      "\r\n"
+      "This command can be used to attack enemies or perform combat maneuvers. "
+      "Most combat commands require you to be in a fighting position.");
+  } else if (strcmp(category, "Magic") == 0) {
+    snprintf(desc, desc_size,
+      "A magic-related command for spellcasting or magical abilities.\r\n"
+      "\r\n"
+      "This command interacts with the magic system, allowing you to cast spells, "
+      "manage magical abilities, or use magical items.");
+  } else if (strcmp(category, "Items") == 0) {
+    snprintf(desc, desc_size,
+      "Manages items in your inventory or equipment.\r\n"
+      "\r\n"
+      "Use this command to interact with objects, manage your inventory, "
+      "or change your equipment.");
+  } else if (strcmp(category, "Communication") == 0) {
+    snprintf(desc, desc_size,
+      "Allows communication with other players or NPCs.\r\n"
+      "\r\n"
+      "Communication commands let you interact with other characters in the game "
+      "through various channels.");
+  } else if (strcmp(category, "Information") == 0) {
+    snprintf(desc, desc_size,
+      "Provides information about the game world or your character.\r\n"
+      "\r\n"
+      "Use this command to examine your surroundings, check your status, "
+      "or learn about game mechanics.");
+  } else if (strcmp(category, "Administration") == 0) {
+    snprintf(desc, desc_size,
+      "An administrative command for game management.\r\n"
+      "\r\n"
+      "This command is restricted to staff members and is used for "
+      "world building, player assistance, or game administration.");
+  } else {
+    snprintf(desc, desc_size,
+      "A general game command.\r\n"
+      "\r\n"
+      "This command provides various game functionality. Use without arguments "
+      "to see available options, or check related commands for more information.");
+  }
+}
+
+/* Generate usage examples based on command type */
+static void generate_usage_examples(struct command_info *cmd, char *examples, size_t examples_size) {
+  examples[0] = '\0';
+  
+  if (strcmp(cmd->command, "activate") == 0) {
+    snprintf(examples, examples_size,
+      "\r\nExamples:\r\n"
+      "  activate 'cure light'      - Activates cure light wounds from an item\r\n"
+      "  activate 'fireball' troll  - Activates fireball targeting a troll\r\n"
+      "  activate 'shield'          - Activates shield spell on yourself\r\n");
+    return;
+  }
+  
+  if (cmd->subcmd) {
+    /* Has subcommands */
+    snprintf(examples, examples_size,
+      "\r\nThis command has multiple forms. Type '%s' alone to see options.\r\n",
+      cmd->command);
+  }
+}
+
+/* Generate help entry for a command */
+static int generate_help_entry(struct char_data *ch, int cmd_index, bool force_overwrite) {
+  struct command_info *cmd;
+  char tag[MAX_INPUT_LENGTH];
+  char keywords[MAX_INPUT_LENGTH];
+  char help_text[MAX_STRING_LENGTH * 2];  /* Doubled to prevent truncation */
+  char query[MAX_STRING_LENGTH];
+  char *escaped_tag, *escaped_keywords, *escaped_help;
+  MYSQL_RES *result;
+  int exists = 0;
+  
+  cmd = &complete_cmd_info[cmd_index];
+  
+  /* Skip special cases */
+  if (cmd->command_pointer == do_action) {
+    /* This is a social, skip it */
+    return 0;
+  }
+  
+  /* Generate tag - use command name directly for better searchability */
+  snprintf(tag, sizeof(tag), "%s", cmd->command);
+  
+  /* Check if entry already exists */
+  escaped_tag = (char *)malloc(strlen(tag) * 2 + 1);
+  mysql_real_escape_string(conn, escaped_tag, tag, strlen(tag));
+  
+  snprintf(query, sizeof(query),
+    "SELECT tag FROM help_entries WHERE tag = '%s'",
+    escaped_tag);
+  
+  if (mysql_query(conn, query) == 0) {
+    result = mysql_store_result(conn);
+    if (result) {
+      if (mysql_num_rows(result) > 0) {
+        exists = 1;
+      }
+      mysql_free_result(result);
+    }
+  }
+  
+  /* Skip if exists and not forcing */
+  if (exists && !force_overwrite) {
+    free(escaped_tag);
+    return 0;
+  }
+  
+  /* Build keywords list - include multiple variations for better searchability */
+  const char *category = get_command_category(cmd);
+  snprintf(keywords, sizeof(keywords), "%s", cmd->command);
+  
+  /* Add the sort_as variant if different */
+  if (cmd->sort_as && strcmp(cmd->sort_as, cmd->command) != 0) {
+    strncat(keywords, " ", sizeof(keywords) - strlen(keywords) - 1);
+    strncat(keywords, cmd->sort_as, sizeof(keywords) - strlen(keywords) - 1);
+  }
+  
+  /* Add category as a keyword for grouped searches */
+  strncat(keywords, " ", sizeof(keywords) - strlen(keywords) - 1);
+  strncat(keywords, category, sizeof(keywords) - strlen(keywords) - 1);
+  
+  /* Add common variations and abbreviations */
+  if (strcmp(cmd->command, "activate") == 0) {
+    strncat(keywords, " magic item spell wand staff", sizeof(keywords) - strlen(keywords) - 1);
+  } else if (strstr(cmd->command, "attack")) {
+    strncat(keywords, " combat fight", sizeof(keywords) - strlen(keywords) - 1);
+  } else if (cmd->command_pointer == do_move) {
+    strncat(keywords, " go walk run travel direction", sizeof(keywords) - strlen(keywords) - 1);
+  }
+  
+  /* Add "command" and "cmd" as generic keywords */
+  strncat(keywords, " command cmd", sizeof(keywords) - strlen(keywords) - 1);
+  
+  /* Build help text with enhanced information */
+  char description[MAX_STRING_LENGTH];
+  char examples[MAX_STRING_LENGTH];
+  char usage_str[MAX_INPUT_LENGTH];
+  /* category already retrieved above for keywords */
+  const char *action_desc = get_action_type_desc(cmd->actions_required);
+  
+  /* Generate contextual description */
+  generate_command_description(cmd, description, sizeof(description));
+  
+  /* Generate usage examples */
+  generate_usage_examples(cmd, examples, sizeof(examples));
+  
+  /* Build usage string */
+  if (strcmp(cmd->command, "activate") == 0) {
+    snprintf(usage_str, sizeof(usage_str), "activate '<spell name>' [target]");
+  } else if (cmd->subcmd) {
+    snprintf(usage_str, sizeof(usage_str), "%s <option> [arguments]", cmd->command);
+  } else {
+    snprintf(usage_str, sizeof(usage_str), "%s [arguments]", cmd->command);
+  }
+  
+  /* Build complete help text */
+  snprintf(help_text, sizeof(help_text),
+    "%s\r\n"
+    "\r\n"
+    "Category: %s\r\n"
+    "Usage: %s\r\n"
+    "\r\n"
+    "%s\r\n"
+    "\r\n"
+    "Requirements:\r\n"
+    "  Minimum Level: %s\r\n"
+    "  Position: %s\r\n"
+    "%s%s%s"
+    "%s"
+    "%s%s%s"
+    "\r\n"
+    "---\r\n"
+    "This help entry was automatically generated.\r\n"
+    "For more detailed information, use 'help %s manual' or ask a staff member.\r\n",
+    cmd->command,
+    category,
+    usage_str,
+    description,
+    get_level_name(cmd->minimum_level),
+    get_position_name(cmd->minimum_position),
+    action_desc[0] ? "  Action Type: " : "",
+    action_desc,
+    action_desc[0] ? "\r\n" : "",
+    examples,
+    cmd->subcmd ? "\r\nNote: This command has subcommands or options.\r\n" : "",
+    cmd->ignore_wait ? "Note: This command can be used while performing other actions.\r\n" : "",
+    cmd->actions_required == ACTION_SWIFT ? "Note: Swift actions can be used once per round.\r\n" : "",
+    cmd->command
+  );
+  
+  /* Prepare escaped strings */
+  escaped_keywords = (char *)malloc(strlen(keywords) * 2 + 1);
+  escaped_help = (char *)malloc(strlen(help_text) * 2 + 1);
+  mysql_real_escape_string(conn, escaped_keywords, keywords, strlen(keywords));
+  mysql_real_escape_string(conn, escaped_help, help_text, strlen(help_text));
+  
+  /* Insert or update help entry with auto_generated flag */
+  if (exists && force_overwrite) {
+    snprintf(query, sizeof(query),
+      "UPDATE help_entries SET entry = '%s', min_level = %d, "
+      "auto_generated = TRUE, last_updated = CURRENT_TIMESTAMP WHERE tag = '%s'",
+      escaped_help, cmd->minimum_level, escaped_tag);
+  } else {
+    snprintf(query, sizeof(query),
+      "INSERT INTO help_entries (tag, entry, min_level, auto_generated) "
+      "VALUES ('%s', '%s', %d, TRUE)",
+      escaped_tag, escaped_help, cmd->minimum_level);
+  }
+  
+  if (mysql_query(conn, query) != 0) {
+    if (ch) {
+      send_to_char(ch, "Database error creating help for '%s': %s\r\n", 
+                   cmd->command, mysql_error(conn));
+    }
+    free(escaped_tag);
+    free(escaped_keywords);
+    free(escaped_help);
+    return -1;
+  }
+  
+  /* Update keywords - delete old ones if updating, then add new ones */
+  if (exists && force_overwrite) {
+    /* Delete existing keywords for this help entry */
+    snprintf(query, sizeof(query),
+      "DELETE FROM help_keywords WHERE help_tag = '%s'",
+      escaped_tag);
+    mysql_query(conn, query);
+  }
+  
+  /* Add keywords for new or updated entry */
+  if (!exists || force_overwrite) {
+    char *token, *rest, *keyword_copy;
+    keyword_copy = strdup(keywords);
+    token = strtok_r(keyword_copy, " ", &rest);
+    
+    while (token) {
+      /* Skip very short keywords unless they're the command itself */
+      if (strlen(token) < 2 && strcmp(token, cmd->command) != 0) {
+        token = strtok_r(NULL, " ", &rest);
+        continue;
+      }
+      
+      char *escaped_keyword = (char *)malloc(strlen(token) * 2 + 1);
+      mysql_real_escape_string(conn, escaped_keyword, token, strlen(token));
+      
+      snprintf(query, sizeof(query),
+        "INSERT IGNORE INTO help_keywords (help_tag, keyword) "
+        "VALUES ('%s', '%s')",
+        escaped_tag, escaped_keyword);
+      
+      mysql_query(conn, query);
+      free(escaped_keyword);
+      token = strtok_r(NULL, " ", &rest);
+    }
+    free(keyword_copy);
+  }
+  
+  free(escaped_tag);
+  free(escaped_keywords);
+  free(escaped_help);
+  
+  if (ch) {
+    send_to_char(ch, "Generated help for '%s'\r\n", cmd->command);
+  }
+  
+  return 1;
+}
+
+/* Auto-generate help files for commands */
+ACMD(do_helpgen) {
+  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  int generated = 0, skipped = 0, errors = 0;
+  bool force = FALSE;
+  int i, cmd_num;
+  
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  
+  if (!*arg1) {
+    send_to_char(ch, "Usage: helpgen <missing|all|list|clean|command> [force]\r\n"
+                     "  missing - Generate help for commands without entries\r\n"
+                     "  all     - Generate help for all commands\r\n"
+                     "  list    - List all auto-generated help entries\r\n"
+                     "  clean   - Delete all auto-generated help entries\r\n"
+                     "  command - Generate help for specific command\r\n"
+                     "  force   - Overwrite existing entries\r\n");
+    return;
+  }
+  
+  /* Check for force flag */
+  if (*arg2 && !str_cmp(arg2, "force")) {
+    force = TRUE;
+  }
+  
+  if (!str_cmp(arg1, "missing")) {
+    /* Generate only for missing entries */
+    send_to_char(ch, "Generating help for missing commands...\r\n");
+    
+    for (i = 1; *(complete_cmd_info[i].command) != '\n'; i++) {
+      if (complete_cmd_info[i].command_pointer != do_action && 
+          complete_cmd_info[i].minimum_level >= 0) {
+        
+        /* Check if help exists */
+        if (search_help(complete_cmd_info[i].command, LVL_IMPL) == NULL) {
+          int result = generate_help_entry(ch, i, force);
+          if (result > 0)
+            generated++;
+          else if (result < 0)
+            errors++;
+        } else {
+          skipped++;
+        }
+      }
+    }
+    
+  } else if (!str_cmp(arg1, "list")) {
+    /* List all auto-generated entries */
+    char query[MAX_STRING_LENGTH];
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    int count = 0;
+    
+    snprintf(query, sizeof(query),
+      "SELECT tag, min_level FROM help_entries WHERE auto_generated = TRUE ORDER BY tag");
+    
+    if (mysql_query(conn, query) != 0) {
+      send_to_char(ch, "Database error: %s\r\n", mysql_error(conn));
+      return;
+    }
+    
+    result = mysql_store_result(conn);
+    if (!result) {
+      send_to_char(ch, "Error storing result: %s\r\n", mysql_error(conn));
+      return;
+    }
+    
+    send_to_char(ch, "Auto-generated help entries:\r\n");
+    send_to_char(ch, "----------------------------\r\n");
+    
+    while ((row = mysql_fetch_row(result))) {
+      send_to_char(ch, "  %-30s (Level: %s)\r\n", row[0], row[1]);
+      count++;
+    }
+    
+    mysql_free_result(result);
+    send_to_char(ch, "\r\nTotal: %d auto-generated entries\r\n", count);
+    
+  } else if (!str_cmp(arg1, "clean")) {
+    /* Delete all auto-generated entries */
+    char query[MAX_STRING_LENGTH];
+    
+    if (!force) {
+      send_to_char(ch, "WARNING: This will delete ALL auto-generated help entries!\r\n");
+      send_to_char(ch, "Use 'helpgen clean force' to confirm deletion.\r\n");
+      return;
+    }
+    
+    /* Delete keywords first */
+    snprintf(query, sizeof(query),
+      "DELETE hk FROM help_keywords hk "
+      "INNER JOIN help_entries he ON hk.help_tag = he.tag "
+      "WHERE he.auto_generated = TRUE");
+    
+    if (mysql_query(conn, query) != 0) {
+      send_to_char(ch, "Error deleting keywords: %s\r\n", mysql_error(conn));
+      return;
+    }
+    
+    int keywords_deleted = mysql_affected_rows(conn);
+    
+    /* Delete help entries */
+    snprintf(query, sizeof(query),
+      "DELETE FROM help_entries WHERE auto_generated = TRUE");
+    
+    if (mysql_query(conn, query) != 0) {
+      send_to_char(ch, "Error deleting entries: %s\r\n", mysql_error(conn));
+      return;
+    }
+    
+    int entries_deleted = mysql_affected_rows(conn);
+    
+    send_to_char(ch, "Deleted %d auto-generated help entries and %d keywords.\r\n",
+                 entries_deleted, keywords_deleted);
+    
+  } else if (!str_cmp(arg1, "all")) {
+    /* Generate for all commands */
+    send_to_char(ch, "Generating help for all commands%s...\r\n",
+                 force ? " (forcing overwrite)" : "");
+    
+    for (i = 1; *(complete_cmd_info[i].command) != '\n'; i++) {
+      if (complete_cmd_info[i].command_pointer != do_action && 
+          complete_cmd_info[i].minimum_level >= 0) {
+        
+        int result = generate_help_entry(ch, i, force);
+        if (result > 0)
+          generated++;
+        else if (result == 0)
+          skipped++;
+        else
+          errors++;
+      }
+    }
+    
+  } else {
+    /* Generate for specific command */
+    cmd_num = find_command(arg1);
+    
+    if (cmd_num == -1) {
+      send_to_char(ch, "Unknown command: %s\r\n", arg1);
+      return;
+    }
+    
+    if (complete_cmd_info[cmd_num].command_pointer == do_action) {
+      send_to_char(ch, "'%s' is a social command, not generating help.\r\n", arg1);
+      return;
+    }
+    
+    int result = generate_help_entry(ch, cmd_num, force);
+    if (result > 0) {
+      send_to_char(ch, "Help entry generated successfully.\r\n");
+    } else if (result == 0) {
+      send_to_char(ch, "Help entry already exists. Use 'force' to overwrite.\r\n");
+    } else {
+      send_to_char(ch, "Error generating help entry.\r\n");
+    }
+    return;
+  }
+  
+  send_to_char(ch, "\r\nHelp generation complete:\r\n"
+                   "  Generated: %d\r\n"
+                   "  Skipped: %d\r\n"
+                   "  Errors: %d\r\n",
+                   generated, skipped, errors);
+  
+  if (generated > 0) {
+    send_to_char(ch, "\r\nUse 'helpcheck' to see remaining commands without help.\r\n");
+  }
+}
