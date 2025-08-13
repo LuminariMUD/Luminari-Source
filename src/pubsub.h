@@ -73,12 +73,29 @@
 #define PUBSUB_ACCESS_SUBSCRIBER_ONLY   3
 #define PUBSUB_ACCESS_CREATOR_ONLY      4
 
-/* Message Types */
-#define PUBSUB_MESSAGE_TEXT             0
-#define PUBSUB_MESSAGE_FORMATTED        1
-#define PUBSUB_MESSAGE_SPATIAL          2
-#define PUBSUB_MESSAGE_SYSTEM           3
-#define PUBSUB_MESSAGE_PERSONAL         4
+/* Message Types (Enhanced V3) */
+#define PUBSUB_MESSAGE_TYPE_SIMPLE         0   /* Basic text message */
+#define PUBSUB_MESSAGE_TYPE_FORMATTED      1   /* Formatted content */
+#define PUBSUB_MESSAGE_TYPE_SPATIAL        2   /* Spatial/location-based */
+#define PUBSUB_MESSAGE_TYPE_SYSTEM         3   /* System notifications */
+#define PUBSUB_MESSAGE_TYPE_PERSONAL       4   /* Personal messages */
+#define PUBSUB_MESSAGE_TYPE_BROADCAST      5   /* Server-wide broadcasts */
+#define PUBSUB_MESSAGE_TYPE_NOTIFICATION   6   /* Event notifications */
+#define PUBSUB_MESSAGE_TYPE_ALERT          7   /* Important alerts */
+#define PUBSUB_MESSAGE_TYPE_COMMAND        8   /* Command responses */
+#define PUBSUB_MESSAGE_TYPE_STATUS         9   /* Status updates */
+
+/* Message Categories (Enhanced V3) */
+#define PUBSUB_MESSAGE_CATEGORY_COMMUNICATION  0   /* General communication */
+#define PUBSUB_MESSAGE_CATEGORY_GAME_EVENT     1   /* Game events */
+#define PUBSUB_MESSAGE_CATEGORY_SYSTEM_EVENT   2   /* System events */
+#define PUBSUB_MESSAGE_CATEGORY_USER_ACTION    3   /* User actions */
+#define PUBSUB_MESSAGE_CATEGORY_ENVIRONMENTAL  4   /* Environmental events */
+#define PUBSUB_MESSAGE_CATEGORY_COMBAT         5   /* Combat-related */
+#define PUBSUB_MESSAGE_CATEGORY_SOCIAL         6   /* Social interactions */
+#define PUBSUB_MESSAGE_CATEGORY_ECONOMY        7   /* Economic activities */
+#define PUBSUB_MESSAGE_CATEGORY_QUEST          8   /* Quest-related */
+#define PUBSUB_MESSAGE_CATEGORY_GUILD          9   /* Guild activities */
 
 /* Message Priorities */
 #define PUBSUB_PRIORITY_LOW             1
@@ -115,6 +132,35 @@ struct pubsub_topic {
     struct pubsub_topic *next;
 };
 
+/* PubSub Enhanced Metadata Structure */
+struct pubsub_message_metadata {
+    char *sender_real_name;     /* Real character name */
+    char *sender_title;         /* Character title */
+    int sender_level;           /* Character level */
+    char *sender_class;         /* Character class */
+    char *sender_race;          /* Character race */
+    int origin_room;            /* Room where message originated */
+    int origin_zone;            /* Zone where message originated */
+    char *origin_area_name;     /* Area name where message originated */
+    int origin_x, origin_y, origin_z; /* Coordinates */
+    char *context_type;         /* Context (e.g., "combat", "roleplay") */
+    char *trigger_event;        /* Event that triggered this message */
+    char *related_object;       /* Related object type */
+    int related_object_id;      /* Related object ID */
+    char *handler_chain;        /* Handler processing chain */
+    long processing_time_ms;    /* Processing time in milliseconds */
+    char *processing_notes;     /* Processing notes or debug info */
+};
+
+/* PubSub Dynamic Fields Structure */
+struct pubsub_message_fields {
+    char **field_names;         /* Array of field names */
+    char **field_values;        /* Array of field values */
+    char **field_types;         /* Array of field types */
+    int field_count;            /* Number of fields */
+    int capacity;               /* Allocated capacity */
+};
+
 /* PubSub Subscription Structure */
 struct pubsub_subscription {
     int subscription_id;
@@ -133,18 +179,28 @@ struct pubsub_subscription {
     struct pubsub_subscription *next;
 };
 
-/* PubSub Message Structure */
+/* PubSub Message Structure (V3 - Primary) */
 struct pubsub_message {
     int message_id;
     int topic_id;
     char *sender_name;
-    int message_type;
+    int sender_id;
+    int message_type;        /* PUBSUB_MESSAGE_TYPE_* */
+    int message_category;    /* PUBSUB_MESSAGE_CATEGORY_* */
     int priority;
     char *content;
-    char *metadata;
-    char *spatial_data;
+    char *content_type;      /* MIME type */
+    char *content_encoding;  /* encoding format */
+    int content_version;     /* content format version */
+    char *spatial_data;      /* JSON spatial information */
+    struct pubsub_message_metadata *metadata_v3;  /* Enhanced metadata */
+    struct pubsub_message_fields *fields;         /* Dynamic fields */
+    char *metadata;          /* Legacy metadata for backward compatibility */
     time_t created_at;
     time_t expires_at;
+    int parent_message_id;   /* For threaded conversations */
+    int thread_id;           /* Thread identifier */
+    int sequence_number;     /* Message sequence in thread */
     int delivery_attempts;
     int successful_deliveries;
     int failed_deliveries;
@@ -259,10 +315,28 @@ void pubsub_shutdown(void);
 int pubsub_db_drop_tables(void);
 int pubsub_db_create_tables(void);
 
+/* Database function declarations */
+int pubsub_db_create_tables(void);
+int pubsub_db_populate_data(void);
+int pubsub_db_save_message(struct pubsub_message *msg);
+int pubsub_db_save_metadata(int message_id, struct pubsub_message_metadata *metadata);
+int pubsub_db_save_fields(int message_id, struct pubsub_message_fields *fields);
+
+/* Message Management & Validation */
+bool pubsub_is_valid_message_type(int message_type);
+bool pubsub_is_valid_message_category(int message_category);
+bool pubsub_is_valid_type_category_combo(int message_type, int message_category);
+int pubsub_get_recommended_category(int message_type);
+struct pubsub_message *pubsub_create_message(int topic_id, const char *sender_name, 
+                                            const char *content, int message_type, 
+                                            int message_category, int priority);
+void pubsub_free_message(struct pubsub_message *msg);
+
 /* Topic Management */
 int pubsub_create_topic(const char *name, const char *description, 
                        int category, int access_type, const char *creator_name);
 int pubsub_delete_topic(int topic_id, const char *deleter_name);
+int pubsub_delete_topic_by_name(const char *name, const char *deleter_name);
 struct pubsub_topic *pubsub_find_topic_by_name(const char *name);
 struct pubsub_topic *pubsub_find_topic_by_id(int topic_id);
 int pubsub_topic_set_property(int topic_id, const char *property, const char *value);
@@ -336,6 +410,11 @@ bool pubsub_validate_handler_name(const char *name);
 
 /* Admin Commands - declared where implemented */
 
+/* Player Interface Functions */
+void pubsub_list_topics_for_player(struct char_data *ch);
+int pubsub_send_message(const char *topic_name, const char *sender_name, 
+                       const char *content, int message_type, int category);
+
 /* Built-in Message Handlers */
 int pubsub_handler_send_text(struct char_data *ch, struct pubsub_message *msg);
 int pubsub_handler_send_formatted(struct char_data *ch, struct pubsub_message *msg);
@@ -347,6 +426,19 @@ int pubsub_handler_system_announcement(struct char_data *ch, struct pubsub_messa
 int pubsub_handler_wilderness_spatial_audio(struct char_data *ch, struct pubsub_message *msg);
 int pubsub_handler_audio_mixing(struct char_data *ch, struct pubsub_message *msg);
 void pubsub_spatial_cleanup(void);
+
+/* Event-Driven Code Handlers */
+int pubsub_handler_combat_logger(struct char_data *ch, struct pubsub_message *msg);
+int pubsub_handler_death_processor(struct char_data *ch, struct pubsub_message *msg);
+int pubsub_handler_levelup_processor(struct char_data *ch, struct pubsub_message *msg);
+int pubsub_handler_resource_monitor(struct char_data *ch, struct pubsub_message *msg);
+int pubsub_handler_spell_effects(struct char_data *ch, struct pubsub_message *msg);
+int pubsub_handler_guild_monitor(struct char_data *ch, struct pubsub_message *msg);
+
+/* Event System Functions */
+void pubsub_init_event_handlers(void);
+void pubsub_trigger_event(const char *event_topic, struct char_data *ch, 
+                         const char *event_data, int priority);
 
 /* Memory Management Macros */
 #define PUBSUB_CREATE_TOPIC()        ((struct pubsub_topic *)calloc(1, sizeof(struct pubsub_topic)))
