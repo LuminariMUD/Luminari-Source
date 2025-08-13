@@ -4153,7 +4153,11 @@ void save_char_pets(struct char_data *ch)
 
   snprintf(chname, sizeof(chname), "%s", GET_NAME(ch));
 
-  mysql_ping(conn);
+  /* Ensure database connection is active before save operations */
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed for player %s", __func__, GET_NAME(ch));
+    return;
+  }
 
   char del_buf[2048];
   /* Delete existing save data.  In the future may just flag these for deletion. */
@@ -4280,7 +4284,11 @@ void load_char_pets(struct char_data *ch)
   if (IN_ROOM(ch) == NOWHERE)
     return;
 
-  mysql_ping(conn);
+  /* Ensure database connection is active before load operations */
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed for player %s", __func__, GET_NAME(ch));
+    return;
+  }
 
   char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
   if (!escaped_name) {

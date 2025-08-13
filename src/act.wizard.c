@@ -5952,9 +5952,9 @@ static bool validate_copyover_environment()
   
   /* Check database connection */
   extern MYSQL *conn;
-  if (mysql_ping(conn) != 0)
+  if (!MYSQL_PING_CONN(conn))
   {
-    log("SYSERR: copyover: Database connection is not active: %s", mysql_error(conn));
+    log("SYSERR: copyover: Database connection is not active");
     return FALSE;
   }
   
@@ -10785,7 +10785,12 @@ ACMD(do_effectsadmin) {
         return;
     }
     
-    mysql_ping(conn);
+    /* Ensure database connection is active */
+    if (!MYSQL_PING_CONN(conn)) {
+        log("SYSERR: %s: Database connection failed", __func__);
+        send_to_char(ch, "Database connection error.\r\n");
+        return;
+    }
     
     argument = one_argument(argument, arg, sizeof(arg));
     

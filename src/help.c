@@ -186,8 +186,8 @@ struct help_entry_list *search_help(const char *argument, int level)
   }
   
   /* Ensure connection is still alive */
-  if (mysql_ping(conn) != 0) {
-    log("SYSERR: search_help: Database connection lost while searching for '%s', using file-based help", argument);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection lost while searching for '%s', using file-based help", __func__, argument);
     if (HELP_DEBUG) log("DEBUG: search_help: MySQL ping failed, connection lost");
     return search_help_table(argument, level);
   }
@@ -361,8 +361,8 @@ struct help_entry_list *search_help_fulltext(const char *search_term, int level)
   }
   
   /* Ensure connection is still alive */
-  if (mysql_ping(conn) != 0) {
-    log("SYSERR: search_help_fulltext: Database connection lost while searching for '%s'", search_term);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection lost while searching for '%s'", __func__, search_term);
     return NULL;
   }
 
@@ -556,8 +556,8 @@ struct help_keyword_list *soundex_search_help_keywords(const char *argument, int
   }
   
   /* Ensure connection is still alive */
-  if (mysql_ping(conn) != 0) {
-    if (HELP_DEBUG) log("DEBUG: soundex_search_help_keywords: MySQL ping failed, connection lost");
+  if (!MYSQL_PING_CONN(conn)) {
+    if (HELP_DEBUG) log("DEBUG: %s: MySQL ping failed, connection lost", __func__);
     return NULL;
   }
   if (HELP_DEBUG) log("DEBUG: soundex_search_help_keywords: Database connection OK");

@@ -163,7 +163,11 @@ ACMD(do_new_mail)
       int found = FALSE;
 
       /* Check the connection, reconnect if necessary. */
-      mysql_ping(conn);
+      if (!MYSQL_PING_CONN(conn)) {
+        log("SYSERR: %s: Database connection failed", __func__);
+        send_to_char(ch, "Database connection error. Mail cannot be sent at this time.\r\n");
+        return;
+      }
 
       // snprintf(arg5, sizeof(arg5), "%s", CAP(arg5));
 
@@ -253,9 +257,21 @@ void perform_mail_list(struct char_data *ch, int type)
   extern MYSQL *conn3;
 
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
-  mysql_ping(conn2);
-  mysql_ping(conn3);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed (conn)", __func__);
+    send_to_char(ch, "Database connection error. Cannot list mail at this time.\r\n");
+    return;
+  }
+  if (!MYSQL_PING_CONN(conn2)) {
+    log("SYSERR: %s: Database connection failed (conn2)", __func__);
+    send_to_char(ch, "Database connection error. Cannot list mail at this time.\r\n");
+    return;
+  }
+  if (!MYSQL_PING_CONN(conn3)) {
+    log("SYSERR: %s: Database connection failed (conn3)", __func__);
+    send_to_char(ch, "Database connection error. Cannot list mail at this time.\r\n");
+    return;
+  }
 
   sbyte unread = TRUE, deleted = FALSE;
 
@@ -355,8 +371,16 @@ void perform_mail_read(struct char_data *ch, int mnum)
   extern MYSQL *conn2;
 
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
-  mysql_ping(conn2);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed (conn)", __func__);
+    send_to_char(ch, "Database connection error. Cannot read mail at this time.\r\n");
+    return;
+  }
+  if (!MYSQL_PING_CONN(conn2)) {
+    log("SYSERR: %s: Database connection failed (conn2)", __func__);
+    send_to_char(ch, "Database connection error. Cannot read mail at this time.\r\n");
+    return;
+  }
 
   char mnums[20];
 
@@ -459,7 +483,11 @@ void perform_mail_delete(struct char_data *ch, int mnum)
   MYSQL_ROW row = NULL;
 
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    send_to_char(ch, "Database connection error. Cannot delete mail at this time.\r\n");
+    return;
+  }
 
   char mnums[20];
 
@@ -554,9 +582,18 @@ int new_mail_alert(struct char_data *ch, bool silent)
   extern MYSQL *conn3;
 
   /* Check the connection, reconnect if necessary. */
-  mysql_ping(conn);
-  mysql_ping(conn2);
-  mysql_ping(conn3);
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed (conn)", __func__);
+    return 0;
+  }
+  if (!MYSQL_PING_CONN(conn2)) {
+    log("SYSERR: %s: Database connection failed (conn2)", __func__);
+    return 0;
+  }
+  if (!MYSQL_PING_CONN(conn3)) {
+    log("SYSERR: %s: Database connection failed (conn3)", __func__);
+    return 0;
+  }
 
   int num_unread = 0, num_mails = 0, num_read = 0, num_deleted = 0;
   ;
