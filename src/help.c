@@ -30,6 +30,12 @@
 #define HELP_CACHE_SIZE 50    /* Number of cached help entries */
 #define HELP_CACHE_TTL 300    /* Cache time-to-live in seconds (5 minutes) */
 
+/* Constants to replace magic numbers */
+#define MAX_HELP_SEARCH_LENGTH 200
+#define MAX_HELP_ENTRY_BUFFER 4096
+#define MIN_SEARCH_LENGTH_FOR_STRICT 2
+#define MAX_KEYWORD_LENGTH_DIFF 3
+
 struct help_cache_entry {
   char *search_key;            /* The search term used */
   int level;                   /* The level restriction used */
@@ -48,6 +54,12 @@ static struct help_entry_list *deep_copy_help_list(struct help_entry_list *src);
 static void free_help_entry_list(struct help_entry_list *entry);
 static void purge_old_cache_entries(void);
 
+/* Centralized memory management for help entries - eliminates duplication */
+static void free_help_entry_single(struct help_entry_list *entry);
+static void free_help_keyword_list(struct help_keyword_list *keyword_list);
+static struct help_entry_list *alloc_help_entry(void);
+static struct help_keyword_list *alloc_help_keyword(void);
+
 /* Debug flag for help system - set to 1 to enable debug logging, 0 to disable
  * This will log detailed information about:
  * - Database connection status
@@ -58,9 +70,6 @@ static void purge_old_cache_entries(void);
  * - Fallback to file-based help
  */
 #define HELP_DEBUG 0
-
-/* Global flag to track if partial help was displayed in current do_help call */
-static int g_partial_help_displayed = 0;
 
 /* puts -'s instead of spaces */
 void space_to_minus(char *str)
@@ -100,7 +109,11 @@ static struct help_entry_list *search_help_table(const char *argument, int level
     /* Case-insensitive prefix match */
     if (strn_cmp(argument, help_table[i].keywords, strlen(argument)) == 0) {
       /* Found a match - convert to help_entry_list format */
-      CREATE(new_entry, struct help_entry_list, 1);
+      new_entry = alloc_help_entry();
+      if (!new_entry) {
+        log("SYSERR: search_help_table: Failed to allocate help entry");
+        continue;
+      }
       
       /* Set entry data from file-based help */
       new_entry->tag = strdup(help_table[i].keywords);
@@ -110,6 +123,15 @@ static struct help_entry_list *search_help_table(const char *argument, int level
       new_entry->keywords = strdup(help_table[i].keywords);
       new_entry->keyword_list = NULL;
       new_entry->next = NULL;
+      
+      /* Check for allocation failures - use centralized cleanup */
+      if (!new_entry->tag || !new_entry->entry || !new_entry->last_updated || !new_entry->keywords) {
+        log("SYSERR: search_help_table: Memory allocation failed for help entry '%s'", 
+            help_table[i].keywords ? help_table[i].keywords : "(null)");
+        free_help_entry_single(new_entry);
+        free(new_entry);
+        continue;
+      }
       
       /* Add to linked list */
       if (help_entries == NULL) {
@@ -158,12 +180,14 @@ struct help_entry_list *search_help(const char *argument, int level)
 
   /* Check the connection, reconnect if necessary */
   if (!conn) {
+    log("SYSERR: search_help: No database connection available for help search '%s'", argument);
     if (HELP_DEBUG) log("DEBUG: search_help: ERROR - No database connection!");
     return search_help_table(argument, level);
   }
   
   /* Ensure connection is still alive */
   if (mysql_ping(conn) != 0) {
+    log("SYSERR: search_help: Database connection lost while searching for '%s', using file-based help", argument);
     if (HELP_DEBUG) log("DEBUG: search_help: MySQL ping failed, connection lost");
     return search_help_table(argument, level);
   }
@@ -172,7 +196,8 @@ struct help_entry_list *search_help(const char *argument, int level)
   /* Create prepared statement for secure query execution */
   pstmt = mysql_stmt_create(conn);
   if (!pstmt) {
-    log("SYSERR: Failed to create prepared statement for help search");
+    log("SYSERR: Failed to create prepared statement for help search '%s': %s", 
+        argument, mysql_error(conn));
     if (HELP_DEBUG) log("DEBUG: search_help: Failed to create prepared statement, falling back to file-based");
     return search_help_table(argument, level);
   }
@@ -189,7 +214,8 @@ struct help_entry_list *search_help(const char *argument, int level)
       "WHERE LOWER(hk.keyword) LIKE LOWER(?) AND he.min_level <= ? "
       "GROUP BY he.tag, he.entry, he.min_level, he.last_updated "
       "ORDER BY LENGTH(hk.keyword) ASC")) {
-    log("SYSERR: Failed to prepare help search query");
+    log("SYSERR: Failed to prepare help search query for '%s': %s", 
+        argument, mysql_error(conn));
     if (HELP_DEBUG) log("DEBUG: search_help: Failed to prepare query, falling back to file-based");
     mysql_stmt_cleanup(pstmt);
     return search_help_table(argument, level);
@@ -205,7 +231,8 @@ struct help_entry_list *search_help(const char *argument, int level)
   /* Bind parameters - completely safe from SQL injection */
   if (!mysql_stmt_bind_param_string(pstmt, 0, search_pattern) ||
       !mysql_stmt_bind_param_int(pstmt, 1, level)) {
-    log("SYSERR: Failed to bind parameters for help search");
+    log("SYSERR: Failed to bind parameters for help search '%s' (pattern='%s', level=%d)", 
+        argument, search_pattern, level);
     if (HELP_DEBUG) log("DEBUG: search_help: Failed to bind parameters, falling back to file-based");
     mysql_stmt_cleanup(pstmt);
     return search_help_table(argument, level);
@@ -214,7 +241,8 @@ struct help_entry_list *search_help(const char *argument, int level)
 
   /* Execute the prepared statement */
   if (!mysql_stmt_execute_prepared(pstmt)) {
-    log("SYSERR: Failed to execute help search query");
+    log("SYSERR: Failed to execute help search query for '%s': %s", 
+        argument, mysql_error(conn));
     if (HELP_DEBUG) log("DEBUG: search_help: Query execution failed, falling back to file-based");
     mysql_stmt_cleanup(pstmt);
     return search_help_table(argument, level);
@@ -226,8 +254,12 @@ struct help_entry_list *search_help(const char *argument, int level)
     row_count++;
     if (HELP_DEBUG && row_count == 1) log("DEBUG: search_help: Found database results for '%s'", argument);
     
-    /* Allocate memory for the help entry data */
-    CREATE(new_help_entry, struct help_entry_list, 1);
+    /* Allocate memory for the help entry data using centralized function */
+    new_help_entry = alloc_help_entry();
+    if (!new_help_entry) {
+      log("SYSERR: search_help: Failed to allocate help entry");
+      continue;
+    }
     
     /* Get column values safely from prepared statement results */
     new_help_entry->tag = strdup(mysql_stmt_get_string(pstmt, 0) ? mysql_stmt_get_string(pstmt, 0) : "");
@@ -235,6 +267,15 @@ struct help_entry_list *search_help(const char *argument, int level)
     new_help_entry->min_level = mysql_stmt_get_int(pstmt, 2);
     new_help_entry->last_updated = strdup(mysql_stmt_get_string(pstmt, 3) ? mysql_stmt_get_string(pstmt, 3) : "");
     new_help_entry->keywords = strdup(mysql_stmt_get_string(pstmt, 4) ? mysql_stmt_get_string(pstmt, 4) : "");
+    
+    /* Check for allocation failures - use centralized cleanup */
+    if (!new_help_entry->tag || !new_help_entry->entry || 
+        !new_help_entry->last_updated || !new_help_entry->keywords) {
+      log("SYSERR: search_help: Memory allocation failed for help entry");
+      free_help_entry_single(new_help_entry);
+      free(new_help_entry);
+      continue;
+    }
 
     /* N+1 query optimization: keywords already fetched in main query,
      * only fetch keyword_list if actually needed elsewhere.
@@ -272,8 +313,161 @@ struct help_entry_list *search_help(const char *argument, int level)
     if (HELP_DEBUG) log("DEBUG: search_help: Found database help for '%s'", argument);
     /* Add database results to cache */
     add_to_help_cache(argument, level, help_entries);
+    
+    /* Log successful keyword search for analytics */
+    if (conn && mysql_available) {
+      char escaped_term[MAX_HELP_SEARCH_LENGTH * 2 + 1];
+      mysql_real_escape_string(conn, escaped_term, argument, strlen(argument));
+      
+      int count = 0;
+      struct help_entry_list *tmp;
+      for (tmp = help_entries; tmp; tmp = tmp->next) count++;
+      
+      char query[MAX_STRING_LENGTH];
+      snprintf(query, sizeof(query),
+        "INSERT INTO help_search_history (search_term, searcher_level, results_count, search_type) "
+        "VALUES ('%s', %d, %d, 'keyword')",
+        escaped_term, level, count);
+      
+      /* Non-critical - don't fail if logging fails */
+      mysql_query_safe(conn, query);
+    }
   }
 
+  return help_entries;
+}
+
+/**
+ * Full-text search function for help entries.
+ * Searches within the actual content of help entries, not just keywords.
+ * 
+ * @param search_term The text to search for within help content
+ * @param level The minimum level required to view results
+ * @return List of matching help entries or NULL if none found
+ */
+struct help_entry_list *search_help_fulltext(const char *search_term, int level)
+{
+  PREPARED_STMT *pstmt;
+  struct help_entry_list *help_entries = NULL, *new_help_entry = NULL, *cur = NULL;
+  char search_pattern[MAX_STRING_LENGTH];
+  int row_count = 0;
+  
+  if (HELP_DEBUG) log("DEBUG: search_help_fulltext: Searching for '%s' in help content (level %d)", search_term, level);
+
+  /* Check the connection */
+  if (!conn) {
+    log("SYSERR: search_help_fulltext: No database connection available for fulltext search '%s'", search_term);
+    return NULL;  /* No file-based fulltext search fallback */
+  }
+  
+  /* Ensure connection is still alive */
+  if (mysql_ping(conn) != 0) {
+    log("SYSERR: search_help_fulltext: Database connection lost while searching for '%s'", search_term);
+    return NULL;
+  }
+
+  /* Create prepared statement */
+  pstmt = mysql_stmt_create(conn);
+  if (!pstmt) {
+    log("SYSERR: Failed to create prepared statement for fulltext help search '%s': %s", 
+        search_term, mysql_error(conn));
+    return NULL;
+  }
+
+  /* Prepare fulltext search query - searches in both entry content and keywords */
+  if (!mysql_stmt_prepare_query(pstmt, 
+      "SELECT DISTINCT he.tag, he.entry, he.min_level, he.last_updated, "
+      "GROUP_CONCAT(DISTINCT CONCAT(UCASE(LEFT(hk.keyword, 1)), LCASE(SUBSTRING(hk.keyword, 2))) SEPARATOR ', ') "
+      "FROM help_entries he "
+      "LEFT JOIN help_keywords hk ON he.tag = hk.help_tag "
+      "WHERE (LOWER(he.entry) LIKE LOWER(?) OR LOWER(hk.keyword) LIKE LOWER(?)) "
+      "AND he.min_level <= ? "
+      "GROUP BY he.tag, he.entry, he.min_level, he.last_updated "
+      "ORDER BY "
+      "  CASE WHEN LOWER(hk.keyword) LIKE LOWER(?) THEN 0 ELSE 1 END, "  /* Keyword matches first */
+      "  LENGTH(he.entry) ASC "  /* Shorter entries first */
+      "LIMIT 20")) {  /* Limit results to prevent overwhelming output */
+    log("SYSERR: Failed to prepare fulltext help search query for '%s': %s", 
+        search_term, mysql_error(conn));
+    mysql_stmt_cleanup(pstmt);
+    return NULL;
+  }
+
+  /* Build search pattern with wildcards for partial matching */
+  snprintf(search_pattern, sizeof(search_pattern), "%%%s%%", search_term);
+
+  /* Bind parameters - search pattern used 4 times (2 in WHERE, 1 in ORDER BY), level once */
+  if (!mysql_stmt_bind_param_string(pstmt, 0, search_pattern) ||
+      !mysql_stmt_bind_param_string(pstmt, 1, search_pattern) ||
+      !mysql_stmt_bind_param_int(pstmt, 2, level) ||
+      !mysql_stmt_bind_param_string(pstmt, 3, search_pattern)) {
+    log("SYSERR: Failed to bind parameters for fulltext help search '%s': %s", 
+        search_term, mysql_error(conn));
+    mysql_stmt_cleanup(pstmt);
+    return NULL;
+  }
+
+  /* Execute query */
+  if (!mysql_stmt_execute_prepared(pstmt)) {
+    log("SYSERR: Failed to execute fulltext help search for '%s': %s", 
+        search_term, mysql_error(conn));
+    mysql_stmt_cleanup(pstmt);
+    return NULL;
+  }
+
+  /* Fetch and process each result row */
+  while (mysql_stmt_fetch_row(pstmt)) {
+    new_help_entry = alloc_help_entry();
+    if (!new_help_entry) {
+      log("SYSERR: search_help_fulltext: Failed to allocate help entry");
+      continue;
+    }
+    
+    /* Get result columns using the API */
+    new_help_entry->tag = strdup(mysql_stmt_get_string(pstmt, 0) ? mysql_stmt_get_string(pstmt, 0) : "");
+    new_help_entry->entry = strdup(mysql_stmt_get_string(pstmt, 1) ? mysql_stmt_get_string(pstmt, 1) : "");
+    new_help_entry->min_level = mysql_stmt_get_int(pstmt, 2);
+    new_help_entry->last_updated = strdup(mysql_stmt_get_string(pstmt, 3) ? mysql_stmt_get_string(pstmt, 3) : "");
+    new_help_entry->keywords = strdup(mysql_stmt_get_string(pstmt, 4) ? mysql_stmt_get_string(pstmt, 4) : "");
+    new_help_entry->next = NULL;
+    new_help_entry->keyword_list = NULL;
+    
+    /* Get keyword list for this entry */
+    if (new_help_entry->tag) {
+      new_help_entry->keyword_list = get_help_keywords(new_help_entry->tag);
+    }
+    
+    /* Add to result list */
+    if (!help_entries) {
+      help_entries = new_help_entry;
+      cur = help_entries;
+    } else {
+      cur->next = new_help_entry;
+      cur = cur->next;
+    }
+    row_count++;
+  }
+
+  /* Clean up */
+  mysql_stmt_cleanup(pstmt);
+  
+  if (HELP_DEBUG) log("DEBUG: search_help_fulltext: Found %d results for '%s'", row_count, search_term);
+  
+  /* Log fulltext search to history for analytics */
+  if (conn && mysql_available && search_term && *search_term) {
+    char escaped_term[MAX_HELP_SEARCH_LENGTH * 2 + 1];
+    mysql_real_escape_string(conn, escaped_term, search_term, strlen(search_term));
+    
+    char query[MAX_STRING_LENGTH];
+    snprintf(query, sizeof(query),
+      "INSERT INTO help_search_history (search_term, searcher_level, results_count, search_type) "
+      "VALUES ('%s', %d, %d, 'fulltext')",
+      escaped_term, level, row_count);
+    
+    /* Non-critical - don't fail if logging fails */
+    mysql_query_safe(conn, query);
+  }
+  
   return help_entries;
 }
 
@@ -314,10 +508,24 @@ struct help_keyword_list *get_help_keywords(const char *tag)
 
   /* Fetch results row by row */
   while (mysql_stmt_fetch_row(pstmt)) {
-    CREATE(new_keyword, struct help_keyword_list, 1);
+    new_keyword = alloc_help_keyword();
+    if (!new_keyword) {
+      log("SYSERR: get_help_keywords: Failed to allocate keyword");
+      continue;
+    }
+    
     new_keyword->tag = strdup(mysql_stmt_get_string(pstmt, 0) ? mysql_stmt_get_string(pstmt, 0) : "");
     new_keyword->keyword = strdup(mysql_stmt_get_string(pstmt, 1) ? mysql_stmt_get_string(pstmt, 1) : "");
     new_keyword->next = NULL;
+    
+    /* Check for allocation failures - use single keyword free */
+    if (!new_keyword->tag || !new_keyword->keyword) {
+      log("SYSERR: get_help_keywords: Memory allocation failed");
+      if (new_keyword->tag) { free(new_keyword->tag); new_keyword->tag = NULL; }
+      if (new_keyword->keyword) { free(new_keyword->keyword); new_keyword->keyword = NULL; }
+      free(new_keyword);
+      continue;
+    }
 
     if (keywords == NULL) {
       keywords = new_keyword;
@@ -428,11 +636,25 @@ struct help_keyword_list *soundex_search_help_keywords(const char *argument, int
     row_count++;
     if (HELP_DEBUG && row_count == 1) log("DEBUG: soundex_search_help_keywords: Found soundex matches for '%s'", argument);
     
-    /* Allocate memory for the keyword data */
-    CREATE(new_keyword, struct help_keyword_list, 1);
+    /* Allocate memory for the keyword data using centralized function */
+    new_keyword = alloc_help_keyword();
+    if (!new_keyword) {
+      log("SYSERR: soundex_search_help_keywords: Failed to allocate keyword");
+      continue;
+    }
+    
     new_keyword->tag = strdup(mysql_stmt_get_string(pstmt, 0) ? mysql_stmt_get_string(pstmt, 0) : "");
     new_keyword->keyword = strdup(mysql_stmt_get_string(pstmt, 1) ? mysql_stmt_get_string(pstmt, 1) : "");
     new_keyword->next = NULL;
+    
+    /* Check for allocation failures - use single keyword free */
+    if (!new_keyword->tag || !new_keyword->keyword) {
+      log("SYSERR: soundex_search_help_keywords: Memory allocation failed");
+      if (new_keyword->tag) { free(new_keyword->tag); new_keyword->tag = NULL; }
+      if (new_keyword->keyword) { free(new_keyword->keyword); new_keyword->keyword = NULL; }
+      free(new_keyword);
+      continue;
+    }
 
     if (keywords == NULL) {
       keywords = new_keyword;
@@ -589,7 +811,7 @@ void cleanup_help_handlers(void) {
  * This ensures users get "did you mean" suggestions for typos even when
  * partial matches exist.
  */
-int handle_database_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_database_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     struct help_entry_list *entries = NULL, *tmp = NULL;
     struct help_keyword_list *tmp_keyword = NULL;
     char help_entry_buffer[MAX_STRING_LENGTH] = {'\0'};
@@ -625,13 +847,13 @@ int handle_database_help(struct char_data *ch, const char *argument, const char 
     if (!exact_match_found) {
         /* Check if the first keyword is reasonably close to what was typed */
         /* If the search term is very short (1-2 chars), be more strict */
-        if (strlen(argument) <= 2) {
+        if (strlen(argument) <= MIN_SEARCH_LENGTH_FOR_STRICT) {
             /* For very short searches, only show if it's a strong prefix match */
             int is_strong_match = 0;
             for (tmp_keyword = entries->keyword_list; tmp_keyword; tmp_keyword = tmp_keyword->next) {
                 if (strncasecmp(tmp_keyword->keyword, argument, strlen(argument)) == 0) {
                     /* Check if the match is reasonable (not too long) */
-                    if (strlen(tmp_keyword->keyword) <= strlen(argument) + 3) {
+                    if (strlen(tmp_keyword->keyword) <= strlen(argument) + MAX_KEYWORD_LENGTH_DIFF) {
                         is_strong_match = 1;
                         break;
                     }
@@ -715,8 +937,8 @@ int handle_database_help(struct char_data *ch, const char *argument, const char 
         return 1; /* Exact match - stop chain */
     } else if (partial_match_displayed) {
         if (HELP_DEBUG) log("DEBUG: Partial match displayed, continuing to soundex for '%s'", argument);
-        /* Set global flag for soundex handler to know partial help was displayed */
-        g_partial_help_displayed = 1;
+        /* Set context flag for soundex handler to know partial help was displayed */
+        ctx->partial_help_displayed = 1;
         return 0; /* Partial match - continue to soundex for suggestions */
     }
     return 1; /* Should not reach here, but default to handled */
@@ -726,7 +948,7 @@ int handle_database_help(struct char_data *ch, const char *argument, const char 
  * Handler for deity information.
  * Converts deity help requests to devote command calls.
  */
-int handle_deity_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_deity_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     int i;
     char spell_argument[200];
     
@@ -744,7 +966,7 @@ int handle_deity_help(struct char_data *ch, const char *argument, const char *ra
  * Handler for region information.
  * Handles special capitalization logic for region names.
  */
-int handle_region_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_region_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     int i;
     char *region_arg = strdup(raw_argument);
     
@@ -786,7 +1008,7 @@ int handle_region_help(struct char_data *ch, const char *argument, const char *r
 /**
  * Handler for background information.
  */
-int handle_background_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_background_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     int i;
     char *bg_arg = strdup(raw_argument);
     
@@ -824,7 +1046,7 @@ int handle_background_help(struct char_data *ch, const char *argument, const cha
 /**
  * Handler for alchemist discoveries.
  */
-int handle_discovery_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_discovery_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     /* Alchemy functions require non-const char*, so we make a copy */
     char *arg_copy = strdup(raw_argument);
     int result = display_discovery_info(ch, arg_copy);
@@ -835,7 +1057,7 @@ int handle_discovery_help(struct char_data *ch, const char *argument, const char
 /**
  * Handler for grand alchemist discoveries.
  */
-int handle_grand_discovery_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_grand_discovery_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     /* Alchemy functions require non-const char*, so we make a copy */
     char *arg_copy = strdup(raw_argument);
     int result = display_grand_discovery_info(ch, arg_copy);
@@ -846,7 +1068,7 @@ int handle_grand_discovery_help(struct char_data *ch, const char *argument, cons
 /**
  * Handler for bomb types.
  */
-int handle_bomb_types_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_bomb_types_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     /* Alchemy functions require non-const char*, so we make a copy */
     char *arg_copy = strdup(raw_argument);
     int result = display_bomb_types(ch, arg_copy);
@@ -857,7 +1079,7 @@ int handle_bomb_types_help(struct char_data *ch, const char *argument, const cha
 /**
  * Handler for discovery types.
  */
-int handle_discovery_types_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_discovery_types_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     /* Alchemy functions require non-const char*, so we make a copy */
     char *arg_copy = strdup(raw_argument);
     int result = display_discovery_types(ch, arg_copy);
@@ -868,7 +1090,7 @@ int handle_discovery_types_help(struct char_data *ch, const char *argument, cons
 /**
  * Handler for feat information.
  */
-int handle_feat_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_feat_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     if (display_feat_info(ch, raw_argument)) {
         return 1; /* Handled */
     }
@@ -878,7 +1100,7 @@ int handle_feat_help(struct char_data *ch, const char *argument, const char *raw
 /**
  * Handler for evolution information.
  */
-int handle_evolution_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_evolution_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     if (display_evolution_info(ch, raw_argument)) {
         return 1; /* Handled */
     }
@@ -888,7 +1110,7 @@ int handle_evolution_help(struct char_data *ch, const char *argument, const char
 /**
  * Handler for weapon information.
  */
-int handle_weapon_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_weapon_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     if (display_weapon_info(ch, raw_argument)) {
         return 1; /* Handled */
     }
@@ -898,7 +1120,7 @@ int handle_weapon_help(struct char_data *ch, const char *argument, const char *r
 /**
  * Handler for armor information.
  */
-int handle_armor_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_armor_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     if (display_armor_info(ch, raw_argument)) {
         return 1; /* Handled */
     }
@@ -908,7 +1130,7 @@ int handle_armor_help(struct char_data *ch, const char *argument, const char *ra
 /**
  * Handler for class information.
  */
-int handle_class_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_class_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     if (display_class_info(ch, raw_argument)) {
         return 1; /* Handled */
     }
@@ -918,7 +1140,7 @@ int handle_class_help(struct char_data *ch, const char *argument, const char *ra
 /**
  * Handler for race information.
  */
-int handle_race_help(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_race_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     if (display_race_info(ch, raw_argument)) {
         return 1; /* Handled */
     }
@@ -930,16 +1152,16 @@ int handle_race_help(struct char_data *ch, const char *argument, const char *raw
  * This is the fallback when no exact match is found.
  * Enhanced to work with partial matches from database handler.
  */
-int handle_soundex_suggestions(struct char_data *ch, const char *argument, const char *raw_argument) {
+int handle_soundex_suggestions(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
     struct help_keyword_list *keywords = NULL, *tmp_keyword = NULL;
     int soundex_matches_found = 0;
     
     /* Check if database handler already displayed partial match help */
-    if (!g_partial_help_displayed) {
+    if (!ctx->partial_help_displayed) {
         /* No partial match was shown, display the standard "not found" message */
-        send_to_char(ch, "There is no help on that word.\r\n");
+        send_to_char(ch, "There is no help on '%s'.\r\n", raw_argument);
         mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
-              "%s tried to get help on %s", GET_NAME(ch), raw_argument);
+              "%s tried to get help on '%s'", GET_NAME(ch), raw_argument);
     } else {
         /* Partial match was shown, add a note about it */
         send_to_char(ch, "\r\n\tcNote: Showing closest partial match above.\tn\r\n");
@@ -949,7 +1171,7 @@ int handle_soundex_suggestions(struct char_data *ch, const char *argument, const
     /* Try soundex search for suggestions - use raw_argument not modified argument */
     if ((keywords = soundex_search_help_keywords(raw_argument, GET_LEVEL(ch))) != NULL) {
         soundex_matches_found = 1;
-        if (g_partial_help_displayed) {
+        if (ctx->partial_help_displayed) {
             /* If we showed partial match, phrase differently */
             send_to_char(ch, "\r\nPerhaps you meant one of these:\r\n");
         } else {
@@ -984,11 +1206,8 @@ int handle_soundex_suggestions(struct char_data *ch, const char *argument, const
             log("DEBUG: handle_soundex_suggestions: No soundex suggestions found for '%s'", raw_argument);
         }
         log("DEBUG: handle_soundex_suggestions: Partial help was %sdisplayed", 
-            g_partial_help_displayed ? "" : "NOT ");
+            ctx->partial_help_displayed ? "" : "NOT ");
     }
-    
-    /* Reset the global flag for next call */
-    g_partial_help_displayed = 0;
     
     return 1; /* Always returns handled as this is the final fallback */
 }
@@ -1007,9 +1226,8 @@ int handle_soundex_suggestions(struct char_data *ch, const char *argument, const
  */
 ACMDU(do_help)
 {
-  /* Reset global flag at start of each help command */
-  g_partial_help_displayed = 0;
   struct help_handler *handler;
+  struct help_context ctx = {0};  /* Initialize context with zeros */
   char *raw_argument;
   char argument_copy[MAX_INPUT_LENGTH];
   
@@ -1030,6 +1248,11 @@ ACMDU(do_help)
   
   /* Prepare arguments for handlers */
   raw_argument = strdup(argument);    /* Keep original for handlers that need it */
+  if (!raw_argument) {
+    log("SYSERR: do_help: Memory allocation failed for argument '%s'", argument);
+    send_to_char(ch, "Help system error: memory allocation failed.\r\n");
+    return;
+  }
   strlcpy(argument_copy, argument, sizeof(argument_copy));
   space_to_minus(argument_copy);      /* Convert spaces to dashes for database search */
   
@@ -1043,7 +1266,7 @@ ACMDU(do_help)
     /* Debug logging to trace handler execution */
     if (HELP_DEBUG) log("DEBUG: do_help: Trying handler '%s' for '%s' (raw: '%s')", 
                        handler->name, argument_copy, raw_argument);
-    if (handler->handler(ch, argument_copy, raw_argument)) {
+    if (handler->handler(ch, argument_copy, raw_argument, &ctx)) {
       /* Handler processed the request successfully */
       if (HELP_DEBUG) log("DEBUG: do_help: Handler '%s' HANDLED request for '%s' - stopping chain", 
                          handler->name, argument_copy);
@@ -1172,6 +1395,25 @@ static void add_to_help_cache(const char *argument, int level,
 }
 
 /**
+ * Clear the entire help cache.
+ * Used when help entries are updated to ensure fresh data.
+ */
+void clear_help_cache(void)
+{
+  struct help_cache_entry *entry, *next;
+  
+  for (entry = help_cache; entry != NULL; entry = next) {
+    next = entry->next;
+    free(entry->search_key);
+    free_help_entry_list(entry->result);
+    free(entry);
+  }
+  
+  help_cache = NULL;
+  help_cache_count = 0;
+}
+
+/**
  * Creates a deep copy of a help_entry_list.
  * Used to store/retrieve independent copies from cache.
  * 
@@ -1197,7 +1439,11 @@ static struct help_entry_list *deep_copy_help_list(struct help_entry_list *src)
     new_entry->keyword_list = NULL;
     keyword_cur = NULL;
     for (keyword = src->keyword_list; keyword != NULL; keyword = keyword->next) {
-      CREATE(new_keyword, struct help_keyword_list, 1);
+      new_keyword = alloc_help_keyword();
+      if (!new_keyword) {
+        log("SYSERR: deep_copy_help_list: Failed to allocate keyword");
+        continue;
+      }
       new_keyword->tag = keyword->tag ? strdup(keyword->tag) : NULL;
       new_keyword->keyword = keyword->keyword ? strdup(keyword->keyword) : NULL;
       new_keyword->next = NULL;
@@ -1227,35 +1473,141 @@ static struct help_entry_list *deep_copy_help_list(struct help_entry_list *src)
 }
 
 /**
+ * Allocates memory for a new help entry.
+ * Centralizes allocation to ensure consistent initialization.
+ * 
+ * @return Pointer to allocated help_entry_list or NULL on failure
+ */
+static struct help_entry_list *alloc_help_entry(void)
+{
+  struct help_entry_list *entry;
+  
+  CREATE(entry, struct help_entry_list, 1);
+  if (!entry) {
+    log("SYSERR: alloc_help_entry: Failed to allocate memory for help entry");
+    return NULL;
+  }
+  
+  /* Initialize all fields to NULL/0 for safe cleanup */
+  entry->tag = NULL;
+  entry->keywords = NULL;
+  entry->entry = NULL;
+  entry->min_level = 0;
+  entry->last_updated = NULL;
+  entry->keyword_list = NULL;
+  entry->next = NULL;
+  
+  return entry;
+}
+
+/**
+ * Allocates memory for a new help keyword.
+ * Centralizes allocation to ensure consistent initialization.
+ * 
+ * @return Pointer to allocated help_keyword_list or NULL on failure
+ */
+static struct help_keyword_list *alloc_help_keyword(void)
+{
+  struct help_keyword_list *keyword;
+  
+  CREATE(keyword, struct help_keyword_list, 1);
+  if (!keyword) {
+    log("SYSERR: alloc_help_keyword: Failed to allocate memory for help keyword");
+    return NULL;
+  }
+  
+  /* Initialize all fields to NULL */
+  keyword->tag = NULL;
+  keyword->keyword = NULL;
+  keyword->next = NULL;
+  
+  return keyword;
+}
+
+/**
+ * Frees a single help entry and all its associated memory.
+ * This is the centralized cleanup function for a single entry.
+ * 
+ * @param entry The help entry to free (not the whole list)
+ */
+static void free_help_entry_single(struct help_entry_list *entry)
+{
+  if (!entry)
+    return;
+  
+  /* Free all string fields */
+  if (entry->tag) {
+    free(entry->tag);
+    entry->tag = NULL;
+  }
+  if (entry->entry) {
+    free(entry->entry);
+    entry->entry = NULL;
+  }
+  if (entry->keywords) {
+    free(entry->keywords);
+    entry->keywords = NULL;
+  }
+  if (entry->last_updated) {
+    free(entry->last_updated);
+    entry->last_updated = NULL;
+  }
+  
+  /* Free keyword list */
+  free_help_keyword_list(entry->keyword_list);
+  entry->keyword_list = NULL;
+  
+  /* Do not free entry->next - that's handled by the list traversal */
+}
+
+/**
+ * Frees a help keyword list and all associated memory.
+ * 
+ * @param keyword_list The keyword list to free
+ */
+static void free_help_keyword_list(struct help_keyword_list *keyword_list)
+{
+  struct help_keyword_list *keyword, *tmp_keyword;
+  
+  keyword = keyword_list;
+  while (keyword != NULL) {
+    tmp_keyword = keyword;
+    keyword = keyword->next;
+    
+    /* Free string fields */
+    if (tmp_keyword->tag) {
+      free(tmp_keyword->tag);
+      tmp_keyword->tag = NULL;
+    }
+    if (tmp_keyword->keyword) {
+      free(tmp_keyword->keyword);
+      tmp_keyword->keyword = NULL;
+    }
+    
+    /* Free the structure itself */
+    free(tmp_keyword);
+  }
+}
+
+/**
  * Frees a help_entry_list and all associated memory.
+ * This is the main cleanup function for help entry lists.
+ * Uses centralized single-entry cleanup to avoid duplication.
  * 
  * @param entry The help list to free
  */
 static void free_help_entry_list(struct help_entry_list *entry)
 {
   struct help_entry_list *tmp;
-  struct help_keyword_list *keyword, *tmp_keyword;
   
   while (entry != NULL) {
     tmp = entry;
     entry = entry->next;
     
-    /* Free strings */
-    if (tmp->tag) free(tmp->tag);
-    if (tmp->entry) free(tmp->entry);
-    if (tmp->keywords) free(tmp->keywords);
-    if (tmp->last_updated) free(tmp->last_updated);
+    /* Use centralized cleanup */
+    free_help_entry_single(tmp);
     
-    /* Free keyword list */
-    keyword = tmp->keyword_list;
-    while (keyword != NULL) {
-      tmp_keyword = keyword;
-      keyword = keyword->next;
-      if (tmp_keyword->tag) free(tmp_keyword->tag);
-      if (tmp_keyword->keyword) free(tmp_keyword->keyword);
-      free(tmp_keyword);
-    }
-    
+    /* Free the structure itself */
     free(tmp);
   }
 }
@@ -1293,4 +1645,108 @@ static void purge_old_cache_entries(void)
     
     entry = next;
   }
+}
+
+/**
+ * HELPSEARCH command - Full-text search within help content.
+ * Searches for the specified text within help entry content, not just keywords.
+ * 
+ * Usage: helpsearch <search term>
+ * 
+ * This command allows players to find help entries that contain specific
+ * text within their content, making it easier to find information when
+ * you don't know the exact keyword.
+ */
+ACMDU(do_helpsearch)
+{
+  struct help_entry_list *results = NULL, *entry = NULL;
+  char search_term[MAX_INPUT_LENGTH];
+  int count = 0;
+  
+  /* Basic validation */
+  if (!ch->desc)
+    return;
+  
+  /* Get search term */
+  skip_spaces(&argument);
+  if (!*argument) {
+    send_to_char(ch, "Usage: helpsearch <search term>\r\n");
+    send_to_char(ch, "Example: helpsearch damage reduction\r\n");
+    send_to_char(ch, "This searches for the text within help entries, not just keywords.\r\n");
+    return;
+  }
+  
+  strlcpy(search_term, argument, sizeof(search_term));
+  
+  /* Perform fulltext search */
+  results = search_help_fulltext(search_term, GET_LEVEL(ch));
+  
+  if (results == NULL) {
+    send_to_char(ch, "No help entries found containing '%s'.\r\n", search_term);
+    mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
+          "%s searched help content for '%s' (no results)", GET_NAME(ch), search_term);
+    return;
+  }
+  
+  /* Display results header */
+  send_to_char(ch, "\tC%s\tn\r\n", line_string(GET_SCREEN_WIDTH(ch), '-', '-'));
+  send_to_char(ch, "\tcHelp entries containing '%s':\tn\r\n", search_term);
+  send_to_char(ch, "\tC%s\tn\r\n", line_string(GET_SCREEN_WIDTH(ch), '-', '-'));
+  
+  /* Display each matching entry */
+  for (entry = results; entry != NULL; entry = entry->next) {
+    count++;
+    
+    /* Show entry tag and keywords */
+    send_to_char(ch, "\r\n\tY%d.\tn \t<send href=\"Help %s\">%s\t</send>\r\n", 
+                count, entry->tag, entry->tag);
+    
+    if (entry->keywords && *entry->keywords) {
+      send_to_char(ch, "   \tcKeywords:\tn %s\r\n", entry->keywords);
+    }
+    
+    /* Show a preview of the content (first 200 chars) */
+    if (entry->entry && *entry->entry) {
+      char preview[201];
+      strlcpy(preview, entry->entry, sizeof(preview));
+      
+      /* Remove color codes for cleaner preview */
+      char *p = preview;
+      while (*p) {
+        if (*p == '\t' && *(p+1)) {
+          /* Skip color code */
+          p += 2;
+        } else if (*p == '\r' || *p == '\n') {
+          *p = ' ';  /* Replace newlines with spaces */
+          p++;
+        } else {
+          p++;
+        }
+      }
+      
+      /* Trim preview at word boundary if possible */
+      if (strlen(entry->entry) > 200) {
+        char *last_space = strrchr(preview, ' ');
+        if (last_space && (last_space - preview) > 150) {
+          strcpy(last_space, "...");
+        } else {
+          strcat(preview, "...");
+        }
+      }
+      
+      send_to_char(ch, "   \tdPreview:\tn %.200s\r\n", preview);
+    }
+  }
+  
+  /* Display results footer */
+  send_to_char(ch, "\r\n\tC%s\tn\r\n", line_string(GET_SCREEN_WIDTH(ch), '-', '-'));
+  send_to_char(ch, "Found \tY%d\tn help entries containing '%s'.\r\n", count, search_term);
+  send_to_char(ch, "Click on any entry name to view its full help text.\r\n");
+  
+  /* Log the search */
+  mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
+        "%s searched help content for '%s' (%d results)", GET_NAME(ch), search_term, count);
+  
+  /* Clean up results using centralized function */
+  free_help_entry_list(results);
 }
