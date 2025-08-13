@@ -1,168 +1,91 @@
-# Help System Import Functionality - Implementation Plan
+# Help System TODO
+
+## Status: All Tasks Completed
+**Last Updated:** 2025-08-13
+
+All help system improvements have been implemented and documented in CHANGELOG.md
+
+---
+
+# Helpful Database Connection & Structure Information
+
+## Connection Details
+- **Config File:** `lib/mysql_config`
+- **Connection:** Managed through `src/mysql.c` using prepared statements
+- **Status:** ✅ FUNCTIONAL - Database connection verified and operational
+
+## Database Schema
+```sql
+help_entries (1,815+ rows)
+├── tag         VARCHAR(50) PRIMARY KEY  -- Unique identifier (e.g., 'score')
+├── entry       TEXT                     -- The actual help content
+├── min_level   INT                      -- Minimum level to view (0-60)
+└── last_updated TIMESTAMP               -- When entry was last modified
+
+help_keywords (3,143+ rows)
+├── help_tag    VARCHAR(50) FK           -- Links to help_entries.tag
+└── keyword     VARCHAR(50)              -- Search keyword (e.g., 'Score', 'character-info')
+
+-- Indexes: help_tag, keyword for performance
+-- One help entry can have multiple keywords
+```
+
+## Current Architecture
+- **Dual Mode System:** Database primary, file-based fallback
+- **File Fallback:** `lib/text/help/help.hlp` (799KB, legacy support)
+- **Caching:** In-memory cache with 5-minute TTL
+- **Search:** Case-insensitive prefix matching with soundex fuzzy search
+
+# Files Involved in the Help System (update if out of date)
+
+## Core Implementation Files
+- **`src/help.c`** (1296 lines) - Main help system implementation, search functions, display logic
+- **`src/help.h`** (89 lines) - Help system data structures and function declarations
+- **`src/hedit.c`** (2000+ lines) - OLC help editor implementation, database operations, import/export
+- **`src/hedit.h`** (31 lines) - Help editor declarations and command definitions
+
+## Database Integration
+- **`src/db.c`** - Contains `load_help()` function for file-based loading, help_table management
+- **`src/db.h`** - Defines `help_index_element` structure, declares help_table global
+- **`src/mysql.c`** - MySQL connection handling, escape functions used by help system
+- **`src/db_init.c`** - Database table creation and initialization
+
+## Command Integration
+- **`src/interpreter.c`** - Registers help commands (help, hedit, helpcheck, hindex, helpgen)
+- **`src/act.h`** - Command declarations
+- **`src/comm.c`** - Uses help_table for initial help display
+
+## OLC Framework
+- **`src/oasis.h`** - OLC data structures used by hedit
+- **`src/oasis.c`** - OLC framework functions
+- **`src/genolc.c`** - Generic OLC functions
+- **`src/modify.c`** - String editing functions for help text
+
+## Data Files
+- **`lib/text/help/help.hlp`** (799,709 bytes) - Legacy help file database
+- **`lib/text/help/help`** (1,498 bytes) - Default help screen
+- **`lib/text/help/ihelp`** (895 bytes) - Immortal help screen
+- **`lib/text/help/index`** (11 bytes) - Help index file
+- **`lib/text/help/README`** (101 bytes) - Documentation file
+
+## Configuration Files
+- **`lib/mysql_config`** - Database connection parameters
+
+## Database Tables
+- **`help_entries`** - Main help content table (3,271+ entries after import)
+- **`help_keywords`** - Keyword-to-help mappings (7,206+ keywords after import)
+- **`help_entries_frmud`** - Backup/migration table
+- **`help_keywords_frmud`** - Backup/migration table
+- **`help_topics_backup`** - Additional backup table
+
+**Note:** No SQL schema files found in repository - tables are created programmatically in db_init.c
+
+## Supporting Systems
+- **`src/utils.c/h`** - Utility functions (string handling, memory management)
+- **`src/structs.h`** - Core data structures
+- **`src/conf.h`** - Configuration constants
+- **`src/sysdep.h`** - System dependencies
+
+---
 
 ## Overview
-Add an "import" option to the `helpgen` command that will import the legacy help.hlp file content into the MySQL database with intelligent duplicate handling for entries that share primary keywords.
-
-## Command Syntax
-```
-helpgen import [preview|force|merge]
-  preview - Show what would be imported without making changes
-  force   - Overwrite existing entries completely  
-  merge   - Intelligently merge duplicate keywords (default)
-```
-
-## Implementation Requirements
-
-### 1. Parser for help.hlp Format
-The help.hlp file has a specific format:
-- Keywords on first line (space-separated)
-- Help content follows
-- Entry ends with `#` followed by minimum level number
-- Example:
-```
-! ^ !
-
-Use ! to repeat the last command typed at the keyboard.
-...
-#0
-```
-
-### 2. Import Function Components
-
-#### A. File Parser (`parse_help_hlp_file`)
-- Open and read lib/text/help/help.hlp
-- Parse each entry extracting:
-  - Keywords (first line, space-separated)
-  - Content (all lines until #)
-  - Minimum level (number after #)
-- Handle special characters and formatting codes
-- Validate each entry before processing
-
-#### B. Duplicate Detection (`check_existing_help_entry`)
-- For each keyword in the entry:
-  - Query database for existing entries with that keyword
-  - Track which keywords already exist
-  - Identify primary vs secondary keywords
-
-#### C. Conflict Resolution Strategies
-
-##### Strategy 1: Skip (default for preview)
-- If ANY keyword exists, skip the entire entry
-- Report which entries would be skipped
-
-##### Strategy 2: Force Overwrite
-- Delete existing entries that share keywords
-- Insert new entry fresh
-- Maintain referential integrity
-
-##### Strategy 3: Intelligent Merge (recommended)
-- For entries with shared keywords:
-  - Compare content similarity
-  - If content is substantially different:
-    - Create new entry with suffix (e.g., "help_legacy")
-    - Add cross-references in both entries
-  - If content is similar:
-    - Merge unique content sections
-    - Preserve higher detail version
-    - Update timestamp
-
-#### D. Database Operations (`import_help_entry_to_db`)
-- Use prepared statements for security
-- Transaction support for atomicity
-- Generate unique tags for entries:
-  - Use primary keyword as base
-  - Add suffix if duplicate (_2, _3, etc.)
-  - Maintain tag uniqueness constraint
-
-### 3. Special Handling Cases
-
-#### Multiple Keywords per Entry
-- First keyword becomes primary tag
-- Additional keywords stored in help_keywords table
-- All keywords searchable
-
-#### Shared Primary Keywords
-When multiple entries share the same primary keyword:
-1. **Disambiguation Page**: Create a main entry that lists all variations
-2. **Suffix System**: Add descriptive suffixes (e.g., "cast_spell" vs "cast_fishing")
-3. **Context Merging**: If appropriate, merge into single comprehensive entry
-
-#### Format Conversion
-- Convert color codes properly
-- Handle line endings consistently  
-- Preserve formatting tags
-- Clean up legacy artifacts
-
-### 4. Safety Features
-
-#### Preview Mode
-- Dry run showing:
-  - Number of entries to import
-  - Conflicts detected
-  - Proposed resolutions
-  - No database changes
-
-#### Backup Recommendation
-- Suggest database backup before import
-- Option to export existing help to file
-
-#### Rollback Support
-- Mark imported entries with import batch ID
-- Allow rollback of specific import batch
-
-### 5. Progress Reporting
-- Show progress during import (X of Y entries)
-- Report:
-  - Successful imports
-  - Skipped entries
-  - Merged entries
-  - Errors encountered
-- Log detailed results to file
-
-### 6. Code Structure
-
-```c
-/* Main import handler */
-static int import_help_hlp_file(struct char_data *ch, const char *mode) {
-  // Open file
-  // Parse entries
-  // Process based on mode
-  // Report results
-}
-
-/* Parse single entry from file */
-static struct help_entry_list *parse_help_entry(FILE *fp) {
-  // Read keywords line
-  // Read content until #
-  // Parse min level
-  // Return structured entry
-}
-
-/* Check for existing entries */
-static int check_duplicate_keywords(struct help_entry_list *entry) {
-  // Query database for each keyword
-  // Return conflict type
-}
-
-/* Import single entry with conflict resolution */
-static int import_entry_with_resolution(struct help_entry_list *entry, int conflict_mode) {
-  // Handle based on conflict mode
-  // Insert/update database
-  // Return success/failure
-}
-```
-
-### 7. Testing Considerations
-- Test with empty database
-- Test with partial overlaps
-- Test with complete duplicates
-- Test special characters
-- Test very long entries
-- Test malformed file entries
-
-### 8. Future Enhancements
-- Import from other MUD formats
-- Export current database to help.hlp format
-- Bulk edit capabilities
-- Version control for help entries
-- Automatic cross-reference generation

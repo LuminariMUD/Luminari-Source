@@ -1508,8 +1508,13 @@ void index_boot(int mode)
     snprintf(buf2, sizeof(buf2), "%s%s", prefix, buf1);
     if (!(db_file = fopen(buf2, "r")))
     {
-      log("SYSERR: File '%s' listed in '%s/%s': %s", buf2, prefix,
-          index_filename, strerror(errno));
+      /* For help files, this is normal - we use database-only mode */
+      if (mode == DB_BOOT_HLP) {
+        log("Help file '%s' not found - using database-only help system", buf2);
+      } else {
+        log("SYSERR: File '%s' listed in '%s/%s': %s", buf2, prefix,
+            index_filename, strerror(errno));
+      }
       if (fscanf(db_index, "%s\n", buf1) != 1)
         break;
       continue;
@@ -1529,11 +1534,16 @@ void index_boot(int mode)
       break;
   }
 
-  /* Exit if 0 records, unless this is shops */
+  /* Exit if 0 records, unless this is shops, quests, triggers, or help */
   if (!rec_count)
   {
-    if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST || mode == DB_BOOT_HLQST || mode == DB_BOOT_TRG)
+    if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST || mode == DB_BOOT_HLQST || mode == DB_BOOT_TRG || mode == DB_BOOT_HLP)
+    {
+      if (mode == DB_BOOT_HLP) {
+        log("No help.hlp file found - using database-only help system.");
+      }
       return;
+    }
     log("SYSERR: boot error - 0 records counted in %s/%s.", prefix,
         index_filename);
     exit(1);
@@ -1627,7 +1637,7 @@ void index_boot(int mode)
   fclose(db_index);
 
   /* Sort the help index for file-based help entries */
-  if (mode == DB_BOOT_HLP)
+  if (mode == DB_BOOT_HLP && help_table && top_of_helpt > 0)
   {
     qsort(help_table, top_of_helpt, sizeof(struct help_index_element), help_sort);
     log("   Sorted %d help entries from file.", top_of_helpt);
