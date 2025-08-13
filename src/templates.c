@@ -231,7 +231,7 @@ void show_level_history(struct char_data *ch, int level)
     /* Ensure database connection is active */
     if (!MYSQL_PING_CONN(conn)) {
         log("SYSERR: %s: Database connection failed", __func__);
-        return -1;
+        return;  /* void function, no return value */
     }
 
     snprintf(query, sizeof(query),
@@ -421,7 +421,7 @@ long get_level_id_by_level_num(int level_num, char *chname)
     /* Ensure database connection is active */
     if (!MYSQL_PING_CONN(conn)) {
         log("SYSERR: %s: Database connection failed", __func__);
-        return;
+        return 0;  /* Return 0 on error for long function */
     }
 
     /* Escape character name to prevent SQL injection */
@@ -986,7 +986,7 @@ void erase_levelup_info(struct char_data *ch)
     /* Ensure database connection is active */
     if (!MYSQL_PING_CONN(conn)) {
         log("SYSERR: %s: Database connection failed", __func__);
-        return false;
+        return;  /* void function, no return value */
     }
 
     int found = true;

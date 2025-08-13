@@ -2546,7 +2546,7 @@ void insert_path(struct path_data *path)
   /* Check the connection, reconnect if necessary. */
   if (!MYSQL_PING_CONN(conn)) {
     log("SYSERR: %s: Database connection failed", __func__);
-    return false;
+    return;  /* void function, no return value */
   }
 
   if (mysql_query(conn, buf))
