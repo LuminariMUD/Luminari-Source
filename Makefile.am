@@ -144,6 +144,9 @@ circle_SOURCES = \
 	src/pubsub_queue.c \
 	src/pubsub_spatial.c \
 	src/pubsub_event_handlers.c \
+	src/spatial_core.c \
+	src/spatial_visual.c \
+	src/spatial_audio.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \
