@@ -26,5 +26,6 @@
 /* Action fuctions */
 ACMD_DECL(do_helpcheck);
 ACMD_DECL(do_hindex);
+ACMD_DECL(do_helpgen);
 
 #endif /* _HEDIT_H_*/

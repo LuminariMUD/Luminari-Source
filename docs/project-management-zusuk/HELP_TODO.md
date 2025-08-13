@@ -16,16 +16,17 @@
 ## Database Schema
 ```sql
 help_entries (1,815 rows)
-├── tag         VARCHAR(50) PRIMARY KEY  -- Unique identifier (e.g., 'score')
-├── entry       TEXT                     -- The actual help content
-├── min_level   INT                      -- Minimum level to view (0-60)
-└── last_updated TIMESTAMP               -- When entry was last modified
+├── tag           VARCHAR(50) PRIMARY KEY  -- Unique identifier (e.g., 'score')
+├── entry         TEXT                     -- The actual help content
+├── min_level     INT                      -- Minimum level to view (0-60)
+├── auto_generated BOOLEAN DEFAULT FALSE   -- TRUE if auto-generated, FALSE if manual
+└── last_updated  TIMESTAMP               -- When entry was last modified
 
 help_keywords (3,143 rows)
 ├── help_tag    VARCHAR(50) FK           -- Links to help_entries.tag
 └── keyword     VARCHAR(50)              -- Search keyword (e.g., 'Score', 'character-info')
 
--- Indexes: help_tag, keyword for performance
+-- Indexes: help_tag, keyword, auto_generated for performance
 -- One help entry can have multiple keywords
 ```
 
@@ -40,7 +41,7 @@ help_keywords (3,143 rows)
 ## Core Implementation Files
 - **`src/help.c`** (900+ lines) - Main help system implementation, search functions, display logic
 - **`src/help.h`** (52 lines) - Help system data structures and function declarations
-- **`src/hedit.c`** (1009 lines) - OLC help editor implementation, database operations
+- **`src/hedit.c`** (1500+ lines) - OLC help editor, database operations, auto-generation system
 - **`src/hedit.h`** (30 lines) - Help editor declarations and command definitions
 
 ## Database Integration
@@ -70,8 +71,8 @@ help_keywords (3,143 rows)
 - **`lib/mysql_config`** - Database connection parameters
 
 ## Database Tables
-- **`help_entries`** - Main help content table (1,815 entries)
-- **`help_keywords`** - Keyword-to-help mappings (3,143 keywords)
+- **`help_entries`** - Main help content table (~1,622 entries after cleanup)
+- **`help_keywords`** - Keyword-to-help mappings (~2,950 keywords after cleanup)
 - **`help_entries_frmud`** - Backup/migration table
 - **`help_keywords_frmud`** - Backup/migration table
 - **`help_topics_backup`** - Additional backup table
@@ -86,122 +87,188 @@ help_keywords (3,143 rows)
 
 # Work / ToDo / Task Lists
 
-# SOUNDEX BUG ANALYSIS - January 2025
+## AUTOMATIC HELP GENERATION SYSTEM - NEW FEATURE
 
-## FIX ATTEMPTED AND FAILED
+### Overview
+Create a system to automatically generate basic help files for commands that lack documentation, leveraging command registration data and optionally enhanced with source code metadata.
 
-## Problem Summary
-The help system's soundex (fuzzy matching) feature is being bypassed due to overly broad prefix matching in the database handler. When users misspell commands, they get unintended partial matches instead of helpful "did you mean" suggestions.
+### Implementation Status - January 2025
 
-## Root Cause Theory
-The help system uses a handler chain pattern where handlers are executed in order:
-1. Database handler (`handle_database_help`) - src/help.c:558
-2. Various specialized handlers (feat, class, race, etc.)
-3. Soundex handler (`handle_soundex_suggestions`) - src/help.c:823 (ALWAYS LAST)
+#### Phase 1: Enhanced Auto-Generation (HIGH PRIORITY) - ✅ COMPLETE
+- [x] **Create helpgen command infrastructure**
+  - [x] Add ACMD(do_helpgen) to hedit.c (lines 1191-1287)
+  - [x] Add declaration to hedit.h (line 29)
+  - [x] Register helpgen command in interpreter.c (line 484)
+  - [x] Add command options: missing, all, specific command, force flag
+  
+- [x] **Implement enhanced help entry generator**
+  - [x] Create generate_help_entry() function with context awareness
+  - [x] Extract command info (name, level, position, subcmd, action type)
+  - [x] Generate contextual descriptions based on command category
+  - [x] Use command names as tags directly (no CMD_ prefix)
+  - [x] Handle special cases (socials, directions, aliases)
+  - [x] Create rich keyword sets for better searchability
+  
+- [x] **Database integration**
+  - [x] Add auto_generated column to help_entries table - **COMPLETED**
+  - [x] Create conflict resolution for existing entries (checks & force flag)
+  - [x] Implement database insert/update operations
+  - [x] Add list/clean commands for managing auto-generated entries
+  - [ ] Add generation logging/audit trail - **FUTURE ENHANCEMENT**
+  
+- [x] **Position and level formatters**
+  - [x] Create get_position_name() function (lines 1012-1026)
+  - [x] Create get_level_name() function (lines 1029-1050)
+  - [x] Format subcommand information
+  - [x] Handle special command flags
 
-**The Issue Theory:** When `handle_database_help` finds ANY match (even a poor prefix match), it returns 1 and stops the chain, preventing soundex from running.
+#### Phase 2: Enhanced Metadata System (MEDIUM PRIORITY)
+- [ ] **Design metadata structure**
+  - [ ] Add command_metadata struct to interpreter.h
+  - [ ] Create metadata array parallel to cmd_info[]
+  - [ ] Define metadata fields (brief_desc, syntax, category, see_also)
+  
+- [ ] **Manual metadata entries**
+  - [ ] Add metadata for 50 most common commands
+  - [ ] Create categories (combat, social, movement, info, admin)
+  - [ ] Define standard syntax patterns
+  - [ ] Build see_also relationships
+  
+- [ ] **Source code annotations (HELP_META)**
+  - [ ] Define HELP_META comment format
+  - [ ] Add annotations to key ACMD functions
+  - [ ] Create examples for each command type
+  - [ ] Document annotation guidelines
 
-## How It Breaks
-**Example scenario:**
-- User types: `help comand` (misspelled "command")
-- Database query: `WHERE LOWER(keyword) LIKE 'comand%'`
-- Finds: Any keyword starting with "comand" (e.g., "comandos", "comand-line")
-- Returns first match and exits
-- Soundex never runs to suggest "command"
+#### Phase 3: Context Analysis (LOW PRIORITY)
+- [ ] **Command pattern analyzer**
+  - [ ] Detect argument requirements
+  - [ ] Identify subcommand patterns
+  - [ ] Classify command types (movement, combat, etc.)
+  - [ ] Extract affected stats/attributes
+  
+- [ ] **Related command discovery**
+  - [ ] Find commands with similar names
+  - [ ] Group commands by function pointer
+  - [ ] Link subcommand variants
+  - [ ] Build command families
+  
+- [ ] **Smart help generation**
+  - [ ] Combine metadata with analysis
+  - [ ] Generate contextual descriptions
+  - [ ] Create relevant examples
+  - [ ] Add appropriate warnings/notes
 
-## Code Locations
-- **Entry point:** src/help.c:869 (`do_help`)
-- **Handler chain loop:** src/help.c:901-911
-- **Database handler returns:** src/help.c:613 (stops chain when ANY match found)
-- **Database search:** src/help.c:139 (`search_help`)
-- **Prefix matching:** src/help.c:199 (database), src/help.c:98 (file-based)
-- **Soundex function:** src/help.c:333 (`soundex_search_help_keywords`)
+### Usage Examples
+```
+helpgen missing        - Generate help for all commands without entries
+helpgen all           - Generate help for all commands (skip existing)
+helpgen all force     - Regenerate all help entries (overwrite)
+helpgen score         - Generate help for specific command
+helpgen list          - List all auto-generated help entries
+helpgen clean force   - Delete all auto-generated help entries
+helpcheck            - List commands still missing help (existing)
+```
 
-## Fix Approach (Easy-Medium Difficulty)
-Modify `handle_database_help` to distinguish between exact and partial matches:
+### Generated Help Template (Enhanced)
+```
+COMMAND_NAME
 
-1. **Check for exact match:** Compare search term with returned keywords
-2. **If exact match found:** Display help and return 1 (stop chain)
-3. **If only partial matches:** Display help but return 0 (continue to soundex)
-4. **Update soundex handler:** Check if help was already displayed, add suggestions without duplicating output
+Category: [Magic/Combat/Movement/etc]
+Usage: command [arguments]
 
-**Estimated changes:** ~15-20 lines of code in `handle_database_help`, minor adjustments to `handle_soundex_suggestions`
+[Contextual description based on command category and properties]
 
-## Testing Requirements
-- Exact matches work as before (e.g., `help score`)
-- Misspellings show soundex suggestions (e.g., `help scor`, `help comand`)
-- Partial matches show both help AND suggestions
-- No duplicate output or memory leaks
+Requirements:
+  Minimum Level: [level or role]
+  Position: [standing/sitting/etc]
+  Action Type: [swift/standard/move/none]
+
+[Examples with real usage patterns]
+
+[Notes about special behavior]
 
 ---
+This help entry was automatically generated.
+For more detailed information, use 'help command manual' or ask a staff member.
+```
 
+### Benefits
+- Ensures 100% command documentation coverage
+- Consistent help format across all commands
+- Reduces manual documentation burden
+- Easy regeneration when commands change
+- Foundation for richer documentation
 
-## MEDIUM PRIORITY - Next Release (Complete within 2-4 weeks)
+### Implementation Notes (Updated January 2025)
+**Files Modified:**
+- `src/hedit.c` - Enhanced helpgen implementation (500+ lines added)
+  - Category detection system
+  - Context-aware description generation
+  - Rich keyword generation for searchability
+  - List/clean commands for management
+- `src/hedit.h` - Added ACMD declaration (line 29)
+- `src/interpreter.c` - Added command registration (line 484)
+- `src/db_init.c` - Added auto_generated column to schema
+- `src/db_init_data.c` - Updated verification functions
+- `src/db_startup_init.c` - Added startup checks
 
-### Search Enhancement
-- [ ] **Full-text search implementation**
-  - [ ] Implement MATCH...AGAINST queries (FULLTEXT index already added)
-  - [ ] Add relevance scoring
-  - [ ] Create search result ranking
+**Key Functions Added:**
+1. `get_position_name()` - Converts position constants to readable strings
+2. `get_level_name()` - Converts level constants to readable strings  
+3. `get_command_category()` - Categorizes commands by type
+4. `get_action_type_desc()` - Describes action requirements
+5. `generate_command_description()` - Creates contextual descriptions
+6. `generate_usage_examples()` - Provides command-specific examples
+7. `generate_help_entry()` - Core generation with enhanced content
+8. `do_helpgen()` - Main handler with list/clean/generate modes
 
-- [ ] **Improve fuzzy matching**
-  - [ ] Enhance soundex search
-  - [ ] Add Levenshtein distance calculation
-  - [ ] Implement metaphone algorithm
-  - [ ] Create "did you mean?" suggestions
+**Database Enhancements:**
+- Added `auto_generated` BOOLEAN column to help_entries table
+- Tags now use command names directly (not CMD_ prefix)
+- Rich keyword sets including category, related terms
+- Indexed auto_generated column for fast queries
+- Migration support for existing databases
 
-- [ ] **Search performance**
-  - [ ] Add search result caching
-  - [ ] Implement pagination for large result sets
-  - [ ] Add search query logging
-  - [ ] Create popular searches cache
+**Bug Fixes Applied (January 2025):**
+- Fixed `LVL_GRGOD` to `LVL_GRSTAFF` (correct constant name)
+- Removed unused `MYSQL_ROW row` variable
+- Updated `two_arguments()` call with proper size parameters
+- Fixed database column names (`last_updated` instead of `updated_at`)
+- Removed non-existent `max_level` column from INSERT
+- Fixed function pointer references (`do_gen_cast` not `do_cast`, `do_write` not `do_gen_write`)
+- Increased buffer size to prevent string truncation warnings
+- Cleaned up 193 old CMD_ prefixed auto-generated entries from database
 
-### Category System Design
-- [ ] **Database schema changes**
-  - [ ] Create help_categories table
-  - [ ] Add category_id to help_entries
-  - [ ] Create category hierarchy support
-  - [ ] Add category permissions
+### Testing Checklist
+- [ ] Test helpgen with no arguments (shows usage)
+- [ ] Test helpgen missing (generates only missing)
+- [ ] Test helpgen all (respects existing entries)
+- [ ] Test helpgen all force (overwrites existing)
+- [ ] Test helpgen <command> for specific command
+- [ ] Verify auto_generated flag is set correctly
+- [ ] Confirm help entries are searchable
+- [ ] Check generated content quality
+- [ ] Test with different permission levels
+- [ ] Verify no memory leaks or crashes
 
-- [ ] **Category implementation**
-  - [ ] Create category CRUD operations
-  - [ ] Add category browsing commands
-  - [ ] Implement category-based help listing
-  - [ ] Add default categories (Commands, Spells, Skills, etc.)
+### Next Steps to Complete
+1. **COMPLETE**: ✅ Phase 1 implementation finished and compiled successfully
+2. **COMPLETE**: ✅ Database schema updated with auto_generated column
+3. **COMPLETE**: ✅ Cleaned up 193 old auto-generated entries from database
+4. **READY FOR TESTING**: Test the enhanced helpgen system:
+   - Run `helpgen` with no arguments (shows enhanced usage)
+   - Run `helpgen missing` to generate contextual help for missing commands
+   - Run `helpgen all` to generate for all commands (skip existing)
+   - Run `helpgen all force` to regenerate all with enhanced content
+   - Run `helpgen activate` to see example of context-aware generation
+   - Run `helpgen list` to view all auto-generated entries  
+   - Run `helpgen clean force` to remove auto-generated entries
+5. **VERIFY**: Use `helpcheck` to confirm documentation coverage
+6. **PHASE 2**: Begin metadata system implementation for richer content
 
-- [ ] **Editor updates**
-  - [ ] Add category selection to hedit
-  - [ ] Create category management interface
-  - [ ] Add bulk categorization tools
-  - [ ] Implement category templates
-
-## FUTURE TASK - File to Database Migration -- MUST BE LAST
-
-### Migrate help.hlp to Database
-- [ ] **Create migration script for help.hlp** (Required before disabling file loading)
-  - [ ] Parse help.hlp file format (entries separated by #, keywords on first line)
-  - [ ] Extract all help entries with keywords and min_level
-  - [ ] Check for existing entries in database to avoid duplicates
-  - [ ] Insert missing entries into help_entries table
-  - [ ] Insert associated keywords into help_keywords table
-  - [ ] Verify migration completeness (compare file entry count with DB)
-  - [ ] Create backup of existing database entries before migration
-  - [ ] Test dual-mode operation (both file and DB active)
-  - [ ] Once verified, disable file loading in load_help()
-  - [ ] Remove help_table allocation and sorting
-  - [ ] Update all commands to use database exclusively
-  - [ ] Document the migration process and rollback procedures
-
-### System Unification -- MUST BE DONE LAST (After Database Migration)
-- [ ] **Migrate from file-based to database-only system** 
-  - **Status:** Previously attempted but REVERTED - system not ready for migration
-  - **Prerequisites:** Complete "Migrate help.hlp to Database" task above first
-  - [x] Identified all file-based help loading code (research complete)
-  - [ ] Import all help.hlp entries to database (blocked by migration script)
-  - [ ] Verify all help entries are in database before disabling file loading
-  - [ ] Modify `load_help()` function in db.c to skip file processing
-  - [ ] Mark `help_index_element` structure as deprecated (retain for compatibility)
-  - [ ] Mark `help_table` global variable as deprecated (retain for compatibility)
-  - [ ] Update boot sequence to skip file-based help loading
-  - [ ] Disable help.hlp file processing (currently still loading from file)
-  - [x] Added comprehensive comments documenting dual-mode operation
+### Database Cleanup Summary
+- **Before**: 1,815 help entries with 193 poorly formatted auto-generated entries
+- **After**: 1,622 help entries (all manual or ready for new generation)
+- **Removed**: All CMD_ prefixed entries with generic descriptions
+- **Ready**: Clean database with auto_generated tracking column
