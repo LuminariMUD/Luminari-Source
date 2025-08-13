@@ -74,6 +74,7 @@
 #include "backgrounds.h"
 #include "roleplay.h"
 #include "crafting_new.h"
+#include "mysql.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -2619,6 +2620,53 @@ void nanny(struct descriptor_data *d, char *arg)
       if ((player_i = load_char(tmp_name, d->character)) > -1)
       {
         /* Player found! */
+        
+        /* First check if character was originally created with this account */
+        if (GET_ACCOUNT_NAME(d->character) && 
+            !strcasecmp(GET_ACCOUNT_NAME(d->character), d->account->name))
+        {
+          /* Character was created with this account - auto re-link without password */
+          int i;
+          for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[i] != NULL); i++)
+            ;
+          if (i == MAX_CHARS_PER_ACCOUNT)
+          {
+            write_to_output(d, "You have reached the maximum number of characters on this account.\r\n"
+                               "Remove a character before adding a new one.\r\n");
+          }
+          else
+          {
+            d->account->character_names[i] = strdup(GET_NAME(d->character));
+            
+            /* Ensure the character exists in MySQL player_data table */
+            if (mysql_available && conn) {
+              char buf[2048];
+              char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(d->character));
+              if (escaped_name) {
+                /* First try to INSERT the character (in case it doesn't exist) */
+                snprintf(buf, sizeof(buf), 
+                  "INSERT IGNORE INTO player_data (name, account_id, last_online) "
+                  "VALUES ('%s', %d, NOW())",
+                  escaped_name, d->account->id);
+                
+                if (mysql_query(conn, buf)) {
+                  log("SYSERR: Unable to INSERT character %s into player_data: %s", 
+                      GET_NAME(d->character), mysql_error(conn));
+                }
+                free(escaped_name);
+              }
+            }
+            
+            save_account(d->account);
+            write_to_output(d, "Character %s has been restored to your account!\r\n", GET_NAME(d->character));
+          }
+          free_char(d->character);
+          show_account_menu(d);
+          STATE(d) = CON_ACCOUNT_MENU;
+          return;
+        }
+        
+        /* Check if it's linked to another account in the database */
         char *acct_name = get_char_account_name(GET_NAME(d->character));
         if (acct_name != NULL)
         {
@@ -3722,7 +3770,44 @@ switch (load_result)
 
     /* Now GET_NAME() will work properly. */
     init_char(d->character);
+    
+    /* Copy account password to the character for account-created characters */
+    if (d->account && d->account->password[0]) {
+      /* Use safe string copy that always null-terminates */
+      snprintf(GET_PASSWD(d->character), MAX_PWD_LENGTH + 1, "%s", d->account->password);
+    }
+    
+    /* Add the new character to the account's character list */
+    if (d->account) {
+      int i;
+      for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[i] != NULL); i++)
+        ;
+      if (i < MAX_CHARS_PER_ACCOUNT) {
+        d->account->character_names[i] = strdup(GET_NAME(d->character));
+      }
+    }
+    
     save_char(d->character, 0);
+    
+    /* Ensure the character exists in MySQL player_data table for account linking */
+    if (d->account && mysql_available && conn) {
+      char buf[2048];
+      char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(d->character));
+      if (escaped_name) {
+        /* First try to INSERT the character (in case it doesn't exist) */
+        snprintf(buf, sizeof(buf), 
+          "INSERT IGNORE INTO player_data (name, account_id, last_online) "
+          "VALUES ('%s', %d, NOW())",
+          escaped_name, d->account->id);
+        
+        if (mysql_query(conn, buf)) {
+          log("SYSERR: Unable to INSERT new character %s into player_data: %s", 
+              GET_NAME(d->character), mysql_error(conn));
+        }
+        free(escaped_name);
+      }
+    }
+    
     save_account(d->account);
     save_player_index();
 
@@ -3840,7 +3925,7 @@ switch (load_result)
 
   case CON_SETPREFS:
 
-    if (!strcmp(arg, "yes") || !strcmp(arg, "YES"))
+    if (!strcasecmp(arg, "yes") || !strcasecmp(arg, "y"))
     {
       write_to_output(d, "Confirmed, adding all recommended preference flags.\r\n");
       
@@ -3867,7 +3952,7 @@ switch (load_result)
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_CAREFUL_PET);
       GET_WIMP_LEV(d->character) = 10;
     }
-    else if (!strcmp(arg, "no") || !strcmp(arg, "NO"))
+    else if (!strcasecmp(arg, "no") || !strcasecmp(arg, "n"))
     {
       write_to_output(d, "Confirmed. Only standard preference flags applied.\r\n");
     }
@@ -3909,6 +3994,12 @@ switch (load_result)
       write_to_output(d, "\r\n");
     }
     add_llog_entry(d->character, LAST_CONNECT);
+    
+    /* Safety save for new characters before showing menu */
+    if (d->character && !PLR_FLAGGED(d->character, PLR_DELETED)) {
+      save_char(d->character, 0);
+    }
+    
     STATE(d) = CON_MENU;
 
     break;
