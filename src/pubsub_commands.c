@@ -22,6 +22,8 @@
 #include "constants.h"
 #include "wilderness.h"
 #include "pubsub.h"
+#include "spatial_visual.h"
+#include "spatial_audio.h"
 
 /*
  * Main pubsub command - handles subcommands
@@ -54,6 +56,7 @@ ACMD(do_pubsub) {
             send_to_char(ch, "\r\nAdmin commands:\r\n");
             send_to_char(ch, "  pubsub admin <cmd>           - Admin functions\r\n");
             send_to_char(ch, "  pubsub stats                 - System statistics\r\n");
+            send_to_char(ch, "  pubsub spatial               - Test spatial systems (visual+audio, wilderness only)\r\n");
         }
         return;
     }
@@ -242,6 +245,38 @@ ACMD(do_pubsub) {
         send_to_char(ch, "Database Connected: %s\r\n", "YES");  /* Simplified */
         send_to_char(ch, "Total Topics: %d\r\n", 0);  /* TODO: Get actual count */
         send_to_char(ch, "Active Subscriptions: (not implemented)\r\n");
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "spatial") && GET_LEVEL(ch) >= LVL_IMMORT) {
+        if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+            send_to_char(ch, "You must be in the wilderness to test spatial systems.\r\n");
+            return;
+        }
+        
+        /* Test both visual and audio systems */
+        send_to_char(ch, "Testing spatial systems...\r\n");
+        
+        /* Test visual system */
+        send_to_char(ch, "Testing spatial visual system...\r\n");
+        int visual_result = spatial_visual_test_ship_passing(X_LOC(ch) + 5, Y_LOC(ch), 
+                                                           "a large merchant vessel sailing north");
+        if (visual_result == SPATIAL_SUCCESS) {
+            send_to_char(ch, "Spatial visual test completed successfully.\r\n");
+        } else {
+            send_to_char(ch, "Spatial visual test failed (error %d).\r\n", visual_result);
+        }
+        
+        /* Test audio system */
+        send_to_char(ch, "Testing spatial audio system...\r\n");
+        int audio_result = spatial_audio_test_thunder(X_LOC(ch) - 8, Y_LOC(ch) + 3, 
+                                                     "rumbling thunder");
+        if (audio_result == SPATIAL_SUCCESS) {
+            send_to_char(ch, "Spatial audio test completed successfully.\r\n");
+        } else {
+            send_to_char(ch, "Spatial audio test failed (error %d).\r\n", audio_result);
+        }
+        
         return;
     }
     
