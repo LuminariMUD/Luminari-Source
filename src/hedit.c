@@ -26,6 +26,9 @@
 #include "modify.h"
 #include "help.h"
 #include "mysql.h"
+#include <sys/stat.h>  /* For file stat */
+#include <time.h>      /* For time functions */
+#include <ctype.h>     /* For isspace */
 
 /* Constants for validation */
 #define MAX_HELP_TAG_LENGTH 50      /* Maximum length for help tags */
@@ -48,7 +51,11 @@ static bool validate_min_level(int level, struct descriptor_data *d);
 /* Import functionality */
 static int import_help_hlp_file(struct char_data *ch, const char *mode);
 static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level);
-static int import_entry_with_resolution(struct char_data *ch, struct help_entry_list *entry, int min_level, const char *mode);
+
+/* Export functionality */
+static int export_help_to_hlp(struct char_data *ch, const char *options);
+static int write_help_entry_to_file(FILE *fp, const char *keywords, const char *content, int min_level);
+static int import_entry_with_resolution(struct char_data *ch, struct help_entry_list *entry, int min_level, const char *mode, char *msg_buf, size_t msg_size);
 static void free_help_entry(struct help_entry_list *entry);
 
 /**
@@ -1714,16 +1721,23 @@ ACMD(do_helpgen) {
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   
   if (!*arg1) {
-    send_to_char(ch, "Usage: helpgen <missing|all|list|clean|repair|import|command> [force|preview|merge]\r\n"
+    send_to_char(ch, "Usage: helpgen <missing|all|list|clean|repair|import|export|command> [options]\r\n"
                      "  missing - Generate help for commands without entries\r\n"
                      "  all     - Generate help for all commands\r\n"
                      "  list    - List all auto-generated help entries\r\n"
                      "  clean   - Delete all auto-generated help entries\r\n"
                      "  repair  - Fix orphaned keywords and entries without keywords\r\n"
-                     "  import  - Import legacy help.hlp file into database\r\n"
-                     "          Options: preview (show what would be imported)\r\n"
-                     "                   force (overwrite existing entries)\r\n"
-                     "                   merge (intelligently merge duplicates - default)\r\n"
+                     "  import  - Import legacy help.hlp file into database (requires mode)\r\n"
+                     "          Modes: preview (show what would be imported)\r\n"
+                     "                 skip (only import new entries, skip existing)\r\n"
+                     "                 merge (intelligently merge duplicates)\r\n"
+                     "                 force (overwrite existing entries)\r\n"
+                     "  export  - Export database to help.hlp file (requires mode)\r\n"
+                     "          Modes: preview (dry run without writing)\r\n"
+                     "                 backup (safe export with backup)\r\n"
+                     "                 force (overwrite without backup)\r\n"
+                     "          Filters: noauto (exclude auto-generated)\r\n"
+                     "                   level <num> (only entries <= level)\r\n"
                      "  command - Generate help for specific command\r\n"
                      "  force   - Overwrite existing entries\r\n");
     return;
@@ -1961,15 +1975,26 @@ ACMD(do_helpgen) {
     
   } else if (!str_cmp(arg1, "import")) {
     /* Import legacy help.hlp file */
-    const char *mode = "merge"; /* Default mode */
+    const char *mode = NULL;
     
-    if (*arg2) {
-      if (!str_cmp(arg2, "preview") || !str_cmp(arg2, "force") || !str_cmp(arg2, "merge")) {
-        mode = arg2;
-      } else {
-        send_to_char(ch, "Invalid import mode. Use: preview, force, or merge (default)\r\n");
-        return;
-      }
+    if (!*arg2) {
+      send_to_char(ch, "WARNING: Import requires an explicit mode to prevent accidental data changes.\r\n"
+                       "\r\nUsage: helpgen import <mode>\r\n"
+                       "Available modes:\r\n"
+                       "  preview - Dry run, shows what would be imported without making changes\r\n"
+                       "  skip    - Only import new entries, skip any that already exist\r\n"
+                       "  merge   - Creates new entries with suffixes (_2, _3) for duplicates\r\n"
+                       "  force   - Overwrites existing entries that share keywords\r\n"
+                       "\r\nExample: helpgen import preview\r\n");
+      return;
+    }
+    
+    if (!str_cmp(arg2, "preview") || !str_cmp(arg2, "force") || !str_cmp(arg2, "merge") || !str_cmp(arg2, "skip")) {
+      mode = arg2;
+    } else {
+      send_to_char(ch, "Invalid import mode '%s'.\r\n"
+                       "Valid modes are: preview, skip, merge, or force\r\n", arg2);
+      return;
     }
     
     send_to_char(ch, "Starting help.hlp import (%s mode)...\r\n\r\n", mode);
@@ -1977,6 +2002,47 @@ ACMD(do_helpgen) {
     
     if (result < 0) {
       send_to_char(ch, "Import failed. Check logs for details.\r\n");
+    }
+    return;
+    
+  } else if (!str_cmp(arg1, "export")) {
+    /* Export database to help.hlp file */
+    const char *mode = NULL;
+    
+    if (!*arg2) {
+      send_to_char(ch, "WARNING: Export requires an explicit mode to prevent accidental file overwrites.\r\n"
+                       "\r\nUsage: helpgen export <mode> [options]\r\n"
+                       "Required modes:\r\n"
+                       "  preview - Dry run, shows what would be exported without writing files\r\n"
+                       "  backup  - Creates timestamped backup before exporting\r\n"
+                       "  force   - Overwrites help.hlp without creating backup\r\n"
+                       "\r\nOptional filters (add after mode):\r\n"
+                       "  noauto      - Exclude auto-generated entries\r\n"
+                       "  level <num> - Only export entries accessible at level or below\r\n"
+                       "\r\nExamples:\r\n"
+                       "  helpgen export preview        - See what would be exported\r\n"
+                       "  helpgen export backup         - Safe export with backup\r\n"
+                       "  helpgen export force noauto   - Overwrite, excluding auto-generated\r\n");
+      return;
+    }
+    
+    /* Check for required mode as first argument */
+    if (!str_cmp(arg2, "preview") || !str_cmp(arg2, "backup") || !str_cmp(arg2, "force")) {
+      mode = arg2;
+    } else {
+      send_to_char(ch, "Invalid export mode '%s'.\r\n"
+                       "Valid modes are: preview, backup, or force\r\n"
+                       "Use 'helpgen export' for full usage information.\r\n", arg2);
+      return;
+    }
+    
+    send_to_char(ch, "Starting help database export (%s mode)...\r\n\r\n", mode);
+    int result = export_help_to_hlp(ch, arg2);
+    
+    if (result < 0) {
+      send_to_char(ch, "Export failed. Check logs for details.\r\n");
+    } else {
+      send_to_char(ch, "Successfully exported %d entries to help.hlp\r\n", result);
     }
     return;
     
@@ -2014,6 +2080,330 @@ ACMD(do_helpgen) {
   if (generated > 0) {
     send_to_char(ch, "\r\nUse 'helpcheck' to see remaining commands without help.\r\n");
   }
+}
+
+/* Export functionality implementations */
+
+/* Helper function to count occurrences of a character in a string */
+static int count_char_occurrences(const char *str, char ch) {
+  int count = 0;
+  if (!str) return 0;
+  while (*str) {
+    if (*str == ch) count++;
+    str++;
+  }
+  return count;
+}
+
+/**
+ * Write a single help entry to the file in help.hlp format
+ * Format:
+ * KEYWORD1 KEYWORD2 KEYWORD3
+ * 
+ * Help text content
+ * Multiple lines...
+ * #<min_level>
+ */
+static int write_help_entry_to_file(FILE *fp, const char *keywords, const char *content, int min_level) {
+  char keyword_buf[MAX_STRING_LENGTH];
+  char *token;
+  int first = 1;
+  
+  if (!fp || !keywords || !content) {
+    return -1;
+  }
+  
+  /* Convert keywords to uppercase and write them space-separated */
+  strlcpy(keyword_buf, keywords, sizeof(keyword_buf));
+  
+  /* Write keywords in uppercase - using strtok instead of strsep for C90 */
+  token = strtok(keyword_buf, ",");
+  while (token != NULL) {
+    char *p;
+    /* Skip leading spaces */
+    while (*token && isspace(*token)) token++;
+    if (*token) {
+      /* Remove trailing spaces */
+      p = token + strlen(token) - 1;
+      while (p > token && isspace(*p)) {
+        *p = '\0';
+        p--;
+      }
+      
+      /* Convert to uppercase */
+      for (p = token; *p; p++) {
+        *p = UPPER(*p);
+      }
+      
+      /* Write with space separator */
+      if (!first) {
+        fprintf(fp, " ");
+      }
+      fprintf(fp, "%s", token);
+      first = 0;
+    }
+    token = strtok(NULL, ",");
+  }
+  fprintf(fp, "\n\n");  /* Blank line after keywords */
+  
+  /* Write the content */
+  fprintf(fp, "%s", content);
+  
+  /* Make sure content ends with newline before level marker */
+  if (content[strlen(content) - 1] != '\n') {
+    fprintf(fp, "\n");
+  }
+  
+  /* Write the level marker */
+  fprintf(fp, "#%d\n", min_level);
+  
+  return 0;
+}
+
+/**
+ * Export all help entries from database to help.hlp file
+ * Required mode: preview, backup, or force
+ * Optional filters: noauto, level <num>
+ */
+static int export_help_to_hlp(struct char_data *ch, const char *options) {
+  FILE *fp = NULL;
+  char filepath[MAX_STRING_LENGTH];
+  char backup_path[MAX_STRING_LENGTH];
+  char query[MAX_STRING_LENGTH * 2];
+  char keyword_query[MAX_STRING_LENGTH];
+  MYSQL_RES *entries_result = NULL, *keywords_result = NULL;
+  MYSQL_ROW entry_row, keyword_row;
+  int exported = 0, errors = 0;
+  int preview_mode = 0, backup_mode = 0, exclude_auto = 0, force_mode = 0;
+  int max_level = LVL_IMPL;
+  char opt_arg[MAX_INPUT_LENGTH];
+  char *token;
+  time_t now;
+  struct tm *tm_info;
+  
+  /* Parse options - first token is the required mode, rest are optional filters */
+  if (options && *options) {
+    strlcpy(opt_arg, options, sizeof(opt_arg));
+    
+    token = strtok(opt_arg, " ");
+    
+    /* First token must be the mode */
+    if (token) {
+      if (!str_cmp(token, "preview")) {
+        preview_mode = 1;
+      } else if (!str_cmp(token, "backup")) {
+        backup_mode = 1;
+      } else if (!str_cmp(token, "force")) {
+        force_mode = 1;
+      }
+      
+      /* Parse additional optional filters */
+      token = strtok(NULL, " ");
+      while (token != NULL) {
+        if (!str_cmp(token, "noauto")) {
+          exclude_auto = 1;
+        } else if (!str_cmp(token, "level")) {
+        /* Get the level number */
+        token = strtok(NULL, " ");
+        if (token && *token) {
+          max_level = atoi(token);
+          if (max_level < 0) max_level = 0;
+          if (max_level > LVL_IMPL) max_level = LVL_IMPL;
+        }
+          /* Continue to next token after processing level value */
+          token = strtok(NULL, " ");
+          continue;
+        }
+        token = strtok(NULL, " ");
+      }
+    }
+  }
+  
+  /* Set file path */
+  snprintf(filepath, sizeof(filepath), "text/help/help.hlp");
+  
+  /* Report mode to user */
+  if (preview_mode) {
+    send_to_char(ch, "PREVIEW MODE - No files will be written\r\n");
+  } else if (backup_mode) {
+    send_to_char(ch, "BACKUP MODE - Will create backup before exporting\r\n");
+  } else if (force_mode) {
+    send_to_char(ch, "FORCE MODE - Will overwrite without backup\r\n");
+  }
+  
+  if (exclude_auto) {
+    send_to_char(ch, "Excluding auto-generated entries\r\n");
+  }
+  if (max_level < LVL_IMPL) {
+    send_to_char(ch, "Exporting entries with min_level <= %d\r\n", max_level);
+  }
+  send_to_char(ch, "\r\n");
+  
+  /* Create backup if in backup mode */
+  if (backup_mode && !preview_mode) {
+    /* Create timestamped backup */
+    time(&now);
+    tm_info = localtime(&now);
+    snprintf(backup_path, sizeof(backup_path), 
+             "text/help/help.hlp.%04d%02d%02d_%02d%02d%02d",
+             tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday,
+             tm_info->tm_hour, tm_info->tm_min, tm_info->tm_sec);
+    
+    /* Copy existing file to backup */
+    FILE *src = fopen(filepath, "r");
+    if (src) {
+      FILE *dst = fopen(backup_path, "w");
+      if (dst) {
+        char buffer[4096];
+        size_t bytes;
+        while ((bytes = fread(buffer, 1, sizeof(buffer), src)) > 0) {
+          fwrite(buffer, 1, bytes, dst);
+        }
+        fclose(dst);
+        send_to_char(ch, "Created backup: %s\r\n", backup_path);
+      } else {
+        send_to_char(ch, "Warning: Could not create backup file\r\n");
+      }
+      fclose(src);
+    }
+  }
+  
+  /* Build query for entries */
+  snprintf(query, sizeof(query),
+    "SELECT tag, entry, min_level "
+    "FROM help_entries "
+    "WHERE min_level <= %d %s "
+    "ORDER BY min_level ASC, tag ASC",
+    max_level,
+    exclude_auto ? "AND auto_generated = FALSE" : "");
+  
+  /* Execute query */
+  if (mysql_query(conn, query) != 0) {
+    send_to_char(ch, "Database error fetching entries: %s\r\n", mysql_error(conn));
+    mudlog(NRM, LVL_IMPL, TRUE, "SYSERR: export_help_to_hlp: Query failed: %s", mysql_error(conn));
+    return -1;
+  }
+  
+  entries_result = mysql_store_result(conn);
+  if (!entries_result) {
+    send_to_char(ch, "Error storing entries result: %s\r\n", mysql_error(conn));
+    return -1;
+  }
+  
+  /* Open output file if not in preview mode */
+  if (!preview_mode) {
+    fp = fopen(filepath, "w");
+    if (!fp) {
+      send_to_char(ch, "Error: Cannot open %s for writing\r\n", filepath);
+      mysql_free_result(entries_result);
+      return -1;
+    }
+  }
+  
+  /* Process each entry */
+  while ((entry_row = mysql_fetch_row(entries_result))) {
+    const char *tag = entry_row[0];
+    const char *content = entry_row[1];
+    const char *level_str = entry_row[2];
+    int min_level = level_str ? atoi(level_str) : 0;
+    char keywords_combined[MAX_STRING_LENGTH * 2];
+    int first_keyword = 1;
+    
+    if (!tag || !content) continue;
+    
+    /* Fetch keywords for this entry - properly escaped */
+    char escaped_tag[MAX_HELP_TAG_LENGTH * 2 + 1];  /* Worst case: every char needs escaping */
+    mysql_real_escape_string(conn, escaped_tag, tag, strlen(tag));
+    snprintf(keyword_query, sizeof(keyword_query),
+      "SELECT keyword FROM help_keywords WHERE help_tag = '%s' ORDER BY keyword ASC",
+      escaped_tag);
+    
+    if (mysql_query(conn, keyword_query) != 0) {
+      send_to_char(ch, "Warning: Failed to fetch keywords for '%s': %s\r\n", 
+                   tag, mysql_error(conn));
+      errors++;
+      continue;
+    }
+    
+    keywords_result = mysql_store_result(conn);
+    if (!keywords_result) {
+      errors++;
+      continue;
+    }
+    
+    /* Build comma-separated keyword list */
+    keywords_combined[0] = '\0';
+    while ((keyword_row = mysql_fetch_row(keywords_result))) {
+      if (keyword_row[0]) {
+        if (!first_keyword) {
+          strcat(keywords_combined, ",");
+        }
+        strcat(keywords_combined, keyword_row[0]);
+        first_keyword = 0;
+      }
+    }
+    mysql_free_result(keywords_result);
+    
+    /* If no keywords found, use the tag as keyword */
+    if (keywords_combined[0] == '\0') {
+      strlcpy(keywords_combined, tag, sizeof(keywords_combined));
+    }
+    
+    /* Progress reporting */
+    if (exported % 100 == 0 && exported > 0) {
+      send_to_char(ch, "Processing entry %d...\r\n", exported);
+    }
+    
+    /* Write or preview the entry */
+    if (preview_mode) {
+      if (exported < 20) {  /* Show first 20 in preview */
+        send_to_char(ch, "  [%3d] %-30s (Level %d, %d keywords)\r\n", 
+                     exported + 1, tag, min_level,
+                     count_char_occurrences(keywords_combined, ',') + 1);
+      }
+    } else {
+      /* Write to file */
+      if (write_help_entry_to_file(fp, keywords_combined, content, min_level) < 0) {
+        send_to_char(ch, "Error writing entry '%s'\r\n", tag);
+        errors++;
+      }
+    }
+    
+    exported++;
+  }
+  
+  mysql_free_result(entries_result);
+  
+  /* Write the file terminator before closing */
+  if (fp) {
+    fprintf(fp, "$~\n");
+    fclose(fp);
+  }
+  
+  /* Report results */
+  send_to_char(ch, "\r\n=== Export Summary ===\r\n");
+  if (preview_mode) {
+    send_to_char(ch, "Would export: %d entries\r\n", exported);
+    if (exported > 20) {
+      send_to_char(ch, "(Showing first 20 entries only)\r\n");
+    }
+  } else {
+    send_to_char(ch, "Exported: %d entries\r\n", exported);
+    send_to_char(ch, "Errors: %d\r\n", errors);
+    send_to_char(ch, "Output file: %s\r\n", filepath);
+    
+    /* Get file size */
+    struct stat st;
+    if (stat(filepath, &st) == 0) {
+      send_to_char(ch, "File size: %ld bytes\r\n", (long)st.st_size);
+    }
+  }
+  
+  if (errors > 0) {
+    send_to_char(ch, "\r\nExport completed with errors. Check logs for details.\r\n");
+  }
+  
+  return exported;
 }
 
 /* Import functionality implementations */
@@ -2121,7 +2511,7 @@ static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level) {
  * Modes: "preview" = don't save, "force" = overwrite, "merge" = intelligent merge
  */
 static int import_entry_with_resolution(struct char_data *ch, struct help_entry_list *entry, 
-                                       int min_level, const char *mode) {
+                                       int min_level, const char *mode, char *msg_buf, size_t msg_size) {
   char *query = NULL;
   char escaped_tag[MAX_STRING_LENGTH];
   char *escaped_entry = NULL;
@@ -2153,10 +2543,10 @@ static int import_entry_with_resolution(struct char_data *ch, struct help_entry_
   /* Preview mode - just report what would happen */
   if (!str_cmp(mode, "preview")) {
     if (tag_exists) {
-      send_to_char(ch, "  [EXISTS] %s - would skip/merge\r\n", entry->tag);
+      snprintf(msg_buf, msg_size, "  [EXISTS] %s - would skip/merge/force depending on mode\r\n", entry->tag);
       return 0;
     } else {
-      send_to_char(ch, "  [NEW] %s - would import\r\n", entry->tag);
+      snprintf(msg_buf, msg_size, "  [NEW] %s - would import\r\n", entry->tag);
       return 1;
     }
   }
@@ -2179,7 +2569,7 @@ static int import_entry_with_resolution(struct char_data *ch, struct help_entry_
       mysql_query(conn, query);
       free(query);
       
-      send_to_char(ch, "  [REPLACED] %s\r\n", entry->tag);
+      snprintf(msg_buf, msg_size, "  [REPLACED] %s\r\n", entry->tag);
     } else if (!str_cmp(mode, "merge")) {
       /* Create a new tag with suffix */
       char new_tag[MAX_STRING_LENGTH];
@@ -2208,13 +2598,18 @@ static int import_entry_with_resolution(struct char_data *ch, struct help_entry_
       
       free(entry->tag);
       entry->tag = strdup(new_tag);
-      send_to_char(ch, "  [MERGED] %s (as %s)\r\n", entry->keywords, new_tag);
-    } else {
-      send_to_char(ch, "  [SKIPPED] %s - already exists\r\n", entry->tag);
+      snprintf(msg_buf, msg_size, "  [MERGED] %s (as %s)\r\n", entry->keywords, new_tag);
+    } else if (!str_cmp(mode, "skip")) {
+      /* Skip mode - explicitly skip existing entries */
+      snprintf(msg_buf, msg_size, "  [SKIPPED] %s - already exists\r\n", entry->tag);
       return 0;
+    } else {
+      /* Unknown mode - should not happen but skip for safety */
+      snprintf(msg_buf, msg_size, "  [ERROR] %s - unknown mode '%s'\r\n", entry->tag, mode);
+      return -1;
     }
   } else {
-    send_to_char(ch, "  [IMPORTED] %s\r\n", entry->tag);
+    snprintf(msg_buf, msg_size, "  [IMPORTED] %s\r\n", entry->tag);
   }
   
   /* Insert the help entry */
@@ -2235,7 +2630,7 @@ static int import_entry_with_resolution(struct char_data *ch, struct help_entry_
     escaped_tag, escaped_entry, min_level);
   
   if (mysql_query(conn, query) != 0) {
-    send_to_char(ch, "    ERROR: Failed to insert entry: %s\r\n", mysql_error(conn));
+    snprintf(msg_buf, msg_size, "    ERROR: Failed to insert entry: %s\r\n", mysql_error(conn));
     free(escaped_entry);
     free(query);
     return -1;
@@ -2281,6 +2676,25 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode) {
   int skipped = 0;
   int errors = 0;
   char filename[256];
+  char *output_buf = NULL;
+  size_t output_size = 0;
+  size_t output_len = 0;
+  
+  /* Initialize output buffer */
+  output_size = MAX_STRING_LENGTH * 8;
+  CREATE(output_buf, char, output_size);
+  output_buf[0] = '\0';
+  
+  /* Helper macro to append to buffer */
+  #define APPEND_TO_BUF(fmt, ...) do { \
+    size_t needed = snprintf(NULL, 0, fmt, ##__VA_ARGS__) + 1; \
+    if (output_len + needed > output_size - 1) { \
+      size_t new_size = output_size * 2; \
+      RECREATE(output_buf, char, new_size); \
+      output_size = new_size; \
+    } \
+    output_len += snprintf(output_buf + output_len, output_size - output_len, fmt, ##__VA_ARGS__); \
+  } while(0)
   
   /* Open the help.hlp file */
   snprintf(filename, sizeof(filename), "text/help/help.hlp");
@@ -2288,31 +2702,37 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode) {
   if (!(fp = fopen(filename, "r"))) {
     send_to_char(ch, "ERROR: Cannot open help.hlp file: %s\r\n", filename);
     mudlog(NRM, LVL_IMPL, TRUE, "HELP IMPORT: Failed to open %s", filename);
+    free(output_buf);
     return -1;
   }
   
-  send_to_char(ch, "Reading help.hlp file from: %s\r\n", filename);
+  APPEND_TO_BUF("Reading help.hlp file from: %s\r\n", filename);
   
   /* Start transaction for non-preview modes */
   if (str_cmp(mode, "preview")) {
     if (mysql_query(conn, "START TRANSACTION") != 0) {
-      send_to_char(ch, "ERROR: Failed to start transaction: %s\r\n", mysql_error(conn));
+      APPEND_TO_BUF("ERROR: Failed to start transaction: %s\r\n", mysql_error(conn));
       fclose(fp);
+      free(output_buf);
       return -1;
     }
   }
   
   /* Process each entry in the file */
   while ((entry = parse_help_entry(fp, &min_level)) != NULL) {
+    char msg_buf[MAX_STRING_LENGTH];
     total_entries++;
     
     /* Show progress every 50 entries */
     if (total_entries % 50 == 0) {
-      send_to_char(ch, "Processing entry %d...\r\n", total_entries);
+      APPEND_TO_BUF("Processing entry %d...\r\n", total_entries);
     }
     
     /* Check for duplicates and import based on mode */
-    int result = import_entry_with_resolution(ch, entry, min_level, mode);
+    int result = import_entry_with_resolution(ch, entry, min_level, mode, msg_buf, sizeof(msg_buf));
+    
+    /* Add the message from import_entry_with_resolution */
+    APPEND_TO_BUF("%s", msg_buf);
     
     if (result > 0) {
       imported++;
@@ -2327,7 +2747,7 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode) {
     
     /* In preview mode, limit output */
     if (!str_cmp(mode, "preview") && total_entries >= 100) {
-      send_to_char(ch, "\r\n... Preview limited to first 100 entries ...\r\n");
+      APPEND_TO_BUF("\r\n... Preview limited to first 100 entries ...\r\n");
       break;
     }
   }
@@ -2338,38 +2758,46 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode) {
   if (str_cmp(mode, "preview")) {
     if (errors > 0) {
       mysql_query(conn, "ROLLBACK");
-      send_to_char(ch, "\r\nTransaction rolled back due to errors.\r\n");
+      APPEND_TO_BUF("\r\nTransaction rolled back due to errors.\r\n");
     } else {
       if (mysql_query(conn, "COMMIT") != 0) {
-        send_to_char(ch, "ERROR: Failed to commit transaction: %s\r\n", mysql_error(conn));
+        APPEND_TO_BUF("ERROR: Failed to commit transaction: %s\r\n", mysql_error(conn));
         mysql_query(conn, "ROLLBACK");
+        free(output_buf);
         return -1;
       }
-      send_to_char(ch, "\r\nTransaction committed successfully.\r\n");
+      APPEND_TO_BUF("\r\nTransaction committed successfully.\r\n");
     }
   }
   
   /* Report summary */
-  send_to_char(ch, "\r\n=== Import Summary ===\r\n");
-  send_to_char(ch, "Total entries processed: %d\r\n", total_entries);
+  APPEND_TO_BUF("\r\n=== Import Summary ===\r\n");
+  APPEND_TO_BUF("Total entries processed: %d\r\n", total_entries);
   
   if (!str_cmp(mode, "preview")) {
-    send_to_char(ch, "Would import: %d\r\n", imported);
-    send_to_char(ch, "Would skip: %d\r\n", skipped);
-    send_to_char(ch, "\r\nThis was a PREVIEW. No changes were made.\r\n");
-    send_to_char(ch, "Use 'helpgen import force' or 'helpgen import merge' to actually import.\r\n");
+    APPEND_TO_BUF("Would import: %d\r\n", imported);
+    APPEND_TO_BUF("Would skip: %d\r\n", skipped);
+    APPEND_TO_BUF("\r\nThis was a PREVIEW. No changes were made.\r\n");
+    APPEND_TO_BUF("Use 'helpgen import skip', 'merge', or 'force' to actually import.\r\n");
   } else {
-    send_to_char(ch, "Successfully imported: %d\r\n", imported);
-    send_to_char(ch, "Skipped (duplicates): %d\r\n", skipped);
-    send_to_char(ch, "Errors: %d\r\n", errors);
+    APPEND_TO_BUF("Successfully imported: %d\r\n", imported);
+    APPEND_TO_BUF("Skipped (duplicates): %d\r\n", skipped);
+    APPEND_TO_BUF("Errors: %d\r\n", errors);
     
     if (imported > 0) {
       /* Clear the help cache */
       extern void clear_help_cache(void);
       clear_help_cache();
-      send_to_char(ch, "\r\nHelp cache cleared. New entries are now available.\r\n");
+      APPEND_TO_BUF("\r\nHelp cache cleared. New entries are now available.\r\n");
     }
   }
+  
+  /* Send paginated output to player */
+  page_string(ch->desc, output_buf, TRUE);
+  
+  /* Clean up */
+  free(output_buf);
+  #undef APPEND_TO_BUF
   
   mudlog(NRM, LVL_IMPL, TRUE, "HELP IMPORT: %s imported %d entries from help.hlp (%s mode)",
     GET_NAME(ch), imported, mode);

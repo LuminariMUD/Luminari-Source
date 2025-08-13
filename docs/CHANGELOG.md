@@ -2,6 +2,86 @@
 
 Assembled by Zusuk
 
+## 2025-08-13 - Help System Export Functionality Added
+
+### Database to File Export System
+- **Added `helpgen export` command** to export help database to help.hlp file format
+- Multiple export modes for flexible export strategies:
+  - **preview** - Dry run showing what would be exported without writing files
+  - **force** - Skip backup creation and overwrite existing file
+  - **noauto** - Exclude auto-generated entries from export
+  - **level <num>** - Export only entries accessible at specified level or below
+  - **backup** - Create numbered backup (default unless force is used)
+- Successfully exports all database entries in standard CircleMUD/tbaMUD format
+
+### Export Features
+- **Automatic backup creation** with timestamped filenames (YYYYMMDD_HHMMSS)
+- **Keywords conversion** to uppercase space-separated format per spec
+- **Progress reporting** every 100 entries during large exports
+- **File size reporting** upon successful completion
+- **SQL injection prevention** with proper escaping of all queries
+- **Memory efficient** processing to handle 3,000+ entries
+
+### Technical Implementation
+- **ANSI C90 compliant** using strtok instead of non-standard strsep
+- **Proper help.hlp format** with keywords, blank line, content, and #level marker
+- **Error handling** for database failures and file I/O issues
+- **Orphaned keyword handling** - uses tag as keyword if none found
+
+### Usage Examples
+```
+helpgen export             - Standard export with automatic backup
+helpgen export preview     - Preview what would be exported (dry run)
+helpgen export force       - Export without creating backup
+helpgen export noauto      - Export only manually created entries
+helpgen export level 30    - Export entries for level 30 and below
+```
+
+### Files Modified
+- `src/hedit.c` - Added export functionality and helper functions
+
+## 2025-08-13 - Help System Import Functionality Added
+
+### Legacy File Import System
+- **Added `helpgen import` command** to import help.hlp file (1,265 entries) into MySQL database
+- Three import modes for flexible migration strategies:
+  - **preview** - Dry run showing what would be imported without making changes
+  - **force** - Overwrites existing entries that share keywords
+  - **merge** - Creates new entries with suffixes (_2, _3) for duplicates (default)
+- Successfully imported help.hlp content, growing database from ~2,000 to 3,271+ entries
+
+### Import Features
+- **Transaction support** ensures atomic imports (all-or-nothing)
+- **Intelligent duplicate handling** preserves existing content while adding new
+- **Dynamic memory allocation** prevents buffer overflows on large entries
+- **Pagination support** for viewing long import results without overflow
+- **Progress reporting** shows status every 50 entries during import
+- **Cache clearing** automatically refreshes help cache after successful import
+
+### Technical Improvements
+- **Secure SQL operations** with proper escaping to prevent injection
+- **ANSI C90 compliant** implementation without C99 features
+- **Comprehensive error handling** with detailed feedback to users
+- **File path handling** correctly resolves to text/help/help.hlp from lib directory
+
+### Verification Results
+- Database now contains 3,271+ help entries (up from ~2,000)
+- 7,206+ keywords properly mapped to entries
+- Merge mode successfully created _2 and _3 suffix entries for duplicates
+- All imported content verified to match original help.hlp file
+
+### Usage Examples
+```
+helpgen import preview  - Preview what would be imported
+helpgen import force    - Import and overwrite duplicates
+helpgen import merge    - Import with intelligent merging (recommended)
+```
+
+### Files Modified
+- `src/hedit.c` - Added import functionality and helper functions
+- `src/help.c` - Added clear_help_cache() function
+- `src/help.h` - Added cache management declaration
+
 ## 2025-08-13 - Help System Critical Issues Fixed - Part 3
 
 ### Memory Management Consolidation

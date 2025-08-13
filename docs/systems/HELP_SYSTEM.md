@@ -25,7 +25,8 @@ The LuminariMUD help system is a sophisticated, multi-layered documentation fram
 - **OLC integration** for real-time content editing
 - **Chain of Responsibility pattern** for extensible help handlers
 - **Auto-generation** of help content from game data
-- **Dual-mode operation** with file-based fallback
+- **Database-only mode** - No help.hlp file required (default)
+- **Optional file fallback** - Can use help.hlp if present
 
 ### Key Features
 - **3,143+ searchable keywords** mapping to 1,815+ help entries
@@ -131,11 +132,23 @@ CREATE TABLE help_related_topics (
 ## Core Components
 
 ### Architecture Overview
-- **Primary Storage:** MySQL/MariaDB database
-- **Fallback System:** File-based (`lib/text/help/help.hlp`, 799KB)
+- **Primary Storage:** MySQL/MariaDB database (required)
+- **Optional File Support:** File-based (`lib/text/help/help.hlp`, if present)
 - **Cache Layer:** In-memory LRU cache (50 entries, 5-minute TTL)
 - **Search Engine:** Multi-algorithm search with fuzzy matching
 - **Content Handlers:** Chain of Responsibility pattern for extensibility
+
+#### Operating Modes
+1. **Database-Only Mode (Default)**
+   - No help.hlp file required
+   - All help content stored in MySQL
+   - System logs informational message if help.hlp missing
+   - Full functionality without file system dependency
+
+2. **Dual Mode (Optional)**
+   - Uses database as primary source
+   - Falls back to help.hlp if database query fails
+   - Provides redundancy for critical systems
 
 ### Key Data Structures
 
@@ -217,15 +230,17 @@ struct help_cache_entry {
   - Synchronizes database with files
   - Clears cache
 
-### helpgen - Generate Help Content
+### helpgen - Generate, Import, and Export Help Content
 **Usage:** `helpgen <type> [arguments]`
 - **Location:** src/hedit.c:1707
-- **Access:** Builders+ (LVL_BUILDER)
+- **Access:** Implementor (LVL_IMPL)
 - **Features:**
   - Auto-generates help for game elements
   - Types: classes, races, feats, spells, skills
   - Marks entries as auto_generated
   - Updates existing auto-generated content
+  - **Import functionality** (see Import System section below)
+  - **Export functionality** (see Export System section below)
 
 ---
 
@@ -417,7 +432,183 @@ helpgen spell fireball
 
 ## Migration & Backup
 
-### File to Database Migration
+### Legacy Help File Import System
+
+#### Overview
+The `helpgen import` command provides a comprehensive solution for importing the legacy help.hlp file (1,265 entries) into the MySQL database while intelligently handling duplicates and preserving existing content.
+
+#### Command Syntax
+```
+helpgen import <mode>
+```
+**Required modes (no default - must explicitly choose):**
+- **preview** - Dry run showing what would be imported without making changes
+- **skip** - Only import new entries, skip any that already exist
+- **merge** - Intelligently merge duplicate keywords with suffixes (_2, _3)
+- **force** - Overwrite existing entries completely
+
+#### Import Modes
+
+##### Preview Mode
+- Shows what entries would be imported, skipped, or merged
+- No database changes are made
+- Limited to first 100 entries for readability
+- Safe way to test before actual import
+
+##### Force Mode
+- Deletes existing entries that share keywords
+- Replaces with new content from help.hlp
+- Maintains referential integrity
+- Use with caution - data loss possible
+
+##### Skip Mode (Safest)
+- Only imports entries that don't exist in database
+- Skips all entries with matching keywords
+- No data loss or duplication
+- Fastest import method
+- Ideal for initial imports to populated database
+
+##### Merge Mode (Recommended for duplicates)
+- Detects entries with duplicate keywords
+- Creates new entries with numeric suffixes (_2, _3, etc.)
+- Preserves both original and imported content
+- Example: "help" becomes "help_2" if "help" already exists
+- Maintains all keywords pointing to new suffixed tags
+
+#### Implementation Details
+
+##### File Parser
+- Reads from `text/help/help.hlp` (relative to lib directory)
+- Parses format: keywords line, content body, #level marker
+- Handles multi-line content and special characters
+- Generates unique tags from first keyword
+
+##### Duplicate Detection
+- Checks each keyword against existing database entries
+- Identifies conflicts before any changes are made
+- Reports exact duplicate counts and affected entries
+
+##### Database Operations
+- Uses transactions for atomicity (all-or-nothing)
+- Dynamic memory allocation prevents buffer overflows
+- Proper SQL escaping prevents injection attacks
+- Automatic cache clearing after successful import
+
+##### Progress Reporting
+- Shows progress every 50 entries during processing
+- Uses pagination system to prevent output overflow
+- Detailed summary with import/skip/error counts
+- Logs all operations to system log
+
+#### Example Import Session
+```
+> helpgen import preview
+Reading help.hlp file from: text/help/help.hlp
+  [NEW] abbreviations - would import
+  [EXISTS] help - would skip/merge
+  [MERGED] score - would create as score_2
+...
+=== Import Summary ===
+Total entries processed: 100
+Would import: 45
+Would skip: 55
+
+> helpgen import merge
+Reading help.hlp file from: text/help/help.hlp
+Processing entry 50...
+  [IMPORTED] abbreviations
+  [MERGED] help (as help_2)
+  [SKIPPED] admin - already exists
+...
+Transaction committed successfully.
+=== Import Summary ===
+Total entries processed: 1265
+Successfully imported: 623
+Skipped (duplicates): 642
+Errors: 0
+```
+
+#### Post-Import Verification
+After import, the database typically contains:
+- Original entries preserved with original tags
+- Imported entries with suffixed tags where conflicts existed
+- All keywords properly mapped to appropriate entries
+- Example: 3,271 total entries after importing 1,265 file entries
+
+### Database to File Export System
+
+#### Overview
+The `helpgen export` command provides a comprehensive solution for exporting the MySQL database help entries back to the help.hlp file format. This is useful for backups, migrations, or sharing content.
+
+#### Command Syntax
+```
+helpgen export <mode> [filters]
+```
+
+**Required modes (no default - must explicitly choose):**
+- **preview** - Dry run showing what would be exported without writing files
+- **backup** - Creates timestamped backup before exporting (safest)
+- **force** - Overwrites help.hlp without creating backup
+
+**Optional filters (add after mode):**
+- **noauto** - Exclude auto-generated entries
+- **level <num>** - Only export entries accessible at specified level or below
+
+#### Export Modes
+
+##### Preview Mode
+- Shows summary of what would be exported
+- Displays first 20 entries as examples
+- No files are written or modified
+- Safe way to test export parameters
+
+##### Backup Mode (Recommended)
+- Creates timestamped backup (help.hlp.YYYYMMDD_HHMMSS)
+- Then exports current database to help.hlp
+- Preserves previous file version
+- Safe for regular exports
+
+##### Force Mode
+- Directly overwrites help.hlp file
+- No backup created
+- Use with caution
+- Faster for development environments
+
+#### Export Features
+- **Proper file format** with keywords, content, and #level markers
+- **File termination** with required $~ marker
+- **Keyword conversion** to uppercase space-separated format
+- **Progress reporting** every 100 entries for large exports
+- **File size reporting** upon completion
+- **SQL injection prevention** with proper query escaping
+- **Memory efficient** processing for thousands of entries
+
+#### Example Export Session
+```
+> helpgen export preview
+PREVIEW MODE - No files will be written
+Processing entry 100...
+  [  1] abbreviations                  (Level 0, 3 keywords)
+  [  2] commands                        (Level 0, 5 keywords)
+  ...
+=== Export Summary ===
+Would export: 3271 entries
+
+> helpgen export backup noauto
+BACKUP MODE - Will create backup before exporting
+Excluding auto-generated entries
+Created backup: text/help/help.hlp.20250813_163045
+Processing entry 100...
+Processing entry 200...
+...
+=== Export Summary ===
+Exported: 2847 entries
+Errors: 0
+Output file: text/help/help.hlp
+File size: 799709 bytes
+```
+
+### File to Database Migration (Legacy Process)
 1. Parse help.hlp file format
 2. Extract entries and keywords
 3. Insert into database tables
@@ -570,8 +761,8 @@ Debug output includes:
 - **`lib/mysql_config`** - Database connection parameters
 
 ## Database Tables
-- **`help_entries`** - Main help content table (1,815 entries)
-- **`help_keywords`** - Keyword-to-help mappings (3,143 keywords)
+- **`help_entries`** - Main help content table (3,271+ entries after import)
+- **`help_keywords`** - Keyword-to-help mappings (7,206+ keywords after import)
 - **`help_entries_frmud`** - Backup/migration table
 - **`help_keywords_frmud`** - Backup/migration table
 - **`help_topics_backup`** - Additional backup table

@@ -2894,8 +2894,8 @@ int script_driver(struct script_call_args *args)
       
       /* Don't execute the trigger - it will likely fail with confusing errors */
       script_log("  ABORTING trigger execution to prevent cascade errors.");
-#endif
       return 0;
+#endif
     }
   }
   
