@@ -9879,7 +9879,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
           /* Impact audio effect - thunderous crashes from ground level */
           int ground_audio_elevation = get_modified_elevation(X_LOC(ch), Y_LOC(ch));
           spatial_audio_test_sound_effect(X_LOC(ch), Y_LOC(ch), ground_audio_elevation,
-            "earth-shaking detonations rival mountain avalanches as cosmic forces unleash devastating fury upon the mortal realm", 
+            "earth-shaking detonations rivaling mountain avalanches as cosmic forces unleash devastating fury upon the mortal realm", 
             AUDIO_FREQ_LOW, 20);
         }
       }
