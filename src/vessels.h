@@ -432,7 +432,7 @@ int greyhawk_ship_loader(struct obj_data *obj, struct char_data *ch, int cmd, ch
 /* COMMAND PROTOTYPES (ADVANCED PLACEHOLDERS)                                */
 /* ========================================================================= */
 /* Future commands - not yet implemented */
-/* ACMD_DECL(do_board); */        /* Board a vessel */
+ACMD_DECL(do_board);        /* Board a vessel */
 /* ACMD_DECL(do_pilot); */        /* Pilot a vessel */
 /* ACMD_DECL(do_vessel_status); */ /* Show vessel status */
 

@@ -1083,6 +1083,9 @@ static void oedit_disp_val1_menu(struct descriptor_data *d)
   case ITEM_TREASURE_CHEST:
     oedit_disp_lootbox_levels(d);
     break;
+  case ITEM_GREYHAWK_SHIP:
+    write_to_output(d, "Enter interior room VNUM (first room inside ship): ");
+    break;
   default:
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: Reached default case in oedit_disp_val1_menu()!");
     break;
@@ -1185,6 +1188,9 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
   case ITEM_TREASURE_CHEST:
     oedit_disp_lootbox_types(d);
     break;
+  case ITEM_GREYHAWK_SHIP:
+    write_to_output(d, "Enter ship index (0-499, unique per ship): ");
+    break;
 
   default:
     oedit_disp_menu(d);
@@ -1260,6 +1266,10 @@ static void oedit_disp_val3_menu(struct descriptor_data *d)
       write_to_output(d, "Highest room VNUM in range : ");
       break;
     }
+    break;
+  case ITEM_GREYHAWK_SHIP:
+    /* Ships only need 2 values - go back to menu */
+    oedit_disp_menu(d);
     break;
 
   default:

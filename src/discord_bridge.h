@@ -19,7 +19,7 @@
 #define DISCORD_BRIDGE_BUFFER_SIZE 4096
 #define DISCORD_JSON_BUFFER_SIZE 66000  /* Large enough for max message + JSON overhead */
 #define DISCORD_MAX_CHANNELS 20
-#define DISCORD_CONNECTION_TIMEOUT 300  /* 5 minutes idle timeout */
+/* #define DISCORD_CONNECTION_TIMEOUT 300 */  /* DISABLED - Discord bridge should never timeout */
 #define DISCORD_RATE_LIMIT_MESSAGES 10  /* Max messages per window */
 #define DISCORD_RATE_LIMIT_WINDOW 1     /* Window size in seconds */
 #define DISCORD_AUTH_TOKEN_SIZE 64      /* Size of auth token */

@@ -924,8 +924,12 @@ int check_discord_rate_limit(struct discord_channel_config *channel) {
     return 1; /* OK to send */
 }
 
-/* Check for connection timeout */
+/* Check for connection timeout - DISABLED: Discord bridge should never timeout */
 void check_discord_timeout(void) {
+    /* Timeout checking disabled - Discord bridge maintains persistent connection */
+    return;
+    
+    /* Original timeout code - commented out
     time_t now;
     
     if (!discord_bridge || discord_bridge->client_socket == INVALID_SOCKET) {
@@ -934,12 +938,13 @@ void check_discord_timeout(void) {
     
     now = time(NULL);
     
-    /* Check if connection has been idle too long */
+    // Check if connection has been idle too long
     if (now - discord_bridge->last_activity > DISCORD_CONNECTION_TIMEOUT) {
         log("SYSERR: Discord bridge connection timed out (idle for %ld seconds)",
             now - discord_bridge->last_activity);
         close_discord_connection();
     }
+    */
 }
 
 /* Discord command handler */
