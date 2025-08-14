@@ -254,6 +254,33 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
   /* attempt to call mount if appropriate */
   if (npc_should_call_companion(ch, MOB_C_MOUNT))
     perform_call(ch, MOB_C_MOUNT, GET_LEVEL(ch));
+  
+  /* attempt to mount if we have a mount and not currently riding */
+  if (!RIDING(ch))
+  {
+    struct char_data *mount = NULL;
+    struct follow_type *f = NULL;
+    
+    /* look for our mount in the room */
+    for (f = ch->followers; f; f = f->next)
+    {
+      if (IN_ROOM(f->follower) == IN_ROOM(ch) && 
+          IS_NPC(f->follower) && 
+          MOB_FLAGGED(f->follower, MOB_C_MOUNT) &&
+          AFF_FLAGGED(f->follower, AFF_CHARM) &&
+          !RIDDEN_BY(f->follower))
+      {
+        mount = f->follower;
+        break;
+      }
+    }
+    
+    /* if we found our mount, try to mount it */
+    if (mount)
+    {
+      do_mount(ch, GET_NAME(mount), 0, 0);
+    }
+  }
 
   /* first rescue friends/master */
   if (npc_rescue(ch))
@@ -274,6 +301,64 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
 
   if (percent <= 25.0)
     perform_layonhands(ch, ch);
+}
+
+// dragonrider behaviour
+void npc_dragonrider_behave(struct char_data *ch, struct char_data *vict,
+                            int engaged)
+{
+  /* list of skills to use:
+   1) call dragon mount
+   2) mount dragon if not mounted
+   3) use dragon breath weapon
+   4) switch opponents
+   5) rescue
+   */
+
+  /* attempt to call dragon mount if appropriate */
+  if (npc_should_call_companion(ch, MOB_C_DRAGON))
+    perform_call(ch, MOB_C_DRAGON, GET_LEVEL(ch));
+  
+  /* attempt to mount if we have a dragon mount and not currently riding */
+  if (!RIDING(ch))
+  {
+    struct char_data *mount = NULL;
+    struct follow_type *f = NULL;
+    
+    /* look for our dragon mount in the room */
+    for (f = ch->followers; f; f = f->next)
+    {
+      if (IN_ROOM(f->follower) == IN_ROOM(ch) && 
+          IS_NPC(f->follower) && 
+          is_dragon_rider_mount(f->follower) &&
+          AFF_FLAGGED(f->follower, AFF_CHARM) &&
+          !RIDDEN_BY(f->follower))
+      {
+        mount = f->follower;
+        break;
+      }
+    }
+    
+    /* if we found our dragon mount, try to mount it */
+    if (mount)
+    {
+      do_mount(ch, GET_NAME(mount), 0, 0);
+    }
+  }
+
+  /* first rescue friends/master */
+  if (npc_rescue(ch))
+    return;
+
+  if (!can_continue(ch, TRUE))
+    return;
+
+  /* switch opponents attempt */
+  if (!rand_number(0, 2) && npc_switch_opponents(ch, vict))
+    return;
+
+  /* TODO: Add dragon breath weapon usage when mounted */
+  /* TODO: Add dragoon point spell usage */
 }
 
 // berserk behaviour, behave based on level
@@ -330,6 +415,9 @@ void npc_class_behave(struct char_data *ch)
   case CLASS_PALADIN:
   case CLASS_BLACKGUARD:
     npc_paladin_behave(ch, vict, num_targets);
+    break;
+  case CLASS_DRAGONRIDER:
+    npc_dragonrider_behave(ch, vict, num_targets);
     break;
   case CLASS_RANGER:
     npc_ranger_behave(ch, vict, num_targets);

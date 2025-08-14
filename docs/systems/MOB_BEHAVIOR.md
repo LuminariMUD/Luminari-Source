@@ -84,7 +84,8 @@ The system is divided into several specialized modules:
   - **Rogue**: Backstab, trip, dirt kick, sneak attacks
   - **Monk**: Spring leap, stunning fist, quivering palm
   - **Ranger**: Call animal companion, rescue, ranged combat
-  - **Paladin/Blackguard**: Call mount, lay on hands, smite evil, turn undead
+  - **Paladin/Blackguard**: Call mount, mount management, lay on hands, smite evil, turn undead
+  - **Dragonrider**: Call dragon mount, mount management, rescue tactics
   - **Berserker**: Rage, headbutt, aggressive tactics
   - **Bard**: Performance, trip, dirt kick
 
@@ -103,7 +104,6 @@ The system is divided into several specialized modules:
     - Wizards/Sorcerers: Familiars
     - Summoners/Necromancers: Eidolons/Undead cohorts
     - Shadowdancers: Shadow companions
-    - Dragonriders: Dragon mounts
   - Smart buff selection with saturation checks
   - Offensive spell selection (single-target and AoE)
   - Healing prioritization
@@ -194,11 +194,22 @@ Each class has unique combat behaviors that reflect their role:
 #### Paladins/Blackguards
 ```c
 - Call mount (if appropriate)
+- Mount their mount if not already mounted
 - Rescue allies (priority)
 - Switch opponents (33% chance)
 - Smite evil (if target is evil)
 - Turn undead (if target is undead)
 - Lay on hands (if health < 25%)
+```
+
+#### Dragonriders
+```c
+- Call dragon mount (if appropriate)
+- Mount their dragon if not already mounted
+- Rescue allies (priority)
+- Switch opponents (33% chance)
+- TODO: Dragon breath weapon usage
+- TODO: Dragoon point spell usage
 ```
 
 #### Rangers
@@ -541,6 +552,7 @@ Level: 20
 Flags: MOB_SENTINEL, MOB_MEMORY
 Behavior:
 - Calls mount at start of combat
+- Automatically mounts when not mounted
 - Uses mount for tactical advantage
 - Smites evil opponents
 - Heals self when low health
@@ -558,6 +570,20 @@ Behavior:
 - Uses buff spells on self and companion
 - Strategic spell selection
 - Memory-based targeting
+```
+
+### Example 7: Dragon Rider
+```
+Class: DRAGONRIDER
+Level: 30
+Flags: MOB_MEMORY, MOB_AGGRESSIVE
+Behavior:
+- Calls dragon mount when needed
+- Automatically mounts dragon when not mounted
+- Rescues allies in danger
+- Switches opponents tactically
+- Future: Dragon breath weapon usage
+- Future: Dragoon point spell casting
 ```
 
 ## Performance Considerations
@@ -619,5 +645,9 @@ Potential improvements to the system:
 ---
 
 *Last Updated: 2025*
-*LuminariMUD Mob Behavior System v2.1*
-*Added: Companion Calling System for NPCs*
+*LuminariMUD Mob Behavior System v2.2*
+*Changes:*
+*- v2.2: Added automatic mounting for Paladins, Blackguards, and Dragonriders*
+*- v2.2: NPCs now use compute_ability() for ride checks (allows NPCs to mount)*
+*- v2.2: Removed upper size limit for mounts (dragons can be any size)*
+*- v2.1: Added Companion Calling System for NPCs*

@@ -2455,7 +2455,7 @@ ACMD(do_mount)
     send_to_char(ch, "You can't mount that!\r\n");
     return;
   }
-  else if (!GET_ABILITY(ch, ABILITY_RIDE))
+  else if (compute_ability(ch, ABILITY_RIDE) <= 0)
   {
     send_to_char(ch, "First you need to learn *how* to mount.\r\n");
     return;
@@ -2465,11 +2465,7 @@ ACMD(do_mount)
     send_to_char(ch, "The mount is too small for you!\r\n");
     return;
   }
-  else if (GET_SIZE(vict) > (GET_SIZE(ch) + 2))
-  {
-    send_to_char(ch, "The mount is too large for you!\r\n");
-    return;
-  }
+  /* Removed upper size limit - dragons and other large mounts should be mountable */
   else if ((compute_ability(ch, ABILITY_RIDE) + 1) <= rand_number(1, GET_LEVEL(vict)))
   {
     act("You try to mount $N, but slip and fall off.", FALSE, ch, 0, vict, TO_CHAR);
@@ -2563,7 +2559,7 @@ ACMD(do_tame)
     send_to_char(ch, "You can't do that to them.\r\n");
     return;
   }
-  else if (!GET_ABILITY(ch, ABILITY_RIDE))
+  else if (compute_ability(ch, ABILITY_RIDE) <= 0)
   {
     send_to_char(ch, "You don't even know how to tame something.\r\n");
     return;
@@ -2573,7 +2569,7 @@ ACMD(do_tame)
     send_to_char(ch, "You can't do that.\r\n");
     return;
   }
-  else if (GET_SKILL(ch, ABILITY_RIDE) <= rand_number(1, GET_LEVEL(vict)))
+  else if (compute_ability(ch, ABILITY_RIDE) <= rand_number(1, GET_LEVEL(vict)))
   {
     send_to_char(ch, "You fail to tame it.\r\n");
 
