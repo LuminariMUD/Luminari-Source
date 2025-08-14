@@ -217,8 +217,9 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
    4) kick
    */
 
-  /* attempt to call companion */
-  perform_call(ch, MOB_C_ANIMAL, GET_LEVEL(ch));
+  /* attempt to call companion if appropriate */
+  if (npc_should_call_companion(ch, MOB_C_ANIMAL))
+    perform_call(ch, MOB_C_ANIMAL, GET_LEVEL(ch));
 
   /* next rescue friends/master */
   if (npc_rescue(ch))
@@ -242,12 +243,17 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
   float percent = ((float)GET_HIT(ch) / (float)GET_MAX_HIT(ch)) * 100.0;
 
   /* list of skills to use:
-   1) rescue
-   2) lay on hands
-   3) smite evil
-   4) switch opponents
-   5) turn undead
+   1) call mount
+   2) rescue
+   3) lay on hands
+   4) smite evil
+   5) switch opponents
+   6) turn undead
    */
+
+  /* attempt to call mount if appropriate */
+  if (npc_should_call_companion(ch, MOB_C_MOUNT))
+    perform_call(ch, MOB_C_MOUNT, GET_LEVEL(ch));
 
   /* first rescue friends/master */
   if (npc_rescue(ch))
@@ -322,6 +328,7 @@ void npc_class_behave(struct char_data *ch)
     npc_berserker_behave(ch, vict, num_targets);
     break;
   case CLASS_PALADIN:
+  case CLASS_BLACKGUARD:
     npc_paladin_behave(ch, vict, num_targets);
     break;
   case CLASS_RANGER:

@@ -330,9 +330,10 @@ void npc_spellup(struct char_data *ch)
   int level, spellnum = -1, loop_counter = 0;
   int buff_count = 0;
   /* our priorities are going to be in this order:
-   1)  get a charmee
-   2)  heal (heal group?), condition issues
-   3)  spellup (spellup group?)
+   1)  call familiar/eidolon/shadow if appropriate
+   2)  get a charmee
+   3)  heal (heal group?), condition issues
+   4)  spellup (spellup group?)
    */
   if (!ch)
     return;
@@ -340,6 +341,33 @@ void npc_spellup(struct char_data *ch)
     return;
   if (!can_continue(ch, FALSE))
     return;
+  
+  /* Check if we should call a companion first */
+  switch (GET_CLASS(ch))
+  {
+    case CLASS_DRUID:
+      if (npc_should_call_companion(ch, MOB_C_ANIMAL))
+        perform_call(ch, MOB_C_ANIMAL, GET_LEVEL(ch));
+      break;
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+      if (npc_should_call_companion(ch, MOB_C_FAMILIAR))
+        perform_call(ch, MOB_C_FAMILIAR, GET_LEVEL(ch));
+      break;
+    case CLASS_SUMMONER:
+    case CLASS_NECROMANCER:
+      if (npc_should_call_companion(ch, MOB_EIDOLON))
+        perform_call(ch, MOB_EIDOLON, GET_LEVEL(ch));
+      break;
+    case CLASS_SHADOWDANCER:
+      if (npc_should_call_companion(ch, MOB_SHADOW))
+        perform_call(ch, MOB_SHADOW, GET_LEVEL(ch));
+      break;
+    case CLASS_DRAGONRIDER:
+      if (npc_should_call_companion(ch, MOB_C_DRAGON))
+        perform_call(ch, MOB_C_DRAGON, GET_LEVEL(ch));
+      break;
+  }
   
   /* Check buff saturation - count existing defensive buffs */
   if (affected_by_spell(ch, SPELL_STONESKIN)) buff_count++;
@@ -543,6 +571,48 @@ void npc_offensive_spells(struct char_data *ch)
     level = LVL_IMMORT - 1;
   else
     level = GET_LEVEL(ch);
+
+  /* Check if we should call a companion first when in combat */
+  switch (GET_CLASS(ch))
+  {
+    case CLASS_DRUID:
+      if (npc_should_call_companion(ch, MOB_C_ANIMAL))
+      {
+        perform_call(ch, MOB_C_ANIMAL, GET_LEVEL(ch));
+        return;
+      }
+      break;
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+      if (npc_should_call_companion(ch, MOB_C_FAMILIAR))
+      {
+        perform_call(ch, MOB_C_FAMILIAR, GET_LEVEL(ch));
+        return;
+      }
+      break;
+    case CLASS_SUMMONER:
+    case CLASS_NECROMANCER:
+      if (npc_should_call_companion(ch, MOB_EIDOLON))
+      {
+        perform_call(ch, MOB_EIDOLON, GET_LEVEL(ch));
+        return;
+      }
+      break;
+    case CLASS_SHADOWDANCER:
+      if (npc_should_call_companion(ch, MOB_SHADOW))
+      {
+        perform_call(ch, MOB_SHADOW, GET_LEVEL(ch));
+        return;
+      }
+      break;
+    case CLASS_DRAGONRIDER:
+      if (npc_should_call_companion(ch, MOB_C_DRAGON))
+      {
+        perform_call(ch, MOB_C_DRAGON, GET_LEVEL(ch));
+        return;
+      }
+      break;
+  }
 
   /* 25% of spellup instead of offensive spell */
   if (!rand_number(0, 3))

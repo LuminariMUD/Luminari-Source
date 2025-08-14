@@ -31,4 +31,7 @@ void mobile_echos(struct char_data *ch);
 /* check if ch can continue acting */
 int can_continue(struct char_data *ch, bool fighting);
 
+/* check if NPC should call a companion */
+bool npc_should_call_companion(struct char_data *ch, int call_type);
+
 #endif /* _MOB_UTILS_H_ */
