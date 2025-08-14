@@ -67,6 +67,7 @@
 #include "hunts.h"
 #include "fight.h" /* for init condensed combat */
 #include "char_descs.h"
+#include "discord_bridge.h"
 #include "evolutions.h"
 #include "deities.h"
 #include "pubsub.h"
@@ -337,6 +338,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"discharge", "discharge", POS_RECLINING, do_discharge, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"discoveries", "discov", POS_RECLINING, do_discoveries, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"disengage", "disen", POS_STANDING, do_disengage, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"discord", "disc", POS_DEAD, do_discord, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"display", "disp", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"divinebond", "divineb", POS_DEAD, do_divine_bond, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dominate", "dominate", POS_FIGHTING, do_vampiric_dominate, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_vampiric_dominate},

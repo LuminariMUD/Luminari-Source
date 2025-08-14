@@ -70,6 +70,7 @@ circle_SOURCES = \
 	src/deities.c \
 	src/desc_engine.c \
 	src/dg_comm.c \
+	src/discord_bridge.c \
 	src/dg_db_scripts.c \
 	src/dg_event.c \
 	src/dg_handler.c \
