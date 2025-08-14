@@ -50,6 +50,9 @@
 #include "spec_abilities.h"
 #include "help.h"
 #include "pubsub.h"
+#include "spatial_core.h"
+#include "spatial_visual.h"
+#include "spatial_audio.h"
 #include "resource_system.h"
 #include "resource_depletion.h"
 #include "perlin.h"
@@ -1247,6 +1250,15 @@ void boot_db(void)
 
   log("Initializing PubSub system.");
   pubsub_init();
+
+  log("Initializing spatial system.");
+  spatial_init_system();
+
+  log("Initializing spatial visual system.");
+  spatial_visual_init();
+
+  log("Initializing spatial audio system.");
+  spatial_audio_init();
 
   log("Cleaning up last log.");
   clean_llog_entries();
