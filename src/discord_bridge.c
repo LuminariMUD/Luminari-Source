@@ -640,6 +640,7 @@ void route_discord_to_mud(const char *channel, const char *name, const char *mes
     char buf[MAX_STRING_LENGTH];
     char formatted_name[256];
     int channel_flag = 0;
+    const char *channel_color;
     
     /* Find channel configuration */
     config = find_discord_channel_by_discord(channel);
@@ -654,8 +655,8 @@ void route_discord_to_mud(const char *channel, const char *name, const char *mes
         return;
     }
     
-    /* Format the Discord user's name to prevent loops */
-    snprintf(formatted_name, sizeof(formatted_name), "[Discord] %s", name);
+    /* Format the Discord user's name with channel to prevent loops and show origin */
+    snprintf(formatted_name, sizeof(formatted_name), "[Discord-%s] %s", config->discord_name, name);
     
     /* Map SCMD to channel PRF flag */
     switch (config->scmd) {
@@ -685,9 +686,23 @@ void route_discord_to_mud(const char *channel, const char *name, const char *mes
         if (channel_flag && PRF_FLAGGED(d->character, channel_flag))
             continue;
             
-        /* Format message with color codes for this player */
+        /* Format message with channel-specific color codes for this player */
+        switch (config->scmd) {
+            case SCMD_GOSSIP:
+                channel_color = CCYEL(d->character, C_NRM); /* Yellow like MUD gossip */
+                break;
+            case SCMD_AUCTION:
+                channel_color = CCMAG(d->character, C_NRM); /* Magenta like MUD auction */
+                break;
+            case SCMD_GRATZ:
+                channel_color = CCGRN(d->character, C_NRM); /* Green like MUD gratz */
+                break;
+            default:
+                channel_color = CCYEL(d->character, C_NRM); /* Default to yellow */
+                break;
+        }
         snprintf(buf, sizeof(buf), "%s%s: %s%s\r\n", 
-                 CCYEL(d->character, C_NRM), formatted_name, message, CCNRM(d->character, C_NRM));
+                 channel_color, formatted_name, message, CCNRM(d->character, C_NRM));
         
         /* Send the message */
         send_to_char(d->character, "%s", buf);
@@ -708,7 +723,7 @@ void route_mud_to_discord(int subcmd, struct char_data *ch, const char *message,
         return;
     
     /* Skip if it's a Discord-originated message */
-    if (strstr(GET_NAME(ch), "[Discord]"))
+    if (strstr(GET_NAME(ch), "[Discord-"))
         return;
     
     /* Strip MUD color codes */
