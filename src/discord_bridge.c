@@ -548,10 +548,6 @@ void route_discord_to_mud(const char *channel, const char *name, const char *mes
     /* Format the Discord user's name to prevent loops */
     snprintf(formatted_name, sizeof(formatted_name), "[Discord] %s", name);
     
-    /* Format message for MUD display */
-    snprintf(buf, sizeof(buf), "@y%s: %s@n\r\n", 
-             formatted_name, message);
-    
     /* Map SCMD to channel PRF flag */
     switch (config->scmd) {
         case SCMD_GOSSIP:
@@ -580,6 +576,10 @@ void route_discord_to_mud(const char *channel, const char *name, const char *mes
         if (channel_flag && PRF_FLAGGED(d->character, channel_flag))
             continue;
             
+        /* Format message with color codes for this player */
+        snprintf(buf, sizeof(buf), "%s%s: %s%s\r\n", 
+                 CCYEL(d->character, C_NRM), formatted_name, message, CCNRM(d->character, C_NRM));
+        
         /* Send the message */
         send_to_char(d->character, "%s", buf);
     }
