@@ -1025,7 +1025,7 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
                      "%sE%s) Choose New Player Gear         : %s%s\r\n"
                      "%sF%s) Allow CExchange Command?       : %s%s\r\n"
                      "%sG%s) Wilderness System              : %s%s\r\n"
-
+                     "\r\n"
                      "%sQ%s) Exit To The Main Menu\r\n"
                      "Enter your choice : ",
 
