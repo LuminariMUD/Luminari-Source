@@ -82,10 +82,10 @@
 #define GREYHAWK_LNGRANGE           2    /* Long range */
 
 /* Item Type for Greyhawk Ships */
-#define GREYHAWK_ITEM_SHIP          57   /* Greyhawk ship object type */
+#define GREYHAWK_ITEM_SHIP          56   /* Greyhawk ship object type (moved to avoid conflict) */
 
 /* Room flag for dockable areas */
-#define DOCKABLE                    41   /* Room flag for dockable areas */
+#define DOCKABLE                    ROOM_DOCKABLE   /* Room flag for dockable areas (41) */
 #define VESSEL_STATE_TRAVELING      1   /* Moving between locations */
 #define VESSEL_STATE_COMBAT         2   /* In battle */
 #define VESSEL_STATE_DAMAGED        3   /* Broken down */

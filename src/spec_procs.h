@@ -248,6 +248,10 @@ SPECIAL_DECL(yan);
 SPECIAL_DECL(ymir);
 SPECIAL_DECL(ymir_cloak);
 
+/* Vessel/Ship Special Procedures */
+SPECIAL_DECL(greyhawk_ship_object);
+SPECIAL_DECL(greyhawk_ship_commands);
+
 /** !!MAKE SURE TO ADD TO: spec_func_list!!!  **/
 
 #endif /* _SPEC_PROCS_H_ */

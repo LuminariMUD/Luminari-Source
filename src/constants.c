@@ -1205,6 +1205,8 @@ const char *room_bits[] = {
     "Random-Chest",
     "Always-Load-Harvest-Node",
     "Road",
+    "Vehicle",
+    "Dockable",
     "\n"};
 CHECK_TABLE_SIZE(room_bits, NUM_ROOM_FLAGS + 1);
 
@@ -2394,6 +2396,10 @@ const char *item_types[] = {
     "Weapon Oil",
     "Gear Outfit",
     "Drink",
+    "Vehicle",
+    "Ship-Object",
+    "Vessel",
+    "Greyhawk-Ship",
     "\n"};
 CHECK_TABLE_SIZE(item_types, NUM_ITEM_TYPES + 1);
 
