@@ -1104,8 +1104,8 @@ void game_loop(socket_t local_mother_desc)
         process_discord_output();
       }
       
-      /* Check for connection timeout */
-      check_discord_timeout();
+      /* Discord timeout check disabled - maintains persistent connection */
+      /* check_discord_timeout(); */
     }
 
     /* Kick out the freaky folks in the exception set and marked for close */

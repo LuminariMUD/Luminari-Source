@@ -1027,6 +1027,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"speed", "speed", POS_STANDING, do_greyhawk_speed, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"heading", "heading", POS_STANDING, do_greyhawk_heading, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"contacts", "contacts", POS_STANDING, do_greyhawk_contacts, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"board", "board", POS_STANDING, do_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"disembark", "disembark", POS_STANDING, do_greyhawk_disembark, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"shipload", "shipload", POS_DEAD, do_greyhawk_shipload, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setsail", "setsail", POS_DEAD, do_greyhawk_setsail, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},    

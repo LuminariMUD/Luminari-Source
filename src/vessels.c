@@ -238,6 +238,13 @@ void greyhawk_initialize_ships(void) {
 /* COMMAND FUNCTIONS                                                        */
 /* ========================================================================= */
 
+/* Board command - handled by special procedure on ship objects */
+ACMD(do_board) {
+  send_to_char(ch, "You need to be near a ship to board it.\r\n");
+  /* The actual boarding is handled by the greyhawk_ship_object special procedure */
+  /* This command exists just so 'board' is recognized as a valid command */
+}
+
 /* These will be implemented after the core system is working */
 
 ACMD(do_greyhawk_tactical) {

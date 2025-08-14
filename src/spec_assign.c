@@ -1014,6 +1014,9 @@ void assign_objects(void)
   /* clouds realm */
   ASSIGNOBJ(144669, dragon_robes);
 
+  /* greyhawk ships */
+  ASSIGNOBJ(21300, greyhawk_ship_object);
+
 #endif
 }
 
@@ -1175,6 +1178,10 @@ void assign_rooms(void)
   ASSIGNROOM(126788, quicksand);
   ASSIGNROOM(126793, quicksand);
   ASSIGNROOM(126800, quicksand);
+
+  /* greyhawk ships */
+  ASSIGNROOM(21398, greyhawk_ship_commands);
+
 
 #endif
 
