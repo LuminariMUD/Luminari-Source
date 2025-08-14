@@ -949,6 +949,8 @@ int handle_database_help(struct char_data *ch, const char *argument, const char 
  * Converts deity help requests to devote command calls.
  */
 int handle_deity_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
+    UNUSED(argument);
+    UNUSED(ctx);
     int i;
     char spell_argument[200];
     
@@ -967,6 +969,8 @@ int handle_deity_help(struct char_data *ch, const char *argument, const char *ra
  * Handles special capitalization logic for region names.
  */
 int handle_region_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx) {
+    UNUSED(argument);
+    UNUSED(ctx);
     int i;
     char *region_arg = strdup(raw_argument);
     
