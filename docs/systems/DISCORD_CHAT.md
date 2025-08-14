@@ -245,10 +245,17 @@ Administrators can manage the Discord bridge using these commands:
 
 ### For MUD Players
 
-Messages from Discord appear with a `[Discord]` prefix:
+Messages from Discord appear with channel-specific prefixes and colors:
 ```
-[Discord] JohnDoe: Hello from Discord!
+[Discord-gossip] JohnDoe: Hello from Discord!     (in yellow)
+[Discord-auction] JohnDoe: Selling +5 sword      (in magenta)
+[Discord-gratz] JohnDoe: Grats on level 50!      (in green)
 ```
+
+The colors match the corresponding MUD channel colors:
+- **Gossip/Chat**: Yellow (same as MUD gossip)
+- **Auction**: Magenta (same as MUD auction) 
+- **Gratz**: Green (same as MUD gratz)
 
 Regular channel commands work normally:
 ```
@@ -259,10 +266,14 @@ gratz Congratulations on level 50!
 
 ### For Discord Users
 
-Simply type in the configured Discord channels. Messages appear in the MUD as:
+Simply type in the configured Discord channels. Messages appear in the MUD with channel identification:
 ```
-[Discord] DiscordUser: Message content
+[Discord-gossip] DiscordUser: Message content     (in yellow)
+[Discord-auction] DiscordUser: Message content    (in magenta)  
+[Discord-gratz] DiscordUser: Message content      (in green)
 ```
+
+Each channel displays in its corresponding MUD color for visual consistency.
 
 ### Channel Permissions
 
@@ -344,7 +355,7 @@ If authentication is enabled (auth token set in MUD), the Discord bot must authe
    - Rate limiting (10 messages per second per channel)
 
 3. **Injection Prevention**
-   - Discord usernames prefixed with `[Discord]`
+   - Discord usernames prefixed with `[Discord-channelname]` for identification
    - Special characters filtered
    - MUD commands cannot be executed via Discord
 
@@ -432,7 +443,7 @@ If authentication is enabled (auth token set in MUD), the Discord bot must authe
 
 **Solutions**:
 1. Verify Discord bot is connected: `discord status`
-2. Check if message contains `[Discord]` (loop prevention)
+2. Check if message contains `[Discord-` (loop prevention)
 3. Ensure channel is enabled in configuration
 4. Review Discord bot logs
 
@@ -646,6 +657,11 @@ For issues or questions about the Discord bridge system:
 
 ## Version History
 
+- **1.2.0** (2025-01): Enhanced user experience and visual consistency
+  - Channel-specific message prefixes (`[Discord-channelname]`)
+  - Channel-specific colors matching MUD channels
+  - Visual consistency between Discord and MUD messages
+  - Improved channel identification and organization
 - **1.1.0** (2025-01): Enhanced security and monitoring
   - Token-based authentication support
   - Per-channel rate limiting (10 msg/sec)

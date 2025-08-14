@@ -126,7 +126,10 @@ Then recompile and restart MUD. Bot must send auth token as first message.
 
 ### From Discord Side:
 1. Type in mapped Discord channel
-2. Message appears in MUD as: `[Discord] Username: Message`
+2. Messages appear in MUD with channel identification and colors:
+   - Gossip: `[Discord-gossip] Username: Message` (in yellow)
+   - Auction: `[Discord-auction] Username: Message` (in magenta)
+   - Gratz: `[Discord-gratz] Username: Message` (in green)
 3. All players with channel enabled see it
 
 ## Troubleshooting
@@ -215,3 +218,19 @@ make -j20
 3. Start chatting between MUD and Discord!
 
 The bridge handles everything else automatically.
+
+## Enhanced Features (v1.2.0)
+
+### Channel-Specific Visual Design:
+- **Channel Identification**: Messages show exact Discord channel source
+- **Color Consistency**: Each channel uses its corresponding MUD color
+- **Visual Organization**: Easy to distinguish between different channel types
+
+### Message Format Examples:
+```
+[Discord-gossip] JohnDoe: Hey everyone!        (yellow text)
+[Discord-auction] JaneDoe: Selling magic sword (magenta text)
+[Discord-gratz] BobSmith: Congrats on the win! (green text)
+```
+
+This provides clear visual separation and maintains consistency with native MUD channel colors.
