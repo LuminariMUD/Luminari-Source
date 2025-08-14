@@ -95,6 +95,7 @@ int *cmd_sort_info = NULL;
 struct command_info *complete_cmd_info;
 
 ACMD_DECL(do_reboot);
+ACMD_DECL(do_relock);
 
 /* This is the Master Command List. You can put new commands in, take commands
  * out, change the order they appear in, etc.  You can adjust the "priority"
@@ -738,6 +739,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"relay", "relay", POS_RECLINING, do_relay, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reload", "reload", POS_FIGHTING, do_reload, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reloadimm", "reloadimm", POS_DEAD, do_reboot, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"relock", "relock", POS_DEAD, do_relock, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"recite", "reci", POS_FIGHTING, do_use_consumable, 0, SCMD_RECITE, FALSE, ACTION_SWIFT, {0, 6}, NULL},
     {"receive", "rece", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"recent", "recent", POS_DEAD, do_recent, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
