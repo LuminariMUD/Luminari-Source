@@ -1605,29 +1605,59 @@ int parse_class_long(const char *arg_in)
     return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "stalwart-defender"))
     return CLASS_STALWART_DEFENDER;
+  /* Knight of the Crown / Crimson Loom */
   if (is_abbrev(arg, "knightofthecrown"))
     return CLASS_KNIGHT_OF_THE_CROWN;
   if (is_abbrev(arg, "knight-of-the-crown"))
     return CLASS_KNIGHT_OF_THE_CROWN;
+  if (is_abbrev(arg, "knightofthecrimsonloom"))
+    return CLASS_KNIGHT_OF_THE_CROWN;
+  if (is_abbrev(arg, "knight-of-the-crimson-loom"))
+    return CLASS_KNIGHT_OF_THE_CROWN;
+  /* Knight of the Sword / Sundered Dawn */
   if (is_abbrev(arg, "knightofthesword"))
     return CLASS_KNIGHT_OF_THE_SWORD;
   if (is_abbrev(arg, "knight-of-the-sword"))
     return CLASS_KNIGHT_OF_THE_SWORD;
+  if (is_abbrev(arg, "knightofthesundereddawn"))
+    return CLASS_KNIGHT_OF_THE_SWORD;
+  if (is_abbrev(arg, "knight-of-the-sundered-dawn"))
+    return CLASS_KNIGHT_OF_THE_SWORD;
+  /* Knight of the Rose / Ember Throne */
   if (is_abbrev(arg, "knightoftherose"))
     return CLASS_KNIGHT_OF_THE_ROSE;
   if (is_abbrev(arg, "knight-of-the-rose"))
     return CLASS_KNIGHT_OF_THE_ROSE;
+  if (is_abbrev(arg, "knightoftheemberthrone"))
+    return CLASS_KNIGHT_OF_THE_ROSE;
+  if (is_abbrev(arg, "knight-of-the-ember-throne"))
+    return CLASS_KNIGHT_OF_THE_ROSE;
+  /* Knight of the Thorn / Shattered Mirror */
   if (is_abbrev(arg, "knightofthethorn"))
     return CLASS_KNIGHT_OF_THE_THORN;
   if (is_abbrev(arg, "knight-of-the-thorn"))
     return CLASS_KNIGHT_OF_THE_THORN;
+  if (is_abbrev(arg, "knightoftheshatteredmirror"))
+    return CLASS_KNIGHT_OF_THE_THORN;
+  if (is_abbrev(arg, "knight-of-the-shattered-mirror"))
+    return CLASS_KNIGHT_OF_THE_THORN;
+  /* Knight of the Skull / Pale Throne */
   if (is_abbrev(arg, "knightoftheskull"))
     return CLASS_KNIGHT_OF_THE_SKULL;
   if (is_abbrev(arg, "knight-of-the-skull"))
     return CLASS_KNIGHT_OF_THE_SKULL;
+  if (is_abbrev(arg, "knightofthepalethrone"))
+    return CLASS_KNIGHT_OF_THE_SKULL;
+  if (is_abbrev(arg, "knight-of-the-pale-throne"))
+    return CLASS_KNIGHT_OF_THE_SKULL;
+  /* Knight of the Lily / Howling Moon */
   if (is_abbrev(arg, "knightofthelily"))
     return CLASS_KNIGHT_OF_THE_LILY;
   if (is_abbrev(arg, "knight-of-the-lily"))
+    return CLASS_KNIGHT_OF_THE_LILY;
+  if (is_abbrev(arg, "knightofthehowlingmoon"))
+    return CLASS_KNIGHT_OF_THE_LILY;
+  if (is_abbrev(arg, "knight-of-the-howling-moon"))
     return CLASS_KNIGHT_OF_THE_LILY;
   if (is_abbrev(arg, "dragonrider"))
     return CLASS_DRAGONRIDER;
