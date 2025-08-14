@@ -63,6 +63,11 @@
 #include "deities.h"
 #include "backgrounds.h"
 
+/* External variables and functions */
+extern MYSQL *conn;
+extern struct descriptor_data *descriptor_list;
+void load_account_unlocks(struct account_data *account);
+
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
 static void perform_immort_invis(struct char_data *ch, int level);
@@ -11151,6 +11156,148 @@ ACMD(do_setweather)
   
   /* Inform other immortals */
   mudlog(BRF, LVL_IMMORT, TRUE, "%s changed global weather to %d", GET_NAME(ch), new_weather);
+}
+
+/* Relock command - allows LVL_IMPL to reset account unlocks for races/classes
+ * This is useful for testing or correcting account unlock issues
+ * Usage: relock <account name> <race|class|all>
+ */
+ACMD(do_relock)
+{
+  char arg1[MAX_INPUT_LENGTH];
+  char arg2[MAX_INPUT_LENGTH];
+  struct account_data target_account;
+  int i, found = 0;
+  
+  /* Check permission - LVL_IMPL only */
+  if (GET_LEVEL(ch) < LVL_IMPL) {
+    send_to_char(ch, "You do not have permission to use this command.\r\n");
+    return;
+  }
+  
+  /* Parse arguments */
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  
+  if (!*arg1 || !*arg2) {
+    send_to_char(ch, "Usage: relock <account name> <race|class|all>\r\n");
+    send_to_char(ch, "Example: relock playeraccount race\r\n");
+    send_to_char(ch, "         relock playeraccount class\r\n");
+    send_to_char(ch, "         relock playeraccount all\r\n");
+    return;
+  }
+  
+  /* Initialize account structure */
+  memset(&target_account, 0, sizeof(struct account_data));
+  
+  /* Try to load the account */
+  if (load_account(arg1, &target_account) != 0) {
+    send_to_char(ch, "Account '%s' not found.\r\n", arg1);
+    return;
+  }
+  
+  /* Process relock based on type */
+  if (is_abbrev(arg2, "race") || is_abbrev(arg2, "all")) {
+    /* Clear all unlocked races from database */
+    char query[256];
+    snprintf(query, sizeof(query), "DELETE FROM unlocked_races WHERE account_id = %d", 
+             target_account.id);
+    if (mysql_query(conn, query)) {
+      send_to_char(ch, "Database error clearing races: %s\r\n", mysql_error(conn));
+      /* Clean up allocated memory before returning */
+      if (target_account.name) free(target_account.name);
+      if (target_account.email) free(target_account.email);
+      for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+        if (target_account.character_names[i])
+          free(target_account.character_names[i]);
+      }
+      return;
+    }
+    
+    /* Clear from memory */
+    for (i = 0; i < MAX_UNLOCKED_RACES; i++) {
+      if (target_account.races[i] != 0) {
+        found++;
+        target_account.races[i] = 0;
+      }
+    }
+    if (is_abbrev(arg2, "race")) {
+      send_to_char(ch, "Cleared %d unlocked race(s) from account '%s'.\r\n", 
+                   found, target_account.name);
+    }
+  }
+  
+  if (is_abbrev(arg2, "class") || is_abbrev(arg2, "all")) {
+    /* Clear all unlocked classes from database */
+    char query[256];
+    snprintf(query, sizeof(query), "DELETE FROM unlocked_classes WHERE account_id = %d", 
+             target_account.id);
+    if (mysql_query(conn, query)) {
+      send_to_char(ch, "Database error clearing classes: %s\r\n", mysql_error(conn));
+      /* Clean up allocated memory before returning */
+      if (target_account.name) free(target_account.name);
+      if (target_account.email) free(target_account.email);
+      for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+        if (target_account.character_names[i])
+          free(target_account.character_names[i]);
+      }
+      return;
+    }
+    
+    /* Clear from memory */
+    int class_count = 0;
+    for (i = 0; i < MAX_UNLOCKED_CLASSES; i++) {
+      if (target_account.classes[i] != 0) {
+        class_count++;
+        target_account.classes[i] = 0;
+      }
+    }
+    if (is_abbrev(arg2, "class")) {
+      send_to_char(ch, "Cleared %d unlocked class(es) from account '%s'.\r\n", 
+                   class_count, target_account.name);
+    } else {
+      found += class_count;
+    }
+  }
+  
+  if (is_abbrev(arg2, "all")) {
+    send_to_char(ch, "Cleared %d total unlock(s) from account '%s'.\r\n", 
+                 found, target_account.name);
+  } else if (!is_abbrev(arg2, "race") && !is_abbrev(arg2, "class")) {
+    send_to_char(ch, "Invalid option. Use 'race', 'class', or 'all'.\r\n");
+    /* Clean up allocated memory before returning */
+    if (target_account.name) free(target_account.name);
+    if (target_account.email) free(target_account.email);
+    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+      if (target_account.character_names[i])
+        free(target_account.character_names[i]);
+    }
+    return;
+  }
+  
+  /* Don't call save_account - we've already updated the database directly */
+  
+  /* Update any logged-in characters with this account */
+  struct descriptor_data *d;
+  for (d = descriptor_list; d; d = d->next) {
+    if (d->account && d->account->id == target_account.id) {
+      /* Reload unlock arrays from DB to keep them in sync */
+      load_account_unlocks(d->account);
+    }
+  }
+  
+  /* Log the action */
+  mudlog(NRM, LVL_IMPL, TRUE, "(GC) %s used RELOCK on account '%s' (%s)", 
+         GET_NAME(ch), target_account.name, arg2);
+  
+  /* Clean up allocated memory */
+  if (target_account.name) free(target_account.name);
+  if (target_account.email) free(target_account.email);
+  for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+    if (target_account.character_names[i])
+      free(target_account.character_names[i]);
+  }
+  
+  send_to_char(ch, "Account '%s' has been updated.\r\n", arg1);
 }
 
 /* EOF */

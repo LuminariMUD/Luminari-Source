@@ -68,6 +68,7 @@
 #include "act.h"
 #include "account.h"
 #include "routing.h"
+#include "campaign.h"
 
 extern MYSQL *conn;
 
@@ -248,8 +249,19 @@ ACMD(do_accexp)
   int i = 0, j = 0;
   int cost = 0;
   int align_change = 100;
+  const char *remainder;
 
-  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
+  /* Get first argument */
+  remainder = one_argument(argument, arg, sizeof(arg));
+  /* For class/race commands, get the rest of the line as arg2 */
+  if (is_abbrev(arg, "class") || is_abbrev(arg, "race")) {
+    /* Skip spaces and copy rest of line */
+    skip_spaces_c(&remainder);
+    strlcpy(arg2, remainder, sizeof(arg2));
+  } else {
+    /* For other commands, get the next single argument */
+    one_argument(remainder, arg2, sizeof(arg2));
+  }
 
   if (!*arg)
   {
@@ -442,14 +454,77 @@ ACMD(do_accexp)
     /* Identify class to unlock by name abbreviation */
     for (i = 0; i < NUM_CLASSES; i++)
     {
-      if (is_abbrev(arg2, CLSLIST_NAME(i)) && !has_unlocked_class(ch, i) &&
-          CLSLIST_LOCK(i))
+      /* Skip already unlocked classes and non-lockable classes */
+      if (has_unlocked_class(ch, i) || !CLSLIST_LOCK(i))
+        continue;
+        
+      /* Check if this class matches the input */
+      if (is_abbrev(arg2, CLSLIST_NAME(i)))
       {
         if (IS_CAMPAIGN_DL)
           cost = CLSLIST_COST(i) / 10;
         else
           cost = CLSLIST_COST(i);
         break;
+      }
+      
+      /* For knight classes, also check alternate names */
+      if (i >= CLASS_KNIGHT_OF_THE_CROWN && i <= CLASS_KNIGHT_OF_THE_LILY)
+      {
+        bool matches_alternate = FALSE;
+        switch (i) {
+          case CLASS_KNIGHT_OF_THE_CROWN:
+#ifdef CAMPAIGN_DL
+            matches_alternate = is_abbrev(arg2, "knight of the crimson loom");
+#else
+            matches_alternate = is_abbrev(arg2, "knight of the crown");
+#endif
+            break;
+          case CLASS_KNIGHT_OF_THE_SWORD:
+#ifdef CAMPAIGN_DL
+            matches_alternate = is_abbrev(arg2, "knight of the sundered dawn");
+#else
+            matches_alternate = is_abbrev(arg2, "knight of the sword");
+#endif
+            break;
+          case CLASS_KNIGHT_OF_THE_ROSE:
+#ifdef CAMPAIGN_DL
+            matches_alternate = is_abbrev(arg2, "knight of the ember throne");
+#else
+            matches_alternate = is_abbrev(arg2, "knight of the rose");
+#endif
+            break;
+          case CLASS_KNIGHT_OF_THE_LILY:
+#ifdef CAMPAIGN_DL
+            matches_alternate = is_abbrev(arg2, "knight of the howling moon");
+#else
+            matches_alternate = is_abbrev(arg2, "knight of the lily");
+#endif
+            break;
+          case CLASS_KNIGHT_OF_THE_THORN:
+#ifdef CAMPAIGN_DL
+            matches_alternate = is_abbrev(arg2, "knight of the shattered mirror");
+#else
+            matches_alternate = is_abbrev(arg2, "knight of the thorn");
+#endif
+            break;
+          case CLASS_KNIGHT_OF_THE_SKULL:
+#ifdef CAMPAIGN_DL
+            matches_alternate = is_abbrev(arg2, "knight of the pale throne");
+#else
+            matches_alternate = is_abbrev(arg2, "knight of the skull");
+#endif
+            break;
+        }
+        
+        if (matches_alternate)
+        {
+          if (IS_CAMPAIGN_DL)
+            cost = CLSLIST_COST(i) / 10;
+          else
+            cost = CLSLIST_COST(i);
+          break;
+        }
       }
     }
     if (i >= NUM_CLASSES)
