@@ -27,6 +27,9 @@
 
 #define FLAG(n) (1 << (n))
 
+/** Macro for marking unused parameters to suppress compiler warnings */
+#define UNUSED(x) ((void)(x))
+
 /** Definition of the action command, for the do_ series of in game functions.
  * This macro is placed here (for now) because it's too general of a macro
  * to be first defined in interpreter.h. The reason for using a macro is
@@ -43,7 +46,7 @@
     impl_##name##_(ch, argument, cmd, subcmd);                                                 \
     PERF_PROF_EXIT(pr_);                                                                       \
   }                                                                                            \
-  static void impl_##name##_(struct char_data *ch, const char *argument, int cmd, int subcmd)
+  static void impl_##name##_(struct char_data *ch, const char *argument, int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
 /* "unsafe" version of ACMD. Commands that still require non const argument due to using
    unsafe operations on argument */
@@ -64,7 +67,7 @@
     }                                                                                    \
     PERF_PROF_EXIT(pr_);                                                                 \
   }                                                                                      \
-  static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd)
+  static void impl_##name##_(struct char_data *ch, char *argument, int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
 /** Definition of the helper function for checking if a command can be used.
  *  If show_error is set, an error message will be sent to the user. Otherwise, it
@@ -875,7 +878,13 @@ void char_from_furniture(struct char_data *ch);
 
 /** 1 if this is a valid room number, 0 if not. */
 #ifndef VALID_ROOM_RNUM
+#if CIRCLE_UNSIGNED_INDEX
+/* For unsigned types, no need to check >= 0 */
+#define VALID_ROOM_RNUM(rnum) ((rnum) != NOWHERE && (rnum) < top_of_world)
+#else
+/* For signed types, check >= 0 */
 #define VALID_ROOM_RNUM(rnum) ((rnum) != NOWHERE && (rnum) >= 0 && (rnum) < top_of_world)
+#endif
 #endif
 
 /** The room number if this is a valid room, NOWHERE if it is not */

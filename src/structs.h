@@ -103,7 +103,7 @@
         PERF_PROF_EXIT(pr_);                                                            \
         return rtn;                                                                     \
     }                                                                                   \
-    static int impl_##name##_(struct char_data *ch, void *me, int cmd, char *argument)
+    static int impl_##name##_(struct char_data *ch __attribute__((unused)), void *me __attribute__((unused)), int cmd __attribute__((unused)), char *argument __attribute__((unused)))
 
 /* room-related defines */
 /* The cardinal directions: used as index to room_data.dir_option[] */

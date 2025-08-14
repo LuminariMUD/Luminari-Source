@@ -1231,6 +1231,7 @@ int perform_hsort(struct char_data *ch, room_rnum location, bool silent)
 /* here is the command entry point */
 ACMD(do_hsort)
 {
+  UNUSED(argument);
 
   /* this was here for debugging/testing */
   /*
