@@ -37,7 +37,7 @@
 #include "item.h" /* do_stat_object */
 #include "alchemy.h"
 #include "treasure.h"   /* for set_armor_object */
-#include "mobact.h"     /* npc_find_target() */
+#include "mob_utils.h"  /* npc_find_target() */
 #include "spell_prep.h" /* for star circlet proc */
 #include "handler.h"    /* for is_name() */
 #include "evolutions.h"
