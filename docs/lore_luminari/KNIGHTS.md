@@ -10,11 +10,11 @@ When a knight speaks their vows, the words become visible threads of light that 
 
 ## The Six Sacred Orders
 
-### The Order of Light (Maps to Knights of Solamnia)
+### The Order of Light
 
 The three branches of the Order of Light represent the evolution of knightly virtue, each building upon the foundation of the previous:
 
-#### 1. Knights of the Crimson Loom (Maps to Knight of the Crown)
+#### 1. Knights of the Crimson Loom
 *"Our oaths are iron, our words are law, our blood is the ink of destiny"*
 
 **Divine Patrons**: Kordran (War/Duty) and Aethyra (Magic/Oaths)
@@ -24,7 +24,7 @@ The three branches of the Order of Light represent the evolution of knightly vir
 **Sacred Duty**: To enforce divine contracts and ensure that oaths--from marriage vows to international treaties--are kept. They can smell broken promises and see lies as physical tears in reality.
 
 **Class Alignment**: 
-- Max Level: 5 (as Knight of the Crown)
+- Max Level: 5
 - Focus on martial prowess and honor-based abilities
 - Strength of Honor, Knightly Courage, Heroic Initiative mirror Crown abilities
 - Diehard and Honorable Will reflect their oath-bound nature
@@ -38,7 +38,7 @@ The three branches of the Order of Light represent the evolution of knightly vir
 
 **Sacred Weapons**: Blades forged from crystallized oaths, growing stronger with each fulfilled vow.
 
-#### 2. Knights of the Sundered Dawn (Maps to Knight of the Sword)
+#### 2. Knights of the Sundered Dawn
 *"We are the twilight between mercy and necessity"*
 
 **Divine Patrons**: Seraphine and Nyxara (the sister-deities who were once one)
@@ -48,7 +48,7 @@ The three branches of the Order of Light represent the evolution of knightly vir
 **Sacred Duty**: To maintain the balance between revelation and secrecy, redemption and justice. They channel divine energy to smite those who would upset the cosmic balance.
 
 **Class Alignment**:
-- Max Level: 5 (as Knight of the Sword)
+- Max Level: 5
 - Prerequisites include advancement from Crimson Loom
 - Divine spellcasting progression
 - Smite Evil abilities manifest as dual light/shadow strikes
@@ -63,7 +63,7 @@ The three branches of the Order of Light represent the evolution of knightly vir
 
 **Sacred Weapons**: Twin blades--one that can only be drawn in light (Mercy's Edge), one only in darkness (Necessity's Bite).
 
-#### 3. Knights of the Ember Throne (Maps to Knight of the Rose)
+#### 3. Knights of the Ember Throne
 *"We forge heroes from the weak, beauty from destruction, hope from ash"*
 
 **Divine Patrons**: Pyrion (Primal Fire), Calystral (Passion/Art), and Borhild (Craft/Innovation)
@@ -73,7 +73,7 @@ The three branches of the Order of Light represent the evolution of knightly vir
 **Sacred Duty**: To lead through inspiration, preserving civilization's greatest works while forging new golden ages through righteous conflict.
 
 **Class Alignment**:
-- Max Level: 10 (as Knight of the Rose)
+- Max Level: 10
 - Prerequisites include advancement from Sundered Dawn
 - Leadership and Inspire Courage/Greatness abilities
 - Divine Grace and Wisdom of the Measure
@@ -90,11 +90,11 @@ The three branches of the Order of Light represent the evolution of knightly vir
 
 ---
 
-### The Order of Shadow (Maps to Knights of Takhisis)
+### The Order of Shadow
 
 The three branches of the Order of Shadow represent different paths to power through sacrifice and forbidden knowledge:
 
-#### 4. Knights of the Howling Moon (Maps to Knight of the Lily)
+#### 4. Knights of the Howling Moon
 *"We run between the civilized and wild, guardians of the boundary"*
 
 **Divine Patrons**: Zorren (Wild Hunt) and Selithiel (Moon/Dreams)
@@ -104,7 +104,7 @@ The three branches of the Order of Shadow represent different paths to power thr
 **Sacred Duty**: To maintain order through controlled savagery, showing enemies that civilization's veneer is thin and the beast lurks within all.
 
 **Class Alignment**:
-- Max Level: 10 (as Knight of the Lily)
+- Max Level: 10
 - Sneak Attack progression reflects predatory strikes
 - Demoralize and Fight to the Death mirror beast psychology
 - Unbreakable Will shows mental fortitude from surviving the wild
@@ -119,7 +119,7 @@ The three branches of the Order of Shadow represent different paths to power thr
 
 **Sacred Weapons**: Living weapons grown from ironwood trees fed with their own blood.
 
-#### 5. Knights of the Shattered Mirror (Maps to Knight of the Thorn)
+#### 5. Knights of the Shattered Mirror
 *"Truth has many faces; we wear them all"*
 
 **Divine Patrons**: Vespera (Trickery/Revolution) and Thalos (Law/Truth)
@@ -129,7 +129,7 @@ The three branches of the Order of Shadow represent different paths to power thr
 **Sacred Duty**: To infiltrate and understand through deception, using arcane divination and misdirection to serve their order's goals.
 
 **Class Alignment**:
-- Max Level: 10 (as Knight of the Thorn)
+- Max Level: 10
 - Prerequisites include advancement from Howling Moon
 - Arcane spellcasting progression with armored casting
 - Diviner and Read Omens/Portents abilities
@@ -145,7 +145,7 @@ The three branches of the Order of Shadow represent different paths to power thr
 
 **Sacred Weapons**: Crystalline blades that reflect not the wielder's face, but the face of whoever they're meant to be.
 
-#### 6. Knights of the Pale Throne (Maps to Knight of the Skull)
+#### 6. Knights of the Pale Throne
 *"Death is not the end; it is the pause between movements in the eternal symphony"*
 
 **Divine Patrons**: Nethris (Death/Fate), Glacius (Eternal Winter), and Orith (Earth/Patience)
@@ -155,7 +155,7 @@ The three branches of the Order of Shadow represent different paths to power thr
 **Sacred Duty**: To serve as arbiters of death's justice, wielding divine negative energy against those who would defy the natural order--or to enforce an unnatural one.
 
 **Class Alignment**:
-- Max Level: 10 (as Knight of the Skull)
+- Max Level: 10
 - Prerequisites include advancement from Howling Moon
 - Divine spellcasting with death/negative focus
 - Smite Good as death's judgment
@@ -215,32 +215,32 @@ The techniques and powers of this lost order are said to be scattered among the 
 
 ### Order-Specific Prerequisites:
 
-**Crimson Loom** (Knight of the Crown):
+**Crimson Loom**:
 - Base Attack Bonus: +3
 - Skills: Diplomacy 3, Ride 2
 - Cannot have broken significant oaths
 
-**Sundered Dawn** (Knight of the Sword):
+**Sundered Dawn**:
 - Must advance from Crimson Loom
 - Divine spellcasting ability
 - Must have experienced both great mercy and terrible justice
 
-**Ember Throne** (Knight of the Rose):
+**Ember Throne**:
 - Must advance from Sundered Dawn
 - Leadership qualities proven
 - Created something of lasting beauty or inspiration
 
-**Howling Moon** (Knight of the Lily):
+**Howling Moon**:
 - Base Attack Bonus: +2
 - Skills: Lore 2, Intimidate 3
 - Must have survived in the wild alone
 
-**Shattered Mirror** (Knight of the Thorn):
+**Shattered Mirror**:
 - Must advance from Howling Moon
 - Arcane spellcasting ability
 - Master of deception and misdirection
 
-**Pale Throne** (Knight of the Skull):
+**Pale Throne**:
 - Must advance from Howling Moon
 - Divine spellcasting ability
 - Must have experienced death or near-death
