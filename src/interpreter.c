@@ -328,10 +328,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deletepath", "deletepath", POS_DEAD, do_deletepath, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     {"deity", "deity", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#endif
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dice", "diceroll", POS_DEAD, do_diceroll, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dig", "dig", POS_DEAD, do_dig, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
