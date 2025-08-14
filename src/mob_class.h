@@ -29,6 +29,8 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
                        int engaged);
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
                         int engaged);
+void npc_dragonrider_behave(struct char_data *ch, struct char_data *vict,
+                            int engaged);
 void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
                           int engaged);
 

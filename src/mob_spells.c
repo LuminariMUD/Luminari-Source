@@ -363,10 +363,6 @@ void npc_spellup(struct char_data *ch)
       if (npc_should_call_companion(ch, MOB_SHADOW))
         perform_call(ch, MOB_SHADOW, GET_LEVEL(ch));
       break;
-    case CLASS_DRAGONRIDER:
-      if (npc_should_call_companion(ch, MOB_C_DRAGON))
-        perform_call(ch, MOB_C_DRAGON, GET_LEVEL(ch));
-      break;
   }
   
   /* Check buff saturation - count existing defensive buffs */
