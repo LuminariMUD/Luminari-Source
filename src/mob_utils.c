@@ -356,3 +356,93 @@ int can_continue(struct char_data *ch, bool fighting)
     return 0;
   return 1;
 }
+
+/* Utility function to check if NPC should call a companion
+ * Returns true if NPC should attempt to call companion
+ * Takes into account combat state, existing companions, and appropriate timing
+ */
+bool npc_should_call_companion(struct char_data *ch, int call_type)
+{
+  struct follow_type *k = NULL;
+  
+  /* Basic checks */
+  if (!ch || !IS_NPC(ch))
+    return FALSE;
+    
+  /* Don't call if we're almost dead */
+  if (GET_HIT(ch) < (GET_MAX_HIT(ch) / 4))
+    return FALSE;
+    
+  /* Check if companion already exists */
+  for (k = ch->followers; k; k = k->next)
+  {
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
+        MOB_FLAGGED(k->follower, call_type))
+    {
+      /* Companion already exists */
+      return FALSE;
+    }
+  }
+  
+  /* Class and feat checks */
+  switch (call_type)
+  {
+    case MOB_C_ANIMAL:
+      /* Rangers and Druids */
+      if (GET_CLASS(ch) != CLASS_RANGER && GET_CLASS(ch) != CLASS_DRUID)
+        return FALSE;
+      if (GET_CLASS(ch) == CLASS_RANGER && GET_LEVEL(ch) < 4)
+        return FALSE;
+      break;
+      
+    case MOB_C_FAMILIAR:
+      /* Wizards and Sorcerers */
+      if (GET_CLASS(ch) != CLASS_WIZARD && GET_CLASS(ch) != CLASS_SORCERER)
+        return FALSE;
+      break;
+      
+    case MOB_C_MOUNT:
+      /* Paladins and Blackguards */
+      if (GET_CLASS(ch) != CLASS_PALADIN && GET_CLASS(ch) != CLASS_BLACKGUARD)
+        return FALSE;
+      break;
+      
+    case MOB_EIDOLON:
+      /* Summoners and Necromancers */
+      if (GET_CLASS(ch) != CLASS_SUMMONER && GET_CLASS(ch) != CLASS_NECROMANCER)
+        return FALSE;
+      break;
+      
+    case MOB_SHADOW:
+      /* Shadowdancers */
+      if (GET_CLASS(ch) != CLASS_SHADOWDANCER)
+        return FALSE;
+      break;
+      
+    case MOB_C_DRAGON:
+      /* Dragonriders */
+      if (GET_CLASS(ch) != CLASS_DRAGONRIDER)
+        return FALSE;
+      break;
+      
+    default:
+      return FALSE;
+  }
+  
+  /* In combat - high priority to call companion */
+  if (FIGHTING(ch))
+  {
+    /* 50% chance when entering combat or outnumbered */
+    if (!rand_number(0, 1))
+      return TRUE;
+  }
+  else
+  {
+    /* Out of combat - lower chance */
+    /* 10% chance to call when not in combat */
+    if (!rand_number(0, 9))
+      return TRUE;
+  }
+  
+  return FALSE;
+}
