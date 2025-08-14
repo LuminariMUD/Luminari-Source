@@ -117,7 +117,13 @@ circle_SOURCES = \
 	src/mail.c \
 	src/medit.c \
 	src/missions.c \
-	src/mobact.c \
+	src/mob_act.c \
+	src/mob_memory.c \
+	src/mob_utils.c \
+	src/mob_race.c \
+	src/mob_psionic.c \
+	src/mob_class.c \
+	src/mob_spells.c \
 	src/modify.c \
 	src/msgedit.c \
 	src/mud_event.c \
