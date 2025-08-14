@@ -6422,6 +6422,11 @@ break;
   disconnect_from_mysql2();
   disconnect_from_mysql3();
   
+  /* Shutdown Discord bridge before copyover */
+  extern void shutdown_discord_bridge(void);
+  shutdown_discord_bridge();
+  log("INFO: copyover: Discord bridge shut down for copyover");
+  
   /* Flush any pending output */
   fflush(stdout);
   fflush(stderr);

@@ -188,8 +188,8 @@ int parse_discord_json(const char *json_str, char *channel, char *name, char *me
 /* Initialize the Discord bridge system */
 void init_discord_bridge(void) {
     if (discord_bridge) {
-        log("Discord bridge already initialized");
-        return;
+        log("Discord bridge already initialized, reinitializing for copyover");
+        shutdown_discord_bridge();
     }
     
     CREATE(discord_bridge, struct discord_bridge_data, 1);
@@ -257,11 +257,18 @@ int start_discord_server(int port) {
         return 0;
     }
     
-    /* Set socket options */
+    /* Set socket options - SO_REUSEADDR and SO_REUSEPORT for Linux */
     if (setsockopt(discord_bridge->server_socket, SOL_SOCKET, SO_REUSEADDR,
                    (char *)&opt, sizeof(opt)) < 0) {
         log("SYSERR: Discord bridge setsockopt SO_REUSEADDR: %s", strerror(errno));
     }
+    
+#ifdef SO_REUSEPORT
+    if (setsockopt(discord_bridge->server_socket, SOL_SOCKET, SO_REUSEPORT,
+                   (char *)&opt, sizeof(opt)) < 0) {
+        log("SYSERR: Discord bridge setsockopt SO_REUSEPORT: %s", strerror(errno));
+    }
+#endif
     
     /* Set non-blocking */
     if (fcntl(discord_bridge->server_socket, F_SETFL, O_NONBLOCK) < 0) {
