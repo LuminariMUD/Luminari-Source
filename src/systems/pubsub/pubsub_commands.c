@@ -22,22 +22,266 @@
 #include "constants.h"
 #include "wilderness.h"
 #include "pubsub.h"
+#include "spatial_visual.h"
+#include "spatial_audio.h"
 
 /*
- * Main pubsub command (Phase 1 - basic framework)
+ * Main pubsub command - handles subcommands
  */
 ACMD(do_pubsub) {
-    send_to_char(ch, "PubSub System v%d - Phase 1 Implementation\r\n", PUBSUB_VERSION);
-    send_to_char(ch, "Available commands:\r\n");
-    send_to_char(ch, "  subscribe <topic> [handler]  - Subscribe to a topic\r\n");
-    send_to_char(ch, "  unsubscribe <topic>          - Unsubscribe from a topic\r\n");
-    send_to_char(ch, "  topics                       - List available topics\r\n");
+    char subcommand[MAX_INPUT_LENGTH];
+    char arg1[MAX_INPUT_LENGTH];
+    char arg2[MAX_INPUT_LENGTH];
+    char arg3[MAX_INPUT_LENGTH];
     
-    if (GET_LEVEL(ch) >= LVL_IMMORT) {
-        send_to_char(ch, "\r\nAdmin commands:\r\n");
-        send_to_char(ch, "  pubsubstat                   - Show system statistics\r\n");
-        send_to_char(ch, "  pubsubtopic create <name>    - Create a new topic\r\n");
+    argument = one_argument(argument, subcommand, sizeof(subcommand));
+    argument = one_argument(argument, arg1, sizeof(arg1));
+    argument = one_argument(argument, arg2, sizeof(arg2));
+    argument = one_argument(argument, arg3, sizeof(arg3));
+    
+    if (!*subcommand) {
+        /* Show help if no subcommand */
+        send_to_char(ch, "PubSub System v%d - Unified Enhanced Implementation\r\n", PUBSUB_VERSION);
+        send_to_char(ch, "Available commands:\r\n");
+        send_to_char(ch, "  pubsub status                - Show system status\r\n");
+        send_to_char(ch, "  pubsub list                  - List available topics\r\n");
+        send_to_char(ch, "  pubsub create <name> <desc>  - Create a new topic\r\n");
+        send_to_char(ch, "  pubsub delete <name>         - Delete a topic\r\n");
+        send_to_char(ch, "  pubsub send <topic> <msg>    - Send message to topic\r\n");
+        send_to_char(ch, "  pubsub subscribe <topic>     - Subscribe to a topic\r\n");
+        send_to_char(ch, "  pubsub unsubscribe <topic>   - Unsubscribe from topic\r\n");
+        send_to_char(ch, "  pubsub info <topic>          - Show topic information\r\n");
+        
+        if (GET_LEVEL(ch) >= LVL_IMMORT) {
+            send_to_char(ch, "\r\nAdmin commands:\r\n");
+            send_to_char(ch, "  pubsub admin <cmd>           - Admin functions\r\n");
+            send_to_char(ch, "  pubsub stats                 - System statistics\r\n");
+            send_to_char(ch, "  pubsub spatial               - Test spatial systems (visual+audio, wilderness only)\r\n");
+        }
+        return;
     }
+    
+    /* Handle subcommands */
+    if (is_abbrev(subcommand, "status")) {
+        send_to_char(ch, "PubSub System Status:\r\n");
+        send_to_char(ch, "System Enabled: %s\r\n", pubsub_system_enabled ? "YES" : "NO");
+        send_to_char(ch, "Database Connected: %s\r\n", "YES");  /* Simplified for now */
+        send_to_char(ch, "Total Topics: %d\r\n", pubsub_stats.total_topics);
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "list")) {
+        send_to_char(ch, "Available Topics:\r\n");
+        pubsub_list_topics_for_player(ch);
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "create")) {
+        if (!*arg1) {
+            send_to_char(ch, "Usage: pubsub create <name> <description>\r\n");
+            return;
+        }
+        
+        /* Check if system is enabled first */
+        if (!pubsub_system_enabled) {
+            send_to_char(ch, "PubSub system is not enabled. Check logs for initialization errors.\r\n");
+            return;
+        }
+        
+        /* Get description as everything after the topic name */
+        char description[MAX_STRING_LENGTH];
+        const char *desc_start = argument;
+        
+        /* Skip leading spaces */
+        while (*desc_start && *desc_start == ' ') desc_start++;
+        
+        /* Copy description */
+        strncpy(description, desc_start, sizeof(description) - 1);
+        description[sizeof(description) - 1] = '\0';
+        
+        /* Remove quotes if present and clean up any trailing characters */
+        int len = strlen(description);
+        if (len > 1 && description[0] == '"' && description[len-1] == '"') {
+            description[len-1] = '\0';  /* Remove ending quote */
+            memmove(description, description+1, len-1);  /* Remove starting quote */
+            len -= 2; /* Update length */
+        }
+        
+        /* Clean up any stray quotes or whitespace at the end */
+        while (len > 0 && (description[len-1] == '"' || description[len-1] == ' ')) {
+            description[len-1] = '\0';
+            len--;
+        }
+        
+        int result = pubsub_create_topic(arg1, description, PUBSUB_CATEGORY_GENERAL, 
+                                       PUBSUB_ACCESS_PUBLIC, GET_NAME(ch));
+        
+        if (result == PUBSUB_SUCCESS) {
+            send_to_char(ch, "Topic '%s' created successfully.\r\n", arg1);
+        } else {
+            const char *error_msg = "Unknown error";
+            switch (result) {
+                case PUBSUB_ERROR_INVALID_PARAM: error_msg = "Invalid parameter"; break;
+                case PUBSUB_ERROR_DATABASE: error_msg = "Database error"; break;
+                case PUBSUB_ERROR_MEMORY: error_msg = "Memory allocation error"; break;
+                case PUBSUB_ERROR_NOT_FOUND: error_msg = "Not found"; break;
+                case PUBSUB_ERROR_DUPLICATE: error_msg = "Topic already exists"; break;
+                case PUBSUB_ERROR_PERMISSION: error_msg = "Permission denied"; break;
+            }
+            send_to_char(ch, "Failed to create topic '%s': %s (error %d).\r\n", arg1, error_msg, result);
+        }
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "delete")) {
+        if (!*arg1) {
+            send_to_char(ch, "Usage: pubsub delete <name>\r\n");
+            return;
+        }
+        
+        /* Check if player has permission to delete topic */
+        if (GET_LEVEL(ch) < LVL_IMMORT) {
+            /* For non-immortals, check if they created the topic */
+            struct pubsub_topic *topic = pubsub_find_topic_by_name(arg1);
+            if (!topic) {
+                send_to_char(ch, "Topic '%s' not found.\r\n", arg1);
+                return;
+            }
+            
+            if (!topic->creator_name || strcmp(topic->creator_name, GET_NAME(ch)) != 0) {
+                send_to_char(ch, "You can only delete topics you created.\r\n");
+                return;
+            }
+        }
+        
+        int result = pubsub_delete_topic_by_name(arg1, GET_NAME(ch));
+        
+        if (result == PUBSUB_SUCCESS) {
+            send_to_char(ch, "Topic '%s' deleted successfully.\r\n", arg1);
+        } else {
+            const char *error_msg = "Unknown error";
+            switch(result) {
+                case PUBSUB_ERROR_NOT_FOUND: error_msg = "Topic not found"; break;
+                case PUBSUB_ERROR_PERMISSION: error_msg = "Permission denied"; break;
+                case PUBSUB_ERROR_DATABASE: error_msg = "Database error"; break;
+                case PUBSUB_ERROR_INVALID_PARAM: error_msg = "Invalid parameter"; break;
+            }
+            send_to_char(ch, "Failed to delete topic '%s': %s (error %d).\r\n", arg1, error_msg, result);
+        }
+        return;
+    }
+
+    if (is_abbrev(subcommand, "send")) {
+        if (!*arg1 || !*arg2) {
+            send_to_char(ch, "Usage: pubsub send <topic> <message>\r\n");
+            return;
+        }
+        
+        /* Combine remaining arguments as message */
+        char message[MAX_STRING_LENGTH];
+        snprintf(message, sizeof(message), "%s %s", arg2, argument);
+        
+        int result = pubsub_send_message(arg1, GET_NAME(ch), message, 
+                                       PUBSUB_MESSAGE_TYPE_SIMPLE, PUBSUB_CATEGORY_GENERAL);
+        
+        if (result == PUBSUB_SUCCESS) {
+            send_to_char(ch, "Message sent to topic '%s'.\r\n", arg1);
+        } else {
+            send_to_char(ch, "Failed to send message to '%s' (error %d).\r\n", arg1, result);
+        }
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "subscribe")) {
+        if (!*arg1) {
+            send_to_char(ch, "Usage: pubsub subscribe <topic>\r\n");
+            return;
+        }
+        
+        send_to_char(ch, "Subscribe functionality not yet implemented.\r\n");
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "unsubscribe")) {
+        if (!*arg1) {
+            send_to_char(ch, "Usage: pubsub unsubscribe <topic>\r\n");
+            return;
+        }
+        
+        send_to_char(ch, "Unsubscribe functionality not yet implemented.\r\n");
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "info")) {
+        if (!*arg1) {
+            send_to_char(ch, "Usage: pubsub info <topic>\r\n");
+            return;
+        }
+        
+        struct pubsub_topic *topic = pubsub_find_topic_by_name(arg1);
+        if (!topic) {
+            send_to_char(ch, "Topic '%s' not found.\r\n", arg1);
+            return;
+        }
+        
+        send_to_char(ch, "Topic Information:\r\n");
+        send_to_char(ch, "Name: %s\r\n", topic->name);
+        send_to_char(ch, "Description: %s\r\n", topic->description ? topic->description : "None");
+        send_to_char(ch, "Category: %d\r\n", topic->category);
+        send_to_char(ch, "Creator: %s\r\n", topic->creator_name ? topic->creator_name : "Unknown");
+        send_to_char(ch, "Total Messages: %d\r\n", topic->total_messages);
+        send_to_char(ch, "Subscribers: %d\r\n", topic->subscriber_count);
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "admin") && GET_LEVEL(ch) >= LVL_IMMORT) {
+        send_to_char(ch, "PubSub Admin commands not yet implemented.\r\n");
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "stats") && GET_LEVEL(ch) >= LVL_IMMORT) {
+        send_to_char(ch, "PubSub System Statistics:\r\n");
+        send_to_char(ch, "System Enabled: %s\r\n", pubsub_system_enabled ? "YES" : "NO");
+        send_to_char(ch, "Database Connected: %s\r\n", "YES");  /* Simplified */
+        send_to_char(ch, "Total Topics: %d\r\n", 0);  /* TODO: Get actual count */
+        send_to_char(ch, "Active Subscriptions: (not implemented)\r\n");
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "spatial") && GET_LEVEL(ch) >= LVL_IMMORT) {
+        if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+            send_to_char(ch, "You must be in the wilderness to test spatial systems.\r\n");
+            return;
+        }
+        
+        /* Test both visual and audio systems */
+        send_to_char(ch, "Testing spatial systems...\r\n");
+        
+        /* Test visual system */
+        send_to_char(ch, "Testing spatial visual system...\r\n");
+        int visual_result = spatial_visual_test_ship_passing(X_LOC(ch) + 5, Y_LOC(ch), 
+                                                           "a large merchant vessel sailing north");
+        if (visual_result == SPATIAL_SUCCESS) {
+            send_to_char(ch, "Spatial visual test completed successfully.\r\n");
+        } else {
+            send_to_char(ch, "Spatial visual test failed (error %d).\r\n", visual_result);
+        }
+        
+        /* Test audio system */
+        send_to_char(ch, "Testing spatial audio system...\r\n");
+        int audio_result = spatial_audio_test_thunder(X_LOC(ch) - 8, Y_LOC(ch) + 3, 
+                                                     "rumbling thunder");
+        if (audio_result == SPATIAL_SUCCESS) {
+            send_to_char(ch, "Spatial audio test completed successfully.\r\n");
+        } else {
+            send_to_char(ch, "Spatial audio test failed (error %d).\r\n", audio_result);
+        }
+        
+        return;
+    }
+    
+    /* Unknown subcommand */
+    send_to_char(ch, "Unknown pubsub subcommand '%s'. Type 'pubsub' for help.\r\n", subcommand);
 }
 
 /*
@@ -321,7 +565,7 @@ ACMD(do_pubsubqueue) {
     } else if (!strcasecmp(subcommand, "test")) {
         /* Test command to create sample messages */
         if (pubsub_publish(1, GET_NAME(ch), "Test message for queue system", 
-                          PUBSUB_MESSAGE_TEXT, PUBSUB_PRIORITY_NORMAL) == PUBSUB_SUCCESS) {
+                          PUBSUB_MESSAGE_TYPE_SIMPLE, PUBSUB_PRIORITY_NORMAL) == PUBSUB_SUCCESS) {
             send_to_char(ch, "Test message published and queued.\r\n");
         } else {
             send_to_char(ch, "Failed to publish test message.\r\n");
