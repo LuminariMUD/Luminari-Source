@@ -1711,9 +1711,12 @@ void perform_call(struct char_data *ch, int call_type, int level)
       return;
     }
 
-    /* todo:  seriously, fix this */
+    /* For NPCs without a selection, randomly pick from valid animal companions */
     if (!(mob_num = GET_ANIMAL_COMPANION(ch)))
-      mob_num = 63; // meant for npc's
+    {
+      /* Animal companion vnums range from 60-67 (8 choices) */
+      mob_num = 60 + rand_number(0, 7);
+    }
 
     break;
   case MOB_C_DRAGON:
@@ -1731,9 +1734,22 @@ void perform_call(struct char_data *ch, int call_type, int level)
       return;
     }
 
-    /* todo:  seriously, fix this */
+    /* For NPCs without a selection, randomly pick from valid dragon types */
+#ifdef CAMPAIGN_DL
+    /* DragonLance campaign uses vnums 40401-40410 */
     if (!(mob_num = (GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 40400)))
-      mob_num = 39; // meant for npc's
+    {
+      /* Dragon types are 1-10, so vnum is (1-10) + 40400 = 40401-40410 */
+      mob_num = 40401 + rand_number(0, 9);
+    }
+#else
+    /* Default campaign uses vnums 1240-1249 */
+    if (!(mob_num = (GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 1239)))
+    {
+      /* Dragon types are 1-10, so vnum is (1-10) + 1239 = 1240-1249 */
+      mob_num = 1240 + rand_number(0, 9);
+    }
+#endif
 
     break;
   case MOB_C_FAMILIAR:
@@ -1753,12 +1769,19 @@ void perform_call(struct char_data *ch, int call_type, int level)
     }
 
     mob_num = GET_FAMILIAR(ch);
+    
+    /* For NPCs without a selection, randomly pick from valid familiars */
+    if (IS_NPC(ch) && mob_num <= 0)
+    {
+      /* Familiar vnums range from 80-87 (8 choices) */
+      mob_num = 80 + rand_number(0, 7);
+    }
 
     break;
 
   case MOB_SHADOW:
-    /* do they even have a valid selection yet? */
-    if (IS_NPC(ch) || !HAS_REAL_FEAT(ch, FEAT_SUMMON_SHADOW))
+    /* NPCs can always summon shadows, players need the feat */
+    if (!IS_NPC(ch) && !HAS_REAL_FEAT(ch, FEAT_SUMMON_SHADOW))
     {
       send_to_char(ch, "You cannot summon a shadow");
       return;
@@ -1834,8 +1857,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
     break;
 
     case MOB_EIDOLON:
-
-      if (IS_NPC(ch) || (!HAS_REAL_FEAT(ch, FEAT_EIDOLON) && !HAS_REAL_FEAT(ch, FEAT_UNDEAD_COHORT)))
+      /* NPCs can always summon eidolons/cohorts, players need the appropriate feat */
+      if (!IS_NPC(ch) && !HAS_REAL_FEAT(ch, FEAT_EIDOLON) && !HAS_REAL_FEAT(ch, FEAT_UNDEAD_COHORT))
       {
         send_to_char(ch, "You cannot summon %s.", CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0 ? "an undead cohort" : "an eidolon");
         return;
@@ -1856,6 +1879,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
   if (!ok_call_mob_vnum(mob_num))
   {
     send_to_char(ch, "This call type is not completely set up. Please inform a staff member.\r\n");
+    mudlog(NRM, LVL_IMMORT, TRUE, "ERROR: Invalid mob vnum %d for call type %d by %s",
+           mob_num, call_type, GET_NAME(ch));
     return;
   }
   if (level >= LVL_IMMORT)
@@ -1868,6 +1893,14 @@ void perform_call(struct char_data *ch, int call_type, int level)
   if (!(mob = read_mobile(mob_num, VIRTUAL)))
   {
     send_to_char(ch, "You don't quite remember how to call that creature.\r\n");
+    mudlog(NRM, LVL_IMMORT, TRUE, "ERROR: Failed to load mob %d for %s companion call by %s",
+           mob_num, call_type == MOB_SHADOW ? "shadow" :
+           call_type == MOB_EIDOLON ? "eidolon" :
+           call_type == MOB_C_ANIMAL ? "animal" :
+           call_type == MOB_C_FAMILIAR ? "familiar" :
+           call_type == MOB_C_MOUNT ? "mount" :
+           call_type == MOB_C_DRAGON ? "dragon" : "unknown",
+           GET_NAME(ch));
     return;
   }
 
