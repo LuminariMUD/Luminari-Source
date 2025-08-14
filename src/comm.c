@@ -97,11 +97,14 @@
 #include "wilderness.h"
 #include "spell_prep.h"
 #include "perfmon.h"
+#include "help.h"
 #include "transport.h"
 #include "hunts.h"
 #include "bardic_performance.h" /* for the bard performance pulse */
 #include "crafting_new.h"
 #include "ai_service.h" /* for shutdown_ai_service() */
+#include "pubsub.h"     /* for automatic queue processing */
+#include "discord_bridge.h" /* Discord bridge integration */
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -117,6 +120,7 @@ int buf_overflows = 0;                          /* # of overflows of output */
 int buf_switches = 0;                           /* # of switches from small to large buf */
 int circle_shutdown = 0;                        /* clean shutdown */
 int circle_reboot = 0;                          /* reboot the game after a shutdown */
+static volatile sig_atomic_t shutdown_requested = 0; /* flag for signal-triggered shutdown */
 int no_specials = 0;                            /* Suppress ass. of special routines */
 int scheck = 0;                                 /* for syntax checking mode */
 FILE *logfile = NULL;                           /* Where to send the log messages. */
@@ -239,9 +243,9 @@ int luminari_main(int argc, char **argv)
 int main(int argc, char **argv)
 #endif
 {
-  /* Copy to stack memory to ensure the build info is embedded in core dumps */
-  char embed_version_build[512];
-  snprintf(embed_version_build, sizeof(embed_version_build), "%s\r\n%s", luminari_version, luminari_build);
+  /* Copy to stack memory to ensure the version is embedded in core dumps */
+  char embed_version[256];
+  snprintf(embed_version, sizeof(embed_version), "%s", luminari_version);
 
   int pos = 1;
   const char *dir = NULL;
@@ -390,7 +394,7 @@ int main(int argc, char **argv)
   /* Moved here to distinguish command line options and to show up
    * in the log if stderr is redirected to a file. */
   log("Loading configuration.");
-  log("%s\r\n%s", luminari_version, luminari_build);
+  log("%s", luminari_version);
 
   if (chdir(dir) < 0)
   {
@@ -426,6 +430,7 @@ int main(int argc, char **argv)
     free_command_list();                   /* act.informative.c */
     free_social_messages();                /* act.social.c */
     free_help_table();                     /* db.c */
+    cleanup_help_handlers();               /* help.c - cleanup handler chain */
     free_invalid_list();                   /* ban.c */
     free_save_list();                      /* genolc.c */
     free_strings(&config_info, OASIS_CFG); /* oasis_delete.c */
@@ -644,11 +649,19 @@ static void init_game(ush_int local_port)
     copyover_recover();
   }
 
+  /* Initialize Discord bridge */
+  log("Initializing Discord bridge.");
+  init_discord_bridge();
+
   log("Entering game loop.");
 
   game_loop(mother_desc);
 
   Crash_save_all();
+  
+  /* Shutdown Discord bridge */
+  log("Shutting down Discord bridge.");
+  shutdown_discord_bridge();
 
   log("Closing all sockets.");
   while (descriptor_list)
@@ -667,6 +680,14 @@ static void init_game(ush_int local_port)
     log("Rebooting.");
     exit(52); /* what's so great about HHGTTG, anyhow? */
   }
+  /* Beginner's Note: If we got here from a signal (Ctrl+C, kill, etc.),
+   * convert the flag to the normal shutdown flag so the rest of the
+   * cleanup code works properly. */
+  if (shutdown_requested) {
+    circle_shutdown = 1;
+    log("Shutdown initiated by signal - performing cleanup...");
+  }
+  
   log("Normal termination of game.");
 }
 
@@ -878,7 +899,12 @@ void game_loop(socket_t local_mother_desc)
   gettimeofday(&last_time, (struct timezone *)0);
 
   /* The Main Loop.  The Big Cheese.  The Top Dog.  The Head Honcho.  The.. */
-  while (!circle_shutdown)
+  /* Beginner's Note: Main game loop runs until shutdown is requested.
+   * Shutdown can be triggered by:
+   * 1. In-game 'shutdown' command (sets circle_shutdown)
+   * 2. Signal from OS like Ctrl+C (sets shutdown_requested)
+   * Checking both ensures clean exit in all cases. */
+  while (!circle_shutdown && !shutdown_requested)
   {
 
     /* Sleep if we don't have any connections */
@@ -905,6 +931,23 @@ void game_loop(socket_t local_mother_desc)
     FD_SET(local_mother_desc, &input_set);
 
     maxdesc = local_mother_desc;
+    
+    /* Add Discord bridge sockets to select sets */
+    if (discord_bridge) {
+      if (discord_bridge->server_socket != INVALID_SOCKET) {
+        FD_SET(discord_bridge->server_socket, &input_set);
+        if (discord_bridge->server_socket > maxdesc)
+          maxdesc = discord_bridge->server_socket;
+      }
+      if (discord_bridge->client_socket != INVALID_SOCKET) {
+        FD_SET(discord_bridge->client_socket, &input_set);
+        if (discord_bridge->outbuf_len > 0)
+          FD_SET(discord_bridge->client_socket, &output_set);
+        if (discord_bridge->client_socket > maxdesc)
+          maxdesc = discord_bridge->client_socket;
+      }
+    }
+    
     for (d = descriptor_list; d; d = d->next)
     {
 #ifndef CIRCLE_WINDOWS
@@ -1040,6 +1083,30 @@ void game_loop(socket_t local_mother_desc)
     /* If there are new connections waiting, accept them. */
     if (FD_ISSET(local_mother_desc, &input_set))
       new_descriptor(local_mother_desc);
+    
+    /* Process Discord bridge */
+    if (discord_bridge) {
+      /* Check for new Discord bridge connections */
+      if (discord_bridge->server_socket != INVALID_SOCKET && 
+          FD_ISSET(discord_bridge->server_socket, &input_set)) {
+        accept_discord_connection();
+      }
+      
+      /* Process Discord bridge input */
+      if (discord_bridge->client_socket != INVALID_SOCKET &&
+          FD_ISSET(discord_bridge->client_socket, &input_set)) {
+        process_discord_input();
+      }
+      
+      /* Process Discord bridge output */
+      if (discord_bridge->client_socket != INVALID_SOCKET &&
+          FD_ISSET(discord_bridge->client_socket, &output_set)) {
+        process_discord_output();
+      }
+      
+      /* Check for connection timeout */
+      check_discord_timeout();
+    }
 
     /* Kick out the freaky folks in the exception set and marked for close */
     for (d = descriptor_list; d; d = next_d)
@@ -1284,6 +1351,8 @@ void heartbeat(int heart_pulse)
     travel_tickdown();
     self_buffing();
     craft_update();
+    /* Process PubSub message queue automatically */
+    pubsub_process_message_queue();
   }
 
   if (!(heart_pulse % (PASSES_PER_SEC * 5)))
@@ -2216,6 +2285,10 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
   if (t->large_outbuf)
   {
     /* We already have a large buffer, just use it */
+    /* IMPORTANT: When reusing an existing large buffer, t->output might already
+     * point to t->large_outbuf->text from a previous buffer switch. This means
+     * the source and destination of the copy operation below could overlap.
+     * We must handle this case carefully to avoid undefined behavior. */
   }
   else if (bufpool != NULL)
   {
@@ -2230,7 +2303,20 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
     buf_largecount++;
   }
 
-  strcpy(t->large_outbuf->text, t->output); /* strcpy: OK (size checked previously) */
+  /* CRITICAL FIX: Check if source and destination are the same to avoid overlap.
+   * When a large buffer is reused, t->output may already point to t->large_outbuf->text,
+   * causing source and destination to overlap. In this case, we don't need to copy
+   * at all since the data is already in the right place.
+   * 
+   * This fixes a critical memory corruption issue detected by Valgrind where
+   * "Source and destination overlap in strcpy" was reported. */
+  if (t->output != t->large_outbuf->text)
+  {
+    /* Source and destination are different - safe to use strcpy */
+    strcpy(t->large_outbuf->text, t->output); /* strcpy: OK (no overlap) */
+  }
+  /* else: source and destination are the same - no copy needed, data already there */
+  
   t->output = t->large_outbuf->text;        /* make big buffer primary */
   strcat(t->output, txt);                   /* strcat: OK (size checked) */
 
@@ -3310,10 +3396,24 @@ static RETSIGTYPE checkpointing(int sig)
 }
 
 /* Dying anyway... */
+/* Global flag to signal that shutdown was requested by signal handler.
+ * When set to 1, the main game loop will exit gracefully, allowing
+ * proper cleanup of all allocated memory (rooms, objects, characters, etc.) */
+/* Variable moved to top of file with other globals */
+
 static RETSIGTYPE hupsig(int sig)
 {
-  log("SYSERR: Received SIGHUP, SIGINT, or SIGTERM [%d].  Shutting down...", sig);
-  exit(1); /* perhaps something more elegant should substituted */
+  /* Beginner's Note: Signal handlers should do minimal work to avoid race conditions.
+   * We just set a flag here that the main game loop checks. This ensures all
+   * cleanup code in destroy_db() runs before exit, preventing memory leaks.
+   * 
+   * The 'volatile sig_atomic_t' type ensures the variable can be safely
+   * modified in a signal handler and read in the main program. */
+  log("SYSERR: Received SIGHUP, SIGINT, or SIGTERM [%d].  Initiating graceful shutdown...", sig);
+  shutdown_requested = 1;  /* Set flag for main loop to check */
+  
+  /* Do NOT call exit() here! That would skip all cleanup code and leak memory.
+   * The main game loop will detect shutdown_requested and exit cleanly. */
 }
 
 #endif /* CIRCLE_UNIX */
@@ -3552,6 +3652,12 @@ void send_to_group(struct char_data *ch, struct group_data *group, const char *m
   if (msg == NULL)
     return;
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((tch = (struct char_data *)simple_list(group->members)) != NULL)
   {
     if (tch != ch && !IS_NPC(tch) && tch->desc && STATE(tch->desc) == CON_PLAYING)

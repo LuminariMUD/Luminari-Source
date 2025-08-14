@@ -38,6 +38,7 @@
 #include "hlquest.h"
 #include "asciimap.h"
 #include "prefedit.h"
+#include "resource_system.h"  /* Phase 5: Wilderness harvesting commands */
 #include "ibt.h"
 #include "mud_event.h"
 #include "race.h"
@@ -59,18 +60,22 @@
 #include "alchemy.h"
 #include "helpers.h"
 #include "staff_events.h"
+#include "vessels.h"
 #include "premadebuilds.h"
 #include "missions.h"
 #include "transport.h"
 #include "hunts.h"
 #include "fight.h" /* for init condensed combat */
 #include "char_descs.h"
+#include "discord_bridge.h"
 #include "evolutions.h"
 #include "deities.h"
+#include "pubsub.h"
 #include "mudlim.h"
 #include "backgrounds.h"
 #include "roleplay.h"
 #include "crafting_new.h"
+#include "mysql.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -91,6 +96,7 @@ int *cmd_sort_info = NULL;
 struct command_info *complete_cmd_info;
 
 ACMD_DECL(do_reboot);
+ACMD_DECL(do_relock);
 
 /* This is the Master Command List. You can put new commands in, take commands
  * out, change the order they appear in, etc.  You can adjust the "priority"
@@ -142,6 +148,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"activate", "activate", POS_FIGHTING, do_activate, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"at", "at", POS_DEAD, do_at, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"advance", "adv", POS_DEAD, do_advance, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"materialadmin", "matadmin", POS_DEAD, do_materialadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"aedit", "aed", POS_DEAD, do_oasis_aedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"ai", "ai", POS_DEAD, do_ai, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"alias", "ali", POS_DEAD, do_alias, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -258,6 +265,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"cls", "cls", POS_DEAD, do_gen_ps, 0, SCMD_CLEAR, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"consider", "con", POS_RECLINING, do_consider, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"condemn", "condemn", POS_RECLINING, do_gen_preparation, 0, SCMD_CONDEMN, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"conservation", "conservation", POS_RESTING, do_conservation, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"corruptingtouch", "corruptingtouch", POS_FIGHTING, do_touch_of_corruption, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"commune", "commune", POS_RESTING, do_gen_preparation, 0, SCMD_COMMUNE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"commands", "com", POS_DEAD, do_commands, 0, SCMD_COMMANDS, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -288,6 +296,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"craft", "craft", POS_STANDING, do_craft, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"crafting", "crafting", POS_STANDING, do_craft_with_kits, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"craftscore", "craftsc", POS_STANDING, do_craft_score, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"craftmaterials", "craftmat", POS_DEAD, do_list_craft_materials, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"craftedit", "crafte", POS_DEAD, do_oasis_craftedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"comeandgetme", "comeandgetme", POS_FIGHTING, do_comeandgetme, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_comeandgetme},
     {"curingtouch", "curingtouch", POS_STANDING, do_curingtouch, 0, 0, FALSE, ACTION_SWIFT, {6, 0}, NULL},
@@ -314,14 +323,14 @@ cpp_extern const struct command_info cmd_info[] = {
     {"damage", "damage", POS_DEAD, do_damage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"damagereduction", "damager", POS_DEAD, do_affects, 0, SCMD_DAMAGE_REDUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"database", "database", POS_DEAD, do_database, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"db_init_system", "db_init", POS_DEAD, do_db_init_system, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deletepath", "deletepath", POS_DEAD, do_deletepath, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     {"deity", "deity", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#endif
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dice", "diceroll", POS_DEAD, do_diceroll, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dig", "dig", POS_DEAD, do_dig, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -329,6 +338,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"discharge", "discharge", POS_RECLINING, do_discharge, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"discoveries", "discov", POS_RECLINING, do_discoveries, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"disengage", "disen", POS_STANDING, do_disengage, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"discord", "disc", POS_DEAD, do_discord, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"display", "disp", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"divinebond", "divineb", POS_DEAD, do_divine_bond, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dominate", "dominate", POS_FIGHTING, do_vampiric_dominate, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_vampiric_dominate},
@@ -439,6 +449,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"genmap", "genmap", POS_SLEEPING, do_genmap, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"genriver", "genriver", POS_SLEEPING, do_genriver, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"give", "giv", POS_RECLINING, do_give, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
+    {"gather", "gather", POS_STANDING, do_wilderness_gather, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+#endif
     {"goto", "go", POS_SLEEPING, do_goto, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"goals", "goals", POS_SLEEPING, do_goals, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"gold", "gol", POS_RECLINING, do_gold, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -466,10 +479,12 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"help", "h", POS_DEAD, do_help, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"helpsearch", "helps", POS_DEAD, do_helpsearch, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"happyhour", "ha", POS_DEAD, do_happyhour, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"here", "here", POS_RECLINING, do_look, 0, SCMD_HERE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hedit", "hedit", POS_DEAD, do_oasis_hedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"helpcheck", "helpch", POS_DEAD, do_helpcheck, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"helpgen", "helpg", POS_DEAD, do_helpgen, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hide", "hi", POS_RECLINING, do_hide, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"hindex", "hind", POS_DEAD, do_hindex, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"handbook", "handb", POS_DEAD, do_gen_ps, LVL_IMMORT, SCMD_HANDBOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -484,7 +499,7 @@ cpp_extern const struct command_info cmd_info[] = {
 #if defined(CAMPAIGN_DL)
     {"harvest", "harvest", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_HARVEST, TRUE, ACTION_STANDARD, {0, 0}, NULL},
 #else
-    {"harvest", "harvest", POS_STANDING, do_harvest, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"harvest", "harvest", POS_STANDING, do_wilderness_harvest, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
 #endif
     {"hlqedit", "hlqedit", POS_DEAD, do_hlqedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hlqlist", "hlqlist", POS_DEAD, do_hlqlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -576,11 +591,14 @@ cpp_extern const struct command_info cmd_info[] = {
     {"map", "map", POS_STANDING, do_map, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mark", "mark", POS_STANDING, do_mark, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mastermind", "mastermind", POS_FIGHTING, do_mastermind, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_mastermind},
-    {"materials", "materials", POS_DEAD, do_list_craft_materials, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"materials", "materials", POS_DEAD, do_materials, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"maxhp", "maxhp", POS_DEAD, do_maxhp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mercies", "mercies", POS_DEAD, do_mercies, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
+    {"mine", "mine", POS_STANDING, do_wilderness_mine, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+#endif
     {"mission", "mission", POS_RESTING, do_missions, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mlist", "mlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_MLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"mcopy", "mcopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_MEDIT, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -681,6 +699,11 @@ cpp_extern const struct command_info cmd_info[] = {
     {"perfmon", "perfmon", POS_DEAD, do_perfmon, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"priceset", "priceset", POS_RECLINING, do_priceset, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"pets", "pets", POS_RECLINING, do_pets, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"pubsub", "pubs", POS_DEAD, do_pubsub, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"subscribe", "sub", POS_DEAD, do_subscribe, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"topics", "topics", POS_DEAD, do_topics, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"pubsubtopic", "pubsubt", POS_DEAD, do_pubsubtopic, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"pubsubqueue", "pubsubq", POS_DEAD, do_pubsubqueue, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -716,6 +739,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"relay", "relay", POS_RECLINING, do_relay, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reload", "reload", POS_FIGHTING, do_reload, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reloadimm", "reloadimm", POS_DEAD, do_reboot, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"relock", "relock", POS_DEAD, do_relock, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"recite", "reci", POS_FIGHTING, do_use_consumable, 0, SCMD_RECITE, FALSE, ACTION_SWIFT, {0, 6}, NULL},
     {"receive", "rece", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"recent", "recent", POS_DEAD, do_recent, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -727,6 +751,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"rescue", "resc", POS_FIGHTING, do_rescue, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_rescue},
     {"resistances", "res", POS_DEAD, do_affects, 0, SCMD_RESISTANCES, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"restore", "resto", POS_DEAD, do_restore, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"resourceadmin", "resadmin", POS_DEAD, do_resourceadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"effectsadmin", "effadmin", POS_DEAD, do_effectsadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"retainer", "retainer", POS_DEAD, do_retainer, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"return", "retu", POS_DEAD, do_return, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"redit", "redit", POS_DEAD, do_oasis_redit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -804,7 +830,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"setroomdesc", "setroomd", POS_DEAD, do_setroomdesc, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomflags", "setroomf", POS_DEAD, do_setroomflag, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomsect", "setrooms", POS_DEAD, do_setroomsect, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"setworldsect", "setw", POS_DEAD, do_setworldsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"settime", "sett", POS_DEAD, do_settime, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setweather", "setw", POS_DEAD, do_setweather, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setworldsect", "setwo", POS_DEAD, do_setworldsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shadowcast", "shc", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SHADOW, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"shadowform", "shf", POS_SITTING, do_gen_tog, 1, SCMD_SHADOWFORM, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"sheath", "she", POS_SITTING, do_sheath, 1, 0, FALSE, ACTION_NONE, {0, 6}, NULL},
@@ -869,6 +897,7 @@ cpp_extern const struct command_info cmd_info[] = {
 #else
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
+    {"materials", "materials", POS_RECLINING, do_materials, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sacredflames", "sacredflames", POS_FIGHTING, do_sacredflames, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"staffevents", "staffevents", POS_SLEEPING, do_staffevents, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"summon", "summon", POS_RECLINING, do_summon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -991,6 +1020,16 @@ cpp_extern const struct command_info cmd_info[] = {
     {"zunlock", "zunlock", POS_DEAD, do_zunlock, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"zcheck", "zcheck", POS_DEAD, do_zcheck, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"zpurge", "zpurge", POS_DEAD, do_zpurge, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+
+    /* Greyhawk Ship System Commands */
+    {"tactical", "tact", POS_STANDING, do_greyhawk_tactical, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"shipstatus", "shipstat", POS_STANDING, do_greyhawk_status, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"speed", "speed", POS_STANDING, do_greyhawk_speed, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"heading", "heading", POS_STANDING, do_greyhawk_heading, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"contacts", "contacts", POS_STANDING, do_greyhawk_contacts, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"disembark", "disembark", POS_STANDING, do_greyhawk_disembark, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"shipload", "shipload", POS_DEAD, do_greyhawk_shipload, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setsail", "setsail", POS_DEAD, do_greyhawk_setsail, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},    
 
     /* test commands for new prep system */
     //{ "memtest", "memtest", POS_RESTING, do_gen_preparation, LVL_BUILDER, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -2584,6 +2623,53 @@ void nanny(struct descriptor_data *d, char *arg)
       if ((player_i = load_char(tmp_name, d->character)) > -1)
       {
         /* Player found! */
+        
+        /* First check if character was originally created with this account */
+        if (GET_ACCOUNT_NAME(d->character) && 
+            !strcasecmp(GET_ACCOUNT_NAME(d->character), d->account->name))
+        {
+          /* Character was created with this account - auto re-link without password */
+          int i;
+          for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[i] != NULL); i++)
+            ;
+          if (i == MAX_CHARS_PER_ACCOUNT)
+          {
+            write_to_output(d, "You have reached the maximum number of characters on this account.\r\n"
+                               "Remove a character before adding a new one.\r\n");
+          }
+          else
+          {
+            d->account->character_names[i] = strdup(GET_NAME(d->character));
+            
+            /* Ensure the character exists in MySQL player_data table */
+            if (mysql_available && conn) {
+              char buf[2048];
+              char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(d->character));
+              if (escaped_name) {
+                /* First try to INSERT the character (in case it doesn't exist) */
+                snprintf(buf, sizeof(buf), 
+                  "INSERT IGNORE INTO player_data (name, account_id, last_online) "
+                  "VALUES ('%s', %d, NOW())",
+                  escaped_name, d->account->id);
+                
+                if (mysql_query(conn, buf)) {
+                  log("SYSERR: Unable to INSERT character %s into player_data: %s", 
+                      GET_NAME(d->character), mysql_error(conn));
+                }
+                free(escaped_name);
+              }
+            }
+            
+            save_account(d->account);
+            write_to_output(d, "Character %s has been restored to your account!\r\n", GET_NAME(d->character));
+          }
+          free_char(d->character);
+          show_account_menu(d);
+          STATE(d) = CON_ACCOUNT_MENU;
+          return;
+        }
+        
+        /* Check if it's linked to another account in the database */
         char *acct_name = get_char_account_name(GET_NAME(d->character));
         if (acct_name != NULL)
         {
@@ -3687,7 +3773,44 @@ switch (load_result)
 
     /* Now GET_NAME() will work properly. */
     init_char(d->character);
+    
+    /* Copy account password to the character for account-created characters */
+    if (d->account && d->account->password[0]) {
+      /* Use safe string copy that always null-terminates */
+      snprintf(GET_PASSWD(d->character), MAX_PWD_LENGTH + 1, "%s", d->account->password);
+    }
+    
+    /* Add the new character to the account's character list */
+    if (d->account) {
+      int i;
+      for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[i] != NULL); i++)
+        ;
+      if (i < MAX_CHARS_PER_ACCOUNT) {
+        d->account->character_names[i] = strdup(GET_NAME(d->character));
+      }
+    }
+    
     save_char(d->character, 0);
+    
+    /* Ensure the character exists in MySQL player_data table for account linking */
+    if (d->account && mysql_available && conn) {
+      char buf[2048];
+      char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(d->character));
+      if (escaped_name) {
+        /* First try to INSERT the character (in case it doesn't exist) */
+        snprintf(buf, sizeof(buf), 
+          "INSERT IGNORE INTO player_data (name, account_id, last_online) "
+          "VALUES ('%s', %d, NOW())",
+          escaped_name, d->account->id);
+        
+        if (mysql_query(conn, buf)) {
+          log("SYSERR: Unable to INSERT new character %s into player_data: %s", 
+              GET_NAME(d->character), mysql_error(conn));
+        }
+        free(escaped_name);
+      }
+    }
+    
     save_account(d->account);
     save_player_index();
 
@@ -3805,7 +3928,7 @@ switch (load_result)
 
   case CON_SETPREFS:
 
-    if (!strcmp(arg, "yes") || !strcmp(arg, "YES"))
+    if (!strcasecmp(arg, "yes") || !strcasecmp(arg, "y"))
     {
       write_to_output(d, "Confirmed, adding all recommended preference flags.\r\n");
       
@@ -3832,7 +3955,7 @@ switch (load_result)
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_CAREFUL_PET);
       GET_WIMP_LEV(d->character) = 10;
     }
-    else if (!strcmp(arg, "no") || !strcmp(arg, "NO"))
+    else if (!strcasecmp(arg, "no") || !strcasecmp(arg, "n"))
     {
       write_to_output(d, "Confirmed. Only standard preference flags applied.\r\n");
     }
@@ -3874,6 +3997,12 @@ switch (load_result)
       write_to_output(d, "\r\n");
     }
     add_llog_entry(d->character, LAST_CONNECT);
+    
+    /* Safety save for new characters before showing menu */
+    if (d->character && !PLR_FLAGGED(d->character, PLR_DELETED)) {
+      save_char(d->character, 0);
+    }
+    
     STATE(d) = CON_MENU;
 
     break;

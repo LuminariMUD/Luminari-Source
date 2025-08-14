@@ -36,6 +36,7 @@
 #include "class.h"
 #include "oasis.h"
 #include "crafting_new.h"
+#include "resource_system.h"
 #include <sys/time.h>
 
 #define LOAD_HIT 0
@@ -1144,6 +1145,29 @@ int load_char(const char *name, struct char_data *ch)
           MERGE_FORMS_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "Mrcy"))
           load_mercies(fl, ch);
+        else if (!strcmp(tag, "Mat ")) {
+          /* Phase 4.5: Load individual wilderness material entries */
+          int category, subtype, quality, quantity;
+          if (sscanf(line, "%d %d %d %d", &category, &subtype, &quality, &quantity) == 4) {
+            /* Ensure material storage is initialized */
+            if (!ch->player_specials) {
+              CREATE(ch->player_specials, struct player_special_data, 1);
+            }
+            /* Find the first empty slot to load this material */
+            int i;
+            for (i = 0; i < MAX_STORED_MATERIALS; i++) {
+              if (ch->player_specials->saved.stored_materials[i].quantity == 0) {
+                if (validate_material_data(category, subtype, quality) && quantity > 0) {
+                  ch->player_specials->saved.stored_materials[i].category = category;
+                  ch->player_specials->saved.stored_materials[i].subtype = subtype;
+                  ch->player_specials->saved.stored_materials[i].quality = quality;
+                  ch->player_specials->saved.stored_materials[i].quantity = quantity;
+                }
+                break;
+              }
+            }
+          }
+        }
         // Faction mission system
         else if (!strcmp(tag, "MiCu"))
           GET_CURRENT_MISSION(ch) = atoi(line);
@@ -1472,6 +1496,16 @@ int load_char(const char *name, struct char_data *ch)
           load_warding(fl, ch);
         else if (!strcmp(tag, "Wis "))
           GET_REAL_WIS(ch) = atoi(line);
+        else if (!strcmp(tag, "WMat")) {
+          /* Phase 4.5: Load wilderness material storage count */
+          int material_count = atoi(line);
+          if (material_count > 0 && material_count <= MAX_STORED_MATERIALS) {
+            ch->player_specials->saved.stored_material_count = material_count;
+            /* Reset all material slots to zero before loading */
+            memset(ch->player_specials->saved.stored_materials, 0, 
+                   sizeof(ch->player_specials->saved.stored_materials));
+          }
+        }
         break;
 
       case 'X':
@@ -1510,6 +1544,12 @@ int load_char(const char *name, struct char_data *ch)
     GET_COND(ch, THIRST) = -1;
     GET_COND(ch, DRUNK) = -1;
   }
+  
+  /* Initialize material storage if not present (for existing characters) */
+  if (ch->player_specials && ch->player_specials->saved.stored_material_count == 0) {
+    init_material_storage(ch);
+  }
+  
   fclose(fl);
   return (id);
 }
@@ -2838,6 +2878,27 @@ void save_char(struct char_data *ch, int mode)
   }
   /* end DR saving */
 
+  /* Phase 4.5: Save wilderness material storage */
+  if (ch->player_specials) {
+    /* Count non-empty materials */
+    int material_count = 0;
+    for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
+      if (ch->player_specials->saved.stored_materials[i].quantity > 0) {
+        material_count++;
+      }
+    }
+    
+    if (material_count > 0) {
+      BUFFER_WRITE("WMat: %d\n", material_count);
+      for (i = 0; i < ch->player_specials->saved.stored_material_count; i++) {
+        struct material_storage *mat = &ch->player_specials->saved.stored_materials[i];
+        if (mat->quantity > 0) {
+          BUFFER_WRITE("Mat : %d %d %d %d\n", mat->category, mat->subtype, mat->quality, mat->quantity);
+        }
+      }
+    }
+  }
+
   write_aliases_ascii(fl, ch);
   save_char_vars_ascii(fl, ch);
 
@@ -4092,7 +4153,11 @@ void save_char_pets(struct char_data *ch)
 
   snprintf(chname, sizeof(chname), "%s", GET_NAME(ch));
 
-  mysql_ping(conn);
+  /* Ensure database connection is active before save operations */
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed for player %s", __func__, GET_NAME(ch));
+    return;
+  }
 
   char del_buf[2048];
   /* Delete existing save data.  In the future may just flag these for deletion. */
@@ -4219,7 +4284,11 @@ void load_char_pets(struct char_data *ch)
   if (IN_ROOM(ch) == NOWHERE)
     return;
 
-  mysql_ping(conn);
+  /* Ensure database connection is active before load operations */
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed for player %s", __func__, GET_NAME(ch));
+    return;
+  }
 
   char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
   if (!escaped_name) {

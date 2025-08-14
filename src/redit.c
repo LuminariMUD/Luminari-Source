@@ -22,7 +22,7 @@
 #include "constants.h"
 #include "modify.h"
 #include "wilderness.h"
-#include "trails.h"
+#include "movement_tracks.h"  /* includes trail data structures */
 
 /* local functions */
 static void redit_setup_new(struct descriptor_data *d);
@@ -284,6 +284,12 @@ void redit_save_internally(struct descriptor_data *d)
     return;
   }
 
+  /* Debug: Log trail_tracks pointer before script operations */
+  if (world[room_num].trail_tracks) {
+    log("DEBUG: Room %d trail_tracks before script update: head=%p, tail=%p", 
+        room_num, world[room_num].trail_tracks->head, world[room_num].trail_tracks->tail);
+  }
+  
   /* Update triggers and free old proto list */
   if (world[room_num].proto_script &&
       world[room_num].proto_script != OLC_SCRIPT(d))
@@ -292,6 +298,12 @@ void redit_save_internally(struct descriptor_data *d)
   world[room_num].proto_script = OLC_SCRIPT(d);
   assign_triggers(&world[room_num], WLD_TRIGGER);
   /* end trigger update */
+  
+  /* Debug: Log trail_tracks pointer after script operations */
+  if (world[room_num].trail_tracks) {
+    log("DEBUG: Room %d trail_tracks after script update: head=%p, tail=%p", 
+        room_num, world[room_num].trail_tracks->head, world[room_num].trail_tracks->tail);
+  }
 
   if (world[room_num].trail_tracks == NULL)
   {

@@ -10,7 +10,7 @@ This guide covers building LuminariMUD using CMake as an alternative to the trad
 
 - CMake 3.12 or higher
 - GCC compiler with C90 support
-- MySQL/MariaDB development libraries
+- MariaDB development libraries (libmariadb-dev) or MySQL development libraries
 - GD graphics library (optional)
 
 ## Quick Start
@@ -68,7 +68,11 @@ cmake -DSTATIC_ANALYSIS=ON ..
 If CMake can't find your libraries automatically:
 
 ```bash
-# Specify MySQL paths
+# Specify MariaDB paths (if not found automatically)
+cmake -DMARIADB_INCLUDE_DIR=/usr/include/mariadb \
+      -DMARIADB_LIBRARY=/usr/lib/libmariadb.so ..
+
+# Or for MySQL compatibility
 cmake -DMYSQL_INCLUDE_DIR=/usr/include/mysql \
       -DMYSQL_LIBRARY=/usr/lib/libmysqlclient.so ..
 

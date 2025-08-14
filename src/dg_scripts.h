@@ -134,6 +134,7 @@
 struct cmdlist_element
 {
         char *cmd; /* one line of a trigger */
+        int line_num; /* line number in original script for debugging */
         struct cmdlist_element *original;
         struct cmdlist_element *next;
 };
@@ -232,7 +233,7 @@ int wear_otrigger(obj_data *obj, char_data *actor, int where);
 int remove_otrigger(obj_data *obj, char_data *actor);
 
 int cmd_otrig(obj_data *obj, char_data *actor, char *cmd,
-              char *argument, int type);
+              char *argument, int cmd_type);
 int command_mtrigger(char_data *actor, char *cmd, char *argument);
 int command_otrigger(char_data *actor, char *cmd, char *argument);
 int command_wtrigger(char_data *actor, char *cmd, char *argument);
@@ -308,9 +309,18 @@ void save_char_vars_ascii(FILE *file, struct char_data *ch);
 int perform_set_dg_var(struct char_data *ch, struct char_data *vict, char *val_arg);
 int trig_is_attached(struct script_data *sc, int trig_num);
 
+/* Structure to pass parameters to script_driver safely 
+ * This avoids stack corruption issues with parameter passing */
+struct script_call_args {
+    void *go_adress;
+    trig_data *trig;
+    int type;
+    int mode;
+};
+
 /* To maintain strict-aliasing we'll have to do this trick with a union */
 /* Thanks to Chris Gilbert for reminding me that there are other options. */
-int script_driver(void *go_adress, trig_data *trig, int type, int mode);
+int script_driver(struct script_call_args *args);
 trig_rnum real_trigger(trig_vnum vnum);
 void process_eval(void *go, struct script_data *sc, trig_data *trig,
                   int type, char *cmd);

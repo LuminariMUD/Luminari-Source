@@ -207,27 +207,38 @@ endif()
 # ========== MySQL/MariaDB support ==========
 find_package(PkgConfig)
 if (PkgConfig_FOUND)
-    pkg_check_modules(MYSQL mysqlclient)
-    if (MYSQL_FOUND)
-        message(STATUS "Found MySQL: ${MYSQL_LIBRARIES}")
-        list(APPEND EXTRA_LIBS ${MYSQL_LIBRARIES})
-        include_directories(${MYSQL_INCLUDE_DIRS})
+    # Try MariaDB first (preferred)
+    pkg_check_modules(MARIADB mariadb)
+    if (MARIADB_FOUND)
+        message(STATUS "Found MariaDB: ${MARIADB_LIBRARIES}")
+        list(APPEND EXTRA_LIBS ${MARIADB_LIBRARIES})
+        include_directories(${MARIADB_INCLUDE_DIRS})
         set(CIRCLE_MYSQL 1)
     else()
-        # Try manual search
-        find_path(MYSQL_INCLUDE_DIR mysql.h
-            PATHS /usr/include/mysql /usr/local/include/mysql
-            PATH_SUFFIXES mysql)
-        find_library(MYSQL_LIBRARY mysqlclient
-            PATHS /usr/lib /usr/local/lib
-            PATH_SUFFIXES mysql)
-        if (MYSQL_INCLUDE_DIR AND MYSQL_LIBRARY)
-            message(STATUS "Found MySQL manually: ${MYSQL_LIBRARY}")
-            list(APPEND EXTRA_LIBS ${MYSQL_LIBRARY})
-            include_directories(${MYSQL_INCLUDE_DIR})
+        # Fall back to MySQL
+        pkg_check_modules(MYSQL mysqlclient)
+        if (MYSQL_FOUND)
+            message(STATUS "Found MySQL: ${MYSQL_LIBRARIES}")
+            list(APPEND EXTRA_LIBS ${MYSQL_LIBRARIES})
+            include_directories(${MYSQL_INCLUDE_DIRS})
             set(CIRCLE_MYSQL 1)
         else()
-            message(WARNING "MySQL not found. MySQL support will be disabled.")
+            # Try manual search for MariaDB/MySQL
+            find_path(MYSQL_INCLUDE_DIR mysql.h
+                PATHS /usr/include/mariadb /usr/include/mysql /usr/local/include/mariadb /usr/local/include/mysql
+                PATH_SUFFIXES mariadb mysql)
+            find_library(MYSQL_LIBRARY 
+                NAMES mariadb mysqlclient
+                PATHS /usr/lib /usr/local/lib
+                PATH_SUFFIXES mariadb mysql)
+            if (MYSQL_INCLUDE_DIR AND MYSQL_LIBRARY)
+                message(STATUS "Found MariaDB/MySQL manually: ${MYSQL_LIBRARY}")
+                list(APPEND EXTRA_LIBS ${MYSQL_LIBRARY})
+                include_directories(${MYSQL_INCLUDE_DIR})
+                set(CIRCLE_MYSQL 1)
+            else()
+                message(WARNING "MariaDB/MySQL not found. Database support will be disabled.")
+            endif()
         endif()
     endif()
 endif()
@@ -458,7 +469,6 @@ set(SRC_C_FILES
     src/act.comm.do_spec_comm.c
     src/act.informative.c
     src/act.item.c
-    src/act.movement.c
     src/act.offensive.c
     src/act.other.c
     src/act.social.c
@@ -494,9 +504,14 @@ set(SRC_C_FILES
     src/crafting_recipes.c
     src/crafts.c
     src/db.c
+    src/db_init.c
+    src/db_init_data.c
+    src/db_startup_init.c
+    src/db_admin_commands.c
     src/deities.c
     src/desc_engine.c
     src/dg_comm.c
+    src/discord_bridge.c
     src/dg_db_scripts.c
     src/dg_event.c
     src/dg_handler.c
@@ -544,7 +559,13 @@ set(SRC_C_FILES
     src/mail.c
     src/medit.c
     src/missions.c
-    src/mobact.c
+    src/mob_act.c
+    src/mob_memory.c
+    src/mob_utils.c
+    src/mob_race.c
+    src/mob_psionic.c
+    src/mob_class.c
+    src/mob_spells.c
     src/modify.c
     src/msgedit.c
     src/mud_event.c
@@ -592,6 +613,7 @@ set(SRC_C_FILES
     src/treasure.c
     src/treasure_const.c
     src/utils.c
+    src/vessels.c
     src/weather.c
     src/wilderness.c
     src/zedit.c

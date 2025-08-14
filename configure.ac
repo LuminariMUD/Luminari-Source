@@ -54,20 +54,9 @@ if test "x$GCC" = xyes; then
     CFLAGS=$OLDCFLAGS
   ])
 
-  dnl If gcc -Wall gives no warnings with isascii(), use "-Wall";
-  dnl Otherwise, if gcc -Wall gives isascii warnings:
-  dnl    If we can use -Wno-char-subscripts, use "-Wall -Wno-char-subscripts"
-  dnl    If can't use -Wno-char-subscripts, use no flags at all.
-
-  if test ${ac_cv_char_warn:-ERROR} = no; then
-    MYFLAGS="-Wall"
-  else
-    if test ${ac_cv_gcc_ncs:-ERROR} = yes; then
-      MYFLAGS="-Wall -Wno-char-subscripts"
-    else
-      MYFLAGS=""
-    fi
-  fi
+  dnl Since char-subscript warnings have been fixed, use -Wall
+  dnl -Wunused-parameter generates too many warnings in this codebase
+  MYFLAGS="-Wall"
 
 else
   dnl We aren't using gcc so we can't assume any special flags.

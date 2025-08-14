@@ -8,6 +8,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "campaign.h"
 #include "utils.h"
 #include "fight.h"
 #include "comm.h"
@@ -18,6 +19,7 @@
 #include "mysql.h"
 #include "desc_engine.h"
 #include "wilderness.h"
+#include "resource_descriptions.h"
 
 /*
  * Luminari Description Engine
@@ -46,6 +48,25 @@
 
 char *gen_room_description(struct char_data *ch, room_rnum room)
 {
+#if defined(ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS) && defined(WILDERNESS_RESOURCE_DEPLETION_SYSTEM)
+	/* Use new resource-aware descriptions for Luminari campaign */
+	if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))) {
+		log("DEBUG: Generating dynamic description for wilderness room %d", GET_ROOM_VNUM(room));
+		char *resource_desc = generate_resource_aware_description(ch, room);
+		if (resource_desc) {
+			log("DEBUG: Dynamic description generated successfully");
+			return resource_desc;
+		}
+		log("DEBUG: Dynamic description generation failed, falling back to original");
+		/* Fall through to original system if resource description fails */
+	} else {
+		log("DEBUG: Room %d not detected as wilderness, using original descriptions", GET_ROOM_VNUM(room));
+	}
+#else
+	log("DEBUG: Dynamic descriptions not enabled, using original system");
+#endif
+
+	/* Original description system */
 	/* Buffers to hold the description*/
 	char buf[MAX_STRING_LENGTH] = {'\0'};
 	char weather_buf[MAX_STRING_LENGTH] = {'\0'};
@@ -68,7 +89,6 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 	double max_area = 0.0;
 	int region_dir = 0;
 	int i = 0;
-	bool surrounded = FALSE;
 	bool first_region = TRUE;
 
 	const char *const direction_strings[9] = {
@@ -293,7 +313,6 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 
 		max_area = 0.0;
 		region_dir = 0;
-		surrounded = TRUE;
 
 		for (i = 0; i < 8; i++)
 		{
@@ -306,21 +325,34 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 				}
 				log("dir : %d area : %f", i, curr_nearby_region->dirs[i]);
 			}
-			else
-			{
-				surrounded = FALSE;
-			}
 		}
 
-		if (surrounded)
+		/* Use the is_inside flag and pos field from the query for precise positioning */
+		if (curr_nearby_region->is_inside)
 		{
-			if (first_region == TRUE)
+			if (curr_nearby_region->pos == REGION_POS_EDGE)
 			{
-				snprintf(buf, sizeof(buf), "You are %s within %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name);
+				/* Player is on the edge of the region */
+				if (first_region == TRUE)
+				{
+					snprintf(buf, sizeof(buf), "You are %s on the edge of %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name);
+				}
+				else
+				{
+					snprintf(buf, sizeof(buf), "You are on the edge of %s.\r\n", region_table[curr_nearby_region->rnum].name);
+				}
 			}
 			else
 			{
-				snprintf(buf, sizeof(buf), "You are within %s.\r\n", region_table[curr_nearby_region->rnum].name);
+				/* Player is inside the region */
+				if (first_region == TRUE)
+				{
+					snprintf(buf, sizeof(buf), "You are %s within %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name);
+				}
+				else
+				{
+					snprintf(buf, sizeof(buf), "You are within %s.\r\n", region_table[curr_nearby_region->rnum].name);
+				}
 			}
 		}
 		else

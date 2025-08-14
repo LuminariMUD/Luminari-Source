@@ -2422,6 +2422,12 @@ static void group_gain(struct char_data *ch, struct char_data *victim)
   int party_level = 0;
 
   /* count total members in group and total party level */
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((k = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
   {
     if (IS_PET(k))
@@ -2478,6 +2484,12 @@ static void group_gain(struct char_data *ch, struct char_data *victim)
       base /= 2;
 #endif
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((k = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
   {
     if (IS_PET(k))
@@ -8405,6 +8417,12 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
     if (display)
         send_to_char(ch, " 1: %-50s\r\n", "Coordinated Shot");
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
       if (is_flanked(k, victim))
       {
@@ -13081,6 +13099,12 @@ void perform_violence(struct char_data *ch, int phase)
    */
   if (GROUP(ch))
   {
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
     {
       if (tch == ch)

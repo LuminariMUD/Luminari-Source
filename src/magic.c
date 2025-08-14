@@ -36,6 +36,10 @@
 #include "combat_modes.h"
 #include "spec_procs.h"
 #include "evolutions.h"
+#include "spatial_core.h"
+#include "spatial_visual.h"
+#include "spatial_audio.h"
+#include "wilderness.h"
 
 // external
 extern struct raff_node *raff_list;
@@ -9208,6 +9212,12 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   if (to_room != NULL)
     act(to_room, FALSE, ch, 0, 0, TO_ROOM);
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
          NULL)
   {
@@ -9582,6 +9592,33 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_METEOR_SWARM:
     to_char = "You call down meteors from the sky to pummel your foes!";
     to_room = "$n invokes a swarm of meteors to rain from the sky!";
+    
+    /* Add spectacular spatial audio/visual effects for meteor swarm */
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+      /* Debug coordinates */
+      log("DEBUG: Meteor swarm cast by %s in room %d, zone %d (wilderness: %s)", 
+          GET_NAME(ch), GET_ROOM_VNUM(IN_ROOM(ch)), GET_ROOM_ZONE(IN_ROOM(ch)),
+          ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) ? "YES" : "NO");
+      log("DEBUG: Character coordinates: X_LOC=%d, Y_LOC=%d", X_LOC(ch), Y_LOC(ch));
+      
+      /* Phase 1: Distant visual - meteors appearing in the sky */
+      log("DEBUG: Phase 1 - Meteor approach with range 5");
+      spatial_visual_meteor_approach(X_LOC(ch), Y_LOC(ch), 
+        "brilliant streaks of crimson and gold fire tear across the starlit heavens", 5);
+      
+      /* Phase 2: Audio - whistling approach sounds from high altitude */  
+      int meteor_audio_elevation = get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 30;
+      spatial_audio_test_sound_effect(X_LOC(ch), Y_LOC(ch), meteor_audio_elevation,
+        "an ominous crescendo of ethereal whistling and deep atmospheric rumbling as the very air trembles before celestial wrath", 
+        AUDIO_FREQ_LOW, 8);
+        
+      /* Phase 3: Close visual - meteors descending toward target */
+      log("DEBUG: Phase 3 - Meteor descent with range 3");
+      spatial_visual_meteor_descent(X_LOC(ch), Y_LOC(ch),
+        "colossal blazing meteorites plummet through the atmosphere, trailed by molten starfire crackling with primordial flame", 3);
+        
+      /* Phase 4: Impact audio will be added after damage processing */
+    }
     break;
   case WARLOCK_RETRIBUTIVE_INVISIBILITY:
     to_char = "An explosive shockwave blasts out from around you.";
@@ -9832,6 +9869,19 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
         metamagic = temp_meta;
         GET_CASTING_CLASS(ch) = temp_class;
         mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
+        
+        /* Add meteor swarm impact effects after damage is dealt */
+        if (spellnum == SPELL_METEOR_SWARM && ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+          /* Impact visual effect - fiery explosions */
+          spatial_visual_meteor_impact(X_LOC(ch), Y_LOC(ch), 
+            "cataclysmic eruptions of azure and crimson flame burst from the earth as celestial hammers shatter the ground, sending waves of molten rock skyward", 2);
+          
+          /* Impact audio effect - thunderous crashes from ground level */
+          int ground_audio_elevation = get_modified_elevation(X_LOC(ch), Y_LOC(ch));
+          spatial_audio_test_sound_effect(X_LOC(ch), Y_LOC(ch), ground_audio_elevation,
+            "earth-shaking detonations rival mountain avalanches as cosmic forces unleash devastating fury upon the mortal realm", 
+            AUDIO_FREQ_LOW, 20);
+        }
       }
 
       /* we gotta start combat here */

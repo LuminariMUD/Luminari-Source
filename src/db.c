@@ -48,18 +48,28 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
+#include "help.h"
+#include "pubsub.h"
+#include "spatial_core.h"
+#include "spatial_visual.h"
+#include "spatial_audio.h"
+#include "resource_system.h"
+#include "resource_depletion.h"
 #include "perlin.h"
 #include "wilderness.h"
+#include "resource_system.h"
 #include "mysql.h"
+#include "db_init.h"
 #include "feats.h"
 #include "actionqueues.h"
 #include "domains_schools.h"
 #include "grapple.h"
 #include "race.h"
+#include "vessels.h"
 #include "spell_prep.h"
 #include "crafts.h" /* NewCraft */
 #include <sys/stat.h>
-#include "trails.h"
+#include "movement_tracks.h"  /* includes trail data structures */
 #include "premadebuilds.h"
 #include "encounters.h"
 #include "hunts.h"
@@ -148,6 +158,7 @@ char *bugs = NULL;       /* bugs file                     */
 char *typos = NULL;      /* typos file                    */
 char *ideas = NULL;      /* ideas file                    */
 
+/* Legacy help system globals - retained for compatibility but no longer used */
 int top_of_helpt = 0;
 struct help_index_element *help_table = NULL;
 
@@ -648,6 +659,9 @@ void boot_world(void)
   log("Initializing MySQL database connection.");
   connect_to_mysql();
 
+  log("Initializing database tables and procedures.");
+  startup_database_init();
+
   log("Loading zone table.");
   index_boot(DB_BOOT_ZON);
 
@@ -751,15 +765,30 @@ void boot_world(void)
   log("Calculating weighted object bonuses for treasure generation.");
   assign_weighted_bonuses();
 
-  log("Initializing perlin noise generators (elevation, moisture, distance, weather).");
+  log("Initializing perlin noise generators (elevation, moisture, distance, weather, resources).");
   init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_MOISTURE, NOISE_MATERIAL_PLANE_MOISTURE_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
   init_perlin(NOISE_WEATHER, NOISE_WEATHER_SEED);
+  /* Initialize resource system noise layers */
+  init_perlin(NOISE_VEGETATION, NOISE_VEGETATION_SEED);
+  init_perlin(NOISE_MINERALS, NOISE_MINERALS_SEED);
+  init_perlin(NOISE_WATER_RESOURCE, NOISE_WATER_RESOURCE_SEED);
+  init_perlin(NOISE_HERBS, NOISE_HERBS_SEED);
+  init_perlin(NOISE_GAME, NOISE_GAME_SEED);
+  init_perlin(NOISE_WOOD, NOISE_WOOD_SEED);
+  init_perlin(NOISE_STONE, NOISE_STONE_SEED);
+  init_perlin(NOISE_CRYSTAL, NOISE_CRYSTAL_SEED);
 
 #if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   log("Indexing wilderness rooms.");
   initialize_wilderness_lists();
+
+  log("Initializing resource depletion database (Phase 6).");
+  init_resource_depletion_database();
+
+  log("Initializing resource system.");
+  init_resource_system();
 
   log("Writing wilderness map image.");
   // save_map_to_file("luminari_wilderness.png", WILD_X_SIZE, WILD_Y_SIZE);
@@ -860,6 +889,12 @@ void destroy_db(void)
       {
         struct event *pEvent;
 
+        /* Beginner's Note: Reset simple_list iterator before use to prevent
+         * cross-contamination from previous iterations. Without this reset,
+         * if simple_list was used elsewhere and not completed, it would
+         * continue from where it left off instead of starting fresh. */
+        simple_list(NULL);
+        
         while ((pEvent = simple_list(world[cnt].events)) != NULL)
           event_cancel(pEvent);
       }
@@ -1063,7 +1098,7 @@ void boot_db(void)
   zone_rnum i = 0;
   char buf1[MAX_INPUT_LENGTH] = {'\0'}; /* strip color off zone names */
 
-  log("Boot db -- BEGIN.");
+  log("Boot db -- Starting.");
 
   log("Resetting the game time:");
   reset_time();
@@ -1105,6 +1140,10 @@ void boot_db(void)
 
   log("Loading help entries.");
   index_boot(DB_BOOT_HLP);
+  
+  /* Initialize help handler chain for refactored help system */
+  log("Initializing help handler chain.");
+  init_help_handlers();
 
   log("Generating player index.");
   build_player_index();
@@ -1178,6 +1217,9 @@ void boot_db(void)
   load_hunts();
   log("Spawning hunts for the first time this boot.");
   create_hunts();
+  
+  log("Initializing Greyhawk ship systems...");
+  greyhawk_initialize_ships();
 
   if (!no_rent_check)
   {
@@ -1205,6 +1247,18 @@ void boot_db(void)
     log("Loading clan zone claim info.");
     load_claims();
   }
+
+  log("Initializing PubSub system.");
+  pubsub_init();
+
+  log("Initializing spatial system.");
+  spatial_init_system();
+
+  log("Initializing spatial visual system.");
+  spatial_visual_init();
+
+  log("Initializing spatial audio system.");
+  spatial_audio_init();
 
   log("Cleaning up last log.");
   clean_llog_entries();
@@ -1466,8 +1520,13 @@ void index_boot(int mode)
     snprintf(buf2, sizeof(buf2), "%s%s", prefix, buf1);
     if (!(db_file = fopen(buf2, "r")))
     {
-      log("SYSERR: File '%s' listed in '%s/%s': %s", buf2, prefix,
-          index_filename, strerror(errno));
+      /* For help files, this is normal - we use database-only mode */
+      if (mode == DB_BOOT_HLP) {
+        log("Help file '%s' not found - using database-only help system", buf2);
+      } else {
+        log("SYSERR: File '%s' listed in '%s/%s': %s", buf2, prefix,
+            index_filename, strerror(errno));
+      }
       if (fscanf(db_index, "%s\n", buf1) != 1)
         break;
       continue;
@@ -1487,11 +1546,16 @@ void index_boot(int mode)
       break;
   }
 
-  /* Exit if 0 records, unless this is shops */
+  /* Exit if 0 records, unless this is shops, quests, triggers, or help */
   if (!rec_count)
   {
-    if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST || mode == DB_BOOT_HLQST || mode == DB_BOOT_TRG)
+    if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST || mode == DB_BOOT_HLQST || mode == DB_BOOT_TRG || mode == DB_BOOT_HLP)
+    {
+      if (mode == DB_BOOT_HLP) {
+        log("No help.hlp file found - using database-only help system.");
+      }
       return;
+    }
     log("SYSERR: boot error - 0 records counted in %s/%s.", prefix,
         index_filename);
     exit(1);
@@ -1528,9 +1592,11 @@ void index_boot(int mode)
     log("   %d zones, %d bytes.", rec_count, size[0]);
     break;
   case DB_BOOT_HLP:
+    /* Allocate help table for file-based help entries
+     * System operates in dual mode: file + database */
     CREATE(help_table, struct help_index_element, rec_count);
     size[0] = sizeof(struct help_index_element) * rec_count;
-    log("   %d entries, %d bytes.", rec_count, size[0]);
+    log("   %d help entries, %d bytes (dual mode: file + database).", rec_count, size[0]);
     break;
   case DB_BOOT_QST:
     CREATE(aquest_table, struct aq_data, rec_count);
@@ -1582,10 +1648,11 @@ void index_boot(int mode)
   }
   fclose(db_index);
 
-  /* Sort the help index. */
-  if (mode == DB_BOOT_HLP)
+  /* Sort the help index for file-based help entries */
+  if (mode == DB_BOOT_HLP && help_table && top_of_helpt > 0)
   {
     qsort(help_table, top_of_helpt, sizeof(struct help_index_element), help_sort);
+    log("   Sorted %d help entries from file.", top_of_helpt);
   }
 }
 
@@ -1632,7 +1699,7 @@ void discrete_load(FILE *fl, int mode, char *filename)
       switch (mode)
       {
       case DB_BOOT_WLD:
-        parse_room(fl, nr);
+        parse_room(fl, nr, filename);
         break;
       case DB_BOOT_MOB:
         parse_mobile(fl, nr);
@@ -1720,7 +1787,7 @@ static bitvector_t asciiflag_conv_aff(char *flag)
 }
 
 /* load the rooms */
-void parse_room(FILE *fl, int virtual_nr)
+void parse_room(FILE *fl, int virtual_nr, const char *filename)
 {
   static int room_nr = 0, zone = 0;
   int t[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -1740,13 +1807,23 @@ void parse_room(FILE *fl, int virtual_nr)
 
   if (virtual_nr < zone_table[zone].bot)
   {
-    log("SYSERR: (parse_room) Room #%d is below zone %d (bot=%d, top=%d).", virtual_nr, zone_table[zone].number, zone_table[zone].bot, zone_table[zone].top);
+    log("SYSERR: (parse_room) Room #%d in file '%s' is below zone %d's range (expected: %d-%d, got: %d).\n"
+        "       This room number must be between %d and %d to belong to zone %d.\n"
+        "       Please renumber the room or move it to the correct zone file.",
+        virtual_nr, filename ? filename : "unknown", zone_table[zone].number, 
+        zone_table[zone].bot, zone_table[zone].top, virtual_nr,
+        zone_table[zone].bot, zone_table[zone].top, zone_table[zone].number);
     exit(1);
   }
   while (virtual_nr > zone_table[zone].top)
     if (++zone > top_of_zone_table)
     {
-      log("SYSERR: Room %d is outside of any zone.", virtual_nr);
+      log("SYSERR: Room #%d in file '%s' is outside of any zone's range.\n"
+          "       The highest zone (%d) has range %d-%d.\n"
+          "       Either create a new zone for this room or renumber it to fit an existing zone.",
+          virtual_nr, filename ? filename : "unknown",
+          zone_table[top_of_zone_table].number,
+          zone_table[top_of_zone_table].bot, zone_table[top_of_zone_table].top);
       exit(1);
     }
   world[room_nr].zone = zone;
@@ -3936,36 +4013,14 @@ static void get_one_line(FILE *fl, char *buf)
   buf[strlen(buf) - 1] = '\0'; /* take off the trailing \n */
 }
 
-void free_help(struct help_index_element *hentry)
-{
-  //  if (hentry->index)
-  //    free(hentry->index);
-  if (hentry->keywords)
-    free(hentry->keywords);
-  if (hentry->entry && !hentry->duplicate)
-    free(hentry->entry);
-
-  free(hentry);
-}
+/* Legacy file-based help system removed - all help is now managed via MySQL database.
+ * The help_entries and help_keywords tables provide all help functionality.
+ * Help entries are managed through the hedit OLC command.
+ * This change improves security, performance, and maintainability. */
 
 void free_help_table(void)
 {
-  if (help_table)
-  {
-    int hp;
-    for (hp = 0; hp < top_of_helpt; hp++)
-    {
-      //      if (help_table[hp].index)
-      //        free(help_table[hp].index);
-      if (help_table[hp].keywords)
-        free(help_table[hp].keywords);
-      if (help_table[hp].entry && !help_table[hp].duplicate)
-        free(help_table[hp].entry);
-    }
-    free(help_table);
-    help_table = NULL;
-  }
-  top_of_helpt = 0;
+  /* Legacy function retained for compatibility - no longer needed as help is database-driven */
 }
 
 void load_help(FILE *fl, char *name)
@@ -3974,6 +4029,15 @@ void load_help(FILE *fl, char *name)
   size_t entrylen;
   char line[READ_SIZE + 1], hname[READ_SIZE + 1], *scan;
   struct help_index_element el;
+
+  /* IMPORTANT: This function loads help from file (help.hlp) into memory.
+   * The help system currently operates in DUAL MODE:
+   * 1. File-based help loaded here at boot time (for backward compatibility)
+   * 2. Database-based help accessed via search_help() in help.c
+   * 
+   * TODO: Future migration task - import all help.hlp content to database
+   * and then disable this file loading. See HELP_TODO.md for details.
+   */
 
   strlcpy(hname, name, sizeof(hname));
 
@@ -4037,6 +4101,9 @@ void load_help(FILE *fl, char *name)
   }
 }
 
+/* Help sorting function for file-based help entries
+ * Still needed while we support dual-mode (file + database) help system
+ */
 static int help_sort(const void *a, const void *b)
 {
   const struct help_index_element *a1, *b1;
@@ -4907,9 +4974,9 @@ void reset_zone(zone_rnum zone)
       else {
         /* Add logging for debugging */
         if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
-          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'G' command",
+          /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'G' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
-              obj_index[ZCMD.arg1].number, ZCMD.arg2);
+              obj_index[ZCMD.arg1].number, ZCMD.arg2); */
         } else if (rand_number(1, 100) > ZCMD.arg3) {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'G' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg3); */
@@ -5049,9 +5116,9 @@ void reset_zone(zone_rnum zone)
       else {
         /* Add logging for debugging */
         if (obj_index[ZCMD.arg1].number > ZCMD.arg2 && ZCMD.arg2 > 0) {
-          log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'E' command",
+          /* log("ZONE: Zone %d cmd %d: Object vnum %d at max count (%d/%d) for 'E' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, 
-              obj_index[ZCMD.arg1].number, ZCMD.arg2);
+              obj_index[ZCMD.arg1].number, ZCMD.arg2); */
         } else if (rand_number(1, 100) > ZCMD.arg4) {
           /* log("ZONE: Zone %d cmd %d: Object vnum %d failed percentage check (%d%%) for 'E' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum, ZCMD.arg4); */
@@ -6034,6 +6101,26 @@ void free_char(struct char_data *ch)
   while (ch->affected)
     affect_remove_no_total(ch, ch->affected);
 
+  /* CRITICAL FIX: Free mob memory records to prevent memory leaks
+   * NPCs (mobs) can have memory of who attacked them via the remember() function.
+   * This memory is stored as a linked list of memory_rec structures.
+   * 
+   * The clearMemory() function properly frees all memory records in the list.
+   * This fix ensures that NPCs freed via free_char() have their memory cleared,
+   * not just those going through extract_char_final().
+   * 
+   * Without this fix, when NPCs are freed during player/clan loading operations
+   * (via free_char), their memory records would be leaked, causing a 16-byte
+   * leak per memory record as reported by valgrind at mobact.c:635.
+   * 
+   * Note: We only call clearMemory for NPCs because PCs should never have
+   * memory records (the remember() function returns early for non-NPCs).
+   */
+  if (IS_NPC(ch)) {
+    /* clearMemory() is defined in mobact.c and frees the entire memory list */
+    clearMemory(ch);
+  }
+
   /* free any assigned scripts */
   if (SCRIPT(ch))
     extract_script(ch, MOB_TRIGGER);
@@ -6382,6 +6469,9 @@ void init_char(struct char_data *ch)
   /* Create the action queues */
   GET_QUEUE(ch) = create_action_queue();
   GET_ATTACK_QUEUE(ch) = create_attack_queue();
+
+  /* Initialize material storage for Phase 4.5 */
+  init_material_storage(ch);
 
   /* create the preparation / collection lists */
   /*
@@ -7360,7 +7450,11 @@ void set_db_happy_hour(int status)
 
   char query[LONG_STRING] = {'\0'};
 
-  mysql_ping(conn);
+  /* Ensure database connection is active before happy hour operations */
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return;
+  }
 
   snprintf(query, sizeof(query), "DELETE FROM happy_hour_info");
 
@@ -7397,7 +7491,11 @@ void save_objects_to_database(struct char_data *ch)
   char notes[LONG_STRING] = {'\0'};
   char zone_name[255] =  {'\0'};
 
-  mysql_ping(conn);
+  /* Ensure database connection is active before object database operations */
+  if (!MYSQL_PING_CONN(conn)) {
+    log("SYSERR: %s: Database connection failed", __func__);
+    return;
+  }
 
   snprintf(query, sizeof(query), "TRUNCATE TABLE object_database_items");
   if (mysql_query(conn, query)) log("SYSERR: Unable to TRUNCATE TABLE object_database_items: %s", mysql_error(conn));

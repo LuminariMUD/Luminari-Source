@@ -103,7 +103,7 @@
         PERF_PROF_EXIT(pr_);                                                            \
         return rtn;                                                                     \
     }                                                                                   \
-    static int impl_##name##_(struct char_data *ch, void *me, int cmd, char *argument)
+    static int impl_##name##_(struct char_data *ch __attribute__((unused)), void *me __attribute__((unused)), int cmd __attribute__((unused)), char *argument __attribute__((unused)))
 
 /* room-related defines */
 /* The cardinal directions: used as index to room_data.dir_option[] */
@@ -225,10 +225,12 @@
 #define ROOM_RANDOM_CHEST 37    // a random treasure chest will load in this room
 #define ROOM_HARVEST_NODE 38    // this room will always load a harvest node
 #define ROOM_ROAD 39
+#define ROOM_VEHICLE 40         // Room that vehicles/ships can move through
+#define ROOM_DOCKABLE 41        // Room where ships can dock
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS 40
+#define NUM_ROOM_FLAGS 42
 
 /* Room affects */
 /* Old room-affection system, could be replaced by room-events
@@ -3085,8 +3087,12 @@
 #define ITEM_WEAPON_OIL 50
 #define ITEM_GEAR_OUTFIT 51
 #define ITEM_DRINK 52 // Used for the nerw drink system.  Replaces drink containers and fountains.
+#define ITEM_VEHICLE 53 // General vehicle object (for CWG style)
+#define ITEM_SHIP_OBJECT 54 // Outcast style ship object
+#define ITEM_VESSEL 55 // Unified vessel system object
+#define ITEM_GREYHAWK_SHIP 56 // Greyhawk ship object type (type 57 conflicts resolved to 56)
 /* make sure to add to - display_item_object_values() */
-#define NUM_ITEM_TYPES 53 /** Total number of item types.*/
+#define NUM_ITEM_TYPES 57 /** Total number of item types.*/
 
 /* reference notes on homeland-port */
 /* swapped free1 (7) with fireweapon, swapped free2 (14) with missile
@@ -4578,6 +4584,9 @@ struct room_data
 
     int harvest_material;
     int harvest_material_amount;
+    
+    /* Greyhawk ship system - pointer to ship data if room is a ship */
+    struct greyhawk_ship_data *ship;
 };
 
 /* char-related structures */
@@ -4956,6 +4965,24 @@ struct innate_magic_data
 };
 /***/
 
+/* Phase 4.5: Material storage structure for wilderness harvesting */
+/* Maximum materials a player can store - reasonable limit */
+#define MAX_STORED_MATERIALS 100
+
+/* Quality level constants for clarity */
+#define MATERIAL_QUALITY_POOR      1
+#define MATERIAL_QUALITY_COMMON    2  
+#define MATERIAL_QUALITY_UNCOMMON  3
+#define MATERIAL_QUALITY_RARE      4
+#define MATERIAL_QUALITY_LEGENDARY 5
+
+struct material_storage {
+    int category;               /* Resource category (RESOURCE_HERBS, etc) */
+    int subtype;                /* Specific material (HERB_MARJORAM, etc) */
+    int quality;                /* Quality level (1-5) */
+    int quantity;               /* Amount stored */
+};
+
 /** Data only needed by PCs, and needs to be saved to disk. */
 struct player_special_data_saved
 {
@@ -5168,6 +5195,11 @@ struct player_special_data_saved
 
     int craft_mats_owned[NUM_CRAFT_MATS];
     int craft_motes_owned[NUM_CRAFT_MOTES]; 
+    
+    /* Phase 4.5: Material subtype storage system */
+    /* Stores wilderness materials with (category, subtype, quality) structure */
+    int stored_material_count;                         /* Number of different materials stored */
+    struct material_storage stored_materials[MAX_STORED_MATERIALS];  /* Material storage array */ 
     int ability_exp[MAX_ABILITIES + 1];               // abilities
 
     int new_supply_num_made;

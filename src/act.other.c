@@ -1619,6 +1619,12 @@ void perform_perform(struct char_data *ch)
     return;
   }
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
          NULL)
   {
@@ -1705,9 +1711,12 @@ void perform_call(struct char_data *ch, int call_type, int level)
       return;
     }
 
-    /* todo:  seriously, fix this */
+    /* For NPCs without a selection, randomly pick from valid animal companions */
     if (!(mob_num = GET_ANIMAL_COMPANION(ch)))
-      mob_num = 63; // meant for npc's
+    {
+      /* Animal companion vnums range from 60-67 (8 choices) */
+      mob_num = 60 + rand_number(0, 7);
+    }
 
     break;
   case MOB_C_DRAGON:
@@ -1725,9 +1734,22 @@ void perform_call(struct char_data *ch, int call_type, int level)
       return;
     }
 
-    /* todo:  seriously, fix this */
+    /* For NPCs without a selection, randomly pick from valid dragon types */
+#ifdef CAMPAIGN_DL
+    /* DragonLance campaign uses vnums 40401-40410 */
     if (!(mob_num = (GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 40400)))
-      mob_num = 39; // meant for npc's
+    {
+      /* Dragon types are 1-10, so vnum is (1-10) + 40400 = 40401-40410 */
+      mob_num = 40401 + rand_number(0, 9);
+    }
+#else
+    /* Default campaign uses vnums 1240-1249 */
+    if (!(mob_num = (GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 1239)))
+    {
+      /* Dragon types are 1-10, so vnum is (1-10) + 1239 = 1240-1249 */
+      mob_num = 1240 + rand_number(0, 9);
+    }
+#endif
 
     break;
   case MOB_C_FAMILIAR:
@@ -1747,12 +1769,19 @@ void perform_call(struct char_data *ch, int call_type, int level)
     }
 
     mob_num = GET_FAMILIAR(ch);
+    
+    /* For NPCs without a selection, randomly pick from valid familiars */
+    if (IS_NPC(ch) && mob_num <= 0)
+    {
+      /* Familiar vnums range from 80-87 (8 choices) */
+      mob_num = 80 + rand_number(0, 7);
+    }
 
     break;
 
   case MOB_SHADOW:
-    /* do they even have a valid selection yet? */
-    if (IS_NPC(ch) || !HAS_REAL_FEAT(ch, FEAT_SUMMON_SHADOW))
+    /* NPCs can always summon shadows, players need the feat */
+    if (!IS_NPC(ch) && !HAS_REAL_FEAT(ch, FEAT_SUMMON_SHADOW))
     {
       send_to_char(ch, "You cannot summon a shadow");
       return;
@@ -1828,8 +1857,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
     break;
 
     case MOB_EIDOLON:
-
-      if (IS_NPC(ch) || (!HAS_REAL_FEAT(ch, FEAT_EIDOLON) && !HAS_REAL_FEAT(ch, FEAT_UNDEAD_COHORT)))
+      /* NPCs can always summon eidolons/cohorts, players need the appropriate feat */
+      if (!IS_NPC(ch) && !HAS_REAL_FEAT(ch, FEAT_EIDOLON) && !HAS_REAL_FEAT(ch, FEAT_UNDEAD_COHORT))
       {
         send_to_char(ch, "You cannot summon %s.", CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0 ? "an undead cohort" : "an eidolon");
         return;
@@ -1850,6 +1879,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
   if (!ok_call_mob_vnum(mob_num))
   {
     send_to_char(ch, "This call type is not completely set up. Please inform a staff member.\r\n");
+    mudlog(NRM, LVL_IMMORT, TRUE, "ERROR: Invalid mob vnum %d for call type %d by %s",
+           mob_num, call_type, GET_NAME(ch));
     return;
   }
   if (level >= LVL_IMMORT)
@@ -1862,6 +1893,14 @@ void perform_call(struct char_data *ch, int call_type, int level)
   if (!(mob = read_mobile(mob_num, VIRTUAL)))
   {
     send_to_char(ch, "You don't quite remember how to call that creature.\r\n");
+    mudlog(NRM, LVL_IMMORT, TRUE, "ERROR: Failed to load mob %d for %s companion call by %s",
+           mob_num, call_type == MOB_SHADOW ? "shadow" :
+           call_type == MOB_EIDOLON ? "eidolon" :
+           call_type == MOB_C_ANIMAL ? "animal" :
+           call_type == MOB_C_FAMILIAR ? "familiar" :
+           call_type == MOB_C_MOUNT ? "mount" :
+           call_type == MOB_C_DRAGON ? "dragon" : "unknown",
+           GET_NAME(ch));
     return;
   }
 
@@ -2416,7 +2455,7 @@ ACMD(do_mount)
     send_to_char(ch, "You can't mount that!\r\n");
     return;
   }
-  else if (!GET_ABILITY(ch, ABILITY_RIDE))
+  else if (compute_ability(ch, ABILITY_RIDE) <= 0)
   {
     send_to_char(ch, "First you need to learn *how* to mount.\r\n");
     return;
@@ -2426,11 +2465,7 @@ ACMD(do_mount)
     send_to_char(ch, "The mount is too small for you!\r\n");
     return;
   }
-  else if (GET_SIZE(vict) > (GET_SIZE(ch) + 2))
-  {
-    send_to_char(ch, "The mount is too large for you!\r\n");
-    return;
-  }
+  /* Removed upper size limit - dragons and other large mounts should be mountable */
   else if ((compute_ability(ch, ABILITY_RIDE) + 1) <= rand_number(1, GET_LEVEL(vict)))
   {
     act("You try to mount $N, but slip and fall off.", FALSE, ch, 0, vict, TO_CHAR);
@@ -2524,7 +2559,7 @@ ACMD(do_tame)
     send_to_char(ch, "You can't do that to them.\r\n");
     return;
   }
-  else if (!GET_ABILITY(ch, ABILITY_RIDE))
+  else if (compute_ability(ch, ABILITY_RIDE) <= 0)
   {
     send_to_char(ch, "You don't even know how to tame something.\r\n");
     return;
@@ -2534,7 +2569,7 @@ ACMD(do_tame)
     send_to_char(ch, "You can't do that.\r\n");
     return;
   }
-  else if (GET_SKILL(ch, ABILITY_RIDE) <= rand_number(1, GET_LEVEL(vict)))
+  else if (compute_ability(ch, ABILITY_RIDE) <= rand_number(1, GET_LEVEL(vict)))
   {
     send_to_char(ch, "You fail to tame it.\r\n");
 
@@ -5988,6 +6023,12 @@ static void print_group(struct char_data *ch)
 
   send_to_char(ch, "Your group consists of:\r\n");
 
+  /* Beginner's Note: Reset simple_list iterator before use to prevent
+   * cross-contamination from previous iterations. Without this reset,
+   * if simple_list was used elsewhere and not completed, it would
+   * continue from where it left off instead of starting fresh. */
+  simple_list(NULL);
+  
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
   {
     hp_pct = ((float)GET_HIT(k)) / ((float)GET_MAX_HIT(k)) * 100.00;
@@ -6071,6 +6112,12 @@ void update_msdp_group(struct char_data *ch)
   {
     if (ch->group)
     {
+      /* Beginner's Note: Reset simple_list iterator before use to prevent
+       * cross-contamination from previous iterations. Without this reset,
+       * if simple_list was used elsewhere and not completed, it would
+       * continue from where it left off instead of starting fresh. */
+      simple_list(NULL);
+      
       while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
       {
         char buf[4000]; // Buffer for building the group table for MSDP
@@ -6170,6 +6217,12 @@ static void display_group_list(struct char_data *ch)
                  "#   Group Leader     # of Mem  Open?  In Zone\r\n"
                  "-------------------------------------------------------------------\r\n");
 
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((group = (struct group_data *)simple_list(group_list)) != NULL)
     {
       /* we don't display npc groups */
@@ -6539,9 +6592,17 @@ ACMD(do_split)
     }
 
     if (GROUP(ch))
+    {
+      /* Beginner's Note: Reset simple_list iterator before use to prevent
+       * cross-contamination from previous iterations. Without this reset,
+       * if simple_list was used elsewhere and not completed, it would
+       * continue from where it left off instead of starting fresh. */
+      simple_list(NULL);
+      
       while ((k = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
         if (IN_ROOM(ch) == IN_ROOM(k) && !IS_NPC(k))
           num++;
+    }
 
     if (num && GROUP(ch))
     {
@@ -6565,6 +6626,12 @@ ACMD(do_split)
                (rest == 1) ? "" : "s", (rest == 1) ? "was" : "were", GET_NAME(ch));
     }
 
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
     while ((k = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
     {
       if (k != ch && IN_ROOM(ch) == IN_ROOM(k) && !IS_NPC(k))

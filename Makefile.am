@@ -6,14 +6,8 @@ SUBDIRS = util
 
 # Additional compiler flags
 # Revert to project defaults: do NOT force global feature defines here.
-AM_CFLAGS = -std=gnu90 -Isrc @MYFLAGS@
+AM_CFLAGS = -std=gnu90 @MYFLAGS@
 
-# Build timestamp information
-MKTIME = $(shell date +%s)
-MKUSER = $(USER)
-MKHOST = $(HOSTNAME)
-BRANCH = $(shell git branch 2>/dev/null | grep '*' | cut -d' ' -f2 || echo "unknown")
-PARENT = $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
 
 # Main program
 bin_PROGRAMS = circle
@@ -25,7 +19,15 @@ circle_SOURCES = \
 	src/act.comm.do_spec_comm.c \
 	src/act.informative.c \
 	src/act.item.c \
-	src/act.movement.c \
+	src/movement.c \
+	src/movement_validation.c \
+	src/movement_cost.c \
+	src/movement_position.c \
+	src/movement_doors.c \
+	src/movement_falling.c \
+	src/movement_messages.c \
+	src/movement_tracks.c \
+	src/movement_events.c \
 	src/act.offensive.c \
 	src/act.other.c \
 	src/act.social.c \
@@ -61,9 +63,14 @@ circle_SOURCES = \
 	src/crafting_recipes.c \
 	src/crafts.c \
 	src/db.c \
+	src/db_init.c \
+	src/db_init_data.c \
+	src/db_startup_init.c \
+	src/db_admin_commands.c \
 	src/deities.c \
 	src/desc_engine.c \
 	src/dg_comm.c \
+	src/discord_bridge.c \
 	src/dg_db_scripts.c \
 	src/dg_event.c \
 	src/dg_handler.c \
@@ -111,7 +118,13 @@ circle_SOURCES = \
 	src/mail.c \
 	src/medit.c \
 	src/missions.c \
-	src/mobact.c \
+	src/mob_act.c \
+	src/mob_memory.c \
+	src/mob_utils.c \
+	src/mob_race.c \
+	src/mob_psionic.c \
+	src/mob_class.c \
+	src/mob_spells.c \
 	src/modify.c \
 	src/msgedit.c \
 	src/mud_event.c \
@@ -131,6 +144,16 @@ circle_SOURCES = \
 	src/premadebuilds.c \
 	src/protocol.c \
 	src/psionics.c \
+	src/pubsub.c \
+	src/systems/pubsub/pubsub_handlers.c \
+	src/systems/pubsub/pubsub_db.c \
+	src/systems/pubsub/pubsub_commands.c \
+	src/systems/pubsub/pubsub_queue.c \
+	src/systems/pubsub/pubsub_spatial.c \
+	src/systems/pubsub/pubsub_event_handlers.c \
+	src/systems/spatial/spatial_core.c \
+	src/systems/spatial/spatial_visual.c \
+	src/systems/spatial/spatial_audio.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \
@@ -138,6 +161,9 @@ circle_SOURCES = \
 	src/random_names.c \
 	src/rank.c \
 	src/redit.c \
+	src/resource_system.c \
+	src/resource_depletion.c \
+	src/resource_descriptions.c \
 	src/roleplay.c \
 	src/routing.c \
 	src/sedit.c \
@@ -160,6 +186,7 @@ circle_SOURCES = \
 	src/treasure.c \
 	src/treasure_const.c \
 	src/utils.c \
+	src/vessels.c \
 	src/weather.c \
 	src/wilderness.c \
 	src/zedit.c \
@@ -167,10 +194,8 @@ circle_SOURCES = \
 	src/zone_procs.c
 
 # Libraries to link
-circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread
+circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread
 
-# Special flags for constants.c to include build information
-src/constants.$(OBJEXT): AM_CFLAGS += -DMKTIME='"$(MKTIME)"' -DMKUSER='"$(MKUSER)"' -DMKHOST='"$(MKHOST)"' -DBRANCH='"$(BRANCH)"' -DPARENT='"$(PARENT)"'
 
 # Unit testing with CuTest
 check_PROGRAMS = cutest

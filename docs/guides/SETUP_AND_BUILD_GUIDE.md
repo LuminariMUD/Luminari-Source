@@ -19,15 +19,15 @@ This comprehensive guide covers the complete process of setting up, building, co
 - **Storage**: 5GB+ free disk space
 - **Compiler**: GCC 9.0+ or Clang 10.0+
 - **Build System**: CMake 3.12+ (recommended) or Autotools
-- **Database**: MySQL 8.0+ or MariaDB 10.3+
+- **Database**: MariaDB 10.3+ (recommended) or MySQL 8.0+
 
 ## Dependencies
 
 ### Core Dependencies
 - **build-essential** - GCC compiler and build tools
 - **cmake** - Cross-platform build system (3.12+ required for CMake builds)
-- **mysql-server** - MySQL database server (5.0+ or MariaDB 10.3+)
-- **libmysqlclient-dev** - MySQL client development libraries
+- **mariadb-server** - MariaDB database server (10.0+ recommended)
+- **libmariadb-dev** - MariaDB client development libraries
 - **libgd-dev** - GD graphics library for map generation
 - **libcrypt-dev** - Cryptographic functions library
 - **libcurl-dev** - URL transfer library
@@ -40,16 +40,16 @@ This comprehensive guide covers the complete process of setting up, building, co
 
 ### Ubuntu/Debian Installation (including WSL2)
 
-#### Required Libraries (from Makefile.am line 170)
-The project links against these libraries: `-lcrypt -lgd -lm -lmysqlclient -lcurl -lssl -lcrypto -lpthread`
+#### Required Libraries
+The project links against these libraries: `-lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread`
 
 ```bash
 # Update package list
 sudo apt-get update
 
-# Install REQUIRED dependencies (these match the libraries in Makefile.am)
-sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmysqlclient-dev \
-                        libcurl4-openssl-dev libssl-dev mysql-server git make
+# Install REQUIRED dependencies (updated for MariaDB)
+sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmariadb-dev \
+                        libcurl4-openssl-dev libssl-dev mariadb-server git make pkg-config
 
 # For CMake builds (recommended)
 sudo apt-get install -y cmake
@@ -68,7 +68,7 @@ sudo apt-get install -y doxygen graphviz cppcheck clang-format
 - `-lcrypt` → `libcrypt-dev`
 - `-lgd` → `libgd-dev` (for map generation)
 - `-lm` → included in `build-essential` (math library)
-- `-lmysqlclient` → `libmysqlclient-dev`
+- `-lmariadb` → `libmariadb-dev`
 - `-lcurl` → `libcurl4-openssl-dev`
 - `-lssl -lcrypto` → `libssl-dev`
 - `-lpthread` → included in standard libc
@@ -100,11 +100,11 @@ Notes:
 ### CentOS/RHEL/Fedora Installation
 ```bash
 # For CentOS 7/RHEL 7
-sudo yum install -y gcc make mysql-server mysql-devel gd-devel \
+sudo yum install -y gcc make mariadb-server mariadb-devel gd-devel \
                     libcrypt-devel git autoconf automake libtool
 
 # For CentOS 8+/RHEL 8+/Fedora
-sudo dnf install -y gcc make mysql-server mysql-devel gd-devel \
+sudo dnf install -y gcc make mariadb-server mariadb-devel gd-devel \
                     libcrypt-devel git autoconf automake libtool
 
 # Install additional development tools (optional)
@@ -183,19 +183,21 @@ ls -la
 
 ## Database Setup
 
-### 1. MySQL Server Configuration
+### 1. Database Server Configuration
 ```bash
-# Start MySQL service
-sudo systemctl start mysql
-sudo systemctl enable mysql
+# Start MariaDB service
+sudo systemctl start mariadb
+sudo systemctl enable mariadb
+# Note: On some systems the service may still be named 'mysql'
+# sudo systemctl start mysql
 
-# Secure MySQL installation (recommended)
+# Secure MariaDB installation (recommended)
 sudo mysql_secure_installation
 ```
 
 ### 2. Create LuminariMUD Database
 ```bash
-# Connect to MySQL as root
+# Connect to MariaDB as root
 mysql -u root -p
 
 # Create database and user
@@ -233,7 +235,7 @@ ls -la *.h | grep -E "(campaign|mud_options|vnums)\.h"
 The database connection is configured in `lib/mysql_config` file:
 
 ```bash
-# Create or edit the MySQL configuration file
+# Create or edit the database configuration file
 cat > lib/mysql_config << EOF
 mysql_host = localhost
 mysql_database = luminari

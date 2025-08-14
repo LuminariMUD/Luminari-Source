@@ -39,6 +39,7 @@ struct help_entry_list
 /* This is the MAIN search function - all help requests go through 
  * this function. */
 struct help_entry_list *search_help(const char *argument, int level);
+struct help_entry_list *search_help_fulltext(const char *search_term, int level);
 struct help_keyword_list *get_help_keywords(const char *tag);
 
 /* Used during character creation, does not show all of the header information
@@ -48,5 +49,52 @@ void perform_help(struct descriptor_data *d, const char *argument);
 
 /* Help command, used in game. */
 ACMD_DECL(do_help);
+ACMD_DECL(do_helpsearch);
+
+/* Cache management */
+void clear_help_cache(void);
+
+/* Chain of Responsibility Pattern for Help System
+ * This design eliminates deep nesting and makes the help system extensible.
+ * Each handler is responsible for one type of help content. */
+
+/* Context structure to pass state between handlers */
+struct help_context {
+    int partial_help_displayed;  /* Set to 1 if partial match help was shown */
+    /* Future: Add more context fields as needed without changing handler signatures */
+};
+
+/* Function pointer type for help handlers
+ * Returns 1 if help was displayed, 0 if not handled */
+typedef int (*help_handler_func)(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+
+/* Structure for a help handler in the chain */
+struct help_handler {
+    const char *name;           /* Handler name for debugging/logging */
+    help_handler_func handler;  /* Function that processes help requests */
+    struct help_handler *next;  /* Next handler in the chain */
+};
+
+/* Handler registration and management */
+void register_help_handler(const char *name, help_handler_func handler);
+void init_help_handlers(void);
+void cleanup_help_handlers(void);
+
+/* Individual help handlers - each handles one type of help content */
+int handle_database_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_deity_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_region_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_background_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_discovery_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_grand_discovery_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_bomb_types_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_discovery_types_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_feat_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_evolution_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_weapon_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_armor_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_class_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_race_help(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
+int handle_soundex_suggestions(struct char_data *ch, const char *argument, const char *raw_argument, struct help_context *ctx);
 
 #endif /* HELP_H */

@@ -1385,6 +1385,10 @@ static const struct spec_func_data spec_func_list[] = {
     {"Yan", yan, ""},
     {"Ymir", ymir, ""},
     {"Ymir Cloak", ymir_cloak, ""},
+    
+    /* Vessel/Ship Special Procedures */
+    {"Greyhawk Ship Object", greyhawk_ship_object, ""},
+    {"Greyhawk Ship Commands", greyhawk_ship_commands, ""},
 
     /* this has to be last */
     {
