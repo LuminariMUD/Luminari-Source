@@ -1,0 +1,50 @@
+--- src/mysql.c.orig
++++ src/mysql.c
+@@ -516,6 +516,9 @@
+     free(pstmt->params[param_index].is_null);
+   }
+   
++  /* CRITICAL: Clear the entire binding structure to prevent garbage values */
++  memset(&pstmt->params[param_index], 0, sizeof(MYSQL_BIND));
++  
+   /* Allocate and set up the binding */
+   if (value) {
+     /* Allocate buffer and copy string */
+@@ -571,6 +574,9 @@
+     free(pstmt->params[param_index].is_null);
+   }
+   
++  /* CRITICAL: Clear the entire binding structure to prevent garbage values */
++  memset(&pstmt->params[param_index], 0, sizeof(MYSQL_BIND));
++  
+   /* Allocate buffer for integer */
+   CREATE(buffer, int, 1);
+   *buffer = value;
+
+--- src/help.c.orig
++++ src/help.c
+@@ -183,7 +183,7 @@
+       "FROM help_entries he "
+       "INNER JOIN help_keywords hk ON he.tag = hk.help_tag "
+       "LEFT JOIN help_keywords hk2 ON he.tag = hk2.help_tag "
+-      "WHERE LOWER(hk.keyword) LIKE ? AND he.min_level <= ? "
++      "WHERE LOWER(hk.keyword) LIKE LOWER(?) AND he.min_level <= ? "
+       "GROUP BY he.tag, he.entry, he.min_level, he.last_updated "
+       "ORDER BY LENGTH(hk.keyword) ASC")) {
+     log("SYSERR: Failed to prepare help search query");
+@@ -195,13 +195,8 @@
+   if (HELP_DEBUG) log("DEBUG: search_help: Query prepared successfully");
+ 
+   /* Build search pattern for LIKE clause (add % for prefix matching) 
+-   * Convert to lowercase since the SQL query uses LOWER(hk.keyword) */
++   * The query uses LOWER() on both sides, so we don't need to lowercase here */
+   snprintf(search_pattern, sizeof(search_pattern), "%s%%", argument);
+-  {
+-    int i;
+-    for (i = 0; search_pattern[i]; i++) {
+-      search_pattern[i] = LOWER(search_pattern[i]);
+-    }
+-  }
+   if (HELP_DEBUG) log("DEBUG: search_help: Search pattern is '%s'", search_pattern);
+   
+   /* Bind parameters - completely safe from SQL injection */

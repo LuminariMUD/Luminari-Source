@@ -1615,12 +1615,17 @@ void display_rp_decide_menu(struct descriptor_data *d)
   if (!ch) return;
 
   send_to_char(ch, "\r\n"
-
-                   "\tCChronicles of Krynn is a Role Play Focused MUD. \tnWhat that means is that the staff's focus is\r\n"
+#ifdef CAMPAIGN_DL
+                   "\tCChronicles of DragonLance is a Role Play Focused MUD. \tnWhat that means is that the staff's focus is\r\n"
                    "on creating overarching role-play themes and stories, and assisting players with their individual\r\n"
                    "character stories. \tcHowever role-play is not mandatory\tn, and we only ask that non-role-players respect\r\n"
                    "the role play of others in their vicinity and not disrupt it.\r\n"
-                   "\r\n"
+#else
+                   "\tCRole play is encouraged on this MUD. \tnThe staff focuses on creating overarching role-play themes\r\n"
+                   "and stories, and assisting players with their individual character stories. \tcHowever role-play is\r\n"
+                   "not mandatory\tn, and we only ask that non-role-players respect the role play of others in their\r\n"
+                   "vicinity and not disrupt it.\r\n"
+#endif
                    "At this moment you have three choices:\r\n"
                    "\r\n"
                    "\tc1)\tn Flag yourself a non-role-player and enter the game.\r\n"
@@ -1666,6 +1671,11 @@ void HandleStateCharacterRPDecideParseMenuChoice(struct descriptor_data *d, char
     default:
       send_to_char(ch, "That is not a valid selection. Please select again: ");
       break;
+  }
+  
+  /* Save character after roleplay decision */
+  if (ch && changeStateTo != STATE(d)) {
+    save_char(ch, 0);
   }
   
   STATE(d) = changeStateTo;

@@ -48,6 +48,8 @@
 #include "feats.h"
 #include "assign_wpn_armor.h"
 #include "item.h"
+#include "resource_system.h"
+#include "resource_system.h"
 #include "feats.h"
 #include "domains_schools.h"
 #include "ai_service.h"
@@ -60,6 +62,11 @@
 #include "missions.h"
 #include "deities.h"
 #include "backgrounds.h"
+
+/* External variables and functions */
+extern MYSQL *conn;
+extern struct descriptor_data *descriptor_list;
+void load_account_unlocks(struct account_data *account);
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -5950,9 +5957,9 @@ static bool validate_copyover_environment()
   
   /* Check database connection */
   extern MYSQL *conn;
-  if (mysql_ping(conn) != 0)
+  if (!MYSQL_PING_CONN(conn))
   {
-    log("SYSERR: copyover: Database connection is not active: %s", mysql_error(conn));
+    log("SYSERR: copyover: Database connection is not active");
     return FALSE;
   }
   
@@ -6414,6 +6421,11 @@ break;
   disconnect_from_mysql();
   disconnect_from_mysql2();
   disconnect_from_mysql3();
+  
+  /* Shutdown Discord bridge before copyover */
+  extern void shutdown_discord_bridge(void);
+  shutdown_discord_bridge();
+  log("INFO: copyover: Discord bridge shut down for copyover");
   
   /* Flush any pending output */
   fflush(stdout);
@@ -10330,6 +10342,967 @@ ACMD(do_objcheck)
     mudlog(BRF, LVL_IMMORT, TRUE, "OBJCHECK: %s found and fixed %d object count errors",
            GET_NAME(ch), errors);
   }
+}
+
+/* Resource System Admin Command */
+ACMD(do_resourceadmin)
+{
+  char arg[MAX_INPUT_LENGTH];
+  const char *remaining_args;
+  int x, y, i;
+  float resource_level;
+  
+  remaining_args = one_argument(argument, arg, sizeof(arg));
+  
+  if (!*arg) {
+    send_to_char(ch, "Resource System Admin Commands:\r\n");
+    send_to_char(ch, "==============================\r\n");
+    send_to_char(ch, "resourceadmin status    - Show system status\r\n");
+    send_to_char(ch, "resourceadmin here      - Show resources at current location\r\n");
+    send_to_char(ch, "resourceadmin coords <x> <y> - Show resources at coordinates\r\n");
+    send_to_char(ch, "resourceadmin map <type> [radius] - Show resource minimap\r\n");
+    send_to_char(ch, "resourceadmin debug     - Show debug survey at current location\r\n");
+    send_to_char(ch, "resourceadmin cache     - Show cache statistics and management\r\n");
+    send_to_char(ch, "resourceadmin cleanup   - Force cleanup of old resource nodes\r\n");
+    send_to_char(ch, "\r\nFor region effects management, use the 'effectsadmin' command.\r\n");
+    return;
+  }
+  
+  if (is_abbrev(arg, "status")) {
+    send_to_char(ch, "Resource System Status:\r\n");
+    send_to_char(ch, "======================\r\n");
+    
+    /* Check if resource system is initialized */
+    if (resource_configs[0].noise_layer >= 0) {
+      send_to_char(ch, "Status: \tcONLINE\tn\r\n");
+      send_to_char(ch, "Resource types configured: %d\r\n", NUM_RESOURCE_TYPES);
+      
+      /* Show Perlin noise layer assignments */
+      send_to_char(ch, "\r\nPerlin Noise Layer Assignments:\r\n");
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        send_to_char(ch, "  %s: Layer %d\r\n", 
+                     resource_names[i], resource_configs[i].noise_layer);
+      }
+      
+      /* Show cache statistics */
+      {
+        int total_nodes, expired_nodes;
+        cache_get_stats(&total_nodes, &expired_nodes);
+        send_to_char(ch, "\r\nSpatial Cache (Phase 3):\r\n");
+        send_to_char(ch, "  Total cached nodes: %d\r\n", total_nodes);
+        send_to_char(ch, "  Expired nodes: %d\r\n", expired_nodes);
+        send_to_char(ch, "  Cache grid size: %d coordinates\r\n", RESOURCE_CACHE_GRID_SIZE);
+        send_to_char(ch, "  Cache lifetime: %d seconds\r\n", RESOURCE_CACHE_LIFETIME);
+        send_to_char(ch, "  Max cache nodes: %d\r\n", RESOURCE_CACHE_MAX_NODES);
+      }
+      
+    } else {
+      send_to_char(ch, "Status: \trOFFLINE\tn (System not initialized)\r\n");
+    }
+    
+    return;
+  }
+  
+  if (is_abbrev(arg, "here")) {
+    zone_rnum zrnum = world[IN_ROOM(ch)].zone;
+    if (!ZONE_FLAGGED(zrnum, ZONE_WILDERNESS)) {
+      send_to_char(ch, "This command can only be used in the wilderness.\r\n");
+      return;
+    }
+    
+    /* Get coordinates */
+    x = world[IN_ROOM(ch)].coords[0];
+    y = world[IN_ROOM(ch)].coords[1];
+    
+    send_to_char(ch, "Resource Analysis for (%d, %d):\r\n", x, y);
+    send_to_char(ch, "================================\r\n");
+    
+    /* Show all resource levels */
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+      resource_level = calculate_current_resource_level(i, x, y);
+      send_to_char(ch, "%-15s: %6.2f%% (%s)\r\n", 
+                   resource_names[i], 
+                   resource_level * 100.0f,
+                   get_abundance_description(resource_level));
+    }
+    
+    /* Show environmental factors */
+    send_to_char(ch, "\r\nEnvironmental Factors:\r\n");
+    send_to_char(ch, "Terrain: %s\r\n", sector_types[SECT(IN_ROOM(ch))]);
+    send_to_char(ch, "Elevation: %d\r\n", get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
+    
+    return;
+  }
+  
+  if (is_abbrev(arg, "coords")) {
+    char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
+    
+    remaining_args = two_arguments(remaining_args, arg2, sizeof(arg2), arg3, sizeof(arg3));
+    
+    if (!*arg2 || !*arg3) {
+      send_to_char(ch, "Usage: resourceadmin coords <x> <y>\r\n");
+      return;
+    }
+    
+    x = atoi(arg2);
+    y = atoi(arg3);
+    
+    /* Validate coordinates */
+    if (x < -1024 || x > 1024 || y < -1024 || y > 1024) {
+      send_to_char(ch, "Coordinates must be between -1024 and 1024.\r\n");
+      return;
+    }
+    
+    send_to_char(ch, "Resource Analysis for (%d, %d):\r\n", x, y);
+    send_to_char(ch, "================================\r\n");
+    
+    /* Show all resource levels */
+    for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+      resource_level = calculate_current_resource_level(i, x, y);
+      send_to_char(ch, "%-15s: %6.2f%% (%s)\r\n", 
+                   resource_names[i], 
+                   resource_level * 100.0f,
+                   get_abundance_description(resource_level));
+    }
+    
+    return;
+  }
+  
+  if (is_abbrev(arg, "map")) {
+    char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
+    int resource_type = -1, radius = 7;
+    zone_rnum zrnum = world[IN_ROOM(ch)].zone;
+    
+    if (!ZONE_FLAGGED(zrnum, ZONE_WILDERNESS)) {
+      send_to_char(ch, "This command can only be used in the wilderness.\r\n");
+      return;
+    }
+    
+    remaining_args = two_arguments(remaining_args, arg2, sizeof(arg2), arg3, sizeof(arg3));
+    
+    if (!*arg2) {
+      send_to_char(ch, "Usage: resourceadmin map <resource_type> [radius]\r\n");
+      send_to_char(ch, "Resource types: 0-9 or vegetation, minerals, water, etc.\r\n");
+      return;
+    }
+    
+    /* Parse resource type */
+    if (is_number(arg2)) {
+      resource_type = atoi(arg2);
+    } else {
+      for (i = 0; i < NUM_RESOURCE_TYPES; i++) {
+        if (is_abbrev(arg2, resource_names[i])) {
+          resource_type = i;
+          break;
+        }
+      }
+    }
+    
+    if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES) {
+      send_to_char(ch, "Invalid resource type.\r\n");
+      return;
+    }
+    
+    if (*arg3) {
+      radius = atoi(arg3);
+      if (radius < 3) radius = 3;
+      if (radius > 20) radius = 20; /* Admins can use larger radius */
+    }
+    
+    show_resource_map(ch, resource_type, radius);
+    return;
+  }
+  
+  if (is_abbrev(arg, "debug")) {
+    zone_rnum zrnum = world[IN_ROOM(ch)].zone;
+    if (!ZONE_FLAGGED(zrnum, ZONE_WILDERNESS)) {
+      send_to_char(ch, "This command can only be used in the wilderness.\r\n");
+      return;
+    }
+    
+    show_debug_survey(ch);
+    return;
+  }
+  
+  if (is_abbrev(arg, "cleanup")) {
+    send_to_char(ch, "Forcing cleanup of old resource nodes...\r\n");
+    cleanup_old_resource_nodes();
+    send_to_char(ch, "Cleanup complete.\r\n");
+    mudlog(NRM, LVL_IMMORT, TRUE, "%s forced resource system cleanup", GET_NAME(ch));
+    return;
+  }
+  
+  if (is_abbrev(arg, "cache")) {
+    char arg2[MAX_INPUT_LENGTH];
+    int total_nodes, expired_nodes;
+    
+    one_argument(remaining_args, arg2, sizeof(arg2));
+    
+    if (!*arg2) {
+      /* Show cache statistics */
+      cache_get_stats(&total_nodes, &expired_nodes);
+      
+      send_to_char(ch, "Resource System Cache Statistics:\r\n");
+      send_to_char(ch, "=================================\r\n");
+      send_to_char(ch, "Total cached nodes: %d\r\n", total_nodes);
+      send_to_char(ch, "Expired nodes: %d\r\n", expired_nodes);
+      send_to_char(ch, "Valid nodes: %d\r\n", total_nodes - expired_nodes);
+      send_to_char(ch, "Cache grid size: %d coordinates\r\n", RESOURCE_CACHE_GRID_SIZE);
+      send_to_char(ch, "Cache lifetime: %d seconds\r\n", RESOURCE_CACHE_LIFETIME);
+      send_to_char(ch, "Max cache nodes: %d\r\n", RESOURCE_CACHE_MAX_NODES);
+      send_to_char(ch, "\r\nCommands:\r\n");
+      send_to_char(ch, "  resourceadmin cache cleanup  - Remove expired cache entries\r\n");
+      send_to_char(ch, "  resourceadmin cache clear    - Clear all cache entries\r\n");
+      return;
+    }
+    
+    if (is_abbrev(arg2, "cleanup")) {
+      send_to_char(ch, "Cleaning up expired cache entries...\r\n");
+      cache_get_stats(&total_nodes, &expired_nodes);
+      cache_cleanup_expired();
+      send_to_char(ch, "Removed %d expired cache entries.\r\n", expired_nodes);
+      mudlog(NRM, LVL_IMMORT, TRUE, "%s cleaned up resource cache (%d entries removed)", 
+             GET_NAME(ch), expired_nodes);
+      return;
+    }
+    
+    if (is_abbrev(arg2, "clear")) {
+      cache_get_stats(&total_nodes, &expired_nodes);
+      cache_clear_all();
+      send_to_char(ch, "Cleared all %d cache entries.\r\n", total_nodes);
+      mudlog(NRM, LVL_IMMORT, TRUE, "%s cleared resource cache (%d entries removed)", 
+             GET_NAME(ch), total_nodes);
+      return;
+    }
+    
+    send_to_char(ch, "Unknown cache command. Use 'resourceadmin cache' for help.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "Unknown resourceadmin option. Type 'resourceadmin' for help.\r\n");
+}
+
+/* Region Effects System Helper Functions */
+
+void resourceadmin_effects_list(struct char_data *ch) {
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    char query[512];
+    
+    snprintf(query, sizeof(query), 
+             "SELECT effect_id, effect_name, effect_type, effect_description, is_active "
+             "FROM region_effects ORDER BY effect_type, effect_name");
+    
+    if (mysql_query(conn, query) != 0) {
+        send_to_char(ch, "Database query failed: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    result = mysql_store_result(conn);
+    if (!result) {
+        send_to_char(ch, "Failed to retrieve results: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    send_to_char(ch, "\tcAvailable Region Effects:\tn\r\n");
+    send_to_char(ch, "ID | Name              | Type      | Active | Description\r\n");
+    send_to_char(ch, "---+------------------+----------+--------+------------------------\r\n");
+    
+    while ((row = mysql_fetch_row(result)) != NULL) {
+        const char *active = (atoi(row[4]) == 1) ? "Yes" : "No";
+        send_to_char(ch, "%2s | %-16s | %-8s | %-6s | %.50s\r\n",
+                     row[0], row[1], row[2], active, row[3] ? row[3] : "");
+    }
+    
+    mysql_free_result(result);
+}
+
+void resourceadmin_effects_show(struct char_data *ch, int effect_id) {
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    char query[512];
+    
+    snprintf(query, sizeof(query), 
+             "SELECT effect_name, effect_type, effect_description, effect_data, is_active "
+             "FROM region_effects WHERE effect_id = %d",
+             effect_id);
+    
+    if (mysql_query(conn, query) != 0) {
+        send_to_char(ch, "Database query failed: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    result = mysql_store_result(conn);
+    if (!result) {
+        send_to_char(ch, "Failed to retrieve results: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    row = mysql_fetch_row(result);
+    if (!row) {
+        send_to_char(ch, "Effect ID %d not found.\r\n", effect_id);
+        mysql_free_result(result);
+        return;
+    }
+    
+    send_to_char(ch, "\tcEffect ID %d Details:\tn\r\n", effect_id);
+    send_to_char(ch, "Name: %s\r\n", row[0]);
+    send_to_char(ch, "Type: %s\r\n", row[1]);
+    send_to_char(ch, "Active: %s\r\n", (atoi(row[4]) == 1) ? "Yes" : "No");
+    send_to_char(ch, "Description: %s\r\n", row[2] ? row[2] : "None");
+    send_to_char(ch, "Effect Data: %s\r\n", row[3] ? row[3] : "None");
+    
+    mysql_free_result(result);
+    
+    // Show regions that have this effect assigned
+    snprintf(query, sizeof(query), 
+             "SELECT region_vnum, intensity, is_active, assigned_at, expires_at "
+             "FROM region_effect_assignments WHERE effect_id = %d ORDER BY region_vnum",
+             effect_id);
+    
+    if (mysql_query(conn, query) == 0) {
+        result = mysql_store_result(conn);
+        if (result) {
+            send_to_char(ch, "\r\n\tcAssigned to Regions:\tn\r\n");
+            send_to_char(ch, "Region | Intensity | Active | Assigned       | Expires\r\n");
+            send_to_char(ch, "-------+----------+--------+---------------+-----------\r\n");
+            
+            while ((row = mysql_fetch_row(result)) != NULL) {
+                const char *active = (atoi(row[2]) == 1) ? "Yes" : "No";
+                const char *expires = row[4] ? row[4] : "Never";
+                send_to_char(ch, "%6s | %8s | %-6s | %-13s | %s\r\n",
+                             row[0], row[1], active, row[3], expires);
+            }
+            mysql_free_result(result);
+        }
+    }
+}
+
+void resourceadmin_effects_assign(struct char_data *ch, int region_vnum, int effect_id, double intensity) {
+    char query[1024];
+    
+    // First verify the effect exists and is active
+    snprintf(query, sizeof(query),
+             "SELECT effect_name FROM region_effects WHERE effect_id = %d AND is_active = 1",
+             effect_id);
+    
+    if (mysql_query(conn, query) != 0) {
+        send_to_char(ch, "Database query failed: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    MYSQL_RES *result = mysql_store_result(conn);
+    if (!result) {
+        send_to_char(ch, "Failed to retrieve results: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (!row) {
+        send_to_char(ch, "Effect ID %d not found or not active.\r\n", effect_id);
+        mysql_free_result(result);
+        return;
+    }
+    
+    const char *effect_name = row[0];
+    mysql_free_result(result);
+    
+    // Assign the effect to the region
+    snprintf(query, sizeof(query),
+             "INSERT INTO region_effect_assignments (region_vnum, effect_id, intensity) "
+             "VALUES (%d, %d, %.2f) "
+             "ON DUPLICATE KEY UPDATE intensity = %.2f, is_active = 1, assigned_at = NOW()",
+             region_vnum, effect_id, intensity, intensity);
+    
+    if (mysql_query(conn, query) == 0) {
+        send_to_char(ch, "Effect '%s' (ID: %d) assigned to region %d with intensity %.2f\r\n",
+                     effect_name, effect_id, region_vnum, intensity);
+    } else {
+        send_to_char(ch, "Failed to assign effect: %s\r\n", mysql_error(conn));
+    }
+}
+
+void resourceadmin_effects_unassign(struct char_data *ch, int region_vnum, int effect_id) {
+    char query[512];
+    
+    snprintf(query, sizeof(query),
+             "DELETE FROM region_effect_assignments WHERE region_vnum = %d AND effect_id = %d",
+             region_vnum, effect_id);
+    
+    if (mysql_query(conn, query) == 0) {
+        if (mysql_affected_rows(conn) > 0) {
+            send_to_char(ch, "Effect ID %d unassigned from region %d\r\n", effect_id, region_vnum);
+        } else {
+            send_to_char(ch, "No assignment found for effect ID %d on region %d.\r\n", effect_id, region_vnum);
+        }
+    } else {
+        send_to_char(ch, "Failed to unassign effect: %s\r\n", mysql_error(conn));
+    }
+}
+
+void resourceadmin_effects_region(struct char_data *ch, int region_vnum) {
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    char query[1024];
+    
+    snprintf(query, sizeof(query), 
+             "SELECT re.effect_id, re.effect_name, re.effect_type, rea.intensity, "
+             "rea.is_active, rea.assigned_at, rea.expires_at "
+             "FROM region_effects re "
+             "JOIN region_effect_assignments rea ON re.effect_id = rea.effect_id "
+             "WHERE rea.region_vnum = %d ORDER BY re.effect_type, re.effect_name",
+             region_vnum);
+    
+    if (mysql_query(conn, query) != 0) {
+        send_to_char(ch, "Database query failed: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    result = mysql_store_result(conn);
+    if (!result) {
+        send_to_char(ch, "Failed to retrieve results: %s\r\n", mysql_error(conn));
+        return;
+    }
+    
+    send_to_char(ch, "\tcEffects assigned to Region %d:\tn\r\n", region_vnum);
+    send_to_char(ch, "ID | Name              | Type      | Intensity | Active | Assigned       | Expires\r\n");
+    send_to_char(ch, "---+------------------+----------+----------+--------+---------------+-----------\r\n");
+    
+    int count = 0;
+    while ((row = mysql_fetch_row(result)) != NULL) {
+        const char *active = (atoi(row[4]) == 1) ? "Yes" : "No";
+        const char *expires = row[6] ? row[6] : "Never";
+        send_to_char(ch, "%2s | %-16s | %-8s | %8s | %-6s | %-13s | %s\r\n",
+                     row[0], row[1], row[2], row[3], active, row[5], expires);
+        count++;
+    }
+    
+    if (count == 0) {
+        send_to_char(ch, "No effects assigned to this region.\r\n");
+    }
+    
+    mysql_free_result(result);
+}
+
+/* ===== REGION EFFECTS SYSTEM ADMIN COMMAND ===== */
+
+/* Independent admin command for the flexible region effects system */
+ACMD(do_effectsadmin) {
+    char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH], arg4[MAX_INPUT_LENGTH];
+    
+    if (!conn) {
+        send_to_char(ch, "Database connection error.\r\n");
+        return;
+    }
+    
+    /* Ensure database connection is active */
+    if (!MYSQL_PING_CONN(conn)) {
+        log("SYSERR: %s: Database connection failed", __func__);
+        send_to_char(ch, "Database connection error.\r\n");
+        return;
+    }
+    
+    argument = one_argument(argument, arg, sizeof(arg));
+    
+    if (!*arg) {
+        send_to_char(ch, "\tcRegion Effects System Administration\tn\r\n");
+        send_to_char(ch, "====================================\r\n");
+        send_to_char(ch, "The region effects system provides flexible assignment of various\r\n");
+        send_to_char(ch, "effects to regions using JSON parameters and intensity controls.\r\n\r\n");
+        send_to_char(ch, "Available Commands:\r\n");
+        send_to_char(ch, "  effectsadmin list                        - List all available effects\r\n");
+        send_to_char(ch, "  effectsadmin show <effect_id>            - Show detailed effect information\r\n");
+        send_to_char(ch, "  effectsadmin assign <region> <id> [int]  - Assign effect to region\r\n");
+        send_to_char(ch, "  effectsadmin unassign <region> <id>      - Remove effect from region\r\n");
+        send_to_char(ch, "  effectsadmin region <region_vnum>        - Show all effects for region\r\n");
+        send_to_char(ch, "  effectsadmin create <name> <type>        - Create new effect (future)\r\n");
+        send_to_char(ch, "  effectsadmin modify <id> <params>        - Modify effect (future)\r\n");
+        send_to_char(ch, "\r\nThis system can be used for resource modifiers, environmental effects,\r\n");
+        send_to_char(ch, "seasonal changes, magical influences, and any other region-based effects.\r\n");
+        return;
+    }
+    
+    if (is_abbrev(arg, "list")) {
+        resourceadmin_effects_list(ch);
+        return;
+    }
+    
+    if (is_abbrev(arg, "show")) {
+        argument = one_argument(argument, arg2, sizeof(arg2)); /* effect_id */
+        
+        if (!*arg2) {
+            send_to_char(ch, "Usage: effectsadmin show <effect_id>\r\n");
+            return;
+        }
+        
+        resourceadmin_effects_show(ch, atoi(arg2));
+        return;
+    }
+    
+    if (is_abbrev(arg, "assign")) {
+        argument = one_argument(argument, arg2, sizeof(arg2)); /* region_vnum */
+        argument = one_argument(argument, arg3, sizeof(arg3)); /* effect_id */
+        argument = one_argument(argument, arg4, sizeof(arg4)); /* intensity */
+        
+        if (!*arg2 || !*arg3) {
+            send_to_char(ch, "Usage: effectsadmin assign <region_vnum> <effect_id> [intensity]\r\n");
+            send_to_char(ch, "Intensity defaults to 1.0 if not specified.\r\n");
+            return;
+        }
+        
+        double intensity = *arg4 ? atof(arg4) : 1.0;
+        resourceadmin_effects_assign(ch, atoi(arg2), atoi(arg3), intensity);
+        return;
+    }
+    
+    if (is_abbrev(arg, "unassign")) {
+        argument = one_argument(argument, arg2, sizeof(arg2)); /* region_vnum */
+        one_argument(argument, arg3, sizeof(arg3)); /* effect_id */
+        
+        if (!*arg2 || !*arg3) {
+            send_to_char(ch, "Usage: effectsadmin unassign <region_vnum> <effect_id>\r\n");
+            return;
+        }
+        
+        resourceadmin_effects_unassign(ch, atoi(arg2), atoi(arg3));
+        return;
+    }
+    
+    if (is_abbrev(arg, "region")) {
+        one_argument(argument, arg2, sizeof(arg2)); /* region_vnum */
+        
+        if (!*arg2) {
+            send_to_char(ch, "Usage: effectsadmin region <region_vnum>\r\n");
+            return;
+        }
+        
+        resourceadmin_effects_region(ch, atoi(arg2));
+        return;
+    }
+    
+    if (is_abbrev(arg, "create")) {
+        send_to_char(ch, "Effect creation will be implemented in a future update.\r\n");
+        send_to_char(ch, "For now, effects must be created directly in the database.\r\n");
+        return;
+    }
+    
+    if (is_abbrev(arg, "modify")) {
+        send_to_char(ch, "Effect modification will be implemented in a future update.\r\n");
+        send_to_char(ch, "For now, effects must be modified directly in the database.\r\n");
+        return;
+    }
+    
+    send_to_char(ch, "Unknown command. Type 'effectsadmin' for help.\r\n");
+}
+
+/* Phase 4.5: Admin command to add materials for testing */
+ACMD(do_materialadmin)
+{
+    char subcommand[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH], category_arg[MAX_INPUT_LENGTH];
+    char subtype_arg[MAX_INPUT_LENGTH], quality_arg[MAX_INPUT_LENGTH], quantity_arg[MAX_INPUT_LENGTH];
+    struct char_data *victim;
+    int category, subtype, quality, quantity, result;
+    
+    argument = one_argument(argument, subcommand, sizeof(subcommand));
+    
+    if (!*subcommand) {
+        send_to_char(ch, "Material Storage Admin Commands:\r\n");
+        send_to_char(ch, "===============================\r\n");
+        send_to_char(ch, "materialadmin add <player> <category> <subtype> <quality> <quantity>\r\n");
+        send_to_char(ch, "materialadmin remove <player> <category> <subtype> <quality> <quantity>\r\n");
+        send_to_char(ch, "materialadmin remove <player> all\r\n");
+        send_to_char(ch, "\r\nCategories: herbs, crystal, minerals, wood, vegetation, stone, game\r\n");
+        send_to_char(ch, "Subtypes: 0-7 (varies by category)\r\n");
+        send_to_char(ch, "Qualities: 1=poor, 2=common, 3=uncommon, 4=rare, 5=legendary\r\n");
+        return;
+    }
+    
+    argument = four_arguments(argument, name, sizeof(name), category_arg, sizeof(category_arg), 
+                             subtype_arg, sizeof(subtype_arg), quality_arg, sizeof(quality_arg));
+    one_argument(argument, quantity_arg, sizeof(quantity_arg));
+    
+    /* Handle "remove all" special case */
+    if (is_abbrev(subcommand, "remove") && is_abbrev(name, "all")) {
+        send_to_char(ch, "Usage: materialadmin remove <player> all\r\n");
+        return;
+    }
+    
+    if (is_abbrev(subcommand, "remove") && is_abbrev(category_arg, "all")) {
+        /* Find the player */
+        if (!(victim = get_char_vis(ch, name, NULL, FIND_CHAR_WORLD))) {
+            send_to_char(ch, "%s", CONFIG_NOPERSON);
+            return;
+        }
+        
+        if (IS_NPC(victim)) {
+            send_to_char(ch, "NPCs don't store materials.\r\n");
+            return;
+        }
+        
+        /* Clear all materials */
+        init_material_storage(victim);
+        send_to_char(ch, "Cleared all materials from %s's storage.\r\n", GET_NAME(victim));
+        send_to_char(victim, "An immortal has cleared all materials from your storage.\r\n");
+        return;
+    }
+    
+    if (!*name || !*category_arg || !*subtype_arg || !*quality_arg || !*quantity_arg) {
+        send_to_char(ch, "Usage: materialadmin %s <player> <category> <subtype> <quality> <quantity>\r\n", subcommand);
+        send_to_char(ch, "   or: materialadmin remove <player> all\r\n");
+        send_to_char(ch, "Categories: herbs, crystal, minerals, wood, vegetation, stone, game\r\n");
+        send_to_char(ch, "Qualities: 1=poor, 2=common, 3=uncommon, 4=rare, 5=legendary\r\n");
+        return;
+    }
+    
+    /* Find the player */
+    if (!(victim = get_char_vis(ch, name, NULL, FIND_CHAR_WORLD))) {
+        send_to_char(ch, "%s", CONFIG_NOPERSON);
+        return;
+    }
+    
+    if (IS_NPC(victim)) {
+        send_to_char(ch, "NPCs don't store materials.\r\n");
+        return;
+    }
+    
+    /* Parse category */
+    if (is_abbrev(category_arg, "herbs")) category = RESOURCE_HERBS;
+    else if (is_abbrev(category_arg, "crystal")) category = RESOURCE_CRYSTAL;
+    else if (is_abbrev(category_arg, "minerals")) category = RESOURCE_MINERALS;
+    else if (is_abbrev(category_arg, "wood")) category = RESOURCE_WOOD;
+    else if (is_abbrev(category_arg, "vegetation")) category = RESOURCE_VEGETATION;
+    else if (is_abbrev(category_arg, "stone")) category = RESOURCE_STONE;
+    else if (is_abbrev(category_arg, "game")) category = RESOURCE_GAME;
+    else {
+        send_to_char(ch, "Invalid category. Valid: herbs, crystal, minerals, wood, vegetation, stone, game\r\n");
+        return;
+    }
+    
+    subtype = atoi(subtype_arg);
+    quality = atoi(quality_arg);
+    quantity = atoi(quantity_arg);
+    
+    /* Validate input */
+    if (!validate_material_data(category, subtype, quality)) {
+        send_to_char(ch, "Invalid material data. Check subtype (0-%d for this category) and quality (1-5).\r\n", 
+                     get_max_subtypes_for_category(category) - 1);
+        return;
+    }
+    
+    if (quantity <= 0 || quantity > 1000) {
+        send_to_char(ch, "Quantity must be between 1 and 1000.\r\n");
+        return;
+    }
+    
+    /* Execute the subcommand */
+    if (is_abbrev(subcommand, "add")) {
+        result = add_material_to_storage(victim, category, subtype, quality, quantity);
+        
+        if (result > 0) {
+            const char *material_name = get_full_material_name(category, subtype, quality);
+            send_to_char(ch, "Added %d %s to %s's storage.\r\n", result, material_name, GET_NAME(victim));
+            send_to_char(victim, "An immortal has granted you %d %s.\r\n", result, material_name);
+        } else {
+            send_to_char(ch, "Failed to add material. Storage may be full.\r\n");
+        }
+    }
+    else if (is_abbrev(subcommand, "remove")) {
+        result = remove_material_from_storage(victim, category, subtype, quality, quantity);
+        
+        if (result > 0) {
+            const char *material_name = get_full_material_name(category, subtype, quality);
+            send_to_char(ch, "Removed %d %s from %s's storage.\r\n", result, material_name, GET_NAME(victim));
+            send_to_char(victim, "An immortal has removed %d %s from your storage.\r\n", result, material_name);
+        } else {
+            send_to_char(ch, "No matching materials found to remove.\r\n");
+        }
+    }
+    else {
+        send_to_char(ch, "Invalid subcommand. Use 'add' or 'remove'.\r\n");
+    }
+}
+
+/* Settime command for testing dynamic descriptions and time-based features */
+ACMD(do_settime)
+{
+    char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
+    int new_hour = -1, new_day = -1, new_month = -1;
+    
+    three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
+    
+    if (!*arg1) {
+        send_to_char(ch, "Usage: settime <hour> [day] [month]\r\n");
+        send_to_char(ch, "  hour: 0-23 (game time)\r\n");
+        send_to_char(ch, "  day: 1-35 (optional, current: %d)\r\n", time_info.day + 1);
+        send_to_char(ch, "  month: 0-11 (optional, current: %d - %s)\r\n", 
+                     time_info.month, month_name[time_info.month]);
+        send_to_char(ch, "\r\nCurrent time: %d o'clock on day %d of %s, year %d\r\n",
+                     time_info.hours, time_info.day + 1, 
+                     month_name[time_info.month], time_info.year);
+        return;
+    }
+    
+    /* Parse hour */
+    new_hour = atoi(arg1);
+    if (new_hour < 0 || new_hour > 23) {
+        send_to_char(ch, "Hour must be between 0 and 23.\r\n");
+        return;
+    }
+    
+    /* Parse day if provided */
+    if (*arg2) {
+        new_day = atoi(arg2);
+        if (new_day < 1 || new_day > 35) {
+            send_to_char(ch, "Day must be between 1 and 35.\r\n");
+            return;
+        }
+        new_day--; /* Convert to 0-34 internal format */
+    }
+    
+    /* Parse month if provided */
+    if (*arg3) {
+        new_month = atoi(arg3);
+        if (new_month < 0 || new_month > 11) {
+            send_to_char(ch, "Month must be between 0 and 11.\r\n");
+            return;
+        }
+    }
+    
+    /* Apply changes */
+    time_info.hours = new_hour;
+    if (new_day >= 0) time_info.day = new_day;
+    if (new_month >= 0) time_info.month = new_month;
+    
+    /* Update sunlight based on new hour */
+    if (time_info.hours >= 5 && time_info.hours < 6)
+        weather_info.sunlight = SUN_RISE;
+    else if (time_info.hours >= 6 && time_info.hours < 21)
+        weather_info.sunlight = SUN_LIGHT;
+    else if (time_info.hours >= 21 && time_info.hours < 22)
+        weather_info.sunlight = SUN_SET;
+    else
+        weather_info.sunlight = SUN_DARK;
+    
+    /* Inform the user */
+    send_to_char(ch, "Time set to: %d o'clock on day %d of %s, year %d\r\n",
+                 time_info.hours, time_info.day + 1,
+                 month_name[time_info.month], time_info.year);
+    
+    send_to_char(ch, "Sunlight state: %s\r\n",
+                 weather_info.sunlight == SUN_DARK ? "Dark" :
+                 weather_info.sunlight == SUN_RISE ? "Dawn" :
+                 weather_info.sunlight == SUN_LIGHT ? "Daylight" : "Dusk");
+    
+    /* Log the change */
+    mudlog(BRF, LVL_IMMORT, TRUE, "(GC) %s set game time to %d:%02d, day %d, month %s",
+           GET_NAME(ch), time_info.hours, 0, time_info.day + 1, month_name[time_info.month]);
+}
+
+ACMD(do_setweather)
+{
+  char arg[MAX_INPUT_LENGTH];
+  int new_weather;
+  room_rnum room = IN_ROOM(ch);
+  
+  one_argument(argument, arg, sizeof(arg));
+  
+  if (!*arg) {
+    send_to_char(ch, "Usage: setweather <0-4>\r\n"
+                     "Weather types:\r\n"
+                     "  0 - Clear/Cloudless\r\n"
+                     "  1 - Cloudy\r\n"
+                     "  2 - Rainy\r\n"
+                     "  3 - Stormy\r\n"
+                     "  4 - Lightning\r\n\r\n"
+                     "Note: In wilderness areas, weather is coordinate-based and cannot be changed.\r\n"
+                     "This command only affects non-wilderness areas using global weather.\r\n");
+    return;
+  }
+  
+  new_weather = atoi(arg);
+  if (new_weather < 0 || new_weather > 4) {
+    send_to_char(ch, "Weather type must be between 0 and 4.\r\n");
+    return;
+  }
+  
+  /* Check if we're in a wilderness area */
+  if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))) {
+    int x = world[room].coords[0];
+    int y = world[room].coords[1];
+    int wilderness_weather = get_weather(x, y);
+    
+    send_to_char(ch, "You are in a wilderness area (coords: %d, %d).\r\n"
+                     "Wilderness weather is coordinate-based using Perlin noise: %d\r\n"
+                     "This translates to weather type: %s\r\n"
+                     "Wilderness weather cannot be manually changed.\r\n",
+                     x, y, wilderness_weather,
+                     wilderness_weather >= 225 ? "Lightning" :
+                     wilderness_weather >= 200 ? "Stormy" :
+                     wilderness_weather >= 178 ? "Rainy" :
+                     wilderness_weather > 127 ? "Cloudy" : "Clear");
+    return;
+  }
+  
+  /* Set global weather for non-wilderness areas */
+  switch (new_weather) {
+    case 0: weather_info.sky = SKY_CLOUDLESS; break;
+    case 1: weather_info.sky = SKY_CLOUDY; break;
+    case 2: weather_info.sky = SKY_RAINING; break;
+    case 3: weather_info.sky = SKY_RAINING; break;  /* Stormy = heavy rain */
+    case 4: weather_info.sky = SKY_LIGHTNING; break;
+  }
+  
+  send_to_char(ch, "Global weather changed to: %s\r\n"
+                   "This affects all non-wilderness areas.\r\n",
+                   weather_info.sky == SKY_CLOUDLESS ? "Clear" :
+                   weather_info.sky == SKY_CLOUDY ? "Cloudy" :
+                   weather_info.sky == SKY_RAINING ? "Rainy" :
+                   weather_info.sky == SKY_LIGHTNING ? "Lightning" : "Unknown");
+  
+  /* Inform other immortals */
+  mudlog(BRF, LVL_IMMORT, TRUE, "%s changed global weather to %d", GET_NAME(ch), new_weather);
+}
+
+/* Relock command - allows LVL_IMPL to reset account unlocks for races/classes
+ * This is useful for testing or correcting account unlock issues
+ * Usage: relock <account name> <race|class|all>
+ */
+ACMD(do_relock)
+{
+  char arg1[MAX_INPUT_LENGTH];
+  char arg2[MAX_INPUT_LENGTH];
+  struct account_data target_account;
+  int i, found = 0;
+  
+  /* Check permission - LVL_IMPL only */
+  if (GET_LEVEL(ch) < LVL_IMPL) {
+    send_to_char(ch, "You do not have permission to use this command.\r\n");
+    return;
+  }
+  
+  /* Parse arguments */
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  
+  if (!*arg1 || !*arg2) {
+    send_to_char(ch, "Usage: relock <account name> <race|class|all>\r\n");
+    send_to_char(ch, "Example: relock playeraccount race\r\n");
+    send_to_char(ch, "         relock playeraccount class\r\n");
+    send_to_char(ch, "         relock playeraccount all\r\n");
+    return;
+  }
+  
+  /* Initialize account structure */
+  memset(&target_account, 0, sizeof(struct account_data));
+  
+  /* Try to load the account */
+  if (load_account(arg1, &target_account) != 0) {
+    send_to_char(ch, "Account '%s' not found.\r\n", arg1);
+    return;
+  }
+  
+  /* Process relock based on type */
+  if (is_abbrev(arg2, "race") || is_abbrev(arg2, "all")) {
+    /* Clear all unlocked races from database */
+    char query[256];
+    snprintf(query, sizeof(query), "DELETE FROM unlocked_races WHERE account_id = %d", 
+             target_account.id);
+    if (mysql_query(conn, query)) {
+      send_to_char(ch, "Database error clearing races: %s\r\n", mysql_error(conn));
+      /* Clean up allocated memory before returning */
+      if (target_account.name) free(target_account.name);
+      if (target_account.email) free(target_account.email);
+      for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+        if (target_account.character_names[i])
+          free(target_account.character_names[i]);
+      }
+      return;
+    }
+    
+    /* Clear from memory */
+    for (i = 0; i < MAX_UNLOCKED_RACES; i++) {
+      if (target_account.races[i] != 0) {
+        found++;
+        target_account.races[i] = 0;
+      }
+    }
+    if (is_abbrev(arg2, "race")) {
+      send_to_char(ch, "Cleared %d unlocked race(s) from account '%s'.\r\n", 
+                   found, target_account.name);
+    }
+  }
+  
+  if (is_abbrev(arg2, "class") || is_abbrev(arg2, "all")) {
+    /* Clear all unlocked classes from database */
+    char query[256];
+    snprintf(query, sizeof(query), "DELETE FROM unlocked_classes WHERE account_id = %d", 
+             target_account.id);
+    if (mysql_query(conn, query)) {
+      send_to_char(ch, "Database error clearing classes: %s\r\n", mysql_error(conn));
+      /* Clean up allocated memory before returning */
+      if (target_account.name) free(target_account.name);
+      if (target_account.email) free(target_account.email);
+      for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+        if (target_account.character_names[i])
+          free(target_account.character_names[i]);
+      }
+      return;
+    }
+    
+    /* Clear from memory */
+    int class_count = 0;
+    for (i = 0; i < MAX_UNLOCKED_CLASSES; i++) {
+      if (target_account.classes[i] != 0) {
+        class_count++;
+        target_account.classes[i] = 0;
+      }
+    }
+    if (is_abbrev(arg2, "class")) {
+      send_to_char(ch, "Cleared %d unlocked class(es) from account '%s'.\r\n", 
+                   class_count, target_account.name);
+    } else {
+      found += class_count;
+    }
+  }
+  
+  if (is_abbrev(arg2, "all")) {
+    send_to_char(ch, "Cleared %d total unlock(s) from account '%s'.\r\n", 
+                 found, target_account.name);
+  } else if (!is_abbrev(arg2, "race") && !is_abbrev(arg2, "class")) {
+    send_to_char(ch, "Invalid option. Use 'race', 'class', or 'all'.\r\n");
+    /* Clean up allocated memory before returning */
+    if (target_account.name) free(target_account.name);
+    if (target_account.email) free(target_account.email);
+    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+      if (target_account.character_names[i])
+        free(target_account.character_names[i]);
+    }
+    return;
+  }
+  
+  /* Don't call save_account - we've already updated the database directly */
+  
+  /* Update any logged-in characters with this account */
+  struct descriptor_data *d;
+  for (d = descriptor_list; d; d = d->next) {
+    if (d->account && d->account->id == target_account.id) {
+      /* Reload unlock arrays from DB to keep them in sync */
+      load_account_unlocks(d->account);
+    }
+  }
+  
+  /* Log the action */
+  mudlog(NRM, LVL_IMPL, TRUE, "(GC) %s used RELOCK on account '%s' (%s)", 
+         GET_NAME(ch), target_account.name, arg2);
+  
+  /* Clean up allocated memory */
+  if (target_account.name) free(target_account.name);
+  if (target_account.email) free(target_account.email);
+  for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++) {
+    if (target_account.character_names[i])
+      free(target_account.character_names[i]);
+  }
+  
+  send_to_char(ch, "Account '%s' has been updated.\r\n", arg1);
 }
 
 /* EOF */

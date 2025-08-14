@@ -65,6 +65,11 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CLAN_SYSTEM.md](systems/CLAN_SYSTEM.md)** - Guild and clan functionality
 - **[STAFF_EVENT_SYSTEM.md](systems/STAFF_EVENT_SYSTEM.md)** - Staff-managed game events
 - **[WILDERNESS_SYSTEM.md](building_game-data/WILDERNESS_SYSTEM.md)** - Dynamic wilderness generation
+- **[SPATIAL_SYSTEMS_ARCHITECTURE.md](systems/SPATIAL_SYSTEMS_ARCHITECTURE.md)** - 🆕 ✅ Spatial visual and audio systems with triple strategy pattern
+- **[RESOURCE_SYSTEM_TECHNICAL.md](systems/RESOURCE_SYSTEM_TECHNICAL.md)** - 🆕 Wilderness resource system with flexible region effects
+- **[RESOURCE_REGENERATION_SYSTEM.md](systems/RESOURCE_REGENERATION_SYSTEM.md)** - 🆕 Resource regeneration with seasonal and weather effects
+- **[RESOURCE_REGENERATION_QUICK_REFERENCE.md](systems/RESOURCE_REGENERATION_QUICK_REFERENCE.md)** - 🆕 Quick reference for resource regeneration system
+- **[DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md](systems/DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md)** - 🆕 Dynamic environment descriptions based on resource state
 - **[AI_SERVICE_README.md](systems/AI_SERVICE_README.md)** - AI service integration
 - **[skore_system_documentation.md](systems/skore_system_documentation.md)** - Skore achievement system
 
@@ -81,8 +86,12 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Core Development
 - **[DEVELOPER_GUIDE_AND_API.md](guides/DEVELOPER_GUIDE_AND_API.md)** - Comprehensive developer reference
+- **[RESOURCE_SYSTEM_REFERENCE.md](guides/RESOURCE_SYSTEM_REFERENCE.md)** - 🆕 Resource system player/admin reference
+- **[RESOURCE_REGENERATION_API.md](development/RESOURCE_REGENERATION_API.md)** - 🆕 Resource regeneration API for developers
+- **[PHASE_4_INSTALLATION.md](guides/PHASE_4_INSTALLATION.md)** - 🆕 Phase 4 region effects system setup and testing guide
 - **[CLAUDE.md](../CLAUDE.md)** - AI assistant guidelines and codebase patterns
 - **[TESTING_GUIDE.md](guides/TESTING_GUIDE.md)** - Testing procedures and frameworks
+- **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - 🆕 Resource system testing guide
 - **[CuTest_README.md](testing/CuTest_README.md)** - Unit testing with CuTest
 
 ### Performance & Optimization
@@ -137,6 +146,10 @@ This master index provides a comprehensive guide to all technical documentation 
 ### Project Documents
 - **[AI_TODO_IDEAS.md](project-management/AI_TODO_IDEAS.md)** - AI-related feature ideas
 - **[DO_SKORE_PROJECT.md](project-management/DO_SKORE_PROJECT.md)** - Skore system project plan
+- **[WILDERNESS-RESOURCE-PLAN.md](project-management/WILDERNESS-RESOURCE-PLAN.md)** - 🆕 Resource system implementation plan (Phases 1-4)
+- **[PHASE_5_DESIGN.md](project-management/PHASE_5_DESIGN.md)** - 🆕 Player harvesting mechanics design
+- **[PHASE_4_COMPLETION_SUMMARY.md](project-management/PHASE_4_COMPLETION_SUMMARY.md)** - 🆕 Region effects system completion
+- **[CLEANUP_REPORT.md](project-management/CLEANUP_REPORT.md)** - 🆕 System redesign and cleanup documentation
 - **[IDEA_LIST.md](project-management/IDEA_LIST.md)** - Feature idea collection
 - **[WILDERNESS_PROJECT.md](project-management/WILDERNESS_PROJECT.md)** - Wilderness system development
 

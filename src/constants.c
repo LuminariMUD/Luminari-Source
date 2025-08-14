@@ -27,6 +27,7 @@
 #include "constants.h"
 #include "roleplay.h"
 #include "crafting_new.h"
+#include "campaign.h"
 
 #define CHECK_TABLE_SIZE(tbl, exp_sz) \
     _Static_assert(sizeof((tbl)) / sizeof((tbl)[0]) == (exp_sz), #tbl " wrong number entries")
@@ -37,25 +38,6 @@
  * works correctly with C compilers (at least in my Experience)
  * Jeremy Osborne 1/28/2008 */
 cpp_extern const char *const luminari_version = "LuminariMUD 2.4839 (tbaMUD 3.64)";
-cpp_extern const char *const luminari_build =
-#if defined(MKTIME)
-    "Make time: " MKTIME "\r\n"
-#endif
-#if defined(MKUSER)
-    "Make user: " MKUSER "\r\n"
-#endif
-#if defined(MKHOST)
-    "Make host: " MKHOST "\r\n"
-#endif
-#if defined(BRANCH)
-    "Branch: " BRANCH "\r\n"
-#endif
-#if defined(PARENT)
-    "Parent: " PARENT "\r\n"
-#endif
-"";
-
-;
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
@@ -666,12 +648,23 @@ const char *class_names[] = {
     "Summoner",
     "Warlock",
     "Necromancer",
+#ifdef CAMPAIGN_DL
+    /* DragonLance theme - Traditional Knight names */
     "Knight of the Crown", // 30
     "Knight of the Sword",
     "Knight of the Rose",
     "Knight of the Thorn",
     "Knight of the Skull",
     "Knight of the Lily", // 35
+#else
+    /* LuminariMUD theme - Order of Light and Shadow names */
+    "Knight of the Crimson Loom", // 30 (Crown)
+    "Knight of the Sundered Dawn", // (Sword)
+    "Knight of the Ember Throne", // (Rose)
+    "Knight of the Shattered Mirror", // (Thorn)
+    "Knight of the Pale Throne", // (Skull)
+    "Knight of the Howling Moon", // 35 (Lily)
+#endif
     "Dragon Rider",
     //  "unfinished",
     //  "unfinished",
@@ -1212,6 +1205,8 @@ const char *room_bits[] = {
     "Random-Chest",
     "Always-Load-Harvest-Node",
     "Road",
+    "Vehicle",
+    "Dockable",
     "\n"};
 CHECK_TABLE_SIZE(room_bits, NUM_ROOM_FLAGS + 1);
 
@@ -2401,6 +2396,10 @@ const char *item_types[] = {
     "Weapon Oil",
     "Gear Outfit",
     "Drink",
+    "Vehicle",
+    "Ship-Object",
+    "Vessel",
+    "Greyhawk-Ship",
     "\n"};
 CHECK_TABLE_SIZE(item_types, NUM_ITEM_TYPES + 1);
 
@@ -4212,6 +4211,14 @@ CHECK_TABLE_SIZE(languages, SKILL_LANG_HIGH - SKILL_LANG_LOW + 1);
     const char *pantheons[] = {
         "",
         "All",
+        "Luminari Core",
+        "Luminari Dwarven",
+        "Luminari Elven",
+        "Luminari Halfling",
+        "Luminari Orcish",
+        "Luminari Seafolk",
+        "Luminari Dark Courts",
+        "Luminari Primarchs",
         "\n"
     };
     CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
@@ -6099,12 +6106,23 @@ const char *class_short_descriptions[] = {
     "An arcane spellcaster who has mastered the art of conjuring and who controls a powerful eidolon follower.",   // summoner
     "A savvy invoker who has dominated the arcane through sheer force of will and dark pacts.",                    // warlock
     "A master of the arcane and necromantic arts, able to take upon them the powers of undeath.",                  // necromancer
+#ifdef CAMPAIGN_DL
+    /* DragonLance theme - Traditional knight descriptions */
     "The first order of the Knights of Solamnia, bound by the tenets of obedience and honor.",                    // knight of the crown
     "The second order of the Knights of Solamnia, bound by the tenets of courage and heroism.",                   // knight of the Sword
     "The third order of the Knights of Solamnia, bound by the tenets of nobility, bravery and leadership.",       // knight of the Rose
     "The arcane order of the Knights of Takhisis, clad in armor and adhering to a strict code of honor.",         // knight of the thorn
     "The clerical order of the Knights of Takhisis, they serve as diplomats and internal enforcers.",             // knight of the skull
     "The rank and file of the Knights of Takhisis and main force of their military.",                             // knight of the lily
+#else
+    /* LuminariMUD theme - Order of Light and Shadow descriptions */
+    "Warriors who weave oaths into reality, growing stronger with each fulfilled vow.",                           // knight of the crimson loom (crown)
+    "Mystics split between light and shadow, wielding divine magic through duality.",                             // knight of the sundered dawn (sword)
+    "Warrior-artists channeling divine fire, leading through inspiration and glory.",                             // knight of the ember throne (rose)
+    "Masters of paradox blending arcane magic with martial prowess through illusion.",                            // knight of the shattered mirror (thorn)
+    "Death-priests wielding negative divine energy, serving as arbiters of death's justice.",                     // knight of the pale throne (skull)
+    "Primal warriors embracing their beast nature, guardians of civilization's boundary.",                        // knight of the howling moon (lily)
+#endif
     "A skilled warrior whose bond with their dragon mount offers numerous special abilities.",                    // dragonrider
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);

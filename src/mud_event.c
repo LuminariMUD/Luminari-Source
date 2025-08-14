@@ -3,6 +3,7 @@
  *  Usage: Handling of the mud event system                                *
  *                                                                         *
  *  By Vatiken. Copyright 2012 by Joseph Arnusch                           *
+ *  Re-written by LuminariMUD staff to fix the original code.              *
  **************************************************************************
  * 
  * BEGINNER'S GUIDE TO THE MUD EVENT SYSTEM:

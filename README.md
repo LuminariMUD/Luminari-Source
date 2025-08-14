@@ -62,17 +62,18 @@ This project embodies commitment, self-motivation, and perseverance through chal
 - **Operating System**: Linux or Unix-like system (including WSL2 Ubuntu)
 - **Compiler**: GCC or Clang (C90/C89 with GNU extensions)
 - **Build System**: CMake 3.12+ or Autotools
-- **Database**: MySQL 5.0+ or MariaDB
-- **Libraries** (from Makefile.am line 170): 
-  - libcrypt, libgd, libm, libmysqlclient, libcurl, libssl, libcrypto, libpthread
+- **Database**: MariaDB 10.0+ (recommended) or MySQL 5.7+
+- **Libraries**: 
+  - libmariadb-dev (MariaDB client library - required)
+  - libcrypt, libgd, libm, libcurl, libssl, libcrypto, libpthread
 
 #### Quick Install for Ubuntu/WSL2:
 ```bash
-# Install all required dependencies based on Makefile.am requirements
+# Install all required dependencies (updated for MariaDB)
 sudo apt-get update
-sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmysqlclient-dev \
-                        libcurl4-openssl-dev libssl-dev mysql-server git make cmake \
-                        autoconf automake libtool
+sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmariadb-dev \
+                        libcurl4-openssl-dev libssl-dev mariadb-server git make cmake \
+                        autoconf automake libtool pkg-config
 
 # HIGHLY RECOMMENDED: Install debugging tools (used by debug_game.sh and vgrind.sh)
 sudo apt-get install -y gdb valgrind
@@ -303,7 +304,7 @@ Contributions to this project must be accompanied by a Contributor License Agree
 #### Build Problems
 ```bash
 # Missing dependencies
-sudo apt-get install build-essential mysql-server libmysqlclient-dev libgd-dev
+sudo apt-get install build-essential mariadb-server libmariadb-dev libgd-dev
 
 # Permission issues
 chmod +x configure
@@ -316,7 +317,9 @@ make clean && make
 #### Runtime Issues
 ```bash
 # Database connection problems
-# Check MySQL service status
+# Check MariaDB service status
+sudo systemctl status mariadb
+# Or for older systems:
 sudo systemctl status mysql
 
 # Port already in use

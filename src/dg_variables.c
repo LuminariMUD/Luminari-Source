@@ -316,6 +316,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
   struct room_data *room, *r = NULL;
   char *name;
   int num, count, i, j, doors, index = 0;
+  
 
   const char *const send_cmd[] = {"msend ", "osend ", "wsend "};
   const char *const echo_cmd[] = {"mecho ", "oecho ", "wecho "};
@@ -428,6 +429,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
     if (vd)
     {
       name = vd->value;
+      
 
       switch (type)
       {
@@ -481,6 +483,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
     {
       if (!str_cmp(var, "self"))
       {
+        
         switch (type)
         {
         case MOB_TRIGGER:
@@ -716,6 +719,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
       }
     }
 
+    
     if (c)
     {
       if (!str_cmp(field, "global"))
@@ -1790,15 +1794,16 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
           {
             *str = '\0';
-            script_log("Trigger: %s, VNum %d. unknown char field: '%s'",
-                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), field);
+            script_log("Trigger: %s, VNum %d. ERROR: Unknown character field '%s' (char: %s [%d], attempted: %%<char_var>.%s%%)",
+                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), field,
+                       c ? GET_NAME(c) : "NULL", c ? GET_MOB_VNUM(c) : -1, field);
           }
         }
         else
         {
           *str = '\0';
-          script_log("Trigger: %s, VNum %d. unknown char field: '%s'",
-                     GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), field);
+          script_log("Trigger: %s, VNum %d. ERROR: Unknown character field '%s' (char has no script, attempted: %%<char_var>.%s%%)",
+                     GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), field, field);
         }
       }
     } /* if (c) ...*/
@@ -2041,15 +2046,16 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
           {
             *str = '\0';
-            script_log("Trigger: %s, VNum %d, type: %d. unknown object field: '%s'",
-                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field);
+            script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown object field '%s' (obj: %s [%d], attempted: %%<obj_var>.%s%%)",
+                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field,
+                       o ? o->short_description : "NULL", o ? GET_OBJ_VNUM(o) : -1, field);
           }
         }
         else
         {
           *str = '\0';
-          script_log("Trigger: %s, VNum %d, type: %d. unknown object field: '%s'",
-                     GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field);
+          script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown object field '%s' (obj has no script, attempted: %%<obj_var>.%s%%)",
+                     GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field, field);
         }
       }
     } /* if (o) ... */
@@ -2363,15 +2369,16 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
           {
             *str = '\0';
-            script_log("Trigger: %s, VNum %d, type: %d. unknown room field: '%s'",
-                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field);
+            script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown room field '%s' (room vnum: %d, attempted access: %%<room_var>.%s%%)",
+                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field, 
+                       r ? r->number : -1, field);
           }
         }
         else
         {
           *str = '\0';
-          script_log("Trigger: %s, VNum %d, type: %d. unknown room field: '%s'",
-                     GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field);
+          script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown room field '%s' (room has no script, attempted access: %%<room_var>.%s%%)",
+                     GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field, field);
         }
       }
     } /* if (r).. */

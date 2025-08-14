@@ -30,6 +30,9 @@
 #include "act.h"
 #include "modify.h"
 
+/* Enable this to debug DG script parameter corruption issues */
+/* #define SCRIPT_DEBUG */
+
 #define PULSES_PER_MUD_HOUR (SECS_PER_MUD_HOUR * PASSES_PER_SEC)
 
 /* Local functions not used elsewhere */
@@ -839,7 +842,10 @@ static EVENTFUNC(trig_wait_event)
   }
 #endif
 
-  script_driver(&go, trig, type, TRIG_RESTART);
+  {
+    struct script_call_args restart_args = {&go, trig, type, TRIG_RESTART};
+    script_driver(&restart_args);
+  }
 
   /* Do not reenqueue*/
   return 0;
@@ -1668,8 +1674,9 @@ static void eval_expr(char *line, char *result, void *go, struct script_data *sc
     *p = '\0';
     eval_expr(expr + 1, result, go, sc, trig, type);
   }
-  else
+  else {
     var_subst(go, sc, trig, type, line, result);
+  }
 }
 
 /* Evaluates expr if it is in the form lhs op rhs, and copies answer in result.
@@ -1954,6 +1961,7 @@ void process_eval(void *go, struct script_data *sc, trig_data *trig,
     return;
   }
 
+  
   eval_expr(expr, result, go, sc, trig, type);
   add_var(&GET_TRIG_VARS(trig), name, result, sc ? sc->context : 0);
 }
@@ -2790,7 +2798,7 @@ static void dg_letter_value(struct script_data *sc, trig_data *trig, char *cmd)
  * int mode
      TRIG_NEW     just started from dg_triggers.c
      TRIG_RESTART restarted after a 'wait' */
-int script_driver(void *go_adress, trig_data *trig, int type, int mode)
+int script_driver(struct script_call_args *args)
 {
   static int depth = 0;
   int ret_val = 1;
@@ -2800,10 +2808,212 @@ int script_driver(void *go_adress, trig_data *trig, int type, int mode)
   struct cmdlist_element *temp = NULL;
   unsigned long loops = 0;
   void *go = NULL;
+  
+  /* Extract parameters from the args struct to avoid stack corruption */
+  void *go_adress = args->go_adress;
+  trig_data *trig = args->trig;
+  int type = args->type;
+  int mode = args->mode;
+  
+  /* CRITICAL VALIDATION: Detect when triggers are attached to wrong entity types
+   * This prevents hours of debugging wild goose chases!
+   * Example: Object trigger 7705 was attached to room 7771, causing it to be
+   * called with WLD_TRIGGER type instead of OBJ_TRIGGER, making %self.room% fail */
+  if (trig) {
+    int expected_type = -1;
+    
+    /* Determine what type this trigger SHOULD be based on its flags */
+    if (GET_TRIG_TYPE(trig) & (OTRIG_GLOBAL | OTRIG_RANDOM | OTRIG_COMMAND | OTRIG_TIMER | 
+                                OTRIG_GET | OTRIG_DROP | OTRIG_GIVE | OTRIG_WEAR | 
+                                OTRIG_REMOVE | OTRIG_LOAD | OTRIG_CAST | OTRIG_LEAVE | 
+                                OTRIG_CONSUME | OTRIG_TIME)) {
+      expected_type = OBJ_TRIGGER;
+    } else if (GET_TRIG_TYPE(trig) & (MTRIG_GLOBAL | MTRIG_RANDOM | MTRIG_COMMAND | 
+                                       MTRIG_SPEECH | MTRIG_ACT | MTRIG_DEATH | 
+                                       MTRIG_GREET | MTRIG_GREET_ALL | MTRIG_ENTRY | 
+                                       MTRIG_RECEIVE | MTRIG_FIGHT | MTRIG_HITPRCNT | 
+                                       MTRIG_BRIBE | MTRIG_LOAD | MTRIG_MEMORY | 
+                                       MTRIG_CAST | MTRIG_LEAVE | MTRIG_DOOR | MTRIG_TIME)) {
+      expected_type = MOB_TRIGGER;
+    } else if (GET_TRIG_TYPE(trig) & (WTRIG_GLOBAL | WTRIG_RANDOM | WTRIG_COMMAND | 
+                                       WTRIG_SPEECH | WTRIG_RESET | WTRIG_ENTER | 
+                                       WTRIG_DROP | WTRIG_CAST | WTRIG_LEAVE | 
+                                       WTRIG_DOOR | WTRIG_TIME | WTRIG_LOGIN)) {
+      expected_type = WLD_TRIGGER;
+    }
+    
+    /* Check for type mismatch - this is a CRITICAL configuration error */
+    if (expected_type != -1 && expected_type != type) {
+#ifdef SCRIPT_DEBUG
+      const char *expected_type_name = "UNKNOWN";
+      const char *actual_type_name = "UNKNOWN";
+      
+      /* Set expected type name */
+      switch (expected_type) {
+        case MOB_TRIGGER: expected_type_name = "MOB_TRIGGER"; break;
+        case OBJ_TRIGGER: expected_type_name = "OBJ_TRIGGER"; break;
+        case WLD_TRIGGER: expected_type_name = "WLD_TRIGGER"; break;
+      }
+      
+      /* Get actual type name for error message */
+      switch (type) {
+        case MOB_TRIGGER: actual_type_name = "MOB_TRIGGER"; break;
+        case OBJ_TRIGGER: actual_type_name = "OBJ_TRIGGER"; break;
+        case WLD_TRIGGER: actual_type_name = "WLD_TRIGGER"; break;
+      }
+      
+      script_log("CRITICAL ERROR: Trigger %d (%s) is a %s trigger but is being called as %s!",
+                 GET_TRIG_VNUM(trig), GET_TRIG_NAME(trig), expected_type_name, actual_type_name);
+      script_log("  This usually means the trigger is attached to the wrong entity type.");
+      script_log("  Check: grep '#%d' lib/world/*/*.* to find where it's attached.", GET_TRIG_VNUM(trig));
+      
+      /* Determine what entity it's wrongly attached to */
+      if (type == WLD_TRIGGER && expected_type == OBJ_TRIGGER) {
+        struct room_data *room = (struct room_data *)go_adress;
+        script_log("  Object trigger %d is incorrectly attached to room %d", 
+                   GET_TRIG_VNUM(trig), room ? room->number : -1);
+        script_log("  FIX: Remove 'T %d' from room definition in world files", GET_TRIG_VNUM(trig));
+      } else if (type == WLD_TRIGGER && expected_type == MOB_TRIGGER) {
+        struct room_data *room = (struct room_data *)go_adress;
+        script_log("  Mob trigger %d is incorrectly attached to room %d", 
+                   GET_TRIG_VNUM(trig), room ? room->number : -1);
+        script_log("  FIX: Remove 'T %d' from room definition in world files", GET_TRIG_VNUM(trig));
+      } else if (type == OBJ_TRIGGER && expected_type == WLD_TRIGGER) {
+        script_log("  Room trigger %d is incorrectly attached to an object", GET_TRIG_VNUM(trig));
+        script_log("  FIX: Remove 'T %d' from object definition in world files", GET_TRIG_VNUM(trig));
+      } else if (type == OBJ_TRIGGER && expected_type == MOB_TRIGGER) {
+        script_log("  Mob trigger %d is incorrectly attached to an object", GET_TRIG_VNUM(trig));
+        script_log("  FIX: Remove 'T %d' from object definition in world files", GET_TRIG_VNUM(trig));
+      } else if (type == MOB_TRIGGER && expected_type == OBJ_TRIGGER) {
+        script_log("  Object trigger %d is incorrectly attached to a mob", GET_TRIG_VNUM(trig));
+        script_log("  FIX: Remove 'T %d' from mob definition in world files", GET_TRIG_VNUM(trig));
+      } else if (type == MOB_TRIGGER && expected_type == WLD_TRIGGER) {
+        script_log("  Room trigger %d is incorrectly attached to a mob", GET_TRIG_VNUM(trig));
+        script_log("  FIX: Remove 'T %d' from mob definition in world files", GET_TRIG_VNUM(trig));
+      }
+      
+      /* Don't execute the trigger - it will likely fail with confusing errors */
+      script_log("  ABORTING trigger execution to prevent cascade errors.");
+      return 0;
+#endif
+    }
+  }
+  
+  /* General debug logging for parameter corruption investigation */
+#ifdef SCRIPT_DEBUG
+  if (trig) {
+    script_log("SCRIPT_DEBUG %d: script_driver START - args struct received", GET_TRIG_VNUM(trig));
+    script_log("SCRIPT_DEBUG %d: args ptr=%p, args->type=%d, args->go_adress=%p, args->trig=%p, args->mode=%d",
+               GET_TRIG_VNUM(trig), (void*)args, args->type, args->go_adress, args->trig, args->mode);
+    script_log("SCRIPT_DEBUG %d: extracted values - type=%d, go_adress=%p, trig=%p, mode=%d",
+               GET_TRIG_VNUM(trig), type, go_adress, (void*)trig, mode);
+    script_log("SCRIPT_DEBUG %d: Constants - MOB=%d, OBJ=%d, WLD=%d",
+               GET_TRIG_VNUM(trig), MOB_TRIGGER, OBJ_TRIGGER, WLD_TRIGGER);
+    
+    /* Check if type matches what we'd expect from trigger flags */
+    int expected_type = -1;
+    if (GET_TRIG_TYPE(trig) & (OTRIG_GLOBAL | OTRIG_RANDOM | OTRIG_COMMAND | OTRIG_TIMER | 
+                                OTRIG_GET | OTRIG_DROP | OTRIG_GIVE | OTRIG_WEAR | 
+                                OTRIG_REMOVE | OTRIG_LOAD | OTRIG_CAST | OTRIG_LEAVE | 
+                                OTRIG_CONSUME | OTRIG_TIME)) {
+      expected_type = OBJ_TRIGGER;
+    } else if (GET_TRIG_TYPE(trig) & (MTRIG_GLOBAL | MTRIG_RANDOM | MTRIG_COMMAND | 
+                                       MTRIG_SPEECH | MTRIG_ACT | MTRIG_DEATH | 
+                                       MTRIG_GREET | MTRIG_GREET_ALL | MTRIG_ENTRY | 
+                                       MTRIG_RECEIVE | MTRIG_FIGHT | MTRIG_HITPRCNT | 
+                                       MTRIG_BRIBE | MTRIG_LOAD | MTRIG_MEMORY | 
+                                       MTRIG_CAST | MTRIG_LEAVE | MTRIG_DOOR | MTRIG_TIME)) {
+      expected_type = MOB_TRIGGER;
+    } else if (GET_TRIG_TYPE(trig) & (WTRIG_GLOBAL | WTRIG_RANDOM | WTRIG_COMMAND | 
+                                       WTRIG_SPEECH | WTRIG_RESET | WTRIG_ENTER | 
+                                       WTRIG_DROP | WTRIG_CAST | WTRIG_LEAVE | 
+                                       WTRIG_DOOR | WTRIG_TIME | WTRIG_LOGIN)) {
+      expected_type = WLD_TRIGGER;
+    }
+    
+    if (expected_type != -1 && expected_type != type) {
+      script_log("WARNING %d: Type mismatch! Received type=%d but trigger flags suggest type=%d",
+                 GET_TRIG_VNUM(trig), type, expected_type);
+    }
+  }
+#endif
 
   void obj_command_interpreter(obj_data * obj, char *argument);
   void wld_command_interpreter(struct room_data * room, char *argument);
 
+  /* Debug for DG script parameter corruption issues - enable with SCRIPT_DEBUG */
+#ifdef SCRIPT_DEBUG
+  if (trig) {
+    script_log("SCRIPT_DEBUG %d: script_driver entry - go_adress=%p, trig=%p, type=%d, mode=%d",
+               GET_TRIG_VNUM(trig), go_adress, (void*)trig, type, mode);
+    script_log("SCRIPT_DEBUG %d: Constants - MOB=%d OBJ=%d WLD=%d, TRIG_NEW=%d TRIG_RESTART=%d",
+               GET_TRIG_VNUM(trig), MOB_TRIGGER, OBJ_TRIGGER, WLD_TRIGGER, TRIG_NEW, TRIG_RESTART);
+  }
+#endif
+
+  
+  /* IMPORTANT: Type validation must happen BEFORE we use type to extract pointers
+   * The type parameter corruption issue means we can't trust the incoming type value.
+   * We must validate and correct it before using it to interpret go_adress. */
+  
+  /* First, let's handle the default case where type is completely invalid 
+   * Note: MOB_TRIGGER=0, OBJ_TRIGGER=1, WLD_TRIGGER=2 
+   * So we need to check if type is outside the valid range */
+  if (type < MOB_TRIGGER || type > WLD_TRIGGER) {
+    script_log("CRITICAL: Invalid trigger type %d received for trigger %d. Attempting recovery.",
+               type, trig ? GET_TRIG_VNUM(trig) : -1);
+    
+    /* Try to determine correct type from trigger flags 
+     * We only try to recover if we have a clear indication of what type it should be */
+    if (trig) {
+      /* Check for OBJECT trigger flags - these are unique to objects */
+      if ((GET_TRIG_TYPE(trig) & OTRIG_TIMER) ||
+          (GET_TRIG_TYPE(trig) & OTRIG_GET) ||
+          (GET_TRIG_TYPE(trig) & OTRIG_DROP) ||
+          (GET_TRIG_TYPE(trig) & OTRIG_GIVE) ||
+          (GET_TRIG_TYPE(trig) & OTRIG_WEAR) ||
+          (GET_TRIG_TYPE(trig) & OTRIG_REMOVE) ||
+          (GET_TRIG_TYPE(trig) & OTRIG_CONSUME)) {
+        script_log("RECOVERY: Detected unique object trigger flags, setting type to OBJ_TRIGGER");
+        type = OBJ_TRIGGER;
+      }
+      /* Check for MOB trigger flags - these are unique to mobs */
+      else if ((GET_TRIG_TYPE(trig) & MTRIG_SPEECH) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_ACT) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_DEATH) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_GREET) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_GREET_ALL) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_ENTRY) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_RECEIVE) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_FIGHT) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_HITPRCNT) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_BRIBE) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_MEMORY) ||
+               (GET_TRIG_TYPE(trig) & MTRIG_DOOR)) {
+        script_log("RECOVERY: Detected unique mob trigger flags, setting type to MOB_TRIGGER");
+        type = MOB_TRIGGER;
+      }
+      /* Check for WORLD trigger flags - these are unique to rooms */
+      else if ((GET_TRIG_TYPE(trig) & WTRIG_RESET) ||
+               (GET_TRIG_TYPE(trig) & WTRIG_ENTER) ||
+               (GET_TRIG_TYPE(trig) & WTRIG_LOGIN)) {
+        script_log("RECOVERY: Detected unique world trigger flags, setting type to WLD_TRIGGER");
+        type = WLD_TRIGGER;
+      }
+      else {
+        script_log("FATAL: Cannot determine trigger type from flags for trigger %d (flags=%ld)", 
+                   GET_TRIG_VNUM(trig), GET_TRIG_TYPE(trig));
+        return 0;
+      }
+    }
+    else {
+      script_log("FATAL: Cannot recover type without trigger data");
+      return 0;
+    }
+  }
+  
+  
+  /* NOW we can safely use the corrected type to extract pointers */
   switch (type)
   {
   case MOB_TRIGGER:
@@ -2818,6 +3028,36 @@ int script_driver(void *go_adress, trig_data *trig, int type, int mode)
     go = *(room_data **)go_adress;
     sc = SCRIPT((room_data *)go);
     break;
+  default:
+    script_log("FATAL: Invalid type %d after validation for trigger %d", 
+               type, trig ? GET_TRIG_VNUM(trig) : -1);
+    return 0;
+  }
+
+  /* Safety check: ensure we have a valid script after extracting pointers */
+  if (!sc) {
+    script_log("ERROR: Script is NULL for trigger %d after type correction (type=%d, go=%p). Cannot execute.",
+               trig ? GET_TRIG_VNUM(trig) : -1, type, go);
+    /* Additional debug to understand why sc is NULL */
+    if (go) {
+      switch (type) {
+      case MOB_TRIGGER:
+        script_log("  MOB details: name='%s', vnum=%d", 
+                   GET_NAME((char_data *)go), GET_MOB_VNUM((char_data *)go));
+        break;
+      case OBJ_TRIGGER:
+        script_log("  OBJ details: name='%s', vnum=%d", 
+                   ((obj_data *)go)->short_description, GET_OBJ_VNUM((obj_data *)go));
+        break;
+      case WLD_TRIGGER:
+        script_log("  ROOM details: name='%s', vnum=%d", 
+                   ((room_data *)go)->name, ((room_data *)go)->number);
+        break;
+      }
+    } else {
+      script_log("  go pointer is also NULL!");
+    }
+    return 0;
   }
 
   if (depth > MAX_SCRIPT_DEPTH)
@@ -2971,8 +3211,9 @@ int script_driver(void *go_adress, trig_data *trig, int type, int mode)
     {
       var_subst(go, sc, trig, type, p, cmd);
 
-      if (!strn_cmp(cmd, "eval ", 5))
+      if (!strn_cmp(cmd, "eval ", 5)) {
         process_eval(go, sc, trig, type, cmd);
+      }
 
       else if (!strn_cmp(cmd, "nop ", 4))
         ; /* nop: do nothing */

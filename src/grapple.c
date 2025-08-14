@@ -200,6 +200,7 @@ void set_grapple(struct char_data *ch, struct char_data *vict)
  dex bonus for the sake of sneak attacks etc */
 void set_pin(struct char_data *ch, struct char_data *vict)
 {
+  UNUSED(ch);
   if (!AFF_FLAGGED(vict, AFF_PINNED))
     SET_BIT_AR(AFF_FLAGS(vict), AFF_PINNED);
   change_position(vict, POS_RECLINING);
@@ -374,6 +375,7 @@ ACMD(do_grapple)
  * as opposed to the current setup */
 ACMD(do_struggle)
 {
+  UNUSED(argument);
   if (!GRAPPLE_ATTACKER(ch) || !AFF_FLAGGED(ch, AFF_GRAPPLED))
   {
     send_to_char(ch, "But you are not the victim of grapple!\r\n");
@@ -419,6 +421,7 @@ ACMD(do_struggle)
 /* as a free action, release your grapple victim */
 ACMD(do_free_grapple)
 {
+  UNUSED(argument);
   if (!ch)
     return;
   struct char_data *vict = GRAPPLE_TARGET(ch);
@@ -433,6 +436,7 @@ ACMD(do_free_grapple)
 /* as a standard action, try to pin grappled opponent */
 ACMD(do_pin)
 {
+  UNUSED(argument);
 
   if (!can_npc_command(ch)) return;
 
@@ -507,6 +511,7 @@ ACMD(do_pin)
 /* as a standard action, try to bind pinned opponent */
 ACMD(do_bind)
 {
+  UNUSED(argument);
   if (!can_npc_command(ch)) return;
   send_to_char(ch, "Under construction.\r\n");
   return;
