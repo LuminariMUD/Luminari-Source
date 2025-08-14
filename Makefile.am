@@ -138,15 +138,15 @@ circle_SOURCES = \
 	src/protocol.c \
 	src/psionics.c \
 	src/pubsub.c \
-	src/pubsub_handlers.c \
-	src/pubsub_db.c \
-	src/pubsub_commands.c \
-	src/pubsub_queue.c \
-	src/pubsub_spatial.c \
-	src/pubsub_event_handlers.c \
-	src/spatial_core.c \
-	src/spatial_visual.c \
-	src/spatial_audio.c \
+	src/systems/pubsub/pubsub_handlers.c \
+	src/systems/pubsub/pubsub_db.c \
+	src/systems/pubsub/pubsub_commands.c \
+	src/systems/pubsub/pubsub_queue.c \
+	src/systems/pubsub/pubsub_spatial.c \
+	src/systems/pubsub/pubsub_event_handlers.c \
+	src/systems/spatial/spatial_core.c \
+	src/systems/spatial/spatial_visual.c \
+	src/systems/spatial/spatial_audio.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \

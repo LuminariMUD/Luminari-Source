@@ -31,6 +31,22 @@
 #define STIMULUS_SCENT                    5
 #define STIMULUS_VIBRATION                6
 
+/* Spatial Directions */
+typedef enum {
+    SPATIAL_DIR_HERE,          /* Same location */
+    SPATIAL_DIR_NORTH,         /* North */
+    SPATIAL_DIR_NORTHEAST,     /* Northeast */
+    SPATIAL_DIR_EAST,          /* East */
+    SPATIAL_DIR_SOUTHEAST,     /* Southeast */
+    SPATIAL_DIR_SOUTH,         /* South */
+    SPATIAL_DIR_SOUTHWEST,     /* Southwest */
+    SPATIAL_DIR_WEST,          /* West */
+    SPATIAL_DIR_NORTHWEST,     /* Northwest */
+    SPATIAL_DIR_ABOVE,         /* Above observer */
+    SPATIAL_DIR_BELOW,         /* Below observer */
+    SPATIAL_DIR_UNKNOWN        /* Cannot determine direction */
+} spatial_direction_t;
+
 /* Return Codes */
 #define SPATIAL_SUCCESS                   0
 #define SPATIAL_ERROR_STIMULUS            -1
@@ -103,6 +119,8 @@ struct spatial_context {
     
     /* Calculated Values */
     float distance;
+    spatial_direction_t direction;      /* Direction from observer to source */
+    float direction_precision;          /* 0.0-1.0, precision of direction */
     float effective_range;
     float obstruction_factor;
     float environmental_modifier;
@@ -222,6 +240,7 @@ struct spatial_context *spatial_create_context(void);
 void spatial_free_context(struct spatial_context *ctx);
 int spatial_setup_context(struct spatial_context *ctx, int source_x, int source_y, int source_z,
                          struct char_data *observer, const char *description);
+void spatial_update_direction(struct spatial_context *ctx);
 
 /* System Management */
 int spatial_register_system(struct spatial_system *system);
@@ -236,8 +255,16 @@ int spatial_register_modifier_strategy(struct modifier_strategy *strategy);
 
 /* Utility Functions */
 float spatial_calculate_3d_distance(int x1, int y1, int z1, int x2, int y2, int z2);
+spatial_direction_t spatial_calculate_direction(int observer_x, int observer_y, int observer_z,
+                                               int source_x, int source_y, int source_z, 
+                                               float *precision);
+const char *spatial_direction_to_string(spatial_direction_t direction, float distance);
 bool spatial_is_in_range(struct spatial_context *ctx, float max_range);
 int spatial_get_terrain_type(int x, int y);
+
+/* Weather Data Access Functions */
+int spatial_get_weather_type(struct char_data *observer);
+int spatial_get_raw_weather(struct char_data *observer);
 
 /* Cache Management */
 int spatial_init_cache(void);

@@ -419,6 +419,9 @@ int spatial_setup_context(struct spatial_context *ctx, int source_x, int source_
     
     /* Reset calculated values */
     ctx->distance = 0.0;
+    ctx->direction = spatial_calculate_direction(ctx->observer_x, ctx->observer_y, ctx->observer_z,
+                                                ctx->source_x, ctx->source_y, ctx->source_z,
+                                                &ctx->direction_precision);
     ctx->effective_range = 0.0;
     ctx->obstruction_factor = 0.0;
     ctx->environmental_modifier = 1.0;
@@ -432,6 +435,17 @@ int spatial_setup_context(struct spatial_context *ctx, int source_x, int source_
 }
 
 /*
+ * Update direction calculation for a context (call when coordinates change)
+ */
+void spatial_update_direction(struct spatial_context *ctx) {
+    if (!ctx) return;
+    
+    ctx->direction = spatial_calculate_direction(ctx->observer_x, ctx->observer_y, ctx->observer_z,
+                                                ctx->source_x, ctx->source_y, ctx->source_z,
+                                                &ctx->direction_precision);
+}
+
+/*
  * Calculate 3D distance between two points
  */
 float spatial_calculate_3d_distance(int x1, int y1, int z1, int x2, int y2, int z2) {
@@ -440,6 +454,116 @@ float spatial_calculate_3d_distance(int x1, int y1, int z1, int x2, int y2, int 
     float dz = (float)(z2 - z1);
     
     return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+/*
+ * Calculate direction from observer to source
+ */
+spatial_direction_t spatial_calculate_direction(int observer_x, int observer_y, int observer_z,
+                                               int source_x, int source_y, int source_z, 
+                                               float *precision) {
+    int dx = source_x - observer_x;
+    int dy = source_y - observer_y;
+    int dz = source_z - observer_z;
+    
+    spatial_log("DEBUG: Direction calc - observer(%d,%d,%d) source(%d,%d,%d) delta(%d,%d,%d)", 
+                observer_x, observer_y, observer_z, source_x, source_y, source_z, dx, dy, dz);
+    
+    /* Default precision */
+    if (precision) *precision = 1.0;
+    
+    /* Handle same location */
+    if (dx == 0 && dy == 0) {
+        if (dz > 5) {
+            spatial_log("DEBUG: Direction = ABOVE (dz=%d)", dz);
+            return SPATIAL_DIR_ABOVE;
+        }
+        if (dz < -5) {
+            spatial_log("DEBUG: Direction = BELOW (dz=%d)", dz);
+            return SPATIAL_DIR_BELOW;
+        }
+        spatial_log("DEBUG: Direction = HERE");
+        return SPATIAL_DIR_HERE;
+    }
+    
+    /* Calculate horizontal distance */
+    float horizontal_dist = sqrt(dx*dx + dy*dy);
+    
+    /* If primarily vertical movement, adjust precision */
+    if (precision && abs(dz) > horizontal_dist * 2) {
+        *precision = 0.7; /* Less precise horizontal direction when primarily vertical */
+    }
+    
+    /* Calculate angle for horizontal direction (atan2 handles all quadrants) */
+    float angle = atan2(dy, dx) * 180.0 / M_PI;
+    if (angle < 0) angle += 360;
+    
+    spatial_log("DEBUG: Angle calculated: %.1f degrees", angle);
+    
+    /* Convert to 8-direction compass 
+     * Note: In MUD coordinates, positive Y is typically north, positive X is east */
+    spatial_direction_t result;
+    if (angle >= 337.5 || angle < 22.5) result = SPATIAL_DIR_EAST;
+    else if (angle >= 22.5 && angle < 67.5) result = SPATIAL_DIR_NORTHEAST;
+    else if (angle >= 67.5 && angle < 112.5) result = SPATIAL_DIR_NORTH;
+    else if (angle >= 112.5 && angle < 157.5) result = SPATIAL_DIR_NORTHWEST;
+    else if (angle >= 157.5 && angle < 202.5) result = SPATIAL_DIR_WEST;
+    else if (angle >= 202.5 && angle < 247.5) result = SPATIAL_DIR_SOUTHWEST;
+    else if (angle >= 247.5 && angle < 292.5) result = SPATIAL_DIR_SOUTH;
+    else if (angle >= 292.5 && angle < 337.5) result = SPATIAL_DIR_SOUTHEAST;
+    else result = SPATIAL_DIR_UNKNOWN;
+    
+    spatial_log("DEBUG: Final direction: %d", result);
+    return result;
+}
+
+/*
+ * Convert direction to descriptive string based on distance
+ */
+const char *spatial_direction_to_string(spatial_direction_t direction, float distance) {
+    static char direction_buffers[4][64];  /* Rotating buffers to avoid overwrites */
+    static int buffer_index = 0;
+    char *buf = direction_buffers[buffer_index];
+    buffer_index = (buffer_index + 1) % 4;  /* Rotate to next buffer */
+    
+    const char *base_dir;
+    
+    /* Get base direction string */
+    switch (direction) {
+        case SPATIAL_DIR_HERE:      
+            snprintf(buf, 64, "here");
+            return buf;
+        case SPATIAL_DIR_NORTH:     base_dir = "north"; break;
+        case SPATIAL_DIR_NORTHEAST: base_dir = "northeast"; break;
+        case SPATIAL_DIR_EAST:      base_dir = "east"; break;
+        case SPATIAL_DIR_SOUTHEAST: base_dir = "southeast"; break;
+        case SPATIAL_DIR_SOUTH:     base_dir = "south"; break;
+        case SPATIAL_DIR_SOUTHWEST: base_dir = "southwest"; break;
+        case SPATIAL_DIR_WEST:      base_dir = "west"; break;
+        case SPATIAL_DIR_NORTHWEST: base_dir = "northwest"; break;
+        case SPATIAL_DIR_ABOVE:     
+            snprintf(buf, 64, "above");
+            return buf;
+        case SPATIAL_DIR_BELOW:     
+            snprintf(buf, 64, "below");
+            return buf;
+        default:                    
+            snprintf(buf, 64, "nearby");
+            return buf;
+    }
+    
+    /* Add distance qualifier based on effective perception */
+    if (distance <= 1.0) {
+        snprintf(buf, 64, "the %s", base_dir);
+    } else if (distance <= 3.0) {
+        snprintf(buf, 64, "the %s", base_dir);
+    } else if (distance <= 8.0) {
+        snprintf(buf, 64, "the distant %s", base_dir);
+    } else {
+        snprintf(buf, 64, "the far %s", base_dir);
+    }
+    
+    return buf;
 }
 
 /*

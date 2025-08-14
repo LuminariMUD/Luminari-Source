@@ -34,4 +34,10 @@ int process_distant_structure_visual_event(int x, int y, const char *structure_d
 /* Testing functions */
 int spatial_visual_test_ship_passing(int ship_x, int ship_y, const char *ship_desc);
 
+/* Meteor swarm spatial effects */
+/* Meteor visual effects */
+int spatial_visual_meteor_approach(int meteor_x, int meteor_y, const char *meteor_desc, int visual_range);
+int spatial_visual_meteor_descent(int meteor_x, int meteor_y, const char *meteor_desc, int visual_range);
+int spatial_visual_meteor_impact(int impact_x, int impact_y, const char *impact_desc, int range);
+
 #endif /* _SPATIAL_VISUAL_H_ */

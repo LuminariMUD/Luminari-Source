@@ -203,38 +203,58 @@ static int audio_generate_message(struct spatial_context *ctx, char *output, siz
     }
     
     /* Generate message based on type and add directional information */
-    int dx = ctx->source_x - ctx->observer_x;
-    int dy = ctx->source_y - ctx->observer_y;
-    const char *direction = get_direction_string(dx, dy);
+    const char *direction_str = spatial_direction_to_string(ctx->direction, ctx->distance);
     
     switch (msg_type) {
         case AUDIO_MSG_CLEAR:
-            snprintf(output, max_len, "You clearly hear %s.", ctx->source_description);
+            if (ctx->direction == SPATIAL_DIR_HERE) {
+                snprintf(output, max_len, "You hear %s.", ctx->source_description);
+            } else {
+                snprintf(output, max_len, "You hear %s from %s.", ctx->source_description, direction_str);
+            }
             break;
             
         case AUDIO_MSG_DISTANT:
-            snprintf(output, max_len, "You hear %s in the distance from the %s.", 
-                    ctx->source_description, direction);
+            if (ctx->direction == SPATIAL_DIR_HERE) {
+                snprintf(output, max_len, "You hear %s.", ctx->source_description);
+            } else {
+                snprintf(output, max_len, "You hear %s from %s.", ctx->source_description, direction_str);
+            }
             break;
             
         case AUDIO_MSG_MUFFLED:
-            snprintf(output, max_len, "You hear the muffled sound of %s from the %s.", 
-                    ctx->source_description, direction);
+            if (ctx->direction == SPATIAL_DIR_HERE) {
+                snprintf(output, max_len, "You hear the muffled sound of %s.", ctx->source_description);
+            } else {
+                snprintf(output, max_len, "You hear the muffled sound of %s from %s.", 
+                        ctx->source_description, direction_str);
+            }
             break;
             
         case AUDIO_MSG_ECHO:
-            snprintf(output, max_len, "An echo of %s reaches you from the %s.", 
-                    ctx->source_description, direction);
+            if (ctx->direction == SPATIAL_DIR_HERE) {
+                snprintf(output, max_len, "An echo of %s reaches you.", ctx->source_description);
+            } else {
+                snprintf(output, max_len, "An echo of %s reaches you from %s.", 
+                        ctx->source_description, direction_str);
+            }
             break;
             
         case AUDIO_MSG_FAINT:
-            snprintf(output, max_len, "You faintly hear %s from the %s.", 
-                    ctx->source_description, direction);
+            if (ctx->direction == SPATIAL_DIR_HERE) {
+                snprintf(output, max_len, "You faintly hear %s.", ctx->source_description);
+            } else {
+                snprintf(output, max_len, "You faintly hear %s from %s.", 
+                        ctx->source_description, direction_str);
+            }
             break;
             
         case AUDIO_MSG_RUMBLE:
-            snprintf(output, max_len, "You sense a distant rumbling that might be %s.", 
-                    ctx->source_description);
+            if (ctx->direction == SPATIAL_DIR_HERE) {
+                snprintf(output, max_len, "You hear a low rumble nearby.");
+            } else {
+                snprintf(output, max_len, "You hear a low rumble from %s.", direction_str);
+            }
             break;
     }
     
@@ -726,5 +746,87 @@ int spatial_audio_test_shout(int source_x, int source_y, const char *shout_messa
     spatial_free_context(ctx);
     
     spatial_log("Shout test processed for %d players", processed_count);
+    return SPATIAL_SUCCESS;
+}
+
+/*
+ * Generic sound effect test function
+ */
+int spatial_audio_test_sound_effect(int source_x, int source_y, int source_z, 
+                                   const char *sound_desc, int frequency, int range) {
+    struct spatial_context *ctx;
+    struct char_data *ch;
+    int processed_count = 0;
+    
+    if (!sound_desc) {
+        return SPATIAL_ERROR_INVALID_PARAM;
+    }
+    
+    spatial_log("Testing sound effect at (%d, %d, %d): %s", source_x, source_y, source_z, sound_desc);
+    
+    /* Create properly initialized context */
+    ctx = spatial_create_context();
+    if (!ctx) {
+        spatial_log("ERROR: Failed to create spatial context");
+        return SPATIAL_ERROR_MEMORY;
+    }
+    
+    /* Set source information */
+    ctx->source_x = source_x;
+    ctx->source_y = source_y;
+    ctx->source_z = source_z;
+    ctx->source_description = strdup(sound_desc);
+    ctx->base_intensity = 1.0;
+    ctx->audio_frequency = frequency;
+    
+    /* Set effective range */
+    ctx->effective_range = range;
+    
+    /* Process for all wilderness players */
+    for (ch = character_list; ch; ch = ch->next) {
+        if (IS_NPC(ch) || !ch->desc) continue;
+        if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) continue;
+        
+        /* Check if player is within audio range using horizontal distance */
+        float horizontal_distance = sqrt((X_LOC(ch) - source_x) * (X_LOC(ch) - source_x) + 
+                                        (Y_LOC(ch) - source_y) * (Y_LOC(ch) - source_y));
+        if (horizontal_distance > range) {
+            spatial_log("Player %s too far horizontally (%.2f > %d)", GET_NAME(ch), horizontal_distance, range);
+            continue;
+        }
+        
+        /* Set observer information */
+        ctx->observer = ch;
+        ctx->observer_x = X_LOC(ch);
+        ctx->observer_y = Y_LOC(ch);
+        ctx->observer_z = get_modified_elevation(X_LOC(ch), Y_LOC(ch));
+        ctx->active_system = &audio_system;
+        
+        /* Use horizontal distance for audio intensity calculations */
+        ctx->distance = horizontal_distance;
+        
+        /* Update direction calculation for this observer */
+        spatial_update_direction(ctx);
+        
+        spatial_log("Testing audio for player %s at (%d, %d, %d) distance: %.2f", 
+                   GET_NAME(ch), ctx->observer_x, ctx->observer_y, ctx->observer_z, horizontal_distance);
+        
+        /* Process audio stimulus */
+        int result = spatial_process_stimulus(ctx, &audio_system);
+        spatial_log("Spatial process result for %s: %d", GET_NAME(ch), result);
+        
+        if (result == SPATIAL_SUCCESS) {
+            send_to_char(ch, "\r\n%s\r\n", ctx->processed_message);
+            processed_count++;
+            spatial_log("Sound effect delivered to %s", GET_NAME(ch));
+        } else {
+            spatial_log("Sound processing failed for %s with error %d", GET_NAME(ch), result);
+        }
+    }
+    
+    /* Cleanup */
+    spatial_free_context(ctx);
+    
+    spatial_log("Sound effect test processed for %d players", processed_count);
     return SPATIAL_SUCCESS;
 }
