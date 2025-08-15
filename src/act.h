@@ -959,6 +959,7 @@ ACMD_DECL(do_snoop);
 ACMD_DECL(do_stat);
 ACMD_DECL(do_switch);
 ACMD_DECL(do_teleport);
+ACMD_DECL(do_terrainapi);
 ACMD_DECL(do_trans);
 ACMD_DECL(do_vnum);
 ACMD_DECL(do_vstat);
