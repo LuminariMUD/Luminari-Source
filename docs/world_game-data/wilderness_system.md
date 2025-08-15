@@ -1,5 +1,7 @@
 # Luminari MUD Wilderness System Documentation
 
+*Last Updated: January 2025*
+
 ## Table of Contents
 1. [Overview](#overview)
 2. [System Architecture](#system-architecture)
@@ -509,6 +511,61 @@ The system supports 10 distinct resource types, each with unique distribution pa
 9. **Clay** - Pottery clay and construction materials
 10. **Salt** - Salt deposits and mineral salts
 
+### Material Subtype System (Phase 4.5)
+
+The resource system includes a three-tier hierarchy for specific named materials:
+**Structure**: Category → Subtype → Quality
+
+#### Herb Subtypes
+- **Marjoram** - Common healing herb
+- **Kingfoil** - Powerful healing properties
+- **Starlily** - Rare magical component
+- **Wolfsbane** - Poison and protective wards
+- **Silverleaf** - Anti-undead properties
+- **Moonbell** - Enchantment components
+- **Thornweed** - Alchemical bitter
+- **Brightroot** - Light-based magic
+
+#### Crystal Subtypes
+- **Arcanite** - Pure magical energy crystal
+- **Nethermote** - Shadow magic component
+- **Sunstone** - Light/fire magic crystal
+- **Voidshards** - Rare planar material
+- **Dreamquartz** - Divination/sleep magic
+- **Bloodstone** - Life force manipulation
+- **Frostgem** - Ice/cold magic component
+- **Stormcrystal** - Lightning/weather magic
+
+#### Ore Subtypes (Minerals)
+- **Mithril** - Legendary lightweight metal
+- **Adamantine** - Incredibly hard metal
+- **Cold Iron** - Anti-fey properties
+- **Star Steel** - Meteoric metal
+- **Deep Silver** - Underdark precious metal
+- **Dragonsteel** - Dragon-touched metal
+- **Voidmetal** - Planar-infused ore
+- **Brightcopper** - Magically conductive
+
+#### Wood Subtypes
+- **Ironwood** - Hard as metal tree
+- **Silverbirch** - Anti-evil properties
+- **Shadowbark** - Stealth-enhancing wood
+- **Brightoak** - Light-channeling tree
+- **Thornvine** - Defensive barrier material
+- **Moonweave** - Flexible magical fiber
+- **Darkwillow** - Necromantic components
+- **Starwood** - Celestial-touched timber
+
+#### Vegetation Subtypes
+- **Cotton** - Basic fiber
+- **Silk Moss** - Fine magical fiber
+- **Hemp Vine** - Strong rope material
+- **Spirit Grass** - Ethereal component
+- **Flame Flower** - Fire resistance fiber
+- **Ice Lichen** - Cold resistance material
+- **Shadow Fern** - Stealth enhancement
+- **Light Bloom** - Illumination component
+
 ### Resource Distribution
 
 Resources are distributed using sophisticated algorithms that consider multiple environmental factors:
@@ -547,6 +604,40 @@ survey regeneration         # Resource regeneration analysis
 survey ecosystem            # Ecosystem health analysis
 survey impact               # Personal conservation impact
 survey cascade <resource>   # Preview ecological impact of harvesting
+```
+
+### Ecological Resource Cascade System (Phase 7)
+
+The cascade system models ecological interdependencies between resources:
+
+**Core Concepts:**
+- **Direct Effects**: Immediate impact on harvested resource
+- **Cascade Effects**: Secondary impacts on dependent resources
+- **Network Effects**: Ripple effects through the ecosystem
+- **Regeneration Impacts**: Changes to recovery rates
+
+**Cascade Relationships:**
+- **Vegetation → Herbs**: Herbs depend on vegetation coverage
+- **Vegetation → Game**: Wildlife requires plant food sources
+- **Water → Vegetation**: Plants need water to thrive
+- **Water → Clay**: Clay formation requires moisture
+- **Wood → Game**: Animals need forest habitat
+- **Minerals → Crystal**: Crystal formation in mineral-rich areas
+- **Stone → Minerals**: Mineral veins form in stone deposits
+
+**Impact Severity Levels:**
+- **None** (0-10% depletion): No cascade effects
+- **Minor** (10-30%): Small impacts on dependent resources
+- **Moderate** (30-50%): Noticeable ecosystem changes
+- **Major** (50-70%): Significant environmental degradation
+- **Severe** (70-90%): Ecosystem collapse risk
+- **Critical** (90%+): Irreversible damage possible
+
+**Commands:**
+```
+survey cascade <resource>    # Preview cascade effects before harvesting
+survey ecosystem             # View current ecosystem health
+survey network               # Show resource interdependency network
 ```
 
 ### Resource Visualization
@@ -1302,13 +1393,31 @@ int wild_waterline = 128;                  // Runtime waterline for actual terra
 #define NOISE_MATERIAL_PLANE_ELEV_DIST 1   // Elevation distortion layer
 #define NOISE_MATERIAL_PLANE_MOISTURE 2    // Moisture noise layer
 #define NOISE_WEATHER 3                    // Weather noise layer
-#define NUM_NOISE 4                        // Total number of noise layers
+// Resource system noise layers
+#define NOISE_VEGETATION 4                 // Vegetation resource layer
+#define NOISE_MINERALS 5                   // Minerals resource layer
+#define NOISE_WATER_RESOURCE 6              // Water resource layer
+#define NOISE_HERBS 7                      // Herbs resource layer
+#define NOISE_GAME 8                       // Game resource layer
+#define NOISE_WOOD 9                       // Wood resource layer
+#define NOISE_STONE 10                     // Stone resource layer
+#define NOISE_CRYSTAL 11                   // Crystal resource layer
+#define NUM_NOISE 12                       // Total number of noise layers
 
 // Noise seeds (must be < MAX_GENERATED_NOISE = 24)
 #define NOISE_MATERIAL_PLANE_ELEV_SEED 822344     // Elevation seed
 #define NOISE_MATERIAL_PLANE_MOISTURE_SEED 834    // Moisture seed
 #define NOISE_MATERIAL_PLANE_ELEV_DIST_SEED 74233 // Elevation distortion seed
 #define NOISE_WEATHER_SEED 43425                  // Weather seed
+// Resource system noise seeds
+#define NOISE_VEGETATION_SEED 198374              // Vegetation seed
+#define NOISE_MINERALS_SEED 45892                 // Minerals seed
+#define NOISE_WATER_RESOURCE_SEED 73456           // Water resource seed
+#define NOISE_HERBS_SEED 91234                    // Herbs seed
+#define NOISE_GAME_SEED 56789                     // Game seed
+#define NOISE_WOOD_SEED 87432                     // Wood seed
+#define NOISE_STONE_SEED 65321                    // Stone seed
+#define NOISE_CRYSTAL_SEED 43210                  // Crystal seed
 ```
 
 **Customization:**
@@ -1320,16 +1429,24 @@ int wild_waterline = 128;                  // Runtime waterline for actual terra
 
 ```c
 // Resource types and counts
-#define NUM_RESOURCE_TYPES 10         // Total number of resource types
+#define MAX_RESOURCE_TYPES 16          // Maximum supported resource types
+#define NUM_RESOURCE_TYPES 10          // Currently active resource types
 
 // Resource density ranges
-#define RESOURCE_DENSITY_MIN 0.0      // Minimum resource density (0%)
-#define RESOURCE_DENSITY_MAX 1.0      // Maximum resource density (100%)
+#define RESOURCE_DENSITY_MIN 0.0       // Minimum resource density (0%)
+#define RESOURCE_DENSITY_MAX 1.0       // Maximum resource density (100%)
 
 // Map visualization
-#define DEFAULT_RESOURCE_MAP_RADIUS 7  // Default map radius
-#define MAX_RESOURCE_MAP_RADIUS 15     // Maximum allowed map radius
-#define MIN_RESOURCE_MAP_RADIUS 3      // Minimum allowed map radius
+#define DEFAULT_RESOURCE_MAP_RADIUS 7   // Default map radius
+#define MAX_RESOURCE_MAP_RADIUS 15      // Maximum allowed map radius
+#define MIN_RESOURCE_MAP_RADIUS 3       // Minimum allowed map radius
+
+// Material subtypes (Phase 4.5)
+#define NUM_HERB_SUBTYPES 8              // Number of specific herb types
+#define NUM_CRYSTAL_SUBTYPES 8           // Number of crystal varieties
+#define NUM_ORE_SUBTYPES 8               // Number of ore types
+#define NUM_WOOD_SUBTYPES 8              // Number of wood varieties
+#define NUM_VEGETATION_SUBTYPES 8        // Number of vegetation types
 ```
 
 ### PubSub System Configuration
@@ -1769,12 +1886,15 @@ The Luminari MUD Wilderness System is a comprehensive, integrated environment th
 
 - **Procedural Terrain**: 2048x2048 coordinate grid with Perlin noise-based generation
 - **Resource Management**: 10 resource types with real-time discovery and conservation tracking  
+- **Material Subtypes**: Phase 4.5 system with specific named materials and rarities
+- **Ecological Cascades**: Phase 7 interdependency system modeling ecosystem relationships
 - **Event Communication**: PubSub messaging system with spatial audio and real-time event distribution
 - **3D Audio**: Spatial positioning system with elevation-aware distance calculations
 - **Performance Optimization**: KD-Tree indexing, caching systems, and efficient database queries
 - **Administrative Tools**: Comprehensive debugging and management interfaces
 
 **Current Status**: Fully operational with all major subsystems integrated and tested.
+**Latest Enhancements**: Phase 4.5 Material Subtypes and Phase 7 Ecological Cascades implemented.
 
 **Key Features for Players**:
 - Enhanced exploration with resource discovery and mapping

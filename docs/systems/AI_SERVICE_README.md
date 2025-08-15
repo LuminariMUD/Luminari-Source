@@ -186,7 +186,7 @@ Create `lib/.env` with the following settings:
 OPENAI_API_KEY=sk-your-api-key-here
 
 # Optional Settings (defaults shown)
-AI_MODEL=gpt-4o-mini              # OpenAI model (when available)
+AI_MODEL=gpt-5-mini               # OpenAI model (when available)
 AI_MAX_TOKENS=500                  # Response length limit
 AI_TEMPERATURE=3                   # Creativity (3 = 0.3)
 AI_TIMEOUT_MS=30000               # 30 second timeout for OpenAI
@@ -425,7 +425,7 @@ Generic Fallback
 **OpenAI (when enabled)**:
 - Response time: 1-2 seconds (uncached)
 - Cost: ~$0.001 per request
-- Model: gpt-4o-mini (fast, cost-effective)
+- Model: gpt-5-mini (fast, cost-effective)
 - Timeout: 30 seconds
 
 **Ollama (fallback/primary)**:
@@ -444,7 +444,7 @@ Generic Fallback
 
 ### Current Optimizations
 - **Dual Backend**: Automatic fallback ensures 99%+ AI availability
-- **Model Selection**: gpt-4o-mini for OpenAI, llama3.2:1b for Ollama
+- **Model Selection**: gpt-5-mini for OpenAI, llama3.2:1b for Ollama
 - **Temperature**: 0.3-0.7 (consistent responses)
 - **Threading**: True async - no game blocking
 - **Caching**: Unified cache for both backends

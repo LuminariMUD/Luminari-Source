@@ -168,7 +168,7 @@ void init_ai_service(void) {
   
   /* Set default configuration */
   AI_DEBUG("Setting default configuration values");
-  strcpy(ai_state.config->model, "gpt-4o-mini");  /* Faster model */
+  strcpy(ai_state.config->model, "gpt-5-mini");   /* Latest fast model */
   AI_DEBUG("  Model: %s", ai_state.config->model);
   ai_state.config->max_tokens = AI_MAX_TOKENS;
   AI_DEBUG("  Max tokens: %d", ai_state.config->max_tokens);
