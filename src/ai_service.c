@@ -79,6 +79,7 @@ static char *build_ollama_json_request(const char *prompt);
 static char *parse_ollama_json_response(const char *json_str);
 static void warmup_ollama_model(void);
 static void *ai_thread_worker(void *arg);
+static int json_escape_string(char *dest, size_t dest_size, const char *src);
 /* static void derive_key_from_seed(unsigned char *key); */
 
 /**
@@ -168,7 +169,7 @@ void init_ai_service(void) {
   
   /* Set default configuration */
   AI_DEBUG("Setting default configuration values");
-  strcpy(ai_state.config->model, "gpt-5-mini");   /* Latest fast model */
+  strcpy(ai_state.config->model, "gpt-4o-mini");   /* Latest fast model */
   AI_DEBUG("  Model: %s", ai_state.config->model);
   ai_state.config->max_tokens = AI_MAX_TOKENS;
   AI_DEBUG("  Max tokens: %d", ai_state.config->max_tokens);
@@ -207,7 +208,7 @@ void init_ai_service(void) {
   ai_state.limiter->current_minute_count = 0;
   ai_state.limiter->current_hour_count = 0;
   AI_DEBUG("  Current counts: minute=%d, hour=%d", 
-           ai_state.limiter->current_minute_count, ai_state.limiter->current_hour_count);;
+           ai_state.limiter->current_minute_count, ai_state.limiter->current_hour_count);
   
   /* Initialize cache */
   AI_DEBUG("Initializing AI response cache");
@@ -223,7 +224,7 @@ void init_ai_service(void) {
     AI_DEBUG("  Persistent CURL handle created successfully");
   } else {
     AI_DEBUG("  WARNING: Failed to create persistent CURL handle");
-  };
+  }
   
   /* Load configuration from database/files */
   AI_DEBUG("Loading AI configuration from .env file");
@@ -256,7 +257,7 @@ void shutdown_ai_service(void) {
     next = entry->next;
     AI_DEBUG("  Freeing cache entry: key='%s', response_len=%zu", 
              entry->key ? entry->key : "(null)", 
-             entry->response ? strlen(entry->response) : 0);;
+             entry->response ? strlen(entry->response) : 0);
     if (entry->key) free(entry->key);
     if (entry->response) free(entry->response);
     free(entry);
@@ -278,7 +279,7 @@ void shutdown_ai_service(void) {
     AI_DEBUG("Freeing rate limiter at %p", (void*)ai_state.limiter);
     AI_DEBUG("  Final stats: minute_count=%d/%d, hour_count=%d/%d",
              ai_state.limiter->current_minute_count, ai_state.limiter->requests_per_minute,
-             ai_state.limiter->current_hour_count, ai_state.limiter->requests_per_hour);;
+             ai_state.limiter->current_hour_count, ai_state.limiter->requests_per_hour);
     free(ai_state.limiter);
     ai_state.limiter = NULL;
   }
@@ -400,7 +401,7 @@ void load_ai_config(void) {
   ai_state.config->content_filter_enabled = get_env_bool("AI_CONTENT_FILTER_ENABLED", TRUE);
   AI_DEBUG("  Content filter: %s (env: %s)", 
            ai_state.config->content_filter_enabled ? "ENABLED" : "DISABLED",
-           get_env_value("AI_CONTENT_FILTER_ENABLED") ? "set" : "default");;
+           get_env_value("AI_CONTENT_FILTER_ENABLED") ? "set" : "default");
   
   /* Load rate limits */
   if (ai_state.limiter) {
@@ -449,7 +450,7 @@ static char *make_api_request_single(const char *prompt) {
   long http_code;
   
   AI_DEBUG("make_api_request_single() called with prompt: '%.50s%s'",
-           prompt, strlen(prompt) > 50 ? "..." : "");;
+           prompt, strlen(prompt) > 50 ? "..." : "");
   
   if (!ai_state.initialized) {
     log("SYSERR: AI Service not initialized");
@@ -486,7 +487,7 @@ static char *make_api_request_single(const char *prompt) {
   }
   AI_DEBUG("JSON request built (length=%zu)", strlen(json_request));
   AI_DEBUG("JSON content: %.200s%s", json_request, 
-           strlen(json_request) > 200 ? "..." : "");;
+           strlen(json_request) > 200 ? "..." : "");
   
   AI_DEBUG("Getting CURL handle");
   /* Try to use persistent handle for connection pooling */
@@ -971,8 +972,7 @@ void ai_reset_rate_limits(void) {
 static char *build_json_request(const char *prompt) {
   static char json_buffer[MAX_STRING_LENGTH * 2];
   char escaped_prompt[MAX_STRING_LENGTH];
-  const char *src;
-  char *dest;
+  int escape_result;
   
   AI_DEBUG("build_json_request() called");
   AI_DEBUG("Input prompt length: %zu", prompt ? strlen(prompt) : 0);
@@ -984,31 +984,15 @@ static char *build_json_request(const char *prompt) {
     return NULL;
   }
   
-  /* Simple JSON escaping */
+  /* Use proper JSON escaping function */
   AI_DEBUG("Escaping JSON special characters");
-  src = prompt;
-  dest = escaped_prompt;
-  int escape_count = 0;
-  while (*src && dest - escaped_prompt < MAX_STRING_LENGTH - 3) {
-    if (*src == '"' || *src == '\\') {
-      if (dest - escaped_prompt >= MAX_STRING_LENGTH - 2) {
-        AI_DEBUG("WARNING: Truncating at position %ld - no room for escape sequence",
-                 (long)(dest - escaped_prompt));
-        break; /* No room for escape sequence */
-      }
-      *dest++ = '\\';
-      escape_count++;
-    }
-    if (dest - escaped_prompt >= MAX_STRING_LENGTH - 1) {
-      AI_DEBUG("WARNING: Truncating at position %ld - buffer full",
-               (long)(dest - escaped_prompt));
-      break; /* No room for character */
-    }
-    *dest++ = *src++;
+  escape_result = json_escape_string(escaped_prompt, sizeof(escaped_prompt), prompt);
+  if (escape_result < 0) {
+    log("SYSERR: Failed to escape prompt for JSON - string too long");
+    AI_DEBUG("ERROR: json_escape_string failed - prompt too long");
+    return NULL;
   }
-  *dest = '\0';
-  AI_DEBUG("Escaping complete: %d characters escaped, final length: %zu",
-           escape_count, strlen(escaped_prompt));;
+  AI_DEBUG("Escaping complete: final length: %d", escape_result);
   
   /* Build JSON request */
   AI_DEBUG("Building JSON request structure");
@@ -1034,7 +1018,14 @@ static char *build_json_request(const char *prompt) {
   AI_DEBUG("JSON structure: %.200s%s", json_buffer,
            strlen(json_buffer) > 200 ? "..." : "");
   
-  return json_buffer;
+  /* Return a dynamically allocated copy instead of static buffer */
+  char *result = strdup(json_buffer);
+  if (!result) {
+    log("SYSERR: Failed to allocate memory for JSON request");
+    AI_DEBUG("ERROR: strdup failed for JSON request");
+  }
+  
+  return result;
 }
 
 /**
