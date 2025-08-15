@@ -72,6 +72,9 @@ static size_t ai_curl_write_callback(void *contents, size_t size, size_t nmemb, 
 static char *make_api_request(const char *prompt);
 static char *build_json_request(const char *prompt);
 static char *parse_json_response(const char *json_str);
+static char *make_ollama_request(const char *prompt);
+static char *build_ollama_json_request(const char *prompt);
+static char *parse_ollama_json_response(const char *json_str);
 static void *ai_thread_worker(void *arg);
 /* static void derive_key_from_seed(unsigned char *key); */
 
@@ -650,7 +653,16 @@ static char *make_api_request(const char *prompt) {
     }
   }
   
-  AI_DEBUG("All %d attempts failed, returning NULL", AI_MAX_RETRIES);
+  AI_DEBUG("All %d OpenAI attempts failed, trying Ollama fallback", AI_MAX_RETRIES);
+  
+  /* Try Ollama as a fallback when OpenAI fails */
+  result = make_ollama_request(prompt);
+  if (result) {
+    log("AI Service: OpenAI failed, using Ollama fallback");
+    return result;
+  }
+  
+  AI_DEBUG("Both OpenAI and Ollama failed");
   return NULL;
 }
 
@@ -1191,9 +1203,211 @@ void log_ai_interaction(struct char_data *ch, struct char_data *npc, const char 
 }
 
 /**
+ * Build JSON request for Ollama API
+ * 
+ * Creates a JSON request formatted for Ollama's generate endpoint.
+ * Ollama uses a simpler format than OpenAI.
+ * 
+ * Returns: Allocated JSON string or NULL on failure
+ */
+static char *build_ollama_json_request(const char *prompt) {
+  char json_buffer[MAX_STRING_LENGTH * 2];
+  int written;
+  
+  AI_DEBUG("Building Ollama JSON request for prompt: '%.50s%s'",
+           prompt, strlen(prompt) > 50 ? "..." : "");
+  
+  /* Build simple Ollama JSON format */
+  written = snprintf(json_buffer, sizeof(json_buffer),
+    "{"
+      "\"model\":\"%s\","
+      "\"prompt\":\"You are an NPC in a fantasy RPG game. %s Respond in character briefly:\","
+      "\"stream\":false,"
+      "\"options\":{"
+        "\"num_predict\":30,"
+        "\"temperature\":0.7,"
+        "\"top_k\":40,"
+        "\"top_p\":0.9"
+      "}"
+    "}",
+    OLLAMA_MODEL,
+    prompt
+  );
+  
+  if (written < 0 || written >= (int)sizeof(json_buffer)) {
+    log("SYSERR: Ollama JSON request truncated or failed");
+    return NULL;
+  }
+  
+  char *result = strdup(json_buffer);
+  if (!result) {
+    log("SYSERR: Failed to allocate memory for Ollama JSON request");
+  }
+  
+  AI_DEBUG("Ollama JSON request built: %.200s%s", json_buffer,
+           strlen(json_buffer) > 200 ? "..." : "");
+  
+  return result;
+}
+
+/**
+ * Parse Ollama JSON response
+ * 
+ * Extracts the 'response' field from Ollama's JSON response.
+ * Ollama format: {"response":"text content","done":true,...}
+ * 
+ * Returns: Allocated response string or NULL on failure
+ */
+static char *parse_ollama_json_response(const char *json_str) {
+  const char *response_start, *response_end;
+  char *result;
+  size_t response_len;
+  int i, j;
+  
+  AI_DEBUG("Parsing Ollama JSON response (length=%zu)", strlen(json_str));
+  
+  /* Find "response":" in the JSON */
+  response_start = strstr(json_str, "\"response\":\"");
+  if (!response_start) {
+    log("SYSERR: No 'response' field in Ollama JSON");
+    return NULL;
+  }
+  
+  response_start += 12; /* Skip past "response":" */
+  
+  /* Find the closing quote */
+  response_end = response_start;
+  while (*response_end) {
+    if (*response_end == '"' && *(response_end - 1) != '\\') {
+      break;
+    }
+    response_end++;
+  }
+  
+  if (!*response_end) {
+    log("SYSERR: Unterminated string in Ollama JSON response");
+    return NULL;
+  }
+  
+  response_len = response_end - response_start;
+  result = malloc(response_len + 1);
+  if (!result) {
+    log("SYSERR: Failed to allocate memory for Ollama response");
+    return NULL;
+  }
+  
+  /* Copy and unescape the response */
+  for (i = 0, j = 0; i < (int)response_len; i++) {
+    if (response_start[i] == '\\' && i + 1 < (int)response_len) {
+      switch (response_start[i + 1]) {
+        case 'n': result[j++] = '\n'; i++; break;
+        case 'r': result[j++] = '\r'; i++; break;
+        case 't': result[j++] = '\t'; i++; break;
+        case '"': result[j++] = '"'; i++; break;
+        case '\\': result[j++] = '\\'; i++; break;
+        default: result[j++] = response_start[i]; break;
+      }
+    } else {
+      result[j++] = response_start[i];
+    }
+  }
+  result[j] = '\0';
+  
+  AI_DEBUG("Ollama response parsed: '%.100s%s'", result,
+           strlen(result) > 100 ? "..." : "");
+  
+  return result;
+}
+
+/**
+ * Make an API request to Ollama (local LLM)
+ * 
+ * Makes a request to the local Ollama service as a fallback
+ * when OpenAI is disabled or unavailable.
+ * 
+ * Flow:
+ * 1. Build JSON request for Ollama format
+ * 2. Execute CURL request to localhost:11434
+ * 3. Parse JSON response
+ * 
+ * Returns: Allocated response string or NULL on failure
+ */
+static char *make_ollama_request(const char *prompt) {
+  CURL *curl;
+  CURLcode res;
+  struct curl_response response = {0};
+  struct curl_slist *headers = NULL;
+  char *json_request;
+  char *result = NULL;
+  long http_code;
+  
+  AI_DEBUG("make_ollama_request() called with prompt: '%.50s%s'",
+           prompt, strlen(prompt) > 50 ? "..." : "");
+  
+  /* Build JSON request */
+  json_request = build_ollama_json_request(prompt);
+  if (!json_request) {
+    AI_DEBUG("ERROR: Failed to build Ollama JSON request");
+    return NULL;
+  }
+  
+  /* Initialize CURL */
+  curl = curl_easy_init();
+  if (!curl) {
+    log("SYSERR: Failed to initialize CURL for Ollama request");
+    free(json_request);
+    return NULL;
+  }
+  
+  /* Set headers (no auth needed for local Ollama) */
+  headers = curl_slist_append(headers, "Content-Type: application/json");
+  
+  /* Configure CURL for Ollama */
+  curl_easy_setopt(curl, CURLOPT_URL, OLLAMA_API_ENDPOINT);
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_request);
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ai_curl_write_callback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+  curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 3000L); /* 3 second timeout for local */
+  
+  AI_DEBUG("Executing Ollama request to %s", OLLAMA_API_ENDPOINT);
+  res = curl_easy_perform(curl);
+  
+  if (res == CURLE_OK) {
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    AI_DEBUG("Ollama HTTP response code: %ld", http_code);
+    
+    if (http_code == 200 && response.data) {
+      result = parse_ollama_json_response(response.data);
+      if (result) {
+        AI_DEBUG("Ollama response received successfully");
+      }
+    } else {
+      AI_DEBUG("Ollama HTTP error %ld", http_code);
+    }
+  } else {
+    AI_DEBUG("Ollama CURL error: %s", curl_easy_strerror(res));
+  }
+  
+  /* Cleanup */
+  curl_easy_cleanup(curl);
+  curl_slist_free_all(headers);
+  free(json_request);
+  if (response.data) {
+    free(response.data);
+  }
+  
+  return result;
+}
+
+/**
  * Generate fallback response when AI is unavailable
+ * 
+ * Modified to try Ollama first before returning generic responses.
+ * This provides AI-powered responses even when OpenAI is disabled.
  */
 char *generate_fallback_response(const char *prompt) {
+  char *ollama_response;
   static char *fallback_responses[] = {
     "I don't understand what you're saying.",
     "Could you repeat that?",
@@ -1205,6 +1419,19 @@ char *generate_fallback_response(const char *prompt) {
   int num_responses = 0;
   int choice;
   char **ptr;
+  
+  /* First, try to get response from Ollama (local LLM) */
+  AI_DEBUG("Attempting Ollama fallback for prompt: '%.50s%s'",
+           prompt, strlen(prompt) > 50 ? "..." : "");
+  
+  ollama_response = make_ollama_request(prompt);
+  if (ollama_response) {
+    log("AI Service: Using Ollama fallback response");
+    return ollama_response;
+  }
+  
+  /* If Ollama fails, use generic fallback responses */
+  AI_DEBUG("Ollama unavailable, using generic fallback");
   
   /* Count responses */
   for (ptr = fallback_responses; *ptr; ptr++) {
