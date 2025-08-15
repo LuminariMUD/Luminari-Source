@@ -1,4 +1,17 @@
-# Ollama + Llama 3.2 Installation Guide for MUD NPCs
+# Ollama + Llama 3.2 Installation Guide for LuminariMUD NPCs
+
+## Quick Start for LuminariMUD
+
+This guide installs Ollama with Llama 3.2 to provide AI-powered NPCs in LuminariMUD. The integration provides:
+- **Always-on AI**: NPCs respond intelligently even when OpenAI is disabled
+- **Fast responses**: 0.5-1 second response times with local processing
+- **Zero cost**: Runs on your server hardware, no API fees
+- **128K context window**: Supports future conversation history features
+
+After installation, NPCs with the `MOB_AI_ENABLED` flag will automatically use Ollama when:
+1. OpenAI is disabled (`ai disable` command)
+2. OpenAI fails or times out (automatic fallback)
+3. Testing with `./test_ollama` utility
 
 ## System Requirements
 - **OS**: Ubuntu 20.04+ (or compatible Linux distribution)
@@ -79,98 +92,86 @@ ollama run llama3.2:1b "You are a goblin guard. Say something threatening:"
 
 ### Step 5: Test API Endpoint
 ```bash
-# Test basic API call
-curl http://localhost:11434/api/generate -d '{
+# Test basic API call (using jq for JSON formatting if available, or just view raw)
+curl -s http://localhost:11434/api/generate -d '{
   "model": "llama3.2:1b",
   "prompt": "You are a grumpy dwarf merchant. A player asks what you sell. Respond briefly:",
   "stream": false
-}' | python3 -m json.tool
-
-# Test with optimized settings for speed
-curl http://localhost:11434/api/generate -d '{
+}' | jq -r '.response' 2>/dev/null || curl -s http://localhost:11434/api/generate -d '{
   "model": "llama3.2:1b",
-  "prompt": "You are a goblin guard. An adventurer approaches. You say:",
+  "prompt": "You are a grumpy dwarf merchant. A player asks what you sell. Respond briefly:",
+  "stream": false
+}'
+
+# Test with LuminariMUD's optimized settings
+curl -s http://localhost:11434/api/generate -d '{
+  "model": "llama3.2:1b",
+  "prompt": "You are an NPC in a fantasy RPG game. You are a janni bladesman in the desert. A player greets you. Respond in character briefly:",
   "stream": false,
   "options": {
-    "num_predict": 30,
+    "num_predict": 100,
     "temperature": 0.7,
     "top_k": 40,
     "top_p": 0.9
   }
-}' | python3 -m json.tool
+}' | jq -r '.response' 2>/dev/null || echo "Response received"
 ```
 
-### Step 6: Create Integration Test Script
+### Step 6: Test LuminariMUD Integration
 ```bash
-# Create a Python test script
-cat > ~/test_npc.py << 'EOF'
-#!/usr/bin/env python3
-"""
-Test script for MUD NPC responses using Ollama
-"""
-import requests
-import json
-import time
+# Compile the standalone test program from our codebase
+cd /path/to/luminari-source
+gcc -o test_ollama test_ollama_ai.c -lcurl
 
-def get_npc_response(character, situation, max_tokens=30):
-    """
-    Get an NPC response from Ollama
+# Test with default prompt
+./test_ollama
+
+# Test with custom NPC scenarios
+./test_ollama "You are a janni bladesman. A player asks about the desert"
+./test_ollama "You are a drow assassin. Someone discovers you hiding"
+./test_ollama "You are a dragon. Adventures enter your lair"
+
+# Create a simple test script for multiple NPCs
+cat > ~/test_luminari_npcs.sh << 'EOF'
+#!/bin/bash
+# Test various LuminariMUD NPC types
+
+echo "Testing LuminariMUD NPC responses..."
+echo "===================================="
+echo
+
+# Function to test NPC response
+test_npc() {
+    local npc_type="$1"
+    local situation="$2"
     
-    Args:
-        character: Description of the NPC (e.g., "a grumpy dwarf merchant")
-        situation: The current situation/prompt
-        max_tokens: Maximum response length (default 30 for speed)
-    
-    Returns:
-        The NPC's response text
-    """
-    start_time = time.time()
-    
-    # Construct the prompt
-    prompt = f"You are {character}. {situation} Respond in character briefly:"
-    
-    # API request payload
-    payload = {
-        'model': 'llama3.2:1b',
-        'prompt': prompt,
-        'stream': False,
-        'options': {
-            'num_predict': max_tokens,
-            'temperature': 0.7,  # Creativity level (0.5-0.9)
-            'top_k': 40,         # Token selection constraint
-            'top_p': 0.9         # Nucleus sampling
+    echo "Testing: $npc_type"
+    curl -s http://localhost:11434/api/generate -d "{
+        \"model\": \"llama3.2:1b\",
+        \"prompt\": \"You are an NPC in a fantasy RPG game. You are $npc_type. $situation Respond in character briefly:\",
+        \"stream\": false,
+        \"options\": {
+            \"num_predict\": 100,
+            \"temperature\": 0.7,
+            \"top_k\": 40,
+            \"top_p\": 0.9
         }
-    }
-    
-    # Make API request
-    response = requests.post('http://localhost:11434/api/generate', json=payload)
-    result = response.json()
-    
-    # Calculate response time
-    elapsed = time.time() - start_time
-    
-    # Print result with timing
-    print(f"[{elapsed:.2f}s] {character}:")
-    print(f"  {result['response']}\n")
-    
-    return result['response']
+    }" | jq -r '.response' 2>/dev/null || echo "Error getting response"
+    echo "---"
+    echo
+}
 
-# Test various NPC types
-if __name__ == "__main__":
-    print("Testing MUD NPC responses...\n")
-    print("=" * 50 + "\n")
-    
-    # Test different character types
-    get_npc_response("a goblin guard", "An adventurer approaches your post")
-    get_npc_response("a dwarf merchant", "A customer asks about your weapons")
-    get_npc_response("a wise old wizard", "A young mage seeks your advice")
-    get_npc_response("a drunk tavern patron", "Someone sits next to you")
-    get_npc_response("a mysterious hooded figure", "Someone asks who you are")
+# Test various NPC types from LuminariMUD
+test_npc "a janni bladesman in the desert" "A player asks about desert dangers"
+test_npc "a drow merchant in the underdark" "Someone inquires about poison"
+test_npc "a gnome tinkerer" "A player asks about your inventions"
+test_npc "an orc warrior" "Someone challenges you to combat"
+test_npc "a temple priest" "A wounded adventurer seeks healing"
+test_npc "a thieves guild fence" "Someone wants to sell stolen goods"
 EOF
 
-# Make executable and run
-chmod +x ~/test_npc.py
-python3 ~/test_npc.py
+chmod +x ~/test_luminari_npcs.sh
+~/test_luminari_npcs.sh
 ```
 
 ### Step 7: (Optional) Configure as Custom Service
@@ -220,199 +221,174 @@ sudo systemctl start ollama-mud
 sudo systemctl status ollama-mud
 ```
 
-## API Integration Examples
+## LuminariMUD Integration Examples
 
-### Python Integration
-```python
-import requests
-import json
+### Testing from Within the Game
+```bash
+# As an admin character in-game:
 
-class NPCBrain:
-    """Simple NPC response generator using Ollama"""
-    
-    def __init__(self, model="llama3.2:1b", api_url="http://localhost:11434"):
-        self.model = model
-        self.api_url = f"{api_url}/api/generate"
-        
-    def get_response(self, character_desc, situation, max_tokens=30):
-        """
-        Generate an NPC response
-        
-        Args:
-            character_desc: "a grumpy dwarf merchant"
-            situation: "A player asks about your wares"
-            max_tokens: Maximum response length
-            
-        Returns:
-            NPC response string
-        """
-        prompt = f"You are {character_desc}. {situation} Respond in character:"
-        
-        payload = {
-            "model": self.model,
-            "prompt": prompt,
-            "stream": False,
-            "options": {
-                "num_predict": max_tokens,
-                "temperature": 0.7,
-                "top_k": 40,
-                "top_p": 0.9
-            }
-        }
-        
-        try:
-            response = requests.post(self.api_url, json=payload, timeout=5)
-            return response.json()["response"]
-        except Exception as e:
-            return f"*{character_desc} seems confused*"  # Fallback response
+# Check AI service status
+ai
 
-# Usage example
-npc = NPCBrain()
-response = npc.get_response(
-    "a goblin guard",
-    "An adventurer approaches your post"
-)
-print(response)
+# Test with AI disabled (Ollama-only mode)
+ai disable
+tell guard hello there
+
+# Enable dual-backend mode (OpenAI + Ollama fallback)
+ai enable
+tell guard what brings you here?
+
+# Check cache statistics
+ai cache
+
+# Monitor responses in syslog
+# In another terminal:
+tail -f syslog | grep "AI \["
 ```
 
-### C/C++ Integration (for CircleMUD/tbaMUD)
+### C Integration Example (Simplified from LuminariMUD)
 ```c
-#include <curl/curl.h>
-#include <string.h>
-#include <stdio.h>
-
-// Response buffer structure
-struct response_buffer {
-    char *data;
-    size_t size;
-};
-
-// Callback for CURL
-static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
-    size_t realsize = size * nmemb;
-    struct response_buffer *resp = (struct response_buffer *)userp;
-    
-    char *ptr = realloc(resp->data, resp->size + realsize + 1);
-    if(!ptr) return 0;
-    
-    resp->data = ptr;
-    memcpy(&(resp->data[resp->size]), contents, realsize);
-    resp->size += realsize;
-    resp->data[resp->size] = 0;
-    
-    return realsize;
-}
-
-// Get NPC response from Ollama
-char* get_npc_response(const char* character, const char* situation) {
+/* From ai_service.c - Ollama request function */
+static char *make_ollama_request(const char *prompt) {
     CURL *curl;
     CURLcode res;
-    struct response_buffer resp = {0};
+    struct curl_response response = {0};
+    struct curl_slist *headers = NULL;
+    char *json_request;
+    char *result = NULL;
+    long http_code;
     
-    // Build JSON payload
-    char payload[1024];
-    snprintf(payload, sizeof(payload),
-        "{\"model\":\"llama3.2:1b\","
-        "\"prompt\":\"You are %s. %s Respond briefly:\","
-        "\"stream\":false,"
-        "\"options\":{\"num_predict\":30,\"temperature\":0.7}}",
-        character, situation);
+    /* Build JSON request with proper escaping */
+    json_request = build_ollama_json_request(prompt);
+    if (!json_request) {
+        return NULL;
+    }
     
+    /* Initialize CURL */
     curl = curl_easy_init();
-    if(curl) {
-        struct curl_slist *headers = NULL;
-        headers = curl_slist_append(headers, "Content-Type: application/json");
-        
-        curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:11434/api/generate");
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&resp);
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
-        
-        res = curl_easy_perform(curl);
-        
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
+    if (!curl) {
+        free(json_request);
+        return NULL;
     }
     
-    // Parse JSON response (simplified - use proper JSON parser in production)
-    char *response_text = NULL;
-    if(resp.data) {
-        char *response_start = strstr(resp.data, "\"response\":\"");
-        if(response_start) {
-            response_start += 12;  // Skip past "response":"
-            char *response_end = strchr(response_start, '"');
-            if(response_end) {
-                size_t len = response_end - response_start;
-                response_text = malloc(len + 1);
-                strncpy(response_text, response_start, len);
-                response_text[len] = '\0';
-            }
+    /* Configure request */
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:11434/api/generate");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_request);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ai_curl_write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000L); /* 10 sec timeout */
+    
+    /* Execute request */
+    res = curl_easy_perform(curl);
+    
+    if (res == CURLE_OK) {
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+        if (http_code == 200 && response.data) {
+            result = parse_ollama_json_response(response.data);
         }
-        free(resp.data);
     }
     
-    return response_text ? response_text : strdup("*grumbles*");
+    /* Cleanup */
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+    free(json_request);
+    if (response.data) free(response.data);
+    
+    return result;
+}
+
+/* Example usage in NPC dialogue */
+void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const char *input) {
+    char prompt[MAX_STRING_LENGTH];
+    
+    /* Build NPC-specific prompt */
+    snprintf(prompt, sizeof(prompt),
+        "You are %s in a fantasy RPG world. "
+        "Respond to the player's message in character. "
+        "Keep response under 100 words. "
+        "Player says: %s",
+        GET_NAME(npc), input);
+    
+    /* Queue async request (non-blocking) */
+    queue_ai_request(npc, ch, prompt);
 }
 ```
 
-## Prompt Templates for Different NPC Types
+## LuminariMUD NPC Prompt Templates
 
-### Combat NPCs
+### Standard LuminariMUD Format
 ```
-You are [a fierce orc warrior]. [A player challenges you to combat]. Give a SHORT threatening response:
-```
-
-### Merchant NPCs
-```
-You are [a dwarf blacksmith]. [A player asks about weapons]. List 2-3 items briefly:
+You are an NPC in a fantasy RPG game. You are [NPC description]. [Situation]. Respond in character briefly:
 ```
 
-### Quest Givers
+### Specific NPC Examples
+
+**Desert NPCs (Sanctus)**
 ```
-You are [a mysterious sage]. [A player seeks a quest]. Give a cryptic hint about adventure:
+You are an NPC in a fantasy RPG game. You are a janni bladesman guarding the desert oasis. A traveler approaches. Respond in character briefly:
 ```
 
-### Tavern NPCs
+**Underdark NPCs**
 ```
-You are [a drunk patron]. [Someone sits next to you]. Mumble something amusing:
+You are an NPC in a fantasy RPG game. You are a drow merchant in the underdark city. Someone asks about your wares. Respond in character briefly:
 ```
 
-### Guard NPCs
+**City Guards**
 ```
-You are [a city guard]. [Someone approaches the gate at night]. State your challenge:
+You are an NPC in a fantasy RPG game. You are a Palanthas city guard at the north gate. Someone approaches at night. Respond in character briefly:
+```
+
+**Temple NPCs**
+```
+You are an NPC in a fantasy RPG game. You are a priest of Paladine in the temple. A wounded adventurer seeks healing. Respond in character briefly:
+```
+
+**Thieves Guild**
+```
+You are an NPC in a fantasy RPG game. You are a fence in the thieves guild. Someone wants to sell stolen goods. Respond in character briefly:
 ```
 
 ## Performance Optimization Settings
 
-### Fast Responses (< 1 second)
+### LuminariMUD Default (Balanced)
 ```json
 {
-  "num_predict": 20,      // Very short responses
-  "temperature": 0.5,     // More predictable
-  "top_k": 20,           // Fewer token choices
-  "repeat_penalty": 1.1   // Avoid repetition
-}
-```
-
-### Balanced (1-2 seconds)
-```json
-{
-  "num_predict": 30,      // Short responses
+  "num_predict": 100,     // Standard NPC response length
   "temperature": 0.7,     // Balanced creativity
   "top_k": 40,           // Moderate variety
   "top_p": 0.9           // Good sampling
 }
 ```
 
-### Quality Focus (2-3 seconds)
+### Fast Combat Responses
 ```json
 {
-  "num_predict": 50,      // Longer responses
+  "num_predict": 30,      // Short combat taunts
+  "temperature": 0.5,     // More predictable
+  "top_k": 20,           // Fewer choices for speed
+  "top_p": 0.8           // Focused sampling
+}
+```
+
+### Detailed Quest/Lore NPCs
+```json
+{
+  "num_predict": 150,     // Longer explanations
   "temperature": 0.8,     // More creative
   "top_k": 50,           // More variety
   "top_p": 0.95          // Better sampling
+}
+```
+
+### Merchant/Shop NPCs
+```json
+{
+  "num_predict": 80,      // Item descriptions
+  "temperature": 0.6,     // Consistent responses
+  "top_k": 30,           // Limited variety
+  "top_p": 0.85          // Focused responses
 }
 ```
 
@@ -583,13 +559,47 @@ echo ""
 echo "=== Verification Complete ==="
 ```
 
+## LuminariMUD-Specific Notes
+
+### Integration Points
+- **Primary code**: `src/ai_service.c` - Contains Ollama integration
+- **Configuration**: `src/ai_service.h` - Model and endpoint settings
+- **Test utility**: `test_ollama_ai.c` - Standalone testing tool
+- **Documentation**: `docs/systems/AI_SERVICE_README.md` - Complete AI system docs
+
+### In-Game Usage
+```
+# Admin commands
+ai                  # Show AI service status
+ai disable         # Switch to Ollama-only mode
+ai enable          # Use OpenAI with Ollama fallback
+ai test            # Test connectivity
+
+# Player interaction
+tell guard hello   # Guard responds via Ollama when AI disabled
+say hi             # NPCs in room may respond if AI-enabled
+```
+
+### Monitoring
+```bash
+# Watch AI responses in real-time
+tail -f syslog | grep "AI \["
+
+# Check for Ollama-specific responses
+grep "AI \[Ollama\]" syslog | tail -20
+
+# Monitor service health
+systemctl status ollama
+journalctl -u ollama -f
+```
+
 ## Support and Documentation
 
+- **LuminariMUD AI Docs**: `/docs/systems/AI_SERVICE_README.md`
 - **Ollama Documentation**: https://ollama.ai/
 - **Model Library**: https://ollama.ai/library
 - **API Reference**: https://github.com/ollama/ollama/blob/main/docs/api.md
-- **Community Discord**: https://discord.gg/ollama
 
 ---
 
-*This guide installs Ollama with Llama 3.2 1B model for MUD NPC responses. The model provides good roleplay capabilities with 1-2 second response times on a 4-core CPU with 8GB RAM.*
+*This guide configures Ollama with Llama 3.2 1B model for LuminariMUD NPC responses. The integration provides always-on AI capability with automatic fallback from OpenAI, ensuring NPCs can always respond intelligently to players.*

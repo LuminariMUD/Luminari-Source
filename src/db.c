@@ -40,6 +40,7 @@
 #include "quest.h"
 #include "ibt.h"
 #include "mud_event.h"
+#include "ai_service.h"
 #include "class.h"
 #include "clan.h"
 #include "clan_economy.h"
@@ -1326,6 +1327,10 @@ void boot_db(void)
   }
 
   log("Cleaning up objects loaded in rooms - DONE.");
+
+  /* Initialize AI service for NPC dialogue */
+  log("Initializing AI service...");
+  init_ai_service();
 
   log("Boot db -- DONE.");
 }

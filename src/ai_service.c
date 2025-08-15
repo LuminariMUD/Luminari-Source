@@ -59,6 +59,7 @@ struct ai_thread_request {
   struct char_data *npc;  /* NPC character (must validate) */
   int request_type;    /* AI_REQUEST_* constant for logging */
   pthread_t thread_id; /* Thread ID for debugging */
+  char backend[32];    /* Track which backend was used */
 };
 
 /* CURL Response Buffer */
@@ -70,11 +71,13 @@ struct curl_response {
 /* Function prototypes for static functions */
 static size_t ai_curl_write_callback(void *contents, size_t size, size_t nmemb, void *userp);
 static char *make_api_request(const char *prompt);
+static char *make_api_request_single(const char *prompt);
 static char *build_json_request(const char *prompt);
 static char *parse_json_response(const char *json_str);
 static char *make_ollama_request(const char *prompt);
 static char *build_ollama_json_request(const char *prompt);
 static char *parse_ollama_json_response(const char *json_str);
+static void warmup_ollama_model(void);
 static void *ai_thread_worker(void *arg);
 /* static void derive_key_from_seed(unsigned char *key); */
 
@@ -225,6 +228,9 @@ void init_ai_service(void) {
   /* Load configuration from database/files */
   AI_DEBUG("Loading AI configuration from .env file");
   load_ai_config();
+  
+  /* Warmup Ollama model to avoid first-request delay */
+  warmup_ollama_model();
   
   ai_state.initialized = TRUE;
   AI_DEBUG("AI Service initialization complete - initialized=%d", ai_state.initialized);
@@ -826,7 +832,7 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
   /* Check cache */
   cached_response = ai_cache_get(cache_key);
   if (cached_response) {
-    queue_ai_response(ch, npc, cached_response);
+    queue_ai_response(ch, npc, cached_response, "Cache", TRUE);
     return;
   }
   
@@ -1192,14 +1198,170 @@ void log_ai_error(const char *function, const char *error) {
 /**
  * Log AI interactions for debugging/monitoring
  */
-void log_ai_interaction(struct char_data *ch, struct char_data *npc, const char *response) {
+void log_ai_interaction(struct char_data *ch, struct char_data *npc, const char *response, const char *backend, bool from_cache) {
   /* This would log to database in production */
   if (ch && npc && response) {
-    log("AI: %s -> %s: %s", 
+    log("AI [%s%s]: %s -> %s: %s", 
+        backend ? backend : "Unknown",
+        from_cache ? "/CACHED" : "",
         GET_NAME(ch) ? GET_NAME(ch) : "Unknown",
         GET_NAME(npc) ? GET_NAME(npc) : "Unknown", 
         response);
   }
+}
+
+/**
+ * Warmup Ollama model by making a test request
+ * 
+ * This preloads the model into memory to avoid the startup delay
+ * on the first real player request. Called during server startup.
+ */
+static void warmup_ollama_model(void) {
+  char *test_response;
+  CURL *curl;
+  CURLcode res;
+  long http_code = 0;
+  
+  log("AI Service: Warming up Ollama model (%s) at %s...", OLLAMA_MODEL, OLLAMA_API_ENDPOINT);
+  AI_DEBUG("Starting Ollama warmup with test prompt");
+  
+  /* First check if Ollama service is even reachable */
+  curl = curl_easy_init();
+  if (curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:11434/api/tags");
+    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);  /* HEAD request */
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000L);  /* Quick 1 second timeout */
+    res = curl_easy_perform(curl);
+    
+    if (res != CURLE_OK) {
+      if (res == CURLE_COULDNT_CONNECT) {
+        log("AI Service: ERROR - Cannot connect to Ollama at localhost:11434 (is Ollama running?)");
+        log("AI Service: Run 'systemctl status ollama' or 'ollama serve' to start Ollama");
+      } else if (res == CURLE_OPERATION_TIMEDOUT) {
+        log("AI Service: ERROR - Ollama connection timed out (service may be overloaded)");
+      } else {
+        log("AI Service: ERROR - Ollama connectivity check failed: %s", curl_easy_strerror(res));
+      }
+      curl_easy_cleanup(curl);
+      return;
+    }
+    
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    curl_easy_cleanup(curl);
+    
+    if (http_code != 200 && http_code != 0) {
+      log("AI Service: WARNING - Ollama service returned unexpected status: %ld", http_code);
+    }
+  }
+  
+  /* Make a simple test request to load the model into memory */
+  test_response = make_ollama_request("Hello");
+  
+  if (test_response) {
+    log("AI Service: Ollama model %s warmed up successfully (response length: %zu)", 
+        OLLAMA_MODEL, strlen(test_response));
+    AI_DEBUG("Ollama warmup successful, response: %.100s%s", 
+             test_response, strlen(test_response) > 100 ? "..." : "");
+    free(test_response);
+  } else {
+    log("AI Service: ERROR - Ollama model %s warmup failed", OLLAMA_MODEL);
+    log("AI Service: Possible issues:");
+    log("  - Model not installed: run 'ollama pull %s'", OLLAMA_MODEL);
+    log("  - Service not running: run 'systemctl start ollama' or 'ollama serve'");
+    log("  - Model loading timeout: try a smaller model or increase timeout");
+    AI_DEBUG("Ollama warmup failed - model may not be loaded");
+  }
+}
+
+/**
+ * Escape a string for JSON encoding
+ * 
+ * Escapes special characters that have meaning in JSON strings.
+ * Handles quotes, backslashes, control characters, etc.
+ * 
+ * @param dest Destination buffer for escaped string
+ * @param dest_size Size of destination buffer
+ * @param src Source string to escape
+ * @return Length of escaped string, or -1 on error
+ */
+static int json_escape_string(char *dest, size_t dest_size, const char *src) {
+  const char *s;
+  char *d;
+  size_t space_left;
+  
+  if (!dest || !src || dest_size < 1) {
+    return -1;
+  }
+  
+  d = dest;
+  space_left = dest_size - 1; /* Leave room for null terminator */
+  
+  for (s = src; *s && space_left > 0; s++) {
+    switch (*s) {
+      case '"':
+        if (space_left < 2) goto truncated;
+        *d++ = '\\';
+        *d++ = '"';
+        space_left -= 2;
+        break;
+      case '\\':
+        if (space_left < 2) goto truncated;
+        *d++ = '\\';
+        *d++ = '\\';
+        space_left -= 2;
+        break;
+      case '\b':
+        if (space_left < 2) goto truncated;
+        *d++ = '\\';
+        *d++ = 'b';
+        space_left -= 2;
+        break;
+      case '\f':
+        if (space_left < 2) goto truncated;
+        *d++ = '\\';
+        *d++ = 'f';
+        space_left -= 2;
+        break;
+      case '\n':
+        if (space_left < 2) goto truncated;
+        *d++ = '\\';
+        *d++ = 'n';
+        space_left -= 2;
+        break;
+      case '\r':
+        if (space_left < 2) goto truncated;
+        *d++ = '\\';
+        *d++ = 'r';
+        space_left -= 2;
+        break;
+      case '\t':
+        if (space_left < 2) goto truncated;
+        *d++ = '\\';
+        *d++ = 't';
+        space_left -= 2;
+        break;
+      default:
+        if ((unsigned char)*s < 0x20) {
+          /* Other control characters - skip them */
+          continue;
+        } else if ((unsigned char)*s >= 0x80) {
+          /* Non-ASCII characters - skip for safety in ANSI C */
+          continue;
+        } else {
+          /* Normal printable ASCII character */
+          *d++ = *s;
+          space_left--;
+        }
+        break;
+    }
+  }
+  
+  *d = '\0';
+  return (int)(d - dest);
+  
+truncated:
+  *d = '\0';
+  return -1; /* String was truncated */
 }
 
 /**
@@ -1212,26 +1374,39 @@ void log_ai_interaction(struct char_data *ch, struct char_data *npc, const char 
  */
 static char *build_ollama_json_request(const char *prompt) {
   char json_buffer[MAX_STRING_LENGTH * 2];
+  char escaped_prompt[MAX_STRING_LENGTH];
+  char system_prefix[] = "You are an NPC in a fantasy RPG game. ";
+  char system_suffix[] = " Respond in character briefly:";
   int written;
+  int escape_result;
   
   AI_DEBUG("Building Ollama JSON request for prompt: '%.50s%s'",
            prompt, strlen(prompt) > 50 ? "..." : "");
   
-  /* Build simple Ollama JSON format */
+  /* Escape the prompt for JSON */
+  escape_result = json_escape_string(escaped_prompt, sizeof(escaped_prompt), prompt);
+  if (escape_result < 0) {
+    log("SYSERR: Failed to escape prompt for Ollama JSON - string too long");
+    return NULL;
+  }
+  
+  /* Build the JSON request manually with proper escaping already done */
   written = snprintf(json_buffer, sizeof(json_buffer),
     "{"
       "\"model\":\"%s\","
-      "\"prompt\":\"You are an NPC in a fantasy RPG game. %s Respond in character briefly:\","
+      "\"prompt\":\"%s%s%s\","
       "\"stream\":false,"
       "\"options\":{"
-        "\"num_predict\":30,"
+        "\"num_predict\":100,"
         "\"temperature\":0.7,"
         "\"top_k\":40,"
         "\"top_p\":0.9"
       "}"
     "}",
     OLLAMA_MODEL,
-    prompt
+    system_prefix,
+    escaped_prompt,
+    system_suffix
   );
   
   if (written < 0 || written >= (int)sizeof(json_buffer)) {
@@ -1368,7 +1543,7 @@ static char *make_ollama_request(const char *prompt) {
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_request);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ai_curl_write_callback);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-  curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 3000L); /* 3 second timeout for local */
+  curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10000L); /* 10 second timeout for local (model may need to load) */
   
   AI_DEBUG("Executing Ollama request to %s", OLLAMA_API_ENDPOINT);
   res = curl_easy_perform(curl);
@@ -1381,12 +1556,36 @@ static char *make_ollama_request(const char *prompt) {
       result = parse_ollama_json_response(response.data);
       if (result) {
         AI_DEBUG("Ollama response received successfully");
+      } else {
+        log("AI Service: ERROR - Failed to parse Ollama JSON response");
+        if (response.data) {
+          AI_DEBUG("Raw response: %.200s%s", response.data, 
+                   strlen(response.data) > 200 ? "..." : "");
+        }
       }
+    } else if (http_code == 404) {
+      log("AI Service: ERROR - Ollama model %s not found (run: ollama pull %s)", 
+          OLLAMA_MODEL, OLLAMA_MODEL);
+    } else if (http_code == 500) {
+      log("AI Service: ERROR - Ollama internal server error (check ollama logs)");
+    } else if (http_code == 0) {
+      log("AI Service: ERROR - No response from Ollama (service may not be running)");
     } else {
-      AI_DEBUG("Ollama HTTP error %ld", http_code);
+      log("AI Service: ERROR - Ollama HTTP error %ld", http_code);
+      if (response.data) {
+        AI_DEBUG("Error response: %.200s%s", response.data,
+                 strlen(response.data) > 200 ? "..." : "");
+      }
     }
   } else {
-    AI_DEBUG("Ollama CURL error: %s", curl_easy_strerror(res));
+    if (res == CURLE_COULDNT_CONNECT) {
+      log("AI Service: ERROR - Cannot connect to Ollama (is it running?)");
+    } else if (res == CURLE_OPERATION_TIMEDOUT) {
+      log("AI Service: ERROR - Ollama request timed out (model may be loading)");
+    } else {
+      log("AI Service: ERROR - Ollama CURL error: %s", curl_easy_strerror(res));
+    }
+    AI_DEBUG("Ollama CURL error code: %d", res);
   }
   
   /* Cleanup */
@@ -1412,8 +1611,8 @@ char *generate_fallback_response(const char *prompt) {
     "I don't understand what you're saying.",
     "Could you repeat that?",
     "I'm not sure how to respond to that.",
-    "That's interesting...",
-    "I see.",
+    "Hmmmmm...",
+    "...",
     NULL
   };
   int num_responses = 0;
@@ -1557,12 +1756,68 @@ char *ai_generate_response_async(const char *prompt, int request_type, int retry
  */
 static void *ai_thread_worker(void *arg) {
   struct ai_thread_request *req = (struct ai_thread_request *)arg;
-  char *response;
+  char *response = NULL;
+  char *ollama_response = NULL;
   
   AI_DEBUG("Thread worker started for request type %d", req->request_type);
   
   /* Make the blocking API call in this thread */
-  response = make_api_request(req->prompt);
+  /* Track which backend ultimately provides the response */
+  if (is_ai_enabled()) {
+    /* Try OpenAI first (with retries) */
+    int retry_count = 0;
+    while (retry_count < AI_MAX_RETRIES) {
+      response = make_api_request_single(req->prompt);
+      if (response) {
+        strcpy(req->backend, "OpenAI");
+        break;
+      }
+      retry_count++;
+      if (retry_count < AI_MAX_RETRIES) {
+        int sleep_time = 1 << retry_count;
+        sleep(sleep_time);
+      }
+    }
+    
+    /* If OpenAI failed, try Ollama */
+    if (!response) {
+      ollama_response = make_ollama_request(req->prompt);
+      if (ollama_response) {
+        response = ollama_response;
+        strcpy(req->backend, "Ollama");
+        log("AI Service: OpenAI failed, using Ollama fallback");
+      }
+    }
+  } else {
+    /* AI disabled, try Ollama directly */
+    ollama_response = make_ollama_request(req->prompt);
+    if (ollama_response) {
+      response = ollama_response;
+      strcpy(req->backend, "Ollama");
+      log("AI Service: Using Ollama (OpenAI disabled)");
+    }
+  }
+  
+  /* If all AI failed, get generic fallback (don't call generate_fallback_response as it tries Ollama again) */
+  if (!response) {
+    static char *fallback_responses[] = {
+      "I don't understand what you're saying.",
+      "Could you repeat that?",
+      "I'm not sure how to respond to that.",
+      "...",
+      "I see.",
+      NULL
+    };
+    int num_responses = 0;
+    char **ptr;
+    for (ptr = fallback_responses; *ptr; ptr++) {
+      num_responses++;
+    }
+    int choice = rand_number(0, num_responses - 1);
+    response = strdup(fallback_responses[choice]);
+    strcpy(req->backend, "Fallback");
+    AI_DEBUG("Using generic fallback response");
+  }
   
   if (response) {
     /* Cache the response */
@@ -1571,12 +1826,12 @@ static void *ai_thread_worker(void *arg) {
     }
     
     /* Queue the response to be delivered in main thread */
-    queue_ai_response(req->ch, req->npc, response);
+    queue_ai_response(req->ch, req->npc, response, req->backend, FALSE);
     free(response);
     
-    AI_DEBUG("Thread worker completed successfully");
+    AI_DEBUG("Thread worker completed successfully with backend: %s", req->backend);
   } else {
-    AI_DEBUG("Thread worker failed to get response");
+    AI_DEBUG("Thread worker failed to get any response");
   }
   
   /* Cleanup */

@@ -173,13 +173,13 @@ void secure_memset(void *ptr, int value, size_t num);  /* Clear sensitive memory
 
 /* Utility Functions */
 void log_ai_error(const char *function, const char *error);
-void log_ai_interaction(struct char_data *ch, struct char_data *npc, const char *response);
+void log_ai_interaction(struct char_data *ch, struct char_data *npc, const char *response, const char *backend, bool from_cache);
 char *generate_fallback_response(const char *prompt);
 
 /* Event Functions (defined in ai_events.c)
  * ASYNC DELIVERY - Thread-safe response handling
  */
-void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response);  /* Queue response for delivery */
+void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response, const char *backend, bool from_cache);  /* Queue response for delivery */
 void queue_ai_request_retry(const char *prompt, int request_type, int retry_count,  /* Retry with backoff */
                            struct char_data *ch, struct char_data *npc);
 
