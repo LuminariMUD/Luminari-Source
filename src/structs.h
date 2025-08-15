@@ -225,10 +225,12 @@
 #define ROOM_RANDOM_CHEST 37    // a random treasure chest will load in this room
 #define ROOM_HARVEST_NODE 38    // this room will always load a harvest node
 #define ROOM_ROAD 39
+#define ROOM_VEHICLE 40         // Room that vehicles/ships can move through
+#define ROOM_DOCKABLE 41        // Room where ships can dock
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS 40
+#define NUM_ROOM_FLAGS 42
 
 /* Room affects */
 /* Old room-affection system, could be replaced by room-events
@@ -3085,8 +3087,12 @@
 #define ITEM_WEAPON_OIL 50
 #define ITEM_GEAR_OUTFIT 51
 #define ITEM_DRINK 52 // Used for the nerw drink system.  Replaces drink containers and fountains.
+#define ITEM_VEHICLE 53 // General vehicle object (for CWG style)
+#define ITEM_SHIP_OBJECT 54 // Outcast style ship object
+#define ITEM_VESSEL 55 // Unified vessel system object
+#define ITEM_GREYHAWK_SHIP 56 // Greyhawk ship object type (type 57 conflicts resolved to 56)
 /* make sure to add to - display_item_object_values() */
-#define NUM_ITEM_TYPES 53 /** Total number of item types.*/
+#define NUM_ITEM_TYPES 57 /** Total number of item types.*/
 
 /* reference notes on homeland-port */
 /* swapped free1 (7) with fireweapon, swapped free2 (14) with missile

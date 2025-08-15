@@ -66,7 +66,7 @@ ACMD(do_pubsub) {
         send_to_char(ch, "PubSub System Status:\r\n");
         send_to_char(ch, "System Enabled: %s\r\n", pubsub_system_enabled ? "YES" : "NO");
         send_to_char(ch, "Database Connected: %s\r\n", "YES");  /* Simplified for now */
-        send_to_char(ch, "Total Topics: %d\r\n", pubsub_stats.total_topics);
+        send_to_char(ch, "Total Topics: %lld\r\n", pubsub_stats.total_topics);
         return;
     }
     

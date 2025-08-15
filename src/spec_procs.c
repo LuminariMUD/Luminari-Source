@@ -11368,4 +11368,80 @@ SPECIAL(replace_quest_item)
 
 #undef DEBUGMODE
 
+/* Vessel/Ship Special Procedures */
+
+/* Special procedure for Greyhawk ship objects - handles boarding */
+SPECIAL(greyhawk_ship_object) {
+  struct obj_data *obj = (struct obj_data *)me;
+  int ship_index;
+  room_rnum interior_room;
+  
+  /* Only handle 'board' command */
+  if (!cmd || !CMD_IS("board"))
+    return 0;
+  
+  /* Validate object type */
+  if (GET_OBJ_TYPE(obj) != ITEM_GREYHAWK_SHIP) {
+    send_to_char(ch, "This is not a ship you can board.\r\n");
+    return 0;
+  }
+  
+  /* Get ship index from object value 1 */
+  ship_index = GET_OBJ_VAL(obj, 1);
+  if (ship_index < 0 || ship_index >= 500) { /* GREYHAWK_MAXSHIPS = 500 */
+    send_to_char(ch, "This ship seems to be broken.\r\n");
+    return 0;
+  }
+  
+  /* Get interior room from object value 0 */
+  interior_room = real_room(GET_OBJ_VAL(obj, 0));
+  if (interior_room == NOWHERE) {
+    send_to_char(ch, "You cannot find a way inside this ship.\r\n");
+    return 0;
+  }
+  
+  /* Move character to ship interior */
+  act("$n boards $p.", TRUE, ch, obj, 0, TO_ROOM);
+  char_from_room(ch);
+  char_to_room(ch, interior_room);
+  act("$n arrives from outside.", TRUE, ch, 0, 0, TO_ROOM);
+  
+  send_to_char(ch, "You board the ship.\r\n");
+  look_at_room(ch, 0);
+  
+  return 1;
+}
+
+/* Special procedure for ship control rooms - handles ship commands */
+SPECIAL(greyhawk_ship_commands) {
+  room_rnum room;
+  
+  /* Only process ship-related commands */
+  if (!cmd)
+    return 0;
+    
+  room = ch->in_room;
+  
+  /* Find which ship this room belongs to by checking ship data */
+  /* This would need to iterate through ships to find matching interior room */
+  /* For now, we'll use a simplified approach */
+  
+  /* Check if this is a ship control command */
+  if (CMD_IS("setsail") || CMD_IS("heading") || CMD_IS("speed") || 
+      CMD_IS("anchor") || CMD_IS("disembark") || CMD_IS("tactical")) {
+    
+    /* Validate this is actually a ship control room */
+    if (!ROOM_FLAGGED(room, ROOM_HOUSE)) { /* Using ROOM_HOUSE as placeholder for ship rooms */
+      send_to_char(ch, "You must be in a ship's control room to use that command.\r\n");
+      return 0;
+    }
+    
+    /* Pass command to vessel system for processing */
+    /* The actual command implementations are in vessels.c */
+    return 0; /* Let the normal command handler process it */
+  }
+  
+  return 0;
+}
+
 /* EoF */

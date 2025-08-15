@@ -41,7 +41,7 @@ static float calculate_terrain_modifier(int listener_x, int listener_y, int sour
 static float calculate_elevation_effect(int listener_x, int listener_y, int source_x, int source_y);
 static float get_sector_audio_modifier(int sector_type);
 static bool has_line_of_sound(int listener_x, int listener_y, int source_x, int source_y);
-static const char *get_direction_string(int dx, int dy);
+/* static const char *get_direction_string(int dx, int dy); -- Currently unused */
 
 /* Terrain audio constants (from existing system) */
 #define TERRAIN_FOREST_DAMPING       0.7f
@@ -579,7 +579,9 @@ static bool has_line_of_sound(int listener_x, int listener_y, int source_x, int 
 
 /*
  * Get direction string for audio messages
+ * Currently unused but kept for future audio directional messages
  */
+#if 0
 static const char *get_direction_string(int dx, int dy) {
     if (abs(dx) <= 2 && abs(dy) <= 2) {
         return "nearby";
@@ -607,6 +609,7 @@ static const char *get_direction_string(int dx, int dy) {
         }
     }
 }
+#endif
 
 /*
  * PUBLIC INTERFACE FUNCTIONS

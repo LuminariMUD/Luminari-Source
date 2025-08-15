@@ -6422,6 +6422,11 @@ break;
   disconnect_from_mysql2();
   disconnect_from_mysql3();
   
+  /* Shutdown Discord bridge before copyover */
+  extern void shutdown_discord_bridge(void);
+  shutdown_discord_bridge();
+  log("INFO: copyover: Discord bridge shut down for copyover");
+  
   /* Flush any pending output */
   fflush(stdout);
   fflush(stderr);
@@ -6693,15 +6698,27 @@ ACMD(do_ai)
   
   if (!*arg1) {
     send_to_char(ch, "AI Service Status:\r\n");
-    send_to_char(ch, "  Enabled: %s\r\n", is_ai_enabled() ? "YES" : "NO");
+    send_to_char(ch, "  OpenAI: %s\r\n", is_ai_enabled() ? "ENABLED" : "DISABLED");
     if (ai_state.initialized && ai_state.config) {
-      send_to_char(ch, "  Model: %s\r\n", ai_state.config->model);
+      if (is_ai_enabled()) {
+        /* OpenAI is enabled - show OpenAI details */
+        send_to_char(ch, "  Primary Model: %s (OpenAI)\r\n", ai_state.config->model);
+        send_to_char(ch, "  Fallback: Ollama (%s)\r\n", OLLAMA_MODEL);
+      } else {
+        /* OpenAI is disabled - show Ollama as primary */
+        send_to_char(ch, "  Primary Model: Ollama (%s)\r\n", OLLAMA_MODEL);
+        send_to_char(ch, "  Fallback: Generic responses\r\n");
+      }
       send_to_char(ch, "  Cache Size: %d entries\r\n", get_cache_size());
-      if (ai_state.limiter) {
-        send_to_char(ch, "  Requests (minute/hour): %d/%d\r\n",
+      if (ai_state.limiter && is_ai_enabled()) {
+        send_to_char(ch, "  OpenAI Requests (minute/hour): %d/%d\r\n",
                      ai_state.limiter->current_minute_count,
                      ai_state.limiter->current_hour_count);
       }
+      send_to_char(ch, "  Status: AI-powered NPCs are %s\r\n", 
+                   "ACTIVE (using fallback chain)");
+    } else {
+      send_to_char(ch, "  Status: Not initialized\r\n");
     }
     send_to_char(ch, "\r\nUsage: ai <enable|disable|cache|test|reload>\r\n");
     return;
@@ -6714,14 +6731,16 @@ ACMD(do_ai)
     if (ai_state.config) {
       ai_state.config->enabled = TRUE;
     }
-    send_to_char(ch, "AI Service enabled.\r\n");
-    mudlog(BRF, LVL_IMMORT, TRUE, "%s enabled AI service.", GET_NAME(ch));
+    send_to_char(ch, "OpenAI service enabled (Ollama fallback active).\r\n");
+    send_to_char(ch, "NPCs will use OpenAI first, then Ollama if needed.\r\n");
+    mudlog(BRF, LVL_IMMORT, TRUE, "%s enabled OpenAI service.", GET_NAME(ch));
   } else if (!strcasecmp(arg1, "disable")) {
     if (ai_state.config) {
       ai_state.config->enabled = FALSE;
     }
-    send_to_char(ch, "AI Service disabled.\r\n");
-    mudlog(BRF, LVL_IMMORT, TRUE, "%s disabled AI service.", GET_NAME(ch));
+    send_to_char(ch, "OpenAI service disabled (Ollama-only mode).\r\n");
+    send_to_char(ch, "NPCs will use local Ollama for AI responses.\r\n");
+    mudlog(BRF, LVL_IMMORT, TRUE, "%s disabled OpenAI service (using Ollama).", GET_NAME(ch));
   } else if (!strcasecmp(arg1, "cache")) {
     if (!strcasecmp(arg2, "clear")) {
       ai_cache_clear();
