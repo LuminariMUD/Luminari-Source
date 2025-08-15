@@ -45,6 +45,8 @@ struct ai_response_event {
   struct char_data *ch;   /* Player who initiated conversation */
   struct char_data *npc;  /* NPC providing response */
   char *response;         /* AI-generated response text */
+  char *backend;          /* Which AI backend was used (OpenAI/Ollama/Cache/Fallback) */
+  bool from_cache;        /* Whether response came from cache */
 };
 
 /* AI Request Retry Event Data
@@ -145,8 +147,8 @@ EVENTFUNC(ai_response_event) {
     snprintf(buf, sizeof(buf), "$n tells you, '%s'", data->response);
     act(buf, FALSE, data->npc, 0, data->ch, TO_VICT);
     
-    /* Log the interaction */
-    log_ai_interaction(data->ch, data->npc, data->response);
+    /* Log the interaction with backend info */
+    log_ai_interaction(data->ch, data->npc, data->response, data->backend, data->from_cache);
     AI_DEBUG("Response delivered successfully");
   } else {
     AI_DEBUG("Characters not in same room or in NOWHERE, skipping response");
@@ -155,6 +157,7 @@ EVENTFUNC(ai_response_event) {
   /* Cleanup */
   AI_DEBUG("Cleaning up event data");
   free(data->response);
+  free(data->backend);
   free(data);
   return 0;
 }
@@ -182,14 +185,15 @@ EVENTFUNC(ai_response_event) {
  * Delay: Currently 0 seconds for instant responses.
  * Can be adjusted based on response length for realism.
  */
-void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response) {
+void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response, const char *backend, bool from_cache) {
   struct ai_response_event *event_data;
   struct char_data *temp;
   int delay;
   bool ch_valid = FALSE, npc_valid = FALSE;
   
-  AI_DEBUG("queue_ai_response() called: ch=%p, npc=%p, response_len=%zu",
-           (void*)ch, (void*)npc, response ? strlen(response) : 0);
+  AI_DEBUG("queue_ai_response() called: ch=%p, npc=%p, response_len=%zu, backend=%s, cached=%s",
+           (void*)ch, (void*)npc, response ? strlen(response) : 0,
+           backend ? backend : "unknown", from_cache ? "yes" : "no");
   
   if (!ch || !npc || !response) {
     AI_DEBUG("ERROR: NULL parameters provided");
@@ -232,7 +236,9 @@ void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *
     free(event_data);
     return;
   }
-  AI_DEBUG("Response duplicated (length=%zu)", strlen(event_data->response));
+  event_data->backend = backend ? strdup(backend) : strdup("unknown");
+  event_data->from_cache = from_cache;
+  AI_DEBUG("Response duplicated (length=%zu), backend=%s", strlen(event_data->response), event_data->backend);
   
   /* Calculate delay based on response length for realism */
   /* Reduced delay for faster responses - only 1 second flat */
@@ -329,7 +335,8 @@ EVENTFUNC(ai_request_retry_event) {
   /* If we have a response and valid characters, queue the response event */
   if (response && data->ch && data->npc && ch_valid && npc_valid) {
     AI_DEBUG("Queueing response event");
-    queue_ai_response(data->ch, data->npc, response);
+    /* Retry events don't track backend, so mark as unknown */
+    queue_ai_response(data->ch, data->npc, response, "Retry", FALSE);
     free(response);
   } else {
     AI_DEBUG("Not queueing response: response=%s, ch=%s, npc=%s",

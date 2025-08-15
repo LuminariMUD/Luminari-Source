@@ -67,6 +67,7 @@
 #include "hunts.h"
 #include "fight.h" /* for init condensed combat */
 #include "char_descs.h"
+#include "discord_bridge.h"
 #include "evolutions.h"
 #include "deities.h"
 #include "pubsub.h"
@@ -328,10 +329,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deletepath", "deletepath", POS_DEAD, do_deletepath, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     {"deity", "deity", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#endif
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dice", "diceroll", POS_DEAD, do_diceroll, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dig", "dig", POS_DEAD, do_dig, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -339,6 +338,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"discharge", "discharge", POS_RECLINING, do_discharge, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"discoveries", "discov", POS_RECLINING, do_discoveries, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"disengage", "disen", POS_STANDING, do_disengage, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"discord", "disc", POS_DEAD, do_discord, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"display", "disp", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"divinebond", "divineb", POS_DEAD, do_divine_bond, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dominate", "dominate", POS_FIGHTING, do_vampiric_dominate, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_vampiric_dominate},
@@ -700,8 +700,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"priceset", "priceset", POS_RECLINING, do_priceset, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"pets", "pets", POS_RECLINING, do_pets, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"pubsub", "pubs", POS_DEAD, do_pubsub, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"subscribe", "sub", POS_DEAD, do_subscribe, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"topics", "topics", POS_DEAD, do_topics, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"pubsubtopic", "pubsubt", POS_DEAD, do_pubsubtopic, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"pubsubqueue", "pubsubq", POS_DEAD, do_pubsubqueue, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
@@ -902,6 +900,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"staffevents", "staffevents", POS_SLEEPING, do_staffevents, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"summon", "summon", POS_RECLINING, do_summon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"statcap", "statcap", POS_RECLINING, do_statcap, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+     /*pubsub*/
+    {"subscribe", "sub", POS_DEAD, do_subscribe, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -941,6 +941,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"totaldefense", "totaldefense", POS_FIGHTING, do_mode, 1, MODE_TOTAL_DEFENSE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"tnl", "tnl", POS_DEAD, do_tnl, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"todo", "todo", POS_DEAD, do_todo, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    /*pubsub*/
+    {"topics", "topics", POS_DEAD, do_topics, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -1027,6 +1030,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"speed", "speed", POS_STANDING, do_greyhawk_speed, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"heading", "heading", POS_STANDING, do_greyhawk_heading, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"contacts", "contacts", POS_STANDING, do_greyhawk_contacts, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"board", "board", POS_STANDING, do_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"disembark", "disembark", POS_STANDING, do_greyhawk_disembark, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"shipload", "shipload", POS_DEAD, do_greyhawk_shipload, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setsail", "setsail", POS_DEAD, do_greyhawk_setsail, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},    

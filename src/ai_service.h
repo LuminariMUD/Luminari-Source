@@ -54,11 +54,13 @@ typedef void CURL;
 
 /* Configuration constants */
 #define OPENAI_API_ENDPOINT "https://api.openai.com/v1/chat/completions"
+#define OLLAMA_API_ENDPOINT "http://localhost:11434/api/generate"
 #define AI_CACHE_EXPIRE_TIME 3600  /* 1 hour default */
 #define AI_MAX_RETRIES 3
 #define AI_TIMEOUT_MS 5000
 #define AI_MAX_TOKENS 500
 #define AI_MAX_CACHE_SIZE 5000  /* Increased for better performance */
+#define OLLAMA_MODEL "llama3.2:1b"  /* Fast, lightweight model for NPCs */
 
 /* Debug mode - set to 1 to enable verbose debug logging - set to 0 to disable */
 #define AI_DEBUG_MODE 0
@@ -171,13 +173,13 @@ void secure_memset(void *ptr, int value, size_t num);  /* Clear sensitive memory
 
 /* Utility Functions */
 void log_ai_error(const char *function, const char *error);
-void log_ai_interaction(struct char_data *ch, struct char_data *npc, const char *response);
+void log_ai_interaction(struct char_data *ch, struct char_data *npc, const char *response, const char *backend, bool from_cache);
 char *generate_fallback_response(const char *prompt);
 
 /* Event Functions (defined in ai_events.c)
  * ASYNC DELIVERY - Thread-safe response handling
  */
-void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response);  /* Queue response for delivery */
+void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response, const char *backend, bool from_cache);  /* Queue response for delivery */
 void queue_ai_request_retry(const char *prompt, int request_type, int retry_count,  /* Retry with backoff */
                            struct char_data *ch, struct char_data *npc);
 

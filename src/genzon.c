@@ -90,6 +90,37 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
       *error = "That virtual zone already exists.\r\n";
       return NOWHERE;
     }
+  
+  /* Check for overlapping room ranges with existing zones */
+  for (i = 0; i <= top_of_zone_table; i++)
+  {
+    /* Check if new zone's bottom is within existing zone's range */
+    if (bottom >= zone_table[i].bot && bottom <= zone_table[i].top)
+    {
+      snprintf(buf, sizeof(buf), "Room range overlaps with zone %d (rooms %d-%d).\r\n",
+               zone_table[i].number, zone_table[i].bot, zone_table[i].top);
+      *error = strdup(buf);
+      return NOWHERE;
+    }
+    
+    /* Check if new zone's top is within existing zone's range */
+    if (top >= zone_table[i].bot && top <= zone_table[i].top)
+    {
+      snprintf(buf, sizeof(buf), "Room range overlaps with zone %d (rooms %d-%d).\r\n",
+               zone_table[i].number, zone_table[i].bot, zone_table[i].top);
+      *error = strdup(buf);
+      return NOWHERE;
+    }
+    
+    /* Check if new zone completely contains an existing zone */
+    if (bottom <= zone_table[i].bot && top >= zone_table[i].top)
+    {
+      snprintf(buf, sizeof(buf), "Room range completely contains zone %d (rooms %d-%d).\r\n",
+               zone_table[i].number, zone_table[i].bot, zone_table[i].top);
+      *error = strdup(buf);
+      return NOWHERE;
+    }
+  }
 
   /* Create the zone file. */
   snprintf(buf, sizeof(buf), "%s/%d.zon", ZON_PREFIX, vzone_num);

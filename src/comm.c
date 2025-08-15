@@ -104,6 +104,7 @@
 #include "crafting_new.h"
 #include "ai_service.h" /* for shutdown_ai_service() */
 #include "pubsub.h"     /* for automatic queue processing */
+#include "discord_bridge.h" /* Discord bridge integration */
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -648,11 +649,19 @@ static void init_game(ush_int local_port)
     copyover_recover();
   }
 
+  /* Initialize Discord bridge */
+  log("Initializing Discord bridge.");
+  init_discord_bridge();
+
   log("Entering game loop.");
 
   game_loop(mother_desc);
 
   Crash_save_all();
+  
+  /* Shutdown Discord bridge */
+  log("Shutting down Discord bridge.");
+  shutdown_discord_bridge();
 
   log("Closing all sockets.");
   while (descriptor_list)
@@ -922,6 +931,23 @@ void game_loop(socket_t local_mother_desc)
     FD_SET(local_mother_desc, &input_set);
 
     maxdesc = local_mother_desc;
+    
+    /* Add Discord bridge sockets to select sets */
+    if (discord_bridge) {
+      if (discord_bridge->server_socket != INVALID_SOCKET) {
+        FD_SET(discord_bridge->server_socket, &input_set);
+        if (discord_bridge->server_socket > maxdesc)
+          maxdesc = discord_bridge->server_socket;
+      }
+      if (discord_bridge->client_socket != INVALID_SOCKET) {
+        FD_SET(discord_bridge->client_socket, &input_set);
+        if (discord_bridge->outbuf_len > 0)
+          FD_SET(discord_bridge->client_socket, &output_set);
+        if (discord_bridge->client_socket > maxdesc)
+          maxdesc = discord_bridge->client_socket;
+      }
+    }
+    
     for (d = descriptor_list; d; d = d->next)
     {
 #ifndef CIRCLE_WINDOWS
@@ -1057,6 +1083,30 @@ void game_loop(socket_t local_mother_desc)
     /* If there are new connections waiting, accept them. */
     if (FD_ISSET(local_mother_desc, &input_set))
       new_descriptor(local_mother_desc);
+    
+    /* Process Discord bridge */
+    if (discord_bridge) {
+      /* Check for new Discord bridge connections */
+      if (discord_bridge->server_socket != INVALID_SOCKET && 
+          FD_ISSET(discord_bridge->server_socket, &input_set)) {
+        accept_discord_connection();
+      }
+      
+      /* Process Discord bridge input */
+      if (discord_bridge->client_socket != INVALID_SOCKET &&
+          FD_ISSET(discord_bridge->client_socket, &input_set)) {
+        process_discord_input();
+      }
+      
+      /* Process Discord bridge output */
+      if (discord_bridge->client_socket != INVALID_SOCKET &&
+          FD_ISSET(discord_bridge->client_socket, &output_set)) {
+        process_discord_output();
+      }
+      
+      /* Discord timeout check disabled - maintains persistent connection */
+      /* check_discord_timeout(); */
+    }
 
     /* Kick out the freaky folks in the exception set and marked for close */
     for (d = descriptor_list; d; d = next_d)

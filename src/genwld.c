@@ -537,15 +537,25 @@ int save_rooms(zone_rnum rzone)
 
 int copy_room(struct room_data *to, struct room_data *from)
 {
+  /* Free any existing trail data before copying */
+  if (to->trail_tracks) {
+    free_trail_data_list(to->trail_tracks);
+    to->trail_tracks = NULL;
+  }
+  
   free_room_strings(to);
   *to = *from;
   copy_room_strings(to, from);
   to->events = from->events;
+  
+  /* Trail data is runtime data - don't copy it, start fresh */
+  to->trail_tracks = NULL;
 
   /* Don't put people and objects in two locations. Should this be done here? */
   from->people = NULL;
   from->contents = NULL;
   from->events = NULL;
+  from->trail_tracks = NULL;
 
   return TRUE;
 }
