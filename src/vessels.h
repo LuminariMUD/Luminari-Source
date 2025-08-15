@@ -105,6 +105,44 @@
 #endif
 
 /* ========================================================================= */
+/* VESSEL CLASSIFICATIONS AND CAPABILITIES                                   */
+/* ========================================================================= */
+
+/* Vessel classification types for Phase 1 wilderness integration */
+enum vessel_class {
+  VESSEL_RAFT,           /* Small, rivers/shallow water only */
+  VESSEL_BOAT,           /* Medium, coastal waters */
+  VESSEL_SHIP,           /* Large, ocean-capable */
+  VESSEL_WARSHIP,        /* Combat vessel, heavily armed */
+  VESSEL_AIRSHIP,        /* Flying vessel, ignores terrain */
+  VESSEL_SUBMARINE,      /* Underwater vessel, depth navigation */
+  VESSEL_TRANSPORT,      /* Cargo/passenger vessel */
+  VESSEL_MAGICAL         /* Special magical vessels */
+};
+
+/* Vessel terrain capabilities structure */
+struct vessel_terrain_caps {
+  bool can_traverse_ocean;      /* Deep water navigation */
+  bool can_traverse_shallow;    /* Shallow water/rivers */
+  bool can_traverse_air;        /* Airship flight */
+  bool can_traverse_underwater; /* Submarine diving */
+  int min_water_depth;          /* Minimum depth required */
+  int max_altitude;             /* Maximum flight altitude */
+  float terrain_speed_mod[40];  /* Speed modifier by terrain type (max sector types) */
+};
+
+/* Extended vessel data for wilderness integration */
+struct vessel_wilderness_data {
+  int x_coord;           /* Wilderness X coordinate (-1024 to +1024) */
+  int y_coord;           /* Wilderness Y coordinate (-1024 to +1024) */
+  int z_coord;           /* Elevation/depth (airships/submarines) */
+  float heading;         /* Direction in degrees (0-360) */
+  float speed;           /* Current speed in coords/tick */
+  enum vessel_class vessel_class; /* Type of vessel */
+  struct vessel_terrain_caps capabilities; /* Terrain capabilities */
+};
+
+/* ========================================================================= */
 /* UNIFIED FACADE API                                                        */
 /* ========================================================================= */
 
@@ -131,6 +169,17 @@ void vessel_init_all(void);
 struct vessel_result vessel_execute_command(struct char_data *actor,
                                             enum vessel_command cmd,
                                             const char *argument);
+
+/* ========================================================================= */
+/* FUNCTION PROTOTYPES - WILDERNESS INTEGRATION                              */
+/* ========================================================================= */
+/* Functions for integrating vessels with the wilderness coordinate system    */
+
+bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_z);
+int get_ship_terrain_type(int shipnum);
+bool can_vessel_traverse_terrain(int vessel_type, int x, int y, int z);
+int get_terrain_speed_modifier(int vessel_type, int sector_type, int weather_conditions);
+bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch);
 
 /* ========================================================================= */
 /* FUNCTION PROTOTYPES - FUTURE ADVANCED VESSEL SYSTEM                       */
