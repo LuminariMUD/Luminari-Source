@@ -913,6 +913,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"teleport", "tele", POS_DEAD, do_teleport, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"temote", "tem", POS_RECLINING, do_temote, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"temple", "temple", POS_RECLINING, do_not_here, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"terrainapi", "terrainapi", POS_DEAD, do_terrainapi, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"tedit", "tedit", POS_DEAD, do_tedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL}, /* XXX: Oasisify */
     {"thaw", "thaw", POS_DEAD, do_wizutil, LVL_GRSTAFF, SCMD_THAW, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"threaten", "threaten", POS_STANDING, do_dialogue_quest, 1, SCMD_DIALOGUE_INTIMIDATE, FALSE, ACTION_NONE, {0, 0}, NULL},
