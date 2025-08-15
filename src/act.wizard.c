@@ -62,10 +62,12 @@
 #include "missions.h"
 #include "deities.h"
 #include "backgrounds.h"
+#include "terrain_bridge.h"
 
 /* External variables and functions */
 extern MYSQL *conn;
 extern struct descriptor_data *descriptor_list;
+extern struct terrain_api_server *terrain_api;
 void load_account_unlocks(struct account_data *account);
 
 /* local utility functions with file scope */
@@ -11317,6 +11319,77 @@ ACMD(do_relock)
   }
   
   send_to_char(ch, "Account '%s' has been updated.\r\n", arg1);
+}
+
+ACMD(do_terrainapi)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct terrain_api_server *server;
+  
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg) {
+    send_to_char(ch, "Usage: terrainapi <start|stop|status|stats>\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "start")) {
+    if (terrain_api_is_running()) {
+      server = get_terrain_api_server();
+      send_to_char(ch, "Terrain API server is already running on port %d.\r\n", server->port);
+      return;
+    }
+    
+    if (start_terrain_api_server(TERRAIN_API_DEFAULT_PORT)) {
+      send_to_char(ch, "Terrain API server started on port %d.\r\n", TERRAIN_API_DEFAULT_PORT);
+      mudlog(NRM, LVL_STAFF, TRUE, "(GC) %s started terrain API server on port %d", 
+             GET_NAME(ch), TERRAIN_API_DEFAULT_PORT);
+    } else {
+      send_to_char(ch, "Failed to start terrain API server.\r\n");
+    }
+  }
+  else if (is_abbrev(arg, "stop")) {
+    if (!terrain_api_is_running()) {
+      send_to_char(ch, "Terrain API server is not running.\r\n");
+      return;
+    }
+    
+    stop_terrain_api_server();
+    send_to_char(ch, "Terrain API server stopped.\r\n");
+    mudlog(NRM, LVL_STAFF, TRUE, "(GC) %s stopped terrain API server", GET_NAME(ch));
+  }
+  else if (is_abbrev(arg, "status")) {
+    if (terrain_api_is_running()) {
+      server = get_terrain_api_server();
+      send_to_char(ch, "Terrain API server: \tGRUNNING\tn (port %d)\r\n", server->port);
+      send_to_char(ch, "Active connections: %d/%d\r\n", 
+                   server->num_clients, server->max_clients);
+    } else {
+      send_to_char(ch, "Terrain API server: \tRNOT RUNNING\tn\r\n");
+    }
+  }
+  else if (is_abbrev(arg, "stats")) {
+    if (terrain_api_is_running()) {
+      server = get_terrain_api_server();
+      time_t uptime = time(NULL) - server->start_time;
+      send_to_char(ch, "Terrain API Statistics:\r\n");
+      send_to_char(ch, "  Status: \tGRunning\tn on port %d\r\n", server->port);
+      send_to_char(ch, "  Uptime: %ld seconds\r\n", uptime);
+      send_to_char(ch, "  Active connections: %d/%d\r\n", 
+                   server->num_clients, server->max_clients);
+      send_to_char(ch, "  Total connections: %d\r\n", server->total_connections);
+      send_to_char(ch, "  Total requests: %d\r\n", server->total_requests);
+      if (server->total_requests > 0 && uptime > 0) {
+        send_to_char(ch, "  Requests per second: %.2f\r\n", 
+                     (float)server->total_requests / (float)uptime);
+      }
+    } else {
+      send_to_char(ch, "Terrain API server is not running.\r\n");
+    }
+  }
+  else {
+    send_to_char(ch, "Usage: terrainapi <start|stop|status|stats>\r\n");
+  }
 }
 
 /* EOF */

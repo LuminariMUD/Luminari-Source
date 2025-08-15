@@ -79,6 +79,11 @@ AC_CHECK_FUNC(crypt, [AC_DEFINE([CIRCLE_CRYPT], [1], [Define if crypt() is avail
     [AC_CHECK_LIB(crypt, crypt, [AC_DEFINE([CIRCLE_CRYPT], [1], [Define if crypt() is available]) CRYPTLIB="-lcrypt"])]
     )
 
+dnl Check for json-c library for terrain bridge API
+AC_CHECK_LIB(json-c, json_object_new_object, 
+    [AC_DEFINE([HAVE_JSON_C], [1], [Define if json-c library is available])], 
+    [AC_MSG_WARN([json-c library not found - terrain bridge API will be disabled])])
+
 dnl Checks for header files.
 AC_CHECK_INCLUDES_DEFAULT
 AC_HEADER_SYS_WAIT

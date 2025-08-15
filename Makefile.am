@@ -154,6 +154,7 @@ circle_SOURCES = \
 	src/systems/spatial/spatial_core.c \
 	src/systems/spatial/spatial_visual.c \
 	src/systems/spatial/spatial_audio.c \
+	src/systems/terrainbridge/terrain_bridge.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \
@@ -194,7 +195,7 @@ circle_SOURCES = \
 	src/zone_procs.c
 
 # Libraries to link
-circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread
+circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread -ljson-c
 
 
 # Unit testing with CuTest

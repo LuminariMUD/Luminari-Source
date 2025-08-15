@@ -105,6 +105,7 @@
 #include "ai_service.h" /* for shutdown_ai_service() */
 #include "pubsub.h"     /* for automatic queue processing */
 #include "discord_bridge.h" /* Discord bridge integration */
+#include "terrain_bridge.h" /* Terrain bridge API server */
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -653,6 +654,10 @@ static void init_game(ush_int local_port)
   log("Initializing Discord bridge.");
   init_discord_bridge();
 
+  /* Initialize Terrain Bridge API */
+  log("Initializing Terrain Bridge API.");
+  terrain_api_start();
+
   log("Entering game loop.");
 
   game_loop(mother_desc);
@@ -662,6 +667,10 @@ static void init_game(ush_int local_port)
   /* Shutdown Discord bridge */
   log("Shutting down Discord bridge.");
   shutdown_discord_bridge();
+
+  /* Shutdown Terrain Bridge API */
+  log("Shutting down Terrain Bridge API.");
+  terrain_api_stop();
 
   log("Closing all sockets.");
   while (descriptor_list)
@@ -913,7 +922,20 @@ void game_loop(socket_t local_mother_desc)
       log("No connections.  Going to sleep.");
       FD_ZERO(&input_set);
       FD_SET(local_mother_desc, &input_set);
-      if (select(local_mother_desc + 1, &input_set, (fd_set *)0, (fd_set *)0, NULL) < 0)
+      
+      int max_sleep_desc = local_mother_desc;
+      
+      /* Add terrain bridge server socket to wake up on API connections */
+      if (terrain_api_is_running()) {
+        struct terrain_api_server *terrain_server = get_terrain_api_server();
+        if (terrain_server && terrain_server->server_socket != INVALID_SOCKET) {
+          FD_SET(terrain_server->server_socket, &input_set);
+          if (terrain_server->server_socket > max_sleep_desc)
+            max_sleep_desc = terrain_server->server_socket;
+        }
+      }
+      
+      if (select(max_sleep_desc + 1, &input_set, (fd_set *)0, (fd_set *)0, NULL) < 0)
       {
         if (errno == EINTR)
           log("Waking up to process signal.");
@@ -1267,6 +1289,9 @@ void game_loop(socket_t local_mother_desc)
       heartbeat(++pulse);
       PERF_PROF_EXIT(pr_heartbeat);
     }
+
+    /* Process terrain bridge API requests */
+    terrain_api_process();
 
     if (reread_wizlist)
     {
