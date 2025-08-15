@@ -1,5 +1,73 @@
 # Changelog
 
+## January 2025 - Vessel System Phase 2 In Progress
+
+### Phase 2: Multi-Room Vessel Interiors (IN PROGRESS)
+
+#### New Features Implemented
+- **Multi-Room Ship Interiors**
+  - Ships now have 1-20 interior rooms based on vessel type
+  - Dynamic room generation with discovery algorithm (30% chance for extra rooms)
+  - 10 room types: Bridge, Quarters, Cargo, Engineering, Weapons, Medical, Mess Hall, Corridor, Airlock, Deck
+  - Smart room connections: hub-and-spoke pattern with cross-connections
+  - Room descriptions dynamically include ship name
+
+- **Vessel-Specific Room Allocation**
+  - Rafts: 1-2 rooms (minimal)
+  - Boats: 2-4 rooms (basic quarters)
+  - Ships: 3-8 rooms (full facilities)
+  - Warships: 5-15 rooms (weapons bays, engineering)
+  - Transports: 6-20 rooms (multiple cargo holds)
+  - Airships: 4-10 rooms (deck access)
+  - Submarines: 4-12 rooms (airlocks)
+
+- **Ship-to-Ship Docking System**
+  - Range-based docking (max 2.0 units distance)
+  - Speed restrictions for safe docking (max speed 2)
+  - Dynamic gangway creation between vessels
+  - Bidirectional connections for crew transfer
+  - Undocking with automatic vessel separation
+
+- **Combat Boarding Mechanics**
+  - Hostile boarding with skill checks
+  - Difficulty based on vessel type and damage
+  - Failure consequences (fall damage, water hazard)
+  - Automatic combat initiation on successful boarding
+  - Defensive measures (sealed hatches, alerts)
+
+- **New Commands**
+  - `dock [ship]` - Dock with nearby vessel
+  - `undock` - Separate from docked vessel
+  - `board_hostile <ship>` - Attempt combat boarding
+  - `look_outside` - View surroundings from ship interior
+  - `ship_rooms` - List vessel's interior layout
+
+#### Technical Implementation
+- **New Files Created:**
+  - `src/vessels_rooms.c` - Room generation and management (600+ lines)
+  - `src/vessels_docking.c` - Docking and boarding mechanics (700+ lines)
+  
+- **Modified Files:**
+  - `src/vessels.h` - Extended data structures for multi-room support
+  - Added room types, connections, docking fields
+  - New function prototypes for Phase 2 features
+
+- **Data Structure Enhancements:**
+  - MAX_SHIP_ROOMS (20) and MAX_SHIP_CONNECTIONS (40)
+  - Room connection structure with hatch/lock support
+  - Docking state tracking and ship-to-ship links
+  - Room template system for dynamic generation
+
+#### Remaining Phase 2 Tasks
+- [ ] Interior movement integration with main navigation
+- [ ] Database persistence for ship configurations
+- [ ] NPC crew placement and management
+- [ ] Full cargo transfer system
+- [ ] Performance optimization
+- [ ] Unit test implementation
+
+---
+
 ## January 2025 - Vessel System Phase 1 Complete
 
 ### Major Features

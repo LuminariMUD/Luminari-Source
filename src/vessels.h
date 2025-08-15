@@ -513,6 +513,33 @@ struct greyhawk_ship_crew {
   char repairspeed;                     /* Repair speed modifier */
 };
 
+/* Maximum ships rooms and connections for Phase 2 */
+#define MAX_SHIP_ROOMS              20   /* Maximum interior rooms per ship */
+#define MAX_SHIP_CONNECTIONS        40   /* Maximum connections between rooms */
+
+/* Ship room types for multi-room vessels */
+enum ship_room_type {
+  ROOM_TYPE_BRIDGE,         /* Command center/helm */
+  ROOM_TYPE_QUARTERS,       /* Crew quarters */
+  ROOM_TYPE_CARGO,          /* Cargo hold */
+  ROOM_TYPE_ENGINEERING,    /* Engine room */
+  ROOM_TYPE_WEAPONS,        /* Weapons bay */
+  ROOM_TYPE_MEDICAL,        /* Medical bay */
+  ROOM_TYPE_MESS_HALL,      /* Dining area */
+  ROOM_TYPE_CORRIDOR,       /* Hallway/passage */
+  ROOM_TYPE_AIRLOCK,        /* Entry/exit point */
+  ROOM_TYPE_DECK            /* Open deck area */
+};
+
+/* Room connection structure for ship interiors */
+struct room_connection {
+  int from_room;            /* Source room vnum */
+  int to_room;              /* Destination room vnum */
+  int direction;            /* Direction of connection */
+  bool is_hatch;            /* Sealable connection */
+  bool is_locked;           /* Currently locked/sealed */
+};
+
 /* Greyhawk Ship Data Structure */
 struct greyhawk_ship_data {
   /* Armor System - different sides of ship */
@@ -560,6 +587,28 @@ struct greyhawk_ship_data {
   
   /* Events */
   struct event *action;                 /* Ship action event */
+  
+  /* Phase 2: Multi-room additions */
+  enum vessel_class vessel_type;        /* Type of vessel (raft, ship, warship, etc.) */
+  int num_rooms;                        /* Current room count (1-20) */
+  int room_vnums[MAX_SHIP_ROOMS];      /* Interior room vnums */
+  int entrance_room;                    /* Primary boarding point */
+  int bridge_room;                      /* Control room vnum */
+  int cargo_rooms[5];                   /* Cargo hold vnums */
+  int crew_quarters[10];                /* Crew room vnums */
+  
+  /* Room connectivity */
+  struct room_connection connections[MAX_SHIP_CONNECTIONS];
+  int num_connections;
+  
+  /* Docking system */
+  int docked_to_ship;                   /* Index of docked ship (-1 if none) */
+  int docking_room;                     /* Room used for docking */
+  int max_docked_ships;                 /* How many can dock */
+  
+  /* Room discovery */
+  float discovery_chance;               /* Probability of additional rooms */
+  int room_templates[MAX_SHIP_ROOMS];  /* Template vnums for generation */
 };
 
 /* Greyhawk Contact Data Structure (for radar/sensors) */
@@ -607,6 +656,57 @@ void greyhawk_getmap(int shipnum);
 void greyhawk_setsymbol(int x, int y, int symbol);
 
 /* ========================================================================= */
+/* PHASE 2: MULTI-ROOM FUNCTIONS                                            */
+/* ========================================================================= */
+
+/* Room Generation and Management */
+void generate_ship_interior(struct greyhawk_ship_data *ship);
+int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type);
+void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type);
+void generate_room_connections(struct greyhawk_ship_data *ship);
+int get_base_rooms_for_type(enum vessel_class type);
+int get_max_rooms_for_type(enum vessel_class type);
+
+/* Room Navigation */
+void do_move_ship_interior(struct char_data *ch, int dir);
+struct greyhawk_ship_data *get_ship_from_room(room_rnum room);
+room_rnum get_ship_exit(struct greyhawk_ship_data *ship, room_rnum current, int dir);
+bool is_passage_blocked(struct greyhawk_ship_data *ship, room_rnum room, int dir);
+bool room_has_outside_view(room_rnum room);
+
+/* Coordinate Synchronization */
+void update_ship_room_coordinates(struct greyhawk_ship_data *ship);
+void update_room_ship_status(room_rnum room, struct greyhawk_ship_data *ship);
+
+/* Docking Mechanics */
+void initiate_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2);
+void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2);
+bool ships_in_docking_range(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2);
+room_rnum find_docking_room(struct greyhawk_ship_data *ship);
+void create_ship_connection(room_rnum room1, room_rnum room2, int dir);
+void remove_ship_connection(room_rnum room1, room_rnum room2);
+void separate_vessels(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2);
+
+/* Boarding Functions */
+bool can_attempt_boarding(struct char_data *ch, struct greyhawk_ship_data *target);
+void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *target);
+void setup_boarding_defenses(struct greyhawk_ship_data *ship);
+int calculate_boarding_difficulty(struct greyhawk_ship_data *target);
+
+/* Ship Persistence */
+void save_ship_interior(struct greyhawk_ship_data *ship);
+void load_ship_interior(struct greyhawk_ship_data *ship);
+void serialize_ship_rooms(struct greyhawk_ship_data *ship, char *buffer);
+
+/* Utility Functions */
+struct greyhawk_ship_data *find_ship_by_name(const char *name);
+struct greyhawk_ship_data *get_ship_by_id(int id);
+bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship);
+void send_to_ship(struct greyhawk_ship_data *ship, const char *format, ...);
+void show_wilderness_from_ship(struct char_data *ch, struct greyhawk_ship_data *ship);
+void show_nearby_vessels(struct char_data *ch, struct greyhawk_ship_data *ship);
+
+/* ========================================================================= */
 /* COMMAND PROTOTYPES                                                        */
 /* ========================================================================= */
 
@@ -619,5 +719,13 @@ ACMD_DECL(do_greyhawk_heading);     /* Set ship heading/direction */
 ACMD_DECL(do_greyhawk_disembark);   /* Leave ship */
 ACMD_DECL(do_greyhawk_shipload);    /* Admin: Load a new ship */
 ACMD_DECL(do_greyhawk_setsail);     /* Admin: Set ship sail configuration */
+
+/* Phase 2 Commands */
+ACMD_DECL(do_dock);                 /* Dock with another vessel */
+ACMD_DECL(do_undock);               /* Undock from vessel */
+ACMD_DECL(do_board_hostile);        /* Combat boarding */
+ACMD_DECL(do_look_outside);         /* Look outside from ship interior */
+ACMD_DECL(do_transfer_cargo);       /* Transfer cargo between docked ships */
+ACMD_DECL(do_ship_rooms);           /* List ship interior rooms */
 
 #endif /* _VESSELS_H_ */

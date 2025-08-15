@@ -1301,10 +1301,11 @@ void boot_db(void)
     House_boot();
   }
 
-  // The next few procedures are used to clean up the world, as many objects loaded into
-  // rooms are being loaded in NOWHERE. Cause not found yet... reset_zone being called too many times
-  // before the world is completely set up perhaps
-  log("Cleaning up objects loaded in rooms.");
+  /* A clean up on bootup was implemented due to the fact that the world was not being set up correctly. 
+     Current theory is race conditions AND it may be that this issue has been resolved over time and this is
+        technically just an artifact... that being said it's here.
+  */
+  log("Cleaning up orphaned objects.");
 
   struct obj_data *j = NULL, *next_thing;
   for (j = object_list; j; j = next_thing)
@@ -1314,8 +1315,20 @@ void boot_db(void)
     if (!j)
       continue;
 
-    if (j->in_room == NOWHERE)
+    /* CRITICAL FIX: Only remove objects that are truly orphaned.
+     * Objects with in_room == NOWHERE are NOT necessarily orphaned!
+     * They could be:
+     * - Carried by a character (shopkeeper inventory!)
+     * - Inside a container
+     * - Worn/equipped by a character
+     * Only extract if the object is not attached to anything. */
+    if (j->in_room == NOWHERE && 
+        j->carried_by == NULL && 
+        j->worn_by == NULL && 
+        j->in_obj == NULL)
     {
+      log("SYSERR: Cleaning up orphaned object %d [%s] during boot",
+          GET_OBJ_VNUM(j), j->short_description ? j->short_description : "UNKNOWN");
       extract_obj(j);
       continue;
     }
@@ -1326,7 +1339,7 @@ void boot_db(void)
     reset_zone(i);
   }
 
-  log("Cleaning up objects loaded in rooms - DONE.");
+  log("Cleaning up orphaned objects - DONE.");
 
   /* Initialize AI service for NPC dialogue */
   log("Initializing AI service...");
