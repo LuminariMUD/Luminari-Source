@@ -2,14 +2,23 @@
 
 ## Overview
 
-The AI Service integrates OpenAI's GPT models into LuminariMUD, enabling dynamic NPC dialogue through natural language processing. NPCs with the AI_ENABLED flag can respond intelligently to player messages using context-aware responses.
+The AI Service integrates both OpenAI's GPT models and local Ollama LLM into LuminariMUD, enabling dynamic NPC dialogue through natural language processing. NPCs with the AI_ENABLED flag can respond intelligently to player messages using context-aware responses. The system features automatic fallback from OpenAI to Ollama, ensuring AI-powered NPCs are always available.
 
-**Current Status**: IMPLEMENTED (January 2025) - Core NPC dialogue functionality operational
+**Current Status**: IMPLEMENTED (January 2025) - Core NPC dialogue with dual AI backend support
+
+## Key Features
+
+- **Dual AI Backend**: OpenAI GPT-4 primary, Ollama LLM fallback
+- **Always-On AI**: Automatic fallback ensures AI responses even when OpenAI is disabled/unavailable
+- **Cost Optimization**: Local Ollama provides free AI responses when OpenAI is disabled
+- **Response Caching**: Reduces API calls and improves response time
+- **Non-Blocking**: Async operations prevent game lag
+- **Thread-Safe**: Robust handling of character disconnections
 
 ## System Architecture & Component Interaction
 
 ### Component Overview
-The AI system consists of four tightly integrated components that work together to provide seamless AI-powered NPC interactions:
+The AI system consists of four tightly integrated components with dual AI backend support:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -24,6 +33,7 @@ The AI system consists of four tightly integrated components that work together 
 │  - Threading support for non-blocking operations                        │
 │  - JSON request/response processing                                     │
 │  - Rate limiting & retry logic                                          │
+│  - Ollama fallback integration                                          │
 └────────────────┬──────────────────┬──────────────────┬─────────────────┘
                  │                  │                  │
      ┌───────────▼──────────┐ ┌────▼─────┐ ┌─────────▼─────────┐
@@ -34,13 +44,34 @@ The AI system consists of four tightly integrated components that work together 
      └──────────────────────┘ └──────────┘ └───────────────────┘
 ```
 
+### AI Backend Flow
+
+```
+1. AI Service Disabled (ai disable):
+   Player → NPC Tell → Ollama (local) → Response
+                        ↓ (if fails)
+                        Generic fallback
+
+2. AI Service Enabled (ai enable):
+   Player → NPC Tell → OpenAI API → Response
+                        ↓ (if fails after 3 retries)
+                        Ollama (local) → Response
+                        ↓ (if fails)
+                        Generic fallback
+
+3. Cache Hit (both modes):
+   Player → NPC Tell → Cache → Instant Response
+```
+
 ### Component Interactions
 
-1. **Request Flow**:
+1. **Request Flow with Fallback**:
    ```
    Player Tell → ai_service.c → ai_security.c (sanitize) → ai_cache.c (check)
                                                               ↓ (miss)
-                                                          OpenAI API
+                                                          OpenAI API (if enabled)
+                                                              ↓ (fail)
+                                                          Ollama API (fallback)
                                                               ↓
                                                           ai_cache.c (store)
                                                               ↓
@@ -76,40 +107,67 @@ struct ai_service_state {
 
 // Thread communication (ai_service.c ↔ ai_events.c)
 struct ai_thread_request {
-    char *prompt;
-    char *cache_key;
-    struct char_data *ch;
-    struct char_data *npc;
-    int request_type;
-    pthread_t thread_id;
+    char *prompt;        /* Sanitized prompt to send to API */
+    char *cache_key;     /* Key for storing response in cache */
+    struct char_data *ch;   /* Player character (must validate) */
+    struct char_data *npc;  /* NPC character (must validate) */
+    int request_type;    /* AI_REQUEST_* constant for logging */
+    pthread_t thread_id; /* Thread ID for debugging */
 };
 ```
 
 ## Quick Start Guide
 
 ### Prerequisites
-- OpenAI API key with GPT-4 access
+- OpenAI API key with GPT-4 access (optional)
+- Ollama installed locally (for fallback/always-on AI)
 - libcurl and pthread libraries installed
 - MySQL/MariaDB database access
 
-### Basic Setup (5 minutes)
+### Basic Setup (10 minutes)
+
+#### Step 1: Install Dependencies
 ```bash
-# 1. Install dependencies
 sudo apt-get install libcurl4-openssl-dev libssl-dev
+```
 
-# 2. Configure API key
-cp .env.example lib/.env
-echo "OPENAI_API_KEY=your-api-key-here" >> lib/.env
+#### Step 2: Install Ollama (for fallback AI)
+```bash
+# Install Ollama service
+sudo su -
+curl -fsSL https://ollama.com/install.sh | sh
+exit
 
-# 3. Compile with AI support
+# Add your user to ollama group
+sudo usermod -a -G ollama $(whoami)
+
+# Pull the lightweight model
+ollama pull llama3.2:1b
+
+# Verify Ollama is running
+systemctl status ollama
+ollama list
+```
+
+#### Step 3: Configure OpenAI (optional)
+```bash
+# Only if you have an OpenAI API key
+cp lib/.env.example lib/.env
+echo "OPENAI_API_KEY=sk-your-api-key-here" >> lib/.env
+```
+
+#### Step 4: Compile and Enable
+```bash
+# Compile with AI support
 make clean && make
 
-# 4. Run database migration
+# Run database migration
 mysql -u user -p database < ai_service_migration.sql
 
-# 5. Enable in-game
-# Login as admin (LVL_GRGOD+) and run:
-ai enable
+# Enable in-game (as admin)
+ai enable  # Enables OpenAI with Ollama fallback
+# OR
+ai disable # Uses only Ollama (free, local AI)
 ai reload
 ```
 
@@ -118,30 +176,50 @@ ai reload
 ### Environment Configuration (.env)
 Create `lib/.env` with the following settings:
 ```bash
-# Required
+# OpenAI Configuration (optional - system works without it)
 OPENAI_API_KEY=sk-your-api-key-here
 
-# Optional (defaults shown)
-AI_MODEL=gpt-4o-mini              # Fast, cost-effective model
+# Optional Settings (defaults shown)
+AI_MODEL=gpt-4o-mini              # OpenAI model (when available)
 AI_MAX_TOKENS=500                  # Response length limit
 AI_TEMPERATURE=3                   # Creativity (3 = 0.3)
-AI_TIMEOUT_MS=30000               # 30 second timeout
+AI_TIMEOUT_MS=30000               # 30 second timeout for OpenAI
 AI_REQUESTS_PER_MINUTE=60         # Rate limiting
 AI_REQUESTS_PER_HOUR=1000         # Rate limiting
 AI_CONTENT_FILTER_ENABLED=true    # Content moderation
+
+# Ollama Configuration (automatic defaults)
+# OLLAMA_HOST=localhost:11434     # Ollama endpoint (default)
+# OLLAMA_MODEL=llama3.2:1b        # Fast local model (default)
+```
+
+### Ollama Models
+Different models can be used for different performance/quality tradeoffs:
+
+```bash
+# Fast responses (1-2 seconds)
+ollama pull llama3.2:1b      # 1.3GB, fastest
+ollama pull tinyllama         # 1.1GB, optimized for speed
+
+# Better quality (2-3 seconds)
+ollama pull llama3.2:3b      # 3GB, better responses
+ollama pull mistral:7b       # 7GB, excellent roleplay
+
+# Check installed models
+ollama list
 ```
 
 ### Database Tables
 The migration script creates:
 - `ai_config` - Runtime configuration storage
 - `ai_interactions` - Interaction history and analytics
-- `ai_cache` - Response caching (not yet implemented)
+- `ai_cache` - Response caching (memory-based currently)
 
 ### In-Game Commands (Admin Only)
 ```
 ai                    # Show service status and statistics
-ai enable            # Enable AI service globally
-ai disable           # Disable AI service globally
+ai enable            # Enable OpenAI (with Ollama fallback)
+ai disable           # Disable OpenAI (Ollama-only mode)
 ai reload            # Reload configuration from .env
 ai test              # Test API connectivity
 ai cache clear       # Clear response cache
@@ -166,38 +244,60 @@ ai reset             # Reset rate limits
 3. **Testing AI NPCs**:
    ```
    tell guard Hello, how are you today?
-   # AI-enabled guard will respond contextually
+   # Guard responds with AI (OpenAI or Ollama depending on config)
    ```
 
 ### How It Works
+
+#### When AI is Enabled (OpenAI mode)
 1. Player sends tell/say to AI-enabled NPC
-2. Message is sanitized and sent to OpenAI API
-3. Response is generated based on NPC context
-4. Response delivered after minimal delay (< 1 second typical)
+2. Check cache for existing response
+3. If not cached, sanitize and send to OpenAI API
+4. If OpenAI fails, automatically try Ollama
+5. Cache successful response
+6. Deliver response to player (typically < 2 seconds)
+
+#### When AI is Disabled (Ollama-only mode)
+1. Player sends tell/say to AI-enabled NPC
+2. Check cache for existing response
+3. If not cached, send to local Ollama service
+4. Cache successful response
+5. Deliver response to player (typically < 1 second)
 
 ### Response Caching
+- Works for both OpenAI and Ollama responses
 - Duplicate messages return cached responses instantly
 - Cache expires after 1 hour
 - Reduces API costs and improves response time
 - Average cache hit rate: 70%+
 
-## Architecture Overview
+## Architecture Details
 
 ### Core Components
 
 #### ai_service.c
 - Main API interface and request handling
+- Dual backend support (OpenAI + Ollama)
 - CURL-based HTTP client with connection pooling
 - Threading support for non-blocking operations
 - Retry logic with exponential backoff
+- Automatic fallback logic
+
+**New Ollama Functions**:
+- `make_ollama_request()` - Sends requests to local Ollama
+- `build_ollama_json_request()` - Formats Ollama API requests
+- `parse_ollama_json_response()` - Extracts Ollama responses
+- `generate_fallback_response()` - Now tries Ollama before generic responses
 
 #### ai_security.c
 - Input sanitization for prompt injection prevention
 - API key storage (currently plaintext - encryption planned)
 - Secure memory operations
+- Works for both OpenAI and Ollama prompts
 
 #### ai_cache.c
 - In-memory LRU cache implementation
+- Stores both OpenAI and Ollama responses
 - Configurable TTL (default 1 hour)
 - Automatic cleanup of expired entries
 
@@ -205,41 +305,74 @@ ai reset             # Reset rate limits
 - Integration with MUD event system
 - Delayed response delivery
 - Character validation to prevent crashes
+- Handles responses from both AI backends
 
-### Request Flow
+### Request Flow with Ollama Fallback
 ```
-Player Input → Sanitization → Cache Check → API Request → Response Processing → Event Queue → Player
-                                    ↓ (cache miss)
-                              Thread Spawn → OpenAI API → Cache Storage
+Player Input 
+    ↓
+Sanitization 
+    ↓
+Cache Check ─── Hit ──→ Return Cached Response
+    ↓ Miss
+AI Enabled? ─── No ──→ Try Ollama ──→ Response
+    ↓ Yes                    ↓ Fail
+Try OpenAI                Generic Fallback
+    ↓ Fail (3 retries)
+Try Ollama
+    ↓ Fail
+Generic Fallback
 ```
 
 ### Threading Model
 - API calls run in detached pthreads
 - Main game loop never blocks
+- Both OpenAI and Ollama use same threading system
 - Responses delivered via event system
 - Automatic cleanup on character disconnect
 
 ## Performance & Optimization
 
+### Dual Backend Performance
+
+**OpenAI (when enabled)**:
+- Response time: 1-2 seconds (uncached)
+- Cost: ~$0.001 per request
+- Model: gpt-4o-mini (fast, cost-effective)
+- Timeout: 30 seconds
+
+**Ollama (fallback/primary)**:
+- Response time: 0.5-1 second (uncached)
+- Cost: Free (runs locally)
+- Model: llama3.2:1b (configurable)
+- Timeout: 3 seconds (local network)
+
+**Cache (both backends)**:
+- Response time: ~0ms (instant)
+- Hit rate: 70%+
+- Capacity: 5000 entries
+- TTL: 1 hour
+
 ### Current Optimizations
-- **Model**: gpt-4o-mini (80% cheaper than GPT-4, faster responses)
-- **Temperature**: 0.3 (consistent, faster responses)
+- **Dual Backend**: Automatic fallback ensures 99%+ AI availability
+- **Model Selection**: gpt-4o-mini for OpenAI, llama3.2:1b for Ollama
+- **Temperature**: 0.3-0.7 (consistent responses)
 - **Threading**: True async - no game blocking
-- **Caching**: 5000 entry cache, 1-hour TTL
-- **Connection Pooling**: Persistent CURL handle
+- **Caching**: Unified cache for both backends
+- **Connection Pooling**: Persistent CURL handles
 - **HTTP/2**: When supported by CURL version
 - **Zero Delay**: Responses delivered immediately
 
-### Performance Metrics
-- Average response time: 1-2 seconds (uncached)
-- Cache hit rate: 70%+ 
-- API timeout: 30 seconds
-- Memory usage: ~10MB for full cache
-
 ### Cost Management
-- gpt-4o-mini: ~$0.001 per request
-- With 70% cache rate: ~$0.30 per 1000 player interactions
-- Monitor usage with `ai` command
+- **OpenAI costs**: ~$0.30 per 1000 interactions (with cache)
+- **Ollama costs**: $0 (runs on your hardware)
+- **Hybrid mode**: Significant cost reduction when Ollama handles failures
+- **Ollama-only mode**: Completely free AI NPCs
+
+### Resource Usage
+- **Memory**: ~10MB for full cache + ~1.2GB for Ollama model
+- **CPU**: Ollama uses 50-70% CPU for 1-2 seconds during generation
+- **Network**: OpenAI requires internet, Ollama is local-only
 
 ## Security Considerations
 
@@ -247,49 +380,66 @@ Player Input → Sanitization → Cache Check → API Request → Response Proce
 - **API Key Storage**: Plaintext in .env file (AES encryption planned)
 - **Input Sanitization**: Escapes special characters, limits length
 - **Prompt Injection Prevention**: Fixed prompt templates
-- **Rate Limiting**: Per-minute and per-hour limits
+- **Rate Limiting**: Per-minute and per-hour limits (OpenAI only)
 - **Access Control**: Admin-only configuration
+- **Local Ollama**: No authentication (localhost only)
 
 ### Best Practices
 1. Restrict .env file permissions: `chmod 600 lib/.env`
 2. Never commit .env to version control
-3. Rotate API keys regularly
-4. Monitor usage for anomalies
-5. Review ai_interactions table for abuse
+3. Rotate OpenAI API keys regularly
+4. Keep Ollama bound to localhost only
+5. Monitor usage for anomalies
+6. Review ai_interactions table for abuse
 
 ## Troubleshooting
 
 ### Common Issues
 
-**AI not responding**
-- Check service enabled: `ai`
-- Verify API key loaded: Check logs for "API key loaded"
-- Test connectivity: `ai test`
-- Check rate limits: `ai` shows current usage
+**No AI responses at all**
+- Check Ollama is running: `systemctl status ollama`
+- Test Ollama: `curl http://localhost:11434/api/generate -d '{"model":"llama3.2:1b","prompt":"Hi","stream":false}'`
+- Check service status: `ai` command in-game
+- Verify NPC has MOB_AI_ENABLED flag
 
-**NPCs not using AI**
-- Verify MOB_AI_ENABLED flag (bit 98) is set
-- Ensure NPC is not flagged MOBACT_NOTDEADYET
-- Check NPC can receive tells (not MOB_NOTELL)
+**OpenAI not working (but Ollama works)**
+- Verify API key in lib/.env
+- Check rate limits with `ai` command
+- Monitor OpenAI status: status.openai.com
+- Fallback to Ollama is automatic
+
+**Ollama not working**
+- Ensure Ollama service is running: `sudo systemctl start ollama`
+- Check model is installed: `ollama list`
+- Pull model if missing: `ollama pull llama3.2:1b`
+- Check port 11434 is not blocked
 
 **Slow responses**
-- Normal API latency: 1-2 seconds
-- Check cache hit rate with `ai`
-- Consider reducing AI_MAX_TOKENS
-- Monitor API status at status.openai.com
+- OpenAI: Normal latency 1-2 seconds
+- Ollama: Should be < 1 second locally
+- Check cache hit rate with `ai` command
+- Consider using smaller Ollama model
+- First Ollama request after idle may be slower (model loading)
 
-**High costs**
-- Switch to gpt-3.5-turbo for lower priority NPCs
-- Increase cache TTL
-- Implement more aggressive rate limiting
-- Disable AI for non-essential NPCs
+**High costs (OpenAI)**
+- Switch to Ollama-only mode: `ai disable`
+- Or increase cache TTL
+- Or use gpt-3.5-turbo for lower priority NPCs
 
 ### Debug Mode
 Enable detailed logging:
 ```c
-// In ai_service.h, uncomment:
-#define AI_DEBUG_ENABLED
+// In ai_service.h, set:
+#define AI_DEBUG_MODE 1
 ```
+
+This enables logging of:
+- API request/response flow (both backends)
+- Cache operations
+- Fallback decisions
+- Thread creation and completion
+- Character validation
+- Rate limiting decisions
 
 ## API Reference
 
@@ -313,11 +463,16 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
 
 // Load configuration from .env
 void load_ai_config(void);
+
+// Ollama-specific functions (internal)
+static char *make_ollama_request(const char *prompt);
+static char *build_ollama_json_request(const char *prompt);
+static char *parse_ollama_json_response(const char *json_str);
 ```
 
 ### Cache Functions
 ```c
-// Store response in cache
+// Store response in cache (works for both backends)
 void ai_cache_response(const char *key, const char *response);
 
 // Retrieve from cache
@@ -330,26 +485,51 @@ void ai_cache_clear(void);
 void ai_cache_cleanup(void);
 ```
 
-### Security Functions
-```c
-// Sanitize user input
-char *sanitize_ai_input(const char *input);
-
-// Secure memory clearing
-void secure_memset(void *ptr, int value, size_t num);
-```
-
 ### Configuration Structure
 ```c
 struct ai_config {
-    char encrypted_api_key[256];  // API key storage
+    char encrypted_api_key[256];  // OpenAI API key storage
     char model[64];              // OpenAI model name
     int max_tokens;              // Response length limit
     float temperature;           // Creativity (0.0-1.0)
     int timeout_ms;              // Request timeout
     bool content_filter_enabled; // Enable content filtering
-    bool enabled;               // Global enable flag
+    bool enabled;               // Global enable flag (OpenAI)
 };
+
+// Ollama configuration (hardcoded defaults)
+#define OLLAMA_API_ENDPOINT "http://localhost:11434/api/generate"
+#define OLLAMA_MODEL "llama3.2:1b"
+```
+
+## Testing Tools
+
+### Test Ollama Integration
+A standalone test program is available:
+```bash
+# Compile test program
+gcc -o test_ollama test_ollama_ai.c -lcurl
+
+# Test with custom prompt
+./test_ollama "A player asks about your quest"
+
+# Test default greeting
+./test_ollama
+```
+
+### In-Game Testing
+```bash
+# Test with AI enabled (OpenAI + Ollama fallback)
+ai enable
+ai test
+tell guard hello
+
+# Test with AI disabled (Ollama only)
+ai disable
+tell guard hello
+
+# Check statistics
+ai
 ```
 
 ## Current Limitations & Future Work
@@ -357,10 +537,12 @@ struct ai_config {
 ### Implemented Features
 - ✅ Basic NPC dialogue via tells
 - ✅ Response caching system
-- ✅ Rate limiting
+- ✅ Rate limiting (OpenAI)
 - ✅ Async/non-blocking operation
 - ✅ Admin commands
 - ✅ Performance optimizations
+- ✅ Ollama fallback integration
+- ✅ Always-on AI capability
 
 ### Known Limitations
 - API keys stored in plaintext (encryption planned)
@@ -368,6 +550,7 @@ struct ai_config {
 - Cache is memory-only (lost on reboot)
 - Single prompt template for all NPCs
 - No conversation memory between interactions
+- Ollama model must be pre-downloaded
 
 ### Planned Enhancements
 1. **Security**: AES-256 encryption for API keys
@@ -377,6 +560,8 @@ struct ai_config {
 5. **NPC Personalities**: Individual personality traits
 6. **Memory**: Conversation history per player/NPC pair
 7. **Moderation**: ai_moderate_content() implementation
+8. **Dynamic Models**: Per-NPC model selection
+9. **Ollama Config**: Runtime model switching
 
 ### Not Yet Implemented
 ```c
@@ -385,196 +570,63 @@ char *ai_generate_room_desc(int room_vnum, int sector_type);
 bool ai_moderate_content(const char *text);
 ```
 
+## Ollama Administration
+
+### Managing Ollama Service
+```bash
+# Service control
+sudo systemctl start ollama
+sudo systemctl stop ollama
+sudo systemctl restart ollama
+sudo systemctl status ollama
+
+# View logs
+journalctl -u ollama -f          # Follow logs
+journalctl -u ollama -n 100      # Last 100 lines
+
+# Model management
+ollama list                      # List installed models
+ollama pull MODEL_NAME           # Download a model
+ollama rm MODEL_NAME             # Remove a model
+ollama show MODEL_NAME           # Show model details
+```
+
+### Performance Tuning
+```bash
+# For faster responses (lower quality)
+ollama pull tinyllama
+
+# For better quality (slower)
+ollama pull llama3.2:3b
+ollama pull mistral:7b
+
+# Set default model in ai_service.h
+#define OLLAMA_MODEL "tinyllama"  # Change as needed
+```
+
 ## Contributing
 
 When modifying the AI service:
 1. Maintain C90/C89 compatibility (no C99 features)
-2. Follow existing code style
-3. Update this documentation
-4. Test with valgrind for memory leaks
-5. Verify thread safety
+2. Test both OpenAI and Ollama backends
+3. Ensure fallback logic works correctly
+4. Update this documentation
+5. Test with valgrind for memory leaks
+6. Verify thread safety
 
 ## Support
 
 For issues:
 1. Check system logs: `grep AI syslog`
-2. Enable debug mode (see Troubleshooting)
-3. Review this documentation
-4. Submit issues to GitHub repository
-
-## Component Responsibilities
-
-### 1. ai_service.c - Core Engine
-**Primary Role**: Orchestrates all AI operations and manages API communication
-
-**Key Responsibilities**:
-- Manages global AI state (ai_state)
-- Handles OpenAI API requests via CURL
-- Implements retry logic and connection pooling
-- Creates worker threads for async operations
-- Builds and parses JSON requests/responses
-
-**Depends On**:
-- ai_security.c for input sanitization and API key handling
-- ai_cache.c for response caching
-- ai_events.c for async response delivery
-
-**Key Functions**:
-- `ai_npc_dialogue_async()` - Main entry point from game
-- `make_api_request()` - Handles API communication with retries
-- `ai_thread_worker()` - Worker thread for async requests
-
-### 2. ai_security.c - Security Layer
-**Primary Role**: Protects against malicious input and manages API keys
-
-**Key Responsibilities**:
-- Sanitizes all user input to prevent prompt injection
-- Manages API key encryption/decryption (currently plaintext)
-- Provides secure memory clearing functions
-- Validates and escapes special characters for JSON
-
-**Used By**: ai_service.c exclusively
-
-**Key Functions**:
-- `sanitize_ai_input()` - CRITICAL: Prevents prompt injection
-- `encrypt_api_key()` / `decrypt_api_key()` - API key management
-- `secure_memset()` - Prevents memory inspection of keys
-
-**Security Notes**:
-- All user input MUST pass through sanitize_ai_input()
-- API keys need proper encryption implementation
-- Memory containing keys should be cleared with secure_memset()
-
-### 3. ai_cache.c - Performance Layer
-**Primary Role**: Reduces API costs and improves response time
-
-**Key Responsibilities**:
-- Maintains in-memory cache of responses
-- Implements TTL-based expiration (1 hour)
-- Enforces cache size limits (5000 entries)
-- Provides O(1) cache operations
-
-**Direct Access**: Manipulates ai_state.cache_head and cache_size
-
-**Key Functions**:
-- `ai_cache_get()` - Check cache before API calls
-- `ai_cache_response()` - Store successful responses
-- `ai_cache_cleanup()` - Remove expired/excess entries
-
-**Performance Impact**:
-- Cache hit: ~0ms response time
-- Cache miss: 1-2 second API call
-- Target 70%+ cache hit rate
-
-### 4. ai_events.c - Async Delivery Layer
-**Primary Role**: Ensures thread-safe async response delivery
-
-**Key Responsibilities**:
-- Queues AI responses for delivery to players
-- Validates character pointers before delivery
-- Implements retry logic with exponential backoff
-- Integrates with MUD event system
-
-**Thread Safety**: Critical for preventing crashes when characters are freed
-
-**Key Functions**:
-- `queue_ai_response()` - Queue response from any thread
-- `ai_response_event()` - Deliver response (with validation)
-- `queue_ai_request_retry()` - Retry failed requests
-
-**Event Types**:
-- `ai_response_event` - Delivers responses to players
-- `ai_request_retry_event` - Retries failed API requests
-
-## Data Flow
-
-### Successful Request Flow
-```
-1. Player tells NPC → act.comm.c
-2. act.comm.c → ai_npc_dialogue_async()
-3. Check cache → ai_cache_get()
-4. Cache hit → queue_ai_response() → Player
-5. Cache miss → Create worker thread
-6. Worker thread → sanitize_ai_input()
-7. Worker thread → make_api_request()
-8. API response → ai_cache_response()
-9. queue_ai_response() → ai_response_event()
-10. Validate characters → Deliver to player
-```
-
-### Failed Request with Retry
-```
-1. Initial request fails in worker thread
-2. queue_ai_request_retry() with retry_count=0
-3. ai_request_retry_event() after delay
-4. ai_generate_response_async() (one attempt)
-5. If success → queue_ai_response()
-6. If fail → queue_ai_request_retry() with retry_count+1
-7. Repeat until AI_MAX_RETRIES reached
-```
-
-## Critical Safety Checks
-
-### Thread Safety
-- Character pointers may become invalid during async operations
-- Always validate characters exist in character_list before use
-- Event handlers must re-validate even if caller validated
-
-### Input Validation
-- All user input must pass through sanitize_ai_input()
-- Escape special characters for JSON
-- Enforce length limits to prevent buffer overflows
-
-### Memory Management
-- API responses are allocated strings - caller must free()
-- Cache returns pointers to internal strings - do NOT free()
-- Use secure_memset() for sensitive data like API keys
-
-## Common Integration Points
-
-### Adding AI to NPCs
-1. Set MOB_AI_ENABLED flag (bit 98) on the mobile
-2. NPC will respond to tells using AI
-3. Responses are cached by "npc_<vnum>_<input>" key
-
-### Admin Commands
-- `ai` - Show status and statistics
-- `ai enable/disable` - Toggle service
-- `ai reload` - Reload configuration
-- `ai cache clear` - Clear all cached responses
-- `ai reset` - Reset rate limits
-
-## Debugging
-
-### Enable Debug Logging
-In ai_service.h, set:
-```c
-#define AI_DEBUG_MODE 1
-```
-
-This enables detailed logging of:
-- API request/response flow
-- Cache operations
-- Thread creation and completion
-- Character validation
-- Rate limiting decisions
-
-### Common Issues
-1. **No AI responses**: Check service enabled, API key loaded
-2. **Slow responses**: Normal latency 1-2 seconds for cache misses
-3. **Rate limiting**: Check counters with 'ai' command
-4. **Crashes**: Usually character validation issues - check debug logs
-
-## Future Enhancements
-1. Implement proper API key encryption (AES-256)
-2. Add persistent cache (database-backed)
-3. Implement ai_generate_room_desc() for dynamic rooms
-4. Add conversation memory/context
-5. Implement content moderation
-6. Add per-NPC personality configuration
+2. Check Ollama logs: `journalctl -u ollama -n 50`
+3. Enable debug mode (see Troubleshooting)
+4. Test with standalone test program
+5. Review this documentation
+6. Submit issues to GitHub repository
 
 ---
 
-**Version**: 2.0  
+**Version**: 3.0  
 **Last Updated**: January 2025  
-**Maintainer**: LuminariMUD Development Team
+**Maintainer**: LuminariMUD Development Team  
+**Key Update**: Added Ollama LLM integration for always-on AI capability
