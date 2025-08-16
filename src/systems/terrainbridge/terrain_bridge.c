@@ -620,6 +620,113 @@ char *process_terrain_request(const char *json_request) {
             }
         }
     }
+    else if (strcmp(command, "get_wilderness_exits") == 0) {
+        /* Find wilderness rooms that have exits to non-wilderness zones */
+        json_object *data_array = json_object_new_array();
+        room_rnum room;
+        int dir;
+        int count = 0;
+        
+        /* Iterate through all wilderness rooms */
+        for (room = 0; room <= top_of_world; room++) {
+            /* Check if this is a wilderness room */
+            if (IS_WILDERNESS_VNUM(world[room].number) && 
+                world[room].coords[0] != 0 && world[room].coords[1] != 0) {
+                
+                /* Check all exits from this room */
+                for (dir = 0; dir < NUM_OF_DIRS; dir++) {
+                    if (world[room].dir_option[dir] && 
+                        world[room].dir_option[dir]->to_room != NOWHERE) {
+                        
+                        room_rnum target_room = world[room].dir_option[dir]->to_room;
+                        
+                        /* If target room is not wilderness, this is an exit point */
+                        if (!IS_WILDERNESS_VNUM(world[target_room].number)) {
+                            json_object *exit_obj = json_object_new_object();
+                            
+                            /* Add wilderness room info */
+                            json_object_object_add(exit_obj, "wilderness_vnum", 
+                                json_object_new_int(world[room].number));
+                            json_object_object_add(exit_obj, "wilderness_x", 
+                                json_object_new_int(world[room].coords[0]));
+                            json_object_object_add(exit_obj, "wilderness_y", 
+                                json_object_new_int(world[room].coords[1]));
+                            
+                            /* Add wilderness room name (strip color codes) */
+                            if (world[room].name) {
+                                char *clean_name = strdup(world[room].name);
+                                if (clean_name) {
+                                    strip_colors(clean_name);
+                                    json_object_object_add(exit_obj, "wilderness_name", 
+                                        json_object_new_string(clean_name));
+                                    free(clean_name);
+                                } else {
+                                    json_object_object_add(exit_obj, "wilderness_name", 
+                                        json_object_new_string("Wilderness"));
+                                }
+                            } else {
+                                json_object_object_add(exit_obj, "wilderness_name", 
+                                    json_object_new_string("Wilderness"));
+                            }
+                            
+                            /* Add exit direction */
+                            json_object_object_add(exit_obj, "exit_direction", 
+                                json_object_new_string(dirs[dir]));
+                            
+                            /* Add target zone info */
+                            json_object_object_add(exit_obj, "target_vnum", 
+                                json_object_new_int(world[target_room].number));
+                            json_object_object_add(exit_obj, "target_zone", 
+                                json_object_new_int(world[target_room].zone));
+                            
+                            /* Add target room name (strip color codes) */
+                            if (world[target_room].name) {
+                                char *clean_target_name = strdup(world[target_room].name);
+                                if (clean_target_name) {
+                                    strip_colors(clean_target_name);
+                                    json_object_object_add(exit_obj, "target_name", 
+                                        json_object_new_string(clean_target_name));
+                                    free(clean_target_name);
+                                } else {
+                                    json_object_object_add(exit_obj, "target_name", 
+                                        json_object_new_string("Unknown"));
+                                }
+                            } else {
+                                json_object_object_add(exit_obj, "target_name", 
+                                    json_object_new_string("Unknown"));
+                            }
+                            
+                            /* Add zone name if available */
+                            if (world[target_room].zone >= 0 && world[target_room].zone <= top_of_zone_table &&
+                                zone_table[world[target_room].zone].name) {
+                                char *clean_zone_name = strdup(zone_table[world[target_room].zone].name);
+                                if (clean_zone_name) {
+                                    strip_colors(clean_zone_name);
+                                    json_object_object_add(exit_obj, "target_zone_name", 
+                                        json_object_new_string(clean_zone_name));
+                                    free(clean_zone_name);
+                                } else {
+                                    json_object_object_add(exit_obj, "target_zone_name", 
+                                        json_object_new_string("Unknown Zone"));
+                                }
+                            } else {
+                                json_object_object_add(exit_obj, "target_zone_name", 
+                                    json_object_new_string("Unknown Zone"));
+                            }
+                            
+                            json_object_array_add(data_array, exit_obj);
+                            count++;
+                            break; /* Only need to find one exit per room */
+                        }
+                    }
+                }
+            }
+        }
+        
+        json_object_object_add(response, "success", json_object_new_boolean(TRUE));
+        json_object_object_add(response, "count", json_object_new_int(count));
+        json_object_object_add(response, "data", data_array);
+    }
     else if (strcmp(command, "ping") == 0) {
         /* Simple connectivity test */
         json_object_object_add(response, "success", json_object_new_boolean(TRUE));
@@ -631,7 +738,7 @@ char *process_terrain_request(const char *json_request) {
     else {
         /* Unknown command */
         json_object_object_add(response, "error", 
-            json_object_new_string("Unknown command (supported: get_terrain, get_terrain_batch, get_static_rooms_list, get_room_details, ping)"));
+            json_object_new_string("Unknown command (supported: get_terrain, get_terrain_batch, get_static_rooms_list, get_room_details, get_wilderness_exits, ping)"));
         json_object_object_add(response, "success", json_object_new_boolean(FALSE));
     }
     
