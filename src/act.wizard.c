@@ -11301,6 +11301,14 @@ ACMD(do_relock)
   struct descriptor_data *d;
   for (d = descriptor_list; d; d = d->next) {
     if (d->account && d->account->id == target_account.id) {
+      /* Clear the unlock arrays before reloading from DB */
+      int j;
+      for (j = 0; j < MAX_UNLOCKED_RACES; j++) {
+        d->account->races[j] = 0;
+      }
+      for (j = 0; j < MAX_UNLOCKED_CLASSES; j++) {
+        d->account->classes[j] = 0;
+      }
       /* Reload unlock arrays from DB to keep them in sync */
       load_account_unlocks(d->account);
     }
