@@ -14,7 +14,14 @@
 #include "comm.h"
 
 /* Configuration constants */
-#define DISCORD_BRIDGE_PORT 8181
+/* Campaign-dependent Discord bridge port */
+#ifdef CAMPAIGN_DL
+  #define DISCORD_BRIDGE_PORT 8201  /* DragonLance campaign port */
+#elif defined(CAMPAIGN_FR)
+  #define DISCORD_BRIDGE_PORT 8191  /* Forgotten Realms campaign port */
+#else
+  #define DISCORD_BRIDGE_PORT 8181  /* Default Luminari port */
+#endif
 #define DISCORD_BRIDGE_MAX_MSG_LEN 65535
 #define DISCORD_BRIDGE_BUFFER_SIZE 4096
 #define DISCORD_JSON_BUFFER_SIZE 66000  /* Large enough for max message + JSON overhead */
