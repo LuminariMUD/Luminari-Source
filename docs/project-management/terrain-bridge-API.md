@@ -120,7 +120,7 @@ void log_terrain_api_stats(void);
 **Request Format:**
 ```json
 {
-    "command": "get_terrain|get_terrain_batch|get_static_rooms|ping",
+    "command": "get_terrain|get_terrain_batch|get_static_rooms|get_wilderness_exits|ping",
     "x": 100,
     "y": -50,
     "params": {
@@ -144,6 +144,27 @@ void log_terrain_api_stats(void);
         "weather": 1
     },
     "error": "error message if failed"
+}
+```
+
+**Wilderness Exit Points Response:**
+```json
+{
+    "success": true,
+    "count": 3,
+    "data": [
+        {
+            "wilderness_vnum": 1004582,
+            "wilderness_x": 125,
+            "wilderness_y": -89,
+            "wilderness_name": "Rocky Hills",
+            "exit_direction": "north",
+            "target_vnum": 3001,
+            "target_zone": 30,
+            "target_name": "The entrance to Midgaard",
+            "target_zone_name": "Midgaard"
+        }
+    ]
 }
 ```
 
@@ -177,6 +198,21 @@ void log_terrain_api_stats(void);
 - Check `world[real_rm].coords[0/1]` for valid coordinates
 - Return room vnum, coordinates, name, sector type
 - Include only rooms with non-zero coordinates
+
+#### Task 2.3: Wilderness Exit Points
+**File:** Update `src/terrain_bridge.c`
+**Dependencies:** `structs.h`, world data, wilderness macros
+**Estimated Time:** 2 hours
+
+**Implementation:**
+- Iterate through all wilderness rooms with valid coordinates
+- Check each exit direction for connections to non-wilderness zones
+- Return comprehensive data about transition points:
+  - Wilderness room coordinates and info
+  - Exit direction
+  - Target zone room details
+  - Zone names (with color codes stripped)
+- Essential for external mapping tools to identify zone boundaries
 
 ### Phase 3: Game Integration (Priority 1)
 
