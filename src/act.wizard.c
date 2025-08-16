@@ -6429,6 +6429,11 @@ break;
   shutdown_discord_bridge();
   log("INFO: copyover: Discord bridge shut down for copyover");
   
+  /* Shutdown Terrain API bridge before copyover */
+  extern void stop_terrain_api_server(void);
+  stop_terrain_api_server();
+  log("INFO: copyover: Terrain API bridge shut down for copyover");
+  
   /* Flush any pending output */
   fflush(stdout);
   fflush(stderr);
