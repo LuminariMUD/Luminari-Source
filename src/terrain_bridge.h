@@ -4,8 +4,14 @@
 #include "conf.h"
 #include "sysdep.h"
 
-/* Default port for terrain API server */
-#define TERRAIN_API_DEFAULT_PORT 8182
+/* Campaign-dependent port for terrain API server */
+#ifdef CAMPAIGN_DL
+  #define TERRAIN_API_DEFAULT_PORT 8202  /* DragonLance campaign port */
+#elif defined(CAMPAIGN_FR)
+  #define TERRAIN_API_DEFAULT_PORT 8192  /* Forgotten Realms campaign port */
+#else
+  #define TERRAIN_API_DEFAULT_PORT 8182  /* Default Luminari port */
+#endif
 
 /* Maximum clients and message sizes */
 #define TERRAIN_API_MAX_CLIENTS 10

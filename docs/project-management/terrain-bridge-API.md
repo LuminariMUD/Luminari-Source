@@ -14,7 +14,7 @@ Create a TCP socket-based API server that allows external tools (Python APIs, we
 ### Component Overview
 ```
 ┌─────────────────┐    TCP Socket    ┌──────────────────┐    Direct Calls    ┌─────────────────┐
-│   Python API   │◄────8182────────►│ Terrain API      │◄──────────────────►│ Wilderness      │
+│   Python API   │◄────818x────────►│ Terrain API      │◄──────────────────►│ Wilderness      │
 │   Web Service   │    JSON Msgs     │ Server           │   Function Calls   │ Functions       │
 │   External Tool │                  │ (terrain_bridge) │                    │ (existing code) │
 └─────────────────┘                  └──────────────────┘                    └─────────────────┘
@@ -44,8 +44,14 @@ Based on proven Discord bridge architecture (`discord_bridge.c`) with these key 
 #include "conf.h"
 #include "sysdep.h"
 
-/* Default port for terrain API server */
-#define TERRAIN_API_DEFAULT_PORT 8182
+/* Campaign-dependent port for terrain API server */
+#ifdef CAMPAIGN_DL
+  #define TERRAIN_API_DEFAULT_PORT 8202  /* DragonLance campaign port */
+#elif defined(CAMPAIGN_FR)
+  #define TERRAIN_API_DEFAULT_PORT 8192  /* Forgotten Realms campaign port */
+#else
+  #define TERRAIN_API_DEFAULT_PORT 8182  /* Default Luminari port */
+#endif
 
 /* Maximum clients and message sizes */
 #define TERRAIN_API_MAX_CLIENTS 10
@@ -258,7 +264,7 @@ circle_LDADD += $(TERRAIN_API_LIBS)
 **Estimated Time:** 30 minutes
 
 **Auto-start Option:**
-- Add config file setting: `terrain_api_port = 8182`
+- Add config file setting: `terrain_api_port = 8182` (or campaign-specific)
 - Add command line option: `--terrain-api-port 8182`
 - Auto-start during server initialization if configured
 
@@ -368,7 +374,7 @@ class LuminariTerrainAPI:
 ### System Requirements
 - **Memory:** ~1MB additional RAM usage
 - **CPU:** Minimal overhead (~0.1% CPU usage)
-- **Network:** TCP port 8182 (configurable)
+- **Network:** TCP port 8182/8192/8202 (campaign-dependent, configurable)
 - **Disk:** ~50KB additional executable size
 
 ### Performance Expectations
@@ -388,7 +394,7 @@ class LuminariTerrainAPI:
   - *Mitigation:* Comprehensive testing and valgrind verification
 
 ### Operational Risks
-- **Port Conflicts:** Port 8182 may be in use
+- **Port Conflicts:** Port 8182/8192/8202 may be in use
   - *Mitigation:* Configurable port, auto-detection
 - **Security Concerns:** Network service attack surface
   - *Mitigation:* Localhost-only binding, rate limiting
