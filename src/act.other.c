@@ -1737,16 +1737,36 @@ void perform_call(struct char_data *ch, int call_type, int level)
     /* For NPCs without a selection, randomly pick from valid dragon types */
 #ifdef CAMPAIGN_DL
     /* DragonLance campaign uses vnums 40401-40410 */
-    if (!(mob_num = (GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 40400)))
+    if (IS_NPC(ch))
     {
-      /* Dragon types are 1-10, so vnum is (1-10) + 40400 = 40401-40410 */
+      /* NPCs always get a random dragon */
+      mob_num = 40401 + rand_number(0, 9);
+    }
+    else if (GET_DRAGON_RIDER_DRAGON_TYPE(ch) > 0 && GET_DRAGON_RIDER_DRAGON_TYPE(ch) <= 10)
+    {
+      /* Player with valid selection: Dragon types are 1-10, so vnum is (1-10) + 40400 = 40401-40410 */
+      mob_num = GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 40400;
+    }
+    else
+    {
+      /* Player with no/invalid selection, pick random dragon */
       mob_num = 40401 + rand_number(0, 9);
     }
 #else
     /* Default campaign uses vnums 1240-1249 */
-    if (!(mob_num = (GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 1239)))
+    if (IS_NPC(ch))
     {
-      /* Dragon types are 1-10, so vnum is (1-10) + 1239 = 1240-1249 */
+      /* NPCs always get a random dragon */
+      mob_num = 1240 + rand_number(0, 9);
+    }
+    else if (GET_DRAGON_RIDER_DRAGON_TYPE(ch) > 0 && GET_DRAGON_RIDER_DRAGON_TYPE(ch) <= 10)
+    {
+      /* Player with valid selection: Dragon types are 1-10, so vnum is (1-10) + 1239 = 1240-1249 */
+      mob_num = GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 1239;
+    }
+    else
+    {
+      /* Player with no/invalid selection, pick random dragon */
       mob_num = 1240 + rand_number(0, 9);
     }
 #endif
