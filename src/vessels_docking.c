@@ -16,6 +16,7 @@
 #include "constants.h"
 #include "act.h"
 #include "fight.h"
+#include "spells.h"
 
 /* External variables */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
@@ -200,8 +201,9 @@ void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   }
   
   /* Find an available direction for the gangway */
+  int i;
   dir = -1;
-  for (int i = 0; i < NUM_OF_DIRS; i++) {
+  for (i = 0; i < NUM_OF_DIRS; i++) {
     if (world[dock1].dir_option[i] == NULL && 
         world[dock2].dir_option[rev_dir[i]] == NULL) {
       dir = i;
@@ -388,7 +390,7 @@ ACMD(do_dock) {
   struct greyhawk_ship_data *ship, *target;
   char arg[MAX_INPUT_LENGTH];
   
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   
   /* Get player's ship */
   ship = get_ship_from_room(IN_ROOM(ch));
@@ -407,8 +409,9 @@ ACMD(do_dock) {
   if (!*arg) {
     send_to_char(ch, "Vessels within docking range:\r\n");
     bool found = FALSE;
+    int i;
     
-    for (int i = 0; i < GREYHAWK_MAXSHIPS; i++) {
+    for (i = 0; i < GREYHAWK_MAXSHIPS; i++) {
       if (greyhawk_ships[i].shipnum > 0 && &greyhawk_ships[i] != ship) {
         if (ships_in_docking_range(ship, &greyhawk_ships[i])) {
           send_to_char(ch, "  %s (ID: %s)\r\n", 
@@ -500,7 +503,7 @@ ACMD(do_board_hostile) {
   char arg[MAX_INPUT_LENGTH];
   int skill, difficulty;
   
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   
   if (!*arg) {
     send_to_char(ch, "Board which vessel?\r\n");
@@ -526,7 +529,7 @@ ACMD(do_board_hostile) {
   skill = GET_LEVEL(ch);
   
   /* Attempt boarding */
-  if (number(1, 100) <= (skill * 100 / difficulty)) {
+  if (rand_number(1, 100) <= (skill * 100 / difficulty)) {
     /* Success */
     send_to_char(ch, "You leap across to the enemy vessel!\r\n");
     perform_combat_boarding(ch, target);
@@ -540,12 +543,12 @@ ACMD(do_board_hostile) {
     act("$n attempts to board the enemy ship but fails!", TRUE, ch, 0, 0, TO_ROOM);
     
     /* Critical failure - fall in water */
-    if (number(1, 100) <= 10) {
+    if (rand_number(1, 100) <= 10) {
       send_to_char(ch, "You lose your footing and fall into the water!\r\n");
       act("$n falls into the water with a splash!", TRUE, ch, 0, 0, TO_ROOM);
       
       /* TODO: Move character to water room or apply swimming */
-      damage(ch, ch, dice(2, 6), TYPE_UNDEFINED);
+      damage(ch, ch, dice(2, 6), TYPE_UNDEFINED, DAM_FORCE, FALSE);
     }
   }
 }
@@ -553,7 +556,6 @@ ACMD(do_board_hostile) {
 /* COMMAND: Look outside from ship interior */
 ACMD(do_look_outside) {
   struct greyhawk_ship_data *ship;
-  char buf[MAX_STRING_LENGTH];
   int terrain_type;
   
   /* Must be on a ship */
@@ -593,8 +595,9 @@ ACMD(do_look_outside) {
   /* Nearby vessels */
   send_to_char(ch, "\r\nNearby vessels:\r\n");
   bool found = FALSE;
+  int i;
   
-  for (int i = 0; i < GREYHAWK_MAXSHIPS; i++) {
+  for (i = 0; i < GREYHAWK_MAXSHIPS; i++) {
     if (greyhawk_ships[i].shipnum > 0 && &greyhawk_ships[i] != ship) {
       float range = greyhawk_range(ship->x, ship->y, ship->z,
                                   greyhawk_ships[i].x, greyhawk_ships[i].y, 
