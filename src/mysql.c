@@ -125,7 +125,7 @@ void mysql_pool_init(void)
     prev = pc;
     mysql_pool->current_size++;
     
-    log("INFO: Created pool connection %d (thread_id: %lu)", i, pc->thread_id);
+    log("Info: Created pool connection %d (thread_id: %lu)", i, pc->thread_id);
   }
   
   if (mysql_pool->current_size > 0) {

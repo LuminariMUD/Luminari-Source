@@ -2610,7 +2610,7 @@ static int Crash_load_objs(struct char_data *ch)
 
 #ifdef OBJSAVE_DB
 
-  log("INFO: Loading saved object data from db for: %s", GET_NAME(ch));
+  COPYOVER_DEBUG("Loading saved object data from db for: %s", GET_NAME(ch));
 
   snprintf(sql_buf, sizeof(sql_buf), "SELECT obj_save_header from player_data where name = '%s';", GET_NAME(ch));
 
@@ -2636,7 +2636,7 @@ static int Crash_load_objs(struct char_data *ch)
   if (row && strlen((const char *)row) > 0 && (strcmp(row[0], "") != 0))
   {
     /* This player has saved objects in the database */
-    log("INFO: Object save header found for: %s", GET_NAME(ch));
+    COPYOVER_DEBUG("Object save header found for: %s", GET_NAME(ch));
     sscanf(row[0], "%d %d %d %d %d %d", &rentcode, &timed,
            &netcost, &gold, &account, &nitems);
     using_db = TRUE;

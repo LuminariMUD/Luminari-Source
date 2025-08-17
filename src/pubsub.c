@@ -767,7 +767,7 @@ void pubsub_info(const char *format, ...) {
     vsnprintf(buf, sizeof(buf), format, args);
     va_end(args);
     
-    log("PUBSUB INFO: %s", buf);
+    log("PubSub Info: %s", buf);
 }
 
 void pubsub_error(const char *format, ...) {

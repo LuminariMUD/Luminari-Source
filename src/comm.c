@@ -117,6 +117,9 @@ extern time_t newsmod;
 /* locally defined globals, used externally */
 struct descriptor_data *descriptor_list = NULL; /* master desc list */
 int buf_largecount = 0;                         /* # of large buffers which exist */
+
+/* Copyover debug toggle - set to 0 to disable debug messages */
+int copyover_debug_enabled = 0;
 int buf_overflows = 0;                          /* # of overflows of output */
 int buf_switches = 0;                           /* # of switches from small to large buf */
 int circle_shutdown = 0;                        /* clean shutdown */
@@ -405,7 +408,7 @@ int main(int argc, char **argv)
   log("Using %s as data directory.", dir);
   
   if (fCopyOver)
-    log("INFO: Copyover mode detected, mother_desc=%d", mother_desc);
+    log("Info: Copyover mode detected, mother_desc=%d", mother_desc);
 
   if (scheck)
     boot_world();
@@ -469,7 +472,7 @@ void copyover_recover()
   char name[MAX_INPUT_LENGTH] = {'\0'};
   long pref;
 
-  log("INFO: copyover_recover: Starting copyover recovery process");
+  COPYOVER_DEBUG("copyover_recover: Starting copyover recovery process");
 
   fp = fopen(COPYOVER_FILE, "r");
   /* there are some descriptors open which will hang forever then ? */
@@ -482,7 +485,7 @@ void copyover_recover()
   }
 
   /* read boot_time - first line in file */
-  log("INFO: copyover_recover: Reading boot time from copyover file");
+  COPYOVER_DEBUG("copyover_recover: Reading boot time from copyover file");
   i = fscanf(fp, "%ld\n", (long *)&boot_time);
 
   if (i != 1)
@@ -492,16 +495,16 @@ void copyover_recover()
     exit(1);
   }
   
-  log("INFO: copyover_recover: Boot time read successfully: %ld", (long)boot_time);
+  COPYOVER_DEBUG("copyover_recover: Boot time read successfully: %ld", (long)boot_time);
 
-  log("INFO: copyover_recover: Beginning descriptor recovery loop");
+  COPYOVER_DEBUG("copyover_recover: Beginning descriptor recovery loop");
   for (;;)
   {
     fOld = TRUE;
     i = fscanf(fp, "%d %ld %s %s %s\n", &desc, &pref, name, host, guiopt);
     if (desc == -1)
     {
-      log("INFO: copyover_recover: Found end marker (-1), finishing recovery");
+      COPYOVER_DEBUG("copyover_recover: Found end marker (-1), finishing recovery");
       break;
     }
     
@@ -586,7 +589,7 @@ void copyover_recover()
         mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), TRUE, "Failure to AddRecentPlayer (returned FALSE).");
       }
       
-      log("INFO: copyover_recover: Successfully restored player %s on descriptor %d", GET_NAME(d->character), desc);
+      COPYOVER_DEBUG("copyover_recover: Successfully restored player %s on descriptor %d", GET_NAME(d->character), desc);
     }
   }
   fclose(fp);
@@ -598,10 +601,10 @@ void copyover_recover()
   }
   else
   {
-    log("INFO: copyover_recover: Successfully deleted copyover file");
+    COPYOVER_DEBUG("copyover_recover: Successfully deleted copyover file");
   }
   
-  log("INFO: copyover_recover: Copyover recovery complete");
+  COPYOVER_DEBUG("copyover_recover: Copyover recovery complete");
 }
 
 /* Init sockets, run game, and cleanup sockets */
@@ -646,7 +649,7 @@ static void init_game(ush_int local_port)
 
   if (fCopyOver) /* reload players */
   {
-    log("INFO: init_game: fCopyOver is true, calling copyover_recover()");
+    COPYOVER_DEBUG("init_game: fCopyOver is true, calling copyover_recover()");
     copyover_recover();
   }
 
@@ -655,7 +658,7 @@ static void init_game(ush_int local_port)
   init_discord_bridge();
 
   /* Initialize Terrain Bridge API */
-  log("Initializing Terrain Bridge API.");
+  log("Initializing terrain bridge API.");
   terrain_api_start();
 
   log("Entering game loop.");

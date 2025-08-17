@@ -21,6 +21,15 @@
 #define NUM_RESERVED_DESCS 8
 #define COPYOVER_FILE "copyover.dat"
 
+/* Copyover debug logging - controlled by copyover_debug_enabled in comm.c */
+extern int copyover_debug_enabled;
+#define COPYOVER_DEBUG(msg, ...) \
+    do { \
+        if (copyover_debug_enabled) { \
+            log("INFO: " msg, ##__VA_ARGS__); \
+        } \
+    } while(0)
+
 /* comm.c */
 void close_socket(struct descriptor_data *d);
 void game_info(const char *messg, ...) __attribute__((format(printf, 1, 2)));
