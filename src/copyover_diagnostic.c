@@ -23,7 +23,7 @@
 
 /* Diagnostic log file for copyover issues */
 #define COPYOVER_DIAG_FILE "../log/copyover_diagnostic.log"
-#define COPYOVER_LAST_STATE_FILE "../lib/misc/copyover_last_state.txt"
+#define COPYOVER_LAST_STATE_FILE "../log/copyover_last_state.txt"
 
 static FILE *diag_file = NULL;
 static time_t copyover_start_time = 0;
