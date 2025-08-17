@@ -21,7 +21,7 @@
 /* External variables */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 extern struct room_data *world;
-extern int top_of_world;
+extern room_rnum top_of_world;
 
 /* Room template definitions */
 struct room_template {
@@ -165,7 +165,8 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type) 
   }
   
   /* Expand world array if needed */
-  if (top_of_world >= MAX_ROOMS - 1) {
+  /* Check if we're running out of room space - use a large number */
+  if (top_of_world >= 30000) {
     log("SYSERR: Maximum room limit reached!");
     return NOWHERE;
   }
@@ -183,7 +184,11 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type) 
   world[new_room].description = strdup(buf);
   
   /* Set room flags and sector */
-  world[new_room].room_flags = template->room_flags;
+  /* Set room flags - need to set each flag individually */
+  if (template->room_flags & ROOM_VEHICLE)
+    SET_BIT_AR(world[new_room].room_flags, ROOM_VEHICLE);
+  if (template->room_flags & ROOM_INDOORS)
+    SET_BIT_AR(world[new_room].room_flags, ROOM_INDOORS);
   world[new_room].sector_type = template->sector_type;
   
   /* Link to ship */
@@ -195,9 +200,10 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type) 
   }
   
   /* Set coordinates to match ship position */
-  world[new_room].wilderness_x = (int)ship->x;
-  world[new_room].wilderness_y = (int)ship->y;
-  world[new_room].wilderness_z = (int)ship->z;
+  /* Set wilderness coordinates */
+  world[new_room].coords[0] = (int)ship->x;
+  world[new_room].coords[1] = (int)ship->y;
+  /* Z coordinate stored in ship structure separately */
   
   return room_vnum;
 }
@@ -225,22 +231,26 @@ void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type) {
     case ROOM_TYPE_BRIDGE:
       ship->bridge_room = room_vnum;
       break;
-    case ROOM_TYPE_CARGO:
-      for (int i = 0; i < 5; i++) {
+    case ROOM_TYPE_CARGO: {
+      int i;
+      for (i = 0; i < 5; i++) {
         if (ship->cargo_rooms[i] == 0) {
           ship->cargo_rooms[i] = room_vnum;
           break;
         }
       }
       break;
-    case ROOM_TYPE_QUARTERS:
-      for (int i = 0; i < 10; i++) {
+    }
+    case ROOM_TYPE_QUARTERS: {
+      int i;
+      for (i = 0; i < 10; i++) {
         if (ship->crew_quarters[i] == 0) {
           ship->crew_quarters[i] = room_vnum;
           break;
         }
       }
       break;
+    }
     case ROOM_TYPE_AIRLOCK:
       if (ship->entrance_room == 0) {
         ship->entrance_room = room_vnum;
@@ -253,8 +263,7 @@ void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type) {
 
 /* Generate complete ship interior based on vessel type */
 void generate_ship_interior(struct greyhawk_ship_data *ship) {
-  int base_rooms, max_rooms;
-  int rooms_to_add;
+  int max_rooms;
   int i;
   
   if (!ship) {
@@ -271,7 +280,6 @@ void generate_ship_interior(struct greyhawk_ship_data *ship) {
   for (i = 0; i < MAX_SHIP_ROOMS; i++) ship->room_vnums[i] = 0;
   
   /* Get room counts for this vessel type */
-  base_rooms = get_base_rooms_for_type(ship->vessel_type);
   max_rooms = get_max_rooms_for_type(ship->vessel_type);
   
   /* Always create the bridge first */
@@ -331,17 +339,17 @@ void generate_ship_interior(struct greyhawk_ship_data *ship) {
   ship->discovery_chance = 30.0; /* 30% chance for additional rooms */
   
   while (ship->num_rooms < max_rooms) {
-    if (number(1, 100) <= ship->discovery_chance) {
+    if (rand_number(1, 100) <= ship->discovery_chance) {
       /* Select appropriate room type based on what's missing */
       enum ship_room_type new_type;
       
-      if (ship->vessel_type == VESSEL_WARSHIP && number(1, 3) == 1) {
+      if (ship->vessel_type == VESSEL_WARSHIP && rand_number(1, 3) == 1) {
         new_type = ROOM_TYPE_WEAPONS;
-      } else if (ship->vessel_type == VESSEL_TRANSPORT && number(1, 2) == 1) {
+      } else if (ship->vessel_type == VESSEL_TRANSPORT && rand_number(1, 2) == 1) {
         new_type = ROOM_TYPE_CARGO;
       } else {
         /* Random selection from common room types */
-        int roll = number(1, 5);
+        int roll = rand_number(1, 5);
         switch (roll) {
           case 1: new_type = ROOM_TYPE_QUARTERS; break;
           case 2: new_type = ROOM_TYPE_CORRIDOR; break;
@@ -471,7 +479,7 @@ void generate_room_connections(struct greyhawk_ship_data *ship) {
     /* Add some cross-connections between non-bridge rooms */
     for (i = 1; i < ship->num_rooms - 1; i++) {
       if (ship->room_vnums[i] == ship->bridge_room) continue;
-      if (number(1, 100) > 40) continue; /* 40% chance of cross-connection */
+      if (rand_number(1, 100) > 40) continue; /* 40% chance of cross-connection */
       
       from_room = real_room(ship->room_vnums[i]);
       to_room = real_room(ship->room_vnums[i + 1]);
@@ -510,7 +518,7 @@ void generate_room_connections(struct greyhawk_ship_data *ship) {
           ship->connections[ship->num_connections].from_room = ship->room_vnums[i];
           ship->connections[ship->num_connections].to_room = ship->room_vnums[i + 1];
           ship->connections[ship->num_connections].direction = found_dir;
-          ship->connections[ship->num_connections].is_hatch = (number(1, 4) == 1);
+          ship->connections[ship->num_connections].is_hatch = (rand_number(1, 4) == 1);
           ship->connections[ship->num_connections].is_locked = FALSE;
           ship->num_connections++;
         }
@@ -537,7 +545,8 @@ struct greyhawk_ship_data *get_ship_from_room(room_rnum room) {
   /* Otherwise search all ships for this room */
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++) {
     if (greyhawk_ships[i].shipnum > 0) {
-      for (int j = 0; j < greyhawk_ships[i].num_rooms; j++) {
+      int j;
+      for (j = 0; j < greyhawk_ships[i].num_rooms; j++) {
         if (real_room(greyhawk_ships[i].room_vnums[j]) == room) {
           return &greyhawk_ships[i];
         }
@@ -559,9 +568,10 @@ void update_ship_room_coordinates(struct greyhawk_ship_data *ship) {
     room = real_room(ship->room_vnums[i]);
     if (room != NOWHERE) {
       /* Update room's wilderness coordinates */
-      world[room].wilderness_x = (int)ship->x;
-      world[room].wilderness_y = (int)ship->y;
-      world[room].wilderness_z = (int)ship->z;
+      /* Update wilderness coordinates */
+      world[room].coords[0] = (int)ship->x;
+      world[room].coords[1] = (int)ship->y;
+      /* Z coordinate maintained separately in ship structure */
       
       /* Keep ship pointer updated */
       world[room].ship = ship;
