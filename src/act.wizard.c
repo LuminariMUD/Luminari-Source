@@ -6329,6 +6329,7 @@ break;
   if (rename(temp_file, COPYOVER_FILE) != 0)
   {
     log("SYSERR: Failed to rename temp file to copyover file: %s", strerror(errno));
+    log("SYSERR: Temp file: %s, Target: %s", temp_file, COPYOVER_FILE);
     unlink(temp_file);  /* Clean up temp file */
     copyover_status = COPYOVER_FAILED;
     
@@ -6347,6 +6348,18 @@ break;
   /* exec - descriptors are inherited */
   snprintf(buf, sizeof(buf), "%d", port);
   snprintf(buf2, sizeof(buf2), "-C%d", mother_desc);
+
+  /* Log copyover file location before chdir */
+  {
+    struct stat st;
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)))
+      COPYOVER_DEBUG("copyover: Current directory before chdir: %s", cwd);
+    if (stat(COPYOVER_FILE, &st) == 0)
+      COPYOVER_DEBUG("copyover: Copyover file exists at %s/%s (size=%ld)", cwd, COPYOVER_FILE, (long)st.st_size);
+    else
+      log("SYSERR: copyover: Copyover file NOT found at %s/%s before chdir!", cwd, COPYOVER_FILE);
+  }
 
   /* Ugh, seems it is expected we are 1 step above lib - this may be dangerous! */
   if (chdir("..") != 0)
@@ -6367,6 +6380,25 @@ break;
     unlink(COPYOVER_FILE);
     copyover_status = COPYOVER_NONE;
     return;  /* Don't exit, allow game to continue */
+  }
+
+  /* Log state after chdir */
+  {
+    char cwd[1024];
+    struct stat st;
+    if (getcwd(cwd, sizeof(cwd)))
+      COPYOVER_DEBUG("copyover: Current directory after chdir: %s", cwd);
+    
+    /* Check if copyover file is visible from new directory */
+    if (stat(COPYOVER_FILE, &st) == 0)
+      COPYOVER_DEBUG("copyover: Copyover file FOUND at %s/%s after chdir", cwd, COPYOVER_FILE);
+    else
+    {
+      log("SYSERR: copyover: Copyover file NOT found at %s/%s after chdir!", cwd, COPYOVER_FILE);
+      /* Check if it exists in lib subdirectory */
+      if (stat("lib/copyover.dat", &st) == 0)
+        log("SYSERR: copyover: But file EXISTS at lib/copyover.dat - PATH MISMATCH!");
+    }
   }
 
   /* Check if binary exists and is executable before attempting execl */
