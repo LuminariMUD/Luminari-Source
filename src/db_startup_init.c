@@ -205,7 +205,7 @@ void repair_database_if_needed(void)
     for (i = 0; index_queries[i] != NULL; i++) {
         if (mysql_query_safe(conn, index_queries[i])) {
             /* Non-critical - log but continue */
-            log("INFO: Could not create index (may already exist): %s", mysql_error(conn));
+            log("Info: Could not create index (may already exist): %s", mysql_error(conn));
         }
     }
 

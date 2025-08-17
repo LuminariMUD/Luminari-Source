@@ -54,7 +54,7 @@ void init_luminari_database(void)
     /* Verify everything was created correctly */
     if (verify_database_integrity()) {
         log("SUCCESS: LuminariMUD database initialization completed successfully!");
-        log("INFO: All tables created and reference data populated.");
+        log("Info: All tables created and reference data populated.");
     } else {
         log("ERROR: Database initialization completed with errors - check logs above");
     }
@@ -204,7 +204,7 @@ void init_core_player_tables(void)
         return;
     }
 
-    log("INFO: Core player system tables initialized successfully");
+    log("Info: Core player system tables initialized successfully");
 }
 
 /* ===== OBJECT DATABASE SYSTEM TABLES ===== */
@@ -280,7 +280,7 @@ void init_object_database_tables(void)
         return;
     }
 
-    log("INFO: Object database system tables initialized successfully");
+    log("Info: Object database system tables initialized successfully");
 }
 
 /* ===== WILDERNESS RESOURCE SYSTEM TABLES ===== */
@@ -644,7 +644,7 @@ void init_wilderness_resource_tables(void)
         return;
     }
 
-    log("INFO: Wilderness resource system tables initialized successfully");
+    log("Info: Wilderness resource system tables initialized successfully");
 }
 
 /* ===== REGION SYSTEM TABLES ===== */
@@ -726,7 +726,7 @@ void init_region_system_tables(void)
         return;
     }
 
-    log("INFO: Region system tables initialized successfully");
+    log("Info: Region system tables initialized successfully");
 }
 
 /* ===== AI SERVICE SYSTEM TABLES ===== */
@@ -807,7 +807,7 @@ void init_ai_service_tables(void)
         return;
     }
 
-    log("INFO: AI service system tables initialized successfully");
+    log("Info: AI service system tables initialized successfully");
 }
 
 /* ===== CRAFTING SYSTEM TABLES ===== */
@@ -837,7 +837,7 @@ void init_crafting_system_tables(void)
         return;
     }
 
-    log("INFO: Crafting system tables initialized successfully");
+    log("Info: Crafting system tables initialized successfully");
 }
 
 /* ===== HOUSING SYSTEM TABLES ===== */
@@ -868,7 +868,7 @@ void init_housing_system_tables(void)
         return;
     }
 
-    log("INFO: Housing system tables initialized successfully");
+    log("Info: Housing system tables initialized successfully");
 }
 
 /* ===== HELP SYSTEM TABLES ===== */
@@ -890,7 +890,7 @@ void init_database_migrations(void)
         return;
     }
     
-    log("INFO: Schema migrations table initialized");
+    log("Info: Schema migrations table initialized");
 }
 
 /* Apply a migration if not already applied */
@@ -919,7 +919,7 @@ int apply_migration(int version, const char *description, const char *sql)
     }
     
     /* Apply the migration */
-    log("INFO: Applying migration %d: %s", version, description);
+    log("Info: Applying migration %d: %s", version, description);
     
     if (mysql_query_safe(conn, sql)) {
         log("SYSERR: Failed to apply migration %d: %s", version, mysql_error(conn));
@@ -936,7 +936,7 @@ int apply_migration(int version, const char *description, const char *sql)
         return 0;
     }
     
-    log("INFO: Migration %d applied successfully", version);
+    log("Info: Migration %d applied successfully", version);
     return 1;
 }
 
@@ -999,7 +999,7 @@ void run_database_migrations(void)
         ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
         "COMMENT='Links between related help topics'");
     
-    log("INFO: Database migrations completed");
+    log("Info: Database migrations completed");
 }
 
 void init_help_system_tables(void)
@@ -1049,7 +1049,7 @@ void init_help_system_tables(void)
         return;
     }
 
-    log("INFO: Help system tables initialized successfully");
+    log("Info: Help system tables initialized successfully");
     
     /* Add auto_generated column if it doesn't exist (for migration) */
     const char *add_auto_generated_column = 
@@ -1059,7 +1059,7 @@ void init_help_system_tables(void)
         "AFTER max_level";
     
     if (mysql_query_safe(conn, add_auto_generated_column)) {
-        log("INFO: Could not add auto_generated column (may already exist): %s", mysql_error(conn));
+        log("Info: Could not add auto_generated column (may already exist): %s", mysql_error(conn));
         /* Non-critical - column may already exist */
     }
     
@@ -1069,7 +1069,7 @@ void init_help_system_tables(void)
         "ADD INDEX IF NOT EXISTS idx_auto_generated (auto_generated)";
     
     if (mysql_query_safe(conn, add_auto_generated_index)) {
-        log("INFO: Could not add auto_generated index (may already exist): %s", mysql_error(conn));
+        log("Info: Could not add auto_generated index (may already exist): %s", mysql_error(conn));
         /* Non-critical - index may already exist */
     }
     
@@ -1098,7 +1098,7 @@ void init_help_system_tables(void)
         /* Non-critical error - continue execution */
     }
     
-    log("INFO: Help system optimization indexes added");
+    log("Info: Help system optimization indexes added");
     
     /* Run database migrations for new features */
     run_database_migrations();
@@ -1318,7 +1318,7 @@ void create_database_procedures(void)
         return;
     }
 
-    log("INFO: Database procedures and functions created successfully");
+    log("Info: Database procedures and functions created successfully");
 }
 
 /* [Continuing in next part due to length...] */

@@ -494,7 +494,7 @@ void cleanup_old_resource_nodes(void) {
     
     /* TODO: Implement cleanup logic */
     /* For now, just log that cleanup was called */
-    log("INFO: Resource node cleanup called at %ld", (long)now);
+    log("Info: Resource node cleanup called at %ld", (long)now);
 }
 
 /* ===== RESOURCE QUALITY AND DESCRIPTION FUNCTIONS ===== */
@@ -790,7 +790,7 @@ void init_resource_system(void) {
 }
 
 void shutdown_resource_system(void) {
-    log("INFO: Shutting down wilderness resource system");
+    log("Info: Shutting down wilderness resource system");
     
     /* Clean up all resource nodes */
     while (resource_kd_tree) {
@@ -802,7 +802,7 @@ void shutdown_resource_system(void) {
     /* Clean up cache */
     cache_clear_all();
     
-    log("INFO: Resource system shutdown complete");
+    log("Info: Resource system shutdown complete");
 }
 
 /* ===== SURVEY HELPER FUNCTIONS ===== */

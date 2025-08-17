@@ -218,7 +218,7 @@ MYSQL_POOL_CONN *mysql_pool_acquire(void)
         if (now - pc->last_used > MYSQL_POOL_TIMEOUT) {
           /* Ping to check if still alive */
           if (mysql_ping(pc->conn) != 0) {
-            log("INFO: Refreshing stale connection %d", pc->id);
+            log("Info: Refreshing stale connection %d", pc->id);
             mysql_close(pc->conn);
             
             /* Reconnect */
@@ -374,7 +374,7 @@ void mysql_pool_health_check(void)
             pc->state = CONN_STATE_FREE;
             pc->thread_id = mysql_thread_id(pc->conn);
             pc->created = now;
-            log("INFO: Reconnected connection %d during health check", pc->id);
+            log("Info: Reconnected connection %d during health check", pc->id);
             errors--;
           }
         }
@@ -470,7 +470,7 @@ void mysql_pool_expand(void)
   
   mysql_pool->current_size++;
   
-  log("INFO: Expanded pool to %d connections", mysql_pool->current_size);
+  log("Info: Expanded pool to %d connections", mysql_pool->current_size);
   
   pthread_mutex_unlock(&mysql_pool->pool_mutex);
 }
@@ -528,7 +528,7 @@ void mysql_pool_shrink(void)
   }
   
   if (removed > 0) {
-    log("INFO: Shrunk pool by %d connections (now %d)",
+    log("Info: Shrunk pool by %d connections (now %d)",
         removed, mysql_pool->current_size);
   }
   
@@ -675,7 +675,7 @@ bool ensure_mysql_connection(MYSQL *mysql_conn, const char *caller_func)
       return false;
     }
     
-    log("INFO: %s: Successfully reconnected to MySQL", caller_func ? caller_func : "Unknown");
+    log("Info: %s: Successfully reconnected to MySQL", caller_func ? caller_func : "Unknown");
   }
   
   return true;
