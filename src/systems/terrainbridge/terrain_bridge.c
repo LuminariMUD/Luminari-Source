@@ -49,6 +49,17 @@ extern zone_rnum top_of_zone_table;
 extern int get_moisture(int map, int x, int y);
 extern int get_temperature(int map, int x, int y);
 
+/* Debug toggle for Terrain API - set to 0 to disable debug messages */
+static int terrain_api_debug_enabled = 0;
+
+/* Terrain API debug logging macro */
+#define TERRAIN_DEBUG(msg, ...) \
+    do { \
+        if (terrain_api_debug_enabled) { \
+            log("Terrain-API DEBUG: " msg, ##__VA_ARGS__); \
+        } \
+    } while(0)
+
 /* Global terrain API server instance */
 /* Custom socket error handling for cross-platform compatibility */
 #ifndef INVALID_SOCKET
@@ -77,11 +88,11 @@ int start_terrain_api_server(int port) {
     int opt = 1;
     
     if (terrain_api) {
-        log("TERRAIN-API: Server already running on port %d", terrain_api->port);
+        log("Terrain-API: Server already running on port %d", terrain_api->port);
         return 1;
     }
     
-    log("TERRAIN-API: Starting terrain bridge API server...");
+    TERRAIN_DEBUG("Starting terrain bridge API server...");
     
     /* Allocate server structure */
     CREATE(terrain_api, struct terrain_api_server, 1);
@@ -109,7 +120,7 @@ int start_terrain_api_server(int port) {
     
     /* Create socket */
     if ((s = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
-        log("TERRAIN-API: ERROR - Socket creation failed: %s", strerror(errno));
+        log("Terrain-API: ERROR - Socket creation failed: %s", strerror(errno));
         free(terrain_api->clients);
         free(terrain_api);
         terrain_api = NULL;
@@ -118,12 +129,12 @@ int start_terrain_api_server(int port) {
     
     /* Set socket options for reuse */
     if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0) {
-        log("TERRAIN-API: WARNING - setsockopt SO_REUSEADDR failed: %s", strerror(errno));
+        log("Terrain-API: WARNING - setsockopt SO_REUSEADDR failed: %s", strerror(errno));
     }
     
     /* Set non-blocking mode */
     if (fcntl(s, F_SETFL, O_NONBLOCK) < 0) {
-        log("TERRAIN-API: WARNING - Failed to set non-blocking mode: %s", strerror(errno));
+        log("Terrain-API: WARNING - Failed to set non-blocking mode: %s", strerror(errno));
     }
     
     /* Bind to localhost only for security */
@@ -133,7 +144,7 @@ int start_terrain_api_server(int port) {
     sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);  /* localhost only */
     
     if (bind(s, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
-        log("TERRAIN-API: ERROR - Bind to port %d failed: %s", port, strerror(errno));
+        log("Terrain-API: ERROR - Bind to port %d failed: %s", port, strerror(errno));
         CLOSE_SOCKET(s);
         free(terrain_api->clients);
         free(terrain_api);
@@ -143,7 +154,7 @@ int start_terrain_api_server(int port) {
     
     /* Listen for connections */
     if (listen(s, 5) < 0) {
-        log("TERRAIN-API: ERROR - Listen failed: %s", strerror(errno));
+        log("Terrain-API: ERROR - Listen failed: %s", strerror(errno));
         CLOSE_SOCKET(s);
         free(terrain_api->clients);
         free(terrain_api);
@@ -154,8 +165,8 @@ int start_terrain_api_server(int port) {
     terrain_api->server_socket = s;
     terrain_api->port = port;
     
-    log("TERRAIN-API: Server successfully started on localhost:%d", port);
-    log("TERRAIN-API: Maximum clients: %d, Max message size: %d bytes", 
+    log("Terrain-API: Server successfully started on localhost:%d", port);
+    TERRAIN_DEBUG("Maximum clients: %d, Max message size: %d bytes", 
         TERRAIN_API_MAX_CLIENTS, TERRAIN_API_MAX_MSG_SIZE);
     
     return 1;
@@ -169,7 +180,7 @@ void stop_terrain_api_server(void) {
         return;
     }
     
-    log("TERRAIN-API: Shutting down server...");
+    log("Terrain-API: Shutting down server...");
     
     /* Disconnect all clients */
     {
@@ -188,7 +199,7 @@ void stop_terrain_api_server(void) {
     
     /* Log final statistics */
     time_t uptime = time(NULL) - terrain_api->start_time;
-    log("TERRAIN-API: Server stopped. Uptime: %ld seconds, Total requests: %d, Total connections: %d",
+    log("Terrain-API: Server stopped. Uptime: %ld seconds, Total requests: %d, Total connections: %d",
         uptime, terrain_api->total_requests, terrain_api->total_connections);
     
     /* Free memory */
@@ -221,7 +232,7 @@ void terrain_api_accept_connections(void) {
         /* No available slots - accept and immediately close */
         new_socket = accept(terrain_api->server_socket, (struct sockaddr *)&client_addr, &addr_len);
         if (new_socket != INVALID_SOCKET) {
-            log("TERRAIN-API: Connection rejected - server full");
+            log("Terrain-API: Connection rejected - server full");
             CLOSE_SOCKET(new_socket);
         }
         return;
@@ -236,7 +247,7 @@ void terrain_api_accept_connections(void) {
     
     /* Set client socket to non-blocking */
     if (fcntl(new_socket, F_SETFL, O_NONBLOCK) < 0) {
-        log("TERRAIN-API: WARNING - Failed to set client socket non-blocking: %s", strerror(errno));
+        log("Terrain-API: WARNING - Failed to set client socket non-blocking: %s", strerror(errno));
     }
     
     /* Initialize client data */
@@ -249,7 +260,7 @@ void terrain_api_accept_connections(void) {
     terrain_api->num_clients++;
     terrain_api->total_connections++;
     
-    log("TERRAIN-API: Client connected from %s (slot %d, total clients: %d)",
+    log("Terrain-API: Client connected from %s (slot %d, total clients: %d)",
         inet_ntoa(client_addr.sin_addr), client_slot, terrain_api->num_clients);
 }
 
@@ -266,7 +277,7 @@ void terrain_api_disconnect_client(int client_index) {
     
     if (client->socket != INVALID_SOCKET) {
         time_t session_time = time(NULL) - client->connect_time;
-        log("TERRAIN-API: Client disconnected (slot %d, session: %ld seconds, requests: %d)",
+        log("Terrain-API: Client disconnected (slot %d, session: %ld seconds, requests: %d)",
             client_index, session_time, client->requests_processed);
         
         CLOSE_SOCKET(client->socket);
@@ -855,7 +866,7 @@ void terrain_api_process_clients(void) {
                             
                             ssize_t sent = send(client->socket, response_with_newline, strlen(response_with_newline), 0);
                             if (sent < 0) {
-                                log("TERRAIN-API: Send failed for client %d: %s", i, strerror(errno));
+                                log("Terrain-API: Send failed for client %d: %s", i, strerror(errno));
                                 terrain_api_disconnect_client(i);
                             } else {
                                 client->requests_processed++;
@@ -864,7 +875,7 @@ void terrain_api_process_clients(void) {
                             
                             free(response_with_newline);
                         } else {
-                            log("TERRAIN-API: Failed to allocate memory for response");
+                            log("Terrain-API: Failed to allocate memory for response");
                             terrain_api_disconnect_client(i);
                         }
                         
@@ -877,7 +888,7 @@ void terrain_api_process_clients(void) {
                 }
             } else {
                 /* Buffer overflow - disconnect client */
-                log("TERRAIN-API: Input buffer overflow for client %d, disconnecting", i);
+                log("Terrain-API: Input buffer overflow for client %d, disconnecting", i);
                 terrain_api_disconnect_client(i);
             }
         }
@@ -887,7 +898,7 @@ void terrain_api_process_clients(void) {
         }
         else if (errno != EAGAIN && errno != EWOULDBLOCK) {
             /* Real error occurred */
-            log("TERRAIN-API: Receive error for client %d: %s", i, strerror(errno));
+            log("Terrain-API: Receive error for client %d: %s", i, strerror(errno));
             terrain_api_disconnect_client(i);
         }
     }
@@ -913,13 +924,13 @@ void terrain_api_process(void) {
  */
 void log_terrain_api_stats(void) {
     if (!terrain_api) {
-        log("TERRAIN-API: Server not running");
+        log("Terrain-API: Server not running");
         return;
     }
     
     time_t uptime = time(NULL) - terrain_api->start_time;
-    log("TERRAIN-API: Statistics - Port: %d, Uptime: %ld seconds", terrain_api->port, uptime);
-    log("TERRAIN-API: Clients: %d/%d, Total connections: %d, Total requests: %d",
+    log("Terrain-API Info: Port: %d, Uptime: %ld seconds", terrain_api->port, uptime);
+    log("Terrain-API Info: Clients: %d/%d, Total connections: %d, Total requests: %d",
         terrain_api->num_clients, terrain_api->max_clients, 
         terrain_api->total_connections, terrain_api->total_requests);
 }
@@ -936,20 +947,20 @@ struct terrain_api_server *get_terrain_api_server(void) {
 /* Wrapper functions for automatic startup/shutdown */
 void terrain_api_start(void) {
     /* Debug logging for automatic startup */
-    log("TERRAIN-API: terrain_api_start() called during initialization");
+    TERRAIN_DEBUG("terrain_api_start() called during initialization");
     
     /* Check if server is already running */
     if (terrain_api_is_running()) {
-        log("TERRAIN-API: Server is already running, skipping startup");
+        TERRAIN_DEBUG("Server is already running, skipping startup");
         return;
     }
     
     /* Directly call server start like the working manual command */
-    log("TERRAIN-API: Calling start_terrain_api_server(port=%d)", TERRAIN_API_DEFAULT_PORT);
+    TERRAIN_DEBUG("Calling start_terrain_api_server(port=%d)", TERRAIN_API_DEFAULT_PORT);
     if (start_terrain_api_server(TERRAIN_API_DEFAULT_PORT)) {
-        log("TERRAIN-API: Automatic startup successful on port %d", TERRAIN_API_DEFAULT_PORT);
+        log("Terrain-API Info: Automatic startup successful on port %d", TERRAIN_API_DEFAULT_PORT);
     } else {
-        log("TERRAIN-API: ERROR - Automatic startup failed on port %d", TERRAIN_API_DEFAULT_PORT);
+        log("Terrain-API: ERROR - Automatic startup failed on port %d", TERRAIN_API_DEFAULT_PORT);
     }
 }
 

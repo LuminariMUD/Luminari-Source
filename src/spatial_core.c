@@ -542,7 +542,7 @@ void spatial_log(const char *format, ...) {
     vsnprintf(buf, sizeof(buf), format, args);
     va_end(args);
     
-    log("SPATIAL: %s", buf);
+    log("Spatial: %s", buf);
 }
 
 void spatial_debug(const char *format, ...) {

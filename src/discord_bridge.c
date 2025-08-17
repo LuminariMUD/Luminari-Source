@@ -43,6 +43,17 @@
 /* Global Discord bridge instance */
 struct discord_bridge_data *discord_bridge = NULL;
 
+/* Debug toggle - set to 0 to disable debug messages */
+static int discord_debug_enabled = 0;
+
+/* Debug logging macro */
+#define DISCORD_DEBUG(msg, ...) \
+    do { \
+        if (discord_debug_enabled) { \
+            log("DEBUG: " msg, ##__VA_ARGS__); \
+        } \
+    } while(0)
+
 /* Simple JSON parser/builder functions (since we're in C89) */
 
 /* Build a JSON message for Discord */
@@ -187,7 +198,7 @@ int parse_discord_json(const char *json_str, char *channel, char *name, char *me
 
 /* Initialize the Discord bridge system */
 void init_discord_bridge(void) {
-    log("DEBUG: init_discord_bridge() called");
+    DISCORD_DEBUG("init_discord_bridge() called");
     
     if (discord_bridge) {
         log("WARNING: Discord bridge already initialized (ptr=%p), reinitializing for copyover", discord_bridge);
@@ -195,7 +206,7 @@ void init_discord_bridge(void) {
     }
     
     CREATE(discord_bridge, struct discord_bridge_data, 1);
-    log("DEBUG: Discord bridge structure allocated at %p", discord_bridge);
+    DISCORD_DEBUG("Discord bridge structure allocated at %p", discord_bridge);
     
     discord_bridge->server_socket = INVALID_SOCKET;
     discord_bridge->client_socket = INVALID_SOCKET;
@@ -212,57 +223,57 @@ void init_discord_bridge(void) {
     /* Set a default auth token - should be loaded from config file in production */
     /* Empty token means no authentication required */
     strcpy(discord_bridge->auth_token, "");  /* Set to a secret value for security */
-    log("DEBUG: Auth token set (length=%d)", (int)strlen(discord_bridge->auth_token));
+    DISCORD_DEBUG("Auth token set (length=%d)", (int)strlen(discord_bridge->auth_token));
     
     /* Load configuration */
-    log("DEBUG: Loading Discord configuration...");
+    DISCORD_DEBUG("Loading Discord configuration...");
     load_discord_config();
     
     /* Start the server socket */
-    log("INFO: Starting Discord bridge server on port %d...", DISCORD_BRIDGE_PORT);
+    log("Info: Starting Discord bridge server on port %d...", DISCORD_BRIDGE_PORT);
     if (start_discord_server(DISCORD_BRIDGE_PORT)) {
-        log("SUCCESS: Discord bridge server started on port %d", DISCORD_BRIDGE_PORT);
-        log("INFO: Discord bridge ready - server_socket=%d, state=%d", 
+        log("Success: Discord bridge server started on port %d", DISCORD_BRIDGE_PORT);
+        DISCORD_DEBUG("Discord bridge ready - server_socket=%d, state=%d", 
             discord_bridge->server_socket, discord_bridge->state);
     } else {
         log("ERROR: Failed to start Discord bridge server on port %d", DISCORD_BRIDGE_PORT);
         free(discord_bridge);
         discord_bridge = NULL;
-        log("DEBUG: Discord bridge structure freed, ptr set to NULL");
+        DISCORD_DEBUG("Discord bridge structure freed, ptr set to NULL");
     }
 }
 
 /* Shutdown the Discord bridge system */
 void shutdown_discord_bridge(void) {
-    log("DEBUG: shutdown_discord_bridge() called");
+    DISCORD_DEBUG("shutdown_discord_bridge() called");
     
     if (!discord_bridge) {
-        log("DEBUG: Discord bridge already NULL, nothing to shutdown");
+        DISCORD_DEBUG("Discord bridge already NULL, nothing to shutdown");
         return;
     }
     
-    log("INFO: Shutting down Discord bridge (ptr=%p, server_socket=%d)", 
+    log("Info: Shutting down Discord bridge (ptr=%p, server_socket=%d)", 
         discord_bridge, discord_bridge->server_socket);
     
     close_discord_connection();
     
     if (discord_bridge->server_socket != INVALID_SOCKET) {
-        log("DEBUG: Closing server socket %d", discord_bridge->server_socket);
+        DISCORD_DEBUG("Closing server socket %d", discord_bridge->server_socket);
         if (CLOSE_SOCKET(discord_bridge->server_socket) < 0) {
             log("WARNING: Error closing server socket: %s", strerror(errno));
         } else {
-            log("DEBUG: Server socket closed successfully");
+            DISCORD_DEBUG("Server socket closed successfully");
         }
         discord_bridge->server_socket = INVALID_SOCKET;
     }
     
     save_discord_config();
     
-    log("DEBUG: Freeing Discord bridge structure at %p", discord_bridge);
+    DISCORD_DEBUG("Freeing Discord bridge structure at %p", discord_bridge);
     free(discord_bridge);
     discord_bridge = NULL;
     
-    log("INFO: Discord bridge shutdown complete");
+    log("Info: Discord bridge shutdown complete");
 }
 
 /* Start the Discord server socket */
@@ -272,7 +283,7 @@ int start_discord_server(int port) {
     int retries = 3;
     int retry_delay = 1;
     
-    log("DEBUG: start_discord_server() called with port %d", port);
+    DISCORD_DEBUG("start_discord_server() called with port %d", port);
     
     if (!discord_bridge) {
         log("ERROR: Discord bridge structure is NULL");
@@ -286,7 +297,7 @@ int start_discord_server(int port) {
             strerror(errno), errno);
         return 0;
     }
-    log("DEBUG: Socket created successfully, fd=%d", discord_bridge->server_socket);
+    DISCORD_DEBUG("Socket created successfully, fd=%d", discord_bridge->server_socket);
     
     /* Set socket options - SO_REUSEADDR and SO_REUSEPORT for Linux */
     if (setsockopt(discord_bridge->server_socket, SOL_SOCKET, SO_REUSEADDR,
@@ -294,7 +305,7 @@ int start_discord_server(int port) {
         log("WARNING: Discord bridge setsockopt SO_REUSEADDR failed: %s (errno=%d)", 
             strerror(errno), errno);
     } else {
-        log("DEBUG: SO_REUSEADDR set successfully");
+        DISCORD_DEBUG("SO_REUSEADDR set successfully");
     }
     
 #ifdef SO_REUSEPORT
@@ -303,10 +314,10 @@ int start_discord_server(int port) {
         log("WARNING: Discord bridge setsockopt SO_REUSEPORT failed: %s (errno=%d)", 
             strerror(errno), errno);
     } else {
-        log("DEBUG: SO_REUSEPORT set successfully");
+        DISCORD_DEBUG("SO_REUSEPORT set successfully");
     }
 #else
-    log("DEBUG: SO_REUSEPORT not defined on this system");
+    DISCORD_DEBUG("SO_REUSEPORT not defined on this system");
 #endif
     
     /* Set non-blocking */
@@ -314,7 +325,7 @@ int start_discord_server(int port) {
         log("WARNING: Discord bridge failed to set non-blocking: %s (errno=%d)", 
             strerror(errno), errno);
     } else {
-        log("DEBUG: Socket set to non-blocking mode");
+        DISCORD_DEBUG("Socket set to non-blocking mode");
     }
     
     /* Bind to port - INADDR_ANY allows connections from any interface */
@@ -323,23 +334,23 @@ int start_discord_server(int port) {
     sa.sin_port = htons(port);
     sa.sin_addr.s_addr = htonl(INADDR_ANY);  /* Binds to 0.0.0.0 - accepts from any interface */
     
-    log("DEBUG: Attempting to bind socket %d to 0.0.0.0:%d", 
+    DISCORD_DEBUG("Attempting to bind socket %d to 0.0.0.0:%d", 
         discord_bridge->server_socket, port);
     
     /* Try binding with retries for copyover recovery */
     while (retries > 0) {
-        log("DEBUG: Bind attempt %d of %d", (4 - retries), 3);
+        DISCORD_DEBUG("Bind attempt %d of %d", (4 - retries), 3);
         
         if (bind(discord_bridge->server_socket, (struct sockaddr *)&sa, sizeof(sa)) == 0) {
             /* Success */
-            log("SUCCESS: Socket bound to port %d on attempt %d", port, (4 - retries));
+            DISCORD_DEBUG("Socket bound to port %d on attempt %d", port, (4 - retries));
             break;
         }
         
         /* Save errno immediately as it can be changed by other calls */
         int saved_errno = errno;
         
-        log("DEBUG: Bind failed with errno=%d (%s)", saved_errno, strerror(saved_errno));
+        DISCORD_DEBUG("Bind failed with errno=%d (%s)", saved_errno, strerror(saved_errno));
         
         /* If it's not "Address already in use", fail immediately */
         if (saved_errno != EADDRINUSE) {
@@ -368,7 +379,7 @@ int start_discord_server(int port) {
     }
     
     /* Listen for connections */
-    log("DEBUG: Setting socket to listen mode...");
+    DISCORD_DEBUG("Setting socket to listen mode...");
     if (listen(discord_bridge->server_socket, 1) < 0) {
         log("ERROR: Discord bridge listen failed: %s (errno=%d)", strerror(errno), errno);
         CLOSE_SOCKET(discord_bridge->server_socket);
@@ -376,9 +387,9 @@ int start_discord_server(int port) {
         return 0;
     }
     
-    log("SUCCESS: Socket listening on port %d", port);
+    DISCORD_DEBUG("Socket listening on port %d", port);
     discord_bridge->state = DISCORD_STATE_LISTENING;
-    log("DEBUG: Discord bridge state set to LISTENING (%d)", discord_bridge->state);
+    DISCORD_DEBUG("Discord bridge state set to LISTENING (%d)", discord_bridge->state);
     return 1;
 }
 
@@ -429,16 +440,16 @@ void accept_discord_connection(void) {
 /* Close the Discord connection */
 void close_discord_connection(void) {
     if (!discord_bridge) {
-        log("DEBUG: close_discord_connection() - bridge is NULL");
+        DISCORD_DEBUG("close_discord_connection() - bridge is NULL");
         return;
     }
     
     if (discord_bridge->client_socket == INVALID_SOCKET) {
-        log("DEBUG: close_discord_connection() - client_socket already INVALID");
+        DISCORD_DEBUG("close_discord_connection() - client_socket already INVALID");
         return;
     }
     
-    log("DEBUG: Closing client socket %d", discord_bridge->client_socket);
+    DISCORD_DEBUG("Closing client socket %d", discord_bridge->client_socket);
     if (CLOSE_SOCKET(discord_bridge->client_socket) < 0) {
         log("WARNING: Error closing client socket: %s", strerror(errno));
     }
@@ -447,10 +458,10 @@ void close_discord_connection(void) {
     
     if (discord_bridge->server_socket != INVALID_SOCKET) {
         discord_bridge->state = DISCORD_STATE_LISTENING;
-        log("DEBUG: State changed to LISTENING (server still active)");
+        DISCORD_DEBUG("State changed to LISTENING (server still active)");
     } else {
         discord_bridge->state = DISCORD_STATE_DISCONNECTED;
-        log("DEBUG: State changed to DISCONNECTED (no server socket)");
+        DISCORD_DEBUG("State changed to DISCONNECTED (no server socket)");
     }
     
     discord_bridge->inbuf_len = 0;
@@ -880,16 +891,16 @@ void discord_bridge_status(struct char_data *ch) {
 void load_discord_config(void) {
     /* Default configuration - add channels as needed */
     /* These subcmds need to match your MUD's channel system */
-    log("DEBUG: Adding default Discord channels...");
+    DISCORD_DEBUG("Adding default Discord channels...");
     add_discord_channel("gossip", "gossip", SCMD_GOSSIP, 1);
     add_discord_channel("auction", "auction", SCMD_AUCTION, 1);
     add_discord_channel("gratz", "gratz", SCMD_GRATZ, 1);
     
-    log("INFO: Discord bridge configuration loaded with %d channels", discord_bridge->num_channels);
+    log("Info: Discord bridge configuration loaded with %d channels", discord_bridge->num_channels);
     if (discord_bridge->num_channels > 0) {
         int i;
         for (i = 0; i < discord_bridge->num_channels; i++) {
-            log("  Channel %d: MUD='%s' Discord='%s' SCMD=%d Enabled=%d",
+            DISCORD_DEBUG("  Channel %d: MUD='%s' Discord='%s' SCMD=%d Enabled=%d",
                 i+1, discord_bridge->channels[i].mud_channel,
                 discord_bridge->channels[i].discord_name,
                 discord_bridge->channels[i].scmd,

@@ -774,7 +774,7 @@ int cache_get_stats(int *total_nodes, int *expired_nodes) {
 /* ===== INITIALIZATION AND CLEANUP ===== */
 
 void init_resource_system(void) {
-    log("INFO: Initializing wilderness resource system");
+    log("Info: Initializing wilderness resource system");
     
     /* Initialize the resource KD-tree */
     resource_kd_tree = NULL;
@@ -786,7 +786,7 @@ void init_resource_system(void) {
     /* Initialize Perlin noise for resource layers */
     /* This is handled by the existing Perlin system */
     
-    log("INFO: Resource system initialized with %d resource types and spatial caching", NUM_RESOURCE_TYPES);
+    log("Info: Resource system initialized with %d resource types and spatial caching", NUM_RESOURCE_TYPES);
 }
 
 void shutdown_resource_system(void) {

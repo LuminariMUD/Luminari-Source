@@ -5965,7 +5965,7 @@ static bool validate_copyover_environment()
     return FALSE;
   }
   
-  log("INFO: copyover: Environment validation passed");
+  COPYOVER_DEBUG("copyover: Environment validation passed");
   return TRUE;
 }
 
@@ -5977,7 +5977,7 @@ void perform_do_copyover()
   char temp_file[256];
   int playing_count = 0, total_count = 0;
   
-  log("INFO: perform_do_copyover() CALLED - STARTING COPYOVER PROCESS");
+  COPYOVER_DEBUG("perform_do_copyover() called - starting copyover process");
   
   /* Check if copyover is already in progress */
   if (copyover_status != COPYOVER_NONE)
@@ -6021,7 +6021,7 @@ void perform_do_copyover()
       playing_count++;
   }
   
-  log("INFO: copyover: Starting copyover with %d total descriptors (%d playing)", 
+  COPYOVER_DEBUG("copyover: Starting copyover with %d total descriptors (%d playing)", 
       total_count, playing_count);
 
   /* Use atomic file writing with temporary file */
@@ -6080,11 +6080,11 @@ void perform_do_copyover()
       /* Log why we're dropping this descriptor */
       if (!d->character)
       {
-        log("INFO: copyover: Dropping descriptor %d (no character attached)", d->descriptor);
+        COPYOVER_DEBUG("copyover: Dropping descriptor %d (no character attached)", d->descriptor);
       }
       else
       {
-        log("INFO: copyover: Dropping descriptor %d for %s (state=%d, not playing)", 
+        COPYOVER_DEBUG("copyover: Dropping descriptor %d for %s (state=%d, not playing)", 
             d->descriptor, GET_NAME(d->character), d->connected);
       }
       
@@ -6273,7 +6273,7 @@ break;
       Crash_rentsave(och, 0);
       save_char(och, 0);
       
-      log("INFO: copyover: Saved player %s (room %d, desc %d)", 
+      COPYOVER_DEBUG("copyover: Saved player %s (room %d, desc %d)", 
           GET_NAME(och), GET_ROOM_VNUM(IN_ROOM(och)), d->descriptor);
     }
   } /* end descriptor loop */
@@ -6427,12 +6427,12 @@ break;
   /* Shutdown Discord bridge before copyover */
   extern void shutdown_discord_bridge(void);
   shutdown_discord_bridge();
-  log("INFO: copyover: Discord bridge shut down for copyover");
+  COPYOVER_DEBUG("copyover: Discord bridge shut down for copyover");
   
   /* Shutdown Terrain API bridge before copyover */
   extern void stop_terrain_api_server(void);
   stop_terrain_api_server();
-  log("INFO: copyover: Terrain API bridge shut down for copyover");
+  COPYOVER_DEBUG("copyover: Terrain API bridge shut down for copyover");
   
   /* Flush any pending output */
   fflush(stdout);
@@ -6440,7 +6440,7 @@ break;
   
   /* Update state to executing */
   copyover_status = COPYOVER_EXECUTING;
-  log("INFO: copyover: Executing new binary %s", EXE_FILE);
+  COPYOVER_DEBUG("copyover: Executing new binary %s", EXE_FILE);
   
   /* Now execute the new binary */
   execl(EXE_FILE, "circle", buf2, buf, (char *)NULL);

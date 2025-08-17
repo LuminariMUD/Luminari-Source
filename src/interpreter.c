@@ -48,6 +48,7 @@
 #include "feats.h"
 #include "actions.h"
 #include "actionqueues.h"
+#include "routing.h"
 #include "combat_modes.h"
 #include "traps.h"
 #include "domains_schools.h"
@@ -3947,7 +3948,10 @@ switch (load_result)
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTORELOAD);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_COMBATROLL);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_CHARMIE_COMBATROLL);
-      SET_BIT_AR(PRF_FLAGS(d->character), PRF_USE_STORED_CONSUMABLES);
+      /* Only enable stored consumables for DragonLance campaign */
+      if (IS_CAMPAIGN_DL) {
+        SET_BIT_AR(PRF_FLAGS(d->character), PRF_USE_STORED_CONSUMABLES);
+      }
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTO_STAND);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTOHIT);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTO_GROUP);
