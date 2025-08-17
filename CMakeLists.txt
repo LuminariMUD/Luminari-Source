@@ -499,6 +499,7 @@ set(SRC_C_FILES
     src/comm.c
     src/config.c
     src/constants.c
+    src/copyover_diagnostic.c
     src/craft.c
     src/crafting_new.c
     src/crafting_recipes.c

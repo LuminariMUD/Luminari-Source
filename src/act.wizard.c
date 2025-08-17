@@ -25,6 +25,7 @@
 #include "shop.h"
 #include "act.h"
 #include "mysql.h"
+#include "copyover_diagnostic.h"
 #include "genzon.h" /* for real_zone_by_thing */
 #include "class.h"
 #include "genolc.h"
@@ -5975,14 +5976,20 @@ void perform_do_copyover()
   struct descriptor_data *d, *d_next;
   char buf[100], buf2[100];
   char temp_file[256];
-  int playing_count = 0, total_count = 0;
+  int playing_count = 0, total_count = 0, saved_count = 0;
   
   COPYOVER_DEBUG("perform_do_copyover() called - starting copyover process");
+  
+  /* Initialize diagnostic system */
+  init_copyover_diagnostics();
+  log_copyover_phase("START", "Copyover initiated");
   
   /* Check if copyover is already in progress */
   if (copyover_status != COPYOVER_NONE)
   {
     log("SYSERR: copyover: Copyover already in progress (state=%d)", copyover_status);
+    log_copyover_phase("FAILED", "Copyover already in progress");
+    close_copyover_diagnostics(0);
     /* Notify all players */
     for (d = descriptor_list; d; d = d->next)
     {
@@ -6272,6 +6279,7 @@ break;
       GET_LOADROOM(och) = GET_ROOM_VNUM(IN_ROOM(och));
       Crash_rentsave(och, 0);
       save_char(och, 0);
+      saved_count++;
       
       COPYOVER_DEBUG("copyover: Saved player %s (room %d, desc %d)", 
           GET_NAME(och), GET_ROOM_VNUM(IN_ROOM(och)), d->descriptor);
@@ -6441,12 +6449,20 @@ break;
   /* Update state to executing */
   copyover_status = COPYOVER_EXECUTING;
   COPYOVER_DEBUG("copyover: Executing new binary %s", EXE_FILE);
+  log_copyover_phase("PRE_EXECL", "About to execute new binary");
+  
+  /* Check system state before execl */
+  check_pre_execl_state();
   
   /* Now execute the new binary */
+  log_copyover_phase("EXECL", "Calling execl()");
   execl(EXE_FILE, "circle", buf2, buf, (char *)NULL);
 
   /* Failed - successful exec will not return */
   copyover_status = COPYOVER_FAILED;
+  log_execl_failure(errno);
+  log_copyover_phase("FAILED", "execl() failed");
+  close_copyover_diagnostics(0);
   log("SYSERR: do_copyover: execl() failed - %s (errno %d)", strerror(errno), errno);
   log("SYSERR: Attempted to execute: %s with args: circle %s %s", EXE_FILE, buf2, buf);
   
