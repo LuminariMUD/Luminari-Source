@@ -793,6 +793,96 @@ char *process_terrain_request(const char *json_request) {
             json_object_object_add(response, "message", json_object_new_string("No wilderness exit rooms found"));
         }
     }
+    else if (strcmp(command, "get_static_room_by_coordinates") == 0) {
+        /* Find static wilderness room at specific coordinates */
+        if (!json_object_object_get_ex(root, "x", &x_obj) ||
+            !json_object_object_get_ex(root, "y", &y_obj)) {
+            json_object_object_add(response, "error", json_object_new_string("Missing x or y coordinates"));
+            json_object_object_add(response, "success", json_object_new_boolean(FALSE));
+        } else {
+            x = json_object_get_int(x_obj);
+            y = json_object_get_int(y_obj);
+            
+            /* Use KD-tree to efficiently find static room at coordinates */
+            room_rnum static_room = find_static_room_by_coordinates(x, y);
+            
+            if (static_room != NOWHERE) {
+                /* Found a static room - return its details */
+                json_object *room_obj = json_object_new_object();
+                
+                /* Basic room info */
+                json_object_object_add(room_obj, "room_vnum", 
+                    json_object_new_int(world[static_room].number));
+                json_object_object_add(room_obj, "room_name", 
+                    json_object_new_string(world[static_room].name ? world[static_room].name : "Unnamed"));
+                
+                /* Coordinates (should match input, but confirm from room data) */
+                json_object *coords_obj = json_object_new_object();
+                json_object_object_add(coords_obj, "x", 
+                    json_object_new_int(world[static_room].coords[0]));
+                json_object_object_add(coords_obj, "y", 
+                    json_object_new_int(world[static_room].coords[1]));
+                json_object_object_add(room_obj, "coordinates", coords_obj);
+                
+                /* Room properties */
+                json_object_object_add(room_obj, "sector_type", 
+                    json_object_new_int(world[static_room].sector_type));
+                
+                if (world[static_room].sector_type >= 0 && world[static_room].sector_type < NUM_ROOM_SECTORS) {
+                    json_object_object_add(room_obj, "sector_name", 
+                        json_object_new_string(sector_types[world[static_room].sector_type]));
+                } else {
+                    json_object_object_add(room_obj, "sector_name", 
+                        json_object_new_string("unknown"));
+                }
+                
+                /* Room description (strip color codes) */
+                if (world[static_room].description) {
+                    char *clean_desc = strdup(world[static_room].description);
+                    strip_colors(clean_desc);
+                    json_object_object_add(room_obj, "description", 
+                        json_object_new_string(clean_desc));
+                    free(clean_desc);
+                } else {
+                    json_object_object_add(room_obj, "description", 
+                        json_object_new_string(""));
+                }
+                
+                /* Zone information */
+                zone_rnum zone_rnum_val = world[static_room].zone;
+                if (zone_rnum_val >= 0 && zone_rnum_val <= top_of_zone_table) {
+                    json_object_object_add(room_obj, "zone_vnum", 
+                        json_object_new_int(zone_table[zone_rnum_val].number));
+                    json_object_object_add(room_obj, "zone_name", 
+                        json_object_new_string(zone_table[zone_rnum_val].name ? 
+                            zone_table[zone_rnum_val].name : "Unknown Zone"));
+                } else {
+                    json_object_object_add(room_obj, "zone_vnum", 
+                        json_object_new_int(-1));
+                    json_object_object_add(room_obj, "zone_name", 
+                        json_object_new_string("Unknown Zone"));
+                }
+                
+                /* Room flags */
+                json_object_object_add(room_obj, "room_flags_0", json_object_new_int(world[static_room].room_flags[0]));
+                json_object_object_add(room_obj, "room_flags_1", json_object_new_int(world[static_room].room_flags[1]));
+                json_object_object_add(room_obj, "room_flags_2", json_object_new_int(world[static_room].room_flags[2]));
+                json_object_object_add(room_obj, "room_flags_3", json_object_new_int(world[static_room].room_flags[3]));
+                
+                /* Light level */
+                json_object_object_add(room_obj, "light", json_object_new_int(world[static_room].light));
+                
+                json_object_object_add(response, "success", json_object_new_boolean(TRUE));
+                json_object_object_add(response, "data", room_obj);
+                json_object_object_add(response, "message", json_object_new_string("Static room found"));
+            } else {
+                /* No static room at these coordinates */
+                json_object_object_add(response, "success", json_object_new_boolean(TRUE));
+                json_object_object_add(response, "data", json_object_new_null());
+                json_object_object_add(response, "message", json_object_new_string("No static room at these coordinates"));
+            }
+        }
+    }
     else if (strcmp(command, "ping") == 0) {
         /* Simple connectivity test */
         json_object_object_add(response, "success", json_object_new_boolean(TRUE));
@@ -804,7 +894,7 @@ char *process_terrain_request(const char *json_request) {
     else {
         /* Unknown command */
         json_object_object_add(response, "error", 
-            json_object_new_string("Unknown command (supported: get_terrain, get_terrain_batch, get_static_rooms_list, get_room_details, get_wilderness_exits, ping)"));
+            json_object_new_string("Unknown command (supported: get_terrain, get_terrain_batch, get_static_rooms_list, get_room_details, get_wilderness_exits, get_static_room_by_coordinates, ping)"));
         json_object_object_add(response, "success", json_object_new_boolean(FALSE));
     }
     
