@@ -3418,7 +3418,7 @@ const char *parse_object(FILE *obj_f, int nr)
       exit(1);
     }
     /* this is just creating tons of spam -zusuk */
-    // log("INFO: Loaded old file version, converting from 4 to 16 object values.");
+    // log("Info: Loaded old file version, converting from 4 to 16 object values.");
   }
 
   GET_OBJ_VAL(obj_proto + i, 0) = t[0];

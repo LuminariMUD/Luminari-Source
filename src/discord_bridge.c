@@ -467,7 +467,7 @@ void close_discord_connection(void) {
     discord_bridge->inbuf_len = 0;
     discord_bridge->outbuf_len = 0;
     
-    log("INFO: Discord bridge connection closed");
+    log("Info: Discord bridge connection closed");
 }
 
 /* Process input from Discord */

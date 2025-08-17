@@ -736,7 +736,7 @@ void cleanup_duplicate_characters(struct account_data *account)
     }
     else
     {
-      log("INFO: Cleaned up %ld duplicate(s) of character %s for account %s",
+      log("Info: Cleaned up %ld duplicate(s) of character %s for account %s",
         (long)mysql_affected_rows(conn), name, account->name);
     }
   }
@@ -787,7 +787,7 @@ void load_account_characters(struct account_data *account)
       int unique_count = atoi(row[1]);
       if (total > unique_count)
       {
-        log("INFO: Detected %d duplicate character entries for account %s, cleaning up...", 
+        log("Info: Detected %d duplicate character entries for account %s, cleaning up...", 
             total - unique_count, account->name);
         mysql_free_result(result);
         cleanup_duplicate_characters(account);
@@ -1367,5 +1367,5 @@ void remove_char_from_account(struct char_data *ch, struct account_data *account
   /* Reload the character names */
   load_account_characters(account);
 
-  log("INFO: Character %s removed from account %s : %s", GET_NAME(ch), account->name, mysql_info(conn));
+  log("Info: Character %s removed from account %s : %s", GET_NAME(ch), account->name, mysql_info(conn));
 }

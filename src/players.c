@@ -4165,7 +4165,7 @@ void save_char_pets(struct char_data *ch)
   if (mysql_query(conn, del_buf))
   {
     /* Table might not exist, continue anyway */
-    log("INFO: pet_save_objs table might not exist: %s", mysql_error(conn));
+    log("Info: pet_save_objs table might not exist: %s", mysql_error(conn));
   }
 
   end = stpcpy(query, "DELETE FROM pet_data WHERE owner_name=");

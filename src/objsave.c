@@ -2644,7 +2644,7 @@ static int Crash_load_objs(struct char_data *ch)
   else
   {
     /* This player has NO saved objects in the database */
-    log("INFO: Object save header not found, using file for: %s", GET_NAME(ch));
+    log("Info: Object save header not found, using file for: %s", GET_NAME(ch));
     using_db = FALSE;
   }
   mysql_free_result(result);

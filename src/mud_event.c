@@ -684,7 +684,7 @@ void free_mud_event(struct mud_event_data *pMudEvent)
     
     /* Safety: Only proceed if room exists */
     if (room_index == NOWHERE || room_index < 0) {
-      log("INFO: Event for room vnum %d cancelled, but room no longer exists", vnum_copy);
+      log("Info: Event for room vnum %d cancelled, but room no longer exists", vnum_copy);
       break;  /* Exit early - can't remove from non-existent room's list */
     }
     
@@ -749,7 +749,7 @@ void free_mud_event(struct mud_event_data *pMudEvent)
       /* Region no longer exists - this can happen during reload.
        * We use reg_vnum_copy here, which is safe because we copied it
        * before freeing the memory. */
-      log("INFO: Event for region vnum %d cancelled, but region no longer exists", reg_vnum_copy);
+      log("Info: Event for region vnum %d cancelled, but region no longer exists", reg_vnum_copy);
     }
     break;
   }

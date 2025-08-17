@@ -56,7 +56,7 @@ void populate_resource_types_data(void)
 
     /* CRITICAL: Never overwrite existing data */
     if (table_has_data("resource_types")) {
-        log("INFO: resource_types table has existing data - skipping population to preserve data");
+        log("Info: resource_types table has existing data - skipping population to preserve data");
         return;
     }
 
@@ -83,7 +83,7 @@ void populate_resource_types_data(void)
         }
     }
     
-    log("INFO: Resource types reference data populated successfully");
+    log("Info: Resource types reference data populated successfully");
 }
 
 /* Populate material_categories with standard categories - ONLY if table is empty */
@@ -96,7 +96,7 @@ void populate_material_categories_data(void)
 
     /* CRITICAL: Never overwrite existing data */
     if (table_has_data("material_categories")) {
-        log("INFO: material_categories table has existing data - skipping population to preserve data");
+        log("Info: material_categories table has existing data - skipping population to preserve data");
         return;
     }
 
@@ -121,7 +121,7 @@ void populate_material_categories_data(void)
         }
     }
     
-    log("INFO: Material categories reference data populated successfully");
+    log("Info: Material categories reference data populated successfully");
 }
 
 /* Populate material_qualities with standard quality levels - ONLY if table is empty */
@@ -134,7 +134,7 @@ void populate_material_qualities_data(void)
 
     /* CRITICAL: Never overwrite existing data */
     if (table_has_data("material_qualities")) {
-        log("INFO: material_qualities table has existing data - skipping population to preserve data");
+        log("Info: material_qualities table has existing data - skipping population to preserve data");
         return;
     }
 
@@ -158,7 +158,7 @@ void populate_material_qualities_data(void)
         }
     }
     
-    log("INFO: Material qualities reference data populated successfully");
+    log("Info: Material qualities reference data populated successfully");
 }
 
 /* Populate region_effects with standard environmental effects - ONLY if table is empty */
@@ -171,7 +171,7 @@ void populate_region_effects_data(void)
 
     /* CRITICAL: Never overwrite existing data */
     if (table_has_data("region_effects")) {
-        log("INFO: region_effects table has existing data - skipping population to preserve data");
+        log("Info: region_effects table has existing data - skipping population to preserve data");
         return;
     }
 
@@ -210,7 +210,7 @@ void populate_region_effects_data(void)
         }
     }
     
-    log("INFO: Region effects reference data populated successfully");
+    log("Info: Region effects reference data populated successfully");
 }
 
 /* Populate ai_config with default AI service settings - ONLY if table is empty */
@@ -223,7 +223,7 @@ void populate_ai_config_data(void)
 
     /* CRITICAL: Never overwrite existing data */
     if (table_has_data("ai_config")) {
-        log("INFO: ai_config table has existing data - skipping population to preserve data");
+        log("Info: ai_config table has existing data - skipping population to preserve data");
         return;
     }
 
@@ -247,7 +247,7 @@ void populate_ai_config_data(void)
         }
     }
     
-    log("INFO: AI configuration reference data populated successfully");
+    log("Info: AI configuration reference data populated successfully");
 }
 
 /* NEVER populate region system data - managed by wildedit */
@@ -262,8 +262,8 @@ void populate_region_system_data(void)
     /* These tables are managed by the wildedit program and contain MUD-specific data */
     /* Attempting to populate them could overwrite important world data */
     
-    log("INFO: Region system data is managed by wildedit - skipping automatic population");
-    log("INFO: Use wildedit to manage region_data, path_data, region_index, and path_index tables");
+    log("Info: Region system data is managed by wildedit - skipping automatic population");
+    log("Info: Use wildedit to manage region_data, path_data, region_index, and path_index tables");
 }
 
 /* ===== DATABASE VERIFICATION FUNCTIONS ===== */
@@ -307,7 +307,7 @@ int test_database_permissions(void)
     /* Cleanup */
     mysql_query_safe(conn, "DROP TEMPORARY TABLE test_permissions");
     
-    log("INFO: Database permissions test passed successfully");
+    log("Info: Database permissions test passed successfully");
     return TRUE;
 }
 
@@ -501,7 +501,7 @@ int verify_crafting_system_tables(void)
 {
     /* Note: Production database does not currently have crafting tables */
     /* This verification will always return TRUE to avoid false errors */
-    log("INFO: Crafting system tables not implemented in production database");
+    log("Info: Crafting system tables not implemented in production database");
     return TRUE;
 }
 
