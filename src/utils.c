@@ -9764,12 +9764,16 @@ bool ok_call_mob_vnum(int mob_num)
 
   if (mob_num == MOB_NUM_EIDOLON) return true;
 
+  /* DragonLance dragon mounts */
   if (mob_num >= 40400 && mob_num <= 40410) return true;
 
   if (mob_num >= 20803 && mob_num <= 20805) return true;
 
   /* Default Luminari campaign blackguard mounts */
   if (mob_num == 1234 || mob_num == 1236 || mob_num == 1238) return true;
+  
+  /* Default Luminari campaign dragon rider mounts */
+  if (mob_num >= 1240 && mob_num <= 1249) return true;
 
   return false;
 
