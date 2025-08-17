@@ -1665,7 +1665,8 @@ EVENTFUNC(event_casting)
 int cast_spell(struct char_data *ch, struct char_data *tch,
                struct obj_data *tobj, int spellnum, int metamagic)
 {
-  if (GET_LEVEL(ch) >= LVL_IMMORT && !IS_NPC(ch))
+  /* Only player immortals get instant casting - NPCs NEVER get immortal privileges */
+  if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
   {
     // imms can cast any spell
     return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
@@ -1993,8 +1994,8 @@ will be using for casting this spell */
   if (!isEpicSpell(spellnum) && !IS_NPC(ch))
   {
 
-    /* staff get to cast for free */
-    if (GET_LEVEL(ch) >= LVL_IMMORT)
+    /* staff get to cast for free - but NOT NPCs! */
+    if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
     {
       ch_class = CLASS_WIZARD;
       clevel = 30;
@@ -5541,7 +5542,8 @@ void display_shadowcast_spells(struct char_data *ch)
 }
 sbyte canCastAtWill(struct char_data *ch, int spellnum)
 {
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
+  /* NPCs never get immortal privileges */
+  if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
     return true;
   if (isWarlockMagic(ch, spellnum) && is_a_known_spell(ch, CLASS_WARLOCK, spellnum))
     return true;

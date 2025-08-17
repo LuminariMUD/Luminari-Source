@@ -342,6 +342,22 @@ void npc_spellup(struct char_data *ch)
   if (!can_continue(ch, FALSE))
     return;
   
+  /* Semi-casters (paladins/rangers/blackguards) should not use generic spellup
+   * They have their own class-specific behaviors */
+  if (GET_CLASS(ch) == CLASS_PALADIN || GET_CLASS(ch) == CLASS_RANGER || 
+      GET_CLASS(ch) == CLASS_BLACKGUARD)
+  {
+#if DEBUG_MOUNT_BEHAVIOR
+    if (GET_CLASS(ch) == CLASS_PALADIN)
+    {
+      mudlog(NRM, LVL_IMMORT, TRUE, 
+             "WARNING: Paladin %s reached npc_spellup (should not spellup)", 
+             GET_NAME(ch));
+    }
+#endif
+    return;
+  }
+  
   /* Check if we should call a companion first */
   switch (GET_CLASS(ch))
   {
@@ -384,8 +400,9 @@ void npc_spellup(struct char_data *ch)
   }
 
   /* we're checking spell min-levels so this is a necessity */
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
-    level = LVL_IMMORT - 1;
+  /* NPCs should max at level 30 for spell casting */
+  if (GET_LEVEL(ch) >= 30)
+    level = 30;
   else
     level = GET_LEVEL(ch);
 
@@ -492,7 +509,9 @@ void npc_spellup(struct char_data *ch)
       loop_counter++;
       if (loop_counter >= (MAX_LOOPS))
         break;
-    } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] || affected_by_spell(victim, spellnum));
+    } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] || 
+           spell_info[spellnum].min_level[GET_CLASS(ch)] > 30 ||
+           affected_by_spell(victim, spellnum));
   }
 
   /* we're putting some special restrictions here */
@@ -561,10 +580,19 @@ void npc_offensive_spells(struct char_data *ch)
 
   if (MOB_FLAGGED(ch, MOB_NOCLASS))
     return;
+  
+  /* TEMPORARY DEBUG FOR PALADINS */
+#if DEBUG_MOUNT_BEHAVIOR
+  if (GET_CLASS(ch) == CLASS_PALADIN)
+  {
+    mudlog(NRM, LVL_IMMORT, TRUE, 
+           "DEBUG: Paladin %s entering npc_offensive_spells", GET_NAME(ch));
+  }
+#endif
 
-  /* capping */
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
-    level = LVL_IMMORT - 1;
+  /* capping - NPCs should max at level 30 for spell casting */
+  if (GET_LEVEL(ch) >= 30)
+    level = 30;
   else
     level = GET_LEVEL(ch);
 
@@ -610,24 +638,24 @@ void npc_offensive_spells(struct char_data *ch)
       break;
   }
 
-  /* 25% of spellup instead of offensive spell */
-  if (!rand_number(0, 3))
-  {
-    npc_spellup(ch);
-    return;
-  }
-
-  /* our semi-casters will rarely use this function */
+  /* Semi-casters (paladins/rangers/blackguards) should not reach here anymore
+   * They are routed to npc_class_behave() in mob_act.c instead
+   * But if they somehow do, just return without casting */
   switch (GET_CLASS(ch))
   {
   case CLASS_RANGER:
-  case CLASS_PALADIN: // 10 out of 11 times will not cast
-    if (rand_number(0, 10))
+  case CLASS_PALADIN: 
+  case CLASS_BLACKGUARD:
+#if DEBUG_MOUNT_BEHAVIOR
+    if (GET_CLASS(ch) == CLASS_PALADIN)
     {
-      npc_class_behave(ch);
-      return;
+      mudlog(NRM, LVL_IMMORT, TRUE, 
+             "WARNING: Paladin %s reached npc_offensive_spells (should use npc_class_behave)", 
+             GET_NAME(ch));
     }
-    break;
+#endif
+    return;
+  break;
   case CLASS_BARD: // bards 33% will not cast
     if (!rand_number(0, 2))
     {
@@ -671,7 +699,8 @@ void npc_offensive_spells(struct char_data *ch)
       loop_counter++;
       if (loop_counter >= (MAX_LOOPS / 2))
         break;
-    } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)]);
+    } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
+             spell_info[spellnum].min_level[GET_CLASS(ch)] > 30);
 
     if (loop_counter < (MAX_LOOPS / 2) && spellnum != -1)
     {
@@ -699,6 +728,7 @@ void npc_offensive_spells(struct char_data *ch)
     if (loop_counter >= (MAX_LOOPS / 2))
       break;
   } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] ||
+           spell_info[spellnum].min_level[GET_CLASS(ch)] > 30 ||
            affected_by_spell(tch, spellnum));
 
   if (loop_counter < (MAX_LOOPS / 2) && spellnum != -1)

@@ -2790,11 +2790,11 @@ SPECIAL(jot_invasion_loader)
     obj = read_object(jot_converter(17), VIRTUAL);
     if (obj && mob)
     {
-      obj_to_char(obj, mob);
-      perform_wield(mob, obj, TRUE);
       if ((roomrnum = real_room(jot_converter(204))) != NOWHERE)
       {
         char_to_room(mob, roomrnum);
+        obj_to_char(obj, mob);
+        perform_wield(mob, obj, TRUE);
         SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
         REMOVE_BIT_AR(MOB_FLAGS(mob), MOB_LISTEN);
         if (glammad)
@@ -2894,24 +2894,27 @@ SPECIAL(jot_invasion_loader)
     for (i = 0; i < 8; i++)
     {
       mob = read_mobile(jot_converter(33), VIRTUAL);
-      obj = read_object(jot_converter(28), VIRTUAL);
-      if (mob && obj)
+      if (mob)
       {
-        obj_to_char(obj, mob);
-        perform_wield(mob, obj, TRUE);
-      }
-      if ((obj2 = read_object(jot_converter(41), VIRTUAL)) != NULL)
-      {
-        obj_to_char(obj2, mob);
-        where = find_eq_pos(mob, obj2, 0);
-        perform_wear(mob, obj2, where);
-      }
-      char_to_room(mob, roomrnum);
-      if (leader)
-      {
-        add_follower(mob, leader);
-        if (!GROUP(mob))
-          join_group(mob, GROUP(leader));
+        char_to_room(mob, roomrnum);
+        obj = read_object(jot_converter(28), VIRTUAL);
+        if (obj)
+        {
+          obj_to_char(obj, mob);
+          perform_wield(mob, obj, TRUE);
+        }
+        if ((obj2 = read_object(jot_converter(41), VIRTUAL)) != NULL)
+        {
+          obj_to_char(obj2, mob);
+          where = find_eq_pos(mob, obj2, 0);
+          perform_wear(mob, obj2, where);
+        }
+        if (leader)
+        {
+          add_follower(mob, leader);
+          if (!GROUP(mob))
+            join_group(mob, GROUP(leader));
+        }
       }
     }
   }
@@ -2952,24 +2955,27 @@ SPECIAL(jot_invasion_loader)
     for (i = 0; i < 5; i++)
     {
       mob = read_mobile(jot_converter(33), VIRTUAL);
-      obj = read_object(jot_converter(28), VIRTUAL);
-      if (mob && obj)
+      if (mob)
       {
-        obj_to_char(obj, mob);
-        perform_wield(mob, obj, TRUE);
-      }
-      if ((obj2 = read_object(jot_converter(40), VIRTUAL)) != NULL)
-      {
-        obj_to_char(obj2, mob);
-        where = find_eq_pos(mob, obj2, 0);
-        perform_wear(mob, obj2, where);
-      }
-      char_to_room(mob, roomrnum);
-      if (leader)
-      {
-        add_follower(mob, leader);
-        if (!GROUP(mob))
-          join_group(mob, GROUP(leader));
+        char_to_room(mob, roomrnum);
+        obj = read_object(jot_converter(28), VIRTUAL);
+        if (obj)
+        {
+          obj_to_char(obj, mob);
+          perform_wield(mob, obj, TRUE);
+        }
+        if ((obj2 = read_object(jot_converter(40), VIRTUAL)) != NULL)
+        {
+          obj_to_char(obj2, mob);
+          where = find_eq_pos(mob, obj2, 0);
+          perform_wear(mob, obj2, where);
+        }
+        if (leader)
+        {
+          add_follower(mob, leader);
+          if (!GROUP(mob))
+            join_group(mob, GROUP(leader));
+        }
       }
     }
   }

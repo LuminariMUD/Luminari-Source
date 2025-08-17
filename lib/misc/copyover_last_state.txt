@@ -1,3 +1,0 @@
-Last Phase: START
-Timestamp: 1755422662
-Details: Copyover initiated
