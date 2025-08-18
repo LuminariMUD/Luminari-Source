@@ -1,3 +1,53 @@
+# LuminariMUD systemd Service File
+# =================================
+#
+# This service file manages the LuminariMUD game server using systemd.
+# It provides automatic startup on boot, process management, and logging integration.
+#
+# INSTALLATION INSTRUCTIONS:
+# -------------------------
+# 1. Copy this file to systemd directory:
+#    sudo cp luminari.service /etc/systemd/system/
+#
+# 2. Reload systemd configuration:
+#    sudo systemctl daemon-reload
+#
+# 3. Enable service to start on boot:
+#    sudo systemctl enable luminari
+#
+# 4. Start the service:
+#    sudo systemctl start luminari
+#
+# MANAGEMENT COMMANDS:
+# -------------------
+# Start MUD:    sudo systemctl start luminari
+# Stop MUD:     sudo systemctl stop luminari
+# Restart MUD:  sudo systemctl restart luminari
+# Check status: sudo systemctl status luminari
+# View logs:    sudo journalctl -u luminari -f
+# Disable:      sudo systemctl disable luminari
+#
+# HOW IT WORKS:
+# ------------
+# 1. systemd starts autorun.sh which manages the MUD process
+# 2. autorun.sh automatically starts its watchdog for extra protection
+# 3. The MUD will auto-restart on crashes (handled by autorun.sh)
+# 4. If autorun.sh itself fails, systemd will restart it after 60 seconds
+# 5. Logs are sent to systemd journal for centralized logging
+#
+# PROTECTION LAYERS:
+# -----------------
+# Layer 1: autorun.sh keeps MUD running (restarts on crash)
+# Layer 2: autorun-watchdog.sh monitors autorun.sh health
+# Layer 3: systemd restarts everything if autorun.sh completely fails
+#
+# PREREQUISITES:
+# -------------
+# - User 'luminari' must exist
+# - MUD installed at /home/luminari/Luminari-Source/
+# - autorun.sh must be executable
+# - MySQL/MariaDB should be running (but not required)
+
 [Unit]
 Description=LuminariMUD Game Server
 After=network.target mysql.service
@@ -36,9 +86,11 @@ SendSIGKILL=no
 # Security settings
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/home/luminari/Luminari-Source
+# NOTE: The following settings are too restrictive and cause startup failures
+# They prevent the autorun script from accessing necessary files
+# ProtectSystem=strict    # Would make system read-only
+# ProtectHome=true        # Would block access to /home/luminari
+# ReadWritePaths=/home/luminari/Luminari-Source  # Not needed without ProtectSystem
 
 # Resource limits
 LimitNOFILE=8192
