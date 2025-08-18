@@ -20,6 +20,7 @@
 #include "desc_engine.h"
 #include "wilderness.h"
 #include "resource_descriptions.h"
+#include "region_hints.h"
 
 /*
  * Luminari Description Engine
@@ -52,9 +53,18 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 	/* Use new resource-aware descriptions for Luminari campaign */
 	if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))) {
 		log("DEBUG: Generating dynamic description for wilderness room %d", GET_ROOM_VNUM(room));
+		
+		/* Try hint-enhanced descriptions first */
+		char *hint_desc = enhance_wilderness_description_with_hints(ch, room);
+		if (hint_desc) {
+			log("DEBUG: Hint-enhanced description generated successfully");
+			return hint_desc;
+		}
+		
+		/* Fall back to resource-aware descriptions */
 		char *resource_desc = generate_resource_aware_description(ch, room);
 		if (resource_desc) {
-			log("DEBUG: Dynamic description generated successfully");
+			log("DEBUG: Resource-aware description generated successfully");
 			return resource_desc;
 		}
 		log("DEBUG: Dynamic description generation failed, falling back to original");

@@ -48,6 +48,9 @@ void init_help_system_tables(void);
 /* Initialize region system tables with spatial geometry support */
 void init_region_system_tables(void);
 
+/* Initialize region hints system tables */
+void init_region_hints_tables(void);
+
 /* Create stored procedures for region system */
 void create_database_procedures(void);
 
