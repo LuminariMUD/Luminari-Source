@@ -1712,7 +1712,7 @@ static int generate_help_entry(struct char_data *ch, int cmd_index, bool force_o
 }
 
 /* Auto-generate help files for commands */
-ACMD(do_helpgen) {
+ACMD(do_helpadmin) {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int generated = 0, skipped = 0, errors = 0;
   bool force = FALSE;
