@@ -22,6 +22,11 @@
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 extern struct room_data *world;
 extern room_rnum top_of_world;
+extern const char *dirs[];
+extern int rev_dir[];
+
+/* External functions */
+void look_at_room(struct char_data *ch, int ignore_brief);
 
 /* Room template definitions */
 struct room_template {
@@ -555,6 +560,89 @@ struct greyhawk_ship_data *get_ship_from_room(room_rnum room) {
   }
   
   return NULL;
+}
+
+/* Interior Movement System Functions */
+
+/* Move character within ship interior */
+void do_move_ship_interior(struct char_data *ch, int dir) {
+  struct greyhawk_ship_data *ship;
+  room_rnum current_room = IN_ROOM(ch);
+  room_rnum target_room;
+  
+  /* Verify we're on a ship */
+  if (!ROOM_FLAGGED(current_room, ROOM_VEHICLE)) {
+    send_to_char(ch, "You're not on a vessel.\r\n");
+    return;
+  }
+  
+  ship = get_ship_from_room(current_room);
+  if (!ship) {
+    send_to_char(ch, "Unable to determine vessel location.\r\n");
+    return;
+  }
+  
+  /* Check if movement is blocked (sealed hatches, damage) */
+  if (is_passage_blocked(ship, current_room, dir)) {
+    send_to_char(ch, "That way is blocked!\r\n");
+    return;
+  }
+  
+  /* Get target room */
+  target_room = get_ship_exit(ship, current_room, dir);
+  if (target_room == NOWHERE) {
+    send_to_char(ch, "You can't go that way.\r\n");
+    return;
+  }
+  
+  /* Perform movement */
+  char_from_room(ch);
+  char_to_room(ch, target_room);
+  
+  /* Show movement messages */
+  act("$n leaves $T.", FALSE, ch, 0, (void *)dirs[dir], TO_ROOM);
+  look_at_room(ch, 0);
+  act("$n arrives from $T.", FALSE, ch, 0, (void *)dirs[rev_dir[dir]], TO_ROOM);
+}
+
+/* Check if a passage is blocked */
+bool is_passage_blocked(struct greyhawk_ship_data *ship, room_rnum room, int dir) {
+  int i;
+  
+  if (!ship) return FALSE;
+  
+  /* Check if this connection is a locked hatch */
+  for (i = 0; i < ship->num_connections; i++) {
+    if (real_room(ship->connections[i].from_room) == room &&
+        ship->connections[i].direction == dir) {
+      return ship->connections[i].is_locked;
+    }
+  }
+  
+  return FALSE;
+}
+
+/* Get exit from ship room */
+room_rnum get_ship_exit(struct greyhawk_ship_data *ship, room_rnum current, int dir) {
+  int i;
+  
+  if (!ship) return NOWHERE;
+  
+  /* Find the connection */
+  for (i = 0; i < ship->num_connections; i++) {
+    if (real_room(ship->connections[i].from_room) == current &&
+        ship->connections[i].direction == dir) {
+      return real_room(ship->connections[i].to_room);
+    }
+  }
+  
+  /* Check standard room exits as fallback */
+  if (world[current].dir_option[dir] && 
+      world[current].dir_option[dir]->to_room != NOWHERE) {
+    return world[current].dir_option[dir]->to_room;
+  }
+  
+  return NOWHERE;
 }
 
 /* Update all ship room coordinates to match ship position */
