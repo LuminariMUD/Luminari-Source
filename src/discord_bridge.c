@@ -987,6 +987,6 @@ ACMD(do_discordapi)
     } else if (!str_cmp(arg, "status")) {
         discord_bridge_status(ch);
     } else {
-        send_to_char(ch, "Usage: discord [start|stop|status]\r\n");
+        send_to_char(ch, "Usage: discordapi [start|stop|status]\r\n");
     }
 }
