@@ -40,10 +40,13 @@ readonly SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # CRITICAL: Change to script directory to ensure all relative paths work correctly
-cd "$SCRIPT_DIR" || {
+# BUT NEVER EXIT! The autorun must continue even if directory change fails
+if ! cd "$SCRIPT_DIR"; then
     echo "ERROR: Failed to change to script directory: $SCRIPT_DIR" >&2
-    exit 1
-}
+    echo "WARNING: Attempting to continue from current directory: $(pwd)" >&2
+    # Try to use absolute paths instead
+    SCRIPT_DIR="$(pwd)"
+fi
 
 # MUD Configuration (can be overridden by environment variables)
 readonly MUD_PORT="${MUD_PORT:-4100}"
@@ -122,10 +125,11 @@ log_info() { log "INFO" "$@"; }
 log_warn() { log "WARN" "$@"; }
 log_error() { log "ERROR" "$@"; }
 
-# Error handling function
+# Error handling function - NEVER actually die!
 die() {
-    log_error "$@"
-    exit "${2:-1}"
+    log_error "ERROR (but not dying): $@"
+    # Don't exit! Log the error and return
+    return "${2:-1}"
 }
 
 # Check if a directory exists and is accessible
@@ -391,10 +395,11 @@ start_websocket_policy() {
         log_warn "WebSocket policyd not found or not executable"
     fi
     
-    cd "$current_dir" || {
+    if ! cd "$current_dir"; then
         log_error "Failed to return to original directory: $current_dir"
-        exit 1
-    }
+        log_warn "Continuing from current directory: $(pwd)"
+        # Don't exit - autorun must continue!
+    fi
 }
 
 # Start flash policy daemon
@@ -424,10 +429,11 @@ start_flash_policy() {
         log_warn "Flash policyd not found or not executable"
     fi
     
-    cd "$current_dir" || {
+    if ! cd "$current_dir"; then
         log_error "Failed to return to original directory: $current_dir"
-        exit 1
-    }
+        log_warn "Continuing from current directory: $(pwd)"
+        # Don't exit - autorun must continue!
+    fi
 }
 
 # Stop auxiliary services
@@ -508,22 +514,26 @@ verify_mud_binary() {
     
     # Security check: ensure paths don't contain shell metacharacters
     if [[ "$binary_path" =~ [';|&<>$`'] ]]; then
-        die "Invalid characters in binary path: $binary_path" 2
+        log_error "Invalid characters in binary path: $binary_path"
+        return 2
     fi
     
     if [[ ! -f "$binary_path" ]]; then
-        die "MUD binary not found: $binary_path" 2
+        log_error "MUD binary not found: $binary_path"
+        return 2
     fi
     
     if [[ ! -x "$binary_path" ]]; then
-        die "MUD binary not executable: $binary_path" 2
+        log_error "MUD binary not executable: $binary_path"
+        return 2
     fi
     
     # Verify it's a regular file (not symlink to dangerous location)
     if [[ ! -f "$binary_path" ]] || [[ -L "$binary_path" ]]; then
         local real_path=$(readlink -f "$binary_path" 2>/dev/null || echo "")
         if [[ -z "$real_path" ]] || [[ ! -f "$real_path" ]]; then
-            die "MUD binary is not a regular file or broken symlink: $binary_path" 2
+            log_error "MUD binary is not a regular file or broken symlink: $binary_path"
+            return 2
         fi
     fi
     
@@ -559,6 +569,7 @@ start_mud() {
     # Check if binary still exists before starting
     if [[ ! -x "${BIN_DIR}/${MUD_BINARY}" ]]; then
         log_error "MUD binary not found or not executable: ${BIN_DIR}/${MUD_BINARY}"
+        log_info "Binary missing - waiting 60 seconds before retry"
         return 1
     fi
     
@@ -581,7 +592,7 @@ handle_shutdown() {
     if [[ -r .killscript ]]; then
         log_info "Killscript detected - shutting down autorun"
         rm -f .killscript
-        stop_auxiliary_services
+        cleanup  # Call cleanup explicitly
         proc_syslog
         log_info "Autorun terminated gracefully"
         exit 0
@@ -631,35 +642,50 @@ show_status() {
 # Signal Handlers
 #############################################################################
 
+# Signal handling - CRITICAL FOR RESILIENCE
+# We must be very careful about which signals we handle and how
+
 # Handle SIGTERM gracefully
 handle_sigterm() {
-    log_info "Received SIGTERM - for MUD crash, ignoring signal to keep autorun alive"
+    log_info "Received SIGTERM - ignoring to keep autorun alive"
+    log_info "Use 'autorun.sh stop' or create .killscript to stop autorun"
     # DO NOT EXIT! The MUD crashed but autorun must continue
-    # Only create killscript if explicitly requested by user via 'autorun.sh stop'
     return 0
 }
 
 # Handle SIGINT (Ctrl+C)
 handle_sigint() {
     log_info "Received SIGINT - user interrupt"
-    touch .killscript
-    # Only exit in interactive mode when user presses Ctrl+C
+    # Only respond to SIGINT in interactive mode
     if [[ -t 0 ]]; then
+        log_info "Interactive mode - creating killscript"
+        touch .killscript
+        # Give the main loop a chance to exit cleanly
+        sleep 1
         exit 0
+    else
+        log_info "Non-interactive mode - ignoring SIGINT"
     fi
     return 0
 }
 
-# Set up signal handlers
-# CRITICAL: We only trap SIGINT for user interrupts
-# We do NOT trap SIGTERM because when the MUD crashes with SIGSEGV,
-# the shell may receive SIGTERM and we want to IGNORE it completely
-trap handle_sigint SIGINT
+# Handle SIGHUP (terminal hangup)
+handle_sighup() {
+    log_info "Received SIGHUP - terminal disconnected, continuing in background"
+    # Don't exit when SSH connection drops!
+    return 0
+}
 
-# CRITICAL: Ignore signals that could kill us
-trap '' HUP    # Don't die when terminal closes
-trap '' PIPE   # Don't die on broken pipes  
-trap '' TERM   # IGNORE SIGTERM COMPLETELY - the MUD crashing should NOT stop us!
+# Set up signal handlers
+# CRITICAL: These handlers keep autorun alive during various failure scenarios
+trap handle_sigint SIGINT    # User interrupt (Ctrl+C)
+trap handle_sighup HUP       # Terminal hangup (SSH disconnect)
+trap handle_sigterm TERM     # Termination signal
+trap '' PIPE                 # Ignore broken pipes
+trap '' QUIT                 # Ignore quit signal
+
+# Log signal configuration
+log_info "Signal handlers configured - autorun is resilient to crashes"
 
 #############################################################################
 # Main Script
@@ -674,6 +700,12 @@ case "${1:-}" in
     stop)
         log_info "Stopping autorun"
         touch .killscript
+        
+        # Stop the watchdog first if it's running
+        if [[ -f "${SCRIPT_DIR}/autorun-watchdog.sh" ]]; then
+            log_info "Stopping watchdog..."
+            "${SCRIPT_DIR}/autorun-watchdog.sh" stop 2>/dev/null || true
+        fi
         
         # Find and kill any running autorun processes
         autorun_pids=$(pgrep -f "bash.*${SCRIPT_NAME}" 2>/dev/null | grep -v "$$" | grep -v grep || true)
@@ -778,6 +810,10 @@ case "${1:-}" in
                 # Run autorun in foreground mode
                 exec '$0' foreground
             " &
+            
+            # Store the background process PID
+            DAEMON_PID=$!
+            echo $DAEMON_PID > "${lockfile}.pid"
         ) &
         
         # Give it a moment to start
@@ -793,6 +829,10 @@ esac
 # Initial setup
 log_info "========================================" 
 log_info "LuminariMUD Enhanced Autorun Starting"
+log_info "Script: $SCRIPT_NAME"
+log_info "PID: $$"
+log_info "Date: $(date)"
+log_info "Working Directory: $(pwd)"
 log_info "========================================"
 
 # Clean up any leftover control files from previous runs
@@ -820,8 +860,11 @@ cleanup_stale_pidfiles
 ulimit -c unlimited
 log_info "Core dump size set to unlimited"
 
-# Verify the MUD binary exists
-verify_mud_binary
+# Verify the MUD binary exists (non-fatal if it fails)
+if ! verify_mud_binary; then
+    log_error "MUD binary verification failed - will retry in main loop"
+    # Don't exit - maybe it will be fixed by the time we loop
+fi
 
 # Create required directories
 mkdir -p "$LOG_DIR" "$DUMPS_DIR"
@@ -847,10 +890,11 @@ check_disk_space() {
     return 0
 }
 
-# Initial disk space check
+# Initial disk space check (non-fatal)
 if ! check_disk_space; then
-    log_error "Insufficient disk space to start MUD"
-    exit 1
+    log_error "WARNING: Insufficient disk space detected"
+    log_warn "Continuing anyway - MUD may experience issues"
+    # Don't exit - let the MUD try to run
 fi
 
 # Check for improper shutdown
@@ -860,25 +904,104 @@ check_improper_shutdown
 start_websocket_policy
 start_flash_policy
 
+# Start the watchdog if it exists and isn't already running
+start_watchdog() {
+    local watchdog_script="${SCRIPT_DIR}/autorun-watchdog.sh"
+    local watchdog_pid_file="${SCRIPT_DIR}/.watchdog.pid"
+    
+    # Check if watchdog script exists
+    if [[ ! -f "$watchdog_script" ]]; then
+        log_info "Watchdog script not found - running without extra protection"
+        return 0
+    fi
+    
+    # Check if watchdog is already running
+    if [[ -f "$watchdog_pid_file" ]]; then
+        local wpid=$(cat "$watchdog_pid_file" 2>/dev/null || echo "")
+        if [[ -n "$wpid" ]] && kill -0 "$wpid" 2>/dev/null; then
+            log_info "Watchdog already running (PID: $wpid)"
+            return 0
+        fi
+    fi
+    
+    # Start the watchdog
+    log_info "Starting autorun watchdog for extra protection"
+    if [[ -x "$watchdog_script" ]]; then
+        "$watchdog_script" start >/dev/null 2>&1
+        log_info "Watchdog started successfully"
+    else
+        chmod +x "$watchdog_script" 2>/dev/null || true
+        "$watchdog_script" start >/dev/null 2>&1
+        log_info "Watchdog started successfully"
+    fi
+}
+
+# Only start watchdog in foreground mode (not during initial daemon fork)
+if [[ "${1:-}" == "foreground" ]] || [[ "${1:-}" == "fg" ]]; then
+    start_watchdog
+fi
+
+# Log autorun configuration for debugging
+log_info "Autorun Configuration:"
+log_info "  MUD_PORT=$MUD_PORT"
+log_info "  MUD_BINARY=$MUD_BINARY"
+log_info "  BIN_DIR=$BIN_DIR"
+log_info "  FLAGS=$FLAGS"
+log_info "  IGNORE_DISK_SPACE=$IGNORE_DISK_SPACE"
+log_info "  Signal handlers: ACTIVE"
+log_info "  EXIT trap: DISABLED (safe mode)"
+log_info "  Watchdog: ENABLED (if available)"
+
 # Production monitoring
 CRASH_COUNT=0
 CRASH_WINDOW_START=$(date +%s)
 MAX_CRASHES_PER_HOUR=10
 MAX_UPTIME_HOURS="${MAX_UPTIME_HOURS:-168}"  # Default: restart after 7 days
 
-# Clean up on exit
+# Autorun health tracking
+AUTORUN_START_TIME=$(date +%s)
+AUTORUN_PID=$$
+log_info "Autorun started with PID $AUTORUN_PID at $(date)"
+
+# Write autorun state file for external monitoring
+write_autorun_state() {
+    local state_file="${SCRIPT_DIR}/.autorun.state"
+    cat > "$state_file" <<EOF
+PID=$AUTORUN_PID
+START_TIME=$AUTORUN_START_TIME
+LAST_UPDATE=$(date +%s)
+STATUS=RUNNING
+CRASH_COUNT=$CRASH_COUNT
+MUD_PORT=$MUD_PORT
+EOF
+}
+write_autorun_state
+
+# Clean up function (only called when explicitly shutting down via .killscript)
 cleanup() {
     log_info "Performing cleanup..."
     stop_auxiliary_services
     rm -f "${SCRIPT_DIR}/.autorun.lock" 2>/dev/null || true
 }
-trap cleanup EXIT
+# CRITICAL: Do NOT trap EXIT! This causes autorun to terminate on any error
+# Only cleanup when we explicitly want to shut down
+# trap cleanup EXIT  # REMOVED - This was causing autorun to terminate!
 
 # Main loop - THIS MUST NEVER EXIT!
 # Even if everything fails, keep trying
+# CRITICAL: This loop is the heart of autorun - it must be indestructible
+log_info "Entering main autorun loop - this will run forever until .killscript"
 while true; do
     # Trap any errors in the loop itself and continue
     set +e  # Disable error exit for the entire loop
+    
+    # Safety check: ensure we're still in a valid state
+    if [[ ! -d "$BIN_DIR" ]]; then
+        log_error "CRITICAL: Binary directory missing: $BIN_DIR"
+        log_info "Waiting 60 seconds before retry..."
+        sleep 60
+        continue
+    fi
     # Clean up any zombie processes before checking if MUD is running
     cleanup_zombie_processes
     
@@ -907,9 +1030,15 @@ while true; do
     # Track MUD start time
     mud_start_time=$(date +%s)
     
+    # Update state before starting MUD
+    write_autorun_state
+    
     # Start the MUD
     start_mud
     mud_exit_code=$?
+    
+    # Log detailed exit information
+    echo "MUD EXIT: code=$mud_exit_code time=$(date) uptime=${mud_uptime}s" >> "${LOG_DIR}/mud_exits.log"
     
     # Calculate MUD uptime
     mud_end_time=$(date +%s)
@@ -960,9 +1089,33 @@ while true; do
     
     # FAILSAFE: If we somehow get here with an error, continue anyway
     true
+    
+    # Extra safety: Check if we should continue
+    if [[ -r .killscript ]]; then
+        log_info "Killscript detected in main loop - initiating shutdown"
+        cleanup
+        proc_syslog
+        exit 0
+    fi
 done
 
 # THIS SHOULD NEVER BE REACHED!
-# If we somehow exit the loop, restart it
-log_error "CRITICAL: Main loop exited unexpectedly! Restarting..."
-exec "$0" "$@"
+# If we somehow exit the loop, restart the entire script
+log_error "CRITICAL: Main loop exited unexpectedly! Restarting entire autorun..."
+# Save state for debugging
+echo "Main loop exit at $(date) - PID $$" >> "${LOG_DIR}/autorun_crashes.log"
+# Restart with absolute path to ensure we can find it
+if [[ -x "${SCRIPT_DIR}/${SCRIPT_NAME}" ]]; then
+    exec "${SCRIPT_DIR}/${SCRIPT_NAME}" "$@"
+else
+    # Last resort - try to find and restart ourselves
+    log_error "FATAL: Cannot restart autorun - script not found!"
+    # Still don't exit - sleep and hope someone fixes it
+    while true; do
+        log_error "Autorun broken but refusing to die - sleeping 300 seconds"
+        sleep 300
+        if [[ -x "${SCRIPT_DIR}/${SCRIPT_NAME}" ]]; then
+            exec "${SCRIPT_DIR}/${SCRIPT_NAME}" "$@"
+        fi
+    done
+fi
