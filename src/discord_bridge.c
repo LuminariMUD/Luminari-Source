@@ -959,7 +959,7 @@ void check_discord_timeout(void) {
 }
 
 /* Discord command handler */
-ACMD(do_discord)
+ACMD(do_discordapi)
 {
     char arg[MAX_INPUT_LENGTH];
     

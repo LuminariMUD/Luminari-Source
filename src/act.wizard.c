@@ -3295,55 +3295,93 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
                   zone_table[zone].builders, KNRM, zone_table[zone].bot, zone_table[zone].top, avglvl);
 }
 
+/*
+ * ACMD(do_show) - Wizard command to display various game statistics and information
+ *
+ * This command provides administrators with detailed views of game state including:
+ * - Zones: Zone information, builders, and statistics
+ * - Players: Player character details and statistics
+ * - Rent: Player equipment rental information
+ * - Stats: Current game server statistics (players, mobs, objects, etc.)
+ * - Errors: World file errors (broken exits, etc.)
+ * - Death: Death trap rooms
+ * - Godrooms: Staff-only rooms
+ * - Shops: Shop listings
+ * - Houses: Player housing information
+ * - Snoop: Currently active snooping sessions
+ * - Claims: Player claims
+ * - Popularity: Zone popularity statistics
+ * - Colours: Color code reference
+ * - Citizens: NPCs flagged as citizens in zones
+ * - Guards: NPCs flagged as guards in zones
+ * - Crafts: Crafting system information
+ * - Todo: Player todo lists
+ *
+ * Usage: show <type> [value]
+ * Access: Various immortal levels depending on the information type
+ */
 ACMD(do_show)
 {
+  /* Local variables for tracking various counts and indices */
   int i = 0, j = 0, k = 0, l = 0, con = 0, builder = 0;
-  size_t len = 0, nlen = 0;
-  zone_rnum zrn = NOWHERE;
-  zone_vnum zvn = NOWHERE;
-  byte self = FALSE;
-  struct char_data *vict = NULL;
-  struct obj_data *obj = NULL;
-  struct descriptor_data *d = NULL;
+  size_t len = 0, nlen = 0;  /* Buffer length tracking for safe string operations */
+  zone_rnum zrn = NOWHERE;   /* Zone real number */
+  zone_vnum zvn = NOWHERE;   /* Zone virtual number */
+  byte self = FALSE;          /* Flag for self-referential operations */
+  struct char_data *vict = NULL;     /* Target character for player info */
+  struct obj_data *obj = NULL;       /* Object iterator for statistics */
+  struct descriptor_data *d = NULL;  /* Connection descriptor iterator */
+  
+  /* Input buffers - initialized to prevent garbage data */
   char field[MAX_INPUT_LENGTH] = {'\0'}, value[MAX_INPUT_LENGTH] = {'\0'},
        arg[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
+  
+  /* Color display variables */
   int r = 0, g = 0, b = 0;
   char colour[16] = {'\0'};
+  
+  /* Quest tracking variables */
   int q_total = 0, q_approved = 0;
   struct quest_entry *quest = NULL;
 
+  /* Command mapping structure - maps subcommands to required permission levels */
   struct show_struct
   {
-    const char *cmd;
-    const char level;
+    const char *cmd;    /* Subcommand name */
+    const char level;   /* Minimum immortal level required */
   } fields[] = {
-      {"nothing", 0},        /* 0 */
-      {"zones", LVL_IMMORT}, /* 1 */
-      {"player", LVL_IMMORT},
-      {"rent", LVL_IMMORT},
-      {"stats", LVL_IMMORT},
-      {"errors", LVL_IMMORT}, /* 5 */
-      {"death", LVL_IMMORT},
-      {"godrooms", LVL_IMMORT},
-      {"shops", LVL_IMMORT},
-      {"houses", LVL_IMMORT},
-      {"snoop", LVL_IMMORT}, /* 10 */
-      {"claims", LVL_IMMORT},
-      {"popularity", LVL_IMMORT},
-      {"bab", LVL_IMMORT},
-      {"exp", LVL_IMMORT},
-      {"colour", LVL_IMMORT}, // 15
-      {"citizen", LVL_IMMORT},
-      {"guard", LVL_IMMORT},
-      {"crafts", LVL_IMMORT},
-      {"todo", LVL_IMMORT},
-      {"\n", 0}};
+      {"nothing", 0},        /* 0 - Placeholder entry */
+      {"zones", LVL_IMMORT}, /* 1 - Display zone information */
+      {"player", LVL_IMMORT},/* 2 - Show player character details */
+      {"rent", LVL_IMMORT},  /* 3 - Display rental information */
+      {"stats", LVL_IMMORT}, /* 4 - Show server statistics */
+      {"errors", LVL_IMMORT}, /* 5 - List world file errors */
+      {"death", LVL_IMMORT}, /* 6 - List death trap rooms */
+      {"godrooms", LVL_IMMORT}, /* 7 - List staff-only rooms */
+      {"shops", LVL_IMMORT}, /* 8 - Display shop information */
+      {"houses", LVL_IMMORT},/* 9 - Show player housing */
+      {"snoop", LVL_IMMORT}, /* 10 - List active snooping */
+      {"claims", LVL_IMMORT},/* 11 - Show player claims */
+      {"popularity", LVL_IMMORT}, /* 12 - Zone popularity stats */
+      {"bab", LVL_IMMORT},   /* 13 - Base attack bonus (unused) */
+      {"exp", LVL_IMMORT},   /* 14 - Experience tables (deprecated) */
+      {"colour", LVL_IMMORT}, /* 15 - Color code reference */
+      {"citizen", LVL_IMMORT}, /* 16 - List citizen NPCs */
+      {"guard", LVL_IMMORT}, /* 17 - List guard NPCs */
+      {"crafts", LVL_IMMORT},/* 18 - Crafting information */
+      {"todo", LVL_IMMORT},  /* 19 - Player todo lists */
+      {"wearoff", LVL_IMMORT}, /* 20 - Show spell/skill wearoff messages */
+      {"blockers", LVL_IMMORT}, /* 21 - Show NPCs with blocking flags */
+      {"\n", 0}};           /* Terminator entry */
 
+  /* Parse the command argument */
   skip_spaces_c(&argument);
 
+  /* Display help if no argument provided */
   if (!*argument)
   {
     send_to_char(ch, "Show options:\r\n");
+    /* List all available subcommands based on user's level */
     for (j = 0, i = 1; fields[i].level; i++)
       if (fields[i].level <= GET_LEVEL(ch))
         send_to_char(ch, "%-15s%s", fields[i].cmd, (!(++j % 5) ? "\r\n" : ""));
@@ -3351,19 +3389,26 @@ ACMD(do_show)
     return;
   }
 
-  strlcpy(arg, two_arguments(argument, field, sizeof(field), value, sizeof(value)), sizeof(arg)); /* strcpy: OK (argument <= MAX_INPUT_LENGTH == arg) */
+  /* Parse the command arguments: field (subcommand) and value (optional parameter) */
+  strlcpy(arg, two_arguments(argument, field, sizeof(field), value, sizeof(value)), sizeof(arg));
 
+  /* Find the matching subcommand in the fields array */
   for (l = 0; *(fields[l].cmd) != '\n'; l++)
     if (!strncmp(field, fields[l].cmd, strlen(field)))
       break;
 
+  /* Check if user has sufficient privileges for this subcommand */
   if (GET_LEVEL(ch) < fields[l].level)
   {
     send_to_char(ch, "You are not godly enough for that!\r\n");
     return;
   }
+  
+  /* Special marker "." means "current" (e.g., current zone) */
   if (!strcmp(value, "."))
     self = TRUE;
+  
+  /* Initialize output buffer */
   buf[0] = '\0';
 
   switch (l)
@@ -3389,25 +3434,36 @@ ACMD(do_show)
     {
       char *buf2;
       if (*value)
-        builder = 1;
+        builder = 1;  /* Flag that we're searching for a specific builder */
+      
+      /* Iterate through all zones */
       for (len = zrn = 0; zrn <= top_of_zone_table; zrn++)
       {
         if (*value)
         {
+          /* Search for a specific builder - must copy string as strtok modifies it */
           char *builders_copy = strdup(zone_table[zrn].builders);
+          if (!builders_copy)  /* Memory allocation check */
+          {
+            send_to_char(ch, "Memory allocation error!\r\n");
+            return;
+          }
+          
+          /* Tokenize the builders string to check each builder name */
           buf2 = strtok(builders_copy, " ");
           while (buf2)
           {
             if (!str_cmp(buf2, value))
             {
               if (builder == 1)
-                builder++;
+                builder++;  /* Found at least one zone by this builder */
               break;
             }
             buf2 = strtok(NULL, " ");
           }
-          free(builders_copy);
-          if (!buf2)
+          free(builders_copy);  /* Free the duplicated string */
+          
+          if (!buf2)  /* Builder not found in this zone, skip it */
             continue;
         }
         nlen = print_zone_to_buf(buf + len, sizeof(buf) - len, zrn, 0);
@@ -3423,7 +3479,7 @@ ACMD(do_show)
     page_string(ch->desc, buf, TRUE);
     break;
 
-    /* show player */
+    /* show player - Display information about a player character */
   case 2:
     if (!*value)
     {
@@ -3431,31 +3487,34 @@ ACMD(do_show)
       return;
     }
 
+    /* Allocate and initialize a temporary character structure */
     CREATE(vict, struct char_data, 1);
     clear_char(vict);
     CREATE(vict->player_specials, struct player_special_data, 1);
     new_mobile_data(vict);
-    /* Allocate mobile event list */
-    // vict->events = create_list();
+    
+    /* Load the player data from disk */
     if (load_char(value, vict) < 0)
     {
       send_to_char(ch, "There is no such player.\r\n");
-      free_char(vict);
+      free_char(vict);  /* Clean up allocated memory */
       return;
     }
+    /* Display player information */
     send_to_char(ch, "Player: %-12s (%s) [%2d %s %s]\r\n", GET_NAME(vict),
                  genders[(int)GET_SEX(vict)], GET_LEVEL(vict), CLSLIST_ABBRV(GET_CLASS(vict)), race_list[(int)GET_RACE(vict)].abbrev_color);
     send_to_char(ch, "Au: %-8d  Bal: %-8d  Exp: %-8d  Align: %-5d  Lessons: %-3d\r\n",
                  GET_GOLD(vict), GET_BANK_GOLD(vict), GET_EXP(vict),
                  GET_ALIGNMENT(vict), GET_PRACTICES(vict));
 
-    /* ctime() uses static buffer: do not combine. */
+    /* Display time information - ctime() uses static buffer, so separate calls */
     send_to_char(ch, "Started: %-20.16s  ", ctime(&vict->player.time.birth));
     send_to_char(ch, "Last: %-20.16s  Played: %3dh %2dm\r\n",
                  ctime(&vict->player.time.logon),
                  (int)(vict->player.time.played / 3600),
                  (int)(vict->player.time.played / 60 % 60));
-    free_char(vict);
+    
+    free_char(vict);  /* IMPORTANT: Free allocated memory to prevent leak */
     break;
 
     /* show rent */
@@ -3468,34 +3527,40 @@ ACMD(do_show)
     Crash_listrent(ch, value);
     break;
 
-    /* show stats */
+    /* show stats - Display current server statistics */
   case 4:
-    i = 0;
-    j = 0;
-    k = 0;
-    con = 0;
+    /* Reset counters */
+    i = 0;    /* Player count */
+    j = 0;    /* Mobile count */
+    k = 0;    /* Object count */
+    con = 0;  /* Connected player count */
+    
+    /* Count characters in game */
     for (vict = character_list; vict; vict = vict->next)
     {
       if (IS_NPC(vict))
-        j++; // mobile in game count
+        j++;  /* Count NPCs/mobiles */
       else if (CAN_SEE(ch, vict))
       {
-        i++; // player in game count
+        i++;  /* Count visible players */
         if (vict->desc)
-          con++; // how many connected
+          con++;  /* Count connected players (not linkdead) */
       }
     }
+    
+    /* Count objects in game */
     for (obj = object_list; obj; obj = obj->next)
-      k++; // number of objects in game
+      k++;
+    /* Count homeland quests in mob prototypes */
     for (l = 0; l < top_of_mobt; l++)
     {
       if (mob_proto[l].mob_specials.quest)
       {
         for (quest = mob_proto[l].mob_specials.quest; quest; quest = quest->next)
         {
-          q_total++; // total homeland quests
+          q_total++;      /* Count total homeland quests */
           if (quest->approved)
-            q_approved++; // homeland quests approved
+            q_approved++; /* Count approved quests */
         }
       }
     }
@@ -3522,29 +3587,43 @@ ACMD(do_show)
                  buf_switches, buf_overflows, global_lists->iSize);
     break;
 
-    /* show errors */
+    /* show errors - Display world file errors (broken exits) */
   case 5:
     len = strlcpy(buf, "Errant Rooms\r\n------------\r\n", sizeof(buf));
+    
+    /* Check all rooms for problematic exits */
     for (i = 0, k = 0; i <= top_of_world; i++)
+    {
       for (j = 0; j < DIR_COUNT; j++)
       {
         if (!W_EXIT(i, j))
           continue;
+        
+        /* Check for exits leading to room 0 (void) */
         if (W_EXIT(i, j)->to_room == 0)
         {
-          nlen = snprintf(buf + len, sizeof(buf) - len, "%2d: (void   ) [%5d] %-*s%s (%s)\r\n", ++k, GET_ROOM_VNUM(i), count_color_chars(world[i].name) + 40, world[i].name, QNRM, dirs[j]);
-          if (len + nlen >= sizeof(buf))
+          nlen = snprintf(buf + len, sizeof(buf) - len, "%2d: (void   ) [%5d] %-*s%s (%s)\r\n", 
+                         ++k, GET_ROOM_VNUM(i), count_color_chars(world[i].name) + 40, 
+                         world[i].name, QNRM, dirs[j]);
+          if (len + nlen >= sizeof(buf))  /* Buffer overflow protection */
             break;
           len += nlen;
         }
+        
+        /* Check for exits to NOWHERE without descriptions (broken) */
         if (W_EXIT(i, j)->to_room == NOWHERE && !W_EXIT(i, j)->general_description)
         {
-          nlen = snprintf(buf + len, sizeof(buf) - len, "%2d: (Nowhere) [%5d] %-*s%s (%s)\r\n", ++k, GET_ROOM_VNUM(i), count_color_chars(world[i].name) + 40, world[i].name, QNRM, dirs[j]);
-          if (len + nlen >= sizeof(buf))
+          nlen = snprintf(buf + len, sizeof(buf) - len, "%2d: (Nowhere) [%5d] %-*s%s (%s)\r\n", 
+                         ++k, GET_ROOM_VNUM(i), count_color_chars(world[i].name) + 40, 
+                         world[i].name, QNRM, dirs[j]);
+          if (len + nlen >= sizeof(buf))  /* Buffer overflow protection */
             break;
           len += nlen;
         }
       }
+      if (len + nlen >= sizeof(buf))  /* Stop if buffer is full */
+        break;
+    }
     page_string(ch->desc, buf, TRUE);
     break;
 
@@ -3638,21 +3717,30 @@ ACMD(do_show)
     page_string(ch->desc, buf, TRUE);
     break;
 
-  case 16: // show citizen
+  case 16: /* show citizen - List all citizen NPCs in a zone */
+    /* Determine target zone: specified value or current zone */
     if (*value && is_number(value))
       j = atoi(value);
     else
       j = zone_table[world[ch->in_room].zone].number;
-    j *= 100;
+    j *= 100;  /* Convert zone number to base vnum */
+    
+    /* Validate zone exists */
     if (real_zone(j) <= 0)
     {
       snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n", j);
       send_to_char(ch, "%s", buf);
       return;
     }
+    
+    /* Get zone boundaries */
     k = real_zone(j);
     k = zone_table[k].top;
+    
+    /* Build output header */
     snprintf(buf, sizeof(buf), "Citizens in this zone : From %d to %d\r\n", j, k);
+    
+    /* Search for citizen NPCs in the zone vnum range */
     for (i = j; i <= k; i++)
     {
       if ((l = real_mobile(i)) >= 0)
@@ -3661,28 +3749,39 @@ ACMD(do_show)
         {
           char res_buf[128];
           snprintf(res_buf, sizeof(res_buf), "[%5d] %-40s\r\n", i, mob_proto[l].player.short_descr);
-          strlcat(buf, res_buf, sizeof(buf));
+          /* Safe concatenation with buffer size check */
+          if (strlen(buf) + strlen(res_buf) < sizeof(buf) - 1)
+            strlcat(buf, res_buf, sizeof(buf));
         }
       }
     }
     page_string(ch->desc, buf, 1);
     break;
 
-  case 17: // show guard
+  case 17: /* show guard - List all guard NPCs in a zone */
+    /* Determine target zone: specified value or current zone */
     if (*value && is_number(value))
       j = atoi(value);
     else
       j = zone_table[world[ch->in_room].zone].number;
-    j *= 100;
+    j *= 100;  /* Convert zone number to base vnum */
+    
+    /* Validate zone exists */
     if (real_zone(j) <= 0)
     {
       snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n", j);
       send_to_char(ch, "%s", buf);
       return;
     }
+    
+    /* Get zone boundaries */
     k = real_zone(j);
     k = zone_table[k].top;
+    
+    /* Build output header */
     snprintf(buf, sizeof(buf), "Guard in this zone : From %d to %d\r\n", j, k);
+    
+    /* Search for guard NPCs in the zone vnum range */
     for (i = j; i <= k; i++)
     {
       if ((l = real_mobile(i)) >= 0)
@@ -3691,7 +3790,9 @@ ACMD(do_show)
         {
           char res_buf[128];
           snprintf(res_buf, sizeof(res_buf), "[%5d] %-40s\r\n", i, mob_proto[l].player.short_descr);
-          strlcat(buf, res_buf, sizeof(buf));
+          /* Safe concatenation with buffer size check */
+          if (strlen(buf) + strlen(res_buf) < sizeof(buf) - 1)
+            strlcat(buf, res_buf, sizeof(buf));
         }
       }
     }
@@ -3706,7 +3807,7 @@ ACMD(do_show)
       show_craft(ch, get_craft_from_arg(value), 0);
     break;
 
-    /* show todo */
+    /* show todo - Display a player's todo list */
   case 19:
     if (!*value)
     {
@@ -3714,30 +3815,198 @@ ACMD(do_show)
       return;
     }
 
+    /* Allocate temporary character structure */
     vict = new_char();
 
+    /* Load player data */
     if (load_char(value, vict) < 0)
     {
       send_to_char(ch, "No such player exists.\r\n");
-      free_char(vict);
+      free_char(vict);  /* Clean up allocated memory */
       return;
     }
 
+    /* Display todo list if it exists */
     if (GET_TODO(vict) && GET_TODO(vict)->text && *GET_TODO(vict)->text)
       display_todo(ch, vict);
     else
       send_to_char(ch, "%s has nothing to do!\r\n", GET_NAME(vict));
 
-    free_char(vict);
+    free_char(vict);  /* IMPORTANT: Free allocated memory to prevent leak */
 
     break;
 
-    /* show what? */
+    /* show wearoff - Display spell/skill wearoff messages */
+  case 20:
+    /* Validate that a spell/skill name was provided */
+    if (!*value)
+    {
+      send_to_char(ch, "Usage: show wearoff <spell/skill name>\r\n");
+      return;
+    }
+
+    /* Search through all spells and skills for a match */
+    for (i = 0; i < TOP_SKILL_DEFINE + 1; i++)
+    {
+      /* Check if the argument matches this spell/skill name (allows abbreviations) */
+      if (is_abbrev(value, spell_info[i].name))
+      {
+        /* Display the spell/skill name and its wearoff message */
+        send_to_char(ch, "Spell/Skill: %s\r\n"
+                         "Wearoff Msg: %s.\r\n",
+                     spell_info[i].name,
+                     get_wearoff(i));
+        return;
+      }
+    }
+    
+    /* No matching spell/skill found */
+    send_to_char(ch, "There is no spell or skill by that name.\r\n");
+    break;
+
+    /* show blockers - Display all NPCs with directional blocking flags */
+  case 21:
+    {
+      /* Local variables for blocker display */
+      struct char_data *tch;
+      int vnum = 0;
+      int blocker_count = 0;
+      
+      /* Initialize output buffer with header */
+      len = strlcpy(buf, "NPCs with Blocking Flags\r\n"
+                         "-------------------------\r\n"
+                         "Room   Name                 Blocking Directions\r\n"
+                         "------ -------------------- -------------------\r\n", 
+                    sizeof(buf));
+      
+      /* Iterate through all characters in the game */
+      for (tch = character_list; tch; tch = tch->next)
+      {
+        /* Skip player characters - only check NPCs */
+        if (!IS_NPC(tch)) 
+          continue;
+        
+        /* Check if this NPC has any blocking flags set */
+        if (MOB_FLAGGED(tch, MOB_BLOCK_N) || MOB_FLAGGED(tch, MOB_BLOCK_E) || 
+            MOB_FLAGGED(tch, MOB_BLOCK_S) || MOB_FLAGGED(tch, MOB_BLOCK_W) || 
+            MOB_FLAGGED(tch, MOB_BLOCK_NE) || MOB_FLAGGED(tch, MOB_BLOCK_NW) || 
+            MOB_FLAGGED(tch, MOB_BLOCK_SE) || MOB_FLAGGED(tch, MOB_BLOCK_SW) || 
+            MOB_FLAGGED(tch, MOB_BLOCK_U) || MOB_FLAGGED(tch, MOB_BLOCK_D))
+        {
+          /* Get the room vnum where this NPC is located */
+          if (IN_ROOM(tch) != NOWHERE)
+            vnum = GET_ROOM_VNUM(IN_ROOM(tch));
+          else
+            vnum = 0;  /* NPC is in limbo/nowhere */
+          
+          /* Format the basic NPC information */
+          nlen = snprintf(buf + len, sizeof(buf) - len, 
+                         "%6d %-20.20s ", vnum, GET_NAME(tch));
+          if (len + nlen >= sizeof(buf))
+            break;
+          len += nlen;
+          
+          /* Add each blocking direction flag that is set */
+          if (MOB_FLAGGED(tch, MOB_BLOCK_N))
+          {
+            nlen = snprintf(buf + len, sizeof(buf) - len, "N ");
+            if (len + nlen >= sizeof(buf)) break;
+            len += nlen;
+          }
+          if (MOB_FLAGGED(tch, MOB_BLOCK_E))
+          {
+            nlen = snprintf(buf + len, sizeof(buf) - len, "E ");
+            if (len + nlen >= sizeof(buf)) break;
+            len += nlen;
+          }
+          if (MOB_FLAGGED(tch, MOB_BLOCK_S))
+          {
+            nlen = snprintf(buf + len, sizeof(buf) - len, "S ");
+            if (len + nlen >= sizeof(buf)) break;
+            len += nlen;
+          }
+          if (MOB_FLAGGED(tch, MOB_BLOCK_W))
+          {
+            nlen = snprintf(buf + len, sizeof(buf) - len, "W ");
+            if (len + nlen >= sizeof(buf)) break;
+            len += nlen;
+          }
+          if (MOB_FLAGGED(tch, MOB_BLOCK_NE))
+          {
+            nlen = snprintf(buf + len, sizeof(buf) - len, "NE ");
+            if (len + nlen >= sizeof(buf)) break;
+            len += nlen;
+          }
+          if (MOB_FLAGGED(tch, MOB_BLOCK_SE))
+          {
+            nlen = snprintf(buf + len, sizeof(buf) - len, "SE ");
+            if (len + nlen >= sizeof(buf)) break;
+            len += nlen;
+          }
+          if (MOB_FLAGGED(tch, MOB_BLOCK_SW))
+          {
+            nlen = snprintf(buf + len, sizeof(buf) - len, "SW ");
+            if (len + nlen >= sizeof(buf)) break;
+            len += nlen;
+          }
+          if (MOB_FLAGGED(tch, MOB_BLOCK_NW))
+          {
+            nlen = snprintf(buf + len, sizeof(buf) - len, "NW ");
+            if (len + nlen >= sizeof(buf)) break;
+            len += nlen;
+          }
+          if (MOB_FLAGGED(tch, MOB_BLOCK_U))
+          {
+            nlen = snprintf(buf + len, sizeof(buf) - len, "UP ");
+            if (len + nlen >= sizeof(buf)) break;
+            len += nlen;
+          }
+          if (MOB_FLAGGED(tch, MOB_BLOCK_D))
+          {
+            nlen = snprintf(buf + len, sizeof(buf) - len, "DOWN ");
+            if (len + nlen >= sizeof(buf)) break;
+            len += nlen;
+          }
+          
+          /* End the line for this NPC */
+          nlen = snprintf(buf + len, sizeof(buf) - len, "\r\n");
+          if (len + nlen >= sizeof(buf))
+            break;
+          len += nlen;
+          
+          blocker_count++;
+        }
+      }
+      
+      /* Add summary line if no blockers found */
+      if (blocker_count == 0)
+      {
+        nlen = snprintf(buf + len, sizeof(buf) - len, 
+                       "No NPCs with blocking flags found.\r\n");
+        if (len + nlen < sizeof(buf))
+          len += nlen;
+      }
+      else
+      {
+        /* Add count summary */
+        nlen = snprintf(buf + len, sizeof(buf) - len, 
+                       "\r\nTotal: %d blocker%s found.\r\n", 
+                       blocker_count, blocker_count == 1 ? "" : "s");
+        if (len + nlen < sizeof(buf))
+          len += nlen;
+      }
+      
+      /* Display the results */
+      page_string(ch->desc, buf, TRUE);
+    }
+    break;
+
+    /* show what? - Invalid subcommand */
   default:
     send_to_char(ch, "Sorry, I don't understand that.\r\n");
     break;
-  }
-}
+  }  /* End of main switch statement */
+}  /* End of ACMD(do_show) */
 
 /* The do_set function */
 
@@ -9826,35 +10095,7 @@ ACMD(do_perfmon)
   }
 }
 
-ACMD(do_showwearoff)
-{
-
-  char arg1[MEDIUM_STRING] = {'\0'};
-
-  one_argument(argument, arg1, sizeof(arg1));
-
-  if (!*arg1)
-  {
-    send_to_char(ch, "Please specify a spell or skill.\r\n");
-    return;
-  }
-
-  int i = 0;
-
-  for (i = 0; i < TOP_SKILL_DEFINE + 1; i++)
-  {
-    if (is_abbrev(arg1, spell_info[i].name))
-    {
-      send_to_char(ch, "Spell/Skill: %s\r\n"
-                       "Wearoff Msg: %s.\r\n",
-                   spell_info[i].name,
-                   get_wearoff(i));
-      return;
-    }
-  }
-
-  send_to_char(ch, "There is no spell or skill by that name.\r\n");
-}
+/* Removed: do_showwearoff - functionality moved to 'show wearoff' */
 
 ACMD(do_resetpassword)
 {
@@ -10285,49 +10526,7 @@ ACMDU(do_setroomflag)
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
 }
 
-ACMD(do_show_blockers)
-{
-
-  struct char_data *tch;
-  int vnum = 0;
-
-  for (tch = character_list; tch; tch = tch->next)
-  {
-    if (!IS_NPC(tch)) continue;
-    if (MOB_FLAGGED(tch, MOB_BLOCK_N) || MOB_FLAGGED(tch, MOB_BLOCK_E) || MOB_FLAGGED(tch, MOB_BLOCK_S) || MOB_FLAGGED(tch, MOB_BLOCK_W) || 
-        MOB_FLAGGED(tch, MOB_BLOCK_NE) || MOB_FLAGGED(tch, MOB_BLOCK_NW) || MOB_FLAGGED(tch, MOB_BLOCK_SE) || MOB_FLAGGED(tch, MOB_BLOCK_SW) || 
-        MOB_FLAGGED(tch, MOB_BLOCK_U) || MOB_FLAGGED(tch, MOB_BLOCK_D))
-    {
-      if (IN_ROOM(tch) != NOWHERE)
-        vnum = GET_ROOM_VNUM(IN_ROOM(tch));
-      else
-        vnum = 0;
-      send_to_char(ch, "-- %5d %-20s ", vnum, GET_NAME(tch));
-      if (MOB_FLAGGED(tch, MOB_BLOCK_N))
-        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_N]);
-      if (MOB_FLAGGED(tch, MOB_BLOCK_E))
-        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_E]);
-      if (MOB_FLAGGED(tch, MOB_BLOCK_S))
-        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_S]);
-      if (MOB_FLAGGED(tch, MOB_BLOCK_W))
-        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_W]);
-      if (MOB_FLAGGED(tch, MOB_BLOCK_NE))
-        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_NE]);
-      if (MOB_FLAGGED(tch, MOB_BLOCK_SE))
-        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_SE]);
-      if (MOB_FLAGGED(tch, MOB_BLOCK_SW))
-        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_SW]);
-      if (MOB_FLAGGED(tch, MOB_BLOCK_NW))
-        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_NW]);
-      if (MOB_FLAGGED(tch, MOB_BLOCK_U))
-        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_U]);
-      if (MOB_FLAGGED(tch, MOB_BLOCK_D))
-        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_D]);
-      send_to_char(ch, "\r\n");
-    }
-  }
-
-}
+/* Removed: do_show_blockers - functionality moved to 'show blockers' */
 
 ACMD(do_save_objects_to_database)
 {

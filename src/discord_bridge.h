@@ -122,6 +122,6 @@ int check_discord_rate_limit(struct discord_channel_config *channel);
 void check_discord_timeout(void);
 
 /* Command handlers */
-void do_discord(struct char_data *ch, const char *argument, int cmd, int subcmd);
+void do_discordapi(struct char_data *ch, const char *argument, int cmd, int subcmd);
 
 #endif /* _DISCORD_BRIDGE_H_ */
