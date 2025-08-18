@@ -1,29 +1,56 @@
 [Unit]
 Description=LuminariMUD Game Server
 After=network.target mysql.service
+Wants=mysql.service
 
 [Service]
 Type=forking
 User=luminari
 Group=luminari
 WorkingDirectory=/home/luminari/luminarimud
-# autorun.sh now defaults to daemon mode, no arguments needed
+
+# autorun.sh now defaults to daemon mode and starts its own watchdog
 ExecStart=/home/luminari/luminarimud/autorun.sh
-# Use the built-in stop command instead of .killscript
 ExecStop=/home/luminari/luminarimud/autorun.sh stop
-Restart=always
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Restart policy - let autorun handle restarts internally
+# Only restart the service if autorun itself completely fails
+Restart=on-failure
 RestartSec=60
+TimeoutStartSec=120
+TimeoutStopSec=30
+
 # Environment variables
 Environment="MUD_PORT=4100"
 Environment="MUD_FLAGS=-q"
+Environment="ENABLE_WEBSOCKET=false"
+Environment="ENABLE_FLASH=false"
+Environment="IGNORE_DISK_SPACE=true"
+
+# Process management
+KillMode=control-group
+KillSignal=SIGTERM
+SendSIGKILL=no
 
 # Security settings
 NoNewPrivileges=true
 PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/luminari/luminarimud
 
 # Resource limits
-LimitNOFILE=4096
+LimitNOFILE=8192
 LimitCORE=infinity
+LimitNPROC=4096
+LimitAS=infinity
+TasksMax=4096
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=luminari
 
 [Install]
 WantedBy=multi-user.target
