@@ -9694,7 +9694,12 @@ bool is_dragon_rider_mount(struct char_data *ch)
 
   if (!IS_NPC(ch)) return false;
 
+  /* DragonLance campaign dragon mounts */
   if (GET_MOB_VNUM(ch) >= 40401 && GET_MOB_VNUM(ch) <= 40410)
+    return true;
+
+  /* Default campaign dragon mounts */
+  if (GET_MOB_VNUM(ch) >= 1240 && GET_MOB_VNUM(ch) <= 1249)
     return true;
 
   return false;
