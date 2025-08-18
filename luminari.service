@@ -7,11 +7,11 @@ Wants=mysql.service
 Type=forking
 User=luminari
 Group=luminari
-WorkingDirectory=/home/luminari/luminarimud
+WorkingDirectory=/home/luminari/Luminari-Source
 
 # autorun.sh now defaults to daemon mode and starts its own watchdog
-ExecStart=/home/luminari/luminarimud/autorun.sh
-ExecStop=/home/luminari/luminarimud/autorun.sh stop
+ExecStart=/home/luminari/Luminari-Source/autorun.sh
+ExecStop=/home/luminari/Luminari-Source/autorun.sh stop
 ExecReload=/bin/kill -HUP $MAINPID
 
 # Restart policy - let autorun handle restarts internally
@@ -38,7 +38,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/home/luminari/luminarimud
+ReadWritePaths=/home/luminari/Luminari-Source
 
 # Resource limits
 LimitNOFILE=8192
