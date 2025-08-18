@@ -955,7 +955,7 @@ void char_from_furniture(struct char_data *ch);
 #define PSIONIC_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST), LVL_IMMORT - 1))
 #define IS_SPELLCASTER_CLASS(c) (c == CLASS_WIZARD || c == CLASS_CLERIC || c == CLASS_SORCERER || c == CLASS_DRUID || c == CLASS_WARLOCK || \
                                  c == CLASS_PALADIN || c == CLASS_ALCHEMIST || c == CLASS_RANGER || c == CLASS_BARD || c == CLASS_INQUISITOR || \
-                                 c == CLASS_SUMMONER)
+                                 c == CLASS_SUMMONER || c == CLASS_BLACKGUARD)
 
 /* Password of PC. */
 #define GET_PASSWD(ch) ((ch)->player.passwd)

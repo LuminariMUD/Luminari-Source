@@ -697,6 +697,9 @@ int calculate_boarding_difficulty(struct greyhawk_ship_data *target);
 void save_ship_interior(struct greyhawk_ship_data *ship);
 void load_ship_interior(struct greyhawk_ship_data *ship);
 void serialize_ship_rooms(struct greyhawk_ship_data *ship, char *buffer);
+void init_vessel_db(void);
+void save_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2, const char *dock_type);
+void end_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2);
 
 /* Utility Functions */
 struct greyhawk_ship_data *find_ship_by_name(const char *name);
