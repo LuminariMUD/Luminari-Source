@@ -12,6 +12,9 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
@@ -27,9 +30,281 @@ extern int get_weather(int x, int y);
 extern char *generate_resource_aware_description(struct char_data *ch, room_rnum room);
 extern struct time_info_data time_info;
 extern struct region_data *region_table;
-extern struct region_data *region_table;
 extern zone_rnum top_of_region_table;
 extern void safe_strcat(char *dest, const char *src);  /* From resource_descriptions.c */
+extern struct region_profile *load_region_profile(int region_vnum);  /* From region_hints.c */
+extern void free_region_profile(struct region_profile *profile);  /* From region_hints.c */
+extern int mysql_pool_query(const char *query, MYSQL_RES **result);  /* From mysql.c */
+extern void mysql_pool_free_result(MYSQL_RES *result);  /* From mysql.c */
+
+/* Forward declarations */
+char *simple_hint_layering(char *base_description, struct region_hint *hints, int x, int y);
+void free_contextual_hints(struct region_hint *hints);
+
+/* Season constants - matching the standard MUD seasonal system */
+#define SEASON_SPRING 0
+#define SEASON_SUMMER 1
+#define SEASON_AUTUMN 2
+#define SEASON_WINTER 3
+
+/* Regional style constants - matching region_profile.description_style */
+#define STYLE_POETIC 0
+#define STYLE_PRACTICAL 1
+#define STYLE_MYSTERIOUS 2
+#define STYLE_DRAMATIC 3
+#define STYLE_PASTORAL 4
+
+/* Helper function to get current season */
+int get_season_from_time(void) {
+    extern struct time_info_data time_info;
+    
+    // Standard MUD seasonal calculation based on month
+    int month = time_info.month;
+    
+    if (month >= 2 && month <= 4) return SEASON_SPRING;   /* Mar-May */
+    if (month >= 5 && month <= 7) return SEASON_SUMMER;   /* Jun-Aug */
+    if (month >= 8 && month <= 10) return SEASON_AUTUMN;  /* Sep-Nov */
+    return SEASON_WINTER;                                  /* Dec-Feb */
+}
+
+/* ====================================================================== */
+/*                    SEMANTIC NARRATIVE STRUCTURES                      */
+/* ====================================================================== */
+
+/* Semantic elements extracted from hints for narrative integration */
+struct narrative_elements {
+    char *dominant_mood;        /* "mysterious", "peaceful", "ominous" */
+    char *primary_imagery;      /* "ancient trees", "rolling hills" */
+    char *active_elements;      /* "wind whispers", "shadows dance" */
+    char *sensory_details;      /* "moss-scented air", "distant calls" */
+    char *temporal_aspects;     /* "dawn light", "evening mist" */
+    float integration_weight;   /* Strength of influence (0.0-1.0) */
+};
+
+/* Description components for semantic modification */
+struct description_components {
+    char *opening_imagery;      /* First visual elements */
+    char *primary_nouns;        /* Main subject matter */
+    char *descriptive_verbs;    /* Action words */
+    char *atmospheric_modifiers; /* Mood-setting adjectives */
+    char *sensory_additions;    /* Sound, scent, texture details */
+    char *closing_elements;     /* Final atmospheric touches */
+};
+
+/* Mood transformation patterns */
+static const char *mood_indicators[] = {
+    "mysterious", "mystical", "enigmatic", "shadowy", "hidden",
+    "peaceful", "tranquil", "serene", "calm", "gentle",
+    "ominous", "foreboding", "dark", "threatening", "menacing",
+    "vibrant", "lively", "energetic", "bustling", "dynamic",
+    NULL
+};
+
+/* Action verb patterns for dynamic element detection */
+static const char *action_verbs[] = {
+    "whisper", "murmur", "rustle", "sway", "dance",
+    "tower", "loom", "stretch", "reach", "rise",
+    "flow", "cascade", "trickle", "babble", "gurgle",
+    "call", "cry", "sing", "chirp", "echo",
+    NULL
+};
+
+/* Style-specific vocabulary dictionaries */
+static const char *poetic_adjectives[] = {
+    "ethereal", "luminous", "graceful", "sublime", "gossamer",
+    "shimmering", "melodious", "enchanting", "serene", "mystical",
+    NULL
+};
+
+static const char *poetic_verbs[] = {
+    "whisper", "dance", "caress", "embrace", "weave",
+    "flutter", "shimmer", "glisten", "murmur", "sigh",
+    NULL
+};
+
+static const char *mysterious_adjectives[] = {
+    "enigmatic", "shadowy", "veiled", "hidden", "ancient",
+    "forgotten", "elusive", "secretive", "cryptic", "arcane",
+    NULL
+};
+
+static const char *mysterious_verbs[] = {
+    "lurk", "conceal", "shroud", "mask", "veil",
+    "hint", "suggest", "cloak", "obscure", "whisper",
+    NULL
+};
+
+static const char *dramatic_adjectives[] = {
+    "towering", "imposing", "magnificent", "commanding", "majestic",
+    "overwhelming", "thunderous", "colossal", "fierce", "tempestuous",
+    NULL
+};
+
+static const char *dramatic_verbs[] = {
+    "loom", "dominate", "tower", "command", "surge",
+    "thunder", "roar", "clash", "blaze", "overwhelm",
+    NULL
+};
+
+static const char *pastoral_adjectives[] = {
+    "gentle", "peaceful", "tranquil", "soft", "tender",
+    "warm", "comforting", "welcoming", "mild", "soothing",
+    NULL
+};
+
+static const char *pastoral_verbs[] = {
+    "nestle", "cradle", "embrace", "shelter", "comfort",
+    "nourish", "protect", "welcome", "soothe", "calm",
+    NULL
+};
+
+static const char *practical_adjectives[] = {
+    "sturdy", "solid", "reliable", "functional", "useful",
+    "durable", "efficient", "practical", "straightforward", "clear",
+    NULL
+};
+
+static const char *practical_verbs[] = {
+    "support", "provide", "offer", "supply", "serve",
+    "function", "operate", "work", "sustain", "maintain",
+    NULL
+};
+
+/* Function prototypes after structure definitions */
+void inject_temporal_and_sensory_elements(struct description_components *desc, 
+                                        const char *temporal_aspects, 
+                                        const char *sensory_details);
+const char **get_style_adjectives(int style);
+const char **get_style_verbs(int style);
+char *apply_regional_style_transformation(const char *text, int style);
+int convert_style_string_to_int(const char *style_str);
+
+/* ====================================================================== */
+/*                       REGIONAL STYLE HELPERS                          */
+/* ====================================================================== */
+
+/**
+ * Convert style string from database to integer constant
+ */
+int convert_style_string_to_int(const char *style_str) {
+    if (!style_str) return STYLE_POETIC;
+    
+    if (strcmp(style_str, "poetic") == 0) return STYLE_POETIC;
+    if (strcmp(style_str, "practical") == 0) return STYLE_PRACTICAL;
+    if (strcmp(style_str, "mysterious") == 0) return STYLE_MYSTERIOUS;
+    if (strcmp(style_str, "dramatic") == 0) return STYLE_DRAMATIC;
+    if (strcmp(style_str, "pastoral") == 0) return STYLE_PASTORAL;
+    
+    return STYLE_POETIC; // Default fallback
+}
+
+/**
+ * Get style-specific adjectives for given regional style
+ */
+const char **get_style_adjectives(int style) {
+    switch (style) {
+        case STYLE_POETIC:      return poetic_adjectives;
+        case STYLE_MYSTERIOUS:  return mysterious_adjectives;
+        case STYLE_DRAMATIC:    return dramatic_adjectives;
+        case STYLE_PASTORAL:    return pastoral_adjectives;
+        case STYLE_PRACTICAL:   return practical_adjectives;
+        default:                return poetic_adjectives;
+    }
+}
+
+/**
+ * Get style-specific verbs for given regional style
+ */
+const char **get_style_verbs(int style) {
+    switch (style) {
+        case STYLE_POETIC:      return poetic_verbs;
+        case STYLE_MYSTERIOUS:  return mysterious_verbs;
+        case STYLE_DRAMATIC:    return dramatic_verbs;
+        case STYLE_PASTORAL:    return pastoral_verbs;
+        case STYLE_PRACTICAL:   return practical_verbs;
+        default:                return poetic_verbs;
+    }
+}
+
+/**
+ * Apply style-specific transformation to text
+ */
+char *apply_regional_style_transformation(const char *text, int style) {
+    char *transformed;
+    const char **style_adjectives, **style_verbs;
+    
+    if (!text) return NULL;
+    
+    transformed = strdup(text);
+    if (!transformed) return NULL;
+    
+    style_adjectives = get_style_adjectives(style);
+    style_verbs = get_style_verbs(style);
+    
+    // Apply style-specific transformations based on style type
+    switch (style) {
+        case STYLE_MYSTERIOUS:
+            // Add mysterious prefixes and subtle language
+            if (strstr(transformed, "trees") && !strstr(transformed, "ancient")) {
+                char *temp = malloc(strlen(transformed) + 20);
+                if (temp) {
+                    snprintf(temp, strlen(transformed) + 20, "ancient %s", transformed);
+                    free(transformed);
+                    transformed = temp;
+                }
+            }
+            break;
+            
+        case STYLE_DRAMATIC:
+            // Enhance with powerful, imposing language
+            if (strstr(transformed, "hills") || strstr(transformed, "mountains")) {
+                char *temp = malloc(strlen(transformed) + 30);
+                if (temp) {
+                    char *pos = strstr(transformed, "hills");
+                    if (!pos) pos = strstr(transformed, "mountains");
+                    if (pos) {
+                        *pos = '\0';
+                        snprintf(temp, strlen(transformed) + 30, "%stowering %s", transformed, pos);
+                        free(transformed);
+                        transformed = temp;
+                    }
+                }
+            }
+            break;
+            
+        case STYLE_PASTORAL:
+            // Add gentle, comforting language
+            if (strstr(transformed, "grass") && !strstr(transformed, "gentle")) {
+                char *temp = malloc(strlen(transformed) + 20);
+                if (temp) {
+                    snprintf(temp, strlen(transformed) + 20, "gentle %s", transformed);
+                    free(transformed);
+                    transformed = temp;
+                }
+            }
+            break;
+            
+        case STYLE_PRACTICAL:
+            // Keep language straightforward and functional
+            // No embellishment needed for practical style
+            break;
+            
+        case STYLE_POETIC:
+        default:
+            // Add flowing, artistic language
+            if (strstr(transformed, "wind") && !strstr(transformed, "gentle")) {
+                char *temp = malloc(strlen(transformed) + 20);
+                if (temp) {
+                    snprintf(temp, strlen(transformed) + 20, "gentle %s", transformed);
+                    free(transformed);
+                    transformed = temp;
+                }
+            }
+            break;
+    }
+    
+    return transformed;
+}
 
 /* ====================================================================== */
 /*                         SAFE STRING UTILITIES                         */
@@ -106,7 +381,7 @@ const char *get_wilderness_weather_condition(int x, int y) {
 }
 
 /**
- * Get current time of day category
+ * Get time of day category for contextual descriptions
  */
 const char *get_time_of_day_category(void) {
     int hour = time_info.hours;
@@ -121,6 +396,466 @@ const char *get_time_of_day_category(void) {
         return "night";
     }
 }
+
+/* ====================================================================== */
+/*                     SEMANTIC ANALYSIS FUNCTIONS                       */
+/* ====================================================================== */
+
+/**
+ * Extract narrative elements from regional hints for semantic integration
+ */
+struct narrative_elements *extract_narrative_elements(struct region_hint *hints, 
+                                                    const char *weather, const char *time,
+                                                    int region_vnum) {
+    struct narrative_elements *elements;
+    struct region_profile *profile = NULL;
+    char *text;
+    int i, j;
+    int regional_style = STYLE_POETIC; // Default style
+    
+    if (!hints) return NULL;
+    
+    // Load regional style profile
+    if (region_vnum > 0) {
+        profile = load_region_profile(region_vnum);
+        if (profile) {
+            // The current region_hints.c converts string to int incorrectly with atoi()
+            // We need to query the database directly to get the string value
+            MYSQL_RES *result = NULL;
+            MYSQL_ROW row;
+            char query[512];
+            
+            snprintf(query, sizeof(query),
+                "SELECT description_style FROM region_profiles WHERE region_vnum = %d",
+                region_vnum);
+            
+            if (!mysql_pool_query(query, &result) && result) {
+                if ((row = mysql_fetch_row(result))) {
+                    regional_style = convert_style_string_to_int(row[0]);
+                    log("DEBUG: Using regional style %d ('%s') for region %d", 
+                        regional_style, row[0] ? row[0] : "NULL", region_vnum);
+                }
+                mysql_pool_free_result(result);
+            } else {
+                // Fallback to the incorrectly converted value
+                regional_style = profile->description_style;
+                log("DEBUG: Using fallback regional style %d for region %d", regional_style, region_vnum);
+            }
+        }
+    }
+    
+    elements = calloc(1, sizeof(struct narrative_elements));
+    if (!elements) return NULL;
+    
+    // Initialize integration weight
+    elements->integration_weight = 0.0f;
+    
+    // Analyze each hint for semantic patterns with style awareness
+    for (i = 0; hints[i].hint_text; i++) {
+        text = hints[i].hint_text;
+        if (!text) continue;
+        
+        // Extract mood indicators with style preference
+        if (!elements->dominant_mood) {
+            const char **style_adjectives = get_style_adjectives(regional_style);
+            
+            // First try style-specific mood indicators
+            for (j = 0; style_adjectives[j]; j++) {
+                if (strstr(text, style_adjectives[j])) {
+                    elements->dominant_mood = strdup(style_adjectives[j]);
+                    elements->integration_weight += 0.35f; // Higher weight for style match
+                    break;
+                }
+            }
+            
+            // Fallback to general mood indicators if no style match
+            if (!elements->dominant_mood) {
+                for (j = 0; mood_indicators[j]; j++) {
+                    if (strstr(text, mood_indicators[j])) {
+                        elements->dominant_mood = strdup(mood_indicators[j]);
+                        elements->integration_weight += 0.3f;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Extract action verbs with style preference
+        if (!elements->active_elements) {
+            const char **style_verbs = get_style_verbs(regional_style);
+            
+            // First try style-specific verbs
+            for (j = 0; style_verbs[j]; j++) {
+                if (strstr(text, style_verbs[j])) {
+                    elements->active_elements = strdup(style_verbs[j]);
+                    elements->integration_weight += 0.3f; // Higher weight for style match
+                    break;
+                }
+            }
+            
+            // Fallback to general action verbs if no style match
+            if (!elements->active_elements) {
+                for (j = 0; action_verbs[j]; j++) {
+                    if (strstr(text, action_verbs[j])) {
+                        elements->active_elements = strdup(action_verbs[j]);
+                        elements->integration_weight += 0.25f;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Extract primary imagery based on hint categories with style transformation
+        if (!elements->primary_imagery && hints[i].hint_category == HINT_FLORA) {
+            // Extract tree/plant descriptors and apply style transformation
+            if (strstr(text, "ancient") || strstr(text, "towering") || strstr(text, "massive")) {
+                char *styled_imagery = apply_regional_style_transformation("ancient", regional_style);
+                elements->primary_imagery = styled_imagery;
+                elements->integration_weight += 0.25f; // Higher weight for style transformation
+            } else if (strstr(text, "delicate") || strstr(text, "graceful") || strstr(text, "slender")) {
+                char *styled_imagery = apply_regional_style_transformation("delicate", regional_style);
+                elements->primary_imagery = styled_imagery;
+                elements->integration_weight += 0.25f;
+            }
+        }
+        
+        // Extract sensory details
+        if (!elements->sensory_details) {
+            if (hints[i].hint_category == HINT_SOUNDS) {
+                elements->sensory_details = strdup(text);
+                elements->integration_weight += 0.15f;
+            } else if (hints[i].hint_category == HINT_SCENTS) {
+                elements->sensory_details = strdup(text);
+                elements->integration_weight += 0.15f;
+            }
+        }
+        
+        // Extract temporal aspects - enhanced for time of day
+        if (!elements->temporal_aspects) {
+            // Check for explicit time mentions
+            if (strstr(text, time)) {
+                elements->temporal_aspects = strdup(text);
+                elements->integration_weight += 0.15f;
+            }
+            // Check for time-of-day keywords
+            else if ((strcmp(time, "morning") == 0 && 
+                     (strstr(text, "dawn") || strstr(text, "sunrise") || strstr(text, "morning") || 
+                      strstr(text, "dew") || strstr(text, "mist"))) ||
+                    (strcmp(time, "afternoon") == 0 && 
+                     (strstr(text, "noon") || strstr(text, "midday") || strstr(text, "bright") || 
+                      strstr(text, "warm"))) ||
+                    (strcmp(time, "evening") == 0 && 
+                     (strstr(text, "dusk") || strstr(text, "sunset") || strstr(text, "twilight") || 
+                      strstr(text, "shadows lengthen"))) ||
+                    (strcmp(time, "night") == 0 && 
+                     (strstr(text, "moonlight") || strstr(text, "starlight") || strstr(text, "darkness") || 
+                      strstr(text, "nocturnal")))) {
+                elements->temporal_aspects = strdup(text);
+                elements->integration_weight += 0.2f; // Higher weight for matching time context
+            }
+        }
+    }
+    
+    // Add seasonal context analysis based on current season
+    extern struct time_info_data time_info;
+    int season = get_season_from_time(); // We need to implement this
+    
+    // Re-analyze hints for seasonal context
+    for (i = 0; hints[i].hint_text; i++) {
+        text = hints[i].hint_text;
+        if (!text) continue;
+        
+        // Look for seasonal descriptors that match current season
+        if (season == SEASON_WINTER && 
+            (strstr(text, "winter") || strstr(text, "frost") || strstr(text, "snow") || 
+             strstr(text, "ice") || strstr(text, "bare") || strstr(text, "stark"))) {
+            if (!elements->primary_imagery) {
+                elements->primary_imagery = strdup("winter");
+            }
+            elements->integration_weight += 0.25f;
+        }
+        else if (season == SEASON_SPRING && 
+                (strstr(text, "spring") || strstr(text, "bud") || strstr(text, "green") || 
+                 strstr(text, "growth") || strstr(text, "bloom"))) {
+            if (!elements->primary_imagery) {
+                elements->primary_imagery = strdup("spring");
+            }
+            elements->integration_weight += 0.25f;
+        }
+        else if (season == SEASON_SUMMER && 
+                (strstr(text, "summer") || strstr(text, "lush") || strstr(text, "verdant") || 
+                 strstr(text, "abundant"))) {
+            if (!elements->primary_imagery) {
+                elements->primary_imagery = strdup("summer");
+            }
+            elements->integration_weight += 0.25f;
+        }
+        else if (season == SEASON_AUTUMN && 
+                (strstr(text, "autumn") || strstr(text, "fall") || strstr(text, "golden") || 
+                 strstr(text, "orange") || strstr(text, "dying"))) {
+            if (!elements->primary_imagery) {
+                elements->primary_imagery = strdup("autumn");
+            }
+            elements->integration_weight += 0.25f;
+        }
+    }
+    
+    // Cap integration weight at 1.0
+    if (elements->integration_weight > 1.0f) {
+        elements->integration_weight = 1.0f;
+    }
+    
+    // Cleanup region profile
+    if (profile) {
+        free_region_profile(profile);
+    }
+    
+    return elements;
+}
+
+/**
+ * Parse base description into modifiable components
+ */
+struct description_components *parse_description_components(const char *base_description) {
+    struct description_components *components;
+    char *desc_copy;
+    char *sentence;
+    char *saveptr;
+    
+    if (!base_description) return NULL;
+    
+    components = calloc(1, sizeof(struct description_components));
+    if (!components) return NULL;
+    
+    desc_copy = strdup(base_description);
+    if (!desc_copy) {
+        free(components);
+        return NULL;
+    }
+    
+    // Parse first sentence as opening imagery
+    sentence = strtok_r(desc_copy, ".", &saveptr);
+    if (sentence) {
+        components->opening_imagery = strdup(sentence);
+        
+        // Extract nouns and verbs from opening sentence
+        if (strstr(sentence, "trees") || strstr(sentence, "forest") || 
+            strstr(sentence, "hills") || strstr(sentence, "mountains")) {
+            components->primary_nouns = strdup("trees"); // Simplified for now
+        }
+        
+        if (strstr(sentence, "tower") || strstr(sentence, "rise") || 
+            strstr(sentence, "stretch") || strstr(sentence, "form")) {
+            components->descriptive_verbs = strdup("tower"); // Simplified for now
+        }
+    }
+    
+    free(desc_copy);
+    return components;
+}
+
+/**
+ * Apply semantic transformations to modify description mood
+ */
+void transform_description_mood(struct description_components *desc, const char *target_mood) {
+    if (!desc || !target_mood) return;
+    
+    if (strcmp(target_mood, "mysterious") == 0) {
+        // Transform to mysterious mood
+        if (desc->opening_imagery && strstr(desc->opening_imagery, "tall")) {
+            char *new_imagery = malloc(strlen(desc->opening_imagery) + 50);
+            if (new_imagery) {
+                strcpy(new_imagery, desc->opening_imagery);
+                // Replace "tall" with "ancient, shadow-wreathed"
+                char *pos = strstr(new_imagery, "tall");
+                if (pos) {
+                    char temp[MAX_STRING_LENGTH];
+                    *pos = '\0';
+                    snprintf(temp, sizeof(temp), "%sancient, shadow-wreathed%s", 
+                            new_imagery, pos + 4);
+                    free(desc->opening_imagery);
+                    desc->opening_imagery = strdup(temp);
+                }
+                free(new_imagery);
+            }
+        }
+    } else if (strcmp(target_mood, "peaceful") == 0) {
+        // Transform to peaceful mood  
+        if (desc->opening_imagery && strstr(desc->opening_imagery, "dense")) {
+            char *new_imagery = malloc(strlen(desc->opening_imagery) + 50);
+            if (new_imagery) {
+                strcpy(new_imagery, desc->opening_imagery);
+                char *pos = strstr(new_imagery, "dense");
+                if (pos) {
+                    char temp[MAX_STRING_LENGTH];
+                    *pos = '\0';
+                    snprintf(temp, sizeof(temp), "%stranquil%s", 
+                            new_imagery, pos + 5);
+                    free(desc->opening_imagery);
+                    desc->opening_imagery = strdup(temp);
+                }
+                free(new_imagery);
+            }
+        }
+    }
+}
+
+/**
+ * Inject dynamic elements from hints into description
+ */
+void inject_dynamic_elements(struct description_components *desc, const char *active_elements) {
+    if (!desc || !active_elements) return;
+    
+    if (!desc->descriptive_verbs) return;
+    
+    // Enhance verbs with active elements
+    if (strcmp(active_elements, "whisper") == 0 && strstr(desc->descriptive_verbs, "tower")) {
+        char *enhanced_verbs = malloc(strlen(desc->descriptive_verbs) + 50);
+        if (enhanced_verbs) {
+            snprintf(enhanced_verbs, strlen(desc->descriptive_verbs) + 50, 
+                    "whisper and %s", desc->descriptive_verbs);
+            free(desc->descriptive_verbs);
+            desc->descriptive_verbs = enhanced_verbs;
+        }
+    } else if (strcmp(active_elements, "sway") == 0) {
+        char *enhanced_verbs = malloc(strlen(desc->descriptive_verbs) + 50);
+        if (enhanced_verbs) {
+            snprintf(enhanced_verbs, strlen(desc->descriptive_verbs) + 50, 
+                    "sway as they %s", desc->descriptive_verbs);
+            free(desc->descriptive_verbs);
+            desc->descriptive_verbs = enhanced_verbs;
+        }
+    } else if (strcmp(active_elements, "cascade") == 0) {
+        char *enhanced_verbs = malloc(strlen(desc->descriptive_verbs) + 50);
+        if (enhanced_verbs) {
+            snprintf(enhanced_verbs, strlen(desc->descriptive_verbs) + 50, 
+                    "cascade as they %s", desc->descriptive_verbs);
+            free(desc->descriptive_verbs);
+            desc->descriptive_verbs = enhanced_verbs;
+        }
+    }
+}
+
+/**
+ * Enhanced injection function for temporal and sensory elements
+ */
+void inject_temporal_and_sensory_elements(struct description_components *desc, 
+                                        const char *temporal_aspects, 
+                                        const char *sensory_details) {
+    if (!desc) return;
+    
+    // Add temporal elements to opening imagery
+    if (temporal_aspects && desc->opening_imagery) {
+        char *temp_buffer = malloc(MAX_STRING_LENGTH);
+        if (temp_buffer) {
+            // Try to integrate temporal aspects naturally
+            if (strstr(temporal_aspects, "dawn") || strstr(temporal_aspects, "morning")) {
+                snprintf(temp_buffer, MAX_STRING_LENGTH, 
+                        "In the early morning light, %s", desc->opening_imagery);
+            } else if (strstr(temporal_aspects, "dusk") || strstr(temporal_aspects, "evening")) {
+                snprintf(temp_buffer, MAX_STRING_LENGTH, 
+                        "As evening approaches, %s", desc->opening_imagery);
+            } else if (strstr(temporal_aspects, "moonlight") || strstr(temporal_aspects, "night")) {
+                snprintf(temp_buffer, MAX_STRING_LENGTH, 
+                        "Under the cover of night, %s", desc->opening_imagery);
+            } else if (strstr(temporal_aspects, "noon") || strstr(temporal_aspects, "midday")) {
+                snprintf(temp_buffer, MAX_STRING_LENGTH, 
+                        "In the bright midday sun, %s", desc->opening_imagery);
+            } else {
+                // Generic temporal integration
+                snprintf(temp_buffer, MAX_STRING_LENGTH, 
+                        "%s %s", temporal_aspects, desc->opening_imagery);
+            }
+            free(desc->opening_imagery);
+            desc->opening_imagery = temp_buffer;
+        }
+    }
+    
+    // Add sensory details as sensory additions
+    if (sensory_details && !desc->sensory_additions) {
+        desc->sensory_additions = strdup(sensory_details);
+    }
+}
+
+/**
+ * Reconstruct enhanced description from modified components
+ */
+char *reconstruct_enhanced_description(struct description_components *components) {
+    char *enhanced;
+    
+    if (!components) return NULL;
+    
+    enhanced = malloc(MAX_STRING_LENGTH * 2);
+    if (!enhanced) return NULL;
+    
+    enhanced[0] = '\0';
+    
+    // Rebuild description from components
+    if (components->opening_imagery) {
+        safe_strcpy(enhanced, components->opening_imagery, MAX_STRING_LENGTH * 2);
+        
+        // Integrate enhanced verbs
+        if (components->descriptive_verbs) {
+            // Find and replace basic verbs with enhanced versions
+            char *verb_pos = strstr(enhanced, "tower");
+            if (verb_pos && strstr(components->descriptive_verbs, "whisper")) {
+                char temp[MAX_STRING_LENGTH * 2];
+                *verb_pos = '\0';
+                snprintf(temp, sizeof(temp), "%s%s%s", enhanced, 
+                        components->descriptive_verbs, verb_pos + 5);
+                safe_strcpy(enhanced, temp, MAX_STRING_LENGTH * 2);
+            }
+        }
+        
+        // Add sensory details
+        if (components->sensory_additions) {
+            safe_strcat(enhanced, " ");
+            safe_strcat(enhanced, components->sensory_additions);
+        }
+        
+        // Ensure proper punctuation
+        if (enhanced[strlen(enhanced) - 1] != '.') {
+            safe_strcat(enhanced, ".");
+        }
+    }
+    
+    return enhanced;
+}
+
+/**
+ * Free narrative elements structure
+ */
+void free_narrative_elements(struct narrative_elements *elements) {
+    if (!elements) return;
+    
+    if (elements->dominant_mood) free(elements->dominant_mood);
+    if (elements->primary_imagery) free(elements->primary_imagery);
+    if (elements->active_elements) free(elements->active_elements);
+    if (elements->sensory_details) free(elements->sensory_details);
+    if (elements->temporal_aspects) free(elements->temporal_aspects);
+    
+    free(elements);
+}
+
+/**
+ * Free description components structure
+ */
+void free_description_components(struct description_components *components) {
+    if (!components) return;
+    
+    if (components->opening_imagery) free(components->opening_imagery);
+    if (components->primary_nouns) free(components->primary_nouns);
+    if (components->descriptive_verbs) free(components->descriptive_verbs);
+    if (components->atmospheric_modifiers) free(components->atmospheric_modifiers);
+    if (components->sensory_additions) free(components->sensory_additions);
+    if (components->closing_elements) free(components->closing_elements);
+    
+    free(components);
+}
+
+/* ====================================================================== */
+/*                         UTILITY FUNCTIONS                             */
+/* ====================================================================== */
 
 /**
  * Transform second-person references to third-person observational
@@ -617,18 +1352,99 @@ char *enhance_base_description_with_hints(char *base_description, struct char_da
  * Layer regional hints onto existing base description
  * This preserves the resource/terrain foundation while adding regional character
  */
+/**
+ * Layer regional hints onto existing base description using semantic integration
+ * This preserves the resource/terrain foundation while seamlessly weaving regional character
+ */
 char *layer_hints_on_base_description(char *base_description, struct region_hint *hints,
                                      const char *weather_condition, const char *time_category,
                                      int x, int y) {
+    struct narrative_elements *elements;
+    struct description_components *components;
+    char *semantically_enhanced;
+    
+    if (!base_description || !hints) {
+        return NULL;
+    }
+    
+    log("DEBUG: Starting semantic integration for location (%d, %d)", x, y);
+    
+    // Initialize random seed for location consistency
+    srand(x * 1000 + y + time_info.hours);
+    
+    // Extract semantic elements from hints with regional style
+    int region_vnum = hints[0].region_vnum; // Get region from first hint
+    elements = extract_narrative_elements(hints, weather_condition, time_category, region_vnum);
+    if (!elements) {
+        log("DEBUG: No semantic elements extracted, falling back to simple layering");
+        return simple_hint_layering(base_description, hints, x, y);
+    }
+    
+    // Only apply semantic integration if we have sufficient elements
+    if (elements->integration_weight < 0.3f) {
+        log("DEBUG: Insufficient semantic weight (%.2f), using simple layering", 
+            elements->integration_weight);
+        free_narrative_elements(elements);
+        return simple_hint_layering(base_description, hints, x, y);
+    }
+    
+    log("DEBUG: Applying semantic integration with weight %.2f", elements->integration_weight);
+    
+    // Parse base description into components
+    components = parse_description_components(base_description);
+    if (!components) {
+        log("DEBUG: Failed to parse description components, using simple layering");
+        free_narrative_elements(elements);
+        return simple_hint_layering(base_description, hints, x, y);
+    }
+    
+    // Apply semantic transformations
+    if (elements->dominant_mood) {
+        log("DEBUG: Transforming mood to: %s", elements->dominant_mood);
+        transform_description_mood(components, elements->dominant_mood);
+    }
+    
+    if (elements->active_elements) {
+        log("DEBUG: Injecting dynamic elements: %s", elements->active_elements);
+        inject_dynamic_elements(components, elements->active_elements);
+    }
+    
+    // Apply temporal and sensory integration
+    if (elements->temporal_aspects || elements->sensory_details) {
+        log("DEBUG: Injecting temporal/sensory elements - temporal: %s, sensory: %s", 
+            elements->temporal_aspects ? elements->temporal_aspects : "none",
+            elements->sensory_details ? elements->sensory_details : "none");
+        inject_temporal_and_sensory_elements(components, elements->temporal_aspects, elements->sensory_details);
+    }
+
+    if (elements->sensory_details) {
+        log("DEBUG: Adding sensory details: %s", elements->sensory_details);
+        components->sensory_additions = strdup(elements->sensory_details);
+    }    // Reconstruct enhanced description
+    semantically_enhanced = reconstruct_enhanced_description(components);
+    
+    // Cleanup
+    free_narrative_elements(elements);
+    free_description_components(components);
+    
+    if (!semantically_enhanced) {
+        log("DEBUG: Semantic reconstruction failed, using simple layering");
+        return simple_hint_layering(base_description, hints, x, y);
+    }
+    
+    log("DEBUG: Semantic integration completed successfully");
+    return semantically_enhanced;
+}
+
+/**
+ * Fallback simple hint layering for when semantic integration isn't possible
+ */
+char *simple_hint_layering(char *base_description, struct region_hint *hints, int x, int y) {
     char *enhanced;
     char hint_additions[MAX_STRING_LENGTH];
     int used_hints[20];
     int used_count = 0;
     int i;
-    
-    if (!base_description || !hints) {
-        return NULL;
-    }
     
     // Allocate buffer for enhanced description
     enhanced = malloc(MAX_STRING_LENGTH * 2);
@@ -639,9 +1455,6 @@ char *layer_hints_on_base_description(char *base_description, struct region_hint
     // Start with the base description
     safe_strcpy(enhanced, base_description, MAX_STRING_LENGTH * 2);
     safe_strcpy(hint_additions, "", MAX_STRING_LENGTH);
-    
-    // Initialize random seed for location consistency
-    srand(x * 1000 + y + time_info.hours);
     
     // Add atmospheric hints (mood/ambiance)
     int atmosphere_hints[10];
@@ -722,7 +1535,7 @@ char *layer_hints_on_base_description(char *base_description, struct region_hint
         }
     }
     
-    log("DEBUG: Layered %d hints onto base description", used_count);
+    log("DEBUG: Simple layering applied %d hints to base description", used_count);
     
     return enhanced;
 }
