@@ -213,9 +213,21 @@ struct region_hint *load_contextual_hints(int region_vnum, const char *weather_c
     while ((row = mysql_fetch_row(result)) && hint_count < 10) {
         current_hint = &hints[hint_count];
         
-        // Copy hint category - it's an integer, not a string
+        // Copy hint category - convert from enum string to integer constant
         if (row[0]) {
-            current_hint->hint_category = atoi(row[0]);
+            if (strcmp(row[0], "atmosphere") == 0) current_hint->hint_category = HINT_ATMOSPHERE;
+            else if (strcmp(row[0], "fauna") == 0) current_hint->hint_category = HINT_FAUNA;
+            else if (strcmp(row[0], "flora") == 0) current_hint->hint_category = HINT_FLORA;
+            else if (strcmp(row[0], "geography") == 0) current_hint->hint_category = HINT_GEOGRAPHY;
+            else if (strcmp(row[0], "weather_influence") == 0) current_hint->hint_category = HINT_WEATHER_INFLUENCE;
+            else if (strcmp(row[0], "resources") == 0) current_hint->hint_category = HINT_RESOURCES;
+            else if (strcmp(row[0], "landmarks") == 0) current_hint->hint_category = HINT_LANDMARKS;
+            else if (strcmp(row[0], "sounds") == 0) current_hint->hint_category = HINT_SOUNDS;
+            else if (strcmp(row[0], "scents") == 0) current_hint->hint_category = HINT_SCENTS;
+            else if (strcmp(row[0], "seasonal_changes") == 0) current_hint->hint_category = HINT_SEASONAL_CHANGES;
+            else if (strcmp(row[0], "time_of_day") == 0) current_hint->hint_category = HINT_TIME_OF_DAY;
+            else if (strcmp(row[0], "mystical") == 0) current_hint->hint_category = HINT_MYSTICAL;
+            else current_hint->hint_category = 0; // Default/unknown
         }
         
         // Copy and transform hint text
@@ -252,9 +264,9 @@ struct region_hint *load_contextual_hints(int region_vnum, const char *weather_c
  * Intelligently weave hints into unified description
  */
 char *weave_unified_description(const char *base_description, struct region_hint *hints, 
-                               const char *weather_condition, const char *time_category) {
+                               const char *weather_condition, const char *time_category, int x, int y) {
     char *unified;
-    int i;
+    int i, j;
     int atmosphere_added = 0;
     int wildlife_added = 0;
     int weather_added = 0;
@@ -262,56 +274,199 @@ char *weave_unified_description(const char *base_description, struct region_hint
     unified = malloc(MAX_STRING_LENGTH * 3);
     if (!unified) return NULL;
     
-    // Start with base description if available
-    if (base_description && *base_description) {
-        strcpy(unified, base_description);
-        
-        // Add connecting phrase
-        strcat(unified, " ");
-    } else {
-        // No base description, start fresh
-        strcpy(unified, "");
+    // Build natural description from hints and environmental context
+    strcpy(unified, "");
+    int sentence_count = 0;
+    int used_hints[50];  // Track which hints we've used
+    int used_count = 0;
+    
+    // Initialize random seed based on coordinates for location consistency
+    srand(x * 1000 + y + time_info.hours);
+    
+    // Start with atmospheric foundation (randomly select from available)
+    int atmosphere_hints[10];
+    int atmosphere_count = 0;
+    for (i = 0; hints && hints[i].hint_text && atmosphere_count < 10; i++) {
+        if (hints[i].hint_category == HINT_ATMOSPHERE) {
+            atmosphere_hints[atmosphere_count++] = i;
+        }
+    }
+    if (atmosphere_count > 0 && !atmosphere_added) {
+        int selected = atmosphere_hints[rand() % atmosphere_count];
+        if (sentence_count > 0) strcat(unified, " ");
+        strcat(unified, hints[selected].hint_text);
+        used_hints[used_count++] = selected;
+        atmosphere_added = 1;
+        sentence_count++;
     }
     
-    // Weave in hints by priority and category
-    for (i = 0; hints && hints[i].hint_text; i++) {
-        int should_add = 0;
-        
-        // Prioritize atmospheric hints for mysterious/stormy weather
-        if (hints[i].hint_category == HINT_ATMOSPHERE && !atmosphere_added) {
-            should_add = 1;
-            atmosphere_added = 1;
-        }
-        // Add weather-specific hints
-        else if (hints[i].hint_category == HINT_WEATHER_INFLUENCE && !weather_added) {
-            should_add = 1;
-            weather_added = 1;
-        }
-        // Add wildlife for clear/cloudy weather
-        else if (hints[i].hint_category == HINT_FAUNA && !wildlife_added && 
-                (strcmp(weather_condition, "clear") == 0 || strcmp(weather_condition, "cloudy") == 0)) {
-            should_add = 1;
-            wildlife_added = 1;
-        }
-        // Add other categories sparingly
-        else if (hints[i].hint_category == HINT_SOUNDS || 
-                hints[i].hint_category == HINT_SCENTS ||
-                hints[i].hint_category == HINT_MYSTICAL) {
-            should_add = (i < 3); // Only add first few
-        }
-        
-        if (should_add && hints[i].hint_text) {
-            // Add appropriate connector
-            if (strlen(unified) > 0) {
-                if (strstr(unified, ".") && !strstr(unified + strlen(unified) - 10, ".")) {
-                    strcat(unified, ". ");
-                } else {
-                    strcat(unified, " ");
+    // Add weather influence based on conditions - be more inclusive
+    if (!weather_added) {
+        // Include cloudy weather effects too, not just rainy/stormy
+        if (strcmp(weather_condition, "rainy") == 0 || 
+            strcmp(weather_condition, "stormy") == 0 ||
+            strcmp(weather_condition, "cloudy") == 0) {
+            
+            int weather_hints[10];
+            int weather_count = 0;
+            int already_used, j;
+            
+            for (i = 0; hints && hints[i].hint_text && weather_count < 10; i++) {
+                if (hints[i].hint_category == HINT_WEATHER_INFLUENCE) {
+                    // Check if already used
+                    already_used = 0;
+                    for (j = 0; j < used_count; j++) {
+                        if (used_hints[j] == i) {
+                            already_used = 1;
+                            break;
+                        }
+                    }
+                    if (!already_used) {
+                        weather_hints[weather_count++] = i;
+                    }
                 }
             }
-            
-            strcat(unified, hints[i].hint_text);
+            if (weather_count > 0) {
+                int selected = weather_hints[rand() % weather_count];
+                if (sentence_count > 0) strcat(unified, " ");
+                strcat(unified, hints[selected].hint_text);
+                used_hints[used_count++] = selected;
+                weather_added = 1;
+                sentence_count++;
+            }
         }
+    }
+    
+    // Add wildlife/fauna during active times or randomly at night
+    if (!wildlife_added && (strcmp(time_category, "morning") == 0 || 
+                           strcmp(time_category, "evening") == 0 || 
+                           strcmp(time_category, "night") == 0)) {
+        // Night has 50% chance, others always
+        if (strcmp(time_category, "night") != 0 || (rand() % 2 == 0)) {
+            int fauna_hints[10];
+            int fauna_count = 0;
+            int already_used, j;
+            
+            for (i = 0; hints && hints[i].hint_text && fauna_count < 10; i++) {
+                if (hints[i].hint_category == HINT_FAUNA) {
+                    // Check if already used
+                    already_used = 0;
+                    for (j = 0; j < used_count; j++) {
+                        if (used_hints[j] == i) {
+                            already_used = 1;
+                            break;
+                        }
+                    }
+                    if (!already_used) {
+                        fauna_hints[fauna_count++] = i;
+                    }
+                }
+            }
+            if (fauna_count > 0) {
+                int selected = fauna_hints[rand() % fauna_count];
+                if (sentence_count > 0) strcat(unified, " ");
+                strcat(unified, hints[selected].hint_text);
+                used_hints[used_count++] = selected;
+                wildlife_added = 1;
+                sentence_count++;
+            }
+        }
+    }
+    
+    // Add flora/vegetation details for richness
+    if (sentence_count < 4 && (rand() % 3 != 0)) {  // 66% chance
+        int flora_hints[10];
+        int flora_count = 0;
+        int already_used, j;
+        
+        for (i = 0; hints && hints[i].hint_text && flora_count < 10; i++) {
+            if (hints[i].hint_category == HINT_FLORA) {
+                // Check if already used
+                already_used = 0;
+                for (j = 0; j < used_count; j++) {
+                    if (used_hints[j] == i) {
+                        already_used = 1;
+                        break;
+                    }
+                }
+                if (!already_used) {
+                    flora_hints[flora_count++] = i;
+                }
+            }
+        }
+        if (flora_count > 0) {
+            int selected = flora_hints[rand() % flora_count];
+            if (sentence_count > 0) strcat(unified, " ");
+            strcat(unified, hints[selected].hint_text);
+            used_hints[used_count++] = selected;
+            sentence_count++;
+        }
+    }
+    
+    // Add sensory details (sounds, scents) for immersion
+    if (sentence_count < 5 && (rand() % 2 == 0)) {  // 50% chance
+        int sensory_hints[20];
+        int sensory_count = 0;
+        int already_used, j;
+        
+        for (i = 0; hints && hints[i].hint_text && sensory_count < 20; i++) {
+            if ((hints[i].hint_category == HINT_SOUNDS || 
+                hints[i].hint_category == HINT_SCENTS)) {
+                // Check if already used
+                already_used = 0;
+                for (j = 0; j < used_count; j++) {
+                    if (used_hints[j] == i) {
+                        already_used = 1;
+                        break;
+                    }
+                }
+                if (!already_used) {
+                    sensory_hints[sensory_count++] = i;
+                }
+            }
+        }
+        if (sensory_count > 0) {
+            int selected = sensory_hints[rand() % sensory_count];
+            if (sentence_count > 0) strcat(unified, " ");
+            strcat(unified, hints[selected].hint_text);
+            used_hints[used_count++] = selected;
+            sentence_count++;
+        }
+    }
+    
+    // Occasionally add mystical elements for atmosphere
+    if (sentence_count < 4 && (rand() % 3 == 0)) {  // 33% chance
+        int mystical_hints[10];
+        int mystical_count = 0;
+        int already_used, j;
+        
+        for (i = 0; hints && hints[i].hint_text && mystical_count < 10; i++) {
+            if (hints[i].hint_category == HINT_MYSTICAL) {
+                // Check if already used
+                already_used = 0;
+                for (j = 0; j < used_count; j++) {
+                    if (used_hints[j] == i) {
+                        already_used = 1;
+                        break;
+                    }
+                }
+                if (!already_used) {
+                    mystical_hints[mystical_count++] = i;
+                }
+            }
+        }
+        if (mystical_count > 0) {
+            int selected = mystical_hints[rand() % mystical_count];
+            if (sentence_count > 0) strcat(unified, " ");
+            strcat(unified, hints[selected].hint_text);
+            used_hints[used_count++] = selected;
+            sentence_count++;
+        }
+    }
+    
+    // Ensure we have at least something
+    if (strlen(unified) < 10) {
+        strcpy(unified, "The ancient forest spreads around you, moss-covered trees creating a mystical canopy overhead.");
     }
     
     // Ensure description ends properly
@@ -350,10 +505,9 @@ void free_contextual_hints(struct region_hint *hints) {
  * Main function to create unified wilderness description
  * Uses wilderness weather system and template-free narrative weaving
  */
-char *create_unified_wilderness_description(int x, int y) {
+char *create_unified_wilderness_description(zone_rnum zone, int x, int y) {
     struct region_list *regions = NULL;
     struct region_hint *hints = NULL;
-    char *base_description = NULL;
     char *unified_description = NULL;
     int region_vnum = 0;
     const char *weather_condition;
@@ -363,31 +517,62 @@ char *create_unified_wilderness_description(int x, int y) {
     weather_condition = get_wilderness_weather_condition(x, y);
     time_category = get_time_of_day_category();
     
-    log("DEBUG: Creating unified description for (%d, %d) - weather: %s, time: %s", 
-        x, y, weather_condition, time_category);
+    log("DEBUG: Creating unified description for (%d, %d) in zone %d - weather: %s, time: %s", 
+        x, y, zone, weather_condition, time_category);
     
-    // Get region information - wilderness uses zone 0
-    regions = get_enclosing_regions(0, x, y);
-    if (regions && regions->rnum > 0) {
-        region_vnum = region_table[regions->rnum].vnum;
-        log("DEBUG: Found region %d at coordinates (%d, %d)", region_vnum, x, y);
-    } else {
-        log("DEBUG: No valid region found at coordinates (%d, %d)", x, y);
-        if (regions) free_region_list(regions);
+    // Get region information using the correct zone
+    regions = get_enclosing_regions(zone, x, y);
+    if (!regions) {
+        log("DEBUG: get_enclosing_regions returned NULL for coordinates (%d, %d)", x, y);
         return NULL;
     }
     
-    // Load comprehensive base description
-    base_description = load_comprehensive_region_description(region_vnum);
+    // Find the best region for descriptions - prefer geographic regions over encounter regions
+    struct region_list *curr_region = regions;
+    struct region_list *best_region = NULL;
+    struct region_list *geographic_region = NULL;
+    struct region_list *encounter_region = NULL;
+    
+    while (curr_region) {
+        if (curr_region->rnum != NOWHERE && curr_region->rnum >= 0) {
+            int region_type = region_table[curr_region->rnum].region_type;
+            log("DEBUG: Found region vnum %d (type %d) from region_table[%d]", 
+                region_table[curr_region->rnum].vnum, region_type, curr_region->rnum);
+            
+            if (region_type == 1) { /* Geographic region */
+                geographic_region = curr_region;
+                log("DEBUG: Found geographic region vnum %d", region_table[curr_region->rnum].vnum);
+            } else if (region_type == 2) { /* Encounter region */
+                encounter_region = curr_region;
+                log("DEBUG: Found encounter region vnum %d", region_table[curr_region->rnum].vnum);
+            }
+        }
+        curr_region = curr_region->next;
+    }
+    
+    // Prefer geographic regions for comprehensive descriptions
+    if (geographic_region) {
+        best_region = geographic_region;
+        log("DEBUG: Using geographic region for descriptions");
+    } else if (encounter_region) {
+        best_region = encounter_region;
+        log("DEBUG: Using encounter region for descriptions");
+    } else {
+        log("DEBUG: No suitable region found for descriptions");
+        free_region_list(regions);
+        return NULL;
+    }
+    
+    region_vnum = region_table[best_region->rnum].vnum;
+    log("DEBUG: Selected region vnum %d from region_table[%d] for descriptions", region_vnum, best_region->rnum);
     
     // Load contextual hints for current conditions
     hints = load_contextual_hints(region_vnum, weather_condition, time_category);
     
-    // Create unified description
-    unified_description = weave_unified_description(base_description, hints, weather_condition, time_category);
+    // Create unified description from environmental data and hints (no base template)
+    unified_description = weave_unified_description(NULL, hints, weather_condition, time_category, x, y);
     
     // Cleanup
-    if (base_description) free(base_description);
     if (hints) free_contextual_hints(hints);
     if (regions) free_region_list(regions);
     
@@ -398,12 +583,12 @@ char *create_unified_wilderness_description(int x, int y) {
  * Enhanced wilderness description with unified narrative weaving
  * This is the main integration point with the existing description engine
  */
-char *enhanced_wilderness_description_unified(struct char_data *ch, int x, int y) {
+char *enhanced_wilderness_description_unified(struct char_data *ch, zone_rnum zone, int x, int y) {
     char *unified_desc;
     char *fallback_desc;
     
     // Try unified description first
-    unified_desc = create_unified_wilderness_description(x, y);
+    unified_desc = create_unified_wilderness_description(zone, x, y);
     if (unified_desc && strlen(unified_desc) > 10) {
         log("DEBUG: Generated unified description (%d chars) for (%d, %d)", 
             (int)strlen(unified_desc), x, y);

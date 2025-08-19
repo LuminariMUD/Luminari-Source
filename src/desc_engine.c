@@ -18,6 +18,7 @@
 #include "constants.h"
 #include "mysql.h"
 #include "desc_engine.h"
+#include "systems/narrative_weaver/narrative_weaver.h"
 #include "wilderness.h"
 #include "resource_descriptions.h"
 #include "region_hints.h"
@@ -54,11 +55,14 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 	if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))) {
 		log("DEBUG: Generating dynamic description for wilderness room %d", GET_ROOM_VNUM(room));
 		
-		/* Try hint-enhanced descriptions first */
-		char *hint_desc = enhance_wilderness_description_with_hints(ch, room);
-		if (hint_desc) {
-			log("DEBUG: Hint-enhanced description generated successfully");
-			return hint_desc;
+		/* Try unified narrative weaver system first */
+		int x = world[room].coords[0];
+		int y = world[room].coords[1];
+		zone_rnum zone = GET_ROOM_ZONE(room);
+		char *unified_desc = enhanced_wilderness_description_unified(ch, zone, x, y);
+		if (unified_desc) {
+			log("DEBUG: Unified narrative description generated successfully for (%d, %d)", x, y);
+			return unified_desc;
 		}
 		
 		/* Fall back to resource-aware descriptions */
