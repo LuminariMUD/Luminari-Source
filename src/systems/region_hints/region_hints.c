@@ -181,32 +181,73 @@ char *enhance_wilderness_description_with_hints(struct char_data *ch, room_rnum 
     char *enhanced_desc = NULL;
     int region_vnum = NOWHERE;
     
+    log("DEBUG: enhance_wilderness_description_with_hints called for room %d", GET_ROOM_VNUM(room));
+    
     /* Only enhance wilderness rooms for now */
     if (!IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))) {
+        log("DEBUG: Room %d is not wilderness, returning NULL", GET_ROOM_VNUM(room));
         return NULL;
     }
     
     /* Get the enclosing regions for this room */
     regions = get_enclosing_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1]);
     if (!regions) {
+        log("DEBUG: No enclosing regions found for coordinates (%d, %d)", world[room].coords[0], world[room].coords[1]);
         return NULL; /* No regions found, fall back to default descriptions */
     }
     
-    /* Use the first enclosing region */
+    log("DEBUG: Found enclosing regions for coordinates (%d, %d)", world[room].coords[0], world[room].coords[1]);
+    
+    /* Find the best region for hints - prefer geographic regions over encounter regions */
     curr_region = regions;
-    if (curr_region->rnum == NOWHERE || curr_region->rnum > top_of_region_table) {
+    struct region_list *best_region = NULL;
+    struct region_list *geographic_region = NULL;
+    struct region_list *encounter_region = NULL;
+    
+    /* Scan through all regions to find the best one for hints */
+    while (curr_region) {
+        if (curr_region->rnum != NOWHERE && curr_region->rnum <= top_of_region_table) {
+            int region_type = region_table[curr_region->rnum].region_type;
+            log("DEBUG: Found region vnum %d (type %d) from region_table[%d]", 
+                region_table[curr_region->rnum].vnum, region_type, curr_region->rnum);
+            
+            if (region_type == 1) { /* Geographic region */
+                geographic_region = curr_region;
+                log("DEBUG: Found geographic region vnum %d", region_table[curr_region->rnum].vnum);
+            } else if (region_type == 2) { /* Encounter region */
+                encounter_region = curr_region;
+                log("DEBUG: Found encounter region vnum %d", region_table[curr_region->rnum].vnum);
+            }
+        }
+        curr_region = curr_region->next;
+    }
+    
+    /* Prefer geographic regions for hints, fall back to encounter regions if needed */
+    if (geographic_region) {
+        best_region = geographic_region;
+        log("DEBUG: Using geographic region for hints");
+    } else if (encounter_region) {
+        best_region = encounter_region;
+        log("DEBUG: No geographic region found, using encounter region for hints");
+    } else {
+        log("DEBUG: No suitable regions found for hints");
         free_region_list(regions);
         return NULL;
     }
     
-    region_vnum = region_table[curr_region->rnum].vnum;
+    region_vnum = region_table[best_region->rnum].vnum;
+    log("DEBUG: Selected region vnum %d from region_table[%d] for hints", region_vnum, best_region->rnum);
     
     /* Load hints and profile for this region */
     hints = load_region_hints(region_vnum);
     profile = load_region_profile(region_vnum);
     
+    log("DEBUG: Loaded %s hints and %s profile for region %d", 
+        hints ? "valid" : "no", profile ? "valid" : "no", region_vnum);
+    
     /* If no hints available, fall back to default */
     if (!hints) {
+        log("DEBUG: No hints available for region %d, falling back to default", region_vnum);
         if (profile) free_region_profile(profile);
         free_region_list(regions);
         return NULL;
@@ -217,8 +258,16 @@ char *enhance_wilderness_description_with_hints(struct char_data *ch, room_rnum 
     context.profile = profile;
     context.available_hints = hints;
     
+    log("DEBUG: Built description context, calling generate_enhanced_description");
+    
     /* Select and combine relevant hints */
     enhanced_desc = generate_enhanced_description(&context);
+    
+    if (enhanced_desc) {
+        log("DEBUG: Successfully generated enhanced description: %.100s...", enhanced_desc);
+    } else {
+        log("DEBUG: generate_enhanced_description returned NULL");
+    }
     
     /* Clean up */
     free_region_hints(hints);

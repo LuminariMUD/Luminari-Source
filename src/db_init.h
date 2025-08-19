@@ -98,7 +98,9 @@ ACMD_DECL(do_db_info);         /* Database information command */
 
 /* ===== STARTUP INITIALIZATION FUNCTIONS ===== */
 void startup_database_init(void);
-int quick_database_status(void);
+void initialize_missing_tables(void);
+int table_exists(const char *table_name);
+int procedure_exists(const char *procedure_name);
 int verify_database_procedures(void);
 int test_database_features(void);
 void repair_database_if_needed(void);

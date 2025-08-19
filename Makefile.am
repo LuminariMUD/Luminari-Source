@@ -157,6 +157,7 @@ circle_SOURCES = \
 	src/systems/spatial/spatial_audio.c \
 	src/systems/terrainbridge/terrain_bridge.c \
 	src/systems/region_hints/region_hints.c \
+	src/systems/narrative_weaver/narrative_weaver.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \
