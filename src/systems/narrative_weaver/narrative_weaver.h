@@ -19,6 +19,40 @@ struct narrative_components {
 /* Function prototypes for narrative weaving system */
 
 /**
+ * Check if a JSON array contains a specific string value
+ * @param json_array JSON array string like ["mystical", "tranquil", "ethereal"]
+ * @param search_string String to search for
+ * @return 1 if found, 0 if not found
+ */
+int json_array_contains_string(const char *json_array, const char *search_string);
+
+/**
+ * Get mood-based weight multiplier for hints based on regional AI characteristics
+ * @param hint_category The category of hint being evaluated
+ * @param hint_text The actual hint text
+ * @param key_characteristics JSON string with regional AI characteristics
+ * @return Weight multiplier (0.3 to 1.8)
+ */
+double get_mood_weight_for_hint(int hint_category, const char *hint_text, const char *key_characteristics);
+
+/**
+ * Select a hint using weighted probability based on contextual and mood weights
+ * @param hints Array of available hints
+ * @param hint_indices Array of indices to select from
+ * @param count Number of hints to choose from
+ * @param key_characteristics Regional AI characteristics for mood weighting
+ * @return Index of selected hint from hint_indices array
+ */
+int select_weighted_hint(struct region_hint *hints, int *hint_indices, int count, const char *key_characteristics);
+
+/**
+ * Load regional AI characteristics for mood-based hint weighting
+ * @param region_vnum The region vnum to load characteristics for
+ * @return JSON string containing key_characteristics, or NULL if not found
+ */
+char *load_region_characteristics(int region_vnum);
+
+/**
  * Main function to create unified wilderness description
  * @param zone Zone containing the coordinates
  * @param x World X coordinate

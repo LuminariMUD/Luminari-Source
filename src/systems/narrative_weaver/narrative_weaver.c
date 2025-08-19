@@ -130,6 +130,156 @@ double get_time_weight_for_hint(const char *time_json, const char *time_category
     return parse_json_double_value(time_json, time_category);
 }
 
+/**
+ * Check if a JSON array contains a specific string value
+ * @param json_array JSON array string like ["mystical", "tranquil", "ethereal"]
+ * @param search_string String to search for
+ * @return 1 if found, 0 if not found
+ */
+int json_array_contains_string(const char *json_array, const char *search_string) {
+    if (!json_array || !search_string) return 0;
+    
+    /* Simple string search approach for JSON arrays */
+    /* Look for "search_string" (with quotes) in the JSON */
+    char quoted_search[256];
+    snprintf(quoted_search, sizeof(quoted_search), "\"%s\"", search_string);
+    
+    return strstr(json_array, quoted_search) != NULL ? 1 : 0;
+}
+
+/**
+ * Get mood-based weight multiplier for hints based on regional AI characteristics
+ * @param hint_category The category of hint being evaluated
+ * @param hint_text The actual hint text
+ * @param key_characteristics JSON string with regional AI characteristics
+ * @return Weight multiplier (0.3 to 1.8)
+ */
+double get_mood_weight_for_hint(int hint_category, const char *hint_text, const char *key_characteristics) {
+    double weight = 1.0;
+    
+    if (!key_characteristics || !hint_text) return weight;
+    
+    /* Parse key_characteristics JSON for mood-based weighting */
+    /* Expected format: {"atmosphere": ["mystical", "tranquil"], "mystical_elements": ["ethereal", "ancient"], ...} */
+    
+    switch (hint_category) {
+        case HINT_MYSTICAL:
+            /* Boost mystical hints in mystical regions */
+            if (json_array_contains_string(key_characteristics, "mystical") ||
+                json_array_contains_string(key_characteristics, "ethereal") ||
+                json_array_contains_string(key_characteristics, "magical")) {
+                weight *= 1.8; /* 80% boost */
+            }
+            break;
+            
+        case HINT_SOUNDS:
+            /* Boost quiet sounds in tranquil regions, reduce loud sounds */
+            if (json_array_contains_string(key_characteristics, "tranquil") ||
+                json_array_contains_string(key_characteristics, "peaceful") ||
+                json_array_contains_string(key_characteristics, "serene")) {
+                if (strstr(hint_text, "whisper") || strstr(hint_text, "soft") || 
+                    strstr(hint_text, "gentle") || strstr(hint_text, "quiet")) {
+                    weight *= 1.6; /* 60% boost for quiet sounds */
+                } else if (strstr(hint_text, "loud") || strstr(hint_text, "roar") ||
+                          strstr(hint_text, "crash") || strstr(hint_text, "thunder")) {
+                    weight *= 0.3; /* 70% reduction for loud sounds */
+                }
+            }
+            break;
+            
+        case HINT_FLORA:
+            /* Boost moss-related flora in moss-covered regions */
+            if (json_array_contains_string(key_characteristics, "moss") ||
+                json_array_contains_string(key_characteristics, "verdant")) {
+                if (strstr(hint_text, "moss") || strstr(hint_text, "lichen") ||
+                    strstr(hint_text, "fern") || strstr(hint_text, "green")) {
+                    weight *= 1.5; /* 50% boost for moss-related flora */
+                }
+            }
+            break;
+            
+        case HINT_ATMOSPHERE:
+            /* Boost ethereal atmosphere in ethereal regions */
+            if (json_array_contains_string(key_characteristics, "ethereal") ||
+                json_array_contains_string(key_characteristics, "otherworldly")) {
+                if (strstr(hint_text, "ethereal") || strstr(hint_text, "otherworldly") ||
+                    strstr(hint_text, "mystical") || strstr(hint_text, "magical")) {
+                    weight *= 1.5; /* 50% boost for ethereal atmospheric hints */
+                }
+            }
+            
+            /* Additional boost for tranquil regions */
+            if (json_array_contains_string(key_characteristics, "tranquil") ||
+                json_array_contains_string(key_characteristics, "peaceful")) {
+                if (strstr(hint_text, "peaceful") || strstr(hint_text, "calm") ||
+                    strstr(hint_text, "serene") || strstr(hint_text, "tranquil")) {
+                    weight *= 1.2; /* 20% additional boost for peaceful descriptors */
+                }
+            }
+            break;
+            
+        default:
+            /* No special weighting for other categories */
+            break;
+    }
+    
+    /* Ensure weight stays within reasonable bounds */
+    if (weight < 0.3) weight = 0.3;
+    if (weight > 1.8) weight = 1.8;
+    
+    return weight;
+}
+
+/**
+ * Select a hint using weighted probability based on contextual and mood weights
+ * @param hints Array of available hints
+ * @param hint_indices Array of indices to select from
+ * @param count Number of hints to choose from
+ * @param key_characteristics Regional AI characteristics for mood weighting
+ * @return Index of selected hint from hint_indices array
+ */
+int select_weighted_hint(struct region_hint *hints, int *hint_indices, int count, const char *key_characteristics) {
+    if (!hints || !hint_indices || count <= 0) return 0;
+    
+    /* Simple case - no weighting needed */
+    if (count == 1) return 0;
+    
+    /* Calculate total weight for all hints */
+    double total_weight = 0.0;
+    double weights[20]; /* Max 20 hints as per usage */
+    int i;
+    
+    for (i = 0; i < count && i < 20; i++) {
+        int hint_index = hint_indices[i];
+        double contextual_weight = hints[hint_index].contextual_weight;
+        double mood_weight = get_mood_weight_for_hint(hints[hint_index].hint_category, 
+                                                     hints[hint_index].hint_text, 
+                                                     key_characteristics);
+        
+        weights[i] = contextual_weight * mood_weight;
+        total_weight += weights[i];
+    }
+    
+    /* Random selection based on weighted probability */
+    if (total_weight <= 0.0) {
+        /* Fallback to simple random if no valid weights */
+        return rand() % count;
+    }
+    
+    double random_value = ((double)rand() / RAND_MAX) * total_weight;
+    double cumulative_weight = 0.0;
+    
+    for (i = 0; i < count && i < 20; i++) {
+        cumulative_weight += weights[i];
+        if (random_value <= cumulative_weight) {
+            return i;
+        }
+    }
+    
+    /* Fallback to last hint if rounding errors occur */
+    return count - 1;
+}
+
 /* ====================================================================== */
 /*                    SEMANTIC NARRATIVE STRUCTURES                      */
 /* ====================================================================== */
@@ -562,7 +712,7 @@ struct narrative_elements *extract_narrative_elements(struct region_hint *hints,
                 "SELECT description_style FROM region_profiles WHERE region_vnum = %d",
                 region_vnum);
             
-            if (!mysql_pool_query(query, &result) && result) {
+            if (mysql_pool_query(query, &result) == 0 && result) {
                 if ((row = mysql_fetch_row(result))) {
                     regional_style = convert_style_string_to_int(row[0]);
                     log("DEBUG: Using regional style %d ('%s') for region %d", 
@@ -1144,7 +1294,7 @@ char *load_comprehensive_region_description(int region_vnum) {
         return NULL;
     }
     
-    if (mysql_pool_query(query, &result)) {
+    if (mysql_pool_query(query, &result) != 0) {
         log("SYSERR: MySQL query error in load_comprehensive_region_description");
         return NULL;
     }
@@ -1174,7 +1324,7 @@ char *load_comprehensive_region_description(int region_vnum) {
 /* ====================================================================== */
 
 /**
- * Load and filter relevant hints for current conditions
+ * Load and filter relevant hints for current conditions with AI mood integration
  */
 struct region_hint *load_contextual_hints(int region_vnum, const char *weather_condition, const char *time_category) {
     MYSQL_RES *result;
@@ -1199,7 +1349,7 @@ struct region_hint *load_contextual_hints(int region_vnum, const char *weather_c
         return NULL;
     }
     
-    if (mysql_pool_query(query, &result)) {
+    if (mysql_pool_query(query, &result) != 0) {
         log("SYSERR: MySQL query error in load_contextual_hints");
         return NULL;
     }
@@ -1286,12 +1436,62 @@ struct region_hint *load_contextual_hints(int region_vnum, const char *weather_c
     return hints;
 }
 
+/**
+ * Load regional characteristics for mood-based hint weighting
+ * @param region_vnum The region vnum to load characteristics for
+ * @return JSON string containing key_characteristics, or NULL if not found
+ */
+char *load_region_characteristics(int region_vnum) {
+    MYSQL_RES *result = NULL;
+    MYSQL_ROW row;
+    char query[MAX_STRING_LENGTH];
+    char *characteristics = NULL;
+    
+    /* Ensure database connection is available */
+    if (!mysql_pool) {
+        log("SYSERR: No database connection for loading AI characteristics");
+        return NULL;
+    }
+    
+    /* Build query with bounds checking */
+    snprintf(query, sizeof(query),
+        "SELECT key_characteristics FROM region_profiles WHERE region_vnum = %d",
+        region_vnum);
+    
+    /* Execute query using connection pool */
+    if (mysql_pool_query(query, &result) != 0) {
+        log("SYSERR: MySQL query error in load_region_characteristics: %s", query);
+        return NULL;
+    }
+    
+    /* Check for valid result set */
+    if (!result) {
+        log("SYSERR: MySQL returned NULL result in load_region_characteristics");
+        return NULL;
+    }
+    
+    /* Fetch the first row if available */
+    row = mysql_fetch_row(result);
+    if (row && row[0] && *row[0]) {
+        characteristics = strdup(row[0]);
+        log("DEBUG: Loaded AI characteristics for region %d: %.100s...", 
+            region_vnum, characteristics);
+    } else {
+        log("DEBUG: No AI characteristics found for region %d", region_vnum);
+    }
+    
+    /* Always free the result set */
+    mysql_pool_free_result(result);
+    
+    return characteristics;
+}
+
 /* ====================================================================== */
 /*                         NARRATIVE WEAVING CORE                        */
 /* ====================================================================== */
 
 /**
- * Intelligently weave hints into unified description
+ * Intelligently weave hints into unified description with AI mood-based weighting
  */
 char *weave_unified_description(const char *base_description, struct region_hint *hints, 
                                const char *weather_condition, const char *time_category, int x, int y) {
@@ -1300,9 +1500,22 @@ char *weave_unified_description(const char *base_description, struct region_hint
     int atmosphere_added = 0;
     int wildlife_added = 0;
     int weather_added = 0;
+    char *regional_characteristics = NULL;
+    
+    /* Load regional characteristics for mood-based weighting */
+    if (hints && hints[0].hint_text) {
+        int region_vnum = 1000004; /* Default to Mosswood for now, should be derived from coordinates */
+        regional_characteristics = load_region_characteristics(region_vnum);
+        if (!regional_characteristics) {
+            log("DEBUG: No characteristics found for region %d, using basic weighting", region_vnum);
+        }
+    }
     
     unified = malloc(MAX_STRING_LENGTH * 3);
-    if (!unified) return NULL;
+    if (!unified) {
+        if (regional_characteristics) free(regional_characteristics);
+        return NULL;
+    }
     
     // Build natural description from hints and environmental context
     safe_strcpy(unified, "", MAX_STRING_LENGTH * 3);
@@ -1313,7 +1526,7 @@ char *weave_unified_description(const char *base_description, struct region_hint
     // Initialize random seed based on coordinates for location consistency
     srand(x * 1000 + y + time_info.hours);
     
-    // Start with atmospheric foundation (randomly select from available)
+    // Start with atmospheric foundation (using weighted selection)
     int atmosphere_hints[10];
     int atmosphere_count = 0;
     for (i = 0; hints && hints[i].hint_text && atmosphere_count < 10; i++) {
@@ -1322,7 +1535,8 @@ char *weave_unified_description(const char *base_description, struct region_hint
         }
     }
     if (atmosphere_count > 0 && !atmosphere_added) {
-        int selected = atmosphere_hints[rand() % atmosphere_count];
+        int selected_index = select_weighted_hint(hints, atmosphere_hints, atmosphere_count, regional_characteristics);
+        int selected = atmosphere_hints[selected_index];
         if (sentence_count > 0) safe_strcat(unified, " ");
         safe_strcat(unified, hints[selected].hint_text);
         used_hints[used_count++] = selected;
@@ -1357,7 +1571,8 @@ char *weave_unified_description(const char *base_description, struct region_hint
                 }
             }
             if (weather_count > 0) {
-                int selected = weather_hints[rand() % weather_count];
+                int selected_index = select_weighted_hint(hints, weather_hints, weather_count, regional_characteristics);
+                int selected = weather_hints[selected_index];
                 if (sentence_count > 0) safe_strcat(unified, " ");
                 safe_strcat(unified, hints[selected].hint_text);
                 used_hints[used_count++] = selected;
@@ -1393,7 +1608,8 @@ char *weave_unified_description(const char *base_description, struct region_hint
                 }
             }
             if (fauna_count > 0) {
-                int selected = fauna_hints[rand() % fauna_count];
+                int selected_index = select_weighted_hint(hints, fauna_hints, fauna_count, regional_characteristics);
+                int selected = fauna_hints[selected_index];
                 if (sentence_count > 0) safe_strcat(unified, " ");
                 safe_strcat(unified, hints[selected].hint_text);
                 used_hints[used_count++] = selected;
@@ -1425,7 +1641,8 @@ char *weave_unified_description(const char *base_description, struct region_hint
             }
         }
         if (flora_count > 0) {
-            int selected = flora_hints[rand() % flora_count];
+            int selected_index = select_weighted_hint(hints, flora_hints, flora_count, regional_characteristics);
+            int selected = flora_hints[selected_index];
             if (sentence_count > 0) safe_strcat(unified, " ");
             safe_strcat(unified, hints[selected].hint_text);
             used_hints[used_count++] = selected;
@@ -1456,7 +1673,8 @@ char *weave_unified_description(const char *base_description, struct region_hint
             }
         }
         if (sensory_count > 0) {
-            int selected = sensory_hints[rand() % sensory_count];
+            int selected_index = select_weighted_hint(hints, sensory_hints, sensory_count, regional_characteristics);
+            int selected = sensory_hints[selected_index];
             if (sentence_count > 0) safe_strcat(unified, " ");
             safe_strcat(unified, hints[selected].hint_text);
             used_hints[used_count++] = selected;
@@ -1486,7 +1704,8 @@ char *weave_unified_description(const char *base_description, struct region_hint
             }
         }
         if (seasonal_count > 0) {
-            int selected = seasonal_hints[rand() % seasonal_count];
+            int selected_index = select_weighted_hint(hints, seasonal_hints, seasonal_count, regional_characteristics);
+            int selected = seasonal_hints[selected_index];
             if (sentence_count > 0) safe_strcat(unified, " ");
             safe_strcat(unified, hints[selected].hint_text);
             used_hints[used_count++] = selected;
@@ -1518,7 +1737,8 @@ char *weave_unified_description(const char *base_description, struct region_hint
             }
         }
         if (time_count > 0) {
-            int selected = time_hints[rand() % time_count];
+            int selected_index = select_weighted_hint(hints, time_hints, time_count, regional_characteristics);
+            int selected = time_hints[selected_index];
             if (sentence_count > 0) safe_strcat(unified, " ");
             safe_strcat(unified, hints[selected].hint_text);
             used_hints[used_count++] = selected;
@@ -1548,7 +1768,8 @@ char *weave_unified_description(const char *base_description, struct region_hint
             }
         }
         if (mystical_count > 0) {
-            int selected = mystical_hints[rand() % mystical_count];
+            int selected_index = select_weighted_hint(hints, mystical_hints, mystical_count, regional_characteristics);
+            int selected = mystical_hints[selected_index];
             if (sentence_count > 0) safe_strcat(unified, " ");
             safe_strcat(unified, hints[selected].hint_text);
             used_hints[used_count++] = selected;
@@ -1566,8 +1787,13 @@ char *weave_unified_description(const char *base_description, struct region_hint
         safe_strcat(unified, ".");
     }
     
-    log("DEBUG: Wove unified description: atmosphere=%d, wildlife=%d, weather=%d", 
+    log("DEBUG: Wove unified description with AI weighting: atmosphere=%d, wildlife=%d, weather=%d", 
         atmosphere_added, wildlife_added, weather_added);
+    
+    // Cleanup regional characteristics
+    if (regional_characteristics) {
+        free(regional_characteristics);
+    }
     
     return unified;
 }
@@ -1742,6 +1968,7 @@ char *layer_hints_on_base_description(char *base_description, struct region_hint
 
 /**
  * Fallback simple hint layering for when semantic integration isn't possible
+ * Now includes AI mood-based weighting
  */
 char *simple_hint_layering(char *base_description, struct region_hint *hints, int x, int y) {
     char *enhanced;
@@ -1749,10 +1976,21 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
     int used_hints[20];
     int used_count = 0;
     int i;
+    char *regional_characteristics = NULL;
+    
+    /* Load regional characteristics for mood-based weighting */
+    if (hints && hints[0].hint_text) {
+        int region_vnum = 1000004;
+        regional_characteristics = load_region_characteristics(region_vnum);
+        if (!regional_characteristics) {
+            log("DEBUG: No regional characteristics found for region %d in simple layering", region_vnum);
+        }
+    }
     
     // Allocate buffer for enhanced description
     enhanced = malloc(MAX_STRING_LENGTH * 2);
     if (!enhanced) {
+        if (regional_characteristics) free(regional_characteristics);
         return NULL;
     }
     
@@ -1760,7 +1998,7 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
     safe_strcpy(enhanced, base_description, MAX_STRING_LENGTH * 2);
     safe_strcpy(hint_additions, "", MAX_STRING_LENGTH);
     
-    // Add atmospheric hints (mood/ambiance)
+    // Add atmospheric hints (mood/ambiance) using weighted selection
     int atmosphere_hints[10];
     int atmosphere_count = 0;
     for (i = 0; hints && hints[i].hint_text && atmosphere_count < 10; i++) {
@@ -1769,7 +2007,8 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
         }
     }
     if (atmosphere_count > 0) {
-        int selected = atmosphere_hints[rand() % atmosphere_count];
+        int selected_index = select_weighted_hint(hints, atmosphere_hints, atmosphere_count, regional_characteristics);
+        int selected = atmosphere_hints[selected_index];
         if (strlen(hint_additions) > 0) safe_strcat(hint_additions, " ");
         safe_strcat(hint_additions, hints[selected].hint_text);
         used_hints[used_count++] = selected;
@@ -1795,7 +2034,8 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
         }
     }
     if (flora_count > 0) {
-        int selected = flora_hints[rand() % flora_count];
+        int selected_index = select_weighted_hint(hints, flora_hints, flora_count, regional_characteristics);
+        int selected = flora_hints[selected_index];
         if (strlen(hint_additions) > 0) safe_strcat(hint_additions, " ");
         safe_strcat(hint_additions, hints[selected].hint_text);
         used_hints[used_count++] = selected;
@@ -1821,7 +2061,8 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
         }
     }
     if (fauna_count > 0 && (rand() % 3 != 0)) { // 66% chance to include fauna
-        int selected = fauna_hints[rand() % fauna_count];
+        int selected_index = select_weighted_hint(hints, fauna_hints, fauna_count, regional_characteristics);
+        int selected = fauna_hints[selected_index];
         if (strlen(hint_additions) > 0) safe_strcat(hint_additions, " ");
         safe_strcat(hint_additions, hints[selected].hint_text);
         used_hints[used_count++] = selected;
@@ -1839,7 +2080,12 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
         }
     }
     
-    log("DEBUG: Simple layering applied %d hints to base description", used_count);
+    log("DEBUG: Simple layering with regional weighting applied %d hints to base description", used_count);
+    
+    // Cleanup regional characteristics
+    if (regional_characteristics) {
+        free(regional_characteristics);
+    }
     
     return enhanced;
 }
