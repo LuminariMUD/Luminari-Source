@@ -30,12 +30,39 @@ char *create_unified_wilderness_description(zone_rnum zone, int x, int y);
 /**
  * Enhanced wilderness description function that replaces hint-based approach
  * @param ch Character viewing the description
+ * @param room The wilderness room 
  * @param zone Zone containing the coordinates
  * @param x World X coordinate  
  * @param y World Y coordinate
  * @return Newly allocated unified description
  */
-char *enhanced_wilderness_description_unified(struct char_data *ch, zone_rnum zone, int x, int y);
+char *enhanced_wilderness_description_unified(struct char_data *ch, room_rnum room, zone_rnum zone, int x, int y);
+
+/**
+ * Enhance base resource-aware description with regional hints
+ * @param base_description Existing resource-aware description to enhance
+ * @param ch Character viewing the description
+ * @param zone Zone containing the coordinates
+ * @param x World X coordinate
+ * @param y World Y coordinate
+ * @return Enhanced description or NULL if enhancement fails
+ */
+char *enhance_base_description_with_hints(char *base_description, struct char_data *ch, 
+                                         zone_rnum zone, int x, int y);
+
+/**
+ * Layer regional hints onto base description
+ * @param base_description Foundation description from resource system
+ * @param hints Array of contextual hints
+ * @param weather_condition Current weather conditions
+ * @param time_category Current time of day category
+ * @param x World X coordinate
+ * @param y World Y coordinate
+ * @return Enhanced description with layered hints
+ */
+char *layer_hints_on_base_description(char *base_description, struct region_hint *hints,
+                                     const char *weather_condition, const char *time_category,
+                                     int x, int y);
 
 /**
  * Validate that text uses proper third-person observational voice
@@ -49,6 +76,24 @@ int validate_narrative_voice(const char *text);
  * Called during mud startup
  */
 void init_narrative_weaver(void);
+
+/**
+ * Safe string copy with buffer bounds checking
+ * @param dest Destination buffer
+ * @param src Source string
+ * @param dest_size Size of destination buffer
+ * @return Number of characters copied, or -1 on error
+ */
+int safe_strcpy(char *dest, const char *src, size_t dest_size);
+
+/**
+ * Safe string concatenation with buffer bounds checking  
+ * @param dest Destination buffer
+ * @param src Source string
+ * @param dest_size Size of destination buffer
+ * @return Number of characters concatenated, or -1 on error
+ */
+int narrative_safe_strcat(char *dest, const char *src, size_t dest_size);
 
 /* Constants for narrative weaving */
 #define NARRATIVE_STYLE_POETIC      0

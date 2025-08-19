@@ -59,7 +59,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 		int x = world[room].coords[0];
 		int y = world[room].coords[1];
 		zone_rnum zone = GET_ROOM_ZONE(room);
-		char *unified_desc = enhanced_wilderness_description_unified(ch, zone, x, y);
+		char *unified_desc = enhanced_wilderness_description_unified(ch, room, zone, x, y);
 		if (unified_desc) {
 			log("DEBUG: Unified narrative description generated successfully for (%d, %d)", x, y);
 			return unified_desc;
