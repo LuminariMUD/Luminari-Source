@@ -10,15 +10,15 @@
 2. **Narrative Weaver** → Enhances descriptions with regional hints for unique atmospheric experiences  
 3. **Player Experience** → Regions become memorable, distinctive locations with contextual atmosphere
 
-**Current Status**: ✅ **PHASE 1 COMPLETE** - Advanced AI mood-based narrative weaving system fully implemented with sophisticated regional personality integration, weighted hint selection, and contextual filtering. **UPDATE August 19, 2025**: All missing AI mood-based functions now implemented and integrated.
+**Current Status**: ✅ **PHASE 1 COMPLETE** - Advanced regional mood-based narrative weaving system fully implemented with sophisticated regional personality integration, weighted hint selection, and contextual filtering. **UPDATE August 19, 2025**: All missing regional mood-based functions now implemented and integrated. Function names updated to use generic terminology while maintaining full functionality.
 
 ---
 
 ## 🎉 Major Achievements - Phase 1 Complete
 
-### **✅ Comprehensive AI Integration Implemented**
-- **JSON Parsing Infrastructure**: Custom functions for seasonal/time weights plus AI characteristics parsing
-- **Mood-Based Weighting System**: Sophisticated category-specific hint boosting based on regional AI personality
+### **✅ Comprehensive Regional Integration Implemented**
+- **JSON Parsing Infrastructure**: Custom functions for seasonal/time weights plus regional characteristics parsing
+- **Mood-Based Weighting System**: Sophisticated category-specific hint boosting based on regional personality
 - **Weighted Selection Algorithm**: Replaced all simple random selection with intelligent weighted hint selection  
 - **Contextual Filtering**: 30% minimum relevance threshold with seasonal + time weight combination
 - **C90 Compatibility**: All code updated for legacy compiler compatibility
@@ -30,7 +30,7 @@
 - **Location Consistency**: Coordinate-based random seeding for consistent descriptions per location
 
 ### **✅ Database Integration**
-- **AI Mood Data Utilization**: Parses `key_characteristics` JSON for atmosphere, mystical_elements, weather_effects, wildlife_behavior
+- **Regional Mood Data Utilization**: Parses `key_characteristics` JSON for atmosphere, mystical_elements, weather_effects, wildlife_behavior
 - **Smart Category Matching**: Intelligent hint boosting (mystical regions boost mystical hints 80%, quiet regions reduce loud sounds 70%)
 - **Quality Infrastructure**: Ready for quality score and approval status integration
 
@@ -78,39 +78,39 @@
   - **Impact**: Resource-aware regional atmosphere (pending hint creation)
   - **Files**: `narrative_weaver.c`
 
-### **Priority 3: AI Mood-Based Regional Character Integration** ✅ **COMPLETED**
-- [x] **Integrate AI-generated regional profiles**
+### **Priority 3: Regional Mood-Based Character Integration** ✅ **COMPLETED**
+- [x] **Integrate regional-generated regional profiles**
   - **Current**: ✅ COMPLETED - Comprehensive mood-based hint weighting system implemented
-  - **Available**: AI-generated dominant_mood, key_characteristics JSON (atmosphere, mystical_elements, weather_effects, wildlife_behavior)
+  - **Available**: Regional-generated dominant_mood, key_characteristics JSON (atmosphere, mystical_elements, weather_effects, wildlife_behavior)
   - **Implementation**: ✅ Advanced `get_mood_weight_for_hint()` with category-specific intelligence:
     - Mystical regions: 80% boost for mystical hints
     - Sound-dampening regions: 60% boost for quiet sounds, 70% reduction for loud sounds  
     - Moss-covered regions: 50% boost for moss-related flora
     - Ethereal atmosphere: 50% boost for ethereal atmospheric hints
     - Tranquil regions: 20% additional boost for peaceful descriptors
-  - **Impact**: ✅ AI personality-driven regional atmosphere with intelligent weighted selection
+  - **Impact**: ✅ Regional personality-driven regional atmosphere with intelligent weighted selection
   - **Files**: `narrative_weaver.c` (2207 lines) - `json_array_contains_string()`, `get_mood_weight_for_hint()`, `select_weighted_hint()`
 
 - [x] **Enhanced weighted hint selection system**
   - **Current**: ✅ COMPLETED - Replaced all simple `rand() % count` with sophisticated weighted selection
   - **Implementation**: ✅ `select_weighted_hint()` applies contextual + mood weights with minimum thresholds
-  - **Impact**: ✅ Intelligent hint selection based on regional AI personality and environmental context
+  - **Impact**: ✅ Intelligent hint selection based on regional personality and environmental context
   - **Files**: `narrative_weaver.c` - Updated all hint selection points (atmosphere, fauna, flora, weather, seasonal, time, mystical)
 
 ---
 
 ## 🌟 Phase 2: Advanced Features and Quality Enhancement (High Impact)
 
-### **Priority 1: AI Quality Integration** - **IMMEDIATE NEXT**
-- [ ] **Use AI quality scores for hint selection**
+### **Priority 1: Regional Quality Integration** - **IMMEDIATE NEXT**
+- [ ] **Use regional quality scores for hint selection**
   - **Current**: Quality scores available but not utilized in selection algorithm
-  - **Available**: AI quality scores (0.00-5.00), approval status, review flags
+  - **Available**: Regional quality scores (0.00-5.00), approval status, review flags
   - **Implementation**: Enhance `load_contextual_hints()` to prefer high-quality approved hints
-  - **Impact**: Ensure only best AI content reaches players
+  - **Impact**: Ensure only best regional content reaches players
   - **Files**: `narrative_weaver.c`
 
 - [ ] **Implement approval status filtering**
-  - **Goal**: Filter out unapproved or low-quality AI-generated content
+  - **Goal**: Filter out unapproved or low-quality regionally-generated content
   - **Implementation**: Add quality threshold and approval checks to hint loading
   - **Impact**: Production-ready content quality assurance
 
@@ -242,15 +242,15 @@
 4. **Performance awareness** - Monitor resource usage as features are added
 
 ### **Files Most Likely to Change**
-- `src/systems/narrative_weaver/narrative_weaver.c` - ✅ Primary implementation (2187 lines - comprehensive mood-based system)
+- `src/systems/narrative_weaver/narrative_weaver.c` - ✅ Primary implementation (2207 lines - comprehensive mood-based system)
 - `src/systems/narrative_weaver/narrative_weaver.h` - Structure definitions  
 - Database queries and hint processing logic
 
 ### **Success Metrics**
 - **Functionality**: ✅ All hint categories properly processed (COMPLETED)
-- **Quality**: ✅ AI metadata effectively utilized for atmospheric enhancement (COMPLETED) 
-- **AI Integration**: ✅ Regional personality-driven hint selection (COMPLETED)
+- **Quality**: ✅ Regional metadata effectively utilized for atmospheric enhancement (COMPLETED) 
+- **Regional Integration**: ✅ Regional personality-driven hint selection (COMPLETED)
 - **Performance**: ✅ No significant impact on room description generation speed (COMPLETED)
 - **Experience**: Regional areas feel distinctive and atmospheric to players
 
-**Next Action**: Implement AI quality score filtering and approval status integration for production-ready content quality assurance
+**Next Action**: Implement regional quality score filtering and approval status integration for production-ready content quality assurance
