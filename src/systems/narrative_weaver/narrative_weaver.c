@@ -21,6 +21,7 @@
 #include "wilderness.h"
 #include "mysql.h"
 #include "region_hints.h"
+#include "resource_descriptions.h"
 #include "systems/narrative_weaver/narrative_weaver.h"
 
 /* External function declarations */
@@ -65,6 +66,68 @@ int get_season_from_time(void) {
     if (month >= 5 && month <= 7) return SEASON_SUMMER;   /* Jun-Aug */
     if (month >= 8 && month <= 10) return SEASON_AUTUMN;  /* Sep-Nov */
     return SEASON_WINTER;                                  /* Dec-Feb */
+}
+
+/* ====================================================================== */
+/*                          JSON PARSING UTILITIES                       */
+/* ====================================================================== */
+
+/**
+ * Parse a double value from simple JSON format
+ * Example: {"spring": 0.9, "summer": 1.0} - get value for "spring"
+ */
+double parse_json_double_value(const char *json, const char *key) {
+    char search_key[100];
+    char *start, *end;
+    
+    if (!json || !key) return 1.0;
+    
+    // Create search pattern: "key": 
+    snprintf(search_key, sizeof(search_key), "\"%s\":", key);
+    
+    start = strstr(json, search_key);
+    if (!start) return 1.0;
+    
+    // Move past the key and find the value
+    start += strlen(search_key);
+    while (*start && (*start == ' ' || *start == '\t')) start++; // Skip whitespace
+    
+    // Find end of number (space, comma, or brace)
+    end = start;
+    while (*end && *end != ',' && *end != '}' && *end != ' ' && *end != '\t') end++;
+    
+    // Extract and convert
+    char value_str[32];
+    int len = end - start;
+    if (len >= sizeof(value_str)) len = sizeof(value_str) - 1;
+    strncpy(value_str, start, len);
+    value_str[len] = '\0';
+    
+    return atof(value_str);
+}
+
+/**
+ * Get seasonal weight multiplier for a hint
+ */
+double get_seasonal_weight_for_hint(const char *seasonal_json, int season) {
+    if (!seasonal_json) return 1.0;
+    
+    switch (season) {
+        case SEASON_SPRING: return parse_json_double_value(seasonal_json, "spring");
+        case SEASON_SUMMER: return parse_json_double_value(seasonal_json, "summer");
+        case SEASON_AUTUMN: return parse_json_double_value(seasonal_json, "autumn");
+        case SEASON_WINTER: return parse_json_double_value(seasonal_json, "winter");
+        default: return 1.0;
+    }
+}
+
+/**
+ * Get time of day weight multiplier for a hint
+ */
+double get_time_weight_for_hint(const char *time_json, const char *time_category) {
+    if (!time_json || !time_category) return 1.0;
+    
+    return parse_json_double_value(time_json, time_category);
 }
 
 /* ====================================================================== */
@@ -1120,14 +1183,15 @@ struct region_hint *load_contextual_hints(int region_vnum, const char *weather_c
     struct region_hint *hints = NULL;
     struct region_hint *current_hint = NULL;
     int hint_count = 0;
+    int current_season = get_season_from_time();
     
     sprintf(query,
-        "SELECT hint_category, hint_text, priority "
+        "SELECT hint_category, hint_text, priority, seasonal_weight, time_of_day_weight "
         "FROM region_hints "
         "WHERE region_vnum = %d AND is_active = 1 "
         "AND (weather_conditions IS NULL OR weather_conditions = '' OR FIND_IN_SET('%s', weather_conditions) > 0) "
         "ORDER BY priority DESC, RAND() "
-        "LIMIT 10",
+        "LIMIT 15",
         region_vnum, weather_condition);
     
     if (!mysql_pool) {
@@ -1145,14 +1209,35 @@ struct region_hint *load_contextual_hints(int region_vnum, const char *weather_c
         return NULL;
     }
     
-    // Allocate array for hints
-    hints = calloc(11, sizeof(struct region_hint)); // 10 hints + terminator
+    // Allocate array for hints (extra space for weighted selection)
+    hints = calloc(16, sizeof(struct region_hint)); // 15 hints + terminator
     if (!hints) {
         mysql_pool_free_result(result);
         return NULL;
     }
     
-    while ((row = mysql_fetch_row(result)) && hint_count < 10) {
+    while ((row = mysql_fetch_row(result)) && hint_count < 15) {
+        // Calculate weights before deciding to include this hint
+        double seasonal_weight = 1.0;
+        double time_weight = 1.0;
+        double combined_weight = 1.0;
+        
+        // Get weights from JSON columns
+        if (row[3]) { // seasonal_weight JSON
+            seasonal_weight = get_seasonal_weight_for_hint(row[3], current_season);
+        }
+        if (row[4]) { // time_of_day_weight JSON
+            time_weight = get_time_weight_for_hint(row[4], time_category);
+        }
+        
+        // Combined weight (multiply factors)
+        combined_weight = seasonal_weight * time_weight;
+        
+        // Apply minimum threshold for inclusion (0.3 = 30% relevance minimum)
+        if (combined_weight < 0.3) {
+            continue; // Skip this hint - not relevant enough for current conditions
+        }
+        
         current_hint = &hints[hint_count];
         
         // Copy hint category - convert from enum string to integer constant
@@ -1177,10 +1262,13 @@ struct region_hint *load_contextual_hints(int region_vnum, const char *weather_c
             current_hint->hint_text = transform_voice_to_observational(row[1]);
         }
         
-        // Copy priority
+        // Copy priority and apply contextual weight multiplier
         if (row[2]) {
-            current_hint->priority = atoi(row[2]);
+            current_hint->priority = atoi(row[2]) * combined_weight;
         }
+        
+        // Store the weight for potential future use
+        current_hint->contextual_weight = combined_weight;
         
         hint_count++;
     }
@@ -1376,6 +1464,68 @@ char *weave_unified_description(const char *base_description, struct region_hint
         }
     }
     
+    // Add seasonal context when relevant
+    if (sentence_count < 5 && (rand() % 2 == 0)) {  // 50% chance
+        int seasonal_hints[10];
+        int seasonal_count = 0;
+        int already_used, j;
+        
+        for (i = 0; hints && hints[i].hint_text && seasonal_count < 10; i++) {
+            if (hints[i].hint_category == HINT_SEASONAL_CHANGES) {
+                // Check if already used
+                already_used = 0;
+                for (j = 0; j < used_count; j++) {
+                    if (used_hints[j] == i) {
+                        already_used = 1;
+                        break;
+                    }
+                }
+                if (!already_used) {
+                    seasonal_hints[seasonal_count++] = i;
+                }
+            }
+        }
+        if (seasonal_count > 0) {
+            int selected = seasonal_hints[rand() % seasonal_count];
+            if (sentence_count > 0) safe_strcat(unified, " ");
+            safe_strcat(unified, hints[selected].hint_text);
+            used_hints[used_count++] = selected;
+            sentence_count++;
+        }
+    }
+    
+    // Add time-of-day specific atmosphere (prioritize during transition times)
+    if (sentence_count < 5 && (strcmp(time_category, "evening") == 0 || 
+                               strcmp(time_category, "morning") == 0 || 
+                               (rand() % 3 == 0))) {  // Always for transitions, 33% for others
+        int time_hints[10];
+        int time_count = 0;
+        int already_used, j;
+        
+        for (i = 0; hints && hints[i].hint_text && time_count < 10; i++) {
+            if (hints[i].hint_category == HINT_TIME_OF_DAY) {
+                // Check if already used
+                already_used = 0;
+                for (j = 0; j < used_count; j++) {
+                    if (used_hints[j] == i) {
+                        already_used = 1;
+                        break;
+                    }
+                }
+                if (!already_used) {
+                    time_hints[time_count++] = i;
+                }
+            }
+        }
+        if (time_count > 0) {
+            int selected = time_hints[rand() % time_count];
+            if (sentence_count > 0) safe_strcat(unified, " ");
+            safe_strcat(unified, hints[selected].hint_text);
+            used_hints[used_count++] = selected;
+            sentence_count++;
+        }
+    }
+
     // Occasionally add mystical elements for atmosphere
     if (sentence_count < 4 && (rand() % 3 == 0)) {  // 33% chance
         int mystical_hints[10];

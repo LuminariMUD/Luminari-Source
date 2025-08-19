@@ -44,6 +44,7 @@ struct region_hint {
     char *resource_triggers;    /* JSON string */
     time_t created_at;
     bool is_active;
+    double contextual_weight;   /* Calculated contextual relevance (0.0-1.0+) */
     struct region_hint *next;
 };
 
