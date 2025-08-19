@@ -23,8 +23,12 @@
 /* External function declarations */
 extern struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y);
 extern void free_region_list(struct region_list *regions);
-extern char *enhance_wilderness_description_with_hints(struct char_data *ch, int x, int y);
+extern int get_weather(int x, int y);
+extern char *generate_resource_aware_description(struct char_data *ch, room_rnum room);
 extern struct time_info_data time_info;
+extern struct region_data *region_table;
+extern struct region_data *region_table;
+extern zone_rnum top_of_region_table;
 
 /* ====================================================================== */
 /*                         UTILITY FUNCTIONS                             */
@@ -209,9 +213,9 @@ struct region_hint *load_contextual_hints(int region_vnum, const char *weather_c
     while ((row = mysql_fetch_row(result)) && hint_count < 10) {
         current_hint = &hints[hint_count];
         
-        // Copy hint category
+        // Copy hint category - it's an integer, not a string
         if (row[0]) {
-            strncpy(current_hint->hint_category, row[0], sizeof(current_hint->hint_category) - 1);
+            current_hint->hint_category = atoi(row[0]);
         }
         
         // Copy and transform hint text
@@ -250,7 +254,6 @@ struct region_hint *load_contextual_hints(int region_vnum, const char *weather_c
 char *weave_unified_description(const char *base_description, struct region_hint *hints, 
                                const char *weather_condition, const char *time_category) {
     char *unified;
-    char temp_buffer[MAX_STRING_LENGTH * 2];
     int i;
     int atmosphere_added = 0;
     int wildlife_added = 0;
@@ -275,25 +278,25 @@ char *weave_unified_description(const char *base_description, struct region_hint
         int should_add = 0;
         
         // Prioritize atmospheric hints for mysterious/stormy weather
-        if (strcmp(hints[i].hint_category, "atmosphere") == 0 && !atmosphere_added) {
+        if (hints[i].hint_category == HINT_ATMOSPHERE && !atmosphere_added) {
             should_add = 1;
             atmosphere_added = 1;
         }
         // Add weather-specific hints
-        else if (strcmp(hints[i].hint_category, "weather_influence") == 0 && !weather_added) {
+        else if (hints[i].hint_category == HINT_WEATHER_INFLUENCE && !weather_added) {
             should_add = 1;
             weather_added = 1;
         }
         // Add wildlife for clear/cloudy weather
-        else if (strcmp(hints[i].hint_category, "fauna") == 0 && !wildlife_added && 
+        else if (hints[i].hint_category == HINT_FAUNA && !wildlife_added && 
                 (strcmp(weather_condition, "clear") == 0 || strcmp(weather_condition, "cloudy") == 0)) {
             should_add = 1;
             wildlife_added = 1;
         }
         // Add other categories sparingly
-        else if (strcmp(hints[i].hint_category, "sounds") == 0 || 
-                strcmp(hints[i].hint_category, "scents") == 0 ||
-                strcmp(hints[i].hint_category, "mystical") == 0) {
+        else if (hints[i].hint_category == HINT_SOUNDS || 
+                hints[i].hint_category == HINT_SCENTS ||
+                hints[i].hint_category == HINT_MYSTICAL) {
             should_add = (i < 3); // Only add first few
         }
         
@@ -365,8 +368,8 @@ char *create_unified_wilderness_description(int x, int y) {
     
     // Get region information - wilderness uses zone 0
     regions = get_enclosing_regions(0, x, y);
-    if (regions && regions->vnum > 0) {
-        region_vnum = regions->vnum;
+    if (regions && regions->rnum > 0) {
+        region_vnum = region_table[regions->rnum].vnum;
         log("DEBUG: Found region %d at coordinates (%d, %d)", region_vnum, x, y);
     } else {
         log("DEBUG: No valid region found at coordinates (%d, %d)", x, y);
@@ -407,9 +410,9 @@ char *enhanced_wilderness_description_unified(struct char_data *ch, int x, int y
         return unified_desc;
     }
     
-    // Fallback to existing hint system
-    log("DEBUG: Falling back to existing hint system for (%d, %d)", x, y);
-    fallback_desc = enhance_wilderness_description_with_hints(ch, x, y);
+    // Fallback: return a basic message if unified description fails
+    log("DEBUG: Unified description system failed for (%d, %d)", x, y);
+    fallback_desc = strdup("The wilderness stretches before you.");
     
     if (unified_desc) free(unified_desc);
     return fallback_desc;
