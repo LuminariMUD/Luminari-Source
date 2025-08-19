@@ -1273,10 +1273,10 @@ char *get_terrain_base_description(room_rnum room, struct resource_state *state,
                     break;
             }
             
-            if (state->vegetation_level >= RESOURCE_ABUNDANT_THRESHOLD) {
+            if (state->wood_level >= RESOURCE_ABUNDANT_THRESHOLD) {
                 templates = forest_abundant;
                 template_count = sizeof(forest_abundant) / sizeof(forest_abundant[0]);
-            } else if (state->vegetation_level >= RESOURCE_MODERATE_THRESHOLD) {
+            } else if (state->wood_level >= RESOURCE_MODERATE_THRESHOLD) {
                 templates = forest_moderate;
                 template_count = sizeof(forest_moderate) / sizeof(forest_moderate[0]);
             } else {

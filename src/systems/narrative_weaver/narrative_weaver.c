@@ -79,6 +79,7 @@ struct narrative_elements {
     char *sensory_details;      /* "moss-scented air", "distant calls" */
     char *temporal_aspects;     /* "dawn light", "evening mist" */
     float integration_weight;   /* Strength of influence (0.0-1.0) */
+    int regional_style;         /* Regional style for flow and transitions */
 };
 
 /* Description components for semantic modification */
@@ -178,6 +179,75 @@ const char **get_style_adjectives(int style);
 const char **get_style_verbs(int style);
 char *apply_regional_style_transformation(const char *text, int style);
 int convert_style_string_to_int(const char *style_str);
+const char *get_transitional_phrase(int style, const char *context);
+
+/* ====================================================================== */
+/*                       TRANSITIONAL PHRASE SYSTEM                      */
+/* ====================================================================== */
+
+/* Transitional phrases for natural flow between sentences */
+static const char *atmospheric_transitions[] = {
+    "Meanwhile, ", "Nearby, ", "Around you, ", "In the distance, ",
+    "Overhead, ", "Throughout the area, ", "", NULL
+};
+
+static const char *sensory_transitions[] = {
+    "Here, ", "Softly, ", "All around, ", "Quietly, ", 
+    "In this place, ", "", NULL
+};
+
+static const char *mysterious_transitions[] = {
+    "Mysteriously, ", "In shadows, ", "Subtly, ", "Eerily, ",
+    "With ancient presence, ", "", NULL
+};
+
+static const char *dramatic_transitions[] = {
+    "Majestically, ", "Boldly, ", "Powerfully, ", "Impressively, ",
+    "With great presence, ", "", NULL
+};
+
+/**
+ * Get appropriate transitional phrase based on style and context
+ */
+const char *get_transitional_phrase(int style, const char *context) {
+    if (!context) return "";
+    
+    // Use empty transition 50% of the time for natural variation
+    if (rand() % 2 == 0) {
+        return "";
+    }
+    
+    // If context contains sensory words, use sensory transitions
+    if (strstr(context, "scent") || strstr(context, "sound") || strstr(context, "aroma") ||
+        strstr(context, "whisper") || strstr(context, "echo") || strstr(context, "drip") ||
+        strstr(context, "silence") || strstr(context, "wind")) {
+        int count = 0;
+        while (sensory_transitions[count]) count++;
+        return sensory_transitions[rand() % count];
+    }
+    
+    // Style-specific transitions
+    switch (style) {
+        case STYLE_MYSTERIOUS:
+            {
+                int count = 0;
+                while (mysterious_transitions[count]) count++;
+                return mysterious_transitions[rand() % count];
+            }
+        case STYLE_DRAMATIC:
+            {
+                int count = 0;
+                while (dramatic_transitions[count]) count++;
+                return dramatic_transitions[rand() % count];
+            }
+        default:
+            {
+                int count = 0;
+                while (atmospheric_transitions[count]) count++;
+                return atmospheric_transitions[rand() % count];
+            }
+    }
+}
 
 /* ====================================================================== */
 /*                       REGIONAL STYLE HELPERS                          */
@@ -446,6 +516,9 @@ struct narrative_elements *extract_narrative_elements(struct region_hint *hints,
     
     elements = calloc(1, sizeof(struct narrative_elements));
     if (!elements) return NULL;
+    
+    // Store regional style for later use in flow generation
+    elements->regional_style = regional_style;
     
     // Initialize integration weight
     elements->integration_weight = 0.0f;
@@ -746,24 +819,29 @@ void inject_temporal_and_sensory_elements(struct description_components *desc,
     
     // Add temporal elements to opening imagery
     if (temporal_aspects && desc->opening_imagery) {
-        char *temp_buffer = malloc(MAX_STRING_LENGTH);
+        char *temp_buffer = malloc(MAX_STRING_LENGTH * 2);
         if (temp_buffer) {
-            // Try to integrate temporal aspects naturally
-            if (strstr(temporal_aspects, "dawn") || strstr(temporal_aspects, "morning")) {
-                snprintf(temp_buffer, MAX_STRING_LENGTH, 
+            // Use the actual extracted temporal content, not just generic prefixes
+            // Check if temporal_aspects is a complete sentence/phrase
+            if (strlen(temporal_aspects) > 50) {
+                // Long temporal description - use it as a separate sentence before the main description
+                snprintf(temp_buffer, MAX_STRING_LENGTH * 2, 
+                        "%s %s", temporal_aspects, desc->opening_imagery);
+            } else if (strstr(temporal_aspects, "dawn") || strstr(temporal_aspects, "morning")) {
+                snprintf(temp_buffer, MAX_STRING_LENGTH * 2, 
                         "In the early morning light, %s", desc->opening_imagery);
             } else if (strstr(temporal_aspects, "dusk") || strstr(temporal_aspects, "evening")) {
-                snprintf(temp_buffer, MAX_STRING_LENGTH, 
+                snprintf(temp_buffer, MAX_STRING_LENGTH * 2, 
                         "As evening approaches, %s", desc->opening_imagery);
             } else if (strstr(temporal_aspects, "moonlight") || strstr(temporal_aspects, "night")) {
-                snprintf(temp_buffer, MAX_STRING_LENGTH, 
+                snprintf(temp_buffer, MAX_STRING_LENGTH * 2, 
                         "Under the cover of night, %s", desc->opening_imagery);
             } else if (strstr(temporal_aspects, "noon") || strstr(temporal_aspects, "midday")) {
-                snprintf(temp_buffer, MAX_STRING_LENGTH, 
+                snprintf(temp_buffer, MAX_STRING_LENGTH * 2, 
                         "In the bright midday sun, %s", desc->opening_imagery);
             } else {
-                // Generic temporal integration
-                snprintf(temp_buffer, MAX_STRING_LENGTH, 
+                // Use the actual temporal content
+                snprintf(temp_buffer, MAX_STRING_LENGTH * 2, 
                         "%s %s", temporal_aspects, desc->opening_imagery);
             }
             free(desc->opening_imagery);
@@ -778,10 +856,12 @@ void inject_temporal_and_sensory_elements(struct description_components *desc,
 }
 
 /**
- * Reconstruct enhanced description from modified components
+ * Reconstruct enhanced description with advanced flow and integration
  */
-char *reconstruct_enhanced_description(struct description_components *components) {
+char *reconstruct_enhanced_description(struct description_components *components, int regional_style) {
     char *enhanced;
+    char *primary_sentence, *sensory_sentence;
+    char temp_buffer[MAX_STRING_LENGTH * 2];
     
     if (!components) return NULL;
     
@@ -790,35 +870,109 @@ char *reconstruct_enhanced_description(struct description_components *components
     
     enhanced[0] = '\0';
     
-    // Rebuild description from components
-    if (components->opening_imagery) {
-        safe_strcpy(enhanced, components->opening_imagery, MAX_STRING_LENGTH * 2);
-        
-        // Integrate enhanced verbs
-        if (components->descriptive_verbs) {
-            // Find and replace basic verbs with enhanced versions
-            char *verb_pos = strstr(enhanced, "tower");
-            if (verb_pos && strstr(components->descriptive_verbs, "whisper")) {
-                char temp[MAX_STRING_LENGTH * 2];
-                *verb_pos = '\0';
-                snprintf(temp, sizeof(temp), "%s%s%s", enhanced, 
-                        components->descriptive_verbs, verb_pos + 5);
-                safe_strcpy(enhanced, temp, MAX_STRING_LENGTH * 2);
-            }
+    if (!components->opening_imagery) {
+        free(enhanced);
+        return NULL;
+    }
+    
+    // Step 1: Process the primary visual description
+    primary_sentence = strdup(components->opening_imagery);
+    if (!primary_sentence) {
+        free(enhanced);
+        return NULL;
+    }
+    
+    // Step 2: Integrate enhanced verbs naturally
+    if (components->descriptive_verbs && strstr(components->descriptive_verbs, "whisper")) {
+        char *verb_pos = strstr(primary_sentence, "tower");
+        if (verb_pos) {
+            char before[MAX_STRING_LENGTH], after[MAX_STRING_LENGTH];
+            *verb_pos = '\0';
+            safe_strcpy(before, primary_sentence, sizeof(before));
+            safe_strcpy(after, verb_pos + 5, sizeof(after));
+            
+            snprintf(temp_buffer, sizeof(temp_buffer), "%s%s%s", 
+                    before, components->descriptive_verbs, after);
+            free(primary_sentence);
+            primary_sentence = strdup(temp_buffer);
         }
-        
-        // Add sensory details
-        if (components->sensory_additions) {
-            safe_strcat(enhanced, " ");
-            safe_strcat(enhanced, components->sensory_additions);
-        }
-        
-        // Ensure proper punctuation
-        if (enhanced[strlen(enhanced) - 1] != '.') {
-            safe_strcat(enhanced, ".");
+    } else if (components->descriptive_verbs && strstr(components->descriptive_verbs, "cascade")) {
+        char *verb_pos = strstr(primary_sentence, "tower");
+        if (verb_pos) {
+            char before[MAX_STRING_LENGTH], after[MAX_STRING_LENGTH];
+            *verb_pos = '\0';
+            safe_strcpy(before, primary_sentence, sizeof(before));
+            safe_strcpy(after, verb_pos + 5, sizeof(after));
+            
+            snprintf(temp_buffer, sizeof(temp_buffer), "%s%s%s", 
+                    before, components->descriptive_verbs, after);
+            free(primary_sentence);
+            primary_sentence = strdup(temp_buffer);
         }
     }
     
+    // Step 3: Ensure proper sentence termination
+    size_t len = strlen(primary_sentence);
+    if (len > 0 && primary_sentence[len - 1] != '.' && primary_sentence[len - 1] != '!' && primary_sentence[len - 1] != '?') {
+        safe_strcat(primary_sentence, ".");
+    }
+    
+    // Step 4: Start building the enhanced description
+    safe_strcpy(enhanced, primary_sentence, MAX_STRING_LENGTH * 2);
+    
+    // Step 5: Add sensory details as a separate, well-integrated sentence with style-aware transitions
+    if (components->sensory_additions) {
+        sensory_sentence = strdup(components->sensory_additions);
+        if (sensory_sentence) {
+            // Get style-appropriate transitional phrase
+            const char *transition = get_transitional_phrase(regional_style, sensory_sentence);
+            
+            // Add transitional space
+            safe_strcat(enhanced, " ");
+            
+            if (strlen(transition) > 0) {
+                // Add transition phrase
+                safe_strcat(enhanced, transition);
+                
+                // Ensure sensory sentence starts with lowercase (since transition provides the capital)
+                if (sensory_sentence[0] >= 'A' && sensory_sentence[0] <= 'Z') {
+                    sensory_sentence[0] = sensory_sentence[0] - 'A' + 'a';
+                }
+            } else {
+                // No transition - ensure sensory sentence starts with capital
+                if (sensory_sentence[0] >= 'a' && sensory_sentence[0] <= 'z') {
+                    sensory_sentence[0] = sensory_sentence[0] - 'a' + 'A';
+                }
+            }
+            
+            safe_strcat(enhanced, sensory_sentence);
+            
+            // Ensure proper termination
+            len = strlen(sensory_sentence);
+            if (len > 0 && sensory_sentence[len - 1] != '.' && sensory_sentence[len - 1] != '!' && sensory_sentence[len - 1] != '?') {
+                safe_strcat(enhanced, ".");
+            }
+            
+            free(sensory_sentence);
+        }
+    }
+    
+    // Step 6: Final cleanup and validation
+    // Remove any double periods or spacing issues
+    char *double_period = strstr(enhanced, "..");
+    while (double_period) {
+        memmove(double_period, double_period + 1, strlen(double_period));
+        double_period = strstr(enhanced, "..");
+    }
+    
+    // Clean up multiple spaces
+    char *double_space = strstr(enhanced, "  ");
+    while (double_space) {
+        memmove(double_space, double_space + 1, strlen(double_space));
+        double_space = strstr(enhanced, "  ");
+    }
+    
+    free(primary_sentence);
     return enhanced;
 }
 
@@ -1420,8 +1574,8 @@ char *layer_hints_on_base_description(char *base_description, struct region_hint
     if (elements->sensory_details) {
         log("DEBUG: Adding sensory details: %s", elements->sensory_details);
         components->sensory_additions = strdup(elements->sensory_details);
-    }    // Reconstruct enhanced description
-    semantically_enhanced = reconstruct_enhanced_description(components);
+    }    // Reconstruct enhanced description with regional style
+    semantically_enhanced = reconstruct_enhanced_description(components, elements->regional_style);
     
     // Cleanup
     free_narrative_elements(elements);
