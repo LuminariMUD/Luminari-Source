@@ -1,6 +1,33 @@
 # Changelog
 
-## [Unreleased] - January 18, 2025
+## [Unreleased] - August 20, 2025
+
+### InterMUD3 System Fixes
+
+#### Fixed (August 20, 2025)
+- **I3 Authentication Flow** - Fixed authentication handshake with gateway
+  - Client now properly waits for gateway welcome message before authenticating
+  - Previously would send authentication immediately, causing connection failures
+  - Added proper handling of JSON-RPC welcome message
+  
+#### Changed (August 20, 2025)
+- **I3 Configuration** - Updated API key format
+  - Set API key to `API_KEY_LUMINARI:luminari-i3-gateway-2025`
+  - Configuration stored in `lib/i3_config`
+  
+- **Debug Logging** - Added comprehensive debugging to I3 client
+  - Connection attempts and socket creation
+  - Authentication flow with API key validation
+  - All sent and received JSON messages
+  - Message parsing and processing
+  - Helps diagnose connection and protocol issues
+
+#### Added (August 20, 2025)
+- **MariaDB Auto-start Script** - Ensures database starts with WSL
+  - Created `/mnt/c/Projects/Luminari-Source/start_mariadb.sh`
+  - Added to `.bashrc` for automatic execution
+  - Handles `/run/mysqld` directory creation with proper permissions
+  - Includes sudoers configuration script for passwordless startup
 
 ### Vessel System - Phase 2 Progress (85% Complete)
 

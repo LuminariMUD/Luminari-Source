@@ -134,10 +134,13 @@ void do_i3chat(struct char_data *ch, const char *argument, int cmd, int subcmd)
 void do_i3who(struct char_data *ch, const char *argument, int cmd, int subcmd)
 {
     char target_mud[128];
-    i3_mud_t *mud;
     
     UNUSED_VAR(cmd);
     UNUSED_VAR(subcmd);
+    
+    if (!ch) {
+        return;
+    }
     
     if (!i3_client || !i3_is_connected()) {
         send_to_char(ch, "The Intermud3 network is currently unavailable.\r\n");
@@ -148,26 +151,19 @@ void do_i3who(struct char_data *ch, const char *argument, int cmd, int subcmd)
     
     if (!*target_mud) {
         send_to_char(ch, "Usage: i3who <mud_name>\r\n");
+        send_to_char(ch, "Use 'i3mudlist' to see available MUDs.\r\n");
         return;
     }
     
-    /* Validate MUD exists */
-    mud = i3_find_mud(target_mud);
-    if (!mud) {
-        send_to_char(ch, "Unknown MUD: %s\r\n", target_mud);
-        return;
-    }
-    
-    if (!mud->online) {
-        send_to_char(ch, "That MUD is currently offline.\r\n");
-        return;
-    }
+    /* For now, since we don't have a mud list yet */
+    send_to_char(ch, "i3who: Requesting player list from %s...\r\n", target_mud);
+    send_to_char(ch, "(Note: MUD list validation not yet implemented)\r\n");
     
     /* Request who list */
     if (i3_request_who(target_mud) == 0) {
-        send_to_char(ch, "Requesting who list from %s...\r\n", target_mud);
+        send_to_char(ch, "Request sent.\r\n");
     } else {
-        send_to_char(ch, "Failed to request who list.\r\n");
+        send_to_char(ch, "Failed to send request.\r\n");
     }
 }
 
