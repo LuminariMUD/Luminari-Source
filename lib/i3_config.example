@@ -1,0 +1,34 @@
+# Intermud3 Configuration File for LuminariMUD - EXAMPLE
+# 
+# Copy this file to i3_config and edit with your settings
+# Get your API key from the I3 Gateway administrator
+
+# Gateway connection settings
+# The I3 Gateway typically runs on localhost if installed locally
+# Or use the hostname/IP of your remote gateway
+gateway_host localhost
+gateway_port 8081
+
+# Your MUD's API key - REQUIRED
+# Request this from your I3 Gateway administrator
+api_key YOUR-MUD-API-KEY-HERE
+
+# Your MUD's name as it will appear on the I3 network
+# This should match your registered MUD name
+mud_name LuminariMUD
+
+# Default channel for i3chat command
+# Common channels: intermud, gossip, chat
+default_channel intermud
+
+# Feature toggles (1 = enabled, 0 = disabled)
+enable_tell 1        # Allow players to send/receive I3 tells
+enable_channels 1    # Allow players to use I3 channels
+enable_who 1         # Allow players to query who lists from other MUDs
+
+# Auto-reconnect settings
+auto_reconnect 1     # Automatically reconnect if connection drops
+reconnect_delay 30   # Seconds to wait before reconnecting
+
+# Queue settings
+max_queue_size 1000  # Maximum number of queued messages

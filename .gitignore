@@ -169,6 +169,7 @@ campaign.h
 mysql_config
 vnums.h
 mud_options.h
+i3_config
 
 ####################
 # Environment Files

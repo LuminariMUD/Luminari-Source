@@ -48,6 +48,7 @@
 #include "feats.h"
 #include "actions.h"
 #include "actionqueues.h"
+#include "systems/intermud3/i3_client.h"
 #include "routing.h"
 #include "combat_modes.h"
 #include "traps.h"
@@ -519,6 +520,15 @@ cpp_extern const struct command_info cmd_info[] = {
     {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"i3tell", "i3t", POS_DEAD, do_i3tell, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"i3chat", "i3c", POS_DEAD, do_i3chat, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"i3who", "i3w", POS_DEAD, do_i3who, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"i3finger", "i3f", POS_DEAD, do_i3finger, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"i3locate", "i3l", POS_DEAD, do_i3locate, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"i3mudlist", "i3m", POS_DEAD, do_i3mudlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"i3channels", "i3chan", POS_DEAD, do_i3channels, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"i3config", "i3conf", POS_DEAD, do_i3config, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"i3admin", "i3adm", POS_DEAD, do_i3admin, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"idea", "ide", POS_DEAD, do_ibt, 0, SCMD_IDEA, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"iedit", "iedit", POS_DEAD, do_iedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"imbibe", "imb", POS_SITTING, do_gen_cast, 1, SCMD_CAST_EXTRACT, FALSE, ACTION_MOVE, {0, 6}, NULL},

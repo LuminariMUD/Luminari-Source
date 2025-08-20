@@ -623,6 +623,27 @@ set(SRC_C_FILES
     src/zedit.c
     src/zmalloc.c
     src/zone_procs.c
+    src/movement.c
+    src/movement_validation.c
+    src/movement_cost.c
+    src/movement_position.c
+    src/movement_doors.c
+    src/movement_falling.c
+    src/movement_messages.c
+    src/movement_tracks.c
+    src/movement_events.c
+    src/systems/pubsub/pubsub_handlers.c
+    src/systems/pubsub/pubsub_db.c
+    src/systems/pubsub/pubsub_commands.c
+    src/systems/pubsub/pubsub_queue.c
+    src/systems/pubsub/pubsub_spatial.c
+    src/systems/pubsub/pubsub_event_handlers.c
+    src/systems/spatial/spatial_core.c
+    src/systems/spatial/spatial_visual.c
+    src/systems/spatial/spatial_audio.c
+    src/systems/terrainbridge/terrain_bridge.c
+    src/systems/intermud3/i3_client.c
+    src/systems/intermud3/i3_commands.c
 )
 
 set(SRC_FILES ${SRC_C_FILES})
