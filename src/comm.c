@@ -106,6 +106,7 @@
 #include "pubsub.h"     /* for automatic queue processing */
 #include "discord_bridge.h" /* Discord bridge integration */
 #include "terrain_bridge.h" /* Terrain bridge API server */
+#include "systems/intermud3/i3_client.h" /* Intermud3 network integration */
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -657,6 +658,12 @@ static void init_game(ush_int local_port)
   log("Initializing Discord bridge.");
   init_discord_bridge();
 
+  /* Initialize Intermud3 client */
+  log("Initializing Intermud3 client.");
+  if (i3_initialize() < 0) {
+    log("WARNING: Failed to initialize I3 client");
+  }
+
   /* Initialize Terrain Bridge API */
   log("Initializing terrain bridge API.");
   terrain_api_start();
@@ -670,6 +677,10 @@ static void init_game(ush_int local_port)
   /* Shutdown Discord bridge */
   log("Shutting down Discord bridge.");
   shutdown_discord_bridge();
+
+  /* Shutdown Intermud3 client */
+  log("Shutting down Intermud3 client.");
+  i3_shutdown();
 
   /* Shutdown Terrain Bridge API */
   log("Shutting down Terrain Bridge API.");
@@ -1403,6 +1414,9 @@ void heartbeat(int heart_pulse)
     PERF_PROF_ENTER(pr_zone_update_, "zone_update");
     zone_update();
     PERF_PROF_EXIT(pr_zone_update_);
+    
+    /* Process I3 events */
+    i3_process_events();
   }
 
   if (!(heart_pulse % PULSE_IDLEPWD)) /* 15 seconds */

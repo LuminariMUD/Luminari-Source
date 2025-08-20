@@ -156,6 +156,8 @@ circle_SOURCES = \
 	src/systems/spatial/spatial_visual.c \
 	src/systems/spatial/spatial_audio.c \
 	src/systems/terrainbridge/terrain_bridge.c \
+	src/systems/intermud3/i3_client.c \
+	src/systems/intermud3/i3_commands.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \
