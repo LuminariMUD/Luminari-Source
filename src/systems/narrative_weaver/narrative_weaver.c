@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
@@ -231,6 +232,32 @@ double get_mood_weight_for_hint(int hint_category, const char *hint_text, const 
 }
 
 /**
+ * Helper function to get time weight for specific category from JSON
+ */
+double get_time_weight_for_category(const char *json_weights, const char *time_category) {
+    if (!json_weights || !time_category) return 1.0;
+    
+    /* Simple JSON parsing for time categories */
+    char search_pattern[64];
+    snprintf(search_pattern, sizeof(search_pattern), "\"%s\":", time_category);
+    
+    char *pos = strstr(json_weights, search_pattern);
+    if (pos) {
+        pos += strlen(search_pattern);
+        /* Skip whitespace */
+        while (*pos == ' ' || *pos == '\t') pos++;
+        
+        /* Parse the numeric value */
+        double weight = strtod(pos, NULL);
+        if (weight > 0.0 && weight <= 3.0) { /* Reasonable range check */
+            return weight;
+        }
+    }
+    
+    return 1.0; /* Default weight if not found */
+}
+
+/**
  * Select a hint using weighted probability based on contextual and mood weights
  * @param hints Array of available hints
  * @param hint_indices Array of indices to select from
@@ -281,8 +308,408 @@ int select_weighted_hint(struct region_hint *hints, int *hint_indices, int count
 }
 
 /* ====================================================================== */
-/*                    SEMANTIC NARRATIVE STRUCTURES                      */
+/*                    MULTI-CONDITION CONTEXTUAL SYSTEM                 */
 /* ====================================================================== */
+
+/**
+ * Enhanced weather relevance calculation using wilderness weather intensity
+ * Takes raw weather value (0-255) and analyzes hint content for weather keywords
+ */
+double calculate_weather_relevance_for_hint(struct region_hint *hint, int weather_value) {
+    if (!hint || !hint->hint_text) return 1.0;
+    
+    const char *hint_text = hint->hint_text;
+    double relevance = 1.0;
+    double weather_intensity = weather_value / 255.0; /* Convert to 0.0-1.0 scale */
+    
+    /* Clear weather (0-63): Bright, sunny, clear visibility */
+    if (weather_value < 64) {
+        if (strstr(hint_text, "bright") || strstr(hint_text, "sunlight") || 
+            strstr(hint_text, "clear") || strstr(hint_text, "visible") ||
+            strstr(hint_text, "radiant") || strstr(hint_text, "gleaming") ||
+            strstr(hint_text, "dazzl") || strstr(hint_text, "sparkl")) {
+            relevance = 1.0 + (0.5 * (1.0 - weather_intensity)); /* Boost in very clear weather */
+        }
+        if (strstr(hint_text, "shadow") || strstr(hint_text, "mist") || 
+            strstr(hint_text, "fog") || strstr(hint_text, "gloom") ||
+            strstr(hint_text, "murk") || strstr(hint_text, "obscur")) {
+            relevance = 0.3 + (0.4 * weather_intensity); /* Reduce shadowy effects in clear weather */
+        }
+    }
+    /* Cloudy weather (64-127): Overcast, filtered light, atmospheric */
+    else if (weather_value < 128) {
+        if (strstr(hint_text, "overcast") || strstr(hint_text, "gray") || strstr(hint_text, "grey") ||
+            strstr(hint_text, "subdued") || strstr(hint_text, "muted") || strstr(hint_text, "diffus") ||
+            strstr(hint_text, "soft") || strstr(hint_text, "gentle")) {
+            relevance = 1.0 + (0.3 * weather_intensity); /* Boost atmospheric hints */
+        }
+        if (strstr(hint_text, "shadow") || strstr(hint_text, "dim")) {
+            relevance = 1.0 + (0.2 * weather_intensity); /* Slight boost for shadows */
+        }
+        if (strstr(hint_text, "dazzl") || strstr(hint_text, "gleaming") || strstr(hint_text, "radiant")) {
+            relevance = 0.6 + (0.2 * (1.0 - weather_intensity)); /* Reduce bright effects */
+        }
+    }
+    /* Rainy weather (128-191): Wet, fresh, water-related */
+    else if (weather_value < 192) {
+        if (strstr(hint_text, "rain") || strstr(hint_text, "wet") || strstr(hint_text, "damp") ||
+            strstr(hint_text, "fresh") || strstr(hint_text, "droplet") || strstr(hint_text, "drip") ||
+            strstr(hint_text, "moisture") || strstr(hint_text, "glistening") || strstr(hint_text, "slick")) {
+            relevance = 1.0 + (0.6 * weather_intensity); /* Strong boost for water-related hints */
+        }
+        if (strstr(hint_text, "dust") || strstr(hint_text, "dry") || strstr(hint_text, "parched") ||
+            strstr(hint_text, "arid") || strstr(hint_text, "crisp")) {
+            relevance = 0.2 + (0.3 * (1.0 - weather_intensity)); /* Reduce dry effects in rain */
+        }
+        if (strstr(hint_text, "scent") || strstr(hint_text, "fragrance") || strstr(hint_text, "aroma")) {
+            relevance = 1.0 + (0.3 * weather_intensity); /* Rain enhances scents */
+        }
+    }
+    /* Stormy weather (192-255): Dramatic, intense, powerful */
+    else {
+        if (strstr(hint_text, "wind") || strstr(hint_text, "storm") || strstr(hint_text, "tempest") ||
+            strstr(hint_text, "dramatic") || strstr(hint_text, "powerful") || strstr(hint_text, "fierce") ||
+            strstr(hint_text, "crash") || strstr(hint_text, "roar") || strstr(hint_text, "thunder") ||
+            strstr(hint_text, "lightning") || strstr(hint_text, "torrent") || strstr(hint_text, "lash")) {
+            relevance = 1.0 + (0.8 * weather_intensity); /* Strong boost for dramatic elements */
+        }
+        if (strstr(hint_text, "gentle") || strstr(hint_text, "calm") || strstr(hint_text, "peaceful") ||
+            strstr(hint_text, "serene") || strstr(hint_text, "tranquil") || strstr(hint_text, "quiet")) {
+            relevance = 0.1 + (0.3 * (1.0 - weather_intensity)); /* Greatly reduce peaceful effects */
+        }
+        if (strstr(hint_text, "sway") || strstr(hint_text, "bend") || strstr(hint_text, "dance") ||
+            strstr(hint_text, "flutter") || strstr(hint_text, "wave")) {
+            relevance = 1.0 + (0.4 * weather_intensity); /* Boost movement effects in storms */
+        }
+    }
+    
+    /* Special category bonuses */
+    if (hint->hint_category == HINT_WEATHER_INFLUENCE) {
+        relevance *= 1.5; /* Always boost weather influence hints */
+    }
+    if (hint->hint_category == HINT_SOUNDS && weather_value >= 128) {
+        relevance *= (1.0 + 0.3 * weather_intensity); /* Boost sounds in wet/stormy weather */
+    }
+    
+    /* Ensure reasonable bounds */
+    if (relevance < 0.1) relevance = 0.1;
+    if (relevance > 2.5) relevance = 2.5;
+    
+    return relevance;
+}
+
+/**
+ * Calculate distance-based regional influence for smooth transitions
+ * @param x, y Current coordinates  
+ * @param region_x, region_y Region center coordinates
+ * @param max_influence_distance Maximum distance for full regional influence
+ * @return Influence factor from 0.0 (no influence) to 1.0 (full influence)
+ */
+double calculate_regional_influence(int x, int y, int region_x, int region_y, int max_influence_distance) {
+    if (max_influence_distance <= 0) return 1.0;
+    
+    /* Calculate Manhattan distance (simpler for wilderness grid) */
+    int distance = abs(x - region_x) + abs(y - region_y);
+    
+    if (distance >= max_influence_distance) {
+        return 0.0; /* No influence beyond max distance */
+    }
+    
+    /* Linear falloff: 1.0 at center, 0.0 at max distance */
+    double influence = 1.0 - ((double)distance / (double)max_influence_distance);
+    
+    /* Smooth curve using cosine interpolation for more natural transitions */
+    influence = (1.0 + cos((1.0 - influence) * M_PI)) * 0.5;
+    
+    return influence;
+}
+
+/**
+ * Detect if current location is near a region boundary for enhanced transition effects
+ * @param x, y Current coordinates
+ * @param region_vnum Current region
+ * @return Boundary proximity factor: 0.0 (center) to 1.0 (edge)
+ */
+double detect_region_boundary_proximity(int x, int y, int region_vnum) {
+    /* This is a simplified implementation - a full version would check actual region boundaries */
+    
+    /* Simulate region boundaries using coordinate patterns */
+    /* In a real implementation, this would query the region boundary data */
+    
+    /* Create simulated region boundaries based on coordinate modulo */
+    int region_size = 20; /* Assume 20x20 coordinate regions */
+    int region_x = x % region_size;
+    int region_y = y % region_size;
+    
+    /* Calculate distance to nearest edge */
+    int edge_distance_x = MIN(region_x, region_size - region_x);
+    int edge_distance_y = MIN(region_y, region_size - region_y);
+    int min_edge_distance = MIN(edge_distance_x, edge_distance_y);
+    
+    /* Convert to boundary proximity (0.0 = center, 1.0 = edge) */
+    double boundary_proximity = 1.0 - ((double)min_edge_distance / (region_size / 2));
+    
+    /* Clamp to 0.0-1.0 range */
+    if (boundary_proximity < 0.0) boundary_proximity = 0.0;
+    if (boundary_proximity > 1.0) boundary_proximity = 1.0;
+    
+    return boundary_proximity;
+}
+
+/**
+ * Enhanced hint selection with regional transition awareness
+ * Modifies contextual weights based on proximity to region boundaries
+ */
+void apply_boundary_transition_effects(struct region_hint *hints, int hint_count, 
+                                     int x, int y, int region_vnum) {
+    if (!hints || hint_count <= 0) return;
+    
+    double boundary_proximity = detect_region_boundary_proximity(x, y, region_vnum);
+    
+    /* Near boundaries, reduce region-specific hints and increase generic ones */
+    if (boundary_proximity > 0.3) { /* Within 30% of boundary */
+        int i;
+        for (i = 0; i < hint_count; i++) {
+            /* Reduce highly region-specific hints near boundaries */
+            if (hints[i].hint_category == HINT_MYSTICAL || 
+                hints[i].hint_category == HINT_LANDMARKS ||
+                hints[i].hint_category == HINT_ATMOSPHERE) {
+                
+                /* Gradual reduction based on boundary proximity */
+                double reduction_factor = 1.0 - (boundary_proximity * 0.4); /* Max 40% reduction */
+                hints[i].contextual_weight *= reduction_factor;
+            }
+            
+            /* Boost universal hints that work in transition zones */
+            if (hints[i].hint_category == HINT_FLORA || 
+                hints[i].hint_category == HINT_FAUNA ||
+                hints[i].hint_category == HINT_WEATHER_INFLUENCE) {
+                
+                /* Slight boost for universal elements */
+                double boost_factor = 1.0 + (boundary_proximity * 0.2); /* Max 20% boost */
+                hints[i].contextual_weight *= boost_factor;
+            }
+        }
+        
+        log("DEBUG: Applied boundary transition effects (proximity=%.2f) to %d hints", 
+            boundary_proximity, hint_count);
+    }
+}
+
+/**
+ * Structure to hold regional transition data for blending
+ */
+struct regional_transition {
+    int region_vnum;                    /* Region identifier */
+    double influence_factor;            /* 0.0-1.0 influence strength */
+    char *characteristics;              /* Regional characteristics JSON */
+    struct region_hint *hints;          /* Regional hints */
+    int hint_count;                     /* Number of hints */
+};
+
+/**
+ * Find nearby regions and calculate their influence for smooth transitions
+ * @param x, y Current coordinates
+ * @param max_search_radius Maximum distance to search for regions
+ * @param transition_count Output: number of regions found
+ * @return Array of regional_transition structures (caller must free)
+ */
+struct regional_transition *calculate_regional_transitions(int x, int y, int max_search_radius, int *transition_count) {
+    struct regional_transition *transitions = NULL;
+    int capacity = 5; /* Initial capacity for nearby regions */
+    int count = 0;
+    
+    *transition_count = 0;
+    
+    transitions = malloc(sizeof(struct regional_transition) * capacity);
+    if (!transitions) return NULL;
+    
+    /* Primary region (current location's main region) */
+    int primary_region_vnum = 1000004; /* TODO: Determine from actual coordinates */
+    
+    transitions[count].region_vnum = primary_region_vnum;
+    transitions[count].influence_factor = 1.0; /* Full influence at current location */
+    transitions[count].characteristics = load_region_characteristics(transitions[count].region_vnum);
+    transitions[count].hints = NULL; /* Will be loaded separately if needed */
+    transitions[count].hint_count = 0;
+    count++;
+    
+    /* Simulate adjacent regions for demonstration - in a full implementation, 
+     * this would query the actual region system */
+    int adjacent_regions[] = {1000005, 1000006}; /* Example adjacent region vnums */
+    int num_adjacent = sizeof(adjacent_regions) / sizeof(adjacent_regions[0]);
+    int i;
+    
+    for (i = 0; i < num_adjacent && count < capacity; i++) {
+        /* Simulate region centers - in real implementation, get from region data */
+        int region_center_x = x + ((i % 2) * 20) - 10; /* Offset by +/-10 coordinates */
+        int region_center_y = y + ((i / 2) * 20) - 10;
+        
+        /* Calculate influence based on distance */
+        double influence = calculate_regional_influence(x, y, region_center_x, region_center_y, max_search_radius);
+        
+        /* Only include regions with significant influence */
+        if (influence > 0.1) {
+            transitions[count].region_vnum = adjacent_regions[i];
+            transitions[count].influence_factor = influence;
+            transitions[count].characteristics = load_region_characteristics(transitions[count].region_vnum);
+            transitions[count].hints = NULL;
+            transitions[count].hint_count = 0;
+            count++;
+            
+            log("DEBUG: Added adjacent region %d with influence %.2f", 
+                adjacent_regions[i], influence);
+        }
+    }
+    
+    *transition_count = count;
+    return transitions;
+}
+
+/**
+ * Apply regional transition blending to hint weights for smooth boundaries
+ * @param hints Array of hints to modify
+ * @param hint_count Number of hints
+ * @param transitions Array of regional transitions
+ * @param transition_count Number of transitions
+ */
+void apply_regional_transition_weights(struct region_hint *hints, int hint_count, 
+                                     struct regional_transition *transitions, int transition_count) {
+    if (!hints || !transitions || hint_count <= 0 || transition_count <= 0) return;
+    
+    int i, j;
+    
+    for (i = 0; i < hint_count; i++) {
+        double total_transition_weight = 0.0;
+        
+        /* Calculate weighted influence from all nearby regions */
+        for (j = 0; j < transition_count; j++) {
+            if (!transitions[j].characteristics) continue;
+            
+            /* Get mood weight for this hint from this region */
+            double mood_weight = get_mood_weight_for_hint(hints[i].hint_category, 
+                                                        hints[i].hint_text, 
+                                                        transitions[j].characteristics);
+            
+            /* Weight by regional influence factor */
+            double weighted_contribution = mood_weight * transitions[j].influence_factor;
+            total_transition_weight += weighted_contribution;
+        }
+        
+        /* Apply blended weight - normalize by total influence */
+        double total_influence = 0.0;
+        for (j = 0; j < transition_count; j++) {
+            total_influence += transitions[j].influence_factor;
+        }
+        
+        if (total_influence > 0.0) {
+            /* Apply transition-blended weight to hint */
+            double transition_multiplier = total_transition_weight / total_influence;
+            hints[i].contextual_weight *= transition_multiplier;
+            
+            /* Ensure minimum weight */
+            if (hints[i].contextual_weight < 0.1) {
+                hints[i].contextual_weight = 0.1;
+            }
+        }
+    }
+}
+
+/**
+ * Calculate comprehensive relevance score combining multiple environmental factors
+ */
+double calculate_comprehensive_relevance(struct region_hint *hint, struct environmental_context *context, const char *regional_characteristics) {
+    double base_weight = 1.0;
+    double seasonal_multiplier = 1.0;
+    double time_multiplier = 1.0;
+    double weather_multiplier = 1.0;
+    double mood_multiplier = 1.0;
+    
+    /* Base contextual weight from hint */
+    base_weight = hint->contextual_weight;
+    
+    /* Seasonal relevance using existing function */
+    if (hint->seasonal_weight && strlen(hint->seasonal_weight) > 0) {
+        seasonal_multiplier = get_seasonal_weight_for_hint(hint->seasonal_weight, context->season);
+    }
+    
+    /* Time-of-day relevance using existing function */
+    if (hint->time_of_day_weight && strlen(hint->time_of_day_weight) > 0) {
+        const char *time_category_str;
+        switch (context->time_of_day) {
+            case SUN_DARK: time_category_str = "night"; break;
+            case SUN_RISE: time_category_str = "dawn"; break;
+            case SUN_LIGHT: time_category_str = "day"; break;
+            case SUN_SET: time_category_str = "dusk"; break;
+            default: time_category_str = "day"; break;
+        }
+        time_multiplier = get_time_weight_for_hint(hint->time_of_day_weight, time_category_str);
+    }
+    
+    /* Enhanced weather relevance using sophisticated weather analysis */
+    weather_multiplier = calculate_weather_relevance_for_hint(hint, context->weather);
+    
+    /* Regional mood-based weighting */
+    mood_multiplier = get_mood_weight_for_hint(hint->hint_category, hint->hint_text, regional_characteristics);
+    
+    /* Combine all factors with diminishing returns to prevent extreme scores */
+    double combined_score = base_weight * 
+                           (0.8 + 0.2 * seasonal_multiplier) *
+                           (0.8 + 0.2 * time_multiplier) *
+                           (0.8 + 0.2 * weather_multiplier) *
+                           mood_multiplier;
+    
+    /* Ensure minimum threshold for basic relevance */
+    if (combined_score < 0.1) combined_score = 0.1;
+    
+    return combined_score;
+}
+
+/**
+ * Enhanced weighted hint selection with comprehensive multi-condition scoring
+ */
+int select_contextual_weighted_hint(struct region_hint *hints, int *hint_indices, int count, 
+                                   struct environmental_context *context, const char *regional_characteristics) {
+    if (!hints || !hint_indices || !context || count <= 0) return 0;
+    
+    /* Simple case - no weighting needed */
+    if (count == 1) return 0;
+    
+    /* Calculate comprehensive relevance for all hints */
+    double total_weight = 0.0;
+    double weights[20]; /* Max 20 hints as per usage */
+    int i;
+    
+    for (i = 0; i < count && i < 20; i++) {
+        int hint_index = hint_indices[i];
+        weights[i] = calculate_comprehensive_relevance(&hints[hint_index], context, regional_characteristics);
+        total_weight += weights[i];
+        
+        log("DEBUG: Hint %d relevance score: %.3f (base=%.2f, category=%d)", 
+            hint_index, weights[i], hints[hint_index].contextual_weight, hints[hint_index].hint_category);
+    }
+    
+    /* Random selection based on weighted probability */
+    if (total_weight <= 0.0) {
+        /* Fallback to simple random if no valid weights */
+        return rand() % count;
+    }
+    
+    double random_value = ((double)rand() / RAND_MAX) * total_weight;
+    double cumulative_weight = 0.0;
+    
+    for (i = 0; i < count && i < 20; i++) {
+        cumulative_weight += weights[i];
+        if (random_value <= cumulative_weight) {
+            log("DEBUG: Selected hint %d with weight %.3f (cumulative %.3f, random %.3f)", 
+                hint_indices[i], weights[i], cumulative_weight, random_value);
+            return i;
+        }
+    }
+    
+    /* Fallback to last hint if rounding errors occur */
+    return count - 1;
+}
 
 /* Semantic elements extracted from hints for narrative integration */
 struct narrative_elements {
@@ -323,7 +750,151 @@ static const char *action_verbs[] = {
     NULL
 };
 
-/* Style-specific vocabulary dictionaries */
+/**
+ * Advanced vocabulary substitution system
+ */
+struct vocabulary_mapping {
+    const char *generic_word;
+    const char *replacement;
+};
+
+/* Style-specific vocabulary mappings for comprehensive transformation */
+static const struct vocabulary_mapping poetic_mappings[] = {
+    {"trees", "graceful sentinels"},
+    {"forest", "sylvan realm"},
+    {"light", "luminous embrace"},
+    {"wind", "gentle zephyr"},
+    {"water", "crystalline streams"},
+    {"path", "winding melody"},
+    {"rock", "ancient stone"},
+    {"grass", "emerald carpet"},
+    {"sky", "azure canvas"},
+    {"mist", "gossamer veil"},
+    {NULL, NULL}
+};
+
+static const struct vocabulary_mapping mysterious_mappings[] = {
+    {"trees", "shadowed sentries"},
+    {"forest", "enigmatic depths"},
+    {"light", "elusive glimmer"},
+    {"wind", "whispered secrets"},
+    {"water", "veiled currents"},
+    {"path", "hidden passage"},
+    {"rock", "cryptic monoliths"},
+    {"grass", "concealing undergrowth"},
+    {"sky", "shrouded expanse"},
+    {"mist", "obscuring shroud"},
+    {NULL, NULL}
+};
+
+static const struct vocabulary_mapping dramatic_mappings[] = {
+    {"trees", "towering giants"},
+    {"forest", "commanding wilderness"},
+    {"light", "blazing radiance"},
+    {"wind", "mighty gale"},
+    {"water", "thundering torrents"},
+    {"path", "grand thoroughfare"},
+    {"rock", "imposing bastions"},
+    {"grass", "sweeping meadows"},
+    {"sky", "vast dome"},
+    {"mist", "rolling banks"},
+    {NULL, NULL}
+};
+
+static const struct vocabulary_mapping pastoral_mappings[] = {
+    {"trees", "gentle guardians"},
+    {"forest", "peaceful grove"},
+    {"light", "warm glow"},
+    {"wind", "soft breeze"},
+    {"water", "babbling brook"},
+    {"path", "welcoming trail"},
+    {"rock", "weathered stones"},
+    {"grass", "soft meadow"},
+    {"sky", "friendly heavens"},
+    {"mist", "morning dew"},
+    {NULL, NULL}
+};
+
+static const struct vocabulary_mapping practical_mappings[] = {
+    {"trees", "timber stands"},
+    {"forest", "wooded area"},
+    {"light", "illumination"},
+    {"wind", "air current"},
+    {"water", "water source"},
+    {"path", "route"},
+    {"rock", "stone formation"},
+    {"grass", "ground cover"},
+    {"sky", "overhead"},
+    {"mist", "moisture"},
+    {NULL, NULL}
+};
+
+/**
+ * Get vocabulary mapping array for a given style
+ */
+const struct vocabulary_mapping *get_style_vocabulary(int style) {
+    switch (style) {
+        case STYLE_POETIC:      return poetic_mappings;
+        case STYLE_MYSTERIOUS:  return mysterious_mappings;
+        case STYLE_DRAMATIC:    return dramatic_mappings;
+        case STYLE_PASTORAL:    return pastoral_mappings;
+        case STYLE_PRACTICAL:   return practical_mappings;
+        default:                return poetic_mappings;
+    }
+}
+
+/**
+ * Apply comprehensive vocabulary transformation to text
+ */
+char *apply_vocabulary_transformation(const char *text, int style) {
+    if (!text) return NULL;
+    
+    const struct vocabulary_mapping *mappings = get_style_vocabulary(style);
+    char *result = strdup(text);
+    if (!result) return NULL;
+    
+    int i;
+    for (i = 0; mappings[i].generic_word != NULL; i++) {
+        char *pos = strstr(result, mappings[i].generic_word);
+        if (pos) {
+            // Calculate new size needed
+            size_t old_len = strlen(mappings[i].generic_word);
+            size_t new_len = strlen(mappings[i].replacement);
+            size_t result_len = strlen(result);
+            
+            if (new_len > old_len) {
+                // Need more space
+                char *expanded = malloc(result_len + (new_len - old_len) + 1);
+                if (!expanded) {
+                    free(result);
+                    return NULL;
+                }
+                
+                // Copy parts before the match
+                size_t prefix_len = pos - result;
+                strncpy(expanded, result, prefix_len);
+                expanded[prefix_len] = '\0';
+                
+                // Add replacement
+                strcat(expanded, mappings[i].replacement);
+                
+                // Add remainder
+                strcat(expanded, pos + old_len);
+                
+                free(result);
+                result = expanded;
+            } else {
+                // Replace in place
+                memmove(pos + new_len, pos + old_len, strlen(pos + old_len) + 1);
+                memcpy(pos, mappings[i].replacement, new_len);
+            }
+        }
+    }
+    
+    return result;
+}
+
+/* Style-specific vocabulary dictionaries for enhanced adjectives and verbs */
 static const char *poetic_adjectives[] = {
     "ethereal", "luminous", "graceful", "sublime", "gossamer",
     "shimmering", "melodious", "enchanting", "serene", "mystical",
@@ -390,56 +961,137 @@ void inject_temporal_and_sensory_elements(struct description_components *desc,
                                         const char *sensory_details);
 const char **get_style_adjectives(int style);
 const char **get_style_verbs(int style);
+const struct vocabulary_mapping *get_style_vocabulary(int style);
+char *apply_vocabulary_transformation(const char *text, int style);
 char *apply_regional_style_transformation(const char *text, int style);
 int convert_style_string_to_int(const char *style_str);
 const char *get_transitional_phrase(int style, const char *context);
+
+/* Multi-condition contextual system prototypes */
+double get_time_weight_for_category(const char *json_weights, const char *time_category);
+double calculate_comprehensive_relevance(struct region_hint *hint, struct environmental_context *context, const char *regional_characteristics);
+double calculate_weather_relevance_for_hint(struct region_hint *hint, int weather_value);
+int select_contextual_weighted_hint(struct region_hint *hints, int *hint_indices, int count, 
+                                   struct environmental_context *context, const char *regional_characteristics);
+
+/* Regional transition system prototypes */
+double calculate_regional_influence(int x, int y, int region_x, int region_y, int max_influence_distance);
+double detect_region_boundary_proximity(int x, int y, int region_vnum);
+struct regional_transition *calculate_regional_transitions(int x, int y, int max_search_radius, int *transition_count);
+void apply_regional_transition_weights(struct region_hint *hints, int hint_count, 
+                                     struct regional_transition *transitions, int transition_count);
+void apply_boundary_transition_effects(struct region_hint *hints, int hint_count, 
+                                     int x, int y, int region_vnum);
 
 /* ====================================================================== */
 /*                       TRANSITIONAL PHRASE SYSTEM                      */
 /* ====================================================================== */
 
-/* Transitional phrases for natural flow between sentences */
+/* Enhanced transitional phrases for natural flow between sentences */
 static const char *atmospheric_transitions[] = {
     "Meanwhile, ", "Nearby, ", "Around you, ", "In the distance, ",
-    "Overhead, ", "Throughout the area, ", "", NULL
+    "Overhead, ", "Throughout the area, ", "Further on, ", "Beyond this, ",
+    "All around, ", "Here and there, ", "Amidst this, ", "", NULL
 };
 
 static const char *sensory_transitions[] = {
     "Here, ", "Softly, ", "All around, ", "Quietly, ", 
-    "In this place, ", "", NULL
+    "In this place, ", "Gently, ", "Faintly, ", "Subtly, ",
+    "Through the air, ", "From every direction, ", "", NULL
 };
 
 static const char *mysterious_transitions[] = {
     "Mysteriously, ", "In shadows, ", "Subtly, ", "Eerily, ",
-    "With ancient presence, ", "", NULL
+    "With ancient presence, ", "Enigmatically, ", "Through veiled paths, ",
+    "In hidden corners, ", "Where secrets dwell, ", "Silently, ", "", NULL
 };
 
 static const char *dramatic_transitions[] = {
     "Majestically, ", "Boldly, ", "Powerfully, ", "Impressively, ",
-    "With great presence, ", "", NULL
+    "With great presence, ", "Commandingly, ", "Triumphantly, ",
+    "With overwhelming force, ", "In grand display, ", "Magnificently, ", "", NULL
+};
+
+static const char *pastoral_transitions[] = {
+    "Peacefully, ", "Gently, ", "Serenely, ", "Tenderly, ",
+    "With quiet grace, ", "In harmony, ", "Soothingly, ",
+    "With natural beauty, ", "In tranquil abundance, ", "Calmly, ", "", NULL
+};
+
+static const char *poetic_transitions[] = {
+    "Gracefully, ", "Like a melody, ", "In ethereal beauty, ", "With flowing elegance, ",
+    "As if dancing, ", "In perfect harmony, ", "With artistic flair, ",
+    "Like brushstrokes on canvas, ", "In sublime arrangement, ", "Rhythmically, ", "", NULL
+};
+
+/* Context-specific transitions for better flow */
+static const char *temporal_transitions[] = {
+    "As time passes, ", "Throughout the hours, ", "In moments of stillness, ",
+    "With each passing moment, ", "In the eternal now, ", "Through endless cycles, ", "", NULL
+};
+
+static const char *spatial_transitions[] = {
+    "To the north, ", "Southward, ", "Eastward, ", "Westward, ",
+    "Above, ", "Below, ", "At ground level, ", "Higher up, ", 
+    "In the depths, ", "At the surface, ", "", NULL
+};
+
+static const char *weather_transitions[] = {
+    "Despite the weather, ", "Enhanced by conditions, ", "Under these skies, ",
+    "In this climate, ", "Blessed by nature, ", "Protected from elements, ", "", NULL
 };
 
 /**
- * Get appropriate transitional phrase based on style and context
+ * Get appropriate transitional phrase based on style and context with enhanced semantic analysis
  */
 const char *get_transitional_phrase(int style, const char *context) {
     if (!context) return "";
     
-    // Use empty transition 50% of the time for natural variation
-    if (rand() % 2 == 0) {
+    // Use empty transition 40% of the time for natural variation
+    if (rand() % 5 < 2) {
         return "";
     }
     
-    // If context contains sensory words, use sensory transitions
+    // Context-based transition selection for more natural flow
+    
+    // Temporal context
+    if (strstr(context, "time") || strstr(context, "moment") || strstr(context, "hour") ||
+        strstr(context, "dawn") || strstr(context, "dusk") || strstr(context, "night") ||
+        strstr(context, "morning") || strstr(context, "evening")) {
+        int count = 0;
+        while (temporal_transitions[count]) count++;
+        return temporal_transitions[rand() % count];
+    }
+    
+    // Spatial/directional context
+    if (strstr(context, "north") || strstr(context, "south") || strstr(context, "east") ||
+        strstr(context, "west") || strstr(context, "above") || strstr(context, "below") ||
+        strstr(context, "beyond") || strstr(context, "distance")) {
+        int count = 0;
+        while (spatial_transitions[count]) count++;
+        return spatial_transitions[rand() % count];
+    }
+    
+    // Weather context
+    if (strstr(context, "rain") || strstr(context, "wind") || strstr(context, "storm") ||
+        strstr(context, "sun") || strstr(context, "cloud") || strstr(context, "mist") ||
+        strstr(context, "weather") || strstr(context, "climate")) {
+        int count = 0;
+        while (weather_transitions[count]) count++;
+        return weather_transitions[rand() % count];
+    }
+    
+    // Sensory context - expanded detection
     if (strstr(context, "scent") || strstr(context, "sound") || strstr(context, "aroma") ||
         strstr(context, "whisper") || strstr(context, "echo") || strstr(context, "drip") ||
-        strstr(context, "silence") || strstr(context, "wind")) {
+        strstr(context, "silence") || strstr(context, "rustle") || strstr(context, "murmur") ||
+        strstr(context, "fragrance") || strstr(context, "texture") || strstr(context, "taste")) {
         int count = 0;
         while (sensory_transitions[count]) count++;
         return sensory_transitions[rand() % count];
     }
     
-    // Style-specific transitions
+    // Style-specific transitions with enhanced variety
     switch (style) {
         case STYLE_MYSTERIOUS:
             {
@@ -452,6 +1104,24 @@ const char *get_transitional_phrase(int style, const char *context) {
                 int count = 0;
                 while (dramatic_transitions[count]) count++;
                 return dramatic_transitions[rand() % count];
+            }
+        case STYLE_PASTORAL:
+            {
+                int count = 0;
+                while (pastoral_transitions[count]) count++;
+                return pastoral_transitions[rand() % count];
+            }
+        case STYLE_POETIC:
+            {
+                int count = 0;
+                while (poetic_transitions[count]) count++;
+                return poetic_transitions[rand() % count];
+            }
+        case STYLE_PRACTICAL:
+            // Practical style uses minimal, functional transitions
+            {
+                const char *practical_options[] = {"", "Additionally, ", "Furthermore, ", NULL};
+                return practical_options[rand() % 3];
             }
         default:
             {
@@ -510,7 +1180,7 @@ const char **get_style_verbs(int style) {
 }
 
 /**
- * Apply style-specific transformation to text
+ * Apply comprehensive style-specific transformation to text
  */
 char *apply_regional_style_transformation(const char *text, int style) {
     char *transformed;
@@ -518,69 +1188,97 @@ char *apply_regional_style_transformation(const char *text, int style) {
     
     if (!text) return NULL;
     
-    transformed = strdup(text);
+    // First apply vocabulary transformation
+    transformed = apply_vocabulary_transformation(text, style);
     if (!transformed) return NULL;
     
     style_adjectives = get_style_adjectives(style);
     style_verbs = get_style_verbs(style);
     
-    // Apply style-specific transformations based on style type
+    // Apply style-specific enhancements and modifiers
     switch (style) {
         case STYLE_MYSTERIOUS:
-            // Add mysterious prefixes and subtle language
-            if (strstr(transformed, "trees") && !strstr(transformed, "ancient")) {
-                char *temp = malloc(strlen(transformed) + 20);
-                if (temp) {
-                    snprintf(temp, strlen(transformed) + 20, "ancient %s", transformed);
-                    free(transformed);
-                    transformed = temp;
+            {
+                // Add mysterious atmosphere and subtle enhancements
+                char *enhanced = malloc(strlen(transformed) + 200);
+                if (enhanced) {
+                    // Add mysterious prefixes to natural elements
+                    if (strstr(transformed, "light") && !strstr(transformed, "dim")) {
+                        snprintf(enhanced, strlen(transformed) + 200, "dim, %s", transformed);
+                        free(transformed);
+                        transformed = enhanced;
+                    } else if (strstr(transformed, "sounds") && !strstr(transformed, "muffled")) {
+                        snprintf(enhanced, strlen(transformed) + 200, "muffled %s", transformed);
+                        free(transformed);
+                        transformed = enhanced;
+                    } else {
+                        free(enhanced);
+                    }
                 }
             }
             break;
             
         case STYLE_DRAMATIC:
-            // Enhance with powerful, imposing language
-            if (strstr(transformed, "hills") || strstr(transformed, "mountains")) {
-                char *temp = malloc(strlen(transformed) + 30);
-                if (temp) {
-                    char *pos = strstr(transformed, "hills");
-                    if (!pos) pos = strstr(transformed, "mountains");
-                    if (pos) {
-                        *pos = '\0';
-                        snprintf(temp, strlen(transformed) + 30, "%stowering %s", transformed, pos);
+            {
+                // Enhance with powerful, imposing language
+                char *enhanced = malloc(strlen(transformed) + 200);
+                if (enhanced) {
+                    if (strstr(transformed, "extends") || strstr(transformed, "stretches")) {
+                        snprintf(enhanced, strlen(transformed) + 200, "majestically %s", transformed);
                         free(transformed);
-                        transformed = temp;
+                        transformed = enhanced;
+                    } else if (strstr(transformed, "rises") || strstr(transformed, "stands")) {
+                        snprintf(enhanced, strlen(transformed) + 200, "proudly %s", transformed);
+                        free(transformed);
+                        transformed = enhanced;
+                    } else {
+                        free(enhanced);
                     }
                 }
             }
             break;
             
         case STYLE_PASTORAL:
-            // Add gentle, comforting language
-            if (strstr(transformed, "grass") && !strstr(transformed, "gentle")) {
-                char *temp = malloc(strlen(transformed) + 20);
-                if (temp) {
-                    snprintf(temp, strlen(transformed) + 20, "gentle %s", transformed);
-                    free(transformed);
-                    transformed = temp;
+            {
+                // Add gentle, comforting enhancements
+                char *enhanced = malloc(strlen(transformed) + 200);
+                if (enhanced) {
+                    if (strstr(transformed, "grows") || strstr(transformed, "flourishes")) {
+                        snprintf(enhanced, strlen(transformed) + 200, "peacefully %s", transformed);
+                        free(transformed);
+                        transformed = enhanced;
+                    } else if (strstr(transformed, "flows") || strstr(transformed, "moves")) {
+                        snprintf(enhanced, strlen(transformed) + 200, "gently %s", transformed);
+                        free(transformed);
+                        transformed = enhanced;
+                    } else {
+                        free(enhanced);
+                    }
                 }
             }
             break;
             
         case STYLE_PRACTICAL:
-            // Keep language straightforward and functional
-            // No embellishment needed for practical style
+            // Keep language straightforward and functional - no embellishment
             break;
             
         case STYLE_POETIC:
         default:
-            // Add flowing, artistic language
-            if (strstr(transformed, "wind") && !strstr(transformed, "gentle")) {
-                char *temp = malloc(strlen(transformed) + 20);
-                if (temp) {
-                    snprintf(temp, strlen(transformed) + 20, "gentle %s", transformed);
-                    free(transformed);
-                    transformed = temp;
+            {
+                // Add flowing, artistic enhancements
+                char *enhanced = malloc(strlen(transformed) + 200);
+                if (enhanced) {
+                    if (strstr(transformed, "moves") || strstr(transformed, "flows")) {
+                        snprintf(enhanced, strlen(transformed) + 200, "gracefully %s", transformed);
+                        free(transformed);
+                        transformed = enhanced;
+                    } else if (strstr(transformed, "appears") || strstr(transformed, "seems")) {
+                        snprintf(enhanced, strlen(transformed) + 200, "ethereally %s", transformed);
+                        free(transformed);
+                        transformed = enhanced;
+                    } else {
+                        free(enhanced);
+                    }
                 }
             }
             break;
@@ -1511,6 +2209,27 @@ char *weave_unified_description(const char *base_description, struct region_hint
         }
     }
     
+    /* Build comprehensive environmental context for sophisticated hint selection */
+    struct environmental_context env_context;
+    
+    /* Get actual wilderness weather value for enhanced weather relevance */
+    int wilderness_weather_raw = get_weather(x, y);
+    env_context.weather = wilderness_weather_raw; /* Use raw weather value for intensity calculations */
+    env_context.time_of_day = weather_info.sunlight; /* Current sun state */
+    env_context.season = get_season_from_time();
+    env_context.light_level = 100; /* Full light - TODO: Calculate properly */
+    env_context.artificial_light = 0; /* No artificial light default */
+    env_context.natural_light = 100; /* Full natural light */
+    env_context.terrain_type = 0; /* TODO: Get from terrain system */
+    env_context.elevation = 0.0; /* Sea level default */
+    env_context.near_water = false;
+    env_context.in_forest = false;
+    env_context.in_mountains = false;
+    env_context.has_light_sources = false;
+    
+    log("DEBUG: Environmental context - wilderness_weather=%d (%s), time_of_day=%d, season=%d, coords=(%d,%d)", 
+        env_context.weather, weather_condition, env_context.time_of_day, env_context.season, x, y);
+    
     unified = malloc(MAX_STRING_LENGTH * 3);
     if (!unified) {
         if (regional_characteristics) free(regional_characteristics);
@@ -1535,7 +2254,7 @@ char *weave_unified_description(const char *base_description, struct region_hint
         }
     }
     if (atmosphere_count > 0 && !atmosphere_added) {
-        int selected_index = select_weighted_hint(hints, atmosphere_hints, atmosphere_count, regional_characteristics);
+        int selected_index = select_contextual_weighted_hint(hints, atmosphere_hints, atmosphere_count, &env_context, regional_characteristics);
         int selected = atmosphere_hints[selected_index];
         if (sentence_count > 0) safe_strcat(unified, " ");
         safe_strcat(unified, hints[selected].hint_text);
@@ -1544,41 +2263,50 @@ char *weave_unified_description(const char *base_description, struct region_hint
         sentence_count++;
     }
     
-    // Add weather influence based on conditions - be more inclusive
-    if (!weather_added) {
-        // Include cloudy weather effects too, not just rainy/stormy
-        if (strcmp(weather_condition, "rainy") == 0 || 
-            strcmp(weather_condition, "stormy") == 0 ||
-            strcmp(weather_condition, "cloudy") == 0) {
-            
-            int weather_hints[10];
-            int weather_count = 0;
-            int already_used, j;
-            
-            for (i = 0; hints && hints[i].hint_text && weather_count < 10; i++) {
-                if (hints[i].hint_category == HINT_WEATHER_INFLUENCE) {
-                    // Check if already used
-                    already_used = 0;
-                    for (j = 0; j < used_count; j++) {
-                        if (used_hints[j] == i) {
-                            already_used = 1;
-                            break;
-                        }
+    // Add enhanced weather influence with intensity-based selection
+    if (!weather_added && env_context.weather > 32) { // Only add weather effects if significant weather
+        int weather_hints[20];
+        int weather_count = 0;
+        int already_used, j;
+        
+        // Collect all weather-relevant hints (not just HINT_WEATHER_INFLUENCE)
+        for (i = 0; hints && hints[i].hint_text && weather_count < 20; i++) {
+            if (hints[i].hint_category == HINT_WEATHER_INFLUENCE ||
+                hints[i].hint_category == HINT_SOUNDS ||
+                hints[i].hint_category == HINT_ATMOSPHERE ||
+                hints[i].hint_category == HINT_FLORA) {
+                
+                // Check if already used
+                already_used = 0;
+                for (j = 0; j < used_count; j++) {
+                    if (used_hints[j] == i) {
+                        already_used = 1;
+                        break;
                     }
-                    if (!already_used) {
+                }
+                
+                if (!already_used) {
+                    // Use enhanced weather relevance to filter suitable hints
+                    double weather_relevance = calculate_weather_relevance_for_hint(&hints[i], env_context.weather);
+                    if (weather_relevance > 1.2) { // Only include hints that are enhanced by weather
                         weather_hints[weather_count++] = i;
                     }
                 }
             }
-            if (weather_count > 0) {
-                int selected_index = select_weighted_hint(hints, weather_hints, weather_count, regional_characteristics);
-                int selected = weather_hints[selected_index];
-                if (sentence_count > 0) safe_strcat(unified, " ");
-                safe_strcat(unified, hints[selected].hint_text);
-                used_hints[used_count++] = selected;
-                weather_added = 1;
-                sentence_count++;
-            }
+        }
+        
+        if (weather_count > 0) {
+            int selected_index = select_contextual_weighted_hint(hints, weather_hints, weather_count, &env_context, regional_characteristics);
+            int selected = weather_hints[selected_index];
+            if (sentence_count > 0) safe_strcat(unified, " ");
+            safe_strcat(unified, hints[selected].hint_text);
+            used_hints[used_count++] = selected;
+            weather_added = 1;
+            sentence_count++;
+            
+            log("DEBUG: Enhanced weather hint added (weather=%d, relevance=%.2f): %s", 
+                env_context.weather, calculate_weather_relevance_for_hint(&hints[selected], env_context.weather), 
+                hints[selected].hint_text);
         }
     }
     
@@ -1608,7 +2336,7 @@ char *weave_unified_description(const char *base_description, struct region_hint
                 }
             }
             if (fauna_count > 0) {
-                int selected_index = select_weighted_hint(hints, fauna_hints, fauna_count, regional_characteristics);
+                int selected_index = select_contextual_weighted_hint(hints, fauna_hints, fauna_count, &env_context, regional_characteristics);
                 int selected = fauna_hints[selected_index];
                 if (sentence_count > 0) safe_strcat(unified, " ");
                 safe_strcat(unified, hints[selected].hint_text);
@@ -1641,7 +2369,7 @@ char *weave_unified_description(const char *base_description, struct region_hint
             }
         }
         if (flora_count > 0) {
-            int selected_index = select_weighted_hint(hints, flora_hints, flora_count, regional_characteristics);
+            int selected_index = select_contextual_weighted_hint(hints, flora_hints, flora_count, &env_context, regional_characteristics);
             int selected = flora_hints[selected_index];
             if (sentence_count > 0) safe_strcat(unified, " ");
             safe_strcat(unified, hints[selected].hint_text);
@@ -1673,7 +2401,7 @@ char *weave_unified_description(const char *base_description, struct region_hint
             }
         }
         if (sensory_count > 0) {
-            int selected_index = select_weighted_hint(hints, sensory_hints, sensory_count, regional_characteristics);
+            int selected_index = select_contextual_weighted_hint(hints, sensory_hints, sensory_count, &env_context, regional_characteristics);
             int selected = sensory_hints[selected_index];
             if (sentence_count > 0) safe_strcat(unified, " ");
             safe_strcat(unified, hints[selected].hint_text);
@@ -1704,7 +2432,7 @@ char *weave_unified_description(const char *base_description, struct region_hint
             }
         }
         if (seasonal_count > 0) {
-            int selected_index = select_weighted_hint(hints, seasonal_hints, seasonal_count, regional_characteristics);
+            int selected_index = select_contextual_weighted_hint(hints, seasonal_hints, seasonal_count, &env_context, regional_characteristics);
             int selected = seasonal_hints[selected_index];
             if (sentence_count > 0) safe_strcat(unified, " ");
             safe_strcat(unified, hints[selected].hint_text);
@@ -1737,7 +2465,7 @@ char *weave_unified_description(const char *base_description, struct region_hint
             }
         }
         if (time_count > 0) {
-            int selected_index = select_weighted_hint(hints, time_hints, time_count, regional_characteristics);
+            int selected_index = select_contextual_weighted_hint(hints, time_hints, time_count, &env_context, regional_characteristics);
             int selected = time_hints[selected_index];
             if (sentence_count > 0) safe_strcat(unified, " ");
             safe_strcat(unified, hints[selected].hint_text);
@@ -1768,7 +2496,7 @@ char *weave_unified_description(const char *base_description, struct region_hint
             }
         }
         if (mystical_count > 0) {
-            int selected_index = select_weighted_hint(hints, mystical_hints, mystical_count, regional_characteristics);
+            int selected_index = select_contextual_weighted_hint(hints, mystical_hints, mystical_count, &env_context, regional_characteristics);
             int selected = mystical_hints[selected_index];
             if (sentence_count > 0) safe_strcat(unified, " ");
             safe_strcat(unified, hints[selected].hint_text);
@@ -1865,6 +2593,37 @@ char *enhance_base_description_with_hints(char *base_description, struct char_da
         log("DEBUG: No contextual hints available for region %d", region_vnum);
         free_region_list(regions);
         return NULL;
+    }
+    
+    // Apply regional transition effects for smooth boundary changes
+    int transition_count = 0;
+    struct regional_transition *transitions = calculate_regional_transitions(x, y, 10, &transition_count);
+    if (transitions && transition_count > 0) {
+        /* Count hints for transition processing */
+        int hint_count = 0;
+        while (hints[hint_count].hint_text) hint_count++;
+        
+        /* Apply multi-region blending */
+        apply_regional_transition_weights(hints, hint_count, transitions, transition_count);
+        
+        /* Apply boundary proximity effects */
+        apply_boundary_transition_effects(hints, hint_count, x, y, region_vnum);
+        
+        log("DEBUG: Applied regional transition effects with %d nearby regions", transition_count);
+        
+        /* Cleanup transition data */
+        int i;
+        for (i = 0; i < transition_count; i++) {
+            if (transitions[i].characteristics) {
+                free(transitions[i].characteristics);
+            }
+        }
+        free(transitions);
+    } else {
+        /* Even without multiple regions, apply boundary effects for current region */
+        int hint_count = 0;
+        while (hints[hint_count].hint_text) hint_count++;
+        apply_boundary_transition_effects(hints, hint_count, x, y, region_vnum);
     }
     
     // Layer hints onto base description
@@ -1978,6 +2737,21 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
     int i;
     char *regional_characteristics = NULL;
     
+    // Create environmental context for contextual hint selection
+    struct environmental_context env_context;
+    env_context.weather = get_weather(x, y); // Use actual wilderness weather
+    env_context.time_of_day = SUN_LIGHT; // Midday default
+    env_context.season = 1; // Spring
+    env_context.light_level = 100; // Full daylight
+    env_context.artificial_light = 0; // No artificial light
+    env_context.natural_light = 100; // Full natural light
+    env_context.terrain_type = 0; // Default terrain
+    env_context.elevation = 0.0; // Sea level
+    env_context.near_water = false;
+    env_context.in_forest = false;
+    env_context.in_mountains = false;
+    env_context.has_light_sources = false;
+    
     /* Load regional characteristics for mood-based weighting */
     if (hints && hints[0].hint_text) {
         int region_vnum = 1000004;
@@ -2007,7 +2781,7 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
         }
     }
     if (atmosphere_count > 0) {
-        int selected_index = select_weighted_hint(hints, atmosphere_hints, atmosphere_count, regional_characteristics);
+        int selected_index = select_contextual_weighted_hint(hints, atmosphere_hints, atmosphere_count, &env_context, regional_characteristics);
         int selected = atmosphere_hints[selected_index];
         if (strlen(hint_additions) > 0) safe_strcat(hint_additions, " ");
         safe_strcat(hint_additions, hints[selected].hint_text);
@@ -2034,7 +2808,7 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
         }
     }
     if (flora_count > 0) {
-        int selected_index = select_weighted_hint(hints, flora_hints, flora_count, regional_characteristics);
+        int selected_index = select_contextual_weighted_hint(hints, flora_hints, flora_count, &env_context, regional_characteristics);
         int selected = flora_hints[selected_index];
         if (strlen(hint_additions) > 0) safe_strcat(hint_additions, " ");
         safe_strcat(hint_additions, hints[selected].hint_text);
@@ -2061,7 +2835,7 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
         }
     }
     if (fauna_count > 0 && (rand() % 3 != 0)) { // 66% chance to include fauna
-        int selected_index = select_weighted_hint(hints, fauna_hints, fauna_count, regional_characteristics);
+        int selected_index = select_contextual_weighted_hint(hints, fauna_hints, fauna_count, &env_context, regional_characteristics);
         int selected = fauna_hints[selected_index];
         if (strlen(hint_additions) > 0) safe_strcat(hint_additions, " ");
         safe_strcat(hint_additions, hints[selected].hint_text);
