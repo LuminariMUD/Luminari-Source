@@ -24,6 +24,7 @@
 #include "region_hints.h"
 #include "resource_descriptions.h"
 #include "systems/narrative_weaver/narrative_weaver.h"
+#include "resource_system.h"
 
 /* External function declarations */
 extern struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y);
@@ -42,6 +43,218 @@ extern void mysql_pool_free_result(MYSQL_RES *result);  /* From mysql.c */
 /* Forward declarations */
 char *simple_hint_layering(char *base_description, struct region_hint *hints, int x, int y);
 void free_contextual_hints(struct region_hint *hints);
+
+/* ====================================================================== */
+/*                        PERFORMANCE OPTIMIZATION                       */
+/*                           HINT CACHING SYSTEM                         */
+/* ====================================================================== */
+
+/* Cache key for location-based hint caching */
+struct hint_cache_key {
+    int region_vnum;
+    int weather_condition;
+    int time_category;
+    int season;
+    float resource_health;  /* For resource-dependent hints */
+};
+
+/* Cached hint data with metadata */
+struct hint_cache_entry {
+    struct hint_cache_key key;
+    struct region_hint *hints;
+    time_t cache_time;
+    int hint_count;
+    struct hint_cache_entry *next;  /* For hash table chaining */
+};
+
+/* Hash table for hint caching */
+#define HINT_CACHE_SIZE 256
+#define HINT_CACHE_TTL 300   /* 5 minutes cache lifetime */
+#define HINT_CACHE_MAX_ENTRIES 1000  /* Maximum cached entries */
+
+static struct hint_cache_entry *hint_cache[HINT_CACHE_SIZE];
+static int hint_cache_entries = 0;
+
+/* Hash function for cache keys */
+unsigned int hash_cache_key(struct hint_cache_key *key) {
+    unsigned int hash = 5381;
+    hash = ((hash << 5) + hash) + key->region_vnum;
+    hash = ((hash << 5) + hash) + key->weather_condition;
+    hash = ((hash << 5) + hash) + key->time_category;
+    hash = ((hash << 5) + hash) + key->season;
+    hash = ((hash << 5) + hash) + (int)(key->resource_health * 100); /* Quantize resource health */
+    return hash % HINT_CACHE_SIZE;
+}
+
+/* Compare cache keys for equality */
+int cache_keys_equal(struct hint_cache_key *key1, struct hint_cache_key *key2) {
+    return (key1->region_vnum == key2->region_vnum &&
+            key1->weather_condition == key2->weather_condition &&
+            key1->time_category == key2->time_category &&
+            key1->season == key2->season &&
+            abs((int)(key1->resource_health * 100) - (int)(key2->resource_health * 100)) <= 5); /* 5% tolerance */
+}
+
+/* Duplicate hint array for caching */
+struct region_hint *duplicate_hints(struct region_hint *hints) {
+    if (!hints) return NULL;
+    
+    /* Count hints */
+    int count = 0;
+    while (hints[count].hint_text) count++;
+    
+    /* Allocate new array */
+    struct region_hint *cached_hints = malloc(sizeof(struct region_hint) * (count + 1));
+    if (!cached_hints) return NULL;
+    
+    /* Copy hints */
+    int i;
+    for (i = 0; i < count; i++) {
+        cached_hints[i].hint_category = hints[i].hint_category;
+        cached_hints[i].hint_text = strdup(hints[i].hint_text ? hints[i].hint_text : "");
+        cached_hints[i].priority = hints[i].priority;
+        cached_hints[i].seasonal_weight = strdup(hints[i].seasonal_weight ? hints[i].seasonal_weight : "");
+        cached_hints[i].time_of_day_weight = strdup(hints[i].time_of_day_weight ? hints[i].time_of_day_weight : "");
+        cached_hints[i].contextual_weight = hints[i].contextual_weight;
+    }
+    
+    /* Null terminator */
+    cached_hints[count].hint_text = NULL;
+    
+    return cached_hints;
+}
+
+/* Remove old cache entries to prevent memory bloat */
+void cleanup_hint_cache(void) {
+    time_t current_time = time(NULL);
+    int removed = 0;
+    int i;
+    
+    for (i = 0; i < HINT_CACHE_SIZE; i++) {
+        struct hint_cache_entry **entry_ptr = &hint_cache[i];
+        
+        while (*entry_ptr) {
+            struct hint_cache_entry *entry = *entry_ptr;
+            
+            /* Remove expired entries or if we're over limit */
+            if ((current_time - entry->cache_time) > HINT_CACHE_TTL ||
+                hint_cache_entries > HINT_CACHE_MAX_ENTRIES) {
+                
+                /* Remove from chain */
+                *entry_ptr = entry->next;
+                
+                /* Free hint data */
+                if (entry->hints) {
+                    free_contextual_hints(entry->hints);
+                }
+                
+                free(entry);
+                hint_cache_entries--;
+                removed++;
+            } else {
+                entry_ptr = &entry->next;
+            }
+        }
+    }
+    
+    if (removed > 0) {
+        log("DEBUG: Cleaned up %d expired hint cache entries, %d entries remaining", 
+            removed, hint_cache_entries);
+    }
+}
+
+/* Get hints from cache if available */
+struct region_hint *get_cached_hints(struct hint_cache_key *key) {
+    unsigned int hash = hash_cache_key(key);
+    struct hint_cache_entry *entry = hint_cache[hash];
+    time_t current_time = time(NULL);
+    
+    while (entry) {
+        if (cache_keys_equal(&entry->key, key)) {
+            /* Check if entry is still valid */
+            if ((current_time - entry->cache_time) <= HINT_CACHE_TTL) {
+                log("DEBUG: Cache HIT for region %d, weather %d, time %d", 
+                    key->region_vnum, key->weather_condition, key->time_category);
+                return duplicate_hints(entry->hints);
+            } else {
+                log("DEBUG: Cache entry expired for region %d", key->region_vnum);
+                break;
+            }
+        }
+        entry = entry->next;
+    }
+    
+    log("DEBUG: Cache MISS for region %d, weather %d, time %d", 
+        key->region_vnum, key->weather_condition, key->time_category);
+    return NULL;
+}
+
+/* Store hints in cache */
+void cache_hints(struct hint_cache_key *key, struct region_hint *hints) {
+    if (!hints || hint_cache_entries >= HINT_CACHE_MAX_ENTRIES) {
+        /* Clean up if we're at capacity */
+        if (hint_cache_entries >= HINT_CACHE_MAX_ENTRIES) {
+            cleanup_hint_cache();
+        }
+        if (hint_cache_entries >= HINT_CACHE_MAX_ENTRIES) {
+            return; /* Still at capacity, skip caching */
+        }
+    }
+    
+    unsigned int hash = hash_cache_key(key);
+    
+    /* Create new cache entry */
+    struct hint_cache_entry *entry = malloc(sizeof(struct hint_cache_entry));
+    if (!entry) return;
+    
+    entry->key = *key;
+    entry->hints = duplicate_hints(hints);
+    entry->cache_time = time(NULL);
+    entry->next = hint_cache[hash];
+    
+    /* Count hints */
+    int count = 0;
+    if (hints) {
+        while (hints[count].hint_text) count++;
+    }
+    entry->hint_count = count;
+    
+    /* Insert at head of chain */
+    hint_cache[hash] = entry;
+    hint_cache_entries++;
+    
+    log("DEBUG: Cached %d hints for region %d (total cache entries: %d)", 
+        count, key->region_vnum, hint_cache_entries);
+}
+
+/* Initialize hint caching system */
+void init_hint_cache(void) {
+    int i;
+    for (i = 0; i < HINT_CACHE_SIZE; i++) {
+        hint_cache[i] = NULL;
+    }
+    hint_cache_entries = 0;
+    log("INIT: Hint caching system initialized");
+}
+
+/* Clear entire hint cache (for debugging or system reset) */
+void clear_hint_cache(void) {
+    int i;
+    for (i = 0; i < HINT_CACHE_SIZE; i++) {
+        struct hint_cache_entry *entry = hint_cache[i];
+        while (entry) {
+            struct hint_cache_entry *next = entry->next;
+            if (entry->hints) {
+                free_contextual_hints(entry->hints);
+            }
+            free(entry);
+            entry = next;
+        }
+        hint_cache[i] = NULL;
+    }
+    hint_cache_entries = 0;
+    log("DEBUG: Hint cache cleared");
+}
 
 /* Season constants - matching the standard MUD seasonal system */
 #define SEASON_SPRING 0
@@ -497,6 +710,149 @@ void apply_boundary_transition_effects(struct region_hint *hints, int hint_count
 }
 
 /**
+ * Calculate overall resource abundance for an area to influence regional character
+ * @param x, y Center coordinates 
+ * @param radius Area radius to sample
+ * @return Overall resource health: 0.0 (depleted) to 1.0 (abundant)
+ */
+float calculate_regional_resource_health(int x, int y, int radius) {
+    float total_resources = 0.0;
+    int sample_count = 0;
+    int dx, dy;
+    
+    /* Sample resources in a grid pattern around the center point */
+    for (dx = -radius; dx <= radius; dx += 2) { /* Sample every 2 coordinates for performance */
+        for (dy = -radius; dy <= radius; dy += 2) {
+            int sample_x = x + dx;
+            int sample_y = y + dy;
+            
+            /* Calculate Manhattan distance for area weighting */
+            int distance = abs(dx) + abs(dy);
+            if (distance > radius) continue; /* Skip points outside radius */
+            
+            /* Weight nearby samples more heavily */
+            float weight = 1.0 - ((float)distance / radius);
+            
+            /* Sample key resource types that affect regional atmosphere */
+            float vegetation = calculate_current_resource_level(RESOURCE_VEGETATION, sample_x, sample_y);
+            float water = calculate_current_resource_level(RESOURCE_WATER, sample_x, sample_y);
+            float game = calculate_current_resource_level(RESOURCE_GAME, sample_x, sample_y);
+            float herbs = calculate_current_resource_level(RESOURCE_HERBS, sample_x, sample_y);
+            
+            /* Combine resources with atmospheric relevance weighting */
+            float sample_health = (vegetation * 0.4) + (water * 0.3) + (game * 0.2) + (herbs * 0.1);
+            
+            total_resources += sample_health * weight;
+            sample_count++;
+        }
+    }
+    
+    if (sample_count == 0) return 0.5; /* Default to moderate if no samples */
+    
+    float average_health = total_resources / sample_count;
+    
+    /* Clamp to valid range */
+    if (average_health < 0.0) average_health = 0.0;
+    if (average_health > 1.0) average_health = 1.0;
+    
+    return average_health;
+}
+
+/**
+ * Apply resource-based weighting to hints based on regional resource health
+ * @param hints Array of hints to modify
+ * @param hint_count Number of hints
+ * @param resource_health Overall resource health (0.0-1.0)
+ */
+void apply_resource_based_hint_weighting(struct region_hint *hints, int hint_count, float resource_health) {
+    if (!hints || hint_count <= 0) return;
+    
+    int i;
+    
+    /* Abundant resources (0.7-1.0) - lush, thriving descriptions */
+    if (resource_health >= 0.7) {
+        for (i = 0; i < hint_count; i++) {
+            const char *hint_text = hints[i].hint_text;
+            
+            /* Boost hints suggesting abundance and vitality */
+            if (strstr(hint_text, "lush") || strstr(hint_text, "abundant") || 
+                strstr(hint_text, "thriving") || strstr(hint_text, "rich") ||
+                strstr(hint_text, "flourish") || strstr(hint_text, "vibrant") ||
+                strstr(hint_text, "dense") || strstr(hint_text, "plentiful")) {
+                hints[i].contextual_weight *= (1.0 + 0.4 * resource_health); /* Up to 40% boost */
+            }
+            
+            /* Reduce hints suggesting scarcity */
+            if (strstr(hint_text, "sparse") || strstr(hint_text, "depleted") || 
+                strstr(hint_text, "barren") || strstr(hint_text, "struggling") ||
+                strstr(hint_text, "withered") || strstr(hint_text, "scarce")) {
+                hints[i].contextual_weight *= 0.3; /* Strong reduction */
+            }
+            
+            /* Boost nature-related categories in abundant areas */
+            if (hints[i].hint_category == HINT_FLORA || hints[i].hint_category == HINT_FAUNA) {
+                hints[i].contextual_weight *= (1.0 + 0.2 * resource_health); /* Up to 20% boost */
+            }
+        }
+    }
+    /* Depleted resources (0.0-0.3) - sparse, struggling descriptions */
+    else if (resource_health <= 0.3) {
+        for (i = 0; i < hint_count; i++) {
+            const char *hint_text = hints[i].hint_text;
+            
+            /* Boost hints suggesting scarcity and struggle */
+            if (strstr(hint_text, "sparse") || strstr(hint_text, "depleted") || 
+                strstr(hint_text, "barren") || strstr(hint_text, "struggling") ||
+                strstr(hint_text, "withered") || strstr(hint_text, "scarce") ||
+                strstr(hint_text, "dry") || strstr(hint_text, "brittle")) {
+                hints[i].contextual_weight *= (1.0 + 0.5 * (1.0 - resource_health)); /* Up to 50% boost when very depleted */
+            }
+            
+            /* Reduce hints suggesting abundance */
+            if (strstr(hint_text, "lush") || strstr(hint_text, "abundant") || 
+                strstr(hint_text, "thriving") || strstr(hint_text, "rich") ||
+                strstr(hint_text, "flourish") || strstr(hint_text, "vibrant")) {
+                hints[i].contextual_weight *= 0.2; /* Strong reduction */
+            }
+            
+            /* Reduce fauna hints in depleted areas (animals leave) */
+            if (hints[i].hint_category == HINT_FAUNA) {
+                hints[i].contextual_weight *= (0.5 + 0.3 * resource_health); /* Significant reduction */
+            }
+            
+            /* Slightly reduce flora hints but not as much (plants struggle but persist) */
+            if (hints[i].hint_category == HINT_FLORA) {
+                hints[i].contextual_weight *= (0.7 + 0.2 * resource_health); /* Moderate reduction */
+            }
+        }
+    }
+    /* Moderate resources (0.3-0.7) - gradual transitions */
+    else {
+        /* Apply subtle adjustments for moderate resource levels */
+        double abundance_factor = (resource_health - 0.3) / 0.4; /* Scale 0.3-0.7 to 0.0-1.0 */
+        
+        for (i = 0; i < hint_count; i++) {
+            const char *hint_text = hints[i].hint_text;
+            
+            /* Gentle boost/reduction based on abundance keywords */
+            if (strstr(hint_text, "lush") || strstr(hint_text, "abundant") || strstr(hint_text, "thriving")) {
+                hints[i].contextual_weight *= (1.0 + 0.1 * abundance_factor); /* Up to 10% boost */
+            }
+            if (strstr(hint_text, "sparse") || strstr(hint_text, "struggling") || strstr(hint_text, "scarce")) {
+                hints[i].contextual_weight *= (1.0 - 0.1 * abundance_factor); /* Up to 10% reduction */
+            }
+        }
+    }
+    
+    /* Ensure minimum weights */
+    for (i = 0; i < hint_count; i++) {
+        if (hints[i].contextual_weight < 0.1) {
+            hints[i].contextual_weight = 0.1;
+        }
+    }
+}
+
+/**
  * Structure to hold regional transition data for blending
  */
 struct regional_transition {
@@ -738,6 +1094,8 @@ static const char *mood_indicators[] = {
     "peaceful", "tranquil", "serene", "calm", "gentle",
     "ominous", "foreboding", "dark", "threatening", "menacing",
     "vibrant", "lively", "energetic", "bustling", "dynamic",
+    "ethereal", "otherworldly", "sacred", "timeless", "ancient",
+    "luminescent", "glowing", "bioluminescent", "emerald",
     NULL
 };
 
@@ -747,6 +1105,8 @@ static const char *action_verbs[] = {
     "tower", "loom", "stretch", "reach", "rise",
     "flow", "cascade", "trickle", "babble", "gurgle",
     "call", "cry", "sing", "chirp", "echo",
+    "glow", "emanate", "pulse", "shimmer", "sparkle",
+    "envelop", "drape", "carpet", "muffle", "filter",
     NULL
 };
 
@@ -982,6 +1342,8 @@ void apply_regional_transition_weights(struct region_hint *hints, int hint_count
                                      struct regional_transition *transitions, int transition_count);
 void apply_boundary_transition_effects(struct region_hint *hints, int hint_count, 
                                      int x, int y, int region_vnum);
+float calculate_regional_resource_health(int x, int y, int radius);
+void apply_resource_based_hint_weighting(struct region_hint *hints, int hint_count, float resource_health);
 
 /* ====================================================================== */
 /*                       TRANSITIONAL PHRASE SYSTEM                      */
@@ -1639,12 +2001,71 @@ struct description_components *parse_description_components(const char *base_des
 }
 
 /**
+ * Safe string replacement function - returns new allocated string
+ */
+char *replace_string_safe(const char *str, const char *find, const char *replace) {
+    if (!str || !find || !replace) return strdup(str ? str : "");
+    
+    char *pos = strstr(str, find);
+    if (!pos) return strdup(str);
+    
+    size_t str_len = strlen(str);
+    size_t find_len = strlen(find);
+    size_t replace_len = strlen(replace);
+    size_t new_len = str_len - find_len + replace_len + 1;
+    
+    char *result = malloc(new_len);
+    if (!result) return strdup(str);
+    
+    // Copy part before the match
+    size_t prefix_len = pos - str;
+    strncpy(result, str, prefix_len);
+    result[prefix_len] = '\0';
+    
+    // Add replacement
+    strcat(result, replace);
+    
+    // Add part after the match
+    strcat(result, pos + find_len);
+    
+    return result;
+}
+
+/**
  * Apply semantic transformations to modify description mood
  */
 void transform_description_mood(struct description_components *desc, const char *target_mood) {
     if (!desc || !target_mood) return;
     
-    if (strcmp(target_mood, "mysterious") == 0) {
+    if (strcmp(target_mood, "ethereal") == 0) {
+        // Transform to ethereal/mystical mood for Mosswood
+        if (desc->opening_imagery) {
+            char *temp = strdup(desc->opening_imagery);
+            if (temp) {
+                // Apply multiple transformations safely
+                char *step1 = replace_string_safe(temp, "oak trees", "ancient trees draped in thick, velvety moss");
+                char *step2 = replace_string_safe(step1, "Towering oak", "Moss-covered ancient");
+                char *step3 = replace_string_safe(step2, "trees", "moss-laden trees");
+                char *step4 = replace_string_safe(step3, "canopy", "emerald canopy of moss-draped branches");
+                char *step5 = replace_string_safe(step4, "forest", "mystical moss forest");
+                char *step6 = replace_string_safe(step5, "dance", "stand silently");
+                char *final = replace_string_safe(step6, "harmonious symphony", "profound silence");
+                
+                // Free intermediate results
+                free(temp);
+                free(step1);
+                free(step2);
+                free(step3);
+                free(step4);
+                free(step5);
+                free(step6);
+                
+                // Replace the original
+                free(desc->opening_imagery);
+                desc->opening_imagery = final;
+            }
+        }
+    } else if (strcmp(target_mood, "mysterious") == 0) {
         // Transform to mysterious mood
         if (desc->opening_imagery && strstr(desc->opening_imagery, "tall")) {
             char *new_imagery = malloc(strlen(desc->opening_imagery) + 50);
@@ -1692,8 +2113,32 @@ void inject_dynamic_elements(struct description_components *desc, const char *ac
     
     if (!desc->descriptive_verbs) return;
     
-    // Enhance verbs with active elements
-    if (strcmp(active_elements, "whisper") == 0 && strstr(desc->descriptive_verbs, "tower")) {
+    // Enhanced element injection for Mosswood and other regions
+    if (strcmp(active_elements, "ethereal_glow") == 0) {
+        // Add ethereal glow elements
+        if (desc->descriptive_verbs) {
+            char *enhanced_verbs = malloc(strlen(desc->descriptive_verbs) + 200);
+            if (enhanced_verbs) {
+                snprintf(enhanced_verbs, strlen(desc->descriptive_verbs) + 200, 
+                        "%s, while an ethereal green glow emanates from bioluminescent moss patches", 
+                        desc->descriptive_verbs);
+                free(desc->descriptive_verbs);
+                desc->descriptive_verbs = enhanced_verbs;
+            }
+        }
+    } else if (strcmp(active_elements, "moss_carpet") == 0) {
+        // Add moss carpet elements  
+        if (desc->atmospheric_modifiers) {
+            char *enhanced_atmosphere = malloc(strlen(desc->atmospheric_modifiers) + 150);
+            if (enhanced_atmosphere) {
+                snprintf(enhanced_atmosphere, strlen(desc->atmospheric_modifiers) + 150,
+                        "%s A thick emerald carpet of moss muffles every footstep beneath your feet.", 
+                        desc->atmospheric_modifiers);
+                free(desc->atmospheric_modifiers);
+                desc->atmospheric_modifiers = enhanced_atmosphere;
+            }
+        }
+    } else if (strcmp(active_elements, "whisper") == 0 && strstr(desc->descriptive_verbs, "tower")) {
         char *enhanced_verbs = malloc(strlen(desc->descriptive_verbs) + 50);
         if (enhanced_verbs) {
             snprintf(enhanced_verbs, strlen(desc->descriptive_verbs) + 50, 
@@ -1919,6 +2364,211 @@ void free_description_components(struct description_components *components) {
 }
 
 /* ====================================================================== */
+/*                         HINT LOADING FUNCTIONS                        */
+/* ====================================================================== */
+
+/**
+ * Optimized cached hint loading with performance enhancements
+ */
+struct region_hint *load_contextual_hints_cached(int region_vnum, const char *weather_condition, 
+                                                const char *time_category, double resource_health) {
+    /* Create cache key */
+    struct hint_cache_key cache_key;
+    cache_key.region_vnum = region_vnum;
+    cache_key.weather_condition = get_weather_code_from_string(weather_condition);
+    cache_key.time_category = get_time_code_from_string(time_category);
+    cache_key.season = get_season_from_time();
+    cache_key.resource_health = resource_health;
+    
+    /* Try to get from cache first */
+    struct region_hint *cached_hints = get_cached_hints(&cache_key);
+    if (cached_hints) {
+        return cached_hints;
+    }
+    
+    /* Cache miss - load from database using optimized query */
+    struct region_hint *fresh_hints = load_contextual_hints_optimized(region_vnum, weather_condition, time_category);
+    
+    /* Cache the fresh hints for future use */
+    if (fresh_hints) {
+        cache_hints(&cache_key, fresh_hints);
+    }
+    
+    return fresh_hints;
+}
+
+/**
+ * Convert weather condition string to integer code for caching
+ */
+int get_weather_code_from_string(const char *weather_condition) {
+    if (!weather_condition) return 0;
+    if (strcmp(weather_condition, "clear") == 0) return 1;
+    if (strcmp(weather_condition, "cloudy") == 0) return 2;
+    if (strcmp(weather_condition, "rainy") == 0) return 3;
+    if (strcmp(weather_condition, "stormy") == 0) return 4;
+    if (strcmp(weather_condition, "snowy") == 0) return 5;
+    if (strcmp(weather_condition, "foggy") == 0) return 6;
+    return 0; /* Unknown */
+}
+
+/**
+ * Convert time category string to integer code for caching
+ */
+int get_time_code_from_string(const char *time_category) {
+    if (!time_category) return 0;
+    if (strcmp(time_category, "dawn") == 0) return 1;
+    if (strcmp(time_category, "morning") == 0) return 2;
+    if (strcmp(time_category, "midday") == 0) return 3;
+    if (strcmp(time_category, "afternoon") == 0) return 4;
+    if (strcmp(time_category, "dusk") == 0) return 5;
+    if (strcmp(time_category, "evening") == 0) return 6;
+    if (strcmp(time_category, "night") == 0) return 7;
+    if (strcmp(time_category, "midnight") == 0) return 8;
+    return 0; /* Unknown */
+}
+
+/**
+ * Optimized database query version with batch loading
+ */
+struct region_hint *load_contextual_hints_optimized(int region_vnum, const char *weather_condition, const char *time_category) {
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    char query[MAX_STRING_LENGTH * 2]; /* Larger buffer for complex query */
+    struct region_hint *hints = NULL;
+    struct region_hint *current_hint = NULL;
+    int hint_count = 0;
+    int current_season = get_season_from_time();
+    
+    /* Optimized query with existing table columns only */
+    sprintf(query,
+        "SELECT hint_category, hint_text, priority, seasonal_weight, time_of_day_weight "
+        "FROM region_hints "
+        "WHERE region_vnum = %d "
+        "AND is_active = 1 "
+        "AND (weather_conditions IS NULL OR weather_conditions = '' OR FIND_IN_SET('%s', weather_conditions) > 0) "
+        "ORDER BY priority DESC "
+        "LIMIT 20",
+        region_vnum, weather_condition ? weather_condition : "");
+    
+    if (!mysql_pool) {
+        log("SYSERR: No database connection for loading contextual hints");
+        return NULL;
+    }
+    
+    if (mysql_pool_query(query, &result) != 0) {
+        log("SYSERR: MySQL query error in load_contextual_hints_optimized");
+        return NULL;
+    }
+    
+    if (!result) {
+        log("SYSERR: MySQL store result error in load_contextual_hints_optimized");
+        return NULL;
+    }
+    
+    /* Allocate array for hints with extra space */
+    hints = calloc(21, sizeof(struct region_hint)); /* 20 hints + terminator */
+    if (!hints) {
+        mysql_pool_free_result(result);
+        log("SYSERR: Memory allocation failed for contextual hints");
+        return NULL;
+    }
+    
+    /* Process query results with enhanced filtering */
+    while ((row = mysql_fetch_row(result)) && hint_count < 20) {
+        /* Calculate contextual weights */
+        double seasonal_weight = 1.0;
+        double time_weight = 1.0;
+        double combined_weight = 1.0;
+        
+        /* Get weights from JSON columns */
+        if (row[3]) { /* seasonal_weight JSON */
+            seasonal_weight = get_seasonal_weight_for_hint(row[3], current_season);
+        }
+        if (row[4]) { /* time_of_day_weight JSON */
+            time_weight = get_time_weight_for_hint(row[4], time_category);
+        }
+        
+        /* Combined weight calculation */
+        combined_weight = seasonal_weight * time_weight;
+        
+        /* Apply relevance threshold */
+        if (combined_weight < 0.25) {
+            continue; /* Skip low-relevance hints */
+        }
+        
+        current_hint = &hints[hint_count];
+        
+        /* Enhanced category mapping with error checking */
+        if (row[0]) {
+            current_hint->hint_category = get_hint_category_from_string(row[0]);
+        } else {
+            current_hint->hint_category = 0; /* Default */
+        }
+        
+        /* Copy and transform hint text */
+        if (row[1]) {
+            current_hint->hint_text = transform_voice_to_observational(row[1]);
+        } else {
+            current_hint->hint_text = strdup(""); /* Empty fallback */
+        }
+        
+        /* Copy priority with contextual adjustment */
+        if (row[2]) {
+            current_hint->priority = atoi(row[2]) * combined_weight;
+        } else {
+            current_hint->priority = 1.0 * combined_weight;
+        }
+        
+        /* Store contextual weight and prepare storage fields */
+        current_hint->contextual_weight = combined_weight;
+        current_hint->seasonal_weight = row[3] ? strdup(row[3]) : strdup("");
+        current_hint->time_of_day_weight = row[4] ? strdup(row[4]) : strdup("");
+        
+        hint_count++;
+    }
+    
+    mysql_pool_free_result(result);
+    
+    /* Null terminate the hints array */
+    if (hint_count < 21) {
+        hints[hint_count].hint_text = NULL;
+    }
+    
+    log("DEBUG: Loaded %d optimized contextual hints for region %d", hint_count, region_vnum);
+    return hints;
+}
+
+/**
+ * Convert hint category string to enum constant
+ */
+int get_hint_category_from_string(const char *category_str) {
+    if (!category_str) return 0;
+    
+    if (strcmp(category_str, "atmosphere") == 0) return HINT_ATMOSPHERE;
+    if (strcmp(category_str, "fauna") == 0) return HINT_FAUNA;
+    if (strcmp(category_str, "flora") == 0) return HINT_FLORA;
+    if (strcmp(category_str, "geography") == 0) return HINT_GEOGRAPHY;
+    if (strcmp(category_str, "weather_influence") == 0) return HINT_WEATHER_INFLUENCE;
+    if (strcmp(category_str, "resources") == 0) return HINT_RESOURCES;
+    if (strcmp(category_str, "landmarks") == 0) return HINT_LANDMARKS;
+    if (strcmp(category_str, "sounds") == 0) return HINT_SOUNDS;
+    if (strcmp(category_str, "scents") == 0) return HINT_SCENTS;
+    if (strcmp(category_str, "seasonal_changes") == 0) return HINT_SEASONAL_CHANGES;
+    if (strcmp(category_str, "time_of_day") == 0) return HINT_TIME_OF_DAY;
+    if (strcmp(category_str, "mystical") == 0) return HINT_MYSTICAL;
+    
+    return 0; /* Default/unknown category */
+}
+
+/**
+ * Legacy hint loading function (maintained for compatibility)
+ */
+struct region_hint *load_contextual_hints(int region_vnum, const char *weather_condition, const char *time_category) {
+    /* For backward compatibility, call optimized cached version with default resource health */
+    return load_contextual_hints_cached(region_vnum, weather_condition, time_category, 0.5);
+}
+
+/* ====================================================================== */
 /*                         UTILITY FUNCTIONS                             */
 /* ====================================================================== */
 
@@ -2023,8 +2673,12 @@ char *load_comprehensive_region_description(int region_vnum) {
 
 /**
  * Load and filter relevant hints for current conditions with AI mood integration
+ * @param region_vnum The region vnum to load hints for
+ * @param weather_condition Current weather conditions
+ * @param time_category Current time of day
+ * @return Array of region hints, or NULL if none found
  */
-struct region_hint *load_contextual_hints(int region_vnum, const char *weather_condition, const char *time_category) {
+struct region_hint *load_contextual_hints_legacy(int region_vnum, const char *weather_condition, const char *time_category) {
     MYSQL_RES *result;
     MYSQL_ROW row;
     char query[MAX_STRING_LENGTH];
@@ -2587,8 +3241,11 @@ char *enhance_base_description_with_hints(char *base_description, struct char_da
     weather_condition = get_wilderness_weather_condition(x, y);
     time_category = get_time_of_day_category();
     
-    // Load contextual hints for current conditions
-    hints = load_contextual_hints(region_vnum, weather_condition, time_category);
+    // Calculate resource health for performance-optimized caching
+    float resource_health = calculate_regional_resource_health(x, y, 5);
+    
+    // Load contextual hints for current conditions using optimized cached version
+    hints = load_contextual_hints_cached(region_vnum, weather_condition, time_category, resource_health);
     if (!hints) {
         log("DEBUG: No contextual hints available for region %d", region_vnum);
         free_region_list(regions);
@@ -2609,7 +3266,12 @@ char *enhance_base_description_with_hints(char *base_description, struct char_da
         /* Apply boundary proximity effects */
         apply_boundary_transition_effects(hints, hint_count, x, y, region_vnum);
         
-        log("DEBUG: Applied regional transition effects with %d nearby regions", transition_count);
+        /* Apply resource-based weighting for dynamic regional atmosphere */
+        float resource_health = calculate_regional_resource_health(x, y, 5); /* 5-coordinate radius sampling */
+        apply_resource_based_hint_weighting(hints, hint_count, resource_health);
+        
+        log("DEBUG: Applied regional transition effects with %d nearby regions, resource health %.2f", 
+            transition_count, resource_health);
         
         /* Cleanup transition data */
         int i;
@@ -2624,6 +3286,12 @@ char *enhance_base_description_with_hints(char *base_description, struct char_da
         int hint_count = 0;
         while (hints[hint_count].hint_text) hint_count++;
         apply_boundary_transition_effects(hints, hint_count, x, y, region_vnum);
+        
+        /* Apply resource-based weighting for dynamic regional atmosphere */
+        float resource_health = calculate_regional_resource_health(x, y, 5); /* 5-coordinate radius sampling */
+        apply_resource_based_hint_weighting(hints, hint_count, resource_health);
+        
+        log("DEBUG: Applied boundary effects and resource weighting (health %.2f) for single region", resource_health);
     }
     
     // Layer hints onto base description
@@ -2950,8 +3618,11 @@ char *create_unified_wilderness_description(zone_rnum zone, int x, int y) {
     region_vnum = region_table[best_region->rnum].vnum;
     log("DEBUG: Selected region vnum %d from region_table[%d] for descriptions", region_vnum, best_region->rnum);
     
-    // Load contextual hints for current conditions
-    hints = load_contextual_hints(region_vnum, weather_condition, time_category);
+    // Calculate resource health for optimized caching
+    float resource_health = calculate_regional_resource_health(x, y, 5);
+    
+    // Load contextual hints for current conditions using cached version
+    hints = load_contextual_hints_cached(region_vnum, weather_condition, time_category, resource_health);
     
     // Create unified description from environmental data and hints (no base template)
     unified_description = weave_unified_description(NULL, hints, weather_condition, time_category, x, y);

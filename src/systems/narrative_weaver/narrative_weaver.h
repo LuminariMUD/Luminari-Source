@@ -53,6 +53,60 @@ int select_weighted_hint(struct region_hint *hints, int *hint_indices, int count
 char *load_region_characteristics(int region_vnum);
 
 /**
+ * Transform text from generic descriptive to first-person observational
+ * @param text The text to transform
+ * @return Newly allocated transformed text
+ */
+char *transform_voice_to_observational(const char *text);
+
+/**
+ * Convert weather condition string to numeric code for caching
+ * @param weather_condition Weather condition string
+ * @return Numeric weather code
+ */
+int get_weather_code_from_string(const char *weather_condition);
+
+/**
+ * Convert time category string to numeric code for caching
+ * @param time_category Time category string
+ * @return Numeric time code
+ */
+int get_time_code_from_string(const char *time_category);
+
+/**
+ * Convert hint category string to numeric code
+ * @param category_str Category string
+ * @return Numeric category code
+ */
+int get_hint_category_from_string(const char *category_str);
+
+/**
+ * Load contextual hints with optimized database queries
+ * @param region_vnum The region vnum to load hints for
+ * @param weather_condition Current weather conditions
+ * @param time_category Current time of day
+ * @return Array of region hints, or NULL if none found
+ */
+struct region_hint *load_contextual_hints_optimized(int region_vnum, const char *weather_condition, const char *time_category);
+
+/**
+ * Load contextual hints with intelligent caching
+ * @param region_vnum The region vnum to load hints for
+ * @param weather_condition Current weather conditions
+ * @param time_category Current time of day
+ * @param resource_health Resource health factor (0.0-1.0)
+ * @return Array of region hints, or NULL if none found
+ */
+struct region_hint *load_contextual_hints_cached(int region_vnum, const char *weather_condition, const char *time_category, double resource_health);
+
+/**
+ * Load comprehensive region description from database
+ * @param region_vnum The region vnum to load description for
+ * @return Newly allocated description string, or NULL if not found
+ */
+char *load_comprehensive_region_description(int region_vnum);
+
+/**
  * Main function to create unified wilderness description
  * @param zone Zone containing the coordinates
  * @param x World X coordinate
