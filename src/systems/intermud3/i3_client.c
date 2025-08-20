@@ -89,8 +89,8 @@ int i3_initialize(void)
     strcpy(i3_client->mud_name, "LuminariMUD");
     strcpy(i3_client->default_channel, "intermud");
     
-    /* Load configuration */
-    if (i3_load_config("lib/i3_config") < 0) {
+    /* Load configuration - MUD runs from lib directory */
+    if (i3_load_config("i3_config") < 0) {
         log("Warning: Could not load I3 configuration, using defaults");
     }
     
@@ -189,7 +189,8 @@ void *i3_client_thread(void *arg)
     
     /* Initial connection */
     if (i3_connect() == 0) {
-        i3_authenticate();
+        /* Don't authenticate immediately - wait for welcome message */
+        i3_log("DEBUG: Connected/Reconnected, waiting for welcome message");
     }
     
     /* Main loop */
@@ -222,10 +223,14 @@ void *i3_client_thread(void *arg)
                 bytes = recv(i3_client->socket_fd, buffer, sizeof(buffer) - 1, 0);
                 if (bytes > 0) {
                     buffer[bytes] = '\0';
+                    i3_log("DEBUG: Received %d bytes: %.200s%s", 
+                           bytes, buffer, (bytes > 200 ? "..." : ""));
                     
                     /* Handle line-delimited JSON */
                     line = strtok(buffer, "\n");
                     while (line) {
+                        i3_log("DEBUG: Processing message: %.100s%s", 
+                               line, (strlen(line) > 100 ? "..." : ""));
                         i3_handle_message(line);
                         line = strtok(NULL, "\n");
                     }
@@ -262,6 +267,7 @@ int i3_connect(void)
     
     i3_log("Connecting to I3 gateway at %s:%d", 
            i3_client->gateway_host, i3_client->gateway_port);
+    i3_log("DEBUG: Using API key: %.30s...", i3_client->api_key);
     
     i3_client->socket_fd = i3_socket_connect(i3_client->gateway_host, 
                                              i3_client->gateway_port);
@@ -335,11 +341,13 @@ static int i3_socket_connect(const char *host, int port)
     server_addr.sin_port = htons(port);
     
     /* Connect */
+    i3_log("DEBUG: Attempting TCP connection to %s:%d", host, port);
     if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         i3_error("Failed to connect: %s", strerror(errno));
         close(sock);
         return -1;
     }
+    i3_log("DEBUG: TCP connection established, socket fd: %d", sock);
     
     /* Set non-blocking */
     flags = fcntl(sock, F_GETFL, 0);
@@ -355,12 +363,19 @@ static int i3_authenticate(void)
     json_object *request;
     int result;
     pthread_mutex_t *mutex_ptr;
+    const char *json_str;
+    
+    i3_log("DEBUG: Starting authentication with API key: %.30s...", i3_client->api_key);
     
     params = json_object_new_object();
     json_object_object_add(params, "api_key", json_object_new_string(i3_client->api_key));
     
     request = (json_object *)i3_create_request("authenticate", params);
+    json_str = json_object_to_json_string(request);
+    i3_log("DEBUG: Sending auth request: %s", json_str);
+    
     result = i3_send_json(request);
+    i3_log("DEBUG: Auth send result: %d", result);
     json_object_put(request);
     
     if (result < 0) {
@@ -395,7 +410,8 @@ static void i3_reconnect(void)
     i3_client->reconnects++;
     
     if (i3_connect() == 0) {
-        i3_authenticate();
+        /* Don't authenticate immediately - wait for welcome message */
+        i3_log("DEBUG: Connected/Reconnected, waiting for welcome message");
     }
 }
 
@@ -416,6 +432,36 @@ static void i3_handle_message(const char *json_str)
     /* Check for method field */
     if (!json_object_object_get_ex(root, "method", &method_obj)) {
         /* This might be a response to our request */
+        json_object *result_obj, *id_obj, *status_obj;
+        
+        /* Check if this is an authentication response */
+        if (json_object_object_get_ex(root, "id", &id_obj) &&
+            json_object_object_get_ex(root, "result", &result_obj)) {
+            
+            if (json_object_object_get_ex(result_obj, "status", &status_obj)) {
+                const char *status = json_object_get_string(status_obj);
+                if (strcmp(status, "authenticated") == 0) {
+                    mutex_ptr = (pthread_mutex_t *)i3_client->state_mutex;
+                    pthread_mutex_lock(mutex_ptr);
+                    i3_client->state = I3_STATE_CONNECTED;
+                    pthread_mutex_unlock(mutex_ptr);
+                    i3_client->authenticated = 1;
+                    
+                    /* Get session info */
+                    json_object *mud_name_obj = json_object_object_get(result_obj, "mud_name");
+                    json_object *session_obj = json_object_object_get(result_obj, "session_id");
+                    
+                    i3_log("Successfully authenticated with I3 gateway");
+                    if (mud_name_obj) {
+                        i3_log("MUD Name confirmed: %s", json_object_get_string(mud_name_obj));
+                    }
+                    if (session_obj) {
+                        i3_log("Session ID: %s", json_object_get_string(session_obj));
+                    }
+                }
+            }
+        }
+        
         json_object_put(root);
         return;
     }
@@ -423,14 +469,22 @@ static void i3_handle_message(const char *json_str)
     method = json_object_get_string(method_obj);
     json_object_object_get_ex(root, "params", &params_obj);
     
-    /* Handle authentication response */
-    if (strcmp(method, "authenticated") == 0) {
-        mutex_ptr = (pthread_mutex_t *)i3_client->state_mutex;
-        pthread_mutex_lock(mutex_ptr);
-        i3_client->state = I3_STATE_CONNECTED;
-        pthread_mutex_unlock(mutex_ptr);
-        i3_client->authenticated = 1;
-        i3_log("Successfully authenticated with I3 gateway");
+    /* Handle welcome message - triggers authentication */
+    if (strcmp(method, "welcome") == 0) {
+        i3_log("DEBUG: Received welcome message from gateway");
+        if (params_obj) {
+            json_object *service_obj = json_object_object_get(params_obj, "service");
+            json_object *version_obj = json_object_object_get(params_obj, "version");
+            if (service_obj) {
+                i3_log("Gateway service: %s", json_object_get_string(service_obj));
+            }
+            if (version_obj) {
+                i3_log("Gateway version: %s", json_object_get_string(version_obj));
+            }
+        }
+        
+        /* Now authenticate */
+        i3_authenticate();
     }
     /* Handle incoming tell */
     else if (strcmp(method, "tell") == 0) {
@@ -600,10 +654,14 @@ int i3_send_json(void *obj)
     json_str = json_object_to_json_string((json_object *)obj);
     len = snprintf(buffer, sizeof(buffer), "%s\n", json_str);
     
+    i3_log("DEBUG: Sending %d bytes: %s", len, buffer);
+    
     sent = send(i3_client->socket_fd, buffer, len, 0);
     if (sent < 0) {
         i3_error("Failed to send JSON: %s", strerror(errno));
         return -1;
+    } else {
+        i3_log("DEBUG: Successfully sent %d bytes", sent);
     }
     
     i3_client->messages_sent++;
@@ -775,11 +833,16 @@ int i3_load_config(const char *filename)
     FILE *fp;
     char line[256];
     char key[128], value[128];
+    char *p;
+    int len;
     
     fp = fopen(filename, "r");
     if (!fp) {
+        i3_error("DEBUG: Failed to open config file: %s (errno: %d - %s)", 
+                 filename, errno, strerror(errno));
         return -1;
     }
+    i3_log("DEBUG: Successfully opened config file: %s", filename);
     
     while (fgets(line, sizeof(line), fp)) {
         /* Skip comments and empty lines */
@@ -787,7 +850,25 @@ int i3_load_config(const char *filename)
             continue;
         }
         
-        if (sscanf(line, "%s %s", key, value) == 2) {
+        /* Remove trailing newline */
+        len = strlen(line);
+        if (len > 0 && line[len-1] == '\n') {
+            line[len-1] = '\0';
+        }
+        
+        /* Find the first space to split key and value */
+        p = strchr(line, ' ');
+        if (p) {
+            *p = '\0';
+            strncpy(key, line, sizeof(key) - 1);
+            key[sizeof(key) - 1] = '\0';
+            strncpy(value, p + 1, sizeof(value) - 1);
+            value[sizeof(value) - 1] = '\0';
+            
+            /* Debug log for API key loading */
+            if (strcmp(key, "api_key") == 0) {
+                i3_log("DEBUG: Loading API key from config: %s", value);
+            }
             if (strcmp(key, "gateway_host") == 0) {
                 strcpy(i3_client->gateway_host, value);
             } else if (strcmp(key, "gateway_port") == 0) {
