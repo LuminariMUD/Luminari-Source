@@ -101,20 +101,7 @@
 
 ## 🌟 Phase 2: Advanced Features and Quality Enhancement (High Impact)
 
-### **Priority 1: Regional Quality Integration** - **IMMEDIATE NEXT**
-- [ ] **Use regional quality scores for hint selection**
-  - **Current**: Quality scores available but not utilized in selection algorithm
-  - **Available**: Regional quality scores (0.00-5.00), approval status, review flags
-  - **Implementation**: Enhance `load_contextual_hints()` to prefer high-quality approved hints
-  - **Impact**: Ensure only best regional content reaches players
-  - **Files**: `narrative_weaver.c`
-
-- [ ] **Implement approval status filtering**
-  - **Goal**: Filter out unapproved or low-quality regionally-generated content
-  - **Implementation**: Add quality threshold and approval checks to hint loading
-  - **Impact**: Production-ready content quality assurance
-
-### **Priority 2: Semantic Integration Enhancement**
+### **Priority 1: Semantic Integration Enhancement** - **IMMEDIATE NEXT**
 - [ ] **Advanced regional style transformation**
   - **Current**: Basic style awareness implemented
   - **Goal**: Full style-based narrative transformation (poetic, mysterious, dramatic, pastoral, practical)
@@ -127,7 +114,7 @@
   - **Implementation**: Expand `get_transitional_phrase()` with semantic context analysis
   - **Impact**: More natural narrative flow between description elements
 
-### **Priority 3: Contextual Intelligence Expansion**
+### **Priority 2: Contextual Intelligence Expansion**
 - [ ] **Multi-condition hint filtering**
   - **Goal**: Combine weather + time + season + resource state for hint selection
   - **Implementation**: Create sophisticated relevance scoring algorithm
@@ -143,11 +130,24 @@
   - **Implementation**: Improve HINT_WEATHER_INFLUENCE usage beyond basic string matching
   - **Impact**: Dynamic weather-responsive regional character
 
-### **Priority 4: Content Richness**
+### **Priority 3: Content Richness**
 - [ ] **Resource-state dependent regional character**
   - **Goal**: Regions feel different based on resource abundance/depletion
   - **Implementation**: Resource-based hint weighting and selection
   - **Impact**: Living, changing regional atmosphere
+
+### **Priority 4: Regional Quality Integration** - **LOWER PRIORITY**
+- [ ] **Use regional quality scores for hint selection**
+  - **Current**: Quality scores available but not utilized in selection algorithm
+  - **Available**: Regional quality scores (0.00-5.00), approval status, review flags
+  - **Implementation**: Enhance `load_contextual_hints()` to prefer high-quality approved hints
+  - **Impact**: Ensure only best regional content reaches players
+  - **Files**: `narrative_weaver.c`
+
+- [ ] **Implement approval status filtering**
+  - **Goal**: Filter out unapproved or low-quality regionally-generated content
+  - **Implementation**: Add quality threshold and approval checks to hint loading
+  - **Impact**: Production-ready content quality assurance
 
 - [ ] **Multiple region support**
   - **Goal**: Handle overlapping regions with different priorities
@@ -253,4 +253,4 @@
 - **Performance**: ✅ No significant impact on room description generation speed (COMPLETED)
 - **Experience**: Regional areas feel distinctive and atmospheric to players
 
-**Next Action**: Implement regional quality score filtering and approval status integration for production-ready content quality assurance
+**Next Action**: Implement advanced regional style transformation and enhanced transitional phrase system for more immersive and consistent regional voice and personality
