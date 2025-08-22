@@ -246,6 +246,9 @@ pause
 .websocket_policy.pid
 .flash_policy.pid
 .autorun.lock
+.autorun.state
+.autorun.lock.pid
+.killwatchdog
 
 # Copyover/hotboot files (should never be committed)
 lib/copyover.dat
