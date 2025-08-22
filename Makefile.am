@@ -196,6 +196,7 @@ circle_SOURCES = \
 	src/vessels_rooms.c \
 	src/weather.c \
 	src/wilderness.c \
+	src/wilderness_kb.c \
 	src/zedit.c \
 	src/zmalloc.c \
 	src/zone_procs.c

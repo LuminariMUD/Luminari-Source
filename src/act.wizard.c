@@ -46,6 +46,7 @@
 #include "mudlim.h"
 #include "spec_abilities.h"
 #include "wilderness.h"
+#include "wilderness_kb.h"
 #include "feats.h"
 #include "assign_wpn_armor.h"
 #include "item.h"
@@ -8491,6 +8492,24 @@ ACMD(do_genmap)
 
   generate_river(ch, dir, vnum, name);
   load_paths();
+}
+
+/* do_analyze_world - Generate comprehensive wilderness knowledge base
+ * Creates a detailed markdown file with world statistics, resource distribution,
+ * landmass detection, climate zones, and more for LLM consumption */
+ACMD(do_analyze_world) {
+  if (GET_LEVEL(ch) < LVL_IMPL) {
+    send_to_char(ch, "You must be an Implementor to analyze the world.\r\n");
+    return;
+  }
+  
+  send_to_char(ch, "Beginning world analysis... This may take several minutes.\r\n");
+  send_to_char(ch, "Progress will be reported periodically.\r\n");
+  
+  generate_wilderness_knowledge_base("WILD_KB.md");
+  
+  send_to_char(ch, "World analysis complete. Output saved to data/WILD_KB.md\r\n");
+  send_to_char(ch, "File size will be approximately 50-100 MB.\r\n");
 }
 
 /* do_acconvert - Commant to convert exising armor to the new (Sept 9, 2014)

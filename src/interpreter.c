@@ -150,6 +150,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"activate", "activate", POS_FIGHTING, do_activate, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"at", "at", POS_DEAD, do_at, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"advance", "adv", POS_DEAD, do_advance, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"analyzeworld", "analyzew", POS_DEAD, do_analyze_world, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"materialadmin", "matadmin", POS_DEAD, do_materialadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"aedit", "aed", POS_DEAD, do_oasis_aedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"ai", "ai", POS_DEAD, do_ai, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

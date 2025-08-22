@@ -909,6 +909,8 @@ ACMD_DECL(do_last);
 ACMD_DECL(do_shutdown);
 #define SCMD_SHUTDOW 0
 #define SCMD_SHUTDOWN 1
+/* do_analyze_world */
+ACMD_DECL(do_analyze_world);
 /* do_wizutil */
 ACMD_DECL(do_wizutil);
 #define SCMD_REROLL 0
