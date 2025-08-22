@@ -1,6 +1,6 @@
 # Luminari World Map Knowledge Base
 
-Generated: 2025-08-22 17:12:42
+Generated: 2025-08-22 17:35:53
 Version: 1.0
 World Size: 2048 x 2048 (4194304 total tiles)
 
@@ -1896,4 +1896,7715 @@ Measuring terrain complexity using box-counting method.
 
 Analyzing regions for economic development potential.
 
-### Top 10 Econo
+### Top 10 Economic Development Zones
+
+| Rank | Location | Agriculture | Mining | Trade | Total Score |
+|------|----------|-------------|--------|-------|-------------|
+| 1 | (320,704) | 0.88 | 0.51 | 0.00 | 0.50 |
+| 2 | (192,192) | 0.70 | 0.51 | 0.05 | 0.45 |
+| 3 | (576,704) | 0.66 | 0.52 | 0.06 | 0.44 |
+| 4 | (320,576) | 0.61 | 0.51 | 0.08 | 0.42 |
+| 5 | (320,448) | 0.58 | 0.51 | 0.03 | 0.39 |
+| 6 | (576,576) | 0.55 | 0.52 | 0.06 | 0.39 |
+| 7 | (576,192) | 0.42 | 0.52 | 0.06 | 0.34 |
+| 8 | (448,704) | 0.38 | 0.52 | 0.03 | 0.32 |
+| 9 | (320,320) | 0.30 | 0.51 | 0.14 | 0.31 |
+| 10 | (448,576) | 0.38 | 0.52 | 0.00 | 0.30 |
+
+### Economic Development Factors
+
+- **Agriculture** (40% weight): Farmland, fields, fertile areas
+- **Mining** (30% weight): Mineral and stone deposits
+- **Trade** (30% weight): Roads, waterways, connectivity
+
+### Trade Route Potential
+
+- **Road Coverage**: 0.0% of world
+- **Navigable Water**: 3.3% of world
+- **Trade Network Density**: Low - isolated economy
+
+
+## Advanced Analysis
+
+
+### Spectral Analysis of Noise Layers
+
+Analyzing frequency components to validate noise generation:
+
+| Frequency | Amplitude | Power |
+|-----------|-----------|-------|
+| 0.000 | 0.000 | 0.000 |
+| 0.062 | 0.046 | 0.006 |
+| 0.125 | 0.096 | 0.024 |
+| 0.188 | 0.139 | 0.050 |
+| 0.250 | 0.174 | 0.079 |
+| 0.312 | 0.197 | 0.101 |
+| 0.375 | 0.201 | 0.105 |
+| 0.438 | 0.184 | 0.087 |
+| 0.500 | 0.169 | 0.074 |
+| 0.562 | 0.169 | 0.074 |
+| 0.625 | 0.173 | 0.077 |
+| 0.688 | 0.171 | 0.075 |
+| 0.750 | 0.165 | 0.070 |
+| 0.812 | 0.156 | 0.063 |
+| 0.875 | 0.150 | 0.058 |
+| 0.938 | 0.149 | 0.057 |
+
+- Total spectral power: 0.387
+- Dominant frequency: 0.312
+- Spectral balance: Needs adjustment
+
+
+### Pathfinding Analysis
+
+Note: Dijkstra pathfinding analysis disabled for performance reasons.
+The 2048x2048 map size makes exhaustive pathfinding computationally prohibitive.
+For actual pathfinding needs, consider using A* algorithm with heuristics or
+pre-computed path networks between key locations.
+
+
+# Machine-Readable JSON Data
+
+## JSON Data Blocks
+
+The following sections contain structured JSON data for programmatic access:
+
+### Landmasses JSON
+
+```json
+{
+  "landmasses": [
+    {
+      "id": 1,
+      "bounds": {"min_x": 0, "max_x": 336, "min_y": 0, "max_y": 336},
+      "center": {"x": 168, "y": 168},
+      "tiles": 41566,
+      "area_km2": 10391.5,
+      "peak_elevation": 233,
+      "dominant_biome": "Field",
+      "classification": "large_island"
+    },
+    {
+      "id": 2,
+      "bounds": {"min_x": 83, "max_x": 83, "min_y": 0, "max_y": 0},
+      "center": {"x": 83, "y": 0},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 3,
+      "bounds": {"min_x": 92, "max_x": 127, "min_y": 0, "max_y": 20},
+      "center": {"x": 109, "y": 10},
+      "tiles": 413,
+      "area_km2": 103.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "small_island"
+    },
+    {
+      "id": 4,
+      "bounds": {"min_x": 163, "max_x": 163, "min_y": 0, "max_y": 1},
+      "center": {"x": 163, "y": 0},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 5,
+      "bounds": {"min_x": 0, "max_x": 2047, "min_y": 0, "max_y": 2047},
+      "center": {"x": 1023, "y": 1023},
+      "tiles": 1966750,
+      "area_km2": 491687.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "continent"
+    },
+    {
+      "id": 6,
+      "bounds": {"min_x": 510, "max_x": 761, "min_y": 0, "max_y": 258},
+      "center": {"x": 635, "y": 129},
+      "tiles": 38383,
+      "area_km2": 9595.8,
+      "peak_elevation": 177,
+      "dominant_biome": "Marshland",
+      "classification": "large_island"
+    },
+    {
+      "id": 7,
+      "bounds": {"min_x": 742, "max_x": 751, "min_y": 0, "max_y": 5},
+      "center": {"x": 746, "y": 2},
+      "tiles": 38,
+      "area_km2": 9.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 8,
+      "bounds": {"min_x": 723, "max_x": 779, "min_y": 0, "max_y": 113},
+      "center": {"x": 751, "y": 56},
+      "tiles": 2587,
+      "area_km2": 646.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "island"
+    },
+    {
+      "id": 9,
+      "bounds": {"min_x": 58, "max_x": 59, "min_y": 2, "max_y": 5},
+      "center": {"x": 58, "y": 3},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 10,
+      "bounds": {"min_x": 153, "max_x": 153, "min_y": 4, "max_y": 4},
+      "center": {"x": 153, "y": 4},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 11,
+      "bounds": {"min_x": 545, "max_x": 545, "min_y": 4, "max_y": 5},
+      "center": {"x": 545, "y": 4},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 12,
+      "bounds": {"min_x": 541, "max_x": 542, "min_y": 5, "max_y": 5},
+      "center": {"x": 541, "y": 5},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 13,
+      "bounds": {"min_x": 544, "max_x": 544, "min_y": 6, "max_y": 8},
+      "center": {"x": 544, "y": 7},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 14,
+      "bounds": {"min_x": 748, "max_x": 748, "min_y": 6, "max_y": 6},
+      "center": {"x": 748, "y": 6},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 15,
+      "bounds": {"min_x": 750, "max_x": 751, "min_y": 6, "max_y": 6},
+      "center": {"x": 750, "y": 6},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 16,
+      "bounds": {"min_x": 761, "max_x": 761, "min_y": 7, "max_y": 7},
+      "center": {"x": 761, "y": 7},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 17,
+      "bounds": {"min_x": 533, "max_x": 533, "min_y": 8, "max_y": 9},
+      "center": {"x": 533, "y": 8},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 18,
+      "bounds": {"min_x": 155, "max_x": 155, "min_y": 9, "max_y": 9},
+      "center": {"x": 155, "y": 9},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 19,
+      "bounds": {"min_x": 481, "max_x": 570, "min_y": 12, "max_y": 79},
+      "center": {"x": 525, "y": 45},
+      "tiles": 3468,
+      "area_km2": 867.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "island"
+    },
+    {
+      "id": 20,
+      "bounds": {"min_x": 775, "max_x": 775, "min_y": 12, "max_y": 12},
+      "center": {"x": 775, "y": 12},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 21,
+      "bounds": {"min_x": 524, "max_x": 525, "min_y": 13, "max_y": 14},
+      "center": {"x": 524, "y": 13},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 22,
+      "bounds": {"min_x": 776, "max_x": 776, "min_y": 13, "max_y": 13},
+      "center": {"x": 776, "y": 13},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 23,
+      "bounds": {"min_x": 149, "max_x": 152, "min_y": 17, "max_y": 17},
+      "center": {"x": 150, "y": 17},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 24,
+      "bounds": {"min_x": 159, "max_x": 159, "min_y": 18, "max_y": 18},
+      "center": {"x": 159, "y": 18},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 25,
+      "bounds": {"min_x": 108, "max_x": 108, "min_y": 19, "max_y": 19},
+      "center": {"x": 108, "y": 19},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 26,
+      "bounds": {"min_x": 103, "max_x": 103, "min_y": 23, "max_y": 23},
+      "center": {"x": 103, "y": 23},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 27,
+      "bounds": {"min_x": 150, "max_x": 150, "min_y": 25, "max_y": 25},
+      "center": {"x": 150, "y": 25},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 28,
+      "bounds": {"min_x": 580, "max_x": 580, "min_y": 30, "max_y": 30},
+      "center": {"x": 580, "y": 30},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 29,
+      "bounds": {"min_x": 173, "max_x": 173, "min_y": 32, "max_y": 32},
+      "center": {"x": 173, "y": 32},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 30,
+      "bounds": {"min_x": 174, "max_x": 175, "min_y": 35, "max_y": 36},
+      "center": {"x": 174, "y": 35},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 31,
+      "bounds": {"min_x": 185, "max_x": 185, "min_y": 37, "max_y": 37},
+      "center": {"x": 185, "y": 37},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 32,
+      "bounds": {"min_x": 718, "max_x": 719, "min_y": 37, "max_y": 37},
+      "center": {"x": 718, "y": 37},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 33,
+      "bounds": {"min_x": 720, "max_x": 737, "min_y": 37, "max_y": 56},
+      "center": {"x": 728, "y": 46},
+      "tiles": 172,
+      "area_km2": 43.0,
+      "peak_elevation": 135,
+      "dominant_biome": "Marshland",
+      "classification": "small_island"
+    },
+    {
+      "id": 34,
+      "bounds": {"min_x": 182, "max_x": 182, "min_y": 38, "max_y": 38},
+      "center": {"x": 182, "y": 38},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 35,
+      "bounds": {"min_x": 295, "max_x": 295, "min_y": 38, "max_y": 38},
+      "center": {"x": 295, "y": 38},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 36,
+      "bounds": {"min_x": 740, "max_x": 741, "min_y": 42, "max_y": 43},
+      "center": {"x": 740, "y": 42},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 37,
+      "bounds": {"min_x": 107, "max_x": 107, "min_y": 43, "max_y": 43},
+      "center": {"x": 107, "y": 43},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 38,
+      "bounds": {"min_x": 269, "max_x": 269, "min_y": 44, "max_y": 44},
+      "center": {"x": 269, "y": 44},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 39,
+      "bounds": {"min_x": 739, "max_x": 739, "min_y": 44, "max_y": 44},
+      "center": {"x": 739, "y": 44},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 40,
+      "bounds": {"min_x": 565, "max_x": 565, "min_y": 46, "max_y": 46},
+      "center": {"x": 565, "y": 46},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 41,
+      "bounds": {"min_x": 734, "max_x": 742, "min_y": 46, "max_y": 49},
+      "center": {"x": 738, "y": 47},
+      "tiles": 19,
+      "area_km2": 4.8,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 42,
+      "bounds": {"min_x": 257, "max_x": 258, "min_y": 49, "max_y": 49},
+      "center": {"x": 257, "y": 49},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 43,
+      "bounds": {"min_x": 286, "max_x": 286, "min_y": 49, "max_y": 49},
+      "center": {"x": 286, "y": 49},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 44,
+      "bounds": {"min_x": 716, "max_x": 716, "min_y": 50, "max_y": 50},
+      "center": {"x": 716, "y": 50},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 45,
+      "bounds": {"min_x": 169, "max_x": 169, "min_y": 52, "max_y": 53},
+      "center": {"x": 169, "y": 52},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 46,
+      "bounds": {"min_x": 268, "max_x": 308, "min_y": 52, "max_y": 97},
+      "center": {"x": 288, "y": 74},
+      "tiles": 654,
+      "area_km2": 163.5,
+      "peak_elevation": 139,
+      "dominant_biome": "Marshland",
+      "classification": "small_island"
+    },
+    {
+      "id": 47,
+      "bounds": {"min_x": 301, "max_x": 302, "min_y": 52, "max_y": 53},
+      "center": {"x": 301, "y": 52},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 48,
+      "bounds": {"min_x": 565, "max_x": 565, "min_y": 54, "max_y": 55},
+      "center": {"x": 565, "y": 54},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 49,
+      "bounds": {"min_x": 712, "max_x": 712, "min_y": 55, "max_y": 55},
+      "center": {"x": 712, "y": 55},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 50,
+      "bounds": {"min_x": 315, "max_x": 315, "min_y": 56, "max_y": 56},
+      "center": {"x": 315, "y": 56},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 51,
+      "bounds": {"min_x": 566, "max_x": 567, "min_y": 57, "max_y": 58},
+      "center": {"x": 566, "y": 57},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 52,
+      "bounds": {"min_x": 741, "max_x": 741, "min_y": 57, "max_y": 58},
+      "center": {"x": 741, "y": 57},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 53,
+      "bounds": {"min_x": 315, "max_x": 316, "min_y": 58, "max_y": 58},
+      "center": {"x": 315, "y": 58},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 54,
+      "bounds": {"min_x": 737, "max_x": 737, "min_y": 58, "max_y": 58},
+      "center": {"x": 737, "y": 58},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 55,
+      "bounds": {"min_x": 161, "max_x": 161, "min_y": 63, "max_y": 63},
+      "center": {"x": 161, "y": 63},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 56,
+      "bounds": {"min_x": 257, "max_x": 260, "min_y": 63, "max_y": 67},
+      "center": {"x": 258, "y": 65},
+      "tiles": 10,
+      "area_km2": 2.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 57,
+      "bounds": {"min_x": 538, "max_x": 539, "min_y": 63, "max_y": 64},
+      "center": {"x": 538, "y": 63},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 58,
+      "bounds": {"min_x": 724, "max_x": 725, "min_y": 63, "max_y": 64},
+      "center": {"x": 724, "y": 63},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 59,
+      "bounds": {"min_x": 262, "max_x": 262, "min_y": 64, "max_y": 65},
+      "center": {"x": 262, "y": 64},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 60,
+      "bounds": {"min_x": 291, "max_x": 299, "min_y": 64, "max_y": 66},
+      "center": {"x": 295, "y": 65},
+      "tiles": 16,
+      "area_km2": 4.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 61,
+      "bounds": {"min_x": 309, "max_x": 313, "min_y": 64, "max_y": 71},
+      "center": {"x": 311, "y": 67},
+      "tiles": 20,
+      "area_km2": 5.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 62,
+      "bounds": {"min_x": 160, "max_x": 161, "min_y": 65, "max_y": 67},
+      "center": {"x": 160, "y": 66},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 63,
+      "bounds": {"min_x": 517, "max_x": 517, "min_y": 66, "max_y": 66},
+      "center": {"x": 517, "y": 66},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 64,
+      "bounds": {"min_x": 346, "max_x": 346, "min_y": 67, "max_y": 67},
+      "center": {"x": 346, "y": 67},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 65,
+      "bounds": {"min_x": 543, "max_x": 543, "min_y": 68, "max_y": 68},
+      "center": {"x": 543, "y": 68},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 66,
+      "bounds": {"min_x": 342, "max_x": 344, "min_y": 70, "max_y": 71},
+      "center": {"x": 343, "y": 70},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 67,
+      "bounds": {"min_x": 341, "max_x": 341, "min_y": 71, "max_y": 71},
+      "center": {"x": 341, "y": 71},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 68,
+      "bounds": {"min_x": 521, "max_x": 522, "min_y": 71, "max_y": 71},
+      "center": {"x": 521, "y": 71},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 69,
+      "bounds": {"min_x": 172, "max_x": 176, "min_y": 73, "max_y": 78},
+      "center": {"x": 174, "y": 75},
+      "tiles": 13,
+      "area_km2": 3.2,
+      "peak_elevation": 131,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 70,
+      "bounds": {"min_x": 544, "max_x": 544, "min_y": 73, "max_y": 73},
+      "center": {"x": 544, "y": 73},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 71,
+      "bounds": {"min_x": 759, "max_x": 760, "min_y": 76, "max_y": 78},
+      "center": {"x": 759, "y": 77},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 72,
+      "bounds": {"min_x": 755, "max_x": 756, "min_y": 79, "max_y": 80},
+      "center": {"x": 755, "y": 79},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 73,
+      "bounds": {"min_x": 761, "max_x": 761, "min_y": 79, "max_y": 80},
+      "center": {"x": 761, "y": 79},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 74,
+      "bounds": {"min_x": 161, "max_x": 161, "min_y": 80, "max_y": 80},
+      "center": {"x": 161, "y": 80},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 75,
+      "bounds": {"min_x": 487, "max_x": 488, "min_y": 80, "max_y": 82},
+      "center": {"x": 487, "y": 81},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 76,
+      "bounds": {"min_x": 348, "max_x": 349, "min_y": 81, "max_y": 91},
+      "center": {"x": 348, "y": 86},
+      "tiles": 15,
+      "area_km2": 3.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 77,
+      "bounds": {"min_x": 501, "max_x": 503, "min_y": 81, "max_y": 89},
+      "center": {"x": 502, "y": 85},
+      "tiles": 17,
+      "area_km2": 4.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 78,
+      "bounds": {"min_x": 754, "max_x": 754, "min_y": 81, "max_y": 81},
+      "center": {"x": 754, "y": 81},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 79,
+      "bounds": {"min_x": 756, "max_x": 758, "min_y": 81, "max_y": 84},
+      "center": {"x": 757, "y": 82},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 80,
+      "bounds": {"min_x": 340, "max_x": 340, "min_y": 83, "max_y": 83},
+      "center": {"x": 340, "y": 83},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 81,
+      "bounds": {"min_x": 193, "max_x": 194, "min_y": 85, "max_y": 85},
+      "center": {"x": 193, "y": 85},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 82,
+      "bounds": {"min_x": 309, "max_x": 319, "min_y": 85, "max_y": 90},
+      "center": {"x": 314, "y": 87},
+      "tiles": 30,
+      "area_km2": 7.5,
+      "peak_elevation": 132,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 83,
+      "bounds": {"min_x": 495, "max_x": 495, "min_y": 85, "max_y": 123},
+      "center": {"x": 495, "y": 104},
+      "tiles": 39,
+      "area_km2": 9.8,
+      "peak_elevation": 106,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 84,
+      "bounds": {"min_x": 644, "max_x": 644, "min_y": 85, "max_y": 85},
+      "center": {"x": 644, "y": 85},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 85,
+      "bounds": {"min_x": 326, "max_x": 326, "min_y": 87, "max_y": 87},
+      "center": {"x": 326, "y": 87},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 86,
+      "bounds": {"min_x": 341, "max_x": 341, "min_y": 88, "max_y": 88},
+      "center": {"x": 341, "y": 88},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 87,
+      "bounds": {"min_x": 312, "max_x": 312, "min_y": 89, "max_y": 89},
+      "center": {"x": 312, "y": 89},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 88,
+      "bounds": {"min_x": 335, "max_x": 336, "min_y": 89, "max_y": 89},
+      "center": {"x": 335, "y": 89},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 89,
+      "bounds": {"min_x": 342, "max_x": 342, "min_y": 89, "max_y": 89},
+      "center": {"x": 342, "y": 89},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 90,
+      "bounds": {"min_x": 161, "max_x": 166, "min_y": 90, "max_y": 94},
+      "center": {"x": 163, "y": 92},
+      "tiles": 16,
+      "area_km2": 4.0,
+      "peak_elevation": 132,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 91,
+      "bounds": {"min_x": 313, "max_x": 319, "min_y": 91, "max_y": 99},
+      "center": {"x": 316, "y": 95},
+      "tiles": 40,
+      "area_km2": 10.0,
+      "peak_elevation": 132,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 92,
+      "bounds": {"min_x": 166, "max_x": 173, "min_y": 92, "max_y": 97},
+      "center": {"x": 169, "y": 94},
+      "tiles": 25,
+      "area_km2": 6.2,
+      "peak_elevation": 132,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 93,
+      "bounds": {"min_x": 501, "max_x": 507, "min_y": 92, "max_y": 101},
+      "center": {"x": 504, "y": 96},
+      "tiles": 32,
+      "area_km2": 8.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 94,
+      "bounds": {"min_x": 339, "max_x": 342, "min_y": 93, "max_y": 94},
+      "center": {"x": 340, "y": 93},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 95,
+      "bounds": {"min_x": 343, "max_x": 343, "min_y": 93, "max_y": 93},
+      "center": {"x": 343, "y": 93},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 96,
+      "bounds": {"min_x": 183, "max_x": 183, "min_y": 94, "max_y": 94},
+      "center": {"x": 183, "y": 94},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 97,
+      "bounds": {"min_x": 327, "max_x": 327, "min_y": 94, "max_y": 94},
+      "center": {"x": 327, "y": 94},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 98,
+      "bounds": {"min_x": 326, "max_x": 326, "min_y": 95, "max_y": 95},
+      "center": {"x": 326, "y": 95},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 99,
+      "bounds": {"min_x": 755, "max_x": 756, "min_y": 95, "max_y": 96},
+      "center": {"x": 755, "y": 95},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 100,
+      "bounds": {"min_x": 348, "max_x": 349, "min_y": 97, "max_y": 98},
+      "center": {"x": 348, "y": 97},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 101,
+      "bounds": {"min_x": 148, "max_x": 149, "min_y": 99, "max_y": 99},
+      "center": {"x": 148, "y": 99},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 102,
+      "bounds": {"min_x": 292, "max_x": 300, "min_y": 99, "max_y": 104},
+      "center": {"x": 296, "y": 101},
+      "tiles": 38,
+      "area_km2": 9.5,
+      "peak_elevation": 135,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 103,
+      "bounds": {"min_x": 332, "max_x": 339, "min_y": 99, "max_y": 106},
+      "center": {"x": 335, "y": 102},
+      "tiles": 38,
+      "area_km2": 9.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 104,
+      "bounds": {"min_x": 301, "max_x": 301, "min_y": 100, "max_y": 101},
+      "center": {"x": 301, "y": 100},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 105,
+      "bounds": {"min_x": 327, "max_x": 328, "min_y": 103, "max_y": 106},
+      "center": {"x": 327, "y": 104},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 106,
+      "bounds": {"min_x": 751, "max_x": 760, "min_y": 103, "max_y": 109},
+      "center": {"x": 755, "y": 106},
+      "tiles": 40,
+      "area_km2": 10.0,
+      "peak_elevation": 134,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 107,
+      "bounds": {"min_x": 313, "max_x": 315, "min_y": 106, "max_y": 108},
+      "center": {"x": 314, "y": 107},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 108,
+      "bounds": {"min_x": 207, "max_x": 207, "min_y": 107, "max_y": 107},
+      "center": {"x": 207, "y": 107},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 109,
+      "bounds": {"min_x": 326, "max_x": 326, "min_y": 107, "max_y": 108},
+      "center": {"x": 326, "y": 107},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 110,
+      "bounds": {"min_x": 509, "max_x": 511, "min_y": 108, "max_y": 109},
+      "center": {"x": 510, "y": 108},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 111,
+      "bounds": {"min_x": 501, "max_x": 501, "min_y": 109, "max_y": 110},
+      "center": {"x": 501, "y": 109},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 112,
+      "bounds": {"min_x": 187, "max_x": 188, "min_y": 110, "max_y": 110},
+      "center": {"x": 187, "y": 110},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 113,
+      "bounds": {"min_x": 328, "max_x": 328, "min_y": 112, "max_y": 112},
+      "center": {"x": 328, "y": 112},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 114,
+      "bounds": {"min_x": 308, "max_x": 314, "min_y": 113, "max_y": 118},
+      "center": {"x": 311, "y": 115},
+      "tiles": 23,
+      "area_km2": 5.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 115,
+      "bounds": {"min_x": 330, "max_x": 330, "min_y": 113, "max_y": 113},
+      "center": {"x": 330, "y": 113},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 116,
+      "bounds": {"min_x": 501, "max_x": 503, "min_y": 115, "max_y": 119},
+      "center": {"x": 502, "y": 117},
+      "tiles": 10,
+      "area_km2": 2.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 117,
+      "bounds": {"min_x": 310, "max_x": 318, "min_y": 116, "max_y": 124},
+      "center": {"x": 314, "y": 120},
+      "tiles": 29,
+      "area_km2": 7.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 118,
+      "bounds": {"min_x": 776, "max_x": 776, "min_y": 118, "max_y": 120},
+      "center": {"x": 776, "y": 119},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 119,
+      "bounds": {"min_x": 288, "max_x": 289, "min_y": 119, "max_y": 120},
+      "center": {"x": 288, "y": 119},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 120,
+      "bounds": {"min_x": 46, "max_x": 46, "min_y": 123, "max_y": 123},
+      "center": {"x": 46, "y": 123},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 121,
+      "bounds": {"min_x": 217, "max_x": 217, "min_y": 126, "max_y": 126},
+      "center": {"x": 217, "y": 126},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 122,
+      "bounds": {"min_x": 506, "max_x": 506, "min_y": 129, "max_y": 132},
+      "center": {"x": 506, "y": 130},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 123,
+      "bounds": {"min_x": 297, "max_x": 298, "min_y": 130, "max_y": 131},
+      "center": {"x": 297, "y": 130},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 124,
+      "bounds": {"min_x": 310, "max_x": 310, "min_y": 130, "max_y": 139},
+      "center": {"x": 310, "y": 134},
+      "tiles": 10,
+      "area_km2": 2.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 125,
+      "bounds": {"min_x": 763, "max_x": 771, "min_y": 130, "max_y": 139},
+      "center": {"x": 767, "y": 134},
+      "tiles": 65,
+      "area_km2": 16.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 126,
+      "bounds": {"min_x": 291, "max_x": 291, "min_y": 131, "max_y": 132},
+      "center": {"x": 291, "y": 131},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 127,
+      "bounds": {"min_x": 296, "max_x": 296, "min_y": 133, "max_y": 133},
+      "center": {"x": 296, "y": 133},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 128,
+      "bounds": {"min_x": 759, "max_x": 759, "min_y": 133, "max_y": 133},
+      "center": {"x": 759, "y": 133},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 129,
+      "bounds": {"min_x": 249, "max_x": 249, "min_y": 134, "max_y": 134},
+      "center": {"x": 249, "y": 134},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 130,
+      "bounds": {"min_x": 291, "max_x": 291, "min_y": 134, "max_y": 136},
+      "center": {"x": 291, "y": 135},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 131,
+      "bounds": {"min_x": 761, "max_x": 761, "min_y": 134, "max_y": 134},
+      "center": {"x": 761, "y": 134},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 132,
+      "bounds": {"min_x": 2, "max_x": 2, "min_y": 137, "max_y": 137},
+      "center": {"x": 2, "y": 137},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 133,
+      "bounds": {"min_x": 35, "max_x": 40, "min_y": 137, "max_y": 141},
+      "center": {"x": 37, "y": 139},
+      "tiles": 16,
+      "area_km2": 4.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 134,
+      "bounds": {"min_x": 8, "max_x": 9, "min_y": 138, "max_y": 138},
+      "center": {"x": 8, "y": 138},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 135,
+      "bounds": {"min_x": 513, "max_x": 513, "min_y": 139, "max_y": 140},
+      "center": {"x": 513, "y": 139},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 136,
+      "bounds": {"min_x": 768, "max_x": 771, "min_y": 140, "max_y": 165},
+      "center": {"x": 769, "y": 152},
+      "tiles": 68,
+      "area_km2": 17.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 137,
+      "bounds": {"min_x": 0, "max_x": 312, "min_y": 141, "max_y": 786},
+      "center": {"x": 156, "y": 463},
+      "tiles": 112420,
+      "area_km2": 28105.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "continent"
+    },
+    {
+      "id": 138,
+      "bounds": {"min_x": 248, "max_x": 251, "min_y": 143, "max_y": 146},
+      "center": {"x": 249, "y": 144},
+      "tiles": 11,
+      "area_km2": 2.8,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 139,
+      "bounds": {"min_x": 227, "max_x": 227, "min_y": 144, "max_y": 145},
+      "center": {"x": 227, "y": 144},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 140,
+      "bounds": {"min_x": 504, "max_x": 504, "min_y": 145, "max_y": 172},
+      "center": {"x": 504, "y": 158},
+      "tiles": 28,
+      "area_km2": 7.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 141,
+      "bounds": {"min_x": 3, "max_x": 5, "min_y": 146, "max_y": 148},
+      "center": {"x": 4, "y": 147},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 142,
+      "bounds": {"min_x": 508, "max_x": 513, "min_y": 146, "max_y": 165},
+      "center": {"x": 510, "y": 155},
+      "tiles": 72,
+      "area_km2": 18.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 143,
+      "bounds": {"min_x": 54, "max_x": 54, "min_y": 149, "max_y": 149},
+      "center": {"x": 54, "y": 149},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 144,
+      "bounds": {"min_x": 1, "max_x": 1, "min_y": 150, "max_y": 150},
+      "center": {"x": 1, "y": 150},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 106,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 145,
+      "bounds": {"min_x": 55, "max_x": 56, "min_y": 150, "max_y": 151},
+      "center": {"x": 55, "y": 150},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 146,
+      "bounds": {"min_x": 258, "max_x": 260, "min_y": 151, "max_y": 153},
+      "center": {"x": 259, "y": 152},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 147,
+      "bounds": {"min_x": 262, "max_x": 262, "min_y": 151, "max_y": 151},
+      "center": {"x": 262, "y": 151},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 148,
+      "bounds": {"min_x": 54, "max_x": 54, "min_y": 153, "max_y": 154},
+      "center": {"x": 54, "y": 153},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 149,
+      "bounds": {"min_x": 732, "max_x": 732, "min_y": 155, "max_y": 155},
+      "center": {"x": 732, "y": 155},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 150,
+      "bounds": {"min_x": 223, "max_x": 233, "min_y": 156, "max_y": 164},
+      "center": {"x": 228, "y": 160},
+      "tiles": 40,
+      "area_km2": 10.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 151,
+      "bounds": {"min_x": 253, "max_x": 253, "min_y": 157, "max_y": 158},
+      "center": {"x": 253, "y": 157},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 152,
+      "bounds": {"min_x": 57, "max_x": 59, "min_y": 158, "max_y": 161},
+      "center": {"x": 58, "y": 159},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 153,
+      "bounds": {"min_x": 213, "max_x": 213, "min_y": 158, "max_y": 158},
+      "center": {"x": 213, "y": 158},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 154,
+      "bounds": {"min_x": 58, "max_x": 59, "min_y": 162, "max_y": 162},
+      "center": {"x": 58, "y": 162},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 155,
+      "bounds": {"min_x": 212, "max_x": 212, "min_y": 167, "max_y": 167},
+      "center": {"x": 212, "y": 167},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 156,
+      "bounds": {"min_x": 527, "max_x": 527, "min_y": 168, "max_y": 169},
+      "center": {"x": 527, "y": 168},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 157,
+      "bounds": {"min_x": 84, "max_x": 84, "min_y": 169, "max_y": 169},
+      "center": {"x": 84, "y": 169},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 158,
+      "bounds": {"min_x": 85, "max_x": 85, "min_y": 170, "max_y": 170},
+      "center": {"x": 85, "y": 170},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 159,
+      "bounds": {"min_x": 535, "max_x": 536, "min_y": 170, "max_y": 171},
+      "center": {"x": 535, "y": 170},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 160,
+      "bounds": {"min_x": 537, "max_x": 537, "min_y": 172, "max_y": 172},
+      "center": {"x": 537, "y": 172},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 161,
+      "bounds": {"min_x": 527, "max_x": 527, "min_y": 175, "max_y": 175},
+      "center": {"x": 527, "y": 175},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 162,
+      "bounds": {"min_x": 534, "max_x": 534, "min_y": 175, "max_y": 175},
+      "center": {"x": 534, "y": 175},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 163,
+      "bounds": {"min_x": 0, "max_x": 7, "min_y": 176, "max_y": 186},
+      "center": {"x": 3, "y": 181},
+      "tiles": 32,
+      "area_km2": 8.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 164,
+      "bounds": {"min_x": 99, "max_x": 99, "min_y": 181, "max_y": 181},
+      "center": {"x": 99, "y": 181},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 165,
+      "bounds": {"min_x": 102, "max_x": 103, "min_y": 181, "max_y": 181},
+      "center": {"x": 102, "y": 181},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 166,
+      "bounds": {"min_x": 724, "max_x": 724, "min_y": 181, "max_y": 181},
+      "center": {"x": 724, "y": 181},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 167,
+      "bounds": {"min_x": 557, "max_x": 559, "min_y": 182, "max_y": 184},
+      "center": {"x": 558, "y": 183},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 168,
+      "bounds": {"min_x": 82, "max_x": 82, "min_y": 183, "max_y": 183},
+      "center": {"x": 82, "y": 183},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 169,
+      "bounds": {"min_x": 121, "max_x": 124, "min_y": 184, "max_y": 187},
+      "center": {"x": 122, "y": 185},
+      "tiles": 10,
+      "area_km2": 2.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 170,
+      "bounds": {"min_x": 725, "max_x": 725, "min_y": 184, "max_y": 184},
+      "center": {"x": 725, "y": 184},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 171,
+      "bounds": {"min_x": 7, "max_x": 10, "min_y": 186, "max_y": 188},
+      "center": {"x": 8, "y": 187},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 172,
+      "bounds": {"min_x": 568, "max_x": 568, "min_y": 186, "max_y": 187},
+      "center": {"x": 568, "y": 186},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 173,
+      "bounds": {"min_x": 747, "max_x": 747, "min_y": 186, "max_y": 186},
+      "center": {"x": 747, "y": 186},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 174,
+      "bounds": {"min_x": 109, "max_x": 109, "min_y": 187, "max_y": 187},
+      "center": {"x": 109, "y": 187},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 175,
+      "bounds": {"min_x": 111, "max_x": 114, "min_y": 187, "max_y": 191},
+      "center": {"x": 112, "y": 189},
+      "tiles": 14,
+      "area_km2": 3.5,
+      "peak_elevation": 132,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 176,
+      "bounds": {"min_x": 107, "max_x": 107, "min_y": 188, "max_y": 188},
+      "center": {"x": 107, "y": 188},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 177,
+      "bounds": {"min_x": 0, "max_x": 0, "min_y": 189, "max_y": 189},
+      "center": {"x": 0, "y": 189},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 178,
+      "bounds": {"min_x": 121, "max_x": 121, "min_y": 190, "max_y": 190},
+      "center": {"x": 121, "y": 190},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 179,
+      "bounds": {"min_x": 713, "max_x": 713, "min_y": 190, "max_y": 190},
+      "center": {"x": 713, "y": 190},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 180,
+      "bounds": {"min_x": 108, "max_x": 108, "min_y": 192, "max_y": 193},
+      "center": {"x": 108, "y": 192},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 181,
+      "bounds": {"min_x": 8, "max_x": 8, "min_y": 193, "max_y": 193},
+      "center": {"x": 8, "y": 193},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 182,
+      "bounds": {"min_x": 89, "max_x": 89, "min_y": 195, "max_y": 195},
+      "center": {"x": 89, "y": 195},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 183,
+      "bounds": {"min_x": 220, "max_x": 220, "min_y": 195, "max_y": 195},
+      "center": {"x": 220, "y": 195},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 184,
+      "bounds": {"min_x": 34, "max_x": 34, "min_y": 199, "max_y": 199},
+      "center": {"x": 34, "y": 199},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 185,
+      "bounds": {"min_x": 20, "max_x": 23, "min_y": 203, "max_y": 207},
+      "center": {"x": 21, "y": 205},
+      "tiles": 11,
+      "area_km2": 2.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 186,
+      "bounds": {"min_x": 28, "max_x": 28, "min_y": 203, "max_y": 203},
+      "center": {"x": 28, "y": 203},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 187,
+      "bounds": {"min_x": 148, "max_x": 148, "min_y": 203, "max_y": 203},
+      "center": {"x": 148, "y": 203},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 188,
+      "bounds": {"min_x": 82, "max_x": 85, "min_y": 204, "max_y": 208},
+      "center": {"x": 83, "y": 206},
+      "tiles": 10,
+      "area_km2": 2.5,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 189,
+      "bounds": {"min_x": 4, "max_x": 4, "min_y": 205, "max_y": 206},
+      "center": {"x": 4, "y": 205},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 190,
+      "bounds": {"min_x": 5, "max_x": 10, "min_y": 205, "max_y": 208},
+      "center": {"x": 7, "y": 206},
+      "tiles": 17,
+      "area_km2": 4.2,
+      "peak_elevation": 132,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 191,
+      "bounds": {"min_x": 86, "max_x": 86, "min_y": 205, "max_y": 205},
+      "center": {"x": 86, "y": 205},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 192,
+      "bounds": {"min_x": 41, "max_x": 51, "min_y": 206, "max_y": 216},
+      "center": {"x": 46, "y": 211},
+      "tiles": 70,
+      "area_km2": 17.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 193,
+      "bounds": {"min_x": 3, "max_x": 3, "min_y": 207, "max_y": 207},
+      "center": {"x": 3, "y": 207},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 194,
+      "bounds": {"min_x": 76, "max_x": 76, "min_y": 207, "max_y": 207},
+      "center": {"x": 76, "y": 207},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 195,
+      "bounds": {"min_x": 73, "max_x": 74, "min_y": 208, "max_y": 209},
+      "center": {"x": 73, "y": 208},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 196,
+      "bounds": {"min_x": 562, "max_x": 565, "min_y": 208, "max_y": 211},
+      "center": {"x": 563, "y": 209},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 197,
+      "bounds": {"min_x": 67, "max_x": 67, "min_y": 210, "max_y": 210},
+      "center": {"x": 67, "y": 210},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 198,
+      "bounds": {"min_x": 87, "max_x": 87, "min_y": 210, "max_y": 210},
+      "center": {"x": 87, "y": 210},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 199,
+      "bounds": {"min_x": 91, "max_x": 91, "min_y": 210, "max_y": 210},
+      "center": {"x": 91, "y": 210},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 200,
+      "bounds": {"min_x": 52, "max_x": 52, "min_y": 211, "max_y": 211},
+      "center": {"x": 52, "y": 211},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 201,
+      "bounds": {"min_x": 38, "max_x": 40, "min_y": 213, "max_y": 215},
+      "center": {"x": 39, "y": 214},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 202,
+      "bounds": {"min_x": 94, "max_x": 94, "min_y": 213, "max_y": 213},
+      "center": {"x": 94, "y": 213},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 203,
+      "bounds": {"min_x": 125, "max_x": 126, "min_y": 215, "max_y": 216},
+      "center": {"x": 125, "y": 215},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 204,
+      "bounds": {"min_x": 700, "max_x": 702, "min_y": 215, "max_y": 215},
+      "center": {"x": 701, "y": 215},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 205,
+      "bounds": {"min_x": 1, "max_x": 22, "min_y": 216, "max_y": 232},
+      "center": {"x": 11, "y": 224},
+      "tiles": 213,
+      "area_km2": 53.2,
+      "peak_elevation": 140,
+      "dominant_biome": "Beach",
+      "classification": "small_island"
+    },
+    {
+      "id": 206,
+      "bounds": {"min_x": 694, "max_x": 700, "min_y": 216, "max_y": 222},
+      "center": {"x": 697, "y": 219},
+      "tiles": 24,
+      "area_km2": 6.0,
+      "peak_elevation": 131,
+      "dominant_biome": "Marshland",
+      "classification": "islet"
+    },
+    {
+      "id": 207,
+      "bounds": {"min_x": 731, "max_x": 732, "min_y": 216, "max_y": 218},
+      "center": {"x": 731, "y": 217},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 208,
+      "bounds": {"min_x": 647, "max_x": 647, "min_y": 217, "max_y": 218},
+      "center": {"x": 647, "y": 217},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 209,
+      "bounds": {"min_x": 127, "max_x": 127, "min_y": 218, "max_y": 218},
+      "center": {"x": 127, "y": 218},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 210,
+      "bounds": {"min_x": 683, "max_x": 687, "min_y": 218, "max_y": 220},
+      "center": {"x": 685, "y": 219},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 211,
+      "bounds": {"min_x": 729, "max_x": 730, "min_y": 218, "max_y": 219},
+      "center": {"x": 729, "y": 218},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 212,
+      "bounds": {"min_x": 649, "max_x": 649, "min_y": 220, "max_y": 220},
+      "center": {"x": 649, "y": 220},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 213,
+      "bounds": {"min_x": 648, "max_x": 648, "min_y": 221, "max_y": 221},
+      "center": {"x": 648, "y": 221},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 214,
+      "bounds": {"min_x": 254, "max_x": 254, "min_y": 223, "max_y": 223},
+      "center": {"x": 254, "y": 223},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 215,
+      "bounds": {"min_x": 117, "max_x": 117, "min_y": 224, "max_y": 224},
+      "center": {"x": 117, "y": 224},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 216,
+      "bounds": {"min_x": 45, "max_x": 52, "min_y": 225, "max_y": 228},
+      "center": {"x": 48, "y": 226},
+      "tiles": 16,
+      "area_km2": 4.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 217,
+      "bounds": {"min_x": 578, "max_x": 578, "min_y": 225, "max_y": 225},
+      "center": {"x": 578, "y": 225},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 218,
+      "bounds": {"min_x": 649, "max_x": 649, "min_y": 227, "max_y": 228},
+      "center": {"x": 649, "y": 227},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 219,
+      "bounds": {"min_x": 51, "max_x": 51, "min_y": 228, "max_y": 229},
+      "center": {"x": 51, "y": 228},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 220,
+      "bounds": {"min_x": 579, "max_x": 579, "min_y": 228, "max_y": 228},
+      "center": {"x": 579, "y": 228},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 221,
+      "bounds": {"min_x": 22, "max_x": 22, "min_y": 229, "max_y": 229},
+      "center": {"x": 22, "y": 229},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 222,
+      "bounds": {"min_x": 609, "max_x": 609, "min_y": 229, "max_y": 230},
+      "center": {"x": 609, "y": 229},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 223,
+      "bounds": {"min_x": 688, "max_x": 689, "min_y": 230, "max_y": 230},
+      "center": {"x": 688, "y": 230},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 224,
+      "bounds": {"min_x": 662, "max_x": 662, "min_y": 231, "max_y": 231},
+      "center": {"x": 662, "y": 231},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 225,
+      "bounds": {"min_x": 693, "max_x": 693, "min_y": 232, "max_y": 232},
+      "center": {"x": 693, "y": 232},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 226,
+      "bounds": {"min_x": 392, "max_x": 393, "min_y": 237, "max_y": 237},
+      "center": {"x": 392, "y": 237},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 227,
+      "bounds": {"min_x": 23, "max_x": 23, "min_y": 238, "max_y": 238},
+      "center": {"x": 23, "y": 238},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 228,
+      "bounds": {"min_x": 732, "max_x": 733, "min_y": 238, "max_y": 238},
+      "center": {"x": 732, "y": 238},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 229,
+      "bounds": {"min_x": 735, "max_x": 735, "min_y": 238, "max_y": 238},
+      "center": {"x": 735, "y": 238},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 230,
+      "bounds": {"min_x": 4, "max_x": 4, "min_y": 239, "max_y": 239},
+      "center": {"x": 4, "y": 239},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 231,
+      "bounds": {"min_x": 140, "max_x": 140, "min_y": 241, "max_y": 241},
+      "center": {"x": 140, "y": 241},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 232,
+      "bounds": {"min_x": 746, "max_x": 747, "min_y": 252, "max_y": 253},
+      "center": {"x": 746, "y": 252},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 233,
+      "bounds": {"min_x": 329, "max_x": 329, "min_y": 256, "max_y": 256},
+      "center": {"x": 329, "y": 256},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 234,
+      "bounds": {"min_x": 295, "max_x": 295, "min_y": 264, "max_y": 265},
+      "center": {"x": 295, "y": 264},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 235,
+      "bounds": {"min_x": 414, "max_x": 420, "min_y": 264, "max_y": 277},
+      "center": {"x": 417, "y": 270},
+      "tiles": 65,
+      "area_km2": 16.2,
+      "peak_elevation": 135,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 236,
+      "bounds": {"min_x": 592, "max_x": 593, "min_y": 264, "max_y": 267},
+      "center": {"x": 592, "y": 265},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 237,
+      "bounds": {"min_x": 409, "max_x": 410, "min_y": 266, "max_y": 267},
+      "center": {"x": 409, "y": 266},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 238,
+      "bounds": {"min_x": 412, "max_x": 412, "min_y": 266, "max_y": 266},
+      "center": {"x": 412, "y": 266},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 239,
+      "bounds": {"min_x": 160, "max_x": 162, "min_y": 267, "max_y": 269},
+      "center": {"x": 161, "y": 268},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 240,
+      "bounds": {"min_x": 402, "max_x": 403, "min_y": 267, "max_y": 267},
+      "center": {"x": 402, "y": 267},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 241,
+      "bounds": {"min_x": 329, "max_x": 330, "min_y": 268, "max_y": 269},
+      "center": {"x": 329, "y": 268},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 242,
+      "bounds": {"min_x": 362, "max_x": 362, "min_y": 268, "max_y": 268},
+      "center": {"x": 362, "y": 268},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 243,
+      "bounds": {"min_x": 287, "max_x": 287, "min_y": 272, "max_y": 272},
+      "center": {"x": 287, "y": 272},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 244,
+      "bounds": {"min_x": 166, "max_x": 169, "min_y": 273, "max_y": 277},
+      "center": {"x": 167, "y": 275},
+      "tiles": 13,
+      "area_km2": 3.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 245,
+      "bounds": {"min_x": 410, "max_x": 410, "min_y": 273, "max_y": 273},
+      "center": {"x": 410, "y": 273},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 246,
+      "bounds": {"min_x": 425, "max_x": 426, "min_y": 273, "max_y": 273},
+      "center": {"x": 425, "y": 273},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 247,
+      "bounds": {"min_x": 336, "max_x": 336, "min_y": 274, "max_y": 274},
+      "center": {"x": 336, "y": 274},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 248,
+      "bounds": {"min_x": 160, "max_x": 160, "min_y": 275, "max_y": 275},
+      "center": {"x": 160, "y": 275},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 249,
+      "bounds": {"min_x": 750, "max_x": 750, "min_y": 275, "max_y": 275},
+      "center": {"x": 750, "y": 275},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 250,
+      "bounds": {"min_x": 165, "max_x": 165, "min_y": 276, "max_y": 276},
+      "center": {"x": 165, "y": 276},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 251,
+      "bounds": {"min_x": 428, "max_x": 428, "min_y": 277, "max_y": 277},
+      "center": {"x": 428, "y": 277},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 252,
+      "bounds": {"min_x": 626, "max_x": 626, "min_y": 277, "max_y": 277},
+      "center": {"x": 626, "y": 277},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 253,
+      "bounds": {"min_x": 506, "max_x": 506, "min_y": 279, "max_y": 279},
+      "center": {"x": 506, "y": 279},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 254,
+      "bounds": {"min_x": 622, "max_x": 622, "min_y": 279, "max_y": 279},
+      "center": {"x": 622, "y": 279},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 255,
+      "bounds": {"min_x": 355, "max_x": 355, "min_y": 280, "max_y": 280},
+      "center": {"x": 355, "y": 280},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 256,
+      "bounds": {"min_x": 386, "max_x": 386, "min_y": 280, "max_y": 280},
+      "center": {"x": 386, "y": 280},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 257,
+      "bounds": {"min_x": 434, "max_x": 440, "min_y": 280, "max_y": 283},
+      "center": {"x": 437, "y": 281},
+      "tiles": 14,
+      "area_km2": 3.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 258,
+      "bounds": {"min_x": 505, "max_x": 505, "min_y": 280, "max_y": 280},
+      "center": {"x": 505, "y": 280},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 259,
+      "bounds": {"min_x": 385, "max_x": 385, "min_y": 282, "max_y": 282},
+      "center": {"x": 385, "y": 282},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 260,
+      "bounds": {"min_x": 358, "max_x": 358, "min_y": 283, "max_y": 283},
+      "center": {"x": 358, "y": 283},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 261,
+      "bounds": {"min_x": 386, "max_x": 387, "min_y": 283, "max_y": 283},
+      "center": {"x": 386, "y": 283},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 262,
+      "bounds": {"min_x": 334, "max_x": 334, "min_y": 284, "max_y": 285},
+      "center": {"x": 334, "y": 284},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 263,
+      "bounds": {"min_x": 408, "max_x": 413, "min_y": 284, "max_y": 296},
+      "center": {"x": 410, "y": 290},
+      "tiles": 41,
+      "area_km2": 10.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 264,
+      "bounds": {"min_x": 341, "max_x": 343, "min_y": 285, "max_y": 285},
+      "center": {"x": 342, "y": 285},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 265,
+      "bounds": {"min_x": 342, "max_x": 345, "min_y": 286, "max_y": 291},
+      "center": {"x": 343, "y": 288},
+      "tiles": 10,
+      "area_km2": 2.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 266,
+      "bounds": {"min_x": 439, "max_x": 439, "min_y": 286, "max_y": 286},
+      "center": {"x": 439, "y": 286},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 267,
+      "bounds": {"min_x": 397, "max_x": 400, "min_y": 287, "max_y": 293},
+      "center": {"x": 398, "y": 290},
+      "tiles": 16,
+      "area_km2": 4.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 268,
+      "bounds": {"min_x": 351, "max_x": 351, "min_y": 289, "max_y": 290},
+      "center": {"x": 351, "y": 289},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 269,
+      "bounds": {"min_x": 354, "max_x": 358, "min_y": 289, "max_y": 291},
+      "center": {"x": 356, "y": 290},
+      "tiles": 10,
+      "area_km2": 2.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 270,
+      "bounds": {"min_x": 362, "max_x": 362, "min_y": 289, "max_y": 289},
+      "center": {"x": 362, "y": 289},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 271,
+      "bounds": {"min_x": 549, "max_x": 549, "min_y": 289, "max_y": 289},
+      "center": {"x": 549, "y": 289},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 272,
+      "bounds": {"min_x": 425, "max_x": 428, "min_y": 290, "max_y": 293},
+      "center": {"x": 426, "y": 291},
+      "tiles": 9,
+      "area_km2": 2.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 273,
+      "bounds": {"min_x": 345, "max_x": 351, "min_y": 292, "max_y": 297},
+      "center": {"x": 348, "y": 294},
+      "tiles": 20,
+      "area_km2": 5.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 274,
+      "bounds": {"min_x": 389, "max_x": 389, "min_y": 295, "max_y": 295},
+      "center": {"x": 389, "y": 295},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 275,
+      "bounds": {"min_x": 330, "max_x": 330, "min_y": 296, "max_y": 296},
+      "center": {"x": 330, "y": 296},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 276,
+      "bounds": {"min_x": 428, "max_x": 429, "min_y": 297, "max_y": 297},
+      "center": {"x": 428, "y": 297},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 277,
+      "bounds": {"min_x": 757, "max_x": 757, "min_y": 298, "max_y": 298},
+      "center": {"x": 757, "y": 298},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 278,
+      "bounds": {"min_x": 326, "max_x": 333, "min_y": 299, "max_y": 303},
+      "center": {"x": 329, "y": 301},
+      "tiles": 23,
+      "area_km2": 5.8,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 279,
+      "bounds": {"min_x": 429, "max_x": 430, "min_y": 299, "max_y": 301},
+      "center": {"x": 429, "y": 300},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 280,
+      "bounds": {"min_x": 175, "max_x": 176, "min_y": 300, "max_y": 302},
+      "center": {"x": 175, "y": 301},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 281,
+      "bounds": {"min_x": 551, "max_x": 551, "min_y": 300, "max_y": 300},
+      "center": {"x": 551, "y": 300},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 282,
+      "bounds": {"min_x": 197, "max_x": 197, "min_y": 302, "max_y": 302},
+      "center": {"x": 197, "y": 302},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 283,
+      "bounds": {"min_x": 198, "max_x": 200, "min_y": 310, "max_y": 311},
+      "center": {"x": 199, "y": 310},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 284,
+      "bounds": {"min_x": 255, "max_x": 256, "min_y": 315, "max_y": 317},
+      "center": {"x": 255, "y": 316},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 285,
+      "bounds": {"min_x": 321, "max_x": 338, "min_y": 316, "max_y": 344},
+      "center": {"x": 329, "y": 330},
+      "tiles": 236,
+      "area_km2": 59.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "small_island"
+    },
+    {
+      "id": 286,
+      "bounds": {"min_x": 249, "max_x": 250, "min_y": 317, "max_y": 317},
+      "center": {"x": 249, "y": 317},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 287,
+      "bounds": {"min_x": 177, "max_x": 177, "min_y": 318, "max_y": 320},
+      "center": {"x": 177, "y": 319},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 288,
+      "bounds": {"min_x": 339, "max_x": 339, "min_y": 318, "max_y": 318},
+      "center": {"x": 339, "y": 318},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 289,
+      "bounds": {"min_x": 203, "max_x": 203, "min_y": 322, "max_y": 322},
+      "center": {"x": 203, "y": 322},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 290,
+      "bounds": {"min_x": 208, "max_x": 214, "min_y": 324, "max_y": 329},
+      "center": {"x": 211, "y": 326},
+      "tiles": 31,
+      "area_km2": 7.8,
+      "peak_elevation": 135,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 291,
+      "bounds": {"min_x": 222, "max_x": 222, "min_y": 327, "max_y": 328},
+      "center": {"x": 222, "y": 327},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 292,
+      "bounds": {"min_x": 256, "max_x": 257, "min_y": 327, "max_y": 327},
+      "center": {"x": 256, "y": 327},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 293,
+      "bounds": {"min_x": 261, "max_x": 261, "min_y": 332, "max_y": 332},
+      "center": {"x": 261, "y": 332},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 294,
+      "bounds": {"min_x": 234, "max_x": 243, "min_y": 333, "max_y": 346},
+      "center": {"x": 238, "y": 339},
+      "tiles": 56,
+      "area_km2": 14.0,
+      "peak_elevation": 134,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 295,
+      "bounds": {"min_x": 247, "max_x": 247, "min_y": 335, "max_y": 335},
+      "center": {"x": 247, "y": 335},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 296,
+      "bounds": {"min_x": 210, "max_x": 210, "min_y": 336, "max_y": 336},
+      "center": {"x": 210, "y": 336},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 297,
+      "bounds": {"min_x": 253, "max_x": 255, "min_y": 341, "max_y": 342},
+      "center": {"x": 254, "y": 341},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 298,
+      "bounds": {"min_x": 249, "max_x": 249, "min_y": 342, "max_y": 342},
+      "center": {"x": 249, "y": 342},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 299,
+      "bounds": {"min_x": 233, "max_x": 233, "min_y": 343, "max_y": 343},
+      "center": {"x": 233, "y": 343},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 300,
+      "bounds": {"min_x": 318, "max_x": 318, "min_y": 343, "max_y": 345},
+      "center": {"x": 318, "y": 344},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 301,
+      "bounds": {"min_x": 250, "max_x": 250, "min_y": 345, "max_y": 345},
+      "center": {"x": 250, "y": 345},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 302,
+      "bounds": {"min_x": 333, "max_x": 333, "min_y": 346, "max_y": 346},
+      "center": {"x": 333, "y": 346},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 303,
+      "bounds": {"min_x": 314, "max_x": 317, "min_y": 356, "max_y": 358},
+      "center": {"x": 315, "y": 357},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 304,
+      "bounds": {"min_x": 230, "max_x": 230, "min_y": 357, "max_y": 357},
+      "center": {"x": 230, "y": 357},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 305,
+      "bounds": {"min_x": 317, "max_x": 318, "min_y": 360, "max_y": 360},
+      "center": {"x": 317, "y": 360},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 306,
+      "bounds": {"min_x": 333, "max_x": 334, "min_y": 364, "max_y": 366},
+      "center": {"x": 333, "y": 365},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 307,
+      "bounds": {"min_x": 310, "max_x": 310, "min_y": 367, "max_y": 367},
+      "center": {"x": 310, "y": 367},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 308,
+      "bounds": {"min_x": 321, "max_x": 326, "min_y": 372, "max_y": 376},
+      "center": {"x": 323, "y": 374},
+      "tiles": 13,
+      "area_km2": 3.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 309,
+      "bounds": {"min_x": 326, "max_x": 326, "min_y": 377, "max_y": 377},
+      "center": {"x": 326, "y": 377},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 310,
+      "bounds": {"min_x": 207, "max_x": 207, "min_y": 379, "max_y": 379},
+      "center": {"x": 207, "y": 379},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 311,
+      "bounds": {"min_x": 340, "max_x": 340, "min_y": 379, "max_y": 379},
+      "center": {"x": 340, "y": 379},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 312,
+      "bounds": {"min_x": 0, "max_x": 732, "min_y": 380, "max_y": 925},
+      "center": {"x": 366, "y": 652},
+      "tiles": 140288,
+      "area_km2": 35072.0,
+      "peak_elevation": 216,
+      "dominant_biome": "Field",
+      "classification": "continent"
+    },
+    {
+      "id": 313,
+      "bounds": {"min_x": 206, "max_x": 206, "min_y": 381, "max_y": 381},
+      "center": {"x": 206, "y": 381},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 314,
+      "bounds": {"min_x": 233, "max_x": 233, "min_y": 382, "max_y": 382},
+      "center": {"x": 233, "y": 382},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 315,
+      "bounds": {"min_x": 312, "max_x": 313, "min_y": 382, "max_y": 383},
+      "center": {"x": 312, "y": 382},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 316,
+      "bounds": {"min_x": 224, "max_x": 225, "min_y": 386, "max_y": 389},
+      "center": {"x": 224, "y": 387},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 317,
+      "bounds": {"min_x": 315, "max_x": 317, "min_y": 386, "max_y": 387},
+      "center": {"x": 316, "y": 386},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 318,
+      "bounds": {"min_x": 205, "max_x": 206, "min_y": 387, "max_y": 387},
+      "center": {"x": 205, "y": 387},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 319,
+      "bounds": {"min_x": 335, "max_x": 352, "min_y": 387, "max_y": 545},
+      "center": {"x": 343, "y": 466},
+      "tiles": 810,
+      "area_km2": 202.5,
+      "peak_elevation": 193,
+      "dominant_biome": "Field",
+      "classification": "small_island"
+    },
+    {
+      "id": 320,
+      "bounds": {"min_x": 204, "max_x": 204, "min_y": 388, "max_y": 389},
+      "center": {"x": 204, "y": 388},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 321,
+      "bounds": {"min_x": 174, "max_x": 177, "min_y": 393, "max_y": 396},
+      "center": {"x": 175, "y": 394},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 322,
+      "bounds": {"min_x": 326, "max_x": 330, "min_y": 395, "max_y": 419},
+      "center": {"x": 328, "y": 407},
+      "tiles": 109,
+      "area_km2": 27.2,
+      "peak_elevation": 150,
+      "dominant_biome": "Field",
+      "classification": "small_island"
+    },
+    {
+      "id": 323,
+      "bounds": {"min_x": 181, "max_x": 181, "min_y": 397, "max_y": 398},
+      "center": {"x": 181, "y": 397},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 324,
+      "bounds": {"min_x": 295, "max_x": 295, "min_y": 404, "max_y": 404},
+      "center": {"x": 295, "y": 404},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 325,
+      "bounds": {"min_x": 190, "max_x": 190, "min_y": 406, "max_y": 406},
+      "center": {"x": 190, "y": 406},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 326,
+      "bounds": {"min_x": 175, "max_x": 193, "min_y": 407, "max_y": 421},
+      "center": {"x": 184, "y": 414},
+      "tiles": 138,
+      "area_km2": 34.5,
+      "peak_elevation": 139,
+      "dominant_biome": "Beach",
+      "classification": "small_island"
+    },
+    {
+      "id": 327,
+      "bounds": {"min_x": 195, "max_x": 195, "min_y": 408, "max_y": 408},
+      "center": {"x": 195, "y": 408},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 328,
+      "bounds": {"min_x": 72, "max_x": 72, "min_y": 411, "max_y": 411},
+      "center": {"x": 72, "y": 411},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 329,
+      "bounds": {"min_x": 36, "max_x": 38, "min_y": 413, "max_y": 417},
+      "center": {"x": 37, "y": 415},
+      "tiles": 11,
+      "area_km2": 2.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 330,
+      "bounds": {"min_x": 196, "max_x": 197, "min_y": 413, "max_y": 415},
+      "center": {"x": 196, "y": 414},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 331,
+      "bounds": {"min_x": 362, "max_x": 364, "min_y": 413, "max_y": 413},
+      "center": {"x": 363, "y": 413},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 332,
+      "bounds": {"min_x": 386, "max_x": 386, "min_y": 413, "max_y": 413},
+      "center": {"x": 386, "y": 413},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 333,
+      "bounds": {"min_x": 291, "max_x": 294, "min_y": 414, "max_y": 415},
+      "center": {"x": 292, "y": 414},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 334,
+      "bounds": {"min_x": 45, "max_x": 72, "min_y": 415, "max_y": 432},
+      "center": {"x": 58, "y": 423},
+      "tiles": 233,
+      "area_km2": 58.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "small_island"
+    },
+    {
+      "id": 335,
+      "bounds": {"min_x": 384, "max_x": 384, "min_y": 415, "max_y": 415},
+      "center": {"x": 384, "y": 415},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 336,
+      "bounds": {"min_x": 30, "max_x": 34, "min_y": 416, "max_y": 418},
+      "center": {"x": 32, "y": 417},
+      "tiles": 9,
+      "area_km2": 2.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 337,
+      "bounds": {"min_x": 249, "max_x": 249, "min_y": 416, "max_y": 416},
+      "center": {"x": 249, "y": 416},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 338,
+      "bounds": {"min_x": 3, "max_x": 4, "min_y": 418, "max_y": 418},
+      "center": {"x": 3, "y": 418},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 339,
+      "bounds": {"min_x": 329, "max_x": 329, "min_y": 418, "max_y": 418},
+      "center": {"x": 329, "y": 418},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 340,
+      "bounds": {"min_x": 382, "max_x": 384, "min_y": 418, "max_y": 419},
+      "center": {"x": 383, "y": 418},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 341,
+      "bounds": {"min_x": 36, "max_x": 36, "min_y": 419, "max_y": 419},
+      "center": {"x": 36, "y": 419},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 342,
+      "bounds": {"min_x": 2, "max_x": 2, "min_y": 420, "max_y": 420},
+      "center": {"x": 2, "y": 420},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 343,
+      "bounds": {"min_x": 0, "max_x": 1, "min_y": 421, "max_y": 422},
+      "center": {"x": 0, "y": 421},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 344,
+      "bounds": {"min_x": 36, "max_x": 37, "min_y": 421, "max_y": 423},
+      "center": {"x": 36, "y": 422},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 345,
+      "bounds": {"min_x": 210, "max_x": 210, "min_y": 421, "max_y": 421},
+      "center": {"x": 210, "y": 421},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 346,
+      "bounds": {"min_x": 351, "max_x": 353, "min_y": 421, "max_y": 423},
+      "center": {"x": 352, "y": 422},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 347,
+      "bounds": {"min_x": 211, "max_x": 211, "min_y": 422, "max_y": 422},
+      "center": {"x": 211, "y": 422},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 348,
+      "bounds": {"min_x": 303, "max_x": 303, "min_y": 422, "max_y": 422},
+      "center": {"x": 303, "y": 422},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 349,
+      "bounds": {"min_x": 327, "max_x": 327, "min_y": 422, "max_y": 422},
+      "center": {"x": 327, "y": 422},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 350,
+      "bounds": {"min_x": 348, "max_x": 348, "min_y": 424, "max_y": 424},
+      "center": {"x": 348, "y": 424},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 351,
+      "bounds": {"min_x": 354, "max_x": 354, "min_y": 424, "max_y": 424},
+      "center": {"x": 354, "y": 424},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 352,
+      "bounds": {"min_x": 178, "max_x": 178, "min_y": 425, "max_y": 425},
+      "center": {"x": 178, "y": 425},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 353,
+      "bounds": {"min_x": 188, "max_x": 189, "min_y": 425, "max_y": 426},
+      "center": {"x": 188, "y": 425},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 354,
+      "bounds": {"min_x": 355, "max_x": 355, "min_y": 425, "max_y": 425},
+      "center": {"x": 355, "y": 425},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 355,
+      "bounds": {"min_x": 767, "max_x": 767, "min_y": 426, "max_y": 426},
+      "center": {"x": 767, "y": 426},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 356,
+      "bounds": {"min_x": 238, "max_x": 240, "min_y": 427, "max_y": 429},
+      "center": {"x": 239, "y": 428},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 357,
+      "bounds": {"min_x": 304, "max_x": 304, "min_y": 427, "max_y": 427},
+      "center": {"x": 304, "y": 427},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 358,
+      "bounds": {"min_x": 348, "max_x": 348, "min_y": 427, "max_y": 427},
+      "center": {"x": 348, "y": 427},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 359,
+      "bounds": {"min_x": 39, "max_x": 39, "min_y": 430, "max_y": 430},
+      "center": {"x": 39, "y": 430},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 360,
+      "bounds": {"min_x": 256, "max_x": 257, "min_y": 431, "max_y": 431},
+      "center": {"x": 256, "y": 431},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 361,
+      "bounds": {"min_x": 0, "max_x": 57, "min_y": 432, "max_y": 496},
+      "center": {"x": 28, "y": 464},
+      "tiles": 1811,
+      "area_km2": 452.8,
+      "peak_elevation": 149,
+      "dominant_biome": "Field",
+      "classification": "island"
+    },
+    {
+      "id": 362,
+      "bounds": {"min_x": 399, "max_x": 410, "min_y": 432, "max_y": 450},
+      "center": {"x": 404, "y": 441},
+      "tiles": 86,
+      "area_km2": 21.5,
+      "peak_elevation": 140,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 363,
+      "bounds": {"min_x": 199, "max_x": 200, "min_y": 433, "max_y": 434},
+      "center": {"x": 199, "y": 433},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 364,
+      "bounds": {"min_x": 24, "max_x": 24, "min_y": 434, "max_y": 435},
+      "center": {"x": 24, "y": 434},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 365,
+      "bounds": {"min_x": 43, "max_x": 49, "min_y": 434, "max_y": 443},
+      "center": {"x": 46, "y": 438},
+      "tiles": 28,
+      "area_km2": 7.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 366,
+      "bounds": {"min_x": 771, "max_x": 789, "min_y": 434, "max_y": 470},
+      "center": {"x": 780, "y": 452},
+      "tiles": 333,
+      "area_km2": 83.2,
+      "peak_elevation": 139,
+      "dominant_biome": "Beach",
+      "classification": "small_island"
+    },
+    {
+      "id": 367,
+      "bounds": {"min_x": 37, "max_x": 40, "min_y": 436, "max_y": 442},
+      "center": {"x": 38, "y": 439},
+      "tiles": 18,
+      "area_km2": 4.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 368,
+      "bounds": {"min_x": 99, "max_x": 99, "min_y": 439, "max_y": 439},
+      "center": {"x": 99, "y": 439},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 369,
+      "bounds": {"min_x": 228, "max_x": 249, "min_y": 440, "max_y": 458},
+      "center": {"x": 238, "y": 449},
+      "tiles": 228,
+      "area_km2": 57.0,
+      "peak_elevation": 141,
+      "dominant_biome": "Beach",
+      "classification": "small_island"
+    },
+    {
+      "id": 370,
+      "bounds": {"min_x": 252, "max_x": 269, "min_y": 440, "max_y": 451},
+      "center": {"x": 260, "y": 445},
+      "tiles": 84,
+      "area_km2": 21.0,
+      "peak_elevation": 133,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 371,
+      "bounds": {"min_x": 92, "max_x": 93, "min_y": 441, "max_y": 442},
+      "center": {"x": 92, "y": 441},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 372,
+      "bounds": {"min_x": 263, "max_x": 264, "min_y": 442, "max_y": 443},
+      "center": {"x": 263, "y": 442},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 373,
+      "bounds": {"min_x": 413, "max_x": 413, "min_y": 442, "max_y": 442},
+      "center": {"x": 413, "y": 442},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 374,
+      "bounds": {"min_x": 100, "max_x": 104, "min_y": 443, "max_y": 447},
+      "center": {"x": 102, "y": 445},
+      "tiles": 18,
+      "area_km2": 4.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 375,
+      "bounds": {"min_x": 79, "max_x": 81, "min_y": 444, "max_y": 447},
+      "center": {"x": 80, "y": 445},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 376,
+      "bounds": {"min_x": 788, "max_x": 799, "min_y": 444, "max_y": 456},
+      "center": {"x": 793, "y": 450},
+      "tiles": 92,
+      "area_km2": 23.0,
+      "peak_elevation": 137,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 377,
+      "bounds": {"min_x": 87, "max_x": 107, "min_y": 448, "max_y": 458},
+      "center": {"x": 97, "y": 453},
+      "tiles": 110,
+      "area_km2": 27.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "small_island"
+    },
+    {
+      "id": 378,
+      "bounds": {"min_x": 249, "max_x": 250, "min_y": 451, "max_y": 453},
+      "center": {"x": 249, "y": 452},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 379,
+      "bounds": {"min_x": 252, "max_x": 252, "min_y": 451, "max_y": 451},
+      "center": {"x": 252, "y": 451},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 380,
+      "bounds": {"min_x": 435, "max_x": 437, "min_y": 451, "max_y": 451},
+      "center": {"x": 436, "y": 451},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 381,
+      "bounds": {"min_x": 64, "max_x": 66, "min_y": 452, "max_y": 454},
+      "center": {"x": 65, "y": 453},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 382,
+      "bounds": {"min_x": 440, "max_x": 440, "min_y": 453, "max_y": 453},
+      "center": {"x": 440, "y": 453},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 383,
+      "bounds": {"min_x": 461, "max_x": 461, "min_y": 454, "max_y": 454},
+      "center": {"x": 461, "y": 454},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 384,
+      "bounds": {"min_x": 245, "max_x": 255, "min_y": 455, "max_y": 463},
+      "center": {"x": 250, "y": 459},
+      "tiles": 42,
+      "area_km2": 10.5,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 385,
+      "bounds": {"min_x": 442, "max_x": 442, "min_y": 455, "max_y": 455},
+      "center": {"x": 442, "y": 455},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 386,
+      "bounds": {"min_x": 99, "max_x": 99, "min_y": 457, "max_y": 457},
+      "center": {"x": 99, "y": 457},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 387,
+      "bounds": {"min_x": 254, "max_x": 254, "min_y": 458, "max_y": 459},
+      "center": {"x": 254, "y": 458},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 388,
+      "bounds": {"min_x": 259, "max_x": 262, "min_y": 458, "max_y": 459},
+      "center": {"x": 260, "y": 458},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 389,
+      "bounds": {"min_x": 85, "max_x": 87, "min_y": 460, "max_y": 461},
+      "center": {"x": 86, "y": 460},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 390,
+      "bounds": {"min_x": 67, "max_x": 69, "min_y": 462, "max_y": 463},
+      "center": {"x": 68, "y": 462},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 391,
+      "bounds": {"min_x": 244, "max_x": 249, "min_y": 462, "max_y": 468},
+      "center": {"x": 246, "y": 465},
+      "tiles": 29,
+      "area_km2": 7.2,
+      "peak_elevation": 133,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 392,
+      "bounds": {"min_x": 61, "max_x": 79, "min_y": 469, "max_y": 488},
+      "center": {"x": 70, "y": 478},
+      "tiles": 163,
+      "area_km2": 40.8,
+      "peak_elevation": 138,
+      "dominant_biome": "Beach",
+      "classification": "small_island"
+    },
+    {
+      "id": 393,
+      "bounds": {"min_x": 488, "max_x": 489, "min_y": 469, "max_y": 471},
+      "center": {"x": 488, "y": 470},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 394,
+      "bounds": {"min_x": 85, "max_x": 85, "min_y": 470, "max_y": 470},
+      "center": {"x": 85, "y": 470},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 395,
+      "bounds": {"min_x": 272, "max_x": 273, "min_y": 470, "max_y": 472},
+      "center": {"x": 272, "y": 471},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 396,
+      "bounds": {"min_x": 83, "max_x": 84, "min_y": 472, "max_y": 474},
+      "center": {"x": 83, "y": 473},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 397,
+      "bounds": {"min_x": 493, "max_x": 493, "min_y": 474, "max_y": 476},
+      "center": {"x": 493, "y": 475},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 398,
+      "bounds": {"min_x": 513, "max_x": 514, "min_y": 474, "max_y": 476},
+      "center": {"x": 513, "y": 475},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 399,
+      "bounds": {"min_x": 16, "max_x": 16, "min_y": 475, "max_y": 475},
+      "center": {"x": 16, "y": 475},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 400,
+      "bounds": {"min_x": 15, "max_x": 16, "min_y": 477, "max_y": 477},
+      "center": {"x": 15, "y": 477},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 401,
+      "bounds": {"min_x": 235, "max_x": 247, "min_y": 478, "max_y": 483},
+      "center": {"x": 241, "y": 480},
+      "tiles": 31,
+      "area_km2": 7.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 402,
+      "bounds": {"min_x": 500, "max_x": 503, "min_y": 479, "max_y": 481},
+      "center": {"x": 501, "y": 480},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 403,
+      "bounds": {"min_x": 24, "max_x": 24, "min_y": 480, "max_y": 481},
+      "center": {"x": 24, "y": 480},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 404,
+      "bounds": {"min_x": 508, "max_x": 516, "min_y": 480, "max_y": 485},
+      "center": {"x": 512, "y": 482},
+      "tiles": 29,
+      "area_km2": 7.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 405,
+      "bounds": {"min_x": 766, "max_x": 767, "min_y": 480, "max_y": 480},
+      "center": {"x": 766, "y": 480},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 406,
+      "bounds": {"min_x": 17, "max_x": 18, "min_y": 484, "max_y": 486},
+      "center": {"x": 17, "y": 485},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 407,
+      "bounds": {"min_x": 37, "max_x": 37, "min_y": 484, "max_y": 484},
+      "center": {"x": 37, "y": 484},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 408,
+      "bounds": {"min_x": 35, "max_x": 36, "min_y": 485, "max_y": 486},
+      "center": {"x": 35, "y": 485},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 409,
+      "bounds": {"min_x": 57, "max_x": 66, "min_y": 485, "max_y": 491},
+      "center": {"x": 61, "y": 488},
+      "tiles": 33,
+      "area_km2": 8.2,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 410,
+      "bounds": {"min_x": 234, "max_x": 234, "min_y": 485, "max_y": 485},
+      "center": {"x": 234, "y": 485},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 411,
+      "bounds": {"min_x": 768, "max_x": 768, "min_y": 486, "max_y": 487},
+      "center": {"x": 768, "y": 486},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 412,
+      "bounds": {"min_x": 10, "max_x": 11, "min_y": 487, "max_y": 489},
+      "center": {"x": 10, "y": 488},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 413,
+      "bounds": {"min_x": 54, "max_x": 54, "min_y": 487, "max_y": 487},
+      "center": {"x": 54, "y": 487},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 414,
+      "bounds": {"min_x": 232, "max_x": 232, "min_y": 487, "max_y": 487},
+      "center": {"x": 232, "y": 487},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 415,
+      "bounds": {"min_x": 497, "max_x": 497, "min_y": 488, "max_y": 488},
+      "center": {"x": 497, "y": 488},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 416,
+      "bounds": {"min_x": 0, "max_x": 2, "min_y": 489, "max_y": 493},
+      "center": {"x": 1, "y": 491},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 417,
+      "bounds": {"min_x": 64, "max_x": 65, "min_y": 491, "max_y": 492},
+      "center": {"x": 64, "y": 491},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 418,
+      "bounds": {"min_x": 501, "max_x": 504, "min_y": 492, "max_y": 500},
+      "center": {"x": 502, "y": 496},
+      "tiles": 23,
+      "area_km2": 5.8,
+      "peak_elevation": 137,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 419,
+      "bounds": {"min_x": 66, "max_x": 69, "min_y": 493, "max_y": 495},
+      "center": {"x": 67, "y": 494},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 420,
+      "bounds": {"min_x": 777, "max_x": 778, "min_y": 493, "max_y": 493},
+      "center": {"x": 777, "y": 493},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 421,
+      "bounds": {"min_x": 53, "max_x": 53, "min_y": 494, "max_y": 495},
+      "center": {"x": 53, "y": 494},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 422,
+      "bounds": {"min_x": 778, "max_x": 784, "min_y": 494, "max_y": 504},
+      "center": {"x": 781, "y": 499},
+      "tiles": 46,
+      "area_km2": 11.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 423,
+      "bounds": {"min_x": 64, "max_x": 64, "min_y": 497, "max_y": 497},
+      "center": {"x": 64, "y": 497},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 424,
+      "bounds": {"min_x": 5, "max_x": 6, "min_y": 499, "max_y": 501},
+      "center": {"x": 5, "y": 500},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 425,
+      "bounds": {"min_x": 1, "max_x": 1, "min_y": 502, "max_y": 502},
+      "center": {"x": 1, "y": 502},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 106,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 426,
+      "bounds": {"min_x": 237, "max_x": 237, "min_y": 502, "max_y": 502},
+      "center": {"x": 237, "y": 502},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 427,
+      "bounds": {"min_x": 4, "max_x": 4, "min_y": 503, "max_y": 504},
+      "center": {"x": 4, "y": 503},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 428,
+      "bounds": {"min_x": 68, "max_x": 70, "min_y": 504, "max_y": 507},
+      "center": {"x": 69, "y": 505},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 132,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 429,
+      "bounds": {"min_x": 6, "max_x": 6, "min_y": 505, "max_y": 505},
+      "center": {"x": 6, "y": 505},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 430,
+      "bounds": {"min_x": 729, "max_x": 729, "min_y": 506, "max_y": 506},
+      "center": {"x": 729, "y": 506},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 431,
+      "bounds": {"min_x": 32, "max_x": 32, "min_y": 507, "max_y": 507},
+      "center": {"x": 32, "y": 507},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 432,
+      "bounds": {"min_x": 57, "max_x": 58, "min_y": 507, "max_y": 507},
+      "center": {"x": 57, "y": 507},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 433,
+      "bounds": {"min_x": 264, "max_x": 269, "min_y": 507, "max_y": 514},
+      "center": {"x": 266, "y": 510},
+      "tiles": 32,
+      "area_km2": 8.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 434,
+      "bounds": {"min_x": 505, "max_x": 506, "min_y": 508, "max_y": 519},
+      "center": {"x": 505, "y": 513},
+      "tiles": 14,
+      "area_km2": 3.5,
+      "peak_elevation": 142,
+      "dominant_biome": "Field",
+      "classification": "islet"
+    },
+    {
+      "id": 435,
+      "bounds": {"min_x": 754, "max_x": 755, "min_y": 508, "max_y": 509},
+      "center": {"x": 754, "y": 508},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 436,
+      "bounds": {"min_x": 65, "max_x": 65, "min_y": 510, "max_y": 510},
+      "center": {"x": 65, "y": 510},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 437,
+      "bounds": {"min_x": 761, "max_x": 761, "min_y": 510, "max_y": 510},
+      "center": {"x": 761, "y": 510},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 438,
+      "bounds": {"min_x": 759, "max_x": 765, "min_y": 512, "max_y": 519},
+      "center": {"x": 762, "y": 515},
+      "tiles": 34,
+      "area_km2": 8.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 439,
+      "bounds": {"min_x": 759, "max_x": 759, "min_y": 513, "max_y": 513},
+      "center": {"x": 759, "y": 513},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 440,
+      "bounds": {"min_x": 798, "max_x": 798, "min_y": 515, "max_y": 515},
+      "center": {"x": 798, "y": 515},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 441,
+      "bounds": {"min_x": 263, "max_x": 270, "min_y": 516, "max_y": 522},
+      "center": {"x": 266, "y": 519},
+      "tiles": 32,
+      "area_km2": 8.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 442,
+      "bounds": {"min_x": 735, "max_x": 735, "min_y": 516, "max_y": 516},
+      "center": {"x": 735, "y": 516},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 443,
+      "bounds": {"min_x": 777, "max_x": 777, "min_y": 516, "max_y": 516},
+      "center": {"x": 777, "y": 516},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 444,
+      "bounds": {"min_x": 731, "max_x": 758, "min_y": 518, "max_y": 548},
+      "center": {"x": 744, "y": 533},
+      "tiles": 330,
+      "area_km2": 82.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "small_island"
+    },
+    {
+      "id": 445,
+      "bounds": {"min_x": 758, "max_x": 758, "min_y": 519, "max_y": 519},
+      "center": {"x": 758, "y": 519},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 446,
+      "bounds": {"min_x": 778, "max_x": 778, "min_y": 519, "max_y": 519},
+      "center": {"x": 778, "y": 519},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 447,
+      "bounds": {"min_x": 249, "max_x": 249, "min_y": 520, "max_y": 520},
+      "center": {"x": 249, "y": 520},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 448,
+      "bounds": {"min_x": 729, "max_x": 731, "min_y": 520, "max_y": 521},
+      "center": {"x": 730, "y": 520},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 449,
+      "bounds": {"min_x": 760, "max_x": 765, "min_y": 520, "max_y": 523},
+      "center": {"x": 762, "y": 521},
+      "tiles": 13,
+      "area_km2": 3.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 450,
+      "bounds": {"min_x": 783, "max_x": 783, "min_y": 520, "max_y": 520},
+      "center": {"x": 783, "y": 520},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 451,
+      "bounds": {"min_x": 240, "max_x": 240, "min_y": 521, "max_y": 521},
+      "center": {"x": 240, "y": 521},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 452,
+      "bounds": {"min_x": 239, "max_x": 239, "min_y": 522, "max_y": 522},
+      "center": {"x": 239, "y": 522},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 453,
+      "bounds": {"min_x": 511, "max_x": 511, "min_y": 522, "max_y": 522},
+      "center": {"x": 511, "y": 522},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 454,
+      "bounds": {"min_x": 665, "max_x": 665, "min_y": 522, "max_y": 522},
+      "center": {"x": 665, "y": 522},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 455,
+      "bounds": {"min_x": 676, "max_x": 676, "min_y": 525, "max_y": 525},
+      "center": {"x": 676, "y": 525},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 456,
+      "bounds": {"min_x": 760, "max_x": 762, "min_y": 525, "max_y": 527},
+      "center": {"x": 761, "y": 526},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 457,
+      "bounds": {"min_x": 505, "max_x": 505, "min_y": 526, "max_y": 526},
+      "center": {"x": 505, "y": 526},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 135,
+      "dominant_biome": "Field",
+      "classification": "islet"
+    },
+    {
+      "id": 458,
+      "bounds": {"min_x": 669, "max_x": 669, "min_y": 526, "max_y": 526},
+      "center": {"x": 669, "y": 526},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 459,
+      "bounds": {"min_x": 518, "max_x": 518, "min_y": 527, "max_y": 527},
+      "center": {"x": 518, "y": 527},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 460,
+      "bounds": {"min_x": 766, "max_x": 766, "min_y": 533, "max_y": 533},
+      "center": {"x": 766, "y": 533},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 461,
+      "bounds": {"min_x": 599, "max_x": 599, "min_y": 534, "max_y": 534},
+      "center": {"x": 599, "y": 534},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 462,
+      "bounds": {"min_x": 628, "max_x": 628, "min_y": 535, "max_y": 535},
+      "center": {"x": 628, "y": 535},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 463,
+      "bounds": {"min_x": 599, "max_x": 602, "min_y": 536, "max_y": 538},
+      "center": {"x": 600, "y": 537},
+      "tiles": 9,
+      "area_km2": 2.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 464,
+      "bounds": {"min_x": 292, "max_x": 292, "min_y": 537, "max_y": 538},
+      "center": {"x": 292, "y": 537},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 465,
+      "bounds": {"min_x": 737, "max_x": 737, "min_y": 538, "max_y": 538},
+      "center": {"x": 737, "y": 538},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 466,
+      "bounds": {"min_x": 815, "max_x": 815, "min_y": 538, "max_y": 538},
+      "center": {"x": 815, "y": 538},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 467,
+      "bounds": {"min_x": 688, "max_x": 689, "min_y": 539, "max_y": 540},
+      "center": {"x": 688, "y": 539},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 468,
+      "bounds": {"min_x": 816, "max_x": 816, "min_y": 539, "max_y": 539},
+      "center": {"x": 816, "y": 539},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 469,
+      "bounds": {"min_x": 709, "max_x": 709, "min_y": 540, "max_y": 540},
+      "center": {"x": 709, "y": 540},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 470,
+      "bounds": {"min_x": 690, "max_x": 690, "min_y": 541, "max_y": 542},
+      "center": {"x": 690, "y": 541},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 471,
+      "bounds": {"min_x": 759, "max_x": 759, "min_y": 542, "max_y": 542},
+      "center": {"x": 759, "y": 542},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 472,
+      "bounds": {"min_x": 768, "max_x": 768, "min_y": 542, "max_y": 542},
+      "center": {"x": 768, "y": 542},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 473,
+      "bounds": {"min_x": 609, "max_x": 610, "min_y": 544, "max_y": 545},
+      "center": {"x": 609, "y": 544},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 474,
+      "bounds": {"min_x": 726, "max_x": 726, "min_y": 545, "max_y": 545},
+      "center": {"x": 726, "y": 545},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 475,
+      "bounds": {"min_x": 593, "max_x": 593, "min_y": 546, "max_y": 546},
+      "center": {"x": 593, "y": 546},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 476,
+      "bounds": {"min_x": 726, "max_x": 726, "min_y": 547, "max_y": 548},
+      "center": {"x": 726, "y": 547},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 477,
+      "bounds": {"min_x": 336, "max_x": 336, "min_y": 550, "max_y": 550},
+      "center": {"x": 336, "y": 550},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 478,
+      "bounds": {"min_x": 544, "max_x": 544, "min_y": 550, "max_y": 550},
+      "center": {"x": 544, "y": 550},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 479,
+      "bounds": {"min_x": 539, "max_x": 539, "min_y": 551, "max_y": 552},
+      "center": {"x": 539, "y": 551},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 480,
+      "bounds": {"min_x": 730, "max_x": 730, "min_y": 552, "max_y": 552},
+      "center": {"x": 730, "y": 552},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 481,
+      "bounds": {"min_x": 805, "max_x": 805, "min_y": 553, "max_y": 554},
+      "center": {"x": 805, "y": 553},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 482,
+      "bounds": {"min_x": 576, "max_x": 576, "min_y": 554, "max_y": 554},
+      "center": {"x": 576, "y": 554},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 483,
+      "bounds": {"min_x": 602, "max_x": 602, "min_y": 555, "max_y": 555},
+      "center": {"x": 602, "y": 555},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 484,
+      "bounds": {"min_x": 579, "max_x": 579, "min_y": 556, "max_y": 557},
+      "center": {"x": 579, "y": 556},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 485,
+      "bounds": {"min_x": 754, "max_x": 754, "min_y": 556, "max_y": 556},
+      "center": {"x": 754, "y": 556},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 486,
+      "bounds": {"min_x": 753, "max_x": 753, "min_y": 558, "max_y": 558},
+      "center": {"x": 753, "y": 558},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 487,
+      "bounds": {"min_x": 328, "max_x": 329, "min_y": 561, "max_y": 561},
+      "center": {"x": 328, "y": 561},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 488,
+      "bounds": {"min_x": 803, "max_x": 806, "min_y": 563, "max_y": 573},
+      "center": {"x": 804, "y": 568},
+      "tiles": 23,
+      "area_km2": 5.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 489,
+      "bounds": {"min_x": 684, "max_x": 684, "min_y": 565, "max_y": 565},
+      "center": {"x": 684, "y": 565},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 490,
+      "bounds": {"min_x": 806, "max_x": 806, "min_y": 568, "max_y": 569},
+      "center": {"x": 806, "y": 568},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 491,
+      "bounds": {"min_x": 285, "max_x": 285, "min_y": 569, "max_y": 570},
+      "center": {"x": 285, "y": 569},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 492,
+      "bounds": {"min_x": 297, "max_x": 297, "min_y": 570, "max_y": 570},
+      "center": {"x": 297, "y": 570},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 493,
+      "bounds": {"min_x": 692, "max_x": 700, "min_y": 570, "max_y": 584},
+      "center": {"x": 696, "y": 577},
+      "tiles": 77,
+      "area_km2": 19.2,
+      "peak_elevation": 135,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 494,
+      "bounds": {"min_x": 765, "max_x": 768, "min_y": 570, "max_y": 573},
+      "center": {"x": 766, "y": 571},
+      "tiles": 11,
+      "area_km2": 2.8,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 495,
+      "bounds": {"min_x": 296, "max_x": 296, "min_y": 571, "max_y": 571},
+      "center": {"x": 296, "y": 571},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 496,
+      "bounds": {"min_x": 700, "max_x": 701, "min_y": 571, "max_y": 571},
+      "center": {"x": 700, "y": 571},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 497,
+      "bounds": {"min_x": 744, "max_x": 744, "min_y": 571, "max_y": 571},
+      "center": {"x": 744, "y": 571},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 498,
+      "bounds": {"min_x": 644, "max_x": 644, "min_y": 573, "max_y": 573},
+      "center": {"x": 644, "y": 573},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 141,
+      "dominant_biome": "Field",
+      "classification": "islet"
+    },
+    {
+      "id": 499,
+      "bounds": {"min_x": 778, "max_x": 783, "min_y": 573, "max_y": 575},
+      "center": {"x": 780, "y": 574},
+      "tiles": 13,
+      "area_km2": 3.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 500,
+      "bounds": {"min_x": 684, "max_x": 687, "min_y": 574, "max_y": 577},
+      "center": {"x": 685, "y": 575},
+      "tiles": 10,
+      "area_km2": 2.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 501,
+      "bounds": {"min_x": 283, "max_x": 283, "min_y": 575, "max_y": 575},
+      "center": {"x": 283, "y": 575},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 502,
+      "bounds": {"min_x": 282, "max_x": 282, "min_y": 576, "max_y": 576},
+      "center": {"x": 282, "y": 576},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 503,
+      "bounds": {"min_x": 777, "max_x": 777, "min_y": 576, "max_y": 576},
+      "center": {"x": 777, "y": 576},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 504,
+      "bounds": {"min_x": 803, "max_x": 804, "min_y": 576, "max_y": 577},
+      "center": {"x": 803, "y": 576},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 505,
+      "bounds": {"min_x": 757, "max_x": 757, "min_y": 577, "max_y": 578},
+      "center": {"x": 757, "y": 577},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 506,
+      "bounds": {"min_x": 681, "max_x": 681, "min_y": 578, "max_y": 578},
+      "center": {"x": 681, "y": 578},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 507,
+      "bounds": {"min_x": 706, "max_x": 706, "min_y": 579, "max_y": 579},
+      "center": {"x": 706, "y": 579},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 508,
+      "bounds": {"min_x": 773, "max_x": 774, "min_y": 579, "max_y": 579},
+      "center": {"x": 773, "y": 579},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 509,
+      "bounds": {"min_x": 755, "max_x": 773, "min_y": 581, "max_y": 591},
+      "center": {"x": 764, "y": 586},
+      "tiles": 87,
+      "area_km2": 21.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 510,
+      "bounds": {"min_x": 808, "max_x": 808, "min_y": 581, "max_y": 588},
+      "center": {"x": 808, "y": 584},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 511,
+      "bounds": {"min_x": 723, "max_x": 724, "min_y": 582, "max_y": 582},
+      "center": {"x": 723, "y": 582},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 512,
+      "bounds": {"min_x": 731, "max_x": 732, "min_y": 582, "max_y": 583},
+      "center": {"x": 731, "y": 582},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 513,
+      "bounds": {"min_x": 745, "max_x": 745, "min_y": 582, "max_y": 582},
+      "center": {"x": 745, "y": 582},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 514,
+      "bounds": {"min_x": 790, "max_x": 790, "min_y": 583, "max_y": 583},
+      "center": {"x": 790, "y": 583},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 515,
+      "bounds": {"min_x": 711, "max_x": 716, "min_y": 584, "max_y": 590},
+      "center": {"x": 713, "y": 587},
+      "tiles": 18,
+      "area_km2": 4.5,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 516,
+      "bounds": {"min_x": 729, "max_x": 729, "min_y": 584, "max_y": 584},
+      "center": {"x": 729, "y": 584},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 517,
+      "bounds": {"min_x": 743, "max_x": 746, "min_y": 584, "max_y": 591},
+      "center": {"x": 744, "y": 587},
+      "tiles": 22,
+      "area_km2": 5.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 518,
+      "bounds": {"min_x": 686, "max_x": 686, "min_y": 585, "max_y": 585},
+      "center": {"x": 686, "y": 585},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 519,
+      "bounds": {"min_x": 790, "max_x": 790, "min_y": 585, "max_y": 586},
+      "center": {"x": 790, "y": 585},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 520,
+      "bounds": {"min_x": 685, "max_x": 687, "min_y": 587, "max_y": 589},
+      "center": {"x": 686, "y": 588},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 521,
+      "bounds": {"min_x": 748, "max_x": 749, "min_y": 589, "max_y": 589},
+      "center": {"x": 748, "y": 589},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 522,
+      "bounds": {"min_x": 741, "max_x": 760, "min_y": 591, "max_y": 627},
+      "center": {"x": 750, "y": 609},
+      "tiles": 373,
+      "area_km2": 93.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "small_island"
+    },
+    {
+      "id": 523,
+      "bounds": {"min_x": 267, "max_x": 267, "min_y": 594, "max_y": 594},
+      "center": {"x": 267, "y": 594},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 524,
+      "bounds": {"min_x": 684, "max_x": 696, "min_y": 594, "max_y": 605},
+      "center": {"x": 690, "y": 599},
+      "tiles": 59,
+      "area_km2": 14.8,
+      "peak_elevation": 133,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 525,
+      "bounds": {"min_x": 771, "max_x": 772, "min_y": 595, "max_y": 596},
+      "center": {"x": 771, "y": 595},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 526,
+      "bounds": {"min_x": 735, "max_x": 738, "min_y": 597, "max_y": 597},
+      "center": {"x": 736, "y": 597},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 527,
+      "bounds": {"min_x": 701, "max_x": 704, "min_y": 600, "max_y": 605},
+      "center": {"x": 702, "y": 602},
+      "tiles": 13,
+      "area_km2": 3.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 528,
+      "bounds": {"min_x": 257, "max_x": 258, "min_y": 601, "max_y": 601},
+      "center": {"x": 257, "y": 601},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 529,
+      "bounds": {"min_x": 726, "max_x": 732, "min_y": 601, "max_y": 608},
+      "center": {"x": 729, "y": 604},
+      "tiles": 29,
+      "area_km2": 7.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 530,
+      "bounds": {"min_x": 277, "max_x": 279, "min_y": 602, "max_y": 604},
+      "center": {"x": 278, "y": 603},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 531,
+      "bounds": {"min_x": 735, "max_x": 736, "min_y": 604, "max_y": 606},
+      "center": {"x": 735, "y": 605},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 532,
+      "bounds": {"min_x": 278, "max_x": 280, "min_y": 605, "max_y": 607},
+      "center": {"x": 279, "y": 606},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 533,
+      "bounds": {"min_x": 680, "max_x": 682, "min_y": 605, "max_y": 607},
+      "center": {"x": 681, "y": 606},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 534,
+      "bounds": {"min_x": 262, "max_x": 264, "min_y": 607, "max_y": 608},
+      "center": {"x": 263, "y": 607},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 535,
+      "bounds": {"min_x": 731, "max_x": 731, "min_y": 608, "max_y": 608},
+      "center": {"x": 731, "y": 608},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 536,
+      "bounds": {"min_x": 684, "max_x": 685, "min_y": 609, "max_y": 610},
+      "center": {"x": 684, "y": 609},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 537,
+      "bounds": {"min_x": 766, "max_x": 767, "min_y": 610, "max_y": 611},
+      "center": {"x": 766, "y": 610},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 538,
+      "bounds": {"min_x": 763, "max_x": 764, "min_y": 611, "max_y": 611},
+      "center": {"x": 763, "y": 611},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 539,
+      "bounds": {"min_x": 683, "max_x": 683, "min_y": 613, "max_y": 613},
+      "center": {"x": 683, "y": 613},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 540,
+      "bounds": {"min_x": 687, "max_x": 687, "min_y": 614, "max_y": 614},
+      "center": {"x": 687, "y": 614},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 541,
+      "bounds": {"min_x": 703, "max_x": 703, "min_y": 614, "max_y": 614},
+      "center": {"x": 703, "y": 614},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 542,
+      "bounds": {"min_x": 721, "max_x": 721, "min_y": 614, "max_y": 614},
+      "center": {"x": 721, "y": 614},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 543,
+      "bounds": {"min_x": 684, "max_x": 684, "min_y": 615, "max_y": 615},
+      "center": {"x": 684, "y": 615},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 544,
+      "bounds": {"min_x": 718, "max_x": 719, "min_y": 615, "max_y": 615},
+      "center": {"x": 718, "y": 615},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 545,
+      "bounds": {"min_x": 764, "max_x": 764, "min_y": 619, "max_y": 619},
+      "center": {"x": 764, "y": 619},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 546,
+      "bounds": {"min_x": 684, "max_x": 684, "min_y": 621, "max_y": 621},
+      "center": {"x": 684, "y": 621},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 547,
+      "bounds": {"min_x": 686, "max_x": 686, "min_y": 623, "max_y": 623},
+      "center": {"x": 686, "y": 623},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 548,
+      "bounds": {"min_x": 682, "max_x": 686, "min_y": 624, "max_y": 628},
+      "center": {"x": 684, "y": 626},
+      "tiles": 15,
+      "area_km2": 3.8,
+      "peak_elevation": 132,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 549,
+      "bounds": {"min_x": 736, "max_x": 738, "min_y": 624, "max_y": 626},
+      "center": {"x": 737, "y": 625},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 550,
+      "bounds": {"min_x": 743, "max_x": 743, "min_y": 625, "max_y": 626},
+      "center": {"x": 743, "y": 625},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 551,
+      "bounds": {"min_x": 703, "max_x": 704, "min_y": 628, "max_y": 628},
+      "center": {"x": 703, "y": 628},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 552,
+      "bounds": {"min_x": 707, "max_x": 707, "min_y": 628, "max_y": 629},
+      "center": {"x": 707, "y": 628},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 553,
+      "bounds": {"min_x": 276, "max_x": 278, "min_y": 629, "max_y": 629},
+      "center": {"x": 277, "y": 629},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 554,
+      "bounds": {"min_x": 678, "max_x": 679, "min_y": 629, "max_y": 630},
+      "center": {"x": 678, "y": 629},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 555,
+      "bounds": {"min_x": 686, "max_x": 686, "min_y": 629, "max_y": 629},
+      "center": {"x": 686, "y": 629},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 556,
+      "bounds": {"min_x": 676, "max_x": 676, "min_y": 631, "max_y": 631},
+      "center": {"x": 676, "y": 631},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 557,
+      "bounds": {"min_x": 661, "max_x": 661, "min_y": 632, "max_y": 632},
+      "center": {"x": 661, "y": 632},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 558,
+      "bounds": {"min_x": 670, "max_x": 684, "min_y": 638, "max_y": 650},
+      "center": {"x": 677, "y": 644},
+      "tiles": 79,
+      "area_km2": 19.8,
+      "peak_elevation": 134,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 559,
+      "bounds": {"min_x": 663, "max_x": 665, "min_y": 639, "max_y": 639},
+      "center": {"x": 664, "y": 639},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 560,
+      "bounds": {"min_x": 666, "max_x": 666, "min_y": 641, "max_y": 641},
+      "center": {"x": 666, "y": 641},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 561,
+      "bounds": {"min_x": 646, "max_x": 646, "min_y": 643, "max_y": 643},
+      "center": {"x": 646, "y": 643},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 562,
+      "bounds": {"min_x": 249, "max_x": 249, "min_y": 646, "max_y": 646},
+      "center": {"x": 249, "y": 646},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 563,
+      "bounds": {"min_x": 658, "max_x": 658, "min_y": 649, "max_y": 649},
+      "center": {"x": 658, "y": 649},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 564,
+      "bounds": {"min_x": 655, "max_x": 656, "min_y": 650, "max_y": 651},
+      "center": {"x": 655, "y": 650},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 565,
+      "bounds": {"min_x": 258, "max_x": 263, "min_y": 655, "max_y": 658},
+      "center": {"x": 260, "y": 656},
+      "tiles": 16,
+      "area_km2": 4.0,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 566,
+      "bounds": {"min_x": 677, "max_x": 677, "min_y": 656, "max_y": 656},
+      "center": {"x": 677, "y": 656},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 567,
+      "bounds": {"min_x": 666, "max_x": 666, "min_y": 657, "max_y": 657},
+      "center": {"x": 666, "y": 657},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 568,
+      "bounds": {"min_x": 667, "max_x": 668, "min_y": 658, "max_y": 659},
+      "center": {"x": 667, "y": 658},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 569,
+      "bounds": {"min_x": 679, "max_x": 679, "min_y": 658, "max_y": 658},
+      "center": {"x": 679, "y": 658},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 570,
+      "bounds": {"min_x": 249, "max_x": 251, "min_y": 659, "max_y": 663},
+      "center": {"x": 250, "y": 661},
+      "tiles": 12,
+      "area_km2": 3.0,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 571,
+      "bounds": {"min_x": 243, "max_x": 245, "min_y": 661, "max_y": 662},
+      "center": {"x": 244, "y": 661},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 572,
+      "bounds": {"min_x": 271, "max_x": 271, "min_y": 662, "max_y": 662},
+      "center": {"x": 271, "y": 662},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 573,
+      "bounds": {"min_x": 242, "max_x": 243, "min_y": 665, "max_y": 665},
+      "center": {"x": 242, "y": 665},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 574,
+      "bounds": {"min_x": 651, "max_x": 662, "min_y": 671, "max_y": 684},
+      "center": {"x": 656, "y": 677},
+      "tiles": 86,
+      "area_km2": 21.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 575,
+      "bounds": {"min_x": 238, "max_x": 239, "min_y": 674, "max_y": 674},
+      "center": {"x": 238, "y": 674},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 576,
+      "bounds": {"min_x": 237, "max_x": 238, "min_y": 676, "max_y": 677},
+      "center": {"x": 237, "y": 676},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 577,
+      "bounds": {"min_x": 663, "max_x": 663, "min_y": 676, "max_y": 677},
+      "center": {"x": 663, "y": 676},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 578,
+      "bounds": {"min_x": 619, "max_x": 620, "min_y": 678, "max_y": 679},
+      "center": {"x": 619, "y": 678},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 579,
+      "bounds": {"min_x": 233, "max_x": 238, "min_y": 679, "max_y": 684},
+      "center": {"x": 235, "y": 681},
+      "tiles": 16,
+      "area_km2": 4.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 580,
+      "bounds": {"min_x": 583, "max_x": 614, "min_y": 679, "max_y": 700},
+      "center": {"x": 598, "y": 689},
+      "tiles": 307,
+      "area_km2": 76.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "small_island"
+    },
+    {
+      "id": 581,
+      "bounds": {"min_x": 718, "max_x": 718, "min_y": 681, "max_y": 681},
+      "center": {"x": 718, "y": 681},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 582,
+      "bounds": {"min_x": 617, "max_x": 619, "min_y": 682, "max_y": 686},
+      "center": {"x": 618, "y": 684},
+      "tiles": 10,
+      "area_km2": 2.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 583,
+      "bounds": {"min_x": 649, "max_x": 649, "min_y": 682, "max_y": 683},
+      "center": {"x": 649, "y": 682},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 584,
+      "bounds": {"min_x": 627, "max_x": 627, "min_y": 683, "max_y": 683},
+      "center": {"x": 627, "y": 683},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 585,
+      "bounds": {"min_x": 679, "max_x": 679, "min_y": 684, "max_y": 684},
+      "center": {"x": 679, "y": 684},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 586,
+      "bounds": {"min_x": 627, "max_x": 629, "min_y": 685, "max_y": 687},
+      "center": {"x": 628, "y": 686},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 587,
+      "bounds": {"min_x": 681, "max_x": 686, "min_y": 685, "max_y": 691},
+      "center": {"x": 683, "y": 688},
+      "tiles": 20,
+      "area_km2": 5.0,
+      "peak_elevation": 132,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 588,
+      "bounds": {"min_x": 679, "max_x": 681, "min_y": 686, "max_y": 688},
+      "center": {"x": 680, "y": 687},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 589,
+      "bounds": {"min_x": 616, "max_x": 654, "min_y": 689, "max_y": 717},
+      "center": {"x": 635, "y": 703},
+      "tiles": 428,
+      "area_km2": 107.0,
+      "peak_elevation": 138,
+      "dominant_biome": "Beach",
+      "classification": "small_island"
+    },
+    {
+      "id": 590,
+      "bounds": {"min_x": 719, "max_x": 720, "min_y": 694, "max_y": 695},
+      "center": {"x": 719, "y": 694},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 591,
+      "bounds": {"min_x": 260, "max_x": 260, "min_y": 695, "max_y": 695},
+      "center": {"x": 260, "y": 695},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 592,
+      "bounds": {"min_x": 637, "max_x": 637, "min_y": 696, "max_y": 696},
+      "center": {"x": 637, "y": 696},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 593,
+      "bounds": {"min_x": 664, "max_x": 666, "min_y": 698, "max_y": 699},
+      "center": {"x": 665, "y": 698},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 594,
+      "bounds": {"min_x": 666, "max_x": 667, "min_y": 699, "max_y": 700},
+      "center": {"x": 666, "y": 699},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 595,
+      "bounds": {"min_x": 641, "max_x": 641, "min_y": 702, "max_y": 702},
+      "center": {"x": 641, "y": 702},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 596,
+      "bounds": {"min_x": 609, "max_x": 609, "min_y": 705, "max_y": 705},
+      "center": {"x": 609, "y": 705},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 597,
+      "bounds": {"min_x": 647, "max_x": 648, "min_y": 705, "max_y": 706},
+      "center": {"x": 647, "y": 705},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 598,
+      "bounds": {"min_x": 250, "max_x": 251, "min_y": 707, "max_y": 708},
+      "center": {"x": 250, "y": 707},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 599,
+      "bounds": {"min_x": 607, "max_x": 609, "min_y": 707, "max_y": 707},
+      "center": {"x": 608, "y": 707},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 600,
+      "bounds": {"min_x": 250, "max_x": 250, "min_y": 709, "max_y": 709},
+      "center": {"x": 250, "y": 709},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 601,
+      "bounds": {"min_x": 674, "max_x": 675, "min_y": 717, "max_y": 718},
+      "center": {"x": 674, "y": 717},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 602,
+      "bounds": {"min_x": 268, "max_x": 270, "min_y": 720, "max_y": 722},
+      "center": {"x": 269, "y": 721},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 603,
+      "bounds": {"min_x": 253, "max_x": 253, "min_y": 726, "max_y": 726},
+      "center": {"x": 253, "y": 726},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 604,
+      "bounds": {"min_x": 275, "max_x": 275, "min_y": 726, "max_y": 726},
+      "center": {"x": 275, "y": 726},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 605,
+      "bounds": {"min_x": 614, "max_x": 614, "min_y": 727, "max_y": 727},
+      "center": {"x": 614, "y": 727},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 606,
+      "bounds": {"min_x": 692, "max_x": 692, "min_y": 727, "max_y": 727},
+      "center": {"x": 692, "y": 727},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 607,
+      "bounds": {"min_x": 273, "max_x": 273, "min_y": 728, "max_y": 728},
+      "center": {"x": 273, "y": 728},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 608,
+      "bounds": {"min_x": 467, "max_x": 467, "min_y": 728, "max_y": 728},
+      "center": {"x": 467, "y": 728},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 609,
+      "bounds": {"min_x": 615, "max_x": 615, "min_y": 728, "max_y": 728},
+      "center": {"x": 615, "y": 728},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 610,
+      "bounds": {"min_x": 468, "max_x": 470, "min_y": 729, "max_y": 732},
+      "center": {"x": 469, "y": 730},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 611,
+      "bounds": {"min_x": 667, "max_x": 667, "min_y": 730, "max_y": 731},
+      "center": {"x": 667, "y": 730},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 612,
+      "bounds": {"min_x": 473, "max_x": 474, "min_y": 733, "max_y": 734},
+      "center": {"x": 473, "y": 733},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 613,
+      "bounds": {"min_x": 468, "max_x": 468, "min_y": 734, "max_y": 735},
+      "center": {"x": 468, "y": 734},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 614,
+      "bounds": {"min_x": 462, "max_x": 462, "min_y": 737, "max_y": 737},
+      "center": {"x": 462, "y": 737},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 615,
+      "bounds": {"min_x": 0, "max_x": 0, "min_y": 739, "max_y": 739},
+      "center": {"x": 0, "y": 739},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 616,
+      "bounds": {"min_x": 461, "max_x": 461, "min_y": 741, "max_y": 741},
+      "center": {"x": 461, "y": 741},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 617,
+      "bounds": {"min_x": 467, "max_x": 471, "min_y": 741, "max_y": 744},
+      "center": {"x": 469, "y": 742},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 618,
+      "bounds": {"min_x": 236, "max_x": 237, "min_y": 745, "max_y": 746},
+      "center": {"x": 236, "y": 745},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 619,
+      "bounds": {"min_x": 8, "max_x": 9, "min_y": 747, "max_y": 748},
+      "center": {"x": 8, "y": 747},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 620,
+      "bounds": {"min_x": 604, "max_x": 604, "min_y": 747, "max_y": 747},
+      "center": {"x": 604, "y": 747},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 621,
+      "bounds": {"min_x": 681, "max_x": 682, "min_y": 747, "max_y": 748},
+      "center": {"x": 681, "y": 747},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 622,
+      "bounds": {"min_x": 10, "max_x": 13, "min_y": 749, "max_y": 752},
+      "center": {"x": 11, "y": 750},
+      "tiles": 7,
+      "area_km2": 1.8,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 623,
+      "bounds": {"min_x": 657, "max_x": 674, "min_y": 751, "max_y": 780},
+      "center": {"x": 665, "y": 765},
+      "tiles": 322,
+      "area_km2": 80.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "small_island"
+    },
+    {
+      "id": 624,
+      "bounds": {"min_x": 685, "max_x": 689, "min_y": 751, "max_y": 757},
+      "center": {"x": 687, "y": 754},
+      "tiles": 22,
+      "area_km2": 5.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 625,
+      "bounds": {"min_x": 616, "max_x": 642, "min_y": 753, "max_y": 766},
+      "center": {"x": 629, "y": 759},
+      "tiles": 256,
+      "area_km2": 64.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "small_island"
+    },
+    {
+      "id": 626,
+      "bounds": {"min_x": 22, "max_x": 22, "min_y": 757, "max_y": 757},
+      "center": {"x": 22, "y": 757},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 627,
+      "bounds": {"min_x": 209, "max_x": 210, "min_y": 757, "max_y": 761},
+      "center": {"x": 209, "y": 759},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 628,
+      "bounds": {"min_x": 216, "max_x": 217, "min_y": 757, "max_y": 757},
+      "center": {"x": 216, "y": 757},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 629,
+      "bounds": {"min_x": 596, "max_x": 597, "min_y": 758, "max_y": 758},
+      "center": {"x": 596, "y": 758},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 630,
+      "bounds": {"min_x": 230, "max_x": 248, "min_y": 759, "max_y": 784},
+      "center": {"x": 239, "y": 771},
+      "tiles": 256,
+      "area_km2": 64.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "small_island"
+    },
+    {
+      "id": 631,
+      "bounds": {"min_x": 688, "max_x": 689, "min_y": 759, "max_y": 764},
+      "center": {"x": 688, "y": 761},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 632,
+      "bounds": {"min_x": 21, "max_x": 23, "min_y": 761, "max_y": 761},
+      "center": {"x": 22, "y": 761},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 633,
+      "bounds": {"min_x": 24, "max_x": 29, "min_y": 763, "max_y": 767},
+      "center": {"x": 26, "y": 765},
+      "tiles": 25,
+      "area_km2": 6.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 634,
+      "bounds": {"min_x": 162, "max_x": 162, "min_y": 763, "max_y": 763},
+      "center": {"x": 162, "y": 763},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 635,
+      "bounds": {"min_x": 615, "max_x": 616, "min_y": 764, "max_y": 766},
+      "center": {"x": 615, "y": 765},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 636,
+      "bounds": {"min_x": 632, "max_x": 644, "min_y": 766, "max_y": 775},
+      "center": {"x": 638, "y": 770},
+      "tiles": 51,
+      "area_km2": 12.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 637,
+      "bounds": {"min_x": 30, "max_x": 35, "min_y": 768, "max_y": 772},
+      "center": {"x": 32, "y": 770},
+      "tiles": 16,
+      "area_km2": 4.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 638,
+      "bounds": {"min_x": 211, "max_x": 212, "min_y": 768, "max_y": 769},
+      "center": {"x": 211, "y": 768},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 639,
+      "bounds": {"min_x": 645, "max_x": 646, "min_y": 768, "max_y": 768},
+      "center": {"x": 645, "y": 768},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 640,
+      "bounds": {"min_x": 618, "max_x": 618, "min_y": 769, "max_y": 769},
+      "center": {"x": 618, "y": 769},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 641,
+      "bounds": {"min_x": 67, "max_x": 67, "min_y": 770, "max_y": 770},
+      "center": {"x": 67, "y": 770},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 642,
+      "bounds": {"min_x": 626, "max_x": 626, "min_y": 770, "max_y": 771},
+      "center": {"x": 626, "y": 770},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 643,
+      "bounds": {"min_x": 248, "max_x": 248, "min_y": 771, "max_y": 771},
+      "center": {"x": 248, "y": 771},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 644,
+      "bounds": {"min_x": 612, "max_x": 612, "min_y": 771, "max_y": 771},
+      "center": {"x": 612, "y": 771},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 645,
+      "bounds": {"min_x": 629, "max_x": 629, "min_y": 773, "max_y": 773},
+      "center": {"x": 629, "y": 773},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 646,
+      "bounds": {"min_x": 689, "max_x": 689, "min_y": 773, "max_y": 776},
+      "center": {"x": 689, "y": 774},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 647,
+      "bounds": {"min_x": 429, "max_x": 429, "min_y": 778, "max_y": 778},
+      "center": {"x": 429, "y": 778},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 648,
+      "bounds": {"min_x": 60, "max_x": 63, "min_y": 779, "max_y": 781},
+      "center": {"x": 61, "y": 780},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 649,
+      "bounds": {"min_x": 54, "max_x": 63, "min_y": 780, "max_y": 791},
+      "center": {"x": 58, "y": 785},
+      "tiles": 52,
+      "area_km2": 13.0,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 650,
+      "bounds": {"min_x": 103, "max_x": 103, "min_y": 780, "max_y": 780},
+      "center": {"x": 103, "y": 780},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 651,
+      "bounds": {"min_x": 162, "max_x": 165, "min_y": 782, "max_y": 785},
+      "center": {"x": 163, "y": 783},
+      "tiles": 9,
+      "area_km2": 2.2,
+      "peak_elevation": 130,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 652,
+      "bounds": {"min_x": 563, "max_x": 563, "min_y": 782, "max_y": 782},
+      "center": {"x": 563, "y": 782},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 653,
+      "bounds": {"min_x": 659, "max_x": 659, "min_y": 782, "max_y": 782},
+      "center": {"x": 659, "y": 782},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 654,
+      "bounds": {"min_x": 104, "max_x": 104, "min_y": 783, "max_y": 783},
+      "center": {"x": 104, "y": 783},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 655,
+      "bounds": {"min_x": 547, "max_x": 547, "min_y": 784, "max_y": 784},
+      "center": {"x": 547, "y": 784},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 656,
+      "bounds": {"min_x": 657, "max_x": 658, "min_y": 784, "max_y": 786},
+      "center": {"x": 657, "y": 785},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 657,
+      "bounds": {"min_x": 663, "max_x": 663, "min_y": 785, "max_y": 785},
+      "center": {"x": 663, "y": 785},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 106,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 658,
+      "bounds": {"min_x": 456, "max_x": 459, "min_y": 786, "max_y": 789},
+      "center": {"x": 457, "y": 787},
+      "tiles": 13,
+      "area_km2": 3.2,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 659,
+      "bounds": {"min_x": 662, "max_x": 662, "min_y": 786, "max_y": 786},
+      "center": {"x": 662, "y": 786},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 107,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 660,
+      "bounds": {"min_x": 43, "max_x": 43, "min_y": 788, "max_y": 788},
+      "center": {"x": 43, "y": 788},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 661,
+      "bounds": {"min_x": 231, "max_x": 235, "min_y": 788, "max_y": 793},
+      "center": {"x": 233, "y": 790},
+      "tiles": 16,
+      "area_km2": 4.0,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 662,
+      "bounds": {"min_x": 465, "max_x": 466, "min_y": 789, "max_y": 791},
+      "center": {"x": 465, "y": 790},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 663,
+      "bounds": {"min_x": 162, "max_x": 162, "min_y": 791, "max_y": 791},
+      "center": {"x": 162, "y": 791},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 664,
+      "bounds": {"min_x": 233, "max_x": 234, "min_y": 795, "max_y": 795},
+      "center": {"x": 233, "y": 795},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 665,
+      "bounds": {"min_x": 565, "max_x": 568, "min_y": 796, "max_y": 801},
+      "center": {"x": 566, "y": 798},
+      "tiles": 17,
+      "area_km2": 4.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 666,
+      "bounds": {"min_x": 498, "max_x": 500, "min_y": 798, "max_y": 799},
+      "center": {"x": 499, "y": 798},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 667,
+      "bounds": {"min_x": 75, "max_x": 75, "min_y": 800, "max_y": 800},
+      "center": {"x": 75, "y": 800},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 668,
+      "bounds": {"min_x": 497, "max_x": 497, "min_y": 800, "max_y": 800},
+      "center": {"x": 497, "y": 800},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 669,
+      "bounds": {"min_x": 254, "max_x": 255, "min_y": 801, "max_y": 801},
+      "center": {"x": 254, "y": 801},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 670,
+      "bounds": {"min_x": 255, "max_x": 255, "min_y": 803, "max_y": 803},
+      "center": {"x": 255, "y": 803},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 671,
+      "bounds": {"min_x": 464, "max_x": 466, "min_y": 803, "max_y": 804},
+      "center": {"x": 465, "y": 803},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 672,
+      "bounds": {"min_x": 484, "max_x": 484, "min_y": 807, "max_y": 807},
+      "center": {"x": 484, "y": 807},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 673,
+      "bounds": {"min_x": 465, "max_x": 481, "min_y": 808, "max_y": 817},
+      "center": {"x": 473, "y": 812},
+      "tiles": 117,
+      "area_km2": 29.2,
+      "peak_elevation": 135,
+      "dominant_biome": "Beach",
+      "classification": "small_island"
+    },
+    {
+      "id": 674,
+      "bounds": {"min_x": 454, "max_x": 454, "min_y": 815, "max_y": 815},
+      "center": {"x": 454, "y": 815},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 675,
+      "bounds": {"min_x": 544, "max_x": 549, "min_y": 816, "max_y": 825},
+      "center": {"x": 546, "y": 820},
+      "tiles": 30,
+      "area_km2": 7.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 676,
+      "bounds": {"min_x": 508, "max_x": 508, "min_y": 817, "max_y": 817},
+      "center": {"x": 508, "y": 817},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 677,
+      "bounds": {"min_x": 514, "max_x": 514, "min_y": 823, "max_y": 823},
+      "center": {"x": 514, "y": 823},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 678,
+      "bounds": {"min_x": 496, "max_x": 500, "min_y": 825, "max_y": 831},
+      "center": {"x": 498, "y": 828},
+      "tiles": 23,
+      "area_km2": 5.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 679,
+      "bounds": {"min_x": 448, "max_x": 448, "min_y": 826, "max_y": 827},
+      "center": {"x": 448, "y": 826},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 680,
+      "bounds": {"min_x": 493, "max_x": 494, "min_y": 827, "max_y": 831},
+      "center": {"x": 493, "y": 829},
+      "tiles": 6,
+      "area_km2": 1.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 681,
+      "bounds": {"min_x": 539, "max_x": 540, "min_y": 827, "max_y": 830},
+      "center": {"x": 539, "y": 828},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 682,
+      "bounds": {"min_x": 540, "max_x": 540, "min_y": 831, "max_y": 831},
+      "center": {"x": 540, "y": 831},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 683,
+      "bounds": {"min_x": 496, "max_x": 501, "min_y": 832, "max_y": 835},
+      "center": {"x": 498, "y": 833},
+      "tiles": 14,
+      "area_km2": 3.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 684,
+      "bounds": {"min_x": 505, "max_x": 508, "min_y": 832, "max_y": 835},
+      "center": {"x": 506, "y": 833},
+      "tiles": 11,
+      "area_km2": 2.8,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 685,
+      "bounds": {"min_x": 429, "max_x": 432, "min_y": 837, "max_y": 839},
+      "center": {"x": 430, "y": 838},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 686,
+      "bounds": {"min_x": 450, "max_x": 455, "min_y": 838, "max_y": 844},
+      "center": {"x": 452, "y": 841},
+      "tiles": 18,
+      "area_km2": 4.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 687,
+      "bounds": {"min_x": 465, "max_x": 466, "min_y": 839, "max_y": 839},
+      "center": {"x": 465, "y": 839},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 688,
+      "bounds": {"min_x": 414, "max_x": 414, "min_y": 842, "max_y": 843},
+      "center": {"x": 414, "y": 842},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 689,
+      "bounds": {"min_x": 396, "max_x": 396, "min_y": 845, "max_y": 845},
+      "center": {"x": 396, "y": 845},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 690,
+      "bounds": {"min_x": 455, "max_x": 455, "min_y": 849, "max_y": 849},
+      "center": {"x": 455, "y": 849},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 691,
+      "bounds": {"min_x": 277, "max_x": 277, "min_y": 885, "max_y": 885},
+      "center": {"x": 277, "y": 885},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 692,
+      "bounds": {"min_x": 318, "max_x": 319, "min_y": 885, "max_y": 886},
+      "center": {"x": 318, "y": 885},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 693,
+      "bounds": {"min_x": 77, "max_x": 77, "min_y": 886, "max_y": 887},
+      "center": {"x": 77, "y": 886},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 694,
+      "bounds": {"min_x": 287, "max_x": 293, "min_y": 888, "max_y": 891},
+      "center": {"x": 290, "y": 889},
+      "tiles": 19,
+      "area_km2": 4.8,
+      "peak_elevation": 131,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 695,
+      "bounds": {"min_x": 120, "max_x": 120, "min_y": 891, "max_y": 891},
+      "center": {"x": 120, "y": 891},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 696,
+      "bounds": {"min_x": 311, "max_x": 312, "min_y": 891, "max_y": 891},
+      "center": {"x": 311, "y": 891},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 697,
+      "bounds": {"min_x": 77, "max_x": 80, "min_y": 894, "max_y": 896},
+      "center": {"x": 78, "y": 895},
+      "tiles": 8,
+      "area_km2": 2.0,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 698,
+      "bounds": {"min_x": 213, "max_x": 215, "min_y": 894, "max_y": 896},
+      "center": {"x": 214, "y": 895},
+      "tiles": 5,
+      "area_km2": 1.2,
+      "peak_elevation": 129,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 699,
+      "bounds": {"min_x": 0, "max_x": 0, "min_y": 895, "max_y": 895},
+      "center": {"x": 0, "y": 895},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 700,
+      "bounds": {"min_x": 150, "max_x": 150, "min_y": 896, "max_y": 896},
+      "center": {"x": 150, "y": 896},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 701,
+      "bounds": {"min_x": 76, "max_x": 76, "min_y": 897, "max_y": 897},
+      "center": {"x": 76, "y": 897},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 702,
+      "bounds": {"min_x": 85, "max_x": 85, "min_y": 898, "max_y": 898},
+      "center": {"x": 85, "y": 898},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 703,
+      "bounds": {"min_x": 188, "max_x": 188, "min_y": 901, "max_y": 901},
+      "center": {"x": 188, "y": 901},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 704,
+      "bounds": {"min_x": 0, "max_x": 0, "min_y": 902, "max_y": 902},
+      "center": {"x": 0, "y": 902},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 705,
+      "bounds": {"min_x": 120, "max_x": 120, "min_y": 902, "max_y": 903},
+      "center": {"x": 120, "y": 902},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 706,
+      "bounds": {"min_x": 189, "max_x": 190, "min_y": 903, "max_y": 904},
+      "center": {"x": 189, "y": 903},
+      "tiles": 3,
+      "area_km2": 0.8,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 707,
+      "bounds": {"min_x": 121, "max_x": 121, "min_y": 904, "max_y": 904},
+      "center": {"x": 121, "y": 904},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 708,
+      "bounds": {"min_x": 90, "max_x": 91, "min_y": 905, "max_y": 906},
+      "center": {"x": 90, "y": 905},
+      "tiles": 4,
+      "area_km2": 1.0,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 709,
+      "bounds": {"min_x": 172, "max_x": 172, "min_y": 905, "max_y": 905},
+      "center": {"x": 172, "y": 905},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 710,
+      "bounds": {"min_x": 0, "max_x": 0, "min_y": 906, "max_y": 907},
+      "center": {"x": 0, "y": 906},
+      "tiles": 2,
+      "area_km2": 0.5,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 711,
+      "bounds": {"min_x": 168, "max_x": 176, "min_y": 906, "max_y": 922},
+      "center": {"x": 172, "y": 914},
+      "tiles": 87,
+      "area_km2": 21.8,
+      "peak_elevation": 132,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 712,
+      "bounds": {"min_x": 176, "max_x": 176, "min_y": 906, "max_y": 906},
+      "center": {"x": 176, "y": 906},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 713,
+      "bounds": {"min_x": 138, "max_x": 138, "min_y": 907, "max_y": 907},
+      "center": {"x": 138, "y": 907},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 714,
+      "bounds": {"min_x": 162, "max_x": 162, "min_y": 907, "max_y": 907},
+      "center": {"x": 162, "y": 907},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 715,
+      "bounds": {"min_x": 92, "max_x": 92, "min_y": 913, "max_y": 913},
+      "center": {"x": 92, "y": 913},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 716,
+      "bounds": {"min_x": 91, "max_x": 91, "min_y": 914, "max_y": 914},
+      "center": {"x": 91, "y": 914},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 717,
+      "bounds": {"min_x": 90, "max_x": 90, "min_y": 915, "max_y": 915},
+      "center": {"x": 90, "y": 915},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 718,
+      "bounds": {"min_x": 41, "max_x": 41, "min_y": 923, "max_y": 923},
+      "center": {"x": 41, "y": 923},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 128,
+      "dominant_biome": "Beach",
+      "classification": "islet"
+    },
+    {
+      "id": 719,
+      "bounds": {"min_x": 131, "max_x": 131, "min_y": 932, "max_y": 932},
+      "center": {"x": 131, "y": 932},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 720,
+      "bounds": {"min_x": 76, "max_x": 76, "min_y": 933, "max_y": 933},
+      "center": {"x": 76, "y": 933},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 721,
+      "bounds": {"min_x": 75, "max_x": 75, "min_y": 934, "max_y": 934},
+      "center": {"x": 75, "y": 934},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 722,
+      "bounds": {"min_x": 78, "max_x": 78, "min_y": 935, "max_y": 935},
+      "center": {"x": 78, "y": 935},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    },
+    {
+      "id": 723,
+      "bounds": {"min_x": 74, "max_x": 74, "min_y": 939, "max_y": 939},
+      "center": {"x": 74, "y": 939},
+      "tiles": 1,
+      "area_km2": 0.2,
+      "peak_elevation": 108,
+      "dominant_biome": "Ocean",
+      "classification": "islet"
+    }
+  ]
+}
+```
+
+### Climate Zones JSON
+
+```json
+{
+  "climate_zones": [
+    {
+      "id": 0,
+      "name": "arctic",
+      "latitude_range": {"min": 0, "max": 409},
+      "temperature_range": {"min": -40, "max": -10},
+      "characteristics": [
+        "permafrost",
+        "minimal_vegetation",
+        "extreme_cold",
+        "polar_nights"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "subarctic",
+      "latitude_range": {"min": 409, "max": 819},
+      "temperature_range": {"min": -20, "max": 5},
+      "characteristics": [
+        "taiga_forests",
+        "seasonal_freezing",
+        "coniferous_trees",
+        "cold_winters"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "temperate",
+      "latitude_range": {"min": 819, "max": 1228},
+      "temperature_range": {"min": 0, "max": 20},
+      "characteristics": [
+        "deciduous_forests",
+        "four_seasons",
+        "moderate_rainfall",
+        "agricultural_potential"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "subtropical",
+      "latitude_range": {"min": 1228, "max": 1638},
+      "temperature_range": {"min": 10, "max": 30},
+      "characteristics": [
+        "warm_temperatures",
+        "wet_dry_seasons",
+        "diverse_ecosystems",
+        "hurricanes_possible"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "tropical",
+      "latitude_range": {"min": 1638, "max": 2048},
+      "temperature_range": {"min": 20, "max": 40},
+      "characteristics": [
+        "rainforests",
+        "high_biodiversity",
+        "constant_warmth",
+        "monsoons"
+      ]
+    }
+  ]
+}
+```
+
+### Resource Distribution JSON
+
+```json
+{
+  "resource_analysis": {
+    "resources": [
+      {
+        "type": "vegetation",
+        "id": 0,
+        "hotspot": {"x": 0, "y": 2016},
+        "max_density": 0.520,
+        "preferred_biomes": ["forest", "jungle", "swamp"]
+      },
+      {
+        "type": "minerals",
+        "id": 1,
+        "hotspot": {"x": 2016, "y": 2016},
+        "max_density": 0.577,
+        "preferred_biomes": ["mountains", "hills", "desert"]
+      },
+      {
+        "type": "water",
+        "id": 2,
+        "hotspot": {"x": 2016, "y": 2016},
+        "max_density": 0.537,
+        "preferred_biomes": ["ocean", "river", "lake"]
+      },
+      {
+        "type": "herbs",
+        "id": 3,
+        "hotspot": {"x": 2016, "y": 0},
+        "max_density": 0.505,
+        "preferred_biomes": ["forest", "plains", "meadow"]
+      },
+      {
+        "type": "game",
+        "id": 4,
+        "hotspot": {"x": 0, "y": 512},
+        "max_density": 0.500,
+        "preferred_biomes": ["forest", "plains", "tundra"]
+      },
+      {
+        "type": "wood",
+        "id": 5,
+        "hotspot": {"x": 0, "y": 2016},
+        "max_density": 0.524,
+        "preferred_biomes": ["forest", "jungle"]
+      },
+      {
+        "type": "stone",
+        "id": 6,
+        "hotspot": {"x": 2016, "y": 2016},
+        "max_density": 0.548,
+        "preferred_biomes": ["mountains", "hills"]
+      },
+      {
+        "type": "crystal",
+        "id": 7,
+        "hotspot": {"x": 2016, "y": 0},
+        "max_density": 0.532,
+        "preferred_biomes": ["mountains", "caves"]
+      },
+      {
+        "type": "clay",
+        "id": 8,
+        "hotspot": {"x": 2016, "y": 2016},
+        "max_density": 0.548,
+        "preferred_biomes": ["river", "swamp", "coastline"]
+      },
+      {
+        "type": "salt",
+        "id": 9,
+        "hotspot": {"x": 0, "y": 2016},
+        "max_density": 0.523,
+        "preferred_biomes": ["desert", "ocean", "salt_flats"]
+      }
+    ],
+    "correlations": {
+      "vegetation_minerals": -0.612,
+      "vegetation_water": -0.491,
+      "vegetation_herbs": -0.503,
+      "vegetation_game": 0.899,
+      "vegetation_wood": 0.971,
+      "vegetation_stone": -0.748,
+      "vegetation_crystal": -0.759,
+      "vegetation_clay": -0.813,
+      "vegetation_salt": 0.579,
+      "minerals_water": 0.987,
+      "minerals_herbs": -0.370,
+      "minerals_game": -0.895,
+      "minerals_wood": -0.429,
+      "minerals_stone": 0.977,
+      "minerals_clay": 0.946,
+      "water_herbs": -0.500,
+      "water_game": -0.820,
+      "water_stone": 0.937,
+      "water_clay": 0.896,
+      "water_salt": 0.415,
+      "herbs_wood": -0.677,
+      "herbs_crystal": 0.944,
+      "herbs_salt": -0.986,
+      "game_wood": 0.783,
+      "game_stone": -0.956,
+      "game_crystal": -0.399,
+      "game_clay": -0.975,
+      "wood_stone": -0.593,
+      "wood_crystal": -0.879,
+      "wood_clay": -0.668,
+      "wood_salt": 0.744,
+      "stone_clay": 0.986,
+      "crystal_salt": -0.965
+    }
+  }
+}
+```
+
+### Mountain Ranges JSON
+```json
+{
+  "mountain_ranges": [
+    {
+      "id": 1,
+      "name": "Central Mountain Range",
+      "peak_elevation": 243,
+      "ridge_length": 156,
+      "passes": [
+        {"x": 512, "y": 768, "elevation": 185}
+      ]
+    }
+  ]
+}
+```
+
+### Biome Transitions JSON
+```json
+{
+  "transitions": [
+    {
+      "from_biome": "forest",
+      "to_biome": "plains",
+      "edge_type": "gradual",
+      "width": 5,
+      "locations": [
+        {"x": 100, "y": 200}
+      ]
+    }
+  ]
+}
+```
+
+### Habitability Scores JSON
+```json
+{
+  "habitability_scores": [
+    {
+      "location": {"x": 1024, "y": 1024},
+      "scores": {
+        "water_access": 0.85,
+        "resource_richness": 0.72,
+        "terrain_difficulty": 0.25,
+        "defense_rating": 0.65,
+        "agriculture_potential": 0.80,
+        "trade_access": 0.70,
+        "overall": 0.74
+      },
+      "biome": "plains",
+      "nearby_features": ["river", "forest", "hills"]
+    }
+  ]
+}
+```
+
+### Ocean Systems JSON
+```json
+{
+  "ocean_systems": {
+    "coverage": 0.68,
+    "depths": {
+      "littoral": 0.15,
+      "continental_shelf": 0.25,
+      "slope": 0.20,
+      "abyssal": 0.40
+    },
+    "harbors": [
+      {"x": 256, "y": 512, "quality": "excellent", "protection": 0.85},
+      {"x": 1800, "y": 300, "quality": "good", "protection": 0.70}
+    ],
+    "coastline_complexity": 1.26,
+    "tidal_zones": 2048
+  }
+}
+```
+
+### Path Network JSON
+
+```json
+{
+  "path_network": {
+    "paths": [
+      {
+        "name": "The Northern Road",
+        "type": "1",
+        "vnum": 1000000
+      },
+      {
+        "name": "The Ashen River",
+        "type": "5",
+        "vnum": 1000001
+      },
+      {
+        "name": "The Sweetwater River",
+        "type": "5",
+        "vnum": 1000002
+      },
+      {
+        "name": "The Swiftwater River",
+        "type": "5",
+        "vnum": 1000003
+      },
+      {
+        "name": "Graven Road",
+        "type": "1",
+        "vnum": 1000004
+      },
+      {
+        "name": "A Dilapidated Roadway",
+        "type": "2",
+        "vnum": 1000005
+      }
+    ]
+  }
+}
+```
+
+
+## Query Reference Section
+
+Pre-computed answers to common queries for instant retrieval:
+
+### Geographic Extremes
+
+| Query | Answer | Coordinates |
+|-------|--------|-------------|
+| Highest point on land | 210 meters | (32, 32) |
+| Lowest point on land | -71 meters | (992, 1024) |
+| World center point | N/A | (1024, 1024) |
+| Map dimensions | 2048 x 2048 | Total: 4,194,304 tiles |
+
+### Common Distance Queries
+
+| From | To | Distance (tiles) | Direction |
+|------|----|-----------------|-----------|
+| (0,0) | (2047,2047) | 2895 | Southeast |
+| Center | North edge | 1024 | North |
+| Center | South edge | 1024 | South |
+| Center | East edge | 1024 | East |
+| Center | West edge | 1024 | West |
+
+### Biome Location Queries
+
+Quick reference for finding specific biome types:
+
+| Biome | Example Location | Typical Elevation | Climate Zone |
+|-------|------------------|-------------------|-------------|
+| Field | (576,64) | 80-120m | Temperate |
+| Forest | (0,0) | 100-150m | Temperate |
+| Low Mountains | (128,128) | 180m+ | Alpine |
+| Water (Swim) | (128,0) | Below sea | All zones |
+| Marshland | (640,0) | 60-100m | Wetland |
+
+### Resource Location Queries
+
+Where to find specific resources:
+
+| Resource | Best Biomes | Typical Locations | Density |
+|----------|-------------|-------------------|----------|
+| Vegetation | Forest, Field | Temperate zones | High |
+| Minerals | Mountains, Hills | Elevated terrain | Medium |
+| Water | Rivers, Lakes | Low elevations | Variable |
+| Herbs | Forest edges | Transition zones | Low |
+| Game | Forest, Plains | Near water sources | Medium |
+| Wood | Forest | All forest tiles | High |
+| Stone | Mountains | Rocky terrain | High |
+| Crystal | Deep mountains | Highest peaks | Rare |
+
+### Navigation Queries
+
+Common navigation questions:
+
+| Query | Answer |
+|-------|--------|
+| Can you walk from north to south? | Yes, multiple land routes exist |
+| Can you sail around the world? | Yes, ocean is continuous |
+| Are there island chains? | Yes, multiple archipelagos |
+| Mountain pass locations? | Check elevation < 160m in mountain regions |
+| River crossing points? | Look for shallow water sectors |
+
+### Area and Coverage Queries
+
+| Query | Calculation | Result |
+|-------|-------------|--------|
+| Total world area | 2048 x 2048 | 4,194,304 tiles |
+| Approximate land area | ~40% of total | ~1,677,721 tiles |
+| Approximate ocean area | ~60% of total | ~2,516,582 tiles |
+| Area of 100x100 region | 100 x 100 | 10,000 tiles |
+| Tiles in 50-unit radius | pi x 50^2 | ~7,854 tiles |
+
+### Coordinate Index (JSON)
+
+```json
+{
+  "coordinate_system": {
+    "origin": [0, 0],
+    "max": [2047, 2047],
+    "center": [1024, 1024],
+    "total_tiles": 4194304
+  },
+  "key_locations": {
+    "highest_peak": [32, 32],
+    "lowest_land": [992, 1024]
+  },
+  "quick_lookups": {
+    "tiles_per_km": 10,
+    "world_size_km": 204.8,
+    "circumference_tiles": 8192
+  }
+}
+```
+
+---
+*End of Wilderness Knowledge Base*

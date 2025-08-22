@@ -3061,26 +3061,13 @@ void write_path_network_json(FILE *fp) {
         if (!first) fprintf(fp, ",\n");
         first = 0;
         
-        int start_x = atoi(row[2]);
-        int start_y = atoi(row[3]);
-        int end_x = atoi(row[4]);
-        int end_y = atoi(row[5]);
-        float distance = calculate_distance(start_x, start_y, end_x, end_y);
+        /* Path data table only has name, path_type, and vnum columns */
+        /* No coordinate data available in the database */
         
         fprintf(fp, "      {\n");
-        fprintf(fp, "        \"name\": \"%s\",\n", row[0]);
-        fprintf(fp, "        \"type\": \"%s\",\n", row[1]);
-        fprintf(fp, "        \"start\": {\"x\": %d, \"y\": %d},\n", start_x, start_y);
-        fprintf(fp, "        \"end\": {\"x\": %d, \"y\": %d},\n", end_x, end_y);
-        fprintf(fp, "        \"length\": %.1f,\n", distance);
-        fprintf(fp, "        \"direction\": \"%s\"\n",
-                get_direction(start_x, start_y, end_x, end_y) == 0 ? "north" :
-                get_direction(start_x, start_y, end_x, end_y) == 1 ? "northeast" :
-                get_direction(start_x, start_y, end_x, end_y) == 2 ? "east" :
-                get_direction(start_x, start_y, end_x, end_y) == 3 ? "southeast" :
-                get_direction(start_x, start_y, end_x, end_y) == 4 ? "south" :
-                get_direction(start_x, start_y, end_x, end_y) == 5 ? "southwest" :
-                get_direction(start_x, start_y, end_x, end_y) == 6 ? "west" : "northwest");
+        fprintf(fp, "        \"name\": \"%s\",\n", row[0] ? row[0] : "Unknown");
+        fprintf(fp, "        \"type\": \"%s\",\n", row[1] ? row[1] : "Unknown");
+        fprintf(fp, "        \"vnum\": %s\n", row[2] ? row[2] : "0");
         fprintf(fp, "      }");
     }
     
@@ -3448,14 +3435,18 @@ void generate_wilderness_knowledge_base(const char *output_filename) {
     /* Spectral analysis of noise layers */
     analyze_noise_spectrum(fp);
     
-    /* Example Dijkstra pathfinding - Limited to reasonable distances */
+    /* Dijkstra pathfinding disabled - too computationally expensive for 2048x2048 map */
     fprintf(fp, "\n### Pathfinding Analysis\n\n");
-    fprintf(fp, "Example optimal path calculations (limited search radius for performance):\n\n");
-    fprintf(fp, "#### Short-range pathfinding examples:\n");
-    calculate_dijkstra_paths(fp, 1000, 1000, 1100, 1100);  /* 100-unit diagonal path */
-    calculate_dijkstra_paths(fp, 500, 500, 600, 500);      /* 100-unit horizontal path */
-    calculate_dijkstra_paths(fp, 800, 800, 950, 850);      /* Medium distance path */
-    fprintf(fp, "\nNote: Long-distance pathfinding (>500 units) limited to prevent performance issues.\n");
+    fprintf(fp, "Note: Dijkstra pathfinding analysis disabled for performance reasons.\n");
+    fprintf(fp, "The 2048x2048 map size makes exhaustive pathfinding computationally prohibitive.\n");
+    fprintf(fp, "For actual pathfinding needs, consider using A* algorithm with heuristics or\n");
+    fprintf(fp, "pre-computed path networks between key locations.\n\n");
+    
+    /* Commenting out expensive Dijkstra calculations
+    calculate_dijkstra_paths(fp, 1000, 1000, 1100, 1100);
+    calculate_dijkstra_paths(fp, 500, 500, 600, 500);
+    calculate_dijkstra_paths(fp, 800, 800, 950, 850);
+    */
     
     /* JSON Data Sections for Machine Readability */
     fprintf(fp, "\n# Machine-Readable JSON Data\n\n");
