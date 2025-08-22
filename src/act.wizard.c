@@ -8508,8 +8508,8 @@ ACMD(do_analyze_world) {
   
   generate_wilderness_knowledge_base("WILD_KB.md");
   
-  send_to_char(ch, "World analysis complete. Output saved to data/WILD_KB.md\r\n");
-  send_to_char(ch, "File size will be approximately 50-100 MB.\r\n");
+  send_to_char(ch, "World analysis complete. Output saved to WILD_KB.md\r\n");
+  send_to_char(ch, "File size will be approximately 15-20 MB.\r\n");
 }
 
 /* do_acconvert - Commant to convert exising armor to the new (Sept 9, 2014)

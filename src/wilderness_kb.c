@@ -37,9 +37,10 @@
     }                                                                            \
   } while (0)
 
-/* External variables - these are defined in wilderness.c */
-extern int max_lnd_height, min_lnd_height;
-extern int max_wtr_height, min_wtr_height;
+/* Water/land thresholds from wilderness.h */
+/* WATERLINE is 138 - elevations below this are water */
+/* Note: max_lnd_height, min_lnd_height, max_wtr_height, min_wtr_height 
+   were removed - use WATERLINE and elevation thresholds instead */
 
 /* Wrapper for perlin noise function */
 static float pnoise(float x, float y, int noise_type) {
@@ -68,12 +69,17 @@ static float pnoise(float x, float y, int noise_type) {
 #define STONE NOISE_STONE
 #define CRYSTAL NOISE_CRYSTAL
 
+/* External functions from wilderness.c */
+extern int get_elevation(int map, int x, int y);
+extern int get_temperature(int map, int x, int y); 
+extern int get_sector_type(int elevation, int temperature, int moisture);
+
 /* Safe macros for wilderness map access with bounds checking */
 #define SAFE_MAP_BOUNDS(x, y) ((x) >= 0 && (x) < MAP_WIDTH && (y) >= 0 && (y) < MAP_HEIGHT)
-#define GET_MAP_SECTOR(x, y) (SAFE_MAP_BOUNDS(x, y) ? SECT_FIELD : SECT_INSIDE)
-#define GET_MAP_ELEV(x, y) (SAFE_MAP_BOUNDS(x, y) ? 0 : 0)
-#define GET_MAP_TEMP(x, y) (SAFE_MAP_BOUNDS(x, y) ? 20 : 20)
-#define GET_MAP_MOISTURE(x, y) (SAFE_MAP_BOUNDS(x, y) ? 50 : 50)
+#define GET_MAP_SECTOR(x, y) (SAFE_MAP_BOUNDS(x, y) ? get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y), get_temperature(WEATHER, x, y), get_elevation(NOISE_MATERIAL_PLANE_MOISTURE, x, y)) : SECT_INSIDE)
+#define GET_MAP_ELEV(x, y) (SAFE_MAP_BOUNDS(x, y) ? get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y) : 0)
+#define GET_MAP_TEMP(x, y) (SAFE_MAP_BOUNDS(x, y) ? get_temperature(WEATHER, x, y) : 20)
+#define GET_MAP_MOISTURE(x, y) (SAFE_MAP_BOUNDS(x, y) ? get_elevation(NOISE_MATERIAL_PLANE_MOISTURE, x, y) : 50)
 
 /* Stack size for flood-fill algorithms */
 #define MAX_STACK_SIZE 50000
@@ -105,6 +111,8 @@ int get_noise_seed(int layer) {
 void report_progress(const char *stage, int percent) {
     static char last_stage[128] = "";
     static int last_percent = -1;
+    
+    WILD_DEBUG("Progress update: %s - %d%%", stage, percent);
     
     /* Only report if stage changed or percent increased by 10+ */
     if (strcmp(last_stage, stage) != 0 || percent >= last_percent + 10) {
@@ -434,9 +442,17 @@ void analyze_world_grid(FILE *fp, struct terrain_stats *stats) {
 /* Detect and document all landmasses using flood-fill algorithm */
 struct landmass_info *detect_landmasses(FILE *fp) {
     struct landmass_info *landmasses = NULL, *current = NULL, *new_landmass;
-    int visited[MAP_WIDTH][MAP_HEIGHT];
+    int **visited;
     int x, y, landmass_id = 0;
     int *stack_x, *stack_y, stack_top;
+    
+    /* Allocate visited array dynamically to avoid stack overflow */
+    CREATE(visited, int *, MAP_HEIGHT);
+    for (y = 0; y < MAP_HEIGHT; y++) {
+        CREATE(visited[y], int, MAP_WIDTH);
+        memset(visited[y], 0, MAP_WIDTH * sizeof(int));
+    }
+    WILD_DEBUG_MEM("Visited array", MAP_WIDTH * MAP_HEIGHT * sizeof(int));
     
     /* Allocate stack dynamically for larger landmasses */
     CREATE(stack_x, int, MAX_STACK_SIZE);
@@ -446,9 +462,6 @@ struct landmass_info *detect_landmasses(FILE *fp) {
     const int dy[] = {-1, 0, 1, 0};
     
     report_progress("Detecting landmasses", 0);
-    
-    /* Initialize visited array */
-    memset(visited, 0, sizeof(visited));
     
     /* Find all landmasses */
     for (y = 0; y < MAP_HEIGHT; y++) {
@@ -460,6 +473,7 @@ struct landmass_info *detect_landmasses(FILE *fp) {
                 /* Start new landmass */
                 landmass_id++;
                 CREATE(new_landmass, struct landmass_info, 1);
+                WILD_DEBUG_MEM("New landmass structure", sizeof(struct landmass_info));
                 new_landmass->id = landmass_id;
                 new_landmass->start_x = x;
                 new_landmass->start_y = y;
@@ -578,9 +592,16 @@ struct landmass_info *detect_landmasses(FILE *fp) {
     
     report_progress("Detecting landmasses", 100);
     
-    /* Free the dynamically allocated stack */
+    /* Free the dynamically allocated memory */
     free(stack_x);
     free(stack_y);
+    
+    /* Free visited array */
+    for (y = 0; y < MAP_HEIGHT; y++) {
+        free(visited[y]);
+    }
+    free(visited);
+    WILD_DEBUG("Freed visited array for landmass detection");
     
     /* Return landmasses list - will be freed later */
     return landmasses;
@@ -589,12 +610,18 @@ struct landmass_info *detect_landmasses(FILE *fp) {
 /* Trace mountain ranges by following high elevation ridges */
 void trace_mountain_ranges(FILE *fp) {
     struct mountain_range *ranges = NULL, *current_range = NULL, *new_range;
-    int visited[MAP_WIDTH][MAP_HEIGHT];
+    int **visited;
     int x, y, range_id = 0;
     
-    report_progress("Tracing mountain ranges", 0);
+    /* Allocate visited array dynamically to avoid stack overflow */
+    CREATE(visited, int *, MAP_HEIGHT);
+    for (y = 0; y < MAP_HEIGHT; y++) {
+        CREATE(visited[y], int, MAP_WIDTH);
+        memset(visited[y], 0, MAP_WIDTH * sizeof(int));
+    }
+    WILD_DEBUG_MEM("Mountain visited array", MAP_WIDTH * MAP_HEIGHT * sizeof(int));
     
-    memset(visited, 0, sizeof(visited));
+    report_progress("Tracing mountain ranges", 0);
     
     fprintf(fp, "\n## Mountain Ranges\n\n");
     fprintf(fp, "### Major Mountain Systems\n");
@@ -713,6 +740,13 @@ void trace_mountain_ranges(FILE *fp) {
         
         free(current_range);
     }
+    
+    /* Free visited array */
+    for (y = 0; y < MAP_HEIGHT; y++) {
+        free(visited[y]);
+    }
+    free(visited);
+    WILD_DEBUG("Freed mountain visited array");
     
     report_progress("Tracing mountain ranges", 100);
 }
@@ -964,21 +998,17 @@ void analyze_resource_distribution(FILE *fp) {
  * between regions, landmarks, and other major features for LLM consumption
  */
 void analyze_spatial_relationships(FILE *fp) {
-    MYSQL_RES *regions_result, *paths_result;
-    MYSQL_ROW region_row1, region_row2;
-    int num_regions = 0, num_paths = 0;
-    int i, j;
-    float distance;
-    int direction;
-    int x1, y1, x2, y2;
+    MYSQL_RES *regions_result;
+    MYSQL_ROW region_row1;
+    int num_regions = 0;
+    int i;
     
     fprintf(fp, "\n## Spatial Relationships\n\n");
     report_progress("Analyzing spatial relationships", 0);
     
     /* Query all regions from database */
-    if (mysql_query(conn, "SELECT region_name, (min_x + max_x)/2 as center_x, "
-                         "(min_y + max_y)/2 as center_y FROM regions")) {
-        basic_mud_log("ERROR: Failed to query regions for spatial analysis: %s", mysql_error(conn));
+    if (mysql_query(conn, "SELECT name, vnum, region_type FROM region_data")) {
+        basic_mud_log("ERROR: Failed to query region_data for spatial analysis: %s", mysql_error(conn));
         fprintf(fp, "*Unable to analyze region relationships - database error*\n\n");
         return;
     }
@@ -989,141 +1019,32 @@ void analyze_spatial_relationships(FILE *fp) {
         return;
     }
     
-    /* Count regions and build distance matrix header */
+    /* Count regions and provide basic statistics */
     num_regions = mysql_num_rows(regions_result);
-    fprintf(fp, "### Region Distance Matrix\n\n");
-    fprintf(fp, "Distance in tiles between region centers (Euclidean):\n\n");
-    fprintf(fp, "| Region |");
+    fprintf(fp, "### Region Statistics\n\n");
+    fprintf(fp, "Total regions in database: %d\n\n", num_regions);
     
-    /* First pass - print header */
-    mysql_data_seek(regions_result, 0);
-    i = 0;
-    while ((region_row1 = mysql_fetch_row(regions_result)) && i < 10) {
-        fprintf(fp, " %s |", region_row1[0]);
-        i++;
-    }
-    fprintf(fp, "\n|");
-    for (i = 0; i <= MIN(num_regions, 10); i++)
-        fprintf(fp, "---|");
-    fprintf(fp, "\n");
-    
-    /* Second pass - build distance matrix */
-    mysql_data_seek(regions_result, 0);
-    i = 0;
-    while ((region_row1 = mysql_fetch_row(regions_result)) && i < 10) {
-        fprintf(fp, "| **%s** |", region_row1[0]);
-        x1 = atoi(region_row1[1]);
-        y1 = atoi(region_row1[2]);
-        
-        mysql_data_seek(regions_result, 0);
-        j = 0;
-        while ((region_row2 = mysql_fetch_row(regions_result)) && j < 10) {
-            x2 = atoi(region_row2[1]);
-            y2 = atoi(region_row2[2]);
-            
-            if (i == j) {
-                fprintf(fp, " - |");
-            } else {
-                distance = calculate_distance(x1, y1, x2, y2);
-                fprintf(fp, " %.0f |", distance);
-            }
-            j++;
-        }
-        fprintf(fp, "\n");
-        i++;
-        report_progress("Analyzing spatial relationships", (i * 50) / MIN(num_regions, 10));
-    }
-    
-    /* Directional relationships */
-    fprintf(fp, "\n### Cardinal Directions Between Major Regions\n\n");
-    fprintf(fp, "| From | To | Direction | Distance |\n");
-    fprintf(fp, "|------|----|-----------|---------|\n");
+    /* List first 20 regions */
+    fprintf(fp, "#### Sample Regions (up to 20):\n\n");
+    fprintf(fp, "| Name | Type | Vnum |\n");
+    fprintf(fp, "|------|------|------|\n");
     
     mysql_data_seek(regions_result, 0);
     i = 0;
-    while ((region_row1 = mysql_fetch_row(regions_result)) && i < 5) {
-        x1 = atoi(region_row1[1]);
-        y1 = atoi(region_row1[2]);
-        
-        mysql_data_seek(regions_result, 0);
-        j = 0;
-        while ((region_row2 = mysql_fetch_row(regions_result)) && j < 5) {
-            if (i != j) {
-                x2 = atoi(region_row2[1]);
-                y2 = atoi(region_row2[2]);
-                direction = get_direction(x1, y1, x2, y2);
-                distance = calculate_distance(x1, y1, x2, y2);
-                
-                fprintf(fp, "| %s | %s | ", region_row1[0], region_row2[0]);
-                switch(direction) {
-                    case 0: fprintf(fp, "North"); break;
-                    case 1: fprintf(fp, "Northeast"); break;
-                    case 2: fprintf(fp, "East"); break;
-                    case 3: fprintf(fp, "Southeast"); break;
-                    case 4: fprintf(fp, "South"); break;
-                    case 5: fprintf(fp, "Southwest"); break;
-                    case 6: fprintf(fp, "West"); break;
-                    case 7: fprintf(fp, "Northwest"); break;
-                    default: fprintf(fp, "Unknown");
-                }
-                fprintf(fp, " | %.0f |\n", distance);
-            }
-            j++;
-        }
+    while ((region_row1 = mysql_fetch_row(regions_result)) && i < 20) {
+        fprintf(fp, "| %s | %s | %s |\n",
+                region_row1[0] ? region_row1[0] : "Unknown",
+                region_row1[1] ? region_row1[1] : "0", 
+                region_row1[2] ? region_row1[2] : "0");
         i++;
     }
     
-    /* Path connectivity analysis */
-    fprintf(fp, "\n### Path Network Connectivity\n\n");
-    
-    if (mysql_query(conn, "SELECT path_name, start_x, start_y, end_x, end_y FROM paths")) {
-        basic_mud_log("ERROR: Failed to query paths: %s", mysql_error(conn));
-    } else {
-        paths_result = mysql_store_result(conn);
-        if (paths_result) {
-            num_paths = mysql_num_rows(paths_result);
-            fprintf(fp, "Total paths in network: %d\n\n", num_paths);
-            
-            /* Find path intersections (simplified - just check endpoint proximity) */
-            fprintf(fp, "#### Path Intersections (endpoints within 10 tiles)\n\n");
-            fprintf(fp, "| Path 1 | Path 2 | Connection Point | Distance |\n");
-            fprintf(fp, "|--------|--------|------------------|---------|\n");
-            
-            mysql_data_seek(paths_result, 0);
-            i = 0;
-            while ((region_row1 = mysql_fetch_row(paths_result)) && i < 10) {
-                mysql_data_seek(paths_result, i + 1);
-                j = i + 1;
-                while ((region_row2 = mysql_fetch_row(paths_result)) && j < 10) {
-                    /* Check all endpoint combinations */
-                    int endpoints[4][2] = {
-                        {atoi(region_row1[1]), atoi(region_row1[2])}, /* Path1 start */
-                        {atoi(region_row1[3]), atoi(region_row1[4])}, /* Path1 end */
-                        {atoi(region_row2[1]), atoi(region_row2[2])}, /* Path2 start */
-                        {atoi(region_row2[3]), atoi(region_row2[4])}  /* Path2 end */
-                    };
-                    
-                    int ei, ej;
-                    for (ei = 0; ei < 2; ei++) {
-                        for (ej = 2; ej < 4; ej++) {
-                            distance = calculate_distance(endpoints[ei][0], endpoints[ei][1],
-                                                        endpoints[ej][0], endpoints[ej][1]);
-                            if (distance < 10) {
-                                fprintf(fp, "| %s | %s | (%d,%d) | %.1f |\n",
-                                       region_row1[0], region_row2[0],
-                                       endpoints[ei][0], endpoints[ei][1], distance);
-                            }
-                        }
-                    }
-                    j++;
-                }
-                i++;
-            }
-            mysql_free_result(paths_result);
-        }
-    }
+    /* Since we don't have simple coordinates, skip distance calculations */
+    fprintf(fp, "\n*Note: Region spatial relationships require polygon geometry analysis*\n\n");
     
     mysql_free_result(regions_result);
+    
+    /* Skip the old distance calculation code */
     report_progress("Analyzing spatial relationships", 100);
 }
 
@@ -1300,7 +1221,7 @@ void analyze_ocean_systems(FILE *fp) {
                 
                 /* Check depth based on elevation */
                 int elevation = GET_MAP_ELEV(x, y);
-                if (elevation < min_wtr_height + 20) {
+                if (elevation < WATERLINE - 20) {  /* Deep water is well below waterline */
                     deep_ocean++;
                 } else {
                     shallow_ocean++;
@@ -1323,7 +1244,7 @@ void analyze_ocean_systems(FILE *fp) {
                 }
                 
                 /* Check for natural harbor conditions */
-                if (has_land_neighbor && elevation > min_wtr_height + 10) {
+                if (has_land_neighbor && elevation > WATERLINE - 10) {  /* Shallow coastal water */
                     /* Count land tiles in wider area for shelter */
                     int land_count = 0;
                     int check_radius = 3;
@@ -1592,10 +1513,6 @@ void analyze_civilization_potential(FILE *fp) {
 void construct_path_network_graph(FILE *fp) {
     MYSQL_RES *result;
     MYSQL_ROW row;
-    struct network_node *nodes = NULL;
-    struct network_node *current, *temp;
-    int node_count = 0;
-    int i, j;
     char query[MAX_STRING_LENGTH];
     
     report_progress("Constructing path network graph", 0);
@@ -1608,14 +1525,12 @@ void construct_path_network_graph(FILE *fp) {
         return;
     }
     
-    /* Get all path endpoints and intersections */
+    /* Get path statistics since we don't have coordinate data */
     snprintf(query, sizeof(query),
-             "SELECT DISTINCT start_x, start_y FROM paths "
-             "UNION "
-             "SELECT DISTINCT end_x, end_y FROM paths");
+             "SELECT COUNT(*) as total, COUNT(DISTINCT path_type) as types FROM path_data");
     
     if (mysql_query(conn, query)) {
-        basic_mud_log("ERROR: Failed to query path nodes: %s", mysql_error(conn));
+        basic_mud_log("ERROR: Failed to query path statistics: %s", mysql_error(conn));
         fprintf(fp, "*Error: Could not retrieve path network data*\n\n");
         return;
     }
@@ -1626,286 +1541,52 @@ void construct_path_network_graph(FILE *fp) {
         return;
     }
     
-    /* Build node list */
-    while ((row = mysql_fetch_row(result))) {
-        struct network_node *new_node;
-        int x = atoi(row[0]);
-        int y = atoi(row[1]);
-        int exists = 0;
+    /* Get basic statistics */
+    if ((row = mysql_fetch_row(result))) {
+        int total_paths = row[0] ? atoi(row[0]) : 0;
+        int path_types = row[1] ? atoi(row[1]) : 0;
         
-        /* Check if node already exists */
-        for (current = nodes; current; current = current->next) {
-            if (current->x == x && current->y == y) {
-                exists = 1;
-                break;
-            }
-        }
+        fprintf(fp, "Total paths in database: %d\n", total_paths);
+        fprintf(fp, "Distinct path types: %d\n\n", path_types);
         
-        if (!exists) {
-            new_node = (struct network_node *)malloc(sizeof(struct network_node));
-            new_node->x = x;
-            new_node->y = y;
-            new_node->node_type = NODE_ENDPOINT; /* Default to endpoint */
-            new_node->connected_nodes = NULL;
-            new_node->num_connections = 0;
-            new_node->centrality_score = 0.0;
-            new_node->is_bottleneck = 0;
-            new_node->next = nodes;
-            nodes = new_node;
-            node_count++;
-        }
-    }
-    mysql_free_result(result);
-    
-    report_progress("Constructing path network graph", 25);
-    
-    /* Now find connections between nodes */
-    snprintf(query, sizeof(query),
-             "SELECT start_x, start_y, end_x, end_y, path_name FROM paths");
-    
-    if (mysql_query(conn, query)) {
-        basic_mud_log("ERROR: Failed to query paths: %s", mysql_error(conn));
-        goto cleanup;
-    }
-    
-    result = mysql_store_result(conn);
-    if (!result) {
-        basic_mud_log("ERROR: Failed to store paths result");
-        goto cleanup;
-    }
-    
-    /* Process each path to establish connections */
-    while ((row = mysql_fetch_row(result))) {
-        int start_x = atoi(row[0]);
-        int start_y = atoi(row[1]);
-        int end_x = atoi(row[2]);
-        int end_y = atoi(row[3]);
-        struct network_node *start_node = NULL, *end_node = NULL;
+        /* Node checking code removed - no x,y coordinates available */
         
-        /* Find start and end nodes */
-        for (current = nodes; current; current = current->next) {
-            if (current->x == start_x && current->y == start_y)
-                start_node = current;
-            if (current->x == end_x && current->y == end_y)
-                end_node = current;
-        }
-        
-        /* Add connections */
-        if (start_node && end_node) {
-            int end_idx = 0, start_idx = 0;
-            struct network_node *iter;
-            
-            /* Add end_node to start_node's connections */
-            start_node->num_connections++;
-            start_node->connected_nodes = realloc(start_node->connected_nodes,
-                                                 start_node->num_connections * sizeof(int));
-            /* Store index rather than pointer for simplicity */
-            for (iter = nodes, i = 0; iter; iter = iter->next, i++) {
-                if (iter == end_node) {
-                    end_idx = i;
-                    break;
-                }
-            }
-            start_node->connected_nodes[start_node->num_connections - 1] = end_idx;
-            
-            /* Add start_node to end_node's connections (bidirectional) */
-            end_node->num_connections++;
-            end_node->connected_nodes = realloc(end_node->connected_nodes,
-                                               end_node->num_connections * sizeof(int));
-            for (iter = nodes, i = 0; iter; iter = iter->next, i++) {
-                if (iter == start_node) {
-                    start_idx = i;
-                    break;
-                }
-            }
-            end_node->connected_nodes[end_node->num_connections - 1] = start_idx;
-        }
+    } else {
+        fprintf(fp, "No path data available.\n\n");
     }
     mysql_free_result(result);
     
     report_progress("Constructing path network graph", 50);
     
-    /* Identify node types based on connection count */
-    for (current = nodes; current; current = current->next) {
-        if (current->num_connections > 2)
-            current->node_type = NODE_INTERSECTION;
-        else if (current->num_connections == 2)
-            current->node_type = NODE_WAYPOINT;
-        /* else remains NODE_ENDPOINT */
+    /* Get path types breakdown */
+    snprintf(query, sizeof(query),
+             "SELECT path_type, COUNT(*) FROM path_data GROUP BY path_type");
+    
+    if (mysql_query(conn, query)) {
+        basic_mud_log("ERROR: Failed to query path types: %s", mysql_error(conn));
+        report_progress("Constructing path network graph", 100);
+        return;
     }
     
-    /* Calculate centrality scores (simplified betweenness centrality) */
-    /* For each node, count how many shortest paths pass through it */
-    fprintf(fp, "#### Network Statistics\n\n");
-    fprintf(fp, "- Total nodes: %d\n", node_count);
-    
-    int intersections = 0, endpoints = 0, waypoints = 0;
-    for (current = nodes; current; current = current->next) {
-        switch (current->node_type) {
-            case NODE_INTERSECTION:
-                intersections++;
-                break;
-            case NODE_ENDPOINT:
-                endpoints++;
-                break;
-            case NODE_WAYPOINT:
-                waypoints++;
-                break;
-        }
-    }
-    
-    fprintf(fp, "- Intersections (>2 connections): %d\n", intersections);
-    fprintf(fp, "- Waypoints (2 connections): %d\n", waypoints);
-    fprintf(fp, "- Endpoints (1 connection): %d\n", endpoints);
-    
-    report_progress("Constructing path network graph", 75);
-    
-    /* Find network hubs (nodes with highest connectivity) */
-    fprintf(fp, "\n### Network Hubs\n\n");
-    fprintf(fp, "| Rank | Location | Type | Connections | Centrality |\n");
-    fprintf(fp, "|------|----------|------|-------------|------------|\n");
-    
-    /* Find top 10 most connected nodes */
-    for (i = 0; i < 10 && i < node_count; i++) {
-        struct network_node *best = NULL;
-        int max_connections = 0;
+    result = mysql_store_result(conn);
+    if (result) {
+        fprintf(fp, "### Path Types Distribution\n\n");
+        fprintf(fp, "| Type | Count |\n");
+        fprintf(fp, "|------|-------|\n");
         
-        for (current = nodes; current; current = current->next) {
-            if (current->num_connections > max_connections) {
-                /* Check if not already printed */
-                int already_printed = 0;
-                struct network_node *check;
-                int count = 0;
-                for (check = nodes; check && count < i; check = check->next) {
-                    if (check->centrality_score < 0) { /* Marked as printed */
-                        if (check == current) {
-                            already_printed = 1;
-                            break;
-                        }
-                        count++;
-                    }
-                }
-                
-                if (!already_printed) {
-                    max_connections = current->num_connections;
-                    best = current;
-                }
-            }
+        while ((row = mysql_fetch_row(result))) {
+            fprintf(fp, "| %s | %s |\n", 
+                    row[0] ? row[0] : "0",
+                    row[1] ? row[1] : "0");
         }
         
-        if (best) {
-            const char *type_name = "Unknown";
-            switch (best->node_type) {
-                case NODE_INTERSECTION:
-                    type_name = "Intersection";
-                    break;
-                case NODE_ENDPOINT:
-                    type_name = "Endpoint";
-                    break;
-                case NODE_WAYPOINT:
-                    type_name = "Waypoint";
-                    break;
-            }
-            
-            fprintf(fp, "| %d | (%d,%d) | %s | %d | %.2f |\n",
-                   i + 1, best->x, best->y, type_name,
-                   best->num_connections,
-                   (float)best->num_connections / (float)node_count);
-            
-            /* Mark as printed */
-            best->centrality_score = -1.0;
-        }
-    }
-    
-    /* Identify bottlenecks (nodes whose removal would disconnect the graph) */
-    fprintf(fp, "\n### Critical Bottlenecks\n\n");
-    fprintf(fp, "Nodes whose removal would significantly impact connectivity:\n\n");
-    
-    /* Simplified bottleneck detection - nodes with only 2 connections that link different regions */
-    int bottleneck_count = 0;
-    for (current = nodes; current; current = current->next) {
-        if (current->num_connections == 2) {
-            /* This could be a bottleneck if it connects otherwise separate regions */
-            /* For simplicity, mark waypoints in sparse areas as potential bottlenecks */
-            int nearby_nodes = 0;
-            float search_radius = 100.0;
-            struct network_node *check;
-            
-            for (check = nodes; check; check = check->next) {
-                if (check != current) {
-                    float dist = calculate_distance(current->x, current->y,
-                                                   check->x, check->y);
-                    if (dist < search_radius)
-                        nearby_nodes++;
-                }
-            }
-            
-            if (nearby_nodes < 3) {
-                current->is_bottleneck = 1;
-                bottleneck_count++;
-                if (bottleneck_count <= 5) {
-                    fprintf(fp, "- Location (%d,%d): Critical waypoint in sparse network area\n",
-                           current->x, current->y);
-                }
-            }
-        }
-    }
-    
-    if (bottleneck_count > 5) {
-        fprintf(fp, "- ... and %d more potential bottlenecks\n", bottleneck_count - 5);
-    }
-    
-    fprintf(fp, "\n### Path Network Connectivity Matrix\n\n");
-    fprintf(fp, "Showing connections between major intersections (simplified):\n\n");
-    
-    /* Create a simplified adjacency matrix for major intersections */
-    struct network_node **major_nodes = malloc(10 * sizeof(struct network_node *));
-    int major_count = 0;
-    
-    for (current = nodes; current && major_count < 10; current = current->next) {
-        if (current->node_type == NODE_INTERSECTION) {
-            major_nodes[major_count++] = current;
-        }
-    }
-    
-    if (major_count > 0) {
-        fprintf(fp, "```\n");
-        fprintf(fp, "    ");
-        for (i = 0; i < major_count && i < 5; i++) {
-            fprintf(fp, "N%d  ", i + 1);
-        }
         fprintf(fp, "\n");
-        
-        for (i = 0; i < major_count && i < 5; i++) {
-            fprintf(fp, "N%d  ", i + 1);
-            for (j = 0; j < major_count && j < 5; j++) {
-                if (i == j) {
-                    fprintf(fp, " -  ");
-                } else {
-                    /* Check if connected - simplified check */
-                    fprintf(fp, " .  ");
-                }
-            }
-            fprintf(fp, " (%d,%d)\n", major_nodes[i]->x, major_nodes[i]->y);
-        }
-        fprintf(fp, "```\n");
-        fprintf(fp, "*X = connected, . = not directly connected, - = self*\n\n");
+        mysql_free_result(result);
     }
     
-    free(major_nodes);
-    
-cleanup:
-    /* Free all allocated memory */
-    while (nodes) {
-        temp = nodes;
-        nodes = nodes->next;
-        if (temp->connected_nodes)
-            free(temp->connected_nodes);
-        free(temp);
-    }
-    
-    report_progress("Path network graph construction", 100);
+    report_progress("Constructing path network graph", 100);
 }
+
 
 /* Write pre-computed query reference section for LLM optimization
  * This provides quick-lookup answers to common spatial and analytical queries
@@ -2217,11 +1898,11 @@ void document_all_regions(FILE *fp) {
     
     /* Query regions from database */
     snprintf(query, sizeof(query), 
-             "SELECT region_name, region_type, min_x, max_x, min_y, max_y "
-             "FROM regions ORDER BY region_type, region_name");
+             "SELECT name, region_type, vnum "
+             "FROM region_data ORDER BY region_type, name");
     
     if (mysql_query(conn, query)) {
-        fprintf(fp, "Error querying regions: %s\n", mysql_error(conn));
+        fprintf(fp, "Error querying region_data: %s\n", mysql_error(conn));
         return;
     }
     
@@ -2231,19 +1912,19 @@ void document_all_regions(FILE *fp) {
         return;
     }
     
-    fprintf(fp, "| Region Name | Type | Bounds | Area |\n");
-    fprintf(fp, "|-------------|------|--------|------|\n");
+    fprintf(fp, "| Region Name | Type | Vnum |\n");
+    fprintf(fp, "|-------------|------|------|\n");
     
+    int region_count = 0;
     while ((row = mysql_fetch_row(result))) {
-        int min_x = atoi(row[2]);
-        int max_x = atoi(row[3]);
-        int min_y = atoi(row[4]);
-        int max_y = atoi(row[5]);
-        int area = (max_x - min_x) * (max_y - min_y);
-        
-        fprintf(fp, "| %s | %s | (%d,%d) to (%d,%d) | %d tiles |\n",
-                row[0], row[1], min_x, min_y, max_x, max_y, area);
+        fprintf(fp, "| %s | %s | %s |\n",
+                row[0] ? row[0] : "Unknown",  /* name */
+                row[1] ? row[1] : "0",         /* region_type */
+                row[2] ? row[2] : "0");        /* vnum */
+        region_count++;
     }
+    
+    fprintf(fp, "\nTotal regions in database: %d\n", region_count);
     
     mysql_free_result(result);
     
@@ -2263,11 +1944,11 @@ void document_all_paths(FILE *fp) {
     
     /* Query paths from database */
     snprintf(query, sizeof(query),
-             "SELECT path_name, path_type, start_x, start_y, end_x, end_y "
-             "FROM paths ORDER BY path_type, path_name");
+             "SELECT name, path_type, vnum "
+             "FROM path_data ORDER BY path_type, name");
     
     if (mysql_query(conn, query)) {
-        fprintf(fp, "Error querying paths: %s\n", mysql_error(conn));
+        fprintf(fp, "Error querying path_data: %s\n", mysql_error(conn));
         return;
     }
     
@@ -2277,19 +1958,19 @@ void document_all_paths(FILE *fp) {
         return;
     }
     
-    fprintf(fp, "| Path Name | Type | Start | End | Length |\n");
-    fprintf(fp, "|-----------|------|-------|-----|--------|\n");
+    fprintf(fp, "| Path Name | Type | Vnum |\n");
+    fprintf(fp, "|-----------|------|------|\n");
     
+    int path_count = 0;
     while ((row = mysql_fetch_row(result))) {
-        int sx = atoi(row[2]);
-        int sy = atoi(row[3]);
-        int ex = atoi(row[4]);
-        int ey = atoi(row[5]);
-        float length = calculate_distance(sx, sy, ex, ey);
-        
-        fprintf(fp, "| %s | %s | (%d,%d) | (%d,%d) | %.1f tiles |\n",
-                row[0], row[1], sx, sy, ex, ey, length);
+        fprintf(fp, "| %s | %s | %s |\n",
+                row[0] ? row[0] : "Unknown",  /* name */
+                row[1] ? row[1] : "0",         /* path_type */
+                row[2] ? row[2] : "0");        /* vnum */
+        path_count++;
     }
+    
+    fprintf(fp, "\nTotal paths in database: %d\n", path_count);
     
     mysql_free_result(result);
     
@@ -3361,8 +3042,8 @@ void write_path_network_json(FILE *fp) {
     char query[MAX_STRING_LENGTH];
     
     snprintf(query, sizeof(query),
-             "SELECT path_name, path_type, start_x, start_y, end_x, end_y "
-             "FROM paths LIMIT 50");
+             "SELECT name, path_type, vnum "
+             "FROM path_data LIMIT 50");
     
     if (mysql_query(conn, query)) {
         return;
@@ -3420,6 +3101,14 @@ void calculate_dijkstra_paths(FILE *fp, int source_x, int source_y, int dest_x, 
     int i, min_idx, path_length = 0;
     float min_dist, new_dist, terrain_cost;
     int path_x[1000], path_y[1000];
+    int max_search_radius, dx, dy, search_iterations = 0;
+    int max_iterations = 50000; /* Limit iterations to prevent infinite loops */
+    
+    /* Calculate maximum search radius based on distance between points */
+    dx = abs(dest_x - source_x);
+    dy = abs(dest_y - source_y);
+    max_search_radius = (int)((dx + dy) * 1.5f) + 100; /* Add buffer for obstacles */
+    if (max_search_radius > 500) max_search_radius = 500; /* Cap at reasonable size */
     
     CREATE(distance, float, MAP_WIDTH * MAP_HEIGHT);
     CREATE(visited, int, MAP_WIDTH * MAP_HEIGHT);
@@ -3435,14 +3124,22 @@ void calculate_dijkstra_paths(FILE *fp, int source_x, int source_y, int dest_x, 
     
     distance[source_y * MAP_WIDTH + source_x] = 0.0f;
     
-    while (1) {
+    while (search_iterations < max_iterations) {
         min_dist = 999999.0f;
         min_idx = -1;
         
-        for (i = 0; i < MAP_WIDTH * MAP_HEIGHT; i++) {
-            if (!visited[i] && distance[i] < min_dist) {
-                min_dist = distance[i];
-                min_idx = i;
+        /* Only search within reasonable radius of source and destination */
+        for (current_y = MAX(0, MIN(source_y, dest_y) - max_search_radius); 
+             current_y <= MIN(MAP_HEIGHT - 1, MAX(source_y, dest_y) + max_search_radius); 
+             current_y++) {
+            for (current_x = MAX(0, MIN(source_x, dest_x) - max_search_radius);
+                 current_x <= MIN(MAP_WIDTH - 1, MAX(source_x, dest_x) + max_search_radius);
+                 current_x++) {
+                i = current_y * MAP_WIDTH + current_x;
+                if (!visited[i] && distance[i] < min_dist) {
+                    min_dist = distance[i];
+                    min_idx = i;
+                }
             }
         }
         
@@ -3452,6 +3149,7 @@ void calculate_dijkstra_paths(FILE *fp, int source_x, int source_y, int dest_x, 
         current_x = min_idx % MAP_WIDTH;
         current_y = min_idx / MAP_WIDTH;
         visited[min_idx] = 1;
+        search_iterations++;
         
         if (current_x == dest_x && current_y == dest_y)
             break;
@@ -3485,7 +3183,12 @@ void calculate_dijkstra_paths(FILE *fp, int source_x, int source_y, int dest_x, 
         }
     }
     
-    if (previous_x[dest_y * MAP_WIDTH + dest_x] != -1) {
+    /* Check if we hit iteration limit */
+    if (search_iterations >= max_iterations) {
+        fprintf(fp, "Path search from (%d,%d) to (%d,%d) terminated after %d iterations (limit reached).\n",
+                source_x, source_y, dest_x, dest_y, search_iterations);
+        fprintf(fp, "Distance may be too great or path may not exist.\n");
+    } else if (previous_x[dest_y * MAP_WIDTH + dest_x] != -1) {
         current_x = dest_x;
         current_y = dest_y;
         
@@ -3503,8 +3206,8 @@ void calculate_dijkstra_paths(FILE *fp, int source_x, int source_y, int dest_x, 
             if (current_x == -1 || current_y == -1) break;
         }
 
-        fprintf(fp, "Optimal path found: %d steps, cost: %.1f\n",
-                path_length, distance[dest_y * MAP_WIDTH + dest_x]);
+        fprintf(fp, "Optimal path found: %d steps, cost: %.1f (searched %d nodes)\n",
+                path_length, distance[dest_y * MAP_WIDTH + dest_x], search_iterations);
 
         /* Output the path coordinates */
         fprintf(fp, "Path coordinates: ");
@@ -3649,27 +3352,57 @@ void generate_wilderness_knowledge_base(const char *output_filename) {
     FILE *fp;
     struct terrain_stats world_stats;
     struct landmass_info *landmasses = NULL, *current_lm;
-    char full_path[MAX_STRING_LENGTH];
+    time_t start_time, section_time;
+    long file_pos;
     
-    /* Ensure output directory exists */
-    snprintf(full_path, sizeof(full_path), "data/%s", output_filename);
+    WILD_DEBUG_FUNC("generate_wilderness_knowledge_base");
+    start_time = time(NULL);
     
-    mudlog(CMP, LVL_IMMORT, FALSE, "Starting wilderness knowledge base generation to %s", full_path);
+    mudlog(CMP, LVL_IMMORT, FALSE, "Starting wilderness knowledge base generation to %s", output_filename);
+    WILD_DEBUG("Output file: %s", output_filename);
+    WILD_DEBUG("Map dimensions: %dx%d (%d total tiles)", MAP_WIDTH, MAP_HEIGHT, MAP_WIDTH * MAP_HEIGHT);
     
-    /* Open output file */
-    fp = fopen(full_path, "w");
+    /* Open output file - save to current directory */
+    WILD_DEBUG("Opening output file for writing");
+    fp = fopen(output_filename, "w");
     if (!fp) {
-        mudlog(CMP, LVL_IMMORT, FALSE, "ERROR: Failed to open output file %s", full_path);
+        mudlog(CMP, LVL_IMMORT, FALSE, "ERROR: Failed to open output file %s", output_filename);
+        WILD_DEBUG("ERROR: fopen failed");
         return;
     }
+    WILD_DEBUG("File opened successfully");
     
     /* Generate all sections */
     report_progress("Starting generation", 0);
+    WILD_DEBUG("Beginning section generation");
     
+    section_time = time(NULL);
+    WILD_DEBUG("Writing header section");
     write_header_section(fp);
+    file_pos = ftell(fp);
+    WILD_DEBUG("Header complete - file position: %ld bytes", file_pos);
+    WILD_DEBUG_TIME("Header section", section_time);
+    section_time = time(NULL);
+    WILD_DEBUG("Documenting noise layers");
     document_noise_layers(fp);
+    WILD_DEBUG("Noise layers documented - file position: %ld", ftell(fp));
+    WILD_DEBUG_TIME("Noise layers", section_time);
+    
+    section_time = time(NULL);
+    WILD_DEBUG("Analyzing world grid");
     analyze_world_grid(fp, &world_stats);
+    WILD_DEBUG("World grid analyzed - Total tiles: %d", world_stats.total_tiles);
+    WILD_DEBUG_TIME("World grid analysis", section_time);
+    section_time = time(NULL);
+    WILD_DEBUG("Detecting landmasses");
     landmasses = detect_landmasses(fp);  /* Store landmasses for later use */
+    if (landmasses) {
+        int lm_count = 0;
+        struct landmass_info *temp = landmasses;
+        while (temp) { lm_count++; temp = temp->next; }
+        WILD_DEBUG("Detected %d landmasses", lm_count);
+    }
+    WILD_DEBUG_TIME("Landmass detection", section_time);
     trace_mountain_ranges(fp);
     analyze_climate_zones(fp);
     analyze_resource_distribution(fp);
@@ -3715,11 +3448,14 @@ void generate_wilderness_knowledge_base(const char *output_filename) {
     /* Spectral analysis of noise layers */
     analyze_noise_spectrum(fp);
     
-    /* Example Dijkstra pathfinding */
+    /* Example Dijkstra pathfinding - Limited to reasonable distances */
     fprintf(fp, "\n### Pathfinding Analysis\n\n");
-    fprintf(fp, "Example optimal path calculations:\n\n");
-    calculate_dijkstra_paths(fp, 0, 0, 100, 100);  /* Center to nearby point */
-    calculate_dijkstra_paths(fp, 500, 500, 1500, 1500);  /* Cross-map path */
+    fprintf(fp, "Example optimal path calculations (limited search radius for performance):\n\n");
+    fprintf(fp, "#### Short-range pathfinding examples:\n");
+    calculate_dijkstra_paths(fp, 1000, 1000, 1100, 1100);  /* 100-unit diagonal path */
+    calculate_dijkstra_paths(fp, 500, 500, 600, 500);      /* 100-unit horizontal path */
+    calculate_dijkstra_paths(fp, 800, 800, 950, 850);      /* Medium distance path */
+    fprintf(fp, "\nNote: Long-distance pathfinding (>500 units) limited to prevent performance issues.\n");
     
     /* JSON Data Sections for Machine Readability */
     fprintf(fp, "\n# Machine-Readable JSON Data\n\n");
@@ -3760,15 +3496,24 @@ void generate_wilderness_knowledge_base(const char *output_filename) {
     fprintf(fp, "\n---\n");
     fprintf(fp, "*End of Wilderness Knowledge Base*\n");
     
+    WILD_DEBUG("Generation complete - final file size: %ld bytes", ftell(fp));
+    WILD_DEBUG_TIME("Total generation time", start_time);
+    
     fclose(fp);
+    WILD_DEBUG("File closed successfully");
     
     /* Free landmasses memory */
+    WILD_DEBUG("Beginning memory cleanup");
+    int freed_count = 0;
     while (landmasses) {
         current_lm = landmasses;
         landmasses = landmasses->next;
         free(current_lm);
+        freed_count++;
     }
+    WILD_DEBUG("Freed %d landmass structures", freed_count);
     
     report_progress("Generation complete", 100);
-    basic_mud_log("INFO: Wilderness knowledge base generation complete. Output: %s", full_path);
+    basic_mud_log("INFO: Wilderness knowledge base generation complete. Output: %s", output_filename);
+    WILD_DEBUG("=== Generation complete ===");
 }

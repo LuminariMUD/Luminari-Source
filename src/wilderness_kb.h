@@ -9,6 +9,39 @@
 #ifndef _WILDERNESS_KB_H_
 #define _WILDERNESS_KB_H_
 
+/* Debug mode toggle - uncomment to enable comprehensive debugging */
+#define DEBUG_WILD_KB 1
+
+/* Debug macros for conditional output */
+#ifdef DEBUG_WILD_KB
+  #define WILD_DEBUG(fmt, ...) \
+    do { \
+      mudlog(CMP, LVL_IMMORT, FALSE, "[WILD_KB_DEBUG] " fmt, ##__VA_ARGS__); \
+      printf("[WILD_KB_DEBUG] " fmt "\n", ##__VA_ARGS__); \
+    } while(0)
+  #define WILD_DEBUG_MEM(label, size) \
+    do { \
+      mudlog(CMP, LVL_IMMORT, FALSE, "[WILD_KB_MEM] %s: allocated %ld bytes", label, (long)size); \
+      printf("[WILD_KB_MEM] %s: allocated %ld bytes\n", label, (long)size); \
+    } while(0)
+  #define WILD_DEBUG_FUNC(func) \
+    do { \
+      mudlog(CMP, LVL_IMMORT, FALSE, "[WILD_KB_FUNC] Entering: %s", func); \
+      printf("[WILD_KB_FUNC] Entering: %s\n", func); \
+    } while(0)
+  #define WILD_DEBUG_TIME(label, start_time) \
+    do { \
+      time_t now = time(NULL); \
+      mudlog(CMP, LVL_IMMORT, FALSE, "[WILD_KB_TIME] %s: %ld seconds", label, (long)(now - start_time)); \
+      printf("[WILD_KB_TIME] %s: %ld seconds\n", label, (long)(now - start_time)); \
+    } while(0)
+#else
+  #define WILD_DEBUG(fmt, ...) do {} while(0)
+  #define WILD_DEBUG_MEM(label, size) do {} while(0)
+  #define WILD_DEBUG_FUNC(func) do {} while(0)
+  #define WILD_DEBUG_TIME(label, start_time) do {} while(0)
+#endif
+
 /* Core data structures for analysis */
 
 struct terrain_stats {
