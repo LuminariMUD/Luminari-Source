@@ -238,6 +238,9 @@ char *gen_ascii_wilderness_map(int size, int x, int y, int map_type);
 void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char *name);
 int get_modified_sector_type(zone_rnum zone, int x, int y);
 
+/* World Knowledge Base Generation */
+void generate_wilderness_knowledge_base(const char *output_filename);
+
 /* Wilderness */
 
 void initialize_wilderness_lists();
