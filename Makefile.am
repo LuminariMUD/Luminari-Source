@@ -168,6 +168,7 @@ circle_SOURCES = \
 	src/resource_system.c \
 	src/resource_depletion.c \
 	src/resource_descriptions.c \
+	src/resource_regeneration.c \
 	src/roleplay.c \
 	src/routing.c \
 	src/sedit.c \

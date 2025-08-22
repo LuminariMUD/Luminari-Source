@@ -751,6 +751,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"resistances", "res", POS_DEAD, do_affects, 0, SCMD_RESISTANCES, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"restore", "resto", POS_DEAD, do_restore, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"resourceadmin", "resadmin", POS_DEAD, do_resourceadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"regenadmin", "regadmin", POS_DEAD, do_regenadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"effectsadmin", "effadmin", POS_DEAD, do_effectsadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"retainer", "retainer", POS_DEAD, do_retainer, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"return", "retu", POS_DEAD, do_return, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

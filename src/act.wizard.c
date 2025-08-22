@@ -50,6 +50,7 @@
 #include "assign_wpn_armor.h"
 #include "item.h"
 #include "resource_system.h"
+#include "resource_regeneration.h"
 #include "resource_system.h"
 #include "feats.h"
 #include "domains_schools.h"
@@ -10649,6 +10650,98 @@ ACMD(do_resourceadmin)
   }
   
   send_to_char(ch, "Unknown resourceadmin option. Type 'resourceadmin' for help.\r\n");
+}
+
+/* Regeneration Admin Command */
+ACMD(do_regenadmin)
+{
+  char arg[MAX_INPUT_LENGTH];
+  char arg2[MAX_INPUT_LENGTH];
+  const char *remaining_args;
+  int x, y, limit;
+  
+  remaining_args = one_argument(argument, arg, sizeof(arg));
+  
+  if (!*arg) {
+    send_to_char(ch, "Regeneration System Admin Commands:\r\n");
+    send_to_char(ch, "==================================\r\n");
+    send_to_char(ch, "regenadmin status     - Show regeneration logging status\r\n");
+    send_to_char(ch, "regenadmin logging on - Enable regeneration logging\r\n");
+    send_to_char(ch, "regenadmin logging off- Disable regeneration logging\r\n");
+    send_to_char(ch, "regenadmin history    - Show regeneration history at current location\r\n");
+    send_to_char(ch, "regenadmin history <x> <y> [limit] - Show history at coordinates\r\n");
+    return;
+  }
+  
+  if (is_abbrev(arg, "status")) {
+    send_to_char(ch, "Regeneration System Status:\r\n");
+    send_to_char(ch, "==========================\r\n");
+    send_to_char(ch, "Logging enabled: %s\r\n", is_regeneration_logging_enabled() ? "YES" : "NO");
+    send_to_char(ch, "Note: Regeneration uses lazy evaluation - occurs when resources are accessed\r\n");
+    return;
+  }
+  
+  if (is_abbrev(arg, "logging")) {
+    remaining_args = one_argument(remaining_args, arg2, sizeof(arg2));
+    if (!*arg2) {
+      send_to_char(ch, "Usage: regenadmin logging <on|off>\r\n");
+      return;
+    }
+    
+    if (is_abbrev(arg2, "on")) {
+      set_regeneration_logging_enabled(TRUE);
+      send_to_char(ch, "Regeneration logging enabled.\r\n");
+    } else if (is_abbrev(arg2, "off")) {
+      set_regeneration_logging_enabled(FALSE);
+      send_to_char(ch, "Regeneration logging disabled.\r\n");
+    } else {
+      send_to_char(ch, "Usage: regenadmin logging <on|off>\r\n");
+    }
+    return;
+  }
+  
+  if (is_abbrev(arg, "history")) {
+    if (!*remaining_args) {
+      /* Show history at current location */
+      if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS)) {
+        send_to_char(ch, "You must be in the wilderness to view regeneration history.\r\n");
+        return;
+      }
+      
+      x = world[IN_ROOM(ch)].coords[X_COORD];
+      y = world[IN_ROOM(ch)].coords[Y_COORD];
+      limit = 10;
+      
+      show_regeneration_history(ch, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].number, x, y, limit);
+    } else {
+      /* Parse coordinates and optional limit */
+      remaining_args = one_argument(remaining_args, arg2, sizeof(arg2));
+      if (!*arg2) {
+        send_to_char(ch, "Usage: regenadmin history <x> <y> [limit]\r\n");
+        return;
+      }
+      x = atoi(arg2);
+      
+      remaining_args = one_argument(remaining_args, arg2, sizeof(arg2));
+      if (!*arg2) {
+        send_to_char(ch, "Usage: regenadmin history <x> <y> [limit]\r\n");
+        return;
+      }
+      y = atoi(arg2);
+      
+      remaining_args = one_argument(remaining_args, arg2, sizeof(arg2));
+      limit = *arg2 ? atoi(arg2) : 10;
+      
+      if (limit < 1 || limit > 100) {
+        limit = 10;
+      }
+      
+      show_regeneration_history(ch, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].number, x, y, limit);
+    }
+    return;
+  }
+  
+  send_to_char(ch, "Unknown regenadmin option. Type 'regenadmin' for help.\r\n");
 }
 
 /* Region Effects System Helper Functions */

@@ -1,14 +1,25 @@
 -- =====================================================================
--- AI-Generated Region Hints System for Dynamic Descriptions
+-- Narrative Weaver System Installation Script
 -- =====================================================================
--- This schema stores AI-generated descriptive hints for geographic regions
--- that will be used by the dynamic description engine to create immersive,
--- location-specific descriptions.
+-- This script installs the complete narrative weaver system for dynamic
+-- region descriptions. It creates all necessary tables, indexes, views,
+-- and sample data for the AI-generated region hints system.
+--
+-- Prerequisites:
+-- - region_data table must exist (part of the wilderness system)
+-- - MySQL 5.7+ for JSON support
+--
+-- Usage: mysql -u root luminari_mudprod < narrative_weaver_installation.sql
+-- =====================================================================
 
 USE luminari_mudprod;
 
+-- Check if region_data table exists (prerequisite)
+SELECT COUNT(*) as region_data_exists FROM information_schema.tables 
+WHERE table_schema = 'luminari_mudprod' AND table_name = 'region_data';
+
 -- =====================================================================
--- PART 1: AI REGION DESCRIPTIVE HINTS
+-- PART 1: CORE NARRATIVE WEAVER TABLES
 -- =====================================================================
 
 -- Main table for AI-generated region hints
@@ -47,10 +58,6 @@ CREATE TABLE IF NOT EXISTS region_hints (
     INDEX idx_created (created_at)
 );
 
--- =====================================================================
--- PART 2: HINT USAGE TRACKING AND ANALYTICS
--- =====================================================================
-
 -- Track which hints are actually used in descriptions for analytics
 CREATE TABLE IF NOT EXISTS hint_usage_log (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -68,10 +75,6 @@ CREATE TABLE IF NOT EXISTS hint_usage_log (
     INDEX idx_room_usage (room_vnum, used_at)
 );
 
--- =====================================================================
--- PART 3: REGION PERSONALITY PROFILES
--- =====================================================================
-
 -- AI-generated personality profiles for regions (overall character/theme)
 CREATE TABLE IF NOT EXISTS region_profiles (
     region_vnum INT PRIMARY KEY,
@@ -86,10 +89,6 @@ CREATE TABLE IF NOT EXISTS region_profiles (
     
     FOREIGN KEY (region_vnum) REFERENCES region_data(vnum) ON DELETE CASCADE
 );
-
--- =====================================================================
--- PART 4: DYNAMIC DESCRIPTION TEMPLATES
--- =====================================================================
 
 -- AI-generated description templates that can be filled with dynamic data
 CREATE TABLE IF NOT EXISTS description_templates (
@@ -109,24 +108,7 @@ CREATE TABLE IF NOT EXISTS description_templates (
 );
 
 -- =====================================================================
--- PART 5: SAMPLE DATA FOR TESTING
--- =====================================================================
-
--- Sample region hints for testing (assuming region vnum 1001 exists)
-INSERT IGNORE INTO region_hints (region_vnum, hint_category, hint_text, priority, weather_conditions) VALUES
-(1001, 'atmosphere', 'Ancient oak trees tower overhead, their gnarled branches creating a natural cathedral of green.', 8, 'clear,cloudy'),
-(1001, 'atmosphere', 'Mist clings to the forest floor, giving the woodland an ethereal, dreamlike quality.', 6, 'cloudy,rainy'),
-(1001, 'fauna', 'Squirrels chatter in the canopy while deer paths wind between the massive tree trunks.', 7, 'clear,cloudy'),
-(1001, 'flora', 'Thick carpets of moss cover fallen logs, and delicate wildflowers bloom in dappled clearings.', 7, 'clear,cloudy,rainy'),
-(1001, 'sounds', 'The gentle rustle of leaves mingles with distant bird calls and the soft trickle of hidden streams.', 6, 'clear,cloudy'),
-(1001, 'scents', 'The air carries the rich scent of earth and growing things, tinged with the sweetness of wild honeysuckle.', 5, 'clear,cloudy');
-
--- Sample region profile
-INSERT IGNORE INTO region_profiles (region_vnum, overall_theme, dominant_mood, key_characteristics, description_style) VALUES
-(1001, 'Ancient mystical forest with primordial energy', 'Serene yet alive with ancient power', '["towering_oaks", "hidden_clearings", "woodland_creatures", "mossy_paths"]', 'poetic');
-
--- =====================================================================
--- PART 6: PERFORMANCE OPTIMIZATION VIEWS
+-- PART 2: PERFORMANCE OPTIMIZATION VIEWS
 -- =====================================================================
 
 -- View for quick lookup of active hints by region and category
@@ -161,3 +143,75 @@ FROM region_hints rh
 LEFT JOIN hint_usage_log hul ON rh.id = hul.hint_id
 WHERE rh.is_active = TRUE
 GROUP BY rh.region_vnum, rh.hint_category;
+
+-- =====================================================================
+-- PART 3: SAMPLE DATA FOR TESTING AND DEMONSTRATION
+-- =====================================================================
+
+-- Insert sample region hints for testing (using region vnum 1001 as example)
+-- Note: These will only insert if region 1001 exists in region_data
+INSERT IGNORE INTO region_hints (region_vnum, hint_category, hint_text, priority, weather_conditions) 
+SELECT * FROM (
+    SELECT 1001 as region_vnum, 'atmosphere' as hint_category, 'Ancient oak trees tower overhead, their gnarled branches creating a natural cathedral of green.' as hint_text, 8 as priority, 'clear,cloudy' as weather_conditions
+    UNION SELECT 1001, 'atmosphere', 'Mist clings to the forest floor, giving the woodland an ethereal, dreamlike quality.', 6, 'cloudy,rainy'
+    UNION SELECT 1001, 'fauna', 'Squirrels chatter in the canopy while deer paths wind between the massive tree trunks.', 7, 'clear,cloudy'
+    UNION SELECT 1001, 'flora', 'Thick carpets of moss cover fallen logs, and delicate wildflowers bloom in dappled clearings.', 7, 'clear,cloudy,rainy'
+    UNION SELECT 1001, 'sounds', 'The gentle rustle of leaves mingles with distant bird calls and the soft trickle of hidden streams.', 6, 'clear,cloudy'
+    UNION SELECT 1001, 'scents', 'The air carries the rich scent of earth and growing things, tinged with the sweetness of wild honeysuckle.', 5, 'clear,cloudy'
+) AS sample_hints
+WHERE EXISTS (SELECT 1 FROM region_data WHERE vnum = 1001);
+
+-- Insert sample region profile for testing
+INSERT IGNORE INTO region_profiles (region_vnum, overall_theme, dominant_mood, key_characteristics, description_style) 
+SELECT * FROM (
+    SELECT 1001 as region_vnum, 'Ancient mystical forest with primordial energy' as overall_theme, 'Serene yet alive with ancient power' as dominant_mood, '["towering_oaks", "hidden_clearings", "woodland_creatures", "mossy_paths"]' as key_characteristics, 'poetic' as description_style
+) AS sample_profile
+WHERE EXISTS (SELECT 1 FROM region_data WHERE vnum = 1001);
+
+-- =====================================================================
+-- PART 4: INSTALLATION VERIFICATION
+-- =====================================================================
+
+-- Verify installation was successful
+SELECT 'Narrative Weaver Installation Complete!' as status;
+
+-- Show table counts
+SELECT 
+    'region_hints' as table_name, 
+    COUNT(*) as record_count 
+FROM region_hints
+UNION
+SELECT 
+    'hint_usage_log' as table_name, 
+    COUNT(*) as record_count 
+FROM hint_usage_log
+UNION
+SELECT 
+    'region_profiles' as table_name, 
+    COUNT(*) as record_count 
+FROM region_profiles
+UNION
+SELECT 
+    'description_templates' as table_name, 
+    COUNT(*) as record_count 
+FROM description_templates;
+
+-- Show view status
+SELECT 'Views created successfully' as status
+WHERE EXISTS (
+    SELECT 1 FROM information_schema.views 
+    WHERE table_schema = 'luminari_mudprod' 
+    AND table_name IN ('active_region_hints', 'hint_analytics')
+);
+
+-- Show sample data status (if region 1001 exists)
+SELECT 
+    CASE 
+        WHEN EXISTS (SELECT 1 FROM region_data WHERE vnum = 1001) 
+        THEN CONCAT('Sample data installed for region 1001: ', COUNT(*), ' hints created')
+        ELSE 'No sample data installed (region 1001 not found in region_data)'
+    END as sample_data_status
+FROM region_hints 
+WHERE region_vnum = 1001;
+
+SELECT '=== Narrative Weaver Installation Summary ===' as summary;
