@@ -340,12 +340,134 @@ float apply_environmental_modifiers(int resource_type, int x, int y, float base_
     return base_value * modifier;
 }
 
+/* Get terrain-specific resource multipliers */
+float get_terrain_resource_multiplier(int resource_type, int terrain_type) {
+    switch (resource_type) {
+        case RESOURCE_WOOD:
+            switch (terrain_type) {
+                case SECT_FOREST:
+                    return 2.5f;  /* Forests have abundant wood */
+                case SECT_HILLS:
+                case SECT_FIELD:
+                    return 0.3f;  /* Some scattered trees */
+                case SECT_MARSHLAND:
+                    return 0.5f;  /* Some wetland trees */
+                default:
+                    return 0.1f;  /* Very little wood in other terrain */
+            }
+            
+        case RESOURCE_VEGETATION:
+            switch (terrain_type) {
+                case SECT_FOREST:
+                    return 1.8f;  /* Dense undergrowth */
+                case SECT_FIELD:
+                    return 1.5f;  /* Grasslands and crops */
+                case SECT_HILLS:
+                    return 1.2f;  /* Hill vegetation */
+                case SECT_MARSHLAND:
+                    return 1.4f;  /* Marsh plants */
+                case SECT_DESERT:
+                    return 0.2f;  /* Very sparse desert vegetation */
+                case SECT_HIGH_MOUNTAIN:
+                    return 0.1f;  /* Minimal alpine vegetation */
+                default:
+                    return 1.0f;
+            }
+            
+        case RESOURCE_STONE:
+            switch (terrain_type) {
+                case SECT_MOUNTAIN:
+                case SECT_HIGH_MOUNTAIN:
+                    return 2.0f;  /* Rocky areas have more stone */
+                case SECT_HILLS:
+                    return 1.3f;  /* Some rock outcrops */
+                case SECT_DESERT:
+                    return 1.2f;  /* Desert rocks */
+                case SECT_WATER_SWIM:
+                case SECT_WATER_NOSWIM:
+                case SECT_OCEAN:
+                case SECT_UNDERWATER:
+                    return 0.1f;  /* Very little stone in water */
+                default:
+                    return 1.0f;
+            }
+            
+        case RESOURCE_WATER:
+            switch (terrain_type) {
+                case SECT_WATER_SWIM:
+                case SECT_WATER_NOSWIM:
+                case SECT_OCEAN:
+                case SECT_UNDERWATER:
+                    return 2.5f;  /* Abundant water in water terrain */
+                case SECT_MARSHLAND:
+                    return 1.8f;  /* Wetlands have good water */
+                case SECT_FOREST:
+                    return 1.2f;  /* Forests retain moisture */
+                case SECT_DESERT:
+                    return 0.1f;  /* Very little water in desert */
+                case SECT_HIGH_MOUNTAIN:
+                    return 0.3f;  /* Limited water at high altitude */
+                default:
+                    return 1.0f;
+            }
+            
+        case RESOURCE_GAME:
+            switch (terrain_type) {
+                case SECT_FOREST:
+                    return 1.5f;  /* Forests provide good wildlife habitat */
+                case SECT_FIELD:
+                    return 1.2f;  /* Grasslands support some game */
+                case SECT_HILLS:
+                    return 1.1f;  /* Hills have some wildlife */
+                case SECT_DESERT:
+                    return 0.4f;  /* Limited desert wildlife */
+                case SECT_HIGH_MOUNTAIN:
+                    return 0.5f;  /* Some mountain animals */
+                case SECT_WATER_SWIM:
+                case SECT_WATER_NOSWIM:
+                case SECT_OCEAN:
+                case SECT_UNDERWATER:
+                    return 0.2f;  /* Minimal land-based game near water */
+                default:
+                    return 1.0f;
+            }
+            
+        case RESOURCE_HERBS:
+            switch (terrain_type) {
+                case SECT_FOREST:
+                    return 1.6f;  /* Rich forest herbs */
+                case SECT_FIELD:
+                    return 1.3f;  /* Meadow herbs */
+                case SECT_HILLS:
+                    return 1.1f;  /* Hill herbs */
+                case SECT_MARSHLAND:
+                    return 1.4f;  /* Wetland herbs */
+                case SECT_DESERT:
+                    return 0.3f;  /* Limited desert herbs */
+                case SECT_HIGH_MOUNTAIN:
+                    return 0.2f;  /* Very few alpine herbs */
+                default:
+                    return 1.0f;
+            }
+            
+        default:
+            return 1.0f;  /* No terrain modifier for other resources */
+    }
+}
+
 /* Region resource modifier function for individual resource calculations */
 float apply_region_resource_modifiers(int resource_type, int x, int y, float base_value)
 {
-  /* For now, return base value unchanged until region integration is properly implemented */
-  /* TODO: Implement region lookup and database query for region effects */
-  return base_value;
+    /* Apply terrain-based resource multipliers */
+    zone_rnum wild_zone = real_zone(WILD_ZONE_VNUM);
+    if (wild_zone != NOWHERE) {
+        int terrain_type = get_modified_sector_type(wild_zone, x, y);
+        float terrain_multiplier = get_terrain_resource_multiplier(resource_type, terrain_type);
+        base_value *= terrain_multiplier;
+    }
+    
+    /* TODO: Implement additional region lookup and database query for region effects */
+    return base_value;
 }
 
 /* Placeholder for region resource modifiers - will be implemented in Phase 2 */
@@ -811,6 +933,7 @@ void show_resource_survey(struct char_data *ch) {
     int x, y, i;
     float resource_level;
     zone_rnum zrnum;
+    int terrain_type;
     
     if (!ch || IN_ROOM(ch) == NOWHERE) {
         return;
@@ -825,11 +948,14 @@ void show_resource_survey(struct char_data *ch) {
     x = world[IN_ROOM(ch)].coords[0];
     y = world[IN_ROOM(ch)].coords[1];
     
-    send_to_char(ch, "Resource Survey for (\tC%d\tn, \tC%d\tn):\r\n", x, y);
-    send_to_char(ch, "===================================\r\n\r\n");
+    /* Get the region-modified terrain type */
+    terrain_type = get_modified_sector_type(zrnum, x, y);
     
-    send_to_char(ch, "Terrain: %s | Elevation: %d\r\n\r\n", 
-                 sector_types[SECT(IN_ROOM(ch))], get_modified_elevation(x, y));
+    send_to_char(ch, "Resource Survey for (\tC%d\tn, \tC%d\tn):\r\n", x, y);
+    send_to_char(ch, "=====================================\r\n");
+    
+    send_to_char(ch, "Terrain: %s | Elevation: %d\r\n", 
+                 sector_types[terrain_type], get_modified_elevation(x, y));
     
     /* Show all resources with meaningful levels */
     send_to_char(ch, "Available Resources:\r\n");
@@ -861,7 +987,7 @@ void show_terrain_survey(struct char_data *ch) {
     x = world[IN_ROOM(ch)].coords[0];
     y = world[IN_ROOM(ch)].coords[1];
     elevation = get_modified_elevation(x, y);
-    terrain_type = SECT(IN_ROOM(ch));
+    terrain_type = get_modified_sector_type(world[IN_ROOM(ch)].zone, x, y);
     
     send_to_char(ch, "Detailed Terrain Analysis for (\tC%d\tn, \tC%d\tn):\r\n", x, y);
     send_to_char(ch, "==============================================\r\n\r\n");
@@ -932,11 +1058,13 @@ void show_debug_survey(struct char_data *ch) {
     x = world[IN_ROOM(ch)].coords[0];
     y = world[IN_ROOM(ch)].coords[1];
     
+    int terrain_type = get_modified_sector_type(world[IN_ROOM(ch)].zone, x, y);
+    
     send_to_char(ch, "DEBUG Resource System Analysis for (\tC%d\tn, \tC%d\tn):\r\n", x, y);
     send_to_char(ch, "===================================================\r\n\r\n");
     
     send_to_char(ch, "Terrain: %s (Type: %d)\r\n", 
-                 sector_types[SECT(IN_ROOM(ch))], SECT(IN_ROOM(ch)));
+                 sector_types[terrain_type], terrain_type);
     send_to_char(ch, "Elevation: %d\r\n", get_modified_elevation(x, y));
     
     send_to_char(ch, "\r\nResource Details:\r\n");
@@ -1121,10 +1249,12 @@ void show_resource_detail(struct char_data *ch, int resource_type) {
     x = world[IN_ROOM(ch)].coords[0];
     y = world[IN_ROOM(ch)].coords[1];
     
+    int terrain_type = get_modified_sector_type(world[IN_ROOM(ch)].zone, x, y);
+    
     send_to_char(ch, "Detailed Resource Analysis: %s\r\n", resource_names[resource_type]);
     send_to_char(ch, "==========================================\r\n");
     send_to_char(ch, "Location: (%d, %d)\r\n", x, y);
-    send_to_char(ch, "Terrain: %s\r\n", sector_types[SECT(IN_ROOM(ch))]);
+    send_to_char(ch, "Terrain: %s\r\n", sector_types[terrain_type]);
     send_to_char(ch, "Elevation: %d\r\n", get_modified_elevation(x, y));
     
     resource_level = calculate_current_resource_level(resource_type, x, y);

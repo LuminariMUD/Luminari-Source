@@ -1712,7 +1712,7 @@ static int generate_help_entry(struct char_data *ch, int cmd_index, bool force_o
 }
 
 /* Auto-generate help files for commands */
-ACMD(do_helpadmin) {
+ACMD(do_helpgen) {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int generated = 0, skipped = 0, errors = 0;
   bool force = FALSE;
@@ -1721,7 +1721,7 @@ ACMD(do_helpadmin) {
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   
   if (!*arg1) {
-    send_to_char(ch, "Usage: helpadmin <missing|all|list|clean|repair|import|export|command> [options]\r\n"
+    send_to_char(ch, "Usage: helpgen <missing|all|list|clean|repair|import|export|command> [options]\r\n"
                      "  missing - Generate help for commands without entries\r\n"
                      "  all     - Generate help for all commands\r\n"
                      "  list    - List all auto-generated help entries\r\n"
@@ -1807,7 +1807,7 @@ ACMD(do_helpadmin) {
     
     if (!force) {
       send_to_char(ch, "WARNING: This will delete ALL auto-generated help entries!\r\n");
-      send_to_char(ch, "Use 'helpadmin clean force' to confirm deletion.\r\n");
+      send_to_char(ch, "Use 'helpgen clean force' to confirm deletion.\r\n");
       return;
     }
     
@@ -1890,7 +1890,7 @@ ACMD(do_helpadmin) {
     
     if (orphaned_keywords > 0) {
       if (!force) {
-        send_to_char(ch, "\r\nFound %d orphaned keywords. Use 'helpadmin repair force' to delete them.\r\n", 
+        send_to_char(ch, "\r\nFound %d orphaned keywords. Use 'helpgen repair force' to delete them.\r\n", 
                      orphaned_keywords);
       } else {
         /* Delete orphaned keywords */
@@ -1955,7 +1955,7 @@ ACMD(do_helpadmin) {
     }
     
     if (missing_keywords > 0 && !force) {
-      send_to_char(ch, "\r\nFound %d entries without keywords. Use 'helpadmin repair force' to add keywords.\r\n", 
+      send_to_char(ch, "\r\nFound %d entries without keywords. Use 'helpgen repair force' to add keywords.\r\n", 
                    missing_keywords);
     }
     
@@ -1968,7 +1968,7 @@ ACMD(do_helpadmin) {
       send_to_char(ch, "Issues fixed: %d\r\n", fixed);
       send_to_char(ch, "\r\nDatabase repair complete.\r\n");
     } else {
-      send_to_char(ch, "\r\nUse 'helpadmin repair force' to fix these issues.\r\n");
+      send_to_char(ch, "\r\nUse 'helpgen repair force' to fix these issues.\r\n");
     }
     
     return;
@@ -1979,13 +1979,13 @@ ACMD(do_helpadmin) {
     
     if (!*arg2) {
       send_to_char(ch, "WARNING: Import requires an explicit mode to prevent accidental data changes.\r\n"
-                       "\r\nUsage: helpadmin import <mode>\r\n"
+                       "\r\nUsage: helpgen import <mode>\r\n"
                        "Available modes:\r\n"
                        "  preview - Dry run, shows what would be imported without making changes\r\n"
                        "  skip    - Only import new entries, skip any that already exist\r\n"
                        "  merge   - Creates new entries with suffixes (_2, _3) for duplicates\r\n"
                        "  force   - Overwrites existing entries that share keywords\r\n"
-                       "\r\nExample: helpadmin import preview\r\n");
+                       "\r\nExample: helpgen import preview\r\n");
       return;
     }
     
@@ -2011,7 +2011,7 @@ ACMD(do_helpadmin) {
     
     if (!*arg2) {
       send_to_char(ch, "WARNING: Export requires an explicit mode to prevent accidental file overwrites.\r\n"
-                       "\r\nUsage: helpadmin export <mode> [options]\r\n"
+                       "\r\nUsage: helpgen export <mode> [options]\r\n"
                        "Required modes:\r\n"
                        "  preview - Dry run, shows what would be exported without writing files\r\n"
                        "  backup  - Creates timestamped backup before exporting\r\n"
@@ -2020,9 +2020,9 @@ ACMD(do_helpadmin) {
                        "  noauto      - Exclude auto-generated entries\r\n"
                        "  level <num> - Only export entries accessible at level or below\r\n"
                        "\r\nExamples:\r\n"
-                       "  helpadmin export preview        - See what would be exported\r\n"
-                       "  helpadmin export backup         - Safe export with backup\r\n"
-                       "  helpadmin export force noauto   - Overwrite, excluding auto-generated\r\n");
+                       "  helpgen export preview        - See what would be exported\r\n"
+                       "  helpgen export backup         - Safe export with backup\r\n"
+                       "  helpgen export force noauto   - Overwrite, excluding auto-generated\r\n");
       return;
     }
     
@@ -2032,7 +2032,7 @@ ACMD(do_helpadmin) {
     } else {
       send_to_char(ch, "Invalid export mode '%s'.\r\n"
                        "Valid modes are: preview, backup, or force\r\n"
-                       "Use 'helpadmin export' for full usage information.\r\n", arg2);
+                       "Use 'helpgen export' for full usage information.\r\n", arg2);
       return;
     }
     
@@ -2867,7 +2867,7 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode) {
     APPEND_TO_BUF("Would import: %d\r\n", imported);
     APPEND_TO_BUF("Would skip: %d\r\n", skipped);
     APPEND_TO_BUF("\r\nThis was a PREVIEW. No changes were made.\r\n");
-    APPEND_TO_BUF("Use 'helpadmin import skip', 'merge', or 'force' to actually import.\r\n");
+    APPEND_TO_BUF("Use 'helpgen import skip', 'merge', or 'force' to actually import.\r\n");
   } else {
     APPEND_TO_BUF("Successfully imported: %d\r\n", imported);
     APPEND_TO_BUF("Skipped (duplicates): %d\r\n", skipped);

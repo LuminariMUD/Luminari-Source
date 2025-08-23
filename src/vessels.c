@@ -232,9 +232,6 @@ void greyhawk_initialize_ships(void) {
     }
   }
   
-  /* Initialize vessel database persistence */
-  init_vessel_db();
-  
   log("Greyhawk ship system initialized.");
 }
 

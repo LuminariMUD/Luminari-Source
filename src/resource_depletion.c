@@ -16,6 +16,7 @@
 #include "wilderness.h"
 #include "resource_system.h"
 #include "resource_depletion.h"
+#include "resource_regeneration.h"
 #include "mysql.h"
 
 /* ===== DATABASE INITIALIZATION ===== */
@@ -212,6 +213,10 @@ void apply_lazy_regeneration(room_rnum room, int resource_type)
             
             if (mysql_query_safe(conn, update_query)) {
                 log("SYSERR: Error updating regeneration: %s", mysql_error(conn));
+            } else {
+                /* Log regeneration event if logging is enabled */
+                log_regeneration_event(zone_vnum, x, y, resource_type, 
+                                     current_depletion, new_depletion, regeneration, "natural");
             }
         }
     }

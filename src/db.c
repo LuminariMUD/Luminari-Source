@@ -188,7 +188,6 @@ static int check_object_spell_number(struct obj_data *obj, int val);
 static int check_object_level(struct obj_data *obj, int val);
 static int check_object(struct obj_data *);
 static void load_zones(FILE *fl, char *zonename);
-static void check_zone_overlaps(void);
 static int file_to_string(const char *name, char *buf);
 static int file_to_string_alloc(const char *name, char **buf);
 static int count_alias_records(FILE *fl);
@@ -263,104 +262,20 @@ sbyte test_result(sbyte offset, zone_rnum zone, int cmd_no)
 {
   if (abs(offset) > result_q.size)
   {
-    /* Get detailed command description */
-    const char *cmd_desc = "Unknown command";
-    char detail_buf[512] = {'\0'};
-    
-    switch (zone_table[zone].cmd[cmd_no].command) {
-      case 'M':
-        snprintf(detail_buf, sizeof(detail_buf), "'M' (Load Mobile): mob vnum %d to room %d", 
-                zone_table[zone].cmd[cmd_no].arg1 >= 0 ? mob_index[zone_table[zone].cmd[cmd_no].arg1].vnum : -1,
-                zone_table[zone].cmd[cmd_no].arg3 >= 0 ? world[zone_table[zone].cmd[cmd_no].arg3].number : -1);
-        cmd_desc = detail_buf;
-        break;
-      case 'O':
-        snprintf(detail_buf, sizeof(detail_buf), "'O' (Load Object to Room): obj vnum %d to room %d", 
-                zone_table[zone].cmd[cmd_no].arg1 >= 0 && zone_table[zone].cmd[cmd_no].arg1 <= top_of_objt ? 
-                  obj_index[zone_table[zone].cmd[cmd_no].arg1].vnum : -1,
-                zone_table[zone].cmd[cmd_no].arg3 >= 0 && zone_table[zone].cmd[cmd_no].arg3 < top_of_world ? 
-                  world[zone_table[zone].cmd[cmd_no].arg3].number : -1);
-        cmd_desc = detail_buf;
-        break;
-      case 'P':
-        snprintf(detail_buf, sizeof(detail_buf), "'P' (Put Object in Object): obj vnum %d into container vnum %d", 
-                zone_table[zone].cmd[cmd_no].arg1 >= 0 && zone_table[zone].cmd[cmd_no].arg1 <= top_of_objt ? 
-                  obj_index[zone_table[zone].cmd[cmd_no].arg1].vnum : -1,
-                zone_table[zone].cmd[cmd_no].arg3);
-        cmd_desc = detail_buf;
-        break;
-      case 'G':
-        snprintf(detail_buf, sizeof(detail_buf), "'G' (Give Object to Mobile): obj vnum %d to last loaded mob", 
-                zone_table[zone].cmd[cmd_no].arg1 >= 0 && zone_table[zone].cmd[cmd_no].arg1 <= top_of_objt ? 
-                  obj_index[zone_table[zone].cmd[cmd_no].arg1].vnum : -1);
-        cmd_desc = detail_buf;
-        break;
-      case 'E':
-        snprintf(detail_buf, sizeof(detail_buf), "'E' (Equip Mobile with Object): obj vnum %d on last mob, pos %d", 
-                zone_table[zone].cmd[cmd_no].arg1 >= 0 && zone_table[zone].cmd[cmd_no].arg1 <= top_of_objt ? 
-                  obj_index[zone_table[zone].cmd[cmd_no].arg1].vnum : -1,
-                zone_table[zone].cmd[cmd_no].arg3);
-        cmd_desc = detail_buf;
-        break;
-      case 'D':
-        snprintf(detail_buf, sizeof(detail_buf), "'D' (Set Door State): room %d, door %d", 
-                zone_table[zone].cmd[cmd_no].arg1 >= 0 && zone_table[zone].cmd[cmd_no].arg1 < top_of_world ? 
-                  world[zone_table[zone].cmd[cmd_no].arg1].number : -1,
-                zone_table[zone].cmd[cmd_no].arg2);
-        cmd_desc = detail_buf;
-        break;
-      case 'T':
-        snprintf(detail_buf, sizeof(detail_buf), "'T' (Attach Trigger): trigger vnum %d", 
-                zone_table[zone].cmd[cmd_no].arg2);
-        cmd_desc = detail_buf;
-        break;
-      case 'V':
-        snprintf(detail_buf, sizeof(detail_buf), "'V' (Set Global Variable): context %d, var '%s'", 
-                zone_table[zone].cmd[cmd_no].arg2,
-                zone_table[zone].cmd[cmd_no].sarg1 ? zone_table[zone].cmd[cmd_no].sarg1 : "none");
-        cmd_desc = detail_buf;
-        break;
-      case 'R':
-        snprintf(detail_buf, sizeof(detail_buf), "'R' (Remove Object from Room): obj vnum %d from room %d", 
-                zone_table[zone].cmd[cmd_no].arg2,
-                zone_table[zone].cmd[cmd_no].arg1 >= 0 && zone_table[zone].cmd[cmd_no].arg1 < top_of_world ? 
-                  world[zone_table[zone].cmd[cmd_no].arg1].number : -1);
-        cmd_desc = detail_buf;
-        break;
-      case '*':
-        cmd_desc = "'*' (Comment/Disabled command)";
-        break;
-      case 'S':
-        cmd_desc = "'S' (Stop/End of zone commands)";
-        break;
-      default:
-        snprintf(detail_buf, sizeof(detail_buf), "'%c' (Unknown command type)", 
-                zone_table[zone].cmd[cmd_no].command);
-        cmd_desc = detail_buf;
-        break;
-    }
-    
-    /* Enhanced error message with full context */
-    log("ZONE ERROR: Zone #%d (%s)", zone_table[zone].number, zone_table[zone].name);
-    log("  File: lib/world/zon/%d.zon, Line %d", zone_table[zone].number, zone_table[zone].cmd[cmd_no].line);
-    log("  Command #%d: %s", cmd_no + 1, cmd_desc);
-    log("  Problem: if_flag %d references command #%d back, but only %d commands have executed so far", 
-        offset, abs(offset), result_q.size);
-    
-    /* Provide clear fix instructions */
-    log("ZONE FIX OPTIONS:");
-    log("  1. In-game: zedit %d, then 'c' to change command #%d, set if_flag to 0", 
-        zone_table[zone].number, cmd_no + 1);
-    log("  2. File edit: Edit lib/world/zon/%d.zon, find line %d, change if_flag value to 0", 
-        zone_table[zone].number, zone_table[zone].cmd[cmd_no].line);
-    
+    log("ZONE ERROR: Zone #%d, Line %d, Command #%d ('%c'): if_flag %d references command #%d back, but only %d commands have executed so far.",
+        zone_table[zone].number,
+        zone_table[zone].cmd[cmd_no].line,
+        cmd_no + 1,
+        zone_table[zone].cmd[cmd_no].command,
+        offset,
+        abs(offset),
+        result_q.size);
+    log("ZONE FIX: Change the if_flag from %d to 0 (always execute) or to a smaller value (1-%d) that references an existing previous command.",
+        offset,
+        result_q.size > 0 ? result_q.size : 1);
     if (cmd_no == 0) {
-      log("  NOTE: This is the FIRST command - it cannot depend on previous commands!");
-    } else if (cmd_no < abs(offset)) {
-      log("  NOTE: Command #%d cannot reference %d commands back (only %d commands before it)", 
-          cmd_no + 1, abs(offset), cmd_no);
+      log("ZONE FIX: This is the FIRST command in the zone - it cannot depend on previous commands! Set if_flag to 0.");
     }
-    
     return FALSE;
   }
 
@@ -1223,14 +1138,6 @@ void boot_db(void)
   init_obj_rnum_hash();
 
   boot_world();
-  
-  /* Check for zone overlap issues after all zones are loaded 
-   * This detects problems like zone 190 (19000-19999) overlapping with
-   * zone 192 (19200-19299) which can cause serious issues in the game.
-   * The check runs after all zones are loaded but before other systems
-   * that depend on proper zone configuration are initialized.
-   */
-  check_zone_overlaps();
 
   log("Loading help entries.");
   index_boot(DB_BOOT_HLP);
@@ -4113,86 +4020,6 @@ static void load_zones(FILE *fl, char *zonename)
 }
 #undef Z
 
-/* Check for overlapping zone vnum ranges and report any issues found 
- * This function detects zones that have overlapping or encompassing vnum ranges
- * which can cause serious issues in the game.
- * Example problem: Zone 190 (19000-19999) and Zone 192 (19200-19299) overlap
- */
-static void check_zone_overlaps(void)
-{
-  zone_rnum i, j;
-  int overlap_found = FALSE;
-  char buf[MAX_STRING_LENGTH];
-  
-  log("Checking for zone vnum range overlaps...");
-  
-  /* Compare each zone with every other zone */
-  for (i = 0; i <= top_of_zone_table; i++)
-  {
-    for (j = i + 1; j <= top_of_zone_table; j++)
-    {
-      /* Check if zones overlap in any way:
-       * 1. Zone i's range contains zone j's start
-       * 2. Zone i's range contains zone j's end  
-       * 3. Zone j's range contains zone i's start
-       * 4. Zone j's range contains zone i's end
-       * 5. One zone completely encompasses the other
-       */
-      
-      /* Check if zone j starts or ends within zone i */
-      if ((zone_table[j].bot >= zone_table[i].bot && zone_table[j].bot <= zone_table[i].top) ||
-          (zone_table[j].top >= zone_table[i].bot && zone_table[j].top <= zone_table[i].top))
-      {
-        snprintf(buf, sizeof(buf), 
-                "SYSERR: Zone overlap detected! Zone %d (%s) [vnums %d-%d] overlaps with Zone %d (%s) [vnums %d-%d]",
-                zone_table[i].number, zone_table[i].name, 
-                zone_table[i].bot, zone_table[i].top,
-                zone_table[j].number, zone_table[j].name,
-                zone_table[j].bot, zone_table[j].top);
-        log("%s", buf);
-        overlap_found = TRUE;
-        
-        /* Check if one zone completely encompasses the other */
-        if (zone_table[j].bot >= zone_table[i].bot && zone_table[j].top <= zone_table[i].top)
-        {
-          log("  -> Zone %d completely encompasses Zone %d!", 
-              zone_table[i].number, zone_table[j].number);
-        }
-        else if (zone_table[i].bot >= zone_table[j].bot && zone_table[i].top <= zone_table[j].top)
-        {
-          log("  -> Zone %d completely encompasses Zone %d!", 
-              zone_table[j].number, zone_table[i].number);
-        }
-      }
-      /* Check if zone i starts or ends within zone j (catches reverse overlaps) */
-      else if ((zone_table[i].bot >= zone_table[j].bot && zone_table[i].bot <= zone_table[j].top) ||
-               (zone_table[i].top >= zone_table[j].bot && zone_table[i].top <= zone_table[j].top))
-      {
-        snprintf(buf, sizeof(buf),
-                "SYSERR: Zone overlap detected! Zone %d (%s) [vnums %d-%d] overlaps with Zone %d (%s) [vnums %d-%d]",
-                zone_table[i].number, zone_table[i].name,
-                zone_table[i].bot, zone_table[i].top,
-                zone_table[j].number, zone_table[j].name,
-                zone_table[j].bot, zone_table[j].top);
-        log("%s", buf);
-        overlap_found = TRUE;
-      }
-    }
-  }
-  
-  if (overlap_found)
-  {
-    log("CRITICAL: Zone overlap issues detected! This can cause serious problems.");
-    log("         Please fix the zone vnum ranges before continuing.");
-    /* Optionally exit if overlaps are critical enough */
-    /* exit(1); */
-  }
-  else
-  {
-    log("Zone overlap check complete - no issues found.");
-  }
-}
-
 static void get_one_line(FILE *fl, char *buf)
 {
   if (fgets(buf, READ_SIZE, fl) == NULL)
@@ -4827,94 +4654,48 @@ int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
 
 static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
 {
-  char cmd_explain[512];
+  char cmd_explain[256];
   
-  /* Get detailed command information */
+  /* Explain what each command type does */
   switch (ZCMD.command) {
     case 'M':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'M' (Load Mobile): mob vnum %d to room %d, max %d (%d%%)", 
-              ZCMD.arg1 >= 0 && ZCMD.arg1 <= top_of_mobt ? mob_index[ZCMD.arg1].vnum : -1,
-              ZCMD.arg3 >= 0 && ZCMD.arg3 < top_of_world ? world[ZCMD.arg3].number : -1,
-              ZCMD.arg2, ZCMD.arg4);
+      snprintf(cmd_explain, sizeof(cmd_explain), "M = Load Mobile/NPC");
       break;
     case 'O':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'O' (Load Object to Room): obj vnum %d to room %d, max %d (%d%%)", 
-              ZCMD.arg1 >= 0 && ZCMD.arg1 <= top_of_objt ? obj_index[ZCMD.arg1].vnum : -1,
-              ZCMD.arg3 >= 0 && ZCMD.arg3 < top_of_world ? world[ZCMD.arg3].number : -1,
-              ZCMD.arg2, ZCMD.arg4);
+      snprintf(cmd_explain, sizeof(cmd_explain), "O = Load Object in room");
       break;
     case 'P':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'P' (Put Object in Container): obj vnum %d into container vnum %d, max %d (%d%%)", 
-              ZCMD.arg1 >= 0 && ZCMD.arg1 <= top_of_objt ? obj_index[ZCMD.arg1].vnum : -1,
-              ZCMD.arg3, ZCMD.arg2, ZCMD.arg4);
+      snprintf(cmd_explain, sizeof(cmd_explain), "P = Put object inside container");
       break;
     case 'G':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'G' (Give Object to Mobile): obj vnum %d to last mob, max %d (%d%%)", 
-              ZCMD.arg1 >= 0 && ZCMD.arg1 <= top_of_objt ? obj_index[ZCMD.arg1].vnum : -1,
-              ZCMD.arg2, ZCMD.arg3);
+      snprintf(cmd_explain, sizeof(cmd_explain), "G = Give object to mobile");
       break;
     case 'E':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'E' (Equip Mobile with Object): obj vnum %d on last mob, pos %d, max %d (%d%%)", 
-              ZCMD.arg1 >= 0 && ZCMD.arg1 <= top_of_objt ? obj_index[ZCMD.arg1].vnum : -1,
-              ZCMD.arg3, ZCMD.arg2, ZCMD.arg4);
+      snprintf(cmd_explain, sizeof(cmd_explain), "E = Equip object on mobile");
       break;
     case 'D':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'D' (Set Door State): room %d, door %d, state %d", 
-              ZCMD.arg1 >= 0 && ZCMD.arg1 < top_of_world ? world[ZCMD.arg1].number : -1,
-              ZCMD.arg2, ZCMD.arg3);
+      snprintf(cmd_explain, sizeof(cmd_explain), "D = Set door state");
       break;
     case 'T':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'T' (Attach Trigger): trigger vnum %d to %s", 
-              ZCMD.arg2, 
-              ZCMD.arg1 == MOB_TRIGGER ? "mobile" : ZCMD.arg1 == OBJ_TRIGGER ? "object" : "room");
+      snprintf(cmd_explain, sizeof(cmd_explain), "T = Attach trigger");
       break;
     case 'V':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'V' (Set Global Variable): context %d, var '%s'", 
-              ZCMD.arg2, ZCMD.sarg1 ? ZCMD.sarg1 : "none");
+      snprintf(cmd_explain, sizeof(cmd_explain), "V = Set variable");
       break;
     case 'L':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'L' (Load Treasure): in container vnum %d (%d%%)", 
-              ZCMD.arg3, ZCMD.arg2);
-      break;
-    case 'R':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'R' (Remove Object from Room): obj vnum %d from room %d", 
-              ZCMD.arg2,
-              ZCMD.arg1 >= 0 && ZCMD.arg1 < top_of_world ? world[ZCMD.arg1].number : -1);
-      break;
-    case 'I':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'I' (Random Treasure to Mobile): %d%% chance", 
-              ZCMD.arg1);
-      break;
-    case 'J':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'J' (Jump): skip %d commands (%d%% chance)", 
-              ZCMD.arg1, ZCMD.arg2);
-      break;
-    case '*':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'*' (Comment/Disabled command)");
-      break;
-    case 'S':
-      snprintf(cmd_explain, sizeof(cmd_explain), "'S' (Stop/End of zone commands)");
+      snprintf(cmd_explain, sizeof(cmd_explain), "L = Load treasure in container");
       break;
     default:
-      snprintf(cmd_explain, sizeof(cmd_explain), "'%c' (Unknown command type)", ZCMD.command);
+      snprintf(cmd_explain, sizeof(cmd_explain), "%c = Unknown command", ZCMD.command);
       break;
   }
   
-  /* Enhanced error output with full context */
-  mudlog(CMP, LVL_STAFF, TRUE, "================== ZONE ERROR REPORT ==================");
-  mudlog(CMP, LVL_STAFF, TRUE, "Zone #%d (%s)", zone_table[zone].number, zone_table[zone].name);
-  mudlog(CMP, LVL_STAFF, TRUE, "File: lib/world/zon/%d.zon, Line %d", zone_table[zone].number, ZCMD.line);
-  mudlog(CMP, LVL_STAFF, TRUE, "Command #%d: %s", cmd_no + 1, cmd_explain);
-  mudlog(CMP, LVL_STAFF, TRUE, "If_flag: %d (depends on command %d back)", 
-         ZCMD.if_flag, abs(ZCMD.if_flag));
-  mudlog(CMP, LVL_STAFF, TRUE, "Error: %s", message);
-  mudlog(CMP, LVL_STAFF, TRUE, " ");
-  mudlog(CMP, LVL_STAFF, TRUE, "TO FIX:");
-  mudlog(CMP, LVL_STAFF, TRUE, "  1. In-game: zedit %d, then 'c' to change command #%d", 
-         zone_table[zone].number, cmd_no + 1);
-  mudlog(CMP, LVL_STAFF, TRUE, "  2. File: Edit lib/world/zon/%d.zon at line %d", 
+  mudlog(CMP, LVL_STAFF, TRUE, "ZONE ERROR: Zone #%d, Line %d: %s", 
+         zone_table[zone].number, ZCMD.line, message);
+  mudlog(CMP, LVL_STAFF, TRUE, "ZONE INFO: Command '%c' (%s) at position #%d in zone file",
+         ZCMD.command, cmd_explain, cmd_no);
+  mudlog(CMP, LVL_STAFF, TRUE, "ZONE FIX: Edit the zone file with 'zedit %d' and check line %d",
          zone_table[zone].number, ZCMD.line);
-  mudlog(CMP, LVL_STAFF, TRUE, "========================================================");
 }
 
 /*
