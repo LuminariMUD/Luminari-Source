@@ -3824,6 +3824,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     CREATE(new_dr, struct damage_reduction_type, 1);
 
+    new_dr->duration = 600;  /* Initialize duration field - CRITICAL FIX */
     new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
     new_dr->bypass_val[0] = 0;
 
@@ -4391,6 +4392,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     CREATE(new_dr, struct damage_reduction_type, 1);
 
+    new_dr->duration = 600;  /* Initialize duration field - CRITICAL FIX */
     new_dr->bypass_cat[0] = DR_BYPASS_CAT_DAMTYPE;
     new_dr->bypass_val[0] = DR_DAMTYPE_SLASHING;
 
@@ -4446,6 +4448,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     CREATE(new_dr, struct damage_reduction_type, 1);
 
+    new_dr->duration = 600;  /* Initialize duration field - CRITICAL FIX */
     new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
     new_dr->bypass_val[0] = MATERIAL_ADAMANTINE;
 
@@ -4505,6 +4508,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     CREATE(new_dr, struct damage_reduction_type, 1);
 
+    new_dr->duration = 600;  /* Initialize duration field - CRITICAL FIX */
     new_dr->bypass_cat[0] = DR_BYPASS_CAT_MAGIC;
     new_dr->bypass_val[0] = 0;
 
@@ -4551,6 +4555,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     CREATE(new_dr, struct damage_reduction_type, 1);
 
+    new_dr->duration = 600;  /* Initialize duration field - CRITICAL FIX */
     new_dr->bypass_cat[0] = DR_BYPASS_CAT_UNUSED;
     new_dr->bypass_val[0] = 0;
 
@@ -5044,6 +5049,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     CREATE(new_dr, struct damage_reduction_type, 1);
 
+    new_dr->duration = 600;  /* Initialize duration field - CRITICAL FIX */
     new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
     new_dr->bypass_val[0] = MATERIAL_ALCHEMAL_SILVER;
 
@@ -8043,6 +8049,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     CREATE(new_dr, struct damage_reduction_type, 1);
 
+    new_dr->duration = level * 5;  /* Initialize duration field - CRITICAL FIX */
     new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
     new_dr->bypass_val[0] = MATERIAL_ADAMANTINE;
 
@@ -8257,6 +8264,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     CREATE(new_dr, struct damage_reduction_type, 1);
 
+    new_dr->duration = 600;  /* Initialize duration field - CRITICAL FIX */
     new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
     new_dr->bypass_val[0] = MATERIAL_ADAMANTINE;
 
@@ -8284,6 +8292,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     CREATE(new_dr, struct damage_reduction_type, 1);
 
+    new_dr->duration = 600;  /* Initialize duration field - CRITICAL FIX */
     new_dr->bypass_cat[0] = DR_BYPASS_CAT_DAMTYPE;
     new_dr->bypass_val[0] = DAM_SLICE;
 
@@ -8323,8 +8332,9 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     CREATE(new_dr, struct damage_reduction_type, 1);
 
-    new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
-    new_dr->bypass_val[1] = 0; // Unused.
+    new_dr->duration = 600;  /* Initialize duration field - CRITICAL FIX */
+    new_dr->bypass_cat[0] = DR_BYPASS_CAT_UNUSED;  /* Fix: was missing bypass_cat[0] */
+    new_dr->bypass_val[0] = 0; // Unused.
 
     new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
     new_dr->bypass_val[1] = 0; // Unused.
