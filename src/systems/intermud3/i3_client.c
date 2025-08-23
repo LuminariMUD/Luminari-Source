@@ -420,7 +420,6 @@ static void i3_handle_message(const char *json_str)
 {
     json_object *root, *method_obj, *params_obj;
     const char *method;
-    i3_event_t *event;
     pthread_mutex_t *mutex_ptr;
     
     root = json_tokener_parse(json_str);
@@ -529,8 +528,8 @@ static void i3_queue_command(i3_command_t *cmd)
     pthread_mutex_unlock(mutex_ptr);
 }
 
-/* Queue event for processing */
-static void i3_queue_event(i3_event_t *event)
+/* Queue event for processing - currently unused but kept for future implementation */
+__attribute__((unused)) static void i3_queue_event(i3_event_t *event)
 {
     pthread_mutex_t *mutex_ptr;
     
@@ -717,7 +716,6 @@ int i3_send_channel_message(const char *channel, const char *from_user,
 void i3_process_events(void)
 {
     i3_event_t *event;
-    struct char_data *ch;
     
     while ((event = i3_pop_event()) != NULL) {
         switch (event->type) {

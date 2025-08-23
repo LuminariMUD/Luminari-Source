@@ -158,6 +158,8 @@ circle_SOURCES = \
 	src/systems/terrainbridge/terrain_bridge.c \
 	src/systems/region_hints/region_hints.c \
 	src/systems/narrative_weaver/narrative_weaver.c \
+	src/systems/intermud3/i3_client.c \
+	src/systems/intermud3/i3_commands.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \
