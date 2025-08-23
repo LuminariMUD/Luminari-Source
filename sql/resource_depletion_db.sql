@@ -56,3 +56,21 @@ INSERT IGNORE INTO resource_statistics (resource_type, average_depletion_level, 
 (7, 1.0, 1.0),   -- RESOURCE_CRYSTAL (rare, very slow regeneration)
 (8, 1.0, 1.0),   -- RESOURCE_CLAY (moderate regeneration, weather dependent)
 (9, 1.0, 1.0);   -- RESOURCE_SALT (slow regeneration, location dependent)
+
+-- Resource regeneration events log
+-- Tracks when and how resources regenerate at coordinate locations
+CREATE TABLE IF NOT EXISTS resource_regeneration_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    zone_vnum INT NOT NULL,
+    x_coord INT NOT NULL,
+    y_coord INT NOT NULL,
+    resource_type INT NOT NULL,
+    old_depletion_level FLOAT NOT NULL,
+    new_depletion_level FLOAT NOT NULL,
+    regeneration_amount FLOAT NOT NULL,
+    regeneration_type ENUM('natural', 'seasonal', 'magical', 'admin') DEFAULT 'natural',
+    regeneration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_location_regen (zone_vnum, x_coord, y_coord),
+    INDEX idx_time_regen (regeneration_time)
+);
+

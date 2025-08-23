@@ -1272,16 +1272,9 @@
 #define MOB_PALADIN_MOUNT_SMALL 91
 #define MOB_EPIC_PALADIN_MOUNT 79
 #define MOB_EPIC_PALADIN_MOUNT_SMALL 92
-#ifdef CAMPAIGN_DL
 #define MOB_EPIC_BLACKGUARD_MOUNT 20803
 #define MOB_BLACKGUARD_MOUNT 20804
 #define MOB_ADV_BLACKGUARD_MOUNT 20805
-#else
-/* Default Luminari campaign blackguard mounts */
-#define MOB_BLACKGUARD_MOUNT 1234        /* Basic dark warhorse */
-#define MOB_EPIC_BLACKGUARD_MOUNT 1236   /* Epic shadow drake */
-#define MOB_ADV_BLACKGUARD_MOUNT 1238    /* Advanced fiendish warhorse */
-#endif
 #define MAX_MERCS 3
 /***  end misc defines ****/
 /**********************/

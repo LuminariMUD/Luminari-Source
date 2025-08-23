@@ -18,8 +18,10 @@
 #include "constants.h"
 #include "mysql.h"
 #include "desc_engine.h"
+#include "systems/narrative_weaver/narrative_weaver.h"
 #include "wilderness.h"
 #include "resource_descriptions.h"
+#include "region_hints.h"
 
 /*
  * Luminari Description Engine
@@ -52,9 +54,21 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 	/* Use new resource-aware descriptions for Luminari campaign */
 	if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))) {
 		log("DEBUG: Generating dynamic description for wilderness room %d", GET_ROOM_VNUM(room));
+		
+		/* Try unified narrative weaver system first */
+		int x = world[room].coords[0];
+		int y = world[room].coords[1];
+		zone_rnum zone = GET_ROOM_ZONE(room);
+		char *unified_desc = enhanced_wilderness_description_unified(ch, room, zone, x, y);
+		if (unified_desc) {
+			log("DEBUG: Unified narrative description generated successfully for (%d, %d)", x, y);
+			return unified_desc;
+		}
+		
+		/* Fall back to resource-aware descriptions */
 		char *resource_desc = generate_resource_aware_description(ch, room);
 		if (resource_desc) {
-			log("DEBUG: Dynamic description generated successfully");
+			log("DEBUG: Resource-aware description generated successfully");
 			return resource_desc;
 		}
 		log("DEBUG: Dynamic description generation failed, falling back to original");

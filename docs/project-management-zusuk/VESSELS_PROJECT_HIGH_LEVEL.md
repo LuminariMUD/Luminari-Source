@@ -1,9 +1,9 @@
 # UNIFIED VESSEL SYSTEM - HIGH-LEVEL PROJECT PLAN
 
 **Project Code:** VESSELS-UNIFIED-2025  
-**Document Version:** 2.2  
+**Document Version:** 2.1  
 **Created:** January 2025  
-**Updated:** January 18, 2025  
+**Updated:** January 17, 2025  
 **Classification:** Strategic Planning Document  
 
 ---
@@ -83,22 +83,21 @@ UNIFIED VESSEL SYSTEM
 - ✅ Commands provide real-time position and status feedback
 - ✅ Foundation ready for Phase 2
 
-### Phase 2: Multi-Room Integration 🚧 IN PROGRESS - 85% Complete (January 2025)
+### Phase 2: Multi-Room Integration 🚧 IN PROGRESS - 80% Complete (January 2025)
 **Objective:** Add Outcast's superior multi-room capabilities
 
 **Deliverables Completed:**
 - ✅ Room discovery algorithm with vessel-type specific generation
 - ✅ Room template system (10 types: bridge, quarters, cargo, etc.)
-- ✅ Interior navigation with smart connections and movement system
+- ✅ Interior navigation with smart connections
 - ✅ Docking mechanics with safety checks
 - ✅ Ship-to-ship boarding (peaceful and hostile)
 - ✅ 5 new commands (dock, undock, board_hostile, look_outside, ship_rooms)
 - ✅ **Build system integration (Makefile.am and CMakeLists.txt)**
-- ✅ **Successful compilation with vessels_rooms.c, vessels_docking.c, and vessels_db.c**
-- ✅ **Database persistence layer (MySQL integration complete)**
-- ✅ **Interior movement integration (do_move_ship_interior)**
+- ✅ **Successful compilation with vessels_rooms.c and vessels_docking.c**
 
 **Deliverables Remaining:**
+- 📋 Database persistence for ship configurations
 - 📋 NPC crew management integration
 - 📋 Full cargo transfer system
 - 📋 Performance optimization

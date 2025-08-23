@@ -29,24 +29,8 @@ void startup_database_init(void)
 
     log("Starting database startup initialization...");
 
-    /* Perform quick database status check */
-    if (!quick_database_status()) {
-        log("NOTICE: Database tables missing or incomplete - running full initialization");
-        init_luminari_database();
-        
-        /* Populate with reference data if tables were created */
-        log("Populating database with reference data...");
-        populate_resource_types_data();
-        populate_material_categories_data();
-        populate_material_qualities_data();
-        populate_region_effects_data();
-        populate_ai_config_data();
-        populate_region_system_data();
-        
-        log("Database initialization and data population completed");
-    } else {
-        log("Database tables present and operational");
-    }
+    /* Perform selective table initialization - only create missing tables */
+    initialize_missing_tables();
 
     /* Verify critical systems are functional */
     if (!verify_core_player_tables()) {
@@ -56,43 +40,147 @@ void startup_database_init(void)
     log("Database startup initialization completed successfully");
 }
 
-/* Quick check to see if essential tables exist */
-int quick_database_status(void)
+/* Selectively initialize only missing table systems */
+void initialize_missing_tables(void)
 {
     if (!mysql_available || !conn) {
+        return;
+    }
+
+    log("Checking for missing database tables...");
+
+    /* Check and initialize individual table systems */
+    
+    /* Core player tables */
+    if (!table_exists("player_data")) {
+        log("Initializing core player tables...");
+        init_core_player_tables();
+        log("Core player tables initialized");
+    }
+
+    /* Object database tables */
+    if (!table_exists("object_database_items")) {
+        log("Initializing object database tables...");
+        init_object_database_tables();
+        log("Object database tables initialized");
+    }
+
+    /* Region system tables */
+    if (!table_exists("region_data")) {
+        log("Initializing region system tables...");
+        init_region_system_tables();
+        populate_region_system_data();
+        log("Region system tables initialized");
+    }
+
+    /* Resource system tables */
+    if (!table_exists("resource_types")) {
+        log("Initializing resource system tables...");
+        init_wilderness_resource_tables();
+        populate_resource_types_data();
+        populate_material_categories_data();
+        populate_material_qualities_data();
+        log("Resource system tables initialized");
+    }
+
+    /* Region hints tables - NEW SYSTEM */
+    if (!table_exists("region_hints")) {
+        log("Initializing region hints tables...");
+        init_region_hints_tables();
+        log("Region hints tables initialized");
+    }
+
+    /* AI service tables */
+    if (!table_exists("ai_service_config")) {
+        log("Initializing AI service tables...");
+        init_ai_service_tables();
+        populate_ai_config_data();
+        log("AI service tables initialized");
+    }
+
+    /* Crafting system tables */
+    if (!table_exists("crafting_recipes")) {
+        log("Initializing crafting system tables...");
+        init_crafting_system_tables();
+        log("Crafting system tables initialized");
+    }
+
+    /* Housing system tables */
+    if (!table_exists("player_housing")) {
+        log("Initializing housing system tables...");
+        init_housing_system_tables();
+        log("Housing system tables initialized");
+    }
+
+    /* Help system tables */
+    if (!table_exists("help_entries")) {
+        log("Initializing help system tables...");
+        init_help_system_tables();
+        log("Help system tables initialized");
+    }
+
+    /* Create database procedures if they don't exist */
+    if (!procedure_exists("bresenham_line")) {
+        log("Creating database procedures...");
+        create_database_procedures();
+        log("Database procedures created");
+    }
+
+    log("Missing table initialization completed");
+}
+
+/* Helper function to check if a table exists */
+int table_exists(const char *table_name)
+{
+    char query[512];
+    
+    if (!mysql_available || !conn || !table_name) {
         return FALSE;
     }
 
-    /* Check for a few key tables from different systems */
-    char *essential_tables[] = {
-        "player_data",              /* Core player system */
-        "object_database_items",    /* Object system */
-        "region_data",              /* Region system */
-        "resource_types"            /* Resource system */
-    };
+    snprintf(query, sizeof(query), "SHOW TABLES LIKE '%s'", table_name);
     
-    int num_tables = sizeof(essential_tables) / sizeof(essential_tables[0]);
-    char query[1024];
-    int i;
-
-    for (i = 0; i < num_tables; i++) {
-        snprintf(query, sizeof(query), "SHOW TABLES LIKE '%s'", essential_tables[i]);
-        
-        if (mysql_query_safe(conn, query)) {
-            log("SYSERR: Error checking essential table %s during startup: %s", 
-                essential_tables[i], mysql_error(conn));
-            return FALSE;
-        }
-
-        MYSQL_RES *result = mysql_store_result_safe(conn);
-        if (!result || mysql_num_rows(result) == 0) {
-            if (result) mysql_free_result(result);
-            log("Essential table '%s' missing during startup check", essential_tables[i]);
-            return FALSE;
-        }
-        mysql_free_result(result);
+    if (mysql_query_safe(conn, query)) {
+        log("SYSERR: Error checking table %s: %s", table_name, mysql_error(conn));
+        return FALSE;
     }
 
+    MYSQL_RES *result = mysql_store_result_safe(conn);
+    if (!result || mysql_num_rows(result) == 0) {
+        if (result) mysql_free_result(result);
+        return FALSE;
+    }
+    
+    mysql_free_result(result);
+    return TRUE;
+}
+
+/* Helper function to check if a stored procedure exists */
+int procedure_exists(const char *procedure_name)
+{
+    char query[512];
+    
+    if (!mysql_available || !conn || !procedure_name) {
+        return FALSE;
+    }
+
+    snprintf(query, sizeof(query), 
+            "SELECT ROUTINE_NAME FROM INFORMATION_SCHEMA.ROUTINES "
+            "WHERE ROUTINE_SCHEMA = DATABASE() AND ROUTINE_NAME = '%s'", 
+            procedure_name);
+    
+    if (mysql_query_safe(conn, query)) {
+        log("SYSERR: Error checking procedure %s: %s", procedure_name, mysql_error(conn));
+        return FALSE;
+    }
+
+    MYSQL_RES *result = mysql_store_result_safe(conn);
+    if (!result || mysql_num_rows(result) == 0) {
+        if (result) mysql_free_result(result);
+        return FALSE;
+    }
+    
+    mysql_free_result(result);
     return TRUE;
 }
 
