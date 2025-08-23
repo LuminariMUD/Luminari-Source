@@ -1737,36 +1737,16 @@ void perform_call(struct char_data *ch, int call_type, int level)
     /* For NPCs without a selection, randomly pick from valid dragon types */
 #ifdef CAMPAIGN_DL
     /* DragonLance campaign uses vnums 40401-40410 */
-    if (IS_NPC(ch))
+    if (!(mob_num = (GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 40400)))
     {
-      /* NPCs always get a random dragon */
-      mob_num = 40401 + rand_number(0, 9);
-    }
-    else if (GET_DRAGON_RIDER_DRAGON_TYPE(ch) > 0 && GET_DRAGON_RIDER_DRAGON_TYPE(ch) <= 10)
-    {
-      /* Player with valid selection: Dragon types are 1-10, so vnum is (1-10) + 40400 = 40401-40410 */
-      mob_num = GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 40400;
-    }
-    else
-    {
-      /* Player with no/invalid selection, pick random dragon */
+      /* Dragon types are 1-10, so vnum is (1-10) + 40400 = 40401-40410 */
       mob_num = 40401 + rand_number(0, 9);
     }
 #else
     /* Default campaign uses vnums 1240-1249 */
-    if (IS_NPC(ch))
+    if (!(mob_num = (GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 1239)))
     {
-      /* NPCs always get a random dragon */
-      mob_num = 1240 + rand_number(0, 9);
-    }
-    else if (GET_DRAGON_RIDER_DRAGON_TYPE(ch) > 0 && GET_DRAGON_RIDER_DRAGON_TYPE(ch) <= 10)
-    {
-      /* Player with valid selection: Dragon types are 1-10, so vnum is (1-10) + 1239 = 1240-1249 */
-      mob_num = GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 1239;
-    }
-    else
-    {
-      /* Player with no/invalid selection, pick random dragon */
+      /* Dragon types are 1-10, so vnum is (1-10) + 1239 = 1240-1249 */
       mob_num = 1240 + rand_number(0, 9);
     }
 #endif
@@ -1820,100 +1800,49 @@ void perform_call(struct char_data *ch, int call_type, int level)
 
   case MOB_C_MOUNT:
 
-    /* Handle NPCs first - check their class directly */
-    if (IS_NPC(ch))
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
     {
-      /* NPCs use GET_CLASS() which returns their class directly */
-      if (GET_CLASS(ch) == CLASS_PALADIN)
+      /* for now just one selection for paladins, soon to be changed */
+      if (HAS_FEAT(ch, FEAT_EPIC_MOUNT))
       {
-        /* Assign mount based on NPC level - NPCs can't have epic feats normally */
-        if (GET_LEVEL(ch) >= 25)  /* High level NPC gets epic mount */
-        {
-          if (GET_SIZE(ch) < SIZE_MEDIUM)
-            mob_num = MOB_EPIC_PALADIN_MOUNT_SMALL;
-          else
-            mob_num = MOB_EPIC_PALADIN_MOUNT;
-        }
+        if (GET_SIZE(ch) < SIZE_MEDIUM)
+          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT_SMALL;
         else
-        {
-          if (GET_SIZE(ch) < SIZE_MEDIUM)
-            mob_num = MOB_PALADIN_MOUNT_SMALL;
-          else
-            mob_num = MOB_PALADIN_MOUNT;
-        }
-      }
-      else if (GET_CLASS(ch) == CLASS_BLACKGUARD)
-      {
-        /* Assign mount based on NPC level */
-        if (GET_LEVEL(ch) >= 25)  /* High level NPC gets epic mount */
-        {
-          mob_num = MOB_EPIC_BLACKGUARD_MOUNT;
-        }
-        else if (GET_LEVEL(ch) >= 12)
-        {
-          mob_num = MOB_ADV_BLACKGUARD_MOUNT;
-        }
-        else
-        {
-          mob_num = MOB_BLACKGUARD_MOUNT;
-        }
+          GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
       }
       else
       {
-        /* NPC doesn't have the right class */
-        send_to_char(ch, "You need levels in either paladin or blackguard to call a mount.\r\n");
-        return;
+        if (GET_SIZE(ch) < SIZE_MEDIUM)
+          GET_MOUNT(ch) = MOB_PALADIN_MOUNT_SMALL;
+        else
+          GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
       }
-      /* For NPCs, we've directly set mob_num, so skip GET_MOUNT checks */
     }
-    else  /* Player handling - original code */
+    else if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) > 0)
     {
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+      if (HAS_FEAT(ch, FEAT_EPIC_MOUNT))
       {
-        /* for now just one selection for paladins, soon to be changed */
-        if (HAS_FEAT(ch, FEAT_EPIC_MOUNT))
-        {
-          if (GET_SIZE(ch) < SIZE_MEDIUM)
-            GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT_SMALL;
-          else
-            GET_MOUNT(ch) = MOB_EPIC_PALADIN_MOUNT;
-        }
-        else
-        {
-          if (GET_SIZE(ch) < SIZE_MEDIUM)
-            GET_MOUNT(ch) = MOB_PALADIN_MOUNT_SMALL;
-          else
-            GET_MOUNT(ch) = MOB_PALADIN_MOUNT;
-        }
-      }
-      else if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) > 0)
-      {
-        if (HAS_FEAT(ch, FEAT_EPIC_MOUNT))
-        {
-          GET_MOUNT(ch) = MOB_EPIC_BLACKGUARD_MOUNT;
-        }
-        else
-        {
-          if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 12)
-            GET_MOUNT(ch) = MOB_ADV_BLACKGUARD_MOUNT;
-          else
-            GET_MOUNT(ch) = MOB_BLACKGUARD_MOUNT;
-        }
+        GET_MOUNT(ch) = MOB_EPIC_BLACKGUARD_MOUNT;
       }
       else
       {
-        send_to_char(ch, "You need levels in either paladin or blackguard to call a mount.\r\n");
-        return;
+        if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 12)
+          GET_MOUNT(ch) = MOB_ADV_BLACKGUARD_MOUNT;
+        else
+          GET_MOUNT(ch) = MOB_BLACKGUARD_MOUNT;
       }
+    }
+    else
+    {
+      send_to_char(ch, "You need levels in either paladin or blackguard to call a mount.\r\n");
+      return;
+    }
 
-      /* do they even have a valid selection yet? */
-      if (GET_MOUNT(ch) <= 0)
-      {
-        send_to_char(ch, "You have to select your companion via the 'study' command.\r\n");
-        return;
-      }
-      
-      mob_num = GET_MOUNT(ch);
+    /* do they even have a valid selection yet? */
+    if (GET_MOUNT(ch) <= 0)
+    {
+      send_to_char(ch, "You have to select your companion via the 'study' command.\r\n");
+      return;
     }
 
     /* is the ability on cooldown? */
@@ -1922,6 +1851,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
       send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
       return;
     }
+
+    mob_num = GET_MOUNT(ch);
 
     break;
 
@@ -2030,11 +1961,6 @@ void perform_call(struct char_data *ch, int call_type, int level)
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
     GET_REAL_SIZE(mob) = GET_SIZE(ch) + 1;
     GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
-    /* Ensure mount has proper flags for auto-mounting - Zusuk: this will do the opposite of we want, the mobiles should already be set up properly */
-    /*
-    SET_BIT_AR(MOB_FLAGS(mob), MOB_C_MOUNT);
-    SET_BIT_AR(MOB_FLAGS(mob), MOB_MOUNTABLE);
-    */
     break;
   case MOB_EIDOLON:
     GET_LEVEL(mob) = MIN(30, level);

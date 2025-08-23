@@ -117,11 +117,6 @@ void mobile_activity(void)
           npc_ability_behave(ch);
         else if (dice(1, 4) == 3 && mob_knows_assigned_spells(ch))
           npc_assigned_spells(ch);
-        /* Paladins, Rangers, and Blackguards should use class_behave, not offensive_spells
-         * They are semi-casters with special behaviors (mount calling, lay on hands, etc) */
-        else if (GET_CLASS(ch) == CLASS_PALADIN || GET_CLASS(ch) == CLASS_RANGER || 
-                 GET_CLASS(ch) == CLASS_BLACKGUARD)
-          npc_class_behave(ch);
         else if (IS_NPC_CASTER(ch))
           npc_offensive_spells(ch);
         else
@@ -129,12 +124,9 @@ void mobile_activity(void)
         continue;
       }
 #if defined(CAMPAIGN_DL)
-      else if (!rand_number(0, 15) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_NPC_CASTER(ch) &&
-               GET_CLASS(ch) != CLASS_PALADIN && GET_CLASS(ch) != CLASS_RANGER && 
-               GET_CLASS(ch) != CLASS_BLACKGUARD)
+      else if (!rand_number(0, 15) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_NPC_CASTER(ch))
       {
         /* not in combat - reduced from 12.5% to 6.25% chance */
-        /* Semi-casters (paladins/rangers/blackguards) don't use generic spellup */
         npc_spellup(ch);
       }
       else if (!rand_number(0, 15) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_PSIONIC(ch))
@@ -143,12 +135,9 @@ void mobile_activity(void)
         npc_psionic_powerup(ch);
       }
 #else
-      else if (!rand_number(0, 15) && IS_NPC_CASTER(ch) &&
-               GET_CLASS(ch) != CLASS_PALADIN && GET_CLASS(ch) != CLASS_RANGER && 
-               GET_CLASS(ch) != CLASS_BLACKGUARD)
+      else if (!rand_number(0, 15) && IS_NPC_CASTER(ch))
       {
         /* not in combat - reduced from 12.5% to 6.25% chance */
-        /* Semi-casters (paladins/rangers/blackguards) don't use generic spellup */
         npc_spellup(ch);
       }
       else if (!rand_number(0, 15) && IS_PSIONIC(ch))
@@ -157,12 +146,10 @@ void mobile_activity(void)
         npc_psionic_powerup(ch);
       }
 #endif
-      else if (!rand_number(0, 8) && (!IS_NPC_CASTER(ch) || 
-               GET_CLASS(ch) == CLASS_PALADIN || GET_CLASS(ch) == CLASS_RANGER || 
-               GET_CLASS(ch) == CLASS_BLACKGUARD))
+      else if (!rand_number(0, 8) && !IS_NPC_CASTER(ch))
       {
-        /* not in combat, non-caster OR semi-caster - check for companion summoning and class behaviors */
-        npc_class_behave(ch);
+        /* not in combat, non-caster */
+        ; // this is where we'd put mob AI to use hide skill, etc
       }
     }
 

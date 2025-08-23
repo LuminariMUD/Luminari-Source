@@ -35,6 +35,7 @@ void init_luminari_database(void)
     init_object_database_tables();
     init_wilderness_resource_tables();
     init_region_system_tables();
+    init_region_hints_tables();
     init_ai_service_tables();
     init_crafting_system_tables();
     init_housing_system_tables();
@@ -726,7 +727,191 @@ void init_region_system_tables(void)
         return;
     }
 
+    /* Update region_data table with AI description fields if they don't exist */
+    const char *add_region_description_fields = 
+        "ALTER TABLE region_data "
+        "ADD COLUMN IF NOT EXISTS region_description LONGTEXT DEFAULT NULL, "
+        "ADD COLUMN IF NOT EXISTS description_version INT DEFAULT 1, "
+        "ADD COLUMN IF NOT EXISTS ai_agent_source VARCHAR(100) DEFAULT NULL, "
+        "ADD COLUMN IF NOT EXISTS last_description_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+        "ADD COLUMN IF NOT EXISTS description_style ENUM('poetic', 'practical', 'mysterious', 'dramatic', 'pastoral') DEFAULT 'poetic', "
+        "ADD COLUMN IF NOT EXISTS description_length ENUM('brief', 'moderate', 'detailed', 'extensive') DEFAULT 'moderate', "
+        "ADD COLUMN IF NOT EXISTS has_historical_context BOOLEAN DEFAULT FALSE, "
+        "ADD COLUMN IF NOT EXISTS has_resource_info BOOLEAN DEFAULT FALSE, "
+        "ADD COLUMN IF NOT EXISTS has_wildlife_info BOOLEAN DEFAULT FALSE, "
+        "ADD COLUMN IF NOT EXISTS has_geological_info BOOLEAN DEFAULT FALSE, "
+        "ADD COLUMN IF NOT EXISTS has_cultural_info BOOLEAN DEFAULT FALSE, "
+        "ADD COLUMN IF NOT EXISTS description_quality_score DECIMAL(3,2) DEFAULT NULL, "
+        "ADD COLUMN IF NOT EXISTS requires_review BOOLEAN DEFAULT FALSE, "
+        "ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT FALSE";
+
+    if (mysql_query_safe(conn, add_region_description_fields)) {
+        log("SYSERR: Failed to add region description fields: %s", mysql_error(conn));
+        /* Don't return - continue with other initializations */
+    } else {
+        log("Info: Region description fields added/verified successfully");
+    }
+
+    /* Add indexes for region description fields */
+    const char *add_region_description_indexes = 
+        "CREATE INDEX IF NOT EXISTS idx_region_has_description ON region_data (region_description(100)); "
+        "CREATE INDEX IF NOT EXISTS idx_region_description_approved ON region_data (is_approved, requires_review); "
+        "CREATE INDEX IF NOT EXISTS idx_region_description_quality ON region_data (description_quality_score); "
+        "CREATE INDEX IF NOT EXISTS idx_region_ai_source ON region_data (ai_agent_source)";
+
+    if (mysql_query_safe(conn, add_region_description_indexes)) {
+        log("SYSERR: Failed to create region description indexes: %s", mysql_error(conn));
+        /* Don't return - continue with other initializations */
+    } else {
+        log("Info: Region description indexes created successfully");
+    }
+
     log("Info: Region system tables initialized successfully");
+}
+
+/* ===== AI REGION HINTS SYSTEM TABLES ===== */
+
+void init_region_hints_tables(void)
+{
+    if (!mysql_available || !conn) {
+        log("MySQL not available, skipping region hints tables initialization");
+        return;
+    }
+
+    log("Initializing region hints system tables...");
+
+    /* region_hints - Main table for region hints */
+    const char *create_region_hints = 
+        "CREATE TABLE IF NOT EXISTS region_hints ("
+        "id INT AUTO_INCREMENT PRIMARY KEY, "
+        "region_vnum INT NOT NULL, "
+        "hint_category ENUM("
+            "'atmosphere', 'fauna', 'flora', 'geography', 'weather_influence', "
+            "'resources', 'landmarks', 'sounds', 'scents', 'seasonal_changes', "
+            "'time_of_day', 'mystical'"
+        ") NOT NULL, "
+        "hint_text TEXT NOT NULL, "
+        "priority TINYINT DEFAULT 5, "
+        "seasonal_weight JSON DEFAULT NULL, "
+        "weather_conditions SET('clear', 'cloudy', 'rainy', 'stormy', 'lightning') "
+            "DEFAULT 'clear,cloudy,rainy,stormy,lightning', "
+        "time_of_day_weight JSON DEFAULT NULL, "
+        "resource_triggers JSON DEFAULT NULL, "
+        "agent_id VARCHAR(100) DEFAULT NULL, "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+        "is_active BOOLEAN DEFAULT TRUE, "
+        "INDEX idx_region_category (region_vnum, hint_category), "
+        "INDEX idx_priority (priority), "
+        "INDEX idx_active (is_active), "
+        "INDEX idx_created (created_at)"
+        ")";
+
+    if (mysql_query_safe(conn, create_region_hints)) {
+        log("SYSERR: Failed to create region_hints table: %s", mysql_error(conn));
+        return;
+    }
+
+    /* region_profiles - Overall region personality profiles */
+    const char *create_region_profiles = 
+        "CREATE TABLE IF NOT EXISTS region_profiles ("
+        "region_vnum INT PRIMARY KEY, "
+        "overall_theme TEXT, "
+        "dominant_mood VARCHAR(100), "
+        "key_characteristics JSON, "
+        "description_style ENUM('poetic', 'practical', 'mysterious', 'dramatic', 'pastoral') DEFAULT 'poetic', "
+        "complexity_level TINYINT DEFAULT 3, "
+        "agent_id VARCHAR(100), "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        ")";
+
+    if (mysql_query_safe(conn, create_region_profiles)) {
+        log("SYSERR: Failed to create region_profiles table: %s", mysql_error(conn));
+        return;
+    }
+
+    /* hint_usage_log - Track which hints are actually used for analytics */
+    const char *create_hint_usage_log = 
+        "CREATE TABLE IF NOT EXISTS hint_usage_log ("
+        "id INT AUTO_INCREMENT PRIMARY KEY, "
+        "hint_id INT NOT NULL, "
+        "room_vnum INT NOT NULL, "
+        "player_id INT DEFAULT NULL, "
+        "used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "weather_condition VARCHAR(20), "
+        "season VARCHAR(10), "
+        "time_of_day VARCHAR(10), "
+        "resource_state JSON DEFAULT NULL, "
+        "FOREIGN KEY (hint_id) REFERENCES region_hints(id) ON DELETE CASCADE, "
+        "INDEX idx_hint_usage (hint_id, used_at), "
+        "INDEX idx_room_usage (room_vnum, used_at)"
+        ")";
+
+    if (mysql_query_safe(conn, create_hint_usage_log)) {
+        log("SYSERR: Failed to create hint_usage_log table: %s", mysql_error(conn));
+        return;
+    }
+
+    /* description_templates - Description templates (future enhancement) */
+    const char *create_description_templates = 
+        "CREATE TABLE IF NOT EXISTS description_templates ("
+        "id INT AUTO_INCREMENT PRIMARY KEY, "
+        "region_vnum INT NOT NULL, "
+        "template_type ENUM('intro', 'weather_overlay', 'resource_state', 'time_transition') NOT NULL, "
+        "template_text TEXT NOT NULL, "
+        "placeholder_schema JSON, "
+        "conditions JSON DEFAULT NULL, "
+        "agent_id VARCHAR(100), "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "is_active BOOLEAN DEFAULT TRUE, "
+        "INDEX idx_region_type (region_vnum, template_type), "
+        "INDEX idx_active_templates (is_active)"
+        ")";
+
+    if (mysql_query_safe(conn, create_description_templates)) {
+        log("SYSERR: Failed to create description_templates table: %s", mysql_error(conn));
+        return;
+    }
+
+    /* Create views for efficient hint queries */
+    const char *create_active_region_hints_view = 
+        "CREATE OR REPLACE VIEW active_region_hints AS "
+        "SELECT "
+            "rh.id, rh.region_vnum, rh.hint_category, rh.hint_text, "
+            "rh.priority, rh.weather_conditions, rh.seasonal_weight, "
+            "rh.time_of_day_weight, rh.resource_triggers, "
+            "rp.description_style, rp.complexity_level "
+        "FROM region_hints rh "
+        "LEFT JOIN region_profiles rp ON rh.region_vnum = rp.region_vnum "
+        "WHERE rh.is_active = TRUE "
+        "ORDER BY rh.region_vnum, rh.priority DESC";
+
+    if (mysql_query_safe(conn, create_active_region_hints_view)) {
+        log("SYSERR: Failed to create active_region_hints view: %s", mysql_error(conn));
+        /* Don't return - view creation is non-critical */
+    }
+
+    /* Create hint analytics view */
+    const char *create_hint_analytics_view = 
+        "CREATE OR REPLACE VIEW hint_analytics AS "
+        "SELECT "
+            "rh.region_vnum, rh.hint_category, "
+            "COUNT(hul.id) as usage_count, "
+            "AVG(rh.priority) as avg_priority, "
+            "MAX(hul.used_at) as last_used, "
+            "COUNT(DISTINCT hul.room_vnum) as unique_rooms "
+        "FROM region_hints rh "
+        "LEFT JOIN hint_usage_log hul ON rh.id = hul.hint_id "
+        "WHERE rh.is_active = TRUE "
+        "GROUP BY rh.region_vnum, rh.hint_category";
+
+    if (mysql_query_safe(conn, create_hint_analytics_view)) {
+        log("SYSERR: Failed to create hint_analytics view: %s", mysql_error(conn));
+        /* Don't return - view creation is non-critical */
+    }
+
+    log("Info: Region hints system tables initialized successfully");
 }
 
 /* ===== AI SERVICE SYSTEM TABLES ===== */

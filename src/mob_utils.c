@@ -357,11 +357,6 @@ int can_continue(struct char_data *ch, bool fighting)
   return 1;
 }
 
-/* Debug flag for mount behavior - defined in mob_class.c */
-#ifndef DEBUG_MOUNT_BEHAVIOR
-#define DEBUG_MOUNT_BEHAVIOR 0
-#endif
-
 /* Utility function to check if NPC should call a companion
  * Returns true if NPC should attempt to call companion
  * Takes into account combat state, existing companions, and appropriate timing
@@ -370,36 +365,13 @@ bool npc_should_call_companion(struct char_data *ch, int call_type)
 {
   struct follow_type *k = NULL;
   
-#if DEBUG_MOUNT_BEHAVIOR
-  /* Only debug paladins, not blackguards */
-  if (call_type == MOB_C_MOUNT && GET_CLASS(ch) == CLASS_PALADIN)
-  {
-    mudlog(NRM, LVL_IMMORT, TRUE, 
-           "DEBUG: npc_should_call_companion for %s (PALADIN, Level: %d)",
-           GET_NAME(ch), GET_LEVEL(ch));
-  }
-#endif
-  
   /* Basic checks */
   if (!ch || !IS_NPC(ch))
-  {
-#if DEBUG_MOUNT_BEHAVIOR
-    if (call_type == MOB_C_MOUNT && GET_CLASS(ch) == CLASS_PALADIN)
-      mudlog(NRM, LVL_IMMORT, TRUE, "DEBUG: Failed - not NPC or null ch");
-#endif
     return FALSE;
-  }
     
   /* Don't call if we're almost dead */
   if (GET_HIT(ch) < (GET_MAX_HIT(ch) / 4))
-  {
-#if DEBUG_MOUNT_BEHAVIOR
-    if (call_type == MOB_C_MOUNT && GET_CLASS(ch) == CLASS_PALADIN)
-      mudlog(NRM, LVL_IMMORT, TRUE, "DEBUG: Failed - too injured (HP: %d/%d)", 
-             GET_HIT(ch), GET_MAX_HIT(ch));
-#endif
     return FALSE;
-  }
     
   /* Check if companion already exists */
   for (k = ch->followers; k; k = k->next)
@@ -407,11 +379,6 @@ bool npc_should_call_companion(struct char_data *ch, int call_type)
     if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
         MOB_FLAGGED(k->follower, call_type))
     {
-#if DEBUG_MOUNT_BEHAVIOR
-      if (call_type == MOB_C_MOUNT && GET_CLASS(ch) == CLASS_PALADIN)
-        mudlog(NRM, LVL_IMMORT, TRUE, 
-               "DEBUG: Failed - mount already exists: %s", GET_NAME(k->follower));
-#endif
       /* Companion already exists */
       return FALSE;
     }
@@ -437,20 +404,7 @@ bool npc_should_call_companion(struct char_data *ch, int call_type)
     case MOB_C_MOUNT:
       /* Paladins and Blackguards */
       if (GET_CLASS(ch) != CLASS_PALADIN && GET_CLASS(ch) != CLASS_BLACKGUARD)
-      {
-#if DEBUG_MOUNT_BEHAVIOR
-        if (call_type == MOB_C_MOUNT)
-          mudlog(NRM, LVL_IMMORT, TRUE, 
-                 "DEBUG: Failed - wrong class for mount (Class: %d, needs PALADIN=%d or BLACKGUARD=%d)",
-                 GET_CLASS(ch), CLASS_PALADIN, CLASS_BLACKGUARD);
-#endif
         return FALSE;
-      }
-#if DEBUG_MOUNT_BEHAVIOR
-      if (GET_CLASS(ch) == CLASS_PALADIN)
-        mudlog(NRM, LVL_IMMORT, TRUE, 
-               "DEBUG: Class check passed for mount (PALADIN)");
-#endif
       break;
       
     case MOB_EIDOLON:
@@ -480,48 +434,15 @@ bool npc_should_call_companion(struct char_data *ch, int call_type)
   {
     /* 50% chance when entering combat or outnumbered */
     if (!rand_number(0, 1))
-    {
-#if DEBUG_MOUNT_BEHAVIOR
-      if (call_type == MOB_C_MOUNT && GET_CLASS(ch) == CLASS_PALADIN)
-        mudlog(NRM, LVL_IMMORT, TRUE, 
-               "DEBUG: In combat - passed 50%% chance, SHOULD CALL MOUNT");
-#endif
       return TRUE;
-    }
-#if DEBUG_MOUNT_BEHAVIOR
-    else if (call_type == MOB_C_MOUNT && GET_CLASS(ch) == CLASS_PALADIN)
-    {
-      mudlog(NRM, LVL_IMMORT, TRUE, 
-             "DEBUG: In combat - failed 50%% chance");
-    }
-#endif
   }
   else
   {
     /* Out of combat - lower chance */
     /* 10% chance to call when not in combat */
     if (!rand_number(0, 9))
-    {
-#if DEBUG_MOUNT_BEHAVIOR
-      if (call_type == MOB_C_MOUNT && GET_CLASS(ch) == CLASS_PALADIN)
-        mudlog(NRM, LVL_IMMORT, TRUE, 
-               "DEBUG: Out of combat - passed 10%% chance, SHOULD CALL MOUNT");
-#endif
       return TRUE;
-    }
-#if DEBUG_MOUNT_BEHAVIOR
-    else if (call_type == MOB_C_MOUNT && GET_CLASS(ch) == CLASS_PALADIN)
-    {
-      mudlog(NRM, LVL_IMMORT, TRUE, 
-             "DEBUG: Out of combat - failed 10%% chance");
-    }
-#endif
   }
   
-#if DEBUG_MOUNT_BEHAVIOR
-  if (call_type == MOB_C_MOUNT && GET_CLASS(ch) == CLASS_PALADIN)
-    mudlog(NRM, LVL_IMMORT, TRUE, 
-           "DEBUG: Final result - NOT calling mount");
-#endif
   return FALSE;
 }
