@@ -3127,6 +3127,7 @@ static void load_dr(FILE *f1, struct char_data *ch)
 
       if (n_vars == 5)
       {
+        dr->duration = 0;  /* Initialize duration field - CRITICAL FIX (loaded from file) */
         dr->amount = num2;
         dr->max_damage = num3;
         dr->spell = num4;

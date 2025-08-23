@@ -438,6 +438,7 @@ void finalize_study(struct descriptor_data *d)
           }
         }
         CREATE(dr, struct damage_reduction_type, 1);
+        dr->duration = 0;  /* Initialize duration field - CRITICAL FIX (feat-based DR) */
         dr->spell = 0;
         dr->feat = FEAT_DAMAGE_REDUCTION;
         dr->amount = HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) * 3;

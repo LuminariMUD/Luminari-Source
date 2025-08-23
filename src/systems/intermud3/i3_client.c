@@ -488,19 +488,13 @@ static void i3_handle_message(const char *json_str)
     }
     /* Handle incoming tell */
     else if (strcmp(method, "tell") == 0) {
-        event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
-        event->type = I3_MSG_TELL;
-        /* Extract fields from params_obj */
-        /* ... parse JSON and fill event structure ... */
-        i3_queue_event(event);
+        /* TODO: Implement tell message parsing - DISABLED to prevent heap corruption */
+        i3_log("DEBUG: Received tell message (parsing not implemented)");
     }
     /* Handle incoming channel message */
     else if (strcmp(method, "channel_message") == 0) {
-        event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
-        event->type = I3_MSG_CHANNEL;
-        /* Extract fields from params_obj */
-        /* ... parse JSON and fill event structure ... */
-        i3_queue_event(event);
+        /* TODO: Implement channel message parsing - DISABLED to prevent heap corruption */
+        i3_log("DEBUG: Received channel message (parsing not implemented)");
     }
     
     json_object_put(root);
@@ -728,24 +722,15 @@ void i3_process_events(void)
     while ((event = i3_pop_event()) != NULL) {
         switch (event->type) {
         case I3_MSG_TELL:
-            /* Find target player */
-            ch = get_char_vis(NULL, event->to_user, NULL, FIND_CHAR_WORLD);
-            if (ch && !IS_NPC(ch)) {
-                send_to_char(ch, "%s[I3 Tell] %s@%s tells you: %s%s\r\n",
-                           CCYEL(ch, C_NRM), event->from_user, event->from_mud, 
-                           event->message, CCNRM(ch, C_NRM));
-            }
+            /* THREAD SAFETY FIX: Do not access character_list from I3 thread */
+            /* TODO: Implement proper event queuing to main thread */
+            i3_log("DEBUG: Tell event processing disabled (thread safety)");
             break;
-            
+
         case I3_MSG_CHANNEL:
-            /* Send to all players on channel */
-            for (ch = character_list; ch; ch = ch->next) {
-                if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT) == 0) {
-                    send_to_char(ch, "%s[%s] %s@%s: %s%s\r\n",
-                               CCYEL(ch, C_NRM), event->channel, event->from_user, 
-                               event->from_mud, event->message, CCNRM(ch, C_NRM));
-                }
-            }
+            /* THREAD SAFETY FIX: Do not access character_list from I3 thread */
+            /* TODO: Implement proper event queuing to main thread */
+            i3_log("DEBUG: Channel event processing disabled (thread safety)");
             break;
             
         case I3_MSG_ERROR:

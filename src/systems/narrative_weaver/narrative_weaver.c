@@ -1547,15 +1547,19 @@ const char **get_style_verbs(int style) {
 char *apply_regional_style_transformation(const char *text, int style) {
     char *transformed;
     const char **style_adjectives, **style_verbs;
-    
+
     if (!text) return NULL;
-    
+
     // First apply vocabulary transformation
     transformed = apply_vocabulary_transformation(text, style);
     if (!transformed) return NULL;
-    
+
     style_adjectives = get_style_adjectives(style);
     style_verbs = get_style_verbs(style);
+
+    /* TODO: Implement proper usage of style_adjectives and style_verbs */
+    UNUSED(style_adjectives);
+    UNUSED(style_verbs);
     
     // Apply style-specific enhancements and modifiers
     switch (style) {
