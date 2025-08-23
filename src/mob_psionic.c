@@ -41,12 +41,6 @@ void npc_psionic_powerup(struct char_data *ch)
   if (MOB_FLAGGED(ch, MOB_NOCLASS))
     return;
   
-  /* Safety check: Only psionicists should use psionic powers */
-  if (GET_CLASS(ch) != CLASS_PSIONICIST)
-  {
-    return;
-  }
-  
   /* Check buff saturation - count existing psionic buffs */
   if (affected_by_spell(ch, PSIONIC_INERTIAL_ARMOR)) buff_count++;
   if (affected_by_spell(ch, PSIONIC_FORCE_SCREEN)) buff_count++;
@@ -91,12 +85,6 @@ void npc_offensive_powers(struct char_data *ch)
 
   if (MOB_FLAGGED(ch, MOB_NOCLASS))
     return;
-  
-  /* Safety check: Only psionicists should use psionic powers */
-  if (GET_CLASS(ch) != CLASS_PSIONICIST)
-  {
-    return;
-  }
 
   /* capping */
   if (GET_LEVEL(ch) >= LVL_IMMORT)
@@ -123,7 +111,7 @@ void npc_offensive_powers(struct char_data *ch)
       loop_counter++;
       if (loop_counter >= (MAX_LOOPS / 2))
         break;
-    } while (level < spell_info[powernum].min_level[CLASS_PSIONICIST]);
+    } while (level < spell_info[powernum].min_level[GET_CLASS(ch)]);
 
     if (loop_counter < (MAX_LOOPS / 2) && powernum != -1)
     {

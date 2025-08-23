@@ -972,6 +972,7 @@ ACMD_DECL(do_zpurge);
 ACMD_DECL(do_zreset);
 ACMD_DECL(do_objcheck);
 ACMD_DECL(do_resourceadmin);
+ACMD_DECL(do_regenadmin);
 ACMD_DECL(do_materialadmin);
 ACMD_DECL(do_effectsadmin);
 ACMD_DECL(do_zunlock);

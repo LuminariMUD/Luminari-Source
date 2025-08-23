@@ -48,7 +48,6 @@
 #include "feats.h"
 #include "actions.h"
 #include "actionqueues.h"
-#include "systems/intermud3/i3_client.h"
 #include "routing.h"
 #include "combat_modes.h"
 #include "traps.h"
@@ -340,7 +339,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"discharge", "discharge", POS_RECLINING, do_discharge, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"discoveries", "discov", POS_RECLINING, do_discoveries, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"disengage", "disen", POS_STANDING, do_disengage, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
-    {"discordapi", "discorda", POS_DEAD, do_discordapi, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"discord", "disc", POS_DEAD, do_discord, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"display", "disp", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"divinebond", "divineb", POS_DEAD, do_divine_bond, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dominate", "dominate", POS_FIGHTING, do_vampiric_dominate, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_vampiric_dominate},
@@ -486,7 +485,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"here", "here", POS_RECLINING, do_look, 0, SCMD_HERE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hedit", "hedit", POS_DEAD, do_oasis_hedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"helpcheck", "helpch", POS_DEAD, do_helpcheck, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"helpadmin", "helpad", POS_DEAD, do_helpadmin, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"helpgen", "helpg", POS_DEAD, do_helpgen, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hide", "hi", POS_RECLINING, do_hide, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"hindex", "hind", POS_DEAD, do_hindex, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"handbook", "handb", POS_DEAD, do_gen_ps, LVL_IMMORT, SCMD_HANDBOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -520,15 +519,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"i3tell", "i3t", POS_DEAD, do_i3tell, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"i3chat", "i3c", POS_DEAD, do_i3chat, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"i3who", "i3w", POS_DEAD, do_i3who, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"i3finger", "i3f", POS_DEAD, do_i3finger, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"i3locate", "i3l", POS_DEAD, do_i3locate, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"i3mudlist", "i3m", POS_DEAD, do_i3mudlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"i3channels", "i3chan", POS_DEAD, do_i3channels, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"i3config", "i3conf", POS_DEAD, do_i3config, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"i3admin", "i3adm", POS_DEAD, do_i3admin, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"idea", "ide", POS_DEAD, do_ibt, 0, SCMD_IDEA, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"iedit", "iedit", POS_DEAD, do_iedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"imbibe", "imb", POS_SITTING, do_gen_cast, 1, SCMD_CAST_EXTRACT, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -761,6 +751,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"resistances", "res", POS_DEAD, do_affects, 0, SCMD_RESISTANCES, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"restore", "resto", POS_DEAD, do_restore, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"resourceadmin", "resadmin", POS_DEAD, do_resourceadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"regenadmin", "regadmin", POS_DEAD, do_regenadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"effectsadmin", "effadmin", POS_DEAD, do_effectsadmin, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"retainer", "retainer", POS_DEAD, do_retainer, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"return", "retu", POS_DEAD, do_return, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -848,8 +839,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shortcut", "shortcut", POS_DEAD, do_shortcut, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shout", "shout", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    /* {"showblockers", "showblockers", POS_DEAD, do_show_blockers, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL}, */ /* Removed: Use 'show blockers' instead */
-    /* {"showwearoff", "showwearoff", POS_DEAD, do_showwearoff, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL}, */ /* Removed: Use 'show wearoff' instead */
+    {"showblockers", "showblockers", POS_DEAD, do_show_blockers, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"showwearoff", "showwearoff", POS_DEAD, do_showwearoff, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdow", "shutdow", POS_DEAD, do_shutdown, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdown", "shutdown", POS_DEAD, do_shutdown, LVL_IMPL, SCMD_SHUTDOWN, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sickeningaura", "sicka", POS_SITTING, do_gen_tog, 1, SCMD_SICKENING_AURA, FALSE, ACTION_MOVE, {0, 6}, NULL},

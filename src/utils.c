@@ -5979,8 +5979,7 @@ bool can_speak_language(struct char_data *ch, int language)
   if (!ch) return false;
   if (language < LANG_COMMON || language >= NUM_LANGUAGES) return false;
 
-  /* Only player immortals understand all languages */
-  if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT) return true;
+  if (GET_LEVEL(ch) >= LVL_IMMORT) return true;
   if (language == LANG_COMMON) return true;
   if (language == (race_list[GET_REAL_RACE(ch)].racial_language - SKILL_LANG_LOW)) return true;
   if (ch->player_specials->saved.languages_known[language]) return true;
@@ -9694,12 +9693,7 @@ bool is_dragon_rider_mount(struct char_data *ch)
 
   if (!IS_NPC(ch)) return false;
 
-  /* DragonLance campaign dragon mounts */
   if (GET_MOB_VNUM(ch) >= 40401 && GET_MOB_VNUM(ch) <= 40410)
-    return true;
-
-  /* Default campaign dragon mounts */
-  if (GET_MOB_VNUM(ch) >= 1240 && GET_MOB_VNUM(ch) <= 1249)
     return true;
 
   return false;
@@ -9769,16 +9763,9 @@ bool ok_call_mob_vnum(int mob_num)
 
   if (mob_num == MOB_NUM_EIDOLON) return true;
 
-  /* DragonLance dragon mounts */
   if (mob_num >= 40400 && mob_num <= 40410) return true;
 
   if (mob_num >= 20803 && mob_num <= 20805) return true;
-
-  /* Default Luminari campaign blackguard mounts */
-  if (mob_num == 1234 || mob_num == 1236 || mob_num == 1238) return true;
-  
-  /* Default Luminari campaign dragon rider mounts */
-  if (mob_num >= 1240 && mob_num <= 1249) return true;
 
   return false;
 
@@ -10538,9 +10525,7 @@ bool has_intro(struct char_data *ch, struct char_data *target)
   if (ch == target)
     return true;
 
-  /* Only player immortals bypass PK restrictions */
-  if ((!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT) || 
-      (!IS_NPC(target) && GET_LEVEL(target) >= LVL_IMMORT))
+  if (GET_LEVEL(ch) >= LVL_IMMORT || GET_LEVEL(target) >= LVL_IMMORT)
     return true;
 
   if (!IS_NPC(target) && PRF_FLAGGED(target, PRF_NON_ROLEPLAYER))
@@ -10730,8 +10715,7 @@ bool is_exit_hidden(struct char_data *ch, int dir)
   if (dir < 0 || dir >= NUM_OF_DIRS)
     return false;
   
-  /* Only player immortals bypass this check */
-  if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
     return false;
 
    if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN))

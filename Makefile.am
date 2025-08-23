@@ -156,8 +156,8 @@ circle_SOURCES = \
 	src/systems/spatial/spatial_visual.c \
 	src/systems/spatial/spatial_audio.c \
 	src/systems/terrainbridge/terrain_bridge.c \
-	src/systems/intermud3/i3_client.c \
-	src/systems/intermud3/i3_commands.c \
+	src/systems/region_hints/region_hints.c \
+	src/systems/narrative_weaver/narrative_weaver.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \
@@ -168,6 +168,7 @@ circle_SOURCES = \
 	src/resource_system.c \
 	src/resource_depletion.c \
 	src/resource_descriptions.c \
+	src/resource_regeneration.c \
 	src/roleplay.c \
 	src/routing.c \
 	src/sedit.c \
@@ -191,7 +192,6 @@ circle_SOURCES = \
 	src/treasure_const.c \
 	src/utils.c \
 	src/vessels.c \
-	src/vessels_db.c \
 	src/vessels_docking.c \
 	src/vessels_rooms.c \
 	src/weather.c \

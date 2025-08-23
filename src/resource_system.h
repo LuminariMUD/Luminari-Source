@@ -285,6 +285,7 @@ float apply_region_resource_modifiers(int resource_type, int x, int y, float bas
 /* Environmental modifier functions */
 float get_seasonal_modifier(int resource_type);
 float get_weather_modifier(int resource_type, int weather);
+float get_terrain_resource_multiplier(int resource_type, int terrain_type);
 
 /* Resource node management */
 struct resource_node *find_or_create_resource_node(int x, int y);
