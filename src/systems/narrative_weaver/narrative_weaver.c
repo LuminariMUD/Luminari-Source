@@ -3378,10 +3378,7 @@ char *layer_hints_on_base_description(char *base_description, struct region_hint
         inject_temporal_and_sensory_elements(components, elements->temporal_aspects, elements->sensory_details);
     }
 
-    if (elements->sensory_details) {
-        log("DEBUG: Adding sensory details: %s", elements->sensory_details);
-        components->sensory_additions = strdup(elements->sensory_details);
-    }    // Reconstruct enhanced description with regional style
+    // Reconstruct enhanced description with regional style
     semantically_enhanced = reconstruct_enhanced_description(components, elements->regional_style);
     
     // Cleanup
