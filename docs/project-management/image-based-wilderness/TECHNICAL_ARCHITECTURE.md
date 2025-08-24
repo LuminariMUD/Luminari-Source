@@ -2,7 +2,13 @@
 
 ## System Architecture Overview
 
-The image-based wilderness system introduces an alternative **base terrain generation method only** that coexists with the existing Perlin noise system through conditional compilation. Weather, resources, and other noise layers continue using Perlin noise but scale consistently with image dimensions.
+The image-based wilderness system introduces an alternative **base terrain generation method only** that coexists with the existing Perlin noise system through conditional compilation. 
+
+**Phase 1 Implementation**: Developers manually update `WILD_X_SIZE` and `WILD_Y_SIZE` to match image dimensions before compilation. This ensures all existing scaling functions, resource calculations, and mathematical operations work unchanged.
+
+**Phase 2 Future Enhancement**: Dynamic runtime coordinate system that automatically adapts to image dimensions without recompilation, including unified sizing for both image and Perlin noise modes.
+
+Weather, resources, and other noise layers continue using Perlin noise but automatically scale with the updated size constants.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -81,8 +87,8 @@ Image-Based Wilderness:
 World Coordinates          Image Coordinates         Terrain Properties
 ─────────────────          ──────────────────        ──────────────────
 
-X: [-1024, 1024]    ═══▶   img_x: [0, width-1]       Convert: world_x + (width/2) → img_x
-Y: [-1024, 1024]    ═══▶   img_y: [0, height-1]      Convert: world_y + (height/2) → img_y
+X: [-(width/2), (width/2)-1]    ═══▶   img_x: [0, width-1]       Convert: world_x + (width/2) → img_x
+Y: [-(height/2), (height/2)-1]  ═══▶   img_y: [0, height-1]      Convert: world_y + (height/2) → img_y
 (Center origin)                                       (Top-left origin)
                                                       
                            RGB: pixel(img_x, img_y)  
@@ -97,9 +103,9 @@ Traditional Perlin Noise:
 World Coordinates          Noise Coordinates         Terrain Properties
 ─────────────────          ──────────────────        ──────────────────
 
-X: [-1024, 1024]   ───▶   noise_x: scaled coords     Elevation = PerlinNoise(x,y)
-Y: [-1024, 1024]   ───▶   noise_y: scaled coords     Moisture = PerlinNoise(x,y)
-(Center origin)                                       Temperature = f(latitude, elevation)
+X: [-(width/2), (width/2)-1]   ───▶   noise_x: scaled coords     Elevation = PerlinNoise(x,y)
+Y: [-(height/2), (height/2)-1] ───▶   noise_y: scaled coords     Moisture = PerlinNoise(x,y)
+(Center origin)                                                   Temperature = f(latitude, elevation)
 ```
 
 ## Core Data Structures
@@ -189,14 +195,14 @@ int reload_wilderness_image(void);
 /* Coordinate mapping - Convert center-origin world coords to top-left image coords */
 int map_world_to_image_x(int world_x);
 int map_world_to_image_y(int world_y);
-    /* Input: World coordinates [-1024, 1024] with center origin */
+    /* Input: World coordinates [-(width/2), (width/2)-1] with center origin */
     /* Returns: Image coordinates [0, width-1] with top-left origin */
     /* Algorithm: img_x = world_x + (width/2), with bounds checking */
 
 int map_image_to_world_x(int img_x);
 int map_image_to_world_y(int img_y);
     /* Input: Image coordinates [0, width/height-1] with top-left origin */
-    /* Returns: World coordinates [-1024, 1024] with center origin */
+    /* Returns: World coordinates [-(width/2), (width/2)-1] with center origin */
     /* Algorithm: world_x = img_x - (width/2), with bounds checking */
 
 /* Pixel access */

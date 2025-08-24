@@ -2,7 +2,19 @@
 
 ## Overview
 
-This directory contains the complete implementation plan for adding image-based wilderness generation as an alternative to the current Perlin noise system in LuminariMUD.
+This directory contains the complete implementation### Integration Impact
+
+### Affected Systems
+- **Base Wilderness Generation**: Core terrain calculation functions (elevation, moisture, temperature, sectors)
+- **World Coordinate System**: Dynamic coordinate range based on image dimensions
+- **Coordinate Validation**: Hard-coded boundary checks need dynamic validation (5-7 locations)
+- **Map Visualization**: Terrain display and mapping (base terrain from image)
+
+### Minimally Affected Systems (Auto-Compatible with Dynamic Sizing)
+- **Resource System**: Automatically scales with updated WILD_X_SIZE/WILD_Y_SIZE
+- **Perlin Noise Scaling**: All existing scaling functions work unchanged
+- **Map Generation**: Knowledge base and wilderness maps auto-scale
+- **Mathematical Calculations**: Most algorithms remain unchangedr adding image-based wilderness generation as an alternative to the current Perlin noise system in LuminariMUD.
 
 ## System Goals
 
@@ -12,14 +24,14 @@ The image-based wilderness system allows world designers to create **base terrai
 - **Moisture is estimated from sector type** (swamp=wet, desert=dry, etc.)
 - **Temperature is estimated from sector type + Y-coordinate latitude** (jungle=hot, tundra=cold, with latitude modifier)
 
-**IMPORTANT SCOPE**: Only base terrain generation is affected. Weather, resources, and other noise layers continue using Perlin noise but scale consistently with image dimensions.
+**IMPORTANT SCOPE**: Only base terrain generation is affected. Weather, resources, and other noise layers continue using Perlin noise and automatically scale with updated `WILD_X_SIZE`/`WILD_Y_SIZE` constants.
 
 ## Key Features
 
 - **Selective Layer Replacement**: Only base terrain uses image data (elevation, moisture, temperature, sectors)
 - **Perlin Noise Preserved**: Weather, resources, and other noise layers continue using Perlin noise
 - **Conditional Compilation**: Coexists with Perlin noise via `#ifdef USE_IMAGE_WILDERNESS`
-- **Consistent Scaling**: Perlin noise layers scale to match image dimensions for consistency
+- **Automatic Scaling**: Perlin noise layers automatically use updated size constants (no code changes needed)
 - **Campaign Integration**: Different images per campaign setting
 - **Fallback System**: Graceful degradation to Perlin noise if image unavailable
 - **Performance Optimized**: Pixel caching and efficient coordinate mapping
@@ -122,10 +134,19 @@ Complete development and testing checklist:
 - **Total Impact**: <15MB additional memory usage for large images
 
 ### World Size Considerations
-- **Coordinate Conversion**: World coordinates [-1024, 1024] map to image pixels [0, size-1]
-- **Any image size**: Works with existing wilderness coordinate system
-- **Automatic scaling**: System handles coordinate conversion from world to image space
-- **Choose image size based on desired detail level**
+
+#### **Phase 1 (Current): Compile-Time Image Sizing**
+- **Developer sets #define statements** to match image dimensions before compilation
+- **640×480 image**: Developer updates `WILD_X_SIZE 640`, `WILD_Y_SIZE 480` 
+- **1024×1024 image**: Developer updates `WILD_X_SIZE 1024`, `WILD_Y_SIZE 1024`
+- **Formula**: World range = [-(size/2), (size/2)-1] for each dimension
+- **Benefit**: Minimal system impact, existing scaling functions work unchanged
+
+#### **Phase 2 (Future): Dynamic Runtime Sizing**
+- **Automatic image size detection** at runtime without recompilation
+- **Dynamic coordinate system** that adapts to any image size automatically
+- **Unified wilderness sizing** for both image-based and Perlin noise systems
+- **Benefit**: Complete flexibility without developer intervention or recompilation
 
 ### Speed Comparison
 - **Image Loading**: One-time 5-second cost at startup
@@ -135,11 +156,17 @@ Complete development and testing checklist:
 
 ## Future Enhancements
 
-### Planned Features
+### **Phase 1 Improvements (Near-term)**
 - **Multiple Images**: Seasonal terrain variations
-- **Advanced Mapping**: Color gradient support
+- **Advanced Mapping**: Color gradient support  
+- **Campaign Integration**: Setting-specific image selection
+- **Admin Tools**: Enhanced debugging and validation commands
+
+### **Phase 2 Features (Long-term)**
+- **Dynamic Runtime Sizing**: Automatic coordinate system scaling based on image dimensions
+- **Unified Wilderness Architecture**: Consistent sizing system for both image and Perlin noise modes
+- **Hot-Swappable Images**: Runtime image loading without server restart
 - **Hybrid System**: Combine image sectors with Perlin noise details
-- **Dynamic Loading**: Runtime image swapping
 - **Edit Tools**: In-game terrain editing capabilities
 
 ### Campaign Extensions
@@ -150,15 +177,23 @@ Complete development and testing checklist:
 
 ## Development Status
 
-| Phase | Status | Priority |
-|-------|--------|----------|
-| Planning | ✅ Complete | High |
-| Infrastructure | 🔄 Ready to Start | High |
-| Core Functions | ⏳ Pending | High |
-| Integration | ⏳ Pending | Medium |
-| Testing | ⏳ Pending | High |
+### **Phase 1: Compile-Time Image Sizing**
+| Task | Status | Priority |
+|------|--------|----------|
+| Planning & Architecture | ✅ Complete | High |
+| Image Loading Infrastructure | 🔄 Ready to Start | High |
+| Core Image-Based Functions | ⏳ Pending | High |
+| Coordinate Validation Updates | ⏳ Pending | Medium |
+| Testing & Validation | ⏳ Pending | High |
 | Documentation | 🔄 In Progress | Medium |
-| Deployment | ⏳ Pending | Low |
+
+### **Phase 2: Dynamic Runtime Sizing** 
+| Task | Status | Priority |
+|------|--------|----------|
+| Wilderness Architecture Refactor | ⏳ Future | Low |
+| Dynamic Coordinate System | ⏳ Future | Low |
+| Unified Sizing System | ⏳ Future | Low |
+| Runtime Image Loading | ⏳ Future | Low |
 
 ## Getting Started
 

@@ -52,11 +52,11 @@ This guide defines the RGB color values that map to specific terrain types in th
 ## Image Creation Guidelines
 
 ### Resolution Requirements
-- **Image size directly determines wilderness size**
-- **Minimum**: 256x256 pixels = 256x256 wilderness grid
-- **Recommended**: 1024x1024 pixels = 1024x1024 wilderness grid  
-- **Maximum**: 2048x2048 pixels = 2048x2048 wilderness grid
-- **Coordinate conversion**: World coordinates [-1024, 1024] convert to image pixels [0, width/height-1]
+- **Dynamic world size based on image dimensions**
+- **640×480 image**: World coordinates X [-320, 319], Y [-240, 239]
+- **1024×1024 image**: World coordinates X [-512, 511], Y [-512, 511]  
+- **2048×2048 image**: World coordinates X [-1024, 1023], Y [-1024, 1023]
+- **Coordinate conversion**: World coords [-(size/2), (size/2)-1] convert to image pixels [0, size-1]
 
 ### Color Precision
 - Use exact RGB values listed above for best results

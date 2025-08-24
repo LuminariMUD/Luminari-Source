@@ -40,10 +40,11 @@ Add to `src/campaign.h` or create new configuration system:
   #define WILDERNESS_IMAGE_PATH "lib/world/wilderness_map.png"
   #define WILDERNESS_IMAGE_FORMAT IMAGE_FORMAT_PNG  /* or IMAGE_FORMAT_BMP */
   
-  /* IMPORTANT: Coordinate conversion required */
-  /* World coordinates [-1024, 1024] with center origin */
-  /* Image coordinates [0, width-1] with top-left origin */
-  /* Conversion: img_x = world_x + (width/2) */
+  /* PHASE 1 APPROACH: Developer manually updates WILD_X_SIZE/WILD_Y_SIZE to match image */
+  /* For 640x480 image: Developer sets WILD_X_SIZE 640, WILD_Y_SIZE 480 */
+  /* For 1024x1024 image: Developer sets WILD_X_SIZE 1024, WILD_Y_SIZE 1024 */
+  /* World coordinates: [-(size/2), (size/2)-1] automatically calculated */
+  /* PHASE 2 (FUTURE): Dynamic runtime sizing without recompilation */
 #else
   #define IMAGE_WILDERNESS_ENABLED 0
 #endif
@@ -56,6 +57,20 @@ The system will use `#ifdef USE_IMAGE_WILDERNESS` statements to choose between:
 - Traditional Perlin noise generation
 
 ## Technical Implementation
+
+### **Development Phases**
+
+#### **Phase 1: Compile-Time Image Sizing (Current Implementation)**
+- Developer manually updates `WILD_X_SIZE` and `WILD_Y_SIZE` in `wilderness.h` to match image dimensions
+- All existing scaling functions automatically work with new size constants
+- Minimal code changes required (only coordinate validation functions)
+- Provides immediate image-based wilderness functionality
+
+#### **Phase 2: Dynamic Runtime Sizing (Future Enhancement)**
+- Automatic detection of image dimensions at runtime
+- Dynamic updating of coordinate system without recompilation
+- Refactored wilderness system independent of `#define` statements
+- Unified sizing system for both image-based and Perlin noise wilderness
 
 ### Phase 1: Image Loading Infrastructure
 
@@ -279,25 +294,15 @@ int get_sector_from_image(int world_x, int world_y) {
 /* Consistent scaling for resource and weather Perlin noise layers */
 /* NOTE: When using image-based wilderness, world size should match image size */
 double get_scaled_perlin_coordinate_x(int x, double frequency) {
-    /* For image-based wilderness, maintain same scaling approach as traditional */
-    /* World coordinates [-1024, 1024] need to be scaled properly for Perlin noise */
-    
-#ifdef USE_IMAGE_WILDERNESS
-    if (wilderness_image && wilderness_image->loaded) {
-        /* Use traditional world coordinate range for Perlin noise scaling */
-        return x / (double)(WILD_X_SIZE / frequency);
-    }
-#endif
-    
-    /* Traditional scaling for non-image wilderness */
+    /* Phase 1: Uses updated WILD_X_SIZE #define (no dynamic scaling needed) */
+    /* When developer sets WILD_X_SIZE to match image, this automatically works */
     return x / (double)(WILD_X_SIZE / frequency);
 }
 
 double get_scaled_perlin_coordinate_y(int y, double frequency) {
-#ifdef USE_IMAGE_WILDERNESS
-    if (wilderness_image && wilderness_image->loaded) {
-        /* Use traditional world coordinate range for Perlin noise scaling */
-        return y / (double)(WILD_Y_SIZE / frequency);
+    /* Phase 1: Uses updated WILD_Y_SIZE #define (no dynamic scaling needed) */
+    /* When developer sets WILD_Y_SIZE to match image, this automatically works */  
+    return y / (double)(WILD_Y_SIZE / frequency);
     }
 #endif
     
@@ -450,22 +455,20 @@ Functions in `src/resource_system.c` that call wilderness functions:
 #### Noise Layer Size Consistency:
 
 ```c
-/* Ensure all noise layers scale consistently */
-#ifdef USE_IMAGE_WILDERNESS
+/* Phase 1: No special scaling code needed! */
+/* When developer updates WILD_X_SIZE/WILD_Y_SIZE to match image, */
+/* ALL existing Perlin noise functions automatically use the new values */
 
-/* Modified Perlin noise scaling for non-base layers */
-/* Keep traditional world coordinate system for Perlin noise consistency */
+/* Existing functions work unchanged: */
 double get_scaled_perlin_noise(int noise_layer, int x, int y, double freq, double amp, int octaves) {
-    /* Use standard world coordinate scaling regardless of image size */
-    /* This ensures consistent noise patterns across different image sizes */
-    
+    /* These automatically use updated WILD_X_SIZE/WILD_Y_SIZE values */
     double trans_x = x / (double)(WILD_X_SIZE / freq);
     double trans_y = y / (double)(WILD_Y_SIZE / freq);
     
     return PerlinNoise2D(noise_layer, trans_x, trans_y, amp, 2.0, octaves);
 }
 
-#endif
+/* No #ifdef needed - existing code just works! */
 ```
 
 ### Phase 5: Configuration and Administration
