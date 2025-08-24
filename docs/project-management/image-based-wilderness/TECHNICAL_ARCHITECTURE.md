@@ -81,8 +81,9 @@ Image-Based Wilderness:
 World Coordinates          Image Coordinates         Terrain Properties
 ─────────────────          ──────────────────        ──────────────────
 
-X: [0, width-1]     ═══▶   img_x: [0, width-1]       Direct mapping (no scaling)
-Y: [0, height-1]    ═══▶   img_y: [0, height-1]      Direct mapping (no scaling)
+X: [-1024, 1024]    ═══▶   img_x: [0, width-1]       Convert: world_x + 1024 → img_x
+Y: [-1024, 1024]    ═══▶   img_y: [0, height-1]      Convert: world_y + 1024 → img_y
+(Center origin)                                       (Top-left origin)
                                                       
                            RGB: pixel(img_x, img_y)  
                                       ↓               
@@ -98,7 +99,7 @@ World Coordinates          Noise Coordinates         Terrain Properties
 
 X: [-1024, 1024]   ───▶   noise_x: scaled coords     Elevation = PerlinNoise(x,y)
 Y: [-1024, 1024]   ───▶   noise_y: scaled coords     Moisture = PerlinNoise(x,y)
-                                                      Temperature = f(latitude, elevation)
+(Center origin)                                       Temperature = f(latitude, elevation)
 ```
 
 ## Core Data Structures
@@ -185,19 +186,18 @@ int reload_wilderness_image(void);
     /* Side effects: Frees old image, loads new one */
     /* Thread safety: Not thread-safe */
 
-/* Coordinate mapping - DIRECT mapping for image-based wilderness */
+/* Coordinate mapping - Convert center-origin world coords to top-left image coords */
 int map_world_to_image_x(int world_x);
 int map_world_to_image_y(int world_y);
-    /* Input: World coordinates [0, WILD_X_SIZE-1] when using image */
-    /* Returns: Image coordinates [0, width-1] - DIRECT MAPPING */
-    /* Algorithm: world_x maps directly to img_x (no scaling needed) */
-    /* Note: Image dimensions should match desired wilderness size */
+    /* Input: World coordinates [-1024, 1024] with center origin */
+    /* Returns: Image coordinates [0, width-1] with top-left origin */
+    /* Algorithm: img_x = world_x + (width/2), with bounds checking */
 
 int map_image_to_world_x(int img_x);
 int map_image_to_world_y(int img_y);
-    /* Input: Image coordinates [0, width/height-1] */
-    /* Returns: World coordinates [0, WILD_X_SIZE-1] - DIRECT MAPPING */
-    /* Algorithm: Direct mapping when using image-based wilderness */
+    /* Input: Image coordinates [0, width/height-1] with top-left origin */
+    /* Returns: World coordinates [-1024, 1024] with center origin */
+    /* Algorithm: world_x = img_x - (width/2), with bounds checking */
 
 /* Pixel access */
 unsigned char *get_pixel_color(int world_x, int world_y);
