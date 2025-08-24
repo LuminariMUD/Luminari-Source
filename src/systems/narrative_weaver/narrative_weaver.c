@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdarg.h>
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
@@ -43,6 +44,38 @@ extern void mysql_pool_free_result(MYSQL_RES *result);  /* From mysql.c */
 /* Forward declarations */
 char *simple_hint_layering(char *base_description, struct region_hint *hints, int x, int y);
 void free_contextual_hints(struct region_hint *hints);
+
+/* Narrative weaver debug mode control */
+static int narrative_debug_mode = 0;  /* 0 = off, 1 = basic, 2 = verbose */
+
+/* Debug logging function - only logs if debug mode is enabled */
+static void narrative_debug_log(int level, const char *format, ...) {
+    va_list args;
+    
+    if (narrative_debug_mode >= level) {
+        va_start(args, format);
+        
+        /* Create the debug message */
+        char debug_msg[MAX_STRING_LENGTH];
+        vsnprintf(debug_msg, sizeof(debug_msg), format, args);
+        
+        /* Use the standard log function */
+        log("NARRATIVE_DEBUG: %s", debug_msg);
+        
+        va_end(args);
+    }
+}
+
+/* Function to set narrative debug mode (for admin commands) */
+void set_narrative_debug_mode(int mode) {
+    narrative_debug_mode = mode;
+    log("Narrative weaver debug mode set to %d", mode);
+}
+
+/* Function to get current debug mode */
+int get_narrative_debug_mode(void) {
+    return narrative_debug_mode;
+}
 
 /* ====================================================================== */
 /*                        PERFORMANCE OPTIMIZATION                       */
@@ -158,7 +191,7 @@ void cleanup_hint_cache(void) {
     }
     
     if (removed > 0) {
-        log("DEBUG: Cleaned up %d expired hint cache entries, %d entries remaining", 
+        narrative_debug_log(2, "Cleaned up %d expired hint cache entries, %d entries remaining", 
             removed, hint_cache_entries);
     }
 }
@@ -173,18 +206,18 @@ struct region_hint *get_cached_hints(struct hint_cache_key *key) {
         if (cache_keys_equal(&entry->key, key)) {
             /* Check if entry is still valid */
             if ((current_time - entry->cache_time) <= HINT_CACHE_TTL) {
-                log("DEBUG: Cache HIT for region %d, weather %d, time %d", 
+                narrative_debug_log(2, "Cache HIT for region %d, weather %d, time %d", 
                     key->region_vnum, key->weather_condition, key->time_category);
                 return duplicate_hints(entry->hints);
             } else {
-                log("DEBUG: Cache entry expired for region %d", key->region_vnum);
+                narrative_debug_log(2, "Cache entry expired for region %d", key->region_vnum);
                 break;
             }
         }
         entry = entry->next;
     }
     
-    log("DEBUG: Cache MISS for region %d, weather %d, time %d", 
+    narrative_debug_log(2, "Cache MISS for region %d, weather %d, time %d", 
         key->region_vnum, key->weather_condition, key->time_category);
     return NULL;
 }
@@ -223,7 +256,7 @@ void cache_hints(struct hint_cache_key *key, struct region_hint *hints) {
     hint_cache[hash] = entry;
     hint_cache_entries++;
     
-    log("DEBUG: Cached %d hints for region %d (total cache entries: %d)", 
+    narrative_debug_log(2, "Cached %d hints for region %d (total cache entries: %d)", 
         count, key->region_vnum, hint_cache_entries);
 }
 
@@ -253,7 +286,7 @@ void clear_hint_cache(void) {
         hint_cache[i] = NULL;
     }
     hint_cache_entries = 0;
-    log("DEBUG: Hint cache cleared");
+    narrative_debug_log(1, "Hint cache cleared");
 }
 
 /* Season constants - matching the standard MUD seasonal system */
@@ -704,7 +737,7 @@ void apply_boundary_transition_effects(struct region_hint *hints, int hint_count
             }
         }
         
-        log("DEBUG: Applied boundary transition effects (proximity=%.2f) to %d hints", 
+        narrative_debug_log(2, "Applied boundary transition effects (proximity=%.2f) to %d hints", 
             boundary_proximity, hint_count);
     }
 }
@@ -913,7 +946,7 @@ struct regional_transition *calculate_regional_transitions(int x, int y, int max
             transitions[count].hint_count = 0;
             count++;
             
-            log("DEBUG: Added adjacent region %d with influence %.2f", 
+            narrative_debug_log(2, "Added adjacent region %d with influence %.2f", 
                 adjacent_regions[i], influence);
         }
     }
@@ -1041,7 +1074,7 @@ int select_contextual_weighted_hint(struct region_hint *hints, int *hint_indices
         weights[i] = calculate_comprehensive_relevance(&hints[hint_index], context, regional_characteristics);
         total_weight += weights[i];
         
-        log("DEBUG: Hint %d relevance score: %.3f (base=%.2f, category=%d)", 
+        narrative_debug_log(2, "Hint %d relevance score: %.3f (base=%.2f, category=%d)", 
             hint_index, weights[i], hints[hint_index].contextual_weight, hints[hint_index].hint_category);
     }
     
@@ -1057,7 +1090,7 @@ int select_contextual_weighted_hint(struct region_hint *hints, int *hint_indices
     for (i = 0; i < count && i < 20; i++) {
         cumulative_weight += weights[i];
         if (random_value <= cumulative_weight) {
-            log("DEBUG: Selected hint %d with weight %.3f (cumulative %.3f, random %.3f)", 
+            narrative_debug_log(2, "Selected hint %d with weight %.3f (cumulative %.3f, random %.3f)", 
                 hint_indices[i], weights[i], cumulative_weight, random_value);
             return i;
         }
@@ -1779,14 +1812,14 @@ struct narrative_elements *extract_narrative_elements(struct region_hint *hints,
             if (mysql_pool_query(query, &result) == 0 && result) {
                 if ((row = mysql_fetch_row(result))) {
                     regional_style = convert_style_string_to_int(row[0]);
-                    log("DEBUG: Using regional style %d ('%s') for region %d", 
+                    narrative_debug_log(2, "Using regional style %d ('%s') for region %d", 
                         regional_style, row[0] ? row[0] : "NULL", region_vnum);
                 }
                 mysql_pool_free_result(result);
             } else {
                 // Fallback to the incorrectly converted value
                 regional_style = profile->description_style;
-                log("DEBUG: Using fallback regional style %d for region %d", regional_style, region_vnum);
+                narrative_debug_log(2, "Using fallback regional style %d for region %d", regional_style, region_vnum);
             }
         }
     }
@@ -1800,12 +1833,31 @@ struct narrative_elements *extract_narrative_elements(struct region_hint *hints,
     // Initialize integration weight
     elements->integration_weight = 0.0f;
     
+    // Debug: Check if hints array is valid
+    narrative_debug_log(2, "extract_narrative_elements called with hints=%p", hints);
+    if (!hints) {
+        narrative_debug_log(2, "hints array is NULL");
+        return elements;
+    }
+    
+    // Count hints for debugging
+    int hint_count = 0;
+    for (i = 0; hints[i].hint_text; i++) {
+        hint_count++;
+    }
+    narrative_debug_log(2, "Found %d hints in array", hint_count);
+    
+    if (hint_count == 0) {
+        narrative_debug_log(2, "No hints found, returning empty elements");
+        return elements;
+    }
+
     // Analyze each hint for semantic patterns with style awareness
     for (i = 0; hints[i].hint_text; i++) {
         text = hints[i].hint_text;
         if (!text) continue;
         
-        // Extract mood indicators with style preference
+        narrative_debug_log(2, "Processing hint %d: '%.50s...'", i, text);        // Extract mood indicators with style preference
         if (!elements->dominant_mood) {
             const char **style_adjectives = get_style_adjectives(regional_style);
             
@@ -2177,9 +2229,15 @@ void inject_temporal_and_sensory_elements(struct description_components *desc,
                                         const char *sensory_details) {
     if (!desc) return;
     
+    narrative_debug_log(2, "inject_temporal_and_sensory_elements called - opening_imagery=%p, temporal=%s, sensory=%s", 
+        desc->opening_imagery, temporal_aspects ? "present" : "none", sensory_details ? "present" : "none");
+    
     // Add temporal elements to opening imagery
     if (temporal_aspects && desc->opening_imagery) {
+        char *old_opening = desc->opening_imagery;
         char *temp_buffer = malloc(MAX_STRING_LENGTH * 2);
+        narrative_debug_log(2, "Allocated temp_buffer=%p, will free old_opening=%p", temp_buffer, old_opening);
+        
         if (temp_buffer) {
             // Use the actual extracted temporal content, not just generic prefixes
             // Check if temporal_aspects is a complete sentence/phrase
@@ -2204,14 +2262,25 @@ void inject_temporal_and_sensory_elements(struct description_components *desc,
                 snprintf(temp_buffer, MAX_STRING_LENGTH * 2, 
                         "%s %s", temporal_aspects, desc->opening_imagery);
             }
-            free(desc->opening_imagery);
-            desc->opening_imagery = temp_buffer;
+            
+            // Free old memory first
+            free(old_opening);
+            
+            // Use strdup to create a properly sized copy instead of transferring ownership
+            desc->opening_imagery = strdup(temp_buffer);
+            narrative_debug_log(2, "Created new opening_imagery=%p, freeing temp_buffer=%p", desc->opening_imagery, temp_buffer);
+            
+            // Free the temporary buffer 
+            free(temp_buffer);
+        } else {
+            narrative_debug_log(1, "Failed to allocate temp_buffer");
         }
     }
     
     // Add sensory details as sensory additions
     if (sensory_details && !desc->sensory_additions) {
         desc->sensory_additions = strdup(sensory_details);
+        narrative_debug_log(2, "Set sensory_additions=%p", desc->sensory_additions);
     }
 }
 
@@ -2357,13 +2426,34 @@ void free_narrative_elements(struct narrative_elements *elements) {
 void free_description_components(struct description_components *components) {
     if (!components) return;
     
-    if (components->opening_imagery) free(components->opening_imagery);
-    if (components->primary_nouns) free(components->primary_nouns);
-    if (components->descriptive_verbs) free(components->descriptive_verbs);
-    if (components->atmospheric_modifiers) free(components->atmospheric_modifiers);
-    if (components->sensory_additions) free(components->sensory_additions);
-    if (components->closing_elements) free(components->closing_elements);
+    narrative_debug_log(2, "free_description_components called with components=%p", components);
     
+    if (components->opening_imagery) {
+        narrative_debug_log(2, "Freeing opening_imagery=%p", components->opening_imagery);
+        free(components->opening_imagery);
+    }
+    if (components->primary_nouns) {
+        narrative_debug_log(2, "Freeing primary_nouns=%p", components->primary_nouns);
+        free(components->primary_nouns);
+    }
+    if (components->descriptive_verbs) {
+        narrative_debug_log(2, "Freeing descriptive_verbs=%p", components->descriptive_verbs);
+        free(components->descriptive_verbs);
+    }
+    if (components->atmospheric_modifiers) {
+        narrative_debug_log(2, "Freeing atmospheric_modifiers=%p", components->atmospheric_modifiers);
+        free(components->atmospheric_modifiers);
+    }
+    if (components->sensory_additions) {
+        narrative_debug_log(2, "Freeing sensory_additions=%p", components->sensory_additions);
+        free(components->sensory_additions);
+    }
+    if (components->closing_elements) {
+        narrative_debug_log(2, "Freeing closing_elements=%p", components->closing_elements);
+        free(components->closing_elements);
+    }
+    
+    narrative_debug_log(2, "Freeing components structure=%p", components);
     free(components);
 }
 
@@ -2830,10 +2920,10 @@ char *load_region_characteristics(int region_vnum) {
     row = mysql_fetch_row(result);
     if (row && row[0] && *row[0]) {
         characteristics = strdup(row[0]);
-        log("DEBUG: Loaded AI characteristics for region %d: %.100s...", 
+        narrative_debug_log(2, "Loaded AI characteristics for region %d: %.100s...", 
             region_vnum, characteristics);
     } else {
-        log("DEBUG: No AI characteristics found for region %d", region_vnum);
+        narrative_debug_log(1, "No AI characteristics found for region %d", region_vnum);
     }
     
     /* Always free the result set */
@@ -3239,7 +3329,7 @@ char *enhance_base_description_with_hints(char *base_description, struct char_da
     }
     
     region_vnum = region_table[best_region->rnum].vnum;
-    log("DEBUG: Using region vnum %d for hint enhancement", region_vnum);
+    narrative_debug_log(1, "Using region vnum %d for hint enhancement", region_vnum);
     
     // Get environmental context
     weather_condition = get_wilderness_weather_condition(x, y);
@@ -3274,7 +3364,7 @@ char *enhance_base_description_with_hints(char *base_description, struct char_da
         float resource_health = calculate_regional_resource_health(x, y, 5); /* 5-coordinate radius sampling */
         apply_resource_based_hint_weighting(hints, hint_count, resource_health);
         
-        log("DEBUG: Applied regional transition effects with %d nearby regions, resource health %.2f", 
+        narrative_debug_log(2, "Applied regional transition effects with %d nearby regions, resource health %.2f", 
             transition_count, resource_health);
         
         /* Cleanup transition data */
@@ -3325,12 +3415,23 @@ char *layer_hints_on_base_description(char *base_description, struct region_hint
     char *semantically_enhanced;
     
     if (!base_description || !hints) {
+        log("DEBUG: layer_hints_on_base_description called with null parameters - base_description: %s, hints: %s", 
+            base_description ? "valid" : "NULL", hints ? "valid" : "NULL");
         return NULL;
     }
+
+    // Check if hints array has any entries
+    int hint_count = 0;
+    for (hint_count = 0; hints[hint_count].hint_text; hint_count++) {
+        // Count hints
+    }
     
-    log("DEBUG: Starting semantic integration for location (%d, %d)", x, y);
+    narrative_debug_log(1, "Starting semantic integration for location (%d, %d) with %d hints", x, y, hint_count);
     
-    // Initialize random seed for location consistency
+    if (hint_count == 0) {
+        narrative_debug_log(1, "No hints available, falling back to simple layering");
+        return simple_hint_layering(base_description, hints, x, y);
+    }    // Initialize random seed for location consistency
     srand(x * 1000 + y + time_info.hours);
     
     // Extract semantic elements from hints with regional style
@@ -3349,30 +3450,30 @@ char *layer_hints_on_base_description(char *base_description, struct region_hint
         return simple_hint_layering(base_description, hints, x, y);
     }
     
-    log("DEBUG: Applying semantic integration with weight %.2f", elements->integration_weight);
+    narrative_debug_log(1, "Applying semantic integration with weight %.2f", elements->integration_weight);
     
     // Parse base description into components
     components = parse_description_components(base_description);
     if (!components) {
-        log("DEBUG: Failed to parse description components, using simple layering");
+        narrative_debug_log(1, "Failed to parse description components, using simple layering");
         free_narrative_elements(elements);
         return simple_hint_layering(base_description, hints, x, y);
     }
     
     // Apply semantic transformations
     if (elements->dominant_mood) {
-        log("DEBUG: Transforming mood to: %s", elements->dominant_mood);
+        narrative_debug_log(2, "Transforming mood to: %s", elements->dominant_mood);
         transform_description_mood(components, elements->dominant_mood);
     }
     
     if (elements->active_elements) {
-        log("DEBUG: Injecting dynamic elements: %s", elements->active_elements);
+        narrative_debug_log(2, "Injecting dynamic elements: %s", elements->active_elements);
         inject_dynamic_elements(components, elements->active_elements);
     }
     
     // Apply temporal and sensory integration
     if (elements->temporal_aspects || elements->sensory_details) {
-        log("DEBUG: Injecting temporal/sensory elements - temporal: %s, sensory: %s", 
+        narrative_debug_log(2, "Injecting temporal/sensory elements - temporal: %s, sensory: %s", 
             elements->temporal_aspects ? elements->temporal_aspects : "none",
             elements->sensory_details ? elements->sensory_details : "none");
         inject_temporal_and_sensory_elements(components, elements->temporal_aspects, elements->sensory_details);
@@ -3386,11 +3487,11 @@ char *layer_hints_on_base_description(char *base_description, struct region_hint
     free_description_components(components);
     
     if (!semantically_enhanced) {
-        log("DEBUG: Semantic reconstruction failed, using simple layering");
+        narrative_debug_log(1, "Semantic reconstruction failed, using simple layering");
         return simple_hint_layering(base_description, hints, x, y);
     }
     
-    log("DEBUG: Semantic integration completed successfully");
+    narrative_debug_log(1, "Semantic integration completed successfully");
     return semantically_enhanced;
 }
 
@@ -3405,6 +3506,27 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
     int used_count = 0;
     int i;
     char *regional_characteristics = NULL;
+    
+    // Debug: Check if hints array is valid in simple layering
+    log("DEBUG: simple_hint_layering called with hints=%p", hints);
+    if (!hints) {
+        log("DEBUG: hints array is NULL in simple layering");
+        enhanced = strdup(base_description);
+        return enhanced;
+    }
+    
+    // Count hints for debugging
+    int hint_count = 0;
+    for (i = 0; hints[i].hint_text; i++) {
+        hint_count++;
+    }
+    log("DEBUG: simple_hint_layering found %d hints", hint_count);
+    
+    if (hint_count == 0) {
+        log("DEBUG: No hints found in simple layering, returning base description");
+        enhanced = strdup(base_description);
+        return enhanced;
+    }
     
     // Create environmental context for contextual hint selection
     struct environmental_context env_context;
@@ -3652,19 +3774,19 @@ char *enhanced_wilderness_description_unified(struct char_data *ch, room_rnum ro
         return NULL;
     }
     
-    log("DEBUG: Generated base description (%d chars) for (%d, %d)", 
+    narrative_debug_log(1, "Generated base description (%d chars) for (%d, %d)", 
         (int)strlen(base_desc), x, y);
     
     // STEP 2: Try to enhance with regional hints
     enhanced_desc = enhance_base_description_with_hints(base_desc, ch, zone, x, y);
     if (enhanced_desc) {
-        log("DEBUG: Enhanced description with regional hints (%d chars) for (%d, %d)", 
+        narrative_debug_log(1, "Enhanced description with regional hints (%d chars) for (%d, %d)", 
             (int)strlen(enhanced_desc), x, y);
         free(base_desc);  // Replace with enhanced version
         return enhanced_desc;
     }
     
     // STEP 3: No enhancement possible, return base description
-    log("DEBUG: No regional enhancement available, using base description for (%d, %d)", x, y);
+    narrative_debug_log(1, "No regional enhancement available, using base description for (%d, %d)", x, y);
     return base_desc;
 }
