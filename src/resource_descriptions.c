@@ -632,42 +632,42 @@ static const char *road_sparse[] = {
 
 /* Geological detail templates for mineral-rich areas */
 static const char *mineral_details_abundant[] = {
-    ", where veins of precious metals glint between layers of rich stone",
-    ", their foundations shot through with seams of valuable ore",
-    ", where exposed mineral deposits create natural works of art",
-    ", with crystalline formations that catch and scatter light",
-    ", where golden threads of metal weave through dark rock",
-    ", their surfaces decorated with natural mineral patterns",
-    ", where gemstone deposits sparkle in hidden crevices",
-    ", with copper and silver veins creating metallic tapestries",
-    ", where rare earth elements paint the stone in subtle hues",
-    ", their rocky hearts revealing treasures formed over millennia"
+    " Veins of precious metals glint between layers of rich stone.",
+    " The foundations are shot through with seams of valuable ore.",
+    " Exposed mineral deposits create natural works of art.",
+    " Crystalline formations catch and scatter light beautifully.",
+    " Golden threads of metal weave through the dark rock.",
+    " Natural mineral patterns decorate the exposed surfaces.",
+    " Gemstone deposits sparkle in hidden crevices.",
+    " Copper and silver veins create metallic tapestries in the stone.",
+    " Rare earth elements paint the stone in subtle hues.",
+    " The rocky hearts reveal treasures formed over millennia."
 };
 
 static const char *mineral_details_moderate[] = {
-    ", with occasional metallic glints visible in the stone",
-    ", where small mineral deposits hint at greater treasures",
-    ", their foundations showing traces of valuable ore",
-    ", with modest gem formations scattered throughout",
-    ", where careful examination reveals useful metals",
-    ", their surfaces marked by natural mineral patterns",
-    ", with practical stone suitable for building and tools",
-    ", where mineral content provides useful raw materials",
-    ", their rocky structure enriched by modest ore deposits",
-    ", where industrious folk might find valuable minerals"
+    " Occasional metallic glints are visible in the stone.",
+    " Small mineral deposits hint at greater treasures below.",
+    " The foundations show traces of valuable ore.",
+    " Modest gem formations are scattered throughout the area.",
+    " Careful examination reveals useful metals in the rock.",
+    " Natural mineral patterns mark the exposed surfaces.",
+    " Practical stone suitable for building and tools can be found.",
+    " The mineral content provides useful raw materials.",
+    " The rocky structure is enriched by modest ore deposits.",
+    " Industrious folk might find valuable minerals with effort."
 };
 
 static const char *mineral_details_sparse[] = {
-    ", their stone worn smooth by time and weather",
-    ", where only the hardest rocks remain after long erosion",
-    ", their foundations stripped clean by natural forces",
-    ", with little of value visible in the weathered stone",
-    ", where mineral wealth has long since been claimed or lost",
-    ", their surfaces scoured by wind and rain",
-    ", with only the most common stones remaining",
-    ", where erosion has carried away softer deposits",
-    ", their rocky bones laid bare by persistent weathering",
-    ", where poverty of stone reflects larger challenges"
+    " Stone here has been worn smooth by time and weather.",
+    " Only the hardest rocks remain after long erosion.",
+    " Natural forces have stripped clean any valuable deposits.",
+    " Little of value is visible in the weathered stone.",
+    " Mineral wealth has long since been claimed or lost.",
+    " Wind and rain have scoured the rocky surfaces.",
+    " Only the most common stones remain scattered about.",
+    " Erosion has carried away softer mineral deposits.",
+    " Weathering has laid bare the rocky bones of the earth.",
+    " The poverty of stone here reflects larger challenges."
 };
 
 /* Water feature detail templates */
@@ -1490,30 +1490,30 @@ void add_vegetation_details(char *desc, struct resource_state *state,
         switch (context->season) {
             case SEASON_SPRING:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    safe_strcat(desc, ", their branches alive with new growth and emerging buds");
+                    safe_strcat(desc, ", their branches alive with new growth and emerging buds.");
                 } else {
-                    safe_strcat(desc, ", where lush grasses and vibrant wildflowers bloom in abundance");
+                    safe_strcat(desc, ", where lush grasses and vibrant wildflowers bloom in abundance.");
                 }
                 break;
             case SEASON_SUMMER:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    safe_strcat(desc, ", their emerald canopy dense with lush foliage");
+                    safe_strcat(desc, ", their emerald canopy dense with lush foliage.");
                 } else {
-                    safe_strcat(desc, ", where thick carpets of grass wave gently in the breeze");
+                    safe_strcat(desc, ", where thick carpets of grass wave gently in the breeze.");
                 }
                 break;
             case SEASON_AUTUMN:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    safe_strcat(desc, ", their leaves a brilliant tapestry of gold and crimson");
+                    safe_strcat(desc, ", their leaves a brilliant tapestry of gold and crimson.");
                 } else {
-                    safe_strcat(desc, ", where golden grasses and late-season flowers create a warm mosaic");
+                    safe_strcat(desc, ", where golden grasses and late-season flowers create a warm mosaic.");
                 }
                 break;
             case SEASON_WINTER:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    safe_strcat(desc, ", their bare branches creating intricate patterns against the sky");
+                    safe_strcat(desc, ", their bare branches creating intricate patterns against the sky.");
                 } else {
-                    safe_strcat(desc, ", where hardy winter grasses persist despite the cold");
+                    safe_strcat(desc, ", where hardy winter grasses persist despite the cold.");
                 }
                 break;
         }
@@ -1521,9 +1521,9 @@ void add_vegetation_details(char *desc, struct resource_state *state,
         switch (context->season) {
             case SEASON_SPRING:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    safe_strcat(desc, ", showing the first signs of spring's awakening");
+                    safe_strcat(desc, ", showing the first signs of spring's awakening.");
                 } else {
-                    safe_strcat(desc, ", where patches of new grass emerge among scattered wildflowers");
+                    safe_strcat(desc, ", where patches of new grass emerge among scattered wildflowers.");
                 }
                 break;
             case SEASON_SUMMER:
@@ -1532,22 +1532,22 @@ void add_vegetation_details(char *desc, struct resource_state *state,
                     if (context->time_of_day == SUN_DARK) {
                         if (context->has_light_sources) {
                             if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                                safe_strcat(desc, ", their healthy canopy heavy with rain, droplets glistening in the flickering light");
+                                safe_strcat(desc, ", their healthy canopy heavy with rain, droplets glistening in the flickering light.");
                             } else {
-                                safe_strcat(desc, ", their healthy canopy creating dancing shadows in the flickering light");
+                                safe_strcat(desc, ", their healthy canopy creating dancing shadows in the flickering light.");
                             }
                         } else {
                             if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                                safe_strcat(desc, ", their rain-soaked canopy rustling softly in the darkness");
+                                safe_strcat(desc, ", their rain-soaked canopy rustling softly in the darkness.");
                             } else {
-                                safe_strcat(desc, ", their healthy canopy rustling softly in the night breeze");
+                                safe_strcat(desc, ", their healthy canopy rustling softly in the night breeze.");
                             }
                         }
                     } else {
                         if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                            safe_strcat(desc, ", their healthy canopy dripping steadily from the ongoing rain");
+                            safe_strcat(desc, ", their healthy canopy dripping steadily from the ongoing rain.");
                         } else {
-                            safe_strcat(desc, ", their healthy canopy providing pleasant shade");
+                            safe_strcat(desc, ", their healthy canopy providing pleasant shade.");
                         }
                     }
                 } else {
@@ -1555,38 +1555,38 @@ void add_vegetation_details(char *desc, struct resource_state *state,
                     if (context->time_of_day == SUN_DARK) {
                         if (context->has_light_sources) {
                             if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                                safe_strcat(desc, ", the rain-laden grasses and flowers bending under the weight of water in the artificial light");
+                                safe_strcat(desc, ", the rain-laden grasses and flowers bending under the weight of water in the artificial light.");
                             } else {
-                                safe_strcat(desc, ", the grasses and flowers swaying gently in the artificial light");
+                                safe_strcat(desc, ", the grasses and flowers swaying gently in the artificial light.");
                             }
                         } else {
                             if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                                safe_strcat(desc, ", the vegetation heavy with rainwater rustling quietly in the darkness");
+                                safe_strcat(desc, ", the vegetation heavy with rainwater rustling quietly in the darkness.");
                             } else {
-                                safe_strcat(desc, ", the vegetation rustling quietly in the darkness");
+                                safe_strcat(desc, ", the vegetation rustling quietly in the darkness.");
                             }
                         }
                     } else {
                         if (context->weather == WEATHER_RAINY || context->weather == WEATHER_STORMY) {
-                            safe_strcat(desc, ", where grasses and scattered flowers glisten with fresh raindrops");
+                            safe_strcat(desc, ", where grasses and scattered flowers glisten with fresh raindrops.");
                         } else {
-                            safe_strcat(desc, ", creating a pleasant meadow dotted with colorful blooms");
+                            safe_strcat(desc, ", creating a pleasant meadow dotted with colorful blooms.");
                         }
                     }
                 }
                 break;
             case SEASON_AUTUMN:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    safe_strcat(desc, ", touched with the colors of the changing season");
+                    safe_strcat(desc, ", touched with the colors of the changing season.");
                 } else {
-                    safe_strcat(desc, ", where autumn grasses turn golden and seed heads catch the wind");
+                    safe_strcat(desc, ", where autumn grasses turn golden and seed heads catch the wind.");
                 }
                 break;
             case SEASON_WINTER:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    safe_strcat(desc, ", standing quiet and still in winter's embrace");
+                    safe_strcat(desc, ", standing quiet and still in winter's embrace.");
                 } else {
-                    safe_strcat(desc, ", where frost-touched grasses create a sparse but resilient ground cover");
+                    safe_strcat(desc, ", where frost-touched grasses create a sparse but resilient ground cover.");
                 }
                 break;
         }
@@ -1594,9 +1594,9 @@ void add_vegetation_details(char *desc, struct resource_state *state,
         switch (context->season) {
             case SEASON_SPRING:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    safe_strcat(desc, ", where tender new shoots push through the soil");
+                    safe_strcat(desc, ", where tender new shoots push through the soil.");
                 } else {
-                    safe_strcat(desc, ", where scattered shoots of grass emerge from the earth");
+                    safe_strcat(desc, ", where scattered shoots of grass emerge from the earth.");
                 }
                 break;
             case SEASON_SUMMER:
@@ -1604,37 +1604,37 @@ void add_vegetation_details(char *desc, struct resource_state *state,
                 if (context->time_of_day == SUN_DARK) {
                     if (context->has_light_sources) {
                         if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                            safe_strcat(desc, ", their sparse forms casting twisted shadows in the artificial light");
+                            safe_strcat(desc, ", their sparse forms casting twisted shadows in the artificial light.");
                         } else {
-                            safe_strcat(desc, ", where sparse patches of vegetation are highlighted by the flickering light");
+                            safe_strcat(desc, ", where sparse patches of vegetation are highlighted by the flickering light.");
                         }
                     } else {
                         if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                            safe_strcat(desc, ", their sparse forms barely visible in the darkness");
+                            safe_strcat(desc, ", their sparse forms barely visible in the darkness.");
                         } else {
-                            safe_strcat(desc, ", where scattered vegetation fades into the night");
+                            safe_strcat(desc, ", where scattered vegetation fades into the night.");
                         }
                     }
                 } else {
                     if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                        safe_strcat(desc, ", creating patches of shade in the open landscape");
+                        safe_strcat(desc, ", creating patches of shade in the open landscape.");
                     } else {
-                        safe_strcat(desc, ", where scattered wildflowers add splashes of color to the grassland");
+                        safe_strcat(desc, ", where scattered wildflowers add splashes of color to the grassland.");
                     }
                 }
                 break;
             case SEASON_AUTUMN:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    safe_strcat(desc, ", their sparse foliage rustling in the breeze");
+                    safe_strcat(desc, ", their sparse foliage rustling in the breeze.");
                 } else {
-                    safe_strcat(desc, ", where dry grasses and fading wildflowers bend in the autumn wind");
+                    safe_strcat(desc, ", where dry grasses and fading wildflowers bend in the autumn wind.");
                 }
                 break;
             case SEASON_WINTER:
                 if (context->terrain_type == SECT_FOREST || context->in_forest) {
-                    safe_strcat(desc, ", stark and beautiful against the winter landscape");
+                    safe_strcat(desc, ", stark and beautiful against the winter landscape.");
                 } else {
-                    safe_strcat(desc, ", where only the hardiest grasses survive the winter cold");
+                    safe_strcat(desc, ", where only the hardiest grasses survive the winter cold.");
                 }
                 break;
         }
