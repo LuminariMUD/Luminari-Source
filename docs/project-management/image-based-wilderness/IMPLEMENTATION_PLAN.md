@@ -40,9 +40,10 @@ Add to `src/campaign.h` or create new configuration system:
   #define WILDERNESS_IMAGE_PATH "lib/world/wilderness_map.png"
   #define WILDERNESS_IMAGE_FORMAT IMAGE_FORMAT_PNG  /* or IMAGE_FORMAT_BMP */
   
-  /* IMPORTANT: Image dimensions directly determine wilderness size */
-  /* No coordinate scaling - world coordinates = image coordinates */
-  /* Image size should match desired WILD_X_SIZE and WILD_Y_SIZE */
+  /* IMPORTANT: Coordinate conversion required */
+  /* World coordinates [-1024, 1024] with center origin */
+  /* Image coordinates [0, width-1] with top-left origin */
+  /* Conversion: img_x = world_x + (width/2) */
 #else
   #define IMAGE_WILDERNESS_ENABLED 0
 #endif
@@ -100,7 +101,7 @@ extern struct terrain_color_map terrain_colors[];
 /* Image loading and management */
 int load_wilderness_image(const char *filename);
 void free_wilderness_image(void);
-unsigned char *get_pixel_color(int x, int y);
+unsigned char *get_pixel_color(int world_x, int world_y);
 int get_sector_from_color(unsigned char r, unsigned char g, unsigned char b);
 
 /* Coordinate mapping */
@@ -175,15 +176,15 @@ static const int sector_base_temperature_map[] = {
 };
 
 /* Image-based terrain data - ONLY for base terrain layers */
-int get_elevation_from_image(int x, int y) {
+int get_elevation_from_image(int world_x, int world_y) {
     if (!wilderness_image || !wilderness_image->loaded) {
-        return get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y); /* fallback */
+        return get_elevation(NOISE_MATERIAL_PLANE_ELEV, world_x, world_y); /* fallback */
     }
     
     /* Get sector type from image color */
-    int sector = get_sector_from_image_color(x, y);
+    int sector = get_sector_from_image_color(world_x, world_y);
     if (sector == -1) {
-        return get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y); /* fallback */
+        return get_elevation(NOISE_MATERIAL_PLANE_ELEV, world_x, world_y); /* fallback */
     }
     
     /* Return elevation based on sector type */
@@ -194,15 +195,15 @@ int get_elevation_from_image(int x, int y) {
     return 150; /* Default elevation */
 }
 
-int get_moisture_from_image(int x, int y) {
+int get_moisture_from_image(int world_x, int world_y) {
     if (!wilderness_image || !wilderness_image->loaded) {
-        return get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y); /* fallback */
+        return get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, world_x, world_y); /* fallback */
     }
     
     /* Get sector type from image color */
-    int sector = get_sector_from_image_color(x, y);
+    int sector = get_sector_from_image_color(world_x, world_y);
     if (sector == -1) {
-        return get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y); /* fallback */
+        return get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, world_x, world_y); /* fallback */
     }
     
     /* Return moisture based on sector type */
@@ -213,15 +214,15 @@ int get_moisture_from_image(int x, int y) {
     return 128; /* Default moisture */
 }
 
-int get_temperature_from_image(int x, int y) {
+int get_temperature_from_image(int world_x, int world_y) {
     if (!wilderness_image || !wilderness_image->loaded) {
-        return get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y); /* fallback */
+        return get_temperature(NOISE_MATERIAL_PLANE_ELEV, world_x, world_y); /* fallback */
     }
     
     /* Get sector type from image color */
-    int sector = get_sector_from_image_color(x, y);
+    int sector = get_sector_from_image_color(world_x, world_y);
     if (sector == -1) {
-        return get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y); /* fallback */
+        return get_temperature(NOISE_MATERIAL_PLANE_ELEV, world_x, world_y); /* fallback */
     }
     
     /* Get base temperature from sector type */
@@ -231,7 +232,7 @@ int get_temperature_from_image(int x, int y) {
     }
     
     /* Apply latitude modifier - distance from equator (center of image) */
-    int img_y = world_y;  /* Direct mapping - no coordinate conversion needed */
+    int img_y = map_world_to_image_y(world_y);  /* Convert center-origin to top-left */
     int center_y = wilderness_image->height / 2;
     int dist_from_equator = abs(img_y - center_y);
     float latitude_factor = (float)dist_from_equator / (float)(wilderness_image->height / 2);
@@ -242,12 +243,12 @@ int get_temperature_from_image(int x, int y) {
     return base_temp - latitude_modifier;
 }
 
-int get_sector_from_image_color(int x, int y) {
+int get_sector_from_image_color(int world_x, int world_y) {
     if (!wilderness_image || !wilderness_image->loaded) {
         return -1; /* Error - no image */
     }
     
-    unsigned char *color = get_pixel_color(x, y);
+    unsigned char *color = get_pixel_color(world_x, world_y);
     if (!color) {
         return -1; /* Error - no pixel data */
     }
@@ -255,36 +256,36 @@ int get_sector_from_image_color(int x, int y) {
     return get_sector_from_color(color[0], color[1], color[2]);
 }
 
-int get_sector_from_image(int x, int y) {
+int get_sector_from_image(int world_x, int world_y) {
     /* First try to get sector directly from image color */
-    int sector = get_sector_from_image_color(x, y);
+    int sector = get_sector_from_image_color(world_x, world_y);
     if (sector != -1) {
         return sector;
     }
     
     /* Fallback: calculate from Perlin noise */
     if (!wilderness_image || !wilderness_image->loaded) {
-        return get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y),
-                             get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y),
-                             get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
+        return get_sector_type(get_elevation(NOISE_MATERIAL_PLANE_ELEV, world_x, world_y),
+                             get_temperature(NOISE_MATERIAL_PLANE_ELEV, world_x, world_y),
+                             get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, world_x, world_y));
     }
     
     /* Fallback: calculate from image-based values */
-    return get_sector_type(get_elevation_from_image(x, y),
-                          get_temperature_from_image(x, y),
-                          get_moisture_from_image(x, y));
+    return get_sector_type(get_elevation_from_image(world_x, world_y),
+                          get_temperature_from_image(world_x, world_y),
+                          get_moisture_from_image(world_x, world_y));
 }
 
 /* Consistent scaling for resource and weather Perlin noise layers */
 /* NOTE: When using image-based wilderness, world size should match image size */
 double get_scaled_perlin_coordinate_x(int x, double frequency) {
     /* For image-based wilderness, maintain same scaling approach as traditional */
-    /* World coordinates now match image dimensions, so scale accordingly */
+    /* World coordinates [-1024, 1024] need to be scaled properly for Perlin noise */
     
 #ifdef USE_IMAGE_WILDERNESS
     if (wilderness_image && wilderness_image->loaded) {
-        /* Scale based on image width instead of WILD_X_SIZE */
-        return x / (double)(wilderness_image->width / frequency);
+        /* Use traditional world coordinate range for Perlin noise scaling */
+        return x / (double)(WILD_X_SIZE / frequency);
     }
 #endif
     
@@ -295,8 +296,8 @@ double get_scaled_perlin_coordinate_x(int x, double frequency) {
 double get_scaled_perlin_coordinate_y(int y, double frequency) {
 #ifdef USE_IMAGE_WILDERNESS
     if (wilderness_image && wilderness_image->loaded) {
-        /* Scale based on image height instead of WILD_Y_SIZE */
-        return y / (double)(wilderness_image->height / frequency);
+        /* Use traditional world coordinate range for Perlin noise scaling */
+        return y / (double)(WILD_Y_SIZE / frequency);
     }
 #endif
     
@@ -449,21 +450,17 @@ Functions in `src/resource_system.c` that call wilderness functions:
 #### Noise Layer Size Consistency:
 
 ```c
-/* Ensure all noise layers scale consistently with image dimensions */
+/* Ensure all noise layers scale consistently */
 #ifdef USE_IMAGE_WILDERNESS
 
-/* Scale factor based on image vs wilderness size */
-#define IMAGE_TO_WILD_SCALE_X ((float)WILD_X_SIZE / (float)wilderness_image->width)
-#define IMAGE_TO_WILD_SCALE_Y ((float)WILD_Y_SIZE / (float)wilderness_image->height)
-
 /* Modified Perlin noise scaling for non-base layers */
+/* Keep traditional world coordinate system for Perlin noise consistency */
 double get_scaled_perlin_noise(int noise_layer, int x, int y, double freq, double amp, int octaves) {
-    /* Scale coordinates to match image resolution for consistency */
-    double scale_x = IMAGE_TO_WILD_SCALE_X;
-    double scale_y = IMAGE_TO_WILD_SCALE_Y;
+    /* Use standard world coordinate scaling regardless of image size */
+    /* This ensures consistent noise patterns across different image sizes */
     
-    double trans_x = x / (double)(WILD_X_SIZE / freq) * scale_x;
-    double trans_y = y / (double)(WILD_Y_SIZE / freq) * scale_y;
+    double trans_x = x / (double)(WILD_X_SIZE / freq);
+    double trans_y = y / (double)(WILD_Y_SIZE / freq);
     
     return PerlinNoise2D(noise_layer, trans_x, trans_y, amp, 2.0, octaves);
 }

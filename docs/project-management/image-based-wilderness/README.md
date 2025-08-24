@@ -122,10 +122,10 @@ Complete development and testing checklist:
 - **Total Impact**: <15MB additional memory usage for large images
 
 ### World Size Considerations
-- **Direct Mapping**: Image dimensions = Wilderness dimensions
-- **1024×1024 image**: Creates 1024×1024 wilderness grid
-- **2048×2048 image**: Creates 2048×2048 wilderness grid
-- **Choose image size based on desired world size**
+- **Coordinate Conversion**: World coordinates [-1024, 1024] map to image pixels [0, size-1]
+- **Any image size**: Works with existing wilderness coordinate system
+- **Automatic scaling**: System handles coordinate conversion from world to image space
+- **Choose image size based on desired detail level**
 
 ### Speed Comparison
 - **Image Loading**: One-time 5-second cost at startup

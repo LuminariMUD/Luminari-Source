@@ -81,8 +81,8 @@ Image-Based Wilderness:
 World Coordinates          Image Coordinates         Terrain Properties
 ─────────────────          ──────────────────        ──────────────────
 
-X: [-1024, 1024]    ═══▶   img_x: [0, width-1]       Convert: world_x + 1024 → img_x
-Y: [-1024, 1024]    ═══▶   img_y: [0, height-1]      Convert: world_y + 1024 → img_y
+X: [-1024, 1024]    ═══▶   img_x: [0, width-1]       Convert: world_x + (width/2) → img_x
+Y: [-1024, 1024]    ═══▶   img_y: [0, height-1]      Convert: world_y + (height/2) → img_y
 (Center origin)                                       (Top-left origin)
                                                       
                            RGB: pixel(img_x, img_y)  
@@ -149,7 +149,7 @@ extern struct terrain_color_map terrain_colors[];
 ```c
 /* Pixel cache for frequently accessed coordinates */
 struct pixel_cache_entry {
-    int world_x, world_y;        /* World coordinates (direct mapping to image) */
+    int world_x, world_y;        /* World coordinates (center-origin, need conversion) */
     unsigned char rgb[3];        /* Cached RGB values */
     int sector_type;             /* Cached sector type */
     time_t access_time;          /* Last access timestamp */
@@ -260,12 +260,15 @@ int map_world_to_image_x(int world_x) {
         return -1;  /* Error: no image loaded */
     }
     
-    /* Direct mapping - world coordinates match image coordinates */
-    /* Ensure world coordinates are within image bounds */
-    if (world_x < 0) return 0;
-    if (world_x >= wilderness_image->width) return wilderness_image->width - 1;
+    /* Convert center-origin world coords to top-left image coords */
+    /* world_x range: [-1024, 1024] → img_x range: [0, width-1] */
+    int img_x = world_x + (wilderness_image->width / 2);
     
-    return world_x;  /* Direct mapping, no scaling */
+    /* Ensure image coordinates are within bounds */
+    if (img_x < 0) return 0;
+    if (img_x >= wilderness_image->width) return wilderness_image->width - 1;
+    
+    return img_x;
 }
 
 int map_world_to_image_y(int world_y) {
@@ -273,12 +276,15 @@ int map_world_to_image_y(int world_y) {
         return -1;  /* Error: no image loaded */
     }
     
-    /* Direct mapping - world coordinates match image coordinates */
-    /* Ensure world coordinates are within image bounds */
-    if (world_y < 0) return 0;
-    if (world_y >= wilderness_image->height) return wilderness_image->height - 1;
+    /* Convert center-origin world coords to top-left image coords */
+    /* world_y range: [-1024, 1024] → img_y range: [0, height-1] */
+    int img_y = world_y + (wilderness_image->height / 2);
     
-    return world_y;  /* Direct mapping, no scaling */
+    /* Ensure image coordinates are within bounds */
+    if (img_y < 0) return 0;
+    if (img_y >= wilderness_image->height) return wilderness_image->height - 1;
+    
+    return img_y;
 }
 ```
 
@@ -526,8 +532,8 @@ void cleanup_image_wilderness(void) {
 
 /* Hot path functions */
 INLINE HOT int map_world_to_image_x_fast(int world_x) {
-    /* Optimized version using bit shifts for power-of-2 dimensions */
-    return ((world_x + 1024) >> 1) & (WILDERNESS_IMAGE_WIDTH - 1);
+    /* Optimized version for center-origin coordinate conversion */
+    return world_x + (WILDERNESS_IMAGE_WIDTH / 2);
 }
 
 /* Cache-friendly memory access patterns */

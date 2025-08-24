@@ -56,7 +56,7 @@ This guide defines the RGB color values that map to specific terrain types in th
 - **Minimum**: 256x256 pixels = 256x256 wilderness grid
 - **Recommended**: 1024x1024 pixels = 1024x1024 wilderness grid  
 - **Maximum**: 2048x2048 pixels = 2048x2048 wilderness grid
-- **Direct mapping**: World coordinate (x,y) = Image pixel (x,y)
+- **Coordinate conversion**: World coordinates [-1024, 1024] convert to image pixels [0, width/height-1]
 
 ### Color Precision
 - Use exact RGB values listed above for best results
