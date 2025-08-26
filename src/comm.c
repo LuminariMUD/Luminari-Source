@@ -1392,6 +1392,8 @@ void heartbeat(int heart_pulse)
     craft_update();
     /* Process PubSub message queue automatically */
     pubsub_process_message_queue();
+    /* Process Intermud3 events from the I3 thread */
+    i3_process_events();
   }
 
   if (!(heart_pulse % (PASSES_PER_SEC * 5)))

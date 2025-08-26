@@ -16,6 +16,10 @@
 #include "act.h"
 
 #include "systems/intermud3/i3_client.h"
+/* Temporarily disabled for compilation
+#include "systems/intermud3/i3_security.h"
+#include "systems/intermud3/i3_error.h"
+*/
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -40,7 +44,7 @@ i3_client_t *i3_client = NULL;
 static int i3_socket_connect(const char *host, int port);
 static int i3_authenticate(void);
 static void i3_handle_message(const char *json_str);
-static void i3_queue_command(i3_command_t *cmd);
+void i3_queue_command(i3_command_t *cmd);
 static void i3_queue_event(i3_event_t *event);
 static i3_command_t *i3_pop_command(void);
 static void i3_free_command(i3_command_t *cmd);
@@ -52,9 +56,16 @@ int i3_initialize(void)
 {
     pthread_t *thread_ptr;
     
+    /* Initialize security and error systems first - TEMPORARILY DISABLED */
+    /* i3_init_security_system(I3_SECURITY_VALIDATE_JSON | I3_SECURITY_SANITIZE_INPUT | I3_SECURITY_CHECK_RATES);
+    i3_init_error_system(); */
+    
     i3_client = (i3_client_t *)calloc(1, sizeof(i3_client_t));
     if (!i3_client) {
-        log("ERROR: Failed to allocate I3 client structure");
+        /* I3_CRITICAL(I3_ERROR_MEMORY, ENOMEM, "Failed to allocate I3 client structure");
+        i3_shutdown_security_system();
+        i3_shutdown_error_system(); */
+        i3_log("I3: Failed to allocate client structure");
         return -1;
     }
     
@@ -97,13 +108,16 @@ int i3_initialize(void)
     /* Create client thread */
     thread_ptr = (pthread_t *)i3_client->thread_id;
     if (pthread_create(thread_ptr, NULL, i3_client_thread, NULL) != 0) {
-        i3_error("Failed to create I3 client thread: %s", strerror(errno));
+        /* I3_CRITICAL(I3_ERROR_THREADING, errno, "Failed to create I3 client thread"); */
+        i3_log("I3: Failed to create client thread");
         free(i3_client->thread_id);
         free(i3_client->command_mutex);
         free(i3_client->event_mutex);
         free(i3_client->state_mutex);
         free(i3_client);
         i3_client = NULL;
+        /* i3_shutdown_security_system();
+        i3_shutdown_error_system(); */
         return -1;
     }
     
@@ -168,6 +182,10 @@ void i3_shutdown(void)
     /* Free client structure */
     free(i3_client);
     i3_client = NULL;
+    
+    /* Shutdown security and error systems */
+    /* i3_shutdown_security_system();
+    i3_shutdown_error_system(); */
 }
 
 /* Main client thread */
@@ -486,21 +504,57 @@ static void i3_handle_message(const char *json_str)
         i3_authenticate();
     }
     /* Handle incoming tell */
-    else if (strcmp(method, "tell") == 0) {
-        /* TODO: Implement tell message parsing - DISABLED to prevent heap corruption */
-        i3_log("DEBUG: Received tell message (parsing not implemented)");
+    else if (strcmp(method, "tell_received") == 0) {
+        i3_event_t *event;
+        json_object *from_user_obj, *from_mud_obj, *to_user_obj, *message_obj;
+        
+        if (params_obj && 
+            json_object_object_get_ex(params_obj, "from_user", &from_user_obj) &&
+            json_object_object_get_ex(params_obj, "from_mud", &from_mud_obj) &&
+            json_object_object_get_ex(params_obj, "to_user", &to_user_obj) &&
+            json_object_object_get_ex(params_obj, "message", &message_obj)) {
+            
+            event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
+            event->type = I3_MSG_TELL;
+            strncpy(event->from_user, json_object_get_string(from_user_obj), sizeof(event->from_user) - 1);
+            strncpy(event->from_mud, json_object_get_string(from_mud_obj), sizeof(event->from_mud) - 1);
+            strncpy(event->to_user, json_object_get_string(to_user_obj), sizeof(event->to_user) - 1);
+            strncpy(event->message, json_object_get_string(message_obj), sizeof(event->message) - 1);
+            
+            i3_queue_event(event);
+            i3_log("Queued tell from %s@%s to %s: %.100s", 
+                   event->from_user, event->from_mud, event->to_user, event->message);
+        }
     }
     /* Handle incoming channel message */
     else if (strcmp(method, "channel_message") == 0) {
-        /* TODO: Implement channel message parsing - DISABLED to prevent heap corruption */
-        i3_log("DEBUG: Received channel message (parsing not implemented)");
+        i3_event_t *event;
+        json_object *channel_obj, *from_user_obj, *from_mud_obj, *message_obj;
+        
+        if (params_obj && 
+            json_object_object_get_ex(params_obj, "channel", &channel_obj) &&
+            json_object_object_get_ex(params_obj, "from_user", &from_user_obj) &&
+            json_object_object_get_ex(params_obj, "from_mud", &from_mud_obj) &&
+            json_object_object_get_ex(params_obj, "message", &message_obj)) {
+            
+            event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
+            event->type = I3_MSG_CHANNEL;
+            strncpy(event->channel, json_object_get_string(channel_obj), sizeof(event->channel) - 1);
+            strncpy(event->from_user, json_object_get_string(from_user_obj), sizeof(event->from_user) - 1);
+            strncpy(event->from_mud, json_object_get_string(from_mud_obj), sizeof(event->from_mud) - 1);
+            strncpy(event->message, json_object_get_string(message_obj), sizeof(event->message) - 1);
+            
+            i3_queue_event(event);
+            i3_log("Queued channel message from %s@%s on %s: %.100s", 
+                   event->from_user, event->from_mud, event->channel, event->message);
+        }
     }
     
     json_object_put(root);
 }
 
 /* Queue command for sending */
-static void i3_queue_command(i3_command_t *cmd)
+void i3_queue_command(i3_command_t *cmd)
 {
     pthread_mutex_t *mutex_ptr;
     
@@ -529,7 +583,7 @@ static void i3_queue_command(i3_command_t *cmd)
 }
 
 /* Queue event for processing - currently unused but kept for future implementation */
-__attribute__((unused)) static void i3_queue_event(i3_event_t *event)
+static void i3_queue_event(i3_event_t *event)
 {
     pthread_mutex_t *mutex_ptr;
     
@@ -662,15 +716,62 @@ int i3_send_json(void *obj)
 }
 
 /* Send tell message */
-int i3_send_tell(const char *from_user, const char *target_mud, 
+int i3_send_tell(const char *from_user, const char *target_mud,
                   const char *target_user, const char *message)
 {
     json_object *params;
     i3_command_t *cmd;
+    /* i3_validation_result_t validation; */
+    /* i3_security_context_t *sec_ctx; */
+    void *sec_ctx;
+    /* char sanitized_message[I3_MAX_MESSAGE_LENGTH]; */
     
     if (!i3_client->enable_tell) {
+        /* I3_WARNING(I3_ERROR_PERMISSION, -1, "Tell functionality disabled"); */
+        i3_log("I3: Tell functionality disabled");
         return -1;
     }
+    
+    /* Validate inputs */
+    /* validation = i3_validate_username(from_user); */
+    /* if (!validation.valid) {
+        I3_ERROR_WITH_INFO(I3_ERROR_VALIDATION, validation.error_code,
+                          "Invalid from_user in tell", validation.error_message);
+        return -1;
+    } */
+    
+    /* validation = i3_validate_mudname(target_mud); */
+    /* if (!validation.valid) {
+        I3_ERROR_WITH_INFO(I3_ERROR_VALIDATION, validation.error_code,
+                          "Invalid target_mud in tell", validation.error_message);
+        return -1;
+    } */
+    
+    /* validation = i3_validate_username(target_user); */
+    /* if (!validation.valid) {
+        I3_ERROR_WITH_INFO(I3_ERROR_VALIDATION, validation.error_code,
+                          "Invalid target_user in tell", validation.error_message);
+        return -1;
+    } */
+    
+    /* validation = i3_validate_message(message); */
+    /* if (!validation.valid) {
+        I3_ERROR_WITH_INFO(I3_ERROR_VALIDATION, validation.error_code,
+                          "Invalid message in tell", validation.error_message);
+        return -1;
+    } */
+    
+    /* Check rate limits */
+    /* sec_ctx = i3_create_security_context(from_user, "127.0.0.1"); */ /* TODO: Get real IP */
+    sec_ctx = NULL;
+    /* if (sec_ctx && !i3_check_rate_limit(sec_ctx, "tell")) {
+        i3_log_rate_limit_violation(sec_ctx, "tell");
+        i3_destroy_security_context(sec_ctx);
+        return -1;
+    } */
+    
+    /* Sanitize message */
+    /* i3_sanitize_message(message, sanitized_message, sizeof(sanitized_message)); */
     
     params = json_object_new_object();
     json_object_object_add(params, "from_user", json_object_new_string(from_user));
@@ -679,9 +780,24 @@ int i3_send_tell(const char *from_user, const char *target_mud,
     json_object_object_add(params, "message", json_object_new_string(message));
     
     cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+    if (!cmd) {
+        /* I3_ERROR(I3_ERROR_MEMORY, ENOMEM, "Failed to allocate tell command"); */
+        i3_log("I3: Failed to allocate tell command");
+        json_object_put(params);
+        /* if (sec_ctx) i3_destroy_security_context(sec_ctx); */
+        return -1;
+    }
+    
     cmd->id = i3_client->next_request_id++;
-    strcpy(cmd->method, "tell");
+    strncpy(cmd->method, "tell", sizeof(cmd->method) - 1);
+    cmd->method[sizeof(cmd->method) - 1] = '\0';
     cmd->params = params;
+    
+    /* Update rate limits */
+    if (sec_ctx) {
+        /* i3_update_rate_limit(sec_ctx, "tell");
+        i3_destroy_security_context(sec_ctx); */
+    }
     
     i3_queue_command(cmd);
     return 0;
@@ -693,10 +809,51 @@ int i3_send_channel_message(const char *channel, const char *from_user,
 {
     json_object *params;
     i3_command_t *cmd;
+    /* i3_validation_result_t validation; */
+    /* i3_security_context_t *sec_ctx; */
+    void *sec_ctx;
+    /* char sanitized_message[I3_MAX_MESSAGE_LENGTH]; */
     
     if (!i3_client->enable_channels) {
+        /* I3_WARNING(I3_ERROR_PERMISSION, -1, "Channel functionality disabled"); */
+        i3_log("I3: Channel functionality disabled");
         return -1;
     }
+    
+    /* Validate inputs */
+    /* validation = i3_validate_channel(channel); */
+    /* if (!validation.valid) {
+        I3_ERROR_WITH_INFO(I3_ERROR_VALIDATION, validation.error_code,
+                          "Invalid channel in channel message", validation.error_message);
+        return -1;
+    } */
+    
+    /* validation = i3_validate_username(from_user); */
+    /* if (!validation.valid) {
+        I3_ERROR_WITH_INFO(I3_ERROR_VALIDATION, validation.error_code,
+                          "Invalid from_user in channel message", validation.error_message);
+        return -1;
+    } */
+    
+    /* validation = i3_validate_message(message); */
+    /* if (!validation.valid) {
+        I3_ERROR_WITH_INFO(I3_ERROR_VALIDATION, validation.error_code,
+                           "Invalid message in channel message", validation.error_message);
+        i3_log("I3: Invalid message in channel message");
+        return -1;
+    } */
+    
+    /* Check rate limits */
+    /* sec_ctx = i3_create_security_context(from_user, "127.0.0.1"); */ /* TODO: Get real IP */
+    sec_ctx = NULL;
+    /* if (sec_ctx && !i3_check_rate_limit(sec_ctx, "channel")) {
+        i3_log_rate_limit_violation(sec_ctx, "channel");
+        i3_destroy_security_context(sec_ctx);
+        return -1;
+    } */
+    
+    /* Sanitize message */
+    /* i3_sanitize_message(message, sanitized_message, sizeof(sanitized_message)); */
     
     params = json_object_new_object();
     json_object_object_add(params, "channel", json_object_new_string(channel));
@@ -704,31 +861,68 @@ int i3_send_channel_message(const char *channel, const char *from_user,
     json_object_object_add(params, "message", json_object_new_string(message));
     
     cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+    if (!cmd) {
+        /* I3_ERROR(I3_ERROR_MEMORY, ENOMEM, "Failed to allocate channel command"); */
+        i3_log("I3: Failed to allocate channel command");
+        json_object_put(params);
+        /* if (sec_ctx) i3_destroy_security_context(sec_ctx); */
+        return -1;
+    }
+    
     cmd->id = i3_client->next_request_id++;
-    strcpy(cmd->method, "channel_send");
+    strncpy(cmd->method, "channel_send", sizeof(cmd->method) - 1);
+    cmd->method[sizeof(cmd->method) - 1] = '\0';
     cmd->params = params;
+    
+    /* Update rate limits */
+    if (sec_ctx) {
+        /* i3_update_rate_limit(sec_ctx, "channel");
+        i3_destroy_security_context(sec_ctx); */
+    }
     
     i3_queue_command(cmd);
     return 0;
 }
 
-/* Process events from the queue */
+/* Process events from the queue - called from main thread */
 void i3_process_events(void)
 {
     i3_event_t *event;
+    struct char_data *victim;
     
     while ((event = i3_pop_event()) != NULL) {
         switch (event->type) {
         case I3_MSG_TELL:
-            /* THREAD SAFETY FIX: Do not access character_list from I3 thread */
-            /* TODO: Implement proper event queuing to main thread */
-            i3_log("DEBUG: Tell event processing disabled (thread safety)");
+            /* Find the target player and deliver the tell */
+            victim = get_player_vis(NULL, event->to_user, NULL, FIND_CHAR_WORLD);
+            if (victim) {
+                send_to_char(victim, "%s[I3 Tell] %s@%s tells you: %s%s\r\n", 
+                           CCYEL(victim, C_NRM), event->from_user, event->from_mud, 
+                           event->message, CCNRM(victim, C_NRM));
+                i3_log("Delivered tell from %s@%s to %s", 
+                       event->from_user, event->from_mud, event->to_user);
+            } else {
+                i3_log("Tell from %s@%s to %s: player not found", 
+                       event->from_user, event->from_mud, event->to_user);
+            }
             break;
 
         case I3_MSG_CHANNEL:
-            /* THREAD SAFETY FIX: Do not access character_list from I3 thread */
-            /* TODO: Implement proper event queuing to main thread */
-            i3_log("DEBUG: Channel event processing disabled (thread safety)");
+            /* Broadcast channel message to all online players */
+            /* TODO: Implement channel subscription system */
+            {
+                struct descriptor_data *d;
+                for (d = descriptor_list; d; d = d->next) {
+                    if (STATE(d) == CON_PLAYING && d->character) {
+                        send_to_char(d->character, "%s[I3:%s] %s@%s: %s%s\r\n", 
+                                   CCYEL(d->character, C_NRM), event->channel,
+                                   event->from_user, event->from_mud, 
+                                   event->message, CCNRM(d->character, C_NRM));
+                    }
+                }
+                i3_log("Broadcast channel message from %s@%s on %s", 
+                       event->from_user, event->from_mud, event->channel);
+            }
             break;
             
         case I3_MSG_ERROR:
@@ -737,6 +931,7 @@ void i3_process_events(void)
             break;
             
         default:
+            i3_log("DEBUG: Unknown event type: %d", event->type);
             break;
         }
         
