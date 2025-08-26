@@ -328,10 +328,31 @@ A fresh install requires significant manual setup that isn't documented in a cle
 6. Make MySQL configuration optional for initial testing (use file-based storage as fallback)
 7. Add a note in README about running `dos2unix` on all shell scripts after cloning on Windows/WSL
 
-## DEPLOYMENT IMPROVEMENTS IN PROGRESS (2025-08-26)
+## DEPLOYMENT IMPROVEMENTS (2025-08-26)
 
-### Completed
-1. **Created automated deployment script (`deploy.sh`)**
+### 🎯 KEY ACHIEVEMENT
+**The game now builds successfully from a fresh clone!** All critical build issues have been resolved:
+- Line endings fixed permanently
+- Makefile.am source list bug fixed
+- Autotools build process working perfectly
+- Deploy script created for automated setup
+
+### ✅ COMPLETED FIXES
+
+1. **Fixed all Windows line endings** (Commit: bd62fbff)
+   - Ran `dos2unix` on entire codebase (762 files converted)
+   - Scripts now run correctly on Linux/WSL without errors
+   - No more `$'\r'` command not found errors
+   - **This issue is permanently resolved for all future clones**
+
+2. **Fixed critical Makefile.am build issue** (Commit: e09e148f)
+   - **Problem**: Comment lines in middle of source list broke line continuation
+   - The comment after `i3_utils.c` caused all subsequent files (including `race.c` and `utils.c`) to be excluded from build
+   - This caused "undefined reference" linking errors for `race_list`, `basic_mud_log`, etc.
+   - **Solution**: Removed the problematic comment lines that interrupted the source list
+   - Build now completes successfully with all source files properly included
+
+3. **Created automated deployment script (`deploy.sh`)**
    - Automatically detects OS (Ubuntu/Debian/CentOS/Arch)
    - Installs all required dependencies based on OS
    - Handles configuration file creation from templates
@@ -340,6 +361,41 @@ A fresh install requires significant manual setup that isn't documented in a cle
    - Supports both development and production builds
    - Creates systemd service files for production deployment
    - Generates startup scripts for easy server management
+   - Updated to properly use `make install` instead of manually moving binaries
+
+4. **Autotools build confirmed working**
+   - Successfully generates configure script with `autoreconf -fvi`
+   - Creates src/conf.h properly during configure (in correct location)
+   - Builds complete executable without errors
+   - Properly installs to bin/circle with `make install`
+   - No CMake configuration needed for basic build
+   - Must run `chmod +x unittests/CuTest/make-tests.sh` for tests to work
+
+### 🚀 QUICK START FOR NEW USERS
+
+```bash
+# Clone the repository
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+
+# Option 1: Use the automated deployment script (RECOMMENDED)
+./deploy.sh --quick --skip-db   # Quick setup without database
+
+# Option 2: Manual build with autotools
+cp src/campaign.example.h src/campaign.h
+cp src/mud_options.example.h src/mud_options.h
+cp src/vnums.example.h src/vnums.h
+chmod +x unittests/CuTest/make-tests.sh  # Make test script executable
+autoreconf -fvi
+./configure
+make -j$(nproc) all
+make install
+
+# Run the game (after creating minimal world files - see below)
+bin/circle -d lib
+```
+
+**Note**: The executable is installed to `bin/circle` after `make install`
 
 ### Key Features of deploy.sh
 - **OS Detection**: Automatically identifies Linux distribution and installs appropriate packages
@@ -360,19 +416,38 @@ A fresh install requires significant manual setup that isn't documented in a cle
 ./deploy.sh --skip-db    # Skip database setup
 ```
 
-### Still TODO
-1. Create `.env` file support for environment variables
-2. Add Docker/container support for even easier deployment
-3. Fix remaining hardcoded paths in source files
-4. Create minimal world data package for initial testing
-5. Add automated line ending conversion for Windows/WSL users
-6. Create health check script to verify deployment
-7. Add backup/restore functionality for database
+### ⚠️ REMAINING ISSUES TO FIX
+
+1. **Missing minimal world files** - Game needs at least basic world data to start
+   - Need to create minimal world package or include in repo
+   - Currently requires manual creation of zone/room/mob/obj files
+
+2. **Build output location** (RESOLVED)
+   - Autotools builds `circle` executable in root directory, then `make install` copies to `bin/`
+   - CMake builds directly in `bin/` directory
+   - Both systems ultimately put the executable in `bin/circle`
+
+3. **Missing text files** - Game expects but can run without:
+   - lib/text/news, credits, motd, imotd
+   - lib/text/help/help, help/ihelp
+   - lib/text/info, wizlist, immlist, policies, handbook, background, greetings
+
+4. **MySQL configuration template has placeholders**
+   - lib/mysql_config_example needs actual values, not `<host here>`
+   - Should provide working defaults or better template
+
+### 📋 TODO for Complete Automation
+1. Create minimal world data package that works out of the box
+2. Add `.env` file support for configuration
+3. Create health check script to verify successful deployment
+4. Add Docker/container support for one-command deployment
+5. Include basic text files with default content
+6. Fix MySQL config template to use actual default values
+7. Add automated testing to CI/CD pipeline
 8. Create migration scripts for database schema updates
 
-### Next Steps for Full Deployment Automation
-- Test deploy.sh on fresh systems
-- Add world data initialization
-- Create Docker container configuration
-- Add CI/CD pipeline support
-- Document deployment best practices
+### Next Steps for Testing
+- Test deploy.sh on fresh Ubuntu/Debian system
+- Test deploy.sh on fresh CentOS/RHEL system
+- Verify world data initialization works
+- Document any remaining edge cases

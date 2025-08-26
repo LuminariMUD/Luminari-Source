@@ -311,20 +311,44 @@ build_project() {
     elif [[ -f configure.ac ]]; then
         print_msg "$GREEN" "Building with Autotools..."
         
-        # Generate configure if needed
-        if [[ ! -f configure ]]; then
-            autoreconf -fvi
+        # Clean any previous build attempts
+        if [[ -f Makefile ]]; then
+            make distclean 2>/dev/null || true
+        fi
+        
+        # Generate configure script
+        print_msg "$GREEN" "Generating configure script..."
+        autoreconf -fvi
+        
+        # Make sure make-tests.sh is executable
+        if [[ -f unittests/CuTest/make-tests.sh ]]; then
+            chmod +x unittests/CuTest/make-tests.sh
         fi
         
         # Configure
+        print_msg "$GREEN" "Running configure..."
         if [[ "$BUILD_TYPE" == "production" ]]; then
             ./configure --enable-optimizations
         else
-            ./configure --enable-debug
+            ./configure
         fi
         
         # Build
-        make -j$(nproc)
+        print_msg "$GREEN" "Building (this may take a few minutes)..."
+        make -j$(nproc) all
+        
+        # Install
+        print_msg "$GREEN" "Installing..."
+        make install
+        
+        # Check if build succeeded
+        if [[ ! -f bin/circle ]]; then
+            print_msg "$RED" "Build failed - bin/circle executable not created"
+            print_msg "$YELLOW" "Try running 'make' manually to see detailed errors"
+            exit 1
+        fi
+        
+        print_msg "$GREEN" "Build and install complete: bin/circle"
         
     else
         print_msg "$RED" "No build system found!"
