@@ -161,13 +161,6 @@ circle_SOURCES = \
 	src/systems/intermud3/i3_client.c \
 	src/systems/intermud3/i3_commands.c \
 	src/systems/intermud3/i3_utils.c \
-	# Temporarily commented out problematic I3 files to fix build
-# src/systems/intermud3/i3_config.c \
-# src/systems/intermud3/i3_error.c \
-# src/systems/intermud3/i3_memory.c \
-# src/systems/intermud3/i3_protocol.c \
-# src/systems/intermud3/i3_security.c \
-# src/systems/intermud3/i3_test.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \
