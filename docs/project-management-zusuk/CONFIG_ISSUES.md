@@ -327,3 +327,52 @@ A fresh install requires significant manual setup that isn't documented in a cle
 5. Fix line endings in shell scripts or add instructions to run `dos2unix` on all scripts
 6. Make MySQL configuration optional for initial testing (use file-based storage as fallback)
 7. Add a note in README about running `dos2unix` on all shell scripts after cloning on Windows/WSL
+
+## DEPLOYMENT IMPROVEMENTS IN PROGRESS (2025-08-26)
+
+### Completed
+1. **Created automated deployment script (`deploy.sh`)**
+   - Automatically detects OS (Ubuntu/Debian/CentOS/Arch)
+   - Installs all required dependencies based on OS
+   - Handles configuration file creation from templates
+   - Provides interactive and quick-setup modes
+   - Includes database setup automation with secure password generation
+   - Supports both development and production builds
+   - Creates systemd service files for production deployment
+   - Generates startup scripts for easy server management
+
+### Key Features of deploy.sh
+- **OS Detection**: Automatically identifies Linux distribution and installs appropriate packages
+- **Configuration Automation**: Copies and configures all required .h files from examples
+- **Database Setup**: Creates database, user, and sets permissions automatically
+- **Build System Support**: Works with both CMake and Autotools
+- **Environment Setup**: Creates all required directories and sets proper permissions
+- **Service Management**: Optional systemd service creation for production servers
+- **Quick Mode**: `--quick` flag for zero-interaction deployment with sensible defaults
+
+### Usage Examples
+```bash
+./deploy.sh              # Interactive setup with prompts
+./deploy.sh --quick      # Quick setup with all defaults
+./deploy.sh --dev        # Development mode with debug tools
+./deploy.sh --prod       # Production optimized build
+./deploy.sh --skip-deps  # Skip dependency installation
+./deploy.sh --skip-db    # Skip database setup
+```
+
+### Still TODO
+1. Create `.env` file support for environment variables
+2. Add Docker/container support for even easier deployment
+3. Fix remaining hardcoded paths in source files
+4. Create minimal world data package for initial testing
+5. Add automated line ending conversion for Windows/WSL users
+6. Create health check script to verify deployment
+7. Add backup/restore functionality for database
+8. Create migration scripts for database schema updates
+
+### Next Steps for Full Deployment Automation
+- Test deploy.sh on fresh systems
+- Add world data initialization
+- Create Docker container configuration
+- Add CI/CD pipeline support
+- Document deployment best practices
