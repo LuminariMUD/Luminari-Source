@@ -15,7 +15,9 @@
 #include "screen.h"
 #include "act.h"
 #include "systems/intermud3/i3_client.h"
+#include "systems/intermud3/i3_utils.h"
 #include <time.h>
+#include <json-c/json.h>
 
 /* Define UNUSED_VAR if not already defined */
 #ifndef UNUSED_VAR
@@ -44,8 +46,8 @@ void do_i3tell(struct char_data *ch, const char *argument, int cmd, int subcmd)
     strcpy(arg_copy, argument);
     
     /* Parse arguments */
-    message = one_argument(arg_copy, target, sizeof(target));
-    skip_spaces((char **)&message);
+    message = i3_one_argument(arg_copy, target, sizeof(target));
+    i3_skip_spaces(&message);
     
     if (!*target || !*message) {
         send_to_char(ch, "Usage: i3tell <user>@<mud> <message>\r\n");
@@ -103,17 +105,17 @@ void do_i3chat(struct char_data *ch, const char *argument, int cmd, int subcmd)
     /* Make a copy to work with */
     strcpy(arg_copy, argument);
     arg_ptr = arg_copy;
-    skip_spaces(&arg_ptr);
+    i3_skip_spaces((const char **)&arg_ptr);
     
     /* Check if a channel was specified */
-    message = one_argument(arg_ptr, channel, sizeof(channel));
+    message = i3_one_argument(arg_ptr, channel, sizeof(channel));
     
     /* If no channel specified, use default */
     if (!*message) {
         message = arg_ptr;
         strcpy(channel, i3_client->default_channel);
     } else {
-        skip_spaces((char **)&message);
+        i3_skip_spaces(&message);
     }
     
     if (!*message) {
@@ -147,7 +149,7 @@ void do_i3who(struct char_data *ch, const char *argument, int cmd, int subcmd)
         return;
     }
     
-    one_argument(argument, target_mud, sizeof(target_mud));
+    i3_one_argument(argument, target_mud, sizeof(target_mud));
     
     if (!*target_mud) {
         send_to_char(ch, "Usage: i3who <mud_name>\r\n");
@@ -183,7 +185,7 @@ void do_i3finger(struct char_data *ch, const char *argument, int cmd, int subcmd
         return;
     }
     
-    one_argument(argument, target, sizeof(target));
+    i3_one_argument(argument, target, sizeof(target));
     
     if (!*target) {
         send_to_char(ch, "Usage: i3finger <user>@<mud>\r\n");
@@ -234,7 +236,7 @@ void do_i3locate(struct char_data *ch, const char *argument, int cmd, int subcmd
         return;
     }
     
-    one_argument(argument, target_user, sizeof(target_user));
+    i3_one_argument(argument, target_user, sizeof(target_user));
     
     if (!*target_user) {
         send_to_char(ch, "Usage: i3locate <username>\r\n");
@@ -308,8 +310,8 @@ void do_i3channels(struct char_data *ch, const char *argument, int cmd, int subc
     
     /* Make a copy to work with */
     strcpy(arg_copy, argument);
-    arg_ptr = one_argument(arg_copy, cmd_arg, sizeof(cmd_arg));
-    one_argument(arg_ptr, channel, sizeof(channel));
+    arg_ptr = i3_one_argument(arg_copy, cmd_arg, sizeof(cmd_arg));
+    i3_one_argument(arg_ptr, channel, sizeof(channel));
     
     if (!*cmd_arg) {
         /* List channels */
@@ -364,7 +366,7 @@ void do_i3config(struct char_data *ch, const char *argument, int cmd, int subcmd
         return;
     }
     
-    one_argument(argument, arg, sizeof(arg));
+    i3_one_argument(argument, arg, sizeof(arg));
     
     if (!*arg) {
         send_to_char(ch, "%sIntermud3 Configuration:%s\r\n", CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
@@ -404,7 +406,7 @@ void do_i3admin(struct char_data *ch, const char *argument, int cmd, int subcmd)
         return;
     }
     
-    one_argument(argument, arg, sizeof(arg));
+    i3_one_argument(argument, arg, sizeof(arg));
     
     if (!*arg) {
         send_to_char(ch, "I3 Admin Commands:\r\n");
@@ -525,72 +527,184 @@ void i3_get_statistics(char *buf, size_t bufsize)
 /* Stub implementations for remaining protocol functions */
 int i3_request_who(const char *target_mud)
 {
-    /* TODO: Implement */
-    UNUSED_VAR(target_mud);
+    json_object *params;
+    i3_command_t *cmd;
+    
+    if (!i3_client->enable_who) {
+        return -1;
+    }
+    
+    params = json_object_new_object();
+    json_object_object_add(params, "target_mud", json_object_new_string(target_mud));
+    
+    cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+    cmd->id = i3_client->next_request_id++;
+    strcpy(cmd->method, "who_request");
+    cmd->params = params;
+    
+    i3_queue_command(cmd);
     return 0;
 }
 
 int i3_request_finger(const char *target_mud, const char *target_user)
 {
-    /* TODO: Implement */
-    UNUSED_VAR(target_mud);
-    UNUSED_VAR(target_user);
+    json_object *params;
+    i3_command_t *cmd;
+    
+    if (!i3_client->enable_who) {
+        return -1;
+    }
+    
+    params = json_object_new_object();
+    json_object_object_add(params, "target_mud", json_object_new_string(target_mud));
+    json_object_object_add(params, "target_user", json_object_new_string(target_user));
+    
+    cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+    cmd->id = i3_client->next_request_id++;
+    strcpy(cmd->method, "finger_request");
+    cmd->params = params;
+    
+    i3_queue_command(cmd);
     return 0;
 }
 
 int i3_request_locate(const char *target_user)
 {
-    /* TODO: Implement */
-    UNUSED_VAR(target_user);
+    json_object *params;
+    i3_command_t *cmd;
+    
+    if (!i3_client->enable_who) {
+        return -1;
+    }
+    
+    params = json_object_new_object();
+    json_object_object_add(params, "target_user", json_object_new_string(target_user));
+    
+    cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+    cmd->id = i3_client->next_request_id++;
+    strcpy(cmd->method, "locate_request");
+    cmd->params = params;
+    
+    i3_queue_command(cmd);
     return 0;
 }
 
 int i3_request_mudlist(void)
 {
-    /* TODO: Implement */
+    i3_command_t *cmd;
+    
+    cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+    cmd->id = i3_client->next_request_id++;
+    strcpy(cmd->method, "mudlist_request");
+    cmd->params = NULL;
+    
+    i3_queue_command(cmd);
     return 0;
 }
 
 int i3_join_channel(const char *channel, const char *user_name)
 {
-    /* TODO: Implement */
-    UNUSED_VAR(channel);
-    UNUSED_VAR(user_name);
+    json_object *params;
+    i3_command_t *cmd;
+    
+    if (!i3_client->enable_channels) {
+        return -1;
+    }
+    
+    params = json_object_new_object();
+    json_object_object_add(params, "channel", json_object_new_string(channel));
+    json_object_object_add(params, "user_name", json_object_new_string(user_name));
+    
+    cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+    cmd->id = i3_client->next_request_id++;
+    strcpy(cmd->method, "channel_join");
+    cmd->params = params;
+    
+    i3_queue_command(cmd);
     return 0;
 }
 
 int i3_leave_channel(const char *channel, const char *user_name)
 {
-    /* TODO: Implement */
-    UNUSED_VAR(channel);
-    UNUSED_VAR(user_name);
+    json_object *params;
+    i3_command_t *cmd;
+    
+    if (!i3_client->enable_channels) {
+        return -1;
+    }
+    
+    params = json_object_new_object();
+    json_object_object_add(params, "channel", json_object_new_string(channel));
+    json_object_object_add(params, "user_name", json_object_new_string(user_name));
+    
+    cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+    cmd->id = i3_client->next_request_id++;
+    strcpy(cmd->method, "channel_leave");
+    cmd->params = params;
+    
+    i3_queue_command(cmd);
     return 0;
 }
 
 int i3_list_channels(void)
 {
-    /* TODO: Implement */
+    i3_command_t *cmd;
+    
+    cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+    cmd->id = i3_client->next_request_id++;
+    strcpy(cmd->method, "channel_list");
+    cmd->params = NULL;
+    
+    i3_queue_command(cmd);
     return 0;
 }
 
 int i3_send_emoteto(const char *from_user, const char *target_mud,
                     const char *target_user, const char *emote)
 {
-    /* TODO: Implement */
-    UNUSED_VAR(from_user);
-    UNUSED_VAR(target_mud);
-    UNUSED_VAR(target_user);
-    UNUSED_VAR(emote);
+    json_object *params;
+    i3_command_t *cmd;
+    
+    if (!i3_client->enable_tell) {
+        return -1;
+    }
+    
+    params = json_object_new_object();
+    json_object_object_add(params, "from_user", json_object_new_string(from_user));
+    json_object_object_add(params, "target_mud", json_object_new_string(target_mud));
+    json_object_object_add(params, "target_user", json_object_new_string(target_user));
+    json_object_object_add(params, "emote", json_object_new_string(emote));
+    
+    cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+    cmd->id = i3_client->next_request_id++;
+    strcpy(cmd->method, "emoteto");
+    cmd->params = params;
+    
+    i3_queue_command(cmd);
     return 0;
 }
 
 int i3_send_channel_emote(const char *channel, const char *from_user,
                           const char *emote)
 {
-    /* TODO: Implement */
-    UNUSED_VAR(channel);
-    UNUSED_VAR(from_user);
-    UNUSED_VAR(emote);
+    json_object *params;
+    i3_command_t *cmd;
+    
+    if (!i3_client->enable_channels) {
+        return -1;
+    }
+    
+    params = json_object_new_object();
+    json_object_object_add(params, "channel", json_object_new_string(channel));
+    json_object_object_add(params, "from_user", json_object_new_string(from_user));
+    json_object_object_add(params, "emote", json_object_new_string(emote));
+    
+    cmd = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+    cmd->id = i3_client->next_request_id++;
+    strcpy(cmd->method, "channel_emote");
+    cmd->params = params;
+    
+    i3_queue_command(cmd);
     return 0;
 }
 
