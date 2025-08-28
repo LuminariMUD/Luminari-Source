@@ -8,9 +8,9 @@ A text-based multiplayer online role-playing game (MUD) server implementing Path
 
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [Overview](#overview)
 - [Features](#features)
-- [Quick Start](#quick-start)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Documentation](#documentation)
@@ -18,6 +18,86 @@ A text-based multiplayer online role-playing game (MUD) server implementing Path
 - [Community](#community)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
+
+## Quick Start
+
+Get LuminariMUD running in under 5 minutes! This quick start guide will help you deploy a minimal working MUD from a fresh clone.
+
+### Prerequisites
+- Linux/Unix system (Ubuntu, Debian, CentOS, WSL, etc.)
+- Git installed
+- Basic development tools (gcc, make)
+
+### Fast Setup (No Database)
+
+```bash
+# Clone the repository
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+
+# Run the automated deployment script
+./scripts/deploy.sh --quick --skip-db --init-world
+
+# Start the MUD server
+./start_mud.sh
+```
+
+That's it! Connect to `localhost:4000` with any MUD client.
+
+### Standard Setup (With Database)
+
+```bash
+# Clone and enter directory
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+
+# Run interactive setup (installs dependencies, configures database, builds)
+./scripts/deploy.sh --init-world
+
+# Start the server
+./start_mud.sh
+```
+
+### Manual Build (Advanced Users)
+
+```bash
+# Copy required configuration files
+cp src/campaign.example.h src/campaign.h
+cp src/mud_options.example.h src/mud_options.h
+cp src/vnums.example.h src/vnums.h
+
+# Build with autotools
+autoreconf -fvi
+./configure
+make -j$(nproc)
+make install
+
+# Initialize minimal world data (optional)
+./scripts/deploy.sh --skip-deps --skip-db --init-world
+
+# Run the MUD
+bin/circle -d lib
+```
+
+### Deployment Options
+
+The `deploy.sh` script supports various options:
+- `--quick` - Skip all prompts, use defaults
+- `--skip-db` - Skip database setup (MySQL optional)
+- `--skip-deps` - Skip dependency installation
+- `--init-world` - Initialize minimal world data
+- `--dev` - Development build with debug symbols
+- `--prod` - Production optimized build
+
+### Next Steps
+
+1. Connect with a MUD client to `localhost:4000`
+2. Create your first character
+3. Explore the commands with `help`
+4. See admin documentation in `docs/admin/`
+5. Start building your world!
+
+For detailed installation and configuration, see the [Installation](#installation) section below.
 
 ## Overview
 

@@ -1,5 +1,23 @@
 # LuminariMUD Troubleshooting and Maintenance Guide
 
+## Quick Deployment Troubleshooting
+
+If you're having issues with a fresh install, try:
+
+```bash
+# Quick setup that handles most common issues
+./scripts/deploy.sh --quick --skip-db --init-world
+
+# If that fails, check for missing dependencies:
+./scripts/deploy.sh --skip-db --init-world
+```
+
+Common quick fixes:
+- **Build fails**: Make sure you ran `./scripts/deploy.sh` first
+- **MUD won't start**: Use `--init-world` flag to create minimal world data
+- **Missing text files**: Deploy script creates them automatically
+- **MySQL errors**: Use `--skip-db` flag to run without database
+
 ## Overview
 
 This guide provides comprehensive troubleshooting procedures, maintenance tasks, and optimization strategies for LuminariMUD server administrators and developers. It covers common issues, diagnostic procedures, and preventive maintenance practices.
@@ -56,6 +74,39 @@ A comprehensive security audit was performed on all PHP tools in the codebase. *
 **Next Security Review Due**: July 24, 2025
 
 ## Common Issues and Solutions
+
+### Fresh Installation Issues (New!)
+
+#### Script Not Found
+**Problem:** `./deploy.sh: No such file or directory`
+**Solution:** The script has been moved to the scripts directory:
+```bash
+./scripts/deploy.sh --quick --skip-db --init-world
+```
+
+#### MUD Won't Start - Missing World Data
+**Problem:** `SYSERR: opening index file 'world/zon/index': No such file or directory`
+**Solution:** Initialize minimal world data:
+```bash
+./scripts/deploy.sh --skip-deps --skip-db --init-world
+```
+
+#### Missing Text Files
+**Problem:** Multiple `SYSERR` messages about missing text files (news, motd, credits, etc.)
+**Solution:** The deploy script now creates all required text files automatically. Just run:
+```bash
+./scripts/deploy.sh --skip-deps --skip-db --init-world
+```
+
+#### MySQL Configuration Issues
+**Problem:** `SYSERR: Malformed line in MySQL configuration`
+**Solution:** The MySQL config template now has actual default values. Either:
+1. Skip MySQL: `./scripts/deploy.sh --skip-db`
+2. Configure MySQL properly:
+```bash
+cp lib/mysql_config_example lib/mysql_config
+# Edit lib/mysql_config and change CHANGE_THIS_PASSWORD to your password
+```
 
 ### Build and Compilation Problems
 

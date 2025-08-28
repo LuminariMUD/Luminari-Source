@@ -1,5 +1,20 @@
 # LuminariMUD Setup and Build Guide
 
+## Quick Start
+
+**Get LuminariMUD running in under 5 minutes!**
+
+```bash
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+./scripts/deploy.sh --quick --skip-db --init-world
+./start_mud.sh
+```
+
+Connect to `localhost:4000` with any MUD client and start playing!
+
+For detailed setup instructions, continue reading below.
+
 ## Overview
 
 This comprehensive guide covers the complete process of setting up, building, configuring, and running LuminariMUD from source code. It includes system requirements, dependency installation, compilation, database setup, and initial configuration.
@@ -113,7 +128,31 @@ sudo dnf install -y gdb valgrind doxygen graphviz
 
 ## Source Code Setup
 
-### 1. Clone Repository
+### Automated Setup (Easiest Method)
+
+The deployment script handles all setup automatically:
+
+```bash
+# Clone and setup in one go
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+./scripts/deploy.sh --init-world
+
+# For quick setup without database:
+./scripts/deploy.sh --quick --skip-db --init-world
+```
+
+Deployment script options:
+- `--quick` - Skip all prompts, use defaults
+- `--skip-db` - Skip database setup (MySQL optional)
+- `--skip-deps` - Skip dependency installation
+- `--init-world` - Initialize minimal world data
+- `--dev` - Development build with debug symbols
+- `--prod` - Production optimized build
+
+### Manual Setup
+
+#### 1. Clone Repository
 ```bash
 # Clone the main repository
 git clone https://github.com/LuminariMUD/Luminari-Source.git
@@ -123,7 +162,7 @@ cd Luminari-Source
 ls -la
 ```
 
-### 2. Configure Required Headers
+#### 2. Configure Required Headers
 ```bash
 # Copy and configure required header files (one-time setup)
 cp src/campaign.example.h src/campaign.h
@@ -137,7 +176,7 @@ vi src/mud_options.h   # MUD feature toggles and options
 vi src/vnums.h         # Virtual number assignments for zones/objects
 ```
 
-### 3. Build the MUD
+#### 3. Build the MUD
 
 #### Option A: Build with CMake (Recommended)
 ```bash
