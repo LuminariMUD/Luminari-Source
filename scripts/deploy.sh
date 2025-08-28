@@ -30,6 +30,7 @@ BUILD_TYPE="development"
 SKIP_DEPS=false
 SKIP_DB=false
 QUICK_MODE=false
+INIT_WORLD=false
 MUD_PORT=4000
 DB_HOST="localhost"
 DB_NAME="luminari"
@@ -358,6 +359,273 @@ build_project() {
     print_msg "$GREEN" "Build complete!"
 }
 
+# Function to initialize minimal world data
+initialize_world_data() {
+    print_msg "$GREEN" "Initializing minimal world data..."
+    
+    # Check if world directories exist and are empty
+    if [[ ! -d lib/world/zon ]] || [[ -z "$(ls -A lib/world/zon 2>/dev/null)" ]]; then
+        print_msg "$YELLOW" "Setting up minimal world files..."
+        
+        # Create world directories
+        mkdir -p lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
+        
+        # Copy minimal world files
+        if [[ -d lib/world/minimal ]]; then
+            cp lib/world/minimal/index.* lib/world/zon/ 2>/dev/null || cp lib/world/minimal/index.zon lib/world/zon/
+            cp lib/world/minimal/*.zon lib/world/zon/ 2>/dev/null || true
+            
+            cp lib/world/minimal/index.* lib/world/wld/ 2>/dev/null || cp lib/world/minimal/index.wld lib/world/wld/
+            cp lib/world/minimal/*.wld lib/world/wld/ 2>/dev/null || true
+            
+            cp lib/world/minimal/index.* lib/world/mob/ 2>/dev/null || cp lib/world/minimal/index.mob lib/world/mob/
+            cp lib/world/minimal/*.mob lib/world/mob/ 2>/dev/null || true
+            
+            cp lib/world/minimal/index.* lib/world/obj/ 2>/dev/null || cp lib/world/minimal/index.obj lib/world/obj/
+            cp lib/world/minimal/*.obj lib/world/obj/ 2>/dev/null || true
+            
+            cp lib/world/minimal/index.shp lib/world/shp/ 2>/dev/null || true
+            cp lib/world/minimal/index.trg lib/world/trg/ 2>/dev/null || true
+            cp lib/world/minimal/index.qst lib/world/qst/ 2>/dev/null || true
+            
+            print_msg "$GREEN" "Minimal world data initialized!"
+        else
+            print_msg "$YELLOW" "Warning: Minimal world data not found in lib/world/minimal/"
+            print_msg "$YELLOW" "Creating empty index files..."
+            echo '$' > lib/world/zon/index
+            echo '$' > lib/world/wld/index
+            echo '$' > lib/world/mob/index
+            echo '$' > lib/world/obj/index
+            echo '$' > lib/world/shp/index
+            echo '$' > lib/world/trg/index
+            echo '$' > lib/world/qst/index
+        fi
+    else
+        print_msg "$GREEN" "World data already exists, skipping initialization."
+    fi
+}
+
+# Function to create default text files
+create_text_files() {
+    print_msg "$GREEN" "Creating default text files..."
+    
+    mkdir -p lib/text/help
+    mkdir -p lib/etc
+    
+    # Create news file
+    if [[ ! -f lib/text/news ]]; then
+        cat > lib/text/news <<'EOF'
+&RWelcome to LuminariMUD!&n
+
+This is a fresh installation of LuminariMUD. You can customize this
+message by editing lib/text/news.
+
+&YLatest Updates:&n
+- Successfully deployed from GitHub
+- Minimal world initialized
+- Ready for building and customization
+
+For help getting started, type 'help newbie' once logged in.
+EOF
+    fi
+    
+    # Create credits file
+    if [[ ! -f lib/text/credits ]]; then
+        cat > lib/text/credits <<'EOF'
+&WLuminariMUD Credits&n
+
+LuminariMUD is based on CircleMUD 3.0, created by Jeremy Elson.
+
+&YLuminariMUD Development Team:&n
+- Ornir (Lead Developer)
+- Zusuk (Lead Developer)
+- Gicker (Developer)
+- Apfro (Developer)
+- Ashyel (Developer)
+- Lumi (Wilderness Development)
+- Nashak (Developer)
+
+Special thanks to all contributors and players who help make
+LuminariMUD a great place to play!
+
+CircleMUD was based on DikuMUD, created by:
+Sebastian Hammer, Michael Seifert, Hans Henrik St{rfeldt,
+Tom Madsen, and Katja Nyboe.
+EOF
+    fi
+    
+    # Create motd file
+    if [[ ! -f lib/text/motd ]]; then
+        cat > lib/text/motd <<'EOF'
+&W*** Message of the Day ***&n
+
+Welcome to LuminariMUD!
+
+Please follow the rules and be respectful to other players.
+Type 'help rules' for more information.
+
+Have fun and enjoy your adventures!
+
+&R[Report bugs and issues on GitHub]&n
+EOF
+    fi
+    
+    # Create imotd file
+    if [[ ! -f lib/text/imotd ]]; then
+        cat > lib/text/imotd <<'EOF'
+&Y*** Immortal Message of the Day ***&n
+
+Welcome, Immortal!
+
+Please remember to be fair and helpful to players.
+Check 'help immortal' for immortal commands.
+
+Current development priorities:
+- World building
+- Bug fixes
+- Player experience improvements
+EOF
+    fi
+    
+    # Create greetings file
+    if [[ ! -f lib/text/greetings ]]; then
+        cat > lib/text/greetings <<'EOF'
+
+&W            Welcome to LuminariMUD!&n
+            
+    Based on CircleMUD 3.0 and DikuMUD
+    
+Enter your character name or 'new' to create a character:
+EOF
+    fi
+    
+    # Create basic help file
+    if [[ ! -f lib/text/help/help ]]; then
+        cat > lib/text/help/help <<'EOF'
+Welcome to the LuminariMUD help system!
+
+For a list of commands, type: commands
+For newbie help, type: help newbie
+For a list of all help topics, type: help index
+
+You can get help on any command or topic by typing:
+help <topic>
+EOF
+    fi
+    
+    # Create immortal help file  
+    if [[ ! -f lib/text/help/ihelp ]]; then
+        cat > lib/text/help/ihelp <<'EOF'
+Immortal Help System
+
+For a list of immortal commands, type: wizhelp
+For building commands, type: help building
+For OLC help, type: help olc
+
+Common immortal commands:
+- goto <room>    - Teleport to a room
+- where          - List all players and locations  
+- users          - Show connection information
+- reboot         - Reboot the MUD
+- shutdown       - Shutdown the MUD
+EOF
+    fi
+    
+    # Create info file
+    if [[ ! -f lib/text/info ]]; then
+        echo "LuminariMUD - A CircleMUD based MUD" > lib/text/info
+    fi
+    
+    # Create wizlist file
+    if [[ ! -f lib/text/wizlist ]]; then
+        echo "Wizard List - See 'who' for online staff" > lib/text/wizlist
+    fi
+    
+    # Create immlist file
+    if [[ ! -f lib/text/immlist ]]; then
+        echo "Immortal List - See 'who' for online staff" > lib/text/immlist
+    fi
+    
+    # Create policies file
+    if [[ ! -f lib/text/policies ]]; then
+        cat > lib/text/policies <<'EOF'
+LuminariMUD Policies
+
+1. Be respectful to all players and staff
+2. No cheating or exploiting bugs
+3. No harassment or offensive behavior
+4. Keep content appropriate for all ages
+5. Report bugs when you find them
+6. Have fun!
+
+Violations may result in warnings, suspensions, or bans.
+EOF
+    fi
+    
+    # Create handbook file
+    if [[ ! -f lib/text/handbook ]]; then
+        echo "Player Handbook - Type 'help newbie' for getting started" > lib/text/handbook
+    fi
+    
+    # Create background file
+    if [[ ! -f lib/text/background ]]; then
+        cat > lib/text/background <<'EOF'
+The World of Luminari
+
+A realm of magic and adventure awaits...
+
+[This is a placeholder. Customize this with your world's lore]
+EOF
+    fi
+    
+    # Create etc/config with defaults
+    if [[ ! -f lib/etc/config ]]; then
+        cat > lib/etc/config <<'EOF'
+# LuminariMUD Default Configuration
+# This file contains default game configuration settings
+
+# Game Settings
+max_playing = 300
+max_filesize = 50000
+max_bad_pws = 3
+siteok_everyone = 1
+nameserver_is_slow = 0
+
+# Port Settings
+# (Set via command line with -q flag)
+
+# Gameplay Settings  
+pk_allowed = 1
+pt_allowed = 1
+level_can_shout = 1
+holler_move_cost = 20
+tunnel_size = 2
+max_exp_gain = 100000
+max_exp_loss = 500000
+max_npc_corpse_time = 5
+max_pc_corpse_time = 10
+idle_void = 8
+idle_rent_time = 48
+idle_max_level = 50
+dts_are_dumps = 1
+load_into_inventory = 0
+track_through_doors = 1
+immort_level_ok = 0
+
+# Rent/Economy Settings
+free_rent = 0
+max_obj_save = 30
+min_rent_cost = 100
+auto_save = 1
+autosave_time = 5
+crash_file_timeout = 10
+rent_file_timeout = 30
+EOF
+    fi
+    
+    print_msg "$GREEN" "Default text files created!"
+}
+
 # Function to setup environment
 setup_environment() {
     print_header "Setting Up Environment"
@@ -367,7 +635,16 @@ setup_environment() {
     mkdir -p lib/plrobjs/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
     mkdir -p lib/house
     mkdir -p lib/mudmail
+    mkdir -p lib/etc
     mkdir -p log
+    
+    # Initialize world data if requested
+    if [[ "$INIT_WORLD" == true ]]; then
+        initialize_world_data
+    fi
+    
+    # Create text files
+    create_text_files
     
     # Set permissions
     chmod -R 755 lib/
@@ -484,6 +761,7 @@ Options:
     -p, --prod        Production mode (optimized build)
     --skip-deps       Skip dependency installation
     --skip-db         Skip database setup
+    --init-world      Initialize minimal world data files
     
 Examples:
     $0                # Interactive setup
@@ -520,6 +798,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --skip-db)
             SKIP_DB=true
+            shift
+            ;;
+        --init-world)
+            INIT_WORLD=true
             shift
             ;;
         *)
