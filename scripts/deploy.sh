@@ -142,7 +142,8 @@ install_dependencies() {
 setup_config_files() {
     print_header "Setting Up Configuration Files"
     
-    cd "$SCRIPT_DIR"
+    # Change to project root directory
+    cd "$SCRIPT_DIR/.."
     
     # Setup campaign.h
     if [[ ! -f src/campaign.h ]]; then
@@ -289,7 +290,8 @@ EOF
 build_project() {
     print_header "Building LuminariMUD"
     
-    cd "$SCRIPT_DIR"
+    # Change to project root directory
+    cd "$SCRIPT_DIR/.."
     
     # Detect build system
     if [[ -f CMakeLists.txt ]]; then
@@ -370,23 +372,31 @@ initialize_world_data() {
         # Create world directories
         mkdir -p lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
         
-        # Copy minimal world files
+        # Copy minimal world files (properly renamed)
         if [[ -d lib/world/minimal ]]; then
-            cp lib/world/minimal/index.* lib/world/zon/ 2>/dev/null || cp lib/world/minimal/index.zon lib/world/zon/
+            # Copy zone files - rename index.zon to index
+            cp lib/world/minimal/index.zon lib/world/zon/index 2>/dev/null || true
             cp lib/world/minimal/*.zon lib/world/zon/ 2>/dev/null || true
             
-            cp lib/world/minimal/index.* lib/world/wld/ 2>/dev/null || cp lib/world/minimal/index.wld lib/world/wld/
+            # Copy world/room files - rename index.wld to index
+            cp lib/world/minimal/index.wld lib/world/wld/index 2>/dev/null || true
             cp lib/world/minimal/*.wld lib/world/wld/ 2>/dev/null || true
             
-            cp lib/world/minimal/index.* lib/world/mob/ 2>/dev/null || cp lib/world/minimal/index.mob lib/world/mob/
+            # Copy mob files - rename index.mob to index
+            cp lib/world/minimal/index.mob lib/world/mob/index 2>/dev/null || true
             cp lib/world/minimal/*.mob lib/world/mob/ 2>/dev/null || true
             
-            cp lib/world/minimal/index.* lib/world/obj/ 2>/dev/null || cp lib/world/minimal/index.obj lib/world/obj/
+            # Copy object files - rename index.obj to index
+            cp lib/world/minimal/index.obj lib/world/obj/index 2>/dev/null || true
             cp lib/world/minimal/*.obj lib/world/obj/ 2>/dev/null || true
             
-            cp lib/world/minimal/index.shp lib/world/shp/ 2>/dev/null || true
-            cp lib/world/minimal/index.trg lib/world/trg/ 2>/dev/null || true
-            cp lib/world/minimal/index.qst lib/world/qst/ 2>/dev/null || true
+            # Copy other index files - rename to just 'index'
+            cp lib/world/minimal/index.shp lib/world/shp/index 2>/dev/null || true
+            cp lib/world/minimal/index.trg lib/world/trg/index 2>/dev/null || true
+            cp lib/world/minimal/index.qst lib/world/qst/index 2>/dev/null || true
+            
+            # Create HLQ index (Homeland Quests)
+            echo '$' > lib/world/hlq/index
             
             print_msg "$GREEN" "Minimal world data initialized!"
         else
@@ -646,6 +656,21 @@ setup_environment() {
     # Create text files
     create_text_files
     
+    # Create critical symlinks if they don't exist
+    # The MUD expects files in the root directory, not in lib/
+    if [[ ! -L world ]]; then
+        ln -sf lib/world world
+        print_msg "$GREEN" "Created symlink: world -> lib/world"
+    fi
+    if [[ ! -L text ]]; then
+        ln -sf lib/text text
+        print_msg "$GREEN" "Created symlink: text -> lib/text"
+    fi
+    if [[ ! -L etc ]]; then
+        ln -sf lib/etc etc
+        print_msg "$GREEN" "Created symlink: etc -> lib/etc"
+    fi
+    
     # Set permissions
     chmod -R 755 lib/
     chmod -R 755 log/
@@ -701,7 +726,8 @@ create_startup_script() {
 # LuminariMUD Startup Script
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+# Change to project root directory
+cd "$SCRIPT_DIR/.."
 
 # Check if already running
 if pgrep -f "bin/circle" > /dev/null; then

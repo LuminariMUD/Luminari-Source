@@ -21,28 +21,42 @@ A text-based multiplayer online role-playing game (MUD) server implementing Path
 
 ## Quick Start
 
-Get LuminariMUD running in under 5 minutes! This quick start guide will help you deploy a minimal working MUD from a fresh clone.
+Get LuminariMUD running in under 2 minutes! Choose the method that works best for you.
 
 ### Prerequisites
 - Linux/Unix system (Ubuntu, Debian, CentOS, WSL, etc.)
 - Git installed
 - Basic development tools (gcc, make)
 
-### Fast Setup (No Database)
+### Fastest Setup (Recommended for Beginners)
 
 ```bash
 # Clone the repository
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 
-# Run the automated deployment script
-./scripts/deploy.sh --quick --skip-db --init-world
+# Run the simple setup script
+./scripts/simple_setup.sh
 
 # Start the MUD server
-./start_mud.sh
+./bin/circle -d lib
 ```
 
 That's it! Connect to `localhost:4000` with any MUD client.
+
+### Automated Setup (More Options)
+
+```bash
+# Clone the repository
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+
+# Run deployment with options (no database, minimal world)
+./scripts/deploy.sh --quick --skip-db --init-world
+
+# Start the MUD server
+./bin/circle -d lib
+```
 
 ### Standard Setup (With Database)
 
@@ -54,8 +68,10 @@ cd Luminari-Source
 # Run interactive setup (installs dependencies, configures database, builds)
 ./scripts/deploy.sh --init-world
 
-# Start the server
+# Start the server (if start_mud.sh was created)
 ./start_mud.sh
+# Or directly:
+./bin/circle -d lib
 ```
 
 ### Manual Build (Advanced Users)
@@ -67,16 +83,23 @@ cp src/mud_options.example.h src/mud_options.h
 cp src/vnums.example.h src/vnums.h
 
 # Build with autotools
-autoreconf -fvi
-./configure
-make -j$(nproc)
-make install
+make clean && make -j$(nproc)
 
-# Initialize minimal world data (optional)
-./scripts/deploy.sh --skip-deps --skip-db --init-world
+# Create symlinks (MUD expects these in root)
+ln -sf lib/world world
+ln -sf lib/text text
+ln -sf lib/etc etc
+
+# Copy minimal world files
+for dir in zon wld mob obj shp trg qst hlq; do
+    mkdir -p lib/world/${dir}
+    cp lib/world/minimal/index.${dir} lib/world/${dir}/index 2>/dev/null || true
+    cp lib/world/minimal/*.${dir} lib/world/${dir}/ 2>/dev/null || true
+done
+echo '$' > lib/world/hlq/index
 
 # Run the MUD
-bin/circle -d lib
+./bin/circle -d lib
 ```
 
 ### Deployment Options

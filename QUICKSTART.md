@@ -11,8 +11,23 @@ Get LuminariMUD running from a fresh clone in under 5 minutes!
 
 ## Installation Options
 
-### Option 1: Fastest Setup (No Database)
-Perfect for testing or initial exploration:
+### Option 1: Simplest Setup (Recommended for Beginners)
+Perfect for getting started quickly:
+
+```bash
+# Clone and run
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+./scripts/simple_setup.sh
+
+# Start the MUD
+./bin/circle -d lib
+```
+
+**That's it!** Connect to `localhost:4000` with any MUD client.
+
+### Option 2: Automated Setup (No Database)
+More options, still fast:
 
 ```bash
 # Clone and run
@@ -21,12 +36,10 @@ cd Luminari-Source
 ./scripts/deploy.sh --quick --skip-db --init-world
 
 # Start the MUD
-./start_mud.sh
+./bin/circle -d lib
 ```
 
-**That's it!** Connect to `localhost:4000` with any MUD client.
-
-### Option 2: Standard Setup (With Database)
+### Option 3: Standard Setup (With Database)
 For full features including persistent data:
 
 ```bash
@@ -47,7 +60,7 @@ cd Luminari-Source
 ./start_mud.sh
 ```
 
-### Option 3: Developer Setup
+### Option 4: Developer Setup
 For contributors and developers:
 
 ```bash
