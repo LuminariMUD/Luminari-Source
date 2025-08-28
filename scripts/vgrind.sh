@@ -3,7 +3,7 @@
 # Simple Focused Debugging Script for Ancient MUD Codebase
 # Catches the big problems without killing your system
 #
-mkdir -p log
+mkdir -p ../log
 
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
@@ -20,8 +20,8 @@ timeout 20m valgrind \
     --num-callers=20 \
     --malloc-fill=0xAB \
     --free-fill=0xCD \
-    --log-file=log/valgrind_focused_${TIMESTAMP}.log \
-    bin/circle -q 4100
+    --log-file=../log/valgrind_focused_${TIMESTAMP}.log \
+    ../bin/circle -q 4100
 
 echo ""
 echo "Analysis complete! Found the big problems in up to 20 minutes."
