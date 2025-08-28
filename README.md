@@ -8,7 +8,7 @@ A text-based multiplayer online role-playing game (MUD) server implementing Path
 
 ## Table of Contents
 
-- [Quick Start](#quick-start)
+- [Quick Start](#quick-start) - See also [docs/QUICKSTART.md](docs/QUICKSTART.md)
 - [Overview](#overview)
 - [Features](#features)
 - [Installation](#installation)
