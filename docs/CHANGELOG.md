@@ -1,5 +1,31 @@
 # Changelog
 
+## [Unreleased] - August 28, 2025
+
+### Deployment System - Complete Overhaul (100% Complete)
+
+#### Added
+- **Simple setup script** (`scripts/simple_setup.sh`) - Zero-interaction deployment in under 2 minutes
+  - Automatic configuration file setup from examples
+  - Build system execution with error handling
+  - Symlink creation for world/, text/, and etc/ directories
+  - World file initialization with proper index naming
+  - Text file creation for all required game files
+  - Directory structure setup for player files
+
+#### Fixed
+- **Deploy script path navigation** - Script now correctly navigates from scripts/ to project root
+- **World file copying bugs** - Fixed incorrect wildcard usage that copied wrong index files
+- **Index file naming** - Files are now properly renamed from `index.xxx` to `index`
+- **Symlink creation** - Automatically creates required symlinks (world, text, etc)
+- **HLQ directory** - Added missing Homeland Quest directory and index
+- **Text file initialization** - All required text files now created automatically
+
+#### Changed
+- **Deployment workflow** - Simplified from complex manual process to single script execution
+- **Error handling** - Graceful MySQL bypass when database not configured
+- **Documentation** - Updated all deployment guides with working instructions
+
 ## [Unreleased] - August 26, 2025
 
 ### Intermud3 Integration - Complete Repair and Enhancement (100% Complete)

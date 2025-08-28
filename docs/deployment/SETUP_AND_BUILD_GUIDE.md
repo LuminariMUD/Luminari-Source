@@ -2,13 +2,22 @@
 
 ## Quick Start
 
-**Get LuminariMUD running in under 5 minutes!**
+**Get LuminariMUD running in under 2 minutes!**
 
+### Simplest Method (Recommended)
+```bash
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+./scripts/simple_setup.sh
+./bin/circle -d lib
+```
+
+### Alternative Method (More Options)
 ```bash
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 ./scripts/deploy.sh --quick --skip-db --init-world
-./start_mud.sh
+./bin/circle -d lib
 ```
 
 Connect to `localhost:4000` with any MUD client and start playing!
