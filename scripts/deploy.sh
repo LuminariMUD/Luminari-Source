@@ -26,6 +26,7 @@ NC='\033[0m' # No Color
 
 # Configuration variables
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BUILD_TYPE="development"
 SKIP_DEPS=false
 SKIP_DB=false
@@ -142,13 +143,10 @@ install_dependencies() {
 setup_config_files() {
     print_header "Setting Up Configuration Files"
     
-    # Change to project root directory
-    cd "$SCRIPT_DIR/.."
-    
     # Setup campaign.h
-    if [[ ! -f src/campaign.h ]]; then
+    if [[ ! -f "$PROJECT_ROOT/src/campaign.h" ]]; then
         print_msg "$GREEN" "Creating campaign.h from template..."
-        cp src/campaign.example.h src/campaign.h
+        cp "$PROJECT_ROOT"/src/campaign.example.h "$PROJECT_ROOT"/src/campaign.h
         
         if [[ "$QUICK_MODE" == false ]]; then
             print_msg "$YELLOW" "Select campaign setting:"
@@ -159,11 +157,11 @@ setup_config_files() {
             
             case $campaign_choice in
                 2)
-                    sed -i 's|/\* #define CAMPAIGN_DL \*/|#define CAMPAIGN_DL|' src/campaign.h
+                    sed -i 's|/\* #define CAMPAIGN_DL \*/|#define CAMPAIGN_DL|' "$PROJECT_ROOT"/src/campaign.h
                     print_msg "$GREEN" "DragonLance campaign selected"
                     ;;
                 3)
-                    sed -i 's|/\* #define CAMPAIGN_FR \*/|#define CAMPAIGN_FR|' src/campaign.h
+                    sed -i 's|/\* #define CAMPAIGN_FR \*/|#define CAMPAIGN_FR|' "$PROJECT_ROOT"/src/campaign.h
                     print_msg "$GREEN" "Forgotten Realms campaign selected"
                     ;;
                 *)
@@ -176,17 +174,17 @@ setup_config_files() {
     fi
     
     # Setup mud_options.h
-    if [[ ! -f src/mud_options.h ]]; then
+    if [[ ! -f "$PROJECT_ROOT/src/mud_options.h" ]]; then
         print_msg "$GREEN" "Creating mud_options.h from template..."
-        cp src/mud_options.example.h src/mud_options.h
+        cp "$PROJECT_ROOT"/src/mud_options.example.h "$PROJECT_ROOT"/src/mud_options.h
     else
         print_msg "$YELLOW" "mud_options.h already exists, skipping..."
     fi
     
     # Setup vnums.h
-    if [[ ! -f src/vnums.h ]]; then
+    if [[ ! -f "$PROJECT_ROOT/src/vnums.h" ]]; then
         print_msg "$GREEN" "Creating vnums.h from template..."
-        cp src/vnums.example.h src/vnums.h
+        cp "$PROJECT_ROOT"/src/vnums.example.h "$PROJECT_ROOT"/src/vnums.h
     else
         print_msg "$YELLOW" "vnums.h already exists, skipping..."
     fi
@@ -243,14 +241,14 @@ setup_database() {
     
     # Create MySQL config file
     print_msg "$GREEN" "Creating MySQL configuration file..."
-    cat > lib/mysql_config <<EOF
+    cat > "$PROJECT_ROOT"/lib/mysql_config <<EOF
 # Auto-generated MySQL configuration for LuminariMUD
 mysql_host = $DB_HOST
 mysql_database = $DB_NAME
 mysql_username = $DB_USER
 mysql_password = $DB_PASS
 EOF
-    chmod 600 lib/mysql_config
+    chmod 600 "$PROJECT_ROOT"/lib/mysql_config
     
     # Setup database
     print_msg "$GREEN" "Setting up database..."
@@ -275,9 +273,9 @@ EOF
     mysql -u root -p < /tmp/luminari_db_setup.sql
     
     # Run schema files if they exist
-    if [[ -f sql/pubsub_v3_schema.sql ]]; then
+    if [[ -f "$PROJECT_ROOT/sql/pubsub_v3_schema.sql" ]]; then
         print_msg "$GREEN" "Loading pubsub schema..."
-        mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < sql/pubsub_v3_schema.sql
+        mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$PROJECT_ROOT"/sql/pubsub_v3_schema.sql
     fi
     
     # Clean up temp file
@@ -291,7 +289,7 @@ build_project() {
     print_header "Building LuminariMUD"
     
     # Change to project root directory
-    cd "$SCRIPT_DIR/.."
+    cd "$PROJECT_ROOT"
     
     # Detect build system
     if [[ -f CMakeLists.txt ]]; then
@@ -345,7 +343,7 @@ build_project() {
         make install
         
         # Check if build succeeded
-        if [[ ! -f bin/circle ]]; then
+        if [[ ! -f "$PROJECT_ROOT/bin/circle" ]]; then
             print_msg "$RED" "Build failed - bin/circle executable not created"
             print_msg "$YELLOW" "Try running 'make' manually to see detailed errors"
             exit 1
@@ -366,49 +364,50 @@ initialize_world_data() {
     print_msg "$GREEN" "Initializing minimal world data..."
     
     # Check if world directories exist and are empty
-    if [[ ! -d lib/world/zon ]] || [[ -z "$(ls -A lib/world/zon 2>/dev/null)" ]]; then
+    if [[ ! -d "$PROJECT_ROOT/lib/world/zon" ]] || [[ -z "$(ls -A "$PROJECT_ROOT/lib/world/zon" 2>/dev/null)" ]]; then
         print_msg "$YELLOW" "Setting up minimal world files..."
         
         # Create world directories
-        mkdir -p lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
+        mkdir -p "$PROJECT_ROOT"/lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
         
         # Copy minimal world files (properly renamed)
-        if [[ -d lib/world/minimal ]]; then
+        if [[ -d "$PROJECT_ROOT/lib/world/minimal" ]]; then
             # Copy zone files - rename index.zon to index
-            cp lib/world/minimal/index.zon lib/world/zon/index 2>/dev/null || true
-            cp lib/world/minimal/*.zon lib/world/zon/ 2>/dev/null || true
+            cp "$PROJECT_ROOT"/lib/world/minimal/index.zon "$PROJECT_ROOT"/lib/world/zon/index 2>/dev/null || true
+            cp "$PROJECT_ROOT"/lib/world/minimal/*.zon "$PROJECT_ROOT"/lib/world/zon/ 2>/dev/null || true
             
             # Copy world/room files - rename index.wld to index
-            cp lib/world/minimal/index.wld lib/world/wld/index 2>/dev/null || true
-            cp lib/world/minimal/*.wld lib/world/wld/ 2>/dev/null || true
+            cp "$PROJECT_ROOT"/lib/world/minimal/index.wld "$PROJECT_ROOT"/lib/world/wld/index 2>/dev/null || true
+            cp "$PROJECT_ROOT"/lib/world/minimal/*.wld "$PROJECT_ROOT"/lib/world/wld/ 2>/dev/null || true
             
             # Copy mob files - rename index.mob to index
-            cp lib/world/minimal/index.mob lib/world/mob/index 2>/dev/null || true
-            cp lib/world/minimal/*.mob lib/world/mob/ 2>/dev/null || true
+            cp "$PROJECT_ROOT"/lib/world/minimal/index.mob "$PROJECT_ROOT"/lib/world/mob/index 2>/dev/null || true
+            cp "$PROJECT_ROOT"/lib/world/minimal/*.mob "$PROJECT_ROOT"/lib/world/mob/ 2>/dev/null || true
             
             # Copy object files - rename index.obj to index
-            cp lib/world/minimal/index.obj lib/world/obj/index 2>/dev/null || true
-            cp lib/world/minimal/*.obj lib/world/obj/ 2>/dev/null || true
+            cp "$PROJECT_ROOT"/lib/world/minimal/index.obj "$PROJECT_ROOT"/lib/world/obj/index 2>/dev/null || true
+            cp "$PROJECT_ROOT"/lib/world/minimal/*.obj "$PROJECT_ROOT"/lib/world/obj/ 2>/dev/null || true
             
             # Copy other index files - rename to just 'index'
-            cp lib/world/minimal/index.shp lib/world/shp/index 2>/dev/null || true
-            cp lib/world/minimal/index.trg lib/world/trg/index 2>/dev/null || true
-            cp lib/world/minimal/index.qst lib/world/qst/index 2>/dev/null || true
+            cp "$PROJECT_ROOT"/lib/world/minimal/index.shp "$PROJECT_ROOT"/lib/world/shp/index 2>/dev/null || true
+            cp "$PROJECT_ROOT"/lib/world/minimal/index.trg "$PROJECT_ROOT"/lib/world/trg/index 2>/dev/null || true
+            cp "$PROJECT_ROOT"/lib/world/minimal/index.qst "$PROJECT_ROOT"/lib/world/qst/index 2>/dev/null || true
             
             # Create HLQ index (Homeland Quests)
-            echo '$' > lib/world/hlq/index
+            echo '$' > "$PROJECT_ROOT"/lib/world/hlq/index
             
             print_msg "$GREEN" "Minimal world data initialized!"
         else
-            print_msg "$YELLOW" "Warning: Minimal world data not found in lib/world/minimal/"
+            print_msg "$YELLOW" "Warning: Minimal world data not found in $PROJECT_ROOT/lib/world/minimal/"
             print_msg "$YELLOW" "Creating empty index files..."
-            echo '$' > lib/world/zon/index
-            echo '$' > lib/world/wld/index
-            echo '$' > lib/world/mob/index
-            echo '$' > lib/world/obj/index
-            echo '$' > lib/world/shp/index
-            echo '$' > lib/world/trg/index
-            echo '$' > lib/world/qst/index
+            echo '$' > "$PROJECT_ROOT"/lib/world/zon/index
+            echo '$' > "$PROJECT_ROOT"/lib/world/wld/index
+            echo '$' > "$PROJECT_ROOT"/lib/world/mob/index
+            echo '$' > "$PROJECT_ROOT"/lib/world/obj/index
+            echo '$' > "$PROJECT_ROOT"/lib/world/shp/index
+            echo '$' > "$PROJECT_ROOT"/lib/world/trg/index
+            echo '$' > "$PROJECT_ROOT"/lib/world/qst/index
+            echo '$' > "$PROJECT_ROOT"/lib/world/hlq/index
         fi
     else
         print_msg "$GREEN" "World data already exists, skipping initialization."
@@ -419,12 +418,12 @@ initialize_world_data() {
 create_text_files() {
     print_msg "$GREEN" "Creating default text files..."
     
-    mkdir -p lib/text/help
-    mkdir -p lib/etc
+    mkdir -p "$PROJECT_ROOT"/lib/text/help
+    mkdir -p "$PROJECT_ROOT"/lib/etc
     
     # Create news file
-    if [[ ! -f lib/text/news ]]; then
-        cat > lib/text/news <<'EOF'
+    if [[ ! -f "$PROJECT_ROOT/lib/text/news" ]]; then
+        cat > "$PROJECT_ROOT"/lib/text/news <<'EOF'
 &RWelcome to LuminariMUD!&n
 
 This is a fresh installation of LuminariMUD. You can customize this
@@ -440,8 +439,8 @@ EOF
     fi
     
     # Create credits file
-    if [[ ! -f lib/text/credits ]]; then
-        cat > lib/text/credits <<'EOF'
+    if [[ ! -f "$PROJECT_ROOT/lib/text/credits" ]]; then
+        cat > "$PROJECT_ROOT"/lib/text/credits <<'EOF'
 &WLuminariMUD Credits&n
 
 LuminariMUD is based on CircleMUD 3.0, created by Jeremy Elson.
@@ -465,8 +464,8 @@ EOF
     fi
     
     # Create motd file
-    if [[ ! -f lib/text/motd ]]; then
-        cat > lib/text/motd <<'EOF'
+    if [[ ! -f "$PROJECT_ROOT/lib/text/motd" ]]; then
+        cat > "$PROJECT_ROOT"/lib/text/motd <<'EOF'
 &W*** Message of the Day ***&n
 
 Welcome to LuminariMUD!
@@ -481,8 +480,8 @@ EOF
     fi
     
     # Create imotd file
-    if [[ ! -f lib/text/imotd ]]; then
-        cat > lib/text/imotd <<'EOF'
+    if [[ ! -f "$PROJECT_ROOT/lib/text/imotd" ]]; then
+        cat > "$PROJECT_ROOT"/lib/text/imotd <<'EOF'
 &Y*** Immortal Message of the Day ***&n
 
 Welcome, Immortal!
@@ -498,8 +497,8 @@ EOF
     fi
     
     # Create greetings file
-    if [[ ! -f lib/text/greetings ]]; then
-        cat > lib/text/greetings <<'EOF'
+    if [[ ! -f "$PROJECT_ROOT/lib/text/greetings" ]]; then
+        cat > "$PROJECT_ROOT"/lib/text/greetings <<'EOF'
 
 &W            Welcome to LuminariMUD!&n
             
@@ -510,8 +509,8 @@ EOF
     fi
     
     # Create basic help file
-    if [[ ! -f lib/text/help/help ]]; then
-        cat > lib/text/help/help <<'EOF'
+    if [[ ! -f "$PROJECT_ROOT/lib/text/help/help" ]]; then
+        cat > "$PROJECT_ROOT"/lib/text/help/help <<'EOF'
 Welcome to the LuminariMUD help system!
 
 For a list of commands, type: commands
@@ -524,8 +523,8 @@ EOF
     fi
     
     # Create immortal help file  
-    if [[ ! -f lib/text/help/ihelp ]]; then
-        cat > lib/text/help/ihelp <<'EOF'
+    if [[ ! -f "$PROJECT_ROOT/lib/text/help/ihelp" ]]; then
+        cat > "$PROJECT_ROOT"/lib/text/help/ihelp <<'EOF'
 Immortal Help System
 
 For a list of immortal commands, type: wizhelp
@@ -542,23 +541,23 @@ EOF
     fi
     
     # Create info file
-    if [[ ! -f lib/text/info ]]; then
-        echo "LuminariMUD - A CircleMUD based MUD" > lib/text/info
+    if [[ ! -f "$PROJECT_ROOT/lib/text/info" ]]; then
+        echo "LuminariMUD - A CircleMUD based MUD" > "$PROJECT_ROOT"/lib/text/info
     fi
     
     # Create wizlist file
-    if [[ ! -f lib/text/wizlist ]]; then
-        echo "Wizard List - See 'who' for online staff" > lib/text/wizlist
+    if [[ ! -f "$PROJECT_ROOT/lib/text/wizlist" ]]; then
+        echo "Wizard List - See 'who' for online staff" > "$PROJECT_ROOT"/lib/text/wizlist
     fi
     
     # Create immlist file
-    if [[ ! -f lib/text/immlist ]]; then
-        echo "Immortal List - See 'who' for online staff" > lib/text/immlist
+    if [[ ! -f "$PROJECT_ROOT/lib/text/immlist" ]]; then
+        echo "Immortal List - See 'who' for online staff" > "$PROJECT_ROOT"/lib/text/immlist
     fi
     
     # Create policies file
-    if [[ ! -f lib/text/policies ]]; then
-        cat > lib/text/policies <<'EOF'
+    if [[ ! -f "$PROJECT_ROOT/lib/text/policies" ]]; then
+        cat > "$PROJECT_ROOT"/lib/text/policies <<'EOF'
 LuminariMUD Policies
 
 1. Be respectful to all players and staff
@@ -573,13 +572,13 @@ EOF
     fi
     
     # Create handbook file
-    if [[ ! -f lib/text/handbook ]]; then
-        echo "Player Handbook - Type 'help newbie' for getting started" > lib/text/handbook
+    if [[ ! -f "$PROJECT_ROOT/lib/text/handbook" ]]; then
+        echo "Player Handbook - Type 'help newbie' for getting started" > "$PROJECT_ROOT"/lib/text/handbook
     fi
     
     # Create background file
-    if [[ ! -f lib/text/background ]]; then
-        cat > lib/text/background <<'EOF'
+    if [[ ! -f "$PROJECT_ROOT/lib/text/background" ]]; then
+        cat > "$PROJECT_ROOT"/lib/text/background <<'EOF'
 The World of Luminari
 
 A realm of magic and adventure awaits...
@@ -589,8 +588,8 @@ EOF
     fi
     
     # Create etc/config with defaults
-    if [[ ! -f lib/etc/config ]]; then
-        cat > lib/etc/config <<'EOF'
+    if [[ ! -f "$PROJECT_ROOT/lib/etc/config" ]]; then
+        cat > "$PROJECT_ROOT"/lib/etc/config <<'EOF'
 # LuminariMUD Default Configuration
 # This file contains default game configuration settings
 
@@ -641,12 +640,12 @@ setup_environment() {
     print_header "Setting Up Environment"
     
     # Create necessary directories
-    mkdir -p lib/plrfiles/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
-    mkdir -p lib/plrobjs/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
-    mkdir -p lib/house
-    mkdir -p lib/mudmail
-    mkdir -p lib/etc
-    mkdir -p log
+    mkdir -p "$PROJECT_ROOT"/lib/plrfiles/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
+    mkdir -p "$PROJECT_ROOT"/lib/plrobjs/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
+    mkdir -p "$PROJECT_ROOT"/lib/house
+    mkdir -p "$PROJECT_ROOT"/lib/mudmail
+    mkdir -p "$PROJECT_ROOT"/lib/etc
+    mkdir -p "$PROJECT_ROOT"/log
     
     # Initialize world data if requested
     if [[ "$INIT_WORLD" == true ]]; then
@@ -658,22 +657,22 @@ setup_environment() {
     
     # Create critical symlinks if they don't exist
     # The MUD expects files in the root directory, not in lib/
-    if [[ ! -L world ]]; then
-        ln -sf lib/world world
+    if [[ ! -L "$PROJECT_ROOT/world" ]]; then
+        ln -sf lib/world "$PROJECT_ROOT"/world
         print_msg "$GREEN" "Created symlink: world -> lib/world"
     fi
-    if [[ ! -L text ]]; then
-        ln -sf lib/text text
+    if [[ ! -L "$PROJECT_ROOT/text" ]]; then
+        ln -sf lib/text "$PROJECT_ROOT"/text
         print_msg "$GREEN" "Created symlink: text -> lib/text"
     fi
-    if [[ ! -L etc ]]; then
-        ln -sf lib/etc etc
+    if [[ ! -L "$PROJECT_ROOT/etc" ]]; then
+        ln -sf lib/etc "$PROJECT_ROOT"/etc
         print_msg "$GREEN" "Created symlink: etc -> lib/etc"
     fi
     
     # Set permissions
-    chmod -R 755 lib/
-    chmod -R 755 log/
+    chmod -R 755 "$PROJECT_ROOT"/lib/
+    chmod -R 755 "$PROJECT_ROOT"/log/
     
     # Create systemd service file (optional)
     if [[ "$QUICK_MODE" == false ]]; then
@@ -699,8 +698,8 @@ After=network.target mariadb.service
 [Service]
 Type=simple
 User=$USER
-WorkingDirectory=$SCRIPT_DIR
-ExecStart=$SCRIPT_DIR/bin/circle
+WorkingDirectory=$PROJECT_ROOT
+ExecStart=$PROJECT_ROOT/bin/circle
 ExecReload=/bin/kill -HUP \$MAINPID
 Restart=always
 RestartSec=10
@@ -717,38 +716,21 @@ EOF
     print_msg "$YELLOW" "To enable on boot: sudo systemctl enable luminari"
 }
 
-# Function to create startup script
-create_startup_script() {
-    print_header "Creating Startup Script"
+# Function to verify autorun script
+verify_autorun_script() {
+    print_header "Verifying Autorun Script"
     
-    cat > start_mud.sh <<'EOF'
-#!/bin/bash
-# LuminariMUD Startup Script
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Change to project root directory
-cd "$SCRIPT_DIR/.."
-
-# Check if already running
-if pgrep -f "bin/circle" > /dev/null; then
-    echo "LuminariMUD is already running!"
-    exit 1
-fi
-
-echo "Starting LuminariMUD..."
-
-# Start with autorun for automatic restarts
-if [[ -f autorun.sh ]]; then
-    ./autorun.sh &
-else
-    bin/circle &
-fi
-
-echo "LuminariMUD started! Connect to port 4000"
-EOF
-    
-    chmod +x start_mud.sh
-    print_msg "$GREEN" "Startup script created: start_mud.sh"
+    if [[ -f "$PROJECT_ROOT/autorun.sh" ]]; then
+        print_msg "$GREEN" "Autorun script found: autorun.sh"
+        if [[ ! -x "$PROJECT_ROOT/autorun.sh" ]]; then
+            print_msg "$YELLOW" "Making autorun.sh executable..."
+            chmod +x "$PROJECT_ROOT/autorun.sh"
+        fi
+        print_msg "$GREEN" "Autorun script is ready to use"
+    else
+        print_msg "$YELLOW" "Warning: autorun.sh not found in project root"
+        print_msg "$YELLOW" "You can start the MUD directly with: bin/circle"
+    fi
 }
 
 # Function to show final instructions
@@ -758,14 +740,18 @@ show_final_instructions() {
     print_msg "$GREEN" "LuminariMUD has been successfully deployed!"
     echo
     print_msg "$YELLOW" "Next steps:"
-    echo "  1. Start the server: ./start_mud.sh"
+    echo "  1. Start the server: ./autorun.sh"
     echo "  2. Connect with a MUD client to: localhost:$MUD_PORT"
     echo "  3. Create your first immortal character"
     echo
     print_msg "$YELLOW" "Important files:"
-    echo "  - Configuration: src/campaign.h, src/mud_options.h"
+    echo "  - Configuration: $PROJECT_ROOT/src/campaign.h, $PROJECT_ROOT/src/mud_options.h"
     echo "  - Database config: lib/mysql_config"
     echo "  - Logs: log/"
+    echo "  - Autorun commands:"
+    echo "      ./autorun.sh          - Start in background (daemon mode)"
+    echo "      ./autorun.sh status   - Check server status"
+    echo "      ./autorun.sh stop     - Stop the server"
     echo
     
     if [[ -n "$DB_PASS" ]]; then
@@ -849,7 +835,7 @@ main() {
     setup_database
     build_project
     setup_environment
-    create_startup_script
+    verify_autorun_script
     show_final_instructions
 }
 
