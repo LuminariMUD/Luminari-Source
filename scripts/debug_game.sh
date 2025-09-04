@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Check if binary exists
-if [ ! -f "bin/circle" ]; then
-    echo "ERROR: bin/circle not found. Run 'make' first."
+if [ ! -f "../bin/circle" ]; then
+    echo "ERROR: ../bin/circle not found. Run 'make' first."
     exit 1
 fi
 
@@ -167,7 +167,7 @@ EOF
 echo "run -q $PORT" >> .gdbcommands
 
 # Run GDB with command file
-gdb -x .gdbcommands bin/circle
+gdb -x .gdbcommands ../bin/circle
 
 # Cleanup
 rm -f .gdbinit_mud .gdbcommands

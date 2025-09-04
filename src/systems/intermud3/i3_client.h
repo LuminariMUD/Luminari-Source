@@ -201,6 +201,9 @@ void *i3_create_request(const char *method, void *params);
 int i3_send_json(void *obj);
 int i3_parse_response(const char *json_str);
 
+/* Internal queue management */
+void i3_queue_command(i3_command_t *cmd);
+
 /* Command declarations for interpreter.c */
 void do_i3tell(struct char_data *ch, const char *argument, int cmd, int subcmd);
 void do_i3chat(struct char_data *ch, const char *argument, int cmd, int subcmd);

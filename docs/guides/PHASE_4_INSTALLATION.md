@@ -1,15 +1,27 @@
 # Phase 4: Region Effects System - Installation and Testing
 
+## Quick Setup
+
+The easiest way to set up Phase 4 features is using the automated deployment:
+
+```bash
+# Full setup including database and region effects
+./scripts/deploy.sh --init-world
+
+# Manual database setup only
+mysql -u luminari -p luminari < sql/region_effects_system.sql
+```
+
 ## Database Setup
 
-Before testing the region effects features, you need to install the new flexible database schema:
+If you need to manually install the region effects system:
 
 ```bash
 # Navigate to the Luminari source directory
-cd /home/jamie/Luminari-Source
+cd Luminari-Source
 
 # Install the region effects system tables
-mysql -u [username] -p [database_name] < lib/region_effects_system.sql
+mysql -u [username] -p [database_name] < sql/region_effects_system.sql
 ```
 
 ## Testing Region Effects System

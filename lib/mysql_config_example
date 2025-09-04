@@ -26,26 +26,26 @@
 # - Use an IP address (e.g., '192.168.1.100') for remote databases
 # - Use a hostname (e.g., 'db.example.com') if you have DNS configured
 # - For Docker containers, use the container name (e.g., 'mysql-container')
-mysql_host = <host here, example: localhost>
+mysql_host = localhost
 
 # Database Name
 # - This is the name of the MySQL database that contains your MUD data
 # - Must be created before starting the MUD (see installation docs)
 # - Common naming: 'luminari', 'luminari_prod', 'luminari_dev', etc.
-mysql_database = <name of database here, example: MyMUD_DB>
+mysql_database = luminari
 
 # Database Username
 # - The MySQL user account that the MUD will use to connect
 # - This user needs appropriate permissions (SELECT, INSERT, UPDATE, DELETE)
 # - For security, avoid using 'root' - create a dedicated MUD user
-mysql_username = <username here, example: mymud_user>
+mysql_username = luminari
 
 # Database Password
 # - The password for the above MySQL user
 # - Use a strong password with mixed case, numbers, and special characters
 # - Avoid dictionary words and personal information
-# - Example strong password: 'Tr0ub4dor&3' (but don't use this one!)
-mysql_password = <password here, example: a$3koorPw34d>
+# - IMPORTANT: Replace this with your actual password!
+mysql_password = CHANGE_THIS_PASSWORD
 
 ################################################################################
 # Optional Advanced Settings (uncomment to use)
