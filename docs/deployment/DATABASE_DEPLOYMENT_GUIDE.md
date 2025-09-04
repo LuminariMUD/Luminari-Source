@@ -1,8 +1,26 @@
 # Dynamic Descriptions & Wilderness Resource System
 ## Database Deployment Guide
 
+## Quick Start
+
+The easiest way to set up the database is using the automated deployment script:
+
+```bash
+# Full setup including database
+./scripts/deploy.sh --init-world
+
+# Skip database if you want to configure it manually
+./scripts/deploy.sh --quick --skip-db --init-world
+```
+
+The deployment script automatically:
+- Creates the database and user
+- Sets up all required tables
+- Loads schema files
+- Configures proper permissions
+
 ## Overview
-This deployment script creates all necessary database structures for:
+This deployment guide covers database setup for:
 - **Dynamic wilderness descriptions** with weather integration
 - **Complete wilderness resource system** with depletion tracking  
 - **Ecological interdependencies** and cascade effects
@@ -13,9 +31,9 @@ This deployment script creates all necessary database structures for:
 ## Prerequisites
 - MySQL 5.7+ or MariaDB 10.2+
 - Database user with CREATE, INSERT, UPDATE, DELETE privileges
-- Existing Luminari MUD database
+- Existing Luminari MUD database (or use deploy.sh to create one)
 
-**Note**: The script is optimized for MariaDB/MySQL compatibility and avoids PostgreSQL-specific syntax.
+**Note**: The MUD now supports graceful degradation without MySQL - it will run without database features if MySQL is not available.
 
 ## Installation Steps
 

@@ -1,0 +1,14 @@
+#3001
+training dummy~
+a training dummy~
+A training dummy stands here, ready for practice.
+~
+This is a simple training dummy used for testing combat mechanics.
+~
+0 0 0 0 0 0 0 0 0 E
+1 20 10 10d10+100 1d4+0
+100 100 1
+8 8 1
+BareHandAttack: 0
+E
+$

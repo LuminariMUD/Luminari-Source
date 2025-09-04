@@ -8,9 +8,9 @@ A text-based multiplayer online role-playing game (MUD) server implementing Path
 
 ## Table of Contents
 
+- [Quick Start](#quick-start) - See also [docs/QUICKSTART.md](docs/QUICKSTART.md)
 - [Overview](#overview)
 - [Features](#features)
-- [Quick Start](#quick-start)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Documentation](#documentation)
@@ -18,6 +18,109 @@ A text-based multiplayer online role-playing game (MUD) server implementing Path
 - [Community](#community)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
+
+## Quick Start
+
+Get LuminariMUD running in under 2 minutes! Choose the method that works best for you.
+
+### Prerequisites
+- Linux/Unix system (Ubuntu, Debian, CentOS, WSL, etc.)
+- Git installed
+- Basic development tools (gcc, make)
+
+### Fastest Setup (Recommended for Beginners)
+
+```bash
+# Clone the repository
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+
+# Run the simple setup script
+./scripts/simple_setup.sh
+
+# Start the MUD server
+./bin/circle -d lib
+```
+
+That's it! Connect to `localhost:4000` with any MUD client.
+
+### Automated Setup (More Options)
+
+```bash
+# Clone the repository
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+
+# Run deployment with options (no database, minimal world)
+./scripts/deploy.sh --quick --skip-db --init-world
+
+# Start the MUD server
+./bin/circle -d lib
+```
+
+### Standard Setup (With Database)
+
+```bash
+# Clone and enter directory
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+
+# Run interactive setup (installs dependencies, configures database, builds)
+./scripts/deploy.sh --init-world
+
+# Start the server (if start_mud.sh was created)
+./start_mud.sh
+# Or directly:
+./bin/circle -d lib
+```
+
+### Manual Build (Advanced Users)
+
+```bash
+# Copy required configuration files
+cp src/campaign.example.h src/campaign.h
+cp src/mud_options.example.h src/mud_options.h
+cp src/vnums.example.h src/vnums.h
+
+# Build with autotools
+make clean && make -j$(nproc)
+
+# Create symlinks (MUD expects these in root)
+ln -sf lib/world world
+ln -sf lib/text text
+ln -sf lib/etc etc
+
+# Copy minimal world files
+for dir in zon wld mob obj shp trg qst hlq; do
+    mkdir -p lib/world/${dir}
+    cp lib/world/minimal/index.${dir} lib/world/${dir}/index 2>/dev/null || true
+    cp lib/world/minimal/*.${dir} lib/world/${dir}/ 2>/dev/null || true
+done
+echo '$' > lib/world/hlq/index
+
+# Run the MUD
+./bin/circle -d lib
+```
+
+### Deployment Options
+
+The `deploy.sh` script supports various options:
+- `--quick` - Skip all prompts, use defaults
+- `--skip-db` - Skip database setup (MySQL optional)
+- `--skip-deps` - Skip dependency installation
+- `--init-world` - Initialize minimal world data
+- `--dev` - Development build with debug symbols
+- `--prod` - Production optimized build
+
+### Next Steps
+
+1. Connect with a MUD client to `localhost:4000`
+2. Create your first character
+3. Explore the commands with `help`
+4. See admin documentation in `docs/admin/`
+5. Start building your world!
+
+For detailed installation and configuration, see the [Installation](#installation) section below.
 
 ## Overview
 

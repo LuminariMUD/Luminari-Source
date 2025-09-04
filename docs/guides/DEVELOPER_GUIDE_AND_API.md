@@ -1,10 +1,42 @@
 # LuminariMUD Developer Guide and API Reference
 
+## Quick Start for Developers
+
+Get a development environment running in minutes:
+
+```bash
+# Clone and setup with development build
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+./scripts/deploy.sh --dev --init-world
+
+# Start with debugging support
+./debug_game.sh
+```
+
+The `--dev` flag enables:
+- Debug symbols for GDB
+- Verbose logging
+- Development utilities
+- Performance monitoring
+
 ## Overview
 
 This guide provides comprehensive information for developers working on LuminariMUD, including coding standards, architecture patterns, API references, and contribution workflows. It covers both core engine development and content creation.
 
 ## Development Environment Setup
+
+### Automated Setup (Recommended)
+
+Use the deployment script with development options:
+
+```bash
+# Full development environment setup
+./scripts/deploy.sh --dev --init-world
+
+# Quick setup without database for testing
+./scripts/deploy.sh --quick --skip-db --dev --init-world
+```
 
 ### Required Tools
 - **GCC 9.0+** or **Clang 10.0+** - C compiler (ANSI C90/C89 standard)

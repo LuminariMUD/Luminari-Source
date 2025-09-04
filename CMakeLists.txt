@@ -570,6 +570,7 @@ set(SRC_C_FILES
     src/modify.c
     src/msgedit.c
     src/mud_event.c
+    src/mud_event_list.c
     src/mysql.c
     src/new_mail.c
     src/oasis.c
@@ -585,6 +586,7 @@ set(SRC_C_FILES
     src/premadebuilds.c
     src/protocol.c
     src/psionics.c
+    src/pubsub.c
     src/qedit.c
     src/quest.c
     src/race.c
@@ -592,6 +594,10 @@ set(SRC_C_FILES
     src/random_names.c
     src/rank.c
     src/redit.c
+    src/resource_system.c
+    src/resource_depletion.c
+    src/resource_descriptions.c
+    src/resource_regeneration.c
     src/roleplay.c
     src/routing.c
     src/sedit.c
@@ -643,8 +649,18 @@ set(SRC_C_FILES
     src/systems/spatial/spatial_visual.c
     src/systems/spatial/spatial_audio.c
     src/systems/terrainbridge/terrain_bridge.c
+    src/systems/region_hints/region_hints.c
+    src/systems/narrative_weaver/narrative_weaver.c
     src/systems/intermud3/i3_client.c
     src/systems/intermud3/i3_commands.c
+    src/systems/intermud3/i3_utils.c
+    # Temporarily commented out problematic I3 files to fix build
+    # src/systems/intermud3/i3_config.c
+    # src/systems/intermud3/i3_error.c
+    # src/systems/intermud3/i3_memory.c
+    # src/systems/intermud3/i3_protocol.c
+    # src/systems/intermud3/i3_security.c
+    # src/systems/intermud3/i3_test.c
 )
 
 set(SRC_FILES ${SRC_C_FILES})

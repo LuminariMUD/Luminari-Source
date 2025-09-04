@@ -160,6 +160,7 @@ circle_SOURCES = \
 	src/systems/narrative_weaver/narrative_weaver.c \
 	src/systems/intermud3/i3_client.c \
 	src/systems/intermud3/i3_commands.c \
+	src/systems/intermud3/i3_utils.c \
 	src/qedit.c \
 	src/quest.c \
 	src/race.c \
@@ -194,6 +195,7 @@ circle_SOURCES = \
 	src/treasure_const.c \
 	src/utils.c \
 	src/vessels.c \
+	src/vessels_db.c \
 	src/vessels_docking.c \
 	src/vessels_rooms.c \
 	src/weather.c \
