@@ -588,6 +588,7 @@ ACMD_DECL(do_applypoison);
 ACMD_DECL(do_sorcerer_arcane_apotheosis);
 ACMD_DECL(do_imbuearrow);
 ACMD_DECL(do_abundantstep);
+ACMD_DECL(do_invent);
 ACMD_DECL(do_animatedead);
 ACMD_DECL(do_rescue);
 ACMDCHECK(can_rescue);

@@ -4206,6 +4206,10 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "deceive magical items",
         "deceive magical items - +2 to all use magic device checks");
 
+  // Artificer
+
+
+
   /* Psionicist */
   feato(FEAT_WEAPON_PROFICIENCY_PSIONICIST, "weapon proficiency - psionicist", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
         "proficiency in psioncist weapons",
@@ -5421,6 +5425,57 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
     "Defensive stance bonus increases to +6 and duration is increased by 50%");
     feat_prereq_feat(FEAT_BULWARK_OF_DEFENSE, FEAT_DEFENSIVE_STANCE, 3);
     feat_prereq_attribute(FEAT_BULWARK_OF_DEFENSE, AB_CON, 25);
+
+  /* artificer class abilities */
+  feato(FEAT_ELBOW_GREASE, "elbow grease", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Bonus to all Craft checks based on artificer level.",
+        "The artificer gains a +2 bonus to all Craft checks at 1st level. This bonus increases to +4 at 6th level and +6 at 10th level.");
+
+  feato(FEAT_JACK_OF_ALL_TRADES, "jack of all trades", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Can use any skill untrained.",
+        "The artificer has picked up a smattering of even the most obscure skills. They may use any skill untrained.");
+
+  feato(FEAT_WEIRD_SCIENCE, "weird science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Create magical devices that replicate spell effects.",
+        "An artificer can imbue items with magical power through weird science, creating devices that combine the effects of "
+        "one or more spells. These devices are temporary and can be used a limited number of times per day.");
+
+  feato(FEAT_ARTIFICER_ITEM_CREATION, "artificer item creation", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Enhanced ability to create magic items without prerequisite spells.",
+        "An artificer's invention ability expands to include the creation of true magic items, even if the artificer does not "
+        "have access to the prerequisite spells. The artificer must make a Craft check to emulate each required spell.");
+
+  feato(FEAT_SALVAGE, "salvage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Ability to salvage gold piece value from magic items.",
+        "The artificer gains the ability to salvage the gold piece value from a magic item and use those funds to create "
+        "another magic item. After one day, the item is destroyed and the artificer gains the gp value it took to create.");
+
+  feato(FEAT_METAMAGIC_SCIENCE, "metamagic science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Apply metamagic feats to spell trigger items like wands.",
+        "The artificer gains the ability to apply a metamagic feat to a spell trigger item such as a wand. Using this ability "
+        "expends additional charges equal to the spell level increase of the metamagic feat.");
+
+  feato(FEAT_IMPROVED_METAMAGIC_SCIENCE, "improved metamagic science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Apply metamagic feats to spell completion items like scrolls.",
+        "The artificer gains the ability to apply a metamagic feat to a spell completion item such as a scroll. The DC for "
+        "the Use Magic Device check is equal to 20 + (3 times the modified level of the spell).");
+
+  feato(FEAT_IMPROVED_JACK_OF_ALL_TRADES, "improved jack of all trades", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "All skills become class skills for the artificer.",
+        "All skills are now considered class skills for the artificer, receiving the usual +3 bonus given to class skill checks.");
+
+  feato(FEAT_EXEMPLAR, "exemplar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Add half class level to all untrained skill checks.",
+        "The artificer's jack of all trades ability reaches its zenith: The artificer may now add half their class level to "
+        "all untrained skill checks.");
+
+  feato(FEAT_GNOMISH_TINKERING, "gnomish tinkering", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "Gnomish expertise in mechanical devices and weird science.",
+    "You gain +1 reliability bonus, +4 hours device duration, and your bonuses stack with Brilliance and Blunder if you have both feats. (No extra device slots or spell effects with this feat alone.)");
+
+  feato(FEAT_BRILLIANCE_AND_BLUNDER, "brilliance and blunder", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "Gnomes are brilliant inventors, but their inventions are prone to spectacular failure.",
+    "You gain +1 device slot, +2 reliability bonus, +6 hours device duration, and can combine up to 4 spell effects in a single device. These bonuses stack with Gnomish Tinkering if you have both feats. However, failures are more likely and can result in the device exploding, causing damage to the holder and others in the room.");
     
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");
