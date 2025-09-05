@@ -27,6 +27,8 @@
 #include "systems/narrative_weaver/narrative_weaver.h"
 #include "resource_system.h"
 
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+
 /* External function declarations */
 extern struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y);
 extern void free_region_list(struct region_list *regions);
@@ -3790,3 +3792,5 @@ char *enhanced_wilderness_description_unified(struct char_data *ch, room_rnum ro
     narrative_debug_log(1, "No regional enhancement available, using base description for (%d, %d)", x, y);
     return base_desc;
 }
+
+#endif
