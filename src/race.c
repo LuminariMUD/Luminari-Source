@@ -1029,6 +1029,8 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_GNOME, FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(DL_RACE_GNOME, FEAT_ARTIFICERS_LORE, 1, N);
   feat_race_assignment(DL_RACE_GNOME, FEAT_TINKER, 1, N);
+  feat_race_assignment(DL_RACE_GNOME, FEAT_GNOMISH_TINKERING, 1, N);
+  feat_race_assignment(DL_RACE_GNOME, FEAT_BRILLIANCE_AND_BLUNDER, 1, N);
   race_list[DL_RACE_GNOME].racial_language = SKILL_LANG_GNOME;
 
   /****************************************************************************/
@@ -2187,6 +2189,7 @@ void assign_races(void)
   feat_race_assignment(RACE_FOREST_GNOME, FEAT_FOREST_GNOME_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_FOREST_GNOME, FEAT_SPEAK_WITH_BEASTS, 1, N);
   feat_race_assignment(RACE_FOREST_GNOME, FEAT_NATURAL_ILLUSIONIST, 1, N);
+  feat_race_assignment(RACE_FOREST_GNOME, FEAT_GNOMISH_TINKERING, 1, N);
   race_list[RACE_FOREST_GNOME].racial_language = SKILL_LANG_GNOMISH;
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -3074,6 +3077,7 @@ void assign_races(void)
   feat_race_assignment(RACE_GNOME, FEAT_ILLUSION_AFFINITY, 1, N);
   feat_race_assignment(RACE_GNOME, FEAT_TINKER_FOCUS, 1, N);
   feat_race_assignment(RACE_GNOME, FEAT_GNOME_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(RACE_GNOME, FEAT_GNOMISH_TINKERING, 1, N);
   feat_race_assignment(RACE_ROCK_GNOME, FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_ROCK_GNOME, FEAT_ARTIFICERS_LORE, 1, N);
   feat_race_assignment(RACE_ROCK_GNOME, FEAT_TINKER, 1, N);

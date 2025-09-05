@@ -2138,7 +2138,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_H_ORC(ch) (!IS_NPC(ch) && \
                       (GET_RACE(ch) == RACE_H_ORC))
 #define IS_GNOME(ch) (!IS_NPC(ch) && \
-                      (GET_RACE(ch) == RACE_GNOME || GET_RACE(ch) == RACE_FOREST_GNOME))
+                      (GET_RACE(ch) == RACE_GNOME || GET_RACE(ch) == RACE_FOREST_GNOME || GET_RACE(ch) == DL_RACE_GNOME))
 #define IS_ARCANA_GOLEM(ch) (!IS_NPC(ch) && \
                              (GET_RACE(ch) == RACE_ARCANA_GOLEM))
 #define IS_ARCANE_GOLEM(ch) (!IS_NPC(ch) && \

@@ -9850,6 +9850,588 @@ ACMD(do_pick_lock)
   USE_MOVE_ACTION(ch);
 }
 
+ACMD(do_invent)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char arg3[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char *remaining_args;
+  struct obj_data *device = NULL, *found_device = NULL;
+  int spell_num = -1, spell_level = 0, artificer_level = 0, uses_per_day = 0;
+  int time_required = 0, device_uses = 0, i = 0;
+  int device_count_by_level[5] = {0, 0, 0, 0, 0};
+  int spell_assignment_level, max_spell_level, device_spell_count;
+  char spell_list[MAX_STRING_LENGTH];
+  bool creating = FALSE, using = FALSE, listing = FALSE;
+
+  /* Artificer Weird Science progression table */
+  struct weird_science_level {
+    int level;
+    int devices[4]; /* Max devices at spell levels 1-4 */
+  } weird_science_table[] = {
+    {1,  {1, 0, 0, 0}},   /* 1st level */
+    {2,  {2, 0, 0, 0}},   /* 2nd level */
+    {3,  {2, 1, 0, 0}},   /* 3rd level */
+    {4,  {3, 1, 0, 0}},   /* 4th level */
+    {5,  {3, 1, 1, 0}},   /* 5th level */
+    {6,  {3, 2, 1, 0}},   /* 6th level */
+    {7,  {3, 2, 2, 0}},   /* 7th level */
+    {8,  {4, 2, 2, 0}},   /* 8th level */
+    {9,  {4, 3, 2, 0}},   /* 9th level */
+    {10, {4, 3, 3, 0}},   /* 10th level */
+    {11, {4, 3, 3, 1}},   /* 11th level */
+    {12, {5, 4, 3, 1}},   /* 12th level */
+    {13, {5, 4, 4, 1}},   /* 13th level */
+    {14, {5, 4, 4, 2}},   /* 14th level */
+    {15, {5, 5, 4, 2}},   /* 15th level */
+    {16, {5, 5, 4, 3}},   /* 16th level */
+    {17, {5, 5, 5, 3}},   /* 17th level */
+    {18, {5, 5, 5, 4}},   /* 18th level */
+    {19, {5, 5, 5, 4}},   /* 19th level */
+    {20, {5, 5, 5, 5}},   /* 20th level */
+    {-1, {0, 0, 0, 0}}    /* End marker */
+  };
+
+  /* Check if character has weird science feat */
+  if (!HAS_FEAT(ch, FEAT_WEIRD_SCIENCE))
+  {
+    send_to_char(ch, "You don't know how to create weird science devices.\r\n");
+    return;
+  }
+
+  artificer_level = CLASS_LEVEL(ch, CLASS_ARTIFICER);
+  if (artificer_level <= 0)
+  {
+    send_to_char(ch, "You must be an artificer to use weird science.\r\n");
+    return;
+  }
+
+  /* Determine max spell level available */
+  if (artificer_level >= 11) max_spell_level = 4;      /* 4th level spells (7th assignment level) */
+  else if (artificer_level >= 5) max_spell_level = 3;  /* 3rd level spells (5th assignment level) */
+  else if (artificer_level >= 3) max_spell_level = 2;  /* 2nd level spells (3rd assignment level) */
+  else max_spell_level = 1;                            /* 1st level spells only */
+
+  uses_per_day = 1 + (artificer_level / 2);
+
+  remaining_args = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  one_argument(remaining_args, arg3, sizeof(arg3));
+
+  /* Count existing devices by spell level */
+  for (device = ch->carrying; device; device = device->next_content) {
+    if (GET_OBJ_TYPE(device) == ITEM_OTHER && GET_OBJ_VAL(device, 0) == 12345) {
+      /* Device spell effects are stored in obj values, count highest level */
+      int highest_spell_level = 0;
+      for (i = 1; i <= 4; i++) { /* Gnomes can have 4 spell effects */
+        if (GET_OBJ_VAL(device, i) > 0) {
+          spell_assignment_level = spell_info[GET_OBJ_VAL(device, i)].min_level[CLASS_WIZARD];
+          if (spell_assignment_level >= LVL_IMMORT) {
+            spell_assignment_level = spell_info[GET_OBJ_VAL(device, i)].min_level[CLASS_CLERIC];
+          }
+          if (spell_assignment_level < LVL_IMMORT && spell_assignment_level > highest_spell_level) {
+            highest_spell_level = spell_assignment_level;
+          }
+        }
+      }
+      if (highest_spell_level >= 1 && highest_spell_level <= 7) {
+        /* Convert spell assignment level to device level (1-4) */
+        int device_level = (highest_spell_level + 1) / 2;
+        if (device_level > 4) device_level = 4;
+        device_count_by_level[device_level]++;
+      }
+    }
+  }
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Weird Science Device Commands:\r\n");
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
+      send_to_char(ch, "  invent create <spell> [spell2] [spell3] [spell4] - Create device with up to 4 spell effects\r\n");
+    } else {
+      send_to_char(ch, "  invent create <spell> [spell2] [spell3] - Create device with multiple spell effects\r\n");
+    }
+    send_to_char(ch, "  invent add <device> <spell>             - Add another spell effect to a device\r\n");
+    send_to_char(ch, "  invent use <device>                     - Use a weird science device\r\n");
+    send_to_char(ch, "  invent list                             - List your current devices\r\n");
+    send_to_char(ch, "  invent info <device>                    - Get information about a device\r\n");
+    send_to_char(ch, "\r\nArtificers can access wizard and cleric spells up to %d%s level.\r\n", 
+                 max_spell_level, 
+                 (max_spell_level == 1) ? "st" : (max_spell_level == 2) ? "nd" : 
+                 (max_spell_level == 3) ? "rd" : "th");
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
+      send_to_char(ch, "Gnomish Tinkering bonuses: +1 device slot per level, +2 reliability, 4 effects max, 36-hour duration.\r\n");
+    }
+    return;
+  }
+
+  if (is_abbrev(arg1, "create"))
+  {
+    if (!*arg2) {
+      send_to_char(ch, "Create what spell device? Example: invent create fireball\r\n");
+      send_to_char(ch, "You can combine multiple spells: invent create fireball shield cure-light-wounds\r\n");
+      return;
+    }
+
+    /* Parse multiple spell arguments */
+    int max_spells = 3;
+    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+      max_spells += 1;
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      max_spells += 0; /* no extra spell effect, just base */
+    char spells[4][MAX_INPUT_LENGTH];
+    int spell_nums[4] = {0, 0, 0, 0};
+    int num_spells = 0;
+    int highest_device_level = 0;
+    
+    /* Get first spell from arg2 */
+    strcpy(spells[0], arg2);
+    num_spells = 1;
+    
+    /* Get additional spells from remaining arguments */
+    if (*arg3) {
+      strcpy(spells[1], arg3);
+      num_spells = 2;
+      
+      /* Check for third spell in remaining args */
+      char temp_arg[MAX_INPUT_LENGTH];
+      remaining_args = one_argument(remaining_args, temp_arg, sizeof(temp_arg));
+      if (*temp_arg) {
+        strcpy(spells[2], temp_arg);
+        num_spells = 3;
+        
+        /* Check for fourth spell (gnomes only) */
+        if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
+          remaining_args = one_argument(remaining_args, temp_arg, sizeof(temp_arg));
+          if (*temp_arg) {
+            strcpy(spells[3], temp_arg);
+            num_spells = 4;
+          }
+        }
+      }
+    }
+
+    /* Validate all spells */
+    for (i = 0; i < num_spells; i++) {
+      spell_nums[i] = find_skill_num(spells[i]);
+      if (spell_nums[i] < 1) {
+        send_to_char(ch, "The spell '%s' doesn't exist.\r\n", spells[i]);
+        return;
+      }
+
+      /* Check if spell is available to artificers (wizard or cleric lists) */
+      spell_assignment_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
+      if (spell_assignment_level >= LVL_IMMORT) {
+        spell_assignment_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
+      }
+      
+      if (spell_assignment_level >= LVL_IMMORT || spell_assignment_level > max_spell_level) {
+        send_to_char(ch, "The spell '%s' is not available to artificers of your level.\r\n", spells[i]);
+        send_to_char(ch, "Artificers can only use wizard/cleric spells up to %d%s level.\r\n", 
+                     max_spell_level, 
+                     (max_spell_level == 1) ? "st" : (max_spell_level == 2) ? "nd" : 
+                     (max_spell_level == 3) ? "rd" : "th");
+        return;
+      }
+      
+      if (spell_assignment_level > highest_device_level) {
+        highest_device_level = spell_assignment_level;
+      }
+    }
+
+    /* Check device slot availability using progression table */
+    int available_slots = 0;
+    int device_level = (highest_device_level + 1) / 2;
+    if (device_level > 4) device_level = 4;
+    for (i = 0; weird_science_table[i].level != -1; i++) {
+      if (weird_science_table[i].level == artificer_level) {
+        available_slots = weird_science_table[i].devices[device_level - 1];
+        break;
+      } else if (weird_science_table[i].level > artificer_level) {
+        if (i > 0) {
+          available_slots = weird_science_table[i-1].devices[device_level - 1];
+        }
+        break;
+      }
+    }
+    if (available_slots == 0 && artificer_level >= 20) {
+      available_slots = weird_science_table[19].devices[device_level - 1];
+    }
+    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER)) {
+      available_slots += 1;
+    }
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
+      available_slots += 0;
+    }
+
+    if (device_count_by_level[device_level] >= available_slots) {
+      send_to_char(ch, "You can't create any more devices with %d%s level spells.\r\n",
+                   highest_device_level,
+                   (highest_device_level == 1) ? "st" : (highest_device_level == 2) ? "nd" : 
+                   (highest_device_level == 3) ? "rd" : "th");
+      send_to_char(ch, "You can have %d devices of this level, and already have %d.\r\n",
+                   available_slots, device_count_by_level[device_level]);
+      return;
+    }
+
+    /* Create the device */
+    device = create_obj();
+    device->item_number = NOTHING;
+    
+    /* Create device name/description based on spell effects */
+    snprintf(buf, sizeof(buf), "weird science device invention %s", spells[0]);
+    device->name = strdup(buf);
+    
+    strcpy(spell_list, spell_info[spell_nums[0]].name);
+    for (i = 1; i < num_spells; i++) {
+      strcat(spell_list, "/");
+      strcat(spell_list, spell_info[spell_nums[i]].name);
+    }
+    
+    snprintf(buf, sizeof(buf), "a %s device", spell_list);
+    device->short_description = strdup(buf);
+    snprintf(buf, sizeof(buf), "A %s device is here, humming with weird science energy.", spell_list);
+    device->description = strdup(buf);
+
+    GET_OBJ_TYPE(device) = ITEM_OTHER;
+    SET_BIT_AR(GET_OBJ_WEAR(device), ITEM_WEAR_HOLD);
+    GET_OBJ_VAL(device, 0) = 12345; /* Weird science marker */
+    GET_OBJ_VAL(device, 1) = spell_nums[0]; /* First spell */
+    GET_OBJ_VAL(device, 2) = (num_spells > 1) ? spell_nums[1] : 0; /* Second spell */
+    GET_OBJ_VAL(device, 3) = (num_spells > 2) ? spell_nums[2] : 0; /* Third spell */
+    
+    /* Store additional data in timer, weight, and rent fields */
+    int device_duration = 24;
+    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+      device_duration += 6; /* 24 + 6 = 30 */
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      device_duration += 4; /* 24 + 4 = 28 */
+    GET_OBJ_TIMER(device) = device_duration; /* Duration in hours */
+    GET_OBJ_WEIGHT(device) = artificer_level; /* Caster level */
+    GET_OBJ_COST(device) = 0; /* Times used */
+    GET_OBJ_RENT(device) = (num_spells > 3) ? spell_nums[3] : 0; /* Fourth spell (gnomes only) */
+    SET_BIT_AR(GET_OBJ_EXTRA(device), ITEM_MAGIC);
+
+    obj_to_char(device, ch);
+    
+    send_to_char(ch, "You craft a weird science device that replicates %s.\r\n", spell_list);
+    act("$n tinkers with various components, creating a strange device.", TRUE, ch, 0, 0, TO_ROOM);
+    
+    return;
+  }
+
+  if (is_abbrev(arg1, "add")) {
+    if (!*arg2 || !*arg3) {
+      send_to_char(ch, "Usage: invent add <device> <spell>\r\n");
+      send_to_char(ch, "Add another spell effect to an existing device.\r\n");
+      return;
+    }
+
+    found_device = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying);
+    if (!found_device) {
+      send_to_char(ch, "You don't have that device.\r\n");
+      return;
+    }
+
+    if (GET_OBJ_TYPE(found_device) != ITEM_OTHER || GET_OBJ_VAL(found_device, 0) != 12345) {
+      send_to_char(ch, "That's not a weird science device.\r\n");
+      return;
+    }
+
+    /* Check if device has room for another spell */
+    device_spell_count = 0;
+    for (i = 1; i <= 3; i++) {
+      if (GET_OBJ_VAL(found_device, i) > 0) device_spell_count++;
+    }
+    if (GET_OBJ_RENT(found_device) > 0) device_spell_count++; /* Check 4th spell in rent field */
+    
+    int max_device_spells = 3;
+    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+      max_device_spells += 1;
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      max_device_spells += 0;
+    if (device_spell_count >= max_device_spells) {
+      send_to_char(ch, "That device already has the maximum number of spell effects (%d).\r\n", max_device_spells);
+      return;
+    }
+
+    spell_num = find_skill_num(arg3);
+    if (spell_num < 1) {
+      send_to_char(ch, "That spell doesn't exist.\r\n");
+      return;
+    }
+
+    /* Validate spell availability */
+    spell_assignment_level = spell_info[spell_num].min_level[CLASS_WIZARD];
+    if (spell_assignment_level >= LVL_IMMORT) {
+      spell_assignment_level = spell_info[spell_num].min_level[CLASS_CLERIC];
+    }
+    
+    if (spell_assignment_level >= LVL_IMMORT || spell_assignment_level > max_spell_level) {
+      send_to_char(ch, "That spell is not available to artificers of your level.\r\n");
+      return;
+    }
+
+    /* Add spell to first empty slot */
+    bool spell_added = FALSE;
+    for (i = 1; i <= 3; i++) {
+      if (GET_OBJ_VAL(found_device, i) == 0) {
+        GET_OBJ_VAL(found_device, i) = spell_num;
+        spell_added = TRUE;
+        break;
+      }
+    }
+    
+    /* If values 1-3 are full, try rent field for 4th spell (gnomes only) */
+    if (!spell_added && HAS_FEAT(ch, FEAT_GNOMISH_TINKERING) && GET_OBJ_RENT(found_device) == 0) {
+      GET_OBJ_RENT(found_device) = spell_num;
+      spell_added = TRUE;
+    }
+
+    send_to_char(ch, "You add %s to your device, making it more complex and unstable.\r\n",
+                 spell_info[spell_num].name);
+    act("$n modifies a strange device, adding more components.", TRUE, ch, 0, 0, TO_ROOM);
+    
+    return;
+  }
+
+  if (is_abbrev(arg1, "use"))
+  {
+    using = TRUE;
+    
+    if (!*arg2)
+    {
+      send_to_char(ch, "Use which weird science device?\r\n");
+      return;
+    }
+
+    if (!(device = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying)))
+    {
+      send_to_char(ch, "You don't have that device.\r\n");
+      return;
+    }
+
+    if (GET_OBJ_TYPE(device) != ITEM_OTHER || GET_OBJ_VAL(device, 0) != 12345)
+    {
+      send_to_char(ch, "That's not a weird science device.\r\n");
+      return;
+    }
+
+    /* Count spell effects on device */
+    device_spell_count = 0;
+    for (i = 1; i <= 3; i++) {
+      if (GET_OBJ_VAL(device, i) > 0) device_spell_count++;
+    }
+    if (GET_OBJ_RENT(device) > 0) device_spell_count++; /* Check 4th spell in rent field */
+
+    /* Calculate base uses per day */
+    int max_uses = 1 + (artificer_level / 2);
+    int times_used = GET_OBJ_COST(device);
+    int reliability_bonus = 0;
+    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+      reliability_bonus += 2;
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      reliability_bonus += 1;
+    /* Check reliability based on uses and complexity */
+    if (times_used >= max_uses) {
+      int dc = 20 + (times_used - max_uses) * device_spell_count;
+      int reliability_roll = d20(ch) + reliability_bonus;
+      int blunder_chance = 0;
+      if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+        blunder_chance = 5; /* 1 in 5 chance for explosion on bad fail */
+      else if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+        blunder_chance = 10; /* 1 in 10 for tinkerers */
+      else
+        blunder_chance = 20; /* 1 in 20 for others */
+      if (reliability_roll == 1 || reliability_roll < (dc - 15)) {
+        /* Explosion! */
+        if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER) && rand_number(1, blunder_chance) == 1) {
+          send_to_char(ch, "Your device explodes in a shower of sparks and shrapnel!\r\n");
+          act("$n's device explodes violently!", TRUE, ch, 0, 0, TO_ROOM);
+          /* Damage holder and others in room */
+          int dam = dice(device_spell_count, 8) + artificer_level;
+          damage(ch, ch, dam, TYPE_FIRE);
+          struct char_data *vict;
+          for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room) {
+            if (vict != ch && !IS_NPC(vict))
+              damage(ch, vict, dam / 2, TYPE_FIRE);
+          }
+        } else {
+          send_to_char(ch, "The device sparks, sputters, and breaks down completely!\r\n");
+          act("$n's device sparks and breaks down!", TRUE, ch, 0, 0, TO_ROOM);
+        }
+        extract_obj(device);
+        return;
+      }
+      if (reliability_roll < (dc - 10)) {
+        send_to_char(ch, "The device malfunctions and fails to activate.\r\n");
+        act("$n's device emits smoke but doesn't work.", TRUE, ch, 0, 0, TO_ROOM);
+        return;
+      }
+    }
+
+    /* Activate all spell effects simultaneously */
+    send_to_char(ch, "You activate your weird science device!\r\n");
+    act("$n activates a complex device that hums with multiple magical energies!", TRUE, ch, 0, 0, TO_ROOM);
+    
+    for (i = 1; i <= 3; i++) {
+      spell_num = GET_OBJ_VAL(device, i);
+      if (spell_num > 0 && spell_num < NUM_SPELLS) {
+        send_to_char(ch, "The device triggers %s!\r\n", spell_info[spell_num].name);
+        call_magic(ch, NULL, NULL, spell_num, 0, GET_OBJ_WEIGHT(device), CAST_SPELL);
+      }
+    }
+    
+    /* Check for 4th spell in rent field */
+    spell_num = GET_OBJ_RENT(device);
+    if (spell_num > 0 && spell_num < NUM_SPELLS) {
+      send_to_char(ch, "The device triggers %s!\r\n", spell_info[spell_num].name);
+      call_magic(ch, NULL, NULL, spell_num, 0, GET_OBJ_WEIGHT(device), CAST_SPELL);
+    }
+    
+    /* Increment usage count */
+    GET_OBJ_COST(device)++;
+    
+    return;
+  }
+
+  if (is_abbrev(arg1, "list"))
+  {
+    send_to_char(ch, "Your weird science devices:\r\n");
+    send_to_char(ch, "Device Slots by Spell Level:\r\n");
+    
+    for (i = 1; i <= max_spell_level; i++) {
+      int slots = 0;
+      for (int j = 0; weird_science_table[j].level != -1; j++) {
+        if (weird_science_table[j].level == artificer_level) {
+          slots = weird_science_table[j].devices[i - 1];
+          break;
+        } else if (weird_science_table[j].level > artificer_level) {
+          if (j > 0) {
+            slots = weird_science_table[j-1].devices[i - 1];
+          }
+          break;
+        }
+      }
+      if (slots == 0 && artificer_level >= 20) {
+        slots = weird_science_table[19].devices[i - 1];
+      }
+      
+      /* Add gnomish tinkering bonus */
+      if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
+        slots += 1;
+      }
+      
+      send_to_char(ch, "  %d%s level: %d/%d used", i,
+                   (i == 1) ? "st" : (i == 2) ? "nd" : (i == 3) ? "rd" : "th",
+                   device_count_by_level[i], slots);
+      if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
+        send_to_char(ch, " (+1 gnomish bonus)");
+      }
+      send_to_char(ch, "\r\n");
+    }
+    
+    send_to_char(ch, "\r\nCurrent devices:\r\n");
+    int found_any = 0;
+    
+    for (device = ch->carrying; device; device = device->next_content) {
+      if (GET_OBJ_TYPE(device) == ITEM_OTHER && GET_OBJ_VAL(device, 0) == 12345) {
+        found_any = 1;
+        strcpy(spell_list, "");
+        device_spell_count = 0;
+        
+        for (i = 1; i <= 3; i++) {
+          spell_num = GET_OBJ_VAL(device, i);
+          if (spell_num > 0) {
+            if (device_spell_count > 0) strcat(spell_list, "/");
+            strcat(spell_list, spell_info[spell_num].name);
+            device_spell_count++;
+          }
+        }
+        
+        /* Check for 4th spell in rent field */
+        spell_num = GET_OBJ_RENT(device);
+        if (spell_num > 0) {
+          if (device_spell_count > 0) strcat(spell_list, "/");
+          strcat(spell_list, spell_info[spell_num].name);
+          device_spell_count++;
+        }
+        
+        int max_uses = 1 + (artificer_level / 2);
+        send_to_char(ch, "  %s (Level %d, Used %d/%d times, %d hours left)\r\n",
+                     spell_list,
+                     GET_OBJ_WEIGHT(device),
+                     GET_OBJ_COST(device),
+                     max_uses,
+                     GET_OBJ_TIMER(device));
+      }
+    }
+    
+    if (!found_any) {
+      send_to_char(ch, "  You have no weird science devices.\r\n");
+    }
+    
+    return;
+  }
+
+  if (is_abbrev(arg1, "info"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Get info on which device?\r\n");
+      return;
+    }
+
+    if (!(device = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying)))
+    {
+      send_to_char(ch, "You don't have that device.\r\n");
+      return;
+    }
+
+    if (GET_OBJ_TYPE(device) != ITEM_OTHER || GET_OBJ_VAL(device, 0) != 12345)
+    {
+      send_to_char(ch, "That's not a weird science device.\r\n");
+      return;
+    }
+
+    send_to_char(ch, "Device Information:\r\n");
+    send_to_char(ch, "  Caster Level: %d\r\n", GET_OBJ_WEIGHT(device));
+    
+    device_spell_count = 0;
+    for (i = 1; i <= 3; i++) {
+      spell_num = GET_OBJ_VAL(device, i);
+      if (spell_num > 0) {
+        device_spell_count++;
+        send_to_char(ch, "  Spell Effect %d: %s\r\n", device_spell_count, spell_info[spell_num].name);
+      }
+    }
+    
+    // Check for 4th spell effect stored in rent field (gnomish tinkering)
+    spell_num = GET_OBJ_RENT(device);
+    if (spell_num > 0) {
+      device_spell_count++;
+      send_to_char(ch, "  Spell Effect %d: %s (Gnomish Enhancement)\r\n", device_spell_count, spell_info[spell_num].name);
+    }
+    
+    int max_uses = 1 + (artificer_level / 2);
+    send_to_char(ch, "  Complexity: %d spell effect%s\r\n", device_spell_count, 
+                 (device_spell_count == 1) ? "" : "s");
+    send_to_char(ch, "  Times Used: %d/%d (Reliability DC increases after %d uses)\r\n", 
+                 GET_OBJ_COST(device), max_uses, max_uses);
+    send_to_char(ch, "  Time Remaining: %d hours\r\n", GET_OBJ_TIMER(device));
+    
+    if (GET_OBJ_COST(device) >= max_uses) {
+      int dc = 20 + (GET_OBJ_COST(device) - max_uses) * device_spell_count;
+      send_to_char(ch, "  WARNING: Device is unreliable! (DC %d to function)\r\n", dc);
+    }
+    
+    return;
+  }
+
+  send_to_char(ch, "Unknown invent command. Type 'invent' for help.\r\n");
+}
+
+
 /* undefines */
 #undef DEBUG_MODE
 
