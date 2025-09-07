@@ -9856,7 +9856,7 @@ ACMD(do_pick_lock)
   USE_MOVE_ACTION(ch);
 }
 
-ACMD(do_invent)
+ACMDU(do_invent)
 {
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
@@ -10299,6 +10299,8 @@ ACMD(do_invent)
       send_to_char(ch, "Usage: device rename <number> <new name>\r\n");
       return;
     }
+    skip_spaces(&argument);
+
     /* Get the full name from remaining_args after the device number */
     char *name_start = (char *) two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
     char new_name[MAX_INVENTION_SHORTDESC];
