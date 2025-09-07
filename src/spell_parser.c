@@ -642,7 +642,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
 
   /* globe of invulernability spell(s)
    * and spell mantles */
-  if (!isWarlockMagic(caster, spellnum) && cvict)
+  if (!isWarlockMagic(caster, spellnum) && cvict && casttype != CAST_DEVICE)
   {
     int lvl = lowest_spell_level(spellnum);
 
@@ -763,7 +763,7 @@ SAVING_WILL here...  */
   }
 
   /* spell turning */
-  if (cvict)
+  if (cvict && casttype != CAST_DEVICE)
   {
     if (AFF_FLAGGED(cvict, AFF_SPELL_TURNING) && (SINFO.violent ||
                                                   IS_SET(SINFO.routines, MAG_DAMAGE)))

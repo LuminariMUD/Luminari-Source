@@ -198,6 +198,7 @@ typedef enum
   eC_DRAGONMOUNT,                   // call dragon mount
   eREGENERATION,                    // resource regeneration event
   eDEVISE_CREATION,                 // artificer invention creation
+  eDEVISE_PROGRESS,                 // artificer invention creation progress updates
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

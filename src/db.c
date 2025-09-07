@@ -6010,6 +6010,12 @@ void free_char(struct char_data *ch)
       }
     }
     
+    /* Free device destroy confirmation code */
+    if (ch->player_specials->device_destroy_confirm) {
+      free(ch->player_specials->device_destroy_confirm);
+      ch->player_specials->device_destroy_confirm = NULL;
+    }
+    
     if (IS_NPC(ch))
       log("SYSERR: Mob %s (#%d) had player_specials allocated!", GET_NAME(ch), GET_MOB_VNUM(ch));
   }

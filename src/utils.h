@@ -1475,6 +1475,9 @@ void char_from_furniture(struct char_data *ch);
 #define GET_OUTFIT_TYPE(ch) (ch->player_specials->outfit_type)
 #define GET_OUTFIT_CONFIRM(ch) (ch->player_specials->outfit_confirmation)
 
+#define GET_DEVICE_DESTROY_CONFIRM(ch) (ch->player_specials->device_destroy_confirm)
+#define GET_DEVICE_DESTROY_INV_IDX(ch) (ch->player_specials->device_destroy_inv_idx)
+
 #define IS_SHIELD(type) (type == SPEC_ARMOR_TYPE_BUCKLER || type == SPEC_ARMOR_TYPE_SMALL_SHIELD || \
                          type == SPEC_ARMOR_TYPE_LARGE_SHIELD || type == SPEC_ARMOR_TYPE_TOWER_SHIELD)
 
