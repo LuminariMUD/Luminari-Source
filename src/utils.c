@@ -6266,7 +6266,7 @@ bool check_poison_resist(struct char_data *ch, struct char_data *victim, int cas
 
   int bonus = 0;
 
-  if (casttype != CAST_INNATE && mag_resistance(ch, victim, 0))
+  if (casttype != CAST_INNATE && casttype != CAST_DEVICE && mag_resistance(ch, victim, 0))
     return TRUE;
 
   bonus += get_poison_save_mod(ch, victim);
@@ -7709,12 +7709,12 @@ char *randstring(int length)
   char char_list[64];
   int i = 0;
 
-  snprintf(char_list, sizeof(char_list), "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890");
+  snprintf(char_list, sizeof(char_list), "abcdefghijklmnopqrstuvwxyz01234567890");
 
   for (i = 0; i < length; i++)
-    buf[i] = char_list[dice(1, 63) - 1];
+    buf[i] = char_list[dice(1, 38) - 1];
 
-  buf[length + 1] = '\0';
+  buf[length] = '\0';
   return strdup(buf);
 }
 

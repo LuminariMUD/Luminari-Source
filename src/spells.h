@@ -68,6 +68,7 @@
 #define CAST_BOMB 10
 #define CAST_CRUELTY 11
 #define CAST_WALL 12
+#define CAST_DEVICE 13       /* For artificer devices */
 
 #define MAG_DAMAGE (1 << 0)
 #define MAG_AFFECTS (1 << 1)

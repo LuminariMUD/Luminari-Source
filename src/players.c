@@ -2221,7 +2221,7 @@ void save_char(struct char_data *ch, int mode)
       BUFFER_WRITE( "%s\n", inv->keywords);
       BUFFER_WRITE( "%s\n", inv->short_description);
       BUFFER_WRITE( "%s\n", inv->long_description);
-      BUFFER_WRITE( "%d %d %d\n", inv->num_spells, inv->duration, inv->reliability);
+      BUFFER_WRITE( "%d %d %d %d %ld\n", inv->num_spells, inv->duration, inv->reliability, inv->uses, (long)inv->cooldown_expires);
       /* Save spell effects */
       for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
         BUFFER_WRITE( "%d\n", inv->spell_effects[j]);
@@ -3842,9 +3842,20 @@ static void load_devices(FILE *fl, struct char_data *ch)
     /* Read long description */
     get_line(fl, inv->long_description);
     
-    /* Read num_spells, duration, reliability */
+    /* Read num_spells, duration, reliability, and optionally uses, cooldown_expires */
     get_line(fl, line);
-    sscanf(line, "%d %d %d", &inv->num_spells, &inv->duration, &inv->reliability);
+    long cooldown_long = 0;
+    int scanned = sscanf(line, "%d %d %d %d %ld", &inv->num_spells, &inv->duration, &inv->reliability, &inv->uses, &cooldown_long);
+    
+    /* Handle backward compatibility - if only 3 values were read, initialize new fields */
+    if (scanned < 4) {
+      inv->uses = 0;  /* Default to no uses */
+      inv->cooldown_expires = 0;  /* Default to no cooldown */
+    } else if (scanned < 5) {
+      inv->cooldown_expires = 0;  /* Default to no cooldown if uses was read but not cooldown */
+    } else {
+      inv->cooldown_expires = (time_t)cooldown_long;
+    }
     
     /* Read spell effects */
     for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++)

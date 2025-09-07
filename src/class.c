@@ -9624,7 +9624,7 @@ void load_class_list(void)
   /*     class-number  name        abrv   clr-abrv     menu-name*/
   classo(CLASS_ARTIFICER, "artificer", "Art", "\tCArt\tn", "v) \tCArtificer\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCost eFeatp*/
-         20, N, N, M, 6, 0, 1, 5, Y, 0,
+         20, N, N, M, 6, 0, 1, 5, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Intelligence for device creation, Dexterity and Constitution for survivability",
          /*descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "

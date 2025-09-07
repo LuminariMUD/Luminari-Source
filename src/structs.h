@@ -12,6 +12,7 @@
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
 
+#include <time.h>     /* for time_t */
 #include "bool.h"     /* for bool */
 
 #include "protocol.h" /* Kavir Plugin*/
@@ -5014,6 +5015,8 @@ struct player_invention {
     int num_spells;
     int duration;
     int reliability;
+    int uses;                 /* Number of times this device has been used */
+    time_t cooldown_expires;  /* Individual device cooldown timestamp */
 };
 
 struct player_special_data_saved
@@ -5244,6 +5247,11 @@ struct player_special_data_saved
     byte score_layout_template;   /**< Layout template (0=default, 1=combat, 2=roleplay, 3=explorer, 4=caster) */
     byte score_section_order[8];  /**< Custom section ordering for score display */
 
+    /* Device destruction tracking to prevent abuse */
+    time_t last_device_destruction;    /**< Timestamp of last device destruction */
+    int devices_destroyed_today;       /**< Number of devices destroyed in past 24 hours */
+    time_t device_creation_cooldown;   /**< Timestamp until when device creation is blocked */
+
     struct player_invention inventions[MAX_PLAYER_INVENTIONS];
     int num_inventions;
 };
@@ -5343,6 +5351,10 @@ struct player_special_data
     bool surveyed_room;
 
     char *clan_leave_code;
+    
+    /* Device destroy confirmation */
+    char *device_destroy_confirm;
+    int device_destroy_inv_idx;
 };
 
 /** Special data used by NPCs, not PCs */
