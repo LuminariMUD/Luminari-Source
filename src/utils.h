@@ -2077,6 +2077,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_KNIGHT_OF_THE_SKULL(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL))
 #define IS_KNIGHT_OF_THE_LILY(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY))
 #define IS_DRAGONRIDER(ch) (CLASS_LEVEL(ch, CLASS_DRAGONRIDER))
+#define IS_ARTIFICER(ch) (CLASS_LEVEL(ch, CLASS_ARTIFICER))
 
 #define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT ||                                                          \
                        IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
@@ -2280,9 +2281,9 @@ int ACTUAL_BAB(struct char_data *ch);
 
 #define KNOWS_MERCY(ch, i) (ch->player_specials->saved.paladin_mercies[i])
 #define KNOWS_CRUELTY(ch, i) (ch->player_specials->saved.blackguard_cruelties[i])
-#define FIENDISH_BOON_ACTIVE(ch, i) (IS_SET(ch->player_specials->saved.fiendish_boons, FLAG(i)))
-#define SET_FIENDISH_BOON(ch, i) (SET_BIT(ch->player_specials->saved.fiendish_boons, FLAG(i)))
-#define REMOVE_FIENDISH_BOON(ch, i) (REMOVE_BIT(ch->player_specials->saved.fiendish_boons, FLAG(i)))
+#define FIENDISH_BOON_ACTIVE(ch, i) (IS_SET(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
+#define SET_FIENDISH_BOON(ch, i) (SET_BIT(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
+#define REMOVE_FIENDISH_BOON(ch, i) (REMOVE_BIT(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
 
 /** Defines if ch is outdoors or not. */
 #define OUTDOORS(ch) (is_outdoors(ch))

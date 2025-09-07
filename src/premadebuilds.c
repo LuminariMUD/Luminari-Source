@@ -206,6 +206,26 @@ void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
       if (GET_REAL_RACE(ch) == RACE_HUMAN)
         give_premade_skill(ch, verbose, ABILITY_APPRAISE, amount);
       break;
+    case CLASS_ARTIFICER:
+      give_premade_skill(ch, verbose, ABILITY_USE_MAGIC_DEVICE, amount);
+      give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
+      give_premade_skill(ch, verbose, ABILITY_LORE, amount);
+      give_premade_skill(ch, verbose, ABILITY_RELIGION, amount);
+      give_premade_skill(ch, verbose, ABILITY_SPELLCRAFT, amount);
+      give_premade_skill(ch, verbose, ABILITY_CONCENTRATION, amount);
+      give_premade_skill(ch, verbose, ABILITY_DISABLE_DEVICE, amount);
+      give_premade_skill(ch, verbose, ABILITY_APPRAISE, amount);
+      if (CLASS_LEVEL(ch, CLASS_ARTIFICER) >= 4) // int goes up to 18
+        give_premade_skill(ch, verbose, ABILITY_SLEIGHT_OF_HAND, amount);
+      if (CLASS_LEVEL(ch, CLASS_ARTIFICER) >= 8) // int goes up to 19
+        give_premade_skill(ch, verbose, ABILITY_LINGUISTICS, amount);
+      if (CLASS_LEVEL(ch, CLASS_ARTIFICER) >= 12) // int goes up to 20
+        give_premade_skill(ch, verbose, ABILITY_PERCEPTION, amount);
+      if (CLASS_LEVEL(ch, CLASS_ARTIFICER) >= 16) // int goes up to 21
+        give_premade_skill(ch, verbose, ABILITY_SENSE_MOTIVE, amount);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN)
+        give_premade_skill(ch, verbose, ABILITY_DISCIPLINE, amount);
+      break;
   }
 
 }
@@ -506,6 +526,22 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
         break;
       }
       break;
+    case CLASS_ARTIFICER:
+      switch (level)
+      {
+      case 1:
+            GET_REAL_STR(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_CON(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+            break;
+      case 4: case 8: case 12: case 16: case 20:
+            GET_REAL_INT(ch)++;
+            break;
+      }
+      break;
   }
 
   if (level == 1)
@@ -529,6 +565,7 @@ void add_human_premade_stats(struct char_data *ch, int chclass)
     case CLASS_WIZARD:
     case CLASS_ALCHEMIST:
     case CLASS_PSIONICIST:
+    case CLASS_ARTIFICER:
       GET_REAL_INT(ch) += 2;
       break;
 
@@ -1988,6 +2025,7 @@ void levelup_summoner(struct char_data *ch, int level, bool verbose)
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
         give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
       }
+      break;
     case 3:
       give_premade_feat(ch, verbose, FEAT_SPELL_FOCUS, CONJURATION);
       break;
@@ -2028,6 +2066,53 @@ void levelup_summoner(struct char_data *ch, int level, bool verbose)
   increase_skills(ch, chclass, TRUE, level);
   add_premade_summoner_spells(ch, level);
   add_premade_summoner_evolutions(ch, level);
+}
+
+void levelup_artificer(struct char_data *ch, int level, bool verbose)
+{
+  int chclass = CLASS_ARTIFICER;
+  switch (level) {
+    case 1:
+      set_premade_stats(ch, chclass, 1);
+      give_premade_feat(ch, verbose, FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR, 0);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN) {
+        give_premade_feat(ch, verbose, FEAT_CRAFT_WONDEROUS_ITEM, 0);
+      }
+      break;
+    case 3:
+      give_premade_feat(ch, verbose, FEAT_CRAFT_WONDEROUS_ITEM, 0);
+      break;
+    case 4:
+      set_premade_stats(ch, chclass, 4);
+      break;
+    case 6:
+      give_premade_feat(ch, verbose, FEAT_COMBAT_CASTING, 0);
+      break;
+    case 8:
+      set_premade_stats(ch, chclass, 8);
+      break;
+    case 9:
+      give_premade_feat(ch, verbose, FEAT_ENHANCED_SPELL_DAMAGE, 0);
+      break;
+    case 12:
+      set_premade_stats(ch, chclass, 12);
+      give_premade_feat(ch, verbose, FEAT_SPELL_PENETRATION, 0);
+      break;
+    case 15:
+      give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_LIGHT_BLADE);
+      break;
+    case 16:
+      set_premade_stats(ch, chclass, 16);
+      break;
+    case 18:
+      give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
+      break;
+    case 20:
+      set_premade_stats(ch, chclass, 20);
+      give_premade_feat(ch, verbose, FEAT_GREATER_SPELL_PENETRATION, 0);
+      break;
+  }
+  increase_skills(ch, chclass, TRUE, level);
 }
 
 void setup_premade_levelup(struct char_data *ch, int chclass)
@@ -2099,6 +2184,9 @@ void advance_premade_build(struct char_data *ch)
       break;
     case CLASS_SUMMONER:
       levelup_summoner(ch, level, TRUE);
+      break;
+    case CLASS_ARTIFICER:
+      levelup_artificer(ch, level, TRUE);
       break;
     default:
       send_to_char(ch, "ERROR.  Please inform staff, error code PREBLD001.\r\n");
