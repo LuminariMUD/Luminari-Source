@@ -333,6 +333,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deity", "deity", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"device", "device", POS_STANDING, do_invent, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dice", "diceroll", POS_DEAD, do_diceroll, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -520,7 +521,6 @@ cpp_extern const struct command_info cmd_info[] = {
 #if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
     {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
-    {"invent", "invent", POS_STANDING, do_invent, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"idea", "ide", POS_DEAD, do_ibt, 0, SCMD_IDEA, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"iedit", "iedit", POS_DEAD, do_iedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -3589,6 +3589,9 @@ switch (load_result)
       break;
     case CLASS_DRAGONRIDER:
       perform_help(d, "class-dragonrider");
+      break;
+    case CLASS_ARTIFICER:
+      perform_help(d, "class-artificer");
       break;
 
     default:

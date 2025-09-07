@@ -84,6 +84,7 @@ static void load_praying(FILE *fl, struct char_data *ch);
 static void load_praying_metamagic(FILE *fl, struct char_data *ch);
 static void load_prayed(FILE *fl, struct char_data *ch);
 static void load_prayed_metamagic(FILE *fl, struct char_data *ch);
+static void load_devices(FILE *fl, struct char_data *ch);
 static void load_praytimes(FILE *fl, struct char_data *ch);
 static void load_quests(FILE *fl, struct char_data *ch);
 static void load_failed_dialogue_quests(FILE *fl, struct char_data *ch);
@@ -621,7 +622,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_DEITY(ch) = 0;
     for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
       KNOWS_CRUELTY(ch, i) = 0;
-    ch->player_specials->saved.fiendish_boons = 0;
+  ch->player_specials->saved.active_fiendish_boons = 0;
     ch->player_specials->saved.channel_energy_type = 0;
 
     for (i = 0; i < NUM_LANGUAGES; i++)
@@ -924,6 +925,8 @@ int load_char(const char *name, struct char_data *ch)
           load_dr(fl, ch);
         else if (!strcmp(tag, "Desc"))
           ch->player.description = fread_string(fl, buf2);
+        else if (!strcmp(tag, "Dvis"))
+          load_devices(fl, ch);
         else if (!strcmp(tag, "DrgB"))
           GET_DRAGONBORN_ANCESTRY(ch) = atoi(line);
         else if (!strcmp(tag, "DAd1"))
@@ -1015,7 +1018,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Flaw"))
           ch->player.flaws = fread_string(fl, buf2);
         else if (!strcmp(tag, "FdBn"))
-          ch->player_specials->saved.fiendish_boons = atoi(line);
+          ch->player_specials->saved.active_fiendish_boons = atoi(line);
         else if (!strcmp(tag, "FLGU"))
           FLEETING_GLANCE_USES(ch) = atoi(line);
         else if (!strcmp(tag, "Ftpt"))
@@ -1944,8 +1947,8 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE( "Invs: %d\n", GET_INVIS_LEV(ch));
   if (GET_LOADROOM(ch) != PFDEF_LOADROOM)
     BUFFER_WRITE( "Room: %d\n", GET_LOADROOM(ch));
-  if (ch->player_specials->saved.fiendish_boons != 0)
-    BUFFER_WRITE( "FdBn: %d\n", ch->player_specials->saved.fiendish_boons);
+  if (ch->player_specials->saved.active_fiendish_boons != 0)
+  BUFFER_WRITE( "FdBn: %d\n", ch->player_specials->saved.active_fiendish_boons);
   if (ch->player_specials->saved.channel_energy_type != 0)
     BUFFER_WRITE( "ChEn: %d\n", ch->player_specials->saved.channel_energy_type);
 
@@ -2204,6 +2207,30 @@ void save_char(struct char_data *ch, int mode)
 
   if (GET_PREMADE_BUILD_CLASS(ch) != PFDEF_PREMADE_BUILD)
     BUFFER_WRITE( "PreB: %d\n", GET_PREMADE_BUILD_CLASS(ch));
+
+  // save devices from do_invent here
+  if (ch->player_specials->saved.num_inventions > 0)
+  {
+    int j;
+    BUFFER_WRITE( "Dvis:\n");
+    BUFFER_WRITE( "%d\n", ch->player_specials->saved.num_inventions);
+    for (i = 0; i < ch->player_specials->saved.num_inventions; i++)
+    {
+      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
+      BUFFER_WRITE( "%d\n", i); /* invention index */
+      BUFFER_WRITE( "%s\n", inv->keywords);
+      BUFFER_WRITE( "%s\n", inv->short_description);
+      BUFFER_WRITE( "%s\n", inv->long_description);
+      BUFFER_WRITE( "%d %d %d\n", inv->num_spells, inv->duration, inv->reliability);
+      /* Save spell effects */
+      for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
+        BUFFER_WRITE( "%d\n", inv->spell_effects[j]);
+      /* Fill remaining spell slots with -1 */
+      for (j = inv->num_spells; j < MAX_INVENTION_SPELLS; j++)
+        BUFFER_WRITE( "-1\n");
+    }
+    BUFFER_WRITE( "-1\n"); /* terminator */
+  }
 
   /* Save skills */
   if (GET_LEVEL(ch) < LVL_IMMORT)
@@ -3781,6 +3808,57 @@ static void load_ability_exp(FILE *fl, struct char_data *ch)
     if (num != 0)
       GET_CRAFT_SKILL_EXP(ch, num) = num2;
   } while (num != 0);
+}
+
+static void load_devices(FILE *fl, struct char_data *ch)
+{
+  int num_inventions = 0;
+  int inv_idx = 0;
+  int j = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  /* Read number of inventions */
+  get_line(fl, line);
+  sscanf(line, "%d", &num_inventions);
+  
+  ch->player_specials->saved.num_inventions = num_inventions;
+  
+  /* Read each invention */
+  for (j = 0; j < num_inventions && j < MAX_PLAYER_INVENTIONS; j++)
+  {
+    struct player_invention *inv = &ch->player_specials->saved.inventions[j];
+    int spell_idx = 0;
+    
+    /* Read invention index */
+    get_line(fl, line);
+    sscanf(line, "%d", &inv_idx);
+    
+    /* Read keywords */
+    get_line(fl, inv->keywords);
+    
+    /* Read short description */
+    get_line(fl, inv->short_description);
+    
+    /* Read long description */
+    get_line(fl, inv->long_description);
+    
+    /* Read num_spells, duration, reliability */
+    get_line(fl, line);
+    sscanf(line, "%d %d %d", &inv->num_spells, &inv->duration, &inv->reliability);
+    
+    /* Read spell effects */
+    for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++)
+    {
+      get_line(fl, line);
+      sscanf(line, "%d", &inv->spell_effects[spell_idx]);
+      /* Stop reading if we hit -1 */
+      if (inv->spell_effects[spell_idx] == -1)
+        inv->spell_effects[spell_idx] = 0; /* Reset invalid spells to 0 */
+    }
+  }
+  
+  /* Read terminator */
+  get_line(fl, line);
 }
 
 static void load_skills(FILE *fl, struct char_data *ch)

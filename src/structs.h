@@ -468,12 +468,12 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 37
+#define NUM_CLASSES 38
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
-#define MAX_CLASSES 37 // total number of maximum pc classes
+#define MAX_CLASSES 38 // total number of maximum pc classes
 #define NUM_CASTERS 9  // direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2
@@ -2925,7 +2925,7 @@
 /** reserved above feat# + 1**/
 #define FEAT_LAST_FEAT 1256
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1256
+#define NUM_FEATS 1257
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4052,6 +4052,13 @@
 
 #define NUM_ELDRITCH_BLAST_COOLDOWNS                11
 
+/* invention system */
+#define MAX_PLAYER_INVENTIONS 10
+#define MAX_INVENTION_KEYWORDS 64
+#define MAX_INVENTION_SHORTDESC 80
+#define MAX_INVENTION_LONGDESC 256
+#define MAX_INVENTION_SPELLS 4
+
 /* Staff Ran Event */
 #define STAFF_RAN_EVENTS_VAR 300 /* values saved for staff events on player */
 
@@ -4999,7 +5006,16 @@ struct material_storage {
     int quantity;               /* Amount stored */
 };
 
-/** Data only needed by PCs, and needs to be saved to disk. */
+struct player_invention {
+    char keywords[MAX_INVENTION_KEYWORDS];
+    char short_description[MAX_INVENTION_SHORTDESC];
+    char long_description[MAX_INVENTION_LONGDESC];
+    int spell_effects[MAX_INVENTION_SPELLS]; /* spell vnums or IDs */
+    int num_spells;
+    int duration;
+    int reliability;
+};
+
 struct player_special_data_saved
 {
     int skills[MAX_SKILLS + 1];         // saved skills
@@ -5159,7 +5175,7 @@ struct player_special_data_saved
     int holy_weapon_type;                               // type of weapon to use withn holy weapon spell, also known as holy sword spell
     int paladin_mercies[NUM_PALADIN_MERCIES];           // stores a paladin's mercies known
     int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES]; // stores a blackguard's mercies known
-    int fiendish_boons;                                 // active fiendish boons by blackguard
+    int active_fiendish_boons;                          // active fiendish boons by blackguard
     int channel_energy_type;                            // neutral clerics must decide either positive or negative
     int deity;                                          // what deity does the person follow?
     int languages_known[NUM_LANGUAGES]; // languages known by the character
@@ -5227,6 +5243,14 @@ struct player_special_data_saved
     byte score_info_density;      /**< Information density (0=full, 1=compact, 2=minimal) */
     byte score_layout_template;   /**< Layout template (0=default, 1=combat, 2=roleplay, 3=explorer, 4=caster) */
     byte score_section_order[8];  /**< Custom section ordering for score display */
+
+    struct player_invention inventions[MAX_PLAYER_INVENTIONS];
+    int num_inventions;
+};
+
+struct weird_science_level {
+	int level;
+	int devices[4]; /* Max devices at spell levels 1-4 */
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

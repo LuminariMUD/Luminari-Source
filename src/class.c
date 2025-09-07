@@ -1435,6 +1435,7 @@ int valid_align_by_class(int alignment, int class)
   case CLASS_ASSASSIN:
   case CLASS_INQUISITOR:
   case CLASS_WARLOCK:
+  case CLASS_ARTIFICER:
     return TRUE;
   }
   /* shouldn't get here if we got all classes listed above */
@@ -1663,6 +1664,8 @@ int parse_class_long(const char *arg_in)
     return CLASS_DRAGONRIDER;
   if (is_abbrev(arg, "dragon-rider"))
     return CLASS_DRAGONRIDER;
+  if (is_abbrev(arg, "artificer"))
+    return CLASS_ARTIFICER;
   if (is_abbrev(arg, "shifter"))
     return CLASS_SHIFTER;
   if (is_abbrev(arg, "sacred-fist"))
@@ -2957,6 +2960,7 @@ void newbieEquipment(struct char_data *ch)
     break;
 
   case CLASS_SUMMONER:
+  case CLASS_ARTIFICER:
     obj = read_object(NOOB_GEAR_SUMMONER_ARMS, VIRTUAL);
     GET_OBJ_SIZE(obj) = GET_SIZE(ch);
     equip_char(ch, obj, WEAR_ARMS); // arms armor
@@ -3106,7 +3110,7 @@ void init_start_char(struct char_data *ch)
     KNOWS_CRUELTY(ch, i) = 0;
   for (i = 0; i < NUM_LANGUAGES; i++)
     ch->player_specials->saved.languages_known[i] = FALSE;
-  ch->player_specials->saved.fiendish_boons = 0;
+  ch->player_specials->saved.active_fiendish_boons = 0;
   ch->player_specials->saved.channel_energy_type = 0;
   // this is here so that new characters can't get extra stat points from racefix command.
   ch->player_specials->saved.new_race_stats = true;
@@ -4164,6 +4168,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_KNIGHT_OF_THE_SKULL:
   case CLASS_KNIGHT_OF_THE_LILY:
   case CLASS_DRAGONRIDER:
+  case CLASS_ARTIFICER:
     level--;
     if (level < 0)
       level = 0;
@@ -9619,7 +9624,7 @@ void load_class_list(void)
   /*     class-number  name        abrv   clr-abrv     menu-name*/
   classo(CLASS_ARTIFICER, "artificer", "Art", "\tCArt\tn", "v) \tCArtificer\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCost eFeatp*/
-         20, N, N, M, 6, 0, 1, 4, Y, 0, 4,
+         20, N, N, M, 6, 0, 1, 5, Y, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Intelligence for device creation, Dexterity and Constitution for survivability",
          /*descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
