@@ -606,7 +606,12 @@ cpp_extern const struct command_info cmd_info[] = {
     {"map", "map", POS_STANDING, do_map, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mark", "mark", POS_STANDING, do_mark, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mastermind", "mastermind", POS_FIGHTING, do_mastermind, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_mastermind},
+#if defined(USE_VARIABLE_QUALITY_MATERIALS)
     {"materials", "materials", POS_DEAD, do_materials, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#elif defined(USE_BASIC_MATERIALS)
+    {"materials", "materials", POS_DEAD, do_list_craft_materials, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#endif
+
     {"maxhp", "maxhp", POS_DEAD, do_maxhp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}, NULL},

@@ -5030,11 +5030,15 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_PROFICIENT_HARVESTER, "proficient harvester", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Increases all harvesting skills", "Increases all harvesting skills");
   feato(FEAT_SCAVENGE, "scavenge", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can find materials on corpses", "Can find materials on corpses");
   feato(FEAT_BRANDING, "branding", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "All items made carry the artisan's brand", "All items made carry the artisan's brand");
-  feato(FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR, "craft magical arms and armor", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical weapons and armor ", "can create magical weapons and armor ");
+  feato(FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR, "craft magical arms and armor", TRUE, TRUE, FALSE, FEAT_TYPE_CRAFT, 
+    "Expertise in creating magical weapons and armor", 
+    "You gain a +5 bonus to all crafting skill checks when creating magical weapons and armor. This bonus applies to both the ability to attempt crafts and the success rate of crafting attempts.");
   feato(FEAT_CRAFT_ROD, "craft rod", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can crate magical rods", "can crate magical rods");
   feato(FEAT_CRAFT_STAFF, "craft staff", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical staves ", "can create magical staves ");
   feato(FEAT_CRAFT_WAND, "craft wand", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical wands ", "can create magical wands ");
-  feato(FEAT_CRAFT_WONDEROUS_ITEM, "craft wonderous item", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can crate miscellaneous magical items ", "can crate miscellaneous magical items ");
+  feato(FEAT_CRAFT_WONDEROUS_ITEM, "craft wonderous item", TRUE, TRUE, FALSE, FEAT_TYPE_CRAFT, 
+    "Expertise in creating miscellaneous magical items", 
+    "You gain a +5 bonus to all crafting skill checks when creating miscellaneous magical items. This bonus applies to both the ability to attempt crafts and the success rate of crafting attempts.");
   feato(FEAT_FORGE_RING, "forge ring", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "ask staff ", "ask staff ");
   feato(FEAT_MASTERWORK_CRAFTING, "masterwork crafting", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "All equipment made is masterwork", "All equipment made is masterwork");
 
