@@ -5471,11 +5471,11 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
 
   feato(FEAT_GNOMISH_TINKERING, "gnomish tinkering", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "Gnomish expertise in mechanical devices and weird science.",
-    "You gain +1 reliability bonus, +4 hours device duration, and your bonuses stack with Brilliance and Blunder if you have both feats. (No extra device slots or spell effects with this feat alone.)");
+    "You gain +1 use per device and -2 DC to Use Magic Device checks when your artificer devices are exhausted.");
 
   feato(FEAT_BRILLIANCE_AND_BLUNDER, "brilliance and blunder", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "Gnomes are brilliant inventors, but their inventions are prone to spectacular failure.",
-    "You gain +1 device slot, +2 reliability bonus, +6 hours device duration, and can combine up to 4 spell effects in a single device. These bonuses stack with Gnomish Tinkering if you have both feats. However, failures are more likely and can result in the device exploding, causing damage to the holder and others in the room.");
+    "You can combine up to 4 spell effects in a single artificer device (instead of the normal 3). However, when any of your devices break, they explode dealing 1d6 force damage per spell circle to you and all party members in the same room.");
     
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");

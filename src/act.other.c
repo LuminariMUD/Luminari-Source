@@ -9941,11 +9941,9 @@ ACMDU(do_invent)
   if (!*arg1)
   {
     send_to_char(ch, "Weird Science Device Commands:\r\n");
-    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
-      send_to_char(ch, "  device create <spell> [spell2] [spell3] [spell4] - Create device with up to 4 spell effects\r\n");
-    } else {
-      send_to_char(ch, "  device create <spell> [spell2] [spell3] - Create device with multiple spell effects\r\n");
-    }
+    send_to_char(ch, "  device create <spell> [spell2] [spell3] - Create device with multiple spell effects\r\n");
+    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+      send_to_char(ch, "                                          - Brilliance and Blunder: Can add 4th spell (risky!)\r\n");
     send_to_char(ch, "  device create cancel                    - Cancel current device creation\r\n");
     send_to_char(ch, "  device add <device> <spell>             - Add another spell effect to a device\r\n");
     send_to_char(ch, "  device use <device> [target]            - Use a weird science device (optional target)\r\n");
@@ -9963,9 +9961,11 @@ ACMDU(do_invent)
     send_to_char(ch, "Devices can only contain either violent OR non-violent spells, not both.\r\n");
     send_to_char(ch, "For violent devices: must be fighting or specify a target to use.\r\n");
     send_to_char(ch, "For non-violent devices: defaults to self if no target specified.\r\n");
-    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
-      send_to_char(ch, "Gnomish Tinkering bonuses: +1 device slot per level, +2 reliability, 4 effects max, 36-hour duration.\r\n");
-    }
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      send_to_char(ch, "\r\nGnomish Tinkering: +1 use per device, -2 Use Magic Device DC.\r\n");
+    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+      send_to_char(ch, "Brilliance and Blunder: Can add 4th spell but devices EXPLODE when broken!\r\n");
+    send_to_char(ch, "\r\nUse 'device info #' to get detailed information about a specific device.\r\n");
     return;
   }
 
@@ -10024,9 +10024,7 @@ ACMDU(do_invent)
     /* Parse multiple spell arguments - handle quoted multi-word spell names */
     int max_spells = 3;
     if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
-      max_spells += 1;
-    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
-      max_spells += 0; /* no extra spell effect, just base */
+      max_spells = 4;
     char spells[4][MAX_INPUT_LENGTH];
     int spell_nums[4] = {0, 0, 0, 0};
     int num_spells = 0;
@@ -10144,9 +10142,6 @@ ACMDU(do_invent)
     if (artificer_level >= 20 && max_circles[0] == 0) {
       for (j = 0; j < 4; j++) max_circles[j] = weird_science_table[19].devices[j];
     }
-    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER)) {
-      max_circles[0] += 1; /* Example: only boost 1st circle, adjust as needed */
-    }
     /* Count current spell circles used */
     int used_circles[4] = {0, 0, 0, 0};
     for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
@@ -10238,16 +10233,8 @@ ACMDU(do_invent)
     
     /* Calculate the invention's properties for when it's completed */
     int duration = 24;
-    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
-      duration += 6;
-    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
-      duration += 4;
       
     int reliability = 0;
-    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
-      reliability += 2;
-    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
-      reliability += 1;
     
     /* Build the spell data string for the event */
     char spell_data[MAX_STRING_LENGTH];
@@ -10303,6 +10290,7 @@ ACMDU(do_invent)
 
     /* Get the full name from remaining_args after the device number */
     char *name_start = (char *) two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+    skip_spaces(&name_start);  /* Remove leading spaces from the new name */
     char new_name[MAX_INVENTION_SHORTDESC];
     snprintf(new_name, sizeof(new_name), "%s", name_start);
     struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
@@ -10426,9 +10414,7 @@ ACMDU(do_invent)
     struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
     int max_device_spells = 3;
     if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
-      max_device_spells += 1;
-    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
-      max_device_spells += 0;
+      max_device_spells = 4;
     if (inv->num_spells >= max_device_spells) {
       send_to_char(ch, "That invention already has the maximum number of spell effects (%d).\r\n", max_device_spells);
       return;
@@ -10541,35 +10527,90 @@ ACMDU(do_invent)
     }
     int device_spell_count = inv->num_spells;
     int max_uses = 1 + (artificer_level / 2);
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      max_uses += 1;  /* Gnomish Tinkering: +1 use per device */
     int times_used = inv->uses; /* Use persistent uses field */
     int reliability_bonus = inv->reliability;
     if (times_used >= max_uses) {
       /* Device is over its normal use limit - requires Use Magic Device skill check */
       int dc = 20 + (times_used - max_uses) * device_spell_count - reliability_bonus;
-      int umd_check = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc);
+      if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+        dc -= 2;  /* Gnomish Tinkering: -2 Use Magic Device DC */
       
-      if (umd_check < 0) {
+      /* Manual roll calculation to show detailed feedback */
+      int roll = d20(ch);
+      int skill = compute_ability(ch, ABILITY_USE_MAGIC_DEVICE);
+      int total = skill + roll;
+      
+      send_to_char(ch, "Use Magic Device Check: [DC %d vs %d: %d skill + %d roll]\r\n", 
+                   dc, total, skill, roll);
+      
+      if (total < dc) {
         /* UMD check failed - device doesn't work and has a chance to break */
         send_to_char(ch, "The invention fails to activate and you struggle to make it work.\r\n");
         act("$n's invention sparks and sputters but doesn't activate.", TRUE, ch, 0, 0, TO_ROOM);
         
         /* Chance for device to break on failed UMD check */
-        int break_chance = (GET_RACE(ch) == DL_RACE_GNOME) ? 33 : 25;
+        int break_chance = 25;
         if (rand_number(1, 100) <= break_chance) {
           /* Device breaks! */
           send_to_char(ch, "The invention sparks, sputters, and breaks down completely!\r\n");
           act("$n's invention sparks and breaks down!", TRUE, ch, 0, 0, TO_ROOM);
           
+          /* Brilliance and Blunder explosion logic */
+          if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER)) {
+            /* Calculate total spell circles for explosion damage */
+            int total_circles = 0;
+            int j;
+            for (j = 0; j < inv->num_spells; j++) {
+              int spell_circle = compute_spells_circle(ch, CLASS_WIZARD, inv->spell_effects[j], METAMAGIC_NONE, DOMAIN_UNDEFINED);
+              total_circles += spell_circle;
+            }
+            
+            int damage = dice(total_circles, 6); /* 1d6 force damage per spell circle */
+            
+            send_to_char(ch, "\tRThe overloaded device EXPLODES in a burst of chaotic energy!\tn\r\n");
+            send_to_char(ch, "\tRYou take %d force damage from the explosion!\tn\r\n", damage);
+            act("$n's overloaded invention EXPLODES in a burst of chaotic energy!", TRUE, ch, 0, 0, TO_ROOM);
+            
+            /* Apply damage to the creator */
+            GET_HIT(ch) -= damage;
+            
+            /* Apply damage to all party members in the same room */
+            struct char_data *tch, *next_tch;
+            for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
+              next_tch = tch->next_in_room;
+              if (tch != ch && !IS_NPC(tch) && is_player_grouped(ch, tch)) {
+                send_to_char(tch, "\tRYou are caught in the explosion and take %d force damage!\tn\r\n", damage);
+                GET_HIT(tch) -= damage;
+                
+                /* Check if anyone died from the explosion */
+                if (GET_HIT(tch) <= 0) {
+                  send_to_char(tch, "\tRThe explosion proves fatal!\tn\r\n");
+                  act("$n is killed by the magical explosion!", TRUE, tch, 0, 0, TO_ROOM);
+                  /* Handle death appropriately for your MUD */
+                }
+              }
+            }
+            
+            /* Check if the creator died from the explosion */
+            if (GET_HIT(ch) <= 0) {
+              send_to_char(ch, "\tRYour own invention proves fatal!\tn\r\n");
+              act("$n is killed by $s own magical explosion!", TRUE, ch, 0, 0, TO_ROOM);
+              /* Handle death appropriately for your MUD */
+            }
+          }
+          
           /* Set device cooldown when it breaks */
-          inv->cooldown_expires = time(0) + (24 * 3600);
-          send_to_char(ch, "Device %d is now broken and on cooldown - it cannot be destroyed for 24 hours.\r\n", inv_idx + 1);
+          inv->cooldown_expires = time(0) + (30 * 60);
+          send_to_char(ch, "Device %d is now broken and on cooldown - it cannot be destroyed for 30 minutes.\r\n", inv_idx + 1);
           
           inv->uses = 0; /* Reset uses on destruction */
           return;
         }
         return; /* Device didn't break, just failed to activate */
       }
-      if (umd_check < 5) {
+      if (total < dc + 5) {
         send_to_char(ch, "The invention malfunctions and fails to activate.\r\n");
         act("$n's invention emits smoke but doesn't work.", TRUE, ch, 0, 0, TO_ROOM);
         return;
@@ -10598,9 +10639,9 @@ ACMDU(do_invent)
     
     /* Set individual device cooldown when device is first used */
     if (inv->uses == 0) {
-      /* 24 hour cooldown for this specific device */
-      inv->cooldown_expires = time(0) + (24 * 3600);
-      send_to_char(ch, "Device %d is now on cooldown - it cannot be destroyed for 24 hours.\r\n", inv_idx + 1);
+      /* 30 minute cooldown for this specific device */
+      inv->cooldown_expires = time(0) + (30 * 60);
+      send_to_char(ch, "Device %d is now on cooldown - it cannot be destroyed for 30 minutes.\r\n", inv_idx + 1);
     }
     
     inv->uses++;
@@ -10611,11 +10652,74 @@ ACMDU(do_invent)
   {
     send_to_char(ch, "Your weird science inventions:\r\n");
     int found_any = 0;
-    for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
-      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
-      found_any = 1;
-      send_to_char(ch, "  [%d] %s\r\n", i+1, inv->short_description);
+    int max_uses = 1 + (artificer_level / 2);
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      max_uses += 1;  /* Gnomish Tinkering: +1 use per device */
+    
+    if (ch->player_specials->saved.num_inventions > 0) {
+      /* Column headers */
+      send_to_char(ch, "\r\n");
+      send_to_char(ch, "Num  Device Name                         Spells                                             Uses     Status\r\n");
+      send_to_char(ch, "---  ----------------------------------  --------------------------------------------------  -------  ------\r\n");
+      
+      for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
+        struct player_invention *inv = &ch->player_specials->saved.inventions[i];
+        found_any = 1;
+        
+        /* Build spell list string */
+        char spell_list[200] = {'\0'};
+        int spell_list_len = 0;
+        for (j = 0; j < inv->num_spells; j++) {
+          if (j > 0) {
+            if (spell_list_len < 195) {
+              strcat(spell_list, ", ");
+              spell_list_len += 2;
+            }
+          }
+          const char *spell_name = spell_info[inv->spell_effects[j]].name;
+          int remaining_space = 195 - spell_list_len;
+          if (remaining_space > 0) {
+            strncat(spell_list, spell_name, remaining_space);
+            spell_list_len += strlen(spell_name);
+            if (spell_list_len >= 195) {
+              spell_list[195] = '\0';
+              break;
+            }
+          }
+        }
+        
+        /* Truncate spell list if too long and add ellipsis */
+        if (strlen(spell_list) > 50) {
+          spell_list[47] = '.';
+          spell_list[48] = '.';
+          spell_list[49] = '.';
+          spell_list[50] = '\0';
+        }
+        
+        /* Calculate uses remaining */
+        int uses_remaining = max_uses - inv->uses;
+        if (uses_remaining < 0) uses_remaining = 0;
+        
+        /* Determine status */
+        const char *status;
+        if (inv->cooldown_expires > time(0) && inv->uses == 0) {
+          status = "BROKEN";
+        } else {
+          status = "OK";
+        }
+        
+        /* Format the row */
+        send_to_char(ch, "%-3d  %-34.34s  %-50.50s  %d/%-5d  %s\r\n", 
+                     i+1, 
+                     inv->short_description,
+                     spell_list,
+                     uses_remaining,
+                     max_uses,
+                     status);
+      }
+      send_to_char(ch, "\r\n");
     }
+    
     if (!found_any) {
       send_to_char(ch, "  You have no weird science inventions.\r\n");
     }
@@ -10634,14 +10738,57 @@ ACMDU(do_invent)
       return;
     }
     struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
+    int max_uses = 1 + (artificer_level / 2);
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      max_uses += 1;  /* Gnomish Tinkering: +1 use per device */
+    int uses_remaining = max_uses - inv->uses;
+    if (uses_remaining < 0) uses_remaining = 0;
+    
     send_to_char(ch, "Invention [%d]:\r\n", inv_idx+1);
     send_to_char(ch, "  Name: %s\r\n", inv->short_description);
     send_to_char(ch, "  Spell Effects:\r\n");
     for (i = 0; i < inv->num_spells; i++) {
       send_to_char(ch, "    %s\r\n", spell_info[inv->spell_effects[i]].name);
     }
-    send_to_char(ch, "  Duration: %d hours\r\n", inv->duration);
-    send_to_char(ch, "  Reliability Bonus: %d\r\n", inv->reliability);
+    send_to_char(ch, "  Uses: %d remaining out of %d total\r\n", uses_remaining, max_uses);
+    
+    /* Check if device is broken */
+    if (inv->cooldown_expires > time(0) && inv->uses == 0) {
+      int hours_left = (inv->cooldown_expires - time(0)) / 3600;
+      int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+      send_to_char(ch, "  Status: BROKEN - will be repaired in %d hours, %d minutes\r\n", 
+                   hours_left, minutes_left);
+    } else {
+      send_to_char(ch, "  Status: Functional\r\n");
+    }
+    
+    /* Show cooldown information */
+    if (inv->cooldown_expires > time(0)) {
+      int hours_left = (inv->cooldown_expires - time(0)) / 3600;
+      int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+      if (inv->uses == 0) {
+        send_to_char(ch, "  Cooldown: Device cannot be destroyed for %d hours, %d minutes (broken)\r\n", 
+                     hours_left, minutes_left);
+      } else {
+        send_to_char(ch, "  Cooldown: Device cannot be destroyed for %d hours, %d minutes (recently used)\r\n", 
+                     hours_left, minutes_left);
+      }
+    } else {
+      send_to_char(ch, "  Cooldown: Device can be destroyed immediately\r\n");
+    }
+    
+    /* Show Use Magic Device DC when charges run out */
+    if (inv->uses >= max_uses) {
+      int device_spell_count = inv->num_spells;
+      int reliability_bonus = inv->reliability;
+      int dc = 20 + (inv->uses - max_uses) * device_spell_count - reliability_bonus;
+      if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+        dc -= 2;  /* Gnomish Tinkering: -2 Use Magic Device DC */
+      send_to_char(ch, "  Use Magic Device DC: %d (when charges exhausted)\r\n", dc);
+    } else {
+      send_to_char(ch, "  Use Magic Device DC: N/A (charges remaining)\r\n");
+    }
+    
     return;
   }
 
@@ -10741,14 +10888,6 @@ ACMDU(do_invent)
       for (j = 0; j < 4; j++) max_circles[j] = weird_science_table[19].devices[j];
     }
     
-    /* Apply feat bonuses */
-    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER)) {
-      max_circles[0] += 1; /* Add bonus to 1st circle */
-    }
-    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
-      for (j = 0; j < 4; j++) max_circles[j] += 1; /* Add bonus to all circles */
-    }
-    
     /* Count current spell circles used */
     int used_circles[4] = {0, 0, 0, 0};
     for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
@@ -10805,13 +10944,6 @@ ACMDU(do_invent)
       send_to_char(ch, "You have %d spell slots available for new inventions.\r\n", total_max - total_used);
     } else {
       send_to_char(ch, "All spell slots are in use. Remove inventions to free up slots.\r\n");
-    }
-    
-    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER)) {
-      send_to_char(ch, "\r\nBrilliance and Blunder bonus: +1 to 1st Circle slots\r\n");
-    }
-    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING)) {
-      send_to_char(ch, "\r\nGnomish Tinkering bonus: +1 to all Circle slots\r\n");
     }
     
     return;
