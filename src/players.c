@@ -1553,6 +1553,11 @@ int load_char(const char *name, struct char_data *ch)
     init_material_storage(ch);
   }
   
+  /* Initialize craft variant if invalid (for existing characters) */
+  if (GET_CRAFT(ch).crafting_item_type == 0 && GET_CRAFT(ch).craft_variant != -1) {
+    GET_CRAFT(ch).craft_variant = -1; // Ensure proper initialization
+  }
+  
   fclose(fl);
   return (id);
 }

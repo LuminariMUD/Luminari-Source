@@ -726,6 +726,7 @@ void set_crafting_itemtype(struct char_data *ch, char *arg2)
     }
 
     GET_CRAFT(ch).crafting_item_type = i;
+    GET_CRAFT(ch).craft_variant = -1; // Initialize variant to "not set"
 
 }
 
@@ -2627,6 +2628,17 @@ bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int sk
 
     roll = d20(ch);
     skill_mod = get_craft_skill_value(ch, skill);
+    
+    /* Add +5 bonus for Craft Wondrous Item feat when crafting misc items */
+    if (HAS_FEAT(ch, FEAT_CRAFT_WONDEROUS_ITEM) && GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_MISC) {
+        skill_mod += 5;
+    }
+    
+    /* Add +5 bonus for Craft Magical Arms and Armor feat when crafting weapons/armor */
+    if (HAS_FEAT(ch, FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR) && 
+        (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON || GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_ARMOR)) {
+        skill_mod += 5;
+    }
 
     if ((20 + skill_mod) < dc)
     {
@@ -2650,15 +2662,33 @@ bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int sk
     }
     else if ((roll + skill_mod) < dc)
     {
-        send_to_char(ch, "You rolled %d + your skill in %s of %d = total of %d vs. dc %d. The %s attempt failed, but you may try again.\r\n",
-                        roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        if (HAS_FEAT(ch, FEAT_CRAFT_WONDEROUS_ITEM) && GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_MISC) {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d (+5 Craft Wondrous Item bonus) = total of %d vs. dc %d. The %s attempt failed, but you may try again.\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        } else if (HAS_FEAT(ch, FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR) && 
+                   (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON || GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_ARMOR)) {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d (+5 Craft Magical Arms and Armor bonus) = total of %d vs. dc %d. The %s attempt failed, but you may try again.\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        } else {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d = total of %d vs. dc %d. The %s attempt failed, but you may try again.\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        }
         gain_craft_exp(ch, exp, skill, true);
         return false;
     }
     else
     {
-        send_to_char(ch, "You rolled %d + your skill in %s of %d = total of %d vs. dc %d. The %s attempt succeeded!\r\n",
-                        roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        if (HAS_FEAT(ch, FEAT_CRAFT_WONDEROUS_ITEM) && GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_MISC) {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d (+5 Craft Wondrous Item bonus) = total of %d vs. dc %d. The %s attempt succeeded!\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        } else if (HAS_FEAT(ch, FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR) && 
+                   (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON || GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_ARMOR)) {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d (+5 Craft Magical Arms and Armor bonus) = total of %d vs. dc %d. The %s attempt succeeded!\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        } else {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d = total of %d vs. dc %d. The %s attempt succeeded!\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        }
         return true;
     }
     return false;
