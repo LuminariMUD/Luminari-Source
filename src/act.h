@@ -387,6 +387,7 @@ ACMD_DECL(do_grab);
 ACMD_DECL(do_priceset);
 ACMD_DECL(do_put);
 ACMD_DECL(do_remove);
+ACMD_DECL(do_salvage);
 ACMD_DECL(do_sac);
 ACMD_DECL(do_wear);
 ACMD_DECL(do_wield);

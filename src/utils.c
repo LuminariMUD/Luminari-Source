@@ -9797,6 +9797,9 @@ bool is_in_hometown(struct char_data *ch)
 
 bool is_crafting_skill(int skillnum)
 {
+  if (skillnum >= START_CRAFT_ABILITIES && skillnum <= END_CRAFT_ABILITIES)
+    return true;
+
   return (spell_info[skillnum].schoolOfMagic == CRAFTING_SKILL);
 }
 

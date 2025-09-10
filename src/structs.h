@@ -4425,6 +4425,10 @@ struct crafting_data_info
 
     // supply order info
     int supply_num_required;
+    int supply_contract_type;
+    int supply_reputation_points;
+    time_t supply_contract_expiration;
+    int supply_quality_tier_requirement;
 
     // surveying;
     int survey_rooms;

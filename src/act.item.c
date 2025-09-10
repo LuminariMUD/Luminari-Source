@@ -45,6 +45,7 @@
 #include "spell_prep.h"
 #include "genobj.h"
 #include "backgrounds.h"
+#include "crafting_new.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -8293,6 +8294,139 @@ ACMD(do_unsheath)
     act("You unsheath $p.", FALSE, ch, secondary, NULL, TO_CHAR);
     act("$n unsheathes $p.", FALSE, ch, secondary, NULL, TO_ROOM);
   }
+}
+
+ACMD(do_salvage)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct obj_data *obj = NULL;
+  int gold_value = 0;
+  int artificer_level = 0;
+  int chance = 0;
+  int craft_material = 0;
+  const char *material_name = NULL;
+  int mote_chance = 0;
+  int mote_type = 0;
+  int i = 0;
+  int material_amount = 0;
+  int mote_amount = 0;
+  int level_adjustment = 0;
+
+  one_argument(argument, arg, sizeof(arg));
+
+  /* Check if player has the FEAT_SALVAGE */
+  if (!HAS_FEAT(ch, FEAT_SALVAGE))
+  {
+    send_to_char(ch, "You don't know how to salvage items.\r\n");
+    return;
+  }
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Salvage what?\r\n");
+    return;
+  }
+
+  /* Find the object */
+  if (!(obj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
+  {
+    send_to_char(ch, "You don't have anything like that in your inventory.\r\n");
+    return;
+  }
+
+  /* Check if the object can be taken (and thus salvaged) */
+  if (!CAN_WEAR(obj, ITEM_WEAR_TAKE))
+  {
+    send_to_char(ch, "You can't salvage that!\r\n");
+    return;
+  }
+
+  /* Check if the item is marked as no-sacrifice (assume same for salvage) */
+  if (OBJ_FLAGGED(obj, ITEM_NOSAC))
+  {
+    send_to_char(ch, "You can't salvage that item.\r\n");
+    return;
+  }
+
+  /* Don't allow salvaging containers with contents */
+  if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER && obj->contains != NULL)
+  {
+    send_to_char(ch, "You should empty that first!\r\n");
+    return;
+  }
+
+  /* Calculate gold value (15% of item cost) */
+  gold_value = MAX(1, GET_OBJ_COST(obj) * 15 / 100);
+
+  /* Get artificer level for material chance calculation */
+  artificer_level = CLASS_LEVEL(ch, CLASS_ARTIFICER);
+
+  /* Calculate chance for crafting material: (artificer_level / 3) + 10 */
+  chance = (artificer_level / 3) + 10;
+
+  /* Give gold to the character */
+  increase_gold(ch, gold_value);
+
+  /* Announce the salvage */
+  send_to_char(ch, "You carefully dismantle %s, salvaging %d gold coins worth of materials.\r\n", 
+               GET_OBJ_SHORT(obj), gold_value);
+
+  /* Check for crafting material reward */
+  if (rand_number(1, 100) <= chance)
+  {
+    /* Determine what material the item was made of */
+    craft_material = obj_material_to_craft_material(GET_OBJ_MATERIAL(obj));
+    
+    if (craft_material != CRAFT_MAT_NONE && craft_material < NUM_CRAFT_MATS)
+    {
+      /* Calculate material amount: random 1 to (item level / 6) */
+      material_amount = MAX(1, rand_number(1, MAX(1, GET_OBJ_LEVEL(obj) / 6)));
+      
+      /* Give the crafting materials */
+      GET_CRAFT_MAT(ch, craft_material) += material_amount;
+      material_name = crafting_materials[craft_material];
+      
+      send_to_char(ch, "You manage to recover %d unit%s of %s from the salvaged item!\r\n", 
+                   material_amount, material_amount == 1 ? "" : "s", material_name);
+    }
+  }
+
+  /* Check for elemental mote rewards (half the material chance) */
+  mote_chance = chance / 2;
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+  {
+    if (obj->affected[i].location != APPLY_NONE && rand_number(1, 100) <= mote_chance)
+    {
+      /* Determine the mote type based on the APPLY bonus */
+      mote_type = crafting_mote_by_bonus_location(obj->affected[i].location, 
+                                                  obj->affected[i].specific, 
+                                                  obj->affected[i].bonus_type);
+      
+      if (mote_type != CRAFTING_MOTE_NONE && mote_type < NUM_CRAFT_MOTES)
+      {
+        /* Calculate level adjustment for this bonus */
+        level_adjustment = get_level_adjustment_by_apply_and_modifier(obj->affected[i].location,
+                                                                      obj->affected[i].modifier,
+                                                                      obj->affected[i].bonus_type);
+        
+        /* Calculate mote amount: random 1 to (level adjustment / 6) */
+        mote_amount = MAX(1, rand_number(1, MAX(1, level_adjustment / 6)));
+        
+        /* Give the elemental motes */
+        GET_CRAFT_MOTES(ch, mote_type) += mote_amount;
+        
+        send_to_char(ch, "You extract %d %s mote%s from the item's magical essence!\r\n", 
+                     mote_amount, crafting_motes[mote_type], mote_amount == 1 ? "" : "s");
+      }
+    }
+  }
+
+  /* Notify others in the room */
+  act("$n carefully dismantles $p, salvaging materials from it.", 
+      FALSE, ch, obj, NULL, TO_ROOM);
+
+  /* Extract the object */
+  extract_obj(obj);
 }
 
 

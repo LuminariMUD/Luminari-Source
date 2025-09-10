@@ -696,8 +696,8 @@ void assign_feats(void)
         "+2 con -2 str",
         "Gnomes as a racial adjustment have +2 constitution and -2 strength.");
   feato(FEAT_ARTIFICERS_LORE, "artificer's lore", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+2 to lore and appraise checks",
-        "+2 to lore and appraise based skill and ability checks.");
+        "+2 to knowledge skills and appraise",
+        "+2 bonus to arcana, religion, history, nature, and appraise skill checks. This represents the artificer's comprehensive understanding of magical items, divine artifacts, legendary objects, natural magical phenomena, and their relative values.");
   feato(FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, "rock gnome racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 Int +1 con",
         "Rock Gnomes as a racial adjustment have +1 constitution and +2 to intelligence.");
@@ -5436,8 +5436,9 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "The artificer gains a +2 bonus to all Craft checks at 1st level. This bonus increases to +4 at 6th level and +6 at 10th level.");
 
   feato(FEAT_JACK_OF_ALL_TRADES, "jack of all trades", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Can use any skill untrained.",
-        "The artificer has picked up a smattering of even the most obscure skills. They may use any skill untrained.");
+        "All skills are treated as class skills.",
+        "The artificer has picked up a smattering of even the most obscure skills. All skills are treated as class skills for the artificer, "
+        "meaning they cost only 1 skill point to train (instead of 2 for cross-class skills) and can be trained to full level.");
 
   feato(FEAT_WEIRD_SCIENCE, "weird science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Create magical devices that replicate spell effects.",
@@ -5450,9 +5451,11 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "have access to the prerequisite spells. The artificer must make a Craft check to emulate each required spell.");
 
   feato(FEAT_SALVAGE, "salvage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Ability to salvage gold piece value from magic items.",
-        "The artificer gains the ability to salvage the gold piece value from a magic item and use those funds to create "
-        "another magic item. After one day, the item is destroyed and the artificer gains the gp value it took to create.");
+        "Ability to salvage materials and motes from items.",
+        "The artificer can dismantle items to recover valuable materials. Salvaging gives 15% of the item's gold value "
+        "immediately, plus a chance to recover crafting materials and elemental motes. Material chance is "
+        "((artificer level / 3) + 10)% to get 1 to (item level / 6) materials. Mote chance is half that, yielding "
+        "1 to (bonus level adjustment / 6) motes per magical bonus on the item.");
 
   feato(FEAT_METAMAGIC_SCIENCE, "metamagic science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Apply metamagic feats to spell trigger items like wands.",
