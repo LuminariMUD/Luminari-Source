@@ -1,6 +1,11 @@
 #ifndef NEWCRAFT_H
 #define NEWCRAFT_H
 
+#include <stdbool.h>
+#include <time.h>     // For time_t type
+#include "structs.h"  // For struct definitions
+#include "utils.h"    // For ACMD_DECL and SPECIAL_DECL macros
+
 // materials used for the new crafting system
 #define CRAFT_MAT_NONE                  0
 #define CRAFT_MAT_COPPER                1
@@ -123,6 +128,61 @@
 
 #define NUM_CRAFTING_METHODS        7
 
+// Supply order contract types
+#define SUPPLY_CONTRACT_BASIC       1
+#define SUPPLY_CONTRACT_RUSH        2
+#define SUPPLY_CONTRACT_BULK        3
+#define SUPPLY_CONTRACT_QUALITY     4
+#define SUPPLY_CONTRACT_PRESTIGE    5
+#define SUPPLY_CONTRACT_EVENT       6
+
+#define NUM_SUPPLY_CONTRACT_TYPES   7
+
+// Supply order constants
+#define MAX_ACTIVE_CONTRACTS        3
+#define MIN_CONTRACT_QUANTITY       3
+#define MAX_CONTRACT_QUANTITY       10
+#define BASE_CONTRACT_REWARD        100
+
+// Reputation system constants
+#define REP_RANK_NOVICE             0
+#define REP_RANK_APPRENTICE         1
+#define REP_RANK_JOURNEYMAN         2
+#define REP_RANK_EXPERT             3
+#define REP_RANK_MASTER             4
+#define REP_RANK_GRANDMASTER        5
+
+#define NUM_REP_RANKS               6
+
+// Reputation thresholds
+#define REP_THRESHOLD_APPRENTICE    100
+#define REP_THRESHOLD_JOURNEYMAN    300
+#define REP_THRESHOLD_EXPERT        600
+#define REP_THRESHOLD_MASTER        1000
+#define REP_THRESHOLD_GRANDMASTER   1500
+
+// Quality tier constants
+#define QUALITY_TIER_STANDARD       0
+#define QUALITY_TIER_SUPERIOR       1
+#define QUALITY_TIER_EXCEPTIONAL    2
+#define QUALITY_TIER_MASTERWORK     3
+#define QUALITY_TIER_LEGENDARY      4
+
+#define NUM_QUALITY_TIERS           5
+
+// Bulk efficiency bonuses
+#define BULK_EFFICIENCY_THRESHOLD_1 5   // 10% bonus
+#define BULK_EFFICIENCY_THRESHOLD_2 10  // 20% bonus
+#define BULK_EFFICIENCY_THRESHOLD_3 15  // 30% bonus
+
+// Contract expiration times (in real-world hours)
+#define CONTRACT_EXPIRE_BASIC       72  // 3 days
+#define CONTRACT_EXPIRE_RUSH        24  // 1 day
+#define CONTRACT_EXPIRE_BULK        96  // 4 days
+#define CONTRACT_EXPIRE_QUALITY     48  // 2 days
+#define CONTRACT_EXPIRE_PRESTIGE    168 // 1 week
+#define CONTRACT_EXPIRE_EVENT       12  // 12 hours
+
 #define CRAFT_SKILL_TYPE_NONE       0
 #define CRAFT_SKILL_TYPE_CRAFT      1
 #define CRAFT_SKILL_TYPE_HARVEST    2
@@ -146,8 +206,26 @@
 #define ARMOR_ENHANCEMENT_MOTE CRAFTING_MOTE_WATER
 #define WEAPON_ENHANCEMENT_MOTE CRAFTING_MOTE_ICE
 
+// Forward declaration for supply contract structure
+struct supply_contract {
+    int contract_id;
+    int contract_type;
+    int recipe;
+    int variant;
+    int quantity;
+    int reward;
+    int difficulty_modifier;
+    char *description;
+    char *requirements;
+    int time_limit;  // in real hours, 0 = no limit
+    int reputation_requirement;
+    int quality_tier_requirement;
+    time_t expiration_time;
+};
+
 bool room_has_harvest_materials(room_rnum room);
 int material_grade(int material);
+int obj_material_to_craft_material(int material);
 bool is_valid_harvesting_sector(int sector);
 bool will_room_have_harvest_materials(room_rnum room);
 int determine_grade_by_zone_level(int zone_level);
@@ -220,7 +298,29 @@ void start_supply_order(struct char_data *ch);
 void show_supply_order_materials(struct char_data *ch, int recipe, int variant);
 void show_supply_order(struct char_data *ch);
 void reset_supply_order(struct char_data *ch);
+int calculate_supply_order_reward(struct char_data *ch);
+bool consume_supply_order_materials(struct char_data *ch);
+void complete_supply_order(struct char_data *ch);
+bool validate_supply_order_materials(struct char_data *ch);
+void show_available_contracts(struct char_data *ch);
+int generate_contract_quantity(int contract_type);
+int generate_contract_reward(int contract_type, int quantity, int difficulty);
+int get_player_reputation_rank(struct char_data *ch);
+int get_player_reputation_points(struct char_data *ch);
+void add_reputation_points(struct char_data *ch, int points);
+const char *get_reputation_rank_name(int rank);
+int get_contract_reputation_requirement(int contract_type);
+bool player_meets_reputation_requirement(struct char_data *ch, int contract_type);
+int calculate_quality_tier_bonus(struct char_data *ch);
+int calculate_bulk_efficiency_bonus(int quantity);
+bool is_contract_expired(struct char_data *ch);
+void update_contract_expiration(struct char_data *ch, int contract_type);
+int get_event_contract_availability(void);
+bool is_special_event_active(void);
+void generate_prestige_contract(struct supply_contract *contract, struct char_data *ch);
+void generate_event_contract(struct supply_contract *contract, struct char_data *ch);
 SPECIAL_DECL(new_supply_orders);
+
 struct obj_data *setup_craft_weapon(struct char_data *ch, int w_type);
 struct obj_data *setup_craft_misc(struct char_data *ch, int vnum);
 struct obj_data *setup_craft_armor(struct char_data *ch, int a_type);
@@ -234,6 +334,8 @@ int get_craft_level_adjust_dc_change(int adjust);
 void set_craft_level_adjust(struct char_data *ch, char *arg2);
 int craft_misc_spec_to_vnum(int s_type);
 int get_craft_wear_loc(struct char_data *ch);
+
+void newcraft_supplyorder(struct char_data *ch, const char *argument);
 
 ACMD_DECL(do_newcraft);
 ACMD_DECL(do_setmaterial);

@@ -1727,6 +1727,13 @@ int modify_class_ability(struct char_data *ch, int ability, int class)
 {
   int ability_value = CLSLIST_ABIL(class, ability);
 
+  /* Jack of All Trades makes all skills class skills */
+  if (HAS_FEAT(ch, FEAT_JACK_OF_ALL_TRADES))
+  {
+    if (ability_value == CC || ability_value == NA)
+      ability_value = CA;
+  }
+
   if (IS_LICH(ch))
   {
     if (ability == ABILITY_ACROBATICS)
@@ -1764,6 +1771,27 @@ int modify_class_ability(struct char_data *ch, int ability, int class)
   }
 
   return ability_value;
+}
+
+/* Function to determine if a skill is a class skill for a character
+ * This replaces direct access to class_list and handles feats like Jack of All Trades */
+int is_class_skill(struct char_data *ch, int ability)
+{
+  int i;
+  int highest_value = NA;
+  
+  /* Check all classes the character has */
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    if (CLASS_LEVEL(ch, i))
+    {
+      int class_ability_value = modify_class_ability(ch, ability, i);
+      if (class_ability_value > highest_value)
+        highest_value = class_ability_value;
+    }
+  }
+  
+  return highest_value;
 }
 
 /* given ch, and saving throw we need computed - do so here */

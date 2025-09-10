@@ -815,6 +815,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"rsay", "rs", POS_RECLINING, do_rsay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
+    {"salvage", "salv", POS_RECLINING, do_salvage, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sachp", "sachp", POS_RECLINING, do_sacrifice, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
 #if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
@@ -897,7 +898,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shapechange", "shapechange", POS_FIGHTING, do_wildshape, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"skills", "skills", POS_RECLINING, do_train, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"skillcheck", "skillch", POS_RECLINING, do_skillcheck, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"supplyorder", "supplyorder", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"supplyorder", "supplyorder", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_SUPPLYORDER, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"spellbattle", "spellbattle", POS_STANDING, do_spellbattle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spellquests", "spellquests", POS_DEAD, do_spellquests, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"singlefile", "singlefile", POS_DEAD, do_singlefile, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
