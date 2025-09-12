@@ -5452,9 +5452,9 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
 
   feato(FEAT_SALVAGE, "salvage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Ability to salvage materials and motes from items.",
-        "The artificer can dismantle items to recover valuable materials. Salvaging gives 15% of the item's gold value "
+        "The player can dismantle items to recover valuable materials. Salvaging gives 15% of the item's gold value "
         "immediately, plus a chance to recover crafting materials and elemental motes. Material chance is "
-        "((artificer level / 3) + 10)% to get 1 to (item level / 6) materials. Mote chance is half that, yielding "
+        "((player level / 3) + 10)% to get 1 to (item level / 6) materials. Mote chance is half that, yielding "
         "1 to (bonus level adjustment / 6) motes per magical bonus on the item.");
 
   feato(FEAT_METAMAGIC_SCIENCE, "metamagic science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -5463,8 +5463,8 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "expends additional charges equal to the spell level increase of the metamagic feat.");
 
   feato(FEAT_IMPROVED_METAMAGIC_SCIENCE, "improved metamagic science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Apply metamagic feats to spell completion items like scrolls.",
-        "The artificer gains the ability to apply a metamagic feat to a spell completion item such as a scroll. The DC for "
+        "Apply metamagic feats to spell completion items like scrolls and potions.",
+        "The artificer gains the ability to apply a metamagic feat to a spell completion item such as a scroll or potion. The DC for "
         "the Use Magic Device check is equal to 20 + (3 times the modified level of the spell).");
 
   feato(FEAT_IMPROVED_JACK_OF_ALL_TRADES, "improved jack of all trades", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,

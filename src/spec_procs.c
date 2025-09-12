@@ -1524,7 +1524,7 @@ void list_abilities(struct char_data *ch, int ability_type)
     {
       send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
                  ability_names[skills_alphabetic[i]], GET_ABILITY(ch, skills_alphabetic[i]), compute_ability(ch, skills_alphabetic[i]),
-                 cross_names[is_class_skill(ch, skills_alphabetic[i])]);
+                 cross_names[modify_class_ability(ch, skills_alphabetic[i], GET_CLASS(ch))]);
     }
     return;
   case ABILITY_TYPE_CRAFT:
@@ -1566,7 +1566,7 @@ void list_abilities(struct char_data *ch, int ability_type)
     }
     send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
                  ability_names[i], GET_ABILITY(ch, i), compute_ability(ch, i),
-                 cross_names[is_class_skill(ch, i)]);
+                 cross_names[modify_class_ability(ch, i, GET_CLASS(ch))]);
   }
 }
 
@@ -3028,28 +3028,26 @@ SPECIAL(guild)
     }
 
     // ability not available to this class
-    int skill_type = is_class_skill(ch, skill_num);
-    
-    if (skill_type == 0)
+    if (modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 0)
     {
       send_to_char(ch, "This ability is not available to your class...\r\n");
       return (TRUE);
     }
 
     // cross-class ability
-    if (GET_TRAINS(ch) < 2 && skill_type == 1)
+    if (GET_TRAINS(ch) < 2 && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1)
     {
       send_to_char(ch, "(Cross-Class) You don't have enough training sessions to train that ability...\r\n");
       return (TRUE);
     }
-    if (GET_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && skill_type == 1)
+    if (GET_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1)
     {
       send_to_char(ch, "You are already trained in that area.\r\n");
       return (TRUE);
     }
 
     // class ability
-    if (GET_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3) && skill_type == 2)
+    if (GET_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 2)
     {
       send_to_char(ch, "You are already trained in that area.\r\n");
       return (TRUE);
@@ -3058,7 +3056,7 @@ SPECIAL(guild)
     send_to_char(ch, "You train for a while...\r\n");
     GET_TRAINS(ch)
     --;
-    if (skill_type == 1)
+    if (modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1)
     {
       GET_TRAINS(ch)
       --;
@@ -3071,7 +3069,7 @@ SPECIAL(guild)
       send_to_char(ch, "You are now trained in that area.\r\n");
     if (skill_num == ABILITY_STEALTH && HAS_REAL_FEAT(ch, FEAT_PRACTICED_SNEAK))
       ;
-    else if (GET_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && is_class_skill(ch, skill_num) == 1)
+    else if (GET_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && CLSLIST_ABIL(GET_CLASS(ch), skill_num) == 1)
       send_to_char(ch, "You are already trained in that area.\r\n");
 
     return (TRUE);

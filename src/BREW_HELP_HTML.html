@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Potion Brewing Guide - LuminariMUD</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .command {
+            background: #e8f4fd;
+            color: #2c3e50;
+            border: 2px solid #3498db;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            display: inline-block;
+            margin: 2px;
+            font-weight: bold;
+        }
+        .example {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #f39c12;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            display: inline-block;
+            margin: 2px;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #e8f4fd;
+            color: #2c3e50;
+            font-weight: bold;
+            border: 2px solid #3498db;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .warning {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #e74c3c;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #3498db;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #27ae60;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .feat-box {
+            background: #f3e5f5;
+            color: #4a148c;
+            border: 2px solid #9b59b6;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .feat-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: #4a148c;
+        }
+        .qa {
+            background: #ecf0f1;
+            padding: 15px;
+            border-left: 4px solid #95a5a6;
+            margin: 10px 0;
+        }
+        .qa strong {
+            color: #2c3e50;
+        }
+        code {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #dee2e6;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .mote-box {
+            background: #e7f3ff;
+            color: #2c5aa0;
+            border: 2px solid #4285f4;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .calculation {
+            background: #f0f8f0;
+            color: #2d5a2d;
+            border: 2px solid #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .step {
+            background: #fff8e7;
+            color: #8c6914;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Enhanced Potion Brewing Guide - Multi-Spell System</h1>
+
+        <div class="info">
+            The <strong>BREW</strong> command allows characters to create potions from spells, with support for up to <strong>3 different spells in a SINGLE POTION!</strong> This enhanced system includes alchemy skill checks, spell slot consumption, and complex cost scaling.
+        </div>
+
+        <h2>✨ Key Features</h2>
+        <ul>
+            <li><strong>Multi-spell potions</strong> store all spells in one object (physical mode) or create separate entries (stored mode)</li>
+            <li><strong>Dual brewing modes</strong> - creates physical potions OR adds to stored consumables based on your preference</li>
+            <li><strong>Metamagic Science compatibility</strong> - works with both physical potions and stored consumables</li>
+            <li><strong>Alchemy skill progression</strong> with experience gain</li>
+            <li><strong>Spell slot consumption</strong> for all caster types</li>
+            <li><strong>Pre-brewing validation</strong> ensures you have required spells</li>
+            <li><strong>Timed brewing process</strong> with skill-based success/failure</li>
+        </ul>
+
+        <div class="feat-box">
+            <div class="feat-title">🔄 Brewing Modes:</div>
+            <ul>
+                <li><strong>Physical Potions</strong> (default): Creates tangible potion objects in your inventory</li>
+                <li><strong>Stored Consumables</strong> (with preference enabled): Adds potions to your stored supply</li>
+                <li>Toggle with: <code>usestoredconsumables</code> command</li>
+                <li>Multi-spell behavior differs: Physical = one object with all spells, Stored = separate entries per spell</li>
+            </ul>
+        </div>
+
+        <h2>⚗️ Syntax</h2>
+        <p><strong>Command:</strong> <span class="command">brew &lt;spell1&gt; [spell2] [spell3]</span></p>
+
+        <h3>Examples:</h3>
+        <div>
+            <strong>Single spell:</strong> <span class="example">brew 'cure light wounds'</span><br>
+            <strong>Two spells:</strong> <span class="example">brew 'cure light wounds' 'bless'</span><br>
+            <strong>Three spells:</strong> <span class="example">brew 'cure light wounds' 'bless' 'shield'</span><br>
+            <strong>Mixed quotes:</strong> <span class="example">brew fireball 'magic missile' heal</span>
+        </div>
+
+        <div class="info">
+            <strong>Note:</strong> You can mix quoted and unquoted spell names. Multi-word spell names should be quoted for clarity.
+        </div>
+
+        <h2>📋 Requirements</h2>
+
+        <h3>🎯 Basic Requirements for Each Spell:</h3>
+        <ul>
+            <li>You must be able to cast the spell <strong>OR</strong> be an alchemist</li>
+            <li>Spells must be prepared (wizards/clerics) or known with slots (sorcerers/bards)</li>
+            <li>Elemental motes (type depends on spell school)</li>
+            <li>Gold (amount depends on spell level)</li>
+            <li>Cannot brew offensive/damaging spells into potions</li>
+            <li>Must pass an alchemy skill check</li>
+        </ul>
+
+        <div class="feat-box">
+            <div class="feat-title">🎭 Spell Slot Consumption:</div>
+            <ul>
+                <li>Each spell consumes a slot as if you cast it normally</li>
+                <li><strong>Prepared casters:</strong> Spell moves from collection back to preparation queue</li>
+                <li><strong>Spontaneous casters:</strong> Slot of appropriate circle enters recovery</li>
+                <li>Validation occurs before brewing starts - no wasted materials</li>
+            </ul>
+        </div>
+
+        <div class="feat-box">
+            <div class="feat-title">🎲 Alchemy Skill Check:</div>
+            <ul>
+                <li><strong>DC =</strong> 10 + (highest spell circle × 2) + (additional spells × 3)</li>
+                <li>Use your alchemy craft skill + d20 roll</li>
+                <li><strong>Critical Success (Natural 20):</strong> Create two potions, 50% bonus experience</li>
+                <li><strong>Success:</strong> Full materials consumed, potions created, full experience</li>
+                <li><strong>Failure:</strong> Quarter materials consumed, some experience gained</li>
+                <li><strong>Critical Failure (Natural 1):</strong> Half materials consumed, minimal experience</li>
+            </ul>
+        </div>
+
+        <h3>👤 For Non-Alchemists:</h3>
+        <ul>
+            <li>Must have the spell prepared (wizards/clerics) or know it with available slots (sorcerers/bards)</li>
+            <li>Each spell must be individually castable at brewing time</li>
+            <li>Spell slots are consumed as if casting normally</li>
+            <li>Failed brewing attempts still consume spell slots</li>
+        </ul>
+
+        <h3>🔬 For Alchemists:</h3>
+        <ul>
+            <li>Can brew any spell available to any spellcasting class</li>
+            <li><strong>Maximum spell level =</strong> (alchemist level / 3), minimum 1</li>
+            <li>Level 30+ alchemists can brew epic spells (level 10)</li>
+            <li>Still consume spell slots if they know/have the spells prepared</li>
+            <li>Pay <strong>2.5x cost</strong> (motes AND gold) for spells they cannot cast themselves</li>
+            <li>Pay normal cost for spells they can cast themselves</li>
+        </ul>
+
+        <h2>💰 Multi-Spell Cost Scaling</h2>
+
+        <h3>📊 Base Costs by Spell Level:</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Spell Level</th>
+                    <th>Mote Cost</th>
+                    <th>Gold Cost</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Cantrips (Level 0)</strong></td><td>1 mote</td><td>25 gold</td><td>Basic magical effects</td></tr>
+                <tr><td><strong>Level 1</strong></td><td>1 mote</td><td>50 gold</td><td>Entry-level spells</td></tr>
+                <tr><td><strong>Level 2</strong></td><td>1 mote</td><td>100 gold</td><td>Common utility spells</td></tr>
+                <tr><td><strong>Level 3</strong></td><td>2 motes</td><td>200 gold</td><td>Moderate complexity</td></tr>
+                <tr><td><strong>Level 4</strong></td><td>2 motes</td><td>400 gold</td><td>Advanced applications</td></tr>
+                <tr><td><strong>Level 5</strong></td><td>3 motes</td><td>600 gold</td><td>Powerful magic</td></tr>
+                <tr><td><strong>Level 6</strong></td><td>3 motes</td><td>900 gold</td><td>High-tier spells</td></tr>
+                <tr><td><strong>Level 7</strong></td><td>4 motes</td><td>1,200 gold</td><td>Expert-level magic</td></tr>
+                <tr><td><strong>Level 8</strong></td><td>4 motes</td><td>1,600 gold</td><td>Master-tier spells</td></tr>
+                <tr><td><strong>Level 9</strong></td><td>5 motes</td><td>2,000 gold</td><td>Peak mortal magic</td></tr>
+                <tr><td><strong>Level 10 (Epic)</strong></td><td>10 motes</td><td>5,000 gold</td><td>Legendary effects</td></tr>
+            </tbody>
+        </table>
+
+        <h3>⚖️ Multi-Spell Complexity Multipliers:</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Number of Spells</th>
+                    <th>Cost Multiplier</th>
+                    <th>Difficulty Increase</th>
+                    <th>Recommendation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>1 Spell</strong></td><td>1.0x (Normal)</td><td>None</td><td>Perfect for beginners</td></tr>
+                <tr><td><strong>2 Spells</strong></td><td>1.5x (+50%)</td><td>+3 DC</td><td>Moderate challenge</td></tr>
+                <tr><td><strong>3 Spells</strong></td><td>2.0x (+100%)</td><td>+6 DC</td><td>Expert-level brewing</td></tr>
+            </tbody>
+        </table>
+
+        <div class="calculation">
+EXAMPLE CALCULATION:
+Brewing 'cure light wounds' (level 1) + 'bless' (level 1):
+- Base cost: (1+1) motes + (50+50) gold = 2 motes + 100 gold
+- With 2-spell multiplier: 3 motes + 150 gold
+        </div>
+
+        <h2>🌟 Mote Requirements</h2>
+        <p>Different spell schools require different elemental motes:</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Spell School</th>
+                    <th>Required Mote Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Abjuration</strong></td><td>Light motes</td><td>Protection/Warding</td></tr>
+                <tr><td><strong>Conjuration</strong></td><td>Earth motes</td><td>Creation/Summoning</td></tr>
+                <tr><td><strong>Divination</strong></td><td>Air motes</td><td>Knowledge/Foresight</td></tr>
+                <tr><td><strong>Enchantment</strong></td><td>Lightning motes</td><td>Mind-Affecting</td></tr>
+                <tr><td><strong>Evocation</strong></td><td>Fire motes</td><td>Energy/Damage</td></tr>
+                <tr><td><strong>Illusion</strong></td><td>Ice motes</td><td>Deception/Imagery</td></tr>
+                <tr><td><strong>Necromancy</strong></td><td>Dark motes</td><td>Death/Undeath</td></tr>
+                <tr><td><strong>Transmutation</strong></td><td>Water motes</td><td>Change/Transform</td></tr>
+                <tr><td><strong>Unknown/Other</strong></td><td>Earth motes</td><td>Default</td></tr>
+            </tbody>
+        </table>
+
+        <div class="mote-box">
+            <strong>Important:</strong> Each mote type is calculated separately, so brewing spells from different schools will require multiple mote types.
+        </div>
+
+        <h2>📊 Material Loss & Feedback</h2>
+
+        <div class="warning">
+            <strong>Detailed Loss Reporting:</strong> The system now provides explicit feedback about exactly which materials are lost during failures:
+            <ul>
+                <li><strong>Critical Failure:</strong> "X [mote type]s lost", "Y gold lost" (half of each type consumed)</li>
+                <li><strong>Regular Failure:</strong> "X gold lost" (quarter of gold consumed, motes preserved)</li>
+                <li><strong>Success:</strong> "X [mote type]s used", "Y gold used" (full consumption with confirmation)</li>
+            </ul>
+        </div>
+
+        <h2>⏳ Brewing Process</h2>
+
+        <div class="step">
+            <strong>STEP 1: SPELL VALIDATION</strong>
+            <ul>
+                <li>System checks if you have all required spells available using spell_prep_gen_check</li>
+                <li>Displays "--[spell name] is available" for each valid spell</li>
+                <li>Stops immediately if any spell is unavailable with specific error message</li>
+                <li>Works with all caster types: prepared, spontaneous, and multiclass</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <strong>STEP 2: MATERIAL VALIDATION</strong>
+            <ul>
+                <li>Confirms you have sufficient motes of each required type</li>
+                <li>Confirms you have sufficient gold for total cost</li>
+                <li>Shows exact requirements: "Required: X total gold, Y [mote type]s, Z [other mote type]s"</li>
+                <li>No materials consumed during validation phase</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <strong>STEP 3: BREWING TIMER</strong>
+            <ul>
+                <li>Time based on spell complexity: (sum of spell levels × 5 seconds) × 1.5 for multi-spell</li>
+                <li>Shows detailed progress: "Cost multiplier: X.Xx for Y spell(s)"</li>
+                <li>Shows upcoming skill check: "Alchemy skill check will be: skill(X) + d20 vs DC Y"</li>
+                <li>You cannot brew multiple batches simultaneously</li>
+                <li>Brewing can be interrupted by combat or other actions</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <strong>STEP 4: SKILL CHECK & CONSUMPTION</strong>
+            <ul>
+                <li>Alchemy skill check performed at completion</li>
+                <li><strong>Critical Success (Natural 20):</strong> Create two identical potions, 50% bonus experience</li>
+                <li><strong>Regular Success:</strong> Materials AND spell slots consumed, potion created, full experience</li>
+                <li><strong>Regular Failure:</strong> Quarter materials consumed, spell slots still used, some experience</li>
+                <li><strong>Critical Failure (Natural 1):</strong> Half materials consumed, spell slots still used, minimal experience</li>
+            </ul>
+        </div>
+
+        <h2>🍶 Potion Mechanics</h2>
+
+        <h2>🍶 Potion Mechanics</h2>
+
+        <h3>� Physical vs Stored Potions:</h3>
+        <div class="feat-box">
+            <div class="feat-title">⚗️ Physical Potion Mode (Default):</div>
+            <ul>
+                <li>Creates tangible potion objects in your inventory</li>
+                <li>Multi-spell potions are <strong>single objects</strong> containing all spells</li>
+                <li>Consumed with: <code>quaff &lt;potion&gt;</code></li>
+                <li>Can be traded, dropped, or stored like any physical item</li>
+                <li>Metamagic Science: Applied when quaffing with <code>quaff [metamagic] &lt;potion&gt;</code></li>
+            </ul>
+        </div>
+
+        <div class="feat-box">
+            <div class="feat-title">💾 Stored Consumables Mode:</div>
+            <ul>
+                <li>Adds potions directly to your stored consumables supply</li>
+                <li>Multi-spell brewing creates <strong>separate entries</strong> for each spell</li>
+                <li>Consumed with: <code>quaff &lt;spell name&gt;</code></li>
+                <li>Cannot be traded or dropped (stored in character data)</li>
+                <li>Metamagic Science: Applied when quaffing with <code>quaff [metamagic] &lt;spell name&gt;</code></li>
+                <li>Toggle on/off with: <code>usestoredconsumables</code></li>
+            </ul>
+        </div>
+
+        <h3>🔗 Multi-Spell Behavior Differences:</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Aspect</th>
+                    <th>Physical Potions</th>
+                    <th>Stored Consumables</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Multi-spell creation</strong></td><td>1 object with all spells</td><td>Separate entries per spell</td></tr>
+                <tr><td><strong>Consumption</strong></td><td>All spells at once</td><td>Each spell individually</td></tr>
+                <tr><td><strong>Critical success</strong></td><td>2 identical multi-spell potions</td><td>2 of each individual spell</td></tr>
+                <tr><td><strong>Inventory space</strong></td><td>Uses physical slots</td><td>No inventory impact</td></tr>
+                <tr><td><strong>Trading</strong></td><td>Can be traded/sold</td><td>Character-bound</td></tr>
+            </tbody>
+        </table>
+
+        <div class="feat-box">
+            <div class="feat-title">📊 Potion Values (Physical Mode Only):</div>
+            <ul>
+                <li><code>GET_OBJ_VAL(potion, 0)</code>: Caster level</li>
+                <li><code>GET_OBJ_VAL(potion, 1)</code>: First spell number</li>
+                <li><code>GET_OBJ_VAL(potion, 2)</code>: Second spell number (-1 if none)</li>
+                <li><code>GET_OBJ_VAL(potion, 3)</code>: Third spell number (-1 if none)</li>
+            </ul>
+        </div>
+
+        <h2>⏱️ Brewing Time</h2>
+        <div class="calculation">
+Brewing time: (sum of all spell levels × 5 seconds) × 1.5 for multi-spell
+
+EXAMPLES:
+- 'cure light wounds' (level 1): 5 seconds
+- 'cure light wounds' + 'bless': (1+1) × 5 × 1.5 = 15 seconds
+- 'fireball' + 'haste' + 'fly': (3+3+3) × 5 × 1.5 = 67.5 seconds
+        </div>
+
+        <h2>📈 Skill Progression</h2>
+
+        <h3>🎯 Alchemy Experience Gain:</h3>
+        <ul>
+            <li><strong>Critical Success (Natural 20):</strong> (highest circle × 20) + (extra spells × 10) × 1.5</li>
+            <li><strong>Regular Success:</strong> (highest circle × 20) + (extra spells × 10)</li>
+            <li><strong>Regular Failure:</strong> MAX(5, highest circle × 15) + (extra spells × 7)</li>
+            <li><strong>Critical Failure (Natural 1):</strong> (highest circle × 5) + (extra spells × 2)</li>
+            <li>Experience caps at level 32 (staff level)</li>
+        </ul>
+
+        <h3>🎲 Difficulty Examples:</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Combination</th>
+                    <th>DC</th>
+                    <th>Difficulty</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Single level 1 spell</td><td>12</td><td>Trivial for skilled alchemists</td></tr>
+                <tr><td>Two level 3 spells</td><td>19</td><td>Moderate challenge</td></tr>
+                <tr><td>Three level 5 spells</td><td>26</td><td>Very challenging</td></tr>
+                <tr><td>Epic level combinations</td><td>30+</td><td>Master-level alchemy</td></tr>
+            </tbody>
+        </table>
+
+        <div class="feat-box">
+            <div class="feat-title">🛠️ Skill Integration:</div>
+            <ul>
+                <li>Uses existing craft skill system</li>
+                <li>Alchemy skill maps to ABILITY_CRAFT_ALCHEMY</li>
+                <li>Visible in craft score display</li>
+                <li>Skill checks provide detailed feedback with roll results</li>
+            </ul>
+        </div>
+
+        <h2>🧙‍♂️ Metamagic Science Integration</h2>
+
+        <div class="feat-box">
+            <div class="feat-title">✨ Enhanced Metamagic Support:</div>
+            <ul>
+                <li><strong>FEAT_METAMAGIC_SCIENCE:</strong> Apply metamagic to wands and staves</li>
+                <li><strong>FEAT_IMPROVED_METAMAGIC_SCIENCE:</strong> Apply metamagic to scrolls AND potions</li>
+                <li>Works seamlessly with both physical potions and stored consumables</li>
+                <li>Requires Use Magic Device checks for metamagic applications</li>
+            </ul>
+        </div>
+
+        <h3>🎭 Metamagic Usage Examples:</h3>
+        <div class="calculation">
+Physical Potions:
+quaff maximized &lt;potion&gt;
+quaff empowered quickened &lt;potion&gt;
+
+Stored Consumables:
+quaff maximized 'cure light wounds'
+quaff empowered quickened fireball
+        </div>
+
+        <div class="warning">
+            <strong>Important:</strong> Metamagic is applied when consuming potions, NOT when brewing them. The brewing process creates standard potions that can be enhanced through Metamagic Science when used.
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Metamagic Type</th>
+                    <th>Effect</th>
+                    <th>Spell Level Increase</th>
+                    <th>Required Feat</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Quickened</strong></td><td>Faster casting</td><td>+4</td><td>Quicken Spell</td></tr>
+                <tr><td><strong>Maximized</strong></td><td>Maximum damage/healing</td><td>+3</td><td>Maximize Spell</td></tr>
+                <tr><td><strong>Empowered</strong></td><td>50% more damage/healing</td><td>+2</td><td>Empower Spell</td></tr>
+                <tr><td><strong>Extended</strong></td><td>Double duration</td><td>+1</td><td>Extend Spell</td></tr>
+                <tr><td><strong>Silent</strong></td><td>No verbal components</td><td>+1</td><td>Silent Spell</td></tr>
+                <tr><td><strong>Still</strong></td><td>No somatic components</td><td>+1</td><td>Still Spell</td></tr>
+            </tbody>
+        </table>
+
+        <h2>🎯 Strategy Tips</h2>
+
+        <h3>� Choosing Between Physical and Stored Modes:</h3>
+        <ul>
+            <li><strong>Physical Potions:</strong> Best for trading, multi-spell convenience, and traditional gameplay</li>
+            <li><strong>Stored Consumables:</strong> Best for inventory management and individual spell control</li>
+            <li>Consider your playstyle: Do you want to manage physical items or streamlined consumables?</li>
+            <li>Multi-spell strategy differs: Physical = all-in-one convenience, Stored = flexible individual use</li>
+            <li>Metamagic Science works identically with both modes</li>
+        </ul>
+
+        <h3>�💎 Resource Management:</h3>
+        <ul>
+            <li>Start with single low-level spells to build alchemy skill</li>
+            <li>Consider spell slot economy - brewing consumes slots like casting</li>
+            <li>Prepare extra slots for brewing sessions if you're a prepared caster</li>
+            <li>Spontaneous casters should meditate/compose to recover slots</li>
+        </ul>
+
+        <h3>🧪 Potion Planning:</h3>
+        <ul>
+            <li>Mix complementary effects (healing + protection, buff combinations)</li>
+            <li>Consider mote efficiency - spells using same school are cheaper</li>
+            <li>Multi-spell potions are powerful but expensive and skill-intensive</li>
+            <li>Save complex combinations for important situations</li>
+        </ul>
+
+        <h3>🎭 Caster Type Strategies:</h3>
+        <ul>
+            <li><strong>Wizards/Clerics:</strong> Prepare brewing spells in advance, consider extra slots</li>
+            <li><strong>Sorcerers/Bards:</strong> Manage known spells and daily slots carefully</li>
+            <li><strong>Alchemists:</strong> Focus on spells they can actually cast for lower costs</li>
+            <li><strong>Mixed classes:</strong> Leverage multiple casting traditions</li>
+        </ul>
+
+        <h3>📚 Skill Building:</h3>
+        <ul>
+            <li>Practice with low-risk combinations first</li>
+            <li>Failed attempts still provide experience</li>
+            <li>Critical failures teach valuable lessons with minimal experience</li>
+            <li>Master single-spell brewing before attempting complex recipes</li>
+        </ul>
+
+        <div class="success">
+            The enhanced brewing system rewards both magical knowledge and alchemical skill, creating potions that are truly greater than the sum of their parts!<br><br>
+            <strong>Happy brewing! 🧪✨</strong>
+        </div>
+
+        <div class="feat-box">
+            <div class="feat-title">💬 Enhanced Messaging System:</div>
+            <ul>
+                <li>Real-time skill check feedback: "Alchemy skill check: d20(X) + skill(Y) = Z vs DC W"</li>
+                <li>Detailed spell consumption: "[Spell name] spell slot used" for each spell</li>
+                <li>Explicit material consumption reporting with exact quantities</li>
+                <li>Clear success/failure messaging with experience gain details</li>
+                <li>Room messages: "Character finishes creating a magical potion"</li>
+            </ul>
+        </div>
+
+        <h2>🔧 Technical Notes</h2>
+
+        <div class="feat-box">
+            <div class="feat-title">⚙️ Spell Consumption System:</div>
+            <ul>
+                <li>Uses same mechanics as normal spellcasting (spell_prep_gen_extract)</li>
+                <li><strong>Prepared casters:</strong> Spell moves from collection to preparation queue</li>
+                <li><strong>Spontaneous casters:</strong> Slot enters recovery queue with normal timing</li>
+                <li>Slots recover through normal preparation/meditation commands</li>
+            </ul>
+        </div>
+
+        <div class="feat-box">
+            <div class="feat-title">✅ Validation System:</div>
+            <ul>
+                <li>Pre-brewing checks use spell_prep_gen_check function</li>
+                <li>Ensures all spells are available before consuming any materials</li>
+                <li>Prevents partial failures and wasted resources</li>
+                <li>Works with all caster types and multiclass combinations</li>
+            </ul>
+        </div>
+
+        <div class="feat-box">
+            <div class="feat-title">🍶 Object Mechanics:</div>
+            <ul>
+                <li>Single potion objects contain all spell effects</li>
+                <li>Caster level determined by brewer's effective level</li>
+                <li>Spell numbers stored in object values 1-3</li>
+                <li>Compatible with existing potion consumption code</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

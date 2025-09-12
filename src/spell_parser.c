@@ -33,6 +33,7 @@
 #include "act.h"
 #include "evolutions.h"
 #include "mudlim.h"
+#include "metamagic_science.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -1164,12 +1165,49 @@ similar method added -zusuk */
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-  int i, k;
+  char metamagic_desc[MAX_INPUT_LENGTH] = {'\0'};
+  int i, k, metamagic = 0;
   struct char_data *tch = NULL, *next_tch;
   struct obj_data *tobj = NULL;
   int potion_level = GET_OBJ_VAL(obj, 0);
+  char *temp_argument = argument;
 
-  one_argument(argument, arg, sizeof(arg));
+  /* Parse metamagic first if the character has the appropriate feat */
+  if (GET_OBJ_TYPE(obj) == ITEM_WAND || GET_OBJ_TYPE(obj) == ITEM_STAFF) {
+    if (HAS_FEAT(ch, FEAT_METAMAGIC_SCIENCE)) {
+      metamagic = parse_metamagic_for_consumables(ch, &temp_argument, GET_OBJ_VAL(obj, 3), GET_OBJ_TYPE(obj));
+      if (metamagic < 0) {
+        return; /* Error message already sent */
+      }
+      if (metamagic > 0) {
+        get_metamagic_description(metamagic, metamagic_desc, sizeof(metamagic_desc));
+      }
+    }
+  } else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL || GET_OBJ_TYPE(obj) == ITEM_POTION) {
+    if (HAS_FEAT(ch, FEAT_IMPROVED_METAMAGIC_SCIENCE)) {
+      metamagic = parse_metamagic_for_consumables(ch, &temp_argument, GET_OBJ_VAL(obj, 1), GET_OBJ_TYPE(obj));
+      if (metamagic < 0) {
+        return; /* Error message already sent */
+      }
+      if (metamagic > 0) {
+        get_metamagic_description(metamagic, metamagic_desc, sizeof(metamagic_desc));
+        
+        /* For scrolls and potions, require Use Magic Device check */
+        int base_level = (GET_OBJ_TYPE(obj) == ITEM_SCROLL) ? GET_OBJ_VAL(obj, 0) : potion_level;
+        int umd_dc = calculate_metamagic_scroll_dc(base_level, metamagic);
+        int umd_check = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, umd_dc);
+        
+        if (umd_check < 0) {
+          send_to_char(ch, "You fail to properly activate the metamagic effects (DC %d Use Magic Device check failed).\r\n", umd_dc);
+          return;
+        } else {
+          send_to_char(ch, "You successfully channel metamagic into the item!\r\n");
+        }
+      }
+    }
+  }
+
+  one_argument(temp_argument, arg, sizeof(arg));
 
   k = generic_find(arg, FIND_CHAR_ROOM | FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &tch, &tobj);
 
@@ -1210,7 +1248,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
         for (i = 0, tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
           i++;
         while (i-- > 0)
-          call_magic(ch, NULL, NULL, GET_OBJ_VAL(obj, 3), 0, k, CAST_STAFF);
+          call_magic(ch, NULL, NULL, GET_OBJ_VAL(obj, 3), metamagic, k, CAST_STAFF);
       }
       else
       {
@@ -1220,12 +1258,12 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
           if (spell_info[GET_OBJ_VAL(obj, 3)].violent)
           {
             if (!is_player_grouped(ch, tch))
-              call_magic(ch, tch, NULL, GET_OBJ_VAL(obj, 3), 0, k, CAST_STAFF);
+              call_magic(ch, tch, NULL, GET_OBJ_VAL(obj, 3), metamagic, k, CAST_STAFF);
           }
           else
           {
             if (is_player_grouped(ch, tch))
-              call_magic(ch, tch, NULL, GET_OBJ_VAL(obj, 3), 0, k, CAST_STAFF);
+              call_magic(ch, tch, NULL, GET_OBJ_VAL(obj, 3), metamagic, k, CAST_STAFF);
           }
         }
       }
@@ -1287,10 +1325,10 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
     USE_STANDARD_ACTION(ch);
 
     if (GET_OBJ_VAL(obj, 0))
-      call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3), 0,
+      call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3), metamagic,
                  GET_OBJ_VAL(obj, 0), CAST_WAND);
     else
-      call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3), 0,
+      call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, 3), metamagic,
                  DEFAULT_WAND_LVL, CAST_WAND);
     break;
   case ITEM_SCROLL:
@@ -1319,7 +1357,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
     USE_STANDARD_ACTION(ch);
 
     for (i = 1; i <= 3; i++)
-      if (call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, i), 0,
+      if (call_magic(ch, tch, tobj, GET_OBJ_VAL(obj, i), metamagic,
                      GET_OBJ_VAL(obj, 0), CAST_SCROLL) <= 0)
         break;
 
@@ -1350,7 +1388,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
       potion_level = CLASS_LEVEL(ch, CLASS_ALCHEMIST);
 
     for (i = 1; i <= 3; i++)
-      if (call_magic(ch, ch, NULL, GET_OBJ_VAL(obj, i), 0, potion_level, CAST_POTION) <= 0)
+      if (call_magic(ch, ch, NULL, GET_OBJ_VAL(obj, i), metamagic, potion_level, CAST_POTION) <= 0)
         break;
 
     if (obj != NULL)

@@ -4252,6 +4252,7 @@ int crafting_skill_type(int skill)
         case ABILITY_CRAFT_LEATHERWORKING:
         case ABILITY_CRAFT_JEWELCRAFTING:
         case ABILITY_CRAFT_METALWORKING:
+        case ABILITY_CRAFT_ALCHEMY:
             return CRAFT_SKILL_TYPE_CRAFT;
         
         case ABILITY_HARVEST_MINING:
@@ -4260,13 +4261,11 @@ int crafting_skill_type(int skill)
         case ABILITY_HARVEST_GATHERING:
             return CRAFT_SKILL_TYPE_HARVEST;
 
-        case ABILITY_CRAFT_ALCHEMY:
         case ABILITY_CRAFT_BOWMAKING:
         case ABILITY_CRAFT_TRAPMAKING:
         case ABILITY_CRAFT_POISONMAKING:
         case ABILITY_CRAFT_FISHING:
         case ABILITY_CRAFT_COOKING:
-        case ABILITY_CRAFT_BREWING:
             return CRAFT_SKILL_TYPE_NONE;
     }
     return CRAFT_SKILL_TYPE_NONE;

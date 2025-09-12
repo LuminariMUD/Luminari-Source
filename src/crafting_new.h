@@ -66,8 +66,9 @@
 #define CRAFT_SKILL_TINKER          4
 #define CRAFT_SKILL_CARPENTER       5
 #define CRAFT_SKILL_TAILOR          6
+#define CRAFT_SKILL_BREWING         7
 
-#define NUM_CRAFT_SKILLS            7
+#define NUM_CRAFT_SKILLS            8
 
 #define HARVEST_SKILL_NONE          0
 #define HARVEST_SKILL_MINING        1

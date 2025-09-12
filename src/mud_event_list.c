@@ -11,6 +11,7 @@
 #include "structs.h"
 #include "mud_event.h"
 #include "dg_event.h"
+#include "brew.h"
 
 /* External event handler function declarations */
 extern EVENTFUNC(event_countdown);
@@ -506,4 +507,5 @@ struct mud_event_list mud_event_index[] = {
      NULL, NULL, FEAT_UNDEFINED, 0},
     {"Devise Progress", event_devise_progress, EVENT_CHAR,
      NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Brew Potion", event_brewing, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
 };
