@@ -53,6 +53,7 @@
 #include "quest.h"
 #include "mysql.h"
 #include "act.h"
+#include "brew.h"  /* Include for brewing events */
 
 /* Global List */
 struct list_data *world_events = NULL;

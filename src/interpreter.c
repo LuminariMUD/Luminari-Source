@@ -77,6 +77,7 @@
 #include "backgrounds.h"
 #include "roleplay.h"
 #include "crafting_new.h"
+#include "brew.h"
 #include "mysql.h"
 
 /* local (file scope) functions */
@@ -231,6 +232,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"buy", "bu", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"bug", "bug", POS_DEAD, do_ibt, 0, SCMD_BUG, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"breathe", "breathe", POS_FIGHTING, do_breathe, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_breathe},
+    {"brew", "brew", POS_STANDING, do_brew, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"blank", "blank", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_BLANK, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"blooddrain", "blooddrain", POS_RESTING, do_blood_drain, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"bombs", "bombs", POS_RESTING, do_bombs, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
@@ -1465,7 +1467,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You can't do that while %s.\r\n", crafting_methods[GET_CRAFT(ch).crafting_method]);
   }
   #endif
-  else if ((char_has_mud_event(ch, eCRAFTING)) &&
+  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVISE_CREATION) || char_has_mud_event(ch, eBREWING)) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
            !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
@@ -1487,30 +1489,16 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "wearapplies") &&
            !is_abbrev(complete_cmd_info[cmd].command, "wearlocations") &&
            !is_abbrev(complete_cmd_info[cmd].command, "tell"))
-    send_to_char(ch, "You are too busy crafting. [Available commands: gossip/"
-                     "chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea/class/race/spelllist]\r\n");
-  else if ((char_has_mud_event(ch, eDEVISE_CREATION)) &&
-           !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "look") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "score") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "group") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "say") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "'") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "help") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "class") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "race") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "spelllist") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "reply") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "prefedit") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "bug") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "typo") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "idea") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "device") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "tell"))
-    send_to_char(ch, "You are too busy creating a device. [Available commands: gossip/"
-                     "chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea/class/race/spelllist/device]\r\n");
+    {
+      if (char_has_mud_event(ch, eCRAFTING))
+        send_to_char(ch, "You are too busy crafting to do that! ");
+      else if (char_has_mud_event(ch, eDEVISE_CREATION))
+        send_to_char(ch, "You are too busy devising your creation to do that! ");
+      else if (char_has_mud_event(ch, eBREWING))
+        send_to_char(ch, "You are too busy brewing to do that! ");
+      send_to_char(ch, "[Available commands: gossip/chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea/class/race/spelllist]\r\n");
+    }
+          
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
     switch (GET_POS(ch))
     {

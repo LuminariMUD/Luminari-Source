@@ -13,8 +13,8 @@
 #define _STRUCTS_H_
 
 #include <time.h>     /* for time_t */
+#include <stddef.h>   /* for size_t */
 #include "bool.h"     /* for bool */
-
 #include "protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
@@ -2918,11 +2918,9 @@
 #define FEAT_IMPROVED_JACK_OF_ALL_TRADES 1252
 #define FEAT_EXEMPLAR 1253
 
-#define FEAT_GNOMISH_TINKERING 1254
+#define FEAT_GNOMISH_TINKERING                  1254
 #define FEAT_BRILLIANCE_AND_BLUNDER 1255
 
-
-/**************/
 /** reserved above feat# + 1**/
 #define FEAT_LAST_FEAT 1256
 /** FEAT_LAST_FEAT + 1 ***/

@@ -47,6 +47,7 @@ circle_SOURCES = \
 	src/bardic_performance.c \
 	src/boards.c \
 	src/bsd-snprintf.c \
+	src/brew.c \
 	src/cedit.c \
 	src/char_descs.c \
 	src/clan.c \
@@ -118,6 +119,7 @@ circle_SOURCES = \
 	src/magic.c \
 	src/mail.c \
 	src/medit.c \
+	src/metamagic_science.c \
 	src/missions.c \
 	src/mob_act.c \
 	src/mob_memory.c \
