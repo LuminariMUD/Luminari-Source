@@ -4427,6 +4427,7 @@ struct crafting_data_info
     int supply_reputation_points;
     time_t supply_contract_expiration;
     int supply_quality_tier_requirement;
+    bool has_supply_order_active;               // New field to track active supply orders
 
     // surveying;
     int survey_rooms;

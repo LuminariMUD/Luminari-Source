@@ -335,6 +335,7 @@ int get_craft_level_adjust_dc_change(int adjust);
 void set_craft_level_adjust(struct char_data *ch, char *arg2);
 int craft_misc_spec_to_vnum(int s_type);
 int get_craft_wear_loc(struct char_data *ch);
+int recipe_skill_to_actual_crafting_skill(int recipe_skill);
 
 void newcraft_supplyorder(struct char_data *ch, const char *argument);
 
