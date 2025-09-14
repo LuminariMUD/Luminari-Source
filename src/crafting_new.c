@@ -3899,6 +3899,14 @@ void newcraft_harvest(struct char_data *ch, const char *argument)
 
 void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose)
 {
+    // Validate ability/skill type to prevent array out-of-bounds crashes
+    if (abil < 0 || abil >= NUM_ABILITIES) {
+        if (verbose) {
+            send_to_char(ch, "Invalid skill type %d - experience gain cancelled.\r\n", abil);
+        }
+        return;
+    }
+    
     GET_CRAFT_SKILL_EXP(ch, abil) += exp;
     if (verbose)
         send_to_char(ch, "You've gained %d experience points in the '%s' skill.\r\n", exp, ability_names[abil]);
@@ -5120,12 +5128,21 @@ char *get_supply_order_item_desc(struct char_data *ch)
     int recipe = get_current_craft_project_recipe(ch);
     int variant = GET_CRAFT(ch).craft_variant;
 
-    if (recipe == CRAFT_RECIPE_NONE || variant == -1)
+    if (recipe <= CRAFT_RECIPE_NONE || variant == -1)
     {
         return "unknown item";
     }
 
-    return strdup(crafting_recipes[recipe].variant_descriptions[variant]);
+    // Validate array bounds to prevent crashes
+    if (recipe < 0 || recipe >= NUM_CRAFTING_RECIPES || 
+        variant < 0 || variant >= NUM_CRAFT_VARIANTS)
+    {
+        return "invalid item";
+    }
+
+    // Don't use strdup to avoid memory management issues
+    // Return pointer to static string instead
+    return (char *) crafting_recipes[recipe].variant_descriptions[variant];
 }
 
 int determine_supply_order_exp(struct char_data *ch)
@@ -5150,7 +5167,7 @@ int determine_supply_order_exp(struct char_data *ch)
             
             material = crafting_recipes[recipe].materials[j][i][0];
             num_mats = crafting_recipes[recipe].materials[j][i][1];
-            if (material != CRAFT_MAT_NONE || num_mats == 0)
+            if (material == CRAFT_MAT_NONE || num_mats == 0)
                 continue;
             total_mats += num_mats;
             group = craft_group_by_material(material);
@@ -5165,7 +5182,10 @@ int determine_supply_order_exp(struct char_data *ch)
             exp += mat_level_adj[i] * 10;
     }
 
-    exp /= total_mats;
+    // Prevent division by zero crash
+    if (total_mats > 0) {
+        exp /= total_mats;
+    }
 
     exp += base;
 
@@ -5175,6 +5195,7 @@ int determine_supply_order_exp(struct char_data *ch)
 void craft_supplyorder_complete(struct char_data *ch)
 {
     int exp = 0;
+    int recipe, skill;
 
     // Consume materials for this item
     if (!consume_supply_order_materials(ch))
@@ -5200,7 +5221,25 @@ void craft_supplyorder_complete(struct char_data *ch)
 
     exp = determine_supply_order_exp(ch);
 
-    gain_craft_exp(ch, exp, GET_CRAFT(ch).skill_type, true);
+    recipe = get_current_craft_project_recipe(ch);
+    skill = recipe_skill_to_actual_crafting_skill(crafting_recipes[recipe].variant_skill[GET_CRAFT(ch).craft_variant]);
+
+    gain_craft_exp(ch, exp, skill, true);
+}
+
+int recipe_skill_to_actual_crafting_skill(int recipe_skill)
+{
+    switch (recipe_skill)
+    {
+        case CRAFT_SKILL_WEAPONSMITH: return ABILITY_CRAFT_WEAPONSMITHING;
+        case CRAFT_SKILL_ARMORSMITH: return ABILITY_CRAFT_ARMORSMITHING;
+        case CRAFT_SKILL_JEWELER: return ABILITY_CRAFT_JEWELCRAFTING;
+        case CRAFT_SKILL_TINKER: return ABILITY_CRAFT_METALWORKING;
+        case CRAFT_SKILL_CARPENTER: return ABILITY_CRAFT_WOODWORKING;
+        case CRAFT_SKILL_TAILOR: return ABILITY_CRAFT_TAILORING;
+        case CRAFT_SKILL_BREWING: return ABILITY_CRAFT_ALCHEMY;
+    }
+    return ABILITY_CRAFT_METALWORKING; // default fallback
 }
 
 void complete_supply_order(struct char_data *ch)
@@ -5381,7 +5420,6 @@ bool validate_supply_order_materials(struct char_data *ch)
     int variant = 0;
     int mat_type = 0;
     int num_mats = 0;
-    int remaining_items = 0;
     
     if ((recipe = get_current_craft_project_recipe(ch)) <= CRAFT_RECIPE_NONE)
     {
@@ -5393,9 +5431,7 @@ bool validate_supply_order_materials(struct char_data *ch)
         return false;
     }
     
-    remaining_items = num_supply_order_requisitions_to_go(ch);
-    
-    // Check if we have enough materials for all remaining items
+    // Check if we have enough materials for ONE item (not all remaining items)
     for (i = 0; i < 3; i++)
     {
         mat_type = crafting_recipes[recipe].materials[i][variant][0];
@@ -5404,12 +5440,10 @@ bool validate_supply_order_materials(struct char_data *ch)
         if (mat_type == CRAFT_GROUP_NONE || num_mats == 0)
             continue;
             
-        int total_needed = num_mats * remaining_items;
-        
-        if (GET_CRAFT(ch).materials[mat_type][1] < total_needed)
+        if (GET_CRAFT(ch).materials[mat_type][1] < num_mats)
         {
-            send_to_char(ch, "You need %d more %s materials to complete your remaining supply order items.\r\n",
-                         total_needed - GET_CRAFT(ch).materials[mat_type][1],
+            send_to_char(ch, "You need %d more %s materials to complete the next item.\r\n",
+                         num_mats - GET_CRAFT(ch).materials[mat_type][1],
                          crafting_material_groups[mat_type]);
             return false;
         }
@@ -5646,9 +5680,9 @@ void newcraft_resize(struct char_data *ch, const char *argument)
 
 void newcraft_supplyorder(struct char_data *ch, const char *argument)
 {
-    char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+    char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
     
-    two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+    three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
     
     if (!*arg1) {
         send_to_char(ch, SUPPLY_ORDER_NOARG1);
@@ -5708,7 +5742,7 @@ void newcraft_supplyorder(struct char_data *ch, const char *argument)
     }
     
     if (is_abbrev(arg1, "material") || is_abbrev(arg1, "materials")) {
-        set_supply_order_materials(ch, arg1, arg2);
+        set_supply_order_materials(ch, arg2, arg3);
         return;
     }
     
@@ -6787,9 +6821,8 @@ int get_craft_wear_loc(struct char_data *ch)
 // Contract generation and management functions
 struct supply_contract *generate_available_contracts(struct char_data *ch, int *num_contracts)
 {
-    // Determine number of contracts based on reputation
-    int player_rank = get_player_reputation_rank(ch);
-    *num_contracts = MIN(3 + (player_rank / 2), 5); // 3-5 contracts based on rank
+    // Always show 5 contracts
+    *num_contracts = 5;
     
     struct supply_contract *contracts = malloc(sizeof(struct supply_contract) * (*num_contracts));
     
@@ -6824,6 +6857,10 @@ struct supply_contract *generate_available_contracts(struct char_data *ch, int *
         available_types[num_available++] = SUPPLY_CONTRACT_EVENT;
     }
     
+    // Track used recipes to ensure all contracts are different
+    int used_recipes[NUM_CRAFTING_RECIPES];
+    int num_used = 0;
+
     {
         int i;
         for (i = 0; i < *num_contracts; i++) {
@@ -6832,10 +6869,51 @@ struct supply_contract *generate_available_contracts(struct char_data *ch, int *
         // Basic contract setup
         contract->contract_id = i + 1;
         contract->contract_type = available_types[i % num_available];
-        contract->recipe = select_random_craft_recipe();
-        contract->variant = (contract->recipe > 0) ? select_random_craft_variant(contract->recipe) : 0;
         
-        if (contract->recipe <= 0 || contract->variant < 0) {
+        // Select a unique recipe
+        int attempts = 0;
+        bool unique_found = false;
+        while (!unique_found && attempts < 100) {
+            contract->recipe = select_random_craft_recipe();
+            
+            // Check if this recipe is already used
+            bool already_used = false;
+            int j;
+            for (j = 0; j < num_used; j++) {
+                if (used_recipes[j] == contract->recipe) {
+                    already_used = true;
+                    break;
+                }
+            }
+            
+            if (!already_used && contract->recipe > 0) {
+                used_recipes[num_used++] = contract->recipe;
+                unique_found = true;
+            }
+            attempts++;
+        }
+        
+        // If we couldn't find a unique recipe, try systematic approach
+        if (!unique_found) {
+            int recipe_id;
+            for (recipe_id = 1; recipe_id <= NUM_CRAFTING_RECIPES && !unique_found; recipe_id++) {
+                bool already_used = false;
+                int j;
+                for (j = 0; j < num_used; j++) {
+                    if (used_recipes[j] == recipe_id) {
+                        already_used = true;
+                        break;
+                    }
+                }
+                if (!already_used) {
+                    contract->recipe = recipe_id;
+                    used_recipes[num_used++] = recipe_id;
+                    unique_found = true;
+                }
+            }
+        }
+        
+        contract->variant = (contract->recipe > 0) ? select_random_craft_variant(contract->recipe) : 0;        if (contract->recipe <= 0 || contract->variant < 0) {
             // Skip invalid contracts
             contract->contract_type = SUPPLY_CONTRACT_BASIC;
             contract->recipe = 1; // Fallback to first recipe

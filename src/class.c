@@ -1727,12 +1727,7 @@ int modify_class_ability(struct char_data *ch, int ability, int class)
 {
   int ability_value = CLSLIST_ABIL(class, ability);
 
-  /* Jack of All Trades makes all skills class skills */
-  if (HAS_FEAT(ch, FEAT_JACK_OF_ALL_TRADES))
-  {
-    if (ability_value == CC || ability_value == NA)
-      ability_value = CA;
-  }
+  /* Jack of All Trades no longer modifies class abilities - now provides skill bonuses instead */
 
   if (IS_LICH(ch))
   {

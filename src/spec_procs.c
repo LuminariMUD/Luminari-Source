@@ -941,6 +941,25 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value += SONG_AFF_VAL(ch);
   if (HAS_FEAT(ch, FEAT_ABLE_LEARNER))
     value += 1;
+  
+  /* Jack of All Trades feat bonuses */
+  if (HAS_FEAT(ch, FEAT_EXEMPLAR))
+  {
+    /* Exemplar: +1/2 artificer level to all skills */
+    int artificer_level = CLASS_LEVEL(ch, CLASS_ARTIFICER);
+    value += artificer_level / 2;
+  }
+  else if (HAS_FEAT(ch, FEAT_IMPROVED_JACK_OF_ALL_TRADES))
+  {
+    /* Improved Jack of All Trades: +6 to all skills */
+    value += 6;
+  }
+  else if (HAS_FEAT(ch, FEAT_JACK_OF_ALL_TRADES))
+  {
+    /* Jack of All Trades: +3 to all skills */
+    value += 3;
+  }
+  
   if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_SKILL_FOCUS)))
     value += 3;
   if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_EPIC_SKILL_FOCUS)))

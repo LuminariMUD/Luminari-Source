@@ -5436,9 +5436,9 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "The artificer gains a +2 bonus to all Craft checks at 1st level. This bonus increases to +4 at 6th level and +6 at 10th level.");
 
   feato(FEAT_JACK_OF_ALL_TRADES, "jack of all trades", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "All skills are treated as class skills.",
-        "The artificer has picked up a smattering of even the most obscure skills. All skills are treated as class skills for the artificer, "
-        "meaning they cost only 1 skill point to train (instead of 2 for cross-class skills) and can be trained to full level.");
+        "Provides +3 bonus to all skills.",
+        "The artificer has picked up a smattering of even the most obscure skills. The artificer gains a +3 bonus to all skill checks, "
+        "reflecting their broad knowledge and versatility across many areas of expertise.");
 
   feato(FEAT_WEIRD_SCIENCE, "weird science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Create magical devices that replicate spell effects.",
@@ -5468,13 +5468,14 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "the Use Magic Device check is equal to 20 + (3 times the modified level of the spell).");
 
   feato(FEAT_IMPROVED_JACK_OF_ALL_TRADES, "improved jack of all trades", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "All skills become class skills for the artificer.",
-        "All skills are now considered class skills for the artificer, receiving the usual +3 bonus given to class skill checks.");
+        "Provides +6 bonus to all skills.",
+        "The artificer's broad knowledge reaches new heights. The artificer gains a +6 bonus to all skill checks, "
+        "representing their mastery of diverse skills and techniques.");
 
   feato(FEAT_EXEMPLAR, "exemplar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Add half class level to all untrained skill checks.",
-        "The artificer's jack of all trades ability reaches its zenith: The artificer may now add half their class level to "
-        "all untrained skill checks.");
+        "Add half artificer level to all skills.",
+        "The artificer's jack of all trades ability reaches its zenith: The artificer may now add half their artificer class level "
+        "to all skill checks, representing the pinnacle of versatile expertise.");
 
   feato(FEAT_GNOMISH_TINKERING, "gnomish tinkering", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "Gnomish expertise in mechanical devices and weird science.",
