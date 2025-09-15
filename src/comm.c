@@ -1394,6 +1394,8 @@ void heartbeat(int heart_pulse)
     pubsub_process_message_queue();
     /* Process Intermud3 events from the I3 thread */
     i3_process_events();
+    /* Update supply order slots for all online players */
+    update_supply_slots_for_all_players();
   }
 
   if (!(heart_pulse % (PASSES_PER_SEC * 5)))
@@ -3202,6 +3204,12 @@ void close_socket(struct descriptor_data *d)
 
       /* We are guaranteed to have a person. */
       act("$n has lost $s link.", TRUE, link_challenged, 0, 0, TO_ROOM);
+      
+      /* Clean up supply order slots before saving */
+      if (link_challenged) {
+        cleanup_supply_slots(link_challenged);
+      }
+      
       save_char(link_challenged, 0);
       mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(link_challenged)), TRUE, "Closing link to: %s.", GET_NAME(link_challenged));
     }

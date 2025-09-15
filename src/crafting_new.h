@@ -207,23 +207,6 @@
 #define ARMOR_ENHANCEMENT_MOTE CRAFTING_MOTE_WATER
 #define WEAPON_ENHANCEMENT_MOTE CRAFTING_MOTE_ICE
 
-// Forward declaration for supply contract structure
-struct supply_contract {
-    int contract_id;
-    int contract_type;
-    int recipe;
-    int variant;
-    int quantity;
-    int reward;
-    int difficulty_modifier;
-    char *description;
-    char *requirements;
-    int time_limit;  // in real hours, 0 = no limit
-    int reputation_requirement;
-    int quality_tier_requirement;
-    time_t expiration_time;
-};
-
 bool room_has_harvest_materials(room_rnum room);
 int material_grade(int material);
 int obj_material_to_craft_material(int material);
@@ -320,6 +303,7 @@ int get_event_contract_availability(void);
 bool is_special_event_active(void);
 void generate_prestige_contract(struct supply_contract *contract, struct char_data *ch);
 void generate_event_contract(struct supply_contract *contract, struct char_data *ch);
+void show_supply_order_cooldowns(struct char_data *ch);
 SPECIAL_DECL(new_supply_orders);
 
 struct obj_data *setup_craft_weapon(struct char_data *ch, int w_type);
@@ -349,5 +333,11 @@ ACMD_DECL(do_craft_score_new);
 
 extern int materials_sort_info[NUM_CRAFT_MATS];
 
+// Supply order slot management functions
+void initialize_supply_slots(struct char_data *ch);
+void cleanup_supply_slots(struct char_data *ch);
+void refresh_supply_slots(struct char_data *ch);
+bool should_refresh_supply_slots(struct char_data *ch);
+void update_supply_slots_for_all_players(void);
 
 #endif // NEWCRAFT_H
