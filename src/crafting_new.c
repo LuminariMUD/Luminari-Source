@@ -90,6 +90,7 @@ int materials_sort_info[NUM_CRAFT_MATS];
                             "supplyorder reset      : Reset current supply order project.\r\n" \
                             "supplyorder abandon    : Cancel existing supply order project entirely.\r\n" \
                             "supplyorder reputation : View your crafting reputation and contract access.\r\n" \
+                            "supplyorder cooldown   : Display timing information and cooldowns.\r\n" \
                             "\r\n" \
                             "Advanced Features:\r\n" \
                             "- Reputation system unlocks higher tier contracts\r\n" \
@@ -138,6 +139,8 @@ int materials_sort_info[NUM_CRAFT_MATS];
 struct supply_contract *generate_available_contracts(struct char_data *ch, int *num_contracts);
 void free_contract_list(struct supply_contract *contracts, int num_contracts);
 int select_contract_by_id(struct char_data *ch, int contract_id);
+int reject_contract_by_id(struct char_data *ch, int contract_id);
+void update_supply_slots_for_all_players(void);
 
 
 
@@ -5282,6 +5285,7 @@ void complete_supply_order(struct char_data *ch)
     add_reputation_points(ch, rep_reward);
     
     send_to_char(ch, "Congratulations! You have completed your supply order.\r\n");
+
     send_to_char(ch, "You receive %d gold coins, %d bonus experience points, and %d reputation points!\r\n", 
                  gold_reward, bonus_exp, rep_reward);
     
@@ -5808,6 +5812,11 @@ void newcraft_supplyorder(struct char_data *ch, const char *argument)
         return;
     }
     
+    if (is_abbrev(arg1, "cooldown") || is_abbrev(arg1, "cooldowns") || is_abbrev(arg1, "timers")) {
+        show_supply_order_cooldowns(ch);
+        return;
+    }
+    
     // Invalid command
     send_to_char(ch, SUPPLY_ORDER_NOARG1);
 }
@@ -6034,6 +6043,11 @@ void set_supply_order_materials(struct char_data *ch, char *arg, char *arg2)
     int mat_type = 0;
     bool found = false;
 
+    if (num_supply_order_requisitions_to_go(ch) == 0)
+    {
+        send_to_char(ch, "You have already completed your supply order. Go to a supply order requisition NPC and type 'supplyorder complete' for your reward.\r\n");
+    }
+
     if (!*arg)
     {
         send_to_char(ch, "You need to specify whether to add or remove materials.\r\n");
@@ -6159,6 +6173,57 @@ int select_random_craft_variant(int recipe)
     return variant;
 }
 
+// Stable versions for supply order contracts - use seed for consistent results
+int select_stable_craft_recipe(int seed)
+{
+    int type = 0;
+    int choice = 0;
+
+    // Use seed to select type consistently
+    type = craft_recipe_by_type((seed % (NUM_CRAFT_TYPES - 2)) + 1);
+
+    // Use seed to select recipe within that type
+    choice = (seed % (NUM_CRAFTING_RECIPES - 1)) + 1;
+
+    int attempts = 0;
+    while (type != crafting_recipes[choice].object_type && attempts < 100)
+    {
+        choice = ((choice + seed + attempts) % (NUM_CRAFTING_RECIPES - 1)) + 1;
+        attempts++;
+    }
+
+    return choice;
+}
+
+int select_stable_craft_variant(int recipe, int seed)
+{
+    if (recipe <= CRAFT_RECIPE_NONE || recipe >= NUM_CRAFTING_RECIPES)
+    {
+        return -1;
+    }
+
+    // we're not ready for instruments yet
+    if (crafting_recipes[recipe].object_type == ITEM_INSTRUMENT)
+    {
+        return -1;
+    }
+
+    int variant = seed % NUM_CRAFT_VARIANTS;
+    int attempts = 0;
+
+    while (crafting_recipes[recipe].variant_skill[variant] == 0 && attempts < NUM_CRAFT_VARIANTS)
+    {
+        variant = (variant + 1) % NUM_CRAFT_VARIANTS;
+        attempts++;
+    }
+
+    // If no valid variant found, return -1
+    if (attempts >= NUM_CRAFT_VARIANTS)
+        return -1;
+
+    return variant;
+}
+
 int generate_contract_quantity(int contract_type)
 {
     int base_quantity = 0;
@@ -6268,7 +6333,8 @@ void show_available_contracts(struct char_data *ch)
         const char *status_text = can_accept ? "AVAILABLE" : "LOCKED";
         
         send_to_char(ch, "\tC[%d]\tn %s%s Contract\tn %s[%s]\tn - %s\r\n", 
-                     contract->contract_id, type_color, type_name, status_color, status_text, contract->description);
+                     contract->contract_id, type_color, type_name, status_color, status_text, 
+                     contract->description ? contract->description : "Unknown contract");
         
         send_to_char(ch, "     \tgQuantity:\tn %d  \tgReward:\tn %d experience", 
                      contract->quantity, contract->reward);
@@ -6277,7 +6343,8 @@ void show_available_contracts(struct char_data *ch)
             send_to_char(ch, "  \trExpires:\tn %d hours", contract->time_limit);
         }
         
-        send_to_char(ch, "\r\n     \tgRequires:\tn %s", contract->requirements);
+        send_to_char(ch, "\r\n     \tgRequires:\tn %s", 
+                     contract->requirements ? contract->requirements : "Unknown requirements");
         
         if (!can_accept) {
             send_to_char(ch, "\r\n     \trReputation Required:\tn %s (you are %s)", 
@@ -6819,21 +6886,85 @@ int get_craft_wear_loc(struct char_data *ch)
 
 
 // Contract generation and management functions
-struct supply_contract *generate_available_contracts(struct char_data *ch, int *num_contracts)
+
+// Cleanup supply slots when player logs out or quits
+void cleanup_supply_slots(struct char_data *ch)
 {
-    // Always show 5 contracts
-    *num_contracts = 5;
+    int i;
     
-    struct supply_contract *contracts = malloc(sizeof(struct supply_contract) * (*num_contracts));
-    
-    if (!contracts) {
-        *num_contracts = 0;
-        return NULL;
+    if (!ch) {
+        return;
     }
     
-    // Generate contracts based on player reputation and availability
+    // Free any allocated strings in slots
+    for (i = 0; i < 5; i++) {
+        struct supply_contract *contract = &GET_CRAFT(ch).supply_slots[i];
+        
+        if (contract->description) {
+            free(contract->description);
+            contract->description = NULL;
+        }
+        if (contract->requirements) {
+            free(contract->requirements);
+            contract->requirements = NULL;
+        }
+        
+        GET_CRAFT(ch).supply_slot_active[i] = false;
+        memset(contract, 0, sizeof(struct supply_contract));
+    }
+}
+
+// Check if it's time to refresh supply order slots (1 hour = 3600 seconds)
+bool should_refresh_supply_slots(struct char_data *ch)
+{
+    time_t now = time(NULL);
+    
+    // If never refreshed (or initialized but with 0), force refresh
+    if (GET_CRAFT(ch).supply_slots_last_refresh == 0) {
+        return true;
+    }
+    
+    // If 1 hour has passed since last refresh
+    if ((now - GET_CRAFT(ch).supply_slots_last_refresh) >= 3600) {
+        return true;
+    }
+    
+    return false;
+}
+
+// Initialize supply slots if not already done
+void initialize_supply_slots(struct char_data *ch)
+{
+    int i;
+    bool needs_init = false;
+    
+    // Check if we need to initialize - if any data looks uninitialized
+    if (GET_CRAFT(ch).supply_slots_last_refresh == 0) {
+        needs_init = true;
+    }
+    
+    if (!needs_init) {
+        return;
+    }
+    
+    // Clear all slots
+    for (i = 0; i < 5; i++) {
+        GET_CRAFT(ch).supply_slot_active[i] = false;
+        memset(&GET_CRAFT(ch).supply_slots[i], 0, sizeof(struct supply_contract));
+    }
+    
+    // Set initial refresh time to 0 to force immediate generation
+    GET_CRAFT(ch).supply_slots_last_refresh = 0; // This will trigger should_refresh_supply_slots to return true
+    GET_CRAFT(ch).supply_slots_next_refresh = time(NULL); // Can refresh immediately
+}
+
+// Refresh available supply order slots
+void refresh_supply_slots(struct char_data *ch)
+{
     int available_types[NUM_SUPPLY_CONTRACT_TYPES];
     int num_available = 0;
+    int i;
+    time_t now = time(NULL);
     
     // Always include basic contracts
     available_types[num_available++] = SUPPLY_CONTRACT_BASIC;
@@ -6857,14 +6988,39 @@ struct supply_contract *generate_available_contracts(struct char_data *ch, int *
         available_types[num_available++] = SUPPLY_CONTRACT_EVENT;
     }
     
-    // Track used recipes to ensure all contracts are different
+    // Generate contracts for empty slots only
     int used_recipes[NUM_CRAFTING_RECIPES];
     int num_used = 0;
-
-    {
-        int i;
-        for (i = 0; i < *num_contracts; i++) {
-            struct supply_contract *contract = &contracts[i];
+    
+    // Track recipes already used in existing slots
+    for (i = 0; i < 5; i++) {
+        if (GET_CRAFT(ch).supply_slot_active[i] && GET_CRAFT(ch).supply_slots[i].recipe > 0) {
+            used_recipes[num_used++] = GET_CRAFT(ch).supply_slots[i].recipe;
+        }
+    }
+    
+    // Create stable seed based on player ID and refresh time
+    int player_seed = GET_IDNUM(ch);
+    int base_seed = (player_seed * 997 + (int)(now / 3600)) % 10000;
+    
+    for (i = 0; i < 5; i++) {
+        // Skip slots that already have contracts
+        if (GET_CRAFT(ch).supply_slot_active[i]) {
+            continue;
+        }
+        
+        struct supply_contract *contract = &GET_CRAFT(ch).supply_slots[i];
+        
+        // Free any existing strings before clearing the slot
+        if (contract->description) {
+            free(contract->description);
+        }
+        if (contract->requirements) {
+            free(contract->requirements);
+        }
+        
+        // Clear the slot
+        memset(contract, 0, sizeof(struct supply_contract));
         
         // Basic contract setup
         contract->contract_id = i + 1;
@@ -6873,8 +7029,10 @@ struct supply_contract *generate_available_contracts(struct char_data *ch, int *
         // Select a unique recipe
         int attempts = 0;
         bool unique_found = false;
+        int contract_seed = base_seed + (i * 137);
+        
         while (!unique_found && attempts < 100) {
-            contract->recipe = select_random_craft_recipe();
+            contract->recipe = select_stable_craft_recipe(contract_seed + attempts);
             
             // Check if this recipe is already used
             bool already_used = false;
@@ -6913,100 +7071,164 @@ struct supply_contract *generate_available_contracts(struct char_data *ch, int *
             }
         }
         
-        contract->variant = (contract->recipe > 0) ? select_random_craft_variant(contract->recipe) : 0;        if (contract->recipe <= 0 || contract->variant < 0) {
-            // Skip invalid contracts
-            contract->contract_type = SUPPLY_CONTRACT_BASIC;
-            contract->recipe = 1; // Fallback to first recipe
-            contract->variant = 0;
-        }
-        
-        // Set reputation and quality requirements
-        contract->reputation_requirement = get_contract_reputation_requirement(contract->contract_type);
-        contract->quality_tier_requirement = (contract->contract_type == SUPPLY_CONTRACT_QUALITY || 
-                                            contract->contract_type == SUPPLY_CONTRACT_PRESTIGE) ? 
-                                           QUALITY_TIER_SUPERIOR : QUALITY_TIER_STANDARD;
-        
-        // Generate quantity based on contract type
-        contract->quantity = generate_contract_quantity(contract->contract_type);
-        
-        // Add bulk efficiency bonus for large quantities
-        if (contract->quantity >= BULK_EFFICIENCY_THRESHOLD_1) {
-            int efficiency_bonus = calculate_bulk_efficiency_bonus(contract->quantity);
-            contract->quantity = contract->quantity + (contract->quantity * efficiency_bonus / 100);
-        }
-        
-        // Calculate difficulty modifier based on player level and recipe
-        int player_level = GET_LEVEL(ch);
-        int recipe_level = MAX(1, contract->recipe); // Simple difficulty based on recipe ID
-        contract->difficulty_modifier = MAX(0, recipe_level - player_level);
-        
-        // Generate reward with advanced bonuses
-        contract->reward = generate_contract_reward(contract->contract_type, contract->quantity, 
-                                                   contract->difficulty_modifier + recipe_level);
-        
-        // Set expiration times
-        switch(contract->contract_type) {
-            case SUPPLY_CONTRACT_RUSH: contract->time_limit = CONTRACT_EXPIRE_RUSH; break;
-            case SUPPLY_CONTRACT_BULK: contract->time_limit = CONTRACT_EXPIRE_BULK; break;
-            case SUPPLY_CONTRACT_QUALITY: contract->time_limit = CONTRACT_EXPIRE_QUALITY; break;
-            case SUPPLY_CONTRACT_PRESTIGE: contract->time_limit = CONTRACT_EXPIRE_PRESTIGE; break;
-            case SUPPLY_CONTRACT_EVENT: contract->time_limit = CONTRACT_EXPIRE_EVENT; break;
-            default: contract->time_limit = CONTRACT_EXPIRE_BASIC; break;
-        }
-        
-        // Generate specialized contracts
-        if (contract->contract_type == SUPPLY_CONTRACT_PRESTIGE) {
-            generate_prestige_contract(contract, ch);
-        } else if (contract->contract_type == SUPPLY_CONTRACT_EVENT) {
-            generate_event_contract(contract, ch);
-        } else {
-            // Generate standard descriptions
-            char desc_buf[256], req_buf[256];
-            const char *item_name = "unknown item";
-            if (contract->recipe > 0 && contract->variant >= 0) {
-                item_name = crafting_recipes[contract->recipe].variant_descriptions[contract->variant];
+        // Only activate slot if we found a valid recipe
+        if (unique_found) {
+            contract->variant = (contract->recipe > 0) ? select_stable_craft_variant(contract->recipe, contract_seed + 73) : 0;
+            
+            // Set reputation and quality requirements
+            contract->reputation_requirement = get_contract_reputation_requirement(contract->contract_type);
+            contract->quality_tier_requirement = (contract->contract_type == SUPPLY_CONTRACT_QUALITY || 
+                                                contract->contract_type == SUPPLY_CONTRACT_PRESTIGE) ? 
+                                               QUALITY_TIER_SUPERIOR : QUALITY_TIER_STANDARD;
+            
+            // Generate quantity based on contract type
+            contract->quantity = generate_contract_quantity(contract->contract_type);
+            
+            // Add bulk efficiency bonus for large quantities
+            if (contract->quantity >= BULK_EFFICIENCY_THRESHOLD_1) {
+                int efficiency_bonus = calculate_bulk_efficiency_bonus(contract->quantity);
+                contract->quantity = contract->quantity + (contract->quantity * efficiency_bonus / 100);
             }
             
-            switch(contract->contract_type) {
-                case SUPPLY_CONTRACT_BASIC:
-                    snprintf(desc_buf, sizeof(desc_buf), "Craft %d %s%s", 
-                             contract->quantity, item_name, (contract->quantity > 1) ? "s" : "");
-                    snprintf(req_buf, sizeof(req_buf), "Standard materials for %s crafting", item_name);
-                    break;
-                case SUPPLY_CONTRACT_RUSH:
-                    snprintf(desc_buf, sizeof(desc_buf), "URGENT: Craft %d %s%s within %d hours", 
-                             contract->quantity, item_name, (contract->quantity > 1) ? "s" : "", contract->time_limit);
-                    snprintf(req_buf, sizeof(req_buf), "Standard materials + 50%% bonus experience");
-                    break;
-                case SUPPLY_CONTRACT_BULK:
-                    snprintf(desc_buf, sizeof(desc_buf), "Bulk order: Craft %d %s%s with efficiency bonus", 
-                             contract->quantity, item_name, (contract->quantity > 1) ? "s" : "");
-                    snprintf(req_buf, sizeof(req_buf), "Standard materials, %d%% bulk efficiency bonus", 
-                             calculate_bulk_efficiency_bonus(contract->quantity));
-                    break;
-                case SUPPLY_CONTRACT_QUALITY:
-                    snprintf(desc_buf, sizeof(desc_buf), "Premium quality %d %s%s required", 
-                             contract->quantity, item_name, (contract->quantity > 1) ? "s" : "");
-                    snprintf(req_buf, sizeof(req_buf), "Superior-grade materials + quality tier bonus");
-                    break;
-                default:
-                    snprintf(desc_buf, sizeof(desc_buf), "Standard contract for %d %s%s", 
-                             contract->quantity, item_name, (contract->quantity > 1) ? "s" : "");
-                    snprintf(req_buf, sizeof(req_buf), "Standard materials");
-                    break;
+            // Calculate difficulty modifier based on player level and recipe
+            int player_level = GET_LEVEL(ch);
+            int recipe_level = MAX(1, contract->recipe);
+            contract->difficulty_modifier = MAX(0, recipe_level - player_level);
+            
+            // Generate reward with advanced bonuses
+            contract->reward = generate_contract_reward(contract->contract_type, contract->quantity, 
+                                                       contract->difficulty_modifier + recipe_level);
+            
+            // Remove time limits as requested
+            contract->time_limit = 0;
+            
+            // Generate specialized contracts
+            if (contract->contract_type == SUPPLY_CONTRACT_PRESTIGE) {
+                generate_prestige_contract(contract, ch);
+            } else if (contract->contract_type == SUPPLY_CONTRACT_EVENT) {
+                generate_event_contract(contract, ch);
+            } else {
+                // Generate standard descriptions
+                char desc_buf[256], req_buf[256];
+                const char *item_name = "unknown item";
+                if (contract->recipe > 0 && contract->variant >= 0) {
+                    item_name = crafting_recipes[contract->recipe].variant_descriptions[contract->variant];
+                }
+                
+                // Helper to add plural without double 's'
+                char plural_item[256];
+                int len = strlen(item_name);
+                if (contract->quantity > 1 && len > 0 && item_name[len-1] != 's') {
+                    snprintf(plural_item, sizeof(plural_item), "%ss", item_name);
+                } else {
+                    strcpy(plural_item, item_name);
+                }
+                
+                switch(contract->contract_type) {
+                    case SUPPLY_CONTRACT_BASIC:
+                        snprintf(desc_buf, sizeof(desc_buf), "Craft %d %s", 
+                                 contract->quantity, (contract->quantity > 1) ? plural_item : item_name);
+                        snprintf(req_buf, sizeof(req_buf), "Standard materials for %s crafting", item_name);
+                        break;
+                    case SUPPLY_CONTRACT_RUSH:
+                        snprintf(desc_buf, sizeof(desc_buf), "Craft %d %s", 
+                                 contract->quantity, (contract->quantity > 1) ? plural_item : item_name);
+                        snprintf(req_buf, sizeof(req_buf), "Standard materials + 50%% bonus experience");
+                        break;
+                    case SUPPLY_CONTRACT_BULK:
+                        snprintf(desc_buf, sizeof(desc_buf), "Bulk order: Craft %d %s with efficiency bonus", 
+                                 contract->quantity, (contract->quantity > 1) ? plural_item : item_name);
+                        snprintf(req_buf, sizeof(req_buf), "Standard materials, %d%% bulk efficiency bonus", 
+                                 calculate_bulk_efficiency_bonus(contract->quantity));
+                        break;
+                    case SUPPLY_CONTRACT_QUALITY:
+                        snprintf(desc_buf, sizeof(desc_buf), "Premium quality %d %s required", 
+                                 contract->quantity, (contract->quantity > 1) ? plural_item : item_name);
+                        snprintf(req_buf, sizeof(req_buf), "Superior-grade materials + quality tier bonus");
+                        break;
+                    default:
+                        snprintf(desc_buf, sizeof(desc_buf), "Standard contract for %d %s", 
+                                 contract->quantity, (contract->quantity > 1) ? plural_item : item_name);
+                        snprintf(req_buf, sizeof(req_buf), "Standard materials");
+                        break;
+                }
+                
+                contract->description = strdup(desc_buf);
+                contract->requirements = strdup(req_buf);
             }
             
-            contract->description = strdup(desc_buf);
-            contract->requirements = strdup(req_buf);
+            // No expiration time since we're removing timers
+            contract->expiration_time = 0;
+            
+            // Mark slot as active
+            GET_CRAFT(ch).supply_slot_active[i] = true;
         }
-        
-            /* Set expiration timestamp */
-            time_t now = time(0);
-            contract->expiration_time = now + (contract->time_limit * 3600);
+    }
+    
+    // Update refresh timestamps
+    GET_CRAFT(ch).supply_slots_last_refresh = now;
+    GET_CRAFT(ch).supply_slots_next_refresh = now + 3600; // Next refresh in 1 hour
+}
+
+struct supply_contract *generate_available_contracts(struct char_data *ch, int *num_contracts)
+{
+    // Initialize slots if needed
+    initialize_supply_slots(ch);
+    
+    // Check if we should refresh slots
+    if (should_refresh_supply_slots(ch)) {
+        refresh_supply_slots(ch);
+    }
+    
+    // Count active slots and create return array
+    int active_count = 0;
+    int i;
+    for (i = 0; i < 5; i++) {
+        if (GET_CRAFT(ch).supply_slot_active[i]) {
+            active_count++;
+        }
+    }
+    
+    *num_contracts = active_count;
+    
+    if (active_count == 0) {
+        return NULL;
+    }
+    
+    // Allocate return array
+    struct supply_contract *contracts = malloc(sizeof(struct supply_contract) * active_count);
+    if (!contracts) {
+        *num_contracts = 0;
+        return NULL;
+    }
+    
+    // Copy active contracts to return array
+    int contract_index = 0;
+    for (i = 0; i < 5; i++) {
+        if (GET_CRAFT(ch).supply_slot_active[i]) {
+            memcpy(&contracts[contract_index], &GET_CRAFT(ch).supply_slots[i], sizeof(struct supply_contract));
+            // Update contract_id to be sequential
+            contracts[contract_index].contract_id = contract_index + 1;
+            
+            // Duplicate the strings to avoid double-free issues
+            if (GET_CRAFT(ch).supply_slots[i].description) {
+                contracts[contract_index].description = strdup(GET_CRAFT(ch).supply_slots[i].description);
+            } else {
+                contracts[contract_index].description = NULL;
+            }
+            
+            if (GET_CRAFT(ch).supply_slots[i].requirements) {
+                contracts[contract_index].requirements = strdup(GET_CRAFT(ch).supply_slots[i].requirements);
+            } else {
+                contracts[contract_index].requirements = NULL;
+            }
+            
+            contract_index++;
         }
     }
     
     return contracts;
+    
 }
 
 void free_contract_list(struct supply_contract *contracts, int num_contracts)
@@ -7050,6 +7272,28 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
         return 0;
     }
     
+    // Find which slot this contract corresponds to and deactivate it
+    int slot_found = -1;
+    int i;
+    for (i = 0; i < 5; i++) {
+        if (GET_CRAFT(ch).supply_slot_active[i] && 
+            GET_CRAFT(ch).supply_slots[i].recipe == contract->recipe &&
+            GET_CRAFT(ch).supply_slots[i].variant == contract->variant &&
+            GET_CRAFT(ch).supply_slots[i].contract_type == contract->contract_type) {
+            slot_found = i;
+            break;
+        }
+    }
+    
+    if (slot_found == -1) {
+        send_to_char(ch, "Error: Could not find the corresponding contract slot.\r\n");
+        free_contract_list(contracts, num_contracts);
+        return 0;
+    }
+    
+    // Deactivate the slot
+    GET_CRAFT(ch).supply_slot_active[slot_found] = false;
+    
     // Set up the player's crafting project
     GET_CRAFT(ch).crafting_recipe = contract->recipe;
     GET_CRAFT(ch).crafting_item_type = crafting_recipes[contract->recipe].object_type;
@@ -7062,7 +7306,7 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
     // Store contract type and advanced features
     GET_CRAFT(ch).supply_contract_type = contract->contract_type;
     GET_CRAFT(ch).supply_quality_tier_requirement = contract->quality_tier_requirement;
-    update_contract_expiration(ch, contract->contract_type);
+    // Note: No longer setting expiration time as per user request
     
     const char *type_name = "Basic";
     const char *type_color = "\tc";
@@ -7076,10 +7320,7 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
     
     send_to_char(ch, "You've accepted the %s%s\tn contract to %s.\r\n", type_color, type_name, contract->description);
     send_to_char(ch, "Reward upon completion: %d experience points.\r\n", contract->reward);
-    
-    if (contract->time_limit > 0) {
-        send_to_char(ch, "\trContract expires in %d hours!\tn\r\n", contract->time_limit);
-    }
+    send_to_char(ch, "This contract slot will refresh after 1 hour of online time.\r\n");
     
     if (contract->quality_tier_requirement > QUALITY_TIER_STANDARD) {
         send_to_char(ch, "\tYThis contract requires superior quality materials!\tn\r\n");
@@ -7091,6 +7332,80 @@ int select_contract_by_id(struct char_data *ch, int contract_id)
     
     free_contract_list(contracts, num_contracts);
     return 1; // Success
+}
+
+int reject_contract_by_id(struct char_data *ch, int contract_id)
+{
+    int num_contracts = 0;
+    struct supply_contract *contracts = generate_available_contracts(ch, &num_contracts);
+    
+    if (!contracts || contract_id < 1 || contract_id > num_contracts) {
+        if (contracts) {
+            free_contract_list(contracts, num_contracts);
+        }
+        send_to_char(ch, "Invalid contract selection.\r\n");
+        return 0; // Invalid contract
+    }
+    
+    struct supply_contract *contract = &contracts[contract_id - 1];
+    
+    // Find which slot this contract corresponds to and deactivate it
+    int slot_found = -1;
+    int i;
+    for (i = 0; i < 5; i++) {
+        if (GET_CRAFT(ch).supply_slot_active[i] && 
+            GET_CRAFT(ch).supply_slots[i].recipe == contract->recipe &&
+            GET_CRAFT(ch).supply_slots[i].variant == contract->variant &&
+            GET_CRAFT(ch).supply_slots[i].contract_type == contract->contract_type) {
+            slot_found = i;
+            break;
+        }
+    }
+    
+    if (slot_found == -1) {
+        send_to_char(ch, "Error: Could not find the corresponding contract slot.\r\n");
+        free_contract_list(contracts, num_contracts);
+        return 0;
+    }
+    
+    // Deactivate the slot
+    GET_CRAFT(ch).supply_slot_active[slot_found] = false;
+    
+    const char *type_name = "Basic";
+    const char *type_color = "\tc";
+    switch(contract->contract_type) {
+        case SUPPLY_CONTRACT_RUSH: type_name = "Rush"; type_color = "\ty"; break;
+        case SUPPLY_CONTRACT_BULK: type_name = "Bulk"; type_color = "\tb"; break;  
+        case SUPPLY_CONTRACT_QUALITY: type_name = "Quality"; type_color = "\tm"; break;
+        case SUPPLY_CONTRACT_PRESTIGE: type_name = "Prestige"; type_color = "\tM"; break;
+        case SUPPLY_CONTRACT_EVENT: type_name = "Event"; type_color = "\tR"; break;
+    }
+    
+    send_to_char(ch, "You've rejected the %s%s\tn contract for %s.\r\n", type_color, type_name, contract->description);
+    send_to_char(ch, "This slot will refresh after 1 hour of online time.\r\n");
+    
+    free_contract_list(contracts, num_contracts);
+    return 1; // Success
+}
+
+// Called from comm.c every second to check and refresh supply slots for all online players
+void update_supply_slots_for_all_players(void)
+{
+    struct descriptor_data *d;
+    struct char_data *ch;
+    
+    for (d = descriptor_list; d; d = d->next) {
+        if (STATE(d) != CON_PLAYING || !(ch = d->character))
+            continue;
+            
+        if (IS_NPC(ch))
+            continue;
+            
+        // Update this player's online time and check for slot refresh
+        if (should_refresh_supply_slots(ch)) {
+            refresh_supply_slots(ch);
+        }
+    }
 }
 
 // Phase 3: Advanced Features Implementation
@@ -7279,6 +7594,84 @@ void generate_event_contract(struct supply_contract *contract, struct char_data 
     
     contract->description = strdup(desc_buf);
     contract->requirements = strdup(req_buf);
+}
+
+void show_supply_order_cooldowns(struct char_data *ch)
+{
+    time_t now = time(NULL);
+    
+    /* Character validation */
+    if (!ch) {
+        return;
+    }
+    
+    text_line(ch, "SUPPLY ORDER TIMING INFORMATION", 90, '-', '-');
+    
+    /* Active contract expiration */
+    if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_SUPPLYORDER && 
+        GET_CRAFT(ch).supply_contract_expiration > 0) {
+        
+        time_t expires = GET_CRAFT(ch).supply_contract_expiration;
+        
+        if (now < expires) {
+            int hours_left = (expires - now) / 3600;
+            int minutes_left = ((expires - now) % 3600) / 60;
+            
+            const char *urgency_color;
+            if (hours_left <= 6) {
+                urgency_color = "\tr"; /* Red for urgent */
+            } else if (hours_left <= 24) {
+                urgency_color = "\ty"; /* Yellow for warning */
+            } else {
+                urgency_color = "\tg"; /* Green for safe */
+            }
+            
+            send_to_char(ch, "Active Contract Expiration: %s%d hours, %d minutes\tn\r\n", 
+                         urgency_color, hours_left, minutes_left);
+        } else {
+            send_to_char(ch, "Active Contract Status: \trEXPIRED\tn\r\n");
+        }
+    } else if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_SUPPLYORDER) {
+        send_to_char(ch, "Active Contract: No expiration set\r\n");
+    } else {
+        send_to_char(ch, "Active Contract: None\r\n");
+    }
+    
+    /* Contract slot refresh timing */
+    if (GET_CRAFT(ch).supply_slots_next_refresh > 0) {
+        if (now < GET_CRAFT(ch).supply_slots_next_refresh) {
+            int refresh_hours = (GET_CRAFT(ch).supply_slots_next_refresh - now) / 3600;
+            int refresh_minutes = ((GET_CRAFT(ch).supply_slots_next_refresh - now) % 3600) / 60;
+            
+            send_to_char(ch, "Contract Slots Refresh: \tc%d hours, %d minutes\tn\r\n", 
+                         refresh_hours, refresh_minutes);
+        } else {
+            send_to_char(ch, "Contract Slots Refresh: \tgAvailable now\tn\r\n");
+        }
+    } else {
+        send_to_char(ch, "Contract Slots Refresh: \tgNever refreshed - available now\tn\r\n");
+    }
+    
+    /* Last refresh time */
+    if (GET_CRAFT(ch).supply_slots_last_refresh > 0) {
+        int last_refresh_hours = (now - GET_CRAFT(ch).supply_slots_last_refresh) / 3600;
+        int last_refresh_minutes = ((now - GET_CRAFT(ch).supply_slots_last_refresh) % 3600) / 60;
+        
+        send_to_char(ch, "Last Slot Refresh: %d hours, %d minutes ago\r\n", 
+                     last_refresh_hours, last_refresh_minutes);
+    } else {
+        send_to_char(ch, "Last Slot Refresh: Never\r\n");
+    }
+    
+    /* Special event timing */
+    if (is_special_event_active()) {
+        send_to_char(ch, "Special Event Status: \tgActive\tn (Event contracts available)\r\n");
+    } else {
+        send_to_char(ch, "Special Event Status: Inactive\r\n");
+    }
+    
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "Use '\tchelp supplyorder\tn' for more information on supply order commands.\r\n");
 }
 
 // Todo: 
