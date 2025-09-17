@@ -293,8 +293,6 @@ int get_player_reputation_rank(struct char_data *ch);
 int get_player_reputation_points(struct char_data *ch);
 void add_reputation_points(struct char_data *ch, int points);
 const char *get_reputation_rank_name(int rank);
-int get_contract_reputation_requirement(int contract_type);
-bool player_meets_reputation_requirement(struct char_data *ch, int contract_type);
 int calculate_quality_tier_bonus(struct char_data *ch);
 int calculate_bulk_efficiency_bonus(int quantity);
 bool is_contract_expired(struct char_data *ch);

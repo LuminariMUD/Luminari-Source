@@ -4445,10 +4445,12 @@ struct crafting_data_info
     time_t supply_contract_expiration;
     int supply_quality_tier_requirement;
     bool has_supply_order_active;               // New field to track active supply orders
+    int supply_active_slot;                     // Which slot index is currently being worked (-1 if none)
     
     // supply order slot system
     struct supply_contract supply_slots[5];     // 5 persistent supply order slots
     bool supply_slot_active[5];                 // Which slots are occupied
+    time_t supply_slot_cooldowns[5];            // Individual cooldowns for each slot (when taken/abandoned)
     time_t supply_slots_last_refresh;           // When slots were last refreshed
     time_t supply_slots_next_refresh;           // When next refresh is available
 
