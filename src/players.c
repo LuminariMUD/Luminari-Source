@@ -917,6 +917,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_CRAFT(ch).instrument_motes[2] = atoi(line);
         else if (!strcmp(tag, "CrI3"))
           GET_CRAFT(ch).instrument_motes[3] = atoi(line);
+        else if (!strcmp(tag, "CrAS"))
+          GET_CRAFT(ch).supply_active_slot = atoi(line);
         
         break;
 
@@ -1423,6 +1425,79 @@ int load_char(const char *name, struct char_data *ch)
           GET_NSUPPLY_NUM_MADE(ch) = atoi(line);
         else if (!strcmp(tag, "SpCd"))
           GET_NSUPPLY_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "SuSl"))
+        {
+          /* Load supply contract slot: slot_idx type recipe variant quantity reward difficulty time_limit reputation expiration */
+          int slot_idx, contract_type, recipe, variant, quantity, reward, difficulty_modifier, time_limit, reputation_requirement;
+          long expiration_time;
+          if (sscanf(line, "%d %d %d %d %d %d %d %d %d %ld", &slot_idx, &contract_type, &recipe, &variant, 
+                     &quantity, &reward, &difficulty_modifier, &time_limit, &reputation_requirement, &expiration_time) == 10)
+          {
+            if (slot_idx >= 0 && slot_idx < 5)
+            {
+              GET_CRAFT(ch).supply_slot_active[slot_idx] = true;
+              GET_CRAFT(ch).supply_slots[slot_idx].contract_id = slot_idx + 1;
+              GET_CRAFT(ch).supply_slots[slot_idx].contract_type = contract_type;
+              GET_CRAFT(ch).supply_slots[slot_idx].recipe = recipe;
+              GET_CRAFT(ch).supply_slots[slot_idx].variant = variant;
+              GET_CRAFT(ch).supply_slots[slot_idx].quantity = quantity;
+              GET_CRAFT(ch).supply_slots[slot_idx].reward = reward;
+              GET_CRAFT(ch).supply_slots[slot_idx].difficulty_modifier = difficulty_modifier;
+              GET_CRAFT(ch).supply_slots[slot_idx].time_limit = time_limit;
+              GET_CRAFT(ch).supply_slots[slot_idx].reputation_requirement = reputation_requirement;
+              GET_CRAFT(ch).supply_slots[slot_idx].expiration_time = (time_t)expiration_time;
+              GET_CRAFT(ch).supply_slots[slot_idx].description = NULL; /* Will be loaded separately */
+              GET_CRAFT(ch).supply_slots[slot_idx].requirements = NULL; /* Will be loaded separately */
+            }
+          }
+        }
+        else if (!strcmp(tag, "SuSD"))
+        {
+          /* Load supply slot description: slot_idx description */
+          int slot_idx;
+          char desc_buf[MAX_INPUT_LENGTH];
+          if (sscanf(line, "%d %[^\r\n]", &slot_idx, desc_buf) == 2)
+          {
+            if (slot_idx >= 0 && slot_idx < 5 && GET_CRAFT(ch).supply_slot_active[slot_idx])
+            {
+              if (GET_CRAFT(ch).supply_slots[slot_idx].description)
+                free(GET_CRAFT(ch).supply_slots[slot_idx].description);
+              GET_CRAFT(ch).supply_slots[slot_idx].description = strdup(desc_buf);
+            }
+          }
+        }
+        else if (!strcmp(tag, "SuSR"))
+        {
+          /* Load supply slot requirements: slot_idx requirements */
+          int slot_idx;
+          char req_buf[MAX_INPUT_LENGTH];
+          if (sscanf(line, "%d %[^\r\n]", &slot_idx, req_buf) == 2)
+          {
+            if (slot_idx >= 0 && slot_idx < 5 && GET_CRAFT(ch).supply_slot_active[slot_idx])
+            {
+              if (GET_CRAFT(ch).supply_slots[slot_idx].requirements)
+                free(GET_CRAFT(ch).supply_slots[slot_idx].requirements);
+              GET_CRAFT(ch).supply_slots[slot_idx].requirements = strdup(req_buf);
+            }
+          }
+        }
+        else if (!strcmp(tag, "SuLR"))
+          GET_CRAFT(ch).supply_slots_last_refresh = (time_t)atol(line);
+        else if (!strcmp(tag, "SuNR"))
+          GET_CRAFT(ch).supply_slots_next_refresh = (time_t)atol(line);
+        else if (!strcmp(tag, "SuCD"))
+        {
+          /* Load supply slot cooldowns: slot_idx timestamp */
+          int slot_idx;
+          long timestamp;
+          if (sscanf(line, "%d %ld", &slot_idx, &timestamp) == 2)
+          {
+            if (slot_idx >= 0 && slot_idx < 5)
+            {
+              GET_CRAFT(ch).supply_slot_cooldowns[slot_idx] = (time_t)timestamp;
+            }
+          }
+        }
         break;
 
       case 'T':
@@ -2372,6 +2447,20 @@ void save_char(struct char_data *ch, int mode)
   BUFFER_WRITE( "CrLA: %d\n", GET_CRAFT(ch).level_adjust);
 
   BUFFER_WRITE( "CrSN: %d\n", GET_CRAFT(ch).supply_num_required);
+  BUFFER_WRITE( "CrAS: %d\n", GET_CRAFT(ch).supply_active_slot);
+  
+  /* Save individual supply slot cooldowns */
+  {
+    int slot_idx;
+    for (slot_idx = 0; slot_idx < 5; slot_idx++)
+    {
+      if (GET_CRAFT(ch).supply_slot_cooldowns[slot_idx] > 0)
+      {
+        BUFFER_WRITE( "SuCD: %d %ld\n", slot_idx, (long)GET_CRAFT(ch).supply_slot_cooldowns[slot_idx]);
+      }
+    }
+  }
+  
   BUFFER_WRITE( "CrSR: %d\n", GET_CRAFT(ch).survey_rooms);
   BUFFER_WRITE( "CrIy: %d\n", GET_CRAFT(ch).instrument_type);
   BUFFER_WRITE( "CrIQ: %d\n", GET_CRAFT(ch).instrument_quality);
@@ -2380,6 +2469,39 @@ void save_char(struct char_data *ch, int mode)
   BUFFER_WRITE( "CrI1: %d\n", GET_CRAFT(ch).instrument_motes[1]);
   BUFFER_WRITE( "CrI2: %d\n", GET_CRAFT(ch).instrument_motes[2]);
   BUFFER_WRITE( "CrI3: %d\n", GET_CRAFT(ch).instrument_motes[3]);
+
+  /* Save supply contract slots */
+  {
+    int slot_idx;
+    for (slot_idx = 0; slot_idx < 5; slot_idx++)
+    {
+      if (GET_CRAFT(ch).supply_slot_active[slot_idx])
+      {
+        struct supply_contract *slot = &GET_CRAFT(ch).supply_slots[slot_idx];
+        BUFFER_WRITE( "SuSl: %d %d %d %d %d %d %d %d %d %ld\n", 
+                      slot_idx,
+                      slot->contract_type,
+                      slot->recipe,
+                      slot->variant,
+                      slot->quantity,
+                      slot->reward,
+                      slot->difficulty_modifier,
+                      slot->time_limit,
+                      slot->reputation_requirement,
+                      (long)slot->expiration_time);
+        if (slot->description)
+          BUFFER_WRITE( "SuSD: %d %s\n", slot_idx, slot->description);
+        if (slot->requirements)
+          BUFFER_WRITE( "SuSR: %d %s\n", slot_idx, slot->requirements);
+      }
+    }
+  }
+  
+  /* Save supply contract timing data */
+  if (GET_CRAFT(ch).supply_slots_last_refresh > 0)
+    BUFFER_WRITE( "SuLR: %ld\n", (long)GET_CRAFT(ch).supply_slots_last_refresh);
+  if (GET_CRAFT(ch).supply_slots_next_refresh > 0)
+    BUFFER_WRITE( "SuNR: %ld\n", (long)GET_CRAFT(ch).supply_slots_next_refresh);
 
 
   // Save consumables: potions, scrolls, wands and staves
