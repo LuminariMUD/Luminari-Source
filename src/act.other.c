@@ -24,7 +24,11 @@
 #include "screen.h"
 #include "house.h"
 #include "constants.h"
+#ifdef fiendish_boons
+#undef fiendish_boons
+#endif
 #include "dg_scripts.h"
+#include "dg_event.h"
 #include "act.h"
 #include "spec_procs.h"
 #include "class.h"
@@ -53,6 +57,8 @@
 #include "account.h"
 #include "deities.h"
 #include "evolutions.h"
+#include "constants.h"
+#include <time.h>
 
 /* some defines for gain/respec */
 #define MODE_CLASSLIST_NORMAL 0
@@ -2791,10 +2797,10 @@ ACMDU(do_gain)
   if (GET_PREMADE_BUILD_CLASS(ch) < 0)
   {
     skip_spaces(&argument);
-    for (i = 0; i < strlen(argument); i++)
+    for (i = 0; i < (int)strlen(argument); i++)
       if (argument[i] == ' ') argument[i] = '-';
     one_argument(argument, arg, sizeof(arg));
-    for (i = 0; i < strlen(arg); i++)
+    for (i = 0; i < (int)strlen(arg); i++)
       if (arg[i] == '-') arg[i] = ' ';
   }
   else
@@ -8805,12 +8811,12 @@ ACMDU(do_fiendishboon)
     for (j = 0; j < 80; j++)
       send_to_char(ch, "-");
     send_to_char(ch, "\r\n");
-    for (i = 1; i < NUM_FIENDISH_BOONS; i++)
+  for (i = 0; i < NUM_FIENDISH_BOONS; i++)
     {
-      if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) < fiendish_boon_levels[i])
+  if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) < fiendish_boon_levels[i])
         continue;
       send_to_char(ch, "-%d slots- [", fiendish_boon_slots[i]);
-      if (FIENDISH_BOON_ACTIVE(ch, i))
+  if (FIENDISH_BOON_ACTIVE(ch, i))
       {
         send_to_char(ch, "\tg%-8s\tn", "ACTIVE");
       }
@@ -8828,13 +8834,13 @@ ACMDU(do_fiendishboon)
     return;
   }
 
-  for (i = 1; i < NUM_FIENDISH_BOONS; i++)
+  for (i = 0; i < NUM_FIENDISH_BOONS; i++)
   {
-    if (is_abbrev(argument, fiendish_boons[i]))
+  if (is_abbrev(argument, fiendish_boons[i]))
       break;
   }
 
-  if (i < 1 || i >= NUM_FIENDISH_BOONS)
+  if (i < 0 || i >= NUM_FIENDISH_BOONS)
   {
     send_to_char(ch, "That is not a valid fiendish boon. Please type 'fiendishboons' to see a list.\r\n");
     return;
@@ -8842,9 +8848,9 @@ ACMDU(do_fiendishboon)
 
   if (FIENDISH_BOON_ACTIVE(ch, i))
   {
-    REMOVE_FIENDISH_BOON(ch, i);
-    send_to_char(ch, "You deactivate your '%s' fiendish boon.\r\n", fiendish_boons[i]);
-    return;
+  REMOVE_FIENDISH_BOON(ch, i);
+  send_to_char(ch, "You deactivate your '%s' fiendish boon.\r\n", fiendish_boons[i]);
+  return;
   }
 
   if ((active_fiendish_boon_levels(ch) + fiendish_boon_slots[i]) > total_fiendish_boon_levels(ch))
@@ -9849,6 +9855,1359 @@ ACMD(do_pick_lock)
 
   USE_MOVE_ACTION(ch);
 }
+
+ACMDU(do_invent)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char arg3[MAX_INPUT_LENGTH] = {'\0'};
+  char *remaining_args;
+  int spell_num = -1, artificer_level = 0;
+  int i = 0, j = 0, spell_level = 0;
+  int device_count_by_level[5] = {0, 0, 0, 0, 0};
+  int spell_assignment_level, max_spell_level;
+  /* char spell_list[MAX_STRING_LENGTH]; */ /* moved to event handler */
+
+  /* Clear any pending device destroy confirmation codes when using other commands */
+  {
+    /* Parse the arguments to see if this is a destroy command */
+    char first_arg[MAX_INPUT_LENGTH] = {'\0'};
+    one_argument(argument, first_arg, sizeof(first_arg));
+    
+    /* If this is not a destroy command, clear any stored confirmation */
+    if (!is_abbrev(first_arg, "destroy")) {
+      if (GET_DEVICE_DESTROY_CONFIRM(ch)) {
+        free(GET_DEVICE_DESTROY_CONFIRM(ch));
+        GET_DEVICE_DESTROY_CONFIRM(ch) = NULL;
+      }
+      GET_DEVICE_DESTROY_INV_IDX(ch) = -1;
+    }
+  }
+
+  /* Check if character has weird science feat */
+  if (!HAS_FEAT(ch, FEAT_WEIRD_SCIENCE))
+  {
+    send_to_char(ch, "You don't know how to create weird science devices.\r\n");
+    return;
+  }
+
+  artificer_level = CLASS_LEVEL(ch, CLASS_ARTIFICER);
+  if (artificer_level <= 0)
+  {
+    send_to_char(ch, "You must be an artificer to use weird science.\r\n");
+    return;
+  }
+
+  /* Determine max spell level available */
+  if (artificer_level >= 11) max_spell_level = 4;      /* 4th level spells (7th assignment level) */
+  else if (artificer_level >= 5) max_spell_level = 3;  /* 3rd level spells (5th assignment level) */
+  else if (artificer_level >= 3) max_spell_level = 2;  /* 2nd level spells (3rd assignment level) */
+  else max_spell_level = 1;                            /* 1st level spells only */
+
+  remaining_args = (char *) two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  one_argument(remaining_args, arg3, sizeof(arg3));
+
+  /* Count existing devices by spell level using player invention data */
+  for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
+    struct player_invention *inv = &ch->player_specials->saved.inventions[i];
+    int highest_spell_level = 0;
+    for (j = 0; j < inv->num_spells; j++) {
+      int spellnum = inv->spell_effects[j];
+      int wizard_level = spell_info[spellnum].min_level[CLASS_WIZARD];
+      int cleric_level = spell_info[spellnum].min_level[CLASS_CLERIC];
+      
+      /* Use the lower of wizard or cleric level (if both are available) */
+      if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
+        spell_assignment_level = MIN(wizard_level, cleric_level);
+      } else if (wizard_level < LVL_IMMORT) {
+        spell_assignment_level = wizard_level;
+      } else if (cleric_level < LVL_IMMORT) {
+        spell_assignment_level = cleric_level;
+      } else {
+        spell_assignment_level = LVL_IMMORT; /* Not available */
+      }
+      
+      if (spell_assignment_level < LVL_IMMORT && spell_assignment_level > highest_spell_level) {
+        highest_spell_level = spell_assignment_level;
+      }
+    }
+    if (highest_spell_level >= 1 && highest_spell_level <= 7) {
+      int device_level = (highest_spell_level + 1) / 2;
+      if (device_level > 4) device_level = 4;
+      device_count_by_level[device_level]++;
+    }
+  }
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Weird Science Device Commands:\r\n");
+    send_to_char(ch, "  device create <spell> [spell2] [spell3] - Create device with multiple spell effects\r\n");
+    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+      send_to_char(ch, "                                          - Brilliance and Blunder: Can add 4th spell (risky!)\r\n");
+    send_to_char(ch, "  device create cancel                    - Cancel current device creation\r\n");
+    send_to_char(ch, "  device add <device> <spell>             - Add another spell effect to a device\r\n");
+    send_to_char(ch, "  device use <device> [target]            - Use a weird science device (optional target)\r\n");
+    send_to_char(ch, "  device list                             - List your current devices\r\n");
+    send_to_char(ch, "  device info <device>                    - Get information about a device\r\n");
+    send_to_char(ch, "  device rename <device> <new name>       - Change the name of a device\r\n");
+    send_to_char(ch, "  device destroy <device>                 - Permanently destroy a device (requires confirmation)\r\n");
+    send_to_char(ch, "  device spells <arcane|divine>           - Show available spells by level\r\n");
+    send_to_char(ch, "  device usage                            - Show spell slot usage and limits\r\n");
+    send_to_char(ch, "  device cooldown                         - Check device creation cooldown status\r\n");
+    send_to_char(ch, "\r\nArtificers can access wizard and cleric spells up to %d%s level.\r\n", 
+                 max_spell_level, 
+                 (max_spell_level == 1) ? "st" : (max_spell_level == 2) ? "nd" : 
+                 (max_spell_level == 3) ? "rd" : "th");
+    send_to_char(ch, "Devices can only contain either violent OR non-violent spells, not both.\r\n");
+    send_to_char(ch, "For violent devices: must be fighting or specify a target to use.\r\n");
+    send_to_char(ch, "For non-violent devices: defaults to self if no target specified.\r\n");
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      send_to_char(ch, "\r\nGnomish Tinkering: +1 use per device, -2 Use Magic Device DC.\r\n");
+    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+      send_to_char(ch, "Brilliance and Blunder: Can add 4th spell but devices EXPLODE when broken!\r\n");
+    send_to_char(ch, "\r\nUse 'device info #' to get detailed information about a specific device.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg1, "create"))
+  {
+    /* Handle the cancel subcommand for device creation */
+    if (is_abbrev(arg2, "cancel")) {
+      if (!char_has_mud_event(ch, eDEVISE_CREATION)) {
+        send_to_char(ch, "You are not currently creating any device.\r\n");
+        return;
+      }
+      
+      /* Cancel the creation event */
+      event_cancel_specific(ch, eDEVISE_CREATION);
+      event_cancel_specific(ch, eDEVISE_PROGRESS);
+      send_to_char(ch, "You stop working on your device and abandon the project.\r\n");
+      act("$n stops working on $s invention and abandons the project.", TRUE, ch, 0, 0, TO_ROOM);
+      return;
+    }
+    
+    /* Check if we have available device slots (not under cooldown) */
+    int available_slots = 0;
+    int max_devices = 0;
+    
+    /* Calculate max devices based on artificer level and device count by level */
+    for (i = 1; i <= max_spell_level; i++) {
+      max_devices += device_count_by_level[i];
+    }
+    
+    /* If we have fewer devices than max, we have empty slots */
+    if (ch->player_specials->saved.num_inventions < max_devices) {
+      available_slots = max_devices - ch->player_specials->saved.num_inventions;
+    }
+    
+    /* Also count devices that are not on cooldown (can be destroyed and replaced) */
+    for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
+      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
+      if (inv->cooldown_expires <= time(0)) {
+        available_slots++;
+      }
+    }
+    
+    if (available_slots <= 0) {
+      send_to_char(ch, "All your device slots are on cooldown. Use 'device cooldown' to check when slots become available.\r\n");
+      return;
+    }
+    
+    if (!*arg2) {
+      send_to_char(ch, "Create what spell device? Example: device create fireball\r\n");
+      send_to_char(ch, "For multi-word spells, use quotes: device create \"cure light wounds\" shield\r\n");
+      send_to_char(ch, "You can combine multiple spells: device create fireball shield \"cure light wounds\"\r\n");
+      send_to_char(ch, "Available device slots: %d\r\n", available_slots);
+      return;
+    }
+
+    /* Parse multiple spell arguments - handle quoted multi-word spell names */
+    int max_spells = 3;
+    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+      max_spells = 4;
+    char spells[4][MAX_INPUT_LENGTH];
+    int spell_nums[4] = {0, 0, 0, 0};
+    int num_spells = 0;
+    int highest_device_level = 0;
+    
+    /* Parse spell arguments from the full argument string */
+    char *parse_ptr = (char *)argument;
+    char temp_word[MAX_INPUT_LENGTH];
+    
+    /* Skip past "create" */
+    parse_ptr = (char *) one_argument(parse_ptr, temp_word, sizeof(temp_word));
+    
+    /* Parse each spell name, handling quotes for multi-word spells */
+    while (*parse_ptr && num_spells < max_spells) {
+      char spell_name[MAX_INPUT_LENGTH] = {'\0'};
+      
+      /* Skip leading spaces */
+      while (*parse_ptr && isspace(*parse_ptr)) parse_ptr++;
+      if (!*parse_ptr) break;
+      
+      /* Check if this spell name is quoted */
+      if (*parse_ptr == '"') {
+        parse_ptr++; /* Skip opening quote */
+        int pos = 0;
+        /* Copy until closing quote or end of string */
+        while (*parse_ptr && *parse_ptr != '"' && pos < MAX_INPUT_LENGTH - 1) {
+          spell_name[pos++] = *parse_ptr++;
+        }
+        spell_name[pos] = '\0';
+        if (*parse_ptr == '"') parse_ptr++; /* Skip closing quote */
+      } else {
+        /* Single word spell name */
+        int pos = 0;
+        while (*parse_ptr && !isspace(*parse_ptr) && pos < MAX_INPUT_LENGTH - 1) {
+          spell_name[pos++] = *parse_ptr++;
+        }
+        spell_name[pos] = '\0';
+      }
+      
+      if (strlen(spell_name) > 0) {
+        strcpy(spells[num_spells], spell_name);
+        num_spells++;
+      }
+    }
+    
+    if (num_spells == 0) {
+      send_to_char(ch, "No valid spell names found.\r\n");
+      return;
+    }
+
+    /* Validate all spells */
+    for (i = 0; i < num_spells; i++) {
+      spell_nums[i] = find_skill_num(spells[i]);
+      if (spell_nums[i] < 1) {
+        send_to_char(ch, "The spell '%s' doesn't exist.\r\n", spells[i]);
+        return;
+      }
+
+      /* Check if spell is available to artificers (wizard or cleric lists) */
+      int wizard_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
+      int cleric_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
+      
+      /* Use the lower of wizard or cleric level (if both are available) */
+      if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
+        spell_assignment_level = MIN(wizard_level, cleric_level);
+      } else if (wizard_level < LVL_IMMORT) {
+        spell_assignment_level = wizard_level;
+      } else if (cleric_level < LVL_IMMORT) {
+        spell_assignment_level = cleric_level;
+      } else {
+        spell_assignment_level = LVL_IMMORT; /* Not available */
+      }
+      
+      // Convert the assignment level to spell circle (1st, 2nd, 3rd level, etc)
+      int spell_circle = 0;
+      if (spell_assignment_level < LVL_IMMORT) {
+        spell_circle = (spell_assignment_level + 1) / 2;
+      }
+      
+      if (spell_circle <= 0 || spell_circle > max_spell_level) {
+        send_to_char(ch, "The spell '%s' is not available to artificers of your level.\r\n", spells[i]);
+        send_to_char(ch, "Artificers can only use wizard/cleric spells up to %d%s level.\r\n", 
+                     max_spell_level, 
+                     (max_spell_level == 1) ? "st" : (max_spell_level == 2) ? "nd" : 
+                     (max_spell_level == 3) ? "rd" : "th");
+        return;
+      }
+      
+      if (spell_assignment_level > highest_device_level) {
+        highest_device_level = spell_assignment_level;
+      }
+    }
+
+    /* Check that all spells are either violent or non-violent (no mixing) */
+    int first_spell_violent = spell_info[spell_nums[0]].violent;
+    for (i = 1; i < num_spells; i++) {
+      if (spell_info[spell_nums[i]].violent != first_spell_violent) {
+        send_to_char(ch, "You cannot combine violent and non-violent spells in the same device.\r\n");
+        send_to_char(ch, "All spells must be either violent or non-violent, not mixed.\r\n");
+        return;
+      }
+    }
+
+    /* Check total spell circles (levels) used across all inventions */
+    int max_circles[4] = {0, 0, 0, 0};
+    for (i = 0; weird_science_table[i].level != -1; i++) {
+      if (weird_science_table[i].level == artificer_level) {
+        for (j = 0; j < 4; j++) max_circles[j] = weird_science_table[i].devices[j];
+        break;
+      } else if (weird_science_table[i].level > artificer_level) {
+        if (i > 0) for (j = 0; j < 4; j++) max_circles[j] = weird_science_table[i-1].devices[j];
+        break;
+      }
+    }
+    if (artificer_level >= 20 && max_circles[0] == 0) {
+      for (j = 0; j < 4; j++) max_circles[j] = weird_science_table[19].devices[j];
+    }
+    /* Count current spell circles used */
+    int used_circles[4] = {0, 0, 0, 0};
+    for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
+      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
+      for (j = 0; j < inv->num_spells; j++) {
+        int spellnum = inv->spell_effects[j];
+        int wizard_level = spell_info[spellnum].min_level[CLASS_WIZARD];
+        int cleric_level = spell_info[spellnum].min_level[CLASS_CLERIC];
+        int spell_level;
+        
+        /* Use the lower of wizard or cleric level (if both are available) */
+        if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
+          spell_level = MIN(wizard_level, cleric_level);
+        } else if (wizard_level < LVL_IMMORT) {
+          spell_level = wizard_level;
+        } else if (cleric_level < LVL_IMMORT) {
+          spell_level = cleric_level;
+        } else {
+          continue; /* Skip spells not available to artificers */
+        }
+        
+        if (spell_level >= 1 && spell_level <= 7) {
+          int circle = (spell_level + 1) / 2 - 1;
+          if (circle >= 0 && circle < 4)
+            used_circles[circle]++;
+        }
+      }
+    }
+    /* Count new invention's spell circles */
+    int new_circles[4] = {0, 0, 0, 0};
+    for (i = 0; i < num_spells; i++) {
+      int wizard_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
+      int cleric_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
+      int spell_level;
+      
+      /* Use the lower of wizard or cleric level (if both are available) */
+      if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
+        spell_level = MIN(wizard_level, cleric_level);
+      } else if (wizard_level < LVL_IMMORT) {
+        spell_level = wizard_level;
+      } else if (cleric_level < LVL_IMMORT) {
+        spell_level = cleric_level;
+      } else {
+        continue; /* Skip spells not available to artificers */
+      }
+      
+      if (spell_level >= 1 && spell_level <= 7) {
+        int circle = (spell_level + 1) / 2 - 1;
+        if (circle >= 0 && circle < 4)
+          new_circles[circle]++;
+      }
+    }
+    /* Check if adding this invention would exceed any circle limit */
+    for (i = 0; i < 4; i++) {
+      if (used_circles[i] + new_circles[i] > max_circles[i]) {
+        int circle_level = i + 1;
+        const char *ordinal = (circle_level == 1) ? "st" : (circle_level == 2) ? "nd" : 
+                             (circle_level == 3) ? "rd" : "th";
+        send_to_char(ch, "You can't create this invention: it would exceed your allowed number of %d%s circle spells (%d max, you have %d).\r\n",
+          circle_level, ordinal, max_circles[i], used_circles[i]);
+        return;
+      }
+    }
+
+    /* Store invention in player data instead of creating an object */
+    if (ch->player_specials->saved.num_inventions >= MAX_PLAYER_INVENTIONS) {
+      send_to_char(ch, "You have reached the maximum number of inventions (%d). Remove one before creating another.\r\n", MAX_PLAYER_INVENTIONS);
+      return;
+    }
+
+    /* Calculate creation time: 30 seconds per spell level */
+    int total_spell_levels = 0;
+    for (i = 0; i < num_spells; i++) {
+      int spell_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
+      if (spell_level >= LVL_IMMORT)
+        spell_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
+      if (spell_level < LVL_IMMORT && spell_level >= 1) {
+        total_spell_levels += spell_level;
+      }
+    }
+    
+    int creation_time = total_spell_levels * 30; /* 30 seconds per spell level */
+    
+    /* Check if player is already creating an invention */
+    if (char_has_mud_event(ch, eDEVISE_CREATION)) {
+      send_to_char(ch, "You are already working on an invention! Wait for it to complete or use 'device create cancel' to abort.\r\n");
+      return;
+    }
+    
+    /* Calculate the invention's properties for when it's completed */
+    int duration = 24;
+      
+    int reliability = 0;
+    
+    /* Build the spell data string for the event */
+    char spell_data[MAX_STRING_LENGTH];
+    snprintf(spell_data, sizeof(spell_data), "%d", spell_nums[0]);
+    for (i = 1; i < num_spells; i++) {
+      char temp[32];
+      snprintf(temp, sizeof(temp), ",%d", spell_nums[i]);
+      strncat(spell_data, temp, sizeof(spell_data) - strlen(spell_data) - 1);
+    }
+    
+    /* Build the complete event data string */
+    char event_data[MAX_STRING_LENGTH * 2]; /* Use larger buffer to prevent truncation */
+    snprintf(event_data, sizeof(event_data), "%s|%d|%d|%d", 
+             spell_data, num_spells, duration, reliability);
+    
+    /* Start the creation event */
+    attach_mud_event(new_mud_event(eDEVISE_CREATION, ch, event_data), creation_time * PASSES_PER_SEC);
+    
+    /* Start progress updates every 10 seconds */
+    attach_mud_event(new_mud_event(eDEVISE_PROGRESS, ch, event_data), 10 * PASSES_PER_SEC);
+    
+    /* Build spell list for user feedback */
+    char spell_list[MAX_STRING_LENGTH * 4];
+    strcpy(spell_list, spell_info[spell_nums[0]].name);
+    for (i = 1; i < num_spells; i++) {
+      strcat(spell_list, "/");
+      strcat(spell_list, spell_info[spell_nums[i]].name);
+    }
+    
+    send_to_char(ch, "You begin crafting a %s device. This will take %d seconds to complete.\r\n", 
+                 spell_list, creation_time);
+    act("$n begins working on a complex invention, gathering components and tools.", TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+  
+  if (is_abbrev(arg1, "rename"))
+  {
+    if (!*arg2) {
+      send_to_char(ch, "Usage: device rename <number> <new name>\r\n");
+      send_to_char(ch, "Changes the short description of an invention.\r\n");
+      return;
+    }
+    int inv_idx = atoi(arg2) - 1;
+    if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions) {
+      send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
+      return;
+    }
+    if (!*remaining_args) {
+      send_to_char(ch, "Usage: device rename <number> <new name>\r\n");
+      return;
+    }
+    skip_spaces(&argument);
+
+    /* Get the full name from remaining_args after the device number */
+    char *name_start = (char *) two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+    skip_spaces(&name_start);  /* Remove leading spaces from the new name */
+    char new_name[MAX_INVENTION_SHORTDESC];
+    snprintf(new_name, sizeof(new_name), "%s", name_start);
+    struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
+    snprintf(inv->short_description, MAX_INVENTION_SHORTDESC, "%s", new_name);
+    /* Update long description to match - use temp buffer to avoid overlap */
+    {
+      char temp_name[MAX_INVENTION_SHORTDESC];
+      strncpy(temp_name, inv->short_description, sizeof(temp_name) - 1);
+      temp_name[sizeof(temp_name) - 1] = '\0';
+      snprintf(inv->long_description, MAX_INVENTION_LONGDESC, "%s is here, humming with weird science energy.", temp_name);
+    }
+    send_to_char(ch, "Invention %d renamed to: %s\r\n", inv_idx + 1, inv->short_description);
+    return;
+  }
+
+  if (is_abbrev(arg1, "destroy"))
+  {
+    if (!*arg2) {
+      send_to_char(ch, "Usage: device destroy <number> <confirmation>\r\n");
+      send_to_char(ch, "Permanently destroys an invention. This cannot be undone!\r\n");
+      send_to_char(ch, "To confirm, use: device destroy <number> CONFIRM\r\n");
+      return;
+    }
+    int inv_idx = atoi(arg2) - 1;
+    if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions) {
+      send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
+      return;
+    }
+    
+    struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
+    
+    /* Check if this specific device is on cooldown */
+    if (inv->cooldown_expires > time(0)) {
+      int hours_left = (inv->cooldown_expires - time(0)) / 3600;
+      int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+      if (hours_left > 0) {
+        send_to_char(ch, "Device %d is on cooldown and cannot be destroyed. Wait %d hour%s and %d minute%s.\r\n",
+                     inv_idx + 1, hours_left, (hours_left == 1) ? "" : "s", 
+                     minutes_left, (minutes_left == 1) ? "" : "s");
+      } else {
+        send_to_char(ch, "Device %d is on cooldown and cannot be destroyed. Wait %d minute%s.\r\n",
+                     inv_idx + 1, minutes_left, (minutes_left == 1) ? "" : "s");
+      }
+      return;
+    }
+    
+    /* Generate a random confirmation code if none provided */
+    if (!*arg3) {
+      char *confirm_code = randstring(6);
+      if (!confirm_code) {
+        send_to_char(ch, "Error generating confirmation code. Please try again.\r\n");
+        return;
+      }
+      
+      send_to_char(ch, "WARNING: You are about to permanently destroy invention %d: %s\r\n", 
+                   inv_idx + 1, inv->short_description);
+      send_to_char(ch, "This action CANNOT be undone! The invention will be lost forever.\r\n");
+      send_to_char(ch, "To confirm destruction, type: device destroy %d %s\r\n", 
+                   inv_idx + 1, confirm_code);
+      send_to_char(ch, "The confirmation code will expire when you log out or use another command.\r\n");
+      
+      /* Store the confirmation code and device number in player specials */
+      if (GET_DEVICE_DESTROY_CONFIRM(ch)) {
+        free(GET_DEVICE_DESTROY_CONFIRM(ch));
+      }
+      GET_DEVICE_DESTROY_CONFIRM(ch) = strdup(confirm_code);
+      GET_DEVICE_DESTROY_INV_IDX(ch) = inv_idx;
+      
+      free(confirm_code); /* Free the memory allocated by randstring */
+      return;
+    }
+    
+    /* Check if confirmation code matches stored code */
+    if (!GET_DEVICE_DESTROY_CONFIRM(ch) || GET_DEVICE_DESTROY_INV_IDX(ch) != inv_idx || 
+        strcasecmp(arg3, GET_DEVICE_DESTROY_CONFIRM(ch)) != 0) {
+      send_to_char(ch, "Invalid confirmation code. Use 'device destroy %d' to get a new code.\r\n", inv_idx + 1);
+      return;
+    }
+    
+    /* Clear the stored confirmation */
+    if (GET_DEVICE_DESTROY_CONFIRM(ch)) {
+      free(GET_DEVICE_DESTROY_CONFIRM(ch));
+      GET_DEVICE_DESTROY_CONFIRM(ch) = NULL;
+    }
+    GET_DEVICE_DESTROY_INV_IDX(ch) = -1;
+    
+    /* Perform the destruction */
+    send_to_char(ch, "You carefully dismantle %s, salvaging what components you can.\r\n", 
+                 inv->short_description);
+    act("$n carefully dismantles a weird science invention.", TRUE, ch, 0, 0, TO_ROOM);
+    
+    /* Shift all inventions after this one down by one */
+    {
+      int k;
+      for (k = inv_idx; k < ch->player_specials->saved.num_inventions - 1; k++) {
+        ch->player_specials->saved.inventions[k] = ch->player_specials->saved.inventions[k + 1];
+      }
+    }
+    
+    /* Clear the last slot and decrement count */
+    memset(&ch->player_specials->saved.inventions[ch->player_specials->saved.num_inventions - 1], 
+           0, sizeof(struct player_invention));
+    ch->player_specials->saved.num_inventions--;
+    
+    send_to_char(ch, "Invention destroyed. You now have %d inventions remaining.\r\n", 
+                 ch->player_specials->saved.num_inventions);
+    return;
+  }
+
+  if (is_abbrev(arg1, "add")) {
+    if (!*arg2 || !*arg3) {
+      send_to_char(ch, "Usage: device add <number> <spell>\r\n");
+      send_to_char(ch, "Add another spell effect to an existing invention.\r\n");
+      return;
+    }
+    int inv_idx = atoi(arg2) - 1;
+    if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions) {
+      send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
+      return;
+    }
+    struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
+    int max_device_spells = 3;
+    if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER))
+      max_device_spells = 4;
+    if (inv->num_spells >= max_device_spells) {
+      send_to_char(ch, "That invention already has the maximum number of spell effects (%d).\r\n", max_device_spells);
+      return;
+    }
+    /* Get the full spell name from remaining_args after the device number */
+    char *spell_start = (char *) two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+    char spell_name[MAX_INPUT_LENGTH];
+    snprintf(spell_name, sizeof(spell_name), "%s", spell_start);
+    spell_num = find_skill_num(spell_name);
+    if (spell_num < 1) {
+      send_to_char(ch, "That spell doesn't exist.\r\n");
+      return;
+    }
+    
+    /* Check if spell is available to artificers (wizard or cleric lists) */
+    int wizard_level = spell_info[spell_num].min_level[CLASS_WIZARD];
+    int cleric_level = spell_info[spell_num].min_level[CLASS_CLERIC];
+    
+    /* Use the lower of wizard or cleric level (if both are available) */
+    if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
+      spell_assignment_level = MIN(wizard_level, cleric_level);
+    } else if (wizard_level < LVL_IMMORT) {
+      spell_assignment_level = wizard_level;
+    } else if (cleric_level < LVL_IMMORT) {
+      spell_assignment_level = cleric_level;
+    } else {
+      spell_assignment_level = LVL_IMMORT; /* Not available */
+    }
+    
+    if (spell_assignment_level >= LVL_IMMORT || spell_assignment_level > max_spell_level) {
+      send_to_char(ch, "That spell is not available to artificers of your level.\r\n");
+      return;
+    }
+    
+    /* Check that the new spell matches the violent/non-violent nature of existing spells */
+    if (inv->num_spells > 0) {
+      int existing_violent = spell_info[inv->spell_effects[0]].violent;
+      int new_violent = spell_info[spell_num].violent;
+      if (existing_violent != new_violent) {
+        send_to_char(ch, "You cannot mix violent and non-violent spells in the same device.\r\n");
+        send_to_char(ch, "This invention already contains %s spells.\r\n", 
+                     existing_violent ? "violent" : "non-violent");
+        return;
+      }
+    }
+    
+    inv->spell_effects[inv->num_spells] = spell_num;
+    inv->num_spells++;
+    send_to_char(ch, "You add %s to your invention, making it more complex and unstable.\r\n", spell_info[spell_num].name);
+    act("$n modifies an invention, adding more components.", TRUE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
+  if (is_abbrev(arg1, "use"))
+  {
+    if (!*arg2) {
+      send_to_char(ch, "Use which invention? Usage: device use <number> [target]\r\n");
+      return;
+    }
+    int inv_idx = atoi(arg2) - 1;
+    if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions) {
+      send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
+      return;
+    }
+    
+    /* Parse optional target argument */
+    struct char_data *target = NULL;
+    if (*arg3) {
+      /* Target specified, try to find them in the room */
+      target = get_char_vis(ch, arg3, NULL, FIND_CHAR_ROOM);
+      if (!target) {
+        send_to_char(ch, "There is no one here by that name.\r\n");
+        return;
+      }
+    }
+    
+    struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
+    
+    /* Determine if device contains violent or non-violent spells */
+    int device_is_violent = 0;
+    if (inv->num_spells > 0) {
+      device_is_violent = spell_info[inv->spell_effects[0]].violent;
+    }
+    
+    /* Handle targeting logic */
+    if (!target) {
+      if (device_is_violent) {
+        /* Violent spells: use fighting target or fail */
+        if (FIGHTING(ch)) {
+          target = FIGHTING(ch);
+          send_to_char(ch, "You target your device at your opponent.\r\n");
+        } else {
+          send_to_char(ch, "You must be fighting or specify a target to use a violent device.\r\n");
+          return;
+        }
+      } else {
+        /* Non-violent spells: default to self */
+        target = ch;
+      }
+    } else {
+      /* Target was specified */
+      if (device_is_violent) {
+        /* For violent spells, any valid target in room is okay */
+        if (target == ch) {
+          send_to_char(ch, "You probably don't want to target yourself with a violent device.\r\n");
+          return;
+        }
+      }
+      /* For non-violent spells, any target (including self) is okay */
+    }
+    int device_spell_count = inv->num_spells;
+    int max_uses = 1 + (artificer_level / 2);
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      max_uses += 1;  /* Gnomish Tinkering: +1 use per device */
+    int times_used = inv->uses; /* Use persistent uses field */
+    int reliability_bonus = inv->reliability;
+    if (times_used >= max_uses) {
+      /* Device is over its normal use limit - requires Use Magic Device skill check */
+      int dc = 20 + (times_used - max_uses) * device_spell_count - reliability_bonus;
+      if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+        dc -= 2;  /* Gnomish Tinkering: -2 Use Magic Device DC */
+      
+      /* Manual roll calculation to show detailed feedback */
+      int roll = d20(ch);
+      int skill = compute_ability(ch, ABILITY_USE_MAGIC_DEVICE);
+      int total = skill + roll;
+      
+      send_to_char(ch, "Use Magic Device Check: [DC %d vs %d: %d skill + %d roll]\r\n", 
+                   dc, total, skill, roll);
+      
+      if (total < dc) {
+        /* UMD check failed - device doesn't work and has a chance to break */
+        send_to_char(ch, "The invention fails to activate and you struggle to make it work.\r\n");
+        act("$n's invention sparks and sputters but doesn't activate.", TRUE, ch, 0, 0, TO_ROOM);
+        
+        /* Chance for device to break on failed UMD check */
+        int break_chance = 25;
+        if (rand_number(1, 100) <= break_chance) {
+          /* Device breaks! */
+          send_to_char(ch, "The invention sparks, sputters, and breaks down completely!\r\n");
+          act("$n's invention sparks and breaks down!", TRUE, ch, 0, 0, TO_ROOM);
+          
+          /* Brilliance and Blunder explosion logic */
+          if (HAS_FEAT(ch, FEAT_BRILLIANCE_AND_BLUNDER)) {
+            /* Calculate total spell circles for explosion damage */
+            int total_circles = 0;
+            int j;
+            for (j = 0; j < inv->num_spells; j++) {
+              int spell_circle = compute_spells_circle(ch, CLASS_WIZARD, inv->spell_effects[j], METAMAGIC_NONE, DOMAIN_UNDEFINED);
+              total_circles += spell_circle;
+            }
+            
+            int damage = dice(total_circles, 6); /* 1d6 force damage per spell circle */
+            
+            send_to_char(ch, "\tRThe overloaded device EXPLODES in a burst of chaotic energy!\tn\r\n");
+            send_to_char(ch, "\tRYou take %d force damage from the explosion!\tn\r\n", damage);
+            act("$n's overloaded invention EXPLODES in a burst of chaotic energy!", TRUE, ch, 0, 0, TO_ROOM);
+            
+            /* Apply damage to the creator */
+            GET_HIT(ch) -= damage;
+            
+            /* Apply damage to all party members in the same room */
+            struct char_data *tch, *next_tch;
+            for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch) {
+              next_tch = tch->next_in_room;
+              if (tch != ch && !IS_NPC(tch) && is_player_grouped(ch, tch)) {
+                send_to_char(tch, "\tRYou are caught in the explosion and take %d force damage!\tn\r\n", damage);
+                GET_HIT(tch) -= damage;
+                
+                /* Check if anyone died from the explosion */
+                if (GET_HIT(tch) <= 0) {
+                  send_to_char(tch, "\tRThe explosion proves fatal!\tn\r\n");
+                  act("$n is killed by the magical explosion!", TRUE, tch, 0, 0, TO_ROOM);
+                  /* Handle death appropriately for your MUD */
+                }
+              }
+            }
+            
+            /* Check if the creator died from the explosion */
+            if (GET_HIT(ch) <= 0) {
+              send_to_char(ch, "\tRYour own invention proves fatal!\tn\r\n");
+              act("$n is killed by $s own magical explosion!", TRUE, ch, 0, 0, TO_ROOM);
+              /* Handle death appropriately for your MUD */
+            }
+          }
+          
+          /* Set device cooldown when it breaks */
+          inv->cooldown_expires = time(0) + (30 * 60);
+          send_to_char(ch, "Device %d is now broken and on cooldown - it cannot be destroyed for 30 minutes.\r\n", inv_idx + 1);
+          
+          inv->uses = 0; /* Reset uses on destruction */
+          return;
+        }
+        return; /* Device didn't break, just failed to activate */
+      }
+      if (total < dc + 5) {
+        send_to_char(ch, "The invention malfunctions and fails to activate.\r\n");
+        act("$n's invention emits smoke but doesn't work.", TRUE, ch, 0, 0, TO_ROOM);
+        return;
+      }
+    }
+    
+    /* Device passed all checks - execute the spell effects */
+    send_to_char(ch, "You activate your invention: %s\r\n", inv->short_description);
+  char invbuf[200];
+  snprintf(invbuf, sizeof(invbuf), "$n activates an invention: %s", inv->short_description);
+  act(invbuf, TRUE, ch, 0, 0, TO_ROOM);
+    for (i = 0; i < inv->num_spells; i++) {
+      int spell_num = inv->spell_effects[i];
+      if (spell_num > 0 && spell_num < NUM_SPELLS) {
+        if (target == ch) {
+          send_to_char(ch, "The invention triggers %s on you!\r\n", spell_info[spell_num].name);
+        } else {
+          send_to_char(ch, "The invention triggers %s at %s!\r\n", 
+                       spell_info[spell_num].name, GET_NAME(target));
+          send_to_char(target, "%s's invention triggers %s at you!\r\n", 
+                       GET_NAME(ch), spell_info[spell_num].name);
+        }
+        call_magic(ch, target, NULL, spell_num, 0, artificer_level, CAST_DEVICE);
+      }
+    }
+    
+    /* Set individual device cooldown when device is first used */
+    if (inv->uses == 0) {
+      /* 30 minute cooldown for this specific device */
+      inv->cooldown_expires = time(0) + (30 * 60);
+      send_to_char(ch, "Device %d is now on cooldown - it cannot be destroyed for 30 minutes.\r\n", inv_idx + 1);
+    }
+    
+    inv->uses++;
+    return;
+  }
+
+  if (is_abbrev(arg1, "list"))
+  {
+    send_to_char(ch, "Your weird science inventions:\r\n");
+    int found_any = 0;
+    int max_uses = 1 + (artificer_level / 2);
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      max_uses += 1;  /* Gnomish Tinkering: +1 use per device */
+    
+    if (ch->player_specials->saved.num_inventions > 0) {
+      /* Column headers */
+      send_to_char(ch, "\r\n");
+      send_to_char(ch, "Num  Device Name                         Spells                                             Uses     Status\r\n");
+      send_to_char(ch, "---  ----------------------------------  --------------------------------------------------  -------  ------\r\n");
+      
+      for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
+        struct player_invention *inv = &ch->player_specials->saved.inventions[i];
+        found_any = 1;
+        
+        /* Build spell list string */
+        char spell_list[200] = {'\0'};
+        int spell_list_len = 0;
+        for (j = 0; j < inv->num_spells; j++) {
+          if (j > 0) {
+            if (spell_list_len < 195) {
+              strcat(spell_list, ", ");
+              spell_list_len += 2;
+            }
+          }
+          const char *spell_name = spell_info[inv->spell_effects[j]].name;
+          int remaining_space = 195 - spell_list_len;
+          if (remaining_space > 0) {
+            strncat(spell_list, spell_name, remaining_space);
+            spell_list_len += strlen(spell_name);
+            if (spell_list_len >= 195) {
+              spell_list[195] = '\0';
+              break;
+            }
+          }
+        }
+        
+        /* Truncate spell list if too long and add ellipsis */
+        if (strlen(spell_list) > 50) {
+          spell_list[47] = '.';
+          spell_list[48] = '.';
+          spell_list[49] = '.';
+          spell_list[50] = '\0';
+        }
+        
+        /* Calculate uses remaining */
+        int uses_remaining = max_uses - inv->uses;
+        if (uses_remaining < 0) uses_remaining = 0;
+        
+        /* Determine status */
+        const char *status;
+        if (inv->cooldown_expires > time(0) && inv->uses == 0) {
+          status = "BROKEN";
+        } else {
+          status = "OK";
+        }
+        
+        /* Format the row */
+        send_to_char(ch, "%-3d  %-34.34s  %-50.50s  %d/%-5d  %s\r\n", 
+                     i+1, 
+                     inv->short_description,
+                     spell_list,
+                     uses_remaining,
+                     max_uses,
+                     status);
+      }
+      send_to_char(ch, "\r\n");
+    }
+    
+    if (!found_any) {
+      send_to_char(ch, "  You have no weird science inventions.\r\n");
+    }
+    return;
+  }
+
+  if (is_abbrev(arg1, "info"))
+  {
+    if (!*arg2) {
+      send_to_char(ch, "Usage: device info <number>\r\n");
+      return;
+    }
+    int inv_idx = atoi(arg2) - 1;
+    if (inv_idx < 0 || inv_idx >= ch->player_specials->saved.num_inventions) {
+      send_to_char(ch, "No such invention. Use 'device list' to see your inventions.\r\n");
+      return;
+    }
+    struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
+    int max_uses = 1 + (artificer_level / 2);
+    if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+      max_uses += 1;  /* Gnomish Tinkering: +1 use per device */
+    int uses_remaining = max_uses - inv->uses;
+    if (uses_remaining < 0) uses_remaining = 0;
+    
+    send_to_char(ch, "Invention [%d]:\r\n", inv_idx+1);
+    send_to_char(ch, "  Name: %s\r\n", inv->short_description);
+    send_to_char(ch, "  Spell Effects:\r\n");
+    for (i = 0; i < inv->num_spells; i++) {
+      send_to_char(ch, "    %s\r\n", spell_info[inv->spell_effects[i]].name);
+    }
+    send_to_char(ch, "  Uses: %d remaining out of %d total\r\n", uses_remaining, max_uses);
+    
+    /* Check if device is broken */
+    if (inv->cooldown_expires > time(0) && inv->uses == 0) {
+      int hours_left = (inv->cooldown_expires - time(0)) / 3600;
+      int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+      send_to_char(ch, "  Status: BROKEN - will be repaired in %d hours, %d minutes\r\n", 
+                   hours_left, minutes_left);
+    } else {
+      send_to_char(ch, "  Status: Functional\r\n");
+    }
+    
+    /* Show cooldown information */
+    if (inv->cooldown_expires > time(0)) {
+      int hours_left = (inv->cooldown_expires - time(0)) / 3600;
+      int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+      if (inv->uses == 0) {
+        send_to_char(ch, "  Cooldown: Device cannot be destroyed for %d hours, %d minutes (broken)\r\n", 
+                     hours_left, minutes_left);
+      } else {
+        send_to_char(ch, "  Cooldown: Device cannot be destroyed for %d hours, %d minutes (recently used)\r\n", 
+                     hours_left, minutes_left);
+      }
+    } else {
+      send_to_char(ch, "  Cooldown: Device can be destroyed immediately\r\n");
+    }
+    
+    /* Show Use Magic Device DC when charges run out */
+    if (inv->uses >= max_uses) {
+      int device_spell_count = inv->num_spells;
+      int reliability_bonus = inv->reliability;
+      int dc = 20 + (inv->uses - max_uses) * device_spell_count - reliability_bonus;
+      if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
+        dc -= 2;  /* Gnomish Tinkering: -2 Use Magic Device DC */
+      send_to_char(ch, "  Use Magic Device DC: %d (when charges exhausted)\r\n", dc);
+    } else {
+      send_to_char(ch, "  Use Magic Device DC: N/A (charges remaining)\r\n");
+    }
+    
+    return;
+  }
+
+  if (is_abbrev(arg1, "spells"))
+  {
+    int spell_num; /* Declare at proper scope for C90 compliance */
+    
+    if (!*arg2) {
+      send_to_char(ch, "Usage: device spells <arcane|divine>\r\n");
+      send_to_char(ch, "Shows available wizard or cleric spells based on your artificer level.\r\n");
+      return;
+    }
+    
+    int spell_class;
+    const char *class_name;
+    
+    if (is_abbrev(arg2, "arcane")) {
+      spell_class = CLASS_WIZARD;
+      class_name = "Arcane";
+    } else if (is_abbrev(arg2, "divine")) {
+      spell_class = CLASS_CLERIC;
+      class_name = "Divine";
+    } else {
+      send_to_char(ch, "Invalid spell type. Use 'arcane' or 'divine'.\r\n");
+      return;
+    }
+    
+    send_to_char(ch, "Available %s spells for artificer level %d:\r\n\r\n", class_name, artificer_level);
+    
+    /* Show spells by level (1st through max available) */
+    for (spell_level = 1; spell_level <= max_spell_level; spell_level++) {
+      int spells_found = 0;
+      int column_count = 0;
+      char level_header[200];
+      char spell_names[100][50]; /* Store spell names for this level - much smaller arrays */
+      int spell_count = 0;
+      
+      snprintf(level_header, sizeof(level_header), "%s level spells:\r\n", 
+               (spell_level == 1) ? "1st" : (spell_level == 2) ? "2nd" : 
+               (spell_level == 3) ? "3rd" : (spell_level == 4) ? "4th" : "5th+");
+      
+      /* First pass: collect all spells at this level */
+      for (spell_num = 1; spell_num < NUM_SPELLS; spell_num++) {
+        int spell_circle = compute_spells_circle(ch, spell_class, spell_num, METAMAGIC_NONE, DOMAIN_UNDEFINED);
+        if (spell_circle == spell_level) {
+          if (!spells_found) {
+            send_to_char(ch, "%s", level_header);
+            spells_found = 1;
+          }
+          strncpy(spell_names[spell_count], spell_info[spell_num].name, 49);
+          spell_names[spell_count][49] = '\0'; /* Ensure null termination */
+          spell_count++;
+          if (spell_count >= 100) break; /* Safety limit */
+        }
+      }
+      
+      /* Display spells in 3 columns */
+      if (spells_found) {
+        for (i = 0; i < spell_count; i++) {
+          send_to_char(ch, "  %-25s", spell_names[i]);
+          column_count++;
+          if (column_count >= 3) {
+            send_to_char(ch, "\r\n");
+            column_count = 0;
+          }
+        }
+        if (column_count > 0) {
+          send_to_char(ch, "\r\n");
+        }
+        send_to_char(ch, "\r\n");
+      }
+    }
+    
+    if (max_spell_level < 4) {
+      send_to_char(ch, "You will gain access to higher level spells as your artificer level increases.\r\n");
+    }
+    
+    return;
+  }
+
+  if (is_abbrev(arg1, "usage"))
+  {
+    send_to_char(ch, "Artificer Spell Slot Usage (Level %d):\r\n\r\n", artificer_level);
+    
+    /* Get max allowed circles for this artificer level */
+    int max_circles[4] = {0, 0, 0, 0};
+    for (i = 0; weird_science_table[i].level != -1; i++) {
+      if (weird_science_table[i].level == artificer_level) {
+        for (j = 0; j < 4; j++) max_circles[j] = weird_science_table[i].devices[j];
+        break;
+      } else if (weird_science_table[i].level > artificer_level) {
+        if (i > 0) for (j = 0; j < 4; j++) max_circles[j] = weird_science_table[i-1].devices[j];
+        break;
+      }
+    }
+    if (artificer_level >= 20 && max_circles[0] == 0) {
+      for (j = 0; j < 4; j++) max_circles[j] = weird_science_table[19].devices[j];
+    }
+    
+    /* Count current spell circles used */
+    int used_circles[4] = {0, 0, 0, 0};
+    for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
+      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
+      for (j = 0; j < inv->num_spells; j++) {
+        int spellnum = inv->spell_effects[j];
+        int wizard_level = spell_info[spellnum].min_level[CLASS_WIZARD];
+        int cleric_level = spell_info[spellnum].min_level[CLASS_CLERIC];
+        int spell_level;
+        
+        /* Use the lower of wizard or cleric level (if both are available) */
+        if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT) {
+          spell_level = MIN(wizard_level, cleric_level);
+        } else if (wizard_level < LVL_IMMORT) {
+          spell_level = wizard_level;
+        } else if (cleric_level < LVL_IMMORT) {
+          spell_level = cleric_level;
+        } else {
+          continue; /* Skip spells not available to artificers */
+        }
+        
+        if (spell_level >= 1 && spell_level <= 7) {
+          int circle = (spell_level + 1) / 2 - 1;
+          if (circle >= 0 && circle < 4)
+            used_circles[circle]++;
+        }
+      }
+    }
+    
+    /* Display usage by circle */
+    const char *circle_names[4] = {"1st Circle", 
+                                   "2nd Circle", 
+                                   "3rd Circle", 
+                                   "4th Circle"};
+    
+    int total_used = 0, total_max = 0;
+    for (i = 0; i < 4; i++) {
+      if (max_circles[i] > 0) {
+        send_to_char(ch, "  %s: %d/%d used", circle_names[i], used_circles[i], max_circles[i]);
+        if (used_circles[i] >= max_circles[i]) {
+          send_to_char(ch, " (FULL)");
+        } else if (used_circles[i] >= max_circles[i] * 0.8) {
+          send_to_char(ch, " (Nearly Full)");
+        }
+        send_to_char(ch, "\r\n");
+        total_used += used_circles[i];
+        total_max += max_circles[i];
+      }
+    }
+    
+    send_to_char(ch, "\r\nTotal Spell Slots: %d/%d used\r\n", total_used, total_max);
+    
+    if (total_used < total_max) {
+      send_to_char(ch, "You have %d spell slots available for new inventions.\r\n", total_max - total_used);
+    } else {
+      send_to_char(ch, "All spell slots are in use. Remove inventions to free up slots.\r\n");
+    }
+    
+    return;
+  }
+
+  if (is_abbrev(arg1, "cooldown"))
+  {
+    send_to_char(ch, "Device Cooldown Status:\r\n");
+    int found_any_cooldowns = 0;
+    
+    for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
+      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
+      
+      if (inv->cooldown_expires > time(0)) {
+        found_any_cooldowns = 1;
+        int hours_left = (inv->cooldown_expires - time(0)) / 3600;
+        int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+        int seconds_left = (inv->cooldown_expires - time(0)) % 60;
+        
+        if (hours_left > 0) {
+          send_to_char(ch, "  [%d] %s - COOLDOWN: %d hour%s, %d minute%s, %d second%s\r\n",
+                       i + 1, inv->short_description,
+                       hours_left, (hours_left == 1) ? "" : "s",
+                       minutes_left, (minutes_left == 1) ? "" : "s",
+                       seconds_left, (seconds_left == 1) ? "" : "s");
+        } else if (minutes_left > 0) {
+          send_to_char(ch, "  [%d] %s - COOLDOWN: %d minute%s, %d second%s\r\n",
+                       i + 1, inv->short_description,
+                       minutes_left, (minutes_left == 1) ? "" : "s",
+                       seconds_left, (seconds_left == 1) ? "" : "s");
+        } else {
+          send_to_char(ch, "  [%d] %s - COOLDOWN: %d second%s\r\n",
+                       i + 1, inv->short_description,
+                       seconds_left, (seconds_left == 1) ? "" : "s");
+        }
+      } else {
+        send_to_char(ch, "  [%d] %s - READY\r\n", i + 1, inv->short_description);
+      }
+    }
+    
+    if (ch->player_specials->saved.num_inventions == 0) {
+      send_to_char(ch, "  You have no devices.\r\n");
+    } else if (!found_any_cooldowns) {
+      send_to_char(ch, "  All your devices are ready for use.\r\n");
+    }
+    
+    return;
+  }
+
+  send_to_char(ch, "Unknown device command. Type 'device' for help.\r\n");
+}
+
+/* Event handler for invention creation timing */
+EVENTFUNC(event_devise_progress)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  struct char_data *ch = NULL;
+  
+  pMudEvent = (struct mud_event_data *)event_obj;
+  
+  if (!pMudEvent || !pMudEvent->pStruct) {
+    log("SYSERR: event_devise_progress() called with NULL event data");
+    return 0;
+  }
+  
+  ch = (struct char_data *)pMudEvent->pStruct;
+  
+  if (!ch) {
+    log("SYSERR: event_devise_progress() called with NULL character");
+    return 0;
+  }
+
+  /* Check if the main creation event still exists */
+  struct mud_event_data *creation_event = char_has_mud_event(ch, eDEVISE_CREATION);
+  if (!creation_event) {
+    /* Creation was cancelled or completed, stop progress updates */
+    return 0;
+  }
+
+  /* Get time remaining on creation event */
+  long time_remaining_passes = event_time(creation_event->pEvent);
+  int time_remaining_seconds = time_remaining_passes / PASSES_PER_SEC;
+  
+  /* Format time remaining in a readable way */
+  char time_str[100];
+  if (time_remaining_seconds >= 60) {
+    int minutes = time_remaining_seconds / 60;
+    int seconds = time_remaining_seconds % 60;
+    if (seconds > 0) {
+      snprintf(time_str, sizeof(time_str), "%d minute%s and %d second%s", 
+               minutes, (minutes == 1) ? "" : "s", 
+               seconds, (seconds == 1) ? "" : "s");
+    } else {
+      snprintf(time_str, sizeof(time_str), "%d minute%s", 
+               minutes, (minutes == 1) ? "" : "s");
+    }
+  } else {
+    snprintf(time_str, sizeof(time_str), "%d second%s", 
+             time_remaining_seconds, (time_remaining_seconds == 1) ? "" : "s");
+  }
+
+  /* Parse device information from event data if available */
+  char device_name[MAX_STRING_LENGTH] = "device";
+  if (pMudEvent->sVariables) {
+    /* Parse the invention data from the event variables */
+    char invention_data[MAX_STRING_LENGTH];
+    strcpy(invention_data, pMudEvent->sVariables);
+    
+    char *spells_part = strtok(invention_data, "|");
+    char *num_spells_str = strtok(NULL, "|");
+    
+    if (spells_part && num_spells_str) {
+      int num_spells = atoi(num_spells_str);
+      
+      /* Parse the spell numbers */
+      int spell_nums[MAX_INVENTION_SPELLS];
+      char *spell_token = strtok(spells_part, ",");
+      int i = 0;
+      
+      while (spell_token && i < num_spells && i < MAX_INVENTION_SPELLS) {
+        spell_nums[i] = atoi(spell_token);
+        spell_token = strtok(NULL, ",");
+        i++;
+      }
+      
+      if (i == num_spells && num_spells > 0) {
+        /* Build spell list for device name */
+        int j;
+        strcpy(device_name, spell_info[spell_nums[0]].name);
+        for (j = 1; j < num_spells; j++) {
+          strcat(device_name, "/");
+          strcat(device_name, spell_info[spell_nums[j]].name);
+        }
+        strcat(device_name, " device");
+      }
+    }
+  }
+
+  /* Show progress message */
+  send_to_char(ch, "You continue working on your %s, carefully assembling the components... (%s remaining) Type device create cancel to stop.\r\n", device_name, time_str);
+  act("$n continues working intently on $s invention.", TRUE, ch, 0, 0, TO_ROOM);
+
+  /* Schedule next progress update in 10 seconds */
+  attach_mud_event(new_mud_event(eDEVISE_PROGRESS, ch, pMudEvent->sVariables), 10 * PASSES_PER_SEC);
+  
+  return 0;
+}
+
+EVENTFUNC(event_devise_creation)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  struct char_data *ch = NULL;
+  
+  pMudEvent = (struct mud_event_data *)event_obj;
+  
+  if (!pMudEvent || !pMudEvent->pStruct) {
+    log("SYSERR: event_devise_creation() called with NULL event data");
+    return 0;
+  }
+  
+  ch = (struct char_data *)pMudEvent->pStruct;
+  
+  if (!ch) {
+    log("SYSERR: event_devise_creation() called with NULL character");
+    return 0;
+  }
+  
+  /* Parse the invention data from the event variables */
+  if (!pMudEvent->sVariables) {
+    send_to_char(ch, "Your invention creation process was interrupted due to missing data.\r\n");
+    return 0;
+  }
+  
+  /* The invention data is stored in sVariables as a formatted string:
+   * "spell1,spell2,spell3|num_spells|duration|reliability" */
+  char invention_data[MAX_STRING_LENGTH];
+  strcpy(invention_data, pMudEvent->sVariables);
+  
+  char *spells_part = strtok(invention_data, "|");
+  char *num_spells_str = strtok(NULL, "|");
+  char *duration_str = strtok(NULL, "|");
+  char *reliability_str = strtok(NULL, "|");
+  
+  if (!spells_part || !num_spells_str || !duration_str || !reliability_str) {
+    send_to_char(ch, "Your invention creation process was interrupted due to corrupted data.\r\n");
+    return 0;
+  }
+  
+  int num_spells = atoi(num_spells_str);
+  int duration = atoi(duration_str);
+  int reliability = atoi(reliability_str);
+  
+  /* Parse the spell numbers */
+  int spell_nums[MAX_INVENTION_SPELLS];
+  char *spell_token = strtok(spells_part, ",");
+  int i = 0;
+  
+  while (spell_token && i < num_spells) {
+    spell_nums[i] = atoi(spell_token);
+    spell_token = strtok(NULL, ",");
+    i++;
+  }
+  
+  if (i != num_spells) {
+    send_to_char(ch, "Your invention creation process was interrupted due to spell data corruption.\r\n");
+    return 0;
+  }
+  
+  /* Final validation - check if player still has space for the invention */
+  if (ch->player_specials->saved.num_inventions >= MAX_PLAYER_INVENTIONS) {
+    send_to_char(ch, "Your workshop is too cluttered! Remove an invention before completing this one.\r\n");
+    return 0;
+  }
+  
+  /* Create the invention */
+  struct player_invention *inv = &ch->player_specials->saved.inventions[ch->player_specials->saved.num_inventions];
+  
+  /* Build spell list for descriptions */
+  char spell_list[MAX_STRING_LENGTH * 4];
+  strcpy(spell_list, spell_info[spell_nums[0]].name);
+  for (i = 1; i < num_spells; i++) {
+    strcat(spell_list, "/");
+    strcat(spell_list, spell_info[spell_nums[i]].name);
+  }
+  
+  /* Set invention properties */
+  snprintf(inv->short_description, MAX_INVENTION_SHORTDESC, "a %s device", spell_list);
+  
+  /* Limit spell name length for keywords to prevent truncation */
+  char keyword_spell[50];
+  strncpy(keyword_spell, spell_info[spell_nums[0]].name, 49);
+  keyword_spell[49] = '\0';
+  snprintf(inv->keywords, MAX_INVENTION_KEYWORDS, "%s device", keyword_spell);
+  
+  /* Use temporary buffer to avoid overlap warning */
+  char temp_desc[MAX_INVENTION_SHORTDESC];
+  strncpy(temp_desc, inv->short_description, sizeof(temp_desc) - 1);
+  temp_desc[sizeof(temp_desc) - 1] = '\0';
+  snprintf(inv->long_description, MAX_INVENTION_LONGDESC, 
+           "A %s is here, humming with weird science energy.", temp_desc);
+  
+  /* Set spell effects */
+  for (i = 0; i < num_spells; i++) {
+    inv->spell_effects[i] = spell_nums[i];
+  }
+  inv->num_spells = num_spells;
+  inv->duration = duration;
+  inv->reliability = reliability;
+  inv->uses = 0;             /* Initialize uses to 0 */
+  inv->cooldown_expires = 0; /* Initialize cooldown to none */
+  
+  ch->player_specials->saved.num_inventions++;
+  
+  send_to_char(ch, "\tW*DING*\tn Your invention is complete! You have crafted: %s\tn\r\n", 
+               inv->short_description);
+  act("$n finishes working on an invention, which sparks to life with weird energy!", 
+      TRUE, ch, 0, 0, TO_ROOM);
+  
+  /* Save the character data */
+  save_char(ch, 0);
+  
+  return 0;
+}
+
 
 /* undefines */
 #undef DEBUG_MODE

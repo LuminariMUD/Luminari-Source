@@ -19,6 +19,8 @@
 #include "region_hints.h"
 #include "wilderness.h"
 
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+
 /* External function declarations */
 extern struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y);
 extern void free_region_list(struct region_list *regions);
@@ -508,3 +510,5 @@ char *get_hint_category_name(int category) {
         default: return "unknown";
     }
 }
+
+#endif

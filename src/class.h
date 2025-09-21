@@ -118,6 +118,7 @@ byte saving_throws(struct char_data *, int type);
 int BAB(struct char_data *ch);
 const char *titles(int chclass, int level);
 int modify_class_ability(struct char_data *ch, int ability, int class);
+int is_class_skill(struct char_data *ch, int ability);
 void init_class(struct char_data *ch, int class, int level);
 void load_class_list(void);
 extern int level_feats[][LEVEL_FEATS];

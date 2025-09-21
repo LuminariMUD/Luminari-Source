@@ -2396,7 +2396,7 @@ static void main_skills_disp_menu(struct descriptor_data *d)
       send_to_char(ch, "%-18s [%2d] \tC[%2d]\tn %s\r\n",
                  ability_names[skills_alphabetic[i]], GET_ABILITY(ch, skills_alphabetic[i]) + LEVELUP(ch)->skills[skills_alphabetic[i]], 
                  compute_ability(ch, skills_alphabetic[i]),
-                 cross_names[modify_class_ability(ch, skills_alphabetic[i], GET_CLASS(ch))]);
+                 cross_names[is_class_skill(ch, skills_alphabetic[i])]);
     }
 
   send_to_char(ch, "Please type quit or the name of the skill you wish to increase in rank: ");
@@ -3221,7 +3221,9 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
 
     // skill not available to this class
-    if (modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 0)
+    int skill_type = is_class_skill(ch, skill_num);
+    
+    if (skill_type == 0)
     {
       send_to_char(ch, "This skill is not available to your class...\r\n");
       send_to_char(d->character, "Your choice (quit or skill to improve) : ");
@@ -3229,13 +3231,13 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
 
     // cross-class skill
-    if (GET_LEVELUP_SKILL_POINTS(ch) < 2 && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1)
+    if (GET_LEVELUP_SKILL_POINTS(ch) < 2 && skill_type == 1)
     {
       send_to_char(ch, "(Cross-Class) You don't have enough skill points to train that skill...\r\n");
       send_to_char(d->character, "Your choice (quit or skill to improve) : ");
       return;
     }
-    if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1)
+    if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && skill_type == 1)
     {
       send_to_char(ch, "You are already fully trained for your level in that area.\r\n");
       send_to_char(d->character, "Your choice (quit or skill to improve) : ");
@@ -3243,7 +3245,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
 
     // class skill
-    if (GET_LEVELUP_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 2)
+    if (GET_LEVELUP_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3) && skill_type == 2)
     {
       send_to_char(ch, "You are already fully trained for your level in that area.\r\n");
       send_to_char(d->character, "Your choice (quit or skill to improve) : ");
@@ -3253,7 +3255,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     send_to_char(ch, "You train for a while...\r\n");
     GET_LEVELUP_SKILL_POINTS(ch)
     --;
-    if (modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1)
+    if (skill_type == 1)
     {
       GET_LEVELUP_SKILL_POINTS(ch)
       --;
@@ -3266,7 +3268,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       send_to_char(ch, "You are now fully trained for your level in that area.\r\n");
     if (skill_num == ABILITY_STEALTH && HAS_REAL_FEAT(ch, FEAT_PRACTICED_SNEAK))
       ;
-    else if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && CLSLIST_ABIL(GET_CLASS(ch), skill_num) == 1)
+    else if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && is_class_skill(ch, skill_num) == 1)
       send_to_char(ch, "You are already fully trained for your level in that area.\r\n");
 
     main_skills_disp_menu(d);

@@ -34,7 +34,7 @@
 #define MAX_ABILITIES 200 /* Used in char_file_u *DO*NOT*CHANGE* */
 #define MAX_AFFECT 32     /* Used in char_file_u *DO*NOT*CHANGE* */
 #define MAX_TYPES 800     /* Used in char_file_u *DO*NOT*CHANGE* */
-#define MAX_CLASSES 37
+#define MAX_CLASSES 38
 #define MAX_WARDING 10
 // Memorization
 //#define NUM_SLOTS       13  //theoretical max num slots per circle

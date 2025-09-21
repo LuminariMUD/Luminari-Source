@@ -2714,7 +2714,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     return 1;
 
   // resistances to magic, message in mag_resistance
-  if (dam && mag_resist)
+  if (dam && mag_resist && casttype != CAST_DEVICE)
   {
     if (process_iron_golem_immunity(ch, victim, element, dam))
       ;
@@ -2940,7 +2940,7 @@ bool passed_poison_checks(struct char_data *ch, struct char_data *victim, int ca
       send_to_char(ch, "Your opponent doesn't seem susceptible to poison.\r\n");
       return true;
     }
-    if (casttype != CAST_INNATE && mag_resistance(ch, victim, 0))
+    if (casttype != CAST_INNATE && casttype != CAST_DEVICE && mag_resistance(ch, victim, 0))
       return true;
     int bonus = get_poison_save_mod(ch, victim);
     if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT))

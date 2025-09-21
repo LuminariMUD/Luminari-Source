@@ -102,6 +102,14 @@
  */
 /* #define USE_NEW_CRAFTING_SYSTEM */
 
+// One of these two must be chosen.
+// basic materials means that each type of material (iron, steel, mithril, etc) has a static quality
+// variable quality means that each time materials are harvested, their quality can vary, such as 
+// iron of a quality 1.5 or 0.6 or 1.8 with the quality affecting crafting success and degree
+// Variable quality requires the use of wilderness maps
+// #define USE_BASIC_MATERIALS
+#define USE_VARIABLE_QUALITY_MATERIALS
+
 /* ************************************************************************
  * Available Races Configuration
  * 

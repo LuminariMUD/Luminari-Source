@@ -53,15 +53,12 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 #if defined(ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS) && defined(WILDERNESS_RESOURCE_DEPLETION_SYSTEM)
 	/* Use new resource-aware descriptions for Luminari campaign */
 	if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room))) {
-		log("DEBUG: Generating dynamic description for wilderness room %d", GET_ROOM_VNUM(room));
-		
 		/* Try unified narrative weaver system first */
 		int x = world[room].coords[0];
 		int y = world[room].coords[1];
 		zone_rnum zone = GET_ROOM_ZONE(room);
 		char *unified_desc = enhanced_wilderness_description_unified(ch, room, zone, x, y);
 		if (unified_desc) {
-			log("DEBUG: Unified narrative description generated successfully for (%d, %d)", x, y);
 			return unified_desc;
 		}
 		

@@ -1475,6 +1475,9 @@ void char_from_furniture(struct char_data *ch);
 #define GET_OUTFIT_TYPE(ch) (ch->player_specials->outfit_type)
 #define GET_OUTFIT_CONFIRM(ch) (ch->player_specials->outfit_confirmation)
 
+#define GET_DEVICE_DESTROY_CONFIRM(ch) (ch->player_specials->device_destroy_confirm)
+#define GET_DEVICE_DESTROY_INV_IDX(ch) (ch->player_specials->device_destroy_inv_idx)
+
 #define IS_SHIELD(type) (type == SPEC_ARMOR_TYPE_BUCKLER || type == SPEC_ARMOR_TYPE_SMALL_SHIELD || \
                          type == SPEC_ARMOR_TYPE_LARGE_SHIELD || type == SPEC_ARMOR_TYPE_TOWER_SHIELD)
 
@@ -2077,6 +2080,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_KNIGHT_OF_THE_SKULL(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL))
 #define IS_KNIGHT_OF_THE_LILY(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY))
 #define IS_DRAGONRIDER(ch) (CLASS_LEVEL(ch, CLASS_DRAGONRIDER))
+#define IS_ARTIFICER(ch) (CLASS_LEVEL(ch, CLASS_ARTIFICER))
 
 #define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT ||                                                          \
                        IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
@@ -2138,7 +2142,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_H_ORC(ch) (!IS_NPC(ch) && \
                       (GET_RACE(ch) == RACE_H_ORC))
 #define IS_GNOME(ch) (!IS_NPC(ch) && \
-                      (GET_RACE(ch) == RACE_GNOME || GET_RACE(ch) == RACE_FOREST_GNOME))
+                      (GET_RACE(ch) == RACE_GNOME || GET_RACE(ch) == RACE_FOREST_GNOME || GET_RACE(ch) == DL_RACE_GNOME))
 #define IS_ARCANA_GOLEM(ch) (!IS_NPC(ch) && \
                              (GET_RACE(ch) == RACE_ARCANA_GOLEM))
 #define IS_ARCANE_GOLEM(ch) (!IS_NPC(ch) && \
@@ -2280,9 +2284,9 @@ int ACTUAL_BAB(struct char_data *ch);
 
 #define KNOWS_MERCY(ch, i) (ch->player_specials->saved.paladin_mercies[i])
 #define KNOWS_CRUELTY(ch, i) (ch->player_specials->saved.blackguard_cruelties[i])
-#define FIENDISH_BOON_ACTIVE(ch, i) (IS_SET(ch->player_specials->saved.fiendish_boons, FLAG(i)))
-#define SET_FIENDISH_BOON(ch, i) (SET_BIT(ch->player_specials->saved.fiendish_boons, FLAG(i)))
-#define REMOVE_FIENDISH_BOON(ch, i) (REMOVE_BIT(ch->player_specials->saved.fiendish_boons, FLAG(i)))
+#define FIENDISH_BOON_ACTIVE(ch, i) (IS_SET(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
+#define SET_FIENDISH_BOON(ch, i) (SET_BIT(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
+#define REMOVE_FIENDISH_BOON(ch, i) (REMOVE_BIT(ch->player_specials->saved.active_fiendish_boons, FLAG(i)))
 
 /** Defines if ch is outdoors or not. */
 #define OUTDOORS(ch) (is_outdoors(ch))

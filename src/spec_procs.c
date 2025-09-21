@@ -917,6 +917,17 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value += 1;
   }
 
+  if (HAS_FEAT(ch, FEAT_ELBOW_GREASE) && is_crafting_skill(abilityNum))
+  {
+    int artificer_level = CLASS_LEVEL(ch, CLASS_ARTIFICER);
+    if (artificer_level >= 10)
+      value += 6;
+    else if (artificer_level >= 6)
+      value += 4;
+    else if (artificer_level >= 1)
+      value += 2;
+  }
+
   if (HAS_FEAT(ch, FEAT_BG_SAILOR) && abilityNum == ABILITY_CRAFT_FISHING)
     value += 5;
 
@@ -930,6 +941,25 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value += SONG_AFF_VAL(ch);
   if (HAS_FEAT(ch, FEAT_ABLE_LEARNER))
     value += 1;
+  
+  /* Jack of All Trades feat bonuses */
+  if (HAS_FEAT(ch, FEAT_EXEMPLAR))
+  {
+    /* Exemplar: +1/2 artificer level to all skills */
+    int artificer_level = CLASS_LEVEL(ch, CLASS_ARTIFICER);
+    value += artificer_level / 2;
+  }
+  else if (HAS_FEAT(ch, FEAT_IMPROVED_JACK_OF_ALL_TRADES))
+  {
+    /* Improved Jack of All Trades: +6 to all skills */
+    value += 6;
+  }
+  else if (HAS_FEAT(ch, FEAT_JACK_OF_ALL_TRADES))
+  {
+    /* Jack of All Trades: +3 to all skills */
+    value += 3;
+  }
+  
   if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_SKILL_FOCUS)))
     value += 3;
   if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_EPIC_SKILL_FOCUS)))
@@ -1367,6 +1397,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   case ABILITY_SURVIVAL:
     value += GET_WIS_BONUS(ch);
     if (HAS_FEAT(ch, FEAT_SURVIVAL_INSTINCT))  value += 3;
+    if (HAS_FEAT(ch, FEAT_ARTIFICERS_LORE))
+      value += 2;
     if (HAS_FEAT(ch, FEAT_SELF_SUFFICIENT))
     {
       /* Unnamed bonus */

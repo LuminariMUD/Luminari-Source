@@ -666,6 +666,7 @@ const char *class_names[] = {
     "Knight of the Howling Moon", // 35 (Lily)
 #endif
     "Dragon Rider",
+    "Artificer",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -5497,6 +5498,7 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                        // knight of the skull 34
     {"", "", "", ""},                                        // knight of the lily 35
     {"", "", "", ""},                                        // dragonrider 36
+    {"", "", "", ""},                                        // artificer 37
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -5545,6 +5547,7 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                        // knight of the skull 34
     {"", "", "", ""},                                        // knight of the lily 35
     {"", "", "", ""},                                        // dragonrider 36
+    {"", "", "", ""},                                        // artificer 37
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -6124,6 +6127,7 @@ const char *class_short_descriptions[] = {
     "Primal warriors embracing their beast nature, guardians of civilization's boundary.",                        // knight of the howling moon (lily)
 #endif
     "A skilled warrior whose bond with their dragon mount offers numerous special abilities.",                    // dragonrider
+    "A brilliant inventor whose creations cancause destruction, protection and more.",                           // artificer
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 
@@ -6839,6 +6843,31 @@ const char * wilderness_system_options [] = {
     "Manually Created",
     "Algorithm-Created (WildEdit Tool)",
     "\n"
+};
+
+/* Artificer Weird Science progression table */
+const struct weird_science_level weird_science_table[] = {
+    {1,  {1, 0, 0, 0}},   /* 1st level */
+    {2,  {2, 0, 0, 0}},   /* 2nd level */
+    {3,  {2, 1, 0, 0}},   /* 3rd level */
+    {4,  {3, 1, 0, 0}},   /* 4th level */
+    {5,  {3, 1, 1, 0}},   /* 5th level */
+    {6,  {3, 2, 1, 0}},   /* 6th level */
+    {7,  {3, 2, 2, 0}},   /* 7th level */
+    {8,  {4, 2, 2, 0}},   /* 8th level */
+    {9,  {4, 3, 2, 0}},   /* 9th level */
+    {10, {4, 3, 3, 0}},   /* 10th level */
+    {11, {4, 3, 3, 1}},   /* 11th level */
+    {12, {5, 4, 3, 1}},   /* 12th level */
+    {13, {5, 4, 4, 1}},   /* 13th level */
+    {14, {5, 4, 4, 2}},   /* 14th level */
+    {15, {5, 5, 4, 2}},   /* 15th level */
+    {16, {5, 5, 4, 3}},   /* 16th level */
+    {17, {5, 5, 5, 3}},   /* 17th level */
+    {18, {5, 5, 5, 4}},   /* 18th level */
+    {19, {5, 5, 5, 4}},   /* 19th level */
+    {20, {5, 5, 5, 5}},   /* 20th level */
+    {-1, {0, 0, 0, 0}}    /* End marker */
 };
 
 /* --- End of constants arrays. --- */

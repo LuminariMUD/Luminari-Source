@@ -12,8 +12,9 @@
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
 
+#include <time.h>     /* for time_t */
+#include <stddef.h>   /* for size_t */
 #include "bool.h"     /* for bool */
-
 #include "protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
@@ -459,6 +460,7 @@
 #define CLASS_KNIGHT_OF_THE_SKULL 34
 #define CLASS_KNIGHT_OF_THE_LILY 35
 #define CLASS_DRAGONRIDER 36
+#define CLASS_ARTIFICER 37
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -467,12 +469,12 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 37
+#define NUM_CLASSES 38
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
-#define MAX_CLASSES 37 // total number of maximum pc classes
+#define MAX_CLASSES 38 // total number of maximum pc classes
 #define NUM_CASTERS 9  // direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2
@@ -2905,11 +2907,24 @@
 #define FEAT_BOZAK_SPELLCASTING 1243
 #define FEAT_BOZAK_LIGHTNING_DISCHARGE 1244
 
-/**************/
+// artificer class abilities
+#define FEAT_ELBOW_GREASE 1245
+#define FEAT_JACK_OF_ALL_TRADES 1246
+#define FEAT_WEIRD_SCIENCE 1247
+#define FEAT_ARTIFICER_ITEM_CREATION 1248
+#define FEAT_SALVAGE 1249
+#define FEAT_METAMAGIC_SCIENCE 1250
+#define FEAT_IMPROVED_METAMAGIC_SCIENCE 1251
+#define FEAT_IMPROVED_JACK_OF_ALL_TRADES 1252
+#define FEAT_EXEMPLAR 1253
+
+#define FEAT_GNOMISH_TINKERING                  1254
+#define FEAT_BRILLIANCE_AND_BLUNDER 1255
+
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1245
+#define FEAT_LAST_FEAT 1256
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1246
+#define NUM_FEATS 1257
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4036,6 +4051,13 @@
 
 #define NUM_ELDRITCH_BLAST_COOLDOWNS                11
 
+/* invention system */
+#define MAX_PLAYER_INVENTIONS 10
+#define MAX_INVENTION_KEYWORDS 64
+#define MAX_INVENTION_SHORTDESC 80
+#define MAX_INVENTION_LONGDESC 256
+#define MAX_INVENTION_SPELLS 4
+
 /* Staff Ran Event */
 #define STAFF_RAN_EVENTS_VAR 300 /* values saved for staff events on player */
 
@@ -4360,6 +4382,23 @@ struct obj_weapon_poison
     int poison_hits;  /* how many times the poison will fire off the weapon */
 };
 
+// Supply contract structure for slot-based system
+struct supply_contract {
+    int contract_id;
+    int contract_type;
+    int recipe;
+    int variant;
+    int quantity;
+    int reward;
+    int difficulty_modifier;
+    char *description;
+    char *requirements;
+    int time_limit;  // in real hours, 0 = no limit
+    int reputation_requirement;
+    int quality_tier_requirement;
+    time_t expiration_time;
+};
+
 struct crafting_data_info
 {
     // craft info
@@ -4401,6 +4440,19 @@ struct crafting_data_info
 
     // supply order info
     int supply_num_required;
+    int supply_contract_type;
+    int supply_reputation_points;
+    time_t supply_contract_expiration;
+    int supply_quality_tier_requirement;
+    bool has_supply_order_active;               // New field to track active supply orders
+    int supply_active_slot;                     // Which slot index is currently being worked (-1 if none)
+    
+    // supply order slot system
+    struct supply_contract supply_slots[5];     // 5 persistent supply order slots
+    bool supply_slot_active[5];                 // Which slots are occupied
+    time_t supply_slot_cooldowns[5];            // Individual cooldowns for each slot (when taken/abandoned)
+    time_t supply_slots_last_refresh;           // When slots were last refreshed
+    time_t supply_slots_next_refresh;           // When next refresh is available
 
     // surveying;
     int survey_rooms;
@@ -4983,7 +5035,18 @@ struct material_storage {
     int quantity;               /* Amount stored */
 };
 
-/** Data only needed by PCs, and needs to be saved to disk. */
+struct player_invention {
+    char keywords[MAX_INVENTION_KEYWORDS];
+    char short_description[MAX_INVENTION_SHORTDESC];
+    char long_description[MAX_INVENTION_LONGDESC];
+    int spell_effects[MAX_INVENTION_SPELLS]; /* spell vnums or IDs */
+    int num_spells;
+    int duration;
+    int reliability;
+    int uses;                 /* Number of times this device has been used */
+    time_t cooldown_expires;  /* Individual device cooldown timestamp */
+};
+
 struct player_special_data_saved
 {
     int skills[MAX_SKILLS + 1];         // saved skills
@@ -5143,7 +5206,7 @@ struct player_special_data_saved
     int holy_weapon_type;                               // type of weapon to use withn holy weapon spell, also known as holy sword spell
     int paladin_mercies[NUM_PALADIN_MERCIES];           // stores a paladin's mercies known
     int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES]; // stores a blackguard's mercies known
-    int fiendish_boons;                                 // active fiendish boons by blackguard
+    int active_fiendish_boons;                          // active fiendish boons by blackguard
     int channel_energy_type;                            // neutral clerics must decide either positive or negative
     int deity;                                          // what deity does the person follow?
     int languages_known[NUM_LANGUAGES]; // languages known by the character
@@ -5211,6 +5274,19 @@ struct player_special_data_saved
     byte score_info_density;      /**< Information density (0=full, 1=compact, 2=minimal) */
     byte score_layout_template;   /**< Layout template (0=default, 1=combat, 2=roleplay, 3=explorer, 4=caster) */
     byte score_section_order[8];  /**< Custom section ordering for score display */
+
+    /* Device destruction tracking to prevent abuse */
+    time_t last_device_destruction;    /**< Timestamp of last device destruction */
+    int devices_destroyed_today;       /**< Number of devices destroyed in past 24 hours */
+    time_t device_creation_cooldown;   /**< Timestamp until when device creation is blocked */
+
+    struct player_invention inventions[MAX_PLAYER_INVENTIONS];
+    int num_inventions;
+};
+
+struct weird_science_level {
+	int level;
+	int devices[4]; /* Max devices at spell levels 1-4 */
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -5303,6 +5379,10 @@ struct player_special_data
     bool surveyed_room;
 
     char *clan_leave_code;
+    
+    /* Device destroy confirmation */
+    char *device_destroy_confirm;
+    int device_destroy_inv_idx;
 };
 
 /** Special data used by NPCs, not PCs */
