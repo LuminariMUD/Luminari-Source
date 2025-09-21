@@ -4,6 +4,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "bool.h"
 #include "mysql.h"
 #include "utils.h"
 #include "comm.h"
@@ -28,6 +29,13 @@
 #include "feats.h"
 #include "class.h"
 #include "improved-edit.h"
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE  
+#define FALSE 0
+#endif
 #include "vnums.h"
 #include "crafting_recipes.h"
 
@@ -80,12 +88,16 @@ int materials_sort_info[NUM_CRAFT_MATS];
                                         "To reset a bonus slot type: craft bonus [slot] reset\r\n"
 
 #define SUPPLY_ORDER_NOARG1 "Please specify what supply order action you'd like to take.\r\n" \
-                            "supplyorder request : Request a new supply order project.\r\n" \
-                            "supplyorder info    : Show information on current supply order project.\r\n" \
-                            "supplyorder material: Add materials to current project\r\n" \
-                            "supplyorder reset   : Reset current supply order project to default values.\r\n" \
-                            "supplyorder complete: Turn in a completed supply order for reward.\r\n" \
-                            "supplyorder abandon : Cancel existing supply order project entirely.\r\n" \
+                            "supplyorder list       : List all available supply order contracts.\r\n" \
+                            "supplyorder select <id>: Select a specific contract by ID number.\r\n" \
+                            "supplyorder request    : Request a random supply order project.\r\n" \
+                            "supplyorder show       : Show information on current supply order project.\r\n" \
+                            "supplyorder start      : Begin working on your supply order.\r\n" \
+                            "supplyorder material   : Add/remove materials (add [material] or remove).\r\n" \
+                            "supplyorder complete   : Turn in a completed supply order for reward.\r\n" \
+                            "supplyorder reset      : Reset current supply order project.\r\n" \
+                            "supplyorder abandon    : Cancel existing supply order project entirely.\r\n" \
+                            "supplyorder cooldown   : Display timing information and cooldowns.\r\n" \
                             "\r\n"
 
 #define HARVEST_NODE_PERCENT_CHANCE         33
@@ -106,6 +118,15 @@ int materials_sort_info[NUM_CRAFT_MATS];
 #define NSUPPLY_ORDER_NUM_REQUIRED           5
 #define NSUPPLY_ORDER_BASE_EXP              50
 
+// Supply order enhancement constants
+#define SUPPLY_BASE_REWARD                  100
+#define SUPPLY_MATERIAL_BONUS_MULTIPLIER    25
+#define SUPPLY_SKILL_BONUS_MULTIPLIER       2
+#define SUPPLY_QUANTITY_BONUS               10
+#define SUPPLY_RUSH_BONUS_MULTIPLIER        150  // 50% bonus for rush orders
+#define SUPPLY_BULK_BONUS_MULTIPLIER        75   // -25% per item but more total
+#define SUPPLY_QUALITY_BONUS_MULTIPLIER     200  // 100% bonus for quality orders
+
 #define CRAFT_MOTES_REQ_30  80
 #define CRAFT_MOTES_REQ_25  60
 #define CRAFT_MOTES_REQ_20  40
@@ -113,6 +134,13 @@ int materials_sort_info[NUM_CRAFT_MATS];
 #define CRAFT_MOTES_REQ_10  15
 #define CRAFT_MOTES_REQ_5   8
 #define CRAFT_MOTES_REQ_1   3
+
+// Contract generation functions - structure defined in crafting_new.h
+struct supply_contract *generate_available_contracts(struct char_data *ch, int *num_contracts);
+void free_contract_list(struct supply_contract *contracts, int num_contracts);
+int select_contract_by_id(struct char_data *ch, int contract_id);
+int reject_contract_by_id(struct char_data *ch, int contract_id);
+void update_supply_slots_for_all_players(void);
 
 
 
@@ -488,17 +516,17 @@ bool will_room_have_harvest_materials(room_rnum room)
 {
 
     if (room == NOWHERE)
-        return false;
+        return FALSE;
 
     if (ROOM_FLAGGED(room, ROOM_HARVEST_NODE))
-        return true;
+        return TRUE;
 
     int chance = HARVEST_NODE_PERCENT_CHANCE;
 
     if (dice(1, 100) <= chance)
-        return true;
+        return TRUE;
 
-    return false;
+    return FALSE;
 }
 
 bool is_valid_harvesting_sector(int sector)
@@ -525,22 +553,22 @@ bool is_valid_harvesting_sector(int sector)
         // case SECT_WATER_SWIM:
         // case SECT_WATER_NOSWIM:
         // case SECT_UNDERWATER: 
-            return true;
+            return TRUE;
     }
-    return false;
+    return FALSE;
 }
 
 bool room_has_harvest_materials(room_rnum room)
 {
-    if (room == NOWHERE) return false;
+    if (room == NOWHERE) return FALSE;
 
     int i = 0;
 
     for (i = 1; i < NUM_CRAFT_MATS; i++)
         if (world[room].harvest_material > 0)
-            return true;
+            return TRUE;
 
-    return false;
+    return FALSE;
 }
 
 void wipe_room_harvest_materials(room_rnum room)
@@ -659,7 +687,7 @@ int craft_group_by_material(int material)
 
 void survey_complete(struct char_data *ch)
 {
-    ch->player_specials->surveyed_room = true;
+    ch->player_specials->surveyed_room = TRUE;
     if (world[IN_ROOM(ch)].harvest_material != CRAFT_MAT_NONE && world[IN_ROOM(ch)].harvest_material_amount > 0)
     {
         if (GET_LEVEL(ch) >= LVL_IMMORT)
@@ -726,6 +754,7 @@ void set_crafting_itemtype(struct char_data *ch, char *arg2)
     }
 
     GET_CRAFT(ch).crafting_item_type = i;
+    GET_CRAFT(ch).craft_variant = -1; // Initialize variant to "not set"
 
 }
 
@@ -741,9 +770,9 @@ bool is_valid_craft_weapon(int weapon)
         case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
         case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
         case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
-            return false;
+            return FALSE;
     }
-    return true;
+    return TRUE;
 }
 
 void craft_show_weapon_types(struct char_data *ch)
@@ -1135,9 +1164,9 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
             return;
         }
 
-        mote_type = get_crafting_instrument_motes(ch, 1, false);
+        mote_type = get_crafting_instrument_motes(ch, 1, FALSE);
         have = GET_CRAFT_MOTES(ch, mote_type);
-        required = get_crafting_instrument_motes(ch, 1, true);
+        required = get_crafting_instrument_motes(ch, 1, TRUE);
         method = 3;
     }
     else if (is_abbrev(arg2, "effectiveness"))
@@ -1148,9 +1177,9 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
             return;
         }
 
-        mote_type = get_crafting_instrument_motes(ch, 2, false);
+        mote_type = get_crafting_instrument_motes(ch, 2, FALSE);
         have = GET_CRAFT_MOTES(ch, mote_type);
-        required = get_crafting_instrument_motes(ch, 2, true);
+        required = get_crafting_instrument_motes(ch, 2, TRUE);
         method = 4;
     }
     else if (is_abbrev(arg2, "breakability"))
@@ -1161,9 +1190,9 @@ void set_crafting_motes(struct char_data *ch, const char *argument)
             return;
         }
 
-        mote_type = get_crafting_instrument_motes(ch, 3, false);
+        mote_type = get_crafting_instrument_motes(ch, 3, FALSE);
         have = GET_CRAFT_MOTES(ch, mote_type);
-        required = get_crafting_instrument_motes(ch, 3, true);
+        required = get_crafting_instrument_motes(ch, 3, TRUE);
         method = 5;
     }
     else
@@ -1326,7 +1355,7 @@ int get_crafting_instrument_dc_modifier(struct char_data *ch)
 }
 
 // type is the object value associated with the query: 1 = quality, 2 = effectiveness, 3 = breakability
-// get_amount is false if you want to get the type of mote, or true if you want to get the number of motes
+// get_amount is FALSE if you want to get the type of mote, or TRUE if you want to get the number of motes
 int get_crafting_instrument_motes(struct char_data *ch, int type, bool get_amount)
 {
     switch (type)
@@ -1938,7 +1967,7 @@ void show_current_craft(struct char_data *ch)
     char extra_desc[MAX_EXTRA_DESC+5];
     char spectext[100];
     int i = 0;
-    bool found = false;
+    bool found = FALSE;
     int base_group= 0;
     int base_amount = 0;
     int project_material = 0;
@@ -2028,11 +2057,11 @@ void show_current_craft(struct char_data *ch)
         send_to_char(ch, "\r\n");
         send_to_char(ch, "\tc   INSTRUMENT INFO:\tn\r\n");
         send_to_char(ch, "-- quality       : %d (motes: %2d/%2d %s%s)\r\n", GET_CRAFT(ch).instrument_quality, GET_CRAFT(ch).instrument_motes[1],
-            get_crafting_instrument_motes(ch, 1, true), crafting_motes[get_crafting_instrument_motes(ch, 1, false)], get_crafting_instrument_motes(ch, 1, true) == 1 ? "" : "s");
+            get_crafting_instrument_motes(ch, 1, TRUE), crafting_motes[get_crafting_instrument_motes(ch, 1, FALSE)], get_crafting_instrument_motes(ch, 1, TRUE) == 1 ? "" : "s");
         send_to_char(ch, "-- effectiveness : %d (motes: %2d/%2d %s%s)\r\n", GET_CRAFT(ch).instrument_effectiveness,  GET_CRAFT(ch).instrument_motes[2],
-            get_crafting_instrument_motes(ch, 2, true), crafting_motes[get_crafting_instrument_motes(ch, 2, false)], get_crafting_instrument_motes(ch, 1, true) == 2 ? "" : "s");
+            get_crafting_instrument_motes(ch, 2, TRUE), crafting_motes[get_crafting_instrument_motes(ch, 2, FALSE)], get_crafting_instrument_motes(ch, 1, TRUE) == 2 ? "" : "s");
         send_to_char(ch, "-- breakability  : %d (motes: %2d/%2d %s%s)\r\n", GET_CRAFT(ch).instrument_breakability,  GET_CRAFT(ch).instrument_motes[3],
-            get_crafting_instrument_motes(ch, 3, true), crafting_motes[get_crafting_instrument_motes(ch, 3, false)], get_crafting_instrument_motes(ch, 1, true) == 3 ? "" : "s");
+            get_crafting_instrument_motes(ch, 3, TRUE), crafting_motes[get_crafting_instrument_motes(ch, 3, FALSE)], get_crafting_instrument_motes(ch, 1, TRUE) == 3 ? "" : "s");
     }
 
     if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON || GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_ARMOR)
@@ -2051,7 +2080,7 @@ void show_current_craft(struct char_data *ch)
     {
         if (GET_CRAFT(ch).affected[i].location != APPLY_NONE)
         {
-            found = true;
+            found = TRUE;
             snprintf(spectext, sizeof(spectext), " ");
             switch (GET_CRAFT(ch).affected[i].location)
             {
@@ -2117,7 +2146,7 @@ void show_current_craft(struct char_data *ch)
 
     send_to_char(ch, "\r\n");
 
-    if (!is_craft_ready(ch, false))
+    if (!is_craft_ready(ch, FALSE))
     {
         send_to_char(ch, "\tRThis craft is not yet ready to begin. Type 'craft check' to see what's missing.\tn\r\n");
     }
@@ -2294,10 +2323,10 @@ void reset_current_craft(struct char_data *ch, char *arg2, bool verbose, bool re
         {
             if (GET_CRAFT(ch).instrument_motes[i] > 0 && reimburse)
             {
-                GET_CRAFT_MOTES(ch, get_crafting_instrument_motes(ch, i, false)) += GET_CRAFT(ch).instrument_motes[i];
+                GET_CRAFT_MOTES(ch, get_crafting_instrument_motes(ch, i, FALSE)) += GET_CRAFT(ch).instrument_motes[i];
                 if (verbose)
                 {
-                    send_to_char(ch, "You have recovered %d %s.\r\n", GET_CRAFT(ch).instrument_motes[i], crafting_motes[get_crafting_instrument_motes(ch, i, false)]);
+                    send_to_char(ch, "You have recovered %d %s.\r\n", GET_CRAFT(ch).instrument_motes[i], crafting_motes[get_crafting_instrument_motes(ch, i, FALSE)]);
                 }
             }
             GET_CRAFT(ch).instrument_motes[i] = 0;
@@ -2357,7 +2386,7 @@ void reset_crafting_obj(struct char_data *ch)
 
 bool is_craft_ready(struct char_data *ch, bool verbose)
 {
-    bool ready = true;
+    bool ready = TRUE;
     int i = 0;
     int required = 0;;
     int location = 0, modifier = 0, bonus_type = 0, specific = 0;
@@ -2368,31 +2397,31 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
     
     if (!GET_CRAFT(ch).keywords || is_abbrev(GET_CRAFT(ch).keywords, "(null)") || !strcmp(GET_CRAFT(ch).keywords, "not set"))
     {
-        ready = false;
+        ready = FALSE;
         if (verbose)
             send_to_char(ch, "There are no keywords set.\r\n");
     }
     if (!GET_CRAFT(ch).short_description || is_abbrev(GET_CRAFT(ch).short_description, "(null)") || !strcmp(GET_CRAFT(ch).short_description, "not set"))
     {
-        ready = false;
+        ready = FALSE;
         if (verbose)
             send_to_char(ch, "The short description is not set.\r\n");
     }
     if (!GET_CRAFT(ch).room_description || is_abbrev(GET_CRAFT(ch).room_description, "(null)") || !strcmp(GET_CRAFT(ch).room_description, "not set"))
     {
-        ready = false;
+        ready = FALSE;
         if (verbose)
             send_to_char(ch, "The item's room description is not set.\r\n");
     }
     if (GET_CRAFT(ch).crafting_item_type == 0)
     {
-        ready = false;
+        ready = FALSE;
         if (verbose)
             send_to_char(ch, "The crafting item type is not set.\r\n");
     }
     if (GET_CRAFT(ch).crafting_specific == 0)
     {
-        ready = false;
+        ready = FALSE;
         if (verbose)
             send_to_char(ch, "The crafting item specific type is not set.\r\n");
     }
@@ -2411,7 +2440,7 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
         {
             if (project_amount < base_amount)
             {
-                ready = false;
+                ready = FALSE;
                 if (verbose)
                     send_to_char(ch, "The project requires %d unit%s of %s allocated\r\n", base_amount, base_amount == 1 ? "s" : "", 
                                     crafting_material_groups[base_group]);
@@ -2424,7 +2453,7 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
         {
             if (project_amount < base_amount)
             {
-                ready = false;
+                ready = FALSE;
                 if (verbose)
                     send_to_char(ch, "The project requires %d unit%s of %s allocated\r\n", base_amount, base_amount == 1 ? "s" : "", 
                                     crafting_material_groups[base_group]);
@@ -2437,7 +2466,7 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
         {
             if (project_amount < base_amount)
             {
-                ready = false;
+                ready = FALSE;
                 if (verbose)
                     send_to_char(ch, "The project requires %d unit%s of %s allocated\r\n", base_amount, base_amount == 1 ? "s" : "", 
                                     crafting_material_groups[base_group]);
@@ -2449,31 +2478,31 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
     {
         if (GET_CRAFT(ch).instrument_quality > 0)
         {
-            if (GET_CRAFT(ch).instrument_motes[1] != get_crafting_instrument_motes(ch, 1, true))
+            if (GET_CRAFT(ch).instrument_motes[1] != get_crafting_instrument_motes(ch, 1, TRUE))
             {
-                ready = false;
+                ready = FALSE;
                 if (verbose)
-                    send_to_char(ch, "The instrument quality requires %d %ss.\r\n", get_crafting_instrument_motes(ch, 1, true), crafting_motes[get_crafting_instrument_motes(ch, 1, false)]);
+                    send_to_char(ch, "The instrument quality requires %d %ss.\r\n", get_crafting_instrument_motes(ch, 1, TRUE), crafting_motes[get_crafting_instrument_motes(ch, 1, FALSE)]);
             }
         }
         if (GET_CRAFT(ch).instrument_effectiveness > 0)
         {
-            if (GET_CRAFT(ch).instrument_motes[2] != get_crafting_instrument_motes(ch, 2, true))
+            if (GET_CRAFT(ch).instrument_motes[2] != get_crafting_instrument_motes(ch, 2, TRUE))
             {
-                ready = false;
+                ready = FALSE;
                 if (verbose)
-                    send_to_char(ch, "The instrument effectiveness requires %d %ss.\r\n", get_crafting_instrument_motes(ch, 2, true), 
-                    crafting_motes[get_crafting_instrument_motes(ch, 2, false)]);
+                    send_to_char(ch, "The instrument effectiveness requires %d %ss.\r\n", get_crafting_instrument_motes(ch, 2, TRUE), 
+                    crafting_motes[get_crafting_instrument_motes(ch, 2, FALSE)]);
             }
         }
         if (GET_CRAFT(ch).instrument_breakability != INSTRUMENT_BREAKABILITY_DEFAULT)
         {
-            if (GET_CRAFT(ch).instrument_motes[3] != get_crafting_instrument_motes(ch, 3, true))
+            if (GET_CRAFT(ch).instrument_motes[3] != get_crafting_instrument_motes(ch, 3, TRUE))
             {
-                ready = false;
+                ready = FALSE;
                 if (verbose)
-                    send_to_char(ch, "The instrument breakability requires %d %ss.\r\n", get_crafting_instrument_motes(ch, 3, true), 
-                    crafting_motes[get_crafting_instrument_motes(ch, 3, false)]);
+                    send_to_char(ch, "The instrument breakability requires %d %ss.\r\n", get_crafting_instrument_motes(ch, 3, TRUE), 
+                    crafting_motes[get_crafting_instrument_motes(ch, 3, FALSE)]);
             }
         }
     }
@@ -2485,7 +2514,7 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
             if (GET_CRAFT(ch).motes_required[i] != craft_motes_required(GET_CRAFT(ch).affected[i].location, 
                 GET_CRAFT(ch).affected[i].modifier, GET_CRAFT(ch).affected[i].bonus_type, 0))
             {
-                ready = false;
+                ready = FALSE;
                 if (verbose)
                 {   
                     location = GET_CRAFT(ch).affected[i].location;
@@ -2504,7 +2533,7 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
     {
         if (GET_CRAFT(ch).enhancement_motes_required < craft_motes_required(0, 0, 0, GET_CRAFT(ch).enhancement))
         {
-            ready = false;
+            ready = FALSE;
             send_to_char(ch, "You require %d %ss for the object's enhancement bonus.\r\n", craft_motes_required(0, 0, 0, GET_CRAFT(ch).enhancement), crafting_motes[get_enhancement_mote_type(ch, GET_CRAFT(ch).crafting_item_type, GET_CRAFT(ch).crafting_specific)]);
         }
     }
@@ -2513,7 +2542,7 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
     {
         send_to_char(ch, "The object level based on the existing bonuses and enhancement bonus (weapons, armor, shields only) is too high.\r\n"
                         "You must downgrade the enhanceent bonus, some of the other bonuses or try adding higher quality materials.\r\n");
-        ready = false;
+        ready = FALSE;
     }
 
     return ready;
@@ -2521,7 +2550,7 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
 
 void begin_current_craft(struct char_data *ch)
 {
-    if (!is_craft_ready(ch, true))
+    if (!is_craft_ready(ch, TRUE))
     {
         send_to_char(ch, "\tCPlease fix the above errors before continuing.\tn\r\n");
         return;
@@ -2622,46 +2651,75 @@ int material_to_craft_skill(int item_type, int material)
 
 bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill, char *method, int exp, int dc)
 {
-    if (!ch || !obj) return false;
+    if (!ch || !obj) return FALSE;
     int roll, skill_mod;
 
     roll = d20(ch);
     skill_mod = get_craft_skill_value(ch, skill);
+    
+    /* Add +5 bonus for Craft Wondrous Item feat when crafting misc items */
+    if (HAS_FEAT(ch, FEAT_CRAFT_WONDEROUS_ITEM) && GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_MISC) {
+        skill_mod += 5;
+    }
+    
+    /* Add +5 bonus for Craft Magical Arms and Armor feat when crafting weapons/armor */
+    if (HAS_FEAT(ch, FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR) && 
+        (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON || GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_ARMOR)) {
+        skill_mod += 5;
+    }
 
     if ((20 + skill_mod) < dc)
     {
         send_to_char(ch, "You don't have the skill to craft %s.\r\n", obj->short_description);
-        return false;
+        return FALSE;
     }
 
     // critical failure. Lose the item, materials and motes.
     if (roll == 1)
     {
         send_to_char(ch, "\tM[CRITICAL FAILURE]\tn You rolled a natural 1! The %s failed and you lost your materials and motes.\r\n", method);
-        reset_current_craft(ch, NULL, false, false);
-        return false;
+        reset_current_craft(ch, NULL, FALSE, FALSE);
+        return FALSE;
     }
     // critical success. Item is masterwork quality.
     else if (roll == 20)
     {
         send_to_char(ch, "\tM[CRITICAL SUCCESS]\tn You rolled a natural 20! The %s succeeded and is of masterwork quality.\r\n", method);
         SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
-        return true;
+        return TRUE;
     }
     else if ((roll + skill_mod) < dc)
     {
-        send_to_char(ch, "You rolled %d + your skill in %s of %d = total of %d vs. dc %d. The %s attempt failed, but you may try again.\r\n",
-                        roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
-        gain_craft_exp(ch, exp, skill, true);
-        return false;
+        if (HAS_FEAT(ch, FEAT_CRAFT_WONDEROUS_ITEM) && GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_MISC) {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d (+5 Craft Wondrous Item bonus) = total of %d vs. dc %d. The %s attempt failed, but you may try again.\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        } else if (HAS_FEAT(ch, FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR) && 
+                   (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON || GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_ARMOR)) {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d (+5 Craft Magical Arms and Armor bonus) = total of %d vs. dc %d. The %s attempt failed, but you may try again.\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        } else {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d = total of %d vs. dc %d. The %s attempt failed, but you may try again.\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        }
+        gain_craft_exp(ch, exp, skill, TRUE);
+        return FALSE;
     }
     else
     {
-        send_to_char(ch, "You rolled %d + your skill in %s of %d = total of %d vs. dc %d. The %s attempt succeeded!\r\n",
-                        roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
-        return true;
+        if (HAS_FEAT(ch, FEAT_CRAFT_WONDEROUS_ITEM) && GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_MISC) {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d (+5 Craft Wondrous Item bonus) = total of %d vs. dc %d. The %s attempt succeeded!\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        } else if (HAS_FEAT(ch, FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR) && 
+                   (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON || GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_ARMOR)) {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d (+5 Craft Magical Arms and Armor bonus) = total of %d vs. dc %d. The %s attempt succeeded!\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        } else {
+            send_to_char(ch, "You rolled %d + your skill in %s of %d = total of %d vs. dc %d. The %s attempt succeeded!\r\n",
+                            roll, ability_names[skill], skill_mod, roll + skill_mod, dc, method);
+        }
+        return TRUE;
     }
-    return false;
+    return FALSE;
 }
 
 int obj_material_to_craft_material(int material)
@@ -2810,11 +2868,11 @@ void create_craft_weapon(struct char_data *ch)
         return;
     }
 
-    gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, true);
+    gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, TRUE);
 
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
-    reset_current_craft(ch, NULL, false, false);
+    reset_current_craft(ch, NULL, FALSE, FALSE);
 }
 
 struct obj_data *setup_craft_armor(struct char_data *ch, int a_type)
@@ -2883,11 +2941,11 @@ void create_craft_armor(struct char_data *ch)
         return;
     }
 
-    gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, true);
+    gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, TRUE);
 
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
-    reset_current_craft(ch, NULL, false, false);
+    reset_current_craft(ch, NULL, FALSE, FALSE);
 }
 
 void set_craft_instrument_object(struct obj_data *obj, struct char_data *ch)
@@ -3013,11 +3071,11 @@ void create_craft_instrument(struct char_data *ch)
         return;
     }
 
-    gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, true);
+    gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, TRUE);
 
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
-    reset_current_craft(ch, NULL, false, false);
+    reset_current_craft(ch, NULL, FALSE, FALSE);
 }
 
 struct obj_data *setup_craft_misc(struct char_data *ch, int vnum)
@@ -3125,11 +3183,11 @@ void create_craft_misc(struct char_data *ch)
         return;
     }
 
-    gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, true);
+    gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, TRUE);
 
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
-    reset_current_craft(ch, NULL, false, false);
+    reset_current_craft(ch, NULL, FALSE, FALSE);
 }
 
 void craft_create_complete(struct char_data *ch)
@@ -3169,7 +3227,7 @@ void set_crafting_variant(struct char_data *ch, char *arg2)
 {
 
     int i = 0, j = 0, variant = 0, recipe = 0;
-    bool found = false;
+    bool found = FALSE;
     char materials[200];
     char mat_one[60], mat_two[60], mat_three[60];
 
@@ -3236,7 +3294,7 @@ void set_crafting_variant(struct char_data *ch, char *arg2)
                     {
                         variant = j;
                         recipe = i;
-                        found = true;
+                        found = TRUE;
                         break;
                     }
                 }
@@ -3607,11 +3665,11 @@ void newcraft_create(struct char_data *ch, const char *argument)
     }
     else if (is_abbrev(arg1, "reset"))
     {
-        reset_current_craft(ch, arg2, true, true);
+        reset_current_craft(ch, arg2, TRUE, TRUE);
     }
     else if (is_abbrev(arg1, "check"))
     {
-        check_current_craft(ch, true);
+        check_current_craft(ch, TRUE);
     }
     else if (is_abbrev(arg1, "start") || is_abbrev(arg1, "begin"))
     {
@@ -3671,20 +3729,20 @@ void craft_refine_complete(struct char_data *ch)
     if ((20 + skill) < dc)
     {
         send_to_char(ch, "That refining type is too complex for you.\r\n");
-        reset_current_craft(ch, NULL, true, true);
+        reset_current_craft(ch, NULL, TRUE, TRUE);
         return;
     }
     else if (roll == 1)
     {
         send_to_char(ch, "\tM[CRITICAL FAILURE]\tn You rolled a natural 1! Your refining attempt failed and you lost your materials.\r\n");
-        reset_current_craft(ch, NULL, false, false);
+        reset_current_craft(ch, NULL, FALSE, FALSE);
         return;
     }
     else if (roll == 20)
     {
         send_to_char(ch, "\tM[CRITICAL SUCCESS]\tn You rolled a natural 20! Your refining attempt succeeded and you gained an extra unit of %s.\r\n", crafting_materials[GET_CRAFT(ch).refining_result[0]]);
         num++;
-        gain_craft_exp(ch, (REFINE_BASE_EXP+dc)*num, skill_type, true);
+        gain_craft_exp(ch, (REFINE_BASE_EXP+dc)*num, skill_type, TRUE);
     }
     else if ((roll + skill) < dc)
     {
@@ -3694,19 +3752,19 @@ void craft_refine_complete(struct char_data *ch)
     else
     {
         send_to_char(ch, "You rolled %d + skill %d for a total of %d >= dc of %d. You succeed!\r\n", roll, skill, roll + skill, dc);
-        gain_craft_exp(ch, (REFINE_BASE_EXP)*num, skill_type, true);
+        gain_craft_exp(ch, (REFINE_BASE_EXP)*num, skill_type, TRUE);
     }
 
     GET_CRAFT_MAT(ch, GET_CRAFT(ch).refining_result[0]) += GET_CRAFT(ch).refining_result[1];
     send_to_char(ch, "You refine %d unit%s of %s.\r\n", GET_CRAFT(ch).refining_result[1], GET_CRAFT(ch).refining_result[1] > 1 ? "s" : "", crafting_materials[GET_CRAFT(ch).refining_result[0]]);
-    reset_current_craft(ch, NULL, false, false);
+    reset_current_craft(ch, NULL, FALSE, FALSE);
     act("$n finishes refining.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
 void harvest_complete(struct char_data *ch)
 {
     int skill = 0, skill_roll= 0, roll = 0, dc = 0, amount = 0, bonus = 0, harvest_level = 0;
-    bool motes_found = false;
+    bool motes_found = FALSE;
 
     if (world[IN_ROOM(ch)].harvest_material == CRAFT_MAT_NONE || world[IN_ROOM(ch)].harvest_material_amount <= 0)
     {
@@ -3758,7 +3816,7 @@ void harvest_complete(struct char_data *ch)
                          roll, skill_roll, roll + skill_roll, dc, crafting_materials[world[IN_ROOM(ch)].harvest_material]);
         GET_CRAFT(ch).craft_duration = 0;
         GET_CRAFT(ch).crafting_method = 0;
-        gain_craft_exp(ch, HARVEST_BASE_EXP/2, skill, true);
+        gain_craft_exp(ch, HARVEST_BASE_EXP/2, skill, TRUE);
         return;
     }
     else 
@@ -3771,15 +3829,15 @@ void harvest_complete(struct char_data *ch)
             bonus = HARVEST_BASE_AMOUNT;
             send_to_char(ch, "\tM[CRITICAL SUCCESS!]\tn You rolled a natural 20! You've harvested %d units of %s, plus an extra %d units!\r\n", 
                          amount, crafting_materials[world[IN_ROOM(ch)].harvest_material], bonus);
-            gain_craft_exp(ch, HARVEST_BASE_EXP + (HARVEST_BASE_EXP * harvest_level), skill, true);
-            motes_found = true;
+            gain_craft_exp(ch, HARVEST_BASE_EXP + (HARVEST_BASE_EXP * harvest_level), skill, TRUE);
+            motes_found = TRUE;
         }
         else
         {
             send_to_char(ch, "Roll [%d] + Skill [%d] = Total [%d] vs. DC [%d]. Success! You have harvested %d %s from %s.\r\n", 
                          roll, skill_roll, roll + skill_roll, dc, amount, 
                          crafting_materials[world[IN_ROOM(ch)].harvest_material], crafting_material_nodes[world[IN_ROOM(ch)].harvest_material]);
-            gain_craft_exp(ch, HARVEST_BASE_EXP + ((HARVEST_BASE_EXP/2) * harvest_level), skill, true);
+            gain_craft_exp(ch, HARVEST_BASE_EXP + ((HARVEST_BASE_EXP/2) * harvest_level), skill, TRUE);
         }
         
         world[IN_ROOM(ch)].harvest_material_amount -= amount;
@@ -3844,6 +3902,14 @@ void newcraft_harvest(struct char_data *ch, const char *argument)
 
 void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose)
 {
+    // Validate ability/skill type to prevent array out-of-bounds crashes
+    if (abil < 0 || abil >= NUM_ABILITIES) {
+        if (verbose) {
+            send_to_char(ch, "Invalid skill type %d - experience gain cancelled.\r\n", abil);
+        }
+        return;
+    }
+    
     GET_CRAFT_SKILL_EXP(ch, abil) += exp;
     if (verbose)
         send_to_char(ch, "You've gained %d experience points in the '%s' skill.\r\n", exp, ability_names[abil]);
@@ -3881,7 +3947,7 @@ void newcraft_refine(struct char_data *ch, const char *argument)
     char arg1[50], arg2[50], output[200];
     int i = 0, recipe = 0, material = 0;
     struct obj_data *obj;
-    bool fail = false, station = false;
+    bool fail = FALSE, station = FALSE;
 
     two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -3930,7 +3996,7 @@ void newcraft_refine(struct char_data *ch, const char *argument)
                     send_to_char(ch, "You need %d units of %s to make %d units of %s.\r\n",
                                     refining_recipes[recipe].materials[i][1], crafting_materials[refining_recipes[recipe].materials[i][0]],
                                     refining_recipes[recipe].result[1], crafting_materials[refining_recipes[recipe].result[0]]);
-                    fail = true;
+                    fail = TRUE;
                 }
             }
         }
@@ -3939,7 +4005,7 @@ void newcraft_refine(struct char_data *ch, const char *argument)
         {
             if (OBJ_FLAGGED(obj, refining_recipes[recipe].crafting_station_flag))
             {
-                station = true;
+                station = TRUE;
                 break;
             }
         }
@@ -3947,7 +4013,7 @@ void newcraft_refine(struct char_data *ch, const char *argument)
         if (!station)
         {
             send_to_char(ch, "You need a %.*s in the room with you.\r\n", 9, extra_bits[refining_recipes[recipe].crafting_station_flag]+9);
-            fail = true;
+            fail = TRUE;
         }
 
 
@@ -3988,7 +4054,7 @@ void newcraft_refine(struct char_data *ch, const char *argument)
         }
 
         send_to_char(ch, "You cancel your refining project.\r\n");
-        reset_current_craft(ch, NULL, true, true);
+        reset_current_craft(ch, NULL, TRUE, TRUE);
         return;
     }
     else if (is_abbrev(arg1, "show") || is_abbrev(arg1, "display") || is_abbrev(arg1, "info"))
@@ -4045,7 +4111,7 @@ void newcraft_refine(struct char_data *ch, const char *argument)
             return;
         }
 
-        if (is_refine_ready(ch, true))
+        if (is_refine_ready(ch, TRUE))
         {
             send_to_char(ch, "Your refining project is not ready yet. Please type: refine add (refine type).\r\n");
             return;
@@ -4090,20 +4156,20 @@ int get_craft_skill_value(struct char_data *ch, int skill_num)
 
 bool is_refine_ready(struct char_data *ch, bool verbose)
 {
-    bool fail = false;
+    bool fail = FALSE;
 
     if (GET_CRAFT(ch).refining_result[0] == 0)
     {
         if (verbose)
             send_to_char(ch, "You haven't set a refining result/type\r\n");
-        fail = true;
+        fail = TRUE;
     }
 
     if (GET_CRAFT(ch).refining_result[1] == 0)
     {
         if (verbose)
             send_to_char(ch, "You haven't set a refining result/type\r\n");
-        fail = true;
+        fail = TRUE;
     }
 
     if ((refining_recipes[GET_CRAFT(ch).crafting_recipe].materials[0][1] != 0 &&
@@ -4111,7 +4177,7 @@ bool is_refine_ready(struct char_data *ch, bool verbose)
     {
         if (verbose)
             send_to_char(ch, "You haven't added the primary refining ingredient.\r\n");
-        fail = true;
+        fail = TRUE;
     }
 
     if ((refining_recipes[GET_CRAFT(ch).crafting_recipe].materials[1][1] != 0 &&
@@ -4119,7 +4185,7 @@ bool is_refine_ready(struct char_data *ch, bool verbose)
     {
         if (verbose)
             send_to_char(ch, "You haven't added the secondary refining ingredient.\r\n");
-        fail = true;
+        fail = TRUE;
     }
 
     if ((refining_recipes[GET_CRAFT(ch).crafting_recipe].materials[2][1] != 0 &&
@@ -4127,7 +4193,7 @@ bool is_refine_ready(struct char_data *ch, bool verbose)
     {
         if (verbose)
             send_to_char(ch, "You haven't added the tertiary refining ingredient.\r\n");
-        fail = true;
+        fail = TRUE;
     }
 
     return fail;
@@ -4181,9 +4247,9 @@ bool is_valid_craft_ability(int ability)
         case ABILITY_HARVEST_HUNTING:
         case ABILITY_HARVEST_FORESTRY:
         case ABILITY_HARVEST_GATHERING:
-            return true;
+            return TRUE;
     }
-    return false;
+    return FALSE;
 }
 
 int crafting_skill_type(int skill)
@@ -4197,6 +4263,7 @@ int crafting_skill_type(int skill)
         case ABILITY_CRAFT_LEATHERWORKING:
         case ABILITY_CRAFT_JEWELCRAFTING:
         case ABILITY_CRAFT_METALWORKING:
+        case ABILITY_CRAFT_ALCHEMY:
             return CRAFT_SKILL_TYPE_CRAFT;
         
         case ABILITY_HARVEST_MINING:
@@ -4205,13 +4272,11 @@ int crafting_skill_type(int skill)
         case ABILITY_HARVEST_GATHERING:
             return CRAFT_SKILL_TYPE_HARVEST;
 
-        case ABILITY_CRAFT_ALCHEMY:
         case ABILITY_CRAFT_BOWMAKING:
         case ABILITY_CRAFT_TRAPMAKING:
         case ABILITY_CRAFT_POISONMAKING:
         case ABILITY_CRAFT_FISHING:
         case ABILITY_CRAFT_COOKING:
-        case ABILITY_CRAFT_BREWING:
             return CRAFT_SKILL_TYPE_NONE;
     }
     return CRAFT_SKILL_TYPE_NONE;
@@ -4220,19 +4285,19 @@ int crafting_skill_type(int skill)
 bool is_valid_craft_feat(int feat)
 {
     if (feat <= FEAT_UNDEFINED || feat >= FEAT_LAST_FEAT)
-        return false;
+        return FALSE;
 
     // must bne learnable
     if (!feat_list[feat].can_learn)
-        return false;
+        return FALSE;
 
     // cannot be epic
     if (feat_list[feat].epic)
-        return false;
+        return FALSE;
 
     // no combat feats for now. Requires extra code to pick which weapon that we aren't spending time on yet
     if (!feat_list[feat].combat_feat)
-        return false;
+        return FALSE;
 
     // no skill or spell focus for similar reason
     switch (feat)
@@ -4240,7 +4305,7 @@ bool is_valid_craft_feat(int feat)
         case FEAT_SPELL_FOCUS:
         case FEAT_GREATER_SPELL_FOCUS:
         case FEAT_SKILL_FOCUS:
-            return false;
+            return FALSE;
     }
     
     // we only allow general, combat, spellcasting, metamagic, psionic and teamwork feats
@@ -4250,18 +4315,18 @@ bool is_valid_craft_feat(int feat)
         feat_list[feat].feat_type == FEAT_TYPE_PSIONIC ||
         feat_list[feat].feat_type == FEAT_TYPE_METAMAGIC ||
         feat_list[feat].feat_type == FEAT_TYPE_TEAMWORK)
-        return true;
+        return TRUE;
 
-    return false;
+    return FALSE;
 }
 
 bool is_valid_craft_class(int ch_class, int location)
 {
     if (!IS_SPELLCASTER_CLASS(ch_class))
-        return false;
+        return FALSE;
     
     if (ch_class == CLASS_WARLOCK)
-        return false;
+        return FALSE;
 
     switch (location)
     {
@@ -4281,7 +4346,7 @@ bool is_valid_craft_class(int ch_class, int location)
             case CLASS_CLERIC:
             case CLASS_DRUID:
             case CLASS_ALCHEMIST:
-                return true;
+                return TRUE;
         }
         break;
     case APPLY_SPELL_CIRCLE_5:
@@ -4296,7 +4361,7 @@ bool is_valid_craft_class(int ch_class, int location)
             case CLASS_CLERIC:
             case CLASS_DRUID:
             case CLASS_ALCHEMIST:
-                return true;
+                return TRUE;
         }
         break;
     case APPLY_SPELL_CIRCLE_7:
@@ -4308,11 +4373,11 @@ bool is_valid_craft_class(int ch_class, int location)
             case CLASS_SORCERER:
             case CLASS_CLERIC:
             case CLASS_DRUID:
-                return true;
+                return TRUE;
         }
         break;
     }
-    return false;
+    return FALSE;
 }
 
 int craft_recipe_by_type(int type)
@@ -5046,13 +5111,13 @@ void craft_resize_complete(struct char_data *ch)
         return;
     }
 
-    gain_craft_exp(ch, MAX(RESIZE_BASE_EXP, GET_OBJ_LEVEL(obj) * RESIZE_BASE_EXP/5), skill, true);
+    gain_craft_exp(ch, MAX(RESIZE_BASE_EXP, GET_OBJ_LEVEL(obj) * RESIZE_BASE_EXP/5), skill, TRUE);
 
     send_to_char(ch, "You've resized %s to %s!\r\n", obj->short_description, sizes[size]);
     GET_OBJ_SIZE(obj) = size;
     reset_crafting_obj(ch);
     GET_CRAFT(ch).new_size = GET_CRAFT(ch).resize_mat_type = GET_CRAFT(ch).resize_mat_num = 0;
-    reset_current_craft(ch, NULL, false, false);
+    reset_current_craft(ch, NULL, FALSE, FALSE);
 }
 
 /**
@@ -5066,12 +5131,21 @@ char *get_supply_order_item_desc(struct char_data *ch)
     int recipe = get_current_craft_project_recipe(ch);
     int variant = GET_CRAFT(ch).craft_variant;
 
-    if (recipe == CRAFT_RECIPE_NONE || variant == -1)
+    if (recipe <= CRAFT_RECIPE_NONE || variant == -1)
     {
         return "unknown item";
     }
 
-    return strdup(crafting_recipes[recipe].variant_descriptions[variant]);
+    // Validate array bounds to prevent crashes
+    if (recipe < 0 || recipe >= NUM_CRAFTING_RECIPES || 
+        variant < 0 || variant >= NUM_CRAFT_VARIANTS)
+    {
+        return "invalid item";
+    }
+
+    // Don't use strdup to avoid memory management issues
+    // Return pointer to static string instead
+    return (char *) crafting_recipes[recipe].variant_descriptions[variant];
 }
 
 int determine_supply_order_exp(struct char_data *ch)
@@ -5092,11 +5166,10 @@ int determine_supply_order_exp(struct char_data *ch)
     for (i = 0; i < NUM_CRAFT_VARIANTS; i++)
     {
         for (j = 0; j < 3; j++)
-        {
-            
+        {            
             material = crafting_recipes[recipe].materials[j][i][0];
             num_mats = crafting_recipes[recipe].materials[j][i][1];
-            if (material != CRAFT_MAT_NONE || num_mats == 0)
+            if (material == CRAFT_MAT_NONE || num_mats == 0)
                 continue;
             total_mats += num_mats;
             group = craft_group_by_material(material);
@@ -5108,20 +5181,34 @@ int determine_supply_order_exp(struct char_data *ch)
     for (i = 0; i < NUM_CRAFT_GROUPS; i++)
     {
         if (mat_level_adj[i] > 0)
-            exp += mat_level_adj[i] * 10;
+            exp += mat_level_adj[i] * 3;
     }
 
-    exp /= total_mats;
+    // Prevent division by zero crash
+    if (total_mats > 0) {
+        exp /= total_mats;
+    }
 
     exp += base;
+
+    // // Cap the experience at 300 to prevent excessive rewards
+    // exp = MIN(300, exp);
 
     return MAX(NSUPPLY_ORDER_BASE_EXP, exp);
 }
 
 void craft_supplyorder_complete(struct char_data *ch)
 {
-
     int exp = 0;
+    int recipe, skill;
+
+    // Consume materials for this item
+    if (!consume_supply_order_materials(ch))
+    {
+        send_to_char(ch, "You don't have enough materials to complete this item. Supply order cancelled.\r\n");
+        reset_supply_order(ch);
+        return;
+    }
 
     GET_NSUPPLY_NUM_MADE(ch)++;
 
@@ -5131,16 +5218,256 @@ void craft_supplyorder_complete(struct char_data *ch)
     {
         send_to_char(ch, " %d to go.", num_supply_order_requisitions_to_go(ch));
     }
+    else
+    {
+        send_to_char(ch, " Supply order complete! Visit a supply order NPC to collect your reward.");
+    }
     send_to_char(ch, "\r\n");
 
     exp = determine_supply_order_exp(ch);
 
-    gain_craft_exp(ch, exp, GET_CRAFT(ch).skill_type, true);
+    recipe = get_current_craft_project_recipe(ch);
+    skill = recipe_skill_to_actual_crafting_skill(crafting_recipes[recipe].variant_skill[GET_CRAFT(ch).craft_variant]);
+
+    gain_craft_exp(ch, exp, skill, TRUE);
+}
+
+int recipe_skill_to_actual_crafting_skill(int recipe_skill)
+{
+    switch (recipe_skill)
+    {
+        case CRAFT_SKILL_WEAPONSMITH: return ABILITY_CRAFT_WEAPONSMITHING;
+        case CRAFT_SKILL_ARMORSMITH: return ABILITY_CRAFT_ARMORSMITHING;
+        case CRAFT_SKILL_JEWELER: return ABILITY_CRAFT_JEWELCRAFTING;
+        case CRAFT_SKILL_TINKER: return ABILITY_CRAFT_METALWORKING;
+        case CRAFT_SKILL_CARPENTER: return ABILITY_CRAFT_WOODWORKING;
+        case CRAFT_SKILL_TAILOR: return ABILITY_CRAFT_TAILORING;
+        case CRAFT_SKILL_BREWING: return ABILITY_CRAFT_ALCHEMY;
+    }
+    return ABILITY_CRAFT_METALWORKING; // default fallback
+}
+
+void complete_supply_order(struct char_data *ch)
+{
+    int gold_reward = 0;
+    int bonus_exp = 0;
+    int skill = 0;
+    int recipe = 0;
+    
+    if (!player_has_supply_order(ch))
+    {
+        send_to_char(ch, "You don't have an active supply order.\r\n");
+        return;
+    }
+    
+    if (num_supply_order_requisitions_to_go(ch) > 0)
+    {
+        send_to_char(ch, "You haven't completed your supply order yet. You still need to make %d more items.\r\n",
+                     num_supply_order_requisitions_to_go(ch));
+        return;
+    }
+    
+    // Calculate rewards
+    gold_reward = calculate_supply_order_reward(ch);
+    bonus_exp = gold_reward / 2; // Bonus exp is half the gold reward
+    
+    // Cap the bonus experience to prevent excessive rewards
+    bonus_exp = MIN(250, bonus_exp);
+    
+    // Award reputation points based on contract type
+    int rep_reward = 0;
+    switch(GET_CRAFT(ch).supply_contract_type) {
+        case SUPPLY_CONTRACT_BASIC: rep_reward = 5; break;
+        case SUPPLY_CONTRACT_RUSH: rep_reward = 8; break;
+        case SUPPLY_CONTRACT_BULK: rep_reward = 10; break;
+        case SUPPLY_CONTRACT_QUALITY: rep_reward = 15; break;
+        case SUPPLY_CONTRACT_PRESTIGE: rep_reward = 25; break;
+        case SUPPLY_CONTRACT_EVENT: rep_reward = 20; break;
+        default: rep_reward = 5; break;
+    }
+    
+    // Award rewards
+    GET_GOLD(ch) += gold_reward;
+    recipe = get_current_craft_project_recipe(ch);
+    skill = recipe_skill_to_actual_crafting_skill(crafting_recipes[recipe].variant_skill[GET_CRAFT(ch).craft_variant]);
+    gain_craft_exp(ch, bonus_exp, skill, TRUE);
+    add_reputation_points(ch, rep_reward);
+    
+    send_to_char(ch, "Congratulations! You have completed your supply order.\r\n");
+
+    send_to_char(ch, "You receive %d gold coins, %d bonus experience points, and %d reputation points!\r\n", 
+                 gold_reward, bonus_exp, rep_reward);
+    
+    // Check for quality tier achievement
+    int quality_tier = calculate_quality_tier_bonus(ch);
+    if (quality_tier >= 50) {
+        send_to_char(ch, "\tYExceptional craftsmanship! Your quality work has been recognized.\tn\r\n");
+        add_reputation_points(ch, 5); // Bonus reputation for quality work
+    }
+    
+    // Clear the supply order
+    reset_supply_order(ch);
+    GET_NSUPPLY_NUM_MADE(ch) = 0;
+    
+    send_to_char(ch, "You are now free to request a new supply order.\r\n");
+}
+
+int calculate_supply_order_reward(struct char_data *ch)
+{
+    int base_reward = SUPPLY_BASE_REWARD;
+    int material_bonus = 0;
+    int quantity_bonus = 0;
+    int skill_bonus = 0;
+    int total_reward = 0;
+    int i = 0;
+    
+    // Calculate material quality bonus
+    for (i = 0; i < NUM_CRAFT_GROUPS; i++)
+    {
+        if (GET_CRAFT(ch).materials[i][0] > CRAFT_MAT_NONE)
+        {
+            int mat_grade = material_grade(GET_CRAFT(ch).materials[i][0]);
+            material_bonus += mat_grade * SUPPLY_MATERIAL_BONUS_MULTIPLIER;
+        }
+    }
+    
+    // Calculate quantity bonus
+    quantity_bonus = GET_CRAFT(ch).supply_num_required * SUPPLY_QUANTITY_BONUS;
+    
+    // Calculate skill bonus
+    skill_bonus = get_craft_skill_value(ch, GET_CRAFT(ch).skill_type) * SUPPLY_SKILL_BONUS_MULTIPLIER;
+    
+    total_reward = base_reward + material_bonus + quantity_bonus + skill_bonus;
+    
+    // Apply quality tier bonuses
+    int quality_bonus = calculate_quality_tier_bonus(ch);
+    total_reward += (total_reward * quality_bonus / 100);
+    
+    // Apply bulk efficiency bonuses
+    int bulk_bonus = calculate_bulk_efficiency_bonus(GET_CRAFT(ch).supply_num_required);
+    total_reward += (total_reward * bulk_bonus / 100);
+    
+    // Apply reputation bonuses
+    int rep_rank = get_player_reputation_rank(ch);
+    int rep_bonus = rep_rank * 5; // 5% bonus per reputation rank
+    total_reward += (total_reward * rep_bonus / 100);
+    
+    // Apply contract type modifiers
+    int contract_type = GET_CRAFT(ch).supply_contract_type;
+    switch(contract_type) {
+        case SUPPLY_CONTRACT_RUSH:
+            total_reward = (total_reward * SUPPLY_RUSH_BONUS_MULTIPLIER) / 100;
+            break;
+        case SUPPLY_CONTRACT_BULK:
+            total_reward = (total_reward * SUPPLY_BULK_BONUS_MULTIPLIER) / 100;
+            break;
+        case SUPPLY_CONTRACT_QUALITY:
+            total_reward = (total_reward * SUPPLY_QUALITY_BONUS_MULTIPLIER) / 100;
+            break;
+        case SUPPLY_CONTRACT_PRESTIGE:
+            total_reward = (total_reward * 300) / 100; // 200% bonus for prestige
+            break;
+        case SUPPLY_CONTRACT_EVENT:
+            total_reward = (total_reward * 250) / 100; // 150% bonus for events
+            break;
+        case SUPPLY_CONTRACT_BASIC:
+        default:
+            // No modifier for basic contracts
+            break;
+    }
+    
+    return MAX(50, total_reward); // Minimum 50 experience reward
+}
+
+bool consume_supply_order_materials(struct char_data *ch)
+{
+    int i = 0;
+    int recipe = 0;
+    int variant = 0;
+    int mat_type = 0;
+    int num_mats = 0;
+    
+    if ((recipe = get_current_craft_project_recipe(ch)) <= CRAFT_RECIPE_NONE)
+    {
+        return FALSE;
+    }
+    
+    if ((variant = GET_CRAFT(ch).craft_variant) == -1)
+    {
+        return FALSE;
+    }
+    
+    // Consume materials for one item (called each time an item is completed)
+    for (i = 0; i < 3; i++)
+    {
+        mat_type = crafting_recipes[recipe].materials[i][variant][0];
+        num_mats = crafting_recipes[recipe].materials[i][variant][1];
+        
+        if (mat_type == CRAFT_GROUP_NONE || num_mats == 0)
+            continue;
+            
+        if (GET_CRAFT(ch).materials[mat_type][1] < num_mats)
+        {
+            send_to_char(ch, "You don't have enough %s materials to complete this item!\r\n", 
+                         crafting_material_groups[mat_type]);
+            return FALSE;
+        }
+        
+        // Consume the materials
+        GET_CRAFT(ch).materials[mat_type][1] -= num_mats;
+        
+        if (GET_CRAFT(ch).materials[mat_type][1] <= 0)
+        {
+            GET_CRAFT(ch).materials[mat_type][0] = CRAFT_MAT_NONE;
+            GET_CRAFT(ch).materials[mat_type][1] = 0;
+        }
+    }
+    
+    return TRUE;
+}
+
+bool validate_supply_order_materials(struct char_data *ch)
+{
+    int i = 0;
+    int recipe = 0;
+    int variant = 0;
+    int mat_type = 0;
+    int num_mats = 0;
+    
+    if ((recipe = get_current_craft_project_recipe(ch)) <= CRAFT_RECIPE_NONE)
+    {
+        return FALSE;
+    }
+    
+    if ((variant = GET_CRAFT(ch).craft_variant) == -1)
+    {
+        return FALSE;
+    }
+    
+    // Check if we have enough materials for ONE item (not all remaining items)
+    for (i = 0; i < 3; i++)
+    {
+        mat_type = crafting_recipes[recipe].materials[i][variant][0];
+        num_mats = crafting_recipes[recipe].materials[i][variant][1];
+        
+        if (mat_type == CRAFT_GROUP_NONE || num_mats == 0)
+            continue;
+            
+        if (GET_CRAFT(ch).materials[mat_type][1] < num_mats)
+        {
+            send_to_char(ch, "You need %d more %s materials to complete the next item.\r\n",
+                         num_mats - GET_CRAFT(ch).materials[mat_type][1],
+                         crafting_material_groups[mat_type]);
+            return FALSE;
+        }
+    }
+    
+    return TRUE;
 }
 
 bool check_resize(struct char_data *ch, bool verbose)
 {
-    bool fail = false;
+    bool fail = FALSE;
     struct obj_data *obj = find_obj_rnum_in_inventory(ch, GET_CRAFT(ch).craft_obj_rnum);
 
     if (verbose)
@@ -5155,7 +5482,7 @@ bool check_resize(struct char_data *ch, bool verbose)
             send_to_char(ch, "You need to set an object to resize first. Use 'resize (object-name) (new-size)\r\n");
             send_to_char(ch, NEWCRAFT_RESIZE_SYNTAX);
         }
-        fail = true;
+        fail = TRUE;
     }
 
     if (GET_CRAFT(ch).new_size == 0)
@@ -5164,7 +5491,7 @@ bool check_resize(struct char_data *ch, bool verbose)
         {
             send_to_char(ch, "You need to set the new object size. Use 'resize (object-name) (new-size)\r\n");    
         }
-        fail = true;
+        fail = TRUE;
     }
 
     if (GET_CRAFT(ch).resize_mat_type == 0)
@@ -5173,7 +5500,7 @@ bool check_resize(struct char_data *ch, bool verbose)
         {
             send_to_char(ch, "You haven't set your resize materials. Use 'resize add'.\r\n");
         }
-        fail = true;
+        fail = TRUE;
     }
 
     if (verbose)
@@ -5269,7 +5596,7 @@ void newcraft_resize(struct char_data *ch, const char *argument)
     {
         if (!(obj = find_obj_rnum_in_inventory(ch, GET_CRAFT(ch).craft_obj_rnum)))
         {
-            check_resize(ch, true);
+            check_resize(ch, TRUE);
         }
         else
         {
@@ -5290,7 +5617,7 @@ void newcraft_resize(struct char_data *ch, const char *argument)
     }
     else if (is_abbrev(arg1, "start") || is_abbrev(arg1, "begin"))
     {
-        if (!check_resize(ch, true))
+        if (!check_resize(ch, TRUE))
         {
             send_to_char(ch, "\tRYou are not ready to resize yet.\tn\r\n");
             return;
@@ -5364,6 +5691,100 @@ void newcraft_resize(struct char_data *ch, const char *argument)
     }
 }
 
+void newcraft_supplyorder(struct char_data *ch, const char *argument)
+{
+    char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
+    
+    three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
+    
+    if (!*arg1) {
+        send_to_char(ch, SUPPLY_ORDER_NOARG1);
+        return;
+    }
+    
+    if (is_abbrev(arg1, "list") || is_abbrev(arg1, "available")) {
+        show_available_contracts(ch);
+        return;
+    }
+    
+    if (is_abbrev(arg1, "select") || is_abbrev(arg1, "choose")) {
+        int contract_id = 0;
+        
+        if (!*arg2) {
+            send_to_char(ch, "Which contract would you like to select? Use 'supplyorder list' to see available contracts.\r\n");
+            return;
+        }
+        
+        if (!is_number(arg2)) {
+            send_to_char(ch, "Please specify a valid contract number.\r\n");
+            return;
+        }
+        
+        contract_id = atoi(arg2);
+        if (contract_id < 1) {
+            send_to_char(ch, "Please specify a valid contract number.\r\n");
+            return;
+        }
+        
+        if (GET_CRAFT(ch).crafting_method != 0) {
+            send_to_char(ch, "You are already working on a crafting project. Please finish or reset it first.\r\n");
+            return;
+        }
+        
+        if (select_contract_by_id(ch, contract_id)) {
+            send_to_char(ch, "Contract successfully selected! Use 'supplyorder show' to see details or 'supplyorder start' to begin.\r\n");
+        } else {
+            send_to_char(ch, "Invalid contract selection. Use 'supplyorder list' to see available contracts.\r\n");
+        }
+        return;
+    }
+    
+    if (is_abbrev(arg1, "request")) {
+        request_new_supply_order(ch);
+        return;
+    }
+    
+    if (is_abbrev(arg1, "show") || is_abbrev(arg1, "status")) {
+        show_supply_order(ch);
+        return;
+    }
+    
+    if (is_abbrev(arg1, "start") || is_abbrev(arg1, "begin")) {
+        start_supply_order(ch);
+        return;
+    }
+    
+    if (is_abbrev(arg1, "material") || is_abbrev(arg1, "materials")) {
+        set_supply_order_materials(ch, arg2, arg3);
+        return;
+    }
+    
+    if (is_abbrev(arg1, "complete") || is_abbrev(arg1, "finish")) {
+        complete_supply_order(ch);
+        return;
+    }
+    
+    if (is_abbrev(arg1, "reset")) {
+        reset_supply_order(ch);
+        send_to_char(ch, "Supply order project has been reset.\r\n");
+        return;
+    }
+    
+    if (is_abbrev(arg1, "abandon") || is_abbrev(arg1, "cancel")) {
+        reset_supply_order(ch);
+        send_to_char(ch, "Supply order project has been abandoned.\r\n");
+        return;
+    }
+    
+    if (is_abbrev(arg1, "cooldown") || is_abbrev(arg1, "cooldowns") || is_abbrev(arg1, "timers")) {
+        show_supply_order_cooldowns(ch);
+        return;
+    }
+    
+    // Invalid command
+    send_to_char(ch, SUPPLY_ORDER_NOARG1);
+}
+
 
 ACMD(do_newcraft)
 {
@@ -5404,6 +5825,11 @@ ACMD(do_newcraft)
         newcraft_resize(ch, argument);
         return;
     }
+    else if (subcmd == SCMD_NEWCRAFT_SUPPLYORDER)
+    {
+        newcraft_supplyorder(ch, argument);
+        return;
+    }
 }
 
 bool does_craft_apply_type_have_specific_value(int location)
@@ -5421,9 +5847,9 @@ bool does_craft_apply_type_have_specific_value(int location)
         case APPLY_SPELL_CIRCLE_7:
         case APPLY_SPELL_CIRCLE_8:
         case APPLY_SPELL_CIRCLE_9:
-            return true;
+            return TRUE;
     }
-    return false;
+    return FALSE;
 }
 
 /**
@@ -5539,7 +5965,7 @@ int get_num_mats_required_by_material_type_and_craft_recipe(struct char_data *ch
 
 bool remove_supply_order_materials(struct char_data *ch)
 {
-    bool found = false;
+    bool found = FALSE;
     int i;
     int material, num_mats;
 
@@ -5554,7 +5980,7 @@ bool remove_supply_order_materials(struct char_data *ch)
                             num_mats, num_mats > 1 ? "s" : "", crafting_materials[material]);
             GET_CRAFT(ch).materials[i][0] = 0;
             GET_CRAFT(ch).materials[i][1] = 0;
-            found = true;
+            found = TRUE;
         }
     }
     return found;
@@ -5579,7 +6005,12 @@ void set_supply_order_materials(struct char_data *ch, char *arg, char *arg2)
     int num_mats = 0;
     int recipe = 0;
     int mat_type = 0;
-    bool found = false;
+    bool found = FALSE;
+
+    if (num_supply_order_requisitions_to_go(ch) == 0)
+    {
+        send_to_char(ch, "You have already completed your supply order. Go to a supply order requisition NPC and type 'supplyorder complete' for your reward.\r\n");
+    }
 
     if (!*arg)
     {
@@ -5706,13 +6137,197 @@ int select_random_craft_variant(int recipe)
     return variant;
 }
 
+// Stable versions for supply order contracts - use seed for consistent results
+int select_stable_craft_recipe(int seed)
+{
+    int type = 0;
+    int choice = 0;
+
+    // Use seed to select type consistently
+    type = craft_recipe_by_type((seed % (NUM_CRAFT_TYPES - 2)) + 1);
+
+    // Use seed to select recipe within that type
+    choice = (seed % (NUM_CRAFTING_RECIPES - 1)) + 1;
+
+    int attempts = 0;
+    while (type != crafting_recipes[choice].object_type && attempts < 100)
+    {
+        choice = ((choice + seed + attempts) % (NUM_CRAFTING_RECIPES - 1)) + 1;
+        attempts++;
+    }
+
+    return choice;
+}
+
+int select_stable_craft_variant(int recipe, int seed)
+{
+    if (recipe <= CRAFT_RECIPE_NONE || recipe >= NUM_CRAFTING_RECIPES)
+    {
+        return -1;
+    }
+
+    // we're not ready for instruments yet
+    if (crafting_recipes[recipe].object_type == ITEM_INSTRUMENT)
+    {
+        return -1;
+    }
+
+    int variant = seed % NUM_CRAFT_VARIANTS;
+    int attempts = 0;
+
+    while (crafting_recipes[recipe].variant_skill[variant] == 0 && attempts < NUM_CRAFT_VARIANTS)
+    {
+        variant = (variant + 1) % NUM_CRAFT_VARIANTS;
+        attempts++;
+    }
+
+    // If no valid variant found, return -1
+    if (attempts >= NUM_CRAFT_VARIANTS)
+        return -1;
+
+    return variant;
+}
+
+int generate_contract_quantity(int contract_type)
+{
+    int base_quantity = 0;
+    
+    switch (contract_type)
+    {
+        case SUPPLY_CONTRACT_BASIC:
+            base_quantity = dice(1, 3) + 2; // 3-5 items
+            break;
+        case SUPPLY_CONTRACT_RUSH:
+            base_quantity = dice(1, 4) + 2; // 3-6 items
+            break;
+        case SUPPLY_CONTRACT_BULK:
+            base_quantity = dice(1, 5) + 5; // 6-10 items
+            break;
+        case SUPPLY_CONTRACT_QUALITY:
+            base_quantity = dice(1, 2) + 2; // 3-4 items (fewer but higher quality)
+            break;
+        default:
+            base_quantity = NSUPPLY_ORDER_NUM_REQUIRED; // fallback to default
+            break;
+    }
+    
+    return URANGE(MIN_CONTRACT_QUANTITY, base_quantity, MAX_CONTRACT_QUANTITY);
+}
+
+int generate_contract_reward(int contract_type, int quantity, int difficulty)
+{
+    int base_reward = BASE_CONTRACT_REWARD;
+    int type_multiplier = 100;
+    
+    switch (contract_type)
+    {
+        case SUPPLY_CONTRACT_BASIC:
+            type_multiplier = 100;
+            break;
+        case SUPPLY_CONTRACT_RUSH:
+            type_multiplier = SUPPLY_RUSH_BONUS_MULTIPLIER;
+            break;
+        case SUPPLY_CONTRACT_BULK:
+            type_multiplier = SUPPLY_BULK_BONUS_MULTIPLIER;
+            break;
+        case SUPPLY_CONTRACT_QUALITY:
+            type_multiplier = SUPPLY_QUALITY_BONUS_MULTIPLIER;
+            break;
+    }
+    
+    int final_reward = (base_reward * quantity * type_multiplier * difficulty) / 10000;
+    
+    // Cap the contract reward to prevent excessive experience rewards
+    final_reward = MIN(300, final_reward);
+    
+    return final_reward;
+}
+
 bool player_has_supply_order(struct char_data *ch)
 {
     if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_SUPPLYORDER)
     {
-        return true;
+        return TRUE;
     }
-    return false;
+    return FALSE;
+}
+
+void show_available_contracts(struct char_data *ch)
+{
+    int num_contracts = 0;
+    struct supply_contract *contracts = generate_available_contracts(ch, &num_contracts);
+    
+    if (!contracts || num_contracts == 0) {
+        send_to_char(ch, "No supply order contracts are currently available.\r\n");
+        return;
+    }
+    
+    if (is_special_event_active()) {
+        send_to_char(ch, "\tR*** SPECIAL EVENT ACTIVE: Harvest Festival Contracts Available! ***\tn\r\n");
+    }
+    
+    send_to_char(ch, "\r\n\tgAvailable Supply Order Contracts:\tn\r\n");
+    send_to_char(ch, "\tW=====================================\tn\r\n");
+    
+    {
+        int i;
+        for (i = 0; i < num_contracts; i++) {
+            struct supply_contract *contract = &contracts[i];
+            const char *type_color = "\tc"; /* Default cyan */
+            const char *type_name = "Basic";
+        
+        switch(contract->contract_type) {
+            case SUPPLY_CONTRACT_BASIC:
+                type_color = "\tc"; type_name = "Basic"; break;
+            case SUPPLY_CONTRACT_RUSH:
+                type_color = "\ty"; type_name = "Rush"; break;
+            case SUPPLY_CONTRACT_BULK:
+                type_color = "\tb"; type_name = "Bulk"; break;
+            case SUPPLY_CONTRACT_QUALITY:
+                type_color = "\tm"; type_name = "Quality"; break;
+            case SUPPLY_CONTRACT_PRESTIGE:
+                type_color = "\tM"; type_name = "Prestige"; break;
+            case SUPPLY_CONTRACT_EVENT:
+                type_color = "\tR"; type_name = "EVENT"; break;
+        }
+        
+        send_to_char(ch, "\tC[%d]\tn %s%s Contract\tn \tg[AVAILABLE]\tn - %s\r\n", 
+                     contract->contract_id, type_color, type_name,
+                     contract->description ? contract->description : "Unknown contract");
+        
+        send_to_char(ch, "     \tgQuantity:\tn %d  \tgReward:\tn %d experience", 
+                     contract->quantity, contract->reward);
+        
+        if (contract->time_limit > 0) {
+            send_to_char(ch, "  \trExpires:\tn %d hours", contract->time_limit);
+        }
+        
+        send_to_char(ch, "\r\n     \tgRequires:\tn %s", 
+                     contract->requirements ? contract->requirements : "Unknown requirements");
+        
+        if (contract->quality_tier_requirement > QUALITY_TIER_STANDARD) {
+            const char *tier_names[] = {"Standard", "Superior", "Exceptional", "Masterwork", "Legendary"};
+            send_to_char(ch, "\r\n     \tYQuality Tier:\tn %s", 
+                         tier_names[MIN(contract->quality_tier_requirement, NUM_QUALITY_TIERS-1)]);
+        }
+        
+        // Show bulk efficiency bonus if applicable
+        if (contract->quantity >= BULK_EFFICIENCY_THRESHOLD_1) {
+            int efficiency = calculate_bulk_efficiency_bonus(contract->quantity);
+            send_to_char(ch, "\r\n     \tbBulk Efficiency:\tn +%d%% bonus", efficiency);
+        }
+        
+            send_to_char(ch, "\r\n\r\n");
+        }
+    }
+    
+    send_to_char(ch, "Use '\tCsupplyorder select <id>\tn' to choose a contract.\r\n");
+    send_to_char(ch, "Use '\tCsupplyorder request\tn' to get a random contract instead.\r\n\r\n");
+    
+    /* Save character data to preserve available contracts */
+    save_char(ch, 0);
+    
+    free_contract_list(contracts, num_contracts);
 }
 
 void request_new_supply_order(struct char_data *ch)
@@ -5755,14 +6370,17 @@ void request_new_supply_order(struct char_data *ch)
 
     if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_NONE)
     {
+        int contract_type = SUPPLY_CONTRACT_BASIC; // For now, just use basic contracts
+        int quantity = generate_contract_quantity(contract_type);
+        
         GET_CRAFT(ch).crafting_recipe = recipe;
         GET_CRAFT(ch).crafting_item_type = crafting_recipes[recipe].object_type;
         GET_CRAFT(ch).crafting_specific = crafting_recipes[recipe].object_subtype;
         GET_CRAFT(ch).craft_variant = variant;
         GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_SUPPLYORDER;
-        GET_CRAFT(ch).supply_num_required = NSUPPLY_ORDER_NUM_REQUIRED;
+        GET_CRAFT(ch).supply_num_required = quantity;
         GET_CRAFT(ch).skill_type = crafting_recipes[recipe].variant_skill[variant];
-        send_to_char(ch, "You've requested a new supply order to make %d %ss.\r\n", NSUPPLY_ORDER_NUM_REQUIRED, crafting_recipes[recipe].variant_descriptions[variant]);
+        send_to_char(ch, "You've requested a new supply order to make %d %ss.\r\n", quantity, crafting_recipes[recipe].variant_descriptions[variant]);
     }
     else
     {
@@ -5791,6 +6409,10 @@ void start_supply_order(struct char_data *ch)
     else if (num_supply_order_requisitions_to_go(ch) == 0)
     {
         send_to_char(ch, "You have already completed your supply order. Go to a supply order requisition NPC and type 'supplyorder complete' for your reward.\r\n");
+    }
+    else if (!validate_supply_order_materials(ch))
+    {
+        send_to_char(ch, "You don't have enough materials to complete your supply order. Please add more materials first.\r\n");
     }
     else
     {
@@ -5847,28 +6469,99 @@ void show_supply_order(struct char_data *ch)
 
     text_line(ch, "SUPPLY ORDER DETAILS", 90, '-', '-');
     
+    // Check for contract expiration first
+    if (is_contract_expired(ch)) {
+        send_to_char(ch, "\tr*** CONTRACT EXPIRED ***\tn\r\n");
+        send_to_char(ch, "Your supply order contract has expired and is no longer valid.\r\n");
+        send_to_char(ch, "Type 'supplyorder reset' to clear it and request a new contract.\r\n");
+        return;
+    }
+    
+    // Show contract type
+    const char *contract_type_str = "Basic";
+    const char *contract_color = "\tc";
+    switch(GET_CRAFT(ch).supply_contract_type) {
+        case SUPPLY_CONTRACT_RUSH:
+            contract_type_str = "Rush Order"; contract_color = "\ty"; break;
+        case SUPPLY_CONTRACT_BULK:
+            contract_type_str = "Bulk Contract"; contract_color = "\tb"; break;
+        case SUPPLY_CONTRACT_QUALITY:
+            contract_type_str = "Quality Contract"; contract_color = "\tm"; break;
+        case SUPPLY_CONTRACT_PRESTIGE:
+            contract_type_str = "Prestige Contract"; contract_color = "\tM"; break;
+        case SUPPLY_CONTRACT_EVENT:
+            contract_type_str = "Event Contract"; contract_color = "\tR"; break;
+        default:
+            contract_type_str = "Basic Contract"; contract_color = "\tc"; break;
+    }
+    send_to_char(ch, "-- Contract Type: %s%s\tn\r\n", contract_color, contract_type_str);
+    
+    // Show expiration info if applicable
+    if (GET_CRAFT(ch).supply_contract_expiration > 0) {
+        time_t now = time(0);
+        time_t expires = GET_CRAFT(ch).supply_contract_expiration;
+        int hours_left = (expires - now) / 3600;
+        
+        if (hours_left > 0) {
+            const char *urgency_color = (hours_left <= 6) ? "\tr" : (hours_left <= 24) ? "\ty" : "\tg";
+            send_to_char(ch, "-- Time Remaining: %s%d hours\tn\r\n", urgency_color, hours_left);
+        } else {
+            send_to_char(ch, "-- Status: \trEXPIRED\tn\r\n");
+        }
+    }
+    
     // show the type of item being created
     send_to_char(ch, "-- Item: %s\r\n", get_supply_order_item_desc(ch));
     
+    // Show progress
+    send_to_char(ch, "-- Progress: %d of %d items completed\r\n", 
+                 GET_NSUPPLY_NUM_MADE(ch), GET_CRAFT(ch).supply_num_required);
+    
     // the materials required
-    send_to_char(ch, "-- Materials Required:\r\n");
+    send_to_char(ch, "-- Materials Required (per item):\r\n");
     show_supply_order_materials(ch, recipe, variant);
+    
+    // Show estimated reward
+    if (num_supply_order_requisitions_to_go(ch) == 0)
+    {
+        send_to_char(ch, "-- Status: READY FOR COMPLETION!\r\n");
+        send_to_char(ch, "-- Estimated Reward: %d gold coins\r\n", calculate_supply_order_reward(ch));
+        send_to_char(ch, "-- Go to a supply order NPC and type 'supplyorder complete' to collect your reward.\r\n");
+    }
+    else
+    {
+        send_to_char(ch, "-- Status: In Progress (%d items remaining)\r\n", num_supply_order_requisitions_to_go(ch));
+        send_to_char(ch, "-- Estimated Reward: %d gold coins\r\n", calculate_supply_order_reward(ch));
+        
+        if (validate_supply_order_materials(ch))
+        {
+            send_to_char(ch, "-- Materials: SUFFICIENT - Ready to start crafting\r\n");
+        }
+        else
+        {
+            send_to_char(ch, "-- Materials: INSUFFICIENT - Add more materials before starting\r\n");
+        }
+    }
 
-    // the number still needed to make
-    // the exp per instance
-    // the reward info
-    // check and show completion
+    text_line(ch, "", 90, '-', '-');
 
 }
 
 void reset_supply_order(struct char_data *ch)
 {
     int i = 0;
+    
+    /* Set cooldown for abandoned slot if one was being worked on */
+    if (GET_CRAFT(ch).supply_active_slot >= 0 && GET_CRAFT(ch).supply_active_slot < 5) {
+        GET_CRAFT(ch).supply_slot_cooldowns[GET_CRAFT(ch).supply_active_slot] = time(NULL) + 3600; /* 1 hour cooldown */
+    }
+    
     GET_CRAFT(ch).crafting_method = 0;
     GET_CRAFT(ch).crafting_item_type = 0;
     GET_CRAFT(ch).crafting_specific = 0;
     GET_CRAFT(ch).craft_variant = -1;
     GET_CRAFT(ch).supply_num_required = 0;
+    GET_CRAFT(ch).supply_active_slot = -1; /* Reset active slot tracking */
     GET_CRAFT(ch).skill_type = 0;
     for (i = 0; i < NUM_CRAFT_GROUPS; i++)
     {
@@ -5925,7 +6618,7 @@ SPECIAL(new_supply_orders)
     }
     else if (is_abbrev(arg1, "complete"))
     {
-
+        complete_supply_order(ch);
     }
     else if (is_abbrev(arg1, "reset"))
     {
@@ -5948,7 +6641,7 @@ SPECIAL(new_supply_orders)
 void show_mote_bonuses(struct char_data *ch, int mote)
 {
     int i, j, length = 0;
-    bool found = false;
+    bool found = FALSE;
 
     send_to_char(ch, "\r\n");
 
@@ -5966,7 +6659,7 @@ void show_mote_bonuses(struct char_data *ch, int mote)
                 send_to_char(ch, "\r\n");
                 length = 0;
             }
-            found = true;
+            found = TRUE;
         }
     }
     if (!found)
@@ -5975,7 +6668,7 @@ void show_mote_bonuses(struct char_data *ch, int mote)
     send_to_char(ch, "\r\n");
 
     // armor enhancements
-    found = false;
+    found = FALSE;
     length = 0;
     send_to_char(ch, "\tcArmor Enhancement Bonuses for:\tn\r\n");
     for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
@@ -5991,7 +6684,7 @@ void show_mote_bonuses(struct char_data *ch, int mote)
                 length = 0;
             }
             
-            found = true;
+            found = TRUE;
         }
     }
     if (!found)
@@ -6001,7 +6694,7 @@ void show_mote_bonuses(struct char_data *ch, int mote)
 
 
     send_to_char(ch, "\tcOther Bonuses:\tn\r\n");
-    found = false;
+    found = FALSE;
     length = 0;
     for (i = 0; i < NUM_APPLIES; i++)
     {
@@ -6019,7 +6712,7 @@ void show_mote_bonuses(struct char_data *ch, int mote)
                             send_to_char(ch, "\r\n");
                             length = 0;
                         }
-                        found = true;
+                        found = TRUE;
                     }
                 }
                 break;
@@ -6033,7 +6726,7 @@ void show_mote_bonuses(struct char_data *ch, int mote)
                         send_to_char(ch, "\r\n");
                         length = 0;
                     }
-                    found = true;
+                    found = TRUE;
                 }
                 if (crafting_mote_by_bonus_location(i, 0, BONUS_TYPE_NATURALARMOR) == mote)
                 {
@@ -6044,7 +6737,7 @@ void show_mote_bonuses(struct char_data *ch, int mote)
                         send_to_char(ch, "\r\n");
                         length = 0;
                     }
-                    found = true;
+                    found = TRUE;
                 }
                 if (crafting_mote_by_bonus_location(i, 0, BONUS_TYPE_DODGE) == mote)
                 {
@@ -6055,7 +6748,7 @@ void show_mote_bonuses(struct char_data *ch, int mote)
                         send_to_char(ch, "\r\n");
                         length = 0;
                     }
-                    found = true;
+                    found = TRUE;
                 }
                 break;
             default:
@@ -6068,7 +6761,7 @@ void show_mote_bonuses(struct char_data *ch, int mote)
                         send_to_char(ch, "\r\n");
                         length = 0;
                     }
-                    found = true;
+                    found = TRUE;
                 }
                 break;
         }
@@ -6153,6 +6846,778 @@ int get_craft_wear_loc(struct char_data *ch)
      return ITEM_WEAR_TAKE;   
 }
 
+
+// Contract generation and management functions
+
+// Cleanup supply slots when player logs out or quits
+void cleanup_supply_slots(struct char_data *ch)
+{
+    int i;
+    
+    if (!ch) {
+        return;
+    }
+    
+    // Free any allocated strings in slots
+    for (i = 0; i < 5; i++) {
+        struct supply_contract *contract = &GET_CRAFT(ch).supply_slots[i];
+        
+        if (contract->description) {
+            free(contract->description);
+            contract->description = NULL;
+        }
+        if (contract->requirements) {
+            free(contract->requirements);
+            contract->requirements = NULL;
+        }
+        
+        GET_CRAFT(ch).supply_slot_active[i] = FALSE;
+        memset(contract, 0, sizeof(struct supply_contract));
+    }
+}
+
+// Check if it's time to refresh supply order slots (1 hour = 3600 seconds)
+bool should_refresh_supply_slots(struct char_data *ch)
+{
+    time_t now = time(NULL);
+    
+    // If never refreshed (or initialized but with 0), force refresh
+    if (GET_CRAFT(ch).supply_slots_last_refresh == 0) {
+        return TRUE;
+    }
+    
+    // If 1 hour has passed since last refresh
+    if ((now - GET_CRAFT(ch).supply_slots_last_refresh) >= 3600) {
+        return TRUE;
+    }
+    
+    return FALSE;
+}
+
+// Initialize supply slots if not already done
+void initialize_supply_slots(struct char_data *ch)
+{
+    int i;
+    bool needs_init = FALSE;
+    
+    // Check if we need to initialize - if any data looks uninitialized
+    if (GET_CRAFT(ch).supply_slots_last_refresh == 0) {
+        needs_init = TRUE;
+    }
+    
+    if (!needs_init) {
+        return;
+    }
+    
+    // Clear all slots
+    for (i = 0; i < 5; i++) {
+        GET_CRAFT(ch).supply_slot_active[i] = FALSE;
+        memset(&GET_CRAFT(ch).supply_slots[i], 0, sizeof(struct supply_contract));
+    }
+    
+    // Set initial refresh time to 0 to force immediate generation
+    GET_CRAFT(ch).supply_slots_last_refresh = 0; // This will trigger should_refresh_supply_slots to return TRUE
+    GET_CRAFT(ch).supply_slots_next_refresh = time(NULL); // Can refresh immediately
+}
+
+// Refresh available supply order slots
+void refresh_supply_slots(struct char_data *ch)
+{
+    int available_types[NUM_SUPPLY_CONTRACT_TYPES];
+    int num_available = 0;
+    int i;
+    time_t now = time(NULL);
+    
+    // Always include all contract types
+    available_types[num_available++] = SUPPLY_CONTRACT_BASIC;
+    available_types[num_available++] = SUPPLY_CONTRACT_RUSH;
+    available_types[num_available++] = SUPPLY_CONTRACT_BULK;
+    available_types[num_available++] = SUPPLY_CONTRACT_QUALITY;
+    available_types[num_available++] = SUPPLY_CONTRACT_PRESTIGE;
+    
+    /* Add event contracts if available */
+    if (is_special_event_active()) {
+        available_types[num_available++] = SUPPLY_CONTRACT_EVENT;
+    }
+    
+    // Generate contracts for empty slots only
+    int used_recipes[NUM_CRAFTING_RECIPES];
+    int num_used = 0;
+    
+    // Track recipes already used in existing slots
+    for (i = 0; i < 5; i++) {
+        if (GET_CRAFT(ch).supply_slot_active[i] && GET_CRAFT(ch).supply_slots[i].recipe > 0) {
+            used_recipes[num_used++] = GET_CRAFT(ch).supply_slots[i].recipe;
+        }
+    }
+    
+    // Create stable seed based on player ID and refresh time
+    int player_seed = GET_IDNUM(ch);
+    int base_seed = (player_seed * 997 + (int)(now / 3600)) % 10000;
+    
+    for (i = 0; i < 5; i++) {
+        // Skip slots that already have contracts or are on cooldown
+        if (GET_CRAFT(ch).supply_slot_active[i] || 
+            (GET_CRAFT(ch).supply_slot_cooldowns[i] > 0 && now < GET_CRAFT(ch).supply_slot_cooldowns[i])) {
+            continue;
+        }
+        
+        struct supply_contract *contract = &GET_CRAFT(ch).supply_slots[i];
+        
+        // Free any existing strings before clearing the slot
+        if (contract->description) {
+            free(contract->description);
+        }
+        if (contract->requirements) {
+            free(contract->requirements);
+        }
+        
+        // Clear the slot
+        memset(contract, 0, sizeof(struct supply_contract));
+        
+        // Basic contract setup
+        contract->contract_id = i + 1;
+        contract->contract_type = available_types[i % num_available];
+        
+        // Select a unique recipe
+        int attempts = 0;
+        bool unique_found = FALSE;
+        int contract_seed = base_seed + (i * 137);
+        
+        while (!unique_found && attempts < 100) {
+            contract->recipe = select_stable_craft_recipe(contract_seed + attempts);
+            
+            // Check if this recipe is already used
+            bool already_used = FALSE;
+            int j;
+            for (j = 0; j < num_used; j++) {
+                if (used_recipes[j] == contract->recipe) {
+                    already_used = TRUE;
+                    break;
+                }
+            }
+            
+            if (!already_used && contract->recipe > 0) {
+                used_recipes[num_used++] = contract->recipe;
+                unique_found = TRUE;
+            }
+            attempts++;
+        }
+        
+        // If we couldn't find a unique recipe, try systematic approach
+        if (!unique_found) {
+            int recipe_id;
+            for (recipe_id = 1; recipe_id <= NUM_CRAFTING_RECIPES && !unique_found; recipe_id++) {
+                bool already_used = FALSE;
+                int j;
+                for (j = 0; j < num_used; j++) {
+                    if (used_recipes[j] == recipe_id) {
+                        already_used = TRUE;
+                        break;
+                    }
+                }
+                if (!already_used) {
+                    contract->recipe = recipe_id;
+                    used_recipes[num_used++] = recipe_id;
+                    unique_found = TRUE;
+                }
+            }
+        }
+        
+        // Only activate slot if we found a valid recipe
+        if (unique_found) {
+            contract->variant = (contract->recipe > 0) ? select_stable_craft_variant(contract->recipe, contract_seed + 73) : 0;
+            
+            // Set quality requirements
+            contract->quality_tier_requirement = (contract->contract_type == SUPPLY_CONTRACT_QUALITY || 
+                                                contract->contract_type == SUPPLY_CONTRACT_PRESTIGE) ? 
+                                               QUALITY_TIER_SUPERIOR : QUALITY_TIER_STANDARD;
+            
+            // Generate quantity based on contract type
+            contract->quantity = generate_contract_quantity(contract->contract_type);
+            
+            // Add bulk efficiency bonus for large quantities
+            if (contract->quantity >= BULK_EFFICIENCY_THRESHOLD_1) {
+                int efficiency_bonus = calculate_bulk_efficiency_bonus(contract->quantity);
+                contract->quantity = contract->quantity + (contract->quantity * efficiency_bonus / 100);
+            }
+            
+            // Calculate difficulty modifier based on player level and recipe
+            int player_level = GET_LEVEL(ch);
+            int recipe_level = MAX(1, contract->recipe);
+            contract->difficulty_modifier = MAX(0, recipe_level - player_level);
+            
+            // Generate reward with advanced bonuses
+            contract->reward = generate_contract_reward(contract->contract_type, contract->quantity, 
+                                                       contract->difficulty_modifier + recipe_level);
+            
+            // Remove time limits as requested
+            contract->time_limit = 0;
+            
+            // Generate specialized contracts
+            if (contract->contract_type == SUPPLY_CONTRACT_PRESTIGE) {
+                generate_prestige_contract(contract, ch);
+            } else if (contract->contract_type == SUPPLY_CONTRACT_EVENT) {
+                generate_event_contract(contract, ch);
+            } else {
+                // Generate standard descriptions
+                char desc_buf[256], req_buf[256];
+                const char *item_name = "unknown item";
+                if (contract->recipe > 0 && contract->variant >= 0) {
+                    item_name = crafting_recipes[contract->recipe].variant_descriptions[contract->variant];
+                }
+                
+                // Helper to add plural without double 's'
+                char plural_item[256];
+                int len = strlen(item_name);
+                if (contract->quantity > 1 && len > 0 && item_name[len-1] != 's') {
+                    snprintf(plural_item, sizeof(plural_item), "%ss", item_name);
+                } else {
+                    strcpy(plural_item, item_name);
+                }
+                
+                switch(contract->contract_type) {
+                    case SUPPLY_CONTRACT_BASIC:
+                        snprintf(desc_buf, sizeof(desc_buf), "Craft %d %s", 
+                                 contract->quantity, (contract->quantity > 1) ? plural_item : item_name);
+                        snprintf(req_buf, sizeof(req_buf), "Standard materials for %s crafting", item_name);
+                        break;
+                    case SUPPLY_CONTRACT_RUSH:
+                        snprintf(desc_buf, sizeof(desc_buf), "Craft %d %s", 
+                                 contract->quantity, (contract->quantity > 1) ? plural_item : item_name);
+                        snprintf(req_buf, sizeof(req_buf), "Standard materials + 50%% bonus experience");
+                        break;
+                    case SUPPLY_CONTRACT_BULK:
+                        snprintf(desc_buf, sizeof(desc_buf), "Bulk order: Craft %d %s with efficiency bonus", 
+                                 contract->quantity, (contract->quantity > 1) ? plural_item : item_name);
+                        snprintf(req_buf, sizeof(req_buf), "Standard materials, %d%% bulk efficiency bonus", 
+                                 calculate_bulk_efficiency_bonus(contract->quantity));
+                        break;
+                    case SUPPLY_CONTRACT_QUALITY:
+                        snprintf(desc_buf, sizeof(desc_buf), "Premium quality %d %s required", 
+                                 contract->quantity, (contract->quantity > 1) ? plural_item : item_name);
+                        snprintf(req_buf, sizeof(req_buf), "Superior-grade materials + quality tier bonus");
+                        break;
+                    default:
+                        snprintf(desc_buf, sizeof(desc_buf), "Standard contract for %d %s", 
+                                 contract->quantity, (contract->quantity > 1) ? plural_item : item_name);
+                        snprintf(req_buf, sizeof(req_buf), "Standard materials");
+                        break;
+                }
+                
+                contract->description = strdup(desc_buf);
+                contract->requirements = strdup(req_buf);
+            }
+            
+            // No expiration time since we're removing timers
+            contract->expiration_time = 0;
+            
+            // Mark slot as active
+            GET_CRAFT(ch).supply_slot_active[i] = TRUE;
+        }
+    }
+    
+    // Update refresh timestamps
+    GET_CRAFT(ch).supply_slots_last_refresh = now;
+    GET_CRAFT(ch).supply_slots_next_refresh = now + 3600; // Next refresh in 1 hour
+}
+
+struct supply_contract *generate_available_contracts(struct char_data *ch, int *num_contracts)
+{
+    // Initialize slots if needed
+    initialize_supply_slots(ch);
+    
+    // Check if we should refresh slots
+    if (should_refresh_supply_slots(ch)) {
+        refresh_supply_slots(ch);
+    }
+    
+    // Count active slots and create return array
+    int active_count = 0;
+    int i;
+    for (i = 0; i < 5; i++) {
+        if (GET_CRAFT(ch).supply_slot_active[i]) {
+            active_count++;
+        }
+    }
+    
+    *num_contracts = active_count;
+    
+    if (active_count == 0) {
+        return NULL;
+    }
+    
+    // Allocate return array
+    struct supply_contract *contracts = malloc(sizeof(struct supply_contract) * active_count);
+    if (!contracts) {
+        *num_contracts = 0;
+        return NULL;
+    }
+    
+    // Copy active contracts to return array
+    int contract_index = 0;
+    for (i = 0; i < 5; i++) {
+        if (GET_CRAFT(ch).supply_slot_active[i]) {
+            memcpy(&contracts[contract_index], &GET_CRAFT(ch).supply_slots[i], sizeof(struct supply_contract));
+            // Update contract_id to be sequential
+            contracts[contract_index].contract_id = contract_index + 1;
+            
+            // Duplicate the strings to avoid double-free issues
+            if (GET_CRAFT(ch).supply_slots[i].description) {
+                contracts[contract_index].description = strdup(GET_CRAFT(ch).supply_slots[i].description);
+            } else {
+                contracts[contract_index].description = NULL;
+            }
+            
+            if (GET_CRAFT(ch).supply_slots[i].requirements) {
+                contracts[contract_index].requirements = strdup(GET_CRAFT(ch).supply_slots[i].requirements);
+            } else {
+                contracts[contract_index].requirements = NULL;
+            }
+            
+            contract_index++;
+        }
+    }
+    
+    return contracts;
+    
+}
+
+void free_contract_list(struct supply_contract *contracts, int num_contracts)
+{
+    int i;
+    
+    if (!contracts) return;
+    
+    for (i = 0; i < num_contracts; i++) {
+        if (contracts[i].description) {
+            free(contracts[i].description);
+        }
+        if (contracts[i].requirements) {
+            free(contracts[i].requirements);
+        }
+    }
+    free(contracts);
+}
+
+int select_contract_by_id(struct char_data *ch, int contract_id)
+{
+    int num_contracts = 0;
+    struct supply_contract *contracts = generate_available_contracts(ch, &num_contracts);
+    
+    if (!contracts || contract_id < 1 || contract_id > num_contracts) {
+        if (contracts) {
+            free_contract_list(contracts, num_contracts);
+        }
+        return 0; // Invalid contract
+    }
+    
+    struct supply_contract *contract = &contracts[contract_id - 1];
+    
+    // Find which slot this contract corresponds to and deactivate it
+    int slot_found = -1;
+    int i;
+    for (i = 0; i < 5; i++) {
+        if (GET_CRAFT(ch).supply_slot_active[i] && 
+            GET_CRAFT(ch).supply_slots[i].recipe == contract->recipe &&
+            GET_CRAFT(ch).supply_slots[i].variant == contract->variant &&
+            GET_CRAFT(ch).supply_slots[i].contract_type == contract->contract_type) {
+            slot_found = i;
+            break;
+        }
+    }
+    
+    if (slot_found == -1) {
+        send_to_char(ch, "Error: Could not find the corresponding contract slot.\r\n");
+        free_contract_list(contracts, num_contracts);
+        return 0;
+    }
+    
+    // Deactivate the slot and set cooldown
+    GET_CRAFT(ch).supply_slot_active[slot_found] = FALSE;
+    GET_CRAFT(ch).supply_slot_cooldowns[slot_found] = time(NULL) + 3600; /* 1 hour cooldown */
+    GET_CRAFT(ch).supply_active_slot = slot_found; /* Track which slot is being worked on */
+    
+    // Set up the player's crafting project
+    GET_CRAFT(ch).crafting_recipe = contract->recipe;
+    GET_CRAFT(ch).crafting_item_type = crafting_recipes[contract->recipe].object_type;
+    GET_CRAFT(ch).crafting_specific = crafting_recipes[contract->recipe].object_subtype;
+    GET_CRAFT(ch).craft_variant = contract->variant;
+    GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_SUPPLYORDER;
+    GET_CRAFT(ch).supply_num_required = contract->quantity;
+    GET_CRAFT(ch).skill_type = crafting_recipes[contract->recipe].variant_skill[contract->variant];
+    
+    // Store contract type and advanced features
+    GET_CRAFT(ch).supply_contract_type = contract->contract_type;
+    GET_CRAFT(ch).supply_quality_tier_requirement = contract->quality_tier_requirement;
+    // Note: No longer setting expiration time as per user request
+    
+    const char *type_name = "Basic";
+    const char *type_color = "\tc";
+    switch(contract->contract_type) {
+        case SUPPLY_CONTRACT_RUSH: type_name = "Rush"; type_color = "\ty"; break;
+        case SUPPLY_CONTRACT_BULK: type_name = "Bulk"; type_color = "\tb"; break;  
+        case SUPPLY_CONTRACT_QUALITY: type_name = "Quality"; type_color = "\tm"; break;
+        case SUPPLY_CONTRACT_PRESTIGE: type_name = "Prestige"; type_color = "\tM"; break;
+        case SUPPLY_CONTRACT_EVENT: type_name = "Event"; type_color = "\tR"; break;
+    }
+    
+    send_to_char(ch, "You've accepted the %s%s\tn contract to %s.\r\n", type_color, type_name, contract->description);
+    send_to_char(ch, "Reward upon completion: %d experience points.\r\n", contract->reward);
+    send_to_char(ch, "This contract slot will refresh after 1 hour of online time.\r\n");
+    
+    if (contract->quality_tier_requirement > QUALITY_TIER_STANDARD) {
+        send_to_char(ch, "\tYThis contract requires superior quality materials!\tn\r\n");
+    }
+    
+    // Award reputation points for accepting challenging contracts
+    int rep_bonus = contract->contract_type * 2;
+    add_reputation_points(ch, rep_bonus);
+    
+    free_contract_list(contracts, num_contracts);
+    return 1; // Success
+}
+
+int reject_contract_by_id(struct char_data *ch, int contract_id)
+{
+    int num_contracts = 0;
+    struct supply_contract *contracts = generate_available_contracts(ch, &num_contracts);
+    
+    if (!contracts || contract_id < 1 || contract_id > num_contracts) {
+        if (contracts) {
+            free_contract_list(contracts, num_contracts);
+        }
+        send_to_char(ch, "Invalid contract selection.\r\n");
+        return 0; // Invalid contract
+    }
+    
+    struct supply_contract *contract = &contracts[contract_id - 1];
+    
+    // Find which slot this contract corresponds to and deactivate it
+    int slot_found = -1;
+    int i;
+    for (i = 0; i < 5; i++) {
+        if (GET_CRAFT(ch).supply_slot_active[i] && 
+            GET_CRAFT(ch).supply_slots[i].recipe == contract->recipe &&
+            GET_CRAFT(ch).supply_slots[i].variant == contract->variant &&
+            GET_CRAFT(ch).supply_slots[i].contract_type == contract->contract_type) {
+            slot_found = i;
+            break;
+        }
+    }
+    
+    if (slot_found == -1) {
+        send_to_char(ch, "Error: Could not find the corresponding contract slot.\r\n");
+        free_contract_list(contracts, num_contracts);
+        return 0;
+    }
+    
+    // Deactivate the slot
+    GET_CRAFT(ch).supply_slot_active[slot_found] = FALSE;
+    
+    const char *type_name = "Basic";
+    const char *type_color = "\tc";
+    switch(contract->contract_type) {
+        case SUPPLY_CONTRACT_RUSH: type_name = "Rush"; type_color = "\ty"; break;
+        case SUPPLY_CONTRACT_BULK: type_name = "Bulk"; type_color = "\tb"; break;  
+        case SUPPLY_CONTRACT_QUALITY: type_name = "Quality"; type_color = "\tm"; break;
+        case SUPPLY_CONTRACT_PRESTIGE: type_name = "Prestige"; type_color = "\tM"; break;
+        case SUPPLY_CONTRACT_EVENT: type_name = "Event"; type_color = "\tR"; break;
+    }
+    
+    send_to_char(ch, "You've rejected the %s%s\tn contract for %s.\r\n", type_color, type_name, contract->description);
+    send_to_char(ch, "This slot will refresh after 1 hour of online time.\r\n");
+    
+    free_contract_list(contracts, num_contracts);
+    return 1; // Success
+}
+
+// Called from comm.c every second to check and refresh supply slots for all online players
+void update_supply_slots_for_all_players(void)
+{
+    struct descriptor_data *d;
+    struct char_data *ch;
+    
+    for (d = descriptor_list; d; d = d->next) {
+        if (STATE(d) != CON_PLAYING || !(ch = d->character))
+            continue;
+            
+        if (IS_NPC(ch))
+            continue;
+            
+        // Update this player's online time and check for slot refresh
+        if (should_refresh_supply_slots(ch)) {
+            refresh_supply_slots(ch);
+        }
+    }
+}
+
+// Phase 3: Advanced Features Implementation
+
+// Reputation system functions
+int get_player_reputation_rank(struct char_data *ch)
+{
+    int points = get_player_reputation_points(ch);
+    
+    if (points >= REP_THRESHOLD_GRANDMASTER) return REP_RANK_GRANDMASTER;
+    if (points >= REP_THRESHOLD_MASTER) return REP_RANK_MASTER;
+    if (points >= REP_THRESHOLD_EXPERT) return REP_RANK_EXPERT;
+    if (points >= REP_THRESHOLD_JOURNEYMAN) return REP_RANK_JOURNEYMAN;
+    if (points >= REP_THRESHOLD_APPRENTICE) return REP_RANK_APPRENTICE;
+    
+    return REP_RANK_NOVICE;
+}
+
+int get_player_reputation_points(struct char_data *ch)
+{
+    return GET_CRAFT(ch).supply_reputation_points;
+}
+
+void add_reputation_points(struct char_data *ch, int points)
+{
+    int old_rank = get_player_reputation_rank(ch);
+    GET_CRAFT(ch).supply_reputation_points += points;
+    int new_rank = get_player_reputation_rank(ch);
+    
+    if (new_rank > old_rank) {
+        send_to_char(ch, "\tgYour crafting reputation has improved!\tn\r\n");
+        send_to_char(ch, "\tYYou are now a %s crafter!\tn\r\n", get_reputation_rank_name(new_rank));
+    }
+}
+
+const char *get_reputation_rank_name(int rank)
+{
+    switch(rank) {
+        case REP_RANK_NOVICE: return "Novice";
+        case REP_RANK_APPRENTICE: return "Apprentice";
+        case REP_RANK_JOURNEYMAN: return "Journeyman";
+        case REP_RANK_EXPERT: return "Expert";
+        case REP_RANK_MASTER: return "Master";
+        case REP_RANK_GRANDMASTER: return "Grandmaster";
+        default: return "Unknown";
+    }
+}
+
+// Quality tier system
+int calculate_quality_tier_bonus(struct char_data *ch)
+{
+    int bonus = 0;
+    int i = 0;
+    
+    // Calculate bonus based on material quality
+    for (i = 0; i < NUM_CRAFT_GROUPS; i++) {
+        if (GET_CRAFT(ch).materials[i][0] > CRAFT_MAT_NONE) {
+            int mat_grade = material_grade(GET_CRAFT(ch).materials[i][0]);
+            bonus += mat_grade * 5; // 5% bonus per material grade
+        }
+    }
+    
+    // Cap at legendary tier (100% bonus)
+    return MIN(bonus, 100);
+}
+
+// Bulk efficiency system
+int calculate_bulk_efficiency_bonus(int quantity)
+{
+    if (quantity >= BULK_EFFICIENCY_THRESHOLD_3) return 30; // 30% bonus
+    if (quantity >= BULK_EFFICIENCY_THRESHOLD_2) return 20; // 20% bonus
+    if (quantity >= BULK_EFFICIENCY_THRESHOLD_1) return 10; // 10% bonus
+    return 0;
+}
+
+// Contract expiration system
+bool is_contract_expired(struct char_data *ch)
+{
+    if (GET_CRAFT(ch).supply_contract_expiration == 0) return FALSE; // No expiration set
+    return (time(0) > GET_CRAFT(ch).supply_contract_expiration);
+}
+
+void update_contract_expiration(struct char_data *ch, int contract_type)
+{
+    time_t now = time(0);
+    int hours = 0;
+    
+    switch(contract_type) {
+        case SUPPLY_CONTRACT_BASIC: hours = CONTRACT_EXPIRE_BASIC; break;
+        case SUPPLY_CONTRACT_RUSH: hours = CONTRACT_EXPIRE_RUSH; break;
+        case SUPPLY_CONTRACT_BULK: hours = CONTRACT_EXPIRE_BULK; break;
+        case SUPPLY_CONTRACT_QUALITY: hours = CONTRACT_EXPIRE_QUALITY; break;
+        case SUPPLY_CONTRACT_PRESTIGE: hours = CONTRACT_EXPIRE_PRESTIGE; break;
+        case SUPPLY_CONTRACT_EVENT: hours = CONTRACT_EXPIRE_EVENT; break;
+        default: hours = CONTRACT_EXPIRE_BASIC; break;
+    }
+    
+    GET_CRAFT(ch).supply_contract_expiration = now + (hours * 3600); // Convert hours to seconds
+}
+
+// Special event system
+int get_event_contract_availability(void)
+{
+    // Simple time-based event system - events every 7 days
+    time_t now = time(0);
+    struct tm *local = localtime(&now);
+    
+    // Event active on Sundays (day 0)
+    return (local->tm_wday == 0) ? 1 : 0;
+}
+
+bool is_special_event_active(void)
+{
+    return get_event_contract_availability() > 0;
+}
+
+void generate_prestige_contract(struct supply_contract *contract, struct char_data *ch)
+{
+    // Prestige contracts are high-level, high-reward contracts
+    contract->contract_type = SUPPLY_CONTRACT_PRESTIGE;
+    contract->quantity = dice(3, 3) + 2; // 5-11 items
+    contract->quality_tier_requirement = QUALITY_TIER_EXCEPTIONAL;
+    
+    // Higher base reward
+    contract->reward = generate_contract_reward(SUPPLY_CONTRACT_PRESTIGE, contract->quantity, 
+                                               contract->difficulty_modifier + 5);
+    
+    // Enhanced descriptions
+    char desc_buf[256], req_buf[256];
+    const char *item_name = "masterwork item";
+    if (contract->recipe > 0 && contract->variant >= 0) {
+        item_name = crafting_recipes[contract->recipe].variant_descriptions[contract->variant];
+    }
+    
+    snprintf(desc_buf, sizeof(desc_buf), "PRESTIGE: Craft %d exceptional %s%s for the royal court", 
+             contract->quantity, item_name, (contract->quantity > 1) ? "s" : "");
+    snprintf(req_buf, sizeof(req_buf), "Master-grade materials + exceptional craftsmanship required");
+    
+    contract->description = strdup(desc_buf);
+    contract->requirements = strdup(req_buf);
+}
+
+void generate_event_contract(struct supply_contract *contract, struct char_data *ch)
+{
+    // Event contracts are time-limited special opportunities
+    contract->contract_type = SUPPLY_CONTRACT_EVENT;
+    contract->quantity = dice(2, 4) + 1; // 3-9 items
+    contract->quality_tier_requirement = QUALITY_TIER_SUPERIOR;
+    
+    // Bonus reward for limited time
+    contract->reward = generate_contract_reward(SUPPLY_CONTRACT_EVENT, contract->quantity, 
+                                               contract->difficulty_modifier) * 2; // Double reward
+    
+    // Event-specific descriptions
+    char desc_buf[256], req_buf[256];
+    const char *item_name = "festival item";
+    if (contract->recipe > 0 && contract->variant >= 0) {
+        item_name = crafting_recipes[contract->recipe].variant_descriptions[contract->variant];
+    }
+    
+    snprintf(desc_buf, sizeof(desc_buf), "FESTIVAL EVENT: Craft %d %s%s for the harvest celebration", 
+             contract->quantity, item_name, (contract->quantity > 1) ? "s" : "");
+    snprintf(req_buf, sizeof(req_buf), "Superior materials + limited time offer (ends soon!)");
+    
+    contract->description = strdup(desc_buf);
+    contract->requirements = strdup(req_buf);
+}
+
+void show_supply_order_cooldowns(struct char_data *ch)
+{
+    time_t now = time(NULL);
+    
+    /* Character validation */
+    if (!ch) {
+        return;
+    }
+    
+    text_line(ch, "SUPPLY ORDER TIMING INFORMATION", 90, '-', '-');
+    
+    /* Active contract expiration */
+    if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_SUPPLYORDER && 
+        GET_CRAFT(ch).supply_contract_expiration > 0) {
+        
+        time_t expires = GET_CRAFT(ch).supply_contract_expiration;
+        
+        if (now < expires) {
+            int hours_left = (expires - now) / 3600;
+            int minutes_left = ((expires - now) % 3600) / 60;
+            
+            const char *urgency_color;
+            if (hours_left <= 6) {
+                urgency_color = "\tr"; /* Red for urgent */
+            } else if (hours_left <= 24) {
+                urgency_color = "\ty"; /* Yellow for warning */
+            } else {
+                urgency_color = "\tg"; /* Green for safe */
+            }
+            
+            send_to_char(ch, "Active Contract Expiration: %s%d hours, %d minutes\tn\r\n", 
+                         urgency_color, hours_left, minutes_left);
+        } else {
+            send_to_char(ch, "Active Contract Status: \trEXPIRED\tn\r\n");
+        }
+    } else if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_SUPPLYORDER) {
+        send_to_char(ch, "Active Contract: No expiration set\r\n");
+    } else {
+        send_to_char(ch, "Active Contract: None\r\n");
+    }
+    
+    /* Contract slot refresh timing */
+    if (GET_CRAFT(ch).supply_slots_next_refresh > 0) {
+        if (now < GET_CRAFT(ch).supply_slots_next_refresh) {
+            int refresh_hours = (GET_CRAFT(ch).supply_slots_next_refresh - now) / 3600;
+            int refresh_minutes = ((GET_CRAFT(ch).supply_slots_next_refresh - now) % 3600) / 60;
+            
+            send_to_char(ch, "Contract Slots Refresh: \tc%d hours, %d minutes\tn\r\n", 
+                         refresh_hours, refresh_minutes);
+        } else {
+            send_to_char(ch, "Contract Slots Refresh: \tgAvailable now\tn\r\n");
+        }
+    } else {
+        send_to_char(ch, "Contract Slots Refresh: \tgNever refreshed - available now\tn\r\n");
+    }
+    
+    /* Last refresh time */
+    if (GET_CRAFT(ch).supply_slots_last_refresh > 0) {
+        int last_refresh_hours = (now - GET_CRAFT(ch).supply_slots_last_refresh) / 3600;
+        int last_refresh_minutes = ((now - GET_CRAFT(ch).supply_slots_last_refresh) % 3600) / 60;
+        
+        send_to_char(ch, "Last Slot Refresh: %d hours, %d minutes ago\r\n", 
+                     last_refresh_hours, last_refresh_minutes);
+    } else {
+        send_to_char(ch, "Last Slot Refresh: Never\r\n");
+    }
+    
+    /* Individual slot cooldowns */
+    send_to_char(ch, "\r\nIndividual Slot Cooldowns:\r\n");
+    int any_cooldowns = 0;
+    int slot;
+    for (slot = 0; slot < 5; slot++) {
+        if (GET_CRAFT(ch).supply_slot_cooldowns[slot] > 0) {
+            if (now < GET_CRAFT(ch).supply_slot_cooldowns[slot]) {
+                int cooldown_hours = (GET_CRAFT(ch).supply_slot_cooldowns[slot] - now) / 3600;
+                int cooldown_minutes = ((GET_CRAFT(ch).supply_slot_cooldowns[slot] - now) % 3600) / 60;
+                
+                send_to_char(ch, "  Slot %d: \tr%d hours, %d minutes remaining\tn\r\n", 
+                             slot + 1, cooldown_hours, cooldown_minutes);
+                any_cooldowns = 1;
+            } else {
+                send_to_char(ch, "  Slot %d: \tgCooldown expired\tn\r\n", slot + 1);
+            }
+        }
+    }
+    
+    if (!any_cooldowns) {
+        send_to_char(ch, "  \tgNo active cooldowns\tn\r\n");
+    }
+    
+    /* Special event timing */
+    if (is_special_event_active()) {
+        send_to_char(ch, "Special Event Status: \tgActive\tn (Event contracts available)\r\n");
+    } else {
+        send_to_char(ch, "Special Event Status: Inactive\r\n");
+    }
+    
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "Use '\tchelp supplyorder\tn' for more information on supply order commands.\r\n");
+}
 
 // Todo: 
 // greygem shards - extract motes, get feats out, store feat motes separately

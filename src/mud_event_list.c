@@ -11,6 +11,7 @@
 #include "structs.h"
 #include "mud_event.h"
 #include "dg_event.h"
+#include "brew.h"
 
 /* External event handler function declarations */
 extern EVENTFUNC(event_countdown);
@@ -40,6 +41,8 @@ extern EVENTFUNC(event_moonbeam);
 extern EVENTFUNC(event_aqueous_orb);
 extern EVENTFUNC(event_concussive_onslaught);
 extern EVENTFUNC(event_power_leech);
+extern EVENTFUNC(event_devise_creation);
+extern EVENTFUNC(event_devise_progress);
 
 /* The mud_event_index[] with extended data for table-driven handling
  * Format: {name, func, type, completion_msg, recovery_msg, feat, daily_uses} */
@@ -499,4 +502,10 @@ struct mud_event_list mud_event_index[] = {
      FEAT_DRAGOON_POINTS, 0},
     {"Call Dragon Mount", event_countdown, EVENT_CHAR,
      "You are now able to 'call dragon' again.", NULL, FEAT_UNDEFINED, 0},
+    {"Regeneration", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Devise Creation", event_devise_creation, EVENT_CHAR,
+     NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Devise Progress", event_devise_progress, EVENT_CHAR,
+     NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Brew Potion", event_brewing, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
 };

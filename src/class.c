@@ -1435,6 +1435,7 @@ int valid_align_by_class(int alignment, int class)
   case CLASS_ASSASSIN:
   case CLASS_INQUISITOR:
   case CLASS_WARLOCK:
+  case CLASS_ARTIFICER:
     return TRUE;
   }
   /* shouldn't get here if we got all classes listed above */
@@ -1663,6 +1664,8 @@ int parse_class_long(const char *arg_in)
     return CLASS_DRAGONRIDER;
   if (is_abbrev(arg, "dragon-rider"))
     return CLASS_DRAGONRIDER;
+  if (is_abbrev(arg, "artificer"))
+    return CLASS_ARTIFICER;
   if (is_abbrev(arg, "shifter"))
     return CLASS_SHIFTER;
   if (is_abbrev(arg, "sacred-fist"))
@@ -1724,6 +1727,8 @@ int modify_class_ability(struct char_data *ch, int ability, int class)
 {
   int ability_value = CLSLIST_ABIL(class, ability);
 
+  /* Jack of All Trades no longer modifies class abilities - now provides skill bonuses instead */
+
   if (IS_LICH(ch))
   {
     if (ability == ABILITY_ACROBATICS)
@@ -1761,6 +1766,27 @@ int modify_class_ability(struct char_data *ch, int ability, int class)
   }
 
   return ability_value;
+}
+
+/* Function to determine if a skill is a class skill for a character
+ * This replaces direct access to class_list and handles feats like Jack of All Trades */
+int is_class_skill(struct char_data *ch, int ability)
+{
+  int i;
+  int highest_value = NA;
+  
+  /* Check all classes the character has */
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    if (CLASS_LEVEL(ch, i))
+    {
+      int class_ability_value = modify_class_ability(ch, ability, i);
+      if (class_ability_value > highest_value)
+        highest_value = class_ability_value;
+    }
+  }
+  
+  return highest_value;
 }
 
 /* given ch, and saving throw we need computed - do so here */
@@ -2957,6 +2983,7 @@ void newbieEquipment(struct char_data *ch)
     break;
 
   case CLASS_SUMMONER:
+  case CLASS_ARTIFICER:
     obj = read_object(NOOB_GEAR_SUMMONER_ARMS, VIRTUAL);
     GET_OBJ_SIZE(obj) = GET_SIZE(ch);
     equip_char(ch, obj, WEAR_ARMS); // arms armor
@@ -3106,7 +3133,7 @@ void init_start_char(struct char_data *ch)
     KNOWS_CRUELTY(ch, i) = 0;
   for (i = 0; i < NUM_LANGUAGES; i++)
     ch->player_specials->saved.languages_known[i] = FALSE;
-  ch->player_specials->saved.fiendish_boons = 0;
+  ch->player_specials->saved.active_fiendish_boons = 0;
   ch->player_specials->saved.channel_energy_type = 0;
   // this is here so that new characters can't get extra stat points from racefix command.
   ch->player_specials->saved.new_race_stats = true;
@@ -4164,6 +4191,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_KNIGHT_OF_THE_SKULL:
   case CLASS_KNIGHT_OF_THE_LILY:
   case CLASS_DRAGONRIDER:
+  case CLASS_ARTIFICER:
     level--;
     if (level < 0)
       level = 0;
@@ -9614,6 +9642,97 @@ void load_class_list(void)
 
   /****************************************************************************/
   /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number  name        abrv   clr-abrv     menu-name*/
+  classo(CLASS_ARTIFICER, "artificer", "Art", "\tCArt\tn", "v) \tCArtificer\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCost eFeatp*/
+         20, N, N, M, 6, 0, 1, 5, Y, 0, 3,
+         /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Intelligence for device creation, Dexterity and Constitution for survivability",
+         /*descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
+                     "power through the fusion of magic and technology. Artificers are "
+                     "shrewd magic-users who seek to understand the fundamental forces "
+                     "that drive both arcane and divine magic, then harness them through "
+                     "specially crafted devices and items. Not traditional spellcasters, "
+                     "artificers instead imbue objects with magical power through their "
+                     "weird science, creating temporary but potent devices that can "
+                     "replicate the effects of spells. Masters of item creation and "
+                     "magical engineering, they serve as the bridge between the mystical "
+                     "and the mechanical, capable of crafting wonders that blur the "
+                     "line between magic and technology.");
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_ARTIFICER, G, B, G, B, B);
+  assign_class_abils(CLASS_ARTIFICER, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CA, CA, CC, CA, CA,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CA, CC, CC, CA, CA, CC, CA, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CA, CA, CC, CC, CC, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CA, CC);
+  assign_class_titles(CLASS_ARTIFICER,                     /* class number */
+                      "",                                  /* <= 4  */
+                      "the Reader of Esoteric Devices",   /* <= 9  */
+                      "the Crafter of Wonders",           /* <= 14 */
+                      "the Advanced Inventor",            /* <= 19 */
+                      "the Master of Weird Science",      /* <= 24 */
+                      "the Delver of Arcane Mechanics",   /* <= 29 */
+                      "the Artificer Supreme",            /* <= 30 */
+                      "the Immortal Inventor",            /* <= LVL_IMMORT */
+                      "the Avatar of Creation",           /* <= LVL_STAFF */
+                      "the God of Innovation",            /* <= LVL_GRSTAFF */
+                      "the Artificer"                     /* default */
+  );
+  /* feat assignment */
+  /*              class num         feat                               cfeat lvl stack */
+  feat_assignment(CLASS_ARTIFICER, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_SCRIBE_SCROLL, Y, 2, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_BREW_POTION, Y, 3, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CRAFT_WONDEROUS_ITEM, Y, 4, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR, Y, 5, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CRAFT_WAND, Y, 7, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CRAFT_ROD, Y, 9, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_CRAFT_STAFF, Y, 12, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_FORGE_RING, Y, 14, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_ARTIFICERS_LORE, Y, 1, N);
+  /* artificer class abilities */
+  feat_assignment(CLASS_ARTIFICER, FEAT_ELBOW_GREASE, Y, 1, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_JACK_OF_ALL_TRADES, Y, 1, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_WEIRD_SCIENCE, Y, 1, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_ARTIFICER_ITEM_CREATION, Y, 2, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_SALVAGE, Y, 5, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_METAMAGIC_SCIENCE, Y, 6, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_IMPROVED_METAMAGIC_SCIENCE, Y, 11, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_IMPROVED_JACK_OF_ALL_TRADES, Y, 13, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_EXEMPLAR, Y, 20, N);
+  /* bonus feats at levels 3, 8, 12, 16, 19 */
+  /* class feats */
+  feat_assignment(CLASS_ARTIFICER, FEAT_COMBAT_CASTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_GREATER_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_IMPROVED_INITIATIVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_SKILL_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_MAGICAL_APTITUDE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_EMPOWER_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_ENLARGE_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_EXTEND_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_HEIGHTEN_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_MAXIMIZE_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_STILL_SPELL, Y, NOASSIGN_FEAT, N);
+  /* epic class feats */
+  feat_assignment(CLASS_ARTIFICER, FEAT_GREAT_INTELLIGENCE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ARTIFICER, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
+
+  /****************************************************************************/
+  
 }
 
 /* This will check a character to see if the object reference has any anti-class

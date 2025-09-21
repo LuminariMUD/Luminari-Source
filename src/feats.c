@@ -696,8 +696,8 @@ void assign_feats(void)
         "+2 con -2 str",
         "Gnomes as a racial adjustment have +2 constitution and -2 strength.");
   feato(FEAT_ARTIFICERS_LORE, "artificer's lore", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+2 to lore and appraise checks",
-        "+2 to lore and appraise based skill and ability checks.");
+        "+2 to knowledge skills and appraise",
+        "+2 bonus to arcana, religion, history, nature, and appraise skill checks. This represents the artificer's comprehensive understanding of magical items, divine artifacts, legendary objects, natural magical phenomena, and their relative values.");
   feato(FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, "rock gnome racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 Int +1 con",
         "Rock Gnomes as a racial adjustment have +1 constitution and +2 to intelligence.");
@@ -4206,6 +4206,10 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "deceive magical items",
         "deceive magical items - +2 to all use magic device checks");
 
+  // Artificer
+
+
+
   /* Psionicist */
   feato(FEAT_WEAPON_PROFICIENCY_PSIONICIST, "weapon proficiency - psionicist", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
         "proficiency in psioncist weapons",
@@ -5026,11 +5030,15 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   feato(FEAT_PROFICIENT_HARVESTER, "proficient harvester", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Increases all harvesting skills", "Increases all harvesting skills");
   feato(FEAT_SCAVENGE, "scavenge", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Can find materials on corpses", "Can find materials on corpses");
   feato(FEAT_BRANDING, "branding", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "All items made carry the artisan's brand", "All items made carry the artisan's brand");
-  feato(FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR, "craft magical arms and armor", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical weapons and armor ", "can create magical weapons and armor ");
+  feato(FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR, "craft magical arms and armor", TRUE, TRUE, FALSE, FEAT_TYPE_CRAFT, 
+    "Expertise in creating magical weapons and armor", 
+    "You gain a +5 bonus to all crafting skill checks when creating magical weapons and armor. This bonus applies to both the ability to attempt crafts and the success rate of crafting attempts.");
   feato(FEAT_CRAFT_ROD, "craft rod", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can crate magical rods", "can crate magical rods");
   feato(FEAT_CRAFT_STAFF, "craft staff", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical staves ", "can create magical staves ");
   feato(FEAT_CRAFT_WAND, "craft wand", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can create magical wands ", "can create magical wands ");
-  feato(FEAT_CRAFT_WONDEROUS_ITEM, "craft wonderous item", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "can crate miscellaneous magical items ", "can crate miscellaneous magical items ");
+  feato(FEAT_CRAFT_WONDEROUS_ITEM, "craft wonderous item", TRUE, TRUE, FALSE, FEAT_TYPE_CRAFT, 
+    "Expertise in creating miscellaneous magical items", 
+    "You gain a +5 bonus to all crafting skill checks when creating miscellaneous magical items. This bonus applies to both the ability to attempt crafts and the success rate of crafting attempts.");
   feato(FEAT_FORGE_RING, "forge ring", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "ask staff ", "ask staff ");
   feato(FEAT_MASTERWORK_CRAFTING, "masterwork crafting", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT, "All equipment made is masterwork", "All equipment made is masterwork");
 
@@ -5421,6 +5429,61 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
     "Defensive stance bonus increases to +6 and duration is increased by 50%");
     feat_prereq_feat(FEAT_BULWARK_OF_DEFENSE, FEAT_DEFENSIVE_STANCE, 3);
     feat_prereq_attribute(FEAT_BULWARK_OF_DEFENSE, AB_CON, 25);
+
+  /* artificer class abilities */
+  feato(FEAT_ELBOW_GREASE, "elbow grease", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Bonus to all Craft checks based on artificer level.",
+        "The artificer gains a +2 bonus to all Craft checks at 1st level. This bonus increases to +4 at 6th level and +6 at 10th level.");
+
+  feato(FEAT_JACK_OF_ALL_TRADES, "jack of all trades", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Provides +3 bonus to all skills.",
+        "The artificer has picked up a smattering of even the most obscure skills. The artificer gains a +3 bonus to all skill checks, "
+        "reflecting their broad knowledge and versatility across many areas of expertise.");
+
+  feato(FEAT_WEIRD_SCIENCE, "weird science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Create magical devices that replicate spell effects.",
+        "An artificer can imbue items with magical power through weird science, creating devices that combine the effects of "
+        "one or more spells. These devices are temporary and can be used a limited number of times per day.");
+
+  feato(FEAT_ARTIFICER_ITEM_CREATION, "artificer item creation", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Enhanced ability to create magic items without prerequisite spells.",
+        "An artificer's invention ability expands to include the creation of true magic items, even if the artificer does not "
+        "have access to the prerequisite spells. The artificer must make a Craft check to emulate each required spell.");
+
+  feato(FEAT_SALVAGE, "salvage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Ability to salvage materials and motes from items.",
+        "The player can dismantle items to recover valuable materials. Salvaging gives 15% of the item's gold value "
+        "immediately, plus a chance to recover crafting materials and elemental motes. Material chance is "
+        "((player level / 3) + 10)% to get 1 to (item level / 6) materials. Mote chance is half that, yielding "
+        "1 to (bonus level adjustment / 6) motes per magical bonus on the item.");
+
+  feato(FEAT_METAMAGIC_SCIENCE, "metamagic science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Apply metamagic feats to spell trigger items like wands.",
+        "The artificer gains the ability to apply a metamagic feat to a spell trigger item such as a wand. Using this ability "
+        "expends additional charges equal to the spell level increase of the metamagic feat.");
+
+  feato(FEAT_IMPROVED_METAMAGIC_SCIENCE, "improved metamagic science", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Apply metamagic feats to spell completion items like scrolls and potions.",
+        "The artificer gains the ability to apply a metamagic feat to a spell completion item such as a scroll or potion. The DC for "
+        "the Use Magic Device check is equal to 20 + (3 times the modified level of the spell).");
+
+  feato(FEAT_IMPROVED_JACK_OF_ALL_TRADES, "improved jack of all trades", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Provides +6 bonus to all skills.",
+        "The artificer's broad knowledge reaches new heights. The artificer gains a +6 bonus to all skill checks, "
+        "representing their mastery of diverse skills and techniques.");
+
+  feato(FEAT_EXEMPLAR, "exemplar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Add half artificer level to all skills.",
+        "The artificer's jack of all trades ability reaches its zenith: The artificer may now add half their artificer class level "
+        "to all skill checks, representing the pinnacle of versatile expertise.");
+
+  feato(FEAT_GNOMISH_TINKERING, "gnomish tinkering", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "Gnomish expertise in mechanical devices and weird science.",
+    "You gain +1 use per device and -2 DC to Use Magic Device checks when your artificer devices are exhausted.");
+
+  feato(FEAT_BRILLIANCE_AND_BLUNDER, "brilliance and blunder", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "Gnomes are brilliant inventors, but their inventions are prone to spectacular failure.",
+    "You can combine up to 4 spell effects in a single artificer device (instead of the normal 3). However, when any of your devices break, they explode dealing 1d6 force damage per spell circle to you and all party members in the same room.");
     
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");

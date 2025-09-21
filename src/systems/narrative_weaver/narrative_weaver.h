@@ -199,6 +199,10 @@ int narrative_safe_strcat(char *dest, const char *src, size_t dest_size);
 #define MAX_TRANSITION_PHRASES      20
 #define MAX_VOICE_PATTERNS          15
 
+/* Debug mode control functions */
+void set_narrative_debug_mode(int mode);
+int get_narrative_debug_mode(void);
+
 /* Structure definitions */
 struct narrative_components;  /* Forward declaration - full definition in .c file */
 

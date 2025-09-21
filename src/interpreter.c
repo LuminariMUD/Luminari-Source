@@ -77,6 +77,7 @@
 #include "backgrounds.h"
 #include "roleplay.h"
 #include "crafting_new.h"
+#include "brew.h"
 #include "mysql.h"
 
 /* local (file scope) functions */
@@ -231,6 +232,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"buy", "bu", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"bug", "bug", POS_DEAD, do_ibt, 0, SCMD_BUG, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"breathe", "breathe", POS_FIGHTING, do_breathe, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_breathe},
+    {"brew", "brew", POS_STANDING, do_brew, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"blank", "blank", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_BLANK, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"blooddrain", "blooddrain", POS_RESTING, do_blood_drain, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"bombs", "bombs", POS_RESTING, do_bombs, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
@@ -333,6 +335,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deity", "deity", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"device", "device", POS_STANDING, do_invent, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dice", "diceroll", POS_DEAD, do_diceroll, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -605,7 +608,12 @@ cpp_extern const struct command_info cmd_info[] = {
     {"map", "map", POS_STANDING, do_map, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mark", "mark", POS_STANDING, do_mark, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mastermind", "mastermind", POS_FIGHTING, do_mastermind, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_mastermind},
+#if defined(USE_VARIABLE_QUALITY_MATERIALS)
     {"materials", "materials", POS_DEAD, do_materials, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#elif defined(USE_BASIC_MATERIALS)
+    {"materials", "materials", POS_DEAD, do_list_craft_materials, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#endif
+
     {"maxhp", "maxhp", POS_DEAD, do_maxhp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -809,6 +817,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"rsay", "rs", POS_RECLINING, do_rsay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
+    {"salvage", "salv", POS_RECLINING, do_salvage, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sachp", "sachp", POS_RECLINING, do_sacrifice, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
 #if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
@@ -891,7 +900,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shapechange", "shapechange", POS_FIGHTING, do_wildshape, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"skills", "skills", POS_RECLINING, do_train, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"skillcheck", "skillch", POS_RECLINING, do_skillcheck, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"supplyorder", "supplyorder", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"supplyorder", "supplyorder", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_SUPPLYORDER, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"spellbattle", "spellbattle", POS_STANDING, do_spellbattle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spellquests", "spellquests", POS_DEAD, do_spellquests, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"singlefile", "singlefile", POS_DEAD, do_singlefile, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1458,7 +1467,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You can't do that while %s.\r\n", crafting_methods[GET_CRAFT(ch).crafting_method]);
   }
   #endif
-  else if ((char_has_mud_event(ch, eCRAFTING)) &&
+  else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVISE_CREATION) || char_has_mud_event(ch, eBREWING)) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
            !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
@@ -1480,8 +1489,16 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "wearapplies") &&
            !is_abbrev(complete_cmd_info[cmd].command, "wearlocations") &&
            !is_abbrev(complete_cmd_info[cmd].command, "tell"))
-    send_to_char(ch, "You are too busy crafting. [Available commands: gossip/"
-                     "chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea/class/race/spelllist]\r\n");
+    {
+      if (char_has_mud_event(ch, eCRAFTING))
+        send_to_char(ch, "You are too busy crafting to do that! ");
+      else if (char_has_mud_event(ch, eDEVISE_CREATION))
+        send_to_char(ch, "You are too busy devising your creation to do that! ");
+      else if (char_has_mud_event(ch, eBREWING))
+        send_to_char(ch, "You are too busy brewing to do that! ");
+      send_to_char(ch, "[Available commands: gossip/chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea/class/race/spelllist]\r\n");
+    }
+          
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
     switch (GET_POS(ch))
     {
@@ -3588,6 +3605,9 @@ switch (load_result)
       break;
     case CLASS_DRAGONRIDER:
       perform_help(d, "class-dragonrider");
+      break;
+    case CLASS_ARTIFICER:
+      perform_help(d, "class-artificer");
       break;
 
     default:

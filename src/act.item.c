@@ -38,6 +38,7 @@
 #include "feats.h"
 #include "alchemy.h"
 #include "mysql.h"
+#include "metamagic_science.h"
 #include "treasure.h"
 #include "crafts.h"
 #include "hunts.h"
@@ -45,6 +46,7 @@
 #include "spell_prep.h"
 #include "genobj.h"
 #include "backgrounds.h"
+#include "crafting_new.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -6375,18 +6377,29 @@ ACMDU(do_unstore)
 
 void quaff_potion(struct char_data *ch, char *argument)
 {
-  int spellnum = 0, i = 0, spell_level = 99;
+  int spellnum = 0, i = 0, spell_level = 99, metamagic = 0;
+  int umd_dc = 0, umd_check = 0;
   char buf[MEDIUM_STRING] = {'\0'};
+  char metamagic_desc[MAX_INPUT_LENGTH] = {'\0'};
+  char *temp_argument = argument;
 
-  skip_spaces(&argument);
+  /* Parse metamagic first if the character has Improved Metamagic Science */
+  if (HAS_FEAT(ch, FEAT_IMPROVED_METAMAGIC_SCIENCE)) {
+    metamagic = parse_metamagic_for_consumables(ch, &temp_argument, 0, ITEM_POTION);
+    if (metamagic < 0) {
+      return; /* Error message already sent */
+    }
+  }
 
-  if (!*argument)
+  skip_spaces(&temp_argument);
+
+  if (!*temp_argument)
   {
     send_to_char(ch, "You need to specify the spell name of the potion you wish to quaff.\r\n");
     return;
   }
 
-  spellnum = find_skill_num(argument);
+  spellnum = find_skill_num(temp_argument);
 
   if ((spellnum < 1) || (spellnum > MAX_SPELLS))
   {
@@ -6398,6 +6411,20 @@ void quaff_potion(struct char_data *ch, char *argument)
   {
     send_to_char(ch, "You don't have any potions of that type stored.\r\n");
     return;
+  }
+
+  /* Check Use Magic Device for metamagic potions */
+  if (metamagic > 0) {
+    get_metamagic_description(metamagic, metamagic_desc, sizeof(metamagic_desc));
+    umd_dc = calculate_metamagic_scroll_dc(spell_level, metamagic);
+    umd_check = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, umd_dc);
+    
+    if (umd_check < 0) {
+      send_to_char(ch, "You fail to properly activate the metamagic effects of the potion (DC %d Use Magic Device check failed).\r\n", umd_dc);
+      return;
+    } else {
+      send_to_char(ch, "You successfully channel metamagic into the potion!\r\n");
+    }
   }
 
   for (i = 0; i < NUM_CLASSES; i++)
@@ -6424,23 +6451,38 @@ void quaff_potion(struct char_data *ch, char *argument)
   STORED_POTIONS(ch, spellnum)
   --;
 
-  snprintf(buf, sizeof(buf), "You quaff a potion of '%s'.", spell_info[spellnum].name);
+  if (metamagic > 0) {
+    snprintf(buf, sizeof(buf), "You quaff a potion of '%s %s'.", metamagic_desc, spell_info[spellnum].name);
+  } else {
+    snprintf(buf, sizeof(buf), "You quaff a potion of '%s'.", spell_info[spellnum].name);
+  }
   act(buf, TRUE, ch, 0, 0, TO_CHAR);
   act("$n quaffs a potion", TRUE, ch, 0, 0, TO_ROOM);
 
-  call_magic(ch, ch, NULL, spellnum, 0, spell_level, CAST_POTION);
+  call_magic(ch, ch, NULL, spellnum, metamagic, spell_level, CAST_POTION);
   USE_SWIFT_ACTION(ch);
 
   save_char(ch, 0);
 }
 void recite_scroll(struct char_data *ch, char *argument)
 {
-  int spellnum = 0, i = 0, spell_level = 99;
+  int spellnum = 0, i = 0, spell_level = 99, metamagic = 0;
+  int umd_dc = 0, umd_check = 0;
   char buf[MEDIUM_STRING] = {'\0'}, arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
+  char metamagic_desc[MAX_INPUT_LENGTH] = {'\0'};
+  char *temp_argument = argument;
   struct char_data *vict = NULL;
   struct obj_data *obj = NULL;
 
-  half_chop(argument, arg1, arg2);
+  /* Parse metamagic first if the character has Improved Metamagic Science */
+  if (HAS_FEAT(ch, FEAT_IMPROVED_METAMAGIC_SCIENCE)) {
+    metamagic = parse_metamagic_for_consumables(ch, &temp_argument, 0, ITEM_SCROLL);
+    if (metamagic < 0) {
+      return; /* Error message already sent */
+    }
+  }
+
+  half_chop(temp_argument, arg1, arg2);
 
   if (!*arg1)
   {
@@ -6487,6 +6529,20 @@ void recite_scroll(struct char_data *ch, char *argument)
     return;
   }
 
+  /* Check Use Magic Device for metamagic scrolls */
+  if (metamagic > 0) {
+    get_metamagic_description(metamagic, metamagic_desc, sizeof(metamagic_desc));
+    umd_dc = calculate_metamagic_scroll_dc(spell_level, metamagic);
+    umd_check = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, umd_dc);
+    
+    if (umd_check < 0) {
+      send_to_char(ch, "You fail to properly activate the metamagic effects of the scroll (DC %d Use Magic Device check failed).\r\n", umd_dc);
+      return;
+    } else {
+      send_to_char(ch, "You successfully channel metamagic into the scroll!\r\n");
+    }
+  }
+
   for (i = 0; i < NUM_CLASSES; i++)
   {
     if (!IS_SPELLCASTER_CLASS(i))
@@ -6505,11 +6561,15 @@ void recite_scroll(struct char_data *ch, char *argument)
   STORED_SCROLLS(ch, spellnum)
   --;
 
-  snprintf(buf, sizeof(buf), "You recite a scroll of '%s'.", spell_info[spellnum].name);
+  if (metamagic > 0) {
+    snprintf(buf, sizeof(buf), "You recite a scroll of '%s %s'.", metamagic_desc, spell_info[spellnum].name);
+  } else {
+    snprintf(buf, sizeof(buf), "You recite a scroll of '%s'.", spell_info[spellnum].name);
+  }
   act(buf, TRUE, ch, 0, 0, TO_CHAR);
   act("$n recites a scroll.", TRUE, ch, 0, 0, TO_ROOM);
 
-  call_magic(ch, vict, obj, spellnum, 0, spell_level, CAST_SCROLL);
+  call_magic(ch, vict, obj, spellnum, metamagic, spell_level, CAST_SCROLL);
   USE_SWIFT_ACTION(ch);
 
   save_char(ch, 0);
@@ -6517,12 +6577,22 @@ void recite_scroll(struct char_data *ch, char *argument)
 
 void use_wand(struct char_data *ch, char *argument)
 {
-  int spellnum = 0, i = 0, spell_level = 99;
+  int spellnum = 0, i = 0, spell_level = 99, metamagic = 0, charges_needed = 1;
   char buf[MEDIUM_STRING] = {'\0'}, arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
+  char metamagic_desc[MAX_INPUT_LENGTH] = {'\0'};
+  char *temp_argument = argument;
   struct char_data *vict = NULL;
   struct obj_data *obj = NULL;
 
-  half_chop(argument, arg1, arg2);
+  /* Parse metamagic first if the character has Metamagic Science */
+  if (HAS_FEAT(ch, FEAT_METAMAGIC_SCIENCE)) {
+    metamagic = parse_metamagic_for_consumables(ch, &temp_argument, 0, ITEM_WAND);
+    if (metamagic < 0) {
+      return; /* Error message already sent */
+    }
+  }
+
+  half_chop(temp_argument, arg1, arg2);
 
   if (!*arg1)
   {
@@ -6576,6 +6646,18 @@ void use_wand(struct char_data *ch, char *argument)
     spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
   }
 
+  /* Now calculate charges needed including metamagic cost */
+  if (metamagic > 0) {
+    charges_needed += calculate_metamagic_charge_cost(metamagic, spell_level);
+    get_metamagic_description(metamagic, metamagic_desc, sizeof(metamagic_desc));
+    
+    if (STORED_WANDS(ch, spellnum) < charges_needed) {
+      send_to_char(ch, "You don't have enough wand charges for a %s wand of that type (need %d, have %d).\r\n", 
+                   metamagic_desc, charges_needed, STORED_WANDS(ch, spellnum));
+      return;
+    }
+  }
+
   if (spell_level <= 0 || spell_level > 9)
   {
     send_to_char(ch, "There is an error in using that wand. Report to a staff member ERRUSE1.\r\n");
@@ -6591,16 +6673,19 @@ void use_wand(struct char_data *ch, char *argument)
   }
   else
   {
-    STORED_WANDS(ch, spellnum)
-    --;
+    STORED_WANDS(ch, spellnum) -= charges_needed;
   }
 
-  snprintf(buf, sizeof(buf), "You point a wand of '%s' at $N.", spell_info[spellnum].name);
+  if (metamagic > 0) {
+    snprintf(buf, sizeof(buf), "You point a wand of '%s %s' at $N.", metamagic_desc, spell_info[spellnum].name);
+  } else {
+    snprintf(buf, sizeof(buf), "You point a wand of '%s' at $N.", spell_info[spellnum].name);
+  }
   act(buf, TRUE, ch, 0, vict, TO_CHAR);
   act("$n points a wand at YOU!", TRUE, ch, 0, vict, TO_VICT);
   act("$n points a wand at $N.", TRUE, ch, 0, vict, TO_NOTVICT);
 
-  call_magic(ch, vict, NULL, spellnum, 0, spell_level, CAST_WAND);
+  call_magic(ch, vict, NULL, spellnum, metamagic, spell_level, CAST_WAND);
   USE_SWIFT_ACTION(ch);
 
   save_char(ch, 0);
@@ -6608,19 +6693,29 @@ void use_wand(struct char_data *ch, char *argument)
 
 void invoke_staff(struct char_data *ch, char *argument)
 {
-  int spellnum = 0, i = 0, spell_level = 99;
+  int spellnum = 0, i = 0, spell_level = 99, metamagic = 0, charges_needed = 1;
   char buf[MEDIUM_STRING] = {'\0'};
+  char metamagic_desc[MAX_INPUT_LENGTH] = {'\0'};
+  char *temp_argument = argument;
   struct char_data *tch = NULL;
 
-  skip_spaces(&argument);
+  /* Parse metamagic first if the character has Metamagic Science */
+  if (HAS_FEAT(ch, FEAT_METAMAGIC_SCIENCE)) {
+    metamagic = parse_metamagic_for_consumables(ch, &temp_argument, 0, ITEM_STAFF);
+    if (metamagic < 0) {
+      return; /* Error message already sent */
+    }
+  }
 
-  if (!*argument)
+  skip_spaces(&temp_argument);
+
+  if (!*temp_argument)
   {
     send_to_char(ch, "You need to specify the spell name of the staff you wish to invoke.\r\n");
     return;
   }
 
-  spellnum = find_skill_num(argument);
+  spellnum = find_skill_num(temp_argument);
 
   if ((spellnum < 1) || (spellnum > MAX_SPELLS))
   {
@@ -6641,6 +6736,18 @@ void invoke_staff(struct char_data *ch, char *argument)
     spell_level = MIN(spell_level, compute_spells_circle(ch, i, spellnum, 0, 0));
   }
 
+  /* Now calculate charges needed including metamagic cost */
+  if (metamagic > 0) {
+    charges_needed += calculate_metamagic_charge_cost(metamagic, spell_level);
+    get_metamagic_description(metamagic, metamagic_desc, sizeof(metamagic_desc));
+    
+    if (STORED_STAVES(ch, spellnum) < charges_needed) {
+      send_to_char(ch, "You don't have enough staff charges for a %s staff of that type (need %d, have %d).\r\n", 
+                   metamagic_desc, charges_needed, STORED_STAVES(ch, spellnum));
+      return;
+    }
+  }
+
   if (spell_level <= 0 || spell_level > 9)
   {
     send_to_char(ch, "There is an error with invoking that staff. Report to a staff member ERRINVOKE1.\r\n");
@@ -6656,16 +6763,20 @@ void invoke_staff(struct char_data *ch, char *argument)
   }
   else
   {
-    STORED_STAVES(ch, spellnum)--;
+    STORED_STAVES(ch, spellnum) -= charges_needed;
   }
 
-  snprintf(buf, sizeof(buf), "You invoke a staff of '%s'.", spell_info[spellnum].name);
+  if (metamagic > 0) {
+    snprintf(buf, sizeof(buf), "You invoke a staff of '%s %s'.", metamagic_desc, spell_info[spellnum].name);
+  } else {
+    snprintf(buf, sizeof(buf), "You invoke a staff of '%s'.", spell_info[spellnum].name);
+  }
   act(buf, TRUE, ch, 0, 0, TO_CHAR);
   act("$n invokes a staff.", TRUE, ch, 0, 0, TO_ROOM);
 
   if (HAS_SPELL_ROUTINE(spellnum, MAG_MASSES | MAG_AREAS))
   {
-    call_magic(ch, NULL, NULL, spellnum, 0, spell_level, CAST_STAFF);
+    call_magic(ch, NULL, NULL, spellnum, metamagic, spell_level, CAST_STAFF);
   }
   else
   {
@@ -6673,7 +6784,7 @@ void invoke_staff(struct char_data *ch, char *argument)
     {
       if (spell_info[spellnum].violent && is_player_grouped(ch, tch))
         continue;
-      call_magic(ch, tch, NULL, spellnum, 0, spell_level, CAST_STAFF);
+      call_magic(ch, tch, NULL, spellnum, metamagic, spell_level, CAST_STAFF);
     }
   }
   USE_SWIFT_ACTION(ch);
@@ -8293,6 +8404,139 @@ ACMD(do_unsheath)
     act("You unsheath $p.", FALSE, ch, secondary, NULL, TO_CHAR);
     act("$n unsheathes $p.", FALSE, ch, secondary, NULL, TO_ROOM);
   }
+}
+
+ACMD(do_salvage)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct obj_data *obj = NULL;
+  int gold_value = 0;
+  int artificer_level = 0;
+  int chance = 0;
+  int craft_material = 0;
+  const char *material_name = NULL;
+  int mote_chance = 0;
+  int mote_type = 0;
+  int i = 0;
+  int material_amount = 0;
+  int mote_amount = 0;
+  int level_adjustment = 0;
+
+  one_argument(argument, arg, sizeof(arg));
+
+  /* Check if player has the FEAT_SALVAGE */
+  if (!HAS_FEAT(ch, FEAT_SALVAGE))
+  {
+    send_to_char(ch, "You don't know how to salvage items.\r\n");
+    return;
+  }
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Salvage what?\r\n");
+    return;
+  }
+
+  /* Find the object */
+  if (!(obj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
+  {
+    send_to_char(ch, "You don't have anything like that in your inventory.\r\n");
+    return;
+  }
+
+  /* Check if the object can be taken (and thus salvaged) */
+  if (!CAN_WEAR(obj, ITEM_WEAR_TAKE))
+  {
+    send_to_char(ch, "You can't salvage that!\r\n");
+    return;
+  }
+
+  /* Check if the item is marked as no-sacrifice (assume same for salvage) */
+  if (OBJ_FLAGGED(obj, ITEM_NOSAC))
+  {
+    send_to_char(ch, "You can't salvage that item.\r\n");
+    return;
+  }
+
+  /* Don't allow salvaging containers with contents */
+  if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER && obj->contains != NULL)
+  {
+    send_to_char(ch, "You should empty that first!\r\n");
+    return;
+  }
+
+  /* Calculate gold value (15% of item cost) */
+  gold_value = MAX(1, GET_OBJ_COST(obj) * 15 / 100);
+
+  /* Get artificer level for material chance calculation */
+  artificer_level = GET_LEVEL(ch);
+
+  /* Calculate chance for crafting material: (artificer_level / 3) + 10 */
+  chance = (artificer_level / 3) + 10;
+
+  /* Give gold to the character */
+  increase_gold(ch, gold_value);
+
+  /* Announce the salvage */
+  send_to_char(ch, "You carefully dismantle %s, salvaging %d gold coins worth of materials.\r\n", 
+               GET_OBJ_SHORT(obj), gold_value);
+
+  /* Check for crafting material reward */
+  if (rand_number(1, 100) <= chance)
+  {
+    /* Determine what material the item was made of */
+    craft_material = obj_material_to_craft_material(GET_OBJ_MATERIAL(obj));
+    
+    if (craft_material != CRAFT_MAT_NONE && craft_material < NUM_CRAFT_MATS)
+    {
+      /* Calculate material amount: random 1 to (item level / 6) */
+      material_amount = MAX(1, rand_number(1, MAX(1, GET_OBJ_LEVEL(obj) / 6)));
+      
+      /* Give the crafting materials */
+      GET_CRAFT_MAT(ch, craft_material) += material_amount;
+      material_name = crafting_materials[craft_material];
+      
+      send_to_char(ch, "You manage to recover %d unit%s of %s from the salvaged item!\r\n", 
+                   material_amount, material_amount == 1 ? "" : "s", material_name);
+    }
+  }
+
+  /* Check for elemental mote rewards (half the material chance) */
+  mote_chance = chance / 2;
+  for (i = 0; i < MAX_OBJ_AFFECT; i++)
+  {
+    if (obj->affected[i].location != APPLY_NONE && rand_number(1, 100) <= mote_chance)
+    {
+      /* Determine the mote type based on the APPLY bonus */
+      mote_type = crafting_mote_by_bonus_location(obj->affected[i].location, 
+                                                  obj->affected[i].specific, 
+                                                  obj->affected[i].bonus_type);
+      
+      if (mote_type != CRAFTING_MOTE_NONE && mote_type < NUM_CRAFT_MOTES)
+      {
+        /* Calculate level adjustment for this bonus */
+        level_adjustment = get_level_adjustment_by_apply_and_modifier(obj->affected[i].location,
+                                                                      obj->affected[i].modifier,
+                                                                      obj->affected[i].bonus_type);
+        
+        /* Calculate mote amount: random 1 to (level adjustment / 6) */
+        mote_amount = MAX(1, rand_number(1, MAX(1, level_adjustment / 6)));
+        
+        /* Give the elemental motes */
+        GET_CRAFT_MOTES(ch, mote_type) += mote_amount;
+        
+        send_to_char(ch, "You extract %d %s mote%s from the item's magical essence!\r\n", 
+                     mote_amount, crafting_motes[mote_type], mote_amount == 1 ? "" : "s");
+      }
+    }
+  }
+
+  /* Notify others in the room */
+  act("$n carefully dismantles $p, salvaging materials from it.", 
+      FALSE, ch, obj, NULL, TO_ROOM);
+
+  /* Extract the object */
+  extract_obj(obj);
 }
 
 

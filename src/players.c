@@ -84,6 +84,7 @@ static void load_praying(FILE *fl, struct char_data *ch);
 static void load_praying_metamagic(FILE *fl, struct char_data *ch);
 static void load_prayed(FILE *fl, struct char_data *ch);
 static void load_prayed_metamagic(FILE *fl, struct char_data *ch);
+static void load_devices(FILE *fl, struct char_data *ch);
 static void load_praytimes(FILE *fl, struct char_data *ch);
 static void load_quests(FILE *fl, struct char_data *ch);
 static void load_failed_dialogue_quests(FILE *fl, struct char_data *ch);
@@ -621,7 +622,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_DEITY(ch) = 0;
     for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
       KNOWS_CRUELTY(ch, i) = 0;
-    ch->player_specials->saved.fiendish_boons = 0;
+  ch->player_specials->saved.active_fiendish_boons = 0;
     ch->player_specials->saved.channel_energy_type = 0;
 
     for (i = 0; i < NUM_LANGUAGES; i++)
@@ -916,6 +917,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_CRAFT(ch).instrument_motes[2] = atoi(line);
         else if (!strcmp(tag, "CrI3"))
           GET_CRAFT(ch).instrument_motes[3] = atoi(line);
+        else if (!strcmp(tag, "CrAS"))
+          GET_CRAFT(ch).supply_active_slot = atoi(line);
         
         break;
 
@@ -924,6 +927,8 @@ int load_char(const char *name, struct char_data *ch)
           load_dr(fl, ch);
         else if (!strcmp(tag, "Desc"))
           ch->player.description = fread_string(fl, buf2);
+        else if (!strcmp(tag, "Dvis"))
+          load_devices(fl, ch);
         else if (!strcmp(tag, "DrgB"))
           GET_DRAGONBORN_ANCESTRY(ch) = atoi(line);
         else if (!strcmp(tag, "DAd1"))
@@ -1015,7 +1020,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Flaw"))
           ch->player.flaws = fread_string(fl, buf2);
         else if (!strcmp(tag, "FdBn"))
-          ch->player_specials->saved.fiendish_boons = atoi(line);
+          ch->player_specials->saved.active_fiendish_boons = atoi(line);
         else if (!strcmp(tag, "FLGU"))
           FLEETING_GLANCE_USES(ch) = atoi(line);
         else if (!strcmp(tag, "Ftpt"))
@@ -1420,6 +1425,79 @@ int load_char(const char *name, struct char_data *ch)
           GET_NSUPPLY_NUM_MADE(ch) = atoi(line);
         else if (!strcmp(tag, "SpCd"))
           GET_NSUPPLY_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "SuSl"))
+        {
+          /* Load supply contract slot: slot_idx type recipe variant quantity reward difficulty time_limit reputation expiration */
+          int slot_idx, contract_type, recipe, variant, quantity, reward, difficulty_modifier, time_limit, reputation_requirement;
+          long expiration_time;
+          if (sscanf(line, "%d %d %d %d %d %d %d %d %d %ld", &slot_idx, &contract_type, &recipe, &variant, 
+                     &quantity, &reward, &difficulty_modifier, &time_limit, &reputation_requirement, &expiration_time) == 10)
+          {
+            if (slot_idx >= 0 && slot_idx < 5)
+            {
+              GET_CRAFT(ch).supply_slot_active[slot_idx] = true;
+              GET_CRAFT(ch).supply_slots[slot_idx].contract_id = slot_idx + 1;
+              GET_CRAFT(ch).supply_slots[slot_idx].contract_type = contract_type;
+              GET_CRAFT(ch).supply_slots[slot_idx].recipe = recipe;
+              GET_CRAFT(ch).supply_slots[slot_idx].variant = variant;
+              GET_CRAFT(ch).supply_slots[slot_idx].quantity = quantity;
+              GET_CRAFT(ch).supply_slots[slot_idx].reward = reward;
+              GET_CRAFT(ch).supply_slots[slot_idx].difficulty_modifier = difficulty_modifier;
+              GET_CRAFT(ch).supply_slots[slot_idx].time_limit = time_limit;
+              GET_CRAFT(ch).supply_slots[slot_idx].reputation_requirement = reputation_requirement;
+              GET_CRAFT(ch).supply_slots[slot_idx].expiration_time = (time_t)expiration_time;
+              GET_CRAFT(ch).supply_slots[slot_idx].description = NULL; /* Will be loaded separately */
+              GET_CRAFT(ch).supply_slots[slot_idx].requirements = NULL; /* Will be loaded separately */
+            }
+          }
+        }
+        else if (!strcmp(tag, "SuSD"))
+        {
+          /* Load supply slot description: slot_idx description */
+          int slot_idx;
+          char desc_buf[MAX_INPUT_LENGTH];
+          if (sscanf(line, "%d %[^\r\n]", &slot_idx, desc_buf) == 2)
+          {
+            if (slot_idx >= 0 && slot_idx < 5 && GET_CRAFT(ch).supply_slot_active[slot_idx])
+            {
+              if (GET_CRAFT(ch).supply_slots[slot_idx].description)
+                free(GET_CRAFT(ch).supply_slots[slot_idx].description);
+              GET_CRAFT(ch).supply_slots[slot_idx].description = strdup(desc_buf);
+            }
+          }
+        }
+        else if (!strcmp(tag, "SuSR"))
+        {
+          /* Load supply slot requirements: slot_idx requirements */
+          int slot_idx;
+          char req_buf[MAX_INPUT_LENGTH];
+          if (sscanf(line, "%d %[^\r\n]", &slot_idx, req_buf) == 2)
+          {
+            if (slot_idx >= 0 && slot_idx < 5 && GET_CRAFT(ch).supply_slot_active[slot_idx])
+            {
+              if (GET_CRAFT(ch).supply_slots[slot_idx].requirements)
+                free(GET_CRAFT(ch).supply_slots[slot_idx].requirements);
+              GET_CRAFT(ch).supply_slots[slot_idx].requirements = strdup(req_buf);
+            }
+          }
+        }
+        else if (!strcmp(tag, "SuLR"))
+          GET_CRAFT(ch).supply_slots_last_refresh = (time_t)atol(line);
+        else if (!strcmp(tag, "SuNR"))
+          GET_CRAFT(ch).supply_slots_next_refresh = (time_t)atol(line);
+        else if (!strcmp(tag, "SuCD"))
+        {
+          /* Load supply slot cooldowns: slot_idx timestamp */
+          int slot_idx;
+          long timestamp;
+          if (sscanf(line, "%d %ld", &slot_idx, &timestamp) == 2)
+          {
+            if (slot_idx >= 0 && slot_idx < 5)
+            {
+              GET_CRAFT(ch).supply_slot_cooldowns[slot_idx] = (time_t)timestamp;
+            }
+          }
+        }
         break;
 
       case 'T':
@@ -1548,6 +1626,11 @@ int load_char(const char *name, struct char_data *ch)
   /* Initialize material storage if not present (for existing characters) */
   if (ch->player_specials && ch->player_specials->saved.stored_material_count == 0) {
     init_material_storage(ch);
+  }
+  
+  /* Initialize craft variant if invalid (for existing characters) */
+  if (GET_CRAFT(ch).crafting_item_type == 0 && GET_CRAFT(ch).craft_variant != -1) {
+    GET_CRAFT(ch).craft_variant = -1; // Ensure proper initialization
   }
   
   fclose(fl);
@@ -1944,8 +2027,8 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE( "Invs: %d\n", GET_INVIS_LEV(ch));
   if (GET_LOADROOM(ch) != PFDEF_LOADROOM)
     BUFFER_WRITE( "Room: %d\n", GET_LOADROOM(ch));
-  if (ch->player_specials->saved.fiendish_boons != 0)
-    BUFFER_WRITE( "FdBn: %d\n", ch->player_specials->saved.fiendish_boons);
+  if (ch->player_specials->saved.active_fiendish_boons != 0)
+  BUFFER_WRITE( "FdBn: %d\n", ch->player_specials->saved.active_fiendish_boons);
   if (ch->player_specials->saved.channel_energy_type != 0)
     BUFFER_WRITE( "ChEn: %d\n", ch->player_specials->saved.channel_energy_type);
 
@@ -2205,6 +2288,30 @@ void save_char(struct char_data *ch, int mode)
   if (GET_PREMADE_BUILD_CLASS(ch) != PFDEF_PREMADE_BUILD)
     BUFFER_WRITE( "PreB: %d\n", GET_PREMADE_BUILD_CLASS(ch));
 
+  // save devices from do_invent here
+  if (ch->player_specials->saved.num_inventions > 0)
+  {
+    int j;
+    BUFFER_WRITE( "Dvis:\n");
+    BUFFER_WRITE( "%d\n", ch->player_specials->saved.num_inventions);
+    for (i = 0; i < ch->player_specials->saved.num_inventions; i++)
+    {
+      struct player_invention *inv = &ch->player_specials->saved.inventions[i];
+      BUFFER_WRITE( "%d\n", i); /* invention index */
+      BUFFER_WRITE( "%s\n", inv->keywords);
+      BUFFER_WRITE( "%s\n", inv->short_description);
+      BUFFER_WRITE( "%s\n", inv->long_description);
+      BUFFER_WRITE( "%d %d %d %d %ld\n", inv->num_spells, inv->duration, inv->reliability, inv->uses, (long)inv->cooldown_expires);
+      /* Save spell effects */
+      for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
+        BUFFER_WRITE( "%d\n", inv->spell_effects[j]);
+      /* Fill remaining spell slots with -1 */
+      for (j = inv->num_spells; j < MAX_INVENTION_SPELLS; j++)
+        BUFFER_WRITE( "-1\n");
+    }
+    BUFFER_WRITE( "-1\n"); /* terminator */
+  }
+
   /* Save skills */
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
@@ -2340,6 +2447,20 @@ void save_char(struct char_data *ch, int mode)
   BUFFER_WRITE( "CrLA: %d\n", GET_CRAFT(ch).level_adjust);
 
   BUFFER_WRITE( "CrSN: %d\n", GET_CRAFT(ch).supply_num_required);
+  BUFFER_WRITE( "CrAS: %d\n", GET_CRAFT(ch).supply_active_slot);
+  
+  /* Save individual supply slot cooldowns */
+  {
+    int slot_idx;
+    for (slot_idx = 0; slot_idx < 5; slot_idx++)
+    {
+      if (GET_CRAFT(ch).supply_slot_cooldowns[slot_idx] > 0)
+      {
+        BUFFER_WRITE( "SuCD: %d %ld\n", slot_idx, (long)GET_CRAFT(ch).supply_slot_cooldowns[slot_idx]);
+      }
+    }
+  }
+  
   BUFFER_WRITE( "CrSR: %d\n", GET_CRAFT(ch).survey_rooms);
   BUFFER_WRITE( "CrIy: %d\n", GET_CRAFT(ch).instrument_type);
   BUFFER_WRITE( "CrIQ: %d\n", GET_CRAFT(ch).instrument_quality);
@@ -2348,6 +2469,39 @@ void save_char(struct char_data *ch, int mode)
   BUFFER_WRITE( "CrI1: %d\n", GET_CRAFT(ch).instrument_motes[1]);
   BUFFER_WRITE( "CrI2: %d\n", GET_CRAFT(ch).instrument_motes[2]);
   BUFFER_WRITE( "CrI3: %d\n", GET_CRAFT(ch).instrument_motes[3]);
+
+  /* Save supply contract slots */
+  {
+    int slot_idx;
+    for (slot_idx = 0; slot_idx < 5; slot_idx++)
+    {
+      if (GET_CRAFT(ch).supply_slot_active[slot_idx])
+      {
+        struct supply_contract *slot = &GET_CRAFT(ch).supply_slots[slot_idx];
+        BUFFER_WRITE( "SuSl: %d %d %d %d %d %d %d %d %d %ld\n", 
+                      slot_idx,
+                      slot->contract_type,
+                      slot->recipe,
+                      slot->variant,
+                      slot->quantity,
+                      slot->reward,
+                      slot->difficulty_modifier,
+                      slot->time_limit,
+                      slot->reputation_requirement,
+                      (long)slot->expiration_time);
+        if (slot->description)
+          BUFFER_WRITE( "SuSD: %d %s\n", slot_idx, slot->description);
+        if (slot->requirements)
+          BUFFER_WRITE( "SuSR: %d %s\n", slot_idx, slot->requirements);
+      }
+    }
+  }
+  
+  /* Save supply contract timing data */
+  if (GET_CRAFT(ch).supply_slots_last_refresh > 0)
+    BUFFER_WRITE( "SuLR: %ld\n", (long)GET_CRAFT(ch).supply_slots_last_refresh);
+  if (GET_CRAFT(ch).supply_slots_next_refresh > 0)
+    BUFFER_WRITE( "SuNR: %ld\n", (long)GET_CRAFT(ch).supply_slots_next_refresh);
 
 
   // Save consumables: potions, scrolls, wands and staves
@@ -3781,6 +3935,68 @@ static void load_ability_exp(FILE *fl, struct char_data *ch)
     if (num != 0)
       GET_CRAFT_SKILL_EXP(ch, num) = num2;
   } while (num != 0);
+}
+
+static void load_devices(FILE *fl, struct char_data *ch)
+{
+  int num_inventions = 0;
+  int inv_idx = 0;
+  int j = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  /* Read number of inventions */
+  get_line(fl, line);
+  sscanf(line, "%d", &num_inventions);
+  
+  ch->player_specials->saved.num_inventions = num_inventions;
+  
+  /* Read each invention */
+  for (j = 0; j < num_inventions && j < MAX_PLAYER_INVENTIONS; j++)
+  {
+    struct player_invention *inv = &ch->player_specials->saved.inventions[j];
+    int spell_idx = 0;
+    
+    /* Read invention index */
+    get_line(fl, line);
+    sscanf(line, "%d", &inv_idx);
+    
+    /* Read keywords */
+    get_line(fl, inv->keywords);
+    
+    /* Read short description */
+    get_line(fl, inv->short_description);
+    
+    /* Read long description */
+    get_line(fl, inv->long_description);
+    
+    /* Read num_spells, duration, reliability, and optionally uses, cooldown_expires */
+    get_line(fl, line);
+    long cooldown_long = 0;
+    int scanned = sscanf(line, "%d %d %d %d %ld", &inv->num_spells, &inv->duration, &inv->reliability, &inv->uses, &cooldown_long);
+    
+    /* Handle backward compatibility - if only 3 values were read, initialize new fields */
+    if (scanned < 4) {
+      inv->uses = 0;  /* Default to no uses */
+      inv->cooldown_expires = 0;  /* Default to no cooldown */
+    } else if (scanned < 5) {
+      inv->cooldown_expires = 0;  /* Default to no cooldown if uses was read but not cooldown */
+    } else {
+      inv->cooldown_expires = (time_t)cooldown_long;
+    }
+    
+    /* Read spell effects */
+    for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++)
+    {
+      get_line(fl, line);
+      sscanf(line, "%d", &inv->spell_effects[spell_idx]);
+      /* Stop reading if we hit -1 */
+      if (inv->spell_effects[spell_idx] == -1)
+        inv->spell_effects[spell_idx] = 0; /* Reset invalid spells to 0 */
+    }
+  }
+  
+  /* Read terminator */
+  get_line(fl, line);
 }
 
 static void load_skills(FILE *fl, struct char_data *ch)
