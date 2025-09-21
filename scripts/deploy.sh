@@ -8,7 +8,7 @@
 #
 # Usage: ./deploy.sh [options]
 #   -h, --help        Show help message
-#   -q, --quick       Quick setup with defaults
+#   --auto            Automated setup with defaults (no prompts)
 #   -d, --dev         Development mode (includes debug tools)
 #   -p, --prod        Production mode (optimized build)
 #   --skip-deps       Skip dependency installation
@@ -30,7 +30,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BUILD_TYPE="development"
 SKIP_DEPS=false
 SKIP_DB=false
-QUICK_MODE=false
+AUTO_MODE=false
 INIT_WORLD=false
 MUD_PORT=4000
 DB_HOST="localhost"
@@ -148,7 +148,7 @@ setup_config_files() {
         print_msg "$GREEN" "Creating campaign.h from template..."
         cp "$PROJECT_ROOT"/src/campaign.example.h "$PROJECT_ROOT"/src/campaign.h
         
-        if [[ "$QUICK_MODE" == false ]]; then
+        if [[ "$AUTO_MODE" == false ]]; then
             print_msg "$YELLOW" "Select campaign setting:"
             echo "  1) LuminariMUD (default)"
             echo "  2) DragonLance (Chronicles of Krynn)"
@@ -209,7 +209,7 @@ setup_database() {
     fi
     
     # Get database credentials
-    if [[ "$QUICK_MODE" == false ]]; then
+    if [[ "$AUTO_MODE" == false ]]; then
         read -p "Database host [$DB_HOST]: " input_host
         DB_HOST=${input_host:-$DB_HOST}
         
@@ -229,7 +229,7 @@ setup_database() {
             print_msg "$YELLOW" "Please save this password!"
         fi
     else
-        # Quick mode - generate random password
+        # Auto mode - generate random password
         DB_PASS=$(openssl rand -base64 12)
         print_msg "$GREEN" "Using default database settings:"
         echo "  Host: $DB_HOST"
@@ -675,7 +675,7 @@ setup_environment() {
     chmod -R 755 "$PROJECT_ROOT"/log/
     
     # Create systemd service file (optional)
-    if [[ "$QUICK_MODE" == false ]]; then
+    if [[ "$AUTO_MODE" == false ]]; then
         read -p "Create systemd service file? (y/n) " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -768,7 +768,7 @@ Usage: $0 [options]
 
 Options:
     -h, --help        Show this help message
-    -q, --quick       Quick setup with defaults (no prompts)
+    --auto            Automated setup with defaults (no prompts)
     -d, --dev         Development mode (includes debug tools)
     -p, --prod        Production mode (optimized build)
     --skip-deps       Skip dependency installation
@@ -777,7 +777,7 @@ Options:
     
 Examples:
     $0                # Interactive setup
-    $0 --quick        # Quick setup with defaults
+    $0 --auto         # Automated setup with defaults
     $0 --dev          # Development setup with debug tools
     $0 --prod         # Production optimized build
     
@@ -792,8 +792,8 @@ while [[ $# -gt 0 ]]; do
             show_help
             exit 0
             ;;
-        -q|--quick)
-            QUICK_MODE=true
+        --auto)
+            AUTO_MODE=true
             shift
             ;;
         -d|--dev)
