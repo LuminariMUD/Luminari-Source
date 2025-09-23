@@ -10816,5 +10816,26 @@ bool is_valid_skill(int snum)
   return false;
 }
 
+/* Function to get crafting tool description */
+const char *get_crafting_tool_desc(struct obj_data *obj)
+{
+  static char buf[256];
+  
+  if (!obj || GET_OBJ_TYPE(obj) != ITEM_CRAFTING_TOOL)
+    return "";
+    
+  int tool_skill = GET_OBJ_VAL(obj, 0);
+  int tool_bonus = GET_OBJ_VAL(obj, 1);
+  
+  if (tool_skill >= START_CRAFT_ABILITIES && tool_skill <= END_HARVEST_ABILITIES && tool_bonus > 0)
+  {
+    snprintf(buf, sizeof(buf), "Provides +%d bonus to %s", 
+             tool_bonus, ability_names[tool_skill]);
+    return buf;
+  }
+  
+  return "Invalid crafting tool";
+}
+
 /* EoF */
 

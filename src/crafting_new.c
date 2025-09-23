@@ -70,7 +70,11 @@ int materials_sort_info[NUM_CRAFT_MATS];
                                 "craft show\r\n" \
                                 "craft check\r\n" \
                                 "craft reset (no argument|motes|materials|enhancement|instrument|bonuses|descriptions|refine|rezize)\r\n" \
-                                "craft start\r\n"
+                                "craft start\r\n" \
+                                "\r\n" \
+                                "Other commands:\r\n" \
+                                "craft equipment - Show your equipped crafting gear\r\n" \
+                                "craft tools - Show your equipped crafting/harvesting tools\r\n"
 
 #define NEWCRAFT_CREATE_TYPES   ("What item type do you wish to make?\r\n" \
                                 "-- armor       includes shields\r\n" \
@@ -3451,7 +3455,6 @@ const int craft_skills_alphabetic[END_HARVEST_ABILITIES-START_CRAFT_ABILITIES+1]
     ABILITY_CRAFT_ALCHEMY,
     ABILITY_CRAFT_ARMORSMITHING,
     ABILITY_CRAFT_BOWMAKING,
-    ABILITY_CRAFT_BREWING,
     ABILITY_CRAFT_COOKING,
     ABILITY_CRAFT_FISHING,
     ABILITY_HARVEST_FORESTRY,
@@ -4242,7 +4245,6 @@ bool is_valid_craft_ability(int ability)
         case ABILITY_CRAFT_METALWORKING:
         case ABILITY_CRAFT_FISHING:
         case ABILITY_CRAFT_COOKING:
-        case ABILITY_CRAFT_BREWING:
         case ABILITY_HARVEST_MINING:
         case ABILITY_HARVEST_HUNTING:
         case ABILITY_HARVEST_FORESTRY:
@@ -5788,6 +5790,8 @@ void newcraft_supplyorder(struct char_data *ch, const char *argument)
 
 ACMD(do_newcraft)
 {
+    char arg[MAX_INPUT_LENGTH];
+    
     if (IS_NPC(ch))
     {
         send_to_char(ch, "NPCs cannot craft.\r\n");
@@ -5800,8 +5804,23 @@ ACMD(do_newcraft)
         return;
     }
 
+    // Handle equipment/gear subcommands for the main craft command
     if (subcmd == SCMD_NEWCRAFT_CREATE)
     {
+        one_argument(argument, arg, sizeof(arg));
+        
+        if (!str_cmp(arg, "equipment") || !str_cmp(arg, "gear"))
+        {
+            newcraft_equipment(ch, argument);
+            return;
+        }
+        
+        if (!str_cmp(arg, "tools"))
+        {
+            newcraft_show_tools(ch, argument);
+            return;
+        }
+        
         newcraft_create(ch, argument);
         return;
     }
@@ -5830,6 +5849,11 @@ ACMD(do_newcraft)
         newcraft_supplyorder(ch, argument);
         return;
     }
+    else if (subcmd == SCMD_NEWCRAFT_EQUIPMENT)
+    {
+        newcraft_equipment(ch, argument);
+        return;
+    }
 }
 
 bool does_craft_apply_type_have_specific_value(int location)
@@ -5847,9 +5871,9 @@ bool does_craft_apply_type_have_specific_value(int location)
         case APPLY_SPELL_CIRCLE_7:
         case APPLY_SPELL_CIRCLE_8:
         case APPLY_SPELL_CIRCLE_9:
-            return TRUE;
+            return 1;
     }
-    return FALSE;
+    return 0;
 }
 
 /**
@@ -7617,6 +7641,152 @@ void show_supply_order_cooldowns(struct char_data *ch)
     
     send_to_char(ch, "\r\n");
     send_to_char(ch, "Use '\tchelp supplyorder\tn' for more information on supply order commands.\r\n");
+}
+
+// Function to get the display name for each crafting tool slot
+const char *get_craft_tool_name(int wear_slot)
+{
+    switch (wear_slot) {
+        case WEAR_CRAFT_SICKLE:       return "harvesting sickle (gathering)";
+        case WEAR_CRAFT_AXE:          return "chopping axe (forestry)";
+        case WEAR_CRAFT_KNIFE:        return "skinning knife (hunting)";
+        case WEAR_CRAFT_PICKAXE:      return "pickaxe (mining)";
+        case WEAR_CRAFT_ALCHEMY:      return "alchemy set (alchemy)";
+        case WEAR_CRAFT_ARMOR_HAMMER: return "armorsmith's hammer (armorsmithing)";
+        case WEAR_CRAFT_JEWEL_PLIERS: return "jewel's pliers (jewelcraft)";
+        case WEAR_CRAFT_NEEDLE:       return "sewing needle (tailoring)";
+        case WEAR_CRAFT_WEAPON_HAMMER: return "weaponsmith's hammer (weaponsmithing)";
+        default:                      return "unknown tool";
+    }
+}
+
+// Function to display equipped crafting tools
+void show_craft_equipment(struct char_data *ch)
+{
+    int craft_slots[] = {
+        WEAR_CRAFT_SICKLE, WEAR_CRAFT_AXE, WEAR_CRAFT_KNIFE, WEAR_CRAFT_PICKAXE,
+        WEAR_CRAFT_ALCHEMY, WEAR_CRAFT_ARMOR_HAMMER, WEAR_CRAFT_JEWEL_PLIERS,
+        WEAR_CRAFT_NEEDLE, WEAR_CRAFT_WEAPON_HAMMER
+    };
+    int num_slots = sizeof(craft_slots) / sizeof(craft_slots[0]);
+    int i;
+    int has_equipment = 0;
+    
+    send_to_char(ch, "\r\n\tgYour Crafting Equipment:\tn\r\n");
+    send_to_char(ch, "\tW================================\tn\r\n");
+    
+    for (i = 0; i < num_slots; i++) {
+        int slot = craft_slots[i];
+        struct obj_data *obj = GET_EQ(ch, slot);
+        
+        if (obj) {
+            send_to_char(ch, "\tc%-35s\tn : %s\r\n", 
+                         get_craft_tool_name(slot), obj->short_description);
+            has_equipment = 1;
+        } else {
+            send_to_char(ch, "\tD%-35s\tn : \tDnothing\tn\r\n", 
+                         get_craft_tool_name(slot));
+        }
+    }
+    
+    if (!has_equipment) {
+        send_to_char(ch, "\r\n\tYYou have no crafting tools equipped.\tn\r\n");
+        send_to_char(ch, "Use '\tcwear <tool>\tn' to equip crafting tools.\r\n");
+    }
+    
+    send_to_char(ch, "\r\n");
+}
+
+// Main craft equipment command handler
+void newcraft_equipment(struct char_data *ch, const char *argument)
+{
+    show_craft_equipment(ch);
+}
+
+void newcraft_show_tools(struct char_data *ch, const char *argument)
+{
+    struct obj_data *tool = NULL;
+    int ability, i, found_tools = 0;
+    
+    send_to_char(ch, "\tcCrafting and Harvesting Tools Status:\tn\r\n");
+    send_to_char(ch, "==========================================================================\r\n");
+    send_to_char(ch, "%-20s %-22s %-15s %-10s\r\n", "Skill", "Equipment Slot", "Bonus", "Tool Equipped");
+    send_to_char(ch, "==========================================================================\r\n");
+    
+    // Loop through all crafting and harvesting abilities
+    for (ability = START_CRAFT_ABILITIES; ability <= END_HARVEST_ABILITIES; ability++)
+    {
+        bool tool_found = FALSE;
+        char bonus_string[20];
+        char where_string[50];
+        
+        // Check all equipment slots for a tool that matches this ability
+        for (i = 0; i < NUM_WEARS; i++)
+        {
+            snprintf(bonus_string, sizeof(bonus_string), "---");
+            tool = GET_EQ(ch, i);
+            if (tool && GET_OBJ_TYPE(tool) == ITEM_CRAFTING_TOOL)
+            {
+                int tool_skill = GET_OBJ_VAL(tool, 0);
+                int tool_bonus = GET_OBJ_VAL(tool, 1);
+                
+                if (tool_skill == ability && tool_bonus >= 0)
+                {
+                    snprintf(bonus_string, sizeof(bonus_string), "+%d", tool_bonus);
+                    snprintf(where_string, sizeof(where_string), "%s", wear_where[i]);
+                    strip_colors(where_string);
+                    send_to_char(ch, "%-20s %-22s %3s \tc%-15s\tn\r\n",
+                               ability_names[ability],
+                               where_string,
+                               bonus_string,
+                               tool->short_description ? tool->short_description : "a crafting tool");
+                    tool_found = TRUE;
+                    found_tools++;
+                    break; // Found the tool for this ability, move to next ability
+                }
+            }
+        }
+        
+        // If no tool found for this ability, show empty slot
+        if (!tool_found)
+        {
+            send_to_char(ch, "%-20s %-22s %3s \ty%-15s\tn\r\n",
+                       ability_names[ability],
+                       "---",
+                       "---",
+                       "None");
+        }
+    }
+    
+    send_to_char(ch, "==========================================================================\r\n");
+    if (found_tools == 0)
+    {
+        send_to_char(ch, "\tyNo crafting or harvesting tools currently equipped.\tn\r\n");
+        send_to_char(ch, "\twEquip crafting tools to gain bonuses to your crafting and harvesting skills!\tn\r\n");
+    }
+    else
+    {
+        send_to_char(ch, "\tcTotal Tools Equipped: \ty%d\tn\r\n", found_tools);
+    }
+    send_to_char(ch, "\twUse 'craft help' for more crafting information.\tn\r\n");
+}
+
+bool is_crafting_skill_in_game(int skill)
+{
+    switch (skill)
+    {
+        case ABILITY_CRAFT_TAILORING:
+        case ABILITY_CRAFT_ARMORSMITHING:
+        case ABILITY_CRAFT_WEAPONSMITHING:
+        case ABILITY_CRAFT_JEWELCRAFTING:
+        case ABILITY_CRAFT_ALCHEMY:
+        case ABILITY_HARVEST_FORESTRY:
+        case ABILITY_HARVEST_MINING:
+        case ABILITY_HARVEST_HUNTING:
+        case ABILITY_HARVEST_GATHERING:
+            return true;
+    }
+    return false;
 }
 
 // Todo: 

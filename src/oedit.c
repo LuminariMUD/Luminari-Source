@@ -993,6 +993,8 @@ static void oedit_disp_ranged_weapons_menu(struct descriptor_data *d) {
 /* Object value #1 */
 static void oedit_disp_val1_menu(struct descriptor_data *d)
 {
+  int i = 0;
+
   OLC_MODE(d) = OEDIT_VALUE_1;
   switch (GET_OBJ_TYPE(OLC_OBJ(d)))
   {
@@ -1085,6 +1087,14 @@ static void oedit_disp_val1_menu(struct descriptor_data *d)
     break;
   case ITEM_GREYHAWK_SHIP:
     write_to_output(d, "Enter interior room VNUM (first room inside ship): ");
+    break;
+  case ITEM_CRAFTING_TOOL:
+    write_to_output(d, "\r\n");
+    for (i = START_CRAFT_ABILITIES; i <= END_HARVEST_ABILITIES; i++)
+    {
+      write_to_output(d, "%s%2d%s) %s\r\n", grn, i, nrm, ability_names[i]);
+    }
+    write_to_output(d, "Associated crafting skill (ABILITY_* constant, e.g. 51 for ABILITY_HARVEST_GATHERING): ");
     break;
   default:
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: Reached default case in oedit_disp_val1_menu()!");
@@ -1191,6 +1201,9 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
   case ITEM_GREYHAWK_SHIP:
     write_to_output(d, "Enter ship index (0-499, unique per ship): ");
     break;
+  case ITEM_CRAFTING_TOOL:
+    write_to_output(d, "Bonus amount provided by tool (e.g. 2): ");
+    break;
 
   default:
     oedit_disp_menu(d);
@@ -1271,6 +1284,9 @@ static void oedit_disp_val3_menu(struct descriptor_data *d)
     /* Ships only need 2 values - go back to menu */
     oedit_disp_menu(d);
     break;
+  case ITEM_CRAFTING_TOOL:
+    write_to_output(d, "Tool quality/durability (optional, e.g. 100): ");
+    break;
 
   default:
     oedit_disp_menu(d);
@@ -1326,6 +1342,9 @@ static void oedit_disp_val4_menu(struct descriptor_data *d)
   case ITEM_DRINKCON:
   case ITEM_FOUNTAIN:
     write_to_output(d, "Spell # (0 = no spell) : ");
+    break;
+  case ITEM_CRAFTING_TOOL:
+    write_to_output(d, "Special flags (optional, e.g. 0): ");
     break;
   default:
     oedit_disp_menu(d);
@@ -2326,6 +2345,10 @@ void oedit_parse(struct descriptor_data *d, char *arg)
              an enhancement bonus to damage */
     case ITEM_WORN:
       GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), 1, 10);
+      break;
+
+    case ITEM_CRAFTING_TOOL:
+      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), START_CRAFT_ABILITIES, END_HARVEST_ABILITIES);
       break;
 
     default:

@@ -7498,7 +7498,7 @@ void load_class_list(void)
   class_prereq_feat(CLASS_SACRED_FIST, FEAT_KI_STRIKE, 1);
   class_prereq_feat(CLASS_SACRED_FIST, FEAT_COMBAT_CASTING, 1);
   class_prereq_bab(CLASS_SACRED_FIST, 4);
-  class_prereq_ability(CLASS_SACRED_FIST, ABILITY_LORE, 8);
+  class_prereq_ability(CLASS_SACRED_FIST, ABILITY_RELIGION, 8);
   /****************************************************************************/
 
   /****************************************************************************/

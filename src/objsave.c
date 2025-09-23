@@ -644,6 +644,43 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
       if (!CAN_WEAR(obj, ITEM_WEAR_SHEATH))
         location = LOC_INVENTORY;
       break;
+    case WEAR_CRAFT_SICKLE:
+      if (!CAN_WEAR(obj, ITEM_WEAR_CRAFT_SICKLE))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_CRAFT_AXE:
+      if (!CAN_WEAR(obj, ITEM_WEAR_CRAFT_AXE))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_CRAFT_KNIFE:
+      if (!CAN_WEAR(obj, ITEM_WEAR_CRAFT_KNIFE))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_CRAFT_PICKAXE:
+      if (!CAN_WEAR(obj, ITEM_WEAR_CRAFT_PICKAXE))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_CRAFT_ALCHEMY:
+      if (!CAN_WEAR(obj, ITEM_WEAR_CRAFT_ALCHEMY))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_CRAFT_ARMOR_HAMMER:
+      if (!CAN_WEAR(obj, ITEM_WEAR_CRAFT_ARMOR_HAMMER))    
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_CRAFT_JEWEL_PLIERS:
+      if (!CAN_WEAR(obj, ITEM_WEAR_CRAFT_JEWEL_PLIERS))    
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_CRAFT_NEEDLE:
+      if (!CAN_WEAR(obj, ITEM_WEAR_CRAFT_NEEDLE))    
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_CRAFT_WEAPON_HAMMER:
+      if (!CAN_WEAR(obj, ITEM_WEAR_CRAFT_WEAPON_HAMMER))    
+        location = LOC_INVENTORY;   
+      break;
+      
     default:
       location = LOC_INVENTORY;
     }

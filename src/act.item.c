@@ -1236,6 +1236,21 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
                  bonus_types[GET_OBJ_VAL(item, OUTFIT_VAL_APPLY_BONUS)]);
     break;
 
+  case ITEM_CRAFTING_TOOL:
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Associated Skill: %s (ID: %d)\r\n"
+                                     "Bonus Amount:     +%d\r\n"
+                                     "Tool Quality:     %d\r\n"
+                                     "Special Flags:    %d\r\n",
+                    (v1 >= 0 && v1 < NUM_ABILITIES) ? ability_names[v1] : "Unknown", v1, v2, v3, v4);
+    else
+      send_to_char(ch, "Associated Skill: %s (ID: %d)\r\n"
+                       "Bonus Amount:     +%d\r\n"
+                       "Tool Quality:     %d\r\n"
+                       "Special Flags:    %d\r\n",
+                   (v1 >= 0 && v1 < NUM_ABILITIES) ? ability_names[v1] : "Unknown", v1, v2, v3, v4);
+    break;
+
   default:
     if (mode == ITEM_STAT_MODE_G_LORE)
       send_to_group(NULL, GROUP(ch), "Report this item to a coder to add the ITEM_type\r\n");
@@ -3827,8 +3842,36 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where)
       {"$n straps $p on as $s sheath.",
        "You strap $p on as your sheath."},
 
-       {"$n picks up $p as $s instrument.",
+      {"$n picks up $p as $s instrument.",
        "You pick up $p as your instrument."},
+      
+       {"$n slots $p in as $s harvesting sickle",
+        "You slot $p in as your harvesting sickle."},
+
+       {"$n slots $p in as $s wood axe",
+        "You slot $p in as your wood axe."},
+
+       {"$n slots $p in as $s skinning knife",
+        "You slot $p in as your skinning knife."},
+
+       {"$n slots $p in as $s mining pickaxe",
+        "You slot $p in as your mining pickaxe."},
+
+       {"$n slots $p in as $s alchemy kit",
+        "You slot $p in as your alchemy kit."},
+
+       {"$n slots $p in as $s armor's hammer",
+        "You slot $p in as your armor's hammer."},
+
+       {"$n slots $p in as $s jeweler's pliers",
+        "You slot $p in as your jeweler's pliers."},
+
+       {"$n slots $p in as $s sewing needle",
+        "You slot $p in as your sewing needle."},
+
+       {"$n slots $p in as $s weaponsmith's hammer",
+        "You slot $p in as your weaponsmith's hammer."},
+        
   };
 
   /* extinguished light! */
@@ -3967,7 +4010,10 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_FACE, ITEM_WEAR_AMMO_POUCH,
       ITEM_WEAR_EAR, ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE, 
       ITEM_WEAR_SHOULDERS, ITEM_WEAR_ANKLE, ITEM_WEAR_ANKLE, ITEM_WEAR_SHEATH,
-      ITEM_WEAR_INSTRUMENT};
+      ITEM_WEAR_INSTRUMENT, ITEM_WEAR_CRAFT_SICKLE, ITEM_WEAR_CRAFT_AXE, 
+      ITEM_WEAR_CRAFT_KNIFE, ITEM_WEAR_CRAFT_PICKAXE, ITEM_WEAR_CRAFT_ALCHEMY, 
+      ITEM_WEAR_CRAFT_ARMOR_HAMMER, ITEM_WEAR_CRAFT_JEWEL_PLIERS, 
+      ITEM_WEAR_CRAFT_NEEDLE, ITEM_WEAR_CRAFT_WEAPON_HAMMER };
 
   const char *const already_wearing[NUM_WEARS] = {
       "You're already using a light.\r\n",                                  // 0
@@ -4003,6 +4049,15 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       "You're already wearing something on both of your ankles.\r\n",       // 30
       "You are already wearing a sheath.\r\n",
       "You already have an instrument equipped.\r\n",
+      "You already have a gathering sickle equipped.\r\n",
+      "You already have a wood axe equipped.\r\n",
+      "You already have a skinning knife equipped.\r\n",
+      "You already have a mining pickaxe equipped.\r\n",
+      "You already have an alchemy kit equipped.\r\n",
+      "You already have an armorsmith's hammer equipped.\r\n",
+      "You already have jeweler's pliers equipped.\r\n",
+      "You already have a sewing needle equipped.\r\n",
+      "You already have a weaponsmith's hammer equipped.\r\n"
   };
 
   /* we are looking for some quick exits */
@@ -4210,6 +4265,17 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
       "shoulders",
       "ankle",
       "!RESERVED!", // (2nd ankle)
+      "sheath",
+      "instrument",
+      "harvesting sickle",
+      "wood axe",
+      "skinning knife",
+      "mining pickaxe",
+      "alchemy kit",
+      "armor's hammer",
+      "jeweler's pliers",
+      "sewing needle",
+      "weaponsmith's hammer",
       "\n"};
 
   if (!arg || !*arg)
@@ -4256,6 +4322,24 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
       where = WEAR_SHEATH;
     if (CAN_WEAR(obj, ITEM_WEAR_INSTRUMENT))
       where = WEAR_INSTRUMENT;
+    if (CAN_WEAR(obj, ITEM_WEAR_CRAFT_SICKLE))
+      where = WEAR_CRAFT_SICKLE;
+    if (CAN_WEAR(obj, ITEM_WEAR_CRAFT_AXE))
+      where = WEAR_CRAFT_AXE;
+    if (CAN_WEAR(obj, ITEM_WEAR_CRAFT_KNIFE))
+      where = WEAR_CRAFT_KNIFE;
+    if (CAN_WEAR(obj, ITEM_WEAR_CRAFT_PICKAXE))
+      where = WEAR_CRAFT_PICKAXE;
+    if (CAN_WEAR(obj, ITEM_WEAR_CRAFT_ALCHEMY))
+      where = WEAR_CRAFT_ALCHEMY;
+    if (CAN_WEAR(obj, ITEM_WEAR_CRAFT_ARMOR_HAMMER))
+      where = WEAR_CRAFT_ARMOR_HAMMER;
+    if (CAN_WEAR(obj, ITEM_WEAR_CRAFT_JEWEL_PLIERS))
+      where = WEAR_CRAFT_JEWEL_PLIERS;
+    if (CAN_WEAR(obj, ITEM_WEAR_CRAFT_NEEDLE))
+      where = WEAR_CRAFT_NEEDLE;
+    if (CAN_WEAR(obj, ITEM_WEAR_CRAFT_WEAPON_HAMMER))
+      where = WEAR_CRAFT_WEAPON_HAMMER;
 
     /* this means we have an argument, does it match our keywords-array ?*/
   }
