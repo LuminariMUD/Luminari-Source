@@ -2110,6 +2110,15 @@ const char *wear_where[] = {
     "\tY{Worn In Ankle}\tn      ", // 30
     "\tY{Worn As Sheath}\tn     ",
     "\tY{Used As Instrument}\tn ",
+    "\tC{Harvesting Sickle}\tn  ",   // WEAR_CRAFT_SICKLE
+    "\tC{Chopping Axe}\tn       ",   // WEAR_CRAFT_AXE
+    "\tC{Skinning Knife}\tn     ",   // WEAR_CRAFT_KNIFE
+    "\tC{Mining Pickaxe}\tn     ",   // WEAR_CRAFT_PICKAXE
+    "\tC{Alchemy Set}\tn        ",   // WEAR_CRAFT_ALCHEMY
+    "\tC{Armorsmith Hammer}\tn  ",   // WEAR_CRAFT_ARMOR_HAMMER
+    "\tC{Jeweler's Pliers}\tn   ",   // WEAR_CRAFT_JEWEL_PLIERS
+    "\tC{Sewing Needle}\tn      ",   // WEAR_CRAFT_NEEDLE
+    "\tC{Weaponsmith Hammer}\tn ",   // WEAR_CRAFT_WEAPON_HAMMER
 };
 CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 
@@ -2150,6 +2159,15 @@ const char *equipment_types[] = {
     "Worn on left ankle", // 30
     "Worn as sheath",
     "Used as instrument",
+    "Harvesting sickle (gathering)",     // WEAR_CRAFT_SICKLE
+    "Chopping axe (forestry)",           // WEAR_CRAFT_AXE
+    "Skinning knife (hunting)",          // WEAR_CRAFT_KNIFE
+    "Mining pickaxe (mining)",           // WEAR_CRAFT_PICKAXE
+    "Alchemy set (alchemy)",             // WEAR_CRAFT_ALCHEMY
+    "Armorsmith hammer (armorsmithing)", // WEAR_CRAFT_ARMOR_HAMMER
+    "Jeweler's pliers (jewelcraft)",     // WEAR_CRAFT_JEWEL_PLIERS
+    "Sewing needle (tailoring)",         // WEAR_CRAFT_NEEDLE
+    "Weaponsmith hammer (weaponsmithing)", // WEAR_CRAFT_WEAPON_HAMMER
     "\n"};
 CHECK_TABLE_SIZE(equipment_types, NUM_WEARS + 1);
 
@@ -2401,6 +2419,7 @@ const char *item_types[] = {
     "Ship-Object",
     "Vessel",
     "Greyhawk-Ship",
+    "Crafting-Tool",
     "\n"};
 CHECK_TABLE_SIZE(item_types, NUM_ITEM_TYPES + 1);
 
@@ -2433,6 +2452,15 @@ const char *wear_bits[] = {
     "Shoulders",
     "Ankle",
     "Sheath",
+    "Gathering-Tool",
+    "Forestry-Tool",
+    "Hunting-Tool",
+    "Mining-Tool",
+    "Alchemy-Tool",
+    "Armorsmithing-Tool",
+    "Jewelcrafting-Tool",
+    "Tailoring-Tool",
+    "Weaponsmithing-Tool",
     "\n"};
 CHECK_TABLE_SIZE(wear_bits, NUM_ITEM_WEARS + 1);
 

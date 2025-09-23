@@ -1706,8 +1706,18 @@
 #define WEAR_ANKLE_L 30
 #define WEAR_SHEATH 31
 #define WEAR_INSTRUMENT 32
+/* Crafting tool equipment slots - not shown in regular equipment command */
+#define WEAR_CRAFT_SICKLE 33        /* harvesting sickle (gathering) */
+#define WEAR_CRAFT_AXE 34           /* chopping axe (forestry) */
+#define WEAR_CRAFT_KNIFE 35         /* skinning knife (hunting) */
+#define WEAR_CRAFT_PICKAXE 36       /* pickaxe (mining) */
+#define WEAR_CRAFT_ALCHEMY 37       /* alchemy set (alchemy) */
+#define WEAR_CRAFT_ARMOR_HAMMER 38  /* armorsmith's hammer (armorsmithing) */
+#define WEAR_CRAFT_JEWEL_PLIERS 39  /* jewel's pliers (jewelcraft) */
+#define WEAR_CRAFT_NEEDLE 40        /* sewing needle (tailoring) */
+#define WEAR_CRAFT_WEAPON_HAMMER 41 /* weaponsmith's hammer (weaponsmithing) */
 /** Total number of available equipment lcoations */
-#define NUM_WEARS 33
+#define NUM_WEARS 42
 /**/
 
 /* ranged combat */
@@ -3107,7 +3117,8 @@
 #define ITEM_VESSEL 55 // Unified vessel system object
 #define ITEM_GREYHAWK_SHIP 56 // Greyhawk ship object type (type 57 conflicts resolved to 56)
 /* make sure to add to - display_item_object_values() */
-#define NUM_ITEM_TYPES 57 /** Total number of item types.*/
+#define ITEM_CRAFTING_TOOL 57 // Crafting tool for item creation
+#define NUM_ITEM_TYPES 58 /** Total number of item types.*/
 
 /* reference notes on homeland-port */
 /* swapped free1 (7) with fireweapon, swapped free2 (14) with missile
@@ -3282,8 +3293,17 @@
 #define ITEM_WEAR_SHOULDERS 21
 #define ITEM_WEAR_ANKLE 22
 #define ITEM_WEAR_SHEATH 23
+#define ITEM_WEAR_CRAFT_SICKLE 24        /* harvesting sickle (gathering) */
+#define ITEM_WEAR_CRAFT_AXE 25           /* chopping axe (forestry) */
+#define ITEM_WEAR_CRAFT_KNIFE 26         /* skinning knife (hunting) */
+#define ITEM_WEAR_CRAFT_PICKAXE 27       /* pickaxe (mining) */
+#define ITEM_WEAR_CRAFT_ALCHEMY 28       /* alchemy set (alchemy) */
+#define ITEM_WEAR_CRAFT_ARMOR_HAMMER 29  /* armorsmith's hammer (armorsmithing) */
+#define ITEM_WEAR_CRAFT_JEWEL_PLIERS 30  /* jewel's pliers (jewelcraft) */
+#define ITEM_WEAR_CRAFT_NEEDLE 31        /* sewing needle (tailoring) */
+#define ITEM_WEAR_CRAFT_WEAPON_HAMMER 32 /* weaponsmith's hammer (weaponsmithing) */
 /** Total number of item wears */
-#define NUM_ITEM_WEARS 24
+#define NUM_ITEM_WEARS 33
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
 #define ITEM_GLOW 0             /**< Item is glowing */

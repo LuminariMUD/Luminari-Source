@@ -126,8 +126,9 @@
 #define SCMD_NEWCRAFT_REFINE        4
 #define SCMD_NEWCRAFT_RESIZE        5
 #define SCMD_NEWCRAFT_SUPPLYORDER   6
+#define SCMD_NEWCRAFT_EQUIPMENT     7
 
-#define NUM_CRAFTING_METHODS        7
+#define NUM_CRAFTING_METHODS        8
 
 // Supply order contract types
 #define SUPPLY_CONTRACT_BASIC       1
@@ -320,6 +321,8 @@ int get_craft_wear_loc(struct char_data *ch);
 int recipe_skill_to_actual_crafting_skill(int recipe_skill);
 
 void newcraft_supplyorder(struct char_data *ch, const char *argument);
+void newcraft_equipment(struct char_data *ch, const char *argument);
+void newcraft_show_tools(struct char_data *ch, const char *argument);
 
 ACMD_DECL(do_newcraft);
 ACMD_DECL(do_setmaterial);

@@ -5771,7 +5771,7 @@ ACMD(do_equipment)
     snprintf(dex_max, sizeof(dex_max), "%d", j);
 
   send_to_char(ch, "You are using:\r\n");
-  for (i = 0; i < NUM_WEARS; i++)
+  for (i = 0; i < 33 ; i++)  // Only show traditional equipment slots (33), not craft tools (34-42)
   {
     if (GET_EQ(ch, eq_ordering_1[i]))
     {

@@ -1032,6 +1032,24 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
 
   value += high_eq;
 
+  /* Check for crafting tool bonuses */
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (GET_EQ(ch, i) && GET_OBJ_TYPE(GET_EQ(ch, i)) == ITEM_CRAFTING_TOOL)
+    {
+      int tool_skill = GET_OBJ_VAL(GET_EQ(ch, i), 0);
+      int tool_bonus = GET_OBJ_VAL(GET_EQ(ch, i), 1);
+      
+      /* Validate that the tool_skill is a valid crafting/harvest ability */
+      if (tool_skill >= START_CRAFT_ABILITIES && tool_skill <= END_HARVEST_ABILITIES && 
+          tool_skill == abilityNum && tool_bonus > 0)
+      {
+        /* Crafting tools provide their specified bonus to the associated skill */
+        value += tool_bonus;
+      }
+    }
+  }
+
   switch (abilityNum)
   {
 
@@ -1474,7 +1492,6 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   case ABILITY_CRAFT_METALWORKING:
   case ABILITY_CRAFT_FISHING:
   case ABILITY_CRAFT_COOKING:
-  case ABILITY_CRAFT_BREWING:
   case ABILITY_HARVEST_MINING   :
   case ABILITY_HARVEST_HUNTING  :
   case ABILITY_HARVEST_FORESTRY :

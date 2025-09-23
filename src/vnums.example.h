@@ -572,4 +572,15 @@
 #define NOOB_TELEPORTER             82
 
 
+// Starting Harvesting Tools
+// #define NOOB_CRAFTING_TAILORING         160040
+// #define NOOB_CRAFTING_ALCHEMY           160045
+// #define NOOB_CRAFTING_ARMORSMITHING     160046
+// #define NOOB_CRAFTING_WEAPONSMITHING    160048
+// #define NOOB_CRAFTING_JEWELCRAFTING     160047
+// #define NOOB_HARVESTING_MINING          160044
+// #define NOOB_HARVESTING_HUNTING         160043
+// #define NOOB_HARVESTING_FORESTRY        160042
+// #define NOOB_HARVESTING_GATHERING       160041
+
 #endif /* _VNUMS_H_ */
