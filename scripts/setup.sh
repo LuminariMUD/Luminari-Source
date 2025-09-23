@@ -1,12 +1,12 @@
 #!/bin/bash
 
 ################################################################################
-# LuminariMUD Simple Setup Script
+# LuminariMUD Setup Script
 # 
-# A minimal script that sets up LuminariMUD from a fresh clone.
-# This script focuses on getting the MUD running as quickly as possible.
+# Automated deployment script that builds and configures LuminariMUD from source.
+# This script handles all necessary steps for a complete deployment.
 #
-# Usage: ./scripts/simple_setup.sh
+# Usage: ./scripts/setup.sh
 ################################################################################
 
 set -e  # Exit on error
@@ -18,7 +18,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}LuminariMUD Simple Setup${NC}"
+echo -e "${GREEN}LuminariMUD Deployment${NC}"
 echo -e "${GREEN}========================================${NC}"
 
 # Get to project root
@@ -41,8 +41,17 @@ fi
 
 # Step 2: Build the game
 echo -e "\n${GREEN}Step 2: Building the MUD...${NC}"
+
+# Check if we need to run autoreconf first
+if [[ ! -f Makefile ]]; then
+    echo "  Generating build system..."
+    autoreconf -fvi || { echo -e "${RED}Failed to generate build system!${NC}"; exit 1; }
+    ./configure || { echo -e "${RED}Configure failed!${NC}"; exit 1; }
+fi
+
 make clean 2>/dev/null || true
 make -j$(nproc) || make || { echo -e "${RED}Build failed!${NC}"; exit 1; }
+make install || { echo -e "${RED}Install failed!${NC}"; exit 1; }
 echo "  Build completed successfully!"
 
 # Step 3: Create critical symlinks
@@ -66,32 +75,87 @@ for dir in zon wld mob obj shp trg qst hlq; do
     mkdir -p lib/world/${dir}
 done
 
-# Copy minimal world files with proper renaming
+# Copy minimal world files and create proper indexes
 if [[ -d lib/world/minimal ]]; then
     # Zone files
-    cp lib/world/minimal/index.zon lib/world/zon/index 2>/dev/null || true
-    cp lib/world/minimal/*.zon lib/world/zon/ 2>/dev/null || true
+    if [[ -f lib/world/minimal/0.zon ]]; then
+        cp lib/world/minimal/*.zon lib/world/zon/ 2>/dev/null || true
+        echo "0.zon" > lib/world/zon/index
+        echo '$' >> lib/world/zon/index
+    else
+        echo '$' > lib/world/zon/index
+    fi
     
     # World/room files
-    cp lib/world/minimal/index.wld lib/world/wld/index 2>/dev/null || true
-    cp lib/world/minimal/*.wld lib/world/wld/ 2>/dev/null || true
+    if [[ -f lib/world/minimal/0.wld ]]; then
+        cp lib/world/minimal/*.wld lib/world/wld/ 2>/dev/null || true
+        echo "0.wld" > lib/world/wld/index
+        echo '$' >> lib/world/wld/index
+    else
+        echo '$' > lib/world/wld/index
+    fi
     
     # Mob files
-    cp lib/world/minimal/index.mob lib/world/mob/index 2>/dev/null || true
-    cp lib/world/minimal/*.mob lib/world/mob/ 2>/dev/null || true
+    if [[ -f lib/world/minimal/0.mob ]]; then
+        cp lib/world/minimal/*.mob lib/world/mob/ 2>/dev/null || true
+        echo "0.mob" > lib/world/mob/index
+        echo '$' >> lib/world/mob/index
+    else
+        echo '$' > lib/world/mob/index
+    fi
     
-    # Object files
-    cp lib/world/minimal/index.obj lib/world/obj/index 2>/dev/null || true
-    cp lib/world/minimal/*.obj lib/world/obj/ 2>/dev/null || true
+    # Object files - create a minimal one if it doesn't exist
+    if [[ -f lib/world/minimal/0.obj ]]; then
+        cp lib/world/minimal/*.obj lib/world/obj/ 2>/dev/null || true
+        echo "0.obj" > lib/world/obj/index
+        echo '$' >> lib/world/obj/index
+    else
+        # Create a minimal object file
+        cat > lib/world/obj/0.obj << 'EOF'
+#1
+bread~
+a loaf of bread~
+A loaf of bread is here.~
+~
+11 0 0 0 0 a 0 0 0 0 0 0 0
+0 0 0 0
+1 100 10 0 0
+$
+EOF
+        echo "0.obj" > lib/world/obj/index
+        echo '$' >> lib/world/obj/index
+    fi
     
-    # Other index files
-    cp lib/world/minimal/index.shp lib/world/shp/index 2>/dev/null || true
-    cp lib/world/minimal/index.trg lib/world/trg/index 2>/dev/null || true
-    cp lib/world/minimal/index.qst lib/world/qst/index 2>/dev/null || true
+    # Shop files
+    if [[ -f lib/world/minimal/0.shp ]]; then
+        cp lib/world/minimal/*.shp lib/world/shp/ 2>/dev/null || true
+        ls lib/world/shp/*.shp 2>/dev/null | xargs -n1 basename > lib/world/shp/index 2>/dev/null
+        echo '$' >> lib/world/shp/index
+    else
+        echo '$' > lib/world/shp/index
+    fi
     
-    echo "  Copied minimal world files"
+    # Trigger files
+    if [[ -f lib/world/minimal/0.trg ]]; then
+        cp lib/world/minimal/*.trg lib/world/trg/ 2>/dev/null || true
+        ls lib/world/trg/*.trg 2>/dev/null | xargs -n1 basename > lib/world/trg/index 2>/dev/null
+        echo '$' >> lib/world/trg/index
+    else
+        echo '$' > lib/world/trg/index
+    fi
+    
+    # Quest files
+    if [[ -f lib/world/minimal/0.qst ]]; then
+        cp lib/world/minimal/*.qst lib/world/qst/ 2>/dev/null || true
+        ls lib/world/qst/*.qst 2>/dev/null | xargs -n1 basename > lib/world/qst/index 2>/dev/null
+        echo '$' >> lib/world/qst/index
+    else
+        echo '$' > lib/world/qst/index
+    fi
+    
+    echo "  Set up minimal world files"
 else
-    echo -e "${YELLOW}  Warning: No minimal world files found, creating empty indexes${NC}"
+    echo -e "${YELLOW}  Warning: No minimal world directory found${NC}"
     echo '$' > lib/world/zon/index
     echo '$' > lib/world/wld/index
     echo '$' > lib/world/mob/index

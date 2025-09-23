@@ -1,54 +1,10 @@
 # LuminariMUD Deployment Guide
 
-## 🔧 Remaining Issues to Address
+## Overview
 
-### Minor Issues (Non-blocking)
-1. **Configure script cosmetic error**: `cat: ./src/conf.h.in: No such file or directory` at the end of configure script (harmless, doesn't affect build)
-2. **MySQL config template placeholders**: `lib/mysql_config_example` has placeholder values like `<host here>` instead of working defaults
-3. **Start room warnings**: "Immort start room does not exist" and "Frozen start room does not exist" warnings on startup
+LuminariMUD is a comprehensive MUD codebase implementing Pathfinder/D&D 3.5 mechanics. This guide covers the complete deployment process from source code to running server.
 
-### Future Improvements
-1. **CI/CD testing**: Add automated testing to ensure deployment stays working
-2. **Docker support**: Add container support for one-command deployment
-3. **Health check script**: Create script to verify successful deployment
-4. **Migration scripts**: Add database schema migration scripts
-
----
-
-## 🚀 Quick Start
-
-**Get LuminariMUD running in under 2 minutes!**
-
-### Simplest Method (Recommended)
-```bash
-git clone https://github.com/LuminariMUD/Luminari-Source.git
-cd Luminari-Source
-./scripts/simple_setup.sh
-./bin/circle -d lib
-```
-
-### Alternative Method (More Options)
-```bash
-git clone https://github.com/LuminariMUD/Luminari-Source.git
-cd Luminari-Source
-./scripts/deploy.sh --quick --skip-db --init-world
-./bin/circle -d lib
-```
-
-Connect to `localhost:4000` with any MUD client and start playing!
-
----
-
-## 📋 Table of Contents
-
-- [System Requirements](#system-requirements)
-- [Dependencies](#dependencies)
-- [Deployment Options](#deployment-options)
-- [Manual Setup](#manual-setup)
-- [Database Configuration](#database-configuration)
-- [Running the Server](#running-the-server)
-- [Troubleshooting](#troubleshooting)
-- [Historical Issues (Resolved)](#historical-issues-resolved)
+**Important**: This is a substantial deployment process for a complex C-based MUD server. Expect the initial setup to take 15-30 minutes depending on your system and experience level.
 
 ---
 
@@ -59,93 +15,106 @@ Connect to `localhost:4000` with any MUD client and start playing!
 - **Memory**: 512MB RAM (2GB+ recommended for production)
 - **Storage**: 1GB+ free disk space
 - **Network**: TCP/IP networking capability
-- **Compiler**: GCC 4.8+ with ANSI C90/C89 support (NOT C99!)
+- **Compiler**: GCC 4.8+ with ANSI C90/C89 support
 
 ### Recommended Requirements
 - **Operating System**: Ubuntu 20.04+ LTS or CentOS 8+
 - **Memory**: 4GB+ RAM for development, 2GB+ for production
 - **Storage**: 5GB+ free disk space
 - **Compiler**: GCC 9.0+ or Clang 10.0+
-- **Build System**: Make (Autotools)
-- **Database**: MariaDB 10.3+ (optional)
+- **Build System**: GNU Autotools (automake, autoconf)
+- **Database**: MariaDB 10.3+ (optional but recommended)
 
 ---
 
-## Dependencies
+## Dependencies Installation
 
-### Ubuntu/Debian Installation (including WSL2)
+### Ubuntu/Debian (including WSL2)
 
 ```bash
 # Update package list
 sudo apt-get update
 
-# Install REQUIRED dependencies
-sudo apt-get install -y build-essential git make
+# Install REQUIRED build dependencies
+sudo apt-get install -y build-essential git make autoconf automake
 
-# Optional but recommended
+# Optional but recommended dependencies
 sudo apt-get install -y libcrypt-dev libgd-dev libmariadb-dev \
-                        libcurl4-openssl-dev libssl-dev mariadb-server pkg-config
+                        libcurl4-openssl-dev libssl-dev mariadb-server \
+                        pkg-config libjson-c-dev
 
 # For debugging (recommended)
 sudo apt-get install -y gdb valgrind
 
-# If you encounter Windows line endings (CRLF) issues
+# If encountering line ending issues
 sudo apt-get install -y dos2unix
 ```
 
-### CentOS/RHEL/Fedora Installation
+### CentOS/RHEL/Fedora
+
 ```bash
 # For CentOS 7/RHEL 7
-sudo yum install -y gcc make git
+sudo yum install -y gcc make git autoconf automake
 
 # For CentOS 8+/RHEL 8+/Fedora
-sudo dnf install -y gcc make git
+sudo dnf install -y gcc make git autoconf automake
 
 # Optional but recommended
 sudo dnf install -y mariadb-server mariadb-devel gd-devel \
-                    libcrypt-devel autoconf automake libtool
+                    libcrypt-devel libtool json-c-devel
 ```
 
 ---
 
-## Deployment Options
+## Deployment Process
 
-### Option 1: Simple Setup Script (Fastest)
-Best for beginners and quick testing:
+### Method 1: Automated Setup Script
+
+The setup script handles all necessary steps automatically:
 
 ```bash
-./scripts/simple_setup.sh
+# Clone the repository
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+
+# Run the setup script (handles autoreconf, configure, make, make install)
+./scripts/setup.sh
+
+# Start the server
+./bin/circle -d lib
 ```
 
-This script automatically:
-- Copies configuration files from examples
-- Builds the game
+The setup script performs:
+- Generates the build system (autoreconf + configure)
+- Copies required configuration files
+- Builds the entire codebase
+- Installs binaries to bin/
 - Creates required symlinks
-- Sets up minimal world files
-- Creates text files
-- Zero user interaction required
+- Sets up world files
+- Creates necessary directories
 
-### Option 2: Full Deployment Script
-More control over the setup process:
+### Method 2: Deploy Script with Options
+
+For more control over the deployment process:
 
 ```bash
-# Quick setup without database
-./scripts/deploy.sh --quick --skip-db --init-world
+# Clone the repository
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
 
-# Interactive setup with all features
-./scripts/deploy.sh
+# Generate build system first
+autoreconf -fvi
 
-# Development build with debug symbols
-./scripts/deploy.sh --dev --skip-db --init-world
+# Run deployment with options
+./scripts/deploy.sh --skip-db --init-world
 
-# Production optimized build
-./scripts/deploy.sh --prod --init-world
+# Start the server
+./bin/circle -d lib
 ```
 
-#### Deployment Script Options
+Deploy script options:
 | Option | Description |
 |--------|-------------|
-| `--quick` | Skip all prompts, use defaults |
 | `--skip-db` | Skip database setup (run without MySQL) |
 | `--skip-deps` | Skip dependency installation |
 | `--init-world` | Initialize minimal world data |
@@ -153,63 +122,59 @@ More control over the setup process:
 | `--prod` | Production optimized build |
 | `-h, --help` | Show help message |
 
----
+### Method 3: Manual Deployment
 
-## Manual Setup
+For complete control over each step:
 
-If you prefer manual control or the scripts don't work for your system:
-
-### 1. Clone Repository
+#### 1. Clone Repository
 ```bash
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 ```
 
-### 2. Copy Configuration Files
+#### 2. Generate Build System
 ```bash
-# These files are required for compilation
+# Generate configure script and Makefiles
+autoreconf -fvi
+```
+
+#### 3. Copy Configuration Files
+```bash
+# Required for compilation
 cp src/campaign.example.h src/campaign.h
 cp src/mud_options.example.h src/mud_options.h
 cp src/vnums.example.h src/vnums.h
 ```
 
-### 3. Fix Line Endings (If Needed)
-If you cloned on Windows or see `$'\r'` errors:
+#### 4. Configure and Build
 ```bash
-# Install dos2unix if needed
-sudo apt-get install dos2unix
+# Configure the build
+./configure
 
-# Convert all shell scripts
-find . -name "*.sh" -type f -exec dos2unix {} \;
-dos2unix configure autorun
-```
-
-### 4. Build the Game
-```bash
 # Clean any previous builds
 make clean
 
-# Build (using all available cores)
+# Build using all available cores
 make -j$(nproc)
 
-# Or just
-make
+# Install binaries to bin/
+make install
 ```
 
-### 5. Create Required Symlinks
-The MUD expects certain directories in the root, not in lib/:
+#### 5. Create Required Symlinks
 ```bash
+# The MUD expects these in the root directory
 ln -sf lib/world world
 ln -sf lib/text text
 ln -sf lib/etc etc
 ```
 
-### 6. Set Up World Files
+#### 6. Set Up World Files
 ```bash
 # Create world directories
 mkdir -p lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
 
-# Copy minimal world files if they exist
+# Copy minimal world files
 for dir in zon wld mob obj shp trg qst; do
     if [ -f lib/world/minimal/index.${dir} ]; then
         cp lib/world/minimal/index.${dir} lib/world/${dir}/index
@@ -223,12 +188,12 @@ done
 echo '$' > lib/world/hlq/index
 ```
 
-### 7. Create Text Files
+#### 7. Create Text Files
 ```bash
 # Create directories
 mkdir -p lib/text/help lib/etc
 
-# Create basic text files
+# Create required text files
 echo "Welcome to LuminariMUD!" > lib/text/news
 echo "LuminariMUD Credits" > lib/text/credits
 echo "Message of the Day" > lib/text/motd
@@ -247,10 +212,10 @@ echo "Welcome!" > lib/text/greetings
 echo '$' > lib/text/help/index
 
 # Create minimal config
-echo "# Minimal config" > lib/etc/config
+echo "# LuminariMUD Configuration" > lib/etc/config
 ```
 
-### 8. Create Required Directories
+#### 8. Create Required Directories
 ```bash
 mkdir -p lib/plrfiles/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
 mkdir -p lib/plrobjs/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
@@ -259,20 +224,20 @@ mkdir -p lib/mudmail
 mkdir -p log
 ```
 
-### 9. Run the MUD
+#### 9. Start the Server
 ```bash
 ./bin/circle -d lib
 ```
 
 ---
 
-## Database Configuration
+## Database Configuration (Optional)
 
-MySQL/MariaDB is **optional**. The game runs fine without it, with some features disabled.
+MySQL/MariaDB provides persistent storage for player data. The game runs without it, but some features will be disabled.
 
-### Setting Up MySQL (Optional)
+### Setting Up MySQL/MariaDB
 
-#### 1. Install and Start MySQL/MariaDB
+#### 1. Install and Start Database
 ```bash
 # Ubuntu/Debian
 sudo apt-get install mariadb-server
@@ -312,7 +277,7 @@ chmod 600 lib/mysql_config
 
 ## Running the Server
 
-### Using the Autorun Script (Recommended)
+### Using the Autorun Script (Recommended for Production)
 ```bash
 # Start with auto-restart on crash
 ./autorun
@@ -333,7 +298,7 @@ nohup ./autorun &
 nohup ./bin/circle -d lib > log/server.log 2>&1 &
 ```
 
-### Using Screen/Tmux (Best for Remote Servers)
+### Using Screen/Tmux (Recommended for Remote Servers)
 ```bash
 # Using screen
 screen -S luminari
@@ -367,22 +332,31 @@ touch pause
 
 ## Troubleshooting
 
-### Common Issues and Solutions
+### Common Issues
 
-#### Build Fails
+#### Build Fails - Missing Configuration Files
 ```bash
-# Missing configuration files
 cp src/campaign.example.h src/campaign.h
 cp src/mud_options.example.h src/mud_options.h
 cp src/vnums.example.h src/vnums.h
-
-# Clean rebuild
-make clean && make
 ```
 
-#### "$'\r': command not found" Errors
+#### Build Fails - No Makefile
 ```bash
-# Fix Windows line endings
+# Generate build system first
+autoreconf -fvi
+./configure
+```
+
+#### Binary Not in bin/ Directory
+```bash
+# Must run make install after building
+make install
+```
+
+#### Windows Line Endings (CRLF) Errors
+```bash
+# Fix line endings
 sudo apt-get install dos2unix
 dos2unix configure autorun
 find . -name "*.sh" -exec dos2unix {} \;
@@ -390,10 +364,7 @@ find . -name "*.sh" -exec dos2unix {} \;
 
 #### MUD Won't Start - Missing Files
 ```bash
-# Run simple setup to create all required files
-./scripts/simple_setup.sh
-
-# Or manually create symlinks
+# Create required symlinks
 ln -sf lib/world world
 ln -sf lib/text text
 ln -sf lib/etc etc
@@ -415,49 +386,32 @@ kill -9 [PID]
 - Verify service is running: `sudo systemctl status mariadb`
 - Check credentials in `lib/mysql_config`
 - Test connection: `mysql -u luminari -p luminari`
-- The game runs fine without MySQL - just ignore the warnings
+- The game runs without MySQL - warnings can be ignored
 
 ---
 
-## Historical Issues (Resolved)
-
-These issues have been fixed but are documented for reference:
-
-### ✅ Fixed in Deploy Scripts (August 2025)
-
-1. **Deploy script path navigation** - Script now correctly navigates to project root
-2. **World file copying bugs** - Fixed incorrect wildcard usage, proper index renaming
-3. **Missing symlinks** - Automatically created for world/, text/, etc/
-4. **Missing HLQ directory** - Now created automatically
-5. **Text file initialization** - All required files created automatically
-
-### ✅ Fixed in Codebase (August 2025)
-
-1. **Windows line endings** - All scripts converted to Unix format (commit: bd62fbff)
-2. **Makefile.am build issue** - Fixed source list interruption (commit: e09e148f)
-3. **MySQL hard requirement** - Now optional with graceful degradation
-4. **Missing example files** - All .example.h files now included
-
-### ✅ Documentation Created
-
-1. Created `scripts/simple_setup.sh` for zero-interaction deployment
-2. Fixed `scripts/deploy.sh` with proper path handling
-3. Created comprehensive quick start guides
-4. Updated all documentation with working instructions
-
----
-
-## Next Steps
+## Post-Deployment
 
 After successful deployment:
 
 1. **Connect to the MUD**: Use any MUD client to connect to `localhost:4000`
 2. **Create Admin Character**: The first character created gets admin privileges
-3. **Read Documentation**: 
-   - [QUICKSTART Guide](../QUICKSTART.md) - Beginner's guide
-   - [Developer Guide](../guides/DEVELOPER_GUIDE_AND_API.md) - For coding
+3. **Review Documentation**: 
+   - [Getting Started](../GETTING_STARTED.md) - Player and builder basics
+   - [Developer Guide](../guides/DEVELOPER_GUIDE_AND_API.md) - For code development
    - [Database Guide](DATABASE_DEPLOYMENT_GUIDE.md) - Database details
-4. **Start Building**: Use OLC commands to create your world
+4. **Start Building**: Use OLC (Online Creation) commands to build your world
+
+---
+
+## Known Issues
+
+### Minor Issues (Non-blocking)
+1. **Configure script cosmetic error**: `cat: ./src/conf.h.in: No such file or directory` - harmless, doesn't affect build
+2. **MySQL config template**: Uses placeholder values - customize as needed
+3. **Start room warnings**: "Immort/Frozen start room does not exist" - cosmetic warnings on startup
+
+These issues do not prevent successful deployment.
 
 ---
 
@@ -469,5 +423,5 @@ After successful deployment:
 
 ---
 
-*Last updated: August 28, 2025*
-*Deployment from fresh clone: ✅ WORKING*
+*Last updated: September 2025*
+*Deployment status: WORKING*
