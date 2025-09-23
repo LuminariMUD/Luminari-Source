@@ -104,6 +104,7 @@ util/wld2html
 ####################
 # AI development guide and configuration
 CLAUDE.md
+AGENTS.md
 .claude/
 .cursorrules
 .cursorignore
