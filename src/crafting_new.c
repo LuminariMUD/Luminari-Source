@@ -2549,7 +2549,74 @@ bool is_craft_ready(struct char_data *ch, bool verbose)
         ready = FALSE;
     }
 
+    // We need to check if they're wielding the proper crafting tool. There's a bit of setup to get the values we want.
+    // It's dirty as heck... could use some optimization here in the future so there's fewer hoops to jump
+    // through to get this information.
+    int skill = 0, ability = 0, recipe = get_current_craft_project_recipe(ch);
+    if (recipe == 0)
+    {
+        ready = FALSE;
+        if (verbose)
+            send_to_char(ch, "The crafting recipe is not set.\r\n");
+    }
+    else
+    {
+        skill = crafting_recipes[recipe].variant_skill[GET_CRAFT(ch).craft_variant];
+    }
+    if (skill == 0)
+    {
+        ready = FALSE;
+        if (verbose)
+            send_to_char(ch, "The crafting recipe does not have a valid skill associated with it.\r\n");
+    }
+    else
+    {
+        ability = recipe_skill_to_actual_crafting_skill(skill);
+    }
+    if (ability == 0)
+    {
+        ready = FALSE;
+        if (verbose)
+            send_to_char(ch, "The crafting recipe does not have a valid ability associated with it.\r\n");
+    }
+    else
+    {
+        if (!is_wearing_tool_for_crafting_ability(ch, ability))
+        {
+            ready = FALSE;
+            if (verbose)
+                send_to_char(ch, "You are not wearing the proper tool to craft this item.\r\n");
+        }
+    }    
+
     return ready;
+}
+
+bool is_wearing_tool_for_crafting_ability(struct char_data *ch, int ability)
+{
+    if (!ch) return false;
+
+    bool has_tool = FALSE;
+
+    switch (ability)
+    {
+        case ABILITY_CRAFT_TAILORING:
+            has_tool = GET_EQ(ch, WEAR_CRAFT_NEEDLE);
+            break;
+        case ABILITY_CRAFT_ALCHEMY:
+            has_tool = GET_EQ(ch, WEAR_CRAFT_ALCHEMY);
+            break;
+        case ABILITY_CRAFT_ARMORSMITHING:
+            has_tool = GET_EQ(ch, WEAR_CRAFT_ARMOR_HAMMER);
+            break;
+        case ABILITY_CRAFT_WEAPONSMITHING:
+            has_tool = GET_EQ(ch, WEAR_CRAFT_WEAPON_HAMMER);
+            break;
+        case ABILITY_CRAFT_JEWELCRAFTING:
+            has_tool = GET_EQ(ch, WEAR_CRAFT_JEWEL_PLIERS);
+            break;
+    }
+    return has_tool;
 }
 
 void begin_current_craft(struct char_data *ch)
@@ -3891,6 +3958,12 @@ void newcraft_harvest(struct char_data *ch, const char *argument)
         return;
     }
 
+    if (!has_proper_harvesting_tool_equipped(ch))
+    {
+        send_to_char(ch, "You need a proper harvesting tool equipped to gather resources. Type 'craft tools' to see what you have equipped.\r\n");
+        return;
+    }
+
     if (GET_LEVEL(ch) >= LVL_IMMORT)
         seconds = 1;
     else
@@ -3901,6 +3974,40 @@ void newcraft_harvest(struct char_data *ch, const char *argument)
 
     send_to_char(ch, "You begin %s.\r\n", harvesting_messages[world[IN_ROOM(ch)].harvest_material]);
     act("$n starts harvesting.", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+bool has_proper_harvesting_tool_equipped(struct char_data *ch)
+{
+    int mat_type;
+    int mat_group;
+    bool has_tool = FALSE;
+
+    if (!ch || IN_ROOM(ch) == NOWHERE)
+        return false;
+
+    if ((mat_type = world[IN_ROOM(ch)].harvest_material) == CRAFT_MAT_NONE)
+        return false;   
+
+    if ((mat_group = craft_group_by_material(mat_type)) == CRAFT_GROUP_NONE)
+        return false;
+
+    switch (mat_group)
+    {
+        case CRAFT_GROUP_CLOTH:
+            has_tool = GET_EQ(ch, WEAR_CRAFT_SICKLE);
+            break;
+        case CRAFT_GROUP_HARD_METALS:
+        case CRAFT_GROUP_SOFT_METALS:
+            has_tool = GET_EQ(ch, WEAR_CRAFT_PICKAXE);
+            break;
+        case CRAFT_GROUP_HIDES:
+            has_tool = GET_EQ(ch, WEAR_CRAFT_KNIFE);
+            break;
+        case CRAFT_GROUP_WOOD:
+            has_tool = GET_EQ(ch, WEAR_CRAFT_AXE);
+            break;
+    }
+    return has_tool;
 }
 
 void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose)
@@ -5809,13 +5916,7 @@ ACMD(do_newcraft)
     {
         one_argument(argument, arg, sizeof(arg));
         
-        if (!str_cmp(arg, "equipment") || !str_cmp(arg, "gear"))
-        {
-            newcraft_equipment(ch, argument);
-            return;
-        }
-        
-        if (!str_cmp(arg, "tools"))
+        if (!str_cmp(arg, "equipment") || !str_cmp(arg, "gear") || !str_cmp(arg, "tools"))
         {
             newcraft_show_tools(ch, argument);
             return;
@@ -7716,6 +7817,8 @@ void newcraft_show_tools(struct char_data *ch, const char *argument)
     // Loop through all crafting and harvesting abilities
     for (ability = START_CRAFT_ABILITIES; ability <= END_HARVEST_ABILITIES; ability++)
     {
+        if (!is_crafting_skill_in_game(ability))
+            continue;
         bool tool_found = FALSE;
         char bonus_string[20];
         char where_string[50];

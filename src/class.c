@@ -2463,6 +2463,43 @@ void newbieEquipment(struct char_data *ch)
 
 #endif
 
+#if defined(NOOB_CRAFTING_TAILORING)
+  obj = read_object(NOOB_CRAFTING_TAILORING, VIRTUAL);
+  equip_char(ch, obj, WEAR_CRAFT_NEEDLE);
+#endif
+#if defined(NOOB_CRAFTING_ALCHEMY)
+  obj = read_object(NOOB_CRAFTING_ALCHEMY, VIRTUAL);
+  equip_char(ch, obj, WEAR_CRAFT_ALCHEMY);
+#endif
+#if defined(NOOB_CRAFTING_ARMORSMITHING)
+  obj = read_object(NOOB_CRAFTING_ARMORSMITHING, VIRTUAL);
+  equip_char(ch, obj, WEAR_CRAFT_ARMOR_HAMMER);
+#endif
+#if defined(NOOB_CRAFTING_WEAPONSMITHING)
+  obj = read_object(NOOB_CRAFTING_WEAPONSMITHING, VIRTUAL);
+  equip_char(ch, obj, WEAR_CRAFT_WEAPON_HAMMER);
+#endif
+#if defined(NOOB_CRAFTING_JEWELCRAFTING)
+  obj = read_object(NOOB_CRAFTING_JEWELCRAFTING, VIRTUAL);
+  equip_char(ch, obj, WEAR_CRAFT_JEWEL_PLIERS);
+#endif
+#if defined(NOOB_HARVESTING_MINING)
+  obj = read_object(NOOB_HARVESTING_MINING, VIRTUAL);
+  equip_char(ch, obj, WEAR_CRAFT_PICKAXE);
+#endif
+#if defined(NOOB_HARVESTING_HUNTING)
+  obj = read_object(NOOB_HARVESTING_HUNTING, VIRTUAL);
+  equip_char(ch, obj, WEAR_CRAFT_KNIFE);
+#endif
+#if defined(NOOB_HARVESTING_FORESTRY)
+  obj = read_object(NOOB_HARVESTING_FORESTRY, VIRTUAL);
+  equip_char(ch, obj, WEAR_CRAFT_AXE);
+#endif
+#if defined(NOOB_HARVESTING_GATHERING)
+  obj = read_object(NOOB_HARVESTING_GATHERING, VIRTUAL);
+  equip_char(ch, obj, WEAR_CRAFT_SICKLE);
+#endif
+
   /* race specific goodies */
   switch (GET_RACE(ch))
   {
@@ -7428,7 +7465,7 @@ void load_class_list(void)
   /* class prereqs */
   class_prereq_spellcasting(CLASS_SPELLSWORD, CASTING_TYPE_ARCANE, PREP_TYPE_ANY, 2 /*circle*/);
   class_prereq_bab(CLASS_SPELLSWORD, 4);
-  class_prereq_ability(CLASS_SPELLSWORD, ABILITY_LORE, 6);
+  class_prereq_ability(CLASS_SPELLSWORD, ABILITY_ARCANA, 6);
   class_prereq_feat(CLASS_SPELLSWORD, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
   class_prereq_feat(CLASS_SPELLSWORD, FEAT_SIMPLE_WEAPON_PROFICIENCY, 1);
   class_prereq_feat(CLASS_SPELLSWORD, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
@@ -7854,7 +7891,7 @@ void load_class_list(void)
   /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_KNIGHT_OF_THE_SWORD, 6);
-  class_prereq_ability(CLASS_KNIGHT_OF_THE_SWORD, ABILITY_LORE, 4);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_SWORD, ABILITY_RELIGION, 4);
   class_prereq_ability(CLASS_KNIGHT_OF_THE_SWORD, ABILITY_RIDE, 4);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_SWORD, FEAT_DIEHARD, 1);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_SWORD, FEAT_ENDURANCE, 1);
@@ -7963,7 +8000,7 @@ void load_class_list(void)
   /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_KNIGHT_OF_THE_ROSE, 8); 
-  class_prereq_ability(CLASS_KNIGHT_OF_THE_ROSE, ABILITY_LORE, 8);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_ROSE, ABILITY_RELIGION, 8);
   class_prereq_ability(CLASS_KNIGHT_OF_THE_ROSE, ABILITY_RIDE, 8);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_MOUNTED_COMBAT, 1);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_ENDURANCE, 1);
@@ -8150,7 +8187,7 @@ void load_class_list(void)
   /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_KNIGHT_OF_THE_LILY, 2);
-  class_prereq_ability(CLASS_KNIGHT_OF_THE_LILY, ABILITY_LORE, 2);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_LILY, ABILITY_RELIGION, 2);
   class_prereq_ability(CLASS_KNIGHT_OF_THE_LILY, ABILITY_INTIMIDATE, 3);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_LILY, FEAT_HONORBOUND, 1);
   /****************************************************************************/
@@ -8252,7 +8289,8 @@ void load_class_list(void)
   /* class prereqs */
   class_prereq_class_level(CLASS_KNIGHT_OF_THE_THORN, CLASS_KNIGHT_OF_THE_LILY, 1);
   class_prereq_bab(CLASS_KNIGHT_OF_THE_THORN, 3); 
-  class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_LORE, 8);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_ARCANA, 8);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_RELIGION, 2);
   class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_SPELLCRAFT, 8);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_THORN, FEAT_ARMOR_PROFICIENCY_HEAVY, 1);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_THORN, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
@@ -8361,7 +8399,7 @@ void load_class_list(void)
   /* class prereqs */
   class_prereq_bab(CLASS_KNIGHT_OF_THE_SKULL, 3);
   class_prereq_class_level(CLASS_KNIGHT_OF_THE_SKULL, CLASS_KNIGHT_OF_THE_LILY, 1);
-  class_prereq_ability(CLASS_KNIGHT_OF_THE_SKULL, ABILITY_LORE, 4);
+  class_prereq_ability(CLASS_KNIGHT_OF_THE_SKULL, ABILITY_RELIGION, 4);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_SKULL, FEAT_ALERTNESS, 1);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_SKULL, FEAT_IRON_WILL, 1);
   class_prereq_spellcasting(CLASS_KNIGHT_OF_THE_SKULL, CASTING_TYPE_DIVINE, PREP_TYPE_ANY, 3);
@@ -8691,7 +8729,8 @@ void load_class_list(void)
                             PREP_TYPE_ANY, 2 /*circle*/);
   class_prereq_spellcasting(CLASS_MYSTIC_THEURGE, CASTING_TYPE_DIVINE,
                             PREP_TYPE_ANY, 2 /*circle*/);
-  class_prereq_ability(CLASS_MYSTIC_THEURGE, ABILITY_LORE, 6);
+  class_prereq_ability(CLASS_MYSTIC_THEURGE, ABILITY_ARCANA, 6);
+  class_prereq_ability(CLASS_MYSTIC_THEURGE, ABILITY_RELIGION, 6);
   class_prereq_ability(CLASS_MYSTIC_THEURGE, ABILITY_SPELLCRAFT, 6);
   /****************************************************************************/
 
@@ -9498,7 +9537,8 @@ void load_class_list(void)
   feat_assignment(CLASS_NECROMANCER, FEAT_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
 
   /* pre reqs to take assassin class */
-  class_prereq_ability(CLASS_NECROMANCER, ABILITY_LORE, 8);
+  class_prereq_ability(CLASS_NECROMANCER, ABILITY_ARCANA, 5);
+  class_prereq_ability(CLASS_NECROMANCER, ABILITY_RELIGION, 5);
   class_prereq_spellcasting(CLASS_NECROMANCER, CASTING_TYPE_ANY, PREP_TYPE_ANY, 4 /*circle*/);
   class_prereq_align(CLASS_NECROMANCER, LAWFUL_EVIL);
   class_prereq_align(CLASS_NECROMANCER, NEUTRAL_EVIL);
