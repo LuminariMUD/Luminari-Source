@@ -2119,6 +2119,8 @@ const char *wear_where[] = {
     "\tC{Jeweler's Pliers}\tn   ",   // WEAR_CRAFT_JEWEL_PLIERS
     "\tC{Sewing Needle}\tn      ",   // WEAR_CRAFT_NEEDLE
     "\tC{Weaponsmith Hammer}\tn ",   // WEAR_CRAFT_WEAPON_HAMMER
+    "\tY{Worn On Back}\tn       ",
+
 };
 CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 
@@ -2168,6 +2170,7 @@ const char *equipment_types[] = {
     "Jeweler's pliers (jewelcraft)",     // WEAR_CRAFT_JEWEL_PLIERS
     "Sewing needle (tailoring)",         // WEAR_CRAFT_NEEDLE
     "Weaponsmith hammer (weaponsmithing)", // WEAR_CRAFT_WEAPON_HAMMER
+    "Worn on back",
     "\n"};
 CHECK_TABLE_SIZE(equipment_types, NUM_WEARS + 1);
 
@@ -2461,6 +2464,7 @@ const char *wear_bits[] = {
     "Jewelcrafting-Tool",
     "Tailoring-Tool",
     "Weaponsmithing-Tool",
+    "On-Back",
     "\n"};
 CHECK_TABLE_SIZE(wear_bits, NUM_ITEM_WEARS + 1);
 

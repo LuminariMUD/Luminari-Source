@@ -64,6 +64,7 @@
 #include "feats.h"
 #include "actionqueues.h"
 #include "domains_schools.h"
+#include "talents.h"
 #include "grapple.h"
 #include "race.h"
 #include "vessels.h"
@@ -748,6 +749,9 @@ void boot_world(void)
   assign_feats();
   log("Sorting feats.");
   sort_feats();
+
+  log("Initializing crafting talents.");
+  init_talents();
 
   log("Loading Class List (requires feats to be loaded first).");
   load_class_list();

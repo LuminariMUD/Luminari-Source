@@ -1716,8 +1716,9 @@
 #define WEAR_CRAFT_JEWEL_PLIERS 39  /* jewel's pliers (jewelcraft) */
 #define WEAR_CRAFT_NEEDLE 40        /* sewing needle (tailoring) */
 #define WEAR_CRAFT_WEAPON_HAMMER 41 /* weaponsmith's hammer (weaponsmithing) */
+#define WEAR_ON_BACK 42            /* worn on back (quiver, etc) */
 /** Total number of available equipment lcoations */
-#define NUM_WEARS 42
+#define NUM_WEARS 43
 /**/
 
 /* ranged combat */
@@ -3302,8 +3303,9 @@
 #define ITEM_WEAR_CRAFT_JEWEL_PLIERS 30  /* jewel's pliers (jewelcraft) */
 #define ITEM_WEAR_CRAFT_NEEDLE 31        /* sewing needle (tailoring) */
 #define ITEM_WEAR_CRAFT_WEAPON_HAMMER 32 /* weaponsmith's hammer (weaponsmithing) */
+#define ITEM_WEAR_ON_BACK 33
 /** Total number of item wears */
-#define NUM_ITEM_WEARS 33
+#define NUM_ITEM_WEARS 34
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
 #define ITEM_GLOW 0             /**< Item is glowing */
@@ -5079,6 +5081,14 @@ struct player_special_data_saved
     byte class_feat_points[NUM_CLASSES];      /* How many class feats you can take  */
     byte epic_class_feat_points[NUM_CLASSES]; /* How many epic class feats    */
 
+    /* Talent system (crafting / harvesting) */
+    int talent_points;                        /* Unspent crafting talent points */
+    /* New rank-based talent storage; index by talent id. 0 = not learned. */
+    /* Using 64 as a stable upper bound; must be >= TALENT_MAX from talents.h */
+    ubyte talent_ranks[64];
+    /* Legacy bitset kept for backwards-compat load. No longer used by game logic. */
+    unsigned int talents_bits[2];             /* [DEPRECATED] Bitset for up to 64 talents */
+
     bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
 
     ubyte morphed;                    // polymorphed and form
@@ -6265,4 +6275,25 @@ struct race_data
 extern struct race_data race_list[];
 
 #undef NUM_DAM_TYPES
+
+/* Talent system accessor macros */
+#ifndef TALENT_ACCESS_MACROS
+#define TALENT_ACCESS_MACROS
+/* Rank access; bounds-safe: talents are 1..TALENT_MAX-1. */
+#define GET_TALENT_RANK(ch, talent) \
+    (((ch) && (ch)->player_specials && (talent) > 0 && (talent) < 64) ? \
+        (ch)->player_specials->saved.talent_ranks[(talent)] : 0)
+
+/* Backward-compatible boolean check: has at least rank 1 */
+#define HAS_TALENT(ch, talent) (GET_TALENT_RANK((ch), (talent)) > 0)
+
+/* Historical macro; now sets at least rank 1 if currently zero. Prefer using learn_talent(). */
+#define SET_TALENT(ch, talent) do { \
+    if ((ch) && (talent) > 0 && (talent) < 64 && GET_TALENT_RANK((ch),(talent)) == 0) \
+        (ch)->player_specials->saved.talent_ranks[(talent)] = 1; \
+} while(0)
+
+#define GET_TALENT_POINTS(ch)    ((ch)->player_specials->saved.talent_points)
+#define PLR_TALENTS(ch, talent)  HAS_TALENT(ch, talent)
+#endif
 #endif /* _STRUCTS_H_ */

@@ -29,6 +29,7 @@
 #include "feats.h"
 #include "class.h"
 #include "improved-edit.h"
+#include "talents.h" /* crafting talent system */
 
 #ifndef TRUE
 #define TRUE 1
@@ -4025,8 +4026,10 @@ void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose)
         send_to_char(ch, "You've gained %d experience points in the '%s' skill.\r\n", exp, ability_names[abil]);
     if (GET_CRAFT_SKILL_EXP(ch, abil) >= craft_skill_level_exp(ch, get_craft_skill_value(ch, abil)+1))
     {
-        send_to_char(ch, "\tYYour skill in '%s' has increased from %d to %d!\r\n\tn", ability_names[abil], get_craft_skill_value(ch, abil), get_craft_skill_value(ch, abil)+1);
-        SET_ABILITY(ch, abil, get_craft_skill_value(ch, abil)+1);
+    send_to_char(ch, "\tYYour skill in '%s' has increased from %d to %d!\r\n\tn", ability_names[abil], get_craft_skill_value(ch, abil), get_craft_skill_value(ch, abil)+1);
+    SET_ABILITY(ch, abil, get_craft_skill_value(ch, abil)+1);
+    /* Award 1 crafting talent point per crafting/harvesting skill level up */
+    gain_talent_point(ch, 1);
     }
 }
 
