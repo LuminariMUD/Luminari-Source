@@ -1503,6 +1503,33 @@ int load_char(const char *name, struct char_data *ch)
       case 'T':
         if (!strcmp(tag, "Tmpl"))
           GET_TEMPLATE(ch) = atoi(line);
+        else if (!strcmp(tag, "Tlpt"))
+          GET_TALENT_POINTS(ch) = atoi(line);
+        else if (!strcmp(tag, "Tlbt")) {
+          /* Legacy bitset: store and migrate into rank array (rank 1 if bit set) */
+          unsigned int b1=0, b2=0; sscanf(line, "%u %u", &b1, &b2);
+          ch->player_specials->saved.talents_bits[0]=b1; ch->player_specials->saved.talents_bits[1]=b2;
+          {
+            int t;
+            for (t = 1; t < 64; t++) {
+            unsigned int idx = (t/32);
+            unsigned int mask = (1U << (t%32));
+            if (((idx==0?b1:b2) & mask) && ch->player_specials->saved.talent_ranks[t] == 0)
+              ch->player_specials->saved.talent_ranks[t] = 1;
+            }
+          }
+        }
+        else if (!strcmp(tag, "Tlrk")) {
+          /* New rank array: pairs of (talent rank) across 64 entries */
+          /* Format: Tlrk: <t0> <t1> ... <t63> (we will actually use indices 1..TALENT_MAX-1) */
+          int consumed = 0; const char *p = line; int val; int t;
+          for (t = 0; t < 64; t++) {
+            if (sscanf(p, "%d%n", &val, &consumed) == 1) {
+              ch->player_specials->saved.talent_ranks[t] = (ubyte)MAX(0, MIN(255, val));
+              p += consumed;
+            } else break;
+          }
+        }
         else if (!strcmp(tag, "TEvo"))
           load_temp_evolutions(fl, ch);
         else if (!strcmp(tag, "Thir"))
@@ -2066,6 +2093,16 @@ void save_char(struct char_data *ch, int mode)
 
   if (GET_FEAT_POINTS(ch) != 0)
     BUFFER_WRITE( "Ftpt: %d\n", GET_FEAT_POINTS(ch));
+
+  if (GET_TALENT_POINTS(ch) != 0)
+    BUFFER_WRITE( "Tlpt: %d\n", GET_TALENT_POINTS(ch));
+  /* Save rank array (fixed 64 entries) */
+  BUFFER_WRITE( "Tlrk:");
+  for (i = 0; i < 64; i++) BUFFER_WRITE( " %d", ch->player_specials->saved.talent_ranks[i]);
+  BUFFER_WRITE( "\n");
+  /* Also write a zeroed legacy bitset for compatibility, or synthesize from ranks */
+  unsigned int b1=0, b2=0; for (i=1;i<64;i++) if (ch->player_specials->saved.talent_ranks[i]>0) { if (i<32) b1|=(1U<<(i%32)); else b2|=(1U<<(i%32)); }
+  BUFFER_WRITE( "Tlbt: %u %u\n", b1, b2);
 
   BUFFER_WRITE( "Cfpt:\n");
   for (i = 0; i < NUM_CLASSES; i++)
