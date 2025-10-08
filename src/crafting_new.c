@@ -3961,7 +3961,7 @@ void newcraft_harvest(struct char_data *ch, const char *argument)
 
     if (!has_proper_harvesting_tool_equipped(ch))
     {
-        send_to_char(ch, "You need a proper harvesting tool equipped to gather resources. Type 'craft tools' to see what you have equipped.\r\n");
+        show_harvesting_tool_needed(ch);
         return;
     }
 
@@ -3975,6 +3975,48 @@ void newcraft_harvest(struct char_data *ch, const char *argument)
 
     send_to_char(ch, "You begin %s.\r\n", harvesting_messages[world[IN_ROOM(ch)].harvest_material]);
     act("$n starts harvesting.", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+void show_harvesting_tool_needed(struct char_data *ch)
+{
+int mat_type;
+    int mat_group;
+    bool has_tool = FALSE;
+
+    if (!ch || IN_ROOM(ch) == NOWHERE)
+    {
+        send_to_char(ch, "You must be in a valid room to check harvesting tools.\r\n");
+        return;
+    }
+
+    if ((mat_type = world[IN_ROOM(ch)].harvest_material) == CRAFT_MAT_NONE)
+    {
+        send_to_char(ch, "There are no harvestable materials in this room.\r\n");
+        return;
+    }
+
+    if ((mat_group = craft_group_by_material(mat_type)) == CRAFT_GROUP_NONE)
+    {
+        send_to_char(ch, "There was an error determining the material group. Please inform staff.\r\n");
+        return;
+    }
+
+    switch (mat_group)
+    {
+        case CRAFT_GROUP_CLOTH:
+            send_to_char(ch, "You need a harvesting sickle equipped to harvest %s.\r\n", crafting_material_nodes[mat_type]);
+            break;
+        case CRAFT_GROUP_HARD_METALS:
+        case CRAFT_GROUP_SOFT_METALS:
+            send_to_char(ch, "You need a pickaxe equipped to harvest %s.\r\n", crafting_material_nodes[mat_type]);
+            break;
+        case CRAFT_GROUP_HIDES:
+            send_to_char(ch, "You need a skinning knife equipped to harvest %s.\r\n", crafting_material_nodes[mat_type]);
+            break;
+        case CRAFT_GROUP_WOOD:
+            send_to_char(ch, "You need a wood axe equipped to harvest %s.\r\n", crafting_material_nodes[mat_type]);
+            break;
+    }
 }
 
 bool has_proper_harvesting_tool_equipped(struct char_data *ch)

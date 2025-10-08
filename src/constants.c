@@ -6368,6 +6368,64 @@ const char *factions[] = {
 };
 CHECK_TABLE_SIZE(factions, NUM_FACTIONS + 1);
 
+#elif defined(CAMPAIGN_FR)
+// region names
+const char *regions[] = {
+    "none",
+    "Aglarond",
+    "Amn",
+    "Anauroch Desert",
+    "Calimshan",
+    "Chessenta",
+    "Chult",
+    "Cormyr",
+    "Dambrath",
+    "Elfharrow",
+    "Evermeet",
+    "Halruaa",
+    "Icewind Dale",
+    "Impilitur",
+    "Kara-Tur",
+    "Luiren",
+    "Luruar",
+    "Mulhorand",
+    "Rashemen",
+    "Sembia",
+    "Tethyr",
+    "Thay",
+    "Thesk",
+    "The Cold Lands",
+    "The Dalelands",
+    "The Hordelands",
+    "The Lake of Steam",
+    "The Moonsea",
+    "The Savage Frontier",
+    "The Sword Coast",
+    "The Underdark",
+    "Turmish",
+    "Tymanther",
+    "Unther",
+    "Westgate",
+    "Zakhara",
+    "Outer Planes",
+    "\n"};
+CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
+
+const char *factions[] = {
+    "None",
+    "The Order",
+    "Darklings",
+    "Criminals",
+    "\n"
+};
+CHECK_TABLE_SIZE(factions, NUM_FACTIONS + 1);
+
+const char *cities[] = {
+    "None",
+    "Luskan",
+    "\n"
+};
+CHECK_TABLE_SIZE(cities, NUM_CITIES + 1);
 #else
 // region names
 const char *regions[] = {

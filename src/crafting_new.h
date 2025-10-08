@@ -322,6 +322,7 @@ int recipe_skill_to_actual_crafting_skill(int recipe_skill);
 bool has_proper_harvesting_tool_equipped(struct char_data *ch);
 bool is_wearing_tool_for_crafting_ability(struct char_data *ch, int ability);
 bool is_crafting_skill_in_game(int skill);
+void show_harvesting_tool_needed(struct char_data *ch);
 
 void newcraft_supplyorder(struct char_data *ch, const char *argument);
 void newcraft_equipment(struct char_data *ch, const char *argument);
