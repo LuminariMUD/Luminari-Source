@@ -328,6 +328,36 @@ const char *walkto_landmarks_dl[][WALKTO_LANDMARKS_FIELDS] = {
     {"0", "", "always last item", ""},
 };
 
+/* zone, destination vnum, title, details */
+const char *walkto_landmarks_fr[][WALKTO_LANDMARKS_FIELDS] = {
+    {"Sword Coast" , "616076" , "Boat to Chult", ""} ,
+    {"Sword Coast" , "605650" , "Crypt of Shadow", ""} ,
+    {"Sword Coast" , "605998" , "Earth Cult Camp", ""} ,
+    {"Sword Coast" , "606884" , "Fireshear", ""} ,
+    {"Sword Coast" , "608264" , "Fireside Tavern", ""} ,
+    {"Sword Coast" , "613082" , "Fire Giant Keep", ""} ,
+    {"Sword Coast" , "612721" , "Flaming Fist Mercenary Camp", ""} ,
+    {"Sword Coast" , "603802" , "Goblin Encampment", ""} ,
+    {"Sword Coast" , "611744" , "Goblin Arrows", ""} ,
+    {"Sword Coast" , "602476" , "Gnoll Cave", ""} ,
+    {"Sword Coast" , "608199" , "Hunter's Forest", ""} ,
+    {"Sword Coast" , "603043" , "Ice Fortress", ""} ,
+    {"Sword Coast" , "607751" , "Longsaddle", ""} ,
+    {"Sword Coast" , "607071" , "Luskan", ""} ,
+    {"Sword Coast" , "603108" , "Mirabar", ""} ,
+    {"Sword Coast" , "605533" , "Nesme", ""} ,
+    {"Sword Coast" , "610929" , "Neverwinter", ""} ,
+    {"Sword Coast" , "605137" , "Orcish Fort", ""} ,
+    {"Sword Coast" , "609796" , "Port Llast", ""} ,
+    {"Luruar"      , "604130" , "Silverymoon", ""} ,
+    {"Icewind Dale", "602093" , "Ten Towns", ""} ,
+    {"Sword Coast" , "605859" , "The Evermoors", ""} ,
+    {"Sword Coast" , "611763" , "Triboar", ""} ,
+    {"Sword Coast" , "616237" , "Waterdeep", ""} ,
+    /* always last! */
+    {"0", "", "always last item", ""},
+};
+
 ACMDU(do_carriage)
 {
 
@@ -1111,7 +1141,13 @@ ACMD(do_landmarks_full)
   if (!*arg1)
   {
     send_to_char(ch, "Please specify one of the following regions:\r\n");
+#if defined(CAMPAIGN_DL)
     send_to_char(ch, "Abanasinia, Palanthas, Sanction, Solace, Solamnia, Taman Busuk.\r\n");
+#elif defined(CAMPAIGN_FR)
+    send_to_char(ch, "Icewind Dale, Luruar, Sword Coast.\r\n");
+#else
+    send_to_char(ch, "You can also type 'landmarks city' to see landmarks in your current area.\r\n");
+#endif
     return;
   }
 

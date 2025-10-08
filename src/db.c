@@ -705,7 +705,7 @@ void boot_world(void)
     log("Loading shops.");
     index_boot(DB_BOOT_SHP);
 
-#if !defined(CAMPAIGN_DL)
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     int x = 0;
     log("Placing Harvesting Nodes");
     for (x = 0; x < NUM_HARVEST_NODE_RESETS; x++)
@@ -713,7 +713,7 @@ void boot_world(void)
 #endif
   }
 
-#if defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
   log("Assigning crafting system harvesting nodes (DragonLance).");
   assign_harvest_materials_to_word();
   log("Populating crafting recipes.");

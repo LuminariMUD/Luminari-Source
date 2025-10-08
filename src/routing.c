@@ -314,7 +314,7 @@ int get_walkto_landmark_vnum(int locale)
     if (IS_CAMPAIGN_DL)
         return atoi(walkto_landmarks_dl[locale][1]);
     else if (IS_CAMPAIGN_FR)
-        return 0; // FR does not use walkto landmarks currently
+        return atoi(walkto_landmarks_fr[locale][1]);
     else if (IS_CAMPAIGN_LUMINARI)
         return atoi(walkto_landmarks_lumi[locale][1]);
     else
@@ -326,7 +326,7 @@ const char * get_walkto_landmark_region(int locale)
     if (IS_CAMPAIGN_DL)
         return walkto_landmarks_dl[locale][0];
     else if (IS_CAMPAIGN_FR)
-        return "";
+        return walkto_landmarks_fr[locale][0];
     else if (IS_CAMPAIGN_LUMINARI)
         return walkto_landmarks_lumi[locale][0];
     else
@@ -338,7 +338,7 @@ const char * get_walkto_landmark_name(int locale)
     if (IS_CAMPAIGN_DL)
         return walkto_landmarks_dl[locale][2];
     else if (IS_CAMPAIGN_FR)
-        return "";
+        return walkto_landmarks_fr[locale][2];
     else if (IS_CAMPAIGN_LUMINARI)
         return walkto_landmarks_lumi[locale][2];
     else
@@ -350,7 +350,7 @@ const char * get_walkto_landmark_notes(int locale)
     if (IS_CAMPAIGN_DL)
         return walkto_landmarks_dl[locale][3];
     else if (IS_CAMPAIGN_FR)
-        return "";
+        return walkto_landmarks_fr[locale][3];
     else if (IS_CAMPAIGN_LUMINARI)
         return walkto_landmarks_lumi[locale][3];
     else

@@ -1351,9 +1351,15 @@ void display_hometown_menu(struct descriptor_data *d)
   send_to_char(ch, "It will determine your recall location, donation pit location, as well as tie into various\r\n");
   send_to_char(ch, "other mechanics, such as some background archtype abilities.\r\n");
   send_to_char(ch, "\r\n");
+#if defined(CAMPAIGN_DL)
   send_to_char(ch, "1) Palanthas : Home of the Knights of Solamnia & Forces of Whitestone\r\n");
   send_to_char(ch, "2) Sanction  : Home of the Dragonarmies\r\n");
   send_to_char(ch, "3) Solace    : Free City with No Direct Alleigances\r\n");
+#elif defined(CAMPAIGN_FR)
+  send_to_char(ch, "1) Luskan : The Northern Swordcoast city ruled by the Pirate Captains and the Arcane Brotherhood.\r\n");
+#else
+  send_to_char(ch, "1) Ashenport : A bustling port city known for its trade and diverse population.\r\n");
+#endif
   send_to_char(ch, "\r\n");
   send_to_char(ch, "Choose Your Hometown: ");
 
@@ -1368,8 +1374,10 @@ void HandleStateCharacterHometownParseMenuChoice(struct descriptor_data *d, char
     switch (hometown)
     { 
       case 1:
+#if defined(CAMPAIGN_DL)
       case 2:
       case 3:
+#endif
         GET_HOMETOWN(ch) = hometown;
         send_to_char(ch, "You've decided your character's hometown will be: %s.\r\n", cities[hometown]);
         changeStateTo = CON_CHAR_RP_MENU;

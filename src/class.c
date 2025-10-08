@@ -946,9 +946,15 @@ bool display_region_info(struct char_data *ch, int region)
 
   char buf[MAX_STRING_LENGTH];
 
+  int region_language = get_region_language(region);
+#if defined(CAMPAIGN_FR)
+  region_language -= SKILL_LANG_LOW;
+#endif
+  snprintf(buf, sizeof(buf), "%s", languages[region_language]);
+
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   send_to_char(ch, "\tc%s\r\n", regions[region]);
-  send_to_char(ch, "\tcLanguage: \tn%s\r\n", languages[get_region_language(region)]);
+  send_to_char(ch, "\tcLanguage: \tn%s\r\n", buf);
   send_to_char(ch, "\tcDescription: \tn\r\n");
   snprintf(buf, sizeof(buf), "%s", get_region_info(region));
   send_to_char(ch, "%s", strfrmt(buf, 80, 1, FALSE, FALSE, FALSE));
@@ -2455,12 +2461,17 @@ void newbieEquipment(struct char_data *ch)
     }
     obj = read_object(NOOB_WATERSKIN, VIRTUAL);
     obj_to_char(obj, ch);
-    obj = read_object(NOOB_GEAR_MAP_ONE, VIRTUAL);
-    obj_to_char(obj, ch);
-    obj = read_object(NOOB_GEAR_MAP_TWO, VIRTUAL);
-    obj_to_char(obj, ch);
 #endif
 
+#endif
+
+#if defined(NOOB_GEAR_MAP_ONE)
+    obj = read_object(NOOB_GEAR_MAP_ONE, VIRTUAL);
+    obj_to_char(obj, ch);
+#endif
+#if defined(NOOB_GEAR_MAP_TWO)
+    obj = read_object(NOOB_GEAR_MAP_TWO, VIRTUAL);
+    obj_to_char(obj, ch);
 #endif
 
 #if defined(NOOB_CRAFTING_TAILORING)

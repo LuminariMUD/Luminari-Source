@@ -112,7 +112,7 @@ int find_first_step(room_rnum src, room_rnum target)
     return (BFS_ERROR);
   }
 
-#if !defined(CAMPAIGN_DL)
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   if (GET_ROOM_ZONE(src) != GET_ROOM_ZONE(target))
   {
     /* i turned off the log because at spots we are purposely trying to find a target that may not be in the same zone (forced) -zusuk */
