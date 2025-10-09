@@ -18,6 +18,7 @@ The deployment script automatically:
 - Executes the in-engine database initializer so every wilderness/resource table exists—no external SQL files required
 - Applies fresh credentials to `lib/mysql_config` (mode 600)
 - Sets up all required permissions
+- Seeds required lookup tables such as `path_types` so wilderness paths display correctly on first boot
 
 You can re-run the script at any time; it recreates credentials and reimports the schema without dropping existing data.
 
@@ -77,6 +78,11 @@ Make sure your `src/campaign.h` includes:
 ### Regional Effects
 - `region_effects` - Available effect types
 - `region_effect_assignments` - Which regions have which effects
+
+### Spatial Path Network
+- `path_data` - Path definitions with linestring geometry
+- `path_index` - Spatial index supporting path queries
+- `path_types` - Glyph definitions and metadata for each path type (auto-seeded at startup)
 
 ### Weather & Descriptions
 - `weather_cache` - Performance optimization for weather

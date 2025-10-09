@@ -477,7 +477,7 @@ Regions and paths are stored in MySQL database:
 - `region_index` table - Optimized spatial index for region queries
 - `path_data` table - Path definitions with linestring geometry
 - `path_index` table - Optimized spatial index for path queries
-- `path_types` table - Path type definitions with display glyphs
+- `path_types` table - Path type definitions with display glyphs (auto-created and seeded during server startup)
 - Spatial queries using MySQL's geometry functions
 - `ST_Within()` for point-in-polygon testing
 - `GeomFromText()` for creating geometry objects from coordinates
