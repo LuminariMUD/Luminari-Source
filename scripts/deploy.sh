@@ -263,6 +263,7 @@ CREATE USER IF NOT EXISTS '$DB_USER'@'$DB_HOST' IDENTIFIED BY '$DB_PASS';
 
 -- Grant privileges
 GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'$DB_HOST';
+ALTER USER '$DB_USER'@'$DB_HOST' IDENTIFIED BY '$DB_PASS';
 FLUSH PRIVILEGES;
 
 USE $DB_NAME;
@@ -273,6 +274,13 @@ EOF
     mysql -u root -p < /tmp/luminari_db_setup.sql
     
     # Run schema files if they exist
+    if [[ -f "$PROJECT_ROOT/sql/master_schema.sql" ]]; then
+        print_msg "$GREEN" "Loading master schema..."
+        mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$PROJECT_ROOT"/sql/master_schema.sql
+    else
+        print_msg "$YELLOW" "master_schema.sql not found at $PROJECT_ROOT/sql/master_schema.sql"
+    fi
+
     if [[ -f "$PROJECT_ROOT/sql/pubsub_v3_schema.sql" ]]; then
         print_msg "$GREEN" "Loading pubsub schema..."
         mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$PROJECT_ROOT"/sql/pubsub_v3_schema.sql

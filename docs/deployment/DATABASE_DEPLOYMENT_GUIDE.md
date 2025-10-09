@@ -7,17 +7,19 @@ The easiest way to set up the database is using the automated deployment script:
 
 ```bash
 # Full setup including database
-./scripts/deploy.sh --init-world
+./scripts/deploy.sh --auto --init-world
 
 # Skip database if you want to configure it manually
 ./scripts/deploy.sh --quick --skip-db --init-world
 ```
 
 The deployment script automatically:
-- Creates the database and user
-- Sets up all required tables
-- Loads schema files
-- Configures proper permissions
+- Creates the database and user (prompts for MariaDB root password)
+- Loads `sql/master_schema.sql`, which bundles the default component scripts from `sql/components/`
+- Applies fresh credentials to `lib/mysql_config` (mode 600)
+- Sets up all required tables and permissions
+
+You can re-run the script at any time; it recreates credentials and reimports the schema without dropping existing data.
 
 ## Overview
 This deployment guide covers database setup for:
@@ -45,7 +47,7 @@ USE your_database_name_here;
 
 ### 2. Run Deployment Script
 ```bash
-mysql -u your_username -p your_database_name < lib/dynamic_descriptions_deployment.sql
+mysql -u your_username -p your_database_name < sql/components/dynamic_descriptions_deployment.sql
 ```
 
 ### 3. Verify Installation

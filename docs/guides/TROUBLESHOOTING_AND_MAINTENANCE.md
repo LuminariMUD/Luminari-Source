@@ -5,18 +5,18 @@
 If you're having issues with a fresh install, try:
 
 ```bash
-# Quick setup that handles most common issues
-./scripts/deploy.sh --quick --skip-db --init-world
+# Full redeploy (rebuilds, resets config, reapplies database schema)
+./scripts/deploy.sh --auto --init-world
 
-# If that fails, check for missing dependencies:
+# If you need to bypass MariaDB completely:
 ./scripts/deploy.sh --skip-db --init-world
 ```
 
 Common quick fixes:
-- **Build fails**: Make sure you ran `./scripts/deploy.sh` first
-- **MUD won't start**: Use `--init-world` flag to create minimal world data
-- **Missing text files**: Deploy script creates them automatically
-- **MySQL errors**: Use `--skip-db` flag to run without database
+- **Build fails**: Make sure you ran the full `./scripts/deploy.sh --auto --init-world`
+- **MUD won't start**: Use `--init-world` to regenerate minimal world data
+- **Missing text files**: Deploy script recreates them automatically
+- **MySQL errors**: Temporarily use `--skip-db`, but remember the default run loads `sql/master_schema.sql`
 
 ## Overview
 
