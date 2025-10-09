@@ -108,7 +108,7 @@ show depletion <zone> <x> <y> - Show detailed depletion data
 - **Core Logic**: `src/resource_depletion.c`
 - **Modifiers**: `src/resource_system.c`  
 - **Integration**: `src/handler.c`
-- **Database**: `lib/misc/resource_depletion_db.sql`
+- **Database**: `sql/components/resource_depletion_db.sql`
 
 ## Performance Tips
 

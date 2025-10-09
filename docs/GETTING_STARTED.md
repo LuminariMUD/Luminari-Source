@@ -40,11 +40,20 @@ cd Luminari-Source
 autoreconf -fvi
 
 # Run deployment with options
-./scripts/deploy.sh --skip-db --init-world
+# (omit --skip-db to provision MariaDB with master schema + pubsub tables)
+./scripts/deploy.sh --auto --init-world
 
 # Start the server
 ./bin/circle -d lib
 ```
+
+When run without `--skip-db`, the deploy script will:
+- Install missing dependencies and build the game (Autotools by default)
+- Create the `luminari` database and user, loading `sql/master_schema.sql`
+- Import additional schema files placed in `sql/` (the defaults ship under `sql/components/`)
+- Write generated credentials to `lib/mysql_config` (mode 600)
+
+You can safely re-run the script; it refreshes credentials and migrates the schema each time.
 
 ### Manual Setup
 See the [Full Deployment Guide](deployment/DEPLOYMENT_GUIDE.md) for detailed manual setup instructions.

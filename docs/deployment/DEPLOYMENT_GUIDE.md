@@ -106,7 +106,8 @@ cd Luminari-Source
 autoreconf -fvi
 
 # Run deployment with options
-./scripts/deploy.sh --skip-db --init-world
+# Use --auto to accept defaults; omit --skip-db to provision MariaDB
+./scripts/deploy.sh --auto --init-world
 
 # Start the server
 ./bin/circle -d lib
@@ -121,6 +122,10 @@ Deploy script options:
 | `--dev` | Development build with debug symbols |
 | `--prod` | Production optimized build |
 | `-h, --help` | Show help message |
+
+Running without `--skip-db` prompts for the MariaDB root password, creates the `luminari` database and user, and imports `sql/master_schema.sql` (which aggregates the default component schemas under `sql/components/`). Any additional SQL files placed alongside `master_schema.sql` are imported as well (for example a custom `sql/pubsub_v3_schema.sql`).
+
+The generated credentials are written to `lib/mysql_config` (owned by the invoking user, mode 600) so the game can authenticate automatically. Re-running the deploy script refreshes credentials and reapplies the schema safely.
 
 ### Method 3: Manual Deployment
 

@@ -8,7 +8,7 @@ Get a development environment running in minutes:
 # Clone and setup with development build
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
-./scripts/deploy.sh --dev --init-world
+./scripts/deploy.sh --auto --dev --init-world
 
 # Start with debugging support
 ./debug_game.sh
@@ -32,10 +32,12 @@ Use the deployment script with development options:
 
 ```bash
 # Full development environment setup
-./scripts/deploy.sh --dev --init-world
+./scripts/deploy.sh --auto --dev --init-world
 
 # Quick setup without database for testing
 ./scripts/deploy.sh --quick --skip-db --dev --init-world
+
+Running the full command without `--skip-db` builds the game, provisions MariaDB with `sql/master_schema.sql`, loads optional schemas (`sql/pubsub_v3_schema.sql`, etc.), and writes updated credentials to `lib/mysql_config`. Use the skip flag only when you explicitly want to run without database features.
 ```
 
 ### Required Tools
