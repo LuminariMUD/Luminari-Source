@@ -49,8 +49,7 @@ autoreconf -fvi
 
 When run without `--skip-db`, the deploy script will:
 - Install missing dependencies and build the game (Autotools by default)
-- Create the `luminari` database and user, loading `sql/master_schema.sql`
-- Import additional schema files placed in `sql/` (the defaults ship under `sql/components/`)
+- Provision the `luminari` database and user, and run the in-code `db_init_system` routines so every table (wilderness, vessels, PubSub, help, etc.) exists without manual SQL
 - Write generated credentials to `lib/mysql_config` (mode 600)
 
 You can safely re-run the script; it refreshes credentials and migrates the schema each time.

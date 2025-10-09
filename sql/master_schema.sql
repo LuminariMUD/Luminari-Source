@@ -683,6 +683,104 @@ CREATE TABLE IF NOT EXISTS help_keywords (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------------------------
+-- Vessel Persistence System
+-- --------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS ship_interiors (
+  ship_id VARCHAR(8) NOT NULL PRIMARY KEY,
+  vessel_type INT NOT NULL DEFAULT 0,
+  vessel_name VARCHAR(100),
+  num_rooms INT NOT NULL DEFAULT 1,
+  max_rooms INT NOT NULL DEFAULT 20,
+  room_vnums TEXT,
+  bridge_room INT DEFAULT 0,
+  entrance_room INT DEFAULT 0,
+  cargo_room1 INT DEFAULT 0,
+  cargo_room2 INT DEFAULT 0,
+  cargo_room3 INT DEFAULT 0,
+  cargo_room4 INT DEFAULT 0,
+  cargo_room5 INT DEFAULT 0,
+  room_data LONGBLOB,
+  connection_data LONGBLOB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_vessel_type (vessel_type),
+  INDEX idx_vessel_name (vessel_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ship_docking (
+  dock_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  ship1_id VARCHAR(8) NOT NULL,
+  ship2_id VARCHAR(8) NOT NULL,
+  dock_room1 INT NOT NULL,
+  dock_room2 INT NOT NULL,
+  dock_type ENUM('standard','combat','emergency','forced') DEFAULT 'standard',
+  dock_status ENUM('active','completed','aborted') DEFAULT 'active',
+  dock_x INT DEFAULT 0,
+  dock_y INT DEFAULT 0,
+  dock_z INT DEFAULT 0,
+  dock_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  undock_time TIMESTAMP NULL DEFAULT NULL,
+  INDEX idx_ship1 (ship1_id),
+  INDEX idx_ship2 (ship2_id),
+  INDEX idx_active (dock_status),
+  INDEX idx_dock_time (dock_time),
+  UNIQUE KEY unique_active_dock (ship1_id, ship2_id, dock_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ship_room_templates (
+  template_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  room_type VARCHAR(50) NOT NULL,
+  vessel_type INT DEFAULT 0,
+  name_format VARCHAR(200),
+  description_text TEXT,
+  room_flags INT DEFAULT 0,
+  sector_type INT DEFAULT 0,
+  min_vessel_size INT DEFAULT 0,
+  max_vessel_size INT DEFAULT 99,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_room_type (room_type),
+  INDEX idx_vessel_type (vessel_type),
+  UNIQUE KEY unique_room_type (room_type, vessel_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ship_cargo_manifest (
+  manifest_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  ship_id VARCHAR(8) NOT NULL,
+  cargo_room INT NOT NULL,
+  item_vnum INT NOT NULL,
+  item_name VARCHAR(100),
+  item_count INT DEFAULT 1,
+  item_weight INT DEFAULT 0,
+  loaded_by VARCHAR(50),
+  loaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_ship (ship_id),
+  INDEX idx_room (cargo_room),
+  INDEX idx_item (item_vnum),
+  CONSTRAINT fk_ship_cargo_ship
+    FOREIGN KEY (ship_id) REFERENCES ship_interiors(ship_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ship_crew_roster (
+  roster_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  ship_id VARCHAR(8) NOT NULL,
+  npc_vnum INT NOT NULL,
+  npc_name VARCHAR(100),
+  crew_role ENUM('captain','pilot','gunner','engineer','medic','marine','crew') DEFAULT 'crew',
+  assigned_room INT DEFAULT 0,
+  duty_station INT DEFAULT 0,
+  loyalty_rating INT DEFAULT 50,
+  status ENUM('active','injured','awol','dead') DEFAULT 'active',
+  hired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_ship (ship_id),
+  INDEX idx_role (crew_role),
+  INDEX idx_status (status),
+  CONSTRAINT fk_ship_crew_ship
+    FOREIGN KEY (ship_id) REFERENCES ship_interiors(ship_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------------------------
 -- PubSub Messaging System
 -- --------------------------------------------------------------------------
 

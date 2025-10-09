@@ -42,7 +42,7 @@ resourceadmin effects region <region>             # Show all effects for region
 ## 🗂️ Files Added/Modified
 
 ### New Files
-- `sql/components/region_effects_system.sql` - **New flexible database schema** with JSON parameters
+- `db_init_system wilderness` - Ensures the region effects schema (JSON-capable) is present
 - `docs/guides/PHASE_4_INSTALLATION.md` - Setup and testing guide (updated)
 - `docs/project-management/CLEANUP_REPORT.md` - Documentation of system redesign
 

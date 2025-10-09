@@ -16,68 +16,153 @@
 #include "comm.h"
 #include "mysql.h"
 #include "db_init.h"
+#include "pubsub.h"
 
 /* ===== HELPER FUNCTIONS ===== */
 
 /* Display detailed database system information */
 static void show_detailed_database_info(struct char_data *ch, char *system)
 {
-    if (!ch) return;
+    if (!ch) {
+        return;
+    }
+
+    const char *systems[] = {
+        "player", "object", "wilderness", "crafting",
+        "housing", "ai", "help", "region",
+        "vessels", "pubsub"
+    };
+    const size_t num_systems = sizeof(systems) / sizeof(systems[0]);
 
     if (!*system || !str_cmp(system, "all")) {
         send_to_char(ch, "\tcDetailed Database System Information\tn\r\n");
         send_to_char(ch, "==========================================\r\n");
-        
+
         if (!is_database_available()) {
             send_to_char(ch, "\trDatabase is not available!\tn\r\n");
             return;
         }
 
-        /* Show system status for each component */
-        char *systems[] = {
-            "player", "object", "wilderness", "crafting", 
-            "housing", "ai", "help", "region"
-        };
-        int num_systems = sizeof(systems) / sizeof(systems[0]);
-        int i;
-        
-        for (i = 0; i < num_systems; i++) {
-            send_to_char(ch, "\tc%-12s System:\tn ", systems[i]);
-            /* This would call individual verification functions for each system */
-            send_to_char(ch, "\tg[VERIFIED]\tn\r\n");
+        for (size_t i = 0; i < num_systems; i++) {
+            int verified = FALSE;
+
+            if (!str_cmp(systems[i], "player"))
+                verified = verify_core_player_tables();
+            else if (!str_cmp(systems[i], "object"))
+                verified = verify_object_database_tables();
+            else if (!str_cmp(systems[i], "wilderness"))
+                verified = verify_wilderness_resource_tables();
+            else if (!str_cmp(systems[i], "crafting"))
+                verified = verify_crafting_system_tables();
+            else if (!str_cmp(systems[i], "housing"))
+                verified = verify_housing_system_tables();
+            else if (!str_cmp(systems[i], "ai"))
+                verified = verify_ai_service_tables();
+            else if (!str_cmp(systems[i], "help"))
+                verified = verify_help_system_tables();
+            else if (!str_cmp(systems[i], "region"))
+                verified = table_exists("region_data");
+            else if (!str_cmp(systems[i], "vessels"))
+                verified = verify_vessel_system_tables();
+            else if (!str_cmp(systems[i], "pubsub"))
+                verified = table_exists("pubsub_topics");
+
+            send_to_char(ch, "\tc%-12s System:\tn %s\r\n", systems[i],
+                         verified ? "\tg[VERIFIED]\tn" : "\tr[MISSING]\tn");
         }
-        
-        send_to_char(ch, "\r\n\tcDatabase tables are operational.\tn\r\n");
+
+        send_to_char(ch, "\r\n\tcUse 'database info <system>' for table details.\tn\r\n");
         return;
     }
 
-    /* Show specific system information */
+    if (!is_database_available()) {
+        send_to_char(ch, "\trDatabase is not available!\tn\r\n");
+        return;
+    }
+
     send_to_char(ch, "\tcSystem Information: %s\tn\r\n", system);
     send_to_char(ch, "=========================\r\n");
-    
+
     if (!str_cmp(system, "player")) {
-        send_to_char(ch, "Core player database tables:\r\n");
-        char *player_tables[] = {
-            "player_data", "player_index", "pfiles", "character_skills",
-            "character_spells", "rent_info", "crash_files"
+        const char *player_tables[] = {
+            "player_data", "account_data", "unlocked_races",
+            "unlocked_classes", "player_save_objs",
+            "player_save_objs_sheathed", "pet_save_objs"
         };
-        int num_tables = sizeof(player_tables) / sizeof(player_tables[0]);
-        int i;
-        for (i = 0; i < num_tables; i++) {
+        for (size_t i = 0; i < sizeof(player_tables) / sizeof(player_tables[0]); i++) {
             send_to_char(ch, "  - %s\r\n", player_tables[i]);
         }
+    } else if (!str_cmp(system, "object")) {
+        const char *object_tables[] = {
+            "object_database_items", "object_database_wear_slots",
+            "object_database_bonuses"
+        };
+        for (size_t i = 0; i < sizeof(object_tables) / sizeof(object_tables[0]); i++) {
+            send_to_char(ch, "  - %s\r\n", object_tables[i]);
+        }
+    } else if (!str_cmp(system, "wilderness")) {
+        const char *wilderness_tables[] = {
+            "resource_types", "resource_depletion", "player_conservation",
+            "resource_statistics", "resource_regeneration_log",
+            "resource_relationships", "ecosystem_health",
+            "cascade_effects_log", "player_location_conservation",
+            "region_effects", "region_effect_assignments",
+            "weather_cache", "room_description_settings",
+            "material_categories", "material_subtypes",
+            "material_qualities"
+        };
+        for (size_t i = 0; i < sizeof(wilderness_tables) / sizeof(wilderness_tables[0]); i++) {
+            send_to_char(ch, "  - %s\r\n", wilderness_tables[i]);
+        }
+    } else if (!str_cmp(system, "crafting")) {
+        send_to_char(ch, "  - supply_orders_available\r\n");
+    } else if (!str_cmp(system, "housing")) {
+        send_to_char(ch, "  - house_data\r\n");
+    } else if (!str_cmp(system, "ai")) {
+        const char *ai_tables[] = {
+            "ai_config", "ai_requests", "ai_cache", "ai_npc_personalities"
+        };
+        for (size_t i = 0; i < sizeof(ai_tables) / sizeof(ai_tables[0]); i++) {
+            send_to_char(ch, "  - %s\r\n", ai_tables[i]);
+        }
+    } else if (!str_cmp(system, "help")) {
+        const char *help_tables[] = {
+            "help_entries", "help_keywords", "help_versions",
+            "help_search_history", "help_related_topics"
+        };
+        for (size_t i = 0; i < sizeof(help_tables) / sizeof(help_tables[0]); i++) {
+            send_to_char(ch, "  - %s\r\n", help_tables[i]);
+        }
     } else if (!str_cmp(system, "region")) {
-        send_to_char(ch, "Region system database tables:\r\n");
-        char *region_tables[] = {
+        const char *region_tables[] = {
             "region_data", "path_data", "region_index", "path_index"
         };
-        int num_tables = sizeof(region_tables) / sizeof(region_tables[0]);
-        int i;
-        for (i = 0; i < num_tables; i++) {
+        for (size_t i = 0; i < sizeof(region_tables) / sizeof(region_tables[0]); i++) {
             send_to_char(ch, "  - %s\r\n", region_tables[i]);
         }
+    } else if (!str_cmp(system, "vessels")) {
+        const char *vessel_tables[] = {
+            "ship_interiors", "ship_docking", "ship_room_templates",
+            "ship_cargo_manifest", "ship_crew_roster"
+        };
+        for (size_t i = 0; i < sizeof(vessel_tables) / sizeof(vessel_tables[0]); i++) {
+            send_to_char(ch, "  - %s\r\n", vessel_tables[i]);
+        }
+    } else if (!str_cmp(system, "pubsub")) {
+        const char *pubsub_tables[] = {
+            "pubsub_topics", "pubsub_subscriptions", "pubsub_messages",
+            "pubsub_message_metadata", "pubsub_message_fields",
+            "pubsub_messages_v3", "pubsub_message_metadata_v3",
+            "pubsub_message_fields_v3", "pubsub_message_tags_v3"
+        };
+        for (size_t i = 0; i < sizeof(pubsub_tables) / sizeof(pubsub_tables[0]); i++) {
+            send_to_char(ch, "  - %s\r\n", pubsub_tables[i]);
+        }
     } else {
-        send_to_char(ch, "Unknown system '%s'. Available: player, object, wilderness, crafting, housing, ai, help, region\r\n", system);
+        send_to_char(ch, "Unknown system '%s'. Available systems: ", system);
+        for (size_t i = 0; i < num_systems; i++) {
+            send_to_char(ch, "%s%s", systems[i], (i + 1 < num_systems) ? ", " : "\r\n");
+        }
     }
 }
 
@@ -182,8 +267,10 @@ ACMD(do_db_init_system)
         send_to_char(ch, "  db_init_system crafting   - Initialize crafting system tables\r\n");
         send_to_char(ch, "  db_init_system housing    - Initialize housing system tables\r\n");
         send_to_char(ch, "  db_init_system ai         - Initialize AI service tables\r\n");
+        send_to_char(ch, "  db_init_system vessels    - Initialize vessel system tables\r\n");
         send_to_char(ch, "  db_init_system help       - Initialize help system tables\r\n");
         send_to_char(ch, "  db_init_system region     - Initialize region system tables\r\n");
+        send_to_char(ch, "  db_init_system pubsub     - Initialize PubSub messaging tables\r\n");
         send_to_char(ch, "  db_init_system all        - Initialize all systems\r\n");
         return;
     }
@@ -236,6 +323,15 @@ ACMD(do_db_init_system)
         return;
     }
 
+    if (!str_cmp(arg, "vessels")) {
+        send_to_char(ch, "Initializing vessel system tables...\r\n");
+        log("Vessel system initialization started by %s", GET_NAME(ch));
+        init_vessel_system_tables();
+        populate_ship_room_templates_data();
+        send_to_char(ch, "Vessel system tables initialized.\r\n");
+        return;
+    }
+
     if (!str_cmp(arg, "ai")) {
         send_to_char(ch, "Initializing AI service tables...\r\n");
         log("AI service initialization started by %s", GET_NAME(ch));
@@ -258,6 +354,28 @@ ACMD(do_db_init_system)
         init_region_system_tables();
         create_database_procedures();
         send_to_char(ch, "Region system tables and procedures initialized.\r\n");
+        return;
+    }
+
+    if (!str_cmp(arg, "pubsub")) {
+        send_to_char(ch, "Initializing PubSub messaging tables...\r\n");
+        log("PubSub system initialization started by %s", GET_NAME(ch));
+
+        int result = pubsub_db_create_tables();
+        if (result != PUBSUB_SUCCESS) {
+            send_to_char(ch, "PubSub base schema initialization failed: %s\r\n",
+                         pubsub_error_string(result));
+            return;
+        }
+
+        result = pubsub_db_create_v3_tables();
+        if (result != PUBSUB_SUCCESS) {
+            send_to_char(ch, "PubSub V3 schema initialization failed: %s\r\n",
+                         pubsub_error_string(result));
+            return;
+        }
+
+        send_to_char(ch, "PubSub messaging tables initialized.\r\n");
         return;
     }
 
@@ -345,18 +463,51 @@ ACMD(do_db_info)
             return;
         }
 
-        /* Check each system individually */
-        char *systems[] = {
-            "Core Player", "Object Database", "Wilderness/Resource", 
-            "AI Service", "Crafting", "Housing", "Help"
+        struct {
+            const char *label;
+            const char *key;
+        } systems[] = {
+            {"Core Player", "player"},
+            {"Object Database", "object"},
+            {"Wilderness/Resource", "wilderness"},
+            {"AI Service", "ai"},
+            {"Crafting", "crafting"},
+            {"Housing", "housing"},
+            {"Help", "help"},
+            {"Region (wildedit)", "region"},
+            {"Vessels", "vessels"},
+            {"PubSub", "pubsub"}
         };
-        int num_systems = sizeof(systems) / sizeof(systems[0]);
-        int i;
-        
-        for (i = 0; i < num_systems; i++) {
-            send_to_char(ch, "%-20s: ", systems[i]);
-            /* Individual verification would go here */
-            send_to_char(ch, "\tg[OPERATIONAL]\tn\r\n");
+        const size_t num_systems = sizeof(systems) / sizeof(systems[0]);
+
+        for (size_t i = 0; i < num_systems; i++) {
+            int verified = FALSE;
+            const char *key = systems[i].key;
+
+            if (!str_cmp(key, "player"))
+                verified = verify_core_player_tables();
+            else if (!str_cmp(key, "object"))
+                verified = verify_object_database_tables();
+            else if (!str_cmp(key, "wilderness"))
+                verified = verify_wilderness_resource_tables();
+            else if (!str_cmp(key, "ai"))
+                verified = verify_ai_service_tables();
+            else if (!str_cmp(key, "crafting"))
+                verified = verify_crafting_system_tables();
+            else if (!str_cmp(key, "housing"))
+                verified = verify_housing_system_tables();
+            else if (!str_cmp(key, "help"))
+                verified = verify_help_system_tables();
+            else if (!str_cmp(key, "region"))
+                verified = table_exists("region_data");
+            else if (!str_cmp(key, "vessels"))
+                verified = verify_vessel_system_tables();
+            else if (!str_cmp(key, "pubsub"))
+                verified = table_exists("pubsub_topics");
+
+            send_to_char(ch, "%-22s %s\r\n",
+                         systems[i].label,
+                         verified ? "\tg[VERIFIED]\tn" : "\tr[MISSING]\tn");
         }
         
         return;

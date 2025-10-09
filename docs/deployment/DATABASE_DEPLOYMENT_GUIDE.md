@@ -15,9 +15,9 @@ The easiest way to set up the database is using the automated deployment script:
 
 The deployment script automatically:
 - Creates the database and user (prompts for MariaDB root password)
-- Loads `sql/master_schema.sql`, which bundles the default component scripts from `sql/components/`
+- Executes the in-engine database initializer so every wilderness/resource table exists—no external SQL files required
 - Applies fresh credentials to `lib/mysql_config` (mode 600)
-- Sets up all required tables and permissions
+- Sets up all required permissions
 
 You can re-run the script at any time; it recreates credentials and reimports the schema without dropping existing data.
 
@@ -39,25 +39,22 @@ This deployment guide covers database setup for:
 
 ## Installation Steps
 
-### 1. Update Database Name
-Edit the SQL file and change the database name to match your setup:
-```sql
-USE your_database_name_here;
+### 1. Initialize via Admin Command
+- Start `./bin/circle -d lib` and log in as an implementor (or use the staff console).
+- Run `database init` to execute the full initializer. To refresh only the wilderness stack you can use targeted commands such as:
+
+```
+db_init_system wilderness   # Resource depletion, conservation, regional effects
+db_init_system region       # Spatial tables, triggers, and indexes
+db_init_system vessels      # Ship persistence tables and procedures
+db_init_system pubsub       # Messaging queues (if you skipped them earlier)
 ```
 
-### 2. Run Deployment Script
-```bash
-mysql -u your_username -p your_database_name < sql/components/dynamic_descriptions_deployment.sql
-```
+### 2. Verify Installation
+- Inside the MUD use `database verify` to run the integrity checks, or
+- From MariaDB run sanity queries such as `SHOW TABLES LIKE 'resource_%';` and `SELECT COUNT(*) FROM resource_types;`
 
-### 3. Verify Installation
-The script will display a summary at completion showing:
-- Number of resource types created (10)
-- Number of ecological relationships (15)
-- Number of regional effects (6)
-- List of all created tables
-
-### 4. Enable in Code
+### 3. Enable in Code
 Make sure your `src/campaign.h` includes:
 ```c
 #define ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS
