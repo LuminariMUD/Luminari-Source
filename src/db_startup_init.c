@@ -16,6 +16,7 @@
 #include "comm.h"
 #include "mysql.h"
 #include "db_init.h"
+#include "pubsub.h"
 
 /* ===== STARTUP INITIALIZATION FUNCTIONS ===== */
 
@@ -91,7 +92,7 @@ void initialize_missing_tables(void)
     }
 
     /* AI service tables */
-    if (!table_exists("ai_service_config")) {
+    if (!table_exists("ai_config")) {
         log("Initializing AI service tables...");
         init_ai_service_tables();
         populate_ai_config_data();
@@ -99,17 +100,25 @@ void initialize_missing_tables(void)
     }
 
     /* Crafting system tables */
-    if (!table_exists("crafting_recipes")) {
+    if (!table_exists("supply_orders_available")) {
         log("Initializing crafting system tables...");
         init_crafting_system_tables();
         log("Crafting system tables initialized");
     }
 
     /* Housing system tables */
-    if (!table_exists("player_housing")) {
+    if (!table_exists("house_data")) {
         log("Initializing housing system tables...");
         init_housing_system_tables();
         log("Housing system tables initialized");
+    }
+
+    /* Vessel system tables */
+    if (!table_exists("ship_interiors")) {
+        log("Initializing vessel system tables...");
+        init_vessel_system_tables();
+        populate_ship_room_templates_data();
+        log("Vessel system tables initialized");
     }
 
     /* Help system tables */
@@ -117,6 +126,25 @@ void initialize_missing_tables(void)
         log("Initializing help system tables...");
         init_help_system_tables();
         log("Help system tables initialized");
+    }
+
+    /* PubSub system tables */
+    if (!table_exists("pubsub_topics") || !table_exists("pubsub_messages_v3")) {
+        log("Initializing PubSub tables...");
+        int pubsub_ready = TRUE;
+
+        if (pubsub_db_create_tables() != PUBSUB_SUCCESS) {
+            log("SYSERR: Failed to create base PubSub tables during startup initialization");
+            pubsub_ready = FALSE;
+        }
+        if (pubsub_db_create_v3_tables() != PUBSUB_SUCCESS) {
+            log("SYSERR: Failed to create PubSub V3 tables during startup initialization");
+            pubsub_ready = FALSE;
+        }
+
+        if (pubsub_ready) {
+            log("PubSub tables initialized");
+        }
     }
 
     /* Create database procedures if they don't exist */

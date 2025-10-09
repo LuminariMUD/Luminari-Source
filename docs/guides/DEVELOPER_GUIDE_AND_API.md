@@ -37,7 +37,7 @@ Use the deployment script with development options:
 # Quick setup without database for testing
 ./scripts/deploy.sh --quick --skip-db --dev --init-world
 
-Running the full command without `--skip-db` builds the game, provisions MariaDB with `sql/master_schema.sql`, loads optional schemas (`sql/pubsub_v3_schema.sql`, etc.), and writes updated credentials to `lib/mysql_config`. Use the skip flag only when you explicitly want to run without database features.
+Running the full command without `--skip-db` builds the game, provisions MariaDB, and invokes the in-engine database initializer so every subsystem (wilderness resources, PubSub, vessels, etc.) is ready without manual SQL. The generated credentials are written to `lib/mysql_config`. Use the skip flag only when you explicitly want to run without database features.
 ```
 
 ### Required Tools

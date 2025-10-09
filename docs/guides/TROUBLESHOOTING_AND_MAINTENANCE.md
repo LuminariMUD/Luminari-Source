@@ -16,7 +16,7 @@ Common quick fixes:
 - **Build fails**: Make sure you ran the full `./scripts/deploy.sh --auto --init-world`
 - **MUD won't start**: Use `--init-world` to regenerate minimal world data
 - **Missing text files**: Deploy script recreates them automatically
-- **MySQL errors**: Temporarily use `--skip-db`, but remember the default run loads `sql/master_schema.sql`
+- **MySQL errors**: Temporarily use `--skip-db`, but remember the default run triggers the in-engine database initializer (`database init`)
 
 ## Overview
 

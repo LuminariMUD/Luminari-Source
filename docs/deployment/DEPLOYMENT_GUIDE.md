@@ -123,7 +123,7 @@ Deploy script options:
 | `--prod` | Production optimized build |
 | `-h, --help` | Show help message |
 
-Running without `--skip-db` prompts for the MariaDB root password, creates the `luminari` database and user, and imports `sql/master_schema.sql` (which aggregates the default component schemas under `sql/components/`). Any additional SQL files placed alongside `master_schema.sql` are imported as well (for example a custom `sql/pubsub_v3_schema.sql`).
+Running without `--skip-db` prompts for the MariaDB root password, creates the `luminari` database and user, and executes the in-engine database initializer (equivalent to running `db_init_system all`). This ensures every required table and stored procedure exists—including wilderness resources, region hints, vessels, and PubSub—without touching external `.sql` scripts. If you have custom data to seed, add it through the game or your own migrations after the initializer completes.
 
 The generated credentials are written to `lib/mysql_config` (owned by the invoking user, mode 600) so the game can authenticate automatically. Re-running the deploy script refreshes credentials and reapplies the schema safely.
 

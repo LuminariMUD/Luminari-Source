@@ -17,6 +17,10 @@
 #include "comm.h"
 #include "mysql.h"
 #include "db_init.h"
+#include "pubsub.h"
+
+/* Internal helpers */
+static void create_vessel_procedures(void);
 
 /* ===== MAIN INITIALIZATION FUNCTIONS ===== */
 
@@ -39,10 +43,18 @@ void init_luminari_database(void)
     init_ai_service_tables();
     init_crafting_system_tables();
     init_housing_system_tables();
+    init_vessel_system_tables();
     init_help_system_tables();
 
     /* Create database procedures and functions */
     create_database_procedures();
+
+    /* Ensure PubSub schemas are ready */
+    if (pubsub_db_create_tables() != PUBSUB_SUCCESS) {
+        log("SYSERR: Failed to initialize PubSub tables during database setup");
+    } else if (pubsub_db_create_v3_tables() != PUBSUB_SUCCESS) {
+        log("SYSERR: Failed to initialize PubSub V3 tables during database setup");
+    }
 
     /* Populate standard reference data */
     populate_resource_types_data();
@@ -51,6 +63,7 @@ void init_luminari_database(void)
     populate_region_effects_data();
     populate_region_system_data();
     populate_ai_config_data();
+    populate_ship_room_templates_data();
 
     /* Verify everything was created correctly */
     if (verify_database_integrity()) {
@@ -1054,6 +1067,193 @@ void init_housing_system_tables(void)
     }
 
     log("Info: Housing system tables initialized successfully");
+}
+
+/* ===== VESSEL SYSTEM TABLES ===== */
+
+void init_vessel_system_tables(void)
+{
+    if (!mysql_available || !conn) {
+        log("MySQL not available, skipping vessel system tables initialization");
+        return;
+    }
+
+    log("Initializing vessel system tables...");
+
+    /* ship_interiors - stores vessel interior layouts */
+    const char *create_ship_interiors =
+        "CREATE TABLE IF NOT EXISTS ship_interiors ("
+        "ship_id VARCHAR(8) NOT NULL PRIMARY KEY, "
+        "vessel_type INT NOT NULL DEFAULT 0, "
+        "vessel_name VARCHAR(100), "
+        "num_rooms INT NOT NULL DEFAULT 1, "
+        "max_rooms INT NOT NULL DEFAULT 20, "
+        "room_vnums TEXT, "
+        "bridge_room INT DEFAULT 0, "
+        "entrance_room INT DEFAULT 0, "
+        "cargo_room1 INT DEFAULT 0, "
+        "cargo_room2 INT DEFAULT 0, "
+        "cargo_room3 INT DEFAULT 0, "
+        "cargo_room4 INT DEFAULT 0, "
+        "cargo_room5 INT DEFAULT 0, "
+        "room_data LONGBLOB, "
+        "connection_data LONGBLOB, "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+        "INDEX idx_vessel_type (vessel_type), "
+        "INDEX idx_vessel_name (vessel_name)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_ship_interiors)) {
+        log("SYSERR: Failed to create ship_interiors table: %s", mysql_error(conn));
+        return;
+    }
+
+    /* ship_docking - tracks vessel docking history */
+    const char *create_ship_docking =
+        "CREATE TABLE IF NOT EXISTS ship_docking ("
+        "dock_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
+        "ship1_id VARCHAR(8) NOT NULL, "
+        "ship2_id VARCHAR(8) NOT NULL, "
+        "dock_room1 INT NOT NULL, "
+        "dock_room2 INT NOT NULL, "
+        "dock_type ENUM('standard','combat','emergency','forced') DEFAULT 'standard', "
+        "dock_status ENUM('active','completed','aborted') DEFAULT 'active', "
+        "dock_x INT DEFAULT 0, "
+        "dock_y INT DEFAULT 0, "
+        "dock_z INT DEFAULT 0, "
+        "dock_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "undock_time TIMESTAMP NULL DEFAULT NULL, "
+        "INDEX idx_ship1 (ship1_id), "
+        "INDEX idx_ship2 (ship2_id), "
+        "INDEX idx_active (dock_status), "
+        "INDEX idx_dock_time (dock_time), "
+        "UNIQUE KEY unique_active_dock (ship1_id, ship2_id, dock_status)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_ship_docking)) {
+        log("SYSERR: Failed to create ship_docking table: %s", mysql_error(conn));
+        return;
+    }
+
+    /* ship_room_templates - template definitions used for procedural layouts */
+    const char *create_ship_room_templates =
+        "CREATE TABLE IF NOT EXISTS ship_room_templates ("
+        "template_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
+        "room_type VARCHAR(50) NOT NULL, "
+        "vessel_type INT DEFAULT 0, "
+        "name_format VARCHAR(200), "
+        "description_text TEXT, "
+        "room_flags INT DEFAULT 0, "
+        "sector_type INT DEFAULT 0, "
+        "min_vessel_size INT DEFAULT 0, "
+        "max_vessel_size INT DEFAULT 99, "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "INDEX idx_room_type (room_type), "
+        "INDEX idx_vessel_type (vessel_type), "
+        "UNIQUE KEY unique_room_type (room_type, vessel_type)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_ship_room_templates)) {
+        log("SYSERR: Failed to create ship_room_templates table: %s", mysql_error(conn));
+        return;
+    }
+
+    /* ship_cargo_manifest - persistent cargo tracking */
+    const char *create_ship_cargo_manifest =
+        "CREATE TABLE IF NOT EXISTS ship_cargo_manifest ("
+        "manifest_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
+        "ship_id VARCHAR(8) NOT NULL, "
+        "cargo_room INT NOT NULL, "
+        "item_vnum INT NOT NULL, "
+        "item_name VARCHAR(100), "
+        "item_count INT DEFAULT 1, "
+        "item_weight INT DEFAULT 0, "
+        "loaded_by VARCHAR(50), "
+        "loaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "INDEX idx_ship (ship_id), "
+        "INDEX idx_room (cargo_room), "
+        "INDEX idx_item (item_vnum), "
+        "FOREIGN KEY (ship_id) REFERENCES ship_interiors(ship_id) ON DELETE CASCADE"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_ship_cargo_manifest)) {
+        log("SYSERR: Failed to create ship_cargo_manifest table: %s", mysql_error(conn));
+        return;
+    }
+
+    /* ship_crew_roster - NPC crew assignments */
+    const char *create_ship_crew_roster =
+        "CREATE TABLE IF NOT EXISTS ship_crew_roster ("
+        "roster_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
+        "ship_id VARCHAR(8) NOT NULL, "
+        "npc_vnum INT NOT NULL, "
+        "npc_name VARCHAR(100), "
+        "crew_role ENUM('captain','pilot','gunner','engineer','medic','marine','crew') DEFAULT 'crew', "
+        "assigned_room INT DEFAULT 0, "
+        "duty_station INT DEFAULT 0, "
+        "loyalty_rating INT DEFAULT 50, "
+        "status ENUM('active','injured','awol','dead') DEFAULT 'active', "
+        "hired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+        "INDEX idx_ship (ship_id), "
+        "INDEX idx_role (crew_role), "
+        "INDEX idx_status (status), "
+        "FOREIGN KEY (ship_id) REFERENCES ship_interiors(ship_id) ON DELETE CASCADE"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_ship_crew_roster)) {
+        log("SYSERR: Failed to create ship_crew_roster table: %s", mysql_error(conn));
+        return;
+    }
+
+    create_vessel_procedures();
+
+    log("Info: Vessel system tables initialized successfully");
+}
+
+static void create_vessel_procedures(void)
+{
+    if (!mysql_available || !conn) {
+        return;
+    }
+
+    /* Cleanup procedure for orphaned dockings */
+    if (mysql_query_safe(conn, "DROP PROCEDURE IF EXISTS cleanup_orphaned_dockings")) {
+        log("SYSERR: Failed to drop cleanup_orphaned_dockings procedure: %s", mysql_error(conn));
+    }
+
+    const char *create_cleanup_proc =
+        "CREATE PROCEDURE cleanup_orphaned_dockings()\n"
+        "BEGIN\n"
+        "    UPDATE ship_docking\n"
+        "    SET dock_status = 'aborted',\n"
+        "        undock_time = NOW()\n"
+        "    WHERE dock_status = 'active'\n"
+        "      AND dock_time < DATE_SUB(NOW(), INTERVAL 24 HOUR);\n"
+        "END";
+
+    if (mysql_query_safe(conn, create_cleanup_proc)) {
+        log("SYSERR: Failed to create cleanup_orphaned_dockings procedure: %s", mysql_error(conn));
+    }
+
+    /* Procedure to fetch active dockings */
+    if (mysql_query_safe(conn, "DROP PROCEDURE IF EXISTS get_active_dockings")) {
+        log("SYSERR: Failed to drop get_active_dockings procedure: %s", mysql_error(conn));
+    }
+
+    const char *create_get_active_proc =
+        "CREATE PROCEDURE get_active_dockings(IN p_ship_id VARCHAR(8))\n"
+        "BEGIN\n"
+        "    SELECT * FROM ship_docking\n"
+        "    WHERE (ship1_id = p_ship_id OR ship2_id = p_ship_id)\n"
+        "      AND dock_status = 'active'\n"
+        "    ORDER BY dock_time DESC;\n"
+        "END";
+
+    if (mysql_query_safe(conn, create_get_active_proc)) {
+        log("SYSERR: Failed to create get_active_dockings procedure: %s", mysql_error(conn));
+    }
 }
 
 /* ===== HELP SYSTEM TABLES ===== */
