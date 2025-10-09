@@ -52,7 +52,7 @@ git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 
 # Run deployment with options (no database, minimal world)
-./scripts/deploy.sh --quick --skip-db --init-world
+./scripts/deploy.sh --auto --skip-db --init-world
 
 # Start the MUD server
 ./bin/circle -d lib
@@ -84,11 +84,6 @@ cp src/vnums.example.h src/vnums.h
 
 # Build with autotools
 make clean && make -j$(nproc)
-
-# Create symlinks (MUD expects these in root)
-ln -sf lib/world world
-ln -sf lib/text text
-ln -sf lib/etc etc
 
 # Copy minimal world files
 for dir in zon wld mob obj shp trg qst hlq; do

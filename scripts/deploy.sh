@@ -291,25 +291,8 @@ build_project() {
     # Change to project root directory
     cd "$PROJECT_ROOT"
     
-    # Detect build system
-    if [[ -f CMakeLists.txt ]]; then
-        print_msg "$GREEN" "Building with CMake..."
-        
-        # Clean old build
-        rm -rf build
-        mkdir -p build
-        
-        # Configure
-        if [[ "$BUILD_TYPE" == "production" ]]; then
-            cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Release
-        else
-            cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Debug
-        fi
-        
-        # Build
-        cmake --build build/ -j$(nproc)
-        
-    elif [[ -f configure.ac ]]; then
+    # Detect build system - prefer autotools as it's faster
+    if [[ -f configure.ac ]]; then
         print_msg "$GREEN" "Building with Autotools..."
         
         # Clean any previous build attempts
@@ -350,7 +333,24 @@ build_project() {
         fi
         
         print_msg "$GREEN" "Build and install complete: bin/circle"
-        
+
+    elif [[ -f CMakeLists.txt ]]; then
+        print_msg "$GREEN" "Building with CMake..."
+
+        # Clean old build
+        rm -rf build
+        mkdir -p build
+
+        # Configure
+        if [[ "$BUILD_TYPE" == "production" ]]; then
+            cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Release
+        else
+            cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Debug
+        fi
+
+        # Build
+        cmake --build build/ -j$(nproc)
+
     else
         print_msg "$RED" "No build system found!"
         exit 1
@@ -392,9 +392,7 @@ initialize_world_data() {
             cp "$PROJECT_ROOT"/lib/world/minimal/index.shp "$PROJECT_ROOT"/lib/world/shp/index 2>/dev/null || true
             cp "$PROJECT_ROOT"/lib/world/minimal/index.trg "$PROJECT_ROOT"/lib/world/trg/index 2>/dev/null || true
             cp "$PROJECT_ROOT"/lib/world/minimal/index.qst "$PROJECT_ROOT"/lib/world/qst/index 2>/dev/null || true
-            
-            # Create HLQ index (Homeland Quests)
-            echo '$' > "$PROJECT_ROOT"/lib/world/hlq/index
+            cp "$PROJECT_ROOT"/lib/world/minimal/index.hlq "$PROJECT_ROOT"/lib/world/hlq/index 2>/dev/null || true
             
             print_msg "$GREEN" "Minimal world data initialized!"
         else
@@ -522,7 +520,7 @@ help <topic>
 EOF
     fi
     
-    # Create immortal help file  
+    # Create immortal help file
     if [[ ! -f "$PROJECT_ROOT/lib/text/help/ihelp" ]]; then
         cat > "$PROJECT_ROOT"/lib/text/help/ihelp <<'EOF'
 Immortal Help System
@@ -533,11 +531,16 @@ For OLC help, type: help olc
 
 Common immortal commands:
 - goto <room>    - Teleport to a room
-- where          - List all players and locations  
+- where          - List all players and locations
 - users          - Show connection information
 - reboot         - Reboot the MUD
 - shutdown       - Shutdown the MUD
 EOF
+    fi
+
+    # Create help index file
+    if [[ ! -f "$PROJECT_ROOT/lib/text/help/index" ]]; then
+        echo '$' > "$PROJECT_ROOT"/lib/text/help/index
     fi
     
     # Create info file
@@ -635,6 +638,23 @@ EOF
     print_msg "$GREEN" "Default text files created!"
 }
 
+# Function to create misc files
+create_misc_files() {
+    print_msg "$GREEN" "Creating misc files..."
+
+    # Create messages file for combat messages
+    if [[ ! -f "$PROJECT_ROOT/lib/misc/messages" ]]; then
+        echo '*' > "$PROJECT_ROOT"/lib/misc/messages
+    fi
+
+    # Create socials file
+    if [[ ! -f "$PROJECT_ROOT/lib/misc/socials.new" ]]; then
+        echo '$' > "$PROJECT_ROOT"/lib/misc/socials.new
+    fi
+
+    print_msg "$GREEN" "Misc files created!"
+}
+
 # Function to setup environment
 setup_environment() {
     print_header "Setting Up Environment"
@@ -654,22 +674,10 @@ setup_environment() {
     
     # Create text files
     create_text_files
-    
-    # Create critical symlinks if they don't exist
-    # The MUD expects files in the root directory, not in lib/
-    if [[ ! -L "$PROJECT_ROOT/world" ]]; then
-        ln -sf lib/world "$PROJECT_ROOT"/world
-        print_msg "$GREEN" "Created symlink: world -> lib/world"
-    fi
-    if [[ ! -L "$PROJECT_ROOT/text" ]]; then
-        ln -sf lib/text "$PROJECT_ROOT"/text
-        print_msg "$GREEN" "Created symlink: text -> lib/text"
-    fi
-    if [[ ! -L "$PROJECT_ROOT/etc" ]]; then
-        ln -sf lib/etc "$PROJECT_ROOT"/etc
-        print_msg "$GREEN" "Created symlink: etc -> lib/etc"
-    fi
-    
+
+    # Create misc files
+    create_misc_files
+
     # Set permissions
     chmod -R 755 "$PROJECT_ROOT"/lib/
     chmod -R 755 "$PROJECT_ROOT"/log/
