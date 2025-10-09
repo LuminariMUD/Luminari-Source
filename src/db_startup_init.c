@@ -73,6 +73,13 @@ void initialize_missing_tables(void)
         populate_region_system_data();
         log("Region system tables initialized");
     }
+    if (!table_exists("path_types")) {
+        log("Initializing path type reference table...");
+        ensure_path_types_reference();
+        log("Path type reference table initialized");
+    } else {
+        ensure_path_types_reference();
+    }
 
     /* Resource system tables */
     if (!table_exists("resource_types")) {

@@ -3979,9 +3979,8 @@ void newcraft_harvest(struct char_data *ch, const char *argument)
 
 void show_harvesting_tool_needed(struct char_data *ch)
 {
-int mat_type;
+    int mat_type;
     int mat_group;
-    bool has_tool = FALSE;
 
     if (!ch || IN_ROOM(ch) == NOWHERE)
     {

@@ -46,6 +46,51 @@ static int table_has_data(const char *table_name)
     return count > 0;
 }
 
+/* Ensure path_types table exists and populate default reference data */
+void ensure_path_types_reference(void)
+{
+    if (!mysql_available || !conn) {
+        return;
+    }
+
+    const char *create_path_types =
+        "CREATE TABLE IF NOT EXISTS path_types ("
+        "path_type INT PRIMARY KEY, "
+        "type_name VARCHAR(50) NOT NULL, "
+        "glyph_ns VARCHAR(16) NOT NULL, "
+        "glyph_ew VARCHAR(16) NOT NULL, "
+        "glyph_int VARCHAR(16) NOT NULL, "
+        "UNIQUE KEY idx_type_name (type_name)"
+        ")";
+
+    if (mysql_query_safe(conn, create_path_types)) {
+        log("SYSERR: Failed to ensure path_types table exists: %s", mysql_error(conn));
+        return;
+    }
+
+    if (table_has_data("path_types")) {
+        log("Info: path_types table already contains data - verifying required defaults");
+    } else {
+        log("Info: Populating default wilderness path type glyph definitions...");
+    }
+
+    const char *insert_path_types =
+        "INSERT INTO path_types (path_type, type_name, glyph_ns, glyph_ew, glyph_int) VALUES "
+        "(1, 'Paved Road', '@Y|@n', '@Y-@n', '@Y+@n'),"
+        "(2, 'Dirt Road', '@y|@n', '@y-@n', '@y+@n'),"
+        "(3, 'Geographic Feature', '@G|@n', '@G-@n', '@G+@n'),"
+        "(5, 'River', '@B|@n', '@B=@n', '@B#@n'),"
+        "(6, 'Stream', '@c|@n', '@c~@n', '@c+@n') "
+        "ON DUPLICATE KEY UPDATE path_type = path_type";
+
+    if (mysql_query_safe(conn, insert_path_types)) {
+        log("SYSERR: Failed to populate default path_types data: %s", mysql_error(conn));
+        return;
+    }
+
+    log("Info: Default path_types reference data verified");
+}
+
 /* Populate resource_types with standard resource definitions - ONLY if table is empty */
 void populate_resource_types_data(void)
 {
@@ -257,6 +302,9 @@ void populate_region_system_data(void)
         log("MySQL not available, skipping region system data population");
         return;
     }
+
+    /* Ensure reference tables for paths exist even if wildedit has not run */
+    ensure_path_types_reference();
 
     /* CRITICAL: NEVER populate region_data, path_data, region_index, or path_index */
     /* These tables are managed by the wildedit program and contain MUD-specific data */

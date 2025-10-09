@@ -712,6 +712,22 @@ void init_region_system_tables(void)
         return;
     }
 
+    /* path_types - Path glyph definitions */
+    const char *create_path_types =
+        "CREATE TABLE IF NOT EXISTS path_types ("
+        "path_type INT PRIMARY KEY, "
+        "type_name VARCHAR(50) NOT NULL, "
+        "glyph_ns VARCHAR(16) NOT NULL, "
+        "glyph_ew VARCHAR(16) NOT NULL, "
+        "glyph_int VARCHAR(16) NOT NULL, "
+        "UNIQUE KEY idx_type_name (type_name)"
+        ")";
+
+    if (mysql_query_safe(conn, create_path_types)) {
+        log("SYSERR: Failed to create path_types table: %s", mysql_error(conn));
+        return;
+    }
+
     /* region_index - Optimized spatial index for region queries */
     const char *create_region_index = 
         "CREATE TABLE IF NOT EXISTS region_index ("

@@ -33,6 +33,7 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
         "vessels", "pubsub"
     };
     const size_t num_systems = sizeof(systems) / sizeof(systems[0]);
+    size_t i;
 
     if (!*system || !str_cmp(system, "all")) {
         send_to_char(ch, "\tcDetailed Database System Information\tn\r\n");
@@ -43,7 +44,7 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
             return;
         }
 
-        for (size_t i = 0; i < num_systems; i++) {
+        for (i = 0; i < num_systems; i++) {
             int verified = FALSE;
 
             if (!str_cmp(systems[i], "player"))
@@ -89,7 +90,7 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
             "unlocked_classes", "player_save_objs",
             "player_save_objs_sheathed", "pet_save_objs"
         };
-        for (size_t i = 0; i < sizeof(player_tables) / sizeof(player_tables[0]); i++) {
+        for (i = 0; i < sizeof(player_tables) / sizeof(player_tables[0]); i++) {
             send_to_char(ch, "  - %s\r\n", player_tables[i]);
         }
     } else if (!str_cmp(system, "object")) {
@@ -97,7 +98,7 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
             "object_database_items", "object_database_wear_slots",
             "object_database_bonuses"
         };
-        for (size_t i = 0; i < sizeof(object_tables) / sizeof(object_tables[0]); i++) {
+        for (i = 0; i < sizeof(object_tables) / sizeof(object_tables[0]); i++) {
             send_to_char(ch, "  - %s\r\n", object_tables[i]);
         }
     } else if (!str_cmp(system, "wilderness")) {
@@ -111,7 +112,7 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
             "material_categories", "material_subtypes",
             "material_qualities"
         };
-        for (size_t i = 0; i < sizeof(wilderness_tables) / sizeof(wilderness_tables[0]); i++) {
+        for (i = 0; i < sizeof(wilderness_tables) / sizeof(wilderness_tables[0]); i++) {
             send_to_char(ch, "  - %s\r\n", wilderness_tables[i]);
         }
     } else if (!str_cmp(system, "crafting")) {
@@ -122,7 +123,7 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
         const char *ai_tables[] = {
             "ai_config", "ai_requests", "ai_cache", "ai_npc_personalities"
         };
-        for (size_t i = 0; i < sizeof(ai_tables) / sizeof(ai_tables[0]); i++) {
+        for (i = 0; i < sizeof(ai_tables) / sizeof(ai_tables[0]); i++) {
             send_to_char(ch, "  - %s\r\n", ai_tables[i]);
         }
     } else if (!str_cmp(system, "help")) {
@@ -130,14 +131,14 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
             "help_entries", "help_keywords", "help_versions",
             "help_search_history", "help_related_topics"
         };
-        for (size_t i = 0; i < sizeof(help_tables) / sizeof(help_tables[0]); i++) {
+        for (i = 0; i < sizeof(help_tables) / sizeof(help_tables[0]); i++) {
             send_to_char(ch, "  - %s\r\n", help_tables[i]);
         }
     } else if (!str_cmp(system, "region")) {
         const char *region_tables[] = {
             "region_data", "path_data", "region_index", "path_index"
         };
-        for (size_t i = 0; i < sizeof(region_tables) / sizeof(region_tables[0]); i++) {
+        for (i = 0; i < sizeof(region_tables) / sizeof(region_tables[0]); i++) {
             send_to_char(ch, "  - %s\r\n", region_tables[i]);
         }
     } else if (!str_cmp(system, "vessels")) {
@@ -145,7 +146,7 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
             "ship_interiors", "ship_docking", "ship_room_templates",
             "ship_cargo_manifest", "ship_crew_roster"
         };
-        for (size_t i = 0; i < sizeof(vessel_tables) / sizeof(vessel_tables[0]); i++) {
+        for (i = 0; i < sizeof(vessel_tables) / sizeof(vessel_tables[0]); i++) {
             send_to_char(ch, "  - %s\r\n", vessel_tables[i]);
         }
     } else if (!str_cmp(system, "pubsub")) {
@@ -155,12 +156,12 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
             "pubsub_messages_v3", "pubsub_message_metadata_v3",
             "pubsub_message_fields_v3", "pubsub_message_tags_v3"
         };
-        for (size_t i = 0; i < sizeof(pubsub_tables) / sizeof(pubsub_tables[0]); i++) {
+        for (i = 0; i < sizeof(pubsub_tables) / sizeof(pubsub_tables[0]); i++) {
             send_to_char(ch, "  - %s\r\n", pubsub_tables[i]);
         }
     } else {
         send_to_char(ch, "Unknown system '%s'. Available systems: ", system);
-        for (size_t i = 0; i < num_systems; i++) {
+        for (i = 0; i < num_systems; i++) {
             send_to_char(ch, "%s%s", systems[i], (i + 1 < num_systems) ? ", " : "\r\n");
         }
     }
@@ -479,8 +480,9 @@ ACMD(do_db_info)
             {"PubSub", "pubsub"}
         };
         const size_t num_systems = sizeof(systems) / sizeof(systems[0]);
+        size_t i;
 
-        for (size_t i = 0; i < num_systems; i++) {
+        for (i = 0; i < num_systems; i++) {
             int verified = FALSE;
             const char *key = systems[i].key;
 

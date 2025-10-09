@@ -314,9 +314,11 @@ int pubsub_init(void);
 void pubsub_shutdown(void);
 int pubsub_db_drop_tables(void);
 int pubsub_db_create_tables(void);
+int pubsub_db_create_v3_tables(void);
 
 /* Database function declarations */
 int pubsub_db_create_tables(void);
+int pubsub_db_create_v3_tables(void);
 int pubsub_db_populate_data(void);
 int pubsub_db_save_message(struct pubsub_message *msg);
 int pubsub_db_save_metadata(int message_id, struct pubsub_message_metadata *metadata);
