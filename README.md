@@ -21,101 +21,57 @@ A text-based multiplayer online role-playing game (MUD) server implementing Path
 
 ## Quick Start
 
-Get LuminariMUD running in under 2 minutes! Choose the method that works best for you.
+Get LuminariMUD running quickly with these simple steps:
 
 ### Prerequisites
-- Linux/Unix system (Ubuntu, Debian, CentOS, WSL, etc.)
-- Git installed
-- Basic development tools (gcc, make)
 
-### Fastest Setup (Recommended for Beginners)
+Install required libraries first:
 
 ```bash
-# Clone the repository
+# Ubuntu/Debian/WSL2
+sudo apt-get update
+sudo apt-get install -y build-essential git make autoconf automake \
+                        libcrypt-dev libgd-dev libmariadb-dev \
+                        libcurl4-openssl-dev libssl-dev mariadb-server \
+                        cmake libtool pkg-config gdb valgrind
+```
+
+### Installation
+
+```bash
+# 1. Clone the repository
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 
-# Run the simple setup script
-./scripts/simple_setup.sh
+# 2. Run the deployment script
+#    This handles everything: dependencies, database, world data, build
+#    You'll be prompted for MySQL root password
+./scripts/deploy.sh
 
-# Start the MUD server
+# 3. Start the MUD server
 ./bin/circle -d lib
 ```
 
 That's it! Connect to `localhost:4000` with any MUD client.
 
-### Automated Setup (More Options)
+### What `deploy.sh` Does
 
-```bash
-# Clone the repository
-git clone https://github.com/LuminariMUD/Luminari-Source.git
-cd Luminari-Source
+The deployment script automatically:
+- Copies configuration files (.example.h → .h)
+- Installs any missing dependencies
+- Sets up MariaDB database (prompts for root password)
+- Creates database and user with generated password
+- Initializes world data (zones, rooms, mobs, objects)
+- Builds the MUD using autotools (preferred) or CMake
+- Creates all required directories and symlinks
 
-# Run deployment with options (no database, minimal world)
-./scripts/deploy.sh --auto --skip-db --init-world
-
-# Start the MUD server
-./bin/circle -d lib
-```
-
-### Standard Setup (With Database)
-
-```bash
-# Clone and enter directory
-git clone https://github.com/LuminariMUD/Luminari-Source.git
-cd Luminari-Source
-
-# Run interactive setup (installs dependencies, configures database, builds)
-./scripts/deploy.sh --init-world
-
-# Start the server (if start_mud.sh was created)
-./start_mud.sh
-# Or directly:
-./bin/circle -d lib
-```
-
-### Manual Build (Advanced Users)
-
-```bash
-# Copy required configuration files
-cp src/campaign.example.h src/campaign.h
-cp src/mud_options.example.h src/mud_options.h
-cp src/vnums.example.h src/vnums.h
-
-# Build with autotools
-make clean && make -j$(nproc)
-
-# Copy minimal world files
-for dir in zon wld mob obj shp trg qst hlq; do
-    mkdir -p lib/world/${dir}
-    cp lib/world/minimal/index.${dir} lib/world/${dir}/index 2>/dev/null || true
-    cp lib/world/minimal/*.${dir} lib/world/${dir}/ 2>/dev/null || true
-done
-echo '$' > lib/world/hlq/index
-
-# Run the MUD
-./bin/circle -d lib
-```
-
-### Deployment Options
-
-The `deploy.sh` script supports various options:
-- `--quick` - Skip all prompts, use defaults
-- `--skip-db` - Skip database setup (MySQL optional)
-- `--skip-deps` - Skip dependency installation
-- `--init-world` - Initialize minimal world data
+**Optional flags:**
+- `--auto` - Skip prompts where possible (still needs MySQL root password)
+- `--skip-db` - Skip database setup (not recommended)
 - `--dev` - Development build with debug symbols
 - `--prod` - Production optimized build
 
-### Next Steps
-
-1. Connect with a MUD client to `localhost:4000`
-2. Create your first character
-3. Explore the commands with `help`
-4. See admin documentation in `docs/admin/`
-5. Start building your world!
-
-For detailed installation and configuration, see the [Installation](#installation) section below.
+For detailed information, see [docs/deployment/DEPLOYMENT_GUIDE.md](docs/deployment/DEPLOYMENT_GUIDE.md)
 
 ## Overview
 
@@ -160,7 +116,7 @@ This project embodies commitment, self-motivation, and perseverance through chal
 - **Operating System**: Linux or Unix-like system (including WSL2 Ubuntu)
 - **Compiler**: GCC or Clang (C90/C89 with GNU extensions)
 - **Build System**: CMake 3.12+ or Autotools
-- **Database**: MariaDB 10.0+ (recommended) or MySQL 5.7+
+- **Database**: MariaDB 10.0+ or MySQL 5.7+ (REQUIRED - not optional)
 - **Libraries**: 
   - libmariadb-dev (MariaDB client library - required)
   - libcrypt, libgd, libm, libcurl, libssl, libcrypto, libpthread
