@@ -85,33 +85,6 @@ void init_core_player_tables(void)
 
     log("Initializing core player system tables...");
 
-    /* player_data - Core player character information */
-    const char *create_player_data = 
-        "CREATE TABLE IF NOT EXISTS player_data ("
-        "id INT AUTO_INCREMENT PRIMARY KEY, "
-        "name VARCHAR(20) UNIQUE NOT NULL, "
-        "password VARCHAR(32) NOT NULL, "
-        "email VARCHAR(100), "
-        "level INT DEFAULT 1, "
-        "experience BIGINT DEFAULT 0, "
-        "class INT DEFAULT 0, "
-        "race INT DEFAULT 0, "
-        "alignment INT DEFAULT 0, "
-        "last_online TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-        "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-        "total_sessions INT DEFAULT 0, "
-        "bad_pws INT DEFAULT 0, "
-        "obj_save_header VARCHAR(255) DEFAULT '', "
-        "INDEX idx_name (name), "
-        "INDEX idx_level (level), "
-        "INDEX idx_last_online (last_online)"
-        ")";
-
-    if (mysql_query_safe(conn, create_player_data)) {
-        log("SYSERR: Failed to create player_data table: %s", mysql_error(conn));
-        return;
-    }
-
     /* account_data - Account management system */
     const char *create_account_data = 
         "CREATE TABLE IF NOT EXISTS account_data ("
@@ -132,6 +105,67 @@ void init_core_player_tables(void)
         log("SYSERR: Failed to create account_data table: %s", mysql_error(conn));
         return;
     }
+
+    /* pet_data - Saved companion information */
+    const char *create_pet_data =
+        "CREATE TABLE IF NOT EXISTS pet_data ("
+        "pet_data_id INT AUTO_INCREMENT PRIMARY KEY, "
+        "owner_name VARCHAR(50) NOT NULL, "
+        "pet_name VARCHAR(50) DEFAULT NULL, "
+        "pet_sdesc VARCHAR(255) DEFAULT NULL, "
+        "pet_ldesc TEXT DEFAULT NULL, "
+        "pet_ddesc TEXT DEFAULT NULL, "
+        "vnum INT NOT NULL, "
+        "level INT NOT NULL, "
+        "hp INT NOT NULL, "
+        "max_hp INT NOT NULL, "
+        "str INT NOT NULL, "
+        "con INT NOT NULL, "
+        "dex INT NOT NULL, "
+        "ac INT NOT NULL, "
+        "intel INT NOT NULL DEFAULT 0, "
+        "wis INT NOT NULL, "
+        "cha INT NOT NULL, "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "INDEX idx_pet_owner (owner_name)"
+        ")";
+
+    if (mysql_query_safe(conn, create_pet_data)) {
+        log("SYSERR: Failed to create pet_data table: %s", mysql_error(conn));
+        return;
+    }
+
+    /* player_data - Core player character information */
+    const char *create_player_data = 
+        "CREATE TABLE IF NOT EXISTS player_data ("
+        "id INT AUTO_INCREMENT PRIMARY KEY, "
+        "name VARCHAR(20) UNIQUE NOT NULL, "
+        "password VARCHAR(32) NOT NULL, "
+        "email VARCHAR(100), "
+        "account_id INT DEFAULT NULL, "
+        "level INT DEFAULT 1, "
+        "experience BIGINT DEFAULT 0, "
+        "class INT DEFAULT 0, "
+        "race INT DEFAULT 0, "
+        "alignment INT DEFAULT 0, "
+        "last_online TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "total_sessions INT DEFAULT 0, "
+        "bad_pws INT DEFAULT 0, "
+        "obj_save_header VARCHAR(255) DEFAULT '', "
+        "INDEX idx_name (name), "
+        "INDEX idx_level (level), "
+        "INDEX idx_last_online (last_online), "
+        "INDEX idx_player_account_id (account_id), "
+        "CONSTRAINT fk_player_data_account FOREIGN KEY (account_id) REFERENCES account_data(id) ON DELETE SET NULL"
+        ")";
+
+    if (mysql_query_safe(conn, create_player_data)) {
+        log("SYSERR: Failed to create player_data table: %s", mysql_error(conn));
+        return;
+    }
+
+    ensure_player_data_account_link();
 
     /* unlocked_races - Player account unlocked races */
     const char *create_unlocked_races = 

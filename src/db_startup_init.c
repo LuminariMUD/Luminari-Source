@@ -58,6 +58,7 @@ void initialize_missing_tables(void)
         init_core_player_tables();
         log("Core player tables initialized");
     }
+    ensure_player_data_account_link();
 
     /* Object database tables */
     if (!table_exists("object_database_items")) {
