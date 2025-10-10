@@ -68,6 +68,7 @@ void populate_ai_config_data(void);
 void populate_region_system_data(void);
 void populate_ship_room_templates_data(void);
 void ensure_path_types_reference(void);
+void ensure_player_data_account_link(void);
 
 /* ===== DATABASE VERIFICATION FUNCTIONS ===== */
 

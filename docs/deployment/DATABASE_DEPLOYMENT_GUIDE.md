@@ -93,6 +93,10 @@ Make sure your `src/campaign.h` includes:
 - `material_subtypes` - Specific materials (e.g., "oak wood", "iron ore")
 - `material_qualities` - Quality levels (poor, common, rare, etc.)
 
+### Companion & Pet Data
+- `pet_data` - Persists charmed companions and summons for player accounts (stats, descriptions, HP)
+- `pet_save_objs` - Stores equipment for saved pets tied to `pet_data` rows
+
 ### Analytics & Performance
 - `ecosystem_analysis` - View for ecosystem health analysis
 - `resource_availability_summary` - Resource scarcity overview

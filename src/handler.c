@@ -1502,13 +1502,20 @@ void char_to_room(struct char_data *ch, room_rnum room)
 {
 
   if (ch == NULL || room == NOWHERE || room > top_of_world)
+  {
     log("SYSERR: Illegal value(s) passed to char_to_room. (Room: %d/%d Ch: %p)",
         room, top_of_world, ch);
+    return;
+  }
   else
   {
 
     /* If this is a wilderness room, set coords. */
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_WILDERNESS))
+    zone_rnum zone = GET_ROOM_ZONE(room);
+    bool is_wilderness_room = (zone != NOWHERE && zone >= 0 && zone <= top_of_zone_table &&
+                               ZONE_FLAGGED(zone, ZONE_WILDERNESS));
+
+    if (is_wilderness_room)
     {
       if ((X_LOC(ch) != world[room].coords[0]) || (Y_LOC(ch) != world[room].coords[1]))
       {
@@ -1555,7 +1562,7 @@ void char_to_room(struct char_data *ch, room_rnum room)
     IN_ROOM(ch) = room;
 
     /* Trigger lazy regeneration for wilderness rooms (Phase 6) */
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_WILDERNESS) && !IS_NPC(ch)) {
+    if (is_wilderness_room && !IS_NPC(ch)) {
         /* Apply lazy regeneration for all resource types when player enters */
         int resource_type;
         for (resource_type = 0; resource_type < NUM_RESOURCE_TYPES; resource_type++) {

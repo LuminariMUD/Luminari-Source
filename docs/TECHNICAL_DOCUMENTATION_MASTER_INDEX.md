@@ -180,6 +180,7 @@ This master index provides a comprehensive guide to all technical documentation 
 2. SCRIPTING_SYSTEM_DG.md
 3. ultimate-mud-writing-guide.md
 4. Building guides in building_game-data/
+5. world/STARTER_AREA.md
 
 #### For Core Contributors
 1. DEVELOPER_GUIDE_AND_API.md

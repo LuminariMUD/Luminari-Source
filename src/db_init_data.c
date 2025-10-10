@@ -91,6 +91,104 @@ void ensure_path_types_reference(void)
     log("Info: Default path_types reference data verified");
 }
 
+/* Ensure player_data has account linkage metadata */
+void ensure_player_data_account_link(void)
+{
+    MYSQL_RES *result = NULL;
+    MYSQL_ROW row;
+    char query[512];
+    bool has_column = FALSE;
+    bool has_index = FALSE;
+    bool has_foreign_key = FALSE;
+
+    if (!mysql_available || !conn) {
+        return;
+    }
+
+    snprintf(query, sizeof(query),
+             "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+             "WHERE TABLE_SCHEMA = DATABASE() "
+             "AND TABLE_NAME = 'player_data' "
+             "AND COLUMN_NAME = 'account_id'");
+
+    if (mysql_query_safe(conn, query)) {
+        log("SYSERR: Failed checking for player_data.account_id column: %s", mysql_error(conn));
+        return;
+    }
+
+    result = mysql_store_result_safe(conn);
+    if (result) {
+        row = mysql_fetch_row(result);
+        if (row && row[0] && atoi(row[0]) > 0)
+            has_column = TRUE;
+        mysql_free_result(result);
+    }
+
+    if (!has_column) {
+        if (mysql_query_safe(conn, "ALTER TABLE player_data ADD COLUMN account_id INT DEFAULT NULL AFTER email")) {
+            log("SYSERR: Failed to add account_id column to player_data: %s", mysql_error(conn));
+        } else {
+            log("Info: Added account_id column to player_data table");
+        }
+    }
+
+    snprintf(query, sizeof(query),
+             "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS "
+             "WHERE TABLE_SCHEMA = DATABASE() "
+             "AND TABLE_NAME = 'player_data' "
+             "AND INDEX_NAME = 'idx_player_account_id'");
+
+    if (!mysql_query_safe(conn, query)) {
+        result = mysql_store_result_safe(conn);
+        if (result) {
+            row = mysql_fetch_row(result);
+            if (row && row[0] && atoi(row[0]) > 0)
+                has_index = TRUE;
+            mysql_free_result(result);
+        }
+    }
+
+    if (!has_index) {
+        if (mysql_query_safe(conn, "ALTER TABLE player_data ADD INDEX idx_player_account_id (account_id)")) {
+            log("SYSERR: Failed to add idx_player_account_id index to player_data: %s", mysql_error(conn));
+        } else {
+            log("Info: Added idx_player_account_id index to player_data table");
+        }
+    }
+
+    snprintf(query, sizeof(query),
+             "SELECT COUNT(*) FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
+             "WHERE TABLE_SCHEMA = DATABASE() "
+             "AND TABLE_NAME = 'player_data' "
+             "AND COLUMN_NAME = 'account_id' "
+             "AND REFERENCED_TABLE_NAME = 'account_data'");
+
+    if (!mysql_query_safe(conn, query)) {
+        result = mysql_store_result_safe(conn);
+        if (result) {
+            row = mysql_fetch_row(result);
+            if (row && row[0] && atoi(row[0]) > 0)
+                has_foreign_key = TRUE;
+            mysql_free_result(result);
+        }
+    }
+
+    if (!has_foreign_key) {
+        if (mysql_query_safe(conn, "UPDATE player_data SET account_id = NULL WHERE account_id IS NOT NULL AND account_id NOT IN (SELECT id FROM account_data)")) {
+            log("SYSERR: Failed to sanitize orphaned account_id values: %s", mysql_error(conn));
+        }
+
+        if (mysql_query_safe(conn, "ALTER TABLE player_data "
+                                     "ADD CONSTRAINT fk_player_data_account "
+                                     "FOREIGN KEY (account_id) REFERENCES account_data(id) "
+                                     "ON DELETE SET NULL")) {
+            log("SYSERR: Failed to add fk_player_data_account constraint: %s", mysql_error(conn));
+        } else {
+            log("Info: Added fk_player_data_account foreign key to player_data table");
+        }
+    }
+}
+
 /* Populate resource_types with standard resource definitions - ONLY if table is empty */
 void populate_resource_types_data(void)
 {

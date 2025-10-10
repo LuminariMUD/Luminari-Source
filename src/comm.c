@@ -4209,8 +4209,15 @@ void update_msdp_room(struct char_data *ch)
     /* Location information */
     /*  Only update room stuff if they've changed room */
     if (IN_ROOM(ch) != NOWHERE &&
+        VALID_ROOM_RNUM(IN_ROOM(ch)) &&
         GET_ROOM_VNUM(IN_ROOM(ch)) != ch->desc->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt)
     {
+      room_rnum room = IN_ROOM(ch);
+      zone_rnum zone = GET_ROOM_ZONE(room);
+      const char *zone_name = "Unknown";
+
+      if (zone != NOWHERE && zone >= 0 && zone <= top_of_zone_table && zone_table[zone].name)
+        zone_name = zone_table[zone].name;
 
       /* Format for the room data is:
        * ROOM
@@ -4280,24 +4287,24 @@ void update_msdp_room(struct char_data *ch)
                                    "%cDOORS"
                                    "%c%c%s%c",
                MsdpVar, MsdpVal,
-               GET_ROOM_VNUM(IN_ROOM(ch)),
+               GET_ROOM_VNUM(room),
                MsdpVar, MsdpVal,
-               world[IN_ROOM(ch)].name,
+               world[room].name ? world[room].name : "An Unnamed Location",
                MsdpVar, MsdpVal,
-               zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name,
+               zone_name,
                MsdpVar, MsdpVal,
-               (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch))) ? "Wilderness" : "Room"),
+               (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room)) ? "Wilderness" : "Room"),
                MsdpVar, MsdpVal,
                MSDP_TABLE_OPEN,
                MsdpVar, MsdpVal,
-               world[IN_ROOM(ch)].coords[X_COORD],
+               world[room].coords[X_COORD],
                MsdpVar, MsdpVal,
-               world[IN_ROOM(ch)].coords[Y_COORD],
+               world[room].coords[Y_COORD],
                MsdpVar, MsdpVal,
                0,
                MSDP_TABLE_CLOSE,
                MsdpVar, MsdpVal,
-               sector_types[world[IN_ROOM(ch)].sector_type],
+               sector_types[world[room].sector_type],
                MsdpVar, MsdpVal,
                MSDP_TABLE_OPEN,
                room_exits,
