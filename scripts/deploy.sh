@@ -32,6 +32,7 @@ SKIP_DEPS=false
 SKIP_DB=false
 AUTO_MODE=false
 INIT_WORLD=true
+FORCE_INIT_WORLD=false
 MUD_PORT=4000
 DB_HOST="localhost"
 DB_NAME="luminari"
@@ -271,8 +272,16 @@ USE $DB_NAME;
 EOF
     
     # Execute database setup
-    print_msg "$YELLOW" "Please enter your MySQL/MariaDB root password:"
-    mysql -u root -p < /tmp/luminari_db_setup.sql
+    # On Ubuntu/Debian, MariaDB root uses unix_socket auth, requiring sudo
+    print_msg "$GREEN" "Executing database setup (requires sudo)..."
+    if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
+        # Ubuntu/Debian: use sudo mysql (unix_socket authentication)
+        sudo mysql < /tmp/luminari_db_setup.sql
+    else
+        # Other systems: try password authentication
+        print_msg "$YELLOW" "Please enter your MySQL/MariaDB root password:"
+        mysql -u root -p < /tmp/luminari_db_setup.sql
+    fi
     
     # Run schema files if they exist
     if [[ -f "$PROJECT_ROOT/sql/master_schema.sql" ]]; then
@@ -373,10 +382,14 @@ initialize_world_data() {
     print_msg "$GREEN" "Initializing minimal world data..."
     print_msg "$YELLOW" "This step is REQUIRED - server will not start without world files!"
 
-    # Check if world directories exist and are empty
-    if [[ ! -d "$PROJECT_ROOT/lib/world/zon" ]] || [[ -z "$(ls -A "$PROJECT_ROOT/lib/world/zon" 2>/dev/null)" ]]; then
-        print_msg "$YELLOW" "Setting up minimal world files..."
-        
+    # Check if world needs initialization (skip if exists, unless force flag is set)
+    if [[ ! -f "$PROJECT_ROOT/lib/world/zon/index" ]] || [[ "$FORCE_INIT_WORLD" == true ]]; then
+        if [[ "$FORCE_INIT_WORLD" == true ]] && [[ -f "$PROJECT_ROOT/lib/world/zon/index" ]]; then
+            print_msg "$YELLOW" "Force reinitializing world files (--init-world flag detected)..."
+        else
+            print_msg "$YELLOW" "Setting up minimal world files..."
+        fi
+
         # Create world directories
         mkdir -p "$PROJECT_ROOT"/lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
         
@@ -403,20 +416,15 @@ initialize_world_data() {
             cp "$PROJECT_ROOT"/lib/world/minimal/index.trg "$PROJECT_ROOT"/lib/world/trg/index 2>/dev/null || true
             cp "$PROJECT_ROOT"/lib/world/minimal/index.qst "$PROJECT_ROOT"/lib/world/qst/index 2>/dev/null || true
             cp "$PROJECT_ROOT"/lib/world/minimal/index.hlq "$PROJECT_ROOT"/lib/world/hlq/index 2>/dev/null || true
-            
-            print_msg "$GREEN" "Minimal world data initialized!"
+
+            print_msg "$GREEN" "Minimal world data copied from lib/world/minimal/"
         else
-            print_msg "$YELLOW" "Warning: Minimal world data not found in $PROJECT_ROOT/lib/world/minimal/"
-            print_msg "$YELLOW" "Creating empty index files..."
-            echo '$' > "$PROJECT_ROOT"/lib/world/zon/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/wld/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/mob/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/obj/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/shp/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/trg/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/qst/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/hlq/index
+            print_msg "$RED" "ERROR: Minimal world data not found in $PROJECT_ROOT/lib/world/minimal/"
+            print_msg "$RED" "Cannot initialize world without minimal world files!"
+            exit 1
         fi
+
+        print_msg "$GREEN" "World data initialization complete!"
     else
         print_msg "$GREEN" "World data already exists, skipping initialization."
     fi
@@ -844,6 +852,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         --init-world)
             INIT_WORLD=true
+            FORCE_INIT_WORLD=true
             shift
             ;;
         --no-init-world)
