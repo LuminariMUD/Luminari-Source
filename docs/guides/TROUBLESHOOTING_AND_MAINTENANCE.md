@@ -118,15 +118,19 @@ cp lib/mysql_config_example lib/mysql_config
 
 **Solutions:**
 ```bash
-# Ubuntu/Debian
+# Ubuntu/Debian (including WSL2)
 sudo apt-get update
-sudo apt-get install libmysqlclient-dev libgd-dev build-essential
+sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmariadb-dev \
+                        libcurl4-openssl-dev libssl-dev mariadb-server \
+                        git make cmake autoconf automake libtool pkg-config
 
 # CentOS/RHEL/Fedora
-sudo dnf install mysql-devel gd-devel gcc make
+sudo dnf install gcc make mariadb-server mariadb-devel gd-devel \
+                 libcrypt-devel openssl-devel libcurl-devel \
+                 autoconf automake libtool
 
 # Verify installation
-pkg-config --cflags --libs mysqlclient
+pkg-config --cflags --libs mariadb
 pkg-config --cflags --libs gdlib
 ```
 

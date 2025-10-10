@@ -6,12 +6,14 @@
 The easiest way to set up the database is using the automated deployment script:
 
 ```bash
-# Full setup including database
-./scripts/deploy.sh --auto --init-world
+# Full setup including database (RECOMMENDED)
+./scripts/deploy.sh
 
-# Skip database if you want to configure it manually
-./scripts/deploy.sh --quick --skip-db --init-world
+# Skip database setup (NOT RECOMMENDED - you will need to configure manually)
+./scripts/deploy.sh --skip-db
 ```
+
+**Note:** World initialization is enabled by default. The server requires both database and world data to function properly.
 
 The deployment script automatically:
 - Creates the database and user (prompts for MariaDB root password)
@@ -32,11 +34,14 @@ This deployment guide covers database setup for:
 - **Material subtypes system** for detailed resource varieties
 
 ## Prerequisites
-- MySQL 5.7+ or MariaDB 10.2+
+- MySQL 5.7+ or MariaDB 10.2+ (REQUIRED)
 - Database user with CREATE, INSERT, UPDATE, DELETE privileges
 - Existing Luminari MUD database (or use deploy.sh to create one)
+- World data files (use `--init-world` flag or provide custom world)
 
-**Note**: The MUD now supports graceful degradation without MySQL - it will run without database features if MySQL is not available.
+**CRITICAL REQUIREMENTS**:
+1. **Database**: REQUIRED for LuminariMUD to function properly. Many core features including player persistence, wilderness systems, resource management, and world state depend on the database.
+2. **World Data**: REQUIRED for the server to start. Use `--init-world` flag or provide your own custom world files.
 
 ## Installation Steps
 

@@ -31,13 +31,12 @@ This guide provides comprehensive information for developers working on Luminari
 Use the deployment script with development options:
 
 ```bash
-# Full development environment setup
+# Full development environment setup (REQUIRED - includes database)
 ./scripts/deploy.sh --auto --dev --init-world
 
-# Quick setup without database for testing
-./scripts/deploy.sh --quick --skip-db --dev --init-world
+Running this command builds the game, provisions MariaDB (REQUIRED), and invokes the in-engine database initializer so every subsystem (wilderness resources, PubSub, vessels, etc.) is ready without manual SQL. The generated credentials are written to `lib/mysql_config`.
 
-Running the full command without `--skip-db` builds the game, provisions MariaDB, and invokes the in-engine database initializer so every subsystem (wilderness resources, PubSub, vessels, etc.) is ready without manual SQL. The generated credentials are written to `lib/mysql_config`. Use the skip flag only when you explicitly want to run without database features.
+**Note**: Database is REQUIRED for LuminariMUD to function. Do not use `--skip-db` unless you plan to configure the database manually.
 ```
 
 ### Required Tools
@@ -51,13 +50,19 @@ Running the full command without `--skip-db` builds the game, provisions MariaDB
 
 ### Development Dependencies
 ```bash
-# Ubuntu/Debian
-sudo apt-get install build-essential gdb valgrind doxygen graphviz \
-                     cppcheck clang-format git-flow
+# Ubuntu/Debian (including WSL2)
+sudo apt-get update
+sudo apt-get install -y build-essential gdb valgrind doxygen graphviz \
+                        cppcheck clang-format git-flow \
+                        libcrypt-dev libgd-dev libmariadb-dev \
+                        libcurl4-openssl-dev libssl-dev mariadb-server \
+                        git make cmake autoconf automake libtool pkg-config
 
 # CentOS/RHEL/Fedora
 sudo dnf install gcc gdb valgrind doxygen graphviz cppcheck \
-                  clang-tools-extra git-flow
+                 clang-tools-extra git-flow \
+                 mariadb-server mariadb-devel gd-devel \
+                 libcrypt-devel openssl-devel libcurl-devel
 ```
 
 ### IDE Configuration

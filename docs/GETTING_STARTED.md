@@ -19,14 +19,17 @@ The recommended approach for most users:
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 
-# Run setup script
-./scripts/setup.sh
+# Run deployment script (handles everything: database, world data, build)
+# Note: You'll be prompted for MySQL root password during setup
+./scripts/deploy.sh
 
 # Start the server
 ./bin/circle -d lib
 ```
 
-Connect to `localhost:4000` with any MUD client.
+That's it! Connect to `localhost:4000` with any MUD client.
+
+**What it does:** The script automatically sets up the database, initializes world data, copies config files, and builds the MUD. World initialization is enabled by default (required for the server to start).
 
 ### Setup with Options
 For more control over the deployment:
@@ -36,23 +39,22 @@ For more control over the deployment:
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 
-# Generate build system
-autoreconf -fvi
-
-# Run deployment with options
-# (omit --skip-db to provision MariaDB with master schema + pubsub tables)
-./scripts/deploy.sh --auto --init-world
+# Run deployment with custom options
+./scripts/deploy.sh --dev   # Development build with debug symbols
+# Or
+./scripts/deploy.sh --auto  # Skip prompts where possible
 
 # Start the server
 ./bin/circle -d lib
 ```
 
-When run without `--skip-db`, the deploy script will:
-- Install missing dependencies and build the game (Autotools by default)
-- Provision the `luminari` database and user, and run the in-code `db_init_system` routines so every table (wilderness, vessels, PubSub, help, etc.) exists without manual SQL
-- Write generated credentials to `lib/mysql_config` (mode 600)
+The deploy script automatically:
+- Installs missing dependencies and builds the game (Autotools preferred)
+- Provisions the `luminari` database and user, runs the in-code `db_init_system` routines so every table exists (wilderness, vessels, PubSub, help, etc.)
+- Initializes minimal world data (zones, rooms, mobs, objects) - enabled by default
+- Writes generated credentials to `lib/mysql_config` (mode 600)
 
-You can safely re-run the script; it refreshes credentials and migrates the schema each time.
+**Note:** Database and world data are both required. The script handles both automatically. You can safely re-run the script to refresh credentials and migrate the schema.
 
 ### Manual Setup
 See the [Full Deployment Guide](deployment/DEPLOYMENT_GUIDE.md) for detailed manual setup instructions.
@@ -205,8 +207,8 @@ Edit startup command:
 ./bin/circle -q 5000 -d lib  # Run on port 5000
 ```
 
-### Database Setup (Optional)
-See [Deployment Guide](deployment/DEPLOYMENT_GUIDE.md#database-configuration-optional) for MySQL/MariaDB setup.
+### Database Setup (REQUIRED)
+See [Deployment Guide](deployment/DEPLOYMENT_GUIDE.md#database-configuration-required) for MySQL/MariaDB setup details.
 
 ## Troubleshooting
 
@@ -223,7 +225,7 @@ See [Deployment Guide](deployment/DEPLOYMENT_GUIDE.md#database-configuration-opt
 - Check `log/syslog` for errors
 
 **Missing files:**
-- Run `./scripts/setup.sh` to create all required files
+- Run `./scripts/deploy.sh --auto --init-world` to create all required files
 - Check symlinks exist: `ls -la world text etc`
 
 ## Getting Help

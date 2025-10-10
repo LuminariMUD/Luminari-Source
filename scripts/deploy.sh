@@ -12,7 +12,7 @@
 #   -d, --dev         Development mode (includes debug tools)
 #   -p, --prod        Production mode (optimized build)
 #   --skip-deps       Skip dependency installation
-#   --skip-db         Skip database setup
+#   --skip-db         Skip database setup (NOT RECOMMENDED - database is required)
 ################################################################################
 
 set -e  # Exit on error
@@ -31,7 +31,7 @@ BUILD_TYPE="development"
 SKIP_DEPS=false
 SKIP_DB=false
 AUTO_MODE=false
-INIT_WORLD=false
+INIT_WORLD=true
 MUD_PORT=4000
 DB_HOST="localhost"
 DB_NAME="luminari"
@@ -193,9 +193,10 @@ setup_config_files() {
 # Function to setup database
 setup_database() {
     print_header "Setting Up Database"
-    
+
     if [[ "$SKIP_DB" == true ]]; then
-        print_msg "$YELLOW" "Skipping database setup..."
+        print_msg "$RED" "WARNING: Skipping database setup - MUD REQUIRES DATABASE TO FUNCTION!"
+        print_msg "$YELLOW" "You must manually configure the database or the server will not work properly."
         return
     fi
     
@@ -370,7 +371,8 @@ build_project() {
 # Function to initialize minimal world data
 initialize_world_data() {
     print_msg "$GREEN" "Initializing minimal world data..."
-    
+    print_msg "$YELLOW" "This step is REQUIRED - server will not start without world files!"
+
     # Check if world directories exist and are empty
     if [[ ! -d "$PROJECT_ROOT/lib/world/zon" ]] || [[ -z "$(ls -A "$PROJECT_ROOT/lib/world/zon" 2>/dev/null)" ]]; then
         print_msg "$YELLOW" "Setting up minimal world files..."
@@ -752,7 +754,16 @@ verify_autorun_script() {
 # Function to show final instructions
 show_final_instructions() {
     print_header "Deployment Complete!"
-    
+
+    if [[ "$INIT_WORLD" == false ]]; then
+        print_msg "$RED" "⚠️  WARNING: World data was NOT initialized!"
+        print_msg "$RED" "⚠️  The server will NOT start without world files!"
+        print_msg "$YELLOW" "You must either:"
+        echo "  1. Re-run with: ./scripts/deploy.sh --init-world"
+        echo "  2. OR provide your own custom world files in lib/world/"
+        echo
+    fi
+
     print_msg "$GREEN" "LuminariMUD has been successfully deployed!"
     echo
     print_msg "$YELLOW" "Next steps:"
@@ -769,7 +780,7 @@ show_final_instructions() {
     echo "      ./autorun.sh status   - Check server status"
     echo "      ./autorun.sh stop     - Stop the server"
     echo
-    
+
     if [[ -n "$DB_PASS" ]]; then
         print_msg "$RED" "IMPORTANT: Save your database password: $DB_PASS"
     fi
@@ -788,14 +799,17 @@ Options:
     -d, --dev         Development mode (includes debug tools)
     -p, --prod        Production mode (optimized build)
     --skip-deps       Skip dependency installation
-    --skip-db         Skip database setup
-    --init-world      Initialize minimal world data files
-    
+    --skip-db         Skip database setup (NOT RECOMMENDED - database is REQUIRED)
+    --init-world      Initialize minimal world data (enabled by default)
+    --no-init-world   Skip world initialization (only if you have custom world files)
+
+NOTE: World initialization is ON by default. The server requires world data to start.
+
 Examples:
-    $0                # Interactive setup
-    $0 --auto         # Automated setup with defaults
-    $0 --dev          # Development setup with debug tools
-    $0 --prod         # Production optimized build
+    $0                            # RECOMMENDED: Full interactive setup (includes world init)
+    $0 --auto                     # Automated setup with defaults
+    $0 --dev                      # Development build with debug tools
+    $0 --prod                     # Production optimized build
     
 For more information, see: docs/guides/SETUP_AND_BUILD_GUIDE.md
 EOF
@@ -830,6 +844,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --init-world)
             INIT_WORLD=true
+            shift
+            ;;
+        --no-init-world)
+            INIT_WORLD=false
             shift
             ;;
         *)
