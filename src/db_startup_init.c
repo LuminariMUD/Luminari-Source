@@ -53,7 +53,7 @@ void initialize_missing_tables(void)
     /* Check and initialize individual table systems */
     
     /* Core player tables */
-    if (!table_exists("player_data")) {
+    if (!table_exists("player_data") || !table_exists("pet_data")) {
         log("Initializing core player tables...");
         init_core_player_tables();
         log("Core player tables initialized");
