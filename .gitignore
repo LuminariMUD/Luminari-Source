@@ -19,6 +19,9 @@ depend
 *.lo
 *.slo
 
+# Exception: Keep minimal world .obj files (needed for deployment)
+!lib/world/minimal/*.obj
+
 # Precompiled Headers
 *.gch
 *.pch
@@ -286,6 +289,10 @@ lib/world/qst/*.qst
 lib/world/*/index
 lib/world/*/index.mini
 lib/world/*/index.backup
+
+# EXCEPTION: Keep minimal world files (required for deployment)
+!lib/world/minimal/
+!lib/world/minimal/*
 
 ####################
 # Text Files (In-Game Edited)
