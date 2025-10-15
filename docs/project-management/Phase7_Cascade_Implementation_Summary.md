@@ -135,7 +135,7 @@ This implementation provides the foundation for:
 ## Migration Instructions
 
 1. **Backup Database:** Always backup before migration
-2. **Run Migration:** Execute `lib/phase7_cascade_migration.sql`
+2. **Run Migration:** Execute `db_init_system wilderness`
 3. **Restart MUD:** Restart to initialize new cascade system
 4. **Test Commands:** Verify `survey ecosystem` and `survey cascade` work
 5. **Monitor Logs:** Check for cascade effect logging in game logs

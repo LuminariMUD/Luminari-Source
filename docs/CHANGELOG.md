@@ -1,5 +1,22 @@
 # Changelog
 
+# [Unreleased] - October 10, 2025
+
+### Minimal World Bootstrap & Database Hardening
+
+#### Added
+- **Starter area documentation** (`docs/world/STARTER_AREA.md`) covering the minimal three-room loop aligned with start VNUMs.
+- **`pet_data` schema creation** in the bootstrap initializer so fresh databases persist companion stats.
+
+#### Changed
+- Replaced the stub world definition with a sorted, four-room minimal world (`lib/world/(minimal|wld)/0.wld`) including a defined `#0` fallback.
+- Widened the minimal zone range to `0–3099` so start rooms resolve cleanly on boot.
+- MSDP room updates now guard against invalid room indices to avoid formatting crashes during login/movement.
+
+#### Fixed
+- Movement and MSDP segfaults caused by empty start rooms and invalid wilderness lookups.
+- Repeated pet load/save SQL warnings by provisioning the missing `pet_data` table during setup.
+
 ## [Unreleased] - August 28, 2025
 
 ### Deployment System - Complete Overhaul (100% Complete)
@@ -158,4 +175,3 @@
 - Performance optimization
 - Unit test suite creation
 - Integration testing with live gameplay
-

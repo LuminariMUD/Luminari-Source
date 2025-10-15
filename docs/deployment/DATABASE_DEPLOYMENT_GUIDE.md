@@ -6,18 +6,23 @@
 The easiest way to set up the database is using the automated deployment script:
 
 ```bash
-# Full setup including database
-./scripts/deploy.sh --init-world
+# Full setup including database (RECOMMENDED)
+./scripts/deploy.sh
 
-# Skip database if you want to configure it manually
-./scripts/deploy.sh --quick --skip-db --init-world
+# Skip database setup (NOT RECOMMENDED - you will need to configure manually)
+./scripts/deploy.sh --skip-db
 ```
 
+**Note:** World initialization is enabled by default. The server requires both database and world data to function properly.
+
 The deployment script automatically:
-- Creates the database and user
-- Sets up all required tables
-- Loads schema files
-- Configures proper permissions
+- Creates the database and user (prompts for MariaDB root password)
+- Executes the in-engine database initializer so every wilderness/resource table exists—no external SQL files required
+- Applies fresh credentials to `lib/mysql_config` (mode 600)
+- Sets up all required permissions
+- Seeds required lookup tables such as `path_types` so wilderness paths display correctly on first boot
+
+You can re-run the script at any time; it recreates credentials and reimports the schema without dropping existing data.
 
 ## Overview
 This deployment guide covers database setup for:
@@ -29,33 +34,33 @@ This deployment guide covers database setup for:
 - **Material subtypes system** for detailed resource varieties
 
 ## Prerequisites
-- MySQL 5.7+ or MariaDB 10.2+
+- MySQL 5.7+ or MariaDB 10.2+ (REQUIRED)
 - Database user with CREATE, INSERT, UPDATE, DELETE privileges
 - Existing Luminari MUD database (or use deploy.sh to create one)
+- World data files (use `--init-world` flag or provide custom world)
 
-**Note**: The MUD now supports graceful degradation without MySQL - it will run without database features if MySQL is not available.
+**CRITICAL REQUIREMENTS**:
+1. **Database**: REQUIRED for LuminariMUD to function properly. Many core features including player persistence, wilderness systems, resource management, and world state depend on the database.
+2. **World Data**: REQUIRED for the server to start. Use `--init-world` flag or provide your own custom world files.
 
 ## Installation Steps
 
-### 1. Update Database Name
-Edit the SQL file and change the database name to match your setup:
-```sql
-USE your_database_name_here;
+### 1. Initialize via Admin Command
+- Start `./bin/circle -d lib` and log in as an implementor (or use the staff console).
+- Run `database init` to execute the full initializer. To refresh only the wilderness stack you can use targeted commands such as:
+
+```
+db_init_system wilderness   # Resource depletion, conservation, regional effects
+db_init_system region       # Spatial tables, triggers, and indexes
+db_init_system vessels      # Ship persistence tables and procedures
+db_init_system pubsub       # Messaging queues (if you skipped them earlier)
 ```
 
-### 2. Run Deployment Script
-```bash
-mysql -u your_username -p your_database_name < lib/dynamic_descriptions_deployment.sql
-```
+### 2. Verify Installation
+- Inside the MUD use `database verify` to run the integrity checks, or
+- From MariaDB run sanity queries such as `SHOW TABLES LIKE 'resource_%';` and `SELECT COUNT(*) FROM resource_types;`
 
-### 3. Verify Installation
-The script will display a summary at completion showing:
-- Number of resource types created (10)
-- Number of ecological relationships (15)
-- Number of regional effects (6)
-- List of all created tables
-
-### 4. Enable in Code
+### 3. Enable in Code
 Make sure your `src/campaign.h` includes:
 ```c
 #define ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS
@@ -79,6 +84,11 @@ Make sure your `src/campaign.h` includes:
 - `region_effects` - Available effect types
 - `region_effect_assignments` - Which regions have which effects
 
+### Spatial Path Network
+- `path_data` - Path definitions with linestring geometry
+- `path_index` - Spatial index supporting path queries
+- `path_types` - Glyph definitions and metadata for each path type (auto-seeded at startup)
+
 ### Weather & Descriptions
 - `weather_cache` - Performance optimization for weather
 - `room_description_settings` - Per-room customization options
@@ -87,6 +97,10 @@ Make sure your `src/campaign.h` includes:
 - `material_categories` - Categories within resource types
 - `material_subtypes` - Specific materials (e.g., "oak wood", "iron ore")
 - `material_qualities` - Quality levels (poor, common, rare, etc.)
+
+### Companion & Pet Data
+- `pet_data` - Persists charmed companions and summons for player accounts (stats, descriptions, HP)
+- `pet_save_objs` - Stores equipment for saved pets tied to `pet_data` rows
 
 ### Analytics & Performance
 - `ecosystem_analysis` - View for ecosystem health analysis

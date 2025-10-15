@@ -1,10 +1,12 @@
 # Deployment Fix Summary
 
-**Date:** September 3, 2025  
-**Issue:** Setup script was broken - didn't create proper index files  
-**Status:** ATTEMPTED FIX - NOT VERIFIED
+> **⚠️ OBSOLETE DOCUMENT**: This document describes historical fixes to `setup.sh` which is no longer the recommended deployment method. Use `./scripts/deploy.sh` instead. This file is kept for historical reference only.
 
-## The Problem
+**Date:** September 3, 2025
+**Issue:** Setup script was broken - didn't create proper index files
+**Status:** OBSOLETE - Use deploy.sh instead
+
+## The Problem (Historical)
 
 The `setup.sh` script had broken logic for copying world files:
 1. Tried to copy non-existent `index.zon`, `index.wld`, etc. files from `lib/world/minimal/`

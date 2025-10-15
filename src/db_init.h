@@ -42,6 +42,9 @@ void init_crafting_system_tables(void);
 /* Initialize housing system tables */
 void init_housing_system_tables(void);
 
+/* Initialize vessel system tables */
+void init_vessel_system_tables(void);
+
 /* Initialize help system tables */
 void init_help_system_tables(void);
 
@@ -63,6 +66,9 @@ void populate_material_qualities_data(void);
 void populate_region_effects_data(void);
 void populate_ai_config_data(void);
 void populate_region_system_data(void);
+void populate_ship_room_templates_data(void);
+void ensure_path_types_reference(void);
+void ensure_player_data_account_link(void);
 
 /* ===== DATABASE VERIFICATION FUNCTIONS ===== */
 
@@ -88,6 +94,7 @@ int verify_ai_service_tables(void);
 int verify_crafting_system_tables(void);
 int verify_housing_system_tables(void);
 int verify_help_system_tables(void);
+int verify_vessel_system_tables(void);
 
 /* ===== ADMIN COMMANDS ===== */
 

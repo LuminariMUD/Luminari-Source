@@ -31,8 +31,9 @@ struct char_data;
 #define TALENT_ARTISAN_TOUCH       7  /* +5% quality tier roll */
 #define TALENT_BULK_SPECIALIST     8  /* +10% quantity on bulk contracts */
 #define TALENT_ALCHEMICAL_FOCUS    9  /* +5% potion potency (placeholder) */
+#define TALENT_SCAVENGER           10
 
-#define TALENT_MAX                10  /* one past highest */
+#define TALENT_MAX                11  /* one past highest */
 
 /* Data definition structure for each talent */
 struct talent_info {

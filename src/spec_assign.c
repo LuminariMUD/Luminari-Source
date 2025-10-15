@@ -90,9 +90,6 @@ void assign_mobiles(void)
 
   // Luskan Misc.
   ASSIGNMOB(3077, huntsmaster);
-  ASSIGNMOB(3286, buymolds);
-  ASSIGNMOB(3287, buymolds);
-  ASSIGNMOB(3288, buymolds);
   ASSIGNMOB(3044, crafting_quest);
 
   // Silverymoon

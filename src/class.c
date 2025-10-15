@@ -946,9 +946,15 @@ bool display_region_info(struct char_data *ch, int region)
 
   char buf[MAX_STRING_LENGTH];
 
+  int region_language = get_region_language(region);
+#if defined(CAMPAIGN_FR)
+  region_language -= SKILL_LANG_LOW;
+#endif
+  snprintf(buf, sizeof(buf), "%s", languages[region_language]);
+
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   send_to_char(ch, "\tc%s\r\n", regions[region]);
-  send_to_char(ch, "\tcLanguage: \tn%s\r\n", languages[get_region_language(region)]);
+  send_to_char(ch, "\tcLanguage: \tn%s\r\n", buf);
   send_to_char(ch, "\tcDescription: \tn\r\n");
   snprintf(buf, sizeof(buf), "%s", get_region_info(region));
   send_to_char(ch, "%s", strfrmt(buf, 80, 1, FALSE, FALSE, FALSE));
@@ -2371,6 +2377,38 @@ int level_feats[][LEVEL_FEATS] = {
 
 };
 
+static struct obj_data *newbie_create_obj(struct char_data *ch, obj_vnum vnum, bool adjust_size)
+{
+  struct obj_data *obj = read_object(vnum, VIRTUAL);
+
+  if (!obj)
+  {
+    log("SYSERR: newbieEquipment could not load object vnum %d", vnum);
+    return NULL;
+  }
+
+  if (adjust_size)
+    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+
+  return obj;
+}
+
+static void newbie_give_obj(struct char_data *ch, obj_vnum vnum, bool adjust_size)
+{
+  struct obj_data *obj = newbie_create_obj(ch, vnum, adjust_size);
+
+  if (obj)
+    obj_to_char(obj, ch);
+}
+
+static void newbie_equip_obj(struct char_data *ch, obj_vnum vnum, int wear_pos, bool adjust_size)
+{
+  struct obj_data *obj = newbie_create_obj(ch, vnum, adjust_size);
+
+  if (obj)
+    equip_char(ch, obj, wear_pos);
+}
+
 /* function that gives chars starting gear */
 void newbieEquipment(struct char_data *ch)
 {
@@ -2405,38 +2443,37 @@ void newbieEquipment(struct char_data *ch)
   int x;
   for (x = 0; objNums[x] != -1; x++)
   {
-    obj = read_object(objNums[x], VIRTUAL);
-    if (obj)
-    {
+    obj = newbie_create_obj(ch, objNums[x], objNums[x] == NOOB_BP);
+    if (!obj)
+      continue;
 
-      /* backpack first please! */
-      if (objNums[x] == NOOB_BP)
-      {
-        bp = obj;
-        GET_OBJ_SIZE(bp) = GET_SIZE(ch);
-        obj_to_char(bp, ch);
-      }
-      else if (bp)
-      { /* we should have a bp already! */
-        obj_to_obj(obj, bp);
-      }
-      else
-      { /* problem */
-        obj_to_char(bp, ch);
-      }
+    if (objNums[x] == NOOB_BP)
+    {
+      bp = obj;
+      obj_to_char(bp, ch);
+    }
+    else if (bp)
+    {
+      obj_to_obj(obj, bp);
+    }
+    else
+    {
+      obj_to_char(obj, ch);
     }
   }
 
   /* starting quiver/arrows */
-  quiver = read_object(NOOB_QUIVER, VIRTUAL);
+  quiver = newbie_create_obj(ch, NOOB_QUIVER, FALSE);
   if (quiver)
     obj_to_char(quiver, ch);
 
   for (x = 0; x < NUM_NOOB_ARROWS; x++)
   {
-    obj = read_object(NOOB_ARROW, VIRTUAL);
+    obj = newbie_create_obj(ch, NOOB_ARROW, FALSE);
     if (quiver && obj)
       obj_to_obj(obj, quiver);
+    else if (obj)
+      obj_to_char(obj, ch);
   }
   /* end items everyone gets */
 #elif defined(USE_VIRTUAL_BAGS_ONLY)
@@ -2445,59 +2482,50 @@ void newbieEquipment(struct char_data *ch)
     int x;
     for (x = 0; x < 5; x++)
     {
-      obj = read_object(NOOB_RATIONS, VIRTUAL);
-      obj_to_char(obj, ch);
+      newbie_give_obj(ch, NOOB_RATIONS, FALSE);
     }
     for (x = 0; x < 3; x++)
     {
-      obj = read_object(NOOB_TORCH, VIRTUAL);
-      obj_to_char(obj, ch);
+      newbie_give_obj(ch, NOOB_TORCH, FALSE);
     }
-    obj = read_object(NOOB_WATERSKIN, VIRTUAL);
-    obj_to_char(obj, ch);
-    obj = read_object(NOOB_GEAR_MAP_ONE, VIRTUAL);
-    obj_to_char(obj, ch);
-    obj = read_object(NOOB_GEAR_MAP_TWO, VIRTUAL);
-    obj_to_char(obj, ch);
+    newbie_give_obj(ch, NOOB_WATERSKIN, FALSE);
 #endif
 
+#endif
+
+#if defined(NOOB_GEAR_MAP_ONE)
+    newbie_give_obj(ch, NOOB_GEAR_MAP_ONE, FALSE);
+#endif
+#if defined(NOOB_GEAR_MAP_TWO)
+    newbie_give_obj(ch, NOOB_GEAR_MAP_TWO, FALSE);
 #endif
 
 #if defined(NOOB_CRAFTING_TAILORING)
-  obj = read_object(NOOB_CRAFTING_TAILORING, VIRTUAL);
-  equip_char(ch, obj, WEAR_CRAFT_NEEDLE);
+  newbie_equip_obj(ch, NOOB_CRAFTING_TAILORING, WEAR_CRAFT_NEEDLE, FALSE);
 #endif
 #if defined(NOOB_CRAFTING_ALCHEMY)
-  obj = read_object(NOOB_CRAFTING_ALCHEMY, VIRTUAL);
-  equip_char(ch, obj, WEAR_CRAFT_ALCHEMY);
+  newbie_equip_obj(ch, NOOB_CRAFTING_ALCHEMY, WEAR_CRAFT_ALCHEMY, FALSE);
 #endif
 #if defined(NOOB_CRAFTING_ARMORSMITHING)
-  obj = read_object(NOOB_CRAFTING_ARMORSMITHING, VIRTUAL);
-  equip_char(ch, obj, WEAR_CRAFT_ARMOR_HAMMER);
+  newbie_equip_obj(ch, NOOB_CRAFTING_ARMORSMITHING, WEAR_CRAFT_ARMOR_HAMMER, FALSE);
 #endif
 #if defined(NOOB_CRAFTING_WEAPONSMITHING)
-  obj = read_object(NOOB_CRAFTING_WEAPONSMITHING, VIRTUAL);
-  equip_char(ch, obj, WEAR_CRAFT_WEAPON_HAMMER);
+  newbie_equip_obj(ch, NOOB_CRAFTING_WEAPONSMITHING, WEAR_CRAFT_WEAPON_HAMMER, FALSE);
 #endif
 #if defined(NOOB_CRAFTING_JEWELCRAFTING)
-  obj = read_object(NOOB_CRAFTING_JEWELCRAFTING, VIRTUAL);
-  equip_char(ch, obj, WEAR_CRAFT_JEWEL_PLIERS);
+  newbie_equip_obj(ch, NOOB_CRAFTING_JEWELCRAFTING, WEAR_CRAFT_JEWEL_PLIERS, FALSE);
 #endif
 #if defined(NOOB_HARVESTING_MINING)
-  obj = read_object(NOOB_HARVESTING_MINING, VIRTUAL);
-  equip_char(ch, obj, WEAR_CRAFT_PICKAXE);
+  newbie_equip_obj(ch, NOOB_HARVESTING_MINING, WEAR_CRAFT_PICKAXE, FALSE);
 #endif
 #if defined(NOOB_HARVESTING_HUNTING)
-  obj = read_object(NOOB_HARVESTING_HUNTING, VIRTUAL);
-  equip_char(ch, obj, WEAR_CRAFT_KNIFE);
+  newbie_equip_obj(ch, NOOB_HARVESTING_HUNTING, WEAR_CRAFT_KNIFE, FALSE);
 #endif
 #if defined(NOOB_HARVESTING_FORESTRY)
-  obj = read_object(NOOB_HARVESTING_FORESTRY, VIRTUAL);
-  equip_char(ch, obj, WEAR_CRAFT_AXE);
+  newbie_equip_obj(ch, NOOB_HARVESTING_FORESTRY, WEAR_CRAFT_AXE, FALSE);
 #endif
 #if defined(NOOB_HARVESTING_GATHERING)
-  obj = read_object(NOOB_HARVESTING_GATHERING, VIRTUAL);
-  equip_char(ch, obj, WEAR_CRAFT_SICKLE);
+  newbie_equip_obj(ch, NOOB_HARVESTING_GATHERING, WEAR_CRAFT_SICKLE, FALSE);
 #endif
 
   /* race specific goodies */
@@ -2505,39 +2533,37 @@ void newbieEquipment(struct char_data *ch)
   {
   case RACE_DWARF:
   case RACE_DUERGAR:
-    obj = read_object(NOOB_DWARF_WARAXE, VIRTUAL);
-    obj_to_char(obj, ch); // dwarven waraxe
+    newbie_give_obj(ch, NOOB_DWARF_WARAXE, FALSE); // dwarven waraxe
     break;
 #if defined(RACE_ALLOW_DROW)    
   case RACE_DROW:
 #if defined(USE_CONTAINER_OBJECTS)
-    obj = read_object(NOOB_DROW_XBOW, VIRTUAL);
-    obj_to_char(obj, ch); // drow hand xbow
+    newbie_give_obj(ch, NOOB_DROW_XBOW, FALSE); // drow hand xbow
 
     /* pouch and bolts for xbow */
-    pouch = read_object(NOOB_DROW_POUCH, VIRTUAL);
+    pouch = newbie_create_obj(ch, NOOB_DROW_POUCH, FALSE);
     if (pouch)
       obj_to_char(pouch, ch);
 
     for (x = 0; x < NUM_NOOB_DROW_BOLTS; x++)
     {
-      obj = read_object(NOOB_DROW_BOLT, VIRTUAL);
+      obj = newbie_create_obj(ch, NOOB_DROW_BOLT, FALSE);
       if (pouch && obj)
         obj_to_obj(obj, pouch);
+      else if (obj)
+        obj_to_char(obj, ch);
     }
 #endif
     break;
 #endif
 #if defined(RACE_ALLOW_KENDER)
   case DL_RACE_KENDER:
-    obj = read_object(NOOB_HOOPAK, VIRTUAL);
-    obj_to_char(obj, ch); // Kender hoopak
+    newbie_give_obj(ch, NOOB_HOOPAK, FALSE); // Kender hoopak
     break;
 #endif
 #if defined(RACE_ALLOW_VAMPIRE)
   case RACE_VAMPIRE:
-    obj = read_object(VAMPIRE_CLOAK_OBJ_VNUM, VIRTUAL);
-    obj_to_char(obj, ch); // vampire cloak
+    newbie_give_obj(ch, VAMPIRE_CLOAK_OBJ_VNUM, FALSE); // vampire cloak
     break;
 #endif
   default:
@@ -2552,560 +2578,232 @@ void newbieEquipment(struct char_data *ch)
   case CLASS_BLACKGUARD:
   case CLASS_CLERIC:
   case CLASS_INQUISITOR:
-    obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather sleeves
-
-    obj = read_object(NOOB_LEATHER_LEGGINGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather leggings
-
-    obj = read_object(NOOB_IRON_MACE, VIRTUAL);
-    obj_to_char(obj, ch); // slender iron mace
-
-    obj = read_object(NOOB_IRON_SHIELD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // shield
-
-    obj = read_object(NOOB_SCALE_MAIL, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // scale mail
-
+    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);   // leather sleeves
+    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE);  // leather leggings
+    newbie_give_obj(ch, NOOB_IRON_MACE, FALSE);        // slender iron mace
+    newbie_give_obj(ch, NOOB_IRON_SHIELD, TRUE);       // shield
+    newbie_give_obj(ch, NOOB_SCALE_MAIL, TRUE);        // scale mail
     break;
 
   case CLASS_DRUID:
-
-    obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather sleeves
-
-    obj = read_object(NOOB_LEATHER_LEGGINGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather leggings
-
-    obj = read_object(NOOB_STEEL_SCIMITAR, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // steel scimitar
-
-    obj = read_object(NOOB_WOOD_SHIELD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // shield (wooden))
-
-    obj = read_object(NOOB_STUD_LEATHER, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // studded leather
-
+    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);   // leather sleeves
+    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE);  // leather leggings
+    newbie_give_obj(ch, NOOB_STEEL_SCIMITAR, TRUE);    // steel scimitar
+    newbie_give_obj(ch, NOOB_WOOD_SHIELD, TRUE);       // shield (wooden)
+    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);      // studded leather
     break;
 
   case CLASS_BERSERKER:
   case CLASS_WARRIOR:
-    obj = read_object(NOOB_SCALE_MAIL, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // scale mail
+    newbie_give_obj(ch, NOOB_SCALE_MAIL, TRUE); // scale mail
     /*fallthrough!*/
   case CLASS_RANGER:
 
-    obj = read_object(NOOB_STUD_LEATHER, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // studded leather
-
-    obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather sleeves
-
-    obj = read_object(NOOB_LEATHER_LEGGINGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather leggings
-
-    obj = read_object(NOOB_LONG_SWORD, VIRTUAL);
-    obj_to_char(obj, ch); // long sword
-
-    obj = read_object(NOOB_IRON_SHIELD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // shield
+    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);      // studded leather
+    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);   // leather sleeves
+    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE);  // leather leggings
+    newbie_give_obj(ch, NOOB_LONG_SWORD, FALSE);       // long sword
+    newbie_give_obj(ch, NOOB_IRON_SHIELD, TRUE);       // shield
 
     break;
 
   case CLASS_MONK:
-    obj = read_object(NOOB_CLOTH_ROBES, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // cloth robes
+    newbie_give_obj(ch, NOOB_CLOTH_ROBES, TRUE); // cloth robes
 
     break;
 
   case CLASS_BARD:
     /* instruments */
-    obj = read_object(LYRE, VIRTUAL);
-    obj_to_char(obj, ch);
-    obj = read_object(FLUTE, VIRTUAL);
-    obj_to_char(obj, ch);
-    obj = read_object(DRUM, VIRTUAL);
-    obj_to_char(obj, ch);
-    obj = read_object(HORN, VIRTUAL);
-    obj_to_char(obj, ch);
-    obj = read_object(HARP, VIRTUAL);
-    obj_to_char(obj, ch);
-    obj = read_object(MANDOLIN, VIRTUAL);
-    obj_to_char(obj, ch);
+    newbie_give_obj(ch, LYRE, FALSE);
+    newbie_give_obj(ch, FLUTE, FALSE);
+    newbie_give_obj(ch, DRUM, FALSE);
+    newbie_give_obj(ch, HORN, FALSE);
+    newbie_give_obj(ch, HARP, FALSE);
+    newbie_give_obj(ch, MANDOLIN, FALSE);
 
     /*FALL THROUGH*/
   case CLASS_ROGUE:
-    obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather sleeves
-
-    obj = read_object(NOOB_LEATHER_LEGGINGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather leggings
-
-    obj = read_object(NOOB_STUD_LEATHER, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // studded leather
-
-    obj = read_object(NOOB_DAGGER, VIRTUAL);
-    obj_to_char(obj, ch); // dagger
-
-    obj = read_object(NOOB_DAGGER, VIRTUAL);
-    obj_to_char(obj, ch); // dagger
+    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);   // leather sleeves
+    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE);  // leather leggings
+    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);      // studded leather
+    newbie_give_obj(ch, NOOB_DAGGER, FALSE);           // dagger
+    newbie_give_obj(ch, NOOB_DAGGER, FALSE);           // dagger
 
     break;
 
   case CLASS_WIZARD:
-    obj_to_char(read_object(NOOB_WIZ_NOTE, VIRTUAL), ch);      // wizard note
-    obj_to_char(read_object(NOOB_WIZ_SPELLBOOK, VIRTUAL), ch); // spellbook
-
+    newbie_give_obj(ch, NOOB_WIZ_NOTE, FALSE);      // wizard note
+    newbie_give_obj(ch, NOOB_WIZ_SPELLBOOK, FALSE); // spellbook
   case CLASS_ALCHEMIST:
   case CLASS_SUMMONER:
 
-    obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather sleeves
-
-    obj = read_object(NOOB_LEATHER_LEGGINGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather leggings
-
-    obj = read_object(NOOB_IRON_MACE, VIRTUAL);
-    obj_to_char(obj, ch); // slender iron mace
-
-    obj = read_object(NOOB_STUD_LEATHER, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // studded leather
+    newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);   // leather sleeves
+    newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE);  // leather leggings
+    newbie_give_obj(ch, NOOB_IRON_MACE, FALSE);        // slender iron mace
+    newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);      // studded leather
 
     /* switch fallthrough */
   case CLASS_SORCERER:
   case CLASS_PSIONICIST:
   case CLASS_WARLOCK:
-    obj = read_object(NOOB_CLOTH_SLEEVES, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // cloth sleeves
-
-    obj = read_object(NOOB_CLOTH_PANTS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // cloth pants
-
-    obj = read_object(NOOB_DAGGER, VIRTUAL);
-    // GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // dagger
-
-    obj = read_object(NOOB_CLOTH_ROBES, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // cloth robes
+    newbie_give_obj(ch, NOOB_CLOTH_SLEEVES, TRUE); // cloth sleeves
+    newbie_give_obj(ch, NOOB_CLOTH_PANTS, TRUE);   // cloth pants
+    newbie_give_obj(ch, NOOB_DAGGER, FALSE);       // dagger
+    newbie_give_obj(ch, NOOB_CLOTH_ROBES, TRUE);   // cloth robes
 
     break;
   #elif defined(USE_NEW_NOOB_GEAR)
 
   case CLASS_MONK:
-    obj = read_object(NOOB_GEAR_MONK_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_MONK_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_MONK_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_MONK_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_MONK_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_MONK_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_MONK_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_MONK_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_MONK_HEAD, WEAR_HEAD, TRUE);      // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_MONK_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_PALADIN:
-    obj = read_object(NOOB_GEAR_PALAD_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_PALAD_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_PALAD_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_PALAD_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_PALAD_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
-
-    obj = read_object(NOOB_GEAR_PALAD_SHIELD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_SHIELD); // shield
+    newbie_equip_obj(ch, NOOB_GEAR_PALAD_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_PALAD_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_PALAD_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_PALAD_HEAD, WEAR_HEAD, TRUE);      // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_PALAD_WEAPON, WEAR_WIELD_1, TRUE); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_PALAD_SHIELD, WEAR_SHIELD, TRUE);  // shield
     break;
 
   case CLASS_BLACKGUARD:
-    obj = read_object(NOOB_GEAR_BLKG_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_BLKG_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_BLKG_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_BLKG_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_BLKG_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
-
-    obj = read_object(NOOB_GEAR_BLKG_SHIELD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_SHIELD); // shield
+    newbie_equip_obj(ch, NOOB_GEAR_BLKG_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_BLKG_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_BLKG_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_BLKG_HEAD, WEAR_HEAD, TRUE);      // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_BLKG_WEAPON, WEAR_WIELD_1, TRUE); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_BLKG_SHIELD, WEAR_SHIELD, TRUE);  // shield
     break;
 
   case CLASS_CLERIC:
-    obj = read_object(NOOB_GEAR_CLER_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_CLER_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_CLER_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_CLER_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_CLER_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
-
-    obj = read_object(NOOB_GEAR_CLER_SHIELD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_SHIELD); // shield
+    newbie_equip_obj(ch, NOOB_GEAR_CLER_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_CLER_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_CLER_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_CLER_HEAD, WEAR_HEAD, TRUE);      // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_CLER_WEAPON, WEAR_WIELD_1, TRUE); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_CLER_SHIELD, WEAR_SHIELD, TRUE);  // shield
     break;
 
   case CLASS_INQUISITOR:
-    obj = read_object(NOOB_GEAR_INQUISITOR_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_INQUISITOR_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_INQUISITOR_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_INQUISITOR_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_INQUISITOR_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_ARMS, WEAR_ARMS, TRUE);    // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_LEGS, WEAR_LEGS, TRUE);    // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_BODY, WEAR_BODY, TRUE);    // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_HEAD, WEAR_HEAD, TRUE);    // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_DRUID:
-    obj = read_object(NOOB_GEAR_DRUID_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_DRUID_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_DRUID_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_DRUID_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_DRUID_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_DRUID_ARMS, WEAR_ARMS, TRUE);      // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_DRUID_LEGS, WEAR_LEGS, TRUE);      // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_DRUID_BODY, WEAR_BODY, TRUE);      // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_DRUID_HEAD, WEAR_HEAD, TRUE);      // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_DRUID_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_BERSERKER:
-    obj = read_object(NOOB_GEAR_BERSER_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_BERSER_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_BERSER_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_BERSER_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_BERSER_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch) + 1; // two handed
-    equip_char(ch, obj, WEAR_WIELD_2H); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_BERSER_ARMS, WEAR_ARMS, TRUE);    // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_BERSER_LEGS, WEAR_LEGS, TRUE);    // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_BERSER_BODY, WEAR_BODY, TRUE);    // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_BERSER_HEAD, WEAR_HEAD, TRUE);    // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_BERSER_WEAPON, WEAR_WIELD_2H, TRUE); // weapon
     break;
 
   case CLASS_WARRIOR:
-    obj = read_object(NOOB_GEAR_FIGHT_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_FIGHT_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_FIGHT_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_FIGHT_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_FIGHT_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch) + 1; // two handed
-    equip_char(ch, obj, WEAR_WIELD_2H); // weapon
-
-    obj = read_object(NOOB_GEAR_FIGHT_SHIELD, VIRTUAL);
-    obj_to_char(obj, ch); // shield
-
-    obj = read_object(NOOB_GEAR_FIGHT_WEAPON2, VIRTUAL);
-    obj_to_char(obj, ch); // one-handed weapon
+    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_ARMS, WEAR_ARMS, TRUE);          // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_LEGS, WEAR_LEGS, TRUE);          // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_BODY, WEAR_BODY, TRUE);          // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_HEAD, WEAR_HEAD, TRUE);          // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_WEAPON, WEAR_WIELD_2H, TRUE);    // weapon
+    newbie_give_obj(ch, NOOB_GEAR_FIGHT_SHIELD, FALSE);                   // shield spare
+    newbie_give_obj(ch, NOOB_GEAR_FIGHT_WEAPON2, FALSE);                  // one-handed weapon
     break;
 
   case CLASS_RANGER:
-    obj = read_object(NOOB_GEAR_RANGER_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_RANGER_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_RANGER_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_RANGER_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_RANGER_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_RANGER_ARMS, WEAR_ARMS, TRUE);     // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_RANGER_LEGS, WEAR_LEGS, TRUE);     // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_RANGER_BODY, WEAR_BODY, TRUE);     // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_RANGER_HEAD, WEAR_HEAD, TRUE);     // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_RANGER_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_BARD:
-    obj = read_object(NOOB_GEAR_BARD_INSTRUMENT, VIRTUAL);
-    obj_to_char(obj, ch); // instrument
+    newbie_give_obj(ch, NOOB_GEAR_BARD_INSTRUMENT, FALSE); // instrument
 
-    obj = read_object(NOOB_GEAR_BARD_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather sleeves
+    newbie_give_obj(ch, NOOB_GEAR_BARD_ARMS, TRUE);        // leather sleeves
 
-    obj = read_object(NOOB_GEAR_BARD_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // leather leggings
+    newbie_give_obj(ch, NOOB_GEAR_BARD_LEGS, TRUE);        // leather leggings
 
-    obj = read_object(NOOB_GEAR_BARD_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // studded leather
+    newbie_give_obj(ch, NOOB_GEAR_BARD_BODY, TRUE);        // studded leather
 
-    obj = read_object(NOOB_GEAR_BARD_WEAPON, VIRTUAL);
-    obj_to_char(obj, ch); // dagger
+    newbie_give_obj(ch, NOOB_GEAR_BARD_WEAPON, FALSE);     // dagger
     break;
 
   case CLASS_ROGUE:
-    obj = read_object(NOOB_GEAR_ROG_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_ROG_ARMS, WEAR_ARMS, TRUE); // arms armor
 
-    obj = read_object(NOOB_GEAR_ROG_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_ROG_LEGS, WEAR_LEGS, TRUE); // legs armor
 
-    obj = read_object(NOOB_GEAR_ROG_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_ROG_BODY, WEAR_BODY, TRUE); // body armor
 
-    obj = read_object(NOOB_GEAR_ROG_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_ROG_HEAD, WEAR_HEAD, TRUE); // head armor
 
-    obj = read_object(NOOB_GEAR_ROG_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_ROG_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_WIZARD:
-    obj_to_char(read_object(NOOB_WIZ_NOTE, VIRTUAL), ch);      // wizard note
-    obj_to_char(read_object(NOOB_WIZ_SPELLBOOK, VIRTUAL), ch); // spellbook
-    obj = read_object(NOOB_GEAR_WIZ_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_WIZ_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_WIZ_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_WIZ_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_WIZ_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
+    newbie_give_obj(ch, NOOB_WIZ_NOTE, FALSE);      // wizard note
+    newbie_give_obj(ch, NOOB_WIZ_SPELLBOOK, FALSE); // spellbook
+    newbie_equip_obj(ch, NOOB_GEAR_WIZ_ARMS, WEAR_ARMS, TRUE);     // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_WIZ_LEGS, WEAR_LEGS, TRUE);     // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_WIZ_BODY, WEAR_BODY, TRUE);     // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_WIZ_HEAD, WEAR_HEAD, TRUE);     // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_WIZ_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_ALCHEMIST:
-    obj = read_object(NOOB_GEAR_ALCHEMIST_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_ALCHEMIST_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_ALCHEMIST_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_ALCHEMIST_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_ALCHEMIST_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_ARMS, WEAR_ARMS, TRUE);    // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_LEGS, WEAR_LEGS, TRUE);    // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_BODY, WEAR_BODY, TRUE);    // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_HEAD, WEAR_HEAD, TRUE);    // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_SUMMONER:
   case CLASS_ARTIFICER:
-    obj = read_object(NOOB_GEAR_SUMMONER_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_SUMMONER_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_SUMMONER_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_SUMMONER_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_SUMMONER_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_ARMS, WEAR_ARMS, TRUE);    // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_LEGS, WEAR_LEGS, TRUE);    // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_BODY, WEAR_BODY, TRUE);    // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_HEAD, WEAR_HEAD, TRUE);    // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_SORCERER:
-    obj = read_object(NOOB_GEAR_SORC_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_SORC_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_SORC_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_SORC_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_SORC_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_SORC_ARMS, WEAR_ARMS, TRUE);     // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_SORC_LEGS, WEAR_LEGS, TRUE);     // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_SORC_BODY, WEAR_BODY, TRUE);     // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_SORC_HEAD, WEAR_HEAD, TRUE);     // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_SORC_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_PSIONICIST:
-    obj = read_object(NOOB_GEAR_PSION_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_PSION_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_PSION_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_PSION_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_PSION_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_PSION_ARMS, WEAR_ARMS, TRUE);     // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_PSION_LEGS, WEAR_LEGS, TRUE);     // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_PSION_BODY, WEAR_BODY, TRUE);     // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_PSION_HEAD, WEAR_HEAD, TRUE);     // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_PSION_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
 
   case CLASS_WARLOCK:
-    obj = read_object(NOOB_GEAR_WARLOCK_ARMS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_ARMS); // arms armor
-
-    obj = read_object(NOOB_GEAR_WARLOCK_LEGS, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_LEGS); // legs armor
-
-    obj = read_object(NOOB_GEAR_WARLOCK_BODY, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_BODY); // body armor
-
-    obj = read_object(NOOB_GEAR_WARLOCK_HEAD, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_HEAD); // head armor
-
-    obj = read_object(NOOB_GEAR_WARLOCK_WEAPON, VIRTUAL);
-    GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    equip_char(ch, obj, WEAR_WIELD_1); // weapon
+    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_ARMS, WEAR_ARMS, TRUE);     // arms armor
+    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_LEGS, WEAR_LEGS, TRUE);     // legs armor
+    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_BODY, WEAR_BODY, TRUE);     // body armor
+    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_HEAD, WEAR_HEAD, TRUE);     // head armor
+    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_WEAPON, WEAR_WIELD_1, TRUE); // weapon
     break;
   #endif
   default:

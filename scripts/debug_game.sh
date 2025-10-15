@@ -1,12 +1,20 @@
 #!/bin/bash
 
-# Check if binary exists
-if [ ! -f "../bin/circle" ]; then
-    echo "ERROR: ../bin/circle not found. Run 'make' first."
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+BIN_PATH="$REPO_ROOT/bin/circle"
+LOG_DIR="$REPO_ROOT/log"
+LOG_FILE="$LOG_DIR/gdb_debug.log"
+
+if [ ! -f "$BIN_PATH" ]; then
+    echo "ERROR: $BIN_PATH not found. Build the project first (try './cbuild.sh')."
     exit 1
 fi
 
-# Set default port if not provided
+mkdir -p "$LOG_DIR"
+
 PORT=${1:-4100}
 
 echo "Starting LuminariMUD in GDB debugger..."
@@ -34,12 +42,20 @@ echo "  show_char <ptr> - Display character info"
 echo "  show_obj <ptr>  - Display object info"
 echo "  show_room <num> - Display room info"
 echo ""
-echo "Log file: log/gdb_debug.log"
+echo "Log file: $LOG_FILE"
 echo ""
 echo "Starting GDB..."
 
-# Create .gdbinit for this session with MUD-specific settings
-cat > .gdbinit_mud << 'EOF'
+GDB_INIT_FILE="$(mktemp "$SCRIPT_DIR/.gdbinit_mud.XXXXXX")"
+GDB_COMMANDS_FILE="$(mktemp "$SCRIPT_DIR/.gdbcommands.XXXXXX")"
+
+cleanup() {
+    rm -f "$GDB_INIT_FILE" "$GDB_COMMANDS_FILE"
+}
+
+trap cleanup EXIT
+
+cat > "$GDB_INIT_FILE" <<'EOF'
 # MUD-specific GDB settings
 define mud_status
     printf "=== MUD Status ===\n"
@@ -110,7 +126,6 @@ define show_room
     end
 end
 
-# Convenience aliases
 define bt_all
     thread apply all bt
 end
@@ -120,7 +135,6 @@ define locals_all
     info args
 end
 
-# Help command
 define mudhelp
     printf "MUD-specific GDB commands:\n"
     printf "  mud_status      - Show shutdown flag and pulse counter\n"
@@ -138,36 +152,31 @@ end
 printf "MUD debugging extensions loaded. Type 'mudhelp' for commands.\n"
 EOF
 
-# Create a more comprehensive GDB command file
-cat > .gdbcommands << 'EOF'
+cat > "$GDB_COMMANDS_FILE" <<EOF
 set pagination off
 set print pretty on
 set print array on
 set print array-indexes on
 set logging enabled on
-set logging file log/gdb_debug.log
+set logging file $LOG_FILE
 set logging overwrite on
 set logging debugredirect on
+cd $REPO_ROOT
 handle SIGPIPE nostop noprint pass
 handle SIGUSR1 nostop noprint pass
 handle SIGUSR2 nostop noprint pass
 break core_dump_real
 break abort
 break __assert_fail
-break exit if $_exitcode != 0
+break exit if \$_exitcode != 0
 set confirm off
 set debuginfod enabled off
 echo \n=== GDB Starting LuminariMUD ===\n
 echo Loading MUD-specific debugging commands...\n
-source .gdbinit_mud
+source $GDB_INIT_FILE
 echo \n
 EOF
 
-# Add port argument to run command
-echo "run -q $PORT" >> .gdbcommands
+echo "run -q $PORT" >> "$GDB_COMMANDS_FILE"
 
-# Run GDB with command file
-gdb -x .gdbcommands ../bin/circle
-
-# Cleanup
-rm -f .gdbinit_mud .gdbcommands
+gdb -x "$GDB_COMMANDS_FILE" "$BIN_PATH"

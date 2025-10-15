@@ -7643,6 +7643,14 @@ void calculate_max_hp(struct char_data *ch, bool display)
   if (display && CONFIG_EXTRA_PLAYER_HP_PER_LEVEL > 0)
     send_to_char(ch, "%-40s = +%d\r\n", "Game Setting 'Extra HP Gains'", GET_LEVEL(ch) * CONFIG_EXTRA_PLAYER_HP_PER_LEVEL);
 
+  // Clamp to minimum 1 HP
+  if (max_hp < 1)
+  {
+    max_hp = 1;
+    if (display)
+      send_to_char(ch, "\r\n\tR%-40s = %d (clamped to minimum)\tn\r\n", "Adjusted Maximum Hit Points", max_hp);
+  }
+
   if (display)
   {
     for (i = 0; i < 80; i++)
