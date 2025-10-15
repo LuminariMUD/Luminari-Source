@@ -6036,6 +6036,7 @@ struct game_data
     int minimap_size;        /**< Default size for mini-map (automap)  */
     int script_players;      /**< Is attaching scripts to players allowed? */
     float min_pop_to_claim;  /**< Minimum popularity percentage required to claim a zone */
+    int use_introduction_system; /**< Use the introduction system for character names? */
 
     char *OK;       /**< When player receives 'Okay.' text.    */
     char *NOPERSON; /**< 'No one by that name here.'   */

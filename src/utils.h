@@ -2446,6 +2446,8 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_SCRIPT_PLAYERS config_info.play.script_players
 /* Zone Claim Options */
 #define CONFIG_MIN_POP_TO_CLAIM config_info.play.min_pop_to_claim
+/* Introduction System */
+#define CONFIG_USE_INTRO_SYSTEM config_info.play.use_introduction_system
 
 /* Crash Saves */
 /** Get free rent setting. */
