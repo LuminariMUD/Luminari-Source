@@ -191,7 +191,6 @@ circle_SOURCES = \
 	src/spells.c \
 	src/staff_events.c \
 	src/study.c \
-	src/talents.c \
 	src/tedit.c \
 	src/templates.c \
 	src/trade.c \
