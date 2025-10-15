@@ -1666,7 +1666,14 @@
 #define CON_CHARACTER_DEITY_CONFIRM 79
 #define CON_CHAR_RP_DECIDE 80
 
-#define NUM_CON_STATES 81
+/* Board system connection states */
+#define CON_BOARD_TITLE 81          /**< Getting title for board post */
+#define CON_BOARD_BODY 82           /**< Getting body for board post (handled by string editor) */
+#define CON_BOARD_POST 83           /**< Board post completion */
+#define CON_BOARD_POST_ABORT 84     /**< Board post aborted */
+#define CON_BEDIT 85                /**< OLC mode - board editor */
+
+#define NUM_CON_STATES 86
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
@@ -5793,6 +5800,11 @@ struct descriptor_data
     struct list_data *events; // event system
 
     struct account_data *account; /**< Account system */
+    
+    /* Board system fields */
+    int board_id;                /**< Board ID for board posting system */
+    char *board_title;           /**< Title being written for board post */
+    int reply_to_post_id;        /**< Post ID being replied to (0 = not a reply) */
 };
 
 /* other miscellaneous structures */

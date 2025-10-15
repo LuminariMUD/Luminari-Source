@@ -12,6 +12,8 @@
 #ifndef _INTERPRETER_H_
 #define _INTERPRETER_H_
 
+#include "utils.h"  /* For ACMD_DECL macro */
+
 /* List of external function prototypes.
  * @todo Organize the functions into modules. */
 

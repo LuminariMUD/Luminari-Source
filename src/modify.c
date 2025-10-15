@@ -19,6 +19,7 @@
 #include "spells.h"
 #include "mail.h"
 #include "boards.h"
+#include "mysql_boards.h" /* MySQL board system */
 #include "improved-edit.h"
 #include "oasis.h"
 #include "class.h"
@@ -42,6 +43,7 @@ static void personality_string_cleanup(struct descriptor_data *d, int action);
 static void ideals_string_cleanup(struct descriptor_data *d, int action);
 static void bonds_string_cleanup(struct descriptor_data *d, int action);
 static void flaws_string_cleanup(struct descriptor_data *d, int action);
+static void board_post_string_cleanup(struct descriptor_data *d, int action);
 
 void new_mail_string_cleanup(struct descriptor_data *d, int action);
 
@@ -248,6 +250,14 @@ void string_add(struct descriptor_data *d, char *str)
       d->backstr = NULL;
       d->str = NULL;
       break;
+    case CON_BOARD_POST:
+    case CON_BOARD_POST_ABORT:
+      if (*d->str)
+        free(*d->str);
+      *d->str = NULL;
+      d->backstr = NULL;
+      d->str = NULL;
+      break;
     default:
       log("SYSERR: string_add: Aborting write from unknown origin.");
       break;
@@ -296,6 +306,8 @@ void string_add(struct descriptor_data *d, char *str)
         //      { CON_HLQEDIT  , hlqedit_string_cleanup },
         {CON_IBTEDIT, ibtedit_string_cleanup},
         {CON_NEWMAIL, new_mail_string_cleanup},
+        {CON_BOARD_POST, board_post_string_cleanup},
+        {CON_BOARD_POST_ABORT, board_post_string_cleanup},
         {-1, NULL}};
 
     for (i = 0; cleanup_modes[i].func; i++)
@@ -1145,4 +1157,23 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
   STATE(d) = CON_PLAYING;
 
   return;
+}
+
+/*
+ * Board post string cleanup handler for MySQL board system
+ */
+static void board_post_string_cleanup(struct descriptor_data *d, int action)
+{
+  extern void mysql_board_finish_post(struct descriptor_data *d, int save);
+  
+  if (!d->str) {
+    log("SYSERR: board_post_string_cleanup: CON_BOARD_POST with NULL d->str");
+    mysql_board_finish_post(d, 0);
+  } else {
+    if (action == STRINGADD_SAVE) {
+      mysql_board_finish_post(d, 1);
+    } else {
+      mysql_board_finish_post(d, 0);
+    }
+  }
 }
