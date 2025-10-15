@@ -7064,6 +7064,7 @@ static void load_default_config(void)
   CONFIG_MINIMAP_SIZE = default_minimap_size;
   CONFIG_SCRIPT_PLAYERS = script_players;
   CONFIG_MIN_POP_TO_CLAIM = min_pop_to_claim;
+  CONFIG_USE_INTRO_SYSTEM = use_introduction_system;
   CONFIG_DEBUG_MODE = debug_mode;
 
   /* Rent / crashsave options. */
@@ -7441,6 +7442,8 @@ void load_config(void)
         CONFIG_USE_AUTOWIZ = num;
       else if (!str_cmp(tag, "use_new_socials"))
         CONFIG_NEW_SOCIALS = num;
+      else if (!str_cmp(tag, "use_introduction_system"))
+        CONFIG_USE_INTRO_SYSTEM = num;
       break;
 
     case 'w':

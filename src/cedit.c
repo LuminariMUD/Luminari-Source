@@ -116,6 +116,7 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->play.minimap_size = CONFIG_MINIMAP_SIZE;
   OLC_CONFIG(d)->play.script_players = CONFIG_SCRIPT_PLAYERS;
   OLC_CONFIG(d)->play.min_pop_to_claim = CONFIG_MIN_POP_TO_CLAIM;
+  OLC_CONFIG(d)->play.use_introduction_system = CONFIG_USE_INTRO_SYSTEM;
 
   /* Crash Saves */
   OLC_CONFIG(d)->csd.free_rent = CONFIG_FREE_RENT;
@@ -259,6 +260,7 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_MINIMAP_SIZE = OLC_CONFIG(d)->play.minimap_size;
   CONFIG_SCRIPT_PLAYERS = OLC_CONFIG(d)->play.script_players;
   CONFIG_MIN_POP_TO_CLAIM = OLC_CONFIG(d)->play.min_pop_to_claim;
+  CONFIG_USE_INTRO_SYSTEM = OLC_CONFIG(d)->play.use_introduction_system;
 
   /* Crash Saves */
   CONFIG_FREE_RENT = OLC_CONFIG(d)->csd.free_rent;
@@ -495,6 +497,9 @@ int save_config(IDXTYPE nowhere)
   fprintf(fl, "* Minimum popularity percentage required to claim a zone for your clan?\n"
               "min_pop_to_claim = %f\n\n",
           CONFIG_MIN_POP_TO_CLAIM);
+  fprintf(fl, "* Should the MUD use the introduction system for player names?\n"
+              "use_introduction_system = %d\n\n",
+          CONFIG_USE_INTRO_SYSTEM);
 
   strlcpy(buf, CONFIG_OK, sizeof(buf));
   strip_cr(buf);
@@ -967,6 +972,7 @@ static void cedit_disp_game_play_options(struct descriptor_data *d)
                      "%sP%s) Display Closed Doors          : %s%s\r\n"
                      "%sR%s) Diagonal Directions           : %s%s\r\n"
                      "%sS%s) Prevent Mortal -> Staff Lvel  : %s%s\r\n"
+                     "%sT%s) Use Introduction System       : %s%s\r\n"
                      "%s1%s) OK Message Text               : %s%s"
                      "%s2%s) NOPERSON Message Text         : %s%s"
                      "%s3%s) NOEFFECT Message Text         : %s%s"
@@ -997,6 +1003,7 @@ static void cedit_disp_game_play_options(struct descriptor_data *d)
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.disp_closed_doors),
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.diagonal_dirs),
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.no_mort_to_immort),
+                  grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.use_introduction_system),
 
                   grn, nrm, cyn, OLC_CONFIG(d)->play.OK,
                   grn, nrm, cyn, OLC_CONFIG(d)->play.NOPERSON,
@@ -1549,6 +1556,11 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Enter minimum popularity for zone claims (0-100) : ");
       OLC_MODE(d) = CEDIT_POPULARITY;
       return;
+
+    case 't':
+    case 'T':
+      TOGGLE_VAR(OLC_CONFIG(d)->play.use_introduction_system);
+      break;
 
     case 'q':
     case 'Q':

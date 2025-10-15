@@ -41,6 +41,10 @@
 /* Can Scripts be attached to players? */
 int script_players = YES;
 
+/* Should the MUD use an introduction system where players see short descriptions
+ * instead of names until they introduce themselves? */
+int use_introduction_system = NO;
+
 /* pk_allowed sets the tone of the entire game.  If pk_allowed is set to NO,
  * then players will not be allowed to kill, summon, charm, or sleep other
  * players, as well as a variety of other "asshole player" protections. However,
