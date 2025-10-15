@@ -577,7 +577,7 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch) {
 /* ========================================================================= */
 
 /* Board command - handled by special procedure on ship objects */
-ACMD(do_board) {
+ACMD(do_board_vessel) {
   send_to_char(ch, "You need to be near a ship to board it.\r\n");
   /* The actual boarding is handled by the greyhawk_ship_object special procedure */
   /* This command exists just so 'board' is recognized as a valid command */

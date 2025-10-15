@@ -776,13 +776,6 @@ void assign_objects(void)
 
 #ifdef CAMPAIGN_FR
 
-  ASSIGNOBJ(6117, gen_board);
-
-  ASSIGNOBJ(3289, gen_board);
-  ASSIGNOBJ(3281, gen_board);
-  ASSIGNOBJ(3282, gen_board);
-  ASSIGNOBJ(3283, gen_board);
-
   ASSIGNOBJ(115, bank);
 
   ASSIGNOBJ(3118, crafting_kit);
@@ -792,18 +785,6 @@ void assign_objects(void)
 #elif defined(CAMPAIGN_DL)
   // general
   ASSIGNOBJ(VAMPIRE_CLOAK_OBJ_VNUM, vampire_cloak);
-
-  // palanthas
-  ASSIGNOBJ(40118, crafting_kit);
-
-  ASSIGNOBJ(1367, gen_board);
-  ASSIGNOBJ(1369, gen_board);
-  ASSIGNOBJ(1370, gen_board);
-  ASSIGNOBJ(2201, gen_board);
-  ASSIGNOBJ(2202, gen_board);
-  ASSIGNOBJ(2203, gen_board);
-  ASSIGNOBJ(2403, gen_board);
-
   
 #else
   ASSIGNOBJ(1226, gen_board);   /* builder's board */

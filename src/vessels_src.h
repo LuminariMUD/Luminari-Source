@@ -416,7 +416,8 @@ int greyhawk_ship_loader(struct obj_data *obj, struct char_data *ch, int cmd, ch
 /* ========================================================================= */
 
 /* Future Advanced System Commands */
-ACMD(do_board);         /* Board a vessel */
+ACMD(do_board);         /* Board a vessel or bulletin board (router) */
+ACMD(do_board_vessel);  /* Board a vessel (actual implementation) */
 ACMD(do_disembark);     /* Leave a vessel */
 ACMD(do_pilot);         /* Pilot a vessel */
 ACMD(do_vessel_status); /* Show vessel status */

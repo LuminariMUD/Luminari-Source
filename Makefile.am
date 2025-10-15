@@ -46,6 +46,8 @@ circle_SOURCES = \
 	src/ban.c \
 	src/bardic_performance.c \
 	src/boards.c \
+	src/bedit.c \
+	src/mysql_boards.c \
 	src/bsd-snprintf.c \
 	src/brew.c \
 	src/cedit.c \
@@ -90,6 +92,7 @@ circle_SOURCES = \
 	src/encounters.c \
 	src/evolutions.c \
 	src/feats.c \
+	src/talents.c \
 	src/fight.c \
 	src/gain.c \
 	src/genmob.c \

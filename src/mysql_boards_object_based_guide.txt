@@ -1,0 +1,634 @@
+# MySQL Board System Implementation Instructions for LuminariMUD (Object-Based Version 2.1 with Reply System)
+
+## Prerequisites
+1. Ensure MySQL client library is installed and linked in your Makefile
+2. Have MySQL server running with appropriate database created
+3. Copy mysql_boards.c and mysql_boards.h from Age of Dragons codebase (complete object-based system)
+
+## IMPORTANT: Complete Feature Set Overview
+This is a fully-featured board system using OBJECT VNUMs instead of room VNUMs. Complete feature set includes:
+
+### Core Features:
+- **Object-based boards**: Boards tied to objects that can be moved between rooms, carried by players, or worn as equipment
+- **Automatic synchronization**: Board configurations automatically sync with database on MUD startup
+- **Reply system**: Full reply functionality with quoted original messages and smart subject handling
+- **SQL injection protection**: All user input safely escaped using mysql_real_escape_string
+- **Special character support**: Board posts can contain quotes, apostrophes, and other special characters
+- **Production security**: Complete protection against SQL injection attacks
+
+### Advanced Features:
+- **Intelligent quoting**: Reply posts automatically format original messages with "|" prefix
+- **Smart subject lines**: Reply subjects use "Re: Post #X" format for clear reference tracking
+- **Flexible editing**: Users can modify or delete quoted content during reply composition
+- **Multi-access patterns**: Boards accessible in room, inventory, or worn equipment
+- **Level-based permissions**: Separate read/write/delete permission levels per board
+- **Clan integration**: Optional clan-specific board restrictions
+
+## Step 1: Database Configuration
+
+Create a mysql_info.h file with your MySQL connection details:
+```c
+// MySQL Stuff
+#define MYSQL_SERVER      "127.0.0.1"
+#define MYSQL_DB          "your_mud_database"
+#define MYSQL_PASSWD      "your_password"
+#define MYSQL_USER        "your_username"
+#define NUM_ILLEGAL_MYSQL_CHARS 2
+```
+
+## Step 2: Global MySQL Connection Setup
+
+### In your main db.c file:
+
+1. Add includes at the top:
+```c
+#include "mysql_boards.h"
+#include "mysql_info.h"
+```
+
+2. Add global MySQL connection variable:
+```c
+MYSQL *conn;
+```
+
+3. Initialize MySQL connection in boot_db() function:
+Add this code in your boot_db() function, after basic initialization but before loading zones:
+```c
+log("Initializing MySQL board system.");
+if (mysql_board_init()) {
+  log("   MySQL board system initialized successfully.");
+  log("   Board configurations synchronized with database.");
+} else {
+  log("   MySQL board system initialization failed!");
+}
+```
+
+**IMPORTANT**: The mysql_board_init() function will now:
+- Create necessary database tables if they don't exist
+- Automatically synchronize board configurations from the default_boards[] array
+- Update existing boards with any configuration changes
+- Use INSERT...ON DUPLICATE KEY UPDATE for safe database synchronization
+
+## Step 3: Command Integration
+
+### In interpreter.c:
+
+1. Add the header include:
+```c
+#include "mysql_boards.h"
+```
+
+2. Add external MySQL connection:
+```c
+extern MYSQL *conn;
+```
+
+3. Add command function declarations:
+```c
+ACMD(do_read_board);
+ACMD(do_write_board);
+ACMD(do_remove_board);
+ACMD(do_reply_board);
+ACMD(do_note);
+```
+
+4. Add commands to the command table:
+```c
+{"board", POS_RESTING, do_note, 1, 0},
+{"note", POS_RESTING, do_note, 1, 0},
+{"read", POS_RESTING, do_read_board, 0, 0},
+{"remove", POS_RESTING, do_remove_board, 1, 0},
+{"write", POS_STANDING, do_write_board, 1, 0},
+{"breply", POS_STANDING, do_reply_board, 1, 0},
+```
+
+## Step 4: String Editor Integration
+
+### In modify.c:
+
+1. Add header include:
+```c
+#include "mysql_boards.h"
+```
+
+2. Add board post completion handling in string_add() function:
+
+Find the section where CON_EXDESC cases are handled (around the switch statement 
+that handles different connection states), and add this case alongside the existing ones:
+
+```c
+case CON_BOARD_POST:
+  extern void mysql_board_finish_post(struct descriptor_data *d, int save);
+  if (!d->str) {
+    bug("SYSERR: string_add: CON_BOARD_POST with NULL d->str");
+    mysql_board_finish_post(d, 0);
+  } else {
+    mysql_board_finish_post(d, 1);
+  }
+  break;
+case CON_BOARD_POST_ABORT:
+  extern void mysql_board_finish_post(struct descriptor_data *d, int save);
+  mysql_board_finish_post(d, 0);
+  break;
+```
+
+## Step 5: Look Command Integration
+
+### In act.informative.c (or wherever your look command is implemented):
+
+1. Add the external function declaration:
+```c
+extern void show_board_in_room(struct char_data *ch);
+```
+
+2. Integrate board display in the look command:
+
+Find your do_look function and in the section where room descriptions are shown 
+(typically after showing the room description but before showing exits), add:
+
+```c
+/* Show board information if there's a board object accessible */
+show_board_in_room(ch);
+```
+
+## Step 6: Configuration Structure Updates
+
+### Add these constants to your structs.h or conf.h:
+
+```c
+/* Connection states for board posting */
+#define CON_BOARD_TITLE         XX  /* Replace XX with next available CON_ number */
+#define CON_BOARD_BODY          XX  /* Replace XX with next available CON_ number */
+#define CON_BOARD_POST          XX  /* Replace XX with next available CON_ number */
+#define CON_BOARD_POST_ABORT    XX  /* Replace XX with next available CON_ number */
+```
+
+### Update descriptor structure (in structs.h):
+
+Add these fields to your descriptor_data structure:
+
+```c
+struct descriptor_data {
+    /* ... existing fields ... */
+    int board_id;                /* Board ID for board posting system */
+    char *board_title;           /* Title being written for board post */
+    int reply_to_post_id;        /* Post ID being replied to (0 = not a reply) */
+    /* ... remaining fields ... */
+};
+```
+
+## Step 7: Makefile Updates
+
+Ensure your Makefile includes:
+1. MySQL client library linking: -lmysqlclient
+2. MySQL include path: -I/usr/include/mysql (adjust path as needed)
+3. Add mysql_boards.o to your object files list
+
+## Step 8: Board Configuration and Object Creation
+
+### Customize the default boards in mysql_boards.c:
+
+Modify the default_boards array to match your MUD's object vnums and level structure:
+
+```c
+static struct mysql_board_config default_boards[] = {
+    /* board_id, name, type, read_lvl, write_lvl, delete_lvl, obj_vnum, clan_id, active */
+    
+    // IMPORTANT! BOARD NAMES CANNOT CONTAIN ' (single quote) unless you implement
+    // additional escaping in the synchronization function
+    
+    // Immortal Boards
+    {1, "Immortal General Board", BOARD_TYPE_IMMORTAL, 31, 31, 36, 1200, 0, true},
+    {2, "Immortal Development Board", BOARD_TYPE_IMMORTAL, 31, 31, 36, 1201, 0, true},
+    
+    // Player Boards
+    {3, "General Board", BOARD_TYPE_GENERAL, 1, 1, 31, 3099, 0, true},
+    {4, "Roleplay Board", BOARD_TYPE_RP, 1, 1, 31, 3098, 0, true},
+    
+    // Add more boards as needed
+    {-1, NULL, 0, 0, 0, 0, 0, 0, false} /* End marker - don't remove */
+};
+```
+
+**Configuration Notes:**
+- **board_id**: Unique identifier for each board
+- **board_name**: Display name (avoid single quotes in names)
+- **board_type**: Type constant (see Board Types section)
+- **read_level/write_level/delete_level**: Minimum character levels required
+- **obj_vnum**: Object VNUM for the board object in your world files
+- **clan_id**: Clan restriction (0 = no restriction)
+- **active**: Whether board is currently active
+
+**Auto-Synchronization**: When you modify this array and restart the MUD, changes will automatically be applied to the database. You can:
+- Add new boards (will be inserted)
+- Update existing board configurations (will be updated)
+- Change names, levels, or object VNUMs (will sync automatically)
+
+### Create Board Objects:
+
+You will need to create board objects in your object files (.obj files) that correspond to the obj_vnums specified above. Example board object:
+
+```
+#3099
+Keywords: bulletin board general notice~
+Short: a bulletin board~
+Long: A large wooden bulletin board is mounted on the wall here. Various notices and
+messages are pinned to its cork surface with small brass tacks. The board appears
+well-used and is titled "General Board" across the top.~
+ActionDesc: 
+Type: OTHER
+ExtraFlags: 0
+WearFlags: 0
+Values: 0 0 0 0
+Weight: 50
+Cost: 1000
+Rent: 0
+ExtraDesc: board bulletin notices messages~
+This is a bulletin board where players can post messages for others to read.
+You can use 'board' or 'note' commands to interact with it.
+~
+#
+```
+
+NOTE: Board objects can now be placed in any room, carried by players, or even worn 
+(if you set appropriate wear flags). The board system will find and use any accessible
+board object when players issue board commands.
+
+## Step 9: Level Constants
+
+Ensure these level constants exist in your codebase (adjust to match your level system):
+- LVL_IMMORT - Immortal level
+- LVL_GADMIN or LVL_GRGOD - Greater admin level
+- LVL_QUEST - Quest level (or substitute appropriate level)
+
+## Step 10: Compilation and Testing
+
+1. Compile the MUD - Fix any missing includes or conflicting definitions
+2. Create the database tables - The system will auto-create tables on first run
+3. Create board objects in your world files using the vnums specified in default_boards
+4. Test basic functionality:
+   - Load a board object into a room or player inventory
+   - board or note - Show available commands
+   - read - List posts on a board (when you have access to a board object)
+   - write - Create a new post
+   - board reply <post#> - Reply to an existing post with quoted text
+   - breply <post#> - Alternative reply command
+   - remove <post#> - Remove a post (if you have permissions)
+
+## Step 11: Object Access Priority
+
+The board system searches for board objects in this order:
+1. Objects in the room where the player is located
+2. Objects in the player's inventory
+3. Objects worn by the player
+
+## Step 12: Board Reply System Usage
+
+### Reply Command Syntax:
+```
+board reply <post number>
+breply <post number>
+```
+
+### Reply Process:
+1. **Post Selection**: System verifies the original post exists and you have read access
+2. **Subject Entry**: Prompted for additional subject text (optional)
+   - Post number is automatically prefixed with "Re: Post #"
+   - Your additional text is appended after " - "
+   - Example: "Re: Post #5 - Your Additional Text"
+3. **Quoted Content**: Original message is automatically quoted with "|" prefix
+   - Each line of original message prefixed with "| "
+   - Author and post number information included
+   - Separator line added for your new content
+4. **String Editor**: Opens with quoted content pre-loaded for editing
+   - You can delete parts of the quoted text you don't want
+   - Add your reply below the "--- Your reply below this line ---" separator
+   - Use standard string editor commands (/s to save, /h for help)
+
+### Reply Features:
+- **Safe quoting**: All special characters properly handled in quoted content
+- **Flexible editing**: Full control over what parts of original message to keep
+- **Clear formatting**: Visual separation between quoted and new content
+- **Automatic titling**: Smart subject line generation with "Re: Post #" prefix
+
+## Step 13: Board OLC System
+
+### Board Management Commands:
+
+#### Creating a New Board:
+```
+bedit new
+```
+This opens the board editor with a new board template. The system automatically assigns the next available board ID.
+
+#### Editing an Existing Board:
+```
+bedit <board_id>
+```
+Opens the specified board for editing. Use `blist` to see all board IDs.
+
+#### Listing All Boards:
+```
+blist
+```
+Displays a comprehensive list of all boards with their configurations:
+- Board ID
+- Board Name
+- Board Type
+- Read/Write/Delete Levels
+- Object VNUM
+- Clan Restrictions
+- Active Status
+
+### Board Editor Menu Options:
+
+1. **Board ID** - View only (cannot be changed once created)
+2. **Name** - Set the display name for the board
+3. **Type** - Choose from: General, Immortal, Clan, Quest, Roleplay, Announcement, Newbie
+4. **Read Level** - Minimum character level required to read posts
+5. **Write Level** - Minimum character level required to create posts
+6. **Delete Level** - Minimum character level required to delete posts
+7. **Object VNUM** - The object VNUM that represents this board in the game
+8. **Clan ID** - Set to 0 for no restriction, or a clan ID for clan-only boards
+9. **Active** - Toggle board active/inactive status
+Q. **Quit** - Exit editor (prompts to save if changes were made)
+
+### Board Editor Workflow:
+
+1. Enter `bedit new` or `bedit <id>`
+2. Modify desired fields by entering their number
+3. Enter 'Q' to quit
+4. Confirm save when prompted
+5. Board is saved to database and loaded into memory immediately
+
+### Important Notes:
+
+- **No Restart Required**: Changes take effect immediately upon saving
+- **Database Persistence**: All boards stored in MySQL database
+- **No Code Changes**: Boards are fully managed through in-game OLC
+- **Security**: SQL injection protection on all board fields
+- **Object VNUMs**: Must create corresponding board objects in your world files
+- **Permission Levels**: Adjust based on your MUD's level system
+
+### Example: Creating a New Board
+
+```
+> bedit new
+-- Board Editor
+1) Board ID     : 25
+2) Name         : New Board
+3) Type         : General
+4) Read Level   : 1
+5) Write Level  : 1
+6) Delete Level : 31
+7) Object VNUM  : 0
+8) Clan ID      : 0 (0 = no clan restriction)
+9) Active       : Yes
+Q) Quit
+Enter choice : 2
+
+Enter board name : Tavern Notice Board
+-- Board Editor
+1) Board ID     : 25
+2) Name         : Tavern Notice Board
+...
+Enter choice : 7
+
+Enter object VNUM for this board : 5100
+...
+Enter choice : Q
+
+Do you wish to save this board internally? (y/n) : y
+Board saved to database.
+Board saved.
+```
+
+### Migrating from Hardcoded Boards:
+
+If you have existing boards in the `default_boards[]` array:
+
+1. The system will continue to work with existing boards in memory
+2. Use `bedit <id>` to edit existing boards and save them to the database
+3. Once all boards are in the database, you can remove the hardcoded array
+4. The `mysql_board_sync_default_boards()` function can be used for initial import if needed
+
+## Step 14: Optional Enhancements
+
+Consider these additional integrations:
+1. Clan-specific boards - Modify board permissions to check clan membership
+2. Level-restricted boards - Already supported in the base system
+3. Email notifications - Add hooks to notify players of new posts
+4. Web integration - Create web interface to read/post to boards
+5. Portable boards - Allow certain board objects to be picked up and moved
+6. Equipment boards - Create wearable board objects (like a message scroll)
+7. Reply threading - Track reply relationships in database for threaded views
+
+## Security Features
+
+### SQL Injection Protection
+The system now includes comprehensive protection against SQL injection attacks:
+
+1. **String Escaping**: All user input is processed through `mysql_real_escape_string()`:
+   - Post titles are escaped before database insertion
+   - Post bodies (including multi-line content) are safely escaped
+   - Author names are escaped to prevent injection through character names
+   - Board names are escaped during configuration synchronization
+
+2. **Buffer Management**: 
+   - Escaped string buffers are properly sized (original_length * 2 + 1)
+   - Query buffers are large enough to accommodate escaped content
+   - No buffer overflows during string processing
+
+3. **Safe Characters**: Posts can now safely contain:
+   - Single quotes (')
+   - Double quotes (")
+   - Backslashes (\)
+   - Special SQL characters
+   - Multi-line content with various formatting
+
+### Database Synchronization Security
+- Board configuration updates use `INSERT...ON DUPLICATE KEY UPDATE`
+- Configuration data is escaped before database operations
+- Safe handling of board name updates and modifications
+
+## Troubleshooting Tips
+
+1. **MySQL connection issues**: Verify mysql_info.h settings and database permissions
+2. **Command not found**: Check command table entries and function declarations
+3. **Segfaults**: Ensure all MySQL result sets are properly freed
+4. **String editor issues**: Verify CON_ state handling in modify.c
+5. **Board not found**: Ensure board objects exist with correct VNUMs and are accessible
+6. **Database schema**: The system automatically updates the database schema to use obj_vnum instead of room_vnum
+7. **Compilation errors**: Ensure MySQL development headers are installed
+8. **String escaping issues**: Verify mysql_real_escape_string is working correctly
+9. **Buffer overflow warnings**: Check that query buffers are large enough for escaped content
+10. **Board sync issues**: Check that default_boards[] array has proper terminator entry
+
+## System Overview
+
+The board system will automatically create the necessary database tables 
+(mysql_boards and mysql_board_posts) on first initialization. Each board is tied 
+to a specific object vnum, and players can read/write when they have access to that 
+object based on their level and permissions.
+
+### Key Changes from Room-Based System:
+- **Object-based architecture**: Uses obj_vnum instead of room_vnum in database and configuration
+- **Flexible placement**: Searches for board objects in room, inventory, and equipment
+- **Multiple boards**: Multiple boards can exist in same location
+- **Portable boards**: Boards are now portable and can be moved around
+- **Backward compatibility**: Legacy mysql_board_get_config_by_room() still works by searching for objects in specified room
+- **Auto-synchronization**: Configuration changes automatically sync with database on startup
+- **Security hardening**: Complete SQL injection protection for all user inputs
+
+### Enhanced Security Features:
+- **Input sanitization**: All strings processed through mysql_real_escape_string
+- **Buffer safety**: Proper buffer sizing for escaped content
+- **Injection protection**: Safe handling of special characters in all text fields
+- **Configuration security**: Board names and settings safely escaped during sync
+
+### Board Types Available:
+- BOARD_TYPE_GENERAL (0) - General discussion boards
+- BOARD_TYPE_IMMORTAL (1) - Immortal-only boards  
+- BOARD_TYPE_CLAN (2) - Clan-specific boards
+- BOARD_TYPE_QUEST (3) - Quest/builder boards
+- BOARD_TYPE_RP (4) - Roleplay boards
+- BOARD_TYPE_ANNOUNCEMENT (5) - Announcement boards
+- BOARD_TYPE_NEWBIE (6) - Newbie help boards
+
+### Key Features:
+- **Database storage**: MySQL database storage for persistence across reboots
+- **Access control**: Level-based read/write/delete permissions with clan support
+- **Object-based placement**: Portable boards that can be moved, carried, or worn
+- **Security**: Complete SQL injection protection and safe string handling
+- **Auto-synchronization**: Automatic board configuration sync with database
+- **Special characters**: Full support for quotes, apostrophes, and special characters in posts
+- **Soft delete**: Posts marked deleted, not removed (for audit trails)
+- **Pagination**: Support for large numbers of posts with proper pagination
+- **String editor**: Full integration with MUD string editor for post composition
+- **Automatic setup**: Automatic table creation and schema management
+- **Backward compatibility**: Legacy room-based lookup functions still work
+- **Production ready**: Comprehensive error handling and logging
+
+### Commands Available:
+
+**Player Commands:**
+- board/note: Show board help and available commands
+- read: List posts or read specific post
+- write: Compose new post (uses string editor)
+- board reply <post#>: Reply to a post with quoted original text
+- breply <post#>: Alternate form of board reply command
+- remove: Delete post (if permissions allow)
+
+**Immortal/Builder Commands (OLC):**
+- bedit <board_id|new>: Create or edit a board
+- blist: List all boards with their configurations
+- Board editor allows modification of: name, type, read/write/delete levels, object VNUM, clan restrictions, active status
+
+## Recent Updates (October 2025)
+
+### Version 2.2 Enhancements (OLC System):
+- **Board OLC System**: Complete in-game board management system (bedit/blist commands)
+- **Dynamic Board Creation**: Create new boards without recompiling or restarting the MUD
+- **In-Game Editing**: Modify all board properties through intuitive OLC interface
+- **Database-Driven**: All boards stored and managed in MySQL database
+- **No Hardcoding Required**: Boards no longer need to be defined in source code
+- **Live Updates**: Changes take effect immediately after saving
+
+### Version 2.1 Enhancements:
+- **Reply System**: Added board reply functionality with quoted original messages
+- **Quoted Replies**: Original messages automatically formatted with "|" prefix
+- **Smart Reply Subjects**: "Re: Post #X" format for clear reference tracking (instead of repeating original titles)
+- **Custom Reply Subjects**: Support for additional subject text after post reference
+- **Automatic Board Synchronization**: Added `mysql_board_sync_default_boards()` function
+- **SQL Injection Protection**: Implemented `mysql_real_escape_string()` throughout system
+- **Enhanced Security**: Complete protection against malicious input in all text fields
+- **Configuration Management**: Automatic sync of board configurations on MUD startup
+- **Buffer Safety**: Proper buffer sizing to prevent overflow with escaped content
+- **Production Hardening**: Error handling and logging improvements
+
+### Implementation Notes:
+- **Reply functionality**: Board replies quote original messages with "|" formatting
+- **Subject handling**: Reply subjects automatically prefixed with "Re: Post #" and post number
+- **String editor integration**: Quoted content pre-populated for editing and deletion
+- **Security**: All user input (titles, bodies, author names) safely escaped
+- **Auto-sync**: Board configurations automatically sync with database on startup
+- **Special characters**: Full support for quotes, apostrophes, and special characters
+- **Buffer management**: Query buffers properly sized for maximum escaped content length
+- **Error logging**: Comprehensive debugging and monitoring support
+
+### Breaking Changes:
+- None - fully backward compatible with existing installations
+- Existing databases will be automatically updated with new security features
+
+## Latest Updates (October 15, 2025)
+
+### Version 2.1.1 Refinements:
+- **Improved Reply Titles**: Changed reply format from "Re: Original Title" to "Re: Post #X" for cleaner, more concise subject lines
+- **Better Thread Tracking**: Post number references make it easier to follow conversation threads
+- **Reduced Title Clutter**: Eliminates repetition of potentially long original subject lines
+- **Dynamic Prompts**: User prompts now show the specific post number being replied to
+
+### Current Status:
+- **Full Production Ready**: Complete feature set with comprehensive security
+- **Backward Compatible**: All existing installations will work without changes
+- **Database Migration**: Automatic schema updates and configuration synchronization
+- **Comprehensive Testing**: Fully tested reply system with proper error handling
+
+## Quick Reference for Implementers
+
+### Files to Copy:
+- `mysql_boards.c` - Main implementation file
+- `mysql_boards.h` - Header with function prototypes and structures
+- `mysql_info.h` - Database connection configuration (create new with your settings)
+
+### Key Functions Added:
+- `mysql_board_init()` - Initialize system and load configurations from database
+- `mysql_board_sync_default_boards()` - Optional: Sync board configs with database (for migration)
+- `mysql_board_start_reply_title()` - Start reply process
+- `mysql_board_handle_reply_title()` - Handle reply title and quoted content
+- `do_reply_board()` - Standalone reply command (breply)
+- `do_bedit()` - Board OLC editor command
+- `do_blist()` - List all boards command
+- `bedit_parse()` - OLC input parser for board editor
+
+### Database Tables Created Automatically:
+- `mysql_boards` - Board configurations and settings (managed via OLC)
+- `mysql_board_posts` - Individual posts and replies
+
+### Required Descriptor Fields:
+```c
+int board_id;              /* Board ID for posting system */
+char *board_title;         /* Title being written for post */
+int reply_to_post_id;      /* Post ID being replied to (0 = not reply) */
+```
+
+### Required Connection States:
+```c
+#define CON_BOARD_TITLE    /* Getting title for board post */
+#define CON_BOARD_BODY     /* This is handled by string_add in modify.c */
+#define CON_BEDIT          /* OLC mode - board edit */
+```
+
+### Command Table Entries Needed:
+```c
+{"board", POS_RESTING, do_note, 1, 0},
+{"note", POS_RESTING, do_note, 1, 0},
+{"read", POS_RESTING, do_read_board, 0, 0},
+{"write", POS_STANDING, do_write_board, 1, 0},
+{"breply", POS_STANDING, do_reply_board, 1, 0},
+{"remove", POS_RESTING, do_remove_board, 1, 0},
+{"bedit", POS_DEAD, do_bedit, LVL_QUEST, 0},
+{"blist", POS_DEAD, do_blist, LVL_QUEST, 0},
+```
+
+### OLC Integration Required:
+- Add `bedit.c` to your Makefile
+- Add handler in nanny() function for CON_BEDIT state:
+```c
+case CON_BEDIT:
+    extern void bedit_parse(struct descriptor_data *d, char *arg);
+    bedit_parse(d, arg);
+    break;
+```
+
+Generated on October 15, 2025 for LuminariMUD integration (Object-Based Version 2.2 with OLC System, Reply Features, and Enhanced Security).

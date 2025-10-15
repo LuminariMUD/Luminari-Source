@@ -80,6 +80,8 @@
 #include "brew.h"
 #include "talents.h" /* crafting/harvesting talent system */
 #include "mysql.h"
+#include "mysql_boards.h"
+#include "bedit.h" /* MySQL board system */
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -228,6 +230,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"bid", "bid", POS_SLEEPING, do_bid, 0, SCMD_AUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bite", "bite", POS_FIGHTING, do_bite_attack, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"brief", "br", POS_DEAD, do_gen_tog, 0, SCMD_BRIEF, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"breply", "breply", POS_STANDING, do_reply_board, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"bedit", "bedit", POS_DEAD, do_bedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"blist", "blist", POS_DEAD, do_blist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"buff", "buff", POS_DEAD, do_buff, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"buildwalk", "buildwalk", POS_STANDING, do_buildwalk, LVL_BUILDER, SCMD_BUILDWALK, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"buy", "bu", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -637,6 +642,7 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"news", "news", POS_SLEEPING, do_gen_ps, 0, SCMD_NEWS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"note", "note", POS_RESTING, do_note, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"newcraft", "newcraft", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_CREATE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"noauction", "noauction", POS_DEAD, do_gen_tog, 0, SCMD_NOAUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nocraftprogress", "nocraftpr", POS_DEAD, do_gen_tog, 1, SCMD_NOCRAFTPROGRESS, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -752,7 +758,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"reply", "r", POS_SLEEPING, do_reply, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rallyingcry", "rallyingcry", POS_FIGHTING, do_rallying_cry, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rapidshot", "rapidshot", POS_FIGHTING, do_mode, 1, MODE_RAPID_SHOT, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"read", "rea", POS_RECLINING, do_read_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #if defined(CAMPAIGN_DL)
     {"refine", "refine", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_REFINE, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
@@ -764,7 +770,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"recite", "reci", POS_FIGHTING, do_use_consumable, 0, SCMD_RECITE, FALSE, ACTION_SWIFT, {0, 6}, NULL},
     {"receive", "rece", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"recent", "recent", POS_DEAD, do_recent, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"remove", "rem", POS_RESTING, do_remove, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"remove", "rem", POS_RESTING, do_remove_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rent", "rent", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"replace", "repl", POS_RECLINING, do_not_here, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"report", "repo", POS_RECLINING, do_report, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1030,7 +1036,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"wizlist", "wizlist", POS_DEAD, do_gen_ps, 0, SCMD_WIZLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"wizupdate", "wizupde", POS_DEAD, do_wizupdate, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"wizlock", "wizlock", POS_DEAD, do_wizlock, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"write", "write", POS_STANDING, do_write, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"write", "write", POS_STANDING, do_write_board, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wholenessofbody", "wholenessofbody", POS_RECLINING, do_wholenessofbody, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_wholenessofbody},
     {"wildshape", "wildshape", POS_RESTING, do_wildshape, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"weaponinfo", "weaponinfo", POS_DEAD, do_weaponinfo, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -2393,6 +2399,8 @@ void nanny(struct descriptor_data *d, char *arg)
       {CON_STUDY, study_parse},
       /* NewCraft */
       {CON_CRAFTEDIT, craftedit_parse},
+      /* Board system */
+      {CON_BEDIT, bedit_parse},
       {-1, NULL}};
 
   skip_spaces(&arg);
@@ -4467,6 +4475,44 @@ switch (load_result)
     /* It is possible, if enough pulses are missed, to kick someone off while they
      * are at the password prompt. We'll let the game_loop()axe them. */
   case CON_CLOSE:
+    break;
+
+  case CON_BOARD_TITLE:
+    /* Handle board post title input */
+    if (!*arg) {
+      SEND_TO_Q("Title cannot be empty. Aborting post.\r\n", d);
+      if (d->board_title) {
+        free(d->board_title);
+        d->board_title = NULL;
+      }
+      d->board_id = 0;
+      d->reply_to_post_id = 0;
+      STATE(d) = CON_PLAYING;
+    } else if (d->reply_to_post_id > 0) {
+      /* This is a reply - handle differently */
+      extern void mysql_board_handle_reply_title(struct descriptor_data *d, char *additional_subject);
+      mysql_board_handle_reply_title(d, arg);
+    } else {
+      /* Regular post - save title and start body editing */
+      if (d->board_title) {
+        free(d->board_title);
+      }
+      d->board_title = strdup(arg);
+      
+      SEND_TO_Q("\r\nEnter post body (use /s to save, /h for help, /c to cancel):\r\n", d);
+      
+      /* Initialize string editor for post body */
+      if (d->str) {
+        free(*d->str);
+      }
+      CREATE(d->str, char *, 1);
+      CREATE(*d->str, char, 1);
+      **d->str = '\0';
+      d->max_str = MAX_BOARD_BODY_LENGTH;
+      d->backstr = NULL;
+      
+      STATE(d) = CON_BOARD_POST;
+    }
     break;
 
   default:

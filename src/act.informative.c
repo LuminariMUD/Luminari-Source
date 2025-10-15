@@ -53,6 +53,7 @@
 #include "roleplay.h"
 #include "spell_prep.h"
 #include "boards.h"
+#include "mysql_boards.h" /* MySQL board system */
 #include "perfmon.h"
 #include "routing.h"
 
@@ -1536,6 +1537,9 @@ void look_at_room(struct char_data *ch, int ignore_brief)
     send_to_char(ch, "\tMA pool of acid covers the area.\tn\r\n");
     return;
   }
+
+  /* Show board information if there's a board object accessible */
+  show_board_in_room(ch);
 
   /* === LIST ROOM CONTENTS === */
   /* Show all objects on the ground */

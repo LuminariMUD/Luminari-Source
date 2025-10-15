@@ -60,6 +60,7 @@
 #include "wilderness.h"
 #include "resource_system.h"
 #include "mysql.h"
+#include "mysql_boards.h" /* MySQL board system */
 #include "db_init.h"
 #include "feats.h"
 #include "actionqueues.h"
@@ -142,6 +143,8 @@ int circle_restrict = 0;           /* level of game restriction	 */
 room_rnum r_mortal_start_room = 0; /* rnum of mortal start room	 */
 room_rnum r_immort_start_room = 0; /* rnum of immort start room	 */
 room_rnum r_frozen_start_room = 0; /* rnum of frozen start room	 */
+
+extern MYSQL *conn;                /* MySQL database connection (defined in mysql.c) */
 
 char *credits = NULL;    /* game credits			 */
 char *news = NULL;       /* mud news			 */
@@ -1202,6 +1205,15 @@ void boot_db(void)
     log("    Mail boot failed -- Mail system disabled");
     no_mail = 1;
   }
+  
+  log("Initializing MySQL board system.");
+  if (mysql_board_init()) {
+    log("   MySQL board system initialized successfully.");
+    log("   Board configurations synchronized with database.");
+  } else {
+    log("   MySQL board system initialization failed!");
+  }
+  
   log("Reading banned site and invalid-name list.");
   load_banned();
   read_invalid_list();
