@@ -46,6 +46,149 @@ static int table_has_data(const char *table_name)
     return count > 0;
 }
 
+/* Ensure path_types table exists and populate default reference data */
+void ensure_path_types_reference(void)
+{
+    if (!mysql_available || !conn) {
+        return;
+    }
+
+    const char *create_path_types =
+        "CREATE TABLE IF NOT EXISTS path_types ("
+        "path_type INT PRIMARY KEY, "
+        "type_name VARCHAR(50) NOT NULL, "
+        "glyph_ns VARCHAR(16) NOT NULL, "
+        "glyph_ew VARCHAR(16) NOT NULL, "
+        "glyph_int VARCHAR(16) NOT NULL, "
+        "UNIQUE KEY idx_type_name (type_name)"
+        ")";
+
+    if (mysql_query_safe(conn, create_path_types)) {
+        log("SYSERR: Failed to ensure path_types table exists: %s", mysql_error(conn));
+        return;
+    }
+
+    if (table_has_data("path_types")) {
+        log("Info: path_types table already contains data - verifying required defaults");
+    } else {
+        log("Info: Populating default wilderness path type glyph definitions...");
+    }
+
+    const char *insert_path_types =
+        "INSERT INTO path_types (path_type, type_name, glyph_ns, glyph_ew, glyph_int) VALUES "
+        "(1, 'Paved Road', '@Y|@n', '@Y-@n', '@Y+@n'),"
+        "(2, 'Dirt Road', '@y|@n', '@y-@n', '@y+@n'),"
+        "(3, 'Geographic Feature', '@G|@n', '@G-@n', '@G+@n'),"
+        "(5, 'River', '@B|@n', '@B=@n', '@B#@n'),"
+        "(6, 'Stream', '@c|@n', '@c~@n', '@c+@n') "
+        "ON DUPLICATE KEY UPDATE path_type = path_type";
+
+    if (mysql_query_safe(conn, insert_path_types)) {
+        log("SYSERR: Failed to populate default path_types data: %s", mysql_error(conn));
+        return;
+    }
+
+    log("Info: Default path_types reference data verified");
+}
+
+/* Ensure player_data has account linkage metadata */
+void ensure_player_data_account_link(void)
+{
+    MYSQL_RES *result = NULL;
+    MYSQL_ROW row;
+    char query[512];
+    bool has_column = FALSE;
+    bool has_index = FALSE;
+    bool has_foreign_key = FALSE;
+
+    if (!mysql_available || !conn) {
+        return;
+    }
+
+    snprintf(query, sizeof(query),
+             "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+             "WHERE TABLE_SCHEMA = DATABASE() "
+             "AND TABLE_NAME = 'player_data' "
+             "AND COLUMN_NAME = 'account_id'");
+
+    if (mysql_query_safe(conn, query)) {
+        log("SYSERR: Failed checking for player_data.account_id column: %s", mysql_error(conn));
+        return;
+    }
+
+    result = mysql_store_result_safe(conn);
+    if (result) {
+        row = mysql_fetch_row(result);
+        if (row && row[0] && atoi(row[0]) > 0)
+            has_column = TRUE;
+        mysql_free_result(result);
+    }
+
+    if (!has_column) {
+        if (mysql_query_safe(conn, "ALTER TABLE player_data ADD COLUMN account_id INT DEFAULT NULL AFTER email")) {
+            log("SYSERR: Failed to add account_id column to player_data: %s", mysql_error(conn));
+        } else {
+            log("Info: Added account_id column to player_data table");
+        }
+    }
+
+    snprintf(query, sizeof(query),
+             "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS "
+             "WHERE TABLE_SCHEMA = DATABASE() "
+             "AND TABLE_NAME = 'player_data' "
+             "AND INDEX_NAME = 'idx_player_account_id'");
+
+    if (!mysql_query_safe(conn, query)) {
+        result = mysql_store_result_safe(conn);
+        if (result) {
+            row = mysql_fetch_row(result);
+            if (row && row[0] && atoi(row[0]) > 0)
+                has_index = TRUE;
+            mysql_free_result(result);
+        }
+    }
+
+    if (!has_index) {
+        if (mysql_query_safe(conn, "ALTER TABLE player_data ADD INDEX idx_player_account_id (account_id)")) {
+            log("SYSERR: Failed to add idx_player_account_id index to player_data: %s", mysql_error(conn));
+        } else {
+            log("Info: Added idx_player_account_id index to player_data table");
+        }
+    }
+
+    snprintf(query, sizeof(query),
+             "SELECT COUNT(*) FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
+             "WHERE TABLE_SCHEMA = DATABASE() "
+             "AND TABLE_NAME = 'player_data' "
+             "AND COLUMN_NAME = 'account_id' "
+             "AND REFERENCED_TABLE_NAME = 'account_data'");
+
+    if (!mysql_query_safe(conn, query)) {
+        result = mysql_store_result_safe(conn);
+        if (result) {
+            row = mysql_fetch_row(result);
+            if (row && row[0] && atoi(row[0]) > 0)
+                has_foreign_key = TRUE;
+            mysql_free_result(result);
+        }
+    }
+
+    if (!has_foreign_key) {
+        if (mysql_query_safe(conn, "UPDATE player_data SET account_id = NULL WHERE account_id IS NOT NULL AND account_id NOT IN (SELECT id FROM account_data)")) {
+            log("SYSERR: Failed to sanitize orphaned account_id values: %s", mysql_error(conn));
+        }
+
+        if (mysql_query_safe(conn, "ALTER TABLE player_data "
+                                     "ADD CONSTRAINT fk_player_data_account "
+                                     "FOREIGN KEY (account_id) REFERENCES account_data(id) "
+                                     "ON DELETE SET NULL")) {
+            log("SYSERR: Failed to add fk_player_data_account constraint: %s", mysql_error(conn));
+        } else {
+            log("Info: Added fk_player_data_account foreign key to player_data table");
+        }
+    }
+}
+
 /* Populate resource_types with standard resource definitions - ONLY if table is empty */
 void populate_resource_types_data(void)
 {
@@ -258,12 +401,61 @@ void populate_region_system_data(void)
         return;
     }
 
+    /* Ensure reference tables for paths exist even if wildedit has not run */
+    ensure_path_types_reference();
+
     /* CRITICAL: NEVER populate region_data, path_data, region_index, or path_index */
     /* These tables are managed by the wildedit program and contain MUD-specific data */
     /* Attempting to populate them could overwrite important world data */
     
     log("Info: Region system data is managed by wildedit - skipping automatic population");
     log("Info: Use wildedit to manage region_data, path_data, region_index, and path_index tables");
+}
+
+/* Populate vessel room template reference data */
+void populate_ship_room_templates_data(void)
+{
+    if (!mysql_available || !conn) {
+        log("MySQL not available, skipping ship room templates population");
+        return;
+    }
+
+    if (table_has_data("ship_room_templates")) {
+        log("Info: ship_room_templates already contains data - skipping default population");
+        return;
+    }
+
+    log("Populating default ship room templates...");
+
+    const char *insert_templates =
+        "INSERT INTO ship_room_templates "
+        "(room_type, vessel_type, name_format, description_text, room_flags, sector_type, min_vessel_size) VALUES "
+        "('bridge', 0, 'The %s''s Bridge', 'The command center of the vessel, filled with navigation equipment and control panels. Large windows provide a panoramic view of the surroundings.', 262144, 0, 0),"
+        "('helm', 0, 'The %s''s Helm', 'The pilot''s station, featuring the ship''s wheel and primary navigation controls.', 262144, 0, 0),"
+        "('quarters_captain', 0, 'Captain''s Quarters', 'A spacious cabin befitting the ship''s commander, with a large bunk, desk, and personal storage.', 262144, 0, 3),"
+        "('quarters_crew', 0, 'Crew Quarters', 'Rows of bunks line the walls of this cramped but functional sleeping area.', 262144, 0, 1),"
+        "('quarters_officer', 0, 'Officers'' Quarters', 'Modest private cabins for the ship''s officers, each with a bunk and small desk.', 262144, 0, 5),"
+        "('cargo_main', 0, 'Main Cargo Hold', 'A cavernous space filled with crates, barrels, and secured cargo. The air smells of tar and sea salt.', 262144, 0, 2),"
+        "('cargo_secure', 0, 'Secure Cargo Hold', 'A reinforced compartment with heavy locks, used for valuable or dangerous cargo.', 262144, 0, 5),"
+        "('engineering', 0, 'Engineering', 'The heart of the ship''s mechanical systems, filled with pipes, gauges, and machinery.', 262144, 0, 3),"
+        "('weapons', 0, 'Weapons Deck', 'Cannons and ballistae line this reinforced deck, ready for naval combat.', 262144, 0, 5),"
+        "('armory', 0, 'Ship''s Armory', 'Racks of weapons and armor line the walls, secured behind iron bars.', 262144, 0, 7),"
+        "('mess_hall', 0, 'Mess Hall', 'Long tables and benches fill this communal dining area. The lingering smell of the last meal hangs in the air.', 262144, 0, 3),"
+        "('galley', 0, 'Ship''s Galley', 'The ship''s kitchen, equipped with a large stove and food preparation areas.', 262144, 0, 2),"
+        "('infirmary', 0, 'Ship''s Infirmary', 'A small medical bay with cots and basic healing supplies.', 262144, 0, 4),"
+        "('corridor', 0, 'Ship''s Corridor', 'A narrow passageway connecting different sections of the vessel.', 262144, 0, 0),"
+        "('deck_main', 0, 'Main Deck', 'The open deck of the ship, exposed to the elements. Rigging and masts tower overhead.', 262144, 0, 0),"
+        "('deck_lower', 0, 'Lower Deck', 'Below the main deck, this area provides access to the ship''s interior compartments.', 262144, 0, 1),"
+        "('airlock', 0, 'Airlock', 'A sealed chamber used for boarding and emergency exits.', 262144, 0, 10),"
+        "('observation', 0, 'Observation Deck', 'An elevated platform providing excellent views in all directions.', 262144, 0, 5),"
+        "('brig', 0, 'Ship''s Brig', 'Iron-barred cells for holding prisoners or unruly crew members.', 262144, 0, 6)";
+
+    if (mysql_query_safe(conn, insert_templates)) {
+        log("SYSERR: Failed to populate ship_room_templates data: %s", mysql_error(conn));
+        return;
+    }
+
+    log("Info: Ship room template reference data populated successfully");
 }
 
 /* ===== DATABASE VERIFICATION FUNCTIONS ===== */
@@ -359,6 +551,11 @@ int verify_database_integrity(void)
         all_valid = FALSE;
     }
 
+    if (!verify_vessel_system_tables()) {
+        log("ERROR: Vessel system tables verification failed");
+        all_valid = FALSE;
+    }
+
     if (all_valid) {
         log("SUCCESS: Database integrity verification passed");
     } else {
@@ -373,9 +570,14 @@ int verify_database_integrity(void)
 /* Verify core player tables exist */
 int verify_core_player_tables(void)
 {
-    char *tables[] = {
-        "player_data", "player_data2", "player_mail", "player_quest_info",
-        "player_save_objs", "player_location_conservation"
+    const char *tables[] = {
+        "player_data",
+        "account_data",
+        "unlocked_races",
+        "unlocked_classes",
+        "player_save_objs",
+        "player_save_objs_sheathed",
+        "pet_save_objs"
     };
     int num_tables = sizeof(tables) / sizeof(tables[0]);
     char query[1024];
@@ -383,7 +585,7 @@ int verify_core_player_tables(void)
 
     for (i = 0; i < num_tables; i++) {
         snprintf(query, sizeof(query), "SHOW TABLES LIKE '%s'", tables[i]);
-        
+
         if (mysql_query_safe(conn, query)) {
             log("SYSERR: Error checking table %s: %s", tables[i], mysql_error(conn));
             return FALSE;
@@ -404,9 +606,10 @@ int verify_core_player_tables(void)
 /* Verify object database tables exist */
 int verify_object_database_tables(void)
 {
-    char *tables[] = {
-        "object_database_items", "object_database_bonuses", "object_database_obj_flags", 
-        "object_database_perm_affects", "object_database_wear_slots"
+    const char *tables[] = {
+        "object_database_items",
+        "object_database_wear_slots",
+        "object_database_bonuses"
     };
     int num_tables = sizeof(tables) / sizeof(tables[0]);
     char query[1024];
@@ -414,7 +617,7 @@ int verify_object_database_tables(void)
 
     for (i = 0; i < num_tables; i++) {
         snprintf(query, sizeof(query), "SHOW TABLES LIKE '%s'", tables[i]);
-        
+
         if (mysql_query_safe(conn, query)) {
             log("SYSERR: Error checking table %s: %s", tables[i], mysql_error(conn));
             return FALSE;
@@ -435,11 +638,23 @@ int verify_object_database_tables(void)
 /* Verify wilderness and resource tables exist */
 int verify_wilderness_resource_tables(void)
 {
-    char *tables[] = {
-        "region_data", "path_data", "region_index", "path_index",
-        "resource_types", "resource_depletion", "resource_regeneration_log",
-        "material_categories", "material_qualities", "region_effects", 
-        "region_effect_assignments", "resource_relationships"
+    const char *tables[] = {
+        "resource_types",
+        "resource_depletion",
+        "player_conservation",
+        "resource_statistics",
+        "resource_regeneration_log",
+        "resource_relationships",
+        "ecosystem_health",
+        "cascade_effects_log",
+        "player_location_conservation",
+        "region_effects",
+        "region_effect_assignments",
+        "weather_cache",
+        "room_description_settings",
+        "material_categories",
+        "material_subtypes",
+        "material_qualities"
     };
     int num_tables = sizeof(tables) / sizeof(tables[0]);
     char query[1024];
@@ -499,9 +714,30 @@ int verify_ai_service_tables(void)
 /* Verify crafting system tables exist */
 int verify_crafting_system_tables(void)
 {
-    /* Note: Production database does not currently have crafting tables */
-    /* This verification will always return TRUE to avoid false errors */
-    log("Info: Crafting system tables not implemented in production database");
+    const char *tables[] = {
+        "supply_orders_available"
+    };
+    int num_tables = sizeof(tables) / sizeof(tables[0]);
+    char query[1024];
+    int i;
+
+    for (i = 0; i < num_tables; i++) {
+        snprintf(query, sizeof(query), "SHOW TABLES LIKE '%s'", tables[i]);
+
+        if (mysql_query_safe(conn, query)) {
+            log("SYSERR: Error checking table %s: %s", tables[i], mysql_error(conn));
+            return FALSE;
+        }
+
+        MYSQL_RES *result = mysql_store_result_safe(conn);
+        if (!result || mysql_num_rows(result) == 0) {
+            log("ERROR: Crafting system table '%s' does not exist", tables[i]);
+            if (result) mysql_free_result(result);
+            return FALSE;
+        }
+        mysql_free_result(result);
+    }
+
     return TRUE;
 }
 
@@ -538,8 +774,12 @@ int verify_housing_system_tables(void)
 /* Verify help system tables exist */
 int verify_help_system_tables(void)
 {
-    char *tables[] = {
-        "help_entries", "help_keywords"
+    const char *tables[] = {
+        "help_entries",
+        "help_keywords",
+        "help_versions",
+        "help_search_history",
+        "help_related_topics"
     };
     int num_tables = sizeof(tables) / sizeof(tables[0]);
     char query[1024];
@@ -556,6 +796,40 @@ int verify_help_system_tables(void)
         MYSQL_RES *result = mysql_store_result_safe(conn);
         if (!result || mysql_num_rows(result) == 0) {
             log("ERROR: Help system table '%s' does not exist", tables[i]);
+            if (result) mysql_free_result(result);
+            return FALSE;
+        }
+        mysql_free_result(result);
+    }
+
+    return TRUE;
+}
+
+/* Verify vessel system tables exist */
+int verify_vessel_system_tables(void)
+{
+    const char *tables[] = {
+        "ship_interiors",
+        "ship_docking",
+        "ship_room_templates",
+        "ship_cargo_manifest",
+        "ship_crew_roster"
+    };
+    int num_tables = sizeof(tables) / sizeof(tables[0]);
+    char query[1024];
+    int i;
+
+    for (i = 0; i < num_tables; i++) {
+        snprintf(query, sizeof(query), "SHOW TABLES LIKE '%s'", tables[i]);
+
+        if (mysql_query_safe(conn, query)) {
+            log("SYSERR: Error checking table %s: %s", tables[i], mysql_error(conn));
+            return FALSE;
+        }
+
+        MYSQL_RES *result = mysql_store_result_safe(conn);
+        if (!result || mysql_num_rows(result) == 0) {
+            log("ERROR: Vessel system table '%s' does not exist", tables[i]);
             if (result) mysql_free_result(result);
             return FALSE;
         }

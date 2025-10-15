@@ -708,7 +708,7 @@ void boot_world(void)
     log("Loading shops.");
     index_boot(DB_BOOT_SHP);
 
-#if !defined(CAMPAIGN_DL)
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     int x = 0;
     log("Placing Harvesting Nodes");
     for (x = 0; x < NUM_HARVEST_NODE_RESETS; x++)
@@ -716,7 +716,7 @@ void boot_world(void)
 #endif
   }
 
-#if defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
   log("Assigning crafting system harvesting nodes (DragonLance).");
   assign_harvest_materials_to_word();
   log("Populating crafting recipes.");
@@ -5539,8 +5539,16 @@ char *fread_string(FILE *fl, const char *error)
      * fgets() stops at newline or after 512 chars, whichever comes first */
     if (!fgets(tmp, 512, fl))
     {
-      /* If we can't read from file (unexpected end), it's a fatal error */
-      log("SYSERR: fread_string: format error at or near %s", error);
+      long file_pos = ftell(fl);
+      int saved_errno = errno;
+
+      log("SYSERR: fread_string: format error while reading %s (file position %ld, errno=%d '%s'). "
+          "Partial buffer so far: '%s'",
+          error,
+          file_pos,
+          saved_errno,
+          (saved_errno ? strerror(saved_errno) : "none"),
+          buf);
       exit(1);  /* Kill the whole MUD - data files are corrupted */
     }
     

@@ -401,6 +401,10 @@ ACMD_DECL(do_unstore);
 ACMD_DECL(do_use_consumable);
 ACMD_DECL(do_outfit);
 
+ACMD_DECL(do_potions);
+ACMD_DECL(do_scrolls);
+ACMD_DECL(do_wands);
+ACMD_DECL(do_staves);
 /*****************************************************************************
  * Begin Functions and defines for act.movement.c
  ****************************************************************************/

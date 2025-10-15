@@ -321,7 +321,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"coordconvert", "coordconvert", POS_SLEEPING, do_coordconvert, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"cmdlev", "cmdlev", POS_DEAD, do_cmdlev, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#if !defined(CAMPAIGN_DL)
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     {"cexchange", "cexchange", POS_RECLINING, do_cexchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"createspawn", "createspawn", POS_STANDING, do_create_vampire_spawn, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_create_vampire_spawn},
@@ -508,7 +508,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"holylight", "holy", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_HOLYLIGHT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"holyweapon", "holyw", POS_DEAD, do_holyweapon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"house", "house", POS_RECLINING, do_house, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#if defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"harvest", "harvest", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_HARVEST, TRUE, ACTION_STANDARD, {0, 0}, NULL},
 #else
     {"harvest", "harvest", POS_STANDING, do_wilderness_harvest, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
@@ -563,7 +563,8 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-#if !defined(CAMPAIGN_DL)
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+    {"drop", "d", POS_RECLINING, do_drop, 0, SCMD_DROP, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"judgement", "judge", POS_RECLINING, do_judgement, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -688,7 +689,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"pathlist", "pathlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_PATHLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#if defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"picklock", "pi", POS_STANDING, do_pick_lock, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #else
     {"picklock", "pi", POS_STANDING, do_gen_door, 1, SCMD_PICK, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -760,6 +761,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"rapidshot", "rapidshot", POS_FIGHTING, do_mode, 1, MODE_RAPID_SHOT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"read", "rea", POS_RECLINING, do_read_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #if defined(CAMPAIGN_DL)
+    {"read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}, NULL},
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"refine", "refine", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_REFINE, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"reforge", "reforge", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -792,7 +795,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"roomvnum", "roomvnum", POS_DEAD, do_roomvnum, LVL_IMMORT, SCMD_SHOWVNUMS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"respec", "respec", POS_STANDING, do_respec, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"recharge", "recharge", POS_STANDING, do_recharge, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#if defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"resize", "resize", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_RESIZE, TRUE, ACTION_NONE, {0, 0}, NULL},
     // {"resize", "resize", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #else
@@ -921,7 +924,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"surpriseaccuracy", "surpriseaccuracy", POS_FIGHTING, do_surpriseaccuracy, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_surpriseaccuracy},
     {"struggle", "struggle", POS_RECLINING, do_struggle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"seekerarrow", "seekerarrow", POS_FIGHTING, do_seekerarrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_seekerarrow},
-#if defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"survey", "survey", POS_STANDING, do_newcraft, 0, SCMD_NEWCRAFT_SURVEY, TRUE, ACTION_STANDARD, {0, 0}, NULL},
 #else
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1428,7 +1431,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...  (attempting to cast without 'magical ambush' removes hidden status)\r\n");
   }
-#if defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
   else if (GET_CRAFT(ch).craft_duration > 0 && 
            !is_abbrev(complete_cmd_info[cmd].command, "look") &&
            !is_abbrev(complete_cmd_info[cmd].command, "group") &&
@@ -3993,7 +3996,7 @@ switch (load_result)
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_COMBATROLL);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_CHARMIE_COMBATROLL);
       /* Only enable stored consumables for DragonLance campaign */
-      if (IS_CAMPAIGN_DL) {
+      if (IS_CAMPAIGN_DL || IS_CAMPAIGN_FR) {
         SET_BIT_AR(PRF_FLAGS(d->character), PRF_USE_STORED_CONSUMABLES);
       }
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTO_STAND);
@@ -4558,6 +4561,7 @@ void show_homeland_region_main_menu(struct descriptor_data *d)
   /* int i; */ /* Currently unused */
 
   #if defined(CAMPAIGN_FR)
+      int i;
       if (GET_REGION(d->character))
       {
         write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will need to ask a staff member to do it.\r\n\r\n\tn");

@@ -1,9 +1,61 @@
-#3001
+#0
 The Void~
-   You are floating in an endless void. This is the starting point for
-the LuminariMUD world. From here, builders can create new areas and
-expand the game world.
+   You drift in formless darkness, suspended between creation and oblivion.
+The air is still, the silence absolute, and only a faint shimmer in the
+distance suggests the way back to the mortal world.
 ~
-30 d 0 0 0 0
+0 0 0 0 0 0
+S
+#3000
+Arrival Platform~
+   You stand upon a polished stone dais suspended within featureless
+darkness.  A faint silver glow marks the outline of an archway to the
+east, its light promising passage deeper into the world.  A rune-etched
+obelisk beside the arch hums softly, resonating with the latent magic
+that sustains this staging point between realms.
+~
+0 0 0 0 0 0
+C
+0 0
+D1
+The glowing arch opens into a chamber of swirling starlight.~
+archway~
+0 -1 3001
+S
+#3001
+Hall of Beginnings~
+   Starlight spills across a circular chamber whose floor resembles a
+tranquil pool of midnight glass.  Sigils marking the paths of mortal
+journeys glow along the walls, while a gentle breeze whispers of distant
+adventures.  Paths lead west toward the arrival platform and east toward
+the immortal nexus.
+~
+0 0 0 0 0 0
+C
+1 0
+D3
+The shimmering portal leads back to the arrival platform.~
+portal~
+0 -1 3000
+D1
+A quiet hallway stretches toward the immortal nexus.~
+hallway~
+0 -1 3002
+S
+#3002
+Immortal Nexus~
+   Smooth marble pillars rise into the darkness above, each crowned with
+a floating crystal that sheds a calm, steady light.  A mosaic of the
+world's continents gleams underfoot, centered around a silver dais where
+immortals gather to watch over the realms.  A softly glowing doorway lies
+to the west, returning to the Hall of Beginnings.
+~
+0 0 0 0 0 0
+C
+2 0
+D3
+The doorway of starlight leads back toward the Hall of Beginnings.~
+doorway~
+0 -1 3001
 S
 $

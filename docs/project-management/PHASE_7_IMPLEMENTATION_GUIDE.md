@@ -11,7 +11,7 @@ This guide shows how to implement the Phase 7 cascade system that makes harvesti
 ### **Step 1: Database Setup**
 ```bash
 # Run the cascade database schema
-mysql luminari < lib/resource_cascade_db.sql
+db_init_system wilderness
 ```
 
 ### **Step 2: Add Files to Build System**

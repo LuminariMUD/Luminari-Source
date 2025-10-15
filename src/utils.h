@@ -881,10 +881,10 @@ void char_from_furniture(struct char_data *ch);
 #ifndef VALID_ROOM_RNUM
 #if CIRCLE_UNSIGNED_INDEX
 /* For unsigned types, no need to check >= 0 */
-#define VALID_ROOM_RNUM(rnum) ((rnum) != NOWHERE && (rnum) < top_of_world)
+#define VALID_ROOM_RNUM(rnum) ((rnum) != NOWHERE && (rnum) <= top_of_world)
 #else
 /* For signed types, check >= 0 */
-#define VALID_ROOM_RNUM(rnum) ((rnum) != NOWHERE && (rnum) >= 0 && (rnum) < top_of_world)
+#define VALID_ROOM_RNUM(rnum) ((rnum) != NOWHERE && (rnum) >= 0 && (rnum) <= top_of_world)
 #endif
 #endif
 

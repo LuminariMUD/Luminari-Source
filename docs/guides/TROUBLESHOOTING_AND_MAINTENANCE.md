@@ -5,18 +5,18 @@
 If you're having issues with a fresh install, try:
 
 ```bash
-# Quick setup that handles most common issues
-./scripts/deploy.sh --quick --skip-db --init-world
+# Full redeploy (rebuilds, resets config, reapplies database schema)
+./scripts/deploy.sh --auto --init-world
 
-# If that fails, check for missing dependencies:
+# If you need to bypass MariaDB completely:
 ./scripts/deploy.sh --skip-db --init-world
 ```
 
 Common quick fixes:
-- **Build fails**: Make sure you ran `./scripts/deploy.sh` first
-- **MUD won't start**: Use `--init-world` flag to create minimal world data
-- **Missing text files**: Deploy script creates them automatically
-- **MySQL errors**: Use `--skip-db` flag to run without database
+- **Build fails**: Make sure you ran the full `./scripts/deploy.sh --auto --init-world`
+- **MUD won't start**: Use `--init-world` to regenerate minimal world data
+- **Missing text files**: Deploy script recreates them automatically
+- **MySQL errors**: Temporarily use `--skip-db`, but remember the default run triggers the in-engine database initializer (`database init`)
 
 ## Overview
 
@@ -118,15 +118,19 @@ cp lib/mysql_config_example lib/mysql_config
 
 **Solutions:**
 ```bash
-# Ubuntu/Debian
+# Ubuntu/Debian (including WSL2)
 sudo apt-get update
-sudo apt-get install libmysqlclient-dev libgd-dev build-essential
+sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmariadb-dev \
+                        libcurl4-openssl-dev libssl-dev mariadb-server \
+                        git make cmake autoconf automake libtool pkg-config
 
 # CentOS/RHEL/Fedora
-sudo dnf install mysql-devel gd-devel gcc make
+sudo dnf install gcc make mariadb-server mariadb-devel gd-devel \
+                 libcrypt-devel openssl-devel libcurl-devel \
+                 autoconf automake libtool
 
 # Verify installation
-pkg-config --cflags --libs mysqlclient
+pkg-config --cflags --libs mariadb
 pkg-config --cflags --libs gdlib
 ```
 

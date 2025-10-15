@@ -12,7 +12,7 @@
 #   -d, --dev         Development mode (includes debug tools)
 #   -p, --prod        Production mode (optimized build)
 #   --skip-deps       Skip dependency installation
-#   --skip-db         Skip database setup
+#   --skip-db         Skip database setup (NOT RECOMMENDED - database is required)
 ################################################################################
 
 set -e  # Exit on error
@@ -31,7 +31,8 @@ BUILD_TYPE="development"
 SKIP_DEPS=false
 SKIP_DB=false
 AUTO_MODE=false
-INIT_WORLD=false
+INIT_WORLD=true
+FORCE_INIT_WORLD=false
 MUD_PORT=4000
 DB_HOST="localhost"
 DB_NAME="luminari"
@@ -193,9 +194,10 @@ setup_config_files() {
 # Function to setup database
 setup_database() {
     print_header "Setting Up Database"
-    
+
     if [[ "$SKIP_DB" == true ]]; then
-        print_msg "$YELLOW" "Skipping database setup..."
+        print_msg "$RED" "WARNING: Skipping database setup - MUD REQUIRES DATABASE TO FUNCTION!"
+        print_msg "$YELLOW" "You must manually configure the database or the server will not work properly."
         return
     fi
     
@@ -263,16 +265,32 @@ CREATE USER IF NOT EXISTS '$DB_USER'@'$DB_HOST' IDENTIFIED BY '$DB_PASS';
 
 -- Grant privileges
 GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'$DB_HOST';
+ALTER USER '$DB_USER'@'$DB_HOST' IDENTIFIED BY '$DB_PASS';
 FLUSH PRIVILEGES;
 
 USE $DB_NAME;
 EOF
     
     # Execute database setup
-    print_msg "$YELLOW" "Please enter your MySQL/MariaDB root password:"
-    mysql -u root -p < /tmp/luminari_db_setup.sql
+    # On Ubuntu/Debian, MariaDB root uses unix_socket auth, requiring sudo
+    print_msg "$GREEN" "Executing database setup (requires sudo)..."
+    if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
+        # Ubuntu/Debian: use sudo mysql (unix_socket authentication)
+        sudo mysql < /tmp/luminari_db_setup.sql
+    else
+        # Other systems: try password authentication
+        print_msg "$YELLOW" "Please enter your MySQL/MariaDB root password:"
+        mysql -u root -p < /tmp/luminari_db_setup.sql
+    fi
     
     # Run schema files if they exist
+    if [[ -f "$PROJECT_ROOT/sql/master_schema.sql" ]]; then
+        print_msg "$GREEN" "Loading master schema..."
+        mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$PROJECT_ROOT"/sql/master_schema.sql
+    else
+        print_msg "$YELLOW" "master_schema.sql not found at $PROJECT_ROOT/sql/master_schema.sql"
+    fi
+
     if [[ -f "$PROJECT_ROOT/sql/pubsub_v3_schema.sql" ]]; then
         print_msg "$GREEN" "Loading pubsub schema..."
         mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$PROJECT_ROOT"/sql/pubsub_v3_schema.sql
@@ -291,25 +309,8 @@ build_project() {
     # Change to project root directory
     cd "$PROJECT_ROOT"
     
-    # Detect build system
-    if [[ -f CMakeLists.txt ]]; then
-        print_msg "$GREEN" "Building with CMake..."
-        
-        # Clean old build
-        rm -rf build
-        mkdir -p build
-        
-        # Configure
-        if [[ "$BUILD_TYPE" == "production" ]]; then
-            cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Release
-        else
-            cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Debug
-        fi
-        
-        # Build
-        cmake --build build/ -j$(nproc)
-        
-    elif [[ -f configure.ac ]]; then
+    # Detect build system - prefer autotools as it's faster
+    if [[ -f configure.ac ]]; then
         print_msg "$GREEN" "Building with Autotools..."
         
         # Clean any previous build attempts
@@ -350,7 +351,24 @@ build_project() {
         fi
         
         print_msg "$GREEN" "Build and install complete: bin/circle"
-        
+
+    elif [[ -f CMakeLists.txt ]]; then
+        print_msg "$GREEN" "Building with CMake..."
+
+        # Clean old build
+        rm -rf build
+        mkdir -p build
+
+        # Configure
+        if [[ "$BUILD_TYPE" == "production" ]]; then
+            cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Release
+        else
+            cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Debug
+        fi
+
+        # Build
+        cmake --build build/ -j$(nproc)
+
     else
         print_msg "$RED" "No build system found!"
         exit 1
@@ -362,11 +380,16 @@ build_project() {
 # Function to initialize minimal world data
 initialize_world_data() {
     print_msg "$GREEN" "Initializing minimal world data..."
-    
-    # Check if world directories exist and are empty
-    if [[ ! -d "$PROJECT_ROOT/lib/world/zon" ]] || [[ -z "$(ls -A "$PROJECT_ROOT/lib/world/zon" 2>/dev/null)" ]]; then
-        print_msg "$YELLOW" "Setting up minimal world files..."
-        
+    print_msg "$YELLOW" "This step is REQUIRED - server will not start without world files!"
+
+    # Check if world needs initialization (skip if exists, unless force flag is set)
+    if [[ ! -f "$PROJECT_ROOT/lib/world/zon/index" ]] || [[ "$FORCE_INIT_WORLD" == true ]]; then
+        if [[ "$FORCE_INIT_WORLD" == true ]] && [[ -f "$PROJECT_ROOT/lib/world/zon/index" ]]; then
+            print_msg "$YELLOW" "Force reinitializing world files (--init-world flag detected)..."
+        else
+            print_msg "$YELLOW" "Setting up minimal world files..."
+        fi
+
         # Create world directories
         mkdir -p "$PROJECT_ROOT"/lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
         
@@ -392,23 +415,16 @@ initialize_world_data() {
             cp "$PROJECT_ROOT"/lib/world/minimal/index.shp "$PROJECT_ROOT"/lib/world/shp/index 2>/dev/null || true
             cp "$PROJECT_ROOT"/lib/world/minimal/index.trg "$PROJECT_ROOT"/lib/world/trg/index 2>/dev/null || true
             cp "$PROJECT_ROOT"/lib/world/minimal/index.qst "$PROJECT_ROOT"/lib/world/qst/index 2>/dev/null || true
-            
-            # Create HLQ index (Homeland Quests)
-            echo '$' > "$PROJECT_ROOT"/lib/world/hlq/index
-            
-            print_msg "$GREEN" "Minimal world data initialized!"
+            cp "$PROJECT_ROOT"/lib/world/minimal/index.hlq "$PROJECT_ROOT"/lib/world/hlq/index 2>/dev/null || true
+
+            print_msg "$GREEN" "Minimal world data copied from lib/world/minimal/"
         else
-            print_msg "$YELLOW" "Warning: Minimal world data not found in $PROJECT_ROOT/lib/world/minimal/"
-            print_msg "$YELLOW" "Creating empty index files..."
-            echo '$' > "$PROJECT_ROOT"/lib/world/zon/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/wld/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/mob/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/obj/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/shp/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/trg/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/qst/index
-            echo '$' > "$PROJECT_ROOT"/lib/world/hlq/index
+            print_msg "$RED" "ERROR: Minimal world data not found in $PROJECT_ROOT/lib/world/minimal/"
+            print_msg "$RED" "Cannot initialize world without minimal world files!"
+            exit 1
         fi
+
+        print_msg "$GREEN" "World data initialization complete!"
     else
         print_msg "$GREEN" "World data already exists, skipping initialization."
     fi
@@ -522,7 +538,7 @@ help <topic>
 EOF
     fi
     
-    # Create immortal help file  
+    # Create immortal help file
     if [[ ! -f "$PROJECT_ROOT/lib/text/help/ihelp" ]]; then
         cat > "$PROJECT_ROOT"/lib/text/help/ihelp <<'EOF'
 Immortal Help System
@@ -533,11 +549,16 @@ For OLC help, type: help olc
 
 Common immortal commands:
 - goto <room>    - Teleport to a room
-- where          - List all players and locations  
+- where          - List all players and locations
 - users          - Show connection information
 - reboot         - Reboot the MUD
 - shutdown       - Shutdown the MUD
 EOF
+    fi
+
+    # Create help index file
+    if [[ ! -f "$PROJECT_ROOT/lib/text/help/index" ]]; then
+        echo '$' > "$PROJECT_ROOT"/lib/text/help/index
     fi
     
     # Create info file
@@ -635,6 +656,23 @@ EOF
     print_msg "$GREEN" "Default text files created!"
 }
 
+# Function to create misc files
+create_misc_files() {
+    print_msg "$GREEN" "Creating misc files..."
+
+    # Create messages file for combat messages
+    if [[ ! -f "$PROJECT_ROOT/lib/misc/messages" ]]; then
+        echo '*' > "$PROJECT_ROOT"/lib/misc/messages
+    fi
+
+    # Create socials file
+    if [[ ! -f "$PROJECT_ROOT/lib/misc/socials.new" ]]; then
+        echo '$' > "$PROJECT_ROOT"/lib/misc/socials.new
+    fi
+
+    print_msg "$GREEN" "Misc files created!"
+}
+
 # Function to setup environment
 setup_environment() {
     print_header "Setting Up Environment"
@@ -654,22 +692,10 @@ setup_environment() {
     
     # Create text files
     create_text_files
-    
-    # Create critical symlinks if they don't exist
-    # The MUD expects files in the root directory, not in lib/
-    if [[ ! -L "$PROJECT_ROOT/world" ]]; then
-        ln -sf lib/world "$PROJECT_ROOT"/world
-        print_msg "$GREEN" "Created symlink: world -> lib/world"
-    fi
-    if [[ ! -L "$PROJECT_ROOT/text" ]]; then
-        ln -sf lib/text "$PROJECT_ROOT"/text
-        print_msg "$GREEN" "Created symlink: text -> lib/text"
-    fi
-    if [[ ! -L "$PROJECT_ROOT/etc" ]]; then
-        ln -sf lib/etc "$PROJECT_ROOT"/etc
-        print_msg "$GREEN" "Created symlink: etc -> lib/etc"
-    fi
-    
+
+    # Create misc files
+    create_misc_files
+
     # Set permissions
     chmod -R 755 "$PROJECT_ROOT"/lib/
     chmod -R 755 "$PROJECT_ROOT"/log/
@@ -736,7 +762,16 @@ verify_autorun_script() {
 # Function to show final instructions
 show_final_instructions() {
     print_header "Deployment Complete!"
-    
+
+    if [[ "$INIT_WORLD" == false ]]; then
+        print_msg "$RED" "⚠️  WARNING: World data was NOT initialized!"
+        print_msg "$RED" "⚠️  The server will NOT start without world files!"
+        print_msg "$YELLOW" "You must either:"
+        echo "  1. Re-run with: ./scripts/deploy.sh --init-world"
+        echo "  2. OR provide your own custom world files in lib/world/"
+        echo
+    fi
+
     print_msg "$GREEN" "LuminariMUD has been successfully deployed!"
     echo
     print_msg "$YELLOW" "Next steps:"
@@ -753,7 +788,7 @@ show_final_instructions() {
     echo "      ./autorun.sh status   - Check server status"
     echo "      ./autorun.sh stop     - Stop the server"
     echo
-    
+
     if [[ -n "$DB_PASS" ]]; then
         print_msg "$RED" "IMPORTANT: Save your database password: $DB_PASS"
     fi
@@ -772,14 +807,17 @@ Options:
     -d, --dev         Development mode (includes debug tools)
     -p, --prod        Production mode (optimized build)
     --skip-deps       Skip dependency installation
-    --skip-db         Skip database setup
-    --init-world      Initialize minimal world data files
-    
+    --skip-db         Skip database setup (NOT RECOMMENDED - database is REQUIRED)
+    --init-world      Initialize minimal world data (enabled by default)
+    --no-init-world   Skip world initialization (only if you have custom world files)
+
+NOTE: World initialization is ON by default. The server requires world data to start.
+
 Examples:
-    $0                # Interactive setup
-    $0 --auto         # Automated setup with defaults
-    $0 --dev          # Development setup with debug tools
-    $0 --prod         # Production optimized build
+    $0                            # RECOMMENDED: Full interactive setup (includes world init)
+    $0 --auto                     # Automated setup with defaults
+    $0 --dev                      # Development build with debug tools
+    $0 --prod                     # Production optimized build
     
 For more information, see: docs/guides/SETUP_AND_BUILD_GUIDE.md
 EOF
@@ -814,6 +852,11 @@ while [[ $# -gt 0 ]]; do
             ;;
         --init-world)
             INIT_WORLD=true
+            FORCE_INIT_WORLD=true
+            shift
+            ;;
+        --no-init-world)
+            INIT_WORLD=false
             shift
             ;;
         *)

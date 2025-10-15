@@ -8623,5 +8623,25 @@ ACMD(do_salvage)
   extract_obj(obj);
 }
 
+ACMD(do_potions)
+{
+   list_consumables(ch, ITEM_POTION);
+}
+
+ACMD(do_scrolls)
+{
+   list_consumables(ch, ITEM_SCROLL);
+}
+
+ACMD(do_wands)
+{
+   list_consumables(ch, ITEM_WAND);
+}
+
+ACMD(do_staves)
+{
+   list_consumables(ch, ITEM_STAFF);
+}
+
 
 /* EOF */

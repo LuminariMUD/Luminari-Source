@@ -9508,7 +9508,7 @@ ACMD(do_flightlist)
     text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
     for (i = 0; i < NUM_ZONE_ENTRANCES; i++)
     {
-      snprintf(zone, sizeof(zone), "%s (%s)", zone_entrances[i][0], zone_entrances[i][1]);
+      snprintf(zone, sizeof(zone), "%s (%s)", zone_entrances_fr[i][0], zone_entrances_fr[i][1]);
       send_to_char(ch, "%-39s ", zone);
       if ((i % 2) == 1)
         send_to_char(ch, "\r\n");

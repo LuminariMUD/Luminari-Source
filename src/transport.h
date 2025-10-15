@@ -24,6 +24,8 @@ extern const char *sailing_locales_lumi[][SAILING_LOCALES_FIELDS];
 extern const char *carriage_locales_lumi[][CARRIAGE_LOCALES_FIELDS];
 extern const char *walkto_landmarks_lumi[][WALKTO_LANDMARKS_FIELDS];
 
+extern const char *walkto_landmarks_fr[][WALKTO_LANDMARKS_FIELDS];
+
 /* functions */
 int get_travel_time(struct char_data *ch, int speed, int locale, int here, int type);
 int get_distance(struct char_data *ch, int locale, int here, int type);

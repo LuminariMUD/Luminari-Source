@@ -1029,6 +1029,13 @@
 
 #define NUM_CITIES          12
 
+#elif defined(CAMPAIGN_FR)
+
+#define CITY_NONE           0
+#define CITY_LUSKAN         1
+
+#define NUM_CITIES          2
+
 #else
 
 #define CITY_NONE           0

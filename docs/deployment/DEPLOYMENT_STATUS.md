@@ -1,7 +1,9 @@
 # LuminariMUD Deployment Status Report
 
-**Date:** September 3, 2025  
-**Status:** BROKEN - Build succeeds, server crashes immediately
+> **⚠️ OBSOLETE DOCUMENT**: This document describes historical issues with `setup.sh` which is no longer the recommended deployment method. Use `./scripts/deploy.sh` instead. This file is kept for historical reference only.
+
+**Date:** September 3, 2025
+**Status:** OBSOLETE - Use deploy.sh instead
 
 ---
 

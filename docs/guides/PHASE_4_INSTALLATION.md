@@ -6,10 +6,11 @@ The easiest way to set up Phase 4 features is using the automated deployment:
 
 ```bash
 # Full setup including database and region effects
-./scripts/deploy.sh --init-world
+./scripts/deploy.sh --auto --init-world
 
-# Manual database setup only
-mysql -u luminari -p luminari < sql/region_effects_system.sql
+# Manual database setup only (if you ran deploy with --skip-db)
+# Start the MUD and as an implementor run:
+db_init_system wilderness
 ```
 
 ## Database Setup
@@ -21,7 +22,8 @@ If you need to manually install the region effects system:
 cd Luminari-Source
 
 # Install the region effects system tables
-mysql -u [username] -p [database_name] < sql/region_effects_system.sql
+# (Run inside the MUD as an implementor)
+db_init_system wilderness
 ```
 
 ## Testing Region Effects System
@@ -92,7 +94,7 @@ The effects use JSON parameters for maximum flexibility and can be assigned to a
 
 ## Files Added/Modified
 
-- `lib/region_effects_system.sql` - **New flexible database schema** with JSON parameters
+- `db_init_system wilderness` - Populates the flexible region effects schema with JSON parameters
 - `src/resource_system.c` - Enhanced region effects processing with JSON support
 - `src/resource_system.h` - Function prototypes for flexible effects system
 - `src/act.wizard.c` - Comprehensive effects management admin commands

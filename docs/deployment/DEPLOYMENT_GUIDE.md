@@ -68,32 +68,38 @@ sudo dnf install -y mariadb-server mariadb-devel gd-devel \
 
 ## Deployment Process
 
-### Method 1: Automated Setup Script
+### Method 1: Automated Deployment Script (Recommended)
 
-The setup script handles all necessary steps automatically:
+The deployment script handles all necessary steps automatically:
 
 ```bash
 # Clone the repository
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 
-# Run the setup script (handles autoreconf, configure, make, make install)
-./scripts/setup.sh
+# Run the deployment script (handles everything)
+# Note: You'll be prompted for MySQL root password during setup
+./scripts/deploy.sh
 
 # Start the server
 ./bin/circle -d lib
 ```
 
-The setup script performs:
-- Generates the build system (autoreconf + configure)
-- Copies required configuration files
+The deployment script automatically performs:
+- Installs dependencies (if needed)
+- Generates the build system (autoreconf + configure - autotools preferred)
+- Copies required configuration files (.example.h → .h)
 - Builds the entire codebase
 - Installs binaries to bin/
+- Sets up and configures MariaDB database (REQUIRED)
+- Creates database and runs initialization
+- **Initializes minimal world data (zones, rooms, mobs, objects) - enabled by default**
 - Creates required symlinks
-- Sets up world files
 - Creates necessary directories
 
-### Method 2: Deploy Script with Options
+**Note:** World initialization is ON by default. Use `--no-init-world` only if you have custom world files.
+
+### Method 2: Deploy Script with Custom Options
 
 For more control over the deployment process:
 
@@ -102,11 +108,14 @@ For more control over the deployment process:
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 
-# Generate build system first
+# Generate build system first (optional - deploy.sh will do this)
 autoreconf -fvi
 
-# Run deployment with options
-./scripts/deploy.sh --skip-db --init-world
+# Run deployment with custom options
+./scripts/deploy.sh --auto  # Skip prompts where possible
+
+# Or for development build
+./scripts/deploy.sh --dev   # Includes debug symbols
 
 # Start the server
 ./bin/circle -d lib
@@ -115,14 +124,21 @@ autoreconf -fvi
 Deploy script options:
 | Option | Description |
 |--------|-------------|
-| `--skip-db` | Skip database setup (run without MySQL) |
+| `--auto` | Skip prompts where possible (still prompts for MySQL root password) |
+| `--no-init-world` | Skip world initialization (only if you have custom world files) |
+| `--skip-db` | Skip database setup (NOT RECOMMENDED - database is required) |
 | `--skip-deps` | Skip dependency installation |
-| `--init-world` | Initialize minimal world data |
 | `--dev` | Development build with debug symbols |
 | `--prod` | Production optimized build |
 | `-h, --help` | Show help message |
 
-### Method 3: Manual Deployment
+**Note:** World initialization is enabled by default. The server requires world data to start.
+
+Running without `--skip-db` prompts for the MariaDB root password, creates the `luminari` database and user, and executes the in-engine database initializer (equivalent to running `db_init_system all`). This ensures every required table and stored procedure exists—including wilderness resources, region hints, vessels, and PubSub—without touching external `.sql` scripts. If you have custom data to seed, add it through the game or your own migrations after the initializer completes.
+
+The generated credentials are written to `lib/mysql_config` (owned by the invoking user, mode 600) so the game can authenticate automatically. Re-running the deploy script refreshes credentials and reapplies the schema safely.
+
+### Method 3: Manual Deployment (Advanced Users Only)
 
 For complete control over each step:
 
@@ -231,9 +247,9 @@ mkdir -p log
 
 ---
 
-## Database Configuration (Optional)
+## Database Configuration (REQUIRED)
 
-MySQL/MariaDB provides persistent storage for player data. The game runs without it, but some features will be disabled.
+MySQL/MariaDB is **required** for LuminariMUD to function properly. The database provides essential persistent storage for player data, world state, wilderness systems, and many core game features.
 
 ### Setting Up MySQL/MariaDB
 
@@ -362,9 +378,15 @@ dos2unix configure autorun
 find . -name "*.sh" -exec dos2unix {} \;
 ```
 
-#### MUD Won't Start - Missing Files
+#### MUD Won't Start - Missing World Files
 ```bash
-# Create required symlinks
+# ERROR: opening index file 'world/zon/index': No such file or directory
+# CAUSE: Missing world data - you MUST use --init-world or provide custom world
+
+# SOLUTION: Re-run deployment with --init-world
+./scripts/deploy.sh --auto --init-world
+
+# OR create required symlinks if they're missing
 ln -sf lib/world world
 ln -sf lib/text text
 ln -sf lib/etc etc
@@ -386,7 +408,7 @@ kill -9 [PID]
 - Verify service is running: `sudo systemctl status mariadb`
 - Check credentials in `lib/mysql_config`
 - Test connection: `mysql -u luminari -p luminari`
-- The game runs without MySQL - warnings can be ignored
+- **The database is REQUIRED** - you must fix connection issues for the MUD to function properly
 
 ---
 

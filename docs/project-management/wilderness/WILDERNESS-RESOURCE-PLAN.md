@@ -112,7 +112,7 @@ This document outlines the implementation plan for a dynamic resource system in 
 - `src/resource_system.h` - Added flexible region effects function prototypes
 - `src/resource_system.c` - Implemented JSON-based effects processing and region integration
 - `src/act.wizard.c` - Added comprehensive effects management subcommands to resourceadmin
-- `lib/region_effects_system.sql` - **New flexible database schema** with JSON parameters
+- `db_init_system wilderness` - Initializes the flexible region effects schema (JSON-based)
 
 ### **✅ Phase 5: Player Harvesting Mechanics (COMPLETED)**
 
@@ -185,7 +185,7 @@ This document outlines the implementation plan for a dynamic resource system in 
 - `src/resource_depletion.c` - Complete depletion and regeneration system
 - `src/resource_depletion.h` - Function prototypes and constants
 - `src/handler.c` - Integration with character movement for lazy regeneration
-- `lib/resource_depletion_db.sql` - Database schema for depletion tracking
+- `db_init_system wilderness` - Database schema for depletion tracking
 
 ---
 
@@ -315,7 +315,7 @@ This document outlines the implementation plan for a dynamic resource system in 
 5. **Region Effects System Testing** *(Phase 4 - Updated)*
    ```
    # Install the flexible region effects database schema:
-   mysql -u username -p database_name < lib/region_effects_system.sql
+   db_init_system wilderness
    
    # Test effects management
    resourceadmin effects list                    # Show all available effects
