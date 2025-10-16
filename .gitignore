@@ -368,3 +368,4 @@ aider-env/
 *-env/
 venv/
 .venv/
+cp2live.sh

@@ -4,8 +4,8 @@
 # Run this script from /home/krynn/code
 
 # Source and destination directories
-SOURCE_DIR="/home/frmud/code/bin"
-DEST_DIR="/home/frmud/frmud/bin"
+SOURCE_DIR="/home/krynn/code/bin"
+DEST_DIR="/home/krynn/live/mud/bin"
 
 # Check if source directory exists
 if [ ! -d "$SOURCE_DIR" ]; then
@@ -28,6 +28,6 @@ else
     exit 1
 fi
 
-echo "/home/frmud/frmud/"
+echo "/home/krynn/live/mud"
 
 
