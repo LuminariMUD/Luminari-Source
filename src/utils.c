@@ -10514,38 +10514,31 @@ int get_random_skill(void)
 // checks to see if target is in the list of ch's known people
 bool in_intro_list(struct char_data *ch, struct char_data *target)
 {
-  int i;
-
-  for (i = 0; i < MAX_INTROS; i++)
-  {
-    if (GET_INTRO(ch, i) == GET_IDNUM(target))
-      return true;
-    else
-      continue;
-  }
-  return false;
+  /* Deprecated - use knows_character() from introduce.c instead */
+  /* This wrapper is kept for backwards compatibility */
+  return knows_character(ch, target);
 }
 
 // checks to see if ch knows target's real name
 bool has_intro(struct char_data *ch, struct char_data *target)
 {
-
   if (!ch || !target)
-    return false;
+    return FALSE;
 
   if (ch == target)
-    return true;
+    return TRUE;
 
   if (GET_LEVEL(ch) >= LVL_IMMORT || GET_LEVEL(target) >= LVL_IMMORT)
-    return true;
+    return TRUE;
 
   if (!IS_NPC(target) && PRF_FLAGGED(target, PRF_NON_ROLEPLAYER))
-    return true;
+    return TRUE;
 
-  if (in_intro_list(ch, target))
-      true;
+  /* Use the new introduction system's knows_character function */
+  if (knows_character(ch, target))
+    return TRUE;
 
-  return false;
+  return FALSE;
 }
 
 char * which_desc(struct char_data *ch, struct char_data *target)
