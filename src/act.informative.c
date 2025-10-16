@@ -787,6 +787,11 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     }
   }
 
+  if (!IS_NPC(i))
+  {
+    send_to_char(ch, "\tM[\tWPC\tM]\tn ");
+  }
+
   /* pcs: show if groupped */
   if (!IS_NPC(i) && GROUP(i))
   {
@@ -969,10 +974,13 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   else
   {
     if (!GET_DISGUISE_RACE(i))
-      send_to_char(ch, "\tn[%s] %s", RACE_ABBR(i),
-                  // i->player.name, // This is before we switched to a title system containing the character's name
-                  //  *GET_TITLE(i) ? " " : "", 
-                   GET_TITLE(i));
+    {
+      /* If intro system is off and no title is set, show name */
+      if (!CONFIG_USE_INTRO_SYSTEM && !*GET_TITLE(i))
+        send_to_char(ch, "\tn[%s] %s", RACE_ABBR(i), GET_NAME(i));
+      else
+        send_to_char(ch, "\tn[%s] %s", RACE_ABBR(i), show_pers(i, ch));
+    }
     else if (AFF_FLAGGED(i, AFF_WILD_SHAPE))
     {
       char *an_a, *race_name;
