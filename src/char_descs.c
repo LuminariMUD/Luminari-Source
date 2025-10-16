@@ -850,14 +850,75 @@ void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg
         GET_PC_ADJECTIVE_1(d->character) = 0;
         GET_PC_DESCRIPTOR_2(d->character) = 0;
         GET_PC_ADJECTIVE_2(d->character) = 0;
-        changeStateTo = CON_CHAR_RP_MENU;
-        SEND_TO_Q("\tcCharacter short description setting cancelled.\r\n\tn", d);
-        show_character_rp_menu(d);
+        
+        /* If forced setup, can't cancel - send back to menu */
+        if (d->forced_short_desc_setup)
+        {
+            SEND_TO_Q("\tcYou cannot cancel - you must set a short description before entering the game.\r\n\tn", d);
+            SEND_TO_Q("\tY(Press enter to continue)\tn\r\n", d);
+            changeStateTo = CON_GEN_DESCS_INTRO;
+        }
+        else
+        {
+            changeStateTo = CON_CHAR_RP_MENU;
+            SEND_TO_Q("\tcCharacter short description setting cancelled.\r\n\tn", d);
+            show_character_rp_menu(d);
+        }
         break;
+        
     case 1:
-        changeStateTo = CON_CHAR_RP_MENU;
         SEND_TO_Q("\tcYour character descriptions are complete.\r\n\tn", d);
-        show_character_rp_menu(d);
+        
+        /* If this was a forced setup (from game entry), enter the game now */
+        if (d->forced_short_desc_setup)
+        {
+            int load_result;
+            d->forced_short_desc_setup = FALSE; /* Clear the flag */
+            
+            load_result = enter_player_game(d);
+            send_to_char(d->character, "%s", CONFIG_WELC_MESSG);
+
+            /* Clear their load room if it's not persistant. */
+            if (!PLR_FLAGGED(d->character, PLR_LOADROOM))
+                GET_LOADROOM(d->character) = NOWHERE;
+            save_char(d->character, 0);
+
+            greet_mtrigger(d->character, -1);
+            greet_memory_mtrigger(d->character);
+
+            act("$n has entered the game.", TRUE, d->character, 0, 0, TO_ROOM);
+
+            update_player_last_on();
+
+            changeStateTo = CON_PLAYING;
+            
+            if (GET_LEVEL(d->character) == 0)
+            {
+                do_start(d->character);
+                newbieEquipment(d->character);
+                send_to_char(d->character, "%s", CONFIG_START_MESSG);
+            }
+            look_at_room(d->character, 0);
+            if (has_mail(GET_IDNUM(d->character)))
+                send_to_char(d->character, "You have mail waiting.\r\n");
+            if (load_result == 2)
+            {
+                send_to_char(d->character, "\r\n\007You could not afford your rent!\r\n"
+                                           "Your possesions have been donated to the Salvation Army!\r\n");
+            }
+            d->has_prompt = 0;
+            REMOVE_BIT_AR(PRF_FLAGS(d->character), PRF_BUILDWALK);
+
+            int x;
+            for (x = 0; x < NUM_CASTERS; x++)
+                IS_PREPARING(d->character, x) = FALSE;
+        }
+        else
+        {
+            /* Normal path - go to RP menu */
+            changeStateTo = CON_CHAR_RP_MENU;
+            show_character_rp_menu(d);
+        }
         break;
 
     case 2:
