@@ -10525,6 +10525,9 @@ bool has_intro(struct char_data *ch, struct char_data *target)
   if (!ch || !target)
     return FALSE;
 
+  if (CONFIG_USE_INTRO_SYSTEM == FALSE)
+    return TRUE;
+
   if (ch == target)
     return TRUE;
 
