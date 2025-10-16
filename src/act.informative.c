@@ -135,6 +135,16 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_ANKLE_R,       //<worn on ankle>
     WEAR_ANKLE_L,       //<worn on ankle>
     WEAR_FEET,          //<worn on feet>
+    WEAR_CRAFT_SICKLE,  //<worn as craft tool - sickle>
+    WEAR_CRAFT_AXE,     //<worn as craft tool - axe>
+    WEAR_CRAFT_KNIFE,   //<worn as craft tool - knife>
+    WEAR_CRAFT_PICKAXE, //<worn as craft tool - pickaxe>
+    WEAR_CRAFT_ALCHEMY, //<worn as craft tool - alchemy>
+    WEAR_CRAFT_ARMOR_HAMMER,  //<worn as craft tool - armor hammer>
+    WEAR_CRAFT_JEWEL_PLIERS,  //<worn as craft tool - jewel pliers>
+    WEAR_CRAFT_NEEDLE,  //<worn as craft tool - needle>
+    WEAR_CRAFT_WEAPON_HAMMER, //<worn as craft tool - weapon hammer>
+    WEAR_ON_BACK,       //<worn on back>
 };
 
 /*******  UTILITY FUNCTIONS ***********/
@@ -5857,6 +5867,8 @@ ACMD(do_equipment)
   if (!found)
     send_to_char(ch, " Nothing.\r\n");
 
+  send_to_char(ch, "\tc(Use 'craft tools' to view equipped harvesting and crafting tools)\tn\r\n");
+  
   send_to_char(ch, "\tCArmr: %s, Shld: %s, Ench: +%d, Pnlty: %d, MaxDex: %s, SpellFail:"
                    " %d.\tn\r\n",
                armor_type[compute_gear_armor_type(ch)],

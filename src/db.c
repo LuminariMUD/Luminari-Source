@@ -5074,6 +5074,13 @@ void reset_zone(zone_rnum zone)
           push_result(0);
         break;
       }
+      /* Check if equipment slot is already occupied - prevent duplicates on zone reset */
+      if (ZCMD.arg3 >= 0 && ZCMD.arg3 < NUM_WEARS && GET_EQ(mob, ZCMD.arg3))
+      {
+        /* Slot already occupied, skip this equip command */
+        push_result(0);
+        break;
+      }
       /* we have a mob */
       if (obj_index[ZCMD.arg1].number < ZCMD.arg2 &&
           (rand_number(1, 100) <= ZCMD.arg4))
