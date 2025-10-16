@@ -480,6 +480,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_FORAGE_COOLDOWN(ch) = 0;
     GET_RETAINER_COOLDOWN(ch) = 0;
     GET_SCROUNGE_COOLDOWN(ch) = 0;
+    GET_PVP_TIMER(ch) = 0;
 
     for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     { /* loop through all the character's quest slots */
@@ -1285,6 +1286,8 @@ int load_char(const char *name, struct char_data *ch)
           PIXIE_DUST_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "Pers"))
           ch->player.personality = fread_string(fl, buf2);
+        else if (!strcmp(tag, "PvPT"))
+          GET_PVP_TIMER(ch) = atoi(line);
         break;
 
       case 'Q':
@@ -2149,6 +2152,9 @@ void save_char(struct char_data *ch, int mode)
 
   if (GET_SETCLOAK_TIMER(ch) != PFDEF_SETCLOAK_TIMER)
     BUFFER_WRITE( "ClkT : %d\n", GET_SETCLOAK_TIMER(ch));
+
+  if (GET_PVP_TIMER(ch) != 0)
+    BUFFER_WRITE( "PvPT: %ld\n", GET_PVP_TIMER(ch));
 
   if (GET_STR(ch) != PFDEF_STR || GET_ADD(ch) != PFDEF_STRADD)
     BUFFER_WRITE( "Str : %d/%d\n", GET_STR(ch), GET_ADD(ch));
@@ -4240,7 +4246,6 @@ static void load_introductions(FILE *fl, struct char_data *ch)
   char line[MAX_INPUT_LENGTH + 1];
   int i = 0;
   long test_num;
-  bool old_format = FALSE;
 
   /* Initialize all slots to NULL first */
   for (i = 0; i < MAX_INTROS; i++)
@@ -4254,8 +4259,6 @@ static void load_introductions(FILE *fl, struct char_data *ch)
   /* Check if this is old numeric format by testing first line */
   if (sscanf(line, "%ld", &test_num) == 1 && strlen(line) < 10)
   {
-    /* Old format detected - skip all numeric entries until we hit a non-numeric tag */
-    old_format = TRUE;
     /* Keep reading and discarding old format data */
     while (1)
     {

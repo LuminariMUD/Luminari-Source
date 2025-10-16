@@ -326,6 +326,15 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
 
                /*end*/);
 
+  /* PvP Flag */
+  if (CONFIG_PK_ALLOWED)
+  {
+    send_to_char(d->character, "%sK%s) Enable PvP Flag       %s[%s%3s%s]\r\n",
+                 CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+                 PREFEDIT_FLAGGED(PRF_PVP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+                 ONOFF(PREFEDIT_FLAGGED(PRF_PVP)), CCCYN(d->character, C_NRM));
+  }
+
   /* Finishing Off */
   send_to_char(d->character, "%sQ%s) Quit extra toggle preferences...\r\n",
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
@@ -1076,6 +1085,37 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case 'j':
     case 'J':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NO_CRAFT_PROGRESS);
+      break;
+
+    case 'k':
+    case 'K':
+      if (!CONFIG_PK_ALLOWED)
+      {
+        send_to_char(d->character, "Player killing is not enabled on this MUD.\r\n");
+        return;
+      }
+      
+      /* If trying to turn off PvP, check the timer */
+      if (PREFEDIT_FLAGGED(PRF_PVP))
+      {
+        time_t current_time = time(0);
+        time_t time_since_enabled = current_time - GET_PVP_TIMER(PREFEDIT_GET_CHAR);
+        int minutes_remaining = 15 - (time_since_enabled / 60);
+        
+        if (time_since_enabled < (15 * 60))  /* 15 minutes in seconds */
+        {
+          send_to_char(d->character, "You must wait %d more minute%s before you can disable your PvP flag.\r\n",
+                      minutes_remaining, minutes_remaining != 1 ? "s" : "");
+          return;
+        }
+      }
+      else
+      {
+        /* Turning PvP on, set the timer */
+        GET_PVP_TIMER(PREFEDIT_GET_CHAR) = time(0);
+      }
+      
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_PVP);
       break;
 
     default:

@@ -2238,6 +2238,8 @@ int ACTUAL_BAB(struct char_data *ch);
 
 #define GET_SETCLOAK_TIMER(ch) (ch->player_specials->saved.setcloak_timer)
 
+#define GET_PVP_TIMER(ch) (ch->player_specials->saved.pvp_timer)
+
 #define PIXIE_DUST_USES(ch) (ch->player_specials->saved.pixie_dust_uses)
 #define PIXIE_DUST_TIMER(ch) (ch->player_specials->saved.pixie_dust_timer)
 #define PIXIE_DUST_USES_PER_DAY(ch) (GET_CHA(ch) + 4)
