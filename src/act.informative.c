@@ -6192,12 +6192,12 @@ ACMD(do_who)
       }
       if (GET_LEVEL(tch) >= LVL_IMMORT)
       {
-        send_to_char(ch, "\tW[\tC%28.28s \tW]\tn %s", clan_name, GET_TITLE(tch));
+        send_to_char(ch, "\tW[\tC%28.28s \tW]\tn %s", clan_name, (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)));
       }
       else
       {
         send_to_char(ch, "\tW[ \tC%2d %-4.4s %-20.20s \tW]\tn %s", GET_LEVEL(tch), race_list[GET_REAL_RACE(tch)].abbrev,
-        ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0) ? CLAN_NAME(c_n) : "Adventurer", GET_TITLE(tch));
+        ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0) ? CLAN_NAME(c_n) : "Adventurer", (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)));
       }
 
         // num_can_see++;
@@ -6262,7 +6262,7 @@ ACMD(do_who)
                      CCNRM(ch, C_SPR));
 #else
         send_to_char(ch, " %s%s",
-                     GET_TITLE(tch),
+                     (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)),
                      CCNRM(ch, C_SPR));
 #endif
 
