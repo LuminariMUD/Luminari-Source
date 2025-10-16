@@ -4292,6 +4292,19 @@ switch (load_result)
       break;
 
     case '1':
+      /* Check if introduction system is ON and player hasn't set short description */
+      if (CONFIG_USE_INTRO_SYSTEM && 
+          (GET_PC_DESCRIPTOR_1(d->character) == 0 || GET_PC_ADJECTIVE_1(d->character) == 0))
+      {
+        write_to_output(d, "\r\n");
+        write_to_output(d, "\tYThis MUD uses an introduction system, where characters don't know each other's names by default.\tn\r\n");
+        write_to_output(d, "\tYYou must set up your character's short description before entering the game.\tn\r\n");
+        write_to_output(d, "\r\n");
+        d->forced_short_desc_setup = TRUE;
+        show_short_description_main_menu(d);
+        break;
+      }
+
       load_result = enter_player_game(d);
       send_to_char(d->character, "%s", CONFIG_WELC_MESSG);
 

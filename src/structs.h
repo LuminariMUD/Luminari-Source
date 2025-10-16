@@ -5815,6 +5815,9 @@ struct descriptor_data
     int board_id;                /**< Board ID for board posting system */
     char *board_title;           /**< Title being written for board post */
     int reply_to_post_id;        /**< Post ID being replied to (0 = not a reply) */
+    
+    /* Short description setup tracking */
+    bool forced_short_desc_setup; /**< TRUE if forced to set short desc before game entry */
 };
 
 /* other miscellaneous structures */
