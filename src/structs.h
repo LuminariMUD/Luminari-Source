@@ -5296,7 +5296,7 @@ struct player_special_data_saved
 
     room_vnum last_room;
 
-    long intro_list[MAX_INTROS][1];                   // Stores pfilepos of chars known
+    char *intro_list[MAX_INTROS];                     // Stores names of characters known
 
     struct crafting_data_info craft_data;             // New crafting system info
 

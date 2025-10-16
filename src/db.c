@@ -6034,6 +6034,14 @@ void free_char(struct char_data *ch)
       }
     }
     
+    /* Free introduction list names */
+    for (i = 0; i < MAX_INTROS; i++) {
+      if (ch->player_specials->saved.intro_list[i]) {
+        free(ch->player_specials->saved.intro_list[i]);
+        ch->player_specials->saved.intro_list[i] = NULL;
+      }
+    }
+    
     /* Free device destroy confirmation code */
     if (ch->player_specials->device_destroy_confirm) {
       free(ch->player_specials->device_destroy_confirm);
@@ -6475,6 +6483,10 @@ void init_char(struct char_data *ch)
 
   if (ch->bags == NULL)
     CREATE(ch->bags, struct bag_data, 1);
+  
+  /* Initialize introduction list to NULL */
+  for (i = 0; i < MAX_INTROS; i++)
+    ch->player_specials->saved.intro_list[i] = NULL;
   
   /* Initialize score section order to default */
   for (i = 0; i < 8; i++) {

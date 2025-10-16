@@ -540,6 +540,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"invis", "invi", POS_DEAD, do_invis, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"invisduergar", "invisduergar", POS_FIGHTING, do_invisduergar, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"innates", "innates", POS_DEAD, do_innates, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"introduce", "intro", POS_RECLINING, do_introduce, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"intimidate", "intimidate", POS_FIGHTING, do_intimidate, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_intimidate},
     {"icicle", "icicle", POS_FIGHTING, do_icicle, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"imbuearrow", "imbuearrow", POS_FIGHTING, do_imbuearrow, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
