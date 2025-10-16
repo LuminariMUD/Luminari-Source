@@ -448,6 +448,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"favoredenemies", "favoredenemies", POS_DEAD, do_favoredenemies, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"feymagic", "feymagic", POS_FIGHTING, do_fey_magic, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_fey_magic},
     {"finalstand", "finalstand", POS_DEAD, do_final_stand, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"forget", "forget", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_FORGET, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"findmagic", "findmagic", POS_DEAD, do_findmagic, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"finddoor", "finddoor", POS_DEAD, do_finddoor, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"featset", "featset", POS_SLEEPING, do_featset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
