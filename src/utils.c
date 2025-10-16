@@ -10534,9 +10534,6 @@ bool has_intro(struct char_data *ch, struct char_data *target)
   if (GET_LEVEL(ch) >= LVL_IMMORT || GET_LEVEL(target) >= LVL_IMMORT)
     return TRUE;
 
-  if (!IS_NPC(target) && PRF_FLAGGED(target, PRF_NON_ROLEPLAYER))
-    return TRUE;
-
   /* Use the new introduction system's knows_character function */
   if (knows_character(ch, target))
     return TRUE;

@@ -2856,6 +2856,7 @@ struct char_data *get_char_room_vis(struct char_data *ch, char *name, int *numbe
       }
     }
 
+    /* First try to match by actual name */
     if (isname(name, i->player.name))
     {
       if (CAN_SEE(ch, i) || CAN_INFRA(ch, i))
@@ -2865,6 +2866,27 @@ struct char_data *get_char_room_vis(struct char_data *ch, char *name, int *numbe
           return (i);
         }
       }
+    }
+    /* If ch doesn't know i's name, try matching against short description keywords */
+    else if (!IS_NPC(i) && !has_intro(ch, i))
+    {
+      char *short_desc = which_desc(ch, i);
+      if (short_desc && isname(name, short_desc))
+      {
+        if (CAN_SEE(ch, i) || CAN_INFRA(ch, i))
+        {
+          if (--(*number) == 0)
+          {
+            /* Note: which_desc returns strdup'd memory for non-NPC short descs */
+            if (!IS_NPC(i))
+              free(short_desc);
+            return (i);
+          }
+        }
+      }
+      /* Free the allocated memory if we didn't return */
+      if (!IS_NPC(i) && short_desc)
+        free(short_desc);
     }
   }
 
@@ -2890,12 +2912,36 @@ struct char_data *get_char_world_vis(struct char_data *ch, char *name, int *numb
 
   for (i = character_list; i && *number; i = i->next)
   {
+    bool matched = FALSE;
+    char *short_desc = NULL;
+    
     if (IN_ROOM(ch) == IN_ROOM(i))
-      continue;
-    if (!isname(name, i->player.name))
       continue;
     if (!CAN_SEE(ch, i))
       continue;
+    
+    /* Try matching by actual name first */
+    if (isname(name, i->player.name))
+    {
+      matched = TRUE;
+    }
+    /* If ch doesn't know i's name, try matching against short description keywords */
+    else if (!IS_NPC(i) && !has_intro(ch, i))
+    {
+      short_desc = which_desc(ch, i);
+      if (short_desc && isname(name, short_desc))
+      {
+        matched = TRUE;
+      }
+    }
+    
+    /* Free allocated memory for short_desc */
+    if (!IS_NPC(i) && short_desc)
+      free(short_desc);
+    
+    if (!matched)
+      continue;
+    
     if (--(*number) != 0)
       continue;
 
