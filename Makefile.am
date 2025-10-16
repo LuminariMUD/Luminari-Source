@@ -116,6 +116,7 @@ circle_SOURCES = \
 	src/ibt.c \
 	src/improved-edit.c \
 	src/interpreter.c \
+	src/introduce.c \
 	src/kdtree.c \
 	src/limits.c \
 	src/lists.c \

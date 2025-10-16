@@ -154,6 +154,12 @@ ACMD_DECL(do_tell);
 ACMD_DECL(do_write);
 ACMD_DECL(do_skillcheck);
 ACMD_DECL(do_diceroll);
+
+/* Introduction system */
+ACMD_DECL(do_introduce);
+bool knows_character(struct char_data *ch, struct char_data *vict);
+bool add_introduction(struct char_data *ch, struct char_data *vict);
+
 /*****************************************************************************
  * Begin Functions and defines for act.informative.c
  ****************************************************************************/

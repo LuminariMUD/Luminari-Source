@@ -88,6 +88,7 @@ static void load_devices(FILE *fl, struct char_data *ch);
 static void load_praytimes(FILE *fl, struct char_data *ch);
 static void load_quests(FILE *fl, struct char_data *ch);
 static void load_failed_dialogue_quests(FILE *fl, struct char_data *ch);
+static void load_introductions(FILE *fl, struct char_data *ch);
 static void load_HMVS(struct char_data *ch, const char *line, int mode);
 static void write_aliases_ascii(FILE *file, struct char_data *ch);
 static void read_aliases_ascii(FILE *file, struct char_data *ch, int count);
@@ -538,6 +539,10 @@ int load_char(const char *name, struct char_data *ch)
     init_collection_queue(ch);
     init_known_spells(ch);
     reset_current_craft(ch, NULL, false, false);
+
+    /* Initialize introduction list */
+    for (i = 0; i < MAX_INTROS; i++)
+      ch->player_specials->saved.intro_list[i] = NULL;
     for (i = 0; i < NUM_CRAFT_MOTES; i++)
       GET_CRAFT_MOTES(ch, i) = 0;
     for (i = 0; i < NUM_CRAFT_MATS; i++)
@@ -1092,6 +1097,8 @@ int load_char(const char *name, struct char_data *ch)
           ch->player.ideals = fread_string(fl, buf2);
         else if (!strcmp(tag, "InMa"))
           load_innate_magic_queue(fl, ch);
+        else if (!strcmp(tag, "Intr"))
+          load_introductions(fl, ch);
         else if (!strcmp(tag, "Int "))
           GET_REAL_INT(ch) = atoi(line);
         else if (!strcmp(tag, "Invs"))
@@ -2282,6 +2289,21 @@ void save_char(struct char_data *ch, int mode)
     for (i = 0; i < GET_NUM_QUESTS(ch); i++)
       BUFFER_WRITE( "%d\n", ch->player_specials->saved.completed_quests[i]);
     BUFFER_WRITE( "%d\n", NOTHING);
+  }
+
+  /* Save introduction list */
+  {
+    int intro_count = 0;
+    for (i = 0; i < MAX_INTROS && ch->player_specials->saved.intro_list[i] != NULL; i++)
+      intro_count++;
+    
+    if (intro_count > 0)
+    {
+      BUFFER_WRITE( "Intr:\n");
+      for (i = 0; i < intro_count; i++)
+        BUFFER_WRITE( "%s\n", ch->player_specials->saved.intro_list[i]);
+      BUFFER_WRITE( "~\n");
+    }
   }
 
   if (GET_NSUPPLY_COOLDOWN(ch) != 0)
@@ -4210,6 +4232,62 @@ void load_quests(FILE *fl, struct char_data *ch)
     if (num != NOTHING)
       add_completed_quest(ch, num);
   } while (num != NOTHING);
+}
+
+/* Load introduction list */
+static void load_introductions(FILE *fl, struct char_data *ch)
+{
+  char line[MAX_INPUT_LENGTH + 1];
+  int i = 0;
+  long test_num;
+  bool old_format = FALSE;
+
+  /* Initialize all slots to NULL first */
+  for (i = 0; i < MAX_INTROS; i++)
+    ch->player_specials->saved.intro_list[i] = NULL;
+  
+  i = 0;
+  
+  /* Read first line to detect format */
+  get_line(fl, line);
+  
+  /* Check if this is old numeric format by testing first line */
+  if (sscanf(line, "%ld", &test_num) == 1 && strlen(line) < 10)
+  {
+    /* Old format detected - skip all numeric entries until we hit a non-numeric tag */
+    old_format = TRUE;
+    /* Keep reading and discarding old format data */
+    while (1)
+    {
+      get_line(fl, line);
+      /* Stop when we hit NOTHING (-1) or a non-numeric line */
+      if (sscanf(line, "%ld", &test_num) != 1 || test_num == -1 || test_num == NOTHING)
+        break;
+    }
+    /* Old format data has been skipped, intro list remains empty */
+    return;
+  }
+  
+  /* New format - process the first line we already read */
+  if (strcmp(line, "~") != 0 && *line)
+  {
+    ch->player_specials->saved.intro_list[i] = strdup(line);
+    i++;
+  }
+  
+  /* Continue reading new format data */
+  while (i < MAX_INTROS)
+  {
+    get_line(fl, line);
+    if (strcmp(line, "~") == 0)
+      break;
+    
+    if (*line)
+    {
+      ch->player_specials->saved.intro_list[i] = strdup(line);
+      i++;
+    }
+  }
 }
 
 static void load_HMVS(struct char_data *ch, const char *line, int mode)
