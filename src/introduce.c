@@ -232,14 +232,14 @@ ACMD(do_introduce)
   /* Can't introduce to NPCs */
   if (IS_NPC(vict))
   {
-    send_to_char(ch, "There's no need to introduce yourself to %s.\r\n", GET_NAME(vict));
+    send_to_char(ch, "There's no need to introduce yourself to %s.\r\n", show_pers(vict, ch));
     return;
   }
 
   /* Check if already introduced */
   if (knows_character(vict, ch))
   {
-    send_to_char(ch, "%s already knows who you are.\r\n", GET_NAME(vict));
+    send_to_char(ch, "%s already knows who you are.\r\n", show_pers(vict, ch));
     return;
   }
 
@@ -259,12 +259,12 @@ ACMD(do_introduce)
   /* Perform the introduction - add ch's name to vict's list */
   if (add_introduction(vict, ch))
   {
-    send_to_char(ch, "You introduce yourself to %s.\r\n", GET_NAME(vict));
+    send_to_char(ch, "You introduce yourself to %s.\r\n", show_pers(vict, ch));
     send_to_char(vict, "%s introduces %sself to you.\r\n", GET_NAME(ch), HSSH(ch));
     act("$n introduces $mself to $N.", FALSE, ch, 0, vict, TO_NOTVICT);
   }
   else
   {
-    send_to_char(ch, "%s's introduction list is full!\r\n", GET_NAME(vict));
+    send_to_char(ch, "%s's introduction list is full!\r\n", show_pers(vict, ch));
   }
 }

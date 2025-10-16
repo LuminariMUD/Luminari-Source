@@ -394,13 +394,8 @@ ACMDU(do_gsay)
     if (argument[strlen(argument) - 1] != '.' && argument[strlen(argument) - 1] != '!' && argument[strlen(argument) - 1] != '?')
       strcat(argument, ".");
 
-    send_to_group(ch, ch->group, "%s%s%s says, '%s'%s\r\n", CCGRN(ch, C_NRM), CCGRN(ch, C_NRM),
-                  GET_NAME(ch), argument, CCNRM(ch, C_NRM));
-
+    /* Send group say to each member individually so we can use show_pers */
     struct descriptor_data *d = NULL;
-    char buf[MAX_STRING_LENGTH] = {'\0'};
-    snprintf(buf, sizeof(buf), "%s%s%s says, '%s'%s\r\n", CCGRN(ch, C_NRM), CCGRN(ch, C_NRM),
-             GET_NAME(ch), argument, CCNRM(ch, C_NRM));
     for (d = descriptor_list; d; d = d->next)
     {
       if (STATE(d) != CON_PLAYING)
@@ -409,6 +404,15 @@ ACMDU(do_gsay)
         continue;
       if (!is_player_grouped(ch, d->character))
         continue;
+      if (d->character == ch)
+        continue;  /* Skip the speaker, we'll message them separately */
+      
+      char buf[MAX_STRING_LENGTH] = {'\0'};
+      snprintf(buf, sizeof(buf), "[%sGroup%s] %s%s says, '%s'%s\r\n", 
+               CBGRN(d->character, C_NRM), CCGRN(d->character, C_NRM),
+               CCGRN(d->character, C_NRM), show_pers(ch, d->character), 
+               argument, CCNRM(d->character, C_NRM));
+      send_to_char(d->character, "%s", buf);
       add_history(d->character, buf, HIST_GSAY);
     }
 
@@ -532,10 +536,18 @@ ACMD(do_tell)
     send_to_char(ch, "You look up '%s' in Merriam-Webster.\r\n", word);
 #endif /* platform specific part */
   }
-  else if (GET_LEVEL(ch) < LVL_IMMORT && !(vict = get_player_vis(ch, buf, NULL, FIND_CHAR_WORLD)))
+  else if (!(vict = get_player_vis(ch, buf, NULL, FIND_CHAR_WORLD)))
+  {
     send_to_char(ch, "%s", CONFIG_NOPERSON);
-  else if (GET_LEVEL(ch) >= LVL_IMMORT && !(vict = get_char_vis(ch, buf, NULL, FIND_CHAR_WORLD)))
-    send_to_char(ch, "%s", CONFIG_NOPERSON);
+  }
+  else if (CONFIG_USE_INTRO_SYSTEM && !IS_NPC(vict) && GET_LEVEL(ch) < LVL_IMMORT && !has_intro(ch, vict))
+  {
+    send_to_char(ch, "You don't know anyone by that name.\r\n");
+  }
+  else if (IS_NPC(vict))
+  {
+    send_to_char(ch, "You cannot send tells to NPCs.\r\n");
+  }
   else if (is_tell_ok(ch, vict))
   {
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
@@ -555,7 +567,7 @@ ACMD(do_tell)
       parse_at(buf2);
 
     char buf3[MAX_INPUT_LENGTH] = {'\0'};
-    snprintf(buf3, sizeof(buf3), "%s%s told you, '%s'%s\r\n", CBCYN(vict, C_NRM), GET_NAME(ch), buf2, CCNRM(vict, C_NRM));
+    snprintf(buf3, sizeof(buf3), "%s%s told you, '%s'%s\r\n", CBCYN(vict, C_NRM), show_pers(ch, vict), buf2, CCNRM(vict, C_NRM));
     // msg = act(buf3, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
     add_history(vict, buf3, HIST_TELL);
 
@@ -875,7 +887,7 @@ ACMDU(do_gen_comm)
   if (!emoting)
   {
     snprintf(buf1, sizeof(buf1), "$n %ss, '%s'", com_msgs[subcmd][1], argument);
-    snprintf(buf3, sizeof(buf3), "%s %ss, '%s'\r\n", GET_NAME(ch), com_msgs[subcmd][1], argument);
+    /* buf3 will be created per-recipient below to use show_pers */
   }
 
   /* Now send all the strings out. */
@@ -930,6 +942,12 @@ ACMDU(do_gen_comm)
     if (IN_ROOM(i->character) == NOWHERE)
       continue;
 
+    /* Create per-recipient message with show_pers for name display */
+    if (!emoting)
+    {
+      snprintf(buf3, sizeof(buf3), "%s %ss, '%s'\r\n", show_pers(ch, i->character), com_msgs[subcmd][1], argument);
+    }
+    
     /* we want history for the rest of the conditions */
     add_history(i->character, buf3, hist_type[subcmd]);
 
