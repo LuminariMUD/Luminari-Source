@@ -109,8 +109,9 @@ bool add_introduction(struct char_data *ch, struct char_data *vict)
 ACMD(do_introduce)
 {
   struct char_data *vict;
-  char arg[MAX_INPUT_LENGTH];
-  int i, count = 0;
+  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  int i, j, count = 0;
+  bool found = FALSE;
   const char *known_names[MAX_INTROS];
   char name_buf[MAX_NAME_LENGTH + 1];
 
@@ -121,13 +122,61 @@ ACMD(do_introduce)
     return;
   }
 
-  one_argument(argument, arg, sizeof(arg));
+  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   if (!*arg)
   {
     send_to_char(ch, "Introduce yourself to whom?\r\n"
                      "Usage: introduce <person>\r\n"
-                     "       introduce list\r\n");
+                     "       introduce list\r\n"
+                     "       introduce forget <person>\r\n");
+    return;
+  }
+
+  /* Check if they want to forget someone */
+  if (is_abbrev(arg, "forget"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Forget whom?\r\n"
+                       "Usage: introduce forget <person>\r\n");
+      return;
+    }
+
+    /* Search for the name in the introduction list */
+    for (i = 0; i < MAX_INTROS; i++)
+    {
+      if (ch->player_specials->saved.intro_list[i] == NULL)
+        break; /* End of list */
+
+      if (!str_cmp(ch->player_specials->saved.intro_list[i], arg2))
+      {
+        /* Found the name - remove it */
+        found = TRUE;
+        
+        /* Free the memory for this name */
+        free(ch->player_specials->saved.intro_list[i]);
+        
+        /* Shift all subsequent names down one slot */
+        for (j = i; j < MAX_INTROS - 1; j++)
+        {
+          ch->player_specials->saved.intro_list[j] = ch->player_specials->saved.intro_list[j + 1];
+          if (ch->player_specials->saved.intro_list[j] == NULL)
+            break;
+        }
+        
+        /* Ensure the last slot is NULL */
+        ch->player_specials->saved.intro_list[MAX_INTROS - 1] = NULL;
+        
+        send_to_char(ch, "You have forgotten %s.\r\n", CAP(arg2));
+        return;
+      }
+    }
+
+    if (!found)
+    {
+      send_to_char(ch, "You don't know anyone by that name.\r\n");
+    }
     return;
   }
 
