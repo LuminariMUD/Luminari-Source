@@ -5324,6 +5324,9 @@ struct player_special_data_saved
     int devices_destroyed_today;       /**< Number of devices destroyed in past 24 hours */
     time_t device_creation_cooldown;   /**< Timestamp until when device creation is blocked */
 
+    /* PvP timer - tracks when PvP flag was enabled */
+    time_t pvp_timer;                  /**< Timestamp when PvP was enabled, prevents turning off for 15 minutes */
+
     struct player_invention inventions[MAX_PLAYER_INVENTIONS];
     int num_inventions;
 };

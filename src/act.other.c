@@ -7437,6 +7437,9 @@ ACMD(do_gen_tog)
       // 64
       {"You will now see craft progress indicators.\r\n",
        "You will no longer see craft progress indicators.\r\n"},
+      // 65
+      {"PvP flag disabled. You are no longer eligible for player vs. player combat.\r\n",
+       "PvP flag enabled. You are now eligible for player vs. player combat.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7444,6 +7447,37 @@ ACMD(do_gen_tog)
 
   switch (subcmd)
   {
+  case SCMD_PVP:
+    /* Check if PK is allowed on the MUD */
+    if (!CONFIG_PK_ALLOWED)
+    {
+      send_to_char(ch, "Player killing is not enabled on this MUD.\r\n");
+      return;
+    }
+    
+    /* If trying to turn off PvP, check the timer */
+    if (PRF_FLAGGED(ch, PRF_PVP))
+    {
+      time_t current_time = time(0);
+      time_t time_since_enabled = current_time - GET_PVP_TIMER(ch);
+      int minutes_remaining = 15 - (time_since_enabled / 60);
+      
+      if (time_since_enabled < (15 * 60))  /* 15 minutes in seconds */
+      {
+        send_to_char(ch, "You must wait %d more minute%s before you can disable your PvP flag.\r\n",
+                    minutes_remaining, minutes_remaining != 1 ? "s" : "");
+        return;
+      }
+    }
+    else
+    {
+      /* Turning PvP on, set the timer */
+      GET_PVP_TIMER(ch) = time(0);
+    }
+    
+    result = PRF_TOG_CHK(ch, PRF_PVP);
+    break;
+
   case SCMD_LIFE_BOND:
     if (!HAS_FEAT(ch, FEAT_LIFE_BOND))
     {

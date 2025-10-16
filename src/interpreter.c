@@ -712,6 +712,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"prompt", "pro", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"prefedit", "pre", POS_DEAD, do_oasis_prefedit, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"prescience", "prescience", POS_RECLINING, do_prescience, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"pvp", "pvp", POS_DEAD, do_gen_tog, 0, SCMD_PVP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"purify", "purify", POS_FIGHTING, do_purify, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"purge", "purge", POS_DEAD, do_purge, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"prayer", "prayer", POS_RECLINING, do_gen_preparation, 0, SCMD_PRAY, FALSE, ACTION_NONE, {0, 0}, NULL},

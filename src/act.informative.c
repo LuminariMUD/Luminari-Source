@@ -793,7 +793,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   }
 
   /* pcs: show if groupped */
-  if (!IS_NPC(i) && GROUP(i))
+  if (!IS_NPC(i) && GROUP(i) && GROUP(i) == GROUP(ch))
   {
     if (GROUP(i) == GROUP(ch))
       send_to_char(ch, "(%s) ",
@@ -2259,6 +2259,23 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Call Retainer - Duration: %d seconds\r\n", GET_RETAINER_COOLDOWN(k) * 6);
   if (GET_SCROUNGE_COOLDOWN(k) > 0)
     send_to_char(ch, "Scrounge - Duration: %d seconds\r\n", GET_SCROUNGE_COOLDOWN(k) * 6);
+
+  /* PvP cooldown timer - only shows if PvP is enabled and time remaining */
+  if (PRF_FLAGGED(k, PRF_PVP) && GET_PVP_TIMER(k) > 0)
+  {
+    time_t current_time = time(0);
+    time_t time_since_enabled = current_time - GET_PVP_TIMER(k);
+    int seconds_remaining = (15 * 60) - time_since_enabled;
+    char timebuf[100];
+
+    if (seconds_remaining < 60)
+      snprintf(timebuf, sizeof(timebuf), "%d seconds", seconds_remaining);
+    else
+      snprintf(timebuf, sizeof(timebuf), "%d minutes and %d seconds", (seconds_remaining / 60), (seconds_remaining % 60));
+    
+    if (seconds_remaining > 0)
+      send_to_char(ch, "PvP Flag Cooldown - Duration: %s\r\n", timebuf);
+  }
 
   list_item_activate_ability_cooldowns(ch);
 
