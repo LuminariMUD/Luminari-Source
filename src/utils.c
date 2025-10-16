@@ -6404,24 +6404,120 @@ void do_study_spell_help(struct char_data *ch, int spellnum)
 
 bool pvp_ok(struct char_data *ch, struct char_data *target, bool display)
 {
-
   if (!ch || !target)
     return false;
 
-  bool pvp_ok = true;
-
-  // right now, there's no opt-in pvp, so we'll return true until we add that in
-  return pvp_ok;
-
-  if (PRF_FLAGGED(ch, PRF_PVP) && PRF_FLAGGED(target, PRF_PVP))
+  // NPC vs NPC is always allowed
+  if (IS_NPC(ch) && IS_NPC(target))
     return true;
 
-  // are they in the arena?
-  if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END)
-    if (world[IN_ROOM(target)].number >= ARENA_START && world[IN_ROOM(target)].number <= ARENA_END)
+  // If CONFIG_PK_ALLOWED is disabled, no PVP is allowed unless in arena
+  if (!CONFIG_PK_ALLOWED)
+  {
+    // Check if both are in the arena (arena bypasses all PVP restrictions)
+    if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END &&
+        world[IN_ROOM(target)].number >= ARENA_START && world[IN_ROOM(target)].number <= ARENA_END)
+      return true;
+    
+    if (display && !IS_NPC(ch) && !IS_NPC(target))
+      send_to_char(ch, "Player killing is not allowed on this MUD.\r\n");
+    return false;
+  }
+
+  // If one is NPC and one is PC, check if it's a pet/follower
+  if (IS_NPC(ch) && !IS_NPC(target))
+  {
+    // If ch is a pet/follower with a player master, check the master's PVP flag
+    if (ch->master && !IS_NPC(ch->master))
+    {
+      if (!PRF_FLAGGED(ch->master, PRF_PVP))
+      {
+        if (display)
+          send_to_char(ch->master, "Your pet cannot attack other players unless you have PVP enabled.\r\n");
+        return false;
+      }
+      // Master has PVP on, now check target
+      if (!PRF_FLAGGED(target, PRF_PVP))
+      {
+        // Check arena exception
+        if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END &&
+            world[IN_ROOM(target)].number >= ARENA_START && world[IN_ROOM(target)].number <= ARENA_END)
+          return true;
+        
+        if (display)
+          send_to_char(ch->master, "Your pet cannot attack players who don't have PVP enabled.\r\n");
+        return false;
+      }
+      // Both have PVP enabled
+      return true;
+    }
+    // NPC without player master attacking PC is fine (mobs can attack players)
+    return true;
+  }
+
+  if (!IS_NPC(ch) && IS_NPC(target))
+  {
+    // PC attacking NPC pet/follower - check if the pet's master has PVP enabled
+    if (target->master && !IS_NPC(target->master))
+    {
+      if (!PRF_FLAGGED(ch, PRF_PVP))
+      {
+        // Check arena exception
+        if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END &&
+            world[IN_ROOM(target)].number >= ARENA_START && world[IN_ROOM(target)].number <= ARENA_END)
+          return true;
+        
+        if (display)
+          send_to_char(ch, "You cannot attack another player's pet unless you have PVP enabled.\r\n");
+        return false;
+      }
+      if (!PRF_FLAGGED(target->master, PRF_PVP))
+      {
+        // Check arena exception
+        if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END &&
+            world[IN_ROOM(target)].number >= ARENA_START && world[IN_ROOM(target)].number <= ARENA_END)
+          return true;
+        
+        if (display)
+          send_to_char(ch, "You cannot attack the pet of a player who doesn't have PVP enabled.\r\n");
+        return false;
+      }
+      // Both have PVP enabled
+      return true;
+    }
+    // PC attacking normal NPC is fine
+    return true;
+  }
+
+  // Both are PCs - check PVP flags
+  if (!IS_NPC(ch) && !IS_NPC(target))
+  {
+    // Check if both are in the arena (arena bypasses PVP flag requirements)
+    if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END &&
+        world[IN_ROOM(target)].number >= ARENA_START && world[IN_ROOM(target)].number <= ARENA_END)
       return true;
 
-  return false;
+    // Both must have PVP enabled
+    if (!PRF_FLAGGED(ch, PRF_PVP))
+    {
+      if (display)
+        send_to_char(ch, "You must enable PVP (type 'pvp') before attacking other players.\r\n");
+      return false;
+    }
+
+    if (!PRF_FLAGGED(target, PRF_PVP))
+    {
+      if (display)
+        send_to_char(ch, "Your target does not have PVP enabled and cannot be attacked.\r\n");
+      return false;
+    }
+
+    // Both have PVP enabled
+    return true;
+  }
+
+  // Default: allow (shouldn't reach here)
+  return true;
 }
 
 bool pvp_ok_single(struct char_data *ch, bool display)

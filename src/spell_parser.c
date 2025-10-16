@@ -551,6 +551,16 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     return (0);
   }
 
+  /* PVP CHECK - prevent casting harmful spells on players without mutual PVP consent */
+  if (cvict && (SINFO.violent || IS_SET(SINFO.routines, MAG_DAMAGE)))
+  {
+    if (!IS_NPC(cvict) || (IS_NPC(cvict) && cvict->master && !IS_NPC(cvict->master)))
+    {
+      if (!pvp_ok(caster, cvict, true))
+        return (0);
+    }
+  }
+
   if (cvict && MOB_FLAGGED(cvict, MOB_NOKILL))
   {
     send_to_char(caster, "This mob is protected.\r\n");

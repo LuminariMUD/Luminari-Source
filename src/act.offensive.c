@@ -600,6 +600,13 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     return FALSE;
   }
 
+  /* PVP CHECK - prevent knockdown on players without mutual PVP consent */
+  if (!IS_NPC(vict) || (IS_NPC(vict) && vict->master && !IS_NPC(vict->master)))
+  {
+    if (!pvp_ok(ch, vict, display && skill != SPELL_BANISHING_BLADE))
+      return FALSE;
+  }
+
   if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2)
   {
     if (display)
@@ -1722,8 +1729,11 @@ void perform_assist(struct char_data *ch, struct char_data *helpee)
   else if (!CAN_SEE(ch, opponent))
     act("You can't see who is fighting $M!", FALSE, ch, 0, helpee, TO_CHAR);
   /* prevent accidental pkill */
-  else if (!CONFIG_PK_ALLOWED && !IS_NPC(opponent))
-    send_to_char(ch, "You cannot kill other players.\r\n");
+  else if (!IS_NPC(opponent) || (IS_NPC(opponent) && opponent->master && !IS_NPC(opponent->master)))
+  {
+    if (!pvp_ok(ch, opponent, true))
+      return;
+  }
   else if (!MOB_CAN_FIGHT(ch))
   {
     send_to_char(ch, "You can't fight!\r\n");
@@ -2897,6 +2907,13 @@ ACMD(do_hit)
     return;
   }
 
+  /* PVP CHECK - prevent attacking players without mutual PVP consent */
+  if (!IS_NPC(vict) || (IS_NPC(vict) && vict->master && !IS_NPC(vict->master)))
+  {
+    if (!pvp_ok(ch, vict, true))
+      return;
+  }
+
   /* PKILL */
   if (!CONFIG_PK_ALLOWED && !IS_NPC(vict) && !IS_NPC(ch))
     check_killer(ch, vict);
@@ -3133,6 +3150,13 @@ ACMD(do_backstab)
     act("$n notices $N lunging at $m!", FALSE, vict, 0, ch, TO_NOTVICT);
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
     return;
+  }
+
+  /* PVP CHECK - prevent backstabbing players without mutual PVP consent */
+  if (!IS_NPC(vict) || (IS_NPC(vict) && vict->master && !IS_NPC(vict->master)))
+  {
+    if (!pvp_ok(ch, vict, true))
+      return;
   }
 
   perform_backstab(ch, vict);
