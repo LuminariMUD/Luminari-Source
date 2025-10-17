@@ -132,6 +132,22 @@ int mysql_board_init(void) {
         return 0;
     }
 
+    /* Create player board visits tracking table - tracks first visit to a board */
+    sprintf(query,
+        "CREATE TABLE IF NOT EXISTS player_board_visits ("
+        "player_id INT NOT NULL, "
+        "board_id INT NOT NULL, "
+        "first_visit TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "last_visit TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+        "PRIMARY KEY (player_id, board_id), "
+        "INDEX idx_player (player_id)"
+        ")");
+
+    if (!mysql_board_execute_query(query)) {
+        log("SYSERR: Failed to create player_board_visits table");
+        return 0;
+    }
+
     /* NOTE: Boards are now managed via OLC (bedit command) instead of hardcoded array */
     /* The mysql_board_sync_default_boards() function can still be used for initial setup if needed */
 
@@ -502,6 +518,11 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page) {
     if (page < 1) page = 1;
     offset = (page - 1) * POSTS_PER_PAGE;
     
+    /* Mark this board as visited by the player */
+    if (!IS_NPC(ch) && GET_IDNUM(ch) > 0) {
+        mysql_board_mark_board_visited(ch, board_id);
+    }
+    
     /* Find the board configuration */
     for (i = 0; i < mysql_num_boards; i++) {
         if (mysql_board_configs[i].board_id == board_id) {
@@ -647,6 +668,11 @@ void mysql_board_show_post(struct char_data *ch, int board_id, int post_id) {
         return;
     }
 
+    /* Mark this board as visited by the player */
+    if (!IS_NPC(ch) && GET_IDNUM(ch) > 0) {
+        mysql_board_mark_board_visited(ch, board_id);
+    }
+
     time_str = ctime(&post->date_posted);
     time_str[strlen(time_str) - 1] = '\0'; /* Remove newline */
 
@@ -673,12 +699,13 @@ void mysql_board_show_post(struct char_data *ch, int board_id, int post_id) {
         post->body);
 
     send_to_char(ch, "%s", buf);
-    mysql_board_free_post(post);
-
-    /* Mark post as read for this player */
+    
+    /* Mark post as read for this player (before freeing the post!) */
     if (!IS_NPC(ch) && GET_IDNUM(ch) > 0) {
         mysql_board_mark_post_read(ch, board_id, post->post_id);
     }
+    
+    mysql_board_free_post(post);
 }
 
 /*
@@ -1519,6 +1546,29 @@ void mysql_board_mark_post_read(struct char_data *ch, int board_id, int post_id)
         "ON DUPLICATE KEY UPDATE read_date = NOW()",
         GET_IDNUM(ch), post_id, board_id);
 
+    if (!mysql_board_execute_query(query)) {
+        log("SYSERR: mysql_board_mark_post_read failed for player %ld, board %d, post %d",
+            GET_IDNUM(ch), board_id, post_id);
+    }
+}
+
+/*
+ * Mark a board as visited by a player
+ * Called when player views board list or reads any post
+ */
+void mysql_board_mark_board_visited(struct char_data *ch, int board_id) {
+    char query[512];
+
+    if (!ch || IS_NPC(ch) || GET_IDNUM(ch) <= 0)
+        return;
+
+    /* Insert or update visit record */
+    sprintf(query,
+        "INSERT INTO player_board_visits (player_id, board_id, first_visit, last_visit) "
+        "VALUES (%ld, %d, NOW(), NOW()) "
+        "ON DUPLICATE KEY UPDATE last_visit = NOW()",
+        GET_IDNUM(ch), board_id);
+
     mysql_board_execute_query(query);
 }
 
@@ -1555,7 +1605,6 @@ void mysql_board_mark_all_read(struct char_data *ch, int board_id) {
  */
 ACMD(do_boardcheck) {
     char query[2048];
-    char buf[MAX_STRING_LENGTH];
     char board_name_buf[MAX_STRING_LENGTH];
     MYSQL_RES *result;
     MYSQL_ROW row;
@@ -1572,14 +1621,14 @@ ACMD(do_boardcheck) {
         return;
     }
 
-    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
-    send_to_char(ch, "                                       \tWBoard Status Report\tn                                        \r\n");
-    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "\tY+------------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "                           \tWBoard Status Report\tn                             \r\n");
+    send_to_char(ch, "\tY+------------------------------------------------------------------------------+\tn\r\n");
 
     /* Check each board configuration */
     for (i = 0; i < mysql_num_boards; i++) {
         struct mysql_board_config *board = &mysql_board_configs[i];
-        char display_name[85];  /* 84 visible chars max + null terminator */
+        char display_name[71];  /* 70 visible chars max + null terminator */
 
         /* Skip inactive boards */
         if (!board->active)
@@ -1591,7 +1640,7 @@ ACMD(do_boardcheck) {
 
         /* Count unread posts on this board */
         /* For immortals (level 31+), show all boards with unread posts */
-        /* For mortals, only show boards they have read at least once */
+        /* For mortals, only show boards they have visited at least once */
         if (GET_LEVEL(ch) >= LVL_IMMORT) {
             sprintf(query,
                 "SELECT COUNT(*) "
@@ -1609,9 +1658,9 @@ ACMD(do_boardcheck) {
                 "AND p.post_id NOT IN ("
                 "  SELECT post_id FROM player_board_reads WHERE player_id = %ld"
                 ") "
-                /* Only show boards the player has read at least once */
+                /* Only show boards the player has visited at least once */
                 "AND EXISTS ("
-                "  SELECT 1 FROM player_board_reads "
+                "  SELECT 1 FROM player_board_visits "
                 "  WHERE player_id = %ld AND board_id = %d"
                 ")",
                 board->board_id, GET_IDNUM(ch), GET_IDNUM(ch), board->board_id);
@@ -1635,14 +1684,14 @@ ACMD(do_boardcheck) {
                     board_name_buf[sizeof(board_name_buf) - 1] = '\0';
                     parse_at(board_name_buf);
 
-                    /* Truncate board name to fit in 84 visible characters */
+                    /* Truncate board name to fit in 70 visible characters */
                     visible_len = 0;
                     display_name[0] = '\0';
-                    for (p = board_name_buf; *p && visible_len < 84; ) {
+                    for (p = board_name_buf; *p && visible_len < 70; ) {
                         if (*p == '\t' && *(p+1)) {
                             /* Copy color code */
                             int len = strlen(display_name);
-                            if (len < 83) {
+                            if (len < 69) {
                                 display_name[len] = *p++;
                                 display_name[len+1] = *p++;
                                 display_name[len+2] = '\0';
@@ -1650,7 +1699,7 @@ ACMD(do_boardcheck) {
                         } else {
                             /* Copy regular character */
                             int len = strlen(display_name);
-                            if (len < 83) {
+                            if (len < 69) {
                                 display_name[len] = *p++;
                                 display_name[len+1] = '\0';
                                 visible_len++;
@@ -1659,15 +1708,15 @@ ACMD(do_boardcheck) {
                     }
 
                     /* Display the board name */
-                    send_to_char(ch, "%s", display_name);
+                    send_to_char(ch, "  %s", display_name);
                     
-                    /* Pad to 84 characters visible width */
-                    for (pad_i = visible_len; pad_i < 84; pad_i++) {
+                    /* Pad to 70 characters visible width */
+                    for (pad_i = visible_len; pad_i < 70; pad_i++) {
                         send_to_char(ch, " ");
                     }
                     
-                    /* Display unread count (exactly 16 chars: " " + 3 digits + " unread" = 11, leaving 5 for color codes) */
-                    send_to_char(ch, " \tR%3d unread\tn\r\n", unread);
+                    /* Display unread count (8 chars total: " " + up to 3 digits + " NEW") */
+                    send_to_char(ch, " \tR%3d NEW\tn\r\n", unread);
                 }
             }
             mysql_free_result(result);
@@ -1675,18 +1724,17 @@ ACMD(do_boardcheck) {
     }
 
     if (!found_any) {
-        send_to_char(ch, "                             \tGNo unread posts on any boards.\tn                              \r\n");
+        send_to_char(ch, "                     \tGNo unread posts on any boards.\tn                     \r\n");
     } else {
-        send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
-        /* Center the total line - "Total: X unread post(s)" */
-        sprintf(buf, "                                   \tWTotal: \tY%d unread post%s\tn                                   \r\n",
+        send_to_char(ch, "\tY+------------------------------------------------------------------------------+\tn\r\n");
+        /* Display total */
+        send_to_char(ch, "                      \tWTotal: \tY%d unread post%s\tn                       \r\n",
                 total_unread, total_unread != 1 ? "s" : "");
-        send_to_char(ch, "%s", buf);
     }
 
-    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
-    send_to_char(ch, "                    \tcType '\tCboard markread\tc' at a board to mark all posts as read.\tn                     \r\n");
-    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "\tY+------------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "        \tcType '\tCboard markread\tc' at a board to mark all posts as read.\tn        \r\n");
+    send_to_char(ch, "\tY+------------------------------------------------------------------------------+\tn\r\n");
 }
 
 /*
