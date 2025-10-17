@@ -1149,7 +1149,7 @@
 #define MOB_BLOCK_ALIGN 58
 #define MOB_BLOCK_ETHOS 59
 #define MOB_INFO_KILL_PLR 60 /* player, when killed by mob, sends a message in game to everyone */
-#define MOB_UNUSED_24 61
+#define MOB_MOB_ASSIST 61    /**< Mob will assist other mobs in group/following */
 #define MOB_NOCONFUSE 62
 #define MOB_HUNTS_TARGET 63
 #define MOB_ABIL_GRAPPLE 64
