@@ -237,7 +237,7 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                /* Line 8 (8) No Rage Spell */
                "%sH%s) Shorten Post Combat Text%s[%s%3s%s]        %sI%s) Automatic Eldritch Blast         %s[%s%3s%s]\r\n"
                /* Line 9 (9) No Crafting Progress Messages */
-               "%sJ%s) No Crafting Progress Msg%s[%s%3s%s]\r\n"
+               "%sJ%s) No Crafting Progress Msg%s[%s%3s%s]        %sL%s) BoardCheck on Login              %s[%s%3s%s]\r\n"
                ,
                /* Line 8 (8) No Rage Spell */
                /*******1********/
@@ -322,7 +322,11 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                /*******J*********/
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_NO_CRAFT_PROGRESS) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_NO_CRAFT_PROGRESS)), CCCYN(d->character, C_NRM)
+               ONOFF(PREFEDIT_FLAGGED(PRF_NO_CRAFT_PROGRESS)), CCCYN(d->character, C_NRM),
+               /**/
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_BOARDCHECK) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_BOARDCHECK)), CCCYN(d->character, C_NRM)
 
                /*end*/);
 
@@ -1085,6 +1089,11 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case 'j':
     case 'J':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NO_CRAFT_PROGRESS);
+      break;
+
+    case 'l':
+    case 'L':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_BOARDCHECK);
       break;
 
     case 'k':

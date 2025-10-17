@@ -1049,6 +1049,8 @@ void char_from_furniture(struct char_data *ch);
 
 /** Experience points of ch. */
 #define GET_EXP(ch) ((ch)->points.exp)
+/** Artisan experience points of ch. */
+#define GET_ARTISAN_EXP(ch) ((ch)->points.artisan_exp)
 /** Armor class of ch. */
 /* Note that this system is basically inspired by d20, but by a factor of
    10.  So naked AC = 10 in d20, or in our system 100 */

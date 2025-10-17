@@ -193,6 +193,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"autosplit", "autospl", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSPLIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autosort", "autosort", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSORT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autostore", "autostore", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSTORE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"autobcheck", "autobcheck", POS_DEAD, do_gen_tog, 0, SCMD_BOARDCHECK, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"abilityset", "abilityset", POS_SLEEPING, do_abilityset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autocraft", "autocraft", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"adjure", "adjure", POS_RESTING, do_gen_preparation, 0, SCMD_ADJURE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -1069,6 +1070,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"heading", "heading", POS_STANDING, do_greyhawk_heading, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"contacts", "contacts", POS_STANDING, do_greyhawk_contacts, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"board", "board", POS_STANDING, do_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"boardcheck", "boardcheck", POS_RESTING, do_boardcheck, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"boardfind", "boardfind", POS_DEAD, do_boardfind, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"disembark", "disembark", POS_STANDING, do_greyhawk_disembark, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"shipload", "shipload", POS_DEAD, do_greyhawk_shipload, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setsail", "setsail", POS_DEAD, do_greyhawk_setsail, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},    
@@ -4331,6 +4334,14 @@ switch (load_result)
       look_at_room(d->character, 0);
       if (has_mail(GET_IDNUM(d->character)))
         send_to_char(d->character, "You have mail waiting.\r\n");
+      
+      /* Show board check if player has it enabled */
+      if (PRF_FLAGGED(d->character, PRF_BOARDCHECK))
+      {
+        send_to_char(d->character, "\r\n");
+        do_boardcheck(d->character, "", 0, 0);
+      }
+      
       if (load_result == 2)
       { /* rented items lost */
         send_to_char(d->character, "\r\n\007You could not afford your rent!\r\n"
