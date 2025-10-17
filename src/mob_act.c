@@ -292,7 +292,17 @@ void mobile_activity(void)
       {
         if (ch == vict || !IS_NPC(vict) || !FIGHTING(vict))
           continue;
-        if (GROUP(vict) && GROUP(vict) == GROUP(ch))
+        /* Skip if both are in the same group AND at least one is a pet */
+        if (GROUP(vict) && GROUP(vict) == GROUP(ch) && (IS_PET(ch) || IS_PET(vict)))
+          continue;
+        /* Skip group/follower assistance if neither has MOB_MOB_ASSIST flag */
+        if ((GROUP(vict) && GROUP(vict) == GROUP(ch)) || (ch->master == vict || vict->master == ch))
+        {
+          if (!MOB_FLAGGED(ch, MOB_MOB_ASSIST) && !MOB_FLAGGED(vict, MOB_MOB_ASSIST))
+            continue;
+        }
+        /* Skip if in master/follower relationship AND at least one is a pet */
+        if ((ch->master == vict || vict->master == ch) && (IS_PET(ch) || IS_PET(vict)))
           continue;
         if (IS_NPC(FIGHTING(vict)) || ch == FIGHTING(vict))
           continue;
@@ -302,6 +312,40 @@ void mobile_activity(void)
           if (ch->mission_owner && vict->mission_owner && ch->mission_owner != vict->mission_owner)
             continue;
         if (mob_is_helper && IS_ANIMAL(vict))
+          continue;
+
+        act("$n jumps to the aid of $N!", FALSE, ch, 0, vict, TO_ROOM);
+        hit(ch, FIGHTING(vict), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+        found = TRUE;
+        /* CRITICAL: mob may have been extracted during combat */
+        if (!ch || ch->in_room == NOWHERE)
+          break;
+      }
+      if (found)
+        continue;
+    }
+
+    /* Mob-to-Mob Assistance (for grouped/following mobs with MOB_MOB_ASSIST flag) */
+    if (MOB_FLAGGED(ch, MOB_MOB_ASSIST) && (!AFF_FLAGGED(ch, AFF_BLIND) && !AFF_FLAGGED(ch, AFF_CHARM)))
+    {
+      found = FALSE;
+      room_people = world[IN_ROOM(ch)].people;  /* Re-use cached list */
+      
+      for (vict = room_people; vict && !found; vict = vict->next_in_room)
+      {
+        if (ch == vict || !IS_NPC(vict) || !FIGHTING(vict))
+          continue;
+        /* Only assist if in group or follower relationship */
+        if (!((GROUP(vict) && GROUP(vict) == GROUP(ch)) || (ch->master == vict || vict->master == ch)))
+          continue;
+        /* Skip if either is a pet */
+        if (IS_PET(ch) || IS_PET(vict))
+          continue;
+        /* Skip if attacking another NPC or attacking us */
+        if (IS_NPC(FIGHTING(vict)) || ch == FIGHTING(vict))
+          continue;
+        /* Must have MOB_MOB_ASSIST flag */
+        if (!MOB_FLAGGED(vict, MOB_MOB_ASSIST))
           continue;
 
         act("$n jumps to the aid of $N!", FALSE, ch, 0, vict, TO_ROOM);

@@ -1526,7 +1526,7 @@ const char *action_bits[] = {
     "Mob-Block-Alignment",
     "Mob-Block-Ethos",
     "Info-Kill-of-Player", /* 60 */
-    "unused",
+    "Mob-Assist",
     "No-Confuse",
     "Hunts-Target",
     "Ability-Grapple",
