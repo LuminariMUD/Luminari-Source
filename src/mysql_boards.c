@@ -114,6 +114,24 @@ int mysql_board_init(void) {
         return 0;
     }
 
+    /* Create player board reads tracking table */
+    sprintf(query,
+        "CREATE TABLE IF NOT EXISTS player_board_reads ("
+        "player_id INT NOT NULL, "
+        "post_id INT NOT NULL, "
+        "board_id INT NOT NULL, "
+        "read_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "PRIMARY KEY (player_id, post_id), "
+        "INDEX idx_player_board (player_id, board_id), "
+        "INDEX idx_post (post_id), "
+        "FOREIGN KEY (post_id) REFERENCES mysql_board_posts(post_id) ON DELETE CASCADE"
+        ")");
+
+    if (!mysql_board_execute_query(query)) {
+        log("SYSERR: Failed to create player_board_reads table");
+        return 0;
+    }
+
     /* NOTE: Boards are now managed via OLC (bedit command) instead of hardcoded array */
     /* The mysql_board_sync_default_boards() function can still be used for initial setup if needed */
 
@@ -569,9 +587,22 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page) {
 
     while ((row = mysql_fetch_row(result))) {
         char title_buf[MAX_BOARD_TITLE_LENGTH + 1];
+        char unread_marker[10] = "";
+        int post_id_val = atoi(row[0]);
         time_t post_time = (time_t) atol(row[3]);
         struct tm *timeinfo = localtime(&post_time);
         strftime(time_buf, sizeof(time_buf), "%m/%d/%y", timeinfo);
+        
+        /* Check if this post is unread by the player */
+        if (!IS_NPC(ch) && GET_IDNUM(ch) > 0) {
+            if (!mysql_board_has_read_post(ch, post_id_val)) {
+                strcpy(unread_marker, "\tB*\tn");
+            } else {
+                strcpy(unread_marker, " ");
+            }
+        } else {
+            strcpy(unread_marker, " ");
+        }
         
         /* Copy and parse @ color codes in title */
         strncpy(title_buf, row[1], sizeof(title_buf) - 1);
@@ -579,8 +610,8 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page) {
         parse_at(title_buf);
         
         sprintf(buf + strlen(buf),
-            "\tY|\tC%-4d %-40.40s %-15.15s %-8.8s        \tY|\tn\r\n",
-            atoi(row[0]), title_buf, row[2], time_buf);
+            "\tY|\tC%-4d%s %-39.39s %-15.15s %-8.8s        \tY|\tn\r\n",
+            post_id_val, unread_marker, title_buf, row[2], time_buf);
         i++;
     }
 
@@ -643,6 +674,11 @@ void mysql_board_show_post(struct char_data *ch, int board_id, int post_id) {
 
     send_to_char(ch, "%s", buf);
     mysql_board_free_post(post);
+
+    /* Mark post as read for this player */
+    if (!IS_NPC(ch) && GET_IDNUM(ch) > 0) {
+        mysql_board_mark_post_read(ch, board_id, post->post_id);
+    }
 }
 
 /*
@@ -660,9 +696,12 @@ void mysql_board_show_help(struct char_data *ch) {
         "\tCbreply <post#>\tn      - Alternate form of board reply command\r\n"
         "\tCremove <post#>\tn      - Delete your own posts or posts by lower-level players\r\n"
         "\tCboard [list] [page]\tn - List posts on the board (optional page number)\r\n"
+        "\tCboard markread\tn      - Mark all posts on this board as read\r\n"
+        "\tCboardcheck\tn          - Check all boards for unread posts\r\n"
         "\tCboard help\tn          - Show this help information\r\n"
         "\tY================================================================================\tn\r\n"
-        "\tYNote: You must have the appropriate level to use each command.\tn\r\n");
+        "\tYNote: Unread posts are marked with a \tB*\tY symbol in the post list.\tn\r\n"
+        "\tYYou must have the appropriate level to use each command.\tn\r\n");
 
     send_to_char(ch, "%s", buf);
 }
@@ -1093,6 +1132,16 @@ ACMD(do_note) {
         return;
     }
 
+    if (is_abbrev(arg1, "markread")) {
+        if (!mysql_board_can_read(ch, board)) {
+            send_to_char(ch, "You don't have permission to read this board.\r\n");
+            return;
+        }
+
+        mysql_board_mark_all_read(ch, board->board_id);
+        return;
+    }
+
     if (is_number(arg1)) {
         /* Treat as page number for list */
         if (!mysql_board_can_read(ch, board)) {
@@ -1424,4 +1473,459 @@ MYSQL_RES *mysql_board_execute_select(char *query) {
     /* The calling function must call mysql_free_result() */
     
     return result;
+}
+
+/*
+ * Check if a player has read a specific post
+ */
+bool mysql_board_has_read_post(struct char_data *ch, int post_id) {
+    char query[512];
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    bool has_read = false;
+
+    if (!ch || IS_NPC(ch) || GET_IDNUM(ch) <= 0)
+        return false;
+
+    sprintf(query,
+        "SELECT 1 FROM player_board_reads "
+        "WHERE player_id = %ld AND post_id = %d",
+        GET_IDNUM(ch), post_id);
+
+    result = mysql_board_execute_select(query);
+    if (result) {
+        if ((row = mysql_fetch_row(result))) {
+            has_read = true;
+        }
+        mysql_free_result(result);
+    }
+
+    return has_read;
+}
+
+/*
+ * Mark a specific post as read by a player
+ */
+void mysql_board_mark_post_read(struct char_data *ch, int board_id, int post_id) {
+    char query[512];
+
+    if (!ch || IS_NPC(ch) || GET_IDNUM(ch) <= 0)
+        return;
+
+    /* Insert or update read record */
+    sprintf(query,
+        "INSERT INTO player_board_reads (player_id, post_id, board_id, read_date) "
+        "VALUES (%ld, %d, %d, NOW()) "
+        "ON DUPLICATE KEY UPDATE read_date = NOW()",
+        GET_IDNUM(ch), post_id, board_id);
+
+    mysql_board_execute_query(query);
+}
+
+/*
+ * Mark all posts on a board as read
+ */
+void mysql_board_mark_all_read(struct char_data *ch, int board_id) {
+    char query[1024];
+
+    if (!ch || IS_NPC(ch) || GET_IDNUM(ch) <= 0)
+        return;
+
+    /* Insert read records for all posts on this board that haven't been read */
+    sprintf(query,
+        "INSERT INTO player_board_reads (player_id, post_id, board_id, read_date) "
+        "SELECT %ld, post_id, board_id, NOW() "
+        "FROM mysql_board_posts "
+        "WHERE board_id = %d AND deleted = FALSE "
+        "AND post_id NOT IN ("
+        "  SELECT post_id FROM player_board_reads WHERE player_id = %ld"
+        ") "
+        "ON DUPLICATE KEY UPDATE read_date = NOW()",
+        GET_IDNUM(ch), board_id, GET_IDNUM(ch));
+
+    if (mysql_board_execute_query(query)) {
+        send_to_char(ch, "All posts on this board have been marked as read.\r\n");
+    } else {
+        send_to_char(ch, "Error marking posts as read.\r\n");
+    }
+}
+
+/*
+ * Check all boards for unread posts and display to character
+ */
+ACMD(do_boardcheck) {
+    char query[2048];
+    char buf[MAX_STRING_LENGTH];
+    char board_name_buf[MAX_STRING_LENGTH];
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    int i, total_unread = 0;
+    bool found_any = false;
+
+    if (IS_NPC(ch)) {
+        send_to_char(ch, "NPCs don't read bulletin boards.\r\n");
+        return;
+    }
+
+    if (GET_IDNUM(ch) <= 0) {
+        send_to_char(ch, "Error: Invalid player ID.\r\n");
+        return;
+    }
+
+    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "                                       \tWBoard Status Report\tn                                        \r\n");
+    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
+
+    /* Check each board configuration */
+    for (i = 0; i < mysql_num_boards; i++) {
+        struct mysql_board_config *board = &mysql_board_configs[i];
+        char display_name[85];  /* 84 visible chars max + null terminator */
+
+        /* Skip inactive boards */
+        if (!board->active)
+            continue;
+
+        /* Check read permission */
+        if (!mysql_board_can_read(ch, board))
+            continue;
+
+        /* Count unread posts on this board */
+        /* For immortals (level 31+), show all boards with unread posts */
+        /* For mortals, only show boards they have read at least once */
+        if (GET_LEVEL(ch) >= LVL_IMMORT) {
+            sprintf(query,
+                "SELECT COUNT(*) "
+                "FROM mysql_board_posts p "
+                "WHERE p.board_id = %d AND p.deleted = FALSE "
+                "AND p.post_id NOT IN ("
+                "  SELECT post_id FROM player_board_reads WHERE player_id = %ld"
+                ")",
+                board->board_id, GET_IDNUM(ch));
+        } else {
+            sprintf(query,
+                "SELECT COUNT(*) "
+                "FROM mysql_board_posts p "
+                "WHERE p.board_id = %d AND p.deleted = FALSE "
+                "AND p.post_id NOT IN ("
+                "  SELECT post_id FROM player_board_reads WHERE player_id = %ld"
+                ") "
+                /* Only show boards the player has read at least once */
+                "AND EXISTS ("
+                "  SELECT 1 FROM player_board_reads "
+                "  WHERE player_id = %ld AND board_id = %d"
+                ")",
+                board->board_id, GET_IDNUM(ch), GET_IDNUM(ch), board->board_id);
+        }
+
+        result = mysql_board_execute_select(query);
+        if (result) {
+            row = mysql_fetch_row(result);
+            if (row) {
+                int unread = atoi(row[0]);
+                if (unread > 0) {
+                    int visible_len = 0;
+                    int pad_i;
+                    char *p;
+                    
+                    found_any = true;
+                    total_unread += unread;
+
+                    /* Parse @ color codes in board name */
+                    strncpy(board_name_buf, board->board_name, sizeof(board_name_buf) - 1);
+                    board_name_buf[sizeof(board_name_buf) - 1] = '\0';
+                    parse_at(board_name_buf);
+
+                    /* Truncate board name to fit in 84 visible characters */
+                    visible_len = 0;
+                    display_name[0] = '\0';
+                    for (p = board_name_buf; *p && visible_len < 84; ) {
+                        if (*p == '\t' && *(p+1)) {
+                            /* Copy color code */
+                            int len = strlen(display_name);
+                            if (len < 83) {
+                                display_name[len] = *p++;
+                                display_name[len+1] = *p++;
+                                display_name[len+2] = '\0';
+                            }
+                        } else {
+                            /* Copy regular character */
+                            int len = strlen(display_name);
+                            if (len < 83) {
+                                display_name[len] = *p++;
+                                display_name[len+1] = '\0';
+                                visible_len++;
+                            }
+                        }
+                    }
+
+                    /* Display the board name */
+                    send_to_char(ch, "%s", display_name);
+                    
+                    /* Pad to 84 characters visible width */
+                    for (pad_i = visible_len; pad_i < 84; pad_i++) {
+                        send_to_char(ch, " ");
+                    }
+                    
+                    /* Display unread count (exactly 16 chars: " " + 3 digits + " unread" = 11, leaving 5 for color codes) */
+                    send_to_char(ch, " \tR%3d unread\tn\r\n", unread);
+                }
+            }
+            mysql_free_result(result);
+        }
+    }
+
+    if (!found_any) {
+        send_to_char(ch, "                             \tGNo unread posts on any boards.\tn                              \r\n");
+    } else {
+        send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
+        /* Center the total line - "Total: X unread post(s)" */
+        sprintf(buf, "                                   \tWTotal: \tY%d unread post%s\tn                                   \r\n",
+                total_unread, total_unread != 1 ? "s" : "");
+        send_to_char(ch, "%s", buf);
+    }
+
+    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "                    \tcType '\tCboard markread\tc' at a board to mark all posts as read.\tn                     \r\n");
+    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
+}
+
+/*
+ * Find all boards in the game world
+ * Shows room vnum/name or player carrying it
+ * Optional case-insensitive name filter
+ */
+ACMD(do_boardfind) {
+    char arg[MAX_INPUT_LENGTH];
+    char buf[MAX_STRING_LENGTH];
+    char board_name_buf[MAX_STRING_LENGTH];
+    struct obj_data *obj;
+    int i, found_count = 0;
+    bool has_filter = false;
+    char filter_lower[MAX_INPUT_LENGTH];
+
+    if (GET_LEVEL(ch) < LVL_IMMORT) {
+        send_to_char(ch, "You do not have permission to use this command.\r\n");
+        return;
+    }
+
+    /* Get optional filter argument */
+    one_argument(argument, arg, sizeof(arg));
+    if (*arg) {
+        has_filter = true;
+        /* Convert filter to lowercase for case-insensitive comparison */
+        for (i = 0; arg[i] && i < (int)sizeof(filter_lower) - 1; i++) {
+            filter_lower[i] = LOWER(arg[i]);
+        }
+        filter_lower[i] = '\0';
+    }
+
+    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
+    if (has_filter) {
+        /* "Boards Matching: <filter>" - center it in 100 chars */
+        char title_buf[120];
+        snprintf(title_buf, sizeof(title_buf), "\tWBoards Matching: \tC%.40s\tn", arg);
+        send_to_char(ch, "                                  %s                                   \r\n", title_buf);
+    } else {
+        send_to_char(ch, "                                     \tWAll Boards in Game\tn                                      \r\n");
+    }
+    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
+    send_to_char(ch, "\tCBoard Name                                        Location\tn                                      \r\n");
+    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
+
+    /* Search through all loaded boards in configuration */
+    for (i = 0; i < mysql_num_boards; i++) {
+        struct mysql_board_config *board = &mysql_board_configs[i];
+        bool found_board = false;
+        int visible_len;
+        int pad_len;
+        char *p;
+        char display_name[80];  /* 50 visible chars max + color codes + null */
+        char display_location[80];  /* 50 visible chars max + color codes + null */
+
+        /* Skip inactive boards */
+        if (!board->active)
+            continue;
+
+        /* Check filter if provided */
+        if (has_filter) {
+            char name_lower[MAX_STRING_LENGTH];
+            int j;
+            
+            /* Convert board name to lowercase */
+            for (j = 0; board->board_name[j] && j < (int)sizeof(name_lower) - 1; j++) {
+                name_lower[j] = LOWER(board->board_name[j]);
+            }
+            name_lower[j] = '\0';
+            
+            /* Check if filter matches */
+            if (!strstr(name_lower, filter_lower))
+                continue;
+        }
+
+        /* Parse @ color codes in board name */
+        strncpy(board_name_buf, board->board_name, sizeof(board_name_buf) - 1);
+        board_name_buf[sizeof(board_name_buf) - 1] = '\0';
+        parse_at(board_name_buf);
+
+        /* Search for this board's object in the game world */
+        for (obj = object_list; obj; obj = obj->next) {
+            if (GET_OBJ_VNUM(obj) != board->obj_vnum)
+                continue;
+
+            found_board = true;
+            found_count++;
+
+            /* Truncate board name to 50 visible characters */
+            visible_len = 0;
+            display_name[0] = '\0';
+            for (p = board_name_buf; *p && visible_len < 50; ) {
+                if (*p == '\t' && *(p+1)) {
+                    /* Copy color code */
+                    int len = strlen(display_name);
+                    if (len < 49) {
+                        display_name[len] = *p++;
+                        display_name[len+1] = *p++;
+                        display_name[len+2] = '\0';
+                    }
+                } else {
+                    /* Copy regular character */
+                    int len = strlen(display_name);
+                    if (len < 49) {
+                        display_name[len] = *p++;
+                        display_name[len+1] = '\0';
+                        visible_len++;
+                    }
+                }
+            }
+
+            /* Display board name */
+            send_to_char(ch, "%s", display_name);
+            
+            /* Pad board name to 50 characters visible width */
+            for (pad_len = visible_len; pad_len < 50; pad_len++) {
+                send_to_char(ch, " ");
+            }
+
+            /* Build location string with strict truncation to 50 visible chars */
+            if (obj->carried_by) {
+                char name_truncated[36];
+                strncpy(name_truncated, GET_NAME(obj->carried_by), 35);
+                name_truncated[35] = '\0';
+                snprintf(display_location, sizeof(display_location), "\tCCarried by: \tW%.35s\tn", name_truncated);
+            } else if (obj->worn_by) {
+                char name_truncated[38];
+                strncpy(name_truncated, GET_NAME(obj->worn_by), 37);
+                name_truncated[37] = '\0';
+                snprintf(display_location, sizeof(display_location), "\tCWorn by: \tW%.37s\tn", name_truncated);
+            } else if (obj->in_room != NOWHERE) {
+                char room_truncated[33];
+                strncpy(room_truncated, world[obj->in_room].name, 32);
+                room_truncated[32] = '\0';
+                snprintf(display_location, sizeof(display_location), "\tCRoom [\tY%5d\tC] %.32s\tn",
+                         GET_ROOM_VNUM(obj->in_room), room_truncated);
+            } else if (obj->in_obj) {
+                if (obj->in_obj->carried_by) {
+                    char name_truncated[30];
+                    strncpy(name_truncated, GET_NAME(obj->in_obj->carried_by), 29);
+                    name_truncated[29] = '\0';
+                    snprintf(display_location, sizeof(display_location), "\tCIn container on: \tW%.29s\tn", name_truncated);
+                } else if (obj->in_obj->in_room != NOWHERE) {
+                    snprintf(display_location, sizeof(display_location), "\tCIn container at: [\tY%5d\tC]\tn",
+                             GET_ROOM_VNUM(obj->in_obj->in_room));
+                } else {
+                    snprintf(display_location, sizeof(display_location), "\tRIn container (unknown loc)\tn");
+                }
+            } else {
+                snprintf(display_location, sizeof(display_location), "\tR(Unknown location)\tn");
+            }
+            
+            /* Display location */
+            send_to_char(ch, "%s", display_location);
+            
+            /* Calculate visible length of location (excluding color codes) */
+            visible_len = 0;
+            for (p = display_location; *p; p++) {
+                if (*p == '\t' && *(p+1)) {
+                    p++; /* skip color code */
+                } else {
+                    visible_len++;
+                }
+            }
+            
+            /* Pad location to exactly 50 visible characters */
+            for (pad_len = visible_len; pad_len < 50; pad_len++) {
+                send_to_char(ch, " ");
+            }
+            
+            send_to_char(ch, "\r\n");
+        }
+
+        /* If board is configured but not found in game, note it */
+        if (!found_board) {
+            /* Truncate board name to 50 visible characters */
+            visible_len = 0;
+            display_name[0] = '\0';
+            for (p = board_name_buf; *p && visible_len < 50; ) {
+                if (*p == '\t' && *(p+1)) {
+                    /* Copy color code */
+                    int len = strlen(display_name);
+                    if (len < 49) {
+                        display_name[len] = *p++;
+                        display_name[len+1] = *p++;
+                        display_name[len+2] = '\0';
+                    }
+                } else {
+                    /* Copy regular character */
+                    int len = strlen(display_name);
+                    if (len < 49) {
+                        display_name[len] = *p++;
+                        display_name[len+1] = '\0';
+                        visible_len++;
+                    }
+                }
+            }
+            
+            send_to_char(ch, "%s", display_name);
+            
+            /* Pad board name to 50 characters */
+            for (pad_len = visible_len; pad_len < 50; pad_len++) {
+                send_to_char(ch, " ");
+            }
+            
+            snprintf(display_location, sizeof(display_location), "\tR(Not loaded - vnum %d)\tn", board->obj_vnum);
+            send_to_char(ch, "%s", display_location);
+            
+            /* Calculate visible length of location */
+            visible_len = 0;
+            for (p = display_location; *p; p++) {
+                if (*p == '\t' && *(p+1)) {
+                    p++; /* skip color code */
+                } else {
+                    visible_len++;
+                }
+            }
+            
+            /* Pad to exactly 50 visible characters */
+            for (pad_len = visible_len; pad_len < 50; pad_len++) {
+                send_to_char(ch, " ");
+            }
+            
+            send_to_char(ch, "\r\n");
+            found_count++;
+        }
+    }
+
+    if (found_count == 0) {
+        if (has_filter) {
+            send_to_char(ch, "                              \tRNo boards found matching that filter.\tn                           \r\n");
+        } else {
+            send_to_char(ch, "                                      \tRNo boards found.\tn                                       \r\n");
+        }
+    }
+
+    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
+    sprintf(buf, "                                   \tWTotal: \tY%d board%s found\tn                                    \r\n",
+            found_count, found_count != 1 ? "s" : "");
+    send_to_char(ch, "%s", buf);
+    send_to_char(ch, "\tY+--------------------------------------------------------------------------------------------------+\tn\r\n");
 }

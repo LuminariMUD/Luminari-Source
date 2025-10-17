@@ -96,6 +96,13 @@ ACMD_DECL(do_remove_board);
 ACMD_DECL(do_reply_board);
 ACMD_DECL(do_note);
 ACMD_DECL(do_board);  /* Router that checks for bulletin boards or vessel boarding */
+ACMD_DECL(do_boardcheck);  /* Check all boards for unread posts */
+ACMD_DECL(do_boardfind);  /* Find all boards in the game world */
+
+/* Board Read Tracking Functions */
+bool mysql_board_has_read_post(struct char_data *ch, int post_id);
+void mysql_board_mark_post_read(struct char_data *ch, int board_id, int post_id);
+void mysql_board_mark_all_read(struct char_data *ch, int board_id);
 
 /* String Editor Integration */
 void mysql_board_start_post_title(struct descriptor_data *d, int board_id);

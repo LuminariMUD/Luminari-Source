@@ -7440,6 +7440,9 @@ ACMD(do_gen_tog)
       // 65
       {"PvP flag disabled. You are no longer eligible for player vs. player combat.\r\n",
        "PvP flag enabled. You are now eligible for player vs. player combat.\r\n"},
+      // 66
+      {"Board check on login disabled.\r\n",
+       "Board check on login enabled. You will see unread board posts when you enter the game.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7595,6 +7598,9 @@ ACMD(do_gen_tog)
     break;
   case SCMD_NOCHARMIERESCUES:
     result = PRF_TOG_CHK(ch, PRF_NO_CHARMIE_RESCUE);
+    break;
+  case SCMD_BOARDCHECK:
+    result = PRF_TOG_CHK(ch, PRF_BOARDCHECK);
     break;
 case SCMD_AUTO_AUGMENT:
     result = PRF_TOG_CHK(ch, PRF_AUGMENT_BUFFS);

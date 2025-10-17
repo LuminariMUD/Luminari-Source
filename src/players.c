@@ -734,7 +734,9 @@ int load_char(const char *name, struct char_data *ch)
             AFF_FLAGS(ch)
           [0] = asciiflag_conv(line);
         }
-        if (!strcmp(tag, "Affs"))
+        else if (!strcmp(tag, "AExp"))
+          GET_ARTISAN_EXP(ch) = atoi(line);
+        else if (!strcmp(tag, "Affs"))
           load_affects(fl, ch);
         else if (!strcmp(tag, "Alin"))
           GET_ALIGNMENT(ch) = atoi(line);
@@ -2178,6 +2180,8 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE( "Bank: %d\n", GET_BANK_GOLD(ch));
   if (GET_EXP(ch) != PFDEF_EXP)
     BUFFER_WRITE( "Exp : %d\n", GET_EXP(ch));
+  if (GET_ARTISAN_EXP(ch) != 0)
+    BUFFER_WRITE( "AExp: %d\n", GET_ARTISAN_EXP(ch));
   if (GET_HITROLL(ch) != PFDEF_HITROLL)
     BUFFER_WRITE( "Hrol: %d\n", GET_HITROLL(ch));
   if (GET_DAMROLL(ch) != PFDEF_DAMROLL)

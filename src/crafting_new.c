@@ -119,7 +119,7 @@ int materials_sort_info[NUM_CRAFT_MATS];
 #define CREATE_BASE_EXP                     50
 #define RESIZE_BASE_EXP                     10
 #define REFINE_BASE_EXP                     10
-#define NSUPPLY_ORDER_DURATION              10
+#define NSUPPLY_ORDER_DURATION              60
 #define NSUPPLY_ORDER_NUM_REQUIRED           5
 #define NSUPPLY_ORDER_BASE_EXP              50
 
@@ -2628,6 +2628,15 @@ void begin_current_craft(struct char_data *ch)
         return;
     }
 
+    // Check if the player is in a room with the required crafting station
+    int skill = GET_CRAFT(ch).skill_type;
+    if (!has_crafting_station_in_room(ch, skill))
+    {
+        send_to_char(ch, "You need to be in a room with %s to craft this item.\r\n", 
+                     get_crafting_station_name(skill));
+        return;
+    }
+
     int seconds = CREATE_BASE_TIME;
 
     GET_CRAFT(ch).craft_duration = seconds;
@@ -4290,6 +4299,15 @@ void newcraft_refine(struct char_data *ch, const char *argument)
         GET_CRAFT(ch).skill_type = refining_recipes[recipe].skill;
         GET_CRAFT(ch).dc = refining_recipes[recipe].dc;
 
+        // Check if the player is in a room with the required crafting station
+        int skill = GET_CRAFT(ch).skill_type;
+        if (!has_crafting_station_in_room(ch, skill))
+        {
+            send_to_char(ch, "You need to be in a room with %s to refine this material.\r\n", 
+                         get_crafting_station_name(skill));
+            return;
+        }
+
         GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_REFINE;
         GET_CRAFT(ch).craft_duration = 10*GET_CRAFT(ch).refining_result[1];
         send_to_char(ch, "You begin refining %s.\r\n", crafting_materials[GET_CRAFT(ch).refining_result[0]]);
@@ -4691,10 +4709,13 @@ void craft_update(void)
                             }
                             break;
                         case SCMD_NEWCRAFT_SUPPLYORDER:
-                            send_to_char(ch, "Supply Order Requistion #%d. ", GET_CRAFT(ch).supply_num_required - num_supply_order_requisitions_to_go(ch) + 1);
-                            for (i = 0; i < GET_CRAFT(ch).craft_duration ; i++)
-                                send_to_char(ch, "*");
-                            send_to_char(ch, "\r\n");
+                            if (GET_CRAFT(ch).craft_duration % 5 == 0)
+                            {
+                                send_to_char(ch, "Supply Order Requistion #%d. ", GET_CRAFT(ch).supply_num_required - num_supply_order_requisitions_to_go(ch) + 1);
+                                for (i = 0; i < GET_CRAFT(ch).craft_duration ; i++)
+                                    send_to_char(ch, "*");
+                                send_to_char(ch, "\r\n");
+                            }
                             break;
                     }
                 }
@@ -5400,12 +5421,113 @@ int recipe_skill_to_actual_crafting_skill(int recipe_skill)
     return ABILITY_CRAFT_METALWORKING; // default fallback
 }
 
+/* Check if there's a quartermaster mob in the room */
+bool has_quartermaster_in_room(struct char_data *ch)
+{
+    struct char_data *mob;
+    
+    if (!ch || !IN_ROOM(ch))
+        return FALSE;
+    
+    for (mob = world[IN_ROOM(ch)].people; mob; mob = mob->next_in_room)
+    {
+        if (IS_NPC(mob) && MOB_FLAGGED(mob, MOB_QUARTERMASTER))
+            return TRUE;
+    }
+    
+    return FALSE;
+}
+
+/* Get the required crafting station flag for a given crafting skill */
+int get_required_crafting_station(int skill)
+{
+    switch (skill)
+    {
+        case ABILITY_CRAFT_ALCHEMY:
+            return ITEM_CRAFTING_ALCHEMY_LAB;
+        case ABILITY_CRAFT_ARMORSMITHING:
+            return ITEM_CRAFTING_FORGE;
+        case ABILITY_CRAFT_JEWELCRAFTING:
+            return ITEM_CRAFTING_JEWELCRAFTING_STATION;
+        case ABILITY_CRAFT_LEATHERWORKING:
+            return ITEM_CRAFTING_TANNERY;
+        case ABILITY_CRAFT_METALWORKING:
+            return ITEM_CRAFTING_FORGE;
+        case ABILITY_CRAFT_TAILORING:
+            return ITEM_CRAFTING_LOOM;
+        case ABILITY_CRAFT_WEAPONSMITHING:
+            return ITEM_CRAFTING_FORGE;
+        case ABILITY_CRAFT_WOODWORKING:
+            return ITEM_CRAFTING_CARPENTRY_TABLE;
+        default:
+            return -1; // No station required
+    }
+}
+
+/* Get the name of the required crafting station for a given skill */
+const char *get_crafting_station_name(int skill)
+{
+    switch (skill)
+    {
+        case ABILITY_CRAFT_ALCHEMY:
+            return "an alchemy lab";
+        case ABILITY_CRAFT_ARMORSMITHING:
+            return "a forge";
+        case ABILITY_CRAFT_JEWELCRAFTING:
+            return "a jewelcrafting station";
+        case ABILITY_CRAFT_LEATHERWORKING:
+            return "a tannery";
+        case ABILITY_CRAFT_METALWORKING:
+            return "a forge";
+        case ABILITY_CRAFT_TAILORING:
+            return "a loom";
+        case ABILITY_CRAFT_WEAPONSMITHING:
+            return "a forge";
+        case ABILITY_CRAFT_WOODWORKING:
+            return "a carpentry table";
+        default:
+            return "a crafting station";
+    }
+}
+
+/* Check if there's a required crafting station in the room */
+bool has_crafting_station_in_room(struct char_data *ch, int skill)
+{
+    struct obj_data *obj;
+    int required_flag;
+    
+    if (!ch || !IN_ROOM(ch))
+        return FALSE;
+    
+    required_flag = get_required_crafting_station(skill);
+    
+    // If no station required, return TRUE
+    if (required_flag == -1)
+        return TRUE;
+    
+    // Check objects in the room
+    for (obj = world[IN_ROOM(ch)].contents; obj; obj = obj->next_content)
+    {
+        if (OBJ_FLAGGED(obj, required_flag))
+            return TRUE;
+    }
+    
+    return FALSE;
+}
+
 void complete_supply_order(struct char_data *ch)
 {
     int gold_reward = 0;
     int bonus_exp = 0;
+    int artisan_points = 0;
     int skill = 0;
     int recipe = 0;
+    
+    if (!has_quartermaster_in_room(ch))
+    {
+        send_to_char(ch, "You need to be in a room with a quartermaster to complete a supply order.\r\n");
+        return;
+    }
     
     if (!player_has_supply_order(ch))
     {
@@ -5427,36 +5549,20 @@ void complete_supply_order(struct char_data *ch)
     // Cap the bonus experience to prevent excessive rewards
     bonus_exp = MIN(250, bonus_exp);
     
-    // Award reputation points based on contract type
-    int rep_reward = 0;
-    switch(GET_CRAFT(ch).supply_contract_type) {
-        case SUPPLY_CONTRACT_BASIC: rep_reward = 5; break;
-        case SUPPLY_CONTRACT_RUSH: rep_reward = 8; break;
-        case SUPPLY_CONTRACT_BULK: rep_reward = 10; break;
-        case SUPPLY_CONTRACT_QUALITY: rep_reward = 15; break;
-        case SUPPLY_CONTRACT_PRESTIGE: rep_reward = 25; break;
-        case SUPPLY_CONTRACT_EVENT: rep_reward = 20; break;
-        default: rep_reward = 5; break;
-    }
+    // Award artisan points based on quantity completed
+    artisan_points = GET_CRAFT(ch).supply_num_required * 10;
     
     // Award rewards
     GET_GOLD(ch) += gold_reward;
     recipe = get_current_craft_project_recipe(ch);
     skill = recipe_skill_to_actual_crafting_skill(crafting_recipes[recipe].variant_skill[GET_CRAFT(ch).craft_variant]);
     gain_craft_exp(ch, bonus_exp, skill, TRUE);
-    add_reputation_points(ch, rep_reward);
+    GET_ARTISAN_EXP(ch) += artisan_points;
     
     send_to_char(ch, "Congratulations! You have completed your supply order.\r\n");
-
-    send_to_char(ch, "You receive %d gold coins, %d bonus experience points, and %d reputation points!\r\n", 
-                 gold_reward, bonus_exp, rep_reward);
-    
-    // Check for quality tier achievement
-    int quality_tier = calculate_quality_tier_bonus(ch);
-    if (quality_tier >= 50) {
-        send_to_char(ch, "\tYExceptional craftsmanship! Your quality work has been recognized.\tn\r\n");
-        add_reputation_points(ch, 5); // Bonus reputation for quality work
-    }
+    send_to_char(ch, "You receive %d gold coins, %d bonus experience points, and \tC%d artisan points\tn!\r\n", 
+                 gold_reward, bonus_exp, artisan_points);
+    send_to_char(ch, "You now have \tC%d total artisan points\tn.\r\n", GET_ARTISAN_EXP(ch));
     
     // Clear the supply order
     reset_supply_order(ch);
@@ -5500,36 +5606,7 @@ int calculate_supply_order_reward(struct char_data *ch)
     int bulk_bonus = calculate_bulk_efficiency_bonus(GET_CRAFT(ch).supply_num_required);
     total_reward += (total_reward * bulk_bonus / 100);
     
-    // Apply reputation bonuses
-    int rep_rank = get_player_reputation_rank(ch);
-    int rep_bonus = rep_rank * 5; // 5% bonus per reputation rank
-    total_reward += (total_reward * rep_bonus / 100);
-    
-    // Apply contract type modifiers
-    int contract_type = GET_CRAFT(ch).supply_contract_type;
-    switch(contract_type) {
-        case SUPPLY_CONTRACT_RUSH:
-            total_reward = (total_reward * SUPPLY_RUSH_BONUS_MULTIPLIER) / 100;
-            break;
-        case SUPPLY_CONTRACT_BULK:
-            total_reward = (total_reward * SUPPLY_BULK_BONUS_MULTIPLIER) / 100;
-            break;
-        case SUPPLY_CONTRACT_QUALITY:
-            total_reward = (total_reward * SUPPLY_QUALITY_BONUS_MULTIPLIER) / 100;
-            break;
-        case SUPPLY_CONTRACT_PRESTIGE:
-            total_reward = (total_reward * 300) / 100; // 200% bonus for prestige
-            break;
-        case SUPPLY_CONTRACT_EVENT:
-            total_reward = (total_reward * 250) / 100; // 150% bonus for events
-            break;
-        case SUPPLY_CONTRACT_BASIC:
-        default:
-            // No modifier for basic contracts
-            break;
-    }
-    
-    return MAX(50, total_reward); // Minimum 50 experience reward
+    return MAX(50, total_reward); // Minimum 50 gold reward
 }
 
 bool consume_supply_order_materials(struct char_data *ch)
@@ -5856,12 +5933,23 @@ void newcraft_supplyorder(struct char_data *ch, const char *argument)
     }
     
     if (is_abbrev(arg1, "list") || is_abbrev(arg1, "available")) {
+        if (!has_quartermaster_in_room(ch))
+        {
+            send_to_char(ch, "You must be in a room with a quartermaster to view supply orders.\r\n");
+            return;
+        }
         show_available_contracts(ch);
         return;
     }
     
     if (is_abbrev(arg1, "select") || is_abbrev(arg1, "choose")) {
         int contract_id = 0;
+        
+        if (!has_quartermaster_in_room(ch))
+        {
+            send_to_char(ch, "You must be in a room with a quartermaster to select a supply order.\r\n");
+            return;
+        }
         
         if (!*arg2) {
             send_to_char(ch, "Which contract would you like to select? Use 'supplyorder list' to see available contracts.\r\n");
@@ -5949,7 +6037,7 @@ ACMD(do_newcraft)
         return;
     }
 
-    if (GET_CRAFT(ch).crafting_method != subcmd && GET_CRAFT(ch).crafting_method != 0)
+    if (GET_CRAFT(ch).crafting_method != subcmd && GET_CRAFT(ch).crafting_method != 0 && GET_CRAFT(ch).craft_duration > 0)
     {
         send_to_char(ch, "You are already working on another project of type: %s. Please finish or cancel it before continuing.\r\n", crafting_methods_short[GET_CRAFT(ch).crafting_method]);
         return;
@@ -6423,80 +6511,12 @@ bool player_has_supply_order(struct char_data *ch)
 
 void show_available_contracts(struct char_data *ch)
 {
-    int num_contracts = 0;
-    struct supply_contract *contracts = generate_available_contracts(ch, &num_contracts);
-    
-    if (!contracts || num_contracts == 0) {
-        send_to_char(ch, "No supply order contracts are currently available.\r\n");
-        return;
-    }
-    
-    if (is_special_event_active()) {
-        send_to_char(ch, "\tR*** SPECIAL EVENT ACTIVE: Harvest Festival Contracts Available! ***\tn\r\n");
-    }
-    
-    send_to_char(ch, "\r\n\tgAvailable Supply Order Contracts:\tn\r\n");
+    send_to_char(ch, "\r\n\tgSupply Order System:\tn\r\n");
     send_to_char(ch, "\tW=====================================\tn\r\n");
-    
-    {
-        int i;
-        for (i = 0; i < num_contracts; i++) {
-            struct supply_contract *contract = &contracts[i];
-            const char *type_color = "\tc"; /* Default cyan */
-            const char *type_name = "Basic";
-        
-        switch(contract->contract_type) {
-            case SUPPLY_CONTRACT_BASIC:
-                type_color = "\tc"; type_name = "Basic"; break;
-            case SUPPLY_CONTRACT_RUSH:
-                type_color = "\ty"; type_name = "Rush"; break;
-            case SUPPLY_CONTRACT_BULK:
-                type_color = "\tb"; type_name = "Bulk"; break;
-            case SUPPLY_CONTRACT_QUALITY:
-                type_color = "\tm"; type_name = "Quality"; break;
-            case SUPPLY_CONTRACT_PRESTIGE:
-                type_color = "\tM"; type_name = "Prestige"; break;
-            case SUPPLY_CONTRACT_EVENT:
-                type_color = "\tR"; type_name = "EVENT"; break;
-        }
-        
-        send_to_char(ch, "\tC[%d]\tn %s%s Contract\tn \tg[AVAILABLE]\tn - %s\r\n", 
-                     contract->contract_id, type_color, type_name,
-                     contract->description ? contract->description : "Unknown contract");
-        
-        send_to_char(ch, "     \tgQuantity:\tn %d  \tgReward:\tn %d experience", 
-                     contract->quantity, contract->reward);
-        
-        if (contract->time_limit > 0) {
-            send_to_char(ch, "  \trExpires:\tn %d hours", contract->time_limit);
-        }
-        
-        send_to_char(ch, "\r\n     \tgRequires:\tn %s", 
-                     contract->requirements ? contract->requirements : "Unknown requirements");
-        
-        if (contract->quality_tier_requirement > QUALITY_TIER_STANDARD) {
-            const char *tier_names[] = {"Standard", "Superior", "Exceptional", "Masterwork", "Legendary"};
-            send_to_char(ch, "\r\n     \tYQuality Tier:\tn %s", 
-                         tier_names[MIN(contract->quality_tier_requirement, NUM_QUALITY_TIERS-1)]);
-        }
-        
-        // Show bulk efficiency bonus if applicable
-        if (contract->quantity >= BULK_EFFICIENCY_THRESHOLD_1) {
-            int efficiency = calculate_bulk_efficiency_bonus(contract->quantity);
-            send_to_char(ch, "\r\n     \tbBulk Efficiency:\tn +%d%% bonus", efficiency);
-        }
-        
-            send_to_char(ch, "\r\n\r\n");
-        }
-    }
-    
-    send_to_char(ch, "Use '\tCsupplyorder select <id>\tn' to choose a contract.\r\n");
-    send_to_char(ch, "Use '\tCsupplyorder request\tn' to get a random contract instead.\r\n\r\n");
-    
-    /* Save character data to preserve available contracts */
-    save_char(ch, 0);
-    
-    free_contract_list(contracts, num_contracts);
+    send_to_char(ch, "Use '\tCsupplyorder request\tn' to get a new supply order.\r\n");
+    send_to_char(ch, "Complete supply orders to earn \tCartisan points\tn!\r\n");
+    send_to_char(ch, "\r\nYou currently have \tC%d artisan points\tn.\r\n", GET_ARTISAN_EXP(ch));
+    send_to_char(ch, "(Artisan points will be usable for special rewards in the future)\r\n\r\n");
 }
 
 void request_new_supply_order(struct char_data *ch)
@@ -6504,6 +6524,12 @@ void request_new_supply_order(struct char_data *ch)
 
     int recipe = 0;
     int variant = 0;
+
+    if (!has_quartermaster_in_room(ch))
+    {
+        send_to_char(ch, "You must be in a room with a quartermaster to request a supply order.\r\n");
+        return;
+    }
 
     if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_SUPPLYORDER)
     {
@@ -6539,8 +6565,7 @@ void request_new_supply_order(struct char_data *ch)
 
     if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_NONE)
     {
-        int contract_type = SUPPLY_CONTRACT_BASIC; // For now, just use basic contracts
-        int quantity = generate_contract_quantity(contract_type);
+        int quantity = dice(1, 3) + 1; // 2-4 items per supply order
         
         GET_CRAFT(ch).crafting_recipe = recipe;
         GET_CRAFT(ch).crafting_item_type = crafting_recipes[recipe].object_type;
@@ -6550,6 +6575,7 @@ void request_new_supply_order(struct char_data *ch)
         GET_CRAFT(ch).supply_num_required = quantity;
         GET_CRAFT(ch).skill_type = crafting_recipes[recipe].variant_skill[variant];
         send_to_char(ch, "You've requested a new supply order to make %d %ss.\r\n", quantity, crafting_recipes[recipe].variant_descriptions[variant]);
+        send_to_char(ch, "Complete this order to earn \tCartisan points\tn!\r\n");
     }
     else
     {
@@ -6585,6 +6611,16 @@ void start_supply_order(struct char_data *ch)
     }
     else
     {
+        // Check if the player is in a room with the required crafting station
+        int recipe_skill = GET_CRAFT(ch).skill_type;
+        int actual_skill = recipe_skill_to_actual_crafting_skill(recipe_skill);
+        if (!has_crafting_station_in_room(ch, actual_skill))
+        {
+            send_to_char(ch, "You need to be in a room with %s to work on this supply order.\r\n", 
+                         get_crafting_station_name(actual_skill));
+            return;
+        }
+
         GET_CRAFT(ch).craft_duration = NSUPPLY_ORDER_DURATION;
         send_to_char(ch, "You begin working on your supply order.\r\n");
     }  

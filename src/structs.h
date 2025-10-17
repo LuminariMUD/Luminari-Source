@@ -1187,8 +1187,9 @@
 #define MOB_BUFF_OUTSIDE_COMBAT 96
 #define MOB_NOPARALYZE 97
 #define MOB_AI_ENABLED 98   /**< Mob uses AI for responses */
+#define MOB_QUARTERMASTER 99 /**< Mob can accept/complete supply orders */
 /**********************/
-#define NUM_MOB_FLAGS 99
+#define NUM_MOB_FLAGS 100
 /**********************/
 /**********************/
 
@@ -1373,9 +1374,10 @@
 #define PRF_SCORE_NOCOLOR 80          /**< Disable colors in score display */
 #define PRF_SCORE_BORDERS 81          /**< Display class-themed borders in score */
 #define PRF_SCORE_RACE_SYMBOLS 82     /**< Display race symbols in score */
+#define PRF_BOARDCHECK 83             /**< Display board check on login */
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 83
+#define NUM_PRF_FLAGS 84
 
 /* Score Color Theme constants */
 #define SCORE_THEME_ENHANCED     0    /**< Enhanced theme with rich colors */
@@ -3434,8 +3436,13 @@
 #define ITEM_ONLY_POSSES_ONE 105
 #define ITEM_CRAFTING_SMELTER 106
 #define ITEM_CRAFTING_LOOM 107
+#define ITEM_CRAFTING_FORGE 108
+#define ITEM_CRAFTING_ALCHEMY_LAB 109
+#define ITEM_CRAFTING_JEWELCRAFTING_STATION 110
+#define ITEM_CRAFTING_TANNERY 111
+#define ITEM_CRAFTING_CARPENTRY_TABLE 112
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 108
+#define NUM_ITEM_FLAGS 113
 
 /* homeland-port */
 /*
@@ -4793,6 +4800,7 @@ struct char_point_data
     int gold;      /**< Current gold carried on character */
     int bank_gold; /**< Gold the char has in a bank account	*/
     int exp;       /**< The experience points, or value, of the character. */
+    int artisan_exp; /**< Artisan experience points from supply orders */
 
     sbyte hitroll; /**< Any bonus or penalty to the hit roll */
     sbyte damroll; /**< Any bonus or penalty to the damage roll */

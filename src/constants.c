@@ -1564,6 +1564,7 @@ const char *action_bits[] = {
     "Buff-Out-Of-Combat",
     "Immune-Paralysis",
     "AI-Enabled",
+    "Quartermaster",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
@@ -1655,6 +1656,7 @@ const char *preference_bits[] = {
     "Score-NoColor",
     "Score-Borders",
     "Score-RaceSymbols",
+    "BoardCheck-On-Login",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -2586,6 +2588,11 @@ const char *extra_bits[] = {
     "Can-Only-Possess-One",
     "Crafting-Smelter",
     "Crafting-Loom",
+    "Crafting-Forge",
+    "Crafting-Alchemy-Lab",
+    "Crafting-Jewelcrafting-Station",
+    "Crafting-Tannery",
+    "Crafting-Carpentry-Table",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 

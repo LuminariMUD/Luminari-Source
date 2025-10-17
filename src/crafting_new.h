@@ -345,4 +345,10 @@ void refresh_supply_slots(struct char_data *ch);
 bool should_refresh_supply_slots(struct char_data *ch);
 void update_supply_slots_for_all_players(void);
 
+// Crafting station requirement functions
+bool has_quartermaster_in_room(struct char_data *ch);
+int get_required_crafting_station(int skill);
+const char *get_crafting_station_name(int skill);
+bool has_crafting_station_in_room(struct char_data *ch, int skill);
+
 #endif // NEWCRAFT_H
