@@ -10030,9 +10030,9 @@ ACMDU(do_invent)
     int available_slots = 0;
     int max_devices = 0;
     
-    /* Calculate max devices based on artificer level and device count by level */
+    /* Calculate max devices based on artificer level using weird_science_table */
     for (i = 1; i <= max_spell_level; i++) {
-      max_devices += device_count_by_level[i];
+      max_devices += weird_science_table[artificer_level - 1].devices[i - 1];
     }
     
     /* If we have fewer devices than max, we have empty slots */
