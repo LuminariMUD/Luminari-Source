@@ -116,9 +116,8 @@ static void sub_write_to_char(char_data *ch, char *tokens[], void *otokens[], ch
 
   strlcat(sb, tokens[i], sizeof(sb));
   strlcat(sb, "\n\r", sizeof(sb));
-  // Removed following line to prevent DG Scripts from capitalizing EVERY LINE.
-  // Ornir 02/21/18
-  // sb[0] = toupper(sb[0]);
+  /* Capitalize first letter (skipping color codes) */
+  CAP(sb);
   send_to_char(ch, "%s", sb);
 }
 
