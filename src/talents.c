@@ -126,7 +126,7 @@ void init_talents(void) {
           "+1% crit chance on woodworking skill tasks", TRUE, TALENT_CAT_WOODWORKING);
   talento(TALENT_EFFICIENT_WOODWORKING, "efficient woodworking", 1, 2500, 10,
           "chance to use less materials on woodworking skill tasks",
-          "chance to use less materials on woodworking skill tasks", TRUE, TALENT_CAT_WOODWORKING);
+          "Each rank gives a 3% chance to save half materials when using the woodworking skill.", TRUE, TALENT_CAT_WOODWORKING);
   talento(TALENT_INSIGHTFUL_WOODWORKING, "insightful woodworking", 2, 5000, 5,
           "Chance for extra experience on success for woodworking skill tasks",
           "Chance for extra experience on success for woodworking skill tasks", TRUE, TALENT_CAT_WOODWORKING);
@@ -143,7 +143,7 @@ void init_talents(void) {
           "+1% crit chance on tailoring skill tasks", TRUE, TALENT_CAT_TAILORING);
   talento(TALENT_EFFICIENT_TAILORING, "efficient tailoring", 1, 2500, 10,
           "chance to use less materials on tailoring skill tasks",
-          "chance to use less materials on tailoring skill tasks", TRUE, TALENT_CAT_TAILORING);
+          "Each rank gives a 3% chance to save half materials when using the tailoring skill.", TRUE, TALENT_CAT_TAILORING);
   talento(TALENT_INSIGHTFUL_TAILORING, "insightful tailoring", 2, 5000, 5,
           "Chance for extra experience on success for tailoring skill tasks",
           "Chance for extra experience on success for tailoring skill tasks", TRUE, TALENT_CAT_TAILORING);
@@ -160,7 +160,7 @@ void init_talents(void) {
           "+1% crit chance on alchemy skill tasks", TRUE, TALENT_CAT_ALCHEMY);
   talento(TALENT_EFFICIENT_ALCHEMY, "efficient alchemy", 1, 2500, 10,
           "chance to use less materials on alchemy skill tasks",
-          "chance to use less materials on alchemy skill tasks", TRUE, TALENT_CAT_ALCHEMY);
+          "Each rank gives a 3% chance to save half materials when using the alchemy skill.", TRUE, TALENT_CAT_ALCHEMY);
   talento(TALENT_INSIGHTFUL_ALCHEMY, "insightful alchemy", 2, 5000, 5,
           "Chance for extra experience on success for alchemy skill tasks",
           "Chance for extra experience on success for alchemy skill tasks", TRUE, TALENT_CAT_ALCHEMY);
@@ -177,7 +177,7 @@ void init_talents(void) {
           "+1% crit chance on armorsmithing skill tasks", TRUE, TALENT_CAT_ARMORSMITHING);
   talento(TALENT_EFFICIENT_ARMORSMITHING, "efficient armorsmithing", 1, 2500, 10,
           "chance to use less materials on armorsmithing skill tasks",
-          "chance to use less materials on armorsmithing skill tasks", TRUE, TALENT_CAT_ARMORSMITHING);
+          "Each rank gives a 3% chance to save half materials when using the armorsmithing skill.", TRUE, TALENT_CAT_ARMORSMITHING);
   talento(TALENT_INSIGHTFUL_ARMORSMITHING, "insightful armorsmithing", 2, 5000, 5,
           "Chance for extra experience on success for armorsmithing skill tasks",
           "Chance for extra experience on success for armorsmithing skill tasks", TRUE, TALENT_CAT_ARMORSMITHING);
@@ -194,7 +194,7 @@ void init_talents(void) {
           "+1% crit chance on weaponsmithing skill tasks", TRUE, TALENT_CAT_WEAPONSMITHING);
   talento(TALENT_EFFICIENT_WEAPONSMITHING, "efficient weaponsmithing", 1, 2500, 10,
           "chance to use less materials on weaponsmithing skill tasks",
-          "chance to use less materials on weaponsmithing skill tasks", TRUE, TALENT_CAT_WEAPONSMITHING);
+          "Each rank gives a 3% chance to save half materials when using the weaponsmithing skill.", TRUE, TALENT_CAT_WEAPONSMITHING);
   talento(TALENT_INSIGHTFUL_WEAPONSMITHING, "insightful weaponsmithing", 2, 5000, 5,
           "Chance for extra experience on success for weaponsmithing skill tasks",
           "Chance for extra experience on success for weaponsmithing skill tasks", TRUE, TALENT_CAT_WEAPONSMITHING);
@@ -211,7 +211,7 @@ void init_talents(void) {
           "+1% crit chance on bowmaking skill tasks", FALSE, TALENT_CAT_BOWMAKING);
   talento(TALENT_EFFICIENT_BOWMAKING, "efficient bowmaking", 1, 2500, 10,
           "chance to use less materials on bowmaking skill tasks",
-          "chance to use less materials on bowmaking skill tasks", FALSE, TALENT_CAT_BOWMAKING);
+          "Each rank gives a 3% chance to save half materials when using the bowmaking skill.", FALSE, TALENT_CAT_BOWMAKING);
   talento(TALENT_INSIGHTFUL_BOWMAKING, "insightful bowmaking", 2, 5000, 5,
           "Chance for extra experience on success for bowmaking skill tasks",
           "Chance for extra experience on success for bowmaking skill tasks", FALSE, TALENT_CAT_BOWMAKING);
@@ -228,7 +228,7 @@ void init_talents(void) {
           "+1% crit chance on jewelcrafting skill tasks", TRUE, TALENT_CAT_JEWELCRAFTING);
   talento(TALENT_EFFICIENT_JEWELCRAFTING, "efficient jewelcrafting", 1, 2500, 10,
           "chance to use less materials on jewelcrafting skill tasks",
-          "chance to use less materials on jewelcrafting skill tasks", TRUE, TALENT_CAT_JEWELCRAFTING);
+          "Each rank gives a 3% chance to save half materials when using the jewelcrafting skill.", TRUE, TALENT_CAT_JEWELCRAFTING);
   talento(TALENT_INSIGHTFUL_JEWELCRAFTING, "insightful jewelcrafting", 2, 5000, 5,
           "Chance for extra experience on success for jewelcrafting skill tasks",
           "Chance for extra experience on success for jewelcrafting skill tasks", TRUE, TALENT_CAT_JEWELCRAFTING);
@@ -245,7 +245,7 @@ void init_talents(void) {
           "+1% crit chance on leatherworking skill tasks", TRUE, TALENT_CAT_LEATHERWORKING);
   talento(TALENT_EFFICIENT_LEATHERWORKING, "efficient leatherworking", 1, 2500, 10,
           "chance to use less materials on leatherworking skill tasks",
-          "chance to use less materials on leatherworking skill tasks", TRUE, TALENT_CAT_LEATHERWORKING);
+          "Each rank gives a 3% chance to save half materials when using the leatherworking skill.", TRUE, TALENT_CAT_LEATHERWORKING);
   talento(TALENT_INSIGHTFUL_LEATHERWORKING, "insightful leatherworking", 2, 5000, 5,
           "Chance for extra experience on success for leatherworking skill tasks",
           "Chance for extra experience on success for leatherworking skill tasks", TRUE, TALENT_CAT_LEATHERWORKING);
@@ -262,7 +262,7 @@ void init_talents(void) {
           "+1% crit chance on trapmaking skill tasks", FALSE, TALENT_CAT_TRAPMAKING);
   talento(TALENT_EFFICIENT_TRAPMAKING, "efficient trapmaking", 1, 2500, 10,
           "chance to use less materials on trapmaking skill tasks",
-          "chance to use less materials on trapmaking skill tasks", FALSE, TALENT_CAT_TRAPMAKING);
+          "Each rank gives a 3% chance to save half materials when using the trapmaking skill.", FALSE, TALENT_CAT_TRAPMAKING);
   talento(TALENT_INSIGHTFUL_TRAPMAKING, "insightful trapmaking", 2, 5000, 5,
           "Chance for extra experience on success for trapmaking skill tasks",
           "Chance for extra experience on success for trapmaking skill tasks", FALSE, TALENT_CAT_TRAPMAKING);
@@ -279,7 +279,7 @@ void init_talents(void) {
           "+1% crit chance on poisonmaking skill tasks", FALSE, TALENT_CAT_POISONMAKING);
   talento(TALENT_EFFICIENT_POISONMAKING, "efficient poisonmaking", 1, 2500, 10,
           "chance to use less materials on poisonmaking skill tasks",
-          "chance to use less materials on poisonmaking skill tasks", FALSE, TALENT_CAT_POISONMAKING);
+          "Each rank gives a 3% chance to save half materials when using the poisonmaking skill.", FALSE, TALENT_CAT_POISONMAKING);
   talento(TALENT_INSIGHTFUL_POISONMAKING, "insightful poisonmaking", 2, 5000, 5,
           "Chance for extra experience on success for poisonmaking skill tasks",
           "Chance for extra experience on success for poisonmaking skill tasks", FALSE, TALENT_CAT_POISONMAKING);
@@ -296,7 +296,7 @@ void init_talents(void) {
           "+1% crit chance on metalworking skill tasks", TRUE, TALENT_CAT_METALWORKING);
   talento(TALENT_EFFICIENT_METALWORKING, "efficient metalworking", 1, 2500, 10,
           "chance to use less materials on metalworking skill tasks",
-          "chance to use less materials on metalworking skill tasks", TRUE, TALENT_CAT_METALWORKING);
+          "Each rank gives a 3% chance to save half materials when using the metalworking skill.", TRUE, TALENT_CAT_METALWORKING);
   talento(TALENT_INSIGHTFUL_METALWORKING, "insightful metalworking", 2, 5000, 5,
           "Chance for extra experience on success for metalworking skill tasks",
           "Chance for extra experience on success for metalworking skill tasks", TRUE, TALENT_CAT_METALWORKING);
@@ -313,7 +313,7 @@ void init_talents(void) {
           "+1% crit chance on fishing skill tasks", FALSE, TALENT_CAT_FISHING);
   talento(TALENT_EFFICIENT_FISHING, "efficient fishing", 1, 2500, 10,
           "chance to use less materials on fishing skill tasks",
-          "chance to use less materials on fishing skill tasks", FALSE, TALENT_CAT_FISHING);
+          "Each rank gives a 3% chance to save half materials when using the fishing skill.", FALSE, TALENT_CAT_FISHING);
   talento(TALENT_INSIGHTFUL_FISHING, "insightful fishing", 2, 5000, 5,
           "Chance for extra experience on success for fishing skill tasks",
           "Chance for extra experience on success for fishing skill tasks", FALSE, TALENT_CAT_FISHING);
@@ -330,7 +330,7 @@ void init_talents(void) {
           "+1% crit chance on cooking skill tasks", FALSE, TALENT_CAT_COOKING);
   talento(TALENT_EFFICIENT_COOKING, "efficient cooking", 1, 2500, 10,
           "chance to use less materials on cooking skill tasks",
-          "chance to use less materials on cooking skill tasks", FALSE, TALENT_CAT_COOKING);
+          "Each rank gives a 3% chance to save half materials when using the cooking skill.", FALSE, TALENT_CAT_COOKING);
   talento(TALENT_INSIGHTFUL_COOKING, "insightful cooking", 2, 5000, 5,
           "Chance for extra experience on success for cooking skill tasks",
           "Chance for extra experience on success for cooking skill tasks", FALSE, TALENT_CAT_COOKING);
@@ -347,7 +347,7 @@ void init_talents(void) {
           "+1% crit chance on mining skill tasks", TRUE, TALENT_CAT_MINING);
   talento(TALENT_EFFICIENT_MINING, "efficient mining", 1, 2500, 10,
           "chance to use less materials on mining skill tasks",
-          "chance to use less materials on mining skill tasks", TRUE, TALENT_CAT_MINING);
+          "Each rank gives a 3% chance to gain 2 extra units when harvesting with the mining skill.", TRUE, TALENT_CAT_MINING);
   talento(TALENT_INSIGHTFUL_MINING, "insightful mining", 2, 5000, 5,
           "Chance for extra experience on success for mining skill tasks",
           "Chance for extra experience on success for mining skill tasks", TRUE, TALENT_CAT_MINING);
@@ -364,7 +364,7 @@ void init_talents(void) {
           "+1% crit chance on hunting skill tasks", TRUE, TALENT_CAT_HUNTING);
   talento(TALENT_EFFICIENT_HUNTING, "efficient hunting", 1, 2500, 10,
           "chance to use less materials on hunting skill tasks",
-          "chance to use less materials on hunting skill tasks", TRUE, TALENT_CAT_HUNTING);
+          "Each rank gives a 3% chance to gain 2 extra units when harvesting with the hunting skill.", TRUE, TALENT_CAT_HUNTING);
   talento(TALENT_INSIGHTFUL_HUNTING, "insightful hunting", 2, 5000, 5,
           "Chance for extra experience on success for hunting skill tasks",
           "Chance for extra experience on success for hunting skill tasks", TRUE, TALENT_CAT_HUNTING);
@@ -381,7 +381,7 @@ void init_talents(void) {
           "+1% crit chance on forestry skill tasks", TRUE, TALENT_CAT_FORESTRY);
   talento(TALENT_EFFICIENT_FORESTRY, "efficient forestry", 1, 2500, 10,
           "chance to use less materials on forestry skill tasks",
-          "chance to use less materials on forestry skill tasks", TRUE, TALENT_CAT_FORESTRY);
+          "Each rank gives a 3% chance to gain 2 extra units when harvesting with the forestry skill.", TRUE, TALENT_CAT_FORESTRY);
   talento(TALENT_INSIGHTFUL_FORESTRY, "insightful forestry", 2, 5000, 5,
           "Chance for extra experience on success for forestry skill tasks",
           "Chance for extra experience on success for forestry skill tasks", TRUE, TALENT_CAT_FORESTRY);
@@ -398,7 +398,7 @@ void init_talents(void) {
           "+1% crit chance on gathering skill tasks", TRUE, TALENT_CAT_GATHERING);
   talento(TALENT_EFFICIENT_GATHERING, "efficient gathering", 1, 2500, 10,
           "chance to use less materials on gathering skill tasks",
-          "chance to use less materials on gathering skill tasks", TRUE, TALENT_CAT_GATHERING);
+          "Each rank gives a 3% chance to gain 2 extra units when harvesting with the gathering skill.", TRUE, TALENT_CAT_GATHERING);
   talento(TALENT_INSIGHTFUL_GATHERING, "insightful gathering", 2, 5000, 5,
           "Chance for extra experience on success for gathering skill tasks",
           "Chance for extra experience on success for gathering skill tasks", TRUE, TALENT_CAT_GATHERING);
@@ -424,14 +424,14 @@ int talent_max_ranks(int talent) {
   return MAX(1, talent_list[talent].max_ranks);
 }
 
-/* Cost progression: costs DOUBLE each rank.
- * Rank 1: base, Rank 2: base*2, Rank 3: base*4, Rank 4: base*8, etc. */
+/* Cost progression: costs multiply by rank number.
+ * Rank 1: base*1, Rank 2: base*2, Rank 3: base*3, Rank 4: base*4, etc. */
 int talent_next_point_cost(struct char_data *ch, int talent) {
   if (!ch || talent <= 0 || talent >= TALENT_MAX) return 0;
   int rank = current_rank(ch, talent);
   if (rank >= talent_max_ranks(talent)) return 0;
   int base = talent_list[talent].base_point_cost;
-  return base * (1 << rank); /* base * 2^rank */
+  return base * (rank + 1); /* base * next_rank */
 }
 
 int talent_next_gold_cost(struct char_data *ch, int talent) {
@@ -439,7 +439,7 @@ int talent_next_gold_cost(struct char_data *ch, int talent) {
   int rank = current_rank(ch, talent);
   if (rank >= talent_max_ranks(talent)) return 0;
   int base = talent_list[talent].base_gold_cost;
-  return base * (1 << rank); /* base * 2^rank */
+  return base * (rank + 1); /* base * next_rank */
 }
 
 int can_learn_talent(struct char_data *ch, int talent) {
@@ -677,8 +677,8 @@ void show_talent_info(struct char_data *ch, int talent) {
   int r, base_pt = talent_list[talent].base_point_cost, base_gp = talent_list[talent].base_gold_cost;
   
   for (r = 1; r <= maxr; r++) {
-    int rank_pt = base_pt * (1 << (r-1));
-    int rank_gp = base_gp * (1 << (r-1));
+    int rank_pt = base_pt * r;
+    int rank_gp = base_gp * r;
     
     if (r <= rank)
       send_to_char(ch, "  \tGRank %2d: %4d TP / %d GP\tn\r\n", r, rank_pt, rank_gp);
