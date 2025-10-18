@@ -3584,6 +3584,12 @@ void show_craft_score(struct char_data *ch, const char *arg2)
     send_to_char(ch, "\tc");
     draw_line(ch, 90, '-', '-');
     send_to_char(ch, "\tn");
+    
+    /* Display talent points and artisan points */
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "\tCTalent Points (TP):\tn %d unspent\r\n", GET_TALENT_POINTS(ch));
+    send_to_char(ch, "\tCArtisan Points (AP):\tn %d total\r\n", GET_ARTISAN_EXP(ch));
+    send_to_char(ch, "\r\n");
 }
 
 void set_crafting_enhancement(struct char_data *ch, const char *arg2)
