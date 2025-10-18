@@ -1,0 +1,6 @@
+talent,name,base_point_cost,base_gold_cost,max_ranks,short_desc,long_desc,in_game
+TAlENT_PROFICIENT_*,proficient *,1,1000,5,+1 to skill checks for the * skill,+1 to skill checks for the * skill,TRUE
+TALENT_RAPID_*,rapid *,1,1000,5,-1 second on * skill task completion,-1 second on * skill task completion,TRUE
+TALENT_*_EXPERTISE,* expertise,2,2500,5,+1% crit chance on * skill tasks,+1% crit chance on * skill tasks,TRUE
+TALENT_EFFICIENT_*,efficient *,1,2500,10,chance to use less materials on * skill tasks,chance to use less materials on * skill tasks,TRUE
+TALENT_INSIGHTFUL_*,insifghtful *,2,5000,5,Chance for extra experience on success for * skill tasks,Chance for extra experience on success for * skill tasks,TRUE

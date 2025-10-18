@@ -946,6 +946,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"take", "ta", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"tailspikes", "tailspikes", POS_FIGHTING, do_tailspikes, 1, 0, FALSE, ACTION_SWIFT, {6, 0}, can_tailspikes},
     {"talents", "talen", POS_SLEEPING, do_talents, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"talento", "talento", POS_SLEEPING, do_talento, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"taste", "tas", POS_RECLINING, do_eat, 0, SCMD_TASTE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"taunt", "taunt", POS_FIGHTING, do_taunt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_taunt},
     {"teleport", "tele", POS_DEAD, do_teleport, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
