@@ -29,6 +29,7 @@
 #include "psionics.h"
 #include "evolutions.h"
 #include "constants.h"
+#include "talents.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
