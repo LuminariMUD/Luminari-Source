@@ -151,11 +151,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the woodworking skill.", TRUE, TALENT_CAT_WOODWORKING);
   talento(TALENT_EFFICIENT_WOODWORKING, "efficient woodworking", 1, 2500, 10,
-          "chance to use less materials on woodworking skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the woodworking skill.", TRUE, TALENT_CAT_WOODWORKING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the woodworking skill.", TRUE, TALENT_CAT_WOODWORKING);
   talento(TALENT_INSIGHTFUL_WOODWORKING, "insightful woodworking", 2, 5000, 5,
-          "Chance for extra experience on success for woodworking skill tasks",
-          "Chance for extra experience on success for woodworking skill tasks", TRUE, TALENT_CAT_WOODWORKING);
+          "+5% experience per rank on woodworking tasks",
+          "Each rank gives a 5% bonus to experience gained when performing woodworking tasks.", TRUE, TALENT_CAT_WOODWORKING);
   
   /* Tailoring talents */
   talento(TALENT_PROFICIENT_TAILORING, "proficient tailoring", 1, 1000, 5,
@@ -168,11 +168,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the tailoring skill.", TRUE, TALENT_CAT_TAILORING);
   talento(TALENT_EFFICIENT_TAILORING, "efficient tailoring", 1, 2500, 10,
-          "chance to use less materials on tailoring skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the tailoring skill.", TRUE, TALENT_CAT_TAILORING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the tailoring skill.", TRUE, TALENT_CAT_TAILORING);
   talento(TALENT_INSIGHTFUL_TAILORING, "insightful tailoring", 2, 5000, 5,
-          "Chance for extra experience on success for tailoring skill tasks",
-          "Chance for extra experience on success for tailoring skill tasks", TRUE, TALENT_CAT_TAILORING);
+          "+5% experience per rank on tailoring tasks",
+          "Each rank gives a 5% bonus to experience gained when performing tailoring tasks.", TRUE, TALENT_CAT_TAILORING);
   
   /* Alchemy talents */
   talento(TALENT_PROFICIENT_ALCHEMY, "proficient alchemy", 1, 1000, 5,
@@ -185,11 +185,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the alchemy skill.", TRUE, TALENT_CAT_ALCHEMY);
   talento(TALENT_EFFICIENT_ALCHEMY, "efficient alchemy", 1, 2500, 10,
-          "chance to use less materials on alchemy skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the alchemy skill.", TRUE, TALENT_CAT_ALCHEMY);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the alchemy skill.", TRUE, TALENT_CAT_ALCHEMY);
   talento(TALENT_INSIGHTFUL_ALCHEMY, "insightful alchemy", 2, 5000, 5,
-          "Chance for extra experience on success for alchemy skill tasks",
-          "Chance for extra experience on success for alchemy skill tasks", TRUE, TALENT_CAT_ALCHEMY);
+          "+5% experience per rank on alchemy tasks",
+          "Each rank gives a 5% bonus to experience gained when performing alchemy tasks.", TRUE, TALENT_CAT_ALCHEMY);
   
   /* Armorsmithing talents */
   talento(TALENT_PROFICIENT_ARMORSMITHING, "proficient armorsmithing", 1, 1000, 5,
@@ -202,11 +202,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the armorsmithing skill.", TRUE, TALENT_CAT_ARMORSMITHING);
   talento(TALENT_EFFICIENT_ARMORSMITHING, "efficient armorsmithing", 1, 2500, 10,
-          "chance to use less materials on armorsmithing skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the armorsmithing skill.", TRUE, TALENT_CAT_ARMORSMITHING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the armorsmithing skill.", TRUE, TALENT_CAT_ARMORSMITHING);
   talento(TALENT_INSIGHTFUL_ARMORSMITHING, "insightful armorsmithing", 2, 5000, 5,
-          "Chance for extra experience on success for armorsmithing skill tasks",
-          "Chance for extra experience on success for armorsmithing skill tasks", TRUE, TALENT_CAT_ARMORSMITHING);
+          "+5% experience per rank on armorsmithing tasks",
+          "Each rank gives a 5% bonus to experience gained when performing armorsmithing tasks.", TRUE, TALENT_CAT_ARMORSMITHING);
   
   /* Weaponsmithing talents */
   talento(TALENT_PROFICIENT_WEAPONSMITHING, "proficient weaponsmithing", 1, 1000, 5,
@@ -219,11 +219,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the weaponsmithing skill.", TRUE, TALENT_CAT_WEAPONSMITHING);
   talento(TALENT_EFFICIENT_WEAPONSMITHING, "efficient weaponsmithing", 1, 2500, 10,
-          "chance to use less materials on weaponsmithing skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the weaponsmithing skill.", TRUE, TALENT_CAT_WEAPONSMITHING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the weaponsmithing skill.", TRUE, TALENT_CAT_WEAPONSMITHING);
   talento(TALENT_INSIGHTFUL_WEAPONSMITHING, "insightful weaponsmithing", 2, 5000, 5,
-          "Chance for extra experience on success for weaponsmithing skill tasks",
-          "Chance for extra experience on success for weaponsmithing skill tasks", TRUE, TALENT_CAT_WEAPONSMITHING);
+          "+5% experience per rank on weaponsmithing tasks",
+          "Each rank gives a 5% bonus to experience gained when performing weaponsmithing tasks.", TRUE, TALENT_CAT_WEAPONSMITHING);
   
   /* Bowmaking talents */
   talento(TALENT_PROFICIENT_BOWMAKING, "proficient bowmaking", 1, 1000, 5,
@@ -236,11 +236,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the bowmaking skill.", FALSE, TALENT_CAT_BOWMAKING);
   talento(TALENT_EFFICIENT_BOWMAKING, "efficient bowmaking", 1, 2500, 10,
-          "chance to use less materials on bowmaking skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the bowmaking skill.", FALSE, TALENT_CAT_BOWMAKING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the bowmaking skill.", FALSE, TALENT_CAT_BOWMAKING);
   talento(TALENT_INSIGHTFUL_BOWMAKING, "insightful bowmaking", 2, 5000, 5,
-          "Chance for extra experience on success for bowmaking skill tasks",
-          "Chance for extra experience on success for bowmaking skill tasks", FALSE, TALENT_CAT_BOWMAKING);
+          "+5% experience per rank on bowmaking tasks",
+          "Each rank gives a 5% bonus to experience gained when performing bowmaking tasks.", FALSE, TALENT_CAT_BOWMAKING);
   
   /* Jewelcrafting talents */
   talento(TALENT_PROFICIENT_JEWELCRAFTING, "proficient jewelcrafting", 1, 1000, 5,
@@ -253,11 +253,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the jewelcrafting skill.", TRUE, TALENT_CAT_JEWELCRAFTING);
   talento(TALENT_EFFICIENT_JEWELCRAFTING, "efficient jewelcrafting", 1, 2500, 10,
-          "chance to use less materials on jewelcrafting skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the jewelcrafting skill.", TRUE, TALENT_CAT_JEWELCRAFTING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the jewelcrafting skill.", TRUE, TALENT_CAT_JEWELCRAFTING);
   talento(TALENT_INSIGHTFUL_JEWELCRAFTING, "insightful jewelcrafting", 2, 5000, 5,
-          "Chance for extra experience on success for jewelcrafting skill tasks",
-          "Chance for extra experience on success for jewelcrafting skill tasks", TRUE, TALENT_CAT_JEWELCRAFTING);
+          "+5% experience per rank on jewelcrafting tasks",
+          "Each rank gives a 5% bonus to experience gained when performing jewelcrafting tasks.", TRUE, TALENT_CAT_JEWELCRAFTING);
   
   /* Leatherworking talents */
   talento(TALENT_PROFICIENT_LEATHERWORKING, "proficient leatherworking", 1, 1000, 5,
@@ -270,11 +270,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the leatherworking skill.", TRUE, TALENT_CAT_LEATHERWORKING);
   talento(TALENT_EFFICIENT_LEATHERWORKING, "efficient leatherworking", 1, 2500, 10,
-          "chance to use less materials on leatherworking skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the leatherworking skill.", TRUE, TALENT_CAT_LEATHERWORKING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the leatherworking skill.", TRUE, TALENT_CAT_LEATHERWORKING);
   talento(TALENT_INSIGHTFUL_LEATHERWORKING, "insightful leatherworking", 2, 5000, 5,
-          "Chance for extra experience on success for leatherworking skill tasks",
-          "Chance for extra experience on success for leatherworking skill tasks", TRUE, TALENT_CAT_LEATHERWORKING);
+          "+5% experience per rank on leatherworking tasks",
+          "Each rank gives a 5% bonus to experience gained when performing leatherworking tasks.", TRUE, TALENT_CAT_LEATHERWORKING);
   
   /* Trapmaking talents */
   talento(TALENT_PROFICIENT_TRAPMAKING, "proficient trapmaking", 1, 1000, 5,
@@ -287,11 +287,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the trapmaking skill.", FALSE, TALENT_CAT_TRAPMAKING);
   talento(TALENT_EFFICIENT_TRAPMAKING, "efficient trapmaking", 1, 2500, 10,
-          "chance to use less materials on trapmaking skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the trapmaking skill.", FALSE, TALENT_CAT_TRAPMAKING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the trapmaking skill.", FALSE, TALENT_CAT_TRAPMAKING);
   talento(TALENT_INSIGHTFUL_TRAPMAKING, "insightful trapmaking", 2, 5000, 5,
-          "Chance for extra experience on success for trapmaking skill tasks",
-          "Chance for extra experience on success for trapmaking skill tasks", FALSE, TALENT_CAT_TRAPMAKING);
+          "+5% experience per rank on trapmaking tasks",
+          "Each rank gives a 5% bonus to experience gained when performing trapmaking tasks.", FALSE, TALENT_CAT_TRAPMAKING);
   
   /* Poisonmaking talents */
   talento(TALENT_PROFICIENT_POISONMAKING, "proficient poisonmaking", 1, 1000, 5,
@@ -304,11 +304,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the poisonmaking skill.", FALSE, TALENT_CAT_POISONMAKING);
   talento(TALENT_EFFICIENT_POISONMAKING, "efficient poisonmaking", 1, 2500, 10,
-          "chance to use less materials on poisonmaking skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the poisonmaking skill.", FALSE, TALENT_CAT_POISONMAKING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the poisonmaking skill.", FALSE, TALENT_CAT_POISONMAKING);
   talento(TALENT_INSIGHTFUL_POISONMAKING, "insightful poisonmaking", 2, 5000, 5,
-          "Chance for extra experience on success for poisonmaking skill tasks",
-          "Chance for extra experience on success for poisonmaking skill tasks", FALSE, TALENT_CAT_POISONMAKING);
+          "+5% experience per rank on poisonmaking tasks",
+          "Each rank gives a 5% bonus to experience gained when performing poisonmaking tasks.", FALSE, TALENT_CAT_POISONMAKING);
   
   /* Metalworking talents */
   talento(TALENT_PROFICIENT_METALWORKING, "proficient metalworking", 1, 1000, 5,
@@ -321,11 +321,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the metalworking skill.", TRUE, TALENT_CAT_METALWORKING);
   talento(TALENT_EFFICIENT_METALWORKING, "efficient metalworking", 1, 2500, 10,
-          "chance to use less materials on metalworking skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the metalworking skill.", TRUE, TALENT_CAT_METALWORKING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the metalworking skill.", TRUE, TALENT_CAT_METALWORKING);
   talento(TALENT_INSIGHTFUL_METALWORKING, "insightful metalworking", 2, 5000, 5,
-          "Chance for extra experience on success for metalworking skill tasks",
-          "Chance for extra experience on success for metalworking skill tasks", TRUE, TALENT_CAT_METALWORKING);
+          "+5% experience per rank on metalworking tasks",
+          "Each rank gives a 5% bonus to experience gained when performing metalworking tasks.", TRUE, TALENT_CAT_METALWORKING);
   
   /* Fishing talents */
   talento(TALENT_PROFICIENT_FISHING, "proficient fishing", 1, 1000, 5,
@@ -338,11 +338,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the fishing skill.", FALSE, TALENT_CAT_FISHING);
   talento(TALENT_EFFICIENT_FISHING, "efficient fishing", 1, 2500, 10,
-          "chance to use less materials on fishing skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the fishing skill.", FALSE, TALENT_CAT_FISHING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the fishing skill.", FALSE, TALENT_CAT_FISHING);
   talento(TALENT_INSIGHTFUL_FISHING, "insightful fishing", 2, 5000, 5,
-          "Chance for extra experience on success for fishing skill tasks",
-          "Chance for extra experience on success for fishing skill tasks", FALSE, TALENT_CAT_FISHING);
+          "+5% experience per rank on fishing tasks",
+          "Each rank gives a 5% bonus to experience gained when performing fishing tasks.", FALSE, TALENT_CAT_FISHING);
   
   /* Cooking talents */
   talento(TALENT_PROFICIENT_COOKING, "proficient cooking", 1, 1000, 5,
@@ -355,11 +355,11 @@ void init_talents(void) {
           "+1% chance to critical success when crafting",
           "+1% chance to critical success when crafting something with the cooking skill.", FALSE, TALENT_CAT_COOKING);
   talento(TALENT_EFFICIENT_COOKING, "efficient cooking", 1, 2500, 10,
-          "chance to use less materials on cooking skill tasks",
-          "Each rank gives a 3% chance to save half materials when using the cooking skill.", FALSE, TALENT_CAT_COOKING);
+          "3% chance per rank to save half materials",
+          "Each rank gives a 3% chance to save half the materials when crafting with the cooking skill.", FALSE, TALENT_CAT_COOKING);
   talento(TALENT_INSIGHTFUL_COOKING, "insightful cooking", 2, 5000, 5,
-          "Chance for extra experience on success for cooking skill tasks",
-          "Chance for extra experience on success for cooking skill tasks", FALSE, TALENT_CAT_COOKING);
+          "+5% experience per rank on cooking tasks",
+          "Each rank gives a 5% bonus to experience gained when performing cooking tasks.", FALSE, TALENT_CAT_COOKING);
   
   /* Mining talents (harvesting) */
   talento(TALENT_PROFICIENT_MINING, "proficient mining", 1, 1000, 5,
@@ -372,11 +372,11 @@ void init_talents(void) {
           "On critical success, chance to gain extra materials",
           "On critical success when mining there's a 10% chance per rank to gain extra materials.", TRUE, TALENT_CAT_MINING);
   talento(TALENT_EFFICIENT_MINING, "efficient mining", 1, 2500, 10,
-          "chance to use less materials on mining skill tasks",
+          "3% chance per rank to gain 2 extra units",
           "Each rank gives a 3% chance to gain 2 extra units when harvesting with the mining skill.", TRUE, TALENT_CAT_MINING);
   talento(TALENT_INSIGHTFUL_MINING, "insightful mining", 2, 5000, 5,
-          "Chance for extra experience on success for mining skill tasks",
-          "Chance for extra experience on success for mining skill tasks", TRUE, TALENT_CAT_MINING);
+          "+5% experience per rank on mining tasks",
+          "Each rank gives a 5% bonus to experience gained when performing mining tasks.", TRUE, TALENT_CAT_MINING);
   
   /* Hunting talents (harvesting) */
   talento(TALENT_PROFICIENT_HUNTING, "proficient hunting", 1, 1000, 5,
@@ -389,11 +389,11 @@ void init_talents(void) {
           "On critical success, chance to gain extra materials",
           "On critical success when hunting there's a 10% chance per rank to gain extra materials.", TRUE, TALENT_CAT_HUNTING);
   talento(TALENT_EFFICIENT_HUNTING, "efficient hunting", 1, 2500, 10,
-          "chance to use less materials on hunting skill tasks",
+          "3% chance per rank to gain 2 extra units",
           "Each rank gives a 3% chance to gain 2 extra units when harvesting with the hunting skill.", TRUE, TALENT_CAT_HUNTING);
   talento(TALENT_INSIGHTFUL_HUNTING, "insightful hunting", 2, 5000, 5,
-          "Chance for extra experience on success for hunting skill tasks",
-          "Chance for extra experience on success for hunting skill tasks", TRUE, TALENT_CAT_HUNTING);
+          "+5% experience per rank on hunting tasks",
+          "Each rank gives a 5% bonus to experience gained when performing hunting tasks.", TRUE, TALENT_CAT_HUNTING);
   
   /* Forestry talents (harvesting) */
   talento(TALENT_PROFICIENT_FORESTRY, "proficient forestry", 1, 1000, 5,
@@ -406,11 +406,11 @@ void init_talents(void) {
           "On critical success, chance to gain extra materials",
           "On critical success when harvesting wood there's a 10% chance per rank to gain extra materials.", TRUE, TALENT_CAT_FORESTRY);
   talento(TALENT_EFFICIENT_FORESTRY, "efficient forestry", 1, 2500, 10,
-          "chance to use less materials on forestry skill tasks",
+          "3% chance per rank to gain 2 extra units",
           "Each rank gives a 3% chance to gain 2 extra units when harvesting with the forestry skill.", TRUE, TALENT_CAT_FORESTRY);
   talento(TALENT_INSIGHTFUL_FORESTRY, "insightful forestry", 2, 5000, 5,
-          "Chance for extra experience on success for forestry skill tasks",
-          "Chance for extra experience on success for forestry skill tasks", TRUE, TALENT_CAT_FORESTRY);
+          "+5% experience per rank on forestry tasks",
+          "Each rank gives a 5% bonus to experience gained when performing forestry tasks.", TRUE, TALENT_CAT_FORESTRY);
   
   /* Gathering talents (harvesting) */
   talento(TALENT_PROFICIENT_GATHERING, "proficient gathering", 1, 1000, 5,
@@ -423,11 +423,11 @@ void init_talents(void) {
           "On critical success, chance to gain extra materials",
           "On critical success when gathering there's a 10% chance per rank to gain extra materials.", TRUE, TALENT_CAT_GATHERING);
   talento(TALENT_EFFICIENT_GATHERING, "efficient gathering", 1, 2500, 10,
-          "chance to use less materials on gathering skill tasks",
+          "3% chance per rank to gain 2 extra units",
           "Each rank gives a 3% chance to gain 2 extra units when harvesting with the gathering skill.", TRUE, TALENT_CAT_GATHERING);
   talento(TALENT_INSIGHTFUL_GATHERING, "insightful gathering", 2, 5000, 5,
-          "Chance for extra experience on success for gathering skill tasks",
-          "Chance for extra experience on success for gathering skill tasks", TRUE, TALENT_CAT_GATHERING);
+          "+5% experience per rank on gathering tasks",
+          "Each rank gives a 5% bonus to experience gained when performing gathering tasks.", TRUE, TALENT_CAT_GATHERING);
 }
 
 /* Player data integration helpers */
