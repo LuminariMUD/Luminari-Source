@@ -43,6 +43,7 @@
 ACMD_DECL(do_practice);
 
 int copy_object(struct obj_data *to, struct obj_data *from);
+void process_craft_critical_success(struct char_data *ch, struct obj_data *obj);
 
 int materials_sort_info[NUM_CRAFT_MATS];
 
@@ -2951,6 +2952,9 @@ void create_craft_weapon(struct char_data *ch)
 
     gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, TRUE);
 
+    /* Check for critical success before giving to player */
+    process_craft_critical_success(ch, obj);
+
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
     reset_current_craft(ch, NULL, FALSE, FALSE);
@@ -3023,6 +3027,9 @@ void create_craft_armor(struct char_data *ch)
     }
 
     gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, TRUE);
+
+    /* Check for critical success before giving to player */
+    process_craft_critical_success(ch, obj);
 
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
@@ -3154,6 +3161,9 @@ void create_craft_instrument(struct char_data *ch)
 
     gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, TRUE);
 
+    /* Check for critical success before giving to player */
+    process_craft_critical_success(ch, obj);
+
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
     reset_current_craft(ch, NULL, FALSE, FALSE);
@@ -3266,9 +3276,104 @@ void create_craft_misc(struct char_data *ch)
 
     gain_craft_exp(ch, MAX(CREATE_BASE_EXP, GET_OBJ_LEVEL(obj) * CREATE_BASE_EXP), skill, TRUE);
 
+    /* Check for critical success before giving to player */
+    process_craft_critical_success(ch, obj);
+
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
     reset_current_craft(ch, NULL, FALSE, FALSE);
+}
+
+/* Process critical success on crafting - 5% base chance, can chain */
+void process_craft_critical_success(struct char_data *ch, struct obj_data *obj)
+{
+    int crit_count = 0;
+    int i, bonus_increases = 0;
+    bool had_increase = FALSE;
+    int total_bonuses = 0;
+    int bonus_indices[MAX_OBJ_AFFECT];
+    bool has_enhancement = FALSE;
+    
+    /* Check for weapon or armor with enhancement bonus */
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON || GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+    {
+        if (GET_OBJ_VAL(obj, 4) > 0)
+            has_enhancement = TRUE;
+    }
+    
+    /* Count total bonuses and store their indices */
+    for (i = 0; i < MAX_OBJ_AFFECT; i++)
+    {
+        if (obj->affected[i].location != APPLY_NONE)
+        {
+            bonus_indices[total_bonuses] = i;
+            total_bonuses++;
+        }
+    }
+    
+    /* If there are no bonuses and no enhancement, nothing to improve */
+    if (total_bonuses == 0 && !has_enhancement)
+        return;
+    
+    /* Keep rolling for crits until we fail - 5% chance each time */
+    while (rand_number(1, 100) <= 5)
+    {
+        crit_count++;
+        bonus_increases = 0;
+        had_increase = FALSE;
+        
+        /* Process enhancement bonus for weapons/armor (25% chance) */
+        if (has_enhancement && rand_number(1, 100) <= 25)
+        {
+            GET_OBJ_VAL(obj, 4)++;
+            bonus_increases++;
+            had_increase = TRUE;
+        }
+        
+        /* Process each bonus with 25% chance to increase */
+        for (i = 0; i < total_bonuses; i++)
+        {
+            int idx = bonus_indices[i];
+            if (rand_number(1, 100) <= 25)
+            {
+                int increase = 1;
+                
+                /* Universal bonuses increase by 1, others by 2 */
+                if (obj->affected[idx].bonus_type != BONUS_TYPE_UNIVERSAL)
+                    increase = 2;
+                
+                obj->affected[idx].modifier += increase;
+                bonus_increases++;
+                had_increase = TRUE;
+            }
+        }
+        
+        /* Guarantee at least one bonus increases if we didn't get any */
+        if (!had_increase)
+        {
+            /* Prefer enhancement bonus if available, otherwise pick random bonus */
+            if (has_enhancement)
+            {
+                GET_OBJ_VAL(obj, 4)++;
+            }
+            else if (total_bonuses > 0)
+            {
+                int random_idx = bonus_indices[rand_number(0, total_bonuses - 1)];
+                int increase = 1;
+                
+                if (obj->affected[random_idx].bonus_type != BONUS_TYPE_UNIVERSAL)
+                    increase = 2;
+                
+                obj->affected[random_idx].modifier += increase;
+            }
+        }
+        
+        /* Announce the critical success */
+        if (crit_count == 1)
+            send_to_char(ch, "\tY**CRITICAL SUCCESS!**\tn The item's properties have been enhanced!\r\n");
+        else
+            send_to_char(ch, "\tY**CRITICAL SUCCESS x%d!**\tn Another enhancement applied!\r\n", crit_count);
+    }
 }
 
 void craft_create_complete(struct char_data *ch)

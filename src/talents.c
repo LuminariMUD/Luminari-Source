@@ -122,8 +122,8 @@ void init_talents(void) {
           "-2 seconds on woodworking skill task completion per rank",
           "Reduces completion time for tasks performed with the woodworking skill by 2 seconds per rank.", TRUE, TALENT_CAT_WOODWORKING);
   talento(TALENT_WOODWORKING_EXPERTISE, "woodworking expertise", 2, 2500, 5,
-          "+1% crit chance on woodworking skill tasks",
-          "+1% crit chance on woodworking skill tasks", TRUE, TALENT_CAT_WOODWORKING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the woodworking skill.", TRUE, TALENT_CAT_WOODWORKING);
   talento(TALENT_EFFICIENT_WOODWORKING, "efficient woodworking", 1, 2500, 10,
           "chance to use less materials on woodworking skill tasks",
           "Each rank gives a 3% chance to save half materials when using the woodworking skill.", TRUE, TALENT_CAT_WOODWORKING);
@@ -139,8 +139,8 @@ void init_talents(void) {
           "-2 seconds on tailoring skill task completion per rank",
           "Reduces completion time for tasks performed with the tailoring skill by 2 seconds per rank.", TRUE, TALENT_CAT_TAILORING);
   talento(TALENT_TAILORING_EXPERTISE, "tailoring expertise", 2, 2500, 5,
-          "+1% crit chance on tailoring skill tasks",
-          "+1% crit chance on tailoring skill tasks", TRUE, TALENT_CAT_TAILORING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the tailoring skill.", TRUE, TALENT_CAT_TAILORING);
   talento(TALENT_EFFICIENT_TAILORING, "efficient tailoring", 1, 2500, 10,
           "chance to use less materials on tailoring skill tasks",
           "Each rank gives a 3% chance to save half materials when using the tailoring skill.", TRUE, TALENT_CAT_TAILORING);
@@ -156,8 +156,8 @@ void init_talents(void) {
           "-2 seconds on alchemy skill task completion per rank",
           "Reduces completion time for tasks performed with the alchemy skill by 2 seconds per rank.", TRUE, TALENT_CAT_ALCHEMY);
   talento(TALENT_ALCHEMY_EXPERTISE, "alchemy expertise", 2, 2500, 5,
-          "+1% crit chance on alchemy skill tasks",
-          "+1% crit chance on alchemy skill tasks", TRUE, TALENT_CAT_ALCHEMY);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the alchemy skill.", TRUE, TALENT_CAT_ALCHEMY);
   talento(TALENT_EFFICIENT_ALCHEMY, "efficient alchemy", 1, 2500, 10,
           "chance to use less materials on alchemy skill tasks",
           "Each rank gives a 3% chance to save half materials when using the alchemy skill.", TRUE, TALENT_CAT_ALCHEMY);
@@ -173,8 +173,8 @@ void init_talents(void) {
           "-2 seconds on armorsmithing skill task completion per rank",
           "Reduces completion time for tasks performed with the armorsmithing skill by 2 seconds per rank.", TRUE, TALENT_CAT_ARMORSMITHING);
   talento(TALENT_ARMORSMITHING_EXPERTISE, "armorsmithing expertise", 2, 2500, 5,
-          "+1% crit chance on armorsmithing skill tasks",
-          "+1% crit chance on armorsmithing skill tasks", TRUE, TALENT_CAT_ARMORSMITHING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the armorsmithing skill.", TRUE, TALENT_CAT_ARMORSMITHING);
   talento(TALENT_EFFICIENT_ARMORSMITHING, "efficient armorsmithing", 1, 2500, 10,
           "chance to use less materials on armorsmithing skill tasks",
           "Each rank gives a 3% chance to save half materials when using the armorsmithing skill.", TRUE, TALENT_CAT_ARMORSMITHING);
@@ -190,8 +190,8 @@ void init_talents(void) {
           "-2 seconds on weaponsmithing skill task completion per rank",
           "Reduces completion time for tasks performed with the weaponsmithing skill by 2 seconds per rank.", TRUE, TALENT_CAT_WEAPONSMITHING);
   talento(TALENT_WEAPONSMITHING_EXPERTISE, "weaponsmithing expertise", 2, 2500, 5,
-          "+1% crit chance on weaponsmithing skill tasks",
-          "+1% crit chance on weaponsmithing skill tasks", TRUE, TALENT_CAT_WEAPONSMITHING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the weaponsmithing skill.", TRUE, TALENT_CAT_WEAPONSMITHING);
   talento(TALENT_EFFICIENT_WEAPONSMITHING, "efficient weaponsmithing", 1, 2500, 10,
           "chance to use less materials on weaponsmithing skill tasks",
           "Each rank gives a 3% chance to save half materials when using the weaponsmithing skill.", TRUE, TALENT_CAT_WEAPONSMITHING);
@@ -207,8 +207,8 @@ void init_talents(void) {
           "-2 seconds on bowmaking skill task completion per rank",
           "Reduces completion time for tasks performed with the bowmaking skill by 2 seconds per rank.", FALSE, TALENT_CAT_BOWMAKING);
   talento(TALENT_BOWMAKING_EXPERTISE, "bowmaking expertise", 2, 2500, 5,
-          "+1% crit chance on bowmaking skill tasks",
-          "+1% crit chance on bowmaking skill tasks", FALSE, TALENT_CAT_BOWMAKING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the bowmaking skill.", FALSE, TALENT_CAT_BOWMAKING);
   talento(TALENT_EFFICIENT_BOWMAKING, "efficient bowmaking", 1, 2500, 10,
           "chance to use less materials on bowmaking skill tasks",
           "Each rank gives a 3% chance to save half materials when using the bowmaking skill.", FALSE, TALENT_CAT_BOWMAKING);
@@ -224,8 +224,8 @@ void init_talents(void) {
           "-2 seconds on jewelcrafting skill task completion per rank",
           "Reduces completion time for tasks performed with the jewelcrafting skill by 2 seconds per rank.", TRUE, TALENT_CAT_JEWELCRAFTING);
   talento(TALENT_JEWELCRAFTING_EXPERTISE, "jewelcrafting expertise", 2, 2500, 5,
-          "+1% crit chance on jewelcrafting skill tasks",
-          "+1% crit chance on jewelcrafting skill tasks", TRUE, TALENT_CAT_JEWELCRAFTING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the jewelcrafting skill.", TRUE, TALENT_CAT_JEWELCRAFTING);
   talento(TALENT_EFFICIENT_JEWELCRAFTING, "efficient jewelcrafting", 1, 2500, 10,
           "chance to use less materials on jewelcrafting skill tasks",
           "Each rank gives a 3% chance to save half materials when using the jewelcrafting skill.", TRUE, TALENT_CAT_JEWELCRAFTING);
@@ -241,8 +241,8 @@ void init_talents(void) {
           "-2 seconds on leatherworking skill task completion per rank",
           "Reduces completion time for tasks performed with the leatherworking skill by 2 seconds per rank.", TRUE, TALENT_CAT_LEATHERWORKING);
   talento(TALENT_LEATHERWORKING_EXPERTISE, "leatherworking expertise", 2, 2500, 5,
-          "+1% crit chance on leatherworking skill tasks",
-          "+1% crit chance on leatherworking skill tasks", TRUE, TALENT_CAT_LEATHERWORKING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the leatherworking skill.", TRUE, TALENT_CAT_LEATHERWORKING);
   talento(TALENT_EFFICIENT_LEATHERWORKING, "efficient leatherworking", 1, 2500, 10,
           "chance to use less materials on leatherworking skill tasks",
           "Each rank gives a 3% chance to save half materials when using the leatherworking skill.", TRUE, TALENT_CAT_LEATHERWORKING);
@@ -258,8 +258,8 @@ void init_talents(void) {
           "-2 seconds on trapmaking skill task completion per rank",
           "Reduces completion time for tasks performed with the trapmaking skill by 2 seconds per rank.", FALSE, TALENT_CAT_TRAPMAKING);
   talento(TALENT_TRAPMAKING_EXPERTISE, "trapmaking expertise", 2, 2500, 5,
-          "+1% crit chance on trapmaking skill tasks",
-          "+1% crit chance on trapmaking skill tasks", FALSE, TALENT_CAT_TRAPMAKING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the trapmaking skill.", FALSE, TALENT_CAT_TRAPMAKING);
   talento(TALENT_EFFICIENT_TRAPMAKING, "efficient trapmaking", 1, 2500, 10,
           "chance to use less materials on trapmaking skill tasks",
           "Each rank gives a 3% chance to save half materials when using the trapmaking skill.", FALSE, TALENT_CAT_TRAPMAKING);
@@ -275,8 +275,8 @@ void init_talents(void) {
           "-2 seconds on poisonmaking skill task completion per rank",
           "Reduces completion time for tasks performed with the poisonmaking skill by 2 seconds per rank.", FALSE, TALENT_CAT_POISONMAKING);
   talento(TALENT_POISONMAKING_EXPERTISE, "poisonmaking expertise", 2, 2500, 5,
-          "+1% crit chance on poisonmaking skill tasks",
-          "+1% crit chance on poisonmaking skill tasks", FALSE, TALENT_CAT_POISONMAKING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the poisonmaking skill.", FALSE, TALENT_CAT_POISONMAKING);
   talento(TALENT_EFFICIENT_POISONMAKING, "efficient poisonmaking", 1, 2500, 10,
           "chance to use less materials on poisonmaking skill tasks",
           "Each rank gives a 3% chance to save half materials when using the poisonmaking skill.", FALSE, TALENT_CAT_POISONMAKING);
@@ -292,8 +292,8 @@ void init_talents(void) {
           "-2 seconds on metalworking skill task completion per rank",
           "Reduces completion time for tasks performed with the metalworking skill by 2 seconds per rank.", TRUE, TALENT_CAT_METALWORKING);
   talento(TALENT_METALWORKING_EXPERTISE, "metalworking expertise", 2, 2500, 5,
-          "+1% crit chance on metalworking skill tasks",
-          "+1% crit chance on metalworking skill tasks", TRUE, TALENT_CAT_METALWORKING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the metalworking skill.", TRUE, TALENT_CAT_METALWORKING);
   talento(TALENT_EFFICIENT_METALWORKING, "efficient metalworking", 1, 2500, 10,
           "chance to use less materials on metalworking skill tasks",
           "Each rank gives a 3% chance to save half materials when using the metalworking skill.", TRUE, TALENT_CAT_METALWORKING);
@@ -309,8 +309,8 @@ void init_talents(void) {
           "-2 seconds on fishing skill task completion per rank",
           "Reduces completion time for tasks performed with the fishing skill by 2 seconds per rank.", FALSE, TALENT_CAT_FISHING);
   talento(TALENT_FISHING_EXPERTISE, "fishing expertise", 2, 2500, 5,
-          "+1% crit chance on fishing skill tasks",
-          "+1% crit chance on fishing skill tasks", FALSE, TALENT_CAT_FISHING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the fishing skill.", FALSE, TALENT_CAT_FISHING);
   talento(TALENT_EFFICIENT_FISHING, "efficient fishing", 1, 2500, 10,
           "chance to use less materials on fishing skill tasks",
           "Each rank gives a 3% chance to save half materials when using the fishing skill.", FALSE, TALENT_CAT_FISHING);
@@ -326,8 +326,8 @@ void init_talents(void) {
           "-2 seconds on cooking skill task completion per rank",
           "Reduces completion time for tasks performed with the cooking skill by 2 seconds per rank.", FALSE, TALENT_CAT_COOKING);
   talento(TALENT_COOKING_EXPERTISE, "cooking expertise", 2, 2500, 5,
-          "+1% crit chance on cooking skill tasks",
-          "+1% crit chance on cooking skill tasks", FALSE, TALENT_CAT_COOKING);
+          "+1% chance to critical success when crafting",
+          "+1% chance to critical success when crafting something with the cooking skill.", FALSE, TALENT_CAT_COOKING);
   talento(TALENT_EFFICIENT_COOKING, "efficient cooking", 1, 2500, 10,
           "chance to use less materials on cooking skill tasks",
           "Each rank gives a 3% chance to save half materials when using the cooking skill.", FALSE, TALENT_CAT_COOKING);
@@ -343,8 +343,8 @@ void init_talents(void) {
           "-1 second on mining skill task completion per rank",
           "Reduces completion time for tasks performed with the mining skill by 1 second per rank.", TRUE, TALENT_CAT_MINING);
   talento(TALENT_MINING_EXPERTISE, "mining expertise", 2, 2500, 5,
-          "+1% crit chance on mining skill tasks",
-          "+1% crit chance on mining skill tasks", TRUE, TALENT_CAT_MINING);
+          "On critical success, chance to gain extra materials",
+          "On critical success when mining there's a 10% chance per rank to gain extra materials.", TRUE, TALENT_CAT_MINING);
   talento(TALENT_EFFICIENT_MINING, "efficient mining", 1, 2500, 10,
           "chance to use less materials on mining skill tasks",
           "Each rank gives a 3% chance to gain 2 extra units when harvesting with the mining skill.", TRUE, TALENT_CAT_MINING);
@@ -360,8 +360,8 @@ void init_talents(void) {
           "-1 second on hunting skill task completion per rank",
           "Reduces completion time for tasks performed with the hunting skill by 1 second per rank.", TRUE, TALENT_CAT_HUNTING);
   talento(TALENT_HUNTING_EXPERTISE, "hunting expertise", 2, 2500, 5,
-          "+1% crit chance on hunting skill tasks",
-          "+1% crit chance on hunting skill tasks", TRUE, TALENT_CAT_HUNTING);
+          "On critical success, chance to gain extra materials",
+          "On critical success when hunting there's a 10% chance per rank to gain extra materials.", TRUE, TALENT_CAT_HUNTING);
   talento(TALENT_EFFICIENT_HUNTING, "efficient hunting", 1, 2500, 10,
           "chance to use less materials on hunting skill tasks",
           "Each rank gives a 3% chance to gain 2 extra units when harvesting with the hunting skill.", TRUE, TALENT_CAT_HUNTING);
@@ -377,8 +377,8 @@ void init_talents(void) {
           "-1 second on forestry skill task completion per rank",
           "Reduces completion time for tasks performed with the forestry skill by 1 second per rank.", TRUE, TALENT_CAT_FORESTRY);
   talento(TALENT_FORESTRY_EXPERTISE, "forestry expertise", 2, 2500, 5,
-          "+1% crit chance on forestry skill tasks",
-          "+1% crit chance on forestry skill tasks", TRUE, TALENT_CAT_FORESTRY);
+          "On critical success, chance to gain extra materials",
+          "On critical success when harvesting wood there's a 10% chance per rank to gain extra materials.", TRUE, TALENT_CAT_FORESTRY);
   talento(TALENT_EFFICIENT_FORESTRY, "efficient forestry", 1, 2500, 10,
           "chance to use less materials on forestry skill tasks",
           "Each rank gives a 3% chance to gain 2 extra units when harvesting with the forestry skill.", TRUE, TALENT_CAT_FORESTRY);
@@ -394,8 +394,8 @@ void init_talents(void) {
           "-1 second on gathering skill task completion per rank",
           "Reduces completion time for tasks performed with the gathering skill by 1 second per rank.", TRUE, TALENT_CAT_GATHERING);
   talento(TALENT_GATHERING_EXPERTISE, "gathering expertise", 2, 2500, 5,
-          "+1% crit chance on gathering skill tasks",
-          "+1% crit chance on gathering skill tasks", TRUE, TALENT_CAT_GATHERING);
+          "On critical success, chance to gain extra materials",
+          "On critical success when gathering there's a 10% chance per rank to gain extra materials.", TRUE, TALENT_CAT_GATHERING);
   talento(TALENT_EFFICIENT_GATHERING, "efficient gathering", 1, 2500, 10,
           "chance to use less materials on gathering skill tasks",
           "Each rank gives a 3% chance to gain 2 extra units when harvesting with the gathering skill.", TRUE, TALENT_CAT_GATHERING);
@@ -503,13 +503,13 @@ void list_talents(struct char_data *ch) {
     char line[256];
     
     if (rank >= maxr)
-      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%d \tR[MAX]\tn", 
+      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d \tR[MAX]\tn", 
                i, talent_list[i].name, rank, maxr);
     else if (rank > 0)
-      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%d %2dpt/%4dgp", 
+      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d %2dpt/%4dgp", 
                i, talent_list[i].name, rank, maxr, p_cost, g_cost);
     else
-      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s \tD%d/%d\tn %2dpt/%4dgp", 
+      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s \tD%d/%-2d\tn %2dpt/%4dgp", 
                i, talent_list[i].name, rank, maxr, p_cost, g_cost);
     
     if (col_toggle == 0) {
@@ -567,7 +567,7 @@ void list_available_talents(struct char_data *ch) {
     int g_cost = talent_next_gold_cost(ch, i);
     char line[256];
     
-    snprintf(line, sizeof(line), "\tG%2d\tn) %-24s %d/%d %2dpt/%4dgp", 
+    snprintf(line, sizeof(line), "\tG%2d\tn) %-24s %d/%-2d %2dpt/%4dgp", 
              i, talent_list[i].name, rank, maxr, p_cost, g_cost);
     
     if (col_toggle == 0) {
@@ -620,10 +620,10 @@ void list_all_talents(struct char_data *ch) {
     char line[256];
     
     if (rank >= maxr)
-      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%d \tR[MAX]\tn", 
+      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d \tR[MAX]\tn", 
                i, talent_list[i].name, rank, maxr);
     else
-      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%d %2dpt/%4dgp", 
+      snprintf(line, sizeof(line), "\tW%2d\tn) %-24s %d/%-2d %2dpt/%4dgp", 
                i, talent_list[i].name, rank, maxr, p_cost, g_cost);
     
     if (col_toggle == 0) {
@@ -765,13 +765,13 @@ void list_talents_by_category(struct char_data *ch, int category) {
     int g_cost = talent_next_gold_cost(ch, i);
     
     if (rank >= maxr)
-      send_to_char(ch, "\tW%2d\tn) %-32s %d/%d \tR[MAX]\tn\r\n", 
+      send_to_char(ch, "\tW%2d\tn) %-32s %d/%-2d \tR[MAX]\tn\r\n", 
                i, talent_list[i].name, rank, maxr);
     else if (rank > 0)
-      send_to_char(ch, "\tW%2d\tn) %-32s %d/%d  Next: %2dpt/%5dgp\r\n", 
+      send_to_char(ch, "\tW%2d\tn) %-32s %d/%-2d  Next: %2dpt/%5dgp\r\n", 
                i, talent_list[i].name, rank, maxr, p_cost, g_cost);
     else
-      send_to_char(ch, "\tW%2d\tn) %-32s \tD%d/%d\tn  Cost: %2dpt/%5dgp\r\n", 
+      send_to_char(ch, "\tW%2d\tn) %-32s \tD%d/%-2d\tn  Cost: %2dpt/%5dgp\r\n", 
                i, talent_list[i].name, rank, maxr, p_cost, g_cost);
   }
   
