@@ -4047,8 +4047,40 @@ void harvest_complete(struct char_data *ch)
         {
             int num_motes = dice(MAX(1, material_grade(world[IN_ROOM(ch)].harvest_material)), HARVEST_MOTE_DICE_SIZE);
             int mote_type = dice(1, NUM_CRAFT_MOTES - 1);
-            send_to_char(ch, "\tYYou have extracted a small cache of %d %ss!.\r\n", num_motes, crafting_motes[mote_type]);
-            GET_CRAFT_MOTES(ch, mote_type) += num_motes;
+            int bonus_motes = 0;
+            int synergy_talent = TALENT_NONE;
+            int synergy_rank = 0;
+            
+            /* Determine which synergy talent applies to this mote type */
+            switch (mote_type)
+            {
+                case CRAFTING_MOTE_AIR: synergy_talent = TALENT_AIR_MOTE_SYNERGY; break;
+                case CRAFTING_MOTE_DARK: synergy_talent = TALENT_DARK_MOTE_SYNERGY; break;
+                case CRAFTING_MOTE_EARTH: synergy_talent = TALENT_EARTH_MOTE_SYNERGY; break;
+                case CRAFTING_MOTE_FIRE: synergy_talent = TALENT_FIRE_MOTE_SYNERGY; break;
+                case CRAFTING_MOTE_ICE: synergy_talent = TALENT_ICE_MOTE_SYNERGY; break;
+                case CRAFTING_MOTE_LIGHT: synergy_talent = TALENT_LIGHT_MOTE_SYNERGY; break;
+                case CRAFTING_MOTE_LIGHTNING: synergy_talent = TALENT_LIGHTNING_MOTE_SYNERGY; break;
+                case CRAFTING_MOTE_WATER: synergy_talent = TALENT_WATER_MOTE_SYNERGY; break;
+            }
+            
+            /* Check for mote synergy talent and apply bonus */
+            if (synergy_talent != TALENT_NONE)
+            {
+                synergy_rank = get_talent_rank(ch, synergy_talent);
+                if (synergy_rank > 0)
+                {
+                    int synergy_chance = synergy_rank * 10; /* 10% per rank */
+                    if (rand_number(1, 100) <= synergy_chance)
+                    {
+                        bonus_motes = 1;
+                        send_to_char(ch, "\tC*MOTE SYNERGY*\tn ");
+                    }
+                }
+            }
+            
+            send_to_char(ch, "\tYYou have extracted a small cache of %d %ss!.\r\n", num_motes + bonus_motes, crafting_motes[mote_type]);
+            GET_CRAFT_MOTES(ch, mote_type) += (num_motes + bonus_motes);
         }
         
         GET_CRAFT(ch).craft_duration = 0;
