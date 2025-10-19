@@ -46,6 +46,8 @@ int copy_object(struct obj_data *to, struct obj_data *from);
 void process_craft_critical_success(struct char_data *ch, struct obj_data *obj);
 int get_rapid_talent_bonus(struct char_data *ch, int skill);
 int get_insightful_talent_bonus(struct char_data *ch, int skill);
+int get_efficient_talent_bonus(struct char_data *ch, int skill);
+void return_efficient_saved_materials(struct char_data *ch);
 
 int materials_sort_info[NUM_CRAFT_MATS];
 
@@ -2845,6 +2847,66 @@ int get_insightful_talent_bonus(struct char_data *ch, int skill)
     return get_talent_rank(ch, talent) * 5;
 }
 
+/* Get the efficient talent bonus percentage for a given crafting/harvesting skill */
+int get_efficient_talent_bonus(struct char_data *ch, int skill)
+{
+    int talent = TALENT_NONE;
+    
+    /* Map skill to corresponding efficient talent */
+    switch (skill)
+    {
+        case ABILITY_CRAFT_WOODWORKING: talent = TALENT_EFFICIENT_WOODWORKING; break;
+        case ABILITY_CRAFT_TAILORING: talent = TALENT_EFFICIENT_TAILORING; break;
+        case ABILITY_CRAFT_ALCHEMY: talent = TALENT_EFFICIENT_ALCHEMY; break;
+        case ABILITY_CRAFT_ARMORSMITHING: talent = TALENT_EFFICIENT_ARMORSMITHING; break;
+        case ABILITY_CRAFT_WEAPONSMITHING: talent = TALENT_EFFICIENT_WEAPONSMITHING; break;
+        case ABILITY_CRAFT_BOWMAKING: talent = TALENT_EFFICIENT_BOWMAKING; break;
+        case ABILITY_CRAFT_JEWELCRAFTING: talent = TALENT_EFFICIENT_JEWELCRAFTING; break;
+        case ABILITY_CRAFT_LEATHERWORKING: talent = TALENT_EFFICIENT_LEATHERWORKING; break;
+        case ABILITY_CRAFT_TRAPMAKING: talent = TALENT_EFFICIENT_TRAPMAKING; break;
+        case ABILITY_CRAFT_POISONMAKING: talent = TALENT_EFFICIENT_POISONMAKING; break;
+        case ABILITY_CRAFT_METALWORKING: talent = TALENT_EFFICIENT_METALWORKING; break;
+        case ABILITY_CRAFT_FISHING: talent = TALENT_EFFICIENT_FISHING; break;
+        case ABILITY_CRAFT_COOKING: talent = TALENT_EFFICIENT_COOKING; break;
+        case ABILITY_HARVEST_MINING: talent = TALENT_EFFICIENT_MINING; break;
+        case ABILITY_HARVEST_HUNTING: talent = TALENT_EFFICIENT_HUNTING; break;
+        case ABILITY_HARVEST_FORESTRY: talent = TALENT_EFFICIENT_FORESTRY; break;
+        case ABILITY_HARVEST_GATHERING: talent = TALENT_EFFICIENT_GATHERING; break;
+        default: return 0;
+    }
+    
+    if (talent == TALENT_NONE)
+        return 0;
+    
+    /* Each rank gives 3% chance */
+    return get_talent_rank(ch, talent) * 3;
+}
+
+/* Return saved materials from efficient talent upon successful crafting completion */
+void return_efficient_saved_materials(struct char_data *ch)
+{
+    int i;
+    int total_saved = 0;
+    
+    for (i = 0; i < NUM_CRAFT_GROUPS; i++)
+    {
+        if (GET_CRAFT(ch).efficient_saved_materials[i][1] > 0)
+        {
+            GET_CRAFT_MAT(ch, GET_CRAFT(ch).efficient_saved_materials[i][0]) += GET_CRAFT(ch).efficient_saved_materials[i][1];
+            total_saved += GET_CRAFT(ch).efficient_saved_materials[i][1];
+            /* Clear the saved materials */
+            GET_CRAFT(ch).efficient_saved_materials[i][0] = 0;
+            GET_CRAFT(ch).efficient_saved_materials[i][1] = 0;
+        }
+    }
+    
+    if (total_saved > 0)
+    {
+        send_to_char(ch, "\tC*EFFICIENT*\tn Your efficient crafting has saved %d unit%s of materials!\r\n", 
+                    total_saved, total_saved == 1 ? "" : "s");
+    }
+}
+
 bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill, char *method, int exp, int dc)
 {
     if (!ch || !obj) return FALSE;
@@ -3072,6 +3134,9 @@ void create_craft_weapon(struct char_data *ch)
     /* Check for critical success before giving to player */
     process_craft_critical_success(ch, obj);
 
+    /* Return any materials saved by efficient crafting talent */
+    return_efficient_saved_materials(ch);
+
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
     reset_current_craft(ch, NULL, FALSE, FALSE);
@@ -3147,6 +3212,9 @@ void create_craft_armor(struct char_data *ch)
 
     /* Check for critical success before giving to player */
     process_craft_critical_success(ch, obj);
+
+    /* Return any materials saved by efficient crafting talent */
+    return_efficient_saved_materials(ch);
 
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
@@ -3281,6 +3349,9 @@ void create_craft_instrument(struct char_data *ch)
     /* Check for critical success before giving to player */
     process_craft_critical_success(ch, obj);
 
+    /* Return any materials saved by efficient crafting talent */
+    return_efficient_saved_materials(ch);
+
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
     reset_current_craft(ch, NULL, FALSE, FALSE);
@@ -3395,6 +3466,9 @@ void create_craft_misc(struct char_data *ch)
 
     /* Check for critical success before giving to player */
     process_craft_critical_success(ch, obj);
+
+    /* Return any materials saved by efficient crafting talent */
+    return_efficient_saved_materials(ch);
 
     send_to_char(ch, "You've created %s!\r\n", obj->short_description);
     obj_to_char(obj, ch);
@@ -3741,10 +3815,31 @@ void process_crafting_materials(struct char_data *ch, int group, int mat_type, i
             return;
         }
         GET_CRAFT_MAT(ch, mat_type) -= GET_CRAFT(ch).materials[group][1];
+        
+        /* Silently check for efficient talent - chance to save half materials */
+        int efficient_chance = get_efficient_talent_bonus(ch, GET_CRAFT(ch).skill_type);
+        int saved_amount = 0;
+        if (efficient_chance > 0 && rand_number(1, 100) <= efficient_chance)
+        {
+            saved_amount = base_amount / 2;
+            if (saved_amount < 1)
+                saved_amount = 0;
+            /* Store the saved materials to return upon completion */
+            GET_CRAFT(ch).efficient_saved_materials[group][0] = mat_type;
+            GET_CRAFT(ch).efficient_saved_materials[group][1] = saved_amount;
+        }
+        else
+        {
+            /* Clear any previous saved materials for this slot */
+            GET_CRAFT(ch).efficient_saved_materials[group][0] = 0;
+            GET_CRAFT(ch).efficient_saved_materials[group][1] = 0;
+        }
+        
         send_to_char(ch, "You add %d unit%s of %s (%s) to the crafting project.\r\n", base_amount, base_amount == 1 ? "" : "s",
                      crafting_materials[mat_type], crafting_material_groups[craft_group_by_material(mat_type)]);
         GET_CRAFT(ch).materials[group][0] = mat_type;
         GET_CRAFT(ch).materials[group][1] = base_amount;
+        /* Take all materials initially */
         GET_CRAFT_MAT(ch, mat_type) -= base_amount;
     }
 }
@@ -4162,9 +4257,18 @@ void harvest_complete(struct char_data *ch)
             gain_craft_exp(ch, HARVEST_BASE_EXP + ((HARVEST_BASE_EXP/2) * harvest_level), skill, TRUE);
         }
         
+        /* Check for efficient talent - chance to gain 2 extra units */
+        int efficient_chance = get_efficient_talent_bonus(ch, skill);
+        int efficient_bonus = 0;
+        if (efficient_chance > 0 && rand_number(1, 100) <= efficient_chance)
+        {
+            efficient_bonus = 2;
+            send_to_char(ch, "\tC*EFFICIENT*\tn You gain 2 extra units from your efficient harvesting!\r\n");
+        }
+        
         world[IN_ROOM(ch)].harvest_material_amount -= amount;
 
-        GET_CRAFT_MAT(ch, world[IN_ROOM(ch)].harvest_material) += amount + bonus;
+        GET_CRAFT_MAT(ch, world[IN_ROOM(ch)].harvest_material) += amount + bonus + efficient_bonus;
         
         if (world[IN_ROOM(ch)].harvest_material_amount <= 0)
         {
