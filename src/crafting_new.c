@@ -106,8 +106,8 @@ int materials_sort_info[NUM_CRAFT_MATS];
                             "\r\n"
 
 #define HARVEST_NODE_PERCENT_CHANCE         33
-#define HARVEST_BASE_TIME                   10
-#define CREATE_BASE_TIME                    10
+#define HARVEST_BASE_TIME                   20
+#define CREATE_BASE_TIME                    60
 #define SURVEY_BASE_TIME                     3
 #define HARVEST_BASE_DC                      5
 #define CREATE_BASE_DC                      10
@@ -4674,10 +4674,13 @@ void craft_update(void)
                     switch (GET_CRAFT(ch).crafting_method)
                     {
                         case SCMD_NEWCRAFT_CREATE:
-                            send_to_char(ch, "Crafting %s. ", GET_CRAFT(ch).short_description);
-                            for (i = 0; i < GET_CRAFT(ch).craft_duration ; i++)
-                                send_to_char(ch, "*");
-                            send_to_char(ch, "\r\n");
+                            if (GET_CRAFT(ch).craft_duration % 5 == 0)
+                            {
+                                send_to_char(ch, "Crafting %s. ", GET_CRAFT(ch).short_description);
+                                for (i = 0; i < GET_CRAFT(ch).craft_duration ; i++)
+                                    send_to_char(ch, "*");
+                                send_to_char(ch, "\r\n");
+                            }
                             break;
                         case SCMD_NEWCRAFT_REFINE:
                             send_to_char(ch, "Refining %s. ", crafting_materials[GET_CRAFT(ch).refining_result[0]]);
@@ -4704,7 +4707,7 @@ void craft_update(void)
                                 GET_CRAFT(ch).crafting_method = 0;
                                 GET_CRAFT(ch).craft_duration = 0;
                             }
-                            else
+                            else if (GET_CRAFT(ch).craft_duration % 2 == 0)
                             {
                                 snprintf(buf, sizeof(buf), "%s", harvesting_messages[world[IN_ROOM(ch)].harvest_material]);
                                 CAP(buf);
