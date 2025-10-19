@@ -117,10 +117,10 @@ void init_talents(void) {
   /* Woodworking talents */
   talento(TALENT_PROFICIENT_WOODWORKING, "proficient woodworking", 1, 1000, 5,
           "+1 to skill checks for the woodworking skill",
-          "+1 to skill checks for the woodworking skill", TRUE, TALENT_CAT_WOODWORKING);
-  talento(TALENT_RAPID_WOODWORKING, "rapid woodworking", 1, 1000, 5,
-          "-1 second on woodworking skill task completion",
-          "-1 second on woodworking skill task completion", TRUE, TALENT_CAT_WOODWORKING);
+          "Each rank gives +1 to skill checks made with the woodworking skill.", TRUE, TALENT_CAT_WOODWORKING);
+  talento(TALENT_RAPID_WOODWORKING, "rapid woodworking", 1, 1000, 10,
+          "-2 seconds on woodworking skill task completion per rank",
+          "Reduces completion time for tasks performed with the woodworking skill by 2 seconds per rank.", TRUE, TALENT_CAT_WOODWORKING);
   talento(TALENT_WOODWORKING_EXPERTISE, "woodworking expertise", 2, 2500, 5,
           "+1% crit chance on woodworking skill tasks",
           "+1% crit chance on woodworking skill tasks", TRUE, TALENT_CAT_WOODWORKING);
@@ -134,10 +134,10 @@ void init_talents(void) {
   /* Tailoring talents */
   talento(TALENT_PROFICIENT_TAILORING, "proficient tailoring", 1, 1000, 5,
           "+1 to skill checks for the tailoring skill",
-          "+1 to skill checks for the tailoring skill", TRUE, TALENT_CAT_TAILORING);
-  talento(TALENT_RAPID_TAILORING, "rapid tailoring", 1, 1000, 5,
-          "-1 second on tailoring skill task completion",
-          "-1 second on tailoring skill task completion", TRUE, TALENT_CAT_TAILORING);
+          "Each rank gives +1 to skill checks made with the tailoring skill.", TRUE, TALENT_CAT_TAILORING);
+  talento(TALENT_RAPID_TAILORING, "rapid tailoring", 1, 1000, 10,
+          "-2 seconds on tailoring skill task completion per rank",
+          "Reduces completion time for tasks performed with the tailoring skill by 2 seconds per rank.", TRUE, TALENT_CAT_TAILORING);
   talento(TALENT_TAILORING_EXPERTISE, "tailoring expertise", 2, 2500, 5,
           "+1% crit chance on tailoring skill tasks",
           "+1% crit chance on tailoring skill tasks", TRUE, TALENT_CAT_TAILORING);
@@ -151,10 +151,10 @@ void init_talents(void) {
   /* Alchemy talents */
   talento(TALENT_PROFICIENT_ALCHEMY, "proficient alchemy", 1, 1000, 5,
           "+1 to skill checks for the alchemy skill",
-          "+1 to skill checks for the alchemy skill", TRUE, TALENT_CAT_ALCHEMY);
-  talento(TALENT_RAPID_ALCHEMY, "rapid alchemy", 1, 1000, 5,
-          "-1 second on alchemy skill task completion",
-          "-1 second on alchemy skill task completion", TRUE, TALENT_CAT_ALCHEMY);
+          "Each rank gives +1 to skill checks made with the alchemy skill.", TRUE, TALENT_CAT_ALCHEMY);
+  talento(TALENT_RAPID_ALCHEMY, "rapid alchemy", 1, 1000, 10,
+          "-2 seconds on alchemy skill task completion per rank",
+          "Reduces completion time for tasks performed with the alchemy skill by 2 seconds per rank.", TRUE, TALENT_CAT_ALCHEMY);
   talento(TALENT_ALCHEMY_EXPERTISE, "alchemy expertise", 2, 2500, 5,
           "+1% crit chance on alchemy skill tasks",
           "+1% crit chance on alchemy skill tasks", TRUE, TALENT_CAT_ALCHEMY);
@@ -168,10 +168,10 @@ void init_talents(void) {
   /* Armorsmithing talents */
   talento(TALENT_PROFICIENT_ARMORSMITHING, "proficient armorsmithing", 1, 1000, 5,
           "+1 to skill checks for the armorsmithing skill",
-          "+1 to skill checks for the armorsmithing skill", TRUE, TALENT_CAT_ARMORSMITHING);
-  talento(TALENT_RAPID_ARMORSMITHING, "rapid armorsmithing", 1, 1000, 5,
-          "-1 second on armorsmithing skill task completion",
-          "-1 second on armorsmithing skill task completion", TRUE, TALENT_CAT_ARMORSMITHING);
+          "Each rank gives +1 to skill checks made with the armorsmithing skill.", TRUE, TALENT_CAT_ARMORSMITHING);
+  talento(TALENT_RAPID_ARMORSMITHING, "rapid armorsmithing", 1, 1000, 10,
+          "-2 seconds on armorsmithing skill task completion per rank",
+          "Reduces completion time for tasks performed with the armorsmithing skill by 2 seconds per rank.", TRUE, TALENT_CAT_ARMORSMITHING);
   talento(TALENT_ARMORSMITHING_EXPERTISE, "armorsmithing expertise", 2, 2500, 5,
           "+1% crit chance on armorsmithing skill tasks",
           "+1% crit chance on armorsmithing skill tasks", TRUE, TALENT_CAT_ARMORSMITHING);
@@ -185,10 +185,10 @@ void init_talents(void) {
   /* Weaponsmithing talents */
   talento(TALENT_PROFICIENT_WEAPONSMITHING, "proficient weaponsmithing", 1, 1000, 5,
           "+1 to skill checks for the weaponsmithing skill",
-          "+1 to skill checks for the weaponsmithing skill", TRUE, TALENT_CAT_WEAPONSMITHING);
-  talento(TALENT_RAPID_WEAPONSMITHING, "rapid weaponsmithing", 1, 1000, 5,
-          "-1 second on weaponsmithing skill task completion",
-          "-1 second on weaponsmithing skill task completion", TRUE, TALENT_CAT_WEAPONSMITHING);
+          "Each rank gives +1 to skill checks made with the weaponsmithing skill.", TRUE, TALENT_CAT_WEAPONSMITHING);
+  talento(TALENT_RAPID_WEAPONSMITHING, "rapid weaponsmithing", 1, 1000, 10,
+          "-2 seconds on weaponsmithing skill task completion per rank",
+          "Reduces completion time for tasks performed with the weaponsmithing skill by 2 seconds per rank.", TRUE, TALENT_CAT_WEAPONSMITHING);
   talento(TALENT_WEAPONSMITHING_EXPERTISE, "weaponsmithing expertise", 2, 2500, 5,
           "+1% crit chance on weaponsmithing skill tasks",
           "+1% crit chance on weaponsmithing skill tasks", TRUE, TALENT_CAT_WEAPONSMITHING);
@@ -202,10 +202,10 @@ void init_talents(void) {
   /* Bowmaking talents */
   talento(TALENT_PROFICIENT_BOWMAKING, "proficient bowmaking", 1, 1000, 5,
           "+1 to skill checks for the bowmaking skill",
-          "+1 to skill checks for the bowmaking skill", FALSE, TALENT_CAT_BOWMAKING);
-  talento(TALENT_RAPID_BOWMAKING, "rapid bowmaking", 1, 1000, 5,
-          "-1 second on bowmaking skill task completion",
-          "-1 second on bowmaking skill task completion", FALSE, TALENT_CAT_BOWMAKING);
+          "Each rank gives +1 to skill checks made with the bowmaking skill.", FALSE, TALENT_CAT_BOWMAKING);
+  talento(TALENT_RAPID_BOWMAKING, "rapid bowmaking", 1, 1000, 10,
+          "-2 seconds on bowmaking skill task completion per rank",
+          "Reduces completion time for tasks performed with the bowmaking skill by 2 seconds per rank.", FALSE, TALENT_CAT_BOWMAKING);
   talento(TALENT_BOWMAKING_EXPERTISE, "bowmaking expertise", 2, 2500, 5,
           "+1% crit chance on bowmaking skill tasks",
           "+1% crit chance on bowmaking skill tasks", FALSE, TALENT_CAT_BOWMAKING);
@@ -219,10 +219,10 @@ void init_talents(void) {
   /* Jewelcrafting talents */
   talento(TALENT_PROFICIENT_JEWELCRAFTING, "proficient jewelcrafting", 1, 1000, 5,
           "+1 to skill checks for the jewelcrafting skill",
-          "+1 to skill checks for the jewelcrafting skill", TRUE, TALENT_CAT_JEWELCRAFTING);
-  talento(TALENT_RAPID_JEWELCRAFTING, "rapid jewelcrafting", 1, 1000, 5,
-          "-1 second on jewelcrafting skill task completion",
-          "-1 second on jewelcrafting skill task completion", TRUE, TALENT_CAT_JEWELCRAFTING);
+          "Each rank gives +1 to skill checks made with the jewelcrafting skill.", TRUE, TALENT_CAT_JEWELCRAFTING);
+  talento(TALENT_RAPID_JEWELCRAFTING, "rapid jewelcrafting", 1, 1000, 10,
+          "-2 seconds on jewelcrafting skill task completion per rank",
+          "Reduces completion time for tasks performed with the jewelcrafting skill by 2 seconds per rank.", TRUE, TALENT_CAT_JEWELCRAFTING);
   talento(TALENT_JEWELCRAFTING_EXPERTISE, "jewelcrafting expertise", 2, 2500, 5,
           "+1% crit chance on jewelcrafting skill tasks",
           "+1% crit chance on jewelcrafting skill tasks", TRUE, TALENT_CAT_JEWELCRAFTING);
@@ -236,10 +236,10 @@ void init_talents(void) {
   /* Leatherworking talents */
   talento(TALENT_PROFICIENT_LEATHERWORKING, "proficient leatherworking", 1, 1000, 5,
           "+1 to skill checks for the leatherworking skill",
-          "+1 to skill checks for the leatherworking skill", TRUE, TALENT_CAT_LEATHERWORKING);
-  talento(TALENT_RAPID_LEATHERWORKING, "rapid leatherworking", 1, 1000, 5,
-          "-1 second on leatherworking skill task completion",
-          "-1 second on leatherworking skill task completion", TRUE, TALENT_CAT_LEATHERWORKING);
+          "Each rank gives +1 to skill checks made with the leatherworking skill.", TRUE, TALENT_CAT_LEATHERWORKING);
+  talento(TALENT_RAPID_LEATHERWORKING, "rapid leatherworking", 1, 1000, 10,
+          "-2 seconds on leatherworking skill task completion per rank",
+          "Reduces completion time for tasks performed with the leatherworking skill by 2 seconds per rank.", TRUE, TALENT_CAT_LEATHERWORKING);
   talento(TALENT_LEATHERWORKING_EXPERTISE, "leatherworking expertise", 2, 2500, 5,
           "+1% crit chance on leatherworking skill tasks",
           "+1% crit chance on leatherworking skill tasks", TRUE, TALENT_CAT_LEATHERWORKING);
@@ -253,10 +253,10 @@ void init_talents(void) {
   /* Trapmaking talents */
   talento(TALENT_PROFICIENT_TRAPMAKING, "proficient trapmaking", 1, 1000, 5,
           "+1 to skill checks for the trapmaking skill",
-          "+1 to skill checks for the trapmaking skill", FALSE, TALENT_CAT_TRAPMAKING);
-  talento(TALENT_RAPID_TRAPMAKING, "rapid trapmaking", 1, 1000, 5,
-          "-1 second on trapmaking skill task completion",
-          "-1 second on trapmaking skill task completion", FALSE, TALENT_CAT_TRAPMAKING);
+          "Each rank gives +1 to skill checks made with the trapmaking skill.", FALSE, TALENT_CAT_TRAPMAKING);
+  talento(TALENT_RAPID_TRAPMAKING, "rapid trapmaking", 1, 1000, 10,
+          "-2 seconds on trapmaking skill task completion per rank",
+          "Reduces completion time for tasks performed with the trapmaking skill by 2 seconds per rank.", FALSE, TALENT_CAT_TRAPMAKING);
   talento(TALENT_TRAPMAKING_EXPERTISE, "trapmaking expertise", 2, 2500, 5,
           "+1% crit chance on trapmaking skill tasks",
           "+1% crit chance on trapmaking skill tasks", FALSE, TALENT_CAT_TRAPMAKING);
@@ -270,10 +270,10 @@ void init_talents(void) {
   /* Poisonmaking talents */
   talento(TALENT_PROFICIENT_POISONMAKING, "proficient poisonmaking", 1, 1000, 5,
           "+1 to skill checks for the poisonmaking skill",
-          "+1 to skill checks for the poisonmaking skill", FALSE, TALENT_CAT_POISONMAKING);
-  talento(TALENT_RAPID_POISONMAKING, "rapid poisonmaking", 1, 1000, 5,
-          "-1 second on poisonmaking skill task completion",
-          "-1 second on poisonmaking skill task completion", FALSE, TALENT_CAT_POISONMAKING);
+          "Each rank gives +1 to skill checks made with the poisonmaking skill.", FALSE, TALENT_CAT_POISONMAKING);
+  talento(TALENT_RAPID_POISONMAKING, "rapid poisonmaking", 1, 1000, 10,
+          "-2 seconds on poisonmaking skill task completion per rank",
+          "Reduces completion time for tasks performed with the poisonmaking skill by 2 seconds per rank.", FALSE, TALENT_CAT_POISONMAKING);
   talento(TALENT_POISONMAKING_EXPERTISE, "poisonmaking expertise", 2, 2500, 5,
           "+1% crit chance on poisonmaking skill tasks",
           "+1% crit chance on poisonmaking skill tasks", FALSE, TALENT_CAT_POISONMAKING);
@@ -287,10 +287,10 @@ void init_talents(void) {
   /* Metalworking talents */
   talento(TALENT_PROFICIENT_METALWORKING, "proficient metalworking", 1, 1000, 5,
           "+1 to skill checks for the metalworking skill",
-          "+1 to skill checks for the metalworking skill", TRUE, TALENT_CAT_METALWORKING);
-  talento(TALENT_RAPID_METALWORKING, "rapid metalworking", 1, 1000, 5,
-          "-1 second on metalworking skill task completion",
-          "-1 second on metalworking skill task completion", TRUE, TALENT_CAT_METALWORKING);
+          "Each rank gives +1 to skill checks made with the metalworking skill.", TRUE, TALENT_CAT_METALWORKING);
+  talento(TALENT_RAPID_METALWORKING, "rapid metalworking", 1, 1000, 10,
+          "-2 seconds on metalworking skill task completion per rank",
+          "Reduces completion time for tasks performed with the metalworking skill by 2 seconds per rank.", TRUE, TALENT_CAT_METALWORKING);
   talento(TALENT_METALWORKING_EXPERTISE, "metalworking expertise", 2, 2500, 5,
           "+1% crit chance on metalworking skill tasks",
           "+1% crit chance on metalworking skill tasks", TRUE, TALENT_CAT_METALWORKING);
@@ -304,10 +304,10 @@ void init_talents(void) {
   /* Fishing talents */
   talento(TALENT_PROFICIENT_FISHING, "proficient fishing", 1, 1000, 5,
           "+1 to skill checks for the fishing skill",
-          "+1 to skill checks for the fishing skill", FALSE, TALENT_CAT_FISHING);
-  talento(TALENT_RAPID_FISHING, "rapid fishing", 1, 1000, 5,
-          "-1 second on fishing skill task completion",
-          "-1 second on fishing skill task completion", FALSE, TALENT_CAT_FISHING);
+          "Each rank gives +1 to skill checks made with the fishing skill.", FALSE, TALENT_CAT_FISHING);
+  talento(TALENT_RAPID_FISHING, "rapid fishing", 1, 1000, 10,
+          "-2 seconds on fishing skill task completion per rank",
+          "Reduces completion time for tasks performed with the fishing skill by 2 seconds per rank.", FALSE, TALENT_CAT_FISHING);
   talento(TALENT_FISHING_EXPERTISE, "fishing expertise", 2, 2500, 5,
           "+1% crit chance on fishing skill tasks",
           "+1% crit chance on fishing skill tasks", FALSE, TALENT_CAT_FISHING);
@@ -321,10 +321,10 @@ void init_talents(void) {
   /* Cooking talents */
   talento(TALENT_PROFICIENT_COOKING, "proficient cooking", 1, 1000, 5,
           "+1 to skill checks for the cooking skill",
-          "+1 to skill checks for the cooking skill", FALSE, TALENT_CAT_COOKING);
-  talento(TALENT_RAPID_COOKING, "rapid cooking", 1, 1000, 5,
-          "-1 second on cooking skill task completion",
-          "-1 second on cooking skill task completion", FALSE, TALENT_CAT_COOKING);
+          "Each rank gives +1 to skill checks made with the cooking skill.", FALSE, TALENT_CAT_COOKING);
+  talento(TALENT_RAPID_COOKING, "rapid cooking", 1, 1000, 10,
+          "-2 seconds on cooking skill task completion per rank",
+          "Reduces completion time for tasks performed with the cooking skill by 2 seconds per rank.", FALSE, TALENT_CAT_COOKING);
   talento(TALENT_COOKING_EXPERTISE, "cooking expertise", 2, 2500, 5,
           "+1% crit chance on cooking skill tasks",
           "+1% crit chance on cooking skill tasks", FALSE, TALENT_CAT_COOKING);
@@ -338,10 +338,10 @@ void init_talents(void) {
   /* Mining talents (harvesting) */
   talento(TALENT_PROFICIENT_MINING, "proficient mining", 1, 1000, 5,
           "+1 to skill checks for the mining skill",
-          "+1 to skill checks for the mining skill", TRUE, TALENT_CAT_MINING);
+          "Each rank gives +1 to skill checks made with the mining skill.", TRUE, TALENT_CAT_MINING);
   talento(TALENT_RAPID_MINING, "rapid mining", 1, 1000, 5,
-          "-1 second on mining skill task completion",
-          "-1 second on mining skill task completion", TRUE, TALENT_CAT_MINING);
+          "-1 second on mining skill task completion per rank",
+          "Reduces completion time for tasks performed with the mining skill by 1 second per rank.", TRUE, TALENT_CAT_MINING);
   talento(TALENT_MINING_EXPERTISE, "mining expertise", 2, 2500, 5,
           "+1% crit chance on mining skill tasks",
           "+1% crit chance on mining skill tasks", TRUE, TALENT_CAT_MINING);
@@ -355,10 +355,10 @@ void init_talents(void) {
   /* Hunting talents (harvesting) */
   talento(TALENT_PROFICIENT_HUNTING, "proficient hunting", 1, 1000, 5,
           "+1 to skill checks for the hunting skill",
-          "+1 to skill checks for the hunting skill", TRUE, TALENT_CAT_HUNTING);
+          "Each rank gives +1 to skill checks made with the hunting skill.", TRUE, TALENT_CAT_HUNTING);
   talento(TALENT_RAPID_HUNTING, "rapid hunting", 1, 1000, 5,
-          "-1 second on hunting skill task completion",
-          "-1 second on hunting skill task completion", TRUE, TALENT_CAT_HUNTING);
+          "-1 second on hunting skill task completion per rank",
+          "Reduces completion time for tasks performed with the hunting skill by 1 second per rank.", TRUE, TALENT_CAT_HUNTING);
   talento(TALENT_HUNTING_EXPERTISE, "hunting expertise", 2, 2500, 5,
           "+1% crit chance on hunting skill tasks",
           "+1% crit chance on hunting skill tasks", TRUE, TALENT_CAT_HUNTING);
@@ -372,10 +372,10 @@ void init_talents(void) {
   /* Forestry talents (harvesting) */
   talento(TALENT_PROFICIENT_FORESTRY, "proficient forestry", 1, 1000, 5,
           "+1 to skill checks for the forestry skill",
-          "+1 to skill checks for the forestry skill", TRUE, TALENT_CAT_FORESTRY);
+          "Each rank gives +1 to skill checks made with the forestry skill.", TRUE, TALENT_CAT_FORESTRY);
   talento(TALENT_RAPID_FORESTRY, "rapid forestry", 1, 1000, 5,
-          "-1 second on forestry skill task completion",
-          "-1 second on forestry skill task completion", TRUE, TALENT_CAT_FORESTRY);
+          "-1 second on forestry skill task completion per rank",
+          "Reduces completion time for tasks performed with the forestry skill by 1 second per rank.", TRUE, TALENT_CAT_FORESTRY);
   talento(TALENT_FORESTRY_EXPERTISE, "forestry expertise", 2, 2500, 5,
           "+1% crit chance on forestry skill tasks",
           "+1% crit chance on forestry skill tasks", TRUE, TALENT_CAT_FORESTRY);
@@ -389,10 +389,10 @@ void init_talents(void) {
   /* Gathering talents (harvesting) */
   talento(TALENT_PROFICIENT_GATHERING, "proficient gathering", 1, 1000, 5,
           "+1 to skill checks for the gathering skill",
-          "+1 to skill checks for the gathering skill", TRUE, TALENT_CAT_GATHERING);
+          "Each rank gives +1 to skill checks made with the gathering skill.", TRUE, TALENT_CAT_GATHERING);
   talento(TALENT_RAPID_GATHERING, "rapid gathering", 1, 1000, 5,
-          "-1 second on gathering skill task completion",
-          "-1 second on gathering skill task completion", TRUE, TALENT_CAT_GATHERING);
+          "-1 second on gathering skill task completion per rank",
+          "Reduces completion time for tasks performed with the gathering skill by 1 second per rank.", TRUE, TALENT_CAT_GATHERING);
   talento(TALENT_GATHERING_EXPERTISE, "gathering expertise", 2, 2500, 5,
           "+1% crit chance on gathering skill tasks",
           "+1% crit chance on gathering skill tasks", TRUE, TALENT_CAT_GATHERING);
