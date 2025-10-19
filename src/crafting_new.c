@@ -2731,6 +2731,41 @@ int material_to_craft_skill(int item_type, int material)
     return ABILITY_CRAFT_METALWORKING;
 }
 
+/* Get the proficient talent bonus for a given crafting/harvesting skill */
+int get_proficient_talent_bonus(struct char_data *ch, int skill)
+{
+    int talent = TALENT_NONE;
+    
+    /* Map skill to corresponding proficient talent */
+    switch (skill)
+    {
+        case ABILITY_CRAFT_WOODWORKING: talent = TALENT_PROFICIENT_WOODWORKING; break;
+        case ABILITY_CRAFT_TAILORING: talent = TALENT_PROFICIENT_TAILORING; break;
+        case ABILITY_CRAFT_ALCHEMY: talent = TALENT_PROFICIENT_ALCHEMY; break;
+        case ABILITY_CRAFT_ARMORSMITHING: talent = TALENT_PROFICIENT_ARMORSMITHING; break;
+        case ABILITY_CRAFT_WEAPONSMITHING: talent = TALENT_PROFICIENT_WEAPONSMITHING; break;
+        case ABILITY_CRAFT_BOWMAKING: talent = TALENT_PROFICIENT_BOWMAKING; break;
+        case ABILITY_CRAFT_JEWELCRAFTING: talent = TALENT_PROFICIENT_JEWELCRAFTING; break;
+        case ABILITY_CRAFT_LEATHERWORKING: talent = TALENT_PROFICIENT_LEATHERWORKING; break;
+        case ABILITY_CRAFT_TRAPMAKING: talent = TALENT_PROFICIENT_TRAPMAKING; break;
+        case ABILITY_CRAFT_POISONMAKING: talent = TALENT_PROFICIENT_POISONMAKING; break;
+        case ABILITY_CRAFT_METALWORKING: talent = TALENT_PROFICIENT_METALWORKING; break;
+        case ABILITY_CRAFT_FISHING: talent = TALENT_PROFICIENT_FISHING; break;
+        case ABILITY_CRAFT_COOKING: talent = TALENT_PROFICIENT_COOKING; break;
+        case ABILITY_HARVEST_MINING: talent = TALENT_PROFICIENT_MINING; break;
+        case ABILITY_HARVEST_HUNTING: talent = TALENT_PROFICIENT_HUNTING; break;
+        case ABILITY_HARVEST_FORESTRY: talent = TALENT_PROFICIENT_FORESTRY; break;
+        case ABILITY_HARVEST_GATHERING: talent = TALENT_PROFICIENT_GATHERING; break;
+        default: return 0;
+    }
+    
+    if (talent == TALENT_NONE)
+        return 0;
+    
+    /* Each rank gives +1 bonus */
+    return get_talent_rank(ch, talent);
+}
+
 bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill, char *method, int exp, int dc)
 {
     if (!ch || !obj) return FALSE;
@@ -2738,6 +2773,9 @@ bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int sk
 
     roll = d20(ch);
     skill_mod = get_craft_skill_value(ch, skill);
+    
+    /* Add proficient talent bonus */
+    skill_mod += get_proficient_talent_bonus(ch, skill);
     
     /* Add +5 bonus for Craft Wondrous Item feat when crafting misc items */
     if (HAS_FEAT(ch, FEAT_CRAFT_WONDEROUS_ITEM) && GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_MISC) {
@@ -3655,12 +3693,12 @@ const int craft_skills_alphabetic[END_HARVEST_ABILITIES-START_CRAFT_ABILITIES+1]
 
 void show_craft_score(struct char_data *ch, const char *arg2)
 {
-    int i = 0, abil = 0;
+    int i = 0, abil = 0, base_rank = 0, modifier = 0, total = 0;
 
     send_to_char(ch, "\r\n");
 
 
-    send_to_char(ch, "\tC%-25s %-10s %-4s %-6s %-6s\tn\r\n", "SKILL", "TYPE", "RANK", "EXP", "TNL");
+    send_to_char(ch, "\tC%-25s %-10s %-4s %-4s %-5s %-6s %-6s\tn\r\n", "SKILL", "TYPE", "BASE", "MODS", "TOTAL", "EXP", "TNL");
     send_to_char(ch, "\tc");
     draw_line(ch, 90, '-', '-');
     send_to_char(ch, "\tn");
@@ -3669,9 +3707,12 @@ void show_craft_score(struct char_data *ch, const char *arg2)
     {
         abil = craft_skills_alphabetic[i-START_CRAFT_ABILITIES];
         if (crafting_skill_type(abil) != CRAFT_SKILL_TYPE_CRAFT) continue;
-        send_to_char(ch, "%-25s %-10s %-4d %-6d %-6d\r\n",
-                    ability_names[abil], crafting_skill_type(abil) == CRAFT_SKILL_TYPE_CRAFT ? "Craft" : "Harvest", get_craft_skill_value(ch, abil),
-                    GET_CRAFT_SKILL_EXP(ch, abil), craft_skill_level_exp(ch, get_craft_skill_value(ch, abil)+1));
+        base_rank = GET_ABILITY(ch, abil);
+        modifier = get_proficient_talent_bonus(ch, abil);
+        total = base_rank + modifier;
+        send_to_char(ch, "%-25s %-10s %-4d %-4d %-5d %-6d %-6d\r\n",
+                    ability_names[abil], "Craft", base_rank, modifier, total,
+                    GET_CRAFT_SKILL_EXP(ch, abil), craft_skill_level_exp(ch, base_rank+1));
     }
 
     send_to_char(ch, "\tc");
@@ -3682,9 +3723,12 @@ void show_craft_score(struct char_data *ch, const char *arg2)
     {
         abil = craft_skills_alphabetic[i-START_CRAFT_ABILITIES];
         if (crafting_skill_type(abil) != CRAFT_SKILL_TYPE_HARVEST) continue;
-        send_to_char(ch, "%-25s %-10s %-4d %-6d %-6d\r\n",
-                    ability_names[abil], crafting_skill_type(abil) == CRAFT_SKILL_TYPE_CRAFT ? "Craft" : "Harvest", get_craft_skill_value(ch, abil),
-                    GET_CRAFT_SKILL_EXP(ch, abil), craft_skill_level_exp(ch, get_craft_skill_value(ch, abil)+1));
+        base_rank = GET_ABILITY(ch, abil);
+        modifier = get_proficient_talent_bonus(ch, abil);
+        total = base_rank + modifier;
+        send_to_char(ch, "%-25s %-10s %-4d %-4d %-5d %-6d %-6d\r\n",
+                    ability_names[abil], "Harvest", base_rank, modifier, total,
+                    GET_CRAFT_SKILL_EXP(ch, abil), craft_skill_level_exp(ch, base_rank+1));
     }
     send_to_char(ch, "\tc");
     draw_line(ch, 90, '-', '-');
@@ -3915,6 +3959,10 @@ void craft_refine_complete(struct char_data *ch)
     dc = GET_CRAFT(ch).dc;
     skill_type = GET_CRAFT(ch).skill_type;
     skill = get_craft_skill_value(ch, skill_type);
+    
+    /* Add proficient talent bonus */
+    skill += get_proficient_talent_bonus(ch, skill_type);
+    
     num = GET_CRAFT(ch).refining_result[1];
 
     if ((20 + skill) < dc)
@@ -3973,6 +4021,10 @@ void harvest_complete(struct char_data *ch)
 
     roll = d20(ch);
     skill_roll = get_craft_skill_value(ch, skill);
+    
+    /* Add proficient talent bonus */
+    skill_roll += get_proficient_talent_bonus(ch, skill);
+    
     harvest_level = MAX(1, material_grade(world[IN_ROOM(ch)].harvest_material) * 5);
     dc = HARVEST_BASE_DC + (harvest_level);
 
