@@ -4507,6 +4507,9 @@ struct crafting_data_info
     int instrument_breakability;
     int instrument_motes[4];
     
+    // efficient talent saved materials [material_type][amount]
+    int efficient_saved_materials[NUM_CRAFT_GROUPS][2];
+    
 };
 
 /** The Object structure. */
