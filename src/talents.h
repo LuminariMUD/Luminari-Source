@@ -129,7 +129,17 @@ struct char_data;
 #define TALENT_EFFICIENT_GATHERING 85
 #define TALENT_INSIGHTFUL_GATHERING 86
 
-#define TALENT_MAX                87  /* one past highest */
+/* Mote Synergy Talents (General Category) */
+#define TALENT_AIR_MOTE_SYNERGY 87
+#define TALENT_DARK_MOTE_SYNERGY 88
+#define TALENT_EARTH_MOTE_SYNERGY 89
+#define TALENT_FIRE_MOTE_SYNERGY 90
+#define TALENT_ICE_MOTE_SYNERGY 91
+#define TALENT_LIGHT_MOTE_SYNERGY 92
+#define TALENT_LIGHTNING_MOTE_SYNERGY 93
+#define TALENT_WATER_MOTE_SYNERGY 94
+
+#define TALENT_MAX                95  /* one past highest */
 
 /* Talent Categories */
 #define TALENT_CAT_GENERAL        0

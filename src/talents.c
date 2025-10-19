@@ -113,6 +113,32 @@ void init_talents(void) {
           "This talent grants access to the scavenger command.",
           "This talent grants access to the scavenger command.", TRUE, TALENT_CAT_GENERAL);
   
+  /* Mote Synergy Talents */
+  talento(TALENT_AIR_MOTE_SYNERGY, "air mote synergy", 2, 5000, 5,
+          "10% chance per rank for extra air mote when harvesting",
+          "Each rank gives a 10% chance to gain an extra air mote whenever you would gain an air mote from harvesting.", TRUE, TALENT_CAT_GENERAL);
+  talento(TALENT_DARK_MOTE_SYNERGY, "dark mote synergy", 2, 5000, 5,
+          "10% chance per rank for extra dark mote when harvesting",
+          "Each rank gives a 10% chance to gain an extra dark mote whenever you would gain a dark mote from harvesting.", TRUE, TALENT_CAT_GENERAL);
+  talento(TALENT_EARTH_MOTE_SYNERGY, "earth mote synergy", 2, 5000, 5,
+          "10% chance per rank for extra earth mote when harvesting",
+          "Each rank gives a 10% chance to gain an extra earth mote whenever you would gain an earth mote from harvesting.", TRUE, TALENT_CAT_GENERAL);
+  talento(TALENT_FIRE_MOTE_SYNERGY, "fire mote synergy", 2, 5000, 5,
+          "10% chance per rank for extra fire mote when harvesting",
+          "Each rank gives a 10% chance to gain an extra fire mote whenever you would gain a fire mote from harvesting.", TRUE, TALENT_CAT_GENERAL);
+  talento(TALENT_ICE_MOTE_SYNERGY, "ice mote synergy", 2, 5000, 5,
+          "10% chance per rank for extra ice mote when harvesting",
+          "Each rank gives a 10% chance to gain an extra ice mote whenever you would gain an ice mote from harvesting.", TRUE, TALENT_CAT_GENERAL);
+  talento(TALENT_LIGHT_MOTE_SYNERGY, "light mote synergy", 2, 5000, 5,
+          "10% chance per rank for extra light mote when harvesting",
+          "Each rank gives a 10% chance to gain an extra light mote whenever you would gain a light mote from harvesting.", TRUE, TALENT_CAT_GENERAL);
+  talento(TALENT_LIGHTNING_MOTE_SYNERGY, "lightning mote synergy", 2, 5000, 5,
+          "10% chance per rank for extra lightning mote when harvesting",
+          "Each rank gives a 10% chance to gain an extra lightning mote whenever you would gain a lightning mote from harvesting.", TRUE, TALENT_CAT_GENERAL);
+  talento(TALENT_WATER_MOTE_SYNERGY, "water mote synergy", 2, 5000, 5,
+          "10% chance per rank for extra water mote when harvesting",
+          "Each rank gives a 10% chance to gain an extra water mote whenever you would gain a water mote from harvesting.", TRUE, TALENT_CAT_GENERAL);
+  
   /* Skill-specific talents generated from CSV */
   /* Woodworking talents */
   talento(TALENT_PROFICIENT_WOODWORKING, "proficient woodworking", 1, 1000, 5,
