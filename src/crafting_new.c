@@ -44,6 +44,8 @@ ACMD_DECL(do_practice);
 
 int copy_object(struct obj_data *to, struct obj_data *from);
 void process_craft_critical_success(struct char_data *ch, struct obj_data *obj);
+int get_rapid_talent_bonus(struct char_data *ch, int skill);
+int get_insightful_talent_bonus(struct char_data *ch, int skill);
 
 int materials_sort_info[NUM_CRAFT_MATS];
 
@@ -2639,6 +2641,12 @@ void begin_current_craft(struct char_data *ch)
     }
 
     int seconds = CREATE_BASE_TIME;
+    int rapid_reduction = get_rapid_talent_bonus(ch, skill);
+    
+    /* Apply rapid talent reduction, but don't go below 1 second */
+    seconds -= rapid_reduction;
+    if (seconds < 1)
+        seconds = 1;
 
     GET_CRAFT(ch).craft_duration = seconds;
     GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_CREATE;
@@ -2764,6 +2772,77 @@ int get_proficient_talent_bonus(struct char_data *ch, int skill)
     
     /* Each rank gives +1 bonus */
     return get_talent_rank(ch, talent);
+}
+
+/* Get the rapid talent time reduction for a given crafting/harvesting skill */
+int get_rapid_talent_bonus(struct char_data *ch, int skill)
+{
+    int talent = TALENT_NONE;
+    int seconds_per_rank = 0;
+    
+    /* Map skill to corresponding rapid talent */
+    switch (skill)
+    {
+        case ABILITY_CRAFT_WOODWORKING: talent = TALENT_RAPID_WOODWORKING; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_TAILORING: talent = TALENT_RAPID_TAILORING; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_ALCHEMY: talent = TALENT_RAPID_ALCHEMY; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_ARMORSMITHING: talent = TALENT_RAPID_ARMORSMITHING; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_WEAPONSMITHING: talent = TALENT_RAPID_WEAPONSMITHING; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_BOWMAKING: talent = TALENT_RAPID_BOWMAKING; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_JEWELCRAFTING: talent = TALENT_RAPID_JEWELCRAFTING; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_LEATHERWORKING: talent = TALENT_RAPID_LEATHERWORKING; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_TRAPMAKING: talent = TALENT_RAPID_TRAPMAKING; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_POISONMAKING: talent = TALENT_RAPID_POISONMAKING; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_METALWORKING: talent = TALENT_RAPID_METALWORKING; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_FISHING: talent = TALENT_RAPID_FISHING; seconds_per_rank = 2; break;
+        case ABILITY_CRAFT_COOKING: talent = TALENT_RAPID_COOKING; seconds_per_rank = 2; break;
+        case ABILITY_HARVEST_MINING: talent = TALENT_RAPID_MINING; seconds_per_rank = 1; break;
+        case ABILITY_HARVEST_HUNTING: talent = TALENT_RAPID_HUNTING; seconds_per_rank = 1; break;
+        case ABILITY_HARVEST_FORESTRY: talent = TALENT_RAPID_FORESTRY; seconds_per_rank = 1; break;
+        case ABILITY_HARVEST_GATHERING: talent = TALENT_RAPID_GATHERING; seconds_per_rank = 1; break;
+        default: return 0;
+    }
+    
+    if (talent == TALENT_NONE)
+        return 0;
+    
+    /* Each rank reduces time by seconds_per_rank (2 for crafting, 1 for harvesting) */
+    return get_talent_rank(ch, talent) * seconds_per_rank;
+}
+
+/* Get the insightful talent experience bonus percentage for a given crafting/harvesting skill */
+int get_insightful_talent_bonus(struct char_data *ch, int skill)
+{
+    int talent = TALENT_NONE;
+    
+    /* Map skill to corresponding insightful talent */
+    switch (skill)
+    {
+        case ABILITY_CRAFT_WOODWORKING: talent = TALENT_INSIGHTFUL_WOODWORKING; break;
+        case ABILITY_CRAFT_TAILORING: talent = TALENT_INSIGHTFUL_TAILORING; break;
+        case ABILITY_CRAFT_ALCHEMY: talent = TALENT_INSIGHTFUL_ALCHEMY; break;
+        case ABILITY_CRAFT_ARMORSMITHING: talent = TALENT_INSIGHTFUL_ARMORSMITHING; break;
+        case ABILITY_CRAFT_WEAPONSMITHING: talent = TALENT_INSIGHTFUL_WEAPONSMITHING; break;
+        case ABILITY_CRAFT_BOWMAKING: talent = TALENT_INSIGHTFUL_BOWMAKING; break;
+        case ABILITY_CRAFT_JEWELCRAFTING: talent = TALENT_INSIGHTFUL_JEWELCRAFTING; break;
+        case ABILITY_CRAFT_LEATHERWORKING: talent = TALENT_INSIGHTFUL_LEATHERWORKING; break;
+        case ABILITY_CRAFT_TRAPMAKING: talent = TALENT_INSIGHTFUL_TRAPMAKING; break;
+        case ABILITY_CRAFT_POISONMAKING: talent = TALENT_INSIGHTFUL_POISONMAKING; break;
+        case ABILITY_CRAFT_METALWORKING: talent = TALENT_INSIGHTFUL_METALWORKING; break;
+        case ABILITY_CRAFT_FISHING: talent = TALENT_INSIGHTFUL_FISHING; break;
+        case ABILITY_CRAFT_COOKING: talent = TALENT_INSIGHTFUL_COOKING; break;
+        case ABILITY_HARVEST_MINING: talent = TALENT_INSIGHTFUL_MINING; break;
+        case ABILITY_HARVEST_HUNTING: talent = TALENT_INSIGHTFUL_HUNTING; break;
+        case ABILITY_HARVEST_FORESTRY: talent = TALENT_INSIGHTFUL_FORESTRY; break;
+        case ABILITY_HARVEST_GATHERING: talent = TALENT_INSIGHTFUL_GATHERING; break;
+        default: return 0;
+    }
+    
+    if (talent == TALENT_NONE)
+        return 0;
+    
+    /* Each rank gives 5% bonus experience */
+    return get_talent_rank(ch, talent) * 5;
 }
 
 bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill, char *method, int exp, int dc)
@@ -4144,6 +4223,8 @@ void harvest_complete(struct char_data *ch)
 void newcraft_harvest(struct char_data *ch, const char *argument)
 {
     int seconds = 0;
+    int harvest_skill = 0;
+    int rapid_reduction = 0;
 
     if (GET_CRAFT(ch).craft_duration > 0)
     {
@@ -4169,10 +4250,24 @@ void newcraft_harvest(struct char_data *ch, const char *argument)
         return;
     }
 
+    /* Get the harvesting skill for this material type */
+    harvest_skill = harvesting_skill_by_material(world[IN_ROOM(ch)].harvest_material);
+    
     if (GET_LEVEL(ch) >= LVL_IMMORT)
         seconds = 1;
     else
+    {
         seconds = HARVEST_BASE_TIME;
+        
+        /* Apply rapid talent reduction if we have a valid skill */
+        if (harvest_skill > 0)
+        {
+            rapid_reduction = get_rapid_talent_bonus(ch, harvest_skill);
+            seconds -= rapid_reduction;
+            if (seconds < 1)
+                seconds = 1;
+        }
+    }
 
     GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_HARVEST;
     GET_CRAFT(ch).craft_duration = seconds;
@@ -4258,6 +4353,10 @@ bool has_proper_harvesting_tool_equipped(struct char_data *ch)
 
 void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose)
 {
+    int bonus_percentage = 0;
+    int bonus_exp = 0;
+    int total_exp = exp;
+    
     // Validate ability/skill type to prevent array out-of-bounds crashes
     if (abil < 0 || abil >= NUM_ABILITIES) {
         if (verbose) {
@@ -4266,9 +4365,27 @@ void gain_craft_exp(struct char_data *ch, int exp, int abil, bool verbose)
         return;
     }
     
-    GET_CRAFT_SKILL_EXP(ch, abil) += exp;
+    /* Check for insightful talent bonus */
+    bonus_percentage = get_insightful_talent_bonus(ch, abil);
+    if (bonus_percentage > 0)
+    {
+        bonus_exp = (exp * bonus_percentage) / 100;
+        total_exp = exp + bonus_exp;
+    }
+    
+    GET_CRAFT_SKILL_EXP(ch, abil) += total_exp;
     if (verbose)
-        send_to_char(ch, "You've gained %d experience points in the '%s' skill.\r\n", exp, ability_names[abil]);
+    {
+        if (bonus_exp > 0)
+        {
+            send_to_char(ch, "You've gained %d experience points in the '%s' skill (+%d bonus from insightful talent).\r\n", 
+                        total_exp, ability_names[abil], bonus_exp);
+        }
+        else
+        {
+            send_to_char(ch, "You've gained %d experience points in the '%s' skill.\r\n", total_exp, ability_names[abil]);
+        }
+    }
     if (GET_CRAFT_SKILL_EXP(ch, abil) >= craft_skill_level_exp(ch, get_craft_skill_value(ch, abil)+1))
     {
     send_to_char(ch, "\tYYour skill in '%s' has increased from %d to %d!\r\n\tn", ability_names[abil], get_craft_skill_value(ch, abil), get_craft_skill_value(ch, abil)+1);
