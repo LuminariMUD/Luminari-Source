@@ -5093,6 +5093,7 @@ struct player_invention {
     int reliability;
     int uses;                 /* Number of times this device has been used */
     time_t cooldown_expires;  /* Individual device cooldown timestamp */
+    int dc_penalty;           /* +2 DC penalty per failed out-of-charges attempt */
 };
 
 struct player_special_data_saved
