@@ -34,6 +34,7 @@
 #include "evolutions.h"
 #include "mudlim.h"
 #include "metamagic_science.h"
+#include "mob_spellslots.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -787,6 +788,13 @@ SAVING_WILL here...  */
       cvict = caster;
       caster = tmp;
     }
+  }
+
+  /* Consume spell slot for NPCs (unless they have unlimited slots) */
+  if (IS_NPC(caster) && !MOB_FLAGGED(caster, MOB_UNLIMITED_SPELL_SLOTS) && 
+      casttype == CAST_SPELL)
+  {
+    consume_spell_slot(caster, spellnum);
   }
 
   /* now we actually process the spell based on the appropate routine */
@@ -6267,6 +6275,12 @@ void handle_npc_cast(struct char_data *ch, char *argument, int subcmd)
 
 bool npc_can_cast(struct char_data *ch, int spellnum)
 {
+  /* Check spell slot availability for mobs (unless they have unlimited slots) */
+  if (IS_NPC(ch) && !MOB_FLAGGED(ch, MOB_UNLIMITED_SPELL_SLOTS))
+  {
+    if (!has_spell_slot(ch, spellnum))
+      return false;
+  }
 
   if (spellnum > PSIONIC_POWER_START && spellnum < PSIONIC_POWER_END)
   {

@@ -31,6 +31,7 @@
 #include "evolutions.h"
 #include "psionics.h"
 #include "mob_act.h"
+#include "mob_spellslots.h"
 
 /* External function prototypes */
 void npc_offensive_spells(struct char_data *ch);
@@ -102,6 +103,9 @@ void mobile_activity(void)
     /* can't do any of the following if not at least AWAKE() and not casting */
     if (!AWAKE(ch) || IS_CASTING(ch))
       continue;
+
+    /* Regenerate spell slots for mobs using spell slot system */
+    regenerate_mob_spell_slot(ch);
 
     /* If the mob has no specproc, do the default actions */
 
