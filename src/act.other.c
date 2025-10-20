@@ -10573,7 +10573,7 @@ ACMDU(do_invent)
     int reliability_bonus = inv->reliability;
     if (times_used >= max_uses) {
       /* Device is over its normal use limit - requires Use Magic Device skill check */
-      int dc = 20 + (times_used - max_uses) * device_spell_count - reliability_bonus;
+      int dc = 20 + (times_used - max_uses) * device_spell_count - reliability_bonus + inv->dc_penalty;
       if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
         dc -= 2;  /* Gnomish Tinkering: -2 Use Magic Device DC */
       
@@ -10587,7 +10587,10 @@ ACMDU(do_invent)
       
       if (total < dc) {
         /* UMD check failed - device doesn't work and has a chance to break */
+        /* Increase DC penalty by 2 for each failed attempt */
+        inv->dc_penalty += 2;
         send_to_char(ch, "The invention fails to activate and you struggle to make it work.\r\n");
+        send_to_char(ch, "The device is becoming increasingly unstable! (DC penalty: +%d)\r\n", inv->dc_penalty);
         act("$n's invention sparks and sputters but doesn't activate.", TRUE, ch, 0, 0, TO_ROOM);
         
         /* Chance for device to break on failed UMD check */
@@ -10651,9 +10654,17 @@ ACMDU(do_invent)
         return; /* Device didn't break, just failed to activate */
       }
       if (total < dc + 5) {
+        /* Increase DC penalty by 2 even on successful attempts when out of charges */
+        inv->dc_penalty += 2;
         send_to_char(ch, "The invention malfunctions and fails to activate.\r\n");
+        send_to_char(ch, "The device is becoming increasingly unstable! (DC penalty: +%d)\r\n", inv->dc_penalty);
         act("$n's invention emits smoke but doesn't work.", TRUE, ch, 0, 0, TO_ROOM);
         return;
+      }
+      /* Success! But still increase DC penalty since device is out of charges */
+      inv->dc_penalty += 2;
+      if (inv->dc_penalty > 2) {
+        send_to_char(ch, "You manage to coax the depleted device to work, but it's getting harder... (DC penalty: +%d)\r\n", inv->dc_penalty);
       }
     }
     
@@ -10677,6 +10688,9 @@ ACMDU(do_invent)
       }
     }
     
+    /* Consume a standard action for using the device */
+    USE_STANDARD_ACTION(ch);
+    
     /* Set individual device cooldown when device is first used */
     if (inv->uses == 0) {
       /* 30 minute cooldown for this specific device */
@@ -10699,8 +10713,8 @@ ACMDU(do_invent)
     if (ch->player_specials->saved.num_inventions > 0) {
       /* Column headers */
       send_to_char(ch, "\r\n");
-      send_to_char(ch, "Num  Device Name                         Spells                                             Uses     Status\r\n");
-      send_to_char(ch, "---  ----------------------------------  --------------------------------------------------  -------  ------\r\n");
+      send_to_char(ch, "Num  Device Name                         Spells                                             Uses     DC Penalty  Status\r\n");
+      send_to_char(ch, "---  ----------------------------------  --------------------------------------------------  -------  ----------  ------\r\n");
       
       for (i = 0; i < ch->player_specials->saved.num_inventions; i++) {
         struct player_invention *inv = &ch->player_specials->saved.inventions[i];
@@ -10749,12 +10763,13 @@ ACMDU(do_invent)
         }
         
         /* Format the row */
-        send_to_char(ch, "%-3d  %-34.34s  %-50.50s  %d/%-5d  %s\r\n", 
+        send_to_char(ch, "%-3d  %-34.34s  %-50.50s  %d/%-5d  +%-9d  %s\r\n", 
                      i+1, 
                      inv->short_description,
                      spell_list,
                      uses_remaining,
                      max_uses,
+                     inv->dc_penalty,
                      status);
       }
       send_to_char(ch, "\r\n");
@@ -10821,12 +10836,19 @@ ACMDU(do_invent)
     if (inv->uses >= max_uses) {
       int device_spell_count = inv->num_spells;
       int reliability_bonus = inv->reliability;
-      int dc = 20 + (inv->uses - max_uses) * device_spell_count - reliability_bonus;
+      int dc = 20 + (inv->uses - max_uses) * device_spell_count - reliability_bonus + inv->dc_penalty;
       if (HAS_FEAT(ch, FEAT_GNOMISH_TINKERING))
         dc -= 2;  /* Gnomish Tinkering: -2 Use Magic Device DC */
-      send_to_char(ch, "  Use Magic Device DC: %d (when charges exhausted)\r\n", dc);
+      send_to_char(ch, "  Use Magic Device DC: %d (when charges exhausted", dc);
+      if (inv->dc_penalty > 0) {
+        send_to_char(ch, ", includes +%d penalty from failed attempts", inv->dc_penalty);
+      }
+      send_to_char(ch, ")\r\n");
     } else {
       send_to_char(ch, "  Use Magic Device DC: N/A (charges remaining)\r\n");
+      if (inv->dc_penalty > 0) {
+        send_to_char(ch, "  DC Penalty: +%d (from previous failed attempts when out of charges)\r\n", inv->dc_penalty);
+      }
     }
     
     return;
@@ -11234,6 +11256,7 @@ EVENTFUNC(event_devise_creation)
   inv->reliability = reliability;
   inv->uses = 0;             /* Initialize uses to 0 */
   inv->cooldown_expires = 0; /* Initialize cooldown to none */
+  inv->dc_penalty = 0;       /* Initialize DC penalty to 0 */
   
   ch->player_specials->saved.num_inventions++;
   
