@@ -1188,8 +1188,9 @@
 #define MOB_NOPARALYZE 97
 #define MOB_AI_ENABLED 98   /**< Mob uses AI for responses */
 #define MOB_QUARTERMASTER 99 /**< Mob can accept/complete supply orders */
+#define MOB_UNLIMITED_SPELL_SLOTS 100 /**< Mob has unlimited spell slots (bypasses slot system) */
 /**********************/
-#define NUM_MOB_FLAGS 100
+#define NUM_MOB_FLAGS 101
 /**********************/
 /**********************/
 
@@ -5482,6 +5483,11 @@ struct mob_special_data
     int hunt_cooldown;          // for hunts, when hunt expires, this is set to 5 minutes, at which point it will be extracted
     int temp_feat;
     byte spells_known[MAX_SPELLS];  /* Changed from int to byte - saves 6KB per mob! */
+    
+    /* Spell slot system for mobs */
+    int spell_slots[10];        /* Current spell slots per circle (0-9) */
+    int max_spell_slots[10];    /* Maximum spell slots per circle (0-9) */
+    time_t last_slot_regen;     /* Timestamp of last spell slot regeneration */
 };
 
 /** An affect structure. */

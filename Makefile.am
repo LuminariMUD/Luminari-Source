@@ -132,6 +132,7 @@ circle_SOURCES = \
 	src/mob_psionic.c \
 	src/mob_class.c \
 	src/mob_spells.c \
+	src/mob_spellslots.c \
 	src/modify.c \
 	src/msgedit.c \
 	src/mud_event.c \
