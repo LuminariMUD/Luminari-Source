@@ -30,6 +30,7 @@
 #include "mob_class.h"   /* for npc_class_behave */
 #include "mob_psionic.h" /* for psionic functions */
 #include "mob_spells.h"
+#include "assign_wpn_armor.h" /* for weapon_list */
 
 /* local defines */
 #define SINFO spell_info[spellnum]
@@ -322,6 +323,41 @@ void npc_assigned_spells(struct char_data *ch)
  note:  npc_offensive_spells() uses this define as well */
 #define MAX_LOOPS 40
 
+/* Helper: Check if character is wielding a slashing weapon */
+static bool has_slashing_weapon(struct char_data *ch)
+{
+  struct obj_data *wielded = NULL;
+  
+  if (!ch)
+    return false;
+  
+  /* Check primary weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (wielded && (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON))
+  {
+    if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_SLASHING))
+      return true;
+  }
+  
+  /* Check two-handed weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_2H);
+  if (wielded && (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON))
+  {
+    if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_SLASHING))
+      return true;
+  }
+  
+  /* Check offhand weapon */
+  wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (wielded && (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON))
+  {
+    if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].damageTypes, DAMAGE_TYPE_SLASHING))
+      return true;
+  }
+  
+  return false;
+}
+
 /* generic function for spelling up as a caster */
 void npc_spellup(struct char_data *ch)
 {
@@ -492,7 +528,14 @@ void npc_spellup(struct char_data *ch)
       loop_counter++;
       if (loop_counter >= (MAX_LOOPS))
         break;
-    } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] || affected_by_spell(victim, spellnum));
+    } while (level < spell_info[spellnum].min_level[GET_CLASS(ch)] || 
+             affected_by_spell(victim, spellnum) ||
+             !has_sufficient_slots_for_buff(ch, spellnum)); /* Don't buff if low on slots */
+  }
+  /* If we found a priority buff, still check if we have sufficient slots */
+  else if (!has_sufficient_slots_for_buff(ch, spellnum)) {
+    spellnum = -1; /* Cancel casting if insufficient slots */
+    loop_counter = MAX_LOOPS; /* Skip to end */
   }
 
   /* we're putting some special restrictions here */
@@ -537,6 +580,10 @@ void npc_spellup(struct char_data *ch)
   {
     return;
   }
+
+  /* keen edge requires a slashing weapon */
+  if (spellnum == SPELL_KEEN_EDGE && !has_slashing_weapon(ch))
+    return;
 
   /* end special restrictions */
 
@@ -707,3 +754,226 @@ void npc_offensive_spells(struct char_data *ch)
 
   return;
 }
+
+/* Wizard AI: Check if a spell is suitable for pre-buffing (long duration) */
+bool wizard_is_long_duration_buff(int spellnum)
+{
+  /* Only cast buffs with duration > 1 round per level */
+  /* These are beneficial MAG_AFFECTS spells with extended durations */
+  /* Check if spell has MAG_AFFECTS routine (it's a buff/debuff spell) */
+  if (!(SINFO.routines & MAG_AFFECTS))
+    return false;
+  
+  /* Check if spell is violent (harmful) - we only want beneficial buffs */
+  if (SINFO.violent)
+    return false;
+
+  /* List of wizard buff spells with duration > 1 round/level */
+  switch (spellnum)
+  {
+    /* Fixed long durations (300-600 rounds) */
+    case SPELL_MAGE_ARMOR:           /* 600 rounds */
+    case SPELL_STONESKIN:            /* 600 rounds */
+    case SPELL_RESIST_ENERGY:        /* 600 rounds */
+    case SPELL_FLY:                  /* 600 rounds */
+    case SPELL_ENDURE_ELEMENTS:      /* 600 rounds */
+    case SPELL_PROT_FROM_EVIL:       /* 600 rounds */
+    case SPELL_PROT_FROM_GOOD:       /* 600 rounds */
+    case SPELL_MIRROR_IMAGE:         /* 300 rounds */
+    case SPELL_BLUR:                 /* 300 rounds */
+    case SPELL_SHIELD:               /* 300 rounds */
+    case SPELL_FALSE_LIFE:           /* 300 rounds */
+    case SPELL_DISPLACEMENT:         /* 100 rounds */
+    
+    /* Level-based long durations (level * 10+) */
+    case SPELL_HASTE:                /* level * 12 */
+    case SPELL_STRENGTH:             /* level * 12 + 100 */
+    case SPELL_ENDURANCE:            /* level * 12 + 100 */
+    case SPELL_GRACE:                /* level * 12 + 100 */
+    case SPELL_CUNNING:              /* level * 12 + 100 */
+    case SPELL_WISDOM:               /* level * 12 + 100 */
+    case SPELL_CHARISMA:             /* level * 12 + 100 */
+    case SPELL_PROTECTION_FROM_ENERGY:  /* 10 * 10 * level */
+    case SPELL_GREATER_MAGIC_WEAPON:    /* 60 * 10 * level */
+    case SPELL_KEEN_EDGE:               /* 10 * 10 * level */
+    
+    /* Detection/utility long durations */
+    case SPELL_DETECT_INVIS:         /* 300 + level * 25 */
+    case SPELL_DETECT_MAGIC:         /* 300 + level * 25 */
+    case SPELL_INVISIBLE:            /* 300 + level * 6 */
+    case SPELL_NON_DETECTION:        /* 25 + level * 12 */
+    case SPELL_SPELL_RESISTANCE:     /* 50 + level */
+    
+    /* Circle spells (if wizard has them) */
+    case SPELL_CIRCLE_A_EVIL:        /* Similar to prot from evil */
+    case SPELL_CIRCLE_A_GOOD:        /* Similar to prot from good */
+    
+    /* Other long-duration defensive spells */
+    case SPELL_FIRE_SHIELD:          /* If wizard has it */
+    case SPELL_COLD_SHIELD:          /* If wizard has it */
+    case SPELL_MINOR_GLOBE:          /* If wizard has it */
+    case SPELL_GLOBE_OF_INVULN:      /* If wizard has it */
+    case SPELL_GREATER_MIRROR_IMAGE: /* If wizard has it */
+    case SPELL_SPELL_MANTLE:         /* If wizard has it */
+    case SPELL_GREATER_SPELL_MANTLE: /* If wizard has it */
+    case SPELL_SHADOW_SHIELD:        /* If wizard has it */
+    case SPELL_MIND_BLANK:           /* If wizard has it */
+    case SPELL_IRONSKIN:             /* If wizard has it */
+      return true;
+    default:
+      return false;
+  }
+}
+
+/* Wizard AI: Categorize spell by type */
+int wizard_get_spell_category(int spellnum)
+{
+  /* MAG_DAMAGE - direct damage spells */
+  if (SINFO.routines & MAG_DAMAGE)
+    return MAG_DAMAGE;
+    
+  /* MAG_SUMMONS - summoning spells */
+  if (SINFO.routines & MAG_SUMMONS)
+    return MAG_SUMMONS;
+    
+  /* MAG_POINTS - healing/restoration spells */
+  if (SINFO.routines & MAG_POINTS)
+    return MAG_POINTS;
+    
+  /* MAG_AFFECTS - buffs and debuffs */
+  if (SINFO.routines & MAG_AFFECTS)
+    return MAG_AFFECTS;
+    
+  return 0;
+}
+
+/* Wizard AI: Cast pre-combat buffs */
+void wizard_cast_prebuff(struct char_data *ch)
+{
+  int spellnum = -1;
+  int loop_counter = 0;
+  int level = MIN(GET_LEVEL(ch), LVL_IMMORT - 1);
+  int char_class = GET_CLASS(ch);
+  
+  if (!ch || !IS_MOB(ch))
+    return;
+  
+  /* Default to wizard if not a recognized arcane caster */
+  if (char_class != CLASS_WIZARD && char_class != CLASS_SORCERER)
+    char_class = CLASS_WIZARD;
+    
+  /* Try to find a long-duration buff we don't already have */
+  do
+  {
+    /* Pick a random spell from our spellup list */
+    spellnum = valid_spellup_spell[rand_number(0, SPELLUP_SPELLS - 1)];
+    loop_counter++;
+    
+    if (loop_counter >= (MAX_LOOPS / 2))
+      break;
+      
+  } while (level < SINFO.min_level[char_class] ||
+           !wizard_is_long_duration_buff(spellnum) ||
+           affected_by_spell(ch, spellnum) ||
+           !has_sufficient_slots_for_buff(ch, spellnum) || /* Don't buff if low on slots */
+           (spellnum == SPELL_KEEN_EDGE && !has_slashing_weapon(ch))); /* Keen edge needs slashing weapon */
+  
+  if (loop_counter < (MAX_LOOPS / 2) && spellnum != -1)
+  {
+    cast_spell(ch, ch, NULL, spellnum, 0);
+  }
+}
+
+/* Wizard AI: Intelligent combat spell selection */
+void wizard_combat_ai(struct char_data *ch)
+{
+  struct char_data *tch = NULL;
+  int level, spellnum = -1, loop_counter = 0;
+  int use_aoe = 0;
+  int spell_category = 0;
+  int category_choice = 0;
+  int char_class = GET_CLASS(ch);
+  
+  if (!ch)
+    return;
+  
+  /* Default to wizard if not a recognized arcane caster */
+  if (char_class != CLASS_WIZARD && char_class != CLASS_SORCERER)
+    char_class = CLASS_WIZARD;
+    
+  /* Cap level */
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    level = LVL_IMMORT - 1;
+  else
+    level = GET_LEVEL(ch);
+  
+  /* Check if we should call familiar first */
+  if (npc_should_call_companion(ch, MOB_C_FAMILIAR))
+  {
+    perform_call(ch, MOB_C_FAMILIAR, GET_LEVEL(ch));
+    return;
+  }
+  
+  /* 20% chance to buff in combat */
+  if (!rand_number(0, 4))
+  {
+    npc_spellup(ch);
+    return;
+  }
+  
+  /* Find target and determine if we should use AoE */
+  if (!(tch = npc_find_target(ch, &use_aoe)))
+    return;
+  
+  /* Decide what type of spell to cast based on situation */
+  /* 70% damage, 20% debuff, 5% summon, 5% heal */
+  category_choice = rand_number(1, 100);
+  
+  if (category_choice <= 70)
+    spell_category = MAG_DAMAGE;
+  else if (category_choice <= 90)
+    spell_category = MAG_AFFECTS;
+  else if (category_choice <= 95)
+    spell_category = MAG_SUMMONS;
+  else
+    spell_category = MAG_POINTS;
+  
+  /* If using AoE, prioritize AoE damage spells */
+  if (use_aoe >= 2)
+  {
+    do
+    {
+      spellnum = valid_aoe_spell[rand_number(0, OFFENSIVE_AOE_SPELLS - 1)];
+      loop_counter++;
+      if (loop_counter >= (MAX_LOOPS / 2))
+        break;
+    } while (level < SINFO.min_level[char_class] ||
+             (spell_category == MAG_DAMAGE && !(wizard_get_spell_category(spellnum) & MAG_DAMAGE)));
+    
+    if (loop_counter < (MAX_LOOPS / 2) && spellnum != -1)
+    {
+      cast_spell(ch, tch, NULL, spellnum, 0);
+      return;
+    }
+  }
+  
+  /* Find a spell matching our chosen category */
+  loop_counter = 0;
+  do
+  {
+    spellnum = valid_offensive_spell[rand_number(0, OFFENSIVE_SPELLS - 1)];
+    loop_counter++;
+    
+    if (loop_counter >= (MAX_LOOPS / 2))
+      break;
+      
+  } while (level < SINFO.min_level[char_class] ||
+           affected_by_spell(tch, spellnum) ||
+           (wizard_get_spell_category(spellnum) != spell_category && spell_category != 0));
+  
+  if (loop_counter < (MAX_LOOPS / 2) && spellnum != -1)
+  {
+    cast_spell(ch, tch, NULL, spellnum, 0);
+  }
+}
+

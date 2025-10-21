@@ -32,6 +32,7 @@
 #include "psionics.h"
 #include "mob_act.h"
 #include "mob_spellslots.h"
+#include "mob_spells.h"
 
 /* External function prototypes */
 void npc_offensive_spells(struct char_data *ch);
@@ -122,7 +123,13 @@ void mobile_activity(void)
         else if (dice(1, 4) == 3 && mob_knows_assigned_spells(ch))
           npc_assigned_spells(ch);
         else if (IS_NPC_CASTER(ch))
-          npc_offensive_spells(ch);
+        {
+          /* Use specialized wizard AI for wizard and sorcerer mobs */
+          if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
+            wizard_combat_ai(ch);
+          else
+            npc_offensive_spells(ch);
+        }
         else
           npc_class_behave(ch);
         continue;
@@ -131,7 +138,11 @@ void mobile_activity(void)
       else if (!rand_number(0, 15) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_NPC_CASTER(ch))
       {
         /* not in combat - reduced from 12.5% to 6.25% chance */
-        npc_spellup(ch);
+        /* Wizards and sorcerers use specialized pre-buffing with long-duration spells */
+        if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
+          wizard_cast_prebuff(ch);
+        else
+          npc_spellup(ch);
       }
       else if (!rand_number(0, 15) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_PSIONIC(ch))
       {
@@ -142,7 +153,11 @@ void mobile_activity(void)
       else if (!rand_number(0, 15) && IS_NPC_CASTER(ch))
       {
         /* not in combat - reduced from 12.5% to 6.25% chance */
-        npc_spellup(ch);
+        /* Wizards and sorcerers use specialized pre-buffing with long-duration spells */
+        if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
+          wizard_cast_prebuff(ch);
+        else
+          npc_spellup(ch);
       }
       else if (!rand_number(0, 15) && IS_PSIONIC(ch))
       {

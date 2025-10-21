@@ -42,4 +42,10 @@ void npc_assigned_spells(struct char_data *ch);
 /* check if mob knows its assigned spells */
 bool mob_knows_assigned_spells(struct char_data *ch);
 
+/* Wizard AI functions */
+bool wizard_is_long_duration_buff(int spellnum);
+int wizard_get_spell_category(int spellnum);
+void wizard_cast_prebuff(struct char_data *ch);
+void wizard_combat_ai(struct char_data *ch);
+
 #endif /* _MOB_SPELLS_H_ */
