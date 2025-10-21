@@ -4336,6 +4336,9 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   if (MOB_FLAGGED(mob, MOB_MOUNTABLE))
     GET_REAL_MAX_MOVE(mob) = 2000 + (GET_LEVEL(mob) * 200);
 
+  /* Apply mob stat modifiers based on class category */
+  apply_mob_stat_modifiers(mob);
+
   /* Initialize spell slots for mobs using spell slot system */
   init_mob_spell_slots(mob);
 
