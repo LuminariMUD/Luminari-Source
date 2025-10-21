@@ -10067,6 +10067,169 @@ int get_smite_good_level(struct char_data *ch)
  return smite_level;
 }
 
+/* Returns the mob stat category for a given class */
+int get_mob_stat_category(int ch_class)
+{
+  switch (ch_class)
+  {
+    /* Warrior category */
+    case CLASS_WARRIOR:
+    case CLASS_MONK:
+    case CLASS_BERSERKER:
+    case CLASS_SORCERER:
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+    case CLASS_BARD:
+    case CLASS_WEAPON_MASTER:
+    case CLASS_STALWART_DEFENDER:
+    case CLASS_DUELIST:
+    case CLASS_SPELLSWORD:
+    case CLASS_BLACKGUARD:
+    case CLASS_KNIGHT_OF_THE_CROWN:
+    case CLASS_KNIGHT_OF_THE_SWORD:
+    case CLASS_KNIGHT_OF_THE_ROSE:
+    case CLASS_KNIGHT_OF_THE_LILY:
+    case CLASS_DRAGONRIDER:
+      return MOB_STAT_CATEGORY_WARRIOR;
+
+    /* Arcane Caster category */
+    case CLASS_WIZARD:
+    case CLASS_ARCANE_ARCHER:
+    case CLASS_MYSTIC_THEURGE:
+    case CLASS_ELDRITCH_KNIGHT:
+    case CLASS_PSIONICIST:
+    case CLASS_SUMMONER:
+    case CLASS_WARLOCK:
+    case CLASS_NECROMANCER:
+    case CLASS_KNIGHT_OF_THE_THORN:
+    case CLASS_ARTIFICER:
+      return MOB_STAT_CATEGORY_ARCANE;
+
+    /* Divine Caster category */
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_SHIFTER:
+    case CLASS_SACRED_FIST:
+    case CLASS_INQUISITOR:
+    case CLASS_KNIGHT_OF_THE_SKULL:
+      return MOB_STAT_CATEGORY_DIVINE;
+
+    /* Rogue category */
+    case CLASS_ROGUE:
+    case CLASS_ALCHEMIST:
+    case CLASS_ARCANE_SHADOW:
+    case CLASS_SHADOW_DANCER:
+    case CLASS_ASSASSIN:
+      return MOB_STAT_CATEGORY_ROGUE;
+
+    /* Default to warrior for undefined classes */
+    default:
+      return MOB_STAT_CATEGORY_WARRIOR;
+  }
+}
+
+/* Apply mob stat category modifiers based on class */
+void apply_mob_stat_modifiers(struct char_data *mob)
+{
+  int category;
+  struct mob_stat_category *stats;
+
+  if (!mob || !IS_NPC(mob))
+    return;
+
+  /* Skip if mob has custom stats flag */
+  if (MOB_FLAGGED(mob, MOB_CUSTOM_MOB_STATS))
+    return;
+
+  /* Get the category based on mob's class */
+  category = get_mob_stat_category(GET_CLASS(mob));
+
+  /* Get the appropriate stat modifier struct */
+  switch (category)
+  {
+    case MOB_STAT_CATEGORY_WARRIOR:
+      stats = &config_info.mob_stats.warriors;
+      break;
+    case MOB_STAT_CATEGORY_ARCANE:
+      stats = &config_info.mob_stats.arcane_casters;
+      break;
+    case MOB_STAT_CATEGORY_DIVINE:
+      stats = &config_info.mob_stats.divine_casters;
+      break;
+    case MOB_STAT_CATEGORY_ROGUE:
+      stats = &config_info.mob_stats.rogues;
+      break;
+    default:
+      return; /* No modifiers */
+  }
+
+  /* Apply hit points modifier */
+  if (stats->hit_points != 100)
+  {
+    GET_MAX_HIT(mob) = (GET_MAX_HIT(mob) * stats->hit_points) / 100;
+    GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob);
+    GET_HIT(mob) = GET_MAX_HIT(mob);
+  }
+
+  /* Apply armor class modifier (lower AC is better, so we adjust accordingly) */
+  if (stats->armor_class != 100)
+  {
+    /* AC bonus: higher percentage = better AC (lower number) */
+    int current_ac = GET_AC(mob);
+    int ac_adjustment = (current_ac * (100 - stats->armor_class)) / 100;
+    mob->points.armor = current_ac - ac_adjustment;
+  }
+
+  /* Apply attack bonus modifier */
+  if (stats->attack_bonus != 100)
+  {
+    mob->points.hitroll = (mob->points.hitroll * stats->attack_bonus) / 100;
+  }
+
+  /* Apply damage bonus modifier */
+  if (stats->damage_bonus != 100)
+  {
+    mob->points.damroll = (mob->points.damroll * stats->damage_bonus) / 100;
+  }
+
+  /* Apply saving throw modifier (lower is better for saves) */
+  if (stats->saving_throws != 100)
+  {
+    int i;
+    for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+    {
+      /* Lower percentage = better saves (lower number) */
+      int save_adjustment = (GET_SAVE(mob, i) * (100 - stats->saving_throws)) / 100;
+      mob->points.apply_saving_throw[i] -= save_adjustment;
+    }
+  }
+
+  /* Apply ability scores modifier */
+  if (stats->ability_scores != 100)
+  {
+    mob->real_abils.str = (mob->real_abils.str * stats->ability_scores) / 100;
+    mob->real_abils.con = (mob->real_abils.con * stats->ability_scores) / 100;
+    mob->real_abils.dex = (mob->real_abils.dex * stats->ability_scores) / 100;
+    mob->real_abils.intel = (mob->real_abils.intel * stats->ability_scores) / 100;
+    mob->real_abils.wis = (mob->real_abils.wis * stats->ability_scores) / 100;
+    mob->real_abils.cha = (mob->real_abils.cha * stats->ability_scores) / 100;
+    
+    /* Cap ability scores at reasonable values */
+    mob->real_abils.str = MIN(50, MAX(1, mob->real_abils.str));
+    mob->real_abils.con = MIN(50, MAX(1, mob->real_abils.con));
+    mob->real_abils.dex = MIN(50, MAX(1, mob->real_abils.dex));
+    mob->real_abils.intel = MIN(50, MAX(1, mob->real_abils.intel));
+    mob->real_abils.wis = MIN(50, MAX(1, mob->real_abils.wis));
+    mob->real_abils.cha = MIN(50, MAX(1, mob->real_abils.cha));
+  }
+
+  /* Apply gold modifier */
+  if (stats->gold != 100)
+  {
+    GET_GOLD(mob) = (GET_GOLD(mob) * stats->gold) / 100;
+  }
+}
+
 bool has_dr_affect(struct char_data *ch, int spell)
 {
   if (!ch) return false;

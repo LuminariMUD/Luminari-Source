@@ -291,6 +291,8 @@ time_t mud_time_to_secs(struct time_info_data *now);
 int get_smite_evil_level(struct char_data *ch);
 bool has_dr_affect(struct char_data *ch, int spell);
 int get_smite_good_level(struct char_data *ch);
+int get_mob_stat_category(int ch_class);
+void apply_mob_stat_modifiers(struct char_data *mob);
 struct time_info_data *age(struct char_data *ch);
 int num_pc_in_room(struct room_data *room);
 void core_dump_real(const char *who, int line);
@@ -2628,6 +2630,12 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_MOB_ROGUES_ST config_info.mob_stats.rogues.saving_throws
 #define CONFIG_MOB_ROGUES_AS config_info.mob_stats.rogues.ability_scores
 #define CONFIG_MOB_ROGUES_GOLD config_info.mob_stats.rogues.gold
+
+/* Mob Stats Categories */
+#define MOB_STAT_CATEGORY_WARRIOR 1
+#define MOB_STAT_CATEGORY_ARCANE 2
+#define MOB_STAT_CATEGORY_DIVINE 3
+#define MOB_STAT_CATEGORY_ROGUE 4
 
 #define LANDMARK_SYSTEM_NONE    0
 #define LANDMARK_SYSTEM_CITIES  1
