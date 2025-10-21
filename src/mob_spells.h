@@ -15,6 +15,8 @@
 #define OFFENSIVE_SPELLS 60
 #define OFFENSIVE_AOE_SPELLS 16
 #define OFFENSIVE_AOE_POWERS 6
+#define WIZARD_GROUP_BUFFS 10  /* Group buff spells for wizards/sorcerers */
+#define WIZARD_AOE_SPELLS 15   /* AoE damage/debuff spells for wizards/sorcerers */
 
 #if defined(CAMPAIGN_DL)
 #define SPELLUP_SPELLS 53
@@ -27,6 +29,8 @@ extern int valid_spellup_spell[SPELLUP_SPELLS];
 extern int valid_aoe_spell[OFFENSIVE_AOE_SPELLS];
 extern int valid_aoe_power[OFFENSIVE_AOE_POWERS];
 extern int valid_offensive_spell[OFFENSIVE_SPELLS];
+extern int wizard_group_buff_spells[WIZARD_GROUP_BUFFS];
+extern int wizard_aoe_spells[WIZARD_AOE_SPELLS];
 
 /* Function prototypes for mob spell behaviors */
 

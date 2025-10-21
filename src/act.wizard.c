@@ -66,6 +66,7 @@
 #include "deities.h"
 #include "backgrounds.h"
 #include "terrain_bridge.h"
+#include "mob_spellslots.h" /* for show_mob_spell_slots */
 
 /* External variables and functions */
 extern MYSQL *conn;
@@ -1184,9 +1185,31 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
   }
 
   if (IS_MOB(k))
+  {
     send_to_char(ch, "\tCMob Spec-Proc: \tn%s\tC, NPC Bare Hand Dam: \tn%d\tCd\tn%d\r\n",
                  (mob_index[GET_MOB_RNUM(k)].func ? get_spec_func_name(mob_index[GET_MOB_RNUM(k)].func) : "None"),
                  k->mob_specials.damnodice, k->mob_specials.damsizedice);
+    
+    /* Display mob spell slots if they're a spellcaster */
+    if (!MOB_FLAGGED(k, MOB_UNLIMITED_SPELL_SLOTS))
+    {
+      bool has_slots = FALSE;
+      for (i = 0; i < 10; i++)
+      {
+        if (k->mob_specials.max_spell_slots[i] > 0)
+        {
+          has_slots = TRUE;
+          break;
+        }
+      }
+      
+      if (has_slots)
+      {
+        send_to_char(ch, "\r\n");
+        show_mob_spell_slots(ch, k);
+      }
+    }
+  }
 
   for (i = 0, j = k->carrying; j; j = j->next_content, i++)
     ;

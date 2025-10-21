@@ -91,7 +91,8 @@ int get_spell_circle(int spellnum, int char_class)
  */
 void init_mob_spell_slots(struct char_data *ch)
 {
-  int circle, char_class;
+  int circle, char_class, mob_level, max_slots;
+  int stat_bonus = 0;
   
   if (!ch || !IS_NPC(ch))
     return;
@@ -119,13 +120,73 @@ void init_mob_spell_slots(struct char_data *ch)
     char_class = CLASS_WIZARD;
   }
   
+  /* Get mob level (use GET_LEVEL for NPCs, not CLASS_LEVEL) */
+  mob_level = GET_LEVEL(ch);
+  if (mob_level > LVL_IMMORT - 1)
+    mob_level = LVL_IMMORT - 1;
+  
   /* Calculate maximum spell slots per circle based on class and level */
+  /* NOTE: We manually calculate for mobs because compute_slots_by_circle uses CLASS_LEVEL
+   * which is for PC multiclassing and doesn't work properly for NPCs */
   for (circle = 0; circle < 10; circle++)
   {
-    /* Use the existing compute_slots_by_circle function */
-    int max_slots = compute_slots_by_circle(ch, char_class, circle);
+    max_slots = 0;
+    stat_bonus = 0;
     
-    /* Ensure at least some slots for casters */
+    /* Get base slots from class table */
+    switch (char_class)
+    {
+      case CLASS_WIZARD:
+        stat_bonus = spell_bonus[GET_INT(ch)][circle];
+        max_slots = wizard_slots[mob_level][circle];
+        break;
+      case CLASS_SORCERER:
+        stat_bonus = spell_bonus[GET_CHA(ch)][circle];
+        max_slots = sorcerer_known[mob_level][circle];
+        break;
+      case CLASS_CLERIC:
+        stat_bonus = spell_bonus[GET_WIS(ch)][circle];
+        max_slots = cleric_slots[mob_level][circle];
+        break;
+      case CLASS_DRUID:
+        stat_bonus = spell_bonus[GET_WIS(ch)][circle];
+        max_slots = druid_slots[mob_level][circle];
+        break;
+      case CLASS_BARD:
+        stat_bonus = spell_bonus[GET_CHA(ch)][circle];
+        max_slots = bard_slots[mob_level][circle];
+        break;
+      case CLASS_RANGER:
+        stat_bonus = spell_bonus[GET_WIS(ch)][circle];
+        max_slots = ranger_slots[mob_level][circle];
+        break;
+      case CLASS_PALADIN:
+      case CLASS_BLACKGUARD:
+        stat_bonus = spell_bonus[GET_CHA(ch)][circle];
+        max_slots = paladin_slots[mob_level][circle];
+        break;
+      case CLASS_ALCHEMIST:
+        stat_bonus = spell_bonus[GET_INT(ch)][circle];
+        max_slots = alchemist_slots[mob_level][circle];
+        break;
+      case CLASS_SUMMONER:
+        stat_bonus = spell_bonus[GET_CHA(ch)][circle];
+        max_slots = summoner_slots[mob_level][circle];
+        break;
+      case CLASS_INQUISITOR:
+        stat_bonus = spell_bonus[GET_WIS(ch)][circle];
+        max_slots = inquisitor_slots[mob_level][circle];
+        break;
+      default:
+        /* Non-caster class */
+        max_slots = 0;
+        break;
+    }
+    
+    /* Add stat bonus to base slots */
+    max_slots += stat_bonus;
+    
+    /* Ensure non-negative */
     if (max_slots < 0)
       max_slots = 0;
       
