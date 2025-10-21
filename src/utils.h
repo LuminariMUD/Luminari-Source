@@ -375,6 +375,7 @@ int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab);
 bool pvp_ok(struct char_data *ch, struct char_data *target, bool display);
 bool is_pc_idnum_in_room(struct char_data *ch, long int idnum);
 int is_player_grouped(struct char_data *target, struct char_data *group);
+bool are_grouped(struct char_data *ch, struct char_data *target);
 int find_ability_num_by_name(char *name);
 bool is_grouped_with_dragon(struct char_data *ch);
 bool has_bite_attack(struct char_data *ch);
