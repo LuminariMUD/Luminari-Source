@@ -19,6 +19,9 @@ void init_mob_spell_slots(struct char_data *ch);
 /* Check if mob has an available spell slot for the given spell */
 bool has_spell_slot(struct char_data *ch, int spellnum);
 
+/* Check if mob has sufficient spell slots for buffing (> 50% remaining) */
+bool has_sufficient_slots_for_buff(struct char_data *ch, int spellnum);
+
 /* Consume a spell slot when mob casts a spell */
 void consume_spell_slot(struct char_data *ch, int spellnum);
 

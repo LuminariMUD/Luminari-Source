@@ -215,6 +215,54 @@ void consume_spell_slot(struct char_data *ch, int spellnum)
 }
 
 /**
+ * Check if mob has sufficient spell slots for out-of-combat buffing.
+ * Returns TRUE if mob has more than 50% of max slots for the given spell.
+ * This prevents mobs from wasting slots on buffs when they're running low.
+ * 
+ * @param ch The mob to check
+ * @param spellnum The spell to check
+ * @return TRUE if mob has > 50% slots remaining, FALSE otherwise
+ */
+bool has_sufficient_slots_for_buff(struct char_data *ch, int spellnum)
+{
+  int circle, char_class;
+  int current_slots, max_slots;
+  
+  if (!ch || !IS_NPC(ch))
+    return TRUE; /* PCs handle their own slot management */
+    
+  /* Mobs with unlimited spell slots always have sufficient slots */
+  if (MOB_FLAGGED(ch, MOB_UNLIMITED_SPELL_SLOTS))
+    return TRUE;
+  
+  /* Determine mob's primary casting class */
+  char_class = GET_CLASS(ch);
+  if (char_class < 0 || char_class >= NUM_CLASSES)
+    char_class = CLASS_WIZARD;
+  
+  /* Get the spell circle */
+  circle = get_spell_circle(spellnum, char_class);
+  if (circle < 0 || circle > 9)
+    return FALSE; /* Invalid spell/circle */
+  
+  /* Get current and max slots for this circle */
+  current_slots = ch->mob_specials.spell_slots[circle];
+  max_slots = ch->mob_specials.max_spell_slots[circle];
+  
+  /* If max slots is 0 or negative, mob can't cast this circle */
+  if (max_slots <= 0)
+    return FALSE;
+  
+  /* Cantrips (circle 0) are always OK since they're effectively unlimited */
+  if (circle == 0)
+    return TRUE;
+  
+  /* Check if we have more than 50% of max slots remaining */
+  /* Use integer arithmetic: current * 2 > max means current > max/2 */
+  return (current_slots * 2 > max_slots);
+}
+
+/**
  * Regenerate one random spell slot for a mob.
  * Called periodically from mobile activity loop.
  * Only regenerates when mob is not in combat.
