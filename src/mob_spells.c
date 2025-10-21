@@ -30,6 +30,7 @@
 #include "mob_class.h"   /* for npc_class_behave */
 #include "mob_psionic.h" /* for psionic functions */
 #include "mob_spells.h"
+#include "mob_spellslots.h" /* for has_sufficient_slots_for_buff */
 #include "assign_wpn_armor.h" /* for weapon_list */
 
 /* local defines */
@@ -157,6 +158,40 @@ int valid_spellup_spell[SPELLUP_SPELLS] = {
     SPELL_SPELL_RESISTANCE,
     SPELL_WATERWALK};
 #endif
+
+/* Wizard/Sorcerer group buff spells (MAG_GROUPS) */
+int wizard_group_buff_spells[WIZARD_GROUP_BUFFS] = {
+    SPELL_MASS_WISDOM,        // Mass stat buffs
+    SPELL_MASS_CHARISMA,
+    SPELL_MASS_CUNNING,
+    SPELL_MASS_STRENGTH,
+    SPELL_MASS_GRACE,
+    SPELL_MASS_ENDURANCE,
+    SPELL_MASS_HASTE,         // Mass combat buffs
+    SPELL_MASS_FLY,
+    SPELL_MASS_INVISIBILITY,
+    SPELL_CIRCLE_A_EVIL       // Protection circles (MAG_GROUPS)
+};
+
+/* Wizard/Sorcerer AoE spells (MAG_AREAS) - offensive focus */
+int wizard_aoe_spells[WIZARD_AOE_SPELLS] = {
+    SPELL_ICE_STORM,          // Evocation damage
+    SPELL_METEOR_SWARM,
+    SPELL_CHAIN_LIGHTNING,
+    SPELL_PRISMATIC_SPRAY,
+    SPELL_INCENDIARY_CLOUD,
+    SPELL_HORRID_WILTING,
+    SPELL_WAIL_OF_THE_BANSHEE,
+    SPELL_MASS_HOLD_PERSON,   // Crowd control
+    SPELL_WAVES_OF_EXHAUSTION,
+    SPELL_WAVES_OF_FATIGUE,
+    SPELL_THUNDERCLAP,
+    SPELL_COLOR_SPRAY,
+    SPELL_BURNING_HANDS,
+    SPELL_FIREBALL,           // Classic AoE
+    SPELL_LIGHTNING_BOLT
+};
+
 /* list of spells mobiles will use for offense (aoe) */
 int valid_aoe_spell[OFFENSIVE_AOE_SPELLS] = {
     /* aoe */
@@ -883,6 +918,8 @@ void wizard_cast_prebuff(struct char_data *ch)
   int loop_counter = 0;
   int level = MIN(GET_LEVEL(ch), LVL_IMMORT - 1);
   int char_class = GET_CLASS(ch);
+  struct char_data *tch;
+  bool has_allies = FALSE;
   
   if (!ch || !IS_MOB(ch))
     return;
@@ -890,8 +927,49 @@ void wizard_cast_prebuff(struct char_data *ch)
   /* Default to wizard if not a recognized arcane caster */
   if (char_class != CLASS_WIZARD && char_class != CLASS_SORCERER)
     char_class = CLASS_WIZARD;
+  
+  /* Check if we have allies in the room (formal group or followers) */
+  if (GROUP(ch) && GROUP(ch)->members->iSize > 1)
+  {
+    has_allies = TRUE;
+  }
+  else if (IS_NPC(ch))
+  {
+    /* Check for allied mobs in the room */
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (tch != ch && are_grouped(ch, tch))
+      {
+        has_allies = TRUE;
+        break;
+      }
+    }
+  }
+  
+  /* 30% chance to cast group buff if we have allies */
+  if (has_allies && !rand_number(0, 2))
+  {
+    do
+    {
+      spellnum = wizard_group_buff_spells[rand_number(0, WIZARD_GROUP_BUFFS - 1)];
+      loop_counter++;
+      
+      if (loop_counter >= (MAX_LOOPS / 2))
+        break;
+        
+    } while (level < SINFO.min_level[char_class] ||
+             affected_by_spell(ch, spellnum) || /* Don't recast if already affected */
+             !has_sufficient_slots_for_buff(ch, spellnum)); /* Don't buff if low on slots */
     
-  /* Try to find a long-duration buff we don't already have */
+    if (loop_counter < (MAX_LOOPS / 2) && spellnum != -1)
+    {
+      cast_spell(ch, ch, NULL, spellnum, 0);
+      return;
+    }
+  }
+    
+  /* Try to find a long-duration self-buff we don't already have */
+  loop_counter = 0;
   do
   {
     /* Pick a random spell from our spellup list */
@@ -967,17 +1045,16 @@ void wizard_combat_ai(struct char_data *ch)
   else
     spell_category = MAG_POINTS;
   
-  /* If using AoE, prioritize AoE damage spells */
+  /* If fighting multiple enemies (2+), use wizard AoE spells */
   if (use_aoe >= 2)
   {
     do
     {
-      spellnum = valid_aoe_spell[rand_number(0, OFFENSIVE_AOE_SPELLS - 1)];
+      spellnum = wizard_aoe_spells[rand_number(0, WIZARD_AOE_SPELLS - 1)];
       loop_counter++;
       if (loop_counter >= (MAX_LOOPS / 2))
         break;
-    } while (level < SINFO.min_level[char_class] ||
-             (spell_category == MAG_DAMAGE && !(wizard_get_spell_category(spellnum) & MAG_DAMAGE)));
+    } while (level < SINFO.min_level[char_class]);
     
     if (loop_counter < (MAX_LOOPS / 2) && spellnum != -1)
     {
