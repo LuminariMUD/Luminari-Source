@@ -7144,6 +7144,39 @@ static void load_default_config(void)
   CONFIG_HAPPY_HOUR_QP = happy_hour_qp_bonus;
   CONFIG_HAPPY_HOUR_GOLD = happy_hour_gold_bonus;
   CONFIG_HAPPY_HOUR_TREASURE = happy_hour_treasure_bonus;
+
+  /* Mob Stats - Initialize to 100% (normal) */
+  CONFIG_MOB_WARRIORS_HP = 100;
+  CONFIG_MOB_WARRIORS_AC = 100;
+  CONFIG_MOB_WARRIORS_AB = 100;
+  CONFIG_MOB_WARRIORS_DB = 100;
+  CONFIG_MOB_WARRIORS_ST = 100;
+  CONFIG_MOB_WARRIORS_AS = 100;
+  CONFIG_MOB_WARRIORS_GOLD = 100;
+
+  CONFIG_MOB_ARCANE_HP = 100;
+  CONFIG_MOB_ARCANE_AC = 100;
+  CONFIG_MOB_ARCANE_AB = 100;
+  CONFIG_MOB_ARCANE_DB = 100;
+  CONFIG_MOB_ARCANE_ST = 100;
+  CONFIG_MOB_ARCANE_AS = 100;
+  CONFIG_MOB_ARCANE_GOLD = 100;
+
+  CONFIG_MOB_DIVINE_HP = 100;
+  CONFIG_MOB_DIVINE_AC = 100;
+  CONFIG_MOB_DIVINE_AB = 100;
+  CONFIG_MOB_DIVINE_DB = 100;
+  CONFIG_MOB_DIVINE_ST = 100;
+  CONFIG_MOB_DIVINE_AS = 100;
+  CONFIG_MOB_DIVINE_GOLD = 100;
+
+  CONFIG_MOB_ROGUES_HP = 100;
+  CONFIG_MOB_ROGUES_AC = 100;
+  CONFIG_MOB_ROGUES_AB = 100;
+  CONFIG_MOB_ROGUES_DB = 100;
+  CONFIG_MOB_ROGUES_ST = 100;
+  CONFIG_MOB_ROGUES_AS = 100;
+  CONFIG_MOB_ROGUES_GOLD = 100;
 }
 
 void load_config(void)
@@ -7362,6 +7395,62 @@ void load_config(void)
         CONFIG_MEDIT_ADVANCED = num;
       else if (!str_cmp(tag, "min_pop_to_claim"))
         CONFIG_MIN_POP_TO_CLAIM = fl_num;
+      else if (!str_cmp(tag, "mob_warriors_hp"))
+        CONFIG_MOB_WARRIORS_HP = num;
+      else if (!str_cmp(tag, "mob_warriors_ac"))
+        CONFIG_MOB_WARRIORS_AC = num;
+      else if (!str_cmp(tag, "mob_warriors_ab"))
+        CONFIG_MOB_WARRIORS_AB = num;
+      else if (!str_cmp(tag, "mob_warriors_db"))
+        CONFIG_MOB_WARRIORS_DB = num;
+      else if (!str_cmp(tag, "mob_warriors_st"))
+        CONFIG_MOB_WARRIORS_ST = num;
+      else if (!str_cmp(tag, "mob_warriors_as"))
+        CONFIG_MOB_WARRIORS_AS = num;
+      else if (!str_cmp(tag, "mob_warriors_gold"))
+        CONFIG_MOB_WARRIORS_GOLD = num;
+      else if (!str_cmp(tag, "mob_arcane_hp"))
+        CONFIG_MOB_ARCANE_HP = num;
+      else if (!str_cmp(tag, "mob_arcane_ac"))
+        CONFIG_MOB_ARCANE_AC = num;
+      else if (!str_cmp(tag, "mob_arcane_ab"))
+        CONFIG_MOB_ARCANE_AB = num;
+      else if (!str_cmp(tag, "mob_arcane_db"))
+        CONFIG_MOB_ARCANE_DB = num;
+      else if (!str_cmp(tag, "mob_arcane_st"))
+        CONFIG_MOB_ARCANE_ST = num;
+      else if (!str_cmp(tag, "mob_arcane_as"))
+        CONFIG_MOB_ARCANE_AS = num;
+      else if (!str_cmp(tag, "mob_arcane_gold"))
+        CONFIG_MOB_ARCANE_GOLD = num;
+      else if (!str_cmp(tag, "mob_divine_hp"))
+        CONFIG_MOB_DIVINE_HP = num;
+      else if (!str_cmp(tag, "mob_divine_ac"))
+        CONFIG_MOB_DIVINE_AC = num;
+      else if (!str_cmp(tag, "mob_divine_ab"))
+        CONFIG_MOB_DIVINE_AB = num;
+      else if (!str_cmp(tag, "mob_divine_db"))
+        CONFIG_MOB_DIVINE_DB = num;
+      else if (!str_cmp(tag, "mob_divine_st"))
+        CONFIG_MOB_DIVINE_ST = num;
+      else if (!str_cmp(tag, "mob_divine_as"))
+        CONFIG_MOB_DIVINE_AS = num;
+      else if (!str_cmp(tag, "mob_divine_gold"))
+        CONFIG_MOB_DIVINE_GOLD = num;
+      else if (!str_cmp(tag, "mob_rogues_hp"))
+        CONFIG_MOB_ROGUES_HP = num;
+      else if (!str_cmp(tag, "mob_rogues_ac"))
+        CONFIG_MOB_ROGUES_AC = num;
+      else if (!str_cmp(tag, "mob_rogues_ab"))
+        CONFIG_MOB_ROGUES_AB = num;
+      else if (!str_cmp(tag, "mob_rogues_db"))
+        CONFIG_MOB_ROGUES_DB = num;
+      else if (!str_cmp(tag, "mob_rogues_st"))
+        CONFIG_MOB_ROGUES_ST = num;
+      else if (!str_cmp(tag, "mob_rogues_as"))
+        CONFIG_MOB_ROGUES_AS = num;
+      else if (!str_cmp(tag, "mob_rogues_gold"))
+        CONFIG_MOB_ROGUES_GOLD = num;
       break;
 
     case 'n':

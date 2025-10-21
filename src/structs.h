@@ -1189,8 +1189,9 @@
 #define MOB_AI_ENABLED 98   /**< Mob uses AI for responses */
 #define MOB_QUARTERMASTER 99 /**< Mob can accept/complete supply orders */
 #define MOB_UNLIMITED_SPELL_SLOTS 100 /**< Mob has unlimited spell slots (bypasses slot system) */
+#define MOB_CUSTOM_MOB_STATS 101 /**< Mob uses custom stat modifiers instead of category defaults */
 /**********************/
-#define NUM_MOB_FLAGS 101
+#define NUM_MOB_FLAGS 102
 /**********************/
 /**********************/
 
@@ -6133,6 +6134,25 @@ struct autowiz_data
     int min_wizlist_lev; /**< Minimun level to show on wizlist.  */
 };
 
+struct mob_stat_category
+{
+    int hit_points;
+    int armor_class;
+    int attack_bonus;
+    int damage_bonus;
+    int saving_throws;
+    int ability_scores;
+    int gold;
+};
+
+struct mob_stats_config_data
+{
+    struct mob_stat_category warriors;
+    struct mob_stat_category arcane_casters;
+    struct mob_stat_category divine_casters;
+    struct mob_stat_category rogues;
+};
+
 struct player_config_data
 {
     // spell damage.  This is the percent of extra damage done.
@@ -6219,6 +6239,8 @@ struct config_data
     struct happy_hour_data happy_hour;
     /** player stat config data */
     struct player_config_data player_config;
+    /** mob stats config data */
+    struct mob_stats_config_data mob_stats;
     /** additonal game options */
     struct extra_game_data extra;
 };
