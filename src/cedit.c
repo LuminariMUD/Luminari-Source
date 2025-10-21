@@ -37,6 +37,8 @@ static void cedit_disp_crash_save_options(struct descriptor_data *d);
 static void cedit_disp_room_numbers(struct descriptor_data *d);
 static void cedit_disp_operation_options(struct descriptor_data *d);
 static void cedit_disp_autowiz_options(struct descriptor_data *d);
+static void cedit_disp_mob_stats_menu(struct descriptor_data *d);
+static void cedit_disp_mob_stats_category(struct descriptor_data *d, int category);
 static void reassign_rooms(void);
 static void cedit_setup(struct descriptor_data *d);
 
@@ -194,6 +196,39 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->extra.allow_cexchange = CONFIG_ALLOW_CEXCHANGE;
   OLC_CONFIG(d)->extra.wilderness_system = CONFIG_WILDERNESS_SYSTEM;
 
+  /* Mob Stats */
+  OLC_CONFIG(d)->mob_stats.warriors.hit_points = CONFIG_MOB_WARRIORS_HP;
+  OLC_CONFIG(d)->mob_stats.warriors.armor_class = CONFIG_MOB_WARRIORS_AC;
+  OLC_CONFIG(d)->mob_stats.warriors.attack_bonus = CONFIG_MOB_WARRIORS_AB;
+  OLC_CONFIG(d)->mob_stats.warriors.damage_bonus = CONFIG_MOB_WARRIORS_DB;
+  OLC_CONFIG(d)->mob_stats.warriors.saving_throws = CONFIG_MOB_WARRIORS_ST;
+  OLC_CONFIG(d)->mob_stats.warriors.ability_scores = CONFIG_MOB_WARRIORS_AS;
+  OLC_CONFIG(d)->mob_stats.warriors.gold = CONFIG_MOB_WARRIORS_GOLD;
+
+  OLC_CONFIG(d)->mob_stats.arcane_casters.hit_points = CONFIG_MOB_ARCANE_HP;
+  OLC_CONFIG(d)->mob_stats.arcane_casters.armor_class = CONFIG_MOB_ARCANE_AC;
+  OLC_CONFIG(d)->mob_stats.arcane_casters.attack_bonus = CONFIG_MOB_ARCANE_AB;
+  OLC_CONFIG(d)->mob_stats.arcane_casters.damage_bonus = CONFIG_MOB_ARCANE_DB;
+  OLC_CONFIG(d)->mob_stats.arcane_casters.saving_throws = CONFIG_MOB_ARCANE_ST;
+  OLC_CONFIG(d)->mob_stats.arcane_casters.ability_scores = CONFIG_MOB_ARCANE_AS;
+  OLC_CONFIG(d)->mob_stats.arcane_casters.gold = CONFIG_MOB_ARCANE_GOLD;
+
+  OLC_CONFIG(d)->mob_stats.divine_casters.hit_points = CONFIG_MOB_DIVINE_HP;
+  OLC_CONFIG(d)->mob_stats.divine_casters.armor_class = CONFIG_MOB_DIVINE_AC;
+  OLC_CONFIG(d)->mob_stats.divine_casters.attack_bonus = CONFIG_MOB_DIVINE_AB;
+  OLC_CONFIG(d)->mob_stats.divine_casters.damage_bonus = CONFIG_MOB_DIVINE_DB;
+  OLC_CONFIG(d)->mob_stats.divine_casters.saving_throws = CONFIG_MOB_DIVINE_ST;
+  OLC_CONFIG(d)->mob_stats.divine_casters.ability_scores = CONFIG_MOB_DIVINE_AS;
+  OLC_CONFIG(d)->mob_stats.divine_casters.gold = CONFIG_MOB_DIVINE_GOLD;
+
+  OLC_CONFIG(d)->mob_stats.rogues.hit_points = CONFIG_MOB_ROGUES_HP;
+  OLC_CONFIG(d)->mob_stats.rogues.armor_class = CONFIG_MOB_ROGUES_AC;
+  OLC_CONFIG(d)->mob_stats.rogues.attack_bonus = CONFIG_MOB_ROGUES_AB;
+  OLC_CONFIG(d)->mob_stats.rogues.damage_bonus = CONFIG_MOB_ROGUES_DB;
+  OLC_CONFIG(d)->mob_stats.rogues.saving_throws = CONFIG_MOB_ROGUES_ST;
+  OLC_CONFIG(d)->mob_stats.rogues.ability_scores = CONFIG_MOB_ROGUES_AS;
+  OLC_CONFIG(d)->mob_stats.rogues.gold = CONFIG_MOB_ROGUES_GOLD;
+
   /* Allocate space for the strings. */
   OLC_CONFIG(d)->play.OK = str_udup(CONFIG_OK);
   OLC_CONFIG(d)->play.NOPERSON = str_udup(CONFIG_NOPERSON);
@@ -335,6 +370,39 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_NEW_PLAYER_GEAR  = OLC_CONFIG(d)->extra.new_player_gear;
   CONFIG_ALLOW_CEXCHANGE  = OLC_CONFIG(d)->extra.allow_cexchange;
   CONFIG_WILDERNESS_SYSTEM  = OLC_CONFIG(d)->extra.wilderness_system;
+
+  /* Mob Stats */
+  CONFIG_MOB_WARRIORS_HP = OLC_CONFIG(d)->mob_stats.warriors.hit_points;
+  CONFIG_MOB_WARRIORS_AC = OLC_CONFIG(d)->mob_stats.warriors.armor_class;
+  CONFIG_MOB_WARRIORS_AB = OLC_CONFIG(d)->mob_stats.warriors.attack_bonus;
+  CONFIG_MOB_WARRIORS_DB = OLC_CONFIG(d)->mob_stats.warriors.damage_bonus;
+  CONFIG_MOB_WARRIORS_ST = OLC_CONFIG(d)->mob_stats.warriors.saving_throws;
+  CONFIG_MOB_WARRIORS_AS = OLC_CONFIG(d)->mob_stats.warriors.ability_scores;
+  CONFIG_MOB_WARRIORS_GOLD = OLC_CONFIG(d)->mob_stats.warriors.gold;
+
+  CONFIG_MOB_ARCANE_HP = OLC_CONFIG(d)->mob_stats.arcane_casters.hit_points;
+  CONFIG_MOB_ARCANE_AC = OLC_CONFIG(d)->mob_stats.arcane_casters.armor_class;
+  CONFIG_MOB_ARCANE_AB = OLC_CONFIG(d)->mob_stats.arcane_casters.attack_bonus;
+  CONFIG_MOB_ARCANE_DB = OLC_CONFIG(d)->mob_stats.arcane_casters.damage_bonus;
+  CONFIG_MOB_ARCANE_ST = OLC_CONFIG(d)->mob_stats.arcane_casters.saving_throws;
+  CONFIG_MOB_ARCANE_AS = OLC_CONFIG(d)->mob_stats.arcane_casters.ability_scores;
+  CONFIG_MOB_ARCANE_GOLD = OLC_CONFIG(d)->mob_stats.arcane_casters.gold;
+
+  CONFIG_MOB_DIVINE_HP = OLC_CONFIG(d)->mob_stats.divine_casters.hit_points;
+  CONFIG_MOB_DIVINE_AC = OLC_CONFIG(d)->mob_stats.divine_casters.armor_class;
+  CONFIG_MOB_DIVINE_AB = OLC_CONFIG(d)->mob_stats.divine_casters.attack_bonus;
+  CONFIG_MOB_DIVINE_DB = OLC_CONFIG(d)->mob_stats.divine_casters.damage_bonus;
+  CONFIG_MOB_DIVINE_ST = OLC_CONFIG(d)->mob_stats.divine_casters.saving_throws;
+  CONFIG_MOB_DIVINE_AS = OLC_CONFIG(d)->mob_stats.divine_casters.ability_scores;
+  CONFIG_MOB_DIVINE_GOLD = OLC_CONFIG(d)->mob_stats.divine_casters.gold;
+
+  CONFIG_MOB_ROGUES_HP = OLC_CONFIG(d)->mob_stats.rogues.hit_points;
+  CONFIG_MOB_ROGUES_AC = OLC_CONFIG(d)->mob_stats.rogues.armor_class;
+  CONFIG_MOB_ROGUES_AB = OLC_CONFIG(d)->mob_stats.rogues.attack_bonus;
+  CONFIG_MOB_ROGUES_DB = OLC_CONFIG(d)->mob_stats.rogues.damage_bonus;
+  CONFIG_MOB_ROGUES_ST = OLC_CONFIG(d)->mob_stats.rogues.saving_throws;
+  CONFIG_MOB_ROGUES_AS = OLC_CONFIG(d)->mob_stats.rogues.ability_scores;
+  CONFIG_MOB_ROGUES_GOLD = OLC_CONFIG(d)->mob_stats.rogues.gold;
 
   /* Allocate space for the strings. */
   if (CONFIG_OK)
@@ -808,7 +876,75 @@ int save_config(IDXTYPE nowhere)
           CONFIG_ALLOW_CEXCHANGE);
   fprintf(fl, "* What kind of wilderness system do you use?\n"
               "wilderness_system = %d\n\n",
-          CONFIG_ALLOW_CEXCHANGE);
+          CONFIG_WILDERNESS_SYSTEM);
+
+  /* MOB STATS */
+  fprintf(fl, "\n\n\n* [ Mob Stats Configuration ]\n");
+  fprintf(fl, "* Percentage modifiers for mob stats by category (100 = normal)\n\n");
+  
+  fprintf(fl, "* Warriors\n"
+              "mob_warriors_hp = %d\n"
+              "mob_warriors_ac = %d\n"
+              "mob_warriors_ab = %d\n"
+              "mob_warriors_db = %d\n"
+              "mob_warriors_st = %d\n"
+              "mob_warriors_as = %d\n"
+              "mob_warriors_gold = %d\n\n",
+          CONFIG_MOB_WARRIORS_HP,
+          CONFIG_MOB_WARRIORS_AC,
+          CONFIG_MOB_WARRIORS_AB,
+          CONFIG_MOB_WARRIORS_DB,
+          CONFIG_MOB_WARRIORS_ST,
+          CONFIG_MOB_WARRIORS_AS,
+          CONFIG_MOB_WARRIORS_GOLD);
+  
+  fprintf(fl, "* Arcane Casters\n"
+              "mob_arcane_hp = %d\n"
+              "mob_arcane_ac = %d\n"
+              "mob_arcane_ab = %d\n"
+              "mob_arcane_db = %d\n"
+              "mob_arcane_st = %d\n"
+              "mob_arcane_as = %d\n"
+              "mob_arcane_gold = %d\n\n",
+          CONFIG_MOB_ARCANE_HP,
+          CONFIG_MOB_ARCANE_AC,
+          CONFIG_MOB_ARCANE_AB,
+          CONFIG_MOB_ARCANE_DB,
+          CONFIG_MOB_ARCANE_ST,
+          CONFIG_MOB_ARCANE_AS,
+          CONFIG_MOB_ARCANE_GOLD);
+  
+  fprintf(fl, "* Divine Casters\n"
+              "mob_divine_hp = %d\n"
+              "mob_divine_ac = %d\n"
+              "mob_divine_ab = %d\n"
+              "mob_divine_db = %d\n"
+              "mob_divine_st = %d\n"
+              "mob_divine_as = %d\n"
+              "mob_divine_gold = %d\n\n",
+          CONFIG_MOB_DIVINE_HP,
+          CONFIG_MOB_DIVINE_AC,
+          CONFIG_MOB_DIVINE_AB,
+          CONFIG_MOB_DIVINE_DB,
+          CONFIG_MOB_DIVINE_ST,
+          CONFIG_MOB_DIVINE_AS,
+          CONFIG_MOB_DIVINE_GOLD);
+  
+  fprintf(fl, "* Rogues\n"
+              "mob_rogues_hp = %d\n"
+              "mob_rogues_ac = %d\n"
+              "mob_rogues_ab = %d\n"
+              "mob_rogues_db = %d\n"
+              "mob_rogues_st = %d\n"
+              "mob_rogues_as = %d\n"
+              "mob_rogues_gold = %d\n\n",
+          CONFIG_MOB_ROGUES_HP,
+          CONFIG_MOB_ROGUES_AC,
+          CONFIG_MOB_ROGUES_AB,
+          CONFIG_MOB_ROGUES_DB,
+          CONFIG_MOB_ROGUES_ST,
+          CONFIG_MOB_ROGUES_AS,
+          CONFIG_MOB_ROGUES_GOLD);
 
   fclose(fl);
 
@@ -836,9 +972,11 @@ static void cedit_disp_menu(struct descriptor_data *d)
                   "%sA%s) Autowiz Options\r\n"
                   "%sH%s) Happy Hour Options\r\n"
                   "%sP%s) Player Stat Options\r\n"
+                  "%sM%s) Mob Stats\r\n"
                   "%sQ%s) Quit\r\n"
                   "Enter your choice : ",
 
+                  grn, nrm,
                   grn, nrm,
                   grn, nrm,
                   grn, nrm,
@@ -944,6 +1082,89 @@ static void cedit_disp_player_options(struct descriptor_data *d)
                   grn, nrm);
 
   OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_MENU;
+}
+
+static void cedit_disp_mob_stats_menu(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d, "\r\n\r\n"
+                     "MOB STATS CONFIGURATION\r\n"
+                     "Select a mob category to configure:\r\n\r\n"
+                     "%s1%s) Warriors\r\n"
+                     "%s2%s) Arcane Casters\r\n"
+                     "%s3%s) Divine Casters\r\n"
+                     "%s4%s) Rogues\r\n"
+                     "\r\n"
+                     "%sQ%s) Exit To The Main Menu\r\n"
+                     "Enter your choice : ",
+
+                  grn, nrm,
+                  grn, nrm,
+                  grn, nrm,
+                  grn, nrm,
+                  grn, nrm);
+
+  OLC_MODE(d) = CEDIT_MOB_STATS_MENU;
+}
+
+static void cedit_disp_mob_stats_category(struct descriptor_data *d, int category)
+{
+  struct mob_stat_category *stats = NULL;
+  const char *category_name = "Unknown";
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  switch (category)
+  {
+  case 1:
+    stats = &OLC_CONFIG(d)->mob_stats.warriors;
+    category_name = "Warriors";
+    break;
+  case 2:
+    stats = &OLC_CONFIG(d)->mob_stats.arcane_casters;
+    category_name = "Arcane Casters";
+    break;
+  case 3:
+    stats = &OLC_CONFIG(d)->mob_stats.divine_casters;
+    category_name = "Divine Casters";
+    break;
+  case 4:
+    stats = &OLC_CONFIG(d)->mob_stats.rogues;
+    category_name = "Rogues";
+    break;
+  }
+
+  if (stats)
+  {
+    write_to_output(d, "\r\n\r\n"
+                       "MOB STATS - %s\r\n"
+                       "%s1%s) Hit Points        : %s%d%%\r\n"
+                       "%s2%s) Armor Class       : %s%d%%\r\n"
+                       "%s3%s) Attack Bonus      : %s%d%%\r\n"
+                       "%s4%s) Damage Bonus      : %s%d%%\r\n"
+                       "%s5%s) Saving Throws     : %s%d%%\r\n"
+                       "%s6%s) Ability Scores    : %s%d%%\r\n"
+                       "%s7%s) Gold              : %s%d%%\r\n"
+                       "\r\n"
+                       "%sQ%s) Return To Mob Stats Menu\r\n"
+                       "Enter your choice : ",
+
+                    category_name,
+                    grn, nrm, cyn, stats->hit_points,
+                    grn, nrm, cyn, stats->armor_class,
+                    grn, nrm, cyn, stats->attack_bonus,
+                    grn, nrm, cyn, stats->damage_bonus,
+                    grn, nrm, cyn, stats->saving_throws,
+                    grn, nrm, cyn, stats->ability_scores,
+                    grn, nrm, cyn, stats->gold,
+                    grn, nrm);
+  }
+
+  OLC_MODE(d) = CEDIT_MOB_STATS_CATEGORY_MENU;
+  OLC_VAL(d) = category; /* Store the category in OLC_VAL for later reference */
 }
 
 static void cedit_disp_game_play_options(struct descriptor_data *d)
@@ -1233,6 +1454,12 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_MENU;
       break;
 
+    case 'm':
+    case 'M':
+      cedit_disp_mob_stats_menu(d);
+      OLC_MODE(d) = CEDIT_MOB_STATS_MENU;
+      break;
+
     case 'c':
     case 'C':
       cedit_disp_crash_save_options(d);
@@ -1411,6 +1638,117 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     default:
       write_to_output(d, "\r\nThat is an invalid choice!\r\n");
       cedit_disp_player_options(d);
+    }
+    return;
+
+  case CEDIT_MOB_STATS_MENU:
+    switch (*arg)
+    {
+    case '1':
+      cedit_disp_mob_stats_category(d, 1);
+      return;
+    case '2':
+      cedit_disp_mob_stats_category(d, 2);
+      return;
+    case '3':
+      cedit_disp_mob_stats_category(d, 3);
+      return;
+    case '4':
+      cedit_disp_mob_stats_category(d, 4);
+      return;
+    case 'q':
+    case 'Q':
+      cedit_disp_menu(d);
+      return;
+    default:
+      write_to_output(d, "\r\nThat is an invalid choice!\r\n");
+      cedit_disp_mob_stats_menu(d);
+    }
+    return;
+
+  case CEDIT_MOB_STATS_CATEGORY_MENU:
+    {
+      int category = OLC_VAL(d);
+      switch (*arg)
+      {
+      case '1':
+        write_to_output(d, "Enter the percentage for Hit Points (100 = normal) : ");
+        switch (category)
+        {
+        case 1: OLC_MODE(d) = CEDIT_MOB_STATS_WARRIORS_HP; break;
+        case 2: OLC_MODE(d) = CEDIT_MOB_STATS_ARCANE_HP; break;
+        case 3: OLC_MODE(d) = CEDIT_MOB_STATS_DIVINE_HP; break;
+        case 4: OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_HP; break;
+        }
+        return;
+      case '2':
+        write_to_output(d, "Enter the percentage for Armor Class (100 = normal) : ");
+        switch (category)
+        {
+        case 1: OLC_MODE(d) = CEDIT_MOB_STATS_WARRIORS_AC; break;
+        case 2: OLC_MODE(d) = CEDIT_MOB_STATS_ARCANE_AC; break;
+        case 3: OLC_MODE(d) = CEDIT_MOB_STATS_DIVINE_AC; break;
+        case 4: OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_AC; break;
+        }
+        return;
+      case '3':
+        write_to_output(d, "Enter the percentage for Attack Bonus (100 = normal) : ");
+        switch (category)
+        {
+        case 1: OLC_MODE(d) = CEDIT_MOB_STATS_WARRIORS_AB; break;
+        case 2: OLC_MODE(d) = CEDIT_MOB_STATS_ARCANE_AB; break;
+        case 3: OLC_MODE(d) = CEDIT_MOB_STATS_DIVINE_AB; break;
+        case 4: OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_AB; break;
+        }
+        return;
+      case '4':
+        write_to_output(d, "Enter the percentage for Damage Bonus (100 = normal) : ");
+        switch (category)
+        {
+        case 1: OLC_MODE(d) = CEDIT_MOB_STATS_WARRIORS_DB; break;
+        case 2: OLC_MODE(d) = CEDIT_MOB_STATS_ARCANE_DB; break;
+        case 3: OLC_MODE(d) = CEDIT_MOB_STATS_DIVINE_DB; break;
+        case 4: OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_DB; break;
+        }
+        return;
+      case '5':
+        write_to_output(d, "Enter the percentage for Saving Throws (100 = normal) : ");
+        switch (category)
+        {
+        case 1: OLC_MODE(d) = CEDIT_MOB_STATS_WARRIORS_ST; break;
+        case 2: OLC_MODE(d) = CEDIT_MOB_STATS_ARCANE_ST; break;
+        case 3: OLC_MODE(d) = CEDIT_MOB_STATS_DIVINE_ST; break;
+        case 4: OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_ST; break;
+        }
+        return;
+      case '6':
+        write_to_output(d, "Enter the percentage for Ability Scores (100 = normal) : ");
+        switch (category)
+        {
+        case 1: OLC_MODE(d) = CEDIT_MOB_STATS_WARRIORS_AS; break;
+        case 2: OLC_MODE(d) = CEDIT_MOB_STATS_ARCANE_AS; break;
+        case 3: OLC_MODE(d) = CEDIT_MOB_STATS_DIVINE_AS; break;
+        case 4: OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_AS; break;
+        }
+        return;
+      case '7':
+        write_to_output(d, "Enter the percentage for Gold (100 = normal) : ");
+        switch (category)
+        {
+        case 1: OLC_MODE(d) = CEDIT_MOB_STATS_WARRIORS_GOLD; break;
+        case 2: OLC_MODE(d) = CEDIT_MOB_STATS_ARCANE_GOLD; break;
+        case 3: OLC_MODE(d) = CEDIT_MOB_STATS_DIVINE_GOLD; break;
+        case 4: OLC_MODE(d) = CEDIT_MOB_STATS_ROGUES_GOLD; break;
+        }
+        return;
+      case 'q':
+      case 'Q':
+        cedit_disp_mob_stats_menu(d);
+        return;
+      default:
+        write_to_output(d, "\r\nThat is an invalid choice!\r\n");
+        cedit_disp_mob_stats_category(d, category);
+      }
     }
     return;
 
@@ -2848,6 +3186,154 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_CONFIG(d)->extra.wilderness_system = (MIN(NUM_WILDERNESS_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
      }
     cedit_disp_extra_game_play_options(d);
+    break;
+
+  /* Warriors stats */
+  case CEDIT_MOB_STATS_WARRIORS_HP:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.warriors.hit_points = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 1);
+    break;
+  case CEDIT_MOB_STATS_WARRIORS_AC:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.warriors.armor_class = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 1);
+    break;
+  case CEDIT_MOB_STATS_WARRIORS_AB:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.warriors.attack_bonus = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 1);
+    break;
+  case CEDIT_MOB_STATS_WARRIORS_DB:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.warriors.damage_bonus = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 1);
+    break;
+  case CEDIT_MOB_STATS_WARRIORS_ST:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.warriors.saving_throws = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 1);
+    break;
+  case CEDIT_MOB_STATS_WARRIORS_AS:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.warriors.ability_scores = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 1);
+    break;
+  case CEDIT_MOB_STATS_WARRIORS_GOLD:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.warriors.gold = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 1);
+    break;
+
+  /* Arcane Casters stats */
+  case CEDIT_MOB_STATS_ARCANE_HP:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.arcane_casters.hit_points = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 2);
+    break;
+  case CEDIT_MOB_STATS_ARCANE_AC:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.arcane_casters.armor_class = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 2);
+    break;
+  case CEDIT_MOB_STATS_ARCANE_AB:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.arcane_casters.attack_bonus = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 2);
+    break;
+  case CEDIT_MOB_STATS_ARCANE_DB:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.arcane_casters.damage_bonus = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 2);
+    break;
+  case CEDIT_MOB_STATS_ARCANE_ST:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.arcane_casters.saving_throws = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 2);
+    break;
+  case CEDIT_MOB_STATS_ARCANE_AS:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.arcane_casters.ability_scores = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 2);
+    break;
+  case CEDIT_MOB_STATS_ARCANE_GOLD:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.arcane_casters.gold = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 2);
+    break;
+
+  /* Divine Casters stats */
+  case CEDIT_MOB_STATS_DIVINE_HP:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.divine_casters.hit_points = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 3);
+    break;
+  case CEDIT_MOB_STATS_DIVINE_AC:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.divine_casters.armor_class = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 3);
+    break;
+  case CEDIT_MOB_STATS_DIVINE_AB:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.divine_casters.attack_bonus = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 3);
+    break;
+  case CEDIT_MOB_STATS_DIVINE_DB:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.divine_casters.damage_bonus = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 3);
+    break;
+  case CEDIT_MOB_STATS_DIVINE_ST:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.divine_casters.saving_throws = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 3);
+    break;
+  case CEDIT_MOB_STATS_DIVINE_AS:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.divine_casters.ability_scores = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 3);
+    break;
+  case CEDIT_MOB_STATS_DIVINE_GOLD:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.divine_casters.gold = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 3);
+    break;
+
+  /* Rogues stats */
+  case CEDIT_MOB_STATS_ROGUES_HP:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.rogues.hit_points = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 4);
+    break;
+  case CEDIT_MOB_STATS_ROGUES_AC:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.rogues.armor_class = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 4);
+    break;
+  case CEDIT_MOB_STATS_ROGUES_AB:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.rogues.attack_bonus = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 4);
+    break;
+  case CEDIT_MOB_STATS_ROGUES_DB:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.rogues.damage_bonus = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 4);
+    break;
+  case CEDIT_MOB_STATS_ROGUES_ST:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.rogues.saving_throws = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 4);
+    break;
+  case CEDIT_MOB_STATS_ROGUES_AS:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.rogues.ability_scores = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 4);
+    break;
+  case CEDIT_MOB_STATS_ROGUES_GOLD:
+    if (*arg)
+      OLC_CONFIG(d)->mob_stats.rogues.gold = MAX(1, MIN(1000, atoi(arg)));
+    cedit_disp_mob_stats_category(d, 4);
     break;
 
   default: /* We should never get here, but just in case... */

@@ -1566,6 +1566,7 @@ const char *action_bits[] = {
     "AI-Enabled",
     "Quartermaster",
     "Unlimited-Spell-Slots",
+    "Custom-Mob-Stats",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);

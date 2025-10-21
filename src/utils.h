@@ -2596,6 +2596,39 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_ALLOW_CEXCHANGE config_info.extra.allow_cexchange
 #define CONFIG_WILDERNESS_SYSTEM config_info.extra.wilderness_system
 
+/* Mob Stats Config */
+#define CONFIG_MOB_WARRIORS_HP config_info.mob_stats.warriors.hit_points
+#define CONFIG_MOB_WARRIORS_AC config_info.mob_stats.warriors.armor_class
+#define CONFIG_MOB_WARRIORS_AB config_info.mob_stats.warriors.attack_bonus
+#define CONFIG_MOB_WARRIORS_DB config_info.mob_stats.warriors.damage_bonus
+#define CONFIG_MOB_WARRIORS_ST config_info.mob_stats.warriors.saving_throws
+#define CONFIG_MOB_WARRIORS_AS config_info.mob_stats.warriors.ability_scores
+#define CONFIG_MOB_WARRIORS_GOLD config_info.mob_stats.warriors.gold
+
+#define CONFIG_MOB_ARCANE_HP config_info.mob_stats.arcane_casters.hit_points
+#define CONFIG_MOB_ARCANE_AC config_info.mob_stats.arcane_casters.armor_class
+#define CONFIG_MOB_ARCANE_AB config_info.mob_stats.arcane_casters.attack_bonus
+#define CONFIG_MOB_ARCANE_DB config_info.mob_stats.arcane_casters.damage_bonus
+#define CONFIG_MOB_ARCANE_ST config_info.mob_stats.arcane_casters.saving_throws
+#define CONFIG_MOB_ARCANE_AS config_info.mob_stats.arcane_casters.ability_scores
+#define CONFIG_MOB_ARCANE_GOLD config_info.mob_stats.arcane_casters.gold
+
+#define CONFIG_MOB_DIVINE_HP config_info.mob_stats.divine_casters.hit_points
+#define CONFIG_MOB_DIVINE_AC config_info.mob_stats.divine_casters.armor_class
+#define CONFIG_MOB_DIVINE_AB config_info.mob_stats.divine_casters.attack_bonus
+#define CONFIG_MOB_DIVINE_DB config_info.mob_stats.divine_casters.damage_bonus
+#define CONFIG_MOB_DIVINE_ST config_info.mob_stats.divine_casters.saving_throws
+#define CONFIG_MOB_DIVINE_AS config_info.mob_stats.divine_casters.ability_scores
+#define CONFIG_MOB_DIVINE_GOLD config_info.mob_stats.divine_casters.gold
+
+#define CONFIG_MOB_ROGUES_HP config_info.mob_stats.rogues.hit_points
+#define CONFIG_MOB_ROGUES_AC config_info.mob_stats.rogues.armor_class
+#define CONFIG_MOB_ROGUES_AB config_info.mob_stats.rogues.attack_bonus
+#define CONFIG_MOB_ROGUES_DB config_info.mob_stats.rogues.damage_bonus
+#define CONFIG_MOB_ROGUES_ST config_info.mob_stats.rogues.saving_throws
+#define CONFIG_MOB_ROGUES_AS config_info.mob_stats.rogues.ability_scores
+#define CONFIG_MOB_ROGUES_GOLD config_info.mob_stats.rogues.gold
+
 #define LANDMARK_SYSTEM_NONE    0
 #define LANDMARK_SYSTEM_CITIES  1
 #define LANDMARK_SYSTEM_WORLD   2
