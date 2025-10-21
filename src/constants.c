@@ -1561,7 +1561,7 @@ const char *action_bits[] = {
     "Mob-Geniekind",
     "Mob-Dragon-Mount",
     "Retainer",
-    "Buff-Out-Of-Combat",
+    "UNUSED-96",
     "Immune-Paralysis",
     "AI-Enabled",
     "Quartermaster",

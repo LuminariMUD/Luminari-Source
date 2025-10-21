@@ -134,22 +134,6 @@ void mobile_activity(void)
           npc_class_behave(ch);
         continue;
       }
-#if defined(CAMPAIGN_DL)
-      else if (!rand_number(0, 15) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_NPC_CASTER(ch))
-      {
-        /* not in combat - reduced from 12.5% to 6.25% chance */
-        /* Wizards and sorcerers use specialized pre-buffing with long-duration spells */
-        if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
-          wizard_cast_prebuff(ch);
-        else
-          npc_spellup(ch);
-      }
-      else if (!rand_number(0, 15) && MOB_FLAGGED(ch, MOB_BUFF_OUTSIDE_COMBAT) && IS_PSIONIC(ch))
-      {
-        /* not in combat - reduced from 12.5% to 6.25% chance */
-        npc_psionic_powerup(ch);
-      }
-#else
       else if (!rand_number(0, 15) && IS_NPC_CASTER(ch))
       {
         /* not in combat - reduced from 12.5% to 6.25% chance */
@@ -164,7 +148,6 @@ void mobile_activity(void)
         /* not in combat - reduced from 12.5% to 6.25% chance */
         npc_psionic_powerup(ch);
       }
-#endif
       else if (!rand_number(0, 8) && !IS_NPC_CASTER(ch))
       {
         /* not in combat, non-caster */

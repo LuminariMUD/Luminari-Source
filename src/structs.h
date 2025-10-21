@@ -1184,7 +1184,7 @@
 #define MOB_GENIEKIND 93
 #define MOB_C_DRAGON 94
 #define MOB_RETAINER 95
-#define MOB_BUFF_OUTSIDE_COMBAT 96
+#define MOB_BUFF_OUTSIDE_COMBAT 96 /**< UNUSED - kept for backward compatibility */
 #define MOB_NOPARALYZE 97
 #define MOB_AI_ENABLED 98   /**< Mob uses AI for responses */
 #define MOB_QUARTERMASTER 99 /**< Mob can accept/complete supply orders */
