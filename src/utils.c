@@ -6310,6 +6310,49 @@ int is_player_grouped(struct char_data *target, struct char_data *group)
   return FALSE;
 }
 
+/**
+ * Check if two characters are effectively grouped together.
+ * 
+ * For players and their pets/charmed mobs, uses standard GROUP() checks.
+ * For mobs, also considers mobs following other mobs in the same room as grouped.
+ * 
+ * This is useful for mob AI decisions about group-oriented spells/abilities.
+ * 
+ * @param ch First character
+ * @param target Second character to check against
+ * @return TRUE if effectively grouped, FALSE otherwise
+ */
+bool are_grouped(struct char_data *ch, struct char_data *target)
+{
+  if (!ch || !target)
+    return FALSE;
+  
+  if (ch == target)
+    return TRUE;
+  
+  /* Standard group check - works for players and their pets/charmies */
+  if (GROUP(ch) && GROUP(target) && GROUP(ch) == GROUP(target))
+    return TRUE;
+  
+  /* For mobs: Check if they're following each other in the same room */
+  if (IS_NPC(ch) && IS_NPC(target) && IN_ROOM(ch) == IN_ROOM(target))
+  {
+    /* Check if target is following ch */
+    if (target->master == ch)
+      return TRUE;
+    
+    /* Check if ch is following target */
+    if (ch->master == target)
+      return TRUE;
+    
+    /* Check if both are following the same leader */
+    if (ch->master && target->master && ch->master == target->master)
+      return TRUE;
+  }
+  
+  return FALSE;
+}
+
 bool can_fly(struct char_data *ch)
 {
 

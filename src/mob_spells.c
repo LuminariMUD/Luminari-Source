@@ -480,6 +480,35 @@ void npc_spellup(struct char_data *ch)
     if (!victim)
       victim = ch;
   }
+  /* If no formal group, check for allied mobs in the room (following logic) */
+  else if (IS_NPC(ch))
+  {
+    struct char_data *tch, *best_victim = ch;
+    int worst_health_pct = 100;
+    
+    /* Check all characters in the room for allies that need healing */
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (tch == ch)
+        continue;
+      if (!IS_NPC(tch))
+        continue;
+      if (!are_grouped(ch, tch)) /* Use our new function! */
+        continue;
+      
+      /* Calculate health percentage */
+      if (GET_HIT(tch) > 0 && GET_MAX_HIT(tch) > 0)
+      {
+        int health_pct = (GET_HIT(tch) * 100) / GET_MAX_HIT(tch);
+        if (health_pct < worst_health_pct)
+        {
+          worst_health_pct = health_pct;
+          best_victim = tch;
+        }
+      }
+    }
+    victim = best_victim;
+  }
 
   /* try healing */
   if (GET_HIT(victim) && (GET_MAX_HIT(victim) / GET_HIT(victim)) >= 2)
