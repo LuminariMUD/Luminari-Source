@@ -2429,6 +2429,29 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   struct affected_type *aff = NULL;
   struct mud_event_data *pMudEvent = NULL;
 
+  /* Show target's name if viewing someone else */
+  if (ch != k)
+  {
+    if (IS_NPC(k))
+    {
+      /* For NPCs, show their short description */
+      send_to_char(ch, "\tY%s\tn\r\n", GET_SHORT(k));
+    }
+    else
+    {
+      /* For PCs, show name if introduced, otherwise show short description */
+      if (has_intro(ch, k))
+      {
+        send_to_char(ch, "\tY%s\tn\r\n", GET_NAME(k));
+      }
+      else
+      {
+        char *short_desc = which_desc(ch, k);
+        send_to_char(ch, "\tY%s\tn\r\n", short_desc);
+      }
+    }
+  }
+
   send_to_char(ch, "\tC");
   text_line(ch, "\tYAffected By\tC", 90, '-', '-');
   send_to_char(ch, "\tn");
@@ -3270,21 +3293,45 @@ ACMD(do_affects)
 
   one_argument(argument, arg, sizeof(arg));
 
-  /* find the victim */
-  vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
-
-  /* needs to be a group member or it won't work */
-  if (!vict)
+  /* If no argument, show own affects */
+  if (!*arg)
   {
     vict = ch;
   }
-  else if (!GROUP(ch) || !GROUP(vict))
+  else
   {
-    vict = ch;
-  }
-  else if (GROUP(ch) != GROUP(vict))
-  {
-    vict = ch;
+    /* Try to find the target */
+    vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
+    
+    if (!vict)
+    {
+      send_to_char(ch, "You don't see anyone by that name here.\r\n");
+      return;
+    }
+    
+    /* Check permissions to view target's affects */
+    if (vict != ch)
+    {
+      /* Level 31+ can see anyone's affects */
+      if (GET_LEVEL(ch) >= LVL_IMMORT)
+      {
+        /* Allowed */
+      }
+      /* Level 30 and below can see group members and their charmies */
+      else if (GROUP(ch) && GROUP(vict) && GROUP(ch) == GROUP(vict))
+      {
+        /* Allowed - viewing group member */
+      }
+      else if (IS_NPC(vict) && AFF_FLAGGED(vict, AFF_CHARM) && vict->master == ch)
+      {
+        /* Allowed - viewing own charmed mob */
+      }
+      else
+      {
+        send_to_char(ch, "You can only view affects on group members or your own charmed followers.\r\n");
+        return;
+      }
+    }
   }
 
   if (subcmd == SCMD_AFFECTS)
