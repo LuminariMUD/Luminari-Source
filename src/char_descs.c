@@ -13,6 +13,12 @@
 #include "comm.h"
 #include "char_descs.h"
 #include "race.h"
+#include "dg_scripts.h"
+#include "class.h"
+#include "mail.h"
+
+/* External function declarations */
+void update_player_last_on(void);
 
 const char *const eye_descriptions[] = {"undefined",
                                         "blue",

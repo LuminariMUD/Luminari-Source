@@ -28,6 +28,7 @@ const char *get_perk_name(int perk_id);
 const char *get_perk_description(int perk_id);
 
 /* Stage progression functions (step 3) */
+/* Stage-based progression functions */
 void init_stage_data(struct char_data *ch);
 void update_stage_data(struct char_data *ch);
 int calculate_stage_xp_needed(struct char_data *ch);
