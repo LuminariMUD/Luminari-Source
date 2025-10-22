@@ -459,6 +459,8 @@
 #define CLASS_KNIGHT_OF_THE_LILY 33
 #define CLASS_DRAGONRIDER 34
 #define CLASS_ARTIFICER 35
+#define CLASS_PLACEHOLDER_1 36
+#define CLASS_PLACEHOLDER_2 37
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -467,12 +469,12 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 36
+#define NUM_CLASSES 38
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
-#define MAX_CLASSES 36 // total number of maximum pc classes
+#define MAX_CLASSES 38 // total number of maximum pc classes
 #define NUM_CASTERS 9  // direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2

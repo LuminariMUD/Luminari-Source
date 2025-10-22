@@ -7816,7 +7816,6 @@ void load_class_list(void)
   // No class feats
   /* no spell assignment */
   /* class prereqs */
-  class_prereq_class_level(CLASS_KNIGHT_OF_THE_THORN, CLASS_KNIGHT_OF_THE_LILY, 1);
   class_prereq_bab(CLASS_KNIGHT_OF_THE_THORN, 3); 
   class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_ARCANA, 8);
   class_prereq_ability(CLASS_KNIGHT_OF_THE_THORN, ABILITY_RELIGION, 2);
@@ -7927,7 +7926,6 @@ void load_class_list(void)
   /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_KNIGHT_OF_THE_SKULL, 3);
-  class_prereq_class_level(CLASS_KNIGHT_OF_THE_SKULL, CLASS_KNIGHT_OF_THE_LILY, 1);
   class_prereq_ability(CLASS_KNIGHT_OF_THE_SKULL, ABILITY_RELIGION, 4);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_SKULL, FEAT_ALERTNESS, 1);
   class_prereq_feat(CLASS_KNIGHT_OF_THE_SKULL, FEAT_IRON_WILL, 1);
@@ -9301,6 +9299,11 @@ void load_class_list(void)
   feat_assignment(CLASS_ARTIFICER, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
 
   /****************************************************************************/
+
+  classo(CLASS_PLACEHOLDER_1, "placeholder 1", "PL1", "\tCPL1\tn", "v) \tCPlaceholder 1\tn",
+         20, Y, N, M, 6, 0, 1, 5, N, 0, 3, "","","");
+  classo(CLASS_PLACEHOLDER_2, "placeholder 2", "PL2", "\tCPL2\tn", "v) \tCPlaceholder 2\tn",
+         20, Y, N, M, 6, 0, 1, 5, N, 0, 3, "","","");
   
 }
 

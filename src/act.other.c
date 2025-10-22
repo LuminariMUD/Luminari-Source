@@ -63,12 +63,8 @@
 /* some defines for gain/respec */
 #define MODE_CLASSLIST_NORMAL 0
 #define MODE_CLASSLIST_RESPEC 1
-#if defined(CAMPAIGN_DL)
 
-#define MULTICAP 5
-#else
 #define MULTICAP 3
-#endif
 
 #define WILDSHAPE_AFFECTS 4
 #define TOG_OFF 0
