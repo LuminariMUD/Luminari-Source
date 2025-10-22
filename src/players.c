@@ -34,6 +34,7 @@
 #include "missions.h"
 #include "evolutions.h"
 #include "class.h"
+#include "perks.h"
 #include "oasis.h"
 #include "crafting_new.h"
 #include "resource_system.h"
@@ -110,6 +111,8 @@ static void load_languages(FILE *fl, struct char_data *ch);
 static void load_craft_affects(FILE *fl, struct char_data *ch);
 static void load_craft_materials(FILE *fl, struct char_data *ch);
 static void load_craft_motes(FILE *fl, struct char_data *ch);
+static void load_perks(FILE *fl, struct char_data *ch);
+static void load_perk_points(FILE *fl, struct char_data *ch);
 
 
 // external functions
@@ -1290,6 +1293,14 @@ int load_char(const char *name, struct char_data *ch)
           ch->player.personality = fread_string(fl, buf2);
         else if (!strcmp(tag, "PvPT"))
           GET_PVP_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "Perk"))
+          load_perks(fl, ch);
+        else if (!strcmp(tag, "PPts"))
+          load_perk_points(fl, ch);
+        else if (!strcmp(tag, "PStg"))
+          ch->player_specials->saved.stage_info.current_stage = atoi(line);
+        else if (!strcmp(tag, "PSXp"))
+          ch->player_specials->saved.stage_info.stage_exp = atoi(line);
         break;
 
       case 'Q':
@@ -2670,6 +2681,29 @@ void save_char(struct char_data *ch, int mode)
   }
   BUFFER_WRITE( "0 0\n");
 
+  /* Save perks */
+  BUFFER_WRITE( "Perk:\n");
+  {
+    struct char_perk_data *perk;
+    for (perk = ch->player_specials->saved.perks; perk != NULL; perk = perk->next)
+    {
+      BUFFER_WRITE( "%d %d %d\n", perk->perk_id, perk->perk_class, perk->current_rank);
+    }
+  }
+  BUFFER_WRITE( "0 0 0\n");
+
+  /* Save perk points per class */
+  BUFFER_WRITE( "PPts:\n");
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    BUFFER_WRITE( "%d %d\n", i, get_perk_points(ch, i));
+  }
+  BUFFER_WRITE( "-1 -1\n");
+
+  /* Save stage progression */
+  BUFFER_WRITE( "PStg: %d\n", ch->player_specials->saved.stage_info.current_stage);
+  BUFFER_WRITE( "PSXp: %d\n", ch->player_specials->saved.stage_info.stage_exp);
+
   /* Save evolutions */
   BUFFER_WRITE( "Evol:\n");
   for (i = 1; i < NUM_EVOLUTIONS; i++)
@@ -3448,6 +3482,47 @@ static void load_craft_motes(FILE *fl, struct char_data *ch)
       GET_CRAFT(ch).motes_required[num] = num2;
     }
   } while (num != -1);
+}
+
+/* Load character's purchased perks */
+static void load_perks(FILE *fl, struct char_data *ch)
+{
+  int perk_id = 0, class_id = 0, rank = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+  struct char_perk_data *new_perk;
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d %d", &perk_id, &class_id, &rank);
+    if (perk_id > 0 && rank > 0)
+    {
+      /* Directly create the perk entry without deducting points */
+      CREATE(new_perk, struct char_perk_data, 1);
+      new_perk->perk_id = perk_id;
+      new_perk->perk_class = class_id;
+      new_perk->current_rank = rank;
+      new_perk->next = ch->player_specials->saved.perks;
+      ch->player_specials->saved.perks = new_perk;
+    }
+  } while (perk_id > 0);
+}
+
+/* Load character's perk points per class */
+static void load_perk_points(FILE *fl, struct char_data *ch)
+{
+  int cls = 0, pts = 0, num_fields = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+
+    if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
+      return;
+    if (cls >= 0 && cls < NUM_CLASSES)
+      ch->player_specials->saved.perk_points[cls] = pts;
+  } while (1);
 }
 
 /* load_affects function now handles both 32-bit and
