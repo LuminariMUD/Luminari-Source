@@ -2958,6 +2958,33 @@
 #define MAX_FEATS 1500
 /*****/
 
+/* Perks System Constants */
+#define MAX_PERKS_PER_CLASS 50  /* Maximum number of perks per class */
+#define MAX_CHAR_PERKS 200      /* Maximum perks a character can have */
+#define STAGES_PER_LEVEL 4      /* Number of stages per character level */
+#define PERK_POINTS_PER_LEVEL 3 /* Points awarded per level (stages 1-3) */
+
+/* Perk Effect Types - what the perk modifies */
+#define PERK_EFFECT_NONE 0
+#define PERK_EFFECT_HP 1              /* Increases max HP */
+#define PERK_EFFECT_SPELL_POINTS 2    /* Increases max spell points */
+#define PERK_EFFECT_ABILITY_SCORE 3   /* Modifies STR/DEX/CON/INT/WIS/CHA */
+#define PERK_EFFECT_SAVE 4            /* Modifies saving throws */
+#define PERK_EFFECT_AC 5              /* Modifies armor class */
+#define PERK_EFFECT_SKILL 6           /* Modifies skill ranks/bonuses */
+#define PERK_EFFECT_WEAPON_DAMAGE 7   /* Adds damage to weapons */
+#define PERK_EFFECT_WEAPON_TOHIT 8    /* Adds to-hit bonus */
+#define PERK_EFFECT_SPELL_DC 9        /* Increases spell save DC */
+#define PERK_EFFECT_SPELL_DAMAGE 10   /* Increases spell damage */
+#define PERK_EFFECT_SPELL_DURATION 11 /* Increases spell duration */
+#define PERK_EFFECT_CASTER_LEVEL 12   /* Increases effective caster level */
+#define PERK_EFFECT_DAMAGE_REDUCTION 13 /* Adds damage reduction */
+#define PERK_EFFECT_SPELL_RESISTANCE 14 /* Adds spell resistance */
+#define PERK_EFFECT_CRITICAL_MULT 15    /* Increases critical multiplier */
+#define PERK_EFFECT_CRITICAL_CHANCE 16  /* Increases critical chance */
+#define PERK_EFFECT_SPECIAL 17          /* Special/unique effect requiring code */
+#define NUM_PERK_EFFECT_TYPES 18
+
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20
 #define MAX_BOMBS_ALLOWED 50
@@ -5066,6 +5093,45 @@ struct innate_magic_data
 };
 /***/
 
+/* Perks System Structures */
+
+/** Stage progression tracking - holds XP progress within a level */
+struct stage_data
+{
+    int current_stage;      /* Current stage (1-4 for stages, 4 = ready to level) */
+    int stage_exp;          /* Experience points within current stage */
+    int exp_to_next_stage;  /* XP needed to reach next stage (25% of level XP) */
+};
+
+/** Perk definition - describes a perk's properties */
+struct perk_data
+{
+    int id;                           /* Unique perk identifier */
+    char *name;                       /* Perk name */
+    char *description;                /* Perk description */
+    int associated_class;             /* Which class this perk belongs to */
+    int cost;                         /* Perk point cost to purchase */
+    int max_rank;                     /* Maximum times this perk can be taken */
+    int prerequisite_perk;            /* Perk ID required before this one (-1 if none) */
+    int prerequisite_rank;            /* Rank of prerequisite required */
+    int effect_type;                  /* Type of effect (PERK_EFFECT_*) */
+    int effect_value;                 /* Magnitude of effect per rank */
+    int effect_modifier;              /* Additional modifier (skill num, save type, etc) */
+    char *special_description;        /* For PERK_EFFECT_SPECIAL, describe what it does */
+};
+
+/** Character's acquired perk - tracks which perks a PC has and their ranks */
+struct char_perk_data
+{
+    int perk_id;                      /* Which perk this is */
+    int perk_class;                   /* Which class granted this perk */
+    int current_rank;                 /* Current rank in this perk */
+    
+    struct char_perk_data *next;      /* Linked list of character's perks */
+};
+
+/***/
+
 /* Phase 4.5: Material storage structure for wilderness harvesting */
 /* Maximum materials a player can store - reasonable limit */
 #define MAX_STORED_MATERIALS 100
@@ -5343,6 +5409,11 @@ struct player_special_data_saved
 
     struct player_invention inventions[MAX_PLAYER_INVENTIONS];
     int num_inventions;
+
+    /* Perks System - Stage-based progression */
+    struct stage_data stage_info;               /**< Current stage and stage XP within level */
+    int perk_points[NUM_CLASSES];               /**< Unspent perk points per class */
+    struct char_perk_data *perks;               /**< Linked list of acquired perks */
 };
 
 struct weird_science_level {
