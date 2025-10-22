@@ -56,6 +56,7 @@
 #include "mysql_boards.h" /* MySQL board system */
 #include "perfmon.h"
 #include "routing.h"
+#include "perks.h"
 
 /* Phase 7: Cascade system integration */
 #ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM
@@ -4702,6 +4703,9 @@ static void display_vitals_section(struct char_data *ch, int line_length)
 
 static void display_experience_section(struct char_data *ch, int line_length)
 {
+  int current_stage = 0, stage_xp = 0, stage_xp_needed = 0;
+  int i, points, has_perk_points = FALSE;
+  
   skore_section_header(ch, "\tY*** EXPERIENCE & PROGRESSION ***\tC", line_length, "\tC");
 
   /* Experience progress bar */
@@ -4713,9 +4717,57 @@ static void display_experience_section(struct char_data *ch, int line_length)
     skore_progress_bar(ch, "Experience", exp_current, exp_total, "\tY");
     send_to_char(ch, "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcNeeded:\tn %s \tc|\tn \tcLevel:\tn %d \tn\r\n",
                  add_commas(GET_EXP(ch)), add_commas(exp_needed), GET_LEVEL(ch));
+    
+    /* Display stage progression information */
+    if (!IS_NPC(ch)) {
+      current_stage = ch->player_specials->saved.stage_info.current_stage;
+      stage_xp_needed = calculate_stage_xp_needed(ch);
+      
+      if (current_stage < STAGES_PER_LEVEL) {
+        /* Calculate XP within current stage */
+        int base_level_xp = (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0);
+        int stage_start_xp = base_level_xp + (stage_xp_needed * (current_stage - 1));
+        stage_xp = GET_EXP(ch) - stage_start_xp;
+        
+        send_to_char(ch, "\tc             \tn \tYStage:\tn %d/4 \tc|\tn \tYStage XP:\tn %s/%s\r\n",
+                     current_stage,
+                     add_commas(stage_xp),
+                     add_commas(stage_xp_needed));
+      } else {
+        send_to_char(ch, "\tc             \tn \tYStage:\tn 4/4 (Ready to level!)\r\n");
+      }
+    }
   } else {
     send_to_char(ch, "\tc             \tn \tcTotal EXP:\tn %s \tc|\tn \tcLevel:\tn %d (IMMORTAL) \tn\r\n",
                  add_commas(GET_EXP(ch)), GET_LEVEL(ch));
+  }
+
+  /* Display perk points if character has any */
+  if (!IS_NPC(ch)) {
+    for (i = 0; i < NUM_CLASSES; i++) {
+      if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0) {
+        has_perk_points = TRUE;
+        break;
+      }
+    }
+    
+    if (has_perk_points) {
+      send_to_char(ch, "\r\n\tc+-- Perk Points ----------------------------------------------------------------+\tn\r\n");
+      
+      for (i = 0; i < NUM_CLASSES; i++) {
+        if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0) {
+          points = ch->player_specials->saved.perk_points[i];
+          send_to_char(ch, "\tc|\tn %-20s: %s%3d\tn point%s",
+                      class_list[i].name,
+                      points > 0 ? "\tG" : "\tD",
+                      points,
+                      points == 1 ? " " : "s");
+          
+          /* Add spacing to align properly */
+          send_to_char(ch, "                                          \tc|\tn\r\n");
+        }
+      }
+    }
   }
 
   send_to_char(ch, "\r\n\tc+-- Caster Levels --------------------------------------------------------------+\tn\r\n");

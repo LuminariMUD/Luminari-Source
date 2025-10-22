@@ -93,6 +93,7 @@ circle_SOURCES = \
 	src/evolutions.c \
 	src/feats.c \
 	src/talents.c \
+	src/perks.c \
 	src/fight.c \
 	src/gain.c \
 	src/genmob.c \

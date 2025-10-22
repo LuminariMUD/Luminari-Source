@@ -36,6 +36,7 @@
 #include "psionics.h"
 #include "evolutions.h"
 #include "spell_prep.h"
+#include "perks.h"
 
 // external functions
 void save_char_pets(struct char_data *ch);
@@ -1175,6 +1176,13 @@ int gain_exp(struct char_data *ch, int gain, int mode)
 
     /* new gain xp cap -zusuk */
     GET_EXP(ch) += gain;
+    
+    /* Check for stage advancement (Stage-based XP tracking - Step 3) */
+    if (!IS_NPC(ch) && GET_LEVEL(ch) < LVL_IMMORT)
+    {
+      int perk_points_awarded = 0;
+      check_stage_advancement(ch, &perk_points_awarded);
+    }
   }
   else if (gain < 0)
   {
