@@ -453,14 +453,12 @@
 #define CLASS_WARLOCK 28
 #define CLASS_NECROMANCER 29
 #define CLASS_PALE_MASTER CLASS_NECROMANCER
-#define CLASS_KNIGHT_OF_THE_CROWN 30
-#define CLASS_KNIGHT_OF_THE_SWORD 31
-#define CLASS_KNIGHT_OF_THE_ROSE 32
-#define CLASS_KNIGHT_OF_THE_THORN 33
-#define CLASS_KNIGHT_OF_THE_SKULL 34
-#define CLASS_KNIGHT_OF_THE_LILY 35
-#define CLASS_DRAGONRIDER 36
-#define CLASS_ARTIFICER 37
+#define CLASS_KNIGHT_OF_SOLAMNIA 30  /* Combined Crown/Sword/Rose - 20 levels */
+#define CLASS_KNIGHT_OF_THE_THORN 31
+#define CLASS_KNIGHT_OF_THE_SKULL 32
+#define CLASS_KNIGHT_OF_THE_LILY 33
+#define CLASS_DRAGONRIDER 34
+#define CLASS_ARTIFICER 35
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -469,12 +467,12 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 38
+#define NUM_CLASSES 36
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
-#define MAX_CLASSES 38 // total number of maximum pc classes
+#define MAX_CLASSES 36 // total number of maximum pc classes
 #define NUM_CASTERS 9  // direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2

@@ -3535,14 +3535,8 @@ switch (load_result)
     case CLASS_MYSTIC_THEURGE:
       perform_help(d, "class-mystictheurge");
       break;
-    case CLASS_KNIGHT_OF_THE_CROWN:
-      perform_help(d, "class-knightofthecrown");
-      break;
-    case CLASS_KNIGHT_OF_THE_SWORD:
-      perform_help(d, "class-knightofthesword");
-      break;
-    case CLASS_KNIGHT_OF_THE_ROSE:
-      perform_help(d, "class-knightoftherose");
+    case CLASS_KNIGHT_OF_SOLAMNIA:
+      perform_help(d, "class-knightofsolamnia");
       break;
     case CLASS_KNIGHT_OF_THE_THORN:
       perform_help(d, "class-knightofthethorn");

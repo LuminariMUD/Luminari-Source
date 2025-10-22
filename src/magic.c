@@ -2798,7 +2798,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     if (victim && HAS_REAL_FEAT(victim, FEAT_HONORBOUND))
       dc_mod -= 2;
   if (victim && HAS_REAL_FEAT(victim, FEAT_HONORABLE_WILL))
-      dc_mod -= CLASS_LEVEL(victim, CLASS_KNIGHT_OF_THE_CROWN);
+      dc_mod -= CLASS_LEVEL(victim, CLASS_KNIGHT_OF_SOLAMNIA);
     
   }
 
@@ -2987,7 +2987,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (victim && HAS_REAL_FEAT(victim, FEAT_HONORBOUND))
       dc_mod -= 2;
     if (victim && HAS_REAL_FEAT(victim, FEAT_HONORABLE_WILL))
-      dc_mod -= CLASS_LEVEL(victim, CLASS_KNIGHT_OF_THE_CROWN);
+      dc_mod -= CLASS_LEVEL(victim, CLASS_KNIGHT_OF_SOLAMNIA);
   }
 
   /* elven drow resistance to certain enchantments such as sleep */

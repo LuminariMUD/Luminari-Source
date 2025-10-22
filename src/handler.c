@@ -617,7 +617,7 @@ void compute_char_cap(struct char_data *ch, int mode)
         dam_cap += class_level / 3;
         break;
       case CLASS_WARRIOR:
-      case CLASS_KNIGHT_OF_THE_CROWN:
+      case CLASS_KNIGHT_OF_SOLAMNIA:
       case CLASS_KNIGHT_OF_THE_LILY:
       case CLASS_WEAPON_MASTER:
       case CLASS_DRAGONRIDER:

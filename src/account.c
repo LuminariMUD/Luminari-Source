@@ -469,29 +469,15 @@ ACMD(do_accexp)
       }
       
       /* For knight classes, also check alternate names */
-      if (i >= CLASS_KNIGHT_OF_THE_CROWN && i <= CLASS_KNIGHT_OF_THE_LILY)
+      if (i == CLASS_KNIGHT_OF_SOLAMNIA || (i >= CLASS_KNIGHT_OF_THE_THORN && i <= CLASS_KNIGHT_OF_THE_LILY))
       {
         bool matches_alternate = FALSE;
         switch (i) {
-          case CLASS_KNIGHT_OF_THE_CROWN:
+          case CLASS_KNIGHT_OF_SOLAMNIA:
 #ifdef CAMPAIGN_DL
-            matches_alternate = is_abbrev(arg2, "knight of the crimson loom");
+            matches_alternate = is_abbrev(arg2, "knight of the luminous thread");
 #else
-            matches_alternate = is_abbrev(arg2, "knight of the crown");
-#endif
-            break;
-          case CLASS_KNIGHT_OF_THE_SWORD:
-#ifdef CAMPAIGN_DL
-            matches_alternate = is_abbrev(arg2, "knight of the sundered dawn");
-#else
-            matches_alternate = is_abbrev(arg2, "knight of the sword");
-#endif
-            break;
-          case CLASS_KNIGHT_OF_THE_ROSE:
-#ifdef CAMPAIGN_DL
-            matches_alternate = is_abbrev(arg2, "knight of the ember throne");
-#else
-            matches_alternate = is_abbrev(arg2, "knight of the rose");
+            matches_alternate = is_abbrev(arg2, "knight of solamnia");
 #endif
             break;
           case CLASS_KNIGHT_OF_THE_LILY:
