@@ -2986,6 +2986,11 @@ void init_start_char(struct char_data *ch)
   GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
   GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
 
+  /* Clear perks system (Step 10) */
+  remove_all_perks(ch);
+  reset_all_perk_points(ch);
+  init_stage_data(ch);
+
   if (GET_BACKGROUND(ch) != BACKGROUND_NONE)
     SET_FEAT(ch, background_list[GET_BACKGROUND(ch)].feat, 1);
 
