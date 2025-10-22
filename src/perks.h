@@ -49,7 +49,6 @@ bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *er
 bool purchase_perk(struct char_data *ch, int perk_id, int class_id);
 struct char_perk_data *find_char_perk(struct char_data *ch, int perk_id, int class_id);
 void add_char_perk(struct char_data *ch, int perk_id, int class_id);
-void remove_char_perk(struct char_data *ch, int perk_id, int class_id);
 int count_char_perks(struct char_data *ch);
 
 /* Perk effects functions (step 6) */
@@ -66,5 +65,11 @@ int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);
+
+/* Perk refund/reset functions (step 10) */
+bool remove_char_perk(struct char_data *ch, int perk_id, int class_id);  /* Returns TRUE if removed */
+void remove_class_perks(struct char_data *ch, int class_id);              /* Remove all perks for a class */
+void remove_all_perks(struct char_data *ch);                               /* Remove all perks (for respec) */
+void reset_all_perk_points(struct char_data *ch);                          /* Reset all perk points to 0 */
 
 #endif /* _PERKS_H_ */

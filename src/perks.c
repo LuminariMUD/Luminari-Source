@@ -1129,40 +1129,7 @@ void add_char_perk(struct char_data *ch, int perk_id, int class_id)
   ch->player_specials->saved.perks = new_perk;
 }
 
-/**
- * Remove a perk from a character's perk list.
- * Used for refunds or admin removal.
- * 
- * @param ch The character
- * @param perk_id The perk ID to remove
- * @param class_id The class to remove it from
- */
-void remove_char_perk(struct char_data *ch, int perk_id, int class_id)
-{
-  struct char_perk_data *perk, *prev = NULL;
-  
-  if (!ch || IS_NPC(ch))
-    return;
-  
-  if (class_id < 0 || class_id >= NUM_CLASSES)
-    return;
-  
-  for (perk = ch->player_specials->saved.perks; perk; perk = perk->next)
-  {
-    if (perk->perk_id == perk_id && perk->perk_class == class_id)
-    {
-      /* Found it - remove from list */
-      if (prev)
-        prev->next = perk->next;
-      else
-        ch->player_specials->saved.perks = perk->next;
-      
-      free(perk);
-      return;
-    }
-    prev = perk;
-  }
-}
+/* Old remove_char_perk moved to refund section below */
 
 /**
  * Count the total number of perks a character has purchased.
@@ -1753,3 +1720,154 @@ ACMD(do_myperks)
   
   list_my_perks(ch);
 }
+
+/*****************************************************************************
+ * PERK REFUND/RESET FUNCTIONS (Step 10)
+ * These functions handle refunding perks during respec.
+ *****************************************************************************/
+
+/**
+ * Remove a specific perk from a character.
+ * Refunds the perk points to the class pool.
+ * 
+ * @param ch The character
+ * @param perk_id The perk to remove
+ * @param class_id The class the perk was purchased for
+ * @return TRUE if removed, FALSE if not found
+ */
+bool remove_char_perk(struct char_data *ch, int perk_id, int class_id)
+{
+  struct char_perk_data *perk, *prev = NULL;
+  struct perk_data *perk_def;
+  
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  /* Find and remove the perk from the linked list */
+  for (perk = ch->player_specials->saved.perks; perk != NULL; prev = perk, perk = perk->next)
+  {
+    if (perk->perk_id == perk_id && perk->perk_class == class_id)
+    {
+      /* Found it - remove from list */
+      if (prev)
+        prev->next = perk->next;
+      else
+        ch->player_specials->saved.perks = perk->next;
+      
+      /* Refund perk points */
+      perk_def = get_perk_by_id(perk_id);
+      if (perk_def)
+      {
+        int points_to_refund = perk_def->cost * perk->current_rank;
+        add_perk_points(ch, class_id, points_to_refund);
+      }
+      
+      /* Free memory */
+      free(perk);
+      
+      return TRUE;
+    }
+  }
+  
+  return FALSE;
+}
+
+/**
+ * Remove all perks for a specific class.
+ * Refunds all perk points to the class pool.
+ * 
+ * @param ch The character
+ * @param class_id The class to remove perks for
+ */
+void remove_class_perks(struct char_data *ch, int class_id)
+{
+  struct char_perk_data *perk, *next_perk, *prev = NULL;
+  struct perk_data *perk_def;
+  int total_refunded = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  perk = ch->player_specials->saved.perks;
+  
+  while (perk != NULL)
+  {
+    next_perk = perk->next;
+    
+    if (perk->perk_class == class_id)
+    {
+      /* Remove from list */
+      if (prev)
+        prev->next = next_perk;
+      else
+        ch->player_specials->saved.perks = next_perk;
+      
+      /* Calculate refund */
+      perk_def = get_perk_by_id(perk->perk_id);
+      if (perk_def)
+      {
+        total_refunded += perk_def->cost * perk->current_rank;
+      }
+      
+      /* Free memory */
+      free(perk);
+    }
+    else
+    {
+      prev = perk;
+    }
+    
+    perk = next_perk;
+  }
+  
+  /* Refund all points */
+  if (total_refunded > 0)
+  {
+    add_perk_points(ch, class_id, total_refunded);
+  }
+}
+
+/**
+ * Remove ALL perks from a character.
+ * Used during full respec - doesn't refund points since they'll be reset anyway.
+ * 
+ * @param ch The character
+ */
+void remove_all_perks(struct char_data *ch)
+{
+  struct char_perk_data *perk, *next_perk;
+  
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  perk = ch->player_specials->saved.perks;
+  
+  while (perk != NULL)
+  {
+    next_perk = perk->next;
+    free(perk);
+    perk = next_perk;
+  }
+  
+  ch->player_specials->saved.perks = NULL;
+}
+
+/**
+ * Reset all perk points to zero for all classes.
+ * Used during respec to clear out all points.
+ * 
+ * @param ch The character
+ */
+void reset_all_perk_points(struct char_data *ch)
+{
+  int i;
+  
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    ch->player_specials->saved.perk_points[i] = 0;
+  }
+}
+
