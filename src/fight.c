@@ -47,6 +47,7 @@
 #include "assign_wpn_armor.h"
 #include "evolutions.h"
 #include "backgrounds.h"
+#include "perks.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -6283,6 +6284,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += GET_LEVEL(ch) / 5;
   }
 
+  /* Add perk weapon damage bonuses (Step 6) - only for melee/unarmed attacks */
+  if (!IS_NPC(ch) && attack_type != ATTACK_TYPE_RANGED && attack_type != ATTACK_TYPE_BOMB_TOSS)
+  {
+    int perk_bonus = get_perk_weapon_damage_bonus(ch, wielded);
+    if (perk_bonus != 0)
+    {
+      dambonus += perk_bonus;
+      if (display_mode)
+        send_to_char(ch, "Perk Weapon Damage bonus: \tR%d\tn\r\n", perk_bonus);
+    }
+  }
+
   /****************************************/
   /**** display, keep mods above this *****/
   /****************************************/
@@ -9095,6 +9108,18 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
   calc_bab -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
   if (display && get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL))
     send_to_char(ch, "-%2d: %-50s\r\n", get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL), "Level Drain");
+
+  /* Add perk weapon bonuses (Step 6) - only for melee/unarmed attacks */
+  if (!IS_NPC(ch) && attack_type != ATTACK_TYPE_RANGED && attack_type != ATTACK_TYPE_BOMB_TOSS)
+  {
+    int perk_bonus = get_perk_weapon_tohit_bonus(ch, wielded);
+    if (perk_bonus != 0)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED] += perk_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", perk_bonus, "Perk Weapon To-Hit Bonus");
+    }
+  }
 
   /* Add up all the bonuses */
   for (i = 0; i < NUM_BONUS_TYPES; i++)

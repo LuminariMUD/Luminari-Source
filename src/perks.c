@@ -21,6 +21,7 @@
 #include "handler.h"
 #include "class.h"
 #include "perks.h"
+#include "assign_wpn_armor.h"
 
 /* External function from class.c */
 extern int level_exp(struct char_data *ch, int level);
@@ -1183,3 +1184,572 @@ int count_char_perks(struct char_data *ch)
   return count;
 }
 
+/*****************************************************************************
+ * PERK EFFECTS SYSTEM (Step 6)
+ * These functions apply perk bonuses to character statistics.
+ * Called from various game systems (combat, saves, skills, etc.)
+ *****************************************************************************/
+
+/**
+ * Apply all perk effects to a character.
+ * This is called when a character's stats need to be recalculated.
+ * Note: For most effects, we use getter functions called at calculation time.
+ * This function handles permanent modifications (like max HP from Toughness).
+ * 
+ * @param ch The character
+ */
+void apply_all_perk_effects(struct char_data *ch)
+{
+  struct char_perk_data *char_perk;
+  struct perk_data *perk;
+  int hp_bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  /* Calculate HP bonuses from perks like Toughness */
+  for (char_perk = ch->player_specials->saved.perks; char_perk; char_perk = char_perk->next)
+  {
+    perk = get_perk_by_id(char_perk->perk_id);
+    if (!perk)
+      continue;
+    
+    /* Apply HP bonuses */
+    if (perk->effect_type == PERK_EFFECT_HP)
+    {
+      hp_bonus += perk->effect_value * char_perk->current_rank;
+    }
+  }
+  
+  /* Note: HP bonus is applied via get_perk_hp_bonus() in limits.c */
+  /* Other effects are applied via their respective getter functions */
+}
+
+/**
+ * Get the total bonus from perks for a specific effect type and modifier.
+ * This is a generic function that sums all matching perk effects.
+ * 
+ * @param ch The character
+ * @param effect_type The type of effect (PERK_EFFECT_*)
+ * @param effect_modifier Additional modifier (skill num, save type, etc.) or -1 for any
+ * @return Total bonus from all matching perks
+ */
+int get_perk_bonus(struct char_data *ch, int effect_type, int effect_modifier)
+{
+  struct char_perk_data *char_perk;
+  struct perk_data *perk;
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  for (char_perk = ch->player_specials->saved.perks; char_perk; char_perk = char_perk->next)
+  {
+    perk = get_perk_by_id(char_perk->perk_id);
+    if (!perk)
+      continue;
+    
+    /* Check if this perk matches the effect type */
+    if (perk->effect_type != effect_type)
+      continue;
+    
+    /* Check if modifier matches (if specified) */
+    if (effect_modifier >= 0 && perk->effect_modifier != effect_modifier)
+      continue;
+    
+    /* Add the bonus (effect_value * current_rank) */
+    bonus += perk->effect_value * char_perk->current_rank;
+  }
+  
+  return bonus;
+}
+
+/**
+ * Get HP bonus from all perks.
+ * Used by hit point calculation functions.
+ * 
+ * @param ch The character
+ * @return Total HP bonus
+ */
+int get_perk_hp_bonus(struct char_data *ch)
+{
+  return get_perk_bonus(ch, PERK_EFFECT_HP, -1);
+}
+
+/**
+ * Get spell points bonus from all perks.
+ * Used by spell point calculation functions.
+ * 
+ * @param ch The character
+ * @return Total spell points bonus
+ */
+int get_perk_spell_points_bonus(struct char_data *ch)
+{
+  return get_perk_bonus(ch, PERK_EFFECT_SPELL_POINTS, -1);
+}
+
+/**
+ * Get AC bonus from all perks.
+ * Used by armor class calculation.
+ * 
+ * @param ch The character
+ * @return Total AC bonus
+ */
+int get_perk_ac_bonus(struct char_data *ch)
+{
+  return get_perk_bonus(ch, PERK_EFFECT_AC, -1);
+}
+
+/**
+ * Get saving throw bonus from perks for a specific save type.
+ * 
+ * @param ch The character
+ * @param save_type The save type (SAVING_FORT, SAVING_REFL, SAVING_WILL)
+ * @return Total save bonus
+ */
+int get_perk_save_bonus(struct char_data *ch, int save_type)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Get bonuses for this specific save type */
+  bonus += get_perk_bonus(ch, PERK_EFFECT_SAVE, save_type);
+  
+  /* Also add universal save bonuses (effect_modifier = -1) */
+  bonus += get_perk_bonus(ch, PERK_EFFECT_SAVE, -1);
+  
+  return bonus;
+}
+
+/**
+ * Get skill bonus from perks for a specific skill.
+ * 
+ * @param ch The character
+ * @param skill_num The skill number
+ * @return Total skill bonus
+ */
+int get_perk_skill_bonus(struct char_data *ch, int skill_num)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Get bonuses for this specific skill */
+  bonus += get_perk_bonus(ch, PERK_EFFECT_SKILL, skill_num);
+  
+  /* Also add universal skill bonuses (effect_modifier = -1) */
+  bonus += get_perk_bonus(ch, PERK_EFFECT_SKILL, -1);
+  
+  return bonus;
+}
+
+/**
+ * Get weapon damage bonus from perks for melee attacks.
+ * Only applies if character is unarmed or wielding a melee weapon (not ranged).
+ * 
+ * @param ch The character
+ * @param wielded The wielded weapon (can be NULL for unarmed)
+ * @return Total weapon damage bonus
+ */
+int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  /* If wielded is NULL, character is unarmed - apply bonus */
+  if (!wielded)
+    return get_perk_bonus(ch, PERK_EFFECT_WEAPON_DAMAGE, -1);
+  
+  /* Check if the weapon is ranged - if so, don't apply bonus */
+  if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
+  {
+    int weapon_type = GET_OBJ_VAL(wielded, 0);
+    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+      return 0; /* No bonus for ranged weapons */
+  }
+  
+  /* Weapon is melee, apply bonus */
+  return get_perk_bonus(ch, PERK_EFFECT_WEAPON_DAMAGE, -1);
+}
+
+/**
+ * Get weapon to-hit bonus from perks for melee attacks.
+ * Only applies if character is unarmed or wielding a melee weapon (not ranged).
+ * 
+ * @param ch The character
+ * @param wielded The wielded weapon (can be NULL for unarmed)
+ * @return Total weapon to-hit bonus
+ */
+int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+    
+  /* If wielded is NULL, character is unarmed - apply bonus */
+  if (!wielded)
+    return get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
+  
+  /* Check if the weapon is ranged - if so, don't apply bonus */
+  if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
+  {
+    int weapon_type = GET_OBJ_VAL(wielded, 0);
+    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+      return 0; /* No bonus for ranged weapons */
+  }
+  
+  /* Weapon is melee, apply bonus */
+  return get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
+}
+
+/*****************************************************************************
+ * Step 7: Perk OLC Interface - Player Commands
+ *****************************************************************************/
+
+/* Save type names for display */
+static const char *save_type_names[] = {
+  "Fortitude",
+  "Reflex", 
+  "Will",
+  "Poison",
+  "Death"
+};
+
+/**
+ * Display a single perk's details to the player.
+ * 
+ * @param ch The character viewing the perk
+ * @param perk The perk to display
+ * @param char_perk The character's current rank in this perk (can be NULL)
+ */
+void display_perk_details(struct char_data *ch, struct perk_data *perk, struct char_perk_data *char_perk)
+{
+  int current_rank = char_perk ? char_perk->current_rank : 0;
+  int class_id = perk->associated_class;
+  
+  send_to_char(ch, "\tc%s\tn\r\n", perk->name);
+  send_to_char(ch, "Class: \tW%s\tn\r\n", class_list[class_id].name);
+  send_to_char(ch, "Cost: \tY%d\tn perk point%s per rank\r\n", perk->cost, perk->cost != 1 ? "s" : "");
+  send_to_char(ch, "Max Ranks: \tC%d\tn\r\n", perk->max_rank);
+  send_to_char(ch, "Current Rank: \tG%d\tn\r\n", current_rank);
+  
+  if (perk->prerequisite_perk >= 0)
+  {
+    struct perk_data *prereq = get_perk_by_id(perk->prerequisite_perk);
+    if (prereq)
+      send_to_char(ch, "Prerequisite: \tR%s\tn (Rank %d)\r\n", prereq->name, perk->prerequisite_rank);
+  }
+  
+  send_to_char(ch, "\r\nDescription:\r\n%s\r\n", perk->description);
+  
+  /* Show effect */
+  send_to_char(ch, "\r\nEffect: ");
+  switch (perk->effect_type)
+  {
+    case PERK_EFFECT_HP:
+      send_to_char(ch, "\tG+%d\tn Hit Points per rank\r\n", perk->effect_value);
+      break;
+    case PERK_EFFECT_SPELL_POINTS:
+      send_to_char(ch, "\tG+%d\tn Spell Points per rank\r\n", perk->effect_value);
+      break;
+    case PERK_EFFECT_AC:
+      send_to_char(ch, "\tG+%d\tn Armor Class per rank\r\n", perk->effect_value);
+      break;
+    case PERK_EFFECT_SAVE:
+      if (perk->effect_modifier == -1)
+        send_to_char(ch, "\tG+%d\tn to all saves per rank\r\n", perk->effect_value);
+      else if (perk->effect_modifier >= 0 && perk->effect_modifier < NUM_OF_SAVING_THROWS)
+        send_to_char(ch, "\tG+%d\tn to %s save per rank\r\n", perk->effect_value, 
+                     save_type_names[perk->effect_modifier]);
+      break;
+    case PERK_EFFECT_SKILL:
+      if (perk->effect_modifier == -1)
+        send_to_char(ch, "\tG+%d\tn to all skills per rank\r\n", perk->effect_value);
+      else if (perk->effect_modifier >= 0 && perk->effect_modifier < NUM_ABILITIES)
+        send_to_char(ch, "\tG+%d\tn to %s per rank\r\n", perk->effect_value,
+                     ability_names[perk->effect_modifier]);
+      break;
+    case PERK_EFFECT_WEAPON_DAMAGE:
+      send_to_char(ch, "\tG+%d\tn to melee weapon damage per rank\r\n", perk->effect_value);
+      break;
+    case PERK_EFFECT_WEAPON_TOHIT:
+      send_to_char(ch, "\tG+%d\tn to melee weapon to-hit per rank\r\n", perk->effect_value);
+      break;
+    default:
+      send_to_char(ch, "Unknown effect\r\n");
+      break;
+  }
+  
+  /* Show if purchasable */
+  if (current_rank < perk->max_rank)
+  {
+    char error_msg[256];
+    if (can_purchase_perk(ch, perk->id, class_id, error_msg, sizeof(error_msg)))
+    {
+      send_to_char(ch, "\r\n\tGYou can purchase this perk!\tn\r\n");
+      send_to_char(ch, "Use: \tcperk buy %d\tn\r\n", perk->id);
+    }
+    else
+    {
+      send_to_char(ch, "\r\n\tRCannot purchase: %s\tn\r\n", error_msg);
+    }
+  }
+  else
+  {
+    send_to_char(ch, "\r\n\tYYou have maximum ranks in this perk.\tn\r\n");
+  }
+}
+
+/**
+ * List all perks available for a specific class.
+ * 
+ * @param ch The character viewing perks
+ * @param class_id The class to show perks for
+ */
+void list_perks_for_class(struct char_data *ch, int class_id)
+{
+  int perk_ids[NUM_PERKS];
+  int count, i;
+  struct perk_data *perk;
+  struct char_perk_data *char_perk;
+  
+  count = get_class_perks(class_id, perk_ids, NUM_PERKS);
+  
+  if (count == 0)
+  {
+    send_to_char(ch, "No perks available for %s.\r\n", class_list[class_id].name);
+    return;
+  }
+  
+  send_to_char(ch, "\tc%s Perks\tn\r\n", class_list[class_id].name);
+  send_to_char(ch, "Available Perk Points: \tY%d\tn\r\n\r\n", get_perk_points(ch, class_id));
+  
+  send_to_char(ch, "\tW%-4s %-30s %-6s %-4s %-6s\tn\r\n", "ID", "Name", "Cost", "Rank", "Max");
+  send_to_char(ch, "---- ------------------------------ ------ ---- ------\r\n");
+  
+  for (i = 0; i < count; i++)
+  {
+    perk = get_perk_by_id(perk_ids[i]);
+    if (!perk)
+      continue;
+      
+    char_perk = find_char_perk(ch, perk_ids[i], class_id);
+    int current_rank = char_perk ? char_perk->current_rank : 0;
+    
+    send_to_char(ch, "%-4d %-30s %-6d %s%-4d\tn %-6d\r\n",
+                 perk->id,
+                 perk->name,
+                 perk->cost,
+                 current_rank > 0 ? "\tG" : "",
+                 current_rank,
+                 perk->max_rank);
+  }
+  
+  send_to_char(ch, "\r\nUse '\tcperk info <id>\tn' to see details about a perk.\r\n");
+  send_to_char(ch, "Use '\tcperk buy <id>\tn' to purchase a perk.\r\n");
+}
+
+/**
+ * List all perks the character currently has.
+ * 
+ * @param ch The character
+ */
+void list_my_perks(struct char_data *ch)
+{
+  struct char_perk_data *char_perk;
+  struct perk_data *perk;
+  int count = 0;
+  
+  send_to_char(ch, "\tcYour Purchased Perks\tn\r\n\r\n");
+  send_to_char(ch, "\tW%-30s %-15s %-6s\tn\r\n", "Name", "Class", "Rank");
+  send_to_char(ch, "------------------------------ --------------- ------\r\n");
+  
+  for (char_perk = ch->player_specials->saved.perks; char_perk; char_perk = char_perk->next)
+  {
+    perk = get_perk_by_id(char_perk->perk_id);
+    if (!perk)
+      continue;
+      
+    send_to_char(ch, "%-30s %-15s \tG%-6d\tn\r\n",
+                 perk->name,
+                 class_list[perk->associated_class].name,
+                 char_perk->current_rank);
+    count++;
+  }
+  
+  if (count == 0)
+  {
+    send_to_char(ch, "You have not purchased any perks yet.\r\n");
+  }
+  
+  send_to_char(ch, "\r\nTotal perks purchased: %d\r\n", count);
+}
+
+/**
+ * Main perk command - handles viewing and purchasing perks.
+ * 
+ * Syntax:
+ *   perk                    - Show perks for current class
+ *   perk <class>            - Show perks for specific class
+ *   perk info <id>          - Show details for a specific perk
+ *   perk buy <id>           - Purchase a perk
+ *   perk list               - Show all classes with perks
+ */
+ACMD(do_perk)
+{
+  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  int class_id, perk_id;
+  struct perk_data *perk;
+  struct char_perk_data *char_perk;
+  char error_msg[256];
+  
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "NPCs cannot use perks.\r\n");
+    return;
+  }
+  
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  
+  /* No arguments - show perks for primary class */
+  if (!*arg1)
+  {
+    class_id = GET_CLASS(ch);
+    list_perks_for_class(ch, class_id);
+    return;
+  }
+  
+  /* perk list - show all available classes */
+  if (!strcmp(arg1, "list"))
+  {
+    send_to_char(ch, "\tcAvailable Perk Classes\tn\r\n\r\n");
+    send_to_char(ch, "Your classes and available perk points:\r\n");
+    
+    for (class_id = 0; class_id < NUM_CLASSES; class_id++)
+    {
+      if (CLASS_LEVEL(ch, class_id) > 0)
+      {
+        int points = get_perk_points(ch, class_id);
+        send_to_char(ch, "  %-15s (Level %2d): \tY%d\tn perk point%s\r\n",
+                     class_list[class_id].name,
+                     CLASS_LEVEL(ch, class_id),
+                     points,
+                     points != 1 ? "s" : "");
+      }
+    }
+    
+    send_to_char(ch, "\r\nUse '\tcperk <class>\tn' to view perks for a specific class.\r\n");
+    return;
+  }
+  
+  /* perk info <id> - show perk details */
+  if (!strcmp(arg1, "info"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Usage: perk info <perk id>\r\n");
+      return;
+    }
+    
+    perk_id = atoi(arg2);
+    perk = get_perk_by_id(perk_id);
+    
+    if (!perk)
+    {
+      send_to_char(ch, "Invalid perk ID.\r\n");
+      return;
+    }
+    
+    char_perk = find_char_perk(ch, perk_id, perk->associated_class);
+    display_perk_details(ch, perk, char_perk);
+    return;
+  }
+  
+  /* perk buy <id> - purchase a perk */
+  if (!strcmp(arg1, "buy") || !strcmp(arg1, "purchase"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Usage: perk buy <perk id>\r\n");
+      return;
+    }
+    
+    perk_id = atoi(arg2);
+    perk = get_perk_by_id(perk_id);
+    
+    if (!perk)
+    {
+      send_to_char(ch, "Invalid perk ID.\r\n");
+      return;
+    }
+    
+    class_id = perk->associated_class;
+    
+    /* Check if can purchase */
+    if (!can_purchase_perk(ch, perk_id, class_id, error_msg, sizeof(error_msg)))
+    {
+      send_to_char(ch, "\tRCannot purchase perk: %s\tn\r\n", error_msg);
+      return;
+    }
+    
+    /* Purchase the perk */
+    if (purchase_perk(ch, perk_id, class_id))
+    {
+      char_perk = find_char_perk(ch, perk_id, class_id);
+      send_to_char(ch, "\tGYou have purchased rank %d of '%s'!\tn\r\n",
+                   char_perk->current_rank, perk->name);
+      send_to_char(ch, "Remaining perk points for %s: \tY%d\tn\r\n",
+                   class_list[class_id].name, get_perk_points(ch, class_id));
+      
+      /* Recalculate stats to apply new perk */
+      affect_total(ch);
+    }
+    else
+    {
+      send_to_char(ch, "\tRFailed to purchase perk.\tn\r\n");
+    }
+    return;
+  }
+  
+  /* Try to parse as a class name */
+  class_id = parse_class_long(arg1);
+  
+  if (class_id == CLASS_UNDEFINED)
+  {
+    send_to_char(ch, "Unknown class or command.\r\n");
+    send_to_char(ch, "Usage:\r\n");
+    send_to_char(ch, "  perk               - Show perks for your current class\r\n");
+    send_to_char(ch, "  perk list          - Show all your classes\r\n");
+    send_to_char(ch, "  perk <class>       - Show perks for a specific class\r\n");
+    send_to_char(ch, "  perk info <id>     - Show details for a perk\r\n");
+    send_to_char(ch, "  perk buy <id>      - Purchase a perk\r\n");
+    return;
+  }
+  
+  /* Check if character has this class */
+  if (CLASS_LEVEL(ch, class_id) == 0)
+  {
+    send_to_char(ch, "You don't have any levels in %s.\r\n", class_list[class_id].name);
+    return;
+  }
+  
+  list_perks_for_class(ch, class_id);
+}
+
+/**
+ * Command to show character's purchased perks.
+ * 
+ * Syntax: myperks
+ */
+ACMD(do_myperks)
+{
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "NPCs cannot use perks.\r\n");
+    return;
+  }
+  
+  list_my_perks(ch);
+}

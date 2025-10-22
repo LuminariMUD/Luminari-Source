@@ -52,4 +52,19 @@ void add_char_perk(struct char_data *ch, int perk_id, int class_id);
 void remove_char_perk(struct char_data *ch, int perk_id, int class_id);
 int count_char_perks(struct char_data *ch);
 
+/* Perk effects functions (step 6) */
+void apply_all_perk_effects(struct char_data *ch);
+int get_perk_bonus(struct char_data *ch, int effect_type, int effect_modifier);
+int get_perk_hp_bonus(struct char_data *ch);
+int get_perk_spell_points_bonus(struct char_data *ch);
+int get_perk_ac_bonus(struct char_data *ch);
+int get_perk_save_bonus(struct char_data *ch, int save_type);
+int get_perk_skill_bonus(struct char_data *ch, int skill_num);
+int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded);
+int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
+
+/* Perk command functions (step 7) */
+ACMD_DECL(do_perk);
+ACMD_DECL(do_myperks);
+
 #endif /* _PERKS_H_ */

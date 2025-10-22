@@ -44,6 +44,7 @@
 #include "oasis.h"
 #include "quest.h"
 #include "backgrounds.h"
+#include "perks.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -1048,6 +1049,12 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
         value += tool_bonus;
       }
     }
+  }
+
+  /* Add perk skill bonuses */
+  if (!IS_NPC(ch))
+  {
+    value += get_perk_skill_bonus(ch, abilityNum);
   }
 
   switch (abilityNum)
