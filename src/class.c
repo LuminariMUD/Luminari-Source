@@ -37,6 +37,7 @@
 #include "evolutions.h"
 #include "backgrounds.h"
 #include "campaign.h"
+#include "perks.h"
 
 /** LOCAL DEFINES **/
 // good/bad
@@ -3480,6 +3481,12 @@ void advance_level(struct char_data *ch, int class)
       add_psp = 0, add_move = 0, k, trains = 0;
   int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
   int i = 0;
+
+  /* Reset stage progression for new level (Stage-based XP tracking - Step 3) */
+  if (!IS_NPC(ch))
+  {
+    init_stage_data(ch);
+  }
 
   /**because con items / spells are affecting based on level, we have to
   unaffect before we level up -zusuk */

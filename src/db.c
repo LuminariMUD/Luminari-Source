@@ -48,6 +48,7 @@
 #include "craft.h"
 #include "hlquest.h"
 #include "mudlim.h"
+#include "perks.h"
 #include "spec_abilities.h"
 #include "help.h"
 #include "pubsub.h"
@@ -1193,6 +1194,9 @@ void boot_db(void)
      first */
   log("Assigning spell and skill levels.");
   init_spell_levels();
+
+  log("Initializing perks system.");
+  init_perks();
 
   log("Sorting command list...");
   sort_commands();
@@ -6724,6 +6728,15 @@ void init_char(struct char_data *ch)
     {
       SET_SKILL(ch, i, 4);
     }
+  }
+
+  /* Initialize stage data for stage-based leveling (Step 3) */
+  init_stage_data(ch);
+  
+  /* Initialize perk points array */
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    ch->player_specials->saved.perk_points[i] = 0;
   }
 }
 

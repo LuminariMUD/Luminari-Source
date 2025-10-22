@@ -1,0 +1,1185 @@
+/**
+ * @file perks.c
+ * Perks System - Character progression through stage-based leveling
+ * 
+ * This system provides additional customization between levels through
+ * a staged advancement system similar to DDO's enhancement trees.
+ */
+
+#include "conf.h"
+#include "sysdep.h"
+#include "structs.h"
+
+/* Workaround for class.h using NUM_ABILITIES instead of MAX_ABILITIES */
+#ifndef NUM_ABILITIES
+#define NUM_ABILITIES MAX_ABILITIES
+#endif
+
+#include "utils.h"
+#include "comm.h"
+#include "db.h"
+#include "handler.h"
+#include "class.h"
+#include "perks.h"
+
+/* External function from class.c */
+extern int level_exp(struct char_data *ch, int level);
+#include "interpreter.h"
+#include "constants.h"
+#include "perks.h"
+
+/* Global perk database - all defined perks */
+struct perk_data perk_list[NUM_PERKS];
+
+/* Initialize the perk system - called at boot */
+void init_perks(void)
+{
+  int i;
+  
+  /* Clear all perks */
+  for (i = 0; i < NUM_PERKS; i++)
+  {
+    perk_list[i].id = PERK_UNDEFINED;
+    perk_list[i].name = strdup("Undefined");
+    perk_list[i].description = strdup("This perk has not been defined.");
+    perk_list[i].associated_class = CLASS_UNDEFINED;
+    perk_list[i].cost = 0;
+    perk_list[i].max_rank = 0;
+    perk_list[i].prerequisite_perk = -1;
+    perk_list[i].prerequisite_rank = 0;
+    perk_list[i].effect_type = PERK_EFFECT_NONE;
+    perk_list[i].effect_value = 0;
+    perk_list[i].effect_modifier = 0;
+    perk_list[i].special_description = strdup("");
+  }
+  
+  /* Define Fighter Perks */
+  define_fighter_perks();
+  
+  /* Define Wizard Perks */
+  define_wizard_perks();
+  
+  /* Define Cleric Perks */
+  define_cleric_perks();
+  
+  /* Define Rogue Perks */
+  define_rogue_perks();
+  
+  /* Define Ranger Perks */
+  define_ranger_perks();
+  
+  /* Define Barbarian Perks */
+  define_barbarian_perks();
+  
+  log("Perks system initialized with %d defined perks.", count_defined_perks());
+}
+
+/* Count how many perks are actually defined */
+int count_defined_perks(void)
+{
+  int i, count = 0;
+  
+  for (i = 0; i < NUM_PERKS; i++)
+  {
+    if (perk_list[i].id != PERK_UNDEFINED)
+      count++;
+  }
+  
+  return count;
+}
+
+/* Define Fighter Perks */
+void define_fighter_perks(void)
+{
+  struct perk_data *perk;
+  
+  /* Weapon Specialization I */
+  perk = &perk_list[PERK_FIGHTER_WEAPON_SPEC_1];
+  perk->id = PERK_FIGHTER_WEAPON_SPEC_1;
+  perk->name = strdup("Weapon Specialization I");
+  perk->description = strdup("+1 damage with all melee weapons");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_WEAPON_DAMAGE;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Weapon Specialization II */
+  perk = &perk_list[PERK_FIGHTER_WEAPON_SPEC_2];
+  perk->id = PERK_FIGHTER_WEAPON_SPEC_2;
+  perk->name = strdup("Weapon Specialization II");
+  perk->description = strdup("+2 damage with all melee weapons");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_WEAPON_SPEC_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_WEAPON_DAMAGE;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Weapon Specialization III */
+  perk = &perk_list[PERK_FIGHTER_WEAPON_SPEC_3];
+  perk->id = PERK_FIGHTER_WEAPON_SPEC_3;
+  perk->name = strdup("Weapon Specialization III");
+  perk->description = strdup("+3 damage with all melee weapons");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_WEAPON_SPEC_2;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_WEAPON_DAMAGE;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Toughness */
+  perk = &perk_list[PERK_FIGHTER_TOUGHNESS];
+  perk->id = PERK_FIGHTER_TOUGHNESS;
+  perk->name = strdup("Toughness");
+  perk->description = strdup("+5 HP per rank");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_HP;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Armor Mastery I */
+  perk = &perk_list[PERK_FIGHTER_ARMOR_MASTERY_1];
+  perk->id = PERK_FIGHTER_ARMOR_MASTERY_1;
+  perk->name = strdup("Armor Mastery I");
+  perk->description = strdup("Reduce armor check penalty by 1");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Reduces armor check penalties");
+  
+  /* Physical Resistance I */
+  perk = &perk_list[PERK_FIGHTER_PHYSICAL_RESISTANCE_1];
+  perk->id = PERK_FIGHTER_PHYSICAL_RESISTANCE_1;
+  perk->name = strdup("Physical Resistance I");
+  perk->description = strdup("+1 to Fortitude saves");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 1;
+  perk->effect_modifier = APPLY_SAVING_FORT;
+  perk->special_description = strdup("");
+}
+
+/* Define Wizard Perks */
+void define_wizard_perks(void)
+{
+  struct perk_data *perk;
+  
+  /* Spell Focus I */
+  perk = &perk_list[PERK_WIZARD_SPELL_FOCUS_1];
+  perk->id = PERK_WIZARD_SPELL_FOCUS_1;
+  perk->name = strdup("Spell Focus Enhancement I");
+  perk->description = strdup("+1 DC to chosen spell school");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Choose spell school when taking this perk");
+  
+  /* Arcane Augmentation */
+  perk = &perk_list[PERK_WIZARD_ARCANE_AUGMENTATION];
+  perk->id = PERK_WIZARD_ARCANE_AUGMENTATION;
+  perk->name = strdup("Arcane Augmentation");
+  perk->description = strdup("+5 spell points per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPELL_POINTS;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Extended Spell I */
+  perk = &perk_list[PERK_WIZARD_EXTENDED_SPELL_1];
+  perk->id = PERK_WIZARD_EXTENDED_SPELL_1;
+  perk->name = strdup("Extended Spell Enhancement I");
+  perk->description = strdup("+10% spell duration");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPELL_DURATION;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Potent Magic I */
+  perk = &perk_list[PERK_WIZARD_POTENT_MAGIC_1];
+  perk->id = PERK_WIZARD_POTENT_MAGIC_1;
+  perk->name = strdup("Potent Magic I");
+  perk->description = strdup("+1 to spell penetration checks");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Bonus to spell penetration checks");
+}
+
+/* Define Cleric Perks */
+void define_cleric_perks(void)
+{
+  struct perk_data *perk;
+  
+  /* Healing Amplification */
+  perk = &perk_list[PERK_CLERIC_HEALING_AMP];
+  perk->id = PERK_CLERIC_HEALING_AMP;
+  perk->name = strdup("Healing Amplification");
+  perk->description = strdup("+10% healing spell effectiveness per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases healing done by healing spells");
+  
+  /* Empowered Healing I */
+  perk = &perk_list[PERK_CLERIC_EMPOWERED_HEALING_1];
+  perk->id = PERK_CLERIC_EMPOWERED_HEALING_1;
+  perk->name = strdup("Empowered Healing I");
+  perk->description = strdup("Heal an additional 1d6 HP with healing spells");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Adds 1d6 to healing spell rolls");
+  
+  /* Toughness */
+  perk = &perk_list[PERK_CLERIC_TOUGHNESS];
+  perk->id = PERK_CLERIC_TOUGHNESS;
+  perk->name = strdup("Toughness");
+  perk->description = strdup("+5 HP per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_HP;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+}
+
+/* Define Rogue Perks */
+void define_rogue_perks(void)
+{
+  struct perk_data *perk;
+  
+  /* Sneak Attack Enhancement */
+  perk = &perk_list[PERK_ROGUE_SNEAK_ATTACK];
+  perk->id = PERK_ROGUE_SNEAK_ATTACK;
+  perk->name = strdup("Sneak Attack Enhancement");
+  perk->description = strdup("+1d6 sneak attack damage per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Increases sneak attack damage dice");
+  
+  /* Deadly Precision I */
+  perk = &perk_list[PERK_ROGUE_DEADLY_PRECISION_1];
+  perk->id = PERK_ROGUE_DEADLY_PRECISION_1;
+  perk->name = strdup("Deadly Precision I");
+  perk->description = strdup("Critical hits with sneak attack deal +1d6 damage");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Extra damage on critical sneak attacks");
+  
+  /* Improved Flanking I */
+  perk = &perk_list[PERK_ROGUE_IMPROVED_FLANKING_1];
+  perk->id = PERK_ROGUE_IMPROVED_FLANKING_1;
+  perk->name = strdup("Improved Flanking I");
+  perk->description = strdup("+1 to hit when flanking");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Bonus to attack when flanking enemies");
+}
+
+/* Define Ranger Perks */
+void define_ranger_perks(void)
+{
+  struct perk_data *perk;
+  
+  /* Favored Enemy Enhancement I */
+  perk = &perk_list[PERK_RANGER_FAVORED_ENEMY_1];
+  perk->id = PERK_RANGER_FAVORED_ENEMY_1;
+  perk->name = strdup("Favored Enemy Enhancement I");
+  perk->description = strdup("+1 damage vs. favored enemy");
+  perk->associated_class = CLASS_RANGER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Extra damage against favored enemies");
+  
+  /* Toughness */
+  perk = &perk_list[PERK_RANGER_TOUGHNESS];
+  perk->id = PERK_RANGER_TOUGHNESS;
+  perk->name = strdup("Toughness");
+  perk->description = strdup("+5 HP per rank");
+  perk->associated_class = CLASS_RANGER;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_HP;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Bow Mastery I */
+  perk = &perk_list[PERK_RANGER_BOW_MASTERY_1];
+  perk->id = PERK_RANGER_BOW_MASTERY_1;
+  perk->name = strdup("Bow Mastery I");
+  perk->description = strdup("+1 to hit with bows");
+  perk->associated_class = CLASS_RANGER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_WEAPON_TOHIT;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Bonus to hit with bow weapons");
+}
+
+/* Define Barbarian Perks */
+void define_barbarian_perks(void)
+{
+  struct perk_data *perk;
+  
+  /* Rage Enhancement */
+  perk = &perk_list[PERK_BARBARIAN_RAGE_ENHANCEMENT];
+  perk->id = PERK_BARBARIAN_RAGE_ENHANCEMENT;
+  perk->name = strdup("Rage Enhancement");
+  perk->description = strdup("+1 to Strength and Constitution while raging per rank");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Enhances rage bonuses");
+  
+  /* Extended Rage I */
+  perk = &perk_list[PERK_BARBARIAN_EXTENDED_RAGE_1];
+  perk->id = PERK_BARBARIAN_EXTENDED_RAGE_1;
+  perk->name = strdup("Extended Rage I");
+  perk->description = strdup("Rage lasts +2 rounds longer");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases rage duration");
+  
+  /* Toughness */
+  perk = &perk_list[PERK_BARBARIAN_TOUGHNESS];
+  perk->id = PERK_BARBARIAN_TOUGHNESS;
+  perk->name = strdup("Toughness");
+  perk->description = strdup("+5 HP per rank");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_HP;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+}
+
+/* Lookup functions */
+
+/* Get perk by ID */
+struct perk_data *get_perk_by_id(int perk_id)
+{
+  if (perk_id < 0 || perk_id >= NUM_PERKS)
+    return NULL;
+  
+  if (perk_list[perk_id].id == PERK_UNDEFINED)
+    return NULL;
+  
+  return &perk_list[perk_id];
+}
+
+/* Get all perks for a specific class */
+int get_class_perks(int class_id, int *perk_ids, int max_perks)
+{
+  int i, count = 0;
+  
+  for (i = 0; i < NUM_PERKS && count < max_perks; i++)
+  {
+    if (perk_list[i].id != PERK_UNDEFINED && 
+        perk_list[i].associated_class == class_id)
+    {
+      perk_ids[count++] = i;
+    }
+  }
+  
+  return count;
+}
+
+/* Check if a perk exists */
+bool perk_exists(int perk_id)
+{
+  if (perk_id < 0 || perk_id >= NUM_PERKS)
+    return FALSE;
+  
+  return (perk_list[perk_id].id != PERK_UNDEFINED);
+}
+
+/* Get perk name */
+const char *get_perk_name(int perk_id)
+{
+  struct perk_data *perk = get_perk_by_id(perk_id);
+  
+  if (!perk)
+    return "Unknown Perk";
+  
+  return perk->name;
+}
+
+/* Get perk description */
+const char *get_perk_description(int perk_id)
+{
+  struct perk_data *perk = get_perk_by_id(perk_id);
+  
+  if (!perk)
+    return "This perk does not exist.";
+  
+  return perk->description;
+}
+
+/*****************************************************************************
+ * STAGE PROGRESSION FUNCTIONS (Step 3)
+ * These functions handle the stage-based leveling system where each level
+ * is divided into 4 stages, each requiring 25% of the total level XP.
+ *****************************************************************************/
+
+/* External function from class.c */
+extern int level_exp(struct char_data *ch, int level);
+
+/**
+ * Initialize stage data for a new character or character without stage data.
+ * Sets them to stage 1 with 0 stage XP.
+ */
+void init_stage_data(struct char_data *ch)
+{
+  if (!ch)
+    return;
+  
+  ch->player_specials->saved.stage_info.current_stage = 1;
+  ch->player_specials->saved.stage_info.stage_exp = 0;
+  ch->player_specials->saved.stage_info.exp_to_next_stage = calculate_stage_xp_needed(ch);
+}
+
+/**
+ * Update stage data after XP is gained.
+ * Recalculates the XP needed to reach the next stage.
+ */
+void update_stage_data(struct char_data *ch)
+{
+  if (!ch)
+    return;
+  
+  ch->player_specials->saved.stage_info.exp_to_next_stage = calculate_stage_xp_needed(ch);
+}
+
+/**
+ * Calculate how much XP is needed to advance to the next stage.
+ * Each stage requires 25% of the total XP needed for the level.
+ * 
+ * @param ch The character
+ * @return XP needed for next stage, or 0 if at max level
+ */
+int calculate_stage_xp_needed(struct char_data *ch)
+{
+  int current_level, next_level_xp, current_level_xp, xp_for_level, stage_xp;
+  int current_stage;
+  
+  if (!ch)
+    return 0;
+  
+  current_level = GET_LEVEL(ch);
+  current_stage = ch->player_specials->saved.stage_info.current_stage;
+  
+  /* At max level or stage 4 (ready to level) */
+  if (current_level >= LVL_IMMORT || current_stage >= STAGES_PER_LEVEL)
+    return 0;
+  
+  /* Calculate total XP needed for this level */
+  next_level_xp = level_exp(ch, current_level + 1);
+  current_level_xp = level_exp(ch, current_level);
+  xp_for_level = next_level_xp - current_level_xp;
+  
+  /* Each stage is 25% of the level */
+  stage_xp = xp_for_level / STAGES_PER_LEVEL;
+  
+  return stage_xp;
+}
+
+/**
+ * Check if character has enough XP to advance to the next stage.
+ * Awards perk points for stages 1-3, and sets ready-to-level flag for stage 4.
+ * 
+ * @param ch The character
+ * @param perk_points_awarded Output parameter - set to 1 if points awarded, 0 otherwise
+ * @return TRUE if character advanced a stage, FALSE otherwise
+ */
+bool check_stage_advancement(struct char_data *ch, int *perk_points_awarded)
+{
+  int current_level_xp, stage_xp_needed, stages_gained = 0;
+  int current_stage;
+  bool advanced = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+  {
+    if (perk_points_awarded)
+      *perk_points_awarded = 0;
+    return FALSE;
+  }
+  
+  /* Initialize perk points awarded */
+  if (perk_points_awarded)
+    *perk_points_awarded = 0;
+  
+  /* Get current stage info */
+  current_stage = ch->player_specials->saved.stage_info.current_stage;
+  
+  /* Already at stage 4 (ready to level) */
+  if (current_stage >= STAGES_PER_LEVEL)
+    return FALSE;
+  
+  /* Calculate how much XP we have within this level */
+  current_level_xp = level_exp(ch, GET_LEVEL(ch));
+  stage_xp_needed = calculate_stage_xp_needed(ch);
+  
+  /* Check if we have enough XP to advance stages */
+  while (current_stage < STAGES_PER_LEVEL && 
+         GET_EXP(ch) >= (current_level_xp + (stage_xp_needed * current_stage)))
+  {
+    current_stage++;
+    stages_gained++;
+    advanced = TRUE;
+    
+    /* Award perk points for stages 1-3 */
+    if (current_stage < STAGES_PER_LEVEL)
+    {
+      award_stage_perk_points(ch, GET_CLASS(ch));
+      if (perk_points_awarded)
+        (*perk_points_awarded)++;
+    }
+  }
+  
+  /* Update character's stage data */
+  if (advanced)
+  {
+    ch->player_specials->saved.stage_info.current_stage = current_stage;
+    
+    if (current_stage >= STAGES_PER_LEVEL)
+    {
+      /* Stage 4 reached - ready to level */
+      send_to_char(ch, "\tYYou have completed all stages for this level!\tn\r\n");
+      send_to_char(ch, "\tYType 'gain' to advance to the next level.\tn\r\n");
+    }
+    else
+    {
+      /* Advanced to stage 1, 2, or 3 */
+      if (stages_gained > 1)
+        send_to_char(ch, "\tYYou have advanced %d stages! (Now at stage %d/4)\tn\r\n", 
+                    stages_gained, current_stage);
+      else
+        send_to_char(ch, "\tYYou have advanced to stage %d/4!\tn\r\n", current_stage);
+    }
+    
+    update_stage_data(ch);
+  }
+  
+  return advanced;
+}
+
+/**
+ * Award perk point(s) to the character for advancing a stage.
+ * Points are awarded to the class that is being leveled.
+ * 
+ * @param ch The character
+ * @param class_id The class that is gaining the level
+ */
+void award_stage_perk_points(struct char_data *ch, int class_id)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  if (class_id < 0 || class_id >= NUM_CLASSES)
+    return;
+  
+  /* Award 1 perk point per stage (stages 1-3 only) */
+  ch->player_specials->saved.perk_points[class_id]++;
+  
+  send_to_char(ch, "\tGYou gain 1 perk point for your %s class!\tn\r\n",
+              class_list[class_id].name);
+}
+
+/*****************************************************************************
+ * PERK POINT TRACKING FUNCTIONS (Step 4)
+ * These functions manage the class-specific perk point pools.
+ *****************************************************************************/
+
+/**
+ * Get the number of unspent perk points for a specific class.
+ * 
+ * @param ch The character
+ * @param class_id The class to check
+ * @return Number of unspent perk points, or 0 if invalid
+ */
+int get_perk_points(struct char_data *ch, int class_id)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (class_id < 0 || class_id >= NUM_CLASSES)
+    return 0;
+  
+  return ch->player_specials->saved.perk_points[class_id];
+}
+
+/**
+ * Spend perk points from a class's pool.
+ * Returns TRUE if successful, FALSE if not enough points.
+ * 
+ * @param ch The character
+ * @param class_id The class to spend points from
+ * @param amount Number of points to spend
+ * @return TRUE if successful, FALSE if insufficient points
+ */
+bool spend_perk_points(struct char_data *ch, int class_id, int amount)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (class_id < 0 || class_id >= NUM_CLASSES)
+    return FALSE;
+  
+  if (amount < 0)
+    return FALSE;
+  
+  /* Check if character has enough points */
+  if (ch->player_specials->saved.perk_points[class_id] < amount)
+    return FALSE;
+  
+  /* Spend the points */
+  ch->player_specials->saved.perk_points[class_id] -= amount;
+  
+  return TRUE;
+}
+
+/**
+ * Add perk points to a class's pool.
+ * Used for refunds or admin adjustments.
+ * 
+ * @param ch The character
+ * @param class_id The class to add points to
+ * @param amount Number of points to add
+ */
+void add_perk_points(struct char_data *ch, int class_id, int amount)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  if (class_id < 0 || class_id >= NUM_CLASSES)
+    return;
+  
+  if (amount < 0)
+    return;
+  
+  ch->player_specials->saved.perk_points[class_id] += amount;
+}
+
+/**
+ * Get the total number of unspent perk points across all classes.
+ * 
+ * @param ch The character
+ * @return Total unspent perk points
+ */
+int get_total_perk_points(struct char_data *ch)
+{
+  int i, total = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    total += ch->player_specials->saved.perk_points[i];
+  }
+  
+  return total;
+}
+
+/**
+ * Display all perk points for a character (used in score/status commands).
+ * Shows points for each class the character has levels in.
+ * 
+ * @param ch The character to display points for
+ */
+void display_perk_points(struct char_data *ch)
+{
+  int i, points, has_points = FALSE;
+  
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  send_to_char(ch, "\tWPerk Points:\tn\r\n");
+  
+  /* Display points for each class the character has levels in */
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    /* Only show classes with levels or unspent points */
+    if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0)
+    {
+      points = ch->player_specials->saved.perk_points[i];
+      send_to_char(ch, "  %-20s: %s%d\tn point%s\r\n", 
+                  class_list[i].name,
+                  points > 0 ? "\tG" : "\tD",
+                  points,
+                  points == 1 ? "" : "s");
+      has_points = TRUE;
+    }
+  }
+  
+  if (!has_points)
+  {
+    send_to_char(ch, "  You have no perk points yet.\r\n");
+  }
+}
+
+/*****************************************************************************
+ * PERK PURCHASE/MANAGEMENT FUNCTIONS (Step 5)
+ * These functions handle purchasing, checking, and managing character perks.
+ *****************************************************************************/
+
+/**
+ * Check if a character has purchased a specific perk (in any class).
+ * 
+ * @param ch The character
+ * @param perk_id The perk ID to check
+ * @return TRUE if character has the perk, FALSE otherwise
+ */
+bool has_perk(struct char_data *ch, int perk_id)
+{
+  struct char_perk_data *perk;
+  
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  for (perk = ch->player_specials->saved.perks; perk; perk = perk->next)
+  {
+    if (perk->perk_id == perk_id)
+      return TRUE;
+  }
+  
+  return FALSE;
+}
+
+/**
+ * Get the rank of a perk for a specific class.
+ * Returns 0 if the character doesn't have the perk for that class.
+ * 
+ * @param ch The character
+ * @param perk_id The perk ID to check
+ * @param class_id The class to check for
+ * @return Current rank (0 if not purchased)
+ */
+int get_perk_rank(struct char_data *ch, int perk_id, int class_id)
+{
+  struct char_perk_data *perk;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (class_id < 0 || class_id >= NUM_CLASSES)
+    return 0;
+  
+  perk = find_char_perk(ch, perk_id, class_id);
+  
+  return perk ? perk->current_rank : 0;
+}
+
+/**
+ * Get the total rank of a perk across all classes.
+ * Useful for perks that stack between classes.
+ * 
+ * @param ch The character
+ * @param perk_id The perk ID to check
+ * @return Total ranks across all classes
+ */
+int get_total_perk_ranks(struct char_data *ch, int perk_id)
+{
+  struct char_perk_data *perk;
+  int total_ranks = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  for (perk = ch->player_specials->saved.perks; perk; perk = perk->next)
+  {
+    if (perk->perk_id == perk_id)
+      total_ranks += perk->current_rank;
+  }
+  
+  return total_ranks;
+}
+
+/**
+ * Find a character's perk entry for a specific perk and class.
+ * 
+ * @param ch The character
+ * @param perk_id The perk ID to find
+ * @param class_id The class to find it for
+ * @return Pointer to char_perk_data or NULL if not found
+ */
+struct char_perk_data *find_char_perk(struct char_data *ch, int perk_id, int class_id)
+{
+  struct char_perk_data *perk;
+  
+  if (!ch || IS_NPC(ch))
+    return NULL;
+  
+  if (class_id < 0 || class_id >= NUM_CLASSES)
+    return NULL;
+  
+  for (perk = ch->player_specials->saved.perks; perk; perk = perk->next)
+  {
+    if (perk->perk_id == perk_id && perk->perk_class == class_id)
+      return perk;
+  }
+  
+  return NULL;
+}
+
+/**
+ * Check if a character can purchase a perk.
+ * Validates prerequisites, class requirements, rank limits, and point availability.
+ * 
+ * @param ch The character
+ * @param perk_id The perk to check
+ * @param class_id The class to purchase it for
+ * @param error_msg Buffer to store error message (can be NULL)
+ * @param error_len Size of error message buffer
+ * @return TRUE if can purchase, FALSE otherwise
+ */
+bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *error_msg, size_t error_len)
+{
+  struct perk_data *perk;
+  struct char_perk_data *char_perk;
+  int current_rank, i;
+  
+  /* Clear error message */
+  if (error_msg && error_len > 0)
+    *error_msg = '\0';
+  
+  /* Basic validation */
+  if (!ch || IS_NPC(ch))
+  {
+    if (error_msg)
+      snprintf(error_msg, error_len, "Invalid character.");
+    return FALSE;
+  }
+  
+  if (class_id < 0 || class_id >= NUM_CLASSES)
+  {
+    if (error_msg)
+      snprintf(error_msg, error_len, "Invalid class.");
+    return FALSE;
+  }
+  
+  /* Get perk data */
+  perk = get_perk_by_id(perk_id);
+  if (!perk)
+  {
+    if (error_msg)
+      snprintf(error_msg, error_len, "Invalid perk ID.");
+    return FALSE;
+  }
+  
+  /* Check if perk belongs to this class */
+  if (perk->associated_class != class_id)
+  {
+    if (error_msg)
+      snprintf(error_msg, error_len, "This perk does not belong to the %s class.", 
+              class_list[class_id].name);
+    return FALSE;
+  }
+  
+  /* Check if character has levels in this class */
+  if (CLASS_LEVEL(ch, class_id) <= 0)
+  {
+    if (error_msg)
+      snprintf(error_msg, error_len, "You must have at least one level in %s to purchase this perk.",
+              class_list[class_id].name);
+    return FALSE;
+  }
+  
+  /* Check current rank */
+  char_perk = find_char_perk(ch, perk_id, class_id);
+  current_rank = char_perk ? char_perk->current_rank : 0;
+  
+  /* Check if at max rank */
+  if (current_rank >= perk->max_rank)
+  {
+    if (error_msg)
+      snprintf(error_msg, error_len, "You already have the maximum rank (%d) in this perk.",
+              perk->max_rank);
+    return FALSE;
+  }
+  
+  /* Check perk point cost */
+  if (get_perk_points(ch, class_id) < perk->cost)
+  {
+    if (error_msg)
+      snprintf(error_msg, error_len, "You need %d perk point%s (%d available) to purchase this.",
+              perk->cost, perk->cost == 1 ? "" : "s", get_perk_points(ch, class_id));
+    return FALSE;
+  }
+  
+  /* Check prerequisite (if any) */
+  if (perk->prerequisite_perk != PERK_UNDEFINED && perk->prerequisite_perk >= 0)
+  {
+    int prereq_id = perk->prerequisite_perk;
+    struct perk_data *prereq_perk = get_perk_by_id(prereq_id);
+    
+    if (prereq_perk)
+    {
+      int prereq_rank = get_perk_rank(ch, prereq_id, class_id);
+      
+      /* Check if character has the prerequisite perk at required rank */
+      if (prereq_rank < perk->prerequisite_rank)
+      {
+        if (error_msg)
+        {
+          if (perk->prerequisite_rank > 1)
+            snprintf(error_msg, error_len, "You must first purchase: %s (Rank %d)",
+                    prereq_perk->name, perk->prerequisite_rank);
+          else
+            snprintf(error_msg, error_len, "You must first purchase: %s", prereq_perk->name);
+        }
+        return FALSE;
+      }
+    }
+  }
+  
+  /* All checks passed */
+  return TRUE;
+}
+
+/**
+ * Purchase a perk for a character.
+ * Deducts perk points and adds the perk to the character's list.
+ * 
+ * @param ch The character
+ * @param perk_id The perk to purchase
+ * @param class_id The class to purchase it for
+ * @return TRUE if successful, FALSE otherwise
+ */
+bool purchase_perk(struct char_data *ch, int perk_id, int class_id)
+{
+  struct perk_data *perk;
+  struct char_perk_data *char_perk;
+  char error_msg[MAX_STRING_LENGTH];
+  
+  /* Validate purchase */
+  if (!can_purchase_perk(ch, perk_id, class_id, error_msg, sizeof(error_msg)))
+  {
+    send_to_char(ch, "%s\r\n", error_msg);
+    return FALSE;
+  }
+  
+  perk = get_perk_by_id(perk_id);
+  if (!perk) /* Should never happen after validation */
+    return FALSE;
+  
+  /* Try to spend the perk points */
+  if (!spend_perk_points(ch, class_id, perk->cost))
+  {
+    send_to_char(ch, "Failed to spend perk points.\r\n");
+    return FALSE;
+  }
+  
+  /* Find or create the character perk entry */
+  char_perk = find_char_perk(ch, perk_id, class_id);
+  
+  if (char_perk)
+  {
+    /* Increase rank of existing perk */
+    char_perk->current_rank++;
+    send_to_char(ch, "\tGYou have increased %s to rank %d/%d!\tn\r\n",
+                perk->name, char_perk->current_rank, perk->max_rank);
+  }
+  else
+  {
+    /* Add new perk */
+    add_char_perk(ch, perk_id, class_id);
+    send_to_char(ch, "\tGYou have learned: %s (Rank 1/%d)!\tn\r\n",
+                perk->name, perk->max_rank);
+  }
+  
+  /* Save character */
+  save_char(ch, 0);
+  
+  return TRUE;
+}
+
+/**
+ * Add a perk to a character's perk list.
+ * Creates a new char_perk_data entry with rank 1.
+ * 
+ * @param ch The character
+ * @param perk_id The perk ID to add
+ * @param class_id The class to add it for
+ */
+void add_char_perk(struct char_data *ch, int perk_id, int class_id)
+{
+  struct char_perk_data *new_perk;
+  
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  if (class_id < 0 || class_id >= NUM_CLASSES)
+    return;
+  
+  /* Check if already exists */
+  if (find_char_perk(ch, perk_id, class_id))
+    return;
+  
+  /* Create new perk entry */
+  CREATE(new_perk, struct char_perk_data, 1);
+  new_perk->perk_id = perk_id;
+  new_perk->perk_class = class_id;
+  new_perk->current_rank = 1;
+  
+  /* Add to front of list */
+  new_perk->next = ch->player_specials->saved.perks;
+  ch->player_specials->saved.perks = new_perk;
+}
+
+/**
+ * Remove a perk from a character's perk list.
+ * Used for refunds or admin removal.
+ * 
+ * @param ch The character
+ * @param perk_id The perk ID to remove
+ * @param class_id The class to remove it from
+ */
+void remove_char_perk(struct char_data *ch, int perk_id, int class_id)
+{
+  struct char_perk_data *perk, *prev = NULL;
+  
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  if (class_id < 0 || class_id >= NUM_CLASSES)
+    return;
+  
+  for (perk = ch->player_specials->saved.perks; perk; perk = perk->next)
+  {
+    if (perk->perk_id == perk_id && perk->perk_class == class_id)
+    {
+      /* Found it - remove from list */
+      if (prev)
+        prev->next = perk->next;
+      else
+        ch->player_specials->saved.perks = perk->next;
+      
+      free(perk);
+      return;
+    }
+    prev = perk;
+  }
+}
+
+/**
+ * Count the total number of perks a character has purchased.
+ * 
+ * @param ch The character
+ * @return Total number of perk entries
+ */
+int count_char_perks(struct char_data *ch)
+{
+  struct char_perk_data *perk;
+  int count = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  for (perk = ch->player_specials->saved.perks; perk; perk = perk->next)
+    count++;
+  
+  return count;
+}
+
