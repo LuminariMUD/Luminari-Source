@@ -172,7 +172,7 @@ bool can_study_known_spells(struct char_data *ch)
 
   /* inquisitor */
   if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
-      ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE || LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SWORD || LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_ROSE || 
+      ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE || LEVELUP(ch)->class == CLASS_KNIGHT_OF_SOLAMNIA || 
       LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SKULL || 
       (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 2)) && 
       GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
@@ -222,8 +222,7 @@ int compute_bonus_caster_level(struct char_data *ch, int class)
     bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
     bonus_levels += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
     bonus_levels += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
-    bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD);
-    bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE);
+    bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA);
     bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL);
     break;
   default:
@@ -268,8 +267,8 @@ int compute_divine_level(struct char_data *ch)
   divine_level += CLASS_LEVEL(ch, CLASS_DRUID);
   divine_level += CLASS_LEVEL(ch, CLASS_INQUISITOR);
   divine_level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
-  divine_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD);
-  divine_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE);
+  /* Knight of Solamnia - divine spellcasting starts at level 6 */
+  divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA) - 5);
   if (NECROMANCER_CAST_TYPE(ch) == 2)
     divine_level += CLASS_LEVEL(ch, CLASS_NECROMANCER);
   divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_PALADIN) - 3);
@@ -292,8 +291,8 @@ int compute_channel_energy_level(struct char_data *ch)
   level += CLASS_LEVEL(ch, CLASS_CLERIC);
   level += CLASS_LEVEL(ch, CLASS_INQUISITOR);
   level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
-  level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD);
-  level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE);
+  /* Knight of Solamnia - channel energy starts at level 6 */
+  level += MAX(0, CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA) - 5);
   level += MAX(0, CLASS_LEVEL(ch, CLASS_PALADIN) - 4);
   level += MAX(0, CLASS_LEVEL(ch, CLASS_BLACKGUARD) - 4);
   level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) / 2;
@@ -4797,7 +4796,7 @@ int get_daily_uses(struct char_data *ch, int featnum)
         daily_uses = 1;
       break;
     case FEAT_STRENGTH_OF_HONOR:
-      daily_uses = CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN);
+      daily_uses = CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA);
       break;
     case FEAT_COSMIC_UNDERSTANDING:
       daily_uses = 3;
@@ -10095,7 +10094,7 @@ int get_smite_evil_level(struct char_data *ch)
  int smite_level = 0;
 
  smite_level += CLASS_LEVEL(ch, CLASS_PALADIN);
- smite_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD);
+ smite_level += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA);
 
  return smite_level;
 }
@@ -10128,9 +10127,7 @@ int get_mob_stat_category(int ch_class)
     case CLASS_DUELIST:
     case CLASS_SPELLSWORD:
     case CLASS_BLACKGUARD:
-    case CLASS_KNIGHT_OF_THE_CROWN:
-    case CLASS_KNIGHT_OF_THE_SWORD:
-    case CLASS_KNIGHT_OF_THE_ROSE:
+    case CLASS_KNIGHT_OF_SOLAMNIA:
     case CLASS_KNIGHT_OF_THE_LILY:
     case CLASS_DRAGONRIDER:
       return MOB_STAT_CATEGORY_WARRIOR;

@@ -649,21 +649,17 @@ const char *class_names[] = {
     "Warlock",
     "Necromancer",
 #ifdef CAMPAIGN_DL
-    /* DragonLance theme - Traditional Knight names */
-    "Knight of the Crown", // 30
-    "Knight of the Sword",
-    "Knight of the Rose",
+    /* DragonLance theme - Combined Solamnic Knights */
+    "Knight of Solamnia", // 30 (Combined Crown/Sword/Rose)
     "Knight of the Thorn",
     "Knight of the Skull",
-    "Knight of the Lily", // 35
+    "Knight of the Lily", // 33
 #else
-    /* LuminariMUD theme - Order of Light and Shadow names */
-    "Knight of the Crimson Loom", // 30 (Crown)
-    "Knight of the Sundered Dawn", // (Sword)
-    "Knight of the Ember Throne", // (Rose)
+    /* LuminariMUD theme - Combined Order of Light */
+    "Knight of Solamnia", // 30 (Combined three orders)
     "Knight of the Shattered Mirror", // (Thorn)
     "Knight of the Pale Throne", // (Skull)
-    "Knight of the Howling Moon", // 35 (Lily)
+    "Knight of the Howling Moon", // 33 (Lily)
 #endif
     "Dragon Rider",
     "Artificer",
@@ -5537,14 +5533,12 @@ const char *spell_prep_dict[][4] = {
     {"conjure", "conjuring", "conjured", "conjurings"},      // summoner
     {"", "", "", ""},                                        /* warlock 28 */
     {"", "", "", ""},                                        /* necromancer 29 */
-    {"", "", "", ""},                                        // knight of the crown 30
-    {"", "", "", ""},                                        // knight of the sword 31
-    {"", "", "", ""},                                        // knight of the rose 32
-    {"", "", "", ""},                                        // knight of the thorn 33
-    {"", "", "", ""},                                        // knight of the skull 34
-    {"", "", "", ""},                                        // knight of the lily 35
-    {"", "", "", ""},                                        // dragonrider 36
-    {"", "", "", ""},                                        // artificer 37
+    {"", "", "", ""},                                        // knight of the solamnia 30
+    {"", "", "", ""},                                        // knight of the thorn 31
+    {"", "", "", ""},                                        // knight of the skull 32
+    {"", "", "", ""},                                        // knight of the lily 33
+    {"", "", "", ""},                                        // dragonrider 34
+    {"", "", "", ""},                                        // artificer 35
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -5586,14 +5580,12 @@ const char *spell_consign_dict[][4] = {
     {"unconjure", "unconjured", "unconjuring", "unconjure"},     // summoner
     {"", "", "", ""},                                            /* warlock 28 */
     {"", "", "", ""},                                            /* necromancer 29 */
-    {"", "", "", ""},                                            // knight of the crown 30
-    {"", "", "", ""},                                            // knight of the sword 31
-    {"", "", "", ""},                                        // knight of the rose 32
-    {"", "", "", ""},                                        // knight of the thorn 33
-    {"", "", "", ""},                                        // knight of the skull 34
-    {"", "", "", ""},                                        // knight of the lily 35
-    {"", "", "", ""},                                        // dragonrider 36
-    {"", "", "", ""},                                        // artificer 37
+    {"", "", "", ""},                                            // knight of the solamnia 30
+    {"", "", "", ""},                                        // knight of the thorn 31
+    {"", "", "", ""},                                        // knight of the skull 32
+    {"", "", "", ""},                                        // knight of the lily 33
+    {"", "", "", ""},                                        // dragonrider 34
+    {"", "", "", ""},                                        // artificer 35
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -6156,18 +6148,14 @@ const char *class_short_descriptions[] = {
     "A savvy invoker who has dominated the arcane through sheer force of will and dark pacts.",                    // warlock
     "A master of the arcane and necromantic arts, able to take upon them the powers of undeath.",                  // necromancer
 #ifdef CAMPAIGN_DL
-    /* DragonLance theme - Traditional knight descriptions */
-    "The first order of the Knights of Solamnia, bound by the tenets of obedience and honor.",                    // knight of the crown
-    "The second order of the Knights of Solamnia, bound by the tenets of courage and heroism.",                   // knight of the Sword
-    "The third order of the Knights of Solamnia, bound by the tenets of nobility, bravery and leadership.",       // knight of the Rose
+    /* DragonLance theme - Combined Knights of Solamnia */
+    "A combined order of the Knights of Solamnia, progressing through Crown, Sword and Rose virtues.",            // knight of solamnia
     "The arcane order of the Knights of Takhisis, clad in armor and adhering to a strict code of honor.",         // knight of the thorn
     "The clerical order of the Knights of Takhisis, they serve as diplomats and internal enforcers.",             // knight of the skull
     "The rank and file of the Knights of Takhisis and main force of their military.",                             // knight of the lily
 #else
-    /* LuminariMUD theme - Order of Light and Shadow descriptions */
-    "Warriors who weave oaths into reality, growing stronger with each fulfilled vow.",                           // knight of the crimson loom (crown)
-    "Mystics split between light and shadow, wielding divine magic through duality.",                             // knight of the sundered dawn (sword)
-    "Warrior-artists channeling divine fire, leading through inspiration and glory.",                             // knight of the ember throne (rose)
+    /* LuminariMUD theme - Combined Order of the Luminous Thread */
+    "Oath-warriors who weave reality through vows, progressing from initiate to master weaver.",                 // knight of the luminous thread
     "Masters of paradox blending arcane magic with martial prowess through illusion.",                            // knight of the shattered mirror (thorn)
     "Death-priests wielding negative divine energy, serving as arbiters of death's justice.",                     // knight of the pale throne (skull)
     "Primal warriors embracing their beast nature, guardians of civilization's boundary.",                        // knight of the howling moon (lily)

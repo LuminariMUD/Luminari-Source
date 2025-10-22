@@ -1213,9 +1213,9 @@ bool view_class_feats(struct char_data *ch, const char *classname)
   {
     send_to_char(ch, "The warrior class gets a bonus class feat atb level one and every even levels\r\n");
   }
-  if (class == CLASS_KNIGHT_OF_THE_CROWN)
+  if (class == CLASS_KNIGHT_OF_SOLAMNIA)
   {
-    send_to_char(ch, "The knight of the crown class gets a bonus class feat every odd knight of the crown level.\r\n");
+    send_to_char(ch, "The knight of solamnia class gets a bonus class feat every 4 knight of solamnia levels.\r\n");
   }
   if (class == CLASS_KNIGHT_OF_THE_LILY)
   {
@@ -1394,11 +1394,9 @@ int valid_align_by_class(int alignment, int class)
       return TRUE;
     else
       return FALSE;
-  // lawful good or lawful neutral only
-  case CLASS_KNIGHT_OF_THE_CROWN:
-  case CLASS_KNIGHT_OF_THE_SWORD:
-  case CLASS_KNIGHT_OF_THE_ROSE:
-    if (alignment == LAWFUL_GOOD || alignment == LAWFUL_NEUTRAL)
+  // lawful good only
+  case CLASS_KNIGHT_OF_SOLAMNIA:
+    if (alignment == LAWFUL_GOOD)
       return TRUE;
     else
       return FALSE;
@@ -1612,33 +1610,15 @@ int parse_class_long(const char *arg_in)
     return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "stalwart-defender"))
     return CLASS_STALWART_DEFENDER;
-  /* Knight of the Crown / Crimson Loom */
-  if (is_abbrev(arg, "knightofthecrown"))
-    return CLASS_KNIGHT_OF_THE_CROWN;
-  if (is_abbrev(arg, "knight-of-the-crown"))
-    return CLASS_KNIGHT_OF_THE_CROWN;
-  if (is_abbrev(arg, "knightofthecrimsonloom"))
-    return CLASS_KNIGHT_OF_THE_CROWN;
-  if (is_abbrev(arg, "knight-of-the-crimson-loom"))
-    return CLASS_KNIGHT_OF_THE_CROWN;
-  /* Knight of the Sword / Sundered Dawn */
-  if (is_abbrev(arg, "knightofthesword"))
-    return CLASS_KNIGHT_OF_THE_SWORD;
-  if (is_abbrev(arg, "knight-of-the-sword"))
-    return CLASS_KNIGHT_OF_THE_SWORD;
-  if (is_abbrev(arg, "knightofthesundereddawn"))
-    return CLASS_KNIGHT_OF_THE_SWORD;
-  if (is_abbrev(arg, "knight-of-the-sundered-dawn"))
-    return CLASS_KNIGHT_OF_THE_SWORD;
-  /* Knight of the Rose / Ember Throne */
-  if (is_abbrev(arg, "knightoftherose"))
-    return CLASS_KNIGHT_OF_THE_ROSE;
-  if (is_abbrev(arg, "knight-of-the-rose"))
-    return CLASS_KNIGHT_OF_THE_ROSE;
-  if (is_abbrev(arg, "knightoftheemberthrone"))
-    return CLASS_KNIGHT_OF_THE_ROSE;
-  if (is_abbrev(arg, "knight-of-the-ember-throne"))
-    return CLASS_KNIGHT_OF_THE_ROSE;
+  /* Knight of Solamnia / Luminous Thread */
+  if (is_abbrev(arg, "knightofsolamnia"))
+    return CLASS_KNIGHT_OF_SOLAMNIA;
+  if (is_abbrev(arg, "knight-of-solamnia"))
+    return CLASS_KNIGHT_OF_SOLAMNIA;
+  if (is_abbrev(arg, "knightoftheluminousthread"))
+    return CLASS_KNIGHT_OF_SOLAMNIA;
+  if (is_abbrev(arg, "knight-of-the-luminous-thread"))
+    return CLASS_KNIGHT_OF_SOLAMNIA;
   /* Knight of the Thorn / Shattered Mirror */
   if (is_abbrev(arg, "knightofthethorn"))
     return CLASS_KNIGHT_OF_THE_THORN;
@@ -2412,8 +2392,6 @@ static void newbie_equip_obj(struct char_data *ch, obj_vnum vnum, int wear_pos, 
 /* function that gives chars starting gear */
 void newbieEquipment(struct char_data *ch)
 {
-  struct obj_data *obj = NULL;
-
 #if defined(USE_OLD_NOOB_GEAR)
   struct obj_data *quiver = NULL, *pouch = NULL, *bp = NULL;
   int objNums[] = {
@@ -2439,6 +2417,7 @@ void newbieEquipment(struct char_data *ch)
   send_to_char(ch, "\tMYou are given a set of starting equipment...\tn\r\n");
 
 #if defined(USE_CONTAINER_OBJECTS)
+  struct obj_data *obj = NULL;
   // give everyone torch, rations, skin, backpack, bow, etc
   int x;
   for (x = 0; objNums[x] != -1; x++)
@@ -3565,7 +3544,7 @@ void advance_level(struct char_data *ch, int class)
     // else if (IS_EPIC(ch))
     // epic_class_feats++;
   }
-  if (class == CLASS_KNIGHT_OF_THE_CROWN && (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN) % 2) )
+  if (class == CLASS_KNIGHT_OF_SOLAMNIA && (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA) % 4 == 0) )
   {
     class_feats++;
   }
@@ -3919,9 +3898,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_WARLOCK:
   case CLASS_SUMMONER:
   case CLASS_NECROMANCER:
-  case CLASS_KNIGHT_OF_THE_CROWN:
-  case CLASS_KNIGHT_OF_THE_SWORD:
-  case CLASS_KNIGHT_OF_THE_ROSE:
+  case CLASS_KNIGHT_OF_SOLAMNIA:
   case CLASS_KNIGHT_OF_THE_THORN:
   case CLASS_KNIGHT_OF_THE_SKULL:
   case CLASS_KNIGHT_OF_THE_LILY:
@@ -7311,402 +7288,256 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_THE_CROWN,
+  classo(CLASS_KNIGHT_OF_SOLAMNIA,
 #ifdef CAMPAIGN_DL
-    "knight of the crown",
-    "KCr",
-    "\tWKCr\tn",
-    "g) \tWKnight of the Crown\tn",
+    "knight of solamnia",
+    "KSo",
+    "\tWKSo\tn",
+    "g) \tWKnight of Solamnia\tn",
 #else
-    "knight of the crimson loom",
-    "KCL",
-    "\tWKCL\tn",
-    "g) \tWKnight of the Crimson Loom\tn",
+    "knight of the luminous thread",
+    "KLT",
+    "\tWKLT\tn",
+    "g) \tWKnight of the Luminous Thread\tn",
 #endif
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         5, Y, Y, H, 12, 0, 1, 2, Y, 2500, 0,
-         /*prestige spell progression*/ "none",
-         /*primary attributes*/ "Strength, Con/Dex for survivability",
+         20, Y, Y, H, 10, 0, 1, 2, Y, 2500, 0,
+         /*prestige spell progression*/ "divine advancement after level 5",
+         /*primary attributes*/ "Strength, Wisdom for spellcasting",
          /*descrip*/ 
 #ifdef CAMPAIGN_DL
           /* DragonLance theme - Knights of Solamnia */
-          "The Order of the Crown forms the basis of the Knights of Solamnia, providing the " 
-          "backbone of their armed forces and the training group for young Knights. The " 
-          "Crowns are led by the High Warrior. They are the opposite of the Knights of the " 
-          "Thorn" 
-          "\r\n" 
-          "The Measure of the Crown establishes Loyalty and Obedience as the foundation of " 
-          "honor and of the Knighthood. Knights of this Order believe fealty to the " 
-          "Knighthood and to the ideals of the Gods of Good is of great importance. The " 
-          "Measure teaches that true loyalty is fealty given freely to those worthy of it, " 
-          "and that such loyalty forms the backbone of virtue and the bonds that are the " 
-          "true strength of the Knighthood. Obedience is considered the brother virtue of " 
-          "loyalty, teaching a Knight to accept the rightful authority of his superiors. " 
-          "Both virtues are believed to reflect discipline of the soul and temperance. " 
+          "The Knights of Solamnia are the most renowned knightly order on Krynn, bound by " 
+          "the sacred Oath and the Measure. This combined order represents the progression " 
+          "of a knight through the three virtues: Loyalty (Crown), Courage (Sword), and " 
+          "Wisdom (Rose)."
           "\r\n"
-          "The Order of the Crown had Habbakuk as its patron and is generally revered by " 
-          "them." 
+          "Beginning as Knights of the Crown (levels 1-5), they learn the virtues of Loyalty " 
+          "and Obedience, forming the backbone of the armed forces. Advancing to the Sword " 
+          "(levels 6-10), they embrace Courage and Heroism, channeling divine power in battle. " 
+          "Finally, achieving the Rose (levels 11-20), they embody Wisdom and Justice, " 
+          "becoming inspiring leaders and champions of good."
+          "\r\n"
+          "NOTE: Obtaining the abilities of a certain knightly order (crown/sword/rose) does not "
+          "denote actual promotions to that rank. That must be done through role-playing and the "
+          "in-game clan system."
+          "\r\n"
+          "The Order is bound by their sacred Oath: 'Est Sularus oth Mithas' - My Honor is My " 
+          "Life. They follow the 37 volumes of the Measure, a code of conduct governing every " 
+          "aspect of their lives. Patron deities include Paladine (Dragonlance's Platinum " 
+          "Dragon), Kiri-Jolith (god of war and honor), and Habbakuk (the Fisher King)."
 #else
-          /* LuminariMUD theme - Knights of the Crimson Loom */
-          "The Knights of the Crimson Loom form the foundation of the Order of Light, " 
-          "representing the evolution of knightly virtue through sacred oaths. These warriors " 
-          "literally weave their spoken oaths into reality - when they swear a vow, crimson " 
-          "threads emerge from their hearts and bind them to their duty. The more oaths they " 
-          "fulfill, the more powerful they become, but each unfulfilled oath becomes a " 
-          "physical wound that never heals."
+          /* LuminariMUD theme - Knights of the Luminous Thread */
+          "The Knights of the Luminous Thread represent the full evolution of oath-bound " 
+          "warriors, from novice oath-takers to master weavers of destiny. These divine " 
+          "champions literally weave reality through their sacred vows, with threads of light " 
+          "emerging from their hearts to bind them to duty."
           "\r\n"
-          "Their sacred duty is to enforce divine contracts and ensure that oaths - from " 
-          "marriage vows to international treaties - are kept. They can smell broken promises " 
-          "and see lies as physical tears in reality. The Crimson Loom knights wield blades " 
-          "forged from crystallized oaths, growing stronger with each fulfilled vow."
+          "As initiates (levels 1-5), they learn the Crimson Loom - swearing basic oaths that " 
+          "create physical bonds of duty. Advancing as oath-warriors (levels 6-10), they gain " 
+          "the power to channel divine energy through their vow-forged weapons. Masters " 
+          "(levels 11-20) can weave multiple oaths together, creating networks of binding " 
+          "promises that reshape reality itself."
           "\r\n"
-          "Divine Patrons: Kordran (War/Duty) and Aethyra (Magic/Oaths). Their motto: 'Our " 
-          "oaths are iron, our words are law, our blood is the ink of destiny.' Every thread " 
-          "in the Loom demands its price - these knights pay in advance through unwavering " 
-          "loyalty and the weight of accumulated oath-scars that cause constant spiritual pain."
+          "Divine Patrons: Kordran (War/Duty), Aethyra (Magic/Oaths), and the Luminous Weaver " 
+          "(the deity of fate). Their sacred motto: 'Our oaths are iron, our words are law, " 
+          "our blood is the ink of destiny.' Each fulfilled oath strengthens them; each broken " 
+          "promise creates an unhealable wound that burns with eternal shame."
 #endif
          );
   /* class-number then saves:        fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_KNIGHT_OF_THE_CROWN, G, B, G, B, B);
-  assign_class_abils(CLASS_KNIGHT_OF_THE_CROWN, /* class number */
+  assign_class_saves(CLASS_KNIGHT_OF_SOLAMNIA, G, B, G, B, B);
+  assign_class_abils(CLASS_KNIGHT_OF_SOLAMNIA, /* class number */
                      /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-                     CC, CC, CA, CA, CA, CC, CC,
+                     CC, CC, CA, CA, CA, CC, CA,
                      /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
                      CC, CA, CA, CA, CA, CA, CC, CC,
                      /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
                      CA, CC, CC, CC, CA, CA,
                      /*survival,swim,use_magic_device,perform*/
-                     CC, CA, CC, CC);
-
-  assign_class_titles(CLASS_KNIGHT_OF_THE_CROWN,   /* class number */
-                      "Knight of the Crown",      /* <= 4  */
-                      "Knight of the Crown",      /* <= 9  */
-                      "Knight of the Crown",      /* <= 14  */
-                      "Knight of the Crown",      /* <= 19  */
-                      "Knight of the Crown",      /* <= 24  */
-                      "Knight of the Crown",      /* <= 29  */
-                      "Knight of the Crown",      /* <= 30  */
-                      "Knight of the Crown",      /* <= LVL_IMMMORT  */
-                      "Knight of the Crown",      /* <= LVL_STAFF  */
-                      "Knight of the Crown",      /* <= LVL_GRSTAFF  */
-                      "Knight of the Crown"      /* default  */
+                     CA, CA, CC, CC);
+  assign_class_titles(CLASS_KNIGHT_OF_SOLAMNIA,                  /* class number */
+                      "",                                         /* <= 4  */
+                      "the Squire",                              /* <= 9  */
+                      "the Knight of the Crown",                 /* <= 14 */
+                      "the Knight of the Sword",                 /* <= 19 */
+                      "the Knight of the Rose",                  /* <= 24 */
+                      "the High Knight",                         /* <= 29 */
+                      "the Grand Master",                        /* <= 30 */
+                      "the Legendary Champion of Solamnia",      /* <= LVL_IMMORT */
+                      "the Immortal Knight",                     /* <= LVL_STAFF */
+                      "the Avatar of Knighthood",                /* <= LVL_GRSTAFF */
+                      "the Knight of Krynn"                      /* default */
   );
-  /* feat assignment */
-  /*              class num     feat                                   cfeat lvl stack */
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_STRENGTH_OF_HONOR, Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_KNIGHTLY_COURAGE, Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_HEROIC_INITIATIVE, Y, 2, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DIEHARD, Y, 2, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_HONORABLE_WILL, Y, 3, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MIGHT_OF_HONOR, Y, 4, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMORED_MOBILITY, Y, 4, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_CROWN_OF_KNIGHTHOOD, Y, 5, Y);
-
-  // CLASS FEATS
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_SPECIALIZATION_MEDIUM, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_SPECIALIZATION_HEAVY, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_BLIND_FIGHT, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_CLEAVE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_COMBAT_EXPERTISE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_COMBAT_REFLEXES, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DEFLECT_ARROWS, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DAMAGE_REDUCTION, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DODGE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_EXOTIC_WEAPON_PROFICIENCY, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_FAR_SHOT, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREAT_CLEAVE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DAZZLING_DISPLAY, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREATER_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREATER_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREATER_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_BULL_RUSH, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_CRITICAL, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_DISARM, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_FEINT, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_GRAPPLE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_INITIATIVE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_OVERRUN, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_SHIELD_PUNCH, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_KNOCKDOWN, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SHIELD_CHARGE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SHIELD_SLAM, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_SUNDER, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_TRIP, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_IMPROVED_UNARMED_STRIKE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MANYSHOT, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MOBILITY, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MOUNTED_ARCHERY, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_MOUNTED_COMBAT, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_POINT_BLANK_SHOT, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_POWER_ATTACK, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DEADLY_AIM, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_QUICK_DRAW, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_RAPID_RELOAD, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_RAPID_SHOT, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_RIDE_BY_ATTACK, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ROBILARS_GAMBIT, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SHOT_ON_THE_RUN, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SNATCH_ARROWS, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SPIRITED_CHARGE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SPRING_ATTACK, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_STUNNING_FIST, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_SWARM_OF_ARROWS, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_TRAMPLE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_TWO_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_OVERSIZED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_FINESSE, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WHIRLWIND_ATTACK, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_FAST_HEALING, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_MASTERY, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_FLURRY, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_WEAPON_SUPREMACY, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DOUBLE_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DOUBLE_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DOUBLE_WEAPON_CRITICAL, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_DOUBLE_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
-  /* epic class */
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_KNIGHT_OF_THE_CROWN, FEAT_EPIC_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  
+  /* LEVEL 1 - Crown Initiate */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 1, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_PROFICIENCY_HEAVY, Y, 1, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_STRENGTH_OF_HONOR, Y, 1, Y);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_KNIGHTLY_COURAGE, Y, 1, Y);
+  
+  /* LEVEL 2 - Crown */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_HEROIC_INITIATIVE, Y, 2, Y);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_DIEHARD, Y, 2, Y);
+  
+  /* LEVEL 3 - Crown */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_HONORABLE_WILL, Y, 3, Y);
+  
+  /* LEVEL 4 - Crown */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_MIGHT_OF_HONOR, Y, 4, Y);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMORED_MOBILITY, Y, 4, Y);
+  
+  /* LEVEL 5 - Crown Mastery */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_CROWN_OF_KNIGHTHOOD, Y, 5, Y);
+  
+  /* LEVEL 6 - Sword Initiate (Divine Spellcasting Begins) */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_CHANNEL_ENERGY, Y, 6, Y);
+  
+  /* LEVEL 7 - Sword */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SMITE_EVIL, Y, 7, Y);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_AURA_OF_COURAGE, Y, 7, Y);
+  
+  /* LEVEL 8 - Sword */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SMITE_EVIL, Y, 8, Y);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_DEMORALIZING_STRIKE, Y, 8, Y);
+  
+  /* LEVEL 9 - Sword */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SMITE_EVIL, Y, 9, Y);
+  
+  /* LEVEL 10 - Sword Mastery */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SMITE_EVIL, Y, 10, Y);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SOUL_OF_KNIGHTHOOD, Y, 10, Y);
+  
+  /* LEVEL 11 - Rose Initiate */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_AURA_OF_GOOD, Y, 11, Y);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_RALLYING_CRY, Y, 11, Y);
+  
+  /* LEVEL 12 - Rose */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_INSPIRE_COURAGE, Y, 12, Y);
+  
+  /* LEVEL 13 - Rose */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_LEADERSHIP, Y, 13, Y);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_DIVINE_GRACE, Y, 13, Y);
+  
+  /* LEVEL 14 - Rose */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_INSPIRE_GREATNESS, Y, 14, Y);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_CHANNEL_ENERGY, Y, 14, Y);
+  
+  /* LEVEL 15 - Rose */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_INSPIRE_COURAGE, Y, 15, Y);
+  
+  /* LEVEL 16 - Rose */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_WISDOM_OF_THE_MEASURE, Y, 16, Y);
+  
+  /* LEVEL 17 - Rose */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_LEADERSHIP, Y, 17, Y);
+  
+  /* LEVEL 18 - Rose */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_INSPIRE_COURAGE, Y, 18, Y);
+  
+  /* LEVEL 19 - Rose */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_FINAL_STAND, Y, 19, Y);
+  
+  /* LEVEL 20 - Rose Grand Master */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_KNIGHTHOODS_FLOWER, Y, 20, Y);
+  
+  /* Bonus feat selections */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_SPECIALIZATION_MEDIUM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_SPECIALIZATION_HEAVY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_BLIND_FIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_COMBAT_EXPERTISE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_COMBAT_REFLEXES, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_DEFLECT_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_DAMAGE_REDUCTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_DODGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_EXOTIC_WEAPON_PROFICIENCY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_FAR_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_DAZZLING_DISPLAY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREATER_VITAL_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREATER_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREATER_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_BULL_RUSH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_DISARM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_FEINT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_GRAPPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_OVERRUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_SHIELD_PUNCH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SHIELD_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SHIELD_SLAM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_SUNDER, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_TRIP, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_UNARMED_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IMPROVED_WEAPON_FINESSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_KNOCKDOWN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_LIGHTNING_REFLEXES, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_MANYSHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_MOBILITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_MOUNTED_ARCHERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_MOUNTED_COMBAT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_POINT_BLANK_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_POWER_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_DEADLY_AIM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_QUICK_DRAW, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_RAPID_RELOAD, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_RAPID_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_RIDE_BY_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ROBILARS_GAMBIT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SHOT_ON_THE_RUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SNATCH_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SPIRITED_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SPRING_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_STUNNING_FIST, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SWARM_OF_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_TRAMPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_TWO_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_WEAPON_FINESSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_WHIRLWIND_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_FAST_HEALING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_COMBAT_CASTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_AUGMENT_SUMMONING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREATER_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_CRAFT_MAGICAL_ARMS_AND_ARMOR, Y, NOASSIGN_FEAT, N);
+  /* Epic feats */
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREAT_WISDOM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREAT_INTELLIGENCE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_EPIC_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
   /* no spell assignment */
-  /* class prereqs */
-  class_prereq_bab(CLASS_KNIGHT_OF_THE_CROWN, 3);
-  class_prereq_ability(CLASS_KNIGHT_OF_THE_CROWN, ABILITY_DIPLOMACY, 3);
-  class_prereq_ability(CLASS_KNIGHT_OF_THE_CROWN, ABILITY_RIDE, 2);
-  class_prereq_feat(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_PROFICIENCY_HEAVY, 1);
-  class_prereq_feat(CLASS_KNIGHT_OF_THE_CROWN, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
-  /****************************************************************************/
-
-  /****************************************************************************/
-  /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_THE_SWORD,
-#ifdef CAMPAIGN_DL
-    "knight of the sword",
-    "KSw",
-    "\tWKSw\tn",
-    "g) \tWKnight of the Sword\tn",
-#else
-    "knight of the sundered dawn",
-    "KSD",
-    "\tWKSD\tn",
-    "g) \tWKnight of the Sundered Dawn\tn",
-#endif
-         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         5, Y, Y, H, 10, 0, 1, 2, Y, 2500, 0,
-         /*prestige spell progression*/ "Divine advancement every level.",
-         /*primary attributes*/ "Strength, Con/Dex for survivability, Cha for class abilities",
-         /*descrip*/ 
-#ifdef CAMPAIGN_DL
-          /* DragonLance theme - Knights of Solamnia */
-          "The Knights of the Sword serve the people of Ansalon as warrior-clerics,  "
-          "crusaders, and knights errant, combining the purest ideals of heroism and  "
-          "courage with the power of the Gods of Good and of the heart. They are the  "
-          "opposite of the Knights of the Skull "
-          "\r\n"
-          "The Measure of the Sword teaches the value of Courage, Heroism, and Faith as key "
-          "components of the honorable life. To the Sword Knight, life is a continual  "
-          "struggle against Evil, both in the world and within the Knight's own heart.  "
-          "Courage is necessary to resist the terrors and temptations of darkness, while  "
-          "heroism involves self-sacrifice and daring effort to force back Evil and aid the "
-          "innocent and virtuous. It is from Faith, meanwhile, that the Knight's commitment "
-          "to what is right springs, as well as the strength that can sustain him when all  "
-          "else seems lost. "
-          "\r\n"
-          "Kiri-Jolith serves as patron to the Knights of the Sword. " 
-#else
-          /* LuminariMUD theme - Knights of the Sundered Dawn */
-          "The Knights of the Sundered Dawn are warrior-mystics who have undergone a " 
-          "soul-splitting ritual where half their essence is blessed by dawn, half cursed " 
-          "by shadow. They can literally step between light and darkness, existing in both " 
-          "simultaneously. Their divine magic flows from this duality - they are the twilight " 
-          "between mercy and necessity."
-          "\r\n"
-          "Their sacred duty is to maintain the balance between revelation and secrecy, " 
-          "redemption and justice. They channel divine energy to smite those who would upset " 
-          "the cosmic balance. Each knight carries twin blades - Mercy's Edge can only be " 
-          "drawn in light, while Necessity's Bite can only be drawn in darkness."
-          "\r\n"
-          "Divine Patrons: Seraphine and Nyxara, the sister-deities who were once one. " 
-          "Their motto: 'We are the twilight between mercy and necessity.' These knights " 
-          "gradually lose the ability to see the world except in absolutes - the price of " 
-          "walking between two extremes."
-#endif
-         );
-  /* class-number then saves:        fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_KNIGHT_OF_THE_SWORD, G, B, G, B, B);
-  assign_class_abils(CLASS_KNIGHT_OF_THE_SWORD, /* class number */
-                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-                     CC, CC, CA, CA, CA, CA, CC,
-                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-                     CC, CA, CA, CA, CA, CA, CC, CC,
-                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-                     CA, CC, CC, CC, CA, CA,
-                     /*survival,swim,use_magic_device,perform*/
-                     CC, CA, CC, CC);
-
-  assign_class_titles(CLASS_KNIGHT_OF_THE_SWORD,   /* class number */
-                      "Knight of the Sword",      /* <= 4  */
-                      "Knight of the Sword",      /* <= 9  */
-                      "Knight of the Sword",      /* <= 14  */
-                      "Knight of the Sword",      /* <= 19  */
-                      "Knight of the Sword",      /* <= 24  */
-                      "Knight of the Sword",      /* <= 29  */
-                      "Knight of the Sword",      /* <= 30  */
-                      "Knight of the Sword",      /* <= LVL_IMMMORT  */
-                      "Knight of the Sword",      /* <= LVL_STAFF  */
-                      "Knight of the Sword",      /* <= LVL_GRSTAFF  */
-                      "Knight of the Sword"      /* default  */
-  );
-  /* feat assignment */
-  /*              class num     feat                                   cfeat lvl stack */
-  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SMITE_EVIL, Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_CHANNEL_ENERGY, Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SMITE_EVIL, Y, 2, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_AURA_OF_COURAGE, Y, 2, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SMITE_EVIL, Y, 3, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_DEMORALIZING_STRIKE, Y, 3, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SMITE_EVIL, Y, 4, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SMITE_EVIL, Y, 5, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_SWORD, FEAT_SOUL_OF_KNIGHTHOOD, Y, 5, Y);
-
-  // No class feats
-  /* no spell assignment */
-  /* class prereqs */
-  class_prereq_bab(CLASS_KNIGHT_OF_THE_SWORD, 6);
-  class_prereq_ability(CLASS_KNIGHT_OF_THE_SWORD, ABILITY_RELIGION, 4);
-  class_prereq_ability(CLASS_KNIGHT_OF_THE_SWORD, ABILITY_RIDE, 4);
-  class_prereq_feat(CLASS_KNIGHT_OF_THE_SWORD, FEAT_DIEHARD, 1);
-  class_prereq_feat(CLASS_KNIGHT_OF_THE_SWORD, FEAT_ENDURANCE, 1);
-  class_prereq_feat(CLASS_KNIGHT_OF_THE_SWORD, FEAT_HONORBOUND, 1);
-  class_prereq_spellcasting(CLASS_KNIGHT_OF_THE_SWORD, CASTING_TYPE_DIVINE, PREP_TYPE_ANY, 1);
-  class_prereq_class_level(CLASS_KNIGHT_OF_THE_SWORD, CLASS_KNIGHT_OF_THE_CROWN, 1);
-  /****************************************************************************/
-
-  /****************************************************************************/
-  /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_THE_ROSE,
-#ifdef CAMPAIGN_DL
-    "knight of the rose",
-    "KRs",
-    "\tWKRs\tn",
-    "g) \tWKnight of the Rose\tn",
-#else
-    "knight of the ember throne",
-    "KET",
-    "\tWKET\tn",
-    "g) \tWKnight of the Ember Throne\tn",
-#endif
-         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         10, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
-         /*prestige spell progression*/ "Divine advancement every level.",
-         /*primary attributes*/ "Strength, Con/Dex for survivability, Cha for class abilities",
-         /*descrip*/ 
-#ifdef CAMPAIGN_DL
-          /* DragonLance theme - Knights of Solamnia */
-          "The Order of the Rose has always been the most prestigious branch of the Knights "
-          "of Solamnia. The Rose Knights provide leaders, lawgivers, and exemplars to the  "
-          "Solamnic Knights and the world, guiding others on the path of honor by word and  "
-          "deed alike. They are the opposite of the Knights of the Lily. "
-          "The Measure of the Rose focuses on Wisdom and Justice. Wisdom helps the Rose  "
-          "Knight and those following him determine what honor truly demands, neither  "
-          "failing in their devotion to the Oath and the Measure nor throwing lives away in "
-          "a misguided pursuit of honor. Justice, meanwhile, involves not only protecting  "
-          "the innocent and punishment the guilty, but treating all people--noble and poor, "
-          "Good and Evil--honorably and courteously, in conformity with the Measure. This  "
-          "is the ideal that the Order of the Rose strives to bring to Ansalon and to  "
-          "uphold in their own lives, bringing their behavior and that of others into  "
-          "conformity with the teachings of Goodness and the Order of Creation--not through "
-          "force or fear, but through teaching and example. "
-          "Paladine is the patron deity of the Knights of the Rose. "
-#else
-          /* LuminariMUD theme - Knights of the Ember Throne */
-          "The Knights of the Ember Throne represent the pinnacle of knightly achievement, "
-          "warrior-artists who channel divine fire through creative expression. They forge "
-          "heroes from the weak, beauty from destruction, and hope from ash. Each knight "
-          "forges their own weapon in divine fire, tempering it with their fears and hopes."
-          "\r\n"
-          "They lead through inspiration, preserving civilization's greatest works while "
-          "forging new golden ages through righteous conflict. The Ember Throne knights are "
-          "masters of both martial and divine arts, inspiring others through their mastery "
-          "of war, art, and divine magic."
-          "\r\n"
-          "Divine Patrons: Pyrion (Primal Fire), Calystral (Passion/Art), and Borhild "
-          "(Craft/Innovation). Their motto: 'We forge heroes from the weak, beauty from "
-          "destruction, hope from ash.' The price they pay: burning out from within, their "
-          "passion consuming them as they reach for ever-greater heights of glory."
-#endif
-          );
-  /* class-number then saves:        fortitude, reflex, will, poison, death */
-  assign_class_saves(CLASS_KNIGHT_OF_THE_ROSE, G, B, G, B, B);
-  assign_class_abils(CLASS_KNIGHT_OF_THE_ROSE, /* class number */
-                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-                     CC, CC, CA, CA, CA, CA, CC,
-                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-                     CC, CA, CA, CA, CA, CA, CC, CC,
-                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-                     CA, CC, CC, CC, CA, CA,
-                     /*survival,swim,use_magic_device,perform*/
-                     CC, CA, CC, CC);
-
-  assign_class_titles(CLASS_KNIGHT_OF_THE_ROSE,   /* class number */
-                      "Knight of the Rose",      /* <= 4  */
-                      "Knight of the Rose",      /* <= 9  */
-                      "Knight of the Rose",      /* <= 14  */
-                      "Knight of the Rose",      /* <= 19  */
-                      "Knight of the Rose",      /* <= 24  */
-                      "Knight of the Rose",      /* <= 29  */
-                      "Knight of the Rose",      /* <= 30  */
-                      "Knight of the Rose",      /* <= LVL_IMMMORT  */
-                      "Knight of the Rose",      /* <= LVL_STAFF  */
-                      "Knight of the Rose",      /* <= LVL_GRSTAFF  */
-                      "Knight of the Rose"      /* default  */
-  );
-  /* feat assignment */
-  /*              class num     feat                                   cfeat lvl stack */
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_DETECT_EVIL, Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_AURA_OF_GOOD, Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_RALLYING_CRY, Y, 1, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_INSPIRE_COURAGE, Y, 2, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_LEADERSHIP, Y, 3, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_DIVINE_GRACE, Y, 3, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_INSPIRE_GREATNESS, Y, 4, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_CHANNEL_ENERGY, Y, 4, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_INSPIRE_COURAGE, Y, 5, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_WISDOM_OF_THE_MEASURE, Y, 6, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_LEADERSHIP, Y,7, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_INSPIRE_COURAGE, Y, 8, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_FINAL_STAND, Y, 9, Y);
-  feat_assignment(CLASS_KNIGHT_OF_THE_ROSE, FEAT_KNIGHTHOODS_FLOWER, Y, 10, Y);
-
-  // No class feats
-  /* no spell assignment */
-  /* class prereqs */
-  class_prereq_bab(CLASS_KNIGHT_OF_THE_ROSE, 8); 
-  class_prereq_ability(CLASS_KNIGHT_OF_THE_ROSE, ABILITY_RELIGION, 8);
-  class_prereq_ability(CLASS_KNIGHT_OF_THE_ROSE, ABILITY_RIDE, 8);
-  class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_MOUNTED_COMBAT, 1);
-  class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_ENDURANCE, 1);
-  class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_HONORBOUND, 1);
-  class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_LEADERSHIP, 1);
-  class_prereq_feat(CLASS_KNIGHT_OF_THE_ROSE, FEAT_AURA_OF_COURAGE, 1);
-  class_prereq_spellcasting(CLASS_KNIGHT_OF_THE_ROSE, CASTING_TYPE_DIVINE, PREP_TYPE_ANY, 2);
-  class_prereq_class_level(CLASS_KNIGHT_OF_THE_ROSE, CLASS_KNIGHT_OF_THE_SWORD, 3);
+  /* class prerequisites */
+  class_prereq_bab(CLASS_KNIGHT_OF_SOLAMNIA, 3);
+  class_prereq_spellcasting(CLASS_KNIGHT_OF_SOLAMNIA, CASTING_TYPE_DIVINE, PREP_TYPE_ANY, 1);
+  class_prereq_ability(CLASS_KNIGHT_OF_SOLAMNIA, ABILITY_RELIGION, 4);
+  class_prereq_ability(CLASS_KNIGHT_OF_SOLAMNIA, ABILITY_HISTORY, 4);
+  class_prereq_ability(CLASS_KNIGHT_OF_SOLAMNIA, ABILITY_DIPLOMACY, 4);
+  class_prereq_ability(CLASS_KNIGHT_OF_SOLAMNIA, ABILITY_RIDE, 4);
+  class_prereq_feat(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_PROFICIENCY_HEAVY, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_ENDURANCE, 1);
+  class_prereq_feat(CLASS_KNIGHT_OF_SOLAMNIA, FEAT_IRON_WILL, 1);
+  class_prereq_align(CLASS_KNIGHT_OF_SOLAMNIA, LAWFUL_GOOD);
   /****************************************************************************/
 
   

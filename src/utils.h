@@ -1528,7 +1528,7 @@ void char_from_furniture(struct char_data *ch);
 #define HAS_ELDRITCH_SPELL_CRIT(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->has_eldritch_knight_spell_critical))
 // Eldritch knight levels are added to warrior levels when determining qualification for certain warrior-only feats
 #define WARRIOR_LEVELS(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + (CLASS_LEVEL(ch, CLASS_SPELLSWORD) / 2) + \
-                            CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY))
+                            CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY))
 
 /* Attacks of Opportunity (AOO) */
 #define GET_TOTAL_AOO(ch) (ch->char_specials.attacks_of_opportunity)
@@ -2079,9 +2079,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_ALCHEMIST(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
 #define IS_BLACKGUARD(ch) (CLASS_LEVEL(ch, CLASS_BLACKGUARD))
 #define IS_SUMMONER(ch) (CLASS_LEVEL(ch, CLASS_SUMMONER))
-#define IS_KNIGHT_OF_THE_CROWN(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_CROWN))
-#define IS_KNIGHT_OF_THE_SWORD(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SWORD))
-#define IS_KNIGHT_OF_THE_ROSE(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_ROSE))
+#define IS_KNIGHT_OF_SOLAMNIA(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA))
 #define IS_KNIGHT_OF_THE_THORN(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN))
 #define IS_KNIGHT_OF_THE_SKULL(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL))
 #define IS_KNIGHT_OF_THE_LILY(ch) (CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY))
@@ -2093,7 +2091,7 @@ int ACTUAL_BAB(struct char_data *ch);
                        IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||             \
                        IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch) || \
                        IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch) || IS_INQUISITOR(ch) || IS_SUMMONER(ch) || \
-                       IS_NECROMANCER(ch) || IS_KNIGHT_OF_THE_SWORD(ch) || IS_KNIGHT_OF_THE_ROSE(ch) || \
+                       IS_NECROMANCER(ch) || IS_KNIGHT_OF_SOLAMNIA(ch) || \
                        IS_KNIGHT_OF_THE_THORN(ch) || IS_KNIGHT_OF_THE_SKULL(ch))
 
 #define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
@@ -2116,8 +2114,7 @@ int ACTUAL_BAB(struct char_data *ch);
                            GET_CLASS(ch) == CLASS_SACRED_FIST ||     \
                            GET_CLASS(ch) == CLASS_SHIFTER ||         \
                            GET_CLASS(ch) == CLASS_INQUISITOR ||      \
-                           GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_SWORD || \
-                           GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_ROSE || \
+                           GET_CLASS(ch) == CLASS_KNIGHT_OF_SOLAMNIA || \
                            GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_THORN || \
                            GET_CLASS(ch) == CLASS_KNIGHT_OF_THE_SKULL || \
                            GET_CLASS(ch) == CLASS_BARD)
