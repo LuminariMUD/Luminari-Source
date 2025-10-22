@@ -34,6 +34,7 @@
 #include "resource_system.h"
 #include "resource_depletion.h"
 #include "resource_depletion.h"
+#include "perks.h"
 
 /* local file scope variables */
 static int extractions_pending = 0;
@@ -476,6 +477,8 @@ void reset_char_points(struct char_data *ch)
     ch->points.apply_saving_throw[i] = ch->real_points.apply_saving_throw[i];
   for (i = 0; i < NUM_DAM_TYPES; i++)
     ch->points.resistances[i] = ch->real_points.resistances[i];
+  
+  /* NOTE: Perk bonuses are applied in affect_total_plus() */
 
   /* Reset damage reduction */
   //  for (damreduct = ch->points.damage_reduction;
@@ -972,6 +975,19 @@ void affect_total_plus(struct char_data *ch, int at_armor)
     // affect_modify_ar(ch, i, modifier, empty_bits, TRUE);
   }
 
+  /* Apply perk bonuses (Step 6) - non-stacking bonuses applied here */
+  /* NOTE: Weapon bonuses (hitroll/damroll) are applied in fight.c functions */
+  /* NOTE: HP bonuses are applied in calculate_max_hp() */
+  if (!IS_NPC(ch))
+  {
+    ch->points.max_psp += get_perk_spell_points_bonus(ch);
+    ch->points.armor += get_perk_ac_bonus(ch);
+    
+    /* Add save bonuses */
+    for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+      ch->points.apply_saving_throw[i] += get_perk_save_bonus(ch, i);
+  }
+
   /* cap character */
   compute_char_cap(ch, 0);
 
@@ -979,7 +995,7 @@ void affect_total_plus(struct char_data *ch, int at_armor)
   if (IS_NPC(ch))
     GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) / 2 * GET_LEVEL(ch));
   else
-    calculate_max_hp(ch, false);
+    calculate_max_hp(ch, false); /* HP perk bonuses applied inside this function */
 }
 
 void cleanup_disguise(struct char_data *ch)

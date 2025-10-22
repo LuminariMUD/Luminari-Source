@@ -47,6 +47,7 @@
 #include "craft.h"
 #include "treasure.h"
 #include "feats.h"
+#include "perks.h"
 #include "actions.h"
 #include "actionqueues.h"
 #include "routing.h"
@@ -638,6 +639,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"motd", "motd", POS_DEAD, do_gen_ps, 0, SCMD_MOTD, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"msgedit", "msgedit", POS_DEAD, do_msgedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"mute", "mute", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_MUTE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"myperks", "myp", POS_RECLINING, do_myperks, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"mount", "mount", POS_FIGHTING, do_mount, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"masterlist", "masterlist", POS_DEAD, do_masterlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"massinvis", "massinvis", POS_FIGHTING, do_massinvis, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
@@ -692,6 +694,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"pathlist", "pathlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_PATHLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"perk", "per", POS_RECLINING, do_perk, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"picklock", "pi", POS_STANDING, do_pick_lock, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #else

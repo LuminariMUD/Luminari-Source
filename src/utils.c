@@ -43,6 +43,7 @@
 #include "backgrounds.h"
 #include "char_descs.h"
 #include "treasure.h"
+#include "perks.h"
 #include <time.h>
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
@@ -7774,6 +7775,15 @@ void calculate_max_hp(struct char_data *ch, bool display)
     max_hp += GET_LEVEL(ch) * 4;
     if (display)
       send_to_char(ch, "%-40s = +%d\r\n", "Vampire Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
+  }
+
+  // perks
+  int perk_hp_bonus = get_perk_hp_bonus(ch);
+  if (perk_hp_bonus != 0)
+  {
+    max_hp += perk_hp_bonus;
+    if (display)
+      send_to_char(ch, "%-40s = %s%d\r\n", "Perk Hit Point Bonus", perk_hp_bonus > 0 ? "+" : "", perk_hp_bonus);
   }
 
   // misc
