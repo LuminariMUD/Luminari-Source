@@ -663,6 +663,8 @@ const char *class_names[] = {
 #endif
     "Dragon Rider",
     "Artificer",
+    "Placeholder 1",
+    "Placeholder 2",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -5539,6 +5541,8 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                        // knight of the lily 33
     {"", "", "", ""},                                        // dragonrider 34
     {"", "", "", ""},                                        // artificer 35
+    {"", "", "", ""},                                        // placeholder
+    {"", "", "", ""},                                        // placeholder
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -5586,6 +5590,8 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                        // knight of the lily 33
     {"", "", "", ""},                                        // dragonrider 34
     {"", "", "", ""},                                        // artificer 35
+    {"", "", "", ""},                                        // placeholder
+    {"", "", "", ""},                                        // placeholder
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -6162,6 +6168,8 @@ const char *class_short_descriptions[] = {
 #endif
     "A skilled warrior whose bond with their dragon mount offers numerous special abilities.",                    // dragonrider
     "A brilliant inventor whose creations cancause destruction, protection and more.",                           // artificer
+    "", // placeholder
+    "", // placeholder
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 
