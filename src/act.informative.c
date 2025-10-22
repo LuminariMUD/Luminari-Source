@@ -3568,6 +3568,8 @@ send_to_char(ch, "\tC");
  */
 ACMD(do_score)
 {
+  send_to_char(ch, "\tR[DEBUG] do_score called - timestamp %ld\tn\r\n", (long)time(0));
+  
   /* ========================================================================= */
   /* VARIABLE DECLARATIONS                                                     */
   /* ========================================================================= */
@@ -3737,6 +3739,27 @@ ACMD(do_score)
                GET_EXP(ch),          /* Current experience points */
                (GET_LEVEL(ch) >= LVL_IMMORT ? 0 :     /* Immortals don't need XP */
                 level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch))); /* XP to next level */
+  
+  /* Display perk points for each class */
+  if (!IS_NPC(ch)) {
+    int has_perks = FALSE;
+    send_to_char(ch, "\r\n\tC");
+    text_line(ch, "\tyPerk Points\tC", line_length, '-', '-');
+    
+    for (i = 0; i < NUM_CLASSES; i++) {
+      if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0) {
+        send_to_char(ch, "\tc%-20s : \tn%2d perk point%s\r\n",
+                     class_names[i],
+                     ch->player_specials->saved.perk_points[i],
+                     (ch->player_specials->saved.perk_points[i] == 1 ? "" : "s"));
+        has_perks = TRUE;
+      }
+    }
+    
+    if (!has_perks) {
+      send_to_char(ch, "\tcNo perk points available yet.\tn\r\n");
+    }
+  }
   
   /* ========================================================================= */
   /* SECTION 4: ABILITY SCORES AND SAVING THROWS                              */
@@ -4706,6 +4729,8 @@ static void display_experience_section(struct char_data *ch, int line_length)
   int current_stage = 0, stage_xp = 0, stage_xp_needed = 0;
   int i, points, has_perk_points = FALSE;
   
+  send_to_char(ch, "\tR[DEBUG] display_experience_section called!\tn\r\n");
+  
   skore_section_header(ch, "\tY*** EXPERIENCE & PROGRESSION ***\tC", line_length, "\tC");
 
   /* Experience progress bar */
@@ -4744,10 +4769,13 @@ static void display_experience_section(struct char_data *ch, int line_length)
 
   /* Display perk points if character has any */
   if (!IS_NPC(ch)) {
+    send_to_char(ch, "\tY[DEBUG] Checking all classes for perk points...\tn\r\n");
     for (i = 0; i < NUM_CLASSES; i++) {
+      send_to_char(ch, "\tY[DEBUG] Class %d (%s): Level=%d, Points=%d\tn\r\n", 
+                  i, class_names[i], CLASS_LEVEL(ch, i), 
+                  ch->player_specials->saved.perk_points[i]);
       if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0) {
         has_perk_points = TRUE;
-        break;
       }
     }
     
@@ -4758,7 +4786,7 @@ static void display_experience_section(struct char_data *ch, int line_length)
         if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0) {
           points = ch->player_specials->saved.perk_points[i];
           send_to_char(ch, "\tc|\tn %-20s: %s%3d\tn point%s",
-                      class_list[i].name,
+                      class_names[i],
                       points > 0 ? "\tG" : "\tD",
                       points,
                       points == 1 ? " " : "s");
@@ -4767,6 +4795,8 @@ static void display_experience_section(struct char_data *ch, int line_length)
           send_to_char(ch, "                                          \tc|\tn\r\n");
         }
       }
+    } else {
+      send_to_char(ch, "\tY[DEBUG] No perk points found to display\tn\r\n");
     }
   }
 
@@ -5394,6 +5424,7 @@ ACMD(do_skore)
 /* Display a specific score section based on section ID */
 static void display_score_section(struct char_data *ch, int section_id, int line_length)
 {
+  send_to_char(ch, "\tR[DEBUG] display_score_section called with section_id=%d\tn\r\n", section_id);
   switch (section_id) {
     case SECTION_IDENTITY:
       display_identity_section(ch, line_length);
@@ -5402,6 +5433,7 @@ static void display_score_section(struct char_data *ch, int section_id, int line
       display_vitals_section(ch, line_length);
       break;
     case SECTION_EXPERIENCE:
+      send_to_char(ch, "\tR[DEBUG] About to call display_experience_section\tn\r\n");
       display_experience_section(ch, line_length);
       break;
     case SECTION_ABILITIES:
@@ -6180,9 +6212,13 @@ ACMD(do_who)
   for (d = descriptor_list; d && !short_list; d = d->next)
   {
     if (d->original) // if !switched
+    {
       tch = d->original;
+    }
     else if (!(tch = d->character)) // if switched, make sure d->character
+    {
       continue;
+    }
 
     if (CAN_SEE(ch, tch) && IS_PLAYING(d))
     {

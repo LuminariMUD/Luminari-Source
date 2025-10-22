@@ -3511,18 +3511,16 @@ static void load_perks(FILE *fl, struct char_data *ch)
 /* Load character's perk points per class */
 static void load_perk_points(FILE *fl, struct char_data *ch)
 {
-  int cls = 0, pts = 0, num_fields = 0;
+  int cls = 0, pts = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do
   {
     get_line(fl, line);
-
-    if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
-      return;
+    sscanf(line, "%d %d", &cls, &pts);
     if (cls >= 0 && cls < NUM_CLASSES)
       ch->player_specials->saved.perk_points[cls] = pts;
-  } while (1);
+  } while (cls >= 0);
 }
 
 /* load_affects function now handles both 32-bit and

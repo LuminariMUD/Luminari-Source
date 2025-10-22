@@ -48,6 +48,7 @@
 #include "feats.h"
 #include "assign_wpn_armor.h"
 #include "item.h"
+#include "perks.h"
 #include "oasis.h"
 #include "domains_schools.h"
 #include "spells.h"
@@ -2631,6 +2632,11 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
   HAS_SET_STATS_STUDY(ch) = FALSE;
   GET_EXP(ch) = tempXP;
 
+  /* Check for stage advancement to award any perk points based on restored XP
+   * GET_CLASS(ch) was already set at the beginning of respec_engine
+   */
+  check_stage_advancement(ch, NULL);
+
   new_affect(&af);
   af.spell = AFFECT_RECENTLY_RESPECED;
   af.location = APPLY_NONE;
@@ -2863,13 +2869,26 @@ ACMDU(do_gain)
       return;
     }
 
-    
+    /* Set GET_CLASS before checking stage advancement so perk points go to the right class
+     * This ensures that when a character types 'gain warrior', the perk points are awarded
+     * to the warrior class, even if they previously gained a level in a different class.
+     */
+    GET_CLASS(ch) = class;
+
+    /* Check for stage advancement and award perk points BEFORE level gain
+     * This ensures that when a character types 'gain', they first advance
+     * through any perk stages they have XP for, awarding perk points,
+     * and THEN gain the level if they have enough XP for stage 4.
+     */
+    int perk_points_awarded = 0;
+    check_stage_advancement(ch, &perk_points_awarded);
+
+    /* Now check if they have enough XP to actually level up (stage 4) */
     if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
              GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     {
       GET_LEVEL(ch) += 1;
       CLASS_LEVEL(ch, class)++;
-      GET_CLASS(ch) = class;
       num_levels++;
       /* our function for leveling up, takes in class that is being advanced */
       advance_level(ch, class);

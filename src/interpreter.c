@@ -694,7 +694,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"pathlist", "pathlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_PATHLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"perk", "per", POS_RECLINING, do_perk, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"perks", "per", POS_RECLINING, do_perk, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"picklock", "pi", POS_STANDING, do_pick_lock, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #else

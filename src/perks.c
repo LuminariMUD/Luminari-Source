@@ -528,14 +528,15 @@ extern int level_exp(struct char_data *ch, int level);
 
 /**
  * Initialize stage data for a new character or character without stage data.
- * Sets them to stage 1 with 0 stage XP.
+ * Sets them to stage 0 with 0 stage XP so they can advance through stages 1-3
+ * and receive perk points as they gain XP.
  */
 void init_stage_data(struct char_data *ch)
 {
   if (!ch)
     return;
   
-  ch->player_specials->saved.stage_info.current_stage = 1;
+  ch->player_specials->saved.stage_info.current_stage = 0;
   ch->player_specials->saved.stage_info.stage_exp = 0;
   ch->player_specials->saved.stage_info.exp_to_next_stage = calculate_stage_xp_needed(ch);
 }
@@ -588,6 +589,7 @@ int calculate_stage_xp_needed(struct char_data *ch)
 /**
  * Check if character has enough XP to advance to the next stage.
  * Awards perk points for stages 1-3, and sets ready-to-level flag for stage 4.
+ * Perk points are awarded to GET_CLASS(ch) (the last class gained).
  * 
  * @param ch The character
  * @param perk_points_awarded Output parameter - set to 1 if points awarded, 0 otherwise
@@ -629,10 +631,16 @@ bool check_stage_advancement(struct char_data *ch, int *perk_points_awarded)
     stages_gained++;
     advanced = TRUE;
     
-    /* Award perk points for stages 1-3 */
+    /* Award perk points for stages 1-3 to the last class gained */
     if (current_stage < STAGES_PER_LEVEL)
     {
-      award_stage_perk_points(ch, GET_CLASS(ch));
+      int award_class = GET_CLASS(ch);
+      if (award_class < 0 || award_class >= NUM_CLASSES)
+      {
+        send_to_char(ch, "\tR[DEBUG] Invalid GET_CLASS: %d (should be 0-%d)\tn\r\n", 
+                    award_class, NUM_CLASSES-1);
+      }
+      award_stage_perk_points(ch, award_class);
       if (perk_points_awarded)
         (*perk_points_awarded)++;
     }
@@ -678,13 +686,16 @@ void award_stage_perk_points(struct char_data *ch, int class_id)
     return;
   
   if (class_id < 0 || class_id >= NUM_CLASSES)
+  {
+    send_to_char(ch, "\tRERROR: Invalid class ID %d in award_stage_perk_points!\tn\r\n", class_id);
     return;
+  }
   
   /* Award 1 perk point per stage (stages 1-3 only) */
   ch->player_specials->saved.perk_points[class_id]++;
   
-  send_to_char(ch, "\tGYou gain 1 perk point for your %s class!\tn\r\n",
-              class_list[class_id].name);
+  send_to_char(ch, "\tGYou gain 1 perk point for your %s class! (Total: %d)\tn\r\n",
+              class_names[class_id], ch->player_specials->saved.perk_points[class_id]);
 }
 
 /*****************************************************************************
@@ -939,7 +950,7 @@ bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *er
 {
   struct perk_data *perk;
   struct char_perk_data *char_perk;
-  int current_rank, i;
+  int current_rank;
   
   /* Clear error message */
   if (error_msg && error_len > 0)
@@ -1397,7 +1408,7 @@ void display_perk_details(struct char_data *ch, struct perk_data *perk, struct c
   int class_id = perk->associated_class;
   
   send_to_char(ch, "\tc%s\tn\r\n", perk->name);
-  send_to_char(ch, "Class: \tW%s\tn\r\n", class_list[class_id].name);
+  send_to_char(ch, "Class: \tW%s\tn\r\n", class_names[class_id]);
   send_to_char(ch, "Cost: \tY%d\tn perk point%s per rank\r\n", perk->cost, perk->cost != 1 ? "s" : "");
   send_to_char(ch, "Max Ranks: \tC%d\tn\r\n", perk->max_rank);
   send_to_char(ch, "Current Rank: \tG%d\tn\r\n", current_rank);
@@ -1411,42 +1422,80 @@ void display_perk_details(struct char_data *ch, struct perk_data *perk, struct c
   
   send_to_char(ch, "\r\nDescription:\r\n%s\r\n", perk->description);
   
-  /* Show effect */
-  send_to_char(ch, "\r\nEffect: ");
-  switch (perk->effect_type)
+  /* Show effect - only if there is one */
+  if (perk->effect_type != PERK_EFFECT_NONE)
   {
-    case PERK_EFFECT_HP:
-      send_to_char(ch, "\tG+%d\tn Hit Points per rank\r\n", perk->effect_value);
-      break;
-    case PERK_EFFECT_SPELL_POINTS:
-      send_to_char(ch, "\tG+%d\tn Spell Points per rank\r\n", perk->effect_value);
-      break;
-    case PERK_EFFECT_AC:
-      send_to_char(ch, "\tG+%d\tn Armor Class per rank\r\n", perk->effect_value);
-      break;
-    case PERK_EFFECT_SAVE:
-      if (perk->effect_modifier == -1)
-        send_to_char(ch, "\tG+%d\tn to all saves per rank\r\n", perk->effect_value);
-      else if (perk->effect_modifier >= 0 && perk->effect_modifier < NUM_OF_SAVING_THROWS)
-        send_to_char(ch, "\tG+%d\tn to %s save per rank\r\n", perk->effect_value, 
-                     save_type_names[perk->effect_modifier]);
-      break;
-    case PERK_EFFECT_SKILL:
-      if (perk->effect_modifier == -1)
-        send_to_char(ch, "\tG+%d\tn to all skills per rank\r\n", perk->effect_value);
-      else if (perk->effect_modifier >= 0 && perk->effect_modifier < NUM_ABILITIES)
-        send_to_char(ch, "\tG+%d\tn to %s per rank\r\n", perk->effect_value,
-                     ability_names[perk->effect_modifier]);
-      break;
-    case PERK_EFFECT_WEAPON_DAMAGE:
-      send_to_char(ch, "\tG+%d\tn to melee weapon damage per rank\r\n", perk->effect_value);
-      break;
-    case PERK_EFFECT_WEAPON_TOHIT:
-      send_to_char(ch, "\tG+%d\tn to melee weapon to-hit per rank\r\n", perk->effect_value);
-      break;
-    default:
-      send_to_char(ch, "Unknown effect\r\n");
-      break;
+    send_to_char(ch, "\r\nEffect: ");
+    switch (perk->effect_type)
+    {
+      case PERK_EFFECT_HP:
+        send_to_char(ch, "\tG+%d\tn Hit Points per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_SPELL_POINTS:
+        send_to_char(ch, "\tG+%d\tn Spell Points per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_AC:
+        send_to_char(ch, "\tG+%d\tn Armor Class per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_ABILITY_SCORE:
+        if (perk->effect_modifier >= 0 && perk->effect_modifier < 6)
+          send_to_char(ch, "\tG+%d\tn to %s per rank\r\n", perk->effect_value,
+                       ability_score_names[perk->effect_modifier]);
+        break;
+      case PERK_EFFECT_SAVE:
+        if (perk->effect_modifier == -1)
+          send_to_char(ch, "\tG+%d\tn to all saves per rank\r\n", perk->effect_value);
+        else if (perk->effect_modifier >= 0 && perk->effect_modifier < NUM_OF_SAVING_THROWS)
+          send_to_char(ch, "\tG+%d\tn to %s save per rank\r\n", perk->effect_value, 
+                       save_type_names[perk->effect_modifier]);
+        break;
+      case PERK_EFFECT_SKILL:
+        if (perk->effect_modifier == -1)
+          send_to_char(ch, "\tG+%d\tn to all skills per rank\r\n", perk->effect_value);
+        else if (perk->effect_modifier >= 0 && perk->effect_modifier < NUM_ABILITIES)
+          send_to_char(ch, "\tG+%d\tn to %s per rank\r\n", perk->effect_value,
+                       ability_names[perk->effect_modifier]);
+        break;
+      case PERK_EFFECT_WEAPON_DAMAGE:
+        send_to_char(ch, "\tG+%d\tn to melee weapon damage per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_WEAPON_TOHIT:
+        send_to_char(ch, "\tG+%d\tn to melee weapon to-hit per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_SPELL_DC:
+        send_to_char(ch, "\tG+%d\tn to spell save DC per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_SPELL_DAMAGE:
+        send_to_char(ch, "\tG+%d\tn to spell damage per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_SPELL_DURATION:
+        send_to_char(ch, "\tG+%d\tn rounds to spell duration per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_CASTER_LEVEL:
+        send_to_char(ch, "\tG+%d\tn to effective caster level per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_DAMAGE_REDUCTION:
+        send_to_char(ch, "\tG%d/-\tn damage reduction per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_SPELL_RESISTANCE:
+        send_to_char(ch, "\tG+%d\tn spell resistance per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_CRITICAL_MULT:
+        send_to_char(ch, "\tG+%d\tn to critical multiplier per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_CRITICAL_CHANCE:
+        send_to_char(ch, "\tG+%d\tn to critical threat range per rank\r\n", perk->effect_value);
+        break;
+      case PERK_EFFECT_SPECIAL:
+        if (perk->special_description && *perk->special_description)
+          send_to_char(ch, "%s\r\n", perk->special_description);
+        else
+          send_to_char(ch, "Special effect (see description)\r\n");
+        break;
+      default:
+        /* Don't display anything for unknown effects */
+        break;
+    }
   }
   
   /* Show if purchasable */
@@ -1486,11 +1535,11 @@ void list_perks_for_class(struct char_data *ch, int class_id)
   
   if (count == 0)
   {
-    send_to_char(ch, "No perks available for %s.\r\n", class_list[class_id].name);
+    send_to_char(ch, "No perks available for %s.\r\n", class_names[class_id]);
     return;
   }
   
-  send_to_char(ch, "\tc%s Perks\tn\r\n", class_list[class_id].name);
+  send_to_char(ch, "\tc%s Perks\tn\r\n", class_names[class_id]);
   send_to_char(ch, "Available Perk Points: \tY%d\tn\r\n\r\n", get_perk_points(ch, class_id));
   
   send_to_char(ch, "\tW%-4s %-30s %-6s %-4s %-6s\tn\r\n", "ID", "Name", "Cost", "Rank", "Max");
@@ -1541,7 +1590,7 @@ void list_my_perks(struct char_data *ch)
       
     send_to_char(ch, "%-30s %-15s \tG%-6d\tn\r\n",
                  perk->name,
-                 class_list[perk->associated_class].name,
+                 class_names[perk->associated_class],
                  char_perk->current_rank);
     count++;
   }
@@ -1583,8 +1632,36 @@ ACMD(do_perk)
   /* No arguments - show perks for primary class */
   if (!*arg1)
   {
-    class_id = GET_CLASS(ch);
-    list_perks_for_class(ch, class_id);
+    /* Find first class with available perks or levels */
+    int found_class = -1;
+    int total_classes = 0;
+    
+    for (class_id = 0; class_id < NUM_CLASSES; class_id++)
+    {
+      if (CLASS_LEVEL(ch, class_id) > 0)
+      {
+        total_classes++;
+        if (found_class == -1)
+          found_class = class_id;
+      }
+    }
+    
+    if (found_class == -1)
+    {
+      send_to_char(ch, "You don't have any class levels yet.\r\n");
+      return;
+    }
+    
+    list_perks_for_class(ch, found_class);
+    
+    /* If multiple classes, suggest using perk list */
+    if (total_classes > 1)
+    {
+      send_to_char(ch, "\r\n\tcYou have levels in multiple classes.\tn\r\n");
+      send_to_char(ch, "Use '\tcperk list\tn' to see all your classes and perk points.\r\n");
+      send_to_char(ch, "Use '\tcperk <class>\tn' to view perks for a specific class.\r\n");
+    }
+    
     return;
   }
   
@@ -1600,7 +1677,7 @@ ACMD(do_perk)
       {
         int points = get_perk_points(ch, class_id);
         send_to_char(ch, "  %-15s (Level %2d): \tY%d\tn perk point%s\r\n",
-                     class_list[class_id].name,
+                     class_names[class_id],
                      CLASS_LEVEL(ch, class_id),
                      points,
                      points != 1 ? "s" : "");
@@ -1668,7 +1745,7 @@ ACMD(do_perk)
       send_to_char(ch, "\tGYou have purchased rank %d of '%s'!\tn\r\n",
                    char_perk->current_rank, perk->name);
       send_to_char(ch, "Remaining perk points for %s: \tY%d\tn\r\n",
-                   class_list[class_id].name, get_perk_points(ch, class_id));
+                   class_names[class_id], get_perk_points(ch, class_id));
       
       /* Recalculate stats to apply new perk */
       affect_total(ch);
@@ -1698,7 +1775,7 @@ ACMD(do_perk)
   /* Check if character has this class */
   if (CLASS_LEVEL(ch, class_id) == 0)
   {
-    send_to_char(ch, "You don't have any levels in %s.\r\n", class_list[class_id].name);
+    send_to_char(ch, "You don't have any levels in %s.\r\n", class_names[class_id]);
     return;
   }
   
