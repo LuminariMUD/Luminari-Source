@@ -6174,6 +6174,11 @@ ACMDCHECK(can_disarm)
   return CAN_CMD;
 }
 
+ACMDCHECK(can_sunder)
+{
+  return CAN_CMD;
+}
+
 ACMDCHECK(can_rescue)
 {
   return CAN_CMD;
@@ -8463,6 +8468,190 @@ ACMD(do_disarm)
   }
 
   perform_disarm(ch, vict, mod);
+}
+
+/* sunder mechanic - opposed attack rolls to break weapon/shield */
+int perform_sunder(struct char_data *ch, struct char_data *vict, int mod)
+{
+  int pos;
+  struct obj_data *target_item = NULL;
+  int attacker_roll = 0, defender_roll = 0;
+  int size_mod = 0;
+  struct obj_data *attacker_weapon = NULL;
+
+  if (!vict)
+  {
+    send_to_char(ch, "You can only try to sunder the weapon or shield of the opponent you are fighting.\r\n");
+    return -1;
+  }
+
+  if (ch == vict)
+  {
+    send_to_char(ch, "You can't sunder your own equipment!\r\n");
+    return -1;
+  }
+
+  if (!CAN_SEE(ch, vict))
+  {
+    send_to_char(ch, "You can't see well enough to attempt that.\r\n");
+    return -1;
+  }
+
+  /* Determine what weapon/shield we're attacking */
+  if (GET_EQ(vict, WEAR_SHIELD))
+  {
+    target_item = GET_EQ(vict, WEAR_SHIELD);
+    pos = WEAR_SHIELD;
+  }
+  else if (GET_EQ(vict, WEAR_WIELD_2H))
+  {
+    target_item = GET_EQ(vict, WEAR_WIELD_2H);
+    pos = WEAR_WIELD_2H;
+  }
+  else if (GET_EQ(vict, WEAR_WIELD_1))
+  {
+    target_item = GET_EQ(vict, WEAR_WIELD_1);
+    pos = WEAR_WIELD_1;
+  }
+  else if (GET_EQ(vict, WEAR_WIELD_OFFHAND))
+  {
+    target_item = GET_EQ(vict, WEAR_WIELD_OFFHAND);
+    pos = WEAR_WIELD_OFFHAND;
+  }
+
+  if (!target_item)
+  {
+    act("But $N is not wielding a weapon or shield.", FALSE, ch, 0, vict, TO_CHAR);
+    return -1;
+  }
+
+  /* Check if attacker has a valid weapon (slashing or bludgeoning) */
+  if (GET_EQ(ch, WEAR_WIELD_2H))
+    attacker_weapon = GET_EQ(ch, WEAR_WIELD_2H);
+  else if (GET_EQ(ch, WEAR_WIELD_1))
+    attacker_weapon = GET_EQ(ch, WEAR_WIELD_1);
+
+  if (!attacker_weapon)
+  {
+    send_to_char(ch, "You need to wield a slashing or bludgeoning weapon to sunder.\r\n");
+    return -1;
+  }
+
+  /* Check weapon type - must be slashing or bludgeoning */
+  if (!IS_BLADE(attacker_weapon) && !IS_BLUNT(attacker_weapon))
+  {
+    send_to_char(ch, "You need to wield a slashing or bludgeoning weapon to sunder.\r\n");
+    return -1;
+  }
+
+  /* Trigger AoO unless they have Improved Sunder feat or perk */
+  if (!HAS_FEAT(ch, FEAT_IMPROVED_SUNDER) && !has_perk(ch, PERK_FIGHTER_IMPROVED_SUNDER))
+    mod -= attack_of_opportunity(vict, ch, 0);
+
+  /* Make opposed attack rolls */
+  attacker_roll = d20(ch);
+  defender_roll = d20(vict);
+
+  /* Add attack bonuses */
+  attacker_roll += compute_attack_bonus(ch, vict, ATTACK_TYPE_PRIMARY);
+  defender_roll += compute_attack_bonus(vict, ch, ATTACK_TYPE_PRIMARY);
+
+  /* Two-handed weapon bonus: +4 for attacker */
+  if (GET_EQ(ch, WEAR_WIELD_2H))
+    attacker_roll += 4;
+  
+  /* Two-handed weapon bonus: +4 for defender */
+  if (pos == WEAR_WIELD_2H)
+    defender_roll += 4;
+
+  /* Light weapon penalty: -4 */
+  if (attacker_weapon && GET_OBJ_SIZE(attacker_weapon) < GET_SIZE(ch))
+    attacker_roll -= 4;
+  
+  if (target_item && GET_OBJ_TYPE(target_item) == ITEM_WEAPON && 
+      GET_OBJ_SIZE(target_item) < GET_SIZE(vict))
+    defender_roll -= 4;
+
+  /* Size difference bonus: +4 per size category */
+  size_mod = (GET_SIZE(ch) - GET_SIZE(vict)) * 4;
+  attacker_roll += size_mod;
+
+  /* Add any modifiers passed in */
+  attacker_roll += mod;
+
+  /* Improved Sunder perk bonus */
+  if (has_perk(ch, PERK_FIGHTER_IMPROVED_SUNDER))
+    attacker_roll += 4;
+
+  /* Compare rolls */
+  if (attacker_roll > defender_roll)
+  {
+    /* Success! */
+    act("$n strikes $N's $p, knocking it from $S grip!",
+        FALSE, ch, target_item, vict, TO_NOTVICT);
+    act("You strike $N's $p and knock it from $S hands!",
+        FALSE, ch, target_item, vict, TO_CHAR);
+    act("$n strikes your $p, knocking it from your grip!",
+        FALSE, ch, target_item, vict, TO_VICT | TO_SLEEP);
+
+    /* Unequip and move to inventory */
+    obj_to_char(unequip_char(vict, pos), vict);
+
+    /* Apply 4 second lag to victim */
+    WAIT_STATE(vict, 4 * PASSES_PER_SEC);
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
+
+    return 1;
+  }
+  else
+  {
+    /* Failure */
+    act("$n fails to sunder $N's $p.",
+        FALSE, ch, target_item, vict, TO_NOTVICT);
+    act("You fail to sunder $N's $p.",
+        FALSE, ch, target_item, vict, TO_CHAR);
+    act("$n fails to sunder your $p.",
+        FALSE, ch, target_item, vict, TO_VICT);
+
+    return 0;
+  }
+}
+
+/* entry point for sunder combat maneuver */
+ACMD(do_sunder)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int mod = 0;
+  struct char_data *vict = NULL;
+
+  PREREQ_NOT_NPC();
+  PREREQ_NOT_PEACEFUL_ROOM();
+  PREREQ_IN_POSITION(POS_SITTING, "You need to stand to sunder!\r\n");
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+      vict = FIGHTING(ch);
+  }
+  else
+    vict = get_char_room_vis(ch, arg, NULL);
+
+  if (!vict)
+  {
+    send_to_char(ch, "Sunder whose equipment?\r\n");
+    return;
+  }
+  if (vict == ch)
+  {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  perform_sunder(ch, vict, mod);
 }
 
 /* do_process_attack()

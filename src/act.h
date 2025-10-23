@@ -531,6 +531,8 @@ ACMD_DECL(do_shieldpunch);
 ACMDCHECK(can_shieldpunch);
 ACMD_DECL(do_disarm);
 ACMDCHECK(can_disarm);
+ACMD_DECL(do_sunder);
+ACMDCHECK(can_sunder);
 ACMD_DECL(do_shieldcharge);
 ACMDCHECK(can_shieldcharge);
 ACMD_DECL(do_shieldslam);

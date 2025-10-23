@@ -47,6 +47,7 @@ void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
     do_faeriefire,       /* AA_FAERIE_FIRE */
     do_feint,            /* AA_FEINT */
     do_impromptu,        /* AA_IMPROMPT */
+    do_sunder,           /* AA_SUNDER */
 };
 
 void update_msdp_actions(struct char_data *ch)
