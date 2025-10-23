@@ -26,8 +26,9 @@
 #define AA_FAERIE_FIRE 17
 #define AA_FEINT 18
 #define AA_IMPROMPT 19
+#define AA_SUNDER 20
 /**/
-#define NUM_ATTACK_ACTIONS 20
+#define NUM_ATTACK_ACTIONS 21
 /**************************/
 
 #define USE_STANDARD_ACTION(ch) start_action_cooldown(ch, atSTANDARD, 6 RL_SEC)

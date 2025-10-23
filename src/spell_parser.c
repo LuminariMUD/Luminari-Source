@@ -5489,6 +5489,7 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   skillo(SKILL_INNER_FIRE, "inner fire", ACTIVE_SKILL);                       /* 548 */
   skillo(SKILL_SACRED_FLAMES, "sacred flames", ACTIVE_SKILL);                 /* 549 */
   skillo(SKILL_EPIC_WILDSHAPE, "epic wildshape", PASSIVE_SKILL);
+  skillo(SKILL_SUNDER, "sunder", ACTIVE_SKILL);                               /* 550 */
 
   /* songs */
   skillo(SKILL_DEAFENING_SONG, "deafening song", ACTIVE_SKILL);                   // 587
