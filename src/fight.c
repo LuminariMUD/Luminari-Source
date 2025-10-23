@@ -12913,7 +12913,7 @@ void perform_violence(struct char_data *ch, int phase)
     if (ch && FIGHTING(ch) && !IS_NPC(ch) && can_stand(ch) && PRF_FLAGGED(ch, PRF_AUTO_STAND))
     {
       /* check if we can springleap out of this */
-      if (HAS_FEAT(ch, FEAT_SPRING_ATTACK) && CLASS_LEVEL(ch, CLASS_MONK) >= 5)
+      if ((HAS_FEAT(ch, FEAT_SPRING_ATTACK) || get_perk_rank(ch, PERK_FIGHTER_SPRING_ATTACK, CLASS_WARRIOR)) && CLASS_LEVEL(ch, CLASS_MONK) >= 5)
       {
         do_springleap(ch, 0, 0, 0);
       }
