@@ -717,8 +717,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     }
     if (teamwork_using_shield(ch, FEAT_SHIELD_WALL))
       bonuses[BONUS_TYPE_SHIELD] += teamwork_using_shield(ch, FEAT_SHIELD_WALL);
-    /* Shield Mastery I perk bonus */
+    /* Shield Mastery perks bonus */
     if (has_perk(ch, PERK_FIGHTER_SHIELD_MASTERY_1))
+      bonuses[BONUS_TYPE_SHIELD] += 2;
+    if (has_perk(ch, PERK_FIGHTER_SHIELD_MASTERY_2))
       bonuses[BONUS_TYPE_SHIELD] += 2;
   }
 
@@ -1313,6 +1315,12 @@ void update_pos_dam(struct char_data *victim)
     {
       act("\tYYour die hard toughness let's you push through.\tn", FALSE, victim, 0, 0, TO_CHAR);
       act("$n's die hard toughness let's $m push through.", FALSE, victim, 0, 0, TO_ROOM);
+      GET_HIT(victim) = 1;
+    }
+    else if (has_perk(victim, PERK_FIGHTER_LAST_STAND) && dice(1, 3) == 1)
+    {
+      act("\tYYou take your last stand and push through.\tn", FALSE, victim, 0, 0, TO_CHAR);
+      act("$n takes $s last stand, allowing $m to push through.", FALSE, victim, 0, 0, TO_ROOM);
       GET_HIT(victim) = 1;
     }
     else if (IS_NPC(victim) && MOB_FLAGGED(victim, MOB_EIDOLON) && victim->master && !IS_NPC(victim->master) && HAS_FEAT(victim->master, FEAT_LIFE_LINK) &&
@@ -3929,9 +3937,29 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
   /* Defensive Stance perk */
   if (has_perk_active(ch, PERK_FIGHTER_DEFENSIVE_STANCE))
   {
-    damage_reduction += 2;
-    if (display)
-      send_to_char(ch, "%-30s: %d\r\n", "Defensive Stance Perk", 2);
+    int dr_amount = 2;
+    
+    /* Check for Immovable Object first (highest DR) */
+    if (has_perk_active(ch, PERK_FIGHTER_IMMOVABLE_OBJECT))
+    {
+      dr_amount = 6;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Immovable Object", 6);
+    }
+    /* Check for Improved Damage Reduction */
+    else if (has_perk(ch, PERK_FIGHTER_IMPROVED_DAMAGE_REDUCTION))
+    {
+      dr_amount = 4;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Improved Damage Reduction", 4);
+    }
+    else
+    {
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Defensive Stance Perk", 2);
+    }
+    
+    damage_reduction += dr_amount;
   }
 
   if (HAS_FEAT(ch, FEAT_ARMOR_MASTERY) && (GET_EQ(ch, WEAR_BODY) || GET_EQ(ch, WEAR_SHIELD)))
