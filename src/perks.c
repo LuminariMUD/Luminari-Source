@@ -501,6 +501,130 @@ void define_fighter_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("Once per day, when HP drops to 0 or below, remain at 1 HP for 5 rounds. Requires max Toughness I and max Resilience.");
   
+  /*** TREE 3: TACTICAL FIGHTER - TIER I ***/
+  
+  /* Combat Reflexes I */
+  perk = &perk_list[PERK_FIGHTER_COMBAT_REFLEXES_1];
+  perk->id = PERK_FIGHTER_COMBAT_REFLEXES_1;
+  perk->name = strdup("Combat Reflexes I");
+  perk->description = strdup("+1 attack of opportunity per round per rank (max 3 ranks)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+1 attack of opportunity per round per rank");
+  
+  /* Improved Initiative I */
+  perk = &perk_list[PERK_FIGHTER_IMPROVED_INITIATIVE_1];
+  perk->id = PERK_FIGHTER_IMPROVED_INITIATIVE_1;
+  perk->name = strdup("Improved Initiative I");
+  perk->description = strdup("+2 initiative per rank (max 3 ranks)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+2 to initiative per rank");
+  
+  /* Mobility I */
+  perk = &perk_list[PERK_FIGHTER_MOBILITY_1];
+  perk->id = PERK_FIGHTER_MOBILITY_1;
+  perk->name = strdup("Mobility I");
+  perk->description = strdup("+2 AC vs attacks of opportunity per rank (max 2 ranks)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+2 AC vs attacks of opportunity per rank");
+  
+  /*** TREE 3: TACTICAL FIGHTER - TIER II ***/
+  
+  /* Combat Reflexes II */
+  perk = &perk_list[PERK_FIGHTER_COMBAT_REFLEXES_2];
+  perk->id = PERK_FIGHTER_COMBAT_REFLEXES_2;
+  perk->name = strdup("Combat Reflexes II");
+  perk->description = strdup("Additional +1 attack of opportunity per round per rank (max 2 ranks)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_FIGHTER_COMBAT_REFLEXES_1;
+  perk->prerequisite_rank = 3; /* Requires Combat Reflexes I at max rank */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Combat Reflexes I at max rank (3)");
+  
+  /* Improved Trip */
+  perk = &perk_list[PERK_FIGHTER_IMPROVED_TRIP];
+  perk->id = PERK_FIGHTER_IMPROVED_TRIP;
+  perk->name = strdup("Improved Trip");
+  perk->description = strdup("+4 to trip attempts, enemies provoke AoO when standing");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_COMBAT_REFLEXES_1;
+  perk->prerequisite_rank = 1; /* Requires at least 1 rank of Combat Reflexes I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+4 bonus to trip combat maneuvers, enemies provoke AoO when standing up");
+  
+  /* Improved Disarm */
+  perk = &perk_list[PERK_FIGHTER_IMPROVED_DISARM];
+  perk->id = PERK_FIGHTER_IMPROVED_DISARM;
+  perk->name = strdup("Improved Disarm");
+  perk->description = strdup("+4 to disarm attempts, no AoO provoked");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+4 bonus to disarm combat maneuvers, does not provoke attacks of opportunity");
+  
+  /* Improved Sunder */
+  perk = &perk_list[PERK_FIGHTER_IMPROVED_SUNDER];
+  perk->id = PERK_FIGHTER_IMPROVED_SUNDER;
+  perk->name = strdup("Improved Sunder");
+  perk->description = strdup("+4 to sunder attempts, deal full damage to objects");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+4 bonus to sunder combat maneuvers, deal full damage to objects");
+  
+  /* Spring Attack */
+  perk = &perk_list[PERK_FIGHTER_SPRING_ATTACK];
+  perk->id = PERK_FIGHTER_SPRING_ATTACK;
+  perk->name = strdup("Spring Attack");
+  perk->description = strdup("Can move before and after attacking");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_MOBILITY_1;
+  perk->prerequisite_rank = 1; /* Requires at least 1 rank of Mobility I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Allows moving before and after attacking without provoking AoO");
+  
   /*** OLDER PERKS (to be reorganized into tiers) ***/
   
   /* Weapon Specialization I */

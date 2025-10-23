@@ -721,12 +721,15 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     {
       attack_check += 5;
     }
+    /* Tactical Fighter perk: Improved Trip */
+    if (has_perk(ch, PERK_FIGHTER_IMPROVED_TRIP))
+      attack_check += 4;
     if (is_flying(vict))
     {
       send_to_char(ch, "Impossible, your target is flying!\r\n");
       return FALSE;
     }
-    if (!HAS_FEAT(ch, FEAT_IMPROVED_TRIP))
+    if (!HAS_FEAT(ch, FEAT_IMPROVED_TRIP) && !has_perk(ch, PERK_FIGHTER_IMPROVED_TRIP))
       attack_of_opportunity(vict, ch, 0);
     break;
   case EVOLUTION_WING_BUFFET_EFFECT:
@@ -8333,7 +8336,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
   }
 
   // Trigger AOO, save damage for modifying the CMD roll.
-  if (!HAS_FEAT(ch, FEAT_IMPROVED_DISARM))
+  if (!HAS_FEAT(ch, FEAT_IMPROVED_DISARM) && !has_perk(ch, PERK_FIGHTER_IMPROVED_DISARM))
     mod -= attack_of_opportunity(vict, ch, 0);
 
   // Check to see what we are wielding.
@@ -8353,6 +8356,10 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
   {
     mod += 5;
   }
+  
+  /* Tactical Fighter perk: Improved Disarm */
+  if (has_perk(ch, PERK_FIGHTER_IMPROVED_DISARM))
+    mod += 4;
 
   int result = combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_DISARM, mod);
   if (result > 0 && !HAS_FEAT(vict, FEAT_WEAPON_MASTERY))
