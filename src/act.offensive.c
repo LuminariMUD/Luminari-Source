@@ -3330,14 +3330,14 @@ ACMD(do_flee)
   {
     perform_flee(ch);
   }
-  else if (*arg && !IS_NPC(ch) && !HAS_FEAT(ch, FEAT_SPRING_ATTACK) && !HAS_FEAT(ch, FEAT_NIMBLE_ESCAPE))
+  else if (*arg && !IS_NPC(ch) && !HAS_FEAT(ch, FEAT_SPRING_ATTACK) && !get_perk_rank(ch, PERK_FIGHTER_SPRING_ATTACK, CLASS_WARRIOR) && !HAS_FEAT(ch, FEAT_NIMBLE_ESCAPE))
   {
     send_to_char(ch, "You don't have the option to choose which way to flee, and flee randomly!\r\n");
     perform_flee(ch);
   }
   else
   { // there is an argument, check if its valid
-    if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK))
+    if (!HAS_FEAT(ch, FEAT_SPRING_ATTACK) && !get_perk_rank(ch, PERK_FIGHTER_SPRING_ATTACK, CLASS_WARRIOR))
     {
       send_to_char(ch, "You don't have the option to choose which way to flee!\r\n");
       return;
@@ -7363,7 +7363,7 @@ ACMD(do_dirtkick)
 
 ACMDCHECK(can_springleap)
 {
-  ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, FEAT_SPRING_ATTACK) && CLASS_LEVEL(ch, CLASS_MONK) < 5, "You have no idea how.\r\n");
+  ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, FEAT_SPRING_ATTACK) && !get_perk_rank(ch, PERK_FIGHTER_SPRING_ATTACK, CLASS_WARRIOR) && CLASS_LEVEL(ch, CLASS_MONK) < 5, "You have no idea how.\r\n");
   return CAN_CMD;
 }
 
