@@ -3002,19 +3002,37 @@
 #define PERK_FIGHTER_CRITICAL_AWARENESS_2 7
 #define PERK_FIGHTER_IMPROVED_CRITICAL_THREAT 8
 
-/* Older perks (to be reorganized) */
-#define PERK_FIGHTER_WEAPON_SPEC_1 9
-#define PERK_FIGHTER_WEAPON_SPEC_2 10
-#define PERK_FIGHTER_WEAPON_SPEC_3 11
-#define PERK_FIGHTER_ARMOR_MASTERY_1 12
-#define PERK_FIGHTER_ARMOR_MASTERY_2 13
-#define PERK_FIGHTER_ARMOR_MASTERY_3 14
-#define PERK_FIGHTER_SHIELD_EXPERTISE_1 15
-#define PERK_FIGHTER_SHIELD_EXPERTISE_2 16
-#define PERK_FIGHTER_TOUGHNESS 17
-#define PERK_FIGHTER_PHYSICAL_RESISTANCE_1 18
-#define PERK_FIGHTER_PHYSICAL_RESISTANCE_2 19
-#define PERK_FIGHTER_PHYSICAL_RESISTANCE_3 20
+/* Tier III Perks */
+#define PERK_FIGHTER_WEAPON_FOCUS_3 9
+#define PERK_FIGHTER_WEAPON_SPECIALIZATION_2 10
+#define PERK_FIGHTER_GREAT_CLEAVE 11
+#define PERK_FIGHTER_DEVASTATING_CRITICAL 12
+
+/* TREE 2: DEFENDER - Tier I Perks (1 point) */
+#define PERK_FIGHTER_ARMOR_TRAINING_1 13
+#define PERK_FIGHTER_TOUGHNESS_1 14
+#define PERK_FIGHTER_RESILIENCE 15
+
+/* TREE 2: DEFENDER - Tier II Perks (2 points) */
+#define PERK_FIGHTER_ARMOR_TRAINING_2 16
+#define PERK_FIGHTER_SHIELD_MASTERY_1 17
+#define PERK_FIGHTER_DEFENSIVE_STANCE 18
+#define PERK_FIGHTER_IRON_WILL 19
+#define PERK_FIGHTER_LIGHTNING_REFLEXES 20
+
+/* Older perks (to be reorganized/deprecated) */
+#define PERK_FIGHTER_WEAPON_SPEC_1 21
+#define PERK_FIGHTER_WEAPON_SPEC_2 22
+#define PERK_FIGHTER_WEAPON_SPEC_3 23
+#define PERK_FIGHTER_ARMOR_MASTERY_1 24
+#define PERK_FIGHTER_ARMOR_MASTERY_2 25
+#define PERK_FIGHTER_ARMOR_MASTERY_3 26
+#define PERK_FIGHTER_SHIELD_EXPERTISE_1 27
+#define PERK_FIGHTER_SHIELD_EXPERTISE_2 28
+#define PERK_FIGHTER_TOUGHNESS 29
+#define PERK_FIGHTER_PHYSICAL_RESISTANCE_1 30
+#define PERK_FIGHTER_PHYSICAL_RESISTANCE_2 31
+#define PERK_FIGHTER_PHYSICAL_RESISTANCE_3 32
 
 /* Wizard Perks (31-60) */
 #define PERK_WIZARD_SPELL_FOCUS_1 31
@@ -5194,6 +5212,7 @@ struct perk_data
     int effect_value;                 /* Magnitude of effect per rank */
     int effect_modifier;              /* Additional modifier (skill num, save type, etc) */
     char *special_description;        /* For PERK_EFFECT_SPECIAL, describe what it does */
+    bool toggleable;                  /* Can this perk be toggled on/off? */
 };
 
 /** Character's acquired perk - tracks which perks a PC has and their ranks */
@@ -5490,6 +5509,7 @@ struct player_special_data_saved
     struct stage_data stage_info;               /**< Current stage and stage XP within level */
     int perk_points[NUM_CLASSES];               /**< Unspent perk points per class */
     struct char_perk_data *perks;               /**< Linked list of acquired perks */
+    byte perk_toggles[32];                      /**< Bitfield tracking toggled perks (256 perks max, 1 bit each) */
 };
 
 struct weird_science_level {

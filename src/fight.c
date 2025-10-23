@@ -717,6 +717,9 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     }
     if (teamwork_using_shield(ch, FEAT_SHIELD_WALL))
       bonuses[BONUS_TYPE_SHIELD] += teamwork_using_shield(ch, FEAT_SHIELD_WALL);
+    /* Shield Mastery I perk bonus */
+    if (has_perk(ch, PERK_FIGHTER_SHIELD_MASTERY_1))
+      bonuses[BONUS_TYPE_SHIELD] += 2;
   }
 
   bonuses[BONUS_TYPE_SHIELD] += get_shield_ally_bonus(ch);
@@ -3921,6 +3924,14 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
     damage_reduction += 1;
     if (display)
       send_to_char(ch, "%-30s: %d\r\n", "Defensive Stance", 1);
+  }
+
+  /* Defensive Stance perk */
+  if (has_perk_active(ch, PERK_FIGHTER_DEFENSIVE_STANCE))
+  {
+    damage_reduction += 2;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Defensive Stance Perk", 2);
   }
 
   if (HAS_FEAT(ch, FEAT_ARMOR_MASTERY) && (GET_EQ(ch, WEAR_BODY) || GET_EQ(ch, WEAR_SHIELD)))
@@ -7191,6 +7202,12 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
       if (HAS_REAL_FEAT(ch, FEAT_SAVAGE_ATTACKS))
         dam += dice(1, 6);
+      
+      /* Devastating Critical perk - adds 1d6 damage on critical hits */
+      if (has_perk(ch, PERK_FIGHTER_DEVASTATING_CRITICAL))
+      {
+        dam += dice(1, 6);
+      }
 
       /* high level mobs are getting a crit bonus here */
       if (IS_NPC(ch) && GET_LEVEL(ch) > 30)
@@ -8513,6 +8530,13 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 1;
     if (display)
         send_to_char(ch, "-1: %-50s\r\n", "Dazzled"); 
+  }
+  /* Defensive Stance perk penalty */
+  if (has_perk_active(ch, PERK_FIGHTER_DEFENSIVE_STANCE))
+  {
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 1;
+    if (display)
+        send_to_char(ch, "-1: %-50s\r\n", "Defensive Stance Perk"); 
   }
   if (IS_FRIGHTENED(ch))
   {
@@ -12738,7 +12762,9 @@ void handle_cleave(struct char_data *ch)
 
   hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, -4, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
 
-  if (HAS_FEAT(ch, FEAT_GREAT_CLEAVE) && !is_using_ranged_weapon(ch, TRUE))
+  /* Great Cleave - feat or perk */
+  if ((HAS_FEAT(ch, FEAT_GREAT_CLEAVE) || has_perk(ch, PERK_FIGHTER_GREAT_CLEAVE)) && 
+      !is_using_ranged_weapon(ch, TRUE))
   {
     send_to_char(ch, "You great cleave to %s!\r\n", (CAN_SEE(ch, tch)) ? GET_NAME(tch) : "someone");
     act("$n great cleaves to $N!", TRUE, ch, 0, tch, TO_ROOM);

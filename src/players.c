@@ -113,6 +113,7 @@ static void load_craft_materials(FILE *fl, struct char_data *ch);
 static void load_craft_motes(FILE *fl, struct char_data *ch);
 static void load_perks(FILE *fl, struct char_data *ch);
 static void load_perk_points(FILE *fl, struct char_data *ch);
+static void load_perk_toggles(FILE *fl, struct char_data *ch);
 
 
 // external functions
@@ -1301,6 +1302,8 @@ int load_char(const char *name, struct char_data *ch)
           ch->player_specials->saved.stage_info.current_stage = atoi(line);
         else if (!strcmp(tag, "PSXp"))
           ch->player_specials->saved.stage_info.stage_exp = atoi(line);
+        else if (!strcmp(tag, "PTog"))
+          load_perk_toggles(fl, ch);
         break;
 
       case 'Q':
@@ -2704,6 +2707,14 @@ void save_char(struct char_data *ch, int mode)
   BUFFER_WRITE( "PStg: %d\n", ch->player_specials->saved.stage_info.current_stage);
   BUFFER_WRITE( "PSXp: %d\n", ch->player_specials->saved.stage_info.stage_exp);
 
+  /* Save perk toggles as hex string (32 bytes = 256 bits = 64 hex chars) */
+  BUFFER_WRITE( "PTog: ");
+  for (i = 0; i < 32; i++)
+  {
+    BUFFER_WRITE( "%02x", ch->player_specials->saved.perk_toggles[i]);
+  }
+  BUFFER_WRITE( "\n");
+
   /* Save evolutions */
   BUFFER_WRITE( "Evol:\n");
   for (i = 1; i < NUM_EVOLUTIONS; i++)
@@ -3521,6 +3532,32 @@ static void load_perk_points(FILE *fl, struct char_data *ch)
     if (cls >= 0 && cls < NUM_CLASSES)
       ch->player_specials->saved.perk_points[cls] = pts;
   } while (cls >= 0);
+}
+
+/* Load character's perk toggle bitfield */
+static void load_perk_toggles(FILE *fl, struct char_data *ch)
+{
+  char line[MAX_INPUT_LENGTH + 1];
+  int i;
+  unsigned int value;
+  
+  /* Initialize all toggles to 0 */
+  memset(ch->player_specials->saved.perk_toggles, 0, 32);
+  
+  get_line(fl, line);
+  
+  /* Parse hex string (64 hex chars, 2 per byte) */
+  if (strlen(line) >= 64)
+  {
+    /* Read each pair of hex digits as a byte */
+    for (i = 0; i < 32; i++)
+    {
+      if (sscanf(line + (i * 2), "%2x", &value) == 1)
+      {
+        ch->player_specials->saved.perk_toggles[i] = (byte)value;
+      }
+    }
+  }
 }
 
 /* load_affects function now handles both 32-bit and

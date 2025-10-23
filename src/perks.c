@@ -52,6 +52,7 @@ void init_perks(void)
     perk_list[i].effect_value = 0;
     perk_list[i].effect_modifier = 0;
     perk_list[i].special_description = strdup("");
+    perk_list[i].toggleable = false;
   }
   
   /* Define Fighter Perks */
@@ -217,6 +218,193 @@ void define_fighter_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Expands critical threat range by 1");
+  
+  /*** TIER III PERKS (Tree 1: Weapon Specialist) ***/
+  
+  /* Weapon Focus III */
+  perk = &perk_list[PERK_FIGHTER_WEAPON_FOCUS_3];
+  perk->id = PERK_FIGHTER_WEAPON_FOCUS_3;
+  perk->name = strdup("Weapon Focus III");
+  perk->description = strdup("Additional +1 to hit with all weapons (+3 total)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_WEAPON_FOCUS_2;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_WEAPON_TOHIT;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Weapon Specialization II - Tier 3 version (multi-rank) */
+  perk = &perk_list[PERK_FIGHTER_WEAPON_SPECIALIZATION_2];
+  perk->id = PERK_FIGHTER_WEAPON_SPECIALIZATION_2;
+  perk->name = strdup("Weapon Specialization II");
+  perk->description = strdup("Additional +1 damage per rank with all weapons");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_FIGHTER_WEAPON_SPECIALIZATION_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_WEAPON_DAMAGE;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires max rank Weapon Specialization I; can be taken up to 3 times");
+  
+  /* Great Cleave */
+  perk = &perk_list[PERK_FIGHTER_GREAT_CLEAVE];
+  perk->id = PERK_FIGHTER_GREAT_CLEAVE;
+  perk->name = strdup("Great Cleave");
+  perk->description = strdup("Cleaving Strike works on any kill, not just first");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_CLEAVING_STRIKE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Unlimited cleave attacks on kills (like Great Cleave feat)");
+  
+  /* Devastating Critical */
+  perk = &perk_list[PERK_FIGHTER_DEVASTATING_CRITICAL];
+  perk->id = PERK_FIGHTER_DEVASTATING_CRITICAL;
+  perk->name = strdup("Devastating Critical");
+  perk->description = strdup("Critical hits deal +1d6 additional damage");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_IMPROVED_CRITICAL_THREAT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Extra 1d6 damage on critical hits");
+  
+  /*** TREE 2: DEFENDER - TIER I ***/
+  
+  /* Armor Training I */
+  perk = &perk_list[PERK_FIGHTER_ARMOR_TRAINING_1];
+  perk->id = PERK_FIGHTER_ARMOR_TRAINING_1;
+  perk->name = strdup("Armor Training I");
+  perk->description = strdup("+1 AC per rank (max 3 ranks)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Toughness I */
+  perk = &perk_list[PERK_FIGHTER_TOUGHNESS_1];
+  perk->id = PERK_FIGHTER_TOUGHNESS_1;
+  perk->name = strdup("Toughness I");
+  perk->description = strdup("+10 HP per rank (max 5 ranks)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_HP;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Resilience */
+  perk = &perk_list[PERK_FIGHTER_RESILIENCE];
+  perk->id = PERK_FIGHTER_RESILIENCE;
+  perk->name = strdup("Resilience");
+  perk->description = strdup("+1 to Fortitude saves per rank (max 3 ranks)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 1;
+  perk->effect_modifier = APPLY_SAVING_FORT;
+  perk->special_description = strdup("");
+  
+  /*** TREE 2: DEFENDER - TIER II ***/
+  
+  /* Armor Training II */
+  perk = &perk_list[PERK_FIGHTER_ARMOR_TRAINING_2];
+  perk->id = PERK_FIGHTER_ARMOR_TRAINING_2;
+  perk->name = strdup("Armor Training II");
+  perk->description = strdup("+1 AC per rank (max 2 ranks)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_FIGHTER_ARMOR_TRAINING_1;
+  perk->prerequisite_rank = 3; /* Requires Armor Training I at max rank */
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Armor Training I at max rank (3)");
+  
+  /* Shield Mastery I */
+  perk = &perk_list[PERK_FIGHTER_SHIELD_MASTERY_1];
+  perk->id = PERK_FIGHTER_SHIELD_MASTERY_1;
+  perk->name = strdup("Shield Mastery I");
+  perk->description = strdup("+2 AC when using a shield");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+2 AC bonus when wielding a shield");
+  
+  /* Defensive Stance */
+  perk = &perk_list[PERK_FIGHTER_DEFENSIVE_STANCE];
+  perk->id = PERK_FIGHTER_DEFENSIVE_STANCE;
+  perk->name = strdup("Defensive Stance");
+  perk->description = strdup("Damage reduction 2/-, -1 to hit when active");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_ARMOR_TRAINING_1;
+  perk->prerequisite_rank = 1; /* Requires at least 1 rank of Armor Training I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Provides damage reduction 2/- but -1 to hit");
+  perk->toggleable = true; /* Can be toggled on/off */
+  
+  /* Iron Will */
+  perk = &perk_list[PERK_FIGHTER_IRON_WILL];
+  perk->id = PERK_FIGHTER_IRON_WILL;
+  perk->name = strdup("Iron Will");
+  perk->description = strdup("+2 to Will saves");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 2;
+  perk->effect_modifier = APPLY_SAVING_WILL;
+  perk->special_description = strdup("");
+  
+  /* Lightning Reflexes */
+  perk = &perk_list[PERK_FIGHTER_LIGHTNING_REFLEXES];
+  perk->id = PERK_FIGHTER_LIGHTNING_REFLEXES;
+  perk->name = strdup("Lightning Reflexes");
+  perk->description = strdup("+2 to Reflex saves");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 2;
+  perk->effect_modifier = APPLY_SAVING_REFL;
+  perk->special_description = strdup("");
   
   /*** OLDER PERKS (to be reorganized into tiers) ***/
   
@@ -1016,6 +1204,83 @@ bool has_perk(struct char_data *ch, int perk_id)
 }
 
 /**
+ * Check if a perk toggle bit is set for a character.
+ * 
+ * @param ch The character
+ * @param perk_id The perk ID to check (0-255)
+ * @return TRUE if toggled on, FALSE if toggled off
+ */
+bool is_perk_toggled_on(struct char_data *ch, int perk_id)
+{
+  int byte_index, bit_index;
+  
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+    
+  if (perk_id < 0 || perk_id >= 256)
+    return FALSE;
+  
+  byte_index = perk_id / 8;
+  bit_index = perk_id % 8;
+  
+  return (ch->player_specials->saved.perk_toggles[byte_index] & (1 << bit_index)) != 0;
+}
+
+/**
+ * Set a perk toggle bit for a character.
+ * 
+ * @param ch The character
+ * @param perk_id The perk ID to set (0-255)
+ * @param state TRUE to toggle on, FALSE to toggle off
+ */
+void set_perk_toggle(struct char_data *ch, int perk_id, bool state)
+{
+  int byte_index, bit_index;
+  
+  if (!ch || IS_NPC(ch))
+    return;
+    
+  if (perk_id < 0 || perk_id >= 256)
+    return;
+  
+  byte_index = perk_id / 8;
+  bit_index = perk_id % 8;
+  
+  if (state)
+    ch->player_specials->saved.perk_toggles[byte_index] |= (1 << bit_index);
+  else
+    ch->player_specials->saved.perk_toggles[byte_index] &= ~(1 << bit_index);
+}
+
+/**
+ * Check if a character has a perk AND it's active (not toggled off).
+ * For non-toggleable perks, this is the same as has_perk().
+ * For toggleable perks, checks both ownership and toggle state.
+ * 
+ * @param ch The character
+ * @param perk_id The perk ID to check
+ * @return TRUE if character has the perk and it's active, FALSE otherwise
+ */
+bool has_perk_active(struct char_data *ch, int perk_id)
+{
+  struct perk_data *perk_def;
+  
+  if (!has_perk(ch, perk_id))
+    return FALSE;
+  
+  perk_def = get_perk_by_id(perk_id);
+  if (!perk_def)
+    return FALSE;
+  
+  /* Non-toggleable perks are always active */
+  if (!perk_def->toggleable)
+    return TRUE;
+  
+  /* Toggleable perks require the toggle to be on */
+  return is_perk_toggled_on(ch, perk_id);
+}
+
+/**
  * Get the rank of a perk for a specific class.
  * Returns 0 if the character doesn't have the perk for that class.
  * 
@@ -1294,6 +1559,13 @@ void add_char_perk(struct char_data *ch, int perk_id, int class_id)
   /* Add to front of list */
   new_perk->next = ch->player_specials->saved.perks;
   ch->player_specials->saved.perks = new_perk;
+  
+  /* If toggleable, default to toggled ON */
+  struct perk_data *perk_def = get_perk_by_id(perk_id);
+  if (perk_def && perk_def->toggleable)
+  {
+    set_perk_toggle(ch, perk_id, true);
+  }
 }
 
 /* Old remove_char_perk moved to refund section below */
@@ -1578,6 +1850,20 @@ void display_perk_details(struct char_data *ch, struct perk_data *perk, struct c
   
   send_to_char(ch, "\r\nDescription:\r\n%s\r\n", perk->description);
   
+  /* Show toggleable status if applicable */
+  if (perk->toggleable)
+  {
+    send_to_char(ch, "\r\n\tYThis perk can be toggled on/off.\tn\r\n");
+    if (char_perk)
+    {
+      bool is_on = is_perk_toggled_on(ch, perk->id);
+      send_to_char(ch, "Current status: %s%s\tn\r\n", 
+                   is_on ? "\tG" : "\tr",
+                   is_on ? "ON" : "OFF");
+      send_to_char(ch, "Use '\tcperk toggle %d\tn' to toggle this perk.\r\n", perk->id);
+    }
+  }
+  
   /* Show effect - only if there is one */
   if (perk->effect_type != PERK_EFFECT_NONE)
   {
@@ -1698,11 +1984,15 @@ void list_perks_for_class(struct char_data *ch, int class_id)
   send_to_char(ch, "\tc%s Perks\tn\r\n", class_names[class_id]);
   send_to_char(ch, "Available Perk Points: \tY%d\tn\r\n\r\n", get_perk_points(ch, class_id));
   
-  send_to_char(ch, "\tW%-4s %-30s %-6s %-4s %-6s\tn\r\n", "ID", "Name", "Cost", "Rank", "Max");
-  send_to_char(ch, "---- ------------------------------ ------ ---- ------\r\n");
+  /* Two column header */
+  send_to_char(ch, "\tW%-3s %-35s %s/%s  %-3s %-35s %s/%s\tn\r\n", 
+               "ID", "Name", "Rnk", "Max", "ID", "Name", "Rnk", "Max");
+  send_to_char(ch, "--- ----------------------------------- --- ---  --- ----------------------------------- --- ---\r\n");
   
-  for (i = 0; i < count; i++)
+  /* Display in two columns */
+  for (i = 0; i < count; i += 2)
   {
+    /* Left column */
     perk = get_perk_by_id(perk_ids[i]);
     if (!perk)
       continue;
@@ -1710,13 +2000,42 @@ void list_perks_for_class(struct char_data *ch, int class_id)
     char_perk = find_char_perk(ch, perk_ids[i], class_id);
     int current_rank = char_perk ? char_perk->current_rank : 0;
     
-    send_to_char(ch, "%-4d %-30s %-6d %s%-4d\tn %-6d\r\n",
-                 perk->id,
-                 perk->name,
-                 perk->cost,
-                 current_rank > 0 ? "\tG" : "",
-                 current_rank,
-                 perk->max_rank);
+    char left_col[150];
+    snprintf(left_col, sizeof(left_col), "%-3d %-35.35s %s%3d\tn/%s%-3d\tn",
+             perk->id,
+             perk->name,
+             current_rank > 0 ? "\tG" : "",
+             current_rank,
+             current_rank >= perk->max_rank ? "\tY" : "",
+             perk->max_rank);
+    
+    /* Right column (if exists) */
+    if (i + 1 < count)
+    {
+      perk = get_perk_by_id(perk_ids[i + 1]);
+      if (perk)
+      {
+        char_perk = find_char_perk(ch, perk_ids[i + 1], class_id);
+        current_rank = char_perk ? char_perk->current_rank : 0;
+        
+        send_to_char(ch, "%s %-3d %-35.35s %s%3d\tn/%s%-3d\tn\r\n",
+                     left_col,
+                     perk->id,
+                     perk->name,
+                     current_rank > 0 ? "\tG" : "",
+                     current_rank,
+                     current_rank >= perk->max_rank ? "\tY" : "",
+                     perk->max_rank);
+      }
+      else
+      {
+        send_to_char(ch, "%s\r\n", left_col);
+      }
+    }
+    else
+    {
+      send_to_char(ch, "%s\r\n", left_col);
+    }
   }
   
   send_to_char(ch, "\r\nUse '\tcperk info <id>\tn' to see details about a perk.\r\n");
@@ -1735,19 +2054,34 @@ void list_my_perks(struct char_data *ch)
   int count = 0;
   
   send_to_char(ch, "\tcYour Purchased Perks\tn\r\n\r\n");
-  send_to_char(ch, "\tW%-30s %-15s %-6s\tn\r\n", "Name", "Class", "Rank");
-  send_to_char(ch, "------------------------------ --------------- ------\r\n");
+  send_to_char(ch, "\tW%-30s %-15s %-6s %-8s\tn\r\n", "Name", "Class", "Rank", "Toggle");
+  send_to_char(ch, "------------------------------ --------------- ------ --------\r\n");
   
   for (char_perk = ch->player_specials->saved.perks; char_perk; char_perk = char_perk->next)
   {
     perk = get_perk_by_id(char_perk->perk_id);
     if (!perk)
       continue;
+    
+    /* Show toggle status for toggleable perks */
+    char toggle_str[20];
+    if (perk->toggleable)
+    {
+      if (is_perk_toggled_on(ch, char_perk->perk_id))
+        snprintf(toggle_str, sizeof(toggle_str), "\tG%-8s\tn", "ON");
+      else
+        snprintf(toggle_str, sizeof(toggle_str), "\tr%-8s\tn", "OFF");
+    }
+    else
+    {
+      snprintf(toggle_str, sizeof(toggle_str), "%-8s", "-");
+    }
       
-    send_to_char(ch, "%-30s %-15s \tG%-6d\tn\r\n",
+    send_to_char(ch, "%-30s %-15s \tG%-6d\tn %s\r\n",
                  perk->name,
                  class_names[perk->associated_class],
-                 char_perk->current_rank);
+                 char_perk->current_rank,
+                 toggle_str);
     count++;
   }
   
@@ -1757,6 +2091,7 @@ void list_my_perks(struct char_data *ch)
   }
   
   send_to_char(ch, "\r\nTotal perks purchased: %d\r\n", count);
+  send_to_char(ch, "Use 'perk toggle <name>' to toggle toggleable perks on/off.\r\n");
 }
 
 /**
@@ -1913,6 +2248,123 @@ ACMD(do_perk)
     return;
   }
   
+  /* perk toggle [name] - toggle a perk on/off */
+  if (!strcmp(arg1, "toggle"))
+  {
+    /* No perk specified - show list of toggleable perks */
+    if (!*arg2)
+    {
+      struct char_perk_data *char_perk;
+      struct perk_data *perk_def;
+      int count = 0;
+      
+      send_to_char(ch, "\tcYour Toggleable Perks\tn\r\n\r\n");
+      send_to_char(ch, "\tW%-4s %-30s %-8s\tn\r\n", "ID", "Name", "Status");
+      send_to_char(ch, "---- ------------------------------ --------\r\n");
+      
+      for (char_perk = ch->player_specials->saved.perks; char_perk; char_perk = char_perk->next)
+      {
+        perk_def = get_perk_by_id(char_perk->perk_id);
+        if (!perk_def || !perk_def->toggleable)
+          continue;
+        
+        send_to_char(ch, "%-4d %-30s %s%-8s\tn\r\n",
+                     char_perk->perk_id,
+                     perk_def->name,
+                     is_perk_toggled_on(ch, char_perk->perk_id) ? "\tG" : "\tr",
+                     is_perk_toggled_on(ch, char_perk->perk_id) ? "ON" : "OFF");
+        count++;
+      }
+      
+      if (count == 0)
+      {
+        send_to_char(ch, "You have no toggleable perks.\r\n");
+      }
+      
+      send_to_char(ch, "\r\nUse 'perk toggle <name>' to toggle a perk on or off.\r\n");
+      return;
+    }
+    
+    /* Toggle the specified perk */
+    int perk_id = -1;
+    struct perk_data *perk_def;
+    bool current_state, new_state;
+    
+    /* Try to find the perk by number first */
+    if (is_number(arg2))
+    {
+      perk_id = atoi(arg2);
+      if (perk_id < 0 || perk_id >= NUM_PERKS)
+      {
+        send_to_char(ch, "Invalid perk number.\r\n");
+        return;
+      }
+    }
+    else
+    {
+      /* Search by name */
+      int i;
+      for (i = 0; i < NUM_PERKS; i++)
+      {
+        if (perk_list[i].id == PERK_UNDEFINED)
+          continue;
+        if (is_abbrev(arg2, perk_list[i].name))
+        {
+          perk_id = i;
+          break;
+        }
+      }
+      
+      if (perk_id == -1)
+      {
+        send_to_char(ch, "No such perk found.\r\n");
+        return;
+      }
+    }
+    
+    /* Check if character has this perk */
+    if (!has_perk(ch, perk_id))
+    {
+      send_to_char(ch, "You don't have that perk.\r\n");
+      return;
+    }
+    
+    /* Get perk definition */
+    perk_def = get_perk_by_id(perk_id);
+    if (!perk_def)
+    {
+      send_to_char(ch, "Error: Invalid perk.\r\n");
+      return;
+    }
+    
+    /* Check if toggleable */
+    if (!perk_def->toggleable)
+    {
+      send_to_char(ch, "The perk '%s' cannot be toggled on or off.\r\n", perk_def->name);
+      return;
+    }
+    
+    /* Toggle it */
+    current_state = is_perk_toggled_on(ch, perk_id);
+    new_state = !current_state;
+    set_perk_toggle(ch, perk_id, new_state);
+    
+    send_to_char(ch, "You have toggled '%s' %s%s%s.\r\n", 
+                 perk_def->name,
+                 new_state ? "\tG" : "\tr",
+                 new_state ? "ON" : "OFF",
+                 "\tn");
+    
+    if (new_state)
+      send_to_char(ch, "The perk's effects are now active.\r\n");
+    else
+      send_to_char(ch, "The perk's effects are now inactive.\r\n");
+    
+    /* Save character */
+    save_char(ch, 0);
+    return;
+  }
+  
   /* Try to parse as a class name */
   class_id = parse_class_long(arg1);
   
@@ -1925,6 +2377,7 @@ ACMD(do_perk)
     send_to_char(ch, "  perk <class>       - Show perks for a specific class\r\n");
     send_to_char(ch, "  perk info <id>     - Show details for a perk\r\n");
     send_to_char(ch, "  perk buy <id>      - Purchase a perk\r\n");
+    send_to_char(ch, "  perk toggle [name] - Toggle a perk on/off (or list toggleable perks)\r\n");
     return;
   }
   
@@ -1957,7 +2410,7 @@ ACMD(do_myperks)
 /*****************************************************************************
  * PERK REFUND/RESET FUNCTIONS (Step 10)
  * These functions handle refunding perks during respec.
- *****************************************************************************/
+ *****************************************************************************/ 
 
 /**
  * Remove a specific perk from a character.
@@ -2083,6 +2536,9 @@ void remove_all_perks(struct char_data *ch)
   }
   
   ch->player_specials->saved.perks = NULL;
+  
+  /* Clear all perk toggles when removing all perks */
+  memset(ch->player_specials->saved.perk_toggles, 0, 32);
 }
 
 /**
