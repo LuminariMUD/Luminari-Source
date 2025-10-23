@@ -44,6 +44,9 @@ void display_perk_points(struct char_data *ch);
 
 /* Perk purchase/management functions (step 5) */
 bool has_perk(struct char_data *ch, int perk_id);
+bool has_perk_active(struct char_data *ch, int perk_id);
+bool is_perk_toggled_on(struct char_data *ch, int perk_id);
+void set_perk_toggle(struct char_data *ch, int perk_id, bool state);
 int get_perk_rank(struct char_data *ch, int perk_id, int class_id);
 int get_total_perk_ranks(struct char_data *ch, int perk_id);
 bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *error_msg, size_t error_len);
