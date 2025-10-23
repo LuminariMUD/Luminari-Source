@@ -289,7 +289,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Armor Training I");
   perk->description = strdup("+1 AC per rank (max 3 ranks)");
   perk->associated_class = CLASS_WARRIOR;
-  perk->cost = 1;
+  perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
   perk->prerequisite_rank = 0;
@@ -336,7 +336,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Armor Training II");
   perk->description = strdup("+1 AC per rank (max 2 ranks)");
   perk->associated_class = CLASS_WARRIOR;
-  perk->cost = 2;
+  perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_FIGHTER_ARMOR_TRAINING_1;
   perk->prerequisite_rank = 3; /* Requires Armor Training I at max rank */
@@ -414,7 +414,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Armor Training III");
   perk->description = strdup("+2 AC bonus");
   perk->associated_class = CLASS_WARRIOR;
-  perk->cost = 3;
+  perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_ARMOR_TRAINING_2;
   perk->prerequisite_rank = 2; /* Requires Armor Training II at max rank */
