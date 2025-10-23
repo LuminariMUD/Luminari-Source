@@ -5456,6 +5456,17 @@ sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte displ
   if (HAS_FEAT(victim, FEAT_KNIGHTLY_COURAGE))
     return true;
 
+  /* Stalwart perk grants fear immunity */
+  if (!IS_NPC(victim) && has_perk(victim, PERK_FIGHTER_STALWART))
+  {
+    if (display)
+    {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your stalwart resolve protects you!\r\n");
+    }
+    return TRUE;
+  }
+
   if (affected_by_aura_of_cowardice(victim))
   {
     return FALSE;

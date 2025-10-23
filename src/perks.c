@@ -406,6 +406,101 @@ void define_fighter_perks(void)
   perk->effect_modifier = APPLY_SAVING_REFL;
   perk->special_description = strdup("");
   
+  /*** TREE 2: DEFENDER - TIER III ***/
+  
+  /* Armor Training III */
+  perk = &perk_list[PERK_FIGHTER_ARMOR_TRAINING_3];
+  perk->id = PERK_FIGHTER_ARMOR_TRAINING_3;
+  perk->name = strdup("Armor Training III");
+  perk->description = strdup("+2 AC bonus");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_ARMOR_TRAINING_2;
+  perk->prerequisite_rank = 2; /* Requires Armor Training II at max rank */
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Armor Training II at max rank (2)");
+  
+  /* Shield Mastery II */
+  perk = &perk_list[PERK_FIGHTER_SHIELD_MASTERY_2];
+  perk->id = PERK_FIGHTER_SHIELD_MASTERY_2;
+  perk->name = strdup("Shield Mastery II");
+  perk->description = strdup("+2 AC with shield (+4 total with Shield Mastery I)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_SHIELD_MASTERY_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("+2 additional AC bonus when wielding a shield");
+  
+  /* Improved Damage Reduction */
+  perk = &perk_list[PERK_FIGHTER_IMPROVED_DAMAGE_REDUCTION];
+  perk->id = PERK_FIGHTER_IMPROVED_DAMAGE_REDUCTION;
+  perk->name = strdup("Improved Damage Reduction");
+  perk->description = strdup("Damage reduction increases to 4/- when Defensive Stance is active");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_DEFENSIVE_STANCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases Defensive Stance DR from 2/- to 4/-");
+  
+  /* Stalwart */
+  perk = &perk_list[PERK_FIGHTER_STALWART];
+  perk->id = PERK_FIGHTER_STALWART;
+  perk->name = strdup("Stalwart");
+  perk->description = strdup("Immune to fear, +2 bonus vs mind-affecting effects");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_IRON_WILL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants immunity to fear effects and +2 bonus to saves vs mind-affecting");
+  
+  /*** TREE 2: DEFENDER - TIER IV ***/
+  
+  /* Immovable Object */
+  perk = &perk_list[PERK_FIGHTER_IMMOVABLE_OBJECT];
+  perk->id = PERK_FIGHTER_IMMOVABLE_OBJECT;
+  perk->name = strdup("Immovable Object");
+  perk->description = strdup("DR 6/-, immunity to knockdown and bull rush");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_IMPROVED_DAMAGE_REDUCTION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 6;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases DR to 6/- (replaces Defensive Stance DR) and grants immunity to knockdown and bull rush");
+  perk->toggleable = true; /* Can be toggled on/off like Defensive Stance */
+  
+  /* Last Stand */
+  perk = &perk_list[PERK_FIGHTER_LAST_STAND];
+  perk->id = PERK_FIGHTER_LAST_STAND;
+  perk->name = strdup("Last Stand");
+  perk->description = strdup("Once per day, when reduced to 0 HP, stay at 1 HP for 5 rounds");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_TOUGHNESS_1;
+  perk->prerequisite_rank = 5; /* Requires Toughness I at max rank */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Once per day, when HP drops to 0 or below, remain at 1 HP for 5 rounds. Requires max Toughness I and max Resilience.");
+  
   /*** OLDER PERKS (to be reorganized into tiers) ***/
   
   /* Weapon Specialization I */
@@ -1467,6 +1562,30 @@ bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *er
     }
   }
   
+  /* Special prerequisite check for Last Stand - requires both Toughness I and Resilience at max */
+  if (perk_id == PERK_FIGHTER_LAST_STAND)
+  {
+    int resilience_rank = get_perk_rank(ch, PERK_FIGHTER_RESILIENCE, class_id);
+    if (resilience_rank < 3) /* Resilience max rank is 3 */
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Resilience at max rank (3) to purchase Last Stand.");
+      return FALSE;
+    }
+  }
+  
+  /* Special prerequisite check for Immovable Object - also requires Armor Training III */
+  if (perk_id == PERK_FIGHTER_IMMOVABLE_OBJECT)
+  {
+    int armor_training_3_rank = get_perk_rank(ch, PERK_FIGHTER_ARMOR_TRAINING_3, class_id);
+    if (armor_training_3_rank < 1)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must have Armor Training III to purchase Immovable Object.");
+      return FALSE;
+    }
+  }
+  
   /* All checks passed */
   return TRUE;
 }
@@ -1961,6 +2080,46 @@ void display_perk_details(struct char_data *ch, struct perk_data *perk, struct c
 }
 
 /**
+ * Comparison function for sorting perks alphabetically by name.
+ */
+static int compare_perks_by_name(const void *a, const void *b)
+{
+  int perk_id_a = *(const int *)a;
+  int perk_id_b = *(const int *)b;
+  struct perk_data *perk_a = get_perk_by_id(perk_id_a);
+  struct perk_data *perk_b = get_perk_by_id(perk_id_b);
+  
+  if (!perk_a || !perk_b)
+    return 0;
+  
+  return strcasecmp(perk_a->name, perk_b->name);
+}
+
+/**
+ * Check if character meets prerequisites for a perk (but hasn't purchased it).
+ * This is used to highlight perks that are available to purchase.
+ * 
+ * @param ch The character
+ * @param perk_id The perk to check
+ * @param class_id The class 
+ * @return TRUE if prerequisites are met but perk not yet purchased
+ */
+static bool meets_prerequisites_not_purchased(struct char_data *ch, int perk_id, int class_id)
+{
+  struct perk_data *perk;
+  char error_msg[256];
+  
+  /* If they already have the perk at max rank, don't highlight */
+  int current_rank = get_perk_rank(ch, perk_id, class_id);
+  perk = get_perk_by_id(perk_id);
+  if (perk && current_rank >= perk->max_rank)
+    return FALSE;
+  
+  /* Check if they can purchase it (meets all requirements) */
+  return can_purchase_perk(ch, perk_id, class_id, error_msg, sizeof(error_msg));
+}
+
+/**
  * List all perks available for a specific class.
  * 
  * @param ch The character viewing perks
@@ -1981,6 +2140,9 @@ void list_perks_for_class(struct char_data *ch, int class_id)
     return;
   }
   
+  /* Sort perks alphabetically by name */
+  qsort(perk_ids, count, sizeof(int), compare_perks_by_name);
+  
   send_to_char(ch, "\tc%s Perks\tn\r\n", class_names[class_id]);
   send_to_char(ch, "Available Perk Points: \tY%d\tn\r\n\r\n", get_perk_points(ch, class_id));
   
@@ -1988,6 +2150,7 @@ void list_perks_for_class(struct char_data *ch, int class_id)
   send_to_char(ch, "\tW%-3s %-35s %s/%s  %-3s %-35s %s/%s\tn\r\n", 
                "ID", "Name", "Rnk", "Max", "ID", "Name", "Rnk", "Max");
   send_to_char(ch, "--- ----------------------------------- --- ---  --- ----------------------------------- --- ---\r\n");
+  send_to_char(ch, "\tW* = Available to purchase\tn\r\n\r\n");
   
   /* Display in two columns */
   for (i = 0; i < count; i += 2)
@@ -1999,11 +2162,23 @@ void list_perks_for_class(struct char_data *ch, int class_id)
       
     char_perk = find_char_perk(ch, perk_ids[i], class_id);
     int current_rank = char_perk ? char_perk->current_rank : 0;
+    bool can_purchase_left = meets_prerequisites_not_purchased(ch, perk_ids[i], class_id);
     
-    char left_col[150];
-    snprintf(left_col, sizeof(left_col), "%-3d %-35.35s %s%3d\tn/%s%-3d\tn",
+    char left_col[200];
+    char perk_name_left[60];
+    if (can_purchase_left)
+    {
+      /* Space + asterisk (1 char) + name (33 chars) = 35 visible total */
+      snprintf(perk_name_left, sizeof(perk_name_left), " \tC*%-33.33s\tn", perk->name);
+    }
+    else
+    {
+      snprintf(perk_name_left, sizeof(perk_name_left), "\tn %-33.33s\tn", perk->name);
+    }
+    
+    snprintf(left_col, sizeof(left_col), "%-3d %-35.35s\tn %s%3d\tn/%s%-3d\tn",
              perk->id,
-             perk->name,
+             perk_name_left,
              current_rank > 0 ? "\tG" : "",
              current_rank,
              current_rank >= perk->max_rank ? "\tY" : "",
@@ -2017,11 +2192,23 @@ void list_perks_for_class(struct char_data *ch, int class_id)
       {
         char_perk = find_char_perk(ch, perk_ids[i + 1], class_id);
         current_rank = char_perk ? char_perk->current_rank : 0;
+        bool can_purchase_right = meets_prerequisites_not_purchased(ch, perk_ids[i + 1], class_id);
         
-        send_to_char(ch, "%s %-3d %-35.35s %s%3d\tn/%s%-3d\tn\r\n",
+        char perk_name_right[60];
+        if (can_purchase_right)
+        {
+          /* Space + asterisk (1 char) + name (33 chars) = 35 visible total */
+          snprintf(perk_name_right, sizeof(perk_name_right), " \tC*%-33.33s\tn  ", perk->name);
+        }
+        else
+        {
+          snprintf(perk_name_right, sizeof(perk_name_right), " \tn%-33.33s\tn", perk->name);
+        }
+        
+        send_to_char(ch, "%s %-3d %-35.35s\tn %s%3d\tn/%s%-3d\tn\r\n",
                      left_col,
                      perk->id,
-                     perk->name,
+                     perk_name_right,
                      current_rank > 0 ? "\tG" : "",
                      current_rank,
                      current_rank >= perk->max_rank ? "\tY" : "",
