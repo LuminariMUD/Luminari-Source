@@ -40,6 +40,7 @@
 #include "spatial_visual.h"
 #include "spatial_audio.h"
 #include "wilderness.h"
+#include "perks.h"
 
 // external
 extern struct raff_node *raff_list;
@@ -2796,6 +2797,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     if (victim && HAS_REAL_FEAT(victim, FEAT_UNBREAKABLE_WILL))
       dc_mod -= 2 * HAS_REAL_FEAT(victim, FEAT_UNBREAKABLE_WILL);
     if (victim && HAS_REAL_FEAT(victim, FEAT_HONORBOUND))
+      dc_mod -= 2;
+    if (victim && has_perk(victim, PERK_FIGHTER_STALWART))
       dc_mod -= 2;
   if (victim && HAS_REAL_FEAT(victim, FEAT_HONORABLE_WILL))
       dc_mod -= CLASS_LEVEL(victim, CLASS_KNIGHT_OF_SOLAMNIA);

@@ -36,6 +36,7 @@
 #include "constants.h"
 #include "spec_procs.h" /* for is_wearing() */
 #include "evolutions.h"
+#include "perks.h"
 
 /* externs */
 extern char cast_arg2[MAX_INPUT_LENGTH];
@@ -589,6 +590,13 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     if (display)
       if (skill != SPELL_BANISHING_BLADE)
         send_to_char(ch, "This mob is protected.\r\n");
+    return FALSE;
+  }
+
+  if (has_perk(vict, PERK_FIGHTER_IMMOVABLE_OBJECT))
+  {
+    if (display)
+      send_to_char(ch, "Your knockdown attempt is unsuccessful against %s!\r\n", show_pers(ch, vict));
     return FALSE;
   }
 
