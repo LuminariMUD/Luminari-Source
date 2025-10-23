@@ -635,6 +635,9 @@ int get_initiative_modifier(struct char_data *ch)
   initiative += GET_INITIATIVE_MOD(ch);
   initiative += HAS_FEAT(ch, FEAT_HEROIC_INITIATIVE) ? 4 : 0;
   
+  /* Tactical Fighter perk: Improved Initiative I */
+  initiative += 2 * get_perk_rank(ch, PERK_FIGHTER_IMPROVED_INITIATIVE_1, CLASS_WARRIOR);
+  
   return initiative;
 }
 
@@ -9619,6 +9622,7 @@ int attack_roll_with_critical(struct char_data *ch,     /* Attacker */
  */
 int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int penalty)
 {
+  int max_aoo = 1; /* Base 1 AoO per round */
 
   if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_COMBAT_REFLEXES))
     return 0;
@@ -9626,7 +9630,15 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
   if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
     return 0;
 
-  if (GET_TOTAL_AOO(ch) < (!HAS_FEAT(ch, FEAT_COMBAT_REFLEXES) ? 1 : GET_DEX_BONUS(ch)))
+  /* Calculate max AoO per round */
+  if (HAS_FEAT(ch, FEAT_COMBAT_REFLEXES))
+    max_aoo = GET_DEX_BONUS(ch);
+  
+  /* Tactical Fighter perks: Combat Reflexes I and II */
+  max_aoo += get_perk_rank(ch, PERK_FIGHTER_COMBAT_REFLEXES_1, CLASS_WARRIOR);
+  max_aoo += get_perk_rank(ch, PERK_FIGHTER_COMBAT_REFLEXES_2, CLASS_WARRIOR);
+
+  if (GET_TOTAL_AOO(ch) < max_aoo)
   {
     GET_TOTAL_AOO(ch)
     ++;
@@ -11313,6 +11325,9 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       victim_ac += 4;
     if (HAS_FEAT(victim, FEAT_ENHANCED_MOBILITY) && has_dex_bonus_to_ac(ch, victim))
       victim_ac += 4;
+    /* Tactical Fighter perk: Mobility I */
+    if (has_dex_bonus_to_ac(ch, victim))
+      victim_ac += 2 * get_perk_rank(victim, PERK_FIGHTER_MOBILITY_1, CLASS_WARRIOR);
     if (has_teamwork_feat(ch, FEAT_PAIRED_OPPORTUNISTS))
       victim_ac -= 4;
     send_combat_roll_info(ch, "\tW[\tRAOO\tW]\tn");
