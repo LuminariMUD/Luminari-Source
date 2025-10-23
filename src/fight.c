@@ -6082,19 +6082,27 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* power attack */
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) && attack_type != ATTACK_TYPE_RANGED && attack_type != ATTACK_TYPE_BOMB_TOSS)
   {
+    int pa_bonus = COMBAT_MODE_VALUE(ch);
+    
+    /* Power Attack Training perk adds +2 damage */
+    if (has_perk(ch, PERK_FIGHTER_POWER_ATTACK_TRAINING))
+    {
+      pa_bonus += 2;
+    }
+    
     if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
     {
-      dambonus += COMBAT_MODE_VALUE(ch) * 2; /* 2h weapons gets 2x bonus */
+      dambonus += pa_bonus * 2; /* 2h weapons gets 2x bonus */
       if (display_mode)
         send_to_char(ch, "2h power attack bonus: \tR%d\tn\r\n",
-                     COMBAT_MODE_VALUE(ch) * 2);
+                     pa_bonus * 2);
     }
     else
     {
-      dambonus += COMBAT_MODE_VALUE(ch);
+      dambonus += pa_bonus;
       if (display_mode)
         send_to_char(ch, "Power attack bonus: \tR%d\tn\r\n",
-                     COMBAT_MODE_VALUE(ch));
+                     pa_bonus);
     }
   }
 
@@ -6566,6 +6574,10 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
   // double weapon focus
   if (HAS_FEAT(ch, FEAT_DOUBLE_WEAPON_CRITICAL) && is_using_double_weapon(ch))
     threat_range--;
+  
+  /* Improved Critical Threat perk */
+  if (has_perk(ch, PERK_FIGHTER_IMPROVED_CRITICAL_THREAT))
+    threat_range--;
 
   /* end mods */
 
@@ -6890,6 +6902,16 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 {
   int threat_range, confirm_roll = d20(ch) + calc_bab;
   int powerful_being = 0;
+  
+  /* Critical Awareness perk bonuses */
+  if (has_perk(ch, PERK_FIGHTER_CRITICAL_AWARENESS_1))
+  {
+    confirm_roll += 1;
+  }
+  if (has_perk(ch, PERK_FIGHTER_CRITICAL_AWARENESS_2))
+  {
+    confirm_roll += 1;
+  }
 
   /* new code to help really powerful beings overcome checks here */
   if (IS_POWERFUL_BEING(ch))
@@ -8764,9 +8786,19 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
   /* Modify this to store a player-chosen number for power attack and expertise */
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE) || AFF_FLAGGED(ch, AFF_DEADLY_AIM))
   {
-    bonuses[BONUS_TYPE_UNDEFINED] -= COMBAT_MODE_VALUE(ch);
+    int penalty = COMBAT_MODE_VALUE(ch);
+    
+    /* Power Attack Training perk reduces penalty by 1 (from -2 to -1) */
+    if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) && has_perk(ch, PERK_FIGHTER_POWER_ATTACK_TRAINING))
+    {
+      penalty -= 1;
+      if (penalty < 1)
+        penalty = 1;
+    }
+    
+    bonuses[BONUS_TYPE_UNDEFINED] -= penalty;
     if (display)
-      send_to_char(ch, "-%2d: %-50s\r\n", COMBAT_MODE_VALUE(ch), "Power Attack/Expertise/Deadly Aim");
+      send_to_char(ch, "-%2d: %-50s\r\n", penalty, "Power Attack/Expertise/Deadly Aim");
   }
   /* spellbattle */
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
@@ -13186,8 +13218,9 @@ void perform_violence(struct char_data *ch, int phase)
     perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
 #undef NORMAL_ATTACK_ROUTINE
 
-    /* handle cleave */
-    if (phase == 1 && (HAS_FEAT(ch, FEAT_CLEAVE) || HAS_FEAT(ch, FEAT_GREAT_CLEAVE)) && !is_using_ranged_weapon(ch, TRUE))
+    /* handle cleave - now includes Cleaving Strike perk */
+    if (phase == 1 && (HAS_FEAT(ch, FEAT_CLEAVE) || HAS_FEAT(ch, FEAT_GREAT_CLEAVE) || 
+                       has_perk(ch, PERK_FIGHTER_CLEAVING_STRIKE)) && !is_using_ranged_weapon(ch, TRUE))
       handle_cleave(ch);
   }
   /**/

@@ -94,6 +94,132 @@ void define_fighter_perks(void)
 {
   struct perk_data *perk;
   
+  /*** TIER I PERKS (Tree 1: Weapon Specialist) ***/
+  
+  /* Weapon Focus I */
+  perk = &perk_list[PERK_FIGHTER_WEAPON_FOCUS_1];
+  perk->id = PERK_FIGHTER_WEAPON_FOCUS_1;
+  perk->name = strdup("Weapon Focus I");
+  perk->description = strdup("+1 to hit with all weapons");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_WEAPON_TOHIT;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Power Attack Training */
+  perk = &perk_list[PERK_FIGHTER_POWER_ATTACK_TRAINING];
+  perk->id = PERK_FIGHTER_POWER_ATTACK_TRAINING;
+  perk->name = strdup("Power Attack Training");
+  perk->description = strdup("+2 damage when using power attack, -1 to hit penalty instead of -2");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Improves power attack: +2 damage, reduces to-hit penalty to -1");
+  
+  /* Critical Awareness I */
+  perk = &perk_list[PERK_FIGHTER_CRITICAL_AWARENESS_1];
+  perk->id = PERK_FIGHTER_CRITICAL_AWARENESS_1;
+  perk->name = strdup("Critical Awareness I");
+  perk->description = strdup("+1 to critical confirmation rolls");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Bonus to critical hit confirmation rolls");
+  
+  /*** TIER II PERKS (Tree 1: Weapon Specialist) ***/
+  
+  /* Weapon Focus II */
+  perk = &perk_list[PERK_FIGHTER_WEAPON_FOCUS_2];
+  perk->id = PERK_FIGHTER_WEAPON_FOCUS_2;
+  perk->name = strdup("Weapon Focus II");
+  perk->description = strdup("Additional +1 to hit with all weapons (+2 total with Focus I)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_WEAPON_FOCUS_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_WEAPON_TOHIT;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
+  
+  /* Weapon Specialization I - Tier 2 version (multi-rank) */
+  perk = &perk_list[PERK_FIGHTER_WEAPON_SPECIALIZATION_1];
+  perk->id = PERK_FIGHTER_WEAPON_SPECIALIZATION_1;
+  perk->name = strdup("Weapon Specialization I");
+  perk->description = strdup("+1 damage per rank with all weapons");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_FIGHTER_WEAPON_FOCUS_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_WEAPON_DAMAGE;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Can be taken up to 3 times for cumulative effect");
+  
+  /* Cleaving Strike */
+  perk = &perk_list[PERK_FIGHTER_CLEAVING_STRIKE];
+  perk->id = PERK_FIGHTER_CLEAVING_STRIKE;
+  perk->name = strdup("Cleaving Strike");
+  perk->description = strdup("If you kill an enemy, immediately make one additional attack");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_POWER_ATTACK_TRAINING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Extra attack on kill (similar to Cleave feat)");
+  
+  /* Critical Awareness II */
+  perk = &perk_list[PERK_FIGHTER_CRITICAL_AWARENESS_2];
+  perk->id = PERK_FIGHTER_CRITICAL_AWARENESS_2;
+  perk->name = strdup("Critical Awareness II");
+  perk->description = strdup("Additional +1 to critical confirmation rolls (+2 total)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_CRITICAL_AWARENESS_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Bonus to critical hit confirmation rolls");
+  
+  /* Improved Critical Threat */
+  perk = &perk_list[PERK_FIGHTER_IMPROVED_CRITICAL_THREAT];
+  perk->id = PERK_FIGHTER_IMPROVED_CRITICAL_THREAT;
+  perk->name = strdup("Improved Critical Threat");
+  perk->description = strdup("+1 to critical threat range (19-20 becomes 18-20, etc.)");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_CRITICAL_AWARENESS_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Expands critical threat range by 1");
+  
+  /*** OLDER PERKS (to be reorganized into tiers) ***/
+  
   /* Weapon Specialization I */
   perk = &perk_list[PERK_FIGHTER_WEAPON_SPEC_1];
   perk->id = PERK_FIGHTER_WEAPON_SPEC_1;
@@ -139,21 +265,6 @@ void define_fighter_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("");
   
-  /* Toughness */
-  perk = &perk_list[PERK_FIGHTER_TOUGHNESS];
-  perk->id = PERK_FIGHTER_TOUGHNESS;
-  perk->name = strdup("Toughness");
-  perk->description = strdup("+5 HP per rank");
-  perk->associated_class = CLASS_WARRIOR;
-  perk->cost = 1;
-  perk->max_rank = 5;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_HP;
-  perk->effect_value = 5;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("");
-  
   /* Armor Mastery I */
   perk = &perk_list[PERK_FIGHTER_ARMOR_MASTERY_1];
   perk->id = PERK_FIGHTER_ARMOR_MASTERY_1;
@@ -168,6 +279,51 @@ void define_fighter_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Reduces armor check penalties");
+  
+  /* Armor Mastery II */
+  perk = &perk_list[PERK_FIGHTER_ARMOR_MASTERY_2];
+  perk->id = PERK_FIGHTER_ARMOR_MASTERY_2;
+  perk->name = strdup("Armor Mastery II");
+  perk->description = strdup("Reduce armor check penalty by 2");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_ARMOR_MASTERY_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Reduces armor check penalties");
+  
+  /* Armor Mastery III */
+  perk = &perk_list[PERK_FIGHTER_ARMOR_MASTERY_3];
+  perk->id = PERK_FIGHTER_ARMOR_MASTERY_3;
+  perk->name = strdup("Armor Mastery III");
+  perk->description = strdup("Reduce armor check penalty by 3");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_FIGHTER_ARMOR_MASTERY_2;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Reduces armor check penalties");
+  
+  /* Toughness */
+  perk = &perk_list[PERK_FIGHTER_TOUGHNESS];
+  perk->id = PERK_FIGHTER_TOUGHNESS;
+  perk->name = strdup("Toughness");
+  perk->description = strdup("+5 HP per rank");
+  perk->associated_class = CLASS_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_HP;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("");
   
   /* Physical Resistance I */
   perk = &perk_list[PERK_FIGHTER_PHYSICAL_RESISTANCE_1];
