@@ -72,6 +72,20 @@ int get_perk_critical_confirmation_bonus(struct char_data *ch);
 int get_perk_ranged_sneak_attack_bonus(struct char_data *ch);
 int get_perk_assassinate_bonus(struct char_data *ch);
 int get_perk_aoo_bonus(struct char_data *ch);
+int get_perk_critical_precision_damage(struct char_data *ch);
+bool has_master_assassin(struct char_data *ch);
+int get_master_assassin_crit_bonus(struct char_data *ch);
+
+/* Perfect Kill perk functions */
+bool can_use_perfect_kill(struct char_data *ch);
+void use_perfect_kill(struct char_data *ch);
+void update_perfect_kill_combat_end(struct char_data *ch);
+
+/* Master Thief perk functions */
+int get_perk_skill_mastery_bonus(struct char_data *ch);
+int get_perk_trapfinding_bonus(struct char_data *ch);
+int get_perk_fast_hands_bonus(struct char_data *ch);
+int get_perk_trap_sense_bonus(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

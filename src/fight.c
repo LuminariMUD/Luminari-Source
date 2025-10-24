@@ -1581,6 +1581,13 @@ void stop_fighting(struct char_data *ch)
   /* Reset the combat data */
   GET_TOTAL_AOO(ch) = 0;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
+  
+  /* Update Perfect Kill combat end timestamp */
+  if (!IS_NPC(ch))
+  {
+    update_perfect_kill_combat_end(ch);
+  }
+  
   if (affected_by_spell(ch, SKILL_SMITE_EVIL))
   {
     affect_from_char(ch, SKILL_SMITE_EVIL);
@@ -6620,6 +6627,14 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
   /* Improved Critical Threat perk */
   if (has_perk(ch, PERK_FIGHTER_IMPROVED_CRITICAL_THREAT))
     threat_range--;
+  
+  /* Master Assassin crit range bonus */
+  if (!IS_NPC(ch))
+  {
+    int assassin_bonus = get_master_assassin_crit_bonus(ch);
+    if (assassin_bonus > 0)
+      threat_range -= assassin_bonus;
+  }
 
   /* end mods */
 
@@ -6910,6 +6925,13 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   }
 
   /* mods */
+  
+  /* Perfect Kill: maximum damage on auto-crit */
+  if (!IS_NPC(ch) && ch->char_specials.perfect_kill_active)
+  {
+    return (diceOne * diceTwo); /* max damage! */
+  }
+  
   if ((HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) * 5) >= rand_number(1, 100))
   { /* Check the weapon type, make sure it matches. */
     if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
@@ -7246,6 +7268,16 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       if (has_perk(ch, PERK_FIGHTER_DEVASTATING_CRITICAL))
       {
         dam += dice(1, 6);
+      }
+      
+      /* Critical Precision perk - adds precision damage on critical hits */
+      if (!IS_NPC(ch))
+      {
+        int precision_dice = get_perk_critical_precision_damage(ch);
+        if (precision_dice > 0)
+        {
+          dam += dice(precision_dice, 6);
+        }
       }
 
       /* high level mobs are getting a crit bonus here */
@@ -10120,6 +10152,10 @@ int can_sneak_attack(struct char_data *ch, struct char_data *victim)
 
   if (is_flanked(ch, victim))
     return TRUE;
+  
+  /* Master Assassin: sneak attack from any position */
+  if (!IS_NPC(ch) && has_master_assassin(ch))
+    return TRUE;
 
   /*  -    -   -  */
 
@@ -10624,8 +10660,36 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     /* Calculate regular sneak attack damage. */
   }
 
-  else if (can_sneak_attack(ch, victim))
+  else if (can_sneak_attack(ch, victim) || 
+           (type == TYPE_ATTACK_OF_OPPORTUNITY && !IS_NPC(ch) && has_perk(ch, PERK_ROGUE_OPPORTUNIST_2)))
   {
+    /* Check for Perfect Kill before calculating sneak attack damage */
+    if (!IS_NPC(ch) && can_use_perfect_kill(ch) && can_sneak_attack(ch, victim))
+    {
+      ch->char_specials.perfect_kill_active = TRUE;
+      use_perfect_kill(ch);
+      is_critical = TRUE; /* Force critical hit */
+      
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "\tW[\tMPERFECT KILL!\tW]\tn ");
+      }
+      
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "\tR[\tMPERFECT KILL!\tR]\tn ");
+      }
+    }
+    else
+    {
+      ch->char_specials.perfect_kill_active = FALSE;
+    }
 
     /* Display why we are sneak attacking */
     if (show_combat_roll(ch))
@@ -10637,6 +10701,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       else
       {
         send_combat_roll_info(ch, "\tW[");
+        if (type == TYPE_ATTACK_OF_OPPORTUNITY && has_perk(ch, PERK_ROGUE_OPPORTUNIST_2))
+          send_combat_roll_info(ch, "OPP");
         if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
           send_combat_roll_info(ch, "FF");
         if (!has_dex_bonus_to_ac(ch, victim))
@@ -10655,6 +10721,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       else
       {
         send_combat_roll_info(victim, "\tR[");
+        if (type == TYPE_ATTACK_OF_OPPORTUNITY && !IS_NPC(ch) && has_perk(ch, PERK_ROGUE_OPPORTUNIST_2))
+          send_combat_roll_info(victim, "OPP");
         if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
           send_combat_roll_info(victim, "FF");
         if (!has_dex_bonus_to_ac(ch, victim))

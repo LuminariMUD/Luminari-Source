@@ -1304,6 +1304,16 @@ int load_char(const char *name, struct char_data *ch)
           ch->player_specials->saved.stage_info.stage_exp = atoi(line);
         else if (!strcmp(tag, "PTog"))
           load_perk_toggles(fl, ch);
+        else if (!strcmp(tag, "PKil"))
+        {
+          long timestamp;
+          int used;
+          if (sscanf(line, "%ld %d", &timestamp, &used) == 2)
+          {
+            ch->player_specials->saved.perfect_kill_last_combat = (time_t)timestamp;
+            ch->player_specials->saved.perfect_kill_used = (used != 0);
+          }
+        }
         break;
 
       case 'Q':
@@ -2714,6 +2724,11 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE( "%02x", ch->player_specials->saved.perk_toggles[i]);
   }
   BUFFER_WRITE( "\n");
+  
+  /* Save Perfect Kill data */
+  BUFFER_WRITE( "PKil: %ld %d\n", 
+    (long)ch->player_specials->saved.perfect_kill_last_combat,
+    ch->player_specials->saved.perfect_kill_used ? 1 : 0);
 
   /* Save evolutions */
   BUFFER_WRITE( "Evol:\n");

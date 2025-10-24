@@ -3089,6 +3089,29 @@
 #define PERK_ROGUE_DEADLY_AIM_2 98
 #define PERK_ROGUE_CRIPPLING_STRIKE 99
 #define PERK_ROGUE_BLEEDING_ATTACK 100
+/* Assassin Tree - Tier 3 */
+#define PERK_ROGUE_SNEAK_ATTACK_3 101
+#define PERK_ROGUE_ASSASSINATE_2 102
+#define PERK_ROGUE_CRITICAL_PRECISION 103
+#define PERK_ROGUE_OPPORTUNIST_2 104
+#define PERK_ROGUE_DEATH_ATTACK 105
+/* Assassin Tree - Tier 4 */
+#define PERK_ROGUE_MASTER_ASSASSIN 106
+#define PERK_ROGUE_PERFECT_KILL 107
+
+/* Master Thief Tree - Tier 1 */
+#define PERK_ROGUE_SKILL_MASTERY_1 108
+#define PERK_ROGUE_TRAPFINDING_EXPERT_1 109
+#define PERK_ROGUE_FAST_HANDS_1 110
+#define PERK_ROGUE_EVASION_TRAINING 111
+/* Master Thief Tree - Tier 2 */
+#define PERK_ROGUE_SKILL_MASTERY_2 112
+#define PERK_ROGUE_TRAPFINDING_EXPERT_2 113
+#define PERK_ROGUE_FAST_HANDS_2 114
+#define PERK_ROGUE_IMPROVED_EVASION 115
+#define PERK_ROGUE_TRAP_SENSE_1 116
+#define PERK_ROGUE_RESILIENCY 117
+#define PERK_ROGUE_TRAP_SCAVENGER 118
 
 /* Ranger Perks (121-150) */
 #define PERK_RANGER_FAVORED_ENEMY_1 121
@@ -5014,6 +5037,10 @@ struct char_special_data_saved
     int eidolon_base_form;  // Eidolon base form determines their starting stats and evolutions
 
     int kapak_healing_cooldown; // number of ticks before able to benefit from kapak healing saliva
+    
+    /* Perfect Kill tracking (Rogue Assassin perk) */
+    time_t perfect_kill_last_combat; // timestamp of last combat end
+    bool perfect_kill_used;          // whether perfect kill was used this combat cycle
 };
 
 /* not saved player data used for condensed combat */
@@ -5154,6 +5181,8 @@ struct char_special_data
     bool deathless_touch;           // when killing a victim with deathless touch, the necromancer will give bonus stats on his next animate dead or greater animation spell
 
     bool has_performed_demoralizing_strike; // this ensures the combatant can only do a demoralizing strike once per round.
+    
+    bool perfect_kill_active;       // temporary flag set when Perfect Kill is triggered for this attack
 
     int terror_cooldown;
 
@@ -5540,6 +5569,10 @@ struct player_special_data_saved
     int perk_points[NUM_CLASSES];               /**< Unspent perk points per class */
     struct char_perk_data *perks;               /**< Linked list of acquired perks */
     byte perk_toggles[32];                      /**< Bitfield tracking toggled perks (256 perks max, 1 bit each) */
+    
+    /* Perfect Kill tracking (Rogue Assassin perk) */
+    time_t perfect_kill_last_combat;            /**< Timestamp of last combat end */
+    bool perfect_kill_used;                     /**< Whether perfect kill was used this combat cycle */
 };
 
 struct weird_science_level {
