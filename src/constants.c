@@ -874,7 +874,7 @@ const char *trap_type[] = {
     "Get Object",
     "Enter Room (sets off without check opportunity at least once)",
     "\n"};
-CHECK_TABLE_SIZE(trap_type, MAX_TRAP_TYPES + 1);
+CHECK_TABLE_SIZE(trap_type, NUM_TRAP_TYPES + 1);
 
 /* Trap-effects, add 1000 to this value to reference the proper values in
  act.item.c */
@@ -896,7 +896,7 @@ const char *trap_effects[] = {
     "Skeletal Hands (50% chance death or 10d40 damage)",
     "Spider Webs (web spell 20 rounds, 1d3 spiders)",
     "\n"};
-CHECK_TABLE_SIZE(trap_effects, MAX_TRAP_EFFECTS + 1);
+CHECK_TABLE_SIZE(trap_effects, NUM_TRAP_SPECIAL_EFFECTS + 1);
 
 /* ranged weapon types (bows, etc) */
 const char *ranged_weapons[] = {
@@ -2595,6 +2595,7 @@ const char *extra_bits[] = {
     "Crafting-Jewelcrafting-Station",
     "Crafting-Tannery",
     "Crafting-Carpentry-Table",
+    "Trapped",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 

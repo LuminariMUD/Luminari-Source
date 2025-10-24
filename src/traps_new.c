@@ -538,16 +538,31 @@ void auto_generate_object_trap(struct obj_data *obj, int zone_level)
 
 /**
  * Auto-generates traps throughout a zone during zone reset.
+ * 
+ * If ZONE_RANDOM_TRAPS flag is set, generates traps randomly throughout the zone
+ * at a rate of approximately 1 trap per NUM_OF_ZONE_ROOMS_PER_RANDOM_TRAP rooms.
+ * 
+ * If individual rooms have ROOM_RANDOM_TRAP flag, they will ALWAYS get a trap
+ * regardless of the zone flag.
  */
 void auto_generate_zone_traps(zone_rnum zone)
 {
     room_rnum room;
-    int num_traps = 0, zone_level;
+    int num_traps = 0, zone_level, total_rooms = 0;
+    bool zone_has_flag;
     
     if (zone < 0 || zone > top_of_zone_table)
         return;
     
     zone_level = zone_table[zone].min_level;
+    zone_has_flag = ZONE_FLAGGED(zone, ZONE_RANDOM_TRAPS);
+    
+    // Count total rooms in zone first (for percentage calculation)
+    for (room = 0; room <= top_of_world; room++)
+    {
+        if (world[room].zone == zone)
+            total_rooms++;
+    }
     
     // Generate traps for rooms in this zone
     for (room = 0; room <= top_of_world; room++)
@@ -555,18 +570,936 @@ void auto_generate_zone_traps(zone_rnum zone)
         if (world[room].zone != zone)
             continue;
         
-        // Check if this room should have a trap
+        // ALWAYS generate trap if room has ROOM_RANDOM_TRAP flag
         if (ROOM_FLAGGED(room, ROOM_RANDOM_TRAP))
         {
             auto_generate_room_trap(room, zone_level);
             num_traps++;
         }
+        // If zone has ZONE_RANDOM_TRAPS flag, randomly generate traps
+        else if (zone_has_flag)
+        {
+            // Random chance based on NUM_OF_ZONE_ROOMS_PER_RANDOM_TRAP
+            // This gives approximately 1 trap per 33 rooms
+            if (dice(1, NUM_OF_ZONE_ROOMS_PER_RANDOM_TRAP) == 1)
+            {
+                auto_generate_room_trap(room, zone_level);
+                num_traps++;
+            }
+        }
     }
     
     if (num_traps > 0)
     {
-        log("TRAP: Auto-generated %d traps in zone %d", num_traps, zone_table[zone].number);
+        log("TRAP: Auto-generated %d traps in zone %d (%d rooms total, ~1 trap per %d rooms)", 
+            num_traps, zone_table[zone].number, total_rooms, NUM_OF_ZONE_ROOMS_PER_RANDOM_TRAP);
     }
 }
 
-/* This is part 1 of the trap system implementation. The file continues... */
+
+/* ============================================================================ */
+/* Trap Detection and Disarming Functions                                       */
+/* ============================================================================ */
+
+/**
+ * Get trap detect DC including perk bonuses.
+ */
+int get_trap_detect_dc(struct trap_data *trap, struct char_data *ch)
+{
+    int dc = trap->detect_dc;
+    
+    // Trapfinding feat reduces DC
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_TRAPFINDING))
+        dc -= 4;
+    
+    // Trapfinding Expert perks
+    dc -= get_trapfinding_bonus(ch);
+    
+    return MAX(1, dc);  // Minimum DC of 1
+}
+
+/**
+ * Get trap disarm DC including perk bonuses.
+ */
+int get_trap_disarm_dc(struct trap_data *trap, struct char_data *ch)
+{
+    int dc = trap->disarm_dc;
+    
+    // Trapfinding Expert perks
+    dc -= get_trapfinding_bonus(ch);
+    
+    return MAX(1, dc);  // Minimum DC of 1
+}
+
+/**
+ * Find the first undetected trap in a room.
+ */
+struct trap_data *find_trap_in_room(struct char_data *ch, room_rnum room)
+{
+    struct trap_data *trap;
+    
+    if (room < 0 || room > top_of_world)
+        return NULL;
+    
+    for (trap = world[room].traps; trap; trap = trap->next)
+    {
+        if (!IS_SET(trap->flags, TRAP_FLAG_DETECTED))
+            return trap;
+    }
+    
+    return NULL;
+}
+
+/**
+ * Find trap on an object.
+ */
+struct trap_data *find_trap_on_object(struct obj_data *obj)
+{
+    if (!obj)
+        return NULL;
+    
+    return obj->trap;
+}
+
+/**
+ * Detect a trap - called from search command.
+ */
+bool detect_trap(struct char_data *ch, struct trap_data *trap)
+{
+    int dc, roll;
+    
+    if (!ch || !trap)
+        return FALSE;
+    
+    // Already detected
+    if (IS_SET(trap->flags, TRAP_FLAG_DETECTED))
+        return FALSE;
+    
+    dc = get_trap_detect_dc(trap, ch);
+    roll = skill_check(ch, ABILITY_PERCEPTION, dc);
+    
+    if (roll)
+    {
+        SET_BIT(trap->flags, TRAP_FLAG_DETECTED);
+        return TRUE;
+    }
+    
+    return FALSE;
+}
+
+/**
+ * Disarm a trap - called from disable device command.
+ */
+bool disarm_trap(struct char_data *ch, struct trap_data *trap)
+{
+    int dc, roll;
+    
+    if (!ch || !trap)
+        return FALSE;
+    
+    // Must be detected first
+    if (!IS_SET(trap->flags, TRAP_FLAG_DETECTED))
+    {
+        send_to_char(ch, "You don't see any trap to disarm.\r\n");
+        return FALSE;
+    }
+    
+    // Already disarmed
+    if (IS_SET(trap->flags, TRAP_FLAG_DISARMED))
+    {
+        send_to_char(ch, "That trap has already been disarmed.\r\n");
+        return FALSE;
+    }
+    
+    dc = get_trap_disarm_dc(trap, ch);
+    roll = skill_check(ch, ABILITY_DISABLE_DEVICE, dc);
+    
+    if (roll)
+    {
+        SET_BIT(trap->flags, TRAP_FLAG_DISARMED);
+        return TRUE;
+    }
+    else if (roll <= -5)  // Critical failure - trigger trap!
+    {
+        return FALSE; // Caller will handle triggering
+    }
+    
+    return FALSE;
+}
+
+/* ============================================================================ */
+/* Trap Triggering Functions                                                    */
+/* ============================================================================ */
+
+/**
+ * Check if trap should trigger based on action type.
+ */
+bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
+                       struct obj_data *obj, int direction)
+{
+    struct trap_data *trap;
+    
+    if (!ch || IS_NPC(ch))
+        return FALSE;
+    
+    // Check room traps
+    if (room >= 0 && room <= top_of_world)
+    {
+        for (trap = world[room].traps; trap; trap = trap->next)
+        {
+            // Skip if already triggered or disarmed
+            if (IS_SET(trap->flags, TRAP_FLAG_TRIGGERED) ||
+                IS_SET(trap->flags, TRAP_FLAG_DISARMED))
+                continue;
+            
+            // Check if trigger type matches
+            if (trap->trigger_type == trigger_type)
+            {
+                // For door traps, check direction
+                if ((trigger_type == TRAP_TRIGGER_OPEN_DOOR ||
+                     trigger_type == TRAP_TRIGGER_UNLOCK_DOOR) &&
+                    trap->trigger_direction != direction)
+                    continue;
+                
+                // Trigger the trap!
+                trigger_trap(ch, trap, room);
+                return TRUE;
+            }
+        }
+    }
+    
+    // Check object traps
+    if (obj && obj->trap)
+    {
+        trap = obj->trap;
+        
+        if (!IS_SET(trap->flags, TRAP_FLAG_TRIGGERED) &&
+            !IS_SET(trap->flags, TRAP_FLAG_DISARMED) &&
+            trap->trigger_type == trigger_type)
+        {
+            trigger_trap(ch, trap, IN_ROOM(ch));
+            return TRUE;
+        }
+    }
+    
+    return FALSE;
+}
+
+/**
+ * Trigger a trap - apply effects to character(s).
+ */
+void trigger_trap(struct char_data *ch, struct trap_data *trap, room_rnum room)
+{
+    if (!ch || !trap)
+        return;
+    
+    // Mark as triggered
+    SET_BIT(trap->flags, TRAP_FLAG_TRIGGERED);
+    
+    // Send trigger messages
+    if (trap->trigger_message_char)
+        act(trap->trigger_message_char, FALSE, ch, 0, 0, TO_CHAR);
+    if (trap->trigger_message_room)
+        act(trap->trigger_message_room, FALSE, ch, 0, 0, TO_ROOM);
+    
+    // Apply trap effects
+    if (IS_SET(trap->flags, TRAP_FLAG_AREA_EFFECT))
+        apply_trap_to_area(trap, room, ch);
+    else
+        apply_trap_damage(ch, trap);
+    
+    // Apply special effects
+    if (trap->special_effect != TRAP_SPECIAL_NONE)
+        apply_trap_special_effect(ch, trap);
+}
+
+/* ============================================================================ */
+/* Trap Effect Application Functions                                            */
+/* ============================================================================ */
+
+/**
+ * Apply trap damage to a single character.
+ */
+void apply_trap_damage(struct char_data *ch, struct trap_data *trap)
+{
+    int dam = 0, save_roll = 0, save_dc = 0;
+    bool saved = FALSE;
+    
+    if (!ch || !trap)
+        return;
+    
+    // Calculate damage
+    if (trap->damage_dice_num > 0 && trap->damage_dice_size > 0)
+    {
+        dam = dice(trap->damage_dice_num, trap->damage_dice_size);
+    }
+    
+    // Apply trap sense bonus to saves
+    save_dc = trap->save_dc;
+    
+    // Make saving throw if applicable
+    if (trap->save_type != TRAP_SAVE_NONE)
+    {
+        int save_type_idx = SAVING_FORT; // Default
+        
+        switch (trap->save_type)
+        {
+            case TRAP_SAVE_REFLEX:
+                save_type_idx = SAVING_REFL;
+                break;
+            case TRAP_SAVE_FORTITUDE:
+                save_type_idx = SAVING_FORT;
+                break;
+            case TRAP_SAVE_WILL:
+                save_type_idx = SAVING_WILL;
+                break;
+        }
+        
+        // Add trap sense bonus to save
+        save_dc -= get_trap_sense_bonus(ch);
+        
+        save_roll = savingthrow(ch, save_type_idx, save_dc, 0);
+        saved = (save_roll > 0);
+        
+        // Successful save usually halves damage (or negates special effect)
+        if (saved && trap->special_effect == TRAP_SPECIAL_NONE)
+        {
+            dam /= 2;
+            send_to_char(ch, "You partially resist the trap's effects!\r\n");
+        }
+    }
+    
+    // Apply damage
+    if (dam > 0)
+    {
+        // Apply trap sense AC bonus (handled in combat code, but noted here)
+        damage(ch, ch, dam, -1, trap->damage_type, -1);
+    }
+    
+    // Special damage types
+    switch (trap->trap_type)
+    {
+        case TRAP_TYPE_HOLY:
+            // Extra damage vs undead
+            if (IS_UNDEAD(ch))
+            {
+                int bonus_dam = dice(trap->damage_dice_num * 2, trap->damage_dice_size);
+                damage(ch, ch, bonus_dam, -1, trap->damage_type, -1);
+            }
+            break;
+            
+        case TRAP_TYPE_NEGATIVE:
+            // Heals undead
+            if (IS_UNDEAD(ch))
+            {
+                GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + dam);
+                send_to_char(ch, "The negative energy heals you!\r\n");
+            }
+            break;
+    }
+}
+
+/**
+ * Apply trap effects to area (multiple targets).
+ */
+void apply_trap_to_area(struct trap_data *trap, room_rnum room, struct char_data *triggerer)
+{
+    struct char_data *vict, *next_vict;
+    int targets_hit = 0;
+    
+    if (!trap || room < 0 || room > top_of_world)
+        return;
+    
+    // Apply to all characters in room
+    for (vict = world[room].people; vict && targets_hit < trap->max_targets; vict = next_vict)
+    {
+        next_vict = vict->next_in_room;
+        
+        // Skip NPCs unless they're pets
+        if (IS_NPC(vict) && !IS_PET(vict))
+            continue;
+        
+        // Apply damage and effects
+        apply_trap_damage(vict, trap);
+        targets_hit++;
+    }
+}
+
+/**
+ * Apply special trap effects (paralysis, stun, poison, etc).
+ */
+void apply_trap_special_effect(struct char_data *ch, struct trap_data *trap)
+{
+    struct affected_type af;
+    int save_roll, save_dc, save_type_idx;
+    bool saved = FALSE;
+    
+    if (!ch || !trap || trap->special_effect == TRAP_SPECIAL_NONE)
+        return;
+    
+    // Make saving throw to resist special effect
+    save_dc = trap->save_dc - get_trap_sense_bonus(ch);
+    
+    switch (trap->save_type)
+    {
+        case TRAP_SAVE_REFLEX:
+            save_type_idx = SAVING_REFL;
+            break;
+        case TRAP_SAVE_FORTITUDE:
+            save_type_idx = SAVING_FORT;
+            break;
+        case TRAP_SAVE_WILL:
+            save_type_idx = SAVING_WILL;
+            break;
+        default:
+            save_type_idx = SAVING_FORT;
+            break;
+    }
+    
+    save_roll = savingthrow(ch, save_type_idx, save_dc, 0);
+    saved = (save_roll > 0);
+    
+    if (saved && trap->special_effect != TRAP_SPECIAL_SUMMON_CREATURE)
+    {
+        send_to_char(ch, "You resist the trap's special effect!\r\n");
+        return;
+    }
+    
+    // Initialize affect
+    new_affect(&af);
+    af.duration = trap->special_duration;
+    
+    // Apply the special effect
+    switch (trap->special_effect)
+    {
+        case TRAP_SPECIAL_PARALYSIS:
+            if (!paralysis_immunity(ch))
+            {
+                af.spell = SPELL_HOLD_PERSON;
+                SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+                send_to_char(ch, "You are paralyzed!\r\n");
+                act("$n is paralyzed!", FALSE, ch, 0, 0, TO_ROOM);
+            }
+            break;
+            
+        case TRAP_SPECIAL_SLOW:
+            af.spell = SPELL_SLOW;
+            SET_BIT_AR(af.bitvector, AFF_SLOW);
+            send_to_char(ch, "You feel sluggish!\r\n");
+            break;
+            
+        case TRAP_SPECIAL_STUN:
+            af.spell = SPELL_POWER_WORD_STUN;
+            SET_BIT_AR(af.bitvector, AFF_STUN);
+            send_to_char(ch, "You are stunned!\r\n");
+            act("$n is stunned!", FALSE, ch, 0, 0, TO_ROOM);
+            break;
+            
+        case TRAP_SPECIAL_POISON:
+            if (can_poison(ch))
+            {
+                af.spell = SPELL_POISON;
+                SET_BIT_AR(af.bitvector, AFF_POISON);
+                send_to_char(ch, "You feel poison coursing through your veins!\r\n");
+            }
+            break;
+            
+        case TRAP_SPECIAL_ABILITY_DRAIN:
+            // Strength drain for negative energy traps
+            af.location = APPLY_STR;
+            af.modifier = -(1 + (trap->severity / 2));
+            send_to_char(ch, "You feel your strength draining away!\r\n");
+            break;
+            
+        case TRAP_SPECIAL_ENTANGLE:
+            af.spell = SPELL_WEB;
+            SET_BIT_AR(af.bitvector, AFF_ENTANGLED);
+            send_to_char(ch, "You are entangled!\r\n");
+            break;
+            
+        case TRAP_SPECIAL_FEEBLEMIND:
+            af.spell = SPELL_FEEBLEMIND;
+            af.location = APPLY_INT;
+            af.modifier = -10;
+            send_to_char(ch, "Your mind goes blank!\r\n");
+            break;
+            
+        case TRAP_SPECIAL_SUMMON_CREATURE:
+            // Summon hostile creatures
+            {
+                int mob_vnum = 0, count = 0, i;
+                
+                switch (trap->trap_type)
+                {
+                    case TRAP_TYPE_AMBUSH:
+                        mob_vnum = TRAP_DARK_WARRIOR_MOBILE;
+                        count = 1 + (GET_LEVEL(ch) / 5);  // 1-4 based on level
+                        break;
+                    case TRAP_TYPE_SPIDER_HORDE:
+                        mob_vnum = TRAP_SPIDER_MOBILE;
+                        count = dice(1, 3);
+                        break;
+                    default:
+                        return;
+                }
+                
+                for (i = 0; i < count; i++)
+                {
+                    struct char_data *mob = read_mobile(mob_vnum, VIRTUAL);
+                    if (mob)
+                    {
+                        if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+                        {
+                            X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+                            Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+                        }
+                        char_to_room(mob, IN_ROOM(ch));
+                        remember(mob, ch);
+                        
+                        // Auto-purge after 3 minutes
+                        attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), (180 * PASSES_PER_SEC));
+                    }
+                }
+                send_to_char(ch, "Hostile creatures emerge from the trap!\r\n");
+            }
+            return;  // Don't apply affect for summons
+    }
+    
+    // Apply the affect if it's not a summon
+    if (trap->special_effect != TRAP_SPECIAL_SUMMON_CREATURE)
+    {
+        affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+    }
+}
+
+/* ============================================================================ */
+/* Trap Information and Utility Functions                                       */
+/* ============================================================================ */
+
+/**
+ * Get trap name.
+ */
+const char *get_trap_name(struct trap_data *trap)
+{
+    if (!trap)
+        return "unknown";
+    
+    if (trap->trap_name)
+        return trap->trap_name;
+    
+    if (trap->trap_type >= 0 && trap->trap_type < NUM_TRAP_TYPES)
+        return trap_type_table[trap->trap_type].name;
+    
+    return "unknown";
+}
+
+/**
+ * Get trap severity name.
+ */
+const char *get_trap_severity_name(int severity)
+{
+    if (severity < 0 || severity >= NUM_TRAP_SEVERITIES)
+        return "unknown";
+    
+    return trap_severity_table[severity].name;
+}
+
+/**
+ * Get trap type name.
+ */
+const char *get_trap_type_name(int trap_type)
+{
+    if (trap_type < 0 || trap_type >= NUM_TRAP_TYPES)
+        return "unknown";
+    
+    return trap_type_table[trap_type].name;
+}
+
+/**
+ * Get trap component value for recovery.
+ */
+int get_trap_component_value(struct trap_data *trap)
+{
+    if (!trap)
+        return 0;
+    
+    // Value based on severity
+    return trap_severity_table[trap->severity].detect_dc_base * 10;
+}
+
+/**
+ * Show detailed trap information to character.
+ */
+void show_trap_info(struct char_data *ch, struct trap_data *trap)
+{
+    if (!ch || !trap)
+        return;
+    
+    if (!IS_SET(trap->flags, TRAP_FLAG_DETECTED))
+    {
+        send_to_char(ch, "You don't see any trap.\r\n");
+        return;
+    }
+    
+    send_to_char(ch, "\r\n\tcTrap Information:\tn\r\n");
+    send_to_char(ch, "  Type: %s\r\n", get_trap_name(trap));
+    send_to_char(ch, "  Severity: %s\r\n", get_trap_severity_name(trap->severity));
+    send_to_char(ch, "  Status: %s%s%s\r\n",
+                 IS_SET(trap->flags, TRAP_FLAG_DISARMED) ? "\tGDisarmed\tn" : "",
+                 IS_SET(trap->flags, TRAP_FLAG_TRIGGERED) ? "\tRTriggered\tn" : "",
+                 (!IS_SET(trap->flags, TRAP_FLAG_DISARMED) && !IS_SET(trap->flags, TRAP_FLAG_TRIGGERED)) ? "\tYArmed\tn" : "");
+    
+    // Show DCs to those with high enough skill
+    if (GET_ABILITY(ch, ABILITY_DISABLE_DEVICE) >= 5)
+    {
+        send_to_char(ch, "  Detect DC: %d\r\n", trap->detect_dc);
+        send_to_char(ch, "  Disarm DC: %d\r\n", trap->disarm_dc);
+        
+        if (trap->damage_dice_num > 0)
+            send_to_char(ch, "  Damage: %dd%d %s\r\n", 
+                        trap->damage_dice_num, trap->damage_dice_size,
+                        damtype_display[trap->damage_type]);
+    }
+    
+    send_to_char(ch, "\r\n");
+}
+
+/* ============================================================================ */
+/* Perk Integration Functions                                                   */
+/* ============================================================================ */
+
+/**
+ * Get trapfinding bonus from perks.
+ */
+int get_trapfinding_bonus(struct char_data *ch)
+{
+    int bonus = 0;
+    
+    if (!ch || IS_NPC(ch))
+        return 0;
+    
+    // Trapfinding Expert I: +3 per rank
+    bonus += get_perk_trapfinding_bonus(ch);
+    
+    return bonus;
+}
+
+/**
+ * Get trap sense bonus from perks.
+ */
+int get_trap_sense_bonus(struct char_data *ch)
+{
+    int bonus = 0;
+    
+    if (!ch || IS_NPC(ch))
+        return 0;
+    
+    // Trap Sense perk: +2 per rank
+    bonus += get_perk_trap_sense_bonus(ch);
+    
+    return bonus;
+}
+
+/**
+ * Check if character can recover trap components.
+ */
+bool can_recover_trap_components(struct char_data *ch)
+{
+    if (!ch || IS_NPC(ch))
+        return FALSE;
+    
+    // Must have Trap Scavenger perk
+    return HAS_PERK(ch, PERK_ROGUE_TRAP_SCAVENGER);
+}
+
+/**
+ * Recover trap components after disarming.
+ */
+void recover_trap_components(struct char_data *ch, struct trap_data *trap)
+{
+    struct obj_data *components;
+    int value;
+    
+    if (!ch || !trap || !can_recover_trap_components(ch))
+        return;
+    
+    if (!IS_SET(trap->flags, TRAP_FLAG_DISARMED))
+        return;
+    
+    value = get_trap_component_value(trap);
+    
+    // Create a generic "trap components" object (you'll need to create this object)
+    // For now, just give gold as a placeholder
+    increase_gold(ch, value);
+    send_to_char(ch, "You salvage trap components worth %d gold coins!\r\n", value);
+}
+
+/* ============================================================================ */
+/* Player Commands                                                              */
+/* ============================================================================ */
+
+/**
+ * Search command integration - detect traps.
+ * This should be called from the existing do_search command in act.other.c
+ */
+int search_for_traps(struct char_data *ch)
+{
+    struct trap_data *trap;
+    int exp, found = FALSE;
+    
+    if (!ch)
+        return FALSE;
+    
+    // Find first undetected trap in room
+    trap = find_trap_in_room(ch, IN_ROOM(ch));
+    
+    if (!trap)
+        return FALSE;  // No traps to find
+    
+    // Try to detect it
+    if (detect_trap(ch, trap))
+    {
+        act("You have detected a \tRtrap\tn!", FALSE, ch, 0, 0, TO_CHAR);
+        act("$n has detected a \tRtrap\tn!", FALSE, ch, 0, 0, TO_ROOM);
+        
+        // Show what kind of trap it is
+        if (trap->trap_type >= 0 && trap->trap_type < NUM_TRAP_TYPES)
+            act(trap_type_table[trap->trap_type].detect_msg, FALSE, ch, 0, 0, TO_CHAR);
+        
+        // Grant experience
+        exp = trap->detect_dc * 100;
+        send_to_char(ch, "You receive %d experience points.\r\n", 
+                    gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
+        
+        return TRUE;
+    }
+    
+    return FALSE;
+}
+
+/**
+ * Perform autosearch for traps - used when PRF_AUTOSEARCH is enabled.
+ * This function automatically checks for traps at half perception skill
+ * when entering a room. It operates silently unless a trap is found.
+ */
+void perform_autosearch(struct char_data *ch)
+{
+    struct trap_data *trap;
+    int perception_bonus, dc, roll;
+    
+    if (!ch || IS_NPC(ch))
+        return;
+    
+    // Find first undetected trap in room
+    trap = find_trap_in_room(ch, IN_ROOM(ch));
+    
+    if (!trap)
+        return;  // No traps to find
+    
+    // Calculate perception at HALF skill (penalty for autosearch)
+    perception_bonus = GET_ABILITY(ch, ABILITY_PERCEPTION) / 2;
+    perception_bonus += get_trapfinding_bonus(ch);
+    perception_bonus += get_trap_sense_bonus(ch);
+    
+    // Get trap detect DC
+    dc = get_trap_detect_dc(trap, ch);
+    
+    // Make the check: 1d20 + (perception/2) + bonuses vs DC
+    roll = dice(1, 20) + perception_bonus;
+    
+    if (roll >= dc)
+    {
+        // Success! Detected the trap
+        SET_BIT(trap->flags, TRAP_FLAG_DETECTED);
+        
+        act("\tyYour cautious movement alerts you to a \tRtrap\ty!\tn", FALSE, ch, 0, 0, TO_CHAR);
+        
+        // Show what kind of trap it is
+        if (trap->trap_type >= 0 && trap->trap_type < NUM_TRAP_TYPES)
+            send_to_char(ch, "%s\r\n", trap_type_table[trap->trap_type].detect_msg);
+        
+        // Grant reduced experience (half of normal, since it's automatic)
+        int exp = (trap->detect_dc * 100) / 2;
+        if (exp > 0)
+        {
+            send_to_char(ch, "\tyYou receive %d experience points for your alertness.\tn\r\n", 
+                        gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
+        }
+    }
+    // On failure, no message (silent failure for autosearch)
+}
+
+/**
+ * Disable trap command.
+ */
+ACMD(do_disabletrap)
+{
+    struct trap_data *trap = NULL;
+    int exp, result;
+    
+    if (!GET_ABILITY(ch, ABILITY_DISABLE_DEVICE))
+    {
+        send_to_char(ch, "You don't know how to disable traps.\r\n");
+        return;
+    }
+    
+    // Find a detected trap in the room
+    for (trap = world[IN_ROOM(ch)].traps; trap; trap = trap->next)
+    {
+        if (IS_SET(trap->flags, TRAP_FLAG_DETECTED) &&
+            !IS_SET(trap->flags, TRAP_FLAG_DISARMED))
+            break;
+    }
+    
+    if (!trap)
+    {
+        send_to_char(ch, "There are no detected traps here to disable.\r\n");
+        return;
+    }
+    
+    act("$n carefully attempts to disable the trap...", FALSE, ch, 0, 0, TO_ROOM);
+    send_to_char(ch, "You carefully attempt to disable the trap...\r\n");
+    
+    if (disarm_trap(ch, trap))
+    {
+        act("$n successfully disables the trap!", FALSE, ch, 0, 0, TO_ROOM);
+        send_to_char(ch, "You successfully disable the trap!\r\n");
+        
+        // Grant experience
+        exp = trap->disarm_dc * trap->disarm_dc * 100;
+        send_to_char(ch, "You receive %d experience points.\r\n",
+                    gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
+        
+        // Try to recover components
+        if (can_recover_trap_components(ch))
+            recover_trap_components(ch, trap);
+        
+        // Remove auto-generated traps after disarming
+        if (IS_SET(trap->flags, TRAP_FLAG_AUTO_GENERATED))
+        {
+            remove_trap_from_room(trap, IN_ROOM(ch));
+            free_trap(trap);
+        }
+    }
+    else
+    {
+        send_to_char(ch, "You fail to disable the trap.\r\n");
+        
+        // Check if we critically failed (triggers trap)
+        result = skill_check(ch, ABILITY_DISABLE_DEVICE, trap->disarm_dc);
+        if (result <= -5)
+        {
+            send_to_char(ch, "\tRYour clumsy attempt triggers the trap!\tn\r\n");
+            trigger_trap(ch, trap, IN_ROOM(ch));
+        }
+    }
+    
+    USE_FULL_ROUND_ACTION(ch);
+}
+
+/**
+ * Show trap info command.
+ */
+ACMD(do_trapinfo)
+{
+    struct trap_data *trap;
+    
+    // Find a detected trap in the room
+    for (trap = world[IN_ROOM(ch)].traps; trap; trap = trap->next)
+    {
+        if (IS_SET(trap->flags, TRAP_FLAG_DETECTED))
+        {
+            show_trap_info(ch, trap);
+            return;
+        }
+    }
+    
+    send_to_char(ch, "You don't see any detected traps here.\r\n");
+}
+
+/* ============================================================================ */
+/* Legacy System Compatibility                                                  */
+/* ============================================================================ */
+
+/**
+ * Legacy trap check function - maintained for backward compatibility.
+ */
+bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *obj, int dir)
+{
+    // Convert old trap type to new trigger type
+    int trigger_type;
+    
+    switch (trap_type)
+    {
+        case 0: trigger_type = TRAP_TRIGGER_LEAVE_ROOM; break;
+        case 1: trigger_type = TRAP_TRIGGER_OPEN_DOOR; break;
+        case 2: trigger_type = TRAP_TRIGGER_UNLOCK_DOOR; break;
+        case 3: trigger_type = TRAP_TRIGGER_OPEN_CONTAINER; break;
+        case 4: trigger_type = TRAP_TRIGGER_UNLOCK_CONTAINER; break;
+        case 5: trigger_type = TRAP_TRIGGER_GET_OBJECT; break;
+        case 6: trigger_type = TRAP_TRIGGER_ENTER_ROOM; break;
+        default: return FALSE;
+    }
+    
+    return check_trap_trigger(ch, trigger_type, room, obj, dir);
+}
+
+/**
+ * Legacy set_off_trap - placeholder for old ITEM_TRAP objects.
+ */
+void set_off_trap(struct char_data *ch, struct obj_data *trap)
+{
+    // This is for old ITEM_TRAP objects - kept for compatibility
+    // New system uses trap_data structures instead
+    send_to_char(ch, "Ooops, you triggered something!\r\n");
+}
+
+/**
+ * Legacy is_trap_detected.
+ */
+bool is_trap_detected(struct obj_data *trap)
+{
+    return (GET_OBJ_VAL(trap, 4) > 0);
+}
+
+/**
+ * Legacy set_trap_detected.
+ */
+void set_trap_detected(struct obj_data *trap)
+{
+    GET_OBJ_VAL(trap, 4) = 1;
+}
+
+/**
+ * Legacy perform_detecttrap.
+ */
+int perform_detecttrap(struct char_data *ch, bool silent)
+{
+    if (!silent)
+        USE_FULL_ROUND_ACTION(ch);
+    
+    return search_for_traps(ch);
+}
+
+/**
+ * Legacy do_detecttrap command.
+ */
+ACMD(do_detecttrap)
+{
+    if (!GET_ABILITY(ch, ABILITY_PERCEPTION))
+    {
+        send_to_char(ch, "You don't know how to detect traps.\r\n");
+        return;
+    }
+    
+    if (search_for_traps(ch))
+    {
+        USE_FULL_ROUND_ACTION(ch);
+        return;
+    }
+    
+    send_to_char(ch, "You don't detect any traps.\r\n");
+    USE_FULL_ROUND_ACTION(ch);
+}
+
+/* END OF FILE */

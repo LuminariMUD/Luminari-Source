@@ -65,6 +65,8 @@ int get_trap_detect_dc(struct trap_data *trap, struct char_data *ch);
 int get_trap_disarm_dc(struct trap_data *trap, struct char_data *ch);
 struct trap_data *find_trap_in_room(struct char_data *ch, room_rnum room);
 struct trap_data *find_trap_on_object(struct obj_data *obj);
+int search_for_traps(struct char_data *ch);
+void perform_autosearch(struct char_data *ch);
 
 /* Trap triggering */
 bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room, 

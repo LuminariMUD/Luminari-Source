@@ -58,6 +58,7 @@
 #include "account.h"
 #include "deities.h"
 #include "evolutions.h"
+#include "traps.h"  /* For trap system functions */
 #include "constants.h"
 #include <time.h>
 
@@ -5300,6 +5301,12 @@ ACMD(do_search)
           }
         }
       }
+      
+      /* NEW: Search for traps using new trap system */
+      if (!found && search_for_traps(ch))
+      {
+        found = TRUE;
+      }
     }
   } /*else {
     generic_find(argument, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &i, &cont);
@@ -7458,6 +7465,9 @@ ACMD(do_gen_tog)
       // 66
       {"Board check on login disabled.\r\n",
        "Board check on login enabled. You will see unread board posts when you enter the game.\r\n"},
+      // 67
+      {"Autosearch disabled. You will no longer automatically search for traps.\r\n",
+       "Autosearch enabled. You will now automatically search for traps at half perception skill, but move at half speed and lose initiative.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7772,6 +7782,9 @@ case SCMD_AUTO_AUGMENT:
     break;
   case SCMD_AUTO_PREP:
     result = PRF_TOG_CHK(ch, PRF_AUTO_PREP);
+    break;
+  case SCMD_AUTOSEARCH:
+    result = PRF_TOG_CHK(ch, PRF_AUTOSEARCH);
     break;
   default:
     log("SYSERR: Unknown subcmd %d in do_gen_toggle.", subcmd);

@@ -331,12 +331,12 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
   case SCMD_OPEN:
     if (obj)
     {
-      if (check_trap(ch, TRAP_TYPE_OPEN_CONTAINER, ch->in_room, obj, 0))
+      if (check_trap(ch, TRAP_TRIGGER_OPEN_CONTAINER, ch->in_room, obj, 0))
         return;
     }
     else
     {
-      if (check_trap(ch, TRAP_TYPE_OPEN_DOOR, ch->in_room, 0, door))
+      if (check_trap(ch, TRAP_TRIGGER_OPEN_DOOR, ch->in_room, 0, door))
         return;
     }
     OPEN_DOOR(IN_ROOM(ch), obj, door);
@@ -348,12 +348,12 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
   case SCMD_CLOSE:
     if (obj)
     {
-      if (check_trap(ch, TRAP_TYPE_OPEN_CONTAINER, ch->in_room, obj, 0))
+      if (check_trap(ch, TRAP_TRIGGER_OPEN_CONTAINER, ch->in_room, obj, 0))
         return;
     }
     else
     {
-      if (check_trap(ch, TRAP_TYPE_OPEN_DOOR, ch->in_room, 0, door))
+      if (check_trap(ch, TRAP_TRIGGER_OPEN_DOOR, ch->in_room, 0, door))
         return;
     }
     CLOSE_DOOR(IN_ROOM(ch), obj, door);
@@ -372,12 +372,12 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
   case SCMD_UNLOCK:
     if (obj)
     {
-      if (check_trap(ch, TRAP_TYPE_UNLOCK_CONTAINER, ch->in_room, obj, 0))
+      if (check_trap(ch, TRAP_TRIGGER_UNLOCK_CONTAINER, ch->in_room, obj, 0))
         return;
     }
     else
     {
-      if (check_trap(ch, TRAP_TYPE_UNLOCK_DOOR, ch->in_room, 0, door))
+      if (check_trap(ch, TRAP_TRIGGER_UNLOCK_DOOR, ch->in_room, 0, door))
         return;
     }
     UNLOCK_DOOR(IN_ROOM(ch), obj, door);
@@ -394,7 +394,7 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
         send_to_char(ch, "That item cannot be picked.\r\n");
         return;
       }
-      if (check_trap(ch, TRAP_TYPE_UNLOCK_CONTAINER, ch->in_room, obj, 0))
+      if (check_trap(ch, TRAP_TRIGGER_UNLOCK_CONTAINER, ch->in_room, obj, 0))
         return;
       if (DOOR_IS_PICKPROOF(ch, obj, door))
       {
@@ -421,7 +421,7 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
     }
     else
     {
-      // if (check_trap(ch, TRAP_TYPE_UNLOCK_DOOR, ch->in_room, 0, door))
+      // if (check_trap(ch, TRAP_TRIGGER_UNLOCK_DOOR, ch->in_room, 0, door))
       //   return;
 
       if (!ok_pick(ch, 0, EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF), SCMD_PICK, door))

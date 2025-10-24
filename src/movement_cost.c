@@ -92,7 +92,11 @@ int get_speed(struct char_data *ch, sbyte to_display)
   // function is called to apply their speed.  If to_display is true,
   // we won't worry about the blind effect, because it's only showing
   // the person's base speed for display purposes (ie. score)
-  if (AFF_FLAGGED(ch, AFF_SLOW))
+  
+  // Autosearch penalty - moving cautiously to detect traps is slow
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSEARCH))
+    speed /= 2;
+  else if (AFF_FLAGGED(ch, AFF_SLOW))
     speed /= 2;
   else if (AFF_FLAGGED(ch, AFF_ENTANGLED))
     speed /= 2;

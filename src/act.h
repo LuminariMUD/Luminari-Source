@@ -784,6 +784,7 @@ ACMD_DECL(do_buildwalk);
 #define SCMD_NOCRAFTPROGRESS 64
 #define SCMD_PVP 65
 #define SCMD_BOARDCHECK 66
+#define SCMD_AUTOSEARCH 67
 
 /* do_quit */
 ACMD_DECL(do_quit);
