@@ -156,8 +156,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
   case ITEM_TRAP: /* 31 */ /* punish those rogue-less groups! */
     /* object value (0) is the trap-type */
-    /* object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
-           or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
+    /* object value (1) is the direction of the trap (TRAP_TRIGGER_OPEN_DOOR and TRAP_TRIGGER_UNLOCK_DOOR)
+           or the object-vnum (TRAP_TRIGGER_OPEN_CONTAINER and TRAP_TRIGGER_UNLOCK_CONTAINER and TRAP_TRIGGER_GET_OBJECT) */
     /* object value (2) is the effect */
     /* object value (3) is the trap difficulty */
     /* object value (4) is whether this trap has been "detected" yet */
@@ -169,25 +169,25 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
     switch (GET_OBJ_VAL(item, 0))
     {
-    case TRAP_TYPE_ENTER_ROOM:
+    case TRAP_TRIGGER_ENTER_ROOM:
       break;
-    case TRAP_TYPE_LEAVE_ROOM:
+    case TRAP_TRIGGER_LEAVE_ROOM:
       break;
 
-    case TRAP_TYPE_OPEN_DOOR:
+    case TRAP_TRIGGER_OPEN_DOOR:
       /*fall-through*/
-    case TRAP_TYPE_UNLOCK_DOOR:
+    case TRAP_TRIGGER_UNLOCK_DOOR:
       if (mode == ITEM_STAT_MODE_G_LORE)
         send_to_group(NULL, GROUP(ch), "Direction: %s\r\n", dirs[GET_OBJ_VAL(item, 1)]);
       else
         send_to_char(ch, "Direction: %s\r\n", dirs[GET_OBJ_VAL(item, 1)]);
       break;
 
-    case TRAP_TYPE_OPEN_CONTAINER:
+    case TRAP_TRIGGER_OPEN_CONTAINER:
       /*fall-through*/
-    case TRAP_TYPE_UNLOCK_CONTAINER:
+    case TRAP_TRIGGER_UNLOCK_CONTAINER:
       /*fall-through*/
-    case TRAP_TYPE_GET_OBJECT:
+    case TRAP_TRIGGER_GET_OBJECT:
       target_obj = real_object(GET_OBJ_VAL(item, 1));
 
       if (mode == ITEM_STAT_MODE_G_LORE)
@@ -199,24 +199,24 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       break;
     }
 
-    if (GET_OBJ_VAL(item, 2) <= 0 || GET_OBJ_VAL(item, 2) >= TOP_TRAP_EFFECTS)
+    if (GET_OBJ_VAL(item, 2) <= 0 || GET_OBJ_VAL(item, 2) >= NUM_TRAP_SPECIAL_EFFECTS)
     {
       if (mode == ITEM_STAT_MODE_G_LORE)
         send_to_group(NULL, GROUP(ch), "Invalid trap effect on this object [1]\r\n");
       else
         send_to_char(ch, "Invalid trap effect on this object [1]\r\n");
     }
-    else if (GET_OBJ_VAL(item, 2) < TRAP_EFFECT_FIRST_VALUE && GET_OBJ_VAL(item, 2) >= LAST_SPELL_DEFINE)
+    else if (GET_OBJ_VAL(item, 2) < TRAP_SPECIAL_PARALYSIS && GET_OBJ_VAL(item, 2) >= LAST_SPELL_DEFINE)
     {
       if (mode == ITEM_STAT_MODE_G_LORE)
         send_to_group(NULL, GROUP(ch), "Invalid trap effect on this object [2]\r\n");
       else
         send_to_char(ch, "Invalid trap effect on this object [2]\r\n");
     }
-    else if (GET_OBJ_VAL(item, 2) >= TRAP_EFFECT_FIRST_VALUE)
+    else if (GET_OBJ_VAL(item, 2) >= TRAP_SPECIAL_PARALYSIS)
     {
       if (mode == ITEM_STAT_MODE_G_LORE)
-        send_to_group(NULL, GROUP(ch), "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2) - 1000]);
+        send_to_group(NULL, GROUP(ch), "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2) - TRAP_SPECIAL_PARALYSIS]);
       else
         send_to_char(ch, "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2) - 1000]);
     }
@@ -2322,7 +2322,7 @@ void get_from_container(struct char_data *ch, struct obj_data *cont,
 
 static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
 {
-  if (check_trap(ch, TRAP_TYPE_GET_OBJECT, ch->in_room, obj, 0))
+  if (check_trap(ch, TRAP_TRIGGER_GET_OBJECT, ch->in_room, obj, 0))
     return 0;
 
   if (can_take_obj(ch, obj) && get_otrigger(obj, ch))

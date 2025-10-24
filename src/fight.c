@@ -646,6 +646,10 @@ int roll_initiative(struct char_data *ch)
   int initiative = 0;
 
   initiative = d20(ch) + get_initiative_modifier(ch);
+  
+  // Autosearch penalty: automatically lose initiative checks
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSEARCH))
+    initiative = -1;
 
   return initiative;
 }

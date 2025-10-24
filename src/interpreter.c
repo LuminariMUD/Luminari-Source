@@ -191,6 +191,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"autoprep", "autoprep", POS_DEAD, do_gen_tog, 0, SCMD_AUTO_PREP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autosac", "autosac", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSAC, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autoscan", "autoscan", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSCAN, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"autosearch", "autosea", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSEARCH, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autosplit", "autospl", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSPLIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autosort", "autosort", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSORT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autostore", "autostore", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSTORE, TRUE, ACTION_NONE, {0, 0}, NULL},

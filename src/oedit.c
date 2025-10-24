@@ -882,7 +882,7 @@ static void oedit_disp_trap_type(struct descriptor_data *d)
   int counter = 0;
 
   write_to_output(d, "\r\n");
-  for (counter = 0; counter < MAX_TRAP_TYPES; counter++)
+  for (counter = 0; counter < NUM_TRAP_TYPES; counter++)
   {
     write_to_output(d, "%d) %s\r\n", counter, trap_type[counter]);
   }
@@ -895,7 +895,7 @@ static void oedit_disp_trap_effects(struct descriptor_data *d)
   int counter = 0;
 
   write_to_output(d, "\r\n");
-  for (counter = TRAP_EFFECT_FIRST_VALUE; counter < TOP_TRAP_EFFECTS; counter++)
+  for (counter = TRAP_SPECIAL_PARALYSIS; counter < NUM_TRAP_SPECIAL_EFFECTS; counter++)
   {
     write_to_output(d, "%d) %s\r\n", counter, trap_effects[counter - 1000]);
   }
@@ -1118,17 +1118,17 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
     switch (GET_OBJ_VAL(OLC_OBJ(d), 0))
     {
       break;
-    case TRAP_TYPE_OPEN_DOOR:
-    case TRAP_TYPE_UNLOCK_DOOR:
+    case TRAP_TRIGGER_OPEN_DOOR:
+    case TRAP_TRIGGER_UNLOCK_DOOR:
       oedit_disp_trap_direction(d);
       break;
-    case TRAP_TYPE_OPEN_CONTAINER:
-    case TRAP_TYPE_UNLOCK_CONTAINER:
-    case TRAP_TYPE_GET_OBJECT:
+    case TRAP_TRIGGER_OPEN_CONTAINER:
+    case TRAP_TRIGGER_UNLOCK_CONTAINER:
+    case TRAP_TRIGGER_GET_OBJECT:
       write_to_output(d, "VNUM of object trap should apply to : ");
       break;
-    case TRAP_TYPE_LEAVE_ROOM:
-    case TRAP_TYPE_ENTER_ROOM:
+    case TRAP_TRIGGER_LEAVE_ROOM:
+    case TRAP_TRIGGER_ENTER_ROOM:
     default:
       write_to_output(d, "Press ENTER to continue.");
       break;
@@ -1392,7 +1392,7 @@ static void oedit_disp_val6_menu(struct descriptor_data *d)
   {
   case ITEM_TREASURE_CHEST:
     write_to_output(d, "Trap Type (0 for no trap):\r\n");
-    column_list(d->character, 0, trap_effects, MAX_TRAP_EFFECTS, TRUE);
+    column_list(d->character, 0, trap_effects, NUM_TRAP_SPECIAL_EFFECTS, TRUE);
     break;
   case ITEM_GEAR_OUTFIT:
     for (i = 0; i < NUM_BONUS_TYPES; i++)
@@ -2650,13 +2650,13 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_TREASURE_CHEST:
-      if (number < 0 || number > MAX_TRAP_EFFECTS)
+      if (number < 0 || number > NUM_TRAP_SPECIAL_EFFECTS)
       {
         write_to_output(d, "Please select 0 if the chest has no trap, otherwise enter the trap type desired.\r\n");
         return;
       }
       min_val = 0;
-      max_val = MAX_TRAP_EFFECTS;
+      max_val = NUM_TRAP_SPECIAL_EFFECTS;
       break;
     case ITEM_GEAR_OUTFIT:
       min_val = 0;

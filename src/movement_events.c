@@ -193,7 +193,7 @@ void process_trap_detection(struct char_data *ch)
 
   /* Check for traps on room entry */
   if (!sensed_trap)
-    check_trap(ch, TRAP_TYPE_ENTER_ROOM, ch->in_room, 0, 0);
+    check_trap(ch, TRAP_TRIGGER_ENTER_ROOM, ch->in_room, 0, 0);
 }
 
 /**
@@ -271,5 +271,5 @@ void process_vampire_weaknesses(struct char_data *ch)
  */
 void process_leave_traps(struct char_data *ch)
 {
-  check_trap(ch, TRAP_TYPE_LEAVE_ROOM, ch->in_room, 0, 0);
+  check_trap(ch, TRAP_TRIGGER_LEAVE_ROOM, ch->in_room, 0, 0);
 }

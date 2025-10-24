@@ -113,7 +113,7 @@ ACMD(do_doorbash) {
   }
   WAIT_STATE(ch, 1 * PULSE_VIOLENCE);
 
-  check_trap(ch, TRAP_TYPE_OPEN_DOOR, ch->in_room, 0, door);
+  check_trap(ch, TRAP_TRIGGER_OPEN_DOOR, ch->in_room, 0, door);
 
   return;
 }
@@ -823,6 +823,16 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
   char_to_room(ch, going_to);
   /* end the actual technical moving of the char */
+  
+  /* Autosearch: Check for traps automatically if enabled */
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSEARCH))
+  {
+    /* Perform autosearch at half perception skill */
+    perform_autosearch(ch);
+  }
+  
+  /* NEW: Check for room entry traps */
+  check_trap_trigger(ch, TRAP_TRIGGER_ENTER_ROOM, going_to, NULL, dir);
 
   /* move the mount too */
   if (riding && same_room && RIDING(ch)->in_room != ch->in_room)

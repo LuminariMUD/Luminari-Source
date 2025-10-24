@@ -49,14 +49,26 @@ struct trap_data {
 ### 2. Zone/Room/Object Flags
 
 #### Flags Used
-- `ZONE_RANDOM_TRAPS` (13): Auto-generate traps in this zone on reset
-- `ROOM_RANDOM_TRAP` (36): Auto-generate trap in this room on zone reset
+- `ZONE_RANDOM_TRAPS` (13): Auto-generate traps randomly throughout the zone on reset
+- `ROOM_RANDOM_TRAP` (36): Always auto-generate trap in this specific room on zone reset
 - `ITEM_TRAPPED` (113): This object has a trap attached (informational flag)
 
 #### Flag Behavior
-- `ZONE_RANDOM_TRAPS`: When set, the zone reset will generate traps in rooms with ROOM_RANDOM_TRAP flag
-- `ROOM_RANDOM_TRAP`: Marks a room as eligible for automatic trap generation during zone reset
-- `ITEM_TRAPPED`: Set automatically when a trap is attached to an object (container/door)
+
+**ZONE_RANDOM_TRAPS Flag:**
+When set on a zone, traps will be randomly generated throughout the zone during zone reset. The frequency is controlled by `NUM_OF_ZONE_ROOMS_PER_RANDOM_TRAP` (currently 33), meaning approximately 1 trap per 33 rooms in the zone.
+
+For example, a zone with 100 rooms and `ZONE_RANDOM_TRAPS` flag will get approximately 3 random traps placed in different rooms each reset.
+
+**ROOM_RANDOM_TRAP Flag:**
+When set on a specific room, that room will ALWAYS get a trap during zone reset, regardless of whether the zone has the `ZONE_RANDOM_TRAPS` flag. This allows builders to mark specific dangerous rooms (treasure rooms, boss lairs, etc.) as always trapped.
+
+**Priority System:**
+1. Rooms with `ROOM_RANDOM_TRAP` flag always get traps (100% chance)
+2. Other rooms in zones with `ZONE_RANDOM_TRAPS` flag have ~3% chance (1 in 33)
+
+**ITEM_TRAPPED Flag:**
+Set automatically when a trap is attached to an object (container/door). This is informational only and helps identify trapped objects.
 
 ### 3. Trap System Functions (traps.h & traps_new.c)
 

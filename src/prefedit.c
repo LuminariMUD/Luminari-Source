@@ -367,6 +367,8 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                              "%s3%s) Autogold     %s[%s%3s%s]    %sC%s) Tell       %s[%s%3s%s]\r\n"
                              "%s4%s) Autosac      %s[%s%3s%s]    %sD%s) Auction    %s[%s%3s%s]\r\n"
                              "%s5%s) Autoassist   %s[%s%3s%s]    %sE%s) Gratz      %s[%s%3s%s]\r\n"
+                             "                                                              \r\n"
+                             "%s*%s) Autosearch   %s[%s%3s%s] %s(Half perception, half speed, lose initiative)%s\r\n"
                              "                             - More Toggles -                   \r\n"
                              "%s6%s) Autosplit    %s[%s%3s%s]    %sS%s) AutoScan   %s[%s%3s%s]\r\n"
                              "%s0%s) Hint Display %s[%s%3s%s]    %sW%s) AutoCollect %s[%s%3s%s]\r\n",
@@ -394,6 +396,11 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOASSIST) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
                ONOFF(PREFEDIT_FLAGGED(PRF_AUTOASSIST)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_NOGRATZ) ? CBRED(d->character, C_NRM) : CBGRN(d->character, C_NRM), ONOFF(!PREFEDIT_FLAGGED(PRF_NOGRATZ)), CCCYN(d->character, C_NRM),
+               /* Line Autosearch  */
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AUTOSEARCH) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSEARCH)), CCCYN(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                /* Line 6 - autosplit and autoscan */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_AUTOSPLIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
@@ -875,6 +882,10 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case 'e':
     case 'E':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NOGRATZ);
+      break;
+
+    case '*':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOSEARCH);
       break;
 
     case 'f':

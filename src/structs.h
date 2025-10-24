@@ -1419,6 +1419,7 @@
 #define PRF_SCORE_BORDERS 81          /**< Display class-themed borders in score */
 #define PRF_SCORE_RACE_SYMBOLS 82     /**< Display race symbols in score */
 #define PRF_BOARDCHECK 83             /**< Display board check on login */
+#define PRF_AUTOSEARCH 84             /**< Automatically search for traps when moving (1/2 perception, 1/2 speed, lose initiative) */
 
 /** Total number of available PRF flags */
 #define NUM_PRF_FLAGS 84

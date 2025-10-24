@@ -31,8 +31,8 @@
 
 /* side note, if the GET_OBJ_RENT(trap) > 0, then the trap is detected in the original version */
 /* object value (0) is the trap-type */
-/* object value (1) is the direction of the trap (TRAP_TYPE_OPEN_DOOR and TRAP_TYPE_UNLOCK_DOOR)
-     or the object-vnum (TRAP_TYPE_OPEN_CONTAINER and TRAP_TYPE_UNLOCK_CONTAINER and TRAP_TYPE_GET_OBJECT) */
+/* object value (1) is the direction of the trap (TRAP_TRIGGER_OPEN_DOOR and TRAP_TRIGGER_UNLOCK_DOOR)
+     or the object-vnum (TRAP_TRIGGER_OPEN_CONTAINER and TRAP_TRIGGER_UNLOCK_CONTAINER and TRAP_TRIGGER_GET_OBJECT) */
 /* object value (2) is the effect */
 /* object value (3) is the trap difficulty */
 /* object value (4) is whether this trap has been "detected" yet */
@@ -83,18 +83,18 @@ bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *
     {
       switch (trap_type)
       {
-      case TRAP_TYPE_ENTER_ROOM:
+      case TRAP_TRIGGER_ENTER_ROOM:
         break;
-      case TRAP_TYPE_LEAVE_ROOM:
+      case TRAP_TRIGGER_LEAVE_ROOM:
         break;
-      case TRAP_TYPE_OPEN_DOOR:
-      case TRAP_TYPE_UNLOCK_DOOR:
+      case TRAP_TRIGGER_OPEN_DOOR:
+      case TRAP_TRIGGER_UNLOCK_DOOR:
         if (dir != GET_OBJ_VAL(trap, 1))
           continue;
         break;
-      case TRAP_TYPE_OPEN_CONTAINER:
-      case TRAP_TYPE_UNLOCK_CONTAINER:
-      case TRAP_TYPE_GET_OBJECT:
+      case TRAP_TRIGGER_OPEN_CONTAINER:
+      case TRAP_TRIGGER_UNLOCK_CONTAINER:
+      case TRAP_TRIGGER_GET_OBJECT:
         if (GET_OBJ_VNUM(obj) != GET_OBJ_VAL(trap, 1))
           continue;
         break;
@@ -273,7 +273,7 @@ EVENTFUNC(event_trap_triggered)
       af.bitvector[i] = AFF_DONTUSE;
 
     /* check for valid effect, spellnum?  then call spell... */
-    if (effect < TRAP_EFFECT_FIRST_VALUE)
+    if (effect < TRAP_SPECIAL_PARALYSIS)
     {
       if (effect >= LAST_SPELL_DEFINE)
       {
@@ -290,21 +290,21 @@ EVENTFUNC(event_trap_triggered)
       switch (effect)
       {
 
-      case TRAP_EFFECT_WALL_OF_FLAMES:
+      case TRAP_TYPE_FIRE:
         to_char = "\tLThe air is sucked from your lungs as a wall of \tRflames\tL erupts at your feet\tn!";
         to_room = "\tLYou watch in horror as \tn$n\tL is engulfed in a \tRwall \trof \tRflames!\tn";
         dam = dice(20, 20);
         dam_type = DAM_FIRE;
         break;
 
-      case TRAP_EFFECT_LIGHTNING_STRIKE:
+      case TRAP_TYPE_ELECTRICAL:
         to_char = "\twA brilliant light suddenly blinds you and the smell of your own \tLscorched flesh\tw fills your nostrils.\tn";
         to_room = "\twA bright flash blinds you, striking \tn$n\tw and filling the room with the stench of \tLburnt flesh.\tn";
         dam = dice(20, 30);
         dam_type = DAM_ELECTRIC;
         break;
 
-      case TRAP_EFFECT_IMPALING_SPIKE:
+      case TRAP_TYPE_SPIKE:
         af.spell = effect;
         if (!paralysis_immunity(ch))
           SET_BIT_AR(af.bitvector, AFF_PARALYZED);
@@ -315,7 +315,7 @@ EVENTFUNC(event_trap_triggered)
         dam_type = DAM_PUNCTURE;
         break;
 
-      case TRAP_EFFECT_DARK_GLYPH:
+      case TRAP_TYPE_GLYPH:
         af.spell = SPELL_FEEBLEMIND;
         af.modifier = -10;
         af.location = APPLY_INT;
@@ -326,21 +326,21 @@ EVENTFUNC(event_trap_triggered)
         dam_type = DAM_MENTAL;
         break;
 
-      case TRAP_EFFECT_SPIKE_PIT:
+      case TRAP_TYPE_PIT:
         to_char = "\tLYou stumble into a shallow hole, screaming out in pain as small spikes in the bottom pierce your foot.\tn";
         to_room = "\tn$n\tL stumbles, screaming as $s foot is impaled on tiny spikes in a shallow hole.\tn";
         dam_type = DAM_PUNCTURE;
         dam = dice(2, 10);
         break;
 
-      case TRAP_EFFECT_DAMAGE_DART:
+      case TRAP_TYPE_DART:
         to_char = "\tLA tiny \tRdart\tL hits you with full force, piercing your skin.\tn";
         to_room = "\tn$n\tL shivers slightly as a tiny \tRdart\tL hits $m with full force.\tn";
         dam_type = DAM_PUNCTURE;
         dam = 10 + dice(6, 6);
         break;
 
-      case TRAP_EFFECT_POISON_GAS:
+      case TRAP_TYPE_GAS:
         if (!can_poison(ch))
         {
           send_to_char(ch, "You are not susceptible to the trap's poison.\r\n");
@@ -353,14 +353,14 @@ EVENTFUNC(event_trap_triggered)
         SET_BIT_AR(af.bitvector, AFF_POISON);
         break;
 
-      case TRAP_EFFECT_DISPEL_MAGIC:
+      case TRAP_TYPE_DISPEL:
         /* special handling, done below */
         to_char = "\tCThere is a blinding flash of light which moves to surround you.  You feel all of your enchantments fade away.\tn";
         to_room = "\tCThere is a blinding flash of light which moves to surround \tn$n\tC.  It disappears as quickly as it came.\tn";
 
         break;
 
-      case TRAP_EFFECT_DARK_WARRIOR_AMBUSH:
+      case TRAP_TYPE_AMBUSH:
         to_char = "\tRYou are under ambush!\tn\r\n";
         if (GET_LEVEL(ch) < 6)
           count = 1;
@@ -388,32 +388,35 @@ EVENTFUNC(event_trap_triggered)
         }
         break;
 
-      case TRAP_EFFECT_BOULDER_DROP:
+      case TRAP_TYPE_BOULDER:
         dam = GET_HIT(ch) / 5;
         to_char = "A \tyboulder\tn suddenly thunders down from somewhere high above, striking you squarely.";
         to_room = "A \tyboulder\tn falls from somewhere above, hitting $n squarely.";
         break;
 
-      case TRAP_EFFECT_WALL_SMASH:
+      case TRAP_TYPE_WALL_SMASH:
         dam = GET_HIT(ch) / 5;
         to_char = "\tcA nearby wall suddenly shifts, pressing you against the hard stone.\tn";
         to_room = "\tn$n \tcis suddenly slammed against the stone when an adjacent wall moves inward.\tn";
         break;
 
-      case TRAP_EFFECT_SPIDER_HORDE:
+      case TRAP_TYPE_SPIDER_HORDE:
         dam = GET_HIT(ch) / 6;
         to_char = "A horde of \tmspiders\tn drops onto your head from above, the tiny creatures biting any exposed skin.";
         to_room = "$n is suddenly covered in thousands of biting \tmspiders\tn.";
         break;
 
-      case TRAP_EFFECT_DAMAGE_GAS:
+      // TRAP_TYPE_DAMAGE_GAS now combined with TRAP_TYPE_GAS above
+      /*
+      case TRAP_TYPE_GAS:
         dam = GET_HIT(ch) / 4;
         to_char = "A cloud of \tggas\tn surrounds you!";
         to_room = "A cloud of \tggas\tn surrounds $n!";
         dam_type = DAM_POISON;
         break;
+      */
 
-      case TRAP_EFFECT_FREEZING_CONDITIONS:
+      case TRAP_TYPE_FROST:
         // cold damage..
         dam = dice(10, 20);
         dam_type = DAM_COLD;
@@ -421,7 +424,7 @@ EVENTFUNC(event_trap_triggered)
         to_room = "\tn$n \tbshudders as the icy cold bites deep into $s bones.\tn";
         break;
 
-      case TRAP_EFFECT_SKELETAL_HANDS:
+      case TRAP_TYPE_SKELETAL_HANDS:
         // skeletal stuff.
         if (dice(1, 10) < 5)
         {
@@ -438,7 +441,7 @@ EVENTFUNC(event_trap_triggered)
         }
         break;
 
-      case TRAP_EFFECT_SPIDER_WEBS:
+      case TRAP_TYPE_TANGLE:
         af.spell = SPELL_WEB;
         SET_BIT_AR(af.bitvector, AFF_ENTANGLED);
         af.duration = 20;
@@ -479,7 +482,7 @@ EVENTFUNC(event_trap_triggered)
       act(to_room, FALSE, ch, 0, 0, TO_ROOM);
 
       /* handle anything left over */
-      if (effect == TRAP_EFFECT_DISPEL_MAGIC) /* special handling */
+      if (effect == TRAP_TYPE_DISPEL) /* special handling */
         spell_dispel_magic(LVL_IMPL, ch, ch, NULL, casttype);
       if (af.spell != TYPE_UNDEFINED) /* has an affection to add? */
         affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
