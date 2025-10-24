@@ -136,42 +136,84 @@
 
 #endif
 
-/* TRAPS */
-/* trap types */
-#define TRAP_TYPE_LEAVE_ROOM 0
-#define TRAP_TYPE_OPEN_DOOR 1
-#define TRAP_TYPE_UNLOCK_DOOR 2
-#define TRAP_TYPE_OPEN_CONTAINER 3
-#define TRAP_TYPE_UNLOCK_CONTAINER 4
-#define TRAP_TYPE_GET_OBJECT 5
-#define TRAP_TYPE_ENTER_ROOM 6
-/**/
-#define MAX_TRAP_TYPES 7
-/******************************************/
-/* trap effects
-   if the effect is < 1000, its just suppose to cast a spell */
-#define TRAP_EFFECT_FIRST_VALUE 1000
-/**/
-#define TRAP_EFFECT_WALL_OF_FLAMES 1000
-#define TRAP_EFFECT_LIGHTNING_STRIKE 1001
-#define TRAP_EFFECT_IMPALING_SPIKE 1002
-#define TRAP_EFFECT_DARK_GLYPH 1003
-#define TRAP_EFFECT_SPIKE_PIT 1004
-#define TRAP_EFFECT_DAMAGE_DART 1005
-#define TRAP_EFFECT_POISON_GAS 1006
-#define TRAP_EFFECT_DISPEL_MAGIC 1007
-#define TRAP_EFFECT_DARK_WARRIOR_AMBUSH 1008
-#define TRAP_EFFECT_BOULDER_DROP 1009
-#define TRAP_EFFECT_WALL_SMASH 1010
-#define TRAP_EFFECT_SPIDER_HORDE 1011
-#define TRAP_EFFECT_DAMAGE_GAS 1012
-#define TRAP_EFFECT_FREEZING_CONDITIONS 1013
-#define TRAP_EFFECT_SKELETAL_HANDS 1014
-#define TRAP_EFFECT_SPIDER_WEBS 1015
-/**/
-#define TOP_TRAP_EFFECTS 1016
-#define MAX_TRAP_EFFECTS (TOP_TRAP_EFFECTS - TRAP_EFFECT_FIRST_VALUE)
-/******************************************/
+/* ============================================================================ */
+/* COMPREHENSIVE TRAP SYSTEM - Based on NWN Mechanics                          */
+/* ============================================================================ */
+
+/* Trap Trigger Types - How the trap is activated */
+#define TRAP_TRIGGER_ENTER_ROOM 0       /* Walking into the room */
+#define TRAP_TRIGGER_LEAVE_ROOM 1       /* Leaving the room */
+#define TRAP_TRIGGER_OPEN_DOOR 2        /* Opening a door */
+#define TRAP_TRIGGER_UNLOCK_DOOR 3      /* Unlocking a door */
+#define TRAP_TRIGGER_OPEN_CONTAINER 4   /* Opening a container */
+#define TRAP_TRIGGER_UNLOCK_CONTAINER 5 /* Unlocking a container */
+#define TRAP_TRIGGER_GET_OBJECT 6       /* Taking object from container */
+#define NUM_TRAP_TRIGGERS 7
+
+/* Trap Types - Based on NWN trap system */
+#define TRAP_TYPE_ACID_BLOB 0      /* Acid damage + paralysis */
+#define TRAP_TYPE_ACID_SPLASH 1    /* Acid damage only */
+#define TRAP_TYPE_ELECTRICAL 2     /* Lightning/electrical damage, area effect */
+#define TRAP_TYPE_FIRE 3           /* Fire damage, area effect */
+#define TRAP_TYPE_FROST 4          /* Cold damage + paralysis */
+#define TRAP_TYPE_GAS 5            /* Poison gas cloud */
+#define TRAP_TYPE_HOLY 6           /* Divine damage (extra vs undead) */
+#define TRAP_TYPE_NEGATIVE 7       /* Negative energy + ability drain */
+#define TRAP_TYPE_SONIC 8          /* Sonic damage + stun, area effect */
+#define TRAP_TYPE_SPIKE 9          /* Piercing damage */
+#define TRAP_TYPE_TANGLE 10        /* Slow/entangle effect */
+/* Legacy trap types from old system */
+#define TRAP_TYPE_DART 11          /* Piercing dart */
+#define TRAP_TYPE_PIT 12           /* Spike pit */
+#define TRAP_TYPE_DISPEL 13        /* Dispel magic */
+#define TRAP_TYPE_AMBUSH 14        /* Spawn hostile mobs */
+#define TRAP_TYPE_BOULDER 15       /* Crushing damage */
+#define TRAP_TYPE_WALL_SMASH 16    /* Wall crushing */
+#define TRAP_TYPE_SPIDER_HORDE 17  /* Spider swarm + web */
+#define TRAP_TYPE_GLYPH 18         /* Mental damage + feeblemind */
+#define TRAP_TYPE_SKELETAL_HANDS 19 /* Undead hands */
+#define NUM_TRAP_TYPES 20
+
+/* Trap Severity Levels */
+#define TRAP_SEVERITY_MINOR 0
+#define TRAP_SEVERITY_AVERAGE 1
+#define TRAP_SEVERITY_STRONG 2
+#define TRAP_SEVERITY_DEADLY 3
+#define TRAP_SEVERITY_EPIC 4
+#define NUM_TRAP_SEVERITIES 5
+
+/* Trap Save Types */
+#define TRAP_SAVE_NONE 0         /* No save */
+#define TRAP_SAVE_REFLEX 1       /* Reflex save */
+#define TRAP_SAVE_FORTITUDE 2    /* Fortitude save */
+#define TRAP_SAVE_WILL 3         /* Will save */
+#define NUM_TRAP_SAVE_TYPES 4
+
+/* Trap Flags - Stored as bitvector */
+#define TRAP_FLAG_DETECTED (1 << 0)      /* Trap has been detected */
+#define TRAP_FLAG_DISARMED (1 << 1)      /* Trap has been disarmed */
+#define TRAP_FLAG_TRIGGERED (1 << 2)     /* Trap has been triggered */
+#define TRAP_FLAG_AUTO_GENERATED (1 << 3) /* Randomly generated, won't save */
+#define TRAP_FLAG_RECOVERABLE (1 << 4)   /* Can be recovered/salvaged */
+#define TRAP_FLAG_AREA_EFFECT (1 << 5)   /* Affects multiple targets in area */
+#define TRAP_FLAG_ONE_SHOT (1 << 6)      /* Destroyed after triggering */
+#define TRAP_FLAG_MAGICAL (1 << 7)       /* Magical trap (detect magic works) */
+#define TRAP_FLAG_MECHANICAL (1 << 8)    /* Mechanical trap */
+
+/* Special Effects that traps can inflict */
+#define TRAP_SPECIAL_NONE 0
+#define TRAP_SPECIAL_PARALYSIS 1         /* Paralyzed for duration */
+#define TRAP_SPECIAL_SLOW 2              /* Slowed movement */
+#define TRAP_SPECIAL_STUN 3              /* Stunned */
+#define TRAP_SPECIAL_POISON 4            /* Poisoned */
+#define TRAP_SPECIAL_ABILITY_DRAIN 5     /* Ability score damage */
+#define TRAP_SPECIAL_LEVEL_DRAIN 6       /* Negative level */
+#define TRAP_SPECIAL_ENTANGLE 7          /* Entangled/webbed */
+#define TRAP_SPECIAL_BLIND 8             /* Blinded */
+#define TRAP_SPECIAL_FEEBLEMIND 9        /* Intelligence damage */
+#define TRAP_SPECIAL_SUMMON_CREATURE 10  /* Summons hostile creature */
+#define NUM_TRAP_SPECIAL_EFFECTS 11
+
 /*end traps*/
 
 #define NUM_OF_ZONE_ROOMS_PER_RANDOM_TRAP  33
@@ -216,13 +258,13 @@
 #define ROOM_SIZE_TINY 30       /* need to be tiny or smaller to enter */
 #define ROOM_SIZE_DIMINUTIVE 31 /* need to be diminutive or smaller to enter */
 #define ROOM_CLIMB_NEEDED 32    /* need climb skill, based on zone level */
-#define ROOM_HASTRAP 33         /* has trap (not implemented yet) */
+#define ROOM_HASTRAP 33         /* has trap (attached via trap system) */
 #define ROOM_GENDESC 34         /* Must be a wilderness room!  Use generated \ \ \ \
                                   descriptions in a static room, useful for  \ \ \ \
                                   rooms that block different directions.     \ \ \ \
                                   (eg. around obstacles.) */
 #define ROOM_PLAYER_SHOP 35     /* indicates player shop, currently used so hsort() won't work */
-#define ROOM_RANDOM_TRAP 36    // a random trap will load in this room
+#define ROOM_RANDOM_TRAP 36    // Auto-generate trap in this room on zone reset
 #define ROOM_RANDOM_CHEST 37    // a random treasure chest will load in this room
 #define ROOM_HARVEST_NODE 38    // this room will always load a harvest node
 #define ROOM_ROAD 39
@@ -274,7 +316,7 @@
 #define ZONE_ELEMENTAL 10   /* elemental plane */
 #define ZONE_WILDERNESS 11
 #define ZONE_RANDOM_CHESTS 12 // random treasure chests will load in this zone
-#define ZONE_RANDOM_TRAPS 13 // random traps will load in this zone
+#define ZONE_RANDOM_TRAPS 13 // Auto-generate traps in this zone on reset
 #define ZONE_NOMAP 14
 #define ZONE_HUNTS 15   // zone can allow hunts to load within
 #define ZONE_MISSIONS 16 // zone can allow missions to load within
@@ -3617,8 +3659,9 @@
 #define ITEM_CRAFTING_JEWELCRAFTING_STATION 110
 #define ITEM_CRAFTING_TANNERY 111
 #define ITEM_CRAFTING_CARPENTRY_TABLE 112
+#define ITEM_TRAPPED 113 // This object has a trap attached
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 113
+#define NUM_ITEM_FLAGS 114
 
 /* homeland-port */
 /*
@@ -4688,6 +4731,36 @@ struct crafting_data_info
     
 };
 
+/* ============================================================================ */
+/* Trap System Structures                                                       */
+/* ============================================================================ */
+
+/** Trap Data Structure - Attached to rooms or objects */
+struct trap_data
+{
+    int trap_type;               /* TRAP_TYPE_* constant (acid, fire, spike, etc) */
+    int severity;                /* TRAP_SEVERITY_* (minor, average, strong, deadly, epic) */
+    int trigger_type;            /* TRAP_TRIGGER_* (enter room, open container, etc) */
+    int detect_dc;               /* DC for Perception check to detect trap */
+    int disarm_dc;               /* DC for Disable Device check to disarm trap */
+    int save_dc;                 /* DC for saving throw if trap triggers */
+    int save_type;               /* TRAP_SAVE_* (none, reflex, fortitude, will) */
+    int damage_dice_num;         /* Number of damage dice (e.g., 3 in 3d6) */
+    int damage_dice_size;        /* Size of damage dice (e.g., 6 in 3d6) */
+    int damage_type;             /* DAM_* type (fire, cold, acid, etc) */
+    int special_effect;          /* TRAP_SPECIAL_* effect (paralysis, slow, etc) */
+    int special_duration;        /* Duration of special effect in rounds */
+    int area_radius;             /* Radius of area effect (0 = single target) */
+    int max_targets;             /* Max targets for area effect traps */
+    long flags;                  /* TRAP_FLAG_* bitvector */
+    int trigger_vnum;            /* For object traps: vnum of triggering object/door */
+    int trigger_direction;       /* For door traps: direction of the door */
+    char *trap_name;             /* Custom name for the trap (optional) */
+    char *trigger_message_char;  /* Message to character when trap triggers */
+    char *trigger_message_room;  /* Message to room when trap triggers */
+    struct trap_data *next;      /* For lists of traps in a room */
+};
+
 /** The Object structure. */
 struct obj_data
 {
@@ -4745,6 +4818,9 @@ struct obj_data
 
     struct obj_data *sheath_primary;     // for wielded or 2H weapon
     struct obj_data *sheath_secondary;   // for offhand weapon or shield
+    
+    /* Trap system - trap attached to this object (container/door) */
+    struct trap_data *trap;              // Trap on this object
     
     /* Hash table support for fast rnum lookups */
     struct obj_data *next_in_hash;      // Next object in hash bucket
@@ -4861,6 +4937,9 @@ struct room_data
     
     /* Greyhawk ship system - pointer to ship data if room is a ship */
     struct greyhawk_ship_data *ship;
+    
+    /* Trap system - linked list of traps in this room */
+    struct trap_data *traps;  // Pointer to first trap in room (can have multiple)
 };
 
 /* char-related structures */
