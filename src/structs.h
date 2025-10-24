@@ -1545,9 +1545,10 @@
 #define AFF_FLAME_BLADE 119        // melee hits deal 1d6 fire damage extra
 #define AFF_SICKENING_AURA 120
 #define AFF_RAPID_BUFF 121          // increases buff speed
+#define AFF_CRIPPLED 122            // crippled - movement speed halved, chance to fail movement
 
 /*---*/
-#define NUM_AFF_FLAGS 122
+#define NUM_AFF_FLAGS 123
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -3076,11 +3077,18 @@
 #define PERK_CLERIC_TOUGHNESS 66
 
 /* Rogue Perks (91-120) */
-#define PERK_ROGUE_SNEAK_ATTACK 91
-#define PERK_ROGUE_DEADLY_PRECISION_1 92
-#define PERK_ROGUE_DEADLY_PRECISION_2 93
-#define PERK_ROGUE_IMPROVED_FLANKING_1 94
-#define PERK_ROGUE_IMPROVED_FLANKING_2 95
+/* Assassin Tree - Tier 1 */
+#define PERK_ROGUE_SNEAK_ATTACK_1 91
+#define PERK_ROGUE_VITAL_STRIKE 92
+#define PERK_ROGUE_DEADLY_AIM_1 93
+#define PERK_ROGUE_OPPORTUNIST_1 94
+/* Assassin Tree - Tier 2 */
+#define PERK_ROGUE_SNEAK_ATTACK_2 95
+#define PERK_ROGUE_IMPROVED_VITAL_STRIKE 96
+#define PERK_ROGUE_ASSASSINATE_1 97
+#define PERK_ROGUE_DEADLY_AIM_2 98
+#define PERK_ROGUE_CRIPPLING_STRIKE 99
+#define PERK_ROGUE_BLEEDING_ATTACK 100
 
 /* Ranger Perks (121-150) */
 #define PERK_RANGER_FAVORED_ENEMY_1 121

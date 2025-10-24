@@ -8543,6 +8543,8 @@ int get_eq_score(obj_rnum a)
       case AFF_DAZED:
       case AFF_FLAT_FOOTED:
       case AFF_CRIPPLING_CRITICAL:
+      case AFF_BLEED:
+      case AFF_CRIPPLED:
         score -= 550;
         break;
 

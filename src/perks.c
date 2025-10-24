@@ -870,10 +870,12 @@ void define_rogue_perks(void)
 {
   struct perk_data *perk;
   
-  /* Sneak Attack Enhancement */
-  perk = &perk_list[PERK_ROGUE_SNEAK_ATTACK];
-  perk->id = PERK_ROGUE_SNEAK_ATTACK;
-  perk->name = strdup("Sneak Attack Enhancement");
+  /*** ASSASSIN TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Sneak Attack I (Rank 1-5) */
+  perk = &perk_list[PERK_ROGUE_SNEAK_ATTACK_1];
+  perk->id = PERK_ROGUE_SNEAK_ATTACK_1;
+  perk->name = strdup("Sneak Attack I");
   perk->description = strdup("+1d6 sneak attack damage per rank");
   perk->associated_class = CLASS_ROGUE;
   perk->cost = 1;
@@ -882,29 +884,44 @@ void define_rogue_perks(void)
   perk->prerequisite_rank = 0;
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
-  perk->effect_modifier = 6;
-  perk->special_description = strdup("Increases sneak attack damage dice");
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds 1d6 sneak attack damage per rank. Can be taken 5 times for +5d6 total.");
   
-  /* Deadly Precision I */
-  perk = &perk_list[PERK_ROGUE_DEADLY_PRECISION_1];
-  perk->id = PERK_ROGUE_DEADLY_PRECISION_1;
-  perk->name = strdup("Deadly Precision I");
-  perk->description = strdup("Critical hits with sneak attack deal +1d6 damage");
+  /* Vital Strike */
+  perk = &perk_list[PERK_ROGUE_VITAL_STRIKE];
+  perk->id = PERK_ROGUE_VITAL_STRIKE;
+  perk->name = strdup("Vital Strike");
+  perk->description = strdup("+2 to confirm critical hits");
   perk->associated_class = CLASS_ROGUE;
-  perk->cost = 2;
+  perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
   perk->prerequisite_rank = 0;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 6;
-  perk->special_description = strdup("Extra damage on critical sneak attacks");
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants +2 bonus to critical hit confirmation rolls.");
   
-  /* Improved Flanking I */
-  perk = &perk_list[PERK_ROGUE_IMPROVED_FLANKING_1];
-  perk->id = PERK_ROGUE_IMPROVED_FLANKING_1;
-  perk->name = strdup("Improved Flanking I");
-  perk->description = strdup("+1 to hit when flanking");
+  /* Deadly Aim I (Rank 1-3) */
+  perk = &perk_list[PERK_ROGUE_DEADLY_AIM_1];
+  perk->id = PERK_ROGUE_DEADLY_AIM_1;
+  perk->name = strdup("Deadly Aim I");
+  perk->description = strdup("+1 damage with ranged sneak attacks per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Adds +1 damage to ranged sneak attacks per rank. Can be taken 3 times.");
+  
+  /* Opportunist I */
+  perk = &perk_list[PERK_ROGUE_OPPORTUNIST_1];
+  perk->id = PERK_ROGUE_OPPORTUNIST_1;
+  perk->name = strdup("Opportunist I");
+  perk->description = strdup("+1 attack of opportunity per round");
   perk->associated_class = CLASS_ROGUE;
   perk->cost = 1;
   perk->max_rank = 1;
@@ -913,7 +930,99 @@ void define_rogue_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Bonus to attack when flanking enemies");
+  perk->special_description = strdup("Grants one additional attack of opportunity per round.");
+  
+  /*** ASSASSIN TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Sneak Attack II (Rank 1-3) */
+  perk = &perk_list[PERK_ROGUE_SNEAK_ATTACK_2];
+  perk->id = PERK_ROGUE_SNEAK_ATTACK_2;
+  perk->name = strdup("Sneak Attack II");
+  perk->description = strdup("Additional +1d6 sneak attack damage per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_1;
+  perk->prerequisite_rank = 5; /* Must have max rank (5) of Sneak Attack I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Sneak Attack I at max rank. Adds additional 1d6 sneak attack damage per rank.");
+  
+  /* Improved Vital Strike */
+  perk = &perk_list[PERK_ROGUE_IMPROVED_VITAL_STRIKE];
+  perk->id = PERK_ROGUE_IMPROVED_VITAL_STRIKE;
+  perk->name = strdup("Improved Vital Strike");
+  perk->description = strdup("Additional +2 to confirm criticals (+4 total)");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_VITAL_STRIKE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Vital Strike. Grants additional +2 bonus to critical confirmation (+4 total).");
+  
+  /* Assassinate I */
+  perk = &perk_list[PERK_ROGUE_ASSASSINATE_1];
+  perk->id = PERK_ROGUE_ASSASSINATE_1;
+  perk->name = strdup("Assassinate I");
+  perk->description = strdup("Sneak attacks from stealth deal +2d6 damage");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_1;
+  perk->prerequisite_rank = 3; /* Must have at least 3 ranks of Sneak Attack I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Sneak Attack I (at least 3 ranks). Attacks from stealth deal +2d6 additional damage.");
+  
+  /* Deadly Aim II (Rank 1-2) */
+  perk = &perk_list[PERK_ROGUE_DEADLY_AIM_2];
+  perk->id = PERK_ROGUE_DEADLY_AIM_2;
+  perk->name = strdup("Deadly Aim II");
+  perk->description = strdup("Additional +2 damage with ranged sneak attacks per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_DEADLY_AIM_1;
+  perk->prerequisite_rank = 3; /* Must have max rank (3) of Deadly Aim I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Deadly Aim I at max rank. Adds +2 damage to ranged sneak attacks per rank.");
+  
+  /* Crippling Strike */
+  perk = &perk_list[PERK_ROGUE_CRIPPLING_STRIKE];
+  perk->id = PERK_ROGUE_CRIPPLING_STRIKE;
+  perk->name = strdup("Crippling Strike");
+  perk->description = strdup("Sneak attacks reduce target movement by 50% for 3 rounds");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_1;
+  perk->prerequisite_rank = 3; /* Must have at least 3 ranks of Sneak Attack I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 50; /* 50% movement reduction */
+  perk->effect_modifier = 3; /* Duration: 3 rounds */
+  perk->special_description = strdup("Requires Sneak Attack I (at least 3 ranks). Sneak attacks apply movement speed reduction.");
+  
+  /* Bleeding Attack */
+  perk = &perk_list[PERK_ROGUE_BLEEDING_ATTACK];
+  perk->id = PERK_ROGUE_BLEEDING_ATTACK;
+  perk->name = strdup("Bleeding Attack");
+  perk->description = strdup("Sneak attacks cause target to bleed for 1d6 damage per round (5 rounds)");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_1;
+  perk->prerequisite_rank = 3; /* Must have at least 3 ranks of Sneak Attack I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1d6 damage per round */
+  perk->effect_modifier = 5; /* Duration: 5 rounds */
+  perk->special_description = strdup("Requires Sneak Attack I (at least 3 ranks). Sneak attacks apply bleeding damage over time.");
 }
 
 /* Define Ranger Perks */
@@ -2051,6 +2160,112 @@ int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
   
   /* Weapon is melee, apply bonus */
   return get_perk_bonus(ch, PERK_EFFECT_WEAPON_TOHIT, -1);
+}
+
+/**
+ * Get total sneak attack dice bonus from perks.
+ * 
+ * @param ch The character
+ * @return Total bonus sneak attack dice (e.g., 8 means +8d6)
+ */
+int get_perk_sneak_attack_dice(struct char_data *ch)
+{
+  int total = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Sneak Attack I: +1d6 per rank, max 5 ranks */
+  total += get_total_perk_ranks(ch, PERK_ROGUE_SNEAK_ATTACK_1);
+  
+  /* Sneak Attack II: +1d6 per rank, max 3 ranks */
+  total += get_total_perk_ranks(ch, PERK_ROGUE_SNEAK_ATTACK_2);
+  
+  return total;
+}
+
+/**
+ * Get critical confirmation bonus from perks.
+ * 
+ * @param ch The character
+ * @return Total bonus to critical confirmation rolls
+ */
+int get_perk_critical_confirmation_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Vital Strike: +2 */
+  if (has_perk(ch, PERK_ROGUE_VITAL_STRIKE))
+    bonus += 2;
+  
+  /* Improved Vital Strike: +2 more (+4 total) */
+  if (has_perk(ch, PERK_ROGUE_IMPROVED_VITAL_STRIKE))
+    bonus += 2;
+  
+  return bonus;
+}
+
+/**
+ * Get ranged sneak attack damage bonus from perks.
+ * 
+ * @param ch The character
+ * @return Total flat damage bonus to ranged sneak attacks
+ */
+int get_perk_ranged_sneak_attack_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Deadly Aim I: +1 per rank, max 3 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_ROGUE_DEADLY_AIM_1);
+  
+  /* Deadly Aim II: +2 per rank, max 2 ranks */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_ROGUE_DEADLY_AIM_2);
+  
+  return bonus;
+}
+
+/**
+ * Get assassinate bonus damage from stealth.
+ * 
+ * @param ch The character
+ * @return Bonus sneak attack dice when attacking from stealth
+ */
+int get_perk_assassinate_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Assassinate I: +2d6 when attacking from stealth */
+  if (has_perk(ch, PERK_ROGUE_ASSASSINATE_1))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get additional attacks of opportunity from perks.
+ * 
+ * @param ch The character
+ * @return Number of additional AoOs per round
+ */
+int get_perk_aoo_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Opportunist I: +1 AoO */
+  if (has_perk(ch, PERK_ROGUE_OPPORTUNIST_1))
+    bonus += 1;
+  
+  return bonus;
 }
 
 /*****************************************************************************
