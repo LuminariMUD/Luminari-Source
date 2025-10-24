@@ -263,6 +263,18 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     act("$n struggles to move, but can't!", FALSE, ch, 0, 0, TO_ROOM);
     return 0;
   }
+  
+  /* Crippled characters have a 50% chance to fail movement */
+  if (AFF_FLAGGED(ch, AFF_CRIPPLED))
+  {
+    if (rand_number(1, 100) <= 50)
+    {
+      send_to_char(ch, "Your crippled legs fail you and you stumble!\r\n");
+      act("$n tries to move but stumbles on $s crippled legs!", FALSE, ch, 0, 0, TO_ROOM);
+      return 0;
+    }
+  }
+  
   if (affected_by_spell(ch, SKILL_DEFENSIVE_STANCE) &&
       !HAS_FEAT(ch, FEAT_MOBILE_DEFENSE))
   {

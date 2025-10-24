@@ -66,6 +66,13 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num);
 int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded);
 int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
 
+/* Rogue-specific perk bonus functions */
+int get_perk_sneak_attack_dice(struct char_data *ch);
+int get_perk_critical_confirmation_bonus(struct char_data *ch);
+int get_perk_ranged_sneak_attack_bonus(struct char_data *ch);
+int get_perk_assassinate_bonus(struct char_data *ch);
+int get_perk_aoo_bonus(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

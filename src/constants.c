@@ -1850,6 +1850,7 @@ const char *affected_bits[] = {
     "Flame-Blade",
     "Sickening-Aura",
     "Rapid-Buff",
+    "Crippled",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1983,6 +1984,7 @@ const char *affected_bit_descs[] = {
     "Your weapons are sheathed in fire!",
     "You are surrounded by a sickening aura.",
     "You are able to buff yourself with spells faster than usual.",
+    "Your legs are crippled! (50% movement speed, 50% movement fail chance)",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 

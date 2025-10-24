@@ -6945,7 +6945,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
   int threat_range, confirm_roll = d20(ch) + calc_bab;
   int powerful_being = 0;
   
-  /* Critical Awareness perk bonuses */
+  /* Critical Awareness perk bonuses (Fighter) */
   if (has_perk(ch, PERK_FIGHTER_CRITICAL_AWARENESS_1))
   {
     confirm_roll += 1;
@@ -6953,6 +6953,14 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
   if (has_perk(ch, PERK_FIGHTER_CRITICAL_AWARENESS_2))
   {
     confirm_roll += 1;
+  }
+  
+  /* Vital Strike perk bonuses (Rogue) */
+  if (!IS_NPC(ch))
+  {
+    int crit_bonus = get_perk_critical_confirmation_bonus(ch);
+    if (crit_bonus > 0)
+      confirm_roll += crit_bonus;
   }
 
   /* new code to help really powerful beings overcome checks here */
@@ -9634,9 +9642,13 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
   if (HAS_FEAT(ch, FEAT_COMBAT_REFLEXES))
     max_aoo = GET_DEX_BONUS(ch);
   
-  /* Tactical Fighter perks: Combat Reflexes I and II */
+  /* Tactical Fighter perks: Combat Reflexes I and II (Warrior) */
   max_aoo += get_perk_rank(ch, PERK_FIGHTER_COMBAT_REFLEXES_1, CLASS_WARRIOR);
   max_aoo += get_perk_rank(ch, PERK_FIGHTER_COMBAT_REFLEXES_2, CLASS_WARRIOR);
+  
+  /* Opportunist perk (Rogue) */
+  if (!IS_NPC(ch))
+    max_aoo += get_perk_aoo_bonus(ch);
 
   if (GET_TOTAL_AOO(ch) < max_aoo)
   {
@@ -10653,7 +10665,32 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
     }
 
+    /* Base sneak attack from feat */
     sneakdam = dice(HAS_FEAT(ch, FEAT_SNEAK_ATTACK), 6);
+    
+    /* Add sneak attack dice from perks */
+    if (!IS_NPC(ch))
+    {
+      int perk_dice = get_perk_sneak_attack_dice(ch);
+      if (perk_dice > 0)
+        sneakdam += dice(perk_dice, 6);
+      
+      /* Add ranged sneak attack flat damage bonus from perks */
+      if (attack_type == ATTACK_TYPE_RANGED)
+      {
+        int ranged_bonus = get_perk_ranged_sneak_attack_bonus(ch);
+        if (ranged_bonus > 0)
+          sneakdam += ranged_bonus;
+      }
+      
+      /* Add assassinate bonus if attacking from stealth/hidden */
+      if (AFF_FLAGGED(ch, AFF_HIDE) || !CAN_SEE(victim, ch))
+      {
+        int assassinate_dice = get_perk_assassinate_bonus(ch);
+        if (assassinate_dice > 0)
+          sneakdam += dice(assassinate_dice, 6);
+      }
+    }
 
     if (sneakdam)
     {
@@ -10671,6 +10708,56 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       else
       {
         send_to_char(victim, "[\tRSNEAK\tn] ");
+      }
+      
+      /* Apply Bleeding Attack if perk active */
+      if (!IS_NPC(ch) && has_perk(ch, PERK_ROGUE_BLEEDING_ATTACK) && !AFF_FLAGGED(victim, AFF_BLEED))
+      {
+        int dc = 10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch);
+        int save_result = savingthrow(victim, SAVING_FORT, dc, 0);
+        
+        if (save_result == FALSE)
+        {
+          struct affected_type af;
+          af.spell = SKILL_BLEEDING_ATTACK;
+          af.duration = 5;
+          af.modifier = 1; /* 1d6 per round */
+          af.location = APPLY_NONE;
+          SET_BIT_AR(af.bitvector, AFF_BLEED);
+          affect_to_char(victim, &af);
+          send_to_char(victim, "\tRYou begin bleeding from the wound!\tn\r\n");
+          send_to_char(ch, "\tWYour strike causes your opponent to bleed!\tn\r\n");
+        }
+        else
+        {
+          send_to_char(victim, "You resist the bleeding effect!\r\n");
+          send_to_char(ch, "Your opponent resists the bleeding!\r\n");
+        }
+      }
+      
+      /* Apply Crippling Strike if perk active */
+      if (!IS_NPC(ch) && has_perk(ch, PERK_ROGUE_CRIPPLING_STRIKE) && !AFF_FLAGGED(victim, AFF_CRIPPLED))
+      {
+        int dc = 10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch);
+        int save_result = savingthrow(victim, SAVING_FORT, dc, 0);
+        
+        if (save_result == FALSE)
+        {
+          struct affected_type af;
+          af.spell = SKILL_CRIPPLING_STRIKE;
+          af.duration = 3;
+          af.modifier = 0;
+          af.location = APPLY_NONE;
+          SET_BIT_AR(af.bitvector, AFF_CRIPPLED);
+          affect_to_char(victim, &af);
+          send_to_char(victim, "\tRYou feel your movement crippled!\tn\r\n");
+          send_to_char(ch, "\tWYour strike cripples your opponent's movement!\tn\r\n");
+        }
+        else
+        {
+          send_to_char(victim, "You resist the crippling effect!\r\n");
+          send_to_char(ch, "Your opponent resists the crippling!\r\n");
+        }
       }
     }
   }
