@@ -22,6 +22,7 @@
 #include "class.h"
 #include "perks.h"
 #include "assign_wpn_armor.h"
+#include "spells.h"
 
 /* External function from class.c */
 extern int level_exp(struct char_data *ch, int level);
@@ -1023,6 +1024,284 @@ void define_rogue_perks(void)
   perk->effect_value = 1; /* 1d6 damage per round */
   perk->effect_modifier = 5; /* Duration: 5 rounds */
   perk->special_description = strdup("Requires Sneak Attack I (at least 3 ranks). Sneak attacks apply bleeding damage over time.");
+  
+  /*** ASSASSIN TREE - TIER 3 PERKS (3-4 points each) ***/
+  
+  /* Sneak Attack III (Rank 1-2) */
+  perk = &perk_list[PERK_ROGUE_SNEAK_ATTACK_3];
+  perk->id = PERK_ROGUE_SNEAK_ATTACK_3;
+  perk->name = strdup("Sneak Attack III");
+  perk->description = strdup("Additional +2d6 sneak attack damage per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_2;
+  perk->prerequisite_rank = 3; /* Must have max rank (3) of Sneak Attack II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d6 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Sneak Attack II at max rank. Adds +2d6 sneak attack damage per rank (total +4d6).");
+  
+  /* Assassinate II */
+  perk = &perk_list[PERK_ROGUE_ASSASSINATE_2];
+  perk->id = PERK_ROGUE_ASSASSINATE_2;
+  perk->name = strdup("Assassinate II");
+  perk->description = strdup("Stealth sneak attacks deal +4d6 damage (total +6d6)");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_ASSASSINATE_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* Additional +4d6 (for +6d6 total with Assassinate I) */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Assassinate I. Attacks from stealth deal +4d6 additional damage (+6d6 total).");
+  
+  /* Critical Precision */
+  perk = &perk_list[PERK_ROGUE_CRITICAL_PRECISION];
+  perk->id = PERK_ROGUE_CRITICAL_PRECISION;
+  perk->name = strdup("Critical Precision");
+  perk->description = strdup("Critical hits deal +2d6 precision damage");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_IMPROVED_VITAL_STRIKE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2d6 on critical hits */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Improved Vital Strike. Critical hits deal +2d6 precision damage.");
+  
+  /* Opportunist II */
+  perk = &perk_list[PERK_ROGUE_OPPORTUNIST_2];
+  perk->id = PERK_ROGUE_OPPORTUNIST_2;
+  perk->name = strdup("Opportunist II");
+  perk->description = strdup("Attacks of opportunity are automatically sneak attacks");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_OPPORTUNIST_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Opportunist I. All attacks of opportunity automatically count as sneak attacks.");
+  
+  /* Death Attack */
+  perk = &perk_list[PERK_ROGUE_DEATH_ATTACK];
+  perk->id = PERK_ROGUE_DEATH_ATTACK;
+  perk->name = strdup("Death Attack");
+  perk->description = strdup("Gives +2 to backstab dc modifiers to apply death attack. Requires the death attack assassin class ability.");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_ASSASSINATE_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Assassinate I and Sneak Attack II (at least 2 ranks). Study a target for 1 round, then your next sneak attack forces a Fortitude save or the target dies.");
+  
+  /*** ASSASSIN TREE - TIER 4 CAPSTONE PERKS (5 points each) ***/
+  
+  /* Master Assassin */
+  perk = &perk_list[PERK_ROGUE_MASTER_ASSASSIN];
+  perk->id = PERK_ROGUE_MASTER_ASSASSIN;
+  perk->name = strdup("Master Assassin");
+  perk->description = strdup("All sneak attacks +5d6, critical threat range +1, sneak from any position");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_3;
+  perk->prerequisite_rank = 2; /* Must have max rank (2) of Sneak Attack III */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5d6 sneak attack damage */
+  perk->effect_modifier = 1; /* +1 critical threat range */
+  perk->special_description = strdup("Requires Sneak Attack III at max rank and Assassinate II. All sneak attacks gain +5d6 damage, critical threat range increases by 1, and you can sneak attack from any position.");
+  
+  /* Perfect Kill */
+  perk = &perk_list[PERK_ROGUE_PERFECT_KILL];
+  perk->id = PERK_ROGUE_PERFECT_KILL;
+  perk->name = strdup("Perfect Kill");
+  perk->description = strdup("Once per combat, declare one attack auto-critical with max damage");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_CRITICAL_PRECISION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Critical Precision and Death Attack. Once per combat, you can declare one attack to be an automatic critical hit with maximum damage.");
+  
+  /*** MASTER THIEF TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Skill Mastery I */
+  perk = &perk_list[PERK_ROGUE_SKILL_MASTERY_1];
+  perk->id = PERK_ROGUE_SKILL_MASTERY_1;
+  perk->name = strdup("Skill Mastery I");
+  perk->description = strdup("+2 to all rogue skills per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 2; /* +2 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants +2 to stealth, sleight of hand, perception, disable device, and pick locks per rank.");
+  
+  /* Trapfinding Expert I */
+  perk = &perk_list[PERK_ROGUE_TRAPFINDING_EXPERT_1];
+  perk->id = PERK_ROGUE_TRAPFINDING_EXPERT_1;
+  perk->name = strdup("Trapfinding Expert I");
+  perk->description = strdup("+3 to find and disable traps per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 3; /* +3 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants +3 bonus to perception for finding traps and disable device per rank.");
+  
+  /* Fast Hands I */
+  perk = &perk_list[PERK_ROGUE_FAST_HANDS_1];
+  perk->id = PERK_ROGUE_FAST_HANDS_1;
+  perk->name = strdup("Fast Hands I");
+  perk->description = strdup("+2 to sleight of hand and pick locks per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 2; /* +2 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants +2 bonus to sleight of hand and pick locks per rank.");
+  
+  /* Evasion Training */
+  perk = &perk_list[PERK_ROGUE_EVASION_TRAINING];
+  perk->id = PERK_ROGUE_EVASION_TRAINING;
+  perk->name = strdup("Evasion Training");
+  perk->description = strdup("+3 to saves vs area effects, half damage on successful save");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 3; /* +3 to saves vs area effects */
+  perk->effect_modifier = -1; /* Applies to all save types */
+  perk->special_description = strdup("+3 bonus to saving throws against area of effect spells. When you succeed on a Reflex save against an area effect attack, you take half damage instead of full damage.");
+  
+  /*** MASTER THIEF TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Skill Mastery II */
+  perk = &perk_list[PERK_ROGUE_SKILL_MASTERY_2];
+  perk->id = PERK_ROGUE_SKILL_MASTERY_2;
+  perk->name = strdup("Skill Mastery II");
+  perk->description = strdup("Additional +3 to all rogue skills per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_ROGUE_SKILL_MASTERY_1;
+  perk->prerequisite_rank = 5; /* Must have max rank (5) of Skill Mastery I */
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 3; /* +3 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Skill Mastery I at max rank. Grants additional +3 to all rogue skills per rank.");
+  
+  /* Trapfinding Expert II */
+  perk = &perk_list[PERK_ROGUE_TRAPFINDING_EXPERT_2];
+  perk->id = PERK_ROGUE_TRAPFINDING_EXPERT_2;
+  perk->name = strdup("Trapfinding Expert II");
+  perk->description = strdup("Additional +4 to find/disable traps per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_TRAPFINDING_EXPERT_1;
+  perk->prerequisite_rank = 3; /* Must have max rank (3) of Trapfinding Expert I */
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 4; /* +4 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Trapfinding Expert I at max rank. Grants additional +4 to find and disable traps per rank.");
+  
+  /* Fast Hands II */
+  perk = &perk_list[PERK_ROGUE_FAST_HANDS_2];
+  perk->id = PERK_ROGUE_FAST_HANDS_2;
+  perk->name = strdup("Fast Hands II");
+  perk->description = strdup("Additional +3 to sleight of hand and locks per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_FAST_HANDS_1;
+  perk->prerequisite_rank = 3; /* Must have max rank (3) of Fast Hands I */
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 3; /* +3 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Fast Hands I at max rank. Grants additional +3 to sleight of hand and pick locks per rank.");
+  
+  /* Improved Evasion */
+  perk = &perk_list[PERK_ROGUE_IMPROVED_EVASION];
+  perk->id = PERK_ROGUE_IMPROVED_EVASION;
+  perk->name = strdup("Improved Evasion");
+  perk->description = strdup("+3 to saves vs area effects, half damage on fail, no damage on success");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_EVASION_TRAINING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 3; /* +3 to saves vs area effects */
+  perk->effect_modifier = -1; /* Applies to all save types */
+  perk->special_description = strdup("Requires Evasion Training. +3 bonus to saving throws against area of effect spells. Take no damage on successful Reflex save, half damage on failed save against area effects.");
+  
+  /* Trap Sense I */
+  perk = &perk_list[PERK_ROGUE_TRAP_SENSE_1];
+  perk->id = PERK_ROGUE_TRAP_SENSE_1;
+  perk->name = strdup("Trap Sense I");
+  perk->description = strdup("+2 to saves vs traps, +2 AC vs trap attacks per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_TRAPFINDING_EXPERT_1;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Trapfinding Expert I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 saves vs traps per rank */
+  perk->effect_modifier = 2; /* +2 AC vs trap attacks per rank */
+  perk->special_description = strdup("Requires Trapfinding Expert I (at least 2 ranks). Grants +2 to saves vs traps and +2 AC vs trap attacks per rank.");
+  
+  /* Resiliency */
+  perk = &perk_list[PERK_ROGUE_RESILIENCY];
+  perk->id = PERK_ROGUE_RESILIENCY;
+  perk->name = strdup("Resiliency");
+  perk->description = strdup("Once per day, stay at 1 HP when reduced to 0 or less");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_EVASION_TRAINING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Evasion Training. Once per day, when reduced to 0 or fewer hit points, you automatically stabilize at 1 HP.");
+  
+  /* Trap Scavenger */
+  perk = &perk_list[PERK_ROGUE_TRAP_SCAVENGER];
+  perk->id = PERK_ROGUE_TRAP_SCAVENGER;
+  perk->name = strdup("Trap Scavenger");
+  perk->description = strdup("Can salvage components from disabled traps");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_TRAPFINDING_EXPERT_1;
+  perk->prerequisite_rank = 3; /* Must have max rank (3) of Trapfinding Expert I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Trapfinding Expert I at max rank. When you successfully disable a trap, you can salvage crafting components from it.");
 }
 
 /* Define Ranger Perks */
@@ -2101,6 +2380,35 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num)
   /* Also add universal skill bonuses (effect_modifier = -1) */
   bonus += get_perk_bonus(ch, PERK_EFFECT_SKILL, -1);
   
+  /* Master Thief Skill Mastery perks apply to all rogue skills */
+  switch (skill_num)
+  {
+    case ABILITY_STEALTH:
+    case ABILITY_SLEIGHT_OF_HAND:
+    case ABILITY_PERCEPTION:
+    case ABILITY_DISABLE_DEVICE:
+      bonus += get_perk_skill_mastery_bonus(ch);
+      break;
+  }
+  
+  /* Trapfinding Expert perks apply to perception (finding traps) and disable device */
+  switch (skill_num)
+  {
+    case ABILITY_PERCEPTION:
+    case ABILITY_DISABLE_DEVICE:
+      bonus += get_perk_trapfinding_bonus(ch);
+      break;
+  }
+  
+  /* Fast Hands perks apply to sleight of hand and disable device (pick locks) */
+  switch (skill_num)
+  {
+    case ABILITY_SLEIGHT_OF_HAND:
+    case ABILITY_DISABLE_DEVICE:
+      bonus += get_perk_fast_hands_bonus(ch);
+      break;
+  }
+  
   return bonus;
 }
 
@@ -2181,6 +2489,13 @@ int get_perk_sneak_attack_dice(struct char_data *ch)
   /* Sneak Attack II: +1d6 per rank, max 3 ranks */
   total += get_total_perk_ranks(ch, PERK_ROGUE_SNEAK_ATTACK_2);
   
+  /* Sneak Attack III: +2d6 per rank, max 2 ranks */
+  total += 2 * get_total_perk_ranks(ch, PERK_ROGUE_SNEAK_ATTACK_3);
+  
+  /* Master Assassin: +5d6 */
+  if (has_perk(ch, PERK_ROGUE_MASTER_ASSASSIN))
+    total += 5;
+  
   return total;
 }
 
@@ -2238,14 +2553,20 @@ int get_perk_ranged_sneak_attack_bonus(struct char_data *ch)
  */
 int get_perk_assassinate_bonus(struct char_data *ch)
 {
+  int total = 0;
+  
   if (!ch || IS_NPC(ch))
     return 0;
   
   /* Assassinate I: +2d6 when attacking from stealth */
   if (has_perk(ch, PERK_ROGUE_ASSASSINATE_1))
-    return 2;
+    total += 2;
   
-  return 0;
+  /* Assassinate II: +4d6 additional (total +6d6) */
+  if (has_perk(ch, PERK_ROGUE_ASSASSINATE_2))
+    total += 4;
+  
+  return total;
 }
 
 /**
@@ -2267,6 +2588,204 @@ int get_perk_aoo_bonus(struct char_data *ch)
   
   return bonus;
 }
+
+/**
+ * Get critical precision bonus damage on critical hits.
+ * 
+ * @param ch The character
+ * @return Bonus precision damage dice on critical hits
+ */
+int get_perk_critical_precision_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Critical Precision: +2d6 precision damage on crits */
+  if (has_perk(ch, PERK_ROGUE_CRITICAL_PRECISION))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Check if Master Assassin allows sneak attack from any position.
+ * 
+ * @param ch The character
+ * @return TRUE if Master Assassin is active
+ */
+bool has_master_assassin(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_MASTER_ASSASSIN);
+}
+
+/**
+ * Get Master Assassin critical threat range bonus.
+ * 
+ * @param ch The character
+ * @return Critical threat range increase
+ */
+int get_master_assassin_crit_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Master Assassin: +1 critical threat range */
+  if (has_perk(ch, PERK_ROGUE_MASTER_ASSASSIN))
+    return 1;
+  
+  return 0;
+}
+
+/**
+ * Check if Perfect Kill is available for use this combat.
+ * Perfect Kill can be used once per combat, and resets 1 minute after combat ends.
+ * 
+ * @param ch The character
+ * @return TRUE if Perfect Kill is available
+ */
+bool can_use_perfect_kill(struct char_data *ch)
+{
+  time_t current_time;
+  
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  /* Must have the perk */
+  if (!has_perk(ch, PERK_ROGUE_PERFECT_KILL))
+    return FALSE;
+  
+  /* Check if 60 seconds have passed since last combat */
+  current_time = time(0);
+  if (ch->player_specials->saved.perfect_kill_last_combat > 0 &&
+      (current_time - ch->player_specials->saved.perfect_kill_last_combat) >= 60)
+  {
+    /* Reset the flag after cooldown */
+    ch->player_specials->saved.perfect_kill_used = FALSE;
+  }
+  
+  /* Can use if not used yet this combat cycle */
+  return !ch->player_specials->saved.perfect_kill_used;
+}
+
+/**
+ * Mark Perfect Kill as used for this combat.
+ * 
+ * @param ch The character
+ */
+void use_perfect_kill(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  ch->player_specials->saved.perfect_kill_used = TRUE;
+}
+
+/**
+ * Update the last combat timestamp when combat ends.
+ * This should be called when a character leaves combat.
+ * 
+ * @param ch The character
+ */
+void update_perfect_kill_combat_end(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  /* Only update if they have the perk */
+  if (!has_perk(ch, PERK_ROGUE_PERFECT_KILL))
+    return;
+  
+  ch->player_specials->saved.perfect_kill_last_combat = time(0);
+}
+
+/**
+ * Get total skill bonus from Master Thief perks for rogue skills.
+ * 
+ * @param ch The character
+ * @return Total bonus to all rogue skills
+ */
+int get_perk_skill_mastery_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Skill Mastery I: +2 per rank, max 5 ranks */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_ROGUE_SKILL_MASTERY_1);
+  
+  /* Skill Mastery II: +3 per rank, max 3 ranks */
+  bonus += 3 * get_total_perk_ranks(ch, PERK_ROGUE_SKILL_MASTERY_2);
+  
+  return bonus;
+}
+
+/**
+ * Get trapfinding bonus from Master Thief perks.
+ * 
+ * @param ch The character
+ * @return Total bonus to find and disable traps
+ */
+int get_perk_trapfinding_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Trapfinding Expert I: +3 per rank, max 3 ranks */
+  bonus += 3 * get_total_perk_ranks(ch, PERK_ROGUE_TRAPFINDING_EXPERT_1);
+  
+  /* Trapfinding Expert II: +4 per rank, max 2 ranks */
+  bonus += 4 * get_total_perk_ranks(ch, PERK_ROGUE_TRAPFINDING_EXPERT_2);
+  
+  return bonus;
+}
+
+/**
+ * Get Fast Hands bonus from Master Thief perks.
+ * 
+ * @param ch The character
+ * @return Total bonus to sleight of hand and pick locks
+ */
+int get_perk_fast_hands_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Fast Hands I: +2 per rank, max 3 ranks */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_ROGUE_FAST_HANDS_1);
+  
+  /* Fast Hands II: +3 per rank, max 2 ranks */
+  bonus += 3 * get_total_perk_ranks(ch, PERK_ROGUE_FAST_HANDS_2);
+  
+  return bonus;
+}
+
+/**
+ * Get Trap Sense bonus to saves and AC vs traps.
+ * 
+ * @param ch The character
+ * @return Total bonus to saves and AC vs traps
+ */
+int get_perk_trap_sense_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Trap Sense I: +2 per rank, max 2 ranks */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_ROGUE_TRAP_SENSE_1);
+  
+  return bonus;
+}
+
 
 /*****************************************************************************
  * Step 7: Perk OLC Interface - Player Commands

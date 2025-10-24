@@ -2013,6 +2013,8 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
       assassin_mod += GET_LEVEL(ch) - GET_LEVEL(vict);
       if (HAS_FEAT(ch, FEAT_DEATH_ATTACK))
         assassin_mod += 2;
+      if (has_perk(ch, PERK_ROGUE_DEATH_ATTACK))
+        assassin_mod += 2;
       if (HAS_FEAT(ch, FEAT_TRUE_DEATH))
         assassin_mod += 3;
       if (HAS_FEAT(ch, FEAT_QUIET_DEATH))
