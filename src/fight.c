@@ -602,13 +602,20 @@ bool is_flanked(struct char_data *attacker, struct char_data *ch)
   if (HAS_SUBRACE(ch, SUBRACE_SWARM))
     return FALSE;
 
-  /* most common scenario */
-  if (FIGHTING(ch) && (FIGHTING(ch) != attacker) && !HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE))
+  /* Uncanny Dodge II perk prevents flanking */
+  if (!IS_NPC(ch) && has_uncanny_dodge_2(ch))
+    return FALSE;
+
+  /* most common scenario - check for both feat and perk */
+  if (FIGHTING(ch) && (FIGHTING(ch) != attacker) && 
+      !HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE) && 
+      !has_uncanny_dodge_2(ch))
     return TRUE;
 
   /* ok so ch is fighting AND it is not the attacker tanking, by default
-   * this is flanked, but we have to check for uncanny dodge */
-  if (FIGHTING(ch) && (FIGHTING(ch) != attacker) && HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE))
+   * this is flanked, but we have to check for improved uncanny dodge (feat or perk) */
+  if (FIGHTING(ch) && (FIGHTING(ch) != attacker) && 
+      (HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE) || has_uncanny_dodge_2(ch)))
   {
 
     int attacker_level = CLASS_LEVEL(attacker, CLASS_BERSERKER) +
@@ -1037,6 +1044,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     { // caps at 5
       bonuses[BONUS_TYPE_DODGE] += MIN(5, (int)(compute_ability(ch, ABILITY_ACROBATICS) / 7));
     }
+
+    /* Shadow Scout perk: Acrobatics I & II - dodge bonus */
+    if (!IS_NPC(ch))
+      bonuses[BONUS_TYPE_DODGE] += get_perk_acrobatics_ac_bonus(ch);
 
     /* this feat requires light armor and no shield */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_CANNY_DEFENSE) && HAS_FREE_HAND(ch) &&
@@ -9670,6 +9681,10 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
 {
   int max_aoo = 1; /* Base 1 AoO per round */
 
+  /* Ghost perk: immune to attacks of opportunity */
+  if (!IS_NPC(victim) && has_ghost(victim))
+    return 0;
+
   if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_COMBAT_REFLEXES))
     return 0;
 
@@ -11489,6 +11504,9 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     /* Tactical Fighter perk: Mobility I */
     if (has_dex_bonus_to_ac(ch, victim))
       victim_ac += 2 * get_perk_rank(victim, PERK_FIGHTER_MOBILITY_1, CLASS_WARRIOR);
+    /* Shadow Scout perk: Uncanny Dodge II */
+    if (!IS_NPC(victim))
+      victim_ac += get_uncanny_dodge_aoo_ac_bonus(victim);
     if (has_teamwork_feat(ch, FEAT_PAIRED_OPPORTUNISTS))
       victim_ac -= 4;
     send_combat_roll_info(ch, "\tW[\tRAOO\tW]\tn");

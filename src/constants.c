@@ -1559,6 +1559,7 @@ const char *action_bits[] = {
     "Quartermaster",
     "Unlimited-Spell-Slots",
     "Custom-Mob-Stats",
+    "No-Block-Bypass",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);

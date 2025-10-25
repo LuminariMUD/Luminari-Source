@@ -1580,6 +1580,130 @@ void define_rogue_perks(void)
   perk->effect_value = 3; /* +3 to acrobatics per rank */
   perk->effect_modifier = 1; /* +1 AC per rank */
   perk->special_description = strdup("Requires Fleet of Foot I (at least 2 ranks). Grants +3 to acrobatics and +1 AC per rank.");
+
+  /*** SHADOW SCOUT TREE - TIER 3 PERKS (3-4 points each) ***/
+
+  /* Stealth Mastery III */
+  perk = &perk_list[PERK_ROGUE_STEALTH_MASTERY_3];
+  perk->id = PERK_ROGUE_STEALTH_MASTERY_3;
+  perk->name = strdup("Stealth Mastery III");
+  perk->description = strdup("Additional +5 to stealth per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_STEALTH_MASTERY_2;
+  perk->prerequisite_rank = 3; /* Must have max ranks of Stealth Mastery II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 to stealth per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Stealth Mastery II (max). Grants an additional +5 to stealth per rank.");
+
+  /* Fleet of Foot III */
+  perk = &perk_list[PERK_ROGUE_FLEET_OF_FOOT_3];
+  perk->id = PERK_ROGUE_FLEET_OF_FOOT_3;
+  perk->name = strdup("Fleet of Foot III");
+  perk->description = strdup("+15 movement speed, can disengage as free action");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_FLEET_OF_FOOT_2;
+  perk->prerequisite_rank = 2; /* Must have max ranks of Fleet of Foot II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 15; /* +15 movement speed */
+  perk->effect_modifier = 1; /* Disengage as free action flag */
+  perk->special_description = strdup("Requires Fleet of Foot II (max). Grants +15 movement speed and allows you to disengage from combat as a free action.");
+
+  /* Awareness III */
+  perk = &perk_list[PERK_ROGUE_AWARENESS_3];
+  perk->id = PERK_ROGUE_AWARENESS_3;
+  perk->name = strdup("Awareness III");
+  perk->description = strdup("+5 to perception/search, blindsense 10 ft");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_AWARENESS_2;
+  perk->prerequisite_rank = 2; /* Must have max ranks of Awareness II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 to perception/search */
+  perk->effect_modifier = 10; /* Blindsense 10 ft */
+  perk->special_description = strdup("Requires Awareness II (max). Grants +5 to perception and search skills, and provides blindsense within 10 feet.");
+
+  /* Uncanny Dodge II */
+  perk = &perk_list[PERK_ROGUE_UNCANNY_DODGE_2];
+  perk->id = PERK_ROGUE_UNCANNY_DODGE_2;
+  perk->name = strdup("Uncanny Dodge II");
+  perk->description = strdup("Cannot be flanked, +2 AC vs attacks of opportunity");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_UNCANNY_DODGE_1;
+  perk->prerequisite_rank = 1; /* Must have Uncanny Dodge I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 AC vs attacks of opportunity */
+  perk->effect_modifier = 1; /* Cannot be flanked flag */
+  perk->special_description = strdup("Requires Uncanny Dodge I. You cannot be flanked and gain +2 AC against attacks of opportunity.");
+
+  /* Acrobatics II */
+  perk = &perk_list[PERK_ROGUE_ACROBATICS_2];
+  perk->id = PERK_ROGUE_ACROBATICS_2;
+  perk->name = strdup("Acrobatics II");
+  perk->description = strdup("+5 to acrobatics, +2 AC");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_ACROBATICS_1;
+  perk->prerequisite_rank = 2; /* Must have max ranks of Acrobatics I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 to acrobatics */
+  perk->effect_modifier = 2; /* +2 AC */
+  perk->special_description = strdup("Requires Acrobatics I (max). Grants +5 to acrobatics and +2 AC.");
+
+  /* Vanish */
+  perk = &perk_list[PERK_ROGUE_VANISH];
+  perk->id = PERK_ROGUE_VANISH;
+  perk->name = strdup("Vanish");
+  perk->description = strdup("Once per combat, become invisible for 3 rounds");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_HIDE_IN_PLAIN_SIGHT;
+  perk->prerequisite_rank = 1; /* Must have Hide in Plain Sight */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3 rounds of invisibility */
+  perk->effect_modifier = 1; /* Once per combat flag */
+  perk->special_description = strdup("Requires Hide in Plain Sight. Once per combat, you can vanish, becoming invisible for 3 rounds.");
+
+  /*** SHADOW SCOUT TREE - TIER 4 PERKS (5 points each) ***/
+
+  /* Shadow Master */
+  perk = &perk_list[PERK_ROGUE_SHADOW_MASTER];
+  perk->id = PERK_ROGUE_SHADOW_MASTER;
+  perk->name = strdup("Shadow Master");
+  perk->description = strdup("Perfect stealth, auto-hide after attacks, +20 to stealth");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_STEALTH_MASTERY_3;
+  perk->prerequisite_rank = 2; /* Must have max ranks of Stealth Mastery III AND Hide in Plain Sight */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* +20 to stealth */
+  perk->effect_modifier = 1; /* Auto-hide after attacks flag */
+  perk->special_description = strdup("Requires Stealth Mastery III (max) and Hide in Plain Sight. You achieve perfect stealth mastery, automatically hiding after attacks and gaining +20 to stealth.");
+
+  /* Ghost */
+  perk = &perk_list[PERK_ROGUE_GHOST];
+  perk->id = PERK_ROGUE_GHOST;
+  perk->name = strdup("Ghost");
+  perk->description = strdup("+30 movement, immune to attacks of opportunity, pass through enemies");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_FLEET_OF_FOOT_3;
+  perk->prerequisite_rank = 1; /* Must have Fleet of Foot III AND Uncanny Dodge II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 30; /* +30 movement speed */
+  perk->effect_modifier = 1; /* Immune to AoO and pass through enemies flag */
+  perk->special_description = strdup("Requires Fleet of Foot III and Uncanny Dodge II. You move like a ghost, gaining +30 movement speed, immunity to attacks of opportunity, and the ability to pass through enemies.");
 }
 
 /* Define Ranger Perks */
@@ -3195,6 +3319,13 @@ int get_perk_stealth_mastery_bonus(struct char_data *ch)
   /* Stealth Mastery II: +4 per rank, max 3 ranks */
   bonus += 4 * get_total_perk_ranks(ch, PERK_ROGUE_STEALTH_MASTERY_2);
   
+  /* Stealth Mastery III: +5 per rank, max 2 ranks */
+  bonus += 5 * get_total_perk_ranks(ch, PERK_ROGUE_STEALTH_MASTERY_3);
+  
+  /* Shadow Master: +20 to stealth */
+  if (has_perk(ch, PERK_ROGUE_SHADOW_MASTER))
+    bonus += 20;
+  
   return bonus;
 }
 
@@ -3217,6 +3348,14 @@ int get_perk_fleet_of_foot_bonus(struct char_data *ch)
   /* Fleet of Foot II: +10 per rank, max 2 ranks */
   bonus += 10 * get_total_perk_ranks(ch, PERK_ROGUE_FLEET_OF_FOOT_2);
   
+  /* Fleet of Foot III: +15 */
+  if (has_perk(ch, PERK_ROGUE_FLEET_OF_FOOT_3))
+    bonus += 15;
+  
+  /* Ghost: +30 movement speed */
+  if (has_perk(ch, PERK_ROGUE_GHOST))
+    bonus += 30;
+  
   return bonus;
 }
 
@@ -3238,6 +3377,10 @@ int get_perk_awareness_bonus(struct char_data *ch)
   
   /* Awareness II: +4 per rank, max 2 ranks */
   bonus += 4 * get_total_perk_ranks(ch, PERK_ROGUE_AWARENESS_2);
+  
+  /* Awareness III: +5 */
+  if (has_perk(ch, PERK_ROGUE_AWARENESS_3))
+    bonus += 5;
   
   return bonus;
 }
@@ -3334,6 +3477,10 @@ int get_perk_acrobatics_bonus(struct char_data *ch)
   /* Acrobatics I: +3 per rank, max 2 ranks */
   bonus += 3 * get_total_perk_ranks(ch, PERK_ROGUE_ACROBATICS_1);
   
+  /* Acrobatics II: +5 */
+  if (has_perk(ch, PERK_ROGUE_ACROBATICS_2))
+    bonus += 5;
+  
   return bonus;
 }
 
@@ -3353,7 +3500,132 @@ int get_perk_acrobatics_ac_bonus(struct char_data *ch)
   /* Acrobatics I: +1 AC per rank, max 2 ranks */
   bonus += get_total_perk_ranks(ch, PERK_ROGUE_ACROBATICS_1);
   
+  /* Acrobatics II: +2 AC */
+  if (has_perk(ch, PERK_ROGUE_ACROBATICS_2))
+    bonus += 2;
+  
   return bonus;
+}
+
+/**
+ * Check if character has Awareness III (grants blindsense).
+ * 
+ * @param ch The character
+ * @return TRUE if character has Awareness III
+ */
+bool has_awareness_3(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_AWARENESS_3);
+}
+
+/**
+ * Get blindsense range from Awareness III.
+ * 
+ * @param ch The character
+ * @return Blindsense range in feet (0 if no blindsense)
+ */
+int get_perk_blindsense_range(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_ROGUE_AWARENESS_3))
+    return 10; /* 10 feet blindsense */
+  
+  return 0;
+}
+
+/**
+ * Check if character has Uncanny Dodge II.
+ * Cannot be flanked and gains AC bonus vs AoO.
+ * 
+ * @param ch The character
+ * @return TRUE if character has Uncanny Dodge II
+ */
+bool has_uncanny_dodge_2(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_UNCANNY_DODGE_2);
+}
+
+/**
+ * Get AC bonus vs attacks of opportunity from Uncanny Dodge II.
+ * 
+ * @param ch The character
+ * @return AC bonus vs AoO
+ */
+int get_uncanny_dodge_aoo_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_ROGUE_UNCANNY_DODGE_2))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Check if character can disengage as a free action (Fleet of Foot III).
+ * 
+ * @param ch The character
+ * @return TRUE if character can disengage as free action
+ */
+bool can_disengage_free_action(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_FLEET_OF_FOOT_3);
+}
+
+/**
+ * Check if character has Vanish ability.
+ * 
+ * @param ch The character
+ * @return TRUE if character has Vanish
+ */
+bool has_vanish(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_VANISH);
+}
+
+/**
+ * Check if character has Shadow Master.
+ * Auto-hide after attacks and perfect stealth.
+ * 
+ * @param ch The character
+ * @return TRUE if character has Shadow Master
+ */
+bool has_shadow_master(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_SHADOW_MASTER);
+}
+
+/**
+ * Check if character has Ghost perk.
+ * Immune to AoO and can pass through enemies.
+ * 
+ * @param ch The character
+ * @return TRUE if character has Ghost
+ */
+bool has_ghost(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_GHOST);
 }
 
 
