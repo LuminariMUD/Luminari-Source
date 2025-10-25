@@ -3126,9 +3126,19 @@
 #define PERK_CLERIC_CHANNEL_ENERGY_HEAL 69
 #define PERK_CLERIC_HEALING_AURA_1 70
 
+/* Divine Healer Tree - Tier 3 Perks (71-75) */
+#define PERK_CLERIC_HEALING_POWER_3 71
+#define PERK_CLERIC_EMPOWERED_HEALING_2 72
+#define PERK_CLERIC_CHANNEL_ENERGY_GREATER_HEAL 73
+#define PERK_CLERIC_HEALING_AURA_2 74
+#define PERK_CLERIC_RESTORATIVE_TOUCH 75
+
+/* Divine Healer Tree - Tier 4 Capstones (76-77) */
+#define PERK_CLERIC_DIVINE_RADIANCE 76
+#define PERK_CLERIC_BEACON_OF_HOPE 77
+
 /* Legacy cleric perks - deprecated */
 #define PERK_CLERIC_HEALING_AMP 61  /* Now PERK_CLERIC_HEALING_POWER_1 */
-#define PERK_CLERIC_EMPOWERED_HEALING_2 63  /* Moved to tier 3 later */
 #define PERK_CLERIC_TOUGHNESS 66  /* Battle Cleric tree */
 
 /* Rogue Perks (91-120) */

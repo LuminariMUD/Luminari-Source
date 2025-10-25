@@ -121,10 +121,15 @@ bool has_efficient_healing(struct char_data *ch);
 int get_preserve_life_bonus(struct char_data *ch, struct char_data *target);
 int get_mass_healing_focus_targets(struct char_data *ch);
 bool is_healing_empowered(struct char_data *ch);
+int get_empowered_healing_multiplier(struct char_data *ch);
 bool has_channel_energy_heal(struct char_data *ch);
+int get_channel_energy_dice(struct char_data *ch);
 bool has_healing_aura(struct char_data *ch);
 int get_healing_aura_bonus(struct char_data *ch);
 int get_healing_aura_range(struct char_data *ch);
+bool has_restorative_touch(struct char_data *ch);
+bool has_divine_radiance(struct char_data *ch);
+bool has_beacon_of_hope(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

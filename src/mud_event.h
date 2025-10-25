@@ -200,6 +200,7 @@ typedef enum
   eDEVISE_CREATION,                 // artificer invention creation
   eDEVISE_PROGRESS,                 // artificer invention creation progress updates
   eBREWING,                         /* Potion brewing event */
+  /*210*/ eBEACON_OF_HOPE,          /* Beacon of Hope daily cooldown */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

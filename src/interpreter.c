@@ -229,6 +229,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"bandage", "bandage", POS_FIGHTING, do_bandage, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, 0},
     {"balance", "bal", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bash", "bash", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, can_bash},
+    {"beaconofhope", "beaco", POS_FIGHTING, do_beaconofhope, 1, 0, TRUE, ACTION_STANDARD, {0, 0}, NULL},
     {"beguile", "beguile", POS_STANDING, do_dialogue_quest, 1, SCMD_DIALOGUE_BLUFF, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"bid", "bid", POS_SLEEPING, do_bid, 0, SCMD_AUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bite", "bite", POS_FIGHTING, do_bite_attack, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},

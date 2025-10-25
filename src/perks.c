@@ -973,6 +973,115 @@ void define_cleric_perks(void)
   perk->effect_value = 1; /* +1 HP per tick */
   perk->effect_modifier = 2; /* 2 room range */
   perk->special_description = strdup("Requires Radiant Servant I (max). Your presence radiates healing energy. All allies within 2 rooms of you regenerate an additional +1 HP per regeneration tick.");
+  
+  /*** DIVINE HEALER TREE - TIER 3 PERKS (3-4 points each) ***/
+  
+  /* Healing Power III (Rank 1-2) */
+  perk = &perk_list[PERK_CLERIC_HEALING_POWER_3];
+  perk->id = PERK_CLERIC_HEALING_POWER_3;
+  perk->name = strdup("Healing Power III");
+  perk->description = strdup("Additional +5 HP per rank to all healing spells");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_CLERIC_HEALING_POWER_2;
+  perk->prerequisite_rank = 3; /* Must have max ranks of Healing Power II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 HP per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Healing Power II (max). Increases all healing spells by +5 HP per rank. Maximum 2 ranks for +10 HP total.");
+  
+  /* Empowered Healing II */
+  perk = &perk_list[PERK_CLERIC_EMPOWERED_HEALING_2];
+  perk->id = PERK_CLERIC_EMPOWERED_HEALING_2;
+  perk->name = strdup("Empowered Healing II");
+  perk->description = strdup("Critical healing: 20% chance for 200% healing");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_EMPOWERED_HEALING_1;
+  perk->prerequisite_rank = 1; /* Must have Empowered Healing I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* 20% chance */
+  perk->effect_modifier = 200; /* 200% healing */
+  perk->special_description = strdup("Requires Empowered Healing I. Critical healing chance increases to 20% and heals for 200% (double) instead of 150%.");
+  
+  /* Channel Energy: Greater Heal */
+  perk = &perk_list[PERK_CLERIC_CHANNEL_ENERGY_GREATER_HEAL];
+  perk->id = PERK_CLERIC_CHANNEL_ENERGY_GREATER_HEAL;
+  perk->name = strdup("Channel Energy: Greater Heal");
+  perk->description = strdup("Channel healing increases to 4d6 HP");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_CHANNEL_ENERGY_HEAL;
+  perk->prerequisite_rank = 1; /* Must have Channel Energy: Heal */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* 4d6 */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Channel Energy: Heal. Your channel positive energy now heals for 4d6 HP instead of 2d6.");
+  
+  /* Healing Aura II */
+  perk = &perk_list[PERK_CLERIC_HEALING_AURA_2];
+  perk->id = PERK_CLERIC_HEALING_AURA_2;
+  perk->name = strdup("Healing Aura II");
+  perk->description = strdup("Healing aura +2 HP/tick, range 3 rooms");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_HEALING_AURA_1;
+  perk->prerequisite_rank = 1; /* Must have Healing Aura I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 HP per tick */
+  perk->effect_modifier = 3; /* 3 room range */
+  perk->special_description = strdup("Requires Healing Aura I. Your healing aura increases to +2 HP per tick and extends to 3 rooms away.");
+  
+  /* Restorative Touch */
+  perk = &perk_list[PERK_CLERIC_RESTORATIVE_TOUCH];
+  perk->id = PERK_CLERIC_RESTORATIVE_TOUCH;
+  perk->name = strdup("Restorative Touch");
+  perk->description = strdup("Healing spells can remove one negative condition");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_HEALING_POWER_2;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Healing Power II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Healing Power II (at least 2 ranks). When you cast a healing spell, it can remove one negative condition from the target (poison, disease, curse, blindness, or paralysis).");
+  
+  /*** DIVINE HEALER TREE - TIER 4 CAPSTONES (5 points each) ***/
+  
+  /* Divine Radiance */
+  perk = &perk_list[PERK_CLERIC_DIVINE_RADIANCE];
+  perk->id = PERK_CLERIC_DIVINE_RADIANCE;
+  perk->name = strdup("Divine Radiance");
+  perk->description = strdup("All healing +20 HP, channel 6d6, aura +3 HP/tick");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_CHANNEL_ENERGY_GREATER_HEAL;
+  perk->prerequisite_rank = 1; /* Must have Channel Energy: Greater Heal */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* +20 HP to all healing */
+  perk->effect_modifier = 6; /* Channel becomes 6d6 */
+  perk->special_description = strdup("Requires Healing Power III (max) and Channel Energy: Greater Heal. Capstone: All healing spells gain +20 HP, channel energy heals for 6d6 HP, and healing aura grants +3 HP per tick.");
+  
+  /* Beacon of Hope */
+  perk = &perk_list[PERK_CLERIC_BEACON_OF_HOPE];
+  perk->id = PERK_CLERIC_BEACON_OF_HOPE;
+  perk->name = strdup("Beacon of Hope");
+  perk->description = strdup("1/day: Fully heal allies, grant +4 saves for 10 rounds");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_HEALING_AURA_2;
+  perk->prerequisite_rank = 1; /* Must have Healing Aura II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* Once per day */
+  perk->effect_modifier = 4; /* +4 to saves */
+  perk->special_description = strdup("Requires Healing Aura II and Mass Healing Focus. Capstone: Once per day, you can fully heal all allies in the area and grant them +4 to all saving throws for 10 rounds.");
 }
 
 /* Define Rogue Perks */
@@ -3760,6 +3869,13 @@ int get_cleric_healing_power_bonus(struct char_data *ch)
   /* Healing Power II: +3 per rank, max 3 ranks */
   bonus += 3 * get_total_perk_ranks(ch, PERK_CLERIC_HEALING_POWER_2);
   
+  /* Healing Power III: +5 per rank, max 2 ranks */
+  bonus += 5 * get_total_perk_ranks(ch, PERK_CLERIC_HEALING_POWER_3);
+  
+  /* Divine Radiance: +20 HP capstone */
+  if (has_perk(ch, PERK_CLERIC_DIVINE_RADIANCE))
+    bonus += 20;
+  
   return bonus;
 }
 
@@ -3845,18 +3961,47 @@ int get_mass_healing_focus_targets(struct char_data *ch)
  * Check if healing spell is empowered (critical heal).
  * 
  * @param ch The character
- * @return TRUE if this heal should be empowered (10% chance)
+ * @return TRUE if this heal should be empowered (10% or 20% chance)
  */
 bool is_healing_empowered(struct char_data *ch)
 {
+  int chance = 0;
+  
   if (!ch || IS_NPC(ch))
     return FALSE;
   
-  if (!has_perk(ch, PERK_CLERIC_EMPOWERED_HEALING_1))
+  /* Empowered Healing II: 20% chance */
+  if (has_perk(ch, PERK_CLERIC_EMPOWERED_HEALING_2))
+    chance = 20;
+  /* Empowered Healing I: 10% chance */
+  else if (has_perk(ch, PERK_CLERIC_EMPOWERED_HEALING_1))
+    chance = 10;
+  else
     return FALSE;
   
-  /* 10% chance to empower */
-  return (rand_number(1, 100) <= 10);
+  return (rand_number(1, 100) <= chance);
+}
+
+/**
+ * Get empowered healing multiplier.
+ * 
+ * @param ch The character
+ * @return 200 for tier 2, 150 for tier 1, 100 for none
+ */
+int get_empowered_healing_multiplier(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 100;
+  
+  /* Empowered Healing II: 200% (double) */
+  if (has_perk(ch, PERK_CLERIC_EMPOWERED_HEALING_2))
+    return 200;
+  
+  /* Empowered Healing I: 150% */
+  if (has_perk(ch, PERK_CLERIC_EMPOWERED_HEALING_1))
+    return 150;
+  
+  return 100;
 }
 
 /**
@@ -3877,14 +4022,15 @@ bool has_channel_energy_heal(struct char_data *ch)
  * Check if character has Healing Aura.
  * 
  * @param ch The character
- * @return TRUE if character has healing aura
+ * @return TRUE if character has healing aura (any tier)
  */
 bool has_healing_aura(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return FALSE;
   
-  return has_perk(ch, PERK_CLERIC_HEALING_AURA_1);
+  return (has_perk(ch, PERK_CLERIC_HEALING_AURA_1) || 
+          has_perk(ch, PERK_CLERIC_HEALING_AURA_2));
 }
 
 /**
@@ -3898,6 +4044,15 @@ int get_healing_aura_bonus(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
   
+  /* Divine Radiance capstone: +3 HP/tick */
+  if (has_perk(ch, PERK_CLERIC_DIVINE_RADIANCE))
+    return 3;
+  
+  /* Healing Aura II: +2 HP/tick */
+  if (has_perk(ch, PERK_CLERIC_HEALING_AURA_2))
+    return 2;
+  
+  /* Healing Aura I: +1 HP/tick */
   if (has_perk(ch, PERK_CLERIC_HEALING_AURA_1))
     return 1;
   
@@ -3915,10 +4070,89 @@ int get_healing_aura_range(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
   
+  /* Healing Aura II or Divine Radiance: 3 room range */
+  if (has_perk(ch, PERK_CLERIC_HEALING_AURA_2) || 
+      has_perk(ch, PERK_CLERIC_DIVINE_RADIANCE))
+    return 3;
+  
+  /* Healing Aura I: 2 room range */
   if (has_perk(ch, PERK_CLERIC_HEALING_AURA_1))
     return 2;
   
   return 0;
+}
+
+/**
+ * Get channel energy dice from perks.
+ * 
+ * @param ch The character
+ * @return Number of d6 dice for channel energy
+ */
+int get_channel_energy_dice(struct char_data *ch)
+{
+  int dice = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Base from level */
+  dice = (compute_channel_energy_level(ch) + 1) / 2;
+  
+  /* Divine Radiance capstone: 6d6 */
+  if (has_perk(ch, PERK_CLERIC_DIVINE_RADIANCE))
+    return 6;
+  
+  /* Channel Energy: Greater Heal: 4d6 */
+  if (has_perk(ch, PERK_CLERIC_CHANNEL_ENERGY_GREATER_HEAL))
+    return 4;
+  
+  /* Channel Energy: Heal: 2d6 minimum */
+  if (has_perk(ch, PERK_CLERIC_CHANNEL_ENERGY_HEAL))
+    return MAX(2, dice);
+  
+  return dice;
+}
+
+/**
+ * Check if character has Restorative Touch.
+ * 
+ * @param ch The character
+ * @return TRUE if character has restorative touch
+ */
+bool has_restorative_touch(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_CLERIC_RESTORATIVE_TOUCH);
+}
+
+/**
+ * Check if character has Divine Radiance.
+ * 
+ * @param ch The character
+ * @return TRUE if character has divine radiance capstone
+ */
+bool has_divine_radiance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_CLERIC_DIVINE_RADIANCE);
+}
+
+/**
+ * Check if character has Beacon of Hope.
+ * 
+ * @param ch The character
+ * @return TRUE if character has beacon of hope capstone
+ */
+bool has_beacon_of_hope(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_CLERIC_BEACON_OF_HOPE);
 }
 
 
