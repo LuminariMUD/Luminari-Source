@@ -169,8 +169,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
     switch (GET_OBJ_VAL(item, 0))
     {
-    case TRAP_TRIGGER_ENTER_ROOM:
-      break;
+    // TRAP_TRIGGER_ENTER_ROOM removed - use autosearch instead
     case TRAP_TRIGGER_LEAVE_ROOM:
       break;
 

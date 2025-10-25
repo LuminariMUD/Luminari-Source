@@ -83,8 +83,7 @@ bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *
     {
       switch (trap_type)
       {
-      case TRAP_TRIGGER_ENTER_ROOM:
-        break;
+      // TRAP_TRIGGER_ENTER_ROOM removed - use autosearch instead
       case TRAP_TRIGGER_LEAVE_ROOM:
         break;
       case TRAP_TRIGGER_OPEN_DOOR:

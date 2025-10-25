@@ -872,29 +872,23 @@ const char *trap_type[] = {
     "Open Container",
     "Unlock Container",
     "Get Object",
-    "Enter Room (sets off without check opportunity at least once)",
     "\n"};
-CHECK_TABLE_SIZE(trap_type, NUM_TRAP_TYPES + 1);
+CHECK_TABLE_SIZE(trap_type, NUM_TRAP_TRIGGERS + 1);
 
 /* Trap-effects, add 1000 to this value to reference the proper values in
  act.item.c */
 const char *trap_effects[] = {
-    "Wall of Flames (20d20 fire)",
-    "Lightning Strike (20d20 electric)",
-    "Impaling Spike (15d20 puncture, para 5 rounds)",
-    "Dark Glyph (300+15d20 mental, feeblemind 25 rounds)",
-    "Spike Pit (2d10 puncture)",
-    "Harmful Dart (10+6d6 puncture)",
-    "Poison Gas (poison 10 rounds)",
-    "Dispel Magic",
-    "Dark Warrior Ambush (1-3 dark warriors attack)",
-    "Boulder Drop (current-hp/5 damage)",
-    "Wall Smash (current-hp/5 damage)",
-    "Spider Horde (current-hp/6 damage)",
-    "Harmful Gas (current-hp/4 poison damage)",
-    "Freezing Conditions (10d20 cold)",
-    "Skeletal Hands (50% chance death or 10d40 damage)",
-    "Spider Webs (web spell 20 rounds, 1d3 spiders)",
+    "None",
+    "Paralysis",
+    "Slow",
+    "Stun",
+    "Poison",
+    "Ability Drain",
+    "Level Drain",
+    "Entangle",
+    "Blind",
+    "Feeblemind",
+    "Summon Creature",
     "\n"};
 CHECK_TABLE_SIZE(trap_effects, NUM_TRAP_SPECIAL_EFFECTS + 1);
 

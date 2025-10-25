@@ -300,18 +300,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
                                  QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], spell_info[v3].name, v4, v5);
             }
             break;
-          case TRAP_TRIGGER_ENTER_ROOM: /* display effect and difficulty */
-            if (v3 >= TRAP_SPECIAL_PARALYSIS)
-            { /* not a normal spell effect */
-              tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d %s%s | Type: %s | Effect: %s | DC: %d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], trap_effects[v3 - 1000], v4, v5);
-            }
-            else
-            { /* spell effect */
-              tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  Spell: %s | DC: %d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], spell_info[v3].name, v4, v5);
-            }
-            break;
+          // TRAP_TRIGGER_ENTER_ROOM removed - use autosearch system instead
           case TRAP_TRIGGER_OPEN_DOOR:
             /*fall through*/
           case TRAP_TRIGGER_UNLOCK_DOOR: /* display direction, effect, difficulty */

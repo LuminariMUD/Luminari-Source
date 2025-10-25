@@ -1128,7 +1128,7 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
       write_to_output(d, "VNUM of object trap should apply to : ");
       break;
     case TRAP_TRIGGER_LEAVE_ROOM:
-    case TRAP_TRIGGER_ENTER_ROOM:
+    // TRAP_TRIGGER_ENTER_ROOM removed - use autosearch instead
     default:
       write_to_output(d, "Press ENTER to continue.");
       break;
