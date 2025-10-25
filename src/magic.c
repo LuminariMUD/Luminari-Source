@@ -11241,6 +11241,35 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   move = move * get_spell_potency_bonus(ch) / 100;
   psp = psp * get_spell_potency_bonus(ch) / 100;
 
+  /* Apply Divine Healer perk bonuses */
+  if (healing > 0 && !IS_NPC(ch))
+  {
+    /* Healing Power I + II: flat bonus to all healing */
+    healing += get_cleric_healing_power_bonus(ch);
+    
+    /* Radiant Servant I + II: bonus to positive energy (including channel energy) */
+    if (spellnum == ABILITY_CHANNEL_POSITIVE_ENERGY || 
+        spellnum == ABILITY_CHANNEL_NEGATIVE_ENERGY)
+    {
+      healing += get_cleric_radiant_servant_bonus(ch);
+    }
+    
+    /* Preserve Life: extra healing when target is below 50% HP */
+    if (victim)
+    {
+      healing += get_preserve_life_bonus(ch, victim);
+    }
+    
+    /* Empowered Healing I: 10% chance for 150% healing */
+    if (is_healing_empowered(ch))
+    {
+      healing = (healing * 150) / 100;
+      send_to_char(ch, "\tY[Empowered Healing!]\tn ");
+      if (ch != victim)
+        send_to_char(victim, "\tY[Empowered Healing!]\tn ");
+    }
+  }
+
   /* newer centralized function for points (modifying healing, move and psp in one place) */
   process_healing(ch, victim, spellnum, healing, move, psp);
 }

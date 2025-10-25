@@ -417,6 +417,116 @@ int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6)
     return (p6); /* >= 80 */
 }
 
+/**
+ * Check if a character benefits from a healing aura in range.
+ * Searches for allies with Healing Aura perk within the specified range.
+ * 
+ * @param ch The character to check
+ * @return Total healing bonus from all auras in range
+ */
+int get_healing_aura_regen_bonus(struct char_data *ch)
+{
+  struct char_data *aura_caster = NULL;
+  int total_bonus = 0;
+  int max_range = 0;
+  int distance = 0;
+  room_rnum room = NOWHERE;
+  int dir = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Check current room for aura casters */
+  for (aura_caster = world[IN_ROOM(ch)].people; aura_caster; aura_caster = aura_caster->next_in_room)
+  {
+    if (aura_caster == ch || IS_NPC(aura_caster))
+      continue;
+    
+    if (!has_healing_aura(aura_caster))
+      continue;
+    
+    /* Must be groupmates or self */
+    if (!AFF_FLAGGED(ch, AFF_GROUP) || !AFF_FLAGGED(aura_caster, AFF_GROUP))
+      continue;
+    
+    total_bonus += get_healing_aura_bonus(aura_caster);
+  }
+  
+  /* Check adjacent rooms (1 room away) */
+  for (dir = 0; dir < NUM_OF_DIRS; dir++)
+  {
+    if (world[IN_ROOM(ch)].dir_option[dir] == NULL)
+      continue;
+    
+    room = world[IN_ROOM(ch)].dir_option[dir]->to_room;
+    if (room == NOWHERE)
+      continue;
+    
+    for (aura_caster = world[room].people; aura_caster; aura_caster = aura_caster->next_in_room)
+    {
+      if (aura_caster == ch || IS_NPC(aura_caster))
+        continue;
+      
+      if (!has_healing_aura(aura_caster))
+        continue;
+      
+      max_range = get_healing_aura_range(aura_caster);
+      if (max_range < 1)
+        continue;
+      
+      /* Must be groupmates */
+      if (!AFF_FLAGGED(ch, AFF_GROUP) || !AFF_FLAGGED(aura_caster, AFF_GROUP))
+        continue;
+      
+      total_bonus += get_healing_aura_bonus(aura_caster);
+    }
+  }
+  
+  /* Check 2 rooms away (need to check each direction from adjacent rooms) */
+  for (dir = 0; dir < NUM_OF_DIRS; dir++)
+  {
+    if (world[IN_ROOM(ch)].dir_option[dir] == NULL)
+      continue;
+    
+    room = world[IN_ROOM(ch)].dir_option[dir]->to_room;
+    if (room == NOWHERE)
+      continue;
+    
+    /* Now check each direction from this adjacent room */
+    int dir2 = 0;
+    for (dir2 = 0; dir2 < NUM_OF_DIRS; dir2++)
+    {
+      if (world[room].dir_option[dir2] == NULL)
+        continue;
+      
+      room_rnum room2 = world[room].dir_option[dir2]->to_room;
+      if (room2 == NOWHERE || room2 == IN_ROOM(ch))
+        continue;
+      
+      for (aura_caster = world[room2].people; aura_caster; aura_caster = aura_caster->next_in_room)
+      {
+        if (aura_caster == ch || IS_NPC(aura_caster))
+          continue;
+        
+        if (!has_healing_aura(aura_caster))
+          continue;
+        
+        max_range = get_healing_aura_range(aura_caster);
+        if (max_range < 2)
+          continue;
+        
+        /* Must be groupmates */
+        if (!AFF_FLAGGED(ch, AFF_GROUP) || !AFF_FLAGGED(aura_caster, AFF_GROUP))
+          continue;
+        
+        total_bonus += get_healing_aura_bonus(aura_caster);
+      }
+    }
+  }
+  
+  return total_bonus;
+}
+
 /* we do the math for our hps regen per tick here -zusuk */
 int regen_hps(struct char_data *ch)
 {
@@ -495,6 +605,12 @@ int regen_hps(struct char_data *ch)
     if (hp < 2)
       hp = 2;
     hp *= 2;
+  }
+
+  /* Healing Aura from Divine Healer perks - allies with aura in range */
+  if (!IS_NPC(ch))
+  {
+    hp += get_healing_aura_regen_bonus(ch);
   }
 
   /* exception bonuses */

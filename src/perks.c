@@ -820,50 +820,159 @@ void define_cleric_perks(void)
 {
   struct perk_data *perk;
   
-  /* Healing Amplification */
-  perk = &perk_list[PERK_CLERIC_HEALING_AMP];
-  perk->id = PERK_CLERIC_HEALING_AMP;
-  perk->name = strdup("Healing Amplification");
-  perk->description = strdup("+10% healing spell effectiveness per rank");
+  /*** DIVINE HEALER TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Healing Power I */
+  perk = &perk_list[PERK_CLERIC_HEALING_POWER_1];
+  perk->id = PERK_CLERIC_HEALING_POWER_1;
+  perk->name = strdup("Healing Power I");
+  perk->description = strdup("Healing spells restore +2 HP per rank");
   perk->associated_class = CLASS_CLERIC;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
   perk->prerequisite_rank = 0;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 10;
+  perk->effect_value = 2; /* +2 HP per rank */
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Increases healing done by healing spells");
+  perk->special_description = strdup("Increases healing done by all healing spells by +2 HP per rank. Can be taken 5 times for +10 HP total.");
+  
+  /* Radiant Servant I */
+  perk = &perk_list[PERK_CLERIC_RADIANT_SERVANT_1];
+  perk->id = PERK_CLERIC_RADIANT_SERVANT_1;
+  perk->name = strdup("Radiant Servant I");
+  perk->description = strdup("+1 to positive energy damage/healing per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 positive energy per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases positive energy effects (healing, turn undead, etc.) by +1 per rank. Can be taken 3 times for +3 total.");
+  
+  /* Efficient Healing */
+  perk = &perk_list[PERK_CLERIC_EFFICIENT_HEALING];
+  perk->id = PERK_CLERIC_EFFICIENT_HEALING;
+  perk->name = strdup("Efficient Healing");
+  perk->description = strdup("Cast 1 additional healing spell per rest period");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* 1 extra healing spell */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Allows you to prepare and cast one additional healing spell per rest period, bypassing normal spell slot limits for healing spells only.");
+  
+  /* Preserve Life */
+  perk = &perk_list[PERK_CLERIC_PRESERVE_LIFE];
+  perk->id = PERK_CLERIC_PRESERVE_LIFE;
+  perk->name = strdup("Preserve Life");
+  perk->description = strdup("+5 HP to healing spells per rank when target below 50% HP");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 HP per rank when target below 50% */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("When healing a target that is below 50% of their maximum HP, healing is increased by +5 HP per rank. Can be taken 3 times for +15 HP total.");
+
+  /*** DIVINE HEALER TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Healing Power II */
+  perk = &perk_list[PERK_CLERIC_HEALING_POWER_2];
+  perk->id = PERK_CLERIC_HEALING_POWER_2;
+  perk->name = strdup("Healing Power II");
+  perk->description = strdup("Additional +3 HP healing per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_CLERIC_HEALING_POWER_1;
+  perk->prerequisite_rank = 5; /* Must have max ranks of Healing Power I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 HP per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Healing Power I (max). Increases healing done by all healing spells by additional +3 HP per rank. Can be taken 3 times for +9 HP total.");
+  
+  /* Radiant Servant II */
+  perk = &perk_list[PERK_CLERIC_RADIANT_SERVANT_2];
+  perk->id = PERK_CLERIC_RADIANT_SERVANT_2;
+  perk->name = strdup("Radiant Servant II");
+  perk->description = strdup("Additional +2 positive energy per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_CLERIC_RADIANT_SERVANT_1;
+  perk->prerequisite_rank = 3; /* Must have max ranks of Radiant Servant I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 positive energy per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Radiant Servant I (max). Increases positive energy effects by additional +2 per rank. Can be taken 2 times for +4 total.");
+  
+  /* Mass Healing Focus */
+  perk = &perk_list[PERK_CLERIC_MASS_HEALING_FOCUS];
+  perk->id = PERK_CLERIC_MASS_HEALING_FOCUS;
+  perk->name = strdup("Mass Healing Focus");
+  perk->description = strdup("Mass healing spells affect +2 additional targets");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_HEALING_POWER_1;
+  perk->prerequisite_rank = 3; /* Must have at least 3 ranks of Healing Power I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 targets */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Healing Power I (at least 3 ranks). Mass healing spells can affect 2 additional targets beyond the normal limit.");
   
   /* Empowered Healing I */
   perk = &perk_list[PERK_CLERIC_EMPOWERED_HEALING_1];
   perk->id = PERK_CLERIC_EMPOWERED_HEALING_1;
   perk->name = strdup("Empowered Healing I");
-  perk->description = strdup("Heal an additional 1d6 HP with healing spells");
+  perk->description = strdup("Healing spells have 10% chance to heal for 150%");
   perk->associated_class = CLASS_CLERIC;
   perk->cost = 2;
   perk->max_rank = 1;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
+  perk->prerequisite_perk = PERK_CLERIC_HEALING_POWER_1;
+  perk->prerequisite_rank = 3; /* Must have at least 3 ranks of Healing Power I */
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 1;
-  perk->effect_modifier = 6;
-  perk->special_description = strdup("Adds 1d6 to healing spell rolls");
+  perk->effect_value = 10; /* 10% chance */
+  perk->effect_modifier = 150; /* 150% healing */
+  perk->special_description = strdup("Requires Healing Power I (at least 3 ranks). Your healing spells have a 10% chance to be empowered, healing for 150% of their normal amount.");
   
-  /* Toughness */
-  perk = &perk_list[PERK_CLERIC_TOUGHNESS];
-  perk->id = PERK_CLERIC_TOUGHNESS;
-  perk->name = strdup("Toughness");
-  perk->description = strdup("+5 HP per rank");
+  /* Channel Energy: Heal */
+  perk = &perk_list[PERK_CLERIC_CHANNEL_ENERGY_HEAL];
+  perk->id = PERK_CLERIC_CHANNEL_ENERGY_HEAL;
+  perk->name = strdup("Channel Energy: Heal");
+  perk->description = strdup("Channel positive energy heals 2d6 HP to all allies in room");
   perk->associated_class = CLASS_CLERIC;
-  perk->cost = 1;
-  perk->max_rank = 5;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_HP;
-  perk->effect_value = 5;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("");
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_RADIANT_SERVANT_1;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Radiant Servant I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* 2d6 */
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Requires Radiant Servant I (at least 2 ranks). Grants the ability to channel positive energy to heal all allies in the room for 2d6 HP. Can be used once per short rest.");
+  
+  /* Healing Aura I */
+  perk = &perk_list[PERK_CLERIC_HEALING_AURA_1];
+  perk->id = PERK_CLERIC_HEALING_AURA_1;
+  perk->name = strdup("Healing Aura I");
+  perk->description = strdup("Allies within 2 rooms regenerate +1 HP per tick");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_RADIANT_SERVANT_1;
+  perk->prerequisite_rank = 3; /* Must have max ranks of Radiant Servant I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 HP per tick */
+  perk->effect_modifier = 2; /* 2 room range */
+  perk->special_description = strdup("Requires Radiant Servant I (max). Your presence radiates healing energy. All allies within 2 rooms of you regenerate an additional +1 HP per regeneration tick.");
 }
 
 /* Define Rogue Perks */
@@ -3626,6 +3735,190 @@ bool has_ghost(struct char_data *ch)
     return FALSE;
   
   return has_perk(ch, PERK_ROGUE_GHOST);
+}
+
+/*****************************************************************************
+ * Cleric Perk Helper Functions
+ *****************************************************************************/
+
+/**
+ * Get healing power bonus from Divine Healer perks.
+ * 
+ * @param ch The character
+ * @return Total bonus HP to healing spells
+ */
+int get_cleric_healing_power_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Healing Power I: +2 per rank, max 5 ranks */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_CLERIC_HEALING_POWER_1);
+  
+  /* Healing Power II: +3 per rank, max 3 ranks */
+  bonus += 3 * get_total_perk_ranks(ch, PERK_CLERIC_HEALING_POWER_2);
+  
+  return bonus;
+}
+
+/**
+ * Get radiant servant bonus to positive energy.
+ * 
+ * @param ch The character
+ * @return Total bonus to positive energy effects
+ */
+int get_cleric_radiant_servant_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Radiant Servant I: +1 per rank, max 3 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_RADIANT_SERVANT_1);
+  
+  /* Radiant Servant II: +2 per rank, max 2 ranks */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_CLERIC_RADIANT_SERVANT_2);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Efficient Healing perk.
+ * Allows one extra healing spell per rest.
+ * 
+ * @param ch The character
+ * @return TRUE if character has Efficient Healing
+ */
+bool has_efficient_healing(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_CLERIC_EFFICIENT_HEALING);
+}
+
+/**
+ * Get preserve life bonus when target is below 50% HP.
+ * 
+ * @param ch The caster
+ * @param target The healing target
+ * @return Bonus HP when target below 50%, 0 otherwise
+ */
+int get_preserve_life_bonus(struct char_data *ch, struct char_data *target)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch) || !target)
+    return 0;
+  
+  /* Only applies if target is below 50% HP */
+  if (GET_HIT(target) >= (GET_MAX_HIT(target) / 2))
+    return 0;
+  
+  /* Preserve Life: +5 HP per rank, max 3 ranks */
+  bonus = 5 * get_total_perk_ranks(ch, PERK_CLERIC_PRESERVE_LIFE);
+  
+  return bonus;
+}
+
+/**
+ * Get mass healing focus bonus targets.
+ * 
+ * @param ch The character
+ * @return Number of additional targets for mass healing spells
+ */
+int get_mass_healing_focus_targets(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_CLERIC_MASS_HEALING_FOCUS))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Check if healing spell is empowered (critical heal).
+ * 
+ * @param ch The character
+ * @return TRUE if this heal should be empowered (10% chance)
+ */
+bool is_healing_empowered(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!has_perk(ch, PERK_CLERIC_EMPOWERED_HEALING_1))
+    return FALSE;
+  
+  /* 10% chance to empower */
+  return (rand_number(1, 100) <= 10);
+}
+
+/**
+ * Check if character has Channel Energy: Heal ability.
+ * 
+ * @param ch The character
+ * @return TRUE if character can channel energy to heal
+ */
+bool has_channel_energy_heal(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_CLERIC_CHANNEL_ENERGY_HEAL);
+}
+
+/**
+ * Check if character has Healing Aura.
+ * 
+ * @param ch The character
+ * @return TRUE if character has healing aura
+ */
+bool has_healing_aura(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_CLERIC_HEALING_AURA_1);
+}
+
+/**
+ * Get healing aura HP bonus per tick.
+ * 
+ * @param ch The character with the aura
+ * @return HP bonus per regen tick
+ */
+int get_healing_aura_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_CLERIC_HEALING_AURA_1))
+    return 1;
+  
+  return 0;
+}
+
+/**
+ * Get healing aura range in rooms.
+ * 
+ * @param ch The character with the aura
+ * @return Range in rooms
+ */
+int get_healing_aura_range(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_CLERIC_HEALING_AURA_1))
+    return 2;
+  
+  return 0;
 }
 
 
