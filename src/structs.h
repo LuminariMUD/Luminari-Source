@@ -1231,8 +1231,9 @@
 #define MOB_QUARTERMASTER 99 /**< Mob can accept/complete supply orders */
 #define MOB_UNLIMITED_SPELL_SLOTS 100 /**< Mob has unlimited spell slots (bypasses slot system) */
 #define MOB_CUSTOM_MOB_STATS 101 /**< Mob uses custom stat modifiers instead of category defaults */
+#define MOB_NO_BLOCK_BYPASS 102 /**< Prevents Ghost perk and similar abilities from bypassing mob blocking */
 /**********************/
-#define NUM_MOB_FLAGS 102
+#define NUM_MOB_FLAGS 103
 /**********************/
 /**********************/
 
@@ -3180,6 +3181,18 @@
 #define PERK_ROGUE_SHADOW_STEP_TELEPORT 141
 #define PERK_ROGUE_UNCANNY_DODGE_1 142
 #define PERK_ROGUE_ACROBATICS_1 143
+
+/* Shadow Scout Tree - Tier 3 Perks (151-156) */
+#define PERK_ROGUE_STEALTH_MASTERY_3 151
+#define PERK_ROGUE_FLEET_OF_FOOT_3 152
+#define PERK_ROGUE_AWARENESS_3 153
+#define PERK_ROGUE_UNCANNY_DODGE_2 154
+#define PERK_ROGUE_ACROBATICS_2 155
+#define PERK_ROGUE_VANISH 156
+
+/* Shadow Scout Tree - Tier 4 Perks (157-158) */
+#define PERK_ROGUE_SHADOW_MASTER 157
+#define PERK_ROGUE_GHOST 158
 
 /* Ranger Perks (126-132, 144-150) */
 #define PERK_RANGER_FAVORED_ENEMY_1 126

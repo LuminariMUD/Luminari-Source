@@ -105,6 +105,14 @@ int get_shadow_step_range(struct char_data *ch);
 bool has_uncanny_dodge(struct char_data *ch);
 int get_perk_acrobatics_bonus(struct char_data *ch);
 int get_perk_acrobatics_ac_bonus(struct char_data *ch);
+bool has_awareness_3(struct char_data *ch);
+int get_perk_blindsense_range(struct char_data *ch);
+bool has_uncanny_dodge_2(struct char_data *ch);
+int get_uncanny_dodge_aoo_ac_bonus(struct char_data *ch);
+bool can_disengage_free_action(struct char_data *ch);
+bool has_vanish(struct char_data *ch);
+bool has_shadow_master(struct char_data *ch);
+bool has_ghost(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

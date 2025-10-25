@@ -5338,21 +5338,34 @@ ACMD(do_search)
   USE_FULL_ROUND_ACTION(ch);
 }
 
-/* vanish - epic rogue talent ; free action */
+/* vanish - epic rogue talent OR Shadow Scout perk ; free action */
 ACMD(do_vanish)
 {
   struct char_data *vict, *next_v;
   int uses_remaining = 0;
+  bool has_feat_vanish = HAS_FEAT(ch, FEAT_VANISH);
+  bool has_perk_vanish = has_vanish(ch);
 
-  if (!HAS_FEAT(ch, FEAT_VANISH))
+  if (!has_feat_vanish && !has_perk_vanish)
   {
     send_to_char(ch, "You do not know how to vanish!\r\n");
     return;
   }
 
-  if (((uses_remaining = daily_uses_remaining(ch, FEAT_VANISH)) == 0))
+  /* Check feat cooldown if using feat version */
+  if (has_feat_vanish)
   {
-    send_to_char(ch, "You must recover before you can vanish again.\r\n");
+    if (((uses_remaining = daily_uses_remaining(ch, FEAT_VANISH)) == 0))
+    {
+      send_to_char(ch, "You must recover before you can vanish again.\r\n");
+      return;
+    }
+  }
+
+  /* Check perk cooldown - once per combat (only check if they don't also have the feat) */
+  if (has_perk_vanish && !has_feat_vanish && char_has_mud_event(ch, eVANISH))
+  {
+    send_to_char(ch, "You must wait until your next combat before you can vanish again.\r\n");
     return;
   }
 
@@ -5365,10 +5378,17 @@ ACMD(do_vanish)
   /* success! */
   send_to_char(ch, "You vanish!\r\n");
   act("With an audible pop, you watch as $n vanishes!", FALSE, ch, 0, 0, TO_ROOM);
-  start_daily_use_cooldown(ch, FEAT_VANISH);
+  
+  if (has_feat_vanish)
+    start_daily_use_cooldown(ch, FEAT_VANISH);
 
-  /* 12 seconds = 2 rounds */
-  attach_mud_event(new_mud_event(eVANISH, ch, NULL), 12 * PASSES_PER_SEC);
+  /* Attach event based on what they have - use longer duration if both */
+  if (has_feat_vanish && has_perk_vanish)
+    attach_mud_event(new_mud_event(eVANISH, ch, NULL), 18 * PASSES_PER_SEC); /* 3 rounds for perk */
+  else if (has_feat_vanish)
+    attach_mud_event(new_mud_event(eVANISH, ch, NULL), 12 * PASSES_PER_SEC); /* 2 rounds for feat */
+  else if (has_perk_vanish)
+    attach_mud_event(new_mud_event(eVANISH, ch, NULL), 18 * PASSES_PER_SEC); /* 3 rounds for perk */
 
   /* stop vanishers combat */
   if (char_has_mud_event(ch, eCOMBAT_ROUND))
@@ -5395,18 +5415,37 @@ ACMD(do_vanish)
       clearMemory(vict);
   }
 
-  GET_HIT(ch) += 10;
-  if (HAS_FEAT(ch, FEAT_IMPROVED_VANISH))
-    GET_HIT(ch) += 20;
-
-  /* enter stealth mode */
-  if (!AFF_FLAGGED(ch, AFF_SNEAK))
+  /* Feat version heals */
+  if (has_feat_vanish)
   {
-    SET_BIT_AR(AFF_FLAGS(ch), AFF_SNEAK);
+    GET_HIT(ch) += 10;
+    if (HAS_FEAT(ch, FEAT_IMPROVED_VANISH))
+      GET_HIT(ch) += 20;
   }
-  if (!AFF_FLAGGED(ch, AFF_HIDE))
+
+  /* Perk version grants invisibility for 3 rounds */
+  if (has_perk_vanish)
   {
-    SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = SPELL_INVISIBLE;
+    af.duration = 3; /* 3 rounds */
+    SET_BIT_AR(af.bitvector, AFF_INVISIBLE);
+    affect_to_char(ch, &af);
+    send_to_char(ch, "You fade from view, invisible for a few moments.\r\n");
+  }
+
+  /* enter stealth mode (feat version) */
+  if (has_feat_vanish)
+  {
+    if (!AFF_FLAGGED(ch, AFF_SNEAK))
+    {
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_SNEAK);
+    }
+    if (!AFF_FLAGGED(ch, AFF_HIDE))
+    {
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
+    }
   }
 }
 

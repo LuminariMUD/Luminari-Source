@@ -38,6 +38,7 @@
 #include "class.h"
 #include "transport.h"
 #include "routing.h"
+#include "perks.h"
 
 /* Include movement system header */
 #include "movement.h"
@@ -659,6 +660,17 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       block = FALSE;
     if (block && MOB_FLAGGED(mob, MOB_BLOCK_GOOD) && (IS_NEUTRAL(ch) || IS_EVIL(ch)))
       block = FALSE;
+
+    /* Ghost perk: Can pass through lower-level mobs (unless MOB_NO_BLOCK_BYPASS is set) */
+    if (block && !IS_NPC(ch) && has_ghost(ch) && !MOB_FLAGGED(mob, MOB_NO_BLOCK_BYPASS))
+    {
+      if (GET_LEVEL(ch) >= (GET_LEVEL(mob) + 5))
+      {
+        act("You phase through $N like a ghost.", FALSE, ch, 0, mob, TO_CHAR);
+        act("$n phases through $N like a ghost.", FALSE, ch, 0, mob, TO_ROOM);
+        block = FALSE;
+      }
+    }
 
     if (block)
       break;
