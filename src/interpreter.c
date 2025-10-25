@@ -874,6 +874,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"setworldsect", "setwo", POS_DEAD, do_setworldsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shadowcast", "shc", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SHADOW, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"shadowform", "shf", POS_SITTING, do_gen_tog, 1, SCMD_SHADOWFORM, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"shadowstep", "shadowstep", POS_STANDING, do_shadowstep, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"sheath", "she", POS_SITTING, do_sheath, 1, 0, FALSE, ACTION_NONE, {0, 6}, NULL},
     {"shortcut", "shortcut", POS_DEAD, do_shortcut, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shout", "shout", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},

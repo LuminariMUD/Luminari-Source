@@ -21,6 +21,7 @@
 #include "act.h"
 #include "class.h"
 #include "feats.h"
+#include "perks.h"
 #include "race.h"
 #include "assign_wpn_armor.h"
 #include "movement_cost.h"
@@ -110,6 +111,10 @@ int get_speed(struct char_data *ch, sbyte to_display)
     speed /= 2;
   else if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
     speed /= 2;
+
+  // Fleet of Foot perk bonus (Shadow Scout tree)
+  if (!IS_NPC(ch))
+    speed += get_perk_fleet_of_foot_bonus(ch);
 
   return speed;
 }

@@ -94,6 +94,18 @@ bool can_take_10_on_rogue_skills(struct char_data *ch);
 bool has_legendary_reflexes(struct char_data *ch);
 int get_legendary_reflexes_save_bonus(struct char_data *ch);
 
+/* Shadow Scout tree perk functions */
+int get_perk_stealth_mastery_bonus(struct char_data *ch);
+int get_perk_fleet_of_foot_bonus(struct char_data *ch);
+int get_perk_awareness_bonus(struct char_data *ch);
+bool has_light_step(struct char_data *ch);
+bool has_hide_in_plain_sight(struct char_data *ch);
+bool has_shadow_step_teleport(struct char_data *ch);
+int get_shadow_step_range(struct char_data *ch);
+bool has_uncanny_dodge(struct char_data *ch);
+int get_perk_acrobatics_bonus(struct char_data *ch);
+int get_perk_acrobatics_ac_bonus(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

@@ -11299,6 +11299,106 @@ EVENTFUNC(event_devise_creation)
   return 0;
 }
 
+/* Shadow Step - Teleport through shadows (Shadow Scout perk) */
+ACMD(do_shadowstep)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int dir, distance, i;
+  room_rnum target_room, current_room;
+  
+  /* Check if character has the perk */
+  if (!has_shadow_step_teleport(ch))
+  {
+    send_to_char(ch, "You don't know how to step through shadows.\r\n");
+    return;
+  }
+  
+  /* Parse the direction argument */
+  one_argument(argument, arg, sizeof(arg));
+  
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: shadowstep <direction>\r\n");
+    send_to_char(ch, "You can step through shadows to teleport a short distance in a direction.\r\n");
+    return;
+  }
+  
+  /* Find the direction */
+  if ((dir = search_block(arg, dirs, FALSE)) < 0)
+  {
+    send_to_char(ch, "That's not a valid direction.\r\n");
+    return;
+  }
+  
+  /* Get current room */
+  current_room = IN_ROOM(ch);
+  
+  /* Check if current room is dark enough (must be dark OR night + outside) */
+  if (!IS_DARK(current_room) && !(OUTSIDE(ch) && weather_info.sunlight == SUN_DARK))
+  {
+    send_to_char(ch, "The shadows here are not deep enough to step through.\r\n");
+    send_to_char(ch, "You need to be in darkness or outside at night.\r\n");
+    return;
+  }
+  
+  /* Get the maximum teleport distance */
+  distance = get_shadow_step_range(ch);
+  
+  /* Try to find a valid target room within range */
+  target_room = current_room;
+  for (i = 0; i < distance; i++)
+  {
+    /* Check if we can exit in this direction */
+    if (!CAN_GO(ch, dir) || !world[target_room].dir_option[dir])
+      break;
+    
+    /* Move to the next room */
+    target_room = world[target_room].dir_option[dir]->to_room;
+    
+    /* Validate the target room exists */
+    if (target_room == NOWHERE)
+      break;
+  }
+  
+  /* Make sure we actually moved somewhere */
+  if (target_room == current_room || target_room == NOWHERE)
+  {
+    send_to_char(ch, "You cannot find a path through the shadows in that direction.\r\n");
+    return;
+  }
+  
+  /* Check if target room is dark enough */
+  if (!IS_DARK(target_room) && !(ROOM_OUTSIDE(target_room) && weather_info.sunlight == SUN_DARK))
+  {
+    send_to_char(ch, "The shadows do not extend far enough in that direction.\r\n");
+    return;
+  }
+  
+  /* Check if target room is restricted */
+  if (ROOM_FLAGGED(target_room, ROOM_NOTELEPORT) || ROOM_FLAGGED(target_room, ROOM_DEATH))
+  {
+    send_to_char(ch, "A mystical force prevents you from stepping through the shadows there.\r\n");
+    return;
+  }
+  
+  /* Perform the teleport */
+  act("$n melts into the shadows and vanishes.", FALSE, ch, 0, 0, TO_ROOM);
+  char_from_room(ch);
+  
+  /* Handle wilderness coordinates */
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(target_room), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[target_room].coords[0];
+    Y_LOC(ch) = world[target_room].coords[1];
+  }
+  
+  char_to_room(ch, target_room);
+  act("$n emerges from the shadows.", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "You step through the shadows and emerge elsewhere.\r\n");
+  look_at_room(ch, 0);
+  enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
+}
+
 
 /* undefines */
 #undef DEBUG_MODE

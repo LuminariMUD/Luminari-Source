@@ -507,8 +507,8 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch)
     }
   }
 
-  /* ch is flat-footed WITHOUT uncanny dodge feat */
-  if ((AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_UNCANNY_DODGE)))
+  /* ch is flat-footed WITHOUT uncanny dodge feat or perk */
+  if ((AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_UNCANNY_DODGE) && !has_uncanny_dodge(ch)))
   {
     if (DEBUGMODE)
     {
@@ -1503,6 +1503,8 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   if (!FIGHTING(ch))
   {
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ONE_THOUGHT) && is_grouped_in_room(ch))
+      ; // cannot be flat footed
+    else if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_UNCANNY_DODGE) || has_uncanny_dodge(ch)))
       ; // cannot be flat footed
     else
       SET_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);

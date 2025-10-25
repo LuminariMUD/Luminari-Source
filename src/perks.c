@@ -1411,6 +1411,175 @@ void define_rogue_perks(void)
   perk->effect_value = 5; /* +5 to all saves */
   perk->effect_modifier = 1; /* Take no damage from area effects on successful save */
   perk->special_description = strdup("Requires Improved Evasion. Your reflexes have reached legendary status. Grants +5 to all saving throws and you take no damage from area effects on successful saves (even Fortitude/Will saves), and only half damage on failed saves.");
+  
+  /*** SHADOW SCOUT TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Stealth Mastery I */
+  perk = &perk_list[PERK_ROGUE_STEALTH_MASTERY_1];
+  perk->id = PERK_ROGUE_STEALTH_MASTERY_1;
+  perk->name = strdup("Stealth Mastery I");
+  perk->description = strdup("+3 to stealth per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 3; /* +3 per rank */
+  perk->effect_modifier = ABILITY_STEALTH;
+  perk->special_description = strdup("Grants +3 bonus to stealth per rank.");
+  
+  /* Fleet of Foot I */
+  perk = &perk_list[PERK_ROGUE_FLEET_OF_FOOT_1];
+  perk->id = PERK_ROGUE_FLEET_OF_FOOT_1;
+  perk->name = strdup("Fleet of Foot I");
+  perk->description = strdup("+5 movement speed per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 movement per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants +5 movement speed per rank.");
+  
+  /* Awareness I */
+  perk = &perk_list[PERK_ROGUE_AWARENESS_1];
+  perk->id = PERK_ROGUE_AWARENESS_1;
+  perk->name = strdup("Awareness I");
+  perk->description = strdup("+3 to perception and search per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 3; /* +3 per rank */
+  perk->effect_modifier = ABILITY_PERCEPTION; /* Also applies to search */
+  perk->special_description = strdup("Grants +3 bonus to perception and search per rank.");
+  
+  /* Light Step */
+  perk = &perk_list[PERK_ROGUE_LIGHT_STEP];
+  perk->id = PERK_ROGUE_LIGHT_STEP;
+  perk->name = strdup("Light Step");
+  perk->description = strdup("Don't trigger movement-based traps or floor detection");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Your footsteps are so light that you don't trigger movement-based traps or pressure plates.");
+  
+  /*** SHADOW SCOUT TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Stealth Mastery II */
+  perk = &perk_list[PERK_ROGUE_STEALTH_MASTERY_2];
+  perk->id = PERK_ROGUE_STEALTH_MASTERY_2;
+  perk->name = strdup("Stealth Mastery II");
+  perk->description = strdup("Additional +4 to stealth per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_ROGUE_STEALTH_MASTERY_1;
+  perk->prerequisite_rank = 5; /* Must have max rank (5) of Stealth Mastery I */
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 4; /* +4 per rank */
+  perk->effect_modifier = ABILITY_STEALTH;
+  perk->special_description = strdup("Requires Stealth Mastery I at max rank. Grants additional +4 to stealth per rank.");
+  
+  /* Fleet of Foot II */
+  perk = &perk_list[PERK_ROGUE_FLEET_OF_FOOT_2];
+  perk->id = PERK_ROGUE_FLEET_OF_FOOT_2;
+  perk->name = strdup("Fleet of Foot II");
+  perk->description = strdup("Additional +10 movement speed per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_FLEET_OF_FOOT_1;
+  perk->prerequisite_rank = 3; /* Must have max rank (3) of Fleet of Foot I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* +10 movement per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Fleet of Foot I at max rank. Grants additional +10 movement speed per rank.");
+  
+  /* Awareness II */
+  perk = &perk_list[PERK_ROGUE_AWARENESS_2];
+  perk->id = PERK_ROGUE_AWARENESS_2;
+  perk->name = strdup("Awareness II");
+  perk->description = strdup("Additional +4 to perception/search per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_AWARENESS_1;
+  perk->prerequisite_rank = 3; /* Must have max rank (3) of Awareness I */
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 4; /* +4 per rank */
+  perk->effect_modifier = ABILITY_PERCEPTION;
+  perk->special_description = strdup("Requires Awareness I at max rank. Grants additional +4 to perception/search per rank.");
+  
+  /* Hide in Plain Sight */
+  perk = &perk_list[PERK_ROGUE_HIDE_IN_PLAIN_SIGHT];
+  perk->id = PERK_ROGUE_HIDE_IN_PLAIN_SIGHT;
+  perk->name = strdup("Hide in Plain Sight");
+  perk->description = strdup("Can attempt to hide even while being observed");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_STEALTH_MASTERY_1;
+  perk->prerequisite_rank = 3; /* Must have at least 3 ranks of Stealth Mastery I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Stealth Mastery I (at least 3 ranks). You can attempt to hide even while being observed, though this is more difficult than normal.");
+  
+  /* Shadow Step (Teleport) */
+  perk = &perk_list[PERK_ROGUE_SHADOW_STEP_TELEPORT];
+  perk->id = PERK_ROGUE_SHADOW_STEP_TELEPORT;
+  perk->name = strdup("Shadow Step");
+  perk->description = strdup("Can move through shadows to teleport short distances (10 ft)");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_STEALTH_MASTERY_1;
+  perk->prerequisite_rank = 3; /* Must have at least 3 ranks of Stealth Mastery I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10 ft teleport range */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Stealth Mastery I (at least 3 ranks). You can use your bonus action to teleport up to 10 feet to an unoccupied space you can see that is in dim light or darkness.");
+  
+  /* Uncanny Dodge I */
+  perk = &perk_list[PERK_ROGUE_UNCANNY_DODGE_1];
+  perk->id = PERK_ROGUE_UNCANNY_DODGE_1;
+  perk->name = strdup("Uncanny Dodge I");
+  perk->description = strdup("Cannot be caught flat-footed, retain DEX bonus to AC");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_AWARENESS_1;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Awareness I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Awareness I (at least 2 ranks). You cannot be caught flat-footed and always retain your Dexterity bonus to AC, even when surprised.");
+  
+  /* Acrobatics I */
+  perk = &perk_list[PERK_ROGUE_ACROBATICS_1];
+  perk->id = PERK_ROGUE_ACROBATICS_1;
+  perk->name = strdup("Acrobatics I");
+  perk->description = strdup("+3 to acrobatics, +1 AC per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_FLEET_OF_FOOT_1;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Fleet of Foot I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 to acrobatics per rank */
+  perk->effect_modifier = 1; /* +1 AC per rank */
+  perk->special_description = strdup("Requires Fleet of Foot I (at least 2 ranks). Grants +3 to acrobatics and +1 AC per rank.");
 }
 
 /* Define Ranger Perks */
@@ -2518,6 +2687,24 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num)
       break;
   }
   
+  /* Shadow Scout Stealth Mastery perks apply to stealth */
+  if (skill_num == ABILITY_STEALTH)
+  {
+    bonus += get_perk_stealth_mastery_bonus(ch);
+  }
+  
+  /* Shadow Scout Awareness perks apply to perception (and search) */
+  if (skill_num == ABILITY_PERCEPTION)
+  {
+    bonus += get_perk_awareness_bonus(ch);
+  }
+  
+  /* Shadow Scout Acrobatics perks apply to acrobatics */
+  if (skill_num == ABILITY_ACROBATICS)
+  {
+    bonus += get_perk_acrobatics_bonus(ch);
+  }
+  
   return bonus;
 }
 
@@ -2987,6 +3174,186 @@ int get_legendary_reflexes_save_bonus(struct char_data *ch)
     return 5;
   
   return 0;
+}
+
+/**
+ * Get stealth mastery bonus from Shadow Scout perks.
+ * 
+ * @param ch The character
+ * @return Total bonus to stealth
+ */
+int get_perk_stealth_mastery_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Stealth Mastery I: +3 per rank, max 5 ranks */
+  bonus += 3 * get_total_perk_ranks(ch, PERK_ROGUE_STEALTH_MASTERY_1);
+  
+  /* Stealth Mastery II: +4 per rank, max 3 ranks */
+  bonus += 4 * get_total_perk_ranks(ch, PERK_ROGUE_STEALTH_MASTERY_2);
+  
+  return bonus;
+}
+
+/**
+ * Get fleet of foot movement speed bonus.
+ * 
+ * @param ch The character
+ * @return Total movement speed bonus
+ */
+int get_perk_fleet_of_foot_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Fleet of Foot I: +5 per rank, max 3 ranks */
+  bonus += 5 * get_total_perk_ranks(ch, PERK_ROGUE_FLEET_OF_FOOT_1);
+  
+  /* Fleet of Foot II: +10 per rank, max 2 ranks */
+  bonus += 10 * get_total_perk_ranks(ch, PERK_ROGUE_FLEET_OF_FOOT_2);
+  
+  return bonus;
+}
+
+/**
+ * Get awareness bonus to perception and search.
+ * 
+ * @param ch The character
+ * @return Total bonus to perception/search
+ */
+int get_perk_awareness_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Awareness I: +3 per rank, max 3 ranks */
+  bonus += 3 * get_total_perk_ranks(ch, PERK_ROGUE_AWARENESS_1);
+  
+  /* Awareness II: +4 per rank, max 2 ranks */
+  bonus += 4 * get_total_perk_ranks(ch, PERK_ROGUE_AWARENESS_2);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Light Step.
+ * Light Step prevents triggering movement-based traps.
+ * 
+ * @param ch The character
+ * @return TRUE if character has Light Step
+ */
+bool has_light_step(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_LIGHT_STEP);
+}
+
+/**
+ * Check if character has Hide in Plain Sight.
+ * Allows hiding while being observed.
+ * 
+ * @param ch The character
+ * @return TRUE if character has Hide in Plain Sight
+ */
+bool has_hide_in_plain_sight(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_HIDE_IN_PLAIN_SIGHT);
+}
+
+/**
+ * Check if character has Shadow Step teleport ability.
+ * 
+ * @param ch The character
+ * @return TRUE if character has Shadow Step teleport
+ */
+bool has_shadow_step_teleport(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_SHADOW_STEP_TELEPORT);
+}
+
+/**
+ * Get Shadow Step teleport range.
+ * 
+ * @param ch The character
+ * @return Teleport range in feet (10)
+ */
+int get_shadow_step_range(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_ROGUE_SHADOW_STEP_TELEPORT))
+    return 10;
+  
+  return 0;
+}
+
+/**
+ * Check if character has Uncanny Dodge.
+ * Cannot be caught flat-footed.
+ * 
+ * @param ch The character
+ * @return TRUE if character has Uncanny Dodge
+ */
+bool has_uncanny_dodge(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_UNCANNY_DODGE_1);
+}
+
+/**
+ * Get acrobatics bonus from perks.
+ * 
+ * @param ch The character
+ * @return Total bonus to acrobatics
+ */
+int get_perk_acrobatics_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Acrobatics I: +3 per rank, max 2 ranks */
+  bonus += 3 * get_total_perk_ranks(ch, PERK_ROGUE_ACROBATICS_1);
+  
+  return bonus;
+}
+
+/**
+ * Get AC bonus from acrobatics perks.
+ * 
+ * @param ch The character
+ * @return AC bonus from acrobatics
+ */
+int get_perk_acrobatics_ac_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Acrobatics I: +1 AC per rank, max 2 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_ROGUE_ACROBATICS_1);
+  
+  return bonus;
 }
 
 
