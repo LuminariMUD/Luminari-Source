@@ -1186,7 +1186,8 @@ int get_trapfinding_bonus(struct char_data *ch)
 }
 
 /**
- * Get trap sense bonus from perks.
+ * Get trap sense bonus from feats and perks.
+ * This bonus applies to saves vs traps and AC vs trap attacks.
  */
 int get_trap_sense_bonus(struct char_data *ch)
 {
@@ -1194,6 +1195,10 @@ int get_trap_sense_bonus(struct char_data *ch)
     
     if (!ch || IS_NPC(ch))
         return 0;
+    
+    // Trap Sense feat: +1 per rank (rogues/berserkers get this every 3 levels)
+    if (HAS_FEAT(ch, FEAT_TRAP_SENSE))
+        bonus += HAS_FEAT(ch, FEAT_TRAP_SENSE);
     
     // Trap Sense perk: +2 per rank
     bonus += get_perk_trap_sense_bonus(ch);

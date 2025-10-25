@@ -249,20 +249,37 @@ TRAP: Auto-generated 5 traps in zone 123
 
 ## Integration Points
 
+### Feat System
+- `FEAT_TRAPFINDING` (136): Rogues get at level 1, reduces trap detect DC by 4
+- `FEAT_TRAP_SENSE` (119): Rogues/Berserkers get every 3 levels, +1/rank to saves vs traps
+
 ### Perk System
-The trap system is designed to integrate with these rogue perks:
-- `PERK_ROGUE_TRAPFINDING_EXPERT_1` (109): +3/rank to find/disable traps
-- `PERK_ROGUE_TRAPFINDING_EXPERT_2` (113): +4/rank to find/disable traps
-- `PERK_ROGUE_TRAP_SENSE_1` (116): +2/rank to saves/AC vs traps
-- `PERK_ROGUE_TRAP_SCAVENGER` (118): Salvage trap components
+The trap system integrates with these rogue perks:
+- `PERK_ROGUE_TRAPFINDING_EXPERT_1` (109): +3/rank to find/disable traps (max 3 ranks)
+- `PERK_ROGUE_TRAPFINDING_EXPERT_2` (113): +4/rank to find/disable traps (max 2 ranks, requires Expert I)
+- `PERK_ROGUE_TRAP_SENSE_1` (116): +2/rank to saves/AC vs traps (max 2 ranks)
+- `PERK_ROGUE_TRAP_SCAVENGER` (118): Salvage trap components from disabled traps
+
+**Implemented Functions:**
+- `get_perk_trapfinding_bonus()` - Returns total bonus from trapfinding perks
+- `get_perk_trap_sense_bonus()` - Returns total bonus from trap sense perks
+- `get_trapfinding_bonus()` - Combines all trapfinding bonuses (reduces trap DCs)
+- `get_trap_sense_bonus()` - Combines FEAT_TRAP_SENSE + perks (bonus to saves vs traps)
 
 ### Skill System
-- `ABILITY_PERCEPTION`: Used to detect traps
-- `ABILITY_DISABLE_DEVICE`: Used to disarm traps
+- `ABILITY_PERCEPTION`: Used to detect traps (includes perk bonuses)
+- `ABILITY_DISABLE_DEVICE`: Used to disarm traps (includes perk bonuses)
+
+**Autosearch System:**
+- PRF_AUTOSEARCH flag enables automatic trap detection on room entry
+- Uses half perception skill + trapfinding bonuses + trap sense bonuses
+- Grants reduced experience (50% of normal) for automatic detection
+- Silent failure (no message) to avoid spam
 
 ### Combat System
 - Trap damage uses existing damage types (DAM_*)
 - Trap effects use existing spell effects where applicable
+- Trap sense bonuses apply to saving throws (SAVING_FORT, SAVING_REFL, SAVING_WILL)
 - Special trap effects may need new affect types
 
 ## Benefits of This System
