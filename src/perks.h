@@ -87,6 +87,13 @@ int get_perk_trapfinding_bonus(struct char_data *ch);
 int get_perk_fast_hands_bonus(struct char_data *ch);
 int get_perk_trap_sense_bonus(struct char_data *ch);
 
+/* Tier 3 and 4 Master Thief perk functions */
+bool has_shadow_step(struct char_data *ch);
+int get_shadow_step_bonus(struct char_data *ch);
+bool can_take_10_on_rogue_skills(struct char_data *ch);
+bool has_legendary_reflexes(struct char_data *ch);
+int get_legendary_reflexes_save_bonus(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

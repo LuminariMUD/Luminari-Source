@@ -1302,6 +1302,115 @@ void define_rogue_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Requires Trapfinding Expert I at max rank. When you successfully disable a trap, you can salvage crafting components from it.");
+  
+  /*** MASTER THIEF TREE - TIER 3 PERKS (3 points each) ***/
+  
+  /* Skill Mastery III */
+  perk = &perk_list[PERK_ROGUE_SKILL_MASTERY_3];
+  perk->id = PERK_ROGUE_SKILL_MASTERY_3;
+  perk->name = strdup("Skill Mastery III");
+  perk->description = strdup("Additional +4 to all rogue skills per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_SKILL_MASTERY_2;
+  perk->prerequisite_rank = 3; /* Must have max rank (3) of Skill Mastery II */
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 4; /* +4 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Skill Mastery II at max rank. Grants additional +4 to all rogue skills per rank.");
+  
+  /* Trapfinding Expert III */
+  perk = &perk_list[PERK_ROGUE_TRAPFINDING_EXPERT_3];
+  perk->id = PERK_ROGUE_TRAPFINDING_EXPERT_3;
+  perk->name = strdup("Trapfinding Expert III");
+  perk->description = strdup("Additional +5 to find/disable traps per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_TRAPFINDING_EXPERT_2;
+  perk->prerequisite_rank = 2; /* Must have max rank (2) of Trapfinding Expert II */
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 5; /* +5 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Trapfinding Expert II at max rank. Grants additional +5 to find and disable traps per rank.");
+  
+  /* Fast Hands III */
+  perk = &perk_list[PERK_ROGUE_FAST_HANDS_3];
+  perk->id = PERK_ROGUE_FAST_HANDS_3;
+  perk->name = strdup("Fast Hands III");
+  perk->description = strdup("Additional +4 to sleight of hand and locks per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_FAST_HANDS_2;
+  perk->prerequisite_rank = 2; /* Must have max rank (2) of Fast Hands II */
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 4; /* +4 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Fast Hands II at max rank. Grants additional +4 to sleight of hand and pick locks per rank.");
+  
+  /* Shadow Step */
+  perk = &perk_list[PERK_ROGUE_SHADOW_STEP];
+  perk->id = PERK_ROGUE_SHADOW_STEP;
+  perk->name = strdup("Shadow Step");
+  perk->description = strdup("+5 to stealth, can hide while being observed");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_SKILL_MASTERY_2;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Skill Mastery II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 to stealth */
+  perk->effect_modifier = 1; /* Can hide while observed */
+  perk->special_description = strdup("Requires Skill Mastery II (at least 2 ranks). Grants +5 bonus to stealth and allows you to attempt to hide even while being observed.");
+  
+  /* Trap Sense II */
+  perk = &perk_list[PERK_ROGUE_TRAP_SENSE_2];
+  perk->id = PERK_ROGUE_TRAP_SENSE_2;
+  perk->name = strdup("Trap Sense II");
+  perk->description = strdup("Additional +3 to saves vs traps, +3 AC vs trap attacks per rank");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_ROGUE_TRAP_SENSE_1;
+  perk->prerequisite_rank = 2; /* Must have max rank (2) of Trap Sense I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 saves vs traps per rank */
+  perk->effect_modifier = 3; /* +3 AC vs trap attacks per rank */
+  perk->special_description = strdup("Requires Trap Sense I at max rank. Grants additional +3 to saves vs traps and +3 AC vs trap attacks per rank.");
+  
+  /*** MASTER THIEF TREE - TIER 4 PERKS (4 points each) ***/
+  
+  /* Master Thief Capstone */
+  perk = &perk_list[PERK_ROGUE_MASTER_THIEF_CAPSTONE];
+  perk->id = PERK_ROGUE_MASTER_THIEF_CAPSTONE;
+  perk->name = strdup("Master Thief");
+  perk->description = strdup("+10 to all rogue skills, take 10 on any rogue skill check");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_SKILL_MASTERY_3;
+  perk->prerequisite_rank = 2; /* Must have max rank (2) of Skill Mastery III */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* +10 to all rogue skills */
+  perk->effect_modifier = 1; /* Can take 10 on rogue skills */
+  perk->special_description = strdup("Requires Skill Mastery III at max rank. The ultimate expression of rogue mastery. Grants +10 to all rogue skills and allows you to 'take 10' on any rogue skill check, even in combat or under pressure.");
+  
+  /* Legendary Reflexes */
+  perk = &perk_list[PERK_ROGUE_LEGENDARY_REFLEXES];
+  perk->id = PERK_ROGUE_LEGENDARY_REFLEXES;
+  perk->name = strdup("Legendary Reflexes");
+  perk->description = strdup("+5 to all saves, take no damage from area effects on successful save");
+  perk->associated_class = CLASS_ROGUE;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_ROGUE_IMPROVED_EVASION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 to all saves */
+  perk->effect_modifier = 1; /* Take no damage from area effects on successful save */
+  perk->special_description = strdup("Requires Improved Evasion. Your reflexes have reached legendary status. Grants +5 to all saving throws and you take no damage from area effects on successful saves (even Fortitude/Will saves), and only half damage on failed saves.");
 }
 
 /* Define Ranger Perks */
@@ -2720,6 +2829,13 @@ int get_perk_skill_mastery_bonus(struct char_data *ch)
   /* Skill Mastery II: +3 per rank, max 3 ranks */
   bonus += 3 * get_total_perk_ranks(ch, PERK_ROGUE_SKILL_MASTERY_2);
   
+  /* Skill Mastery III: +4 per rank, max 2 ranks */
+  bonus += 4 * get_total_perk_ranks(ch, PERK_ROGUE_SKILL_MASTERY_3);
+  
+  /* Master Thief Capstone: +10 */
+  if (has_perk(ch, PERK_ROGUE_MASTER_THIEF_CAPSTONE))
+    bonus += 10;
+  
   return bonus;
 }
 
@@ -2741,6 +2857,9 @@ int get_perk_trapfinding_bonus(struct char_data *ch)
   
   /* Trapfinding Expert II: +4 per rank, max 2 ranks */
   bonus += 4 * get_total_perk_ranks(ch, PERK_ROGUE_TRAPFINDING_EXPERT_2);
+  
+  /* Trapfinding Expert III: +5 per rank, max 2 ranks */
+  bonus += 5 * get_total_perk_ranks(ch, PERK_ROGUE_TRAPFINDING_EXPERT_3);
   
   return bonus;
 }
@@ -2764,6 +2883,9 @@ int get_perk_fast_hands_bonus(struct char_data *ch)
   /* Fast Hands II: +3 per rank, max 2 ranks */
   bonus += 3 * get_total_perk_ranks(ch, PERK_ROGUE_FAST_HANDS_2);
   
+  /* Fast Hands III: +4 per rank, max 2 ranks */
+  bonus += 4 * get_total_perk_ranks(ch, PERK_ROGUE_FAST_HANDS_3);
+  
   return bonus;
 }
 
@@ -2783,7 +2905,88 @@ int get_perk_trap_sense_bonus(struct char_data *ch)
   /* Trap Sense I: +2 per rank, max 2 ranks */
   bonus += 2 * get_total_perk_ranks(ch, PERK_ROGUE_TRAP_SENSE_1);
   
+  /* Trap Sense II: +3 per rank, max 2 ranks */
+  bonus += 3 * get_total_perk_ranks(ch, PERK_ROGUE_TRAP_SENSE_2);
+  
   return bonus;
+}
+
+/**
+ * Check if character has Shadow Step ability.
+ * Shadow Step allows hiding while being observed.
+ * 
+ * @param ch The character
+ * @return TRUE if character has Shadow Step
+ */
+bool has_shadow_step(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_SHADOW_STEP);
+}
+
+/**
+ * Get Shadow Step stealth bonus.
+ * 
+ * @param ch The character
+ * @return Bonus to stealth from Shadow Step (+5)
+ */
+int get_shadow_step_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_ROGUE_SHADOW_STEP))
+    return 5;
+  
+  return 0;
+}
+
+/**
+ * Check if character can "take 10" on rogue skill checks.
+ * Master Thief capstone allows taking 10 even under pressure.
+ * 
+ * @param ch The character
+ * @return TRUE if character can take 10 on rogue skills
+ */
+bool can_take_10_on_rogue_skills(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_MASTER_THIEF_CAPSTONE);
+}
+
+/**
+ * Check if character has Legendary Reflexes.
+ * 
+ * @param ch The character
+ * @return TRUE if character has Legendary Reflexes
+ */
+bool has_legendary_reflexes(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_ROGUE_LEGENDARY_REFLEXES);
+}
+
+/**
+ * Get Legendary Reflexes save bonus.
+ * 
+ * @param ch The character
+ * @return Bonus to all saves from Legendary Reflexes (+5)
+ */
+int get_legendary_reflexes_save_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_ROGUE_LEGENDARY_REFLEXES))
+    return 5;
+  
+  return 0;
 }
 
 
