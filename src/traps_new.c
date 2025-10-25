@@ -743,6 +743,20 @@ bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
     if (!ch || IS_NPC(ch))
         return FALSE;
     
+    // Light Step perk - chance to avoid LEAVE_ROOM traps
+    if (trigger_type == TRAP_TRIGGER_LEAVE_ROOM && has_light_step(ch))
+    {
+        // Light Step gives a percentage chance to avoid the trap
+        // Base 25% + 5% per point of DEX bonus capped at 75%
+        int avoid_chance = MIN(75, 25 + (GET_DEX_BONUS(ch) * 5));
+        
+        if (dice(1, 100) <= avoid_chance)
+        {
+            send_to_char(ch, "\tYYour light footsteps avoid triggering the trap!\tn\r\n");
+            return FALSE;
+        }
+    }
+    
     // Check room traps
     if (room >= 0 && room <= top_of_world)
     {

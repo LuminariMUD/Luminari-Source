@@ -833,6 +833,7 @@ ACMD_DECL(do_practice);
 ACMD_DECL(do_report);
 ACMD_DECL(do_save);
 ACMD_DECL(do_search);
+ACMD_DECL(do_shadowstep);
 ACMD_DECL(do_sneak);
 ACMD_DECL(do_spelllist);
 ACMD_DECL(do_spells);
