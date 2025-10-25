@@ -402,6 +402,7 @@ ACMD_DECL(do_bid);
 ACMD_DECL(do_channelspell);
 ACMDCHECK(can_channel_energy);
 ACMD_DECL(do_channelenergy);
+ACMD_DECL(do_beaconofhope);
 ACMD_DECL(do_store);
 ACMD_DECL(do_unstore);
 ACMD_DECL(do_use_consumable);

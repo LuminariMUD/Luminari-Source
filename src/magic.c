@@ -11133,14 +11133,17 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case ABILITY_CHANNEL_POSITIVE_ENERGY:
-    healing = dice((compute_channel_energy_level(ch) + 1) / 2, 6);
+    /* Use perk-based channel energy dice (handles Divine Healer perks) */
+    healing = dice(get_channel_energy_dice(ch), 6);
+    
+    /* Holy Champion/Warrior feats still apply */
     if (HAS_FEAT(ch, FEAT_HOLY_CHAMPION))
     {
-      healing = ((compute_channel_energy_level(ch) + 1) / 2) * 7;
+      healing = get_channel_energy_dice(ch) * 7;
     }
     else if (HAS_FEAT(ch, FEAT_HOLY_WARRIOR))
     {
-      healing += (compute_channel_energy_level(ch) + 1) / 2;
+      healing += get_channel_energy_dice(ch);
     }
     to_notvict = "$n \tWheals\tn $N.";
     if (ch == victim)
@@ -11151,14 +11154,17 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case ABILITY_CHANNEL_NEGATIVE_ENERGY:
-    healing = dice((compute_channel_energy_level(ch) + 1) / 2, 6);
+    /* Use perk-based channel energy dice (handles Divine Healer perks) */
+    healing = dice(get_channel_energy_dice(ch), 6);
+    
+    /* Unholy Champion/Warrior feats still apply */
     if (HAS_FEAT(ch, FEAT_UNHOLY_CHAMPION))
     {
-      healing = ((compute_channel_energy_level(ch) + 1) / 2) * 7;
+      healing = get_channel_energy_dice(ch) * 7;
     }
     else if (HAS_FEAT(ch, FEAT_UNHOLY_WARRIOR))
     {
-      healing += (compute_channel_energy_level(ch) + 1) / 2;
+      healing += get_channel_energy_dice(ch);
     }
     to_notvict = "$n \tWheals\tn $N.";
     if (ch == victim)
@@ -11260,13 +11266,79 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
       healing += get_preserve_life_bonus(ch, victim);
     }
     
-    /* Empowered Healing I: 10% chance for 150% healing */
+    /* Empowered Healing I/II: chance for 150% or 200% healing */
     if (is_healing_empowered(ch))
     {
-      healing = (healing * 150) / 100;
-      send_to_char(ch, "\tY[Empowered Healing!]\tn ");
+      int multiplier = get_empowered_healing_multiplier(ch);
+      healing = (healing * multiplier) / 100;
+      
+      if (multiplier == 200)
+        send_to_char(ch, "\tY[Critical Heal! x2]\tn ");
+      else
+        send_to_char(ch, "\tY[Empowered Healing!]\tn ");
+      
       if (ch != victim)
-        send_to_char(victim, "\tY[Empowered Healing!]\tn ");
+      {
+        if (multiplier == 200)
+          send_to_char(victim, "\tY[Critical Heal! x2]\tn ");
+        else
+          send_to_char(victim, "\tY[Empowered Healing!]\tn ");
+      }
+    }
+    
+    /* Restorative Touch: remove negative conditions when healing */
+    if (victim && has_restorative_touch(ch))
+    {
+      /* Try to remove conditions in priority order */
+      if (AFF_FLAGGED(victim, AFF_POISON) && affected_by_spell(victim, SPELL_POISON))
+      {
+        affect_from_char(victim, SPELL_POISON);
+        if (AFF_FLAGGED(victim, AFF_POISON))
+          REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_POISON);
+        send_to_char(victim, "\tGThe poison is purged from your body!\tn\r\n");
+        if (ch != victim)
+          send_to_char(ch, "\tGYou purge the poison from $N!\tn\r\n");
+      }
+      else if (AFF_FLAGGED(victim, AFF_DISEASE))
+      {
+        if (affected_by_spell(victim, SPELL_EYEBITE))
+          affect_from_char(victim, SPELL_EYEBITE);
+        if (AFF_FLAGGED(victim, AFF_DISEASE))
+          REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_DISEASE);
+        send_to_char(victim, "\tGThe disease is cured!\tn\r\n");
+        if (ch != victim)
+          send_to_char(ch, "\tGYou cure $N's disease!\tn\r\n");
+      }
+      else if (AFF_FLAGGED(victim, AFF_CURSE))
+      {
+        if (affected_by_spell(victim, SPELL_CURSE))
+          affect_from_char(victim, SPELL_CURSE);
+        if (AFF_FLAGGED(victim, AFF_CURSE))
+          REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_CURSE);
+        send_to_char(victim, "\tGThe curse is lifted!\tn\r\n");
+        if (ch != victim)
+          send_to_char(ch, "\tGYou lift the curse from $N!\tn\r\n");
+      }
+      else if (AFF_FLAGGED(victim, AFF_BLIND))
+      {
+        if (affected_by_spell(victim, SPELL_BLINDNESS))
+          affect_from_char(victim, SPELL_BLINDNESS);
+        if (AFF_FLAGGED(victim, AFF_BLIND))
+          REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_BLIND);
+        send_to_char(victim, "\tGYour vision is restored!\tn\r\n");
+        if (ch != victim)
+          send_to_char(ch, "\tGYou restore $N's vision!\tn\r\n");
+      }
+      else if (AFF_FLAGGED(victim, AFF_PARALYZED))
+      {
+        if (affected_by_spell(victim, SPELL_HOLD_PERSON))
+          affect_from_char(victim, SPELL_HOLD_PERSON);
+        if (AFF_FLAGGED(victim, AFF_PARALYZED))
+          REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_PARALYZED);
+        send_to_char(victim, "\tGYou can move again!\tn\r\n");
+        if (ch != victim)
+          send_to_char(ch, "\tGYou free $N from paralysis!\tn\r\n");
+      }
     }
   }
 

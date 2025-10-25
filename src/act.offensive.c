@@ -2402,6 +2402,103 @@ ACMDU(do_channelenergy)
   start_daily_use_cooldown(ch, FEAT_CHANNEL_ENERGY);
 }
 
+/* Beacon of Hope - Divine Healer Tier 4 Capstone */
+ACMDU(do_beaconofhope)
+{
+  struct char_data *tch = NULL, *next_tch = NULL;
+  struct affected_type af;
+  int healed_count = 0;
+  
+  PREREQ_CAN_FIGHT();
+  
+  /* Check for perk */
+  if (!has_beacon_of_hope(ch))
+  {
+    send_to_char(ch, "You don't have the Beacon of Hope ability.\r\n");
+    return;
+  }
+  
+  /* Check cooldown - once per day */
+  if (char_has_mud_event(ch, eBEACON_OF_HOPE))
+  {
+    send_to_char(ch, "You must wait before using Beacon of Hope again.\r\n");
+    return;
+  }
+  
+  /* Activate beacon */
+  act("\tW$n becomes a \tYradiant beacon of hope\tW, divine light flooding the area!\tn", 
+      FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "\tWYou become a \tYradiant beacon of hope\tW, divine light flooding the area!\tn\r\n");
+  
+  /* Heal all allies in the room */
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+    
+    /* Skip if not an ally */
+    if (tch == ch || IS_NPC(tch))
+      continue;
+    
+    if (!AFF_FLAGGED(ch, AFF_GROUP) || !AFF_FLAGGED(tch, AFF_GROUP))
+      continue;
+    
+    /* Fully heal the ally */
+    GET_HIT(tch) = GET_MAX_HIT(tch);
+    GET_MOVE(tch) = GET_MAX_MOVE(tch);
+    update_pos(tch);
+    
+    /* Grant +4 save bonus for 10 rounds */
+    new_affect(&af);
+    af.spell = PERK_CLERIC_BEACON_OF_HOPE;
+    af.duration = 10;
+    af.bonus_type = BONUS_TYPE_MORALE;
+    af.location = APPLY_SAVING_FORT;
+    af.modifier = 4;
+    affect_to_char(tch, &af);
+    
+    af.location = APPLY_SAVING_REFL;
+    affect_to_char(tch, &af);
+    
+    af.location = APPLY_SAVING_WILL;
+    affect_to_char(tch, &af);
+    
+    send_to_char(tch, "\tWYou are \tYfully healed\tW and filled with \tYhope\tW! (+4 saves)\tn\r\n");
+    healed_count++;
+  }
+  
+  /* Heal self */
+  GET_HIT(ch) = GET_MAX_HIT(ch);
+  GET_MOVE(ch) = GET_MAX_MOVE(ch);
+  update_pos(ch);
+  
+  /* Grant save bonus to self */
+  new_affect(&af);
+  af.spell = PERK_CLERIC_BEACON_OF_HOPE;
+  af.duration = 10;
+  af.bonus_type = BONUS_TYPE_MORALE;
+  af.location = APPLY_SAVING_FORT;
+  af.modifier = 4;
+  affect_to_char(ch, &af);
+  
+  af.location = APPLY_SAVING_REFL;
+  affect_to_char(ch, &af);
+  
+  af.location = APPLY_SAVING_WILL;
+  affect_to_char(ch, &af);
+  
+  send_to_char(ch, "\tWYou are \tYfully restored\tW and filled with \tYhope\tW! (+4 saves)\tn\r\n");
+  
+  if (healed_count > 0)
+    send_to_char(ch, "\tWYou healed %d %s.\tn\r\n", healed_count, 
+                 healed_count == 1 ? "ally" : "allies");
+  
+  /* Set daily cooldown - 2 hours */
+  attach_mud_event(new_mud_event(eBEACON_OF_HOPE, ch, NULL), 2 * 60 * 60 * PASSES_PER_SEC);
+  
+  /* Actions */
+  USE_STANDARD_ACTION(ch);
+}
+
 /* a function to clear rage and do other dirty work associated with that */
 void clear_rage(struct char_data *ch)
 {
