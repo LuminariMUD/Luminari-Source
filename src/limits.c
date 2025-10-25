@@ -1765,6 +1765,15 @@ void update_player_misc(void)
       }
     }
 
+    if (GET_SPIRITUAL_WEAPON_COOLDOWN(ch) > 0)
+    {
+      GET_SPIRITUAL_WEAPON_COOLDOWN(ch)--;
+      if (GET_SPIRITUAL_WEAPON_COOLDOWN(ch) == 0)
+      {
+        send_to_char(ch, "You can now summon a spiritual weapon again.\r\n");
+      }
+    }
+
     if (IN_ROOM(ch) == 0 || IN_ROOM(ch) == NOWHERE || GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_MORTAL_START || GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_IMMORTAL_START)
       ;
     else
@@ -2847,6 +2856,8 @@ void self_buffing(void)
 #else
           GET_BUFF_TIMER(ch) = spell_info[spellnum].time + 1;
 #endif
+          if (has_perk(ch, PERK_CLERIC_BATTLE_BLESSING) && GET_BUFF_TARGET(ch) == ch)
+            GET_BUFF_TIMER(ch) -= 1;
         }
 
         if (is_spell >= 2) // spell or warlock power

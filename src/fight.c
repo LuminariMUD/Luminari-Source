@@ -1049,6 +1049,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     if (!IS_NPC(ch))
       bonuses[BONUS_TYPE_DODGE] += get_perk_acrobatics_ac_bonus(ch);
 
+    /* Cleric Battle Cleric perk: Armor of Faith I & II - dodge bonus */
+    if (!IS_NPC(ch))
+      bonuses[BONUS_TYPE_DODGE] += get_cleric_armor_of_faith_bonus(ch);
+
     /* this feat requires light armor and no shield */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_CANNY_DEFENSE) && HAS_FREE_HAND(ch) &&
         compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT)

@@ -2793,6 +2793,7 @@ bool has_reach(struct char_data *ch);
 #define GET_FORAGE_COOLDOWN(ch) (ch->player_specials->saved.forage_cooldown)
 #define GET_RETAINER_COOLDOWN(ch) (ch->player_specials->saved.retainer_cooldown)
 #define GET_SCROUNGE_COOLDOWN(ch) (ch->player_specials->saved.scrounge_cooldown)
+#define GET_SPIRITUAL_WEAPON_COOLDOWN(ch) (ch->player_specials->saved.spiritual_weapon_cooldown)
 
 #define GET_SAGE_MOB_VNUM(ch)   (ch->char_specials.sage_mob_vnum)
 

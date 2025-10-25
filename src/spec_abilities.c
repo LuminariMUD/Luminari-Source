@@ -45,6 +45,7 @@
 #include "spec_abilities.h"
 #include "domains_schools.h"
 #include "evolutions.h"
+#include "perks.h"
 
 struct special_ability_info_type special_ability_info[NUM_SPECABS];
 
@@ -412,6 +413,16 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
     if (actmtd == ACTMTD_ON_CRIT)
     {
       damage(ch, victim, dice(2, 10), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
+    }
+  }
+
+  // Cleric Battle Cleric: Holy Weapon I & II perk damage
+  if (victim && !IS_NPC(ch) && actmtd == ACTMTD_ON_HIT)
+  {
+    int holy_damage = get_cleric_holy_weapon_bonus(ch);
+    if (holy_damage > 0)
+    {
+      damage(ch, victim, holy_damage, TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
     }
   }
 

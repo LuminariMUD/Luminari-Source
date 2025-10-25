@@ -597,6 +597,8 @@ ACMDCHECK(can_smitegood);
 ACMD_DECL(do_kill);
 ACMD_DECL(do_layonhands);
 ACMDCHECK(can_layonhands);
+ACMD_DECL(do_spiritualweapon);
+ACMDCHECK(can_spiritualweapon);
 ACMD_DECL(do_order);
 ACMD_DECL(do_applypoison);
 ACMD_DECL(do_sorcerer_arcane_apotheosis);

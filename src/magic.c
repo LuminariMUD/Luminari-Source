@@ -1844,6 +1844,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     {
       bonus = (compute_channel_energy_level(ch) + 1) / 2;
     }
+    /* Battle Cleric: Channel Energy: Harm perk increases channel level by 2 */
+    if (!IS_NPC(ch) && has_channel_energy_harm(ch))
+      level += 2;
     break;
 
   case ABILITY_CHANNEL_NEGATIVE_ENERGY:
@@ -1863,6 +1866,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     {
       bonus = (compute_channel_energy_level(ch) + 1) / 2;
     }
+    /* Battle Cleric: Channel Energy: Harm perk increases channel level by 2 */
+    if (!IS_NPC(ch) && has_channel_energy_harm(ch))
+      level += 2;
     break;
 
   case SPELL_FIREBRAND: // transmutation

@@ -5986,6 +5986,44 @@ ACMD(do_layonhands)
   perform_layonhands(ch, vict);
 }
 
+ACMDCHECK(can_spiritualweapon)
+{
+  ACMDCHECK_PREREQ_HASFEAT(PERK_CLERIC_SPIRITUAL_WEAPON, "You don't have the spiritual weapon perk.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_spiritualweapon)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_spiritualweapon);
+
+  /* Check if perk is available */
+  if (!has_spiritual_weapon(ch))
+  {
+    send_to_char(ch, "You don't have the spiritual weapon perk.\r\n");
+    return;
+  }
+
+  /* Check cooldown - 5 minutes (50 ticks at 6 seconds each = 300 seconds) */
+  if (GET_SPIRITUAL_WEAPON_COOLDOWN(ch) > 0)
+  {
+    int seconds_left = GET_SPIRITUAL_WEAPON_COOLDOWN(ch) * 6;
+    int minutes = seconds_left / 60;
+    int seconds = seconds_left % 60;
+    send_to_char(ch, "You must wait %d minute%s and %d second%s before summoning another spiritual weapon.\r\n",
+                 minutes, (minutes != 1 ? "s" : ""), seconds, (seconds != 1 ? "s" : ""));
+    return;
+  }
+
+  /* Cast spiritual weapon spell */
+  call_magic(ch, ch, 0, SPELL_SPIRITUAL_WEAPON, 0, GET_LEVEL(ch), CAST_INNATE);
+
+  /* Set cooldown to 5 minutes (50 ticks) */
+  GET_SPIRITUAL_WEAPON_COOLDOWN(ch) = 50;
+
+  send_to_char(ch, "You channel divine energy to summon a spiritual weapon!\r\n");
+}
+
 ACMDCHECK(can_mastermind)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_MASTER_OF_THE_MIND, "How do you plan on doing that?\r\n");
