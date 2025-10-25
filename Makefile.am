@@ -198,7 +198,7 @@ circle_SOURCES = \
 	src/templates.c \
 	src/trade.c \
 	src/transport.c \
-	src/traps.c \
+	src/traps_new.c \
 	src/treasure.c \
 	src/treasure_const.c \
 	src/utils.c \

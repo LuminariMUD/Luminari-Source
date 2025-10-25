@@ -141,14 +141,13 @@
 /* ============================================================================ */
 
 /* Trap Trigger Types - How the trap is activated */
-#define TRAP_TRIGGER_ENTER_ROOM 0       /* Walking into the room */
-#define TRAP_TRIGGER_LEAVE_ROOM 1       /* Leaving the room */
-#define TRAP_TRIGGER_OPEN_DOOR 2        /* Opening a door */
-#define TRAP_TRIGGER_UNLOCK_DOOR 3      /* Unlocking a door */
-#define TRAP_TRIGGER_OPEN_CONTAINER 4   /* Opening a container */
-#define TRAP_TRIGGER_UNLOCK_CONTAINER 5 /* Unlocking a container */
-#define TRAP_TRIGGER_GET_OBJECT 6       /* Taking object from container */
-#define NUM_TRAP_TRIGGERS 7
+#define TRAP_TRIGGER_LEAVE_ROOM 0       /* Leaving the room */
+#define TRAP_TRIGGER_OPEN_DOOR 1        /* Opening a door */
+#define TRAP_TRIGGER_UNLOCK_DOOR 2      /* Unlocking a door */
+#define TRAP_TRIGGER_OPEN_CONTAINER 3   /* Opening a container */
+#define TRAP_TRIGGER_UNLOCK_CONTAINER 4 /* Unlocking a container */
+#define TRAP_TRIGGER_GET_OBJECT 5       /* Taking object from container */
+#define NUM_TRAP_TRIGGERS 6
 
 /* Trap Types - Based on NWN trap system */
 #define TRAP_TYPE_ACID_BLOB 0      /* Acid damage + paralysis */

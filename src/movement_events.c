@@ -191,9 +191,8 @@ void process_trap_detection(struct char_data *ch)
     }
   }
 
-  /* Check for traps on room entry */
-  if (!sensed_trap)
-    check_trap(ch, TRAP_TRIGGER_ENTER_ROOM, ch->in_room, 0, 0);
+  /* Room entry traps removed - use autosearch system instead */
+  /* Players can enable autosearch for automatic trap detection */
 }
 
 /**
