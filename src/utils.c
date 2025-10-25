@@ -4933,8 +4933,12 @@ int get_daily_uses(struct char_data *ch, int featnum)
     case FEAT_IMPROMPTU_SNEAK_ATTACK:
       daily_uses += 1 + HAS_FEAT(ch, featnum); 
     break;
-    case FEAT_SMITE_EVIL:/*fallthrough*/
-    case FEAT_SMITE_GOOD:/*fallthrough*/
+    case FEAT_SMITE_EVIL:
+    case FEAT_SMITE_GOOD:
+      daily_uses += HAS_FEAT(ch, featnum);
+      daily_uses += has_perk(ch, PERK_CLERIC_SMITE_EVIL_1);
+      daily_uses += has_perk(ch, PERK_CLERIC_SMITE_EVIL_2);
+      break;
     case FEAT_RAGE:/*fallthrough*/
     case FEAT_SACRED_FLAMES:/*fallthrough*/
     case FEAT_INNER_FIRE:/*fallthrough*/

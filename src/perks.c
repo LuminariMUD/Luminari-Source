@@ -1082,6 +1082,190 @@ void define_cleric_perks(void)
   perk->effect_value = 1; /* Once per day */
   perk->effect_modifier = 4; /* +4 to saves */
   perk->special_description = strdup("Requires Healing Aura II and Mass Healing Focus. Capstone: Once per day, you can fully heal all allies in the area and grant them +4 to all saving throws for 10 rounds.");
+  
+  /*** BATTLE CLERIC TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Divine Favor I (Rank 1-3) */
+  perk = &perk_list[PERK_CLERIC_DIVINE_FAVOR_1];
+  perk->id = PERK_CLERIC_DIVINE_FAVOR_1;
+  perk->name = strdup("Divine Favor I");
+  perk->description = strdup("+1 to hit per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_WEAPON_TOHIT;
+  perk->effect_value = 1; /* +1 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases your attack bonus by +1 per rank. Maximum 3 ranks for +3 total.");
+  
+  /* Holy Weapon I (Rank 1-3) */
+  perk = &perk_list[PERK_CLERIC_HOLY_WEAPON_1];
+  perk->id = PERK_CLERIC_HOLY_WEAPON_1;
+  perk->name = strdup("Holy Weapon I");
+  perk->description = strdup("Melee attacks deal +2 holy damage per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 holy damage per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Your melee attacks deal +2 holy damage per rank. Maximum 3 ranks for +6 holy damage total.");
+  
+  /* Armor of Faith I (Rank 1-3) */
+  perk = &perk_list[PERK_CLERIC_ARMOR_OF_FAITH_1];
+  perk->id = PERK_CLERIC_ARMOR_OF_FAITH_1;
+  perk->name = strdup("Armor of Faith I");
+  perk->description = strdup("+1 AC per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1; /* +1 AC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Divine protection grants +1 AC per rank. Maximum 3 ranks for +3 AC total.");
+  
+  /* Battle Blessing */
+  perk = &perk_list[PERK_CLERIC_BATTLE_BLESSING];
+  perk->id = PERK_CLERIC_BATTLE_BLESSING;
+  perk->name = strdup("Battle Blessing");
+  perk->description = strdup("Can cast self-buff spells as swift action");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("You can cast self-targeting buff spells as a swift action instead of a standard action, allowing you to buff and attack in the same round.");
+  
+  /* Smite Evil I */
+  perk = &perk_list[PERK_CLERIC_SMITE_EVIL_1];
+  perk->id = PERK_CLERIC_SMITE_EVIL_1;
+  perk->name = strdup("Smite Evil I");
+  perk->description = strdup("Once per combat: +2d6 damage to evil enemies");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* 2d6 damage */
+  perk->effect_modifier = 1; /* Once per combat */
+  perk->special_description = strdup("Once per combat, you can channel divine fury to deal +2d6 holy damage against an evil-aligned enemy.");
+  
+  /*** BATTLE CLERIC TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Divine Favor II (Rank 1-2) */
+  perk = &perk_list[PERK_CLERIC_DIVINE_FAVOR_2];
+  perk->id = PERK_CLERIC_DIVINE_FAVOR_2;
+  perk->name = strdup("Divine Favor II");
+  perk->description = strdup("Additional +1 to hit per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_CLERIC_DIVINE_FAVOR_1;
+  perk->prerequisite_rank = 3; /* Must have max ranks of Divine Favor I */
+  perk->effect_type = PERK_EFFECT_WEAPON_TOHIT;
+  perk->effect_value = 1; /* +1 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Divine Favor I (max). Increases your attack bonus by an additional +1 per rank. Maximum 2 ranks for +2 total (combined +5 with Tier 1).");
+  
+  /* Holy Weapon II (Rank 1-2) */
+  perk = &perk_list[PERK_CLERIC_HOLY_WEAPON_2];
+  perk->id = PERK_CLERIC_HOLY_WEAPON_2;
+  perk->name = strdup("Holy Weapon II");
+  perk->description = strdup("Additional +3 holy damage per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_CLERIC_HOLY_WEAPON_1;
+  perk->prerequisite_rank = 3; /* Must have max ranks of Holy Weapon I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 holy damage per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Holy Weapon I (max). Your melee attacks deal an additional +3 holy damage per rank. Maximum 2 ranks for +6 holy damage (combined +12 with Tier 1).");
+  
+  /* Armor of Faith II (Rank 1-2) */
+  perk = &perk_list[PERK_CLERIC_ARMOR_OF_FAITH_2];
+  perk->id = PERK_CLERIC_ARMOR_OF_FAITH_2;
+  perk->name = strdup("Armor of Faith II");
+  perk->description = strdup("Additional +1 AC per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_CLERIC_ARMOR_OF_FAITH_1;
+  perk->prerequisite_rank = 3; /* Must have max ranks of Armor of Faith I */
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1; /* +1 AC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Armor of Faith I (max). Divine protection grants an additional +1 AC per rank. Maximum 2 ranks for +2 AC (combined +5 with Tier 1).");
+  
+  /* Smite Evil II */
+  perk = &perk_list[PERK_CLERIC_SMITE_EVIL_2];
+  perk->id = PERK_CLERIC_SMITE_EVIL_2;
+  perk->name = strdup("Smite Evil II");
+  perk->description = strdup("+4d6 damage to evil, usable 2/combat");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_SMITE_EVIL_1;
+  perk->prerequisite_rank = 1; /* Must have Smite Evil I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* 4d6 damage */
+  perk->effect_modifier = 2; /* Twice per combat */
+  perk->special_description = strdup("Requires Smite Evil I. Smite damage increases to +4d6 holy damage and can be used twice per combat.");
+  
+  /* Divine Power */
+  perk = &perk_list[PERK_CLERIC_DIVINE_POWER];
+  perk->id = PERK_CLERIC_DIVINE_POWER;
+  perk->name = strdup("Divine Power");
+  perk->description = strdup("+2 to melee damage rolls");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_DIVINE_FAVOR_1;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Divine Favor I */
+  perk->effect_type = PERK_EFFECT_WEAPON_DAMAGE;
+  perk->effect_value = 2; /* +2 damage */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Divine Favor I (at least 2 ranks). You channel divine power into your melee attacks, gaining +2 to all melee damage rolls.");
+  
+  /* Channel Energy: Harm */
+  perk = &perk_list[PERK_CLERIC_CHANNEL_ENERGY_HARM];
+  perk->id = PERK_CLERIC_CHANNEL_ENERGY_HARM;
+  perk->name = strdup("Channel Energy: Harm");
+  perk->description = strdup("Channel negative energy: 2d6 damage to enemies");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* 2d6 damage */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants the ability to channel negative energy to harm living enemies in the room for 2d6 damage. Can be used in conjunction with the existing channel energy ability.");
+  
+  /* Spiritual Weapon */
+  perk = &perk_list[PERK_CLERIC_SPIRITUAL_WEAPON];
+  perk->id = PERK_CLERIC_SPIRITUAL_WEAPON;
+  perk->name = strdup("Spiritual Weapon");
+  perk->description = strdup("Summon spiritual weapon that attacks for 5 rounds");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_HOLY_WEAPON_1;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks of Holy Weapon I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* Lasts 5 rounds */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Holy Weapon I (at least 2 ranks). You can summon a spiritual weapon that attacks your enemies independently for 5 rounds. The weapon uses your base attack bonus and deals weapon damage.");
 }
 
 /* Define Rogue Perks */
@@ -4154,6 +4338,180 @@ bool has_beacon_of_hope(struct char_data *ch)
   
   return has_perk(ch, PERK_CLERIC_BEACON_OF_HOPE);
 }
+
+/*****************************************************************************
+ * Battle Cleric Perk Helper Functions
+ *****************************************************************************/
+
+/**
+ * Get divine favor to-hit bonus from Battle Cleric perks.
+ * 
+ * @param ch The character
+ * @return Total bonus to attack rolls
+ */
+int get_cleric_divine_favor_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Divine Favor I: +1 per rank, max 3 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_DIVINE_FAVOR_1);
+  
+  /* Divine Favor II: +1 per rank, max 2 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_DIVINE_FAVOR_2);
+  
+  return bonus;
+}
+
+/**
+ * Get holy weapon damage bonus from Battle Cleric perks.
+ * 
+ * @param ch The character
+ * @return Total holy damage bonus to melee attacks
+ */
+int get_cleric_holy_weapon_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Holy Weapon I: +2 per rank, max 3 ranks */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_CLERIC_HOLY_WEAPON_1);
+  
+  /* Holy Weapon II: +3 per rank, max 2 ranks */
+  bonus += 3 * get_total_perk_ranks(ch, PERK_CLERIC_HOLY_WEAPON_2);
+  
+  return bonus;
+}
+
+/**
+ * Get armor of faith AC bonus from Battle Cleric perks.
+ * 
+ * @param ch The character
+ * @return Total AC bonus
+ */
+int get_cleric_armor_of_faith_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Armor of Faith I: +1 per rank, max 3 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_ARMOR_OF_FAITH_1);
+  
+  /* Armor of Faith II: +1 per rank, max 2 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_ARMOR_OF_FAITH_2);
+  
+  return bonus;
+}
+
+/**
+ * Check if character has Battle Blessing perk.
+ * 
+ * @param ch The character
+ * @return TRUE if character can cast self-buffs as swift action
+ */
+bool has_battle_blessing(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_CLERIC_BATTLE_BLESSING);
+}
+
+/**
+ * Get smite evil damage dice.
+ * 
+ * @param ch The character
+ * @return Number of d6 dice for smite damage (2d6 or 4d6)
+ */
+int get_cleric_smite_evil_dice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Smite Evil II: 4d6 damage */
+  if (has_perk(ch, PERK_CLERIC_SMITE_EVIL_2))
+    return 4;
+  
+  /* Smite Evil I: 2d6 damage */
+  if (has_perk(ch, PERK_CLERIC_SMITE_EVIL_1))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get number of smites available per combat.
+ * 
+ * @param ch The character
+ * @return Number of smites (1 or 2)
+ */
+int get_cleric_smite_evil_uses(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Smite Evil II: 2 uses per combat */
+  if (has_perk(ch, PERK_CLERIC_SMITE_EVIL_2))
+    return 2;
+  
+  /* Smite Evil I: 1 use per combat */
+  if (has_perk(ch, PERK_CLERIC_SMITE_EVIL_1))
+    return 1;
+  
+  return 0;
+}
+
+/**
+ * Get divine power damage bonus.
+ * 
+ * @param ch The character
+ * @return Damage bonus to melee attacks
+ */
+int get_cleric_divine_power_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_CLERIC_DIVINE_POWER))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Check if character has Channel Energy: Harm.
+ * 
+ * @param ch The character
+ * @return TRUE if character can channel negative energy
+ */
+bool has_channel_energy_harm(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_CLERIC_CHANNEL_ENERGY_HARM);
+}
+
+/**
+ * Check if character has Spiritual Weapon perk.
+ * 
+ * @param ch The character
+ * @return TRUE if character can summon spiritual weapon
+ */
+bool has_spiritual_weapon(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_CLERIC_SPIRITUAL_WEAPON);
+}
+
 
 
 /*****************************************************************************

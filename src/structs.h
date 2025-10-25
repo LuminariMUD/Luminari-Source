@@ -3137,6 +3137,22 @@
 #define PERK_CLERIC_DIVINE_RADIANCE 76
 #define PERK_CLERIC_BEACON_OF_HOPE 77
 
+/* Battle Cleric Tree - Tier 1 Perks (78-82) */
+#define PERK_CLERIC_DIVINE_FAVOR_1 78
+#define PERK_CLERIC_HOLY_WEAPON_1 79
+#define PERK_CLERIC_ARMOR_OF_FAITH_1 80
+#define PERK_CLERIC_BATTLE_BLESSING 81
+#define PERK_CLERIC_SMITE_EVIL_1 82
+
+/* Battle Cleric Tree - Tier 2 Perks (83-89) */
+#define PERK_CLERIC_DIVINE_FAVOR_2 83
+#define PERK_CLERIC_HOLY_WEAPON_2 84
+#define PERK_CLERIC_ARMOR_OF_FAITH_2 85
+#define PERK_CLERIC_SMITE_EVIL_2 86
+#define PERK_CLERIC_DIVINE_POWER 87
+#define PERK_CLERIC_CHANNEL_ENERGY_HARM 88
+#define PERK_CLERIC_SPIRITUAL_WEAPON 89
+
 /* Legacy cleric perks - deprecated */
 #define PERK_CLERIC_HEALING_AMP 61  /* Now PERK_CLERIC_HEALING_POWER_1 */
 #define PERK_CLERIC_TOUGHNESS 66  /* Battle Cleric tree */
@@ -5665,6 +5681,7 @@ struct player_special_data_saved
     int forage_cooldown;
     int retainer_cooldown;
     int scrounge_cooldown;
+    int spiritual_weapon_cooldown;  // Battle Cleric perk: 5 minute cooldown for free spiritual weapon casting
     int character_age;
     bool character_age_saved;
 

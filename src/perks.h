@@ -131,6 +131,17 @@ bool has_restorative_touch(struct char_data *ch);
 bool has_divine_radiance(struct char_data *ch);
 bool has_beacon_of_hope(struct char_data *ch);
 
+/* Cleric Battle Cleric tree perk functions */
+int get_cleric_divine_favor_bonus(struct char_data *ch);
+int get_cleric_holy_weapon_bonus(struct char_data *ch);
+int get_cleric_armor_of_faith_bonus(struct char_data *ch);
+bool has_battle_blessing(struct char_data *ch);
+int get_cleric_smite_evil_dice(struct char_data *ch);
+int get_cleric_smite_evil_uses(struct char_data *ch);
+int get_cleric_divine_power_bonus(struct char_data *ch);
+bool has_channel_energy_harm(struct char_data *ch);
+bool has_spiritual_weapon(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);
