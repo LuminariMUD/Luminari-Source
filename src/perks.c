@@ -813,6 +813,175 @@ void define_wizard_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Bonus to spell penetration checks");
+  
+  /*** EVOKER TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Spell Power I */
+  perk = &perk_list[PERK_WIZARD_SPELL_POWER_1];
+  perk->id = PERK_WIZARD_SPELL_POWER_1;
+  perk->name = strdup("Spell Power I");
+  perk->description = strdup("+1 spell damage per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases damage dealt by damaging spells by +1 per rank. Can be taken 5 times for +5 damage total.");
+  
+  /* Energy Affinity: Fire */
+  perk = &perk_list[PERK_WIZARD_ENERGY_AFFINITY_FIRE];
+  perk->id = PERK_WIZARD_ENERGY_AFFINITY_FIRE;
+  perk->name = strdup("Energy Affinity: Fire");
+  perk->description = strdup("Fire spells deal +10% damage");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* +10% */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("All fire damage spells deal 10% additional damage.");
+  
+  /* Energy Affinity: Cold */
+  perk = &perk_list[PERK_WIZARD_ENERGY_AFFINITY_COLD];
+  perk->id = PERK_WIZARD_ENERGY_AFFINITY_COLD;
+  perk->name = strdup("Energy Affinity: Cold");
+  perk->description = strdup("Cold spells deal +10% damage");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* +10% */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("All cold damage spells deal 10% additional damage.");
+  
+  /* Energy Affinity: Lightning */
+  perk = &perk_list[PERK_WIZARD_ENERGY_AFFINITY_LIGHTNING];
+  perk->id = PERK_WIZARD_ENERGY_AFFINITY_LIGHTNING;
+  perk->name = strdup("Energy Affinity: Lightning");
+  perk->description = strdup("Lightning spells deal +10% damage");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* +10% */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("All lightning/electricity damage spells deal 10% additional damage.");
+  
+  /* Spell Penetration I */
+  perk = &perk_list[PERK_WIZARD_SPELL_PENETRATION_1];
+  perk->id = PERK_WIZARD_SPELL_PENETRATION_1;
+  perk->name = strdup("Spell Penetration I");
+  perk->description = strdup("+2 to overcome spell resistance per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Bonus to overcome spell resistance. Can be taken 3 times for +6 total.");
+  
+  /*** EVOKER TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Spell Power II */
+  perk = &perk_list[PERK_WIZARD_SPELL_POWER_2];
+  perk->id = PERK_WIZARD_SPELL_POWER_2;
+  perk->name = strdup("Spell Power II");
+  perk->description = strdup("Additional +1 spell damage per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_POWER_1;
+  perk->prerequisite_rank = 5; /* Must max Spell Power I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Power I (max). Further increases damage by +1 per rank. Can be taken 3 times for +8 total with Spell Power I.");
+  
+  /* Focused Element: Fire */
+  perk = &perk_list[PERK_WIZARD_FOCUSED_ELEMENT_FIRE];
+  perk->id = PERK_WIZARD_FOCUSED_ELEMENT_FIRE;
+  perk->name = strdup("Focused Element: Fire");
+  perk->description = strdup("Fire spells deal +20% damage total, +1 spell DC");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_ENERGY_AFFINITY_FIRE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* +20% total (replaces +10% from affinity) */
+  perk->effect_modifier = 1; /* +1 spell DC */
+  perk->special_description = strdup("Requires Energy Affinity: Fire. Fire spells deal +20% total damage and have +1 DC.");
+  
+  /* Focused Element: Cold */
+  perk = &perk_list[PERK_WIZARD_FOCUSED_ELEMENT_COLD];
+  perk->id = PERK_WIZARD_FOCUSED_ELEMENT_COLD;
+  perk->name = strdup("Focused Element: Cold");
+  perk->description = strdup("Cold spells deal +20% damage total, +1 spell DC");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_ENERGY_AFFINITY_COLD;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* +20% total (replaces +10% from affinity) */
+  perk->effect_modifier = 1; /* +1 spell DC */
+  perk->special_description = strdup("Requires Energy Affinity: Cold. Cold spells deal +20% total damage and have +1 DC.");
+  
+  /* Focused Element: Lightning */
+  perk = &perk_list[PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING];
+  perk->id = PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING;
+  perk->name = strdup("Focused Element: Lightning");
+  perk->description = strdup("Lightning spells deal +20% damage total, +1 spell DC");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_ENERGY_AFFINITY_LIGHTNING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20; /* +20% total (replaces +10% from affinity) */
+  perk->effect_modifier = 1; /* +1 spell DC */
+  perk->special_description = strdup("Requires Energy Affinity: Lightning. Lightning spells deal +20% total damage and have +1 DC.");
+  
+  /* Spell Critical I */
+  perk = &perk_list[PERK_WIZARD_SPELL_CRITICAL_1];
+  perk->id = PERK_WIZARD_SPELL_CRITICAL_1;
+  perk->name = strdup("Spell Critical I");
+  perk->description = strdup("Damage spells have 5% chance to deal double damage");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_POWER_1;
+  perk->prerequisite_rank = 3; /* Need at least 3 ranks */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* 5% chance */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Power I (at least 3 ranks). Damaging spells have a 5% chance to critically strike for double damage.");
+  
+  /* Maximize Spell */
+  perk = &perk_list[PERK_WIZARD_MAXIMIZE_SPELL];
+  perk->id = PERK_WIZARD_MAXIMIZE_SPELL;
+  perk->name = strdup("Maximize Spell");
+  perk->description = strdup("Cast 1 spell with max damage (no level increase), 5min cooldown");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_POWER_1;
+  perk->prerequisite_rank = 5; /* Must max Spell Power I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Power I (max). Once every 5 minutes, you can cast a spell with the Maximize metamagic effect (maximum damage dice) without increasing the spell level. Use 'metamagic maximize' before casting.");
 }
 
 /* Define Cleric Perks */
@@ -6164,4 +6333,170 @@ void reset_all_perk_points(struct char_data *ch)
     ch->player_specials->saved.perk_points[i] = 0;
   }
 }
+
+/*****************************************************************************
+ * Wizard Evoker Perk Helper Functions
+ *****************************************************************************/
+
+/**
+ * Get total spell power damage bonus from Spell Power I and II.
+ * 
+ * @param ch The character
+ * @return Total spell damage bonus
+ */
+int get_wizard_spell_power_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Spell Power I: +1 per rank, max 5 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_WIZARD_SPELL_POWER_1);
+  
+  /* Spell Power II: +1 per rank, max 3 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_WIZARD_SPELL_POWER_2);
+  
+  return bonus;
+}
+
+/**
+ * Get elemental damage percentage bonus for a specific damage type.
+ * 
+ * @param ch The character
+ * @param dam_type The damage type (DAM_FIRE, DAM_COLD, DAM_ELECTRIC)
+ * @return Percentage bonus (10 or 20)
+ */
+int get_wizard_elemental_damage_bonus(struct char_data *ch, int dam_type)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  switch (dam_type)
+  {
+    case DAM_FIRE:
+      /* Focused Element: Fire gives +20% (replaces +10% from affinity) */
+      if (has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_FIRE))
+        return 20;
+      /* Energy Affinity: Fire gives +10% */
+      if (has_perk(ch, PERK_WIZARD_ENERGY_AFFINITY_FIRE))
+        return 10;
+      break;
+      
+    case DAM_COLD:
+      if (has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_COLD))
+        return 20;
+      if (has_perk(ch, PERK_WIZARD_ENERGY_AFFINITY_COLD))
+        return 10;
+      break;
+      
+    case DAM_ELECTRIC:
+      if (has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING))
+        return 20;
+      if (has_perk(ch, PERK_WIZARD_ENERGY_AFFINITY_LIGHTNING))
+        return 10;
+      break;
+  }
+  
+  return 0;
+}
+
+/**
+ * Get elemental spell DC bonus for a specific damage type.
+ * 
+ * @param ch The character
+ * @param dam_type The damage type
+ * @return DC bonus (0 or 1)
+ */
+int get_wizard_elemental_dc_bonus(struct char_data *ch, int dam_type)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Focused Element perks give +1 DC */
+  switch (dam_type)
+  {
+    case DAM_FIRE:
+      if (has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_FIRE))
+        return 1;
+      break;
+      
+    case DAM_COLD:
+      if (has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_COLD))
+        return 1;
+      break;
+      
+    case DAM_ELECTRIC:
+      if (has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING))
+        return 1;
+      break;
+  }
+  
+  return 0;
+}
+
+/**
+ * Get spell penetration bonus from Spell Penetration I.
+ * 
+ * @param ch The character
+ * @return Spell penetration bonus
+ */
+int get_wizard_spell_penetration_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Spell Penetration I: +2 per rank, max 3 ranks = +6 */
+  return 2 * get_total_perk_ranks(ch, PERK_WIZARD_SPELL_PENETRATION_1);
+}
+
+/**
+ * Check if character has Spell Critical I perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_wizard_spell_critical(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_WIZARD_SPELL_CRITICAL_1);
+}
+
+/**
+ * Check if Maximize Spell free use is available (not on cooldown).
+ * 
+ * @param ch The character
+ * @return TRUE if available, FALSE if on cooldown
+ */
+bool can_use_maximize_spell_perk(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!has_perk(ch, PERK_WIZARD_MAXIMIZE_SPELL))
+    return FALSE;
+  
+  /* Check cooldown */
+  if (ch->player_specials->saved.maximize_spell_cooldown > time(0))
+    return FALSE;
+  
+  return TRUE;
+}
+
+/**
+ * Activate the Maximize Spell perk cooldown (5 minutes).
+ * 
+ * @param ch The character
+ */
+void use_maximize_spell_perk(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  /* Set cooldown: 5 minutes = 300 seconds */
+  ch->player_specials->saved.maximize_spell_cooldown = time(0) + 300;
+}
+
 

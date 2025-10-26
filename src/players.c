@@ -1319,6 +1319,14 @@ int load_char(const char *name, struct char_data *ch)
             ch->player_specials->saved.perfect_kill_used = (used != 0);
           }
         }
+        else if (!strcmp(tag, "PMxS"))
+        {
+          long timestamp;
+          if (sscanf(line, "%ld", &timestamp) == 1)
+          {
+            ch->player_specials->saved.maximize_spell_cooldown = (time_t)timestamp;
+          }
+        }
         break;
 
       case 'Q':
@@ -2754,6 +2762,10 @@ void save_char(struct char_data *ch, int mode)
   BUFFER_WRITE( "PKil: %ld %d\n", 
     (long)ch->player_specials->saved.perfect_kill_last_combat,
     ch->player_specials->saved.perfect_kill_used ? 1 : 0);
+  
+  /* Save Maximize Spell cooldown */
+  BUFFER_WRITE( "PMxS: %ld\n",
+    (long)ch->player_specials->saved.maximize_spell_cooldown);
 
   /* Save evolutions */
   BUFFER_WRITE( "Evol:\n");

@@ -3111,6 +3111,21 @@
 #define PERK_WIZARD_POTENT_MAGIC_2 38
 #define PERK_WIZARD_POTENT_MAGIC_3 39
 
+/* Wizard Evoker Tree - Tier 1 Perks (40-48) */
+#define PERK_WIZARD_SPELL_POWER_1 40
+#define PERK_WIZARD_ENERGY_AFFINITY_FIRE 41
+#define PERK_WIZARD_ENERGY_AFFINITY_COLD 42
+#define PERK_WIZARD_ENERGY_AFFINITY_LIGHTNING 43
+#define PERK_WIZARD_SPELL_PENETRATION_1 44
+
+/* Wizard Evoker Tree - Tier 2 Perks (45-52) */
+#define PERK_WIZARD_SPELL_POWER_2 45
+#define PERK_WIZARD_FOCUSED_ELEMENT_FIRE 46
+#define PERK_WIZARD_FOCUSED_ELEMENT_COLD 47
+#define PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING 48
+#define PERK_WIZARD_SPELL_CRITICAL_1 49
+#define PERK_WIZARD_MAXIMIZE_SPELL 50
+
 /* Cleric Perks (61-90) */
 /* Divine Healer Tree - Tier 1 Perks (61-64) */
 #define PERK_CLERIC_HEALING_POWER_1 61
@@ -5776,6 +5791,9 @@ struct player_special_data_saved
     /* Perfect Kill tracking (Rogue Assassin perk) */
     time_t perfect_kill_last_combat;            /**< Timestamp of last combat end */
     bool perfect_kill_used;                     /**< Whether perfect kill was used this combat cycle */
+    
+    /* Wizard Evoker perks */
+    time_t maximize_spell_cooldown;             /**< Timestamp until when free maximize spell is available again */
 };
 
 struct weird_science_level {

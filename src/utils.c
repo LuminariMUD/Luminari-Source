@@ -10711,6 +10711,21 @@ int get_spell_penetration_bonus(struct char_data *ch)
     penetration_bonus += max_value[i];
   }
 
+  /* Add wizard spell penetration bonus for arcane casters with Evoker perks */
+  if (!IS_NPC(ch))
+  {
+    int casting_class = GET_CASTING_CLASS(ch);
+    /* Check if casting class is arcane: wizard, sorcerer, summoner, bard, warlock */
+    if (casting_class == CLASS_WIZARD || 
+        casting_class == CLASS_SORCERER || 
+        casting_class == CLASS_SUMMONER || 
+        casting_class == CLASS_BARD || 
+        casting_class == CLASS_WARLOCK)
+    {
+      penetration_bonus += get_wizard_spell_penetration_bonus(ch);
+    }
+  }
+
   return penetration_bonus;
 }
 
