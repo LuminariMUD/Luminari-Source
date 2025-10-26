@@ -176,6 +176,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"auction", "auct", POS_SLEEPING, do_auction, 0, SCMD_AUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"auctalk", "aucta", POS_SLEEPING, do_gen_comm, 0, SCMD_AUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"augment", "augment", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"avatarofwar", "avatarofwar", POS_FIGHTING, do_avatarofwar, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_avatarofwar},
     {"autoexits", "autoex", POS_DEAD, do_gen_tog, 0, SCMD_AUTOEXIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autoassist", "autoass", POS_DEAD, do_gen_tog, 0, SCMD_AUTOASSIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autoaugment", "autoaug", POS_DEAD, do_gen_tog, 0, SCMD_AUTO_AUGMENT, TRUE, ACTION_NONE, {0, 0}, NULL},

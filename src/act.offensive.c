@@ -6024,6 +6024,54 @@ ACMD(do_spiritualweapon)
   send_to_char(ch, "You channel divine energy to summon a spiritual weapon!\r\n");
 }
 
+ACMDCHECK(can_avatarofwar)
+{
+  ACMDCHECK_PREREQ_HASFEAT(PERK_CLERIC_AVATAR_OF_WAR, "You don't have the Avatar of War perk.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_avatarofwar)
+{
+  struct affected_type af;
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_avatarofwar);
+
+  /* Check if perk is available */
+  if (!has_perk(ch, PERK_CLERIC_AVATAR_OF_WAR))
+  {
+    send_to_char(ch, "You don't have the Avatar of War perk.\r\n");
+    return;
+  }
+
+  /* Check prerequisite: Divine Favor III and Armor of Faith III */
+  if (!has_perk(ch, PERK_CLERIC_DIVINE_FAVOR_3) || !has_perk(ch, PERK_CLERIC_ARMOR_OF_FAITH_3))
+  {
+    send_to_char(ch, "You need both Divine Favor III and Armor of Faith III to use this ability.\r\n");
+    return;
+  }
+
+  /* Check daily use cooldown */
+  PREREQ_HAS_USES(PERK_CLERIC_AVATAR_OF_WAR, "You have already used Avatar of War today.\r\n");
+
+  /* Apply Avatar of War buff */
+  new_affect(&af);
+  af.spell = PERK_CLERIC_AVATAR_OF_WAR;
+  af.duration = 10; /* 10 rounds */
+  af.location = APPLY_SPECIAL;
+  af.modifier = 0;
+  af.bonus_type = BONUS_TYPE_MORALE;
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  send_to_char(ch, "\tWYou transform into an avatar of divine war!\tn\r\n"
+                   "You gain \tY+3 to hit\tn, \tC+3 AC\tn, and \tR+10 to damage\tn for 10 rounds!\r\n");
+  act("$n transforms into an avatar of divine war, radiating holy power!", FALSE, ch, NULL, NULL, TO_ROOM);
+
+  /* Set daily cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, PERK_CLERIC_AVATAR_OF_WAR);
+}
+
 ACMDCHECK(can_mastermind)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_MASTER_OF_THE_MIND, "How do you plan on doing that?\r\n");
