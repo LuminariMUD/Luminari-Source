@@ -165,6 +165,15 @@ int get_cleric_master_of_undead_dc_bonus(struct char_data *ch);
 bool has_control_undead(struct char_data *ch);
 int get_destroy_undead_threshold(struct char_data *ch);
 
+/* Wizard Evoker tree perk functions */
+int get_wizard_spell_power_bonus(struct char_data *ch);
+int get_wizard_elemental_damage_bonus(struct char_data *ch, int dam_type);
+int get_wizard_elemental_dc_bonus(struct char_data *ch, int dam_type);
+int get_wizard_spell_penetration_bonus(struct char_data *ch);
+bool has_wizard_spell_critical(struct char_data *ch);
+bool can_use_maximize_spell_perk(struct char_data *ch);
+void use_maximize_spell_perk(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

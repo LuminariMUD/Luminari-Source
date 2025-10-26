@@ -2734,6 +2734,28 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   /* Add divine spell power bonus for divine casters with Domain Master perks */
   if (!IS_NPC(ch) && is_divine_spellcasting_class(GET_CASTING_CLASS(ch)))
     dam += get_cleric_divine_spell_power_bonus(ch);
+  
+  /* Add wizard spell power bonus for arcane casters with Evoker perks */
+  if (!IS_NPC(ch))
+  {
+    int casting_class = GET_CASTING_CLASS(ch);
+    /* Check if casting class is arcane: wizard, sorcerer, summoner, bard, warlock */
+    if (casting_class == CLASS_WIZARD || 
+        casting_class == CLASS_SORCERER || 
+        casting_class == CLASS_SUMMONER || 
+        casting_class == CLASS_BARD || 
+        casting_class == CLASS_WARLOCK)
+    {
+      dam += get_wizard_spell_power_bonus(ch);
+      
+      /* Apply elemental damage percentage bonus for elemental spells */
+      int elem_bonus = get_wizard_elemental_damage_bonus(ch, element);
+      if (elem_bonus > 0)
+      {
+        dam = dam * (100 + elem_bonus) / 100;
+      }
+    }
+  }
 
   if (spellnum == SPELL_CIRCLE_OF_DEATH && !IS_LIVING(victim))
   {
@@ -2956,6 +2978,25 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
 
   dam = dam * get_spell_potency_bonus(ch) / 100;
+
+  /* Check for Spell Critical - 5% chance for 1.5x damage for arcane casters with Evoker perk */
+  if (!IS_NPC(ch) && dam > 0)
+  {
+    int casting_class = GET_CASTING_CLASS(ch);
+    /* Check if casting class is arcane: wizard, sorcerer, summoner, bard, warlock */
+    if (casting_class == CLASS_WIZARD || 
+        casting_class == CLASS_SORCERER || 
+        casting_class == CLASS_SUMMONER || 
+        casting_class == CLASS_BARD || 
+        casting_class == CLASS_WARLOCK)
+    {
+      if (has_wizard_spell_critical(ch) && rand_number(1, 100) <= 5)
+      {
+        dam = (dam * 3) / 2; /* 1.5x damage */
+        send_to_char(ch, "\tY[\tWCRITICAL SPELL!\tY] Your spell strikes with devastating power!\tn\r\n");
+      }
+    }
+  }
 
   if (!element) // want to make sure all spells have some sort of damage category
     log("SYSERR: %d is lacking DAM_", spellnum);
