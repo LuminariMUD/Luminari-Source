@@ -159,17 +159,11 @@ int get_cleric_turn_undead_enhancement_bonus(struct char_data *ch);
 int get_cleric_extended_domain_bonus(struct char_data *ch);
 int get_cleric_divine_metamagic_reduction(struct char_data *ch);
 bool has_destroy_undead(struct char_data *ch);
-
-/* Cleric Domain Master tree perk functions */
-bool is_divine_spellcasting_class(int class_num);
-int get_cleric_domain_focus_bonus(struct char_data *ch);
-int get_cleric_divine_spell_power_bonus(struct char_data *ch);
-int get_cleric_bonus_domain_spells(struct char_data *ch);
-int get_cleric_bonus_spell_slots(struct char_data *ch);
-int get_cleric_turn_undead_enhancement_bonus(struct char_data *ch);
-int get_cleric_extended_domain_bonus(struct char_data *ch);
-int get_cleric_divine_metamagic_reduction(struct char_data *ch);
-bool has_destroy_undead(struct char_data *ch);
+int get_cleric_greater_turning_bonus(struct char_data *ch);
+int get_cleric_domain_mastery_bonus(struct char_data *ch);
+int get_cleric_master_of_undead_dc_bonus(struct char_data *ch);
+bool has_control_undead(struct char_data *ch);
+int get_destroy_undead_threshold(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

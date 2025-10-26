@@ -64,6 +64,7 @@
 #include "spells.h"
 #include "spell_prep.h"
 #include "domains_schools.h"
+#include "perks.h"          /* For divine metamagic reduction */
 #include <limits.h> /* For INT_MAX overflow checks */
 /** END header files **/
 
@@ -1839,6 +1840,8 @@ static bool validate_spell_for_class(int char_class, int spellnum)
 
 /**
  * calculate_metamagic_modifier - Calculate total circle adjustment from metamagic
+ * @ch: Character casting the spell (for checking divine metamagic perks)
+ * @char_class: Class being used to cast (for determining if divine)
  * @metamagic: Bitvector of metamagic flags
  * 
  * Each metamagic feat increases the effective spell circle:
@@ -1849,11 +1852,14 @@ static bool validate_spell_for_class(int char_class, int spellnum)
  * - Still: +1 circle (no somatic components)
  * - Silent: +1 circle (no verbal components)
  * 
- * Returns: Total circle adjustment from metamagic
+ * Divine casters with Divine Metamagic perks get a reduction to the circle increase.
+ * 
+ * Returns: Total circle adjustment from metamagic (after divine metamagic reduction)
  */
-static int calculate_metamagic_modifier(int metamagic)
+static int calculate_metamagic_modifier(struct char_data *ch, int char_class, int metamagic)
 {
   int metamagic_mod = 0;
+  int divine_reduction = 0;
   
   /* Add overflow protection to prevent issues with extreme metamagic stacking */
   if (IS_SET(metamagic, METAMAGIC_QUICKEN)) {
@@ -1903,6 +1909,12 @@ static int calculate_metamagic_modifier(int metamagic)
     } else {
       metamagic_mod += 1;
     }
+  }
+  
+  /* Apply divine metamagic reduction for divine casting classes */
+  if (ch && !IS_NPC(ch) && is_divine_spellcasting_class(char_class)) {
+    divine_reduction = get_cleric_divine_metamagic_reduction(ch);
+    metamagic_mod = MAX(0, metamagic_mod - divine_reduction);
   }
   
   return metamagic_mod;
@@ -2174,8 +2186,8 @@ int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, in
   if (campaign_override > 0)
     return campaign_override;
 
-  /* Calculate metamagic modifiers */
-  metamagic_mod = calculate_metamagic_modifier(metamagic);
+  /* Calculate metamagic modifiers (with divine metamagic reduction if applicable) */
+  metamagic_mod = calculate_metamagic_modifier(ch, char_class, metamagic);
 
   /* Class-specific spell level to circle conversions */
   switch (char_class)

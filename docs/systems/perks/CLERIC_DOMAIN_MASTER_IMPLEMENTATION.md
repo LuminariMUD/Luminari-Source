@@ -1,9 +1,9 @@
-# Cleric Domain Master Tree Tier 1-2 Implementation
+# Cleric Domain Master Tree Tier 1-4 Implementation
 
 ## Overview
-This document describes the implementation of the first two tiers of the Cleric Domain Master perk tree. All 11 perks have been defined in the codebase and are ready for integration with the spell system.
+This document describes the implementation of all four tiers of the Cleric Domain Master perk tree. All 19 perks have been defined in the codebase and are ready for integration with the spell system.
 
-**Status:** ✅ FULLY DEFINED IN CODE (v1.0)
+**Status:** ✅ FULLY DEFINED IN CODE (v1.5)
 **Integration Needed:** Spell system integration for DC bonuses, damage bonuses, and spell point increases
 
 ---
@@ -145,12 +145,130 @@ This document describes the implementation of the first two tiers of the Cleric 
 
 ---
 
+### Tier 3 Perks (3-4 points each)
+
+#### 1. Domain Focus III (ID: 160)
+- **Cost:** 3 points
+- **Max Rank:** 1
+- **Prerequisite:** Domain Focus II (rank 5)
+- **Effect:** +2 to domain spell DC
+- **Implementation:**
+  - Defined in `src/perks.c` (line ~1570)
+  - Helper function: `get_cleric_domain_focus_bonus()` updated (line ~5078)
+  - Returns cumulative DC bonus including Tier 1, 2, and 3
+- **Stacking:** Stacks with Domain Focus I and II for maximum +7 DC
+- **Testing:** Purchase perk, cast domain spells, verify +2 DC increase
+
+#### 2. Divine Spell Power III (ID: 161)
+- **Cost:** 3 points per rank
+- **Max Rank:** 2
+- **Prerequisite:** Divine Spell Power II (rank 5)
+- **Effect:** +3 to divine spell damage per rank
+- **Implementation:**
+  - Defined in `src/perks.c` (line ~1588)
+  - Helper function: `get_cleric_divine_spell_power_bonus()` updated (line ~5109)
+  - Returns cumulative damage bonus including Tier 1, 2, and 3
+- **Stacking:** Stacks with Divine Spell Power I and II for maximum +17 damage
+- **Testing:** Purchase ranks, cast offensive divine spells, verify +3/+6 damage increase
+
+#### 3. Bonus Domain Spell III (ID: 162)
+- **Cost:** 3 points per rank
+- **Max Rank:** 2
+- **Prerequisite:** Bonus Domain Spell II (rank 3)
+- **Effect:** +1 bonus domain spell slot per rank (regenerates 1 per 5 minutes)
+- **Implementation:**
+  - Defined in `src/perks.c` (line ~1606)
+  - Helper function: `get_cleric_bonus_domain_spells()` updated (line ~5137)
+  - Returns cumulative bonus slots including Tier 1, 2, and 3
+- **Stacking:** Stacks with Bonus Domain Spell I and II for maximum +10 domain spell slots
+- **Regeneration:** Same regeneration system as lower tiers (1 slot per 5 minutes)
+- **Testing:** Purchase ranks, cast domain spells, verify bonus slots, test regeneration
+
+#### 4. Divine Metamagic II (ID: 163)
+- **Cost:** 4 points
+- **Max Rank:** 1
+- **Prerequisite:** Divine Metamagic I (rank 1)
+- **Effect:** Metamagic feats increase spell level by 2 less
+- **Implementation:**
+  - Defined in `src/perks.c` (line ~1624)
+  - Helper function: `get_cleric_divine_metamagic_reduction()` updated (line ~5220)
+  - Returns cumulative reduction including Tier 2 and 3
+- **Stacking:** Stacks with Divine Metamagic I for total -3 spell level increase
+- **Example:** Empower Spell (+2 levels) becomes +0 levels with both perks
+- **Testing:** Apply metamagic feats, verify spell level reduction
+
+#### 5. Greater Turning (ID: 164)
+- **Cost:** 3 points
+- **Max Rank:** 1
+- **Prerequisite:** Turn Undead Enhancement II (rank 5)
+- **Effect:** Turn undead affects undead +2 HD levels higher
+- **Implementation:**
+  - Defined in `src/perks.c` (line ~1642)
+  - Helper function: `get_cleric_greater_turning_bonus()` (line ~5256)
+  - Returns +2 HD bonus for turn undead
+- **Integration Needed:** Turn undead HD calculation
+- **Testing:** Use turn undead on higher HD undead, verify extended range
+
+#### 6. Domain Mastery (ID: 165)
+- **Cost:** 3 points
+- **Max Rank:** 1
+- **Prerequisite:** Extended Domain (rank 1)
+- **Effect:** Use domain powers +1 additional time per day
+- **Implementation:**
+  - Defined in `src/perks.c` (line ~1660)
+  - Helper function: `get_cleric_domain_mastery_bonus()` (line ~5274)
+  - Returns +1 daily use for domain powers
+- **Integration Needed:** Domain power usage tracking
+- **Testing:** Use domain powers, verify extra daily use
+
+---
+
+### Tier 4 Capstone Perks (5 points each)
+
+#### 1. Divine Channeler (ID: 166)
+- **Cost:** 5 points
+- **Max Rank:** 1
+- **Prerequisite:** Domain Focus III (rank 1)
+- **Effect:** Master of divine magic - ALL divine spells gain +3 DC and +10 damage, domain powers can be used 2x per day
+- **Implementation:**
+  - Defined in `src/perks.c` (line ~1678)
+  - Integrated into existing helper functions:
+    * `get_cleric_domain_focus_bonus()` - adds +3 DC
+    * `get_cleric_divine_spell_power_bonus()` - adds +10 damage
+    * `get_cleric_domain_mastery_bonus()` - returns -1 to indicate doubling
+- **Stacking:** Fully stacks with all previous perks
+  - Maximum DC bonus: +10 (+3+2+5 from tiers + 3 from capstone)
+  - Maximum damage bonus: +27 (+5+6+6 from tiers + 10 from capstone)
+- **Integration Needed:** Domain power daily use doubling
+- **Testing:** Verify all divine spell DCs increase by +3, all damage by +10, domain powers 2x/day
+
+#### 2. Master of the Undead (ID: 167)
+- **Cost:** 5 points
+- **Max Rank:** 1
+- **Prerequisite:** Greater Turning (rank 1)
+- **Effect:** Ultimate turning - +5 turn DC, can control turned undead, destroy undead up to 10 HD below cleric level
+- **Implementation:**
+  - Defined in `src/perks.c` (line ~1696)
+  - Helper functions:
+    * `get_cleric_master_of_undead_dc_bonus()` (line ~5296) - returns +5 turn DC
+    * `has_control_undead()` (line ~5313) - returns TRUE for control ability
+    * `get_destroy_undead_threshold()` (line ~5327) - returns 10 HD threshold
+- **Stacking:** Stacks with all previous turn undead bonuses
+  - Maximum turn DC: +12 (+3+4 from Tier 1-2 + 5 from capstone)
+  - HD bonus: +2 from Greater Turning
+  - Destroy threshold: 10 HD instead of 3 HD
+- **Integration Needed:** Turn undead DC, control mechanics, destroy threshold
+- **Testing:** Use turn undead, verify +5 DC, test control on turned undead, destroy high HD undead
+
+---
+
 ## Code Changes Summary
 
 ### Files Modified
 
 #### 1. `src/structs.h`
-**Lines 3168-3180:** Added 11 new perk ID constants
+**Lines 3168-3180:** Added 11 Tier 1-2 perk ID constants
+**Lines 3182-3191:** Added 8 Tier 3-4 perk ID constants
 ```c
 /* Domain Master Tree - Tier 1 Perks (98-101) */
 #define PERK_CLERIC_DOMAIN_FOCUS_1 98
@@ -166,12 +284,26 @@ This document describes the implementation of the first two tiers of the Cleric 
 #define PERK_CLERIC_EXTENDED_DOMAIN 106
 #define PERK_CLERIC_DIVINE_METAMAGIC_1 107
 #define PERK_CLERIC_DESTROY_UNDEAD 108
+
+/* Domain Master Tree - Tier 3 (160-165) */
+#define PERK_CLERIC_DOMAIN_FOCUS_3 160
+#define PERK_CLERIC_DIVINE_SPELL_POWER_3 161
+#define PERK_CLERIC_SPELL_POINT_RESERVE_3 162
+#define PERK_CLERIC_DIVINE_METAMAGIC_2 163
+#define PERK_CLERIC_GREATER_TURNING 164
+#define PERK_CLERIC_DOMAIN_MASTERY 165
+
+/* Domain Master Tree - Tier 4 (166-167) */
+#define PERK_CLERIC_DIVINE_CHANNELER 166
+#define PERK_CLERIC_MASTER_OF_UNDEAD 167
 ```
+
+**Lines 5712-5716:** Added 4 bonus spell slot tracking fields
 
 **Lines 3188-3230:** Updated Rogue perk IDs (109-138) to avoid conflicts
 
 #### 2. `src/perks.h`
-**Lines 154-162:** Added 8 new function declarations
+**Lines 154-178:** Added 13 function declarations (8 original + 5 new for Tier 3-4)
 ```c
 /* Cleric Domain Master tree perk functions */
 bool is_divine_spellcasting_class(int class_num);
@@ -183,24 +315,39 @@ int get_cleric_turn_undead_enhancement_bonus(struct char_data *ch);
 int get_cleric_extended_domain_bonus(struct char_data *ch);
 int get_cleric_divine_metamagic_reduction(struct char_data *ch);
 bool has_destroy_undead(struct char_data *ch);
+int get_cleric_greater_turning_bonus(struct char_data *ch);           /* NEW: Tier 3 */
+int get_cleric_domain_mastery_bonus(struct char_data *ch);            /* NEW: Tier 3 */
+int get_cleric_master_of_undead_dc_bonus(struct char_data *ch);       /* NEW: Tier 4 */
+bool has_control_undead(struct char_data *ch);                        /* NEW: Tier 4 */
+int get_destroy_undead_threshold(struct char_data *ch);               /* NEW: Tier 4 */
 ```
 
 #### 3. `src/perks.c`
-**Lines 1393-1617:** Added 11 new perk definitions in `define_cleric_perks()`
-- All perks defined with proper prerequisites, costs, max ranks
+**Lines 1393-1617:** Added 11 Tier 1-2 perk definitions in `define_cleric_perks()`
+**Lines 1570-1714:** Added 8 Tier 3-4 perk definitions in `define_cleric_perks()`
+- All 19 perks defined with proper prerequisites, costs, max ranks
 - Effect types and values specified
 - Special descriptions added
+- Tier 3 perks cost 3-4 points each, require maxed Tier 2 prerequisites
+- Tier 4 capstone perks cost 5 points each, require specific Tier 3 perks
 
-**Lines 4928-5062:** Added 8 new helper functions:
+**Lines 4928-5062:** Added 8 initial helper functions:
 - `is_divine_spellcasting_class()` - Checks if class is divine (Cleric, Druid, Ranger, Paladin, Blackguard, Inquisitor)
-- `get_cleric_domain_focus_bonus()` - Calculates total domain spell DC bonus
-- `get_cleric_divine_spell_power_bonus()` - Calculates total divine spell damage bonus
-- `get_cleric_bonus_domain_spells()` - Calculates bonus domain spell slots
+- `get_cleric_domain_focus_bonus()` - Calculates total domain spell DC bonus (now includes Tier 3-4)
+- `get_cleric_divine_spell_power_bonus()` - Calculates total divine spell damage bonus (now includes Tier 3-4)
+- `get_cleric_bonus_domain_spells()` - Calculates bonus domain spell slots (now includes Tier 3)
 - `get_cleric_bonus_spell_slots()` - Calculates bonus spell slots (any level)
 - `get_cleric_turn_undead_enhancement_bonus()` - Calculates total turn undead DC bonus
 - `get_cleric_extended_domain_bonus()` - Returns domain spell duration bonus
-- `get_cleric_divine_metamagic_reduction()` - Returns metamagic level reduction
+- `get_cleric_divine_metamagic_reduction()` - Returns metamagic level reduction (now includes Tier 3)
 - `has_destroy_undead()` - Checks if character can destroy weak undead
+
+**Lines 5256-5341:** Added 5 new Tier 3-4 helper functions:
+- `get_cleric_greater_turning_bonus()` - Returns +2 HD bonus for turn undead
+- `get_cleric_domain_mastery_bonus()` - Returns daily use bonus for domain powers
+- `get_cleric_master_of_undead_dc_bonus()` - Returns +5 turn DC bonus from capstone
+- `has_control_undead()` - Checks if character can control turned undead
+- `get_destroy_undead_threshold()` - Returns HD threshold for instant destruction (3 or 10)
 
 ---
 
@@ -545,7 +692,27 @@ Result: +5 domain DC, +11 spell damage, +5 domain spell slots, +3 any-level spel
 
 ## Version History
 
-**v1.4 - October 26, 2025**
+**v1.5 - October 26, 2025**
+- ✅ Implemented Tier 3 perks (IDs 160-165)
+  * Domain Focus III: +2 DC (1 rank) - requires Domain Focus II max
+  * Divine Spell Power III: +3 damage per rank (2 ranks) - requires Divine Spell Power II max
+  * Bonus Domain Spell III: +1 slot per rank (2 ranks) - requires Bonus Domain Spell II max
+  * Divine Metamagic II: -2 spell level increase (1 rank) - requires Divine Metamagic I
+  * Greater Turning: +2 HD levels for turn undead (1 rank) - requires Turn Undead Enhancement II max
+  * Domain Mastery: +1 domain power use per day (1 rank) - requires Extended Domain
+- ✅ Implemented Tier 4 capstone perks (IDs 166-167)
+  * Divine Channeler: +3 DC, +10 damage, 2x domain powers (5 points) - requires Domain Focus III
+  * Master of the Undead: +5 turn DC, control undead, destroy 10 HD undead (5 points) - requires Greater Turning
+- ✅ Updated all helper functions to include Tier 3-4 bonuses
+- ✅ Added 5 new helper functions:
+  * get_cleric_greater_turning_bonus() - returns +2 HD bonus
+  * get_cleric_domain_mastery_bonus() - returns daily use bonus
+  * get_cleric_master_of_undead_dc_bonus() - returns +5 turn DC
+  * has_control_undead() - checks for control ability
+  * get_destroy_undead_threshold() - returns HD threshold for destruction
+- ✅ Code compiled successfully with no errors
+
+**v1.4 - October 25, 2025**
 - **IMPLEMENTED** bonus spell slot regeneration system
 - Added 4 new character data fields in `src/structs.h`: bonus_domain_slots_used, bonus_domain_regen_timer, bonus_slots_used, bonus_slots_regen_timer
 - Added 4 GET macros in `src/utils.h` for accessing regeneration data

@@ -1559,6 +1559,130 @@ void define_cleric_perks(void)
   perk->effect_value = 1; /* Enable destroy undead */
   perk->effect_modifier = 0;
   perk->special_description = strdup("Requires Turn Undead Enhancement I (max). When you successfully turn undead, weak undead (3 HD or less below your cleric level) are instantly destroyed instead of fleeing.");
+
+  /*** DOMAIN MASTER TREE - TIER 3 PERKS (3-4 points each) ***/
+  
+  /* Domain Focus III */
+  perk = &perk_list[PERK_CLERIC_DOMAIN_FOCUS_3];
+  perk->id = PERK_CLERIC_DOMAIN_FOCUS_3;
+  perk->name = strdup("Domain Focus III");
+  perk->description = strdup("+2 DC for domain spells");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_DOMAIN_FOCUS_2;
+  perk->prerequisite_rank = 5; /* Must max Domain Focus II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 DC for domain spells */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Domain Focus II (max). Grants +2 DC to all domain spell saving throws. Stacks with Domain Focus I and II.");
+  
+  /* Divine Spell Power III (Rank 1-2) */
+  perk = &perk_list[PERK_CLERIC_DIVINE_SPELL_POWER_3];
+  perk->id = PERK_CLERIC_DIVINE_SPELL_POWER_3;
+  perk->name = strdup("Divine Spell Power III");
+  perk->description = strdup("+3 damage to divine spells per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_CLERIC_DIVINE_SPELL_POWER_2;
+  perk->prerequisite_rank = 5; /* Must max Divine Spell Power II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 damage per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Divine Spell Power II (max). Grants +3 bonus damage to all divine spells per rank. Can be taken 2 times for +6 total. Stacks with Divine Spell Power I and II.");
+  
+  /* Bonus Domain Spell III (Rank 1-2) */
+  perk = &perk_list[PERK_CLERIC_SPELL_POINT_RESERVE_3];
+  perk->id = PERK_CLERIC_SPELL_POINT_RESERVE_3;
+  perk->name = strdup("Bonus Domain Spell III");
+  perk->description = strdup("+1 bonus domain spell per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_CLERIC_SPELL_POINT_RESERVE_2;
+  perk->prerequisite_rank = 3; /* Must max Bonus Domain Spell II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 spell slot per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Bonus Domain Spell II (max). Grants +1 bonus domain spell slot of any level per rank. Can be taken 2 times. Regenerates 1 slot per 5 minutes.");
+  
+  /* Divine Metamagic II */
+  perk = &perk_list[PERK_CLERIC_DIVINE_METAMAGIC_2];
+  perk->id = PERK_CLERIC_DIVINE_METAMAGIC_2;
+  perk->name = strdup("Divine Metamagic II");
+  perk->description = strdup("Metamagic feats increase spell level by 2 less");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_DIVINE_METAMAGIC_1;
+  perk->prerequisite_rank = 1; /* Must have Divine Metamagic I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* -2 spell level increase */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Divine Metamagic I. When applying metamagic feats to your divine spells, the spell level increase is reduced by 2. Stacks with Divine Metamagic I for -3 total.");
+  
+  /* Greater Turning */
+  perk = &perk_list[PERK_CLERIC_GREATER_TURNING];
+  perk->id = PERK_CLERIC_GREATER_TURNING;
+  perk->name = strdup("Greater Turning");
+  perk->description = strdup("Turn undead affects undead +2 HD levels higher");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_2;
+  perk->prerequisite_rank = 5; /* Must max Turn Undead Enhancement II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 HD levels */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Turn Undead Enhancement II (max). Your turn undead ability can affect undead up to 2 HD levels higher than normal.");
+  
+  /* Domain Mastery */
+  perk = &perk_list[PERK_CLERIC_DOMAIN_MASTERY];
+  perk->id = PERK_CLERIC_DOMAIN_MASTERY;
+  perk->name = strdup("Domain Mastery");
+  perk->description = strdup("Use domain powers +1 additional time per day");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_EXTENDED_DOMAIN;
+  perk->prerequisite_rank = 1; /* Must have Extended Domain */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 daily use */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Extended Domain. You can use your domain powers one additional time per day.");
+
+  /*** DOMAIN MASTER TREE - TIER 4 CAPSTONE PERKS (5 points each) ***/
+  
+  /* Divine Channeler */
+  perk = &perk_list[PERK_CLERIC_DIVINE_CHANNELER];
+  perk->id = PERK_CLERIC_DIVINE_CHANNELER;
+  perk->name = strdup("Divine Channeler");
+  perk->description = strdup("Master of divine magic: +3 DC, +10 damage, domain powers 2x/day");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_DOMAIN_FOCUS_3;
+  perk->prerequisite_rank = 1; /* Must have Domain Focus III */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 DC bonus */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Domain Focus III. CAPSTONE: All divine spells gain +3 DC and +10 damage. Domain powers can be used twice as often per day.");
+  
+  /* Master of the Undead */
+  perk = &perk_list[PERK_CLERIC_MASTER_OF_UNDEAD];
+  perk->id = PERK_CLERIC_MASTER_OF_UNDEAD;
+  perk->name = strdup("Master of the Undead");
+  perk->description = strdup("Ultimate turning: +5 turn DC, control undead, destroy up to 10 HD");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_GREATER_TURNING;
+  perk->prerequisite_rank = 1; /* Must have Greater Turning */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 turn DC */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Greater Turning. CAPSTONE: Turn undead DC +5, can control turned undead, destroy undead up to 10 HD below your cleric level.");
 }
 
 /* Define Rogue Perks */
@@ -4964,6 +5088,14 @@ int get_cleric_domain_focus_bonus(struct char_data *ch)
   /* Domain Focus II: +1 per rank, max 2 ranks */
   bonus += get_total_perk_ranks(ch, PERK_CLERIC_DOMAIN_FOCUS_2);
   
+  /* Domain Focus III: +2 DC (1 rank) */
+  if (has_perk(ch, PERK_CLERIC_DOMAIN_FOCUS_3))
+    bonus += 2;
+  
+  /* Divine Channeler: +3 DC (capstone) */
+  if (has_perk(ch, PERK_CLERIC_DIVINE_CHANNELER))
+    bonus += 3;
+  
   return bonus;
 }
 
@@ -4986,6 +5118,13 @@ int get_cleric_divine_spell_power_bonus(struct char_data *ch)
   /* Divine Spell Power II: +2 per rank, max 3 ranks */
   bonus += 2 * get_total_perk_ranks(ch, PERK_CLERIC_DIVINE_SPELL_POWER_2);
   
+  /* Divine Spell Power III: +3 per rank, max 2 ranks */
+  bonus += 3 * get_total_perk_ranks(ch, PERK_CLERIC_DIVINE_SPELL_POWER_3);
+  
+  /* Divine Channeler: +10 damage (capstone) */
+  if (has_perk(ch, PERK_CLERIC_DIVINE_CHANNELER))
+    bonus += 10;
+  
   return bonus;
 }
 
@@ -5004,6 +5143,12 @@ int get_cleric_bonus_domain_spells(struct char_data *ch)
   
   /* Bonus Domain Spell I: +1 per rank, max 5 ranks */
   bonus += get_total_perk_ranks(ch, PERK_CLERIC_SPELL_POINT_RESERVE_1);
+  
+  /* Bonus Domain Spell II: +1 per rank, max 3 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_SPELL_POINT_RESERVE_2);
+  
+  /* Bonus Domain Spell III: +1 per rank, max 2 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_SPELL_POINT_RESERVE_3);
   
   return bonus;
 }
@@ -5074,13 +5219,20 @@ int get_cleric_extended_domain_bonus(struct char_data *ch)
  */
 int get_cleric_divine_metamagic_reduction(struct char_data *ch)
 {
+  int reduction = 0;
+  
   if (!ch || IS_NPC(ch))
     return 0;
   
+  /* Divine Metamagic I: -1 spell level increase */
   if (has_perk(ch, PERK_CLERIC_DIVINE_METAMAGIC_1))
-    return 1; /* Reduce metamagic level increase by 1 */
+    reduction += 1;
   
-  return 0;
+  /* Divine Metamagic II: -2 spell level increase */
+  if (has_perk(ch, PERK_CLERIC_DIVINE_METAMAGIC_2))
+    reduction += 2;
+  
+  return reduction;
 }
 
 /**
@@ -5095,6 +5247,102 @@ bool has_destroy_undead(struct char_data *ch)
     return FALSE;
   
   return has_perk(ch, PERK_CLERIC_DESTROY_UNDEAD);
+}
+
+/**
+ * Get greater turning HD bonus for turn undead.
+ * 
+ * @param ch The character
+ * @return HD levels bonus for affecting higher HD undead
+ */
+int get_cleric_greater_turning_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Greater Turning: +2 HD levels */
+  if (has_perk(ch, PERK_CLERIC_GREATER_TURNING))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get domain mastery bonus uses per day.
+ * 
+ * @param ch The character
+ * @return Additional daily uses for domain powers
+ */
+int get_cleric_domain_mastery_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Domain Mastery: +1 daily use */
+  if (has_perk(ch, PERK_CLERIC_DOMAIN_MASTERY))
+    bonus += 1;
+  
+  /* Divine Channeler: 2x daily uses (doubles all domain power uses) */
+  if (has_perk(ch, PERK_CLERIC_DIVINE_CHANNELER))
+    bonus = -1; /* Special value to indicate doubling */
+  
+  return bonus;
+}
+
+/**
+ * Get turn undead DC bonus from Master of Undead.
+ * 
+ * @param ch The character
+ * @return Turn undead DC bonus
+ */
+int get_cleric_master_of_undead_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Master of the Undead: +5 turn DC */
+  if (has_perk(ch, PERK_CLERIC_MASTER_OF_UNDEAD))
+    return 5;
+  
+  return 0;
+}
+
+/**
+ * Check if character can control turned undead.
+ * 
+ * @param ch The character
+ * @return TRUE if can control turned undead
+ */
+bool has_control_undead(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_CLERIC_MASTER_OF_UNDEAD);
+}
+
+/**
+ * Get destroy undead HD threshold.
+ * 
+ * @param ch The character
+ * @return HD below cleric level at which undead are destroyed
+ */
+int get_destroy_undead_threshold(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Destroy Undead: 3 HD or less below cleric level */
+  if (has_perk(ch, PERK_CLERIC_DESTROY_UNDEAD))
+    return 3;
+  
+  /* Master of the Undead: 10 HD or less below cleric level */
+  if (has_perk(ch, PERK_CLERIC_MASTER_OF_UNDEAD))
+    return 10;
+  
+  return 0;
 }
 
 

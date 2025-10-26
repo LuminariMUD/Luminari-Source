@@ -2177,7 +2177,23 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
     turn_level = GET_LEVEL(ch) + 1;
   }
 
-  int turn_difference = (turn_level - GET_LEVEL(vict));
+  /* Apply turn undead perk bonuses */
+  int turn_bonus = 0;
+  int destroy_threshold = 0;
+  
+  /* Turn Undead Enhancement I & II: +DC bonus (affects effective level difference) */
+  turn_bonus += get_cleric_turn_undead_enhancement_bonus(ch);
+  
+  /* Master of the Undead: Additional +5 DC bonus */
+  turn_bonus += get_cleric_master_of_undead_dc_bonus(ch);
+  
+  /* Greater Turning: Affect undead +2 HD levels higher */
+  int greater_turning_bonus = get_cleric_greater_turning_bonus(ch);
+  
+  /* Destroy Undead: Get HD threshold for instant destruction */
+  destroy_threshold = get_destroy_undead_threshold(ch);
+
+  int turn_difference = (turn_level - GET_LEVEL(vict)) + turn_bonus + greater_turning_bonus;
   int turn_roll = d20(ch);
   int turn_result = 0;
 
@@ -2233,6 +2249,16 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
 
   if (turn_result >= 1 && !IS_NPC(vict))
     turn_result = 3;
+  
+  /* Check for Destroy Undead perk: instantly destroy weak undead */
+  if (turn_result >= 1 && destroy_threshold > 0)
+  {
+    int hd_difference = turn_level - GET_LEVEL(vict);
+    if (hd_difference >= destroy_threshold)
+    {
+      turn_result = 2; /* Upgrade to destroy */
+    }
+  }
 
   /* messaging! */
   act("You raise your divine symbol toward $N declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_CHAR);
@@ -2256,10 +2282,37 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
       call_magic(ch, vict, 0, SPELL_GREATER_RUIN, 0, GET_LEVEL(ch), CAST_INNATE);
     }
 
-    act("The power of your faith overwhelms $N, who flees!", FALSE, ch, 0, vict, TO_CHAR);
-    act("The power of $N's faith overwhelms you! You flee in terror!!!", FALSE, vict, 0, ch, TO_CHAR);
-    act("The power of $N's faith overwhelms $n, who flees!", FALSE, vict, 0, ch, TO_NOTVICT);
-    do_flee(vict, 0, 0, 0);
+    /* Master of the Undead: Control instead of turn */
+    if (has_control_undead(ch) && IS_NPC(vict))
+    {
+      /* Check if can add follower */
+      if (!can_add_follower_by_flag(ch, MOB_C_O_T_N))
+      {
+        act("You cannot control any more undead creatures!", FALSE, ch, 0, vict, TO_CHAR);
+        act("The power of $N's faith overwhelms $n, who flees!", FALSE, vict, 0, ch, TO_NOTVICT);
+        do_flee(vict, 0, 0, 0);
+      }
+      else
+      {
+        act("The power of your faith bends $N to your will!", FALSE, ch, 0, vict, TO_CHAR);
+        act("The power of $N's faith bends you to $S will!", FALSE, vict, 0, ch, TO_CHAR);
+        act("The power of $N's faith bends $n to $S will!", FALSE, vict, 0, ch, TO_NOTVICT);
+        
+        /* Add as follower and charm */
+        if (vict->master)
+          stop_follower(vict);
+        add_follower(vict, ch);
+        SET_BIT_AR(AFF_FLAGS(vict), AFF_CHARM);
+        SET_BIT_AR(MOB_FLAGS(vict), MOB_C_O_T_N);
+      }
+    }
+    else
+    {
+      act("The power of your faith overwhelms $N, who flees!", FALSE, ch, 0, vict, TO_CHAR);
+      act("The power of $N's faith overwhelms you! You flee in terror!!!", FALSE, vict, 0, ch, TO_CHAR);
+      act("The power of $N's faith overwhelms $n, who flees!", FALSE, vict, 0, ch, TO_NOTVICT);
+      do_flee(vict, 0, 0, 0);
+    }
     break;
   case 2: /* Undead is automatically destroyed */
     act("The mighty force of your faith blasts $N out of existence!", FALSE, ch, 0, vict, TO_CHAR);
