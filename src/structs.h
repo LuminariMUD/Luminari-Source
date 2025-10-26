@@ -5709,6 +5709,13 @@ struct player_special_data_saved
     int retainer_cooldown;
     int scrounge_cooldown;
     int spiritual_weapon_cooldown;  // Battle Cleric perk: 5 minute cooldown for free spiritual weapon casting
+    
+    /* Domain Master perk bonus spell slot tracking */
+    int bonus_domain_slots_used;    // Tracks used bonus domain spell slots
+    int bonus_domain_regen_timer;   // Timer for domain slot regeneration (ticks until next regen)
+    int bonus_slots_used;           // Tracks used bonus any-level spell slots
+    int bonus_slots_regen_timer;    // Timer for any-level slot regeneration (ticks until next regen)
+    
     int character_age;
     bool character_age_saved;
 

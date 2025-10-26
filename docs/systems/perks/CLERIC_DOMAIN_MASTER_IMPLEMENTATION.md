@@ -37,13 +37,14 @@ This document describes the implementation of the first two tiers of the Cleric 
 #### 3. Bonus Domain Spell I (ID: 100)
 - **Cost:** 1 point per rank
 - **Max Rank:** 5
-- **Effect:** Prepare +1 additional domain spell per rank
+- **Effect:** +1 bonus domain spell slot per rank (consumed during casting, regenerates 1 per 5 minutes)
 - **Implementation:**
   - Defined in `src/perks.c` (line ~1435)
   - Helper function: `get_cleric_bonus_domain_spells()` (line ~4974)
   - Returns total bonus domain spell slots
-- **Integration Needed:** Spell preparation system for domain spells
-- **Testing:** Purchase ranks, prepare spells, verify additional domain spell slots
+- **Integration Needed:** Spell casting system - check for bonus slots when casting domain spells
+- **Design:** Bonus slots are stored separately and consumed during casting instead of modifying spell preparation. Slots regenerate automatically at 1 per 5 minutes.
+- **Testing:** Purchase ranks, cast domain spells, verify bonus slots consumed before main prepared slots, verify regeneration over time
 
 #### 4. Turn Undead Enhancement I (ID: 101)
 - **Cost:** 1 point per rank
@@ -86,12 +87,14 @@ This document describes the implementation of the first two tiers of the Cleric 
 - **Cost:** 2 points per rank
 - **Max Rank:** 3
 - **Prerequisite:** Bonus Domain Spell I (rank 5)
-- **Effect:** Prepare +1 additional spell of any level per rank
+- **Effect:** +1 bonus spell slot (any level) per rank (consumed during casting, regenerates 1 per 5 minutes)
 - **Implementation:**
   - Defined in `src/perks.c` (line ~1517)
   - Helper function: `get_cleric_bonus_spell_slots()` (line ~4990)
   - Returns total bonus spell slots (any level)
-- **Testing:** Max Bonus Domain Spell I first, then purchase this perk
+- **Integration Needed:** Spell casting system - check for bonus slots when casting divine spells
+- **Design:** Bonus slots are stored separately and consumed during casting instead of modifying spell preparation. Slots regenerate automatically at 1 per 5 minutes.
+- **Testing:** Max Bonus Domain Spell I first, then purchase this perk, cast divine spells, verify bonus slots consumed before main prepared slots, verify regeneration over time
 
 #### 8. Turn Undead Enhancement II (ID: 105)
 - **Cost:** 2 points per rank
@@ -168,9 +171,10 @@ This document describes the implementation of the first two tiers of the Cleric 
 **Lines 3188-3230:** Updated Rogue perk IDs (109-138) to avoid conflicts
 
 #### 2. `src/perks.h`
-**Lines 154-161:** Added 7 new function declarations
+**Lines 154-162:** Added 8 new function declarations
 ```c
 /* Cleric Domain Master tree perk functions */
+bool is_divine_spellcasting_class(int class_num);
 int get_cleric_domain_focus_bonus(struct char_data *ch);
 int get_cleric_divine_spell_power_bonus(struct char_data *ch);
 int get_cleric_bonus_domain_spells(struct char_data *ch);
@@ -187,7 +191,8 @@ bool has_destroy_undead(struct char_data *ch);
 - Effect types and values specified
 - Special descriptions added
 
-**Lines 4974-5010:** Added 7 new helper functions:
+**Lines 4928-5062:** Added 8 new helper functions:
+- `is_divine_spellcasting_class()` - Checks if class is divine (Cleric, Druid, Ranger, Paladin, Blackguard, Inquisitor)
 - `get_cleric_domain_focus_bonus()` - Calculates total domain spell DC bonus
 - `get_cleric_divine_spell_power_bonus()` - Calculates total divine spell damage bonus
 - `get_cleric_bonus_domain_spells()` - Calculates bonus domain spell slots
@@ -201,62 +206,138 @@ bool has_destroy_undead(struct char_data *ch);
 
 ## Integration Points
 
-### 1. Spell DC Calculation
-**Files Needed:** `src/magic.c`, `src/spells.c`
-**Function:** Spell save DC calculation functions
+### 1. Spell DC Calculation (✅ IMPLEMENTED)
+**Files Modified:** `src/magic.c` (line ~461)
+**Function:** `mag_savingthrow_full()`
 
-Add domain focus bonus to domain spells:
+Domain focus bonus is now applied to domain spells:
 ```c
-int calculate_spell_dc(struct char_data *ch, int spell_num)
+challenge += get_spell_dc_bonus(ch);
+
+/* Add domain focus bonus for domain spells */
+if (is_domain_spell_of_ch(ch, spellnum))
+  challenge += get_cleric_domain_focus_bonus(ch);
+```
+
+### 2. Divine Spell Damage (✅ IMPLEMENTED)
+**Files Modified:** `src/magic.c` (line ~2734), `src/perks.c` (line ~4924)
+**Function:** `mag_damage()`, `is_divine_spellcasting_class()`
+
+Divine spell power bonus is now applied to all divine spell damage:
+```c
+/* Add divine spell power bonus for divine casters with Domain Master perks */
+if (!IS_NPC(ch) && is_divine_spellcasting_class(GET_CASTING_CLASS(ch)))
+  dam += get_cleric_divine_spell_power_bonus(ch);
+```
+
+Helper function checks if casting class is divine:
+```c
+bool is_divine_spellcasting_class(int class_num)
 {
-  int dc = 10 + spell_level + ability_modifier;
-  
-  /* Add domain focus bonus if it's a domain spell */
-  if (is_domain_spell(ch, spell_num))
-    dc += get_cleric_domain_focus_bonus(ch);
-  
-  return dc;
+  switch (class_num)
+  {
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_RANGER:
+    case CLASS_PALADIN:
+    case CLASS_BLACKGUARD:
+    case CLASS_INQUISITOR:
+      return TRUE;
+    default:
+      return FALSE;
+  }
 }
 ```
 
-### 2. Divine Spell Damage
-**Files Needed:** `src/magic.c`, `src/spells.c`
-**Function:** Spell damage calculation
+### 3. Bonus Spell Slots (⚠️ INTEGRATION NEEDED)
+**Files Needed:** `src/spell_parser.c` or spell casting system
+**Function:** Spell slot consumption during casting
 
-Add divine spell power bonus to offensive divine spells:
+**Design:** Bonus spell slots are tracked separately from prepared spells. During spell casting, the system should:
+
+1. Check if bonus slots are available:
+   - For domain spells: Check `get_cleric_bonus_domain_spells(ch)`
+   - For any divine spell: Check `get_cleric_bonus_spell_slots(ch)`
+2. Consume bonus slot first if available
+3. Only consume prepared spell slot if no bonus slots remain
+
+**Suggested Implementation:**
 ```c
-int calculate_spell_damage(struct char_data *ch, int spell_num)
+bool consume_spell_slot(struct char_data *ch, int spellnum)
 {
-  int damage = base_damage;
+  /* Check if we can use a bonus domain spell slot */
+  if (is_domain_spell_of_ch(ch, spellnum))
+  {
+    int bonus_domain_slots = get_cleric_bonus_domain_spells(ch);
+    int used_domain_slots = GET_BONUS_DOMAIN_SLOTS_USED(ch); /* Need to track this */
+    
+    if (used_domain_slots < bonus_domain_slots)
+    {
+      GET_BONUS_DOMAIN_SLOTS_USED(ch)++;
+      return TRUE; /* Used bonus slot, don't consume prepared spell */
+    }
+  }
   
-  /* Add divine spell power bonus for clerics */
-  if (GET_CLASS(ch) == CLASS_CLERIC)
-    damage += get_cleric_divine_spell_power_bonus(ch);
+  /* Check if we can use a bonus spell slot (any level) */
+  if (is_divine_spellcasting_class(GET_CASTING_CLASS(ch)))
+  {
+    int bonus_slots = get_cleric_bonus_spell_slots(ch);
+    int used_slots = GET_BONUS_SLOTS_USED(ch); /* Need to track this */
+    
+    if (used_slots < bonus_slots)
+    {
+      GET_BONUS_SLOTS_USED(ch)++;
+      return TRUE; /* Used bonus slot, don't consume prepared spell */
+    }
+  }
   
-  return damage;
+  /* No bonus slots available, consume prepared spell slot */
+  return FALSE;
 }
 ```
 
-### 3. Spell Preparation
-**Files Needed:** `src/spell_prep.c`, `src/class.c`
-**Function:** Spell preparation system
+**Character Data Needed:**
+- `GET_BONUS_DOMAIN_SLOTS_USED(ch)` - Track used bonus domain slots
+- `GET_BONUS_DOMAIN_REGEN_TIMER(ch)` - Timer for domain slot regeneration (0-4 ticks)
+- `GET_BONUS_SLOTS_USED(ch)` - Track used bonus any-level slots
+- `GET_BONUS_SLOTS_REGEN_TIMER(ch)` - Timer for any-level slot regeneration (0-4 ticks)
 
-Add bonus spell slots:
+**Regeneration System (✅ IMPLEMENTED):**
+- Bonus slots regenerate at a rate of **1 slot per 5 minutes (5 ticks)**
+- Implemented in `src/limits.c` in the character update loop (line ~1790)
+- Uses regeneration timers that increment each tick
+- When `GET_BONUS_DOMAIN_SLOTS_USED(ch) > 0`, timer increments
+- When timer reaches 5, regenerates 1 slot and resets timer
+- Minimum value is 0 (cannot go negative)
+- Full slots available immediately after rest/spell preparation (counters reset to 0)
+- **Files Modified:**
+  - `src/limits.c` - Added regeneration logic in character update loop
+  - `src/structs.h` - Added 4 fields to `player_special_data_saved`
+  - `src/utils.h` - Added 4 GET macros for accessing the fields
+  - `src/players.c` - Added save/load support (tags: BDsU, BDsT, BSlU, BSlT) and initialization
+
+**Regeneration Implementation:**
 ```c
-int get_bonus_spell_slots(struct char_data *ch, int spell_level, bool domain_only)
+/* In src/limits.c - Character update loop */
+/* Regenerates 1 slot every 5 ticks (5 minutes) */
+if (GET_BONUS_DOMAIN_SLOTS_USED(ch) > 0)
 {
-  int bonus = 0;
-  
-  /* Add bonus domain spell slots for clerics */
-  if (GET_CLASS(ch) == CLASS_CLERIC && domain_only)
-    bonus += get_cleric_bonus_domain_spells(ch);
-  
-  /* Add bonus spell slots (any level) for clerics */
-  if (GET_CLASS(ch) == CLASS_CLERIC && !domain_only)
-    bonus += get_cleric_bonus_spell_slots(ch);
-  
-  return bonus;
+  GET_BONUS_DOMAIN_REGEN_TIMER(ch)++;
+  if (GET_BONUS_DOMAIN_REGEN_TIMER(ch) >= 5)
+  {
+    GET_BONUS_DOMAIN_SLOTS_USED(ch)--;
+    GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
+    send_to_char(ch, "You feel a bonus domain spell slot restore.\r\n");
+  }
 }
+else
+{
+  GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
+}
+
+/* Same logic for GET_BONUS_SLOTS_USED(ch) */
+```
+```
 ```
 
 ### 4. Turn Undead DC
@@ -386,18 +467,25 @@ Result: +5 domain DC, +11 spell damage, +5 domain spell slots, +3 any-level spel
 - [x] Multi-rank perks can be purchased incrementally
 - [x] Perk info displays correct information
 - [x] Helper functions return correct values
+- [x] Domain Focus DC bonus integrated into `mag_savingthrow_full()`
+- [x] Divine Spell Power damage bonus integrated into `mag_damage()`
+- [x] Divine class detection function `is_divine_spellcasting_class()` implemented
 
 ### ⚠️ Integration Testing Needed
-- [ ] Domain Focus increases domain spell DC correctly
-- [ ] Divine Spell Power increases offensive spell damage correctly
-- [ ] Bonus Domain Spell I grants additional domain spell slots correctly
-- [ ] Bonus Domain Spell II grants additional spell slots (any level) correctly
+- [x] Domain Focus increases domain spell DC correctly
+- [x] Divine Spell Power increases offensive spell damage correctly
+- [ ] Bonus Domain Spell I: Track and consume bonus domain spell slots during casting
+- [ ] Bonus Domain Spell II: Track and consume bonus any-level spell slots during casting
+- [ ] Bonus slots regenerate at 1 slot per 5 minutes
+- [ ] Bonus slots reset to 0 on rest/spell preparation
+- [ ] Regeneration messages display correctly
+- [ ] Regeneration stops when slots are fully restored
 - [ ] Turn Undead Enhancement increases turn undead DC correctly
 - [ ] Extended Domain increases domain spell duration by 5 rounds
 - [ ] Divine Metamagic reduces metamagic spell level increase by 1
 - [ ] Destroy Undead instantly kills weak undead (3+ HD below level)
 - [ ] All bonuses stack properly with Tier 1 and Tier 2 combined
-- [ ] Bonuses only apply to clerics
+- [ ] Bonuses only apply to clerics (or appropriate divine classes)
 - [ ] Domain spells are correctly identified for bonuses
 
 ---
@@ -414,11 +502,22 @@ Result: +5 domain DC, +11 spell damage, +5 domain spell slots, +3 any-level spel
 - **Domain Spell DC:** +5 maximum (very powerful for save-or-die spells)
 - **Spell Damage:** +11 maximum (significant but not overwhelming)
 - **Domain Spell Slots:** +5 maximum (extends domain spell usage significantly)
+  - *Regenerates at 1 slot per 5 minutes = 12 slots per hour sustained*
+  - *Full restoration in 25 minutes if all 5 slots used*
 - **Any-Level Spell Slots:** +3 maximum (flexible spell preparation)
+  - *Regenerates at 1 slot per 5 minutes = 12 slots per hour sustained*
+  - *Full restoration in 15 minutes if all 3 slots used*
 - **Turn Undead DC:** +7 maximum (makes turning much more reliable)
 - **Domain Duration:** +5 rounds (25-50% increase typically)
 - **Metamagic Level:** -1 level increase (allows higher-level metamagic spells)
 - **Destroy Undead:** Instant kill on weak undead (great utility)
+
+**Regeneration Impact:**
+- Bonus slots encourage active spell usage without fear of running out
+- 5-minute regeneration prevents spell spam but allows steady casting
+- Provides sustained advantage in long dungeons or extended combat scenarios
+- Does not make clerics overpowered in short encounters (same initial burst)
+- Rewards tactical play and spell conservation
 
 ### Comparison to Other Trees
 - **Divine Healer:** Focuses on healing output and party support
@@ -445,6 +544,35 @@ Result: +5 domain DC, +11 spell damage, +5 domain spell slots, +3 any-level spel
 ---
 
 ## Version History
+
+**v1.4 - October 26, 2025**
+- **IMPLEMENTED** bonus spell slot regeneration system
+- Added 4 new character data fields in `src/structs.h`: bonus_domain_slots_used, bonus_domain_regen_timer, bonus_slots_used, bonus_slots_regen_timer
+- Added 4 GET macros in `src/utils.h` for accessing regeneration data
+- Implemented regeneration logic in `src/limits.c` character update loop (line ~1790)
+- Added save/load support in `src/players.c` (tags: BDsU, BDsT, BSlU, BSlT)
+- Regeneration rate: 1 slot per 5 minutes (5 ticks)
+- Players receive feedback messages when slots restore
+- Code compiled successfully with no errors
+
+**v1.3 - October 26, 2025**
+- Updated bonus spell slot system to use regeneration instead of rest-only reset
+- Bonus domain slots regenerate at 1 slot per 5 minutes
+- Bonus any-level slots regenerate at 1 slot per 5 minutes
+- Added suggested regeneration implementation using mud event system
+- Updated testing checklist to include regeneration testing
+- Clarified that slots still reset to 0 (full) on rest/spell preparation
+- Added regeneration messages for player feedback
+
+**v1.2 - October 26, 2025**
+- Implemented domain focus DC bonus integration in `mag_savingthrow_full()` (src/magic.c line ~461)
+- Implemented divine spell power damage bonus integration in `mag_damage()` (src/magic.c line ~2734)
+- Added `is_divine_spellcasting_class()` helper function to check for divine casting classes
+- Updated bonus spell slot design: slots are now tracked separately and consumed during casting
+- Bonus Domain Spell I: Provides bonus domain spell slots consumed before prepared slots
+- Bonus Domain Spell II: Provides bonus any-level spell slots consumed before prepared slots
+- Documented required character data fields: GET_BONUS_DOMAIN_SLOTS_USED and GET_BONUS_SLOTS_USED
+- Updated integration documentation with detailed implementation approach
 
 **v1.1 - October 26, 2025**
 - Reworked spell point perks to use spell preparation system instead
