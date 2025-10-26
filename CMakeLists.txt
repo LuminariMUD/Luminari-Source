@@ -486,7 +486,9 @@ set(SRC_C_FILES
     src/backgrounds.c
     src/ban.c
     src/bardic_performance.c
+    src/bedit.c
     src/boards.c
+    src/brew.c
     src/bsd-snprintf.c
     src/cedit.c
     src/char_descs.c
@@ -553,12 +555,14 @@ set(SRC_C_FILES
     src/ibt.c
     src/improved-edit.c
     src/interpreter.c
+    src/introduce.c
     src/kdtree.c
     src/limits.c
     src/lists.c
     src/magic.c
     src/mail.c
     src/medit.c
+    src/metamagic_science.c
     src/missions.c
     src/mob_act.c
     src/mob_memory.c
@@ -567,11 +571,13 @@ set(SRC_C_FILES
     src/mob_psionic.c
     src/mob_class.c
     src/mob_spells.c
+    src/mob_spellslots.c
     src/modify.c
     src/msgedit.c
     src/mud_event.c
     src/mud_event_list.c
     src/mysql.c
+    src/mysql_boards.c
     src/new_mail.c
     src/oasis.c
     src/oasis_copy.c
@@ -580,6 +586,7 @@ set(SRC_C_FILES
     src/objsave.c
     src/oedit.c
     src/perfmon.c
+    src/perks.c
     src/perlin.c
     src/players.c
     src/prefedit.c
@@ -612,11 +619,13 @@ set(SRC_C_FILES
     src/spells.c
     src/staff_events.c
     src/study.c
+    src/talents.c
     src/tedit.c
     src/templates.c
     src/trade.c
     src/transport.c
     src/traps.c
+    src/traps_new.c
     src/treasure.c
     src/treasure_const.c
     src/utils.c
@@ -759,6 +768,11 @@ endif()
 find_library(CRYPTO_LIBRARY crypto)
 if (CRYPTO_LIBRARY)
     target_link_libraries(circle ${CRYPTO_LIBRARY})
+endif()
+
+find_library(JSON_C_LIBRARY json-c)
+if (JSON_C_LIBRARY)
+    target_link_libraries(circle ${JSON_C_LIBRARY})
 endif()
 
 # ========== Compiler warnings and options ==========
