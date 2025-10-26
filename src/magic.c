@@ -454,6 +454,10 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
       challenge += stat_bonus;
 
       challenge += get_spell_dc_bonus(ch);
+
+      /* Add domain focus bonus for domain spells */
+      if (is_domain_spell_of_ch(ch, spellnum))
+        challenge += get_cleric_domain_focus_bonus(ch);
     }
     break;
   }
@@ -2726,6 +2730,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   if (HAS_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA) && element == draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])
     dam += num_dice;
+
+  /* Add divine spell power bonus for divine casters with Domain Master perks */
+  if (!IS_NPC(ch) && is_divine_spellcasting_class(GET_CASTING_CLASS(ch)))
+    dam += get_cleric_divine_spell_power_bonus(ch);
 
   if (spellnum == SPELL_CIRCLE_OF_DEATH && !IS_LIVING(victim))
   {
