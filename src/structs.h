@@ -3118,13 +3118,24 @@
 #define PERK_WIZARD_ENERGY_AFFINITY_LIGHTNING 43
 #define PERK_WIZARD_SPELL_PENETRATION_1 44
 
-/* Wizard Evoker Tree - Tier 2 Perks (45-52) */
+/* Wizard Evoker Tree - Tier 2 Perks (45-50) */
 #define PERK_WIZARD_SPELL_POWER_2 45
 #define PERK_WIZARD_FOCUSED_ELEMENT_FIRE 46
 #define PERK_WIZARD_FOCUSED_ELEMENT_COLD 47
 #define PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING 48
 #define PERK_WIZARD_SPELL_CRITICAL_1 49
 #define PERK_WIZARD_MAXIMIZE_SPELL 50
+
+/* Wizard Evoker Tree - Tier 3 Perks (51-55) */
+#define PERK_WIZARD_SPELL_POWER_3 51
+#define PERK_WIZARD_MASTER_OF_ELEMENTS 52
+#define PERK_WIZARD_SPELL_CRITICAL_2 53
+#define PERK_WIZARD_EMPOWER_SPELL 54
+#define PERK_WIZARD_SPELL_PENETRATION_2 55
+
+/* Wizard Evoker Tree - Tier 4 Perks (56-57) */
+#define PERK_WIZARD_ARCANE_ANNIHILATION 56
+#define PERK_WIZARD_OVERWHELMING_MAGIC 57
 
 /* Cleric Perks (61-90) */
 /* Divine Healer Tree - Tier 1 Perks (61-64) */
@@ -5794,6 +5805,9 @@ struct player_special_data_saved
     
     /* Wizard Evoker perks */
     time_t maximize_spell_cooldown;             /**< Timestamp until when free maximize spell is available again */
+    time_t empower_spell_cooldown;              /**< Timestamp until when next empower spell charge regenerates */
+    int empower_spell_uses;                     /**< Number of empower spell uses available (max 2) */
+    int master_of_elements_type;                /**< Preferred elemental damage type (DAM_FIRE, DAM_COLD, DAM_ELECTRIC), 0 = none */
 };
 
 struct weird_science_level {

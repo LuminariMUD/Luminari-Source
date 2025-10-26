@@ -982,6 +982,115 @@ void define_wizard_perks(void)
   perk->effect_value = 0;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Requires Spell Power I (max). Once every 5 minutes, you can cast a spell with the Maximize metamagic effect (maximum damage dice) without increasing the spell level. Use 'metamagic maximize' before casting.");
+
+  /*** WIZARD EVOKER TREE - TIER 3 PERKS (3-4 points each) ***/
+  
+  /* Spell Power III */
+  perk = &perk_list[PERK_WIZARD_SPELL_POWER_3];
+  perk->id = PERK_WIZARD_SPELL_POWER_3;
+  perk->name = strdup("Spell Power III");
+  perk->description = strdup("+2 spell damage per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_POWER_2;
+  perk->prerequisite_rank = 3; /* Must max Spell Power II */
+  perk->effect_type = PERK_EFFECT_SPELL_DAMAGE;
+  perk->effect_value = 2; /* +2 per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Power II (max). Your mastery of evocation continues to grow.");
+  
+  /* Master of Elements */
+  perk = &perk_list[PERK_WIZARD_MASTER_OF_ELEMENTS];
+  perk->id = PERK_WIZARD_MASTER_OF_ELEMENTS;
+  perk->name = strdup("Master of Elements");
+  perk->description = strdup("All elemental damage +15%, can change energy type of spells");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = 0; /* Special: requires any two Focused Element perks */
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 15; /* +15% to all elemental damage */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires any two Focused Element perks. You gain mastery over elemental forces, increasing all elemental spell damage by 15% and gaining the ability to change the energy type of spells.");
+  
+  /* Spell Critical II */
+  perk = &perk_list[PERK_WIZARD_SPELL_CRITICAL_2];
+  perk->id = PERK_WIZARD_SPELL_CRITICAL_2;
+  perk->name = strdup("Spell Critical II");
+  perk->description = strdup("Critical chance increases to 10%, critical damage x2.5");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_CRITICAL_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10% chance */
+  perk->effect_modifier = 250; /* 2.5x damage stored as 250 (will divide by 100) */
+  perk->special_description = strdup("Requires Spell Critical I. Your critical strike chance increases to 10% and critical spells deal 2.5x damage instead of 1.5x.");
+  
+  /* Empower Spell */
+  perk = &perk_list[PERK_WIZARD_EMPOWER_SPELL];
+  perk->id = PERK_WIZARD_EMPOWER_SPELL;
+  perk->name = strdup("Empower Spell");
+  perk->description = strdup("Cast 1 spell with +50% damage (no level increase), 5min cooldown");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_MAXIMIZE_SPELL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 50; /* +50% damage */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Maximize Spell. Once every 5 minutes, you can cast a spell with the Empower metamagic effect (+50% damage) without increasing the spell level. Use 'metamagic empower' before casting.");
+  
+  /* Spell Penetration II */
+  perk = &perk_list[PERK_WIZARD_SPELL_PENETRATION_2];
+  perk->id = PERK_WIZARD_SPELL_PENETRATION_2;
+  perk->name = strdup("Spell Penetration II");
+  perk->description = strdup("+4 to overcome spell resistance");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_PENETRATION_1;
+  perk->prerequisite_rank = 3; /* Must max Spell Penetration I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Penetration I (max). Your spells become even more effective at piercing magical defenses.");
+  
+  /*** WIZARD EVOKER TREE - TIER 4 CAPSTONE PERKS (5+ points each) ***/
+  
+  /* Arcane Annihilation */
+  perk = &perk_list[PERK_WIZARD_ARCANE_ANNIHILATION];
+  perk->id = PERK_WIZARD_ARCANE_ANNIHILATION;
+  perk->name = strdup("Arcane Annihilation");
+  perk->description = strdup("Damage spells deal +3d6 damage, +2 spell DC");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_POWER_3;
+  perk->prerequisite_rank = 2; /* Must max Spell Power III + need Master of Elements */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* 3d6 dice */
+  perk->effect_modifier = 2; /* +2 DC */
+  perk->special_description = strdup("Requires Spell Power III (max) and Master of Elements. Your evocation spells reach devastating power, dealing an additional 3d6 damage and increasing spell DCs by 2.");
+  
+  /* Overwhelming Magic */
+  perk = &perk_list[PERK_WIZARD_OVERWHELMING_MAGIC];
+  perk->id = PERK_WIZARD_OVERWHELMING_MAGIC;
+  perk->name = strdup("Overwhelming Magic");
+  perk->description = strdup("Spell resistance reduced by 10 against your spells");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_PENETRATION_2;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Penetration II. Your spells are so potent that enemies' spell resistance is effectively reduced by 10 against your magic.");
 }
 
 /* Define Cleric Perks */
@@ -6339,7 +6448,7 @@ void reset_all_perk_points(struct char_data *ch)
  *****************************************************************************/
 
 /**
- * Get total spell power damage bonus from Spell Power I and II.
+ * Get total spell power damage bonus from Spell Power I, II, and III.
  * 
  * @param ch The character
  * @return Total spell damage bonus
@@ -6357,7 +6466,59 @@ int get_wizard_spell_power_bonus(struct char_data *ch)
   /* Spell Power II: +1 per rank, max 3 ranks */
   bonus += get_total_perk_ranks(ch, PERK_WIZARD_SPELL_POWER_2);
   
+  /* Spell Power III: +2 per rank, max 2 ranks */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_WIZARD_SPELL_POWER_3);
+  
   return bonus;
+}
+
+/**
+ * Check if Master of Elements perk should override the spell's damage type.
+ * Converts fire, cold, and lightning damage to the preferred element.
+ * Displays messages when conversion occurs.
+ * 
+ * @param ch The character casting the spell
+ * @param dam_type The original damage type
+ * @return The damage type to use (either original or preferred element)
+ */
+int get_master_of_elements_override(struct char_data *ch, int dam_type)
+{
+  int preferred_type;
+  char buf[MAX_STRING_LENGTH];
+  extern const char *damtypes[];
+  
+  if (!ch || IS_NPC(ch))
+    return dam_type;
+  
+  if (!HAS_FEAT(ch, PERK_WIZARD_MASTER_OF_ELEMENTS))
+    return dam_type;
+  
+  preferred_type = GET_MASTER_OF_ELEMENTS_TYPE(ch);
+  
+  /* No preference set */
+  if (preferred_type == 0)
+    return dam_type;
+  
+  /* Only convert fire, cold, and lightning damage */
+  if (dam_type == DAM_FIRE || dam_type == DAM_COLD || dam_type == DAM_ELECTRIC)
+  {
+    /* Already the preferred type, no conversion needed */
+    if (dam_type == preferred_type)
+      return dam_type;
+    
+    /* Convert and display message */
+    snprintf(buf, sizeof(buf), "\tC[Master of Elements: Converting %s to %s]\tn", 
+             damtypes[dam_type], damtypes[preferred_type]);
+    send_to_char(ch, "%s\r\n", buf);
+    
+    snprintf(buf, sizeof(buf), "\tC[Master of Elements: $n converts the spell's %s energy to %s]\tn", 
+             damtypes[dam_type], damtypes[preferred_type]);
+    act(buf, FALSE, ch, 0, 0, TO_ROOM);
+    
+    return preferred_type;
+  }
+  
+  return dam_type;
 }
 
 /**
@@ -6365,40 +6526,44 @@ int get_wizard_spell_power_bonus(struct char_data *ch)
  * 
  * @param ch The character
  * @param dam_type The damage type (DAM_FIRE, DAM_COLD, DAM_ELECTRIC)
- * @return Percentage bonus (10 or 20)
+ * @return Percentage bonus (10, 20, or 35 with Master of Elements)
  */
 int get_wizard_elemental_damage_bonus(struct char_data *ch, int dam_type)
 {
+  int bonus = 0;
+  
   if (!ch || IS_NPC(ch))
     return 0;
   
   switch (dam_type)
   {
     case DAM_FIRE:
-      /* Focused Element: Fire gives +20% (replaces +10% from affinity) */
-      if (has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_FIRE))
-        return 20;
-      /* Energy Affinity: Fire gives +10% */
-      if (has_perk(ch, PERK_WIZARD_ENERGY_AFFINITY_FIRE))
-        return 10;
-      break;
-      
     case DAM_COLD:
-      if (has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_COLD))
-        return 20;
-      if (has_perk(ch, PERK_WIZARD_ENERGY_AFFINITY_COLD))
-        return 10;
-      break;
-      
     case DAM_ELECTRIC:
-      if (has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING))
-        return 20;
-      if (has_perk(ch, PERK_WIZARD_ENERGY_AFFINITY_LIGHTNING))
-        return 10;
+      /* Focused Element gives +20% (replaces +10% from affinity) */
+      if ((dam_type == DAM_FIRE && has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_FIRE)) ||
+          (dam_type == DAM_COLD && has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_COLD)) ||
+          (dam_type == DAM_ELECTRIC && has_perk(ch, PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING)))
+      {
+        bonus = 20;
+      }
+      /* Energy Affinity gives +10% */
+      else if ((dam_type == DAM_FIRE && has_perk(ch, PERK_WIZARD_ENERGY_AFFINITY_FIRE)) ||
+               (dam_type == DAM_COLD && has_perk(ch, PERK_WIZARD_ENERGY_AFFINITY_COLD)) ||
+               (dam_type == DAM_ELECTRIC && has_perk(ch, PERK_WIZARD_ENERGY_AFFINITY_LIGHTNING)))
+      {
+        bonus = 10;
+      }
+      
+      /* Master of Elements adds +15% to all elemental damage */
+      if (has_perk(ch, PERK_WIZARD_MASTER_OF_ELEMENTS))
+      {
+        bonus += 15;
+      }
       break;
   }
   
-  return 0;
+  return bonus;
 }
 
 /**
@@ -6436,32 +6601,89 @@ int get_wizard_elemental_dc_bonus(struct char_data *ch, int dam_type)
 }
 
 /**
- * Get spell penetration bonus from Spell Penetration I.
+ * Get spell penetration bonus from Spell Penetration I, II, and Overwhelming Magic.
  * 
  * @param ch The character
  * @return Spell penetration bonus
  */
 int get_wizard_spell_penetration_bonus(struct char_data *ch)
 {
+  int bonus = 0;
+  
   if (!ch || IS_NPC(ch))
     return 0;
   
   /* Spell Penetration I: +2 per rank, max 3 ranks = +6 */
-  return 2 * get_total_perk_ranks(ch, PERK_WIZARD_SPELL_PENETRATION_1);
+  bonus += 2 * get_total_perk_ranks(ch, PERK_WIZARD_SPELL_PENETRATION_1);
+  
+  /* Spell Penetration II: +4 */
+  if (has_perk(ch, PERK_WIZARD_SPELL_PENETRATION_2))
+    bonus += 4;
+  
+  /* Overwhelming Magic: +10 (effective SR reduction) */
+  if (has_perk(ch, PERK_WIZARD_OVERWHELMING_MAGIC))
+    bonus += 10;
+  
+  return bonus;
 }
 
 /**
- * Check if character has Spell Critical I perk.
+ * Check if character has any Spell Critical perk.
  * 
  * @param ch The character
- * @return TRUE if has perk, FALSE otherwise
+ * @return TRUE if has any spell critical perk, FALSE otherwise
  */
 bool has_wizard_spell_critical(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return FALSE;
   
-  return has_perk(ch, PERK_WIZARD_SPELL_CRITICAL_1);
+  return (has_perk(ch, PERK_WIZARD_SPELL_CRITICAL_1) || 
+          has_perk(ch, PERK_WIZARD_SPELL_CRITICAL_2));
+}
+
+/**
+ * Get spell critical chance percentage.
+ * 
+ * @param ch The character
+ * @return Critical chance (5 for tier 1, 10 for tier 2, 0 for none)
+ */
+int get_wizard_spell_critical_chance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Spell Critical II: 10% chance */
+  if (has_perk(ch, PERK_WIZARD_SPELL_CRITICAL_2))
+    return 10;
+  
+  /* Spell Critical I: 5% chance */
+  if (has_perk(ch, PERK_WIZARD_SPELL_CRITICAL_1))
+    return 5;
+  
+  return 0;
+}
+
+/**
+ * Get spell critical damage multiplier.
+ * 
+ * @param ch The character
+ * @return Damage multiplier as percentage (250 for 2.5x, 150 for 1.5x, 100 for none)
+ */
+int get_wizard_spell_critical_multiplier(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 100;
+  
+  /* Spell Critical II: 2.5x damage (250%) */
+  if (has_perk(ch, PERK_WIZARD_SPELL_CRITICAL_2))
+    return 250;
+  
+  /* Spell Critical I: 1.5x damage (150%) */
+  if (has_perk(ch, PERK_WIZARD_SPELL_CRITICAL_1))
+    return 150;
+  
+  return 100;
 }
 
 /**
@@ -6497,6 +6719,107 @@ void use_maximize_spell_perk(struct char_data *ch)
   
   /* Set cooldown: 5 minutes = 300 seconds */
   ch->player_specials->saved.maximize_spell_cooldown = time(0) + 300;
+}
+
+/**
+ * Check if Empower Spell free use is available (has charges).
+ * Regenerates charges if cooldown has expired.
+ * Initializes charges to 2 if not yet initialized.
+ * 
+ * @param ch The character
+ * @return TRUE if available, FALSE if no charges
+ */
+bool can_use_empower_spell_perk(struct char_data *ch)
+{
+  time_t current_time;
+  
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!has_perk(ch, PERK_WIZARD_EMPOWER_SPELL))
+    return FALSE;
+  
+  current_time = time(0);
+  
+  /* Initialize charges if this is the first time using the perk */
+  if (ch->player_specials->saved.empower_spell_uses == 0 &&
+      ch->player_specials->saved.empower_spell_cooldown == 0)
+  {
+    ch->player_specials->saved.empower_spell_uses = 2;
+  }
+  
+  /* Regenerate charges if cooldown expired and we're below max */
+  while (ch->player_specials->saved.empower_spell_uses < 2 &&
+         ch->player_specials->saved.empower_spell_cooldown > 0 &&
+         ch->player_specials->saved.empower_spell_cooldown <= current_time)
+  {
+    ch->player_specials->saved.empower_spell_uses++;
+    
+    /* If we're still below max, set next regeneration time */
+    if (ch->player_specials->saved.empower_spell_uses < 2)
+      ch->player_specials->saved.empower_spell_cooldown = current_time + 300;
+    else
+      ch->player_specials->saved.empower_spell_cooldown = 0; /* All charges available */
+  }
+  
+  /* Check if we have charges available */
+  return (ch->player_specials->saved.empower_spell_uses > 0);
+}
+
+/**
+ * Use one charge of Empower Spell perk and start cooldown if needed.
+ * 
+ * @param ch The character
+ */
+void use_empower_spell_perk(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  /* Consume one charge */
+  if (ch->player_specials->saved.empower_spell_uses > 0)
+    ch->player_specials->saved.empower_spell_uses--;
+  
+  /* If we just used our last charge or went below max, start regeneration timer */
+  if (ch->player_specials->saved.empower_spell_uses < 2)
+  {
+    /* Set cooldown: 5 minutes = 300 seconds */
+    ch->player_specials->saved.empower_spell_cooldown = time(0) + 300;
+  }
+}
+
+/**
+ * Get bonus damage dice from Arcane Annihilation.
+ * 
+ * @param ch The character
+ * @return Number of d6 bonus dice (3 if has perk, 0 otherwise)
+ */
+int get_arcane_annihilation_bonus_dice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_WIZARD_ARCANE_ANNIHILATION))
+    return 3;
+  
+  return 0;
+}
+
+/**
+ * Get DC bonus from Arcane Annihilation.
+ * 
+ * @param ch The character
+ * @return DC bonus (+2 if has perk, 0 otherwise)
+ */
+int get_arcane_annihilation_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_WIZARD_ARCANE_ANNIHILATION))
+    return 2;
+  
+  return 0;
 }
 
 

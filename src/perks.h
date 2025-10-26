@@ -167,12 +167,19 @@ int get_destroy_undead_threshold(struct char_data *ch);
 
 /* Wizard Evoker tree perk functions */
 int get_wizard_spell_power_bonus(struct char_data *ch);
+int get_master_of_elements_override(struct char_data *ch, int dam_type);
 int get_wizard_elemental_damage_bonus(struct char_data *ch, int dam_type);
 int get_wizard_elemental_dc_bonus(struct char_data *ch, int dam_type);
 int get_wizard_spell_penetration_bonus(struct char_data *ch);
 bool has_wizard_spell_critical(struct char_data *ch);
+int get_wizard_spell_critical_chance(struct char_data *ch);
+int get_wizard_spell_critical_multiplier(struct char_data *ch);
 bool can_use_maximize_spell_perk(struct char_data *ch);
 void use_maximize_spell_perk(struct char_data *ch);
+bool can_use_empower_spell_perk(struct char_data *ch);
+void use_empower_spell_perk(struct char_data *ch);
+int get_arcane_annihilation_bonus_dice(struct char_data *ch);
+int get_arcane_annihilation_dc_bonus(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
