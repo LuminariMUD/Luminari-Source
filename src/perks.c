@@ -1390,6 +1390,175 @@ void define_cleric_perks(void)
   perk->effect_value = 10; /* Various bonuses */
   perk->effect_modifier = 0;
   perk->special_description = strdup("Requires Smite Evil III and Holy Weapon III. Divine wrath flows through your attacks. Smite Evil deals +10d6 damage, Channel Harm deals 6d6, and all holy damage from Holy Weapon is increased by +10.");
+  
+  /*** DOMAIN MASTER TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Domain Focus I */
+  perk = &perk_list[PERK_CLERIC_DOMAIN_FOCUS_1];
+  perk->id = PERK_CLERIC_DOMAIN_FOCUS_1;
+  perk->name = strdup("Domain Focus I");
+  perk->description = strdup("+1 to domain spell DC per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 DC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases the save DC of spells from your chosen domains by +1 per rank. Can be taken 3 times for +3 DC total.");
+  
+  /* Divine Spell Power I */
+  perk = &perk_list[PERK_CLERIC_DIVINE_SPELL_POWER_1];
+  perk->id = PERK_CLERIC_DIVINE_SPELL_POWER_1;
+  perk->name = strdup("Divine Spell Power I");
+  perk->description = strdup("+1 to divine spell damage per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 damage per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases damage dealt by all divine offensive spells by +1 per rank. Can be taken 5 times for +5 damage total.");
+  
+  /* Bonus Domain Spell I */
+  perk = &perk_list[PERK_CLERIC_SPELL_POINT_RESERVE_1];
+  perk->id = PERK_CLERIC_SPELL_POINT_RESERVE_1;
+  perk->name = strdup("Bonus Domain Spell I");
+  perk->description = strdup("Prepare +1 additional domain spell per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 domain spell per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Allows you to prepare one additional domain spell per rank when you prepare spells. Can be taken 5 times for +5 domain spell slots total.");
+  
+  /* Turn Undead Enhancement I */
+  perk = &perk_list[PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_1];
+  perk->id = PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_1;
+  perk->name = strdup("Turn Undead Enhancement I");
+  perk->description = strdup("+1 to turn undead DC per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 turn undead DC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases the save DC for your turn undead ability by +1 per rank. Can be taken 3 times for +3 DC total.");
+  
+  /*** DOMAIN MASTER TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Domain Focus II */
+  perk = &perk_list[PERK_CLERIC_DOMAIN_FOCUS_2];
+  perk->id = PERK_CLERIC_DOMAIN_FOCUS_2;
+  perk->name = strdup("Domain Focus II");
+  perk->description = strdup("Additional +1 domain spell DC per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_CLERIC_DOMAIN_FOCUS_1;
+  perk->prerequisite_rank = 3; /* Must max Domain Focus I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 DC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Domain Focus I (max). Further increases domain spell DC by +1 per rank. Can be taken 2 times for +5 DC total with Domain Focus I.");
+  
+  /* Divine Spell Power II */
+  perk = &perk_list[PERK_CLERIC_DIVINE_SPELL_POWER_2];
+  perk->id = PERK_CLERIC_DIVINE_SPELL_POWER_2;
+  perk->name = strdup("Divine Spell Power II");
+  perk->description = strdup("Additional +2 divine spell damage per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_CLERIC_DIVINE_SPELL_POWER_1;
+  perk->prerequisite_rank = 5; /* Must max Divine Spell Power I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 damage per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Divine Spell Power I (max). Further increases divine spell damage by +2 per rank. Can be taken 3 times for +11 damage total with Divine Spell Power I.");
+  
+  /* Bonus Domain Spell II */
+  perk = &perk_list[PERK_CLERIC_SPELL_POINT_RESERVE_2];
+  perk->id = PERK_CLERIC_SPELL_POINT_RESERVE_2;
+  perk->name = strdup("Bonus Domain Spell II");
+  perk->description = strdup("Prepare +1 additional spell of any level per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_CLERIC_SPELL_POINT_RESERVE_1;
+  perk->prerequisite_rank = 5; /* Must max Bonus Domain Spell I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* +1 spell of any level per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Bonus Domain Spell I (max). Allows you to prepare one additional spell of any level per rank. Can be taken 3 times for +8 total spell slots with Bonus Domain Spell I.");
+  
+  /* Turn Undead Enhancement II */
+  perk = &perk_list[PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_2];
+  perk->id = PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_2;
+  perk->name = strdup("Turn Undead Enhancement II");
+  perk->description = strdup("Additional +2 turn undead DC per rank");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_1;
+  perk->prerequisite_rank = 3; /* Must max Turn Undead Enhancement I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 turn undead DC per rank */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Turn Undead Enhancement I (max). Further increases turn undead DC by +2 per rank. Can be taken 2 times for +7 DC total with Turn Undead Enhancement I.");
+  
+  /* Extended Domain */
+  perk = &perk_list[PERK_CLERIC_EXTENDED_DOMAIN];
+  perk->id = PERK_CLERIC_EXTENDED_DOMAIN;
+  perk->name = strdup("Extended Domain");
+  perk->description = strdup("Domain spell duration +5 rounds");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_DOMAIN_FOCUS_1;
+  perk->prerequisite_rank = 2; /* Must have Domain Focus I at least 2 ranks */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 rounds duration */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Domain Focus I (at least 2 ranks). Domain spells have their duration extended by +5 rounds.");
+  
+  /* Divine Metamagic I */
+  perk = &perk_list[PERK_CLERIC_DIVINE_METAMAGIC_1];
+  perk->id = PERK_CLERIC_DIVINE_METAMAGIC_1;
+  perk->name = strdup("Divine Metamagic I");
+  perk->description = strdup("Apply metamagic to divine spells without increasing spell level");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_SPELL_POINT_RESERVE_1;
+  perk->prerequisite_rank = 3; /* Must have Bonus Domain Spell I at least 3 ranks */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* Reduce metamagic level increase by 1 */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Bonus Domain Spell I (at least 3 ranks). When applying metamagic feats to divine spells, the effective spell level increase is reduced by 1 (minimum +0). For example, Empower Spell normally increases spell level by +2, but with this perk it only increases by +1.");
+  
+  /* Destroy Undead */
+  perk = &perk_list[PERK_CLERIC_DESTROY_UNDEAD];
+  perk->id = PERK_CLERIC_DESTROY_UNDEAD;
+  perk->name = strdup("Destroy Undead");
+  perk->description = strdup("Turn undead can destroy weak undead instantly");
+  perk->associated_class = CLASS_CLERIC;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_1;
+  perk->prerequisite_rank = 3; /* Must max Turn Undead Enhancement I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* Enable destroy undead */
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Turn Undead Enhancement I (max). When you successfully turn undead, weak undead (3 HD or less below your cleric level) are instantly destroyed instead of fleeing.");
 }
 
 /* Define Rogue Perks */
@@ -4753,11 +4922,186 @@ bool has_spiritual_weapon(struct char_data *ch)
   return has_perk(ch, PERK_CLERIC_SPIRITUAL_WEAPON);
 }
 
+/**
+ * Check if the given class is a divine spellcasting class.
+ * Divine classes are: Cleric, Druid, Ranger, Paladin, Blackguard, Inquisitor
+ * 
+ * @param class_num The class number to check
+ * @return TRUE if divine class, FALSE otherwise
+ */
+bool is_divine_spellcasting_class(int class_num)
+{
+  switch (class_num)
+  {
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_RANGER:
+    case CLASS_PALADIN:
+    case CLASS_BLACKGUARD:
+    case CLASS_INQUISITOR:
+      return TRUE;
+    default:
+      return FALSE;
+  }
+}
+
+/**
+ * Get domain focus DC bonus from Domain Master perks.
+ * 
+ * @param ch The character
+ * @return Total DC bonus for domain spells
+ */
+int get_cleric_domain_focus_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Domain Focus I: +1 per rank, max 3 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_DOMAIN_FOCUS_1);
+  
+  /* Domain Focus II: +1 per rank, max 2 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_DOMAIN_FOCUS_2);
+  
+  return bonus;
+}
+
+/**
+ * Get divine spell power damage bonus from Domain Master perks.
+ * 
+ * @param ch The character
+ * @return Total damage bonus for divine offensive spells
+ */
+int get_cleric_divine_spell_power_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Divine Spell Power I: +1 per rank, max 5 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_DIVINE_SPELL_POWER_1);
+  
+  /* Divine Spell Power II: +2 per rank, max 3 ranks */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_CLERIC_DIVINE_SPELL_POWER_2);
+  
+  return bonus;
+}
+
+/**
+ * Get bonus domain spell slots from Domain Master perks.
+ * 
+ * @param ch The character
+ * @return Total bonus domain spell slots
+ */
+int get_cleric_bonus_domain_spells(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Bonus Domain Spell I: +1 per rank, max 5 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_SPELL_POINT_RESERVE_1);
+  
+  return bonus;
+}
+
+/**
+ * Get bonus spell slots (any level) from Domain Master perks.
+ * 
+ * @param ch The character
+ * @return Total bonus spell slots of any level
+ */
+int get_cleric_bonus_spell_slots(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Bonus Domain Spell II: +1 per rank, max 3 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_SPELL_POINT_RESERVE_2);
+  
+  return bonus;
+}
+
+/**
+ * Get turn undead enhancement DC bonus from Domain Master perks.
+ * 
+ * @param ch The character
+ * @return Total DC bonus for turn undead
+ */
+int get_cleric_turn_undead_enhancement_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Turn Undead Enhancement I: +1 per rank, max 3 ranks */
+  bonus += get_total_perk_ranks(ch, PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_1);
+  
+  /* Turn Undead Enhancement II: +2 per rank, max 2 ranks */
+  bonus += 2 * get_total_perk_ranks(ch, PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_2);
+  
+  return bonus;
+}
+
+/**
+ * Get extended domain duration bonus.
+ * 
+ * @param ch The character
+ * @return Duration bonus in rounds (5 if has perk, 0 otherwise)
+ */
+int get_cleric_extended_domain_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_CLERIC_EXTENDED_DOMAIN))
+    return 5;
+  
+  return 0;
+}
+
+/**
+ * Get divine metamagic spell level reduction.
+ * 
+ * @param ch The character
+ * @return Spell level increase reduction when applying metamagic
+ */
+int get_cleric_divine_metamagic_reduction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_CLERIC_DIVINE_METAMAGIC_1))
+    return 1; /* Reduce metamagic level increase by 1 */
+  
+  return 0;
+}
+
+/**
+ * Check if character can destroy undead with turn undead.
+ * 
+ * @param ch The character
+ * @return TRUE if weak undead are destroyed instead of turned
+ */
+bool has_destroy_undead(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_CLERIC_DESTROY_UNDEAD);
+}
+
 
 
 /*****************************************************************************
  * Step 7: Perk OLC Interface - Player Commands
- *****************************************************************************/
+ *****************************************************************************
 
 /* Save type names for display */
 static const char *save_type_names[] = {
