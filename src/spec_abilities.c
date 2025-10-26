@@ -416,14 +416,20 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
     }
   }
 
-  // Cleric Battle Cleric: Holy Weapon I & II perk damage
+  // Cleric Battle Cleric: Holy Weapon I-III + Divine Wrath perk damage
   if (victim && !IS_NPC(ch) && actmtd == ACTMTD_ON_HIT)
   {
-    int holy_damage = get_cleric_holy_weapon_bonus(ch);
+    int holy_damage = get_cleric_total_holy_weapon_bonus(ch);
     if (holy_damage > 0)
     {
       damage(ch, victim, holy_damage, TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
     }
+  }
+
+  // Cleric Battle Cleric: Righteous Fury - extra damage on critical hits
+  if (victim && !IS_NPC(ch) && actmtd == ACTMTD_ON_CRIT && has_righteous_fury(ch))
+  {
+    damage(ch, victim, dice(2, 6), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
   }
 
   // Knight of the SSkull Favor of Darkness

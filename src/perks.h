@@ -142,6 +142,13 @@ int get_cleric_divine_power_bonus(struct char_data *ch);
 bool has_channel_energy_harm(struct char_data *ch);
 bool has_spiritual_weapon(struct char_data *ch);
 
+/* Battle Cleric Tier 3 & 4 helper functions */
+int get_cleric_armor_of_faith_save_bonus(struct char_data *ch);
+bool has_righteous_fury(struct char_data *ch);
+bool has_divine_wrath(struct char_data *ch);
+int get_cleric_total_holy_weapon_bonus(struct char_data *ch);
+int get_cleric_total_divine_favor_bonus(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

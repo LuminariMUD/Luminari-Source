@@ -1844,9 +1844,21 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     {
       bonus = (compute_channel_energy_level(ch) + 1) / 2;
     }
-    /* Battle Cleric: Channel Energy: Harm perk increases channel level by 2 */
-    if (!IS_NPC(ch) && has_channel_energy_harm(ch))
-      level += 2;
+    /* Battle Cleric perks increase channel energy level */
+    if (!IS_NPC(ch))
+    {
+      /* Channel Energy: Harm increases level by 2 */
+      if (has_channel_energy_harm(ch))
+        level += 2;
+      
+      /* Channel Energy: Greater Harm increases level by additional 4 (total +6) */
+      if (has_perk(ch, PERK_CLERIC_CHANNEL_ENERGY_GREATER_HARM))
+        level += 4;
+      
+      /* Divine Wrath increases channel harm damage by 2 more levels */
+      if (has_divine_wrath(ch))
+        level += 2;
+    }
     break;
 
   case ABILITY_CHANNEL_NEGATIVE_ENERGY:
@@ -1866,9 +1878,21 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     {
       bonus = (compute_channel_energy_level(ch) + 1) / 2;
     }
-    /* Battle Cleric: Channel Energy: Harm perk increases channel level by 2 */
-    if (!IS_NPC(ch) && has_channel_energy_harm(ch))
-      level += 2;
+    /* Battle Cleric perks increase channel energy level */
+    if (!IS_NPC(ch))
+    {
+      /* Channel Energy: Harm increases level by 2 */
+      if (has_channel_energy_harm(ch))
+        level += 2;
+      
+      /* Channel Energy: Greater Harm increases level by additional 4 (total +6) */
+      if (has_perk(ch, PERK_CLERIC_CHANNEL_ENERGY_GREATER_HARM))
+        level += 4;
+      
+      /* Divine Wrath increases channel harm damage by 2 more levels */
+      if (has_divine_wrath(ch))
+        level += 2;
+    }
     break;
 
   case SPELL_FIREBRAND: // transmutation
