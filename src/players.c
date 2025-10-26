@@ -485,6 +485,10 @@ int load_char(const char *name, struct char_data *ch)
     GET_RETAINER_COOLDOWN(ch) = 0;
     GET_SCROUNGE_COOLDOWN(ch) = 0;
     GET_SPIRITUAL_WEAPON_COOLDOWN(ch) = 0;
+    GET_BONUS_DOMAIN_SLOTS_USED(ch) = 0;
+    GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
+    GET_BONUS_SLOTS_USED(ch) = 0;
+    GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
     GET_PVP_TIMER(ch) = 0;
 
     for (i = 0; i < MAX_CURRENT_QUESTS; i++)
@@ -1391,6 +1395,14 @@ int load_char(const char *name, struct char_data *ch)
           GET_2ND_RESTRICTED_SCHOOL(ch) = atoi(line);
         else if (!strcmp(tag, "RetC"))
           GET_RETAINER_COOLDOWN(ch) = atoi(line);
+        else if (!strcmp(tag, "BDsU"))
+          GET_BONUS_DOMAIN_SLOTS_USED(ch) = atoi(line);
+        else if (!strcmp(tag, "BDsT"))
+          GET_BONUS_DOMAIN_REGEN_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "BSlU"))
+          GET_BONUS_SLOTS_USED(ch) = atoi(line);
+        else if (!strcmp(tag, "BSlT"))
+          GET_BONUS_SLOTS_REGEN_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "RM00"))
           GET_CRAFT(ch).refining_materials[0][0] = atoi(line);
         else if (!strcmp(tag, "RM01"))
@@ -2231,6 +2243,14 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE( "SpWC: %d\n", GET_SPIRITUAL_WEAPON_COOLDOWN(ch));
   if (GET_RETAINER_COOLDOWN(ch) != 0)
     BUFFER_WRITE( "RetC: %d\n", GET_RETAINER_COOLDOWN(ch));
+  if (GET_BONUS_DOMAIN_SLOTS_USED(ch) != 0)
+    BUFFER_WRITE( "BDsU: %d\n", GET_BONUS_DOMAIN_SLOTS_USED(ch));
+  if (GET_BONUS_DOMAIN_REGEN_TIMER(ch) != 0)
+    BUFFER_WRITE( "BDsT: %d\n", GET_BONUS_DOMAIN_REGEN_TIMER(ch));
+  if (GET_BONUS_SLOTS_USED(ch) != 0)
+    BUFFER_WRITE( "BSlU: %d\n", GET_BONUS_SLOTS_USED(ch));
+  if (GET_BONUS_SLOTS_REGEN_TIMER(ch) != 0)
+    BUFFER_WRITE( "BSlT: %d\n", GET_BONUS_SLOTS_REGEN_TIMER(ch));
   BUFFER_WRITE( "God : %d\n", GET_DEITY(ch));
   if (GET_AUTOCQUEST_VNUM(ch) != PFDEF_AUTOCQUEST_VNUM)
     BUFFER_WRITE( "Cvnm: %d\n", GET_AUTOCQUEST_VNUM(ch));

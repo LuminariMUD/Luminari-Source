@@ -1788,6 +1788,49 @@ void update_player_misc(void)
       }
     }
 
+    /* Bonus spell slot regeneration - regenerate 1 slot per 5 minutes (5 ticks) */
+    if (GET_BONUS_DOMAIN_SLOTS_USED(ch) > 0)
+    {
+      /* Increment regeneration counter */
+      if (!GET_BONUS_DOMAIN_REGEN_TIMER(ch))
+        GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
+      
+      GET_BONUS_DOMAIN_REGEN_TIMER(ch)++;
+      
+      /* Regenerate 1 slot every 5 ticks (5 minutes) */
+      if (GET_BONUS_DOMAIN_REGEN_TIMER(ch) >= 5)
+      {
+        GET_BONUS_DOMAIN_SLOTS_USED(ch)--;
+        GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
+        send_to_char(ch, "You feel a bonus domain spell slot restore.\r\n");
+      }
+    }
+    else
+    {
+      GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
+    }
+
+    if (GET_BONUS_SLOTS_USED(ch) > 0)
+    {
+      /* Increment regeneration counter */
+      if (!GET_BONUS_SLOTS_REGEN_TIMER(ch))
+        GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
+      
+      GET_BONUS_SLOTS_REGEN_TIMER(ch)++;
+      
+      /* Regenerate 1 slot every 5 ticks (5 minutes) */
+      if (GET_BONUS_SLOTS_REGEN_TIMER(ch) >= 5)
+      {
+        GET_BONUS_SLOTS_USED(ch)--;
+        GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
+        send_to_char(ch, "You feel a bonus spell slot restore.\r\n");
+      }
+    }
+    else
+    {
+      GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
+    }
+
     if (HAS_FEAT(ch, FEAT_DETECT_ALIGNMENT))
       SET_BIT_AR(AFF_FLAGS(ch), AFF_DETECT_ALIGN);
 
