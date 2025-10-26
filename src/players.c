@@ -1327,6 +1327,32 @@ int load_char(const char *name, struct char_data *ch)
             ch->player_specials->saved.maximize_spell_cooldown = (time_t)timestamp;
           }
         }
+        else if (!strcmp(tag, "PEmS"))
+        {
+          long timestamp;
+          int uses;
+          /* Try new format first (cooldown + uses) */
+          if (sscanf(line, "%ld %d", &timestamp, &uses) == 2)
+          {
+            ch->player_specials->saved.empower_spell_cooldown = (time_t)timestamp;
+            ch->player_specials->saved.empower_spell_uses = uses;
+          }
+          /* Fall back to old format (just cooldown) for backwards compatibility */
+          else if (sscanf(line, "%ld", &timestamp) == 1)
+          {
+            ch->player_specials->saved.empower_spell_cooldown = (time_t)timestamp;
+            /* If on cooldown, assume 0 uses; otherwise assume full charges */
+            ch->player_specials->saved.empower_spell_uses = (timestamp > time(0)) ? 0 : 2;
+          }
+        }
+        else if (!strcmp(tag, "PMoE"))
+        {
+          int element_type;
+          if (sscanf(line, "%d", &element_type) == 1)
+          {
+            ch->player_specials->saved.master_of_elements_type = element_type;
+          }
+        }
         break;
 
       case 'Q':
@@ -2766,6 +2792,15 @@ void save_char(struct char_data *ch, int mode)
   /* Save Maximize Spell cooldown */
   BUFFER_WRITE( "PMxS: %ld\n",
     (long)ch->player_specials->saved.maximize_spell_cooldown);
+  
+  /* Save Empower Spell cooldown and uses */
+  BUFFER_WRITE( "PEmS: %ld %d\n",
+    (long)ch->player_specials->saved.empower_spell_cooldown,
+    ch->player_specials->saved.empower_spell_uses);
+  
+  /* Save Master of Elements preference */
+  BUFFER_WRITE( "PMoE: %d\n",
+    ch->player_specials->saved.master_of_elements_type);
 
   /* Save evolutions */
   BUFFER_WRITE( "Evol:\n");

@@ -2670,6 +2670,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   } /* end switch(spellnum) */
   /**************************/
 
+  /* Apply Master of Elements element override for fire/cold/lightning */
+  if (!IS_NPC(ch))
+  {
+    element = get_master_of_elements_override(ch, element);
+  }
+
   if (IS_SPECIALTY_SCHOOL(ch, spellnum))
     size_dice++;
 
@@ -2979,7 +2985,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   dam = dam * get_spell_potency_bonus(ch) / 100;
 
-  /* Check for Spell Critical - 5% chance for 1.5x damage for arcane casters with Evoker perk */
+  /* Check for Spell Critical - arcane casters with Evoker perk */
   if (!IS_NPC(ch) && dam > 0)
   {
     int casting_class = GET_CASTING_CLASS(ch);
@@ -2990,10 +2996,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
         casting_class == CLASS_BARD || 
         casting_class == CLASS_WARLOCK)
     {
-      if (has_wizard_spell_critical(ch) && rand_number(1, 100) <= 5)
+      int crit_chance = get_wizard_spell_critical_chance(ch);
+      if (crit_chance > 0 && rand_number(1, 100) <= crit_chance)
       {
-        dam = (dam * 3) / 2; /* 1.5x damage */
+        int multiplier = get_wizard_spell_critical_multiplier(ch);
+        dam = (dam * multiplier) / 100;
         send_to_char(ch, "\tY[\tWCRITICAL SPELL!\tY] Your spell strikes with devastating power!\tn\r\n");
+      }
+      
+      /* Arcane Annihilation: +3d6 damage */
+      int annihilation_dice = get_arcane_annihilation_bonus_dice(ch);
+      if (annihilation_dice > 0)
+      {
+        dam += dice(annihilation_dice, 6);
       }
     }
   }

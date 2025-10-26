@@ -373,6 +373,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"disarm", "disarm", POS_FIGHTING, do_process_attack, 1, AA_DISARM, FALSE, ACTION_NONE, {0, 0}, can_disarm},
     {"domain", "domain", POS_DEAD, do_domain, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"disguise", "disguise", POS_RESTING, do_disguise, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"masterofelements", "masterofelements", POS_RESTING, do_masterofelements, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"destructiveaura", "destructiveaura", POS_FIGHTING, do_destructiveaura, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"destructivesmite", "destructivesmite", POS_FIGHTING, do_destructivesmite, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"deadlyaim", "deadlyaim", POS_FIGHTING, do_mode, 1, MODE_DEADLY_AIM, FALSE, ACTION_NONE, {0, 0}, NULL},

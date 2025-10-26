@@ -4597,6 +4597,97 @@ ACMD(do_disguise)
   return;
 }
 
+ACMD(do_masterofelements)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int element_type = 0;
+  const char *element_name = NULL;
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "NPCs cannot use this command.\r\n");
+    return;
+  }
+
+  if (!HAS_FEAT(ch, PERK_WIZARD_MASTER_OF_ELEMENTS))
+  {
+    send_to_char(ch, "You need the Master of Elements perk to use this command.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    if (GET_MASTER_OF_ELEMENTS_TYPE(ch) == 0)
+    {
+      send_to_char(ch, "You have not set a preferred elemental damage type.\r\n");
+    }
+    else
+    {
+      switch (GET_MASTER_OF_ELEMENTS_TYPE(ch))
+      {
+      case DAM_FIRE:
+        element_name = "fire";
+        break;
+      case DAM_COLD:
+        element_name = "cold";
+        break;
+      case DAM_ELECTRIC:
+        element_name = "lightning";
+        break;
+      default:
+        element_name = "unknown";
+        break;
+      }
+      send_to_char(ch, "Your current preferred elemental damage type is: %s\r\n", element_name);
+    }
+    send_to_char(ch, "\r\nUsage: masterofelements <fire|cold|lightning|none>\r\n");
+    send_to_char(ch, "This will convert all fire, cold, and lightning damage spells to your chosen element.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "fire"))
+  {
+    element_type = DAM_FIRE;
+    element_name = "fire";
+  }
+  else if (is_abbrev(arg, "cold"))
+  {
+    element_type = DAM_COLD;
+    element_name = "cold";
+  }
+  else if (is_abbrev(arg, "lightning") || is_abbrev(arg, "electric"))
+  {
+    element_type = DAM_ELECTRIC;
+    element_name = "lightning";
+  }
+  else if (is_abbrev(arg, "none") || is_abbrev(arg, "off"))
+  {
+    element_type = 0;
+    element_name = "none";
+  }
+  else
+  {
+    send_to_char(ch, "Invalid element type. Choose from: fire, cold, lightning, or none.\r\n");
+    return;
+  }
+
+  GET_MASTER_OF_ELEMENTS_TYPE(ch) = element_type;
+  
+  if (element_type == 0)
+  {
+    send_to_char(ch, "You clear your elemental preference. Your spells will use their normal damage types.\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "You focus your elemental mastery on %s. All your fire, cold, and lightning spells will now deal %s damage.\r\n", 
+                 element_name, element_name);
+  }
+
+  return;
+}
+
 ACMD(do_quit)
 {
   int index = 0;

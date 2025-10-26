@@ -2205,6 +2205,25 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Maximize Spell (Free) Cooldown  - Duration: %d seconds\r\n", remaining);
   }
   
+  if (!IS_NPC(k) && has_perk(k, PERK_WIZARD_EMPOWER_SPELL))
+  {
+    /* Force regeneration check */
+    can_use_empower_spell_perk(k);
+    
+    int uses = k->player_specials->saved.empower_spell_uses;
+    send_to_char(ch, "Empower Spell (Free) Uses: %d/2", uses);
+    
+    if (uses < 2 && k->player_specials->saved.empower_spell_cooldown > time(0))
+    {
+      int remaining = (int)(k->player_specials->saved.empower_spell_cooldown - time(0));
+      send_to_char(ch, " - Next charge in: %d seconds\r\n", remaining);
+    }
+    else
+    {
+      send_to_char(ch, "\r\n");
+    }
+  }
+  
   if ((pMudEvent = char_has_mud_event(k, eSLA_STRENGTH)))
     send_to_char(ch, "Strength Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_ENLARGE)))

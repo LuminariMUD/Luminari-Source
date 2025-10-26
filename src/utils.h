@@ -978,6 +978,9 @@ void char_from_furniture(struct char_data *ch);
 // churches homeland-port
 #define GET_CHURCH(ch) ((ch)->player_specials->saved.church)
 
+/* Master of Elements perk */
+#define GET_MASTER_OF_ELEMENTS_TYPE(ch) ((ch)->player_specials->saved.master_of_elements_type)
+
 /* disguise related macros */
 #define GET_DISGUISE_RACE(ch) ((ch)->char_specials.saved.disguise_race)
 #define IS_MORPHED(ch) (ch->player_specials->saved.morphed)
