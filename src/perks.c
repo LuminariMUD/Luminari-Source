@@ -62,6 +62,9 @@ void init_perks(void)
   /* Define Wizard Perks */
   define_wizard_perks();
   
+  /* Define Wizard Controller Perks */
+  define_wizard_controller_perks();
+  
   /* Define Cleric Perks */
   define_cleric_perks();
   
@@ -1091,6 +1094,159 @@ void define_wizard_perks(void)
   perk->effect_value = 10;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Requires Spell Penetration II. Your spells are so potent that enemies' spell resistance is effectively reduced by 10 against your magic.");
+}
+
+/* Define Wizard Controller Perks */
+void define_wizard_controller_perks(void)
+{
+  struct perk_data *perk;
+  
+  /*** CONTROLLER TREE - TIER 1 PERKS ***/
+  
+  /* Spell Focus (Enchantment) I */
+  perk = &perk_list[PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_1];
+  perk->id = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_1;
+  perk->name = strdup("Spell Focus (Enchantment) I");
+  perk->description = strdup("+1 DC to enchantment spells per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1;
+  
+  /* Spell Focus (Enchantment) II */
+  perk = &perk_list[PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_2];
+  perk->id = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_2;
+  perk->name = strdup("Spell Focus (Enchantment) II");
+  perk->description = strdup("+1 DC to enchantment spells per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_1;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1;
+  
+  /* Spell Focus (Enchantment) III */
+  perk = &perk_list[PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3];
+  perk->id = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3;
+  perk->name = strdup("Spell Focus (Enchantment) III");
+  perk->description = strdup("+1 DC to enchantment spells per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_2;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1;
+  
+  /* Spell Focus (Enchantment) IV */
+  perk = &perk_list[PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_4];
+  perk->id = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_4;
+  perk->name = strdup("Spell Focus (Enchantment) IV");
+  perk->description = strdup("+1 DC to enchantment spells per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1;
+  
+  /* Spell Focus (Enchantment) V */
+  perk = &perk_list[PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_5];
+  perk->id = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_5;
+  perk->name = strdup("Spell Focus (Enchantment) V");
+  perk->description = strdup("+1 DC to enchantment spells per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_4;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 1;
+  
+  /* Extend Spell */
+  perk = &perk_list[PERK_WIZARD_EXTEND_SPELL];
+  perk->id = PERK_WIZARD_EXTEND_SPELL;
+  perk->name = strdup("Extend Spell");
+  perk->description = strdup("Buff spell durations are increased by 5% per rank (minimum +1 round)");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 10;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPELL_DURATION;
+  perk->effect_value = 5;
+  
+  /*** CONTROLLER TREE - TIER 2 PERKS ***/
+  
+  /* Greater Spell Focus (Enchantment) I */
+  perk = &perk_list[PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1];
+  perk->id = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1;
+  perk->name = strdup("Greater Spell Focus (Enchantment) I");
+  perk->description = strdup("+2 DC to enchantment spells per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_5;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 2;
+  
+  /* Greater Spell Focus (Enchantment) II */
+  perk = &perk_list[PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_2];
+  perk->id = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_2;
+  perk->name = strdup("Greater Spell Focus (Enchantment) II");
+  perk->description = strdup("+2 DC to enchantment spells per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 2;
+  
+  /* Greater Spell Focus (Enchantment) III */
+  perk = &perk_list[PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_3];
+  perk->id = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_3;
+  perk->name = strdup("Greater Spell Focus (Enchantment) III");
+  perk->description = strdup("+2 DC to enchantment spells per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 3;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_2;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPELL_DC;
+  perk->effect_value = 2;
+  
+  /* Persistent Spell */
+  perk = &perk_list[PERK_WIZARD_PERSISTENT_SPELL];
+  perk->id = PERK_WIZARD_PERSISTENT_SPELL;
+  perk->name = strdup("Persistent Spell");
+  perk->description = strdup("Activate to force target to save twice vs next spell (2 uses, regenerates 1 per 5 min). Use 'persistentspell' command.");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  
+  /* Split Enchantment */
+  perk = &perk_list[PERK_WIZARD_SPLIT_ENCHANTMENT];
+  perk->id = PERK_WIZARD_SPLIT_ENCHANTMENT;
+  perk->name = strdup("Split Enchantment");
+  perk->description = strdup("Activate to make next enchantment spell affect all enemies in room (5 min cooldown). Use 'splitenchantment' command.");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
 }
 
 /* Define Cleric Perks */
@@ -5623,6 +5779,193 @@ int get_destroy_undead_threshold(struct char_data *ch)
   return 0;
 }
 
+/******************************************************************************
+ * Wizard Controller Tree Perk Functions
+ ******************************************************************************/
+
+/**
+ * Get DC bonus from Spell Focus (Enchantment) perks.
+ * 
+ * @param ch The character
+ * @return Total DC bonus for enchantment spells
+ */
+int get_enchantment_spell_dc_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Spell Focus I-V: +1 per rank */
+  bonus += get_perk_rank(ch, PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_1, CLASS_WIZARD);
+  bonus += get_perk_rank(ch, PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_2, CLASS_WIZARD);
+  bonus += get_perk_rank(ch, PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3, CLASS_WIZARD);
+  bonus += get_perk_rank(ch, PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_4, CLASS_WIZARD);
+  bonus += get_perk_rank(ch, PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_5, CLASS_WIZARD);
+  
+  /* Greater Spell Focus I-III: +2 per rank */
+  bonus += get_perk_rank(ch, PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1, CLASS_WIZARD) * 2;
+  bonus += get_perk_rank(ch, PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_2, CLASS_WIZARD) * 2;
+  bonus += get_perk_rank(ch, PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_3, CLASS_WIZARD) * 2;
+  
+  return bonus;
+}
+
+/**
+ * Get duration bonus from Extend Spell perk for buff spells.
+ * Only affects non-violent spells that can target self.
+ * 
+ * @param ch The character
+ * @param spellnum The spell number
+ * @return Duration multiplier percentage (150 for +50%, 100 for normal)
+ */
+int get_extend_spell_bonus(struct char_data *ch, int spellnum)
+{
+  if (!ch || IS_NPC(ch))
+    return 100;
+  
+  if (!has_perk(ch, PERK_WIZARD_EXTEND_SPELL))
+    return 100;
+  
+  /* Only extend buff spells (non-violent, can target self) */
+  if (spell_info[spellnum].violent || IS_SET(spell_info[spellnum].targets, TAR_NOT_SELF))
+    return 100;
+  
+  /* Calculate bonus: 5% per rank */
+  int ranks = get_perk_rank(ch, PERK_WIZARD_EXTEND_SPELL, CLASS_WIZARD);
+  return 100 + (ranks * 5); /* +5% per rank */
+}
+
+/**
+ * Check if Persistent Spell use is available (has charges).
+ * Regenerates charges if cooldown has expired.
+ * 
+ * @param ch The character
+ * @return TRUE if available, FALSE if no charges
+ */
+bool can_use_persistent_spell_perk(struct char_data *ch)
+{
+  time_t current_time;
+  
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!has_perk(ch, PERK_WIZARD_PERSISTENT_SPELL))
+    return FALSE;
+  
+  current_time = time(0);
+  
+  /* Initialize charges if this is the first time using the perk */
+  if (ch->player_specials->saved.persistent_spell_uses == 0 &&
+      ch->player_specials->saved.persistent_spell_cooldown == 0)
+  {
+    ch->player_specials->saved.persistent_spell_uses = 2;
+  }
+  
+  /* Regenerate charges if cooldown expired and we're below max */
+  while (ch->player_specials->saved.persistent_spell_uses < 2 &&
+         ch->player_specials->saved.persistent_spell_cooldown > 0 &&
+         ch->player_specials->saved.persistent_spell_cooldown <= current_time)
+  {
+    ch->player_specials->saved.persistent_spell_uses++;
+    
+    /* If we're still below max, set next regeneration time */
+    if (ch->player_specials->saved.persistent_spell_uses < 2)
+      ch->player_specials->saved.persistent_spell_cooldown = current_time + 300;
+    else
+      ch->player_specials->saved.persistent_spell_cooldown = 0; /* All charges available */
+  }
+  
+  /* Check if we have charges available */
+  return (ch->player_specials->saved.persistent_spell_uses > 0);
+}
+
+/**
+ * Use one charge of Persistent Spell perk and activate the effect.
+ * 
+ * @param ch The character
+ */
+void use_persistent_spell_perk(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  /* Consume one charge */
+  if (ch->player_specials->saved.persistent_spell_uses > 0)
+    ch->player_specials->saved.persistent_spell_uses--;
+  
+  /* If we just used our last charge or went below max, start regeneration timer */
+  if (ch->player_specials->saved.persistent_spell_uses < 2)
+  {
+    /* Set cooldown: 5 minutes = 300 seconds */
+    ch->player_specials->saved.persistent_spell_cooldown = time(0) + 300;
+  }
+  
+  /* Activate persistent spell flag */
+  ch->player_specials->saved.persistent_spell_active = TRUE;
+}
+
+/**
+ * Check if persistent spell effect is currently active.
+ * 
+ * @param ch The character
+ * @return TRUE if active, FALSE otherwise
+ */
+bool is_persistent_spell_active(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return ch->player_specials->saved.persistent_spell_active;
+}
+
+/**
+ * Clear the persistent spell active flag after use.
+ * 
+ * @param ch The character
+ */
+void clear_persistent_spell_active(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  ch->player_specials->saved.persistent_spell_active = FALSE;
+}
+
+/**
+ * Check if Split Enchantment is available (not on cooldown).
+ * 
+ * @param ch The character
+ * @return TRUE if available, FALSE if on cooldown
+ */
+bool can_use_split_enchantment_perk(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!has_perk(ch, PERK_WIZARD_SPLIT_ENCHANTMENT))
+    return FALSE;
+  
+  /* Check cooldown */
+  if (ch->player_specials->saved.split_enchantment_cooldown > time(0))
+    return FALSE;
+  
+  return TRUE;
+}
+
+/**
+ * Activate the Split Enchantment perk cooldown (5 minutes).
+ * 
+ * @param ch The character
+ */
+void use_split_enchantment_perk(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  /* Set cooldown: 5 minutes = 300 seconds */
+  ch->player_specials->saved.split_enchantment_cooldown = time(0) + 300;
+}
 
 
 /*****************************************************************************

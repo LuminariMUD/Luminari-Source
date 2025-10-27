@@ -2224,6 +2224,37 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     }
   }
   
+  /* Wizard Controller perk cooldowns */
+  if (!IS_NPC(k) && has_perk(k, PERK_WIZARD_PERSISTENT_SPELL))
+  {
+    /* Force regeneration check */
+    can_use_persistent_spell_perk(k);
+    
+    int uses = k->player_specials->saved.persistent_spell_uses;
+    send_to_char(ch, "Persistent Spell Uses: %d/2", uses);
+    
+    if (k->player_specials->saved.persistent_spell_active)
+    {
+      send_to_char(ch, " \tc[ACTIVE - Next spell requires double save!]\tn");
+    }
+    
+    if (uses < 2 && k->player_specials->saved.persistent_spell_cooldown > time(0))
+    {
+      int remaining = (int)(k->player_specials->saved.persistent_spell_cooldown - time(0));
+      send_to_char(ch, " - Next charge in: %d seconds\r\n", remaining);
+    }
+    else
+    {
+      send_to_char(ch, "\r\n");
+    }
+  }
+  
+  if (!IS_NPC(k) && k->player_specials->saved.split_enchantment_cooldown > time(0))
+  {
+    int remaining = (int)(k->player_specials->saved.split_enchantment_cooldown - time(0));
+    send_to_char(ch, "Split Enchantment Cooldown  - Duration: %d seconds\r\n", remaining);
+  }
+  
   if ((pMudEvent = char_has_mud_event(k, eSLA_STRENGTH)))
     send_to_char(ch, "Strength Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_ENLARGE)))

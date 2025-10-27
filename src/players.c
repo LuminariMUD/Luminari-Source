@@ -1353,6 +1353,25 @@ int load_char(const char *name, struct char_data *ch)
             ch->player_specials->saved.master_of_elements_type = element_type;
           }
         }
+        else if (!strcmp(tag, "PPsS"))
+        {
+          long timestamp;
+          int uses, active;
+          if (sscanf(line, "%ld %d %d", &timestamp, &uses, &active) == 3)
+          {
+            ch->player_specials->saved.persistent_spell_cooldown = (time_t)timestamp;
+            ch->player_specials->saved.persistent_spell_uses = uses;
+            ch->player_specials->saved.persistent_spell_active = (active != 0);
+          }
+        }
+        else if (!strcmp(tag, "PSpE"))
+        {
+          long timestamp;
+          if (sscanf(line, "%ld", &timestamp) == 1)
+          {
+            ch->player_specials->saved.split_enchantment_cooldown = (time_t)timestamp;
+          }
+        }
         break;
 
       case 'Q':
@@ -2801,6 +2820,16 @@ void save_char(struct char_data *ch, int mode)
   /* Save Master of Elements preference */
   BUFFER_WRITE( "PMoE: %d\n",
     ch->player_specials->saved.master_of_elements_type);
+  
+  /* Save Persistent Spell cooldown, uses, and active flag */
+  BUFFER_WRITE( "PPsS: %ld %d %d\n",
+    (long)ch->player_specials->saved.persistent_spell_cooldown,
+    ch->player_specials->saved.persistent_spell_uses,
+    ch->player_specials->saved.persistent_spell_active ? 1 : 0);
+  
+  /* Save Split Enchantment cooldown */
+  BUFFER_WRITE( "PSpE: %ld\n",
+    (long)ch->player_specials->saved.split_enchantment_cooldown);
 
   /* Save evolutions */
   BUFFER_WRITE( "Evol:\n");
