@@ -429,7 +429,6 @@ int get_healing_aura_regen_bonus(struct char_data *ch)
   struct char_data *aura_caster = NULL;
   int total_bonus = 0;
   int max_range = 0;
-  int distance = 0;
   room_rnum room = NOWHERE;
   int dir = 0;
   

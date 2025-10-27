@@ -882,7 +882,7 @@ static void oedit_disp_trap_type(struct descriptor_data *d)
   int counter = 0;
 
   write_to_output(d, "\r\n");
-  for (counter = 0; counter < NUM_TRAP_TYPES; counter++)
+  for (counter = 0; counter < NUM_TRAP_TRIGGERS; counter++)
   {
     write_to_output(d, "%d) %s\r\n", counter, trap_type[counter]);
   }
@@ -897,7 +897,7 @@ static void oedit_disp_trap_effects(struct descriptor_data *d)
   write_to_output(d, "\r\n");
   for (counter = TRAP_SPECIAL_PARALYSIS; counter < NUM_TRAP_SPECIAL_EFFECTS; counter++)
   {
-    write_to_output(d, "%d) %s\r\n", counter, trap_effects[counter - 1000]);
+    write_to_output(d, "%d) %s\r\n", counter, trap_effects[counter - TRAP_SPECIAL_PARALYSIS]);
   }
 
   write_to_output(d, "\r\n%s(You can also choose any spellnum)\r\n", nrm);

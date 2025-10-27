@@ -176,8 +176,7 @@ void process_room_damage(struct char_data *ch, room_rnum room, int riding, int s
  */
 void process_trap_detection(struct char_data *ch)
 {
-  int sensed_trap = FALSE;
-  
+ 
   /* Trap sense feat allows automatic detection */
   if (!IS_NPC(ch))
   {
@@ -187,7 +186,7 @@ void process_trap_detection(struct char_data *ch)
     if ((trap_check = HAS_FEAT(ch, FEAT_TRAP_SENSE)))
     {
       if (skill_check(ch, ABILITY_PERCEPTION, (dc - trap_check)))
-        sensed_trap = perform_detecttrap(ch, TRUE); /* silent */
+        perform_detecttrap(ch, TRUE); /* silent */
     }
   }
 
