@@ -206,6 +206,11 @@ void clear_persistent_spell_active(struct char_data *ch);
 bool can_use_split_enchantment_perk(struct char_data *ch);
 void use_split_enchantment_perk(struct char_data *ch);
 
+/* Defensive Casting perk functions */
+void activate_defensive_casting(struct char_data *ch);
+bool has_defensive_casting_active(struct char_data *ch);
+int get_defensive_casting_ac_bonus(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

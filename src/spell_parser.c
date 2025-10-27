@@ -35,6 +35,7 @@
 #include "mudlim.h"
 #include "metamagic_science.h"
 #include "mob_spellslots.h"
+#include "perks.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -1167,6 +1168,12 @@ similar method added -zusuk */
   // will give the dc bonus to all targets, not just the first, which occurred when it
   // was removed in mag_savingthrow
   GET_DC_BONUS(caster) = 0;
+
+  /* Wizard Controller Perk: Defensive Casting - +4 AC for 1 round after casting */
+  if (!IS_NPC(caster) && has_perk(caster, PERK_WIZARD_DEFENSIVE_CASTING))
+  {
+    activate_defensive_casting(caster);
+  }
 
   return (1);
 }

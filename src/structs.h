@@ -5965,6 +5965,9 @@ struct player_special_data_saved
     int persistent_spell_uses;                  /**< Number of persistent spell uses available (max 2) */
     bool persistent_spell_active;               /**< Whether persistent spell effect is active for next spell */
     time_t split_enchantment_cooldown;          /**< Timestamp until when split enchantment is available again */
+    
+    /* Wizard Versatile Caster perks */
+    int defensive_casting_timer;                /**< Rounds remaining for defensive casting AC bonus */
 };
 
 struct weird_science_level {

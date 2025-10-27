@@ -2255,6 +2255,14 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Split Enchantment Cooldown  - Duration: %d seconds\r\n", remaining);
   }
   
+  /* Wizard Controller perk: Defensive Casting - show if active */
+  if (!IS_NPC(k) && k->player_specials->saved.defensive_casting_timer > 0)
+  {
+    send_to_char(ch, "\tGDefensive Casting Active\tn - +4 AC for %d round%s\r\n",
+                 k->player_specials->saved.defensive_casting_timer,
+                 k->player_specials->saved.defensive_casting_timer == 1 ? "" : "s");
+  }
+  
   if ((pMudEvent = char_has_mud_event(k, eSLA_STRENGTH)))
     send_to_char(ch, "Strength Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_ENLARGE)))

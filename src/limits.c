@@ -2049,6 +2049,14 @@ void proc_d20_round(void)
     {
       GET_FRIGHTFUL_PRESENCE_TIMER(i)--;
     }
+    if (GET_DEFENSIVE_CASTING_TIMER(i) > 0)
+    {
+      GET_DEFENSIVE_CASTING_TIMER(i)--;
+      if (GET_DEFENSIVE_CASTING_TIMER(i) <= 0)
+      {
+        send_to_char(i, "Your defensive casting bonus fades.\r\n");
+      }
+    }
     if (CALL_EIDOLON_COOLDOWN(i) > 0)
     {
       CALL_EIDOLON_COOLDOWN(i)--;

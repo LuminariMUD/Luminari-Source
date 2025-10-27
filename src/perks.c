@@ -6219,6 +6219,55 @@ void use_split_enchantment_perk(struct char_data *ch)
   ch->player_specials->saved.split_enchantment_cooldown = time(0) + 300;
 }
 
+/**
+ * Activate defensive casting AC bonus.
+ * Sets a timer for 1 round of +4 dodge AC after casting a spell.
+ * 
+ * @param ch The character
+ */
+void activate_defensive_casting(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  if (!has_perk(ch, PERK_WIZARD_DEFENSIVE_CASTING))
+    return;
+  
+  /* Set timer for 1 round (will be decremented in limits.c or combat) */
+  ch->player_specials->saved.defensive_casting_timer = 1;
+}
+
+/**
+ * Check if defensive casting AC bonus is active.
+ * 
+ * @param ch The character
+ * @return TRUE if defensive casting bonus is active
+ */
+bool has_defensive_casting_active(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return (ch->player_specials->saved.defensive_casting_timer > 0);
+}
+
+/**
+ * Get the AC bonus from defensive casting perk.
+ * 
+ * @param ch The character
+ * @return AC bonus (4 if active, 0 otherwise)
+ */
+int get_defensive_casting_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_defensive_casting_active(ch))
+    return 0;
+  
+  return 4; /* +4 dodge AC */
+}
+
 
 /*****************************************************************************
  * Step 7: Perk OLC Interface - Player Commands
