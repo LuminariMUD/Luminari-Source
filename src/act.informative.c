@@ -2263,6 +2263,43 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
                  k->player_specials->saved.defensive_casting_timer == 1 ? "" : "s");
   }
   
+  /* Wizard Versatile Caster perk: Spell Shield - show if active */
+  if (!IS_NPC(k) && k->player_specials->saved.spell_shield_timer > 0)
+  {
+    send_to_char(ch, "\tCSpell Shield Active\tn - 10 DR + 4 AC for %d round%s\r\n",
+                 k->player_specials->saved.spell_shield_timer,
+                 k->player_specials->saved.spell_shield_timer == 1 ? "" : "s");
+  }
+  
+  /* Arcane Recovery cooldown */
+  if (!IS_NPC(k) && k->player_specials->saved.arcane_recovery_cooldown > time(0))
+  {
+    int remaining = (int)(k->player_specials->saved.arcane_recovery_cooldown - time(0));
+    send_to_char(ch, "Arcane Recovery Cooldown  - Duration: %d seconds\r\n", remaining);
+  }
+  
+  /* Metamagic Reduction uses (Metamagic Master I/II + Archmage's Power) */
+  if (!IS_NPC(k) && (has_perk(k, PERK_WIZARD_METAMAGIC_MASTER_I) || 
+                     has_perk(k, PERK_WIZARD_METAMAGIC_MASTER_II) ||
+                     has_perk(k, PERK_WIZARD_ARCHMAGES_POWER)))
+  {
+    /* Force regeneration check */
+    can_use_metamagic_reduction(k);
+    
+    int uses = k->player_specials->saved.metamagic_reduction_uses;
+    send_to_char(ch, "Metamagic Reduction Uses: %d/2", uses);
+    
+    if (uses < 2 && k->player_specials->saved.metamagic_reduction_cooldown > time(0))
+    {
+      int remaining = (int)(k->player_specials->saved.metamagic_reduction_cooldown - time(0));
+      send_to_char(ch, " - Next charge in: %d seconds\r\n", remaining);
+    }
+    else
+    {
+      send_to_char(ch, "\r\n");
+    }
+  }
+  
   if ((pMudEvent = char_has_mud_event(k, eSLA_STRENGTH)))
     send_to_char(ch, "Strength Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_ENLARGE)))

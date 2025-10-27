@@ -3136,6 +3136,16 @@
 #define PERK_WIZARD_METAMAGIC_MASTER_I 152  /* Randomly reduce metamagic circle increase by 1 */
 #define PERK_WIZARD_DEFENSIVE_CASTING 153   /* +4 AC when casting */
 
+/* TREE 4: VERSATILE CASTER - Tier 3 Perks (154-158) */
+#define PERK_WIZARD_SPELL_FOCUS_III 154     /* Additional 2% chance per rank, max 2 ranks (total 16%) */
+#define PERK_WIZARD_METAMAGIC_MASTER_II 155 /* Metamagic circle increase reduced by 1 */
+#define PERK_WIZARD_ARCANE_RECOVERY 156     /* Reduce spell prep time once per day */
+#define PERK_WIZARD_SPELL_SHIELD 157        /* 10 DR + 4 AC when attacked first */
+
+/* TREE 4: VERSATILE CASTER - Tier 4 Capstones (158-159) */
+#define PERK_WIZARD_ARCHMAGES_POWER 158     /* +5% free spell, -1 metamagic cost */
+#define PERK_WIZARD_ARCANE_SUPREMACY 159    /* +2 spell DCs, +2 caster level, +2 spell damage */
+
 /* ============================================================================
  * CLERIC PERKS (200-299)
  * ============================================================================ */
@@ -5968,6 +5978,10 @@ struct player_special_data_saved
     
     /* Wizard Versatile Caster perks */
     int defensive_casting_timer;                /**< Rounds remaining for defensive casting AC bonus */
+    time_t arcane_recovery_cooldown;            /**< Timestamp until when arcane recovery is available again */
+    int spell_shield_timer;                     /**< Rounds remaining for spell shield effect (10 DR + 4 AC) */
+    time_t metamagic_reduction_cooldown;        /**< Timestamp until when next metamagic reduction charge regenerates */
+    int metamagic_reduction_uses;               /**< Number of metamagic reduction uses available (max 2) */
 };
 
 struct weird_science_level {

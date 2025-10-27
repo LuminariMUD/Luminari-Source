@@ -1383,6 +1383,39 @@ int load_char(const char *name, struct char_data *ch)
             ch->player_specials->saved.defensive_casting_timer = timer;
           }
         }
+        else if (!strcmp(tag, "PARc"))
+        {
+          long timestamp;
+          if (sscanf(line, "%ld", &timestamp) == 1)
+          {
+            ch->player_specials->saved.arcane_recovery_cooldown = (time_t)timestamp;
+          }
+        }
+        else if (!strcmp(tag, "PSSt"))
+        {
+          int timer;
+          if (sscanf(line, "%d", &timer) == 1)
+          {
+            ch->player_specials->saved.spell_shield_timer = timer;
+          }
+        }
+        else if (!strcmp(tag, "PMRd"))
+        {
+          long timestamp;
+          int uses;
+          /* Load metamagic reduction cooldown and uses */
+          if (sscanf(line, "%ld %d", &timestamp, &uses) == 2)
+          {
+            ch->player_specials->saved.metamagic_reduction_cooldown = (time_t)timestamp;
+            ch->player_specials->saved.metamagic_reduction_uses = uses;
+          }
+          /* If no saved data, initialize to 2 uses available */
+          else
+          {
+            ch->player_specials->saved.metamagic_reduction_uses = 2;
+            ch->player_specials->saved.metamagic_reduction_cooldown = 0;
+          }
+        }
         break;
 
       case 'Q':
@@ -2860,6 +2893,22 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE( "PDCt: %d\n",
       ch->player_specials->saved.defensive_casting_timer);
   }
+  
+  /* Save Arcane Recovery cooldown */
+  BUFFER_WRITE( "PARc: %ld\n",
+    (long)ch->player_specials->saved.arcane_recovery_cooldown);
+  
+  /* Save Spell Shield timer */
+  if (ch->player_specials->saved.spell_shield_timer > 0)
+  {
+    BUFFER_WRITE( "PSSt: %d\n",
+      ch->player_specials->saved.spell_shield_timer);
+  }
+  
+  /* Save Metamagic Reduction cooldown and uses */
+  BUFFER_WRITE( "PMRd: %ld %d\n",
+    (long)ch->player_specials->saved.metamagic_reduction_cooldown,
+    ch->player_specials->saved.metamagic_reduction_uses);
 
   /* Save evolutions */
   BUFFER_WRITE( "Evol:\n");

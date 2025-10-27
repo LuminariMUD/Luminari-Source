@@ -1917,6 +1917,14 @@ static int calculate_metamagic_modifier(struct char_data *ch, int char_class, in
     metamagic_mod = MAX(0, metamagic_mod - divine_reduction);
   }
   
+  /* Apply wizard versatile caster metamagic reduction */
+  if (ch && !IS_NPC(ch) && metamagic_mod > 0) {
+    int wizard_reduction = get_metamagic_circle_reduction(ch);
+    if (wizard_reduction > 0) {
+      metamagic_mod = MAX(0, metamagic_mod - wizard_reduction);
+    }
+  }
+  
   return metamagic_mod;
 }
 
