@@ -2983,6 +2983,25 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
   {
     if (is_spell_in_collection(ch, ch_class, spellnum, metamagic))
     {
+      /* Check if this is an arcane class and if spell slot is preserved */
+      bool is_arcane_class = (ch_class == CLASS_WIZARD || 
+                              ch_class == CLASS_SORCERER || 
+                              ch_class == CLASS_BARD ||
+                              ch_class == CLASS_SUMMONER ||
+                              ch_class == CLASS_ARCANE_SHADOW ||
+                              ch_class == CLASS_KNIGHT_OF_THE_THORN ||
+                              ch_class == CLASS_ELDRITCH_KNIGHT ||
+                              ch_class == CLASS_ARCANE_ARCHER ||
+                              ch_class == CLASS_SPELLSWORD ||
+                              ch_class == CLASS_WARLOCK);
+      
+      /* Roll for spell slot preservation if arcane caster with perks */
+      if (is_arcane_class && check_spell_slot_preservation(ch))
+      {
+        send_to_char(ch, "\tW[Your mastery of magic allows you to cast without expending the spell!]\tn\r\n");
+        return (ch_class); /* Spell is still in collection, not removed */
+      }
+      
       /* Found it! Extract from collection */
       if (!collection_remove_by_class(ch, ch_class, spellnum, metamagic))
         return CLASS_UNDEFINED; /* Removal failed - shouldn't happen */
@@ -3013,6 +3032,25 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
              count_total_slots(ch, ch_class, circle) >
          0))
     {
+      /* Check if this is an arcane class and if spell slot is preserved */
+      bool is_arcane_class = (ch_class == CLASS_WIZARD || 
+                              ch_class == CLASS_SORCERER || 
+                              ch_class == CLASS_BARD ||
+                              ch_class == CLASS_SUMMONER ||
+                              ch_class == CLASS_ARCANE_SHADOW ||
+                              ch_class == CLASS_KNIGHT_OF_THE_THORN ||
+                              ch_class == CLASS_ELDRITCH_KNIGHT ||
+                              ch_class == CLASS_ARCANE_ARCHER ||
+                              ch_class == CLASS_SPELLSWORD ||
+                              ch_class == CLASS_WARLOCK);
+      
+      /* Roll for spell slot preservation if arcane caster with perks */
+      if (is_arcane_class && check_spell_slot_preservation(ch))
+      {
+        send_to_char(ch, "\tW[Your mastery of magic allows you to cast without expending the spell slot!]\tn\r\n");
+        return ch_class; /* Slot not used, still available */
+      }
+      
       /* Success! Put a slot of this circle into recovery queue */
       prep_time = compute_spells_prep_time(ch, ch_class, circle, is_domain);
       innate_magic_add(ch, ch_class, circle, metamagic, prep_time, is_domain);

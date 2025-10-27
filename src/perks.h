@@ -189,6 +189,13 @@ int get_master_transmuter_dc_bonus(struct char_data *ch);
 int get_master_illusionist_dc_bonus(struct char_data *ch);
 int get_spell_mastery_dc_bonus(struct char_data *ch);
 
+/* Wizard Versatile Caster tree perk functions */
+int get_combat_casting_concentration_bonus(struct char_data *ch);
+bool can_use_spell_recall(struct char_data *ch);
+int get_metamagic_master_reduction(struct char_data *ch);
+int get_arcane_knowledge_spellcraft_bonus(struct char_data *ch);
+bool check_spell_slot_preservation(struct char_data *ch);
+
 /* Wizard Controller tree perk functions */
 int get_enchantment_spell_dc_bonus(struct char_data *ch);
 int get_extend_spell_bonus(struct char_data *ch, int spellnum);

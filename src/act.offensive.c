@@ -6125,6 +6125,56 @@ ACMD(do_irresistablemagic)
   act("\tM$n weaves an unstoppable pattern of arcane energy!\tn", FALSE, ch, NULL, NULL, TO_ROOM);
 }
 
+ACMDCHECK(can_spellrecall)
+{
+  ACMDCHECK_PREREQ_HASFEAT(PERK_WIZARD_SPELL_RECALL, "You don't have the Spell Recall perk.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_spellrecall)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_spellrecall);
+
+  /* Check if perk is available */
+  if (!can_use_spell_recall(ch))
+  {
+    if (!has_perk(ch, PERK_WIZARD_SPELL_RECALL))
+    {
+      send_to_char(ch, "You don't have the Spell Recall perk.\r\n");
+      return;
+    }
+    
+    /* Must be on cooldown */
+    int seconds_left = GET_SPELL_RECALL_COOLDOWN(ch) * 6;
+    int hours = seconds_left / 3600;
+    int minutes = (seconds_left % 3600) / 60;
+    int seconds = seconds_left % 60;
+    
+    if (hours > 0)
+      send_to_char(ch, "You must wait %d hour%s, %d minute%s, and %d second%s before using spell recall again.\r\n",
+                   hours, (hours != 1 ? "s" : ""), minutes, (minutes != 1 ? "s" : ""), seconds, (seconds != 1 ? "s" : ""));
+    else if (minutes > 0)
+      send_to_char(ch, "You must wait %d minute%s and %d second%s before using spell recall again.\r\n",
+                   minutes, (minutes != 1 ? "s" : ""), seconds, (seconds != 1 ? "s" : ""));
+    else
+      send_to_char(ch, "You must wait %d second%s before using spell recall again.\r\n",
+                   seconds, (seconds != 1 ? "s" : ""));
+    return;
+  }
+
+  /* Simplified implementation - just display message and set cooldown */
+  /* The actual spell slot restoration will be implemented later with proper spell system integration */
+  send_to_char(ch, "\tCYou focus your will and recall your arcane knowledge!\tn\r\n"
+                   "Your magical reserves are temporarily restored.\r\n"
+                   "\tY(This perk's full functionality will be implemented in a future update.)\tn\r\n");
+  
+  act("\tC$n focuses deeply, recalling arcane knowledge!\tn", FALSE, ch, NULL, NULL, TO_ROOM);
+  
+  /* Set daily cooldown - 24 hours = 10 ticks per minute * 60 minutes * 24 hours = 14400 ticks */
+  GET_SPELL_RECALL_COOLDOWN(ch) = 14400;
+}
+
 ACMDCHECK(can_avatarofwar)
 {
   ACMDCHECK_PREREQ_HASFEAT(PERK_CLERIC_AVATAR_OF_WAR, "You don't have the Avatar of War perk.\r\n");
