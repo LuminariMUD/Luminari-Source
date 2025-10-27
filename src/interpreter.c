@@ -699,6 +699,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"peace", "pe", POS_DEAD, do_peace, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"perks", "per", POS_RECLINING, do_perk, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"persistentspell", "persistentspell", POS_RESTING, do_persistentspell, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
     {"picklock", "pi", POS_STANDING, do_pick_lock, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #else
@@ -906,6 +907,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"spells", "spells", POS_RECLINING, do_spells, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spiritualweapon", "spiritualweapon", POS_FIGHTING, do_spiritualweapon, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_spiritualweapon},
     {"split", "split", POS_SITTING, do_split, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"splitenchantment", "splitenchantment", POS_RESTING, do_splitenchantment, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spot", "spot", POS_STANDING, do_spot, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"stand", "st", POS_RECLINING, do_stand, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"stat", "stat", POS_DEAD, do_stat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

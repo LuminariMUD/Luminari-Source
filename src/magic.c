@@ -501,6 +501,13 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     // send_to_char(ch, "Bingo 2!\r\n");
     challenge += 3;
   }
+  
+  /* Controller perk tree - Spell Focus (Enchantment) and Greater Spell Focus */
+  if (ch && school == ENCHANTMENT)
+  {
+    challenge += get_enchantment_spell_dc_bonus(ch);
+  }
+  
   if (ch && !IS_NPC(ch) && GET_SPECIALTY_SCHOOL(ch) == school)
   {
     /*deubg*/
@@ -655,6 +662,28 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
       }
     }
 
+    /* Persistent Spell perk - target must succeed on TWO saves to resist */
+    if (ch && is_persistent_spell_active(ch))
+    {
+      static bool in_persistent_save = FALSE;
+      
+      /* Prevent infinite recursion */
+      if (!in_persistent_save)
+      {
+        in_persistent_save = TRUE;
+        clear_persistent_spell_active(ch);
+        
+        send_to_char(ch, "\tM[Persistent Spell: Target must save again to resist!]\tn\r\n");
+        send_to_char(vict, "\tY[You saved once, but the spell persists - save again!]\tn\r\n");
+        
+        /* Make the second save call - if they fail this one, spell affects them */
+        int second_save = mag_savingthrow_full(ch, vict, type, modifier, casttype, level, school, spellnum);
+        
+        in_persistent_save = FALSE;
+        return second_save;
+      }
+    }
+
     if (HAS_FEAT(vict, FEAT_EATER_OF_MAGIC) && affected_by_spell(vict, SKILL_RAGE))
     {
       GET_HIT(vict) += 2 * CLASS_LEVEL(vict, CLASS_BERSERKER) + 10 +
@@ -682,6 +711,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
         send_combat_roll_info(ch, "\tW*(Challenge:%d>%s:%d) Opponent Failed Save!*\tn ", challenge, save_names[type], savethrow);
     }
   }
+  
   return (FALSE);
 }
 
@@ -9002,6 +9032,22 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         af[i].duration *= 1.5;
       }
     }
+    
+    /* Extend Spell perk - applies to non-violent buff spells */
+    int extend_bonus = get_extend_spell_bonus(ch, spellnum);
+    if (extend_bonus > 100)
+    {
+      for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+      {
+        int old_duration = af[i].duration;
+        af[i].duration = af[i].duration * extend_bonus / 100;
+        
+        /* Ensure minimum +1 round bonus */
+        if (old_duration > 0 && af[i].duration < old_duration + 1)
+          af[i].duration = old_duration + 1;
+      }
+    }
+    
     for (i = 0; i < MAX_SPELL_AFFECTS; i++)
     {
       if (af[i].duration > 0)

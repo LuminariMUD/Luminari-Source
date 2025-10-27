@@ -181,6 +181,16 @@ void use_empower_spell_perk(struct char_data *ch);
 int get_arcane_annihilation_bonus_dice(struct char_data *ch);
 int get_arcane_annihilation_dc_bonus(struct char_data *ch);
 
+/* Wizard Controller tree perk functions */
+int get_enchantment_spell_dc_bonus(struct char_data *ch);
+int get_extend_spell_bonus(struct char_data *ch, int spellnum);
+bool can_use_persistent_spell_perk(struct char_data *ch);
+void use_persistent_spell_perk(struct char_data *ch);
+bool is_persistent_spell_active(struct char_data *ch);
+void clear_persistent_spell_active(struct char_data *ch);
+bool can_use_split_enchantment_perk(struct char_data *ch);
+void use_split_enchantment_perk(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

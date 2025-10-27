@@ -3137,6 +3137,21 @@
 #define PERK_WIZARD_ARCANE_ANNIHILATION 56
 #define PERK_WIZARD_OVERWHELMING_MAGIC 57
 
+/* Wizard Controller Tree - Tier 1 Perks (58-63) */
+#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_1 58
+#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_2 59
+#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3 60
+#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_4 61
+#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_5 62
+#define PERK_WIZARD_EXTEND_SPELL 63
+
+/* Wizard Controller Tree - Tier 2 Perks (64-68) */
+#define PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1 64
+#define PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_2 65
+#define PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_3 66
+#define PERK_WIZARD_PERSISTENT_SPELL 67
+#define PERK_WIZARD_SPLIT_ENCHANTMENT 68
+
 /* Cleric Perks (61-90) */
 /* Divine Healer Tree - Tier 1 Perks (61-64) */
 #define PERK_CLERIC_HEALING_POWER_1 61
@@ -5808,6 +5823,12 @@ struct player_special_data_saved
     time_t empower_spell_cooldown;              /**< Timestamp until when next empower spell charge regenerates */
     int empower_spell_uses;                     /**< Number of empower spell uses available (max 2) */
     int master_of_elements_type;                /**< Preferred elemental damage type (DAM_FIRE, DAM_COLD, DAM_ELECTRIC), 0 = none */
+    
+    /* Wizard Controller perks */
+    time_t persistent_spell_cooldown;           /**< Timestamp until when next persistent spell charge regenerates */
+    int persistent_spell_uses;                  /**< Number of persistent spell uses available (max 2) */
+    bool persistent_spell_active;               /**< Whether persistent spell effect is active for next spell */
+    time_t split_enchantment_cooldown;          /**< Timestamp until when split enchantment is available again */
 };
 
 struct weird_science_level {

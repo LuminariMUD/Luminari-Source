@@ -852,6 +852,8 @@ ACMD_DECL(do_wildshape);
 ACMD_DECL(do_vanish);
 ACMD_DECL(do_disguise);
 ACMD_DECL(do_masterofelements);
+ACMD_DECL(do_persistentspell);
+ACMD_DECL(do_splitenchantment);
 ACMD_DECL(do_ethshift);
 ACMD_DECL(do_handleanimal);
 // ACMD_DECL(do_nohints);

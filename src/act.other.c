@@ -4688,6 +4688,82 @@ ACMD(do_masterofelements)
   return;
 }
 
+ACMD(do_persistentspell)
+{
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "NPCs cannot use this command.\r\n");
+    return;
+  }
+
+  if (!HAS_FEAT(ch, PERK_WIZARD_PERSISTENT_SPELL))
+  {
+    send_to_char(ch, "You need the Persistent Spell perk to use this command.\r\n");
+    return;
+  }
+
+  /* Force regeneration check */
+  can_use_persistent_spell_perk(ch);
+
+  /* Check if already active */
+  if (is_persistent_spell_active(ch))
+  {
+    send_to_char(ch, "Persistent Spell is already active! Your next spell will require the target to save twice.\r\n");
+    return;
+  }
+
+  /* Check if we have charges */
+  if (!can_use_persistent_spell_perk(ch))
+  {
+    int remaining = 0;
+    if (ch->player_specials->saved.persistent_spell_cooldown > time(0))
+      remaining = (int)(ch->player_specials->saved.persistent_spell_cooldown - time(0));
+    
+    send_to_char(ch, "You have no Persistent Spell charges available.\r\n");
+    if (remaining > 0)
+      send_to_char(ch, "Next charge regenerates in: %d seconds\r\n", remaining);
+    return;
+  }
+
+  /* Activate persistent spell */
+  use_persistent_spell_perk(ch);
+  
+  send_to_char(ch, "\tcYou invoke Persistent Spell! Your next spell or effect will require the target to save twice.\tn\r\n");
+  act("\tc$n focuses $s will, weaving persistent magic into $s next spell.\tn", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+ACMD(do_splitenchantment)
+{
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "NPCs cannot use this command.\r\n");
+    return;
+  }
+
+  if (!HAS_FEAT(ch, PERK_WIZARD_SPLIT_ENCHANTMENT))
+  {
+    send_to_char(ch, "You need the Split Enchantment perk to use this command.\r\n");
+    return;
+  }
+
+  /* Check if on cooldown */
+  if (!can_use_split_enchantment_perk(ch))
+  {
+    int remaining = (int)(ch->player_specials->saved.split_enchantment_cooldown - time(0));
+    send_to_char(ch, "Split Enchantment is on cooldown.\r\n");
+    send_to_char(ch, "Available in: %d seconds\r\n", remaining);
+    return;
+  }
+
+  /* Activate split enchantment */
+  use_split_enchantment_perk(ch);
+  
+  send_to_char(ch, "\tmYou prepare to split your next enchantment spell, affecting all enemies in the room!\tn\r\n");
+  act("\tm$n weaves complex magical patterns, preparing to split $s next enchantment.\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  send_to_char(ch, "\tRNote: Split Enchantment will only trigger when you cast an enchantment school spell.\tn\r\n");
+}
+
 ACMD(do_quit)
 {
   int index = 0;
