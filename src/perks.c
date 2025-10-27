@@ -36,6 +36,7 @@ extern int level_exp(struct char_data *ch, int level);
 
 /* Forward declarations */
 static void define_wizard_controller_perks(void);
+static void define_wizard_versatile_caster_perks(void);
 
 /* Global perk database - all defined perks */
 struct perk_data perk_list[NUM_PERKS];
@@ -71,6 +72,9 @@ void init_perks(void)
   
   /* Define Wizard Controller Perks */
   define_wizard_controller_perks();
+  
+  /* Define Wizard Versatile Caster Perks */
+  define_wizard_versatile_caster_perks();
   
   /* Define Cleric Perks */
   define_cleric_perks();
@@ -1356,6 +1360,145 @@ static void define_wizard_controller_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 0;
   perk->special_description = strdup("Requires Persistent Spell and Spell Mastery. Once every 5 minutes, you can use the 'irresistablemagic' command to make your next spell automatically succeed (no saving throw allowed).");
+}
+
+/*****************************************************************************
+ * Wizard Versatile Caster Tree Perk Definitions
+ *****************************************************************************/
+
+void define_wizard_versatile_caster_perks(void)
+{
+  struct perk_data *perk;
+  
+  /*** VERSATILE CASTER TREE - TIER 1 PERKS ***/
+  
+  /* Spell Focus I - 2% chance per rank to not expend spell slot */
+  perk = &perk_list[PERK_WIZARD_SPELL_FOCUS_I];
+  perk->id = PERK_WIZARD_SPELL_FOCUS_I;
+  perk->name = strdup("Spell Focus I");
+  perk->description = strdup("2% chance per rank that spells don't expend a slot when cast");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* 2% per rank */
+  perk->special_description = strdup("When you cast a spell, there is a 2% chance per rank (max 10% at rank 5) that the spell slot is not expended.");
+  
+  /* Quick Cast I */
+  perk = &perk_list[PERK_WIZARD_QUICK_CAST_I];
+  perk->id = PERK_WIZARD_QUICK_CAST_I;
+  perk->name = strdup("Quick Cast I");
+  perk->description = strdup("Use quicken metamagic without spell circle increase once per 5 minutes");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->special_description = strdup("Once every 5 minutes, you can apply quicken metamagic to a spell without increasing its spell circle requirement.");
+  
+  /* Arcane Knowledge I */
+  perk = &perk_list[PERK_WIZARD_ARCANE_KNOWLEDGE_I];
+  perk->id = PERK_WIZARD_ARCANE_KNOWLEDGE_I;
+  perk->name = strdup("Arcane Knowledge I");
+  perk->description = strdup("+2 to spellcraft skill per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SKILL;
+  perk->effect_value = 2; /* +2 per rank */
+  perk->special_description = strdup("Increases your spellcraft skill by +2 per rank.");
+  
+  /* Combat Casting I */
+  perk = &perk_list[PERK_WIZARD_COMBAT_CASTING_I];
+  perk->id = PERK_WIZARD_COMBAT_CASTING_I;
+  perk->name = strdup("Combat Casting I");
+  perk->description = strdup("+2 concentration when in combat per rank");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 per rank when in combat */
+  perk->special_description = strdup("Increases your concentration skill by +2 per rank when you are in combat.");
+  
+  /*** VERSATILE CASTER TREE - TIER 2 PERKS ***/
+  
+  /* Spell Focus II - Additional 2% chance per rank */
+  perk = &perk_list[PERK_WIZARD_SPELL_FOCUS_II];
+  perk->id = PERK_WIZARD_SPELL_FOCUS_II;
+  perk->name = strdup("Spell Focus II");
+  perk->description = strdup("Additional 2% chance per rank that spells don't expend slots");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_I;
+  perk->prerequisite_rank = 5; /* Must max Spell Focus I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* 2% per rank */
+  perk->special_description = strdup("Requires Spell Focus I (max). Increases the chance by an additional 2% per rank (total 16% at max ranks of both).");
+  
+  /* Quick Cast II */
+  perk = &perk_list[PERK_WIZARD_QUICK_CAST_II];
+  perk->id = PERK_WIZARD_QUICK_CAST_II;
+  perk->name = strdup("Quick Cast II");
+  perk->description = strdup("Can cast one spell per combat as instant action");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_QUICK_CAST_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->special_description = strdup("Requires Quick Cast I. Once per combat, you can cast a spell as an instant action without using the quicken metamagic.");
+  
+  /* Spell Recall */
+  perk = &perk_list[PERK_WIZARD_SPELL_RECALL];
+  perk->id = PERK_WIZARD_SPELL_RECALL;
+  perk->name = strdup("Spell Recall");
+  perk->description = strdup("Restore a spell slot once per day");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_I;
+  perk->prerequisite_rank = 3; /* Must have at least 3 ranks */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->special_description = strdup("Requires Spell Focus I (at least 3 ranks). Once per day, use the 'spellrecall' command to restore a spell slot. For spontaneous casters, restores a random slot. For preparation casters, randomly advances a spell currently being memorized.");
+  
+  /* Metamagic Master I */
+  perk = &perk_list[PERK_WIZARD_METAMAGIC_MASTER_I];
+  perk->id = PERK_WIZARD_METAMAGIC_MASTER_I;
+  perk->name = strdup("Metamagic Master I");
+  perk->description = strdup("Metamagic randomly reduces spell circle adjustment by 1");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1; /* -1 circle reduction */
+  perk->special_description = strdup("When using metamagic feats, there is a chance the spell circle increase will be reduced by 1 (minimum 0).");
+  
+  /* Defensive Casting */
+  perk = &perk_list[PERK_WIZARD_DEFENSIVE_CASTING];
+  perk->id = PERK_WIZARD_DEFENSIVE_CASTING;
+  perk->name = strdup("Defensive Casting");
+  perk->description = strdup("+4 AC when casting spells");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_COMBAT_CASTING_I;
+  perk->prerequisite_rank = 2; /* Must have at least 2 ranks */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4; /* +4 AC */
+  perk->special_description = strdup("Requires Combat Casting I (at least 2 ranks). You gain +4 AC when casting spells, lasting until your next turn.");
 }
 
 /* Define Cleric Perks */
@@ -7418,6 +7561,118 @@ int get_spell_mastery_dc_bonus(struct char_data *ch)
     return 2;
   
   return 0;
+}
+
+/*****************************************************************************
+ * Wizard Versatile Caster Perk Helper Functions
+ *****************************************************************************/
+
+/**
+ * Get concentration bonus when in combat from Combat Casting I perk.
+ * 
+ * @param ch The character
+ * @return Concentration bonus (+2 per rank when in combat, 0 otherwise)
+ */
+int get_combat_casting_concentration_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Only applies when character is in combat */
+  if (!FIGHTING(ch))
+    return 0;
+  
+  /* +2 per rank, max 3 ranks = +6 */
+  return 2 * get_total_perk_ranks(ch, PERK_WIZARD_COMBAT_CASTING_I);
+}
+
+/**
+ * Check if character can use spell recall (has perk and cooldown expired).
+ * 
+ * @param ch The character
+ * @return TRUE if available, FALSE otherwise
+ */
+bool can_use_spell_recall(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!has_perk(ch, PERK_WIZARD_SPELL_RECALL))
+    return FALSE;
+  
+  /* Check daily cooldown */
+  if (GET_SPELL_RECALL_COOLDOWN(ch) > 0)
+    return FALSE;
+  
+  return TRUE;
+}
+
+/**
+ * Get metamagic spell circle reduction from Metamagic Master I.
+ * Randomly reduces metamagic circle increase by 1.
+ * 
+ * @param ch The character
+ * @return 1 if reduction applies (50% chance), 0 otherwise
+ */
+int get_metamagic_master_reduction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_perk(ch, PERK_WIZARD_METAMAGIC_MASTER_I))
+    return 0;
+  
+  /* 50% chance to reduce circle increase by 1 */
+  if (rand_number(0, 1))
+    return 1;
+  
+  return 0;
+}
+
+/**
+ * Get spellcraft skill bonus from Arcane Knowledge I.
+ * 
+ * @param ch The character
+ * @return Spellcraft bonus (+2 per rank)
+ */
+int get_arcane_knowledge_spellcraft_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* +2 per rank, max 3 ranks = +6 */
+  return 2 * get_total_perk_ranks(ch, PERK_WIZARD_ARCANE_KNOWLEDGE_I);
+}
+
+/**
+ * Check if spell slot should be preserved due to Spell Focus perks.
+ * Spell Focus I: 2% chance per rank (max 10% at 5 ranks)
+ * Spell Focus II: Additional 2% per rank (max 6% at 3 ranks)
+ * Total max: 16% chance at full ranks
+ * 
+ * @param ch The character
+ * @return TRUE if spell slot should be preserved, FALSE otherwise
+ */
+bool check_spell_slot_preservation(struct char_data *ch)
+{
+  int chance = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  /* Spell Focus I: 2% per rank, max 5 ranks = 10% */
+  chance += 2 * get_total_perk_ranks(ch, PERK_WIZARD_SPELL_FOCUS_I);
+  
+  /* Spell Focus II: 2% per rank, max 3 ranks = 6% */
+  chance += 2 * get_total_perk_ranks(ch, PERK_WIZARD_SPELL_FOCUS_II);
+  
+  /* Roll percentage check */
+  if (chance > 0 && rand_number(1, 100) <= chance)
+  {
+    return TRUE;
+  }
+  
+  return FALSE;
 }
 
 

@@ -3033,314 +3033,436 @@
 /* Base perks start at 0, will define actual IDs in perks.c */
 #define PERK_UNDEFINED 0
 
-/* Fighter Perks (1-30) */
-/* Tier I Perks */
-#define PERK_FIGHTER_WEAPON_FOCUS_1 1
-#define PERK_FIGHTER_POWER_ATTACK_TRAINING 2
-#define PERK_FIGHTER_CRITICAL_AWARENESS_1 3
+/* ============================================================================
+ * PERK ID ALLOCATION BY CLASS (100 IDs per class)
+ * ============================================================================
+ * Wizard:      100-199
+ * Cleric:      200-299
+ * Rogue:       300-399
+ * Warrior:     400-499  (Fighter)
+ * Monk:        500-599
+ * Druid:       600-699
+ * Berserker:   700-799  (Barbarian)
+ * Sorcerer:    800-899
+ * Paladin:     900-999
+ * Ranger:      1000-1099
+ * Bard:        1100-1199
+ * Alchemist:   1200-1299
+ * Psionicist:  1300-1399
+ * Blackguard:  1400-1499
+ * Inquisitor:  1500-1599
+ * Summoner:    1600-1699
+ * Warlock:     1700-1799
+ * Artificer:   1800-1899
+ * ============================================================================ */
 
-/* Tier II Perks */
-#define PERK_FIGHTER_WEAPON_FOCUS_2 4
-#define PERK_FIGHTER_WEAPON_SPECIALIZATION_1 5
-#define PERK_FIGHTER_CLEAVING_STRIKE 6
-#define PERK_FIGHTER_CRITICAL_AWARENESS_2 7
-#define PERK_FIGHTER_IMPROVED_CRITICAL_THREAT 8
+/* ============================================================================
+ * WIZARD PERKS (100-199)
+ * ============================================================================ */
 
-/* Tier III Perks */
-#define PERK_FIGHTER_WEAPON_FOCUS_3 9
-#define PERK_FIGHTER_WEAPON_SPECIALIZATION_2 10
-#define PERK_FIGHTER_GREAT_CLEAVE 11
-#define PERK_FIGHTER_DEVASTATING_CRITICAL 12
+/* TREE 1: GENERAL WIZARD - Tier 1 Perks (100-108) */
+#define PERK_WIZARD_SPELL_FOCUS_1 100
+#define PERK_WIZARD_SPELL_FOCUS_2 101
+#define PERK_WIZARD_SPELL_FOCUS_3 102
+#define PERK_WIZARD_ARCANE_AUGMENTATION 103
+#define PERK_WIZARD_EXTENDED_SPELL_1 104
+#define PERK_WIZARD_EXTENDED_SPELL_2 105
+#define PERK_WIZARD_POTENT_MAGIC_1 106
+#define PERK_WIZARD_POTENT_MAGIC_2 107
+#define PERK_WIZARD_POTENT_MAGIC_3 108
 
-/* TREE 2: DEFENDER - Tier I Perks (1 point) */
-#define PERK_FIGHTER_ARMOR_TRAINING_1 13
-#define PERK_FIGHTER_TOUGHNESS_1 14
-#define PERK_FIGHTER_RESILIENCE 15
+/* TREE 2: EVOKER - Tier 1 Perks (109-113) */
+#define PERK_WIZARD_SPELL_POWER_1 109
+#define PERK_WIZARD_ENERGY_AFFINITY_FIRE 110
+#define PERK_WIZARD_ENERGY_AFFINITY_COLD 111
+#define PERK_WIZARD_ENERGY_AFFINITY_LIGHTNING 112
+#define PERK_WIZARD_SPELL_PENETRATION_1 113
 
-/* TREE 2: DEFENDER - Tier II Perks (2 points) */
-#define PERK_FIGHTER_ARMOR_TRAINING_2 16
-#define PERK_FIGHTER_SHIELD_MASTERY_1 17
-#define PERK_FIGHTER_DEFENSIVE_STANCE 18
-#define PERK_FIGHTER_IRON_WILL 19
-#define PERK_FIGHTER_LIGHTNING_REFLEXES 20
+/* TREE 2: EVOKER - Tier 2 Perks (114-119) */
+#define PERK_WIZARD_SPELL_POWER_2 114
+#define PERK_WIZARD_FOCUSED_ELEMENT_FIRE 115
+#define PERK_WIZARD_FOCUSED_ELEMENT_COLD 116
+#define PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING 117
+#define PERK_WIZARD_SPELL_CRITICAL_1 118
+#define PERK_WIZARD_MAXIMIZE_SPELL 119
 
-/* TREE 2: DEFENDER - Tier III Perks (3 points) */
-#define PERK_FIGHTER_ARMOR_TRAINING_3 33
-#define PERK_FIGHTER_SHIELD_MASTERY_2 34
-#define PERK_FIGHTER_IMPROVED_DAMAGE_REDUCTION 35
-#define PERK_FIGHTER_STALWART 36
+/* TREE 2: EVOKER - Tier 3 Perks (120-124) */
+#define PERK_WIZARD_SPELL_POWER_3 120
+#define PERK_WIZARD_MASTER_OF_ELEMENTS 121
+#define PERK_WIZARD_SPELL_CRITICAL_2 122
+#define PERK_WIZARD_EMPOWER_SPELL 123
+#define PERK_WIZARD_SPELL_PENETRATION_2 124
 
-/* TREE 2: DEFENDER - Tier IV Perks (5 points) */
-#define PERK_FIGHTER_IMMOVABLE_OBJECT 37
-#define PERK_FIGHTER_LAST_STAND 38
+/* TREE 2: EVOKER - Tier 4 Perks (125-126) */
+#define PERK_WIZARD_ARCANE_ANNIHILATION 125
+#define PERK_WIZARD_OVERWHELMING_MAGIC 126
 
-/* TREE 3: TACTICAL FIGHTER - Tier I Perks (1 point) */
-#define PERK_FIGHTER_COMBAT_REFLEXES_1 39
-#define PERK_FIGHTER_IMPROVED_INITIATIVE_1 40
-#define PERK_FIGHTER_MOBILITY_1 41
+/* TREE 3: CONTROLLER - Tier 1 Perks (127-132) */
+#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_1 127
+#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_2 128
+#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3 129
+#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_4 130
+#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_5 131
+#define PERK_WIZARD_EXTEND_SPELL 132
 
-/* TREE 3: TACTICAL FIGHTER - Tier II Perks (2 points) */
-#define PERK_FIGHTER_COMBAT_REFLEXES_2 42
-#define PERK_FIGHTER_IMPROVED_TRIP 43
-#define PERK_FIGHTER_IMPROVED_DISARM 44
-#define PERK_FIGHTER_IMPROVED_SUNDER 45
-#define PERK_FIGHTER_SPRING_ATTACK 46
+/* TREE 3: CONTROLLER - Tier 2 Perks (133-137) */
+#define PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1 133
+#define PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_2 134
+#define PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_3 135
+#define PERK_WIZARD_PERSISTENT_SPELL 136
+#define PERK_WIZARD_SPLIT_ENCHANTMENT 137
 
-/* Older perks (to be reorganized/deprecated) */
-#define PERK_FIGHTER_WEAPON_SPEC_1 21
-#define PERK_FIGHTER_WEAPON_SPEC_2 22
-#define PERK_FIGHTER_WEAPON_SPEC_3 23
-#define PERK_FIGHTER_ARMOR_MASTERY_1 24
-#define PERK_FIGHTER_ARMOR_MASTERY_2 25
-#define PERK_FIGHTER_ARMOR_MASTERY_3 26
-#define PERK_FIGHTER_SHIELD_EXPERTISE_1 27
-#define PERK_FIGHTER_SHIELD_EXPERTISE_2 28
-#define PERK_FIGHTER_TOUGHNESS 29
-#define PERK_FIGHTER_PHYSICAL_RESISTANCE_1 30
-#define PERK_FIGHTER_PHYSICAL_RESISTANCE_2 31
-#define PERK_FIGHTER_PHYSICAL_RESISTANCE_3 32
+/* TREE 3: CONTROLLER - Tier 3 Perks (138-142) */
+#define PERK_WIZARD_EXTENDED_SPELL_3 138
+#define PERK_WIZARD_MASTER_ENCHANTER 139
+#define PERK_WIZARD_MASTER_ILLUSIONIST 140
+#define PERK_WIZARD_MASTER_TRANSMUTER 141
+#define PERK_WIZARD_SPELL_MASTERY 142
 
-/* Wizard Perks (31-60) */
-#define PERK_WIZARD_SPELL_FOCUS_1 31
-#define PERK_WIZARD_SPELL_FOCUS_2 32
-#define PERK_WIZARD_SPELL_FOCUS_3 33
-#define PERK_WIZARD_ARCANE_AUGMENTATION 34
-#define PERK_WIZARD_EXTENDED_SPELL_1 35
-#define PERK_WIZARD_EXTENDED_SPELL_2 36
-#define PERK_WIZARD_POTENT_MAGIC_1 37
-#define PERK_WIZARD_POTENT_MAGIC_2 38
-#define PERK_WIZARD_POTENT_MAGIC_3 39
+/* TREE 3: CONTROLLER - Tier 4 Capstones (143-144) */
+#define PERK_WIZARD_ARCHMAGE_OF_CONTROL 143
+#define PERK_WIZARD_IRRESISTIBLE_MAGIC 144
 
-/* Wizard Evoker Tree - Tier 1 Perks (40-48) */
-#define PERK_WIZARD_SPELL_POWER_1 40
-#define PERK_WIZARD_ENERGY_AFFINITY_FIRE 41
-#define PERK_WIZARD_ENERGY_AFFINITY_COLD 42
-#define PERK_WIZARD_ENERGY_AFFINITY_LIGHTNING 43
-#define PERK_WIZARD_SPELL_PENETRATION_1 44
+/* TREE 4: VERSATILE CASTER - Tier 1 Perks (145-148) */
+#define PERK_WIZARD_SPELL_FOCUS_I 145        /* 2% chance per rank spell doesn't expend slot, max 5 ranks */
+#define PERK_WIZARD_QUICK_CAST_I 146         /* Free quicken metamagic once per 5 min */
+#define PERK_WIZARD_ARCANE_KNOWLEDGE_I 147  /* +2 spellcraft per rank, max 3 ranks */
+#define PERK_WIZARD_COMBAT_CASTING_I 148    /* +2 concentration in combat per rank, max 3 */
 
-/* Wizard Evoker Tree - Tier 2 Perks (45-50) */
-#define PERK_WIZARD_SPELL_POWER_2 45
-#define PERK_WIZARD_FOCUSED_ELEMENT_FIRE 46
-#define PERK_WIZARD_FOCUSED_ELEMENT_COLD 47
-#define PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING 48
-#define PERK_WIZARD_SPELL_CRITICAL_1 49
-#define PERK_WIZARD_MAXIMIZE_SPELL 50
+/* TREE 4: VERSATILE CASTER - Tier 2 Perks (149-153) */
+#define PERK_WIZARD_SPELL_FOCUS_II 149      /* Additional 2% chance per rank, max 3 ranks */
+#define PERK_WIZARD_QUICK_CAST_II 150       /* Free quicken once per combat */
+#define PERK_WIZARD_SPELL_RECALL 151        /* Restore a spell slot once per day */
+#define PERK_WIZARD_METAMAGIC_MASTER_I 152  /* Randomly reduce metamagic circle increase by 1 */
+#define PERK_WIZARD_DEFENSIVE_CASTING 153   /* +4 AC when casting */
 
-/* Wizard Evoker Tree - Tier 3 Perks (51-55) */
-#define PERK_WIZARD_SPELL_POWER_3 51
-#define PERK_WIZARD_MASTER_OF_ELEMENTS 52
-#define PERK_WIZARD_SPELL_CRITICAL_2 53
-#define PERK_WIZARD_EMPOWER_SPELL 54
-#define PERK_WIZARD_SPELL_PENETRATION_2 55
+/* ============================================================================
+ * CLERIC PERKS (200-299)
+ * ============================================================================ */
 
-/* Wizard Evoker Tree - Tier 4 Perks (56-57) */
-#define PERK_WIZARD_ARCANE_ANNIHILATION 56
-#define PERK_WIZARD_OVERWHELMING_MAGIC 57
+/* TREE 1: DIVINE HEALER - Tier 1 Perks (200-203) */
+#define PERK_CLERIC_HEALING_POWER_1 200
+#define PERK_CLERIC_RADIANT_SERVANT_1 201
+#define PERK_CLERIC_EFFICIENT_HEALING 202
+#define PERK_CLERIC_PRESERVE_LIFE 203
 
-/* Wizard Controller Tree - Tier 1 Perks (58-63) */
-#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_1 58
-#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_2 59
-#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3 60
-#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_4 61
-#define PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_5 62
-#define PERK_WIZARD_EXTEND_SPELL 63
+/* TREE 1: DIVINE HEALER - Tier 2 Perks (204-209) */
+#define PERK_CLERIC_HEALING_POWER_2 204
+#define PERK_CLERIC_RADIANT_SERVANT_2 205
+#define PERK_CLERIC_MASS_HEALING_FOCUS 206
+#define PERK_CLERIC_EMPOWERED_HEALING_1 207
+#define PERK_CLERIC_CHANNEL_ENERGY_HEAL 208
+#define PERK_CLERIC_HEALING_AURA_1 209
 
-/* Wizard Controller Tree - Tier 2 Perks (64-68) */
-#define PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1 64
-#define PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_2 65
-#define PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_3 66
-#define PERK_WIZARD_PERSISTENT_SPELL 67
-#define PERK_WIZARD_SPLIT_ENCHANTMENT 68
+/* TREE 1: DIVINE HEALER - Tier 3 Perks (210-214) */
+#define PERK_CLERIC_HEALING_POWER_3 210
+#define PERK_CLERIC_EMPOWERED_HEALING_2 211
+#define PERK_CLERIC_CHANNEL_ENERGY_GREATER_HEAL 212
+#define PERK_CLERIC_HEALING_AURA_2 213
+#define PERK_CLERIC_RESTORATIVE_TOUCH 214
 
-/* Wizard Controller Tree - Tier 3 Perks (69-73) */
-#define PERK_WIZARD_EXTENDED_SPELL_3 69
-#define PERK_WIZARD_MASTER_ENCHANTER 70
-#define PERK_WIZARD_MASTER_ILLUSIONIST 71
-#define PERK_WIZARD_MASTER_TRANSMUTER 72
-#define PERK_WIZARD_SPELL_MASTERY 73
+/* TREE 1: DIVINE HEALER - Tier 4 Capstones (215-216) */
+#define PERK_CLERIC_DIVINE_RADIANCE 215
+#define PERK_CLERIC_BEACON_OF_HOPE 216
 
-/* Wizard Controller Tree - Tier 4 Capstones (74-75) */
-#define PERK_WIZARD_ARCHMAGE_OF_CONTROL 74
-#define PERK_WIZARD_IRRESISTIBLE_MAGIC 75
+/* TREE 2: BATTLE CLERIC - Tier 1 Perks (217-221) */
+#define PERK_CLERIC_DIVINE_FAVOR_1 217
+#define PERK_CLERIC_HOLY_WEAPON_1 218
+#define PERK_CLERIC_ARMOR_OF_FAITH_1 219
+#define PERK_CLERIC_BATTLE_BLESSING 220
+#define PERK_CLERIC_SMITE_EVIL_1 221
 
-/* Cleric Perks (61-90) */
-/* Divine Healer Tree - Tier 1 Perks (61-64) */
-#define PERK_CLERIC_HEALING_POWER_1 61
-#define PERK_CLERIC_RADIANT_SERVANT_1 62
-#define PERK_CLERIC_EFFICIENT_HEALING 63
-#define PERK_CLERIC_PRESERVE_LIFE 64
+/* TREE 2: BATTLE CLERIC - Tier 2 Perks (222-228) */
+#define PERK_CLERIC_DIVINE_FAVOR_2 222
+#define PERK_CLERIC_HOLY_WEAPON_2 223
+#define PERK_CLERIC_ARMOR_OF_FAITH_2 224
+#define PERK_CLERIC_SMITE_EVIL_2 225
+#define PERK_CLERIC_DIVINE_POWER 226
+#define PERK_CLERIC_CHANNEL_ENERGY_HARM 227
+#define PERK_CLERIC_SPIRITUAL_WEAPON 228
 
-/* Divine Healer Tree - Tier 2 Perks (65-70) */
-#define PERK_CLERIC_HEALING_POWER_2 65
-#define PERK_CLERIC_RADIANT_SERVANT_2 66
-#define PERK_CLERIC_MASS_HEALING_FOCUS 67
-#define PERK_CLERIC_EMPOWERED_HEALING_1 68
-#define PERK_CLERIC_CHANNEL_ENERGY_HEAL 69
-#define PERK_CLERIC_HEALING_AURA_1 70
+/* TREE 2: BATTLE CLERIC - Tier 3 Perks (229-234) */
+#define PERK_CLERIC_DIVINE_FAVOR_3 229
+#define PERK_CLERIC_HOLY_WEAPON_3 230
+#define PERK_CLERIC_ARMOR_OF_FAITH_3 231
+#define PERK_CLERIC_SMITE_EVIL_3 232
+#define PERK_CLERIC_CHANNEL_ENERGY_GREATER_HARM 233
+#define PERK_CLERIC_RIGHTEOUS_FURY 234
 
-/* Divine Healer Tree - Tier 3 Perks (71-75) */
-#define PERK_CLERIC_HEALING_POWER_3 71
-#define PERK_CLERIC_EMPOWERED_HEALING_2 72
-#define PERK_CLERIC_CHANNEL_ENERGY_GREATER_HEAL 73
-#define PERK_CLERIC_HEALING_AURA_2 74
-#define PERK_CLERIC_RESTORATIVE_TOUCH 75
+/* TREE 2: BATTLE CLERIC - Tier 4 Capstones (235-236) */
+#define PERK_CLERIC_AVATAR_OF_WAR 235
+#define PERK_CLERIC_DIVINE_WRATH 236
 
-/* Divine Healer Tree - Tier 4 Capstones (76-77) */
-#define PERK_CLERIC_DIVINE_RADIANCE 76
-#define PERK_CLERIC_BEACON_OF_HOPE 77
+/* TREE 3: DOMAIN MASTER - Tier 1 Perks (237-240) */
+#define PERK_CLERIC_DOMAIN_FOCUS_1 237
+#define PERK_CLERIC_DIVINE_SPELL_POWER_1 238
+#define PERK_CLERIC_SPELL_POINT_RESERVE_1 239
+#define PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_1 240
 
-/* Battle Cleric Tree - Tier 1 Perks (78-82) */
-#define PERK_CLERIC_DIVINE_FAVOR_1 78
-#define PERK_CLERIC_HOLY_WEAPON_1 79
-#define PERK_CLERIC_ARMOR_OF_FAITH_1 80
-#define PERK_CLERIC_BATTLE_BLESSING 81
-#define PERK_CLERIC_SMITE_EVIL_1 82
+/* TREE 3: DOMAIN MASTER - Tier 2 Perks (241-247) */
+#define PERK_CLERIC_DOMAIN_FOCUS_2 241
+#define PERK_CLERIC_DIVINE_SPELL_POWER_2 242
+#define PERK_CLERIC_SPELL_POINT_RESERVE_2 243
+#define PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_2 244
+#define PERK_CLERIC_EXTENDED_DOMAIN 245
+#define PERK_CLERIC_DIVINE_METAMAGIC_1 246
+#define PERK_CLERIC_DESTROY_UNDEAD 247
 
-/* Battle Cleric Tree - Tier 2 Perks (83-89) */
-#define PERK_CLERIC_DIVINE_FAVOR_2 83
-#define PERK_CLERIC_HOLY_WEAPON_2 84
-#define PERK_CLERIC_ARMOR_OF_FAITH_2 85
-#define PERK_CLERIC_SMITE_EVIL_2 86
-#define PERK_CLERIC_DIVINE_POWER 87
-#define PERK_CLERIC_CHANNEL_ENERGY_HARM 88
-#define PERK_CLERIC_SPIRITUAL_WEAPON 89
+/* TREE 3: DOMAIN MASTER - Tier 3 Perks (248-253) */
+#define PERK_CLERIC_DOMAIN_FOCUS_3 248
+#define PERK_CLERIC_DIVINE_SPELL_POWER_3 249
+#define PERK_CLERIC_SPELL_POINT_RESERVE_3 250
+#define PERK_CLERIC_DIVINE_METAMAGIC_2 251
+#define PERK_CLERIC_GREATER_TURNING 252
+#define PERK_CLERIC_DOMAIN_MASTERY 253
 
-/* Battle Cleric Tree - Tier 3 Perks (90-95) */
-#define PERK_CLERIC_DIVINE_FAVOR_3 90
-#define PERK_CLERIC_HOLY_WEAPON_3 91
-#define PERK_CLERIC_ARMOR_OF_FAITH_3 92
-#define PERK_CLERIC_SMITE_EVIL_3 93
-#define PERK_CLERIC_CHANNEL_ENERGY_GREATER_HARM 94
-#define PERK_CLERIC_RIGHTEOUS_FURY 95
+/* TREE 3: DOMAIN MASTER - Tier 4 Capstones (254-255) */
+#define PERK_CLERIC_DIVINE_CHANNELER 254
+#define PERK_CLERIC_MASTER_OF_UNDEAD 255
 
-/* Battle Cleric Tree - Tier 4 Capstones (96-97) */
-#define PERK_CLERIC_AVATAR_OF_WAR 96
-#define PERK_CLERIC_DIVINE_WRATH 97
+/* Legacy cleric perks - deprecated aliases */
+#define PERK_CLERIC_HEALING_AMP 200  /* Now PERK_CLERIC_HEALING_POWER_1 */
+#define PERK_CLERIC_TOUGHNESS 205    /* Was Battle Cleric tree, now Radiant Servant 2 */
 
-/* Domain Master Tree - Tier 1 Perks (98-101) */
-#define PERK_CLERIC_DOMAIN_FOCUS_1 98
-#define PERK_CLERIC_DIVINE_SPELL_POWER_1 99
-#define PERK_CLERIC_SPELL_POINT_RESERVE_1 100
-#define PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_1 101
+/* ============================================================================
+ * ROGUE PERKS (300-399)
+ * ============================================================================ */
 
-/* Domain Master Tree - Tier 2 Perks (102-108) */
-#define PERK_CLERIC_DOMAIN_FOCUS_2 102
-#define PERK_CLERIC_DIVINE_SPELL_POWER_2 103
-#define PERK_CLERIC_SPELL_POINT_RESERVE_2 104
-#define PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_2 105
-#define PERK_CLERIC_EXTENDED_DOMAIN 106
-#define PERK_CLERIC_DIVINE_METAMAGIC_1 107
-#define PERK_CLERIC_DESTROY_UNDEAD 108
+/* TREE 1: ASSASSIN - Tier 1 Perks (300-303) */
+#define PERK_ROGUE_SNEAK_ATTACK_1 300
+#define PERK_ROGUE_VITAL_STRIKE 301
+#define PERK_ROGUE_DEADLY_AIM_1 302
+#define PERK_ROGUE_OPPORTUNIST_1 303
 
-/* Domain Master Tree - Tier 3 (160-165) */
-#define PERK_CLERIC_DOMAIN_FOCUS_3 160
-#define PERK_CLERIC_DIVINE_SPELL_POWER_3 161
-#define PERK_CLERIC_SPELL_POINT_RESERVE_3 162
-#define PERK_CLERIC_DIVINE_METAMAGIC_2 163
-#define PERK_CLERIC_GREATER_TURNING 164
-#define PERK_CLERIC_DOMAIN_MASTERY 165
+/* TREE 1: ASSASSIN - Tier 2 Perks (304-309) */
+#define PERK_ROGUE_SNEAK_ATTACK_2 304
+#define PERK_ROGUE_IMPROVED_VITAL_STRIKE 305
+#define PERK_ROGUE_ASSASSINATE_1 306
+#define PERK_ROGUE_DEADLY_AIM_2 307
+#define PERK_ROGUE_CRIPPLING_STRIKE 308
+#define PERK_ROGUE_BLEEDING_ATTACK 309
 
-/* Domain Master Tree - Tier 4 (166-167) */
-#define PERK_CLERIC_DIVINE_CHANNELER 166
-#define PERK_CLERIC_MASTER_OF_UNDEAD 167
+/* TREE 1: ASSASSIN - Tier 3 Perks (310-314) */
+#define PERK_ROGUE_SNEAK_ATTACK_3 310
+#define PERK_ROGUE_ASSASSINATE_2 311
+#define PERK_ROGUE_CRITICAL_PRECISION 312
+#define PERK_ROGUE_OPPORTUNIST_2 313
+#define PERK_ROGUE_DEATH_ATTACK 314
 
-/* Legacy cleric perks - deprecated */
-#define PERK_CLERIC_HEALING_AMP 61  /* Now PERK_CLERIC_HEALING_POWER_1 */
-#define PERK_CLERIC_TOUGHNESS 66  /* Battle Cleric tree */
+/* TREE 1: ASSASSIN - Tier 4 Perks (315-316) */
+#define PERK_ROGUE_MASTER_ASSASSIN 315
+#define PERK_ROGUE_PERFECT_KILL 316
 
-/* Rogue Perks (109-138) */
-/* Assassin Tree - Tier 1 */
-#define PERK_ROGUE_SNEAK_ATTACK_1 109
-#define PERK_ROGUE_VITAL_STRIKE 110
-#define PERK_ROGUE_DEADLY_AIM_1 111
-#define PERK_ROGUE_OPPORTUNIST_1 112
-/* Assassin Tree - Tier 2 */
-#define PERK_ROGUE_SNEAK_ATTACK_2 113
-#define PERK_ROGUE_IMPROVED_VITAL_STRIKE 114
-#define PERK_ROGUE_ASSASSINATE_1 115
-#define PERK_ROGUE_DEADLY_AIM_2 116
-#define PERK_ROGUE_CRIPPLING_STRIKE 117
-#define PERK_ROGUE_BLEEDING_ATTACK 118
-/* Assassin Tree - Tier 3 */
-#define PERK_ROGUE_SNEAK_ATTACK_3 119
-#define PERK_ROGUE_ASSASSINATE_2 120
-#define PERK_ROGUE_CRITICAL_PRECISION 121
-#define PERK_ROGUE_OPPORTUNIST_2 122
-#define PERK_ROGUE_DEATH_ATTACK 123
-/* Assassin Tree - Tier 4 */
-#define PERK_ROGUE_MASTER_ASSASSIN 124
-#define PERK_ROGUE_PERFECT_KILL 125
+/* TREE 2: MASTER THIEF - Tier 1 Perks (317-320) */
+#define PERK_ROGUE_SKILL_MASTERY_1 317
+#define PERK_ROGUE_TRAPFINDING_EXPERT_1 318
+#define PERK_ROGUE_FAST_HANDS_1 319
+#define PERK_ROGUE_EVASION_TRAINING 320
 
-/* Master Thief Tree - Tier 1 */
-#define PERK_ROGUE_SKILL_MASTERY_1 126
-#define PERK_ROGUE_TRAPFINDING_EXPERT_1 127
-#define PERK_ROGUE_FAST_HANDS_1 128
-#define PERK_ROGUE_EVASION_TRAINING 129
-/* Master Thief Tree - Tier 2 */
-#define PERK_ROGUE_SKILL_MASTERY_2 130
-#define PERK_ROGUE_TRAPFINDING_EXPERT_2 131
-#define PERK_ROGUE_FAST_HANDS_2 132
-#define PERK_ROGUE_IMPROVED_EVASION 133
-#define PERK_ROGUE_TRAP_SENSE_1 134
-#define PERK_ROGUE_RESILIENCY 117
-#define PERK_ROGUE_TRAP_SCAVENGER 118
+/* TREE 2: MASTER THIEF - Tier 2 Perks (321-326) */
+#define PERK_ROGUE_SKILL_MASTERY_2 321
+#define PERK_ROGUE_TRAPFINDING_EXPERT_2 322
+#define PERK_ROGUE_FAST_HANDS_2 323
+#define PERK_ROGUE_IMPROVED_EVASION 324
+#define PERK_ROGUE_TRAP_SENSE_1 325
+#define PERK_ROGUE_RESILIENCY 326
+#define PERK_ROGUE_TRAP_SCAVENGER 327
 
-/* Master Thief Tree - Tier 3 Perks (119-123) */
-#define PERK_ROGUE_SKILL_MASTERY_3 119
-#define PERK_ROGUE_TRAPFINDING_EXPERT_3 120
-#define PERK_ROGUE_FAST_HANDS_3 121
-#define PERK_ROGUE_SHADOW_STEP 122
-#define PERK_ROGUE_TRAP_SENSE_2 123
+/* TREE 2: MASTER THIEF - Tier 3 Perks (328-332) */
+#define PERK_ROGUE_SKILL_MASTERY_3 328
+#define PERK_ROGUE_TRAPFINDING_EXPERT_3 329
+#define PERK_ROGUE_FAST_HANDS_3 330
+#define PERK_ROGUE_SHADOW_STEP 331
+#define PERK_ROGUE_TRAP_SENSE_2 332
 
-/* Master Thief Tree - Tier 4 Perks (124-125) */
-#define PERK_ROGUE_MASTER_THIEF_CAPSTONE 124
-#define PERK_ROGUE_LEGENDARY_REFLEXES 125
+/* TREE 2: MASTER THIEF - Tier 4 Perks (333-334) */
+#define PERK_ROGUE_MASTER_THIEF_CAPSTONE 333
+#define PERK_ROGUE_LEGENDARY_REFLEXES 334
 
-/* Shadow Scout Tree - Tier 1 Perks (133-136) */
-#define PERK_ROGUE_STEALTH_MASTERY_1 133
-#define PERK_ROGUE_FLEET_OF_FOOT_1 134
-#define PERK_ROGUE_AWARENESS_1 135
-#define PERK_ROGUE_LIGHT_STEP 136
+/* TREE 3: SHADOW SCOUT - Tier 1 Perks (335-338) */
+#define PERK_ROGUE_STEALTH_MASTERY_1 335
+#define PERK_ROGUE_FLEET_OF_FOOT_1 336
+#define PERK_ROGUE_AWARENESS_1 337
+#define PERK_ROGUE_LIGHT_STEP 338
 
-/* Shadow Scout Tree - Tier 2 Perks (137-142) */
-#define PERK_ROGUE_STEALTH_MASTERY_2 137
-#define PERK_ROGUE_FLEET_OF_FOOT_2 138
-#define PERK_ROGUE_AWARENESS_2 139
-#define PERK_ROGUE_HIDE_IN_PLAIN_SIGHT 140
-#define PERK_ROGUE_SHADOW_STEP_TELEPORT 141
-#define PERK_ROGUE_UNCANNY_DODGE_1 142
-#define PERK_ROGUE_ACROBATICS_1 143
+/* TREE 3: SHADOW SCOUT - Tier 2 Perks (339-345) */
+#define PERK_ROGUE_STEALTH_MASTERY_2 339
+#define PERK_ROGUE_FLEET_OF_FOOT_2 340
+#define PERK_ROGUE_AWARENESS_2 341
+#define PERK_ROGUE_HIDE_IN_PLAIN_SIGHT 342
+#define PERK_ROGUE_SHADOW_STEP_TELEPORT 343
+#define PERK_ROGUE_UNCANNY_DODGE_1 344
+#define PERK_ROGUE_ACROBATICS_1 345
 
-/* Shadow Scout Tree - Tier 3 Perks (151-156) */
-#define PERK_ROGUE_STEALTH_MASTERY_3 151
-#define PERK_ROGUE_FLEET_OF_FOOT_3 152
-#define PERK_ROGUE_AWARENESS_3 153
-#define PERK_ROGUE_UNCANNY_DODGE_2 154
-#define PERK_ROGUE_ACROBATICS_2 155
-#define PERK_ROGUE_VANISH 156
+/* TREE 3: SHADOW SCOUT - Tier 3 Perks (346-351) */
+#define PERK_ROGUE_STEALTH_MASTERY_3 346
+#define PERK_ROGUE_FLEET_OF_FOOT_3 347
+#define PERK_ROGUE_AWARENESS_3 348
+#define PERK_ROGUE_UNCANNY_DODGE_2 349
+#define PERK_ROGUE_ACROBATICS_2 350
+#define PERK_ROGUE_VANISH 351
 
-/* Shadow Scout Tree - Tier 4 Perks (157-158) */
-#define PERK_ROGUE_SHADOW_MASTER 157
-#define PERK_ROGUE_GHOST 158
+/* TREE 3: SHADOW SCOUT - Tier 4 Perks (352-353) */
+#define PERK_ROGUE_SHADOW_MASTER 352
+#define PERK_ROGUE_GHOST 353
 
-/* Ranger Perks (126-132, 144-150) */
-#define PERK_RANGER_FAVORED_ENEMY_1 126
-#define PERK_RANGER_FAVORED_ENEMY_2 127
-#define PERK_RANGER_FAVORED_ENEMY_3 128
-#define PERK_RANGER_TOUGHNESS 129
-#define PERK_RANGER_BOW_MASTERY_1 130
-#define PERK_RANGER_BOW_MASTERY_2 131
-#define PERK_RANGER_BOW_MASTERY_3 132
+/* ============================================================================
+ * WARRIOR PERKS (400-499) - Fighter Class
+ * ============================================================================ */
 
-/* Barbarian Perks (151-180) - RENUMBERED */
-#define PERK_BARBARIAN_RAGE_ENHANCEMENT 156
-#define PERK_BARBARIAN_EXTENDED_RAGE_1 157
-#define PERK_BARBARIAN_EXTENDED_RAGE_2 158
-#define PERK_BARBARIAN_EXTENDED_RAGE_3 159
-#define PERK_BARBARIAN_TOUGHNESS 160
+/* TREE 1: WEAPON MASTER - Tier I Perks (400-402) */
+#define PERK_FIGHTER_WEAPON_FOCUS_1 400
+#define PERK_FIGHTER_POWER_ATTACK_TRAINING 401
+#define PERK_FIGHTER_CRITICAL_AWARENESS_1 402
 
-/* Total number of defined perks */
-#define NUM_PERKS 200
+/* TREE 1: WEAPON MASTER - Tier II Perks (403-407) */
+#define PERK_FIGHTER_WEAPON_FOCUS_2 403
+#define PERK_FIGHTER_WEAPON_SPECIALIZATION_1 404
+#define PERK_FIGHTER_CLEAVING_STRIKE 405
+#define PERK_FIGHTER_CRITICAL_AWARENESS_2 406
+#define PERK_FIGHTER_IMPROVED_CRITICAL_THREAT 407
+
+/* TREE 1: WEAPON MASTER - Tier III Perks (408-411) */
+#define PERK_FIGHTER_WEAPON_FOCUS_3 408
+#define PERK_FIGHTER_WEAPON_SPECIALIZATION_2 409
+#define PERK_FIGHTER_GREAT_CLEAVE 410
+#define PERK_FIGHTER_DEVASTATING_CRITICAL 411
+
+/* TREE 2: DEFENDER - Tier I Perks (412-414) */
+#define PERK_FIGHTER_ARMOR_TRAINING_1 412
+#define PERK_FIGHTER_TOUGHNESS_1 413
+#define PERK_FIGHTER_RESILIENCE 414
+
+/* TREE 2: DEFENDER - Tier II Perks (415-419) */
+#define PERK_FIGHTER_ARMOR_TRAINING_2 415
+#define PERK_FIGHTER_SHIELD_MASTERY_1 416
+#define PERK_FIGHTER_DEFENSIVE_STANCE 417
+#define PERK_FIGHTER_IRON_WILL 418
+#define PERK_FIGHTER_LIGHTNING_REFLEXES 419
+
+/* TREE 2: DEFENDER - Tier III Perks (420-423) */
+#define PERK_FIGHTER_ARMOR_TRAINING_3 420
+#define PERK_FIGHTER_SHIELD_MASTERY_2 421
+#define PERK_FIGHTER_IMPROVED_DAMAGE_REDUCTION 422
+#define PERK_FIGHTER_STALWART 423
+
+/* TREE 2: DEFENDER - Tier IV Perks (424-425) */
+#define PERK_FIGHTER_IMMOVABLE_OBJECT 424
+#define PERK_FIGHTER_LAST_STAND 425
+
+/* TREE 3: TACTICAL FIGHTER - Tier I Perks (426-428) */
+#define PERK_FIGHTER_COMBAT_REFLEXES_1 426
+#define PERK_FIGHTER_IMPROVED_INITIATIVE_1 427
+#define PERK_FIGHTER_MOBILITY_1 428
+
+/* TREE 3: TACTICAL FIGHTER - Tier II Perks (429-433) */
+#define PERK_FIGHTER_COMBAT_REFLEXES_2 429
+#define PERK_FIGHTER_IMPROVED_TRIP 430
+#define PERK_FIGHTER_IMPROVED_DISARM 431
+#define PERK_FIGHTER_IMPROVED_SUNDER 432
+#define PERK_FIGHTER_SPRING_ATTACK 433
+
+/* TREE 4: LEGACY PERKS (434-445) */
+#define PERK_FIGHTER_WEAPON_SPEC_1 434
+#define PERK_FIGHTER_WEAPON_SPEC_2 435
+#define PERK_FIGHTER_WEAPON_SPEC_3 436
+#define PERK_FIGHTER_ARMOR_MASTERY_1 437
+#define PERK_FIGHTER_ARMOR_MASTERY_2 438
+#define PERK_FIGHTER_ARMOR_MASTERY_3 439
+#define PERK_FIGHTER_SHIELD_EXPERTISE_1 440
+#define PERK_FIGHTER_SHIELD_EXPERTISE_2 441
+#define PERK_FIGHTER_TOUGHNESS 442
+#define PERK_FIGHTER_PHYSICAL_RESISTANCE_1 443
+#define PERK_FIGHTER_PHYSICAL_RESISTANCE_2 444
+#define PERK_FIGHTER_PHYSICAL_RESISTANCE_3 445
+
+/* ============================================================================
+ * MONK PERKS (500-599)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * DRUID PERKS (600-699)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * BERSERKER PERKS (700-799) - Barbarian Class
+ * ============================================================================ */
+
+#define PERK_BARBARIAN_RAGE_ENHANCEMENT 700
+#define PERK_BARBARIAN_EXTENDED_RAGE_1 701
+#define PERK_BARBARIAN_EXTENDED_RAGE_2 702
+#define PERK_BARBARIAN_EXTENDED_RAGE_3 703
+#define PERK_BARBARIAN_TOUGHNESS 704
+
+/* ============================================================================
+ * SORCERER PERKS (800-899)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * PALADIN PERKS (900-999)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * RANGER PERKS (1000-1099)
+ * ============================================================================ */
+
+#define PERK_RANGER_FAVORED_ENEMY_1 1000
+#define PERK_RANGER_FAVORED_ENEMY_2 1001
+#define PERK_RANGER_FAVORED_ENEMY_3 1002
+#define PERK_RANGER_TOUGHNESS 1003
+#define PERK_RANGER_BOW_MASTERY_1 1004
+#define PERK_RANGER_BOW_MASTERY_2 1005
+#define PERK_RANGER_BOW_MASTERY_3 1006
+
+/* ============================================================================
+ * BARD PERKS (1100-1199)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * ALCHEMIST PERKS (1200-1299)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * PSIONICIST PERKS (1300-1399)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * BLACKGUARD PERKS (1400-1499)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * INQUISITOR PERKS (1500-1599)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * SUMMONER PERKS (1600-1699)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * WARLOCK PERKS (1700-1799)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * ARTIFICER PERKS (1800-1899)
+ * ============================================================================ */
+/* Not yet implemented */
+
+/* ============================================================================
+ * TOTAL PERK COUNT
+ * ============================================================================ */
+/* Total number of defined perks - update this as perks are added */
+#define NUM_PERKS 1900
 
 /* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20
@@ -5774,6 +5896,8 @@ struct player_special_data_saved
     int scrounge_cooldown;
     int spiritual_weapon_cooldown;  // Battle Cleric perk: 5 minute cooldown for free spiritual weapon casting
     int irresistible_magic_cooldown;  // Wizard Controller perk: 5 minute cooldown for auto-success spell
+    int quick_cast_cooldown;          // Versatile Caster perk: 5 minute cooldown for free quicken metamagic
+    int spell_recall_cooldown;        // Versatile Caster perk: daily cooldown for restoring a spell slot
     
     /* Domain Master perk bonus spell slot tracking */
     int bonus_domain_slots_used;    // Tracks used bonus domain spell slots
