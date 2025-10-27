@@ -3801,17 +3801,35 @@ ACMD(do_score)
   /* Display perk points for each class */
   if (!IS_NPC(ch)) {
     int has_perks = FALSE;
+    int col = 0;
     send_to_char(ch, "\r\n\tC");
     text_line(ch, "\tyPerk Points\tC", line_length, '-', '-');
     
     for (i = 0; i < NUM_CLASSES; i++) {
       if (CLASS_LEVEL(ch, i) > 0 || ch->player_specials->saved.perk_points[i] > 0) {
-        send_to_char(ch, "\tc%-20s : \tn%2d perk point%s\r\n",
-                     class_names[i],
-                     ch->player_specials->saved.perk_points[i],
-                     (ch->player_specials->saved.perk_points[i] == 1 ? "" : "s"));
+        /* Format into two columns */
+        if (col == 0) {
+          /* First column - don't add newline yet */
+          send_to_char(ch, "\tc%-20s : \tn%2d point%-2s",
+                       class_names[i],
+                       ch->player_specials->saved.perk_points[i],
+                       (ch->player_specials->saved.perk_points[i] == 1 ? "" : "s"));
+          col = 1;
+        } else {
+          /* Second column - add newline after */
+          send_to_char(ch, "    \tc%-20s : \tn%2d point%s\r\n",
+                       class_names[i],
+                       ch->player_specials->saved.perk_points[i],
+                       (ch->player_specials->saved.perk_points[i] == 1 ? "" : "s"));
+          col = 0;
+        }
         has_perks = TRUE;
       }
+    }
+    
+    /* If we ended on the first column, add a newline */
+    if (col == 1) {
+      send_to_char(ch, "\r\n");
     }
     
     if (!has_perks) {
