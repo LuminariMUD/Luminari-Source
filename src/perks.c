@@ -1254,6 +1254,108 @@ static void define_wizard_controller_perks(void)
   perk->prerequisite_rank = 2;
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 0;
+
+  /*** WIZARD CONTROLLER TREE - TIER 3 PERKS ***/
+
+  /* Extended Spell III */
+  perk = &perk_list[PERK_WIZARD_EXTENDED_SPELL_3];
+  perk->id = PERK_WIZARD_EXTENDED_SPELL_3;
+  perk->name = strdup("Extended Spell III");
+  perk->description = strdup("+5 rounds duration");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_EXTENDED_SPELL_2;
+  perk->prerequisite_rank = 2; /* Must have Extended Spell II maxed */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->special_description = strdup("Requires Extended Spell II (max). Your spell durations are extended by an additional 5 rounds.");
+
+  /* Master Enchanter */
+  perk = &perk_list[PERK_WIZARD_MASTER_ENCHANTER];
+  perk->id = PERK_WIZARD_MASTER_ENCHANTER;
+  perk->name = strdup("Master Enchanter");
+  perk->description = strdup("Enchantment DC +3 (total +5), duration doubled");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1;
+  perk->prerequisite_rank = 1; /* Must have Greater Spell Focus: Enchantment */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 DC */
+  perk->special_description = strdup("Requires Greater Spell Focus: Enchantment. You become a true master of enchantment magic. Enchantment spell DCs increase by +3 (total +5), and all enchantment spell durations are doubled.");
+
+  /* Master Illusionist */
+  perk = &perk_list[PERK_WIZARD_MASTER_ILLUSIONIST];
+  perk->id = PERK_WIZARD_MASTER_ILLUSIONIST;
+  perk->name = strdup("Master Illusionist");
+  perk->description = strdup("Illusion DC +3 (total +5), enemies get -4 to disbelief");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3; /* Using enchantment focus as proxy for illusion */
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 DC */
+  perk->special_description = strdup("You become a true master of illusion magic. Illusion spell DCs increase by +3 (total +5), and enemies get -4 to disbelief checks.");
+
+  /* Master Transmuter */
+  perk = &perk_list[PERK_WIZARD_MASTER_TRANSMUTER];
+  perk->id = PERK_WIZARD_MASTER_TRANSMUTER;
+  perk->name = strdup("Master Transmuter");
+  perk->description = strdup("Transmutation DC +3 (total +5), duration increased 50%");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_4; /* Using enchantment focus as proxy for transmutation */
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3; /* +3 DC */
+  perk->special_description = strdup("You become a true master of transmutation magic. Transmutation spell DCs increase by +3 (total +5), and all transmutation spell durations are increased by 50%.");
+
+  /* Spell Mastery */
+  perk = &perk_list[PERK_WIZARD_SPELL_MASTERY];
+  perk->id = PERK_WIZARD_SPELL_MASTERY;
+  perk->name = strdup("Spell Mastery");
+  perk->description = strdup("+2 to all spell DCs");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_5; /* Using mental clarity proxy */
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 DC */
+  perk->special_description = strdup("Your mastery of magic grants +2 to all spell DCs.");
+
+  /*** WIZARD CONTROLLER TREE - TIER 4 CAPSTONE PERKS ***/
+
+  /* Archmage of Control */
+  perk = &perk_list[PERK_WIZARD_ARCHMAGE_OF_CONTROL];
+  perk->id = PERK_WIZARD_ARCHMAGE_OF_CONTROL;
+  perk->name = strdup("Archmage of Control");
+  perk->description = strdup("Control spells last 50% longer, +5 DC vs charm/confuse/daze/sleep");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_EXTENDED_SPELL_3;
+  perk->prerequisite_rank = 1; /* Must have Extended Spell III */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5 DC */
+  perk->special_description = strdup("Requires Extended Spell III and Spell Mastery. You become an archmage of control magic. All spells that apply charm, confusion, daze, or sleep effects have their duration extended by 50% and gain +5 to their save DCs.");
+
+  /* Irresistible Magic */
+  perk = &perk_list[PERK_WIZARD_IRRESISTIBLE_MAGIC];
+  perk->id = PERK_WIZARD_IRRESISTIBLE_MAGIC;
+  perk->name = strdup("Irresistible Magic");
+  perk->description = strdup("Once per 5 minutes, cast spell that cannot be resisted");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_PERSISTENT_SPELL;
+  perk->prerequisite_rank = 1; /* Must have Persistent Spell */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->special_description = strdup("Requires Persistent Spell and Spell Mastery. Once every 5 minutes, you can use the 'irresistablemagic' command to make your next spell automatically succeed (no saving throw allowed).");
 }
 
 /* Define Cleric Perks */
@@ -7167,6 +7269,152 @@ int get_arcane_annihilation_dc_bonus(struct char_data *ch)
     return 0;
   
   if (has_perk(ch, PERK_WIZARD_ARCANE_ANNIHILATION))
+    return 2;
+  
+  return 0;
+}
+
+/*****************************************************************************
+ * Wizard Controller Perk Helper Functions
+ *****************************************************************************/
+
+/**
+ * Get spell duration multiplier for Master Enchanter perk.
+ * Returns 2.0 if character has the perk, 1.0 otherwise.
+ * 
+ * @param ch The character
+ * @return Duration multiplier (2.0 or 1.0)
+ */
+float get_master_enchanter_duration_multiplier(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 1.0;
+  
+  if (has_perk(ch, PERK_WIZARD_MASTER_ENCHANTER))
+    return 2.0;
+  
+  return 1.0;
+}
+
+/**
+ * Get spell duration multiplier for Master Transmuter perk.
+ * Returns 1.5 if character has the perk, 1.0 otherwise.
+ * 
+ * @param ch The character
+ * @return Duration multiplier (1.5 or 1.0)
+ */
+float get_master_transmuter_duration_multiplier(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 1.0;
+  
+  if (has_perk(ch, PERK_WIZARD_MASTER_TRANSMUTER))
+    return 1.5;
+  
+  return 1.0;
+}
+
+/**
+ * Get spell duration multiplier for Archmage of Control perk.
+ * Applies to charm, confuse, daze, and sleep effects.
+ * Returns 1.5 if character has the perk, 1.0 otherwise.
+ * 
+ * @param ch The character
+ * @return Duration multiplier (1.5 or 1.0)
+ */
+float get_archmage_control_duration_multiplier(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 1.0;
+  
+  if (has_perk(ch, PERK_WIZARD_ARCHMAGE_OF_CONTROL))
+    return 1.5;
+  
+  return 1.0;
+}
+
+/**
+ * Get DC bonus for control spells from Archmage of Control.
+ * Applies to charm, confuse, daze, and sleep effects.
+ * 
+ * @param ch The character
+ * @return DC bonus (+5 if has perk, 0 otherwise)
+ */
+int get_archmage_control_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_WIZARD_ARCHMAGE_OF_CONTROL))
+    return 5;
+  
+  return 0;
+}
+
+/**
+ * Get DC bonus for enchantment spells from Master Enchanter.
+ * 
+ * @param ch The character
+ * @return DC bonus (+3 if has perk, 0 otherwise)
+ */
+int get_master_enchanter_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_WIZARD_MASTER_ENCHANTER))
+    return 3;
+  
+  return 0;
+}
+
+/**
+ * Get DC bonus for transmutation spells from Master Transmuter.
+ * 
+ * @param ch The character
+ * @return DC bonus (+3 if has perk, 0 otherwise)
+ */
+int get_master_transmuter_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_WIZARD_MASTER_TRANSMUTER))
+    return 3;
+  
+  return 0;
+}
+
+/**
+ * Get DC bonus for illusion spells from Master Illusionist.
+ * 
+ * @param ch The character
+ * @return DC bonus (+3 if has perk, 0 otherwise)
+ */
+int get_master_illusionist_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_WIZARD_MASTER_ILLUSIONIST))
+    return 3;
+  
+  return 0;
+}
+
+/**
+ * Get DC bonus from Spell Mastery perk.
+ * Applies to all spells.
+ * 
+ * @param ch The character
+ * @return DC bonus (+2 if has perk, 0 otherwise)
+ */
+int get_spell_mastery_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_WIZARD_SPELL_MASTERY))
     return 2;
   
   return 0;

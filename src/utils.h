@@ -2797,6 +2797,7 @@ bool has_reach(struct char_data *ch);
 #define GET_RETAINER_COOLDOWN(ch) (ch->player_specials->saved.retainer_cooldown)
 #define GET_SCROUNGE_COOLDOWN(ch) (ch->player_specials->saved.scrounge_cooldown)
 #define GET_SPIRITUAL_WEAPON_COOLDOWN(ch) (ch->player_specials->saved.spiritual_weapon_cooldown)
+#define GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) (ch->player_specials->saved.irresistible_magic_cooldown)
 
 /* Bonus spell slot tracking for Domain Master perks */
 #define GET_BONUS_DOMAIN_SLOTS_USED(ch) (ch->player_specials->saved.bonus_domain_slots_used)
