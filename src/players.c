@@ -1375,6 +1375,14 @@ int load_char(const char *name, struct char_data *ch)
             ch->player_specials->saved.split_enchantment_cooldown = (time_t)timestamp;
           }
         }
+        else if (!strcmp(tag, "PDCt"))
+        {
+          int timer;
+          if (sscanf(line, "%d", &timer) == 1)
+          {
+            ch->player_specials->saved.defensive_casting_timer = timer;
+          }
+        }
         break;
 
       case 'Q':
@@ -2845,6 +2853,13 @@ void save_char(struct char_data *ch, int mode)
   /* Save Split Enchantment cooldown */
   BUFFER_WRITE( "PSpE: %ld\n",
     (long)ch->player_specials->saved.split_enchantment_cooldown);
+  
+  /* Save Defensive Casting timer */
+  if (ch->player_specials->saved.defensive_casting_timer > 0)
+  {
+    BUFFER_WRITE( "PDCt: %d\n",
+      ch->player_specials->saved.defensive_casting_timer);
+  }
 
   /* Save evolutions */
   BUFFER_WRITE( "Evol:\n");

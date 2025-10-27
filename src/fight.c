@@ -1053,6 +1053,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     if (!IS_NPC(ch))
       bonuses[BONUS_TYPE_DODGE] += get_cleric_armor_of_faith_bonus(ch);
 
+    /* Wizard Controller perk: Defensive Casting - +4 dodge AC for 1 round after casting */
+    if (!IS_NPC(ch))
+      bonuses[BONUS_TYPE_DODGE] += get_defensive_casting_ac_bonus(ch);
+
     /* this feat requires light armor and no shield */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_CANNY_DEFENSE) && HAS_FREE_HAND(ch) &&
         compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT)
