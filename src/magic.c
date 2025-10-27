@@ -383,6 +383,19 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
       savethrow = 0;
   struct affected_type *af = NULL;
 
+  /* Irresistible Magic perk - auto-fail saving throw for victim */
+  if (ch && affected_by_spell(ch, PERK_WIZARD_IRRESISTIBLE_MAGIC))
+  {
+    send_to_char(ch, "\tMYour irresistible magic overwhelms all defenses!\tn\r\n");
+    send_to_char(vict, "\tRYou are unable to resist the overwhelming arcane power!\tn\r\n");
+    act("\tM$n's spell bypasses all resistances with unstoppable force!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+    
+    /* Remove the irresistible magic affect after use */
+    affect_from_char(ch, PERK_WIZARD_IRRESISTIBLE_MAGIC);
+    
+    return FALSE; /* Victim automatically fails the save */
+  }
+
   if (has_teamwork_feat(vict, FEAT_DUCK_AND_COVER) && type == SAVING_REFL)
     diceroll = MAX(diceroll, d20(vict));
 
@@ -506,6 +519,33 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   if (ch && school == ENCHANTMENT)
   {
     challenge += get_enchantment_spell_dc_bonus(ch);
+    /* Master Enchanter adds +3 DC to enchantment spells */
+    challenge += get_master_enchanter_dc_bonus(ch);
+  }
+  
+  /* Master Transmuter adds +3 DC to transmutation spells */
+  if (ch && school == TRANSMUTATION)
+  {
+    challenge += get_master_transmuter_dc_bonus(ch);
+  }
+  
+  /* Master Illusionist adds +3 DC to illusion spells */
+  if (ch && school == ILLUSION)
+  {
+    challenge += get_master_illusionist_dc_bonus(ch);
+  }
+  
+  /* Archmage of Control adds +5 DC to control spells (charm, confuse, daze, sleep) */
+  /* These are typically enchantment school spells */
+  if (ch && school == ENCHANTMENT)
+  {
+    challenge += get_archmage_control_dc_bonus(ch);
+  }
+  
+  /* Spell Mastery adds +2 DC to all spells */
+  if (ch)
+  {
+    challenge += get_spell_mastery_dc_bonus(ch);
   }
   
   if (ch && !IS_NPC(ch) && GET_SPECIALTY_SCHOOL(ch) == school)
@@ -9045,6 +9085,62 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         /* Ensure minimum +1 round bonus */
         if (old_duration > 0 && af[i].duration < old_duration + 1)
           af[i].duration = old_duration + 1;
+      }
+    }
+    
+    /* Master Enchanter perk - doubles duration of enchantment spells */
+    if (spell_info[spellnum].schoolOfMagic == ENCHANTMENT)
+    {
+      float enchant_mult = get_master_enchanter_duration_multiplier(ch);
+      if (enchant_mult > 1.0)
+      {
+        for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+        {
+          if (af[i].duration > 0)
+            af[i].duration = (int)(af[i].duration * enchant_mult);
+        }
+      }
+    }
+    
+    /* Master Transmuter perk - increases duration of transmutation spells by 50% */
+    if (spell_info[spellnum].schoolOfMagic == TRANSMUTATION)
+    {
+      float transmute_mult = get_master_transmuter_duration_multiplier(ch);
+      if (transmute_mult > 1.0)
+      {
+        for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+        {
+          if (af[i].duration > 0)
+            af[i].duration = (int)(af[i].duration * transmute_mult);
+        }
+      }
+    }
+    
+    /* Archmage of Control perk - increases duration of control effects by 50% */
+    /* Check if spell applies any control effects */
+    bool has_control_effect = FALSE;
+    for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+    {
+      if (IS_SET_AR(af[i].bitvector, AFF_CHARM) || 
+          IS_SET_AR(af[i].bitvector, AFF_CONFUSED) ||
+          IS_SET_AR(af[i].bitvector, AFF_DAZED) ||
+          IS_SET_AR(af[i].bitvector, AFF_SLEEP))
+      {
+        has_control_effect = TRUE;
+        break;
+      }
+    }
+    
+    if (has_control_effect)
+    {
+      float control_mult = get_archmage_control_duration_multiplier(ch);
+      if (control_mult > 1.0)
+      {
+        for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+        {
+          if (af[i].duration > 0)
+            af[i].duration = (int)(af[i].duration * control_mult);
+        }
       }
     }
     

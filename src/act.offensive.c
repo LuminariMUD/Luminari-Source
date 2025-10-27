@@ -6077,6 +6077,54 @@ ACMD(do_spiritualweapon)
   send_to_char(ch, "You channel divine energy to summon a spiritual weapon!\r\n");
 }
 
+ACMDCHECK(can_irresistablemagic)
+{
+  ACMDCHECK_PREREQ_HASFEAT(PERK_WIZARD_IRRESISTIBLE_MAGIC, "You don't have the Irresistible Magic perk.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_irresistablemagic)
+{
+  struct affected_type af;
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_irresistablemagic);
+
+  /* Check if perk is available */
+  if (!has_perk(ch, PERK_WIZARD_IRRESISTIBLE_MAGIC))
+  {
+    send_to_char(ch, "You don't have the Irresistible Magic perk.\r\n");
+    return;
+  }
+
+  /* Check cooldown - 5 minutes (50 ticks at 6 seconds each = 300 seconds) */
+  if (GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) > 0)
+  {
+    int seconds_left = GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) * 6;
+    int minutes = seconds_left / 60;
+    int seconds = seconds_left % 60;
+    send_to_char(ch, "You must wait %d minute%s and %d second%s before using irresistible magic again.\r\n",
+                 minutes, (minutes != 1 ? "s" : ""), seconds, (seconds != 1 ? "s" : ""));
+    return;
+  }
+
+  /* Apply Irresistible Magic buff - next spell auto-succeeds */
+  new_affect(&af);
+  af.spell = PERK_WIZARD_IRRESISTIBLE_MAGIC;
+  af.duration = 3; /* 3 rounds to cast the spell */
+  af.location = APPLY_SPECIAL;
+  af.modifier = 0;
+  af.bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  /* Set cooldown to 5 minutes (50 ticks) */
+  GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) = 50;
+
+  send_to_char(ch, "\tMYou weave an unstoppable pattern of arcane energy!\tn\r\n"
+                   "Your next spell will bypass all resistances and automatically succeed!\r\n");
+  act("\tM$n weaves an unstoppable pattern of arcane energy!\tn", FALSE, ch, NULL, NULL, TO_ROOM);
+}
+
 ACMDCHECK(can_avatarofwar)
 {
   ACMDCHECK_PREREQ_HASFEAT(PERK_CLERIC_AVATAR_OF_WAR, "You don't have the Avatar of War perk.\r\n");

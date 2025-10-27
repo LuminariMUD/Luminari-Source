@@ -555,6 +555,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"invisiblerogue", "invisiblerogue", POS_DEAD, do_invisiblerogue, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"innerfire", "innerfire", POS_FIGHTING, do_innerfire, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"invoke", "invoke", POS_FIGHTING, do_use_consumable, 0, SCMD_INVOKE, FALSE, ACTION_SWIFT, {0, 6}, NULL},
+    {"irresistablemagic", "irresistablemagic", POS_FIGHTING, do_irresistablemagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_irresistablemagic},
     {"insectbeing", "insectbeing", POS_FIGHTING, do_insectbeing, 0, 0, FALSE, ACTION_NONE, {0, 0}, can_insectbeing},
     {"inspirecourage", "inspirecourage", POS_FIGHTING, do_inspire_courage, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 

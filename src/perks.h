@@ -180,6 +180,14 @@ bool can_use_empower_spell_perk(struct char_data *ch);
 void use_empower_spell_perk(struct char_data *ch);
 int get_arcane_annihilation_bonus_dice(struct char_data *ch);
 int get_arcane_annihilation_dc_bonus(struct char_data *ch);
+float get_master_enchanter_duration_multiplier(struct char_data *ch);
+float get_master_transmuter_duration_multiplier(struct char_data *ch);
+float get_archmage_control_duration_multiplier(struct char_data *ch);
+int get_archmage_control_dc_bonus(struct char_data *ch);
+int get_master_enchanter_dc_bonus(struct char_data *ch);
+int get_master_transmuter_dc_bonus(struct char_data *ch);
+int get_master_illusionist_dc_bonus(struct char_data *ch);
+int get_spell_mastery_dc_bonus(struct char_data *ch);
 
 /* Wizard Controller tree perk functions */
 int get_enchantment_spell_dc_bonus(struct char_data *ch);

@@ -3152,6 +3152,17 @@
 #define PERK_WIZARD_PERSISTENT_SPELL 67
 #define PERK_WIZARD_SPLIT_ENCHANTMENT 68
 
+/* Wizard Controller Tree - Tier 3 Perks (69-73) */
+#define PERK_WIZARD_EXTENDED_SPELL_3 69
+#define PERK_WIZARD_MASTER_ENCHANTER 70
+#define PERK_WIZARD_MASTER_ILLUSIONIST 71
+#define PERK_WIZARD_MASTER_TRANSMUTER 72
+#define PERK_WIZARD_SPELL_MASTERY 73
+
+/* Wizard Controller Tree - Tier 4 Capstones (74-75) */
+#define PERK_WIZARD_ARCHMAGE_OF_CONTROL 74
+#define PERK_WIZARD_IRRESISTIBLE_MAGIC 75
+
 /* Cleric Perks (61-90) */
 /* Divine Healer Tree - Tier 1 Perks (61-64) */
 #define PERK_CLERIC_HEALING_POWER_1 61
@@ -5762,6 +5773,7 @@ struct player_special_data_saved
     int retainer_cooldown;
     int scrounge_cooldown;
     int spiritual_weapon_cooldown;  // Battle Cleric perk: 5 minute cooldown for free spiritual weapon casting
+    int irresistible_magic_cooldown;  // Wizard Controller perk: 5 minute cooldown for auto-success spell
     
     /* Domain Master perk bonus spell slot tracking */
     int bonus_domain_slots_used;    // Tracks used bonus domain spell slots
