@@ -2760,6 +2760,8 @@ void set_eidolon_descs(struct char_data *ch);
 #define GET_SICKENING_AURA_TIMER(ch)  ((ch)->char_specials.sickening_aura_timer)
 #define GET_FRIGHTFUL_PRESENCE_TIMER(ch)  ((ch)->char_specials.frightful_presence_timer)
 #define GET_DEFENSIVE_CASTING_TIMER(ch)  ((ch)->player_specials->saved.defensive_casting_timer)
+#define GET_ARCANE_RECOVERY_COOLDOWN(ch)  ((ch)->player_specials->saved.arcane_recovery_cooldown)
+#define GET_SPELL_SHIELD_TIMER(ch)  ((ch)->player_specials->saved.spell_shield_timer)
 bool has_reach(struct char_data *ch);
 
 #define WEAPON_SPELL_PROC(ch) (ch->player.weaponSpellProc)

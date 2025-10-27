@@ -1565,6 +1565,12 @@ void finishCasting(struct char_data *ch)
   }
 
   say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
+  
+  /* Consume metamagic reduction use if applicable */
+  if (!IS_NPC(ch) && CASTING_METAMAGIC(ch) != 0) {
+    use_metamagic_reduction(ch);
+  }
+  
   send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "complete your manifestation" : "complete your spell"));
   if (FIGHTING(ch) && !IS_NPC(ch))
   {

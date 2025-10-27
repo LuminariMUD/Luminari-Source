@@ -1476,7 +1476,7 @@ void define_wizard_versatile_caster_perks(void)
   perk = &perk_list[PERK_WIZARD_METAMAGIC_MASTER_I];
   perk->id = PERK_WIZARD_METAMAGIC_MASTER_I;
   perk->name = strdup("Metamagic Master I");
-  perk->description = strdup("Metamagic randomly reduces spell circle adjustment by 1");
+  perk->description = strdup("Metamagic reduces spell circle increase by 1");
   perk->associated_class = CLASS_WIZARD;
   perk->cost = 2;
   perk->max_rank = 1;
@@ -1484,7 +1484,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->prerequisite_rank = 0;
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1; /* -1 circle reduction */
-  perk->special_description = strdup("When using metamagic feats, there is a chance the spell circle increase will be reduced by 1 (minimum 0).");
+  perk->special_description = strdup("When using metamagic feats, reduce the spell circle increase by 1 (minimum 0). Limited to 2 uses per 5 minutes. Use 'cooldowns' to check remaining uses.");
   
   /* Defensive Casting */
   perk = &perk_list[PERK_WIZARD_DEFENSIVE_CASTING];
@@ -1499,6 +1499,88 @@ void define_wizard_versatile_caster_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 4; /* +4 AC */
   perk->special_description = strdup("Requires Combat Casting I (at least 2 ranks). You gain +4 AC when casting spells, lasting until your next turn.");
+
+  /*** VERSATILE CASTER TREE - TIER 3 PERKS (3-4 points each) ***/
+  
+  perk = &perk_list[PERK_WIZARD_SPELL_FOCUS_III];
+  perk->id = PERK_WIZARD_SPELL_FOCUS_III;
+  perk->name = strdup("Spell Focus III");
+  perk->description = strdup("2% chance per rank spell doesn't consume slot");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_II;
+  perk->prerequisite_rank = 3; /* Must max out Spell Focus II */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2% per rank */
+  perk->special_description = strdup("Requires Spell Focus II (max). Additional 2% chance per rank that spells don't consume prepared slots (total up to 16% with all ranks).");
+
+  perk = &perk_list[PERK_WIZARD_METAMAGIC_MASTER_II];
+  perk->id = PERK_WIZARD_METAMAGIC_MASTER_II;
+  perk->name = strdup("Metamagic Master II");
+  perk->description = strdup("Metamagic spell circle increase reduced by 1");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_METAMAGIC_MASTER_I;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = -1; /* -1 to metamagic circle cost */
+  perk->special_description = strdup("Requires Metamagic Master I. Metamagic feats increase spell circle by 1 less (stacks with Metamagic Master I for total -2). Limited to 2 uses per 5 minutes. Use 'cooldowns' to check remaining uses.");
+
+  perk = &perk_list[PERK_WIZARD_ARCANE_RECOVERY];
+  perk->id = PERK_WIZARD_ARCANE_RECOVERY;
+  perk->name = strdup("Arcane Recovery");
+  perk->description = strdup("Reduce spell preparation time");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_RECALL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->special_description = strdup("Requires Spell Recall. Once per day, reduce spell preparation/slot recovery time by 50%. Use 'arcane-recovery' command.");
+
+  perk = &perk_list[PERK_WIZARD_SPELL_SHIELD];
+  perk->id = PERK_WIZARD_SPELL_SHIELD;
+  perk->name = strdup("Spell Shield");
+  perk->description = strdup("10 DR + 4 AC when attacked first");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_DEFENSIVE_CASTING;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10; /* 10 DR */
+  perk->special_description = strdup("Requires Defensive Casting. When an enemy initiates combat against you, automatically activate a spell shield granting 10 DR and +4 AC for 1 round.");
+
+  /*** VERSATILE CASTER TREE - TIER 4 CAPSTONE PERKS (5 points each) ***/
+  
+  perk = &perk_list[PERK_WIZARD_ARCHMAGES_POWER];
+  perk->id = PERK_WIZARD_ARCHMAGES_POWER;
+  perk->name = strdup("Archmage's Power");
+  perk->description = strdup("+5% free spell chance, -1 metamagic cost");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_III;
+  perk->prerequisite_rank = 2; /* Must max out Spell Focus III */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5; /* +5% free spell chance */
+  perk->special_description = strdup("Requires Spell Focus III (max) and Metamagic Master II. Additional 5% chance spells don't consume slots, and metamagic reduces spell circle by 1 additional level. Limited to 2 uses per 5 minutes. Use 'cooldowns' to check remaining uses.");
+
+  perk = &perk_list[PERK_WIZARD_ARCANE_SUPREMACY];
+  perk->id = PERK_WIZARD_ARCANE_SUPREMACY;
+  perk->name = strdup("Arcane Supremacy");
+  perk->description = strdup("+2 spell DCs, +2 caster level, +2 spell damage");
+  perk->associated_class = CLASS_WIZARD;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_WIZARD_ARCANE_KNOWLEDGE_I;
+  perk->prerequisite_rank = 3; /* Must max out Arcane Knowledge I */
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2; /* +2 to various stats */
+  perk->special_description = strdup("Requires Arcane Knowledge I (max) and Metamagic Master II. Gain +2 to all spell DCs, +2 effective caster level, and +2 spell damage.");
 }
 
 /* Define Cleric Perks */
@@ -7715,6 +7797,13 @@ bool check_spell_slot_preservation(struct char_data *ch)
   /* Spell Focus II: 2% per rank, max 3 ranks = 6% */
   chance += 2 * get_total_perk_ranks(ch, PERK_WIZARD_SPELL_FOCUS_II);
   
+  /* Spell Focus III: 2% per rank, max 2 ranks = 4% */
+  chance += 2 * get_total_perk_ranks(ch, PERK_WIZARD_SPELL_FOCUS_III);
+  
+  /* Archmage's Power: +5% */
+  if (has_perk(ch, PERK_WIZARD_ARCHMAGES_POWER))
+    chance += 5;
+  
   /* Roll percentage check */
   if (chance > 0 && rand_number(1, 100) <= chance)
   {
@@ -7725,3 +7814,247 @@ bool check_spell_slot_preservation(struct char_data *ch)
 }
 
 
+/**
+ * Activate spell shield effect (10 DR + 4 AC for 1 round).
+ * Triggered when enemy initiates combat against the wizard.
+ * 
+ * @param ch The character
+ */
+void activate_spell_shield(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  if (!has_perk(ch, PERK_WIZARD_SPELL_SHIELD))
+    return;
+  
+  GET_SPELL_SHIELD_TIMER(ch) = 1;
+  send_to_char(ch, "\tCAn arcane shield springs into being around you!\tn\r\n");
+}
+
+/**
+ * Check if spell shield is active.
+ * 
+ * @param ch The character
+ * @return TRUE if active, FALSE otherwise
+ */
+bool has_spell_shield_active(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return GET_SPELL_SHIELD_TIMER(ch) > 0;
+}
+
+/**
+ * Get AC bonus from spell shield.
+ * 
+ * @param ch The character
+ * @return AC bonus (4 if active, 0 otherwise)
+ */
+int get_spell_shield_ac_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_spell_shield_active(ch))
+    return 4;
+  
+  return 0;
+}
+
+/**
+ * Get DR from spell shield.
+ * 
+ * @param ch The character
+ * @return DR value (10 if active, 0 otherwise)
+ */
+int get_spell_shield_dr(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_spell_shield_active(ch))
+    return 10;
+  
+  return 0;
+}
+
+/**
+ * Get metamagic circle cost reduction from perks.
+ * Metamagic Master I (-1) + Metamagic Master II (-1) + Archmage's Power (-1).
+ * Limited to 2 uses per 5 minutes, regenerates like Empower Spell.
+ * 
+ * @param ch The character
+ * @return Circle cost reduction (negative number), or 0 if no uses available
+ */
+int get_metamagic_circle_reduction(struct char_data *ch)
+{
+  int reduction = 0;
+  int max_reduction = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Check if character has any metamagic reduction perks */
+  if (!has_perk(ch, PERK_WIZARD_METAMAGIC_MASTER_I) && 
+      !has_perk(ch, PERK_WIZARD_METAMAGIC_MASTER_II) &&
+      !has_perk(ch, PERK_WIZARD_ARCHMAGES_POWER))
+    return 0;
+  
+  /* Regenerate charges if needed (same system as Empower Spell) */
+  if (ch->player_specials->saved.metamagic_reduction_uses < 2)
+  {
+    time_t now = time(0);
+    if (ch->player_specials->saved.metamagic_reduction_cooldown <= now)
+    {
+      /* Grant one use back */
+      ch->player_specials->saved.metamagic_reduction_uses++;
+      
+      /* If not at max, set cooldown for next regeneration (5 minutes) */
+      if (ch->player_specials->saved.metamagic_reduction_uses < 2)
+      {
+        ch->player_specials->saved.metamagic_reduction_cooldown = now + 300; /* 5 minutes */
+      }
+    }
+  }
+  
+  /* Check if we have uses available */
+  if (ch->player_specials->saved.metamagic_reduction_uses <= 0)
+    return 0;
+  
+  /* Calculate maximum possible reduction based on perks */
+  if (has_perk(ch, PERK_WIZARD_METAMAGIC_MASTER_I))
+    max_reduction -= 1;
+  
+  if (has_perk(ch, PERK_WIZARD_METAMAGIC_MASTER_II))
+    max_reduction -= 1;
+  
+  if (has_perk(ch, PERK_WIZARD_ARCHMAGES_POWER))
+    max_reduction -= 1;
+  
+  /* Only consume a use if we're actually going to reduce cost */
+  if (max_reduction < 0)
+  {
+    reduction = max_reduction;
+    /* Note: Actual use consumption happens in use_metamagic_reduction() */
+  }
+  
+  return reduction;
+}
+
+/**
+ * Check if character can use metamagic reduction.
+ * Regenerates uses automatically if cooldown has expired.
+ * 
+ * @param ch The character
+ * @return TRUE if uses available, FALSE otherwise
+ */
+bool can_use_metamagic_reduction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  /* Must have at least one perk */
+  if (!has_perk(ch, PERK_WIZARD_METAMAGIC_MASTER_I) && 
+      !has_perk(ch, PERK_WIZARD_METAMAGIC_MASTER_II) &&
+      !has_perk(ch, PERK_WIZARD_ARCHMAGES_POWER))
+    return FALSE;
+  
+  /* Regenerate charges if needed */
+  if (ch->player_specials->saved.metamagic_reduction_uses < 2)
+  {
+    time_t now = time(0);
+    if (ch->player_specials->saved.metamagic_reduction_cooldown <= now)
+    {
+      ch->player_specials->saved.metamagic_reduction_uses++;
+      
+      if (ch->player_specials->saved.metamagic_reduction_uses < 2)
+      {
+        ch->player_specials->saved.metamagic_reduction_cooldown = now + 300;
+      }
+    }
+  }
+  
+  return (ch->player_specials->saved.metamagic_reduction_uses > 0);
+}
+
+/**
+ * Consume one metamagic reduction use.
+ * Called after successfully reducing metamagic cost.
+ * 
+ * @param ch The character
+ */
+void use_metamagic_reduction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+  
+  if (ch->player_specials->saved.metamagic_reduction_uses <= 0)
+    return;
+  
+  ch->player_specials->saved.metamagic_reduction_uses--;
+  
+  /* If we just used our last charge, start the cooldown */
+  if (ch->player_specials->saved.metamagic_reduction_uses == 0)
+  {
+    ch->player_specials->saved.metamagic_reduction_cooldown = time(0) + 300; /* 5 minutes */
+  }
+  /* If we have 1 use left and cooldown isn't set, set it */
+  else if (ch->player_specials->saved.metamagic_reduction_uses == 1 && 
+           ch->player_specials->saved.metamagic_reduction_cooldown <= time(0))
+  {
+    ch->player_specials->saved.metamagic_reduction_cooldown = time(0) + 300;
+  }
+}
+
+/**
+ * Get spell DC bonus from Arcane Supremacy.
+ * 
+ * @param ch The character
+ * @return DC bonus (2 if has perk, 0 otherwise)
+ */
+int get_arcane_supremacy_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_WIZARD_ARCANE_SUPREMACY))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get caster level bonus from Arcane Supremacy.
+ * 
+ * @param ch The character
+ * @return Caster level bonus (2 if has perk, 0 otherwise)
+ */
+int get_arcane_supremacy_caster_level_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_WIZARD_ARCANE_SUPREMACY))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get spell damage bonus from Arcane Supremacy.
+ * 
+ * @param ch The character
+ * @return Damage bonus (2 if has perk, 0 otherwise)
+ */
+int get_arcane_supremacy_damage_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (has_perk(ch, PERK_WIZARD_ARCANE_SUPREMACY))
+    return 2;
+  
+  return 0;
+}

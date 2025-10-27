@@ -211,6 +211,18 @@ void activate_defensive_casting(struct char_data *ch);
 bool has_defensive_casting_active(struct char_data *ch);
 int get_defensive_casting_ac_bonus(struct char_data *ch);
 
+/* Versatile Caster Tier 3-4 perk functions */
+void activate_spell_shield(struct char_data *ch);
+bool has_spell_shield_active(struct char_data *ch);
+int get_spell_shield_ac_bonus(struct char_data *ch);
+int get_spell_shield_dr(struct char_data *ch);
+int get_metamagic_circle_reduction(struct char_data *ch);
+bool can_use_metamagic_reduction(struct char_data *ch);
+void use_metamagic_reduction(struct char_data *ch);
+int get_arcane_supremacy_dc_bonus(struct char_data *ch);
+int get_arcane_supremacy_caster_level_bonus(struct char_data *ch);
+int get_arcane_supremacy_damage_bonus(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

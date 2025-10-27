@@ -2057,6 +2057,14 @@ void proc_d20_round(void)
         send_to_char(i, "Your defensive casting bonus fades.\r\n");
       }
     }
+    if (GET_SPELL_SHIELD_TIMER(i) > 0)
+    {
+      GET_SPELL_SHIELD_TIMER(i)--;
+      if (GET_SPELL_SHIELD_TIMER(i) <= 0)
+      {
+        send_to_char(i, "Your arcane shield dissipates.\r\n");
+      }
+    }
     if (CALL_EIDOLON_COOLDOWN(i) > 0)
     {
       CALL_EIDOLON_COOLDOWN(i)--;
