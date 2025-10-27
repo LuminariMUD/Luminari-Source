@@ -292,7 +292,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
             if (v3 >= TRAP_SPECIAL_PARALYSIS)
             { /* not a normal spell effect */
               tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d %s%s | Type: %s | Effect: %s | DC: %d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], trap_effects[v3 - 1000], v4, v5);
+                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], trap_effects[v3 - TRAP_SPECIAL_PARALYSIS], v4, v5);
             }
             else
             { /* spell effect */
@@ -307,7 +307,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
             if (v3 >= TRAP_SPECIAL_PARALYSIS)
             { /* not a normal spell effect */
               tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  Direction: %s | Effect: %s | DC: %d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], dirs[v2], trap_effects[v3 - 1000], v4, v5);
+                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], dirs[v2], trap_effects[v3 - TRAP_SPECIAL_PARALYSIS], v4, v5);
             }
             else
             { /* spell effect */
@@ -323,7 +323,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
             if (v3 >= TRAP_SPECIAL_PARALYSIS)
             { /* not a normal spell effect */
               tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %7d %s%s | Type: %s |  On Obj: %s | Effect: %s | DC: %d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], obj_proto[target_obj].short_description, trap_effects[v3 - 1000], v4, v5);
+                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1], obj_proto[target_obj].short_description, trap_effects[v3 - TRAP_SPECIAL_PARALYSIS], v4, v5);
             }
             else
             { /* spell effect */

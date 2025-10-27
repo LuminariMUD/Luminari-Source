@@ -22,6 +22,10 @@
 #include "class.h"
 #include "perks.h"
 #include "assign_wpn_armor.h"
+
+/* Undefine NUM_ABILITIES before including spells.h to avoid redefinition warning */
+#undef NUM_ABILITIES
+
 #include "spells.h"
 
 /* External function from class.c */
@@ -29,6 +33,9 @@ extern int level_exp(struct char_data *ch, int level);
 #include "interpreter.h"
 #include "constants.h"
 #include "perks.h"
+
+/* Forward declarations */
+static void define_wizard_controller_perks(void);
 
 /* Global perk database - all defined perks */
 struct perk_data perk_list[NUM_PERKS];
@@ -1007,7 +1014,7 @@ void define_wizard_perks(void)
   perk = &perk_list[PERK_WIZARD_MASTER_OF_ELEMENTS];
   perk->id = PERK_WIZARD_MASTER_OF_ELEMENTS;
   perk->name = strdup("Master of Elements");
-  perk->description = strdup("All elemental damage +15%, can change energy type of spells");
+  perk->description = strdup("All elemental damage +15%, can change energy type of spells. Use 'masterofelements' command.");
   perk->associated_class = CLASS_WIZARD;
   perk->cost = 4;
   perk->max_rank = 1;
@@ -1097,7 +1104,7 @@ void define_wizard_perks(void)
 }
 
 /* Define Wizard Controller Perks */
-void define_wizard_controller_perks(void)
+static void define_wizard_controller_perks(void)
 {
   struct perk_data *perk;
   
@@ -5970,7 +5977,7 @@ void use_split_enchantment_perk(struct char_data *ch)
 
 /*****************************************************************************
  * Step 7: Perk OLC Interface - Player Commands
- *****************************************************************************
+ *****************************************************************************/
 
 /* Save type names for display */
 static const char *save_type_names[] = {

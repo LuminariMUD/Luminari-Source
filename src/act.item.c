@@ -217,7 +217,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       if (mode == ITEM_STAT_MODE_G_LORE)
         send_to_group(NULL, GROUP(ch), "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2) - TRAP_SPECIAL_PARALYSIS]);
       else
-        send_to_char(ch, "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2) - 1000]);
+        send_to_char(ch, "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2) - TRAP_SPECIAL_PARALYSIS]);
     }
     else
     {
