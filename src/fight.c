@@ -6124,6 +6124,15 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         send_to_char(ch, "Monk unarmed damage bonus: \tR%d\tn\r\n", monk_bonus);
       dambonus += monk_bonus;
     }
+    
+    /* Legendary Fist bonus damage (2d6) */
+    int legendary_damage = get_monk_legendary_fist_damage(ch);
+    if (legendary_damage > 0)
+    {
+      if (display_mode)
+        send_to_char(ch, "Legendary Fist bonus: \tR%d\tn\r\n", legendary_damage);
+      dambonus += legendary_damage;
+    }
   }
 
   /* Monk weapon damage bonus - One With Wood and Stone perk */
@@ -6751,6 +6760,12 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
     if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
         ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
       crit_multi += HAS_FEAT(ch, FEAT_INCREASED_MULTIPLIER);
+  }
+
+  /* Legendary Fist: unarmed attacks get x3 multiplier */
+  if (!wielded && has_monk_legendary_fist(ch))
+  {
+    crit_multi = MAX(crit_multi, 3);
   }
 
   /* high level mobs are getting a crit bonus here */
@@ -9349,6 +9364,19 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += monk_weapon_bonus;
       if (display)
         send_to_char(ch, "%2d: %-50s\r\n", monk_weapon_bonus, "Monk Weapon Attack Bonus");
+    }
+  }
+
+  /* Monk Power Strike penalty (unarmed or monk weapon) */
+  if (!IS_NPC(ch) && (attack_type == ATTACK_TYPE_UNARMED || 
+      (wielded && is_monk_weapon(wielded))))
+  {
+    int power_strike_penalty = get_monk_power_strike_penalty(ch);
+    if (power_strike_penalty < 0)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED] += power_strike_penalty;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", power_strike_penalty, "Power Strike Penalty");
     }
   }
 
