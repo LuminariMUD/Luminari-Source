@@ -794,6 +794,7 @@ ACMD_DECL(do_buildwalk);
 #define SCMD_PVP 65
 #define SCMD_BOARDCHECK 66
 #define SCMD_AUTOSEARCH 67
+#define SCMD_SWEEPING_STRIKE 68
 
 /* do_quit */
 ACMD_DECL(do_quit);

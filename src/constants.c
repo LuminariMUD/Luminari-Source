@@ -1652,6 +1652,8 @@ const char *preference_bits[] = {
     "Score-Borders",
     "Score-RaceSymbols",
     "BoardCheck-On-Login",
+    "Auto-Search",
+    "Sweeping-Strike",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 

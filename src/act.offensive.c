@@ -724,6 +724,9 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     /* Tactical Fighter perk: Improved Trip */
     if (has_perk(ch, PERK_FIGHTER_IMPROVED_TRIP))
       attack_check += 4;
+    /* Monk perk: Sweeping Strike */
+    if (has_perk(ch, PERK_MONK_SWEEPING_STRIKE))
+      attack_check += 2;
     if (is_flying(vict))
     {
       send_to_char(ch, "Impossible, your target is flying!\r\n");
