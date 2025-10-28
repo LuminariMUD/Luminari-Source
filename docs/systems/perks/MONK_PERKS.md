@@ -91,7 +91,7 @@ Monks are masters of martial arts, combining physical prowess with spiritual dis
 13. **Fists of Fury**
     - Cost: 4 points
     - Max Rank: 1
-    - Effect: Flurry does 4 attacks per round for 3 rounds. Resets after 5 minutes.
+    - Effect: Increases Flurry focus extra attack chance to 20%
     - Prerequisite: Flurry Focus, Improved Unarmed Strike II (max)
 
 14. **Crushing Blow**
@@ -103,7 +103,7 @@ Monks are masters of martial arts, combining physical prowess with spiritual dis
 15. **Improved Critical: Unarmed II**
     - Cost: 3 points
     - Max Rank: 1
-    - Effect: Critical threat range increased to 18-20, critical multiplier x3
+    - Effect: Critical threat range increased to 18-20
     - Prerequisite: Improved Critical: Unarmed
 
 16. **Power Strike**
@@ -117,7 +117,7 @@ Monks are masters of martial arts, combining physical prowess with spiritual dis
 17. **Legendary Fist**
     - Cost: 5 points
     - Max Rank: 1
-    - Effect: Unarmed strikes deal +3d8 damage
+    - Effect: Unarmed strikes deal +2d6 damage and crit multiplier is now x3
     - Prerequisite: Improved Unarmed Strike III (max), Fists of Fury
 
 18. **Shattering Strike**

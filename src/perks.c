@@ -8781,6 +8781,52 @@ int get_monk_weapon_ac_bonus(struct char_data *ch, struct obj_data *weapon)
 }
 
 /**
+ * Get attack bonus when wielding monk weapons (quarterstaff/kama).
+ * 
+ * @param ch The character
+ * @param weapon The weapon being checked
+ * @return Attack bonus (1 if monk weapon, 0 otherwise)
+ */
+int get_monk_weapon_attack_bonus(struct char_data *ch, struct obj_data *weapon)
+{
+  if (!ch || IS_NPC(ch) || !weapon)
+    return 0;
+  
+  if (!has_perk(ch, PERK_MONK_ONE_WITH_WOOD_AND_STONE))
+    return 0;
+  
+  /* Check if weapon is quarterstaff or kama */
+  int weapon_type = GET_OBJ_VAL(weapon, 0);
+  if (weapon_type == WEAPON_TYPE_QUARTERSTAFF || weapon_type == WEAPON_TYPE_KAMA)
+    return 1;
+  
+  return 0;
+}
+
+/**
+ * Get damage bonus when wielding monk weapons (quarterstaff/kama).
+ * 
+ * @param ch The character
+ * @param weapon The weapon being checked
+ * @return Damage bonus (1 if monk weapon, 0 otherwise)
+ */
+int get_monk_weapon_damage_bonus(struct char_data *ch, struct obj_data *weapon)
+{
+  if (!ch || IS_NPC(ch) || !weapon)
+    return 0;
+  
+  if (!has_perk(ch, PERK_MONK_ONE_WITH_WOOD_AND_STONE))
+    return 0;
+  
+  /* Check if weapon is quarterstaff or kama */
+  int weapon_type = GET_OBJ_VAL(weapon, 0);
+  if (weapon_type == WEAPON_TYPE_QUARTERSTAFF || weapon_type == WEAPON_TYPE_KAMA)
+    return 1;
+  
+  return 0;
+}
+
+/**
  * Get flurry of blows penalty reduction from monk perks.
  * 
  * @param ch The character
