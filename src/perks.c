@@ -3819,6 +3819,122 @@ void define_monk_perks(void)
   perk->effect_value = -1;
   perk->effect_modifier = 10;
   perk->special_description = strdup("Path of the Iron Fist - Tier 2");
+  
+  /* ====== TIER 3 PERKS ====== */
+  
+  /* Improved Unarmed Strike III */
+  perk = &perk_list[PERK_MONK_IMPROVED_UNARMED_STRIKE_III];
+  perk->id = PERK_MONK_IMPROVED_UNARMED_STRIKE_III;
+  perk->name = strdup("Improved Unarmed Strike III");
+  perk->description = strdup("+2 unarmed damage per rank, attacks count as adamantine");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_II;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_UNARMED_DAMAGE;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 3");
+  
+  /* Fists of Fury */
+  perk = &perk_list[PERK_MONK_FISTS_OF_FURY];
+  perk->id = PERK_MONK_FISTS_OF_FURY;
+  perk->name = strdup("Fists of Fury");
+  perk->description = strdup("Increases Flurry Focus extra attack chance from 10% to 20%");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_FLURRY_FOCUS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 3");
+  
+  /* Crushing Blow */
+  perk = &perk_list[PERK_MONK_CRUSHING_BLOW];
+  perk->id = PERK_MONK_CRUSHING_BLOW;
+  perk->name = strdup("Crushing Blow");
+  perk->description = strdup("Use a stunning fist use to make a crushing blow attack dealing +4d6 damage and ignoring 10 DR");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_TIGER_CLAW;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 3");
+  
+  /* Improved Critical: Unarmed II */
+  perk = &perk_list[PERK_MONK_IMPROVED_CRITICAL_UNARMED_II];
+  perk->id = PERK_MONK_IMPROVED_CRITICAL_UNARMED_II;
+  perk->name = strdup("Improved Critical: Unarmed II");
+  perk->description = strdup("Critical threat range for unarmed attacks increased to 18-20");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_IMPROVED_CRITICAL_UNARMED;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 3");
+  
+  /* Power Strike */
+  perk = &perk_list[PERK_MONK_POWER_STRIKE];
+  perk->id = PERK_MONK_POWER_STRIKE;
+  perk->name = strdup("Power Strike");
+  perk->description = strdup("Take -1 to hit for +3 damage on all unarmed attacks per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_II;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = -1;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 3");
+  
+  /* ====== TIER 4 CAPSTONE PERKS ====== */
+  
+  /* Legendary Fist */
+  perk = &perk_list[PERK_MONK_LEGENDARY_FIST];
+  perk->id = PERK_MONK_LEGENDARY_FIST;
+  perk->name = strdup("Legendary Fist");
+  perk->description = strdup("Unarmed strikes deal +2d6 damage and critical multiplier is now x3");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_III;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 4 Capstone");
+  
+  /* Shattering Strike */
+  perk = &perk_list[PERK_MONK_SHATTERING_STRIKE];
+  perk->id = PERK_MONK_SHATTERING_STRIKE;
+  perk->name = strdup("Shattering Strike");
+  perk->description = strdup("Use a stunning fist use to deal +8d8 damage on next unarmed attack");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_CRUSHING_BLOW;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 4 Capstone");
 }
 
 /* Lookup functions */
@@ -5785,6 +5901,83 @@ bool is_healing_empowered(struct char_data *ch)
     return FALSE;
   
   return (rand_number(1, 100) <= chance);
+}
+
+/**
+ * Get Power Strike attack penalty.
+ * 
+ * @param ch The character
+ * @return Attack penalty from Power Strike (-1 per rank)
+ */
+int get_monk_power_strike_penalty(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_perk(ch, PERK_MONK_POWER_STRIKE))
+    return 0;
+  
+  return -1 * get_perk_rank(ch, PERK_MONK_POWER_STRIKE, CLASS_MONK);
+}
+
+/**
+ * Get Legendary Fist bonus damage (2d6).
+ * 
+ * @param ch The character
+ * @return Legendary Fist damage dice (0 if no perk)
+ */
+int get_monk_legendary_fist_damage(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  if (!has_perk(ch, PERK_MONK_LEGENDARY_FIST))
+    return 0;
+  
+  /* 2d6 bonus damage */
+  return dice(2, 6);
+}
+
+/**
+ * Check if monk has Legendary Fist for crit multiplier.
+ * 
+ * @param ch The character
+ * @return TRUE if has Legendary Fist, FALSE otherwise
+ */
+bool has_monk_legendary_fist(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_LEGENDARY_FIST);
+}
+
+/**
+ * Check if monk has Crushing Blow perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has Crushing Blow, FALSE otherwise
+ */
+bool has_monk_crushing_blow(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_CRUSHING_BLOW);
+}
+
+/**
+ * Check if monk has Shattering Strike perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has Shattering Strike, FALSE otherwise
+ */
+bool has_monk_shattering_strike(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_SHATTERING_STRIKE);
 }
 
 /**
@@ -8558,15 +8751,23 @@ int get_monk_unarmed_damage_bonus(struct char_data *ch)
   if (has_perk(ch, PERK_MONK_IMPROVED_UNARMED_STRIKE_II))
     bonus += get_perk_rank(ch, PERK_MONK_IMPROVED_UNARMED_STRIKE_II, CLASS_MONK);
   
+  /* Improved Unarmed Strike III: +2 per rank, max 2 */
+  if (has_perk(ch, PERK_MONK_IMPROVED_UNARMED_STRIKE_III))
+    bonus += get_perk_rank(ch, PERK_MONK_IMPROVED_UNARMED_STRIKE_III, CLASS_MONK) * 2;
+  
   /* Tiger Claw: +2 damage */
   if (has_perk(ch, PERK_MONK_TIGER_CLAW))
     bonus += 2;
+  
+  /* Power Strike: +3 damage per rank */
+  if (has_perk(ch, PERK_MONK_POWER_STRIKE))
+    bonus += get_perk_rank(ch, PERK_MONK_POWER_STRIKE, CLASS_MONK) * 3;
   
   return bonus;
 }
 
 /**
- * Get DR bypass amount from monk perks.
+ * Get DR bypass amount from monk perks (also returns the crushing blow bypass).
  * 
  * @param ch The character
  * @return Amount of DR bypassed
@@ -8579,6 +8780,8 @@ int get_monk_dr_bypass(struct char_data *ch)
   /* Fists of Iron: Bypass 2 DR */
   if (has_perk(ch, PERK_MONK_FISTS_OF_IRON))
     return 2;
+  
+  /* Note: Crushing Blow (10 DR bypass) is handled separately as it requires a stunning fist use */
   
   return 0;
 }
@@ -8715,12 +8918,16 @@ int get_monk_stunning_fist_duration_bonus(struct char_data *ch)
  * Get unarmed critical threat range from monk perks.
  * 
  * @param ch The character
- * @return Critical threat range minimum (20 by default, 19 with perk)
+ * @return Critical threat range minimum (20 by default, 19 with perk, 18 with perk II)
  */
 int get_monk_unarmed_crit_range(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 20;
+  
+  /* Improved Critical: Unarmed II - 18-20 */
+  if (has_perk(ch, PERK_MONK_IMPROVED_CRITICAL_UNARMED_II))
+    return 18;
   
   /* Improved Critical: Unarmed - 19-20 */
   if (has_perk(ch, PERK_MONK_IMPROVED_CRITICAL_UNARMED))
@@ -8845,19 +9052,27 @@ int get_monk_flurry_penalty_reduction(struct char_data *ch)
 }
 
 /**
- * Check if monk gets extra flurry attack this round (10% chance).
+ * Check if monk gets extra flurry attack this round.
+ * 10% chance with Flurry Focus, 20% with Fists of Fury.
  * 
  * @param ch The character
  * @return TRUE if extra attack triggered, FALSE otherwise
  */
 bool check_monk_extra_flurry_attack(struct char_data *ch)
 {
+  int chance = 0;
+  
   if (!ch || IS_NPC(ch))
     return FALSE;
   
   if (!has_perk(ch, PERK_MONK_FLURRY_FOCUS))
     return FALSE;
   
-  /* 10% chance for extra attack */
-  return (rand_number(1, 100) <= 10);
+  /* Fists of Fury increases chance from 10% to 20% */
+  if (has_perk(ch, PERK_MONK_FISTS_OF_FURY))
+    chance = 20;
+  else
+    chance = 10;
+  
+  return (rand_number(1, 100) <= chance);
 }

@@ -3445,6 +3445,17 @@
 #define PERK_MONK_ONE_WITH_WOOD_AND_STONE 509    /* Can use quarterstaff/kama with monk abilities, +1 AC */
 #define PERK_MONK_FLURRY_FOCUS 510               /* -1 flurry penalty, 10% chance extra attack */
 
+/* TREE 1: PATH OF THE IRON FIST - Tier 3 Perks (511-516) */
+#define PERK_MONK_IMPROVED_UNARMED_STRIKE_III 511 /* +2 unarmed damage per rank, adamantine attacks, max 2 */
+#define PERK_MONK_FISTS_OF_FURY 512               /* Increases Flurry Focus extra attack to 20% */
+#define PERK_MONK_CRUSHING_BLOW 513               /* Stunning fist use for +4d6 damage, ignores 10 DR */
+#define PERK_MONK_IMPROVED_CRITICAL_UNARMED_II 514 /* 18-20 crit range */
+#define PERK_MONK_POWER_STRIKE 515                /* -1 to hit for +3 damage per rank, max 2 */
+
+/* TREE 1: PATH OF THE IRON FIST - Tier 4 Capstone Perks (516-517) */
+#define PERK_MONK_LEGENDARY_FIST 516              /* +2d6 damage, crit multiplier x3 */
+#define PERK_MONK_SHATTERING_STRIKE 517           /* Stunning fist use for +8d8 damage */
+
 /* ============================================================================
  * DRUID PERKS (600-699)
  * ============================================================================ */

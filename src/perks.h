@@ -246,6 +246,11 @@ int get_monk_weapon_attack_bonus(struct char_data *ch, struct obj_data *weapon);
 int get_monk_weapon_damage_bonus(struct char_data *ch, struct obj_data *weapon);
 int get_monk_flurry_penalty_reduction(struct char_data *ch);
 bool check_monk_extra_flurry_attack(struct char_data *ch);
+int get_monk_power_strike_penalty(struct char_data *ch);
+int get_monk_legendary_fist_damage(struct char_data *ch);
+bool has_monk_legendary_fist(struct char_data *ch);
+bool has_monk_crushing_blow(struct char_data *ch);
+bool has_monk_shattering_strike(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
