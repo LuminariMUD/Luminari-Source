@@ -19,6 +19,7 @@ void define_cleric_perks(void);
 void define_rogue_perks(void);
 void define_ranger_perks(void);
 void define_barbarian_perks(void);
+void define_monk_perks(void);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
@@ -222,6 +223,23 @@ void use_metamagic_reduction(struct char_data *ch);
 int get_arcane_supremacy_dc_bonus(struct char_data *ch);
 int get_arcane_supremacy_caster_level_bonus(struct char_data *ch);
 int get_arcane_supremacy_damage_bonus(struct char_data *ch);
+
+/* Monk perk helper functions */
+int get_monk_unarmed_damage_bonus(struct char_data *ch);
+int get_monk_dr_bypass(struct char_data *ch);
+int get_monk_reflex_save_bonus(struct char_data *ch);
+int get_monk_trip_bonus(struct char_data *ch);
+bool can_monk_trip_during_flurry(struct char_data *ch);
+int get_monk_gp_regen_bonus(struct char_data *ch);
+int get_monk_stunning_fist_bonus_uses(struct char_data *ch);
+int get_monk_stunning_fist_dc_bonus(struct char_data *ch);
+int get_monk_stunning_fist_duration_bonus(struct char_data *ch);
+int get_monk_unarmed_crit_range(struct char_data *ch);
+bool has_monk_tiger_claw_bleed(struct char_data *ch);
+bool can_use_monk_weapons_with_abilities(struct char_data *ch);
+int get_monk_weapon_ac_bonus(struct char_data *ch, struct obj_data *weapon);
+int get_monk_flurry_penalty_reduction(struct char_data *ch);
+bool check_monk_extra_flurry_attack(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

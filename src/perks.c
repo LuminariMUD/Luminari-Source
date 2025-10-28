@@ -88,6 +88,9 @@ void init_perks(void)
   /* Define Barbarian Perks */
   define_barbarian_perks();
   
+  /* Define Monk Perks */
+  define_monk_perks();
+  
   log("Perks system initialized with %d defined perks.", count_defined_perks());
 }
 
@@ -3393,6 +3396,183 @@ void define_barbarian_perks(void)
   perk->effect_value = 5;
   perk->effect_modifier = 0;
   perk->special_description = strdup("");
+}
+
+/* ============================================================================
+ * MONK PERK DEFINITIONS - Path of the Iron Fist (Tier 1-2)
+ * ============================================================================ */
+void define_monk_perks(void)
+{
+  struct perk_data *perk;
+  
+  /* ========== TIER 1 PERKS ========== */
+  
+  /* Improved Unarmed Strike I */
+  perk = &perk_list[PERK_MONK_IMPROVED_UNARMED_STRIKE_I];
+  perk->id = PERK_MONK_IMPROVED_UNARMED_STRIKE_I;
+  perk->name = strdup("Improved Unarmed Strike I");
+  perk->description = strdup("+1 to unarmed damage per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_UNARMED_DAMAGE;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 1");
+  
+  /* Fists of Iron */
+  perk = &perk_list[PERK_MONK_FISTS_OF_IRON];
+  perk->id = PERK_MONK_FISTS_OF_IRON;
+  perk->name = strdup("Fists of Iron");
+  perk->description = strdup("Bypasses 2 points of damage reduction");
+  perk->associated_class = CLASS_MONK;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 1");
+  
+  /* Lightning Reflexes I */
+  perk = &perk_list[PERK_MONK_LIGHTNING_REFLEXES_I];
+  perk->id = PERK_MONK_LIGHTNING_REFLEXES_I;
+  perk->name = strdup("Lightning Reflexes I");
+  perk->description = strdup("+1 to Reflex saves per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 1;
+  perk->effect_modifier = SAVING_REFL;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 1");
+  
+  /* Sweeping Strike */
+  perk = &perk_list[PERK_MONK_SWEEPING_STRIKE];
+  perk->id = PERK_MONK_SWEEPING_STRIKE;
+  perk->name = strdup("Sweeping Strike");
+  perk->description = strdup("Trip attempts gain +2 bonus, can trip as part of flurry");
+  perk->associated_class = CLASS_MONK;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 1");
+  
+  /* Meditation Focus I */
+  perk = &perk_list[PERK_MONK_MEDITATION_FOCUS_I];
+  perk->id = PERK_MONK_MEDITATION_FOCUS_I;
+  perk->name = strdup("Meditation Focus I");
+  perk->description = strdup("+1 GP regen per rank and 1 extra stunning fist use per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 1");
+  
+  /* ========== TIER 2 PERKS ========== */
+  
+  /* Improved Unarmed Strike II */
+  perk = &perk_list[PERK_MONK_IMPROVED_UNARMED_STRIKE_II];
+  perk->id = PERK_MONK_IMPROVED_UNARMED_STRIKE_II;
+  perk->name = strdup("Improved Unarmed Strike II");
+  perk->description = strdup("+1 unarmed damage per rank, attacks count as lawful");
+  perk->associated_class = CLASS_MONK;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_I;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_UNARMED_DAMAGE;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 2");
+  
+  /* Stunning Fist Enhancement */
+  perk = &perk_list[PERK_MONK_STUNNING_FIST_ENHANCEMENT];
+  perk->id = PERK_MONK_STUNNING_FIST_ENHANCEMENT;
+  perk->name = strdup("Stunning Fist Enhancement");
+  perk->description = strdup("Stunning Fist DC increases by +2, duration +1 round");
+  perk->associated_class = CLASS_MONK;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 2");
+  
+  /* Improved Critical: Unarmed */
+  perk = &perk_list[PERK_MONK_IMPROVED_CRITICAL_UNARMED];
+  perk->id = PERK_MONK_IMPROVED_CRITICAL_UNARMED;
+  perk->name = strdup("Improved Critical: Unarmed");
+  perk->description = strdup("Critical threat range for unarmed attacks increased (19-20)");
+  perk->associated_class = CLASS_MONK;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_I;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 19;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 2");
+  
+  /* Tiger Claw */
+  perk = &perk_list[PERK_MONK_TIGER_CLAW];
+  perk->id = PERK_MONK_TIGER_CLAW;
+  perk->name = strdup("Tiger Claw");
+  perk->description = strdup("+2 damage on all unarmed attacks, attacks can cause bleeding (1d4 per round for 3 rounds)");
+  perk->associated_class = CLASS_MONK;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_UNARMED_DAMAGE;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 2");
+  
+  /* One With Wood and Stone */
+  perk = &perk_list[PERK_MONK_ONE_WITH_WOOD_AND_STONE];
+  perk->id = PERK_MONK_ONE_WITH_WOOD_AND_STONE;
+  perk->name = strdup("One With Wood and Stone");
+  perk->description = strdup("Can use quarterstaff and kama with monk abilities, +1 AC when using them");
+  perk->associated_class = CLASS_MONK;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 2");
+  
+  /* Flurry Focus */
+  perk = &perk_list[PERK_MONK_FLURRY_FOCUS];
+  perk->id = PERK_MONK_FLURRY_FOCUS;
+  perk->name = strdup("Flurry Focus");
+  perk->description = strdup("Flurry of Blows penalty reduced by 1, 10% chance for extra flurry attack per round");
+  perk->associated_class = CLASS_MONK;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_I;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = -1;
+  perk->effect_modifier = 10;
+  perk->special_description = strdup("Path of the Iron Fist - Tier 2");
 }
 
 /* Lookup functions */
@@ -8057,4 +8237,287 @@ int get_arcane_supremacy_damage_bonus(struct char_data *ch)
     return 2;
   
   return 0;
+}
+
+/* ============================================================================
+ * MONK PERK HELPER FUNCTIONS
+ * ============================================================================ */
+
+/**
+ * Get total unarmed damage bonus from monk perks.
+ * 
+ * @param ch The character
+ * @return Total bonus damage for unarmed attacks
+ */
+int get_monk_unarmed_damage_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Improved Unarmed Strike I: +1 per rank, max 5 */
+  if (has_perk(ch, PERK_MONK_IMPROVED_UNARMED_STRIKE_I))
+    bonus += get_perk_rank(ch, PERK_MONK_IMPROVED_UNARMED_STRIKE_I, CLASS_MONK);
+  
+  /* Improved Unarmed Strike II: +1 per rank, max 3 */
+  if (has_perk(ch, PERK_MONK_IMPROVED_UNARMED_STRIKE_II))
+    bonus += get_perk_rank(ch, PERK_MONK_IMPROVED_UNARMED_STRIKE_II, CLASS_MONK);
+  
+  /* Tiger Claw: +2 damage */
+  if (has_perk(ch, PERK_MONK_TIGER_CLAW))
+    bonus += 2;
+  
+  return bonus;
+}
+
+/**
+ * Get DR bypass amount from monk perks.
+ * 
+ * @param ch The character
+ * @return Amount of DR bypassed
+ */
+int get_monk_dr_bypass(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Fists of Iron: Bypass 2 DR */
+  if (has_perk(ch, PERK_MONK_FISTS_OF_IRON))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get Reflex save bonus from monk perks.
+ * 
+ * @param ch The character
+ * @return Reflex save bonus
+ */
+int get_monk_reflex_save_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Lightning Reflexes I: +1 per rank, max 3 */
+  if (has_perk(ch, PERK_MONK_LIGHTNING_REFLEXES_I))
+    bonus += get_perk_rank(ch, PERK_MONK_LIGHTNING_REFLEXES_I, CLASS_MONK);
+  
+  return bonus;
+}
+
+/**
+ * Get trip bonus from monk perks.
+ * 
+ * @param ch The character
+ * @return Trip attempt bonus
+ */
+int get_monk_trip_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Sweeping Strike: +2 trip bonus */
+  if (has_perk(ch, PERK_MONK_SWEEPING_STRIKE))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Check if monk can trip during flurry of blows.
+ * 
+ * @param ch The character
+ * @return TRUE if can trip during flurry, FALSE otherwise
+ */
+bool can_monk_trip_during_flurry(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_SWEEPING_STRIKE);
+}
+
+/**
+ * Get GP regeneration bonus from monk perks.
+ * 
+ * @param ch The character
+ * @return GP regeneration bonus per tick
+ */
+int get_monk_gp_regen_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Meditation Focus I: +1 per rank, max 3 */
+  if (has_perk(ch, PERK_MONK_MEDITATION_FOCUS_I))
+    bonus += get_perk_rank(ch, PERK_MONK_MEDITATION_FOCUS_I, CLASS_MONK);
+  
+  return bonus;
+}
+
+/**
+ * Get bonus stunning fist uses from monk perks.
+ * 
+ * @param ch The character
+ * @return Bonus stunning fist uses
+ */
+int get_monk_stunning_fist_bonus_uses(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Meditation Focus I: +1 per rank, max 3 */
+  if (has_perk(ch, PERK_MONK_MEDITATION_FOCUS_I))
+    bonus += get_perk_rank(ch, PERK_MONK_MEDITATION_FOCUS_I, CLASS_MONK);
+  
+  return bonus;
+}
+
+/**
+ * Get stunning fist DC bonus from monk perks.
+ * 
+ * @param ch The character
+ * @return DC bonus for stunning fist
+ */
+int get_monk_stunning_fist_dc_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Stunning Fist Enhancement: +2 DC */
+  if (has_perk(ch, PERK_MONK_STUNNING_FIST_ENHANCEMENT))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get stunning fist duration bonus from monk perks.
+ * 
+ * @param ch The character
+ * @return Duration bonus in rounds
+ */
+int get_monk_stunning_fist_duration_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Stunning Fist Enhancement: +1 round */
+  if (has_perk(ch, PERK_MONK_STUNNING_FIST_ENHANCEMENT))
+    return 1;
+  
+  return 0;
+}
+
+/**
+ * Get unarmed critical threat range from monk perks.
+ * 
+ * @param ch The character
+ * @return Critical threat range minimum (20 by default, 19 with perk)
+ */
+int get_monk_unarmed_crit_range(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 20;
+  
+  /* Improved Critical: Unarmed - 19-20 */
+  if (has_perk(ch, PERK_MONK_IMPROVED_CRITICAL_UNARMED))
+    return 19;
+  
+  return 20;
+}
+
+/**
+ * Check if monk can apply bleeding from Tiger Claw.
+ * 
+ * @param ch The character
+ * @return TRUE if has Tiger Claw, FALSE otherwise
+ */
+bool has_monk_tiger_claw_bleed(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_TIGER_CLAW);
+}
+
+/**
+ * Check if monk can use quarterstaff/kama with monk abilities.
+ * 
+ * @param ch The character
+ * @return TRUE if has One With Wood and Stone, FALSE otherwise
+ */
+bool can_use_monk_weapons_with_abilities(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_ONE_WITH_WOOD_AND_STONE);
+}
+
+/**
+ * Get AC bonus when wielding monk weapons (quarterstaff/kama).
+ * 
+ * @param ch The character
+ * @param weapon The weapon being checked
+ * @return AC bonus (1 if monk weapon, 0 otherwise)
+ */
+int get_monk_weapon_ac_bonus(struct char_data *ch, struct obj_data *weapon)
+{
+  if (!ch || IS_NPC(ch) || !weapon)
+    return 0;
+  
+  if (!has_perk(ch, PERK_MONK_ONE_WITH_WOOD_AND_STONE))
+    return 0;
+  
+  /* Check if weapon is quarterstaff or kama */
+  int weapon_type = GET_OBJ_VAL(weapon, 0);
+  if (weapon_type == WEAPON_TYPE_QUARTERSTAFF || weapon_type == WEAPON_TYPE_CLUB /* kama uses club type */)
+    return 1;
+  
+  return 0;
+}
+
+/**
+ * Get flurry of blows penalty reduction from monk perks.
+ * 
+ * @param ch The character
+ * @return Penalty reduction (negative number to reduce penalty)
+ */
+int get_monk_flurry_penalty_reduction(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Flurry Focus: -1 to flurry penalty */
+  if (has_perk(ch, PERK_MONK_FLURRY_FOCUS))
+    return -1;
+  
+  return 0;
+}
+
+/**
+ * Check if monk gets extra flurry attack this round (10% chance).
+ * 
+ * @param ch The character
+ * @return TRUE if extra attack triggered, FALSE otherwise
+ */
+bool check_monk_extra_flurry_attack(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  if (!has_perk(ch, PERK_MONK_FLURRY_FOCUS))
+    return FALSE;
+  
+  /* 10% chance for extra attack */
+  return (rand_number(1, 100) <= 10);
 }

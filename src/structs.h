@@ -3027,7 +3027,8 @@
 #define PERK_EFFECT_CRITICAL_MULT 15    /* Increases critical multiplier */
 #define PERK_EFFECT_CRITICAL_CHANCE 16  /* Increases critical chance */
 #define PERK_EFFECT_SPECIAL 17          /* Special/unique effect requiring code */
-#define NUM_PERK_EFFECT_TYPES 18
+#define PERK_EFFECT_UNARMED_DAMAGE 18   /* Adds damage to unarmed attacks */
+#define NUM_PERK_EFFECT_TYPES 19
 
 /* Perk IDs - organized by class */
 /* Base perks start at 0, will define actual IDs in perks.c */
@@ -3389,7 +3390,21 @@
 /* ============================================================================
  * MONK PERKS (500-599)
  * ============================================================================ */
-/* Not yet implemented */
+
+/* TREE 1: PATH OF THE IRON FIST - Tier 1 Perks (500-504) */
+#define PERK_MONK_IMPROVED_UNARMED_STRIKE_I 500  /* +1 unarmed damage per rank, max 5 */
+#define PERK_MONK_FISTS_OF_IRON 501              /* Bypasses 2 DR */
+#define PERK_MONK_LIGHTNING_REFLEXES_I 502       /* +1 Reflex save per rank, max 3 */
+#define PERK_MONK_SWEEPING_STRIKE 503            /* +2 trip bonus, can trip during flurry */
+#define PERK_MONK_MEDITATION_FOCUS_I 504         /* +1 GP regen, +1 stunning fist use per rank, max 3 */
+
+/* TREE 1: PATH OF THE IRON FIST - Tier 2 Perks (505-510) */
+#define PERK_MONK_IMPROVED_UNARMED_STRIKE_II 505 /* +1 unarmed damage per rank, lawful attacks, max 3 */
+#define PERK_MONK_STUNNING_FIST_ENHANCEMENT 506  /* +2 stunning fist DC, +1 round duration */
+#define PERK_MONK_IMPROVED_CRITICAL_UNARMED 507  /* 19-20 crit range */
+#define PERK_MONK_TIGER_CLAW 508                 /* +2 damage, bleeding 1d4 for 3 rounds */
+#define PERK_MONK_ONE_WITH_WOOD_AND_STONE 509    /* Can use quarterstaff/kama with monk abilities, +1 AC */
+#define PERK_MONK_FLURRY_FOCUS 510               /* -1 flurry penalty, 10% chance extra attack */
 
 /* ============================================================================
  * DRUID PERKS (600-699)
