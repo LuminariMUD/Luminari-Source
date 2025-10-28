@@ -847,6 +847,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Spell Focus Enhancement I");
   perk->description = strdup("+1 DC to chosen spell school");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -862,6 +863,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Arcane Augmentation");
   perk->description = strdup("+5 spell points per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -877,6 +879,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Extended Spell Enhancement I");
   perk->description = strdup("+10% spell duration");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -892,6 +895,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Potent Magic I");
   perk->description = strdup("+1 to spell penetration checks");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -909,6 +913,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Spell Power I");
   perk->description = strdup("+1 spell damage per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -924,6 +929,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Energy Affinity: Fire");
   perk->description = strdup("Fire spells deal +10% damage");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -939,6 +945,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Energy Affinity: Cold");
   perk->description = strdup("Cold spells deal +10% damage");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -954,6 +961,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Energy Affinity: Lightning");
   perk->description = strdup("Lightning spells deal +10% damage");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -969,6 +977,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Spell Penetration I");
   perk->description = strdup("+2 to overcome spell resistance per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -986,6 +995,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Spell Power II");
   perk->description = strdup("Additional +1 spell damage per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_POWER_1;
@@ -1001,6 +1011,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Focused Element: Fire");
   perk->description = strdup("Fire spells deal +20% damage total, +1 spell DC");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_ENERGY_AFFINITY_FIRE;
@@ -1016,6 +1027,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Focused Element: Cold");
   perk->description = strdup("Cold spells deal +20% damage total, +1 spell DC");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_ENERGY_AFFINITY_COLD;
@@ -1031,6 +1043,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Focused Element: Lightning");
   perk->description = strdup("Lightning spells deal +20% damage total, +1 spell DC");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_ENERGY_AFFINITY_LIGHTNING;
@@ -1046,6 +1059,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Spell Critical I");
   perk->description = strdup("Damage spells have 5% chance to deal double damage");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_POWER_1;
@@ -1061,6 +1075,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Maximize Spell");
   perk->description = strdup("Cast 1 spell with max damage (no level increase), 5min cooldown");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_POWER_1;
@@ -1078,6 +1093,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Spell Power III");
   perk->description = strdup("+2 spell damage per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_POWER_2;
@@ -1093,6 +1109,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Master of Elements");
   perk->description = strdup("All elemental damage +15%, can change energy type of spells. Use 'masterofelements' command.");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = 0; /* Special: requires any two Focused Element perks */
@@ -1108,6 +1125,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Spell Critical II");
   perk->description = strdup("Critical chance increases to 10%, critical damage x2.5");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_CRITICAL_1;
@@ -1123,6 +1141,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Empower Spell");
   perk->description = strdup("Cast 1 spell with +50% damage (no level increase), 5min cooldown");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_MAXIMIZE_SPELL;
@@ -1138,6 +1157,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Spell Penetration II");
   perk->description = strdup("+4 to overcome spell resistance");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_PENETRATION_1;
@@ -1155,6 +1175,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Arcane Annihilation");
   perk->description = strdup("Damage spells deal +3d6 damage, +2 spell DC");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_POWER_3;
@@ -1170,6 +1191,7 @@ void define_wizard_perks(void)
   perk->name = strdup("Overwhelming Magic");
   perk->description = strdup("Spell resistance reduced by 10 against your spells");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_PENETRATION_2;
@@ -1193,6 +1215,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Spell Focus (Enchantment) I");
   perk->description = strdup("+1 DC to enchantment spells per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -1206,6 +1229,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Spell Focus (Enchantment) II");
   perk->description = strdup("+1 DC to enchantment spells per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_1;
@@ -1219,6 +1243,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Spell Focus (Enchantment) III");
   perk->description = strdup("+1 DC to enchantment spells per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_2;
@@ -1232,6 +1257,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Spell Focus (Enchantment) IV");
   perk->description = strdup("+1 DC to enchantment spells per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 2;
   perk->max_rank = 5;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3;
@@ -1245,6 +1271,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Spell Focus (Enchantment) V");
   perk->description = strdup("+1 DC to enchantment spells per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 2;
   perk->max_rank = 5;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_4;
@@ -1258,6 +1285,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Extend Spell");
   perk->description = strdup("Buff spell durations are increased by 5% per rank (minimum +1 round)");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 1;
   perk->max_rank = 10;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_1;
@@ -1273,6 +1301,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Greater Spell Focus (Enchantment) I");
   perk->description = strdup("+2 DC to enchantment spells per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_5;
@@ -1286,6 +1315,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Greater Spell Focus (Enchantment) II");
   perk->description = strdup("+2 DC to enchantment spells per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1;
@@ -1299,6 +1329,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Greater Spell Focus (Enchantment) III");
   perk->description = strdup("+2 DC to enchantment spells per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 3;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_2;
@@ -1312,6 +1343,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Persistent Spell");
   perk->description = strdup("Activate to force target to save twice vs next spell (2 uses, regenerates 1 per 5 min). Use 'persistentspell' command.");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3;
@@ -1325,6 +1357,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Split Enchantment");
   perk->description = strdup("Activate to make next enchantment spell affect all enemies in room (5 min cooldown). Use 'splitenchantment' command.");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1;
@@ -1340,6 +1373,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Extended Spell III");
   perk->description = strdup("+5 rounds duration");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_EXTENDED_SPELL_2;
@@ -1354,6 +1388,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Master Enchanter");
   perk->description = strdup("Enchantment DC +3 (total +5), duration doubled");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_GREATER_SPELL_FOCUS_ENCHANTMENT_1;
@@ -1368,6 +1403,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Master Illusionist");
   perk->description = strdup("Illusion DC +3 (total +5), enemies get -4 to disbelief");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_3; /* Using enchantment focus as proxy for illusion */
@@ -1382,6 +1418,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Master Transmuter");
   perk->description = strdup("Transmutation DC +3 (total +5), duration increased 50%");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_4; /* Using enchantment focus as proxy for transmutation */
@@ -1396,6 +1433,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Spell Mastery");
   perk->description = strdup("+2 to all spell DCs");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_ENCHANTMENT_5; /* Using mental clarity proxy */
@@ -1412,6 +1450,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Archmage of Control");
   perk->description = strdup("Control spells last 50% longer, +5 DC vs charm/confuse/daze/sleep");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_EXTENDED_SPELL_3;
@@ -1426,6 +1465,7 @@ static void define_wizard_controller_perks(void)
   perk->name = strdup("Irresistible Magic");
   perk->description = strdup("Once per 5 minutes, cast spell that cannot be resisted");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_CONTROLLER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_PERSISTENT_SPELL;
@@ -1451,6 +1491,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Spell Focus I");
   perk->description = strdup("2% chance per rank that spells don't expend a slot when cast");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -1465,6 +1506,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Quick Cast I");
   perk->description = strdup("Use quicken metamagic without spell circle increase once per 5 minutes");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -1479,6 +1521,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Arcane Knowledge I");
   perk->description = strdup("+2 to spellcraft skill per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -1493,6 +1536,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Combat Casting I");
   perk->description = strdup("+2 concentration when in combat per rank");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -1509,6 +1553,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Spell Focus II");
   perk->description = strdup("Additional 2% chance per rank that spells don't expend slots");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_I;
@@ -1523,6 +1568,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Quick Cast II");
   perk->description = strdup("Can cast one spell per combat as instant action");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_QUICK_CAST_I;
@@ -1537,6 +1583,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Spell Recall");
   perk->description = strdup("Restore a spell slot once per day");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_I;
@@ -1551,6 +1598,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Metamagic Master I");
   perk->description = strdup("Metamagic reduces spell circle increase by 1");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -1565,6 +1613,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Defensive Casting");
   perk->description = strdup("+4 AC when casting spells");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_COMBAT_CASTING_I;
@@ -1580,6 +1629,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Spell Focus III");
   perk->description = strdup("2% chance per rank spell doesn't consume slot");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_II;
@@ -1593,6 +1643,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Metamagic Master II");
   perk->description = strdup("Metamagic spell circle increase reduced by 1");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_METAMAGIC_MASTER_I;
@@ -1606,6 +1657,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Arcane Recovery");
   perk->description = strdup("Reduce spell preparation time");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_RECALL;
@@ -1619,6 +1671,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Spell Shield");
   perk->description = strdup("10 DR + 4 AC when attacked first");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_DEFENSIVE_CASTING;
@@ -1634,6 +1687,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Archmage's Power");
   perk->description = strdup("+5% free spell chance, -1 metamagic cost");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_SPELL_FOCUS_III;
@@ -1647,6 +1701,7 @@ void define_wizard_versatile_caster_perks(void)
   perk->name = strdup("Arcane Supremacy");
   perk->description = strdup("+2 spell DCs, +2 caster level, +2 spell damage");
   perk->associated_class = CLASS_WIZARD;
+  perk->perk_category = PERK_CATEGORY_VERSATILE_CASTER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_WIZARD_ARCANE_KNOWLEDGE_I;
@@ -1669,6 +1724,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Healing Power I");
   perk->description = strdup("Healing spells restore +2 HP per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -1684,6 +1740,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Radiant Servant I");
   perk->description = strdup("+1 to positive energy damage/healing per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -1699,6 +1756,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Efficient Healing");
   perk->description = strdup("Cast 1 additional healing spell per rest period");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -1714,6 +1772,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Preserve Life");
   perk->description = strdup("+5 HP to healing spells per rank when target below 50% HP");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -1731,6 +1790,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Healing Power II");
   perk->description = strdup("Additional +3 HP healing per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_CLERIC_HEALING_POWER_1;
@@ -1746,6 +1806,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Radiant Servant II");
   perk->description = strdup("Additional +2 positive energy per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_CLERIC_RADIANT_SERVANT_1;
@@ -1761,6 +1822,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Mass Healing Focus");
   perk->description = strdup("Mass healing spells affect +2 additional targets");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_HEALING_POWER_1;
@@ -1776,6 +1838,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Empowered Healing I");
   perk->description = strdup("Healing spells have 10% chance to heal for 150%");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_HEALING_POWER_1;
@@ -1791,6 +1854,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Channel Energy: Heal");
   perk->description = strdup("Channel positive energy heals 2d6 HP to all allies in room");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_RADIANT_SERVANT_1;
@@ -1806,6 +1870,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Healing Aura I");
   perk->description = strdup("Allies within 2 rooms regenerate +1 HP per tick");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_RADIANT_SERVANT_1;
@@ -1823,6 +1888,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Healing Power III");
   perk->description = strdup("Additional +5 HP per rank to all healing spells");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_CLERIC_HEALING_POWER_2;
@@ -1838,6 +1904,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Empowered Healing II");
   perk->description = strdup("Critical healing: 20% chance for 200% healing");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_EMPOWERED_HEALING_1;
@@ -1853,6 +1920,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Channel Energy: Greater Heal");
   perk->description = strdup("Channel healing increases to 4d6 HP");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_CHANNEL_ENERGY_HEAL;
@@ -1868,6 +1936,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Healing Aura II");
   perk->description = strdup("Healing aura +2 HP/tick, range 3 rooms");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_HEALING_AURA_1;
@@ -1883,6 +1952,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Restorative Touch");
   perk->description = strdup("Healing spells can remove one negative condition");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_HEALING_POWER_2;
@@ -1900,6 +1970,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Radiance");
   perk->description = strdup("All healing +20 HP, channel 6d6, aura +3 HP/tick");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_CHANNEL_ENERGY_GREATER_HEAL;
@@ -1915,6 +1986,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Beacon of Hope");
   perk->description = strdup("1/day: Fully heal allies, grant +4 saves for 10 rounds");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DIVINE_HEALER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_HEALING_AURA_2;
@@ -1932,6 +2004,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Favor I");
   perk->description = strdup("+1 to hit per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -1947,6 +2020,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Holy Weapon I");
   perk->description = strdup("Melee attacks deal +2 holy damage per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -1962,6 +2036,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Armor of Faith I");
   perk->description = strdup("+1 AC per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -1977,6 +2052,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Battle Blessing");
   perk->description = strdup("Can cast self-buff spells as swift action");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -1992,6 +2068,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Smite Evil I");
   perk->description = strdup("Once per combat: +2d6 damage to evil enemies");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -2009,6 +2086,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Favor II");
   perk->description = strdup("Additional +1 to hit per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_CLERIC_DIVINE_FAVOR_1;
@@ -2024,6 +2102,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Holy Weapon II");
   perk->description = strdup("Additional +3 holy damage per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_CLERIC_HOLY_WEAPON_1;
@@ -2039,6 +2118,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Armor of Faith II");
   perk->description = strdup("Additional +1 AC per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_CLERIC_ARMOR_OF_FAITH_1;
@@ -2054,6 +2134,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Smite Evil II");
   perk->description = strdup("+4d6 damage to evil, usable 2/combat");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_SMITE_EVIL_1;
@@ -2069,6 +2150,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Power");
   perk->description = strdup("+2 to melee damage rolls");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_DIVINE_FAVOR_1;
@@ -2084,6 +2166,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Channel Energy: Harm");
   perk->description = strdup("Channel negative energy: 2d6 damage to enemies");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -2099,6 +2182,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Spiritual Weapon");
   perk->description = strdup("Summon spiritual weapon that attacks for 5 rounds");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_HOLY_WEAPON_1;
@@ -2116,6 +2200,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Favor III");
   perk->description = strdup("+2 to hit with melee weapons");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_DIVINE_FAVOR_2;
@@ -2131,6 +2216,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Holy Weapon III");
   perk->description = strdup("+5 holy damage, weapons count as holy");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_HOLY_WEAPON_2;
@@ -2146,6 +2232,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Armor of Faith III");
   perk->description = strdup("+2 AC and +2 to all saves");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_ARMOR_OF_FAITH_2;
@@ -2161,6 +2248,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Smite Evil III");
   perk->description = strdup("Smite deals +6d6 damage, usable 3/combat");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_SMITE_EVIL_2;
@@ -2176,6 +2264,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Channel Energy: Greater Harm");
   perk->description = strdup("Channel harm damage increases to 4d6");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_CHANNEL_ENERGY_HARM;
@@ -2191,6 +2280,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Righteous Fury");
   perk->description = strdup("Critical hits deal +2d6 holy damage");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_HOLY_WEAPON_2;
@@ -2208,6 +2298,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Avatar of War");
   perk->description = strdup("+3 hit/AC, +10 damage for 10 rounds, 1/day");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_DIVINE_FAVOR_3;
@@ -2223,6 +2314,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Wrath");
   perk->description = strdup("Smite +10d6, channel harm 6d6, holy damage +10");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_SMITE_EVIL_3;
@@ -2240,6 +2332,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Domain Focus I");
   perk->description = strdup("+1 to domain spell DC per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -2255,6 +2348,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Spell Power I");
   perk->description = strdup("+1 to divine spell damage per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -2270,6 +2364,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Bonus Domain Spell I");
   perk->description = strdup("Prepare +1 additional domain spell per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -2285,6 +2380,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Turn Undead Enhancement I");
   perk->description = strdup("+1 to turn undead DC per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -2302,6 +2398,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Domain Focus II");
   perk->description = strdup("Additional +1 domain spell DC per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_CLERIC_DOMAIN_FOCUS_1;
@@ -2317,6 +2414,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Spell Power II");
   perk->description = strdup("Additional +2 divine spell damage per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_CLERIC_DIVINE_SPELL_POWER_1;
@@ -2332,6 +2430,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Bonus Domain Spell II");
   perk->description = strdup("Prepare +1 additional spell of any level per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_CLERIC_SPELL_POINT_RESERVE_1;
@@ -2347,6 +2446,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Turn Undead Enhancement II");
   perk->description = strdup("Additional +2 turn undead DC per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_1;
@@ -2362,6 +2462,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Extended Domain");
   perk->description = strdup("Domain spell duration +5 rounds");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_DOMAIN_FOCUS_1;
@@ -2377,6 +2478,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Metamagic I");
   perk->description = strdup("Apply metamagic to divine spells without increasing spell level");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_SPELL_POINT_RESERVE_1;
@@ -2392,6 +2494,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Destroy Undead");
   perk->description = strdup("Turn undead can destroy weak undead instantly");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_1;
@@ -2409,6 +2512,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Domain Focus III");
   perk->description = strdup("+2 DC for domain spells");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_DOMAIN_FOCUS_2;
@@ -2424,6 +2528,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Spell Power III");
   perk->description = strdup("+3 damage to divine spells per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_CLERIC_DIVINE_SPELL_POWER_2;
@@ -2439,6 +2544,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Bonus Domain Spell III");
   perk->description = strdup("+1 bonus domain spell per rank");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_CLERIC_SPELL_POINT_RESERVE_2;
@@ -2454,6 +2560,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Metamagic II");
   perk->description = strdup("Metamagic feats increase spell level by 2 less");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_DIVINE_METAMAGIC_1;
@@ -2469,6 +2576,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Greater Turning");
   perk->description = strdup("Turn undead affects undead +2 HD levels higher");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_2;
@@ -2484,6 +2592,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Domain Mastery");
   perk->description = strdup("Use domain powers +1 additional time per day");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_EXTENDED_DOMAIN;
@@ -2501,6 +2610,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Divine Channeler");
   perk->description = strdup("Master of divine magic: +3 DC, +10 damage, domain powers 2x/day");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_DOMAIN_FOCUS_3;
@@ -2516,6 +2626,7 @@ void define_cleric_perks(void)
   perk->name = strdup("Master of the Undead");
   perk->description = strdup("Ultimate turning: +5 turn DC, control undead, destroy up to 10 HD");
   perk->associated_class = CLASS_CLERIC;
+  perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_GREATER_TURNING;
@@ -2539,6 +2650,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Sneak Attack I");
   perk->description = strdup("+1d6 sneak attack damage per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -2554,6 +2666,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Vital Strike");
   perk->description = strdup("+2 to confirm critical hits");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -2569,6 +2682,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Deadly Aim I");
   perk->description = strdup("+1 damage with ranged sneak attacks per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -2584,6 +2698,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Opportunist I");
   perk->description = strdup("+1 attack of opportunity per round");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -2601,6 +2716,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Sneak Attack II");
   perk->description = strdup("Additional +1d6 sneak attack damage per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_1;
@@ -2616,6 +2732,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Improved Vital Strike");
   perk->description = strdup("Additional +2 to confirm criticals (+4 total)");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_VITAL_STRIKE;
@@ -2631,6 +2748,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Assassinate I");
   perk->description = strdup("Sneak attacks from stealth deal +2d6 damage");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_1;
@@ -2646,6 +2764,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Deadly Aim II");
   perk->description = strdup("Additional +2 damage with ranged sneak attacks per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_DEADLY_AIM_1;
@@ -2661,6 +2780,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Crippling Strike");
   perk->description = strdup("Sneak attacks reduce target movement by 50% for 3 rounds");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_1;
@@ -2676,6 +2796,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Bleeding Attack");
   perk->description = strdup("Sneak attacks cause target to bleed for 1d6 damage per round (5 rounds)");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_1;
@@ -2693,6 +2814,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Sneak Attack III");
   perk->description = strdup("Additional +2d6 sneak attack damage per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_2;
@@ -2708,6 +2830,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Assassinate II");
   perk->description = strdup("Stealth sneak attacks deal +4d6 damage (total +6d6)");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_ASSASSINATE_1;
@@ -2723,6 +2846,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Critical Precision");
   perk->description = strdup("Critical hits deal +2d6 precision damage");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_IMPROVED_VITAL_STRIKE;
@@ -2738,6 +2862,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Opportunist II");
   perk->description = strdup("Attacks of opportunity are automatically sneak attacks");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_OPPORTUNIST_1;
@@ -2753,6 +2878,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Death Attack");
   perk->description = strdup("Gives +2 to backstab dc modifiers to apply death attack. Requires the death attack assassin class ability.");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_ASSASSINATE_1;
@@ -2770,6 +2896,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Master Assassin");
   perk->description = strdup("All sneak attacks +5d6, critical threat range +1, sneak from any position");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_SNEAK_ATTACK_3;
@@ -2785,6 +2912,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Perfect Kill");
   perk->description = strdup("Once per combat, declare one attack auto-critical with max damage");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_ASSASSIN;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_CRITICAL_PRECISION;
@@ -2802,6 +2930,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Skill Mastery I");
   perk->description = strdup("+2 to all rogue skills per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -2817,6 +2946,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Trapfinding Expert I");
   perk->description = strdup("+3 to find and disable traps per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -2832,6 +2962,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Fast Hands I");
   perk->description = strdup("+2 to sleight of hand and pick locks per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -2847,6 +2978,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Evasion Training");
   perk->description = strdup("+3 to saves vs area effects, half damage on successful save");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -2864,6 +2996,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Skill Mastery II");
   perk->description = strdup("Additional +3 to all rogue skills per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_ROGUE_SKILL_MASTERY_1;
@@ -2879,6 +3012,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Trapfinding Expert II");
   perk->description = strdup("Additional +4 to find/disable traps per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_TRAPFINDING_EXPERT_1;
@@ -2894,6 +3028,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Fast Hands II");
   perk->description = strdup("Additional +3 to sleight of hand and locks per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_FAST_HANDS_1;
@@ -2909,6 +3044,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Improved Evasion");
   perk->description = strdup("+3 to saves vs area effects, half damage on fail, no damage on success");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_EVASION_TRAINING;
@@ -2924,6 +3060,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Trap Sense I");
   perk->description = strdup("+2 to saves vs traps, +2 AC vs trap attacks per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_TRAPFINDING_EXPERT_1;
@@ -2939,6 +3076,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Resiliency");
   perk->description = strdup("Once per day, stay at 1 HP when reduced to 0 or less");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_EVASION_TRAINING;
@@ -2954,6 +3092,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Trap Scavenger");
   perk->description = strdup("Can salvage components from disabled traps");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_TRAPFINDING_EXPERT_1;
@@ -2971,6 +3110,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Skill Mastery III");
   perk->description = strdup("Additional +4 to all rogue skills per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_SKILL_MASTERY_2;
@@ -2986,6 +3126,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Trapfinding Expert III");
   perk->description = strdup("Additional +5 to find/disable traps per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_TRAPFINDING_EXPERT_2;
@@ -3001,6 +3142,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Fast Hands III");
   perk->description = strdup("Additional +4 to sleight of hand and locks per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_FAST_HANDS_2;
@@ -3016,6 +3158,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Shadow Step");
   perk->description = strdup("+5 to stealth, can hide while being observed");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_SKILL_MASTERY_2;
@@ -3031,6 +3174,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Trap Sense II");
   perk->description = strdup("Additional +3 to saves vs traps, +3 AC vs trap attacks per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_TRAP_SENSE_1;
@@ -3048,6 +3192,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Master Thief");
   perk->description = strdup("+10 to all rogue skills, take 10 on any rogue skill check");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_SKILL_MASTERY_3;
@@ -3063,6 +3208,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Legendary Reflexes");
   perk->description = strdup("+5 to all saves, take no damage from area effects on successful save");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_MASTER_THIEF;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_IMPROVED_EVASION;
@@ -3080,6 +3226,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Stealth Mastery I");
   perk->description = strdup("+3 to stealth per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -3095,6 +3242,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Fleet of Foot I");
   perk->description = strdup("+5 movement speed per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -3110,6 +3258,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Awareness I");
   perk->description = strdup("+3 to perception and search per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -3125,6 +3274,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Light Step");
   perk->description = strdup("Don't trigger movement-based traps or floor detection");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -3142,6 +3292,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Stealth Mastery II");
   perk->description = strdup("Additional +4 to stealth per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_ROGUE_STEALTH_MASTERY_1;
@@ -3157,6 +3308,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Fleet of Foot II");
   perk->description = strdup("Additional +10 movement speed per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_FLEET_OF_FOOT_1;
@@ -3172,6 +3324,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Awareness II");
   perk->description = strdup("Additional +4 to perception/search per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_AWARENESS_1;
@@ -3187,6 +3340,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Hide in Plain Sight");
   perk->description = strdup("Can attempt to hide even while being observed");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_STEALTH_MASTERY_1;
@@ -3202,6 +3356,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Shadow Step");
   perk->description = strdup("Can move through shadows to teleport short distances (10 ft)");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_STEALTH_MASTERY_1;
@@ -3217,6 +3372,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Uncanny Dodge I");
   perk->description = strdup("Cannot be caught flat-footed, retain DEX bonus to AC");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_AWARENESS_1;
@@ -3232,6 +3388,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Acrobatics I");
   perk->description = strdup("+3 to acrobatics, +1 AC per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_FLEET_OF_FOOT_1;
@@ -3249,6 +3406,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Stealth Mastery III");
   perk->description = strdup("Additional +5 to stealth per rank");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_ROGUE_STEALTH_MASTERY_2;
@@ -3264,6 +3422,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Fleet of Foot III");
   perk->description = strdup("+15 movement speed, can disengage as free action");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_FLEET_OF_FOOT_2;
@@ -3279,6 +3438,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Awareness III");
   perk->description = strdup("+5 to perception/search, blindsense 10 ft");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_AWARENESS_2;
@@ -3294,6 +3454,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Uncanny Dodge II");
   perk->description = strdup("Cannot be flanked, +2 AC vs attacks of opportunity");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_UNCANNY_DODGE_1;
@@ -3309,6 +3470,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Acrobatics II");
   perk->description = strdup("+5 to acrobatics, +2 AC");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_ACROBATICS_1;
@@ -3324,6 +3486,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Vanish");
   perk->description = strdup("Once per combat, become invisible for 3 rounds");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_HIDE_IN_PLAIN_SIGHT;
@@ -3341,6 +3504,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Shadow Master");
   perk->description = strdup("Perfect stealth, auto-hide after attacks, +20 to stealth");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_STEALTH_MASTERY_3;
@@ -3356,6 +3520,7 @@ void define_rogue_perks(void)
   perk->name = strdup("Ghost");
   perk->description = strdup("+30 movement, immune to attacks of opportunity, pass through enemies");
   perk->associated_class = CLASS_ROGUE;
+  perk->perk_category = PERK_CATEGORY_SHADOW_SCOUT;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_ROGUE_FLEET_OF_FOOT_3;
@@ -3483,6 +3648,7 @@ void define_monk_perks(void)
   perk->name = strdup("Improved Unarmed Strike I");
   perk->description = strdup("+1 to unarmed damage per rank");
   perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -3498,6 +3664,7 @@ void define_monk_perks(void)
   perk->name = strdup("Fists of Iron");
   perk->description = strdup("Bypasses 2 points of damage reduction");
   perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -3513,6 +3680,7 @@ void define_monk_perks(void)
   perk->name = strdup("Lightning Reflexes I");
   perk->description = strdup("+1 to Reflex saves per rank");
   perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -3528,6 +3696,7 @@ void define_monk_perks(void)
   perk->name = strdup("Sweeping Strike");
   perk->description = strdup("Trip attempts gain +2 bonus, can trip as part of flurry");
   perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -3543,6 +3712,7 @@ void define_monk_perks(void)
   perk->name = strdup("Meditation Focus I");
   perk->description = strdup("+1 GP regen per rank and 1 extra stunning fist use per rank");
   perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -3560,6 +3730,7 @@ void define_monk_perks(void)
   perk->name = strdup("Improved Unarmed Strike II");
   perk->description = strdup("+1 unarmed damage per rank, attacks count as lawful");
   perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_I;
@@ -3575,6 +3746,7 @@ void define_monk_perks(void)
   perk->name = strdup("Stunning Fist Enhancement");
   perk->description = strdup("Stunning Fist DC increases by +2, duration +1 round");
   perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_I;
@@ -3590,6 +3762,7 @@ void define_monk_perks(void)
   perk->name = strdup("Improved Critical: Unarmed");
   perk->description = strdup("Critical threat range for unarmed attacks increased (19-20)");
   perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_I;
@@ -3605,6 +3778,7 @@ void define_monk_perks(void)
   perk->name = strdup("Tiger Claw");
   perk->description = strdup("+2 damage on all unarmed attacks, attacks can cause bleeding (1d4 per round for 3 rounds)");
   perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_I;
@@ -3620,6 +3794,7 @@ void define_monk_perks(void)
   perk->name = strdup("One With Wood and Stone");
   perk->description = strdup("Can use quarterstaff and kama with monk abilities, +1 AC when using them");
   perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -3635,6 +3810,7 @@ void define_monk_perks(void)
   perk->name = strdup("Flurry Focus");
   perk->description = strdup("Flurry of Blows penalty reduced by 1, 10% chance for extra flurry attack per round");
   perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_MONK_IMPROVED_UNARMED_STRIKE_I;
@@ -6810,9 +6986,13 @@ static bool meets_prerequisites_not_purchased(struct char_data *ch, int perk_id,
 void list_perks_for_class(struct char_data *ch, int class_id)
 {
   int perk_ids[NUM_PERKS];
-  int count, i;
+  int count, i, j;
   struct perk_data *perk;
   struct char_perk_data *char_perk;
+  int category;
+  int category_perks[NUM_PERKS];
+  int category_count;
+  char cat_out[100];
   
   count = get_class_perks(class_id, perk_ids, NUM_PERKS);
   
@@ -6822,92 +7002,126 @@ void list_perks_for_class(struct char_data *ch, int class_id)
     return;
   }
   
-  /* Sort perks alphabetically by name */
-  qsort(perk_ids, count, sizeof(int), compare_perks_by_name);
-  
   send_to_char(ch, "\tc%s Perks\tn\r\n", class_names[class_id]);
   send_to_char(ch, "Available Perk Points: \tY%d\tn\r\n\r\n", get_perk_points(ch, class_id));
   
   /* Two column header */
-  send_to_char(ch, "\tW%-3s %-35s %s/%s  %-3s %-35s %s/%s\tn\r\n", 
+  send_to_char(ch, "\tW%-4s  %-32s %s/%s  %-4s %-32s %s/%s\tn\r\n", 
                "ID", "Name", "Rnk", "Max", "ID", "Name", "Rnk", "Max");
-  send_to_char(ch, "--- ----------------------------------- --- ---  --- ----------------------------------- --- ---\r\n");
+  send_to_char(ch, "--------------------------------------------------------------------------------------------\r\n");
   send_to_char(ch, "\tW* = Available to purchase\tn\r\n\r\n");
   
-  /* Display in two columns */
-  for (i = 0; i < count; i += 2)
+  /* Loop through each possible category and display perks for that category */
+  for (category = 0; category <= PERK_CATEGORY_PRIMAL_CHAMPION; category++)
   {
-    /* Left column */
-    perk = get_perk_by_id(perk_ids[i]);
-    if (!perk)
-      continue;
-      
-    char_perk = find_char_perk(ch, perk_ids[i], class_id);
-    int current_rank = char_perk ? char_perk->current_rank : 0;
-    bool can_purchase_left = meets_prerequisites_not_purchased(ch, perk_ids[i], class_id);
-    
-    char left_col[200];
-    char perk_name_left[60];
-    if (can_purchase_left)
+    /* Build list of perks in this category for this class */
+    category_count = 0;
+    for (i = 0; i < count; i++)
     {
-      /* Space + asterisk (1 char) + name (33 chars) = 35 visible total */
-      snprintf(perk_name_left, sizeof(perk_name_left), " \tC*%-33.33s\tn", perk->name);
-    }
-    else
-    {
-      snprintf(perk_name_left, sizeof(perk_name_left), "\tn %-33.33s\tn", perk->name);
-    }
-    
-    snprintf(left_col, sizeof(left_col), "%-3d %-35.35s\tn %s%3d\tn/%s%-3d\tn",
-             perk->id,
-             perk_name_left,
-             current_rank > 0 ? "\tG" : "",
-             current_rank,
-             current_rank >= perk->max_rank ? "\tY" : "",
-             perk->max_rank);
-    
-    /* Right column (if exists) */
-    if (i + 1 < count)
-    {
-      perk = get_perk_by_id(perk_ids[i + 1]);
-      if (perk)
+      perk = get_perk_by_id(perk_ids[i]);
+      if (perk && perk->perk_category == category)
       {
-        char_perk = find_char_perk(ch, perk_ids[i + 1], class_id);
-        current_rank = char_perk ? char_perk->current_rank : 0;
-        bool can_purchase_right = meets_prerequisites_not_purchased(ch, perk_ids[i + 1], class_id);
+        category_perks[category_count++] = perk_ids[i];
+      }
+    }
+    
+    /* Skip this category if no perks */
+    if (category_count == 0)
+      continue;
+    
+    /* Debug output to syslog */
+    log("PERK DEBUG: Displaying category %d (%s) with %d perks for class %s", 
+        category, get_perk_category_name(category), category_count, class_names[class_id]);
+    
+    /* Sort perks within this category alphabetically by name */
+    qsort(category_perks, category_count, sizeof(int), compare_perks_by_name);
+    
+    /* Display centered category header (skip for UNDEFINED category) */
+    if (category != PERK_CATEGORY_UNDEFINED)
+    {
+      const char *category_name = get_perk_category_name(category);
+      snprintf(cat_out, sizeof(cat_out), "\tC%s\tn", category_name);
+      text_line(ch, cat_out, 95, '-', '-');
+    }
+    
+    /* Display perks in this category in two columns */
+    for (j = 0; j < category_count; j += 2)
+    {
+      /* Left column */
+      perk = get_perk_by_id(category_perks[j]);
+      if (!perk)
+        continue;
         
-        char perk_name_right[60];
-        if (can_purchase_right)
+      char_perk = find_char_perk(ch, category_perks[j], class_id);
+      int current_rank = char_perk ? char_perk->current_rank : 0;
+      bool can_purchase_left = meets_prerequisites_not_purchased(ch, category_perks[j], class_id);
+      
+      char left_col[200];
+      char perk_name_left[60];
+      if (can_purchase_left)
+      {
+        /* Space + asterisk (1 char) + name (33 chars) = 35 visible total */
+        snprintf(perk_name_left, sizeof(perk_name_left), " \tC*%-33.33s\tn", perk->name);
+      }
+      else
+      {
+        snprintf(perk_name_left, sizeof(perk_name_left), "\tn %-33.33s\tn", perk->name);
+      }
+      
+      snprintf(left_col, sizeof(left_col), "%-4d %-35.35s\tn %s%3d\tn/%s%-3d\tn",
+               perk->id,
+               perk_name_left,
+               current_rank > 0 ? "\tG" : "",
+               current_rank,
+               current_rank >= perk->max_rank ? "\tY" : "",
+               perk->max_rank);
+      
+      /* Right column (if exists) */
+      if (j + 1 < category_count)
+      {
+        perk = get_perk_by_id(category_perks[j + 1]);
+        if (perk)
         {
-          /* Space + asterisk (1 char) + name (33 chars) = 35 visible total */
-          snprintf(perk_name_right, sizeof(perk_name_right), " \tC*%-33.33s\tn  ", perk->name);
+          char_perk = find_char_perk(ch, category_perks[j + 1], class_id);
+          current_rank = char_perk ? char_perk->current_rank : 0;
+          bool can_purchase_right = meets_prerequisites_not_purchased(ch, category_perks[j + 1], class_id);
+          
+          char perk_name_right[60];
+          if (can_purchase_right)
+          {
+            /* Space + asterisk (1 char) + name (33 chars) = 35 visible total */
+            snprintf(perk_name_right, sizeof(perk_name_right), " \tC*%-33.33s\tn  ", perk->name);
+          }
+          else
+          {
+            snprintf(perk_name_right, sizeof(perk_name_right), " \tn%-33.33s\tn", perk->name);
+          }
+          
+          send_to_char(ch, "%s %-4d %-35.35s\tn %s%3d\tn/%s%-3d\tn\r\n",
+                       left_col,
+                       perk->id,
+                       perk_name_right,
+                       current_rank > 0 ? "\tG" : "",
+                       current_rank,
+                       current_rank >= perk->max_rank ? "\tY" : "",
+                       perk->max_rank);
         }
         else
         {
-          snprintf(perk_name_right, sizeof(perk_name_right), " \tn%-33.33s\tn", perk->name);
+          send_to_char(ch, "%s\r\n", left_col);
         }
-        
-        send_to_char(ch, "%s %-3d %-35.35s\tn %s%3d\tn/%s%-3d\tn\r\n",
-                     left_col,
-                     perk->id,
-                     perk_name_right,
-                     current_rank > 0 ? "\tG" : "",
-                     current_rank,
-                     current_rank >= perk->max_rank ? "\tY" : "",
-                     perk->max_rank);
       }
       else
       {
         send_to_char(ch, "%s\r\n", left_col);
       }
     }
-    else
-    {
-      send_to_char(ch, "%s\r\n", left_col);
-    }
+    
+    /* Add spacing between categories */
+    send_to_char(ch, "\r\n");
   }
   
-  send_to_char(ch, "\r\nUse '\tcperk info <id>\tn' to see details about a perk.\r\n");
+  send_to_char(ch, "Use '\tcperk info <id>\tn' to see details about a perk.\r\n");
   send_to_char(ch, "Use '\tcperk buy <id>\tn' to purchase a perk.\r\n");
 }
 
