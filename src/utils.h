@@ -345,6 +345,7 @@ int count_non_protocol_chars(const char *str);
 const char *a_or_an(const char *string);
 bool is_immaterial(struct char_data *ch);
 bool is_fav_enemy_of(struct char_data *ch, int race);
+bool can_bleed(struct char_data *ch);
 int compute_arcana_golem_level(struct char_data *ch);
 bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam);
 int count_follower_by_type(struct char_data *ch, int mob_flag);

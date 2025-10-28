@@ -6673,6 +6673,14 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
       threat_range -= assassin_bonus;
   }
 
+  /* Monk unarmed crit range bonus - applies to unarmed or monk weapons */
+  if (MONK_TYPE(ch) && (is_bare_handed(ch) || (wielded && is_monk_weapon(wielded))))
+  {
+    int monk_crit_range = get_monk_unarmed_crit_range(ch);
+    if (monk_crit_range < 20)
+      threat_range = MIN(threat_range, monk_crit_range);
+  }
+
   /* end mods */
 
   if (threat_range <= 2) /* just in case */
@@ -7862,6 +7870,8 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
           if (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_LAWFUL || GET_SUBRACE(ch, 1) == SUBRACE_LAWFUL || GET_SUBRACE(ch, 2) == SUBRACE_LAWFUL))
             passed = true;
           if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS) && GET_LEVEL(ch) >= 10 && IS_LAWFUL(ch))
+            passed = true;
+          if (has_perk(ch, PERK_MONK_IMPROVED_UNARMED_STRIKE_II))
             passed = true;
         }
         else if (dr->bypass_val[i] == DR_ALIGNTYPE_CHAOS)
@@ -10491,7 +10501,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     {
       /* check for save */
       if (!savingthrow(victim, SAVING_FORT, 0,
-                       ((HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4) + 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch))))
+            get_monk_stunning_fist_dc_bonus(ch)))
       {
 
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
@@ -12640,6 +12650,25 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
           sweeping_strike_used = TRUE;
           perform_knockdown(ch, FIGHTING(ch), SKILL_TRIP, TRUE, FALSE);
         }
+        /* Monk Tiger Claw bleed: 10% chance to apply bleed on unarmed/monk weapon attacks */
+        if (FIGHTING(ch) && MONK_TYPE(ch) && has_monk_tiger_claw_bleed(ch) &&
+            (is_bare_handed(ch) || (GET_EQ(ch, WEAR_WIELD_1) && is_monk_weapon(GET_EQ(ch, WEAR_WIELD_1)))) &&
+            can_bleed(FIGHTING(ch)) && dice(1, 100) <= 10)
+        {
+          int bleed_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
+          if (!savingthrow(FIGHTING(ch), SAVING_FORT, 0, bleed_dc))
+          {
+            struct affected_type af;
+            new_affect(&af);
+            af.spell = SKILL_TIGER_CLAW;
+            af.duration = 3;
+            af.modifier = dice(1, 4);
+            SET_BIT_AR(af.bitvector, AFF_BLEED);
+            affect_join(FIGHTING(ch), &af, FALSE, FALSE, FALSE, FALSE);
+            send_to_char(ch, "\tR[Tiger Claw Bleed!]\tn\r\n");
+            send_to_char(FIGHTING(ch), "\tR[You begin to bleed from vicious strikes!]\tn\r\n");
+          }
+        }
       }
       break;
     case 2:
@@ -13538,6 +13567,18 @@ void perform_violence(struct char_data *ch, int phase)
         TRUE, ch, 0, 0, TO_ROOM);
     perform_flee(ch);
   }
+}
+
+int get_monk_stunning_fist_dc(struct char_data *ch)
+{
+  int dc = 10;
+
+  dc += (MONK_TYPE(ch) / 2);
+  dc += GET_WIS_BONUS(ch);
+  dc += get_monk_stunning_fist_dc_bonus(ch);
+  dc += (HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4);
+
+  return dc;
 }
 
 int dual_wielding_penalty(struct char_data *ch, bool offhand)
