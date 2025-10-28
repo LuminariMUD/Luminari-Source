@@ -6,6 +6,9 @@
 #ifndef _PERKS_H_
 #define _PERKS_H_
 
+/* External declarations */
+extern const char *perk_category_names[];
+
 /* Function prototypes */
 
 /* Initialization */
@@ -27,6 +30,7 @@ int get_class_perks(int class_id, int *perk_ids, int max_perks);
 bool perk_exists(int perk_id);
 const char *get_perk_name(int perk_id);
 const char *get_perk_description(int perk_id);
+const char *get_perk_category_name(int perk_category);
 
 /* Stage progression functions (step 3) */
 /* Stage-based progression functions */

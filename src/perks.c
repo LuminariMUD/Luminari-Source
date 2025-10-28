@@ -41,6 +41,33 @@ static void define_wizard_versatile_caster_perks(void);
 /* Global perk database - all defined perks */
 struct perk_data perk_list[NUM_PERKS];
 
+/* Perk category names for display */
+const char *perk_category_names[] = {
+  "Undefined",              /* 0 - PERK_CATEGORY_UNDEFINED */
+  "Weapon Specialist",      /* 1 - PERK_CATEGORY_WEAPON_SPECIALIST */
+  "Defender",               /* 2 - PERK_CATEGORY_DEFENDER */
+  "Tactical Fighter",       /* 3 - PERK_CATEGORY_TACTICAL_FIGHTER */
+  "Evoker",                 /* 4 - PERK_CATEGORY_EVOKER */
+  "Controller",             /* 5 - PERK_CATEGORY_CONTROLLER */
+  "Versatile Caster",       /* 6 - PERK_CATEGORY_VERSATILE_CASTER */
+  "Divine Healer",          /* 7 - PERK_CATEGORY_DIVINE_HEALER */
+  "Battle Cleric",          /* 8 - PERK_CATEGORY_BATTLE_CLERIC */
+  "Domain Master",          /* 9 - PERK_CATEGORY_DOMAIN_MASTER */
+  "Assassin",               /* 10 - PERK_CATEGORY_ASSASSIN */
+  "Master Thief",           /* 11 - PERK_CATEGORY_MASTER_THIEF */
+  "Shadow Scout",           /* 12 - PERK_CATEGORY_SHADOW_SCOUT */
+  "Iron Body",              /* 13 - PERK_CATEGORY_IRON_BODY */
+  "Perfect Self",           /* 14 - PERK_CATEGORY_PERFECT_SELF */
+  "Way of the Open Hand",   /* 15 - PERK_CATEGORY_WAY_OF_THE_OPEN_HAND */
+  "Hunter",                 /* 16 - PERK_CATEGORY_HUNTER */
+  "Beast Master",           /* 17 - PERK_CATEGORY_BEAST_MASTER */
+  "Wilderness Warrior",     /* 18 - PERK_CATEGORY_WILDERNESS_WARRIOR */
+  "Berserker",              /* 19 - PERK_CATEGORY_BERSERKER */
+  "Totem Warrior",          /* 20 - PERK_CATEGORY_TOTEM_WARRIOR */
+  "Primal Champion",        /* 21 - PERK_CATEGORY_PRIMAL_CHAMPION */
+  "\n"                      /* Terminator */
+};
+
 /* Initialize the perk system - called at boot */
 void init_perks(void)
 {
@@ -53,6 +80,7 @@ void init_perks(void)
     perk_list[i].name = strdup("Undefined");
     perk_list[i].description = strdup("This perk has not been defined.");
     perk_list[i].associated_class = CLASS_UNDEFINED;
+    perk_list[i].perk_category = PERK_CATEGORY_UNDEFINED;
     perk_list[i].cost = 0;
     perk_list[i].max_rank = 0;
     perk_list[i].prerequisite_perk = -1;
@@ -121,6 +149,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Weapon Focus I");
   perk->description = strdup("+1 to hit with all weapons");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -136,6 +165,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Power Attack Training");
   perk->description = strdup("+2 damage when using power attack, -1 to hit penalty instead of -2");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -151,6 +181,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Critical Awareness I");
   perk->description = strdup("+1 to critical confirmation rolls");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -168,6 +199,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Weapon Focus II");
   perk->description = strdup("Additional +1 to hit with all weapons (+2 total with Focus I)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_WEAPON_FOCUS_1;
@@ -183,6 +215,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Weapon Specialization I");
   perk->description = strdup("+1 damage per rank with all weapons");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_FIGHTER_WEAPON_FOCUS_1;
@@ -198,6 +231,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Cleaving Strike");
   perk->description = strdup("If you kill an enemy, immediately make one additional attack");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_POWER_ATTACK_TRAINING;
@@ -213,6 +247,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Critical Awareness II");
   perk->description = strdup("Additional +1 to critical confirmation rolls (+2 total)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_CRITICAL_AWARENESS_1;
@@ -228,6 +263,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Improved Critical Threat");
   perk->description = strdup("+1 to critical threat range (19-20 becomes 18-20, etc.)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_CRITICAL_AWARENESS_1;
@@ -245,6 +281,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Weapon Focus III");
   perk->description = strdup("Additional +1 to hit with all weapons (+3 total)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_WEAPON_FOCUS_2;
@@ -260,6 +297,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Weapon Specialization II");
   perk->description = strdup("Additional +1 damage per rank with all weapons");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 3;
   perk->max_rank = 3;
   perk->prerequisite_perk = PERK_FIGHTER_WEAPON_SPECIALIZATION_1;
@@ -275,6 +313,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Great Cleave");
   perk->description = strdup("Cleaving Strike works on any kill, not just first");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_CLEAVING_STRIKE;
@@ -290,6 +329,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Devastating Critical");
   perk->description = strdup("Critical hits deal +1d6 additional damage");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_IMPROVED_CRITICAL_THREAT;
@@ -307,6 +347,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Armor Training I");
   perk->description = strdup("+1 AC per rank (max 3 ranks)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 2;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -322,6 +363,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Toughness I");
   perk->description = strdup("+10 HP per rank (max 5 ranks)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -337,6 +379,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Resilience");
   perk->description = strdup("+1 to Fortitude saves per rank (max 3 ranks)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -354,6 +397,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Armor Training II");
   perk->description = strdup("+1 AC per rank (max 2 ranks)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_FIGHTER_ARMOR_TRAINING_1;
@@ -369,6 +413,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Shield Mastery I");
   perk->description = strdup("+2 AC when using a shield");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -384,6 +429,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Defensive Stance");
   perk->description = strdup("Damage reduction 2/-, -1 to hit when active");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_ARMOR_TRAINING_1;
@@ -400,6 +446,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Iron Will");
   perk->description = strdup("+2 to Will saves");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -415,6 +462,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Lightning Reflexes");
   perk->description = strdup("+2 to Reflex saves");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -432,6 +480,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Armor Training III");
   perk->description = strdup("+2 AC bonus");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 4;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_ARMOR_TRAINING_2;
@@ -447,6 +496,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Shield Mastery II");
   perk->description = strdup("+2 AC with shield (+4 total with Shield Mastery I)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_SHIELD_MASTERY_1;
@@ -462,6 +512,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Improved Damage Reduction");
   perk->description = strdup("Damage reduction increases to 4/- when Defensive Stance is active");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_DEFENSIVE_STANCE;
@@ -477,6 +528,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Stalwart");
   perk->description = strdup("Immune to fear, +2 bonus vs mind-affecting effects");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_IRON_WILL;
@@ -494,6 +546,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Immovable Object");
   perk->description = strdup("DR 6/-, immunity to knockdown and bull rush");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_IMPROVED_DAMAGE_REDUCTION;
@@ -510,6 +563,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Last Stand");
   perk->description = strdup("Once per day, when reduced to 0 HP, stay at 1 HP for 5 rounds");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 5;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_TOUGHNESS_1;
@@ -527,6 +581,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Combat Reflexes I");
   perk->description = strdup("+1 attack of opportunity per round per rank (max 3 ranks)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_TACTICAL_FIGHTER;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -542,6 +597,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Improved Initiative I");
   perk->description = strdup("+2 initiative per rank (max 3 ranks)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_TACTICAL_FIGHTER;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -557,6 +613,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Mobility I");
   perk->description = strdup("+2 AC vs attacks of opportunity per rank (max 2 ranks)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_TACTICAL_FIGHTER;
   perk->cost = 1;
   perk->max_rank = 2;
   perk->prerequisite_perk = -1;
@@ -574,6 +631,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Combat Reflexes II");
   perk->description = strdup("Additional +1 attack of opportunity per round per rank (max 2 ranks)");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_TACTICAL_FIGHTER;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_FIGHTER_COMBAT_REFLEXES_1;
@@ -589,6 +647,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Improved Trip");
   perk->description = strdup("+4 to trip attempts, enemies provoke AoO when standing");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_TACTICAL_FIGHTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_COMBAT_REFLEXES_1;
@@ -604,6 +663,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Improved Disarm");
   perk->description = strdup("+4 to disarm attempts, no AoO provoked");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_TACTICAL_FIGHTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -619,6 +679,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Improved Sunder");
   perk->description = strdup("+4 to sunder attempts, deal full damage to objects");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_TACTICAL_FIGHTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -634,6 +695,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Spring Attack");
   perk->description = strdup("Can move before and after attacking");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_TACTICAL_FIGHTER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_MOBILITY_1;
@@ -651,6 +713,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Weapon Specialization I");
   perk->description = strdup("+1 damage with all melee weapons");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -666,6 +729,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Weapon Specialization II");
   perk->description = strdup("+2 damage with all melee weapons");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_WEAPON_SPEC_1;
@@ -681,6 +745,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Weapon Specialization III");
   perk->description = strdup("+3 damage with all melee weapons");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_WEAPON_SPECIALIST;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_WEAPON_SPEC_2;
@@ -696,6 +761,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Armor Mastery I");
   perk->description = strdup("Reduce armor check penalty by 1");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -711,6 +777,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Armor Mastery II");
   perk->description = strdup("Reduce armor check penalty by 2");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_ARMOR_MASTERY_1;
@@ -726,6 +793,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Armor Mastery III");
   perk->description = strdup("Reduce armor check penalty by 3");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_FIGHTER_ARMOR_MASTERY_2;
@@ -741,6 +809,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Toughness");
   perk->description = strdup("+5 HP per rank");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -756,6 +825,7 @@ void define_fighter_perks(void)
   perk->name = strdup("Physical Resistance I");
   perk->description = strdup("+1 to Fortitude saves");
   perk->associated_class = CLASS_WARRIOR;
+  perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -3635,6 +3705,16 @@ const char *get_perk_description(int perk_id)
     return "This perk does not exist.";
   
   return perk->description;
+}
+
+/* Get perk category name */
+const char *get_perk_category_name(int perk_category)
+{
+  /* Bounds check */
+  if (perk_category < 0 || perk_category > PERK_CATEGORY_PRIMAL_CHAMPION)
+    return "Unknown Category";
+  
+  return perk_category_names[perk_category];
 }
 
 /*****************************************************************************

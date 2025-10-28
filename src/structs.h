@@ -3030,6 +3030,44 @@
 #define PERK_EFFECT_UNARMED_DAMAGE 18   /* Adds damage to unarmed attacks */
 #define NUM_PERK_EFFECT_TYPES 19
 
+/* Perk Categories - For organizing perks into talent trees */
+#define PERK_CATEGORY_UNDEFINED 0
+
+/* Warrior (Fighter) Perk Categories */
+#define PERK_CATEGORY_WEAPON_SPECIALIST 1
+#define PERK_CATEGORY_DEFENDER 2
+#define PERK_CATEGORY_TACTICAL_FIGHTER 3
+
+/* Wizard Perk Categories */
+#define PERK_CATEGORY_EVOKER 4
+#define PERK_CATEGORY_CONTROLLER 5
+#define PERK_CATEGORY_VERSATILE_CASTER 6
+
+/* Cleric Perk Categories */
+#define PERK_CATEGORY_DIVINE_HEALER 7
+#define PERK_CATEGORY_BATTLE_CLERIC 8
+#define PERK_CATEGORY_DOMAIN_MASTER 9
+
+/* Rogue Perk Categories */
+#define PERK_CATEGORY_ASSASSIN 10
+#define PERK_CATEGORY_MASTER_THIEF 11
+#define PERK_CATEGORY_SHADOW_SCOUT 12
+
+/* Monk Perk Categories */
+#define PERK_CATEGORY_IRON_BODY 13
+#define PERK_CATEGORY_PERFECT_SELF 14
+#define PERK_CATEGORY_WAY_OF_THE_OPEN_HAND 15
+
+/* Ranger Perk Categories */
+#define PERK_CATEGORY_HUNTER 16
+#define PERK_CATEGORY_BEAST_MASTER 17
+#define PERK_CATEGORY_WILDERNESS_WARRIOR 18
+
+/* Barbarian Perk Categories */
+#define PERK_CATEGORY_BERSERKER 19
+#define PERK_CATEGORY_TOTEM_WARRIOR 20
+#define PERK_CATEGORY_PRIMAL_CHAMPION 21
+
 /* Perk IDs - organized by class */
 /* Base perks start at 0, will define actual IDs in perks.c */
 #define PERK_UNDEFINED 0
@@ -5657,6 +5695,7 @@ struct perk_data
     char *name;                       /* Perk name */
     char *description;                /* Perk description */
     int associated_class;             /* Which class this perk belongs to */
+    int perk_category;                /* Which perk tree/category (e.g., PERK_CATEGORY_WEAPON_SPECIALIST) */
     int cost;                         /* Perk point cost to purchase */
     int max_rank;                     /* Maximum times this perk can be taken */
     int prerequisite_perk;            /* Perk ID required before this one (-1 if none) */
