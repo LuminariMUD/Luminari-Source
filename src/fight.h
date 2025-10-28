@@ -94,8 +94,8 @@ int compute_attack_bonus_full(struct char_data *ch, struct char_data *victim, in
 int dual_wielding_penalty(struct char_data *ch, bool offhand);
 int is_dual_wielding(struct char_data *ch);
 int get_initiative_modifier(struct char_data *ch);
-
 int get_monk_stunning_fist_dc(struct char_data *ch);
+
 
 /* Global variables */
 #ifndef __FIGHT_C__
@@ -104,7 +104,3 @@ extern struct char_data *combat_list;
 #endif /* __FIGHT_C__ */
 
 #endif /* _FIGHT_H_*/
-
-int handle_successful_attack(char_data *ch, char_data *victim, obj_data *wielded, int dam,
-                             int w_type, int type, int diceroll, int is_critical, int attack_type,
-                             int dam_type, obj_data *missile);

@@ -242,6 +242,8 @@ int get_monk_unarmed_crit_range(struct char_data *ch);
 bool has_monk_tiger_claw_bleed(struct char_data *ch);
 bool can_use_monk_weapons_with_abilities(struct char_data *ch);
 int get_monk_weapon_ac_bonus(struct char_data *ch, struct obj_data *weapon);
+int get_monk_weapon_attack_bonus(struct char_data *ch, struct obj_data *weapon);
+int get_monk_weapon_damage_bonus(struct char_data *ch, struct obj_data *weapon);
 int get_monk_flurry_penalty_reduction(struct char_data *ch);
 bool check_monk_extra_flurry_attack(struct char_data *ch);
 

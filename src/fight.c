@@ -1057,6 +1057,23 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     if (!IS_NPC(ch))
       bonuses[BONUS_TYPE_DODGE] += get_defensive_casting_ac_bonus(ch);
 
+    /* Monk weapon AC bonus - One With Wood and Stone perk */
+    if (!IS_NPC(ch))
+    {
+      struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
+      if (!wielded)
+        wielded = GET_EQ(ch, WEAR_WIELD_2H);
+      if (!wielded)
+        wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+      
+      if (wielded)
+      {
+        int monk_weapon_bonus = get_monk_weapon_ac_bonus(ch, wielded);
+        if (monk_weapon_bonus > 0)
+          bonuses[BONUS_TYPE_DODGE] += monk_weapon_bonus;
+      }
+    }
+
     /* this feat requires light armor and no shield */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_CANNY_DEFENSE) && HAS_FREE_HAND(ch) &&
         compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT)
@@ -6109,6 +6126,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  /* Monk weapon damage bonus - One With Wood and Stone perk */
+  if (wielded && !IS_NPC(ch))
+  {
+    int monk_weapon_bonus = get_monk_weapon_damage_bonus(ch, wielded);
+    if (monk_weapon_bonus > 0)
+    {
+      if (display_mode)
+        send_to_char(ch, "Monk weapon damage bonus: \tR%d\tn\r\n", monk_weapon_bonus);
+      dambonus += monk_weapon_bonus;
+    }
+  }
+
   /* ranged includes arrow enhancement bonus + special ranged bonus to favored enemies with the epic favored enemy feat */
   if (can_fire_ammo(ch, TRUE))
   {
@@ -9311,6 +9340,18 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     }
   }
 
+  /* Monk weapon attack bonus - One With Wood and Stone perk */
+  if (wielded && !IS_NPC(ch))
+  {
+    int monk_weapon_bonus = get_monk_weapon_attack_bonus(ch, wielded);
+    if (monk_weapon_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED] += monk_weapon_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", monk_weapon_bonus, "Monk Weapon Attack Bonus");
+    }
+  }
+
   /* Add up all the bonuses */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
     calc_bab += bonuses[i];
@@ -12060,6 +12101,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       penalty = -2; /* flurry penalty */
     else if (MONK_TYPE(ch) < 9)
       penalty = -1; /* 9th level+, no more penalty to flurry! */
+    if (penalty > 0 && has_perk(ch, PERK_MONK_FLURRY_FOCUS))
+      penalty -= 1;
+    if (mode != 2 && check_monk_extra_flurry_attack(ch))
+    {
+      bonus_mainhand_attacks++;
+      attacks_at_max_bab++;
+    }
     if (HAS_FEAT(ch, FEAT_GREATER_FLURRY))
     { /* FEAT_GREATER_FLURRY, 11th level */
       bonus_mainhand_attacks++;
