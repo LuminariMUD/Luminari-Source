@@ -300,6 +300,13 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
       saves += 2;
     if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_EPIC_REFLEXES))
       saves += 3;
+    /* monk reflex save bonus from perks */
+    if (MONK_TYPE(vict))
+    {
+      int monk_bonus = get_monk_reflex_save_bonus(vict);
+      if (monk_bonus > 0)
+        saves += monk_bonus;
+    }
     break;
 
   case SAVING_WILL:

@@ -6097,6 +6097,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += GET_LEVEL(ch) / 2;
   }
 
+  /* monk unarmed damage bonus from perks - applies to unarmed OR monk weapons */
+  if (MONK_TYPE(ch) && (is_bare_handed(ch) || (wielded && is_monk_weapon(wielded))))
+  {
+    int monk_bonus = get_monk_unarmed_damage_bonus(ch);
+    if (monk_bonus > 0)
+    {
+      if (display_mode)
+        send_to_char(ch, "Monk unarmed damage bonus: \tR%d\tn\r\n", monk_bonus);
+      dambonus += monk_bonus;
+    }
+  }
+
   /* ranged includes arrow enhancement bonus + special ranged bonus to favored enemies with the epic favored enemy feat */
   if (can_fire_ammo(ch, TRUE))
   {
@@ -7906,7 +7918,23 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
     reduction = 0;
   }
   else
-    reduction = MIN(dr->amount, dam);
+  {
+    int effective_dr = dr->amount;
+    
+    /* monk DR bypass from perks - applies to unarmed OR monk weapons */
+    if (MONK_TYPE(ch) && (is_bare_handed(ch) || (wielded && is_monk_weapon(wielded))))
+    {
+      int monk_dr_bypass = get_monk_dr_bypass(ch);
+      if (monk_dr_bypass > 0)
+      {
+        effective_dr = MAX(0, effective_dr - monk_dr_bypass);
+        if (display)
+          send_to_char(ch, "Monk DR bypass: \tG%d\tn (effective DR: %d)\r\n", monk_dr_bypass, effective_dr);
+      }
+    }
+    
+    reduction = MIN(effective_dr, dam);
+  }
 
   if ((reduction > 0) &&
       (dr->max_damage > 0))
