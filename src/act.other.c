@@ -7674,6 +7674,9 @@ ACMD(do_gen_tog)
       // 67
       {"Autosearch disabled. You will no longer automatically search for traps.\r\n",
        "Autosearch enabled. You will now automatically search for traps at half perception skill, but move at half speed and lose initiative.\r\n"},
+      // 68
+      {"Sweeping strike disabled. You will no longer automatically trip on first flurry attack.\r\n",
+       "Sweeping strike enabled. You will now automatically attempt a trip on the first flurry of blows attack each round.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7991,6 +7994,15 @@ case SCMD_AUTO_AUGMENT:
     break;
   case SCMD_AUTOSEARCH:
     result = PRF_TOG_CHK(ch, PRF_AUTOSEARCH);
+    break;
+  case SCMD_SWEEPING_STRIKE:
+    if (!has_perk(ch, PERK_MONK_SWEEPING_STRIKE))
+    {
+      send_to_char(ch, "You don't have the sweeping strike perk.\r\n");
+      REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SWEEPING_STRIKE);
+      return;
+    }
+    result = PRF_TOG_CHK(ch, PRF_SWEEPING_STRIKE);
     break;
   default:
     log("SYSERR: Unknown subcmd %d in do_gen_toggle.", subcmd);

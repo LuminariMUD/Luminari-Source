@@ -12611,6 +12611,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     bonus_mainhand_attacks = 0;
 
   int j = 0;
+  bool sweeping_strike_used = FALSE; /* Track if we've used sweeping strike this round */
+  
   for (i = 0; i < bonus_mainhand_attacks; i++)
   {
     numAttacks++;
@@ -12626,6 +12628,18 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (phase == PHASE_0 || phase == PHASE_1)
       {
         perform_attack = TRUE;
+        
+        /* Monk sweeping strike: auto-trip on first flurry attack when both sweeping strike and flurry are enabled (10% chance) */
+        if (!sweeping_strike_used && i == 0 && MONK_TYPE(ch) && 
+            AFF_FLAGGED(ch, AFF_FLURRY_OF_BLOWS) &&
+            PRF_FLAGGED(ch, PRF_SWEEPING_STRIKE) && 
+            has_perk(ch, PERK_MONK_SWEEPING_STRIKE) &&
+            FIGHTING(ch) && mode == NORMAL_ATTACK_ROUTINE &&
+            dice(1, 100) <= 10) /* 10% chance */
+        {
+          sweeping_strike_used = TRUE;
+          perform_knockdown(ch, FIGHTING(ch), SKILL_TRIP, TRUE, FALSE);
+        }
       }
       break;
     case 2:

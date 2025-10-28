@@ -1420,9 +1420,10 @@
 #define PRF_SCORE_RACE_SYMBOLS 82     /**< Display race symbols in score */
 #define PRF_BOARDCHECK 83             /**< Display board check on login */
 #define PRF_AUTOSEARCH 84             /**< Automatically search for traps when moving (1/2 perception, 1/2 speed, lose initiative) */
+#define PRF_SWEEPING_STRIKE 85        /**< Monk sweeping strike: auto-trip on first flurry attack */
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 84
+#define NUM_PRF_FLAGS 86
 
 /* Score Color Theme constants */
 #define SCORE_THEME_ENHANCED     0    /**< Enhanced theme with rich colors */

@@ -922,6 +922,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"strength", "strength", POS_FIGHTING, do_strength, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"strengthofhonor", "strengthofhonor", POS_FIGHTING, do_strength_of_honor, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"swallow", "swallow", POS_RECLINING, do_swallow, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
+    {"sweepingstrike", "sweepings", POS_DEAD, do_gen_tog, 0, SCMD_SWEEPING_STRIKE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"switch", "switch", POS_DEAD, do_switch, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"swindle", "swindle", POS_STANDING, do_swindle, 1, 0, TRUE, ACTION_STANDARD, {0, 0}, NULL},
     {"shapechange", "shapechange", POS_FIGHTING, do_wildshape, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

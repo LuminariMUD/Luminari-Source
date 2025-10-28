@@ -369,6 +369,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                              "%s5%s) Autoassist   %s[%s%3s%s]    %sE%s) Gratz      %s[%s%3s%s]\r\n"
                              "                                                              \r\n"
                              "%s*%s) Autosearch   %s[%s%3s%s] %s(Half perception, half speed, lose initiative)%s\r\n"
+                             "%s+%s) SweepStrike  %s[%s%3s%s] %s(Auto-trip on first flurry attack, requires perk)%s\r\n"
                              "                             - More Toggles -                   \r\n"
                              "%s6%s) Autosplit    %s[%s%3s%s]    %sS%s) AutoScan   %s[%s%3s%s]\r\n"
                              "%s0%s) Hint Display %s[%s%3s%s]    %sW%s) AutoCollect %s[%s%3s%s]\r\n",
@@ -400,6 +401,11 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_AUTOSEARCH) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
                ONOFF(PREFEDIT_FLAGGED(PRF_AUTOSEARCH)), CCCYN(d->character, C_NRM),
+               CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               /* Line Sweeping Strike */
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_SWEEPING_STRIKE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_SWEEPING_STRIKE)), CCCYN(d->character, C_NRM),
                CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                /* Line 6 - autosplit and autoscan */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
@@ -886,6 +892,17 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case '*':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOSEARCH);
+      break;
+
+    case '+':
+      if (!has_perk(d->character, PERK_MONK_SWEEPING_STRIKE))
+      {
+        send_to_char(d->character, "You don't have the sweeping strike perk!\r\n");
+      }
+      else
+      {
+        TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_SWEEPING_STRIKE);
+      }
       break;
 
     case 'f':
