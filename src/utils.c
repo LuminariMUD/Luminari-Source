@@ -1414,6 +1414,36 @@ bool is_fav_enemy_of(struct char_data *ch, int race)
   return FALSE;
 }
 
+/* Check if a character can bleed. Constructs, oozes, undead, plants, and elementals cannot bleed. */
+bool can_bleed(struct char_data *ch)
+{
+  if (!ch)
+    return FALSE;
+    
+  /* Constructs don't bleed */
+  if (IS_CONSTRUCT(ch))
+    return FALSE;
+    
+  /* Oozes don't bleed */
+  if (IS_OOZE(ch))
+    return FALSE;
+    
+  /* Undead don't bleed */
+  if (IS_UNDEAD(ch))
+    return FALSE;
+    
+  /* Plants don't bleed */
+  if (IS_PLANT(ch))
+    return FALSE;
+    
+  /* Elementals don't bleed */
+  if (IS_ELEMENTAL(ch))
+    return FALSE;
+    
+  /* Everything else can bleed */
+  return TRUE;
+}
+
 /* returns a or an based on first character of next word */
 const char *a_or_an(const char *string)
 {
@@ -4840,6 +4870,7 @@ int get_daily_uses(struct char_data *ch, int featnum)
       break;
     case FEAT_STUNNING_FIST:
       daily_uses += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK)) / 4;
+      daily_uses += get_monk_stunning_fist_bonus_uses(ch);
       break;
     case FEAT_LAYHANDS:
       daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) / 2 + GET_CHA_BONUS(ch);
@@ -9714,6 +9745,7 @@ int get_hp_regen_amount(struct char_data *ch)
   hp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_HP_REGEN);
   hp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_HP_REGEN);
   hp += get_apply_type_gear_mod(ch, APPLY_HP_REGEN);
+  hp += get_monk_hp_regen_bonus(ch);
 
   return hp;
 }

@@ -234,7 +234,7 @@ int get_monk_dr_bypass(struct char_data *ch);
 int get_monk_reflex_save_bonus(struct char_data *ch);
 int get_monk_trip_bonus(struct char_data *ch);
 bool can_monk_trip_during_flurry(struct char_data *ch);
-int get_monk_gp_regen_bonus(struct char_data *ch);
+int get_monk_hp_regen_bonus(struct char_data *ch);
 int get_monk_stunning_fist_bonus_uses(struct char_data *ch);
 int get_monk_stunning_fist_dc_bonus(struct char_data *ch);
 int get_monk_stunning_fist_duration_bonus(struct char_data *ch);

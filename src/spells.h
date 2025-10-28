@@ -1085,6 +1085,7 @@
 #define SKILL_GORE 2153
 #define SKILL_BITE 2154
 #define SKILL_SUNDER 2155            // implemented
+#define SKILL_TIGER_CLAW 2156        // monk tiger claw bleed effect
 
 /* reserving this space for different performances 2180 - 2199*/
 #define TOP_OF_PERFORMANCES 2180

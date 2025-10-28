@@ -3792,7 +3792,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_ONE_WITH_WOOD_AND_STONE];
   perk->id = PERK_MONK_ONE_WITH_WOOD_AND_STONE;
   perk->name = strdup("One With Wood and Stone");
-  perk->description = strdup("Can use quarterstaff and kama with monk abilities, +1 AC when using them");
+  perk->description = strdup("With a quarterstaff or kama, gain +1 AC, +1 to hit and +1 to damage when using them");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 2;
@@ -8636,12 +8636,12 @@ bool can_monk_trip_during_flurry(struct char_data *ch)
 }
 
 /**
- * Get GP regeneration bonus from monk perks.
+ * Get HP regeneration bonus from monk perks.
  * 
  * @param ch The character
- * @return GP regeneration bonus per tick
+ * @return HP regeneration bonus per tick
  */
-int get_monk_gp_regen_bonus(struct char_data *ch)
+int get_monk_hp_regen_bonus(struct char_data *ch)
 {
   int bonus = 0;
   
@@ -8774,7 +8774,7 @@ int get_monk_weapon_ac_bonus(struct char_data *ch, struct obj_data *weapon)
   
   /* Check if weapon is quarterstaff or kama */
   int weapon_type = GET_OBJ_VAL(weapon, 0);
-  if (weapon_type == WEAPON_TYPE_QUARTERSTAFF || weapon_type == WEAPON_TYPE_CLUB /* kama uses club type */)
+  if (weapon_type == WEAPON_TYPE_QUARTERSTAFF || weapon_type == WEAPON_TYPE_KAMA)
     return 1;
   
   return 0;
