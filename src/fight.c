@@ -1048,6 +1048,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     /* Shadow Scout perk: Acrobatics I & II - dodge bonus */
     if (!IS_NPC(ch))
       bonuses[BONUS_TYPE_DODGE] += get_perk_acrobatics_ac_bonus(ch);
+    
+    /* Monk Acrobatic Defense perk: +1 dodge AC */
+    if (!IS_NPC(ch))
+      bonuses[BONUS_TYPE_DODGE] += get_monk_acrobatic_defense_ac(ch);
 
     /* Cleric Battle Cleric perk: Armor of Faith I & II - dodge bonus */
     if (!IS_NPC(ch))
@@ -10934,6 +10938,11 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       int perk_dice = get_perk_sneak_attack_dice(ch);
       if (perk_dice > 0)
         sneakdam += dice(perk_dice, 6);
+      
+      /* Add monk Deadly Precision sneak attack dice */
+      int monk_precision_dice = get_monk_deadly_precision_dice(ch);
+      if (monk_precision_dice > 0)
+        sneakdam += dice(monk_precision_dice, 6);
       
       /* Add ranged sneak attack flat damage bonus from perks */
       if (attack_type == ATTACK_TYPE_RANGED)

@@ -3456,6 +3456,20 @@
 #define PERK_MONK_LEGENDARY_FIST 516              /* +2d6 damage, crit multiplier x3 */
 #define PERK_MONK_SHATTERING_STRIKE 517           /* Stunning fist use for +8d8 damage */
 
+/* TREE 2: WAY OF THE SHADOW - Tier 1 Perks (518-524) */
+#define PERK_MONK_SHADOW_STEP_I 518               /* +5 feet movement per rank (max 3) */
+#define PERK_MONK_IMPROVED_HIDE_I 519             /* +2 to Stealth per rank (max 3) */
+#define PERK_MONK_ACROBATIC_DEFENSE 520           /* +1 dodge AC, +2 to Acrobatics */
+#define PERK_MONK_DEADLY_PRECISION_I 521          /* +1d6 sneak attack per rank (max 3) */
+
+/* TREE 2: WAY OF THE SHADOW - Tier 2 Perks (525-530) */
+#define PERK_MONK_SHADOW_STEP_II 525              /* +10 feet movement per rank (max 2) */
+#define PERK_MONK_VANISHING_TECHNIQUE 526         /* Stunning fist use to cast invisibility */
+#define PERK_MONK_DEADLY_PRECISION_II 527         /* +1d6 sneak attack per rank (max 2) */
+#define PERK_MONK_SHADOW_CLONE 528                /* Stunning fist use to cast mirror image */
+#define PERK_MONK_PRESSURE_POINT_STRIKE 529       /* 5% stun chance on sneak attacks */
+#define PERK_MONK_SMOKE_BOMB 530                  /* Stunning fist use to cast darkness */
+
 /* ============================================================================
  * DRUID PERKS (600-699)
  * ============================================================================ */

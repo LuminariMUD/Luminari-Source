@@ -76,7 +76,13 @@ int get_speed(struct char_data *ch, sbyte to_display)
 
   // likewise, monk speed and fast movement don't stack for balance reasons
   if (monk_gear_ok(ch))
+  {
     speed += MIN(60, CLASS_LEVEL(ch, CLASS_MONK) / 3 * 10);
+    
+    /* Add Shadow Step bonus for monks */
+    if (!IS_NPC(ch))
+      speed += get_monk_shadow_step_bonus(ch);
+  }
   else if (HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
     if (compute_gear_armor_type(ch) <= ARMOR_TYPE_MEDIUM || affected_by_spell(ch, SPELL_EFFORTLESS_ARMOR))
       speed += 10;
