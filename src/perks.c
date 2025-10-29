@@ -59,9 +59,10 @@ const char *perk_category_names[] = {
   "Iron Body",              /* 13 - PERK_CATEGORY_IRON_BODY */
   "Perfect Self",           /* 14 - PERK_CATEGORY_PERFECT_SELF */
   "Way of the Open Hand",   /* 15 - PERK_CATEGORY_WAY_OF_THE_OPEN_HAND */
-  "Hunter",                 /* 16 - PERK_CATEGORY_HUNTER */
-  "Beast Master",           /* 17 - PERK_CATEGORY_BEAST_MASTER */
-  "Wilderness Warrior",     /* 18 - PERK_CATEGORY_WILDERNESS_WARRIOR */
+  "Way of the Shadow",      /* 16 - PERK_CATEGORY_WAY_OF_THE_SHADOW */
+  "Hunter",                 /* 17 - PERK_CATEGORY_HUNTER */
+  "Beast Master",           /* 18 - PERK_CATEGORY_BEAST_MASTER */
+  "Wilderness Warrior",     /* 19 - PERK_CATEGORY_WILDERNESS_WARRIOR */
   "Berserker",              /* 19 - PERK_CATEGORY_BERSERKER */
   "Totem Warrior",          /* 20 - PERK_CATEGORY_TOTEM_WARRIOR */
   "Primal Champion",        /* 21 - PERK_CATEGORY_PRIMAL_CHAMPION */
@@ -3944,7 +3945,7 @@ void define_monk_perks(void)
   perk->name = strdup("Shadow Step I");
   perk->description = strdup("+5 feet movement speed per rank");
   perk->associated_class = CLASS_MONK;
-  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -3960,7 +3961,7 @@ void define_monk_perks(void)
   perk->name = strdup("Improved Hide I");
   perk->description = strdup("+2 to Stealth skill per rank");
   perk->associated_class = CLASS_MONK;
-  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -3976,7 +3977,7 @@ void define_monk_perks(void)
   perk->name = strdup("Acrobatic Defense");
   perk->description = strdup("+1 dodge AC bonus, +2 to Acrobatics checks");
   perk->associated_class = CLASS_MONK;
-  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -3992,7 +3993,7 @@ void define_monk_perks(void)
   perk->name = strdup("Deadly Precision I");
   perk->description = strdup("+1d6 sneak attack damage per rank (or +1d6 if no sneak attack)");
   perk->associated_class = CLASS_MONK;
-  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 1;
   perk->max_rank = 3;
   perk->prerequisite_perk = -1;
@@ -4010,7 +4011,7 @@ void define_monk_perks(void)
   perk->name = strdup("Shadow Step II");
   perk->description = strdup("+10 feet movement speed per rank");
   perk->associated_class = CLASS_MONK;
-  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_MONK_SHADOW_STEP_I;
@@ -4026,7 +4027,7 @@ void define_monk_perks(void)
   perk->name = strdup("Vanishing Technique");
   perk->description = strdup("Spend a stunning fist use to cast invisibility on self");
   perk->associated_class = CLASS_MONK;
-  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_MONK_IMPROVED_HIDE_I;
@@ -4042,7 +4043,7 @@ void define_monk_perks(void)
   perk->name = strdup("Deadly Precision II");
   perk->description = strdup("+1d6 sneak attack damage per rank");
   perk->associated_class = CLASS_MONK;
-  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 2;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_MONK_DEADLY_PRECISION_I;
@@ -4058,7 +4059,7 @@ void define_monk_perks(void)
   perk->name = strdup("Shadow Clone");
   perk->description = strdup("Spend a stunning fist use to cast mirror image");
   perk->associated_class = CLASS_MONK;
-  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_MONK_IMPROVED_HIDE_I;
@@ -4074,7 +4075,7 @@ void define_monk_perks(void)
   perk->name = strdup("Pressure Point Strike");
   perk->description = strdup("Sneak attacks have 5% chance to stun for 1 round (Fortitude save negates)");
   perk->associated_class = CLASS_MONK;
-  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_MONK_DEADLY_PRECISION_I;
@@ -4090,7 +4091,7 @@ void define_monk_perks(void)
   perk->name = strdup("Smoke Bomb");
   perk->description = strdup("Spend a stunning fist use to cast darkness");
   perk->associated_class = CLASS_MONK;
-  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 2;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_MONK_VANISHING_TECHNIQUE;

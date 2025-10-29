@@ -1113,8 +1113,11 @@
 #define SKILL_BLEEDING_ATTACK 2200
 #define SKILL_CRIPPLING_STRIKE 2201
 
+/* Monk perk skills */
+#define SKILL_PRESSURE_POINT_STRIKE 2202
+
 /* New skills may be added above here, up to MAX_SKILLS (3000) */
-#define NUM_SKILLS 2202
+#define NUM_SKILLS 2203
 
 /* Special Abilities for weapons */
 
