@@ -3471,6 +3471,17 @@
 #define PERK_MONK_PRESSURE_POINT_STRIKE 529       /* 5% stun chance on sneak attacks */
 #define PERK_MONK_SMOKE_BOMB 530                  /* Stunning fist use to cast darkness */
 
+/* TREE 2: WAY OF THE SHADOW - Tier 3 Perks (531-535) */
+#define PERK_MONK_SHADOW_STEP_III 531             /* +15 feet movement, stunning fist for waterwalk/spider climb */
+#define PERK_MONK_DEADLY_PRECISION_III 532        /* +2d6 sneak attack, +3d6 on crits */
+#define PERK_MONK_ASSASSINATE 533                 /* +4d6 vs stunned/paralyzed */
+#define PERK_MONK_SHADOW_FADE 534                 /* 20% concealment, 50% in dim light */
+#define PERK_MONK_BLINDING_SPEED 535              /* Stunning fist use to cast haste */
+
+/* TREE 2: WAY OF THE SHADOW - Tier 4 Perks (536-537) */
+#define PERK_MONK_SHADOW_MASTER 536               /* Hide in plain sight, +4d6 sneak, greater invis */
+#define PERK_MONK_VOID_STRIKE 537                 /* Stunning fist for +8d6 force, ignores DR */
+
 /* ============================================================================
  * DRUID PERKS (600-699)
  * ============================================================================ */
