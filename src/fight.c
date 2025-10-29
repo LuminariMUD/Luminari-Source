@@ -7989,6 +7989,14 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
       }
     }
     
+    /* Crushing Blow bypasses 10 DR */
+    if (affected_by_spell(ch, SKILL_CRUSHING_BLOW))
+    {
+      effective_dr = MAX(0, effective_dr - 10);
+      if (display)
+        send_to_char(ch, "Crushing Blow DR bypass: \tG10\tn (effective DR: %d)\r\n", effective_dr);
+    }
+    
     reduction = MIN(effective_dr, dam);
   }
 
@@ -10219,6 +10227,12 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
     affect_from_char(ch, SKILL_POWERFUL_BLOW);
   }
 
+  if (affected_by_spell(ch, SKILL_CRUSHING_BLOW))
+  {
+    send_to_char(ch, "You fail to land your crushing blow!  ");
+    affect_from_char(ch, SKILL_CRUSHING_BLOW);
+  }
+
   /* Display the flavorful backstab miss messages. This should be changed so we can
    * get rid of the SKILL_ defined (and convert abilities to skills :))
    * it should be noted that it displays miss messages based on weapon-types as well */
@@ -10461,6 +10475,19 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     powerful_blow_bonus += CLASS_LEVEL(ch, CLASS_BERSERKER);
     /* what is this?  because we are removing the affect, it won't
              be calculated properly in damage_bonus, so we just tag it on afterwards */
+  }
+  int crushing_blow_bonus = 0;
+  if (affected_by_spell(ch, SKILL_CRUSHING_BLOW))
+  {
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      send_to_char(ch, "[\tRCRUSHING_BLOW\tn] ");
+    }
+    affect_from_char(ch, SKILL_CRUSHING_BLOW);
+    crushing_blow_bonus = dice(4, 6);
   }
   if (affected_by_spell(ch, SKILL_SMITE_EVIL))
   {
@@ -10981,6 +11008,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (type == TYPE_ATTACK_OF_OPPORTUNITY && has_teamwork_feat(ch, FEAT_PAIRED_OPPORTUNISTS))
     dam += 2;
   dam += powerful_blow_bonus; /* ornir is going to yell at me for this :p  -zusuk */
+  dam += crushing_blow_bonus; /* monk crushing blow +4d6 damage */
 
   /* This comes after computing the other damage since sneak attack damage
    * is not affected by crit multipliers. */

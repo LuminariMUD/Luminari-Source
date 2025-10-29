@@ -468,6 +468,7 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
 void clear_rage(struct char_data *ch);
 void clear_defensive_stance(struct char_data *ch);
 void perform_stunningfist(struct char_data *ch);
+void perform_crushingblow(struct char_data *ch);
 void perform_quiveringpalm(struct char_data *ch);
 void perform_deatharrow(struct char_data *ch);
 void perform_rescue(struct char_data *ch, struct char_data *vict);
@@ -574,6 +575,8 @@ ACMDCHECK(can_backstab);
 ACMD_DECL(do_flee);
 ACMD_DECL(do_stunningfist);
 ACMDCHECK(can_stunningfist);
+ACMD_DECL(do_crushingblow);
+ACMDCHECK(can_crushingblow);
 ACMD_DECL(do_quiveringpalm);
 ACMDCHECK(can_quiveringpalm);
 ACMD_DECL(do_deatharrow);
