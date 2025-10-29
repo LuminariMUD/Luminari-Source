@@ -2052,13 +2052,19 @@ void load_armor(void)
 
 bool is_bare_handed(struct char_data *ch)
 {
+  struct obj_data *obj;
+  
+  if ((obj = GET_EQ(ch, WEAR_WIELD_1)))
+  {
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == WEAPON_TYPE_UNARMED)
+      return TRUE;
+    return FALSE;
+  }
   if (GET_EQ(ch, WEAR_HOLD_1))
     return FALSE;
   if (GET_EQ(ch, WEAR_HOLD_2))
     return FALSE;
   if (GET_EQ(ch, WEAR_SHIELD))
-    return FALSE;
-  if (GET_EQ(ch, WEAR_WIELD_1))
     return FALSE;
   if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
     return FALSE;

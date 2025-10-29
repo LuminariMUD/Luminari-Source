@@ -1087,6 +1087,7 @@
 #define SKILL_SUNDER 2155            // implemented
 #define SKILL_TIGER_CLAW 2156        // monk tiger claw bleed effect
 #define SKILL_CRUSHING_BLOW 2157     // monk crushing blow attack
+#define SKILL_SHATTERING_STRIKE 2158 // monk shattering strike attack - 8d8 bonus damage
 
 /* reserving this space for different performances 2180 - 2199*/
 #define TOP_OF_PERFORMANCES 2180

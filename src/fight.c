@@ -6711,8 +6711,8 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
       threat_range -= assassin_bonus;
   }
 
-  /* Monk unarmed crit range bonus - applies to unarmed or monk weapons */
-  if (MONK_TYPE(ch) && (is_bare_handed(ch) || (wielded && is_monk_weapon(wielded))))
+  /* Monk unarmed crit range bonus - applies to unarmed attacks only */
+  if (MONK_TYPE(ch) && (is_bare_handed(ch)))
   {
     int monk_crit_range = get_monk_unarmed_crit_range(ch);
     if (monk_crit_range < 20)
@@ -6763,7 +6763,7 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
   }
 
   /* Legendary Fist: unarmed attacks get x3 multiplier */
-  if (!wielded && has_monk_legendary_fist(ch))
+  if (is_bare_handed(ch) && has_monk_legendary_fist(ch))
   {
     crit_multi = MAX(crit_multi, 3);
   }
@@ -7995,6 +7995,14 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
       effective_dr = MAX(0, effective_dr - 10);
       if (display)
         send_to_char(ch, "Crushing Blow DR bypass: \tG10\tn (effective DR: %d)\r\n", effective_dr);
+    }
+    
+    /* Shattering Strike bypasses 15 DR */
+    if (affected_by_spell(ch, SKILL_SHATTERING_STRIKE))
+    {
+      effective_dr = MAX(0, effective_dr - 15);
+      if (display)
+        send_to_char(ch, "Shattering Strike DR bypass: \tG15\tn (effective DR: %d)\r\n", effective_dr);
     }
     
     reduction = MIN(effective_dr, dam);
@@ -10233,6 +10241,12 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
     affect_from_char(ch, SKILL_CRUSHING_BLOW);
   }
 
+  if (affected_by_spell(ch, SKILL_SHATTERING_STRIKE))
+  {
+    send_to_char(ch, "You fail to land your shattering strike!  ");
+    affect_from_char(ch, SKILL_SHATTERING_STRIKE);
+  }
+
   /* Display the flavorful backstab miss messages. This should be changed so we can
    * get rid of the SKILL_ defined (and convert abilities to skills :))
    * it should be noted that it displays miss messages based on weapon-types as well */
@@ -10488,6 +10502,19 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     }
     affect_from_char(ch, SKILL_CRUSHING_BLOW);
     crushing_blow_bonus = dice(4, 6);
+  }
+  int shattering_strike_bonus = 0;
+  if (affected_by_spell(ch, SKILL_SHATTERING_STRIKE))
+  {
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      send_to_char(ch, "[\tMSHATTERING_STRIKE\tn] ");
+    }
+    affect_from_char(ch, SKILL_SHATTERING_STRIKE);
+    shattering_strike_bonus = dice(8, 8);
   }
   if (affected_by_spell(ch, SKILL_SMITE_EVIL))
   {
@@ -11009,6 +11036,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     dam += 2;
   dam += powerful_blow_bonus; /* ornir is going to yell at me for this :p  -zusuk */
   dam += crushing_blow_bonus; /* monk crushing blow +4d6 damage */
+  dam += shattering_strike_bonus; /* monk shattering strike +8d8 damage */
 
   /* This comes after computing the other damage since sneak attack damage
    * is not affected by crit multipliers. */

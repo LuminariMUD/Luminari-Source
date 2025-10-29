@@ -5917,7 +5917,12 @@ int get_monk_power_strike_penalty(struct char_data *ch)
   if (!has_perk(ch, PERK_MONK_POWER_STRIKE))
     return 0;
   
-  return -1 * get_perk_rank(ch, PERK_MONK_POWER_STRIKE, CLASS_MONK);
+  /* Check if power strike is active (value > 0) */
+  if (GET_POWER_STRIKE(ch) <= 0)
+    return 0;
+  
+  /* Return penalty based on the power strike value (-1 per rank) */
+  return -1 * GET_POWER_STRIKE(ch);
 }
 
 /**
@@ -8759,9 +8764,9 @@ int get_monk_unarmed_damage_bonus(struct char_data *ch)
   if (has_perk(ch, PERK_MONK_TIGER_CLAW))
     bonus += 2;
   
-  /* Power Strike: +3 damage per rank */
-  if (has_perk(ch, PERK_MONK_POWER_STRIKE))
-    bonus += get_perk_rank(ch, PERK_MONK_POWER_STRIKE, CLASS_MONK) * 3;
+  /* Power Strike: +2 damage per rank when active */
+  if (has_perk(ch, PERK_MONK_POWER_STRIKE) && GET_POWER_STRIKE(ch) > 0)
+    bonus += GET_POWER_STRIKE(ch) * 3;
   
   return bonus;
 }
