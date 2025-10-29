@@ -205,6 +205,39 @@ void perform_shatteringstrike(struct char_data *ch)
   act("$n channels devastating Ki energy, preparing a bone-shattering strike!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
+void perform_vanishingtechnique(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "You focus your Ki and fade from sight!\r\n");
+  act("$n focuses $s Ki and vanishes into shadow!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, NULL, SPELL_INVISIBLE, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+}
+
+void perform_shadowclone(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "You focus your Ki and create illusory duplicates of yourself!\r\n");
+  act("$n focuses $s Ki and suddenly multiple images of $m appear!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, NULL, SPELL_MIRROR_IMAGE, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+}
+
+void perform_smokebomb(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "You focus your Ki and release a cloud of obscuring darkness!\r\n");
+  act("$n focuses $s Ki and explodes into a cloud of darkness!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, NULL, SPELL_DARKNESS, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+}
+
 /* rp_surprise_accuracy engine */
 
 /* The surprise-accuracy is reliant on rage */
@@ -6907,6 +6940,54 @@ ACMD(do_shatteringstrike)
   PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
 
   perform_shatteringstrike(ch);
+}
+
+ACMDCHECK(can_vanishingtechnique)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_vanishing_technique(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_vanishingtechnique)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_vanishingtechnique);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_vanishingtechnique(ch);
+}
+
+ACMDCHECK(can_shadowclone)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_shadow_clone(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_shadowclone)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_shadowclone);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_shadowclone(ch);
+}
+
+ACMDCHECK(can_smokebomb)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_smoke_bomb(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_smokebomb)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_smokebomb);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_smokebomb(ch);
 }
 
 /* Power Strike command - monk combat mode */

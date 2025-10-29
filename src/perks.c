@@ -3935,6 +3935,170 @@ void define_monk_perks(void)
   perk->effect_value = 0;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Path of the Iron Fist - Tier 4 Capstone");
+
+  /* ===== WAY OF THE SHADOW - TIER 1 ===== */
+
+  /* Shadow Step I */
+  perk = &perk_list[PERK_MONK_SHADOW_STEP_I];
+  perk->id = PERK_MONK_SHADOW_STEP_I;
+  perk->name = strdup("Shadow Step I");
+  perk->description = strdup("+5 feet movement speed per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 1");
+
+  /* Improved Hide I */
+  perk = &perk_list[PERK_MONK_IMPROVED_HIDE_I];
+  perk->id = PERK_MONK_IMPROVED_HIDE_I;
+  perk->name = strdup("Improved Hide I");
+  perk->description = strdup("+2 to Stealth skill per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = ABILITY_STEALTH;
+  perk->special_description = strdup("Way of the Shadow - Tier 1");
+
+  /* Acrobatic Defense */
+  perk = &perk_list[PERK_MONK_ACROBATIC_DEFENSE];
+  perk->id = PERK_MONK_ACROBATIC_DEFENSE;
+  perk->name = strdup("Acrobatic Defense");
+  perk->description = strdup("+1 dodge AC bonus, +2 to Acrobatics checks");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 1");
+
+  /* Deadly Precision I */
+  perk = &perk_list[PERK_MONK_DEADLY_PRECISION_I];
+  perk->id = PERK_MONK_DEADLY_PRECISION_I;
+  perk->name = strdup("Deadly Precision I");
+  perk->description = strdup("+1d6 sneak attack damage per rank (or +1d6 if no sneak attack)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 1");
+
+  /* ===== WAY OF THE SHADOW - TIER 2 ===== */
+
+  /* Shadow Step II */
+  perk = &perk_list[PERK_MONK_SHADOW_STEP_II];
+  perk->id = PERK_MONK_SHADOW_STEP_II;
+  perk->name = strdup("Shadow Step II");
+  perk->description = strdup("+10 feet movement speed per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_MONK_SHADOW_STEP_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 2");
+
+  /* Vanishing Technique */
+  perk = &perk_list[PERK_MONK_VANISHING_TECHNIQUE];
+  perk->id = PERK_MONK_VANISHING_TECHNIQUE;
+  perk->name = strdup("Vanishing Technique");
+  perk->description = strdup("Spend a stunning fist use to cast invisibility on self");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_IMPROVED_HIDE_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 2");
+
+  /* Deadly Precision II */
+  perk = &perk_list[PERK_MONK_DEADLY_PRECISION_II];
+  perk->id = PERK_MONK_DEADLY_PRECISION_II;
+  perk->name = strdup("Deadly Precision II");
+  perk->description = strdup("+1d6 sneak attack damage per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_MONK_DEADLY_PRECISION_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 2");
+
+  /* Shadow Clone */
+  perk = &perk_list[PERK_MONK_SHADOW_CLONE];
+  perk->id = PERK_MONK_SHADOW_CLONE;
+  perk->name = strdup("Shadow Clone");
+  perk->description = strdup("Spend a stunning fist use to cast mirror image");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_IMPROVED_HIDE_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 2");
+
+  /* Pressure Point Strike */
+  perk = &perk_list[PERK_MONK_PRESSURE_POINT_STRIKE];
+  perk->id = PERK_MONK_PRESSURE_POINT_STRIKE;
+  perk->name = strdup("Pressure Point Strike");
+  perk->description = strdup("Sneak attacks have 5% chance to stun for 1 round (Fortitude save negates)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_DEADLY_PRECISION_I;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 2");
+
+  /* Smoke Bomb */
+  perk = &perk_list[PERK_MONK_SMOKE_BOMB];
+  perk->id = PERK_MONK_SMOKE_BOMB;
+  perk->name = strdup("Smoke Bomb");
+  perk->description = strdup("Spend a stunning fist use to cast darkness");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_IRON_BODY;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_VANISHING_TECHNIQUE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 2");
 }
 
 /* Lookup functions */
@@ -5983,6 +6147,151 @@ bool has_monk_shattering_strike(struct char_data *ch)
     return FALSE;
   
   return has_perk(ch, PERK_MONK_SHATTERING_STRIKE);
+}
+
+/**
+ * Get monk Shadow Step movement bonus
+ * 
+ * @param ch The character
+ * @return Movement speed bonus from Shadow Step I and II
+ */
+int get_monk_shadow_step_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Shadow Step I: +5 feet per rank (max 3 ranks) */
+  bonus += get_perk_rank(ch, PERK_MONK_SHADOW_STEP_I, CLASS_MONK) * 5;
+  
+  /* Shadow Step II: +10 feet per rank (max 2 ranks) */
+  bonus += get_perk_rank(ch, PERK_MONK_SHADOW_STEP_II, CLASS_MONK) * 10;
+  
+  return bonus;
+}
+
+/**
+ * Get monk Improved Hide stealth bonus
+ * 
+ * @param ch The character
+ * @return Stealth skill bonus from Improved Hide I
+ */
+int get_monk_improved_hide_bonus(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* +2 to Stealth per rank (max 3 ranks) */
+  return get_perk_rank(ch, PERK_MONK_IMPROVED_HIDE_I, CLASS_MONK) * 2;
+}
+
+/**
+ * Get monk Acrobatic Defense AC bonus
+ * 
+ * @param ch The character
+ * @return AC bonus from Acrobatic Defense
+ */
+int get_monk_acrobatic_defense_ac(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* +1 dodge AC if has perk */
+  return has_perk(ch, PERK_MONK_ACROBATIC_DEFENSE) ? 1 : 0;
+}
+
+/**
+ * Get monk Acrobatic Defense acrobatics bonus
+ * 
+ * @param ch The character
+ * @return Acrobatics skill bonus from Acrobatic Defense
+ */
+int get_monk_acrobatic_defense_skill(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* +2 to Acrobatics if has perk */
+  return has_perk(ch, PERK_MONK_ACROBATIC_DEFENSE) ? 2 : 0;
+}
+
+/**
+ * Get monk Deadly Precision sneak attack bonus dice
+ * 
+ * @param ch The character
+ * @return Number of sneak attack dice from Deadly Precision I and II
+ */
+int get_monk_deadly_precision_dice(struct char_data *ch)
+{
+  int dice = 0;
+  
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Deadly Precision I: +1d6 per rank (max 3 ranks) */
+  dice += get_perk_rank(ch, PERK_MONK_DEADLY_PRECISION_I, CLASS_MONK);
+  
+  /* Deadly Precision II: +1d6 per rank (max 2 ranks) */
+  dice += get_perk_rank(ch, PERK_MONK_DEADLY_PRECISION_II, CLASS_MONK);
+  
+  return dice;
+}
+
+/**
+ * Check if character has Vanishing Technique perk
+ * 
+ * @param ch The character
+ * @return TRUE if has Vanishing Technique, FALSE otherwise
+ */
+bool has_monk_vanishing_technique(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_VANISHING_TECHNIQUE);
+}
+
+/**
+ * Check if character has Shadow Clone perk
+ * 
+ * @param ch The character
+ * @return TRUE if has Shadow Clone, FALSE otherwise
+ */
+bool has_monk_shadow_clone(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_SHADOW_CLONE);
+}
+
+/**
+ * Check if character has Smoke Bomb perk
+ * 
+ * @param ch The character
+ * @return TRUE if has Smoke Bomb, FALSE otherwise
+ */
+bool has_monk_smoke_bomb(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_SMOKE_BOMB);
+}
+
+/**
+ * Check if character has Pressure Point Strike perk
+ * 
+ * @param ch The character
+ * @return TRUE if has Pressure Point Strike, FALSE otherwise
+ */
+bool has_monk_pressure_point_strike(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_PRESSURE_POINT_STRIKE);
 }
 
 /**

@@ -252,6 +252,17 @@ bool has_monk_legendary_fist(struct char_data *ch);
 bool has_monk_crushing_blow(struct char_data *ch);
 bool has_monk_shattering_strike(struct char_data *ch);
 
+/* Shadow monk perk functions */
+int get_monk_shadow_step_bonus(struct char_data *ch);
+int get_monk_improved_hide_bonus(struct char_data *ch);
+int get_monk_acrobatic_defense_ac(struct char_data *ch);
+int get_monk_acrobatic_defense_skill(struct char_data *ch);
+int get_monk_deadly_precision_dice(struct char_data *ch);
+bool has_monk_vanishing_technique(struct char_data *ch);
+bool has_monk_shadow_clone(struct char_data *ch);
+bool has_monk_smoke_bomb(struct char_data *ch);
+bool has_monk_pressure_point_strike(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

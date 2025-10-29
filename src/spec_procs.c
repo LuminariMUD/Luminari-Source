@@ -1075,6 +1075,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     }
     if (AFF_FLAGGED(ch, AFF_ACROBATIC))
       value += 10;
+    
+    /* Monk Acrobatic Defense perk bonus */
+    if (!IS_NPC(ch))
+      value += get_monk_acrobatic_defense_skill(ch);
+    
     return value;
 
   case ABILITY_STEALTH:
@@ -1130,6 +1135,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     }
     value += (size_modifiers_inverse[GET_SIZE(ch)] * 4);
     value += compute_gear_armor_penalty(ch);
+    
+    /* Monk Improved Hide perk bonus */
+    if (!IS_NPC(ch))
+      value += get_monk_improved_hide_bonus(ch);
+    
     return value;
 
   case ABILITY_PERCEPTION:
