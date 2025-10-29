@@ -1356,6 +1356,14 @@ int load_char(const char *name, struct char_data *ch)
             ch->player_specials->saved.master_of_elements_type = element_type;
           }
         }
+        else if (!strcmp(tag, "PwSt"))
+        {
+          int power_strike_value;
+          if (sscanf(line, "%d", &power_strike_value) == 1)
+          {
+            ch->player_specials->saved.power_strike = power_strike_value;
+          }
+        }
         else if (!strcmp(tag, "PPsS"))
         {
           long timestamp;
@@ -2876,6 +2884,10 @@ void save_char(struct char_data *ch, int mode)
   /* Save Master of Elements preference */
   BUFFER_WRITE( "PMoE: %d\n",
     ch->player_specials->saved.master_of_elements_type);
+  
+  /* Save Power Strike value */
+  BUFFER_WRITE( "PwSt: %d\n",
+    ch->player_specials->saved.power_strike);
   
   /* Save Persistent Spell cooldown, uses, and active flag */
   BUFFER_WRITE( "PPsS: %ld %d %d\n",

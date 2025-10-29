@@ -188,6 +188,23 @@ void perform_crushingblow(struct char_data *ch)
   act("$n focuses $s Ki, preparing a devastating crushing blow!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
+void perform_shatteringstrike(struct char_data *ch)
+{
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = SKILL_SHATTERING_STRIKE;
+  af.duration = 24;
+
+  affect_to_char(ch, &af);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "You focus your Ki to channel overwhelming force into your next strike!\r\n");
+  act("$n channels devastating Ki energy, preparing a bone-shattering strike!", FALSE, ch, 0, 0, TO_ROOM);
+}
+
 /* rp_surprise_accuracy engine */
 
 /* The surprise-accuracy is reliant on rage */
@@ -6873,6 +6890,99 @@ ACMD(do_crushingblow)
   PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
 
   perform_crushingblow(ch);
+}
+
+ACMDCHECK(can_shatteringstrike)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_perk(ch, PERK_MONK_SHATTERING_STRIKE), "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_SHATTERING_STRIKE), "You have already prepared a shattering strike!\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_shatteringstrike)
+{
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_shatteringstrike);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_shatteringstrike(ch);
+}
+
+/* Power Strike command - monk combat mode */
+ACMD(do_powerstrike)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int value = 0;
+  int max_ranks = 0;
+  
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "Monsters cannot use power strike.\r\n");
+    return;
+  }
+  
+  if (!has_perk(ch, PERK_MONK_POWER_STRIKE))
+  {
+    send_to_char(ch, "You need the power strike perk to use this ability.\r\n");
+    return;
+  }
+  
+  one_argument(argument, arg, sizeof(arg));
+  
+  if (!*arg)
+  {
+    /* Show current status */
+    if (GET_POWER_STRIKE(ch) > 0)
+    {
+      send_to_char(ch, "You are currently using power strike at level %d: -%d to hit, +%d to damage.\r\n",
+                   GET_POWER_STRIKE(ch), GET_POWER_STRIKE(ch), GET_POWER_STRIKE(ch) * 2);
+      send_to_char(ch, "Usage: powerstrike <0-%d> to adjust or turn off.\r\n", 
+                   get_perk_rank(ch, PERK_MONK_POWER_STRIKE, CLASS_MONK));
+    }
+    else
+    {
+      max_ranks = get_perk_rank(ch, PERK_MONK_POWER_STRIKE, CLASS_MONK);
+      send_to_char(ch, "Power strike is currently off.\r\n");
+      send_to_char(ch, "Usage: powerstrike <1-%d> to activate (-1 to hit, +2 damage per rank).\r\n", max_ranks);
+    }
+    return;
+  }
+  
+  if (!is_number(arg))
+  {
+    send_to_char(ch, "You must specify a number between 0 and %d.\r\n",
+                 get_perk_rank(ch, PERK_MONK_POWER_STRIKE, CLASS_MONK));
+    return;
+  }
+  
+  value = atoi(arg);
+  max_ranks = get_perk_rank(ch, PERK_MONK_POWER_STRIKE, CLASS_MONK);
+  
+  if (value < 0)
+  {
+    send_to_char(ch, "The minimum value is 0 (to turn off power strike).\r\n");
+    return;
+  }
+  
+  if (value > max_ranks)
+  {
+    send_to_char(ch, "You can only set power strike up to %d (your perk rank).\r\n", max_ranks);
+    return;
+  }
+  
+  GET_POWER_STRIKE(ch) = value;
+  
+  if (value == 0)
+  {
+    send_to_char(ch, "You stop using power strike.\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "You focus your strikes for maximum impact!\r\n");
+    send_to_char(ch, "Power strike level %d: -%d to hit, +%d to damage on unarmed and monk weapon attacks.\r\n",
+                 value, value, value * 2);
+  }
 }
 
 ACMDCHECK(can_surpriseaccuracy)

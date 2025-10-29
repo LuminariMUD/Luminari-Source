@@ -2734,6 +2734,14 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   if ((pMudEvent = char_has_mud_event(k, eMOONBEAM)))
     send_to_char(ch, "\tRMoonbeam!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
+  /* Power Strike display */
+  if (!IS_NPC(k) && GET_POWER_STRIKE(k) > 0)
+  {
+    int value = GET_POWER_STRIKE(k);
+    send_to_char(ch, "Power Strike (Monk): -%d to hit, +%d to damage on unarmed/monk weapon attacks\r\n", 
+                 value, value * 2);
+  }
+
   if (vampire_last_feeding_adjustment(k) > 0)
     send_to_char(ch, "You have recently fed and receive special bonuses. See HELP RECENTLY FED.\r\n");
   if (vampire_last_feeding_adjustment(k) < 0)

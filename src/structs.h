@@ -6047,6 +6047,9 @@ struct player_special_data_saved
     time_t arcane_recovery_cooldown;            /**< Timestamp until when arcane recovery is available again */
     int spell_shield_timer;                     /**< Rounds remaining for spell shield effect (10 DR + 4 AC) */
     time_t metamagic_reduction_cooldown;        /**< Timestamp until when next metamagic reduction charge regenerates */
+    
+    /* Monk Power Strike mode - separate from power attack */
+    sbyte power_strike;                         /**< Power strike value 0-2: -1 hit/+2 dam per rank for unarmed/monk weapons */
     int metamagic_reduction_uses;               /**< Number of metamagic reduction uses available (max 2) */
 };
 
@@ -7066,5 +7069,8 @@ extern struct race_data race_list[];
 
 #define GET_TALENT_POINTS(ch)    ((ch)->player_specials->saved.talent_points)
 #define PLR_TALENTS(ch, talent)  HAS_TALENT(ch, talent)
+
+/* Monk power strike - separate from power attack mode */
+#define GET_POWER_STRIKE(ch)     ((ch)->player_specials->saved.power_strike)
 #endif
 #endif /* _STRUCTS_H_ */
