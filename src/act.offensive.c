@@ -171,6 +171,23 @@ void perform_stunningfist(struct char_data *ch)
   act("$n's focuses $s Ki, preparing a disabling unarmed attack!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
+void perform_crushingblow(struct char_data *ch)
+{
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = SKILL_CRUSHING_BLOW;
+  af.duration = 24;
+
+  affect_to_char(ch, &af);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "You focus your Ki energies and prepare a devastating crushing blow.\r\n");
+  act("$n focuses $s Ki, preparing a devastating crushing blow!", FALSE, ch, 0, 0, TO_ROOM);
+}
+
 /* rp_surprise_accuracy engine */
 
 /* The surprise-accuracy is reliant on rage */
@@ -6839,6 +6856,23 @@ ACMD(do_stunningfist)
   PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
 
   perform_stunningfist(ch);
+}
+
+ACMDCHECK(can_crushingblow)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_perk(ch, PERK_MONK_CRUSHING_BLOW), "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_CRUSHING_BLOW), "You have already prepared a crushing blow!\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_crushingblow)
+{
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_crushingblow);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_crushingblow(ch);
 }
 
 ACMDCHECK(can_surpriseaccuracy)
