@@ -7893,6 +7893,8 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
       case DR_BYPASS_CAT_MATERIAL:
         if (GET_OBJ_MATERIAL(weapon) == dr->bypass_val[i])
           passed = TRUE;
+        if (dr->bypass_val[i] == MATERIAL_ADAMANTINE && has_perk(ch, PERK_MONK_IMPROVED_UNARMED_STRIKE_III))
+          passed = TRUE;
         break;
       case DR_BYPASS_CAT_ALIGNMENT:
         if (dr->bypass_val[i] == DR_ALIGNTYPE_GOOD)
