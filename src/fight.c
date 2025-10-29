@@ -11028,6 +11028,72 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
           send_to_char(ch, "Your opponent resists the crippling!\r\n");
         }
       }
+      
+      /* Apply Pressure Point Strike if perk active - 5% chance to stun */
+      if (!IS_NPC(ch) && has_monk_pressure_point_strike(ch) && !affected_by_spell(victim, SKILL_PRESSURE_POINT_STRIKE))
+      {
+        /* 5% chance to trigger */
+        if (rand_number(1, 100) <= 5)
+        {
+          int dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
+          int save_result = savingthrow(victim, SAVING_FORT, dc, 0);
+          
+          if (save_result == FALSE)
+          {
+            struct affected_type af;
+            
+            if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
+            {
+            }
+            else
+            {
+              send_to_char(ch, "[PRESSURE-POINT] ");
+            }
+            
+            if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
+            {
+            }
+            else
+            {
+              send_to_char(victim, "[\tRPRESSURE-POINT\tn] ");
+            }
+            
+            act("$n strikes a pressure point on $N!",
+                ACT_CONDENSE_VALUE, ch, NULL, victim, TO_NOTVICT);
+            
+            /* Apply the 1 round stun */
+            if (!char_has_mud_event(victim, eSTUNNED))
+            {
+              attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC);
+            }
+            
+            /* Apply 4 round cooldown on victim to prevent being pressure pointed again */
+            af.spell = SKILL_PRESSURE_POINT_STRIKE;
+            af.duration = 4;
+            af.modifier = 0;
+            af.location = APPLY_NONE;
+            affect_to_char(victim, &af);
+          }
+          else
+          {
+            if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
+            {
+            }
+            else
+            {
+              send_to_char(ch, "[\tRpressure point saved\tn] ");
+            }
+            
+            if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
+            {
+            }
+            else
+            {
+              send_to_char(victim, "[pressure point \tGsaved\tn] ");
+            }
+          }
+        }
+      }
     }
   }
 
