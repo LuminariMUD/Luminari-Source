@@ -238,6 +238,18 @@ void perform_smokebomb(struct char_data *ch)
   call_magic(ch, ch, NULL, SPELL_DARKNESS, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
 }
 
+void perform_shadowwalk(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "You channel your Ki through the shadows, gaining supernatural mobility!\r\n");
+  act("$n channels $s Ki and blends with the shadows, moving with supernatural grace!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, NULL, SPELL_WATERWALK, 0, MONK_STATE(ch), CAST_INNATE);
+  call_magic(ch, ch, NULL, SPELL_SPIDER_CLIMB, 0, MONK_STATE(ch), CAST_INNATE);
+}
+
 /* rp_surprise_accuracy engine */
 
 /* The surprise-accuracy is reliant on rage */
@@ -6988,6 +7000,22 @@ ACMD(do_smokebomb)
   PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
 
   perform_smokebomb(ch);
+}
+
+ACMDCHECK(can_shadowwalk)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_shadow_step_iii(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_shadowwalk)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_shadowwalk);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_shadowwalk(ch);
 }
 
 /* Power Strike command - monk combat mode */

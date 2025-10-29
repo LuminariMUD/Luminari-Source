@@ -4100,6 +4100,122 @@ void define_monk_perks(void)
   perk->effect_value = 0;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Way of the Shadow - Tier 2");
+
+  /* ===== WAY OF THE SHADOW - TIER 3 ===== */
+
+  /* Shadow Step III */
+  perk = &perk_list[PERK_MONK_SHADOW_STEP_III];
+  perk->id = PERK_MONK_SHADOW_STEP_III;
+  perk->name = strdup("Shadow Step III");
+  perk->description = strdup("+15 feet movement, can use stunning fist to cast waterwalk and spider climb");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_SHADOW_STEP_II;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 15;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 3");
+
+  /* Deadly Precision III */
+  perk = &perk_list[PERK_MONK_DEADLY_PRECISION_III];
+  perk->id = PERK_MONK_DEADLY_PRECISION_III;
+  perk->name = strdup("Deadly Precision III");
+  perk->description = strdup("+2d6 sneak attack damage, critical hits with sneak attacks deal +3d6 extra damage");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_DEADLY_PRECISION_II;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 3");
+
+  /* Assassinate */
+  perk = &perk_list[PERK_MONK_ASSASSINATE];
+  perk->id = PERK_MONK_ASSASSINATE;
+  perk->name = strdup("Assassinate");
+  perk->description = strdup("Sneak attacks on stunned or paralyzed foes deal extra 4d6 damage");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_PRESSURE_POINT_STRIKE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 3");
+
+  /* Shadow Fade */
+  perk = &perk_list[PERK_MONK_SHADOW_FADE];
+  perk->id = PERK_MONK_SHADOW_FADE;
+  perk->name = strdup("Shadow Fade");
+  perk->description = strdup("20% concealment miss chance at all times, 50% in dim light or darkness");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_SHADOW_CLONE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 3");
+
+  /* Blinding Speed */
+  perk = &perk_list[PERK_MONK_BLINDING_SPEED];
+  perk->id = PERK_MONK_BLINDING_SPEED;
+  perk->name = strdup("Blinding Speed");
+  perk->description = strdup("Spend a stunning fist use to cast haste");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_SHADOW_STEP_II;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 3");
+
+  /* ===== WAY OF THE SHADOW - TIER 4 ===== */
+
+  /* Shadow Master */
+  perk = &perk_list[PERK_MONK_SHADOW_MASTER];
+  perk->id = PERK_MONK_SHADOW_MASTER;
+  perk->name = strdup("Shadow Master");
+  perk->description = strdup("Gain Hide in Plain Sight ability, +4d6 sneak attack damage, vanishing technique casts greater invisibility");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_SHADOW_FADE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 4 Capstone");
+
+  /* Void Strike */
+  perk = &perk_list[PERK_MONK_VOID_STRIKE];
+  perk->id = PERK_MONK_VOID_STRIKE;
+  perk->name = strdup("Void Strike");
+  perk->description = strdup("Use stunning fist to make attack that ignores all DR and deals +8d6 force damage");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_ASSASSINATE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 8;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Shadow - Tier 4 Capstone");
 }
 
 /* Lookup functions */
@@ -6169,6 +6285,10 @@ int get_monk_shadow_step_bonus(struct char_data *ch)
   /* Shadow Step II: +10 feet per rank (max 2 ranks) */
   bonus += get_perk_rank(ch, PERK_MONK_SHADOW_STEP_II, CLASS_MONK) * 10;
   
+  /* Shadow Step III: +15 feet */
+  if (has_perk(ch, PERK_MONK_SHADOW_STEP_III))
+    bonus += 15;
+  
   return bonus;
 }
 
@@ -6236,6 +6356,14 @@ int get_monk_deadly_precision_dice(struct char_data *ch)
   /* Deadly Precision II: +1d6 per rank (max 2 ranks) */
   dice += get_perk_rank(ch, PERK_MONK_DEADLY_PRECISION_II, CLASS_MONK);
   
+  /* Deadly Precision III: +2d6 */
+  if (has_perk(ch, PERK_MONK_DEADLY_PRECISION_III))
+    dice += 2;
+  
+  /* Shadow Master: +4d6 */
+  if (has_perk(ch, PERK_MONK_SHADOW_MASTER))
+    dice += 4;
+  
   return dice;
 }
 
@@ -6293,6 +6421,126 @@ bool has_monk_pressure_point_strike(struct char_data *ch)
     return FALSE;
   
   return has_perk(ch, PERK_MONK_PRESSURE_POINT_STRIKE);
+}
+
+/**
+ * Check if character has Shadow Step III perk
+ * 
+ * @param ch The character
+ * @return TRUE if has Shadow Step III, FALSE otherwise
+ */
+bool has_monk_shadow_step_iii(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_SHADOW_STEP_III);
+}
+
+/**
+ * Get Deadly Precision III sneak attack bonus
+ * 
+ * @param ch The character
+ * @return Bonus sneak attack dice from Deadly Precision III
+ */
+int get_monk_deadly_precision_iii_dice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Deadly Precision III: +2d6 */
+  if (has_perk(ch, PERK_MONK_DEADLY_PRECISION_III))
+    return 2;
+  
+  return 0;
+}
+
+/**
+ * Get Deadly Precision III critical sneak attack bonus
+ * 
+ * @param ch The character
+ * @return Bonus sneak attack dice on critical hits
+ */
+int get_monk_deadly_precision_iii_crit_dice(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  /* Deadly Precision III: +3d6 on crits */
+  if (has_perk(ch, PERK_MONK_DEADLY_PRECISION_III))
+    return 3;
+  
+  return 0;
+}
+
+/**
+ * Check if character has Assassinate perk
+ * 
+ * @param ch The character
+ * @return TRUE if has Assassinate, FALSE otherwise
+ */
+bool has_monk_assassinate(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_ASSASSINATE);
+}
+
+/**
+ * Check if character has Shadow Fade perk
+ * 
+ * @param ch The character
+ * @return TRUE if has Shadow Fade, FALSE otherwise
+ */
+bool has_monk_shadow_fade(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_SHADOW_FADE);
+}
+
+/**
+ * Check if character has Blinding Speed perk
+ * 
+ * @param ch The character
+ * @return TRUE if has Blinding Speed, FALSE otherwise
+ */
+bool has_monk_blinding_speed(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_BLINDING_SPEED);
+}
+
+/**
+ * Check if character has Shadow Master perk
+ * 
+ * @param ch The character
+ * @return TRUE if has Shadow Master, FALSE otherwise
+ */
+bool has_monk_shadow_master(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_SHADOW_MASTER);
+}
+
+/**
+ * Check if character has Void Strike perk
+ * 
+ * @param ch The character
+ * @return TRUE if has Void Strike, FALSE otherwise
+ */
+bool has_monk_void_strike(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_VOID_STRIKE);
 }
 
 /**

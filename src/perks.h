@@ -262,6 +262,14 @@ bool has_monk_vanishing_technique(struct char_data *ch);
 bool has_monk_shadow_clone(struct char_data *ch);
 bool has_monk_smoke_bomb(struct char_data *ch);
 bool has_monk_pressure_point_strike(struct char_data *ch);
+bool has_monk_shadow_step_iii(struct char_data *ch);
+int get_monk_deadly_precision_iii_dice(struct char_data *ch);
+int get_monk_deadly_precision_iii_crit_dice(struct char_data *ch);
+bool has_monk_assassinate(struct char_data *ch);
+bool has_monk_shadow_fade(struct char_data *ch);
+bool has_monk_blinding_speed(struct char_data *ch);
+bool has_monk_shadow_master(struct char_data *ch);
+bool has_monk_void_strike(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
