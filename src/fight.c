@@ -11640,7 +11640,24 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL))
     {
       if (same_room)
+      {
+        /* Activate spell shield if being attacked by non-group member and non-charmie */
+        if (!IS_NPC(victim) && has_perk(victim, PERK_WIZARD_SPELL_SHIELD))
+        {
+          bool is_enemy = TRUE;
+          /* Check if attacker is a group member */
+          if (GROUP(ch) && GROUP(victim) && GROUP(ch) == GROUP(victim))
+            is_enemy = FALSE;
+          /* Check if attacker is victim's charmie */
+          if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master == victim)
+            is_enemy = FALSE;
+          
+          if (is_enemy)
+            activate_spell_shield(victim);
+        }
+        
         set_fighting(victim, ch); /* Start fighting in the other direction. */
+      }
       if (MOB_FLAGGED(victim, MOB_MEMORY) && !IS_NPC(ch))
         remember(victim, ch); /* If I am a mob with memory, remember the bastard. */
     }
