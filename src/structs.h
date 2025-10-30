@@ -6072,6 +6072,7 @@ struct player_special_data_saved
     int defensive_casting_timer;                /**< Rounds remaining for defensive casting AC bonus */
     time_t arcane_recovery_cooldown;            /**< Timestamp until when arcane recovery is available again */
     int spell_shield_timer;                     /**< Rounds remaining for spell shield effect (10 DR + 4 AC) */
+    time_t spell_shield_cooldown;               /**< Timestamp until when spell shield can be activated again (2 min cooldown) */
     time_t metamagic_reduction_cooldown;        /**< Timestamp until when next metamagic reduction charge regenerates */
     
     /* Monk Power Strike mode - separate from power attack */

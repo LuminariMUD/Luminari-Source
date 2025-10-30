@@ -2763,6 +2763,7 @@ void set_eidolon_descs(struct char_data *ch);
 #define GET_DEFENSIVE_CASTING_TIMER(ch)  ((ch)->player_specials->saved.defensive_casting_timer)
 #define GET_ARCANE_RECOVERY_COOLDOWN(ch)  ((ch)->player_specials->saved.arcane_recovery_cooldown)
 #define GET_SPELL_SHIELD_TIMER(ch)  ((ch)->player_specials->saved.spell_shield_timer)
+#define GET_SPELL_SHIELD_COOLDOWN(ch)  ((ch)->player_specials->saved.spell_shield_cooldown)
 bool has_reach(struct char_data *ch);
 
 #define WEAPON_SPELL_PROC(ch) (ch->player.weaponSpellProc)

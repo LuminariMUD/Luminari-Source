@@ -9052,13 +9052,25 @@ bool check_spell_slot_preservation(struct char_data *ch)
  */
 void activate_spell_shield(struct char_data *ch)
 {
+  time_t current_time;
+  
   if (!ch || IS_NPC(ch))
     return;
   
   if (!has_perk(ch, PERK_WIZARD_SPELL_SHIELD))
     return;
   
+  /* Check if spell shield is on cooldown (2 minutes = 120 seconds) */
+  current_time = time(0);
+  if (GET_SPELL_SHIELD_COOLDOWN(ch) > current_time)
+    return; /* Still on cooldown, don't activate */
+  
+  /* Activate the spell shield */
   GET_SPELL_SHIELD_TIMER(ch) = 1;
+  
+  /* Set cooldown to 2 minutes from now */
+  GET_SPELL_SHIELD_COOLDOWN(ch) = current_time + 120;
+  
   send_to_char(ch, "\tCAn arcane shield springs into being around you!\tn\r\n");
 }
 
