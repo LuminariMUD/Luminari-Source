@@ -2271,6 +2271,28 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
                  k->player_specials->saved.spell_shield_timer == 1 ? "" : "s");
   }
   
+  /* Spell Shield cooldown */
+  if (!IS_NPC(k) && k->player_specials->saved.spell_shield_cooldown > time(0))
+  {
+    int remaining = (int)(k->player_specials->saved.spell_shield_cooldown - time(0));
+    send_to_char(ch, "Spell Shield Cooldown  - Duration: %d seconds\r\n", remaining);
+  }
+  
+  /* Monk Void Strike - show if active */
+  if (!IS_NPC(k) && k->player_specials->saved.void_strike_timer > 0)
+  {
+    send_to_char(ch, "\tMVoid Strike Active\tn - Next attack: +8d6 force, ignores DR for %d round%s\r\n",
+                 k->player_specials->saved.void_strike_timer,
+                 k->player_specials->saved.void_strike_timer == 1 ? "" : "s");
+  }
+  
+  /* Void Strike cooldown */
+  if (!IS_NPC(k) && k->player_specials->saved.void_strike_cooldown > time(0))
+  {
+    int remaining = (int)(k->player_specials->saved.void_strike_cooldown - time(0));
+    send_to_char(ch, "Void Strike Cooldown  - Duration: %d seconds\r\n", remaining);
+  }
+  
   /* Arcane Recovery cooldown */
   if (!IS_NPC(k) && k->player_specials->saved.arcane_recovery_cooldown > time(0))
   {

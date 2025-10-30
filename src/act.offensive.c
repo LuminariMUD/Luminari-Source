@@ -205,15 +205,23 @@ void perform_shatteringstrike(struct char_data *ch)
   act("$n channels devastating Ki energy, preparing a bone-shattering strike!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
-void perform_vanishingtechnique(struct char_data *ch)
+void perform_vanishingtechnique(struct char_data *ch, int spell_num)
 {
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 
-  send_to_char(ch, "You focus your Ki and fade from sight!\r\n");
-  act("$n focuses $s Ki and vanishes into shadow!", FALSE, ch, 0, 0, TO_ROOM);
+  if (spell_num == SPELL_GREATER_INVIS)
+  {
+    send_to_char(ch, "You focus your Ki and completely fade from existence!\r\n");
+    act("$n focuses $s Ki and completely vanishes from sight!", FALSE, ch, 0, 0, TO_ROOM);
+  }
+  else
+  {
+    send_to_char(ch, "You focus your Ki and fade from sight!\r\n");
+    act("$n focuses $s Ki and vanishes into shadow!", FALSE, ch, 0, 0, TO_ROOM);
+  }
   
-  call_magic(ch, ch, NULL, SPELL_INVISIBLE, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+  call_magic(ch, ch, NULL, spell_num, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
 }
 
 void perform_shadowclone(struct char_data *ch)
@@ -246,8 +254,32 @@ void perform_shadowwalk(struct char_data *ch)
   send_to_char(ch, "You channel your Ki through the shadows, gaining supernatural mobility!\r\n");
   act("$n channels $s Ki and blends with the shadows, moving with supernatural grace!", FALSE, ch, 0, 0, TO_ROOM);
   
-  call_magic(ch, ch, NULL, SPELL_WATERWALK, 0, MONK_STATE(ch), CAST_INNATE);
-  call_magic(ch, ch, NULL, SPELL_SPIDER_CLIMB, 0, MONK_STATE(ch), CAST_INNATE);
+  call_magic(ch, ch, NULL, SPELL_WATERWALK, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+  call_magic(ch, ch, NULL, SPELL_SPIDER_CLIMB, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+}
+
+void perform_blinding_speed(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "You focus your Ki, moving with blinding speed!\r\n");
+  act("$n focuses $s Ki and begins moving with blinding speed!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, NULL, SPELL_HASTE, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+}
+
+void perform_voidstrike(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+  {
+    GET_VOID_STRIKE_COOLDOWN(ch) = time(0) + 60; /* 1 minute cooldown */
+  }
+
+  GET_VOID_STRIKE_TIMER(ch) = 1; /* Lasts 1 round - affects next attack */
+
+  send_to_char(ch, "You channel your Ki into the void, preparing a devastating strike!\r\n");
+  act("$n's fist crackles with dark energy as $e channels the void!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
 /* rp_surprise_accuracy engine */
@@ -6962,12 +6994,34 @@ ACMDCHECK(can_vanishingtechnique)
 
 ACMD(do_vanishingtechnique)
 {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int spell_num = SPELL_INVISIBLE;
 
   PREREQ_NOT_NPC();
   PREREQ_CHECK(can_vanishingtechnique);
   PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
 
-  perform_vanishingtechnique(ch);
+  one_argument(argument, arg, sizeof(arg));
+
+  if (*arg)
+  {
+    if (is_abbrev(arg, "greater"))
+    {
+      if (!has_monk_shadow_master(ch))
+      {
+        send_to_char(ch, "You need the Shadow Master perk to use greater invisibility.\r\n");
+        return;
+      }
+      spell_num = SPELL_GREATER_INVIS;
+    }
+    else if (!is_abbrev(arg, "invisibility"))
+    {
+      send_to_char(ch, "Usage: vanishingtechnique [invisibility|greater]\r\n");
+      return;
+    }
+  }
+
+  perform_vanishingtechnique(ch, spell_num);
 }
 
 ACMDCHECK(can_shadowclone)
@@ -7016,6 +7070,47 @@ ACMD(do_shadowwalk)
   PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
 
   perform_shadowwalk(ch);
+}
+
+ACMDCHECK(can_blinding_speed)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_blinding_speed(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_blinding_speed)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_blinding_speed);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_blinding_speed(ch);
+}
+
+ACMDCHECK(can_voidstrike)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_void_strike(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_voidstrike)
+{
+  time_t current_time = time(0);
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_voidstrike);
+
+  /* Check cooldown */
+  if (GET_VOID_STRIKE_COOLDOWN(ch) > current_time)
+  {
+    int seconds = (int)(GET_VOID_STRIKE_COOLDOWN(ch) - current_time);
+    send_to_char(ch, "You must wait %d second%s before using void strike again.\r\n",
+                 seconds, seconds == 1 ? "" : "s");
+    return;
+  }
+
+  perform_voidstrike(ch);
 }
 
 /* Power Strike command - monk combat mode */
