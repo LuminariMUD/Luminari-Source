@@ -1415,6 +1415,22 @@ int load_char(const char *name, struct char_data *ch)
             ch->player_specials->saved.spell_shield_cooldown = (time_t)timestamp;
           }
         }
+        else if (!strcmp(tag, "PVSt"))
+        {
+          int timer;
+          if (sscanf(line, "%d", &timer) == 1)
+          {
+            ch->player_specials->saved.void_strike_timer = timer;
+          }
+        }
+        else if (!strcmp(tag, "PVSc"))
+        {
+          long timestamp;
+          if (sscanf(line, "%ld", &timestamp) == 1)
+          {
+            ch->player_specials->saved.void_strike_cooldown = (time_t)timestamp;
+          }
+        }
         else if (!strcmp(tag, "PMRd"))
         {
           long timestamp;
@@ -2928,6 +2944,17 @@ void save_char(struct char_data *ch, int mode)
   /* Save Spell Shield cooldown */
   BUFFER_WRITE( "PSSc: %ld\n",
     (long)ch->player_specials->saved.spell_shield_cooldown);
+  
+  /* Save Void Strike timer */
+  if (ch->player_specials->saved.void_strike_timer > 0)
+  {
+    BUFFER_WRITE( "PVSt: %d\n",
+      ch->player_specials->saved.void_strike_timer);
+  }
+  
+  /* Save Void Strike cooldown */
+  BUFFER_WRITE( "PVSc: %ld\n",
+    (long)ch->player_specials->saved.void_strike_cooldown);
   
   /* Save Metamagic Reduction cooldown and uses */
   BUFFER_WRITE( "PMRd: %ld %d\n",

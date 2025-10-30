@@ -4286,6 +4286,11 @@ int compute_concealment(struct char_data *ch, struct char_data *attacker)
   if (HAS_FEAT(ch, FEAT_SELF_CONCEALMENT))
     concealment += HAS_FEAT(ch, FEAT_SELF_CONCEALMENT) * 10;
 
+  if (has_perk(ch, PERK_MONK_SHADOW_FADE))
+  {
+    concealment += 20;
+  }
+
   // concealment cap is 50% normally
   concealment_cap = MIN(MAX_CONCEAL, concealment);
 
@@ -10507,6 +10512,16 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     affect_from_char(ch, SKILL_CRUSHING_BLOW);
     crushing_blow_bonus = dice(4, 6);
   }
+  int void_strike_bonus = 0;
+  if (!IS_NPC(ch) && GET_VOID_STRIKE_TIMER(ch) > 0)
+  {
+    if (!PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+      send_to_char(ch, "[\tMVOID_STRIKE\tn] ");
+    }
+    void_strike_bonus = dice(8, 6);
+    GET_VOID_STRIKE_TIMER(ch) = 0; /* Consumed on use */
+  }
   int shattering_strike_bonus = 0;
   if (affected_by_spell(ch, SKILL_SHATTERING_STRIKE))
   {
@@ -11111,11 +11126,54 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     dam += 2;
   dam += powerful_blow_bonus; /* ornir is going to yell at me for this :p  -zusuk */
   dam += crushing_blow_bonus; /* monk crushing blow +4d6 damage */
+  dam += void_strike_bonus; /* monk void strike +8d6 force damage */
   dam += shattering_strike_bonus; /* monk shattering strike +8d8 damage */
 
   /* This comes after computing the other damage since sneak attack damage
    * is not affected by crit multipliers. */
   dam += sneakdam;
+  
+  /* Monk Deadly Precision III: Add bonus critical damage on sneak attack crits */
+  if (is_critical && sneakdam > 0 && !IS_NPC(ch))
+  {
+    int crit_bonus = get_monk_deadly_precision_iii_crit_dice(ch);
+    if (crit_bonus > 0)
+    {
+      int crit_dam = dice(crit_bonus, 6);
+      dam += crit_dam;
+      
+      if (!PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+        send_to_char(ch, "\tW[DEADLY-PRECISION-CRIT]\tn ");
+      }
+      if (!IS_NPC(victim) && !PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+        send_to_char(victim, "\tR[DEADLY-PRECISION-CRIT]\tn ");
+      }
+    }
+  }
+
+  /* Monk Assassinate: Add bonus damage vs stunned/paralyzed targets */
+  if (!IS_NPC(ch) && has_monk_assassinate(ch))
+  {
+    if (char_has_mud_event(victim, eSTUNNED) || 
+        AFF_FLAGGED(victim, AFF_STUN) || 
+        AFF_FLAGGED(victim, AFF_PARALYZED) ||
+        AFF_FLAGGED(victim, AFF_DAZED))
+    {
+      int assassinate_dam = dice(4, 6);
+      dam += assassinate_dam;
+      
+      if (!PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+        send_to_char(ch, "\tW[ASSASSINATE]\tn ");
+      }
+      if (!IS_NPC(victim) && !PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+        send_to_char(victim, "\tR[ASSASSINATE]\tn ");
+      }
+    }
+  }
 
   /* We hit with a ranged weapon, victim gets a new arrow, stuck neatly in his butt. */
   if (attack_type == ATTACK_TYPE_RANGED)
@@ -11131,9 +11189,12 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if ((dam = handle_warding(ch, victim, dam)) == -1)
     return (HIT_MISS);
 
-  /* Apply Damage Reduction */
-  if ((dam = apply_damage_reduction(ch, victim, wielded, dam, FALSE)) == -1)
-    return (HIT_MISS); /* This should be changed to something more reasonable */
+  /* Apply Damage Reduction - void strike ignores DR */
+  if (void_strike_bonus == 0)
+  {
+    if ((dam = apply_damage_reduction(ch, victim, wielded, dam, FALSE)) == -1)
+      return (HIT_MISS); /* This should be changed to something more reasonable */
+  }
 
   /* ok we are about to do damage() so here we are adding a special counter-attack
                for berserkers that is suppose to fire BEFORE damage is done to vict */

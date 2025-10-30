@@ -6077,6 +6077,8 @@ struct player_special_data_saved
     
     /* Monk Power Strike mode - separate from power attack */
     sbyte power_strike;                         /**< Power strike value 0-2: -1 hit/+2 dam per rank for unarmed/monk weapons */
+    int void_strike_timer;                      /**< Rounds remaining for void strike effect (+8d6 force, ignores DR) */
+    time_t void_strike_cooldown;                /**< Timestamp until when void strike can be used again (1 min cooldown) */
     int metamagic_reduction_uses;               /**< Number of metamagic reduction uses available (max 2) */
 };
 
