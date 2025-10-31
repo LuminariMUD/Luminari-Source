@@ -3711,7 +3711,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_MEDITATION_FOCUS_I];
   perk->id = PERK_MONK_MEDITATION_FOCUS_I;
   perk->name = strdup("Meditation Focus I");
-  perk->description = strdup("+1 GP regen per rank and 1 extra stunning fist use per rank");
+  perk->description = strdup("+1 GP regen per rank and 1 extra ki point per rank");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 1;
@@ -3859,7 +3859,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_CRUSHING_BLOW];
   perk->id = PERK_MONK_CRUSHING_BLOW;
   perk->name = strdup("Crushing Blow");
-  perk->description = strdup("Use a stunning fist use to make a crushing blow attack dealing +4d6 damage and ignoring 10 DR");
+  perk->description = strdup("Use a ki point to make a crushing blow attack dealing +4d6 damage and ignoring 10 DR");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 3;
@@ -3925,7 +3925,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_SHATTERING_STRIKE];
   perk->id = PERK_MONK_SHATTERING_STRIKE;
   perk->name = strdup("Shattering Strike");
-  perk->description = strdup("Use a stunning fist use to deal +8d8 damage on next unarmed attack");
+  perk->description = strdup("Use a ki point to deal +8d8 damage on next unarmed attack");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_IRON_BODY;
   perk->cost = 5;
@@ -4025,7 +4025,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_VANISHING_TECHNIQUE];
   perk->id = PERK_MONK_VANISHING_TECHNIQUE;
   perk->name = strdup("Vanishing Technique");
-  perk->description = strdup("Spend a stunning fist use to cast invisibility on self");
+  perk->description = strdup("Spend a ki point to cast invisibility on self");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 2;
@@ -4057,7 +4057,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_SHADOW_CLONE];
   perk->id = PERK_MONK_SHADOW_CLONE;
   perk->name = strdup("Shadow Clone");
-  perk->description = strdup("Spend a stunning fist use to cast mirror image");
+  perk->description = strdup("Spend a ki point to cast mirror image");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 2;
@@ -4089,7 +4089,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_SMOKE_BOMB];
   perk->id = PERK_MONK_SMOKE_BOMB;
   perk->name = strdup("Smoke Bomb");
-  perk->description = strdup("Spend a stunning fist use to cast darkness");
+  perk->description = strdup("Spend a ki point to cast darkness");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 2;
@@ -4107,7 +4107,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_SHADOW_STEP_III];
   perk->id = PERK_MONK_SHADOW_STEP_III;
   perk->name = strdup("Shadow Step III");
-  perk->description = strdup("+15 feet movement, can use stunning fist to cast waterwalk and spider climb");
+  perk->description = strdup("+15 feet movement, can use ki point to cast waterwalk and spider climb");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 3;
@@ -4171,7 +4171,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_BLINDING_SPEED];
   perk->id = PERK_MONK_BLINDING_SPEED;
   perk->name = strdup("Blinding Speed");
-  perk->description = strdup("Spend a stunning fist use to cast haste");
+  perk->description = strdup("Spend a ki point to cast haste");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 3;
@@ -4205,7 +4205,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_VOID_STRIKE];
   perk->id = PERK_MONK_VOID_STRIKE;
   perk->name = strdup("Void Strike");
-  perk->description = strdup("Use stunning fist to make attack that ignores all DR and deals +8d6 force damage");
+  perk->description = strdup("Use ki point to make attack that ignores all DR and deals +8d6 force damage");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_SHADOW;
   perk->cost = 5;
@@ -4241,7 +4241,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_FANGS_OF_FIRE_SNAKE];
   perk->id = PERK_MONK_FANGS_OF_FIRE_SNAKE;
   perk->name = strdup("Fangs of the Fire Snake");
-  perk->description = strdup("Spend a stunning fist use to gain flaming attacks of +1d6 fire damage on unarmed strikes");
+  perk->description = strdup("Spend a ki point to gain flaming attacks of +1d6 fire damage on unarmed strikes");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 1;
@@ -4257,7 +4257,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_WATER_WHIP];
   perk->id = PERK_MONK_WATER_WHIP;
   perk->name = strdup("Water Whip");
-  perk->description = strdup("Spend 1 stunning fist use to deal 3d6 damage and entangle the enemy");
+  perk->description = strdup("Spend 1 ki point to deal 3d6 damage and entangle the enemy");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 1;
@@ -4273,7 +4273,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_GONG_OF_SUMMIT];
   perk->id = PERK_MONK_GONG_OF_SUMMIT;
   perk->name = strdup("Gong of the Summit");
-  perk->description = strdup("Spend 1 stunning fist use to emit thunder wave dealing 3d6 sound damage and deafening the target");
+  perk->description = strdup("Spend 1 ki point to emit thunder wave dealing 3d6 sound damage and deafening the target");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 1;
@@ -4289,7 +4289,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_FIST_OF_UNBROKEN_AIR];
   perk->id = PERK_MONK_FIST_OF_UNBROKEN_AIR;
   perk->name = strdup("Fist of Unbroken Air");
-  perk->description = strdup("Spend 1 stunning fist use to create force blast (30 ft per rank, deals 2d6+2 per rank force damage)");
+  perk->description = strdup("Spend 1 ki point to create force blast (30 ft per rank, deals 2d6+2 per rank force damage)");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 1;
@@ -4323,7 +4323,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_ELEMENTAL_ATTUNEMENT_II];
   perk->id = PERK_MONK_ELEMENTAL_ATTUNEMENT_II;
   perk->name = strdup("Elemental Attunement II");
-  perk->description = strdup("+2 to saves vs elemental damage per rank, +1 stunning fist use per rank");
+  perk->description = strdup("+2 to saves vs elemental damage per rank, +1 ki point per rank");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 2;
@@ -9860,10 +9860,10 @@ int get_monk_hp_regen_bonus(struct char_data *ch)
 }
 
 /**
- * Get bonus stunning fist uses from monk perks.
+ * Get bonus ki points from monk perks.
  * 
  * @param ch The character
- * @return Bonus stunning fist uses
+ * @return Bonus ki points
  */
 int get_monk_stunning_fist_bonus_uses(struct char_data *ch)
 {

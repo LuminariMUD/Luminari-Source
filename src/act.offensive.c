@@ -7108,7 +7108,7 @@ ACMDCHECK(can_voidstrike)
 ACMDCHECK(can_firesnake)
 {
   ACMDCHECK_PERMFAIL_IF(!has_monk_fangs_of_fire_snake(ch), "You have no idea how.\r\n");
-  ACMDCHECK_TEMPFAIL_IF(daily_uses_remaining(ch, FEAT_STUNNING_FIST) == 0, "You are out of stunning fist uses.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(daily_uses_remaining(ch, FEAT_STUNNING_FIST) == 0, "You are out of ki points.\r\n");
   return CAN_CMD;
 }
 
