@@ -282,6 +282,17 @@ void perform_voidstrike(struct char_data *ch)
   act("$n's fist crackles with dark energy as $e channels the void!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
+void perform_firesnake(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  GET_FIRESNAKE_TIMER(ch) = 10; /* Lasts 1 minute (10 rounds) */
+
+  send_to_char(ch, "\tRYou channel your Ki, igniting flames along your strikes!\tn\r\n");
+  act("\tR$n's attacks burst into flames as $e channels elemental fire!\tn", FALSE, ch, 0, 0, TO_ROOM);
+}
+
 /* rp_surprise_accuracy engine */
 
 /* The surprise-accuracy is reliant on rage */
@@ -7094,6 +7105,13 @@ ACMDCHECK(can_voidstrike)
   return CAN_CMD;
 }
 
+ACMDCHECK(can_firesnake)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_fangs_of_fire_snake(ch), "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(daily_uses_remaining(ch, FEAT_STUNNING_FIST) == 0, "You are out of stunning fist uses.\r\n");
+  return CAN_CMD;
+}
+
 ACMD(do_voidstrike)
 {
   time_t current_time = time(0);
@@ -7111,6 +7129,14 @@ ACMD(do_voidstrike)
   }
 
   perform_voidstrike(ch);
+}
+
+ACMD(do_firesnake)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_firesnake);
+
+  perform_firesnake(ch);
 }
 
 /* Power Strike command - monk combat mode */

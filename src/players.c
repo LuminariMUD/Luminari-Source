@@ -1431,6 +1431,14 @@ int load_char(const char *name, struct char_data *ch)
             ch->player_specials->saved.void_strike_cooldown = (time_t)timestamp;
           }
         }
+        else if (!strcmp(tag, "PFSt"))
+        {
+          int timer;
+          if (sscanf(line, "%d", &timer) == 1)
+          {
+            ch->player_specials->saved.firesnake_timer = timer;
+          }
+        }
         else if (!strcmp(tag, "PMRd"))
         {
           long timestamp;
@@ -2955,6 +2963,13 @@ void save_char(struct char_data *ch, int mode)
   /* Save Void Strike cooldown */
   BUFFER_WRITE( "PVSc: %ld\n",
     (long)ch->player_specials->saved.void_strike_cooldown);
+  
+  /* Save Firesnake timer */
+  if (ch->player_specials->saved.firesnake_timer > 0)
+  {
+    BUFFER_WRITE( "PFSt: %d\n",
+      ch->player_specials->saved.firesnake_timer);
+  }
   
   /* Save Metamagic Reduction cooldown and uses */
   BUFFER_WRITE( "PMRd: %ld %d\n",

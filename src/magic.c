@@ -2933,6 +2933,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (element == DAM_POISON)
     race_bonus += get_poison_save_mod(ch, victim);
 
+  /* Elemental Attunement I - bonus to saves vs elemental damage */
+  if (!IS_NPC(victim) && (element == DAM_FIRE || element == DAM_COLD || element == DAM_ACID || element == DAM_ELECTRIC))
+  {
+    int elemental_attunement_rank = get_monk_elemental_attunement_i_rank(victim);
+    race_bonus += elemental_attunement_rank;
+  }
+
   if (is_spell_mind_affecting(spellnum))
   {
     if (victim && HAS_REAL_FEAT(victim, FEAT_STUBBORN_MIND))

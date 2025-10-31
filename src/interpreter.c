@@ -926,6 +926,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shadowwalk", "shadoww", POS_STANDING, do_shadowwalk, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_shadowwalk},
     {"blindingspeed", "blindings", POS_STANDING, do_blinding_speed, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_blinding_speed},
     {"voidstrike", "voidstrike", POS_STANDING, do_voidstrike, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_voidstrike},
+    {"firesnake", "firesnake", POS_STANDING, do_firesnake, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_firesnake},
     {"study", "study", POS_RECLINING, do_study, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sunder", "sunder", POS_FIGHTING, do_process_attack, 1, AA_SUNDER, FALSE, ACTION_STANDARD, {0, 0}, can_sunder},
     {"strength", "strength", POS_FIGHTING, do_strength, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},

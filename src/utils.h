@@ -2766,6 +2766,7 @@ void set_eidolon_descs(struct char_data *ch);
 #define GET_SPELL_SHIELD_COOLDOWN(ch)  ((ch)->player_specials->saved.spell_shield_cooldown)
 #define GET_VOID_STRIKE_TIMER(ch)  ((ch)->player_specials->saved.void_strike_timer)
 #define GET_VOID_STRIKE_COOLDOWN(ch)  ((ch)->player_specials->saved.void_strike_cooldown)
+#define GET_FIRESNAKE_TIMER(ch)  ((ch)->player_specials->saved.firesnake_timer)
 bool has_reach(struct char_data *ch);
 
 #define WEAPON_SPELL_PROC(ch) (ch->player.weaponSpellProc)

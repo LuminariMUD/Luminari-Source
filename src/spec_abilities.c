@@ -386,6 +386,15 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
   {
     damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
   }
+  //  Monk firesnake (Fangs of the Fire Snake)
+  else if (!IS_NPC(ch) && GET_FIRESNAKE_TIMER(ch) > 0)
+  {
+    if (!PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+      send_to_char(ch, "[\tRFIRESNAKE\tn] ");
+    }
+    damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+  }
 
   //  Paladin divine bond
   if (victim && HAS_FEAT(ch, FEAT_DIVINE_BOND))
