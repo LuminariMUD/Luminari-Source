@@ -10268,6 +10268,12 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
     affect_from_char(ch, SKILL_SHATTERING_STRIKE);
   }
 
+  if (affected_by_spell(ch, SKILL_WATER_WHIP))
+  {
+    send_to_char(ch, "You fail to land your water whip strike!  ");
+    affect_from_char(ch, SKILL_WATER_WHIP);
+  }
+
   /* Display the flavorful backstab miss messages. This should be changed so we can
    * get rid of the SKILL_ defined (and convert abilities to skills :))
    * it should be noted that it displays miss messages based on weapon-types as well */
@@ -10847,6 +10853,63 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
       /* ok, now remove death arrow */
       affect_from_char(ch, SKILL_DEATH_ARROW);
+    }
+  }
+
+  /* Water Whip - monk elemental attack */
+  if (affected_by_spell(ch, SKILL_WATER_WHIP))
+  {
+    if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || is_monk_weapon(wielded))
+    {
+      int water_whip_dc = 10 + GET_WIS_BONUS(ch) + (CLASS_LEVEL(ch, CLASS_MONK) / 2);
+      int water_dam = dice(3, 6);
+
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "[\tBWATER-WHIP\tn] ");
+      }
+
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "[\tBWATER-WHIP\tn] ");
+      }
+
+      act("\tB$n's attack releases a surge of water that strikes $N!\tn",
+          ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
+
+      /* Add water damage */
+      dam += water_dam;
+
+      /* Reflex save to avoid entangle */
+      if (victim && !savingthrow(victim, SAVING_REFL, 0, water_whip_dc))
+      {
+        struct affected_type af_entangle;
+        
+        /* Failed save - apply entangle */
+        send_to_char(victim, "\tBThe water wraps around you, entangling your movements!\tn\r\n");
+        act("\tBThe water wraps around $N, entangling $M!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+
+        new_affect(&af_entangle);
+        af_entangle.spell = SPELL_ENTANGLE;
+        af_entangle.duration = 3; /* 3 rounds */
+        af_entangle.location = APPLY_AC;
+        af_entangle.modifier = -2;
+        SET_BIT_AR(af_entangle.bitvector, AFF_ENTANGLED);
+        affect_join(victim, &af_entangle, FALSE, FALSE, FALSE, FALSE);
+      }
+      else
+      {
+        send_to_char(victim, "You deftly avoid being entangled by the water!\r\n");
+      }
+
+      /* Remove the water whip affect */
+      affect_from_char(ch, SKILL_WATER_WHIP);
     }
   }
 

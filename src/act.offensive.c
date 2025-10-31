@@ -11755,6 +11755,42 @@ ACMD(do_gloryscall)
   USE_SWIFT_ACTION(ch);
 }
 
+/* Water Whip - Monk Four Elements perk ability */
+/* Prepares your next unarmed attack to deal bonus water damage and potentially entangle */
+
+void perform_waterwhip(struct char_data *ch)
+{
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = SKILL_WATER_WHIP;
+  af.duration = 24; /* Lasts 24 rounds or until used */
+
+  affect_to_char(ch, &af);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "\tBYou focus your Ki and conjure water around your fists, preparing a water whip strike.\tn\r\n");
+  act("\tB$n's fists begin to shimmer with flowing water!\tn", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+ACMDCHECK(can_waterwhip)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_perk(ch, PERK_MONK_WATER_WHIP), "You don't know how to use the Water Whip technique.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_WATER_WHIP), "You have already prepared a water whip strike!\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_waterwhip)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_waterwhip);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_waterwhip(ch);
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS

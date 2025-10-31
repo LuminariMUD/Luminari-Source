@@ -1115,9 +1115,10 @@
 
 /* Monk perk skills */
 #define SKILL_PRESSURE_POINT_STRIKE 2202
+#define SKILL_WATER_WHIP 2203 // Way of Four Elements - water whip attack
 
 /* New skills may be added above here, up to MAX_SKILLS (3000) */
-#define NUM_SKILLS 2203
+#define NUM_SKILLS 2204
 
 /* Special Abilities for weapons */
 
