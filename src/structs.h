@@ -3437,11 +3437,11 @@
 #define PERK_MONK_FISTS_OF_IRON 501              /* Bypasses 2 DR */
 #define PERK_MONK_LIGHTNING_REFLEXES_I 502       /* +1 Reflex save per rank, max 3 */
 #define PERK_MONK_SWEEPING_STRIKE 503            /* +2 trip bonus, can trip during flurry */
-#define PERK_MONK_MEDITATION_FOCUS_I 504         /* +1 GP regen, +1 stunning fist use per rank, max 3 */
+#define PERK_MONK_MEDITATION_FOCUS_I 504         /* +1 GP regen, +1 ki point per rank, max 3 */
 
 /* TREE 1: PATH OF THE IRON FIST - Tier 2 Perks (505-510) */
 #define PERK_MONK_IMPROVED_UNARMED_STRIKE_II 505 /* +1 unarmed damage per rank, lawful attacks, max 3 */
-#define PERK_MONK_STUNNING_FIST_ENHANCEMENT 506  /* +2 stunning fist DC, +1 round duration */
+#define PERK_MONK_STUNNING_FIST_ENHANCEMENT 506  /* +2 stunning fis DC, +1 round duration */
 #define PERK_MONK_IMPROVED_CRITICAL_UNARMED 507  /* 19-20 crit range */
 #define PERK_MONK_TIGER_CLAW 508                 /* +2 damage, bleeding 1d4 for 3 rounds */
 #define PERK_MONK_ONE_WITH_WOOD_AND_STONE 509    /* Can use quarterstaff/kama with monk abilities, +1 AC */
@@ -3450,13 +3450,13 @@
 /* TREE 1: PATH OF THE IRON FIST - Tier 3 Perks (511-516) */
 #define PERK_MONK_IMPROVED_UNARMED_STRIKE_III 511 /* +2 unarmed damage per rank, adamantine attacks, max 2 */
 #define PERK_MONK_FISTS_OF_FURY 512               /* Increases Flurry Focus extra attack to 20% */
-#define PERK_MONK_CRUSHING_BLOW 513               /* Stunning fist use for +4d6 damage, ignores 10 DR */
+#define PERK_MONK_CRUSHING_BLOW 513               /* Ki point for +4d6 damage, ignores 10 DR */
 #define PERK_MONK_IMPROVED_CRITICAL_UNARMED_II 514 /* 18-20 crit range */
 #define PERK_MONK_POWER_STRIKE 515                /* -1 to hit for +3 damage per rank, max 2 */
 
 /* TREE 1: PATH OF THE IRON FIST - Tier 4 Capstone Perks (516-517) */
 #define PERK_MONK_LEGENDARY_FIST 516              /* +2d6 damage, crit multiplier x3 */
-#define PERK_MONK_SHATTERING_STRIKE 517           /* Stunning fist use for +8d8 damage */
+#define PERK_MONK_SHATTERING_STRIKE 517           /* Ki point for +8d8 damage */
 
 /* TREE 2: WAY OF THE SHADOW - Tier 1 Perks (518-524) */
 #define PERK_MONK_SHADOW_STEP_I 518               /* +5 feet movement per rank (max 3) */
@@ -3466,18 +3466,18 @@
 
 /* TREE 2: WAY OF THE SHADOW - Tier 2 Perks (525-530) */
 #define PERK_MONK_SHADOW_STEP_II 525              /* +10 feet movement per rank (max 2) */
-#define PERK_MONK_VANISHING_TECHNIQUE 526         /* Stunning fist use to cast invisibility */
+#define PERK_MONK_VANISHING_TECHNIQUE 526         /* Ki point to cast invisibility */
 #define PERK_MONK_DEADLY_PRECISION_II 527         /* +1d6 sneak attack per rank (max 2) */
-#define PERK_MONK_SHADOW_CLONE 528                /* Stunning fist use to cast mirror image */
+#define PERK_MONK_SHADOW_CLONE 528                /* Ki point to cast mirror image */
 #define PERK_MONK_PRESSURE_POINT_STRIKE 529       /* 5% stun chance on sneak attacks */
-#define PERK_MONK_SMOKE_BOMB 530                  /* Stunning fist use to cast darkness */
+#define PERK_MONK_SMOKE_BOMB 530                  /* Ki point to cast darkness */
 
 /* TREE 2: WAY OF THE SHADOW - Tier 3 Perks (531-535) */
-#define PERK_MONK_SHADOW_STEP_III 531             /* +15 feet movement, stunning fist for waterwalk/spider climb */
+#define PERK_MONK_SHADOW_STEP_III 531             /* +15 feet movement, ki point for waterwalk/spider climb */
 #define PERK_MONK_DEADLY_PRECISION_III 532        /* +2d6 sneak attack, +3d6 on crits */
 #define PERK_MONK_ASSASSINATE 533                 /* +4d6 vs stunned/paralyzed */
 #define PERK_MONK_SHADOW_FADE 534                 /* 20% concealment, 50% in dim light */
-#define PERK_MONK_BLINDING_SPEED 535              /* Stunning fist use to cast haste */
+#define PERK_MONK_BLINDING_SPEED 535              /* Ki point to cast haste */
 
 /* TREE 2: WAY OF THE SHADOW - Tier 4 Perks (536-537) */
 #define PERK_MONK_SHADOW_MASTER 536               /* Hide in plain sight, +4d6 sneak, greater invis */
