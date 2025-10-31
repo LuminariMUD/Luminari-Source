@@ -3272,6 +3272,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 10;
     if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
       dam_reduction += get_evolution_appearance_save_bonus(ch);
+    /* Elemental Attunement I */
+    if (!IS_NPC(ch))
+      dam_reduction += get_monk_elemental_attunement_i_rank(ch);
     break;
   case DAM_COLD:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -3282,6 +3285,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 10;
     if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
       dam_reduction += 5;
+    /* Elemental Attunement I */
+    if (!IS_NPC(ch))
+      dam_reduction += get_monk_elemental_attunement_i_rank(ch);
     break;
   case DAM_AIR:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -3304,6 +3310,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 5;
     if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
       dam_reduction += get_evolution_appearance_save_bonus(ch);
+    /* Elemental Attunement I */
+    if (!IS_NPC(ch))
+      dam_reduction += get_monk_elemental_attunement_i_rank(ch);
     break;
   case DAM_HOLY:
     if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
@@ -3320,6 +3329,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 5;
     if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE))
       dam_reduction += get_evolution_appearance_save_bonus(ch);
+    /* Elemental Attunement I */
+    if (!IS_NPC(ch))
+      dam_reduction += get_monk_elemental_attunement_i_rank(ch);
     break;
   case DAM_UNHOLY:
     if (AFF_FLAGGED(ch, AFF_DEATH_WARD))

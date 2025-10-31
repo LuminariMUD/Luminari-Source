@@ -3059,16 +3059,17 @@
 #define PERK_CATEGORY_PERFECT_SELF 14
 #define PERK_CATEGORY_WAY_OF_THE_OPEN_HAND 15
 #define PERK_CATEGORY_WAY_OF_THE_SHADOW 16
+#define PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS 17
 
 /* Ranger Perk Categories */
-#define PERK_CATEGORY_HUNTER 17
-#define PERK_CATEGORY_BEAST_MASTER 18
-#define PERK_CATEGORY_WILDERNESS_WARRIOR 19
+#define PERK_CATEGORY_HUNTER 18
+#define PERK_CATEGORY_BEAST_MASTER 19
+#define PERK_CATEGORY_WILDERNESS_WARRIOR 20
 
 /* Barbarian Perk Categories */
-#define PERK_CATEGORY_BERSERKER 19
-#define PERK_CATEGORY_TOTEM_WARRIOR 20
-#define PERK_CATEGORY_PRIMAL_CHAMPION 21
+#define PERK_CATEGORY_BERSERKER 21
+#define PERK_CATEGORY_TOTEM_WARRIOR 22
+#define PERK_CATEGORY_PRIMAL_CHAMPION 23
 
 /* Perk IDs - organized by class */
 /* Base perks start at 0, will define actual IDs in perks.c */
@@ -3481,6 +3482,25 @@
 /* TREE 2: WAY OF THE SHADOW - Tier 4 Perks (536-537) */
 #define PERK_MONK_SHADOW_MASTER 536               /* Hide in plain sight, +4d6 sneak, greater invis */
 #define PERK_MONK_VOID_STRIKE 537                 /* Stunning fist for +8d6 force, ignores DR */
+
+/* TREE 3: WAY OF THE FOUR ELEMENTS (538-580) */
+/* TREE 3: WAY OF THE FOUR ELEMENTS - Tier 1 Perks (538-543) */
+#define PERK_MONK_ELEMENTAL_ATTUNEMENT_I 538      /* +1 saves vs elemental, 1 DR per rank */
+#define PERK_MONK_FANGS_OF_FIRE_SNAKE 539         /* Stunning fist for +1d6 fire on unarmed */
+#define PERK_MONK_WATER_WHIP 540                  /* Stunning fist for 3d6 damage + entangle */
+#define PERK_MONK_GONG_OF_SUMMIT 541              /* Stunning fist for 3d6 sound + deafen */
+#define PERK_MONK_FIST_OF_UNBROKEN_AIR 542        /* Stunning fist for force blast (30ft per rank) */
+#define PERK_MONK_ELEMENTAL_RESISTANCE_I 543      /* Resistance 5 per rank to elements */
+
+/* TREE 3: WAY OF THE FOUR ELEMENTS - Tier 2 Perks (544-551) */
+#define PERK_MONK_ELEMENTAL_ATTUNEMENT_II 544     /* +2 saves vs elemental per rank, +1 stunning fist */
+#define PERK_MONK_SHAPE_FLOWING_RIVER 545         /* 2 ki for wall of water */
+#define PERK_MONK_SWEEPING_CINDER_STRIKE 546      /* 2 ki for 15ft cone 3d6 fire */
+#define PERK_MONK_RUSH_OF_GALE_SPIRITS 547        /* 2 ki for gust of wind */
+#define PERK_MONK_CLENCH_NORTH_WIND 548           /* 2 ki for ice prison */
+#define PERK_MONK_ELEMENTAL_RESISTANCE_II 549     /* +5 to all resistances, change element free */
+#define PERK_MONK_MIST_STANCE 550                 /* 2 ki for gaseous form 1 min */
+#define PERK_MONK_SWARMING_ICE_RABBIT 551         /* 2 ki for ice spike ranged 60ft 3d6 cold */
 
 /* ============================================================================
  * DRUID PERKS (600-699)
@@ -6079,6 +6099,7 @@ struct player_special_data_saved
     sbyte power_strike;                         /**< Power strike value 0-2: -1 hit/+2 dam per rank for unarmed/monk weapons */
     int void_strike_timer;                      /**< Rounds remaining for void strike effect (+8d6 force, ignores DR) */
     time_t void_strike_cooldown;                /**< Timestamp until when void strike can be used again (1 min cooldown) */
+    int firesnake_timer;                        /**< Rounds remaining for fangs of fire snake effect (+1d6 fire per attack) */
     int metamagic_reduction_uses;               /**< Number of metamagic reduction uses available (max 2) */
 };
 

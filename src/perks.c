@@ -4216,6 +4216,236 @@ void define_monk_perks(void)
   perk->effect_value = 8;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Way of the Shadow - Tier 4 Capstone");
+
+  /* ===== TREE 3: WAY OF THE FOUR ELEMENTS ===== */
+  
+  /* TIER 1 PERKS */
+  
+  /* Elemental Attunement I */
+  perk = &perk_list[PERK_MONK_ELEMENTAL_ATTUNEMENT_I];
+  perk->id = PERK_MONK_ELEMENTAL_ATTUNEMENT_I;
+  perk->name = strdup("Elemental Attunement I");
+  perk->description = strdup("+1 to saves vs. elemental damage and 1 DR vs. elemental damage per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 1");
+
+  /* Fangs of the Fire Snake */
+  perk = &perk_list[PERK_MONK_FANGS_OF_FIRE_SNAKE];
+  perk->id = PERK_MONK_FANGS_OF_FIRE_SNAKE;
+  perk->name = strdup("Fangs of the Fire Snake");
+  perk->description = strdup("Spend a stunning fist use to gain flaming attacks of +1d6 fire damage on unarmed strikes");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 1");
+
+  /* Water Whip */
+  perk = &perk_list[PERK_MONK_WATER_WHIP];
+  perk->id = PERK_MONK_WATER_WHIP;
+  perk->name = strdup("Water Whip");
+  perk->description = strdup("Spend 1 stunning fist use to deal 3d6 damage and entangle the enemy");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 1");
+
+  /* Gong of the Summit */
+  perk = &perk_list[PERK_MONK_GONG_OF_SUMMIT];
+  perk->id = PERK_MONK_GONG_OF_SUMMIT;
+  perk->name = strdup("Gong of the Summit");
+  perk->description = strdup("Spend 1 stunning fist use to emit thunder wave dealing 3d6 sound damage and deafening the target");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 1");
+
+  /* Fist of Unbroken Air */
+  perk = &perk_list[PERK_MONK_FIST_OF_UNBROKEN_AIR];
+  perk->id = PERK_MONK_FIST_OF_UNBROKEN_AIR;
+  perk->name = strdup("Fist of Unbroken Air");
+  perk->description = strdup("Spend 1 stunning fist use to create force blast (30 ft per rank, deals 2d6+2 per rank force damage)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Way of the Four Elements - Tier 1");
+
+  /* Elemental Resistance I */
+  perk = &perk_list[PERK_MONK_ELEMENTAL_RESISTANCE_I];
+  perk->id = PERK_MONK_ELEMENTAL_RESISTANCE_I;
+  perk->name = strdup("Elemental Resistance I");
+  perk->description = strdup("Resistance 5 to fire, cold, lightning, and acid per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_UNDEFINED;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 1");
+
+  /* TIER 2 PERKS */
+
+  /* Elemental Attunement II */
+  perk = &perk_list[PERK_MONK_ELEMENTAL_ATTUNEMENT_II];
+  perk->id = PERK_MONK_ELEMENTAL_ATTUNEMENT_II;
+  perk->name = strdup("Elemental Attunement II");
+  perk->description = strdup("+2 to saves vs elemental damage per rank, +1 stunning fist use per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_MONK_ELEMENTAL_ATTUNEMENT_I;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SAVE;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 2");
+
+  /* Shape the Flowing River */
+  perk = &perk_list[PERK_MONK_SHAPE_FLOWING_RIVER];
+  perk->id = PERK_MONK_SHAPE_FLOWING_RIVER;
+  perk->name = strdup("Shape the Flowing River");
+  perk->description = strdup("Spend 2 ki points to cast wall of water (blocks ranged attacks, slows movement through it)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_WATER_WHIP;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 2");
+
+  /* Sweeping Cinder Strike */
+  perk = &perk_list[PERK_MONK_SWEEPING_CINDER_STRIKE];
+  perk->id = PERK_MONK_SWEEPING_CINDER_STRIKE;
+  perk->name = strdup("Sweeping Cinder Strike");
+  perk->description = strdup("Spend 2 ki points to create fire wave in 15-ft cone (3d6 fire damage, ignites flammables)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_FANGS_OF_FIRE_SNAKE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 2");
+
+  /* Rush of the Gale Spirits */
+  perk = &perk_list[PERK_MONK_RUSH_OF_GALE_SPIRITS];
+  perk->id = PERK_MONK_RUSH_OF_GALE_SPIRITS;
+  perk->name = strdup("Rush of the Gale Spirits");
+  perk->description = strdup("Spend 2 ki points to cast gust of wind (knocks flying creatures down, pushes medium creatures back)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_GONG_OF_SUMMIT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 2");
+
+  /* Clench of the North Wind */
+  perk = &perk_list[PERK_MONK_CLENCH_NORTH_WIND];
+  perk->id = PERK_MONK_CLENCH_NORTH_WIND;
+  perk->name = strdup("Clench of the North Wind");
+  perk->description = strdup("Spend 2 ki points to create ice prison around one enemy (holds immobile for 1 round, cold damage on break)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_FIST_OF_UNBROKEN_AIR;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 2");
+
+  /* Elemental Resistance II */
+  perk = &perk_list[PERK_MONK_ELEMENTAL_RESISTANCE_II];
+  perk->id = PERK_MONK_ELEMENTAL_RESISTANCE_II;
+  perk->name = strdup("Elemental Resistance II");
+  perk->description = strdup("Increase all elemental resistances by +5, can change element attunement as free action");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_ELEMENTAL_RESISTANCE_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 2");
+
+  /* Mist Stance */
+  perk = &perk_list[PERK_MONK_MIST_STANCE];
+  perk->id = PERK_MONK_MIST_STANCE;
+  perk->name = strdup("Mist Stance");
+  perk->description = strdup("Spend 2 ki points to become gaseous form for 1 minute (fly speed 10 ft, immune to nonmagical attacks)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_ELEMENTAL_ATTUNEMENT_I;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 2");
+
+  /* Swarming Ice Rabbit */
+  perk = &perk_list[PERK_MONK_SWARMING_ICE_RABBIT];
+  perk->id = PERK_MONK_SWARMING_ICE_RABBIT;
+  perk->name = strdup("Swarming Ice Rabbit");
+  perk->description = strdup("Spend 2 ki points to create ice spike ranged attack (60 ft, 3d6 cold damage, slows target)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_FIST_OF_UNBROKEN_AIR;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 2");
 }
 
 /* Lookup functions */
@@ -6541,6 +6771,202 @@ bool has_monk_void_strike(struct char_data *ch)
     return FALSE;
   
   return has_perk(ch, PERK_MONK_VOID_STRIKE);
+}
+
+/**
+ * Get Elemental Attunement I rank.
+ * 
+ * @param ch The character
+ * @return Rank of perk (0-5)
+ */
+int get_monk_elemental_attunement_i_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  return get_perk_rank(ch, PERK_MONK_ELEMENTAL_ATTUNEMENT_I, CLASS_MONK);
+}
+
+/**
+ * Check if character has Fangs of the Fire Snake perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_monk_fangs_of_fire_snake(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_FANGS_OF_FIRE_SNAKE);
+}
+
+/**
+ * Check if character has Water Whip perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_monk_water_whip(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_WATER_WHIP);
+}
+
+/**
+ * Check if character has Gong of the Summit perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_monk_gong_of_summit(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_GONG_OF_SUMMIT);
+}
+
+/**
+ * Get Fist of Unbroken Air rank.
+ * 
+ * @param ch The character
+ * @return Rank of perk (0-3)
+ */
+int get_monk_fist_of_unbroken_air_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  return get_perk_rank(ch, PERK_MONK_FIST_OF_UNBROKEN_AIR, CLASS_MONK);
+}
+
+/**
+ * Get Elemental Resistance I rank.
+ * 
+ * @param ch The character
+ * @return Rank of perk (0-3)
+ */
+int get_monk_elemental_resistance_i_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  return get_perk_rank(ch, PERK_MONK_ELEMENTAL_RESISTANCE_I, CLASS_MONK);
+}
+
+/**
+ * Get Elemental Attunement II rank.
+ * 
+ * @param ch The character
+ * @return Rank of perk (0-3)
+ */
+int get_monk_elemental_attunement_ii_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  return get_perk_rank(ch, PERK_MONK_ELEMENTAL_ATTUNEMENT_II, CLASS_MONK);
+}
+
+/**
+ * Check if character has Shape the Flowing River perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_monk_shape_flowing_river(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_SHAPE_FLOWING_RIVER);
+}
+
+/**
+ * Check if character has Sweeping Cinder Strike perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_monk_sweeping_cinder_strike(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_SWEEPING_CINDER_STRIKE);
+}
+
+/**
+ * Check if character has Rush of the Gale Spirits perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_monk_rush_of_gale_spirits(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_RUSH_OF_GALE_SPIRITS);
+}
+
+/**
+ * Check if character has Clench of the North Wind perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_monk_clench_north_wind(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_CLENCH_NORTH_WIND);
+}
+
+/**
+ * Check if character has Elemental Resistance II perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_monk_elemental_resistance_ii(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_ELEMENTAL_RESISTANCE_II);
+}
+
+/**
+ * Check if character has Mist Stance perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_monk_mist_stance(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_MIST_STANCE);
+}
+
+/**
+ * Check if character has Swarming Ice Rabbit perk.
+ * 
+ * @param ch The character
+ * @return TRUE if has perk, FALSE otherwise
+ */
+bool has_monk_swarming_ice_rabbit(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_SWARMING_ICE_RABBIT);
 }
 
 /**

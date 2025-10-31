@@ -271,6 +271,22 @@ bool has_monk_blinding_speed(struct char_data *ch);
 bool has_monk_shadow_master(struct char_data *ch);
 bool has_monk_void_strike(struct char_data *ch);
 
+/* Way of the Four Elements perks */
+int get_monk_elemental_attunement_i_rank(struct char_data *ch);
+bool has_monk_fangs_of_fire_snake(struct char_data *ch);
+bool has_monk_water_whip(struct char_data *ch);
+bool has_monk_gong_of_summit(struct char_data *ch);
+int get_monk_fist_of_unbroken_air_rank(struct char_data *ch);
+int get_monk_elemental_resistance_i_rank(struct char_data *ch);
+int get_monk_elemental_attunement_ii_rank(struct char_data *ch);
+bool has_monk_shape_flowing_river(struct char_data *ch);
+bool has_monk_sweeping_cinder_strike(struct char_data *ch);
+bool has_monk_rush_of_gale_spirits(struct char_data *ch);
+bool has_monk_clench_north_wind(struct char_data *ch);
+bool has_monk_elemental_resistance_ii(struct char_data *ch);
+bool has_monk_mist_stance(struct char_data *ch);
+bool has_monk_swarming_ice_rabbit(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);
