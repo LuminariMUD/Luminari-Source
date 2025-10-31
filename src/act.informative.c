@@ -3105,6 +3105,14 @@ ACMD(do_gold)
     send_to_char(ch, "You have %d gold coins.\r\n", GET_GOLD(ch));
 }
 
+char * get_ability_command_feat_name(int i)
+{
+  if (i == FEAT_STUNNING_FIST)
+    return strdup("ki points");
+
+  return strdup(feat_list[i].name);
+}
+
 /* Name: do_abilities
  * Author: Jamie Mclaughlin (Ornir)
  * Desc: This procedure displays the abilities of the character, both racial and
@@ -3141,7 +3149,7 @@ void perform_abilities(struct char_data *ch, struct char_data *k)
       total = get_daily_uses(k, i);
       send_to_char(ch,
                    "%-30s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n",
-                   feat_list[i].name,
+                   get_ability_command_feat_name(i),
                    buf,
                    (remaining > (total / 2) ? "\tn" : (remaining <= 1 ? "\tR" : "\tY")),
                    remaining,
