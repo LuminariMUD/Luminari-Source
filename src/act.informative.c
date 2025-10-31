@@ -3195,6 +3195,86 @@ ACMD(do_abilities)
   perform_abilities(ch, vict);
 }
 
+ACMD(do_kipoints)
+{
+  int max_ki = 0, current_ki = 0;
+  
+  /* Check if character has stunning fist feat (ki points) */
+  if (!HAS_FEAT(ch, FEAT_STUNNING_FIST))
+  {
+    send_to_char(ch, "You have not yet learned to harness your ki.\r\n");
+    return;
+  }
+  
+  max_ki = get_daily_uses(ch, FEAT_STUNNING_FIST);
+  current_ki = daily_uses_remaining(ch, FEAT_STUNNING_FIST);
+  
+  send_to_char(ch, "\tC+=============================================================================+\tn\r\n");
+  send_to_char(ch, "\tC|                              \tWKI POINTS\tC                                   |\tn\r\n");
+  send_to_char(ch, "\tC+=============================================================================+\tn\r\n");
+  send_to_char(ch, " \tYCurrent:\tn %-3d / %-3d\r\n", current_ki, max_ki);
+  send_to_char(ch, "\tC+=============================================================================+\tn\r\n");
+  send_to_char(ch, "\tC|                            \tWKI ABILITIES\tC                                |\tn\r\n");
+  send_to_char(ch, "\tC+=============================================================================+\tn\r\n");
+  send_to_char(ch, " Legend: [\tG*\tn]=Known  [\tD-\tn]=Unknown\r\n");
+  send_to_char(ch, "\tC+=============================================================================+\tn\r\n");
+  
+  /* Core Ki Strike */
+  send_to_char(ch, " [\tG*\tn] \tCStunning Fist\tn (stunningfist) - Attempt to stun opponent with unarmed attack\r\n");
+  
+  /* Path of the Iron Fist abilities */
+  send_to_char(ch, " [%s] \tCCrushing Blow\tn (crushingblow) - +4d6 damage, ignores 10 DR\r\n",
+               has_monk_crushing_blow(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, " [%s] \tCShattering Strike\tn (shatteringstrike) - +8d8 damage on next attack\r\n",
+               has_monk_shattering_strike(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  /* Way of the Shadow abilities */
+  send_to_char(ch, " [%s] \tCVanishing Technique\tn (vanishingtechnique) - Cast invisibility on self\r\n",
+               has_monk_vanishing_technique(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, " [%s] \tCShadow Clone\tn (shadowclone) - Cast mirror image\r\n",
+               has_monk_shadow_clone(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, " [%s] \tCSmoke Bomb\tn (smokebomb) - Cast darkness\r\n",
+               has_monk_smoke_bomb(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, " [%s] \tCBlinding Speed\tn (blindingspeed) - Cast haste\r\n",
+               has_monk_blinding_speed(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  /* Way of the Four Elements abilities */
+  send_to_char(ch, " [%s] \tCFangs of Fire Snake\tn (firesnake) - +1d6 fire damage (1 min)\r\n",
+               has_monk_fangs_of_fire_snake(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, " [%s] \tCWater Whip\tn (waterwhip) - 3d6 damage + entangle\r\n",
+               has_monk_water_whip(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, " [%s] \tCGong of Summit\tn (gongsummit) - 3d6 sound damage + deafen\r\n",
+               has_monk_gong_of_summit(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, " [%s] \tCFist of Unbroken Air\tn (fistair) - Force blast\r\n",
+               get_monk_fist_of_unbroken_air_rank(ch) > 0 ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, " [%s] \tCShape Flowing River\tn (shaperiver) - Water movement bonus\r\n",
+               has_monk_shape_flowing_river(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, " [%s] \tCSweeping Cinder Strike\tn (sweepingcinder) - Fire AOE attack\r\n",
+               has_monk_sweeping_cinder_strike(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, " [%s] \tCRush of Gale Spirits\tn (gale) - Wind movement bonus\r\n",
+               has_monk_rush_of_gale_spirits(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, " [%s] \tCClench North Wind\tn (northwind) - Cold hold effect\r\n",
+               has_monk_clench_north_wind(ch) ? "\tG*\tn" : "\tD-\tn");
+
+  send_to_char(ch, " [%s] \tCVoid Strike\tn (voidstrike) - Ignores DR, +8d6 force damage (1 min cooldown)\r\n",
+               has_monk_void_strike(ch) ? "\tG*\tn" : "\tD-\tn");
+  
+  send_to_char(ch, "\tC+=============================================================================+\tn\r\n");
+  send_to_char(ch, " \tYNote:\tn Ki points are recovered over time. Use abilities wisely!\r\n");
+  send_to_char(ch, "\tC+=============================================================================+\tn\r\n");
+}
+
 /* this is really deprecated */
 ACMD(do_innates)
 {

@@ -225,6 +225,7 @@ ACMD_DECL(do_affects);
 /* functions without subcommands */
 ACMD_DECL(do_innates);
 ACMD_DECL(do_abilities);
+ACMD_DECL(do_kipoints);
 ACMD_DECL(do_masterlist);
 ACMD_DECL(do_areas);
 ACMD_DECL(do_attacks);
