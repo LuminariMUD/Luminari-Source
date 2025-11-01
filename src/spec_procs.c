@@ -76,10 +76,20 @@ static int compare_spells(const void *x, const void *y)
       b = *(const int *)y;
 
   if (a <= 1 || b <= 1)
-    return FALSE;
+    return 0;
 
   if (a >= TOP_SPELLS_POWERS_SKILLS_BOMBS || b >= TOP_SPELLS_POWERS_SKILLS_BOMBS)
-    return FALSE;
+    return 0;
+
+  /* Handle null or empty spell names */
+  if (!spell_info[a].name || !spell_info[b].name)
+  {
+    if (!spell_info[a].name && !spell_info[b].name)
+      return 0;
+    if (!spell_info[a].name)
+      return 1;  /* Move empty entries to the end */
+    return -1;
+  }
 
   return strcmp(spell_info[a].name, spell_info[b].name);
 }
@@ -749,6 +759,8 @@ void list_skills(struct char_data *ch)
   send_to_char(ch, "\tCActive Skills\tn\r\n\r\n");
   for (i = MAX_SPELLS + 1; i < TOP_SKILL_DEFINE; i++)
   {
+    if (!spell_info[i].name || spell_info[i].name == unused_spellname)
+      continue;
     if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
         spell_info[i].schoolOfMagic == ACTIVE_SKILL)
     {
@@ -813,6 +825,8 @@ void list_skills(struct char_data *ch)
   send_to_char(ch, "\tCCaster Skills\tn\r\n\r\n");
   for (i = MAX_SPELLS + 1; i < TOP_SKILL_DEFINE; i++)
   {
+    if (!spell_info[i].name || spell_info[i].name == unused_spellname)
+      continue;
     if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
         spell_info[i].schoolOfMagic == CASTER_SKILL)
     {

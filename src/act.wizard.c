@@ -9888,6 +9888,8 @@ ACMD(do_showwearoff)
 
   for (i = 0; i < TOP_SKILL_DEFINE + 1; i++)
   {
+    if (!spell_info[i].name || spell_info[i].name == unused_spellname)
+      continue;
     if (is_abbrev(arg1, spell_info[i].name))
     {
       send_to_char(ch, "Spell/Skill: %s\r\n"

@@ -4863,7 +4863,7 @@
 #define MAX_NOTE_LENGTH 4000  /**< Max length of text on a note obj */
 #define MAX_LAST_ENTRIES 6000 /**< Max log entries?? */
 
-#define MAX_SKILLS 2500           /**< Max number of skills */
+#define MAX_SKILLS 4000           /**< Max number of skills */
 #define MAX_SPELLS 2000           /**< Max number of spells */
 #define MAX_ABILITIES 200         /**< Max number of abilities */
 #define MAX_AFFECT 32             /**< Max number of player affections */
