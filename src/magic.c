@@ -9743,6 +9743,52 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
   return 1;
 }
 
+/* Central AoE effect processing function
+ * This function handles all area of effect abilities that affect everyone in the room.
+ * It iterates through all people in the caster's room, checks aoeOK(), and applies
+ * effects via a callback function.
+ *
+ * Parameters:
+ *   ch         - The character casting/using the AoE effect
+ *   spellnum   - The spell/skill number for aoeOK checking
+ *   callback   - Function pointer that applies the effect to each valid target
+ *                Returns: 1 if target was affected, 0 if not
+ *   callback_data - Optional pointer to pass additional data to callback
+ *
+ * Returns: Number of targets successfully affected
+ *
+ * Example usage:
+ *   int apply_my_damage(struct char_data *ch, struct char_data *tch, void *data) {
+ *     int dam = *((int *)data);
+ *     return damage(ch, tch, dam, MY_SPELL, DAM_FIRE, FALSE) > 0 ? 1 : 0;
+ *   }
+ *   int my_damage = dice(6, 8);
+ *   int victims = aoe_effect(ch, MY_SPELL, apply_my_damage, &my_damage);
+ */
+int aoe_effect(struct char_data *ch, int spellnum,
+               int (*callback)(struct char_data *ch, struct char_data *tch, void *data),
+               void *callback_data)
+{
+  struct char_data *tch, *next_tch;
+  int affected_count = 0;
+
+  if (!ch || !callback)
+    return 0;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+
+    if (aoeOK(ch, tch, spellnum))
+    {
+      if (callback(ch, tch, callback_data))
+        affected_count++;
+    }
+  }
+
+  return affected_count;
+}
+
 /* Every spell that affects an area (room) runs through here.  These are
  * generally offensive spells.  This calls mag_damage to do the actual damage.
  * All spells listed here must also have a case in mag_damage() in order for

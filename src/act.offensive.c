@@ -3021,9 +3021,30 @@ ACMDCHECK(can_dragonborn_breath_weapon)
   return CAN_CMD;
 }
 
+/* Data structure for dragonborn breath weapon callback */
+struct dragonborn_breath_data {
+  int level;
+  int dam_type;
+};
+
+/* Callback for dragonborn breath weapon AoE damage */
+static int dragonborn_breath_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  struct dragonborn_breath_data *breath_data = (struct dragonborn_breath_data *)data;
+  
+  if (breath_data->level <= 15)
+    damage(ch, tch, dice(breath_data->level, 6), SPELL_DRAGONBORN_ANCESTRY_BREATH, 
+           breath_data->dam_type, FALSE);
+  else
+    damage(ch, tch, dice(breath_data->level, 14), SPELL_DRAGONBORN_ANCESTRY_BREATH, 
+           breath_data->dam_type, FALSE);
+  
+  return 1;
+}
+
 ACMD(do_dragonborn_breath_weapon)
 {
-  struct char_data *vict, *next_vict;
+  struct dragonborn_breath_data breath_data;
 
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_dragonborn_breath_weapon);
@@ -3041,22 +3062,11 @@ ACMD(do_dragonborn_breath_weapon)
   sprintf(to_room, "$n exhales breathing %s!", DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)));
   act(to_room, FALSE, ch, 0, 0, TO_ROOM);
 
-  int dam_type = draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)];
+  breath_data.dam_type = draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)];
+  breath_data.level = GET_LEVEL(ch);
 
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
-  {
-    next_vict = vict->next_in_room;
+  aoe_effect(ch, SPELL_DRAGONBORN_ANCESTRY_BREATH, dragonborn_breath_callback, &breath_data);
 
-    if (aoeOK(ch, vict, SPELL_DRAGONBORN_ANCESTRY_BREATH))
-    {
-      if (GET_LEVEL(ch) <= 15)
-        damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_DRAGONBORN_ANCESTRY_BREATH, dam_type,
-               FALSE);
-      else
-        damage(ch, vict, dice(GET_LEVEL(ch), 14), SPELL_DRAGONBORN_ANCESTRY_BREATH, dam_type,
-               FALSE);
-    }
-  }
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_DRAGONBORN_BREATH);
   USE_STANDARD_ACTION(ch);
@@ -4385,10 +4395,15 @@ ACMDCHECK(can_tailspikes)
   return CAN_CMD;
 }
 
+/* Callback for tailspikes AoE damage */
+static int tailspikes_damage_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  damage(ch, tch, dice(3, 6) + 10, SPELL_GENERIC_AOE, DAM_PUNCTURE, FALSE);
+  return 1;
+}
+
 ACMD(do_tailspikes)
 {
-  struct char_data *vict, *next_vict;
-
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_tailspikes);
   PREREQ_NOT_PEACEFUL_ROOM();
@@ -4402,15 +4417,8 @@ ACMD(do_tailspikes)
   act("You lift your tail and send a spray of tail spikes to all your foes.", FALSE, ch, 0, 0, TO_CHAR);
   act("$n lifts $s tail and sends a spray of tail spikes to all $s foes.", FALSE, ch, 0, 0, TO_ROOM);
 
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
-  {
-    next_vict = vict->next_in_room;
-
-    if (aoeOK(ch, vict, SPELL_GENERIC_AOE))
-    {
-      damage(ch, vict, dice(3, 6) + 10, SPELL_GENERIC_AOE, DAM_PUNCTURE, FALSE);
-    }
-  }
+  aoe_effect(ch, SPELL_GENERIC_AOE, tailspikes_damage_callback, NULL);
+  
   USE_SWIFT_ACTION(ch);
 }
 
@@ -4420,54 +4428,53 @@ ACMDCHECK(can_dragonfear)
   return CAN_CMD;
 }
 
+/* Callback for dragonfear AoE effect */
+static int dragonfear_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  struct affected_type af;
+  int *cast_level = (int *)data;
+  
+  if (is_immune_fear(ch, tch, TRUE))
+    return 0;
+  if (is_immune_mind_affecting(ch, tch, TRUE))
+    return 0;
+  if (mag_resistance(ch, tch, 0))
+    return 0;
+  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? -4 : 0, 
+                  CAST_INNATE, *cast_level, ENCHANTMENT))
+    return 0;
+
+  /* success */
+  act("You have been shaken by $n's might.", FALSE, ch, 0, tch, TO_VICT);
+  act("$N has been shaken by $n's might.", FALSE, ch, 0, tch, TO_ROOM);
+  new_affect(&af);
+  af.spell = SPELL_DRAGONFEAR;
+  af.duration = dice(5, 6);
+  SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+  affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  /* Failed save, tough luck. */
+  send_to_char(tch, "You PANIC!\r\n");
+  perform_flee(tch);
+  perform_flee(tch);
+
+  return 1;
+}
+
 /* the engine for dragon fear mechanic */
 int perform_dragonfear(struct char_data *ch)
 {
+  int cast_level;
 
   if (!ch)
     return 0;
 
-  struct affected_type af;
-  bool got_em = FALSE;
-  struct char_data *vict = NULL, *next_vict = NULL;
-
   act("You raise your head and let out a bone chilling roar.", FALSE, ch, 0, 0, TO_CHAR);
   act("$n raises $s head and lets out a bone chilling roar", FALSE, ch, 0, 0, TO_ROOM);
 
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
-  {
-    next_vict = vict->next_in_room;
+  cast_level = CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch);
 
-    if (aoeOK(ch, vict, SPELL_DRAGONFEAR))
-    {
-      if (is_immune_fear(ch, vict, TRUE))
-        continue;
-      if (is_immune_mind_affecting(ch, vict, TRUE))
-        continue;
-      if (mag_resistance(ch, vict, 0))
-        continue;
-      if (savingthrow(ch, vict, SAVING_WILL, affected_by_aura_of_cowardice(vict) ? -4 : 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch), ENCHANTMENT))
-        continue;
-
-      /* success */
-      act("You have been shaken by $n's might.", FALSE, ch, 0, vict, TO_VICT);
-      act("$N has been shaken by $n's might.", FALSE, ch, 0, vict, TO_ROOM);
-      new_affect(&af);
-      af.spell = SPELL_DRAGONFEAR;
-      af.duration = dice(5, 6);
-      SET_BIT_AR(af.bitvector, AFF_SHAKEN);
-      affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
-
-      /* Failed save, tough luck. */
-      send_to_char(vict, "You PANIC!\r\n");
-      perform_flee(vict);
-      perform_flee(vict);
-
-      got_em = TRUE;
-    }
-  }
-
-  return got_em;
+  return aoe_effect(ch, SPELL_DRAGONFEAR, dragonfear_callback, &cast_level);
 }
 
 /* this is another version of dragon fear (frightful above is another version) */
@@ -4495,49 +4502,48 @@ ACMDCHECK(can_fear_aura)
   return CAN_CMD;
 }
 
+/* Callback for fear aura AoE effect */
+static int fear_aura_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  struct affected_type af;
+  int *cast_level = (int *)data;
+  
+  if (is_immune_fear(ch, tch, TRUE))
+    return 0;
+  if (is_immune_mind_affecting(ch, tch, TRUE))
+    return 0;
+  if (mag_resistance(ch, tch, 0))
+    return 0;
+  if (savingthrow(ch, tch, SAVING_WILL, affected_by_aura_of_cowardice(tch) ? -4 : 0, 
+                  CAST_INNATE, *cast_level, ENCHANTMENT))
+    return 0;
+
+  /* success */
+  act("You have been shaken by $n's might.", FALSE, ch, 0, tch, TO_VICT);
+  act("$N has been shaken by $n's might.", FALSE, ch, 0, tch, TO_ROOM);
+  new_affect(&af);
+  af.spell = SPELL_FEAR;
+  af.duration = dice(1, 4);
+  SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+  affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  return 1;
+}
+
 /* the engine for dragon fear mechanic */
 int perform_fear_aura(struct char_data *ch)
 {
+  int cast_level;
 
   if (!ch)
     return 0;
 
-  struct affected_type af;
-  bool got_em = FALSE;
-  struct char_data *vict = NULL, *next_vict = NULL;
-
   act("\tCYou raise your head and let out a bone chilling roar.\tn", FALSE, ch, 0, 0, TO_CHAR);
   act("\tC$n raises $s head and lets out a bone chilling roar.\tn", FALSE, ch, 0, 0, TO_ROOM);
 
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
-  {
-    next_vict = vict->next_in_room;
+  cast_level = CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch);
 
-    if (aoeOK(ch, vict, SPELL_FEAR))
-    {
-      if (is_immune_fear(ch, vict, TRUE))
-        continue;
-      if (is_immune_mind_affecting(ch, vict, TRUE))
-        continue;
-      if (mag_resistance(ch, vict, 0))
-        continue;
-      if (savingthrow(ch, vict, SAVING_WILL, affected_by_aura_of_cowardice(vict) ? -4 : 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch), ENCHANTMENT))
-        continue;
-
-      /* success */
-      act("You have been shaken by $n's might.", FALSE, ch, 0, vict, TO_VICT);
-      act("$N has been shaken by $n's might.", FALSE, ch, 0, vict, TO_ROOM);
-      new_affect(&af);
-      af.spell = SPELL_FEAR;
-      af.duration = dice(1, 4);
-      SET_BIT_AR(af.bitvector, AFF_SHAKEN);
-      affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
-
-      got_em = TRUE;
-    }
-  }
-
-  return got_em;
+  return aoe_effect(ch, SPELL_FEAR, fear_aura_callback, &cast_level);
 }
 
 /* this is another version of dragon fear (frightful above is another version) */
@@ -4620,24 +4626,37 @@ ACMD(do_breathe)
   if (IS_MORPHED(ch))
     dam = dice(cast_level, 6);
 
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
-  {
-    next_vict = vict->next_in_room;
+  /* Data structure for breath weapon callback */
+  struct breath_weapon_data {
+    int dam;
+    int dam_type;
+    int spellnum;
+    bool is_morphed;
+  };
 
-    if (aoeOK(ch, vict, SPELL_FIRE_BREATHE))
-    {
-      if (process_iron_golem_immunity(ch, vict, dam_type, dam))
-        continue;
-      if (IS_MORPHED(ch))
-      {
-        damage(ch, vict, dam, spellnum, dam_type, FALSE);
-      }
-      else
-      {
-        damage(ch, vict, dam, SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
-      }
-    }
+  /* Callback for breath weapon AoE damage */
+  int breath_weapon_callback(struct char_data *ch, struct char_data *tch, void *data) {
+    struct breath_weapon_data *breath = (struct breath_weapon_data *)data;
+    
+    if (process_iron_golem_immunity(ch, tch, breath->dam_type, breath->dam))
+      return 0;
+    
+    if (breath->is_morphed)
+      damage(ch, tch, breath->dam, breath->spellnum, breath->dam_type, FALSE);
+    else
+      damage(ch, tch, breath->dam, SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
+    
+    return 1;
   }
+
+  struct breath_weapon_data breath_data;
+  breath_data.dam = dam;
+  breath_data.dam_type = dam_type;
+  breath_data.spellnum = spellnum;
+  breath_data.is_morphed = IS_MORPHED(ch);
+
+  aoe_effect(ch, SPELL_FIRE_BREATHE, breath_weapon_callback, &breath_data);
+
   USE_STANDARD_ACTION(ch);
 
   /* 12 seconds = 2 rounds */
