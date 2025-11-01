@@ -7104,6 +7104,7 @@ static void load_default_config(void)
   CONFIG_SCRIPT_PLAYERS = script_players;
   CONFIG_MIN_POP_TO_CLAIM = min_pop_to_claim;
   CONFIG_USE_INTRO_SYSTEM = use_introduction_system;
+  CONFIG_PERK_SYSTEM = perk_system;
   CONFIG_DEBUG_MODE = debug_mode;
 
   /* Rent / crashsave options. */
@@ -7512,6 +7513,8 @@ void load_config(void)
         CONFIG_PROTOCOL_NEGOTIATION = num;
       else if (!str_cmp(tag, "pt_allowed"))
         CONFIG_PT_ALLOWED = num;
+      else if (!str_cmp(tag, "perk_system"))
+        CONFIG_PERK_SYSTEM = num;
       else if (!str_cmp(tag, "psionic_power_damage"))
         CONFIG_PSIONIC_DAMAGE = num;
       else if (!str_cmp(tag, "psionic_mem_times"))

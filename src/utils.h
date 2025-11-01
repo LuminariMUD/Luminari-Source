@@ -2447,6 +2447,9 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_MAP_SIZE config_info.play.map_size
 #define CONFIG_MINIMAP_SIZE config_info.play.minimap_size
 
+/* Perk System */
+#define CONFIG_PERK_SYSTEM config_info.play.perk_system
+
 /* DG Script Options */
 #define CONFIG_SCRIPT_PLAYERS config_info.play.script_players
 /* Zone Claim Options */
