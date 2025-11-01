@@ -1132,7 +1132,7 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
       dam /= 2;
   }
 
-  if (mag_savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+  if (savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
   {
     if ((!IS_NPC(victim)) && saveType == SAVING_REFL && // evasion
         (HAS_FEAT(victim, FEAT_EVASION) ||
@@ -1251,7 +1251,7 @@ void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, 
       dam /= 2;
   }
 
-  if (mag_savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+  if (savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
   {
     if ((!IS_NPC(victim)) && saveType == SAVING_REFL && // evasion
         (HAS_FEAT(victim, FEAT_EVASION) ||
@@ -1370,7 +1370,7 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     to_room = "$n looks confused.";
     break;
   case BOMB_FORCE:
-    if (!mag_savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+    if (!savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
     {
       act("You've been knocked prone!", FALSE, ch, 0, victim, TO_VICT);
       act("$N has been knocked prone!", FALSE, ch, 0, victim, TO_ROOM);
@@ -1481,7 +1481,7 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
   if (bomb_type == BOMB_CONFUSION && MOB_FLAGGED(victim, MOB_NOCONFUSE))
     return;
 
-  if (!noAffectOnSave || !mag_savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+  if (!noAffectOnSave || !savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
   {
 
     if (to_vict != NULL)
@@ -1586,7 +1586,7 @@ void perform_bomb_splash_effect(struct char_data *ch, struct char_data *victim, 
     if (!IS_NPC(tch) && !PRF_FLAGGED(ch, PRF_PVP))
       continue;
 
-    if (!noAffectOnSave || !mag_savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+    if (!noAffectOnSave || !savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
     {
 
       if (to_vict != NULL)
@@ -3039,7 +3039,7 @@ ACMD(do_psychokinetic)
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    if (mag_savingthrow(ch, victim, SAVING_WILL, affected_by_aura_of_cowardice(victim) ? -4 : 0, CAST_BOMB, CLASS_LEVEL(ch, CLASS_ALCHEMIST), SCHOOL_NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, affected_by_aura_of_cowardice(victim) ? -4 : 0, CAST_BOMB, CLASS_LEVEL(ch, CLASS_ALCHEMIST), SCHOOL_NOSCHOOL))
     {
       act("$N resists the fear effect.", FALSE, ch, 0, victim, TO_CHAR);
       act("You resist the fear effect.", FALSE, ch, 0, victim, TO_VICT);

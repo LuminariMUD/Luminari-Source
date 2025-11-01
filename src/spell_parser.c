@@ -1166,7 +1166,7 @@ similar method added -zusuk */
 
   // Always set to zero after applying dc_bonus. We do this here so that AoE spells
   // will give the dc bonus to all targets, not just the first, which occurred when it
-  // was removed in mag_savingthrow
+  // was removed in savingthrow
   GET_DC_BONUS(caster) = 0;
 
   /* Wizard Controller Perk: Defensive Casting - +4 AC for 1 round after casting */
@@ -3081,7 +3081,7 @@ return;
       }
       else
       {
-        if (!mag_savingthrow(tch, ch, SAVING_FORT, 0, CAST_SPELL, GET_PSIONIC_LEVEL(tch), NOSCHOOL))
+        if (!savingthrow(tch, ch, SAVING_FORT, 0, CAST_SPELL, GET_PSIONIC_LEVEL(tch), NOSCHOOL))
         {
           new_affect(&af);
           af.spell = SPELL_AFFECT_MIND_TRAP_NAUSEA;

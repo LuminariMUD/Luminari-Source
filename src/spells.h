@@ -1735,9 +1735,9 @@ bool is_wall_spell(int spellnum);
 /* From magic.c */
 int compute_mag_saves(struct char_data *vict,
                       int type, int modifier);
-int mag_savingthrow(struct char_data *ch, struct char_data *vict,
+int savingthrow(struct char_data *ch, struct char_data *vict,
                     int type, int modifier, int casttype, int level, int school);
-int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
+int savingthrow_full(struct char_data *ch, struct char_data *vict,
                          int type, int modifier, int casttype, int level, int school, int spellnum);
 void affect_update(void);
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier);

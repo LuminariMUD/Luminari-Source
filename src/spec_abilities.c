@@ -616,7 +616,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
       ;
     else if (mag_resistance(ch, victim, 0))
       victim->player_specials->has_banishment_been_attempted = true;
-    else if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, CLASS_LEVEL(ch, CLASS_PALADIN), SCHOOL_NOSCHOOL))
+    else if (savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, CLASS_LEVEL(ch, CLASS_PALADIN), SCHOOL_NOSCHOOL))
       victim->player_specials->has_banishment_been_attempted = true;
     else
     {
@@ -634,7 +634,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
       ;
     else if (mag_resistance(ch, victim, 0))
       victim->player_specials->has_banishment_been_attempted = true;
-    else if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, CLASS_LEVEL(ch, CLASS_BLACKGUARD), SCHOOL_NOSCHOOL))
+    else if (savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, CLASS_LEVEL(ch, CLASS_BLACKGUARD), SCHOOL_NOSCHOOL))
       victim->player_specials->has_banishment_been_attempted = true;
     else
     {
@@ -1041,7 +1041,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding)
         continue;
       }
 
-      if (mag_savingthrow(ch, tch, SAVING_REFL, 0, CAST_WEAPON_SPELL, 10, SCHOOL_NOSCHOOL))
+      if (savingthrow(ch, tch, SAVING_REFL, 0, CAST_WEAPON_SPELL, 10, SCHOOL_NOSCHOOL))
       {
         act("You look away just in time to avoid getting blinded!", FALSE, tch, armor, ch, TO_CHAR);
         act("$n looks away just in time to avoid getting blinded!", TRUE, tch, armor, ch, TO_ROOM);
@@ -1576,7 +1576,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_disruption)
       if (OBJ_FLAGGED(weapon, ITEM_DISRUPTION))
         if (victim)
         {
-          if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+          if (!savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
           {
             send_to_char(ch, "Your weapon flashes with brilliant light!\r\n");
             act("$o carried by $n flashes with brilliant light", FALSE, ch, weapon, NULL, TO_ROOM);
@@ -1951,7 +1951,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
       return;
     }
 
-    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
     {
       act("You look away just in time to avoid getting blinded!", FALSE, victim, weapon, ch, TO_CHAR);
       act("$n looks away just in time to avoid getting blinded!", TRUE, victim, weapon, ch, TO_ROOM);
@@ -2007,7 +2007,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_exhausting)
 
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
 
-    if (mag_savingthrow(ch, victim, SAVING_FORT, HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE) ? 
+    if (savingthrow(ch, victim, SAVING_FORT, HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE) ? 
         get_evolution_appearance_save_bonus(victim) : 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
     {
       act("You resist the wave of exhaustion from the blow of $o.", FALSE, victim, weapon, ch, TO_CHAR);
@@ -2066,7 +2066,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_thundering)
       return;
     }
 
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
     {
       act("You resist the thunderlcap from the blow of $o.", FALSE, victim, weapon, ch, TO_CHAR);
       act("$n resists the thunderclap from the blow of $o.", TRUE, victim, weapon, ch, TO_ROOM);
@@ -2120,7 +2120,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
       return;
     }
 
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), ENCHANTMENT))
     {
       act("You shake off a cloud of confusion settling over your mind.", FALSE, victim, weapon, ch, TO_CHAR);
       act("$n looks confused for a moment, but shakes it off.", TRUE, victim, weapon, ch, TO_ROOM);

@@ -355,7 +355,7 @@ int get_destroy_undead_threshold(struct char_data *ch);               /* NEW: Ti
 
 ### 1. Spell DC Calculation (✅ IMPLEMENTED)
 **Files Modified:** `src/magic.c` (line ~461)
-**Function:** `mag_savingthrow_full()`
+**Function:** `savingthrow_full()`
 
 Domain focus bonus is now applied to domain spells:
 ```c
@@ -614,7 +614,7 @@ Result: +5 domain DC, +11 spell damage, +5 domain spell slots, +3 any-level spel
 - [x] Multi-rank perks can be purchased incrementally
 - [x] Perk info displays correct information
 - [x] Helper functions return correct values
-- [x] Domain Focus DC bonus integrated into `mag_savingthrow_full()`
+- [x] Domain Focus DC bonus integrated into `savingthrow_full()`
 - [x] Divine Spell Power damage bonus integrated into `mag_damage()`
 - [x] Divine class detection function `is_divine_spellcasting_class()` implemented
 
@@ -732,7 +732,7 @@ Result: +5 domain DC, +11 spell damage, +5 domain spell slots, +3 any-level spel
 - Added regeneration messages for player feedback
 
 **v1.2 - October 26, 2025**
-- Implemented domain focus DC bonus integration in `mag_savingthrow_full()` (src/magic.c line ~461)
+- Implemented domain focus DC bonus integration in `savingthrow_full()` (src/magic.c line ~461)
 - Implemented divine spell power damage bonus integration in `mag_damage()` (src/magic.c line ~2734)
 - Added `is_divine_spellcasting_class()` helper function to check for divine casting classes
 - Updated bonus spell slot design: slots are now tracked separately and consumed during casting

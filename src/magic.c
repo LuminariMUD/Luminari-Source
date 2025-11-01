@@ -371,17 +371,17 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
 // TRUE = resisted
 // FALSE = Failed to resist
 // modifier applies to victim, higher the better (for the victim)
-int mag_savingthrow(struct char_data *ch, struct char_data *vict,
+int savingthrow(struct char_data *ch, struct char_data *vict,
                     int type, int modifier, int casttype, int level, int school)
 {
-  return mag_savingthrow_full(ch, vict, type, modifier, casttype, level, school, 0);
+  return savingthrow_full(ch, vict, type, modifier, casttype, level, school, 0);
 }
 
 const char *save_names[NUM_SAVINGS] = {"Fort", "Refl", "Will", "Poison", "Death"};
 /* TRUE = resisted
    FALSE = Failed to resist
      modifier applies to victim, higher the better (for the victim) */
-int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
+int savingthrow_full(struct char_data *ch, struct char_data *vict,
                          int type, int modifier, int casttype, int level, int school, int spellnum)
 {
   int challenge = 10, // 10 is base DC
@@ -724,7 +724,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
         send_to_char(vict, "\tY[You saved once, but the spell persists - save again!]\tn\r\n");
         
         /* Make the second save call - if they fail this one, spell affects them */
-        int second_save = mag_savingthrow_full(ch, vict, type, modifier, casttype, level, school, spellnum);
+        int second_save = savingthrow_full(ch, vict, type, modifier, casttype, level, school, spellnum);
         
         in_persistent_save = FALSE;
         return second_save;
@@ -1328,7 +1328,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_SOUND;
     size_dice = 6;
     num_dice = 4;
-    if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+    if (!savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
     {
       change_position(victim, POS_SITTING);
       act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
@@ -1465,7 +1465,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
       GET_DC_BONUS(ch) += (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? 2 : 0;
       mag_resist_bonus = (energy_type == DAM_ELECTRIC || energy_type == DAM_SOUND) ? -2 : 0;
-      if (!mag_savingthrow(ch, victim, energy_type == DAM_COLD ? SAVING_FORT : SAVING_REFL, 0, casttype, level, NOSCHOOL) &&
+      if (!savingthrow(ch, victim, energy_type == DAM_COLD ? SAVING_FORT : SAVING_REFL, 0, casttype, level, NOSCHOOL) &&
           !power_resistance(ch, victim, mag_resist_bonus) && ((GET_SIZE(victim) - GET_SIZE(ch)) <= 1))
       {
         change_position(victim, POS_SITTING);
@@ -1479,7 +1479,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
         }
       }
     }
-    // we do this again because it will have been set to zero in the mag_savingthrow we just called
+    // we do this again because it will have been set to zero in the savingthrow we just called
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     {
       int energy_type = IS_NPC(ch) ? DAM_MENTAL : GET_PSIONIC_ENERGY_TYPE(ch);
@@ -2961,7 +2961,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   // figure saving throw for finger of death here, because it's not half damage
   if (spellnum == SPELL_FINGER_OF_DEATH)
   {
-    if (mag_savingthrow(ch, victim, save, race_bonus, casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, save, race_bonus, casttype, level, NECROMANCY))
     {
       if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
       {
@@ -2976,10 +2976,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   else if (spellnum == PSIONIC_DEADLY_FEAR)
   {
     GET_DC_BONUS(ch) += bonus;
-    if (!mag_savingthrow(ch, victim, save, race_bonus + dc_mod, SAVING_WILL, level, NOSCHOOL))
+    if (!savingthrow(ch, victim, save, race_bonus + dc_mod, SAVING_WILL, level, NOSCHOOL))
     {
       GET_DC_BONUS(ch) += bonus;
-      if (mag_savingthrow(ch, victim, save, race_bonus + dc_mod, SAVING_FORT, level, NOSCHOOL))
+      if (savingthrow(ch, victim, save, race_bonus + dc_mod, SAVING_FORT, level, NOSCHOOL))
         dam = dice(3, 6);
       else
         dam = GET_HIT(victim) + 100;
@@ -2988,7 +2988,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   else if (spellnum == PSIONIC_PSYCHIC_CRUSH)
   {
     GET_DC_BONUS(ch) += bonus - 4;
-    if (mag_savingthrow(ch, victim, save, race_bonus + dc_mod, SAVING_WILL, level, NOSCHOOL))
+    if (savingthrow(ch, victim, save, race_bonus + dc_mod, SAVING_WILL, level, NOSCHOOL))
       dam = dice(3 + bonus, 6);
     else
       dam = GET_HIT(victim) + 100;
@@ -2996,13 +2996,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   else if (spellnum == PSIONIC_DISINTEGRATION)
   {
     // on a fort save, disintigrate will always do 5d6 damage
-    if (mag_savingthrow(ch, victim, save, race_bonus, savetype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, save, race_bonus, savetype, level, NOSCHOOL))
       dam = dice(5, 6);
     // otherwise we'll let things proceeed as normal
   }
   else if (spellnum == PSIONIC_RECALL_DEATH)
   {
-    if (mag_savingthrow(ch, victim, save, race_bonus + dc_mod, savetype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, save, race_bonus + dc_mod, savetype, level, NOSCHOOL))
       dam = dice(5, 6);
     else
       dam = GET_HIT(victim) + 100;
@@ -3014,7 +3014,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   else if (dam && (save != -1))
   {
     // saving throw for half damage if applies
-    if (mag_savingthrow(ch, victim, save, race_bonus + dc_mod, casttype, level, spell_school))
+    if (savingthrow(ch, victim, save, race_bonus + dc_mod, casttype, level, spell_school))
     {
       if (save_negates)
       {
@@ -3124,7 +3124,7 @@ bool passed_poison_checks(struct char_data *ch, struct char_data *victim, int ca
     if (casttype != CAST_INNATE && casttype != CAST_DEVICE && mag_resistance(ch, victim, 0))
       return true;
     int bonus = get_poison_save_mod(ch, victim);
-    if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT))
     {
       send_to_char(ch, "Your victim seems to resist the poison!\r\n");
       return true;
@@ -3271,7 +3271,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     // poisons
 
     case POISON_TYPE_SCORPION_WEAK:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3285,7 +3285,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_SCORPION_NORMAL:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3299,7 +3299,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_SCORPION_STRONG:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3313,7 +3313,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_SNAKE_WEAK:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3327,7 +3327,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_SNAKE_NORMAL:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3341,7 +3341,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_SNAKE_STRONG:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3355,7 +3355,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_SPIDER_WEAK:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3369,7 +3369,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_SPIDER_NORMAL:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3383,7 +3383,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_SPIDER_STRONG:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3397,7 +3397,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_CENTIPEDE_WEAK:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3411,7 +3411,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_CENTIPEDE_NORMAL:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3425,7 +3425,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_CENTIPEDE_STRONG:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3440,7 +3440,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
 
     case POISON_TYPE_WASP_WEAK:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3454,7 +3454,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_WASP_NORMAL:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3468,7 +3468,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_WASP_STRONG:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3482,7 +3482,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_FUNGAL_WEAK:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3496,7 +3496,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_FUNGAL_NORMAL:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3510,7 +3510,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_FUNGAL_STRONG:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3525,7 +3525,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
 
     case POISON_TYPE_DROW_WEAK:
-      if (!can_stun(victim) || !can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_stun(victim) || !can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3539,7 +3539,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_DROW_NORMAL:
-      if (!can_stun(victim) || !can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 2, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_stun(victim) || !can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 2, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3553,7 +3553,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_DROW_STRONG:
-      if (!can_stun(victim) || !can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 4, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_stun(victim) || !can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 4, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3567,7 +3567,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_WYVERN:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3586,7 +3586,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_PURPLE_WORM:
-    if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+    if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3605,7 +3605,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
     case POISON_TYPE_COCKATRICE:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3634,7 +3634,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
 
       case POISON_TYPE_KAPAK:
-      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (!can_poison(victim) || savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3651,7 +3651,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     // misc
 
     case MOB_ABILITY_CORRUPTION:
-      if (mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      if (savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
       {
         return;
       }
@@ -3755,7 +3755,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (power_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
       return;
     af[0].location = APPLY_DEX;
     af[0].duration = level * 12;
@@ -3777,7 +3777,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (power_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NOSCHOOL))
       return;
     af[0].location = APPLY_WIS;
     af[0].duration = level * 12;
@@ -3949,7 +3949,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
     {
       return;
     }
@@ -4146,7 +4146,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
       return;
     af[0].duration = 1;
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
@@ -4160,7 +4160,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
     {
       af[0].modifier = -2;
     }
@@ -4182,7 +4182,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         return;
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
       return;
     af[0].duration = 1 + (GET_AUGMENT_PSP(ch) / 4);
     SET_BIT_AR(af[0].bitvector, AFF_DAZED);
@@ -4305,7 +4305,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
       return;
     af[0].duration = 1 + (GET_AUGMENT_PSP(ch) / 2);
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
@@ -4333,7 +4333,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
 
-    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL))
       return;
     af[0].duration = 2 + (GET_AUGMENT_PSP(ch) / 4);
     af[0].location = APPLY_SPECIAL;
@@ -4354,7 +4354,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (power_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL))
       return;
 
     af[0].duration = level;
@@ -4394,7 +4394,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (power_resistance(ch, victim, 0))
       return;
-    if (GET_AUGMENT_PSP(ch) < 4 && mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NOSCHOOL))
+    if (GET_AUGMENT_PSP(ch) < 4 && savingthrow(ch, victim, SAVING_WILL, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NOSCHOOL))
       return;
     change_position(victim, POS_SITTING);
     af[0].duration = 600;
@@ -4429,7 +4429,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_STR;
     af[0].modifier = -dice(2 + (GET_AUGMENT_PSP(ch) / 4), 4);
     af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
       af[0].modifier /= 2;
     to_vict = "You feel your body and strength wither!";
     to_room = "$n begins to wither before your eyes!";
@@ -4477,7 +4477,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (power_resistance(ch, victim, 0))
       return;
     af[0].duration = level;
-    af[0].modifier = mag_savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL) ? BRUTALIZE_WOUNDS_SAVE_SUCCESS : BRUTALIZE_WOUNDS_SAVE_FAIL;
+    af[0].modifier = savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NOSCHOOL) ? BRUTALIZE_WOUNDS_SAVE_SUCCESS : BRUTALIZE_WOUNDS_SAVE_FAIL;
     af[0].location = APPLY_SPECIAL;
     accum_duration = FALSE;
     to_vict = "Your body has become more vulnerable to physical attacks.";
@@ -4768,7 +4768,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (power_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
     {
       return;
     }
@@ -4782,7 +4782,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   // critical feats list
   case ABILITY_BLEEDING_CRITICAL:
-    af[0].duration = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4) + 1;
+    af[0].duration = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4) + 1;
     af[0].modifier = dice(2, 6);
     SET_BIT_AR(af[0].bitvector, AFF_BLEED);
     to_vict = "You start to bleed.";
@@ -4791,7 +4791,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case ABILITY_SICKENING_CRITICAL:
-    af[0].duration = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4) + 1;
+    af[0].duration = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4) + 1;
     SET_BIT_AR(af[0].bitvector, AFF_SICKENED);
     to_vict = "You start to feel incredibly sickened.";
     to_room = "$n looks incredibly sickened.";
@@ -4799,7 +4799,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case ABILITY_STAGGERING_CRITICAL:
-    af[0].duration = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4) + 1;
+    af[0].duration = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4) + 1;
     SET_BIT_AR(af[0].bitvector, AFF_STAGGERED);
     to_vict = "You feel staggered.";
     to_room = "$n looks staggered.";
@@ -4809,7 +4809,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case ABILITY_STUNNING_CRITICAL:
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-    af[0].duration = mag_savingthrow(ch, victim, SAVING_FORT, misc_bonus, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4);
+    af[0].duration = savingthrow(ch, victim, SAVING_FORT, misc_bonus, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4);
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     to_vict = "You are stunned.";
     to_room = "$n looks stunned.";
@@ -4831,7 +4831,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         act("You have recently been affected by warlock's draining blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
         return;
       }
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+      if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
       {
         send_to_char(ch, "Your enemy has resisted your eldricth blast effect.\r\n");
         return;
@@ -4851,7 +4851,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         act("You have recently been affected by warlock's vitriolic blast, and are still immune to its effects.", FALSE, ch, 0, victim, TO_VICT);
         return;
       }
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, NOSCHOOL))
+      if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, NOSCHOOL))
       {
         return;
       }
@@ -4892,7 +4892,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         return;
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, ILLUSION))
+      if (savingthrow(ch, victim, SAVING_WILL, illusion_bonus + dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, ILLUSION))
       {
         return;
       }
@@ -4916,7 +4916,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         return;
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+      if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
         return;
 
       af[0].spell = WARLOCK_BESHADOWED_BLAST;
@@ -4944,7 +4944,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+      if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
         return;
 
       af[0].spell = WARLOCK_HELLRIME_BLAST;
@@ -4967,7 +4967,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         return;
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, NOSCHOOL))
+      if (savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, NOSCHOOL))
         return;
       if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
@@ -4989,7 +4989,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, dc_mod + enchantment_bonus, casttype, level, NOSCHOOL))
+      if (savingthrow(ch, victim, SAVING_FORT, dc_mod + enchantment_bonus, casttype, level, NOSCHOOL))
         return;
       if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
@@ -5017,7 +5017,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         return;
       if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-      if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus + misc_bonus, casttype, level, NOSCHOOL))
+      if (savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus + misc_bonus, casttype, level, NOSCHOOL))
         return;
       if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
@@ -5038,7 +5038,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       }
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_FORT, enchantment_bonus, casttype, level, NOSCHOOL))
+      if (savingthrow(ch, victim, SAVING_FORT, enchantment_bonus, casttype, level, NOSCHOOL))
         return;
       
       af[0].spell = WARLOCK_UTTERDARK_BLAST;
@@ -5076,7 +5076,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
     if (is_immune_mind_affecting(ch, victim, 1))
       break;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NECROMANCY))
       break;
 
     af[0].location = APPLY_NONE;
@@ -5269,7 +5269,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
     }
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
     {
       af[0].location = APPLY_HITROLL;
       af[0].modifier = -1;
@@ -5303,7 +5303,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case WARLOCK_DREAD_SEIZURE:
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, enchantment_bonus, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_FORT, enchantment_bonus, casttype, level, NOSCHOOL))
       return;
 
     af[0].location = APPLY_HITROLL;
@@ -5802,7 +5802,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case AFFECT_CAUSTIC_BLOOD_DAMAGE: // transmutation
-    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, TRANSMUTATION))
+    if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, TRANSMUTATION))
     {
       send_to_char(victim, "You manage to dodge well enough that the acidic blood doesn't stick!\r\n");
       act("$n manages to dodge well enough that the acidic blood doesn't stick!", FALSE, victim, 0, 0, TO_ROOM);
@@ -5825,7 +5825,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
     {
       send_to_char(ch, "The blindness is resisted!\r\n");
       return;
@@ -5851,7 +5851,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
       return;
     }
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, CONJURATION))
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, CONJURATION))
     {
       send_to_char(ch, "The blindness is resisted!\r\n");
       return;
@@ -5879,7 +5879,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
     {
       send_to_char(ch, "The blindness is resisted!\r\n");
       return;
@@ -6068,7 +6068,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ILLUSION))
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ILLUSION))
     {
       send_to_char(ch, "The silencing is resisted!\r\n");
       return;
@@ -6226,7 +6226,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, SAVING_WILL, dc_mod, casttype, level, NECROMANCY))
     {
       send_to_char(ch, "The sense of doom is resisted!\r\n");
       return;
@@ -6304,7 +6304,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_CHILL_TOUCH: // necromancy
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
       return;
 
     af[0].location = APPLY_STR;
@@ -6353,7 +6353,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + misc_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, illusion_bonus + misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -6448,7 +6448,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -6490,7 +6490,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus + misc_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus + misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -6514,7 +6514,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
     {
       send_to_char(ch, "You fail.\r\n");
       return;
@@ -6560,7 +6560,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -6610,7 +6610,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_DIMENSIONAL_LOCK: // divination
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, DIVINATION))
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, DIVINATION))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -6652,7 +6652,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (mag_resistance(ch, victim, 0))
       return;
 
-    if (mag_savingthrow(ch, victim, SAVING_FORT, (enchantment_bonus - 4), casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_FORT, (enchantment_bonus - 4), casttype, level, ENCHANTMENT))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -6755,7 +6755,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE) || HAS_EVOLUTION(victim, EVOLUTION_CELESTIAL_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_FORT, misc_bonus, casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, SAVING_FORT, misc_bonus, casttype, level, NECROMANCY))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -6797,7 +6797,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_FEEBLEMIND: // enchantment
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -6831,7 +6831,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -6848,7 +6848,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_ENTANGLE: // transmutation
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, TRANSMUTATION))
+    if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, TRANSMUTATION))
       return;
     if (AFF_FLAGGED(victim, AFF_FREE_MOVEMENT))
       return;
@@ -6941,7 +6941,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_GRASPING_HAND: // evocation (also does damage)
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
+    if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
       return;
     if (affected_by_spell(victim, PSIONIC_SLIP_THE_BONDS))
     {
@@ -6960,7 +6960,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_GREASE: // divination
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, DIVINATION))
+    if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, DIVINATION))
     {
       send_to_char(ch, "You fail.\r\n");
       return;
@@ -7108,7 +7108,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         return;
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, paralysis_bonus, casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, SAVING_WILL, paralysis_bonus, casttype, level, NECROMANCY))
     {
       return;
     }
@@ -7183,7 +7183,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         paralysis_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL,
+    if (savingthrow(ch, victim, SAVING_WILL,
                         dc_mod + enchantment_bonus + paralysis_bonus,
                         casttype, level, ENCHANTMENT))
     {
@@ -7208,7 +7208,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         paralysis_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_FORT,
+    if (savingthrow(ch, victim, SAVING_FORT,
                         enchantment_bonus + paralysis_bonus,
                         casttype, level, NECROMANCY))
     {
@@ -7281,7 +7281,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         paralysis_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -7317,7 +7317,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         paralysis_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -7348,7 +7348,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         paralysis_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -7368,7 +7368,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       paralysis_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -7387,7 +7387,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
     {
       return;
     }
@@ -7492,7 +7492,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     {
       if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         paralysis_bonus += get_evolution_appearance_save_bonus(victim);
-      mag_savingthrow(ch, victim, SAVING_WILL, paralysis_bonus, /* +4 bonus from feat */
+      savingthrow(ch, victim, SAVING_WILL, paralysis_bonus, /* +4 bonus from feat */
                       casttype, level, ENCHANTMENT);
       return;
     }
@@ -7708,7 +7708,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         paralysis_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -7745,7 +7745,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_MIND_FOG: // illusion
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + illusion_bonus, casttype, level, ILLUSION))
+    if (savingthrow(ch, victim, SAVING_WILL, dc_mod + illusion_bonus, casttype, level, ILLUSION))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -7848,7 +7848,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
     
-    if (mag_savingthrow(ch, victim, SAVING_FORT, dc_mod + illusion_bonus + misc_bonus, casttype, level, ILLUSION))
+    if (savingthrow(ch, victim, SAVING_FORT, dc_mod + illusion_bonus + misc_bonus, casttype, level, ILLUSION))
       return;
     
     if (is_immune_mind_affecting(ch, victim, TRUE))
@@ -7986,7 +7986,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         paralysis_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + paralysis_bonus, casttype, level, ILLUSION))
+    if (savingthrow(ch, victim, SAVING_WILL, illusion_bonus + paralysis_bonus, casttype, level, ILLUSION))
     {
       return;
     }
@@ -8081,7 +8081,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + illusion_bonus + misc_bonus, casttype, level, ILLUSION))
+    if (savingthrow(ch, victim, SAVING_WILL, dc_mod + illusion_bonus + misc_bonus, casttype, level, ILLUSION))
     {
       return;
     }
@@ -8100,7 +8100,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_RAY_OF_ENFEEBLEMENT: // necromancy
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, NECROMANCY))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -8146,7 +8146,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, ILLUSION))
+    if (savingthrow(ch, victim, SAVING_WILL, illusion_bonus + dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, ILLUSION))
     {
       return;
     }
@@ -8171,7 +8171,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, ILLUSION))
+    if (savingthrow(ch, victim, SAVING_WILL, illusion_bonus + dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, ILLUSION))
     {
       return;
     }
@@ -8326,7 +8326,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -8362,7 +8362,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, ABJURATION))
+    if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, ABJURATION))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -8418,7 +8418,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     {
       return;
     }
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, ABJURATION))
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, ABJURATION))
     {
       return;
     }
@@ -8728,7 +8728,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, DIVINATION))
+    if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, DIVINATION))
     {
       return;
     }
@@ -8755,7 +8755,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your opponent seems immune to being deafened.\r\n");
       return;
     }
-    if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, ABJURATION) && !mag_resistance(ch, victim, 0))
+    if (!savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, ABJURATION) && !mag_resistance(ch, victim, 0))
     {
       af[0].duration = 10;
       SET_BIT_AR(af[0].bitvector, AFF_DEAF);
@@ -8766,7 +8766,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-    if (!mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ABJURATION) &&
+    if (!savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ABJURATION) &&
         !mag_resistance(ch, victim, 0))
     {
       if (!can_stun(victim))
@@ -8782,7 +8782,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       success = 1;
     }
 
-    if (!mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, ABJURATION) &&
+    if (!savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, ABJURATION) &&
         !mag_resistance(ch, victim, 0))
     {
 
@@ -8810,7 +8810,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + misc_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + misc_bonus, casttype, level, ENCHANTMENT))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -8828,7 +8828,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_TOUCH_OF_IDIOCY: // enchantment
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, ENCHANTMENT))
+    if (savingthrow(ch, victim, SAVING_WILL, dc_mod + enchantment_bonus, casttype, level, ENCHANTMENT))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -8891,7 +8891,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, SAVING_FORT, dc_mod + (affected_by_aura_of_cowardice(victim) ? -4 : 0), casttype, level, NECROMANCY))
     {
       return;
     }
@@ -8948,7 +8948,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus = get_evolution_appearance_save_bonus(victim);
-    if (mag_savingthrow(ch, victim, SAVING_FORT, misc_bonus, casttype, level, NECROMANCY))
+    if (savingthrow(ch, victim, SAVING_FORT, misc_bonus, casttype, level, NECROMANCY))
     {
       return;
     }
@@ -8971,7 +8971,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(victim, "You avoid the effect due to your slip the bonds manifestation!\r\n");
       return;
     }
-    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, CONJURATION))
+    if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, CONJURATION))
     {
       send_to_char(ch, "You fail.\r\n");
       return;
@@ -8993,7 +8993,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     {
       if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-      mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + 4 + misc_bonus, /* +4 bonus from feat */
+      savingthrow(ch, victim, SAVING_WILL, illusion_bonus + 4 + misc_bonus, /* +4 bonus from feat */
                       casttype, level, ILLUSION);
       return;
     }
@@ -9028,7 +9028,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       spell_info[spellnum].violent)
   {
     send_to_char(victim, "\tW*Slippery Mind*\tn  ");
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, spell_school))
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, spell_school))
       return;
   }
 
@@ -11773,7 +11773,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
 
   case PSIONIC_ERADICATE_INVISIBILITY:
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, CAST_SPELL, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_REFL, 0, CAST_SPELL, level, NOSCHOOL))
       return;
     affect = AFF_INVISIBLE;
     to_char = "Your psychic manifestation reveals $N.";
@@ -11782,7 +11782,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_SHATTER_MIND_BLANK:
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_SPELL, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, 0, CAST_SPELL, level, NOSCHOOL))
       return;
     affect = AFF_MIND_BLANK;
     to_char = "You shatter $N's mind blank!";
