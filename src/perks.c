@@ -4257,7 +4257,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_WATER_WHIP];
   perk->id = PERK_MONK_WATER_WHIP;
   perk->name = strdup("Water Whip");
-  perk->description = strdup("Spend 1 ki point to deal 3d6 damage and entangle the enemy");
+  perk->description = strdup("Spend 1 ki point to deal 4d6 water damage and entangle the enemy");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 1;
@@ -4265,7 +4265,7 @@ void define_monk_perks(void)
   perk->prerequisite_perk = PERK_UNDEFINED;
   perk->prerequisite_rank = 0;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3;
+  perk->effect_value = 4;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Way of the Four Elements - Tier 1");
 
@@ -4273,7 +4273,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_GONG_OF_SUMMIT];
   perk->id = PERK_MONK_GONG_OF_SUMMIT;
   perk->name = strdup("Gong of the Summit");
-  perk->description = strdup("Spend 1 ki point to emit thunder wave dealing 3d6 sound damage and deafening the target");
+  perk->description = strdup("Spend 1 ki point to emit thunder wave dealing 4d6 sound damage and deafening the target");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 1;
@@ -4281,7 +4281,7 @@ void define_monk_perks(void)
   perk->prerequisite_perk = PERK_UNDEFINED;
   perk->prerequisite_rank = 0;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3;
+  perk->effect_value = 4;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Way of the Four Elements - Tier 1");
 
@@ -4289,7 +4289,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_FIST_OF_UNBROKEN_AIR];
   perk->id = PERK_MONK_FIST_OF_UNBROKEN_AIR;
   perk->name = strdup("Fist of Unbroken Air");
-  perk->description = strdup("Spend 1 ki point to create force blast (30 ft per rank, deals 2d6+2 per rank force damage)");
+  perk->description = strdup("Spend 1 ki point to unleash (2d6+2)xRank force damage AoE, knocking enemies prone (Reflex negates)");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 1;

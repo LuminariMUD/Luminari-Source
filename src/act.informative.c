@@ -3266,15 +3266,15 @@ ACMD(do_kipoints)
   
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
                has_monk_water_whip(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Water Whip", "waterwhip", "3d6 damage + entangle");
+               "Water Whip", "waterwhip", "4d6 water damage + entangle");
   
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
                has_monk_gong_of_summit(ch) ? "\tG*\tn" : "\tD-\tn",
-               "Gong of Summit", "gongsummit", "3d6 sound damage + deafen");
+               "Gong of Summit", "gongsummit", "4d6 sound damage + deafen");
   
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
                get_monk_fist_of_unbroken_air_rank(ch) > 0 ? "\tG*\tn" : "\tD-\tn",
-               "Fist of Unbroken Air", "fistair", "Force blast");
+               "Fist of Unbroken Air", "fistair", "(2d6+2)xRank force AoE + prone");
   
   send_to_char(ch, "\tC|\tn%s \tC|\tn \tC%-23s\tn \tC|\tn %-18s \tC|\tn %-31s \tC|\tn\r\n",
                has_monk_shape_flowing_river(ch) ? "\tG*\tn" : "\tD-\tn",

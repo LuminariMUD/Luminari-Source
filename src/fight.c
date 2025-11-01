@@ -10274,6 +10274,18 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
     affect_from_char(ch, SKILL_WATER_WHIP);
   }
 
+  if (affected_by_spell(ch, SKILL_GONG_OF_SUMMIT))
+  {
+    send_to_char(ch, "You fail to land your gong of the summit strike!  ");
+    affect_from_char(ch, SKILL_GONG_OF_SUMMIT);
+  }
+
+  if (affected_by_spell(ch, SKILL_FIST_OF_UNBROKEN_AIR))
+  {
+    send_to_char(ch, "You fail to land your fist of unbroken air strike!  ");
+    affect_from_char(ch, SKILL_FIST_OF_UNBROKEN_AIR);
+  }
+
   /* Display the flavorful backstab miss messages. This should be changed so we can
    * get rid of the SKILL_ defined (and convert abilities to skills :))
    * it should be noted that it displays miss messages based on weapon-types as well */
@@ -10861,7 +10873,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || is_monk_weapon(wielded))
     {
       int water_whip_dc = 10 + GET_WIS_BONUS(ch) + (CLASS_LEVEL(ch, CLASS_MONK) / 2);
-      int water_dam = dice(3, 6);
+      int water_dam = dice(4, 6);
+      int actual_water_dam;
 
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
@@ -10882,33 +10895,168 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       act("\tB$n's attack releases a surge of water that strikes $N!\tn",
           ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
 
-      /* Add water damage */
-      dam += water_dam;
+      /* Apply water damage separately to properly check resistances and absorption */
+      actual_water_dam = damage(ch, victim, water_dam, SKILL_WATER_WHIP, DAM_WATER, FALSE);
 
-      /* Reflex save to avoid entangle */
-      if (victim && !savingthrow(ch, victim, SAVING_REFL, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
+      /* Only apply entangle if the water damage wasn't completely negated */
+      if (actual_water_dam > 0)
       {
-        struct affected_type af_entangle;
-        
-        /* Failed save - apply entangle */
-        send_to_char(victim, "\tBThe water wraps around you, entangling your movements!\tn\r\n");
-        act("\tBThe water wraps around $N, entangling $M!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+        /* Reflex save to avoid entangle */
+        if (victim && !savingthrow(ch, victim, SAVING_REFL, 0, CAST_INNATE, MONK_TYPE(ch) / 2, NOSCHOOL))
+        {
+          struct affected_type af_entangle;
+          
+          /* Failed save - apply entangle */
+          send_to_char(victim, "\tBThe water wraps around you, entangling your movements!\tn\r\n");
+          act("\tBThe water wraps around $N, entangling $M!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
 
-        new_affect(&af_entangle);
-        af_entangle.spell = SPELL_ENTANGLE;
-        af_entangle.duration = 3; /* 3 rounds */
-        af_entangle.location = APPLY_AC;
-        af_entangle.modifier = -2;
-        SET_BIT_AR(af_entangle.bitvector, AFF_ENTANGLED);
-        affect_join(victim, &af_entangle, FALSE, FALSE, FALSE, FALSE);
-      }
-      else
-      {
-        send_to_char(victim, "You deftly avoid being entangled by the water!\r\n");
+          new_affect(&af_entangle);
+          af_entangle.spell = SPELL_ENTANGLE;
+          af_entangle.duration = 3; /* 3 rounds */
+          af_entangle.location = APPLY_AC;
+          af_entangle.modifier = -2;
+          SET_BIT_AR(af_entangle.bitvector, AFF_ENTANGLED);
+          affect_join(victim, &af_entangle, FALSE, FALSE, FALSE, FALSE);
+        }
+        else
+        {
+          send_to_char(victim, "You deftly avoid being entangled by the water!\r\n");
+        }
       }
 
       /* Remove the water whip affect */
       affect_from_char(ch, SKILL_WATER_WHIP);
+    }
+  }
+
+  /* Gong of the Summit - monk elemental attack */
+  if (affected_by_spell(ch, SKILL_GONG_OF_SUMMIT))
+  {
+    if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || is_monk_weapon(wielded))
+    {
+      int gong_dc = 10 + GET_WIS_BONUS(ch) + (MONK_TYPE(ch) / 2);
+      int sound_dam = dice(4, 6);
+      int actual_sound_dam;
+
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "[\tYGONG-OF-SUMMIT\tn] ");
+      }
+
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "[\tYGONG-OF-SUMMIT\tn] ");
+      }
+
+      act("\tY$n's attack releases a thunderous wave of sound that strikes $N!\tn",
+          ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
+
+      /* Apply sound damage separately to properly check resistances and absorption */
+      actual_sound_dam = damage(ch, victim, sound_dam, SKILL_GONG_OF_SUMMIT, DAM_SOUND, FALSE);
+
+      /* Only apply deafness if the sound damage wasn't completely negated */
+      if (actual_sound_dam > 0)
+      {
+        /* Will save to avoid deafness */
+        if (victim && !savingthrow(ch, victim, SAVING_WILL, 0, CAST_INNATE, MONK_TYPE(ch) / 2, NOSCHOOL))
+        {
+          struct affected_type af_deaf;
+          
+          /* Failed save - apply deafness */
+          send_to_char(victim, "\tYThe thunderous sound overwhelms you, leaving you deafened!\tn\r\n");
+          act("\tYThe thunderous sound deafens $N!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+
+          new_affect(&af_deaf);
+          af_deaf.spell = SPELL_BLINDNESS;  /* Using blindness spell ID for deafness effect */
+          af_deaf.duration = 4; /* 4 rounds */
+          SET_BIT_AR(af_deaf.bitvector, AFF_DEAF);
+          affect_join(victim, &af_deaf, FALSE, FALSE, FALSE, FALSE);
+        }
+        else
+        {
+          send_to_char(victim, "You steel your mind against the thunderous sound!\r\n");
+        }
+      }
+
+      /* Remove the gong of the summit affect */
+      affect_from_char(ch, SKILL_GONG_OF_SUMMIT);
+    }
+  }
+
+  /* Fist of Unbroken Air - monk elemental AoE attack */
+  if (affected_by_spell(ch, SKILL_FIST_OF_UNBROKEN_AIR))
+  {
+    if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || is_monk_weapon(wielded))
+    {
+      struct char_data *tch, *next_tch;
+      int perk_rank = get_monk_fist_of_unbroken_air_rank(ch);
+      int force_dc = 10 + GET_WIS_BONUS(ch) + (MONK_TYPE(ch) / 2);
+      
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "[\tCFIST-OF-UNBROKEN-AIR\tn] ");
+      }
+
+      act("\tC$n unleashes a devastating wave of pure force that explodes outward!\tn",
+          ACT_CONDENSE_VALUE, ch, wielded, NULL, TO_ROOM);
+
+      /* AoE damage - affects everyone in the room who isn't grouped or a charmie */
+      for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+      {
+        next_tch = tch->next_in_room;
+
+        if (aoeOK(ch, tch, SKILL_FIST_OF_UNBROKEN_AIR))
+        {
+          int force_dam = dice(2, 6) + 2; /* Base: 2d6+2 */
+          force_dam *= perk_rank; /* Multiply by perk rank */
+          int actual_force_dam;
+
+          if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_CONDENSED))
+          {
+          }
+          else
+          {
+            send_to_char(tch, "[\tCFIST-OF-UNBROKEN-AIR\tn] ");
+          }
+
+          act("\tCThe wave of force slams into $N!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+
+          /* Apply force damage with proper resistance/absorption checking */
+          actual_force_dam = damage(ch, tch, force_dam, SKILL_FIST_OF_UNBROKEN_AIR, DAM_AIR, FALSE);
+
+          /* Only apply prone effect if damage was dealt */
+          if (actual_force_dam > 0 && tch)
+          {
+            /* Reflex save to avoid being knocked prone */
+            if (!savingthrow(ch, tch, SAVING_REFL, 0, CAST_INNATE, MONK_TYPE(ch) / 2, NOSCHOOL))
+            {
+              /* Failed save - knock them down */
+              if (GET_POS(tch) > POS_SITTING)
+              {
+                send_to_char(tch, "\tCThe force knocks you off your feet!\tn\r\n");
+                act("\tC$N is knocked to the ground by the force!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+                change_position(tch, POS_SITTING);
+              }
+            }
+            else
+            {
+              send_to_char(tch, "You maintain your balance against the forceful blast!\r\n");
+            }
+          }
+        }
+      }
+
+      /* Remove the fist of unbroken air affect */
+      affect_from_char(ch, SKILL_FIST_OF_UNBROKEN_AIR);
     }
   }
 
