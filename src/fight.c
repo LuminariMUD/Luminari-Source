@@ -1569,7 +1569,7 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
     if (!is_immune_fear(vict, ch, false) && !is_immune_mind_affecting(vict, ch, false))
     {
       ch->char_specials.terror_cooldown = 200;
-      if (!mag_savingthrow_full(vict, ch, AFFECT_AURA_OF_TERROR, 0, CAST_INNATE, GET_LEVEL(vict), ENCHANTMENT, AFFECT_AURA_OF_TERROR))
+      if (!savingthrow_full(vict, ch, AFFECT_AURA_OF_TERROR, 0, CAST_INNATE, GET_LEVEL(vict), ENCHANTMENT, AFFECT_AURA_OF_TERROR))
       {
         struct affected_type af = {0};
         new_affect(&af);
@@ -7253,7 +7253,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     {
       if (GET_LEVEL(ch) <= 20 || (GET_LEVEL(ch) < 30 && dice(1, 5) == 1) || (GET_LEVEL(ch) >= 30 && dice(1, 10) == 1))
       {
-        if (!AFF_FLAGGED(ch, AFF_BLIND) && can_blind(ch) && !mag_savingthrow(victim, ch, SAVING_FORT, 0, AFFECT_HOLY_AURA_RETRIBUTION, compute_divine_level(victim), ABJURATION))
+        if (!AFF_FLAGGED(ch, AFF_BLIND) && can_blind(ch) && !savingthrow(victim, ch, SAVING_FORT, 0, AFFECT_HOLY_AURA_RETRIBUTION, compute_divine_level(victim), ABJURATION))
         {
           struct affected_type af = {0};
           new_affect(&af);
@@ -7331,7 +7331,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       {
         if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)) && !is_high_hp_mob(victim) && GET_LEVEL(victim) < 28)
         {
-          if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_RANGER), NOSCHOOL))
+          if (savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_RANGER), NOSCHOOL))
           {
             send_combat_roll_info(ch, "\tW[DEATH OF ENEMIES]\tn ");
             send_combat_roll_info(victim, "\tR[DEATH OF ENEMIES]\tn ");
@@ -10424,7 +10424,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         !AFF_FLAGGED(victim, AFF_BLIND) && IS_SHADOW_CONDITIONS(ch) && IS_SHADOW_CONDITIONS(victim))
     {
       /* without a bonus to the challenge here, this was completely ineffective -zusuk */
-      if (!mag_savingthrow(ch, victim, SAVING_FORT, -10, CAST_INNATE, (CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch)), ILLUSION))
+      if (!savingthrow(ch, victim, SAVING_FORT, -10, CAST_INNATE, (CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch)), ILLUSION))
       {
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
@@ -10578,7 +10578,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     }
     if (affected_by_spell(ch, SPELL_FIRE_OF_ENTANGLEMENT) && dice(1, 5) == 1)
     {
-      if (!mag_savingthrow(ch, victim, SAVING_REFL, 0, CASTING_TYPE_DIVINE, DIVINE_LEVEL(ch), EVOCATION) &&
+      if (!savingthrow(ch, victim, SAVING_REFL, 0, CASTING_TYPE_DIVINE, DIVINE_LEVEL(ch), EVOCATION) &&
           !affected_by_spell(victim, AFFECT_ENTANGLING_FLAMES) && !mag_resistance(ch, victim, 0))
       {
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
@@ -10662,7 +10662,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK))
     {
       /* check for save */
-      if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
+      if (!savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
       {
 
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
@@ -10739,7 +10739,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
       /* apply quivering palm affect, muahahahah */
       if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
-          !mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
+          !savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
       {
         /*GRAND SLAM!*/
         act("$N \tRblows up into little pieces\tn as soon as you make contact with your palm!",
@@ -10785,7 +10785,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
       act("$n performs a \tYtrue judgement\tn attack on $N!", ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
 
-      if (!is_immune_death_magic(ch, victim, false) && !mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_INQUISITOR), NOSCHOOL))
+      if (!is_immune_death_magic(ch, victim, false) && !savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_INQUISITOR), NOSCHOOL))
       {
 
         act("$N \tRblows up into little pieces\tn as soon as you make contact!", FALSE, ch, wielded, victim, TO_CHAR);
@@ -10832,7 +10832,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
       /* apply death arrow affect, muahahahah */
       if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
-          !mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER), NOSCHOOL))
+          !savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER), NOSCHOOL))
       {
         /*GRAND SLAM!*/
         act("$N \tRstops suddenly, then keels over\tn as soon as $p makes contact!",
@@ -10886,7 +10886,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       dam += water_dam;
 
       /* Reflex save to avoid entangle */
-      if (victim && !mag_savingthrow(ch, victim, SAVING_REFL, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
+      if (victim && !savingthrow(ch, victim, SAVING_REFL, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
       {
         struct affected_type af_entangle;
         
@@ -11072,7 +11072,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       if (!IS_NPC(ch) && has_perk(ch, PERK_ROGUE_BLEEDING_ATTACK) && !AFF_FLAGGED(victim, AFF_BLEED))
       {
         int dc = 10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch);
-        int save_result = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL);
+        int save_result = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL);
         
         if (save_result == FALSE)
         {
@@ -11097,7 +11097,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       if (!IS_NPC(ch) && has_perk(ch, PERK_ROGUE_CRIPPLING_STRIKE) && !AFF_FLAGGED(victim, AFF_CRIPPLED))
       {
         int dc = 10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch);
-        int save_result = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL);
+        int save_result = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL);
         
         if (save_result == FALSE)
         {
@@ -11125,7 +11125,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         if (rand_number(1, 100) <= 5)
         {
           int dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
-          int save_result = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL);
+          int save_result = savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL);
           
           if (save_result == FALSE)
           {
@@ -11396,7 +11396,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   if (affected_by_spell(victim, SPELL_STUNNING_BARRIER))
   {
-    if (!mag_savingthrow(victim, ch, SAVING_WILL, 0, CASTING_TYPE_ANY, CASTER_LEVEL(victim), CONJURATION))
+    if (!savingthrow(victim, ch, SAVING_WILL, 0, CASTING_TYPE_ANY, CASTER_LEVEL(victim), CONJURATION))
     {
       new_affect(&af);
       af.spell = SPELL_AFFECT_STUNNING_BARRIER;
@@ -11554,7 +11554,7 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
     {
       if (!power_resistance(ch, victim, 0))
         if (!is_immune_mind_affecting(ch, victim, 0))
-          if (!mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_SPELL, GET_PSIONIC_LEVEL(ch), 0))
+          if (!savingthrow(ch, victim, SAVING_WILL, 0, CAST_SPELL, GET_PSIONIC_LEVEL(ch), 0))
             return_val = damage(victim, ch, dice(4, get_char_affect_modifier(victim, PSIONIC_EMPATHIC_FEEDBACK, APPLY_SPECIAL)), PSIONIC_EMPATHIC_FEEDBACK, DAM_MENTAL, attack_type);
     }
     if (dam && affected_by_spell(victim, PSIONIC_ENERGY_RETORT) && !victim->char_specials.energy_retort_used)
@@ -11579,7 +11579,7 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
         if (energy == DAM_FIRE || energy == DAM_COLD || energy == DAM_ACID)
           dam_bonus = 4;
 
-        if (mag_savingthrow(victim, ch, save_type, 0, CAST_SPELL, GET_PSIONIC_LEVEL(victim), 0))
+        if (savingthrow(victim, ch, save_type, 0, CAST_SPELL, GET_PSIONIC_LEVEL(victim), 0))
         {
           return_val = damage(victim, ch, (dice(4, 6) + dam_bonus) / 2, PSIONIC_ENERGY_RETORT, energy, attack_type);
         }
@@ -11808,7 +11808,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
              find_in_list(ch, victim->char_specials.repulse_whitelist) == NULL)
     {
       // We haven't checked if this person is repulsing us yet. Do the check!
-      if (mag_savingthrow(victim, ch, SAVING_WILL, 0, CAST_SPELL, CASTER_LEVEL(victim), ABJURATION))
+      if (savingthrow(victim, ch, SAVING_WILL, 0, CAST_SPELL, CASTER_LEVEL(victim), ABJURATION))
       {
         add_to_list(ch, victim->char_specials.repulse_whitelist);
       }
@@ -12185,7 +12185,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
           {
             if (IS_NPC(ch) && isSummonMob(GET_MOB_VNUM(ch)) && GET_LEVEL(victim) >= GET_LEVEL(ch))
             {
-              if (!mag_resistance(victim, ch, 0) && !mag_savingthrow(victim, ch, SAVING_WILL, 0, CAST_WEAPON_SPELL, CASTER_LEVEL(victim), ABJURATION))
+              if (!mag_resistance(victim, ch, 0) && !savingthrow(victim, ch, SAVING_WILL, 0, CAST_WEAPON_SPELL, CASTER_LEVEL(victim), ABJURATION))
               {
                 act("Your banishing blade has dismissed $N back to their place of origin.", FALSE, victim, 0, ch, TO_CHAR);
                 act("$n's banishing blade has dismissed You back to your place of origin.", FALSE, victim, 0, ch, TO_VICT);
@@ -13017,7 +13017,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
             can_bleed(FIGHTING(ch)) && dice(1, 100) <= 10)
         {
           int bleed_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
-          if (!mag_savingthrow(ch, FIGHTING(ch), SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
+          if (!savingthrow(ch, FIGHTING(ch), SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
           {
             struct affected_type af;
             new_affect(&af);
@@ -13547,7 +13547,7 @@ void perform_violence(struct char_data *ch, int phase)
       if (!is_immune_mind_affecting(tch, ch, FALSE) &&
           !is_immune_fear(tch, ch, FALSE))
       {
-        if (!mag_savingthrow(tch, ch, SAVING_WILL, 0, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(tch), ENCHANTMENT))
+        if (!savingthrow(tch, ch, SAVING_WILL, 0, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(tch), ENCHANTMENT))
         {
           struct affected_type af = {0};
           new_affect(&af);

@@ -1318,7 +1318,7 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
     if (name)
       (name)(ch, shield, 0, "shieldslam");
 
-    if (!mag_savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && can_daze(vict))
+    if (!savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && can_daze(vict))
     {
       new_affect(&af);
       af.spell = SKILL_SHIELD_SLAM;
@@ -1736,7 +1736,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict)
     change_position(vict, POS_RECLINING);
 
     /* success!  fortitude save? */
-    if (!mag_savingthrow(ch, vict, SAVING_FORT, prob, CAST_INNATE, CLASS_LEVEL(ch, CLASS_ROGUE), NOSCHOOL))
+    if (!savingthrow(ch, vict, SAVING_FORT, prob, CAST_INNATE, CLASS_LEVEL(ch, CLASS_ROGUE), NOSCHOOL))
     {
       if (!paralysis_immunity(vict))
       {
@@ -1818,7 +1818,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict)
     dam = dice(1, GET_LEVEL(ch));
     damage(ch, vict, dam, SKILL_DIRT_KICK, 0, FALSE);
 
-    if (!AFF_FLAGGED(vict, AFF_BLIND) && !mag_savingthrow(ch, vict, SAVING_REFL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && can_blind(vict))
+    if (!AFF_FLAGGED(vict, AFF_BLIND) && !savingthrow(ch, vict, SAVING_REFL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && can_blind(vict))
     {
       new_affect(&af);
 
@@ -2153,7 +2153,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
         assassin_mod -= get_evolution_appearance_save_bonus(vict);
 
       if (!AFF_FLAGGED(vict, AFF_PARALYZED) && !paralysis_immunity(vict) &&
-          !mag_savingthrow(ch, vict, SAVING_FORT, assassin_mod, CAST_INNATE, IS_ROGUE_TYPE(ch), NOSCHOOL))
+          !savingthrow(ch, vict, SAVING_FORT, assassin_mod, CAST_INNATE, IS_ROGUE_TYPE(ch), NOSCHOOL))
       {
         struct affected_type death_attack;
 
@@ -4360,7 +4360,7 @@ ACMD(do_frightful)
       /* Check the save. */
       if (has_aura_of_courage(vict) && !affected_by_aura_of_cowardice(vict))
         send_to_char(vict, "You are unaffected!\r\n");
-      else if (mag_savingthrow(ch, vict, SAVING_WILL, modifier, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+      else if (savingthrow(ch, vict, SAVING_WILL, modifier, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
       {
         /* Lucky you, you saved! */
         send_to_char(vict, "You stand your ground!\r\n");
@@ -4446,7 +4446,7 @@ int perform_dragonfear(struct char_data *ch)
         continue;
       if (mag_resistance(ch, vict, 0))
         continue;
-      if (mag_savingthrow(ch, vict, SAVING_WILL, affected_by_aura_of_cowardice(vict) ? -4 : 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch), ENCHANTMENT))
+      if (savingthrow(ch, vict, SAVING_WILL, affected_by_aura_of_cowardice(vict) ? -4 : 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch), ENCHANTMENT))
         continue;
 
       /* success */
@@ -4521,7 +4521,7 @@ int perform_fear_aura(struct char_data *ch)
         continue;
       if (mag_resistance(ch, vict, 0))
         continue;
-      if (mag_savingthrow(ch, vict, SAVING_WILL, affected_by_aura_of_cowardice(vict) ? -4 : 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch), ENCHANTMENT))
+      if (savingthrow(ch, vict, SAVING_WILL, affected_by_aura_of_cowardice(vict) ? -4 : 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch), ENCHANTMENT))
         continue;
 
       /* success */
@@ -5704,7 +5704,7 @@ ACMD(do_grave_magic)
     }
     else
     {
-      if (mag_savingthrow(ch, victim, SAVING_FORT, affected_by_aura_of_cowardice(victim) ? -4 : 0, CASTING_TYPE_ARCANE, compute_arcane_level(ch), NECROMANCY))
+      if (savingthrow(ch, victim, SAVING_FORT, affected_by_aura_of_cowardice(victim) ? -4 : 0, CASTING_TYPE_ARCANE, compute_arcane_level(ch), NECROMANCY))
       {
         act("You touch $N, who shakes off the fear affect immediately.", false, ch, 0, victim, TO_CHAR);
         act("$n touches you, but you shake off the fear affect immediately.", false, ch, 0, victim, TO_VICT);
@@ -7440,7 +7440,7 @@ int perform_dragonbite(struct char_data *ch, struct char_data *vict)
     act("$e is rended by your bite at $m!", FALSE, vict, 0, ch, TO_VICT);
     act("$n's flesh is rended by a bite from $N!", FALSE, vict, 0, ch, TO_NOTVICT);
 
-    if (!mag_savingthrow(ch, vict, SAVING_REFL, GET_STR_BONUS(vict), CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && rand_number(0, 2))
+    if (!savingthrow(ch, vict, SAVING_REFL, GET_STR_BONUS(vict), CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && rand_number(0, 2))
     {
       USE_FULL_ROUND_ACTION(vict);
       act("You are thrown off-balance by a bite from $N!", FALSE, vict, 0, ch, TO_CHAR);
@@ -7512,7 +7512,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
   if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_KICK, 0) > 0)
   {
     damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_KICK, DAM_FORCE, FALSE);
-    if (!mag_savingthrow(ch, vict, SAVING_REFL, GET_STR_BONUS(vict), CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && rand_number(0, 2))
+    if (!savingthrow(ch, vict, SAVING_REFL, GET_STR_BONUS(vict), CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && rand_number(0, 2))
     {
       if (vict->char_specials.recently_kicked == 0)
       {
@@ -9490,7 +9490,7 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
     prob -= get_evolution_appearance_save_bonus(vict);
 
   /* paralysis - fortitude save */
-  if (!mag_savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+  if (!savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
   {
     if (!paralysis_immunity(vict))
     {
@@ -9609,7 +9609,7 @@ bool perform_lichfear(struct char_data *ch)
         continue;
       if (is_immune_mind_affecting(ch, vict, TRUE))
         continue;
-      if (mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+      if (savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
         continue;
 
       // success
@@ -10099,7 +10099,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   if (HAS_FEAT(ch, FEAT_EPIC_CRUELTIES))
     save_mod -= 2;
 
-  if (mag_savingthrow(ch, vict, SAVING_FORT, save_mod, CAST_CRUELTY, CLASS_LEVEL(ch, CLASS_BLACKGUARD), NOSCHOOL))
+  if (savingthrow(ch, vict, SAVING_FORT, save_mod, CAST_CRUELTY, CLASS_LEVEL(ch, CLASS_BLACKGUARD), NOSCHOOL))
   {
     return;
   }
@@ -10763,7 +10763,7 @@ void perform_slam(struct char_data *ch, struct char_data *vict)
       {
         if (daily_uses_remaining(ch, FEAT_VAMPIRE_ENERGY_DRAIN) > 0)
         {
-          if (!mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
+          if (!savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
           {
             new_affect(&af);
             af.spell = AFFECT_LEVEL_DRAIN;

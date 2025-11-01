@@ -2405,7 +2405,7 @@ SPECIAL(banshee)
     act("\tW$n \tWlets out a piercing shriek so horrible that it makes your ears \trBLEED\tW!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room)
-      if (!IS_NPC(vict) && !mag_savingthrow(ch, vict, SAVING_WILL, -4, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+      if (!IS_NPC(vict) && !savingthrow(ch, vict, SAVING_WILL, -4, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
       {
         act("\tRThe brutal scream tears away at your life force,\r\n"
             "causing you to fall to your knees with pain!\tn",

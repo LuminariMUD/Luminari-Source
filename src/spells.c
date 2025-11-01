@@ -439,7 +439,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-  else if (mag_savingthrow(ch, victim, SAVING_WILL, bonus, casttype, level, ENCHANTMENT))
+  else if (savingthrow(ch, victim, SAVING_WILL, bonus, casttype, level, ENCHANTMENT))
   {
     send_to_char(ch, "Your victim resists!\r\n");
     if (IS_NPC(victim))
@@ -451,7 +451,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_SLIPPERY_MIND) && spell_info[spellnum].violent)
     {
       send_to_char(victim, "\tW*Slippery Mind*\tn  ");
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ENCHANTMENT))
+      if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ENCHANTMENT))
       {
         return;
       }
@@ -713,7 +713,7 @@ EVENTFUNC(event_acid_arrow)
   if (level < 1)
     level = 15; /* so lame */
 
-  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
+  if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
     damage(ch, victim, (dice(3, 6) / 2), SPELL_ACID_ARROW, DAM_ACID, FALSE);
   else
     damage(ch, victim, dice(3, 6), SPELL_ACID_ARROW, DAM_ACID, FALSE);
@@ -843,7 +843,7 @@ EVENTFUNC(event_aqueous_orb)
   if (level < 1)
     level = 15; /* so lame */
 
-  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, CONJURATION))
+  if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, CONJURATION))
     damage(ch, victim, is_fire ? dice(2, 6) : 0, SPELL_AQUEOUS_ORB, DAM_WATER, FALSE);
   else
     damage(ch, victim, is_fire ? dice(4, 6) : dice(2, 6), SPELL_AQUEOUS_ORB, DAM_WATER, FALSE);
@@ -892,7 +892,7 @@ EVENTFUNC(event_implode)
   if (level < 1)
     level = 15; /* so lame */
 
-  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, DIVINATION))
+  if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, DIVINATION))
     damage(ch, victim, (dice(CASTER_LEVEL(ch), 6) / 2), SPELL_IMPLODE, DAM_PUNCTURE,
            FALSE);
   else
@@ -968,7 +968,7 @@ ASPELL(spell_control_summoned_creature)
     return;
   }
 
-  if (mag_resistance(ch, vict, 0) || mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_SPELL, CASTER_LEVEL(ch), ENCHANTMENT))
+  if (mag_resistance(ch, vict, 0) || savingthrow(ch, vict, SAVING_WILL, 0, CAST_SPELL, CASTER_LEVEL(ch), ENCHANTMENT))
   {
     act("Your attempt to wrest control over $N fails.", FALSE, ch, 0, vict, TO_CHAR);
     act("$n's attempt to wrest control over You fails.", FALSE, ch, 0, vict, TO_CHAR);
@@ -1077,7 +1077,7 @@ ASPELL(spell_siphon_might)
 
   strength = dice(1, 6) + MIN(5, CASTER_LEVEL(ch) / 2);
 
-  if (!mag_savingthrow(ch, enemy, SAVING_FORT, 0, SPELL_SIPHON_MIGHT, CASTER_LEVEL(ch), NECROMANCY))
+  if (!savingthrow(ch, enemy, SAVING_FORT, 0, SPELL_SIPHON_MIGHT, CASTER_LEVEL(ch), NECROMANCY))
   {
     act("$N has partially resisted your siphoning.", FALSE, ch, 0, enemy, TO_CHAR);
     act("You have partially resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_VICT);
@@ -2570,7 +2570,7 @@ EVENTFUNC(event_moonbeam)
   if (level < 1)
     level = 15;
 
-  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
+  if (savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
     damage(ch, victim, dice(2, 10), SPELL_MOONBEAM, DAM_LIGHT, FALSE);
   else
     damage(ch, victim, dice(1, 10), SPELL_MOONBEAM, DAM_LIGHT, FALSE);
@@ -2957,7 +2957,7 @@ ASPELL(spell_summon)
 
   if (mag_resistance(ch, victim, 0))
     return;
-  if (IS_NPC(victim) && mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, CONJURATION))
+  if (IS_NPC(victim) && savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, CONJURATION))
   {
     send_to_char(ch, "%s", SUMMON_FAIL);
     return;
@@ -3742,7 +3742,7 @@ EVENTFUNC(event_concussive_onslaught)
     if (power_resistance(ch, victim, 0))
       continue;
     GET_DC_BONUS(ch) = ch->player_specials->save_co_holder_dc_bonus;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
+    if (savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
       damage(ch, victim, (dice(ndice, sdice) / 2), PSIONIC_CONCUSSIVE_ONSLAUGHT, DAM_FORCE, FALSE);
     else
       damage(ch, victim, dice(ndice, sdice), PSIONIC_CONCUSSIVE_ONSLAUGHT, DAM_FORCE, FALSE);
@@ -3781,7 +3781,7 @@ EVENTFUNC(event_power_leech)
       return 0;
     if (power_resistance(ch, victim, 0))
       return 0;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+    if (savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
       return 0;
 
     GET_PSP(victim) -= dice(1, 4);

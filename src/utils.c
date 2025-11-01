@@ -6296,7 +6296,7 @@ bool check_poison_resist(struct char_data *ch, struct char_data *victim, int cas
 
   bonus += get_poison_save_mod(ch, victim);
 
-  if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT))
+  if (savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT))
   {
     return TRUE;
   }
@@ -7186,14 +7186,14 @@ bool push_attempt(struct char_data *ch, struct char_data *vict, bool display)
     return false;
   }
 
-  if (AFF_FLAGGED(vict, AFF_PROTECT_EVIL) && IS_EVIL(ch) && mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+  if (AFF_FLAGGED(vict, AFF_PROTECT_EVIL) && IS_EVIL(ch) && savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
   {
     if (display)
       send_to_char(ch, "A protective field repels you.\r\n");
     return false;
   }
     
-  if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch) && mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+  if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch) && savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
   {
     if (display)
       send_to_char(ch, "A protective field repels you.\r\n");

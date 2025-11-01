@@ -99,7 +99,7 @@ void room_aff_tick(struct raff_node *raff)
     {
       if (caster && GET_LEVEL(caster) < 13)
       {
-        if (!mag_savingthrow(caster, caster, SAVING_FORT, 0, casttype, level, CONJURATION))
+        if (!savingthrow(caster, caster, SAVING_FORT, 0, casttype, level, CONJURATION))
         {
           send_to_char(caster, "You are bogged down by the billowing cloud!\r\n");
           act("$n is bogged down by the billowing cloud.", TRUE, caster, 0, NULL, TO_ROOM);
@@ -2147,7 +2147,7 @@ void proc_d20_round(void)
       {
         if (AFF_FLAGGED(tch, AFF_SICKENING_AURA) && aoeOK(tch, i, EVOLUTION_SICKENING_EFFECT))
         {
-          if (mag_savingthrow(tch, i, SAVING_FORT, 0, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(tch), NOSCHOOL))
+          if (savingthrow(tch, i, SAVING_FORT, 0, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(tch), NOSCHOOL))
           {
             act("$N is unaffected by your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
             act("You are unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);
@@ -2574,7 +2574,7 @@ void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
 
   if (vict && GET_CON(vict) > 0)
   {
-    if (!mag_savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
+    if (!savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
     {
       new_affect(&af);
       af.spell = ABILITY_SCORE_DAMAGE;
