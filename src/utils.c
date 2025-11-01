@@ -4785,27 +4785,6 @@ int find_armor_type(int specType)
   return ARMOR_TYPE_LIGHT;
 }
 
-/* did CH successfully making his saving-throw? */
-int savingthrow(struct char_data *ch, int save, int modifier, int dc)
-{
-  int roll = d20(ch);
-
-  /* 1 is an automatic failure. */
-  if (roll == 1)
-    return FALSE;
-
-  /* 20 is an automatic success. */
-  if (roll >= 20)
-    return TRUE;
-
-  roll += compute_mag_saves(ch, save, modifier);
-
-  if (roll >= dc)
-    return TRUE;
-  else
-    return FALSE;
-}
-
 /* Utilities for managing daily use abilities for players. */
 
 int get_daily_uses(struct char_data *ch, int featnum)

@@ -1318,7 +1318,7 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
     if (name)
       (name)(ch, shield, 0, "shieldslam");
 
-    if (!savingthrow(vict, SAVING_FORT, 0, (10 + (GET_LEVEL(ch) / 2) + GET_STR_BONUS(ch))) && can_daze(vict))
+    if (!mag_savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && can_daze(vict))
     {
       new_affect(&af);
       af.spell = SKILL_SHIELD_SLAM;
@@ -1736,7 +1736,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict)
     change_position(vict, POS_RECLINING);
 
     /* success!  fortitude save? */
-    if (!savingthrow(vict, SAVING_FORT, prob, dc))
+    if (!mag_savingthrow(ch, vict, SAVING_FORT, prob, CAST_INNATE, CLASS_LEVEL(ch, CLASS_ROGUE), NOSCHOOL))
     {
       if (!paralysis_immunity(vict))
       {
@@ -1818,7 +1818,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict)
     dam = dice(1, GET_LEVEL(ch));
     damage(ch, vict, dam, SKILL_DIRT_KICK, 0, FALSE);
 
-    if (!AFF_FLAGGED(vict, AFF_BLIND) && !savingthrow(vict, SAVING_REFL, 0, (10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch))) && can_blind(vict))
+    if (!AFF_FLAGGED(vict, AFF_BLIND) && !mag_savingthrow(ch, vict, SAVING_REFL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && can_blind(vict))
     {
       new_affect(&af);
 
@@ -4360,7 +4360,7 @@ ACMD(do_frightful)
       /* Check the save. */
       if (has_aura_of_courage(vict) && !affected_by_aura_of_cowardice(vict))
         send_to_char(vict, "You are unaffected!\r\n");
-      else if (savingthrow(vict, SAVING_WILL, modifier, dc))
+      else if (mag_savingthrow(ch, vict, SAVING_WILL, modifier, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
       {
         /* Lucky you, you saved! */
         send_to_char(vict, "You stand your ground!\r\n");
@@ -7440,7 +7440,7 @@ int perform_dragonbite(struct char_data *ch, struct char_data *vict)
     act("$e is rended by your bite at $m!", FALSE, vict, 0, ch, TO_VICT);
     act("$n's flesh is rended by a bite from $N!", FALSE, vict, 0, ch, TO_NOTVICT);
 
-    if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc) && rand_number(0, 2))
+    if (!mag_savingthrow(ch, vict, SAVING_REFL, GET_STR_BONUS(vict), CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && rand_number(0, 2))
     {
       USE_FULL_ROUND_ACTION(vict);
       act("You are thrown off-balance by a bite from $N!", FALSE, vict, 0, ch, TO_CHAR);
@@ -7512,7 +7512,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
   if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_KICK, 0) > 0)
   {
     damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_KICK, DAM_FORCE, FALSE);
-    if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc) && rand_number(0, 2))
+    if (!mag_savingthrow(ch, vict, SAVING_REFL, GET_STR_BONUS(vict), CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) && rand_number(0, 2))
     {
       if (vict->char_specials.recently_kicked == 0)
       {
@@ -9490,7 +9490,7 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
     prob -= get_evolution_appearance_save_bonus(vict);
 
   /* paralysis - fortitude save */
-  if (!savingthrow(vict, SAVING_FORT, 0, dc))
+  if (!mag_savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
   {
     if (!paralysis_immunity(vict))
     {
