@@ -1933,22 +1933,32 @@ ASPELL(spell_locate_object)
   return;
 }
 
+/* Callback for mass domination AoE effect */
+static int mass_domination_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  struct mass_dom_data {
+    int casttype;
+    int level;
+  } *dom_data = (struct mass_dom_data *)data;
+  
+  effect_charm(ch, tch, SPELL_MASS_DOMINATION, dom_data->casttype, dom_data->level);
+  return 1;
+}
+
 ASPELL(spell_mass_domination) // enchantment
 {
-  struct char_data *tch, *next_tch;
+  struct mass_dom_data {
+    int casttype;
+    int level;
+  } dom_data;
 
   if (ch == NULL)
     return;
 
-  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
-  {
-    next_tch = tch->next_in_room;
+  dom_data.casttype = casttype;
+  dom_data.level = level;
 
-    if (aoeOK(ch, tch, -1))
-    {
-      effect_charm(ch, tch, SPELL_MASS_DOMINATION, casttype, level);
-    }
-  }
+  aoe_effect(ch, -1, mass_domination_callback, &dom_data);
 }
 
 ASPELL(spell_plane_shift)

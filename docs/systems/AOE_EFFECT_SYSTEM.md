@@ -225,23 +225,53 @@ int fist_air_callback(struct char_data *ch, struct char_data *tch, void *data) {
 
 The following abilities have been refactored to use `aoe_effect()`:
 
-1. **Tailspikes** (`do_tailspikes` in act.offensive.c)
+### act.offensive.c
+
+1. **Arrow Swarm** (`do_arrowswarm`)
+   - Ranged AoE attack with ammo checks
+
+2. **Frightful Presence** (`do_frightful`)
+   - Complex fear AoE with group aura modifiers and saves
+
+3. **Tailspikes** (`do_tailspikes`)
    - Simple damage AoE with no custom data
 
-2. **Dragonborn Breath Weapon** (`do_dragonborn_breath_weapon` in act.offensive.c)
-   - Damage AoE with custom level and damage type
-
-3. **Dragon Breath** (`do_breathe` in act.offensive.c)
-   - Complex damage AoE with iron golem immunity check
-
-4. **Dragon Fear** (`perform_dragonfear` in act.offensive.c)
+4. **Dragon Fear** (`perform_dragonfear`)
    - Status effect AoE with saves, immunities, and flee effect
 
-5. **Fear Aura** (`perform_fear_aura` in act.offensive.c)
+5. **Fear Aura** (`perform_fear_aura`)
    - Status effect AoE similar to dragonfear
 
-6. **Fist of Unbroken Air** (in fight.c)
-   - Complex damage AoE with knockdown effect and saves
+6. **Dragon Breath** (`do_breathe`)
+   - Complex damage AoE with iron golem immunity check
+
+7. **Dragonborn Breath Weapon** (`do_dragonborn_breath_weapon`)
+   - Damage AoE with custom level and damage type
+
+8. **Sorcerer Draconic Breath** (`do_sorcerer_breath_weapon`)
+   - Draconic bloodline breath weapon with damage scaling
+
+9. **Tailsweep** (`perform_tailsweep`)
+   - Complex knockdown AoE with stability boots check and hit chance
+
+10. **Whirlwind Attack** (`do_whirlwind`)
+    - Melee AoE with limited attack count
+
+11. **Hit All** (`do_hitall`)
+    - NPC melee AoE with lag calculation
+
+12. **Lich Fear** (`perform_lich_fear`)
+    - Racial lich fear ability with status effect
+
+### fight.c
+
+13. **Fist of Unbroken Air** (monk ability in `hit()`)
+    - Complex damage AoE with knockdown effect and saves
+
+### spells.c
+
+14. **Mass Domination** (`spell_mass_domination`)
+    - Enchantment AoE that charms multiple targets
 
 ## Benefits
 

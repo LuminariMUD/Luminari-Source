@@ -3881,10 +3881,21 @@ ACMDCHECK(can_arrowswarm)
   return CAN_CMD;
 }
 
+/* Callback for arrow swarm AoE */
+static int arrowswarm_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  /* ammo check! */
+  if (can_fire_ammo(ch, TRUE))
+  {
+    /* FIRE! */
+    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
+    return 1;
+  }
+  return 0;
+}
+
 ACMD(do_arrowswarm)
 {
-  struct char_data *vict, *next_vict;
-
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_arrowswarm);
   PREREQ_NOT_PEACEFUL_ROOM();
@@ -3894,20 +3905,7 @@ ACMD(do_arrowswarm)
   send_to_char(ch, "You open up a barrage of fire!\r\n");
   act("$n opens up a barrage of fire!", FALSE, ch, 0, 0, TO_ROOM);
 
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
-  {
-    next_vict = vict->next_in_room;
-
-    if (aoeOK(ch, vict, -1))
-    { /* -1 indicates no special handling */
-      /* ammo check! */
-      if (can_fire_ammo(ch, TRUE))
-      {
-        /* FIRE! */
-        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
-      }
-    }
-  }
+  aoe_effect(ch, -1, arrowswarm_callback, NULL);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_SWARM_OF_ARROWS);
@@ -4299,11 +4297,8 @@ ACMD(do_bite_attack)
  * usually will saves. */
 ACMD(do_frightful)
 {
-  struct char_data *vict, *next_vict, *tch;
+  struct char_data *tch;
   int modifier = 0;
-
-  /*  DC for the will save is = the level of the creature generating the effect. */
-  int dc = GET_LEVEL(ch);
 
   /*  Only dragons can do this. */
   if (!IS_DRAGON(ch))
@@ -4323,67 +4318,79 @@ ACMD(do_frightful)
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
-  send_to_char(ch, "You ROAR!\r\n");
-  act("$n lets out a mighty ROAR!", FALSE, ch, 0, 0, TO_ROOM);
-
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  /* Check to see if the victim is affected by an AURA OF COURAGE */
+  if (GROUP(ch) != NULL)
   {
-    next_vict = vict->next_in_room;
-
-    if (is_immune_fear(ch, vict, TRUE))
-      continue;
-
-    /* Check to see if the victim is affected by an AURA OF COURAGE */
-    if (GROUP(ch) != NULL)
+    /* Beginner's Note: Reset simple_list iterator before use to prevent
+     * cross-contamination from previous iterations. Without this reset,
+     * if simple_list was used elsewhere and not completed, it would
+     * continue from where it left off instead of starting fresh. */
+    simple_list(NULL);
+    
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
     {
-      /* Beginner's Note: Reset simple_list iterator before use to prevent
-       * cross-contamination from previous iterations. Without this reset,
-       * if simple_list was used elsewhere and not completed, it would
-       * continue from where it left off instead of starting fresh. */
-      simple_list(NULL);
-      
-      while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (affected_by_aura_of_cowardice(tch))
       {
-        if (IN_ROOM(tch) != IN_ROOM(ch))
-          continue;
-        if (affected_by_aura_of_cowardice(tch))
-        {
-          modifier -= 4;
-        }
-        if (has_aura_of_courage(tch))
-        {
-          modifier += 4;
-          /* Can only have one morale bonus. */
-          break;
-        }
+        modifier -= 4;
       }
-    }
-
-    if (aoeOK(ch, vict, -1))
-    {
-      send_to_char(ch, "You roar at %s.\r\n", GET_NAME(vict));
-      send_to_char(vict, "A mighty roar from %s is directed at you!\r\n",
-                   GET_NAME(ch));
-      act("$n roars at $N!", FALSE, ch, 0, vict,
-          TO_NOTVICT);
-
-      /* Check the save. */
-      if (has_aura_of_courage(vict) && !affected_by_aura_of_cowardice(vict))
-        send_to_char(vict, "You are unaffected!\r\n");
-      else if (savingthrow(ch, vict, SAVING_WILL, modifier, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+      if (has_aura_of_courage(tch))
       {
-        /* Lucky you, you saved! */
-        send_to_char(vict, "You stand your ground!\r\n");
-      }
-      else
-      {
-        /* Failed save, tough luck. */
-        send_to_char(vict, "You PANIC!\r\n");
-        perform_flee(vict);
-        perform_flee(vict);
+        modifier += 4;
+        /* Can only have one morale bonus. */
+        break;
       }
     }
   }
+
+  send_to_char(ch, "You ROAR!\r\n");
+  act("$n lets out a mighty ROAR!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Data structure for frightful callback */
+  struct frightful_data {
+    int modifier;
+    int level;
+  };
+
+  /* Callback for frightful AoE effect */
+  int frightful_callback(struct char_data *ch, struct char_data *tch, void *data) {
+    struct frightful_data *fright = (struct frightful_data *)data;
+    
+    if (is_immune_fear(ch, tch, TRUE))
+      return 0;
+
+    send_to_char(ch, "You roar at %s.\r\n", GET_NAME(tch));
+    send_to_char(tch, "A mighty roar from %s is directed at you!\r\n", GET_NAME(ch));
+    act("$n roars at $N!", FALSE, ch, 0, tch, TO_NOTVICT);
+
+    /* Check the save. */
+    if (has_aura_of_courage(tch) && !affected_by_aura_of_cowardice(tch))
+    {
+      send_to_char(tch, "You are unaffected!\r\n");
+      return 0;
+    }
+    else if (savingthrow(ch, tch, SAVING_WILL, fright->modifier, CAST_INNATE, fright->level, NOSCHOOL))
+    {
+      /* Lucky you, you saved! */
+      send_to_char(tch, "You stand your ground!\r\n");
+      return 0;
+    }
+    else
+    {
+      /* Failed save, tough luck. */
+      send_to_char(tch, "You PANIC!\r\n");
+      perform_flee(tch);
+      perform_flee(tch);
+      return 1;
+    }
+  }
+
+  struct frightful_data fright_data;
+  fright_data.modifier = modifier;
+  fright_data.level = GET_LEVEL(ch);
+
+  aoe_effect(ch, -1, frightful_callback, &fright_data);
 
   /* 12 seconds = 2 rounds */
   attach_mud_event(new_mud_event(eDRACBREATH, ch, NULL), 12 * PASSES_PER_SEC);
@@ -4573,8 +4580,6 @@ ACMDCHECK(can_breathe)
 
 ACMD(do_breathe)
 {
-  struct char_data *vict, *next_vict;
-
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_breathe);
   PREREQ_NOT_PEACEFUL_ROOM();
@@ -5866,8 +5871,6 @@ ACMDCHECK(can_sorcerer_breath_weapon)
 
 ACMD(do_sorcerer_breath_weapon)
 {
-  struct char_data *vict, *next_vict;
-
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_sorcerer_breath_weapon);
 
@@ -5891,17 +5894,29 @@ ACMD(do_sorcerer_breath_weapon)
   else
     dam = dice(GET_LEVEL(ch), 14);
 
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
-  {
-    next_vict = vict->next_in_room;
+  /* Data structure for sorcerer breath callback */
+  struct sorcerer_breath_data {
+    int dam;
+    int damtype;
+  };
 
-    if (aoeOK(ch, vict, SPELL_DRACONIC_BLOODLINE_BREATHWEAPON))
-    {
-      if (process_iron_golem_immunity(ch, vict, damtype, dam))
-        continue;
-      damage(ch, vict, dam, SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, damtype, FALSE);
-    }
+  /* Callback for sorcerer breath weapon AoE damage */
+  int sorcerer_breath_callback(struct char_data *ch, struct char_data *tch, void *data) {
+    struct sorcerer_breath_data *breath = (struct sorcerer_breath_data *)data;
+    
+    if (process_iron_golem_immunity(ch, tch, breath->damtype, breath->dam))
+      return 0;
+    
+    damage(ch, tch, breath->dam, SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, breath->damtype, FALSE);
+    return 1;
   }
+
+  struct sorcerer_breath_data breath_data;
+  breath_data.dam = dam;
+  breath_data.damtype = damtype;
+
+  aoe_effect(ch, SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, sorcerer_breath_callback, &breath_data);
+
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON);
   USE_STANDARD_ACTION(ch);
@@ -5958,76 +5973,78 @@ ACMD(do_sorcerer_claw_attack)
   USE_STANDARD_ACTION(ch);
 }
 
+/* Callback for tailsweep AoE effect */
+static int tailsweep_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  int *vict_count = (int *)data;
+  int percent, prob;
+  
+  if (tch == ch)
+    return 0;
+  if (IS_INCORPOREAL(tch) && !is_using_ghost_touch_weapon(ch))
+    return 0;
+
+  /* stability boots */
+  if (is_wearing(tch, 132133) && rand_number(0, 1))
+  {
+    send_to_char(ch, "You failed to knock over %s due to stability boots!\r\n", GET_NAME(tch));
+    send_to_char(tch, "Via your stability boots, you hop over a tailsweep from %s.\r\n",
+                 GET_NAME(ch));
+    act("$N via stability boots dodges a tailsweep from $n.", FALSE, ch, 0, tch,
+        TO_NOTVICT);
+    return 0;
+  }
+
+  percent = rand_number(1, 101);
+  prob = rand_number(75, 100);
+
+  if (percent > prob)
+  {
+    send_to_char(ch, "You failed to knock over %s.\r\n", GET_NAME(tch));
+    send_to_char(tch, "You were able to dodge a tailsweep from %s.\r\n",
+                 GET_NAME(ch));
+    act("$N dodges a tailsweep from $n.", FALSE, ch, 0, tch,
+        TO_NOTVICT);
+    return 0;
+  }
+  else
+  {
+    change_position(tch, POS_SITTING);
+
+    send_to_char(ch, "You knock over %s.\r\n", GET_NAME(tch));
+    send_to_char(tch, "You were knocked down by a tailsweep from %s.\r\n",
+                 GET_NAME(ch));
+    act("$N is knocked down by a tailsweep from $n.", FALSE, ch, 0, tch,
+        TO_NOTVICT);
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, tch, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
+
+    (*vict_count)++;
+  }
+
+  if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) // ch -> tch
+    set_fighting(ch, tch);
+  if (GET_POS(tch) > POS_STUNNED && (FIGHTING(tch) == NULL))
+  { // tch -> ch
+    set_fighting(tch, ch);
+    if (MOB_FLAGGED(tch, MOB_MEMORY) && !IS_NPC(ch))
+      remember(tch, ch);
+  }
+
+  return 1;
+}
+
 /* main engine for tail sweep */
 int perform_tailsweep(struct char_data *ch)
 {
-  struct char_data *vict = NULL, *next_vict = NULL;
-  int percent = 0, prob = 0, vict_count = 0;
+  int vict_count = 0;
 
   send_to_char(ch, "You lash out with your mighty tail!\r\n");
   act("$n lashes out with $s mighty tail!", FALSE, ch, 0, 0, TO_ROOM);
 
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
-  {
-    next_vict = vict->next_in_room;
-
-    if (vict == ch)
-      continue;
-    if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
-      continue;
-
-    /* stability boots */
-    if (is_wearing(vict, 132133) && rand_number(0, 1))
-    {
-      send_to_char(ch, "You failed to knock over %s due to stability boots!\r\n", GET_NAME(vict));
-      send_to_char(vict, "Via your stability boots, you hop over a tailsweep from %s.\r\n",
-                   GET_NAME(ch));
-      act("$N via stability boots dodges a tailsweep from $n.", FALSE, ch, 0, vict,
-          TO_NOTVICT);
-
-      continue;
-    }
-
-    // pass -2 as spellnum to handle tailsweep
-    if (aoeOK(ch, vict, -2))
-    {
-      percent = rand_number(1, 101);
-      prob = rand_number(75, 100);
-
-      if (percent > prob)
-      {
-        send_to_char(ch, "You failed to knock over %s.\r\n", GET_NAME(vict));
-        send_to_char(vict, "You were able to dodge a tailsweep from %s.\r\n",
-                     GET_NAME(ch));
-        act("$N dodges a tailsweep from $n.", FALSE, ch, 0, vict,
-            TO_NOTVICT);
-      }
-      else
-      {
-        change_position(vict, POS_SITTING);
-
-        send_to_char(ch, "You knock over %s.\r\n", GET_NAME(vict));
-        send_to_char(vict, "You were knocked down by a tailsweep from %s.\r\n",
-                     GET_NAME(ch));
-        act("$N is knocked down by a tailsweep from $n.", FALSE, ch, 0, vict,
-            TO_NOTVICT);
-
-        /* fire-shield, etc check */
-        damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
-
-        vict_count++;
-      }
-
-      if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) // ch -> vict
-        set_fighting(ch, vict);
-      if (GET_POS(vict) > POS_STUNNED && (FIGHTING(vict) == NULL))
-      { // vict -> ch
-        set_fighting(vict, ch);
-        if (MOB_FLAGGED(vict, MOB_MEMORY) && !IS_NPC(ch))
-          remember(vict, ch);
-      }
-    }
-  }
+  // pass -2 as spellnum to handle tailsweep
+  aoe_effect(ch, -2, tailsweep_callback, &vict_count);
 
   return vict_count;
 }
@@ -6868,7 +6885,6 @@ ACMDCHECK(can_whirlwind)
 /* whirlwind attack! */
 ACMD(do_whirlwind)
 {
-  struct char_data *vict, *next_vict;
   int num_attacks = 1;
 
   PREREQ_CAN_FIGHT();
@@ -6884,19 +6900,20 @@ ACMD(do_whirlwind)
   send_to_char(ch, "In a whirlwind of motion you strike out at your foes!\r\n");
   act("$n in a whirlwind of motions lashes out at $s foes!", FALSE, ch, 0, 0, TO_ROOM);
 
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
-  {
-    next_vict = vict->next_in_room;
-
-    if (aoeOK(ch, vict, -1))
-    { /* -1 indicates no special handling */
-      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
-      num_attacks--;
-    }
-
-    if (num_attacks <= 0)
-      break;
+  /* Callback for whirlwind AoE attack */
+  int whirlwind_callback(struct char_data *ch, struct char_data *tch, void *data) {
+    int *remaining_attacks = (int *)data;
+    
+    if (*remaining_attacks <= 0)
+      return 0;
+    
+    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+    (*remaining_attacks)--;
+    
+    return 1;
   }
+
+  aoe_effect(ch, -1, whirlwind_callback, &num_attacks);
 
   USE_FULL_ROUND_ACTION(ch);
   return;
@@ -7752,8 +7769,6 @@ ACMD(do_hitall)
   return;
 
   int lag = 1;
-  int count = 0;
-  struct char_data *vict, *next_vict;
 
   if (!MOB_CAN_FIGHT(ch))
     return;
@@ -7774,24 +7789,38 @@ ACMD(do_hitall)
 
   PREREQ_NOT_SINGLEFILE_ROOM();
 
-  for (vict = world[ch->in_room].people; vict; vict = next_vict)
-  {
-    next_vict = vict->next_in_room;
-    if (IS_NPC(vict) && !IS_PET(vict) &&
-        (CAN_SEE(ch, vict) ||
-         IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_MAGICDARK)))
-    {
-      count++;
+  /* Data structure for hitall callback */
+  struct hitall_data {
+    int count;
+    int lag;
+  };
 
-      if (rand_number(0, 111) < 20 ||
-          (IS_PET(ch) && rand_number(0, 101) > GET_LEVEL(ch)))
-        lag++;
+  /* Callback for hitall AoE attack */
+  int hitall_callback(struct char_data *ch, struct char_data *tch, void *data) {
+    struct hitall_data *hitall = (struct hitall_data *)data;
+    
+    if (!IS_NPC(tch) || IS_PET(tch))
+      return 0;
+    if (!CAN_SEE(ch, tch) && !IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_MAGICDARK))
+      return 0;
 
-      if (aoeOK(ch, vict, SKILL_HITALL))
-        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 0);
-    }
+    hitall->count++;
+
+    if (rand_number(0, 111) < 20 ||
+        (IS_PET(ch) && rand_number(0, 101) > GET_LEVEL(ch)))
+      hitall->lag++;
+
+    hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 0);
+    return 1;
   }
-  lag = 1 + lag / 3 + count / 4;
+
+  struct hitall_data hitall_data;
+  hitall_data.count = 0;
+  hitall_data.lag = 1;
+
+  aoe_effect(ch, SKILL_HITALL, hitall_callback, &hitall_data);
+
+  lag = 1 + hitall_data.lag / 3 + hitall_data.count / 4;
   if (lag > 4)
     lag = 4;
 
@@ -9610,43 +9639,42 @@ bool perform_lichfear(struct char_data *ch)
     return FALSE;
   }
 
-  struct char_data *vict = NULL, *next_vict = NULL;
-  struct affected_type af;
-
   act("You raise your countenance to cause fear!", FALSE, ch, 0, 0, TO_CHAR);
   act("$n raises $s countenance to cause fear!", FALSE, ch, 0, 0, TO_ROOM);
 
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
-  {
-    next_vict = vict->next_in_room;
+  /* Callback for lich fear AoE effect */
+  int lich_fear_callback(struct char_data *ch, struct char_data *tch, void *data) {
+    struct affected_type af;
+    int *cast_level = (int *)data;
+    
+    /* exits */
+    if (is_immune_fear(ch, tch, TRUE))
+      return 0;
+    if (is_immune_mind_affecting(ch, tch, TRUE))
+      return 0;
+    if (savingthrow(ch, tch, SAVING_WILL, 0, CAST_INNATE, *cast_level, SCHOOL_NOSCHOOL))
+      return 0;
 
-    if (aoeOK(ch, vict, RACIAL_LICH_FEAR))
-    {
-
-      /* exits */
-      if (is_immune_fear(ch, vict, TRUE))
-        continue;
-      if (is_immune_mind_affecting(ch, vict, TRUE))
-        continue;
-      if (savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
-        continue;
-
-      // success
-      act("$n glows with black energy as $s coutenance causes FEAR to $N!",
-          FALSE, ch, NULL, vict, TO_NOTVICT);
-      act("You glow with black energy as you cause fear to $N with your countenance!",
-          FALSE, ch, NULL, vict, TO_CHAR);
-      act("$n glows with black energy as $s countenance causes you uncontrollable fear!",
-          FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
-      new_affect(&af);
-      af.spell = RACIAL_LICH_FEAR;
-      af.duration = dice(1, 6);
-      SET_BIT_AR(af.bitvector, AFF_FEAR);
-      affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
-      do_flee(vict, 0, 0, 0);
-      do_flee(vict, 0, 0, 0);
-    }
+    // success
+    act("$n glows with black energy as $s coutenance causes FEAR to $N!",
+        FALSE, ch, NULL, tch, TO_NOTVICT);
+    act("You glow with black energy as you cause fear to $N with your countenance!",
+        FALSE, ch, NULL, tch, TO_CHAR);
+    act("$n glows with black energy as $s countenance causes you uncontrollable fear!",
+        FALSE, ch, NULL, tch, TO_VICT | TO_SLEEP);
+    new_affect(&af);
+    af.spell = RACIAL_LICH_FEAR;
+    af.duration = dice(1, 6);
+    SET_BIT_AR(af.bitvector, AFF_FEAR);
+    affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
+    do_flee(tch, 0, 0, 0);
+    do_flee(tch, 0, 0, 0);
+    
+    return 1;
   }
+
+  int cast_level = GET_LEVEL(ch);
+  aoe_effect(ch, RACIAL_LICH_FEAR, lich_fear_callback, &cast_level);
 
   return TRUE;
 }
