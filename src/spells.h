@@ -1116,9 +1116,11 @@
 /* Monk perk skills */
 #define SKILL_PRESSURE_POINT_STRIKE 2202
 #define SKILL_WATER_WHIP 2203 // Way of Four Elements - water whip attack
+#define SKILL_GONG_OF_SUMMIT 2204 // Way of Four Elements - gong of the summit attack
+#define SKILL_FIST_OF_UNBROKEN_AIR 2205 // Way of Four Elements - fist of unbroken air AoE
 
 /* New skills may be added above here, up to MAX_SKILLS (3000) */
-#define NUM_SKILLS 2204
+#define NUM_SKILLS 2206
 
 /* Special Abilities for weapons */
 

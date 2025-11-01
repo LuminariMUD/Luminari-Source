@@ -11791,6 +11791,77 @@ ACMD(do_waterwhip)
   perform_waterwhip(ch);
 }
 
+/* Gong of the Summit - Monk Four Elements perk ability */
+/* Prepares your next unarmed attack to deal bonus sound damage and potentially deafen */
+
+void perform_gongsummit(struct char_data *ch)
+{
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = SKILL_GONG_OF_SUMMIT;
+  af.duration = 24; /* Lasts 24 rounds or until used */
+
+  affect_to_char(ch, &af);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "\tYYou focus your Ki and prepare to strike with the reverberating power of a mighty gong.\tn\r\n");
+  act("\tY$n's body begins to hum with resonant energy!\tn", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+ACMDCHECK(can_gongsummit)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_perk(ch, PERK_MONK_GONG_OF_SUMMIT), "You don't know how to use the Gong of the Summit technique.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_GONG_OF_SUMMIT), "You have already prepared a gong of the summit strike!\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_gongsummit)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_gongsummit);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_gongsummit(ch);
+}
+
+/* Fist of Unbroken Air - AoE force attack that damages and potentially knocks down enemies */
+
+void perform_fistair(struct char_data *ch)
+{
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = SKILL_FIST_OF_UNBROKEN_AIR;
+  af.duration = 24; /* Lasts 24 rounds or until used */
+
+  affect_to_char(ch, &af);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "\tCYou channel your Ki into a building wave of unstoppable force.\tn\r\n");
+  act("\tCThe air around $n begins to shimmer and crackle with power!\tn", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+ACMDCHECK(can_fistair)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_perk(ch, PERK_MONK_FIST_OF_UNBROKEN_AIR), "You don't know how to use the Fist of Unbroken Air technique.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_FIST_OF_UNBROKEN_AIR), "You have already prepared a fist of unbroken air strike!\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_fistair)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_fistair);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_fistair(ch);
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS

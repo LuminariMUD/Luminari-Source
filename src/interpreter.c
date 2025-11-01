@@ -1050,6 +1050,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"wake", "wake", POS_SLEEPING, do_wake, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"walkto", "walkto", POS_STANDING, do_walkto, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"waterwhip", "waterwhip", POS_STANDING, do_waterwhip, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_waterwhip},
+    {"gongsummit", "gongsummit", POS_STANDING, do_gongsummit, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_gongsummit},
+    {"fistair", "fistair", POS_STANDING, do_fistair, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_fistair},
     {"wear", "wea", POS_RESTING, do_wear, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wearapplies", "wearapplies", POS_RESTING, do_wearapplies, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wearlocations", "wearlocations", POS_RESTING, do_wearlocations, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
