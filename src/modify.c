@@ -512,7 +512,9 @@ ACMDU(do_skillset)
                      "Skill being one of the following:\r\n");
     for (qend = 0, i = 0; i < TOP_SKILL_DEFINE; i++)
     {
-      if (spell_info[i].name == unused_spellname) /* This is valid. */
+      if (!spell_info[i].name || spell_info[i].name == unused_spellname) /* This is valid. */
+        continue;
+      if (spell_info[i].actual_ability == false)
         continue;
       send_to_char(ch, "%18s", spell_info[i].name);
       if (qend++ % 4 == 3)

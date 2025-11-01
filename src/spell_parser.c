@@ -395,6 +395,8 @@ int find_skill_num(char *name)
   /* PHASE 1: Check for exact match first (case-insensitive) */
   for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
   {
+    if (!spell_info[skindex].name || spell_info[skindex].name == unused_spellname)
+      continue;
     if (!strcasecmp(name, spell_info[skindex].name))
       return (skindex);
   }
@@ -402,6 +404,8 @@ int find_skill_num(char *name)
   /* PHASE 2: Try word-by-word matching for multi-word names */
   for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
   {
+    if (!spell_info[skindex].name || spell_info[skindex].name == unused_spellname)
+      continue;
     ok = TRUE;
     strlcpy(tempbuf, spell_info[skindex].name, sizeof(tempbuf)); /* strlcpy: OK */
     temp = any_one_arg(tempbuf, first);
@@ -421,6 +425,8 @@ int find_skill_num(char *name)
   /* PHASE 3: Finally try abbreviation matching as fallback */
   for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
   {
+    if (!spell_info[skindex].name || spell_info[skindex].name == unused_spellname)
+      continue;
     if (is_abbrev(name, spell_info[skindex].name))
       return (skindex);
   }
@@ -3206,6 +3212,8 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
   spell_info[spl].schoolOfMagic = school;
   spell_info[spl].quest = quest;
   spell_info[spl].cant_cast = false;
+
+  spell_info[spl].actual_ability = true;
 }
 
 void CantCast(int spl)
@@ -3271,6 +3279,7 @@ void unused_spell(int spl)
   spell_info[spl].schoolOfMagic = NOSCHOOL; // noschool
   spell_info[spl].quest = FALSE;
   spell_info[spl].ritual_spell = FALSE;
+  spell_info[spl].actual_ability = FALSE;
 }
 
 void unused_skill(int spl)
@@ -3331,7 +3340,7 @@ void mag_assign_spells(void)
   int i;
 
   /* Do not change the loop below. */
-  for (i = 0; i <= TOP_SPELL_DEFINE; i++)
+  for (i = 0; i <= TOP_SKILL_DEFINE; i++)
     unused_spell(i);
   for (i = 0; i <= (TOP_SKILL_DEFINE + 1); i++)
     unused_skill(i);
