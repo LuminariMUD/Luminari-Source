@@ -12065,6 +12065,118 @@ ACMD(do_sweepingcinder)
   perform_sweepingcinder(ch);
 }
 
+/* Rush of the Gale Spirits - Creates a gust of wind that knocks down flying enemies and pushes back others */
+
+/* Callback for gale rush AoE effect */
+int galerush_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  int save_level, dam;
+  struct affected_type af;
+  bool was_flying = FALSE;
+
+  /* Calculate effective level for DC: WIS bonus + (monk level / 2) */
+  save_level = GET_WIS_BONUS(ch) + (MONK_TYPE(ch) / 2);
+
+  /* Calculate damage: 3d6 air damage */
+  dam = dice(3, 6);
+
+  /* Apply air damage with resistance checks */
+  damage(ch, tch, dam, SKILL_RUSH_OF_GALE_SPIRITS, DAM_AIR, FALSE);
+
+  /* Check if target is flying */
+  if (AFF_FLAGGED(tch, AFF_FLYING))
+  {
+    was_flying = TRUE;
+    
+    /* Flying creatures - check reflex save to avoid being knocked down */
+    if (!savingthrow(ch, tch, SAVING_REFL, 0, CAST_INNATE, save_level, NOSCHOOL))
+    {
+      /* Failed save - knock them down and prevent flying */
+      if (GET_POS(tch) > POS_SITTING)
+      {
+        change_position(tch, POS_SITTING);
+        send_to_char(tch, "\tCThe powerful gust of wind knocks you out of the air!\tn\r\n");
+        act("\tC$N is knocked out of the air by the gust of wind!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+      }
+      
+      /* Remove flying and prevent it for 1 minute (10 rounds) */
+      REMOVE_BIT_AR(AFF_FLAGS(tch), AFF_FLYING);
+      
+      new_affect(&af);
+      af.spell = SKILL_RUSH_OF_GALE_SPIRITS;
+      af.duration = 10; /* 1 minute = 10 rounds */
+      af.location = APPLY_SPECIAL;
+      af.modifier = 1; /* Flag to indicate grounded by gale */
+      
+      affect_to_char(tch, &af);
+      
+      send_to_char(tch, "\tCThe violent winds prevent you from taking flight!\tn\r\n");
+    }
+    else
+    {
+      send_to_char(tch, "\tCYou struggle against the wind and maintain your flight!\tn\r\n");
+    }
+  }
+  else
+  {
+    /* Non-flying creatures - push them back with some effects */
+    send_to_char(tch, "\tCYou are buffeted by powerful winds!\tn\r\n");
+    act("\tC$N is buffeted by the powerful winds!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+    
+    /* Check reflex save to avoid minor knockback effects */
+    if (!savingthrow(ch, tch, SAVING_REFL, 0, CAST_INNATE, save_level, NOSCHOOL))
+    {
+      /* Failed save - lose balance momentarily */
+      if (GET_POS(tch) == POS_FIGHTING && rand_number(1, 3) == 1)
+      {
+        change_position(tch, POS_SITTING);
+        send_to_char(tch, "\tCThe force of the wind knocks you off balance!\tn\r\n");
+        act("\tC$N is knocked off balance by the wind!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+      }
+    }
+  }
+
+  return TRUE;
+}
+
+void perform_galerush(struct char_data *ch)
+{
+  int targets_hit;
+
+  send_to_char(ch, "\tCYou summon the spirits of the gale, unleashing a powerful gust of wind!\tn\r\n");
+  act("\tC$n summons a powerful gust of wind that tears through the area!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Use the centralized AoE system */
+  targets_hit = aoe_effect(ch, SKILL_RUSH_OF_GALE_SPIRITS, galerush_callback, NULL);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  if (targets_hit == 0)
+  {
+    send_to_char(ch, "The wind howls harmlessly with no enemies in range.\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "The gust affects %d enem%s!\r\n", targets_hit, targets_hit == 1 ? "y" : "ies");
+  }
+}
+
+ACMDCHECK(can_galerush)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_perk(ch, PERK_MONK_RUSH_OF_GALE_SPIRITS), "You don't know how to use the Rush of the Gale Spirits technique.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_galerush)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_galerush);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_galerush(ch);
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS
