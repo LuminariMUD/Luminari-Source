@@ -408,7 +408,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
 
   savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
 
-  if (type == SAVING_REFL && (get_speed(vict, false) - 10) > get_speed(ch, false))
+  if (ch && type == SAVING_REFL && (get_speed(vict, false) - 10) > get_speed(ch, false))
   {
     savethrow += 1;
   }
@@ -589,7 +589,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
       challenge++;
   }
 
-  if (affected_by_spell(ch, AFFECT_PRESCIENCE))
+  if (ch && affected_by_spell(ch, AFFECT_PRESCIENCE))
   {
     savethrow += 2;
   }
@@ -4782,7 +4782,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   // critical feats list
   case ABILITY_BLEEDING_CRITICAL:
-    af[0].duration = savingthrow(victim, SAVING_FORT, 0, 10 + BAB(ch)) ? 1 : dice(1, 4) + 1;
+    af[0].duration = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4) + 1;
     af[0].modifier = dice(2, 6);
     SET_BIT_AR(af[0].bitvector, AFF_BLEED);
     to_vict = "You start to bleed.";
@@ -4791,7 +4791,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case ABILITY_SICKENING_CRITICAL:
-    af[0].duration = savingthrow(victim, SAVING_FORT, 0, 10 + BAB(ch)) ? 1 : dice(1, 4) + 1;
+    af[0].duration = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4) + 1;
     SET_BIT_AR(af[0].bitvector, AFF_SICKENED);
     to_vict = "You start to feel incredibly sickened.";
     to_room = "$n looks incredibly sickened.";
@@ -4799,7 +4799,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case ABILITY_STAGGERING_CRITICAL:
-    af[0].duration = savingthrow(victim, SAVING_FORT, 0, 10 + BAB(ch)) ? 1 : dice(1, 4) + 1;
+    af[0].duration = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4) + 1;
     SET_BIT_AR(af[0].bitvector, AFF_STAGGERED);
     to_vict = "You feel staggered.";
     to_room = "$n looks staggered.";
@@ -4809,7 +4809,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case ABILITY_STUNNING_CRITICAL:
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-    af[0].duration = savingthrow(victim, SAVING_FORT, misc_bonus, 10 + BAB(ch)) ? 1 : dice(1, 4);
+    af[0].duration = mag_savingthrow(ch, victim, SAVING_FORT, misc_bonus, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) ? 1 : dice(1, 4);
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     to_vict = "You are stunned.";
     to_room = "$n looks stunned.";

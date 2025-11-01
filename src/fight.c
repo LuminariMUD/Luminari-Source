@@ -10662,8 +10662,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK))
     {
       /* check for save */
-      if (!savingthrow(victim, SAVING_FORT, 0,
-            get_monk_stunning_fist_dc_bonus(ch)))
+      if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
       {
 
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
@@ -10740,7 +10739,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
       /* apply quivering palm affect, muahahahah */
       if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
-          !savingthrow(victim, SAVING_FORT, 0, quivering_palm_dc))
+          !mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
       {
         /*GRAND SLAM!*/
         act("$N \tRblows up into little pieces\tn as soon as you make contact with your palm!",
@@ -10786,7 +10785,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
       act("$n performs a \tYtrue judgement\tn attack on $N!", ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
 
-      if (!is_immune_death_magic(ch, victim, false) && !savingthrow(victim, SAVING_FORT, 0, true_judgement_dc))
+      if (!is_immune_death_magic(ch, victim, false) && !mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_INQUISITOR), NOSCHOOL))
       {
 
         act("$N \tRblows up into little pieces\tn as soon as you make contact!", FALSE, ch, wielded, victim, TO_CHAR);
@@ -10833,7 +10832,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
       /* apply death arrow affect, muahahahah */
       if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
-          !savingthrow(victim, SAVING_FORT, 0, deatharrow_dc))
+          !mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER), NOSCHOOL))
       {
         /*GRAND SLAM!*/
         act("$N \tRstops suddenly, then keels over\tn as soon as $p makes contact!",
@@ -10887,7 +10886,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       dam += water_dam;
 
       /* Reflex save to avoid entangle */
-      if (victim && !savingthrow(victim, SAVING_REFL, 0, water_whip_dc))
+      if (victim && !mag_savingthrow(ch, victim, SAVING_REFL, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
       {
         struct affected_type af_entangle;
         
@@ -11073,7 +11072,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       if (!IS_NPC(ch) && has_perk(ch, PERK_ROGUE_BLEEDING_ATTACK) && !AFF_FLAGGED(victim, AFF_BLEED))
       {
         int dc = 10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch);
-        int save_result = savingthrow(victim, SAVING_FORT, dc, 0);
+        int save_result = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL);
         
         if (save_result == FALSE)
         {
@@ -11098,7 +11097,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       if (!IS_NPC(ch) && has_perk(ch, PERK_ROGUE_CRIPPLING_STRIKE) && !AFF_FLAGGED(victim, AFF_CRIPPLED))
       {
         int dc = 10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch);
-        int save_result = savingthrow(victim, SAVING_FORT, dc, 0);
+        int save_result = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL);
         
         if (save_result == FALSE)
         {
@@ -11126,7 +11125,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         if (rand_number(1, 100) <= 5)
         {
           int dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
-          int save_result = savingthrow(victim, SAVING_FORT, dc, 0);
+          int save_result = mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL);
           
           if (save_result == FALSE)
           {
@@ -13018,7 +13017,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
             can_bleed(FIGHTING(ch)) && dice(1, 100) <= 10)
         {
           int bleed_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
-          if (!savingthrow(FIGHTING(ch), SAVING_FORT, 0, bleed_dc))
+          if (!mag_savingthrow(ch, FIGHTING(ch), SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
           {
             struct affected_type af;
             new_affect(&af);

@@ -423,9 +423,6 @@ const char *format_time_ymd_hms(time_t when);
 /* Ensures that a directory path exists, creating intermediate directories as needed. */
 bool ensure_dir_exists(const char *path);
 
-/* Saving Throws */
-int savingthrow(struct char_data *ch, int save, int modifier, int dc);
-
 /* Feats */
 int get_feat_value(struct char_data *ch, int featnum);
 

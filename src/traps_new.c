@@ -24,6 +24,7 @@
 #include "act.h"
 #include "perks.h"
 #include "traps.h"
+#include "domains_schools.h"
 
 /* ============================================================================ */
 /* Global Trap Data Tables                                                      */
@@ -873,8 +874,9 @@ void apply_trap_damage(struct char_data *ch, struct trap_data *trap)
         // Add trap sense bonus to save
         save_dc -= get_trap_sense_bonus(ch);
         
-        save_roll = savingthrow(ch, save_type_idx, save_dc, 0);
-        saved = (save_roll > 0);
+        // Use mag_savingthrow with NULL caster for environmental trap effects
+        int effective_level = MAX(1, save_dc - 10);
+        saved = !mag_savingthrow(NULL, ch, save_type_idx, 0, CAST_INNATE, effective_level, NOSCHOOL);
         
         // Successful save usually halves damage (or negates special effect)
         if (saved && trap->special_effect == TRAP_SPECIAL_NONE)
@@ -971,8 +973,9 @@ void apply_trap_special_effect(struct char_data *ch, struct trap_data *trap)
             break;
     }
     
-    save_roll = savingthrow(ch, save_type_idx, save_dc, 0);
-    saved = (save_roll > 0);
+    // Use mag_savingthrow with NULL caster for environmental trap effects
+    int effective_level = MAX(1, save_dc - 10);
+    saved = !mag_savingthrow(NULL, ch, save_type_idx, 0, CAST_INNATE, effective_level, NOSCHOOL);
     
     if (saved && trap->special_effect != TRAP_SPECIAL_SUMMON_CREATURE)
     {
