@@ -1118,9 +1118,11 @@
 #define SKILL_WATER_WHIP 2203 // Way of Four Elements - water whip attack
 #define SKILL_GONG_OF_SUMMIT 2204 // Way of Four Elements - gong of the summit attack
 #define SKILL_FIST_OF_UNBROKEN_AIR 2205 // Way of Four Elements - fist of unbroken air AoE
+#define SKILL_FLOWING_RIVER 2206 // Way of Four Elements - flowing river AoE water attack
+#define SKILL_SWEEPING_CINDER_STRIKE 2207 // Way of Four Elements - sweeping cinder strike cone AoE
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2206
+#define NUM_SKILLS 2208
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 

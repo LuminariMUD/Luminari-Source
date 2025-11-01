@@ -3501,6 +3501,7 @@
 #define PERK_MONK_ELEMENTAL_RESISTANCE_II 549     /* +5 to all resistances, change element free */
 #define PERK_MONK_MIST_STANCE 550                 /* 2 ki for gaseous form 1 min */
 #define PERK_MONK_SWARMING_ICE_RABBIT 551         /* 2 ki for ice spike ranged 60ft 3d6 cold */
+#define PERK_MONK_FLOWING_RIVER 552               /* 1 ki for AoE water damage + extinguish fire */
 
 /* ============================================================================
  * DRUID PERKS (600-699)

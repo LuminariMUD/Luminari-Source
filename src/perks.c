@@ -4446,6 +4446,22 @@ void define_monk_perks(void)
   perk->effect_value = 3;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Way of the Four Elements - Tier 2");
+
+  /* Flowing River */
+  perk = &perk_list[PERK_MONK_FLOWING_RIVER];
+  perk->id = PERK_MONK_FLOWING_RIVER;
+  perk->name = strdup("Flowing River");
+  perk->description = strdup("Spend 1 ki point to create water wave AoE (2d6 water damage, extinguishes fire effects)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_WATER_WHIP;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 2");
 }
 
 /* Lookup functions */

@@ -11909,6 +11909,162 @@ ACMD(do_fistair)
   perform_fistair(ch);
 }
 
+/* Flowing River - AoE water attack that damages and extinguishes fire effects */
+
+/* Callback for flowing river AoE effect */
+int flowingriver_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  int dam;
+
+  /* Calculate damage: 2d6 water damage */
+  dam = dice(2, 6);
+
+  /* Apply water damage with resistance checks */
+  damage(ch, tch, dam, SKILL_FLOWING_RIVER, DAM_WATER, FALSE);
+
+  /* Extinguish fire effects on the target */
+  if (affected_by_spell(tch, SPELL_FIRE_SHIELD))
+  {
+    affect_from_char(tch, SPELL_FIRE_SHIELD);
+    send_to_char(tch, "\tBThe flowing river extinguishes your fire shield!\tn\r\n");
+  }
+  if (affected_by_spell(tch, SPELL_FLAME_BLADE))
+  {
+    affect_from_char(tch, SPELL_FLAME_BLADE);
+    send_to_char(tch, "\tBThe flowing river extinguishes your flame blade!\tn\r\n");
+  }
+  if (affected_by_spell(tch, SPELL_FIREBRAND))
+  {
+    affect_from_char(tch, SPELL_FIREBRAND);
+    send_to_char(tch, "\tBThe flowing river extinguishes your firebrand!\tn\r\n");
+  }
+  if (AFF_FLAGGED(tch, AFF_ON_FIRE))
+  {
+    REMOVE_BIT_AR(AFF_FLAGS(tch), AFF_ON_FIRE);
+    send_to_char(tch, "\tBThe flowing river extinguishes the flames that are burning you!\tn\r\n");
+  }
+
+  return TRUE;
+}
+
+void perform_flowingriver(struct char_data *ch)
+{
+  int targets_hit;
+
+  send_to_char(ch, "\tBYou unleash a powerful wave of rushing water that crashes through the area!\tn\r\n");
+  act("\tB$n unleashes a surging wave of water that crashes through the area!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Use the centralized AoE system */
+  targets_hit = aoe_effect(ch, SKILL_FLOWING_RIVER, flowingriver_callback, NULL);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  if (targets_hit == 0)
+  {
+    send_to_char(ch, "The wave crashes harmlessly with no enemies in range.\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "The flowing river strikes %d enem%s!\r\n", targets_hit, targets_hit == 1 ? "y" : "ies");
+  }
+}
+
+ACMDCHECK(can_flowingriver)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_perk(ch, PERK_MONK_FLOWING_RIVER), "You don't know how to use the Flowing River technique.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_flowingriver)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_flowingriver);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_flowingriver(ch);
+}
+
+/* Sweeping Cinder Strike - Cone AoE fire attack that damages and sets targets on fire */
+
+/* Callback for sweeping cinder strike AoE effect */
+int sweepingcinder_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  int dam, save_level;
+  struct affected_type af;
+
+  /* Calculate damage: 2d6 fire damage */
+  dam = dice(2, 6);
+
+  /* Apply fire damage with resistance checks */
+  damage(ch, tch, dam, SKILL_SWEEPING_CINDER_STRIKE, DAM_FIRE, FALSE);
+
+  /* Calculate effective level for DC: WIS bonus + (monk level / 2)
+   * savingthrow will add 10 + this level to get DC = 10 + WIS bonus + (monk level / 2) */
+  save_level = GET_WIS_BONUS(ch) + (MONK_TYPE(ch) / 2);
+
+  /* Check reflex save - if they fail, set them on fire */
+  if (!savingthrow(ch, tch, SAVING_REFL, 0, CAST_INNATE, save_level, NOSCHOOL))
+  {
+    /* Apply on fire effect for 3 rounds */
+    new_affect(&af);
+    af.spell = SKILL_SWEEPING_CINDER_STRIKE;
+    af.duration = 3;
+    af.location = APPLY_NONE;
+    SET_BIT_AR(af.bitvector, AFF_ON_FIRE);
+
+    affect_to_char(tch, &af);
+
+    act("\trYou are set ablaze by the sweeping flames!\tn", FALSE, ch, 0, tch, TO_VICT);
+    act("\tr$N is set ablaze by your sweeping flames!\tn", FALSE, ch, 0, tch, TO_CHAR);
+    act("\tr$N is set ablaze by $n's sweeping flames!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+  }
+  else
+  {
+    act("You dodge the worst of the flames!", FALSE, ch, 0, tch, TO_VICT);
+  }
+
+  return TRUE;
+}
+
+void perform_sweepingcinder(struct char_data *ch)
+{
+  int targets_hit;
+
+  send_to_char(ch, "\trYou unleash a sweeping cone of blazing cinder and flame!\tn\r\n");
+  act("\tr$n unleashes a sweeping cone of blazing cinder and flame!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Use the centralized AoE system */
+  targets_hit = aoe_effect(ch, SKILL_SWEEPING_CINDER_STRIKE, sweepingcinder_callback, NULL);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  if (targets_hit == 0)
+  {
+    send_to_char(ch, "The flames sweep harmlessly with no enemies in range.\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "The sweeping flames strike %d enem%s!\r\n", targets_hit, targets_hit == 1 ? "y" : "ies");
+  }
+}
+
+ACMDCHECK(can_sweepingcinder)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_perk(ch, PERK_MONK_SWEEPING_CINDER_STRIKE), "You don't know how to use the Sweeping Cinder Strike technique.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_sweepingcinder)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_sweepingcinder);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_sweepingcinder(ch);
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS
