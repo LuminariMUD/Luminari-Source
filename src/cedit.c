@@ -119,6 +119,7 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->play.script_players = CONFIG_SCRIPT_PLAYERS;
   OLC_CONFIG(d)->play.min_pop_to_claim = CONFIG_MIN_POP_TO_CLAIM;
   OLC_CONFIG(d)->play.use_introduction_system = CONFIG_USE_INTRO_SYSTEM;
+  OLC_CONFIG(d)->play.perk_system = CONFIG_PERK_SYSTEM;
 
   /* Crash Saves */
   OLC_CONFIG(d)->csd.free_rent = CONFIG_FREE_RENT;
@@ -296,6 +297,7 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_SCRIPT_PLAYERS = OLC_CONFIG(d)->play.script_players;
   CONFIG_MIN_POP_TO_CLAIM = OLC_CONFIG(d)->play.min_pop_to_claim;
   CONFIG_USE_INTRO_SYSTEM = OLC_CONFIG(d)->play.use_introduction_system;
+  CONFIG_PERK_SYSTEM = OLC_CONFIG(d)->play.perk_system;
 
   /* Crash Saves */
   CONFIG_FREE_RENT = OLC_CONFIG(d)->csd.free_rent;
@@ -568,6 +570,9 @@ int save_config(IDXTYPE nowhere)
   fprintf(fl, "* Should the MUD use the introduction system for player names?\n"
               "use_introduction_system = %d\n\n",
           CONFIG_USE_INTRO_SYSTEM);
+  fprintf(fl, "* Is the perk system enabled? (0 = disabled, 1 = enabled)\n"
+              "perk_system = %d\n\n",
+          CONFIG_PERK_SYSTEM);
 
   strlcpy(buf, CONFIG_OK, sizeof(buf));
   strip_cr(buf);
@@ -1194,6 +1199,7 @@ static void cedit_disp_game_play_options(struct descriptor_data *d)
                      "%sR%s) Diagonal Directions           : %s%s\r\n"
                      "%sS%s) Prevent Mortal -> Staff Lvel  : %s%s\r\n"
                      "%sT%s) Use Introduction System       : %s%s\r\n"
+                     "%sU%s) Perk System Enabled           : %s%s\r\n"
                      "%s1%s) OK Message Text               : %s%s"
                      "%s2%s) NOPERSON Message Text         : %s%s"
                      "%s3%s) NOEFFECT Message Text         : %s%s"
@@ -1225,6 +1231,7 @@ static void cedit_disp_game_play_options(struct descriptor_data *d)
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.diagonal_dirs),
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.no_mort_to_immort),
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.use_introduction_system),
+                  grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.perk_system),
 
                   grn, nrm, cyn, OLC_CONFIG(d)->play.OK,
                   grn, nrm, cyn, OLC_CONFIG(d)->play.NOPERSON,
@@ -1898,6 +1905,11 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     case 't':
     case 'T':
       TOGGLE_VAR(OLC_CONFIG(d)->play.use_introduction_system);
+      break;
+
+    case 'u':
+    case 'U':
+      TOGGLE_VAR(OLC_CONFIG(d)->play.perk_system);
       break;
 
     case 'q':

@@ -2199,13 +2199,13 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Tabaxi Cats Claws Attack Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   
   /* Wizard Evoker perk cooldowns */
-  if (!IS_NPC(k) && k->player_specials->saved.maximize_spell_cooldown > time(0))
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.maximize_spell_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.maximize_spell_cooldown - time(0));
     send_to_char(ch, "Maximize Spell (Free) Cooldown  - Duration: %d seconds\r\n", remaining);
   }
   
-  if (!IS_NPC(k) && has_perk(k, PERK_WIZARD_EMPOWER_SPELL))
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && has_perk(k, PERK_WIZARD_EMPOWER_SPELL))
   {
     /* Force regeneration check */
     can_use_empower_spell_perk(k);
@@ -2225,7 +2225,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   }
   
   /* Wizard Controller perk cooldowns */
-  if (!IS_NPC(k) && has_perk(k, PERK_WIZARD_PERSISTENT_SPELL))
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && has_perk(k, PERK_WIZARD_PERSISTENT_SPELL))
   {
     /* Force regeneration check */
     can_use_persistent_spell_perk(k);
@@ -2249,14 +2249,14 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     }
   }
   
-  if (!IS_NPC(k) && k->player_specials->saved.split_enchantment_cooldown > time(0))
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.split_enchantment_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.split_enchantment_cooldown - time(0));
     send_to_char(ch, "Split Enchantment Cooldown  - Duration: %d seconds\r\n", remaining);
   }
   
   /* Wizard Controller perk: Defensive Casting - show if active */
-  if (!IS_NPC(k) && k->player_specials->saved.defensive_casting_timer > 0)
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.defensive_casting_timer > 0)
   {
     send_to_char(ch, "\tGDefensive Casting Active\tn - +4 AC for %d round%s\r\n",
                  k->player_specials->saved.defensive_casting_timer,
@@ -2264,7 +2264,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   }
   
   /* Wizard Versatile Caster perk: Spell Shield - show if active */
-  if (!IS_NPC(k) && k->player_specials->saved.spell_shield_timer > 0)
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.spell_shield_timer > 0)
   {
     send_to_char(ch, "\tCSpell Shield Active\tn - 10 DR + 4 AC for %d round%s\r\n",
                  k->player_specials->saved.spell_shield_timer,
@@ -2272,14 +2272,14 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   }
   
   /* Spell Shield cooldown */
-  if (!IS_NPC(k) && k->player_specials->saved.spell_shield_cooldown > time(0))
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.spell_shield_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.spell_shield_cooldown - time(0));
     send_to_char(ch, "Spell Shield Cooldown  - Duration: %d seconds\r\n", remaining);
   }
   
   /* Monk Void Strike - show if active */
-  if (!IS_NPC(k) && k->player_specials->saved.void_strike_timer > 0)
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.void_strike_timer > 0)
   {
     send_to_char(ch, "\tMVoid Strike Active\tn - Next attack: +8d6 force, ignores DR for %d round%s\r\n",
                  k->player_specials->saved.void_strike_timer,
@@ -2287,21 +2287,21 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   }
   
   /* Void Strike cooldown */
-  if (!IS_NPC(k) && k->player_specials->saved.void_strike_cooldown > time(0))
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.void_strike_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.void_strike_cooldown - time(0));
     send_to_char(ch, "Void Strike Cooldown  - Duration: %d seconds\r\n", remaining);
   }
   
   /* Arcane Recovery cooldown */
-  if (!IS_NPC(k) && k->player_specials->saved.arcane_recovery_cooldown > time(0))
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.arcane_recovery_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.arcane_recovery_cooldown - time(0));
     send_to_char(ch, "Arcane Recovery Cooldown  - Duration: %d seconds\r\n", remaining);
   }
   
   /* Metamagic Reduction uses (Metamagic Master I/II + Archmage's Power) */
-  if (!IS_NPC(k) && (has_perk(k, PERK_WIZARD_METAMAGIC_MASTER_I) || 
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && (has_perk(k, PERK_WIZARD_METAMAGIC_MASTER_I) || 
                      has_perk(k, PERK_WIZARD_METAMAGIC_MASTER_II) ||
                      has_perk(k, PERK_WIZARD_ARCHMAGES_POWER)))
   {
@@ -3985,8 +3985,8 @@ ACMD(do_score)
                (GET_LEVEL(ch) >= LVL_IMMORT ? 0 :     /* Immortals don't need XP */
                 level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch))); /* XP to next level */
   
-  /* Display perk points for each class */
-  if (!IS_NPC(ch)) {
+  /* Display perk points for each class (only if perk system is enabled) */
+  if (!IS_NPC(ch) && CONFIG_PERK_SYSTEM) {
     int has_perks = FALSE;
     int col = 0;
     send_to_char(ch, "\r\n\tC");
@@ -5030,8 +5030,8 @@ static void display_experience_section(struct char_data *ch, int line_length)
                  add_commas(GET_EXP(ch)), GET_LEVEL(ch));
   }
 
-  /* Display perk points if character has any */
-  if (!IS_NPC(ch)) {
+  /* Display perk points if character has any (only if perk system is enabled) */
+  if (!IS_NPC(ch) && CONFIG_PERK_SYSTEM) {
     send_to_char(ch, "\tY[DEBUG] Checking all classes for perk points...\tn\r\n");
     for (i = 0; i < NUM_CLASSES; i++) {
       send_to_char(ch, "\tY[DEBUG] Class %d (%s): Level=%d, Points=%d\tn\r\n", 

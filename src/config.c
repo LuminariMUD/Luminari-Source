@@ -45,6 +45,10 @@ int script_players = YES;
  * instead of names until they introduce themselves? */
 int use_introduction_system = NO;
 
+/* Is the perk system enabled? If set to NO, players won't have perk stages between
+ * levels, the perk command will do nothing, and perk-related functionality is disabled. */
+int perk_system = NO;
+
 /* pk_allowed sets the tone of the entire game.  If pk_allowed is set to NO,
  * then players will not be allowed to kill, summon, charm, or sleep other
  * players, as well as a variety of other "asshole player" protections. However,

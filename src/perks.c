@@ -4620,6 +4620,14 @@ bool check_stage_advancement(struct char_data *ch, int *perk_points_awarded)
   int current_stage;
   bool advanced = FALSE;
   
+  /* If perk system is disabled, don't process stages */
+  if (!CONFIG_PERK_SYSTEM)
+  {
+    if (perk_points_awarded)
+      *perk_points_awarded = 0;
+    return FALSE;
+  }
+  
   if (!ch || IS_NPC(ch))
   {
     if (perk_points_awarded)
@@ -8393,6 +8401,13 @@ ACMD(do_perk)
   struct char_perk_data *char_perk;
   char error_msg[256];
   
+  /* Check if perk system is enabled */
+  if (!CONFIG_PERK_SYSTEM)
+  {
+    send_to_char(ch, "The perk system is currently disabled.\r\n");
+    return;
+  }
+  
   if (IS_NPC(ch))
   {
     send_to_char(ch, "NPCs cannot use perks.\r\n");
@@ -8679,6 +8694,12 @@ ACMD(do_perk)
  */
 ACMD(do_myperks)
 {
+  if (!CONFIG_PERK_SYSTEM)
+  {
+    send_to_char(ch, "The perk system is disabled.\r\n");
+    return;
+  }
+  
   if (IS_NPC(ch))
   {
     send_to_char(ch, "NPCs cannot use perks.\r\n");
