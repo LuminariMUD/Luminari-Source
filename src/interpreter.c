@@ -471,6 +471,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"genmap", "genmap", POS_SLEEPING, do_genmap, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"genriver", "genriver", POS_SLEEPING, do_genriver, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"give", "giv", POS_RECLINING, do_give, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"galerush", "galerush", POS_STANDING, do_galerush, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_galerush},
 #if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
     {"gather", "gather", POS_STANDING, do_wilderness_gather, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
 #endif

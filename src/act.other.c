@@ -5314,6 +5314,13 @@ ACMD(do_fly)
     return;
   }
 
+  /* Check if grounded by gale spirits */
+  if (affected_by_spell(ch, SKILL_RUSH_OF_GALE_SPIRITS))
+  {
+    send_to_char(ch, "The violent winds still prevent you from taking flight!\r\n");
+    return;
+  }
+
   if (AFF_FLAGGED(ch, AFF_FLYING))
   {
     send_to_char(ch, "You are already flying!\r\n");

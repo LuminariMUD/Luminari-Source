@@ -598,6 +598,8 @@ ACMD_DECL(do_flowingriver);
 ACMDCHECK(can_flowingriver);
 ACMD_DECL(do_sweepingcinder);
 ACMDCHECK(can_sweepingcinder);
+ACMD_DECL(do_galerush);
+ACMDCHECK(can_galerush);
 ACMD_DECL(do_vanishingtechnique);
 ACMDCHECK(can_vanishingtechnique);
 ACMD_DECL(do_shadowclone);

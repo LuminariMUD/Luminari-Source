@@ -6893,6 +6893,14 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_FLY:
+    /* Check if grounded by gale spirits */
+    if (affected_by_spell(victim, SKILL_RUSH_OF_GALE_SPIRITS))
+    {
+      send_to_char(ch, "The violent winds prevent %s from taking flight!\r\n", GET_NAME(victim));
+      if (ch != victim)
+        send_to_char(victim, "The violent winds still prevent you from taking flight!\r\n");
+      return;
+    }
     af[0].duration = 600;
     SET_BIT_AR(af[0].bitvector, AFF_FLYING);
     to_room = "$n begins to fly above the ground!";
