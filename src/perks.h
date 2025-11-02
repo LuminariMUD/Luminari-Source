@@ -286,6 +286,17 @@ bool has_monk_clench_north_wind(struct char_data *ch);
 bool has_monk_elemental_resistance_ii(struct char_data *ch);
 bool has_monk_mist_stance(struct char_data *ch);
 bool has_monk_swarming_ice_rabbit(struct char_data *ch);
+/* Tier 3 */
+bool has_monk_flames_of_phoenix(struct char_data *ch);
+bool has_monk_wave_of_rolling_earth(struct char_data *ch);
+bool has_monk_ride_the_wind(struct char_data *ch);
+bool has_monk_eternal_mountain_defense(struct char_data *ch);
+bool has_monk_fist_of_four_thunders(struct char_data *ch);
+bool has_monk_river_of_hungry_flame(struct char_data *ch);
+/* Tier 4 */
+bool has_monk_breath_of_winter(struct char_data *ch);
+bool has_monk_elemental_embodiment(struct char_data *ch);
+bool has_monk_avatar_of_elements(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

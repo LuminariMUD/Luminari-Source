@@ -612,6 +612,25 @@ ACMD_DECL(do_miststance);
 ACMDCHECK(can_miststance);
 ACMD_DECL(do_icerabbit);
 ACMDCHECK(can_icerabbit);
+/* Tier 3 Four Elements */
+ACMD_DECL(do_flamesofphoenix);
+ACMDCHECK(can_flamesofphoenix);
+ACMD_DECL(do_waveofrollingearth);
+ACMDCHECK(can_waveofrollingearth);
+ACMD_DECL(do_ridethewind);
+ACMDCHECK(can_ridethewind);
+ACMD_DECL(do_eternalmountaindefense);
+ACMDCHECK(can_eternalmountaindefense);
+ACMD_DECL(do_fistoffourthunders);
+ACMDCHECK(can_fistoffourthunders);
+ACMD_DECL(do_riverofhungryflame);
+ACMDCHECK(can_riverofhungryflame);
+/* Tier 4 Four Elements */
+ACMD_DECL(do_breathofwinter);
+ACMDCHECK(can_breathofwinter);
+ACMD_DECL(do_elementalembodiment);
+ACMDCHECK(can_elementalembodiment);
+/* Other Monk */
 ACMD_DECL(do_shadowwalk);
 ACMDCHECK(can_shadowwalk);
 ACMD_DECL(do_blinding_speed);

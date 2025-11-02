@@ -327,6 +327,265 @@ void perform_voidstrike(struct char_data *ch)
   act("$n's fist crackles with dark energy as $e channels the void!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
+/* Way of Four Elements - Tier 3 Abilities */
+int flamesofphoenix_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  int dam, save_level;
+  struct affected_type af;
+
+  /* Calculate damage: 8d6 fire damage */
+  dam = dice(8, 6);
+
+  /* Calculate effective level for DC: monk level / 2
+   * savingthrow will add 10 + this level + WIS bonus to get DC = 10 + WIS bonus + (monk level / 2) */
+  save_level = MONK_TYPE(ch);
+
+  /* Apply reflex save - half damage on success, set on fire on failure */
+  if (savingthrow(ch, tch, SAVING_REFL, 0, CAST_INNATE, save_level, NOSCHOOL))
+  {
+    /* Successful save - half damage */
+    dam /= 2;
+    act("\tRYou twist away from the flames, reducing the damage!\tn", FALSE, ch, 0, tch, TO_VICT);
+    act("\tR$N twists away from the flames!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+  }
+  else
+  {
+    /* Failed save - set on fire for 2 rounds */
+    new_affect(&af);
+    af.spell = SKILL_FLAMES_OF_PHOENIX;
+    af.duration = 2;
+    af.location = APPLY_NONE;
+    SET_BIT_AR(af.bitvector, AFF_ON_FIRE);
+
+    affect_to_char(tch, &af);
+
+    act("\tRYou are engulfed in flames!\tn", FALSE, ch, 0, tch, TO_VICT);
+    act("\tR$N is engulfed in flames!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+  }
+
+  /* Apply fire damage with resistance checks */
+  damage(ch, tch, dam, SKILL_FLAMES_OF_PHOENIX, DAM_FIRE, FALSE);
+
+  return TRUE;
+}
+
+void perform_flamesofphoenix(struct char_data *ch)
+{
+  int targets_hit;
+
+  send_to_char(ch, "\tRYou summon the Flames of the Phoenix, unleashing an inferno!\tn\r\n");
+  act("\tR$n channels $s ki into a brilliant phoenix of flame that explodes in every direction!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Use the centralized AoE system */
+  targets_hit = aoe_effect(ch, SKILL_FLAMES_OF_PHOENIX, flamesofphoenix_callback, NULL);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  if (targets_hit == 0)
+  {
+    send_to_char(ch, "The phoenix flames dissipate with no enemies in range.\r\n");
+  }
+}
+
+int waveofrollingearth_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  int dam, save_level;
+
+  /* Skip flying or levitating targets - they're not touching the ground */
+  if (AFF_FLAGGED(tch, AFF_FLYING) || AFF_FLAGGED(tch, AFF_LEVITATE))
+  {
+    act("\tyThe rolling earth passes harmlessly beneath $N!\tn", FALSE, ch, 0, tch, TO_CHAR);
+    act("\tyThe rolling earth passes harmlessly beneath you!\tn", FALSE, ch, 0, tch, TO_VICT);
+    act("\tyThe rolling earth passes harmlessly beneath $N!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+    return TRUE; /* Still counts as a target */
+  }
+
+  /* Calculate damage: 8d6 earth damage */
+  dam = dice(8, 6);
+
+  /* Calculate effective level for DC */
+  save_level = MONK_TYPE(ch);
+
+  /* Apply reflex save - if they fail, knock them prone */
+  if (savingthrow(ch, tch, SAVING_REFL, 0, CAST_INNATE, save_level, NOSCHOOL))
+  {
+    /* Successful save - they keep their footing */
+    act("\tyYou manage to keep your footing as the earth rolls beneath you!\tn", FALSE, ch, 0, tch, TO_VICT);
+    act("\ty$N keeps $S footing despite the rolling earth!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+  }
+  else
+  {
+    /* Failed save - knock them prone */
+    if (GET_POS(tch) > POS_SITTING)
+    {
+      change_position(tch, POS_SITTING);
+      act("\tyYou are knocked to the ground by the rolling earth!\tn", FALSE, ch, 0, tch, TO_VICT);
+      act("\ty$N is knocked to the ground by the rolling earth!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+      USE_MOVE_ACTION(tch);
+    }
+  }
+
+  /* Apply earth damage with resistance checks */
+  damage(ch, tch, dam, SKILL_WAVE_OF_ROLLING_EARTH, DAM_EARTH, FALSE);
+
+  return TRUE;
+}
+
+void perform_waveofrollingearth(struct char_data *ch)
+{
+  int targets_hit;
+
+  send_to_char(ch, "\tyYou strike the ground, sending a wave of rolling earth outward!\tn\r\n");
+  act("\ty$n strikes the ground with tremendous force, causing the earth to roll and shake!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Use the centralized AoE system */
+  targets_hit = aoe_effect(ch, SKILL_WAVE_OF_ROLLING_EARTH, waveofrollingearth_callback, NULL);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  if (targets_hit == 0)
+  {
+    send_to_char(ch, "The wave of earth rolls outward but finds no enemies.\r\n");
+  }
+}
+
+void perform_ridethewind(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "\tCYou channel the winds, gaining the ability to fly!\tn\r\n");
+  act("\tC$n channels the winds and begins to float above the ground!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, NULL, SPELL_FLY, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+}
+
+void perform_eternalmountaindefense(struct char_data *ch)
+{
+  struct affected_type af;
+  struct damage_reduction_type *new_dr;
+
+  /* Check for conflicting effects */
+  if (affected_by_spell(ch, SPELL_STONESKIN) ||
+      affected_by_spell(ch, SPELL_IRONSKIN) ||
+      affected_by_spell(ch, SPELL_EPIC_WARDING))
+  {
+    send_to_char(ch, "A magical ward is already in effect, preventing Eternal Mountain Defense.\r\n");
+    return;
+  }
+
+  /* Check if already active */
+  if (affected_by_spell(ch, SKILL_ETERNAL_MOUNTAIN_DEFENSE))
+  {
+    send_to_char(ch, "You are already protected by Eternal Mountain Defense.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "\tyYour body becomes as unyielding as the eternal mountain!\tn\r\n");
+  act("\ty$n's form becomes rigid and unyielding, like an eternal mountain!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Create the affect for tracking */
+  new_affect(&af);
+  af.spell = SKILL_ETERNAL_MOUNTAIN_DEFENSE;
+  af.duration = 100; /* Duration in combat rounds */
+  af.location = APPLY_DR;
+  af.modifier = 0;
+  affect_to_char(ch, &af);
+
+  /* Create the damage reduction structure */
+  CREATE(new_dr, struct damage_reduction_type, 1);
+
+  new_dr->duration = 100;
+  new_dr->bypass_cat[0] = DR_BYPASS_CAT_NONE; /* 5/- (nothing bypasses) */
+  new_dr->bypass_val[0] = 0;
+
+  new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+  new_dr->bypass_val[1] = 0;
+
+  new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+  new_dr->bypass_val[2] = 0;
+
+  new_dr->amount = 5; /* 5 points of DR */
+  new_dr->max_damage = 100; /* Absorbs up to 100 HP total */
+  new_dr->spell = SKILL_ETERNAL_MOUNTAIN_DEFENSE;
+  new_dr->feat = FEAT_UNDEFINED;
+  new_dr->next = GET_DR(ch);
+  GET_DR(ch) = new_dr;
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+}
+
+void perform_fistoffourthunders(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "\tBYou unleash the Fist of Four Thunders, sending chain lightning across the battlefield!\tn\r\n");
+  act("\tB$n's fist crackles with lightning that arcs between multiple targets!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, NULL, SPELL_CHAIN_LIGHTNING, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+}
+
+void perform_riverofhungryflame(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "\tRYou create a River of Hungry Flame, a wall of searing fire!\tn\r\n");
+  act("\tR$n creates a wall of intense flames that burns everything in its path!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, NULL, SPELL_WALL_OF_FIRE, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+}
+
+/* Way of Four Elements - Tier 4 Capstone Abilities */
+
+void perform_breathofwinter(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "\tWYou unleash the Breath of Winter, a devastating cone of absolute cold!\tn\r\n");
+  act("\tW$n breathes forth a cone of freezing cold that turns everything to ice!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, NULL, SPELL_CONE_OF_COLD, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+}
+
+void perform_elementalembodiment(struct char_data *ch, int element_type)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  switch (element_type)
+  {
+    case 1: /* Fire */
+      send_to_char(ch, "\tRYou transform into a being of living flame!\tn\r\n");
+      act("\tR$n transforms into a being of pure fire!\tn", FALSE, ch, 0, 0, TO_ROOM);
+      call_magic(ch, ch, NULL, SPELL_FIRE_SHIELD, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+      break;
+    case 2: /* Water */
+      send_to_char(ch, "\tCYou transform into a being of flowing water!\tn\r\n");
+      act("\tC$n transforms into a being of pure water!\tn", FALSE, ch, 0, 0, TO_ROOM);
+      call_magic(ch, ch, NULL, SPELL_BLUR, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+      break;
+    case 3: /* Air */
+      send_to_char(ch, "\tWYou transform into a being of pure air!\tn\r\n");
+      act("\tW$n transforms into a being of swirling wind!\tn", FALSE, ch, 0, 0, TO_ROOM);
+      call_magic(ch, ch, NULL, SPELL_GASEOUS_FORM, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+      break;
+    case 4: /* Earth */
+      send_to_char(ch, "\tyYou transform into a being of solid stone!\tn\r\n");
+      act("\ty$n transforms into a being of living earth!\tn", FALSE, ch, 0, 0, TO_ROOM);
+      call_magic(ch, ch, NULL, SPELL_STONESKIN, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+      break;
+    default:
+      send_to_char(ch, "You must choose an element: fire, water, air, or earth.\r\n");
+      return;
+  }
+}
+
 void perform_firesnake(struct char_data *ch)
 {
   if (!IS_NPC(ch))
@@ -7295,6 +7554,155 @@ ACMD(do_icerabbit)
 
   perform_icerabbit(ch, vict);
   USE_STANDARD_ACTION(ch);
+}
+
+/* ============ Tier 3 Four Elements Abilities ============ */
+
+ACMDCHECK(can_flamesofphoenix)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_flames_of_phoenix(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_flamesofphoenix)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_flamesofphoenix);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_flamesofphoenix(ch);
+}
+
+ACMDCHECK(can_waveofrollingearth)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_wave_of_rolling_earth(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_waveofrollingearth)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_waveofrollingearth);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_waveofrollingearth(ch);
+}
+
+ACMDCHECK(can_ridethewind)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_ride_the_wind(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_ridethewind)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_ridethewind);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_ridethewind(ch);
+}
+
+ACMDCHECK(can_eternalmountaindefense)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_eternal_mountain_defense(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_eternalmountaindefense)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_eternalmountaindefense);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_eternalmountaindefense(ch);
+}
+
+ACMDCHECK(can_fistoffourthunders)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_fist_of_four_thunders(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_fistoffourthunders)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_fistoffourthunders);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_fistoffourthunders(ch);
+}
+
+ACMDCHECK(can_riverofhungryflame)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_river_of_hungry_flame(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_riverofhungryflame)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_riverofhungryflame);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_riverofhungryflame(ch);
+}
+
+/* ============ Tier 4 Four Elements Capstones ============ */
+
+ACMDCHECK(can_breathofwinter)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_breath_of_winter(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_breathofwinter)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_breathofwinter);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_breathofwinter(ch);
+}
+
+ACMDCHECK(can_elementalembodiment)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_elemental_embodiment(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_elementalembodiment)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int element_type = 0;
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_elementalembodiment);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Choose an element: fire, water, air, or earth.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "fire"))
+    element_type = 1;
+  else if (is_abbrev(arg, "water"))
+    element_type = 2;
+  else if (is_abbrev(arg, "air"))
+    element_type = 3;
+  else if (is_abbrev(arg, "earth"))
+    element_type = 4;
+  else
+  {
+    send_to_char(ch, "Choose an element: fire, water, air, or earth.\r\n");
+    return;
+  }
+
+  perform_elementalembodiment(ch, element_type);
 }
 
 ACMDCHECK(can_shadowwalk)

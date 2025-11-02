@@ -4462,6 +4462,170 @@ void define_monk_perks(void)
   perk->effect_value = 2;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Way of the Four Elements - Tier 2");
+
+  /* ====== TIER 3 PERKS ====== */
+
+  /* Elemental Attunement III */
+  perk = &perk_list[PERK_MONK_ELEMENTAL_ATTUNEMENT_III];
+  perk->id = PERK_MONK_ELEMENTAL_ATTUNEMENT_III;
+  perk->name = strdup("Elemental Attunement III");
+  perk->description = strdup("Gain +4 ki points and immunity to one chosen element per rank");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_MONK_ELEMENTAL_ATTUNEMENT_II;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 3");
+
+  /* Flames of the Phoenix */
+  perk = &perk_list[PERK_MONK_FLAMES_OF_PHOENIX];
+  perk->id = PERK_MONK_FLAMES_OF_PHOENIX;
+  perk->name = strdup("Flames of the Phoenix");
+  perk->description = strdup("Spend 2 ki points to unleash an inferno (AoE 8d6 fire damage, Reflex save for half or be set on fire for 2 rounds)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_SWEEPING_CINDER_STRIKE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 3");
+
+  /* Wave of Rolling Earth */
+  perk = &perk_list[PERK_MONK_WAVE_OF_ROLLING_EARTH];
+  perk->id = PERK_MONK_WAVE_OF_ROLLING_EARTH;
+  perk->name = strdup("Wave of Rolling Earth");
+  perk->description = strdup("Spend 3 ki points to create an earthquake (30-ft radius, difficult terrain, knocks prone, 4d6 damage)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_ELEMENTAL_ATTUNEMENT_II;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 3");
+
+  /* Ride the Wind */
+  perk = &perk_list[PERK_MONK_RIDE_THE_WIND];
+  perk->id = PERK_MONK_RIDE_THE_WIND;
+  perk->name = strdup("Ride the Wind");
+  perk->description = strdup("Spend 3 ki points to gain fly speed 60 ft for 10 minutes");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_RUSH_OF_GALE_SPIRITS;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 3");
+
+  /* Eternal Mountain Defense */
+  perk = &perk_list[PERK_MONK_ETERNAL_MOUNTAIN_DEFENSE];
+  perk->id = PERK_MONK_ETERNAL_MOUNTAIN_DEFENSE;
+  perk->name = strdup("Eternal Mountain Defense");
+  perk->description = strdup("Spend 1 ki point to gain 5/- DR that absorbs up to 100 HP (doesn't stack with stoneskin/ironskin)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_ELEMENTAL_RESISTANCE_II;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 3");
+
+  /* Fist of Four Thunders */
+  perk = &perk_list[PERK_MONK_FIST_OF_FOUR_THUNDERS];
+  perk->id = PERK_MONK_FIST_OF_FOUR_THUNDERS;
+  perk->name = strdup("Fist of Four Thunders");
+  perk->description = strdup("Spend 3 ki points to cast chain lightning (jumps to 4 targets, 6d6 lightning damage each)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_GONG_OF_SUMMIT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 3");
+
+  /* River of Hungry Flame */
+  perk = &perk_list[PERK_MONK_RIVER_OF_HUNGRY_FLAME];
+  perk->id = PERK_MONK_RIVER_OF_HUNGRY_FLAME;
+  perk->name = strdup("River of Hungry Flame");
+  perk->description = strdup("Spend 4 ki points to create wall of fire (20-ft line, 5d8 fire damage, burns for 3 rounds)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_FLAMES_OF_PHOENIX;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 3");
+
+  /* ====== TIER 4 PERKS ====== */
+
+  /* Breath of Winter */
+  perk = &perk_list[PERK_MONK_BREATH_OF_WINTER];
+  perk->id = PERK_MONK_BREATH_OF_WINTER;
+  perk->name = strdup("Breath of Winter");
+  perk->description = strdup("Spend 5 ki points to cast cone of cold (60-ft cone, 12d6 cold damage, freezes enemies solid for 1 round on failed save)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_CLENCH_NORTH_WIND;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 4 Capstone");
+
+  /* Elemental Embodiment */
+  perk = &perk_list[PERK_MONK_ELEMENTAL_EMBODIMENT];
+  perk->id = PERK_MONK_ELEMENTAL_EMBODIMENT;
+  perk->name = strdup("Elemental Embodiment");
+  perk->description = strdup("Spend 5 ki points to transform into elemental form for 1 minute (choose fire/water/air/earth: gain elemental traits, immunities, and special attacks)");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_ELEMENTAL_ATTUNEMENT_III;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 4 Capstone");
+
+  /* Avatar of the Elements */
+  perk = &perk_list[PERK_MONK_AVATAR_OF_ELEMENTS];
+  perk->id = PERK_MONK_AVATAR_OF_ELEMENTS;
+  perk->name = strdup("Avatar of the Elements");
+  perk->description = strdup("All elemental ki abilities cost -2 ki (minimum 1), deal +2d6 damage, immunity to all elemental damage types");
+  perk->associated_class = CLASS_MONK;
+  perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
+  perk->cost = 5;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_MONK_ETERNAL_MOUNTAIN_DEFENSE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Way of the Four Elements - Tier 4 Capstone");
 }
 
 /* Lookup functions */
@@ -6991,6 +7155,78 @@ bool has_monk_swarming_ice_rabbit(struct char_data *ch)
     return FALSE;
   
   return has_perk(ch, PERK_MONK_SWARMING_ICE_RABBIT);
+}
+
+bool has_monk_flames_of_phoenix(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_FLAMES_OF_PHOENIX);
+}
+
+bool has_monk_wave_of_rolling_earth(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_WAVE_OF_ROLLING_EARTH);
+}
+
+bool has_monk_ride_the_wind(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_RIDE_THE_WIND);
+}
+
+bool has_monk_eternal_mountain_defense(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_ETERNAL_MOUNTAIN_DEFENSE);
+}
+
+bool has_monk_fist_of_four_thunders(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_FIST_OF_FOUR_THUNDERS);
+}
+
+bool has_monk_river_of_hungry_flame(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_RIVER_OF_HUNGRY_FLAME);
+}
+
+bool has_monk_breath_of_winter(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_BREATH_OF_WINTER);
+}
+
+bool has_monk_elemental_embodiment(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_ELEMENTAL_EMBODIMENT);
+}
+
+bool has_monk_avatar_of_elements(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+  
+  return has_perk(ch, PERK_MONK_AVATAR_OF_ELEMENTS);
 }
 
 /**
