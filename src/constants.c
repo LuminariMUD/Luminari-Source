@@ -1848,6 +1848,7 @@ const char *affected_bits[] = {
     "Sickening-Aura",
     "Rapid-Buff",
     "Crippled",
+    "Encased-in-Ice",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1982,6 +1983,7 @@ const char *affected_bit_descs[] = {
     "You are surrounded by a sickening aura.",
     "You are able to buff yourself with spells faster than usual.",
     "Your legs are crippled! (50% movement speed, 50% movement fail chance)",
+    "You are encased in ice and paralyzed! (Immune to cold, DR 5/-)",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 

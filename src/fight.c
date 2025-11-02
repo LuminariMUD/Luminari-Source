@@ -3284,6 +3284,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     }
     break;
   case DAM_COLD:
+    /* Encased in Ice provides immunity to cold damage */
+    if (AFF_FLAGGED(ch, AFF_ENCASED_IN_ICE))
+      dam_reduction += 999; /* Effective immunity */
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
       dam_reduction += 3;
     if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
@@ -4097,6 +4100,14 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
     damage_reduction += HAS_FEAT(ch, FEAT_SHRUG_DAMAGE);
     if (display)
       send_to_char(ch, "%-30s: %d\r\n", "Shrug Damage", HAS_FEAT(ch, FEAT_SHRUG_DAMAGE));
+  }
+
+  /* Encased in Ice provides DR 5/- */
+  if (AFF_FLAGGED(ch, AFF_ENCASED_IN_ICE))
+  {
+    damage_reduction += 5;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Encased in Ice", 5);
   }
 
   if (affected_by_spell(ch, SPELL_EPIC_MAGE_ARMOR))

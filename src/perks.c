@@ -4387,7 +4387,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_CLENCH_NORTH_WIND];
   perk->id = PERK_MONK_CLENCH_NORTH_WIND;
   perk->name = strdup("Clench of the North Wind");
-  perk->description = strdup("Spend 2 ki points to create ice prison around one enemy (holds immobile for 1 round, cold damage on break)");
+  perk->description = strdup("Spend 1 ki point to strike an enemy dealing 2d6 cold damage. Failed reflex save (DC 10 + monk level/2 + WIS) encases them in ice for 2 rounds (paralyzed, immune to cold, DR 5/-). 1 minute cooldown.");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 2;
@@ -4395,7 +4395,7 @@ void define_monk_perks(void)
   perk->prerequisite_perk = PERK_MONK_FIST_OF_UNBROKEN_AIR;
   perk->prerequisite_rank = 2;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 2;
+  perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Way of the Four Elements - Tier 2");
 
@@ -4419,7 +4419,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_MIST_STANCE];
   perk->id = PERK_MONK_MIST_STANCE;
   perk->name = strdup("Mist Stance");
-  perk->description = strdup("Spend 2 ki points to become gaseous form for 1 minute (fly speed 10 ft, immune to nonmagical attacks)");
+  perk->description = strdup("Spend 1 ki point to become gaseous form (fly speed, immune to nonmagical attacks, can pass through small openings)");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 2;
@@ -4427,7 +4427,7 @@ void define_monk_perks(void)
   perk->prerequisite_perk = PERK_MONK_ELEMENTAL_ATTUNEMENT_I;
   perk->prerequisite_rank = 3;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 2;
+  perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Way of the Four Elements - Tier 2");
 
@@ -4435,7 +4435,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_SWARMING_ICE_RABBIT];
   perk->id = PERK_MONK_SWARMING_ICE_RABBIT;
   perk->name = strdup("Swarming Ice Rabbit");
-  perk->description = strdup("Spend 2 ki points to create ice spike ranged attack (60 ft, 3d6 cold damage, slows target)");
+  perk->description = strdup("Spend 1 ki point to summon spectral ice rabbits for a ranged attack (3d6 cold damage, can target adjacent rooms)");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 2;
@@ -4443,7 +4443,7 @@ void define_monk_perks(void)
   perk->prerequisite_perk = PERK_MONK_FIST_OF_UNBROKEN_AIR;
   perk->prerequisite_rank = 3;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3;
+  perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Way of the Four Elements - Tier 2");
 

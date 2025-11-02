@@ -278,6 +278,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"clanset", "clans", POS_DEAD, do_clanset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"clantalk", "cl", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"claninvest", "clani", POS_RESTING, do_claninvest, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"clenchofnorthwind", "clenchofnorthwind", POS_STANDING, do_clenchofnorthwind, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_clenchofnorthwind},
     {"clear", "cle", POS_DEAD, do_gen_ps, 0, SCMD_CLEAR, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"cls", "cls", POS_DEAD, do_gen_ps, 0, SCMD_CLEAR, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"consider", "con", POS_RECLINING, do_consider, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -554,6 +555,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"introduce", "intro", POS_RECLINING, do_introduce, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"intimidate", "intimidate", POS_FIGHTING, do_intimidate, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_intimidate},
     {"icicle", "icicle", POS_FIGHTING, do_icicle, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"icerabbit", "icerabbit", POS_FIGHTING, do_icerabbit, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_icerabbit},
     {"imbuearrow", "imbuearrow", POS_FIGHTING, do_imbuearrow, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"impromptu", "impromptu", POS_FIGHTING, do_impromptu, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_impromptu},
     {"invisiblerogue", "invisiblerogue", POS_DEAD, do_invisiblerogue, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -643,6 +645,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"mine", "mine", POS_STANDING, do_wilderness_mine, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
 #endif
     {"mission", "mission", POS_RESTING, do_missions, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"miststance", "miststance", POS_STANDING, do_miststance, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_miststance},
     {"mlist", "mlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_MLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"mcopy", "mcopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_MEDIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"motes", "motes", POS_SLEEPING, do_motes, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
