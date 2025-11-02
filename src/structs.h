@@ -3503,6 +3503,18 @@
 #define PERK_MONK_MIST_STANCE 550                 /* 2 ki for gaseous form 1 min */
 #define PERK_MONK_SWARMING_ICE_RABBIT 551         /* 2 ki for ice spike ranged 60ft 3d6 cold */
 #define PERK_MONK_FLOWING_RIVER 552               /* 1 ki for AoE water damage + extinguish fire */
+/* Tier 3 */
+#define PERK_MONK_ELEMENTAL_ATTUNEMENT_III 553    /* +4 ki points, immune to one element per rank */
+#define PERK_MONK_FLAMES_OF_PHOENIX 554           /* 2 ki for AoE 8d6 fire, set on fire */
+#define PERK_MONK_WAVE_OF_ROLLING_EARTH 555       /* 1 ki for AoE 8d6 earth, knock prone */
+#define PERK_MONK_RIDE_THE_WIND 556               /* 3 ki for fly 60ft 10 min */
+#define PERK_MONK_ETERNAL_MOUNTAIN_DEFENSE 557    /* 1 ki for 5/- DR absorbs 100 HP */
+#define PERK_MONK_FIST_OF_FOUR_THUNDERS 558       /* 3 ki chain lightning 4 targets 6d6 */
+#define PERK_MONK_RIVER_OF_HUNGRY_FLAME 559       /* 4 ki wall of fire 20-ft 5d8 */
+/* Tier 4 */
+#define PERK_MONK_BREATH_OF_WINTER 560            /* 5 ki cone of cold 60-ft 12d6 */
+#define PERK_MONK_ELEMENTAL_EMBODIMENT 561        /* 5 ki transform elemental 1 min */
+#define PERK_MONK_AVATAR_OF_ELEMENTS 562          /* -2 ki cost, +2d6 damage, all elem immunity */
 
 /* ============================================================================
  * DRUID PERKS (600-699)
