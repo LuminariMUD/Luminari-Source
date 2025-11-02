@@ -246,6 +246,51 @@ void perform_smokebomb(struct char_data *ch)
   call_magic(ch, ch, NULL, SPELL_DARKNESS, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
 }
 
+void perform_miststance(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  send_to_char(ch, "\tCYou focus your Ki and your body transforms into mist!\tn\r\n");
+  act("\tC$n focuses $s Ki and $s body transforms into a cloud of mist!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, NULL, SPELL_GASEOUS_FORM, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+}
+
+void perform_icerabbit(struct char_data *ch, struct char_data *vict)
+{
+  int dam = 0;
+  bool same_room = FALSE;
+
+  if (!ch || !vict)
+    return;
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  /* Calculate damage: 3d6 cold damage */
+  dam = dice(3, 6);
+
+  /* Check if in same room */
+  same_room = (IN_ROOM(ch) == IN_ROOM(vict));
+
+  if (same_room)
+  {
+    send_to_char(ch, "\tWYou summon a swarm of ice rabbits that leap toward %s!\tn\r\n", GET_NAME(vict));
+    act("\tW$n summons a swarm of spectral ice rabbits that leap toward you!\tn", FALSE, ch, 0, vict, TO_VICT);
+    act("\tW$n summons a swarm of spectral ice rabbits that leap toward $N!\tn", FALSE, ch, 0, vict, TO_NOTVICT);
+  }
+  else
+  {
+    send_to_char(ch, "\tWYou summon a swarm of ice rabbits that bound away toward the distance!\tn\r\n");
+    send_to_char(vict, "\tWA swarm of spectral ice rabbits suddenly appears and leaps at you!\tn\r\n");
+    act("\tWA swarm of spectral ice rabbits suddenly appears and leaps at $n!\tn", FALSE, vict, 0, 0, TO_ROOM);
+  }
+
+  /* Apply cold damage */
+  damage(ch, vict, dam, SKILL_SWARMING_ICE_RABBIT, DAM_COLD, FALSE);
+}
+
 void perform_shadowwalk(struct char_data *ch)
 {
   if (!IS_NPC(ch))
@@ -7103,6 +7148,155 @@ ACMD(do_smokebomb)
   perform_smokebomb(ch);
 }
 
+ACMDCHECK(can_miststance)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_mist_stance(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_miststance)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_miststance);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  perform_miststance(ch);
+}
+
+ACMDCHECK(can_icerabbit)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_monk_swarming_ice_rabbit(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_icerabbit)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL, *tch = NULL;
+  room_rnum room = NOWHERE;
+  int direction = -1, original_loc = NOWHERE;
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_icerabbit);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  if (FIGHTING(ch))
+  {
+    send_to_char(ch, "You are too busy fighting to use this technique!\r\n");
+    return;
+  }
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  /* no 2nd argument? target room has to be same room */
+  if (!*arg2)
+  {
+    room = IN_ROOM(ch);
+  }
+  else
+  {
+    /* try to find target room */
+    direction = search_block(arg2, dirs, FALSE);
+    if (direction < 0)
+    {
+      send_to_char(ch, "That is not a direction!\r\n");
+      return;
+    }
+    if (!CAN_GO(ch, direction))
+    {
+      send_to_char(ch, "You can't send the ice rabbits in that direction!\r\n");
+      return;
+    }
+    room = EXIT(ch, direction)->to_room;
+  }
+
+  /* check if combat is ok in target room */
+  if (ROOM_FLAGGED(room, ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  /* no arguments? no go! */
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to select a target!\r\n");
+    return;
+  }
+
+  /* a location has been found - temporarily move to target room to find victim */
+  original_loc = IN_ROOM(ch);
+  char_from_room(ch);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[room].coords[0];
+    Y_LOC(ch) = world[room].coords[1];
+  }
+
+  char_to_room(ch, room);
+  vict = get_char_room_vis(ch, arg1, NULL);
+
+  /* move character back to original room */
+  if (IN_ROOM(ch) == room)
+  {
+    char_from_room(ch);
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(original_loc), ZONE_WILDERNESS))
+    {
+      X_LOC(ch) = world[original_loc].coords[0];
+      Y_LOC(ch) = world[original_loc].coords[1];
+    }
+
+    char_to_room(ch, original_loc);
+  }
+
+  if (!vict)
+  {
+    send_to_char(ch, "Target who?\r\n");
+    return;
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "You can't target yourself!\r\n");
+    return;
+  }
+
+  /* if target is group member in same room, we presume you meant to assist */
+  if (GROUP(ch) && room == IN_ROOM(ch))
+  {
+    simple_list(NULL);
+    
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    {
+      if (IN_ROOM(tch) != IN_ROOM(vict))
+        continue;
+      if (vict == tch)
+      {
+        vict = FIGHTING(vict);
+        break;
+      }
+    }
+  }
+
+  /* maybe its your pet? so assist */
+  if (vict && IS_PET(vict) && vict->master == ch && room == IN_ROOM(ch))
+    vict = FIGHTING(vict);
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && room == IN_ROOM(ch) &&
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+
+  perform_icerabbit(ch, vict);
+  USE_STANDARD_ACTION(ch);
+}
+
 ACMDCHECK(can_shadowwalk)
 {
   ACMDCHECK_PERMFAIL_IF(!has_monk_shadow_step_iii(ch), "You have no idea how.\r\n");
@@ -12175,6 +12369,117 @@ ACMD(do_galerush)
   PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
 
   perform_galerush(ch);
+}
+
+/* Clench of the North Wind - Single-target attack that deals cold damage and encases in ice */
+
+void perform_clenchofnorthwind(struct char_data *ch, struct char_data *vict)
+{
+  int dam, save_level;
+  struct affected_type af;
+
+  if (!ch || !vict)
+    return;
+
+  send_to_char(ch, "\tCYou focus your ki and strike %s with the Clench of the North Wind!\tn\r\n", GET_NAME(vict));
+  act("\tC$n strikes you with a freezing cold attack!\tn", FALSE, ch, 0, vict, TO_VICT);
+  act("\tC$n strikes $N with a blast of freezing cold!\tn", FALSE, ch, 0, vict, TO_NOTVICT);
+
+  /* Calculate damage: 2d6 cold damage */
+  dam = dice(2, 6);
+
+  /* Apply cold damage with resistance checks */
+  damage(ch, vict, dam, SKILL_CLENCH_OF_NORTH_WIND, DAM_COLD, FALSE);
+
+  /* Calculate effective level for DC: 10 + (monk level / 2) + WIS bonus */
+  save_level = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
+
+  /* Check reflex save to avoid ice encasement */
+  if (!savingthrow(ch, vict, SAVING_REFL, 0, CAST_INNATE, save_level, NOSCHOOL))
+  {
+    /* Failed save - encase in ice */
+    send_to_char(vict, "\tCYou are encased in a thick layer of ice and cannot move!\tn\r\n");
+    act("\tC$N is encased in a thick layer of ice!\tn", FALSE, ch, 0, vict, TO_NOTVICT);
+    act("\tC$N is encased in a thick layer of ice!\tn", FALSE, ch, 0, vict, TO_CHAR);
+
+    /* Apply ice encasement effect: paralyzed, immune to cold, DR 5/- for 2 rounds */
+    new_affect(&af);
+    af.spell = SKILL_CLENCH_OF_NORTH_WIND;
+    af.duration = 2; /* 2 rounds */
+    SET_BIT_AR(af.bitvector, AFF_ENCASED_IN_ICE);
+    SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+    affect_to_char(vict, &af);
+  }
+  else
+  {
+    send_to_char(vict, "\tCYou narrowly avoid being encased in ice!\tn\r\n");
+    act("\tC$N resists the ice encasement!\tn", FALSE, ch, 0, vict, TO_NOTVICT);
+  }
+
+  /* Set cooldown: 1 minute (60 seconds) */
+  if (!IS_NPC(ch))
+  {
+    ch->player_specials->saved.clench_of_north_wind_cooldown = time(0) + 60;
+  }
+}
+
+ACMDCHECK(can_clenchofnorthwind)
+{
+  ACMDCHECK_PERMFAIL_IF(!has_perk(ch, PERK_MONK_CLENCH_NORTH_WIND), "You don't know how to use the Clench of the North Wind technique.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!IS_NPC(ch) && ch->player_specials->saved.clench_of_north_wind_cooldown > time(0), 
+    "You must wait before you can use this technique again.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_clenchofnorthwind)
+{
+  struct char_data *vict = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_clenchofnorthwind);
+  PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
+
+  /* Get the target */
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    /* No target specified, use current fighting target */
+    if (!(vict = FIGHTING(ch)))
+    {
+      send_to_char(ch, "Who do you want to strike with the Clench of the North Wind?\r\n");
+      return;
+    }
+  }
+  else
+  {
+    /* Target specified */
+    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+    {
+      send_to_char(ch, CONFIG_NOPERSON);
+      return;
+    }
+  }
+
+  /* Check if valid target */
+  if (vict == ch)
+  {
+    send_to_char(ch, "You can't use this technique on yourself!\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  /* Consume ki point and perform the technique */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+
+  perform_clenchofnorthwind(ch, vict);
 }
 
 /* cleanup! */

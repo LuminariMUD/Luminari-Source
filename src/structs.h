@@ -1590,9 +1590,10 @@
 #define AFF_SICKENING_AURA 120
 #define AFF_RAPID_BUFF 121          // increases buff speed
 #define AFF_CRIPPLED 122            // crippled - movement speed halved, chance to fail movement
+#define AFF_ENCASED_IN_ICE 123      // encased in ice - paralyzed, immune to cold damage, DR 5/-
 
 /*---*/
-#define NUM_AFF_FLAGS 123
+#define NUM_AFF_FLAGS 124
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -6101,6 +6102,7 @@ struct player_special_data_saved
     int void_strike_timer;                      /**< Rounds remaining for void strike effect (+8d6 force, ignores DR) */
     time_t void_strike_cooldown;                /**< Timestamp until when void strike can be used again (1 min cooldown) */
     int firesnake_timer;                        /**< Rounds remaining for fangs of fire snake effect (+1d6 fire per attack) */
+    time_t clench_of_north_wind_cooldown;       /**< Timestamp until when clench of the north wind can be used again (1 min cooldown) */
     int metamagic_reduction_uses;               /**< Number of metamagic reduction uses available (max 2) */
 };
 

@@ -1121,9 +1121,11 @@
 #define SKILL_FLOWING_RIVER 2206 // Way of Four Elements - flowing river AoE water attack
 #define SKILL_SWEEPING_CINDER_STRIKE 2207 // Way of Four Elements - sweeping cinder strike cone AoE
 #define SKILL_RUSH_OF_GALE_SPIRITS 2208 // Way of Four Elements - rush of gale spirits (gust of wind)
+#define SKILL_CLENCH_OF_NORTH_WIND 2209 // Way of Four Elements - clench of the north wind (ice encasement)
+#define SKILL_SWARMING_ICE_RABBIT 2210 // Way of Four Elements - swarming ice rabbit (ranged cold attack)
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2209
+#define NUM_SKILLS 2211
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 

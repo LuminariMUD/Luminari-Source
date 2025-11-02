@@ -2293,6 +2293,13 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Void Strike Cooldown  - Duration: %d seconds\r\n", remaining);
   }
   
+  /* Clench of the North Wind cooldown */
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.clench_of_north_wind_cooldown > time(0))
+  {
+    int remaining = (int)(k->player_specials->saved.clench_of_north_wind_cooldown - time(0));
+    send_to_char(ch, "Clench of the North Wind Cooldown  - Duration: %d seconds\r\n", remaining);
+  }
+  
   /* Arcane Recovery cooldown */
   if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.arcane_recovery_cooldown > time(0))
   {
