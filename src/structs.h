@@ -3509,7 +3509,7 @@
 #define PERK_MONK_WAVE_OF_ROLLING_EARTH 555       /* 1 ki for AoE 8d6 earth, knock prone */
 #define PERK_MONK_RIDE_THE_WIND 556               /* 3 ki for fly 60ft 10 min */
 #define PERK_MONK_ETERNAL_MOUNTAIN_DEFENSE 557    /* 1 ki for 5/- DR absorbs 100 HP */
-#define PERK_MONK_FIST_OF_FOUR_THUNDERS 558       /* 3 ki chain lightning 4 targets 6d6 */
+#define PERK_MONK_FIST_OF_FOUR_THUNDERS 558       /* 3 ki 4d6 sound AoE + 3x3d10 lightning */
 #define PERK_MONK_RIVER_OF_HUNGRY_FLAME 559       /* 4 ki wall of fire 20-ft 5d8 */
 /* Tier 4 */
 #define PERK_MONK_BREATH_OF_WINTER 560            /* 5 ki cone of cold 60-ft 12d6 */

@@ -4549,7 +4549,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_FIST_OF_FOUR_THUNDERS];
   perk->id = PERK_MONK_FIST_OF_FOUR_THUNDERS;
   perk->name = strdup("Fist of Four Thunders");
-  perk->description = strdup("Spend 3 ki points to cast chain lightning (jumps to 4 targets, 6d6 lightning damage each)");
+  perk->description = strdup("Spend 3 ki points to unleash 4d6 AoE sound damage, then strike a random enemy with 3d10 lightning each round for 3 rounds");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 3;
