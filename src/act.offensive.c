@@ -517,16 +517,170 @@ void perform_eternalmountaindefense(struct char_data *ch)
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 }
+/* Event handler for Fist of Four Thunders lightning strikes */
+EVENTFUNC(event_fist_of_four_thunders)
+{
+  struct char_data *ch = NULL, *vict = NULL, *next_vict = NULL;
+  struct mud_event_data *pMudEvent = NULL;
+  int num_enemies = 0, target_num, dam, strikes_remaining;
+
+  if (event_obj == NULL)
+    return 0;
+
+  pMudEvent = (struct mud_event_data *)event_obj;
+  ch = (struct char_data *)pMudEvent->pStruct;
+
+  /* Check if character is still valid and playing */
+  if (!ch || !IS_PLAYING(ch->desc))
+    return 0;
+
+  /* Check how many strikes remain */
+  strikes_remaining = atoi(pMudEvent->sVariables);
+  if (strikes_remaining <= 0)
+    return 0;
+
+  /* Count enemies in the room - NPCs for players, players for NPCs */
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
+  {
+    if (vict == ch || !CAN_SEE(ch, vict))
+      continue;
+
+    /* Skip allies: same group */
+    if (GROUP(vict) && GROUP(ch) && GROUP(ch) == GROUP(vict))
+      continue;
+
+    /* Skip allies: charmed NPCs of the caster */
+    if (IS_NPC(vict) && vict->master && AFF_FLAGGED(vict, AFF_CHARM) && vict->master == ch)
+      continue;
+
+    /* Skip allies: charmed NPCs of group members */
+    if (IS_NPC(vict) && vict->master && AFF_FLAGGED(vict, AFF_CHARM) &&
+        GROUP(vict->master) && GROUP(ch) && GROUP(ch) == GROUP(vict->master))
+      continue;
+
+    /* Skip allies: master (if caster is charmed) */
+    if (ch->master && AFF_FLAGGED(ch, AFF_CHARM) && ch->master == vict)
+      continue;
+
+    /* Skip allies: group members of master (if caster is charmed) */
+    if (ch->master && AFF_FLAGGED(ch, AFF_CHARM) &&
+        GROUP(ch->master) && GROUP(vict) && GROUP(vict) == GROUP(ch->master))
+      continue;
+
+    /* Skip NPCs fighting other NPCs (unless charmed) */
+    if (IS_NPC(ch) && !AFF_FLAGGED(ch, AFF_CHARM) && IS_NPC(vict))
+      continue;
+
+    /* Now count valid enemies */
+    if ((!IS_NPC(ch) && IS_NPC(vict)) || (IS_NPC(ch) && !IS_NPC(vict)))
+      num_enemies++;
+  }
+
+  /* If there are enemies, pick a random one */
+  if (num_enemies > 0)
+  {
+    target_num = rand_number(1, num_enemies);
+    num_enemies = 0;
+    for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+    {
+      next_vict = vict->next_in_room;
+
+      if (vict == ch || !CAN_SEE(ch, vict))
+        continue;
+
+      /* Skip allies: same group */
+      if (GROUP(vict) && GROUP(ch) && GROUP(ch) == GROUP(vict))
+        continue;
+
+      /* Skip allies: charmed NPCs of the caster */
+      if (IS_NPC(vict) && vict->master && AFF_FLAGGED(vict, AFF_CHARM) && vict->master == ch)
+        continue;
+
+      /* Skip allies: charmed NPCs of group members */
+      if (IS_NPC(vict) && vict->master && AFF_FLAGGED(vict, AFF_CHARM) &&
+          GROUP(vict->master) && GROUP(ch) && GROUP(ch) == GROUP(vict->master))
+        continue;
+
+      /* Skip allies: master (if caster is charmed) */
+      if (ch->master && AFF_FLAGGED(ch, AFF_CHARM) && ch->master == vict)
+        continue;
+
+      /* Skip allies: group members of master (if caster is charmed) */
+      if (ch->master && AFF_FLAGGED(ch, AFF_CHARM) &&
+          GROUP(ch->master) && GROUP(vict) && GROUP(vict) == GROUP(ch->master))
+        continue;
+
+      /* Skip NPCs fighting other NPCs (unless charmed) */
+      if (IS_NPC(ch) && !AFF_FLAGGED(ch, AFF_CHARM) && IS_NPC(vict))
+        continue;
+
+      /* Now check valid enemies and select target */
+      if ((!IS_NPC(ch) && IS_NPC(vict)) || (IS_NPC(ch) && !IS_NPC(vict)))
+      {
+        num_enemies++;
+        if (num_enemies == target_num)
+        {
+          /* Strike the target with lightning */
+          dam = dice(3, 10);
+          act("\tBA lightning bolt streaks from $n and strikes $N!\tn", FALSE, ch, 0, vict, TO_NOTVICT);
+          act("\tBA lightning bolt streaks from $n and strikes YOU!\tn", FALSE, ch, 0, vict, TO_VICT);
+          act("\tBYour residual thunder energy strikes $N with lightning!\tn", FALSE, ch, 0, vict, TO_CHAR);
+          damage(ch, vict, dam, SKILL_FIST_OF_FOUR_THUNDERS, DAM_ELECTRIC, FALSE);
+          break;
+        }
+      }
+    }
+  }
+
+  /* Decrement strikes remaining */
+  strikes_remaining--;
+  if (strikes_remaining > 0)
+  {
+    /* Schedule next lightning strike */
+    char buf[20];
+    snprintf(buf, sizeof(buf), "%d", strikes_remaining);
+    attach_mud_event(new_mud_event(eFIST_OF_FOUR_THUNDERS, ch, buf), PULSE_VIOLENCE);
+  }
+
+  return 0;
+}
+
+int fistoffourthunders_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  int dam;
+
+  /* Calculate damage: 4d6 sound damage */
+  dam = dice(4, 6);
+
+  act("\tBYou are struck by a deafening thunderclap!\tn", FALSE, ch, 0, tch, TO_VICT);
+  act("\tB$N is struck by a deafening thunderclap!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+
+  /* Apply sound damage with resistance checks */
+  damage(ch, tch, dam, SKILL_FIST_OF_FOUR_THUNDERS, DAM_SOUND, FALSE);
+
+  return TRUE;
+}
 
 void perform_fistoffourthunders(struct char_data *ch)
 {
+  int targets_hit;
+
+  send_to_char(ch, "\tBYou unleash the Fist of Four Thunders, sending shockwaves of sound and lightning!\tn\r\n");
+  act("\tB$n's fist strikes with the fury of thunder, unleashing devastating shockwaves!\tn", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Use the centralized AoE system for initial sound damage */
+  targets_hit = aoe_effect(ch, SKILL_FIST_OF_FOUR_THUNDERS, fistoffourthunders_callback, NULL);
+
+  /* Schedule the first lightning strike event (3 strikes total) */
+  attach_mud_event(new_mud_event(eFIST_OF_FOUR_THUNDERS, ch, "3"), PULSE_VIOLENCE);
+
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 
-  send_to_char(ch, "\tBYou unleash the Fist of Four Thunders, sending chain lightning across the battlefield!\tn\r\n");
-  act("\tB$n's fist crackles with lightning that arcs between multiple targets!\tn", FALSE, ch, 0, 0, TO_ROOM);
-  
-  call_magic(ch, ch, NULL, SPELL_CHAIN_LIGHTNING, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+  if (targets_hit == 0)
+  {
+    send_to_char(ch, "The thunderous shockwave dissipates with no enemies in range.\r\n");
+  }
 }
 
 void perform_riverofhungryflame(struct char_data *ch)
@@ -1928,7 +2082,7 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict)
 void perform_sap(struct char_data *ch, struct char_data *vict)
 {
   int dam = 0, found = FALSE;
-  int prob = -6, dc = 0;
+  int prob = -6;
   struct affected_type af;
   struct obj_data *wielded = NULL;
 
@@ -2030,8 +2184,6 @@ void perform_sap(struct char_data *ch, struct char_data *vict)
 
   if (HAS_EVOLUTION(vict, EVOLUTION_UNDEAD_APPEARANCE))
     prob -= get_evolution_appearance_save_bonus(vict);
-
-  dc = 10 + (CLASS_LEVEL(ch, CLASS_ROGUE) / 2) + GET_DEX_BONUS(ch);
 
   if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, FALSE, prob) > 0)
   {
@@ -8047,7 +8199,7 @@ void perform_faerie_fire(struct char_data *ch, struct char_data *vict)
 /* dragonbite engine, just used for prisoner right now -zusuk */
 int perform_dragonbite(struct char_data *ch, struct char_data *vict)
 {
-  int discipline_bonus = 0, dc = 0, diceOne = 0, diceTwo = 0;
+  int discipline_bonus = 0, diceOne = 0, diceTwo = 0;
   bool got_em = FALSE;
 
   if (vict == ch)
@@ -8061,9 +8213,6 @@ int perform_dragonbite(struct char_data *ch, struct char_data *vict)
     discipline_bonus += compute_ability(ch, ABILITY_DISCIPLINE);
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     discipline_bonus -= compute_ability(vict, ABILITY_DISCIPLINE);
-
-  /* saving throw dc */
-  dc = GET_LEVEL(ch) + GET_STR(ch) + 4;
 
   /* damage! */
   diceOne = GET_LEVEL(ch) + 4;
@@ -8105,7 +8254,7 @@ int perform_dragonbite(struct char_data *ch, struct char_data *vict)
 /* kick engine */
 void perform_kick(struct char_data *ch, struct char_data *vict)
 {
-  int discipline_bonus = 0, dc = 0, diceOne = 0, diceTwo = 0;
+  int discipline_bonus = 0, diceOne = 0, diceTwo = 0;
 
   if (vict == ch)
   {
@@ -8136,9 +8285,6 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
     discipline_bonus += compute_ability(ch, ABILITY_DISCIPLINE);
   if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
     discipline_bonus -= compute_ability(vict, ABILITY_DISCIPLINE);
-
-  /* saving throw dc */
-  dc = GET_LEVEL(ch) / 2 + GET_STR_BONUS(ch);
 
   /* monk damage? */
   compute_barehand_dam_dice(ch, &diceOne, &diceTwo);
@@ -12674,7 +12820,6 @@ int galerush_callback(struct char_data *ch, struct char_data *tch, void *data)
 {
   int save_level, dam;
   struct affected_type af;
-  bool was_flying = FALSE;
 
   /* Calculate effective level for DC: WIS bonus + (monk level / 2) */
   save_level = GET_WIS_BONUS(ch) + (MONK_TYPE(ch) / 2);
@@ -12688,8 +12833,6 @@ int galerush_callback(struct char_data *ch, struct char_data *tch, void *data)
   /* Check if target is flying */
   if (AFF_FLAGGED(tch, AFF_FLYING))
   {
-    was_flying = TRUE;
-    
     /* Flying creatures - check reflex save to avoid being knocked down */
     if (!savingthrow(ch, tch, SAVING_REFL, 0, CAST_INNATE, save_level, NOSCHOOL))
     {
@@ -12865,7 +13008,7 @@ ACMD(do_clenchofnorthwind)
     /* Target specified */
     if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
     {
-      send_to_char(ch, CONFIG_NOPERSON);
+      send_to_char(ch, "%s", CONFIG_NOPERSON);
       return;
     }
   }

@@ -1126,9 +1126,10 @@
 #define SKILL_FLAMES_OF_PHOENIX 2211 // Way of Four Elements - flames of phoenix (AoE fire, set on fire)
 #define SKILL_WAVE_OF_ROLLING_EARTH 2212 // Way of Four Elements - wave of rolling earth (AoE earth, knock prone)
 #define SKILL_ETERNAL_MOUNTAIN_DEFENSE 2213 // Way of Four Elements - eternal mountain defense (5/- DR, 100 HP absorbed)
+#define SKILL_FIST_OF_FOUR_THUNDERS 2214 // Way of Four Elements - fist of four thunders (AoE sound + delayed lightning)
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2214
+#define NUM_SKILLS 2215
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 
