@@ -279,6 +279,7 @@ bool has_monk_gong_of_summit(struct char_data *ch);
 int get_monk_fist_of_unbroken_air_rank(struct char_data *ch);
 int get_monk_elemental_resistance_i_rank(struct char_data *ch);
 int get_monk_elemental_attunement_ii_rank(struct char_data *ch);
+int get_monk_elemental_attunement_iii_rank(struct char_data *ch);
 bool has_monk_shape_flowing_river(struct char_data *ch);
 bool has_monk_sweeping_cinder_strike(struct char_data *ch);
 bool has_monk_rush_of_gale_spirits(struct char_data *ch);

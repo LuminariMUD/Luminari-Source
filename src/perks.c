@@ -7060,6 +7060,20 @@ int get_monk_elemental_attunement_ii_rank(struct char_data *ch)
 }
 
 /**
+ * Get Elemental Attunement III rank.
+ * 
+ * @param ch The character
+ * @return Rank of perk (0-2)
+ */
+int get_monk_elemental_attunement_iii_rank(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return 0;
+  
+  return get_perk_rank(ch, PERK_MONK_ELEMENTAL_ATTUNEMENT_III, CLASS_MONK);
+}
+
+/**
  * Check if character has Shape the Flowing River perk.
  * 
  * @param ch The character

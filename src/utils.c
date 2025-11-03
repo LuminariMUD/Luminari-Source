@@ -4850,6 +4850,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
     case FEAT_STUNNING_FIST:
       daily_uses += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK)) / 4;
       daily_uses += get_monk_stunning_fist_bonus_uses(ch);
+      /* Elemental Attunement III adds 1 ki point per rank */
+      if (!IS_NPC(ch))
+        daily_uses += get_monk_elemental_attunement_iii_rank(ch);
       break;
     case FEAT_LAYHANDS:
       daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) / 2 + GET_CHA_BONUS(ch);
