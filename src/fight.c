@@ -3282,6 +3282,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       if (has_monk_elemental_resistance_ii(ch))
         dam_reduction += 5;
     }
+    /* Elemental Attunement III adds +20 resistance per rank */
+    if (!IS_NPC(ch))
+      dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
     break;
   case DAM_COLD:
     /* Encased in Ice provides immunity to cold damage */
@@ -3305,6 +3308,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       if (has_monk_elemental_resistance_ii(ch))
         dam_reduction += 5;
     }
+    /* Elemental Attunement III adds +20 resistance per rank */
+    if (!IS_NPC(ch))
+      dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
     break;
   case DAM_AIR:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -3337,6 +3343,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       if (has_monk_elemental_resistance_ii(ch))
         dam_reduction += 5;
     }
+    /* Elemental Attunement III adds +20 resistance per rank */
+    if (!IS_NPC(ch))
+      dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
     break;
   case DAM_HOLY:
     if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
@@ -3363,6 +3372,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       if (has_monk_elemental_resistance_ii(ch))
         dam_reduction += 5;
     }
+    /* Elemental Attunement III adds +20 resistance per rank */
+    if (!IS_NPC(ch))
+      dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
     break;
   case DAM_UNHOLY:
     if (AFF_FLAGGED(ch, AFF_DEATH_WARD))
