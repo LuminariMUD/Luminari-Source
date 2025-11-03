@@ -671,6 +671,8 @@ ACMD_DECL(do_spellrecall);
 ACMDCHECK(can_spellrecall);
 ACMD_DECL(do_avatarofwar);
 ACMDCHECK(can_avatarofwar);
+ACMD_DECL(do_avatarofelements);
+ACMDCHECK(can_avatarofelements);
 ACMD_DECL(do_order);
 ACMD_DECL(do_applypoison);
 ACMD_DECL(do_sorcerer_arcane_apotheosis);

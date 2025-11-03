@@ -395,6 +395,15 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
     }
     damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
   }
+  //  Monk Elemental Embodiment (Fire)
+  else if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 1)
+  {
+    if (!PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+      send_to_char(ch, "[\tRFIRE EMBODIMENT\tn] ");
+    }
+    damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+  }
 
   //  Paladin divine bond
   if (victim && HAS_FEAT(ch, FEAT_DIVINE_BOND))

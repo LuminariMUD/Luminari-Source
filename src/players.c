@@ -1439,6 +1439,15 @@ int load_char(const char *name, struct char_data *ch)
             ch->player_specials->saved.firesnake_timer = timer;
           }
         }
+        else if (!strcmp(tag, "PEEt"))
+        {
+          int timer, type;
+          if (sscanf(line, "%d %d", &timer, &type) == 2)
+          {
+            ch->player_specials->saved.elemental_embodiment_timer = timer;
+            ch->player_specials->saved.elemental_embodiment_type = type;
+          }
+        }
         else if (!strcmp(tag, "PMRd"))
         {
           long timestamp;
@@ -2969,6 +2978,14 @@ void save_char(struct char_data *ch, int mode)
   {
     BUFFER_WRITE( "PFSt: %d\n",
       ch->player_specials->saved.firesnake_timer);
+  }
+  
+  /* Save Elemental Embodiment timer and type */
+  if (ch->player_specials->saved.elemental_embodiment_timer > 0)
+  {
+    BUFFER_WRITE( "PEEt: %d %d\n",
+      ch->player_specials->saved.elemental_embodiment_timer,
+      ch->player_specials->saved.elemental_embodiment_type);
   }
   
   /* Save Metamagic Reduction cooldown and uses */

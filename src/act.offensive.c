@@ -42,6 +42,36 @@
 extern char cast_arg2[MAX_INPUT_LENGTH];
 
 int roll_initiative(struct char_data *ch);
+/* Returns true if the Avatar of the Elements granted a free ki use (25% chance)
+ * Caller should still ensure the player had a ki point available before calling. */
+static bool avatar_consumes_ki_free(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+
+  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  {
+    if (rand_number(1, 100) <= 25)
+    {
+      send_to_char(ch, "Your Avatar of the Elements shimmers, conserving your ki!\r\n");
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/* Helper: consume a ki point unless Avatar grants it for free */
+static void maybe_consume_ki(struct char_data *ch, int feat_id)
+{
+  if (IS_NPC(ch))
+    return;
+
+  if (avatar_consumes_ki_free(ch))
+    return; /* free */
+
+  start_daily_use_cooldown(ch, feat_id);
+}
 void create_wall(struct char_data *ch, int room, int dir, int type, int level);
 
 /* defines */
@@ -266,11 +296,18 @@ void perform_icerabbit(struct char_data *ch, struct char_data *vict)
   if (!ch || !vict)
     return;
 
-  if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+  /* Consume ki (25% chance free while Avatar active) */
+  maybe_consume_ki(ch, FEAT_STUNNING_FIST);
 
   /* Calculate damage: 3d6 cold damage */
   dam = dice(3, 6);
+
+  /* Avatar of the Elements adds +2d6 elemental damage */
+  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  {
+    int extra = dice(2, 6);
+    dam += extra;
+  }
 
   /* Check if in same room */
   same_room = (IN_ROOM(ch) == IN_ROOM(vict));
@@ -337,6 +374,13 @@ int flamesofphoenix_callback(struct char_data *ch, struct char_data *tch, void *
   /* Calculate damage: 8d6 fire damage */
   dam = dice(8, 6);
 
+  /* Avatar of the Elements adds +2d6 elemental damage */
+  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  {
+    int extra = dice(2, 6);
+    dam += extra;
+  }
+
   /* Calculate effective level for DC: monk level / 2
    * savingthrow will add 10 + this level + WIS bonus to get DC = 10 + WIS bonus + (monk level / 2) */
   save_level = MONK_TYPE(ch);
@@ -380,8 +424,8 @@ void perform_flamesofphoenix(struct char_data *ch)
   /* Use the centralized AoE system */
   targets_hit = aoe_effect(ch, SKILL_FLAMES_OF_PHOENIX, flamesofphoenix_callback, NULL);
 
-  if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+  /* Consume ki (25% chance free while Avatar active) */
+  maybe_consume_ki(ch, FEAT_STUNNING_FIST);
 
   if (targets_hit == 0)
   {
@@ -404,6 +448,13 @@ int waveofrollingearth_callback(struct char_data *ch, struct char_data *tch, voi
 
   /* Calculate damage: 8d6 earth damage */
   dam = dice(8, 6);
+
+  /* Avatar of the Elements adds +2d6 elemental damage */
+  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  {
+    int extra = dice(2, 6);
+    dam += extra;
+  }
 
   /* Calculate effective level for DC */
   save_level = MONK_TYPE(ch);
@@ -443,8 +494,8 @@ void perform_waveofrollingearth(struct char_data *ch)
   /* Use the centralized AoE system */
   targets_hit = aoe_effect(ch, SKILL_WAVE_OF_ROLLING_EARTH, waveofrollingearth_callback, NULL);
 
-  if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+  /* Consume ki (25% chance free while Avatar active) */
+  maybe_consume_ki(ch, FEAT_STUNNING_FIST);
 
   if (targets_hit == 0)
   {
@@ -623,6 +674,14 @@ EVENTFUNC(event_fist_of_four_thunders)
         {
           /* Strike the target with lightning */
           dam = dice(3, 10);
+
+          /* Avatar of the Elements adds +2d6 elemental damage */
+          if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+          {
+            int extra = dice(2, 6);
+            dam += extra;
+          }
+
           act("\tBA lightning bolt streaks from $n and strikes $N!\tn", FALSE, ch, 0, vict, TO_NOTVICT);
           act("\tBA lightning bolt streaks from $n and strikes YOU!\tn", FALSE, ch, 0, vict, TO_VICT);
           act("\tBYour residual thunder energy strikes $N with lightning!\tn", FALSE, ch, 0, vict, TO_CHAR);
@@ -653,6 +712,13 @@ int fistoffourthunders_callback(struct char_data *ch, struct char_data *tch, voi
   /* Calculate damage: 4d6 sound damage */
   dam = dice(4, 6);
 
+  /* Avatar of the Elements adds +2d6 elemental damage */
+  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  {
+    int extra = dice(2, 6);
+    dam += extra;
+  }
+
   act("\tBYou are struck by a deafening thunderclap!\tn", FALSE, ch, 0, tch, TO_VICT);
   act("\tB$N is struck by a deafening thunderclap!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
 
@@ -675,8 +741,8 @@ void perform_fistoffourthunders(struct char_data *ch)
   /* Schedule the first lightning strike event (3 strikes total) */
   attach_mud_event(new_mud_event(eFIST_OF_FOUR_THUNDERS, ch, "3"), PULSE_VIOLENCE);
 
-  if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+  /* Consume ki (25% chance free while Avatar active) */
+  maybe_consume_ki(ch, FEAT_STUNNING_FIST);
 
   if (targets_hit == 0)
   {
@@ -706,9 +772,8 @@ void perform_riverofhungryflame(struct char_data *ch, int dir)
     return;
   }
 
-  /* Consume ki point */
-  if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+  /* Consume ki (25% chance free while Avatar active) */
+  maybe_consume_ki(ch, FEAT_STUNNING_FIST);
 
   send_to_char(ch, "\tRYou create a River of Hungry Flame, a wall of searing fire to the %s!\tn\r\n", dirs[dir]);
   snprintf(buf, sizeof(buf), "\tR$n creates a wall of intense flames to the %s that burns everything in its path!\tn", dirs[dir]);
@@ -733,6 +798,13 @@ int breathofwinter_callback(struct char_data *ch, struct char_data *tch, void *d
   /* Calculate damage: 10d6 cold damage */
   dam = dice(10, 6);
 
+  /* Avatar of the Elements adds +2d6 elemental damage */
+  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  {
+    int extra = dice(2, 6);
+    dam += extra;
+  }
+
   /* Apply cold damage */
   damage(ch, tch, dam, SKILL_BREATH_OF_WINTER, DAM_COLD, FALSE);
 
@@ -755,9 +827,8 @@ int breathofwinter_callback(struct char_data *ch, struct char_data *tch, void *d
 
 void perform_breathofwinter(struct char_data *ch)
 {
-  /* Consume ki point */
-  if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
+  /* Consume ki (25% chance free while Avatar active) */
+  maybe_consume_ki(ch, FEAT_STUNNING_FIST);
 
   send_to_char(ch, "\tWYou unleash the Breath of Winter, a devastating blast of absolute cold!\tn\r\n");
   act("\tW$n breathes forth a blast of freezing cold that chills everything in the area!\tn", FALSE, ch, 0, 0, TO_ROOM);
@@ -771,6 +842,10 @@ void perform_elementalembodiment(struct char_data *ch, int element_type)
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 
+  /* Set transformation timer and element type */
+  GET_ELEMENTAL_EMBODIMENT_TIMER(ch) = 10; /* Lasts 1 minute (10 rounds) */
+  GET_ELEMENTAL_EMBODIMENT_TYPE(ch) = element_type;
+
   switch (element_type)
   {
     case 1: /* Fire */
@@ -781,17 +856,15 @@ void perform_elementalembodiment(struct char_data *ch, int element_type)
     case 2: /* Water */
       send_to_char(ch, "\tCYou transform into a being of flowing water!\tn\r\n");
       act("\tC$n transforms into a being of pure water!\tn", FALSE, ch, 0, 0, TO_ROOM);
-      call_magic(ch, ch, NULL, SPELL_BLUR, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+      call_magic(ch, ch, NULL, SPELL_COLD_SHIELD, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
       break;
     case 3: /* Air */
       send_to_char(ch, "\tWYou transform into a being of pure air!\tn\r\n");
       act("\tW$n transforms into a being of swirling wind!\tn", FALSE, ch, 0, 0, TO_ROOM);
-      call_magic(ch, ch, NULL, SPELL_GASEOUS_FORM, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
       break;
     case 4: /* Earth */
       send_to_char(ch, "\tyYou transform into a being of solid stone!\tn\r\n");
       act("\ty$n transforms into a being of living earth!\tn", FALSE, ch, 0, 0, TO_ROOM);
-      call_magic(ch, ch, NULL, SPELL_STONESKIN, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
       break;
     default:
       send_to_char(ch, "You must choose an element: fire, water, air, or earth.\r\n");
@@ -7934,6 +8007,48 @@ ACMD(do_elementalembodiment)
   }
 
   perform_elementalembodiment(ch, element_type);
+}
+
+ACMDCHECK(can_avatarofelements)
+{
+  ACMDCHECK_PREREQ_HASFEAT(PERK_MONK_AVATAR_OF_ELEMENTS, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_avatarofelements)
+{
+  struct affected_type af;
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_avatarofelements);
+
+  /* Check if perk is available */
+  if (!has_perk(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  {
+    send_to_char(ch, "You don't have the Avatar of the Elements perk.\r\n");
+    return;
+  }
+
+  /* Check daily use cooldown */
+  PREREQ_HAS_USES(PERK_MONK_AVATAR_OF_ELEMENTS, "You have already used Avatar of the Elements today.\r\n");
+
+  /* Apply Avatar of the Elements buff */
+  new_affect(&af);
+  af.spell = PERK_MONK_AVATAR_OF_ELEMENTS;
+  af.duration = 5; /* 5 rounds */
+  af.location = APPLY_SPECIAL;
+  af.modifier = 0;
+  af.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  send_to_char(ch, "\tCYou become one with the elements, channeling their raw power!\tn\r\n"
+                   "Your elemental abilities gain \tR+2d6 damage\tn, you have a \tY25%% chance\tn to use ki abilities for free,\r\n"
+                   "and you gain \tWimmunity\tn to \trfire\tn, \tbcold\tn, \tcair\tn, \tyelectric\tn, \tDearth\tn, and \tcwater\tn damage for 5 rounds!\r\n");
+  act("$n becomes wreathed in elemental power, $s body shimmering with fire, ice, lightning, and earth!", FALSE, ch, NULL, NULL, TO_ROOM);
+
+  /* Set daily cooldown */
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, PERK_MONK_AVATAR_OF_ELEMENTS);
 }
 
 ACMDCHECK(can_shadowwalk)
