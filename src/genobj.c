@@ -146,21 +146,36 @@ obj_rnum insert_object(struct obj_data *obj, obj_vnum ovnum)
   RECREATE(obj_index, struct index_data, top_of_objt + 1);
   RECREATE(obj_proto, struct obj_data, top_of_objt + 1);
 
-  /* Start counting through both tables. */
-  for (i = top_of_objt; i > 0; i--)
+  /* Find the correct insertion position by searching for where this vnum belongs.
+   * We need to find the position where all vnums before it are < ovnum
+   * and all vnums after it are >= ovnum. */
+  obj_rnum insert_pos = 0;
+  
+  /* Binary search would be more efficient, but linear search is simpler and this
+   * isn't called frequently enough to matter. Search from the beginning. */
+  for (i = 0; i < top_of_objt; i++)
   {
-    /* Check if current virtual is bigger than our virtual number. */
-    if (ovnum > obj_index[i - 1].vnum)
-      return index_object(obj, ovnum, i);
-
-    /* Copy over the object that should be here. */
+    if (obj_index[i].vnum >= ovnum)
+    {
+      /* Found the first position with vnum >= new vnum. Insert here. */
+      insert_pos = i;
+      break;
+    }
+  }
+  
+  /* If we didn't find any vnum >= ovnum, insert at the end (which is already set as top_of_objt). */
+  if (i == top_of_objt)
+    insert_pos = top_of_objt;
+  
+  /* Now shift everything from insert_pos onwards up by one position. */
+  for (i = top_of_objt; i > insert_pos; i--)
+  {
     obj_index[i] = obj_index[i - 1];
     obj_proto[i] = obj_proto[i - 1];
     obj_proto[i].item_number = i;
   }
 
-  /* Not found, place at 0. */
-  return index_object(obj, ovnum, 0);
+  return index_object(obj, ovnum, insert_pos);
 }
 
 obj_rnum index_object(struct obj_data *obj, obj_vnum ovnum, obj_rnum ornum)

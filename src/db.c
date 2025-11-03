@@ -6819,6 +6819,7 @@ obj_rnum real_object(obj_vnum vnum)
     else
       bot = mid + 1;
   }
+
   return (NOTHING);
 }
 

@@ -193,7 +193,8 @@ ACMD(do_oasis_oedit)
   OLC_NUM(d) = number;
 
   /* If a new object, setup new, otherwise setup the existing object. */
-  if ((real_num = real_object(number)) != NOTHING)
+  real_num = real_object(number);
+  if (real_num != NOTHING)
     oedit_setup_existing(d, real_num, QMODE_NONE);
   else
     oedit_setup_new(d);
@@ -1888,8 +1889,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case 'Q':
       if (STATE(d) != CON_IEDIT)
       {
-        if (OLC_VAL(d))
-        { /* Something has been modified. */
+        /* Check if something was modified OR if this is a new object */
+        if (OLC_VAL(d) || real_object(OLC_NUM(d)) == NOTHING)
+        { /* Something has been modified or this is a new object. */
 
           write_to_output(d, "Do you wish to save this object? : ");
 
