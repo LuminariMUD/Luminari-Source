@@ -42,6 +42,7 @@
 extern char cast_arg2[MAX_INPUT_LENGTH];
 
 int roll_initiative(struct char_data *ch);
+void create_wall(struct char_data *ch, int room, int dir, int type, int level);
 
 /* defines */
 #define RAGE_AFFECTS 7
@@ -683,28 +684,86 @@ void perform_fistoffourthunders(struct char_data *ch)
   }
 }
 
-void perform_riverofhungryflame(struct char_data *ch)
+void perform_riverofhungryflame(struct char_data *ch, int dir)
 {
+  struct obj_data *wall = NULL;
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+
+  /* Check if there's already a wall in that direction */
+  for (wall = world[IN_ROOM(ch)].contents; wall; wall = wall->next_content)
+  {
+    if (GET_OBJ_TYPE(wall) == ITEM_WALL && GET_OBJ_VAL(wall, WALL_DIR) == dir)
+    {
+      send_to_char(ch, "There is already a wall in that direction.\r\n");
+      return;
+    }
+  }
+
+  /* Check if there's an open exit in that direction */
+  if (!CAN_GO(ch, dir))
+  {
+    send_to_char(ch, "There is no open exit in that direction where you can put a wall in.\r\n");
+    return;
+  }
+
+  /* Consume ki point */
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 
-  send_to_char(ch, "\tRYou create a River of Hungry Flame, a wall of searing fire!\tn\r\n");
-  act("\tR$n creates a wall of intense flames that burns everything in its path!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "\tRYou create a River of Hungry Flame, a wall of searing fire to the %s!\tn\r\n", dirs[dir]);
+  snprintf(buf, sizeof(buf), "\tR$n creates a wall of intense flames to the %s that burns everything in its path!\tn", dirs[dir]);
+  act(buf, FALSE, ch, 0, 0, TO_ROOM);
   
-  call_magic(ch, ch, NULL, SPELL_WALL_OF_FIRE, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+  /* Create wall using the same system as SPELL_WALL_OF_FIRE */
+  create_wall(ch, IN_ROOM(ch), dir, WALL_TYPE_FIRE, MONK_TYPE(ch));
 }
 
 /* Way of Four Elements - Tier 4 Capstone Abilities */
 
+/* Callback for Breath of Winter AoE effect */
+int breathofwinter_callback(struct char_data *ch, struct char_data *tch, void *data)
+{
+  int save_level, dam;
+  struct affected_type af;
+
+  /* Calculate effective level for DC: WIS bonus + (monk level / 2)
+   * savingthrow will add 10 + this level + WIS bonus to get DC = 10 + WIS bonus + (monk level / 2) */
+  save_level = GET_WIS_BONUS(ch) + (MONK_TYPE(ch) / 2);
+
+  /* Calculate damage: 10d6 cold damage */
+  dam = dice(10, 6);
+
+  /* Apply cold damage */
+  damage(ch, tch, dam, SKILL_BREATH_OF_WINTER, DAM_COLD, FALSE);
+
+  /* Check for fortitude save - if failed, apply slow effect */
+  if (!savingthrow(ch, tch, SAVING_FORT, 0, CAST_INNATE, save_level, NOSCHOOL))
+  {
+    /* Failed save - apply slow effect for 3 rounds */
+    new_affect(&af);
+    af.spell = SKILL_BREATH_OF_WINTER;
+    af.duration = 3;
+    SET_BIT_AR(af.bitvector, AFF_SLOW);
+    affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
+    
+    send_to_char(tch, "\tWYou are \tCslowed\tW by the freezing cold!\tn\r\n");
+    act("\tW$N is \tCslowed\tW by the freezing cold!\tn", FALSE, ch, 0, tch, TO_NOTVICT);
+  }
+
+  return 1; /* Target was affected */
+}
+
 void perform_breathofwinter(struct char_data *ch)
 {
+  /* Consume ki point */
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 
-  send_to_char(ch, "\tWYou unleash the Breath of Winter, a devastating cone of absolute cold!\tn\r\n");
-  act("\tW$n breathes forth a cone of freezing cold that turns everything to ice!\tn", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "\tWYou unleash the Breath of Winter, a devastating blast of absolute cold!\tn\r\n");
+  act("\tW$n breathes forth a blast of freezing cold that chills everything in the area!\tn", FALSE, ch, 0, 0, TO_ROOM);
   
-  call_magic(ch, ch, NULL, SPELL_CONE_OF_COLD, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
+  /* Use aoe_effect to hit all valid targets in the room */
+  aoe_effect(ch, SKILL_BREATH_OF_WINTER, breathofwinter_callback, NULL);
 }
 
 void perform_elementalembodiment(struct char_data *ch, int element_type)
@@ -7788,16 +7847,35 @@ ACMD(do_fistoffourthunders)
 ACMDCHECK(can_riverofhungryflame)
 {
   ACMDCHECK_PERMFAIL_IF(!has_monk_river_of_hungry_flame(ch), "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(daily_uses_remaining(ch, FEAT_STUNNING_FIST) == 0, "You are out of ki points.\r\n");
   return CAN_CMD;
 }
 
 ACMD(do_riverofhungryflame)
 {
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int dir = -1;
+
   PREREQ_NOT_NPC();
   PREREQ_CHECK(can_riverofhungryflame);
   PREREQ_HAS_USES(FEAT_STUNNING_FIST, "You must recover before you can focus your ki in this way again.\r\n");
 
-  perform_riverofhungryflame(ch);
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "You must specify a direction for the River of Hungry Flame.\r\n");
+    return;
+  }
+
+  dir = search_block(arg, dirs, FALSE);
+  if (dir >= 0)
+  {
+    perform_riverofhungryflame(ch, dir);
+  }
+  else
+  {
+    send_to_char(ch, "You must specify a valid direction (north, south, east, west, up, down).\r\n");
+  }
 }
 
 /* ============ Tier 4 Four Elements Capstones ============ */
@@ -7805,6 +7883,7 @@ ACMD(do_riverofhungryflame)
 ACMDCHECK(can_breathofwinter)
 {
   ACMDCHECK_PERMFAIL_IF(!has_monk_breath_of_winter(ch), "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(daily_uses_remaining(ch, FEAT_STUNNING_FIST) == 0, "You are out of ki points.\r\n");
   return CAN_CMD;
 }
 

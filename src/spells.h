@@ -1127,9 +1127,12 @@
 #define SKILL_WAVE_OF_ROLLING_EARTH 2212 // Way of Four Elements - wave of rolling earth (AoE earth, knock prone)
 #define SKILL_ETERNAL_MOUNTAIN_DEFENSE 2213 // Way of Four Elements - eternal mountain defense (5/- DR, 100 HP absorbed)
 #define SKILL_FIST_OF_FOUR_THUNDERS 2214 // Way of Four Elements - fist of four thunders (AoE sound + delayed lightning)
+#define SKILL_RIVER_OF_HUNGRY_FLAME 2215 // Way of Four Elements - river of hungry flame (wall of fire)
+#define SKILL_BREATH_OF_WINTER 2216 // Way of Four Elements - breath of winter (AoE cold, slow)
+#define SKILL_ELEMENTAL_EMBODIMENT 2217 // Way of Four Elements - elemental embodiment (transform)
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2215
+#define NUM_SKILLS 2218
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 
