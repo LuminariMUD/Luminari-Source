@@ -121,12 +121,12 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     /* directions must come before other commands but after RESERVED */
-    {"north", "n", POS_RECLINING, do_move, 0, SCMD_NORTH, FALSE, ACTION_MOVE, {0, 0}, NULL},
-    {"east", "e", POS_RECLINING, do_move, 0, SCMD_EAST, FALSE, ACTION_MOVE, {0, 0}, NULL},
-    {"south", "s", POS_RECLINING, do_move, 0, SCMD_SOUTH, FALSE, ACTION_MOVE, {0, 0}, NULL},
-    {"west", "w", POS_RECLINING, do_move, 0, SCMD_WEST, FALSE, ACTION_MOVE, {0, 0}, NULL},
-    {"up", "u", POS_RECLINING, do_move, 0, SCMD_UP, FALSE, ACTION_MOVE, {0, 0}, NULL},
-    {"down", "d", POS_RECLINING, do_move, 0, SCMD_DOWN, FALSE, ACTION_MOVE, {0, 0}, NULL},
+    {"north", "n", POS_RECLINING, do_move, 0, SCMD_NORTH, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"east", "e", POS_RECLINING, do_move, 0, SCMD_EAST, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"south", "s", POS_RECLINING, do_move, 0, SCMD_SOUTH, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"west", "w", POS_RECLINING, do_move, 0, SCMD_WEST, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"up", "u", POS_RECLINING, do_move, 0, SCMD_UP, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"down", "d", POS_RECLINING, do_move, 0, SCMD_DOWN, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"northwest", "northw", POS_RECLINING, do_move, 0, SCMD_NW, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"nw", "nw", POS_RECLINING, do_move, 0, SCMD_NW, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"northeast", "northe", POS_RECLINING, do_move, 0, SCMD_NE, FALSE, ACTION_NONE, {0, 0}, NULL},
