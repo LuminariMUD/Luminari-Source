@@ -801,6 +801,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR) * 2;
   }
+  /* Elemental Embodiment (Earth) - +2 natural AC */
+  if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 4)
+  {
+    bonuses[BONUS_TYPE_NATURALARMOR] += 2;
+  }
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_EIDOLON) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master && HAS_REAL_FEAT(ch->master, FEAT_GRAND_EIDOLON))
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += 2;
@@ -1088,6 +1093,12 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     if (AFF_FLAGGED(ch, AFF_EXPERTISE) && !IS_CASTING(ch))
     {
       bonuses[BONUS_TYPE_DODGE] += COMBAT_MODE_VALUE(ch);
+    }
+    
+    /* Elemental Embodiment (Air) - +2 dodge AC */
+    if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 3)
+    {
+      bonuses[BONUS_TYPE_DODGE] += 2;
     }
   }
   /**/
@@ -3285,6 +3296,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     /* Elemental Attunement III adds +20 resistance per rank */
     if (!IS_NPC(ch))
       dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
+    /* Elemental Embodiment (Fire) - immunity to fire */
+    if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 1)
+      dam_reduction += 999; /* Effective immunity */
     break;
   case DAM_COLD:
     /* Encased in Ice provides immunity to cold damage */
@@ -3311,18 +3325,27 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     /* Elemental Attunement III adds +20 resistance per rank */
     if (!IS_NPC(ch))
       dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
+    /* Elemental Embodiment (Water) - immunity to cold and water */
+    if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 2)
+      dam_reduction += 999; /* Effective immunity */
     break;
   case DAM_AIR:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
       dam_reduction += 3;
     if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
+    /* Elemental Embodiment (Air) - immunity to air and electric */
+    if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 3)
+      dam_reduction += 999; /* Effective immunity */
     break;
   case DAM_EARTH:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
       dam_reduction += 3;
     if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
+    /* Elemental Embodiment (Earth) - immunity to earth */
+    if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 4)
+      dam_reduction += 999; /* Effective immunity */
     break;
   case DAM_ACID:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -3375,14 +3398,23 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     /* Elemental Attunement III adds +20 resistance per rank */
     if (!IS_NPC(ch))
       dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
+    /* Elemental Embodiment (Air) - immunity to electric and air */
+    if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 3)
+      dam_reduction += 999; /* Effective immunity */
     break;
   case DAM_UNHOLY:
     if (AFF_FLAGGED(ch, AFF_DEATH_WARD))
       dam_reduction += 10;
     break;
   case DAM_SLICE:
+    /* Elemental Embodiment (Earth) - +10 resistance to slashing */
+    if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 4)
+      dam_reduction += 10;
     break;
   case DAM_PUNCTURE:
+    /* Elemental Embodiment (Earth) - +10 resistance to piercing */
+    if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 4)
+      dam_reduction += 10;
     break;
   case DAM_FORCE:
     break;
@@ -3472,6 +3504,16 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
   if (HAS_FEAT(ch, FEAT_DRAGONBORN_RESISTANCE) && draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)] == dam_type)
   {
     damtype_reduction += GET_LEVEL(ch) >= 9 ? 10 : 5;
+  }
+
+  /* Avatar of Elements - elemental immunity */
+  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  {
+    if (dam_type == DAM_FIRE || dam_type == DAM_COLD || dam_type == DAM_AIR ||
+        dam_type == DAM_ELECTRIC || dam_type == DAM_EARTH || dam_type == DAM_WATER)
+    {
+      damtype_reduction += 100; // full immunity
+    }
   }
 
   switch (dam_type)
@@ -3758,6 +3800,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 20;
     if (HAS_DRAGON_BOND_ABIL(ch, 7, DRAGON_BOND_CHAMPION))
       damtype_reduction += 10;
+    /* Elemental Embodiment (Earth) - +10 resistance to bludgeoning */
+    if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 4)
+      damtype_reduction += 10;
 
     /* npc vulnerabilities/strengths */
     if (IS_NPC(ch))
@@ -3952,6 +3997,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 20;
     if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
       damtype_reduction += 10;
+    /* Elemental Embodiment (Water) - immunity to water */
+    if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 2)
+      damtype_reduction += 999; /* Effective immunity */
 
     /* npc vulnerabilities/strengths */
     if (GET_NPC_RACE(ch) == RACE_TYPE_ELEMENTAL &&
@@ -4112,6 +4160,23 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
     damage_reduction += HAS_FEAT(ch, FEAT_SHRUG_DAMAGE);
     if (display)
       send_to_char(ch, "%-30s: %d\r\n", "Shrug Damage", HAS_FEAT(ch, FEAT_SHRUG_DAMAGE));
+  }
+
+  /* Elemental Embodiment DR bonuses */
+  if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0)
+  {
+    if (GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 2) /* Water: 3/- DR */
+    {
+      damage_reduction += 3;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Elemental Embodiment (Water)", 3);
+    }
+    else if (GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 4) /* Earth: 5/- DR */
+    {
+      damage_reduction += 5;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Elemental Embodiment (Earth)", 5);
+    }
   }
 
   /* Encased in Ice provides DR 5/- */
@@ -12650,6 +12715,17 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   {
     bonus_mainhand_attacks++;
     attacks_at_max_bab++;
+  }
+  
+  /* Elemental Embodiment (Air) - 10% chance for an extra attack */
+  if (mode != 2 && !IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 3)
+  {
+    if (rand_number(1, 100) <= 10)
+    {
+      bonus_mainhand_attacks++;
+      attacks_at_max_bab++;
+      send_to_char(ch, "\tW[\tCAir Embodiment grants you an extra attack!\tW]\tn\r\n");
+    }
   }
 
   /* Haste or equivalent gives one extra attack, ranged or melee, at max BAB. */

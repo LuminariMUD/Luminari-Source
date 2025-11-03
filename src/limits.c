@@ -2065,6 +2065,15 @@ void proc_d20_round(void)
         send_to_char(i, "Your arcane shield dissipates.\r\n");
       }
     }
+    if (GET_ELEMENTAL_EMBODIMENT_TIMER(i) > 0)
+    {
+      GET_ELEMENTAL_EMBODIMENT_TIMER(i)--;
+      if (GET_ELEMENTAL_EMBODIMENT_TIMER(i) <= 0)
+      {
+        GET_ELEMENTAL_EMBODIMENT_TYPE(i) = 0;
+        send_to_char(i, "Your elemental embodiment transformation fades.\r\n");
+      }
+    }
     if (CALL_EIDOLON_COOLDOWN(i) > 0)
     {
       CALL_EIDOLON_COOLDOWN(i)--;
