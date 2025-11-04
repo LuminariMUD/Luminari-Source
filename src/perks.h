@@ -23,6 +23,7 @@ void define_rogue_perks(void);
 void define_ranger_perks(void);
 void define_barbarian_perks(void);
 void define_monk_perks(void);
+void define_druid_perks(void);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
