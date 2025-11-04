@@ -4228,8 +4228,9 @@ const char *languages[] =
         "guran",
         "shaaran",
         "midani",
-        "\n"};
-CHECK_TABLE_SIZE(languages, SKILL_LANG_HIGH - SKILL_LANG_LOW + 1);
+        "\n"
+};
+CHECK_TABLE_SIZE(languages, SKILL_LANG_HIGH - SKILL_LANG_LOW + 2);
 
 #endif
 
