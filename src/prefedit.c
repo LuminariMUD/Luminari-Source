@@ -473,7 +473,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                CBWHT(d->character, C_NRM),
                /* Line 12 - 256 and mxp */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               ONOFF(d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               (d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt == 1 ? "ON" : "OFF"), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->pVariables[eMSDP_MXP]->ValueInt), CCCYN(d->character, C_NRM),
                /* Line 13 - ansi and msdp */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
@@ -927,7 +927,11 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case 'j':
     case 'J':
-      TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt);
+      /* Toggle 256 color: 1 = enabled, -1 = explicitly disabled (prevents auto-enable) */
+      if (d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt == 1)
+        d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = -1;
+      else
+        d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
       break;
 
     case 'k':

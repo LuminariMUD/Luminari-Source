@@ -701,7 +701,9 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
           /* MUSHclient 4.02 and later supports 256 colours. */
           if (strcmp(pMXPTag, "4.02") >= 0)
           {
-            pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
+            /* Only auto-enable if not explicitly disabled by user */
+            if (pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt != -1)
+              pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
             pProtocol->b256Support = eYES;
           }
           else /* We know for sure that 256 colours are not supported */
@@ -712,7 +714,9 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
           /* CMUD 3.04 and later supports 256 colours. */
           if (strcmp(pMXPTag, "3.04") >= 0)
           {
-            pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
+            /* Only auto-enable if not explicitly disabled by user */
+            if (pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt != -1)
+              pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
             pProtocol->b256Support = eYES;
           }
           else /* We know for sure that 256 colours are not supported */
@@ -724,7 +728,9 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
            * yet have MXP.  However MXP is planned, so once it responds
            * to a <VERSION> tag we'll know we can use 256 colours.
            */
-          pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
+          /* Only auto-enable if not explicitly disabled by user */
+          if (pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt != -1)
+            pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
           pProtocol->b256Support = eYES;
         }
       }
@@ -1220,7 +1226,9 @@ void CopyoverSet(descriptor_t *apDescriptor, const char *apData)
         CompressStart(apDescriptor);
         break;
       case 'C':
-        pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
+        /* Only auto-enable if not explicitly disabled by user */
+        if (pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt != -1)
+          pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
         break;
       case 'H':
         pProtocol->bCHARSET = true;
@@ -2563,7 +2571,9 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
           /* This is currently the only way to detect support for 256
            * colours in TinTin++, WinTin++ and BlowTorch.
            */
-          pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
+          /* Only auto-enable if not explicitly disabled by user */
+          if (pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt != -1)
+            pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
           pProtocol->b256Support = eYES;
         }
 
@@ -2591,7 +2601,9 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
           /* Mudlet 1.1 and later supports 256 colours. */
           if (strcmp(pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString, "1.1") >= 0)
           {
-            pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
+            /* Only auto-enable if not explicitly disabled by user */
+            if (pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt != -1)
+              pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
             pProtocol->b256Support = eYES;
           }
         }
@@ -2599,13 +2611,17 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
       else if (MatchString(pClientName, "EMACS-RINZAI"))
       {
         /* We know for certain that this client has support */
-        pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
+        /* Only auto-enable if not explicitly disabled by user */
+        if (pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt != -1)
+          pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
         pProtocol->b256Support = eYES;
       }
       else if (PrefixString("DecafMUD", pClientName))
       {
         /* We know for certain that this client has support */
-        pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
+        /* Only auto-enable if not explicitly disabled by user */
+        if (pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt != -1)
+          pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
         pProtocol->b256Support = eYES;
 
         if (strlen(pClientName) > 9)

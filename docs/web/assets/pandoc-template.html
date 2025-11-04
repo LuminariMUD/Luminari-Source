@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$if(title)$$title$ - LuminariMUD$else$LuminariMUD Documentation$endif$</title>
+    <meta name="description" content="$if(description)$$description$$else$LuminariMUD documentation and guides$endif$">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        body {
+            padding-bottom: 50px;
+        }
+        .doc-header {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .doc-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .doc-content {
+            line-height: 1.8;
+            color: #333;
+        }
+        .doc-content h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        .doc-content h2 {
+            color: #667eea;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        .doc-content h3 {
+            color: #764ba2;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-size: 1.4em;
+        }
+        .doc-content h4 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95em;
+        }
+        .doc-content table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .doc-content table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .doc-content table tr:hover {
+            background: #f8f9fa;
+        }
+        .doc-content code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+        .doc-content pre {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+        }
+        .doc-content pre code {
+            background: none;
+            padding: 0;
+            color: #333;
+        }
+        .doc-content ul, .doc-content ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        .doc-content li {
+            margin: 8px 0;
+        }
+        .doc-content blockquote {
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .doc-content strong {
+            color: #667eea;
+            font-weight: 600;
+        }
+        .breadcrumb {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            border-radius: 6px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            font-size: 24px;
+        }
+        .back-to-top:hover {
+            background: #5568d3;
+            transform: translateY(-5px);
+        }
+        @media (max-width: 768px) {
+            .doc-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            .doc-header {
+                padding: 30px 15px;
+            }
+            .doc-header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-header">
+        <h1>$if(title)$$title$$else$Documentation$endif$</h1>
+        $if(subtitle)$<p style="font-size: 1.2em; margin-top: 10px; opacity: 0.9;">$subtitle$</p>$endif$
+    </div>
+
+    <div class="breadcrumb">
+        <a href="../index.html">🏠 Home</a> /
+        <a href="../index.html#builder-guides">Builder Guides</a> /
+        <span style="color: #666;">$if(title)$$title$$else$Document$endif$</span>
+    </div>
+
+    <div class="doc-container">
+        <div class="doc-content">
+$body$
+        </div>
+    </div>
+
+    <a href="#top" class="back-to-top" title="Back to top">↑</a>
+</body>
+</html>

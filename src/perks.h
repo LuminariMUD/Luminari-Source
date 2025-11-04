@@ -23,6 +23,7 @@ void define_rogue_perks(void);
 void define_ranger_perks(void);
 void define_barbarian_perks(void);
 void define_monk_perks(void);
+void define_druid_perks(void);
 
 /* Lookup functions */
 struct perk_data *get_perk_by_id(int perk_id);
@@ -298,6 +299,21 @@ bool has_monk_river_of_hungry_flame(struct char_data *ch);
 bool has_monk_breath_of_winter(struct char_data *ch);
 bool has_monk_elemental_embodiment(struct char_data *ch);
 bool has_monk_avatar_of_elements(struct char_data *ch);
+
+/* Druid perk helper functions (Nature's Warrior tree) */
+int get_druid_wild_shape_attack_bonus(struct char_data *ch);
+int get_druid_wild_shape_damage_bonus(struct char_data *ch);
+int get_druid_natural_armor_bonus(struct char_data *ch);
+int get_druid_wild_shape_hp_bonus(struct char_data *ch);
+int get_druid_natural_weapons_damage_dice(struct char_data *ch);
+bool has_druid_natural_weapons_improved_crit(struct char_data *ch);
+bool is_druid_in_elemental_form(struct char_data *ch);
+int get_druid_elemental_attack_bonus(struct char_data *ch);
+int get_druid_elemental_damage_bonus(struct char_data *ch);
+int get_druid_elemental_armor_bonus(struct char_data *ch);
+int get_druid_elemental_hp_bonus(struct char_data *ch);
+bool has_druid_primal_avatar(struct char_data *ch);
+bool has_druid_natural_fury(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

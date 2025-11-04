@@ -60,12 +60,16 @@ const char *perk_category_names[] = {
   "Perfect Self",           /* 14 - PERK_CATEGORY_PERFECT_SELF */
   "Way of the Open Hand",   /* 15 - PERK_CATEGORY_WAY_OF_THE_OPEN_HAND */
   "Way of the Shadow",      /* 16 - PERK_CATEGORY_WAY_OF_THE_SHADOW */
-  "Hunter",                 /* 17 - PERK_CATEGORY_HUNTER */
-  "Beast Master",           /* 18 - PERK_CATEGORY_BEAST_MASTER */
-  "Wilderness Warrior",     /* 19 - PERK_CATEGORY_WILDERNESS_WARRIOR */
-  "Berserker",              /* 19 - PERK_CATEGORY_BERSERKER */
-  "Totem Warrior",          /* 20 - PERK_CATEGORY_TOTEM_WARRIOR */
-  "Primal Champion",        /* 21 - PERK_CATEGORY_PRIMAL_CHAMPION */
+  "Way of the Four Elements", /* 17 - PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS */
+  "Hunter",                 /* 18 - PERK_CATEGORY_HUNTER */
+  "Beast Master",           /* 19 - PERK_CATEGORY_BEAST_MASTER */
+  "Wilderness Warrior",     /* 20 - PERK_CATEGORY_WILDERNESS_WARRIOR */
+  "Nature's Warrior",       /* 21 - PERK_CATEGORY_NATURES_WARRIOR */
+  "Season's Herald",        /* 22 - PERK_CATEGORY_SEASONS_HERALD */
+  "Nature's Protector",     /* 23 - PERK_CATEGORY_NATURES_PROTECTOR */
+  "Berserker",              /* 24 - PERK_CATEGORY_BERSERKER */
+  "Totem Warrior",          /* 25 - PERK_CATEGORY_TOTEM_WARRIOR */
+  "Primal Champion",        /* 26 - PERK_CATEGORY_PRIMAL_CHAMPION */
   "\n"                      /* Terminator */
 };
 
@@ -119,6 +123,9 @@ void init_perks(void)
   
   /* Define Monk Perks */
   define_monk_perks();
+  
+  /* Define Druid Perks */
+  define_druid_perks();
   
   log("Perks system initialized with %d defined perks.", count_defined_perks());
 }
@@ -10363,4 +10370,928 @@ bool check_monk_extra_flurry_attack(struct char_data *ch)
     chance = 10;
   
   return (rand_number(1, 100) <= chance);
+}
+
+void define_druid_perks(void)
+{
+  struct perk_data *perk;
+  
+  /*** NATURE'S WARRIOR TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Wild Shape Enhancement I */
+  perk = &perk_list[PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1];
+  perk->id = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1;
+  perk->name = strdup("Wild Shape Enhancement I");
+  perk->description = strdup("+2 to attack and damage while wild shaped per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases attack bonus and damage by +2 per rank while in wild shape form. Can be taken 5 times for +10 total.");
+  
+  /* Natural Armor I */
+  perk = &perk_list[PERK_DRUID_NATURAL_ARMOR_1];
+  perk->id = PERK_DRUID_NATURAL_ARMOR_1;
+  perk->name = strdup("Natural Armor I");
+  perk->description = strdup("+1 natural armor bonus per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Grants +1 natural armor bonus to AC per rank. Can be taken 3 times for +3 total.");
+  
+  /* Natural Weapons I */
+  perk = &perk_list[PERK_DRUID_NATURAL_WEAPONS_1];
+  perk->id = PERK_DRUID_NATURAL_WEAPONS_1;
+  perk->name = strdup("Natural Weapons I");
+  perk->description = strdup("Wild shape natural weapons deal +1d4 damage per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 4;
+  perk->special_description = strdup("Your natural weapons in wild shape deal +1d4 damage per rank. Can be taken 3 times for +3d4 total.");
+  
+  /* Primal Instinct I */
+  perk = &perk_list[PERK_DRUID_PRIMAL_INSTINCT_1];
+  perk->id = PERK_DRUID_PRIMAL_INSTINCT_1;
+  perk->name = strdup("Primal Instinct I");
+  perk->description = strdup("+10 HP while wild shaped per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Gain +10 HP per rank while in wild shape. Can be taken 3 times for +30 HP total.");
+
+  /*** NATURE'S WARRIOR TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Wild Shape Enhancement II */
+  perk = &perk_list[PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2];
+  perk->id = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2;
+  perk->name = strdup("Wild Shape Enhancement II");
+  perk->description = strdup("Additional +3 to attack and damage while wild shaped per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Wild Shape Enhancement I (max). Additional +3 attack and damage per rank while wild shaped. Can be taken 3 times for +9 total.");
+  
+  /* Natural Armor II */
+  perk = &perk_list[PERK_DRUID_NATURAL_ARMOR_2];
+  perk->id = PERK_DRUID_NATURAL_ARMOR_2;
+  perk->name = strdup("Natural Armor II");
+  perk->description = strdup("Additional +2 natural armor per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_NATURAL_ARMOR_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Natural Armor I (max). Additional +2 natural armor per rank. Can be taken 2 times for +4 total.");
+  
+  /* Natural Weapons II */
+  perk = &perk_list[PERK_DRUID_NATURAL_WEAPONS_2];
+  perk->id = PERK_DRUID_NATURAL_WEAPONS_2;
+  perk->name = strdup("Natural Weapons II");
+  perk->description = strdup("Wild shape natural weapons critical on 19-20");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_NATURAL_WEAPONS_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 19;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Natural Weapons I (max). Your natural weapons threaten a critical hit on 19-20 instead of just 20.");
+  
+  /* Improved Wild Shape */
+  perk = &perk_list[PERK_DRUID_IMPROVED_WILD_SHAPE];
+  perk->id = PERK_DRUID_IMPROVED_WILD_SHAPE;
+  perk->name = strdup("Improved Wild Shape");
+  perk->description = strdup("Can wild shape as a swift action");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Wild Shape Enhancement I (3 ranks). You can enter or exit wild shape as a swift action instead of a standard action.");
+
+  /*** NATURE'S WARRIOR TREE - TIER 3 PERKS (3 points each) ***/
+  
+  /* Wild Shape Enhancement III */
+  perk = &perk_list[PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3];
+  perk->id = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3;
+  perk->name = strdup("Wild Shape Enhancement III");
+  perk->description = strdup("Additional +4 to attack and damage while wild shaped per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Wild Shape Enhancement II (max). Additional +4 attack and damage per rank while wild shaped. Can be taken 2 times for +8 total.");
+  
+  /* Natural Armor III */
+  perk = &perk_list[PERK_DRUID_NATURAL_ARMOR_3];
+  perk->id = PERK_DRUID_NATURAL_ARMOR_3;
+  perk->name = strdup("Natural Armor III");
+  perk->description = strdup("Additional +3 natural armor per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_NATURAL_ARMOR_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Natural Armor II (max). Additional +3 natural armor per rank. Can be taken 2 times for +6 total.");
+  
+  /* Primal Instinct II */
+  perk = &perk_list[PERK_DRUID_PRIMAL_INSTINCT_2];
+  perk->id = PERK_DRUID_PRIMAL_INSTINCT_2;
+  perk->name = strdup("Primal Instinct II");
+  perk->description = strdup("Additional +15 HP while wild shaped per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_PRIMAL_INSTINCT_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 15;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Primal Instinct I (max). Additional +15 HP per rank while wild shaped. Can be taken 2 times for +30 HP total.");
+  
+  /* Mighty Wild Shape */
+  perk = &perk_list[PERK_DRUID_MIGHTY_WILD_SHAPE];
+  perk->id = PERK_DRUID_MIGHTY_WILD_SHAPE;
+  perk->name = strdup("Mighty Wild Shape");
+  perk->description = strdup("Wild shape forms get +4 STR and CON");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Wild Shape Enhancement II (2 ranks). Your wild shape forms gain +4 to Strength and Constitution.");
+
+  /*** NATURE'S WARRIOR TREE - TIER 4 PERKS (4 points each) ***/
+  
+  /* Elemental Wild Shape */
+  perk = &perk_list[PERK_DRUID_ELEMENTAL_WILD_SHAPE];
+  perk->id = PERK_DRUID_ELEMENTAL_WILD_SHAPE;
+  perk->name = strdup("Elemental Wild Shape");
+  perk->description = strdup("Can wild shape into elemental forms");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Wild Shape Enhancement III (max). You can transform into elemental forms (air, earth, fire, water elementals).");
+  
+  /* Primal Avatar */
+  perk = &perk_list[PERK_DRUID_PRIMAL_AVATAR];
+  perk->id = PERK_DRUID_PRIMAL_AVATAR;
+  perk->name = strdup("Primal Avatar");
+  perk->description = strdup("Wild shape duration increased by 50%, +2 attacks per round");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_MIGHTY_WILD_SHAPE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 50;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Requires Mighty Wild Shape. Wild shape duration increased by 50% and you gain +2 attacks per round while wild shaped.");
+  
+  /* Natural Fury */
+  perk = &perk_list[PERK_DRUID_NATURAL_FURY];
+  perk->id = PERK_DRUID_NATURAL_FURY;
+  perk->name = strdup("Natural Fury");
+  perk->description = strdup("Critical hits while wild shaped deal triple damage");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_WARRIOR;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_NATURAL_WEAPONS_2;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Natural Weapons II. Your critical hits with natural weapons deal triple damage instead of double.");
+
+  /*** SEASON'S HERALD TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Spell Power I */
+  perk = &perk_list[PERK_DRUID_SPELL_POWER_1];
+  perk->id = PERK_DRUID_SPELL_POWER_1;
+  perk->name = strdup("Spell Power I");
+  perk->description = strdup("Druid spells deal +1 damage per die per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Your druid spells deal +1 damage per die per rank. Can be taken 5 times for +5 per die.");
+  
+  /* Nature's Focus I */
+  perk = &perk_list[PERK_DRUID_NATURES_FOCUS_1];
+  perk->id = PERK_DRUID_NATURES_FOCUS_1;
+  perk->name = strdup("Nature's Focus I");
+  perk->description = strdup("Druid spell save DC increased by +1 per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases the save DC of all druid spells by +1 per rank. Can be taken 3 times for +3 total.");
+  
+  /* Elemental Manipulation I */
+  perk = &perk_list[PERK_DRUID_ELEMENTAL_MANIPULATION_1];
+  perk->id = PERK_DRUID_ELEMENTAL_MANIPULATION_1;
+  perk->name = strdup("Elemental Manipulation I");
+  perk->description = strdup("Fire, cold, and lightning spells deal +2d6 damage per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Fire, cold, and lightning spells deal +2d6 damage per rank. Can be taken 3 times for +6d6 total.");
+  
+  /* Efficient Caster */
+  perk = &perk_list[PERK_DRUID_EFFICIENT_CASTER];
+  perk->id = PERK_DRUID_EFFICIENT_CASTER;
+  perk->name = strdup("Efficient Caster");
+  perk->description = strdup("Cast 1 additional spell per rest period");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("You can prepare and cast one additional spell per rest period.");
+
+  /*** SEASON'S HERALD TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Spell Power II */
+  perk = &perk_list[PERK_DRUID_SPELL_POWER_2];
+  perk->id = PERK_DRUID_SPELL_POWER_2;
+  perk->name = strdup("Spell Power II");
+  perk->description = strdup("Additional +2 damage per die per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_DRUID_SPELL_POWER_1;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Power I (max). Additional +2 damage per die per rank. Can be taken 3 times for +6 per die.");
+  
+  /* Nature's Focus II */
+  perk = &perk_list[PERK_DRUID_NATURES_FOCUS_2];
+  perk->id = PERK_DRUID_NATURES_FOCUS_2;
+  perk->name = strdup("Nature's Focus II");
+  perk->description = strdup("Additional +1 spell save DC per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_NATURES_FOCUS_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Nature's Focus I (max). Additional +1 spell save DC per rank. Can be taken 2 times for +2 total.");
+  
+  /* Elemental Manipulation II */
+  perk = &perk_list[PERK_DRUID_ELEMENTAL_MANIPULATION_2];
+  perk->id = PERK_DRUID_ELEMENTAL_MANIPULATION_2;
+  perk->name = strdup("Elemental Manipulation II");
+  perk->description = strdup("Additional +3d6 elemental damage per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_ELEMENTAL_MANIPULATION_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Requires Elemental Manipulation I (max). Additional +3d6 elemental damage per rank. Can be taken 2 times for +6d6 total.");
+  
+  /* Spell Critical */
+  perk = &perk_list[PERK_DRUID_SPELL_CRITICAL];
+  perk->id = PERK_DRUID_SPELL_CRITICAL;
+  perk->name = strdup("Spell Critical");
+  perk->description = strdup("Druid spells have a 5% chance to critical for double damage");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_SPELL_POWER_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Requires Spell Power I (3 ranks). Your druid spells have a 5% chance to critical hit for double damage.");
+
+  /*** SEASON'S HERALD TREE - TIER 3 PERKS (3 points each) ***/
+  
+  /* Spell Power III */
+  perk = &perk_list[PERK_DRUID_SPELL_POWER_3];
+  perk->id = PERK_DRUID_SPELL_POWER_3;
+  perk->name = strdup("Spell Power III");
+  perk->description = strdup("Additional +3 damage per die per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_SPELL_POWER_2;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Power II (max). Additional +3 damage per die per rank. Can be taken 2 times for +6 per die.");
+  
+  /* Storm Caller */
+  perk = &perk_list[PERK_DRUID_STORM_CALLER];
+  perk->id = PERK_DRUID_STORM_CALLER;
+  perk->name = strdup("Storm Caller");
+  perk->description = strdup("Lightning spells chain to 2 additional targets");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_ELEMENTAL_MANIPULATION_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Elemental Manipulation II (2 ranks). Your lightning spells can chain to 2 additional nearby targets for 50% damage each.");
+  
+  /* Elemental Manipulation III */
+  perk = &perk_list[PERK_DRUID_ELEMENTAL_MANIPULATION_3];
+  perk->id = PERK_DRUID_ELEMENTAL_MANIPULATION_3;
+  perk->name = strdup("Elemental Manipulation III");
+  perk->description = strdup("Additional +4d6 elemental damage per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_ELEMENTAL_MANIPULATION_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Requires Elemental Manipulation II (max). Additional +4d6 elemental damage per rank. Can be taken 2 times for +8d6 total.");
+  
+  /* Nature's Wrath */
+  perk = &perk_list[PERK_DRUID_NATURES_WRATH];
+  perk->id = PERK_DRUID_NATURES_WRATH;
+  perk->name = strdup("Nature's Wrath");
+  perk->description = strdup("Spell critical chance increased to 10%");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_SPELL_CRITICAL;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Requires Spell Critical. Your spell critical chance increases from 5% to 10%.");
+
+  /*** SEASON'S HERALD TREE - TIER 4 PERKS (4 points each) ***/
+  
+  /* Force of Nature */
+  perk = &perk_list[PERK_DRUID_FORCE_OF_NATURE];
+  perk->id = PERK_DRUID_FORCE_OF_NATURE;
+  perk->name = strdup("Force of Nature");
+  perk->description = strdup("Druid spells can't be resisted, penetrate all resistances");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_SPELL_POWER_3;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Spell Power III (max). Your druid spells automatically penetrate all spell resistance and energy resistances.");
+  
+  /* Elemental Mastery */
+  perk = &perk_list[PERK_DRUID_ELEMENTAL_MASTERY];
+  perk->id = PERK_DRUID_ELEMENTAL_MASTERY;
+  perk->name = strdup("Elemental Mastery");
+  perk->description = strdup("Elemental spells deal maximum damage");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_ELEMENTAL_MANIPULATION_3;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Elemental Manipulation III (max). Once per rest, you can maximize one elemental spell to deal maximum damage.");
+  
+  /* Nature's Vengeance */
+  perk = &perk_list[PERK_DRUID_NATURES_VENGEANCE];
+  perk->id = PERK_DRUID_NATURES_VENGEANCE;
+  perk->name = strdup("Nature's Vengeance");
+  perk->description = strdup("Spell criticals deal triple damage instead of double");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_NATURES_WRATH;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Nature's Wrath. Your spell critical hits deal triple damage instead of double.");
+
+  /*** NATURE'S PROTECTOR TREE - TIER 1 PERKS (1 point each) ***/
+  
+  /* Healing Spring I */
+  perk = &perk_list[PERK_DRUID_HEALING_SPRING_1];
+  perk->id = PERK_DRUID_HEALING_SPRING_1;
+  perk->name = strdup("Healing Spring I");
+  perk->description = strdup("Healing spells restore +3 HP per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Increases healing done by druid healing spells by +3 HP per rank. Can be taken 5 times for +15 HP total.");
+  
+  /* Animal Bond I */
+  perk = &perk_list[PERK_DRUID_ANIMAL_BOND_1];
+  perk->id = PERK_DRUID_ANIMAL_BOND_1;
+  perk->name = strdup("Animal Bond I");
+  perk->description = strdup("Animal companion gains +10 HP and +1 attack/damage per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("Your animal companion gains +10 HP and +1 to attack and damage per rank. Can be taken 3 times.");
+  
+  /* Natural Remedy I */
+  perk = &perk_list[PERK_DRUID_NATURAL_REMEDY_1];
+  perk->id = PERK_DRUID_NATURAL_REMEDY_1;
+  perk->name = strdup("Natural Remedy I");
+  perk->description = strdup("Heal over time effects increased by +1 HP per tick per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Heal over time spells restore +1 HP per tick per rank. Can be taken 3 times for +3 HP per tick.");
+  
+  /* Nature's Blessing */
+  perk = &perk_list[PERK_DRUID_NATURES_BLESSING];
+  perk->id = PERK_DRUID_NATURES_BLESSING;
+  perk->name = strdup("Nature's Blessing");
+  perk->description = strdup("Buff spells last 25% longer");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 25;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("All beneficial druid buff spells last 25% longer.");
+
+  /*** NATURE'S PROTECTOR TREE - TIER 2 PERKS (2 points each) ***/
+  
+  /* Healing Spring II */
+  perk = &perk_list[PERK_DRUID_HEALING_SPRING_2];
+  perk->id = PERK_DRUID_HEALING_SPRING_2;
+  perk->name = strdup("Healing Spring II");
+  perk->description = strdup("Additional +4 HP healing per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_DRUID_HEALING_SPRING_1;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Healing Spring I (max). Additional +4 HP healing per rank. Can be taken 3 times for +12 HP total.");
+  
+  /* Animal Bond II */
+  perk = &perk_list[PERK_DRUID_ANIMAL_BOND_2];
+  perk->id = PERK_DRUID_ANIMAL_BOND_2;
+  perk->name = strdup("Animal Bond II");
+  perk->description = strdup("Companion gains +15 HP and +2 attack/damage per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_ANIMAL_BOND_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 15;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Requires Animal Bond I (max). Additional +15 HP and +2 attack/damage per rank. Can be taken 2 times.");
+  
+  /* Natural Remedy II */
+  perk = &perk_list[PERK_DRUID_NATURAL_REMEDY_2];
+  perk->id = PERK_DRUID_NATURAL_REMEDY_2;
+  perk->name = strdup("Natural Remedy II");
+  perk->description = strdup("Additional +2 HP per tick per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_NATURAL_REMEDY_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Natural Remedy I (max). Additional +2 HP per tick per rank. Can be taken 2 times for +4 HP per tick.");
+  
+  /* Companion Enhancement */
+  perk = &perk_list[PERK_DRUID_COMPANION_ENHANCEMENT];
+  perk->id = PERK_DRUID_COMPANION_ENHANCEMENT;
+  perk->name = strdup("Companion Enhancement");
+  perk->description = strdup("Animal companion gains +2 AC and +10% movement speed");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_ANIMAL_BOND_1;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 10;
+  perk->special_description = strdup("Requires Animal Bond I (2 ranks). Your animal companion gains +2 AC and moves 10% faster.");
+
+  /*** NATURE'S PROTECTOR TREE - TIER 3 PERKS (3 points each) ***/
+  
+  /* Healing Spring III */
+  perk = &perk_list[PERK_DRUID_HEALING_SPRING_3];
+  perk->id = PERK_DRUID_HEALING_SPRING_3;
+  perk->name = strdup("Healing Spring III");
+  perk->description = strdup("Additional +5 HP healing per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_HEALING_SPRING_2;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Healing Spring II (max). Additional +5 HP healing per rank. Can be taken 2 times for +10 HP total.");
+  
+  /* Animal Bond III */
+  perk = &perk_list[PERK_DRUID_ANIMAL_BOND_3];
+  perk->id = PERK_DRUID_ANIMAL_BOND_3;
+  perk->name = strdup("Animal Bond III");
+  perk->description = strdup("Companion gains +20 HP and +3 attack/damage per rank");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_DRUID_ANIMAL_BOND_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 20;
+  perk->effect_modifier = 3;
+  perk->special_description = strdup("Requires Animal Bond II (max). Additional +20 HP and +3 attack/damage per rank. Can be taken 2 times.");
+  
+  /* Rejuvenation */
+  perk = &perk_list[PERK_DRUID_REJUVENATION];
+  perk->id = PERK_DRUID_REJUVENATION;
+  perk->name = strdup("Rejuvenation");
+  perk->description = strdup("Healing spells have a 15% chance to also cure negative effects");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_HEALING_SPRING_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 15;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Healing Spring II (2 ranks). Your healing spells have a 15% chance to also cure poison, disease, or blindness.");
+  
+  /* Pack Leader */
+  perk = &perk_list[PERK_DRUID_PACK_LEADER];
+  perk->id = PERK_DRUID_PACK_LEADER;
+  perk->name = strdup("Pack Leader");
+  perk->description = strdup("Animal companion gains +4 to all saves");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_COMPANION_ENHANCEMENT;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Companion Enhancement. Your animal companion gains +4 to all saving throws.");
+
+  /*** NATURE'S PROTECTOR TREE - TIER 4 PERKS (4 points each) ***/
+  
+  /* Nature's Guardian */
+  perk = &perk_list[PERK_DRUID_NATURES_GUARDIAN];
+  perk->id = PERK_DRUID_NATURES_GUARDIAN;
+  perk->name = strdup("Nature's Guardian");
+  perk->description = strdup("Once per rest, automatically cast healing spell when reduced below 25% HP");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_HEALING_SPRING_3;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 25;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Healing Spring III (max). Once per rest, when reduced below 25% HP, automatically cast your most powerful healing spell.");
+  
+  /* Vital Surge */
+  perk = &perk_list[PERK_DRUID_VITAL_SURGE];
+  perk->id = PERK_DRUID_VITAL_SURGE;
+  perk->name = strdup("Vital Surge");
+  perk->description = strdup("Healing spells grant temporary HP equal to 25% healing done");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_REJUVENATION;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 25;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Rejuvenation. Your healing spells grant the target temporary HP equal to 25% of the healing done, lasting 1 minute.");
+  
+  /* Alpha Companion */
+  perk = &perk_list[PERK_DRUID_ALPHA_COMPANION];
+  perk->id = PERK_DRUID_ALPHA_COMPANION;
+  perk->name = strdup("Alpha Companion");
+  perk->description = strdup("Animal companion becomes dire version with doubled stats");
+  perk->associated_class = CLASS_DRUID;
+  perk->perk_category = PERK_CATEGORY_NATURES_PROTECTOR;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_DRUID_ANIMAL_BOND_3;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Requires Animal Bond III (max). Your animal companion becomes a dire version with doubled base stats (HP, damage, AC).");
+}
+
+/* Nature's Warrior Druid Perk Helper Functions */
+
+/* Get attack bonus from Wild Shape Enhancement perks when wild shaped */
+int get_druid_wild_shape_attack_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!IS_WILDSHAPED(ch))
+    return 0;
+    
+  /* Wild Shape Enhancement I: +1 attack per rank (max 5) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1, CLASS_DRUID);
+  
+  /* Wild Shape Enhancement II: additional +1 attack per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2, CLASS_DRUID);
+  
+  /* Wild Shape Enhancement III: additional +1 attack per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3, CLASS_DRUID);
+  
+  return bonus;
+}
+
+/* Get damage bonus from Wild Shape Enhancement perks when wild shaped */
+int get_druid_wild_shape_damage_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!IS_WILDSHAPED(ch))
+    return 0;
+    
+  /* Wild Shape Enhancement I: +1 damage per rank (max 5) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1, CLASS_DRUID);
+  
+  /* Wild Shape Enhancement II: additional +1 damage per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2, CLASS_DRUID);
+  
+  /* Wild Shape Enhancement III: additional +1 damage per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3, CLASS_DRUID);
+  
+  return bonus;
+}
+
+/* Get natural armor bonus from Nature's Warrior perks */
+int get_druid_natural_armor_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  /* Natural Armor I: +1 AC per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_DRUID_NATURAL_ARMOR_1, CLASS_DRUID);
+  
+  /* Natural Armor II: additional +1 AC per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_NATURAL_ARMOR_2, CLASS_DRUID);
+  
+  /* Natural Armor III: additional +1 AC per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_NATURAL_ARMOR_3, CLASS_DRUID);
+  
+  return bonus;
+}
+
+/* Get HP bonus from Primal Instinct perks when wild shaped */
+int get_druid_wild_shape_hp_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!IS_WILDSHAPED(ch))
+    return 0;
+    
+  /* Primal Instinct I: +10 HP per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_DRUID_PRIMAL_INSTINCT_1, CLASS_DRUID) * 10;
+  
+  /* Primal Instinct II: +15 HP per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_PRIMAL_INSTINCT_2, CLASS_DRUID) * 15;
+  
+  return bonus;
+}
+
+/* Get weapon damage dice bonus from Natural Weapons perks when wild shaped */
+int get_druid_natural_weapons_damage_dice(struct char_data *ch)
+{
+  int dice = 0;
+  
+  if (!IS_WILDSHAPED(ch))
+    return 0;
+    
+  /* Natural Weapons I: +1d4 per rank (max 3) */
+  dice += get_perk_rank(ch, PERK_DRUID_NATURAL_WEAPONS_1, CLASS_DRUID);
+  
+  return dice;
+}
+
+/* Check if druid has improved critical range for natural weapons (19-20) */
+bool has_druid_natural_weapons_improved_crit(struct char_data *ch)
+{
+  if (!IS_WILDSHAPED(ch))
+    return FALSE;
+    
+  /* Natural Weapons II: critical on 19-20 */
+  return has_perk(ch, PERK_DRUID_NATURAL_WEAPONS_2);
+}
+
+/* Check if druid is in elemental form and has Elemental Wild Shape perk */
+bool is_druid_in_elemental_form(struct char_data *ch)
+{
+  if (!IS_WILDSHAPED(ch))
+    return FALSE;
+    
+  if (!has_perk(ch, PERK_DRUID_ELEMENTAL_WILD_SHAPE))
+    return FALSE;
+    
+  if (GET_DISGUISE_RACE(ch) != RACE_UNDEFINED)
+  {
+    if (GET_DISGUISE_RACE(ch) < NUM_EXTENDED_RACES)
+    {
+      if (race_list[GET_DISGUISE_RACE(ch)].family == RACE_TYPE_ELEMENTAL)
+        return TRUE;
+    }
+  }
+    
+  return FALSE;
+}
+
+/* Get attack bonus from Elemental Wild Shape when in elemental form */
+int get_druid_elemental_attack_bonus(struct char_data *ch)
+{
+  if (!is_druid_in_elemental_form(ch))
+    return 0;
+    
+  return 3;
+}
+
+/* Get damage bonus from Elemental Wild Shape when in elemental form */
+int get_druid_elemental_damage_bonus(struct char_data *ch)
+{
+  if (!is_druid_in_elemental_form(ch))
+    return 0;
+    
+  return 6;
+}
+
+/* Get natural armor bonus from Elemental Wild Shape when in elemental form */
+int get_druid_elemental_armor_bonus(struct char_data *ch)
+{
+  if (!is_druid_in_elemental_form(ch))
+    return 0;
+    
+  return 3;
+}
+
+/* Get HP bonus from Elemental Wild Shape when in elemental form */
+int get_druid_elemental_hp_bonus(struct char_data *ch)
+{
+  if (!is_druid_in_elemental_form(ch))
+    return 0;
+    
+  return 50;
+}
+
+/* Check if druid has Primal Avatar (extra attack) */
+bool has_druid_primal_avatar(struct char_data *ch)
+{
+  if (!IS_WILDSHAPED(ch))
+    return FALSE;
+    
+  return has_perk(ch, PERK_DRUID_PRIMAL_AVATAR);
+}
+
+/* Check if druid has Natural Fury (triple damage crits) */
+bool has_druid_natural_fury(struct char_data *ch)
+{
+  if (!IS_WILDSHAPED(ch))
+    return FALSE;
+    
+  return has_perk(ch, PERK_DRUID_NATURAL_FURY);
 }

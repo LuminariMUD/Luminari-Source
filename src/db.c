@@ -4817,7 +4817,10 @@ void reset_zone(zone_rnum zone)
         push_result(1);
       }
       else
+      {
         push_result(0);
+        mob = NULL;  /* Clear mob pointer when load fails */
+      }
       tobj = NULL;
       break;
 

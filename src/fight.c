@@ -826,6 +826,23 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += 2;
   }
+  
+  /* Druid natural armor bonus from Nature's Warrior perks */
+  if (!IS_NPC(ch) && IS_WILDSHAPED(ch))
+  {
+    int druid_natural_armor = get_druid_natural_armor_bonus(ch);
+    if (druid_natural_armor > 0)
+    {
+      bonuses[BONUS_TYPE_NATURALARMOR] += druid_natural_armor;
+    }
+
+    /* Elemental wild shape armor bonus */
+    int druid_elemental_armor = get_druid_elemental_armor_bonus(ch);
+    if (druid_elemental_armor > 0)
+    {
+      bonuses[BONUS_TYPE_NATURALARMOR] += druid_elemental_armor;
+    }
+  }
   /**/
 
   /* bonus type armor */
@@ -6284,6 +6301,27 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  /* Druid wild shape damage bonus - Nature's Warrior perks */
+  if (!IS_NPC(ch) && IS_WILDSHAPED(ch))
+  {
+    int druid_wildshape_bonus = get_druid_wild_shape_damage_bonus(ch);
+    if (druid_wildshape_bonus > 0)
+    {
+      if (display_mode)
+        send_to_char(ch, "Wild Shape Enhancement damage: \tR%d\tn\r\n", druid_wildshape_bonus);
+      dambonus += druid_wildshape_bonus;
+    }
+
+    /* Elemental wild shape damage bonus */
+    int druid_elemental_bonus = get_druid_elemental_damage_bonus(ch);
+    if (druid_elemental_bonus > 0)
+    {
+      if (display_mode)
+        send_to_char(ch, "Elemental Wild Shape damage: \tR%d\tn\r\n", druid_elemental_bonus);
+      dambonus += druid_elemental_bonus;
+    }
+  }
+
   /* ranged includes arrow enhancement bonus + special ranged bonus to favored enemies with the epic favored enemy feat */
   if (can_fire_ammo(ch, TRUE))
   {
@@ -6856,6 +6894,12 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
       threat_range = MIN(threat_range, monk_crit_range);
   }
 
+  /* Druid Natural Weapons II - improved crit range for wild shape natural weapons */
+  if (!IS_NPC(ch) && IS_WILDSHAPED(ch) && !wielded && has_druid_natural_weapons_improved_crit(ch))
+  {
+    threat_range = MIN(threat_range, 19);
+  }
+
   /* end mods */
 
   if (threat_range <= 2) /* just in case */
@@ -6901,6 +6945,12 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
 
   /* Legendary Fist: unarmed attacks get x3 multiplier */
   if (is_bare_handed(ch) && has_monk_legendary_fist(ch))
+  {
+    crit_multi = MAX(crit_multi, 3);
+  }
+
+  /* Natural Fury druid perk: critical hits deal triple damage while wild shaped */
+  if (!IS_NPC(ch) && IS_WILDSHAPED(ch) && has_druid_natural_fury(ch))
   {
     crit_multi = MAX(crit_multi, 3);
   }
@@ -9519,6 +9569,27 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += monk_weapon_bonus;
       if (display)
         send_to_char(ch, "%2d: %-50s\r\n", monk_weapon_bonus, "Monk Weapon Attack Bonus");
+    }
+  }
+
+  /* Druid wild shape attack bonus - Nature's Warrior perks */
+  if (!IS_NPC(ch) && IS_WILDSHAPED(ch))
+  {
+    int druid_wildshape_bonus = get_druid_wild_shape_attack_bonus(ch);
+    if (druid_wildshape_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED] += druid_wildshape_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", druid_wildshape_bonus, "Wild Shape Enhancement");
+    }
+    
+    /* Elemental Wild Shape bonus */
+    int druid_elemental_bonus = get_druid_elemental_attack_bonus(ch);
+    if (druid_elemental_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED] += druid_elemental_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", druid_elemental_bonus, "Elemental Wild Shape");
     }
   }
 
@@ -12732,6 +12803,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   if (AFF_FLAGGED(ch, AFF_HASTE) || (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED)) || (has_speed_weapon(ch)))
   {
     ranged_attacks++;
+    attacks_at_max_bab++;
+  }
+
+  /* Primal Avatar druid perk gives one extra attack while wild shaped */
+  if (!IS_NPC(ch) && IS_WILDSHAPED(ch) && has_druid_primal_avatar(ch))
+  {
+    bonus_mainhand_attacks++;
     attacks_at_max_bab++;
   }
 

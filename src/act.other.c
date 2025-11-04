@@ -68,7 +68,7 @@
 
 #define MULTICAP 3
 
-#define WILDSHAPE_AFFECTS 4
+#define WILDSHAPE_AFFECTS 5
 #define TOG_OFF 0
 #define TOG_ON 1
 
@@ -3629,6 +3629,14 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac)
 {
   struct affected_type af[WILDSHAPE_AFFECTS];
   int i = 0;
+  int hp_bonus = 0;
+
+  /* Calculate HP bonus from druid perks when wildshaped */
+  if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_DRUID) > 0)
+  {
+    hp_bonus = get_druid_wild_shape_hp_bonus(ch);
+    hp_bonus += get_druid_elemental_hp_bonus(ch);
+  }
 
   /* init affect array */
   for (i = 0; i < WILDSHAPE_AFFECTS; i++)
@@ -3653,6 +3661,10 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac)
   af[3].location = APPLY_AC_NEW;
   af[3].modifier = ac;
   af[3].bonus_type = BONUS_TYPE_NATURALARMOR;
+
+  af[4].location = APPLY_HIT;
+  af[4].modifier = hp_bonus;
+  af[4].bonus_type = BONUS_TYPE_RACIAL;
 
   for (i = 0; i < WILDSHAPE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
@@ -4148,6 +4160,19 @@ bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
     abil_mods->constitution += 2;
     abil_mods->natural_armor += 1;
   }
+  /* Druid perk bonuses - Mighty Wild Shape and Primal Avatar */
+  if (!IS_NPC(ch) && mode == 0) // wildshape only
+  {
+    if (has_perk(ch, PERK_DRUID_MIGHTY_WILD_SHAPE))
+    {
+      abil_mods->strength += 4;
+      abil_mods->constitution += 4;
+    }
+    if (has_perk(ch, PERK_DRUID_PRIMAL_AVATAR))
+    {
+      abil_mods->dexterity += 4;
+    }
+  }
   /* set the bonuses */
   set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
                   abil_mods->dexterity, abil_mods->natural_armor);
@@ -4212,7 +4237,11 @@ ACMD(do_wildshape)
     GET_HIT(ch) += GET_LEVEL(ch);
     GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
 
-    USE_STANDARD_ACTION(ch);
+    /* Check for Improved Wild Shape perk (swift action) */
+    if (!IS_NPC(ch) && has_perk(ch, PERK_DRUID_IMPROVED_WILD_SHAPE))
+      USE_SWIFT_ACTION(ch);
+    else
+      USE_STANDARD_ACTION(ch);
 
     return;
   }
@@ -4238,7 +4267,11 @@ ACMD(do_wildshape)
   /* here is the engine, there are some more exit checks over there */
   if (wildshape_engine(ch, argument, 0))
   {
-    USE_STANDARD_ACTION(ch);
+    /* Check for Improved Wild Shape perk (swift action) */
+    if (!IS_NPC(ch) && has_perk(ch, PERK_DRUID_IMPROVED_WILD_SHAPE))
+      USE_SWIFT_ACTION(ch);
+    else
+      USE_STANDARD_ACTION(ch);
   }
 
   return;

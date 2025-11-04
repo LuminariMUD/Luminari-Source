@@ -3067,10 +3067,15 @@
 #define PERK_CATEGORY_BEAST_MASTER 19
 #define PERK_CATEGORY_WILDERNESS_WARRIOR 20
 
+/* Druid Perk Categories */
+#define PERK_CATEGORY_NATURES_WARRIOR 21
+#define PERK_CATEGORY_SEASONS_HERALD 22
+#define PERK_CATEGORY_NATURES_PROTECTOR 23
+
 /* Barbarian Perk Categories */
-#define PERK_CATEGORY_BERSERKER 21
-#define PERK_CATEGORY_TOTEM_WARRIOR 22
-#define PERK_CATEGORY_PRIMAL_CHAMPION 23
+#define PERK_CATEGORY_BERSERKER 24
+#define PERK_CATEGORY_TOTEM_WARRIOR 25
+#define PERK_CATEGORY_PRIMAL_CHAMPION 26
 
 /* Perk IDs - organized by class */
 /* Base perks start at 0, will define actual IDs in perks.c */
@@ -3519,7 +3524,75 @@
 /* ============================================================================
  * DRUID PERKS (600-699)
  * ============================================================================ */
-/* Not yet implemented */
+
+/* Nature's Warrior Tree - Tier 1 */
+#define PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1 600
+#define PERK_DRUID_NATURAL_ARMOR_1 601
+#define PERK_DRUID_NATURAL_WEAPONS_1 602
+#define PERK_DRUID_PRIMAL_INSTINCT_1 603
+
+/* Nature's Warrior Tree - Tier 2 */
+#define PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2 604
+#define PERK_DRUID_NATURAL_ARMOR_2 605
+#define PERK_DRUID_NATURAL_WEAPONS_2 606
+#define PERK_DRUID_IMPROVED_WILD_SHAPE 607
+
+/* Nature's Warrior Tree - Tier 3 */
+#define PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3 608
+#define PERK_DRUID_NATURAL_ARMOR_3 609
+#define PERK_DRUID_PRIMAL_INSTINCT_2 610
+#define PERK_DRUID_MIGHTY_WILD_SHAPE 611
+
+/* Nature's Warrior Tree - Tier 4 */
+#define PERK_DRUID_ELEMENTAL_WILD_SHAPE 612
+#define PERK_DRUID_PRIMAL_AVATAR 613
+#define PERK_DRUID_NATURAL_FURY 614
+
+/* Season's Herald Tree - Tier 1 */
+#define PERK_DRUID_SPELL_POWER_1 615
+#define PERK_DRUID_NATURES_FOCUS_1 616
+#define PERK_DRUID_ELEMENTAL_MANIPULATION_1 617
+#define PERK_DRUID_EFFICIENT_CASTER 618
+
+/* Season's Herald Tree - Tier 2 */
+#define PERK_DRUID_SPELL_POWER_2 619
+#define PERK_DRUID_NATURES_FOCUS_2 620
+#define PERK_DRUID_ELEMENTAL_MANIPULATION_2 621
+#define PERK_DRUID_SPELL_CRITICAL 622
+
+/* Season's Herald Tree - Tier 3 */
+#define PERK_DRUID_SPELL_POWER_3 623
+#define PERK_DRUID_STORM_CALLER 624
+#define PERK_DRUID_ELEMENTAL_MANIPULATION_3 625
+#define PERK_DRUID_NATURES_WRATH 626
+
+/* Season's Herald Tree - Tier 4 */
+#define PERK_DRUID_FORCE_OF_NATURE 627
+#define PERK_DRUID_ELEMENTAL_MASTERY 628
+#define PERK_DRUID_NATURES_VENGEANCE 629
+
+/* Nature's Protector Tree - Tier 1 */
+#define PERK_DRUID_HEALING_SPRING_1 630
+#define PERK_DRUID_ANIMAL_BOND_1 631
+#define PERK_DRUID_NATURAL_REMEDY_1 632
+#define PERK_DRUID_NATURES_BLESSING 633
+
+/* Nature's Protector Tree - Tier 2 */
+#define PERK_DRUID_HEALING_SPRING_2 634
+#define PERK_DRUID_ANIMAL_BOND_2 635
+#define PERK_DRUID_NATURAL_REMEDY_2 636
+#define PERK_DRUID_COMPANION_ENHANCEMENT 637
+
+/* Nature's Protector Tree - Tier 3 */
+#define PERK_DRUID_HEALING_SPRING_3 638
+#define PERK_DRUID_ANIMAL_BOND_3 639
+#define PERK_DRUID_REJUVENATION 640
+#define PERK_DRUID_PACK_LEADER 641
+
+/* Nature's Protector Tree - Tier 4 */
+#define PERK_DRUID_NATURES_GUARDIAN 642
+#define PERK_DRUID_VITAL_SURGE 643
+#define PERK_DRUID_ALPHA_COMPANION 644
 
 /* ============================================================================
  * BERSERKER PERKS (700-799) - Barbarian Class
