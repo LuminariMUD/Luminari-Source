@@ -11137,6 +11137,9 @@ int get_druid_wild_shape_attack_bonus(struct char_data *ch)
   /* Wild Shape Enhancement II: additional +1 attack per rank (max 3) */
   bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2, CLASS_DRUID);
   
+  /* Wild Shape Enhancement III: additional +1 attack per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3, CLASS_DRUID);
+  
   return bonus;
 }
 
@@ -11154,6 +11157,9 @@ int get_druid_wild_shape_damage_bonus(struct char_data *ch)
   /* Wild Shape Enhancement II: additional +1 damage per rank (max 3) */
   bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2, CLASS_DRUID);
   
+  /* Wild Shape Enhancement III: additional +1 damage per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_3, CLASS_DRUID);
+  
   return bonus;
 }
 
@@ -11168,6 +11174,9 @@ int get_druid_natural_armor_bonus(struct char_data *ch)
   /* Natural Armor II: additional +1 AC per rank (max 2) */
   bonus += get_perk_rank(ch, PERK_DRUID_NATURAL_ARMOR_2, CLASS_DRUID);
   
+  /* Natural Armor III: additional +1 AC per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_NATURAL_ARMOR_3, CLASS_DRUID);
+  
   return bonus;
 }
 
@@ -11181,6 +11190,9 @@ int get_druid_wild_shape_hp_bonus(struct char_data *ch)
     
   /* Primal Instinct I: +10 HP per rank (max 3) */
   bonus += get_perk_rank(ch, PERK_DRUID_PRIMAL_INSTINCT_1, CLASS_DRUID) * 10;
+  
+  /* Primal Instinct II: +15 HP per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_PRIMAL_INSTINCT_2, CLASS_DRUID) * 15;
   
   return bonus;
 }
@@ -11207,4 +11219,79 @@ bool has_druid_natural_weapons_improved_crit(struct char_data *ch)
     
   /* Natural Weapons II: critical on 19-20 */
   return has_perk(ch, PERK_DRUID_NATURAL_WEAPONS_2);
+}
+
+/* Check if druid is in elemental form and has Elemental Wild Shape perk */
+bool is_druid_in_elemental_form(struct char_data *ch)
+{
+  if (!IS_WILDSHAPED(ch))
+    return FALSE;
+    
+  if (!has_perk(ch, PERK_DRUID_ELEMENTAL_WILD_SHAPE))
+    return FALSE;
+    
+  if (GET_DISGUISE_RACE(ch) != RACE_UNDEFINED)
+  {
+    if (GET_DISGUISE_RACE(ch) < NUM_EXTENDED_RACES)
+    {
+      if (race_list[GET_DISGUISE_RACE(ch)].family == RACE_TYPE_ELEMENTAL)
+        return TRUE;
+    }
+  }
+    
+  return FALSE;
+}
+
+/* Get attack bonus from Elemental Wild Shape when in elemental form */
+int get_druid_elemental_attack_bonus(struct char_data *ch)
+{
+  if (!is_druid_in_elemental_form(ch))
+    return 0;
+    
+  return 3;
+}
+
+/* Get damage bonus from Elemental Wild Shape when in elemental form */
+int get_druid_elemental_damage_bonus(struct char_data *ch)
+{
+  if (!is_druid_in_elemental_form(ch))
+    return 0;
+    
+  return 6;
+}
+
+/* Get natural armor bonus from Elemental Wild Shape when in elemental form */
+int get_druid_elemental_armor_bonus(struct char_data *ch)
+{
+  if (!is_druid_in_elemental_form(ch))
+    return 0;
+    
+  return 3;
+}
+
+/* Get HP bonus from Elemental Wild Shape when in elemental form */
+int get_druid_elemental_hp_bonus(struct char_data *ch)
+{
+  if (!is_druid_in_elemental_form(ch))
+    return 0;
+    
+  return 50;
+}
+
+/* Check if druid has Primal Avatar (extra attack) */
+bool has_druid_primal_avatar(struct char_data *ch)
+{
+  if (!IS_WILDSHAPED(ch))
+    return FALSE;
+    
+  return has_perk(ch, PERK_DRUID_PRIMAL_AVATAR);
+}
+
+/* Check if druid has Natural Fury (triple damage crits) */
+bool has_druid_natural_fury(struct char_data *ch)
+{
+  if (!IS_WILDSHAPED(ch))
+    return FALSE;
+    
+  return has_perk(ch, PERK_DRUID_NATURAL_FURY);
 }

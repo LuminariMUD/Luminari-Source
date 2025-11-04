@@ -3635,6 +3635,7 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac)
   if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_DRUID) > 0)
   {
     hp_bonus = get_druid_wild_shape_hp_bonus(ch);
+    hp_bonus += get_druid_elemental_hp_bonus(ch);
   }
 
   /* init affect array */
@@ -4158,6 +4159,19 @@ bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
     abil_mods->dexterity += 2;
     abil_mods->constitution += 2;
     abil_mods->natural_armor += 1;
+  }
+  /* Druid perk bonuses - Mighty Wild Shape and Primal Avatar */
+  if (!IS_NPC(ch) && mode == 0) // wildshape only
+  {
+    if (has_perk(ch, PERK_DRUID_MIGHTY_WILD_SHAPE))
+    {
+      abil_mods->strength += 4;
+      abil_mods->constitution += 4;
+    }
+    if (has_perk(ch, PERK_DRUID_PRIMAL_AVATAR))
+    {
+      abil_mods->dexterity += 4;
+    }
   }
   /* set the bonuses */
   set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
