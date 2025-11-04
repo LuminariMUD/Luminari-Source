@@ -18,8 +18,13 @@ docs/web/
 ├── spells/
 │   ├── by_class.html      # Interactive spell reference organized by class
 │   └── reference.html     # Alphabetical spell reference
+├── objects/
+│   ├── index.html         # Object database search interface
+│   └── README.md          # Object database documentation
 ├── guides/
 │   └── oedit.html         # OEDIT Guide (converted from markdown)
+├── data/
+│   └── objects.json       # Object database data (generated from MySQL)
 └── assets/
     ├── css/
     │   └── style.css          # Shared stylesheet for all pages
@@ -243,6 +248,114 @@ This makes them:
 
 ---
 
+## ⚔️ Updating Object Database
+
+The object database is a static HTML/JavaScript interface that loads data from a JSON file.
+
+### Architecture
+
+Unlike the self-contained spell pages, the object database uses:
+- **Static HTML** (`objects/index.html`) - Interface with embedded JavaScript
+- **JSON Data File** (`data/objects.json`) - Database export
+- **Shared CSS** - Uses web portal's `assets/css/style.css`
+
+This separation allows updating the data without regenerating the entire page.
+
+### Generation Script
+
+Located in `util/`:
+- **`export_objectdb_to_json.py`** - Python script that exports MySQL database to JSON
+
+### Prerequisites
+
+```bash
+# Install pymysql module
+sudo apt install python3-pymysql
+```
+
+### Regenerating Object Data
+
+#### Using Existing Database Credentials
+
+If you have `docs/TODO/objectdb/mysql.php` configured:
+
+```bash
+# Run the export script (auto-detects mysql.php)
+python3 util/export_objectdb_to_json.py
+
+# Verify the output
+ls -lh docs/web/data/objects.json
+```
+
+#### Using Environment Variables
+
+```bash
+# Set database credentials
+export DB_HOST=localhost
+export DB_USER=your_username
+export DB_PASSWORD=your_password
+export DB_NAME=your_database
+
+# Run the export
+python3 util/export_objectdb_to_json.py
+```
+
+#### Custom Output Location
+
+```bash
+python3 util/export_objectdb_to_json.py /path/to/custom/output.json
+```
+
+### Committing Changes
+
+```bash
+# Add the generated JSON file
+git add docs/web/data/objects.json
+
+# Commit
+git commit -m "Update object database data"
+git push
+```
+
+### Object Database Features
+
+- **Interactive Search**: Filter by name, type, material, zone, level
+- **Advanced Filters**: Weapon groups, wear slots, bonus types
+- **Client-Side Performance**: No server required, instant filtering
+- **Mobile Responsive**: Works on all devices
+- **Collapsible Sections**: Organized by object type
+
+### Database Tables Used
+
+The export script queries these tables:
+- `object_database_items` - Main object data
+- `object_database_wear_slots` - Equipment slots
+- `object_database_bonuses` - Stat bonuses
+- `object_database_obj_flags` - Object flags
+- `object_database_perm_affects` - Permanent effects
+
+### Excluded Content
+
+The following zones are filtered out:
+- Code Items (DO NOT EDIT)
+- Builder Academy items
+- Player port restrings
+- PP (Player Port) exclusive items
+- Unused/test zones
+
+Items with the "Mold" flag are also excluded.
+
+### Documentation
+
+See `docs/web/objects/README.md` for detailed documentation on:
+- Search features
+- Database schema
+- Weapon groups
+- Troubleshooting
+- Future enhancements
+
+---
+
 ## 🎯 Best Practices
 
 ### File Naming Conventions
@@ -257,7 +370,9 @@ This makes them:
 |--------------|-----------|---------|
 | Builder guides | `guides/` | `oedit.html`, `builder-manual.html` |
 | Spell references | `spells/` | `by_class.html`, `reference.html` |
+| Object database | `objects/` | `index.html` |
 | Game mechanics | `mechanics/` (create) | `combat.html`, `crafting.html` |
+| Data files (JSON) | `data/` | `objects.json`, `spells.json` |
 | CSS stylesheets | `assets/css/` | `style.css`, `custom.css` |
 | JavaScript | `assets/js/` | `search.js`, `navigation.js` |
 | Images | `assets/img/` | `logo.png`, `banner.jpg` |
@@ -345,6 +460,12 @@ https://luminarimud.github.io/Luminari-Source/web/       → Landing page
 ```
 https://luminarimud.github.io/Luminari-Source/web/spells/by_class.html
 https://luminarimud.github.io/Luminari-Source/web/spells/reference.html
+```
+
+### Object Database
+```
+https://luminarimud.github.io/Luminari-Source/web/objects/
+https://luminarimud.github.io/Luminari-Source/web/data/objects.json
 ```
 
 ### Guides
@@ -458,10 +579,6 @@ Add/Update: Brief description
 - Detailed change 1
 - Detailed change 2
 - Why this change matters
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ---

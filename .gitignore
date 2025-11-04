@@ -175,6 +175,9 @@ vnums.h
 mud_options.h
 i3_config
 
+# Database credentials (PHP tools)
+docs/TODO/objectdb/mysql.php
+
 ####################
 # Environment Files
 ####################
