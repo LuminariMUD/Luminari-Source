@@ -545,7 +545,7 @@ void define_fighter_perks(void)
   perk = &perk_list[PERK_FIGHTER_IMMOVABLE_OBJECT];
   perk->id = PERK_FIGHTER_IMMOVABLE_OBJECT;
   perk->name = strdup("Immovable Object");
-  perk->description = strdup("DR 6/-, immunity to knockdown and bull rush");
+  perk->description = strdup("DR 6/-, immunity to knockdown");
   perk->associated_class = CLASS_WARRIOR;
   perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 5;
@@ -555,14 +555,14 @@ void define_fighter_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 6;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Increases DR to 6/- (replaces Defensive Stance DR) and grants immunity to knockdown and bull rush");
+  perk->special_description = strdup("Increases DR to 6/- (replaces Defensive Stance DR) and grants immunity to knockdown");
   perk->toggleable = true; /* Can be toggled on/off like Defensive Stance */
   
   /* Last Stand */
   perk = &perk_list[PERK_FIGHTER_LAST_STAND];
   perk->id = PERK_FIGHTER_LAST_STAND;
   perk->name = strdup("Last Stand");
-  perk->description = strdup("Once per day, when reduced to 0 HP, stay at 1 HP for 5 rounds");
+  perk->description = strdup("33% chance when reduced to 0 HP to survive at 1 HP");
   perk->associated_class = CLASS_WARRIOR;
   perk->perk_category = PERK_CATEGORY_DEFENDER;
   perk->cost = 5;
@@ -572,7 +572,7 @@ void define_fighter_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Once per day, when HP drops to 0 or below, remain at 1 HP for 5 rounds. Requires max Toughness I and max Resilience.");
+  perk->special_description = strdup("When HP drops to 0 or below, you have a 33% chance to remain at 1 HP instead of dying. Requires max Toughness I and max Resilience.");
   
   /*** TREE 3: TACTICAL FIGHTER - TIER I ***/
   
@@ -1058,7 +1058,7 @@ void define_wizard_perks(void)
   perk = &perk_list[PERK_WIZARD_SPELL_CRITICAL_1];
   perk->id = PERK_WIZARD_SPELL_CRITICAL_1;
   perk->name = strdup("Spell Critical I");
-  perk->description = strdup("Damage spells have 5% chance to deal double damage");
+  perk->description = strdup("Damage spells have 5% chance to deal 1.5x damage");
   perk->associated_class = CLASS_WIZARD;
   perk->perk_category = PERK_CATEGORY_EVOKER;
   perk->cost = 2;
@@ -1068,7 +1068,7 @@ void define_wizard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 5; /* 5% chance */
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Spell Power I (at least 3 ranks). Damaging spells have a 5% chance to critically strike for double damage.");
+  perk->special_description = strdup("Requires Spell Power I (at least 3 ranks). Damaging spells have a 5% chance to critically strike for 1.5x damage.");
   
   /* Maximize Spell */
   perk = &perk_list[PERK_WIZARD_MAXIMIZE_SPELL];
@@ -2165,7 +2165,7 @@ void define_cleric_perks(void)
   perk = &perk_list[PERK_CLERIC_CHANNEL_ENERGY_HARM];
   perk->id = PERK_CLERIC_CHANNEL_ENERGY_HARM;
   perk->name = strdup("Channel Energy: Harm");
-  perk->description = strdup("Channel negative energy: 2d6 damage to enemies");
+  perk->description = strdup("Channel negative energy effective level +2");
   perk->associated_class = CLASS_CLERIC;
   perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 2;
@@ -2173,9 +2173,9 @@ void define_cleric_perks(void)
   perk->prerequisite_perk = -1;
   perk->prerequisite_rank = 0;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 2; /* 2d6 damage */
+  perk->effect_value = 2; /* +2 effective level */
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Grants the ability to channel negative energy to harm living enemies in the room for 2d6 damage. Can be used in conjunction with the existing channel energy ability.");
+  perk->special_description = strdup("Grants the ability to channel negative energy to harm living enemies in the room. Increases your effective level for channel energy by +2.");
   
   /* Spiritual Weapon */
   perk = &perk_list[PERK_CLERIC_SPIRITUAL_WEAPON];
@@ -2263,7 +2263,7 @@ void define_cleric_perks(void)
   perk = &perk_list[PERK_CLERIC_CHANNEL_ENERGY_GREATER_HARM];
   perk->id = PERK_CLERIC_CHANNEL_ENERGY_GREATER_HARM;
   perk->name = strdup("Channel Energy: Greater Harm");
-  perk->description = strdup("Channel harm damage increases to 4d6");
+  perk->description = strdup("Channel harm effective level increased by 4");
   perk->associated_class = CLASS_CLERIC;
   perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 3;
@@ -2273,7 +2273,7 @@ void define_cleric_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 4; /* Increases channel level bonus */
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Channel Energy: Harm. Your negative energy channeling becomes more potent, dealing 4d6 damage instead of 2d6.");
+  perk->special_description = strdup("Requires Channel Energy: Harm. Your negative energy channeling becomes significantly more potent, increasing your effective level for channel energy by +4 (total +6 with Channel Energy: Harm).");
 
   /* Righteous Fury */
   perk = &perk_list[PERK_CLERIC_RIGHTEOUS_FURY];
@@ -2313,7 +2313,7 @@ void define_cleric_perks(void)
   perk = &perk_list[PERK_CLERIC_DIVINE_WRATH];
   perk->id = PERK_CLERIC_DIVINE_WRATH;
   perk->name = strdup("Divine Wrath");
-  perk->description = strdup("Smite +10d6, channel harm 6d6, holy damage +10");
+  perk->description = strdup("Smite +10d6, channel harm +2 levels, holy damage +10");
   perk->associated_class = CLASS_CLERIC;
   perk->perk_category = PERK_CATEGORY_BATTLE_CLERIC;
   perk->cost = 5;
@@ -2323,7 +2323,7 @@ void define_cleric_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 10; /* Various bonuses */
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Smite Evil III and Holy Weapon III. Divine wrath flows through your attacks. Smite Evil deals +10d6 damage, Channel Harm deals 6d6, and all holy damage from Holy Weapon is increased by +10.");
+  perk->special_description = strdup("Requires Smite Evil III and Holy Weapon III. Divine wrath flows through your attacks. Smite Evil deals +10d6 damage, Channel Harm effective level increases by +2 (total +8 with earlier perks), and all holy damage from Holy Weapon is increased by +10.");
   
   /*** DOMAIN MASTER TREE - TIER 1 PERKS (1 point each) ***/
   
@@ -2477,7 +2477,7 @@ void define_cleric_perks(void)
   perk = &perk_list[PERK_CLERIC_DIVINE_METAMAGIC_1];
   perk->id = PERK_CLERIC_DIVINE_METAMAGIC_1;
   perk->name = strdup("Divine Metamagic I");
-  perk->description = strdup("Apply metamagic to divine spells without increasing spell level");
+  perk->description = strdup("Reduce metamagic spell level increase by 1");
   perk->associated_class = CLASS_CLERIC;
   perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 2;
@@ -2517,7 +2517,7 @@ void define_cleric_perks(void)
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_DOMAIN_FOCUS_2;
-  perk->prerequisite_rank = 5; /* Must max Domain Focus II */
+  perk->prerequisite_rank = 2; /* Must max Domain Focus II */
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2; /* +2 DC for domain spells */
   perk->effect_modifier = 0;
@@ -2533,7 +2533,7 @@ void define_cleric_perks(void)
   perk->cost = 3;
   perk->max_rank = 2;
   perk->prerequisite_perk = PERK_CLERIC_DIVINE_SPELL_POWER_2;
-  perk->prerequisite_rank = 5; /* Must max Divine Spell Power II */
+  perk->prerequisite_rank = 3; /* Must max Divine Spell Power II */
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 3; /* +3 damage per rank */
   perk->effect_modifier = 0;
@@ -2559,7 +2559,7 @@ void define_cleric_perks(void)
   perk = &perk_list[PERK_CLERIC_DIVINE_METAMAGIC_2];
   perk->id = PERK_CLERIC_DIVINE_METAMAGIC_2;
   perk->name = strdup("Divine Metamagic II");
-  perk->description = strdup("Metamagic feats increase spell level by 2 less");
+  perk->description = strdup("Reduce metamagic spell level increase by additional 2");
   perk->associated_class = CLASS_CLERIC;
   perk->perk_category = PERK_CATEGORY_DOMAIN_MASTER;
   perk->cost = 4;
@@ -2569,7 +2569,7 @@ void define_cleric_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2; /* -2 spell level increase */
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Divine Metamagic I. When applying metamagic feats to your divine spells, the spell level increase is reduced by 2. Stacks with Divine Metamagic I for -3 total.");
+  perk->special_description = strdup("Requires Divine Metamagic I. When applying metamagic feats to your divine spells, the spell level increase is reduced by an additional 2 (total -3 with Divine Metamagic I).");
   
   /* Greater Turning */
   perk = &perk_list[PERK_CLERIC_GREATER_TURNING];
@@ -2581,7 +2581,7 @@ void define_cleric_perks(void)
   perk->cost = 3;
   perk->max_rank = 1;
   perk->prerequisite_perk = PERK_CLERIC_TURN_UNDEAD_ENHANCEMENT_2;
-  perk->prerequisite_rank = 5; /* Must max Turn Undead Enhancement II */
+  perk->prerequisite_rank = 2; /* Must max Turn Undead Enhancement II */
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2; /* +2 HD levels */
   perk->effect_modifier = 0;
@@ -4469,7 +4469,7 @@ void define_monk_perks(void)
   perk = &perk_list[PERK_MONK_ELEMENTAL_ATTUNEMENT_III];
   perk->id = PERK_MONK_ELEMENTAL_ATTUNEMENT_III;
   perk->name = strdup("Elemental Attunement III");
-  perk->description = strdup("Gain +4 ki points and immunity to one chosen element per rank");
+  perk->description = strdup("+1 ki point per rank, +20 resistance to fire/cold/acid/electric per rank");
   perk->associated_class = CLASS_MONK;
   perk->perk_category = PERK_CATEGORY_WAY_OF_THE_FOUR_ELEMENTS;
   perk->cost = 3;
@@ -4477,8 +4477,8 @@ void define_monk_perks(void)
   perk->prerequisite_perk = PERK_MONK_ELEMENTAL_ATTUNEMENT_II;
   perk->prerequisite_rank = 3;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 4;
-  perk->effect_modifier = 0;
+  perk->effect_value = 1;
+  perk->effect_modifier = 20;
   perk->special_description = strdup("Way of the Four Elements - Tier 3");
 
   /* Flames of the Phoenix */
