@@ -826,6 +826,16 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += 2;
   }
+  
+  /* Druid natural armor bonus from Nature's Warrior perks */
+  if (!IS_NPC(ch) && IS_WILDSHAPED(ch))
+  {
+    int druid_natural_armor = get_druid_natural_armor_bonus(ch);
+    if (druid_natural_armor > 0)
+    {
+      bonuses[BONUS_TYPE_NATURALARMOR] += druid_natural_armor;
+    }
+  }
   /**/
 
   /* bonus type armor */
@@ -6284,6 +6294,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  /* Druid wild shape damage bonus - Nature's Warrior perks */
+  if (!IS_NPC(ch) && IS_WILDSHAPED(ch))
+  {
+    int druid_wildshape_bonus = get_druid_wild_shape_damage_bonus(ch);
+    if (druid_wildshape_bonus > 0)
+    {
+      if (display_mode)
+        send_to_char(ch, "Wild Shape Enhancement damage: \tR%d\tn\r\n", druid_wildshape_bonus);
+      dambonus += druid_wildshape_bonus;
+    }
+  }
+
   /* ranged includes arrow enhancement bonus + special ranged bonus to favored enemies with the epic favored enemy feat */
   if (can_fire_ammo(ch, TRUE))
   {
@@ -6854,6 +6876,12 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
     int monk_crit_range = get_monk_unarmed_crit_range(ch);
     if (monk_crit_range < 20)
       threat_range = MIN(threat_range, monk_crit_range);
+  }
+
+  /* Druid Natural Weapons II - improved crit range for wild shape natural weapons */
+  if (!IS_NPC(ch) && IS_WILDSHAPED(ch) && !wielded && has_druid_natural_weapons_improved_crit(ch))
+  {
+    threat_range = MIN(threat_range, 19);
   }
 
   /* end mods */
@@ -9519,6 +9547,18 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += monk_weapon_bonus;
       if (display)
         send_to_char(ch, "%2d: %-50s\r\n", monk_weapon_bonus, "Monk Weapon Attack Bonus");
+    }
+  }
+
+  /* Druid wild shape attack bonus - Nature's Warrior perks */
+  if (!IS_NPC(ch) && IS_WILDSHAPED(ch))
+  {
+    int druid_wildshape_bonus = get_druid_wild_shape_attack_bonus(ch);
+    if (druid_wildshape_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_UNDEFINED] += druid_wildshape_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", druid_wildshape_bonus, "Wild Shape Enhancement");
     }
   }
 

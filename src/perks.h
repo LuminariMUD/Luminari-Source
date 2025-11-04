@@ -300,6 +300,14 @@ bool has_monk_breath_of_winter(struct char_data *ch);
 bool has_monk_elemental_embodiment(struct char_data *ch);
 bool has_monk_avatar_of_elements(struct char_data *ch);
 
+/* Druid perk helper functions (Nature's Warrior tree) */
+int get_druid_wild_shape_attack_bonus(struct char_data *ch);
+int get_druid_wild_shape_damage_bonus(struct char_data *ch);
+int get_druid_natural_armor_bonus(struct char_data *ch);
+int get_druid_wild_shape_hp_bonus(struct char_data *ch);
+int get_druid_natural_weapons_damage_dice(struct char_data *ch);
+bool has_druid_natural_weapons_improved_crit(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

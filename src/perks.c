@@ -11120,3 +11120,91 @@ void define_druid_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("Requires Animal Bond III (max). Your animal companion becomes a dire version with doubled base stats (HP, damage, AC).");
 }
+
+/* Nature's Warrior Druid Perk Helper Functions */
+
+/* Get attack bonus from Wild Shape Enhancement perks when wild shaped */
+int get_druid_wild_shape_attack_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!IS_WILDSHAPED(ch))
+    return 0;
+    
+  /* Wild Shape Enhancement I: +1 attack per rank (max 5) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1, CLASS_DRUID);
+  
+  /* Wild Shape Enhancement II: additional +1 attack per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2, CLASS_DRUID);
+  
+  return bonus;
+}
+
+/* Get damage bonus from Wild Shape Enhancement perks when wild shaped */
+int get_druid_wild_shape_damage_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!IS_WILDSHAPED(ch))
+    return 0;
+    
+  /* Wild Shape Enhancement I: +1 damage per rank (max 5) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_1, CLASS_DRUID);
+  
+  /* Wild Shape Enhancement II: additional +1 damage per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_DRUID_WILD_SHAPE_ENHANCEMENT_2, CLASS_DRUID);
+  
+  return bonus;
+}
+
+/* Get natural armor bonus from Nature's Warrior perks */
+int get_druid_natural_armor_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  /* Natural Armor I: +1 AC per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_DRUID_NATURAL_ARMOR_1, CLASS_DRUID);
+  
+  /* Natural Armor II: additional +1 AC per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_NATURAL_ARMOR_2, CLASS_DRUID);
+  
+  return bonus;
+}
+
+/* Get HP bonus from Primal Instinct perks when wild shaped */
+int get_druid_wild_shape_hp_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (!IS_WILDSHAPED(ch))
+    return 0;
+    
+  /* Primal Instinct I: +10 HP per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_DRUID_PRIMAL_INSTINCT_1, CLASS_DRUID) * 10;
+  
+  return bonus;
+}
+
+/* Get weapon damage dice bonus from Natural Weapons perks when wild shaped */
+int get_druid_natural_weapons_damage_dice(struct char_data *ch)
+{
+  int dice = 0;
+  
+  if (!IS_WILDSHAPED(ch))
+    return 0;
+    
+  /* Natural Weapons I: +1d4 per rank (max 3) */
+  dice += get_perk_rank(ch, PERK_DRUID_NATURAL_WEAPONS_1, CLASS_DRUID);
+  
+  return dice;
+}
+
+/* Check if druid has improved critical range for natural weapons (19-20) */
+bool has_druid_natural_weapons_improved_crit(struct char_data *ch)
+{
+  if (!IS_WILDSHAPED(ch))
+    return FALSE;
+    
+  /* Natural Weapons II: critical on 19-20 */
+  return has_perk(ch, PERK_DRUID_NATURAL_WEAPONS_2);
+}
