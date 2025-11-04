@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OEDIT Guide for Builders - LuminariMUD</title>
+    <meta name="description" content="LuminariMUD documentation and guides">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        body {
+            padding-bottom: 50px;
+        }
+        .doc-header {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .doc-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .doc-content {
+            line-height: 1.8;
+            color: #333;
+        }
+        .doc-content h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        .doc-content h2 {
+            color: #667eea;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        .doc-content h3 {
+            color: #764ba2;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-size: 1.4em;
+        }
+        .doc-content h4 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95em;
+        }
+        .doc-content table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .doc-content table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .doc-content table tr:hover {
+            background: #f8f9fa;
+        }
+        .doc-content code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+        .doc-content pre {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+        }
+        .doc-content pre code {
+            background: none;
+            padding: 0;
+            color: #333;
+        }
+        .doc-content ul, .doc-content ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        .doc-content li {
+            margin: 8px 0;
+        }
+        .doc-content blockquote {
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .doc-content strong {
+            color: #667eea;
+            font-weight: 600;
+        }
+        .breadcrumb {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            border-radius: 6px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            font-size: 24px;
+        }
+        .back-to-top:hover {
+            background: #5568d3;
+            transform: translateY(-5px);
+        }
+        @media (max-width: 768px) {
+            .doc-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            .doc-header {
+                padding: 30px 15px;
+            }
+            .doc-header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-header">
+        <h1>OEDIT Guide for Builders</h1>
+        <p style="font-size: 1.2em; margin-top: 10px; opacity: 0.9;">Complete
+reference for the object editor</p>
+    </div>
+
+    <div class="breadcrumb">
+        <a href="../index.html">🏠 Home</a> /
+        <a href="../index.html#builder-guides">Builder Guides</a> /
+        <span style="color: #666;">OEDIT Guide for Builders</span>
+    </div>
+
+    <div class="doc-container">
+        <div class="doc-content">
+<h1 id="oedit-guide-for-builders">OEDIT Guide for Builders</h1>
+<h2 id="getting-started">Getting Started</h2>
+<ul>
+<li>Enter the editor with <code>oedit &lt;vnum&gt;</code> to modify an
+existing object or <code>oedit create &lt;vnum&gt;</code> for a fresh
+prototype.</li>
+<li>Work is buffered in memory until you quit with <code>Q</code>
+followed by <code>Y</code>. Choosing <code>N</code> abandons your
+changes.</li>
+<li>Menus accept single‐character choices. Numeric submenus expect plain
+numbers (type <code>10</code>, not <code>a</code>).</li>
+<li>String entries use the standard line editor (<code>~</code> on a
+blank line finishes multiline input).</li>
+<li>All edits target the prototype; mobile/program reloads pick up the
+new values after you <code>Q</code>+<code>Y</code> or
+<code>redit save</code> the zone.</li>
+</ul>
+<h2 id="main-menu-snapshot">Main Menu Snapshot</h2>
+<pre><code>-- Item number : [####]
+1) Keywords               H) Material           T) Spellbook menu
+2) Short description      8) Weight             EQ Rating ...
+3) Long description       I) Size               Suggested affects ...
+4) Action description     9) Cost               W) Copy object
+5) Type                   A) Cost/Day           X) Delete object
+6) Extra flags            B) Timer              Q) Quit
+7) Wear flags             C) Values             
+                          D) Applies menu       F) Weapon Spells
+                          E) Extra descriptions J) Special Abilities
+                          K) Activated Spells   M) Minimum Level
+                          P) Permanent affects  R) Mob Recipient
+                          S) Script             </code></pre>
+<h3 id="text-fields-14">Text Fields (1–4)</h3>
+<ul>
+<li><code>1) Keywords</code> populate the name list used by
+<code>get</code>/<code>oload</code>.</li>
+<li><code>2) Short description</code> shows in room/inventory
+lists.</li>
+<li><code>3) Long description</code> is what appears on the ground.</li>
+<li><code>4) Action description</code> is optional flavor for
+<code>look &lt;obj&gt;</code> or context actions.</li>
+</ul>
+<h3 id="object-identity">Object Identity</h3>
+<ul>
+<li><code>5) Type</code> drives downstream menus. Set this first after
+clearing values; many other prompts depend on it.</li>
+<li><code>6) Extra flags</code> toggles general item bitflags
+(<code>glow</code>, <code>magic</code>, <code>nodrop</code>, etc.).
+Enter the flag number to toggle, <code>0</code> to return. See the <a
+href="#extra-flags-reference">Extra Flags Reference</a> below for the
+complete list.</li>
+<li><code>7) Wear flags</code> toggles where the item can be equipped.
+The editor resets all wear bits when you pick a weapon type, so revisit
+after <code>5)</code> if needed.</li>
+<li><code>H) Material</code> selects from the global material list (0 =
+undefined). Material influences repair, crafting, and auto-generated
+descriptions.</li>
+<li><code>I) Size</code> maps to the size checks used for wielding and
+containers.</li>
+<li><code>R) Mob Recipient</code> restricts who can receive the item via
+<code>give</code>. Enter the NPC vnum or <code>0</code> to allow any
+NPC; players may always trade it.</li>
+</ul>
+<h3 id="economy-lifespan">Economy &amp; Lifespan</h3>
+<ul>
+<li><code>8) Weight</code> and <code>9) Cost</code> are raw integers;
+weight is in pounds.</li>
+<li><code>A) Cost/Day</code> sets rent/upkeep.</li>
+<li><code>B) Timer</code> controls decay. <code>0</code> means the item
+never times out; positive values count down in mud pulses.</li>
+<li><code>M) Minimum Level</code> enforces a baseline usage level and
+feeds suggested enhancement output.</li>
+</ul>
+<h3 id="derived-power">Derived Power</h3>
+<ul>
+<li><code>P) Permanent affects</code> toggles permanent
+<code>affected_by</code> flags (e.g., <code>SANCTUARY</code>). Use these
+sparingly; they behave like always-on spell affects.</li>
+<li><code>D) Applies menu</code> manages up to
+<code>MAX_OBJ_AFFECT</code> (5) slot entries.
+<ul>
+<li>Choose a slot (1–5) to edit.</li>
+<li>Select the apply from the list (<code>STR</code>, <code>DEX</code>,
+<code>AC</code>, <code>FEAT</code>, etc.). Applies that require a
+specific school/skill prompt for a follow-up selection.</li>
+<li>Enter the modifier and pick a bonus type (stacking rules). A value
+of <code>0/None</code> clears the slot.</li>
+</ul></li>
+<li>The main menu shows an <strong>EQ Rating</strong> and
+<strong>Suggested affects</strong> after you save and re-enter; use them
+as guidance, not hard rules.</li>
+</ul>
+<h3 id="descriptions-scripts">Descriptions &amp; Scripts</h3>
+<ul>
+<li><code>E) Extra descriptions</code> lets you add keyword-triggered
+flavor text. Each entry needs both keywords and a description, otherwise
+it will be discarded when you exit the submenu.</li>
+<li><code>S) Script</code> jumps into the DG Script editor. Note that
+scripting is disabled when editing a live instance via
+<code>iedit</code>.</li>
+</ul>
+<h2 id="editing-values-c">Editing Values (C)</h2>
+<p>Selecting <code>C</code> zeroes all 16 value slots before prompting.
+The sequence of prompts varies by item type; set the type first so the
+correct path is taken. Below are the most common cases:</p>
+<h3 id="weapons-item_weapon">Weapons (<code>ITEM_WEAPON</code>)</h3>
+<ul>
+<li>Picking the weapon type auto-populates dice, cost, weight, material,
+size, and wear slots from <code>weapon_list</code>.</li>
+<li>After the type is chosen you go straight to the enhancement prompt
+(<code>Value5</code>).</li>
+<li>You can revisit <code>C</code> if you need to tweak damage dice
+(<code>Value2/Value3</code>) or attack type (<code>Value4</code>); be
+aware that re-running <code>C</code> resets enhancements.</li>
+</ul>
+<h3 id="armor-item_armor-and-item_clanarmor">Armor
+(<code>ITEM_ARMOR</code> and <code>ITEM_CLANARMOR</code>)</h3>
+<ul>
+<li>Selecting the armor subtype (<code>Value2</code>) auto-fills AC,
+size, material, and wear flags via <code>set_armor_object</code>.</li>
+<li>Enhancement bonus is collected at <code>Value5</code> (0–10). Clan
+armor prompts for clan ID at <code>Value2</code>.</li>
+</ul>
+<h3 id="ammunition-ranged">Ammunition &amp; Ranged</h3>
+<ul>
+<li><code>ITEM_FIREWEAPON</code>: <code>Value1</code> sets damage dice,
+<code>Value3</code> sets break chance (2–98), <code>Value5</code> is
+enhancement.</li>
+<li><code>ITEM_MISSILE</code>: <code>Value0</code> picks ammo category,
+<code>Value3</code> sets break chance, <code>Value5</code> handles
+enhancement.</li>
+<li><code>ITEM_AMMO_POUCH</code> / <code>ITEM_CONTAINER</code>:
+<code>Value0</code> capacity (lbs; <code>-1</code> unlimited).
+<code>Value1</code> opens a flag toggle for closeable/lockable bits;
+enter <code>0</code> when done. <code>Value2</code> key vnum
+(<code>-1</code> none).</li>
+</ul>
+<h3 id="consumables">Consumables</h3>
+<ul>
+<li><code>ITEM_POTION</code> / <code>ITEM_SCROLL</code>:
+<code>Value0</code> spell level. <code>Value1–3</code> choose spells
+(use <code>-1</code> or <code>0</code> to clear a slot).
+<code>Value4</code> accepts an optional third spell.</li>
+<li><code>ITEM_WAND</code> / <code>ITEM_STAFF</code>:
+<code>Value0</code> spell level, <code>Value1</code> max charges,
+<code>Value2</code> current charges, <code>Value3</code> spell to cast.
+A value of <code>-1</code> clears a spell slot.</li>
+<li><code>ITEM_POISON</code>: prompts for poison spell, level,
+applications, and hits per application across the first four
+values.</li>
+</ul>
+<h3 id="lights-miscellaneous">Lights &amp; Miscellaneous</h3>
+<ul>
+<li><code>ITEM_LIGHT</code>: jump straight to <code>Value3</code> for
+burn hours (<code>-1</code> = infinite, <code>0</code> = burnt
+out).</li>
+<li><code>ITEM_DRINKCON</code> / <code>ITEM_FOUNTAIN</code>: values
+cover capacity, remaining units, and liquid type.</li>
+<li><code>ITEM_PORTAL</code>: values depend on portal mode; the prompts
+call out the required vnums or ranges.</li>
+<li><code>ITEM_TREASURE_CHEST</code>: values cover loot tier, guaranteed
+loot type, random chest flag, search DC, pick DC, and optional trap
+type.</li>
+<li><code>ITEM_GEAR_OUTFIT</code>: values configure preset gear
+bundles—type, enhancement, material, applies, and bonus types.</li>
+</ul>
+<p>For unusual object types, read the prompts carefully; each menu is
+sourced from <code>src/oedit.c</code> and mirrors the in-game
+expectations.</p>
+<h2 id="combat-enhancements">Combat Enhancements</h2>
+<ul>
+<li><code>F) Weapon Spells</code> manages up to
+<code>MAX_WEAPON_SPELLS</code> (4) procs.
+<ul>
+<li>Choose the slot number. Enter <code>-1</code> at the spell list to
+clear the slot.</li>
+<li>Set the cast level (≥1), the chance to proc (<code>1–50</code>%),
+then whether it fires only in combat (<code>1</code> offensive) or
+defensively (<code>0</code>).</li>
+</ul></li>
+<li><code>J) Special Abilities</code> attaches structured weapon
+spec-abilities.
+<ul>
+<li><code>N</code> creates a new ability; <code>E</code> selects an
+existing one by position; <code>C</code> removes all.</li>
+<li>For each ability choose the type, minimum level (1–34), activation
+methods (toggle numbers; <code>0</code> finishes), optional command
+word, and ability-specific values (e.g., Bane race/subrace).</li>
+</ul></li>
+<li><code>K) Activated Spells</code> configures a charged use effect
+(wands, staves, oddities).
+<ul>
+<li>Enter <code>0</code> at the level prompt to remove the
+activation.</li>
+<li>Valid levels are 1–30; spells are chosen from the filtered list that
+follows.</li>
+<li>Uses must be between 1 and
+<code>MAX_NUMBER_OF_ACTIVATED_SPELL_USES</code> (5). Items regenerate
+one use every five minutes in-game.</li>
+</ul></li>
+</ul>
+<h2 id="spellbooks-t">Spellbooks (<code>T</code>)</h2>
+<ul>
+<li>Spellbooks can store up to <code>SPELLBOOK_SIZE</code> entries
+(200). The prompt shows existing spells grouped by circle and the next
+empty slot.</li>
+<li>Selecting a slot opens the spell-picker. Enter <code>0</code> to
+clear the slot.</li>
+<li>Pages are assigned automatically to at least 1 and default to half
+of the spell’s minimum wizard level (integer division). Builders cannot
+override pages directly in OEDIT.</li>
+</ul>
+<h2 id="copying-deleting-and-saving">Copying, Deleting, and Saving</h2>
+<ul>
+<li><code>W) Copy object</code> clones an existing prototype into the
+current buffer (useful for variants). You still need to
+<code>Q</code>+<code>Y</code> to persist the changes.</li>
+<li><code>X) Delete object</code> permanently removes the prototype
+after confirmation; instances already in the world remain until
+extracted.</li>
+<li><code>Q) Quit</code> prompts to save. Respond with <code>Y</code> to
+write to disk (and update live prototypes) or <code>N</code> to
+discard.</li>
+</ul>
+<h2 id="tips-verification">Tips &amp; Verification</h2>
+<ul>
+<li>Keep object levels, enhancement bonuses, and pricing consistent;
+rely on <code>EQ Rating</code> and the suggested bonus hints but always
+sanity-check against existing loot.</li>
+<li>After major edits, <code>oload &lt;vnum&gt;</code> in a controlled
+area and <code>stat obj</code> to verify wear flags, applies, and
+scripts.</li>
+<li>Use <code>plist</code>/<code>olist</code> to ensure numbering stays
+within zone limits and to spot accidental duplicates.</li>
+<li>For DG scripts, coordinate with an implementor when attaching
+complex triggers.</li>
+<li>Cross-reference <code>src/oedit.c</code>,
+<code>src/treasure.c</code>, and <code>constants.c</code> for the
+definitive lists of types, flags, and ability IDs.</li>
+</ul>
+<h2 id="extra-flags-reference">Extra Flags Reference</h2>
+<p>When you select <code>6) Extra flags</code> from the main menu, you
+can toggle any of the 114 available item flags by entering their number.
+Enter <code>0</code> to return to the main menu. Below is the complete
+list:</p>
+<h3 id="display-visual-effects">Display &amp; Visual Effects</h3>
+<table>
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 26%" />
+<col style="width: 35%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Flag Name</th>
+<th>Code Constant</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>Glows</td>
+<td>ITEM_GLOW</td>
+<td>Contributes +1 to room light level and allows object visibility in
+darkness, preventing total concealment from invisibility</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>Hums</td>
+<td>ITEM_HUM</td>
+<td>Display-only cosmetic flag showing humming sound descriptor when
+examining object; no gameplay mechanics</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Invisible</td>
+<td>ITEM_INVISIBLE</td>
+<td>Makes item invisible to normal sight; only visible to characters
+with detect invisibility or true sight abilities</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Magical</td>
+<td>ITEM_MAGIC</td>
+<td>Weapons bypass magical damage reduction (DR/magic), allowing harm to
+creatures immune to non-magical weapons; visible under detect magic</td>
+</tr>
+<tr class="odd">
+<td>38</td>
+<td>Floating</td>
+<td>ITEM_FLOAT</td>
+<td>Prevents object from falling when dropped in fly-required rooms;
+floats gracefully in mid-air instead of falling</td>
+</tr>
+<tr class="even">
+<td>39</td>
+<td>Hidden</td>
+<td>ITEM_HIDDEN</td>
+<td>Item requires successful perception check (search command) to
+discover; partially implemented with treasure chest system</td>
+</tr>
+<tr class="odd">
+<td>40</td>
+<td>Magical-Light</td>
+<td>ITEM_MAGLIGHT</td>
+<td>Provides +1 magical light to rooms (both equipped and in inventory),
+improving visibility in dark areas independent of traditional light
+sources</td>
+</tr>
+<tr class="even">
+<td>45</td>
+<td>Flaming</td>
+<td>ITEM_FLAMING</td>
+<td>Toggleable weapon ability dealing 1d6 fire damage on each hit when
+activated; wielder must toggle on/off</td>
+</tr>
+<tr class="odd">
+<td>46</td>
+<td>Frosty</td>
+<td>ITEM_FROST</td>
+<td>Toggleable weapon ability dealing 1d6 cold damage on each hit when
+activated; wielder must toggle on/off</td>
+</tr>
+<tr class="even">
+<td>92</td>
+<td>Shocking Weapon</td>
+<td>ITEM_SHOCK</td>
+<td>Toggleable weapon ability dealing 1d6 electrical damage on each hit
+when activated; wielder must toggle on/off</td>
+</tr>
+</tbody>
+</table>
+<h3 id="item-handling-economy">Item Handling &amp; Economy</h3>
+<table>
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 26%" />
+<col style="width: 35%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Flag Name</th>
+<th>Code Constant</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2</td>
+<td>Not-Rentable</td>
+<td>ITEM_NORENT</td>
+<td>Prevents item from being rented at rental facilities; items
+automatically extracted when character attempts to rent</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>Not-Donateable</td>
+<td>ITEM_NODONATE</td>
+<td>Prevents donation to donation rooms; if donated, item converts to
+junk and is disposed of</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td>Immune-Invis</td>
+<td>ITEM_NOINVIS</td>
+<td>Prevents invisibility spell from being cast on item, protecting it
+from magical concealment effects</td>
+</tr>
+<tr class="even">
+<td>7</td>
+<td>Not-Droppable</td>
+<td>ITEM_NODROP</td>
+<td>Cursed item that cannot be dropped, transferred, or removed from
+inventory except by staff with NOHASSLE mode; confers flag to containers
+it’s placed in</td>
+</tr>
+<tr class="odd">
+<td>16</td>
+<td>Not-Sellable</td>
+<td>ITEM_NOSELL</td>
+<td>Prevents shopkeepers from purchasing item and blocks sell-related
+transactions at vendor shops</td>
+</tr>
+<tr class="even">
+<td>17</td>
+<td>Quest-Item</td>
+<td>ITEM_QUEST</td>
+<td>Marks item as quest item with special shop handling; costs quest
+points instead of gold when purchased, displays as “qp” in shop
+listings</td>
+</tr>
+<tr class="odd">
+<td>41</td>
+<td>No-Locate</td>
+<td>ITEM_NOLOCATE</td>
+<td>Prevents item from being found by locate object and locate creature
+spells (defined but not actively enforced)</td>
+</tr>
+<tr class="even">
+<td>42</td>
+<td>No-Burn</td>
+<td>ITEM_NOBURN</td>
+<td>Prevents item from being destroyed by disintegration spells;
+protects from destructive magical effects (defined but not fully
+implemented)</td>
+</tr>
+<tr class="odd">
+<td>43</td>
+<td>Transient</td>
+<td>ITEM_TRANSIENT</td>
+<td>Item crumbles and fades when dropped; drop dissipation mechanic
+currently defined but not fully implemented</td>
+</tr>
+<tr class="even">
+<td>100</td>
+<td>No-Sacrifice</td>
+<td>ITEM_NOSAC</td>
+<td>Prevents item from being sacrificed to deities or salvaged for
+crafting materials; blocks sacrifice and salvage commands with explicit
+prevention messages</td>
+</tr>
+</tbody>
+</table>
+<h3 id="alignment-restrictions">Alignment Restrictions</h3>
+<table>
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 26%" />
+<col style="width: 35%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Flag Name</th>
+<th>Code Constant</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>9</td>
+<td>Anti-Good</td>
+<td>ITEM_ANTI_GOOD</td>
+<td>Prevents good-aligned characters from equipping; item fumbles to
+inventory with message “You try to use [item], but fumble it and let go”
+(immortals bypass)</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td>Anti-Evil</td>
+<td>ITEM_ANTI_EVIL</td>
+<td>Prevents evil-aligned characters from equipping; item fumbles to
+inventory with message “You try to use [item], but fumble it and let go”
+(immortals bypass)</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td>Anti-Neutral</td>
+<td>ITEM_ANTI_NEUTRAL</td>
+<td>Prevents neutral-aligned characters from equipping; item fumbles to
+inventory with message “You try to use [item], but fumble it and let go”
+(immortals bypass)</td>
+</tr>
+<tr class="even">
+<td>60</td>
+<td>Anti-Lawful</td>
+<td>ITEM_ANTI_LAWFUL</td>
+<td>Prevents lawful-aligned characters from equipping; item fumbles to
+inventory with message “You try to use [item], but fumble it and let go”
+(immortals bypass)</td>
+</tr>
+<tr class="odd">
+<td>61</td>
+<td>Anti-Chaotic</td>
+<td>ITEM_ANTI_CHAOTIC</td>
+<td>Prevents chaotic-aligned characters from equipping; item fumbles to
+inventory with message “You try to use [item], but fumble it and let go”
+(immortals bypass)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="class-restrictions---anti">Class Restrictions - Anti</h3>
+<p><strong>NOTE:</strong> Class Anti flags are currently DISABLED for
+equipment (incompatibility with homeland zones) but still functional for
+portal entry restrictions.</p>
+<table>
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 26%" />
+<col style="width: 35%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Flag Name</th>
+<th>Code Constant</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>12</td>
+<td>Anti-Wizard</td>
+<td>ITEM_ANTI_WIZARD</td>
+<td>Would prevent Wizards from equipping if enabled; currently only
+blocks portal entry for Wizards</td>
+</tr>
+<tr class="even">
+<td>13</td>
+<td>Anti-Cleric</td>
+<td>ITEM_ANTI_CLERIC</td>
+<td>Would prevent Clerics from equipping if enabled; currently only
+blocks portal entry for Clerics</td>
+</tr>
+<tr class="odd">
+<td>14</td>
+<td>Anti-Rogue</td>
+<td>ITEM_ANTI_ROGUE</td>
+<td>Would prevent Rogues from equipping if enabled; currently only
+blocks portal entry for Rogues</td>
+</tr>
+<tr class="even">
+<td>15</td>
+<td>Anti-Warrior</td>
+<td>ITEM_ANTI_WARRIOR</td>
+<td>Would prevent Warriors from equipping if enabled; currently only
+blocks portal entry for Warriors</td>
+</tr>
+<tr class="odd">
+<td>22</td>
+<td>Anti-Monk</td>
+<td>ITEM_ANTI_MONK</td>
+<td>Would prevent Monks from equipping if enabled; currently only blocks
+portal entry for Monks</td>
+</tr>
+<tr class="even">
+<td>23</td>
+<td>Anti-Druid</td>
+<td>ITEM_ANTI_DRUID</td>
+<td>Would prevent Druids from equipping if enabled; currently only
+blocks portal entry for Druids</td>
+</tr>
+<tr class="odd">
+<td>30</td>
+<td>Anti-Berserker</td>
+<td>ITEM_ANTI_BERSERKER</td>
+<td>Would prevent Berserkers from equipping if enabled; currently only
+blocks portal entry for Berserkers</td>
+</tr>
+<tr class="even">
+<td>32</td>
+<td>Anti-Sorcerer</td>
+<td>ITEM_ANTI_SORCERER</td>
+<td>Would prevent Sorcerers from equipping if enabled; currently only
+blocks portal entry for Sorcerers</td>
+</tr>
+<tr class="odd">
+<td>34</td>
+<td>Anti-Paladin</td>
+<td>ITEM_ANTI_PALADIN</td>
+<td>Would prevent Paladins from equipping if enabled; currently only
+blocks portal entry for Paladins</td>
+</tr>
+<tr class="even">
+<td>35</td>
+<td>Anti-Ranger</td>
+<td>ITEM_ANTI_RANGER</td>
+<td>Would prevent Rangers from equipping if enabled; currently only
+blocks portal entry for Rangers</td>
+</tr>
+<tr class="odd">
+<td>36</td>
+<td>Anti-Bard</td>
+<td>ITEM_ANTI_BARD</td>
+<td>Would prevent Bards from equipping if enabled; currently only blocks
+portal entry for Bards</td>
+</tr>
+<tr class="even">
+<td>48</td>
+<td>Anti-WeaponMaster</td>
+<td>ITEM_ANTI_WEAPONMASTER</td>
+<td>Would prevent Weaponmasters from equipping if enabled; currently
+only blocks portal entry for Weaponmasters</td>
+</tr>
+<tr class="odd">
+<td>83</td>
+<td>Anti-Arcane-Archer</td>
+<td>ITEM_ANTI_ARCANE_ARCHER</td>
+<td>Would prevent Arcane Archers from equipping if enabled; currently
+only blocks portal entry for Arcane Archers</td>
+</tr>
+<tr class="even">
+<td>84</td>
+<td>Anti-Stalwart-Defender</td>
+<td>ITEM_ANTI_STALWART_DEFENDER</td>
+<td>Would prevent Stalwart Defenders from equipping if enabled;
+currently only blocks portal entry for Stalwart Defenders</td>
+</tr>
+<tr class="odd">
+<td>85</td>
+<td>Anti-Shifter</td>
+<td>ITEM_ANTI_SHIFTER</td>
+<td>Would prevent Shifters from equipping if enabled; currently only
+blocks portal entry for Shifters</td>
+</tr>
+<tr class="even">
+<td>86</td>
+<td>Anti-Duelist</td>
+<td>ITEM_ANTI_DUELIST</td>
+<td>Would prevent Duelists from equipping if enabled; currently only
+blocks portal entry for Duelists</td>
+</tr>
+<tr class="odd">
+<td>87</td>
+<td>Anti-Mystic-Theurge</td>
+<td>ITEM_ANTI_MYSTIC_THEURGE</td>
+<td>Would prevent Mystic Theurges from equipping if enabled; currently
+only blocks portal entry for Mystic Theurges</td>
+</tr>
+<tr class="even">
+<td>88</td>
+<td>Anti-Alchemist</td>
+<td>ITEM_ANTI_ALCHEMIST</td>
+<td>Would prevent Alchemists from equipping if enabled; currently only
+blocks portal entry for Alchemists</td>
+</tr>
+<tr class="odd">
+<td>89</td>
+<td>Anti-Arcane-Shadow</td>
+<td>ITEM_ANTI_ARCANE_SHADOW</td>
+<td>Would prevent Arcane Shadows from equipping if enabled; currently
+only blocks portal entry for Arcane Shadows</td>
+</tr>
+<tr class="even">
+<td>90</td>
+<td>Anti-Sacred-Fist</td>
+<td>ITEM_ANTI_SACRED_FIST</td>
+<td>Would prevent Sacred Fists from equipping if enabled; currently only
+blocks portal entry for Sacred Fists</td>
+</tr>
+<tr class="odd">
+<td>91</td>
+<td>Anti-Eldritch-Knight</td>
+<td>ITEM_ANTI_ELDRITCH_KNIGHT</td>
+<td>Would prevent Eldritch Knights from equipping if enabled; currently
+only blocks portal entry for Eldritch Knights</td>
+</tr>
+<tr class="even">
+<td>97</td>
+<td>Anti-Warlock</td>
+<td>ITEM_ANTI_WARLOCK</td>
+<td>Would prevent Warlocks from equipping if enabled; currently only
+blocks portal entry for Warlocks</td>
+</tr>
+</tbody>
+</table>
+<h3 id="class-restrictions---required">Class Restrictions -
+Required</h3>
+<p><strong>NOTE:</strong> Required flags are ACTIVE and enforced;
+characters without the specified class levels cannot equip these
+items.</p>
+<table>
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 26%" />
+<col style="width: 35%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Flag Name</th>
+<th>Code Constant</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>62</td>
+<td>Wizard-Required</td>
+<td>ITEM_REQ_WIZARD</td>
+<td>Character must have Wizard levels to equip; blocks with message “You
+must have levels as a wizard to use [item]”</td>
+</tr>
+<tr class="even">
+<td>63</td>
+<td>Cleric-Required</td>
+<td>ITEM_REQ_CLERIC</td>
+<td>Character must have Cleric levels to equip; blocks with message “You
+must have levels as a cleric to use [item]”</td>
+</tr>
+<tr class="odd">
+<td>64</td>
+<td>Rogue-Required</td>
+<td>ITEM_REQ_ROGUE</td>
+<td>Character must have Rogue levels to equip; blocks with message “You
+must have levels as a rogue to use [item]”</td>
+</tr>
+<tr class="even">
+<td>65</td>
+<td>Warrior-Required</td>
+<td>ITEM_REQ_WARRIOR</td>
+<td>Character must have Warrior levels to equip; blocks with message
+“You must have levels as a warrior to use [item]”</td>
+</tr>
+<tr class="odd">
+<td>66</td>
+<td>Monk-Required</td>
+<td>ITEM_REQ_MONK</td>
+<td>Character must have Monk levels to equip; blocks with message “You
+must have levels as a monk to use [item]”</td>
+</tr>
+<tr class="even">
+<td>67</td>
+<td>Druid-Required</td>
+<td>ITEM_REQ_DRUID</td>
+<td>Character must have Druid levels to equip; blocks with message “You
+must have levels as a druid to use [item]”</td>
+</tr>
+<tr class="odd">
+<td>68</td>
+<td>Berserker-Required</td>
+<td>ITEM_REQ_BERSERKER</td>
+<td>Character must have Berserker levels to equip; blocks with message
+“You must have levels as a berserker to use [item]”</td>
+</tr>
+<tr class="even">
+<td>69</td>
+<td>Sorcerer-Required</td>
+<td>ITEM_REQ_SORCERER</td>
+<td>Character must have Sorcerer levels to equip; blocks with message
+“You must have levels as a sorcerer to use [item]”</td>
+</tr>
+<tr class="odd">
+<td>70</td>
+<td>Paladin-Required</td>
+<td>ITEM_REQ_PALADIN</td>
+<td>Character must have Paladin levels to equip; blocks with message
+“You must have levels as a paladin to use [item]”</td>
+</tr>
+<tr class="even">
+<td>71</td>
+<td>Ranger-Required</td>
+<td>ITEM_REQ_RANGER</td>
+<td>Character must have Ranger levels to equip; blocks with message “You
+must have levels as a ranger to use [item]”</td>
+</tr>
+<tr class="odd">
+<td>72</td>
+<td>Bard-Required</td>
+<td>ITEM_REQ_BARD</td>
+<td>Character must have Bard levels to equip; blocks with message “You
+must have levels as a bard to use [item]”</td>
+</tr>
+<tr class="even">
+<td>73</td>
+<td>Weaponmaster-Required</td>
+<td>ITEM_REQ_WEAPONMASTER</td>
+<td>Character must have Weaponmaster levels to equip; blocks with
+message “You must have levels as a weaponmaster to use [item]”</td>
+</tr>
+<tr class="odd">
+<td>74</td>
+<td>Arcane-Archer-Required</td>
+<td>ITEM_REQ_ARCANE_ARCHER</td>
+<td>Character must have Arcane Archer levels to equip; blocks with
+message “You must have levels as an arcane archer to use [item]”</td>
+</tr>
+<tr class="even">
+<td>75</td>
+<td>Stalwart-Defender-Required</td>
+<td>ITEM_REQ_STALWART_DEFENDER</td>
+<td>Character must have Stalwart Defender levels to equip; blocks with
+message “You must have levels as a stalwart defender to use [item]”</td>
+</tr>
+<tr class="odd">
+<td>76</td>
+<td>Shifter-Required</td>
+<td>ITEM_REQ_SHIFTER</td>
+<td>Character must have Shifter levels to equip; blocks with message
+“You must have levels as a shifter to use [item]”</td>
+</tr>
+<tr class="even">
+<td>77</td>
+<td>Duelist-Required</td>
+<td>ITEM_REQ_DUELIST</td>
+<td>Character must have Duelist levels to equip; blocks with message
+“You must have levels as a duelist to use [item]”</td>
+</tr>
+<tr class="odd">
+<td>78</td>
+<td>Mystic-Theurge-Required</td>
+<td>ITEM_REQ_MYSTIC_THEURGE</td>
+<td>Character must have Mystic Theurge levels to equip; blocks with
+message “You must have levels as a mystic theurge to use [item]”</td>
+</tr>
+<tr class="even">
+<td>79</td>
+<td>Alchemist-Required</td>
+<td>ITEM_REQ_ALCHEMIST</td>
+<td>Character must have Alchemist levels to equip; blocks with message
+“You must have levels as an alchemist to use [item]”</td>
+</tr>
+<tr class="odd">
+<td>80</td>
+<td>Arcane-Shadow-Required</td>
+<td>ITEM_REQ_ARCANE_SHADOW</td>
+<td>Character must have Arcane Shadow levels to equip; blocks with
+message “You must have levels as an arcane shadow to use [item]”</td>
+</tr>
+<tr class="even">
+<td>81</td>
+<td>Sacred-Fist-Required</td>
+<td>ITEM_REQ_SACRED_FIST</td>
+<td>Character must have Sacred Fist levels to equip; blocks with message
+“You must have levels as a sacred fist to use [item]”</td>
+</tr>
+<tr class="odd">
+<td>82</td>
+<td>Eldritch-Knight-Required</td>
+<td>ITEM_REQ_ELDRITCH_KNIGHT</td>
+<td>Character must have Eldritch Knight levels to equip; blocks with
+message “You must have levels as an eldritch knight to use [item]”</td>
+</tr>
+<tr class="even">
+<td>96</td>
+<td>Warlock-Only</td>
+<td>ITEM_REQ_WARLOCK</td>
+<td>Character must have Warlock levels to equip; blocks with message
+“You must have levels as a warlock to use [item]”</td>
+</tr>
+</tbody>
+</table>
+<h3 id="race-restrictions">Race Restrictions</h3>
+<p><strong>NOTE:</strong> Race Anti flags are currently NOT checked
+during standard equipment; primarily used for vessel control systems and
+may be expanded in future.</p>
+<table>
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 26%" />
+<col style="width: 35%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Flag Name</th>
+<th>Code Constant</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>18</td>
+<td>Anti-Human</td>
+<td>ITEM_ANTI_HUMAN</td>
+<td>Intended to prevent Humans from using; currently enforced only in
+vessel control systems, not standard equipment</td>
+</tr>
+<tr class="even">
+<td>19</td>
+<td>Anti-Elf</td>
+<td>ITEM_ANTI_ELF</td>
+<td>Intended to prevent Elves from using; currently enforced only in
+vessel control systems, not standard equipment</td>
+</tr>
+<tr class="odd">
+<td>20</td>
+<td>Anti-Dwarf</td>
+<td>ITEM_ANTI_DWARF</td>
+<td>Intended to prevent Dwarves from using; currently enforced only in
+vessel control systems, not standard equipment</td>
+</tr>
+<tr class="even">
+<td>21</td>
+<td>Anti-Half-Troll</td>
+<td>ITEM_ANTI_HALF_TROLL</td>
+<td>Intended to prevent Half-Trolls from using; currently enforced only
+in vessel control systems, not standard equipment</td>
+</tr>
+<tr class="odd">
+<td>25</td>
+<td>Anti-Crystal-Dwarf</td>
+<td>ITEM_ANTI_CRYSTAL_DWARF</td>
+<td>Intended to prevent Crystal Dwarves from using; currently enforced
+only in vessel control systems, not standard equipment</td>
+</tr>
+<tr class="even">
+<td>26</td>
+<td>Anti-Halfling</td>
+<td>ITEM_ANTI_HALFLING</td>
+<td>Intended to prevent Halflings from using; currently enforced only in
+vessel control systems, not standard equipment</td>
+</tr>
+<tr class="odd">
+<td>27</td>
+<td>Anti-Half-Elf</td>
+<td>ITEM_ANTI_H_ELF</td>
+<td>Intended to prevent Half-Elves from using; currently enforced only
+in vessel control systems, not standard equipment</td>
+</tr>
+<tr class="even">
+<td>28</td>
+<td>Anti-Half-Orc</td>
+<td>ITEM_ANTI_H_ORC</td>
+<td>Intended to prevent Half-Orcs from using; currently enforced only in
+vessel control systems, not standard equipment</td>
+</tr>
+<tr class="odd">
+<td>29</td>
+<td>Anti-Gnome</td>
+<td>ITEM_ANTI_GNOME</td>
+<td>Intended to prevent Gnomes from using; currently enforced only in
+vessel control systems, not standard equipment</td>
+</tr>
+<tr class="even">
+<td>31</td>
+<td>Anti-Trelux</td>
+<td>ITEM_ANTI_TRELUX</td>
+<td>Intended to prevent Trelux from using; currently enforced only in
+vessel control systems, not standard equipment</td>
+</tr>
+<tr class="odd">
+<td>37</td>
+<td>Anti-Arcana-Golem</td>
+<td>ITEM_ANTI_ARCANA_GOLEM</td>
+<td>Intended to prevent Arcana Golems from using; currently enforced
+only in vessel control systems, not standard equipment</td>
+</tr>
+<tr class="even">
+<td>49</td>
+<td>Anti-Drow</td>
+<td>ITEM_ANTI_DROW</td>
+<td>Intended to prevent Drow from using; currently enforced only in
+vessel control systems, not standard equipment</td>
+</tr>
+<tr class="odd">
+<td>51</td>
+<td>Anti-Duergar</td>
+<td>ITEM_ANTI_DUERGAR</td>
+<td>Intended to prevent Duergar from using; currently enforced only in
+vessel control systems, not standard equipment</td>
+</tr>
+<tr class="even">
+<td>93</td>
+<td>Anti-Lich</td>
+<td>ITEM_ANTI_LICH</td>
+<td>Intended to prevent Liches from using; currently enforced only in
+vessel control systems, not standard equipment</td>
+</tr>
+<tr class="odd">
+<td>94</td>
+<td>Anti-Vampire</td>
+<td>ITEM_ANTI_VAMPIRE</td>
+<td>Intended to prevent Vampires from using; currently enforced only in
+vessel control systems, not standard equipment</td>
+</tr>
+<tr class="even">
+<td>95</td>
+<td>Vampire-Only</td>
+<td>ITEM_VAMPIRE_ONLY</td>
+<td>Intended to allow only Vampires to use (inverse of Anti flag);
+currently enforced only in vessel control systems, not standard
+equipment</td>
+</tr>
+</tbody>
+</table>
+<h3 id="weapon-enhancements">Weapon Enhancements</h3>
+<table>
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 26%" />
+<col style="width: 35%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Flag Name</th>
+<th>Code Constant</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>8</td>
+<td>Blessed</td>
+<td>ITEM_BLESS</td>
+<td>Cosmetic magical property granting blue glow when detected by
+magical senses (detect alignment, aura of good); no direct combat
+bonus</td>
+</tr>
+<tr class="even">
+<td>47</td>
+<td>Ki-Focus</td>
+<td>ITEM_KI_FOCUS</td>
+<td>Enables monks to use special abilities (Stunning Fist, Quivering
+Palm, Water Whip, Gong of Summit, Fist of Unbroken Air) as alternative
+to monk-specific weapons; acts as monk weapon substitute</td>
+</tr>
+<tr class="odd">
+<td>50</td>
+<td>Masterwork</td>
+<td>ITEM_MASTERWORK</td>
+<td>Grants +1 enhancement bonus to attack rolls; only applies when
+weapon lacks existing magical enhancement (prevents stacking with magic
+bonuses)</td>
+</tr>
+<tr class="even">
+<td>52</td>
+<td>Seeking</td>
+<td>ITEM_SEEKING</td>
+<td>Ranged weapons only; completely bypasses all concealment penalties,
+negating 50-100% miss chance from concealment effects; no direct damage
+modification</td>
+</tr>
+<tr class="odd">
+<td>53</td>
+<td>Adaptive</td>
+<td>ITEM_ADAPTIVE</td>
+<td>Ranged weapons only; applies full Strength modifier to damage rolls
+instead of limited amounts (composite bows normally cap STR bonus); uses
+complete STR bonus for damage</td>
+</tr>
+<tr class="even">
+<td>54</td>
+<td>Agile</td>
+<td>ITEM_AGILE</td>
+<td>Light weapons only; substitutes Dexterity modifier for Strength in
+damage calculation (uses MAX of DEX or STR bonus); prevents 1.5x/3x STR
+multiplier penalties on two-handed or off-hand; damage bonus capped at
+weapon’s agile value or DEX bonus (whichever is lower)</td>
+</tr>
+<tr class="odd">
+<td>55</td>
+<td>Corrosive</td>
+<td>ITEM_CORROSIVE</td>
+<td>Toggleable ability dealing 1d6 acid damage per strike on hit;
+generates “magical acid drips” visual effect; wielder must
+activate/deactivate</td>
+</tr>
+<tr class="even">
+<td>56</td>
+<td>Disruption</td>
+<td>ITEM_DISRUPTION</td>
+<td>Holy energy enhancement effective against undead only; on-hit deals
+2d6 holy damage; on-crit triggers Fortitude save (DC = 10 + level/2),
+failure causes (level/2 + 3)d6 holy damage; no effect on non-undead</td>
+</tr>
+<tr class="odd">
+<td>57</td>
+<td>Defending</td>
+<td>ITEM_DEFENDING</td>
+<td>Grants armor class bonus equal to weapon’s enhancement value divided
+by 2; multiple defending weapons stack; applies to character’s overall
+AC calculation</td>
+</tr>
+<tr class="even">
+<td>58</td>
+<td>Vicious</td>
+<td>ITEM_VICIOUS</td>
+<td>Toggleable ability dealing necrotic/negative damage; on-hit: 3d6
+damage to target + 1d4 recoil damage to wielder; on-crit: 6d6 damage to
+target; damages both attacker and defender (self-harm penalty);
+generates “black smoke whirls” visual</td>
+</tr>
+<tr class="odd">
+<td>59</td>
+<td>Vorpal</td>
+<td>ITEM_VORPAL</td>
+<td>Toggleable instant-death trigger; on-crit: 5% activation chance (1
+on d20); successful activation: damage = target_HP + 100 (instant kill);
+only works on creatures with heads; excludes undead/constructs/oozes;
+bypassed by MOB_NOCHARM protection flag</td>
+</tr>
+</tbody>
+</table>
+<h3 id="system-crafting-flags">System &amp; Crafting Flags</h3>
+<table>
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 26%" />
+<col style="width: 35%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Flag Name</th>
+<th>Code Constant</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>24</td>
+<td>Mold</td>
+<td>ITEM_MOLD</td>
+<td>Marks item as crafting template/pattern for weapon/armor creation;
+mold items cannot be worn and convert into actual crafted items during
+creation process; contains base stats for items to be created</td>
+</tr>
+<tr class="even">
+<td>33</td>
+<td>Decaying</td>
+<td>ITEM_DECAY</td>
+<td>Marks portal-like objects or temporary items for automatic decay;
+objects fade away when timer reaches zero with fade message to observers
+before extraction</td>
+</tr>
+<tr class="odd">
+<td>44</td>
+<td>Auto-Proc</td>
+<td>ITEM_AUTOPROC</td>
+<td>Flags items for automatic calling via proc_update() heartbeat
+function; allows item special procedures to trigger periodically without
+explicit command; excludes unfinished weapons (weapon type with value
+0)</td>
+</tr>
+<tr class="even">
+<td>98</td>
+<td>Set-Stats-At-Load</td>
+<td>ITEM_SET_STATS_AT_LOAD</td>
+<td>When object loads, stats automatically recalculated based on type
+and level; calls set_weapon_object() for weapons or set_armor_object()
+for armor; preserves enhancement bonuses and cost values after
+recalculation</td>
+</tr>
+<tr class="odd">
+<td>99</td>
+<td>Extract-After-Use</td>
+<td>ITEM_EXTRACT_AFTER_USE</td>
+<td>Item destroyed after use; used for single-use keys that crumble to
+dust after opening doors; applies to both inventory and equipment
+slots</td>
+</tr>
+<tr class="even">
+<td>101</td>
+<td>Has-Been-Downgraded</td>
+<td>ITEM_DOWNGRADED</td>
+<td>Marks item as already level-downgraded; prevents multiple
+downgrades; once set, downgrade command cannot be used on item
+again</td>
+</tr>
+<tr class="odd">
+<td>102</td>
+<td>Item-Has-Been-Identified</td>
+<td>ITEM_IDENTIFIED</td>
+<td>Marks object as identified/appraised; allows lore checks to always
+succeed on identified items; can be set through identification spells or
+crafting completion</td>
+</tr>
+<tr class="even">
+<td>103</td>
+<td>Crafted-Item</td>
+<td>ITEM_CRAFTED</td>
+<td>Marks item as player-crafted; used in display systems to show
+crafting origin; affects how item descriptions are formatted in examine
+command</td>
+</tr>
+<tr class="odd">
+<td>104</td>
+<td>Can-Only-Equip-One</td>
+<td>ITEM_ONLY_EQUIP_ONE</td>
+<td>Restricts player to equipping only one instance simultaneously;
+currently defined but not actively implemented in equipment checks</td>
+</tr>
+<tr class="even">
+<td>105</td>
+<td>Can-Only-Possess-One</td>
+<td>ITEM_ONLY_POSSES_ONE</td>
+<td>Restricts player to possessing only one instance at a time;
+currently defined but not actively implemented in codebase</td>
+</tr>
+<tr class="odd">
+<td>106</td>
+<td>Crafting-Smelter</td>
+<td>ITEM_CRAFTING_SMELTER</td>
+<td>Marks object as smelter station for metalworking crafts (bronze,
+steel, brass, alchemical silver, cold iron); required for metal
+refinement recipes</td>
+</tr>
+<tr class="even">
+<td>107</td>
+<td>Crafting-Loom</td>
+<td>ITEM_CRAFTING_LOOM</td>
+<td>Marks object as loom station for tailoring; required for textile
+crafting recipes (satin, linen production)</td>
+</tr>
+<tr class="odd">
+<td>108</td>
+<td>Crafting-Forge</td>
+<td>ITEM_CRAFTING_FORGE</td>
+<td>Marks object as forge station for smithing; required for
+armorsmithing, metalworking, and weaponsmithing crafts</td>
+</tr>
+<tr class="even">
+<td>109</td>
+<td>Crafting-Alchemy-Lab</td>
+<td>ITEM_CRAFTING_ALCHEMY_LAB</td>
+<td>Marks object as alchemy laboratory; required for alchemy craft
+recipes</td>
+</tr>
+<tr class="odd">
+<td>110</td>
+<td>Crafting-Jewelcrafting-Station</td>
+<td>ITEM_CRAFTING_JEWELCRAFTING_STATION</td>
+<td>Marks object as jewelcrafting workstation; required for
+jewelcrafting recipes</td>
+</tr>
+<tr class="even">
+<td>111</td>
+<td>Crafting-Tannery</td>
+<td>ITEM_CRAFTING_TANNERY</td>
+<td>Marks object as tannery station for leatherworking; required for
+leather crafting recipes</td>
+</tr>
+<tr class="odd">
+<td>112</td>
+<td>Crafting-Carpentry-Table</td>
+<td>ITEM_CRAFTING_CARPENTRY_TABLE</td>
+<td>Marks object as carpentry workstation; required for
+woodworking/carpentry crafts</td>
+</tr>
+<tr class="even">
+<td>113</td>
+<td>Trapped</td>
+<td>ITEM_TRAPPED</td>
+<td>Indicates object has trap mechanism attached via trap system; used
+to mark trapped chests/doors for comprehensive trap system (not
+currently actively used for runtime trap behavior)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total: 114 flags (0-113)</strong></p>
+<p><strong>Note:</strong> These flags are defined in
+<code>src/structs.h</code> (lines 3958-4077) and their display names in
+<code>src/constants.c</code> (lines 2482-2598).</p>
+<p>Happy building!</p>
+        </div>
+    </div>
+
+    <a href="#top" class="back-to-top" title="Back to top">↑</a>
+</body>
+</html>

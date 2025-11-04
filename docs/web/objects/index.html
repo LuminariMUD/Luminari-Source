@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Database - LuminariMUD</title>
+    <meta name="description" content="Browse and search LuminariMUD's complete object database. Find weapons, armor, and equipment with detailed stats and bonuses.">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        /* Additional styles specific to object database */
+        .filters-section {
+            background: var(--bg-light);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .results-summary {
+            padding: 15px;
+            background: var(--info);
+            color: white;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .object-type-section {
+            margin-bottom: 30px;
+        }
+
+        .type-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .type-header:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .type-header .count {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .object-list {
+            display: none;
+            background: white;
+            border: 2px solid var(--border-light);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+        }
+
+        .object-list.show {
+            display: block;
+        }
+
+        .object-header-row {
+            display: grid;
+            grid-template-columns: 80px 80px 200px 1fr 150px 100px;
+            gap: 10px;
+            padding: 12px 15px;
+            background: var(--bg-medium);
+            font-weight: 600;
+            font-size: 0.9em;
+            border-bottom: 2px solid var(--border-light);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .object-row {
+            display: grid;
+            grid-template-columns: 80px 80px 200px 1fr 150px 100px;
+            gap: 10px;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.2s;
+        }
+
+        .object-row:hover {
+            background: var(--bg-light);
+        }
+
+        .object-row:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .object-row:nth-child(even):hover {
+            background: var(--bg-light);
+        }
+
+        .object-name {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .enhancement {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .object-details {
+            grid-column: 1 / -1;
+            padding: 10px 15px;
+            background: #f5f5f5;
+            border-top: 1px solid var(--border-light);
+            font-size: 0.9em;
+            color: var(--text-medium);
+        }
+
+        .detail-label {
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        .wear-slots, .bonuses, .flags, .affects {
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 1.2em;
+            color: var(--text-light);
+        }
+
+        .spinner {
+            border: 4px solid var(--bg-medium);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 1.1em;
+        }
+
+        .breadcrumb {
+            padding: 15px 0;
+            color: white;
+            font-size: 0.95em;
+        }
+
+        .breadcrumb a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            margin: 0 8px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .object-header-row,
+            .object-row {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .object-header-row {
+                display: none;
+            }
+
+            .object-row > div::before {
+                content: attr(data-label) ": ";
+                font-weight: 600;
+                color: var(--text-medium);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="../">← Documentation Portal</a>
+        </div>
+
+        <div class="section">
+            <h1>Object Database</h1>
+            <p>Search and browse LuminariMUD's complete equipment database. Use the filters below to find specific weapons, armor, and items.</p>
+
+            <!-- Filters -->
+            <div class="filters-section">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label for="filterName">Object Name:</label>
+                        <input type="text" id="filterName" placeholder="Search by name...">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterType">Object Type:</label>
+                        <select id="filterType">
+                            <option value="">All Types</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterSpecific">Specific Type:</label>
+                        <select id="filterSpecific">
+                            <option value="">Select Type First</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterWeaponGroup">Weapon Group:</label>
+                        <select id="filterWeaponGroup">
+                            <option value="">All Groups</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterMaterial">Material:</label>
+                        <select id="filterMaterial">
+                            <option value="">All Materials</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterZone">Zone:</label>
+                        <select id="filterZone">
+                            <option value="">All Zones</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterMinLevel">Min Level:</label>
+                        <input type="number" id="filterMinLevel" placeholder="1" min="1">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterMaxLevel">Max Level:</label>
+                        <input type="number" id="filterMaxLevel" placeholder="30" min="1">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterWearSlot">Wear Slot:</label>
+                        <select id="filterWearSlot">
+                            <option value="">All Slots</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterBonusLocation">Bonus Type:</label>
+                        <select id="filterBonusLocation">
+                            <option value="">All Bonuses</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button class="btn" onclick="applyFilters()">Search</button>
+                    <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+                </div>
+            </div>
+
+            <!-- Results Summary -->
+            <div id="resultsSummary" class="results-summary" style="display: none;">
+                Found <span id="resultsCount">0</span> objects
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                Loading object database...
+            </div>
+
+            <!-- Results Container -->
+            <div id="results"></div>
+
+            <!-- No Results Message -->
+            <div id="noResults" class="no-results" style="display: none;">
+                No objects found matching your search criteria. Try adjusting your filters.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global data storage
+        let objectData = null;
+        let filteredData = null;
+
+        // Weapon group mappings (from PHP code)
+        const weaponGroups = {
+            'Monk': ['unused weapon', 'nunchaku', 'knuckle', 'sai', 'quarterstaff', 'siangham', 'kama', 'shuriken'],
+            'Light-Blade': ['dagger', 'rapier', 'sickle', 'whip', 'kukri', 'spiked chain', 'short sword', 'knife'],
+            'Hammer': ['light mace', 'flail', 'club', 'warhammer', 'heavy mace', 'great club', 'morningstar', 'heavy flail', 'light hammer', 'war maul', 'sap'],
+            'Ranged': ['heavy crossbow', 'bola', 'light crossbow', 'net', 'dart', 'composite long bow (1)', 'sling', 'composite long bow (2)', 'long bow', 'composite long bow (3)', 'short bow', 'composite long bow (4)', 'composite long bow (5)', 'composite short bow (1)', 'composite short bow (2)', 'composite short bow (3)', 'hand crossbow', 'composite short bow (4)', 'heavy repeating crossbow', 'composite short bow (5)', 'light repeating crossbow', 'hoopak'],
+            'Heavy-Blade': ['long sword', 'great sword', 'scimitar', 'bastard sword', 'falchion', 'khopesh'],
+            'Polearm': ['shortspear', 'guisarme', 'longspear', 'halberd', 'spear', 'lance', 'javelin', 'ranseur', 'trident', 'scythe', 'glaive'],
+            'Double-Weapon': ['double-headed axe', 'two-bladed sword', 'dire flail', 'dwarven urgosh', 'hooked hammer'],
+            'Axe': ['throwing axe', 'heavy pick', 'hand axe', 'great axe', 'light pick', 'dwarven war axe', 'battle axe']
+        };
+
+        // Load data on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('../data/objects.json');
+                if (!response.ok) {
+                    throw new Error('Failed to load object data');
+                }
+                objectData = await response.json();
+
+                // Populate filter dropdowns
+                populateFilters();
+
+                // Initially show all data
+                filteredData = objectData.objects;
+                renderResults();
+
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                document.getElementById('loading').innerHTML =
+                    '<div style="color: var(--danger);">Error loading object database. Please try again later.</div>';
+                console.error('Error:', error);
+            }
+        });
+
+        // Populate filter dropdowns
+        function populateFilters() {
+            const filters = objectData.metadata.filters;
+
+            populateSelect('filterType', filters.object_types);
+            populateSelect('filterMaterial', filters.materials);
+            populateSelect('filterZone', filters.zones);
+            populateSelect('filterWearSlot', filters.wear_slots);
+            populateSelect('filterBonusLocation', filters.bonus_locations);
+            populateSelect('filterWeaponGroup', filters.weapon_groups);
+        }
+
+        // Helper to populate select elements
+        function populateSelect(id, options) {
+            const select = document.getElementById(id);
+            const firstOption = select.options[0];
+            select.innerHTML = '';
+            select.appendChild(firstOption);
+
+            options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt;
+                option.textContent = opt;
+                select.appendChild(option);
+            });
+        }
+
+        // Update specific type dropdown when object type changes
+        document.addEventListener('DOMContentLoaded', () => {
+            const typeSelect = document.getElementById('filterType');
+            typeSelect.addEventListener('change', () => {
+                updateSpecificTypes(typeSelect.value);
+            });
+        });
+
+        function updateSpecificTypes(objectType) {
+            const specificSelect = document.getElementById('filterSpecific');
+            specificSelect.innerHTML = '<option value="">All Specific Types</option>';
+
+            if (!objectType || !objectData) return;
+
+            const specificTypes = [...new Set(
+                objectData.objects
+                    .filter(obj => obj.object_type === objectType)
+                    .map(obj => obj.specific_type)
+                    .filter(type => type)
+            )].sort();
+
+            specificTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                specificSelect.appendChild(option);
+            });
+        }
+
+        // Apply filters
+        function applyFilters() {
+            if (!objectData) return;
+
+            const filters = {
+                name: document.getElementById('filterName').value.toLowerCase(),
+                type: document.getElementById('filterType').value,
+                specific: document.getElementById('filterSpecific').value,
+                weaponGroup: document.getElementById('filterWeaponGroup').value,
+                material: document.getElementById('filterMaterial').value,
+                zone: document.getElementById('filterZone').value,
+                minLevel: parseInt(document.getElementById('filterMinLevel').value) || 0,
+                maxLevel: parseInt(document.getElementById('filterMaxLevel').value) || 9999,
+                wearSlot: document.getElementById('filterWearSlot').value,
+                bonusLocation: document.getElementById('filterBonusLocation').value
+            };
+
+            filteredData = objectData.objects.filter(obj => {
+                // Name filter
+                if (filters.name && !obj.object_name.toLowerCase().includes(filters.name)) {
+                    return false;
+                }
+
+                // Type filter
+                if (filters.type && obj.object_type !== filters.type) {
+                    return false;
+                }
+
+                // Specific type filter
+                if (filters.specific && obj.specific_type !== filters.specific) {
+                    return false;
+                }
+
+                // Weapon group filter
+                if (filters.weaponGroup) {
+                    const groupWeapons = weaponGroups[filters.weaponGroup];
+                    if (!groupWeapons || !groupWeapons.includes(obj.specific_type)) {
+                        return false;
+                    }
+                }
+
+                // Material filter
+                if (filters.material && obj.material !== filters.material) {
+                    return false;
+                }
+
+                // Zone filter
+                if (filters.zone && obj.zone_name !== filters.zone) {
+                    return false;
+                }
+
+                // Level filters
+                const objLevel = parseInt(obj.minimum_level) || 0;
+                if (objLevel < filters.minLevel || objLevel > filters.maxLevel) {
+                    return false;
+                }
+
+                // Wear slot filter
+                if (filters.wearSlot && (!obj.wear_slots || !obj.wear_slots.includes(filters.wearSlot))) {
+                    return false;
+                }
+
+                // Bonus location filter
+                if (filters.bonusLocation) {
+                    const haBonus = obj.bonuses && obj.bonuses.some(b => b.bonus_location === filters.bonusLocation);
+                    if (!hasBonus) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            renderResults();
+        }
+
+        // Reset all filters
+        function resetFilters() {
+            document.getElementById('filterName').value = '';
+            document.getElementById('filterType').value = '';
+            document.getElementById('filterSpecific').value = '';
+            document.getElementById('filterWeaponGroup').value = '';
+            document.getElementById('filterMaterial').value = '';
+            document.getElementById('filterZone').value = '';
+            document.getElementById('filterMinLevel').value = '';
+            document.getElementById('filterMaxLevel').value = '';
+            document.getElementById('filterWearSlot').value = '';
+            document.getElementById('filterBonusLocation').value = '';
+
+            updateSpecificTypes('');
+            filteredData = objectData.objects;
+            renderResults();
+        }
+
+        // Render results
+        function renderResults() {
+            const resultsDiv = document.getElementById('results');
+            const summaryDiv = document.getElementById('resultsSummary');
+            const countSpan = document.getElementById('resultsCount');
+            const noResultsDiv = document.getElementById('noResults');
+
+            if (!filteredData || filteredData.length === 0) {
+                resultsDiv.innerHTML = '';
+                summaryDiv.style.display = 'none';
+                noResultsDiv.style.display = 'block';
+                return;
+            }
+
+            noResultsDiv.style.display = 'none';
+            summaryDiv.style.display = 'block';
+            countSpan.textContent = filteredData.length;
+
+            // Group by object type
+            const groupedObjects = {};
+            filteredData.forEach(obj => {
+                if (!groupedObjects[obj.object_type]) {
+                    groupedObjects[obj.object_type] = [];
+                }
+                groupedObjects[obj.object_type].push(obj);
+            });
+
+            // Render grouped results
+            let html = '';
+            Object.keys(groupedObjects).sort().forEach(type => {
+                const objects = groupedObjects[type];
+                html += `
+                    <div class="object-type-section">
+                        <div class="type-header" onclick="toggleType('${type}')">
+                            <span>${type}</span>
+                            <span class="count">${objects.length}</span>
+                        </div>
+                        <div id="type-${type}" class="object-list">
+                            <div class="object-header-row">
+                                <div>VNUM</div>
+                                <div>Level</div>
+                                <div>Type</div>
+                                <div>Name</div>
+                                <div>Wear Slots</div>
+                                <div>Price</div>
+                            </div>
+                            ${objects.map(obj => renderObjectRow(obj)).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Render individual object row
+        function renderObjectRow(obj) {
+            const enhancement = (obj.enhancement_bonus && parseInt(obj.enhancement_bonus) > 0)
+                ? ` <span class="enhancement">(+${obj.enhancement_bonus})</span>`
+                : '';
+
+            const specific = obj.specific_type ? ` (${obj.specific_type})` : '';
+
+            return `
+                <div class="object-row">
+                    <div data-label="VNUM">${obj.object_vnum || ''}</div>
+                    <div data-label="Level">${obj.minimum_level || '1'}</div>
+                    <div data-label="Type">${obj.object_type}${specific}</div>
+                    <div data-label="Name" class="object-name">${obj.object_name}${enhancement}</div>
+                    <div data-label="Wear Slots">${(obj.wear_slots || []).join(', ')}</div>
+                    <div data-label="Price">${obj.cost || '0'}</div>
+                </div>
+                <div class="object-details">
+                    ${renderObjectDetails(obj)}
+                </div>
+            `;
+        }
+
+        // Render object details
+        function renderObjectDetails(obj) {
+            let details = [];
+
+            // Bonuses
+            if (obj.bonuses && obj.bonuses.length > 0) {
+                const bonusStr = obj.bonuses.map(b => {
+                    const specific = (b.bonus_location === 'Skill-Bonus' || b.bonus_location === 'Grant-Feat')
+                        ? ` [${b.bonus_specific}]`
+                        : '';
+                    const modifier = b.bonus_location === 'Grant-Feat'
+                        ? ''
+                        : `: +${b.bonus_modifier}`;
+                    const type = b.bonus_location === 'Grant-Feat'
+                        ? ''
+                        : ` (${b.bonus_type})`;
+                    return `${b.bonus_location}${specific}${modifier}${type}`;
+                }).join(', ');
+                details.push(`<span class="detail-label">Bonuses:</span> ${bonusStr}`);
+            }
+
+            // Object flags
+            if (obj.obj_flags && obj.obj_flags.length > 0) {
+                details.push(`<span class="detail-label">Flags:</span> ${obj.obj_flags.join(', ')}`);
+            }
+
+            // Permanent affects
+            if (obj.perm_affects && obj.perm_affects.length > 0) {
+                details.push(`<span class="detail-label">Sets:</span> ${obj.perm_affects.join(', ')}`);
+            }
+
+            // Weapon spells
+            const spells = [obj.weapon_spell_1, obj.weapon_spell_2, obj.weapon_spell_3]
+                .filter(s => s && s.trim())
+                .join(', ');
+            if (spells) {
+                details.push(`<span class="detail-label">Spell Procs:</span> ${spells}`);
+            }
+
+            // Special ability
+            if (obj.weapon_special_ability && obj.weapon_special_ability.trim()) {
+                details.push(`<span class="detail-label">Special Ability:</span> ${obj.weapon_special_ability}`);
+            }
+
+            // Material
+            if (obj.material) {
+                details.push(`<span class="detail-label">Material:</span> ${obj.material}`);
+            }
+
+            // Zone
+            if (obj.zone_name) {
+                details.push(`<span class="detail-label">Zone:</span> ${obj.zone_name}`);
+            }
+
+            return details.join(' &nbsp;|&nbsp; ');
+        }
+
+        // Toggle object type section
+        function toggleType(type) {
+            const element = document.getElementById(`type-${type}`);
+            element.classList.toggle('show');
+        }
+    </script>
+</body>
+</html>
