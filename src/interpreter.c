@@ -4054,6 +4054,7 @@ switch (load_result)
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_DISPTIME);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_CAREFUL_PET);
       GET_WIMP_LEV(d->character) = 10;
+      d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
     }
     else if (!strcasecmp(arg, "no") || !strcasecmp(arg, "n"))
     {

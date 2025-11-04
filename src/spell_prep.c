@@ -2727,6 +2727,11 @@ int compute_slots_by_circle(struct char_data *ch, int class, int circle)
   case CLASS_DRUID:
     spell_slots += spell_bonus[GET_WIS(ch)][circle];
     spell_slots += druid_slots[class_level][circle];
+    /* Efficient Caster perk - +1 spell slot (applies to circle 1 only to match "one additional spell per rest") */
+    if (circle <= 3 && !IS_NPC(ch) && get_druid_bonus_spell_slots(ch) > 0)
+    {
+      spell_slots += get_druid_bonus_spell_slots(ch);
+    }
     break;
   case CLASS_WIZARD:
     spell_slots += spell_bonus[GET_INT(ch)][circle];

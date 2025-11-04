@@ -2840,6 +2840,33 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     }
   }
 
+  /* Add druid spell power bonus from Season's Herald perks */
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID)
+  {
+    int spell_power_bonus = get_druid_spell_power_bonus(ch);
+    if (spell_power_bonus > 0 && num_dice > 0)
+    {
+      dam += num_dice * spell_power_bonus;
+    }
+    
+    /* Add elemental manipulation bonus dice for fire/cold/lightning spells */
+    if (element == DAM_FIRE || element == DAM_COLD || element == DAM_ELECTRIC)
+    {
+      int elemental_dice = get_druid_elemental_damage_dice(ch);
+      if (elemental_dice > 0)
+      {
+        dam += dice(elemental_dice, 4);
+      }
+    }
+    
+    /* Check for spell critical */
+    if (check_druid_spell_critical(ch))
+    {
+      dam *= 2;
+      send_to_char(ch, "\tY[Spell Critical!]\tn\r\n");
+    }
+  }
+
   if (spellnum == SPELL_CIRCLE_OF_DEATH && !IS_LIVING(victim))
   {
     act("You ignore the spell affect, as it only affects the living.", TRUE, ch, 0, victim, TO_VICT);
@@ -2938,6 +2965,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     int elemental_attunement_rank = get_monk_elemental_attunement_i_rank(victim);
     race_bonus += elemental_attunement_rank;
+  }
+
+  /* Druid Nature's Focus - bonus to spell save DC */
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID)
+  {
+    int druid_dc_bonus = get_druid_spell_dc_bonus(ch);
+    if (druid_dc_bonus > 0)
+    {
+      dc_mod += druid_dc_bonus;
+    }
   }
 
   if (is_spell_mind_affecting(spellnum))

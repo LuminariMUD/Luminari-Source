@@ -11295,3 +11295,91 @@ bool has_druid_natural_fury(struct char_data *ch)
     
   return has_perk(ch, PERK_DRUID_NATURAL_FURY);
 }
+
+/*** SEASON'S HERALD DRUID PERK HELPER FUNCTIONS ***/
+
+/* Get bonus damage per die from Spell Power perks */
+int get_druid_spell_power_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_DRUID) == 0)
+    return 0;
+    
+  /* Spell Power I: +1 per die per rank (max 5) */
+  bonus += get_perk_rank(ch, PERK_DRUID_SPELL_POWER_1, CLASS_DRUID);
+  
+  /* Spell Power II: +2 per die per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_DRUID_SPELL_POWER_2, CLASS_DRUID) * 2;
+  
+  /* Spell Power III: +3 per die per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_SPELL_POWER_3, CLASS_DRUID) * 3;
+  
+  return bonus;
+}
+
+/* Get bonus to spell save DC from Nature's Focus perks */
+int get_druid_spell_dc_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_DRUID) == 0)
+    return 0;
+    
+  /* Nature's Focus I: +1 DC per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_DRUID_NATURES_FOCUS_1, CLASS_DRUID);
+  
+  /* Nature's Focus II: +1 DC per rank (max 2) */
+  bonus += get_perk_rank(ch, PERK_DRUID_NATURES_FOCUS_2, CLASS_DRUID);
+  
+  return bonus;
+}
+
+/* Get bonus elemental damage dice from Elemental Manipulation perks */
+int get_druid_elemental_damage_dice(struct char_data *ch)
+{
+  int dice = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_DRUID) == 0)
+    return 0;
+    
+  /* Elemental Manipulation I: +2d6 per rank (max 3) = +6d6 */
+  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_1, CLASS_DRUID) * 2;
+  
+  /* Elemental Manipulation II: +3d6 per rank (max 2) = +6d6 */
+  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_2, CLASS_DRUID) * 3;
+  
+  /* Elemental Manipulation III: +4d6 per rank (max 2) = +8d6 */
+  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_3, CLASS_DRUID) * 4;
+  
+  return dice;
+}
+
+/* Check if spell critical should apply */
+bool check_druid_spell_critical(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_DRUID) == 0)
+    return FALSE;
+    
+  if (!has_perk(ch, PERK_DRUID_SPELL_CRITICAL))
+    return FALSE;
+    
+  /* 5% chance to critical */
+  if (rand_number(1, 100) <= 5)
+    return TRUE;
+    
+  return FALSE;
+}
+
+/* Get bonus spell slots from Efficient Caster perk */
+int get_druid_bonus_spell_slots(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_DRUID) == 0)
+    return 0;
+    
+  /* Efficient Caster gives +1 spell slot */
+  if (has_perk(ch, PERK_DRUID_EFFICIENT_CASTER))
+    return 1;
+    
+  return 0;
+}

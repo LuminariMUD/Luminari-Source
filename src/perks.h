@@ -315,6 +315,13 @@ int get_druid_elemental_hp_bonus(struct char_data *ch);
 bool has_druid_primal_avatar(struct char_data *ch);
 bool has_druid_natural_fury(struct char_data *ch);
 
+/* Season's Herald druid perk helpers */
+int get_druid_spell_power_bonus(struct char_data *ch);
+int get_druid_spell_dc_bonus(struct char_data *ch);
+int get_druid_elemental_damage_dice(struct char_data *ch);
+bool check_druid_spell_critical(struct char_data *ch);
+int get_druid_bonus_spell_slots(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);
