@@ -8115,6 +8115,57 @@ ACMD(do_voidstrike)
   perform_voidstrike(ch);
 }
 
+ACMD(do_elementalmastery)
+{
+  time_t current_time = time(0);
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "Monsters cannot use elemental mastery.\r\n");
+    return;
+  }
+
+  if (!has_druid_elemental_mastery(ch))
+  {
+    send_to_char(ch, "You need the Elemental Mastery perk to use this ability.\r\n");
+    return;
+  }
+
+  /* Check cooldown (5 minutes = 300 seconds) */
+  if (GET_ELEMENTAL_MASTERY_COOLDOWN(ch) > current_time)
+  {
+    int seconds = (int)(GET_ELEMENTAL_MASTERY_COOLDOWN(ch) - current_time);
+    int minutes = seconds / 60;
+    int remaining_seconds = seconds % 60;
+    
+    if (minutes > 0)
+    {
+      send_to_char(ch, "You must wait %d minute%s and %d second%s before using elemental mastery again.\r\n",
+                   minutes, minutes == 1 ? "" : "s",
+                   remaining_seconds, remaining_seconds == 1 ? "" : "s");
+    }
+    else
+    {
+      send_to_char(ch, "You must wait %d second%s before using elemental mastery again.\r\n",
+                   seconds, seconds == 1 ? "" : "s");
+    }
+    return;
+  }
+
+  /* Check if already active */
+  if (GET_ELEMENTAL_MASTERY_ACTIVE(ch))
+  {
+    send_to_char(ch, "Elemental mastery is already active and will trigger on your next elemental spell.\r\n");
+    return;
+  }
+
+  /* Activate elemental mastery */
+  GET_ELEMENTAL_MASTERY_ACTIVE(ch) = TRUE;
+  send_to_char(ch, "\tCYou channel the raw power of the elements!\tn\r\n");
+  send_to_char(ch, "\tCYour next elemental spell will deal maximum damage!\tn\r\n");
+  act("$n channels the raw power of the elements!", TRUE, ch, 0, 0, TO_ROOM);
+}
+
 ACMD(do_firesnake)
 {
   PREREQ_NOT_NPC();

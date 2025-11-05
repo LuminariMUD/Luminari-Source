@@ -637,6 +637,7 @@ ACMD_DECL(do_blinding_speed);
 ACMDCHECK(can_blinding_speed);
 ACMD_DECL(do_voidstrike);
 ACMDCHECK(can_voidstrike);
+ACMD_DECL(do_elementalmastery);
 ACMD_DECL(do_firesnake);
 ACMDCHECK(can_firesnake);
 ACMD_DECL(do_powerstrike);

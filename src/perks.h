@@ -320,7 +320,11 @@ int get_druid_spell_power_bonus(struct char_data *ch);
 int get_druid_spell_dc_bonus(struct char_data *ch);
 int get_druid_elemental_damage_dice(struct char_data *ch);
 bool check_druid_spell_critical(struct char_data *ch);
+float get_druid_spell_critical_multiplier(struct char_data *ch);
 int get_druid_bonus_spell_slots(struct char_data *ch);
+bool has_druid_force_of_nature(struct char_data *ch);
+bool has_druid_storm_caller(struct char_data *ch);
+bool has_druid_elemental_mastery(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

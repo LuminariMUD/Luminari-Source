@@ -217,7 +217,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
     if (can_dam_be_resisted(i+1))
     {
       send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                   compute_damtype_reduction(tch, i + 1), compute_energy_absorb(tch, i + 1));
+                   compute_damtype_reduction(tch, i + 1, NULL), compute_energy_absorb(tch, i + 1));
       dcount++;
       if (dcount % 2)
         send_to_char(ch, "\r\n");
@@ -2249,6 +2249,37 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     }
   }
   
+  /* Druid Elemental Mastery cooldown */
+  if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && has_druid_elemental_mastery(k))
+  {
+    if (k->player_specials->saved.elemental_mastery_active)
+    {
+      send_to_char(ch, "Elemental Mastery: \tG[READY - ACTIVE]\tn - Next elemental spell will maximize!\r\n");
+    }
+    else if (k->player_specials->saved.elemental_mastery_cooldown > time(0))
+    {
+      int remaining = (int)(k->player_specials->saved.elemental_mastery_cooldown - time(0));
+      int minutes = remaining / 60;
+      int seconds = remaining % 60;
+      
+      if (minutes > 0)
+      {
+        send_to_char(ch, "Elemental Mastery Cooldown: %d minute%s, %d second%s\r\n",
+                     minutes, minutes == 1 ? "" : "s",
+                     seconds, seconds == 1 ? "" : "s");
+      }
+      else
+      {
+        send_to_char(ch, "Elemental Mastery Cooldown: %d second%s\r\n",
+                     seconds, seconds == 1 ? "" : "s");
+      }
+    }
+    else
+    {
+      send_to_char(ch, "Elemental Mastery: \tG[READY]\tn - Use 'elementalmastery' to activate\r\n");
+    }
+  }
+  
   if (CONFIG_PERK_SYSTEM && !IS_NPC(k) && k->player_specials->saved.split_enchantment_cooldown > time(0))
   {
     int remaining = (int)(k->player_specials->saved.split_enchantment_cooldown - time(0));
@@ -2467,7 +2498,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
     if (can_dam_be_resisted(i+1))
     {
       send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                   compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
+                   compute_damtype_reduction(k, i + 1, NULL), compute_energy_absorb(k, i + 1));
       dcount++;
       if (dcount % 2)
         send_to_char(ch, "\r\n");

@@ -2769,6 +2769,8 @@ void set_eidolon_descs(struct char_data *ch);
 #define GET_FIRESNAKE_TIMER(ch)  ((ch)->player_specials->saved.firesnake_timer)
 #define GET_ELEMENTAL_EMBODIMENT_TIMER(ch)  ((ch)->player_specials->saved.elemental_embodiment_timer)
 #define GET_ELEMENTAL_EMBODIMENT_TYPE(ch)  ((ch)->player_specials->saved.elemental_embodiment_type)
+#define GET_ELEMENTAL_MASTERY_ACTIVE(ch)  ((ch)->player_specials->saved.elemental_mastery_active)
+#define GET_ELEMENTAL_MASTERY_COOLDOWN(ch)  ((ch)->player_specials->saved.elemental_mastery_cooldown)
 bool has_reach(struct char_data *ch);
 
 #define WEAPON_SPELL_PROC(ch) (ch->player.weaponSpellProc)

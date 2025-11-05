@@ -1465,6 +1465,17 @@ int load_char(const char *name, struct char_data *ch)
             ch->player_specials->saved.metamagic_reduction_cooldown = 0;
           }
         }
+        else if (!strcmp(tag, "PEMa"))
+        {
+          long timestamp;
+          int active;
+          /* Load elemental mastery cooldown and active state */
+          if (sscanf(line, "%ld %d", &timestamp, &active) == 2)
+          {
+            ch->player_specials->saved.elemental_mastery_cooldown = (time_t)timestamp;
+            ch->player_specials->saved.elemental_mastery_active = (active != 0);
+          }
+        }
         break;
 
       case 'Q':
@@ -2992,6 +3003,11 @@ void save_char(struct char_data *ch, int mode)
   BUFFER_WRITE( "PMRd: %ld %d\n",
     (long)ch->player_specials->saved.metamagic_reduction_cooldown,
     ch->player_specials->saved.metamagic_reduction_uses);
+  
+  /* Save Elemental Mastery cooldown and active state */
+  BUFFER_WRITE( "PEMa: %ld %d\n",
+    (long)ch->player_specials->saved.elemental_mastery_cooldown,
+    ch->player_specials->saved.elemental_mastery_active ? 1 : 0);
 
   /* Save evolutions */
   BUFFER_WRITE( "Evol:\n");

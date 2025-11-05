@@ -6191,6 +6191,10 @@ struct player_special_data_saved
     int metamagic_reduction_uses;               /**< Number of metamagic reduction uses available (max 2) */
     int elemental_embodiment_timer;             /**< Rounds remaining for elemental embodiment transformation */
     int elemental_embodiment_type;              /**< Type of element embodied: 1=fire, 2=water, 3=air, 4=earth, 0=none */
+    
+    /* Druid Elemental Mastery */
+    bool elemental_mastery_active;              /**< Whether elemental mastery is active for next elemental spell */
+    time_t elemental_mastery_cooldown;          /**< Timestamp until when elemental mastery can be used again (5 min cooldown) */
 };
 
 struct weird_science_level {

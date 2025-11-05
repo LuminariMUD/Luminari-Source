@@ -10662,7 +10662,7 @@ void define_druid_perks(void)
   perk = &perk_list[PERK_DRUID_ELEMENTAL_MANIPULATION_1];
   perk->id = PERK_DRUID_ELEMENTAL_MANIPULATION_1;
   perk->name = strdup("Elemental Manipulation I");
-  perk->description = strdup("Fire, cold, and lightning spells deal +2d6 damage per rank");
+  perk->description = strdup("Fire, cold, acid, and lightning spells deal +2d6 damage per rank");
   perk->associated_class = CLASS_DRUID;
   perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
   perk->cost = 1;
@@ -10672,7 +10672,7 @@ void define_druid_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2;
   perk->effect_modifier = 6;
-  perk->special_description = strdup("Fire, cold, and lightning spells deal +2d6 damage per rank. Can be taken 3 times for +6d6 total.");
+  perk->special_description = strdup("Fire, cold, acid, and lightning spells deal +2d6 damage per rank. Can be taken 3 times for +6d6 total.");
   
   /* Efficient Caster */
   perk = &perk_list[PERK_DRUID_EFFICIENT_CASTER];
@@ -10728,7 +10728,7 @@ void define_druid_perks(void)
   perk = &perk_list[PERK_DRUID_ELEMENTAL_MANIPULATION_2];
   perk->id = PERK_DRUID_ELEMENTAL_MANIPULATION_2;
   perk->name = strdup("Elemental Manipulation II");
-  perk->description = strdup("Additional +2d6 elemental damage per rank");
+  perk->description = strdup("Fire, cold, acid, and lightning spells deal additional +1d6 damage per rank");
   perk->associated_class = CLASS_DRUID;
   perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
   perk->cost = 2;
@@ -10738,13 +10738,13 @@ void define_druid_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 3;
   perk->effect_modifier = 6;
-  perk->special_description = strdup("Requires Elemental Manipulation I (max). Additional +3d6 elemental damage per rank. Can be taken 2 times for +4d6 total.");
+  perk->special_description = strdup("Requires Elemental Manipulation I (max). Fire, cold, acid, and lightning spells deal additional +1d6 damage per rank. Can be taken 2 times for +2d6 total.");
   
   /* Spell Critical */
   perk = &perk_list[PERK_DRUID_SPELL_CRITICAL];
   perk->id = PERK_DRUID_SPELL_CRITICAL;
   perk->name = strdup("Spell Critical");
-  perk->description = strdup("Druid spells have a 5% chance to critical for double damage");
+  perk->description = strdup("Druid spells have a 5% chance to critical for 50% bonus damage");
   perk->associated_class = CLASS_DRUID;
   perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
   perk->cost = 2;
@@ -10754,7 +10754,7 @@ void define_druid_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 5;
   perk->effect_modifier = 2;
-  perk->special_description = strdup("Requires Spell Power I (3 ranks). Your druid spells have a 5% chance to critical hit for double damage.");
+  perk->special_description = strdup("Requires Spell Power I (3 ranks). Your druid spells have a 5% chance to critical hit for 50% bonus damage (1.5x total).");
 
   /*** SEASON'S HERALD TREE - TIER 3 PERKS (3 points each) ***/
   
@@ -10778,7 +10778,7 @@ void define_druid_perks(void)
   perk = &perk_list[PERK_DRUID_STORM_CALLER];
   perk->id = PERK_DRUID_STORM_CALLER;
   perk->name = strdup("Storm Caller");
-  perk->description = strdup("Lightning spells chain to 2 additional targets");
+  perk->description = strdup("Electric spells have 25% chance to hit target again at half damage");
   perk->associated_class = CLASS_DRUID;
   perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
   perk->cost = 3;
@@ -10788,13 +10788,13 @@ void define_druid_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Elemental Manipulation II (2 ranks). Your lightning spells can chain to 2 additional nearby targets for 50% damage each.");
+  perk->special_description = strdup("Requires Elemental Manipulation II (2 ranks). Your electric/lightning spells have a 25% chance to arc to the target again, dealing half damage.");
   
   /* Elemental Manipulation III */
   perk = &perk_list[PERK_DRUID_ELEMENTAL_MANIPULATION_3];
   perk->id = PERK_DRUID_ELEMENTAL_MANIPULATION_3;
   perk->name = strdup("Elemental Manipulation III");
-  perk->description = strdup("Additional +2d6 elemental damage per rank");
+  perk->description = strdup("Fire, cold, acid, and lightning spells deal additional +1d6 damage per rank");
   perk->associated_class = CLASS_DRUID;
   perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
   perk->cost = 3;
@@ -10804,7 +10804,7 @@ void define_druid_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 4;
   perk->effect_modifier = 6;
-  perk->special_description = strdup("Requires Elemental Manipulation II (max). Additional +2d6 elemental damage per rank. Can be taken 2 times for +4d6 total.");
+  perk->special_description = strdup("Requires Elemental Manipulation II (max). Fire, cold, acid, and lightning spells deal additional +1d6 damage per rank. Can be taken 2 times for +2d6 total.");
   
   /* Nature's Wrath */
   perk = &perk_list[PERK_DRUID_NATURES_WRATH];
@@ -10828,7 +10828,7 @@ void define_druid_perks(void)
   perk = &perk_list[PERK_DRUID_FORCE_OF_NATURE];
   perk->id = PERK_DRUID_FORCE_OF_NATURE;
   perk->name = strdup("Force of Nature");
-  perk->description = strdup("Druid spells can't be resisted, penetrate all resistances");
+  perk->description = strdup("Elemental spells bypass damage resistance");
   perk->associated_class = CLASS_DRUID;
   perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
   perk->cost = 4;
@@ -10838,13 +10838,13 @@ void define_druid_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Spell Power III (max). Your druid spells automatically penetrate all spell resistance and energy resistances.");
+  perk->special_description = strdup("Requires Spell Power III (max). Your fire, cold, electric, and acid spells bypass all damage resistance, dealing full damage.");
   
   /* Elemental Mastery */
   perk = &perk_list[PERK_DRUID_ELEMENTAL_MASTERY];
   perk->id = PERK_DRUID_ELEMENTAL_MASTERY;
   perk->name = strdup("Elemental Mastery");
-  perk->description = strdup("Elemental spells deal maximum damage");
+  perk->description = strdup("Activate to maximize next elemental spell (5 min cooldown)");
   perk->associated_class = CLASS_DRUID;
   perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
   perk->cost = 4;
@@ -10854,13 +10854,13 @@ void define_druid_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Elemental Manipulation III (max). Once per rest, you can maximize one elemental spell to deal maximum damage.");
+  perk->special_description = strdup("Requires Elemental Manipulation III (max). Use 'elementalmastery' command to maximize your next fire, cold, electric, or acid spell. 5 minute cooldown.");
   
   /* Nature's Vengeance */
   perk = &perk_list[PERK_DRUID_NATURES_VENGEANCE];
   perk->id = PERK_DRUID_NATURES_VENGEANCE;
   perk->name = strdup("Nature's Vengeance");
-  perk->description = strdup("Spell criticals deal triple damage instead of double");
+  perk->description = strdup("Spell criticals deal double damage");
   perk->associated_class = CLASS_DRUID;
   perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
   perk->cost = 4;
@@ -10868,9 +10868,9 @@ void define_druid_perks(void)
   perk->prerequisite_perk = PERK_DRUID_NATURES_WRATH;
   perk->prerequisite_rank = 1;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 3;
+  perk->effect_value = 2;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Requires Nature's Wrath. Your spell critical hits deal triple damage instead of double.");
+  perk->special_description = strdup("Requires Nature's Wrath. Your spell critical hits deal double damage (2.0x total).");
 
   /*** NATURE'S PROTECTOR TREE - TIER 1 PERKS (1 point each) ***/
   
@@ -11344,13 +11344,13 @@ int get_druid_elemental_damage_dice(struct char_data *ch)
     return 0;
     
   /* Elemental Manipulation I: +2d6 per rank (max 3) = +6d6 */
-  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_1, CLASS_DRUID) * 2;
+  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_1, CLASS_DRUID);
   
   /* Elemental Manipulation II: +3d6 per rank (max 2) = +6d6 */
-  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_2, CLASS_DRUID) * 2;
+  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_2, CLASS_DRUID);
   
   /* Elemental Manipulation III: +4d6 per rank (max 2) = +8d6 */
-  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_3, CLASS_DRUID) * 2;
+  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_3, CLASS_DRUID);
   
   return dice;
 }
@@ -11358,17 +11358,66 @@ int get_druid_elemental_damage_dice(struct char_data *ch)
 /* Check if spell critical should apply */
 bool check_druid_spell_critical(struct char_data *ch)
 {
+  int crit_chance = 0;
+  
   if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_DRUID) == 0)
     return FALSE;
     
   if (!has_perk(ch, PERK_DRUID_SPELL_CRITICAL))
     return FALSE;
     
-  /* 5% chance to critical */
-  if (rand_number(1, 100) <= 5)
+  /* Base 5% chance to critical */
+  crit_chance = 5;
+  
+  /* Nature's Wrath increases to 10% */
+  if (has_perk(ch, PERK_DRUID_NATURES_WRATH))
+    crit_chance = 10;
+    
+  if (rand_number(1, 100) <= crit_chance)
     return TRUE;
     
   return FALSE;
+}
+
+/* Get spell critical multiplier */
+float get_druid_spell_critical_multiplier(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_DRUID) == 0)
+    return 1;
+    
+  /* Nature's Vengeance: double damage on crits */
+  if (has_perk(ch, PERK_DRUID_NATURES_VENGEANCE))
+    return 1.5;
+    
+  /* Default: 1 damage */
+  return 1;
+}
+
+/* Check if druid has Force of Nature (spell penetration) */
+bool has_druid_force_of_nature(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_DRUID) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_DRUID_FORCE_OF_NATURE);
+}
+
+/* Check if druid has Storm Caller (lightning chains) */
+bool has_druid_storm_caller(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_DRUID) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_DRUID_STORM_CALLER);
+}
+
+/* Check if druid has Elemental Mastery */
+bool has_druid_elemental_mastery(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_DRUID) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_DRUID_ELEMENTAL_MASTERY);
 }
 
 /* Get bonus spell slots from Efficient Caster perk */

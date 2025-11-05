@@ -2752,6 +2752,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     element = get_master_of_elements_override(ch, element);
   }
+  
+  /* Check for Druid Elemental Mastery */
+  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID && 
+      GET_ELEMENTAL_MASTERY_ACTIVE(ch) &&
+      (element == DAM_FIRE || element == DAM_COLD || element == DAM_ELECTRIC || element == DAM_ACID))
+  {
+    /* Apply maximize metamagic for this spell */
+    SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+    /* Deactivate elemental mastery and set cooldown */
+    GET_ELEMENTAL_MASTERY_ACTIVE(ch) = FALSE;
+    GET_ELEMENTAL_MASTERY_COOLDOWN(ch) = time(0) + 300; /* 5 minutes */
+    send_to_char(ch, "\tC[Elemental Mastery] Your spell deals maximum damage!\tn\r\n");
+  }
 
   if (IS_SPECIALTY_SCHOOL(ch, spellnum))
     size_dice++;
@@ -2849,21 +2862,25 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       dam += num_dice * spell_power_bonus;
     }
     
-    /* Add elemental manipulation bonus dice for fire/cold/lightning spells */
+    /* Add elemental manipulation bonus dice for fire/cold/lightning/acid spells */
     if (element == DAM_FIRE || element == DAM_COLD || element == DAM_ELECTRIC || element == DAM_ACID)
     {
       int elemental_dice = get_druid_elemental_damage_dice(ch);
       if (elemental_dice > 0)
       {
-        dam += dice(elemental_dice, 4);
+        dam += dice(elemental_dice, 6);
       }
     }
     
     /* Check for spell critical */
     if (check_druid_spell_critical(ch))
     {
-      dam *= 1.5;
-      send_to_char(ch, "\tY[Spell Critical!]\tn\r\n");
+      float crit_multiplier = get_druid_spell_critical_multiplier(ch);
+      dam = (int)(dam * crit_multiplier);
+      if (crit_multiplier >= 2.0)
+        send_to_char(ch, "\tY[Spell Critical - Double Damage!]\tn\r\n");
+      else
+        send_to_char(ch, "\tY[Spell Critical!]\tn\r\n");
     }
   }
 
@@ -3145,7 +3162,23 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
   else
   {
-    return (damage(ch, victim, dam, spellnum, element, FALSE));
+    int result = damage(ch, victim, dam, spellnum, element, FALSE);
+    
+    /* Storm Caller: Lightning spells have 25% chance to hit again at half damage */
+    if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_DRUID && 
+        has_druid_storm_caller(ch) && element == DAM_ELECTRIC && 
+        dam > 0 && rand_number(1, 100) <= 25)
+    {
+      int storm_dam = dam / 2;
+      if (storm_dam > 0)
+      {
+        send_to_char(ch, "\tC[Storm Caller] Lightning arcs again!\tn\r\n");
+        send_to_char(victim, "\tC[Storm Caller] Lightning arcs to strike you again!\tn\r\n");
+        damage(ch, victim, storm_dam, spellnum, element, FALSE);
+      }
+    }
+    
+    return result;
   }
 }
 /* Note: converted affects to rounds, 20 rounds = 1 real minute, 1200 rounds = 1 real hour
