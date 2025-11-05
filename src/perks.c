@@ -10728,7 +10728,7 @@ void define_druid_perks(void)
   perk = &perk_list[PERK_DRUID_ELEMENTAL_MANIPULATION_2];
   perk->id = PERK_DRUID_ELEMENTAL_MANIPULATION_2;
   perk->name = strdup("Elemental Manipulation II");
-  perk->description = strdup("Additional +3d6 elemental damage per rank");
+  perk->description = strdup("Additional +2d6 elemental damage per rank");
   perk->associated_class = CLASS_DRUID;
   perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
   perk->cost = 2;
@@ -10738,7 +10738,7 @@ void define_druid_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 3;
   perk->effect_modifier = 6;
-  perk->special_description = strdup("Requires Elemental Manipulation I (max). Additional +3d6 elemental damage per rank. Can be taken 2 times for +6d6 total.");
+  perk->special_description = strdup("Requires Elemental Manipulation I (max). Additional +3d6 elemental damage per rank. Can be taken 2 times for +4d6 total.");
   
   /* Spell Critical */
   perk = &perk_list[PERK_DRUID_SPELL_CRITICAL];
@@ -10794,7 +10794,7 @@ void define_druid_perks(void)
   perk = &perk_list[PERK_DRUID_ELEMENTAL_MANIPULATION_3];
   perk->id = PERK_DRUID_ELEMENTAL_MANIPULATION_3;
   perk->name = strdup("Elemental Manipulation III");
-  perk->description = strdup("Additional +4d6 elemental damage per rank");
+  perk->description = strdup("Additional +2d6 elemental damage per rank");
   perk->associated_class = CLASS_DRUID;
   perk->perk_category = PERK_CATEGORY_SEASONS_HERALD;
   perk->cost = 3;
@@ -10804,7 +10804,7 @@ void define_druid_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 4;
   perk->effect_modifier = 6;
-  perk->special_description = strdup("Requires Elemental Manipulation II (max). Additional +4d6 elemental damage per rank. Can be taken 2 times for +8d6 total.");
+  perk->special_description = strdup("Requires Elemental Manipulation II (max). Additional +2d6 elemental damage per rank. Can be taken 2 times for +4d6 total.");
   
   /* Nature's Wrath */
   perk = &perk_list[PERK_DRUID_NATURES_WRATH];
@@ -11347,10 +11347,10 @@ int get_druid_elemental_damage_dice(struct char_data *ch)
   dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_1, CLASS_DRUID) * 2;
   
   /* Elemental Manipulation II: +3d6 per rank (max 2) = +6d6 */
-  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_2, CLASS_DRUID) * 3;
+  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_2, CLASS_DRUID) * 2;
   
   /* Elemental Manipulation III: +4d6 per rank (max 2) = +8d6 */
-  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_3, CLASS_DRUID) * 4;
+  dice += get_perk_rank(ch, PERK_DRUID_ELEMENTAL_MANIPULATION_3, CLASS_DRUID) * 2;
   
   return dice;
 }

@@ -2850,7 +2850,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     }
     
     /* Add elemental manipulation bonus dice for fire/cold/lightning spells */
-    if (element == DAM_FIRE || element == DAM_COLD || element == DAM_ELECTRIC)
+    if (element == DAM_FIRE || element == DAM_COLD || element == DAM_ELECTRIC || element == DAM_ACID)
     {
       int elemental_dice = get_druid_elemental_damage_dice(ch);
       if (elemental_dice > 0)
@@ -2862,7 +2862,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     /* Check for spell critical */
     if (check_druid_spell_critical(ch))
     {
-      dam *= 2;
+      dam *= 1.5;
       send_to_char(ch, "\tY[Spell Critical!]\tn\r\n");
     }
   }
