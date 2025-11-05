@@ -843,6 +843,16 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_NATURALARMOR] += druid_elemental_armor;
     }
   }
+  
+  /* Berserker Thick Skin natural armor bonus */
+  if (!IS_NPC(ch))
+  {
+    int thick_skin_bonus = get_berserker_thick_skin_bonus(ch);
+    if (thick_skin_bonus > 0)
+    {
+      bonuses[BONUS_TYPE_NATURALARMOR] += thick_skin_bonus;
+    }
+  }
   /**/
 
   /* bonus type armor */
@@ -3313,6 +3323,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     /* Elemental Attunement III adds +20 resistance per rank */
     if (!IS_NPC(ch))
       dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
+    /* Berserker Elemental Resistance */
+    if (!IS_NPC(ch))
+      dam_reduction += get_berserker_elemental_resistance(ch);
     /* Elemental Embodiment (Fire) - immunity to fire */
     if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 1)
       dam_reduction += 999; /* Effective immunity */
@@ -3342,6 +3355,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     /* Elemental Attunement III adds +20 resistance per rank */
     if (!IS_NPC(ch))
       dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
+    /* Berserker Elemental Resistance */
+    if (!IS_NPC(ch))
+      dam_reduction += get_berserker_elemental_resistance(ch);
     /* Elemental Embodiment (Water) - immunity to cold and water */
     if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 2)
       dam_reduction += 999; /* Effective immunity */
@@ -3386,6 +3402,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     /* Elemental Attunement III adds +20 resistance per rank */
     if (!IS_NPC(ch))
       dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
+    /* Berserker Elemental Resistance */
+    if (!IS_NPC(ch))
+      dam_reduction += get_berserker_elemental_resistance(ch);
     break;
   case DAM_HOLY:
     if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
@@ -3415,6 +3434,9 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
     /* Elemental Attunement III adds +20 resistance per rank */
     if (!IS_NPC(ch))
       dam_reduction += get_monk_elemental_attunement_iii_rank(ch) * 20;
+    /* Berserker Elemental Resistance */
+    if (!IS_NPC(ch))
+      dam_reduction += get_berserker_elemental_resistance(ch);
     /* Elemental Embodiment (Air) - immunity to electric and air */
     if (!IS_NPC(ch) && GET_ELEMENTAL_EMBODIMENT_TIMER(ch) > 0 && GET_ELEMENTAL_EMBODIMENT_TYPE(ch) == 3)
       dam_reduction += 999; /* Effective immunity */
@@ -4109,6 +4131,27 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
     damage_reduction += 3;
     if (display)
       send_to_char(ch, "%-30s: %d\r\n", "Raging: Mighty Rage", 3);
+  }
+  
+  /* Berserker Damage Reduction perks */
+  if (!IS_NPC(ch))
+  {
+    int berserker_dr = get_berserker_damage_reduction(ch);
+    int savage_defiance_dr = get_berserker_savage_defiance_dr(ch);
+    
+    if (berserker_dr > 0)
+    {
+      damage_reduction += berserker_dr;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Damage Reduction Perks", berserker_dr);
+    }
+    
+    if (savage_defiance_dr > 0)
+    {
+      damage_reduction += savage_defiance_dr;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Savage Defiance (Raging)", savage_defiance_dr);
+    }
   }
 
   if (HAS_FEAT(ch, FEAT_IMMOBILE_DEFENSE) && affected_by_spell(ch, SKILL_DEFENSIVE_STANCE))

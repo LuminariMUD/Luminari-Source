@@ -346,6 +346,13 @@ bool has_berserker_frenzied_berserker(struct char_data *ch);
 bool has_berserker_relentless_assault(struct char_data *ch);
 bool has_berserker_death_from_above(struct char_data *ch);
 
+/* Berserker/Barbarian Occult Slayer tree helper functions */
+int get_berserker_thick_skin_bonus(struct char_data *ch);
+int get_berserker_damage_reduction(struct char_data *ch);
+int get_berserker_elemental_resistance(struct char_data *ch);
+bool has_berserker_hardy(struct char_data *ch);
+int get_berserker_savage_defiance_dr(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

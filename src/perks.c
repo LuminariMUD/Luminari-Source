@@ -3925,6 +3925,138 @@ void define_barbarian_perks(void)
   perk->effect_value = 5;
   perk->effect_modifier = 0;
   perk->special_description = strdup("");
+  
+  /* ========== OCCULT SLAYER TREE - TIER 1 PERKS ========== */
+  
+  /* Thick Skin I */
+  perk = &perk_list[PERK_BERSERKER_THICK_SKIN_1];
+  perk->id = PERK_BERSERKER_THICK_SKIN_1;
+  perk->name = strdup("Thick Skin I");
+  perk->description = strdup("+1 natural armor bonus per rank");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 1: Natural armor increase");
+  
+  /* Damage Reduction I */
+  perk = &perk_list[PERK_BERSERKER_DAMAGE_REDUCTION_1];
+  perk->id = PERK_BERSERKER_DAMAGE_REDUCTION_1;
+  perk->name = strdup("Damage Reduction I");
+  perk->description = strdup("Gain 1/- damage reduction per rank");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 1: Physical damage reduction");
+  
+  /* Elemental Resistance I */
+  perk = &perk_list[PERK_BERSERKER_ELEMENTAL_RESISTANCE_1];
+  perk->id = PERK_BERSERKER_ELEMENTAL_RESISTANCE_1;
+  perk->name = strdup("Elemental Resistance I");
+  perk->description = strdup("+5% resistance to fire, cold, electric, and acid per rank");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 1: Elemental damage resistance");
+  
+  /* Hardy */
+  perk = &perk_list[PERK_BERSERKER_HARDY];
+  perk->id = PERK_BERSERKER_HARDY;
+  perk->name = strdup("Hardy");
+  perk->description = strdup("Use 'hardy' command for +2 Constitution, +1 Fortitude saves for 10 rounds (no cooldown)");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 1;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 1: Constitution and fortitude boost (use 'hardy' command)");
+  
+  /* ========== OCCULT SLAYER TREE - TIER 2 PERKS ========== */
+  
+  /* Thick Skin II */
+  perk = &perk_list[PERK_BERSERKER_THICK_SKIN_2];
+  perk->id = PERK_BERSERKER_THICK_SKIN_2;
+  perk->name = strdup("Thick Skin II");
+  perk->description = strdup("+1 natural armor bonus per rank");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_BERSERKER_THICK_SKIN_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_AC;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 2: Further natural armor increase");
+  
+  /* Damage Reduction II */
+  perk = &perk_list[PERK_BERSERKER_DAMAGE_REDUCTION_2];
+  perk->id = PERK_BERSERKER_DAMAGE_REDUCTION_2;
+  perk->name = strdup("Damage Reduction II");
+  perk->description = strdup("Gain 1/- damage reduction per rank");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BERSERKER_DAMAGE_REDUCTION_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 2: Greater damage reduction");
+  
+  /* Elemental Resistance II */
+  perk = &perk_list[PERK_BERSERKER_ELEMENTAL_RESISTANCE_2];
+  perk->id = PERK_BERSERKER_ELEMENTAL_RESISTANCE_2;
+  perk->name = strdup("Elemental Resistance II");
+  perk->description = strdup("+5% resistance to fire, cold, electric, and acid per rank");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BERSERKER_ELEMENTAL_RESISTANCE_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 2: Enhanced elemental resistance");
+  
+  /* Savage Defiance */
+  perk = &perk_list[PERK_BERSERKER_SAVAGE_DEFIANCE];
+  perk->id = PERK_BERSERKER_SAVAGE_DEFIANCE;
+  perk->name = strdup("Savage Defiance");
+  perk->description = strdup("+2 DR per rank while raging");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_BERSERKER_DAMAGE_REDUCTION_1;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 2: Additional DR while raging");
 }
 
 /* ============================================================================
@@ -11901,4 +12033,82 @@ bool has_berserker_death_from_above(struct char_data *ch)
     return FALSE;
     
   return has_perk(ch, PERK_BERSERKER_DEATH_FROM_ABOVE);
+}
+
+/* ============================================================================
+ * OCCULT SLAYER TREE HELPER FUNCTIONS
+ * ============================================================================ */
+
+/* Get natural armor bonus from Thick Skin perks */
+int get_berserker_thick_skin_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Thick Skin I: +1 per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_BERSERKER_THICK_SKIN_1, CLASS_BERSERKER);
+  
+  /* Thick Skin II: +1 per rank (max 3) */
+  bonus += get_perk_rank(ch, PERK_BERSERKER_THICK_SKIN_2, CLASS_BERSERKER);
+  
+  return bonus;
+}
+
+/* Get damage reduction from Damage Reduction perks */
+int get_berserker_damage_reduction(struct char_data *ch)
+{
+  int dr = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Damage Reduction I: +1 DR per rank (max 3) */
+  dr += get_perk_rank(ch, PERK_BERSERKER_DAMAGE_REDUCTION_1, CLASS_BERSERKER);
+  
+  /* Damage Reduction II: +1 DR per rank (max 2) */
+  dr += get_perk_rank(ch, PERK_BERSERKER_DAMAGE_REDUCTION_2, CLASS_BERSERKER);
+  
+  return dr;
+}
+
+/* Get elemental resistance percentage from Elemental Resistance perks */
+int get_berserker_elemental_resistance(struct char_data *ch)
+{
+  int resist = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Elemental Resistance I: +5% per rank (max 3) = 15% */
+  resist += (get_perk_rank(ch, PERK_BERSERKER_ELEMENTAL_RESISTANCE_1, CLASS_BERSERKER) * 5);
+  
+  /* Elemental Resistance II: +5% per rank (max 2) = 10% */
+  resist += (get_perk_rank(ch, PERK_BERSERKER_ELEMENTAL_RESISTANCE_2, CLASS_BERSERKER) * 5);
+  
+  return resist;
+}
+
+/* Check if berserker has Hardy */
+bool has_berserker_hardy(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_HARDY);
+}
+
+/* Get additional DR while raging from Savage Defiance */
+int get_berserker_savage_defiance_dr(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Must be raging */
+  if (!affected_by_spell(ch, SKILL_RAGE))
+    return 0;
+    
+  /* Savage Defiance: +2 DR per rank (max 3) = 6 DR */
+  return (get_perk_rank(ch, PERK_BERSERKER_SAVAGE_DEFIANCE, CLASS_BERSERKER) * 2);
 }

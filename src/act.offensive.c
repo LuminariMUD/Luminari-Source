@@ -3545,6 +3545,52 @@ ACMD(do_rage)
   return;
 }
 
+/* hardy - berserker perk */
+ACMD(do_hardy)
+{
+  struct affected_type af[2];
+  int duration = 10; // 10 rounds
+
+  PREREQ_CAN_FIGHT();
+
+  if (!has_berserker_hardy(ch))
+  {
+    send_to_char(ch, "You do not have the Hardy perk.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SKILL_HARDY))
+  {
+    send_to_char(ch, "You are already hardy!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You steel yourself, becoming \tRhardy\tn and resilient!\r\n");
+  act("$n steels $mself, becoming more \tRhardy\tn and resilient!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* init affect array */
+  new_affect(&(af[0]));
+  af[0].spell = SKILL_HARDY;
+  af[0].duration = duration;
+  af[0].bonus_type = BONUS_TYPE_MORALE;
+  af[0].location = APPLY_CON;
+  af[0].modifier = 2;
+
+  new_affect(&(af[1]));
+  af[1].spell = SKILL_HARDY;
+  af[1].duration = duration;
+  af[1].bonus_type = BONUS_TYPE_MORALE;
+  af[1].location = APPLY_SAVING_FORT;
+  af[1].modifier = 1;
+
+  affect_join(ch, &af[0], FALSE, FALSE, FALSE, FALSE);
+  affect_join(ch, &af[1], FALSE, FALSE, FALSE, FALSE);
+
+  USE_STANDARD_ACTION(ch);
+
+  return;
+}
+
 /* inner fire - sacred fist feat */
 ACMD(do_innerfire)
 {

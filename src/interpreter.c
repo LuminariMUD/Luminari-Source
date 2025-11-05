@@ -519,6 +519,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"hide", "hi", POS_RECLINING, do_hide, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"hindex", "hind", POS_DEAD, do_hindex, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"handbook", "handb", POS_DEAD, do_gen_ps, LVL_IMMORT, SCMD_HANDBOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"hardy", "hardy", POS_FIGHTING, do_hardy, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"hcontrol", "hcontrol", POS_DEAD, do_hcontrol, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"history", "history", POS_DEAD, do_history, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hit", "hit", POS_FIGHTING, do_hit, 0, SCMD_HIT, FALSE, ACTION_STANDARD, {6, 0}, NULL},
