@@ -352,6 +352,13 @@ int get_berserker_damage_reduction(struct char_data *ch);
 int get_berserker_elemental_resistance(struct char_data *ch);
 bool has_berserker_hardy(struct char_data *ch);
 int get_berserker_savage_defiance_dr(struct char_data *ch);
+int get_berserker_damage_reduction_3(struct char_data *ch);
+int get_berserker_spell_resistance(struct char_data *ch);
+bool has_berserker_pain_tolerance(struct char_data *ch);
+bool has_berserker_deathless_frenzy(struct char_data *ch);
+int get_berserker_unstoppable_dr(struct char_data *ch);
+bool has_berserker_indomitable_will(struct char_data *ch);
+bool has_berserker_raging_defender(struct char_data *ch);
 
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);

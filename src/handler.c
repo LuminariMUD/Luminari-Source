@@ -986,6 +986,11 @@ void affect_total_plus(struct char_data *ch, int at_armor)
     /* Add save bonuses */
     for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
       ch->points.apply_saving_throw[i] += get_perk_save_bonus(ch, i);
+    
+    /* Add berserker spell resistance */
+    int berserker_sr = get_berserker_spell_resistance(ch);
+    if (berserker_sr > 0)
+      GET_SPELL_RES(ch) += berserker_sr;
   }
 
   /* cap character */

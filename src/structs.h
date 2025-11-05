@@ -3633,6 +3633,17 @@
 #define PERK_BERSERKER_ELEMENTAL_RESISTANCE_2 721
 #define PERK_BERSERKER_SAVAGE_DEFIANCE 722
 
+/* OCCULT SLAYER TREE - Tier 3 Perks (723-726) */
+#define PERK_BERSERKER_DAMAGE_REDUCTION_3 723
+#define PERK_BERSERKER_DEATHLESS_FRENZY 724
+#define PERK_BERSERKER_SPELL_RESISTANCE 725
+#define PERK_BERSERKER_PAIN_TOLERANCE 726
+
+/* OCCULT SLAYER TREE - Tier 4 Perks (727-729) */
+#define PERK_BERSERKER_UNSTOPPABLE 727
+#define PERK_BERSERKER_INDOMITABLE_WILL 728
+#define PERK_BERSERKER_RAGING_DEFENDER 729
+
 /* OLD BARBARIAN PERKS - Legacy (750-754) */
 #define PERK_BARBARIAN_RAGE_ENHANCEMENT 750
 #define PERK_BARBARIAN_EXTENDED_RAGE_1 751
@@ -6143,6 +6154,7 @@ struct player_special_data_saved
     int irresistible_magic_cooldown;  // Wizard Controller perk: 5 minute cooldown for auto-success spell
     int quick_cast_cooldown;          // Versatile Caster perk: 5 minute cooldown for free quicken metamagic
     int spell_recall_cooldown;        // Versatile Caster perk: daily cooldown for restoring a spell slot
+    int deathless_frenzy_timer;       // Berserker Occult Slayer perk: 5 minute cooldown for Deathless Frenzy
     
     /* Domain Master perk bonus spell slot tracking */
     int bonus_domain_slots_used;    // Tracks used bonus domain spell slots

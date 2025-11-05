@@ -2812,6 +2812,7 @@ bool has_reach(struct char_data *ch);
 #define GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) (ch->player_specials->saved.irresistible_magic_cooldown)
 #define GET_QUICK_CAST_COOLDOWN(ch) (ch->player_specials->saved.quick_cast_cooldown)
 #define GET_SPELL_RECALL_COOLDOWN(ch) (ch->player_specials->saved.spell_recall_cooldown)
+#define GET_DEATHLESS_FRENZY_TIMER(ch) (ch->player_specials->saved.deathless_frenzy_timer)
 
 /* Bonus spell slot tracking for Domain Master perks */
 #define GET_BONUS_DOMAIN_SLOTS_USED(ch) (ch->player_specials->saved.bonus_domain_slots_used)

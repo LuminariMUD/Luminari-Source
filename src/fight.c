@@ -1382,6 +1382,24 @@ void update_pos_dam(struct char_data *victim)
       return;
   }
 
+  /* Berserker Deathless Frenzy perk - 50% chance to revive to 25% HP when dying while raging */
+  if (!IS_NPC(victim) && has_berserker_deathless_frenzy(victim) && affected_by_spell(victim, SKILL_RAGE) && 
+      GET_HIT(victim) <= 0 && dice(1, 2) == 1)
+  {
+    /* Check cooldown (5 minutes = 300 seconds) */
+    if (GET_DEATHLESS_FRENZY_TIMER(victim) == 0)
+    {
+      int heal_amount = GET_MAX_HIT(victim) / 4;
+      GET_HIT(victim) = heal_amount;
+      GET_DEATHLESS_FRENZY_TIMER(victim) = 300;
+      
+      act("\tRYour rage refuses to let you die! You surge back to life!\tn", FALSE, victim, 0, 0, TO_CHAR);
+      act("\tR$n's rage refuses to let $m die! $e surges back to life!\tn", FALSE, victim, 0, 0, TO_ROOM);
+      
+      return;
+    }
+  }
+
   if (GET_HIT(victim) <= -11)
   {
     if (HAS_REAL_FEAT(victim, FEAT_RELENTLESS_ENDURANCE) && dice(1, 4) == 1)
@@ -4137,13 +4155,22 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
   if (!IS_NPC(ch))
   {
     int berserker_dr = get_berserker_damage_reduction(ch);
+    int berserker_dr_3 = get_berserker_damage_reduction_3(ch);
     int savage_defiance_dr = get_berserker_savage_defiance_dr(ch);
+    int unstoppable_dr = get_berserker_unstoppable_dr(ch);
     
     if (berserker_dr > 0)
     {
       damage_reduction += berserker_dr;
       if (display)
-        send_to_char(ch, "%-30s: %d\r\n", "Damage Reduction Perks", berserker_dr);
+        send_to_char(ch, "%-30s: %d\r\n", "Damage Reduction I & II", berserker_dr);
+    }
+    
+    if (berserker_dr_3 > 0)
+    {
+      damage_reduction += berserker_dr_3;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Damage Reduction III", berserker_dr_3);
     }
     
     if (savage_defiance_dr > 0)
@@ -4151,6 +4178,13 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
       damage_reduction += savage_defiance_dr;
       if (display)
         send_to_char(ch, "%-30s: %d\r\n", "Savage Defiance (Raging)", savage_defiance_dr);
+    }
+    
+    if (unstoppable_dr > 0)
+    {
+      damage_reduction += unstoppable_dr;
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Unstoppable (Raging)", unstoppable_dr);
     }
   }
 

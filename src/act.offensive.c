@@ -3298,6 +3298,12 @@ void clear_rage(struct char_data *ch)
   {
     change_event_duration(ch, eCOME_AND_GET_ME, 0);
   }
+  
+  /* Clear Indomitable Will auto-success flag when rage ends */
+  if (affected_by_spell(ch, PERK_BERSERKER_INDOMITABLE_WILL))
+  {
+    affect_from_char(ch, PERK_BERSERKER_INDOMITABLE_WILL);
+  }
 
   /* Remove whatever HP we granted.  This may kill the character. */
   /* PCs only.  Otherwise mobs will die and player won't get exp. */

@@ -4057,6 +4057,122 @@ void define_barbarian_perks(void)
   perk->effect_value = 2;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Occult Slayer Tree - Tier 2: Additional DR while raging");
+
+  /* ========== TIER 3 PERKS ========== */
+
+  /* Damage Reduction III */
+  perk = &perk_list[PERK_BERSERKER_DAMAGE_REDUCTION_3];
+  perk->id = PERK_BERSERKER_DAMAGE_REDUCTION_3;
+  perk->name = strdup("Damage Reduction III");
+  perk->description = strdup("+1 DR per rank (maximum damage reduction)");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BERSERKER_DAMAGE_REDUCTION_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 3: Maximum damage reduction");
+
+  /* Deathless Frenzy */
+  perk = &perk_list[PERK_BERSERKER_DEATHLESS_FRENZY];
+  perk->id = PERK_BERSERKER_DEATHLESS_FRENZY;
+  perk->name = strdup("Deathless Frenzy");
+  perk->description = strdup("50% chance to revive to 25% HP when dying while raging (5 min cooldown)");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_SAVAGE_DEFIANCE;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 50;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 3: Rage beyond death");
+
+  /* Spell Resistance */
+  perk = &perk_list[PERK_BERSERKER_SPELL_RESISTANCE];
+  perk->id = PERK_BERSERKER_SPELL_RESISTANCE;
+  perk->name = strdup("Spell Resistance");
+  perk->description = strdup("Gain spell resistance (10 + 5 per rank)");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_BERSERKER_ELEMENTAL_RESISTANCE_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 10;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 3: Resist hostile magic");
+
+  /* Pain Tolerance */
+  perk = &perk_list[PERK_BERSERKER_PAIN_TOLERANCE];
+  perk->id = PERK_BERSERKER_PAIN_TOLERANCE;
+  perk->name = strdup("Pain Tolerance");
+  perk->description = strdup("+4 bonus to saves vs. poison, disease, and mind-affecting effects");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_HARDY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 3: Shrug off debilitating effects");
+
+  /* ========== TIER 4 PERKS ========== */
+
+  /* Unstoppable */
+  perk = &perk_list[PERK_BERSERKER_UNSTOPPABLE];
+  perk->id = PERK_BERSERKER_UNSTOPPABLE;
+  perk->name = strdup("Unstoppable");
+  perk->description = strdup("While raging, DR increases by 5/-");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_DAMAGE_REDUCTION_3;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 4: Become nearly invulnerable");
+
+  /* Indomitable Will */
+  perk = &perk_list[PERK_BERSERKER_INDOMITABLE_WILL];
+  perk->id = PERK_BERSERKER_INDOMITABLE_WILL;
+  perk->name = strdup("Indomitable Will");
+  perk->description = strdup("Auto-succeed on one mind-affecting save per rage, +4 to all other mental saves");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_PAIN_TOLERANCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 4: Mental fortitude breaks enchantments");
+
+  /* Raging Defender */
+  perk = &perk_list[PERK_BERSERKER_RAGING_DEFENDER];
+  perk->id = PERK_BERSERKER_RAGING_DEFENDER;
+  perk->name = strdup("Raging Defender");
+  perk->description = strdup("Your DR is doubled when hit by a critical hit or sneak attack");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_DEATHLESS_FRENZY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Occult Slayer Tree - Tier 4: DR becomes more effective");
 }
 
 /* ============================================================================
@@ -11995,6 +12111,87 @@ int get_berserker_crimson_rage_bonus(struct char_data *ch)
     bonus = 9;
     
   return bonus;
+}
+
+/* ============================================================================
+ * OCCULT SLAYER TREE - Tier 3 & 4 Helper Functions
+ * ============================================================================ */
+
+/* Returns additional DR from Damage Reduction III perk (1 per rank, max 2) */
+int get_berserker_damage_reduction_3(struct char_data *ch)
+{
+  if (IS_NPC(ch))
+    return 0;
+  
+  return get_perk_rank(ch, PERK_BERSERKER_DAMAGE_REDUCTION_3, CLASS_BERSERKER);
+}
+
+/* Returns spell resistance from Spell Resistance perk (10 + 5 per rank) */
+int get_berserker_spell_resistance(struct char_data *ch)
+{
+  int ranks = 0;
+  
+  if (IS_NPC(ch))
+    return 0;
+  
+  ranks = get_perk_rank(ch, PERK_BERSERKER_SPELL_RESISTANCE, CLASS_BERSERKER);
+  
+  if (ranks <= 0)
+    return 0;
+  
+  return (10 + (ranks * 5));
+}
+
+/* Returns whether the character has the Pain Tolerance perk */
+bool has_berserker_pain_tolerance(struct char_data *ch)
+{
+  if (IS_NPC(ch))
+    return FALSE;
+  
+  return (get_perk_rank(ch, PERK_BERSERKER_PAIN_TOLERANCE, CLASS_BERSERKER) > 0);
+}
+
+/* Returns whether the character has the Deathless Frenzy perk */
+bool has_berserker_deathless_frenzy(struct char_data *ch)
+{
+  if (IS_NPC(ch))
+    return FALSE;
+  
+  return (get_perk_rank(ch, PERK_BERSERKER_DEATHLESS_FRENZY, CLASS_BERSERKER) > 0);
+}
+
+/* Returns additional DR from Unstoppable perk while raging (+5) */
+int get_berserker_unstoppable_dr(struct char_data *ch)
+{
+  if (IS_NPC(ch))
+    return 0;
+  
+  /* Only applies while raging */
+  if (!affected_by_spell(ch, SKILL_RAGE))
+    return 0;
+  
+  if (get_perk_rank(ch, PERK_BERSERKER_UNSTOPPABLE, CLASS_BERSERKER) > 0)
+    return 5;
+  
+  return 0;
+}
+
+/* Returns whether the character has the Indomitable Will perk */
+bool has_berserker_indomitable_will(struct char_data *ch)
+{
+  if (IS_NPC(ch))
+    return FALSE;
+  
+  return (get_perk_rank(ch, PERK_BERSERKER_INDOMITABLE_WILL, CLASS_BERSERKER) > 0);
+}
+
+/* Returns whether the character has the Raging Defender perk */
+bool has_berserker_raging_defender(struct char_data *ch)
+{
+  if (IS_NPC(ch))
+    return FALSE;
+  
+  return (get_perk_rank(ch, PERK_BERSERKER_RAGING_DEFENDER, CLASS_BERSERKER) > 0);
 }
 
 /* Check if berserker has Carnage */

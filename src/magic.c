@@ -403,6 +403,36 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     return FALSE; /* Victim automatically fails the save */
   }
 
+  /* Berserker Indomitable Will - auto-success on first mind-affecting save per rage */
+  if (!IS_NPC(vict) && has_berserker_indomitable_will(vict) && 
+      (type == SAVING_WILL || school == ENCHANTMENT) && 
+      affected_by_spell(vict, SKILL_RAGE))
+  {
+    /* Check if they haven't used their auto-success this rage */
+    if (!affected_by_spell(vict, PERK_BERSERKER_INDOMITABLE_WILL))
+    {
+      struct affected_type iw_af;
+      
+      /* Mark that they've used their auto-success */
+      new_affect(&iw_af);
+      iw_af.spell = PERK_BERSERKER_INDOMITABLE_WILL;
+      iw_af.duration = 9999; /* Will be removed when rage ends */
+      affect_to_char(vict, &iw_af);
+      
+      send_to_char(vict, "\tYYour indomitable will allows you to completely resist the mental assault!\tn\r\n");
+      if (ch)
+        send_to_char(ch, "\tR%s's indomitable will allows %s to completely resist your magic!\tn\r\n", 
+                     GET_NAME(vict), HMHR(vict));
+      
+      return TRUE; /* Automatically succeed */
+    }
+    else
+    {
+      /* Already used auto-success, give +4 bonus instead */
+      savethrow += 4;
+    }
+  }
+
   if (has_teamwork_feat(vict, FEAT_DUCK_AND_COVER) && type == SAVING_REFL)
     diceroll = MAX(diceroll, d20(vict));
 
@@ -667,6 +697,22 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict,
     if (affected_by_aura_of_depravity(vict))
       savethrow -= 4;
     if (affected_by_aura_of_righteousness(vict))
+      savethrow += 4;
+  }
+
+  /* Berserker Pain Tolerance - bonus vs poison, disease, and mind-affecting (enchantment) */
+  if (!IS_NPC(vict) && has_berserker_pain_tolerance(vict))
+  {
+    /* Poison saves */
+    if (type == SAVING_POISON || casttype == CAST_WEAPON_POISON || is_poison_spell(spellnum))
+      savethrow += 4;
+    
+    /* Disease (contagion spell) */
+    if (spellnum == SPELL_CONTAGION)
+      savethrow += 4;
+    
+    /* Mind-affecting effects (enchantment school) */
+    if (school == ENCHANTMENT)
       savethrow += 4;
   }
 
