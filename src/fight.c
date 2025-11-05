@@ -6397,6 +6397,10 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       pa_bonus += 2;
     }
     
+    /* Berserker Power Attack Mastery perks (Tier 1-3) */
+    pa_bonus += get_berserker_power_attack_bonus(ch);
+    pa_bonus += get_berserker_power_attack_mastery_3_bonus(ch);
+    
     if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
     {
       dambonus += pa_bonus * 2; /* 2h weapons gets 2x bonus */
@@ -6410,6 +6414,27 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       if (display_mode)
         send_to_char(ch, "Power attack bonus: \tR%d\tn\r\n",
                      pa_bonus);
+    }
+  }
+  
+  /* Berserker rage damage bonus */
+  if (affected_by_spell(ch, SKILL_RAGE))
+  {
+    int rage_bonus = get_berserker_rage_damage_bonus(ch);
+    int crimson_bonus = get_berserker_crimson_rage_bonus(ch);
+    
+    if (rage_bonus > 0)
+    {
+      dambonus += rage_bonus;
+      if (display_mode)
+        send_to_char(ch, "Rage damage bonus: \tR%d\tn\r\n", rage_bonus);
+    }
+    
+    if (crimson_bonus > 0)
+    {
+      dambonus += crimson_bonus;
+      if (display_mode)
+        send_to_char(ch, "Crimson Rage bonus: \tR%d\tn\r\n", crimson_bonus);
     }
   }
 
@@ -6885,6 +6910,14 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
   /* Improved Critical Threat perk */
   if (has_perk(ch, PERK_FIGHTER_IMPROVED_CRITICAL_THREAT))
     threat_range--;
+  
+  /* Berserker Improved Critical I */
+  if (!IS_NPC(ch))
+  {
+    int berserker_crit_bonus = get_berserker_critical_bonus(ch);
+    if (berserker_crit_bonus > 0)
+      threat_range -= berserker_crit_bonus;
+  }
   
   /* Master Assassin crit range bonus */
   if (!IS_NPC(ch))
@@ -7574,6 +7607,34 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
       /* critical bonus */
       dam *= determine_critical_multiplier(ch, wielded);
+      
+      /* Devastating Critical perk - bonus dice damage on crits */
+      if (!IS_NPC(ch))
+      {
+        int dev_crit_dice = get_berserker_devastating_critical_dice(ch);
+        if (dev_crit_dice > 0)
+        {
+          dam += dice(dev_crit_dice, 6);
+        }
+        
+        /* Carnage perk - splash damage on crits */
+        if (has_berserker_carnage(ch))
+        {
+          struct char_data *tch = NULL;
+          int splash_dam = dam / 4; /* 25% of weapon damage */
+          
+          for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+          {
+            if (is_player_grouped(tch, ch)) continue;
+            if (tch == ch) continue;
+            if (tch == victim) continue;
+            if (!FIGHTING(tch) || !is_player_grouped(FIGHTING(tch), ch)) continue;
+            
+            act("\tR$n's devastating critical causes carnage!\tn", TRUE, ch, 0, tch, TO_VICT);
+            damage(ch, tch, splash_dam, TYPE_UNDEFINED, DAM_FORCE, FALSE);
+          }
+        }
+      }
 
       if (has_teamwork_feat(ch, FEAT_PRECISE_FLANKING) && is_flanked(ch, victim))
         dam += dice(1, 6);
@@ -12570,6 +12631,27 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       }
     }
   }
+  
+  /* Overwhelming Force - power attack stagger chance */
+  if (!IS_NPC(ch) && has_berserker_overwhelming_force(ch) && 
+      AFF_FLAGGED(ch, AFF_POWER_ATTACK) && dam > 0 && victim && !DEAD(victim))
+  {
+    if (dice(1, 100) <= 15) /* 15% chance */
+    {
+      struct affected_type af;
+      new_affect(&af);
+      af.spell = STATUS_AFFECT_STAGGERED;
+      af.location = APPLY_SPECIAL;
+      af.duration = 2;
+      af.modifier = 1;
+      SET_BIT_AR(af.bitvector, AFF_STAGGERED);
+      affect_to_char(victim, &af);
+      
+      act("\tRYour overwhelming power attack staggers $N!\tn", FALSE, ch, 0, victim, TO_CHAR);
+      act("\tR$n's overwhelming power attack staggers YOU!\tn", FALSE, ch, 0, victim, TO_VICT);
+      act("\tR$n's overwhelming power attack staggers $N!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
+    }
+  }
 
   return dam;
 }
@@ -13789,10 +13871,16 @@ void handle_cleave(struct char_data *ch)
   send_to_char(ch, "You cleave to %s!\r\n", (CAN_SEE(ch, tch)) ? GET_NAME(tch) : "someone");
   act("$n cleaves to $N!", TRUE, ch, 0, tch, TO_ROOM);
 
-  hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, -4, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
+  /* Cleaving Strikes perk reduces penalty by +2 */
+  int cleave_penalty = -4;
+  if (has_berserker_cleaving_strikes(ch))
+    cleave_penalty += get_berserker_cleave_bonus(ch);
+    
+  hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, cleave_penalty, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
 
   /* Great Cleave - feat or perk */
-  if ((HAS_FEAT(ch, FEAT_GREAT_CLEAVE) || has_perk(ch, PERK_FIGHTER_GREAT_CLEAVE)) && 
+  if ((HAS_FEAT(ch, FEAT_GREAT_CLEAVE) || has_perk(ch, PERK_FIGHTER_GREAT_CLEAVE) ||
+       has_berserker_cleaving_strikes(ch)) && 
       !is_using_ranged_weapon(ch, TRUE))
   {
     send_to_char(ch, "You great cleave to %s!\r\n", (CAN_SEE(ch, tch)) ? GET_NAME(tch) : "someone");
@@ -14273,9 +14361,10 @@ void perform_violence(struct char_data *ch, int phase)
     perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
 #undef NORMAL_ATTACK_ROUTINE
 
-    /* handle cleave - now includes Cleaving Strike perk */
+    /* handle cleave - now includes Cleaving Strike perks */
     if (phase == 1 && (HAS_FEAT(ch, FEAT_CLEAVE) || HAS_FEAT(ch, FEAT_GREAT_CLEAVE) || 
-                       has_perk(ch, PERK_FIGHTER_CLEAVING_STRIKE)) && !is_using_ranged_weapon(ch, TRUE))
+                       has_perk(ch, PERK_FIGHTER_CLEAVING_STRIKE) || 
+                       has_berserker_cleaving_strikes(ch)) && !is_using_ranged_weapon(ch, TRUE))
       handle_cleave(ch);
   }
   /**/

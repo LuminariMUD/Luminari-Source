@@ -326,6 +326,26 @@ bool has_druid_force_of_nature(struct char_data *ch);
 bool has_druid_storm_caller(struct char_data *ch);
 bool has_druid_elemental_mastery(struct char_data *ch);
 
+/* Berserker/Barbarian perk helper functions - Tier 1 & 2 */
+int get_berserker_power_attack_bonus(struct char_data *ch);
+int get_berserker_rage_damage_bonus(struct char_data *ch);
+int get_berserker_critical_bonus(struct char_data *ch);
+bool has_berserker_cleaving_strikes(struct char_data *ch);
+int get_berserker_cleave_bonus(struct char_data *ch);
+bool has_berserker_blood_frenzy(struct char_data *ch);
+int get_berserker_devastating_critical_dice(struct char_data *ch);
+
+/* Berserker/Barbarian perk helper functions - Tier 3 */
+int get_berserker_power_attack_mastery_3_bonus(struct char_data *ch);
+bool has_berserker_overwhelming_force(struct char_data *ch);
+int get_berserker_crimson_rage_bonus(struct char_data *ch);
+bool has_berserker_carnage(struct char_data *ch);
+
+/* Berserker/Barbarian perk helper functions - Tier 4 */
+bool has_berserker_frenzied_berserker(struct char_data *ch);
+bool has_berserker_relentless_assault(struct char_data *ch);
+bool has_berserker_death_from_above(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

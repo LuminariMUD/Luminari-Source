@@ -3595,12 +3595,264 @@ void define_barbarian_perks(void)
 {
   struct perk_data *perk;
   
+  /* ========== RAVAGER TREE - TIER 1 PERKS ========== */
+  
+  /* Power Attack Mastery I */
+  perk = &perk_list[PERK_BERSERKER_POWER_ATTACK_MASTERY_1];
+  perk->id = PERK_BERSERKER_POWER_ATTACK_MASTERY_1;
+  perk->name = strdup("Power Attack Mastery I");
+  perk->description = strdup("+1 bonus damage per rank when using power attack");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ravager Tree - Tier 1: Enhances power attack effectiveness");
+  
+  /* Rage Damage I */
+  perk = &perk_list[PERK_BERSERKER_RAGE_DAMAGE_1];
+  perk->id = PERK_BERSERKER_RAGE_DAMAGE_1;
+  perk->name = strdup("Rage Damage I");
+  perk->description = strdup("+2 bonus damage per rank while raging");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ravager Tree - Tier 1: Raw fury adds damage while raging");
+  
+  /* Improved Critical I */
+  perk = &perk_list[PERK_BERSERKER_IMPROVED_CRITICAL_1];
+  perk->id = PERK_BERSERKER_IMPROVED_CRITICAL_1;
+  perk->name = strdup("Improved Critical I");
+  perk->description = strdup("+1 critical threat range per rank");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ravager Tree - Tier 1: Increases critical hit chance");
+  
+  /* Cleaving Strikes */
+  perk = &perk_list[PERK_BERSERKER_CLEAVING_STRIKES];
+  perk->id = PERK_BERSERKER_CLEAVING_STRIKES;
+  perk->name = strdup("Cleaving Strikes");
+  perk->description = strdup("Cleave and Great Cleave no longer limited by number of attacks, gain +2 to cleave attacks");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ravager Tree - Tier 1: Enhanced cleaving attacks");
+  
+  /* ========== RAVAGER TREE - TIER 2 PERKS ========== */
+  
+  /* Power Attack Mastery II */
+  perk = &perk_list[PERK_BERSERKER_POWER_ATTACK_MASTERY_2];
+  perk->id = PERK_BERSERKER_POWER_ATTACK_MASTERY_2;
+  perk->name = strdup("Power Attack Mastery II");
+  perk->description = strdup("+2 bonus damage per rank when using power attack");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_BERSERKER_POWER_ATTACK_MASTERY_1;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ravager Tree - Tier 2: Further enhances power attack");
+  
+  /* Rage Damage II */
+  perk = &perk_list[PERK_BERSERKER_RAGE_DAMAGE_2];
+  perk->id = PERK_BERSERKER_RAGE_DAMAGE_2;
+  perk->name = strdup("Rage Damage II");
+  perk->description = strdup("+3 bonus damage per rank while raging");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BERSERKER_RAGE_DAMAGE_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ravager Tree - Tier 2: Greater rage damage bonus");
+  
+  /* Blood Frenzy */
+  perk = &perk_list[PERK_BERSERKER_BLOOD_FRENZY];
+  perk->id = PERK_BERSERKER_BLOOD_FRENZY;
+  perk->name = strdup("Blood Frenzy");
+  perk->description = strdup("Each critical hit grants +10% attack speed stacking up to 3 times, lasts 10 seconds");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_IMPROVED_CRITICAL_1;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ravager Tree - Tier 2: Critical hits increase attack speed");
+  
+  /* Devastating Critical */
+  perk = &perk_list[PERK_BERSERKER_DEVASTATING_CRITICAL];
+  perk->id = PERK_BERSERKER_DEVASTATING_CRITICAL;
+  perk->name = strdup("Devastating Critical");
+  perk->description = strdup("+1d6 bonus damage per rank on critical hits");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = PERK_BERSERKER_IMPROVED_CRITICAL_1;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Ravager Tree - Tier 2: Critical hits deal bonus dice damage");
+  
+  /* ========== RAVAGER TREE - TIER 3 PERKS ========== */
+  
+  /* Power Attack Mastery III */
+  perk = &perk_list[PERK_BERSERKER_POWER_ATTACK_MASTERY_3];
+  perk->id = PERK_BERSERKER_POWER_ATTACK_MASTERY_3;
+  perk->name = strdup("Power Attack Mastery III");
+  perk->description = strdup("+2 bonus damage per rank when using power attack");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BERSERKER_POWER_ATTACK_MASTERY_2;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ravager Tree - Tier 3: Maximum power attack enhancement");
+  
+  /* Overwhelming Force */
+  perk = &perk_list[PERK_BERSERKER_OVERWHELMING_FORCE];
+  perk->id = PERK_BERSERKER_OVERWHELMING_FORCE;
+  perk->name = strdup("Overwhelming Force");
+  perk->description = strdup("Power attacks have 15% chance to stagger opponents for 2 rounds");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_POWER_ATTACK_MASTERY_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 15;
+  perk->effect_modifier = 2;
+  perk->special_description = strdup("Ravager Tree - Tier 3: Powerful attacks stagger enemies");
+  
+  /* Crimson Rage */
+  perk = &perk_list[PERK_BERSERKER_CRIMSON_RAGE];
+  perk->id = PERK_BERSERKER_CRIMSON_RAGE;
+  perk->name = strdup("Crimson Rage");
+  perk->description = strdup("Gain +1 damage for every 10% HP missing while raging (max +9 at 10% HP)");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_RAGE_DAMAGE_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 10;
+  perk->special_description = strdup("Ravager Tree - Tier 3: Rage damage scales with missing health");
+  
+  /* Carnage */
+  perk = &perk_list[PERK_BERSERKER_CARNAGE];
+  perk->id = PERK_BERSERKER_CARNAGE;
+  perk->name = strdup("Carnage");
+  perk->description = strdup("Critical hits deal 25% weapon damage to other opponents when fighting multiple enemies");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_DEVASTATING_CRITICAL;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 25;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ravager Tree - Tier 3: Critical hits splash damage");
+  
+  /* ========== RAVAGER TREE - TIER 4 PERKS ========== */
+  
+  /* Frenzied Berserker */
+  perk = &perk_list[PERK_BERSERKER_FRENZIED_BERSERKER];
+  perk->id = PERK_BERSERKER_FRENZIED_BERSERKER;
+  perk->name = strdup("Frenzied Berserker");
+  perk->description = strdup("Once per rage, activate to gain +4 to hit, +6 damage, and +2 critical multiplier for 5 rounds (5 min cooldown)");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_POWER_ATTACK_MASTERY_3;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 6;
+  perk->special_description = strdup("Ravager Tree - Tier 4: Ultimate fury state (use 'frenzy' command)");
+  perk->toggleable = false;
+  
+  /* Relentless Assault */
+  perk = &perk_list[PERK_BERSERKER_RELENTLESS_ASSAULT];
+  perk->id = PERK_BERSERKER_RELENTLESS_ASSAULT;
+  perk->name = strdup("Relentless Assault");
+  perk->description = strdup("Under Blood Frenzy haste, power attacks reduce target's AC by 1 for 3 rounds (max -5 AC)");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_BLOOD_FRENZY;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 3;
+  perk->special_description = strdup("Ravager Tree - Tier 4: Unstoppable attacks reduce enemy defenses");
+  
+  /* Death from Above */
+  perk = &perk_list[PERK_BERSERKER_DEATH_FROM_ABOVE];
+  perk->id = PERK_BERSERKER_DEATH_FROM_ABOVE;
+  perk->name = strdup("Death from Above");
+  perk->description = strdup("Gain 'leap' ability - leap at opponent to start combat dealing 2x weapon damage on hit");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_OVERWHELMING_FORCE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Ravager Tree - Tier 4: Devastating leap attack (use 'leap <target>' command)");
+  
+  /* ========== LEGACY BARBARIAN PERKS ========== */
+  
   /* Rage Enhancement */
   perk = &perk_list[PERK_BARBARIAN_RAGE_ENHANCEMENT];
   perk->id = PERK_BARBARIAN_RAGE_ENHANCEMENT;
   perk->name = strdup("Rage Enhancement");
   perk->description = strdup("+1 to Strength and Constitution while raging per rank");
   perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -3616,6 +3868,7 @@ void define_barbarian_perks(void)
   perk->name = strdup("Extended Rage I");
   perk->description = strdup("Rage lasts +2 rounds longer");
   perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
   perk->cost = 1;
   perk->max_rank = 1;
   perk->prerequisite_perk = -1;
@@ -3625,12 +3878,45 @@ void define_barbarian_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("Increases rage duration");
   
+  /* Extended Rage II */
+  perk = &perk_list[PERK_BARBARIAN_EXTENDED_RAGE_2];
+  perk->id = PERK_BARBARIAN_EXTENDED_RAGE_2;
+  perk->name = strdup("Extended Rage II");
+  perk->description = strdup("Rage lasts +3 rounds longer");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARBARIAN_EXTENDED_RAGE_1;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 3;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Further increases rage duration");
+  
+  /* Extended Rage III */
+  perk = &perk_list[PERK_BARBARIAN_EXTENDED_RAGE_3];
+  perk->id = PERK_BARBARIAN_EXTENDED_RAGE_3;
+  perk->name = strdup("Extended Rage III");
+  perk->description = strdup("Rage lasts +4 rounds longer");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BARBARIAN_EXTENDED_RAGE_2;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 4;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Maximizes rage duration");
+  
   /* Toughness */
   perk = &perk_list[PERK_BARBARIAN_TOUGHNESS];
   perk->id = PERK_BARBARIAN_TOUGHNESS;
   perk->name = strdup("Toughness");
   perk->description = strdup("+5 HP per rank");
   perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
   perk->cost = 1;
   perk->max_rank = 5;
   perk->prerequisite_perk = -1;
@@ -11431,4 +11717,188 @@ int get_druid_bonus_spell_slots(struct char_data *ch)
     return 1;
     
   return 0;
+}
+
+/* ============================================================================
+ * BERSERKER PERK HELPER FUNCTIONS
+ * ============================================================================ */
+
+/* Get bonus damage from Power Attack Mastery perks */
+int get_berserker_power_attack_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Power Attack Mastery I: +1 per rank (max 5) */
+  bonus += get_perk_rank(ch, PERK_BERSERKER_POWER_ATTACK_MASTERY_1, CLASS_BERSERKER);
+  
+  /* Power Attack Mastery II: +2 per rank (max 3) */
+  bonus += (get_perk_rank(ch, PERK_BERSERKER_POWER_ATTACK_MASTERY_2, CLASS_BERSERKER) * 2);
+  
+  return bonus;
+}
+
+/* Get bonus damage while raging from Rage Damage perks */
+int get_berserker_rage_damage_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Must be raging */
+  if (!affected_by_spell(ch, SKILL_RAGE))
+    return 0;
+    
+  /* Rage Damage I: +2 per rank (max 3) */
+  bonus += (get_perk_rank(ch, PERK_BERSERKER_RAGE_DAMAGE_1, CLASS_BERSERKER) * 2);
+  
+  /* Rage Damage II: +3 per rank (max 2) */
+  bonus += (get_perk_rank(ch, PERK_BERSERKER_RAGE_DAMAGE_2, CLASS_BERSERKER) * 3);
+  
+  return bonus;
+}
+
+/* Get critical threat range bonus from Improved Critical I */
+int get_berserker_critical_bonus(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Improved Critical I: +1 per rank (max 3) */
+  return get_perk_rank(ch, PERK_BERSERKER_IMPROVED_CRITICAL_1, CLASS_BERSERKER);
+}
+
+/* Check if berserker has Cleaving Strikes */
+bool has_berserker_cleaving_strikes(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_CLEAVING_STRIKES);
+}
+
+/* Get cleave attack bonus from Cleaving Strikes */
+int get_berserker_cleave_bonus(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Cleaving Strikes gives +2 to cleave attacks */
+  if (has_perk(ch, PERK_BERSERKER_CLEAVING_STRIKES))
+    return 2;
+    
+  return 0;
+}
+
+/* Check if berserker has Blood Frenzy */
+bool has_berserker_blood_frenzy(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_BLOOD_FRENZY);
+}
+
+/* Get bonus damage dice on crits from Devastating Critical */
+int get_berserker_devastating_critical_dice(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Devastating Critical: +1d6 per rank (max 3) */
+  return get_perk_rank(ch, PERK_BERSERKER_DEVASTATING_CRITICAL, CLASS_BERSERKER);
+}
+
+/* ========== TIER 3 HELPER FUNCTIONS ========== */
+
+/* Get bonus damage from Power Attack Mastery III */
+int get_berserker_power_attack_mastery_3_bonus(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Power Attack Mastery III: +2 per rank (max 2) */
+  return (get_perk_rank(ch, PERK_BERSERKER_POWER_ATTACK_MASTERY_3, CLASS_BERSERKER) * 2);
+}
+
+/* Check if berserker has Overwhelming Force */
+bool has_berserker_overwhelming_force(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_OVERWHELMING_FORCE);
+}
+
+/* Get Crimson Rage damage bonus based on missing HP */
+int get_berserker_crimson_rage_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  int hp_percent = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  if (!has_perk(ch, PERK_BERSERKER_CRIMSON_RAGE))
+    return 0;
+    
+  /* Must be raging */
+  if (!affected_by_spell(ch, SKILL_RAGE))
+    return 0;
+    
+  /* Calculate HP percentage */
+  if (GET_MAX_HIT(ch) <= 0)
+    return 0;
+    
+  hp_percent = (GET_HIT(ch) * 100) / GET_MAX_HIT(ch);
+  
+  /* +1 damage for every 10% HP missing (max +9 at 10% HP) */
+  bonus = (100 - hp_percent) / 10;
+  
+  /* Cap at +9 */
+  if (bonus > 9)
+    bonus = 9;
+    
+  return bonus;
+}
+
+/* Check if berserker has Carnage */
+bool has_berserker_carnage(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_CARNAGE);
+}
+
+/* ========== TIER 4 HELPER FUNCTIONS ========== */
+
+/* Check if berserker has Frenzied Berserker */
+bool has_berserker_frenzied_berserker(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_FRENZIED_BERSERKER);
+}
+
+/* Check if berserker has Relentless Assault */
+bool has_berserker_relentless_assault(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_RELENTLESS_ASSAULT);
+}
+
+/* Check if berserker has Death from Above */
+bool has_berserker_death_from_above(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_DEATH_FROM_ABOVE);
 }
