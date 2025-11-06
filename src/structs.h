@@ -1591,9 +1591,10 @@
 #define AFF_RAPID_BUFF 121          // increases buff speed
 #define AFF_CRIPPLED 122            // crippled - movement speed halved, chance to fail movement
 #define AFF_ENCASED_IN_ICE 123      // encased in ice - paralyzed, immune to cold damage, DR 5/-
+#define AFF_NEXTATTACK_STUN 124     // next attack will attempt to stun the target (Berserker Stunning Blow)
 
 /*---*/
-#define NUM_AFF_FLAGS 124
+#define NUM_AFF_FLAGS 125
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -3655,6 +3656,17 @@
 #define PERK_BERSERKER_INTIMIDATING_PRESENCE_2 735
 #define PERK_BERSERKER_SPRINT 736
 #define PERK_BERSERKER_CRIPPLING_BLOW 737
+
+/* Tier 3 - Primal Warrior (738-741) */
+#define PERK_BERSERKER_RECKLESS_ABANDON 738
+#define PERK_BERSERKER_BLINDING_RAGE 739
+#define PERK_BERSERKER_STUNNING_BLOW 740
+#define PERK_BERSERKER_UNCANNY_DODGE_MASTERY 741
+
+/* Tier 4 - Primal Warrior (742-744) */
+#define PERK_BERSERKER_SAVAGE_CHARGE 742
+#define PERK_BERSERKER_WAR_CRY 743
+#define PERK_BERSERKER_EARTHSHAKER 744
 
 /* OLD BARBARIAN PERKS - Legacy (750-754) */
 #define PERK_BARBARIAN_RAGE_ENHANCEMENT 750

@@ -402,6 +402,7 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"eat", "ea", POS_RECLINING, do_eat, 0, SCMD_EAT, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"earthshaker", "earthshaker", POS_FIGHTING, do_earthshaker, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"efreetimagic", "efreetimagic", POS_FIGHTING, do_efreetimagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_efreetimagic},
     {"eidolon", "eidolon", POS_RECLINING, do_eidolon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -837,6 +838,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"restring", "restring", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"rage", "rage", POS_FIGHTING, do_rage, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_rage},
+    {"recklessabandon", "reckless", POS_FIGHTING, do_reckless_abandon, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"recline", "recline", POS_SLEEPING, do_recline, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"renewedvigor", "renewedvigor", POS_RECLINING, do_renewedvigor, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_renewedvigor},
     {"research", "research", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
@@ -1065,6 +1067,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     {"wake", "wake", POS_SLEEPING, do_wake, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"walkto", "walkto", POS_STANDING, do_walkto, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"warcry", "warcry", POS_FIGHTING, do_warcry, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"waterwhip", "waterwhip", POS_STANDING, do_waterwhip, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_waterwhip},
     {"gongsummit", "gongsummit", POS_STANDING, do_gongsummit, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_gongsummit},
     {"fistair", "fistair", POS_STANDING, do_fistair, 1, 0, FALSE, ACTION_SWIFT, {3, 0}, can_fistair},

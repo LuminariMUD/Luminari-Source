@@ -371,6 +371,17 @@ bool has_berserker_sprint(struct char_data *ch);
 bool has_berserker_intimidating_presence_2(struct char_data *ch);
 int get_berserker_crippling_blow_chance(struct char_data *ch);
 
+/* Berserker/Barbarian Primal Warrior tree helper functions - Tier 3 & 4 */
+bool has_berserker_reckless_abandon(struct char_data *ch);
+bool has_berserker_blinding_rage(struct char_data *ch);
+bool has_berserker_stunning_blow(struct char_data *ch);
+bool has_berserker_uncanny_dodge_mastery(struct char_data *ch);
+int get_berserker_uncanny_dodge_perception_bonus(struct char_data *ch);
+int get_berserker_uncanny_dodge_ac_bonus(struct char_data *ch);
+bool has_berserker_savage_charge(struct char_data *ch);
+bool has_berserker_war_cry(struct char_data *ch);
+bool has_berserker_earthshaker(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);

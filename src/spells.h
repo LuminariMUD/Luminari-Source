@@ -1132,9 +1132,14 @@
 #define SKILL_ELEMENTAL_EMBODIMENT 2217 // Way of Four Elements - elemental embodiment (transform)
 #define SKILL_HARDY 2218 // Berserker Occult Slayer perk
 #define SKILL_SPRINT 2219 // Berserker Primal Warrior sprint ability
+#define SKILL_RECKLESS_ABANDON 2220 // Berserker Primal Warrior - Tier 3
+#define SKILL_WAR_CRY 2221 // Berserker Primal Warrior - Tier 4
+#define SKILL_WAR_CRY_ALLY 2222 // War Cry buff for allies
+#define SKILL_WAR_CRY_ENEMY 2223 // War Cry debuff for enemies
+#define SKILL_EARTHSHAKER 2224 // Berserker Primal Warrior - Tier 4
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2220
+#define NUM_SKILLS 2225
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 

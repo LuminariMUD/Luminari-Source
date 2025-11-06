@@ -4305,6 +4305,122 @@ void define_barbarian_perks(void)
   perk->effect_value = 5;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Primal Warrior Tree - Tier 2: Cripple enemies with critical hits");
+
+  /* ========== TIER 3 PERKS ========== */
+
+  /* Reckless Abandon */
+  perk = &perk_list[PERK_BERSERKER_RECKLESS_ABANDON];
+  perk->id = PERK_BERSERKER_RECKLESS_ABANDON;
+  perk->name = strdup("Reckless Abandon");
+  perk->description = strdup("Trade defense for offense: +4 hit, +8 damage, -4 AC for 5 rounds, 5 minute cooldown");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_FLEET_OF_FOOT_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 3: Overwhelming offense activated ability");
+
+  /* Blinding Rage */
+  perk = &perk_list[PERK_BERSERKER_BLINDING_RAGE];
+  perk->id = PERK_BERSERKER_BLINDING_RAGE;
+  perk->name = strdup("Blinding Rage");
+  perk->description = strdup("When entering rage, enemies fighting you must save vs will or be blinded for 1d4 rounds");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_INTIMIDATING_PRESENCE_2;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 3: Blind enemies when raging");
+
+  /* Stunning Blow */
+  perk = &perk_list[PERK_BERSERKER_STUNNING_BLOW];
+  perk->id = PERK_BERSERKER_STUNNING_BLOW;
+  perk->name = strdup("Stunning Blow");
+  perk->description = strdup("When starting a rage, your next attack forces a Fortitude save or stun for 2 rounds");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_CRIPPLING_BLOW;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 3: Stun on next attack after raging");
+
+  /* Uncanny Dodge Mastery */
+  perk = &perk_list[PERK_BERSERKER_UNCANNY_DODGE_MASTERY];
+  perk->id = PERK_BERSERKER_UNCANNY_DODGE_MASTERY;
+  perk->name = strdup("Uncanny Dodge Mastery");
+  perk->description = strdup("Enhanced defensive awareness: +5 perception, +3 dodge AC");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 3;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_THICK_HEADED;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 3;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 3: Defensive awareness bonuses");
+
+  /* ========== TIER 4 PERKS ========== */
+
+  /* Savage Charge */
+  perk = &perk_list[PERK_BERSERKER_SAVAGE_CHARGE];
+  perk->id = PERK_BERSERKER_SAVAGE_CHARGE;
+  perk->name = strdup("Savage Charge");
+  perk->description = strdup("Devastating charge: triple damage and knockdown (no save), once per rage");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_RECKLESS_ABANDON;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 4: Devastating charge attack");
+
+  /* War Cry */
+  perk = &perk_list[PERK_BERSERKER_WAR_CRY];
+  perk->id = PERK_BERSERKER_WAR_CRY;
+  perk->name = strdup("War Cry");
+  perk->description = strdup("Rally allies (+2 attack/damage) and demoralize foes (-2 attack/damage) for 5 rounds, 5 minute cooldown");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_BLINDING_RAGE;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 4: Group buff/debuff ability");
+
+  /* Earthshaker */
+  perk = &perk_list[PERK_BERSERKER_EARTHSHAKER];
+  perk->id = PERK_BERSERKER_EARTHSHAKER;
+  perk->name = strdup("Earthshaker");
+  perk->description = strdup("Ground pound knocking prone all enemies in combat, STR mod damage, 30 second cooldown, swift action");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 4;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_STUNNING_BLOW;
+  perk->prerequisite_rank = 1;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 0;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 4: AOE knockdown ability");
 }
 
 /* ============================================================================
@@ -6338,6 +6454,8 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num)
   if (skill_num == ABILITY_PERCEPTION)
   {
     bonus += get_perk_awareness_bonus(ch);
+    /* Primal Warrior Uncanny Dodge Mastery applies to perception */
+    bonus += get_berserker_uncanny_dodge_perception_bonus(ch);
   }
   
   /* Shadow Scout Acrobatics perks apply to acrobatics */
@@ -12569,3 +12687,95 @@ int get_berserker_crippling_blow_chance(struct char_data *ch)
   /* Crippling Blow: 5% per rank (max 3) = 15% */
   return (get_perk_rank(ch, PERK_BERSERKER_CRIPPLING_BLOW, CLASS_BERSERKER) * 5);
 }
+
+/* ============================================================================
+ * PRIMAL WARRIOR TREE - Tier 3 & 4 Helper Functions
+ * ============================================================================ */
+
+/* Check if berserker has Reckless Abandon */
+bool has_berserker_reckless_abandon(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_RECKLESS_ABANDON);
+}
+
+/* Check if berserker has Blinding Rage */
+bool has_berserker_blinding_rage(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_BLINDING_RAGE);
+}
+
+/* Check if berserker has Stunning Blow */
+bool has_berserker_stunning_blow(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_STUNNING_BLOW);
+}
+
+/* Check if berserker has Uncanny Dodge Mastery */
+bool has_berserker_uncanny_dodge_mastery(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_UNCANNY_DODGE_MASTERY);
+}
+
+/* Get perception bonus from Uncanny Dodge Mastery */
+int get_berserker_uncanny_dodge_perception_bonus(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  if (has_perk(ch, PERK_BERSERKER_UNCANNY_DODGE_MASTERY))
+    return 5;
+    
+  return 0;
+}
+
+/* Get dodge AC bonus from Uncanny Dodge Mastery */
+int get_berserker_uncanny_dodge_ac_bonus(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  if (has_perk(ch, PERK_BERSERKER_UNCANNY_DODGE_MASTERY))
+    return 3;
+    
+  return 0;
+}
+
+/* Check if berserker has Savage Charge */
+bool has_berserker_savage_charge(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_SAVAGE_CHARGE);
+}
+
+/* Check if berserker has War Cry */
+bool has_berserker_war_cry(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_WAR_CRY);
+}
+
+/* Check if berserker has Earthshaker */
+bool has_berserker_earthshaker(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_EARTHSHAKER);
+}
+

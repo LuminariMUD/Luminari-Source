@@ -202,6 +202,7 @@ typedef enum
   eBREWING,                         /* Potion brewing event */
   /*210*/ eBEACON_OF_HOPE,          /* Beacon of Hope daily cooldown */
   eFIST_OF_FOUR_THUNDERS,           /* Fist of Four Thunders lightning strike */
+  eSAVAGE_CHARGE_USED,              /* Savage Charge used this rage */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

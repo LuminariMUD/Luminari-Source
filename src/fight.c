@@ -1093,6 +1093,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     if (!IS_NPC(ch))
       bonuses[BONUS_TYPE_DODGE] += get_defensive_casting_ac_bonus(ch);
 
+    /* Berserker Primal Warrior perk: Uncanny Dodge Mastery - +3 dodge AC */
+    if (!IS_NPC(ch))
+      bonuses[BONUS_TYPE_DODGE] += get_berserker_uncanny_dodge_ac_bonus(ch);
+
     /* Monk weapon AC bonus - One With Wood and Stone perk */
     if (!IS_NPC(ch))
     {
@@ -7938,7 +7942,31 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
      * top or bottom of dam calculation can have a dramatic effect on this number */
     if (AFF_FLAGGED(ch, AFF_CHARGING) && RIDING(ch))
     {
-      if (HAS_FEAT(ch, FEAT_SPIRITED_CHARGE))
+      /* Savage Charge perk - triple damage and knockdown (once per rage, automatic) */
+      if (has_berserker_savage_charge(ch) && affected_by_spell(ch, SKILL_RAGE) && 
+          !char_has_mud_event(ch, eSAVAGE_CHARGE_USED))
+      {
+        dam += damage_holder * 2; /* triple total damage (base + 2x) */
+        attach_mud_event(new_mud_event(eSAVAGE_CHARGE_USED, ch, NULL), 60 * PASSES_PER_SEC); /* Mark as used this rage */
+        
+        /* Knockdown with no save - but check NOBASH */
+        if (victim && (!IS_NPC(victim) || !MOB_FLAGGED(victim, MOB_NOBASH)))
+        {
+          change_position(victim, POS_SITTING);
+          act("\tY[\tRSAVAGE CHARGE\tY]\tn Your devastating charge \tRDESTROYS\tn $N, knocking $M to the ground!", 
+              FALSE, ch, 0, victim, TO_CHAR);
+          act("\tY[\tRSAVAGE CHARGE\tY]\tn $n's devastating charge \tRDESTROYS\tn you, knocking you to the ground!", 
+              FALSE, ch, 0, victim, TO_VICT);
+          act("\tY[\tRSAVAGE CHARGE\tY]\tn $n's devastating charge \tRDESTROYS\tn $N!", 
+              FALSE, ch, 0, victim, TO_NOTVICT);
+        }
+        else if (victim && MOB_FLAGGED(victim, MOB_NOBASH))
+        {
+          act("\tY[\tRSAVAGE CHARGE\tY]\tn Your devastating charge hits $N, but $E resists being knocked down!", 
+              FALSE, ch, 0, victim, TO_CHAR);
+        }
+      }
+      else if (HAS_FEAT(ch, FEAT_SPIRITED_CHARGE))
       { /* mounted, charging with spirited charge feat */
         if (wielded && HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE))
         { /* with lance too */
@@ -12720,6 +12748,36 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       teamwork_attacks_of_opportunity(victim, 0, FEAT_OUTFLANK);
     if (teamwork_using_shield(ch, FEAT_SEIZE_THE_MOMENT))
       teamwork_attacks_of_opportunity(victim, 0, FEAT_SEIZE_THE_MOMENT);
+  }
+
+  /* Stunning Blow - Berserker Primal Warrior perk (triggers on any successful hit after rage) */
+  if (AFF_FLAGGED(ch, AFF_NEXTATTACK_STUN) && can_hit > 0)
+  {
+    /* Remove the flag */
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_NEXTATTACK_STUN);
+    
+    /* Target makes Fortitude save or is stunned for 2 rounds */
+    int dc = 10 + GET_LEVEL(ch) + GET_STR_BONUS(ch);
+    if (!savingthrow(ch, victim, SAVING_FORT, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+    {
+      struct affected_type af = {0};
+      new_affect(&af);
+      af.spell = PERK_BERSERKER_STUNNING_BLOW;
+      af.duration = 2;
+      SET_BIT_AR(af.bitvector, AFF_STUN);
+      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+      
+      act("\tY[\tRSTUNNING BLOW\tY]\tn $n's overwhelming attack \tYSTUNS\tn you!", 
+          FALSE, ch, 0, victim, TO_VICT);
+      act("\tY[\tRSTUNNING BLOW\tY]\tn Your overwhelming attack \tYSTUNS\tn $N!", 
+          FALSE, ch, 0, victim, TO_CHAR);
+      act("\tY[\tRSTUNNING BLOW\tY]\tn $n's overwhelming attack \tYSTUNS\tn $N!", 
+          FALSE, ch, 0, victim, TO_NOTVICT);
+    }
+    else
+    {
+      act("$N resists your stunning blow!", FALSE, ch, 0, victim, TO_CHAR);
+    }
   }
 
   hitprcnt_mtrigger(victim); // hitprcnt trigger

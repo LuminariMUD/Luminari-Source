@@ -3548,6 +3548,51 @@ ACMD(do_rage)
   // GET_HIT(ch) += bonus * GET_LEVEL(ch) + GET_CON_BONUS(ch) + 1;
   save_char(ch, 0); /* this is redundant but doing it for dummy sakes */
 
+  /* Blinding Rage perk - blind enemies when entering rage */
+  if (has_berserker_blinding_rage(ch))
+  {
+    struct char_data *tch = NULL, *next_tch = NULL;
+    
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+    {
+      next_tch = tch->next_in_room;
+      
+      /* Only affect enemies currently fighting the berserker */
+      if (tch == ch || !IS_NPC(tch) || FIGHTING(tch) != ch)
+        continue;
+      
+      /* Check if already blind */
+      if (AFF_FLAGGED(tch, AFF_BLIND))
+        continue;
+      
+      /* Make a Will save */
+      int dc = 10 + GET_LEVEL(ch) + GET_CHA_BONUS(ch);
+      if (!savingthrow(ch, tch, SAVING_WILL, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+      {
+        struct affected_type af;
+        int blind_duration = dice(1, 4); // 1d4 rounds
+        
+        new_affect(&af);
+        af.spell = SKILL_RAGE;
+        af.duration = blind_duration;
+        SET_BIT_AR(af.bitvector, AFF_BLIND);
+        affect_to_char(tch, &af);
+        
+        act("Your rage blinds $N with overwhelming fury!", FALSE, ch, 0, tch, TO_CHAR);
+        act("$n's rage blinds you with overwhelming fury!", FALSE, ch, 0, tch, TO_VICT);
+        act("$n's rage blinds $N with overwhelming fury!", FALSE, ch, 0, tch, TO_NOTVICT);
+      }
+    }
+  }
+  
+  /* Stunning Blow perk - set flag for next attack to stun */
+  if (has_berserker_stunning_blow(ch))
+  {
+    /* Set a flag that will be checked in hit() function */
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_NEXTATTACK_STUN);
+    send_to_char(ch, "Your next attack will carry \tYoverwhelming force\tn!\r\n");
+  }
+
   return;
 }
 
@@ -3600,6 +3645,311 @@ ACMD(do_sprint)
   }
 
   USE_MOVE_ACTION(ch);
+
+  return;
+}
+
+ACMD(do_reckless_abandon)
+{
+  struct affected_type af;
+  int duration = 5; // 5 rounds
+
+  PREREQ_CAN_FIGHT();
+
+  /* Check if already using reckless abandon */
+  if (affected_by_spell(ch, SKILL_RECKLESS_ABANDON))
+  {
+    send_to_char(ch, "You are already fighting with reckless abandon!\r\n");
+    return;
+  }
+
+  /* Check if they have the perk */
+  if (!has_berserker_reckless_abandon(ch))
+  {
+    send_to_char(ch, "You don't know how to fight with reckless abandon!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 5 minute cooldown */
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(SKILL_RECKLESS_ABANDON, "You must recover before you can use reckless abandon again.\r\n");
+  }
+
+  /* Must be raging to use */
+  if (!affected_by_spell(ch, SKILL_RAGE))
+  {
+    send_to_char(ch, "You must be raging to use reckless abandon!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You throw aside all defensive concerns and attack with \tRreckless abandon\tn!\r\n");
+  act("$n's eyes blaze with fury as $e attacks with \tRreckless abandon\tn!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* +4 to hit bonus */
+  new_affect(&af);
+  af.spell = SKILL_RECKLESS_ABANDON;
+  af.duration = duration;
+  af.location = APPLY_HITROLL;
+  af.modifier = 4;
+  af.bonus_type = BONUS_TYPE_MORALE;
+  affect_to_char(ch, &af);
+
+  /* +8 damage bonus */
+  new_affect(&af);
+  af.spell = SKILL_RECKLESS_ABANDON;
+  af.duration = duration;
+  af.location = APPLY_DAMROLL;
+  af.modifier = 8;
+  af.bonus_type = BONUS_TYPE_MORALE;
+  affect_to_char(ch, &af);
+
+  /* -4 AC penalty */
+  new_affect(&af);
+  af.spell = SKILL_RECKLESS_ABANDON;
+  af.duration = duration;
+  af.location = APPLY_AC_NEW;
+  af.modifier = -4;
+  af.bonus_type = BONUS_TYPE_UNDEFINED; /* Penalties don't have a specific bonus type */
+  affect_to_char(ch, &af);
+
+  /* Start cooldown - 5 minutes */
+  if (!IS_NPC(ch))
+  {
+    start_daily_use_cooldown(ch, SKILL_RECKLESS_ABANDON);
+  }
+
+  USE_SWIFT_ACTION(ch);
+
+  return;
+}
+
+ACMD(do_warcry)
+{
+  struct affected_type af;
+  struct char_data *tch = NULL;
+  int duration = 5; // 5 rounds
+
+  PREREQ_CAN_FIGHT();
+
+  /* Check if they have the perk */
+  if (!has_berserker_war_cry(ch))
+  {
+    send_to_char(ch, "You don't know how to use a war cry!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 5 minute cooldown */
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(SKILL_WAR_CRY, "You must recover before you can use war cry again.\r\n");
+  }
+
+  send_to_char(ch, "You unleash a mighty \tRWAR CRY\tn that echoes across the battlefield!\r\n");
+  act("$n unleashes a mighty \tRWAR CRY\tn that echoes across the battlefield!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Apply buff to all group members in the same room */
+  if (GROUP(ch))
+  {
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    {
+      if (IN_ROOM(tch) == IN_ROOM(ch))
+      {
+        /* +2 attack bonus */
+        new_affect(&af);
+        af.spell = SKILL_WAR_CRY_ALLY;
+        af.duration = duration;
+        af.location = APPLY_HITROLL;
+        af.modifier = 2;
+        af.bonus_type = BONUS_TYPE_MORALE;
+        affect_to_char(tch, &af);
+
+        /* +2 damage bonus */
+        new_affect(&af);
+        af.spell = SKILL_WAR_CRY_ALLY;
+        af.duration = duration;
+        af.location = APPLY_DAMROLL;
+        af.modifier = 2;
+        af.bonus_type = BONUS_TYPE_MORALE;
+        affect_to_char(tch, &af);
+
+        if (tch != ch)
+        {
+          send_to_char(tch, "You feel empowered by %s's \tGwar cry\tn!\r\n", GET_NAME(ch));
+        }
+      }
+    }
+  }
+  else
+  {
+    /* Solo - buff self */
+    new_affect(&af);
+    af.spell = SKILL_WAR_CRY_ALLY;
+    af.duration = duration;
+    af.location = APPLY_HITROLL;
+    af.modifier = 2;
+    af.bonus_type = BONUS_TYPE_MORALE;
+    affect_to_char(ch, &af);
+
+    new_affect(&af);
+    af.spell = SKILL_WAR_CRY_ALLY;
+    af.duration = duration;
+    af.location = APPLY_DAMROLL;
+    af.modifier = 2;
+    af.bonus_type = BONUS_TYPE_MORALE;
+    affect_to_char(ch, &af);
+  }
+
+  /* Apply debuff to all enemies currently fighting you or your group */
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == ch || !IS_NPC(tch))
+      continue;
+
+    /* Check if this enemy is fighting the berserker or any group member */
+    bool is_fighting_group = FALSE;
+    if (FIGHTING(tch) == ch)
+    {
+      is_fighting_group = TRUE;
+    }
+    else if (GROUP(ch))
+    {
+      struct char_data *gch = NULL;
+      while ((gch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+      {
+        if (FIGHTING(tch) == gch && IN_ROOM(gch) == IN_ROOM(ch))
+        {
+          is_fighting_group = TRUE;
+          break;
+        }
+      }
+    }
+
+    if (is_fighting_group)
+    {
+      /* -2 attack penalty */
+      new_affect(&af);
+      af.spell = SKILL_WAR_CRY_ENEMY;
+      af.duration = duration;
+      af.location = APPLY_HITROLL;
+      af.modifier = -2;
+      af.bonus_type = BONUS_TYPE_UNDEFINED; /* Penalties don't have a specific bonus type */
+      affect_to_char(tch, &af);
+
+      /* -2 damage penalty */
+      new_affect(&af);
+      af.spell = SKILL_WAR_CRY_ENEMY;
+      af.duration = duration;
+      af.location = APPLY_DAMROLL;
+      af.modifier = -2;
+      af.bonus_type = BONUS_TYPE_UNDEFINED; /* Penalties don't have a specific bonus type */
+      affect_to_char(tch, &af);
+
+      act("$N recoils from your \tRwar cry\tn!", FALSE, ch, 0, tch, TO_CHAR);
+      act("You recoil from $n's \tRwar cry\tn!", FALSE, ch, 0, tch, TO_VICT);
+    }
+  }
+
+  /* Start cooldown - 5 minutes */
+  if (!IS_NPC(ch))
+  {
+    start_daily_use_cooldown(ch, SKILL_WAR_CRY);
+  }
+
+  USE_STANDARD_ACTION(ch);
+
+  return;
+}
+
+ACMD(do_earthshaker)
+{
+  struct char_data *tch = NULL, *next_tch = NULL;
+  int dam_amount = 0;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  /* Check if they have the perk */
+  if (!has_berserker_earthshaker(ch))
+  {
+    send_to_char(ch, "You don't know how to use earthshaker!\r\n");
+    return;
+  }
+
+  /* Check cooldown - 30 second cooldown */
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(SKILL_EARTHSHAKER, "You must recover before you can use earthshaker again.\r\n");
+  }
+
+  /* Calculate damage based on STR modifier */
+  dam_amount = GET_STR_BONUS(ch);
+  if (dam_amount < 1)
+    dam_amount = 1;
+
+  send_to_char(ch, "You slam the ground with tremendous force, causing the earth to \tYSHAKE\tn!\r\n");
+  act("$n slams the ground with tremendous force, causing the earth to \tYSHAKE\tn!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Knock down all enemies currently fighting you or your group members */
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+
+    if (tch == ch || !IS_NPC(tch))
+      continue;
+
+    /* Check if this enemy is fighting the berserker or any group member */
+    bool is_fighting_group = FALSE;
+    if (FIGHTING(tch) == ch)
+    {
+      is_fighting_group = TRUE;
+    }
+    else if (GROUP(ch))
+    {
+      struct char_data *gch = NULL;
+      while ((gch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+      {
+        if (FIGHTING(tch) == gch && IN_ROOM(gch) == IN_ROOM(ch))
+        {
+          is_fighting_group = TRUE;
+          break;
+        }
+      }
+    }
+
+    if (is_fighting_group)
+    {
+      /* Deal damage */
+      if (dam_amount > 0)
+      {
+        damage(ch, tch, dam_amount, SKILL_EARTHSHAKER, DAM_FORCE, FALSE);
+      }
+
+      /* Knock prone (no save) - but check NOBASH */
+      if (!IS_NPC(tch) || !MOB_FLAGGED(tch, MOB_NOBASH))
+      {
+        change_position(tch, POS_SITTING);
+        act("You are knocked to the ground!", FALSE, ch, 0, tch, TO_VICT);
+        act("$N is knocked to the ground!", FALSE, ch, 0, tch, TO_CHAR);
+        act("$N is knocked to the ground!", FALSE, ch, 0, tch, TO_NOTVICT);
+      }
+      else
+      {
+        act("$N resists being knocked down!", FALSE, ch, 0, tch, TO_CHAR);
+      }
+    }
+  }
+
+  /* Start cooldown - 30 seconds */
+  if (!IS_NPC(ch))
+  {
+    start_daily_use_cooldown(ch, SKILL_EARTHSHAKER);
+  }
+
+  USE_SWIFT_ACTION(ch);
 
   return;
 }
