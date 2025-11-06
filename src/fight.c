@@ -4461,6 +4461,15 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
       send_to_char(ch, "%-30s: %d\r\n", "Misc (Gear, Spells, Etc.)", GET_DR_MOD(ch));
   }
 
+  /* Raging Defender - double DR when hit by crit or sneak attack */
+  if (!IS_NPC(ch) && has_berserker_raging_defender(ch) && (HIT_BY_CRITICAL(ch) || HIT_BY_SNEAK_ATTACK(ch)))
+  {
+    int raging_defender_bonus = damage_reduction; /* Double the current DR */
+    damage_reduction += raging_defender_bonus;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Raging Defender (Doubled)", raging_defender_bonus);
+  }
+
   // damage reduction cap is 20 for players
   if (!IS_NPC(ch))
   {
@@ -4476,6 +4485,10 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
   {
     send_to_char(ch, "\tC%-30s: %d\tn\r\n", "Final Damage Reduction:", damage_reduction);
   }
+
+  /* Clear Raging Defender flags after DR calculation */
+  HIT_BY_CRITICAL(ch) = FALSE;
+  HIT_BY_SNEAK_ATTACK(ch) = FALSE;
 
   return damage_reduction;
 }
@@ -7593,6 +7606,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     /* handle critical hit damage here */
     if (is_critical && !IS_IMMUNE_CRITS(ch, victim))
     {
+      /* Set flag for Raging Defender perk */
+      HIT_BY_CRITICAL(victim) = TRUE;
 
       /* critical message */
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
@@ -11539,6 +11554,9 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
     if (sneakdam)
     {
+      /* Set flag for Raging Defender perk */
+      HIT_BY_SNEAK_ATTACK(victim) = TRUE;
+      
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }

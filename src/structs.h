@@ -5807,6 +5807,10 @@ struct char_special_data
     bool has_performed_demoralizing_strike; // this ensures the combatant can only do a demoralizing strike once per round.
     
     bool perfect_kill_active;       // temporary flag set when Perfect Kill is triggered for this attack
+    
+    /* Raging Defender flags - set when hit by crit/sneak, checked in DR calculation */
+    bool hit_by_critical;           // temporary flag set when struck by a critical hit
+    bool hit_by_sneak_attack;       // temporary flag set when struck by a sneak attack
 
     int terror_cooldown;
 

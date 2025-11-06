@@ -2771,6 +2771,11 @@ void set_eidolon_descs(struct char_data *ch);
 #define GET_ELEMENTAL_EMBODIMENT_TYPE(ch)  ((ch)->player_specials->saved.elemental_embodiment_type)
 #define GET_ELEMENTAL_MASTERY_ACTIVE(ch)  ((ch)->player_specials->saved.elemental_mastery_active)
 #define GET_ELEMENTAL_MASTERY_COOLDOWN(ch)  ((ch)->player_specials->saved.elemental_mastery_cooldown)
+
+/* Raging Defender temporary flags */
+#define HIT_BY_CRITICAL(ch)  ((ch)->char_specials.hit_by_critical)
+#define HIT_BY_SNEAK_ATTACK(ch)  ((ch)->char_specials.hit_by_sneak_attack)
+
 bool has_reach(struct char_data *ch);
 
 #define WEAPON_SPELL_PROC(ch) (ch->player.weaponSpellProc)
