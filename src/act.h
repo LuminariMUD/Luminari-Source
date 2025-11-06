@@ -556,6 +556,7 @@ ACMDCHECK(can_sap);
 ACMD_DECL(do_assist);
 ACMD_DECL(do_rage);
 ACMDCHECK(can_rage);
+ACMD_DECL(do_sprint);
 ACMD_DECL(do_hardy);
 ACMD_DECL(do_sacredflames);
 ACMD_DECL(do_innerfire);

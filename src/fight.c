@@ -1640,6 +1640,35 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
     }
   }
 
+  /* Intimidating Presence II - Berserker Primal Warrior perk */
+  if (has_berserker_intimidating_presence_2(vict))
+  {
+    /* Check if enemy is immune to fear/mind-affecting */
+    if (!is_immune_fear(vict, ch, false) && !is_immune_mind_affecting(vict, ch, false))
+    {
+      /* Make a discipline check vs DC 10 + berserker level + CHA modifier */
+      int dc = 10 + GET_LEVEL(vict) + GET_CHA_BONUS(vict);
+      int discipline_roll = skill_check(ch, ABILITY_DISCIPLINE, dc);
+      
+      if (!discipline_roll)
+      {
+        /* Failed discipline check - become shaken for 3 rounds */
+        struct affected_type af = {0};
+        new_affect(&af);
+        af.spell = ABILITY_INTIMIDATE; /* Use intimidate as the spell source */
+        af.duration = 3;
+        SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+        affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
+        act("\tR[\tDINTIMIDATING PRESENCE\tR]\tn $n's fierce presence fills you with dread!", 
+            FALSE, vict, 0, ch, TO_VICT);
+        act("\tR[\tDINTIMIDATING PRESENCE\tR]\tn Your imposing presence unnerves $N!", 
+            FALSE, vict, 0, ch, TO_CHAR);
+        act("\tR[\tDINTIMIDATING PRESENCE\tR]\tn $N appears shaken by $n's fierce presence!", 
+            FALSE, vict, 0, ch, TO_NOTVICT);
+      }
+    }
+  }
+
   /* start the combat loop, making sure we begin with phase "1" */
   attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, "1"), delay);
 
@@ -12662,6 +12691,29 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       mag_affects(MAX(20, GET_LEVEL(ch)), ch, victim, NULL, ABILITY_SICKENING_CRITICAL, SAVING_FORT, CAST_INNATE, 0);
     if (HAS_FEAT(ch, FEAT_CENSORING_CRITICAL))
       mag_affects(MAX(20, GET_LEVEL(ch)), ch, victim, NULL, ABILITY_CENSORING_CRITICAL, SAVING_WILL, CAST_INNATE, 0);
+
+    /* Crippling Blow - Berserker Primal Warrior perk */
+    int crippling_chance = get_berserker_crippling_blow_chance(ch);
+    if (crippling_chance > 0 && !IS_IMMUNE_CRITS(ch, victim))
+    {
+      /* Roll for chance to apply slow */
+      if (rand_number(1, 100) <= crippling_chance)
+      {
+        /* Apply slow effect for 3 rounds - no save */
+        struct affected_type af = {0};
+        new_affect(&af);
+        af.spell = PERK_BERSERKER_CRIPPLING_BLOW;
+        af.duration = 3;
+        SET_BIT_AR(af.bitvector, AFF_SLOW);
+        affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+        act("\tR[\tDCRIPPLING BLOW\tR]\tn $n's devastating strike cripples your movement!", 
+            FALSE, ch, 0, victim, TO_VICT);
+        act("\tR[\tDCRIPPLING BLOW\tR]\tn Your critical strike cripples $N's movement!", 
+            FALSE, ch, 0, victim, TO_CHAR);
+        act("\tR[\tDCRIPPLING BLOW\tR]\tn $n's critical strike cripples $N!", 
+            FALSE, ch, 0, victim, TO_NOTVICT);
+      }
+    }
 
     /* perform teamwork feats */
     if (is_flanked(ch, victim))

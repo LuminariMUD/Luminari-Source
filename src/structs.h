@@ -4307,10 +4307,11 @@
 #define APPLY_SPELL_DC 71
 #define APPLY_SPELL_DURATION 72
 #define APPLY_SPELL_PENETRATION 73
+#define APPLY_MOVE_SPEED 74 // applies to movement speed percentage
 
 
 /** Total number of applies */
-#define NUM_APPLIES 74
+#define NUM_APPLIES 75
 
 #define APPLY_TYPE_NONE             0
 #define APPLY_TYPE_ABILITY          1

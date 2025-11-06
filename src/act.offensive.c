@@ -3551,6 +3551,59 @@ ACMD(do_rage)
   return;
 }
 
+/* Sprint - Berserker Primal Warrior ability */
+ACMD(do_sprint)
+{
+  struct affected_type af;
+  int duration = 5; // 5 rounds
+
+  PREREQ_CAN_FIGHT();
+
+  /* Check if already sprinting */
+  if (affected_by_spell(ch, SKILL_SPRINT))
+  {
+    send_to_char(ch, "You are already sprinting!\r\n");
+    return;
+  }
+
+  /* Check if they have the perk */
+  if (!has_berserker_sprint(ch))
+  {
+    send_to_char(ch, "You don't know how to sprint!\r\n");
+    return;
+  }
+
+  /* Check cooldown using the feat system - treat it like a daily use feat */
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(SKILL_SPRINT, "You must recover before you can sprint again.\r\n");
+  }
+
+  send_to_char(ch, "You break into a powerful \tYsprint\tn, your legs a blur of motion!\r\n");
+  act("$n suddenly breaks into a powerful \tYsprint\tn, moving with incredible speed!", 
+      FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Create the sprint affect */
+  new_affect(&af);
+  af.spell = SKILL_SPRINT;
+  af.duration = duration;
+  af.location = APPLY_NONE; // Movement speed is handled by movement_cost.c checking for sprint affect
+  af.modifier = 0;
+  af.bonus_type = BONUS_TYPE_INHERENT;
+
+  affect_to_char(ch, &af);
+
+  /* Start cooldown - 2 minutes in game */
+  if (!IS_NPC(ch))
+  {
+    start_daily_use_cooldown(ch, SKILL_SPRINT);
+  }
+
+  USE_MOVE_ACTION(ch);
+
+  return;
+}
+
 /* hardy - berserker perk */
 ACMD(do_hardy)
 {

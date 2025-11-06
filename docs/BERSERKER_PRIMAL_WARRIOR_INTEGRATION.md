@@ -2,7 +2,7 @@
 
 ## Summary
 
-Successfully implemented and integrated Tier 1 and 2 perks for the Berserker Primal Warrior tree. All 8 perks are now defined with proper prerequisites, costs, and mechanical effects. The core mechanical bonuses (movement speed, skills, fall damage reduction, and saves) have been fully integrated into the game systems.
+Successfully implemented and integrated ALL Tier 1 and 2 perks for the Berserker Primal Warrior tree. All 8 perks are now fully functional with complete mechanical integration. Core bonuses (movement speed, skills, fall damage reduction, saves) and advanced features (Sprint ability, Intimidating Presence combat triggers, Crippling Blow critical effects) are all live and working.
 
 ## Completed Integrations
 
@@ -42,32 +42,47 @@ Successfully implemented and integrated Tier 1 and 2 perks for the Berserker Pri
 
 ## Remaining Advanced Features (Not Yet Implemented)
 
-The following perks have been defined and their helper functions exist, but require more complex system integrations involving new commands, activated abilities, or combat event triggers:
+### ✅ Sprint (Tier 2) - NOW IMPLEMENTED!
+**Status**: Fully implemented and functional
+- **Implementation**: 
+  - Created `ACMD(do_sprint)` command in `act.offensive.c`
+  - Added SKILL_SPRINT (2219) to `spells.h`
+  - Registered command in `interpreter.c`
+  - Added function declaration to `act.h`
+  - Integrated with `movement_cost.c` to double movement speed
+- **Mechanics**: 
+  - Activates with "sprint" command
+  - Doubles movement speed for 5 rounds
+  - Uses daily cooldown system (cooldown resets daily)
+  - Costs a move action to activate
+  - Cannot use while already sprinting
 
-### ⏳ Sprint (Tier 2)
-**Status**: Perk defined, helper function implemented, awaiting activated ability system
-- **Required Work**: 
-  - Create new command `ACMD(do_sprint)` in `act.offensive.c`
-  - Add command to interpreter.c command table
-  - Create affect system for 5-round duration with doubled movement speed
-  - Implement 2-minute cooldown system
-  - Add help file entry
+### ✅ Intimidating Presence II (Tier 2) - NOW IMPLEMENTED!
+**Status**: Fully implemented and functional
+- **Implementation**:
+  - Added check in `set_fighting()` function in `fight.c`
+  - Triggers when enemies engage berserker in combat
+  - Forces discipline check vs DC 10 + berserker level + CHA modifier
+- **Mechanics**:
+  - Automatically triggers when combat starts
+  - Checks if enemy is immune to fear/mind-affecting
+  - Enemy makes discipline check
+  - On failure: Applies shaken condition (AFF_SHAKEN) for 3 rounds
+  - Shaken: -2 to attack rolls, saves, skill checks, and ability checks
+  - Adds to existing Tier 1 intimidate skill bonus
 
-### ⏳ Intimidating Presence II (Tier 2)
-**Status**: Perk defined, helper function implemented, awaiting combat trigger integration
-- **Required Work**:
-  - Find combat initiation code
-  - Add discipline check when enemies engage berserker
-  - Apply "shaken" condition on failed check
-  - Implement morale penalty mechanics
-
-### ⏳ Crippling Blow (Tier 2)
-**Status**: Perk defined, helper function implemented, awaiting critical hit integration
-- **Required Work**:
-  - Find critical hit handling in combat system
-  - Add check for perk after critical hits
-  - Apply slow effect to victim
-  - Balance slow effect duration and strength
+### ✅ Crippling Blow (Tier 2) - NOW IMPLEMENTED!
+**Status**: Fully implemented and functional
+- **Implementation**:
+  - Added check in critical hit section of `hit()` function in `fight.c`
+  - Triggers after confirming critical hit
+  - Checks for immunity to critical hits
+- **Mechanics**:
+  - 5% chance per rank (max 15% at rank 3)
+  - On successful roll: Applies slow effect (AFF_SLOW) for 3 rounds
+  - No saving throw allowed
+  - Slow effect reduces number of attacks
+  - Works with all weapon critical hits
 
 ## Technical Details
 

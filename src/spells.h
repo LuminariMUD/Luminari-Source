@@ -1131,9 +1131,10 @@
 #define SKILL_BREATH_OF_WINTER 2216 // Way of Four Elements - breath of winter (AoE cold, slow)
 #define SKILL_ELEMENTAL_EMBODIMENT 2217 // Way of Four Elements - elemental embodiment (transform)
 #define SKILL_HARDY 2218 // Berserker Occult Slayer perk
+#define SKILL_SPRINT 2219 // Berserker Primal Warrior sprint ability
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2219
+#define NUM_SKILLS 2220
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 

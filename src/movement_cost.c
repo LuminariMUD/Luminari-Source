@@ -74,6 +74,10 @@ int get_speed(struct char_data *ch, sbyte to_display)
   else if (affected_by_spell(ch, SPELL_EXPEDITIOUS_RETREAT))
     speed += 30;
 
+  // Sprint doubles movement speed
+  if (affected_by_spell(ch, SKILL_SPRINT))
+    speed *= 2;
+
   // likewise, monk speed and fast movement don't stack for balance reasons
   if (monk_gear_ok(ch))
   {

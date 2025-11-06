@@ -929,6 +929,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"spiritualweapon", "spiritualweapon", POS_FIGHTING, do_spiritualweapon, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_spiritualweapon},
     {"split", "split", POS_SITTING, do_split, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"splitenchantment", "splitenchantment", POS_RESTING, do_splitenchantment, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"sprint", "sprint", POS_STANDING, do_sprint, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"spot", "spot", POS_STANDING, do_spot, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"stand", "st", POS_RECLINING, do_stand, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"stat", "stat", POS_DEAD, do_stat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
