@@ -4025,6 +4025,9 @@ int level_exp(struct char_data *ch, int level)
     break;
   }
 
+  /* Apply experience multiplier from config */
+  exp = (exp * CONFIG_EXPERIENCE_MULTIPLIER) / 100;
+
   return exp;
 }
 

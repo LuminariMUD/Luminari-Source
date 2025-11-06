@@ -72,6 +72,7 @@ int tunnel_size = 2;
 /* Exp change limits. */
 int max_exp_gain = 100000; /* max gainable per kill */
 int max_exp_loss = 200000; /* max losable per death */
+int experience_multiplier = 100; /* percentage multiplier for exp gain (100 = normal) */
 
 /* Number of tics (usually 75 seconds) before PC/NPC corpses decompose. */
 int max_npc_corpse_time = 5;

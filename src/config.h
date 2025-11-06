@@ -23,6 +23,7 @@ extern int holler_move_cost;
 extern int tunnel_size;
 extern int max_exp_gain;
 extern int max_exp_loss;
+extern int experience_multiplier;
 extern int max_npc_corpse_time;
 extern int max_pc_corpse_time;
 extern int idle_void;

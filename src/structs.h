@@ -6974,6 +6974,7 @@ struct game_data
     int tunnel_size;         /**< Number of people allowed in a tunnel.*/
     int max_exp_gain;        /**< Maximum experience gainable per kill.*/
     int max_exp_loss;        /**< Maximum experience losable per death.*/
+    int experience_multiplier; /**< Percentage multiplier for experience gain (100 = normal).*/
     int max_npc_corpse_time; /**< Num tics before NPC corpses decompose*/
     int max_pc_corpse_time;  /**< Num tics before PC corpse decomposes.*/
     int idle_void;           /**< Num tics before PC sent to void(idle)*/

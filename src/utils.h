@@ -2412,6 +2412,8 @@ int ACTUAL_BAB(struct char_data *ch);
 #define CONFIG_MAX_EXP_GAIN config_info.play.max_exp_gain
 /** What is the max experience that can be lost at once? */
 #define CONFIG_MAX_EXP_LOSS config_info.play.max_exp_loss
+/** What is the percentage multiplier for experience gain? (100 = normal) */
+#define CONFIG_EXPERIENCE_MULTIPLIER config_info.play.experience_multiplier
 /** How long will npc corpses last before decomposing? */
 #define CONFIG_MAX_NPC_CORPSE_TIME config_info.play.max_npc_corpse_time
 /** How long will pc corpses last before decomposing? */

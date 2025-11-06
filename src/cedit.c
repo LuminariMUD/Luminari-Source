@@ -102,6 +102,7 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->play.tunnel_size = CONFIG_TUNNEL_SIZE;
   OLC_CONFIG(d)->play.max_exp_gain = CONFIG_MAX_EXP_GAIN;
   OLC_CONFIG(d)->play.max_exp_loss = CONFIG_MAX_EXP_LOSS;
+  OLC_CONFIG(d)->play.experience_multiplier = CONFIG_EXPERIENCE_MULTIPLIER;
   OLC_CONFIG(d)->play.max_npc_corpse_time = CONFIG_MAX_NPC_CORPSE_TIME;
   OLC_CONFIG(d)->play.max_pc_corpse_time = CONFIG_MAX_PC_CORPSE_TIME;
   OLC_CONFIG(d)->play.idle_void = CONFIG_IDLE_VOID;
@@ -280,6 +281,7 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_TUNNEL_SIZE = OLC_CONFIG(d)->play.tunnel_size;
   CONFIG_MAX_EXP_GAIN = OLC_CONFIG(d)->play.max_exp_gain;
   CONFIG_MAX_EXP_LOSS = OLC_CONFIG(d)->play.max_exp_loss;
+  CONFIG_EXPERIENCE_MULTIPLIER = OLC_CONFIG(d)->play.experience_multiplier;
   CONFIG_MAX_NPC_CORPSE_TIME = OLC_CONFIG(d)->play.max_npc_corpse_time;
   CONFIG_MAX_PC_CORPSE_TIME = OLC_CONFIG(d)->play.max_pc_corpse_time;
   CONFIG_IDLE_VOID = OLC_CONFIG(d)->play.idle_void;
@@ -519,6 +521,9 @@ int save_config(IDXTYPE nowhere)
   fprintf(fl, "* Maximum experience loseable per death?\n"
               "max_exp_loss = %d\n\n",
           CONFIG_MAX_EXP_LOSS);
+  fprintf(fl, "* Percentage multiplier for experience gain (100 = normal)?\n"
+              "experience_multiplier = %d\n\n",
+          CONFIG_EXPERIENCE_MULTIPLIER);
   fprintf(fl, "* Number of tics before NPC corpses decompose.\n"
               "max_npc_corpse_time = %d\n\n",
           CONFIG_MAX_NPC_CORPSE_TIME);
@@ -1200,6 +1205,7 @@ static void cedit_disp_game_play_options(struct descriptor_data *d)
                      "%sS%s) Prevent Mortal -> Staff Lvel  : %s%s\r\n"
                      "%sT%s) Use Introduction System       : %s%s\r\n"
                      "%sU%s) Perk System Enabled           : %s%s\r\n"
+                     "%sV%s) Experience Multiplier (%%age)  : %s%d\r\n"
                      "%s1%s) OK Message Text               : %s%s"
                      "%s2%s) NOPERSON Message Text         : %s%s"
                      "%s3%s) NOEFFECT Message Text         : %s%s"
@@ -1232,6 +1238,7 @@ static void cedit_disp_game_play_options(struct descriptor_data *d)
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.no_mort_to_immort),
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.use_introduction_system),
                   grn, nrm, cyn, CHECK_VAR(OLC_CONFIG(d)->play.perk_system),
+                  grn, nrm, cyn, OLC_CONFIG(d)->play.experience_multiplier,
 
                   grn, nrm, cyn, OLC_CONFIG(d)->play.OK,
                   grn, nrm, cyn, OLC_CONFIG(d)->play.NOPERSON,
@@ -1911,6 +1918,12 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     case 'U':
       TOGGLE_VAR(OLC_CONFIG(d)->play.perk_system);
       break;
+
+    case 'v':
+    case 'V':
+      write_to_output(d, "Enter the percentage multiplier for experience gain (100 = normal) : ");
+      OLC_MODE(d) = CEDIT_EXPERIENCE_MULTIPLIER;
+      return;
 
     case 'q':
     case 'Q':
@@ -2714,6 +2727,13 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   case CEDIT_MAX_EXP_LOSS:
     if (*arg)
       OLC_CONFIG(d)->play.max_exp_loss = atoi(arg);
+
+    cedit_disp_game_play_options(d);
+    break;
+
+  case CEDIT_EXPERIENCE_MULTIPLIER:
+    if (*arg)
+      OLC_CONFIG(d)->play.experience_multiplier = atoi(arg);
 
     cedit_disp_game_play_options(d);
     break;
