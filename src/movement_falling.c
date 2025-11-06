@@ -23,6 +23,7 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "feats.h"
+#include "perks.h"
 #include "movement_falling.h"
 
 /* External functions */
@@ -156,6 +157,12 @@ EVENTFUNC(event_falling)
       dam -= dice((HAS_FEAT(ch, FEAT_SLOW_FALL) * 4), 6);
     }
     if (HAS_FEAT(ch, FEAT_DRACONIAN_CONTROLLED_FALL))
+    {
+      dam /= 2;
+    }
+
+    /* berserker mighty leap reduces fall damage by 50% */
+    if (has_berserker_mighty_leap(ch))
     {
       dam /= 2;
     }

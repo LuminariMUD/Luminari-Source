@@ -575,7 +575,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     if (!skill_check(ch, ABILITY_CLIMB, climb_dc) && !AFF_FLAGGED(ch, AFF_FLYING))
     {
       send_to_char(ch, "You attempt to climb to that area, but fall and get hurt!\r\n");
-      damage((ch), (ch), dice(climb_dc - 10, 4), -1, -1, -1);
+      int climb_dam = dice(climb_dc - 10, 4);
+      
+      /* berserker mighty leap reduces fall damage by 50% */
+      if (has_berserker_mighty_leap(ch))
+      {
+        climb_dam /= 2;
+      }
+      
+      damage((ch), (ch), climb_dam, -1, -1, -1);
       update_pos(ch);
       return 0;
     }

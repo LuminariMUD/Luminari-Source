@@ -122,6 +122,17 @@ int get_speed(struct char_data *ch, sbyte to_display)
   if (!IS_NPC(ch))
     speed += get_perk_fleet_of_foot_bonus(ch);
 
+  // Fleet of Foot perk bonus (Primal Warrior tree)
+  if (!IS_NPC(ch))
+  {
+    int berserker_bonus = get_berserker_fleet_of_foot_bonus(ch);
+    if (berserker_bonus > 0)
+    {
+      // Apply percentage bonus to base speed
+      speed += (speed * berserker_bonus) / 100;
+    }
+  }
+
   return speed;
 }
 

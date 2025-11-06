@@ -4173,6 +4173,138 @@ void define_barbarian_perks(void)
   perk->effect_value = 2;
   perk->effect_modifier = 0;
   perk->special_description = strdup("Occult Slayer Tree - Tier 4: DR becomes more effective");
+
+  /* ========== PRIMAL WARRIOR TREE - TIER 1 PERKS ========== */
+
+  /* Fleet of Foot I */
+  perk = &perk_list[PERK_BERSERKER_FLEET_OF_FOOT_1];
+  perk->id = PERK_BERSERKER_FLEET_OF_FOOT_1;
+  perk->name = strdup("Fleet of Foot I");
+  perk->description = strdup("+10% movement speed per rank while not wearing heavy armor");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 1: Increased mobility");
+
+  /* Intimidating Presence I */
+  perk = &perk_list[PERK_BERSERKER_INTIMIDATING_PRESENCE_1];
+  perk->id = PERK_BERSERKER_INTIMIDATING_PRESENCE_1;
+  perk->name = strdup("Intimidating Presence I");
+  perk->description = strdup("+2 intimidate per rank, enemies have -1 morale penalty per 2 ranks");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 5;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 1: Terrify your foes");
+
+  /* Mighty Leap */
+  perk = &perk_list[PERK_BERSERKER_MIGHTY_LEAP];
+  perk->id = PERK_BERSERKER_MIGHTY_LEAP;
+  perk->name = strdup("Mighty Leap");
+  perk->description = strdup("+10 to climbing checks, reduce falling damage by 50%");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 1: Jump further and avoid falling damage");
+
+  /* Thick Headed */
+  perk = &perk_list[PERK_BERSERKER_THICK_HEADED];
+  perk->id = PERK_BERSERKER_THICK_HEADED;
+  perk->name = strdup("Thick Headed");
+  perk->description = strdup("+2 bonus to saves vs. stun and knockdown per rank");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 1;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 1: Resist stunning and knockdown");
+
+  /* ========== PRIMAL WARRIOR TREE - TIER 2 PERKS ========== */
+
+  /* Fleet of Foot II */
+  perk = &perk_list[PERK_BERSERKER_FLEET_OF_FOOT_2];
+  perk->id = PERK_BERSERKER_FLEET_OF_FOOT_2;
+  perk->name = strdup("Fleet of Foot II");
+  perk->description = strdup("+10% movement speed per rank while not wearing heavy armor");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BERSERKER_FLEET_OF_FOOT_1;
+  perk->prerequisite_rank = 3;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 10;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 2: Further increase mobility");
+
+  /* Intimidating Presence II */
+  perk = &perk_list[PERK_BERSERKER_INTIMIDATING_PRESENCE_2];
+  perk->id = PERK_BERSERKER_INTIMIDATING_PRESENCE_2;
+  perk->name = strdup("Intimidating Presence II");
+  perk->description = strdup("+1 intimidate per rank. Enemies must pass discipline check or be shaken for 5 rounds");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 2;
+  perk->prerequisite_perk = PERK_BERSERKER_INTIMIDATING_PRESENCE_1;
+  perk->prerequisite_rank = 5;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 1;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 2: Terrify your enemies in combat");
+
+  /* Sprint */
+  perk = &perk_list[PERK_BERSERKER_SPRINT];
+  perk->id = PERK_BERSERKER_SPRINT;
+  perk->name = strdup("Sprint");
+  perk->description = strdup("Gain Sprint ability - double movement speed for 5 rounds, 2 minute cooldown");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 1;
+  perk->prerequisite_perk = PERK_BERSERKER_FLEET_OF_FOOT_1;
+  perk->prerequisite_rank = 2;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 2;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 2: Burst of speed ability");
+
+  /* Crippling Blow */
+  perk = &perk_list[PERK_BERSERKER_CRIPPLING_BLOW];
+  perk->id = PERK_BERSERKER_CRIPPLING_BLOW;
+  perk->name = strdup("Crippling Blow");
+  perk->description = strdup("5% chance per rank to slow enemies for 3 rounds on critical hit");
+  perk->associated_class = CLASS_BERSERKER;
+  perk->perk_category = PERK_CATEGORY_BERSERKER;
+  perk->cost = 2;
+  perk->max_rank = 3;
+  perk->prerequisite_perk = -1;
+  perk->prerequisite_rank = 0;
+  perk->effect_type = PERK_EFFECT_SPECIAL;
+  perk->effect_value = 5;
+  perk->effect_modifier = 0;
+  perk->special_description = strdup("Primal Warrior Tree - Tier 2: Cripple enemies with critical hits");
 }
 
 /* ============================================================================
@@ -6138,6 +6270,12 @@ int get_perk_save_bonus(struct char_data *ch, int save_type)
   /* Also add universal save bonuses (effect_modifier = -1) */
   bonus += get_perk_bonus(ch, PERK_EFFECT_SAVE, -1);
   
+  /* Thick Headed provides bonus to Fortitude saves (stun/knockdown typically use Fort) */
+  if (save_type == SAVING_FORT)
+  {
+    bonus += get_berserker_thick_headed_bonus(ch);
+  }
+  
   return bonus;
 }
 
@@ -6206,6 +6344,12 @@ int get_perk_skill_bonus(struct char_data *ch, int skill_num)
   if (skill_num == ABILITY_ACROBATICS)
   {
     bonus += get_perk_acrobatics_bonus(ch);
+  }
+  
+  /* Primal Warrior Intimidating Presence perks apply to intimidate */
+  if (skill_num == ABILITY_INTIMIDATE)
+  {
+    bonus += get_berserker_intimidating_presence_bonus(ch);
   }
   
   return bonus;
@@ -12308,4 +12452,120 @@ int get_berserker_savage_defiance_dr(struct char_data *ch)
     
   /* Savage Defiance: +2 DR per rank (max 3) = 6 DR */
   return (get_perk_rank(ch, PERK_BERSERKER_SAVAGE_DEFIANCE, CLASS_BERSERKER) * 2);
+}
+
+/* ============================================================================
+ * PRIMAL WARRIOR TREE - Tier 1 & 2 Helper Functions
+ * ============================================================================ */
+
+/* Get movement speed bonus from Fleet of Foot perks */
+int get_berserker_fleet_of_foot_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Must not be wearing heavy armor */
+  if (compute_gear_armor_type(ch) == ARMOR_TYPE_HEAVY)
+    return 0;
+    
+  /* Fleet of Foot I: 10% per rank (max 3) = 30% */
+  bonus += (get_perk_rank(ch, PERK_BERSERKER_FLEET_OF_FOOT_1, CLASS_BERSERKER) * 10);
+  
+  /* Fleet of Foot II: 10% per rank (max 2) = 20% */
+  bonus += (get_perk_rank(ch, PERK_BERSERKER_FLEET_OF_FOOT_2, CLASS_BERSERKER) * 10);
+  
+  return bonus;
+}
+
+/* Get intimidate skill bonus from Intimidating Presence perks */
+int get_berserker_intimidating_presence_bonus(struct char_data *ch)
+{
+  int bonus = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Intimidating Presence I: +2 per rank (max 5) = +10 */
+  bonus += (get_perk_rank(ch, PERK_BERSERKER_INTIMIDATING_PRESENCE_1, CLASS_BERSERKER) * 2);
+  
+  /* Intimidating Presence II: +1 per rank (max 2) = +2 */
+  bonus += get_perk_rank(ch, PERK_BERSERKER_INTIMIDATING_PRESENCE_2, CLASS_BERSERKER);
+  
+  return bonus;
+}
+
+/* Get morale penalty enemies suffer from Intimidating Presence */
+int get_berserker_intimidating_presence_morale_penalty(struct char_data *ch)
+{
+  int penalty = 0;
+  
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Intimidating Presence I: -1 morale per 2 ranks (max 5 ranks) = -2 */
+  int ranks = get_perk_rank(ch, PERK_BERSERKER_INTIMIDATING_PRESENCE_1, CLASS_BERSERKER);
+  penalty = ranks / 2;
+  
+  return penalty;
+}
+
+/* Check if berserker has Mighty Leap */
+bool has_berserker_mighty_leap(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_MIGHTY_LEAP);
+}
+
+/* Get climbing bonus from Mighty Leap */
+int get_berserker_mighty_leap_bonus(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  if (has_perk(ch, PERK_BERSERKER_MIGHTY_LEAP))
+    return 10;
+    
+  return 0;
+}
+
+/* Get save bonus vs stun and knockdown from Thick Headed */
+int get_berserker_thick_headed_bonus(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Thick Headed: +2 per rank (max 3) = +6 */
+  return (get_perk_rank(ch, PERK_BERSERKER_THICK_HEADED, CLASS_BERSERKER) * 2);
+}
+
+/* Check if berserker has Sprint ability */
+bool has_berserker_sprint(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return has_perk(ch, PERK_BERSERKER_SPRINT);
+}
+
+/* Check if berserker has Intimidating Presence II */
+bool has_berserker_intimidating_presence_2(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return FALSE;
+    
+  return (get_perk_rank(ch, PERK_BERSERKER_INTIMIDATING_PRESENCE_2, CLASS_BERSERKER) > 0);
+}
+
+/* Get chance to apply slow effect from Crippling Blow */
+int get_berserker_crippling_blow_chance(struct char_data *ch)
+{
+  if (IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_BERSERKER) == 0)
+    return 0;
+    
+  /* Crippling Blow: 5% per rank (max 3) = 15% */
+  return (get_perk_rank(ch, PERK_BERSERKER_CRIPPLING_BLOW, CLASS_BERSERKER) * 5);
 }

@@ -360,6 +360,17 @@ int get_berserker_unstoppable_dr(struct char_data *ch);
 bool has_berserker_indomitable_will(struct char_data *ch);
 bool has_berserker_raging_defender(struct char_data *ch);
 
+/* Berserker/Barbarian Primal Warrior tree helper functions - Tier 1 & 2 */
+int get_berserker_fleet_of_foot_bonus(struct char_data *ch);
+int get_berserker_intimidating_presence_bonus(struct char_data *ch);
+int get_berserker_intimidating_presence_morale_penalty(struct char_data *ch);
+bool has_berserker_mighty_leap(struct char_data *ch);
+int get_berserker_mighty_leap_bonus(struct char_data *ch);
+int get_berserker_thick_headed_bonus(struct char_data *ch);
+bool has_berserker_sprint(struct char_data *ch);
+bool has_berserker_intimidating_presence_2(struct char_data *ch);
+int get_berserker_crippling_blow_chance(struct char_data *ch);
+
 /* Perk command functions (step 7) */
 ACMD_DECL(do_perk);
 ACMD_DECL(do_myperks);
